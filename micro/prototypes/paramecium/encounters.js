@@ -46,6 +46,21 @@ export function createEncounters(scene, world, cell) {
     return n;
   }
 
+  /** Toxicysts: a spray of short threads from the proboscis tip toward the prey (the strike). */
+  function toxicysts(tip, toward, t) {
+    const A = threads.attrs;
+    for (let k = 0; k < 60; k++) {
+      const i = head; head = (head + 1) % CAP;
+      nrmW.set(toward.x + (Math.random() - 0.5) * 1.2, toward.y + (Math.random() - 0.5) * 1.2, toward.z + (Math.random() - 0.5) * 1.2).normalize();
+      A.iBase.array.set([tip.x, tip.y, tip.z], i * 3);
+      A.iNorm.array.set([nrmW.x, nrmW.y, nrmW.z], i * 3);
+      A.iDir.array.set([0, 0, 0], i * 3);
+      // toxicysts are ≈8–10 µm extrusomes; drawn 1.4 µm wide so they read
+      A.iP.array.set([8 + Math.random() * 14, 1.4, t + Math.random() * 0.15, KIND.THREAD], i * 4);
+    }
+    for (const a of Object.values(A)) a.needsUpdate = true;
+  }
+
   // --- Didinium ---
   const opts = { didinium: true, homing: true };
   function updateDidinia(dt, t, swimmer, ev) {
@@ -57,17 +72,18 @@ export function createEncounters(scene, world, cell) {
       d.sated = Math.max(0, (d.sated || 0) - dt);
       const toP = tmp.subVectors(s.center, d.pos);
       const dist = toP.length();
-      const canHunt = s.mode !== 'dead' && d.stun <= 0 && d.sated <= 0 && s.safeT <= 0;
+      // only a hungry Didinium hunts (main.js runs its hunger: shared/predation.js)
+      const canHunt = s.mode !== 'dead' && d.stun <= 0 && d.sated <= 0 && s.safeT <= 0 && d.hungry !== false;
       let desired = null, speed = 450;
-      if (s.captor === d && s.mode === 'captured') {
-        d.state = 'feeding'; speed = 0;
-        desired = toP.clone().normalize();
+      if (s.captor === d && (s.mode === 'captured' || s.mode === 'dead')) {
+        d.state = s.mode === 'dead' ? 'swallowing you' : 'feeding'; speed = 0;
+        desired = s.mode === 'dead' || dist < 1 ? d.dir : toP.clone().normalize();
       } else if (canHunt && dist < (opts.homing ? 480 : 0)) {
         // fast and nearly straight: a dash sideways makes it overshoot
         d.state = dist < 200 ? 'striking' : 'hunting'; speed = dist < 200 ? 1250 : 1050;
         desired = toP.clone().normalize();
       } else {
-        d.state = d.stun > 0 ? 'stunned' : d.sated > 0 ? 'sated' : 'wandering';
+        d.state = d.stun > 0 ? 'stunned' : d.sated > 0 ? 'sated' : d.hungry === false ? 'not hungry' : 'wandering';
         if (d.stun > 0) speed = 200;
         d.turnT -= dt;
         if (d.turnT <= 0) {
@@ -76,6 +92,7 @@ export function createEncounters(scene, world, cell) {
         }
         desired = d.wander || d.dir;
         // patrol: drift back toward the player's part of the drop so encounters keep coming
+        // (only while hungry: a calm or resting Didinium leaves you be)
         if (dist > 900 && d.state === 'wandering') desired = desired.clone().addScaledVector(tmp2.copy(toP).setY(0).normalize(), 0.8).normalize();
         if (d.stun > 0) desired = tmp2.subVectors(d.pos, s.center).normalize();
       }
@@ -128,6 +145,7 @@ export function createEncounters(scene, world, cell) {
     opts,
     threads,
     discharge,
+    toxicysts,
     update(dt, t, swimmer, ev) { updateDidinia(dt, t, swimmer, ev); },
     nearestThreat(p, within = 420) {
       let best = null, bd = within;

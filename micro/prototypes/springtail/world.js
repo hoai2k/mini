@@ -347,7 +347,7 @@ function buildSundews(group, rnd, sundewTex) {
       blade.scale.set(R, R, R);
       blade.rotation.set(0, -a, (rnd() - 0.5) * 0.15);
       group.add(blade);
-      const leaf = { x: cx, y: cy + 0.12 * R, z: cz, r: R, a, curl: 0, target: null, tent: [] };
+      const leaf = { x: cx, y: cy + 0.12 * R, z: cz, r: R, a, curl: 0, target: null, tent: [], blade, grip: 0, close: 0, closeW: 0 };
       // tentacles: rim ones long and splayed outward, inner ones short and upright
       const n = 90;
       for (let k = 0; k < n; k++) {
@@ -387,7 +387,11 @@ function buildSundews(group, rnd, sundewTex) {
       for (const l of leaves) if (Math.hypot(x - l.x, z - l.z) < l.r + 0.25 && y < l.y + 0.9 && y > l.y - 0.6) return l;
       return null;
     },
-    /** Curl the tentacles of a leaf toward a target (real: minutes; here seconds). */
+    /**
+     * Curl the tentacles of a leaf toward a target (real: minutes; here seconds).
+     * A leaf's `grip` (0..1, set during a capture) folds every tentacle over the
+     * target, and `close` (0..1) cups the blade round it.
+     */
     update(dt) {
       let i = 0;
       let dirty = false;
@@ -395,14 +399,20 @@ function buildSundews(group, rnd, sundewTex) {
         const goal = l.target ? 1 : 0;
         const before = l.curl;
         l.curl += (goal - l.curl) * Math.min(1, dt * (goal ? 0.35 : 0.6));
-        const active = Math.abs(l.curl - before) > 1e-5 || l.target;
+        const active = Math.abs(l.curl - before) > 1e-5 || l.target || l.grip > 0;
+        if (l.close !== l.closeW) {
+          const c = l.close;
+          l.blade.scale.set(l.r * (1 - 0.32 * c), l.r * (1 + 3.2 * c), l.r * (1 - 0.32 * c));
+          l.closeW = c;
+        }
         for (const t of l.tent) {
           if (active) {
             if (l.target) {
               want.subVectors(l.target, t.base);
               const d = want.length();
               want.normalize();
-              const w = Math.min(1, l.curl * 1.4) * Math.max(0, 1 - d / (l.r * 2.3));
+              let w = Math.min(1, l.curl * 1.4) * Math.max(0, 1 - d / (l.r * 2.3));
+              if (l.grip > 0) w = Math.max(w, l.grip * Math.max(0.45, 1 - d / (l.r * 2.8)));
               t.dir.copy(t.dir0).lerp(want, w).normalize();
             } else t.dir.copy(t.dir0).lerp(t.dir, l.curl).normalize();
             write(t, i);

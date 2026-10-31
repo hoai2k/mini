@@ -111,8 +111,7 @@ export function createSwimmer(cell, world) {
       s.dashT = Math.max(0, s.dashT - dt);
 
       if (s.mode === 'dead') {
-        s.deadT += dt;
-        if (s.deadT > 2.2) { respawn(); ev.respawned = true; }
+        s.deadT += dt; // being eaten: main.js plays the sequence and restarts the round
         frame();
         return;
       }
@@ -161,8 +160,8 @@ export function createSwimmer(cell, world) {
       } else if (s.mode === 'captured') {
         s.captureT += dt;
         s.reverse = Math.sin(t * 9) > 0 ? 1 : -1; // thrashing
-        if (inp.avoid || inp.struggle) s.captureT = Math.max(0, s.captureT - 0.4); // struggling buys a moment
-        if (s.captureT > (s.captor?.holdFor || 4)) { s.mode = 'dead'; s.deadT = 0; ev.eaten = s.captor?.kind || 'didinium'; if (s.captor) s.captor.sated = 14; }
+        // main.js runs the catch (strike, hold, eat) with shared/predation.js and
+        // sets captureT from it; struggling there buys a moment
       }
 
       // low Re: speed tracks the beat almost at once
@@ -283,6 +282,8 @@ export function createSwimmer(cell, world) {
       return away;
     },
     release() { if (s.mode === 'captured') { s.mode = 'swim'; s.captor = null; s.captureT = 0; s.safeT = 1; } },
+    /** The hold is over: the predator eats the cell (main.js animates it). */
+    eaten() { if (s.mode === 'captured') { s.mode = 'dead'; s.deadT = 0; } },
     capture(d) {
       if (s.mode === 'dead' || s.mode === 'captured' || s.safeT > 0) return false;
       s.mode = 'captured'; s.captor = d; s.captureT = 0; s.avoid = null;

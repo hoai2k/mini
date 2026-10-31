@@ -128,20 +128,34 @@ export function createProteus(scene, start = new THREE.Vector3(-760, 0, -520)) {
     const bear = Math.atan2(dz, dx);
     const alive = s.mode !== 'dead' && opts.on;
     const low = s.center.y < H0 * 2 + 150; // the arms reach about 150 µm up into the water
-    const hunting = alive && a.sated <= 0 && a.stun <= 0 && dist < SENSE;
+    // only a hungry amoeba hunts (main.js runs its hunger: shared/predation.js)
+    const hunting = alive && a.hungry !== false && a.sated <= 0 && a.stun <= 0 && dist < SENSE;
     const close = hunting && dist < R0 + 330 && low;
-    a.state = !opts.on ? 'off' : a.stun > 0 ? 'recoiling' : a.sated > 0 ? 'digesting' : close ? 'cupping' : hunting ? 'creeping toward you' : 'creeping';
+    const held = s.captor === a && (s.mode === 'captured' || s.mode === 'dead');
+    a.state = !opts.on ? 'off' : held ? (s.mode === 'dead' ? 'engulfing you' : 'closing the cup') : a.stun > 0 ? 'recoiling' : a.sated > 0 ? 'digesting' : close ? 'cupping' : hunting ? 'creeping toward you' : a.hungry === false ? 'creeping (not hungry)' : 'creeping';
 
     // creep: toward the player when it senses it, otherwise wander
-    if (hunting) a.heading += angleWrap(bear - a.heading) * Math.min(1, dt * 0.6);
+    if (held) { /* it holds still while it closes round you */ } else if (hunting) a.heading += angleWrap(bear - a.heading) * Math.min(1, dt * 0.6);
     else a.heading += Math.sin(t * 0.13) * dt * 0.15;
-    const v = a.stun > 0 ? -25 : a.sated > 0 ? 6 : CREEP;
+    const v = held ? 0 : a.stun > 0 ? -25 : a.sated > 0 ? 6 : CREEP;
     a.pos.x += Math.cos(a.heading) * v * dt; a.pos.z += Math.sin(a.heading) * v * dt;
     const rr = Math.hypot(a.pos.x, a.pos.z);
     if (rr > DROP_R - R0 - 200) { a.pos.x *= (DROP_R - R0 - 200) / rr; a.pos.z *= (DROP_R - R0 - 200) / rr; a.heading += Math.PI * dt; }
 
     // pseudopods: two arms flank the cell when cupping; otherwise a leading lobe and side lobes
-    if (close) {
+    if (held && s.mode === 'captured') {
+      // the catch: both arms sweep over you and their tips meet beyond you (main.js sets a.wrap 0..1)
+      const w = a.wrap ?? 1;
+      pods[0].role = pods[1].role = 'arm';
+      pods[0].a += angleWrap(bear + 0.55 * (1 - w) + 0.05 - pods[0].a) * Math.min(1, dt * 6);
+      pods[1].a += angleWrap(bear - 0.55 * (1 - w) - 0.05 - pods[1].a) * Math.min(1, dt * 6);
+      pods[0].target = pods[1].target = Math.min(360, dist - R0 + 70 + 40 * w);
+      pods[0].w = pods[1].w = 0.3 + 0.12 * w;
+      pods[2].target = 15; pods[3].target = 15;
+    } else if (held) {
+      // eating: the arms flow back into the body round the new vacuole
+      for (const p of pods) { p.target = 30; p.w += (0.5 - p.w) * Math.min(1, dt); }
+    } else if (close) {
       const reachTo = Math.min(330, dist - R0 + 60);
       pods[0].role = pods[1].role = 'arm';
       pods[0].a += angleWrap(bear + 0.5 - a.cup * 0.32 - pods[0].a) * Math.min(1, dt * 2.5);
@@ -157,7 +171,8 @@ export function createProteus(scene, start = new THREE.Vector3(-760, 0, -520)) {
       pods[3].a += angleWrap(a.heading + Math.PI - pods[3].a) * Math.min(1, dt * 0.5); pods[3].target = 10;
       for (const p of pods) p.w += (0.45 - p.w) * Math.min(1, dt);
     }
-    for (const p of pods) p.len += Math.max(-REACH_V * dt, Math.min(REACH_V * dt, p.target - p.len));
+    const rv = held ? REACH_V * 2.5 : REACH_V;
+    for (const p of pods) p.len += Math.max(-rv * dt, Math.min(rv * dt, p.target - p.len));
 
     // the cup: between the arms, inside their reach, low enough
     let inside = false;

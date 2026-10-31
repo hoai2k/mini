@@ -88,12 +88,26 @@ export function createStenus(scene) {
   const lab = new THREE.Mesh(labGeo, litMaterial({ surface: `s.albedo = mix(vec3(0.12, 0.06, 0.04), vec3(0.55, 0.35, 0.25), smoothstep(0.85, 0.95, vLocal.x)); s.rough = mix(0.4, 0.05, smoothstep(0.85, 0.95, vLocal.x)); s.f0 = 0.04;` }));
   lab.frustumCulled = false;
   group.add(lab);
+  // mandibles: a pair of curved, toothed blades either side of the mouth that
+  // open while the labium is out and work at the prey while it is eaten
+  const mandMat = litMaterial({ surface: 's.albedo = vec3(0.09, 0.04, 0.02); s.rough = 0.25; s.f0 = 0.06; s.sheen = 0.2;' });
+  const mands = [-1, 1].map((s) => {
+    const m = new THREE.Mesh(buildSdfMesh([
+      { id: 0, sdf: sd.roundCone([0, 0, 0], [0.3, -0.02, s * 0.04], 0.07, 0.045) },
+      { id: 0, sdf: sd.roundCone([0.3, -0.02, s * 0.04], [0.42, -0.04, -s * 0.1], 0.045, 0.018), blend: 0.03 },
+      { id: 0, sdf: sd.sphere([0.22, -0.03, -s * 0.02], 0.035), blend: 0.02 },
+    ], { min: [-0.1, -0.14, -0.2], max: [0.5, 0.1, 0.2], cell: 0.012 }), mandMat);
+    m.frustumCulled = false;
+    m.position.set(2.2, 0.46, s * 0.15);
+    group.add(m);
+    return m;
+  });
   scene.add(group);
   const bones = mat.uniforms.uBones.value;
 
   const st = {
     x: -18, z: 8, a: 0.3, v: 0, state: 'patrol', t: 0, reach: 2.2, ext: 0, skimCool: 0, gait: 0, wp: 0, seen: 0,
-    alert: 0, hit: false, tailDown: 0, windup: 0, enabled: true, ox: 0, oz: 0,
+    alert: 0, hit: false, tailDown: 0, windup: 0, enabled: true, ox: 0, oz: 0, chew: 0, lift: 0,
   };
   const ROUTE = [[-18, 8], [-4, 14], [10, 14], [22, -2], [8, -18], [-12, -16], [-24, -2]];
   const hips = [[1.45, 0.48, 0.22], [1.1, 0.45, 0.28], [0.75, 0.45, 0.3]];
@@ -104,8 +118,11 @@ export function createStenus(scene) {
   function labTip() { return new THREE.Vector3(st.x + Math.cos(st.a) * (2.1 + st.ext * st.reach), 0.25, st.z + Math.sin(st.a) * (2.1 + st.ext * st.reach)); }
 
   /**
-   * ctx: { dt, player: {x, y, z, airborne, hunker, moving, alive}, field, inPool }
-   * Returns events: 'skim', 'windup', 'strike', 'caught'.
+   * ctx: { dt, player: {x, y, z, airborne, hunker, moving, alive}, field, inPool, hungry }
+   * Only a hungry beetle (ctx.hungry, see shared/predation.js) notices prey;
+   * a resting one patrols past you. Returns events: 'spotted', 'skim',
+   * 'windup', 'strike', 'caught', 'miss' (a strike that found nothing), 'sated'
+   * (hunger passed mid-stalk).
    */
   function update(dt, ctx) {
     const ev = [];
@@ -117,7 +134,8 @@ export function createStenus(scene) {
     const toP = Math.atan2(dz, dx);
     const ang = Math.abs(wrapAngle(toP - st.a));
     const headD = dist - 2.35;
-    const canSee = st.enabled && P.alive && dist < 17 && ang < 1.3 && (P.moving || dist < 8) && P.y < 3;
+    const hungry = ctx.hungry !== false;
+    const canSee = hungry && st.enabled && P.alive && dist < 17 && ang < 1.3 && (P.moving || dist < 8) && P.y < 3;
     if (canSee) st.seen = 1.5; else st.seen = Math.max(0, st.seen - dt);
     let targetA = st.a, targetV = 0;
     switch (st.state) {
@@ -131,6 +149,7 @@ export function createStenus(scene) {
       }
       case 'stalk': {
         targetA = toP; targetV = 7;
+        if (!hungry) { st.state = 'patrol'; st.seen = 0; ev.push('sated'); break; }
         if (st.seen <= 0) { st.state = 'patrol'; break; }
         if (headD > 4.5 && st.skimCool <= 0 && ang < 0.35) { st.state = 'skim'; st.t = 0; ev.push('skim'); }
         else if (headD < st.reach * 0.85 && !P.airborne) { st.state = 'windup'; st.t = 0; ev.push('windup'); }
@@ -165,7 +184,7 @@ export function createStenus(scene) {
           const d = Math.hypot(tip.x - P.x, tip.z - P.z);
           if (d < 0.55 && P.y < 0.9 && P.alive) { st.hit = true; ev.push('caught'); }
         }
-        if (st.t > 0.42) { st.state = 'recover'; st.t = 0; st.windup = 0; st.ext = 0; }
+        if (st.t > 0.42) { if (!st.hit) ev.push('miss'); st.state = 'recover'; st.t = 0; st.windup = 0; st.ext = 0; }
         break;
       }
       case 'recover': {
@@ -173,10 +192,13 @@ export function createStenus(scene) {
         if (st.t > 1.6) { st.state = st.seen > 0 ? 'stalk' : 'patrol'; st.t = 0; }
         break;
       }
-      case 'hold': targetV = 0; st.ext = 0.35; break;
+      case 'capture': targetV = 0; st.v *= Math.exp(-dt * 10); break; // posed by captureStep
     }
-    if (st.state !== 'strike' && st.state !== 'hold') st.ext = Math.max(0, st.ext - dt * 4);
+    if (st.state === 'capture') { pose(); return ev; }
+    if (st.state !== 'strike') st.ext = Math.max(0, st.ext - dt * 4);
     if (st.state !== 'windup' && st.state !== 'strike') st.windup = Math.max(0, st.windup - dt * 3);
+    st.chew = Math.max(st.ext > 0.3 ? 0.8 : 0, st.chew - dt * 3);
+    st.lift = Math.max(0, st.lift - dt * 2);
     // steer and move
     const turn = st.state === 'skim' ? 2.5 : 3.5;
     st.a += Math.max(-turn * dt, Math.min(turn * dt, wrapAngle(targetA - st.a)));
@@ -196,7 +218,9 @@ export function createStenus(scene) {
     group.rotation.set(0, -st.a, 0);
     group.updateMatrixWorld(true);
     // head and thorax dip in the wind-up
-    bones[0].makeRotationZ(-st.windup * 0.12);
+    bones[0].makeRotationZ(-st.windup * 0.12 + st.lift * 0.1);
+    // mandibles open (chew 1) and close (0) about their bases
+    mands.forEach((m, k) => { const s = k ? 1 : -1; m.rotation.set(0, -s * (st.chew * 0.75 - 0.15), 0); m.position.y = 0.46 - st.windup * 0.06 + st.lift * 0.08; });
     // abdomen: tail down onto the film while skimming, raised otherwise
     tmpM.makeTranslation(pivot.x, pivot.y, pivot.z);
     tmpM.multiply(new THREE.Matrix4().makeRotationZ(0.12 - st.tailDown * 0.32)).multiply(new THREE.Matrix4().makeTranslation(-pivot.x, -pivot.y, -pivot.z));
@@ -235,9 +259,75 @@ export function createStenus(scene) {
       return c;
     },
     setVisible(v) { group.visible = v; legs.im.visible = v; },
-    reset() { Object.assign(st, { x: -18, z: 8, a: 0.3, v: 0, state: 'patrol', t: 0, ext: 0, skimCool: 2, wp: 0, seen: 0, windup: 0, ox: 0, oz: 0 }); pose(); },
+    /**
+     * Drive the catch (shared/predation.js createCapture phases) and return the
+     * springtail's pose for it: { x, y, z, heading, pitch, roll, scale, flail }.
+     * prey: { x0, z0, h0 } where it was caught. The labium shoots out and sticks
+     * (strike), reels the struggling springtail in (hold), then the mandibles
+     * work while it is drawn into the mouth (eat), and the beetle chews (eaten).
+     */
+    captureStep(phase, u, dt, prey) {
+      st.state = 'capture'; st.v = 0; st.t += dt;
+      const T = st.t, fx = Math.cos(st.a), fz = Math.sin(st.a);
+      const ease = (x) => x * x * (3 - 2 * x);
+      const d0 = Math.max(2.4, Math.hypot(prey.x0 - st.x, prey.z0 - st.z));
+      const reach = d0 - 2.1 - 0.3; // labium length that puts the pads on the springtail's side
+      // keep facing the prey while it is held out on the labium
+      if (phase === 'strike' || phase === 'hold') st.a += wrapAngle(Math.atan2(prey.z0 - st.z, prey.x0 - st.x) - st.a) * Math.min(1, dt * 8);
+      let len = 0;
+      const out = { x: prey.x0, y: 0, z: prey.z0, heading: prey.h0, pitch: 0, roll: 0, scale: 1, flail: 1 };
+      if (phase === 'strike') {
+        const k = Math.min(1, u / 0.3);
+        len = reach * ease(k);
+        st.windup = 1 - 0.5 * k; st.chew = 0.4 + 0.6 * k; st.lift = 0;
+        // the pads hit: a jolt along the strike
+        const j = k >= 1 ? Math.sin(Math.min(1, (u - 0.3) / 0.3) * Math.PI) * 0.18 : 0;
+        out.x += fx * j; out.z += fz * j;
+        out.roll = Math.sin(T * 21) * 0.35 * (k >= 1 ? 1 : 0);
+        out.heading = prey.h0 + Math.sin(T * 17) * 0.25 * (k >= 1 ? 1 : 0);
+      } else if (phase === 'hold') {
+        const e = ease(u);
+        len = reach * (1 - e) + 0.15 * e;
+        st.windup = 0.5 * (1 - e); st.lift = e; st.chew = 0.85 + 0.15 * Math.sin(T * 9);
+        const tip = 2.1 + len;
+        out.x = st.x + fx * (tip + 0.3); out.z = st.z + fz * (tip + 0.3);
+        out.y = 0.05 + 0.28 * e;
+        // struggling on the end of the labium: twisting, rolling, legs and antennae flailing
+        out.heading = prey.h0 + Math.sin(T * 13) * 0.5 + wrapAngle(st.a + Math.PI - prey.h0) * e * 0.6;
+        out.roll = Math.sin(T * 19) * 0.6;
+        out.pitch = Math.sin(T * 11 + 1) * 0.25;
+      } else if (phase === 'eat') {
+        const e = ease(u);
+        len = 0.15 * (1 - u);
+        st.windup = 0; st.lift = 1;
+        // the mandibles slice in a fast rhythm, the springtail shrinks into the mouth head first
+        st.chew = 0.5 + 0.5 * Math.sin(T * 15);
+        const s = 1 - 0.94 * e;
+        const mx = st.x + fx * 2.55, mz = st.z + fz * 2.55;
+        out.scale = s;
+        out.heading = st.a + Math.PI;
+        out.x = mx + fx * 0.72 * s; out.z = mz + fz * 0.72 * s;
+        out.y = 0.33 + 0.05 * (1 - e) + Math.sin(T * 15) * 0.03 * s;
+        out.pitch = 0.25 * (1 - e) + Math.sin(T * 15) * 0.08;
+        out.roll = Math.sin(T * 9) * 0.3 * (1 - u);
+        out.flail = 1 - 0.8 * u;
+      } else {
+        // eaten: a few slow chews, then still
+        st.lift = Math.max(0, st.lift - dt * 0.5);
+        st.chew = 0.5 + 0.5 * Math.sin(T * 6) * Math.max(0, 1 - u * 0.4);
+        out.scale = 0; out.flail = 0;
+      }
+      st.ext = len / st.reach;
+      pose();
+      return out;
+    },
+    /** Where the beetle's mouth is (for the camera). */
+    mouthPos() { return new THREE.Vector3(st.x + Math.cos(st.a) * 2.5, 0.4, st.z + Math.sin(st.a) * 2.5); },
+    reset() { Object.assign(st, { x: -18, z: 8, a: 0.3, v: 0, state: 'patrol', t: 0, ext: 0, skimCool: 2, wp: 0, seen: 0, windup: 0, ox: 0, oz: 0, chew: 0, lift: 0 }); pose(); },
     /** Move the patrol route (and the beetle, unseen) so it centres on (x, z). */
-    relocate(x, z) { Object.assign(st, { ox: x, oz: z, x: ROUTE[0][0] + x, z: ROUTE[0][1] + z, wp: 1, state: 'patrol', t: 0, skimCool: 2, seen: 0, windup: 0, ext: 0 }); pose(); },
+    relocate(x, z) { Object.assign(st, { ox: x, oz: z, x: ROUTE[0][0] + x, z: ROUTE[0][1] + z, wp: 1, state: 'patrol', t: 0, skimCool: 2, seen: 0, windup: 0, ext: 0, chew: 0, lift: 0 }); pose(); },
+    /** Where relocate(x, z) would put the beetle. */
+    startFor(x, z) { return { x: ROUTE[0][0] + x, z: ROUTE[0][1] + z }; },
   };
 }
 
@@ -267,7 +357,7 @@ export function createStrider(scene) {
   const legMat = litMaterial({ surface: 's.albedo = vec3(0.07, 0.05, 0.035); s.rough = 0.5; s.sheen = 0.4; s.sheenCol = vec3(0.5);' });
   const legs = segments(18, legMat);
   scene.add(legs.im);
-  const st = { x: 22, z: 12, a: Math.PI, v: 0, vx: 0, vz: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0, t: 0, enabled: true, grab: 0, hx: 0, hz: 0 };
+  const st = { x: 22, z: 12, a: Math.PI, v: 0, vx: 0, vz: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0, t: 0, enabled: true, grab: 0, grabL: [4.6, 0.25, 0.3], bob: 0, hx: 0, hz: 0 };
   const L = {
     fore: { hip: [2.9, 0.75, 0.35], knee: [3.9, 1.7, 1.3], foot: [5.0, 0.4, 1.4] },
     mid: { hip: [1.2, 0.7, 0.5], knee: [2.4, 3.2, 5.0], foot: [-0.5, 0, 10.0], tip: [-4.5, 0, 11.0] },
@@ -277,7 +367,7 @@ export function createStrider(scene) {
   const W = (p, s) => new THREE.Vector3(p[0], p[1], s * p[2]).applyMatrix4(group.matrixWorld);
 
   function pose() {
-    group.position.set(st.x, 0, st.z);
+    group.position.set(st.x, st.bob, st.z);
     group.rotation.set(0, -st.a, 0);
     group.updateMatrixWorld(true);
     contacts.length = 0;
@@ -290,6 +380,8 @@ export function createStrider(scene) {
       for (const name of ['fore', 'mid', 'hind']) {
         const l = L[name];
         let foot = l.foot, tip = l.tip;
+        // the forelegs (raptorial) close on prey
+        if (name === 'fore' && st.grab > 0) foot = l.foot.map((v, j) => v + (st.grabL[j] - v) * st.grab);
         if (name === 'mid') {
           const up = lifted ? 0.6 : 0;
           foot = [l.foot[0] - sweep * 3, up, l.foot[2]];
@@ -309,17 +401,25 @@ export function createStrider(scene) {
   }
   pose();
 
-  /** ctx: { dt, player, field, inPool, ripples: [{x, z, strength}] } */
+  /**
+   * ctx: { dt, player, field, inPool, ripples: [{x, z, strength}], hungry }
+   * Only a hungry strider (shared/predation.js) answers ripples or grabs;
+   * a resting one rows idly about its home water. Events: 'heard', 'stroke',
+   * 'caught', 'lost' (gave up a hunt).
+   */
   function update(dt, ctx) {
     const ev = [];
     st.t += dt;
     if (!st.enabled) return ev;
-    for (const r of ctx.ripples) {
+    if (st.state === 'capture') { st.v = 0; pose(); return ev; }
+    const hungry = ctx.hungry !== false;
+    if (!hungry && st.state === 'hunt') { st.state = 'idle'; st.target = null; st.interest = 0; ev.push('lost'); }
+    if (hungry) for (const r of ctx.ripples) {
       const d = Math.hypot(r.x - st.x, r.z - st.z);
       if (d < 22 * r.strength && ctx.player.alive) { st.target = { x: r.x, z: r.z }; st.interest = 4; st.state = 'hunt'; ev.push('heard'); }
     }
     st.interest -= dt;
-    if (st.interest <= 0 && st.state === 'hunt') { st.state = 'idle'; st.target = null; }
+    if (st.interest <= 0 && st.state === 'hunt') { st.state = 'idle'; st.target = null; ev.push('lost'); }
     const P = ctx.player;
     let goal = null;
     if (st.state === 'hunt') {
@@ -355,14 +455,59 @@ export function createStrider(scene) {
     if (ctx.inPool(nx, nz)) { st.x = nx; st.z = nz; } else { st.v *= 0.3; st.a += Math.PI * dt; }
     // grab with the forelegs
     const hx = st.x + Math.cos(st.a) * 4.6, hz = st.z + Math.sin(st.a) * 4.6;
-    if (P.alive && !P.airborne && !(P.hunker && !P.moving) && Math.hypot(P.x - hx, P.z - hz) < 1.2) ev.push('caught');
+    if (hungry && P.alive && !P.airborne && !(P.hunker && !P.moving) && Math.hypot(P.x - hx, P.z - hz) < 1.2) ev.push('caught');
     pose();
     return ev;
   }
   return {
     st, group, update, contacts: () => contacts,
     setVisible(v) { group.visible = v; legs.im.visible = v; },
-    reset() { Object.assign(st, { x: 22, z: 12, a: Math.PI, v: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0, hx: 0, hz: 0 }); pose(); },
+    reset() { Object.assign(st, { x: 22, z: 12, a: Math.PI, v: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0, hx: 0, hz: 0, grab: 0, bob: 0 }); pose(); },
+    /**
+     * Drive the catch and return the springtail's pose (see Stenus.captureStep).
+     * The raptorial forelegs snap shut on it (strike), lift it, kicking, to the
+     * rostrum (hold), the rostrum pierces and sucks it dry while the strider
+     * pumps (eat), and drops the empty husk (eaten).
+     */
+    captureStep(phase, u, dt, prey) {
+      st.state = 'capture'; st.v = 0; st.t += dt;
+      const T = st.t, ease = (x) => x * x * (3 - 2 * x);
+      const L = (x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(group.matrixWorld);
+      const ta = Math.atan2(prey.z0 - st.z, prey.x0 - st.x);
+      if (phase === 'strike') st.a += wrapAngle(ta - st.a) * Math.min(1, dt * 10);
+      const out = { x: prey.x0, y: 0, z: prey.z0, heading: prey.h0, pitch: 0, roll: 0, scale: 1, sy: 1, flail: 1 };
+      let at = null;
+      if (phase === 'strike') {
+        const k = ease(Math.min(1, u / 0.5));
+        st.grab = k; st.grabL = [4.6, 0.2, 0.3]; st.bob = 0;
+        pose();
+        const g = L(4.6, 0.12, 0);
+        out.x = prey.x0 + (g.x - prey.x0) * k; out.z = prey.z0 + (g.z - prey.z0) * k; out.y = 0.1 * k;
+        out.roll = Math.sin(T * 20) * 0.4 * k;
+      } else if (phase === 'hold') {
+        const e = ease(u);
+        at = [4.6 - 0.1 * e, 0.12 + 0.18 * e, 0];
+        st.grab = 1; st.grabL = [at[0], at[1] + 0.08, 0.28]; st.bob = 0.05 * e;
+        out.heading = st.a + Math.PI / 2 + Math.sin(T * 12) * 0.5;
+        out.roll = Math.sin(T * 18) * 0.7; out.pitch = Math.sin(T * 10) * 0.3;
+      } else if (phase === 'eat') {
+        // impaled on the rostrum tip and sucked dry: it shrivels and goes still
+        const e = ease(u);
+        at = [4.5, 0.3, 0];
+        st.grab = 1; st.grabL = [4.5, 0.38, 0.26]; st.bob = 0.05 + Math.sin(T * 7) * 0.035;
+        out.heading = st.a + Math.PI / 2; out.pitch = 0.2;
+        out.scale = 1 - 0.45 * e; out.sy = 1 - 0.55 * e;
+        out.roll = Math.sin(T * 14) * 0.25 * (1 - u);
+        out.flail = 1 - u;
+      } else {
+        st.grab = Math.max(0, st.grab - dt * 1.5); st.bob *= Math.exp(-dt * 3);
+        out.scale = 0; out.flail = 0;
+      }
+      pose();
+      if (at) { const p = L(...at); out.x = p.x; out.y = p.y - 0.25 * out.scale; out.z = p.z; }
+      return out;
+    },
+    mouthPos() { return new THREE.Vector3(st.x + Math.cos(st.a) * 4.3, 0.5, st.z + Math.sin(st.a) * 4.3); },
     /** Move the strider (unseen) to (x, z) and make that its home water. */
     relocate(x, z) { Object.assign(st, { x, z, hx: x, hz: z, v: 0, state: 'idle', target: null, interest: 0 }); pose(); },
   };
@@ -399,6 +544,8 @@ export function createRain(scene) {
   };
   const api = {
     drops, every: 7, timer: 4, enabled: true, R: 1.6, setSprite,
+    /** During the calm opening drops land around you, not on you. */
+    calm: false,
     /** Schedule a drop at x, z; it lands after `warn` seconds. */
     spawn(x, z, warn = 1.6) {
       const m = new THREE.Mesh(dropGeo, dropMat);
@@ -415,7 +562,7 @@ export function createRain(scene) {
         if (api.timer <= 0) {
           api.timer = api.every * (0.6 + Math.random() * 0.8);
           const P = ctx.player;
-          const a = Math.random() * Math.PI * 2, r = 1 + Math.random() * 6;
+          const a = Math.random() * Math.PI * 2, r = api.calm ? 9 + Math.random() * 10 : 1 + Math.random() * 6;
           api.spawn(P.x + Math.cos(a) * r + (P.vx || 0) * 0.8, P.z + Math.sin(a) * r + (P.vz || 0) * 0.8);
         }
       }

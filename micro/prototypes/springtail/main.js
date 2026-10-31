@@ -13,6 +13,7 @@ import { RippleField, Dimples, waterMaterial, waterGeometry, peatFloorTexture } 
 import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHORE_GLSL, BANK_E } from './world.js';
 import { createSpringtail } from './springtail.js';
 import { createStenus, createStrider, createRain } from './enemies.js';
+import { createHunger, createCapture } from '../shared/predation.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
@@ -60,6 +61,7 @@ const pl = {
   x: START.x, z: START.z, y: 0, vx: 0, vz: 0, heading: Math.PI / 2, mode: 'film',
   charge: 0, charging: false, cock: 1, hunker: 0, eatT: 0, flipT: 0, roll: 0, pitch: 0, bend: 0, furc: 0,
   air: null, leaf: null, struggle: 0, deadT: 0, cause: '', walk: 0, lives: 3, food: 0, moved: 0, landPulse: 0, onIsland: false,
+  scale: 1, sy: 1, flailK: 0,
 };
 const GOAL = 8;
 const game = { phase: 'title', t: 0, wonT: 0 };
@@ -98,6 +100,8 @@ css.textContent = `
 .st-card > div { max-width: min(460px, calc(100vw - 32px)); background: rgba(10,12,16,.72); backdrop-filter: blur(6px); color: #eef1f4; border-radius: 14px; padding: 16px 18px; font: 14px/1.45 system-ui, sans-serif; text-align: center; }
 .st-card h2 { margin: 0 0 6px; font-size: 18px; } .st-card p { margin: 4px 0; color: #c5ccd3; } .st-card img { width: 100%; border-radius: 10px; margin-bottom: 8px; display: none; }
 .st-card.hide { opacity: 0; }
+.st-status .threat { font-weight: 500; color: #a9b2bc; } .st-status .threat.hot { color: #ffb38a; font-weight: 700; }
+.st-status.caught { background: rgba(120,24,16,.72); }
 `;
 document.head.appendChild(css);
 const bar = document.createElement('div');
@@ -105,7 +109,7 @@ bar.className = 'st-bar';
 bar.innerHTML = '<div class="rule"></div><div class="lab"></div><div class="opt"></div>';
 const status = document.createElement('div');
 status.className = 'st-status';
-status.innerHTML = '<span class="food"></span><span class="lives"></span><span class="furc">Furcula</span><span class="st-meter"><i></i></span>';
+status.innerHTML = '<span class="food"></span><span class="lives"></span><span class="furc">Furcula</span><span class="st-meter"><i></i></span><span class="threat"></span>';
 const card = document.createElement('div');
 card.className = 'st-card';
 card.innerHTML = '<div><img alt=""><h2>Level 0 · Bog surface</h2><p>You are a water springtail, 1.5 mm long, standing on the surface film of a bog pool.</p><p>Graze the pollen, spores and algae floating on the water (X). Spring away with your furcula (hold and release A). Hunker (B) when ripples come.</p><p>Beware the rove beetle <i>Stenus</i> and its harpoon, the sundews\' glue, the water strider, and the rain.</p><p><b>Press A to start</b></p></div>';
@@ -157,19 +161,36 @@ function landingPoint() {
   return null;
 }
 function placeCamera(dt) {
-  const L = (rig.lens = lens({ hfw: 36 / ZOOMS[rig.zi], N: APERTURES[rig.ai] }));
+  // while a predator has you, the lens widens (or closes in) to frame you and
+  // it together, and swings side-on to the catch
+  const capOn = capture.active && cap.kind;
+  const hfwWant = capOn ? CAP_VIEW[cap.kind].hfw : 36 / ZOOMS[rig.zi];
+  rig.hfw = rig.hfw === undefined || !dt ? hfwWant : rig.hfw + (hfwWant - rig.hfw) * (1 - Math.exp(-dt * 3));
+  const L = (rig.lens = lens({ hfw: rig.hfw, N: APERTURES[rig.ai] }));
   const want = new THREE.Vector3(pl.x, pl.y + 0.25, pl.z);
   // frame a little toward where a jump will land
-  const land = opt.jumpFocus ? landingPoint() : null;
+  const land = opt.jumpFocus && !capOn ? landingPoint() : null;
   rig.aim = land;
   const frameAt = want.clone();
+  let capSpan = 0;
+  if (capOn) {
+    const m = capMouth();
+    if (cap.kind !== 'sundew') {
+      capSpan = m.distanceTo(cap.mid.set(cap.x0, 0.25, cap.z0));
+      frameAt.copy(m).add(cap.mid).multiplyScalar(0.5);
+      const ax = Math.atan2(m.z - cap.z0, m.x - cap.x0);
+      const side = Math.abs(wrapA(ax + Math.PI / 2 - rig.yaw)) < Math.abs(wrapA(ax - Math.PI / 2 - rig.yaw)) ? ax + Math.PI / 2 : ax - Math.PI / 2;
+      rig.yaw += wrapA(side - rig.yaw) * (dt ? 1 - Math.exp(-dt * 2) : 1);
+    } else frameAt.set(cap.x0, cap.y0 + 0.3, cap.z0);
+  }
   // in a leap, frame low enough that the shadow below stays in the picture
   if (pl.mode === 'air') { const gy = groundAt(pl.x, pl.z).y; frameAt.y = gy + 0.25 + (pl.y - gy) * 0.35; }
   if (land) frameAt.lerp(new THREE.Vector3(land.x, land.y + 0.25, land.z), 0.3);
   const k = dt ? 1 - Math.exp(-dt * (pl.mode === 'air' ? 3.5 : 6)) : 1;
   rig.target.lerp(frameAt, k);
   rig.wantPitch = THREE.MathUtils.clamp(rig.wantPitch, PITCH_MIN, PITCH_MAX);
-  rig.pitch += (rig.wantPitch - rig.pitch) * (dt ? 1 - Math.exp(-dt * 5) : 1);
+  const pitchWant = capOn ? CAP_VIEW[cap.kind].pitch : rig.wantPitch;
+  rig.pitch += (pitchWant - rig.pitch) * (dt ? 1 - Math.exp(-dt * (capOn ? 2.5 : 5)) : 1);
   const cp = Math.cos(rig.pitch);
   camera.position.set(rig.target.x + Math.cos(rig.yaw) * cp * L.s, rig.target.y + Math.sin(rig.pitch) * L.s, rig.target.z + Math.sin(rig.yaw) * cp * L.s);
   camera.up.set(0, 1, 0);
@@ -183,8 +204,10 @@ function placeCamera(dt) {
   // the water sheet follows the camera's aim, snapped to whole ripple cells
   world.sky.position.copy(camera.position);
   water.position.set(Math.round(rig.target.x / field.dx) * field.dx, 0, Math.round(rig.target.z / field.dx) * field.dx);
-  let focusD = opt.autofocus ? camera.position.distanceTo(want) : L.s;
+  let focusD = opt.autofocus ? camera.position.distanceTo(capOn ? frameAt : want) : L.s;
   let wantK = 1;
+  // keep both the predator and you sharp
+  if (capOn) { focusD = camera.position.distanceTo(frameAt); wantK = THREE.MathUtils.clamp((capSpan + 1.5) / L.dof, 1, 14); }
   if (opt.autofocus && land) {
     // focus between the springtail and its landing spot, and stop down (in
     // effect) until both lie inside the depth of field
@@ -210,6 +233,84 @@ function resize() {
 }
 addEventListener('resize', resize);
 resize();
+
+// ---------------------------------------------------------------- threats: pacing and being eaten
+// shared/predation.js: a calm opening, then hunger that comes and goes. Only a
+// hungry Stenus stalks and strikes, only a hungry strider answers ripples and
+// grabs; a resting one patrols or rows about. Every catch plays out on screen
+// (strike, hold, eat, then the Eaten card).
+const pace = { grace: 45, mode: 'Comes and goes' };
+const hunger = { stenus: createHunger({ grace: pace.grace }), strider: createHunger({ grace: pace.grace + 15 }) };
+const isHungry = (h) => (pace.mode === 'Never' ? false : pace.mode === 'Always' ? h.state !== 'grace' : h.hungry);
+function resetHunger() { hunger.stenus.reset(pace.grace); hunger.strider.reset(pace.grace + 15); }
+const cap = { kind: null, x0: 0, y0: 0, z0: 0, h0: 0, leaf: null, phase: null, mid: new THREE.Vector3() };
+// how close the lens frames each catch (field width, mm) and from how high
+const CAP_VIEW = { stenus: { hfw: 11, pitch: 0.42 }, strider: { hfw: 15, pitch: 0.5 }, sundew: { hfw: 7, pitch: 0.75 } };
+const CAP_TEXT = {
+  stenus: { by: 'Stenus', how: 'harpooned you with its sticky labium, reeled you in and ate you',
+    phases: { strike: 'Harpooned by Stenus!', hold: 'Reeled in…', eat: 'Stenus is eating you', eaten: 'Eaten' } },
+  strider: { by: 'The water strider', how: 'seized you in its forelegs and sucked you dry',
+    phases: { strike: 'Grabbed by a strider!', hold: 'Lifted to its beak…', eat: 'Being sucked dry', eaten: 'Eaten' } },
+  sundew: { by: 'The sundew', how: 'wrapped you in its tentacles and closed its leaf over you',
+    phases: { strike: 'The tentacles close!', hold: 'Wrapped in glue…', eat: 'The leaf folds over you', eaten: 'Digested' } },
+};
+const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+const capture = createCapture({ onRestart: () => { if (pl.lives > 0) respawn(); else newGame(); } });
+/** The predator's mouth (or the trapped spot on a sundew) for the camera. */
+function capMouth() {
+  if (cap.kind === 'stenus') return stenus.mouthPos();
+  if (cap.kind === 'strider') return strider.mouthPos();
+  return new THREE.Vector3(cap.x0, cap.y0, cap.z0);
+}
+/** A predator has you: control stops, and the whole catch is shown. */
+function caught(kind) {
+  if (capture.active || pl.mode === 'dead' || game.phase !== 'play') return;
+  const P = pl;
+  P.lives--;
+  Object.assign(cap, { kind, x0: P.x, y0: P.y, z0: P.z, h0: P.heading, leaf: P.leaf, phase: null });
+  P.mode = 'caught'; P.air = null; P.charging = false; P.charge = 0; P.vx = P.vz = 0; P.hunker = 0; P.eatT = 0;
+  if (kind !== 'sundew') { P.pitch = 0; P.roll = 0; P.bend = 0; }
+  if (hunger[kind]) hunger[kind].fed();
+  const t = CAP_TEXT[kind];
+  const left = P.lives > 0 ? `. ${P.lives} li${P.lives === 1 ? 'fe' : 'ves'} left` : `. No lives left (you ate ${P.food} clump${P.food === 1 ? '' : 's'}): A starts a new game`;
+  capture.start({ by: t.by, how: t.how + left });
+  hud.toast(t.phases.strike, 1500);
+  rumble(450, 0.8, 1);
+}
+/** Pose the springtail and its captor for the current phase. */
+function animateCapture(c, dt) {
+  const P = pl;
+  if (c.phase !== cap.phase) {
+    cap.phase = c.phase;
+    if (c.phase === 'hold') { rumble(300, 0.5, 0.7); if (cap.kind === 'strider') audio.play('springtail/raindrop', { volume: 0.25, rate: 1.8 }); }
+    if (c.phase === 'eat') { audio.play('springtail/eat', { volume: 1, rate: cap.kind === 'stenus' ? 0.7 : 0.55 }); rumble(600, 0.6, 0.3); }
+    if (c.phase === 'eaten') audio.play('springtail/eat', { volume: 0.7, rate: 0.5 });
+    if (c.phase !== 'eaten') hud.toast(CAP_TEXT[cap.kind].phases[c.phase], 1400);
+  }
+  // the mandibles' rhythm, heard while eating
+  if (c.phase === 'eat' && cap.kind === 'stenus' && Math.floor(simT * 2.4) !== Math.floor((simT - dt) * 2.4)) audio.play('springtail/eat', { volume: 0.5, rate: 0.8 + Math.random() * 0.2 });
+  let o;
+  if (cap.kind === 'stenus') o = stenus.captureStep(c.phase, c.t, dt, cap);
+  else if (cap.kind === 'strider') o = strider.captureStep(c.phase, c.t, dt, cap);
+  else o = sundewStep(c.phase, c.t, dt);
+  P.x = o.x; P.y = o.y; P.z = o.z; P.heading = o.heading; P.pitch = o.pitch; P.roll = o.roll;
+  P.scale = o.scale; P.sy = o.sy ?? 1; P.flailK = o.flail;
+}
+/** The sundew's catch: tentacles fold over you, the glue holds, the blade cups and closes. */
+function sundewStep(phase, u, dt) {
+  const leaf = cap.leaf, ease = (x) => x * x * (3 - 2 * x);
+  const out = { x: cap.x0, y: cap.y0, z: cap.z0, heading: cap.h0 + Math.sin(simT * 9) * 0.15, pitch: 0, roll: 0, scale: 1, flail: 1 };
+  if (!leaf) return out;
+  if (phase === 'strike') { leaf.grip = ease(u); leaf.close = 0; out.roll = Math.sin(simT * 16) * 0.3; }
+  else if (phase === 'hold') { leaf.grip = 1; leaf.close = 0.25 * ease(u); out.flail = 1 - 0.5 * u; out.roll = Math.sin(simT * 12) * 0.25 * (1 - u); out.y -= 0.06 * u; }
+  else if (phase === 'eat') {
+    const e = ease(u);
+    leaf.grip = 1; leaf.close = 0.25 + 0.75 * e;
+    out.flail = 0.5 * (1 - u); out.scale = 1 - 0.6 * e; out.y -= 0.06 + 0.12 * e;
+  } else { leaf.grip = 1; leaf.close = 1; out.scale = 0; out.flail = 0; }
+  leaf.target = new THREE.Vector3(out.x, out.y + 0.15 * out.scale, out.z);
+  return out;
+}
 
 // ---------------------------------------------------------------- features
 const features = createFeatures({ key: 'springtail', pad });
@@ -278,6 +379,12 @@ F({ id: 'strider', group: 'World', label: 'Water strider (Gerris)', on: true, on
   about: 'Hears ripples: landings, grazing and struggling bring it rowing over; its strokes send waves that flip an unbraced springtail; its forelegs grab.' });
 F({ id: 'rain', group: 'World', label: 'Rain', choices: ['Sometimes', 'Often', 'Off'], value: 'Sometimes',
   about: 'A drop ~3 mm across (twice your length) is telegraphed by its shadow, falls, craters the film and rings it.', onChange: (v) => { rain.enabled = v !== 'Off'; rain.every = v === 'Often' ? 3.5 : 7; } });
+F({ id: 'grace', group: 'World', label: 'Calm opening', choices: ['45 s', '20 s', '90 s', 'Off'], value: '45 s',
+  about: 'How long after a start (and after each life) before Stenus or the strider (15 s later) gets hungry. They patrol and row about meanwhile, keeping to the water away from you, and raindrops land around you rather than on you. shared/predation.js.',
+  onChange: (v) => { pace.grace = v === 'Off' ? 0 : parseFloat(v); resetHunger(); } });
+F({ id: 'hunger', group: 'World', label: 'Predator hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
+  about: 'Comes and goes: after the calm opening each predator is hungry for ~18-32 s, then rests (45-75 s after a meal, 15-30 s after a miss or when it loses you); only a hungry one stalks, skims, strikes, answers ripples or grabs. Always: hungry from the end of the calm opening on. Never: they patrol and never hunt (for exploring and testing).',
+  onChange: (v) => (pace.mode = v) });
 addInvertY(features);
 F({ id: 'camrel', group: 'Controls', label: 'Camera-relative walking and aiming', fixed: true, about: 'LS walks and aims relative to the view, in both camera modes.' });
 F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'A kick when the furcula fires, a tap on landing, a thump for raindrops and being caught.', onChange: (v) => (opt.rumble = v) });
@@ -333,11 +440,28 @@ function die(cause) {
 
 function respawn() {
   pl.x = START.x; pl.z = START.z; pl.vx = pl.vz = 0; pl.mode = 'film'; pl.air = null; pl.cock = 1; pl.roll = 0; pl.pitch = 0;
-  pl.bend = 0; pl.furc = 0; pl.leaf = null; pl.struggle = 0;
-  for (const l of world.sundews.leaves) l.target = null;
+  pl.bend = 0; pl.furc = 0; pl.leaf = null; pl.struggle = 0; pl.scale = 1; pl.sy = 1; pl.flailK = 0; pl.heading = Math.PI / 2;
+  for (const l of world.sundews.leaves) { l.target = null; l.grip = 0; l.close = 0; }
+  capture.reset();
+  cap.kind = null;
   stenus.reset();
   strider.reset();
+  placeThreatsAway();
   rain.clear();
+  resetHunger();
+}
+/** Start the beetle and the strider well away from you, out on open water. */
+function placeThreatsAway() {
+  for (let k = 0; k < 30; k++) {
+    const c = nearbyWater(pl.x, pl.z, 34 + k, 0.8);
+    if (!c) continue;
+    const s = stenus.startFor(c.x, c.z);
+    if (Math.hypot(s.x - pl.x, s.z - pl.z) > 30 && inPool(s.x, s.z)) { stenus.relocate(c.x, c.z); break; }
+  }
+  for (let k = 0; k < 30; k++) {
+    const c = nearbyWater(pl.x, pl.z, 38 + k, 0.85);
+    if (c && Math.hypot(c.x - stenus.st.x, c.z - stenus.st.z) > 20) { strider.relocate(c.x, c.z); break; }
+  }
 }
 
 function newGame() {
@@ -379,6 +503,7 @@ function stepPlayer(dt, inp) {
   if (dir.lengthSq() > 0) dir.normalize();
   P.moved = Math.max(0, P.moved - dt);
 
+  if (P.mode === 'caught') return; // posed by animateCapture
   if (P.mode === 'dead') {
     P.deadT += dt;
     if (P.deadT > 2.4) {
@@ -447,7 +572,7 @@ function stepPlayer(dt, inp) {
       P.cock = 1;
       jump(P.x - leaf.x || 1, P.z - leaf.z, 0.3);
       hud.toast('Free!');
-    } else if (P.leaf.curl > 0.82) die('Wrapped in a sundew\'s tentacles');
+    } else if (P.leaf.curl > 0.82) caught('sundew');
     return;
   }
 
@@ -551,7 +676,9 @@ function nearbyWater(x, z, r, eMax) {
 
 function stepWorld(dt) {
   const P = pl;
-  const alive = P.mode !== 'dead' && game.phase === 'play';
+  const alive = P.mode !== 'dead' && P.mode !== 'caught' && game.phase === 'play';
+  if (game.phase === 'play' && !capture.active) { hunger.stenus.update(dt); hunger.strider.update(dt); }
+  rain.calm = hunger.stenus.state === 'grace' && hunger.strider.state === 'grace';
   // the beetle and the strider keep to the water near you, wherever you go
   if (Math.hypot(stenus.st.x - P.x, stenus.st.z - P.z) > 70 && stenus.st.state === 'patrol') {
     const c = nearbyWater(P.x, P.z, 32, 0.8);
@@ -563,15 +690,18 @@ function stepWorld(dt) {
   }
   world.debris.update(dt, field, inPool);
   const ctxP = { x: P.x, y: P.mode === 'air' ? P.y : 0, z: P.z, vx: P.air ? P.air.vx : P.vx, vz: P.air ? P.air.vz : P.vz, airborne: P.mode === 'air', hunker: P.hunker > 0.5, moving: (P.moved > 0 && P.hunker < 0.5) || P.mode === 'air' || P.mode === 'stuck' || P.eatT > 0, alive };
-  for (const e of stenus.update(dt, { player: ctxP, field, inPool })) {
-    if (e === 'caught' && alive) { die('Harpooned by the rove beetle\'s labium'); stenus.st.state = 'hold'; stenus.st.t = 0; setTimeout(() => { if (stenus.st.state === 'hold') stenus.st.state = 'recover'; }, 1800); }
+  for (const e of stenus.update(dt, { player: ctxP, field, inPool, hungry: isHungry(hunger.stenus) })) {
+    if (e === 'caught' && alive) caught('stenus');
+    if (e === 'miss' && hunger.stenus.hungry) hunger.stenus.missed();
+    if (e === 'spotted' && alive) audio.play('springtail/stenus-skim', { volume: 0.25, rate: 0.8 });
     if (e === 'skim') audio.play('springtail/stenus-skim', { volume: 0.7 });
     if (e === 'strike') audio.play('springtail/stenus-strike', { volume: 0.9 });
     if (e === 'skim') hud.toast('Stenus is skimming at you!', 1000);
     if (e === 'windup' && alive) rumble(300, 0.15, 0); // the head dips: jump now
   }
-  for (const e of strider.update(dt, { player: ctxP, field, inPool, ripples })) {
-    if (e === 'caught' && alive) die('Grabbed by the water strider');
+  for (const e of strider.update(dt, { player: ctxP, field, inPool, ripples, hungry: isHungry(hunger.strider) })) {
+    if (e === 'caught' && alive) caught('strider');
+    if (e === 'lost' && hunger.strider.hungry) hunger.strider.missed();
     if (e === 'heard' && alive && strider.st.heardT !== true) { strider.st.heardT = true; hud.toast('A water strider felt your ripples: keep still and hunker (B)', 1800); setTimeout(() => (strider.st.heardT = false), 6000); }
   }
   ripples.length = 0;
@@ -615,6 +745,7 @@ function poseTail(t) {
   p.nod = P.eatT > 0 ? Math.sin((P.eatT / 0.35) * Math.PI) : 0;
   p.tuck = P.mode === 'air' ? 1 : 0;
   p.flail = P.mode === 'flipped' || P.mode === 'stuck' || P.mode === 'dead' ? 1 : 0;
+  if (P.mode === 'caught') { p.flail = P.flailK; p.stride = 0; p.tuck = 0; p.nod = 0; p.hunker = 0; p.bend = 0.3 * P.flailK * Math.sin(t * 11); }
   tail.update();
   const g = tail.group;
   let y = P.y;
@@ -634,6 +765,8 @@ function poseTail(t) {
   }
   g.quaternion.copy(tilt).multiply(q).multiply(qp).multiply(qr);
   if (P.pitch || P.roll) g.position.add(c.clone().sub(c.clone().applyQuaternion(new THREE.Quaternion().multiplyQuaternions(qp, qr))).applyQuaternion(q));
+  g.scale.set(P.scale, P.scale * P.sy, P.scale);
+  g.visible = P.scale > 0.02;
   g.updateMatrixWorld(true);
 }
 
@@ -655,13 +788,13 @@ function updateContacts() {
   world.debris.contacts(rig.target, (x, z, r, d) => dimples.add(x, z, r, d));
   // the drop shadow: straight down from the springtail onto whatever is below
   const drop = macroShared.uDrop.value;
-  if (!opt.dropShadow || P.mode === 'dead') { drop.set(0, -99, 0, 0); macroShared.uDropK.value = 0; }
+  if (!opt.dropShadow || P.mode === 'dead' || P.mode === 'caught') { drop.set(0, -99, 0, 0); macroShared.uDropK.value = 0; }
   else if (P.mode === 'air') { drop.set(P.x, P.y + 0.1, P.z, 0.62); macroShared.uDropK.value = 0.85; }
   else { drop.set(P.x - Math.cos(P.heading) * 0.05, P.y + 0.06, P.z - Math.sin(P.heading) * 0.05, 0.62); macroShared.uDropK.value = 0.45; }
   // shadow casters
   let n = 0;
   const cast = (x, y, z, r, k) => { if (n < 8) { casters[n].set(x, y, z, r); casterK[n] = k; n++; } };
-  if (P.mode !== 'dead') cast(P.x, P.y + 0.25, P.z, 0.3, 0.55);
+  if (P.mode !== 'dead' && P.scale > 0.3) cast(P.x, P.y + 0.25 * P.scale, P.z, 0.3 * P.scale, 0.55);
   if (stenus.group.visible) { const s = stenus.st; cast(s.x + Math.cos(s.a) * 1.2, 0.65, s.z + Math.sin(s.a) * 1.2, 0.55, 0.55); cast(s.x - Math.cos(s.a) * 1.2, 0.7, s.z - Math.sin(s.a) * 1.2, 0.45, 0.5); }
   if (strider.group.visible) { const s = strider.st; cast(s.x + Math.cos(s.a) * 1.8, 0.9, s.z + Math.sin(s.a) * 1.8, 0.6, 0.5); cast(s.x - Math.cos(s.a) * 1.6, 0.8, s.z - Math.sin(s.a) * 1.6, 0.5, 0.45); }
   for (const c of rain.casters()) cast(c[0], c[1], c[2], c[3], c[4]);
@@ -673,7 +806,8 @@ function readInput(dt) {
   pad.poll();
   unlockOnPad();
   const idle = { move: { x: 0, y: 0, m: 0 }, dashDown: false, dashPressed: false, attackPressed: false, defend: false };
-  if (features.update()) return idle;
+  menuOpen = features.update();
+  if (menuOpen) return idle;
   hud.update(pad);
   // RS: yaw, and pitch by intent (+1 looks up: the camera swings down toward
   // the horizon), honouring the shared Invert Y. It works in either view.
@@ -724,15 +858,22 @@ function updateText(L) {
   status.querySelector('.lives').textContent = '●'.repeat(Math.max(0, pl.lives)) + '○'.repeat(Math.max(0, 3 - pl.lives));
   const m = status.querySelector('.st-meter i');
   const furcTxt = status.querySelector('.furc');
-  if (pl.mode === 'stuck') { furcTxt.textContent = 'Struggle'; m.style.width = `${pl.struggle * 100}%`; m.style.background = '#e07a5f'; }
+  status.classList.toggle('caught', capture.active);
+  const thr = status.querySelector('.threat');
+  const hs = hunger.stenus, hr = hunger.strider;
+  const hunting = ['stalk', 'skim', 'windup', 'strike'].includes(stenus.st.state) || strider.st.state === 'hunt';
+  thr.textContent = capture.active ? '' : hunting ? 'Hunted!' : isHungry(hs) || isHungry(hr) ? `${[isHungry(hs) && 'Stenus', isHungry(hr) && 'Strider'].filter(Boolean).join(' & ')} hungry` : 'Calm';
+  thr.classList.toggle('hot', hunting);
+  if (capture.active && cap.phase) { furcTxt.textContent = CAP_TEXT[cap.kind].phases[cap.phase]; m.style.width = `${{ strike: 25, hold: 50, eat: 80, eaten: 100 }[cap.phase]}%`; m.style.background = '#e04f3a'; }
+  else if (pl.mode === 'stuck') { furcTxt.textContent = 'Struggle'; m.style.width = `${pl.struggle * 100}%`; m.style.background = '#e07a5f'; }
   else if (pl.charging) { furcTxt.textContent = pl.charge > 0.98 ? 'Full jump' : 'Cocking'; m.style.width = `${pl.charge * 100}%`; m.style.background = '#f2cc8f'; }
   else { furcTxt.textContent = pl.cock < 1 ? 'Re-cocking' : 'Furcula'; m.style.width = `${pl.cock * 100}%`; m.style.background = pl.cock < 1 ? '#7a8a99' : '#9fd0ff'; }
   const info = renderer.info.render;
-  hud.stats(`${pl.mode}${pl.mode === 'film' ? ` ${Math.hypot(pl.vx, pl.vz).toFixed(1)} mm/s` : ''}  Stenus: ${stenus.st.state}\n${MACRO_LOOKS[rig.look].name}${renderScale < 1 ? ` (res ${(renderScale * 100).toFixed(0)}%)` : ''}\n${fps.toFixed(0)} fps  ${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
+  hud.stats(`${pl.mode}${pl.mode === 'film' ? ` ${Math.hypot(pl.vx, pl.vz).toFixed(1)} mm/s` : ''}  Stenus: ${stenus.st.state} (${hs.state} ${hs.left.toFixed(0)} s)  strider: ${strider.st.state} (${hr.state} ${hr.left.toFixed(0)} s)${capture.active ? `  capture: ${cap.kind} ${cap.phase}` : ''}\n${MACRO_LOOKS[rig.look].name}${renderScale < 1 ? ` (res ${(renderScale * 100).toFixed(0)}%)` : ''}\n${fps.toFixed(0)} fps  ${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
 }
 
 // ---------------------------------------------------------------- loop
-let simT = 0;
+let simT = 0, menuOpen = false;
 function step(dt, inp) {
   simT += dt;
   macroShared.uTime.value = simT;
@@ -740,8 +881,10 @@ function step(dt, inp) {
   const near = ISLANDS.filter((I) => Math.hypot(I.x - pl.x, I.z - pl.z) < field.size + I.r);
   field.inside = (x, z) => poolE(x, z) < 1 && near.every((I) => Math.hypot(x - I.x, z - I.z) > I.r);
   field.recenter(pl.x, pl.z);
+  const c = capture.update(dt, menuOpen ? null : pad);
   if (game.phase === 'play' || game.phase === 'title') stepPlayer(dt, inp);
   stepWorld(dt);
+  if (c.active) animateCapture(c, dt);
   poseTail(simT);
   world.food.update((x, z) => field.height(x, z) + dimples.height(x, z) * 0.5);
   updateContacts();
@@ -757,7 +900,50 @@ const api = {
   scene, camera, renderer, macro, field, dimples, tail, stenus, strider, rain, world, pl, rig, game, features, paused: false,
   step(dt = 1 / 60, inp = { move: { x: 0, y: 0, m: 0 }, dashDown: false, dashPressed: false, attackPressed: false, defend: false }) { step(dt, inp); },
   render(dt = 0) { const L = render(dt); updateText(L); },
-  jump, newGame, respawn, inPool, groundAt,
+  jump, newGame, respawn, inPool, groundAt, hunger, capture, cap, pace,
+  get time() { return simT; },
+  /** Testing: one fixed step with the left stick at (x, y) (null: hands off). */
+  testStep(dt = 1 / 30, stick = null) {
+    if (game.phase !== 'play') newGame();
+    const m = stick ? Math.min(1, Math.hypot(stick.x, stick.y)) : 0;
+    step(dt, { move: { x: stick ? stick.x : 0, y: stick ? stick.y : 0, m }, dashDown: false, dashPressed: false, attackPressed: false, defend: false });
+  },
+  /** Testing: is a predator coming for you, and how hungry is each. */
+  pacing() {
+    const S = stenus.st, R = strider.st;
+    return {
+      approach: capture.active || ['stalk', 'skim', 'windup', 'strike'].includes(S.state) || (R.state === 'hunt' && Math.hypot(R.x - pl.x, R.z - pl.z) < 25),
+      captured: capture.active, phase: capture.phase, kind: cap.kind,
+      hunger: { stenus: hunger.stenus.state, strider: hunger.strider.state },
+      states: { stenus: S.state, strider: R.state },
+      dist: { stenus: +Math.hypot(S.x - pl.x, S.z - pl.z).toFixed(1), strider: +Math.hypot(R.x - pl.x, R.z - pl.z).toFixed(1) },
+      mode: pl.mode,
+    };
+  },
+  /** Testing: get caught right now by 'stenus', 'strider' or 'sundew' (the full sequence plays). */
+  forceCapture(kind = 'stenus') {
+    if (game.phase !== 'play') newGame();
+    if (capture.active) return;
+    const P = pl;
+    if (P.mode === 'air' || P.mode === 'flipped' || P.mode === 'dead') { P.mode = 'film'; P.air = null; P.roll = 0; P.pitch = 0; }
+    if (kind === 'sundew') {
+      const leaf = world.sundews.leaves[0];
+      P.x = leaf.x; P.z = leaf.z; P.y = leaf.y + 0.12; P.mode = 'stuck'; P.leaf = leaf; leaf.target = new THREE.Vector3(P.x, P.y + 0.2, P.z); leaf.curl = 0.85;
+      caught('sundew');
+      return;
+    }
+    const a = P.heading + Math.PI / 2;
+    if (kind === 'strider') {
+      const s = strider.st;
+      strider.relocate(P.x - Math.cos(a) * 4.4, P.z - Math.sin(a) * 4.4);
+      s.a = a;
+    } else {
+      const s = stenus.st;
+      s.x = P.x - Math.cos(a) * 4.3; s.z = P.z - Math.sin(a) * 4.3; s.a = a; s.state = 'strike'; s.t = 0;
+      audio.play('springtail/stenus-strike', { volume: 0.9 });
+    }
+    caught(kind);
+  },
   /** Set camera fields; `mode: 'top' | 'low'` and `pitch` set the wanted elevation. */
   setCam(o) {
     const { mode, pitch, ...rest } = o;

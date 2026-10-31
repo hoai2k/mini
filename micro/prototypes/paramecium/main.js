@@ -15,6 +15,8 @@ import { createSwimmer, VMAX, DASH_V, DASH_T, BODY_R } from './swim.js';
 import { createEncounters } from './encounters.js';
 import { createPrey } from './prey.js';
 import { createProteus } from './proteus.js';
+import { createCatchFx, sstep } from './catch.js';
+import { createHunger, createCapture } from '../shared/predation.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, AMOEBA_MODES, DIC_MODES } from '../shared/techniques/adapters.js';
@@ -64,7 +66,23 @@ const prey = createPrey(scene);
 const amoeba = createProteus(scene);
 const optics = createOptics(renderer);
 const contactFx = createContactFx(scene);
+const catchFx = createCatchFx(scene, world, amoeba);
 
+// --- pacing: a calm opening, then hunger that comes and goes (shared/predation.js) ---
+// Each hunter has its own hunger. Only a hungry one hunts; a resting one wanders
+// or creeps and leaves you be. A restart gives a fresh calm opening.
+const pacing = { grace: 45, cycles: true, now: 0, t0: 0, firstHungry: null, firstThreat: null };
+world.didinia.forEach((d, i) => { d.hunger = createHunger({ grace: pacing.grace + i * 12 }); });
+amoeba.hunger = createHunger({ grace: pacing.grace + 6, hungry: [25, 40] });
+const hunters = () => [...world.didinia, amoeba];
+function resetHunger() {
+  const g = pacing.grace;
+  world.didinia.forEach((d, i) => d.hunger.reset(g + (g ? i * 12 : 0)));
+  amoeba.hunger.reset(g + (g ? 6 : 0));
+  pacing.t0 = pacing.now; pacing.firstHungry = null; pacing.firstThreat = null;
+}
+const isHungry = (h) => (pacing.cycles ? h.hungry : h.state !== 'grace');
+const hungerText = (h) => (h.state === 'grace' ? `calm ${Math.ceil(h.left)} s` : !pacing.cycles ? 'hungry' : h.state === 'hungry' ? `hungry ${Math.ceil(h.left)} s` : `resting ${Math.ceil(h.left)} s`);
 // Delivered art, with procedural stand-ins until it arrives.
 const plates = { darkfield: standInPlate('darkfield'), phase: standInPlate('phase') };
 loadTexture('MP-P01', { srgb: false }).then((t) => { if (t) plates.darkfield = t; });
@@ -306,6 +324,13 @@ features.add({ id: 'didinium', group: 'World', label: 'Didinium hunters', on: tr
 features.add({ id: 'homing', group: 'World', label: 'Didinium homing', on: true, about: 'Within ≈480 µm a Didinium turns on you and swims nearly straight at about 1 mm/s; a sideways dash makes it overshoot. Real Didinium finds prey by collision; this makes the encounter readable.', onChange: (on) => { enc.opts.homing = on; } });
 features.add({ id: 'proteus', group: 'World', label: 'Amoeba proteus', on: true,
   about: 'A slow giant (≈300 µm, up to 600 with pseudopods) creeping on the slide (S29). Swim low near it and two pseudopods flank you into a food cup (S05); stay between them and it closes. Dash out, or fire trichocysts. It creeps ≈10× and reaches ≈5× faster than life.', onChange: (on) => { amoeba.opts.on = on; if (!on && swimmer.state.captor === amoeba) swimmer.release(); } });
+const GRACES = ['45 s', '20 s', '0 s (hunters from the start)'];
+features.add({ id: 'grace', group: 'World', label: 'Calm opening before the hunters get hungry', choices: GRACES, value: GRACES[0],
+  about: 'For the first 45 s of a round (and after every restart) no hunter is hungry: Didinium wanders, Amoeba proteus creeps and neither comes for you, so you can explore first. The second Didinium wakes 12 s after the first and the amoeba 6 s after. Shorter openings are for testing.',
+  onChange: (v) => { pacing.grace = parseFloat(v); resetHunger(); } });
+features.add({ id: 'hunger', group: 'World', label: 'Hunger comes and goes', on: true,
+  about: 'After the calm opening each hunter is hungry for 18–32 s (the amoeba 25–40 s), then rests: 45–75 s after a meal, 15–30 s after a miss (trichocysts drive it off, or it gives up). Only a hungry hunter hunts; the HUD shows each one\'s state. Off: once the opening is over they hunt all the time (the old pacing).',
+  onChange: (on) => { pacing.cycles = on; } });
 features.add({ id: 'vort', group: 'World', label: 'Vorticella stalk contraction', on: true, about: 'Touch a Vorticella and its stalk coils in one frame (really milliseconds), then re-extends over about 3 s (S10, S11).', onChange: (on) => { world.opts.vortContract = on; } });
 features.add({ id: 'scenery', group: 'World', label: 'Spirogyra, detritus, diatoms, prey', fixed: true, about: 'Three Spirogyra filaments, sparse flakes and sediment, Pinnularia and Fragilaria, bacterial clumps and Chilomonas (which jumps away with its ejectisomes when you come close).' });
 // Borrowed (default off).
@@ -410,6 +435,7 @@ function fireTrichocysts(threat) {
   if (!away) { hud.toast(held ? 'No trichocysts left: struggle with A!' : 'No trichocysts left: they re-dock over time'); return; }
   const n = enc.discharge(s, away.clone().negate(), t, world.flowAt(s.center, t));
   if (threat === amoeba) amoeba.recoil(); else if (threat) threat.stun = 3;
+  if (threat && threat.hunger && threat.hunger.hungry) threat.hunger.missed(); // driven off: it rests a while
   pad.rumble(240, 0.9, 1.0);
   hud.toast(`Trichocysts fired (${n} threads): ${threat === amoeba ? 'the amoeba recoils' : threat ? 'Didinium lets go and backs off' : 'thrown clear'}`);
 }
@@ -452,6 +478,94 @@ function onContact(c) {
   }
 }
 
+// --- being caught: strike → hold → eat → the Eaten card (shared/predation.js) ----
+const capture = createCapture({ onRestart: restartRound });
+const cap = { th: null, credit: 0, phase: null, from: new THREE.Vector3(), fromQ: new THREE.Quaternion(), anim: null };
+const CATCH = {
+  didinium: { by: 'Didinium', how: 'swallowed you whole', strike: 'Didinium\'s proboscis strikes: toxicysts fire into you!', hold: 'HELD by Didinium: X trichocysts · A struggle', eat: 'Didinium\'s mouth gapes wide: it swallows you whole' },
+  amoeba: { by: 'Amoeba proteus', how: 'closed you into a food vacuole', strike: 'The food cup closes round you!', hold: 'ENGULFED by the amoeba: X trichocysts · A struggle', eat: 'A food vacuole forms round you and darkens: digestion begins' },
+};
+const catchKind = (th) => (th === amoeba ? 'amoeba' : 'didinium');
+function startCapture(th) {
+  if (!th || capture.active) return;
+  const k = catchKind(th);
+  cap.th = th; cap.credit = 0; cap.phase = 'strike'; cap.anim = null;
+  capture.start({ by: CATCH[k].by, how: CATCH[k].how });
+  const s = swimmer.state;
+  if (k === 'didinium') {
+    const toward = new THREE.Vector3().subVectors(s.center, th.tip).normalize();
+    enc.toxicysts(th.tip, toward, t);
+    contactFx.puff(th.tip, toward, 1);
+    audio.play('paramecium/didinium', { volume: 1 });
+  }
+  audio.play('paramecium/held', { volume: 1 });
+  pad.rumble(400, 0.6, 0.8);
+}
+/** Run the catch for this frame; returns the cell's eat-phase transform or null. */
+function stepCapture(dt, s) {
+  if (!capture.active) return null;
+  const th = cap.th, k = catchKind(th);
+  // a fight in the strike or hold: trichocysts (X) break free, struggling (A/B) buys time
+  if ((cap.phase === 'strike' || cap.phase === 'hold') && s.mode !== 'captured') {
+    capture.reset(false); th.hunger.missed(); th.wrap = 0; cap.th = null; cap.phase = null;
+    catchFx.reset();
+    return null;
+  }
+  let step = dt;
+  if (cap.phase === 'hold') {
+    const len = Math.max(0.8, (th.holdFor || 4) - 0.45); // as long as the old hold: 3.5 s (amoeba 2.5 s)
+    const use = Math.min(cap.credit, dt);
+    cap.credit -= use;
+    step = (dt - use) / len;
+  }
+  const c = capture.update(step, pad);
+  if (!c.active) return null; // restarted
+  if (c.phase !== cap.phase) {
+    cap.phase = c.phase;
+    if (c.phase === 'eat') {
+      swimmer.eaten();
+      cap.from.copy(s.axis); cap.fromQ.copy(cell.group.quaternion);
+      th.hunger.fed(); th.sated = 14;
+      game.deaths++;
+      audio.play('paramecium/gulp', { volume: 1, rate: k === 'didinium' ? 0.6 : 0.5 });
+      pad.rumble(600, 0.8, 0.6);
+    }
+  }
+  // the reel and the closing cup
+  if (c.phase === 'strike') { s.captureT = 0; th.wrap = c.t; }
+  else if (c.phase === 'hold') { s.captureT = c.t * (th.holdFor || 4); th.wrap = 1; }
+  if (c.phase === 'strike' && k === 'didinium') catchFx.didiniumGape(th, 0, 0);
+  if (c.phase === 'eat' || c.phase === 'eaten') {
+    const e = c.phase === 'eat' ? c.t : 1;
+    cap.anim = k === 'didinium' ? catchFx.eatDidinium(th, e, cap.from, cap.fromQ) : catchFx.eatAmoeba(e, cap.from, cap.fromQ);
+    s.axis.copy(cap.anim.pos); // the camera follows you in
+    return cap.anim;
+  }
+  return null;
+}
+function restartRound() {
+  const s = swimmer.state;
+  swimmer.respawn();
+  cap.th = null; cap.phase = null; cap.anim = null;
+  catchFx.reset();
+  cell.group.scale.set(1, 1, 1);
+  game.eaten = 0;
+  // the hunters start well away from you
+  const out = new THREE.Vector3(s.axis.x, 0, s.axis.z);
+  if (out.lengthSq() < 1) out.set(1, 0, 0);
+  out.normalize();
+  world.didinia.forEach((d, i) => {
+    const a = Math.atan2(out.z, out.x) + Math.PI + (i ? 0.9 : -0.9);
+    const r = Math.min(1250, Math.hypot(s.axis.x, s.axis.z) + 1000);
+    d.pos.set(Math.cos(a) * Math.min(r, 1300), d.pos.y, Math.sin(a) * Math.min(r, 1300));
+    d.stun = 0; d.sated = 0; d.speed = 0;
+  });
+  if (Math.hypot(amoeba.pos.x - s.axis.x, amoeba.pos.z - s.axis.z) < 800) amoeba.pos.set(-out.x * 900, 0, -out.z * 900);
+  amoeba.cup = 0; amoeba.sated = 0; amoeba.stun = 0; amoeba.wrap = 0;
+  resetHunger();
+  hud.toast('A new Paramecium swims into view. The hunters are calm for now', 2600);
+}
+
 // --- loop --------------------------------------------------------------------
 let t = 0, last = performance.now(), blocked = false;
 let ls = { x: 0, y: 0, m: 0 };
@@ -459,6 +573,7 @@ let ls = { x: 0, y: 0, m: 0 };
 function tick(dt, forced = false) {
   if (debug.freeze && !forced) return;
   t += dt;
+  pacing.now = t;
   shared.uTime.value = t;
   const s = swimmer.state;
   s.inspect = debug.inspect;
@@ -478,12 +593,23 @@ function tick(dt, forced = false) {
     avoid: live && ctl.defend.pressed(), struggle: live && ctl.dash.pressed() && s.mode === 'captured',
   };
   const ev = {};
-  if (live && ctl.dash.pressed()) doDash(ls);
+  const locked = capture.active; // a catch in progress: only the fight (X, A, B) while held
+  if (live && !locked && ctl.dash.pressed()) doDash(ls);
+  if (live && locked && s.mode === 'captured' && (ctl.dash.pressed() || ctl.defend.pressed())) cap.credit = Math.min(1.2, cap.credit + 0.4);
   swimmer.step(dt, t, inp, ev);
   soundTick(dt);
-  if (live && ctl.attack.pressed()) doAttack();
+  if (live && (!locked || s.mode === 'captured') && ctl.attack.pressed()) doAttack();
+  // hunger: each hunter's own clock; only a hungry one hunts
+  for (const th of hunters()) {
+    th.hunger.update(dt);
+    th.hungry = isHungry(th.hunger);
+  }
+  if (pacing.firstHungry === null && hunters().some((th) => th.hungry)) pacing.firstHungry = t - pacing.t0;
   enc.update(dt, t, swimmer, ev);
   amoeba.update(dt, t, swimmer, ev, world.flowAt);
+  if (pacing.firstThreat === null && s.mode === 'swim' && threats().some((th) => hunting(th) || (th === amoeba && amoeba.cup > 0))) pacing.firstThreat = t - pacing.t0;
+  if (ev.captured) startCapture(s.captor);
+  const anim = stepCapture(dt, s);
   const w = world.update(dt, t, { center: s.center, axisA: s.axisA, axisB: s.axisB, U: s.U, mouth: s.mouth, feed: s.feed, alive: s.mode !== 'dead' });
   for (let i = 0; i < w.eaten; i++) cell.ingest(10);
   game.bacteria += w.eaten;
@@ -501,8 +627,7 @@ function tick(dt, forced = false) {
   // the cell
   cell.group.position.copy(s.center);
   cell.group.quaternion.copy(s.quat);
-  const dead = s.mode === 'dead';
-  cell.group.visible = !dead || s.deadT < 0.4;
+  cell.group.visible = true; // being eaten is shown, never cut away
   cell.update(dt, { phase: s.beatPhase, amp: s.amp, reverse: s.reverse, oral: s.oral });
 
   if (ev.contact) onContact(ev.contact);
@@ -514,15 +639,10 @@ function tick(dt, forced = false) {
     cell.group.position.addScaledVector(s.bumpN, 5 * k * (LENGTH / 120));
     cell.group.scale.set(1 - 0.1 * k, 1 + 0.05 * k, 1 + 0.05 * k);
   } else cell.group.scale.set(1, 1, 1);
+  if (anim) { cell.group.position.copy(anim.pos); cell.group.quaternion.copy(anim.quat); cell.group.scale.copy(anim.scale); }
   if (s.slow > 0.1) pad.rumble(40, 0.15 * s.slow, 0.05); // the food cup dragging on you
   if (ev.avoid) pad.rumble(50, 0.15, 0);
-  if (ev.captured) {
-    audio.play('paramecium/held', { volume: 1 });
-    pad.rumble(400, 0.6, 0.8);
-    hud.toast(ev.captured === 'amoeba' ? 'Engulfed by the amoeba\'s food cup! X: trichocysts · A: struggle' : 'Didinium\'s proboscis has you! X: fire trichocysts · A: struggle', 2800);
-  }
-  if (ev.eaten) { game.deaths++; game.eaten = 0; hud.toast(ev.eaten === 'amoeba' ? 'Digested by Amoeba proteus. The round starts again' : 'Swallowed whole by Didinium. The round starts again', 2600); }
-  if (ev.respawned) hud.toast('A new Paramecium swims into view');
+  if (ev.captured) hud.toast(ev.captured === 'amoeba' ? 'The amoeba\'s food cup closes! X: trichocysts · A: struggle' : 'Didinium\'s proboscis has you! X: fire trichocysts · A: struggle', 2800);
 }
 
 function frame(now) {
@@ -596,11 +716,13 @@ function frame(now) {
     `prey ${game.eaten}/${GOAL} (round ${game.round}) · food vacuoles ${cell.foodCount} · bacteria ${game.bacteria}`,
     `${dash.text()} · trichocysts ${charges}${GREEN ? ` · light ${Math.round(game.sun * 100)}% (${inLight(s.center) ? 'in the sun' : 'in shade'})` : ''}`,
     near ? `${near.label} ${Math.round(near.d)} µm away (${near.state})` : 'no hunter near',
+    `hunger: ${world.didinia.map((d, i) => `Didinium ${i + 1} ${enc.opts.didinium ? hungerText(d.hunger) : 'off'}`).join(' · ')} · amoeba ${amoeba.opts.on ? hungerText(amoeba.hunger) : 'off'}`,
     `${Math.round(renderFps)} fps · render scale ${renderScale.toFixed(2)}`,
   ].join('\n'));
 }
 
 function stateText(s) {
+  if (capture.active) return `${cap.phase === 'strike' ? 'STRUCK' : cap.phase === 'hold' ? 'HELD' : 'BEING EATEN'} by ${CATCH[catchKind(cap.th)].by}`;
   return s.mode === 'avoid' ? 'avoidance reaction' : s.mode === 'captured' ? (s.captor === amoeba ? 'ENGULFED by the amoeba' : 'HELD by Didinium')
     : s.mode === 'dead' ? 'eaten' : s.dashT > 0 ? 'dashing' : game.gulpT > 0 ? 'gulping' : s.feed > 0.3 ? 'feeding' : 'swimming';
 }
@@ -623,7 +745,9 @@ function updateGoal(s) {
   if (GREEN) parts.push(`${inLight(s.center) ? '☀' : '☁'} light ${'▮'.repeat(Math.round(game.sun * 5))}${'▯'.repeat(5 - Math.round(game.sun * 5))}`);
   parts.push(`A dash ${'■'.repeat(n)}${'□'.repeat(5 - n)}`, `X trichocysts ${'●'.repeat(s.charges)}${'○'.repeat(3 - s.charges)}`);
   let warn = '';
-  if (s.mode === 'captured') warn = s.captor === amoeba ? 'ENGULFED: X trichocysts · A struggle' : 'HELD by Didinium: X trichocysts · A struggle';
+  if (capture.active && cap.phase !== 'eaten') warn = CATCH[catchKind(cap.th)][cap.phase];
+  else if (capture.active) warn = '';
+  else if (s.mode === 'captured') warn = s.captor === amoeba ? 'ENGULFED: X trichocysts · A struggle' : 'HELD by Didinium: X trichocysts · A struggle';
   else if (amoeba.cup > 0.05) warn = 'The amoeba is cupping you: DASH out (A)!';
   else { const h = threats().find((th) => hunting(th) && th !== amoeba); if (h) warn = `${h.label} is hunting you: dash sideways (A)`; }
   goalEl.innerHTML = parts.join(' &nbsp;·&nbsp; ') + (warn ? `<div style="color:#ff8a7a;text-align:center;margin-top:2px">${warn}</div>` : '');
@@ -757,7 +881,38 @@ const debug = {
   step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) tick(dt, true); },
 };
 
+/** Test hook: put a hunter on you and start its catch ('didinium' | 'amoeba'). */
+function forceCapture(kind = 'didinium') {
+  const s = swimmer.state;
+  if (capture.active) capture.reset(false);
+  if (s.mode !== 'swim') { s.mode = 'swim'; s.captor = null; s.avoid = null; }
+  s.safeT = 0;
+  let th;
+  if (kind === 'amoeba') {
+    th = amoeba;
+    s.axis.y = Math.min(s.axis.y, 120);
+    const yaw = s.yaw + Math.PI / 2;
+    amoeba.pos.set(s.axis.x + Math.cos(yaw) * (amoeba.R + 90), 0, s.axis.z - Math.sin(yaw) * (amoeba.R + 90));
+    amoeba.stun = 0; amoeba.sated = 0;
+    amoeba.tip.set(amoeba.pos.x, amoeba.H, amoeba.pos.z);
+  } else {
+    th = world.didinia[0];
+    th.dir.copy(s.T).negate();
+    th.pos.copy(s.center).addScaledVector(s.T, LENGTH / 2 + 70);
+    th.tip = (th.tip || new THREE.Vector3()).copy(th.pos).addScaledVector(th.dir, 66);
+    th.stun = 0; th.sated = 0;
+  }
+  if (swimmer.capture(th)) startCapture(th);
+  return capture.phase;
+}
+
 window.__micro = {
+  forceCapture,
+  /** Pacing for tests: time since the round began, first hungry and first threat (s), each hunter's hunger. */
+  pacing: () => ({ t: t - pacing.t0, firstHungry: pacing.firstHungry, firstThreat: pacing.firstThreat, grace: pacing.grace, cycles: pacing.cycles,
+    hunters: hunters().map((th) => ({ name: th.label, state: th.hunger.state, hungry: th.hungry, left: +th.hunger.left.toFixed(1), doing: th === amoeba ? amoeba.state : th.state })),
+    capture: capture.active ? { phase: cap.phase, by: CATCH[catchKind(cap.th)].by } : null, mode: swimmer.state.mode }),
+  capture,
   scene, renderer, cell, world, swimmer, encounters: enc, prey, amoeba, optics, view, debug, MODES, features, game, dash,
   get camera() { return view.kind === 'scope' ? scope : chase; },
   get t() { return t; },

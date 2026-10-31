@@ -165,10 +165,11 @@ export function createSpringtail() {
     bones[0].copy(head);
     for (const s of [-1, 1]) {
       const id = s < 0 ? 1 : 2;
-      const wave = Math.sin(p.t * 2.1 + s) * 0.12 + Math.sin(p.t * 5.3 + s * 2) * 0.05 * (1 - p.hunker);
+      // flail (stuck, on its back, caught): the antennae lash about too
+      const wave = Math.sin(p.t * 2.1 + s) * 0.12 + Math.sin(p.t * 5.3 + s * 2) * 0.05 * (1 - p.hunker) + p.flail * Math.sin(p.t * 17 + s * 2) * 0.45;
       about(bones[id], ANT_BASE(s), Y, s * wave - p.tuck * s * 0.3);
       tmp2.copy(bones[id]);
-      about(bones[id], ANT_BASE(s), Z, Math.sin(p.t * 1.7 + s * 3) * 0.1 - p.nod * 0.2 + p.tuck * 0.25).multiply(tmp2).premultiply(head);
+      about(bones[id], ANT_BASE(s), Z, Math.sin(p.t * 1.7 + s * 3) * 0.1 - p.nod * 0.2 + p.tuck * 0.25 + p.flail * Math.sin(p.t * 13 + s) * 0.35).multiply(tmp2).premultiply(head);
     }
     bones[3].copy(front); bones[4].copy(front);
     bones[5].copy(mid); bones[6].copy(mid); bones[7].copy(mid);
