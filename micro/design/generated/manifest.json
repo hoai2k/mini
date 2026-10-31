@@ -1843,6 +1843,108 @@
     "mood_boards": []
   },
   {
+    "id": "MP-G02",
+    "name": "Title screen key art",
+    "file": "assets/game/title.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "Full-screen behind the title (Press Start).",
+    "prompt": "Use case: stylized-concept. Asset type: ONE wide16:9 full-screen game background. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. Key art: a brass microscope's objective lens hangs above a single drop of bog water on a glass slide; inside the drop, nested like a spiral of shrinking worlds, a water springtail on the surface film, a mite among moss leaves, a tardigrade gripping a leaf cell, an amoeba, a green Paramecium, rod bacteria and a tiny bacteriophage at the centre, each painted in its own microscope look (macro photo, electron micrograph, DIC, brightfield, phase contrast, molecular illustration). Warm lamplight, deep green shadows. Keep the upper-middle third calm for the logo and the bottom third quiet for the Press Start line. Full-bleed 16:9, no text.\nThis is title BACKGROUND artwork only, no words or logo. Victorian brass instrument, warm ivory slide label blanks, deep ink-green laboratory surroundings, copperplate precision. A SINGLE drop of water on a slide is the hero in the centre-right; a brass objective above. Different microscopic worlds are a poetic NESTED SCALE MONTAGE within the drop, not a same-scale ecosystem: tiny springtail and moss at the outer rim, smaller tardigrade/amoeba/green Paramecium inward, simple bacteria and molecular T4 at centre. The surface springtail has six legs, mite eight, tardigrade four pairs. Keep upper-middle calm dark green with spare detail for the logo; bottom third quiet for the game's text. No extra panels, labels, numeral, fake text, hands or people. Reference micrographs supply organism silhouette only; don't copy backgrounds or microscopy labels. Soft natural lamplight, restrained brass highlights, no fantasy glowing particles.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. Key art: a brass microscope's objective lens hangs above a single drop of bog water on a glass slide; inside the drop, nested like a spiral of shrinking worlds, a water springtail on the surface film, a mite among moss leaves, a tardigrade gripping a leaf cell, an amoeba, a green Paramecium, rod bacteria and a tiny bacteriophage at the centre, each painted in its own microscope look (macro photo, electron micrograph, DIC, brightfield, phase contrast, molecular illustration). Warm lamplight, deep green shadows. Keep the upper-middle third calm for the logo and the bottom third quiet for the Press Start line. Full-bleed 16:9, no text.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-bbb97b66-367a-4723-9595-951e31cf4137.png",
+    "input_images": [
+      "research/assets/references/springtail-swarm.jpg",
+      "research/assets/references/moss.jpg",
+      "research/assets/references/tardigrade-light.png",
+      "research/assets/references/paramecium.jpg",
+      "research/assets/references/production/phage-t4.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "c4865f3b14846119900aed88f8163618c82ad4ac8dad163cb87083abc106ae87",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "springtail-swarm",
+        "local": "assets/references/springtail-swarm.jpg",
+        "author": "Philippe  Garcelon",
+        "license": "CC BY 2.0",
+        "license_url": "https://creativecommons.org/licenses/by/2.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Podura_aquatica_-_1.jpg"
+      },
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      },
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      },
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      },
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-G03",
+    "name": "Menu background",
+    "file": "assets/game/menu.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "Behind the world-select cards.",
+    "prompt": "Use case: stylized-concept. Asset type: ONE wide16:9 full-screen game background. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A naturalist's laboratory bench seen from above, softly out of focus: dark green baize, a brass microscope stage edge, glass slides with hand-written specimen labels, an engraved brass scale rule, a magnifying glass, sepia field notes with ink sketches of mites and tardigrades. The centre is dark and calm so a row of cards can sit over it. Full-bleed 16:9, no legible text.\nNaturalist's bench view from straight above, Victorian brass and dark green baize, with glass slides and softly blurred field notes only around the outer20% margins. The LARGE CENTRAL60% must remain mostly empty, very dark ink-green baize, smooth and calm with faint fabric texture for world-select cards to overlay. Decorative microscope-stage edge at a corner, engraved ruler at bottom edge, magnifying glass near a margin. Sepia naturalist sketches can be faint and illegible around edges. NO readable writing, letters, numerals, screen, buttons, cards, logo, digital UI, modern electronics or hands. Not a game-screen mockup: background plate only. Use warm brass and oxblood accents sparingly.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A naturalist's laboratory bench seen from above, softly out of focus: dark green baize, a brass microscope stage edge, glass slides with hand-written specimen labels, an engraved brass scale rule, a magnifying glass, sepia field notes with ink sketches of mites and tardigrades. The centre is dark and calm so a row of cards can sit over it. Full-bleed 16:9, no legible text.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-30614cea-ba34-4122-8f5a-f955db82ceee.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "4c6bb6628f0fc931cc9f15dbd54d71d08c6c86af8961afc40cb709c116c39da4",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
     "id": "MP-G04",
     "name": "Card frame",
     "file": "assets/game/card-frame.png",
@@ -1873,6 +1975,50 @@
       }
     ],
     "mood_boards": []
+  },
+  {
+    "id": "MP-G05",
+    "name": "Paper panel texture",
+    "file": "assets/game/paper.webp",
+    "size": "1024 x 1024, opaque, tileable",
+    "used": "Panels: the intro text, the pause menu, settings and the controls card.",
+    "prompt": "Use case: photorealistic-natural. Asset type: ONE square1:1 repeating paper texture. Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Aged ivory laboratory paper with a fine even fibre texture, a very faint pale-green engraved millimetre grid and the slightest foxing, light and calm so dark text reads on it. No stains in one spot, no text.\nUniform flat-lay square filled edge-to-edge with LIGHT WARM IVORY PAPER only. Fine subtle natural fibres, extremely faint pale-green regular square grid, minute evenly scattered foxing. Average texture very low contrast so dark typography remains readable. NO central mark, fold, corner, edge, border, vignette, shadow, diagram, label, text, animals or objects. Grid lines at regular spacing and meet cleanly at opposite edges; paper fibres continue on all sides. Lighting perfectly even. Palette warm ivory with barely perceptible green lines. This is a seamless texture, not a photograph of a loose sheet lying on a desk.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Aged ivory laboratory paper with a fine even fibre texture, a very faint pale-green engraved millimetre grid and the slightest foxing, light and calm so dark text reads on it. No stains in one spot, no text.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-cc705d23-643c-4325-8d04-661d228bc562.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 1024,
+    "height": 1024,
+    "sha256": "3be61b799550177b3bd4534ebe05a7589fb06afc781110045d8e0811a424e1e6",
+    "export": "LANCZOS sizing; opposing-edge strips quilted with the approved conventional seam-correction workflow; WebP quality 92.",
+    "references": [
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      }
+    ],
+    "mood_boards": [],
+    "seam_metrics_before": {
+      "horizontal_join": 4.339,
+      "vertical_join": 5.12,
+      "interior_horizontal": 5.189,
+      "interior_vertical": 6.02
+    },
+    "seam_metrics_after": {
+      "horizontal_join": 3.498,
+      "vertical_join": 4.104,
+      "interior_horizontal": 4.248,
+      "interior_vertical": 4.923
+    }
   },
   {
     "id": "MP-G06",

@@ -143,11 +143,11 @@ export const ASSETS = {
   },
   "MP-G02": {
     "file": "assets/game/title.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G03": {
     "file": "assets/game/menu.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G04": {
     "file": "assets/game/card-frame.png",
@@ -155,7 +155,7 @@ export const ASSETS = {
   },
   "MP-G05": {
     "file": "assets/game/paper.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G06": {
     "file": "assets/game/icon.png",

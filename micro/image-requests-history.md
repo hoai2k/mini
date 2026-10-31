@@ -2,7 +2,7 @@
 
 Every image request that has been delivered, with its prompt and reference images, for the record. Open requests are in [`image-requests.md`](image-requests.md). Generated from `design/source/build_requests.py`; a request moves here when its status is set to `delivered`.
 
-54 delivered.
+57 delivered.
 
 ## Launcher cards
 
@@ -606,6 +606,38 @@ Art for the full game (micro/game/): title screen, menu, cards and the intro scr
 Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A game title logo: the words "MICRO ZOOM" in capitals, spelled exactly M-I-C-R-O Z-O-O-M, in an elegant engraved serif with brass inlay and a thin ink outline, the O of ZOOM drawn as a microscope objective lens seen end-on with concentric brass rings and a tiny tardigrade silhouette inside. A fine engraved scale rule underlines the words. Wide landscape composition, even margins, no other text, no watermark. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
+### MP-G02 · Title screen key art
+
+- **File:** `micro/prototypes/assets/game/title.webp`
+- **Size:** 2560 x 1440, opaque
+- **Used for:** Full-screen behind the title (Press Start).
+- **Stand-in until delivered:** A slow procedural zoom through the worlds' colours.
+- **Status:** delivered
+- **Reference images:**
+  - [A swarm of water springtails (Podura aquatica) on a pool surface among algae: colour, scale and habitat.](research/assets/references/springtail-swarm.jpg) · Philippe  Garcelon, CC BY 2.0 · [source](https://commons.wikimedia.org/wiki/File:Podura_aquatica_-_1.jpg)
+  - [Moss habitat structure; use leaf architecture as environmental reference.](research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
+  - [Light-microscope photograph; phone-camera filtering is part of the source image.](research/assets/references/tardigrade-light.png) · Dorathyexplorer, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png)
+  - [Paramecium caudatum; whole-cell outline and internal contrast.](research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
+  - [T4 phage electron micrograph; head, sheath and tail-fibre reference.](research/assets/references/production/phage-t4.jpg) · 7USSR7, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg)
+
+```text
+Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. Key art: a brass microscope's objective lens hangs above a single drop of bog water on a glass slide; inside the drop, nested like a spiral of shrinking worlds, a water springtail on the surface film, a mite among moss leaves, a tardigrade gripping a leaf cell, an amoeba, a green Paramecium, rod bacteria and a tiny bacteriophage at the centre, each painted in its own microscope look (macro photo, electron micrograph, DIC, brightfield, phase contrast, molecular illustration). Warm lamplight, deep green shadows. Keep the upper-middle third calm for the logo and the bottom third quiet for the Press Start line. Full-bleed 16:9, no text.
+```
+
+### MP-G03 · Menu background
+
+- **File:** `micro/prototypes/assets/game/menu.webp`
+- **Size:** 2560 x 1440, opaque
+- **Used for:** Behind the world-select cards.
+- **Stand-in until delivered:** A dark green-to-ink gradient with a faint engraved grid.
+- **Status:** delivered
+- **Reference images:**
+  - [Moss habitat structure; use leaf architecture as environmental reference.](research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
+
+```text
+Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A naturalist's laboratory bench seen from above, softly out of focus: dark green baize, a brass microscope stage edge, glass slides with hand-written specimen labels, an engraved brass scale rule, a magnifying glass, sepia field notes with ink sketches of mites and tardigrades. The centre is dark and calm so a row of cards can sit over it. Full-bleed 16:9, no legible text.
+```
+
 ### MP-G04 · Card frame
 
 - **File:** `micro/prototypes/assets/game/card-frame.png`
@@ -618,6 +650,20 @@ Visual style for the game Micro Zoom: a Victorian natural-history laboratory see
 
 ```text
 Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. An empty portrait frame for a specimen card: a thin polished brass bezel with engraved corner ornaments and a small vernier scale along the bottom edge, like the mount of a microscope slide; the inside is completely empty and transparent; even line weights so it can be stretched as a nine-slice. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+```
+
+### MP-G05 · Paper panel texture
+
+- **File:** `micro/prototypes/assets/game/paper.webp`
+- **Size:** 1024 x 1024, opaque, tileable
+- **Used for:** Panels: the intro text, the pause menu, settings and the controls card.
+- **Stand-in until delivered:** A flat warm ivory with procedural grain.
+- **Status:** delivered
+- **Reference images:**
+  - [Moss habitat structure; use leaf architecture as environmental reference.](research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
+
+```text
+Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Aged ivory laboratory paper with a fine even fibre texture, a very faint pale-green engraved millimetre grid and the slightest foxing, light and calm so dark text reads on it. No stains in one spot, no text.
 ```
 
 ### MP-G06 · App icon

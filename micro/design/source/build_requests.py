@@ -471,7 +471,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A game title logo: the words \"MICRO ZOOM\" in capitals, spelled exactly M-I-C-R-O Z-O-O-M, in an elegant engraved serif with brass inlay and a thin ink outline, the O of ZOOM drawn as a microscope objective lens seen end-on with concentric brass rings and a tiny tardigrade silhouette inside. A fine engraved scale rule underlines the words. Wide landscape composition, even margins, no other text, no watermark. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
             },
             {
-                "id": "MP-G02", "name": "Title screen key art",
+                "id": "MP-G02", "status": "delivered", "name": "Title screen key art",
                 "file": "assets/game/title.webp", "size": "2560 x 1440, opaque",
                 "used": "Full-screen behind the title (Press Start).",
                 "standin": "A slow procedural zoom through the worlds' colours.",
@@ -479,7 +479,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} Key art: a brass microscope's objective lens hangs above a single drop of bog water on a glass slide; inside the drop, nested like a spiral of shrinking worlds, a water springtail on the surface film, a mite among moss leaves, a tardigrade gripping a leaf cell, an amoeba, a green Paramecium, rod bacteria and a tiny bacteriophage at the centre, each painted in its own microscope look (macro photo, electron micrograph, DIC, brightfield, phase contrast, molecular illustration). Warm lamplight, deep green shadows. Keep the upper-middle third calm for the logo and the bottom third quiet for the Press Start line. Full-bleed 16:9, no text.",
             },
             {
-                "id": "MP-G03", "name": "Menu background",
+                "id": "MP-G03", "status": "delivered", "name": "Menu background",
                 "file": "assets/game/menu.webp", "size": "2560 x 1440, opaque",
                 "used": "Behind the world-select cards.",
                 "standin": "A dark green-to-ink gradient with a faint engraved grid.",
@@ -495,7 +495,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} An empty portrait frame for a specimen card: a thin polished brass bezel with engraved corner ornaments and a small vernier scale along the bottom edge, like the mount of a microscope slide; the inside is completely empty and transparent; even line weights so it can be stretched as a nine-slice. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
             },
             {
-                "id": "MP-G05", "name": "Paper panel texture",
+                "id": "MP-G05", "status": "delivered", "name": "Paper panel texture",
                 "file": "assets/game/paper.webp", "size": "1024 x 1024, opaque, tileable",
                 "used": "Panels: the intro text, the pause menu, settings and the controls card.",
                 "standin": "A flat warm ivory with procedural grain.",
