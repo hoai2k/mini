@@ -27,8 +27,8 @@ const hud = mountHud({
   sub: 'Reach the spot, watch it highlighted, then zoom into it: the spot becomes the next world. Compare switching the look before, during or after the zoom.',
   controls: hudControls({
     move: 'Move the creature (a demo drives it if you leave it)',
-    dash: 'Dash · on the highlight: zoom now · hold: skip the highlight',
-    attack: 'Highlight style',
+    dash: 'Dash · on the highlighted frame: zoom now · hold: skip it',
+    attack: 'Frame flash style',
     defend: 'Reverse: zoom back out',
     special: 'Replay this transition',
     analog: 'Scrub the transition (LT back, RT forward); A resumes',
@@ -44,14 +44,14 @@ let booted = false;
 const features = createFeatures({ key: 'zoom', pad });
 const STRAT_IDS = ['first', 'during', 'after', 'cross', 'cut'];
 const STRAT_NAMES = STRAT_IDS.map((s) => STRATEGIES[s].name);
-const HL_NAMES = ['Ring pulse', 'Focus rack', 'Iris (field stop)', 'Objective click'];
-const opts = { strategy: 'during', hl: 'Ring pulse', zoomDur: 3.5, morphDur: 2.5, hlDur: 2.2, ease: 'log', miteLook: 'sem', bactLook: 'phase', demo: true, auto: true, foot: true, scale: 0.75 };
+const HL_NAMES = ['Frame flash', 'Pulsing frame', 'Darken outside'];
+const opts = { strategy: 'during', hl: 'Frame flash', zoomDur: 3.5, morphDur: 2.5, hlDur: 2.2, ease: 'log', miteLook: 'sem', bactLook: 'phase', demo: true, auto: true, scale: 0.75 };
 features.add({ id: 'strategy', group: 'Rendering', label: 'Style transition strategy', choices: STRAT_NAMES, value: 'Look during',
   about: 'Look first: morph world N’s optics into N+1’s at N’s scale, then zoom. Look during: the optics morph with the zoom. Zoom first: zoom in N’s look, then morph. Crossfade: as during, but the two finished images cross-fade (no optics morph). Cut: the look switches at the hand-off.',
   onChange: (v) => { opts.strategy = STRAT_IDS[STRAT_NAMES.indexOf(v)] || 'during'; booted && retime(); } });
-features.add({ id: 'hl', group: 'Rendering', label: 'Highlight style', choices: HL_NAMES, value: 'Ring pulse',
-  about: 'Ring pulse around the next world’s field; a focus rack (everything else defocuses); an iris closing onto the point (the microscope’s field stop), which then opens as the zoom arrives; or the objective click (the nosepiece turning, with a click).',
-  onChange: (v) => { opts.hl = v; } });
+features.add({ id: 'hl', group: 'Rendering', label: 'Highlight: the next world’s frame', choices: HL_NAMES, value: 'Frame flash',
+  about: 'The highlight is exactly the rectangle the next world’s screen will show (its field width × the screen’s aspect). Frame flash: the frame and its inside flash twice; pulsing frame; or darken everything outside it. The zoom is a pure scaling about one fixed point, so that rectangle grows to fill the screen exactly.',
+  onChange: (v) => { opts.hl = HL_NAMES.includes(v) ? v : HL_NAMES[0]; } });
 features.add({ id: 'zoomDur', group: 'Motion', label: 'Zoom duration', choices: ['2 s', '3.5 s', '6 s'], value: '3.5 s',
   about: 'How long the zoom takes, whatever the magnification ratio (1.7× to 150×).', onChange: (v) => { opts.zoomDur = parseFloat(v); booted && retime(); } });
 features.add({ id: 'morphDur', group: 'Motion', label: 'Look morph duration (look first / zoom first)', choices: ['1 s', '2.5 s', '4 s'], value: '2.5 s',
@@ -66,8 +66,6 @@ features.add({ id: 'miteLook', group: 'Optics', label: 'Mite world look', choice
   about: 'The mite prototype’s SEM, or the reflected-light stereo microscope the spec names for the capitulum.', onChange: (v) => { opts.miteLook = v === 'SEM' ? 'sem' : 'stereo'; } });
 features.add({ id: 'bactLook', group: 'Optics', label: 'Bacteria world look', choices: ['Phase contrast', 'Fluorescence'], value: 'Phase contrast',
   onChange: (v) => { opts.bactLook = v === 'Phase contrast' ? 'phase' : 'fluor'; } });
-features.add({ id: 'foot', group: 'Rendering', label: 'Outline the next world’s field', on: true,
-  about: 'A dashed frame during the highlight: exactly what fills the screen when the zoom arrives.', onChange: (v) => { opts.foot = v; } });
 features.add({ id: 'scale', group: 'Rendering', label: 'Render scale', choices: ['50%', '75%', '100%'], value: '75%',
   about: 'Resolution of the specimen field (two worlds are drawn at once during a zoom).', onChange: (v) => { opts.scale = parseFloat(v) / 100; if (booted) resize(); } });
 features.add({ id: 'specimen', group: 'World', label: 'One multi-scale specimen', fixed: true,
@@ -154,8 +152,30 @@ function select(k, { atDest = false } = {}) {
   S.tl = buildTimeline();
 }
 
+// Mite → tardigrade has no change of scale (both ~0.35 mm), so it has no highlight and no
+// zoom: a hand-off of creature and look at a constant field, while the tun rehydrates.
+const HANDOFF = () => Math.max(4.5, opts.zoomDur + 1.5);
+const isHandoff = (k = S.k) => WORLDS[k - 1].field === WORLDS[k].field;
 function buildTimeline() {
+  if (isHandoff()) {
+    const strategy = opts.strategy === 'after' ? 'during' : opts.strategy;
+    return makeTimeline({ H: 0, M: opts.morphDur, Z: HANDOFF(), strategy, handoff: 0.5 });
+  }
   return makeTimeline({ H: opts.hlDur, M: opts.morphDur, Z: opts.zoomDur, strategy: opts.strategy, handoff: 0.55 });
+}
+/** Where the camera rests during the highlight: as little moved as possible, with the next frame on screen. */
+function highlightCam() {
+  const T = G[S.k], F0 = WORLDS[S.k - 1].field, F1 = WORLDS[S.k].field, A = dbuf.y / dbuf.x;
+  const mx = Math.max(0, (F0 - F1) / 2 - 0.06 * F0), my = Math.max(0, ((F0 - F1) * A) / 2 - 0.06 * F0 * A);
+  const cl = (v, m) => Math.min(Math.max(v, -m), m);
+  return [T[0] + cl(S.camStart[0] - T[0], mx), T[1] + cl(S.camStart[1] - T[1], my)];
+}
+/** The next world's frame on screen, in drawing-buffer pixels [x0, y0, x1, y1] (y up). */
+function nextRect() {
+  const W = dbuf.x, H = dbuf.y, T = G[S.k], F1 = WORLDS[S.k].field;
+  const cx = ((T[0] - S.cam[0]) / S.w) * W + W / 2, cy = ((T[1] - S.cam[1]) / S.w) * W + H / 2;
+  const hw = ((F1 / S.w) * W) / 2, hh = (hw * H) / W;
+  return [cx - hw, cy - hh, cx + hw, cy + hh];
 }
 function retime() {
   if (!S.tl) return;
@@ -180,13 +200,12 @@ function beginTransition({ skip = false } = {}) {
   S.phase = 'trans'; S.tau = skip ? S.tl.H : 0; S.dir = 1; S.hold = false;
   S.camStart = [S.cam[0], S.cam[1]];
   const T = TRANSITIONS[S.k];
-  if (!skip) hud.toast(`${T.visible} (${T.spec})`, Math.max(2200, S.tl.H * 1000 + 600));
+  if (!skip || isHandoff()) hud.toast(`${T.visible} (${T.spec})`, Math.max(2200, S.tl.H * 1000 + 600));
 }
 
 function arrive() {
   const k = S.k;
   S.cameFrom = k;
-  if (k === 2) { S.revive = 0.001; cr[2].state = 0; }
   if (k === 5 || !opts.auto) S.phase = 'end';
   else { S.k = k + 1; S.phase = 'approach'; S.armed = true; S.idle = 0; }
   hud.toast(TRANSITIONS[k].arrive, 2600);
@@ -423,18 +442,38 @@ function update(dt) {
     }
     if (!S.hold && !S.frozen) S.tau += dt * S.dir;
     S.tau = Math.min(Math.max(S.tau, 0), tl.end);
-    // the objective click (nosepiece) at the start and end of the zoom
-    if (opts.hl === 'Objective click') {
-      if ((prev < tl.zoomStart) !== (S.tau < tl.zoomStart)) click(1);
-      if ((prev < tl.zoomEnd) !== (S.tau < tl.zoomEnd)) click(0.6);
-    }
     S.st = timelineState(tl, S.tau);
-    const T = G[S.k];
-    const c = smooth(S.st.hl / 0.6);
-    S.cam = [lerp(S.camStart[0], T[0], c), lerp(S.camStart[1], T[1], c)];
-    S.w = zoomField(WORLDS[S.k - 1].field, WORLDS[S.k].field, S.st.zoom, EASES[opts.ease]);
-    S.swell = S.k === 5 ? 1 + 0.1 * smooth(S.st.hl) : 1;
+    const F0 = WORLDS[S.k - 1].field, F1 = WORLDS[S.k].field;
     idleCreatures(dt, -1, S.k - 1);
+    if (isHandoff()) {
+      // constant field: the camera's attention moves from the mite to the reviving tun
+      const p = S.st.zoom, e = smooth(p);
+      const end = followTargetFor(2);
+      S.cam = [lerp(S.camStart[0], end[0], e), lerp(S.camStart[1], end[1], e)];
+      S.w = F0;
+      const tun = cr[2];
+      if (prev < tl.zoomStart + 0.1 * tl.Z && S.tau >= tl.zoomStart + 0.1 * tl.Z) audio.play('tardigrade/revive', { volume: 0.7 });
+      tun.state = p;
+      tun.moving = p > 0.85 && p < 1 ? 1 : 0;
+      if (tun.moving) tun.phase += dt * 0.7;
+      // the mite wanders off along the leaf, a neighbour now
+      const m = cr[1], d1 = destG(1), away = [0.8, 0.6];
+      m.pos = [d1[0] + away[0] * 320 * e, d1[1] + away[1] * 320 * e];
+      m.heading = Math.atan2(away[1], away[0]);
+      m.moving = p > 0.05 && p < 0.98 ? 1 : 0;
+      if (m.moving) m.phase += (dt * 200) / WORLDS[1].stride;
+    } else {
+      // the highlight frames the next world; the zoom is a pure scaling about the fixed
+      // point X, so that frame grows to fill the screen exactly (no drift, no jump)
+      const T = G[S.k], camH = highlightCam();
+      const c = smooth(S.st.hl / 0.6);
+      const ch = [lerp(S.camStart[0], camH[0], c), lerp(S.camStart[1], camH[1], c)];
+      S.w = zoomField(F0, F1, S.st.zoom, EASES[opts.ease]);
+      const r = F1 / F0, k = S.w / F0;
+      const X = [(T[0] - camH[0] * r) / (1 - r), (T[1] - camH[1] * r) / (1 - r)];
+      S.cam = [X[0] + (ch[0] - X[0]) * k, X[1] + (ch[1] - X[1]) * k];
+    }
+    S.swell = S.k === 5 ? 1 + 0.1 * smooth(S.st.hl) : 1;
     if (!S.hold && !S.frozen) {
       if (S.dir > 0 && S.tau >= tl.end) arrive();
       else if (S.dir < 0 && S.tau <= 0) {
@@ -497,34 +536,21 @@ function render() {
   S.look = L;
   zo.compose({ a: L.a, b: L.b, t: L.t, cross: L.cross, umPerPx: w / fw, time: S.frozen ? 1 : S.time });
 
-  // highlight effects
-  const fx = { time: S.time, target: [W / 2, H / 2] };
-  if (S.phase === 'trans') {
-    const st = S.st, tl = S.tl;
-    const T = G[S.k];
-    fx.target = [((T[0] - S.cam[0]) / w) * W + W / 2, ((T[1] - S.cam[1]) / w) * W + H / 2];
-    const nf = WORLDS[S.k].field;
-    const rfp = Math.max(14, (0.5 * nf * (H / W) / w) * W);
-    const hlIn = smooth(st.hl / 0.25);
-    const out = (a) => 1 - smooth(st.zoom / a);
-    const style = opts.hl;
-    if (style === 'Ring pulse' || style === 'Objective click') { fx.ring = (style === 'Ring pulse' ? 1 : 0.5) * hlIn * out(0.3); fx.ringR = rfp; }
-    if (style === 'Focus rack') { fx.rack = smooth(st.hl / 0.5) * out(0.4); fx.rackR = Math.max(rfp, 40); }
-    if (style === 'Iris (field stop)') {
-      const diag = Math.hypot(W, H);
-      fx.iris = smooth(st.hl / 0.3) * (1 - smooth((st.zoom - 0.7) / 0.3));
-      fx.irisR = st.zoom > 0 ? rfp : lerp(diag * 0.6, rfp, smooth(st.hl / 0.85));
-    }
-    if (style === 'Objective click') {
-      const x = S.tau - tl.zoomStart;
-      fx.turret = x < 0 ? smooth(1 + x / 0.3) : Math.exp(-x / 0.25);
-      fx.turret += 0.6 * Math.exp(-Math.abs(S.tau - tl.zoomEnd) / 0.1);
-      fx.turret = Math.min(1, fx.turret);
-    }
-    if (opts.foot) {
-      fx.foot = hlIn * out(0.15);
-      const hw = ((nf / w) * W) / 2, hh = hw * (H / W);
-      fx.footRect = [fx.target[0] - hw, fx.target[1] - hh, fx.target[0] + hw, fx.target[1] + hh];
+  // the highlight: the exact frame of the next world's screen
+  const fx = { time: S.time };
+  if (S.phase === 'trans' && !isHandoff()) {
+    const st = S.st;
+    fx.rect = nextRect();
+    const hlIn = smooth(st.hl / 0.2);
+    const fade = 1 - smooth((st.zoom - 0.55) / 0.45);
+    if (opts.hl === 'Frame flash') {
+      fx.frame = hlIn * fade;
+      fx.flash = st.hl < 1 ? Math.pow(Math.abs(Math.sin(st.hl * 2 * Math.PI)), 6) : 0;
+    } else if (opts.hl === 'Pulsing frame') {
+      fx.frame = (0.55 + 0.45 * Math.sin(S.time * 6)) * hlIn * fade + 0.3 * hlIn * fade;
+    } else {
+      fx.dark = 0.62 * hlIn;
+      fx.frame = 0.6 * hlIn * fade;
     }
   }
   zo.post(fx, null);
@@ -575,6 +601,8 @@ window.__micro = {
   setZoom(p) { if (S.phase !== 'trans') this.start(S.k); S.tau = tauAtZoom(S.tl, p); S.hold = true; },
   setProgress(s) { if (S.phase !== 'trans') this.start(S.k); S.tau = s * S.tl.end; S.hold = true; },
   setStrategy(id) { features.set('strategy', STRATEGIES[id].name); },
+  /** The next world's frame on screen (drawing-buffer px, y up) and the screen size. */
+  rect() { return { rect: S.phase === 'trans' ? nextRect() : null, W: dbuf.x, H: dbuf.y, cam: S.cam, w: S.w }; },
   setHighlight(name) { features.set('hl', name); },
   freeze(on = true) { S.frozen = on; },
   hideHud(on = true) { document.querySelector('.hud').classList.toggle('hidden', on); },

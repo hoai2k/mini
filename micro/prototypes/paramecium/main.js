@@ -673,7 +673,9 @@ function frame(now) {
     const lk = blocked ? { yaw: 0, pitch: 0, m: 0 } : ctl.look();
     view.orbitYaw -= lk.yaw * 2.2 * dt;
     view.orbitPitch = Math.max(-1.2, Math.min(1.2, view.orbitPitch + lk.pitch * 1.6 * dt));
-    if (rs.m === 0 && !debug.inspect) { const k = 1 - Math.exp(-dt * 0.6); view.orbitYaw += (0.5 - view.orbitYaw) * k; view.orbitPitch += (0.4 - view.orbitPitch) * k; }
+    // being caught by the amoeba: the camera rises to look down into the cup and the vacuole
+    const pitch0 = capture.active && cap.th === amoeba ? -0.85 : 0.4;
+    if (rs.m === 0 && !debug.inspect) { const k = 1 - Math.exp(-dt * (capture.active ? 2 : 0.6)); view.orbitYaw += (0.5 - view.orbitYaw) * k; view.orbitPitch += (pitch0 - view.orbitPitch) * k; }
   } else {
     const half = OBJECTIVES[view.obj].field / 2;
     view.stage.x = Math.max(-half, Math.min(half, view.stage.x + rs.x * half * dt));
@@ -897,8 +899,10 @@ function forceCapture(kind = 'didinium') {
     amoeba.tip.set(amoeba.pos.x, amoeba.H, amoeba.pos.z);
   } else {
     th = world.didinia[0];
-    th.dir.copy(s.T).negate();
-    th.pos.copy(s.center).addScaledVector(s.T, LENGTH / 2 + 70);
+    // from the side, so the chase camera sees the proboscis strike
+    const side = new THREE.Vector3().crossVectors(s.T, new THREE.Vector3(0, 1, 0)).normalize();
+    th.dir.copy(side).negate();
+    th.pos.copy(s.center).addScaledVector(side, WIDTH / 2 + 64).addScaledVector(s.T, LENGTH * 0.1);
     th.tip = (th.tip || new THREE.Vector3()).copy(th.pos).addScaledVector(th.dir, 66);
     th.stun = 0; th.sated = 0;
   }

@@ -36,7 +36,7 @@
 //   each frame:
 //     renderer.setRenderTarget(zo.field); renderer.render(yourFieldScene, cam);   // write the 3 attachments
 //     zo.compose({ a: LOOKS.sem, b: LOOKS.dic, t: 0.4, cross: false, umPerPx, time });
-//     zo.post({ target: [x, y] px, ring, ringR, rack, rackR, iris, irisR, turret });  // to the screen
+//     zo.post({ rect: [x0, y0, x1, y1] px, frame, flash, dark });  // the highlight, to the screen
 //   mixLook(a, b, t) and lookPath([a, b, c], t) give an interpolated look object.
 import * as THREE from '../vendor/three.module.min.js';
 
@@ -255,66 +255,36 @@ void main() {
   }
 }`;
 
-// The highlight and objective effects, on the finished image.
+// The highlight, on the finished image: the exact frame of the next world's
+// screen (a rectangle in drawing-buffer pixels), drawn as a line just inside
+// its edge with corner marks outside it, an optional flash of its inside and
+// an optional darkening of everything outside it.
 const POST_FS = /* glsl */ `
 precision highp float;
 in vec2 vUv;
 uniform sampler2D tC;
-uniform vec2 uRes, uTarget;
-uniform float uTime, uRing, uRingR, uRack, uRackR, uIris, uIrisR, uTurret, uFoot;
-uniform vec4 uFootRect;
+uniform vec2 uRes;
+uniform vec4 uRect;
+uniform float uFrame, uFlash, uDark;
 layout(location = 0) out vec4 oC;
 void main() {
   vec2 fc = gl_FragCoord.xy;
-  float dist = length(fc - uTarget);
-  // focus rack: a disc blur growing with distance from the target (golden-angle taps)
-  float rad = uRack * 14.0 * smoothstep(uRackR, uRackR * 1.7 + 8.0, dist);
-  vec3 col;
-  if (rad < 0.5) col = texture(tC, vUv).rgb;
-  else {
-    col = vec3(0.0);
-    float lod = max(0.0, log2(rad / 4.0));
-    for (int i = 0; i < 16; i++) {
-      float r = sqrt((float(i) + 0.5) / 16.0) * rad;
-      float a = float(i) * 2.39996;
-      col += textureLod(tC, (fc + r * vec2(cos(a), sin(a))) / uRes, lod).rgb;
-    }
-    col /= 16.0;
-  }
-  if (uTurret > 0.001) {
-    // the nosepiece turning: a rotational blur about the turret axis, off screen
-    vec2 piv = vec2(uRes.x * 1.25, -uRes.y * 0.35);
-    vec3 acc = vec3(0.0);
-    for (int i = 0; i < 14; i++) {
-      float a = (float(i) / 13.0 - 0.5) * uTurret * 0.16;
-      vec2 d = fc - piv;
-      vec2 p = piv + mat2(cos(a), sin(a), -sin(a), cos(a)) * d;
-      acc += textureLod(tC, p / uRes, 1.5 * uTurret).rgb;
-    }
-    col = mix(col, acc / 14.0, min(1.0, uTurret * 1.5)) * (1.0 - 0.35 * uTurret);
-  }
-  if (uIris > 0.001) {
-    float m = smoothstep(uIrisR + 3.0, uIrisR - 3.0, dist);
-    float rim = exp(-pow((dist - uIrisR) / 3.0, 2.0));
-    col = mix(col, col * m + vec3(0.55, 0.52, 0.48) * rim * 0.35, uIris);
-  }
-  if (uRing > 0.001) {
-    float w = 2.2;
-    float pulse = 0.5 + 0.5 * sin(uTime * 5.0);
-    float ring = exp(-pow((dist - uRingR) / w, 2.0));
-    float echo = exp(-pow((dist - uRingR * (1.0 + 0.35 * fract(uTime * 0.8))) / (w * 1.5), 2.0)) * (1.0 - fract(uTime * 0.8));
-    float glow = exp(-pow(dist / max(uRingR, 1.0), 2.0) * 1.5) * 0.12;
-    vec3 rc = vec3(1.0, 0.86, 0.35);
-    col = mix(col, rc, clamp((ring * (0.65 + 0.35 * pulse) + echo * 0.5) * uRing, 0.0, 1.0));
-    col += rc * glow * uRing * pulse;
-  }
-  if (uFoot > 0.001) {
-    // the next world's field, outlined (a dashed frame)
-    vec2 a = uFootRect.xy, b = uFootRect.zw;
+  vec3 col = texture(tC, vUv).rgb;
+  if (uFrame + uFlash + uDark > 0.001) {
+    vec2 a = uRect.xy, b = uRect.zw;
     vec2 dd = max(a - fc, fc - b);
-    float e = abs(max(dd.x, dd.y));
-    float dash = step(0.5, fract((fc.x + fc.y) / 14.0));
-    col = mix(col, vec3(0.75, 0.9, 1.0), uFoot * dash * (1.0 - smoothstep(0.6, 1.6, e)));
+    float outside = max(dd.x, dd.y);          // > 0 outside the frame, < 0 inside
+    float inside = 1.0 - step(0.0, outside);
+    col *= 1.0 - uDark * (1.0 - inside);
+    col = mix(col, vec3(1.0, 0.97, 0.85), 0.5 * uFlash * inside);
+    float line = 1.0 - smoothstep(0.6, 1.6, abs(outside + 1.2));
+    // corner marks just outside, so even a frame a few pixels wide is found
+    const float L = 12.0, G = 3.0;
+    float cx = min(abs(fc.x - a.x), abs(fc.x - b.x)), cy = min(abs(fc.y - a.y), abs(fc.y - b.y));
+    float outY = max(a.y - fc.y, fc.y - b.y), outX = max(a.x - fc.x, fc.x - b.x);
+    float mk = (cx < 1.0 && outY > G && outY < G + L ? 1.0 : 0.0) + (cy < 1.0 && outX > G && outX < G + L ? 1.0 : 0.0);
+    vec3 lc = vec3(1.0, 0.88, 0.42);
+    col = mix(col, lc, clamp(line + mk, 0.0, 1.0) * uFrame);
   }
   oC = vec4(col, 1.0);
 }`;
@@ -346,9 +316,8 @@ export function createZoomOptics(renderer) {
   });
   const post = new THREE.RawShaderMaterial({
     glslVersion: THREE.GLSL3, vertexShader: VS, fragmentShader: POST_FS, depthTest: false, depthWrite: false,
-    uniforms: { tC: { value: null }, uRes: { value: new THREE.Vector2() }, uTarget: { value: new THREE.Vector2() }, uTime: { value: 0 },
-      uRing: { value: 0 }, uRingR: { value: 0 }, uRack: { value: 0 }, uRackR: { value: 0 }, uIris: { value: 0 }, uIrisR: { value: 0 },
-      uTurret: { value: 0 }, uFoot: { value: 0 }, uFootRect: { value: new THREE.Vector4() } },
+    uniforms: { tC: { value: null }, uRes: { value: new THREE.Vector2() }, uRect: { value: new THREE.Vector4() },
+      uFrame: { value: 0 }, uFlash: { value: 0 }, uDark: { value: 0 } },
   });
   const packA = new Float32Array(NV * 4), packB = new Float32Array(NV * 4);
   const load = (arr, vecs) => { for (let i = 0; i < NV; i++) vecs[i].fromArray(arr, i * 4); };
@@ -387,15 +356,16 @@ export function createZoomOptics(renderer) {
       // The composite runs at the field's resolution into the colour target.
       run(compose, color);
     },
-    /** Highlight effects, drawn to the screen (or `target`). Positions in drawing-buffer pixels. */
+    /**
+     * The highlight, drawn to the screen (or `target`): rect [x0, y0, x1, y1] in
+     * drawing-buffer pixels (y up), frame / flash / dark strengths 0..1.
+     */
     post(o = {}, target = null) {
       const u = post.uniforms;
       u.tC.value = color.texture;
       u.uRes.value.copy(res);
-      u.uTarget.value.set(o.target?.[0] ?? 0, o.target?.[1] ?? 0);
-      u.uTime.value = o.time ?? 0;
-      for (const k of ['ring', 'ringR', 'rack', 'rackR', 'iris', 'irisR', 'turret', 'foot']) u['u' + k[0].toUpperCase() + k.slice(1)].value = o[k] ?? 0;
-      if (o.footRect) u.uFootRect.value.fromArray(o.footRect);
+      u.uRect.value.fromArray(o.rect || [0, 0, 0, 0]);
+      u.uFrame.value = o.frame ?? 0; u.uFlash.value = o.flash ?? 0; u.uDark.value = o.dark ?? 0;
       run(post, target);
     },
   };
