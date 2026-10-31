@@ -18,6 +18,11 @@ flow, and slow tumbling when idle. Steering turns the baseplate and long attachm
 fibres toward the movement direction, with the head following behind. Release the stick and only Brownian motion and the flow
 remain. *Features → LS drift → Honest* turns the open-water drift off.
 
+The phage’s water remains a shallow XY slab. LS already supplies analog drive
+and direction relative to the view; its attachment end leads. The camera now
+follows that travel heading within the plane when RS is not overriding it,
+while RS retains the 3D orbit. Idle Brownian tumbling does not spin the camera.
+
 ## Controls
 
 The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
@@ -25,7 +30,7 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | Xbox | Keyboard | Action |
 | --- | --- | --- |
 | LS | WASD | **Drift legs-first** (a labelled departure); steer the attachment fibres toward a protein |
-| RS | Arrows | Orbit the view (it drifts back when released) |
+| RS | Arrows | Orbit the view. Manual RS look holds for 0.45 s after release, then the camera eases back to the swimming heading |
 | **A** | Space | **Dash**: a passing *current gust* in open water, or a *push-off* with the fibres from a surface (both departures; recharging, HUD `dash` meter) |
 | **X** | E | **Grab protein**: aim the leading attachment fibres at a protruding protein and press X. The large gold three-lobed receptors fit; violet paired proteins do not. Both can be grabbed: the fibres converge for 0.45 s, then a mismatch slips off with a small recoil and a 0.25 s retry delay. A match latches and automatically starts the existing irreversible attachment: short fibres bind, baseplate opens, sheath contracts and DNA enters (camera close-up and shake on the snap). No automatic cell-contact attachment or hidden three-foot requirement. **At an amoeba's lobe: a fibre jab** (a departure, below) |
 | B | Shift | **Defend: fold the fibres** back against the sheath and slip: an amoeba's lobe gets no purchase, clay and wrong hosts slide past; also lets go of a host. Press again to extend them (ready to grab receptors with X; clay still catches them) |

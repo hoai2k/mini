@@ -21,6 +21,7 @@ import { createT4, t4LiteGeometry } from '../shared/techniques/phage-model.js';
 import { createWorld, uvAt, BOUNDS, UV } from './world.js';
 import { createInside, GENOME_NODES } from './inside.js';
 import { attachmentForward, aimedProtein } from './binding.js';
+import { followYaw } from '../shared/swim-control.js';
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
@@ -69,7 +70,7 @@ const hud = mountHud({
   sub: 'A T4-like phage, 0.2 µm long, in bog water beside its host bacteria: a molecular illustration, not a microscope image. Drift with LS; let go and Brownian motion has you.',
   controls: hudControls({
     move: 'Drift with the attachment fibres leading (a labelled departure: phages have no motor)',
-    camera: 'Orbit the view',
+    camera: 'Orbit the view; released, it follows your swimming heading',
     dash: 'Current gust (departure) · on a surface: push off with the fibres',
     attack: 'Grab a protein with the leading fibres: gold three-lobed receptors bind and inject; violet pairs slip off · at an amoeba lobe: fibre jab',
     defend: 'Defend: fold the fibres and slip (the amoeba gets no purchase; past clay and wrong hosts) / extend (grab receptors with X)',
@@ -106,7 +107,7 @@ safeTexture('MP-V03', { repeat: false }).then((t) => { if (t) { art.section = t;
 const LOOKS = ['Goodsell watercolour', 'Cryo-EM greyscale', 'Fluorescence (pseudo-colour)'];
 const LOOK_KEY = ['goodsell', 'cryo', 'fluor'];
 const ZOOMS = [60, 110, 180, 290];
-const view = { look: 0, zoom: 1, yaw: 0, pitch: 0, overlay: false, ink: true, art: true, target: new THREE.Vector3(), dist: 180, iso: null };
+const view = { look: 0, zoom: 1, yaw: 0, pitch: 0, overlay: false, ink: true, art: true, target: new THREE.Vector3(), dist: 180, iso: null, followHeading: 2.95 - Math.PI / 2, lookHold: 0 };
 const opts = { drive: true, brownian: true, tumble: true, uv: true, amoeba: true };
 
 function applyArt() {
@@ -129,11 +130,11 @@ let waterColor = '#bcd3ea';
 const START = new THREE.Vector3(-170, -210, 0);
 const newP = () => ({
   pos: START.clone(), vel: new THREE.Vector3(), bvel: new THREE.Vector3(), gust: new THREE.Vector3(),
-  q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.2), angVel: new THREE.Vector3(),
+  q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.95), angVel: new THREE.Vector3(),
   mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, walkLocal: new THREE.Vector3(), lift: 4,
   anchors: Array(6).fill(null), stepping: -1, stepT: 0, bound: 0, canCommit: false, commitT: 0, commitHost: null,
   clayT: 0, msgT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1,
-  stuckTip: Array(6).fill(null), lastHost: null, inBack: false, grab: null, grabCooldown: 0,
+  stuckTip: Array(6).fill(null), lastHost: null, inBack: false, grab: null, grabCooldown: 0, moveHeading: 2.95 - Math.PI / 2,
 });
 const hunger = createHunger({ grace: 45 });
 
@@ -235,8 +236,8 @@ function placeAtStart(m, at = null) {
   use(m);
   P.pos.copy(at || START).add(at ? _v.set(0, 0, 0) : _v.set(m.slot * 26, (m.slot % 2) * 14, 0));
   P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0); P.angVel.set(0, 0, 0);
-  P.q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.2);
-  Object.assign(P, { mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, canCommit: false, bound: 0, commitT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1, grab: null, grabCooldown: 0, lift: 4 });
+  P.q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.95);
+  Object.assign(P, { mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, canCommit: false, bound: 0, commitT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1, grab: null, grabCooldown: 0, moveHeading: 2.95 - Math.PI / 2, lift: 4 });
   releaseAnchors();
   P.stuckTip.fill(null);
   t4.set({ contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0 });
@@ -278,7 +279,7 @@ function resetLevel() {
   progeny.setCount(0);
   card.classList.remove('show');
   P.burstSent = false;
-  view.target.copy(P.pos);
+  view.target.copy(P.pos); view.followHeading = P.moveHeading; view.lookHold = 0;
   // in the game shell its intro has already said this
   if (!embed.active || started) say('You are a T4-like phage in bog water. Drift legs-first with LS. Aim at a gold three-lobed protein and grab (X); violet pairs slip off. It is calm for now.', 4200, true);
   started = true;
@@ -435,8 +436,8 @@ function updateDrift(dt, inp) {
   integrateRotation(dt);
   if (inp.stick && opts.drive) {
     const aim = new THREE.Quaternion().setFromUnitVectors(UP, inp.stick.clone().negate().normalize());
-    P.q.slerp(aim, 1 - Math.exp(-dt * 7));
-    P.angVel.multiplyScalar(Math.exp(-dt * 7));
+    P.q.slerp(aim, 1 - Math.exp(-dt * 12));
+    P.angVel.multiplyScalar(Math.exp(-dt * 12));
   }
   // solids
   const c = centreOf(_v);
@@ -775,7 +776,7 @@ function stepMember(m, dt, insideOwner, where) {
   const idle = blocked || !pl || pl.waiting;
   const ls = idle ? ZERO_LS : ctl.move();
   const inp = { stick: null, stickM: 0 };
-  if (ls.m > 0) { inp.stick = stickWorld(ls, new THREE.Vector3()).normalize(); inp.stickM = Math.min(1, ls.m); P.lastStick = inp.stick.clone(); P.lastStickT = 0.3; }
+  if (ls.m > 0) { inp.stick = stickWorld(ls, new THREE.Vector3()).normalize(); inp.stickM = Math.min(1, ls.m); P.lastStick = inp.stick.clone(); P.lastStickT = 0.3; P.moveHeading = Math.atan2(inp.stick.y, inp.stick.x); }
   P.lastStickT = (P.lastStickT || 0) - dt;
   const multi = isMulti();
   const c = capture.update(dt, pad);
@@ -925,9 +926,11 @@ function frame(now) {
 
   // camera: frame the group (solo: your phage)
   const commitFocus = solo && P.mode === 'commit';
+  if (look.m > 0.01) view.lookHold = 0.45;
+  else view.lookHold = Math.max(0, view.lookHold - dt);
   if (commitFocus) { view.yaw *= Math.exp(-dt * 2); view.pitch += (0.1 - view.pitch) * (1 - Math.exp(-dt * 2)); }
   else if (look.m > 0) { view.yaw = clamp(view.yaw + look.yaw * 1.4 * dt, -1.1, 1.1); view.pitch = clamp(view.pitch + look.pitch * 1.1 * dt, -0.75, 0.75); }
-  else { view.yaw *= Math.exp(-dt * 0.4); view.pitch *= Math.exp(-dt * 0.4); }
+  else if (view.lookHold === 0) { view.yaw *= Math.exp(-dt * 0.4); view.pitch *= Math.exp(-dt * 0.4); }
   // caught: pull back to watch the predator swallow you, then follow it
   const watching = solo && team[0].c.active && ['eat', 'follow', 'fadeOut'].includes(team[0].c.phase) && team[0].P.kind !== 'cut';
   const wantDist = commitFocus ? Math.min(ZOOMS[view.zoom], 75) : watching ? Math.max(ZOOMS[view.zoom], 110) * 2.1 : ZOOMS[view.zoom];
@@ -943,6 +946,11 @@ function frame(now) {
     const o = debug.camOverride;
     const yaw = o ? o.yaw : view.yaw, pitch = o ? o.pitch : view.pitch, dist = o ? o.dist : view.dist * (lead.P.mode === 'burst' ? 1.6 : 1);
     camera.position.set(Math.sin(yaw) * Math.cos(pitch), -Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch)).multiplyScalar(dist).add(view.target);
+    // This board swims in an XY water slab. Follow its travel heading in that
+    // plane, while RS retains the existing 3D orbit and temporarily overrides follow.
+    if (!watching && !commitFocus) view.followHeading = followYaw(view.followHeading, lead.P.moveHeading, dt, view.lookHold);
+    camera.up.set(Math.cos(view.followHeading), Math.sin(view.followHeading), 0);
+    if (o) camera.up.set(0, 1, 0); // preserve explicit prototype camera overrides
     camera.lookAt(view.target);
     if (commitFocus && P.contract > 0.05 && P.contract < 1.1 && P.commitT < 2.2) { const k = (2.2 - P.commitT) * 0.25; camera.position.x += Math.sin(t * 61) * k; camera.position.y += Math.cos(t * 53) * k; } // the snap
     camera.updateMatrixWorld();
