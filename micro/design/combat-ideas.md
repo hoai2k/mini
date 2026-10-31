@@ -455,6 +455,109 @@ Notes on the ideas:
 
 ---
 
+## A set piece: pushing and biting through a crowd (the owner's idea)
+
+The owner's idea:
+
+> "fighting through a swarm of enemies can be interesting. Not being attacked
+> by each one i mean instead like they are just very numerous like a crowd and
+> you have to push any bite your way through, this might make sense in the
+> mite world, or maybe paramecium, maybe tardigrade."
+
+### Real crowds
+
+| World | The real crowd | Label | Source |
+| --- | --- | --- | --- |
+| Mite (moss) | Microarthropods are very numerous: a pasture census found about 100,000 per m² (78,000 mites and 22,000 springtails), with a seasonal peak near 330,000. Sphagnum and wet forest soils can hold up to several hundred thousand oribatids per m². Averaged out that is sparse at a mite's scale. Springtails also gather in dense local masses, like the *Podura* masses of C2 and the sundew's prey of C3. | Densities [Observed], secondary sources; local masses [Observed] for *Podura*, pheromone-driven gathering in moss [Unverified] | C32, C2 |
+| Mite (moss) | **A thicket of fungal hyphae.** Oribatids graze hyphae and spores with their chelicerae, so biting through a hyphal tangle is the mite's real feeding move. | [Observed] grazing | S23 |
+| Mite (moss) | **A predator inside the crowd:** gamasid mites favour springtails and soft juvenile mites, and reject hard adult oribatids. In a crowd of springtails, the gamasid is busy, but anything soft near it is at risk. | [Observed] | S38 |
+| Tardigrade (water film) | Peatland mosses hold on average 84–117 tardigrades per gram of moss, and up to 321 in feather mosses. Bdelloid rotifers are often more abundant still, and nematodes share the film. Rotifers anchor by the foot and pull water into their mouths with the ciliary corona. | Tardigrade densities [Observed]; rotifer and nematode densities [Unverified] (not read) | C33, S23 |
+| *Paramecium* (pool) | **A bloom of *Chlamydomonas* or *Euglena*.** Dense swimming algae make **bioconvection**: they crowd near the surface, then sink in dense plumes between broad upwellings. Lack of oxygen changes the pattern. A crowd here is literally a current that carries you. | [Observed] | C34 |
+| *Paramecium* (pool) | **Every bump triggers the avoiding reaction**: a ciliary reversal, a turn and forward again. In a crowd the cell keeps losing its heading, which is the real challenge. | [Observed] for the reaction; its rate in a crowd [Proposal] | S08 |
+| Bacterium (sediment) | Non-kin cells, microcolonies and grains, with the swarm itself as a crowd. | [Observed] | S96, C28 |
+
+### The design
+
+**The rule:** the crowd is terrain that pushes back, not a wall of enemies.
+Crowd members don't attack. The challenge comes from four things:
+
+1. **Losing your heading.** Bodies deflect you. In the *Paramecium* world,
+   each frontal bump fires an automatic short avoiding reaction (back up and
+   turn), as in the real cell. A brass compass needle at the HUD edge points
+   to the landmark so the player can recover.
+2. **Being carried.** The crowd has a flow field. Bioconvection plumes sink and
+   rise in the bloom. In the moss, a springtail mass drifts towards damp
+   spots. In the film, rotifer currents draw you towards their coronae. A
+   rotifer can't eat a tardigrade, so this is harmless but sticky.
+3. **A time pressure that is real for that place:**
+   - *Paramecium*: oxygen in the bloom's dense plumes falls, so a slow meter
+     drains, and it refills only in an upwelling.
+   - Tardigrade: the film is drying, so the scramble's water cost bites.
+   - Mite: the capitulum dries (already in `movement.md`'s time table).
+4. **A predator lurking inside**, using the normal `createFight` rules:
+   - a gamasid in the springtail mass (mite world), busy eating springtails
+     and dangerous to soft juveniles;
+   - *Didinium* in the bloom (*Paramecium* world);
+   - *Prionchulus* in the rotifer meadow (tardigrade world), which thrashes
+     where the film is thick.
+
+   The crowd hides you from it and also slows your escape.
+
+**Your tools (all on the current scheme).**
+
+| Button | In a crowd | Note |
+| --- | --- | --- |
+| LS | Steady pushing. Your thrust spreads into the neighbours ahead, which slide aside. Heavier creatures push harder: the mite and tardigrade are heavier than springtails, and *Paramecium* is about the size of *Euglena*. | Mass-based shoving |
+| **A** | A **wedge**: a burst that throws bodies ahead aside in a cone and opens a short-lived lane, which closes again as the crowd relaxes. In the *Paramecium* world, the trichocyst jump does the same but spends ammunition. | Spend it to break a jam, not to cruise |
+| **X** | **Bite to clear.** Mite: bite through hyphae, which is real grazing and removes the strand for good (they regrow slowly). Tardigrade: pierce an algal cell to burst it and leave a gap. *Paramecium*: the oral current swallows bacteria and small particles; small algae are **[Unverified]** as food. Bites also feed you, so pushing through the crowd is also a meal. | Biting crowd animals (springtails, rotifers) is a **[Departure]** for herbivores: shove them instead |
+| **B** | **Hold ground.** Mite: close up; the crowd flows round a sealed box, which can't be pushed. Tardigrade: brace with the claws against the current. *Paramecium*: B is the avoiding reaction, so it is a deliberate reverse to back out of a jam. | Waiting out a plume or surge is a valid tactic |
+| **Co-op** | Players in single file **draft**: the leader pushes and the followers move freely in the lane behind. Swapping the lead shares the cost of pushing. | Simple and readable in split screen |
+
+**Crowd physics.**
+
+- Each crowd member is a soft disc or capsule with a radius and a mass. Use a
+  spatial hash grid with pairwise overlap correction: push apart
+  proportionally to the overlap, scaled by the inverse mass.
+- Add a weak spring to each member's "home" flow-field position, so the crowd
+  refills gaps and has pressure.
+- Each member wanders a little, and the flow field adds a drift.
+- **Pressure** is the summed overlap on the player. It sets the player's speed
+  penalty and a squash on the player's model, and drives rumble.
+- Members squash visibly when compressed (a scale along the contact normal),
+  which sells "soft bodies" cheaply.
+
+**Performance budget.**
+
+- **300–600 agents** per crowd, drawn with one `THREE.InstancedMesh` per
+  species. `mite-foliage.js` and the phage techniques already use instancing.
+- Per-instance colour and scale squash go in instance attributes.
+- Simulate in a fixed step at 30 Hz with the hash grid. Each agent checks
+  about 6–10 neighbours, so 600 agents is a few thousand pair tests a frame,
+  well inside budget in plain JavaScript.
+- Only agents within about two screen widths of any player are simulated
+  fully. Far agents only drift with the flow field.
+- In split screen, the grid is shared, and each view draws the same
+  instanced meshes.
+- If the frame rate drops, halve the far ring first, then the agent count. The
+  crowd should still read as a crowd at 200.
+
+### Placement
+
+| World | Crowd | Where in the level | Fit |
+| --- | --- | --- | --- |
+| **Mite** | A hyphal thicket full of a springtail mass, with a gamasid hunting springtails inside | **Between the start and the pseudoscorpion boss**, on the way into the leaf axil. It teaches "close up and wait" (the crowd flows round a sealed box) before the boss demands it. | **Best**: the real feeding bite (hyphae), real numbers and a real lurking predator |
+| ***Paramecium*** | A *Chlamydomonas* bloom with bioconvection plumes, with *Didinium* inside | **After the bladderwort** and before the biofilm patch: the plumes carry you, the oxygen meter is the clock, and the bumps make you reverse | **Very good**: the flow and the heading loss are real physics and biology |
+| **Tardigrade** | A rotifer meadow: anchored rotifers whose coronae pull water, with nematodes tangled through | **Before the *Prionchulus* boss**: the meadow's thin-film edges teach "the nematode struggles in thin film" | Good; the densities are partly unverified |
+| Bacterium | Non-kin cells and grains | Already covered by the swarm feature (the swarm can be the crowd) | Optional |
+| Springtail, amoeba, phage | — | — | No: the springtail lives on an open film, the amoeba is slow, and the phage drifts |
+
+**Scores:** fun 3, fidelity 3 for the mite and *Paramecium* (2 for the
+tardigrade), cost 2 (one shared crowd module reused in three worlds), so 18.
+Build it once as `shared/crowd.js`, with the flow field, member types and
+bite rules passed in by each world.
+
+---
+
 ## Across the worlds
 
 ### Recurring patterns
@@ -488,35 +591,51 @@ Notes on the ideas:
   - phages co-infecting one host (C25–C27).
 
   Springtail swarms, *Paramecium* rings and joint amoeba feeding were not
-  shown to protect, so they stay **[Departure]**.
+  shown to protect, so they stay **[Departure]**. The bacterium's swarm
+  (above) is where group defence is best supported, and leading one is the
+  owner's headline feature.
+- **Crowds as terrain.** Real habitats are packed: microarthropods in moss,
+  algal blooms, rotifer meadows. A crowd that shoves, carries and disorients
+  without attacking is a different kind of challenge from a predator.
 - **Size as a defence.** You can be too big for a young *Milnesium*, too big as
   a microcolony for *Stentor*, and too hard a box for a gamasid. Growing
   by eating is a natural progression in several worlds.
 
-### The five strongest ideas to build next
+### The strongest ideas to build next
 
-1. **The right tool for the predator** (*Paramecium*, score 27). The jump saves
+Ranked after both of the owner's ideas were folded in:
+
+1. **Lead a swarm** (bacterium, the owner's idea). Recruit kin by touch, grow a
+   signal halo and a quorum gauge, and flock as a cloud, then a raft, then a
+   ball. Members are your health and regrow by division. The swarm unlocks a
+   slime shield, a vortex-proof raft, a quorum-gated toxin burst and patch
+   claiming. *Bdellovibrio* is its counter-enemy, and merging swarms is the
+   co-op. It is built on microcolonies and toxins that really defeat grazers,
+   and on cell aggregates that really swim as one. Its one big departure is
+   the leader. It is the largest build here and the most distinctive feature.
+2. **The right tool for the predator** (*Paramecium*, score 27). The jump saves
    you from *Dileptus* (mutants without trichocysts were eaten 9–45× faster)
    and is useless against *Didinium*, which you must avoid early. It is
    cheap, readable and true, and it builds the per-predator defence list that
    every world can reuse.
-2. **The two-stage *Stenus* strike** (springtail, score 27). Jump on the tell or
+3. **The two-stage *Stenus* strike** (springtail, score 27). Jump on the tell or
    wriggle off the labium, then dodge the mandible follow-up. The best duel in
    the game, built on real millisecond timings.
-3. **Too big to eat, with a coordinated escape run** (bacterium, scores 27 and
-   18). Binding into a microcolony is the bacterium's real block, and a
-   synchronised dash is the real escape of multicellular magnetotactic
-   prokaryotes. It is the best co-op design that needs no departure.
-4. **Two damaged halves make one phage** (phage, score 18). A co-op revive
+4. **Push and bite through a crowd** (mite, *Paramecium* and tardigrade, the
+   owner's idea, score 18). It is one shared module of about 300–600 instanced
+   soft bodies, used in three worlds:
+   - the mite bites through a hyphal thicket full of springtails, with a
+     gamasid inside;
+   - *Paramecium* is carried by a bloom's bioconvection plumes while every
+     bump makes it reverse;
+   - the tardigrade braces through a rotifer meadow.
+5. **Two damaged halves make one phage** (phage, score 18). A co-op revive
    that is literally true for T4 (multiplicity reactivation). Pair it with
    holding the host for a risk-and-reward relay against the CRISPR boss.
-5. **Scent trails, with the huddle tun** (tardigrade, scores 18 and 12).
-   Stealth suits a slow animal, and *Milnesium* really tracks where its prey
-   has been. Drying in a clump really improves survival, which gives a quiet
-   co-op moment.
 
 Honourable mentions:
 
+- scent trails and the huddle tun for the tardigrade;
 - the seal timing and "who can crack you" for the box mite;
 - the sacrificed pseudopod and "the nucleus is the life" for the amoeba;
 - the glucose coat for the phage, which needs almost no new work.
@@ -571,3 +690,10 @@ Exact pages were not checked unless stated.
 | C25 | Anti-CRISPR cooperation | Landsberger M, et al. (2018). Anti-CRISPR phages cooperate to overcome CRISPR-Cas immunity. Cell 174: 908–916. https://pubmed.ncbi.nlm.nih.gov/30033365/ ; Borges AL, et al. (2018). Bacteriophage cooperation suppresses CRISPR-Cas3 and Cas9 immunity. Cell. | Abstracts |
 | C26 | Multiplicity reactivation | Luria SE (1947). Reactivation of irradiated bacteriophage by transfer of self-reproducing units. PNAS 33: 253–264. NLM profile, https://profiles.nlm.nih.gov/101584611X91 ; Luria–Latarjet genetics, https://resolve.cambridge.org/core/journals/genetics-research/article/genetics-of-the-lurialatarjet-effect-in-bacteriophage-t4-evidence-for-the-involvement-of-multiple-dna-repair-pathways/E6946EEE04EA61231E4F95034993CC57 | Summaries |
 | C27 | Lysis inhibition | Paddison P, et al. (1998). The roles of the bacteriophage T4 r genes in lysis inhibition and fine-structure genetics. Genetics. https://pmc.ncbi.nlm.nih.gov/articles/PMC93942 | Abstract: delay of up to several hours; burst about 1,000 |
+| C28 | Microcolonies and toxins against grazers | Matz C, Bergfeld T, Rice SA, Kjelleberg S (2004). Microcolonies, quorum sensing and cytotoxicity determine the survival of *Pseudomonas aeruginosa* biofilms exposed to protozoan grazing. Environmental Microbiology 6: 218–226. https://pmc.ncbi.nlm.nih.gov/articles/PMC1283802 (related record) ; Weitere M, et al. (2005), microcolonies protect early, inhibitors protect mature biofilms | Abstracts |
+| C29 | Swarming motility and rafts | Kearns DB (2010). A field guide to bacterial swarming motility. Nature Reviews Microbiology 8: 634–644. https://pmc.ncbi.nlm.nih.gov/articles/PMC3135019 ; Kearns DB, Losick R (2003). Swarming motility in undomesticated *Bacillus subtilis*, https://data.zhenzhi.com/details/1/878357735 ; collective antibiotic tolerance of swarms, https://pmc.ncbi.nlm.nih.gov/articles/PMC7060710 | Abstracts and summaries |
+| C30 | Wolf-pack predation | Berleman JE, Kirby JR (2009). Deciphering the hunting strategy of a bacterial wolfpack. FEMS Microbiology Reviews 33: 942–957. https://pmc.ncbi.nlm.nih.gov/articles/PMC2774760 ; Thiery S, Kaimer C (2020). The predation strategy of *Myxococcus xanthus*. Frontiers in Microbiology. https://pmc.ncbi.nlm.nih.gov/articles/PMC6971385/ | Abstracts |
+| C31 | *Bdellovibrio* attacks biofilms | Kadouri D, O'Toole GA (2005). Susceptibility of biofilms to *Bdellovibrio bacteriovorus* attack. Applied and Environmental Microbiology 71: 4044–4051 | From memory; not re-checked in this research |
+| C32 | Microarthropod densities | Oribatid dataset notes (Borcard and Legendre data), https://rdrr.io/cran/jSDM/man/mites.html ; New Zealand pasture census (1968), https://ir.wgtn.ac.nz/handle/123456789/29911 | Secondary and abstract |
+| C33 | Tardigrades in peatland moss | Mäenpää H, et al. (2024). A first look into moss living tardigrades in boreal peatlands. Ecology and Evolution. https://jyx.jyu.fi/handle/123456789/96860 | Abstract: 84–117 per gram, up to 321 in feather mosses |
+| C34 | Bioconvection | Bioconvection in *Euglena* (Frontiers in Ecology and Evolution, 2023), https://www.frontiersin.org/journals/ecology-and-evolution/articles/10.3389/fevo.2023.1132956 ; *Chlamydomonas* plumes and oxygen (Soft Matter, 2025), https://pubs.rsc.org/en/Content/ArticleLanding/2025/SM/D5SM00451A ; inverted bioconvection model, https://pmc.ncbi.nlm.nih.gov/articles/PMC5968142 | Abstracts |
