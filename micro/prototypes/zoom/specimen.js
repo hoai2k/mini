@@ -414,9 +414,9 @@ void springtail(vec2 p, vec4 cr, vec4 cb, inout S s) {
     float x = 330.0 - 200.0 * float(i) + 55.0 * sin(cr.w + float(i) * PI + float(sd) * PI * 0.5);
     vec2 f = vec2(x, float(sd) * 330.0);
     float dd = length(q - f);
-    s.h -= 16.0 * exp(-pow(dd / 70.0, 2.0)) * step(0.5, s.gloss);
+    s.h -= 16.0 * exp(-pow(dd / 70.0, 2.0)) * step(0.5, s.gloss) * cb.x;
     float dl = sdSeg(q, vec2(x - 40.0, float(sd) * 140.0), f) - 26.0;
-    float ml = cover(dl);
+    float ml = cover(dl) * cb.x;
     put(s, ml, base + 120.0, vec3(0.06, 0.065, 0.09), 0.2);
     optic(s, 0.0, vec3(4.0) * ml, 0.0);
   }
@@ -424,7 +424,7 @@ void springtail(vec2 p, vec4 cr, vec4 cb, inout S s) {
     float sw = 0.12 * sin(uTime * 2.0 + float(sd));
     vec2 a = vec2(760.0, float(sd) * 70.0), b = a + vec2(cos(float(sd) * (0.5 + sw)), sin(float(sd) * (0.5 + sw))) * 420.0;
     float dl = sdSeg(q, a, b) - 22.0;
-    float ml = cover(dl);
+    float ml = cover(dl) * cb.x;
     put(s, ml, base + 220.0, vec3(0.07, 0.07, 0.1), 0.2);
     optic(s, 0.0, vec3(4.0) * ml, 0.0);
   }
@@ -432,7 +432,8 @@ void springtail(vec2 p, vec4 cr, vec4 cb, inout S s) {
   float d = sdEll(e, vec2(720.0, 205.0 - 40.0 * smoothstep(200.0, 700.0, e.x)));
   float hd = sdEll(q - vec2(640.0, 0.0), vec2(170.0, 150.0));
   float dm = min(d, hd);
-  float m = cover(dm);
+  // cb.x: 0 below the moss scale, where the springtail is millimetres overhead, out of the focal plane
+  float m = cover(dm) * cb.x * (1.0 - smoothstep(0.6, 0.3, uPx));
   if (m <= 0.0) return;
   float rho = d < hd ? length(e / vec2(720.0, 205.0)) : length((q - vec2(640.0, 0.0)) / vec2(170.0, 150.0));
   float h = base + 330.0 * sqrt(max(1.0 - rho * rho, 0.0)) - 14.0 * smoothstep(0.82, 1.0, abs(sin(q.x * PI / 175.0)));

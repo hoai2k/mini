@@ -3,7 +3,7 @@
 // Units: mm and seconds.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { embed } from '../shared/embed.js';
-import { createPlayers } from '../shared/players.js';
+import { createPlayers, PLAYER_COLORS } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks } from '../shared/landmark.js';
 import { mountHud } from '../shared/hud.js';
@@ -74,8 +74,9 @@ let pl = {
 // their own (this record is player 1's; others are made by makeRec). Code
 // that acts on "the" player uses `pl` and `tail`, which point at the record
 // being stepped (withRec), and at player 1 otherwise.
+const PL_INIT = { ...pl };
 const P1 = pl;
-Object.assign(P1, { slot: 0, tail, ring: null, color: '#d2a24c' });
+Object.assign(P1, { slot: 0, tail, ring: props.ring(PLAYER_COLORS[0]), color: PLAYER_COLORS[0] });
 const pls = [P1];
 const recs = () => pls.filter(Boolean);
 const multi = () => recs().length > 1;
@@ -381,8 +382,11 @@ audio.addToFeatures(features);
 audio.loop('springtail/amb-bog', { volume: 0.6 });
 /** Gamepads fire no DOM events: unlock sound on any pad button. */
 function unlockOnPad() {
-  if (pad.kind !== 'controller') return;
-  for (let b = 0; b < 16; b++) if (pad.value(b) > 0.5) { audio.unlock(); return; }
+  for (const p of players.active) {
+    const pp = players.pad(p.slot);
+    if (pp.kind !== 'controller' && p.slot === 0) continue;
+    for (let b = 0; b < 16; b++) if (pp.value(b) > 0.5) { audio.unlock(); return; }
+  }
 }
 F({ id: 'dof', group: 'Rendering', label: 'Depth of field (bokeh gather)', on: true,
   about: 'Every surface writes its distance from the focal plane into the alpha of a half-float target. A half-res pass turns that into a signed blur-disc size (thin-lens CoC), 8x8 tiles record the largest foreground blur, and a 64-tap golden-spiral gather spreads each tap only as far as its own disc reaches (taps behind the centre are clamped to its blur, so sharp edges never smear backward). shared/techniques/springtail-macro.js.',
@@ -1124,7 +1128,7 @@ function render(dt) {
 
 const api = {
   scene, camera, renderer, macro, field, dimples, tail, stenus, strider, rain, world, pl, rig, game, features, paused: false,
-  step(dt = 1 / 60, inp = { move: { x: 0, y: 0, m: 0 }, dashDown: false, dashPressed: false, attackPressed: false, defend: false }) { step(dt, inp); },
+  step(dt = 1 / 60, inp = IDLE) { step(dt, [inp]); },
   render(dt = 0) { const L = render(dt); updateText(L); },
   jump, newGame, respawn, inPool, groundAt, hunger, capture, cap, pace,
   get time() { return simT; },
@@ -1132,7 +1136,21 @@ const api = {
   testStep(dt = 1 / 30, stick = null) {
     if (game.phase !== 'play') newGame();
     const m = stick ? Math.min(1, Math.hypot(stick.x, stick.y)) : 0;
-    step(dt, { move: { x: stick ? stick.x : 0, y: stick ? stick.y : 0, m }, dashDown: false, dashPressed: false, attackPressed: false, defend: false });
+    step(dt, [{ move: { x: stick ? stick.x : 0, y: stick ? stick.y : 0, m }, dashDown: false, dashPressed: false, attackPressed: false, defend: false }]);
+  },
+  // ---- multiplayer and landmarks (Playwright drives these)
+  players, split, marks, joins, landmark: LANDMARK, landmarkLog: lm.log, props,
+  get frames() { return frames; },
+  get layout() { return split.layout; },
+  recs: () => recs().map((P) => ({ slot: P.slot, x: +P.x.toFixed(2), z: +P.z.toFixed(2), mode: P.mode, color: P.color })),
+  /** Put a player at (x, z) mm, standing, and snap the camera. */
+  teleport(slot, x, z) {
+    const P = pls[slot];
+    if (!P) return false;
+    if (game.phase !== 'play') newGame();
+    resetBody(P, x, z);
+    rig.target.set(x, P.y + 0.25, z);
+    return true;
   },
   /** Testing: is a predator coming for you, and how hungry is each. */
   pacing() {
@@ -1147,10 +1165,13 @@ const api = {
     };
   },
   /** Testing: get caught right now by 'stenus', 'strider' or 'sundew' (the full sequence plays). */
-  forceCapture(kind = 'stenus') {
+  forceCapture(kind = 'stenus', slot = 0) {
     if (game.phase !== 'play') newGame();
     if (capture.active) return;
-    const P = pl;
+    const P = pls[slot] || pl;
+    withRec(P, () => api._force(kind, P));
+  },
+  _force(kind, P) {
     if (P.mode === 'air' || P.mode === 'flipped' || P.mode === 'dead') { P.mode = 'film'; P.air = null; P.roll = 0; P.pitch = 0; }
     if (kind === 'sundew') {
       const leaf = world.sundews.leaves[0];
@@ -1183,6 +1204,15 @@ const api = {
 };
 window.__micro = api;
 
+// The shell's roster (players who joined in the menus come along), then any
+// joins during play are polled here and reported back to it.
+if (embed.players) players.fromJSON(embed.players);
+embed.on('players', (r) => { players.fromJSON(r); syncPlayers(); });
+syncPlayers();
+hud.players(players.list);
+// In the game the shell's intro replaces the start card: play at once.
+if (embed.active) newGame();
+
 const gl = renderer.getContext();
 let fence = null, last = performance.now(), lastSubmit = last, statT = 0;
 function gpuBusy() {
@@ -1197,9 +1227,9 @@ function frame() {
   const dt = Math.min((now - last) / 1000, 1 / 30);
   last = now;
   if (api.paused) return;
+  frames++;
   const inp = readInput(dt);
   game.t += dt;
-  if (game.phase === 'title' && game.t > 0.1) { /* the pool lives while the card is up */ }
   step(dt, inp);
   if (gpuBusy()) return;
   const raw = now - lastSubmit;

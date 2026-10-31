@@ -406,7 +406,10 @@ export function createEngine({ canvas, size = () => [innerWidth, innerHeight], a
       const r = WORLDS[j].radius;
       const vis = r / w > 0.0012 && Math.hypot(c.pos[0] - S.cam[0], c.pos[1] - S.cam[1]) < w * 0.75 + r;
       const baseH = j === 0 || j === 3 ? 0 : j === 1 ? groundAt(c.pos) : j === 2 ? groundAt(c.pos) + 220 : j === 4 ? groundAt(c.pos) + 60 : leafTop;
-      u.uCrB.value[j].set(c.state, vis ? 1 : 0, baseH, c.moving);
+      // the springtail on the surface is out of the focal plane once the view is on the pool floor
+      // (the amoeba world and finer): it fades out across the tardigrade → amoeba hand-off
+      const state = j === 0 ? (S.phase === 'trans' && S.k === 3 ? 1 - smooth(S.st.zoom * 1.5) : B >= 3 ? 0 : 1) : c.state;
+      u.uCrB.value[j].set(state, vis && state > 0.001 ? 1 : 0, baseH, c.moving);
     }
     u.uLayers.value.set(w > 15 ? 1 : 0, w < 7000 ? 1 : 0, w < 2600 ? 1 : 0, w < 400 ? 1 : 0);
     u.uBgAlb.value.set(0.80, 0.88, 0.95);
