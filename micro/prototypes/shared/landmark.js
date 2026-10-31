@@ -154,13 +154,21 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
     const dl = Math.hypot(dx, dy) || 1;
     dx /= dl; dy /= dl;
     // March out from the anchor to the last point still a margin inside the region.
+    if (!insetInside(ax, ay, margin)) {
+      // The player is near the region's edge: start from the region's centre instead.
+      let n = 0, cx = 0, cy = 0;
+      for (const p of polys) for (const v of p) { cx += v[0]; cy += v[1]; n++; }
+      ax = cx / n; ay = cy / n;
+      dx = pr.x - ax; dy = pr.y - ay;
+      if (pr.behind) { dx = -dx; dy = -dy; }
+      const l2 = Math.hypot(dx, dy) || 1;
+      dx /= l2; dy /= l2;
+    }
     let lo = 0, hi = Math.hypot(W, H);
-    if (!insetInside(ax, ay, margin)) lo = 0;
     for (let i = 0; i < 22; i++) {
       const mid = (lo + hi) / 2;
       if (insetInside(ax + dx * mid, ay + dy * mid, margin)) lo = mid; else hi = mid;
     }
-    // The region is convex per polygon but a union need not be: walk back if a gap was jumped.
     const x = ax + dx * lo, y = ay + dy * lo;
     const angle = Math.atan2(dy, dx);
     ctx.save();
