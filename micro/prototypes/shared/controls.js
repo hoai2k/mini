@@ -8,7 +8,7 @@
 //   D-pad left/right optical look · D-pad up/down objective or zoom
 //   Menu features · View hide the controls
 //
-// The amoeba keeps its own two-stick pseudopod scheme for now.
+// The amoeba uses its own lead-and-follow stick scheme (see CONTROLS.md).
 //
 //   const ctl = createControls(pad);
 //   ... each frame after pad.poll():

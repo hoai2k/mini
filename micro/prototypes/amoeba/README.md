@@ -12,29 +12,59 @@ Open `micro/prototypes/amoeba/` (the invite gate is off on localhost).
 
 ## Controls (Xbox controller; keyboard in brackets)
 
+Two schemes, chosen in Features → Controls. **Lead and follow** is the default;
+**Two pseudopods (classic)** behaves exactly as before.
+
+### Lead and follow (default)
+
+At any moment one stick is the **pseudopod stick** and the other the **body
+stick**. With no pseudopod out, the first stick pushed grows one in its
+direction and becomes the pseudopod stick; the other becomes the body stick.
+The corner shows the roles (`LS: body · RS: pseudopod`).
+
+| Button | Action |
+| --- | --- |
+| Pseudopod stick (LS WASD or RS arrows) | Aims and extends the pseudopod (area conserved, as before) |
+| Body stick (the other one) | Moves the bulk of the cell that way: the rear (uroid) contracts, the endoplasm streams forward, the centroid travels. **Both held**: the pseudopod holds its length and its tip keeps advancing, so the cell travels behind it. **Body stick alone towards the pseudopod**: the body flows into it and takes it back. Pointed elsewhere: the body goes that way and the pseudopod trails or flows back |
+| LT / RT (Z / X), held | The body stick grows a **second pseudopod** instead, starting 30–70° round from the first on the side the stick points, so the two can close round prey. Let go: that stick moves the body again, and the second pseudopod relaxes slowly (hold the trigger again to pick it back up) |
+| LB (Q) | Spread out / relax: the cell flattens, rounds up and its pseudopods relax |
+| RB (F) | Push harder |
+| LS click / RS click (C / V) | Fine focus down / up |
+
+The roles reset once the pseudopod is fully taken back or has flowed back,
+and after eating (the cup's pseudopods dissolve into the vacuole). A stick
+still held when you eat must be let go before it can lead again; a body stick
+still held keeps moving the body.
+
+### Two pseudopods (classic)
+
 | Button | Action |
 | --- | --- |
 | LS (WASD) | Pseudopod 1: grows from the part of the cell facing the stick; turning the stick bends it; stick magnitude is how hard it pushes |
 | RS (arrows) | Pseudopod 2, so the two sticks can wrap a cup round prey from both sides |
 | RT (X) | Push harder |
 | LT (Z) | Spread out / relax: the cell flattens (its footprint grows, since the volume is fixed), rounds up and its pseudopods relax |
-| **A (Space)** | **Surge**: for 0.9 s every active pseudopod extends up to 2.5× faster and may run a little further ahead, the rear contracts harder and streaming surges to the tips, so the whole cell lunges; recharges over 2.4 s (the `dash` meter). With no stick held it surges along the cell's heading. Tears the membrane free of a fungal trap |
+| LB / RB (Q / F) | Fine focus down / up: changes the sign and size of the defocus contrast and how blurred the layer above is |
+
+### Both schemes
+
+| Button | Action |
+| --- | --- |
+| **A (Space)** | **Surge**: for 0.9 s every active pseudopod extends up to 2.5× faster and may run a little further ahead, the rear contracts harder and streaming surges to the tips, so the whole cell lunges; recharges over 2.4 s (the `dash` meter). With no stick held it surges along the cell's heading (in lead and follow, the body flows on that way). Tears the membrane free of a fungal trap |
 | **X (E)** | **Close the food cup** round the prey it wraps (needs ≥ 190° of membrane round it): the rims advance and endoplasm floods in to fill round the prey until they meet |
 | B (Shift) | Let go while closing; otherwise egest the oldest food vacuole at the uroid (a live, barely digested prey swims away) |
 | Y (R) | Labels (nucleus, contractile vacuole, uroid, hyaline caps, ectoplasm, endoplasm, prey with real sizes, trap hyphae) |
-| LB / RB (Q / F) | Fine focus down / up: changes the sign and size of the defocus contrast and how blurred the layer above is |
 | D-pad ← → (3 / 4) | Optics: brightfield, phase contrast, darkfield, hypothetical immersive lit view |
 | D-pad ↑ ↓ (1 / 2) | 20× objective (0.9 mm field) / 10× objective (1.8 mm field) |
 | Menu (Esc) | Features panel: what the prototype does, with switches |
 | View (Tab) | Hide the help panel |
 
-Centre a stick to let that pseudopod flow slowly back. Centre it and push
-again to start a new one elsewhere. A dashed ring marks the prey the
+Centre a pseudopod stick to let that pseudopod flow slowly back. A dashed ring marks the prey the
 membrane wraps furthest, with the angle; it turns green when X will close.
 Rumble: a tick on prey contact, a kick on each surge, a heavy jolt when a
-Paramecium fires its trichocysts or a trap hypha grabs the membrane, a pulse
-on capture. The two sticks keep the amoeba's own scheme; A, X, B, Y and the
-d-pad follow the shared one (`../CONTROLS.md`).
+Paramecium fires its trichocysts, a trap hypha grabs the membrane or cuts a
+piece off, a pulse on capture. The sticks keep the amoeba's own scheme; A, X,
+B, Y and the d-pad follow the shared one (`../CONTROLS.md`).
 
 Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A pool ambience loop; pseudopods flowing out (rate-limited), the surge (A), closing the food cup (X), a vacuole forming, the contractile vacuole emptying, and digestion finishing.
 
@@ -90,9 +120,16 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   nothing coasts, motion stops when protrusion stops). Each step: cortical
   tension (normal part of the Laplacian) and tangential spacing; protrusion
   at each pseudopod's blunt, fixed-width cap (flat-topped, so pseudopods stay
-  roughly cylindrical); substrate adhesion (non-protruding membrane resists
+  roughly cylindrical); the body following the body stick (front flows on,
+  rear contracts, membrane already far out in front is left to be caught up
+  with); substrate adhesion (non-protruding membrane resists
   normal motion but still slides into growing arms); posterior contraction
-  once an arm is at full reach; capsule/circle obstacles; self-contact; and
+  once an arm is at full reach; capsule/circle obstacles; self-contact
+  (every node kept off every non-adjacent segment through a spatial hash,
+  and necks thinner than 26 µm pushed apart so the cell resists thinning);
+  a crossing guard that undoes any move that would make the membrane cross
+  itself (it runs after the step and again after traps and prey move the
+  membrane); and
   an exact area projection weighted to the rear, so what an arm gains is
   taken from the uroid. Food cups: winding of the nearest membrane run round
   the prey, rims chosen as the pair that wraps furthest for the smallest gap,
@@ -121,6 +158,18 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   2.5 s. A plain pseudopod rarely catches them; a surge does. Slow
   flagellates (*Chilomonas*, *Chlamydomonas*) still just show the avoidance
   reaction on contact.
+- **The membrane never crosses itself.** Before this guard the ring
+  occasionally folded over itself (a segment slipping between two nodes,
+  mostly where a trap hypha held the membrane), and the outline's ear
+  clipping then emitted stray triangles. The mask outline (Catmull-Rom with
+  the uroid wrinkles) is also checked and drawn straight where it would fold
+  over itself. A 60 s random-input soak now counts 0 crossings and 0 stray
+  triangles per frame in both schemes.
+- **Pinch-off (rare).** If a neck is squeezed thinner than 12 µm and a trap
+  hypha lies across it, the hypha cuts it: the piece holding the nucleus
+  stays the amoeba (resampled, its area target reset), the other piece rounds
+  up, darkens and breaks up over about 4 s, and a pseudopod cut off is left a
+  stump. Necks resist thinning, so this almost never happens in play.
 - **Fungal traps.** Three trap hyphae of a zoopagalean fungus (*Stylopage* /
   *Zoopage* type: thin, septate, with adhesive knobs) lie on the slide.
   Membrane that touches one sticks (it keeps 8% of each step's motion); a
@@ -193,7 +242,10 @@ above are hidden when it is present).
 | Motion | Surge (A) | always |
 | World | Obstacles on the slide, Out-of-focus layer | on |
 | World | Fungal trap hyphae (hazard) | on |
-| Controls | Rumble | on; Two sticks, two pseudopods: always |
+| Body | Membrane never crosses itself | always |
+| Body | Pinch-off (rare) | on |
+| Controls | Controls: Lead and follow (new), Two pseudopods (classic) | Lead and follow |
+| Controls | Rumble | on; Stick-driven pseudopods: always |
 
 Technique modules others can reuse (each documents its interface in its
 header): `shared/techniques/amoeba-optics.js` (property buffer → microscope
@@ -264,7 +316,10 @@ node micro/prototypes/check.mjs amoeba
 cyto, prey, world, state, features }` plus test hooks: `input` (override
 the sticks), `press(name)`, `setMode(i)`, `pause()`, `renderOnce()`,
 `advance(seconds)` (simulate without rendering), `spawnPrey(kind, x, y)`,
-`clearPrey()`, `resetBody()`, `close()`, and `surge` (the dash) and `ctl`.
+`clearPrey()`, `resetBody()`, `close()`, `surge` (the dash), `ctl`,
+`readInput()`, `roles` (`{ pod, body, branch, latch }`), `rolesText()`,
+`scheme('lead' | 'classic')`, `pinch(i, j)` (cut the ring as a hypha would)
+and `fragments`.
 
 ## Sources
 

@@ -26,7 +26,7 @@ Keyboard fallbacks are in `shared/pad.js`.
 | Springtail | Furcula jump | Graze spores and algae | Hunker in the meniscus |
 | Mite | **Jump** (A; borrowed from jumping oribatids such as *Zetorchestes*) and **scramble on B** | Bite with the chelicerae (graze hyphae and spores; nip back) | **Block on Y**: ptychoidy (close up) |
 | Tardigrade | Scramble (costs water and energy) | Pierce with the stylets | Brace (grip hard) |
-| Amoeba | Bleb lunge (a fast eruptive pseudopod) | Close the food cup | Let go or egest |
+| Amoeba | Surge (A): pseudopods shoot out and the cell flows after them | Close the food cup (X) | Let go or egest (B) |
 | Paramecium | Trichocyst burst or ciliary sprint | Feed (oral current) | Avoidance reaction (reverse) |
 | Bacterium | Sprint run (all flagella bundled) | Attach / bore (Bdellovibrio) or bind | Tumble |
 
@@ -38,5 +38,10 @@ dashes and Y blocks.
 Read the controls through `shared/controls.js` (`createControls(pad)`), not raw
 buttons, and build the HUD list with `hudControls({...})` so every prototype
 lists the same buttons in the same order. `createDash()` gives a dash with a
-recharge and a HUD meter. The amoeba keeps its own two-stick pseudopod scheme
-for now (both sticks grow pseudopods), but still uses A to dash and X to eat.
+recharge and a HUD meter. The amoeba uses its own stick scheme, "lead and follow": the first
+stick pushed grows a pseudopod and owns it, the other stick moves the body
+after it (both held: the cell travels behind its lead pseudopod; body stick
+alone: the body flows in and absorbs it). Holding LT or RT turns the body
+stick into a second pseudopod beside the first, for encircling prey. LB/RB
+spread out / push harder. The classic two-pseudopod scheme is a Features
+choice. It still uses A to dash, X to eat and D-pad ←→ for the look.
