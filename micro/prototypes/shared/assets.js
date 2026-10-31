@@ -1,4 +1,4 @@
-// Delivered artwork from micro/design/image-requests.md. Only images whose
+// Delivered artwork from micro/image-requests.md. Only images whose
 // status is `delivered` in shared/asset-list.js are fetched; everything else
 // resolves to null and the prototype keeps its procedural stand-in. A
 // delivered file that fails to load is reported in the console, loudly,
