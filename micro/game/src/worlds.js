@@ -27,7 +27,7 @@ export const WORLDS = [
     goal: 'Graze, and fight off the predatory mite that hunts the same moss. A pseudoscorpion lies in wait before the wet leaf axil: stay out of its pincers, close up to survive a grab, and bite its pincer joints until it backs into the moss.',
     forward: 'A wet leaf axil where water has gathered, with a dry tun lying in it.',
     back: 'A giant springtail resting on the moss: dwell beside it and press Y to rise to the bog surface.',
-    controls: [['LS', 'Walk'], ['RS', 'Orbit'], ['A', 'Jump (X in the air: a pounce-bite)'], ['X', 'Bite: graze, or bite back'], ['B', 'Defend: close up (ptychoidy)'], ['RT', 'Hold: scramble'], ['Y', 'Observer; at the backdoor, rise a world'], ['D-pad ↑↓', 'Magnification']],
+    controls: [['LS', 'Walk'], ['RS', 'Orbit'], ['A', 'Jump (X in the air: a pounce-bite)'], ['X', 'Bite: graze, or bite back'], ['B', 'Hold: dash (scramble)'], ['Y', 'Hold: defend (close up); at the backdoor, rise a world'], ['D-pad ↑↓', 'Magnification']],
     facts: [
       'Box mites fold their legs inside and close the shell like a lid: ptychoidy.',
       'An electron microscope sees no colour; every grey is the tilt of a surface to the beam.',

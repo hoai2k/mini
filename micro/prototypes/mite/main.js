@@ -92,13 +92,13 @@ const hud = mountHud({
     camera: 'Orbit the specimen (up looks up)',
     dash: 'Jump: a crouch and a hop (borrowed from jumping oribatids); X in the air: a pounce-bite',
     attack: 'Bite: graze spores and hyphal tips (leg I holds them); at the predator, rear up and nip it',
-    defend: 'Hold: close up (ptychoidy, defend): blocks the predator\'s strike',
-    special: 'Observer: data bar and scan lines. At the giant springtail: back up a world',
+    defend: 'Hold: dash (scramble), ~2x the walk; also breaks a grab in its strike window',
+    special: 'Hold: close up (ptychoidy, defend): blocks the predator\'s strike. At the giant springtail: back up a world',
 
     secondary: 'Walk slowly / hurry',
     look: 'Imaging mode: SE, BSE, false colour',
     zoom: 'Magnification steps',
-    extra: [['RT', 'Hold: scramble, ~2x the walk, on a stamina meter (also breaks a grab in its strike window)']],
+    extra: embed.active ? [] : [['LS click', 'Observer: SEM data bar and scan lines']],
   }),
   note: 'A live mite walking in an SEM is a deliberate fiction: real specimens are dried and gold-coated in a vacuum. The mag and scale bar are true to the field of view. Speeds are a game stretch: the walk (~0.42 mm/s) is a few times a real oribatid\'s, and box mites do not jump (zetorchestid oribatids do).',
 });
@@ -283,7 +283,7 @@ function startCapture() {
   play.caught++; play.hurt = 0; play.stun = 0;
   capture.start({ by: 'The predatory mite', how: 'seized a leg, pulled you in and ate you' });
   embed.captured({ by: 'predator', player: cur.slot });
-  if (multi()) hud.toast(`Player ${cur.slot + 1} is seized by a leg: close up (B)!`, 2200);
+  if (multi()) hud.toast(`Player ${cur.slot + 1} is seized by a leg: close up (Y)!`, 2200);
   audio.play('mite/predator', { volume: 1, rate: 0.9 });
   if (rumbleOn) padOf().rumble(400, 0.9, 1);
 }
@@ -399,7 +399,7 @@ F({ id: 'noise', group: 'Rendering', label: 'Shot noise', on: true,
   about: 'Per-pixel noise that grows as the signal falls, fresh every frame, like a fast scan.', onChange: (v) => (sem.toggles.noise = v) });
 F({ id: 'lines', group: 'Rendering', label: 'Scan-line jitter', on: true,
   about: 'Each raster line gets a small random brightness offset, as beam current and scan timing wander.', onChange: (v) => (sem.toggles.lines = v) });
-F({ id: 'observer', group: 'Rendering', label: 'Observer mode (LS click)', on: false,
+if (!embed.active) F({ id: 'observer', group: 'Rendering', label: 'Observer mode (LS click)', on: false,
   about: 'A real micrograph data bar (HV, WD, mag, HFW, detector, true scale bar) and visible raster lines.',
   onChange: (v) => { observer = v; bar.style.display = v ? 'flex' : 'none'; sem.setRaster(v); } });
 F({ id: 'dynres', group: 'Rendering', label: 'Dynamic resolution', on: true,
@@ -433,7 +433,7 @@ F({ id: 'surface', group: 'Motion', label: 'Surface following and climbing', fix
 F({ id: 'bob', group: 'Motion', label: 'Body bob and sway', on: true,
   about: 'A few µm of rise and fall and a slight roll in time with the alternating leg groups.', onChange: (v) => (CFG.bob = v) });
 F({ id: 'ptych', group: 'Simulation', label: 'Ptychoidy speed', choices: ['Real (0.16 s)', 'Slowed 4x'], value: 'Real (0.16 s)',
-  about: 'Hold B (defend): legs pull in and the aspis folds down to seal the body. Real euphthiracaroids close in about 0.1-0.15 s (Heethoff et al. 2018).',
+  about: 'Hold Y (defend): legs pull in and the aspis folds down to seal the body. Real euphthiracaroids close in about 0.1-0.15 s (Heethoff et al. 2018).',
   onChange: (v) => (CFG.closeTime = v.startsWith('Real') ? 0.16 : 0.64) });
 F({ id: 'roll', group: 'Simulation', label: 'Closed capsule rolls and falls', on: true,
   about: 'Closed, the mite is a rigid egg: gravity torque about the contact point tips it, it rolls without slipping down slopes and falls off edges. Off: it stays put.',
@@ -461,18 +461,18 @@ F({ id: 'foliage', group: 'Simulation', label: 'Bending blades and hyphae', on: 
   onChange: (v) => { world.foliage.cfg.on = v; if (!v) world.foliage.reset(); } });
 F({ id: 'speed', group: 'Simulation', label: 'Game walking speed', fixed: true,
   about: `Walking is ~${WALK} µm/s (LB slow ~${WALK / 2}, RB hurry ~${Math.round(WALK * 1.4)}), scaled with the 0.35 mm body: about 1.2 body lengths a second. Real oribatids walk a few hundred µm/s at most; this is a game stretch. Strides lengthen up to 1.5x with speed and the gait phase runs on distance, so the feet stay planted.` });
-F({ id: 'scramble', group: 'Simulation', label: 'Scramble (hold RT)', fixed: true,
+F({ id: 'scramble', group: 'Simulation', label: 'Scramble (hold B)', fixed: true,
   about: `0.6 s at up to ~${DASH} µm/s, recharging over 2.2 s. The gait phase runs on distance, so the legs speed up with it and the feet stay planted. A stretch: box mites are slow, steady walkers.` });
 F({ id: 'jump', group: 'Simulation', label: 'Jump (A), borrowed from jumping oribatids', fixed: true,
   about: `A ${Math.round(JUMP.crouch * 1000)} ms crouch, then a ballistic hop (~${Math.round(MITE_SCALE * JUMP.vy ** 2 / 5200)} µm high, ~0.3 mm long; more from a run; scaled with the body), landing on the floor, a grain, a flake or a blade (which takes the landing and bends); ${JUMP.cool} s before the next. Box mites do not jump, but some oribatids do: Zetorchestes with enlarged hind legs and a catch mechanism (Krisper 1990), and the ptychoid Indotritia, a box-mite relative, jumps backwards with its forelegs (Wauthy et al. 1998). Borrowed here as a forward hop.` });
 F({ id: 'pounce', group: 'Simulation', label: 'Pounce-bite (X in the air; a game stretch)', fixed: true,
   about: 'In a jump, X dives at the nearest enemy point ahead (the predator, or the pseudoscorpion\'s pincer arm): a strong bite on impact (two bites\' worth, a hit-pause and a rumble), then a hop back; a mistimed dive is a clear miss. Box mites neither jump nor pounce: a game stretch on the borrowed Zetorchestes jump.' });
 F({ id: 'boss', group: 'Simulation', label: 'Boss: pseudoscorpion (Neobisium-like)', fixed: true,
-  about: '~2.5 mm, a real hunter of mites in moss, lying in wait before the wet leaf axil. Dormant until you come within 1.25 mm after the calm opening. Its tell: pincers held open and dead still, then a snap, a two-pincer sweep, or a step-in and snap. Stay out of reach, close up (B) to survive a grab (the venom tooth cannot get through), scramble (RT) out of a grab in its strike window, and bite its pincer joints (X) while it recovers. About three good rounds and it backs into the moss. Its resolve is the brass gauge.' });
+  about: '~2.5 mm, a real hunter of mites in moss, lying in wait before the wet leaf axil. Dormant until you come within 1.25 mm after the calm opening. Its tell: pincers held open and dead still, then a snap, a two-pincer sweep, or a step-in and snap. Stay out of reach, close up (Y) to survive a grab (the venom tooth cannot get through), scramble (B) out of a grab in its strike window, and bite its pincer joints (X) while it recovers. About three good rounds and it backs into the moss. Its resolve is the brass gauge.' });
 F({ id: 'bite', group: 'Simulation', label: 'Bite and graze (X)', fixed: true,
   about: 'The rostrum dips and the chelicerae work. In reach of the mouth: fungal spores (eaten) and hyphal branch tips (nibbled; they regrow), the box mite\'s real food. At the predator: a nip that makes it back off for 1.5 s (a game rule).' });
 F({ id: 'predator', group: 'Simulation', label: 'Predatory mite (Parasitidae)', on: true,
-  about: 'A pale, flattened gamasid ~0.8 mm long with long legs, leg I held up as a feeler. More than twice your length. After a calm opening it is hungry only some of the time (see Threats); hungry, it searches toward you, and when it touches you or feels you scramble close by it runs you down at ~0.6 mm/s (faster than your walk, slower than your scramble; all game speeds). Resting, it wanders and ignores you. It strikes at legs: on the third grab it holds on, pulls you in and eats you (the whole catch is shown); close up (B) while it holds you and its grip slips off. Each strike is telegraphed: it rears, leg I and the palps up, the chelicerae open (0.8 s). Closed up (B), you are a smooth capsule its strike slides off; blocks, nips (X) and facing it wear its interest down until it runs off (adult ptychoid mites are nearly immune: Peschel et al. 2006).',
+  about: 'A pale, flattened gamasid ~0.8 mm long with long legs, leg I held up as a feeler. More than twice your length. After a calm opening it is hungry only some of the time (see Threats); hungry, it searches toward you, and when it touches you or feels you scramble close by it runs you down at ~0.6 mm/s (faster than your walk, slower than your scramble; all game speeds). Resting, it wanders and ignores you. It strikes at legs: on the third grab it holds on, pulls you in and eats you (the whole catch is shown); close up (Y) while it holds you and its grip slips off. Each strike is telegraphed: it rears, leg I and the palps up, the chelicerae open (0.8 s). Closed up (Y), you are a smooth capsule its strike slides off; blocks, nips (X) and facing it wear its interest down until it runs off (adult ptychoid mites are nearly immune: Peschel et al. 2006).',
   onChange: (v) => { predOn = v; pred.setVisible(v); } });
 F({ id: 'grace', group: 'Simulation', label: 'Calm opening', choices: ['45 s', '20 s', '90 s', 'Off'], value: '45 s',
   about: 'How long after a start (and after each restart) before the predatory mite gets hungry. It starts ~1.3 mm away and wanders meanwhile, ignoring you even if it bumps into you. shared/predation.js.',
@@ -833,7 +833,7 @@ function diveImpact() {
   hud.toast('Missed!', 900);
   kickDust(mite, 4);
 }
-/** A grab's strike window: a scramble (RT) breaks out of it. */
+/** A grab's strike window: a scramble (B) breaks out of it. */
 function dashOut(P) {
   capture.reset(); cap.phase = null; cap.heldOnce = false;
   const away = cap.byBoss ? boss.center : pred.center;
@@ -885,8 +885,8 @@ function tick(dt, inputs) {
     hud.toast(`Player ${who.slot + 1} was eaten, and is back beside a teammate`, 2400);
     cs = { active: false };
   }
-  // the strike window: a scramble (RT, with stamina) breaks out of the grip
-  if (cs.active && cs.phase === 'strike' && capPad && players.pad(who.slot).rt() > 0.4 && (who.play.stam ?? 1) > 0.3) { dashOut(who); cs = { active: false }; }
+  // the strike window: a scramble (B, with stamina) breaks out of the grip
+  if (cs.active && cs.phase === 'strike' && capPad && players.controls(who.slot).defend.down() && (who.play.stam ?? 1) > 0.3) { dashOut(who); cs = { active: false }; }
   if (cs.active) withRec(who, () => animateCapture(cs, dt));
   else if (predOn) hunger.update(dt);
   // Blades and hyphae move first (pushed and loaded by where the mites were),
@@ -949,8 +949,8 @@ function tick(dt, inputs) {
         if ((e === 'gaveUp' || e === 'lost') && hunger.hungry) hunger.missed();
         if (e === 'hunt') audio.play('mite/predator', { volume: 0.9 });
         if (e === 'legHit') audio.play('mite/predator', { volume: 0.6, rate: 1.25 });
-        if (e === 'hunt') hud.toast(`${who}A predatory mite has touched you: run (RT), jump (A), close up (B) or nip it (X)`, 2600);
-        else if (e === 'windup') { hud.toast(`${who}It rears to strike: close up (B), or jump`, 1400); if (rumbleOn) padOf().rumble(250, 0.15, 0); }
+        if (e === 'hunt') hud.toast(`${who}A predatory mite has touched you: run (B), jump (A), close up (Y) or nip it (X)`, 2600);
+        else if (e === 'windup') { hud.toast(`${who}It rears to strike: close up (Y), or jump`, 1400); if (rumbleOn) padOf().rumble(250, 0.15, 0); }
         else if (e === 'blocked') { if (rumbleOn) padOf().rumble(90, 0.2, 0.35); wearDown('block'); }
         else if (e === 'legHit') {
           play.hurt++; play.stun = 0.7; play.heal = 0;
@@ -1012,8 +1012,8 @@ function readInput(dt) {
   if (look) { features.set('look', LOOKS[(sem.mode + look + LOOKS.length) % LOOKS.length]); hud.toast(MODES[sem.mode]); }
   const zs = ctl.zoomStep();
   if (zs) { rig.hfw = THREE.MathUtils.clamp(rig.hfw / (zs > 0 ? 1.5 : 1 / 1.5), 160, 4200); hud.toast(`mag ${(127000 / rig.hfw).toFixed(0)}x`); }
-  // Y (away from the backdoor) or LS click: observer mode
-  if (ctl.stickClick.left.pressed() || (ctl.special.pressed() && !atBack(P1))) { features.set('observer', !observer); hud.toast(observer ? 'Observer mode' : 'Observer mode off'); }
+  // The SEM observer view is a standalone prototype aid, never a game action.
+  if (!embed.active && ctl.stickClick.left.pressed()) { features.set('observer', !observer); hud.toast(observer ? 'Observer mode' : 'Observer mode off'); }
   camFwd.set(-Math.cos(rig.yaw), 0, -Math.sin(rig.yaw));
   camRight.set(-camFwd.z, 0, camFwd.x);
   const out = [];
@@ -1030,16 +1030,17 @@ function inputFor(c) {
   const speedMul = sec < 0 ? 0.5 : sec > 0 ? 1.4 : 1;
   const ls = c.move();
   const dir = camFwd.clone().multiplyScalar(-ls.y).addScaledVector(camRight, ls.x);
-  // A: jump. RT (held): the scramble. B (held): close up (defend). Y at the backdoor: go back.
+  // Mite exception to shared actions: A jumps, B scrambles, Y closes up.
+  // Shared c.defend reads B and c.special reads Y; at the backdoor Y goes back.
   if (c.dash.pressed() && play.stun <= 0 && mite.jump()) { if (rumbleOn) padOf().rumble(90, 0.25, 0.4); }
-  // the scramble: held RT, on a stamina meter (empties in ~1.6 s, refills in ~2.8 s)
+  // the scramble: held B, on a stamina meter (empties in ~1.6 s, refills in ~2.8 s)
   if (play.stam === undefined) play.stam = 1;
-  const want = c.rt() > 0.4 && mite.mode === 'walk' && play.stun <= 0 && !play.act;
+  const want = c.defend.down() && mite.mode === 'walk' && play.stun <= 0 && !play.act;
   if (want && !play.scr && play.stam > 0.15) { play.scr = true; audio.play('mite/dash', { volume: 0.9 }); if (rumbleOn) padOf().rumble(140, 0.3, 0.5); }
   if (!want || play.stam <= 0) play.scr = false;
   // X in the air: the pounce-bite
   if (c.attack.pressed() && mite.airborne) startDive();
-  const hold = c.defend.down();
+  const hold = c.special.down();
   if (atBack(cur) && mite.mode === 'walk' && c.special.pressed()) goBack(cur);
   const dashing = play.scr && mite.mode === 'walk';
   if (dashing && ls.m < 0.2) dir.set(1, 0, 0).applyQuaternion(mite.quat).setY(0); // no stick: straight ahead
@@ -1064,14 +1065,14 @@ function react1(ev) {
 const banner = document.createElement('div');
 banner.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:6;padding:6px 14px;border-radius:999px;font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;color:#fff;pointer-events:none;white-space:nowrap;display:none';
 document.body.appendChild(banner);
-const CAP_LINES = { strike: 'Seized by a leg! Close up (B) to slip free', hold: 'Being pulled in: close up (B)!', eat: 'The predatory mite is eating you', follow: 'Eaten', fadeOut: 'Eaten', fadeIn: '' };
+const CAP_LINES = { strike: 'Seized by a leg! Close up (Y) to slip free', hold: 'Being pulled in: close up (Y)!', eat: 'The predatory mite is eating you', follow: 'Eaten', fadeOut: 'Eaten', fadeIn: '' };
 function updateBanner() {
   let txt = '', hot = true;
   gauge.style.display = boss.engaged ? 'flex' : 'none';
   gauge.querySelector('i').style.width = `${(boss.resolve * 100).toFixed(0)}%`;
-  if (capture.active) txt = cap.byBoss && ['strike', 'hold'].includes(capture.phase) ? 'In its pincer! Close up (B), or scramble out (RT) now' : cap.byBoss && capture.phase === 'eat' ? 'The pseudoscorpion is eating you' : CAP_LINES[capture.phase] || '';
-  else if (boss.attacking) txt = boss.st.state === 'tell' ? 'Pincers open and still: get out of reach, or close up (B)' : 'It snaps!';
-  else if (predOn && predAI.attacking) txt = 'It rears to strike! Close up (B), or jump (A)';
+  if (capture.active) txt = cap.byBoss && ['strike', 'hold'].includes(capture.phase) ? 'In its pincer! Close up (Y), or scramble out (B) now' : cap.byBoss && capture.phase === 'eat' ? 'The pseudoscorpion is eating you' : CAP_LINES[capture.phase] || '';
+  else if (boss.attacking) txt = boss.st.state === 'tell' ? 'Pincers open and still: get out of reach, or close up (Y)' : 'It snaps!';
+  else if (predOn && predAI.attacking) txt = 'It rears to strike! Close up (Y), or jump (A)';
   else if (predOn && predAI.state === 'retreat') { txt = 'The predatory mite is running off'; hot = false; }
   else if (predOn && predAI.state === 'hunt') txt = `A predatory mite is hunting you${play.hurt ? ` (legs grabbed ${play.hurt}/3)` : ''}`;
   else if (predOn && isHungry()) { txt = 'The predatory mite is hungry'; hot = false; }

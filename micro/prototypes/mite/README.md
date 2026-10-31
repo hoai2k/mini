@@ -29,10 +29,10 @@ up.
 | RS (arrows) | Orbit the specimen. Up looks up (the camera swings down toward the floor), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
 | **A (Space)** | **Jump**: a 0.13 s crouch, then a hop (~0.17 mm high, ~0.35–0.4 mm long) onto the floor, a grain, a flake or a moss blade (the blade takes the landing and bends); 0.45 s after landing before the next. Borrowed from jumping oribatids (see Notes). **X in the air: the pounce-bite** |
 | **X (E)** | Three moves, by what is in reach: **eat** (a spore or hyphal tip: leg I reaches out and holds it to the mouth while the chelicerae work and it shrinks away, 0.9 s); **fight** (the predator or the pseudoscorpion's pincer: rear up with leg I raised, then lunge and snap); **attack** (nothing in reach: a lunge with the chelicerae) |
-| **B (Shift)**, hold | **Defend: ptychoidy.** Close into a sealed capsule (the predator's strike slides off; a held mite closing up drops out of the grip); release to reopen |
-| **RT (X key)**, hold | **Scramble**: a punchy burst to ~2.1x the walk (~0.88 mm/s), nose down, tight turns, the gait racing (feet still planted) and crumbs kicked up behind; on a stamina meter (`scramble ■■■■■` in the corner: empties in ~1.6 s, refills in ~2.8 s). In a grab's strike window, a scramble breaks out |
-| Y (R) | Observer mode (as LS click). At the backdoor (see Landmarks), Y goes back up to the bog surface |
-| LS click (C) | Observer mode: SEM data bar and raster lines |
+| **Y (R)**, hold | **Defend: ptychoidy.** Close into a sealed capsule (the predator's strike slides off; a held mite closing up drops out of the grip); release to reopen |
+| **B (Shift)**, hold | **Scramble**: a punchy burst to ~2.1x the walk (~0.88 mm/s), nose down, tight turns, the gait racing (feet still planted) and crumbs kicked up behind; on a stamina meter (`scramble ■■■■■` in the corner: empties in ~1.6 s, refills in ~2.8 s). In a grab's strike window, a scramble breaks out |
+| Y (R) at the backdoor | Go back up to the bog surface instead of defending |
+| LS click (C), standalone prototype only | Observer mode: simulated SEM instrument data (voltage, working distance, detector, magnification and scale) and raster lines. This viewing aid and its feature switch are omitted from the embedded game |
 | LB / RB (Q / F) | Walk slowly (~210 µm/s) / hurry (~590 µm/s) |
 | D-pad ← → (3 / 4) | Imaging mode: SE (Everhart-Thornley), BSE (low vacuum), SE false colour |
 | D-pad ↑ ↓ (1 / 2) | Magnification steps (×1.5) |
@@ -95,14 +95,14 @@ game the roster comes in from the shell (`embed.players`).
 
 ## Fighting back
 
-Shared rules (`shared/predation.js` `createFight`; B is defend in every world).
+Shared fight rules (`shared/predation.js`, `createFight`); the mite uses Y for defence and B for dash.
 
 - **Calm vs attacking.** A calm predatory mite wanders at an easy pace and
   stops to groom; hunting, it is fast and turned on you. Before each strike
   it **rears, leg I and the palps up, the chelicerae open** (0.8 s; the
   banner says so), then lunges (`predator.js`: wander, hunt, windup, strike,
   recover, recoil, retreat).
-- **Block:** close up (B): the strike slides off the capsule, it recoils.
+- **Block:** close up (Y): the strike slides off the capsule, it recoils.
 - **Bite back:** X with it in reach: rear up, then lunge and snap. Blocks and
   bites each take about a third of its interest (facing it close by wears it
   slowly too); out of interest it runs off and rests.
@@ -111,8 +111,8 @@ Shared rules (`shared/predation.js` `createFight`; B is defend in every world).
   worth, a hit-pause, crumbs, a rumble), then a hop back; a mistimed dive is a
   clear miss.
 - **A grab:** three leg grabs and it holds on (strike, hold, eat: pulled in
-  and swallowed between the chelicerae); scramble (RT) in the strike window,
-  or close up (B) before it eats, to slip free. Eaten, the camera pulls back
+  and swallowed between the chelicerae); scramble (B) in the strike window,
+  or close up (Y) before it eats, to slip free. Eaten, the camera pulls back
   and follows the predator for a couple of seconds, a fade, and you are back
   beside a teammate or (alone) at your last safe spot.
 
@@ -130,8 +130,8 @@ tooth), long tactile setae.
   sweep). Then one of three attacks: a **snap** straight ahead, a **sweep**
   of both pincers in from wide, or a **step-in** and snap when you hang back.
   It keeps its distance at the edge of its reach.
-- **Counters:** stay out of reach; **close up (B)** to survive a grab (the
-  venom tooth cannot get through); **scramble (RT)** out of a grab in its
+- **Counters:** stay out of reach; **close up (Y)** to survive a grab (the
+  venom tooth cannot get through); **scramble (B)** out of a grab in its
   strike window; in its **recovery** (pincers lowered, 1.3 s) bite its pincer
   joints (X, double) or pounce-bite them. About three good rounds and it
   **backs into the moss**: the way is open.
