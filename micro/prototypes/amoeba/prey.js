@@ -20,6 +20,8 @@ export const SPECIES = {
   tetrahymena: { name: 'Tetrahymena', latin: 'Tetrahymena pyriformis', kind: 2, L: 50, W: 28, speed: 34, real: '≈ 50 µm, ~400 µm/s', reacts: 1, sense: 8, digest: 40, wob: 0.22, wobF: 1.4, ciliate: true },
   colpidium: { name: 'Colpidium', latin: 'Colpidium colpoda', kind: 3, L: 62, W: 32, speed: 28, real: '≈ 60 µm, ~300 µm/s', reacts: 1, sense: 8, digest: 44, wob: 0.2, wobF: 1.2, ciliate: true },
   paramecium: { name: 'Paramecium', latin: 'Paramecium caudatum', kind: 4, L: 220, W: 56, speed: 70, real: '≈ 220 µm, ~1 mm/s', reacts: 1, sense: 10, digest: 95, wob: 0.12, wobF: 0.8, ciliate: true, trich: 3 },
+  // The forward landmark (main.js): green with its Chlorella symbionts; not prey here.
+  bursaria: { name: 'Paramecium bursaria', latin: 'Paramecium bursaria', kind: 5, L: 130, W: 62, speed: 45, real: '≈ 120 µm, green with Chlorella', reacts: 0, sense: 10, digest: 95, wob: 0.14, wobF: 0.8, ciliate: true, trich: 0 },
 };
 
 let NEXT = 1;

@@ -103,7 +103,7 @@ function tintCreature(c, color, on) {
   const u = c.body.userData.opt.uniforms.uAbs.value.copy(CUTICLE);
   if (!on) return;
   const col = new THREE.Color(color);
-  u.add(new THREE.Vector3(-Math.log(Math.max(0.05, col.r)), -Math.log(Math.max(0.05, col.g)), -Math.log(Math.max(0.05, col.b))).multiplyScalar(0.35));
+  u.add(new THREE.Vector3(-Math.log(Math.max(0.05, col.r)), -Math.log(Math.max(0.05, col.g)), -Math.log(Math.max(0.05, col.b))).multiplyScalar(0.22));
 }
 let rumbleOn = true;
 const rumble = (ms, w, s) => { if (rumbleOn) pad.rumble(ms, w, s); };
@@ -802,11 +802,15 @@ function drawRings(L) {
     const q = split.project(reg.view, a.shown);
     g.save();
     if (L.views.length > 1) { g.beginPath(); reg.polygon.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip(); }
-    g.globalAlpha = a.life.state === 'active' ? 0.6 : 0.3;
-    g.strokeStyle = a.p.color; g.lineWidth = 1.5;
-    g.beginPath(); g.ellipse(q.x, q.y, 2.3 * px, 1.6 * px, 0, 0, Math.PI * 2); g.stroke();
-    g.globalAlpha = 0.85; g.fillStyle = a.p.color; g.font = '600 11px system-ui,sans-serif'; g.textAlign = 'center';
-    g.fillText(a.p.name, q.x, q.y - 1.6 * px - 6);
+    // a faint broken ring under the animal and its name tag
+    const rx = Math.min(1.9 * px, 150), ry = rx * 0.62;
+    g.globalAlpha = a.life.state === 'active' ? 0.42 : 0.22;
+    g.strokeStyle = a.p.color; g.lineWidth = 1.25;
+    g.setLineDash([10, 7]);
+    g.beginPath(); g.ellipse(q.x, q.y, rx, ry, 0, 0, Math.PI * 2); g.stroke();
+    g.setLineDash([]);
+    g.globalAlpha = 0.8; g.fillStyle = a.p.color; g.font = '600 11px system-ui,sans-serif'; g.textAlign = 'center';
+    g.fillText(a.p.name, q.x, q.y - ry - 5);
     g.restore();
   }
   g.restore();

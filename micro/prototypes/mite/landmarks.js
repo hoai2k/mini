@@ -16,7 +16,7 @@ import { floorH, mergeGeos } from './world.js';
 
 /** Straight ahead of the start view (the camera looks toward -x, +z) and behind it. */
 export const FORWARD = { x: -1500, z: 1030, reach: 330 };
-export const BACKDOOR = { x: 1380, z: -930, dwell: 420 };
+export const BACKDOOR = { x: 1450, z: -1000, dwell: 380 };
 
 export function createLandmarkProps(world, tex) {
   const group = new THREE.Group();
@@ -158,8 +158,8 @@ export function createLandmarkProps(world, tex) {
   const bodyOnly = tailGeo.clone();
   world.colliders.add(bodyOnly, 'grain');
 
-  // where to dwell: just in front of its head, on the side you come from
-  const dwell = new THREE.Vector3(B.x + dir.x * 1250, 0, B.z + dir.z * 1250);
+  // where to dwell: beside its head (well clear of the start)
+  const dwell = new THREE.Vector3(B.x + dir.x * 800 - dir.z * 430, 0, B.z + dir.z * 800 + dir.x * 430);
   dwell.y = floorH(dwell.x, dwell.z) + 120;
   const fwd = new THREE.Vector3(wx, wy + 110, wz);
 

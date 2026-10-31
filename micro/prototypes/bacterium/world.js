@@ -201,7 +201,7 @@ export function createWorld() {
   // of the field.
   const landmarks = {
     forward: { x: 170, y: 20, a: 0.5, L: 4.4, r: 0.72, reach: 1.6, phages: [], incoming: [] },
-    back: { x: -186, y: 96, r: 24, edge: { x: -203, y: 112, ang: Math.atan2(-0.62, -0.78), L: 150, depth: 90, amp: 3, seed: 4.4 } },
+    back: { x: -186, y: 96, r: 38, edge: { x: -203, y: 112, ang: Math.atan2(-0.62, -0.78), L: 150, depth: 90, amp: 3, seed: 4.4 } },
   };
   {
     const F = landmarks.forward;

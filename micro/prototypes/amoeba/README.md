@@ -53,7 +53,7 @@ still held keeps moving the body.
 | **A (Space)** | **Surge**: for 0.9 s every active pseudopod extends up to 2.5× faster and may run a little further ahead, the rear contracts harder and streaming surges to the tips, so the whole cell lunges; recharges over 2.4 s (the `dash` meter). With no stick held it surges along the cell's heading (in lead and follow, the body flows on that way). Tears the membrane free of a fungal trap |
 | **X (E)** | **Close the food cup** round the prey it wraps (needs ≥ 190° of membrane round it): the rims advance and endoplasm floods in to fill round the prey until they meet |
 | B (Shift) | Let go while closing; otherwise egest the oldest food vacuole at the uroid (a live, barely digested prey swims away) |
-| Y (R) | Labels (nucleus, contractile vacuole, uroid, hyaline caps, ectoplasm, endoplasm, prey with real sizes, trap hyphae) |
+| Y (R) | Labels (nucleus, contractile vacuole, uroid, hyaline caps, ectoplasm, endoplasm, prey with real sizes, trap hyphae). At the leaf tip (the backdoor) Y goes back up to the tardigrade instead |
 | D-pad ← → (3 / 4) | Optics: brightfield, phase contrast, darkfield, hypothetical immersive lit view |
 | D-pad ↑ ↓ (1 / 2) | 20× objective (0.9 mm field) / 10× objective (1.8 mm field) |
 | Menu (Esc) | Features panel: what the prototype does, with switches |
@@ -67,6 +67,62 @@ piece off, a pulse on capture. The sticks keep the amoeba's own scheme; A, X,
 B, Y and the d-pad follow the shared one (`../CONTROLS.md`).
 
 Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A pool ambience loop; pseudopods flowing out (rate-limited), the surge (A), closing the food cup (X), a vacuole forming, the contractile vacuole emptying, and digestion finishing.
+
+## Landmarks (the way on and the way back)
+
+Both are things on the slide, drawn into the same optical property buffer as
+everything else; `../shared/landmark.js` adds a quiet mark near the edge of
+each view while they are off screen: a brass chevron labelled Pool towards the
+way on, a hollow ring labelled Leaf towards the way back.
+
+- **Forward: a green *Paramecium bursaria*** swimming low over the slide,
+  about 2.6 mm to the right of the start: its Chlorella symbionts fill it with
+  green (`prey.js` `bursaria`, kind 5 in `PREY_FS`). It wanders in a loose
+  circle round its spot and is not prey here. When any player's membrane comes
+  within ~45 µm of it, `embed.landmark('forward')` is posted (once per visit):
+  the camera follows it out into the pool (design §2.6 and Level 3);
+  standalone, `embed.js` shows a toast.
+- **Backdoor: a Sphagnum leaf tip** dipping into the pool, about 2.3 mm to the
+  left (`LEAF_FS`: one cell thick, large clear hyaline cells with fibril bands
+  and pores in a net of narrow green chlorophyllose cells, and the water
+  film's edge as a soft meniscus round it). The amoeba flows round it (capsule
+  colliders down its axis). Near the tip a quiet "Y: Back to the tardigrade"
+  prompt shows (the shell's, from `embed.near('back')`, or this page's own
+  when standalone), and Y there posts `embed.landmark('back')` instead of
+  toggling the labels.
+- Steady crawling (both sticks held) covers ~35-40 µm/s on the ×10 clock, so
+  each is about a minute away in a straight line; a couple of minutes with
+  hunting and the traps.
+
+## Multiplayer (local, up to four)
+
+Through `../shared/players.js`, as `../CONTROLS.md` describes: player 1 on the
+keyboard and the first controller; players 2-4 join at any time by pressing
+any button on another controller (a toast, and in the shell `embed.join`).
+Inside the Micro Zoom shell the roster from its menus is restored.
+
+- **Each player is their own amoeba** with the lead-and-follow two-stick
+  scheme (or the classic one, from Features), its own surge, food cup,
+  vacuoles, trap contact and catch. A joining amoeba appears beside a teammate.
+  In `main.js` the per-player state is switched in by `use(cell)` (body,
+  cytoplasm, surge, capture, roles, pad...), so the single-player code paths
+  run unchanged for each cell. Amoebae push against each other's membranes
+  instead of overlapping; prey flee, touch and are cupped by any of them.
+- **Colour**: a faint tint of the player's colour in the cell (`uTint` in
+  `BODY_FS`, mostly in the clear ectoplasm rim), and a broken ring and name
+  tag round each amoeba; each player's cup reticle is labelled.
+- **Rendering**: each amoeba is a cell layer in `render.js` (`addCell`): its
+  own membrane mask, body quad and granules, drawn one after another into the
+  same property buffer. The split screen (`../shared/splitscreen.js`, 2D mode:
+  a field drawn round a centre) composes each view into its own target
+  (`render({ target })`, render scale 0.75), and while split the property
+  buffers are drawn at 0.7 of the screen (`View.setScale`), so a split frame
+  costs well under N full frames. Extra amoebae carry 1300 granules.
+- **The fungal traps** catch whoever touches them. Alone, the full catch and
+  the Eaten card, as before; with others playing the drained player sees the
+  whole sequence, then a fresh amoeba appears beside a teammate (no card).
+- **The landmarks** trigger for any player. Labels, look, objective and focus
+  are player 1's.
 
 ## The biology it follows
 
@@ -356,7 +412,15 @@ the sticks), `press(name)`, `setMode(i)`, `pause()`, `renderOnce()`,
 `clearPrey()`, `resetBody()`, `close()`, `surge` (the dash), `ctl`,
 `readInput()`, `roles` (`{ pod, body, branch, latch }`), `rolesText()`,
 `scheme('lead' | 'classic')`, `pinch(i, j)` (cut the ring as a hypha would)
-and `fragments`.
+and `fragments`; for multiplayer and the landmarks: `players`, `cells`,
+`split`, `layout`, `beacon` (the P. bursaria), `leaf`, `landmarks.log`
+(every landmark and near posted), `place(slot, x, y)`, `teleport('forward' |
+'back', slot)` and `forceCapture(slot)`. `body`, `cyto`, `capture` and `surge`
+are player 1's. Multiplayer was checked with mocked gamepads in Playwright:
+joins during play, 2 and 4 players splitting and merging, a catch in
+multiplayer, both landmarks standalone and in the shell. Headless (SwiftShader)
+this page drops to a few frames a second once the delivered images load, with
+or without these changes, so scripted presses there are held for over a second.
 
 ## Sources
 

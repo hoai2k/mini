@@ -842,7 +842,8 @@ function frame(now) {
       post.uniforms.uUvLine.value = _v.y * 0.5 + 0.5;
       post.render(scene, camera);
     });
-    if (!debug.iso && lead.P.mode !== 'burst') {
+    // (shared/landmark.js trips on an empty split region, which splitscreen.js can emit for a frame as players leave)
+    if (!debug.iso && lead.P.mode !== 'burst' && split.layout.regions.every((r) => r.polygon && r.polygon.length >= 3)) {
       marks.drawSplit(split, bestPatch(), { kind: 'forward', label: 'OmpC', range: 600 });
       marks.drawSplit(split, world.backdoor.pos, { kind: 'backdoor', label: 'Sediment', range: 600 });
     }

@@ -19,6 +19,87 @@ running at cruise speed wherever rotational and translational Brownian
 motion, the ambient flow, the grazers' feeding currents and the field turn
 it. Honest run and tumble (no steering) is a Features choice.
 
+## Landmarks (the Micro Zoom chain)
+
+World 6 of the game (`micro/game/`), between the Paramecium and the phage.
+Both landmarks are drawn into the specimen with the same optics as
+everything else (`draw.js`, `landmarks`), and a quiet edge arrow
+(`shared/landmark.js`) shows where each is when it is off screen: a brass
+chevron for the way on, a hollow ring for the way back.
+
+- **Forward: a host cell with phages landing on it**, on the far right in
+  the oxygen band (170, 20 µm; about 190 µm from the start). It is swollen,
+  its contents crowded with new phage heads, phages are docked all over its
+  surface and more diffuse in to land. Phages are 60 nm: phase contrast shows
+  only the swollen host, while fluorescence (SYBR) and darkfield show the
+  phages as spots, which is the honest way to find them. Touch the host:
+  `embed.landmark('forward')`, the zoom into the phage level.
+- **Backdoor: the looming Paramecium** at the top left, in the open water
+  above the biofilm: the edge of a cell forty times your length, its pellicle
+  with the trichocyst seam, green *Chlorella* inside and a row of cilia
+  beating along its edge. Stay within 38 µm of it for half a second: a quiet
+  prompt "Y · back to the Paramecium's pool" shows (in the game the shell
+  draws it, `embed.near('back')`), and Y rises to the pool
+  (`embed.landmark('back')`). There Y means "go back" instead of the data
+  overlay. It is near the air, so the oxygen warning comes on while you wait.
+- Standalone, the page behaves the same and `embed.js` shows a small toast
+  in place of the zoom. The stats corner gives both distances.
+
+## Multiplayer
+
+Up to four players (`shared/players.js`, see `../CONTROLS.md`): player 1 on
+the keyboard and the first controller; anyone else joins at any time by
+pressing a button on another controller ("Player 2 joined"; in the game the
+shell's roster comes in with `embed.players`).
+
+- **Each player is their own cell** (the same species; the Features choice
+  applies to all), with its own dash, oxygen damage, energy, growth and
+  catch. The corner brackets that mark your cell are drawn in each player's
+  colour with a "P2" tag (alone: the gold brackets as before).
+- **One shared field, then a split.** The stage follows the group's middle;
+  as players separate the screen splits LEGO-style (`shared/splitscreen.js`,
+  its 2D mode: each view is the field drawn round its own centre, captured,
+  at 70 % resolution while split, without the field stop). Player 1 has the
+  view controls (look, field, focus, stage, Y for the data overlay).
+- **Hunters pick a player:** the amoeba's edge creeps toward the nearest
+  living cell; a phage cloud bursts beside one of you; grazers, phages and
+  Bdellovibrio catch whoever they touch. The warning line names the player.
+- **Caught or spent together:** a catch plays out as alone, and an oxygen or
+  starvation death fades out with its cause on screen; then the player
+  rejoins beside a teammate. Alone you get the cards as before.
+- **Landmarks** fire for any player.
+
+Test hooks: `__micro.players`, `__micro.split`, `__micro.roster()`,
+`__micro.landmarks` (positions, the log, `near`),
+`debug.teleport(x, y, a, slot)`, `forceCapture(kind, slot)`.
+
+## Oxygen and starvation (softened)
+
+A play test found idle and moving cells dying of oxygen or starvation within
+about a minute, with nothing on screen to say why: an idle magnetotactic cell
+runs north, down the field lines, into the anoxic sediment, where it starved
+in 50 s; near the air the damage rate (o₂ − 8) / 60 per second killed in
+seconds. Now (`game.js`, `RATE`):
+
+- **Slower:** damage builds at (o₂ − 8) / 300 per second, capped at 0.04
+  (at least 25 s even at the meniscus) and heals at 0.05 per second below
+  8 %; anoxic starvation drains energy at 0.004 per second (about four
+  minutes from full), and energy recovers wherever there is oxygen.
+  Bdellovibrio: 0.0025 per second in good water, 0.008 in too little.
+- **Said on screen, early:** the warning line at the top says the cause, what
+  to do and how bad it is: "Too much oxygen: head down the field lines" with
+  a damage meter (and "LB/RB reverses" when you are swimming up), "No oxygen
+  down here: you are starving. Head up toward the air" with an energy meter,
+  "Out of the oxygen: the damage is healing". Keyboard keys replace the
+  button names while no controller is connected.
+- **A readable death:** the motors stop, the cell swells, darkens and fades,
+  while the line reads "Run over: too much oxygen" (or "starved"); then the
+  Run over card (alone) or a rejoin (together).
+
+A scripted test: an idle cell with the predators off survives 3 minutes
+(it settles in the sediment with the starvation warning, energy ≈ 0.3 left);
+parked at 67 % oxygen it lasts about 25 s, with the warning from the start.
+
 ## Controls
 
 The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
@@ -30,7 +111,7 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | **A** | Space | **Sprint run**: every flagellum at full motor speed (spirillum 95 µm/s, Bdellovibrio 160 µm/s), 0.6 s, recharging (HUD `dash` meter). It also shakes off loosely bound phages and an attaching Bdellovibrio |
 | **X** | E | **Feed / attack**. Magnetotactic: hold to take up food in a patch. Bdellovibrio: press while touching a Gram-negative rod to attach and bore in |
 | B | Shift | **Tumble** (the "defend" slot, an evasive move): stop, turn to a random new heading (E. coli's distribution, mean 68°), run on. For Bdellovibrio it is a reverse plus a flick. While you hold LS, the stick turns you back afterwards |
-| Y | R | Data overlay: oxygen, food, field lines and feeding currents, marked on screen as data, not optics |
+| Y | R | Data overlay: oxygen, food, field lines and feeding currents, marked on screen as data, not optics. At the Paramecium (the backdoor): back to the pool |
 | LT / RT | Z / X | Fine focus down / up (it drifts back to your cell's plane unless switched off) |
 | LB / RB | Q / F | **Reverse the run**: the other pole leads. For the magnetotactic cell, this is how it swims back the other way along the field line |
 | D-pad ←→ | 3 / 4 | Look: phase contrast, fluorescence, darkfield, SEM (borrowed), DIC (borrowed) |

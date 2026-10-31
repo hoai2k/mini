@@ -961,8 +961,8 @@ function frame(now) {
   rendered++;
   // the edge arrows: the brass chevron to the biofilm, the ring to the amoeba's floor
   edgeMarks.begin();
-  edgeMarks.drawSplit(split, FWD.pos, { kind: 'forward', label: FWD.label, range: 3000 });
-  edgeMarks.drawSplit(split, BACK.pos, { kind: 'backdoor', label: BACK.label, range: 3000 });
+  edgeMarks.drawSplit(arrowSplit(), FWD.pos, { kind: 'forward', label: FWD.label, range: 3000 });
+  edgeMarks.drawSplit(arrowSplit(), BACK.pos, { kind: 'backdoor', label: BACK.label, range: 3000 });
 
   const bl = s.netSpeed / LENGTH;
   const charges = '●'.repeat(s.charges) + '○'.repeat(3 - s.charges);
@@ -1035,6 +1035,8 @@ function updateGoal(s) {
 // --- overlay: subtle cues, light and shade (nothing round your own cell) --------
 // Drawn once per split view, clipped to its region; in multiplayer each cell
 // gets a faint ring in its player's colour so you can tell who is who.
+/** The split layout without degenerate (empty) regions, for shared/landmark.js. */
+const arrowSplit = () => { const L = split.layout; return { layout: { ...L, regions: L.regions.filter((r) => r.polygon.length > 2) }, project: split.project }; };
 const split = createSplitScreen(renderer, { capture: true, up: null });
 const edgeMarks = createLandmarks({ zIndex: 4 });
 function drawOverlay(cam) {
@@ -1045,7 +1047,7 @@ function drawOverlay(cam) {
   const L = split.layout;
   const many = L.views.length > 1;
   for (const v of L.views) {
-    const regs = L.regions.filter((r) => r.view === v.index);
+    const regs = L.regions.filter((r) => r.view === v.index && r.polygon.length > 2);
     const P = roster.find((Q) => v.slots.includes(Q.slot)) || P1;
     const anchor = regs.length && many ? [regs.reduce((a, r) => a + r.anchor[0], 0) / regs.length, regs.reduce((a, r) => a + r.anchor[1], 0) / regs.length] : [cssW / 2, cssH / 2];
     for (const ctx of [g, sg]) {

@@ -1099,7 +1099,7 @@ function render(dt) {
   const L = placeCamera(dt);
   field.upload();
   split.update(recs().map((P) => ({ slot: P.slot, position: posOf(P) })), { camera }, dt);
-  const k = split.views.length > 1 ? 0.7 : 1;
+  const k = split.views.length > 2 ? 0.55 : split.views.length > 1 ? 0.7 : 1;
   if (k !== splitK) { splitK = k; resize(); }
   const focus0 = macroShared.uFocus.value;
   const one = split.views.length === 1;

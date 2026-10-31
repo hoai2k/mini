@@ -10,8 +10,11 @@ surface is y = 0.
 
 Open `micro/prototypes/springtail/` (the invite gate is off on localhost).
 
-**Goal:** eat 8 clumps of food (each takes three bites), then climb onto
-moss: one of the Sphagnum islands standing in the pool. You have three lives.
+**Goal:** the way on is straight ahead of where you start (+x, about 0.56 m
+off: a minute or so of full jumps): a tongue of Sphagnum where the bank reaches
+into the pool. Reach it and, in the Micro Zoom game, the microscope zooms in to
+the mite's world. On the way, graze: 8 clumps of food (three bites each) is
+the side goal. You have three lives.
 
 **The water is the ground.** The pool is a 1.2 x 0.9 m sheet of open water
 (some 17 full jumps from the middle to the edge) with 64 moss islands
@@ -49,6 +52,51 @@ the f-number (and effective aperture), the depth of field, the food count,
 lives, and a furcula meter (cocking, full jump, re-cocking, struggle).
 
 Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A bog ambience loop; the furcula jump (A), landings on the water film and the sticky sundew landing, grazing (X), raindrops (quieter and panned by distance), and the Stenus skim and harpoon strike.
+
+## Landmarks
+
+- **Forward: the moss bank's capitulum** (design §0.6). A tongue of moss
+  (`LANDMARK` in `world.js`: an island of radius 10 mm joined to the bank on
+  the +x axis, so the shoreline, the water mask and landing on moss treat it
+  like any island) crowned with big red and green capitula
+  (`landmarks.js`). On the tallest one, at the tip toward the open water, a
+  speck moves: a *Limnozetes* mite, 0.35 mm, walking about on its
+  capitulum. Any player who comes within 13 mm of the tongue's centre (on it,
+  at its foot, or landing on it) reaches it: `embed.landmark('forward')`. It
+  fires once, and again only after everyone has left it. Standalone,
+  `embed.js` shows its toast instead of a transition.
+- **No backdoor:** this is the top of the Zoom Chain.
+- **Edge arrow** (`shared/landmark.js`): a brass chevron near the edge of
+  each view points to the capitulum while it is off screen; on screen, two
+  faint corner ticks mark it.
+
+## Multiplayer
+
+Up to four players (`shared/players.js`, `../CONTROLS.md`): player 1 on the
+keyboard and the first controller, players 2–4 join at any time by pressing
+any button on another controller (a "Player N joined" toast; in the game the
+shell is told with `embed.join`). In the game the roster comes in from the
+shell (`embed.players`).
+
+- Each player is a springtail of their own (a second springtail shares the
+  first one's meshed geometry), marked by a faint ring of their colour on the
+  film. Everyone uses the shared controls; RS from any player turns the
+  shared camera, and player 1 also has the optics (Y, zoom, look, aperture,
+  focus).
+- **Split screen** (`shared/splitscreen.js`, LEGO-style): together, one view
+  that frames the group (a little wider as it spreads, with the depth of
+  field deepened until everyone is sharp); apart, the view splits and each
+  view focuses on its own players. The macro chain ends on the screen, so the
+  split copies each view (`capture`), and split views render at 70%
+  resolution (55% when split three or four ways).
+- **Threats:** *Stenus* and the strider each go for the nearest free player;
+  raindrops hit whoever is under them. A caught player plays the whole catch;
+  with company there is no Eaten card and no lives are lost: they come back
+  beside a teammate when it ends (a swamped one likewise). Alone, the Eaten
+  card and lives work as before.
+- Test hooks on `window.__micro`: `players`, `split`, `layout`, `recs()`,
+  `teleport(slot, x, z)`, `settle(n)`, `landmark`, `landmarkLog`, `joins`,
+  `forceCapture(kind, slot)`.
 
 ## Threats and pacing
 
@@ -371,8 +419,10 @@ may not be in `shared/asset-list.js` yet) and has a procedural stand-in:
 - `index.html`, `main.js`: the page, the game loop, the camera and optics,
   HUD and features.
 - `springtail.js`: the springtail model, rig and cuticle shader.
-- `world.js`: pool shape and bank, moss islands, Sphagnum, sundews, food,
-  floating debris.
+- `world.js`: pool shape and bank, moss islands (and the landmark's tongue),
+  Sphagnum, sundews, food, floating debris.
+- `landmarks.js`: the forward landmark's capitula and the moving mite; the
+  players' colour rings.
 - `enemies.js`: *Stenus*, the water strider, raindrops.
 - `../shared/techniques/springtail-macro.js`: macro lens, lighting, bokeh
   post chain (reusable).

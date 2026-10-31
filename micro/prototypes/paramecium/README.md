@@ -7,6 +7,64 @@ the hunters: *Didinium*, which harpoons you on contact, and *Amoeba
 proteus*, a slow giant on the slide that cups you in its pseudopods.
 Published in the prototype archive at `micro/prototypes/paramecium/`.
 
+## Landmarks (the Micro Zoom chain)
+
+World 5 of the game (`micro/game/`), between the amoeba and the bacterium.
+Both landmarks are things in the drop, drawn with the microscope's own
+materials (`landmarks.js`), and a quiet edge arrow (`shared/landmark.js`)
+shows where each is when it is off screen: a brass chevron for the way on, a
+hollow ring for the way back.
+
+- **Forward: the biofilm on a leaf.** A fragment of dead leaf lies on the
+  slide at the far side of the drop (560, 0, 1130 µm; about 1.3 mm from the
+  start, a few seconds at full speed, longer with the hunters about). Its
+  surface is coated in a biofilm: thousands of rods and dots in microcolonies
+  under a faint slime sheen, which at 20× read only as texture. That texture
+  is the zoom target into the bacterium level (spec §3.6, §4.6). Swim down and
+  touch it (within 230 µm of its middle, below 120 µm): `embed.landmark('forward')`.
+- **Backdoor: the amoeba's floor.** The other way (−860, 0, −700 µm), the
+  patch of slide where the *Amoeba proteus* crawls: its slime trail through the
+  sediment and the food vacuoles it has egested. The amoeba keeps to this
+  patch while it is not hunting (`amoeba.home`). Swim down over it (within
+  240 µm, below 170 µm) and stay half a second: a quiet prompt "Y · back to
+  the amoeba" shows (in the game the shell draws it, `embed.near('back')`),
+  and Y rises to the amoeba level (`embed.landmark('back')`). There Y means
+  "go back" instead of switching the camera.
+- Standalone, the page behaves the same and `embed.js` shows a small toast
+  in place of the zoom. The stats corner gives both distances.
+
+## Multiplayer
+
+Up to four players (`shared/players.js`, see `../CONTROLS.md`): player 1 on
+the keyboard and the first controller; anyone else joins at any time by
+pressing a button on another controller ("Player 2 joined"; in the game the
+shell's roster comes in with `embed.players`).
+
+- **Each player is their own Paramecium** with its own dash, trichocysts,
+  light meter and catch. Alone, nothing is drawn round your cell; together,
+  each cell has a faint broken ring and a "P2" tag in its player's colour.
+  The prey count is shared.
+- **One shared camera, then a split.** Player 1's controls set the view (Y
+  chase/microscope, RS orbit or stage, D-pad technique and objective). The
+  camera frames the group's middle and backs off as it spreads; further apart
+  the screen splits LEGO-style (`shared/splitscreen.js`) and merges again when
+  you meet. The chase camera splits in its image plane (`up: null`); the
+  microscope's top-down view slides its stage. The optics pipeline ends on
+  the screen, so each view is rendered and captured (`capture: true`), at
+  75 % resolution while split, without the field stop, and each view focuses
+  on its own players' depth.
+- **Hunters pick a player:** each Didinium and the amoeba go for the player
+  they hold, else the nearest free one; the warning line says who is hunted.
+- **Caught together:** the catch plays out as alone (strike, hold, eat),
+  then the player rejoins beside a teammate. Alone you get the Eaten card
+  and A starts the round again.
+- **Landmarks** fire for any player: anyone on the biofilm takes everyone
+  on; anyone dwelling on the amoeba's floor can press Y.
+
+Test hooks: `__micro.players`, `__micro.split`, `__micro.roster()`,
+`__micro.landmarks` (positions, the log of fired landmarks, `near`),
+`debug.teleport(x, y, z, yaw, pitch, slot)`, `forceCapture(kind, slot)`.
+
 ## What changed after the owner's feedback
 
 "It moves too slow, you often get blocked and it's not clear why; remove the
@@ -152,7 +210,7 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | **A** | Space | **Dash**: a ciliary sprint toward the stick (a quick pivot, then up to 3.2 mm/s for 0.32 s), recharging in 1.8 s (slower in shade); rumble. While held: struggle |
 | **X** | E | **Eat**: an oral gulp pulls up to three prey within ≈70 µm of the front of the cell into the groove, each forming a food vacuole. Touching or held by a hunter: **fire trichocysts** at it (3 charges, one back every 9 s) |
 | B | Shift | Avoidance reaction: ciliary reversal, back up, pivot about the posterior, swim off |
-| Y | R | Chase camera (default) / microscope view |
+| Y | R | Chase camera (default) / microscope view. On the amoeba's floor (the backdoor): back to the amoeba |
 | LT / RT | Z / X | LT slow feeding beat (hover; draws bacteria into the groove) · RT beat cilia: swim. Speed follows the trigger at once; release it and the cell stops (no gliding) |
 | LB / RB | Q / F | Dive / rise |
 | D-pad ←→ | 3 / 4 | Microscope technique (switches a borrowed look off) |

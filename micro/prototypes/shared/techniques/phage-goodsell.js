@@ -306,7 +306,7 @@ void main(){
   } else {
     // Goodsell watercolour: pale water with washes, paper grain, wet edges
     vec3 bg = uWater;
-    if (uUseBg > 0.5) bg = texture2D(tBg, (vUv - 0.5) * 0.84 + 0.5 + clamp(uBgOff, vec2(-0.07), vec2(0.07))).rgb * 1.06;
+    if (uUseBg > 0.5) bg = mix(texture2D(tBg, (vUv - 0.5) * 0.84 + 0.5 + clamp(uBgOff, vec2(-0.07), vec2(0.07))).rgb * 1.06, uWater, 0.3);
     else {
       float w = fbm(vUv * vec2(uRes.x / uRes.y, 1.0) * 2.5 + uBgOff * 1.0);
       bg = uWater * (0.92 + 0.14 * w);

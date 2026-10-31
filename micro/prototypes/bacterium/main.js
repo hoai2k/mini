@@ -277,6 +277,8 @@ const overlay = createOverlay();
 const looks = createBorrowedLooks(renderer);
 // split screen: in a 2D field the view is drawn around a centre; each view is
 // rendered to the screen and captured (the optics end on the screen)
+/** The split layout without degenerate (empty) regions, for shared/landmark.js. */
+const arrowSplit = () => { const L = split.layout; return { layout: { ...L, regions: L.regions.filter((r) => r.polygon.length > 2) }, project: split.project }; };
 const split = createSplitScreen(renderer, { capture: true });
 const marks = createLandmarks({ zIndex: 4 });
 
@@ -710,8 +712,8 @@ function render(dt) {
   }
   // the edge arrows: the brass chevron to the host cell, the ring to the Paramecium
   marks.begin();
-  marks.drawSplit(split, FWD, { kind: 'forward', label: 'Host', range: 420, onScreen: 'none' });
-  marks.drawSplit(split, BACK, { kind: 'backdoor', label: 'Pool', range: 420, onScreen: 'none' });
+  marks.drawSplit(arrowSplit(), FWD, { kind: 'forward', label: 'Host', range: 420, onScreen: 'none' });
+  marks.drawSplit(arrowSplit(), BACK, { kind: 'backdoor', label: 'Pool', range: 420, onScreen: 'none' });
   drawMarks(L, fieldH);
   // scale bar and oxygen ticks
   const bar = fieldH >= 90 ? 20 : fieldH >= 40 ? 5 : 2;
@@ -741,7 +743,7 @@ function drawMarks(L, fieldH) {
     markG.save();
     if (L.views.length > 1) {
       markG.beginPath();
-      for (const r of L.regions) if (r.view === v.index) { markG.moveTo(r.polygon[0][0], r.polygon[0][1]); for (const q of r.polygon.slice(1)) markG.lineTo(q[0], q[1]); markG.closePath(); }
+      for (const r of L.regions) if (r.view === v.index && r.polygon.length > 2) { markG.moveTo(r.polygon[0][0], r.polygon[0][1]); for (const q of r.polygon.slice(1)) markG.lineTo(q[0], q[1]); markG.closePath(); }
       markG.clip();
     }
     for (const P of roster) {

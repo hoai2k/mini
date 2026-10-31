@@ -18,7 +18,7 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
 | **A (Space)** | **Scramble**: 0.9 s of fast wave gait (~400 µm/s), recharging over 2.6 s (the `dash` meter); costs ~3.5% water and 2% reserves. With no stick, straight ahead |
 | **X (E)** | **Pierce** with the stylets: food in reach (algae, diatoms, detritus) or the living leaf cell under the mouth; at a Milnesium touching you, a jab that makes it back off |
 | B (Shift), hold | Grip hard / brace: two legs swing at most, slower, much harder to slip |
-| Y (R), hold | Curl into a tun. In a tun on a wet leaf, press again to wake |
+| Y (R), hold | Curl into a tun. In a tun on a wet leaf, press again to wake. In the leaf axil (the backdoor) Y goes back up to the mite instead |
 | LT / RT (Z / X) | Fine focus down / up through the layers. Auto-focus keeps the focal plane on the animal: a manual setting holds while you stand still and eases back onto the animal once you walk on (Features → Optics → Auto-focus) |
 | LB / RB (Q / F) | Anatomy labels / rain (test) |
 | D-pad ← → (3 / 4) | Optical look: DIC / brightfield / lit (hypothetical) |
@@ -29,6 +29,61 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
 | View (Tab) | Hide the help panel |
 
 When dead (eaten or a tun that did not wake), A starts a new day.
+
+## Landmarks (the way on and the way back)
+
+Both are things in the moss patch (`landmarks.js`), drawn through the same
+optics as everything else; `../shared/landmark.js` adds a quiet mark near the
+edge of each view when they are off screen: a brass chevron labelled Pool
+towards the way on, a hollow ring labelled Moss towards the way back.
+
+- **Forward: the pool tip.** The tip of the Sphagnum leaf below dips into the
+  hollow pool, towards the amoeba's pool floor (design §2.6). Beyond it lies
+  open water: a slab whose bevelled shore is a bright meniscus line in DIC,
+  where the film meets open water, with three green *Paramecium bursaria*
+  swimming in it. The film is deep there (the leaf's last ~30% is wet:
+  `world.js`). Reaching the last ~250 µm of that leaf, on either face, posts
+  `embed.landmark('forward')` (once per visit); standalone, `embed.js` shows a
+  toast. From the start it lies right and down: along leaf A, then onto the
+  leaf below (a scripted straight walk got there in about 15 s; with feeding,
+  the Milnesium and the drying, a few minutes).
+- **Backdoor: the leaf axil.** The drier axil above, where leaf A and leaf D
+  leave the stem (drawn as a chain of capsules, the overlaps reading as
+  nodes), back up to the mite (§1.6). It lies the other way, left along leaf A
+  (~0.5 mm, about 30 s). Within ~200 µm of either leaf's base a quiet "Y: Back
+  to the mite" prompt shows (the shell's, from `embed.near('back')`, or this
+  page's own when standalone), and Y there posts `embed.landmark('back')`
+  instead of curling into a tun.
+
+## Multiplayer (local, up to four)
+
+Through `../shared/players.js`, as `../CONTROLS.md` describes: player 1 on the
+keyboard and the first controller; players 2-4 join at any time by pressing
+any button on another controller (a "Player N joined" toast, and in the shell
+`embed.join`). Inside the Micro Zoom shell the roster from its menus is
+restored (`embed.players`, the `players` message).
+
+- **Each player is their own tardigrade** (its own Walker, Creature, water,
+  reserves, scramble and tun), with a faint tint of their colour in the
+  cuticle and a broken ring and name tag in that colour round it. A new
+  player appears a body length behind a teammate on the same leaf.
+- **One day for everyone.** Player 1's Life keeps the clock, the drying and
+  the rain (`life.js`, `clock: false` for the others); another player's tun on
+  a dry leaf waits for rain instead of skipping days.
+- **Split screen** (`../shared/splitscreen.js`): together, one shared view
+  (straight to the screen, as before); apart, the LEGO-style split, each view
+  composed by the DIC microscope into its own target (`tardigrade-dic.js`
+  `render({ target })`, render scale 0.75; the auto quality drops the optical
+  buffers further if the frame rate falls). Any player's right stick turns
+  the shared view; the d-pad, LB/RB and the stick clicks are player 1's.
+- **Milnesium hunts one player at a time**: the nearest one up and about,
+  held unless another is clearly nearer. Only that player's jab (X) drives it
+  off.
+- **Caught**: alone, the full catch and the Eaten card, as before. With
+  others playing, the caught player sees the whole sequence (strike, hold,
+  swallowed), then wakes beside a teammate (no card); a tun that did not wake
+  comes back the same way on A.
+- **The landmarks** trigger for any player.
 
 Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A water-film ambience loop; claw footfalls (at most ~8 a second), the scramble (A), stylet bites (X), forming the tun (Y), rehydrating, rain, and the Milnesium stalking and lunging.
 
@@ -285,4 +340,10 @@ node micro/prototypes/check.mjs tardigrade
 Must print `ok tardigrade` with no console errors. `window.__micro` exposes
 `scene`, `camera`, `renderer`, `world`, `walker`, `creature`, `life`, `mic`,
 `view`, `features`, `predator` and `dash` for scripted checks (`?pr=1` forces
-full resolution on software GL).
+full resolution on software GL), plus `players`, `animals`, `split`,
+`layout`, `places` (the landmarks), `landmarks.log` (every landmark and near
+posted), `teleport('forward' | 'back', slot)`, `place(slot, leaf, u, v)` and
+`forceCapture(slot)`. Multiplayer was checked with mocked gamepads in
+Playwright: joins during play, 2 and 4 players splitting and merging, a catch
+in multiplayer (respawn beside a teammate, no card), both landmarks standalone
+and in the shell.

@@ -13,8 +13,6 @@ Open `micro/prototypes/mite/` (the invite gate is off on localhost).
 
 ## Controls (Xbox controller; keyboard in brackets)
 
-| Button | Action |
-| --- | --- |
 The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`),
 with one exception at the owner's request: A jumps, B scrambles and Y closes
 up.
@@ -26,7 +24,7 @@ up.
 | **A (Space)** | **Jump**: a 0.13 s crouch, then a hop (~0.17 mm high, ~0.35–0.4 mm long) onto the floor, a grain, a flake or a moss blade; 0.45 s after landing before the next. Borrowed from jumping oribatids (see Notes) |
 | **X (E)** | **Bite** with the chelicerae: eat a fungal spore or nibble a hyphal branch tip in reach of the mouth; at the predator, a nip that makes it recoil |
 | **B (Shift)** | **Scramble**: 0.6 s at up to ~0.75 mm/s, recharging over 2.2 s (the `dash` meter in the corner); with no stick, straight ahead |
-| Y (R), hold | Ptychoidy: close into a sealed capsule (the predator cannot grip it); release to reopen |
+| Y (R), hold | Ptychoidy: close into a sealed capsule (the predator cannot grip it); release to reopen. At the backdoor (see Landmarks), Y goes back up to the bog surface instead |
 | LS click (C) | Observer mode: SEM data bar and raster lines |
 | LT / RT (Z / X) | Lower / higher magnification (HFW 0.16–4.2 mm; starts at 1.6 mm, ~79×, so the mite and the moss around it read) |
 | LB / RB (Q / F) | Walk slowly (~210 µm/s) / hurry (~590 µm/s) |
@@ -39,6 +37,55 @@ Rumble: a tick on footfalls, a thump on closing, landing and opening, a kick
 on each scramble and jump, a jolt when the predator grabs a leg.
 
 Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A moss ambience loop; footfalls (at most ~8 a second), the scramble (B), the jump and its landing (A), closing and opening (Y), the bite (X), moss blades brushing as they bend, and the predator closing in or grabbing a leg.
+
+## Landmarks
+
+Both are built into the moss (`landmarks.js`) and drawn by the SEM like
+everything else.
+
+- **Forward: the wet leaf axil** (design §1.6), straight ahead of the start
+  view, ~1.8 mm off (`FORWARD`, toward −x, +z). A moss stem 1.5 mm tall with
+  its lowest leaf arching out and down to the floor; in the angle between them
+  a smooth lens of water, and lying in it a tardigrade tun, a wrinkled barrel
+  ~0.2 mm long that swells a little as a mite comes near (rehydration). Any
+  player within 330 µm of the water reaches it: `embed.landmark('forward')`,
+  once, and again only after everyone has left.
+- **Backdoor: a giant springtail at rest**, the creature of the stage above
+  (~1.5 mm long, four box mites; `BACKDOOR`, behind the start view,
+  ~1.8 mm off). It is solid: mites climb onto it. Dwell beside its head
+  (within 380 µm): the game shows "Y: Rise to the bog surface"
+  (`embed.near('back', true)`; standalone a quiet prompt of our own, with R
+  when no controller is connected). There **Y goes back**
+  (`embed.landmark('back')`) instead of closing up; anywhere else Y still
+  closes up, and a mite held by the predator can still close up there.
+- **Edge arrows** (`shared/landmark.js`): a brass chevron toward the water,
+  a ring toward the springtail, near the edge of each view.
+- The predatory mite now starts to the side of the way on (`PRED_START`).
+
+## Multiplayer
+
+Up to four players (`shared/players.js`, `../CONTROLS.md`): player 1 on the
+keyboard and the first controller, players 2–4 join at any time by pressing
+any button on another controller (a toast; in the game `embed.join`). In the
+game the roster comes in from the shell (`embed.players`).
+
+- Each player is a box mite of their own, with their own scramble, wounds and
+  footfalls; a faint ellipse of their colour and a "P2" tag mark them (the
+  SEM has no colour). Everyone uses the shared controls; RS from any player
+  orbits the shared camera, player 1 also has magnification, imaging mode and
+  observer mode.
+- **Split screen** (`shared/splitscreen.js`): together, one view on the
+  group (a little wider as it spreads); apart, LEGO-style split views, each
+  with the cutaway cleared toward its own players. The SEM composite ends on
+  the screen, so the split copies each view (`capture`); split views render
+  at 70% resolution (55% when split three or four ways).
+- **The predator** goes for the nearest player. A caught player plays the
+  whole catch (and can still close up to slip free); with company there is no
+  Eaten card: they come back beside a teammate. Alone, the Eaten card and
+  restart are as before.
+- Test hooks on `window.__micro`: `players`, `split`, `layout`, `recs()`,
+  `teleport(slot, x, z)`, `settle(n)`, `landmarks`, `landmarkLog`,
+  `nearBack`, `joins`, `forceCapture(slot)`.
 
 ## Why a box mite
 

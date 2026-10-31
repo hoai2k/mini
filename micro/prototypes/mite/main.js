@@ -86,7 +86,7 @@ const hud = mountHud({
     dash: 'Jump: a crouch and a hop (borrowed from jumping oribatids)',
     attack: 'Bite with the chelicerae: graze spores and hyphal tips, nip a predator',
     defend: 'Scramble: a short burst of fast running',
-    special: 'Hold: close up (ptychoidy); blocks the predator',
+    special: 'Hold: close up (ptychoidy); blocks the predator. At the giant springtail: back up a world',
     analog: 'Magnification lower / higher',
     secondary: 'Walk slowly / hurry',
     look: 'Imaging mode: SE, BSE, false colour',
@@ -552,7 +552,7 @@ function respawnNear(P) {
 // ---------- landmarks ----------
 // Forward (FORWARD, landmarks.js): any player reaching the water in the leaf
 // axil zooms into the tardigrade's world; in the game the others follow
-// through the transition. Backdoor (BACKDOOR): dwell in front of the giant
+// through the transition. Backdoor (BACKDOOR): dwell beside the giant
 // springtail's head and Y (here, instead of closing up) rises to the bog surface.
 const lm = { fired: false, near: false, log: [] };
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -757,7 +757,7 @@ const marks = createLandmarks();
 const _vc = new THREE.Vector3();
 function drawFrame(dt) {
   split.update(recs().map((P) => ({ slot: P.slot, position: P.mite.center.clone() })), { camera }, dt);
-  const k = split.views.length > 1 ? 0.7 : 1;
+  const k = split.views.length > 2 ? 0.55 : split.views.length > 1 ? 0.7 : 1;
   if (k !== splitK) { splitK = k; resize(); }
   const one = split.views.length === 1;
   const cut0 = shared.uCutP.value.clone();
@@ -787,7 +787,7 @@ function drawFrame(dt) {
         if (!P) continue;
         const pr = split.project(v.index, P.mite.center);
         if (pr.behind) continue;
-        const r = Math.max(14, 260 * pxPerUm);
+        const r = Math.max(12, 130 * pxPerUm);
         ctx.globalAlpha = 0.55;
         ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.5)';
         ctx.beginPath(); ctx.ellipse(pr.x, pr.y + r * 0.25, r, r * 0.45, 0, 0, Math.PI * 2); ctx.stroke();

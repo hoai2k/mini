@@ -111,6 +111,9 @@ if (active) {
   window.requestAnimationFrame = (cb) => {
     if (paused && ran >= 2) { const id = fake--; held.set(id, cb); return id; }
     return native((t) => {
+      // A frame already queued when `pause` arrived is held too, so nothing
+      // advances after the pause.
+      if (paused && ran >= 2) { held.set(fake--, cb); return; }
       ran++;
       if (ran >= 2) sendReady();
       cb(t);

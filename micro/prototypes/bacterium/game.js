@@ -10,7 +10,7 @@ export const GOAL_PREY = 3;
  * (dead in seconds near the air), starvation 0.02 (50 s in the anoxic sediment),
  * Bdellovibrio 0.008 even in good water (about two minutes).
  */
-export const RATE = { stressDiv: 300, stressMax: 0.06, stressHeal: 0.05, anoxic: 0.004, recover: 0.015, bdello: 0.0025, bdelloLow: 0.008 };
+export const RATE = { stressDiv: 300, stressMax: 0.04, stressHeal: 0.05, anoxic: 0.004, recover: 0.015, bdello: 0.0025, bdelloLow: 0.008 };
 
 export function createGame(world, swimmer) {
   const s = swimmer.state;

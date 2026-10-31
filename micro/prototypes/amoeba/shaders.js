@@ -41,6 +41,7 @@ uniform vec3 uCytoMean; uniform vec2 uCytoOff; uniform float uCytoTile;
 uniform vec4 uOrgA[12]; uniform vec4 uOrgB[12]; uniform int uOrgN;
 uniform vec4 uTips[5];
 uniform vec3 uUroid; uniform float uFlat, uTime, uDrain;
+uniform vec4 uTint; // local multiplayer: the player's colour as a faint optical density (rgb), strength (a)
 varying vec2 vW;
 void main() {
   float m = texture2D(uMask, gl_FragCoord.xy / uRes).r;
@@ -98,6 +99,7 @@ void main() {
   od += u * endo * vec3(0.11, 0.12, 0.16) * (0.6 + 0.8 * fbm(vW * 0.08));
   od += uDrain * (0.35 + endo) * vec3(0.55, 0.47, 0.32) * (0.7 + 0.6 * fbm(vW * 0.05));
   phase += uDrain * 0.25 * endo;
+  od += uTint.a * uTint.rgb * (0.45 + 0.55 * (1. - endo)) * min(1., h * 3.);
   gl_FragColor = vec4(phase, od) * m;
 }`;
 
@@ -231,6 +233,14 @@ void main() {
       float fine = 0.6 + 0.4 * sin(ang * (uKind > 3.5 ? 220. : 90.));
       ph += 0.14 * (1. - sd / cl) * wave * fine * (0.3 + 0.7 * alive);
     }
+  }
+  // Paramecium bursaria (the forward landmark): hundreds of Chlorella symbionts fill the cell.
+  if (uKind > 4.5) {
+    vec2 gc = floor(p / 5.2);
+    vec2 go = fract(p / 5.2) - 0.5 - 0.25 * (vec2(hash12(gc + uSeed * 13.), hash12(gc + 7.1)) - 0.5);
+    float alga = (1. - smoothstep(0.2, 0.34, length(go))) * step(0.25, hash12(gc + 3.3));
+    od += OD_CHL * (0.3 + 1.1 * alga) * h * body;
+    ph += 0.12 * alga * h;
   }
   // Trichocysts: a local burst of long thin threads (they shoot out in milliseconds).
   if (uKind > 3.5 && uDischT < 3.) {
@@ -420,4 +430,39 @@ void main() {
   float phase = h * (0.9 + 0.3 * uAge) + dots * 0.15;
   vec3 od = h * vec3(0.1, 0.1, 0.14) * dark + dots * vec3(0.25, 0.26, 0.3) * dark;
   gl_FragColor = vec4(phase, od) * keep;
+}`;
+
+// --- the backdoor: a Sphagnum leaf tip dipping into the pool ---------------------
+// One cell thick: large dead hyaline cells (clear, with fibril bands and pores)
+// in a net of narrow green chlorophyllose cells; the water film's edge hugs it
+// as a soft meniscus. The tip is at +x.
+export const LEAF_FS = /* glsl */ `
+${COMMON}
+uniform float uL, uW, uSeed, uPx, uDim;
+varying vec2 vL;
+void main() {
+  vec2 p = vL;
+  float tip = uL * 0.5;
+  float t = clamp((tip - p.x) / uL, 0., 1.);
+  float hw = uW * 0.5 * pow(t, 0.55);
+  float sd = p.x > tip - 6. ? max(abs(p.y) - hw, length(vec2(p.x - (tip - 6.), p.y)) - 6.) : abs(p.y) - hw;
+  float wpx = max(0.6, 1. / uPx);
+  float body = 1. - smoothstep(-wpx, wpx, sd);
+  // Rhombic hyaline cells (diagonals ~120 x 52 µm), framed by chlorophyllose cells.
+  vec2 r = vec2(p.x / 120. - p.y / 52., p.x / 120. + p.y / 52.) + uSeed * 3.;
+  vec2 f = fract(r), id = floor(r);
+  float e = min(min(f.x, 1. - f.x), min(f.y, 1. - f.y)) * 50.;
+  float green = 1. - smoothstep(2.5, 5.5, e);
+  float wall = exp(-pow((e - 5.8) / 1.1, 2.));
+  // Spiral fibrils: faint bands across each hyaline cell; a pore or two near a corner.
+  float fib = (0.5 + 0.5 * sin((p.x * 0.9 + p.y * 0.35) * 0.95)) * (1. - green);
+  vec2 pc = (f - vec2(0.78, 0.22)) * vec2(120., 52.);
+  float pore = (1. - smoothstep(4., 6., length(pc))) * step(0.4, hash12(id));
+  float thick = 1. - smoothstep(-20., 0., sd) * 0.4;
+  float ph = body * (0.3 * thick + 0.18 * green + 0.05 * fib + 0.22 * wall - 0.12 * pore);
+  vec3 od = body * (vec3(0.02, 0.02, 0.035) + OD_CHL * green * (0.75 + 0.3 * vnoise(p * 0.2)) + vec3(0.03, 0.05, 0.1) * fib);
+  // The water film's edge round the tip: a meniscus falling away over ~50 µm.
+  float film = (1. - smoothstep(0., 55., sd)) * step(0., sd);
+  ph += 0.16 * film * film;
+  gl_FragColor = vec4(ph, od) * uDim;
 }`;
