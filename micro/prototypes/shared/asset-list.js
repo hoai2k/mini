@@ -27,11 +27,11 @@ export const ASSETS = {
   },
   "MP-U07": {
     "file": "assets/cards/phage.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-U08": {
     "file": "assets/cards/zoom.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-M01": {
     "file": "assets/mite/sem-moss-leaf.webp",

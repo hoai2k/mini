@@ -320,6 +320,111 @@
     ]
   },
   {
+    "id": "MP-U07",
+    "name": "Phage card (molecular illustration)",
+    "file": "assets/cards/phage.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Phage card on the prototypes page.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE landscape 3:2 launcher card, no UI or text. Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. A single T4-like bacteriophage (prolate icosahedral head about 120 by 86 nm, a straight contractile tail sheath, a hexagonal baseplate, six long kinked tail fibres) drifting just above the curved outer membrane of a rod-shaped bacterium, its long fibres reaching down towards lipopolysaccharide chains and outer-membrane proteins on the surface; water crowded with small molecules around it. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nInput images: image1 electron micrograph of T4 is a shape reference only; image2 bacterium micrograph is a shape/scale reference only. Render entirely as a FLAT softly outlined molecular watercolour illustration, not an electron micrograph or a shaded 3D render. Exactly ONE T4-like phage with a prolate faceted head, straight sheath, small baseplate and SIX long kinked tail fibres (three paired attachments, some may overlap in projection); a curved Gram-negative outer membrane below with LPS brush. Keep the LOWER THIRD visually quiet and fairly even, because a title will be overlaid later. No molecular labels, no arrows, no scale bars or watermark. All colours explanatory, no glowing effects. Crisp enough at card size, restrained pink/orange proteins and purple DNA tones with pale green membrane, no hard shadows.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. A single T4-like bacteriophage (prolate icosahedral head about 120 by 86 nm, a straight contractile tail sheath, a hexagonal baseplate, six long kinked tail fibres) drifting just above the curved outer membrane of a rod-shaped bacterium, its long fibres reaching down towards lipopolysaccharide chains and outer-membrane proteins on the surface; water crowded with small molecules around it. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-0dce6b45-b5a5-40e5-a461-19ea4e9206cd.png",
+    "input_images": [
+      "research/assets/references/production/phage-t4.jpg",
+      "research/assets/references/production/magnetotactic.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "2e87aacd5fd0ab660a2b67113c94ca811a4ecbb5bf2b8fddfa90ac8b15d41d26",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-U08",
+    "name": "Zoom transitions card",
+    "file": "assets/cards/zoom.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Zoom transitions card on the prototypes page.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE landscape 3:2 launcher card, no UI or text. Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. A single continuous image that zooms into itself: on the left a macro photograph of a blue-black water springtail on a bog pool beside Sphagnum moss; a nested series of thin white rectangular frames leads inward from it, each frame showing the next, smaller world in its own microscope look: a moss leaf with a tardigrade in DIC, then a green Paramecium in brightfield, then rod bacteria in phase contrast at the centre. Clean, elegant, scientifically grounded, no text, no labels, no scale bars, no fantasy creatures.\nInput images: 1 Podura swarm for animal colours, 2 moss leaf microscopy for leaf microstructure, 3 tardigrade for anatomy, 4 Paramecium bursaria for green algal symbionts, 5 Sphagnum capitulum for macro moss form only (no fingers or hands in final). Composition: this is a SINGLE CONTINUOUS RECURSIVE ZOOM, not separate panels or a side-by-side collage. Start with springtail/moss macro scene on the left, then three thin white NESTED rectangular frames step inward toward the right-centre, showing successively a pale DIC tardigrade by leaf, a green slipper-shaped Paramecium bursaria in brightfield, and tiny grey rod bacteria in phase contrast at the smallest centre. The frames describe DIFFERENT SCALES and are never a same-scale ecosystem. Each nested frame reveals the next optical world, with elegant transitions across boundaries. Wide lower third calm with no frames or high contrast details. Match organism proportions from the photographs: springtail six legs, tardigrade four pairs, Paramecium ciliated, bacteria simple unresolved rods. No labels, numerals, scale bars, UI, text, hands, or watermark. Output3:2.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. A single continuous image that zooms into itself: on the left a macro photograph of a blue-black water springtail on a bog pool beside Sphagnum moss; a nested series of thin white rectangular frames leads inward from it, each frame showing the next, smaller world in its own microscope look: a moss leaf with a tardigrade in DIC, then a green Paramecium in brightfield, then rod bacteria in phase contrast at the centre. Clean, elegant, scientifically grounded, no text, no labels, no scale bars, no fantasy creatures.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-2a1539e2-f78a-4449-b223-d9f795d6163b.png",
+    "input_images": [
+      "research/assets/references/springtail-swarm.jpg",
+      "research/assets/references/moss.jpg",
+      "research/assets/references/tardigrade-light.png",
+      "research/assets/references/production/paramecium-bursaria.jpg",
+      "research/assets/references/bog-hummock.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "08172a9d5b4fc4dd896de86330d74e7cdb21ce48acb770336af6960884071b27",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "springtail-swarm",
+        "local": "assets/references/springtail-swarm.jpg",
+        "author": "Philippe  Garcelon",
+        "license": "CC BY 2.0",
+        "license_url": "https://creativecommons.org/licenses/by/2.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Podura_aquatica_-_1.jpg"
+      },
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      },
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      },
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
     "id": "MP-M01",
     "name": "SEM moss leaf surface",
     "file": "assets/mite/sem-moss-leaf.webp",

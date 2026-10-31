@@ -2,7 +2,7 @@
 
 Every image request that has been delivered, with its prompt and reference images, for the record. Open requests are in [`image-requests.md`](image-requests.md). Generated from `source/build_requests.py`; a request moves here when its status is set to `delivered`.
 
-46 delivered.
+48 delivered.
 
 ## Launcher cards
 
@@ -110,6 +110,38 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 
 ```text
 Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Phase-contrast microscope look at 1000x oil immersion: mid-grey background, transparent cells dark with thin bright halos at their edges, colourless, slight optical softness at the limit of resolution (nothing sharper than about 0.2 µm), very shallow depth of field. A field of bog-sediment bacteria at 1000x, about 40 µm across: short rods and curved vibrios 1 to 3 µm long, a few swimming with faint motion blur, one curved magnetotactic spirillum near the centre slightly sharper than the rest, loose clumps of cells in a faint matrix, and at one edge the out-of-focus curved margin of a much larger ciliate looming as a soft dark wall with a blurred fringe of cilia. No cell drawn with more detail than the optics allow. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
+```
+
+### MP-U07 · Phage card (molecular illustration)
+
+- **File:** `micro/prototypes/assets/cards/phage.webp`
+- **Size:** 1200 x 800, opaque
+- **Used for:** The Phage card on the prototypes page.
+- **Stand-in until delivered:** A teal and amber gradient with the title.
+- **Status:** delivered
+- **Reference images:**
+  - [T4 phage electron micrograph; head, sheath and tail-fibre reference.](../research/assets/references/production/phage-t4.jpg) · 7USSR7, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg)
+  - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](../research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
+
+```text
+Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Molecular-illustration look in the manner of David Goodsell's watercolours: flat, softly outlined shapes with no lighting effects, every protein and nucleic acid drawn at true relative size, crowded as real cytoplasm and water are, a restrained palette (warm pinks and oranges for proteins, purples for nucleic acid, pale yellows and greens for membranes and polysaccharide). Electron microscopes and models show this scale; a light microscope cannot. A single T4-like bacteriophage (prolate icosahedral head about 120 by 86 nm, a straight contractile tail sheath, a hexagonal baseplate, six long kinked tail fibres) drifting just above the curved outer membrane of a rod-shaped bacterium, its long fibres reaching down towards lipopolysaccharide chains and outer-membrane proteins on the surface; water crowded with small molecules around it. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
+```
+
+### MP-U08 · Zoom transitions card
+
+- **File:** `micro/prototypes/assets/cards/zoom.webp`
+- **Size:** 1200 x 800, opaque
+- **Used for:** The Zoom transitions card on the prototypes page.
+- **Stand-in until delivered:** A radial gradient with the title.
+- **Status:** delivered
+- **Reference images:**
+  - [A swarm of water springtails (Podura aquatica) on a pool surface among algae: colour, scale and habitat.](../research/assets/references/springtail-swarm.jpg) · Philippe  Garcelon, CC BY 2.0 · [source](https://commons.wikimedia.org/wiki/File:Podura_aquatica_-_1.jpg)
+  - [Moss habitat structure; use leaf architecture as environmental reference.](../research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
+  - [Light-microscope photograph; phone-camera filtering is part of the source image.](../research/assets/references/tardigrade-light.png) · Dorathyexplorer, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png)
+  - [Paramecium caudatum; whole-cell outline and internal contrast.](../research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
+
+```text
+Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. A single continuous image that zooms into itself: on the left a macro photograph of a blue-black water springtail on a bog pool beside Sphagnum moss; a nested series of thin white rectangular frames leads inward from it, each frame showing the next, smaller world in its own microscope look: a moss leaf with a tardigrade in DIC, then a green Paramecium in brightfield, then rod bacteria in phase contrast at the centre. Clean, elegant, scientifically grounded, no text, no labels, no scale bars, no fantasy creatures.
 ```
 
 ## Mite (SEM)

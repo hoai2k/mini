@@ -183,7 +183,7 @@ GROUPS = [
                 "prompt": f"{CARD} {PHASE} A field of bog-sediment bacteria at 1000x, about 40 µm across: short rods and curved vibrios 1 to 3 µm long, a few swimming with faint motion blur, one curved magnetotactic spirillum near the centre slightly sharper than the rest, loose clumps of cells in a faint matrix, and at one edge the out-of-focus curved margin of a much larger ciliate looming as a soft dark wall with a blurred fringe of cilia. No cell drawn with more detail than the optics allow. {SCIENCE}",
             },
             {
-                "id": "MP-U07", "name": "Phage card (molecular illustration)",
+                "id": "MP-U07", "status": "delivered", "name": "Phage card (molecular illustration)",
                 "file": "assets/cards/phage.webp", "size": "1200 x 800, opaque",
                 "used": "The Phage card on the prototypes page.",
                 "standin": "A teal and amber gradient with the title.",
@@ -191,7 +191,7 @@ GROUPS = [
                 "prompt": f"{CARD} {MOLECULAR} A single T4-like bacteriophage (prolate icosahedral head about 120 by 86 nm, a straight contractile tail sheath, a hexagonal baseplate, six long kinked tail fibres) drifting just above the curved outer membrane of a rod-shaped bacterium, its long fibres reaching down towards lipopolysaccharide chains and outer-membrane proteins on the surface; water crowded with small molecules around it. {SCIENCE}",
             },
             {
-                "id": "MP-U08", "name": "Zoom transitions card",
+                "id": "MP-U08", "status": "delivered", "name": "Zoom transitions card",
                 "file": "assets/cards/zoom.webp", "size": "1200 x 800, opaque",
                 "used": "The Zoom transitions card on the prototypes page.",
                 "standin": "A radial gradient with the title.",
