@@ -306,6 +306,10 @@ void main() {
   vec2 mg = vec2(shoreH(p + vec2(0.05, 0.0)) - shoreH(p - vec2(0.05, 0.0)), shoreH(p + vec2(0.0, 0.05)) - shoreH(p - vec2(0.0, 0.05))) / 0.1;
   dh += m0;
   vec2 g = rg + dg + mg;
+  // micro-ripples: a faint capillary roughness that keeps the sheen alive on calm water
+  vec2 mp = p * 1.7 + vec2(uTime * 0.05, -uTime * 0.04);
+  float n0 = mNoise(mp);
+  g += vec2(n0 - mNoise(mp + vec2(0.37, 0.0)), n0 - mNoise(mp + vec2(0.0, 0.37))) * 0.08 * uSheen;
   vec3 N = normalize(vec3(-g.x, 1.0, -g.y));
   vec3 P = vec3(p.x, vWorld.y + dh, p.y);
   vec3 V = normalize(cameraPosition - P);
@@ -345,16 +349,34 @@ void main() {
   if (uRing > 0.0) col += uRing * 0.05 * pow(nv, 40.0);
   // the shore meniscus catches the sky as a bright line, then a wet dark band
   float sd = shoreDist(p);
-  col += mix(uSkyHor, uSkyTop, 0.4) * 0.35 * uSheen * exp(-max(sd, 0.0) / 0.12);
+  col += mix(uSkyHor, uSkyTop, 0.4) * 0.35 * uSheen * exp(-abs(sd) / 0.12);
+  // dust and pollen specks floating on the film: sharp in the focal plane, so
+  // the film shows as a plane receding in perspective (fade where sub-pixel)
+  vec2 kq = p * 2.2 + vec2(uTime * 0.01, uTime * 0.007);
+  vec2 kc = floor(kq), kf = fract(kq);
+  float kfw = max(fwidth(kq.x), fwidth(kq.y));
+  float speckA = 0.0;
+  if (mHash(kc) < 0.2 && uSheen > 0.0 && sd > 0.2) {
+    vec2 kp = vec2(mHash(kc + 3.1), mHash(kc + 7.7)) * 0.6 + 0.2;
+    float kr = 0.06 + 0.11 * mHash(kc + 1.3);
+    float kd = length(kf - kp);
+    float vis = 1.0 - smoothstep(kr * 0.6, kr * 2.0, kfw);
+    speckA = (1.0 - smoothstep(kr - kfw, kr + kfw, kd)) * vis * 0.9;
+    vec3 kcol = mix(vec3(0.42, 0.33, 0.18), vec3(0.85, 0.72, 0.42), mHash(kc + 5.0));
+    vec3 klit = kcol * (uSunCol * max(uSunDir.y, 0.0) * 0.7 + mix(uSkyHor, uSkyTop, 0.5) * 0.45);
+    col = mix(col, klit, speckA);
+    // each speck rides in a tiny meniscus that catches the sky
+    col += mix(uSkyHor, uSkyTop, 0.5) * 0.25 * vis * (smoothstep(kr - kfw, kr + kfw, kd) - smoothstep(kr * 1.6, kr * 1.6 + kfw * 2.0 + 0.02, kd));
+  }
   col *= 1.0 - 0.3 * uSheen * smoothstep(0.1, 0.5, sd) * exp(-max(sd, 0.0) / 1.6);
   // the player's drop shadow on the film itself (a readable cue, not optics)
-  col *= mix(1.0, dropShadow(P), 0.85);
+  col *= dropShadow(P);
   if (uShowSurf > 0.5) col = mix(col, vec3(0.9, 0.85, 0.2) * (0.3 + uSunCol.g * 0.15), smoothstep(0.02, 0.3, surf) * 0.55);
   // depth for the lens: reflections at the surface, the floor at its apparent depth
   float lr = dot(refl * F, vec3(0.3, 0.5, 0.2)), lt = dot(refr * (1.0 - F), vec3(0.3, 0.5, 0.2));
   float dS = distance(P, cameraPosition);
   float dF = dS + t / 1.333;
-  float d = (lr * dS + lt * dF) / max(lr + lt, 1e-4);
+  float d = mix((lr * dS + lt * dF) / max(lr + lt, 1e-4), dS, speckA);
   gl_FragColor = vec4(min(col, vec3(200.0)), d - uFocus);
 }`;
 

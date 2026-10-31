@@ -15,30 +15,30 @@ Open `micro/prototypes/mite/` (the invite gate is off on localhost).
 
 | Button | Action |
 | --- | --- |
-The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
+The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`),
+with one exception at the owner's request: A jumps, B scrambles and Y closes
+up.
 
 | Button | Action |
 | --- | --- |
-| LS (WASD) | Walk, relative to the view. The mite turns toward the stick and walks forward; it climbs grains, flakes and stems and pushes through blades |
-| RS (arrows) | Orbit the specimen |
-| **A (Space)** | **Scramble**: 0.6 s at up to ~525 µm/s (2.5× walking), recharging over 2.2 s (the `dash` meter in the corner); with no stick, straight ahead |
+| LS (WASD) | Walk (~720 µm/s), relative to the view. The mite turns toward the stick and walks forward; it climbs grains, flakes and stems and pushes through blades |
+| RS (arrows) | Orbit the specimen. Up looks up (the camera swings down toward the floor), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
+| **A (Space)** | **Jump**: a 0.13 s crouch, then a hop (~0.3 mm high, ~0.6–0.7 mm long) onto the floor, a grain, a flake or a moss blade; 0.45 s after landing before the next. Borrowed from jumping oribatids (see Notes) |
 | **X (E)** | **Bite** with the chelicerae: eat a fungal spore or nibble a hyphal branch tip in reach of the mouth; at the predator, a nip that makes it recoil |
-| B (Shift), hold | Ptychoidy: close into a sealed capsule (the predator cannot grip it); release to reopen |
-| Y (R) | Observer mode: SEM data bar and raster lines |
-| LT / RT (Z / X) | Lower / higher magnification (HFW 0.26–4.2 mm) |
-| LB / RB (Q / F) | Walk slowly / hurry |
+| **B (Shift)** | **Scramble**: 0.6 s at up to ~1.3 mm/s, recharging over 2.2 s (the `dash` meter in the corner); with no stick, straight ahead |
+| Y (R), hold | Ptychoidy: close into a sealed capsule (the predator cannot grip it); release to reopen |
+| LS click (C) | Observer mode: SEM data bar and raster lines |
+| LT / RT (Z / X) | Lower / higher magnification (HFW 0.26–4.2 mm; starts at 2.4 mm, ~53×, so the moss around the mite reads) |
+| LB / RB (Q / F) | Walk slowly (~360 µm/s) / hurry (~1 mm/s) |
 | D-pad ← → (3 / 4) | Imaging mode: SE (Everhart-Thornley), BSE (low vacuum), SE false colour |
 | D-pad ↑ ↓ (1 / 2) | Magnification steps (×1.5) |
 | Menu (Esc) | Features panel: what the prototype does, with switches |
 | View (Tab) | Hide the help panel |
 
 Rumble: a tick on footfalls, a thump on closing, landing and opening, a kick
-on each scramble, a jolt when the predator grabs a leg.
+on each scramble and jump, a jolt when the predator grabs a leg.
 
-Rumble: a faint tick on each footfall group, a thump on closing, landing and
-opening.
-
-Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A moss ambience loop; footfalls (at most ~8 a second), the scramble (A), closing and opening (B), the bite (X), moss blades brushing as they bend, and the predator closing in or grabbing a leg.
+Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A moss ambience loop; footfalls (at most ~8 a second), the scramble (B), the jump and its landing (A), closing and opening (Y), the bite (X), moss blades brushing as they bend, and the predator closing in or grabbing a leg.
 
 ## Why a box mite
 
@@ -110,10 +110,25 @@ Built from parts placed by measurements against the reference, never traced:
   mites' bodies push them aside (position-based, so they never pass through),
   a mite standing on a blade bends it down and rides it, and they spring back
   in about a second when left. Feet and probes walk on the bent collider.
-- **Scramble (A)**: the speed limit rises to ~525 µm/s with a fast
-  acceleration (tau 0.05 s). The gait phase runs on distance walked, so the
-  legs cycle faster and the stance feet stay planted (swings shorten to
-  80 ms). A stretch: box mites are slow, steady walkers.
+- **Speed**: walking is ~720 µm/s, twice the old hurry pace (at the owner's
+  request), with slow ~360 and hurry ~1 mm/s. Strides lengthen up to 1.5×
+  with speed (118 → 177 µm) so the legs don't flicker, and the gait phase
+  runs on distance, so the feet stay planted: a scripted 3 s walk measured
+  ~680 µm/s over the ground and 0 µm of stance-foot slip.
+- **Scramble (B)**: the speed limit rises to ~1.3 mm/s with a fast
+  acceleration (tau 0.05 s). The legs cycle faster and the stance feet stay
+  planted (swings shorten to 80 ms). A stretch: box mites are slow, steady
+  walkers.
+- **Jump (A)** (`jump()` in `mite.js`, modes `crouch` and `air`): the body
+  sinks ~75 µm over 0.13 s, then launches at 1.25 mm/s up and 0.7 mm/s
+  forward (plus half the running speed) under the game gravity. In the air
+  the hind legs kick back and then all legs reach down; the body noses up and
+  then down. Rigid things ahead (stems, grains) bounce it back; blades bend
+  out of its way. It lands on whatever is below (floor, grain, flake or
+  blade), sinks briefly into the landing, and a blade it lands on takes a
+  downward kick and bends (scripted landings bent blades 250–290 µm at the
+  tip). From a standstill on open floor: ~290 µm high, 690 µm long, 1.1 s in
+  the air.
 - **Bite (X)**: the rostrum dips and the chelicerae work (0.28 s). Food is
   the real diet of a phthiracarid: fungal spores (eaten, they vanish) and
   hyphal branch tips (nibbled; they regrow after 25 s).
@@ -138,12 +153,12 @@ gait as the box mite (createMite with the `PRED` anatomy), so it climbs and
 pushes through blades the same way.
 
 - It wanders until it touches you (~560 µm) or feels you scramble close by
-  (~950 µm), then runs you down at ~360 µm/s: faster than your walk, slower
+  (~950 µm), then runs you down at ~0.9 mm/s: faster than your walk, slower
   than your scramble.
 - It strikes at legs first: each grab stuns you for 0.7 s and slows you 15%;
   a grabbed leg recovers after 20 s; three grabs and you are caught (back to
   the start).
-- Closed up (B), you are a smooth, hard capsule it cannot grip: it gives up
+- Closed up (Y), you are a smooth, hard capsule it cannot grip: it gives up
   after three tries and wanders off for a while. Feeding trials with
   *Pergamasus* found adult box mites nearly immune (Peschel et al. 2006).
 - A nip (X) makes it recoil for 1.5 s. That is a game rule: box mites do not
@@ -182,7 +197,25 @@ A deferred two-pass SEM model. The beam comes from the camera, so the
   width. Vendors differ, which is why HFW is shown too. The scale bar is
   measured from HFW, and WD is the camera distance (about 4–20 mm, a
   realistic range).
-- A **cutaway** cylinder discards terrain between the camera and the mite.
+- A **per-object cutaway** keeps moss from hiding the mite without
+  clipping it (`createObjectCut` in `../shared/techniques/mite-sem.js`).
+  Every leaf, stem and litter flake carries an id in a `cutId` vertex
+  attribute and a centre line (a leaf's midrib, following its bend; a stem's
+  axis). Each frame the centre lines are tested against the camera-to-mite
+  line: an object passing within 340 µm of it, more than 110 µm in front of
+  the mite, dissolves as a whole (a dithered fade over ~0.2 s, back the same
+  way); a stem in the way takes its leaves with it; what the mite stands on,
+  and that leaf's stem, are never cut. The old cut was a cylinder in view
+  space (radius 380 µm + 6% of the field, so ~630 µm zoomed out) that
+  discarded fragments: it sliced leaves and stems with hard edges and, as
+  the camera orbited, cut pieces off plants and left leaves hanging from
+  removed stems. That was the "clipping of plants when zoomed out" (the
+  near/far planes, depth precision and frustum culling were checked and are
+  not involved: the moss is one merged mesh with frustum culling on a
+  bounding sphere of the whole patch, and the near plane at 8% of a ≥4 mm
+  working distance is never reached). Hyphae and spores are no longer cut
+  (too thin to hide anything). The cylinder remains for geometry without
+  ids.
 - **Dynamic resolution** and GPU fence pacing: frames are never queued while
   the GPU is behind, and resolution drops while frames are slow.
 
@@ -235,7 +268,7 @@ live and persist per browser.
 | Rendering | Surface relief from SEM textures | on |
 | Rendering | Shot noise | on |
 | Rendering | Scan-line jitter | on |
-| Rendering | Observer mode | off (Y) |
+| Rendering | Observer mode | off (LS click) |
 | Rendering | Dynamic resolution | on |
 | Optics | Infinite depth of field | always |
 | Optics | Narrow scan field, true magnification | always |
@@ -254,18 +287,22 @@ live and persist per browser.
 | Simulation | Closed capsule rolls and falls | on |
 | Simulation | A second box mite | on |
 | Simulation | Bending blades and hyphae | on |
-| Simulation | Scramble (A) | always |
+| Simulation | Game walking speed | always |
+| Simulation | Scramble (B) | always |
+| Simulation | Jump (A), borrowed from jumping oribatids | always |
 | Simulation | Bite and graze (X) | always |
 | Simulation | Predatory mite (Parasitidae) | on |
 | World | Moss shoots, mineral grains, litter, hyphae, spores and pollen | on (each; off also removes it from walking) |
 | World | Procedural SEM textures | always |
 | Controls | Camera-relative walking | always |
 | Controls | Rumble | on |
+| Controls | Invert camera Y (shared by every prototype) | off |
 
 Technique modules other prototypes can borrow:
 
 - `../shared/techniques/mite-sem.js`: the SEM G-buffer materials and
-  composite (SE, BSE, false colour; per-term switches; cutaway).
+  composite (SE, BSE, false colour; per-term switches; the cylinder cutaway
+  and the per-object cutaway `createObjectCut`).
 - `../shared/techniques/mite-gait.js`: the gaits (tetrapod, wave, pairs),
   distance-driven phase triggers, swing targets and two-bone IK.
 - `../shared/techniques/mite-foliage.js`: bendable foliage. Each thin thing
@@ -312,9 +349,16 @@ Not borrowed:
   instead of about 2 µm), sensilli about 1.5×.
 - **Time**: falling uses a game gravity of 2600 µm/s², far slower than real
   (a mite crosses this world in a few milliseconds of free fall). The walking
-  speed (about 210 µm/s) is a plausible order of magnitude for an oribatid
-  but is not measured for this species. The scramble (~525 µm/s) is a
-  stretch.
+  speed (~720 µm/s) is a game speed, several times what an oribatid walks
+  (a few hundred µm/s at most), so the moss can be crossed in good time; the
+  scramble (~1.3 mm/s) and the predator (~0.9 mm/s) are scaled to match.
+- **The jump is borrowed.** Box mites (Phthiracaridae) do not jump. Some
+  oribatids do: *Zetorchestes* (Zetorchestidae) jumps with enlarged, elongated
+  hind legs and a catch mechanism (Krisper 1990, 1991), and the ptychoid
+  *Indotritia* (Oribotritiidae), a box-mite relative, jumps backwards using a
+  catch mechanism in its forelegs (Wauthy et al. 1998, Proc. R. Soc. Lond. B
+  265: 2235–2242). The game's forward hop, its height and its cooldown are
+  game values.
 - **The predator's rules**: the touch and vibration ranges, its speed, three
   grabs to be caught, and the recoil after a nip are game values. Going for
   the legs and failing on a closed capsule follow the biology.

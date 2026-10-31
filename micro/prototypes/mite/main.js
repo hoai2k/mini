@@ -116,7 +116,7 @@ function placeCamera(dt) {
   // between the camera and the mite, whole, never what it stands on.
   const g = mite.ground && mite.ground.entry;
   cutKeep.clear(); if (g && g.cutId) cutKeep.add(g.cutId);
-  world.cut.update(dt, camera.position, rig.target, { radius: 340, margin: 250, keep: cutKeep });
+  world.cut.update(dt, camera.position, rig.target, { radius: 340, margin: 110, keep: cutKeep });
   return d;
 }
 
@@ -179,7 +179,7 @@ F({ id: 'noise', group: 'Rendering', label: 'Shot noise', on: true,
   about: 'Per-pixel noise that grows as the signal falls, fresh every frame, like a fast scan.', onChange: (v) => (sem.toggles.noise = v) });
 F({ id: 'lines', group: 'Rendering', label: 'Scan-line jitter', on: true,
   about: 'Each raster line gets a small random brightness offset, as beam current and scan timing wander.', onChange: (v) => (sem.toggles.lines = v) });
-F({ id: 'observer', group: 'Rendering', label: 'Observer mode (Y)', on: false,
+F({ id: 'observer', group: 'Rendering', label: 'Observer mode (LS click)', on: false,
   about: 'A real micrograph data bar (HV, WD, mag, HFW, detector, true scale bar) and visible raster lines.',
   onChange: (v) => { observer = v; bar.style.display = v ? 'flex' : 'none'; sem.setRaster(v); } });
 F({ id: 'dynres', group: 'Rendering', label: 'Dynamic resolution', on: true,

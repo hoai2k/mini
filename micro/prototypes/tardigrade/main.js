@@ -55,7 +55,7 @@ const hud = mountHud({
   sub: 'A ~350 µm eutardigrade gripping moss-leaf cell walls in a drying water film, stalked by a Milnesium. Differential interference contrast (DIC) look.',
   controls: hudControls({
     move: 'Crawl (relative to the view); push into a leaf edge to reach across',
-    camera: 'Turn and tilt the view',
+    camera: 'Turn and tilt the view (up looks up)',
     dash: 'Scramble: a burst of fast wave gait (costs water and reserves)',
     attack: 'Pierce with the stylets: feed, or jab a Milnesium so it backs off',
     defend: 'Hold: grip hard / brace (slower, won’t slip)',
@@ -66,7 +66,7 @@ const hud = mountHud({
     zoom: 'Objective 10× / 20× / 40×',
     extra: [['LS click', 'Refocus on the animal'], ['RS click', 'New day (test)']],
   }),
-  note: '1 s = 4 min of the day (240×; change it in Features). Walking and feeding are real time: ~150 µm/s, inside the measured range; the scramble (~290 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
+  note: '1 s = 4 min of the day (240×; change it in Features). Walking and feeding are real time: up to ~225 µm/s, at the fast end of the measured range; the scramble (~400 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
 });
 
 const toast = (t, ms) => hud.toast(t, ms);
@@ -178,12 +178,12 @@ F({ id: 'capacity', group: 'Simulation', label: 'Film capacity field', fixed: tr
 F({ id: 'labels', group: 'Controls', label: 'Anatomy labels', on: false, about: 'Name the claws, leg IV, buccal tube, bulb, eyespot, gut and storage cells (LB).', onChange: (v) => (view.labels = v) });
 F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'A small knock as each claw hooks a wall; heavy on slips and falls; a kick on each scramble and on a Milnesium bite.', onChange: (v) => (rumbleOn = v) });
 F({ id: 'scramble', group: 'Motion', label: 'Scramble (A)', fixed: true,
-  about: 'A 0.9 s burst of the same back-to-front wave gait at about twice the walking pace (~290 µm/s, strides 35% longer, swings as short as 90 ms), recharging over 2.6 s. Each costs ~3.5% water and 2% reserves. A stretch: the fastest walking measured in Hypsibius is ~260 µm/s.' });
+  about: 'A 0.9 s burst of the same back-to-front wave gait at about 1.8× the walking pace (~400 µm/s, strides up to ~90% longer, swings as short as 90 ms), recharging over 2.6 s. Each costs ~3.5% water and 2% reserves. A stretch: the fastest walking measured in Hypsibius is ~260 µm/s.' });
 F({ id: 'smooth', group: 'Motion', label: 'Smoothed trunk and camera', on: true,
   about: 'The trunk follows its target through three lags in series, and a change of face (a transfer, the leaf margin, a fall) blends the old pose out over a smootherstep, so position, velocity and acceleration stay continuous. Slipping uses grip hysteresis (slide below 85% of the load for 0.6 s, catch at 75%). Off: the old single lag.',
   onChange: (v) => (walker.opts.smooth = v) });
 F({ id: 'milnesium', group: 'Simulation', label: 'Milnesium (predator)', on: true,
-  about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It stalks you within ~650 µm and bites (reserves drain; empty, you are eaten). Escape: scramble (A), retreat into film too thin for its body (it barely moves below ~3.5 µm of water), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
+  about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It starts far off on leaf C and browses for the first 40 s; then it closes in slowly (you see it coming), stalks you within ~650 µm and bites (reserves drain; empty, you are eaten). After a bite it lets go and keeps off for ~11 s. Escape: scramble (A), retreat into film too thin for its body (it barely moves below ~3.5 µm of water), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
   onChange: (v) => { predator.on = v; predator.setVisible(v); } });
 addInvertY(features);
 F({ id: 'camrel', group: 'Controls', label: 'Camera-relative crawl', fixed: true, about: 'The stick direction on screen is projected onto the leaf the animal is on.' });

@@ -1,4 +1,4 @@
-// The bog pool: a wide sheet of open water (300 x 220 mm) ringed by a steep
+// The bog pool: a wide sheet of open water (1.2 x 0.9 m: some 17 full jumps from the middle to the bank) ringed by a steep
 // Sphagnum bank, with moss islands standing in it, sundew rosettes on the
 // islands, floating debris (dead Sphagnum leaves, bark flakes, needles) and
 // food on the film. The water is the ground everywhere the springtail can
@@ -7,12 +7,21 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { litMaterial, macroShared, MACRO_GLSL } from '../shared/techniques/springtail-macro.js';
 
-export const POOL = { a: 150, b: 110 };
-/** Moss islands standing in the pool: centre and radius (mm). */
+export const POOL = { a: 600, b: 450 };
+/** Moss islands standing in the pool: centre and radius (mm). Hand-placed near the start, scattered farther out. */
 export const ISLANDS = [
   [15, -9, 4], [-24, 16, 5], [34, 20, 5.5], [-38, -20, 5], [62, -6, 7], [-66, 22, 6], [8, 44, 5], [86, 36, 6],
   [-18, -52, 6], [96, -46, 5], [-104, -8, 6.5], [44, -58, 5], [-60, -62, 5], [-50, 62, 5.5], [40, 78, 5], [120, 0, 5],
 ].map(([x, z, r]) => ({ x, z, r }));
+{
+  let seed = 4242;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  for (let k = 0; k < 8000 && ISLANDS.length < 64; k++) {
+    const a = rnd() * Math.PI * 2, e = 0.24 + rnd() * 0.68;
+    const x = Math.cos(a) * POOL.a * e, z = Math.sin(a) * POOL.b * e, r = 4 + rnd() * 4;
+    if (ISLANDS.every((I) => Math.hypot(I.x - x, I.z - z) > I.r + r + 40)) ISLANDS.push({ x: Math.round(x), z: Math.round(z), r: Math.round(r * 2) / 2 });
+  }
+}
 export const ISLAND = ISLANDS[0];
 
 /** Normalised pool radius: < 1 inside the pool (matches POOL_GLSL). */
@@ -34,7 +43,7 @@ export const BANK_E = 0.995;
 export function mossTop(x, z) {
   const e = poolE(x, z);
   let h = -Infinity;
-  if (e >= 0.985) h = 1.4 + 9 * sm(1.0, 1.12, e);
+  if (e >= 1.0) h = 1.4 + 12 * sm(1.0, 1.08, e);
   const { d, island } = islandEdge(x, z);
   if (d <= 0.3) h = Math.max(h, 1.4 + 1.6 * sm(0, -island.r * 0.7, d));
   return h;
@@ -55,7 +64,8 @@ export const POOL_GLSL = /* glsl */ `${poolEGlsl}
 float poolDepth(vec2 p) {
   float e = poolEG(p);
   float di = islandDist(p);
-  float bed = 0.35 + 5.5 * smoothstep(1.0, 0.88, e) * smoothstep(0.0, 6.0, di);
+  // a dark, deep bog pool (the tea hides the floor, so the film reads as a mirror); shallow by the shores
+  float bed = 0.35 + 14.0 * smoothstep(1.0, 0.9, e) * smoothstep(0.0, 9.0, di);
   return bed * (0.85 + 0.3 * mFbm(p * 0.05));
 }`;
 /** GLSL `shoreDist(p)`: mm of open water between p and the nearest island or the bank. */
@@ -150,8 +160,32 @@ void surface(inout Surf s) {
   s.emit = (vColor * 1.2 + vec3(0.03, 0.035, 0.012)) * pow(1.0 - nv, 4.0) * (0.12 + uSunCol.g * 0.05);
 }`;
 
+/** The bank's ground height (mm) at normalised radius e: dips under the water just inside e = 1, then climbs steeply. */
+const bankY = (e) => (e < 1 ? -1.2 * sm(1.0, 0.99, e) : 12 * sm(1.0, 1.08, e));
+function bankGeometry() {
+  const E = [0.99, 0.996, 1.0, 1.003, 1.007, 1.012, 1.02, 1.03, 1.042, 1.055, 1.07, 1.085, 1.11, 1.15, 1.22, 1.32, 1.45, 1.65, 1.9, 2.3, 3.0];
+  const A = 900;
+  const pos = [], idx = [];
+  for (let i = 0; i <= A; i++) {
+    const a = (i / A) * Math.PI * 2;
+    const f = Math.hypot(Math.cos(a) / POOL.a, Math.sin(a) / POOL.b) * (1 + 0.05 * Math.sin(3 * a + 0.5) + 0.035 * Math.sin(5 * a + 1.3));
+    for (const e of E) { const r = e / f; pos.push(Math.cos(a) * r, bankY(e), Math.sin(a) * r); }
+  }
+  const m = E.length;
+  for (let i = 0; i < A; i++) for (let j = 0; j < m - 1; j++) {
+    const k = i * m + j;
+    idx.push(k, k + m, k + 1, k + 1, k + m, k + m + 1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
 export function buildWorld({ mossTex = null, sundewTex = null } = {}) {
   const group = new THREE.Group();
+  const mossTexU = { value: mossTex }, hasMossTexU = { value: mossTex ? 1 : 0 };
   let seed = 11;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 
@@ -167,21 +201,23 @@ export function buildWorld({ mossTex = null, sundewTex = null } = {}) {
   sky.frustumCulled = false;
   group.add(sky);
 
-  // the peat/moss bank under the capitula, so no gaps show through (under the
-  // pool it sits below the water, which hides it)
-  const groundGeo = new THREE.PlaneGeometry(1800, 1800, 260, 260).rotateX(-Math.PI / 2);
-  const gp = groundGeo.attributes.position;
-  for (let i = 0; i < gp.count; i++) {
-    const x = gp.getX(i), z = gp.getZ(i);
-    const e = poolE(x, z);
-    gp.setY(i, e < 0.985 ? -8 : 1.4 + 9 * sm(1.0, 1.12, e) - 1.8);
-  }
-  groundGeo.computeVertexNormals();
+  // the peat/moss bank under the capitula: a ring that follows the pool's
+  // outline exactly, meeting the water at e = 1 and rising steeply
+  const groundGeo = bankGeometry();
   const groundMat = litMaterial({ surface: `
     float n = mFbm(vWorld.xz * 0.9);
     s.albedo = mix(vec3(0.06, 0.08, 0.025), vec3(0.18, 0.1, 0.04), n);
     s.rough = 0.8; s.wrap = 0.3;` });
   group.add(new THREE.Mesh(groundGeo, groundMat));
+  // the islands' domes: a carpet of moss (MP-S02 when delivered), wet and dark at the waterline
+  const domeMat = litMaterial({ uniforms: { uMossTex: mossTexU, uHasMossTex: hasMossTexU }, surface: `uniform sampler2D uMossTex; uniform float uHasMossTex;
+    void surface(inout Surf s) {
+      float n = mFbm(vWorld.xz * 1.3);
+      vec3 c = mix(vec3(0.05, 0.09, 0.02), vec3(0.16, 0.08, 0.03), n);
+      if (uHasMossTex > 0.5) c = mix(c, texture2D(uMossTex, vWorld.xz / 9.0).rgb * 0.55, 0.8);
+      s.albedo = c * mix(0.35, 1.0, smoothstep(-0.2, 1.2, vWorld.y));
+      s.rough = 0.7; s.wrap = 0.4; s.trans = 0.3;
+    }` });
   // each island: a low dome of peat and moss rising out of the water
   for (const I of ISLANDS) {
     const dome = new THREE.SphereGeometry(1, 40, 10, 0, Math.PI * 2, 0, Math.PI / 2);
@@ -192,12 +228,12 @@ export function buildWorld({ mossTex = null, sundewTex = null } = {}) {
       dp.setXYZ(i, I.x + x, d > 0 ? -0.6 * (d / 0.4) : mossTop(I.x + x, I.z + z) - 0.9, I.z + z);
     }
     dome.computeVertexNormals();
-    group.add(new THREE.Mesh(dome, groundMat));
+    group.add(new THREE.Mesh(dome, domeMat));
   }
 
   // capitula
-  const mossMat = litMaterial({ surface: MOSS_SURFACE, uniforms: { uMossTex: { value: mossTex }, uHasMossTex: { value: mossTex ? 1 : 0 } } });
-  const variants = [capitulumGeometry(rnd), capitulumGeometry(rnd, { spreading: 18, bud: 12 }), capitulumGeometry(rnd, { spreading: 12, bud: 8, sides: 4, segs: 4 })];
+  const mossMat = litMaterial({ surface: MOSS_SURFACE, uniforms: { uMossTex: mossTexU, uHasMossTex: hasMossTexU } });
+  const variants = [capitulumGeometry(rnd, { sides: 4 }), capitulumGeometry(rnd, { spreading: 18, bud: 12, sides: 4 }), capitulumGeometry(rnd, { spreading: 12, bud: 8, sides: 4, segs: 4 })];
   const palette = [[0.06, 0.16, 0.025], [0.11, 0.18, 0.02], [0.2, 0.03, 0.03], [0.24, 0.14, 0.03], [0.09, 0.13, 0.02], [0.16, 0.05, 0.03]];
   const spots = [[], [], []];
   const tryPlace = (x, z, v, s) => {
@@ -205,28 +241,28 @@ export function buildWorld({ mossTex = null, sundewTex = null } = {}) {
     if (h === -Infinity) return;
     spots[v].push({ x, z, y: h - 1.3 * s, s, rot: rnd() * 6.28, c: palette[Math.floor(rnd() * palette.length)] });
   };
-  // the bank: a dense rim of heads where it meets the water
+  // the bank: a rim of heads (the lighter variant: it is mostly seen from afar)
   const near = [];
-  for (let i = 0; i < 4000 && near.length < 190; i++) {
-    const a = rnd() * Math.PI * 2, e = 1.0 + rnd() * 0.12;
+  for (let i = 0; i < 9000 && near.length < 300; i++) {
+    const a = rnd() * Math.PI * 2, e = 1.0 + rnd() * 0.1;
     const x = Math.cos(a) * POOL.a * e, z = Math.sin(a) * POOL.b * e;
-    if (poolE(x, z) < 0.995) continue;
-    if (near.every((p) => Math.hypot(p.x - x, p.z - z) > 6.5)) { near.push({ x, z }); tryPlace(x, z, rnd() < 0.5 ? 0 : 1, 0.85 + rnd() * 0.4); }
+    if (poolE(x, z) < 1.0) continue;
+    if (near.every((p) => Math.hypot(p.x - x, p.z - z) > 11)) { near.push({ x, z }); tryPlace(x, z, 2, 1.2 + rnd() * 0.5); }
   }
   // islands: a tuft of heads packed over each dome
   for (const I of ISLANDS) {
-    const n = Math.round((I.r * I.r) / 2.0);
+    const n = Math.round((I.r * I.r) / 3.2);
     for (let i = 0; i < n; i++) {
       const u = Math.sqrt((i + 0.5) / n) * (I.r - 0.6), a = i * 2.39996 + rnd() * 0.3;
-      tryPlace(I.x + Math.cos(a) * u, I.z + Math.sin(a) * u, i % 2, 0.7 + rnd() * 0.25);
+      tryPlace(I.x + Math.cos(a) * u, I.z + Math.sin(a) * u, i % 2, 0.85 + rnd() * 0.3);
     }
   }
   // the lawn beyond the bank, far out of focus
-  for (let i = 0; i < 3000 && spots[2].length < 230; i++) {
-    const a = rnd() * Math.PI * 2, e = 1.12 + rnd() * 1.1;
+  for (let i = 0; i < 4000 && spots[2].length < 320; i++) {
+    const a = rnd() * Math.PI * 2, e = 1.08 + rnd() * 0.6;
     const x = Math.cos(a) * POOL.a * e, z = Math.sin(a) * POOL.b * e;
-    const ok = spots[2].every((p) => Math.hypot(p.x - x, p.z - z) > 14);
-    if (ok) tryPlace(x, z, 2, 1.3 + rnd() * 0.6);
+    const ok = spots[2].every((p) => Math.hypot(p.x - x, p.z - z) > 22);
+    if (ok) tryPlace(x, z, 2, 1.8 + rnd() * 0.8);
   }
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), col = new THREE.Color();
   variants.forEach((geo, v) => {
@@ -389,7 +425,7 @@ export const FOOD_TYPES = [
 ];
 
 function buildFood(group, rnd) {
-  const COUNT = 48;
+  const COUNT = 90;
   const maxGrains = COUNT * 26;
   const mat = litMaterial({ surface: `s.albedo = vColor * (0.8 + 0.4 * mNoise(vLocal.xy * 9.0)); s.rough = 0.5; s.wrap = 0.4; s.trans = 0.4; s.sheen = 0.2; s.sheenCol = vColor;` });
   const im = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), mat, maxGrains);
@@ -400,7 +436,7 @@ function buildFood(group, rnd) {
   const place = (c) => {
     for (let tries = 0; tries < 80; tries++) {
       const near = rnd() < 0.5;
-      const x = (rnd() - 0.5) * (near ? 70 : 230), z = (rnd() - 0.5) * (near ? 55 : 170);
+      const x = (rnd() - 0.5) * (near ? 70 : 2 * POOL.a), z = (rnd() - 0.5) * (near ? 55 : 2 * POOL.b);
       if (poolE(x, z) < 0.9 && islandEdge(x, z).d > 1.5 && Math.hypot(x + 8, z - 2) > 2.5) { c.x = x; c.z = z; return; }
     }
   };
@@ -446,19 +482,19 @@ function buildFood(group, rnd) {
 // Rafts you can stand on: dead Sphagnum leaves (pale, boat-shaped), flakes of
 // birch bark (white with dark lenticels), pine needles and a heather twig.
 export const DEBRIS_TYPES = [
-  { name: 'dead Sphagnum leaf', color: [0.62, 0.52, 0.3], L: 1.9, W: 0.7, T: 0.12, n: 16 },
-  { name: 'birch bark flake', color: [0.78, 0.74, 0.66], L: 3.4, W: 2.2, T: 0.16, n: 9 },
-  { name: 'pine needle', color: [0.42, 0.26, 0.1], L: 7.5, W: 0.32, T: 0.2, n: 9 },
-  { name: 'heather twig', color: [0.28, 0.16, 0.09], L: 6, W: 0.42, T: 0.3, n: 6 },
+  { name: 'dead Sphagnum leaf', color: [0.62, 0.52, 0.3], L: 1.9, W: 0.7, T: 0.12, n: 40 },
+  { name: 'birch bark flake', color: [0.6, 0.55, 0.47], L: 3.4, W: 2.2, T: 0.16, n: 24 },
+  { name: 'pine needle', color: [0.42, 0.26, 0.1], L: 7.5, W: 0.32, T: 0.2, n: 20 },
+  { name: 'heather twig', color: [0.28, 0.16, 0.09], L: 6, W: 0.42, T: 0.3, n: 14 },
 ];
 function buildDebris(group, rnd) {
   const mat = litMaterial({ surface: `
     float n = mNoise(vLocal.xz * vec2(3.0, 9.0));
     float len = smoothstep(0.75, 0.95, mNoise(vLocal.xz * vec2(2.0, 26.0) + 3.0));
-    s.albedo = vColor * (0.75 + 0.45 * n) * (1.0 - 0.6 * len * step(0.7, vColor.r));
+    s.albedo = vColor * (0.55 + 0.35 * n) * (1.0 - 0.6 * len * step(0.55, vColor.r));
     // wet underside, dry pale top: the raft reads as lying on the water
     s.albedo *= mix(0.45, 1.0, smoothstep(-0.3, 0.6, vLocal.y));
-    s.rough = 0.55; s.wrap = 0.35; s.trans = 0.35; s.sheen = 0.35; s.sheenCol = vColor + 0.1;` });
+    s.rough = 0.55; s.wrap = 0.35; s.trans = 0.35; s.sheen = 0.15; s.sheenCol = vColor;` });
   const geo = new THREE.SphereGeometry(1, 18, 8);
   { const p = geo.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i); p.setY(i, y > 0 ? y : y * 0.5); } geo.computeVertexNormals(); }
   const pieces = [];
@@ -466,7 +502,7 @@ function buildDebris(group, rnd) {
     const d = { type, x: 0, z: 0, a: rnd() * Math.PI, vx: 0, vz: 0, va: (rnd() - 0.5) * 0.04, y: 0, top: 0, L: type.L * (0.8 + rnd() * 0.4), W: type.W * (0.8 + rnd() * 0.4), T: type.T, i: pieces.length };
     for (let t = 0; t < 80; t++) {
       const near = rnd() < 0.5;
-      const x = (rnd() - 0.5) * (near ? 80 : 240), z = (rnd() - 0.5) * (near ? 60 : 180);
+      const x = (rnd() - 0.5) * (near ? 80 : 2 * POOL.a), z = (rnd() - 0.5) * (near ? 60 : 2 * POOL.b);
       if (poolE(x, z) < 0.92 && islandEdge(x, z).d > d.L && Math.hypot(x + 8, z - 2) > 4) { d.x = x; d.z = z; break; }
     }
     pieces.push(d);

@@ -10,7 +10,7 @@ import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
 import { createMacro, lens, macroShared, applyLook, MACRO_LOOKS } from '../shared/techniques/springtail-macro.js';
 import { RippleField, Dimples, waterMaterial, waterGeometry, peatFloorTexture } from '../shared/techniques/springtail-surface.js';
-import { buildWorld, inPool, poolE, mossTop, islandEdge, POOL_GLSL, SHORE_GLSL, BANK_E } from './world.js';
+import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHORE_GLSL, BANK_E } from './world.js';
 import { createSpringtail } from './springtail.js';
 import { createStenus, createStrider, createRain } from './enemies.js';
 
@@ -163,6 +163,8 @@ function placeCamera(dt) {
   const land = opt.jumpFocus ? landingPoint() : null;
   rig.aim = land;
   const frameAt = want.clone();
+  // in a leap, frame low enough that the shadow below stays in the picture
+  if (pl.mode === 'air') { const gy = groundAt(pl.x, pl.z).y; frameAt.y = gy + 0.25 + (pl.y - gy) * 0.35; }
   if (land) frameAt.lerp(new THREE.Vector3(land.x, land.y + 0.25, land.z), 0.3);
   const k = dt ? 1 - Math.exp(-dt * (pl.mode === 'air' ? 3.5 : 6)) : 1;
   rig.target.lerp(frameAt, k);
@@ -179,6 +181,7 @@ function placeCamera(dt) {
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
   // the water sheet follows the camera's aim, snapped to whole ripple cells
+  world.sky.position.copy(camera.position);
   water.position.set(Math.round(rig.target.x / field.dx) * field.dx, 0, Math.round(rig.target.z / field.dx) * field.dx);
   let focusD = opt.autofocus ? camera.position.distanceTo(want) : L.s;
   let wantK = 1;
@@ -653,7 +656,7 @@ function updateContacts() {
   // the drop shadow: straight down from the springtail onto whatever is below
   const drop = macroShared.uDrop.value;
   if (!opt.dropShadow || P.mode === 'dead') { drop.set(0, -99, 0, 0); macroShared.uDropK.value = 0; }
-  else if (P.mode === 'air') { drop.set(P.x, P.y + 0.1, P.z, 0.48); macroShared.uDropK.value = 0.72; }
+  else if (P.mode === 'air') { drop.set(P.x, P.y + 0.1, P.z, 0.62); macroShared.uDropK.value = 0.85; }
   else { drop.set(P.x - Math.cos(P.heading) * 0.05, P.y + 0.06, P.z - Math.sin(P.heading) * 0.05, 0.62); macroShared.uDropK.value = 0.45; }
   // shadow casters
   let n = 0;
@@ -733,6 +736,9 @@ let simT = 0;
 function step(dt, inp) {
   simT += dt;
   macroShared.uTime.value = simT;
+  // keep the ripple window on the springtail; its water mask only needs the islands near it
+  const near = ISLANDS.filter((I) => Math.hypot(I.x - pl.x, I.z - pl.z) < field.size + I.r);
+  field.inside = (x, z) => poolE(x, z) < 1 && near.every((I) => Math.hypot(x - I.x, z - I.z) > I.r);
   field.recenter(pl.x, pl.z);
   if (game.phase === 'play' || game.phase === 'title') stepPlayer(dt, inp);
   stepWorld(dt);
@@ -751,7 +757,7 @@ const api = {
   scene, camera, renderer, macro, field, dimples, tail, stenus, strider, rain, world, pl, rig, game, features, paused: false,
   step(dt = 1 / 60, inp = { move: { x: 0, y: 0, m: 0 }, dashDown: false, dashPressed: false, attackPressed: false, defend: false }) { step(dt, inp); },
   render(dt = 0) { const L = render(dt); updateText(L); },
-  jump, newGame, respawn,
+  jump, newGame, respawn, inPool, groundAt,
   /** Set camera fields; `mode: 'top' | 'low'` and `pitch` set the wanted elevation. */
   setCam(o) {
     const { mode, pitch, ...rest } = o;

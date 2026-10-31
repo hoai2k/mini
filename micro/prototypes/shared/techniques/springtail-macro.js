@@ -134,8 +134,12 @@ float dropShadow(vec3 p) {
   if (dh < 0.015) return 1.0;
   float r = uDrop.w * (1.0 + 0.03 * dh);
   float soft = r * 0.3 + dh * 0.012;
-  float k = uDropK * (0.6 + 0.4 / (1.0 + dh * 0.12)) * smoothstep(0.015, 0.06, dh);
-  return 1.0 - k * (1.0 - smoothstep(r - soft, r + soft, length(p.xz - uDrop.xz)));
+  float k = uDropK * (0.75 + 0.25 / (1.0 + dh * 0.12)) * smoothstep(0.015, 0.06, dh);
+  float d = length(p.xz - uDrop.xz);
+  // a dark core and a soft halo twice as wide, so it still reads foreshortened
+  float core = 1.0 - smoothstep(r - soft, r + soft, d);
+  float halo = 1.0 - smoothstep(r, r * 2.2 + soft, d);
+  return 1.0 - k * max(core, halo * 0.4);
 }
 float ggx(vec3 N, vec3 V, vec3 L, float r) {
   vec3 H = normalize(V + L);

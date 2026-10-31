@@ -14,15 +14,15 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
 | Button | Action |
 | --- | --- |
 | LS (WASD) | Crawl, relative to the view. Push into a leaf edge to reach across to a neighbouring leaf, or round the margin onto the underside |
-| RS (arrows) | Turn and tilt the view |
-| **A (Space)** | **Scramble**: 0.9 s of fast wave gait (~290 µm/s), recharging over 2.6 s (the `dash` meter); costs ~3.5% water and 2% reserves. With no stick, straight ahead |
+| RS (arrows) | Turn and tilt the view. Up looks up (the camera swings down toward the leaf's edge-on view), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
+| **A (Space)** | **Scramble**: 0.9 s of fast wave gait (~400 µm/s), recharging over 2.6 s (the `dash` meter); costs ~3.5% water and 2% reserves. With no stick, straight ahead |
 | **X (E)** | **Pierce** with the stylets: food in reach (algae, diatoms, detritus) or the living leaf cell under the mouth; at a Milnesium touching you, a jab that makes it back off |
 | B (Shift), hold | Grip hard / brace: two legs swing at most, slower, much harder to slip |
 | Y (R), hold | Curl into a tun. In a tun on a wet leaf, press again to wake |
 | LT / RT (Z / X) | Fine focus down / up through the layers |
 | LB / RB (Q / F) | Anatomy labels / rain (test) |
 | D-pad ← → (3 / 4) | Optical look: DIC / brightfield / lit (hypothetical) |
-| D-pad ↑ ↓ (1 / 2) | Objective 10× / 20× / 40× |
+| D-pad ↑ ↓ (1 / 2) | Objective 10× / 20× / 40×. It starts on 10× (twice the 20× field, camera twice as far) so the leaf, the film and the surroundings read |
 | LS click (C) | Refocus on the animal |
 | RS click (V) | New day (test) |
 | Menu (Esc) | Features panel: what the prototype is doing, with switches |
@@ -69,25 +69,44 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   853 000 to 7 200 µm/s³ (C) and from 2 100 000 to 7 500 µm/s³ (B) at the old
   speed, mean jerk from 1 200 to 350 and from 7 500 to 580 µm/s³, and the
   largest frame-to-frame change in turn rate from 2.3° to 0.2° (C) and 11.6°
-  to 2.8° (B). At the new 1.5× speed the C climb peaks at 7 200 µm/s³ too.
-- **Speed.** Walking is 1.5× the old pace: up to 150 µm/s (~0.4 body
-  lengths/s), inside the 79–263 µm/s Nirody et al. measured. Stride and swing
-  timing follow speed, so footfalls stay matched to the wave.
-- **Scramble (A).** The speed limit rises to ~290 µm/s with a fast pick-up,
-  strides lengthen up to 35% and swings shorten to 90 ms, keeping the
-  back-to-front wave. It costs water and reserves; too weak (reserves under
+  to 2.8° (B). At the 1.5× speed the C climb peaked at 7 200 µm/s³ too, and
+  at today's 2.25× speed (the same scripts, 60 Hz) C peaks at 7 260 µm/s³
+  (mean 550, was 430) and B at 37 080 µm/s³ (mean 1 350, was 1 310; that
+  run includes slips and falls), with the turn-rate change unchanged (0.2°,
+  0.7°).
+- **Speed.** Walking is 2.25× the original pace (1.5× and then 1.5× again,
+  at the owner's request): a limit of 225 µm/s (~0.65 body lengths/s),
+  inside the 79–263 µm/s Nirody et al. measured; a scripted straight walk on
+  leaf A covers ~150 µm/s over the ground (was ~100), because the trunk
+  surges with each wave and stretched legs hold it back. Strides lengthen
+  above the old 150 µm/s pace (55 µm, up to 35% longer at the walking limit)
+  and swings may shorten to 100 ms, so footfalls stay matched to the wave.
+- **Scramble (A).** The speed limit rises to ~400 µm/s with a fast pick-up
+  (~270 µm/s over the ground), strides lengthen up to ~90% and swings shorten
+  to 90 ms, keeping the back-to-front wave. It costs water and reserves; too weak (reserves under
   4%) it refuses.
 - **Milnesium (`predator.js`).** A second Walker and Creature at 1.5× scale,
   with a wide buccal tube and no placoids (true of *Milnesium*), a browner
-  gut and a slightly denser cuticle. It wanders until you come within
-  ~650 µm, then stalks you at up to ~205 µm/s (faster than your walk, slower
-  than your scramble) and bites when its mouth reaches you: −20% reserves
-  each, and empty, you are eaten. Escape by scrambling away, by retreating
-  into film too thin for its bigger body (below ~3.5 µm of water it barely
-  moves; you still can), by jabbing it with the stylets (X) so it backs off
-  for 2.4 s, or by curling into a tun (Y): it cannot get a tun into its mouth
-  quickly and gives up after three tries. It ignores slope load (it never
-  slips).
+  gut and a slightly denser cuticle. It starts far off, near the tip of the
+  steep leaf C (~1.4 mm away, out of the 10× field and above the focal
+  plane, so at most a defocused shape), and for the first 40 s it only
+  browses there, so there is time to explore. Then it hunts: it heads for
+  you at under half speed, coming into view from the edge of the field, and
+  within ~650 µm stalks at up to ~270 µm/s (faster than your walk, slower
+  than your scramble). Its mouth on you is a bite: −20% reserves, and empty,
+  you are eaten. After a bite it lets go, backs off for 2.2 s and keeps its
+  distance for 9 s more before hunting again (it no longer bites every
+  1.3 s while in contact). Escape by scrambling away, by retreating into
+  film too thin for its bigger body (below ~3.5 µm of water it barely moves;
+  you still can), by jabbing it with the stylets (X) so it backs off for
+  2.4 s and then keeps off for 7 s, or by curling into a tun (Y): it cannot
+  get a tun into its mouth quickly and gives up after three tries. It
+  ignores slope load (it never slips). Measured (scripted at 30 Hz from a
+  new day): idle, it starts hunting at 40 s, comes within the 10× field at
+  ~52 s, starts stalking at 58 s and first bites at 61 s; walking about the
+  leaves, 55 s in view and first bite at 63 s; walking straight at it, it is
+  in view from 18 s but still only hunts at 40 s (first bite 47 s). Bites
+  then come 21–28 s apart (was 1.3 s).
 - **The Drying (`life.js`, `world.js`).** Each leaf has a film-capacity field
   (wetter towards the stem, in hollows and where leaves nearly touch; margins
   dry first); film = capacity − dryness, which rises through the day. Dry leaf
@@ -145,7 +164,8 @@ Simulation also has Milnesium (the predator, on).
 Motion also has the scramble (fixed) and smoothed trunk and camera (on; off
 is the old single lag).
 Controls: anatomy labels, rumble (claw catch, slips, scramble, bites),
-camera-relative crawl (fixed).
+Invert camera Y (shared by every prototype, off), camera-relative crawl
+(fixed).
 
 Technique module: `shared/techniques/tardigrade-dic.js` (DIC and brightfield
 with a focal plane; `opticalMaterial`, `OPTICAL_*` building blocks for custom
@@ -195,10 +215,11 @@ Not borrowed:
 - **Leaves** are flat laminae with cells in the shader; real leaves curve,
   and fold in as they dry. Cell sizes are lax-celled (about 20 × 100 µm
   procedural, ~30 × 60 µm with the delivered art).
-- **Speed:** up to 150 µm/s walking (~0.4 body lengths/s) and ~290 µm/s
-  scrambling; Nirody et al. measured 79–263 µm/s, so the scramble is a
-  stretch.
-- **Milnesium's rules** are game rules: the sensing range, its speed, the
+- **Speed:** up to 225 µm/s walking (~0.65 body lengths/s) and ~400 µm/s
+  scrambling; Nirody et al. measured 79–263 µm/s, so the walk is at the
+  fast end and the scramble is a stretch.
+- **Milnesium's rules** are game rules: the calm start, the slow approach,
+  backing off after a bite, the sensing range, its speed, the
   −20% bites, the thin-film refuge threshold, backing off after a stylet jab
   (tardigrades do not really fight back this way) and giving up on a tun
   after three tries (a tun's hardness against *Milnesium* is not measured).
