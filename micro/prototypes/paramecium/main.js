@@ -2,10 +2,15 @@
 // in a pond drop, followed by a chase camera (Y: through the microscope). Eat prey, keep your symbionts in
 // the light, and escape Didinium and a giant Amoeba proteus. See README.md
 // for controls, approach and sources.
+//
+// Micro Zoom: the forward landmark (a biofilm on a leaf fragment, far side of
+// the drop) zooms into the bacterium level; the backdoor (the slide floor where
+// the Amoeba proteus crawls, the other way) rises to the amoeba level. Up to four
+// local players (shared/players.js), each their own cell, with the LEGO-style
+// split screen (shared/splitscreen.js) and the edge arrows (shared/landmark.js).
 import * as THREE from '../shared/vendor/three.module.min.js';
-import { createPad } from '../shared/pad.js';
-import { mountHud } from '../shared/hud.js';
-import { createControls, createDash, hudControls, addInvertY } from '../shared/controls.js';
+import { mountHud, keyFor } from '../shared/hud.js';
+import { createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createContactFx } from './fx.js';
 import { loadTexture } from '../shared/assets.js';
 import { createOptics, MODES, MODE_NAMES, shared, standInPlate } from './optics.js';
@@ -16,21 +21,36 @@ import { createEncounters } from './encounters.js';
 import { createPrey } from './prey.js';
 import { createProteus } from './proteus.js';
 import { createCatchFx, sstep } from './catch.js';
+import { createLandmarks as createDropLandmarks, LANDMARKS } from './landmarks.js';
 import { createHunger, createCapture } from '../shared/predation.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
+import { createPlayers } from '../shared/players.js';
+import { createSplitScreen } from '../shared/splitscreen.js';
+import { createLandmarks } from '../shared/landmark.js';
+import { embed } from '../shared/embed.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, AMOEBA_MODES, DIC_MODES } from '../shared/techniques/adapters.js';
 
 const SP = SPECIES[SPECIES_ID];
 const GREEN = SPECIES_ID === 'bursaria';
 const GOAL = 6; // prey to eat in a round
 const HL = LENGTH / 2;
+void sstep;
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
 renderer.autoClear = false;
-const pad = createPad();
-const ctl = createControls(pad);
+// --- players: P1 on the keyboard and the first controller; 2-4 join with any button on another ---
+const players = createPlayers({
+  max: 4,
+  onJoin: (p) => { hud.toast(`Player ${p.slot + 1} joined`); embed.join(p.slot, p.color, p.name); },
+  onLeave: (p) => { hud.toast(`Player ${p.slot + 1} left`); embed.leave(p.slot); },
+  onChange: (list) => { if (hud) hud.players(list); },
+});
+if (embed.players) players.fromJSON(embed.players);
+embed.on('players', (r) => players.fromJSON(r));
+const pad = players.pad(0);
+const ctl = players.controls(0);
 const hud = mountHud({
   title: 'Paramecium',
   sub: GREEN
@@ -42,19 +62,26 @@ const hud = mountHud({
     dash: 'Dash: ciliary sprint where the stick points',
     attack: 'Eat: a gulp pulls nearby prey in. Touching a hunter: fire trichocysts',
     defend: 'Avoidance reaction: back up and turn',
-    special: 'Chase camera / microscope view',
+    special: 'Chase camera / microscope view. On the amoeba\'s floor: back to the amoeba',
     analog: 'LT slow feeding beat · RT swim (no gliding)',
     secondary: 'Dive / rise',
     look: 'Microscope technique',
     zoom: 'Objective (chase camera: distance)',
   }),
-  note: `Goal: eat ${GOAL} prey (bacterial clumps and Chilomonas)${GREEN ? ', keep in the light so your Chlorella feed you' : ''}. Hunters: Didinium (fast, harpoons you on contact; a red arrow at the edge when one closes in from out of view) and Amoeba proteus (slow giant on the slide, cups you if you swim low). You glance off whatever you touch. Scale is honest (µm).`,
+  note: `Goal: eat ${GOAL} prey (bacterial clumps and Chilomonas)${GREEN ? ', keep in the light so your Chlorella feed you' : ''}. Hunters: Didinium (fast, harpoons you on contact; a red arrow at the edge when one closes in from out of view) and Amoeba proteus (slow giant on the slide, cups you if you swim low). You glance off whatever you touch. Scale is honest (µm). The brass chevron points to the biofilm on a leaf (the way on: swim down and touch it); the ring to the floor where the amoeba crawls (the way back). Up to four players: press any button on another controller to join.`,
 });
+hud.players(players.list);
+/** A button as the instructions should name it: the controller's, or the key while no controller is connected. */
+const glyph = (b) => (hud.glyphs === 'keyboard' ? keyFor(b) || b : b);
 
 // the goal strip: what you are doing, at a glance
 const goalEl = document.createElement('div');
 goalEl.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);background:rgba(10,12,16,.62);color:#eef1f4;border-radius:999px;padding:6px 14px;font:600 13px/1.3 system-ui,sans-serif;pointer-events:none;white-space:nowrap;z-index:3';
 document.body.appendChild(goalEl);
+// the backdoor prompt (standalone: in the game the shell draws its own)
+const promptEl = document.createElement('div');
+promptEl.style.cssText = 'position:fixed;left:50%;bottom:14vh;transform:translateX(-50%);background:rgba(18,16,10,.72);color:#efe4c4;border:1px solid rgba(201,163,90,.7);border-radius:999px;padding:5px 14px;font:600 13px system-ui,sans-serif;pointer-events:none;z-index:6;display:none';
+document.body.appendChild(promptEl);
 
 const scene = new THREE.Scene();
 const cell = createCell();
@@ -67,6 +94,9 @@ const amoeba = createProteus(scene);
 const optics = createOptics(renderer);
 const contactFx = createContactFx(scene);
 const catchFx = createCatchFx(scene, world, amoeba);
+const drop = createDropLandmarks(scene);
+// the Amoeba proteus keeps to its patch of slide (the backdoor) when it is not hunting
+amoeba.home = LANDMARKS.back.pos.clone(); amoeba.homeR = 220;
 
 // --- pacing: a calm opening, then hunger that comes and goes (shared/predation.js) ---
 // Each hunter has its own hunger. Only a hungry one hunts; a resting one wanders
@@ -87,10 +117,11 @@ const hungerText = (h) => (h.state === 'grace' ? `calm ${Math.ceil(h.left)} s` :
 const plates = { darkfield: standInPlate('darkfield'), phase: standInPlate('phase') };
 loadTexture('MP-P01', { srgb: false }).then((t) => { if (t) plates.darkfield = t; });
 loadTexture('MP-P02', { srgb: false }).then((t) => { if (t) plates.phase = t; });
+const pellicleTex = { tex: null };
 loadTexture('MP-P03', { srgb: false }).then((t) => {
   if (!t) return;
-  cell.body.material.uniforms.uPellicle.value = t;
-  cell.body.material.uniforms.uHasPellicle.value = 1;
+  pellicleTex.tex = t;
+  for (const P of roster) { P.cell.body.material.uniforms.uPellicle.value = t; P.cell.body.material.uniforms.uHasPellicle.value = 1; }
 });
 
 // --- cameras ---------------------------------------------------------------
@@ -108,6 +139,7 @@ const view = {
   stage: new THREE.Vector2(), camAxis: new THREE.Vector3().copy(swimmer.state.axis), camYaw: swimmer.state.yaw, camPitch: 0,
   focusY: swimmer.state.axis.y, scopeYaw: swimmer.state.yaw, turnView: true, lead: new THREE.Vector3(), dof: 'mild', plate: 'dim',
   focusPull: 0, focusPullY: 0, // a contact pulls fine focus to what you touched, briefly
+  groupDist: 0, // multiplayer: the chase camera backs off as the group spreads (then the screen splits)
 };
 const fwdOf = (yaw, out = new THREE.Vector3()) => out.set(Math.cos(yaw), 0, -Math.sin(yaw));
 const angleWrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -117,7 +149,9 @@ const angleWrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 // and the internal resolution steps down until frames keep up.
 const gl = renderer.getContext();
 // a software renderer (headless checks, blocklisted GPUs) starts small
-let renderScale = /SwiftShader|llvmpipe|Software/i.test(gl.getParameter(gl.RENDERER) + (gl.getExtension('WEBGL_debug_renderer_info') ? gl.getParameter(0x9246) : '')) ? 0.4 : 1;
+const softGpu = /SwiftShader|llvmpipe|Software/i.test(gl.getParameter(gl.RENDERER) + (gl.getExtension('WEBGL_debug_renderer_info') ? gl.getParameter(0x9246) : ''));
+let renderScale = softGpu ? 0.4 : 1;
+let splitScale = 1; // a split frame renders the whole optics pipeline once per view: each at a lower resolution
 let fence = null, rendered = 0, renderClock = 0, renderFps = 60;
 function gpuBusy() {
   if (!fence) return false;
@@ -149,12 +183,14 @@ const shadeG = shadeCv.getContext('2d'), markG = markCv.getContext('2d');
 let cssW = 1, cssH = 1, dpr = 1;
 
 function resize() {
-  const pr = Math.min(devicePixelRatio || 1, 1.5) * renderScale;
-  const w = Math.max(2, Math.floor(innerWidth * pr)), h = Math.max(2, Math.floor(innerHeight * pr));
-  renderer.setPixelRatio(1);
-  renderer.setSize(w, h, false);
+  const pr = Math.min(devicePixelRatio || 1, 1.5) * renderScale * splitScale;
+  // CSS size with a pixel ratio, so the split screen and the edge arrows work in CSS px
+  renderer.setPixelRatio(pr);
+  renderer.setSize(innerWidth, innerHeight, false);
+  const b = renderer.getDrawingBufferSize(new THREE.Vector2());
+  const w = Math.max(2, b.x), h = Math.max(2, b.y);
   optics.resize(w, h);
-  chase.aspect = w / h;
+  chase.aspect = innerWidth / innerHeight;
   chase.updateProjectionMatrix();
   cssW = innerWidth; cssH = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2);
   for (const c of [shadeCv, markCv]) { c.width = Math.round(cssW * dpr); c.height = Math.round(cssH * dpr); }
@@ -162,10 +198,17 @@ function resize() {
 addEventListener('resize', resize);
 resize();
 
-function updateCameras(dt, s, steer) {
+/**
+ * Place the shared camera. `s` is player 1 (the heading the views follow);
+ * `grp` the group: { multi, axis (the middle of the players' helix axes),
+ * center, spread }.
+ */
+function updateCameras(dt, s, steer, grp) {
   const [W, H] = optics.size;
   const k = 1 - Math.exp(-dt * 6);
-  view.camAxis.lerp(view.smoothHelix ? s.axis : s.center, k);
+  view.camAxis.lerp(grp.multi ? grp.axis : view.smoothHelix ? s.axis : s.center, k);
+  const centre = grp.multi ? grp.center : s.center;
+  view.groupDist += ((grp.multi ? Math.min(view.dist * 1.2, grp.spread * 0.55) : 0) - view.groupDist) * (1 - Math.exp(-dt * 2));
   if (view.kind === 'chase') {
     // follow the helix axis and the travel heading, not the rolling body
     const dy = Math.atan2(Math.sin(s.yaw - view.camYaw), Math.cos(s.yaw - view.camYaw));
@@ -174,14 +217,15 @@ function updateCameras(dt, s, steer) {
     const yaw = view.camYaw + view.orbitYaw, pitch = Math.max(-1.3, Math.min(1.3, view.camPitch * 0.35 + view.orbitPitch));
     const back = new THREE.Vector3(Math.cos(pitch) * Math.cos(yaw), Math.sin(pitch), -Math.cos(pitch) * Math.sin(yaw));
     const target = debug.inspect ? s.center : view.camAxis;
-    if (!view.smoothHelix) { view.camYaw = Math.atan2(-s.T.z, s.T.x); view.camPitch = Math.asin(Math.max(-1, Math.min(1, s.T.y))); }
-    chase.position.copy(target).addScaledVector(back, -view.dist).addScaledVector(new THREE.Vector3(0, 1, 0), view.dist * 0.18);
+    if (!view.smoothHelix && !grp.multi) { view.camYaw = Math.atan2(-s.T.z, s.T.x); view.camPitch = Math.asin(Math.max(-1, Math.min(1, s.T.y))); }
+    const dist = view.dist + view.groupDist;
+    chase.position.copy(target).addScaledVector(back, -dist).addScaledVector(new THREE.Vector3(0, 1, 0), dist * 0.18);
     chase.position.y = Math.max(8, Math.min(DEPTH + 300, chase.position.y));
     chase.lookAt(target.x + back.x * 40, target.y + back.y * 40, target.z + back.z * 40);
     chase.updateMatrixWorld();
-    shared.uFocus.value = chase.position.distanceTo(s.center);
+    shared.uFocus.value = chase.position.distanceTo(centre);
     shared.uDof.value.set(view.dof === 'off' ? 1e5 : 70, view.dof === 'off' ? 2e5 : 460);
-    shared.uFade.value = 1400;
+    shared.uFade.value = 1400 + view.groupDist;
     shared.uNear.value.set(40, Math.max(60, shared.uFocus.value * 0.55));
     shared.uPxPersp.value = (2 * Math.tan((chase.fov * Math.PI) / 360)) / H;
     return chase;
@@ -198,12 +242,12 @@ function updateCameras(dt, s, steer) {
     const d = angleWrap(s.yaw - view.scopeYaw);
     view.scopeYaw += Math.max(-1.1 * dt, Math.min(1.1 * dt, d * (1 - Math.exp(-dt * 1.4)) * follow));
   } else view.scopeYaw = Math.PI / 2;
-  // lead a little ahead of the cell so you see what you swim into
-  const want = fwdOf(s.yaw).multiplyScalar(Math.min(o.field * 0.14, Math.max(0, s.speed) * 0.12));
+  // lead a little ahead of the cell so you see what you swim into (alone: the group has no one heading)
+  const want = grp.multi ? new THREE.Vector3() : fwdOf(s.yaw).multiplyScalar(Math.min(o.field * 0.14, Math.max(0, s.speed) * 0.12));
   view.lead.lerp(want, 1 - Math.exp(-dt * 1.5));
   // the stage follows the helix axis (the wobble stays on the cell, not the view); fine focus tracks its depth
   view.focusPull = Math.max(0, view.focusPull - dt);
-  const fy = view.focusPull > 0 ? view.focusPullY : s.center.y;
+  const fy = view.focusPull > 0 ? view.focusPullY : centre.y;
   view.focusY += (fy - view.focusY) * (1 - Math.exp(-dt * (view.focusPull > 0 ? 14 : 3)));
   const up = fwdOf(view.scopeYaw);
   const right = new THREE.Vector3(Math.sin(view.scopeYaw), 0, Math.cos(view.scopeYaw));
@@ -368,6 +412,7 @@ function lookName() {
   return MODE_NAMES[MODES[view.mode]];
 }
 
+
 // --- light: a sunlit patch of the drop that wanders slowly --------------------
 const light = { c: new THREE.Vector2(), r: 420 };
 function lightAt(t) { light.c.set(-260 + 260 * Math.sin(t * 0.021), 60 + 220 * Math.cos(t * 0.017)); return light; }
@@ -381,17 +426,19 @@ const swimLoop = audio.loop('paramecium/swim', { volume: 0 });
 const snd = { mode: 'swim', hunting: new WeakMap(), lastHunt: -9, t: 0 };
 /** Gamepads fire no DOM events: unlock sound on any pad button. */
 function unlockOnPad() {
-  if (pad.kind !== 'controller') return;
-  for (let b = 0; b < 16; b++) if (pad.value(b) > 0.5) { audio.unlock(); return; }
+  for (const P of roster) {
+    if (P.pad.kind !== 'controller') continue;
+    for (let b = 0; b < 16; b++) if (P.pad.value(b) > 0.5) { audio.unlock(); return; }
+  }
 }
 function soundTick(dt) {
   snd.t += dt;
   const s = swimmer.state;
-  const k = s.mode === 'dead' ? 0 : Math.min(1, Math.abs(s.speed) / VMAX);
+  const k = Math.max(...roster.map((P) => (P.swimmer.state.mode === 'dead' ? 0 : Math.min(1, Math.abs(P.swimmer.state.speed) / VMAX))));
   swimLoop.set({ volume: 0.15 + 0.7 * k, rate: 0.8 + 0.5 * k + (s.dashT > 0 ? 0.2 : 0) });
-  if (s.mode !== snd.mode) {
-    if (s.mode === 'avoid') audio.play('paramecium/reverse', { volume: 0.8 });
-    snd.mode = s.mode;
+  for (const P of roster) {
+    const m = P.swimmer.state.mode;
+    if (m !== P.sndMode) { if (m === 'avoid') audio.play('paramecium/reverse', { volume: 0.8 }); P.sndMode = m; }
   }
   // Didinium closing in: once per hunt, quieter the further it is
   if (enc.opts.didinium && s.mode !== 'dead' && s.mode !== 'captured') {
@@ -399,19 +446,96 @@ function soundTick(dt) {
       const on = d.state === 'hunting' || d.state === 'striking';
       if (on && !snd.hunting.get(d) && snd.t - snd.lastHunt > 1.5) {
         snd.lastHunt = snd.t;
-        const dist = d.pos.distanceTo(s.center);
-        audio.play('paramecium/didinium', { volume: Math.max(0.25, Math.min(1, 700 / (dist + 200))), pan: Math.max(-1, Math.min(1, (d.pos.x - s.center.x) / 800)) });
+        const T = (d.target || swimmer).state;
+        const dist = d.pos.distanceTo(T.center);
+        audio.play('paramecium/didinium', { volume: Math.max(0.25, Math.min(1, 700 / (dist + 200))), pan: Math.max(-1, Math.min(1, (d.pos.x - T.center.x) / 800)) });
       }
       snd.hunting.set(d, on);
     }
   }
 }
-const dash = createDash({ duration: DASH_T, cooldown: 1.8 });
 const game = { eaten: 0, round: 1, sun: 1, gulpT: 0, gulpCool: 0, dashFx: 0, deaths: 0, bacteria: 0, contacts: 0 };
 const threats = () => [...(enc.opts.didinium ? world.didinia : []), ...(amoeba.opts.on ? [amoeba] : [])];
 const GULP_REACH = Math.max(70, LENGTH * 0.6);
 const gulpCentre = new THREE.Vector3();
 function updateGulpCentre(s) { return gulpCentre.copy(s.center).addScaledVector(s.T, HL * 0.35); }
+
+// --- the players: one cell each ------------------------------------------------
+const CATCH = {
+  didinium: { by: 'Didinium', how: 'swallowed you whole', strike: 'Didinium\'s proboscis strikes: toxicysts fire into you!', hold: () => `HELD by Didinium: ${glyph('X')} trichocysts · ${glyph('A')} struggle`, eat: 'Didinium\'s mouth gapes wide: it swallows you whole' },
+  amoeba: { by: 'Amoeba proteus', how: 'closed you into a food vacuole', strike: 'The food cup closes round you!', hold: () => `ENGULFED by the amoeba: ${glyph('X')} trichocysts · ${glyph('A')} struggle`, eat: 'A food vacuole forms round you and darkens: digestion begins' },
+};
+const catchText = (k, phase) => { const v = CATCH[k][phase]; return typeof v === 'function' ? v() : v; };
+const roster = [];
+function makePlayer(p, c = null, sw = null) {
+  const cellP = c || createCell();
+  if (!c) {
+    scene.add(cellP.group);
+    if (pellicleTex.tex) { cellP.body.material.uniforms.uPellicle.value = pellicleTex.tex; cellP.body.material.uniforms.uHasPellicle.value = 1; }
+  }
+  const P = {
+    slot: p.slot, color: p.color, name: `Player ${p.slot + 1}`, cell: cellP, swimmer: sw || createSwimmer(cellP, world),
+    pad: players.pad(p.slot), ctl: players.controls(p.slot),
+    dash: createDash({ duration: DASH_T, cooldown: 1.8 }), sun: 1, gulpT: 0, gulpCool: 0, dashFx: 0,
+    capture: createCapture({ onRestart: restartRound }),
+    cap: { th: null, credit: 0, phase: null, from: new THREE.Vector3(), fromQ: new THREE.Quaternion(), anim: null },
+    in: null, backT: 0, eatenFor: 0, waiting: false, sndMode: 'swim',
+  };
+  // the Eaten card is for a solo game; in multiplayer the catch plays out and you rejoin a teammate
+  P.card = document.body.lastElementChild;
+  return P;
+}
+const P1 = makePlayer(players.get(0), cell, swimmer);
+roster.push(P1);
+const dash = P1.dash, capture = P1.capture, cap = P1.cap;
+const multi = () => roster.length > 1;
+const liveRoster = () => roster.filter((P) => !P.waiting);
+
+/** Keep one cell per joined player (a join during play, or the shell's roster). */
+function syncRoster() {
+  for (const p of players.list) {
+    if (roster.some((P) => P.slot === p.slot)) continue;
+    const P = makePlayer(p);
+    roster.push(P);
+    roster.sort((a, b) => a.slot - b.slot);
+    placeNear(P, P1);
+    P.swimmer.state.safeT = 3;
+  }
+  for (let i = roster.length - 1; i >= 0; i--) {
+    const P = roster[i];
+    if (P === P1 || players.get(P.slot)) continue;
+    if (P.swimmer.state.captor) { P.swimmer.release(); }
+    P.capture.reset(false);
+    P.card.remove();
+    scene.remove(P.cell.group);
+    roster.splice(i, 1);
+  }
+  for (const P of roster) {
+    const p = players.get(P.slot);
+    P.waiting = !!(p && p.waiting);
+    P.card.style.visibility = multi() ? 'hidden' : '';
+    P.cell.group.visible = !P.waiting;
+    if (P !== P1) {
+      // the switches in the feature panel act on every cell
+      Object.assign(P.swimmer.opts, swimmer.opts);
+      Object.assign(P.cell.opts, cell.opts);
+      if (P.cell.chlorella && cell.chlorella) P.cell.chlorella.visible = cell.chlorella.visible;
+      P.cell.cilia.mesh.visible = cell.cilia.mesh.visible;
+      P.cell.trichocysts.mesh.visible = cell.trichocysts.mesh.visible;
+      P.cell.macro.visible = cell.macro.visible; P.cell.micro.visible = cell.micro.visible;
+      P.cell.cilia.mat.uniforms.uWave.value = cell.cilia.mat.uniforms.uWave.value;
+      P.cell.body.material.uniforms.uPelOn.value = cell.body.material.uniforms.uPelOn.value;
+    }
+  }
+}
+/** Put P beside a teammate: a couple of body lengths to the side, at its depth. */
+function placeNear(P, M) {
+  const m = M.swimmer.state, s = P.swimmer.state;
+  const a = m.yaw + (Math.random() < 0.5 ? 1 : -1) * (Math.PI / 2 + (Math.random() - 0.5) * 0.6);
+  const d = LENGTH * (1.4 + Math.random() * 0.8);
+  s.axis.set(m.axis.x + Math.cos(a) * d, Math.max(70, Math.min(DEPTH - 70, m.axis.y + (Math.random() - 0.5) * 40)), m.axis.z - Math.sin(a) * d);
+  s.yaw = m.yaw; s.pitch = 0; s.speed = 0;
+}
 
 /** A hunter close enough to touch (proboscis on the pellicle, or the food cup round you). */
 function touchingThreat(s) {
@@ -426,52 +550,53 @@ function touchingThreat(s) {
   return best;
 }
 
-function fireTrichocysts(threat) {
-  const s = swimmer.state;
+const who = (P) => (multi() ? `${P.name}: ` : '');
+function fireTrichocysts(P, threat) {
+  const s = P.swimmer.state;
   const at = threat === amoeba ? new THREE.Vector3(amoeba.pos.x, s.center.y - 40, amoeba.pos.z) : threat ? threat.pos : null;
   const held = s.mode === 'captured';
-  const away = swimmer.burst(at);
+  const away = P.swimmer.burst(at);
   if (away) audio.play('paramecium/trichocysts', { volume: 1 });
-  if (!away) { hud.toast(held ? 'No trichocysts left: struggle with A!' : 'No trichocysts left: they re-dock over time'); return; }
+  if (!away) { hud.toast(held ? `${who(P)}No trichocysts left: struggle with ${glyph('A')}!` : `${who(P)}No trichocysts left: they re-dock over time`); return; }
   const n = enc.discharge(s, away.clone().negate(), t, world.flowAt(s.center, t));
   if (threat === amoeba) amoeba.recoil(); else if (threat) threat.stun = 3;
   if (threat && threat.hunger && threat.hunger.hungry) threat.hunger.missed(); // driven off: it rests a while
-  pad.rumble(240, 0.9, 1.0);
-  hud.toast(`Trichocysts fired (${n} threads): ${threat === amoeba ? 'the amoeba recoils' : threat ? 'Didinium lets go and backs off' : 'thrown clear'}`);
+  P.pad.rumble(240, 0.9, 1.0);
+  hud.toast(`${who(P)}Trichocysts fired (${n} threads): ${threat === amoeba ? 'the amoeba recoils' : threat ? 'Didinium lets go and backs off' : 'thrown clear'}`);
 }
 
-function doAttack() {
-  const s = swimmer.state;
+function doAttack(P) {
+  const s = P.swimmer.state;
   if (s.mode === 'dead') return;
   const threat = touchingThreat(s);
-  if (threat) { fireTrichocysts(threat); return; }
-  if (game.gulpCool > 0) return;
-  game.gulpCool = 0.5; game.gulpT = 0.6;
+  if (threat) { fireTrichocysts(P, threat); return; }
+  if (P.gulpCool > 0) return;
+  P.gulpCool = 0.5; P.gulpT = 0.6;
   audio.play('paramecium/gulp', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
   const got = prey.near(updateGulpCentre(s), GULP_REACH).slice(0, 3);
-  for (const it of got) prey.gulp(it);
-  pad.rumble(90, 0.35, 0.1);
-  if (!got.length) hud.toast('Gulp! Nothing in reach: swim up to prey (green rings), level with it');
+  for (const it of got) prey.gulp(it, P.feedRef);
+  P.pad.rumble(90, 0.35, 0.1);
+  if (!got.length) hud.toast(`${who(P)}Gulp! Nothing in reach: swim up to prey (green rings), level with it`);
 }
 
-function doDash(ls) {
-  const s = swimmer.state;
+function doDash(P, ls) {
+  const s = P.swimmer.state;
   if (s.mode === 'captured') return; // A struggles instead
-  if (!dash.ready) { hud.toast('Dash recharging', 700); return; }
+  if (!P.dash.ready) { if (P === P1) hud.toast('Dash recharging', 700); return; }
   let yaw = null;
-  if (ls.m > 0.3) yaw = view.kind === 'scope' ? swimmer.stickYaw(ls, view.scopeYaw) : s.yaw - ls.x * 1.2;
-  if (swimmer.dash(yaw)) { audio.play('paramecium/dash', { volume: 0.9 }); dash.trigger(); game.dashFx = 0.45; pad.rumble(180, 0.6, 0.9); }
+  if (ls.m > 0.3) yaw = view.kind === 'scope' ? P.swimmer.stickYaw(ls, view.scopeYaw) : s.yaw - ls.x * 1.2;
+  if (P.swimmer.dash(yaw)) { audio.play('paramecium/dash', { volume: 0.9 }); P.dash.trigger(); P.dashFx = 0.45; P.pad.rumble(180, 0.6, 0.9); }
 }
 
 /** A contact: show where it happened and what it was; never a silent stop. */
 const taught = new Set();
-function onContact(c) {
+function onContact(P, c) {
   game.contacts++;
   if (c.impact < 40) return; // a graze: you just slide on
   const k = Math.min(1, c.impact / 900);
   contactFx.puff(c.p, c.n, 0.35 + k);
-  pad.rumble(60 + 90 * k, 0.15 + 0.4 * k, 0.05 + 0.3 * k);
-  if (view.kind === 'scope') { view.focusPull = 0.5; view.focusPullY = c.p.y; }
+  P.pad.rumble(60 + 90 * k, 0.15 + 0.4 * k, 0.05 + 0.3 * k);
+  if (view.kind === 'scope' && !multi()) { view.focusPull = 0.5; view.focusPullY = c.p.y; }
   if (c.glass && !taught.has(c.what) && c.impact > 60) {
     taught.add(c.what);
     hud.toast(c.what === 'the slide' ? 'The slide: the glass floor of the drop. You glide along it' : c.what === 'the coverslip' ? 'The coverslip: the glass ceiling. You glide along it' : 'The meniscus: the edge of the drop. You slide round it', 2200);
@@ -479,19 +604,16 @@ function onContact(c) {
 }
 
 // --- being caught: strike → hold → eat → the Eaten card (shared/predation.js) ----
-const capture = createCapture({ onRestart: restartRound });
-const cap = { th: null, credit: 0, phase: null, from: new THREE.Vector3(), fromQ: new THREE.Quaternion(), anim: null };
-const CATCH = {
-  didinium: { by: 'Didinium', how: 'swallowed you whole', strike: 'Didinium\'s proboscis strikes: toxicysts fire into you!', hold: 'HELD by Didinium: X trichocysts · A struggle', eat: 'Didinium\'s mouth gapes wide: it swallows you whole' },
-  amoeba: { by: 'Amoeba proteus', how: 'closed you into a food vacuole', strike: 'The food cup closes round you!', hold: 'ENGULFED by the amoeba: X trichocysts · A struggle', eat: 'A food vacuole forms round you and darkens: digestion begins' },
-};
+// Solo: the Eaten card and A to start the round again. Multiplayer: the catch
+// plays out the same, then the player rejoins beside a teammate.
 const catchKind = (th) => (th === amoeba ? 'amoeba' : 'didinium');
-function startCapture(th) {
-  if (!th || capture.active) return;
-  const k = catchKind(th);
-  cap.th = th; cap.credit = 0; cap.phase = 'strike'; cap.anim = null;
-  capture.start({ by: CATCH[k].by, how: CATCH[k].how });
-  const s = swimmer.state;
+function startCapture(P, th) {
+  if (!th || P.capture.active) return;
+  const k = catchKind(th), C = P.cap;
+  C.th = th; C.credit = 0; C.phase = 'strike'; C.anim = null;
+  P.eatenFor = 0;
+  P.capture.start({ by: CATCH[k].by, how: CATCH[k].how });
+  const s = P.swimmer.state;
   if (k === 'didinium') {
     const toward = new THREE.Vector3().subVectors(s.center, th.tip).normalize();
     enc.toxicysts(th.tip, toward, t);
@@ -499,36 +621,40 @@ function startCapture(th) {
     audio.play('paramecium/didinium', { volume: 1 });
   }
   audio.play('paramecium/held', { volume: 1 });
-  pad.rumble(400, 0.6, 0.8);
+  P.pad.rumble(400, 0.6, 0.8);
+  hud.toast(`${who(P)}${k === 'amoeba' ? `The amoeba's food cup closes! ${glyph('X')}: trichocysts · ${glyph('A')}: struggle` : `Didinium's proboscis has you! ${glyph('X')}: fire trichocysts · ${glyph('A')}: struggle`}`, 2800);
+  embed.captured({ by: CATCH[k].by, player: P.slot });
 }
+const otherCatch = (P) => roster.some((Q) => Q !== P && Q.capture.active);
 /** Run the catch for this frame; returns the cell's eat-phase transform or null. */
-function stepCapture(dt, s) {
-  if (!capture.active) return null;
-  const th = cap.th, k = catchKind(th);
+function stepCapture(P, dt) {
+  if (!P.capture.active) return null;
+  const s = P.swimmer.state, C = P.cap;
+  const th = C.th, k = catchKind(th);
   // a fight in the strike or hold: trichocysts (X) break free, struggling (A/B) buys time
-  if ((cap.phase === 'strike' || cap.phase === 'hold') && s.mode !== 'captured') {
-    capture.reset(false); th.hunger.missed(); th.wrap = 0; cap.th = null; cap.phase = null;
-    catchFx.reset();
+  if ((C.phase === 'strike' || C.phase === 'hold') && s.mode !== 'captured') {
+    P.capture.reset(false); th.hunger.missed(); th.wrap = 0; C.th = null; C.phase = null;
+    if (!otherCatch(P)) catchFx.reset();
     return null;
   }
   let step = dt;
-  if (cap.phase === 'hold') {
+  if (C.phase === 'hold') {
     const len = Math.max(0.8, (th.holdFor || 4) - 0.45); // as long as the old hold: 3.5 s (amoeba 2.5 s)
-    const use = Math.min(cap.credit, dt);
-    cap.credit -= use;
+    const use = Math.min(C.credit, dt);
+    C.credit -= use;
     step = (dt - use) / len;
   }
-  const c = capture.update(step, pad);
+  const c = P.capture.update(step, multi() ? null : P.pad);
   if (!c.active) return null; // restarted
-  if (c.phase !== cap.phase) {
-    cap.phase = c.phase;
+  if (c.phase !== C.phase) {
+    C.phase = c.phase;
     if (c.phase === 'eat') {
-      swimmer.eaten();
-      cap.from.copy(s.axis); cap.fromQ.copy(cell.group.quaternion);
+      P.swimmer.eaten();
+      C.from.copy(s.axis); C.fromQ.copy(P.cell.group.quaternion);
       th.hunger.fed(); th.sated = 14;
       game.deaths++;
       audio.play('paramecium/gulp', { volume: 1, rate: k === 'didinium' ? 0.6 : 0.5 });
-      pad.rumble(600, 0.8, 0.6);
+      P.pad.rumble(600, 0.8, 0.6);
     }
   }
   // the reel and the closing cup
@@ -537,18 +663,23 @@ function stepCapture(dt, s) {
   if (c.phase === 'strike' && k === 'didinium') catchFx.didiniumGape(th, 0, 0);
   if (c.phase === 'eat' || c.phase === 'eaten') {
     const e = c.phase === 'eat' ? c.t : 1;
-    cap.anim = k === 'didinium' ? catchFx.eatDidinium(th, e, cap.from, cap.fromQ) : catchFx.eatAmoeba(e, cap.from, cap.fromQ);
-    s.axis.copy(cap.anim.pos); // the camera follows you in
-    return cap.anim;
+    C.anim = k === 'didinium' ? catchFx.eatDidinium(th, e, C.from, C.fromQ) : catchFx.eatAmoeba(e, C.from, C.fromQ);
+    s.axis.copy(C.anim.pos); // the camera follows you in
+    // multiplayer: once the catch has been seen through, rejoin beside a teammate
+    if (multi() && c.phase === 'eaten') { P.eatenFor += dt; if (P.eatenFor > 1.2) { rejoin(P); return null; } }
+    return C.anim;
   }
   return null;
 }
 function restartRound() {
   const s = swimmer.state;
+  for (const P of roster) {
+    if (P !== P1) { if (P.capture.active) P.capture.reset(false); P.cap.th = null; P.cap.phase = null; P.cap.anim = null; }
+  }
   swimmer.respawn();
   cap.th = null; cap.phase = null; cap.anim = null;
   catchFx.reset();
-  cell.group.scale.set(1, 1, 1);
+  for (const P of roster) { P.cell.group.scale.set(1, 1, 1); if (P !== P1) { P.swimmer.respawn(); placeNear(P, P1); } }
   game.eaten = 0;
   // the hunters start well away from you
   const out = new THREE.Vector3(s.axis.x, 0, s.axis.z);
@@ -565,10 +696,74 @@ function restartRound() {
   resetHunger();
   hud.toast('A new Paramecium swims into view. The hunters are calm for now', 2600);
 }
+/** Multiplayer: a caught player comes back beside a teammate (solo uses the Eaten card). */
+function rejoin(P) {
+  const C = P.cap;
+  if (C.th) C.th.wrap = 0;
+  P.capture.reset(false);
+  C.th = null; C.phase = null; C.anim = null;
+  if (!otherCatch(P)) catchFx.reset();
+  P.swimmer.respawn();
+  P.cell.group.scale.set(1, 1, 1);
+  P.eatenFor = 0;
+  const mates = roster.filter((Q) => Q !== P && !Q.waiting && Q.swimmer.state.mode !== 'dead');
+  if (mates.length) { placeNear(P, mates[0]); hud.toast(`${P.name} is back, beside ${mates[0].name}`); }
+  P.swimmer.state.safeT = 3;
+}
+
+// --- who the hunters go for -------------------------------------------------------
+/** The player a hunter goes for: the one it holds, else the nearest free one. */
+function targetOf(th) {
+  const held = roster.find((P) => P.swimmer.state.captor === th);
+  if (held) return held;
+  const at = th === amoeba ? new THREE.Vector3(amoeba.pos.x, 0, amoeba.pos.z) : th.pos;
+  let best = null, bd = Infinity;
+  for (const P of liveRoster()) {
+    const s = P.swimmer.state;
+    if (s.mode === 'dead' || s.mode === 'captured' || P.capture.active) continue;
+    const d = th === amoeba ? Math.hypot(s.center.x - at.x, s.center.z - at.z) : s.center.distanceTo(at);
+    if (d < bd) { bd = d; best = P; }
+  }
+  return best || P1;
+}
+
+// --- the landmarks ---------------------------------------------------------------
+const FWD = LANDMARKS.forward, BACK = LANDMARKS.back;
+const lm = { fired: false, near: false, log: [] };
+function landmark(kind, P) {
+  lm.log.push({ kind, slot: P ? P.slot : 0, t });
+  embed.landmark(kind, { player: P ? P.slot : 0 });
+}
+const flatDist = (s, L) => Math.hypot(s.center.x - L.pos.x, s.center.z - L.pos.z);
+function landmarkTick(dt) {
+  let at = null, close = false;
+  for (const P of roster) {
+    const s = P.swimmer.state;
+    const ok = !P.waiting && (s.mode === 'swim' || s.mode === 'avoid') && !P.capture.active;
+    // forward: down on the biofilm (touch the leaf)
+    const df = flatDist(s, FWD);
+    if (ok && df < FWD.r && s.center.y < FWD.reachY) at = at || P;
+    if (df < FWD.r * 1.6 && s.center.y < FWD.reachY * 1.6) close = true;
+    // backdoor: low over the floor where the amoeba crawls
+    P.backT = ok && flatDist(s, BACK) < BACK.r && s.center.y < BACK.reachY ? P.backT + dt : 0;
+  }
+  if (at && !lm.fired) { lm.fired = true; landmark('forward', at); }
+  if (!close) lm.fired = false;
+  const dweller = roster.find((P) => P.backT > 0.5) || null;
+  if (!!dweller !== lm.near) { lm.near = !!dweller; embed.near('back', lm.near); }
+  promptEl.style.display = lm.near && !embed.active ? 'block' : 'none';
+  if (lm.near) promptEl.textContent = `${glyph('Y')} · back to the amoeba`;
+}
 
 // --- loop --------------------------------------------------------------------
-let t = 0, last = performance.now(), blocked = false;
+let t = 0, last = performance.now(), blocked = false, frameCount = 0;
 let ls = { x: 0, y: 0, m: 0 };
+const NO_INPUT = { ls: { x: 0, y: 0, m: 0 }, rt: 0, lt: 0, rise: 0, avoid: false, dashP: false, attackP: false, defendP: false };
+/** Read a player's buttons once per frame (pressed() is a fresh press since the last poll). */
+function readInput(P) {
+  const c = P.ctl;
+  return { ls: c.move(), rt: c.rt(), lt: c.lt(), rise: c.secondary(), avoid: c.defend.pressed(), dashP: c.dash.pressed(), attackP: c.attack.pressed(), defendP: c.defend.pressed() };
+}
 
 function tick(dt, forced = false) {
   if (debug.freeze && !forced) return;
@@ -578,81 +773,124 @@ function tick(dt, forced = false) {
   const s = swimmer.state;
   s.inspect = debug.inspect;
   const live = !blocked && !forced;
-  ls = live ? ctl.move() : { x: 0, y: 0, m: 0 };
   lightAt(t);
-  // symbionts: in the light the Chlorella feed you; in shade the store runs down
-  const sunny = inLight(s.center);
-  if (GREEN && marks.light) game.sun = Math.max(0, Math.min(1, game.sun + dt * (sunny ? 0.16 : -0.03)));
-  else game.sun = 1;
-  dash.update(dt * (0.45 + 0.55 * game.sun));
-  game.gulpT = Math.max(0, game.gulpT - dt); game.gulpCool = Math.max(0, game.gulpCool - dt); game.dashFx = Math.max(0, game.dashFx - dt);
-  const inp = {
-    thrust: debug.inspect ? 0.5 : live ? Math.max(ctl.rt(), debug.thrust) : debug.thrust,
-    hover: Math.max(live ? ctl.lt() : 0, game.gulpT > 0 ? 1 : 0), steer: live ? ls : debug.steer, rise: live ? ctl.secondary() : 0,
-    view: view.kind, camYaw: view.scopeYaw, vmaxK: 1, // shade slows the dash recharge only, never your swimming
-    avoid: live && ctl.defend.pressed(), struggle: live && ctl.dash.pressed() && s.mode === 'captured',
-  };
-  const ev = {};
-  const locked = capture.active; // a catch in progress: only the fight (X, A, B) while held
-  if (live && !locked && ctl.dash.pressed()) doDash(ls);
-  if (live && locked && s.mode === 'captured' && (ctl.dash.pressed() || ctl.defend.pressed())) cap.credit = Math.min(1.2, cap.credit + 0.4);
-  swimmer.step(dt, t, inp, ev);
+  const evs = new Map();
+  for (const P of roster) {
+    const sP = P.swimmer.state;
+    const I = live && P.in && !P.waiting ? P.in : NO_INPUT;
+    const lsP = I.ls;
+    if (P === P1) ls = live ? lsP : { x: 0, y: 0, m: 0 };
+    // symbionts: in the light the Chlorella feed you; in shade the store runs down
+    const sunny = inLight(sP.center);
+    if (GREEN && marks.light) P.sun = Math.max(0, Math.min(1, P.sun + dt * (sunny ? 0.16 : -0.03)));
+    else P.sun = 1;
+    P.dash.update(dt * (0.45 + 0.55 * P.sun));
+    P.gulpT = Math.max(0, P.gulpT - dt); P.gulpCool = Math.max(0, P.gulpCool - dt); P.dashFx = Math.max(0, P.dashFx - dt);
+    const isP1 = P === P1;
+    const inp = {
+      thrust: isP1 && debug.inspect ? 0.5 : live && !P.waiting ? Math.max(I.rt, isP1 ? debug.thrust : 0) : isP1 ? debug.thrust : 0,
+      hover: Math.max(live ? I.lt : 0, P.gulpT > 0 ? 1 : 0), steer: live ? lsP : isP1 ? debug.steer : NO_INPUT.ls, rise: live ? I.rise : 0,
+      view: view.kind, camYaw: view.scopeYaw, vmaxK: 1, // shade slows the dash recharge only, never your swimming
+      avoid: live && I.avoid, struggle: live && I.dashP && sP.mode === 'captured',
+    };
+    const ev = {};
+    const locked = P.capture.active; // a catch in progress: only the fight (X, A, B) while held
+    if (live && !locked && I.dashP) doDash(P, lsP);
+    if (live && locked && sP.mode === 'captured' && (I.dashP || I.defendP)) P.cap.credit = Math.min(1.2, P.cap.credit + 0.4);
+    P.swimmer.step(dt, t, inp, ev);
+    if (live && (!locked || sP.mode === 'captured') && I.attackP) doAttack(P);
+    evs.set(P, ev);
+  }
+  game.sun = P1.sun; game.gulpT = P1.gulpT; game.dashFx = P1.dashFx;
   soundTick(dt);
-  if (live && (!locked || s.mode === 'captured') && ctl.attack.pressed()) doAttack();
   // hunger: each hunter's own clock; only a hungry one hunts
   for (const th of hunters()) {
     th.hunger.update(dt);
     th.hungry = isHungry(th.hunger);
   }
   if (pacing.firstHungry === null && hunters().some((th) => th.hungry)) pacing.firstHungry = t - pacing.t0;
-  enc.update(dt, t, swimmer, ev);
-  amoeba.update(dt, t, swimmer, ev, world.flowAt);
+  // hunters pick a player: the one they hold, else the nearest free one
+  const evH = {};
+  enc.update(dt, t, (d) => { const T = targetOf(d); d.target = T.swimmer; return T.swimmer; }, evH);
+  const aT = targetOf(amoeba);
+  amoeba.target = aT.swimmer;
+  for (const P of roster) if (P !== aT) P.swimmer.state.slow *= Math.exp(-dt * 4);
+  amoeba.update(dt, t, aT.swimmer, evH, world.flowAt);
   if (pacing.firstThreat === null && s.mode === 'swim' && threats().some((th) => hunting(th) || (th === amoeba && amoeba.cup > 0))) pacing.firstThreat = t - pacing.t0;
-  if (ev.captured) startCapture(s.captor);
-  const anim = stepCapture(dt, s);
-  const w = world.update(dt, t, { center: s.center, axisA: s.axisA, axisB: s.axisB, U: s.U, mouth: s.mouth, feed: s.feed, alive: s.mode !== 'dead' });
-  for (let i = 0; i < w.eaten; i++) cell.ingest(10);
+  // a catch began: whoever is now held
+  for (const P of roster) {
+    const sP = P.swimmer.state;
+    if (sP.mode === 'captured' && !P.capture.active && sP.captor) startCapture(P, sP.captor);
+  }
+  const anims = new Map();
+  for (const P of roster) anims.set(P, stepCapture(P, dt));
+  // the water, the bacteria and the prey, for every cell
+  const feeds = roster.map((P) => {
+    const sP = P.swimmer.state;
+    if (!P.feedRef) P.feedRef = {};
+    return Object.assign(P.feedRef, { center: sP.center, axisA: sP.axisA, axisB: sP.axisB, U: sP.U, mouth: sP.mouth, feed: sP.feed, alive: sP.mode !== 'dead' && !P.waiting });
+  });
+  const w = world.update(dt, t, feeds);
+  roster.forEach((P, i) => { for (let k = 0; k < (w.eatenBy ? w.eatenBy[i] : 0); k++) P.cell.ingest(10); });
   game.bacteria += w.eaten;
-  const p = prey.update(dt, t, { center: s.center, mouth: s.mouth, alive: s.mode !== 'dead' }, world.flowAt);
+  const p = prey.update(dt, t, feeds, world.flowAt);
   for (const it of p.eaten) {
-    cell.ingest(1);
+    const P = roster.find((Q) => Q.feedRef === it.eatenBy) || P1;
+    P.cell.ingest(1);
     game.eaten++;
-    pad.rumble(120, 0.4, 0.2);
+    P.pad.rumble(120, 0.4, 0.2);
     if (game.eaten >= GOAL) {
       hud.toast(`Well fed: ${GOAL} prey! The cell divides. Round ${game.round + 1}`, 3000);
       game.eaten = 0; game.round++;
-    } else hud.toast(`Ate ${it.kind === 'chilomonas' ? 'a Chilomonas' : 'a bacterial clump'}: a food vacuole forms (${game.eaten}/${GOAL})`);
+    } else hud.toast(`${who(P)}Ate ${it.kind === 'chilomonas' ? 'a Chilomonas' : 'a bacterial clump'}: a food vacuole forms (${game.eaten}/${GOAL})`);
   }
 
-  // the cell
-  cell.group.position.copy(s.center);
-  cell.group.quaternion.copy(s.quat);
-  cell.group.visible = true; // being eaten is shown, never cut away
-  cell.update(dt, { phase: s.beatPhase, amp: s.amp, reverse: s.reverse, oral: s.oral });
-
-  if (ev.contact) onContact(ev.contact);
-  if (ev.vorticella) hud.toast('Bumped a Vorticella: its stalk coils');
+  // the cells
+  for (const P of roster) {
+    const sP = P.swimmer.state, C = P.cell, ev = evs.get(P), anim = anims.get(P);
+    C.group.position.copy(sP.center);
+    C.group.quaternion.copy(sP.quat);
+    C.update(dt, { phase: sP.beatPhase, amp: sP.amp, reverse: sP.reverse, oral: sP.oral });
+    if (ev.contact) onContact(P, ev.contact);
+    if (ev.vorticella) hud.toast('Bumped a Vorticella: its stalk coils');
+    // the bump: the cell recoils from the contact and squashes a little
+    if (sP.bumpT > 0) {
+      const k = Math.sin(Math.PI * (1 - sP.bumpT / 0.28));
+      C.group.position.addScaledVector(sP.bumpN, 5 * k * (LENGTH / 120));
+      C.group.scale.set(1 - 0.1 * k, 1 + 0.05 * k, 1 + 0.05 * k);
+    } else C.group.scale.set(1, 1, 1);
+    if (anim) { C.group.position.copy(anim.pos); C.group.quaternion.copy(anim.quat); C.group.scale.copy(anim.scale); }
+    if (sP.slow > 0.1) P.pad.rumble(40, 0.15 * sP.slow, 0.05); // the food cup dragging on you
+    if (ev.avoid) P.pad.rumble(50, 0.15, 0);
+  }
   contactFx.update(dt);
-  // the bump: the cell recoils from the contact and squashes a little
-  if (s.bumpT > 0) {
-    const k = Math.sin(Math.PI * (1 - s.bumpT / 0.28));
-    cell.group.position.addScaledVector(s.bumpN, 5 * k * (LENGTH / 120));
-    cell.group.scale.set(1 - 0.1 * k, 1 + 0.05 * k, 1 + 0.05 * k);
-  } else cell.group.scale.set(1, 1, 1);
-  if (anim) { cell.group.position.copy(anim.pos); cell.group.quaternion.copy(anim.quat); cell.group.scale.copy(anim.scale); }
-  if (s.slow > 0.1) pad.rumble(40, 0.15 * s.slow, 0.05); // the food cup dragging on you
-  if (ev.avoid) pad.rumble(50, 0.15, 0);
-  if (ev.captured) hud.toast(ev.captured === 'amoeba' ? 'The amoeba\'s food cup closes! X: trichocysts · A: struggle' : 'Didinium\'s proboscis has you! X: fire trichocysts · A: struggle', 2800);
+  landmarkTick(dt);
+}
+
+/** The group for the shared camera: the middle of the players' helix axes, and how far apart they are. */
+const grp = { multi: false, axis: new THREE.Vector3(), center: new THREE.Vector3(), spread: 0 };
+function group() {
+  const ps = liveRoster();
+  grp.multi = ps.length > 1;
+  grp.axis.set(0, 0, 0); grp.center.set(0, 0, 0);
+  for (const P of ps) { grp.axis.add(P.swimmer.state.axis); grp.center.add(P.swimmer.state.center); }
+  grp.axis.multiplyScalar(1 / Math.max(1, ps.length)); grp.center.multiplyScalar(1 / Math.max(1, ps.length));
+  grp.spread = 0;
+  for (const P of ps) grp.spread = Math.max(grp.spread, P.swimmer.state.axis.distanceTo(grp.axis));
+  return grp;
 }
 
 function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
-  pad.poll();
+  frameCount++;
+  players.poll();
+  syncRoster();
   unlockOnPad();
   blocked = features.update(); // the panel is open: no game input this frame
   if (!blocked) hud.update(pad);
+  for (const P of roster) P.in = blocked || P.waiting ? null : readInput(P);
   if (!blocked) {
     const step = ctl.lookStep();
     if (step) {
@@ -660,7 +898,12 @@ function frame(now) {
       features.set('look', MODE_NAMES[MODES[(view.mode + step + MODES.length) % MODES.length]]);
       hud.toast(MODE_NAMES[MODES[view.mode]]);
     }
-    if (ctl.special.pressed()) { features.set('view', view.kind === 'chase' ? VIEW_NAMES.scope : VIEW_NAMES.chase); hud.toast(view.kind === 'scope' ? `Microscope view, ${OBJECTIVES[view.obj].name} objective` : 'Chase camera (hypothetical)'); }
+    // Y: on the amoeba's floor it takes everyone back to the amoeba; elsewhere (player 1) the camera
+    for (const P of roster) {
+      if (P.waiting || !P.ctl.special.pressed()) continue;
+      if (P.backT > 0.5) landmark('back', P);
+      else if (P === P1) { features.set('view', view.kind === 'chase' ? VIEW_NAMES.scope : VIEW_NAMES.chase); hud.toast(view.kind === 'scope' ? `Microscope view, ${OBJECTIVES[view.obj].name} objective` : 'Chase camera (hypothetical)'); }
+    }
     const z = ctl.zoomStep();
     if (z) {
       if (view.kind === 'scope') { features.set('objective', OBJECTIVES[Math.max(0, Math.min(2, view.obj + z))].name); hud.toast(`${OBJECTIVES[view.obj].name} objective`); }
@@ -686,26 +929,40 @@ function frame(now) {
   tick(dt);
 
   const s = swimmer.state;
-  const cam = updateCameras(dt, s, ls);
+  const cam = updateCameras(dt, s, ls, group());
   adapt(dt);
-  drawOverlay(cam, s);
+  // the split screen (one view while together: the fast path, as before)
+  const list = liveRoster().map((P) => ({ slot: P.slot, position: P.swimmer.state.center }));
+  const L = split.update(list.length ? list : [{ slot: 0, position: s.center }], { camera: cam }, dt);
+  const want = L.views.length > 1 ? 0.75 : 1;
+  if (want !== splitScale) { splitScale = want; resize(); }
+  drawOverlay(cam);
   updateGoal(s);
   if (gpuBusy()) return; // the GPU is still on an earlier frame: skip this render
   const modeName = MODES[view.mode];
   const plate = modeName === 'darkfield' ? plates.darkfield : modeName === 'phase' ? plates.phase : null;
   const pf = OBJECTIVES[view.obj].field * 4;
-  const optP = {
-    mode: view.mode, stop: view.kind === 'scope' && view.fieldStop, plate,
-    plateOff: new THREE.Vector2(cam.position.x / pf, -cam.position.z / pf),
-    blurScale: view.kind === 'scope' ? (view.dof === 'strong' ? 1.6 : 1) : 1.2,
-    plateMix: view.plate === 'full' ? 1 : 0.3, plateBlur: view.plate === 'full' ? 0 : 3.5,
-    plateRot: view.kind === 'scope' ? view.scopeYaw - Math.PI / 2 : 0,
-    bfSoft: 1,
-  };
-  if (borrow.id) renderBorrowed(cam, optP, dt);
-  else optics.render(scene, cam, optP);
+  const many = L.views.length > 1;
+  split.render(cam, (v) => {
+    // each view focuses on its own players' depth
+    if (many) focusFor(v, cam);
+    const optP = {
+      mode: view.mode, stop: view.kind === 'scope' && view.fieldStop && !many, plate,
+      plateOff: new THREE.Vector2(cam.position.x / pf, -cam.position.z / pf),
+      blurScale: view.kind === 'scope' ? (view.dof === 'strong' ? 1.6 : 1) : 1.2,
+      plateMix: view.plate === 'full' ? 1 : 0.3, plateBlur: view.plate === 'full' ? 0 : 3.5,
+      plateRot: view.kind === 'scope' ? view.scopeYaw - Math.PI / 2 : 0,
+      bfSoft: 1,
+    };
+    if (borrow.id) renderBorrowed(cam, optP, dt);
+    else optics.render(scene, cam, optP);
+  });
   fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
   rendered++;
+  // the edge arrows: the brass chevron to the biofilm, the ring to the amoeba's floor
+  edgeMarks.begin();
+  edgeMarks.drawSplit(split, FWD.pos, { kind: 'forward', label: FWD.label, range: 3000 });
+  edgeMarks.drawSplit(split, BACK.pos, { kind: 'backdoor', label: BACK.label, range: 3000 });
 
   const bl = s.netSpeed / LENGTH;
   const charges = '●'.repeat(s.charges) + '○'.repeat(3 - s.charges);
@@ -716,17 +973,30 @@ function frame(now) {
     `${SP.latin} ${LENGTH} µm · ${Math.round(s.netSpeed).toString().padStart(4)} µm/s · ${bl.toFixed(1)} body lengths/s (max ${VMAX})`,
     `depth ${Math.round(s.center.y)} of ${DEPTH} µm · ${stateText(s)}`,
     `prey ${game.eaten}/${GOAL} (round ${game.round}) · food vacuoles ${cell.foodCount} · bacteria ${game.bacteria}`,
-    `${dash.text()} · trichocysts ${charges}${GREEN ? ` · light ${Math.round(game.sun * 100)}% (${inLight(s.center) ? 'in the sun' : 'in shade'})` : ''}`,
+    `${dash.text()} · trichocysts ${charges}${GREEN ? ` · light ${Math.round(P1.sun * 100)}% (${inLight(s.center) ? 'in the sun' : 'in shade'})` : ''}`,
     near ? `${near.label} ${Math.round(near.d)} µm away (${near.state})` : 'no hunter near',
     `hunger: ${world.didinia.map((d, i) => `Didinium ${i + 1} ${enc.opts.didinium ? hungerText(d.hunger) : 'off'}`).join(' · ')} · amoeba ${amoeba.opts.on ? hungerText(amoeba.hunger) : 'off'}`,
-    `${Math.round(renderFps)} fps · render scale ${renderScale.toFixed(2)}`,
-  ].join('\n'));
+    `biofilm ${Math.round(flatDist(s, FWD))} µm · amoeba's floor ${Math.round(flatDist(s, BACK))} µm`,
+    multi() ? `players ${roster.length} · views ${L.views.length}${L.merged ? ' (together)' : ''}` : '',
+    `${Math.round(renderFps)} fps · render scale ${(renderScale * splitScale).toFixed(2)}`,
+  ].filter((l) => l).join('\n'));
+}
+
+/** A split view's focal plane: the depth of the players it shows. */
+function focusFor(v, cam) {
+  const c = new THREE.Vector3();
+  let n = 0;
+  for (const P of roster) if (v.slots.includes(P.slot)) { c.add(P.swimmer.state.center); n++; }
+  if (!n) return;
+  c.multiplyScalar(1 / n);
+  if (view.kind === 'scope') shared.uFocus.value = cam.position.y - c.y;
+  else { shared.uFocus.value = cam.position.distanceTo(c); shared.uNear.value.set(40, Math.max(60, shared.uFocus.value * 0.55)); }
 }
 
 function stateText(s) {
   if (capture.active) return `${cap.phase === 'strike' ? 'STRUCK' : cap.phase === 'hold' ? 'HELD' : 'BEING EATEN'} by ${CATCH[catchKind(cap.th)].by}`;
   return s.mode === 'avoid' ? 'avoidance reaction' : s.mode === 'captured' ? (s.captor === amoeba ? 'ENGULFED by the amoeba' : 'HELD by Didinium')
-    : s.mode === 'dead' ? 'eaten' : s.dashT > 0 ? 'dashing' : game.gulpT > 0 ? 'gulping' : s.feed > 0.3 ? 'feeding' : 'swimming';
+    : s.mode === 'dead' ? 'eaten' : s.dashT > 0 ? 'dashing' : P1.gulpT > 0 ? 'gulping' : s.feed > 0.3 ? 'feeding' : 'swimming';
 }
 
 function nearestThreat(s) {
@@ -744,41 +1014,64 @@ function updateGoal(s) {
   const dots = '●'.repeat(game.eaten) + '○'.repeat(GOAL - game.eaten);
   const n = Math.round(dash.charge * 5);
   const parts = [`Eat ${GOAL} prey ${dots}`];
-  if (GREEN) parts.push(`${inLight(s.center) ? '☀' : '☁'} light ${'▮'.repeat(Math.round(game.sun * 5))}${'▯'.repeat(5 - Math.round(game.sun * 5))}`);
-  parts.push(`A dash ${'■'.repeat(n)}${'□'.repeat(5 - n)}`, `X trichocysts ${'●'.repeat(s.charges)}${'○'.repeat(3 - s.charges)}`);
+  if (GREEN) parts.push(`${inLight(s.center) ? '☀' : '☁'} light ${'▮'.repeat(Math.round(P1.sun * 5))}${'▯'.repeat(5 - Math.round(P1.sun * 5))}`);
+  parts.push(`${glyph('A')} dash ${'■'.repeat(n)}${'□'.repeat(5 - n)}`, `${glyph('X')} trichocysts ${'●'.repeat(s.charges)}${'○'.repeat(3 - s.charges)}`);
+  // the most urgent thing happening to anyone (named in multiplayer)
   let warn = '';
-  if (capture.active && cap.phase !== 'eaten') warn = CATCH[catchKind(cap.th)][cap.phase];
-  else if (capture.active) warn = '';
-  else if (s.mode === 'captured') warn = s.captor === amoeba ? 'ENGULFED: X trichocysts · A struggle' : 'HELD by Didinium: X trichocysts · A struggle';
-  else if (amoeba.cup > 0.05) warn = 'The amoeba is cupping you: DASH out (A)!';
-  else { const h = threats().find((th) => hunting(th) && th !== amoeba); if (h) warn = `${h.label} is hunting you: dash sideways (A)`; }
+  for (const P of roster) {
+    const sP = P.swimmer.state, C = P.cap;
+    let w = '';
+    if (P.capture.active && C.phase !== 'eaten') w = catchText(catchKind(C.th), C.phase);
+    else if (P.capture.active) w = '';
+    else if (sP.mode === 'captured') w = sP.captor === amoeba ? `ENGULFED: ${glyph('X')} trichocysts · ${glyph('A')} struggle` : `HELD by Didinium: ${glyph('X')} trichocysts · ${glyph('A')} struggle`;
+    else if (amoeba.cup > 0.05 && amoeba.target === P.swimmer) w = `The amoeba is cupping you: DASH out (${glyph('A')})!`;
+    else { const h = threats().find((th) => hunting(th) && th !== amoeba && th.target === P.swimmer); if (h) w = `${h.label} is hunting you: dash sideways (${glyph('A')})`; }
+    if (w) { warn = who(P) + w; break; }
+  }
   goalEl.innerHTML = parts.join(' &nbsp;·&nbsp; ') + (warn ? `<div style="color:#ff8a7a;text-align:center;margin-top:2px">${warn}</div>` : '');
   goalEl.style.borderRadius = warn ? '12px' : '999px';
 }
 
 // --- overlay: subtle cues, light and shade (nothing round your own cell) --------
-const pv = new THREE.Vector3();
-function toScreen(p, cam) {
-  pv.copy(p).project(cam);
-  return { x: (pv.x + 1) / 2 * cssW, y: (1 - pv.y) / 2 * cssH, ok: pv.z > -1 && pv.z < 1 };
-}
-function drawOverlay(cam, s) {
+// Drawn once per split view, clipped to its region; in multiplayer each cell
+// gets a faint ring in its player's colour so you can tell who is who.
+const split = createSplitScreen(renderer, { capture: true, up: null });
+const edgeMarks = createLandmarks({ zIndex: 4 });
+function drawOverlay(cam) {
   const g = markG, sg = shadeG;
   g.setTransform(dpr, 0, 0, dpr, 0, 0); sg.setTransform(dpr, 0, 0, dpr, 0, 0);
   g.clearRect(0, 0, cssW, cssH); sg.clearRect(0, 0, cssW, cssH);
   if (debug.clean) return;
+  const L = split.layout;
+  const many = L.views.length > 1;
+  for (const v of L.views) {
+    const regs = L.regions.filter((r) => r.view === v.index);
+    const P = roster.find((Q) => v.slots.includes(Q.slot)) || P1;
+    const anchor = regs.length && many ? [regs.reduce((a, r) => a + r.anchor[0], 0) / regs.length, regs.reduce((a, r) => a + r.anchor[1], 0) / regs.length] : [cssW / 2, cssH / 2];
+    for (const ctx of [g, sg]) {
+      ctx.save();
+      if (many) { ctx.beginPath(); for (const r of regs) { ctx.moveTo(r.polygon[0][0], r.polygon[0][1]); for (const q of r.polygon.slice(1)) ctx.lineTo(q[0], q[1]); ctx.closePath(); } ctx.clip(); }
+    }
+    drawViewOverlay(cam, P.swimmer.state, (p) => { const q = split.project(v.index, p); return { x: q.x, y: q.y, ok: !q.behind }; }, anchor, many);
+    g.restore(); sg.restore();
+  }
+}
+function drawViewOverlay(cam, s, proj, anchor, many) {
+  const g = markG, sg = shadeG;
   const scopeV = view.kind === 'scope';
+  const stopOn = scopeV && view.fieldStop && !many;
   const pxPerUm = scopeV ? cssH / (2 * (OBJECTIVES[view.obj].field / 2 / 0.95)) : cssH / (2 * Math.tan((chase.fov * Math.PI) / 360) * Math.max(1, chase.position.distanceTo(s.center)));
-  const cx = cssW / 2, cy = cssH / 2, R = scopeV && view.fieldStop ? cssH * 0.475 : Math.hypot(cssW, cssH) / 2;
-  const visible = (q) => q.ok && (scopeV && view.fieldStop ? Math.hypot(q.x - cx, q.y - cy) < R - 6 : q.x > 8 && q.y > 8 && q.x < cssW - 8 && q.y < cssH - 8);
+  const [cx, cy] = anchor;
+  const R = stopOn ? cssH * 0.475 : Math.hypot(cssW, cssH) / 2;
+  const visible = (q) => q.ok && (stopOn ? Math.hypot(q.x - cssW / 2, q.y - cssH / 2) < R - 6 : q.x > 8 && q.y > 8 && q.x < cssW - 8 && q.y < cssH - 8);
   const dark = MODES[view.mode] === 'darkfield' || (borrow.id === 'semMite');
   const edgeArrow = (q, col, text) => {
     let dx = q.x - cx, dy = q.y - cy;
     if (!q.ok) { dx = -dx; dy = -dy; }
     const a = Math.atan2(dy, dx);
-    const rr = scopeV && view.fieldStop ? R - 22 : Math.min(cssW, cssH) / 2 - 26;
-    const ex = scopeV && view.fieldStop ? cx + Math.cos(a) * rr : Math.max(26, Math.min(cssW - 26, cx + Math.cos(a) * cssW));
-    const ey = scopeV && view.fieldStop ? cy + Math.sin(a) * rr : Math.max(26, Math.min(cssH - 26, cy + Math.sin(a) * cssH));
+    const rr = stopOn ? R - 22 : Math.min(cssW, cssH) / 2 - 26;
+    const ex = stopOn ? cssW / 2 + Math.cos(a) * rr : Math.max(26, Math.min(cssW - 26, cx + Math.cos(a) * cssW));
+    const ey = stopOn ? cssH / 2 + Math.sin(a) * rr : Math.max(26, Math.min(cssH - 26, cy + Math.sin(a) * cssH));
     g.save(); g.translate(ex, ey); g.rotate(a);
     g.fillStyle = col; g.beginPath(); g.moveTo(13, 0); g.lineTo(-7, -9); g.lineTo(-3, 0); g.lineTo(-7, 9); g.closePath(); g.fill();
     g.restore();
@@ -790,7 +1083,7 @@ function drawOverlay(cam, s) {
 
   // light and shade (microscope view): the shaded part of the drop darker
   if (GREEN && marks.light && scopeV) {
-    const lc = toScreen(new THREE.Vector3(light.c.x, 0, light.c.y), cam);
+    const lc = proj(new THREE.Vector3(light.c.x, 0, light.c.y));
     const lr = light.r * pxPerUm;
     sg.fillStyle = 'rgb(150,160,190)';
     sg.fillRect(0, 0, cssW, cssH);
@@ -800,22 +1093,41 @@ function drawOverlay(cam, s) {
     if (!inLight(s.center) && !visible(lc)) edgeArrow(lc, '#ffd25a', 'light');
   }
 
+  // multiplayer: a faint ring in each player's colour (alone, nothing is drawn round your cell)
+  if (multi()) {
+    const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0);
+    for (const P of liveRoster()) {
+      const sP = P.swimmer.state;
+      if (sP.mode === 'dead') continue;
+      const q = proj(P.cell.group.position);
+      if (!q.ok) continue;
+      const e = proj(P.cell.group.position.clone().addScaledVector(right, HL * 1.25));
+      const r = Math.max(14, Math.hypot(e.x - q.x, e.y - q.y));
+      g.globalAlpha = 0.55; g.strokeStyle = P.color; g.lineWidth = 1.6;
+      g.beginPath(); g.arc(q.x, q.y, r, -0.3, Math.PI * 0.55); g.stroke();
+      g.beginPath(); g.arc(q.x, q.y, r, Math.PI * 0.85, Math.PI * 1.55); g.stroke();
+      g.globalAlpha = 0.8; g.fillStyle = P.color; g.font = '600 10px system-ui, sans-serif'; g.textAlign = 'center';
+      g.fillText(`P${P.slot + 1}`, q.x, q.y - r - 4);
+      g.globalAlpha = 1;
+    }
+  }
+
   // prey: a small soft ring only when in reach of a gulp; a faint arrow when none is in view
   if (marks.prey && s.mode !== 'dead') {
-    const gc = updateGulpCentre(s);
+    const gcs = liveRoster().map((P) => updateGulpCentre(P.swimmer.state).clone());
     let anyVisible = false;
     for (const it of prey.items) {
       if (!it.alive || it.pull) continue;
-      const q = toScreen(it.pos, cam);
+      const q = proj(it.pos);
       if (!visible(q)) continue;
       anyVisible = true;
-      if (it.pos.distanceTo(gc) >= GULP_REACH) continue;
+      if (!gcs.some((gc) => it.pos.distanceTo(gc) < GULP_REACH)) continue;
       const r = Math.max(7, (it.r + 5) * pxPerUm);
       g.strokeStyle = dark ? 'rgba(150,240,160,0.55)' : 'rgba(40,150,60,0.55)';
       g.lineWidth = 1.2;
       g.beginPath(); g.arc(q.x, q.y, r, 0, Math.PI * 2); g.stroke();
     }
-    if (!anyVisible) { const n = prey.nearest(s.center); if (n) edgeArrow(toScreen(n.pos, cam), dark ? 'rgba(127,224,138,0.55)' : 'rgba(47,154,69,0.55)', ''); }
+    if (!anyVisible) { const n = prey.nearest(s.center); if (n) edgeArrow(proj(n.pos), dark ? 'rgba(127,224,138,0.55)' : 'rgba(47,154,69,0.55)', ''); }
   }
 
   // hunters: a faint red arrow only for one closing in from out of view
@@ -825,7 +1137,7 @@ function drawOverlay(cam, s) {
       const d = isA ? amoeba.edgeDist(s.center) : th.pos.distanceTo(s.center);
       const hot = hunting(th) || (isA && amoeba.cup > 0);
       const centre = isA ? new THREE.Vector3(amoeba.pos.x, amoeba.H, amoeba.pos.z) : th.pos;
-      const q = toScreen(centre, cam);
+      const q = proj(centre);
       if (visible(q)) {
         if (!marks.rings || (!hot && d > 700)) continue;
         const col = hot ? 'rgba(255,90,70,0.8)' : 'rgba(255,190,80,0.7)';
@@ -860,18 +1172,20 @@ function renderBorrowed(cam, optP, dt) {
 }
 
 // --- debug hooks for screenshots and tests ------------------------------------
+const slotP = (slot) => roster.find((P) => P.slot === slot) || P1;
 const debug = {
   freeze: false, inspect: false, clean: false, thrust: 0, steer: { x: 0, y: 0, m: 0 },
   setMode(i) { features.set('look', MODE_NAMES[MODES[((i % MODES.length) + MODES.length) % MODES.length]]); },
   setView(k) { features.set('view', VIEW_NAMES[k]); },
   setOrbit(yaw, pitch, dist) { view.orbitYaw = yaw; view.orbitPitch = pitch; if (dist) view.dist = dist; },
   avoid() { swimmer.startAvoid(null, null); },
-  dash(yaw = null) { if (swimmer.dash(yaw)) { dash.trigger(); game.dashFx = 0.45; } },
-  attack() { doAttack(); },
-  burst() { fireTrichocysts(touchingThreat(swimmer.state)); },
-  teleport(x, y, z, yaw = 0, pitch = 0) {
-    const s = swimmer.state; s.axis.set(x, y, z); s.yaw = yaw; s.pitch = pitch;
-    view.camAxis.set(x, y, z); view.camYaw = yaw; view.camPitch = pitch; view.focusY = y; view.scopeYaw = yaw;
+  dash(yaw = null) { if (swimmer.dash(yaw)) { dash.trigger(); P1.dashFx = 0.45; } },
+  attack() { doAttack(P1); },
+  burst() { fireTrichocysts(P1, touchingThreat(swimmer.state)); },
+  /** Put a player (default player 1) at (x, y, z) µm; the camera snaps there for player 1. */
+  teleport(x, y, z, yaw = 0, pitch = 0, slot = 0) {
+    const P = slotP(slot), s = P.swimmer.state; s.axis.set(x, y, z); s.yaw = yaw; s.pitch = pitch;
+    if (P === P1) { view.camAxis.set(x, y, z); view.camYaw = yaw; view.camPitch = pitch; view.focusY = y; view.scopeYaw = yaw; }
   },
   /** Put a hunter at an offset (µm) from the player, heading at it. */
   didinium(dx, dz, i = 0) {
@@ -883,10 +1197,11 @@ const debug = {
   step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) tick(dt, true); },
 };
 
-/** Test hook: put a hunter on you and start its catch ('didinium' | 'amoeba'). */
-function forceCapture(kind = 'didinium') {
-  const s = swimmer.state;
-  if (capture.active) capture.reset(false);
+/** Test hook: put a hunter on a player (default player 1) and start its catch ('didinium' | 'amoeba'). */
+function forceCapture(kind = 'didinium', slot = 0) {
+  const P = slotP(slot);
+  const s = P.swimmer.state;
+  if (P.capture.active) P.capture.reset(false);
   if (s.mode !== 'swim') { s.mode = 'swim'; s.captor = null; s.avoid = null; }
   s.safeT = 0;
   let th;
@@ -906,8 +1221,8 @@ function forceCapture(kind = 'didinium') {
     th.tip = (th.tip || new THREE.Vector3()).copy(th.pos).addScaledVector(th.dir, 66);
     th.stun = 0; th.sated = 0;
   }
-  if (swimmer.capture(th)) startCapture(th);
-  return capture.phase;
+  if (P.swimmer.capture(th)) startCapture(P, th);
+  return P.capture.phase;
 }
 
 window.__micro = {
@@ -921,5 +1236,9 @@ window.__micro = {
   get camera() { return view.kind === 'scope' ? scope : chase; },
   get t() { return t; },
   get look() { return lookName(); },
+  // Micro Zoom: players, split screen and landmarks
+  players, split, landmarks: { forward: FWD.pos, back: BACK.pos, log: lm.log, get near() { return lm.near; } },
+  get frames() { return frameCount; },
+  roster: () => roster.map((P) => { const s = P.swimmer.state; return { slot: P.slot, x: s.center.x, y: s.center.y, z: s.center.z, mode: s.mode, capture: P.capture.active ? P.cap.phase : null, waiting: P.waiting }; }),
 };
 requestAnimationFrame((n) => { last = n; frame(n); });
