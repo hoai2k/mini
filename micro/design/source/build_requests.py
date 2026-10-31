@@ -511,7 +511,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} An app icon: a brass microscope objective seen end-on, concentric brass and black rings around a glowing round field of view that holds a small plump tardigrade in soft DIC grey-green; on a rounded-square tile of deep ink green. Bold and readable at 48 px. The rounded square fills the frame with transparent corners. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
             },
             {
-                "id": "MP-G07", "name": "World intro: Bog surface (springtail)",
+                "id": "MP-G07", "status": "delivered", "name": "World intro: Bog surface (springtail)",
                 "file": "assets/game/intro-springtail.webp", "size": "2560 x 1440, opaque",
                 "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
                 "standin": "The world's launcher card, enlarged and blurred.",
@@ -519,7 +519,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing macro photograph at about 2:1, natural daylight, very shallow depth of field: a blue-black water springtail (Podura aquatica) standing on the dimpled water film of a bog pool, Sphagnum islands and a sundew in soft focus behind. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
             },
             {
-                "id": "MP-G08", "name": "World intro: Moss canopy (mite)",
+                "id": "MP-G08", "status": "delivered", "name": "World intro: Moss canopy (mite)",
                 "file": "assets/game/intro-mite.webp", "size": "2560 x 1440, opaque",
                 "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
                 "standin": "The world's launcher card, enlarged and blurred.",
@@ -527,7 +527,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing scanning electron micrograph look, greyscale: a small armoured box mite among towering Sphagnum leaves and fungal hyphae, deep focus. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
             },
             {
-                "id": "MP-G09", "name": "World intro: Water film (tardigrade)",
+                "id": "MP-G09", "status": "delivered", "name": "World intro: Water film (tardigrade)",
                 "file": "assets/game/intro-tardigrade.webp", "size": "2560 x 1440, opaque",
                 "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
                 "standin": "The world's launcher card, enlarged and blurred.",
@@ -535,7 +535,7 @@ GROUPS = [
                 "prompt": f"{GAMEUI} A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing differential interference contrast microscope look: a plump tardigrade gripping the cell walls of a moss leaf under a thin water film, chloroplasts in the cells, a Milnesium as a soft blur in the distance. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
             },
             {
-                "id": "MP-G10", "name": "World intro: Pool floor (amoeba)",
+                "id": "MP-G10", "status": "delivered", "name": "World intro: Pool floor (amoeba)",
                 "file": "assets/game/intro-amoeba.webp", "size": "2560 x 1440, opaque",
                 "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
                 "standin": "The world's launcher card, enlarged and blurred.",

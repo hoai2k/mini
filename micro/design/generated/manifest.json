@@ -2055,6 +2055,214 @@
     "mood_boards": []
   },
   {
+    "id": "MP-G07",
+    "name": "World intro: Bog surface (springtail)",
+    "file": "assets/game/intro-springtail.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE wide16:9 world-introduction background plate for Micro Zoom. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing macro photograph at about 2:1, natural daylight, very shallow depth of field: a blue-black water springtail (Podura aquatica) standing on the dimpled water film of a bog pool, Sphagnum islands and a sundew in soft focus behind. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.\nSERIES LAYOUT (critical): full-bleed dark ink-green natural-history paper. Leave the entire LEFT THIRD calm, empty and very dark for overlaid text. On the RIGHT TWO THIRDS, one LARGE CIRCULAR microscope field of view, surrounded by a finely engraved ANTIQUE BRASS eyepiece ring. Round field approximately centred at70% image width and50% height; ring fits with small top/bottom margin. Ring has unnumbered vernier ticks and restrained copperplate detail. No rectangular inset panels, no writing, no UI, no title or logo, no hands. The specimen view is contained INSIDE the circular field, and keeps the specific optical style below; warm brass outside the circle does not tint an SEM or DIC micrograph inside. Photographs1Poduraswarm,2sundew,3bogwater are organism/environment REFERENCES ONLY. Inside circle: photoreal MACRO natural overcast daylight, soft shallow focus, one blue-black wingless Podura with exactly SIX legs, dimpling dark tea-brown water film. It has short antennae and plump segmented granular body, not a beetle. Water reflection, moss islands and round sundew leaf blurred behind. No people, fingers, artificial studio glare or fantasy forest. Preserve the blank left third and a SINGLE round right-hand field. Export16:9, no text or watermark.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing macro photograph at about 2:1, natural daylight, very shallow depth of field: a blue-black water springtail (Podura aquatica) standing on the dimpled water film of a bog pool, Sphagnum islands and a sundew in soft focus behind. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-1da037f7-c7c6-4a01-9ccf-64e762dc6444.png",
+    "input_images": [
+      "research/assets/references/springtail-swarm.jpg",
+      "research/assets/references/production/sundew.jpg",
+      "research/assets/references/production/bog-pool.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "be8cbf3d95aed0e26ebd3cd5be212a2bb40cfc2bc8a7512e5e83a7acfbc7d60c",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "springtail-swarm",
+        "local": "assets/references/springtail-swarm.jpg",
+        "author": "Philippe  Garcelon",
+        "license": "CC BY 2.0",
+        "license_url": "https://creativecommons.org/licenses/by/2.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Podura_aquatica_-_1.jpg"
+      },
+      {
+        "id": "sundew",
+        "local": "assets/references/production/sundew.jpg",
+        "author": "Petr Dlouhý",
+        "license": "CC BY-SA 3.0",
+        "license_url": "http://creativecommons.org/licenses/by-sa/3.0/",
+        "source": "https://commons.wikimedia.org/wiki/File:Drosera_rotundifolia_leaf1.jpg"
+      },
+      {
+        "id": "bog-pool",
+        "local": "assets/references/production/bog-pool.jpg",
+        "author": "JarroNevsbaru",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-G08",
+    "name": "World intro: Moss canopy (mite)",
+    "file": "assets/game/intro-mite.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE wide16:9 world-introduction background plate for Micro Zoom. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing scanning electron micrograph look, greyscale: a small armoured box mite among towering Sphagnum leaves and fungal hyphae, deep focus. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.\nSERIES LAYOUT (critical): full-bleed dark ink-green natural-history paper. Leave the entire LEFT THIRD calm, empty and very dark for overlaid text. On the RIGHT TWO THIRDS, one LARGE CIRCULAR microscope field of view, surrounded by a finely engraved ANTIQUE BRASS eyepiece ring. Round field approximately centred at70% image width and50% height; ring fits with small top/bottom margin. Ring has unnumbered vernier ticks and restrained copperplate detail. No rectangular inset panels, no writing, no UI, no title or logo, no hands. The specimen view is contained INSIDE the circular field, and keeps the specific optical style below; warm brass outside the circle does not tint an SEM or DIC micrograph inside. Photo1 is the armoured BOX MITE anatomy; photo2 moss leaf structure; photo3 ONLY an SEM visual-style reference, do not put a tardigrade in this image. Inside field: strictly GREYSCALE SEM, one small domed armoured box mite, exactly EIGHT jointed legs, among Sphagnum leaves and fine fungal hyphae. Deep focus, electron-image edge brightness and grain, no green leaves, warm colour tint or conventional macro lighting INSIDE field. Brass outside stays brass. Preserve the blank left third and a SINGLE round right-hand field. Export16:9, no text or watermark.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing scanning electron micrograph look, greyscale: a small armoured box mite among towering Sphagnum leaves and fungal hyphae, deep focus. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-4db50347-5441-4454-aae6-a210800cb33f.png",
+    "input_images": [
+      "research/assets/references/mite.jpg",
+      "research/assets/references/moss.jpg",
+      "research/assets/references/tardigrade-sem.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "75e0621c20d4cee739af157176ca5177da4736777dc742d131b0f0a4922e63dc",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "mite",
+        "local": "assets/references/mite.jpg",
+        "author": "S.E. Thorpe",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg"
+      },
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      },
+      {
+        "id": "tardigrade-sem",
+        "local": "assets/references/tardigrade-sem.png",
+        "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
+        "license": "CC BY 2.5",
+        "license_url": "https://creativecommons.org/licenses/by/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-G09",
+    "name": "World intro: Water film (tardigrade)",
+    "file": "assets/game/intro-tardigrade.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE wide16:9 world-introduction background plate for Micro Zoom. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing differential interference contrast microscope look: a plump tardigrade gripping the cell walls of a moss leaf under a thin water film, chloroplasts in the cells, a Milnesium as a soft blur in the distance. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.\nSERIES LAYOUT (critical): full-bleed dark ink-green natural-history paper. Leave the entire LEFT THIRD calm, empty and very dark for overlaid text. On the RIGHT TWO THIRDS, one LARGE CIRCULAR microscope field of view, surrounded by a finely engraved ANTIQUE BRASS eyepiece ring. Round field approximately centred at70% image width and50% height; ring fits with small top/bottom margin. Ring has unnumbered vernier ticks and restrained copperplate detail. No rectangular inset panels, no writing, no UI, no title or logo, no hands. The specimen view is contained INSIDE the circular field, and keeps the specific optical style below; warm brass outside the circle does not tint an SEM or DIC micrograph inside. Inside field DIC microscope rendering: colourless transparent foreground tardigrade, exactly FOUR PAIRS of unjointed lobopod legs with claws, the fourth pair points rearward, gripping a moss leaf with visible cell walls and real green chloroplasts. Pale grey transmitted-light background, consistent Nomarski directional pseudo-relief, subtle optical softness. A second Milnesium only a SOFT BLURRED distant form, not a giant monster. Photo1lightmicroscope forforeground,2leaf,3SEMforbackgroundMilnesiumbody only, do not copy SEM colour/light. Preserve the blank left third and a SINGLE round right-hand field. Export16:9, no text or watermark.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing differential interference contrast microscope look: a plump tardigrade gripping the cell walls of a moss leaf under a thin water film, chloroplasts in the cells, a Milnesium as a soft blur in the distance. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-f6d008a6-b235-463f-8735-e6c56620ede0.png",
+    "input_images": [
+      "research/assets/references/tardigrade-light.png",
+      "research/assets/references/moss.jpg",
+      "research/assets/references/tardigrade-sem.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "9f57329dab3ad19d92668891cd2f909d9bf22b25cb97a76224dcb037a7ead5ca",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "tardigrade-light",
+        "local": "assets/references/tardigrade-light.png",
+        "author": "Dorathyexplorer",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png"
+      },
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      },
+      {
+        "id": "milnesium",
+        "local": "assets/references/tardigrade-sem.png",
+        "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
+        "license": "CC BY 2.5",
+        "license_url": "https://creativecommons.org/licenses/by/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-G10",
+    "name": "World intro: Pool floor (amoeba)",
+    "file": "assets/game/intro-amoeba.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "The intro screen of this world, which the select card zooms into; text sits over the left third.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE wide16:9 world-introduction background plate for Micro Zoom. Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing brightfield microscope look: Amoeba proteus with broad pseudopods curving round a small ciliate on the slide, Spirogyra filaments out of focus behind. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.\nSERIES LAYOUT (critical): full-bleed dark ink-green natural-history paper. Leave the entire LEFT THIRD calm, empty and very dark for overlaid text. On the RIGHT TWO THIRDS, one LARGE CIRCULAR microscope field of view, surrounded by a finely engraved ANTIQUE BRASS eyepiece ring. Round field approximately centred at70% image width and50% height; ring fits with small top/bottom margin. Ring has unnumbered vernier ticks and restrained copperplate detail. No rectangular inset panels, no writing, no UI, no title or logo, no hands. The specimen view is contained INSIDE the circular field, and keeps the specific optical style below; warm brass outside the circle does not tint an SEM or DIC micrograph inside. Inside field authentic BRIGHTFIELD light-microscope look: one translucent Amoeba proteus with several broad lobose pseudopods and granular endoplasm, beginning to curve around a smaller ciliate. Soft pale warm-grey background, fine refractive cell boundary, Spirogyra filaments with spiral chloroplasts soft behind. No eyes, mouth, teeth, arms, faces, skeleton or fantasy features. References:1amoeba silhouette,2Spirogyra,3Paramecium as a smaller ciliate. Do not add labelled diagrams or copy reference scale bars. Preserve the blank left third and a SINGLE round right-hand field. Export16:9, no text or watermark.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim), showing brightfield microscope look: Amoeba proteus with broad pseudopods curving round a small ciliate on the slide, Spirogyra filaments out of focus behind. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-4b0b1a9d-e1eb-4616-b27e-2b3c12db4322.png",
+    "input_images": [
+      "research/assets/references/amoeba.jpg",
+      "research/assets/references/spirogyra.jpg",
+      "research/assets/references/paramecium.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "2cccb884943d71907fa0957869ef7255423980ae841a1c2699fddfd780ca5bb5",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "amoeba",
+        "local": "assets/references/amoeba.jpg",
+        "author": "Cymothoa exigua",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Amoeba_proteus.jpg"
+      },
+      {
+        "id": "spirogyra",
+        "local": "assets/references/spirogyra.jpg",
+        "author": "Wiedehopf20",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg"
+      },
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
     "id": "MP-R01",
     "name": "Water springtail (Podura aquatica)",
     "file": "assets/reference-sheets/springtail.webp",

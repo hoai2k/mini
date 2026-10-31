@@ -163,19 +163,19 @@ export const ASSETS = {
   },
   "MP-G07": {
     "file": "assets/game/intro-springtail.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G08": {
     "file": "assets/game/intro-mite.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G09": {
     "file": "assets/game/intro-tardigrade.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G10": {
     "file": "assets/game/intro-amoeba.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G11": {
     "file": "assets/game/intro-paramecium.webp",
