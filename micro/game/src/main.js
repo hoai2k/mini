@@ -804,8 +804,6 @@ function renderInstructions() {
     <p>The mite uses ${glyph('A', { mode })} to jump, ${glyph('B', { mode })} to dash, and ${glyph('Y', { mode })} to defend by closing its shell. At its backdoor, ${glyph('Y', { mode })} rises a world.</p>
     <h3>Players</h3>
     <p>Up to four can play. Player 1 uses the first controller${mode === 'keyboard' ? ' or the keyboard' : ''}; a second, third or fourth player joins by pressing any button on another controller, in the menus or during play. Players start in the same view; when they move apart, the view splits, and it joins up again when they come back together.</p>
-    <h3>Menus</h3>
-    <ul class="controls-list">${controlRows([['LS', 'Move between items'], ['A', 'Choose'], ['B', 'Back'], ['Menu', 'Pause or resume']], { mode, ctx: 'menu' })}</ul>
     <p class="muted">Each world tells you its own controls on its intro screen and its controls card (View).</p>`;
 }
 
