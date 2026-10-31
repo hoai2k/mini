@@ -1,5 +1,7 @@
-// The pond drop: a wet mount about 3 mm across and 0.3 mm deep (slide at
-// y = 0, coverslip at y = DEPTH), all lengths in µm. Spirogyra filaments cross
+// The pond drop: a wet mount about 3 mm across and 0.65 mm deep (slide at
+// y = 0, coverslip at y = DEPTH), all lengths in µm. The boundaries are drawn:
+// sediment on the slide, dust on the underside of the coverslip, and the
+// meniscus at the rim, so nothing stops the cell without a visible reason. Spirogyra filaments cross
 // it, detritus flakes float and settle, three Vorticella feed on a flake,
 // diatoms sit on the bottom and bacteria drift in a gentle flow. Kept sparse
 // so the player's cell is the clearest thing in the field.
@@ -11,7 +13,7 @@ import { rng, closedTube, axisRef, yAxisRef, segSeg, closestOnSeg, noise3 } from
 import { squirmerFlow, sink } from '../shared/techniques/paramecium-squirmer.js';
 
 export const DROP_R = 1500;
-export const DEPTH = 300;
+export const DEPTH = 650; // the pre-rework depth: room to swim in 3D (the 300 µm drop kept the cell on the glass)
 const YS = DEPTH / 650; // the layout was drawn for a 650 µm drop
 
 const v1 = new THREE.Vector3(), v2 = new THREE.Vector3(), v3 = new THREE.Vector3(), v4 = new THREE.Vector3();
@@ -207,6 +209,28 @@ export function createWorld(scene) {
     const c = new THREE.Vector3().setFromMatrixPosition(f.m);
     obstacles.push({ kind: 'sphere', c, r: f.size * 0.42, what: 'detritus' });
   }
+  // dust and smears on the underside of the coverslip, so the ceiling is visible
+  {
+    const n = 700, iPos = new Float32Array(n * 4), iP = new Float32Array(n * 4);
+    for (let i = 0; i < n; i++) {
+      const a = rand() * Math.PI * 2, r = Math.sqrt(rand()) * DROP_R;
+      iPos.set([Math.cos(a) * r, DEPTH - 1 - rand() * 2, Math.sin(a) * r, 0], i * 4);
+      iP.set([1.2 + rand() ** 3 * 4, 0.04, 2.5 + 3 * rand(), rand()], i * 4);
+    }
+    const { geo } = instancedQuads(n, iPos, iP);
+    group.add(Object.assign(new THREE.Mesh(geo, pointsMaterial({ absorb: [0.008, 0.009, 0.012] })), { frustumCulled: false }));
+  }
+  // the meniscus: the air-water edge of the drop, a bright refractile wall
+  {
+    const g = new THREE.CylinderGeometry(DROP_R, DROP_R, DEPTH, 160, 6, true);
+    g.translate(0, DEPTH / 2, 0);
+    const pos = g.attributes.position;
+    g.setAttribute('aRef', new THREE.BufferAttribute(pos.array.slice(), 3));
+    const e = new Float32Array(pos.count);
+    for (let i = 0; i < pos.count; i++) e[i] = 0.4 + 0.6 * Math.abs(pos.getY(i) / DEPTH - 0.5) * 2; // brighter where it meets the glass
+    g.setAttribute('aEdge', new THREE.BufferAttribute(e, 1));
+    group.add(Object.assign(new THREE.Mesh(g, sheetMaterial({ dn: 0.33, thick: 0.6, scatter: 2.2, absorb: [0.004, 0.004, 0.005] })), { frustumCulled: false }));
+  }
   // sediment on the slide
   {
     const n = 900, iPos = new Float32Array(n * 4), iP = new Float32Array(n * 4);
@@ -339,9 +363,11 @@ export function createWorld(scene) {
 
   /**
    * Collide a capsule (a–b, radius r) with everything solid. Returns the
-   * deepest contact {n, depth, ob} or null.
+   * deepest contact {n, depth, ob, p} or null (p: the contact point; ob.glass
+   * for the slide, coverslip and meniscus).
    */
   const cA = new THREE.Vector3(), cB = new THREE.Vector3();
+  const GLASS = { slide: { what: 'the slide', glass: true }, coverslip: { what: 'the coverslip', glass: true }, rim: { what: 'the edge of the drop', glass: true } };
   function collide(a, b, r) {
     let best = null;
     for (const ob of obstacles) {
@@ -354,17 +380,19 @@ export function createWorld(scene) {
         d = segSeg(a, b, ob.a, ob.b, cA, cB) - ob.r - r;
         if (d < 0) n = v1.subVectors(cA, cB).normalize();
       }
-      if (d < 0 && (!best || d < -best.depth)) best = { n: n.clone(), depth: -d, ob };
+      if (d < 0 && (!best || d < -best.depth)) best = { n: n.clone(), depth: -d, ob, p: cA.clone().addScaledVector(n, -r) };
     }
     // the drop: slide, coverslip and its rim
     const mid = v2.addVectors(a, b).multiplyScalar(0.5);
     const lo = Math.min(a.y, b.y) - r, hi = Math.max(a.y, b.y) + r;
-    if (lo < 0 && (!best || -lo > best.depth)) best = { n: new THREE.Vector3(0, 1, 0), depth: -lo, ob: { what: 'the slide' } };
-    if (hi > DEPTH && (!best || hi - DEPTH > best.depth)) best = { n: new THREE.Vector3(0, -1, 0), depth: hi - DEPTH, ob: { what: 'the coverslip' } };
-    const rr = Math.max(Math.hypot(a.x, a.z), Math.hypot(b.x, b.z)) + r;
+    const low = a.y < b.y ? a : b, high = a.y < b.y ? b : a;
+    if (lo < 0 && (!best || -lo > best.depth)) best = { n: new THREE.Vector3(0, 1, 0), depth: -lo, ob: GLASS.slide, p: new THREE.Vector3(low.x, 0, low.z) };
+    if (hi > DEPTH && (!best || hi - DEPTH > best.depth)) best = { n: new THREE.Vector3(0, -1, 0), depth: hi - DEPTH, ob: GLASS.coverslip, p: new THREE.Vector3(high.x, DEPTH, high.z) };
+    const out = Math.hypot(a.x, a.z) > Math.hypot(b.x, b.z) ? a : b;
+    const rr = Math.hypot(out.x, out.z) + r;
     if (rr > DROP_R) {
       const n = new THREE.Vector3(-mid.x, 0, -mid.z).normalize();
-      if (!best || rr - DROP_R > best.depth) best = { n, depth: rr - DROP_R, ob: { what: 'the edge of the drop' } };
+      if (!best || rr - DROP_R > best.depth) best = { n, depth: rr - DROP_R, ob: GLASS.rim, p: new THREE.Vector3(out.x, out.y, out.z).multiplyScalar(DROP_R / Math.max(1, rr - r)).setY(out.y) };
     }
     return best;
   }
@@ -382,7 +410,7 @@ export function createWorld(scene) {
   }
 
   const api = {
-    group, obstacles, opts, vorticellas, didinia, diatoms, bacteria, flowAt, collide, touchVorticella,
+    group, obstacles, opts, vorticellas, didinia, diatoms, bacteria, flowAt, collide, touchVorticella, DEPTH, DROP_R,
     bacteriaCount: NB,
     /**
      * @param {number} dt

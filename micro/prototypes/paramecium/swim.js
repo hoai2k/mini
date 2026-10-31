@@ -4,8 +4,11 @@
 // still carries it. It swims along a left-handed helix while rolling about its
 // long axis, oral groove toward the helix axis; the camera follows the axis.
 //
-// Avoidance reaction (S08): the cilia reverse, the cell backs up, pivots
-// about its posterior end and swims off in a new direction. Trichocyst
+// Contact: the cell glances off whatever it touches and slides along it (the
+// heading turns along the surface, a short bump plays), so nothing stops it
+// dead. Avoidance reaction (S08, B, or on contact when that switch is on): the
+// cilia reverse, the cell backs up, pivots about its posterior end and swims
+// off in a new direction. Trichocyst
 // discharge (S09): a short, local burst that throws the cell away from the
 // threat, with the discharged threads left behind in the water (X on contact).
 // Dash (A): a ciliary sprint in the stick direction: escape swimming reaches
@@ -15,10 +18,11 @@ import { LENGTH, MOUTH, WIDTH, SPECIES_ID } from './cell.js';
 import { DROP_R, DEPTH } from './world.js';
 import { lowRe, helixPose } from '../shared/techniques/paramecium-squirmer.js';
 
-// µm/s at full beat. P. caudatum: measured 1–1.5 mm/s. P. bursaria: smaller and
-// a little slower; ≈1 mm/s (≈8 body lengths/s) is a game value in the range.
-export const VMAX = SPECIES_ID === 'bursaria' ? 1000 : 1400;
-export const DASH_V = SPECIES_ID === 'bursaria' ? 2600 : 3000; // µm/s peak of the sprint [stretch: "several mm/s, briefly"]
+// µm/s at full beat: the pre-rework 1.4 mm/s for both species (P. caudatum
+// measured 1–1.5 mm/s; P. bursaria is smaller, so ≈12 body lengths/s is a
+// stretched game value).
+export const VMAX = 1400;
+export const DASH_V = 3200; // µm/s peak of the sprint [stretch: "several mm/s, briefly"]
 export const DASH_T = 0.32; // s
 const TAU = 0.035; // s, beat-to-speed lag
 const HELIX_PITCH = 850 * Math.sqrt(LENGTH / 230); // µm per turn (≈849 µm measured in caudatum; scaled)
@@ -47,11 +51,13 @@ export function createSwimmer(cell, world) {
     netSpeed: 0,
     axisA: new THREE.Vector3(), axisB: new THREE.Vector3(), mouth: new THREE.Vector3(),
     lastHit: '', hitCount: 0,
+    contactT: 0, contactWhat: '', bumpT: 0, bumpN: new THREE.Vector3(0, 1, 0), slideSide: 1,
     inspect: false,
   };
   const prevCenter = new THREE.Vector3(), tmp = new THREE.Vector3();
   // switches (the feature panel): lowRe off = an inertial glide, for comparison
-  const opts = { lowRe: true, helix: true, beatScale: 1 };
+  const opts = { lowRe: true, helix: true, beatScale: 1, avoidOnContact: false };
+  const tan = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);
 
   function frame() {
     fwdOf(s.yaw, s.pitch, s.F);
@@ -121,7 +127,7 @@ export function createSwimmer(cell, world) {
         if (inp.view === 'scope') {
           if (st.m > 0.15) {
             const ty = api.stickYaw(st, inp.camYaw);
-            s.yaw = approach(s.yaw, s.yaw + angleWrap(ty - s.yaw), (s.dashT > 0 ? 9 : turn) * st.m * dt);
+            s.yaw = approach(s.yaw, s.yaw + angleWrap(ty - s.yaw), (s.dashT > 0 ? 9 : turn * 1.4) * st.m * dt);
           }
           const tp = inp.rise * 0.75;
           s.pitch = approach(s.pitch, tp, (inp.rise ? 1.6 : 0.8) * dt);
@@ -194,26 +200,52 @@ export function createSwimmer(cell, world) {
         s.axis.addScaledVector(s.F, s.speed * dt).addScaledVector(flow, dt);
       }
       s.axis.addScaledVector(s.burst, dt);
-      // never leave the drop, whatever pushed us
-      s.axis.y = Math.max(30, Math.min(DEPTH - 30, s.axis.y));
+      // a safety net only (the visible slide, coverslip and meniscus are met by the contact below first)
+      s.axis.y = Math.max(CAPSULE_R * 0.6, Math.min(DEPTH - CAPSULE_R * 0.6, s.axis.y));
       const rr = Math.hypot(s.axis.x, s.axis.z);
-      if (rr > DROP_R - 40) s.axis.multiplyScalar(1).set(s.axis.x * (DROP_R - 40) / rr, s.axis.y, s.axis.z * (DROP_R - 40) / rr);
+      if (rr > DROP_R - CAPSULE_R * 0.6) s.axis.set(s.axis.x * (DROP_R - CAPSULE_R * 0.6) / rr, s.axis.y, s.axis.z * (DROP_R - CAPSULE_R * 0.6) / rr);
       if (s.inspect) s.safeT = 1;
       s.burst.multiplyScalar(Math.exp(-dt / 0.07));
 
       frame();
 
-      // contact: push out, and every bump sets off the avoidance reaction
+      // contact: push out and glance off. The heading turns along the surface,
+      // so the cell slides past instead of stopping; a fresh hit reports a
+      // contact (main.js shows a puff at the point, a bump of the cell, rumble).
+      s.contactT = Math.max(0, s.contactT - dt);
+      s.bumpT = Math.max(0, s.bumpT - dt);
       const hit = world.collide(s.axisA, s.axisB, CAPSULE_R);
       if (hit) {
         s.axis.addScaledVector(hit.n, hit.depth);
-        frame();
         if (hit.ob.ref) { if (world.touchVorticella(hit.ob.ref, t)) ev.vorticella = true; }
-        if (s.mode === 'swim' && (v > 30 || hit.depth > 2)) {
-          startAvoid(hit.n);
-          ev.hit = hit.ob.what;
-          s.lastHit = hit.ob.what; s.hitCount++;
+        const into = s.F.dot(hit.n) * Math.sign(s.speed || 1); // < 0: swimming into it
+        if (s.mode === 'swim' && into < -0.02) {
+          tan.copy(s.F).addScaledVector(hit.n, -s.F.dot(hit.n));
+          if (tan.lengthSq() < 0.09) {
+            // head-on: pick a side and keep it while pressed, so it never dithers
+            if (s.contactT <= 0) s.slideSide = Math.random() < 0.5 ? -1 : 1;
+            const side = Math.abs(hit.n.y) > 0.7 ? tmp.set(-s.F.z, 0, s.F.x) : tmp.crossVectors(hit.n, UP);
+            if (side.lengthSq() < 1e-6) side.set(1, 0, 0);
+            tan.addScaledVector(side.normalize(), 0.5 * s.slideSide);
+          }
+          tan.normalize();
+          const k = 1 - Math.exp(-dt * (s.dashT > 0 ? 16 : 11));
+          tmp.copy(s.F).lerp(tan, k).normalize();
+          s.yaw = Math.atan2(-tmp.z, tmp.x);
+          s.pitch = Math.asin(Math.max(-1, Math.min(1, tmp.y)));
+          // at the glass, level out rather than keep pressing into it
+          if (hit.ob.glass && Math.abs(hit.n.y) > 0.7) s.pitch = hit.n.y > 0 ? Math.max(s.pitch, 0) : Math.min(s.pitch, 0);
         }
+        const impact = Math.max(0, -into) * Math.abs(s.speed);
+        if (s.contactT <= 0 || s.contactWhat !== hit.ob.what) {
+          ev.hit = hit.ob.what;
+          ev.contact = { p: (hit.p || s.center).clone(), n: hit.n.clone(), what: hit.ob.what, glass: !!hit.ob.glass, impact };
+          s.lastHit = hit.ob.what; s.hitCount++;
+          if (impact > 60) { s.bumpT = 0.28; s.bumpN.copy(hit.n); }
+          if (opts.avoidOnContact && !hit.ob.glass && impact > 300 && s.mode === 'swim') startAvoid(hit.n);
+        }
+        s.contactT = 0.25; s.contactWhat = hit.ob.what;
+        frame();
       }
 
       s.U.subVectors(s.center, prevCenter).divideScalar(Math.max(dt, 1e-4));

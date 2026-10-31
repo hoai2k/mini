@@ -20,8 +20,9 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { LEGS, BODY_HEIGHT } from './creature.js';
 
-export const MAX_SPEED = 1.5;     // units/s = 150 µm/s ≈ 0.4 body lengths/s (Nirody: 79-263 µm/s)
-export const DASH_SPEED = 2.9;    // the scramble: ~290 µm/s, just past the fastest measured walking (a stretch)
+export const MAX_SPEED = 2.25;    // units/s = 225 µm/s ≈ 0.65 body lengths/s (Nirody: 79-263 µm/s)
+export const DASH_SPEED = 4.0;    // the scramble: ~400 µm/s, well past the fastest measured walking (a stretch)
+const STRIDE_REF = 1.5;            // strides lengthen above this pace (the old walking speed)
 const STRIDE = 0.55;               // 55 µm per cycle
 const SWING_FRAC = 0.34;
 // Grip hysteresis: start slipping below SLIP_AT of the load, catch again at CATCH_AT.
@@ -193,7 +194,7 @@ export class Walker {
 
     const moving = this.speed > 0.03 || Math.abs(turn) > 0.002;
     // Strides lengthen a little at a scramble, so the cadence stays possible.
-    const stride = STRIDE * S * (1 + 0.35 * THREE.MathUtils.clamp(this.speed / S - MAX_SPEED, 0, 1.5));
+    const stride = STRIDE * S * (1 + 0.35 * THREE.MathUtils.clamp(this.speed / S - STRIDE_REF, 0, 2.5));
     this.stride = stride;
     this.phase += (this.speed / stride) * dt + (Math.abs(turn) * 0.9 * S / stride);
     this.targetFrame();
@@ -233,7 +234,7 @@ export class Walker {
       f.from.copy(f.state === 'drag' ? h.pos : f.world);
       f.to.copy(h.pos); f.toGrip = h.grip;
       f.t = 0;
-      f.dur = THREE.MathUtils.clamp((SWING_FRAC * stride) / Math.max(this.speed, 0.25 * S), input.dash ? 0.09 : 0.13, 0.55) * (input.brace ? 1.35 : 1);
+      f.dur = THREE.MathUtils.clamp((SWING_FRAC * stride) / Math.max(this.speed, 0.25 * S), input.dash ? 0.09 : 0.1, 0.55) * (input.brace ? 1.35 : 1);
       f.state = 'swing'; f.cycle = cyc; f.grip = 0;
       f.n.copy(this.leaf.N).multiplyScalar(this.side);
       if (settle) settleDone = true;

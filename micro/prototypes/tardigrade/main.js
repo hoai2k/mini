@@ -2,7 +2,7 @@
 // film dries ("The Drying"). Seen through a DIC microscope.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { createPad } from '../shared/pad.js';
-import { createControls, createDash, hudControls } from '../shared/controls.js';
+import { createControls, createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { mountHud } from '../shared/hud.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
@@ -108,7 +108,9 @@ const mic = new DicMicroscope(renderer, scene, camera, { layers: [LAYER_SUBSTRAT
 if (SOFTWARE) mic.setQuality(PR ? 2 : 0);
 
 // ---------------------------------------------------------------- view state
-const view = { yaw: -0.35, pitch: 1.18, obj: 1, focus: 0, mode: 0, labels: false, target: new THREE.Vector3(), claws: 1, internals: true, sway: true };
+// Starts on the 10× objective (twice the 20× field) so the leaf, the film and
+// the surroundings read; D-pad up steps in.
+const view = { yaw: -0.35, pitch: 1.18, obj: 0, focus: 0, mode: 0, labels: false, target: new THREE.Vector3(), claws: 1, internals: true, sway: true };
 view.target.copy(walker.dispPos);
 
 function applyMode(m) {
@@ -183,6 +185,7 @@ F({ id: 'smooth', group: 'Motion', label: 'Smoothed trunk and camera', on: true,
 F({ id: 'milnesium', group: 'Simulation', label: 'Milnesium (predator)', on: true,
   about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It stalks you within ~650 µm and bites (reserves drain; empty, you are eaten). Escape: scramble (A), retreat into film too thin for its body (it barely moves below ~3.5 µm of water), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
   onChange: (v) => { predator.on = v; predator.setVisible(v); } });
+addInvertY(features);
 F({ id: 'camrel', group: 'Controls', label: 'Camera-relative crawl', fixed: true, about: 'The stick direction on screen is projected onto the leaf the animal is on.' });
 
 // ---------------------------------------------------------------- borrowed (default off)
@@ -276,9 +279,10 @@ function frame() {
   if (P(B.RS)) { life.newDay(); toast('A new day: 05:00, dew-soaked'); }
   if (P(B.LB)) features.set('labels', !view.labels);
   if (P(B.LS)) { view.focus = 0; toast('Refocused on the animal'); }
-  const rs = inMenu ? { x: 0, y: 0 } : ctl.camera();
-  view.yaw -= rs.x * dt * 1.6;
-  view.pitch = THREE.MathUtils.clamp(view.pitch - rs.y * dt * 1.2, 0.35, 1.52);
+  // RS: yaw, and pitch by intent (up = look up: the camera swings down).
+  const lk = inMenu ? { yaw: 0, pitch: 0 } : ctl.look();
+  view.yaw -= lk.yaw * dt * 1.6;
+  view.pitch = THREE.MathUtils.clamp(view.pitch - lk.pitch * dt * 1.2, 0.35, 1.52);
   view.focus = THREE.MathUtils.clamp(view.focus - (inMenu ? 0 : ctl.analog()) * dt * 0.8, -3, 3);
 
   // A: the scramble.
@@ -326,9 +330,11 @@ function frame() {
   for (const e of pev) {
     if (e === 'bite' || e === 'tunBite') audio.play('tardigrade/milnesium', { volume: e === 'bite' ? 1 : 0.6 });
     else if (e === 'stalk') audio.play('tardigrade/milnesium', { volume: 0.45, rate: 0.85 });
+    else if (e === 'hunt') audio.play('tardigrade/milnesium', { volume: 0.25, rate: 0.75 });
     else if (e === 'recoil') audio.play('tardigrade/bite', { volume: 1, rate: 0.85 });
     if (e === 'recoil') { toast('Stylets into its head: the Milnesium backs off'); rumble(220, 0.5, 0.4); creature.pose.stylet = 1; }
     else if (e === 'stalk') toast('A Milnesium has your scent: scramble (A), jab (X) or tun (Y)', 2600);
+    else if (e === 'hunt') toast('Something large is moving in the film…', 2600);
     else if (e === 'tunBite') { toast('The Milnesium mouths your tun but cannot get it in'); rumble(120, 0.2, 0.3); }
     else if (e === 'givesUp') toast('The Milnesium gives up on the tun and wanders off');
     else if (e === 'bite') {
@@ -337,7 +343,7 @@ function frame() {
       walker.speed = 0;
       rumble(300, 0.8, 0.9);
       if (life.energy <= 0.001) life.eaten();
-      else toast(`Milnesium bites! Reserves ${Math.round(life.energy * 100)}%`);
+      else toast(`Milnesium bites! Reserves ${Math.round(life.energy * 100)}%. It lets go and backs off, for now`, 2600);
     }
   }
 
@@ -416,7 +422,7 @@ function frame() {
     `state    ${st}${life.state === 'skip' || life.state === 'revive' ? ` · revival ~${Math.round(life.chance * 100)}%` : ''}`,
     walker.candidate ? `reach    ${walker.candidate.M.name}${walker.candidate.bridged ? ' (film bridge)' : ''}` : '',
     `${dash.active ? 'SCRAMBLE' : dash.text()}   ${Math.round(walker.speed * 100)} µm/s`,
-    predator.on ? `Milnesium ${predator.state === 'wander' ? 'wandering' : predator.state === 'recoil' ? 'backing off' : 'stalking'} · ${Math.round(predator.dist * 100)} µm${predator.thinFilm ? ' · film too thin for it' : ''}` : '',
+    predator.on ? `Milnesium ${predator.state === 'wander' ? (predator.firstHunt ? 'browsing far off' : 'keeping off') : predator.state === 'recoil' ? 'backing off' : predator.state === 'approach' ? 'closing in' : 'stalking'} · ${Math.round(predator.dist * 100)} µm${predator.thinFilm ? ' · film too thin for it' : ''}` : '',
   ].filter(Boolean).join('\n'));
 
   requestAnimationFrame(frame);
