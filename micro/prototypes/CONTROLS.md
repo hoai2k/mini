@@ -24,14 +24,23 @@ Keyboard fallbacks are in `shared/pad.js`.
 | Creature | Dash (A) | Attack / eat (X) | Defend (B) |
 | --- | --- | --- | --- |
 | Springtail | Furcula jump | Graze spores and algae | Hunker in the meniscus |
-| Mite | **Jump** (A; borrowed from jumping oribatids such as *Zetorchestes*) and **scramble on B** | Bite with the chelicerae (graze hyphae and spores; nip back) | **Block on Y**: ptychoidy (close up) |
+| Mite | **Jump** (A; borrowed from jumping oribatids such as *Zetorchestes*); scramble on held RT | Bite with the chelicerae (graze hyphae and spores; nip back) | Ptychoidy (close up) |
 | Tardigrade | Scramble (costs water and energy) | Pierce with the stylets | Brace (grip hard) |
 | Amoeba | Surge (A): pseudopods shoot out and the cell flows after them | Close the food cup (X) | Let go or egest (B) |
 | Paramecium | Trichocyst burst or ciliary sprint | Feed (oral current) | Avoidance reaction (reverse) |
 | Bacterium | Sprint run (all flagella bundled) | Attach / bore (Bdellovibrio) or bind | Tumble |
 
-At the owner's request the mite departs from the shared layout: A jumps, B
-dashes and Y blocks.
+**B is defend in every world** (the amoeba may differ). The mite jumps on A and
+scrambles on held RT.
+
+## Fighting back
+
+Predators wind up visibly before they strike (a posture and a pause), so an
+attack is never a surprise. Face a predator, block its strike with B and bite
+back with X: each wears its interest down until it gives up and leaves. If it
+catches you, the camera pulls back to watch it swallow you whole, follows it for
+a moment, fades out and you respawn (`shared/predation.js`: `createFight`,
+`createCapture`).
 
 ## In code
 
