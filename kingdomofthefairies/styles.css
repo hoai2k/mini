@@ -74,7 +74,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
   animation: breathe 2.4s ease-in-out infinite;
 }
 @keyframes breathe { 50% { opacity: .55; } }
-.press-start:hover, .press-start:focus-visible, .press-start.nav-focus { animation: none; color: #fff; border-color: var(--magenta); background: #e0127a22; outline: none; }
+/* The button is focused on load so Enter starts at once; its focus look shows
+   only once the keyboard has been used to move about (body.keys, main.js). */
+.press-start:focus { outline: none; }
+.press-start:hover, body.keys .press-start:focus-visible, .press-start.nav-focus { animation: none; color: #fff; border-color: var(--magenta); background: #e0127a22; outline: none; }
 .press-start:active { transform: translateY(2px); background: #e0127a55; }
 .loadbar { grid-row: 3; display: grid; justify-items: center; gap: 6px; width: min(70vw, 320px); transition: opacity .5s; }
 .loadbar.done { opacity: 0; }

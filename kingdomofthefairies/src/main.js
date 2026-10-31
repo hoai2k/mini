@@ -542,6 +542,8 @@ function musicMood() {
 // The input in use, for prompts: 'pad' (Xbox button glyphs), 'key' or 'touch'.
 function trackInputMode(i) {
   if (i.keyAny) S.keySeen = true;
+  // moving about with the keyboard (Tab, arrows) shows where focus is
+  if (i.keyNav && !document.body.classList.contains('keys')) document.body.classList.add('keys');
   const mode = i.source === 'pad' ? 'pad' : i.source === 'touch' || (TOUCH && !S.keySeen) ? 'touch' : 'key';
   if (mode !== S.inputMode) { S.inputMode = mode; syncTitleHint(); }
   renderer.kit.inputMode = mode; // acts draw button prompts for it (richText)

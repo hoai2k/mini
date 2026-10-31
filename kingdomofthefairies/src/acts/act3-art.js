@@ -122,6 +122,8 @@ export function onEvent(k, e, st) {
   if (e.type === 'sentryBite') { k.shake(0.4); k.burst(e.x, e.y - 30, '#c8321e', 14, 'streak'); }
   if (e.type === 'unseen') { k.text('Unseen +25', e.x, e.y - 190); }
   if (e.type === 'whalePass') { k.shake(0.25); }
+  // as it comes between the eye and the hall, say what it is for
+  if (e.type === 'whaleMask') k.text(FILM ? 'The whale hides you from the eye: go!' : 'The whale hides you: go!', 640, 520, true);
   if (e.type === 'pearlTaken') { const px = PEDESTAL.x - st.cam, py = pearlY(k, ROWY[0] - 10); k.burst(px, py, '#eef3ea', 22, 'sparkle'); k.burst(px, py, '#f3c6dc', 14, 'sparkle'); k.text('Her pearl', px - 60, 200, true); }
   if (e.type === 'whaleTurn') k.shake(0.4);
   if (e.type === 'swallow') { k.shake(0.9); k.flash(0.4); }
@@ -738,7 +740,9 @@ function passers(k, st, t) {
     if (!k.asset('fish-large', x, y + 100, 350, 200)) fishStandin(k, x, y, t);
   }
   if (w.t >= 0) {
-    const x = whaleX(w.t), y = 284 + Math.sin(w.t * 1.6) * 8;
+    // high over the hall, clear above the court (its belly ~y 380, the top
+    // row at 432), so it reads as passing over him rather than upon him
+    const x = whaleX(w.t), y = 196 + Math.sin(w.t * 1.6) * 8;
     k.wire(x - 250, 60, y - 150); k.wire(x + 250, 60, y - 130);
     c.save(); c.globalAlpha = 0.94;
     if (!k.asset('whale-side', x, y + 183, 1000, 366)) whaleStandin(k, x, y, w.t);

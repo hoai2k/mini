@@ -712,7 +712,8 @@ function sailorFigure(k, x, y, face, stroke, flipY, t) {
     // The two strokes are painted at different sizes: reaching forward (A) his
     // body is shorter than swept back (B). A is scaled and turned so its head
     // and boots land where B's are, and its arms reach further ahead.
-    if (!stroke) { c.translate(-77.5, 11); c.rotate(0.13); c.scale(1.215, 1.215); c.translate(79, -16); }
+    // (the sailor's strokes; the film prince's are evened by the sprite audit)
+    if (!stroke && !FILM) { c.translate(-77.5, 11); c.rotate(0.13); c.scale(1.215, 1.215); c.translate(79, -16); }
     k.asset(stroke ? 'sailor-swim-b' : 'sailor-swim-a', 0, 60, 180, 120);
     c.restore(); return;
   }
