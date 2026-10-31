@@ -26,17 +26,21 @@ and delivered as the period pieces.
 | `period-harmonium` | Harmonium and piano: slow, enchanted | Grotto, whale (`deep`) | 1–3 min | delivered |
 | `period-tender` | Solo pianist: slow salon romance | Cliff, endings, playbill (`tender`) | 1–3 min | delivered |
 | `victoryStinger` | Café-concert ensemble: heroic victory flourish | Once, when the prince beats the witch (Act VI) | about 7 s | delivered (generated, ElevenLabs Music) |
-| `period-wedding` | Café-concert ensemble: wedding march into a festive waltz | The wedding street and the apotheosis (`wedding`) | 2–3 min | **requested** |
+| `period-wedding` | Café-concert ensemble: victorious royal wedding march into a jubilant grand waltz | The wedding street and the apotheosis (`wedding`) | 2–3 min | **requested** |
 
 ## Requested
 
 - **`period-wedding`.** A small 1900s Parisian café-concert ensemble (violin,
-  cornet, clarinet, cello and piano) accompanying the royal wedding procession
-  at the end of a hand-coloured Méliès féerie. A joyful, stately wedding march
-  in F major, with bright cornet calls and pealing piano chords like church
-  bells, that opens out into a festive celebration waltz. Belle Époque light
-  music, theatrical and celebratory, recorded in a small hall. About 76 BPM.
-  Instrumental, no drums, no synths, no modern harmony.
+  cornet, clarinet, cello and piano), playing as grandly as it can, for the
+  grand finale of a hand-coloured Méliès féerie: the prince and princess are
+  married in triumph and the whole kingdom celebrates. A victorious royal
+  wedding march in F major, like a coronation: ringing cornet fanfares,
+  pealing piano chords like cathedral bells, and the strings and clarinet
+  swelling under it, building to a jubilant, festive grand waltz and a
+  triumphant final cadence. Majestic, regal and exultant rather than gentle.
+  Belle Époque light music, theatrical and a little brassy, recorded in a
+  small hall. About 76 BPM. Instrumental, no drums, no synths, no modern
+  harmony.
 
   Save it as `assets/audio/period-wedding.mp3` (or drop it in `intake/`);
   normalise it to about -12 LUFS like the others and set its manifest entry

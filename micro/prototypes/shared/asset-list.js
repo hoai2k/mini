@@ -189,6 +189,34 @@ export const ASSETS = {
     "file": "assets/game/intro-phage.webp",
     "status": "delivered"
   },
+  "MP-R14": {
+    "file": "assets/reference-sheets/boss-wolf-spider.webp",
+    "status": "requested"
+  },
+  "MP-R15": {
+    "file": "assets/reference-sheets/boss-pseudoscorpion.webp",
+    "status": "requested"
+  },
+  "MP-R16": {
+    "file": "assets/reference-sheets/boss-nematode.webp",
+    "status": "requested"
+  },
+  "MP-R17": {
+    "file": "assets/reference-sheets/boss-chaos.webp",
+    "status": "requested"
+  },
+  "MP-R18": {
+    "file": "assets/reference-sheets/boss-bladderwort.webp",
+    "status": "requested"
+  },
+  "MP-R19": {
+    "file": "assets/reference-sheets/boss-stentor.webp",
+    "status": "requested"
+  },
+  "MP-R20": {
+    "file": "assets/reference-sheets/boss-cas.webp",
+    "status": "requested"
+  },
   "MP-R01": {
     "file": "assets/reference-sheets/springtail.webp",
     "status": "delivered"
