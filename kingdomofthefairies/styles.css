@@ -286,6 +286,7 @@ html.touch, html.touch body { touch-action: none; overscroll-behavior: none; -we
 
 /* Swipe scheme: the whole screen is the control and no stick is drawn. */
 #touch.swipe .stick-zone { width: 100%; }
+#touch.tap-any .stick-zone { left: 0; right: 0; width: 100%; }
 #touch.swipe .stick-base { display: none; }
 #touch.swipe .stick-hint { left: 50%; top: auto; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%);
   background: #2a1424cc; border: 1px solid #c79ab7; padding: 5px 12px; border-radius: 3px; }

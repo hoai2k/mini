@@ -52,7 +52,10 @@ export function createTouch(root) {
   const applySide = () => root.classList.toggle('a-left', side === 'left');
   applySide();
 
-  const st = { mode: 'stick', holdT: 0, lastFlick: 0, f: null, ax: 0, ay: 0, aHeld: false, bHeld: false, edges: [], used: false, flickUpIsA: false };
+  const st = { mode: 'stick', holdT: 0, lastFlick: 0, f: null, ax: 0, ay: 0, aHeld: false, bHeld: false, edges: [], used: false, flickUpIsA: false, tapAs: null };
+  // A quick tap in play, in stage coordinates (a scene may act on what it lands on).
+  let playTap = null;
+  const toStage = (x, y) => { const c = root.ownerDocument.getElementById('stage').getBoundingClientRect(); return { x: ((x - c.left) / c.width) * 1280, y: ((y - c.top) / c.height) * 720 }; };
   const rep = { dir: null, t: 0 };
   let taps = [];
 
@@ -75,7 +78,7 @@ export function createTouch(root) {
     st.used = true;
     if (st.mode === 'stick') {
       const [cx, cy] = clampBase(e.clientX, e.clientY);
-      st.f = { id: e.pointerId, cx, cy };
+      st.f = { id: e.pointerId, cx, cy, x0: e.clientX, y0: e.clientY, t0: now, moved: 0 };
       placeBase(cx, cy);
       base.classList.add('on');
       stickMove(e);
@@ -90,7 +93,14 @@ export function createTouch(root) {
   const end = (e) => {
     const f = st.f;
     if (!f || e.pointerId !== f.id) return;
-    if (st.mode === 'swipe' && performance.now() - f.t0 < TAP_MS && f.moved < TAP_PX) { st.edges.push('a'); st.holdT = GESTURE_HOLD; }
+    const tap = performance.now() - f.t0 < TAP_MS && f.moved < TAP_PX;
+    // a tap: A in the swipe scheme; in either scheme, whatever the scene makes
+    // of a tap (`tapAs`), with where it landed
+    if (tap && (st.mode === 'swipe' || st.tapAs)) {
+      const as = st.tapAs || 'a';
+      st.edges.push(as); if (as === 'a') st.holdT = GESTURE_HOLD;
+      playTap = toStage(e.clientX, e.clientY);
+    }
     st.f = null; st.ax = 0; st.ay = 0;
     knob.style.transform = '';
     base.classList.remove('on');
@@ -105,6 +115,7 @@ export function createTouch(root) {
 
   function stickMove(e) {
     const f = st.f;
+    f.moved = Math.max(f.moved, Math.hypot(e.clientX - f.x0, e.clientY - f.y0));
     let dx = e.clientX - f.cx, dy = e.clientY - f.cy;
     const d = Math.hypot(dx, dy);
     if (d > RADIUS) {
@@ -201,7 +212,8 @@ export function createTouch(root) {
     poll(dt) {
       st.holdT = Math.max(0, st.holdT - dt);
       const out = { moveX: st.ax, moveY: st.mode === 'stick' ? st.ay : 0, aHeld: st.aHeld || st.holdT > 0, bHeld: st.bHeld, a: false, b: false, pause: false,
-        up: false, down: false, left: false, right: false, tap: taps[0] || null, used: st.used };
+        up: false, down: false, left: false, right: false, tap: taps[0] || null, playTap, used: st.used };
+      playTap = null;
       for (const e of st.edges) out[e] = true;
       st.edges = []; taps = [];
       if (st.mode === 'stick') {
@@ -217,7 +229,10 @@ export function createTouch(root) {
     },
     // What the shell shows: play controls, the scheme, the A verb, B.
     // A and B show only when they do something, each named for what it does.
-    show({ playing, mode = 'stick', verb, verbB, hintText, flickUpIsA = false }) {
+    show({ playing, mode = 'stick', verb, verbB, hintText, flickUpIsA = false, tapAs = null }) {
+      st.tapAs = tapAs;
+      // a tap anywhere counts: the zone covers the whole screen (the buttons sit above it)
+      root.classList.toggle('tap-any', !!tapAs);
       root.hidden = false;
       root.classList.toggle('playing', playing);
       if (mode !== st.mode) { st.mode = mode; st.f = null; st.ax = st.ay = 0; base.classList.remove('on'); knob.style.transform = ''; }

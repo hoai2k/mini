@@ -115,6 +115,8 @@ export function createInput(target = window) {
     s.source = source;
     s.tap = tc?.tap || null;     // a tap outside play, in stage coordinates
     s.touchB = !!tc?.b;
+    s.touchX = !!tc?.x;              // a tap that stands for the X action
+    s.playTap = tc?.playTap || null; // where a tap in play landed, stage coordinates
     keyEdges = [];
     return s;
   }
