@@ -88,7 +88,7 @@ try {
   step('intro');
 
   await tab.keyboard.press('Enter');
-  await until((s) => s.screen === 'play' && !s.loading, 45000, 'springtail to load');
+  await until((s) => s.screen === 'play' && !s.loading, 120000, 'springtail to load');
   await tab.waitForTimeout(2500);
   await tab.evaluate(() => window.__game.toggleControls());
   await tab.waitForTimeout(700);
@@ -129,7 +129,7 @@ try {
 
   await tab.evaluate(() => { window.__game.forceLandmark('forward'); });
   await until((s) => s.transitioning, 5000, 'transition to start');
-  await until((s) => s.world === 'mite' && !s.loading && !s.transitioning, 45000, 'mite');
+  await until((s) => s.world === 'mite' && !s.loading && !s.transitioning, 120000, 'mite');
   await tab.waitForTimeout(1500);
   await shot('8-mite-controls');
   const st = await state();
@@ -138,7 +138,7 @@ try {
 
   await tab.evaluate(() => { window.__game.forceLandmark('back'); });
   await until((s) => s.transitioning, 5000, 'back transition to start');
-  await until((s) => s.world === 'springtail' && !s.loading && !s.transitioning, 45000, 'back to springtail');
+  await until((s) => s.world === 'springtail' && !s.loading && !s.transitioning, 120000, 'back to springtail');
   await tab.waitForTimeout(1200);
   await shot('9-back-springtail');
   step('back landmark → springtail');

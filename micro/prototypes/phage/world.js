@@ -145,7 +145,7 @@ export function createWorld(scene) {
   /** The receptor patch under a world point on host h, or null. */
   world.patchAt = (h, p) => {
     const l = world.toLocal(h, p, new THREE.Vector3());
-    for (const pt of h.patchList) if (l.distanceTo(pt.local) < pt.radius + 5) return pt;
+    for (const pt of h.patchList) if (l.distanceTo(pt.local) < pt.radius + 9) return pt;
     return null;
   };
   /** Project a world point onto host h's surface (with a lift along the normal). */
