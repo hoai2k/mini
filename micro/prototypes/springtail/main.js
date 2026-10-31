@@ -914,17 +914,22 @@ function updateContacts() {
 }
 
 // ---------------------------------------------------------------- input
+const IDLE = { move: { x: 0, y: 0, m: 0 }, dashDown: false, dashPressed: false, attackPressed: false, defend: false };
+/** Every player's input this frame, by slot (player 1 also drives the camera and the optics). */
 function readInput(dt) {
-  pad.poll();
+  players.poll(); // the roster and every player's pad (do not also poll the pads)
+  syncPlayers();
   unlockOnPad();
-  const idle = { move: { x: 0, y: 0, m: 0 }, dashDown: false, dashPressed: false, attackPressed: false, defend: false };
   menuOpen = features.update();
-  if (menuOpen) return idle;
+  if (menuOpen) return [];
   hud.update(pad);
-  // RS: yaw, and pitch by intent (+1 looks up: the camera swings down toward
-  // the horizon), honouring the shared Invert Y. It works in either view.
+  // RS: yaw (any player turns the shared camera), and pitch by intent (+1
+  // looks up: the camera swings down toward the horizon), honouring the
+  // shared Invert Y. It works in either view.
+  let yaw = 0;
+  for (const p of players.active) yaw += players.controls(p.slot).look().yaw;
+  rig.yaw += THREE.MathUtils.clamp(yaw, -1, 1) * 1.9 * dt;
   const look = ctl.look();
-  rig.yaw += look.yaw * 1.9 * dt;
   rig.wantPitch = THREE.MathUtils.clamp(rig.wantPitch - look.pitch * 1.1 * dt, PITCH_MIN, PITCH_MAX);
   if (rig.mode === 'low') rig.pitchLow = rig.wantPitch;
   if (ctl.special.pressed()) {
@@ -940,12 +945,80 @@ function readInput(dt) {
   const an = ctl.analog();
   if (an) rig.focusOff = THREE.MathUtils.clamp(rig.focusOff + an * dt * 6 / ZOOMS[rig.zi], -15, 15);
   if (ctl.stickClick.left.pressed()) { rig.focusOff = 0; hud.toast('Autofocus'); }
-  const inp = { move: ctl.move(), dashDown: ctl.dash.down(), dashPressed: ctl.dash.pressed(), attackPressed: ctl.attack.pressed(), defend: ctl.defend.down() };
-  if (game.phase !== 'play') {
-    if (inp.dashPressed) newGame();
-    return idle;
+  const out = [];
+  for (const p of players.active) {
+    const c = players.controls(p.slot);
+    out[p.slot] = { move: c.move(), dashDown: c.dash.down(), dashPressed: c.dash.pressed(), attackPressed: c.attack.pressed(), defend: c.defend.down() };
   }
-  return inp;
+  if (game.phase !== 'play') {
+    if (out.some((i) => i && i.dashPressed)) newGame();
+    return [];
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------- players
+/** Make a springtail for a player who joined (or came in with the shell's roster), beside the others. */
+function makeRec(p) {
+  const t = createSpringtail({ share: tail0 });
+  scene.add(t.group);
+  const P = { ...PL_INIT, slot: p.slot, color: p.color, tail: t, ring: props.ring(p.color), lives: 3, food: 0 };
+  const near = recs().filter((q) => alive(q));
+  const c = near.length ? groupCentre(near) : { x: START.x, z: START.z };
+  const at = spotNear(c.x, c.z, 2.5 + p.slot);
+  resetBody(P, at.x, at.z);
+  P.heading = pl.heading;
+  return P;
+}
+/** Keep one springtail per joined player. */
+function syncPlayers() {
+  const want = new Set(players.list.map((p) => p.slot));
+  for (const p of players.list) if (!pls[p.slot]) pls[p.slot] = makeRec(p);
+  for (let s = 1; s < pls.length; s++) {
+    const P = pls[s];
+    if (!P || want.has(s)) continue;
+    if (cap.who === P) { capture.reset(); cap.kind = null; cap.who = null; }
+    scene.remove(P.tail.group);
+    P.ring.visible = false;
+    pls[s] = null;
+  }
+}
+/** Each player's colour ring on the film (only with two or more players). */
+function placeRings() {
+  const on = multi();
+  for (const P of recs()) {
+    const r = P.ring;
+    r.visible = on && P.scale > 0.3 && P.mode !== 'dead';
+    if (!r.visible) continue;
+    const y = P.mode === 'air' ? groundAt(P.x, P.z).y : P.y;
+    r.position.set(P.x, y + 0.03, P.z);
+    const k = P.mode === 'air' ? 0.8 : 1;
+    r.scale.set(k, 1, k);
+  }
+}
+
+// ---------------------------------------------------------------- landmarks
+// The way on (forward): reaching the tongue of moss with the red capitula
+// (LANDMARK, world.js) zooms into the next world. Any player counts; in the
+// game the others follow through the transition. No backdoor: this is the
+// top of the chain.
+const lm = { fired: false, log: [] };
+function checkLandmark() {
+  if (game.phase !== 'play') return;
+  let at = null, near = false;
+  for (const P of recs()) {
+    if (!alive(P)) continue;
+    const d = Math.hypot(P.x - LANDMARK.x, P.z - LANDMARK.z);
+    if (d < LANDMARK.reach) at = P;
+    if (d < LANDMARK.reach + 12) near = true;
+  }
+  if (at && !lm.fired) {
+    lm.fired = true;
+    lm.log.push({ kind: 'forward', slot: at.slot, t: +simT.toFixed(2) });
+    rumbleFor(at, 200, 0.3, 0.3);
+    embed.landmark('forward', { player: at.slot });
+  }
+  if (!near) lm.fired = false; // left the moss: it can fire again
 }
 
 // ---------------------------------------------------------------- HUD text
@@ -985,26 +1058,67 @@ function updateText(L) {
 }
 
 // ---------------------------------------------------------------- loop
-let simT = 0, menuOpen = false;
-function step(dt, inp) {
+let simT = 0, menuOpen = false, frames = 0;
+function step(dt, inputs) {
   simT += dt;
   macroShared.uTime.value = simT;
-  // keep the ripple window on the springtail; its water mask only needs the islands near it
-  const near = ISLANDS.filter((I) => Math.hypot(I.x - pl.x, I.z - pl.z) < field.size + I.r);
+  // keep the ripple window on the springtails (their middle); its water mask only needs the islands near it
+  const all = recs();
+  const gc = all.length > 1 ? groupCentre(all) : { x: pl.x, z: pl.z, spread: 0 };
+  const near = ISLANDS.filter((I) => Math.hypot(I.x - gc.x, I.z - gc.z) < field.size + I.r + gc.spread);
   field.inside = (x, z) => poolE(x, z) < 1 && near.every((I) => Math.hypot(x - I.x, z - I.z) > I.r);
-  field.recenter(pl.x, pl.z);
-  const c = capture.update(dt, menuOpen ? null : pad);
-  if (game.phase === 'play' || game.phase === 'title') stepPlayer(dt, inp);
+  field.recenter(gc.x, gc.z);
+  const who = capture.active && cap.who ? cap.who : P1;
+  let c = withRec(who, () => capture.update(dt, menuOpen ? null : players.pad(who.slot)));
+  if (c.active && c.phase === 'eaten' && multi()) {
+    // multiplayer: no Eaten card; the player comes back beside a teammate
+    capture.reset();
+    if (cap.leaf) { cap.leaf.target = null; cap.leaf.grip = 0; cap.leaf.close = 0; }
+    cap.kind = null; cap.who = null;
+    respawnNear(who);
+    c = { active: false };
+  }
+  if (game.phase === 'play' || game.phase === 'title') for (const P of recs()) withRec(P, () => stepPlayer(dt, (inputs && inputs[P.slot]) || IDLE));
   stepWorld(dt);
-  if (c.active) animateCapture(c, dt);
-  poseTail(simT);
+  if (c.active) withRec(who, () => animateCapture(c, dt));
+  for (const P of recs()) withRec(P, () => poseTail(simT));
+  placeRings();
+  props.update(simT);
+  checkLandmark();
   world.food.update((x, z) => field.height(x, z) + dimples.height(x, z) * 0.5);
   updateContacts();
 }
+const split = createSplitScreen(renderer, { capture: true });
+const marks = createLandmarks();
+const posOf = (P) => ({ x: P.x, y: P.y + 0.25, z: P.z });
 function render(dt) {
   const L = placeCamera(dt);
   field.upload();
-  macro.render(scene, camera, { lens: L, look: lookDef, dofK: rig.dofK });
+  split.update(recs().map((P) => ({ slot: P.slot, position: posOf(P) })), { camera }, dt);
+  const k = split.views.length > 1 ? 0.7 : 1;
+  if (k !== splitK) { splitK = k; resize(); }
+  const focus0 = macroShared.uFocus.value;
+  const one = split.views.length === 1;
+  split.render(camera, (view, target) => {
+    renderer.setRenderTarget(target);
+    let dofK = rig.dofK;
+    if (!one) {
+      // each view focuses on its own players, the water and the sky follow its camera
+      const vr = view.slots.map((s) => pls[s]).filter(Boolean);
+      const g = groupCentre(vr.length ? vr : [pl]);
+      macroShared.uFocus.value = camera.position.distanceTo(_v.set(g.x, g.y + 0.25, g.z)) + rig.focusOff;
+      let far = 0;
+      for (const P of vr) far = Math.max(far, Math.abs(camera.position.distanceTo(_v.set(P.x, P.y + 0.25, P.z)) + rig.focusOff - macroShared.uFocus.value));
+      dofK = THREE.MathUtils.clamp((far + 0.6) / L.dof, 1, 14);
+      water.position.set(Math.round(g.x / field.dx) * field.dx, 0, Math.round(g.z / field.dx) * field.dx);
+      world.sky.position.copy(camera.position);
+      setDrop(vr[0]);
+    }
+    macro.render(scene, camera, { lens: L, look: lookDef, dofK });
+  });
+  if (!one) { macroShared.uFocus.value = focus0; setDrop(pl); }
+  marks.begin();
+  if (game.phase === 'play') marks.drawSplit(split, props.position, { kind: 'forward', label: 'Moss bank', range: 600 });
   return L;
 }
 

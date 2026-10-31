@@ -159,7 +159,7 @@ function syncTeam() {
     if (p.slot > 0 && team[0]) respawn(m); else placeAtStart(m);
   }
   const multi = isMulti();
-  for (const m of members()) m.t4.setTint(multi ? m.color : null);
+  if (multi !== syncTeam.multi || members().length !== syncTeam.n) { for (const m of members()) m.t4.setTint(multi ? m.color : null); syncTeam.multi = multi; syncTeam.n = members().length; }
   if (team[0]) use(team[0]);
 }
 
@@ -556,10 +556,6 @@ function updateBurst(dt) {
     _m.compose(g.p, g.q, _s.setScalar(1)); progeny.setMatrixAt(i, _m);
   }
   progeny.instanceMatrix.needsUpdate = true;
-  if (b > 4 && !card.classList.contains('show')) {
-    card.innerHTML = `<h2>Burst</h2><p>${P.commitHost.name} lysed and released 40 new phages (real T4 bursts are dozens to hundreds; <i>[Unverified here]</i>). Taking over the cell took ~25 minutes, compressed to seconds.</p><p class="go">Press A to play again</p>`;
-    card.classList.add('show');
-  }
   return 'outside';
 }
 
@@ -669,7 +665,8 @@ function stepMember(m, dt, insideOwner, where) {
   const frozen = insideOwner && insideOwner !== m; // a teammate is inside a host: wait
   const live = !idle && !c.active && !debug.freeze && !frozen;
   if (!idle) {
-    if (ctl.lookStep()) { const d = ctl.lookStep() || (players.pad(m.slot).pressed(15) ? 1 : -1); features.set('look', LOOKS[(view.look + d + LOOKS.length) % LOOKS.length]); say(`Look: ${LOOKS[view.look]}${view.look ? ' (an illustration, labelled)' : ''}`, 1800, true); }
+    const lstep = ctl.lookStep();
+    if (lstep) { const d = lstep; features.set('look', LOOKS[(view.look + d + LOOKS.length) % LOOKS.length]); say(`Look: ${LOOKS[view.look]}${view.look ? ' (an illustration, labelled)' : ''}`, 1800, true); }
     const zs = ctl.zoomStep();
     if (zs) view.zoom = clamp(view.zoom - zs, 0, ZOOMS.length - 1);
     if (ctl.special.pressed()) {
