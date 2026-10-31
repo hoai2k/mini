@@ -5044,6 +5044,15 @@
         ],
         "beat": null,
         "note": "\"Tender Evening\": slow salon romance, 3:00, D minor / F major, rubato. About -12 LUFS."
+      },
+      "period-wedding": {
+        "status": "requested",
+        "file": "audio/period-wedding.mp3",
+        "moods": [
+          "wedding"
+        ],
+        "beat": null,
+        "note": "Requested 31 October 2026: caf\u00e9-concert wedding march into a festive waltz, F major, about 76 BPM (design/music-requests.md)."
       }
     }
   },
@@ -5616,6 +5625,16 @@
     "moonboatRise": {
       "status": "delivered",
       "file": "sfx/moonboatRise.mp3",
+      "loop": false
+    },
+    "witchCackle": {
+      "status": "delivered",
+      "file": "sfx/witchCackle.mp3",
+      "loop": false
+    },
+    "victoryStinger": {
+      "status": "delivered",
+      "file": "sfx/victoryStinger.mp3",
       "loop": false
     },
     "witchClaim": {

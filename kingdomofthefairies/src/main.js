@@ -99,7 +99,7 @@ let artLoaded = 0, artTotal = 0, artAll = false;
 let firstArt = false, booted = false;
 // What the title draws (src/art.js scene: the sky, sea and frame); it opens
 // as soon as these are in, or the whole first wave if one of them fails.
-const TITLE_ART = ['proscenium', 'curtain-panel', 'footlight', 'sky-backdrop', 'moon-face', 'cloud', 'waves-back', 'waves-mid', 'waves-front'];
+const TITLE_ART = ['proscenium', 'curtain-panel', 'footlight', 'sky-backdrop', 'moon-face', 'cloud', 'waves-back', 'waves-mid', 'waves-front', FILM_ED ? 'playbill-film' : 'playbill'];
 const titleArt = () => firstArt || (assetsLoaded && TITLE_ART.every((id) => !(assets.slots[id]?.status === 'delivered') || assets.images[id]));
 // The song gates the curtain: 'ready', or given up on ('failed'/'none').
 const songStatus = () => (assetsLoaded ? audio.trackStatus() : { state: 'loading', progress: 0 });
@@ -123,7 +123,7 @@ function touchArt(a) {
 }
 
 // Act I and the title load first; the other acts' art follows in the background.
-const FIRST_ART = ['logo', 'rotate-card', 'touch-stick-base', 'touch-stick-knob', 'touch-button', 'touch-pause', 'proscenium', 'curtain-panel', 'footlight', 'sky-backdrop', 'moon-face', 'cloud', 'waves-back', 'waves-mid', 'waves-front',
+const FIRST_ART = ['logo', 'playbill', 'playbill-film', 'omen-token', 'rotate-card', 'touch-stick-base', 'touch-stick-knob', 'touch-button', 'touch-pause', 'proscenium', 'curtain-panel', 'footlight', 'sky-backdrop', 'moon-face', 'cloud', 'waves-back', 'waves-mid', 'waves-front',
   'ship', 'witch-moonboat', 'rock', 'pearl', 'tea-leaf', 'keepsake-tea', 'lighthouse', 'lighthouse-lit', 'band-trio',
   'deck-set', 'reveller-yellow', 'reveller-shaggy', 'reveller-jester', 'reveller-lady', 'lantern-string', 'sea-spirit',
   'ship-wreck-bow', 'ship-wreck-stern', 'guitar-sinking', 'waterspout'];
@@ -257,6 +257,8 @@ function pause(note = '') {
   if (S.paused || S.mode === 'title') return;
   S.paused = true;
   $('#pause-note').textContent = note;
+  // on the playbill there is no act to restart
+  $('#pause [data-act=restart]').hidden = !S.act;
   openDialog($('#pause'));
   audio.play('ui');
 }
@@ -582,6 +584,9 @@ function update(dt, i) {
   const go = i.padA || i.confirm || !!i.tap;
 
   if (S.mode === 'playbill') {
+    // the pause menu works here as in play (Escape, P, the pad's menu button
+    // or the touch pause button); B or Backspace go back to the title
+    if (i.pause) { pause(); return; }
     const n = Math.min(save.unlocked, ACTS.length);
     if (i.up) { S.pb = (S.pb + n - 1) % n; audio.play('ui'); }
     if (i.down) { S.pb = (S.pb + 1) % n; audio.play('ui'); }
@@ -595,7 +600,7 @@ function update(dt, i) {
       return;
     }
     if (go && S.modeT > 0.3) beginAct(S.pb);
-    else if (i.padB || i.back) toTitle();
+    else if (i.padB || (i.back && !i.pause)) toTitle();
     return;
   }
 
@@ -775,6 +780,8 @@ function updateTouch() {
     if (portrait && S.mode === 'play') pause('Turn the device sideways to carry on.');
   }
   const playing = S.mode === 'play' && !S.paused && !portrait;
+  // on the playbill only the pause button shows
+  $('#touch').classList.toggle('menu-pause', S.mode === 'playbill' && !S.paused);
   // A new scene (or act) doesn't inherit a drag held over from the last one.
   const sceneKey = `${S.actIndex}:${S.state?.phase}:${S.state?.tf ? 'tf' : ''}`;
   if (sceneKey !== lastTouchScene) { lastTouchScene = sceneKey; touch.settle?.(); }
@@ -806,6 +813,15 @@ const PB = !FILM_ED
   : { w: 404, h: 578, cx: 640, cy: 360, panels: [265, 361.5, 458, 556, 653.5, 756, 850.5], panelH: 70, panelX: [135, 565],
       titleY: 150, subY: 184, titlePx: 24, kick: [9, -8], name: [20, 12] };
 // Where each act's row sits, for drawing and for taps (stage px).
+// A small turning ring, drawn on the stage while art it needs is still coming.
+function spinner(k, t) {
+  const c = k.c;
+  c.save(); c.translate(640, 380); c.rotate(t * 6);
+  c.lineWidth = 3; c.strokeStyle = 'rgba(243,198,220,0.2)'; c.beginPath(); c.arc(0, 0, 22, 0, Math.PI * 2); c.stroke();
+  c.strokeStyle = '#f3c6dc'; c.beginPath(); c.arc(0, 0, 22, 0, Math.PI / 2); c.stroke();
+  c.restore();
+}
+
 function playbillRows() {
   // Each edition's painted bill has one panel per act; without it, a card.
   if (assets.images[FILM_ED ? 'playbill-film' : 'playbill'] && ACTS.length === PB.panels.length) {
@@ -825,6 +841,9 @@ function drawPlaybill(k, t) {
   const mode = S.inputMode;
   const hint = mode === 'touch' ? 'Tap an act to begin · tap outside for the title'
     : mode === 'pad' ? '[LS] Choose · [A] Begin · [B] The title' : '↑ ↓ to choose · [A] to begin · [B] for the title';
+  // The bill waits for its art (the title holds behind the spinner until it
+  // is in): never the drawn stand-in, which is wider, then swapped.
+  if (!rows.art && !artAll) { spinner(k, t); return; }
   if (rows.art && k.asset('playbill', PB.cx, PB.cy + PB.h / 2, PB.w, PB.h)) {
     const s = rows.s, ink = k.col('#2a1424');
     c.fillStyle = ink; c.textAlign = 'center';

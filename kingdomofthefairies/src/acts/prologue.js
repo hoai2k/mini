@@ -264,11 +264,10 @@ function bind(st, dt, input) {
   if (s.n >= WIGGLES && (s.doneT += dt) >= T.strained) next(st);
 }
 
-// The witch's cackle (the Crossing's, until her own is generated: witchCackle
-// in design/source/build_sfx.py).
+// The witch's cackle (witchCackle, design/source/build_sfx.py).
 function laugh(st) {
   st.laughAt = st.phaseT;
-  st.events.push({ type: 'witchCackle', sound: 'windWarn', gain: 0.7 });
+  st.events.push({ type: 'witchCackle', sound: 'witchCackle', gain: 0.8 });
 }
 
 function armoury(st, dt, input) {
