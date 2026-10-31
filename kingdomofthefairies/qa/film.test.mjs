@@ -450,6 +450,36 @@ test("Act VI: the witch's last stand: her fire costs a lantern, X strikes, three
   assert.ok(s2.phase === 'wedding' || s2.barrel?.fallT != null || s2.barrel.x > x0, 'he rolls it to the edge');
 });
 
+test('Act VI: victory sounds once after the witch disappears, never during defeat, trapping or falling', () => {
+  const st = actBurning.create({ seed: 4, carry: {}, from: { scene: 3 } });
+  const seen = [];
+  let last = false;
+  for (let t = 0; t < 60 && st.phase === 'barrel'; t += DT) {
+    const strike = !!st.duel && duelReach(st) && st.duel.state !== 'reel';
+    const input = st.duel ? { moveX: duelReach(st) ? 0 : 1, x: strike && !last } : { moveX: 1 };
+    last = strike;
+    actBurning.step(st, DT, input);
+    for (const e of st.events) {
+      seen.push(e);
+      if (e.sound === 'victoryStinger') {
+        assert.equal(st.phase, 'wedding');
+        assert.ok(st.barrel.fallT >= FILM_T.barrelFall, 'the entire barrel fade has finished');
+      }
+    }
+    st.events.length = 0;
+  }
+  assert.equal(st.phase, 'wedding');
+  for (const type of ['witchBeaten', 'witchInBarrel', 'barrelFall']) {
+    assert.ok(seen.some(e => e.type === type), type);
+    assert.ok(seen.filter(e => e.type === type).every(e => !e.sound), 'no early flourish');
+  }
+  assert.deepEqual(seen.filter(e => e.sound === 'victoryStinger').map(e => e.type), ['witchGone']);
+  run(actBurning, st, 1, () => {
+    assert.ok(!st.events.some(e => e.sound === 'victoryStinger'), 'no repeat in the wedding');
+    return {};
+  });
+});
+
 test('Act V: from the clifftop he walks to the edge and dives into the sea gap', () => {
   const st = actTower.create({ seed: 1, carry: {}, from: { scene: 0 } });
   st.phase = 'dive'; st.phaseT = 0;

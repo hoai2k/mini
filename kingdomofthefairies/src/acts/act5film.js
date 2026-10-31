@@ -506,8 +506,7 @@ function stepDuel(st, dt, input) {
     if (reach && d.state !== 'reel') {
       d.hp--; d.state = 'reel'; d.t = 0; d.bolts.length = 0;
       st.events.push({ type: 'witchStruck', x: d.x, hp: d.hp });
-      // beaten: the heroic stinger (victoryStinger, design/music-requests.md)
-      if (d.hp <= 0) { d.state = 'trap'; d.t = 0; st.score += 300; st.events.push({ type: 'witchBeaten', x: d.x, sound: 'victoryStinger' }); }
+      if (d.hp <= 0) { d.state = 'trap'; d.t = 0; st.score += 300; st.events.push({ type: 'witchBeaten', x: d.x }); }
     }
   }
   if (d.state === 'idle' && d.t >= d.next) { d.state = 'warn'; d.t = 0; st.events.push({ type: 'witchWinds', x: d.x }); }
@@ -554,7 +553,12 @@ function stepBarrel(st, dt, input) {
   if (b.fallT != null) {
     b.fallT += dt;
     walk(w, dt, {}, { y: BARREL.y, x0: BARREL.x0, x1: BARREL.edge - 60 });
-    if (b.fallT >= FILM_T.barrelFall) startWedding(st);
+    if (b.fallT >= FILM_T.barrelFall) {
+      // The renderer finishes fading the witch and barrel at barrelFall.
+      // Celebrate only once she has disappeared entirely into the water.
+      st.events.push({ type: 'witchGone', sound: 'victoryStinger' });
+      startWedding(st);
+    }
     return;
   }
   walk(w, dt, input, { y: BARREL.y, x0: BARREL.x0, x1: BARREL.edge - 60 });
