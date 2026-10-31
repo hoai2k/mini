@@ -982,7 +982,7 @@ function respawnCell(c) {
 }
 
 function retint() {
-  for (const c of cells) view.setTint(c.layer, c.p.color, cells.length > 1 ? 0.2 : 0);
+  for (const c of cells) view.setTint(c.layer, c.p.color, cells.length > 1 ? 0.1 : 0);
 }
 
 /** Every joined player has a cell, and only they do (after the shell's roster arrives). */
