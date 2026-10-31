@@ -199,23 +199,23 @@ export const ASSETS = {
   },
   "MP-R16": {
     "file": "assets/reference-sheets/boss-nematode.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R17": {
     "file": "assets/reference-sheets/boss-chaos.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R18": {
     "file": "assets/reference-sheets/boss-bladderwort.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R19": {
     "file": "assets/reference-sheets/boss-stentor.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R20": {
     "file": "assets/reference-sheets/boss-cas.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R01": {
     "file": "assets/reference-sheets/springtail.webp",

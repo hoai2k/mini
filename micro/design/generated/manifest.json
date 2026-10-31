@@ -2528,6 +2528,303 @@
     "mood_boards": []
   },
   {
+    "id": "MP-R16",
+    "name": "Predatory nematode (Prionchulus), boss of the water film",
+    "file": "assets/reference-sheets/boss-nematode.webp",
+    "size": "2048 x 2048, opaque",
+    "used": "Modelling this world's boss.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE SQUARE1:1 four-view concept MODEL REFERENCE SHEET, not a calibrated scientific measurement. Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A predatory mononchid nematode (Prionchulus muscorum) about 2 mm long and 60 micrometres thick, transparent and colourless in a differential-interference-contrast look: a long smooth unsegmented worm tapering at both ends, a wide barrel-shaped buccal cavity at the head with one large dorsal tooth, a muscular cylindrical oesophagus, the gut with dark granules; in the three-quarter view the body bent in a strong S-curve as it whips. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nExactly2x2 separated views of the SAME individual/complex: upper-left side faces RIGHT, upper-right dorsal/anterior UP, lower-left true END-ON FRONT view looking along the long axis (foreshortened), lower-right threequarter. Keep a flat light-grey background and no shadows, text, labels, arrows or scale bars. Whole subject and appendages fit safely inside each quadrant. TEXT-ONLY interpretation grounded in the brief and published Prionchulus taxonomic descriptions: no unrelated tardigrade or moss image is an anatomy reference. This is a THIN smooth UNSEGMENTED cylindrical nematode, length2mm, diameter60micrometres, body aspect33:1, tapering at both ends. Do NOT fatten it into an annelid, leech, snake, caterpillar or monster. No legs, suckers, bristles, plates, segments, eyes or external fang. Colourless transparent DIC-like cuticle, subtle gut granules, cylindrical muscular oesophagus. At rounded anterior, a SMALL barrel-shaped buccal cavity with ONE large anteriorly directed DORSAL TOOTH and subtle opposing subventral denticles; tooth is internal, not a projecting tusk. Side view mostly straight thin body headright, top view elongated headup, FRONT view small end-on round mouth at the SAME anatomical scale, not a giant enlarged head. Lower-right thin body in strong S curve. Internal structures delicately hinted, no oversized teeth.",
+    "requested_prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A predatory mononchid nematode (Prionchulus muscorum) about 2 mm long and 60 micrometres thick, transparent and colourless in a differential-interference-contrast look: a long smooth unsegmented worm tapering at both ends, a wide barrel-shaped buccal cavity at the head with one large dorsal tooth, a muscular cylindrical oesophagus, the gut with dark granules; in the three-quarter view the body bent in a strong S-curve as it whips. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-c7db5fc6-5798-45fe-9cbf-d047c599d6bf.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "cc6acbfcbaa545ed6121069fb5b73dcca196d3133b5b31c087cb61bac4c1d473",
+    "export": "Aspect-preserving LANCZOS sizing with neutral outer padding when needed; WebP quality 92. No anatomy edits.",
+    "references": [
+      {
+        "id": "milnesium",
+        "local": "assets/references/tardigrade-sem.png",
+        "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
+        "license": "CC BY 2.5",
+        "license_url": "https://creativecommons.org/licenses/by/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png"
+      },
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      }
+    ],
+    "mood_boards": [],
+    "supporting_sources": [
+      {
+        "title": "Prionchulus muscorum morphology, UC Davis Nemaplex",
+        "url": "https://nemaplex.ucdavis.edu/Taxadata/G651s1.aspx"
+      },
+      {
+        "title": "Primary taxonomic account including P. muscorum, 2021",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7912235/"
+      }
+    ],
+    "reference_scope": "Text-only generation from the brief and taxonomic descriptions. No figure from the taxonomic paper was supplied, copied or imported; the listed original brief photographs are habitat/prey context, not nematode anatomy."
+  },
+  {
+    "id": "MP-R17",
+    "name": "Giant amoeba (Chaos), boss of the pool floor",
+    "file": "assets/reference-sheets/boss-chaos.webp",
+    "size": "2048 x 2048, opaque",
+    "used": "Modelling this world's boss.",
+    "prompt": "Use case: precise-object-edit. Edit target: supplied square four-view concept modelling sheet. Preserve the four-view layout, subject scale, flat grey background, colours and all unaffected morphology. Correct ONLY the NUCLEI in ALL FOUR Chaos amoeba views: remove the one conspicuous green central spot/cluster from every body. Replace it with MANY SMALL PALE ROUND NUCLEI scattered throughout the granular cytoplasm, broadly dispersed rather than clustered centrally. About60-100 tiny pale round nuclei should be visible in the top and threequarter bodies as an illustrative subset of the hundreds present, each smaller than the food vacuoles. Each has a fine pale rim and tiny faint interior nucleolus, no saturated green. Preserve the broad blunt pseudopods, clear hyaline advancing tips, thickness in side/front views, existing grey-brown granularity and food vacuoles. No extra objects, text, arrows, labels, faces, monster features or background changes.",
+    "requested_prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The giant amoeba Chaos (Chaos carolinensis), up to 5 mm across, in a brightfield microscope look: a huge flowing cell with many broad blunt pseudopods, granular grey-brown cytoplasm, hundreds of small nuclei (unlike Amoeba proteus, which has one), many food vacuoles with half-digested ciliates inside, a clear hyaline rim at each advancing tip. In the side view show its thickness; in the three-quarter view two pseudopods curving to surround something. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-00e0ead9-b566-4d12-91a1-93650b53605d.png",
+    "input_images": [
+      "generated/exec-0ea7bbc4-1eea-4f32-8851-349595b04cb9.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "2070fc6868b47225da66222b5f781b52bd015ce642cb9a28876f806823e6f3d3",
+    "export": "Aspect-preserving LANCZOS sizing with neutral outer padding when needed; WebP quality 92. No anatomy edits.",
+    "references": [
+      {
+        "id": "boss-chaos",
+        "local": "assets/references/production/boss-chaos.jpg",
+        "author": "dr.Tsukii Yuuji",
+        "license": "CC BY-SA 2.5",
+        "license_url": "https://creativecommons.org/licenses/by-sa/2.5",
+        "source": "https://commons.wikimedia.org/wiki/File:Chaos_carolinense.jpg"
+      },
+      {
+        "id": "amoeba",
+        "local": "assets/references/amoeba.jpg",
+        "author": "Cymothoa exigua",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Amoeba_proteus.jpg"
+      },
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      }
+    ],
+    "mood_boards": [],
+    "initial_generation": {
+      "tool": "Built-in image_gen",
+      "source_artifact": "exec-0ea7bbc4-1eea-4f32-8851-349595b04cb9.png",
+      "prompt": "Use case: scientific-educational. Asset type: ONE SQUARE1:1 four-view MODEL REFERENCE SHEET, intended for concept modelling, not a calibrated specimen measurement. The supplied image is a direct morphology reference only; do not copy its background, labels or scale bars. Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The giant amoeba Chaos (Chaos carolinensis), up to 5 mm across, in a brightfield microscope look: a huge flowing cell with many broad blunt pseudopods, granular grey-brown cytoplasm, hundreds of small nuclei (unlike Amoeba proteus, which has one), many food vacuoles with half-digested ciliates inside, a clear hyaline rim at each advancing tip. In the side view show its thickness; in the three-quarter view two pseudopods curving to surround something. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nComposition: EXACTLY2columns x2rows, four fully separated views of the SAME individual. Upper-left SIDE faces RIGHT; upper-right TOP with head or anterior UP; lower-left true END-ON FRONT, looking down the body's long axis (foreshortened, never another repeated side); lower-right three-quarter from front-left. Maintain consistent physical scale and stable anatomy. Flat light-grey background, soft even illumination, no ground shadows, no text. Fit every appendage inside its quadrant with safe margin. ONLY one multinucleate Chaos amoeba, shown in four views, no independent ciliate beside it. A broad flattened soft irregular granular grey-brown cell with MANY small pale nuclei scattered THROUGHOUT, not one large central nucleus. Many food vacuoles, a few containing tiny half-digested ciliate shapes. Broad blunt lobose pseudopods with clear hyaline advancing tips. Side view low flattened cell thickness; top view full lobose footprint; frontal view foreshortened lower thickness; threequarter two broad tips curving inward around empty space. No arms, face, eye, mouth, teeth, tentacles or monster anatomy.",
+      "input_images": [
+        "research/assets/references/production/boss-chaos.jpg"
+      ],
+      "revision_reason": "Replace single central green cluster with many small dispersed nuclei."
+    }
+  },
+  {
+    "id": "MP-R18",
+    "name": "Bladderwort trap (Utricularia), boss of the hollow pool",
+    "file": "assets/reference-sheets/boss-bladderwort.webp",
+    "size": "2048 x 2048, opaque",
+    "used": "Modelling this world's boss.",
+    "prompt": "Use case: precise-object-edit. Edit target: supplied square four-view concept modelling sheet. Preserve the four-view layout, subject scale, flat grey background, colours and all unaffected morphology. Correct ONLY the viewing direction and TRAPDOOR mechanics in the lower two quadrants. Upper-left and upper-right stay exactly unchanged. Lower-left: a true END-ON FRONT view looking at the closed door; the bladder foreshortens into a rounded oval behind the small oval entrance with trigger hairs, not another long top view. Lower-right: remove the giant outward-opening clamshell lid; bladder wall remains a continuous intact translucent oval sac. Show a SMALL flexible trapdoor flap at the anterior entrance HINGED INWARD into the bladder cavity. The door does not lift outside the sac or split its roof. Through translucency the inward-deflected thin flap should be visible just behind the opening. Keep the surrounding branched antennae, trigger hairs, short stalk, cell-wall texture and existing internal prey. A few faint particles can show inward flow, no arrows or painted water stream. No text or labels.",
+    "requested_prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A single bladder trap of the aquatic bladderwort Utricularia, about 2 mm long, in a brightfield microscope look: a translucent green oval bladder on a short stalk, the trap door at one end fringed with branched antennae and long bristle-like trigger hairs, glands on the door, small captured organisms visible inside. In one view the door closed and the walls drawn in (set); in the three-quarter view the door swinging open with water rushing in. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-6d385167-a38b-40ef-b845-e9443080a522.png",
+    "input_images": [
+      "generated/exec-2bda3d6a-9a0e-46b9-9950-c652a13b6bea.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "c7402c82eec644d20f98cb6965cc16eae47320ded57c67cdf43af558260f1372",
+    "export": "Aspect-preserving LANCZOS sizing with neutral outer padding when needed; WebP quality 92. No anatomy edits.",
+    "references": [
+      {
+        "id": "utricularia-bladder",
+        "local": "assets/references/production/utricularia-bladder.jpg",
+        "author": "Stefan.lefnaer",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Utricularia_australis_sl68.jpg"
+      },
+      {
+        "id": "bog-pool",
+        "local": "assets/references/production/bog-pool.jpg",
+        "author": "JarroNevsbaru",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg"
+      },
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      }
+    ],
+    "mood_boards": [],
+    "initial_generation": {
+      "tool": "Built-in image_gen",
+      "source_artifact": "exec-2bda3d6a-9a0e-46b9-9950-c652a13b6bea.png",
+      "prompt": "Use case: scientific-educational. Asset type: ONE SQUARE1:1 four-view MODEL REFERENCE SHEET, intended for concept modelling, not a calibrated specimen measurement. The supplied image is a direct morphology reference only; do not copy its background, labels or scale bars. Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A single bladder trap of the aquatic bladderwort Utricularia, about 2 mm long, in a brightfield microscope look: a translucent green oval bladder on a short stalk, the trap door at one end fringed with branched antennae and long bristle-like trigger hairs, glands on the door, small captured organisms visible inside. In one view the door closed and the walls drawn in (set); in the three-quarter view the door swinging open with water rushing in. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nComposition: EXACTLY2columns x2rows, four fully separated views of the SAME individual. Upper-left SIDE faces RIGHT; upper-right TOP with head or anterior UP; lower-left true END-ON FRONT, looking down the body's long axis (foreshortened, never another repeated side); lower-right three-quarter from front-left. Maintain consistent physical scale and stable anatomy. Flat light-grey background, soft even illumination, no ground shadows, no text. Fit every appendage inside its quadrant with safe margin. One botanical Utricularia BLADDER TRAP only: translucent green oval sac on a short stalk, trapdoor at anterior end, branched antenna-like plant appendages and slender trigger hairs around door. No animal limbs, face, teeth or tentacles. Side/top/front views door CLOSED, sac walls slightly drawn inward. Lower-right threequarter view door OPEN inward, with only a few faint particles to imply water inflow; no arrows, literal water jet or surrounding pond. Captured tiny organisms remain subtle inside the sac. Source plant photo gives morphology only, not the leafy background.",
+      "input_images": [
+        "research/assets/references/production/utricularia-bladder.jpg"
+      ],
+      "revision_reason": "Improve front-view entrance and inward trapdoor mechanics."
+    }
+  },
+  {
+    "id": "MP-R19",
+    "name": "Stentor, boss of the sediment",
+    "file": "assets/reference-sheets/boss-stentor.webp",
+    "size": "2048 x 2048, opaque",
+    "used": "Modelling this world's boss.",
+    "prompt": "Use case: scientific-educational. Asset type: ONE SQUARE1:1 four-view concept MODEL REFERENCE SHEET, not a calibrated scientific measurement. Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The giant trumpet-shaped ciliate Stentor coeruleus, about 1-2 mm when extended, in a phase-contrast and natural-colour look: a blue-green trumpet attached by a narrow foot, a broad flat oral disc at the top ringed by a spiral of long membranelles (cilia) that whirl a feeding vortex, longitudinal blue pigment stripes along the body, a bead-like chain macronucleus inside. In the three-quarter view show the vortex of particles being drawn into the mouth. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nExactly2x2 separated views of the SAME individual/complex: upper-left side faces RIGHT, upper-right dorsal/anterior UP, lower-left true END-ON FRONT view looking along the long axis (foreshortened), lower-right threequarter. Keep a flat light-grey background and no shadows, text, labels, arrows or scale bars. Whole subject and appendages fit safely inside each quadrant. Input images are direct morphology/structural references only; remove their labels, reference backgrounds and scale bars. The first photo shows extended Stentor pair; depict ONLY ONE individual repeated four times, not a pair. Second is a contracted ORAL VIEW, useful for oral-disc organisation but do NOT copy its squat body into extended views. Target extended Stentor coeruleus: graceful long trumpet flaring from a very narrow attaching FOOT to a broad oral disc, translucent pale blue-green natural pigment with fine longitudinal BLUE STRIPES, numerous tiny body cilia and a spiral band of LONG ORAL MEMBRANELLES around the disc. Delicate bead-chain MACRONUCLEUS INSIDE the cell, not a pearl necklace outside. Side view footleft and oraldisc RIGHT; top view oraldiscUP footDOWN; true front view looks at circular oraldisc with narrow body foreshortened BEHIND. Threequarter oral disc and a few tiny suspended particles suggest feeding flow without literal swirls, water jets, drawn arrows or extra objects. No eyes, face, teeth or flower petals.",
+    "requested_prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. The giant trumpet-shaped ciliate Stentor coeruleus, about 1-2 mm when extended, in a phase-contrast and natural-colour look: a blue-green trumpet attached by a narrow foot, a broad flat oral disc at the top ringed by a spiral of long membranelles (cilia) that whirl a feeding vortex, longitudinal blue pigment stripes along the body, a bead-like chain macronucleus inside. In the three-quarter view show the vortex of particles being drawn into the mouth. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-c796503f-66a7-4dc0-a315-1d27663c660d.png",
+    "input_images": [
+      "research/assets/references/production/boss-stentor-extended.jpg",
+      "research/assets/references/production/boss-stentor.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "592d12834211e5a9e8688f831263c98305ef07df952cfb46ca1b692c903011dc",
+    "export": "Aspect-preserving LANCZOS sizing with neutral outer padding when needed; WebP quality 92. No anatomy edits.",
+    "references": [
+      {
+        "id": "boss-stentor-extended",
+        "local": "assets/references/production/boss-stentor-extended.jpg",
+        "author": "Martin Kreutz",
+        "license": "CC BY 3.0 nl",
+        "license_url": "https://creativecommons.org/licenses/by/3.0/nl/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:StentorCoeruleus.jpg"
+      },
+      {
+        "id": "boss-stentor",
+        "local": "assets/references/production/boss-stentor.png",
+        "author": "Algae17",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Stentor_coeruleus.png"
+      },
+      {
+        "id": "biofilm-sem",
+        "local": "assets/references/biofilm-sem.jpg",
+        "author": "Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M.",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg"
+      },
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-R20",
+    "name": "CRISPR-Cas complex, boss inside the host",
+    "file": "assets/reference-sheets/boss-cas.webp",
+    "size": "2048 x 2048, opaque",
+    "used": "Modelling this world's boss.",
+    "prompt": "Use case: precise-object-edit. Supplied square four-view Cascade/Cas3 molecular illustration is EDIT TARGET. Fix only VIEW DIFFERENTIATION; preserve flat watercolour molecular style, colours, grey background, same subunit shapes, and the same distinct cyan Cas3 next to the blue Cascade/RNA/DNA assembly. Keep upper-left side view unchanged. Upper-right must be a genuine TOP VIEW looking down onto the opposite surface of the blue curved protein backbone, showing its width and guide-RNA channel from above, NOT the same side silhouette; DNA long axis oriented vertically up/down. Lower-left must be END-ON viewed along the DNA long axis so the DNA helix presents a small circular near-end cross section with the Cascade backbone foreshortened behind it and Cas3 at its side, NOT a full side view of DNA laid vertically across the whole body. Lower-right remains a three-quarter rotation with visible depth and DNA projecting diagonally. Keep all four views at consistent physical scale, fit each wholly within its quadrant, with clear margins and no DNA clipping at sheet edges. No added proteins, labels, letters, arrows, borders or shadows. These are illustrative concept rotations, not atomic-coordinate renderings.",
+    "requested_prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A molecular illustration in the manner of David Goodsell of a type I CRISPR-Cas surveillance complex (Cascade) with its guide RNA, bound along a stretch of DNA double helix, and a Cas3 nuclease-helicase beside it ready to chop the DNA: soft watercolour shapes, the Cascade as a curved seahorse-like backbone of protein subunits around a bright RNA strand, the DNA as a twisted ladder. Show the complex from the side, from above, from the end and in three-quarter view. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-e6704b9c-cde7-4425-87ae-bae3617f6e6c.png",
+    "input_images": [
+      "generated/exec-d16c550d-df06-474d-8ed7-c63b60928f7f.png"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "fc2a412d2b88cc3e07ecdd2746aa7f4bbd59ac36cd88d0b89c1d24d500b54d09",
+    "export": "Aspect-preserving LANCZOS sizing with neutral outer padding when needed; WebP quality 92. No anatomy edits.",
+    "references": [
+      {
+        "id": "boss-cascade",
+        "local": "assets/references/production/boss-cascade.jpg",
+        "author": "David Goodsell",
+        "license": "CC BY 3.0",
+        "license_url": "https://creativecommons.org/licenses/by/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:181-CascadeAndCRISPR_4un3.tiff"
+      },
+      {
+        "id": "boss-cas-proteins",
+        "local": "assets/references/production/boss-cas-proteins.jpg",
+        "author": "David Goodsell",
+        "license": "CC BY 3.0",
+        "license_url": "https://creativecommons.org/licenses/by/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:181-CascadeAndCRISPR_CasProteins.tiff"
+      },
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      }
+    ],
+    "mood_boards": [],
+    "initial_generation": {
+      "tool": "Built-in image_gen",
+      "source_artifact": "exec-d16c550d-df06-474d-8ed7-c63b60928f7f.png",
+      "prompt": "Use case: scientific-educational. Asset type: ONE SQUARE1:1 four-view concept MODEL REFERENCE SHEET, not a calibrated scientific measurement. Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A molecular illustration in the manner of David Goodsell of a type I CRISPR-Cas surveillance complex (Cascade) with its guide RNA, bound along a stretch of DNA double helix, and a Cas3 nuclease-helicase beside it ready to chop the DNA: soft watercolour shapes, the Cascade as a curved seahorse-like backbone of protein subunits around a bright RNA strand, the DNA as a twisted ladder. Show the complex from the side, from above, from the end and in three-quarter view. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\nExactly2x2 separated views of the SAME individual/complex: upper-left side faces RIGHT, upper-right dorsal/anterior UP, lower-left true END-ON FRONT view looking along the long axis (foreshortened), lower-right threequarter. Keep a flat light-grey background and no shadows, text, labels, arrows or scale bars. Whole subject and appendages fit safely inside each quadrant. Input images are direct morphology/structural references only; remove their labels, reference backgrounds and scale bars. Molecular watercolour reconstruction, explanatory colours, not a light-micrograph image. First reference is Cascade with nucleic acid. Second reference labels several separate proteins: use ONLY the CYAN RIGHT-HAND Cas3 shape as supporting morphology, do NOT include the purple Cas1/Cas2 at left or any labels. Each view depicts the SAME typeI Cascade surveillance assembly with a curved repeated-subunit backbone carrying a bright guide-RNA strand, bound to a stretch of double-stranded DNA with a locally opened R-loop region. Cas3 nuclease-helicase is a DISTINCT nearby cyan protein, not a scorpion tail or a limb growing from Cascade. Show side, top, end-on and threequarter rotations of the same assembly and DNA. Maintain consistent relative size and protein subunit organisation as far as visible. Flat softly outlined molecular watercolour forms, no metallic surface, no mechanical teeth, claws, gears, humanoid or fantasy shape. No arrows, labels or text.",
+      "input_images": [
+        "research/assets/references/production/boss-cascade.jpg",
+        "research/assets/references/production/boss-cas-proteins.jpg"
+      ],
+      "revision_reason": "Differentiate top and end-on molecular concept views."
+    },
+    "reference_scope": "Illustrative molecular views informed by the credited structural illustrations; not rotations computed from atomic coordinates."
+  },
+  {
     "id": "MP-R01",
     "name": "Water springtail (Podura aquatica)",
     "file": "assets/reference-sheets/springtail.webp",

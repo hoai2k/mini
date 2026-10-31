@@ -589,7 +589,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} A moss-dwelling pseudoscorpion (e.g. Neobisium) about 2.5 mm long: a flattened pear-shaped body with a segmented abdomen and no tail or sting, a smooth amber-brown carapace with two or four small eyes, exactly eight slender walking legs, and two very large pedipalps ending in long curved chelae (pincers) with a visible venom tooth at the tip of the movable finger, held forward and open. Chelicerae small at the front. {SCIENCE}",
             },
             {
-                "id": "MP-R16", "name": "Predatory nematode (Prionchulus), boss of the water film",
+                "id": "MP-R16", "status": "delivered", "name": "Predatory nematode (Prionchulus), boss of the water film",
                 "file": "assets/reference-sheets/boss-nematode.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling this world's boss.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -597,7 +597,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} A predatory mononchid nematode (Prionchulus muscorum) about 2 mm long and 60 micrometres thick, transparent and colourless in a differential-interference-contrast look: a long smooth unsegmented worm tapering at both ends, a wide barrel-shaped buccal cavity at the head with one large dorsal tooth, a muscular cylindrical oesophagus, the gut with dark granules; in the three-quarter view the body bent in a strong S-curve as it whips. {SCIENCE}",
             },
             {
-                "id": "MP-R17", "name": "Giant amoeba (Chaos), boss of the pool floor",
+                "id": "MP-R17", "status": "delivered", "name": "Giant amoeba (Chaos), boss of the pool floor",
                 "file": "assets/reference-sheets/boss-chaos.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling this world's boss.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -605,7 +605,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The giant amoeba Chaos (Chaos carolinensis), up to 5 mm across, in a brightfield microscope look: a huge flowing cell with many broad blunt pseudopods, granular grey-brown cytoplasm, hundreds of small nuclei (unlike Amoeba proteus, which has one), many food vacuoles with half-digested ciliates inside, a clear hyaline rim at each advancing tip. In the side view show its thickness; in the three-quarter view two pseudopods curving to surround something. {SCIENCE}",
             },
             {
-                "id": "MP-R18", "name": "Bladderwort trap (Utricularia), boss of the hollow pool",
+                "id": "MP-R18", "status": "delivered", "name": "Bladderwort trap (Utricularia), boss of the hollow pool",
                 "file": "assets/reference-sheets/boss-bladderwort.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling this world's boss.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -613,7 +613,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} A single bladder trap of the aquatic bladderwort Utricularia, about 2 mm long, in a brightfield microscope look: a translucent green oval bladder on a short stalk, the trap door at one end fringed with branched antennae and long bristle-like trigger hairs, glands on the door, small captured organisms visible inside. In one view the door closed and the walls drawn in (set); in the three-quarter view the door swinging open with water rushing in. {SCIENCE}",
             },
             {
-                "id": "MP-R19", "name": "Stentor, boss of the sediment",
+                "id": "MP-R19", "status": "delivered", "name": "Stentor, boss of the sediment",
                 "file": "assets/reference-sheets/boss-stentor.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling this world's boss.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -621,7 +621,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} The giant trumpet-shaped ciliate Stentor coeruleus, about 1-2 mm when extended, in a phase-contrast and natural-colour look: a blue-green trumpet attached by a narrow foot, a broad flat oral disc at the top ringed by a spiral of long membranelles (cilia) that whirl a feeding vortex, longitudinal blue pigment stripes along the body, a bead-like chain macronucleus inside. In the three-quarter view show the vortex of particles being drawn into the mouth. {SCIENCE}",
             },
             {
-                "id": "MP-R20", "name": "CRISPR-Cas complex, boss inside the host",
+                "id": "MP-R20", "status": "delivered", "name": "CRISPR-Cas complex, boss inside the host",
                 "file": "assets/reference-sheets/boss-cas.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling this world's boss.",
                 "standin": "None needed: the model is built from the photographs.",
