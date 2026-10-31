@@ -5,7 +5,7 @@ is at https://hoai2k.github.io/mini/.
 
 ## Games
 
-- **[Micro prototypes](https://hoai2k.github.io/mini/micro/prototypes/)** · [`micro/`](micro/README.md): play as microscopic creatures (research and prototypes)
+- **[Micro Zoom](https://hoai2k.github.io/mini/micro/)** · [`micro/`](micro/README.md): play as microscopic creatures, world by world ([prototypes](https://hoai2k.github.io/mini/micro/prototypes/))
 - **[Meditation Timer](https://hoai2k.github.io/mini/meditation/)** · [`meditation/`](meditation/README.md): a quiet sitting timer with a starting and an ending chime
 - **[Image Annotator](https://hoai2k.github.io/mini/imageannotator/)** · [`imageannotator/`](imageannotator/README.md): point things out on a picture with arrows, circles and drawing
 - **[MP3 Player](https://hoai2k.github.io/mini/mp3player/)** · [`mp3player/`](mp3player/README.md): the music on your device, played like a streaming app
