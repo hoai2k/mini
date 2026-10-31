@@ -2,7 +2,7 @@
 
 Concept references for the [glowing return journey plan](super-gene-return.html) and [Phage visual-style plan](phage-visual-style.html). These are future-design references, separate from the delivered prototype assets listed in [the prototype ledger](../image-requests.md).
 
-1 requested, 5 delivered.
+0 requested, 6 delivered.
 
 Generated with the built-in image_gen tool. Exact prompts and delivery metadata are also saved in [the manifest](generated/super-gene-return/manifest.json).
 
@@ -104,7 +104,8 @@ Constraints: no text, no labels, no UI, no DNA icons, no magic symbols, no weapo
 
 ### PFL-02 · Inside-cell false-light view
 
-Status: requested.
+Status: delivered.
+[View image](generated/phage-false-light/phage-inside-cell.png) · 1672 × 941 · original PNG.
 File: `micro/design/generated/phage-false-light/phage-inside-cell.png`
 Use: future visual-style reference only; not a runtime game asset.
 

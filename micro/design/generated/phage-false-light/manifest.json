@@ -20,9 +20,15 @@
     "file": "phage-inside-cell.png",
     "name": "Inside-cell false-light view",
     "prompt": "Use case: stylized-concept.\nAsset type: realistic microscopic false-light reference for the inside-cell portion of a bacteriophage game, landscape 16:9.\nPrimary request: show what the Phage level looks like from inside the host cell as the phage genome enters, using realistic microscopic false light rather than a hand-drawn illustration.\nScene: a spacious readable view through a crowded bacterial cytoplasm. The inner surface of a curved blue-teal bacterial membrane is visible in the middle distance; a phage tail tube reaches through it, releasing a thin luminous warm white-gold DNA thread into the cell. Keep the phage capsid outside the cell; the inside gameplay subject is the entering genome. Surround it with believable ribosomes, proteins and cell material at molecular scale without turning them into labelled diagram symbols.\nVisual style: realistic textured translucent biological materials, watery blue-teal surroundings, delicate warm white-gold glow on the entering genome, restrained luminous scattering, cinematic 3D false-light microscopy. Match the exterior reference's naturalistic materials and palette. Not watercolour, not pen and ink, not cartoon or a textbook schematic.\nDepth of field: reasonably large depth of field, with the entering genome, adjacent molecular obstacles and the membrane entry region all clearly readable together. Only distant layers soften gently; no extreme bokeh and no narrow macro focal plane.\nConstraints: no text, no UI, no labels, no explanatory gene icons, no magic symbols, no whole bacteriophage body inside the cell, no celebration or explosion. This is a visual-style reference for ordinary inside-cell play.",
-    "status": "requested",
+    "status": "delivered",
     "method": "built-in image_gen",
     "use": "Future visual-style reference only; not a runtime asset.",
-    "style_target": "../super-gene-return/super-phage-burst.png"
+    "style_target": "../super-gene-return/super-phage-burst.png",
+    "width": 1672,
+    "height": 941,
+    "sha256": "6dc4fc1894ee2dac735cca2ffdff9133cbec704e6803c3a77ed93ffcafbebfe2",
+    "source_artifact": "exec-9d28845d-174e-4205-92b4-5ad1dcd012c5.png",
+    "generated_on": "2026-10-31",
+    "export": "Original generated PNG; no edits or resizing."
   }
 ]
