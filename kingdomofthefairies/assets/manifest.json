@@ -4909,6 +4909,66 @@
       ],
       "anchor": "bottom centre (on the ground)",
       "edition": "film"
+    },
+    "prince-strike": {
+      "status": "requested",
+      "file": "prince-strike.webp",
+      "size": [
+        300,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-strike-tinted": {
+      "status": "requested",
+      "file": "prince-strike-tinted.webp",
+      "size": [
+        300,
+        360
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "witch-cast": {
+      "status": "requested",
+      "file": "witch-cast.webp",
+      "size": [
+        260,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "witch-cast-tinted": {
+      "status": "requested",
+      "file": "witch-cast-tinted.webp",
+      "size": [
+        260,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "witch-recoil": {
+      "status": "requested",
+      "file": "witch-recoil.webp",
+      "size": [
+        260,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "witch-recoil-tinted": {
+      "status": "requested",
+      "file": "witch-recoil-tinted.webp",
+      "size": [
+        260,
+        400
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {
