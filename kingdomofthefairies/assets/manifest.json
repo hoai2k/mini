@@ -4969,6 +4969,26 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "barrel-upturned": {
+      "status": "requested",
+      "file": "barrel-upturned.webp",
+      "size": [
+        200,
+        240
+      ],
+      "anchor": "bottom centre (its open mouth)",
+      "edition": "film"
+    },
+    "barrel-upturned-tinted": {
+      "status": "requested",
+      "file": "barrel-upturned-tinted.webp",
+      "size": [
+        200,
+        240
+      ],
+      "anchor": "bottom centre (its open mouth)",
+      "edition": "film"
     }
   },
   "audio": {
