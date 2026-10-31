@@ -24,11 +24,14 @@ Keyboard fallbacks are in `shared/pad.js`.
 | Creature | Dash (A) | Attack / eat (X) | Defend (B) |
 | --- | --- | --- | --- |
 | Springtail | Furcula jump | Graze spores and algae | Hunker in the meniscus |
-| Mite | Scramble | Bite with the chelicerae (graze hyphae and spores; nip back) | Ptychoidy (close up) |
+| Mite | **Jump** (A; borrowed from jumping oribatids such as *Zetorchestes*) and **scramble on B** | Bite with the chelicerae (graze hyphae and spores; nip back) | **Block on Y**: ptychoidy (close up) |
 | Tardigrade | Scramble (costs water and energy) | Pierce with the stylets | Brace (grip hard) |
 | Amoeba | Bleb lunge (a fast eruptive pseudopod) | Close the food cup | Let go or egest |
 | Paramecium | Trichocyst burst or ciliary sprint | Feed (oral current) | Avoidance reaction (reverse) |
 | Bacterium | Sprint run (all flagella bundled) | Attach / bore (Bdellovibrio) or bind | Tumble |
+
+At the owner's request the mite departs from the shared layout: A jumps, B
+dashes and Y blocks.
 
 ## In code
 
