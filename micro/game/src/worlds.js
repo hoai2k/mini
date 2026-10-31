@@ -41,7 +41,7 @@ export const WORLDS = [
     line: 'Climb moss leaf cells with clawed stubby legs while the water film dries.',
     goal: 'Feed from the leaf cells and keep wet as the film dries through one compressed day.',
     forward: 'The leaf tip dipping into the pool, where the film meets open water.',
-    back: 'The mite’s giant leg at the edge of the film: dwell there and press Y to rise to the moss.',
+    back: 'The leaf axil to the left, where leaves meet the stem: dwell there and press Y to rise to the moss.',
     controls: [['LS', 'Crawl'], ['RS', 'Turn and tilt'], ['A', 'Scramble'], ['X', 'Pierce with the stylets'], ['B', 'Brace'], ['Y', 'Curl into a tun'], ['LT/RT', 'Fine focus'], ['D-pad ↑↓', 'Magnification']],
     facts: [
       'Dried into a tun, a tardigrade can wait out years without water.',

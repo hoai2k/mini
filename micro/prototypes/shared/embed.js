@@ -203,9 +203,10 @@ export const embed = {
   },
   /** Menu/Start pressed: the shell pauses (features.js calls this in embed mode). */
   menu() { post('menu'); },
-  /** A player joined (index 0..3, colour as CSS); the shell toasts it. */
-  join(index, color, name) { post('join', { index, color, name }); },
-  leave(index) { post('leave', { index }); },
+  /** A player joined (index 0..3, colour as CSS); the shell toasts it. Pass the
+   *  roster (players.toJSON()) so the shell keeps it for the next world. */
+  join(index, color, name, roster) { post('join', roster ? { index, color, name, roster } : { index, color, name }); },
+  leave(index, roster) { post('leave', roster ? { index, roster } : { index }); },
   captured(info = {}) { post('captured', info); },
   died(info = {}) { post('died', info); },
   progress(info = {}) { post('progress', info); },

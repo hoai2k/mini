@@ -46,6 +46,7 @@ const stickMoved = (g) => g.axes.some((a) => Math.abs(a) > 0.5);
  *   keyboard?: boolean, graceMs?: number }} [opts]
  */
 export function createPlayers({ max = 4, onJoin, onLeave, onChange, keyboard = true, graceMs = 8000 } = {}) {
+  let clock = 0, lastPoll = null;
   max = Math.max(1, Math.min(4, max));
   const slots = new Array(max).fill(null);
   const pads = new Array(max).fill(null);
@@ -87,7 +88,12 @@ export function createPlayers({ max = 4, onJoin, onLeave, onChange, keyboard = t
 
     /** Once per frame: joins, leaves, then every player's pad. */
     poll() {
-      const now = performance.now();
+      // A play clock that stops while poll() isn't called (paused worlds), so
+      // a long pause doesn't use up a disconnected player's grace time.
+      const t = performance.now();
+      clock += lastPoll == null ? 0 : Math.min(t - lastPoll, 250);
+      lastPoll = t;
+      const now = clock;
       const gps = readGamepads();
       hasController = gps.length > 0;
       const present = new Set(gps.map((g) => g.index));
