@@ -31,12 +31,14 @@ export function createWolfSpider(scene, { post, home }) {
   const group = new THREE.Group();
   scene.add(group);
   const bodyMat = litMaterial({ surface: `
-    float n = mNoise(vLocal.xz * 9.0);
-    // brown, a pale band along each side of the carapace, a darker V on the abdomen
-    vec3 c = mix(vec3(0.07, 0.045, 0.025), vec3(0.16, 0.11, 0.06), n);
+    // Pirata: dark olive-brown, matte and finely hairy (short setae break up the highlight);
+    // pale bands along the sides of the carapace
+    float n = mNoise(vLocal.xz * 9.0), hair = mNoise(vWorld.xz * 60.0 + vWorld.y * 40.0);
+    vec3 c = mix(vec3(0.045, 0.04, 0.02), vec3(0.1, 0.085, 0.04), n);
     float band = smoothstep(0.62, 0.72, abs(vLocal.z)) * step(0.0, vLocal.x);
-    c = mix(c, vec3(0.42, 0.36, 0.24), band * 0.8);
-    s.albedo = c; s.rough = 0.55; s.sheen = 0.12; s.sheenCol = vec3(0.5, 0.42, 0.3);` });
+    c = mix(c, vec3(0.3, 0.27, 0.17), band * 0.75);
+    s.N = normalize(s.N + vec3(hair - 0.5, 0.0, mNoise(vWorld.zx * 60.0) - 0.5) * 0.45);
+    s.albedo = c * (0.85 + 0.3 * hair); s.rough = 0.9; s.f0 = 0.015; s.sheen = 0.22; s.sheenCol = vec3(0.32, 0.29, 0.17);` });
   const eyeMat = litMaterial({ surface: 's.albedo = vec3(0.005); s.rough = 0.08; s.f0 = 0.06;' });
   const legMat = litMaterial({ surface: 's.albedo = vec3(0.12, 0.08, 0.045) * (0.8 + 0.4 * mNoise(vWorld.xz * 12.0)); s.rough = 0.5; s.sheen = 0.15; s.sheenCol = vec3(0.45, 0.38, 0.3);' });
   const ell = (mat, p, r) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 28, 18), mat); m.scale.set(...r); m.position.set(...p); m.frustumCulled = false; group.add(m); return m; };

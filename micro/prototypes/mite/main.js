@@ -22,6 +22,7 @@ import { createBorrowedLooks, borrowedSwitches, AMOEBA_MODES, DIC_MODES, PARAMEC
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
 const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+const PR = Number(new URLSearchParams(location.search).get('pr')) || 0; // testing override: a fixed pixel ratio, no dynamic resolution
 renderer.setPixelRatio(DPR);
 renderer.autoClear = false;
 
@@ -44,13 +45,14 @@ const swapTex = (key, t) => {
 tex = semTextures((k, t) => swapTex(k, t));
 
 const sem = createSem(renderer, tex.backdrop);
-const world = buildWorld(tex);
+// (beside the way in, so its long abdomen lies alongside the water, not over it)
+const BOSS_POST = (() => { const L = Math.hypot(FORWARD.x, FORWARD.z), ux = -FORWARD.x / L, uz = -FORWARD.z / L; return { x: FORWARD.x + ux * 600 - uz * 500, z: FORWARD.z + uz * 600 + ux * 500, a: Math.atan2(uz, ux), ux, uz }; })();
+// its arena: a patch of bare litter round its post, so it stands on open ground
+const world = buildWorld(tex, { clear: [{ x: BOSS_POST.x + BOSS_POST.ux * 250, z: BOSS_POST.z + BOSS_POST.uz * 250, r: 1000 }] });
 scene.add(world.group);
 const props = createLandmarkProps(world, tex);
 scene.add(props.group);
 // The boss: a pseudoscorpion lying in wait before the leaf axil (boss.js); worn down, it backs into the moss to the side.
-// (beside the way in, so its long abdomen lies alongside the water, not over it)
-const BOSS_POST = (() => { const L = Math.hypot(FORWARD.x, FORWARD.z), ux = -FORWARD.x / L, uz = -FORWARD.z / L; return { x: FORWARD.x + ux * 600 - uz * 500, z: FORWARD.z + uz * 600 + ux * 500, a: Math.atan2(uz, ux), ux, uz }; })();
 const boss = createPseudoscorpion(scene, tex, { post: BOSS_POST, home: { x: BOSS_POST.x + BOSS_POST.uz * 1300, z: BOSS_POST.z - BOSS_POST.ux * 1300 } });
 
 // The box mite is drawn at about 0.6 mm (mite.js) and placed at 0.58 of that:
@@ -112,10 +114,10 @@ let observer = false;
 const rig = { yaw: -0.6, pitch: 0.62, hfw: 1600, target: mite.center.clone() };
 const camFwd = new THREE.Vector3(), camRight = new THREE.Vector3();
 
-let renderScale = 1, dynRes = true, slowEma = 16, scaleT = 0, splitK = 1;
+let renderScale = 1, dynRes = !PR, slowEma = 16, scaleT = 0, splitK = 1;
 function resize() {
   const w = innerWidth, h = innerHeight;
-  renderer.setPixelRatio(DPR * renderScale * splitK);
+  renderer.setPixelRatio(PR || DPR * renderScale * splitK);
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
@@ -139,7 +141,11 @@ function placeCamera(dt) {
   const d = rig.viewHfw / (2 * tanH);
   const k = dt ? 1 - Math.exp(-dt / 0.25) : 1;
   // a catch is framed whole: you and the predator (alone; with company the camera keeps the group)
-  if (bd < 3400 && !capture.active) rig.target.lerp(_ct.copy(mp ? gc.c : mite.center).lerp(boss.center, 0.4), k);
+  if (bd < 3400 && !capture.active) {
+    // a boss fight: hold both in one shot, from a little higher so the moss does not hide it
+    rig.target.lerp(_ct.copy(mp ? gc.c : mite.center).lerp(boss.center, 0.4), k);
+    if (rig.pitch < 0.8) rig.pitch += (0.8 - rig.pitch) * k * 0.5;
+  }
   else if (mp) rig.target.lerp(gc.c, k);
   else if (capture.active && capture.phase !== 'fadeIn') {
     // close in side-on to the catch: your body and the predator's chelicerae in frame;
@@ -398,7 +404,7 @@ F({ id: 'observer', group: 'Rendering', label: 'Observer mode (LS click)', on: f
   onChange: (v) => { observer = v; bar.style.display = v ? 'flex' : 'none'; sem.setRaster(v); } });
 F({ id: 'dynres', group: 'Rendering', label: 'Dynamic resolution', on: true,
   about: 'Renders at a lower resolution while frames take longer than ~40 ms and climbs back when they are fast, so a slow GPU stays responsive.',
-  onChange: (v) => { dynRes = v; if (!v && renderScale !== 1) { renderScale = 1; resize(); } } });
+  onChange: (v) => { dynRes = v && !PR; if (!v && renderScale !== 1) { renderScale = 1; resize(); } } });
 F({ id: 'dof', group: 'Optics', label: 'Infinite depth of field', fixed: true,
   about: 'An SEM beam converges at milliradians, so everything is sharp from front to back; no blur is applied anywhere.' });
 F({ id: 'field', group: 'Optics', label: 'Narrow scan field, true magnification', fixed: true,

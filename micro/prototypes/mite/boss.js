@@ -37,6 +37,8 @@ export function createPseudoscorpion(scene, tex, { post, home }) {
   const shell = gMaterial({ cls: CLS.NPC, tex: tex.cuticle, map: 'tri', scale: 220, bump: 2.2 });
   const smooth = gMaterial({ cls: CLS.NPC });
   const thin = gMaterial({ cls: CLS.NPC, thin: 1 });
+  // heavily sclerotised: the chelae, palps and legs carry a stronger SEM edge glow (thin-feature flag)
+  const hard = gMaterial({ cls: CLS.NPC, tex: tex.cuticle, map: 'tri', scale: 120, bump: 1.6, thin: 0.6 });
   const ell = (mat, p, r, seg = 26) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, seg, Math.round(seg * 0.6)), mat); m.scale.set(...r); m.position.set(...p); m.frustumCulled = false; group.add(m); return m; };
   // body along +x, centre at the origin, ~140 µm off the floor
   ell(shell, [520, 40, 0], [360, 150, 330]);                       // carapace
@@ -48,12 +50,12 @@ export function createPseudoscorpion(scene, tex, { post, home }) {
   ell(smooth, [870, -20, 0], [90, 60, 110], 14);                    // chelicerae
   // legs and pedipalp segments: instanced rods; chelae: hand and fingers
   const rodGeo = new THREE.CylinderGeometry(0.8, 1, 1, 9, 1).translate(0, 0.5, 0);
-  const rods = new THREE.InstancedMesh(rodGeo, shell, 8 * 3 + 2 * 3);
+  const rods = new THREE.InstancedMesh(rodGeo, hard, 8 * 3 + 2 * 3);
   rods.frustumCulled = false; scene.add(rods);
   const fingerGeo = new THREE.ConeGeometry(1, 1, 10, 1).translate(0, 0.5, 0);
-  const fingers = new THREE.InstancedMesh(fingerGeo, smooth, 4);
+  const fingers = new THREE.InstancedMesh(fingerGeo, hard, 4);
   fingers.frustumCulled = false; scene.add(fingers);
-  const hands = [-1, 1].map(() => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 22, 14), shell); m.frustumCulled = false; scene.add(m); return m; });
+  const hands = [-1, 1].map(() => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 22, 14), hard); m.frustumCulled = false; scene.add(m); return m; });
   const setae = new THREE.InstancedMesh(new THREE.CylinderGeometry(3, 6, 1, 4, 1).translate(0, 0.5, 0), thin, 24);
   setae.frustumCulled = false; scene.add(setae);
   const tmpM = new THREE.Matrix4(), tmpQ = new THREE.Quaternion(), tmpV = new THREE.Vector3(), tmpS = new THREE.Vector3();
@@ -66,7 +68,7 @@ export function createPseudoscorpion(scene, tex, { post, home }) {
   };
   const LEGS = [0, 1, 2, 3].flatMap((k) => [-1, 1].map((s) => ({ k, s, hip: new THREE.Vector3(560 - k * 150, -40, s * 230), foot: new THREE.Vector3([700, 330, -80, -560][k], 0, s * [700, 820, 800, 650][k]) })));
 
-  const st = { x: post.x, z: post.z, a: post.a, state: 'dormant', t: 0, v: 0, gait: 0, open: 0, ext: 0, spread: 0, lower: 0, crouch: 0,
+  const st = { x: post.x, z: post.z, a: post.a, state: 'dormant', t: 0, v: 0, gait: 0, open: 0, ext: 0, spread: 0, lower: 0, crouch: 0, lift: 0,
     target: null, pattern: 'snap', cool: 1.5, lastAggr: null, aggrT: 0, grabbed: null, hold: 0 };
   const fight = createFight({ biteHit: 0.09, facingRate: 0.012, regain: 0.01 });
   const go = (s) => { st.state = s; st.t = 0; };
@@ -97,10 +99,11 @@ export function createPseudoscorpion(scene, tex, { post, home }) {
     for (const s of [-1, 1]) {
       const sp = st.spread * 1;
       const base = W(840, 20, s * 200);
-      const elbow = W(1000 + 120 * st.ext - 260 * (1 - Math.max(st.open, st.ext)) - 120 * st.lower, 220 - 120 * st.lower, s * (560 + 450 * sp - 160 * (1 - Math.max(st.open, st.ext))));
-      const wrist = W(1350 + 480 * st.ext - 380 * (1 - Math.max(st.open, st.ext)) - 200 * st.lower, 160 - 140 * st.lower, s * (380 + 600 * sp - 120 * st.ext));
+      const L = st.lift * 1;
+      const elbow = W(1000 + 120 * st.ext - 260 * (1 - Math.max(st.open, st.ext)) - 120 * st.lower, 220 - 120 * st.lower + 260 * L, s * (560 + 450 * sp - 160 * (1 - Math.max(st.open, st.ext))));
+      const wrist = W(1350 + 480 * st.ext - 380 * (1 - Math.max(st.open, st.ext)) - 200 * st.lower, 160 - 140 * st.lower + 420 * L, s * (380 + 600 * sp - 120 * st.ext));
       rod(rods, ri++, base, elbow, 70); rod(rods, ri++, elbow, wrist, 62);
-      const handC = W(1500 + 520 * st.ext - 380 * (1 - Math.max(st.open, st.ext)) - 220 * st.lower, 150 - 140 * st.lower, s * (330 + 560 * sp - 140 * st.ext));
+      const handC = W(1500 + 520 * st.ext - 380 * (1 - Math.max(st.open, st.ext)) - 220 * st.lower, 150 - 140 * st.lower + 470 * L, s * (330 + 560 * sp - 140 * st.ext));
       rod(rods, ri++, wrist, handC, 70);
       const h = hands[s < 0 ? 0 : 1];
       h.position.copy(handC);
@@ -180,6 +183,8 @@ export function createPseudoscorpion(scene, tex, { post, home }) {
         st.spread += ((st.pattern === 'sweep' ? 1 : 0.1) - st.spread) * Math.min(1, dt * 8);
         st.ext += (0.15 - st.ext) * Math.min(1, dt * 8);
         st.crouch = Math.min(1, st.t / 0.3);
+        // the chelae held up high and wide open: an unmistakable silhouette
+        st.lift += (1 - st.lift) * Math.min(1, dt * 10);
         if (st.t > T) { go(st.pattern); ev.push({ type: st.pattern }); st.from = { x: st.x, z: st.z }; }
         break;
       }
@@ -241,7 +246,10 @@ export function createPseudoscorpion(scene, tex, { post, home }) {
       const f = fight.update(dt, { near, facing: near && tgt.facing });
       if (f.interest <= 0 && st.state !== 'flinch') { go('retreat'); ev.push({ type: 'retreat' }); }
     }
-    if (st.state === 'dormant') { st.open = 0; st.ext = 0; st.lower = 0.6; }
+    if (st.state !== 'tell') st.lift = Math.max(0, st.lift - dt * (['snap', 'sweep', 'step'].includes(st.state) ? 8 : 3));
+    else if (st.state === 'stalk') st.lift = Math.max(st.lift, 0.35);
+    if (st.state === 'stalk') st.lift += (0.35 - st.lift) * Math.min(1, dt * 3);
+    if (st.state === 'dormant') { st.open = 0; st.ext = 0; st.lower = 0.6; st.lift = 0; }
     pose();
     return ev;
   }

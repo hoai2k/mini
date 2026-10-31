@@ -224,7 +224,11 @@ function grainGeo(r, seed) {
   return g;
 }
 
-export function buildWorld(tex) {
+/**
+ * clear: [{ x, z, r }] discs kept open (bare litter: no grains, flakes,
+ * shoots, hyphae or spores), e.g. the boss's arena so it stands out.
+ */
+export function buildWorld(tex, { clear = [] } = {}) {
   const group = new THREE.Group();
   const col = new Colliders();
   const R = rng(1234);
@@ -257,7 +261,7 @@ export function buildWorld(tex) {
   mesh(fg, mats.floor);
 
   // Keep-out zone around the start so the mite begins on open floor
-  const clearOf = (x, z, r) => Math.hypot(x, z) > r;
+  const clearOf = (x, z, r) => Math.hypot(x, z) > r && clear.every((c) => Math.hypot(x - c.x, z - c.z) > c.r + r * 0.5);
 
   // Mineral grains
   const grains = [];
@@ -317,7 +321,9 @@ export function buildWorld(tex) {
   const bladeInfo = []; // upper leaves: bendable blades (see shared/techniques/mite-foliage.js)
   const spots = [[900, 400], [-700, 900], [-1200, -500], [500, -1200], [1500, 1300], [-200, 1700], [1600, -300], [-1600, 1500], [100, -400], [-500, 300]];
   for (let s = 0; s < spots.length; s++) {
-    const [sx, sz] = spots[s];
+    let [sx, sz] = spots[s];
+    // a shoot standing in a cleared disc moves to just outside it
+    for (const c of clear) { const d = Math.hypot(sx - c.x, sz - c.z); if (d < c.r + 250) { const k = (c.r + 250) / Math.max(1, d); sx = c.x + (sx - c.x) * k; sz = c.z + (sz - c.z) * k; } }
     const x = sx + (R() - 0.5) * 200, z = sz + (R() - 0.5) * 200;
     const near = s >= 8; // two short shoots near the start
     const H = near ? 700 + R() * 300 : 1400 + R() * 1400;
@@ -434,6 +440,7 @@ export function buildWorld(tex) {
   const hyphaInfo = [];
   for (let i = 0; i < 46; i++) {
     const x = (R() * 2 - 1) * HALF * 0.9, z = (R() * 2 - 1) * HALF * 0.9;
+    if (!clearOf(x, z, 0)) { R(); R(); continue; }
     const a = topAt(x, z);
     const ang = R() * 6.28, span = 200 + R() * 600;
     const b = topAt(x + Math.cos(ang) * span, z + Math.sin(ang) * span);
@@ -490,7 +497,9 @@ export function buildWorld(tex) {
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
     let n = 0;
     for (let i = 0; i < count * 3 && n < count; i++) {
-      const hit = topAt((R() * 2 - 1) * HALF * 0.95, (R() * 2 - 1) * HALF * 0.95);
+      const hx = (R() * 2 - 1) * HALF * 0.95, hz = (R() * 2 - 1) * HALF * 0.95;
+      if (!clearOf(hx, hz, 0)) continue;
+      const hit = topAt(hx, hz);
       if (!hit) continue;
       const s = size * (0.8 + R() * 0.4);
       q.setFromEuler(e.set(R() * 6, R() * 6, R() * 6));
