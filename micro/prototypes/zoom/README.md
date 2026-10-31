@@ -1,15 +1,68 @@
 # Zoom transitions
 
-A prototype of the Zoom Chain's world-to-world zooms
-([`../../design/zoom-chain-levels.md`](../../design/zoom-chain-levels.md)).
-In each world you play the creature (or leave the pad alone and a demo drives
-it) to a destination. The exact rectangle the next world's screen will show
-is highlighted (it flashes); then the camera zooms so that rectangle grows to
-fill the screen exactly, and it becomes the next world, where play continues.
-Where two worlds share a scale (mite → tardigrade) there is no highlight and
-no zoom: the creature and the look hand off in place. The five transitions play through as one
-chain, and each can be picked, replayed, reversed and scrubbed to compare
-ways of changing the optical look.
+The world-to-world transitions of Micro Zoom (`micro/game/`), from
+[`../../design/zoom-chain-levels.md`](../../design/zoom-chain-levels.md), in
+the game's order of seven worlds: **springtail → mite → tardigrade → amoeba →
+paramecium → bacterium → phage**. Each of the six links plays forward (zoom
+in, or a same-scale hand-off) and in reverse (zoom out, or the hand-off run
+backwards): twelve transitions. The exact rectangle the next world's screen
+will show is highlighted (it flashes); the camera then zooms so that rectangle
+grows to fill the screen exactly. Where two worlds share a scale (mite ↔
+tardigrade, tardigrade ↔ amoeba) there is no highlight and no zoom: the
+creature and the look hand off in place.
+
+This page and the game play the same code: `engine.js` draws and runs every
+transition; `player.js` wraps it for the game; `main.js` is this page.
+
+## Using it from the game
+
+**Module** (`micro/prototypes/zoom/player.js`):
+
+```js
+import { createTransitionPlayer, WORLD_IDS, HIGHLIGHTS, transitionFor, listTransitions } from '../prototypes/zoom/player.js';
+
+const player = createTransitionPlayer({
+  container,          // an element to fill (the player adds a canvas, position:absolute, inset 0), or
+  canvas,             // a canvas of your own (sized by CSS)
+  audio,              // optional: a shared/audio.js instance for ambiences and the tun's revival; default silent
+  opts,               // optional engine options, e.g. { zoomDur: 3.5, hlDur: 2.2, morphDur: 2.5, scale: 0.75 }
+});
+const r = await player.play('mite', 'tardigrade');                    // forward
+await player.play('paramecium', 'amoeba', { dir: 'out' });            // reverse
+await player.play('bacterium', 'phage', { strategy: 'cross', highlight: 'Darken outside' });
+player.skip();      // jump to the end of the transition in progress; its promise resolves with skipped: true
+player.readout();   // { bar: {um, px, label}, field, mag, look, instrument } for your own scale readout
+player.dispose();   // stop, free the WebGL context, remove the canvas it made
+```
+
+- World ids (`WORLD_IDS`): `'springtail'`, `'mite'`, `'tardigrade'`,
+  `'amoeba'`, `'paramecium'`, `'bacterium'`, `'phage'`. `from` and `to` must
+  be neighbours (otherwise `play` throws).
+- `play(from, to, { dir, strategy, highlight })` returns a Promise that
+  resolves with `{ from, to, dir, skipped }` when the new world fills the
+  screen in its own look. `dir` is `'in'` or `'out'`, defaulting to `'in'`
+  when `to` is the finer world and `'out'` when it is the coarser one.
+  `strategy` is `'auto'` (default: each transition's recommended strategy,
+  below), `'first'`, `'during'`, `'after'`, `'cross'` or `'cut'`.
+  `highlight` is one of `HIGHLIGHTS`: `'Frame flash'` (default),
+  `'Pulsing frame'`, `'Darken outside'`. A `play` while another is running
+  skips the first. The last frame stays drawn until the next `play` or
+  `dispose`. The player takes no input and runs its own
+  `requestAnimationFrame` loop only while playing.
+- `transitionFor(from, to, dir)` → `{ k, dir }` (k = 1..6, world k-1 → k);
+  `listTransitions()` → the 12 `{ k, dir, from, to, title, handoff }`.
+
+**Embed URL** (the fallback, and what the game's `microscope` transition
+style loads): `micro/prototypes/zoom/?embed=1&from=<id>&to=<id>&dir=in|out`
+(optionally `&strategy=<id>`). It follows `shared/embed.js`: the page
+declares `embed.provide('transition')`, reports `ready` (with
+`provides: ['transition']`), plays the one transition when the shell sends
+`resume`, posts `done` `{ from, to, dir }` when it arrives, and holds the
+last frame. Opened on its own (not in a frame) it plays once.
+
+On a real GPU a zoom takes the zoom duration plus the highlight (default
+3.5 s + 2.2 s, plus 2.5 s of look morph for a look-first or zoom-first
+strategy); a hand-off takes 5 s.
 
 ## How the hand-off works
 
@@ -64,7 +117,7 @@ picture as the p = 1 frame, cell for cell (in the zoom-first strategy, where
 the look doesn't change during the zoom). The scale bar and magnification
 follow the field width throughout.
 
-## The five transitions
+## The six transitions
 
 Field widths are the screen's width. Magnification is shown as an
 eyepiece equivalent, 180 mm ÷ field (a 10× eyepiece of field number 18, the
@@ -74,14 +127,25 @@ convention the Paramecium prototype's objectives already follow).
 | --- | --- | --- | --- | --- |
 | 1 | Springtail (macro photo) → mite (SEM, or the stereo microscope) | 18 mm → 1.8 mm (10× → 100×) | A speck moving on the capitulum at the lawn edge: the box mite (0.35 mm; the springtail is 1.5 mm, about 4× longer) | §0.6: the springtail lands at the lawn edge, a speck on the capitulum becomes the mite; the springtail's head stays at the edge of the mite's field |
 | 2 | Mite (SEM) → tardigrade (DIC): **hand-off, no zoom** | 1.8 mm throughout (100×) | Nothing: the mite (0.35 mm) and the tardigrade (0.35 mm) share a scale | §1.6: the mite reaches a wet axil where a tun lies in the film; the camera holds while the light switches from reflected to transmitted and the tun rehydrates; attention moves from the mite (which wanders off along the leaf) to the tardigrade |
-| 3 | Tardigrade (DIC) → Paramecium (brightfield) | 1.8 mm → 0.9 mm (100× → 200×) | The leaf tip dipping into the pool, where a green *P. bursaria* swims past | §2.6: the camera follows a passing *Paramecium* out into the pool at 20×; the tardigrade stays as a clawed giant at the field's edge |
-| 4 | Paramecium (brightfield) → bacteria (phase contrast, or fluorescence) | 0.9 mm → 90 µm (200× → 2000×) | A biofilm patch on the leaf: rods and dots that read only as texture | §3.6 (the alternative without the trap: the periphyton on a Sphagnum leaf) and §4.6 (the bacterial film under it, texture at low power, resolved at 100× oil) |
-| 5 | Bacterium (phase) → phage (cryo-EM → molecular illustration), stub | 90 µm → 0.6 µm | A host cell that swells; phages stuck to it, invisible in any light microscope | §5.8: nothing visible marks it, the end of light microscopy; grey cryo-EM, then colour as an illustration |
+| 3 | Tardigrade (DIC) → amoeba (brightfield wet mount): **hand-off, no zoom** | 1.8 mm throughout (100×) | Nothing: the tardigrade (0.35 mm) and *Amoeba proteus* (0.45 mm) share a scale | The game's order: where the film meets the pool the tardigrade, which cannot swim, turns back up the leaf; the camera passes over the water to the pool floor, where the amoeba crawls; DIC gives way to the wet-mount brightfield of the amoeba prototype |
+| 4 | Amoeba (wet mount) → Paramecium (brightfield, round field) | 1.8 mm → 0.9 mm (100× → 200×) | A green *P. bursaria* swimming near the amoeba | §2.6 (a passing green *Paramecium*, followed out into the pool at 20×); the amoeba stays as a giant at the field's edge |
+| 5 | Paramecium (brightfield) → bacteria (phase contrast, or fluorescence) | 0.9 mm → 90 µm (200× → 2000×) | A biofilm patch on the leaf: rods and dots that read only as texture | §3.6 (the alternative without the trap: the periphyton on a Sphagnum leaf) and §4.6 (the bacterial film under it, texture at low power, resolved at 100× oil) |
+| 6 | Bacterium (phase) → phage (cryo-EM → molecular illustration), stub | 90 µm → 0.6 µm | A host cell that swells; phages stuck to it, invisible in any light microscope | §5.8: nothing visible marks it, the end of light microscopy; grey cryo-EM, then colour as an illustration |
 
 Level 4 of the spec (*Trachelomonas* at 40×) has no prototype, so transition 4
 takes the spec's no-trap alternative straight to the biofilm.
 
-## The mite → tardigrade hand-off
+## Reverse transitions
+
+Every transition runs backwards on the same timeline: a zoom-out shrinks the
+screen back into the highlighted rectangle of the coarser world (the frame
+appears as it shrinks, then flashes and fades), and the look morphs back; a
+reverse hand-off returns the camera, the look and the creatures (the tun dries
+back into a tun, the mite walks back) to where the forward one began. With
+the look-first strategy that makes the look change last. Reverses end where
+the forward transition began: the coarser world's creature at its destination.
+
+## The hand-offs: mite → tardigrade and tardigrade → amoeba
 
 With no change of scale there is nothing to zoom into, so there is no
 highlight. The hand-off runs at a constant 1.8 mm field (the 10× objective's
@@ -106,8 +170,17 @@ then the body lengthens to 350 µm and clears, then the first steps. It starts
 when the hand-off starts and takes the hand-off's length (4.5 s or more;
 hours in life).
 
+**Tardigrade → amoeba.** The same at a constant 1.8 mm field: the camera
+passes from the tardigrade at the leaf tip (it turns back up the leaf) over
+the pool to the floor, where *Amoeba proteus* crawls (450 µm, granular
+endoplasm in a clear rim, a nucleus, a pulsing contractile vacuole, food
+vacuoles, a knobbly uroid, pseudopods flowing); DIC's relief gives way to the
+pale warm wet mount of the amoeba prototype. The amoeba's crawl is shown 10×
+faster, as in its prototype (Amoeba proteus moves a few µm/s).
+
 ## Strategies (D-pad ←→ or Features)
 
+0. **Recommended** (default): each transition's strategy from the table under Recommendation.
 1. **Look first**: at world N's scale, morph N's optics into N+1's, then zoom.
 2. **Look during**: the optics morph with zoom progress.
 3. **Zoom first**: zoom in N's look, arrive in N+1 still in N's look, then morph.
@@ -139,20 +212,24 @@ screen's edges.
 | A | Space | Dash. Near the destination: start the transition. On the highlighted frame: zoom now; hold: skip the highlight. While scrubbing: resume |
 | X | E | Cycle the frame flash style |
 | B | Shift | Reverse: zoom back out (during a transition, or just after arriving) |
-| Y | R | Replay this transition (the one just played, right after arriving) |
+| Y | R | Play the transition selected in the menu |
 | LT / RT | Z / X | Scrub the transition backward / forward (stops it; A resumes) |
-| LB / RB, D-pad ↑↓ | Q / F, 1 / 2 | Previous / next transition |
+| LB / RB, D-pad ↑↓ | Q / F, 1 / 2 | Move the menu selection (12 transitions) |
 | D-pad ←→ | 3 / 4 | Cycle the strategy |
 | Menu | Esc | Features |
 | View | Tab | Hide the controls |
 
-The menu at the top lists the transitions and their looks, with a timeline
-(highlight, look morph, zoom) and a cursor. The bottom left shows a 1-2-5
+The menu at the top lists all twelve transitions, forward on the left and
+reverse (′) on the right, with the hand-offs marked. Click one (or select it
+with LB/RB or the D-pad and press Y) to play it; the one playing is bold. A
+forward transition that arrives carries on as play in the new world (Features:
+Continue into the next transition), so the chain plays through. Under the
+menu, a timeline (highlight, look morph, zoom or hand-off) with a cursor. The bottom left shows a 1-2-5
 scale bar, the field width, the magnification, the look of the moment (with
 morph percentage) and the instruments.
 
 Sound: each world's ambience (`springtail/amb-bog`, `mite/amb-moss`,
-`tardigrade/amb-film`, `paramecium/amb-pool`, `bacterium/amb-sediment`, the
+`tardigrade/amb-film`, `amoeba/amb-pool`, `paramecium/amb-pool`, `bacterium/amb-sediment`, the
 last slowed for the phage) cross-fades with the zoom; steps and the tun's
 revival.
 
@@ -164,12 +241,20 @@ revival.
   and `lookPath`, and the highlight post pass.
 - `shared/techniques/zoom-path.js` (new): log zoom, the transition timeline
   for each strategy, scale bar and magnification.
-- `specimen.js`: the multi-scale specimen and the six creatures (springtail,
-  0.35 mm box mite with a tetrapod gait, tardigrade from a 215 µm tun to active, *P. bursaria*
-  with Chlorella and metachronal cilia, a magnetotactic spirillum with its
-  magnetosome chain, a T4-like phage).
-- `chain.js`: the worlds, fields, paths, frames and transition texts.
-- `shared/` `pad`, `controls`, `hud`, `features`, `audio`, `boot`.
+- `engine.js`: the renderer, the specimen and optics passes, the creatures,
+  the transitions forward and reverse (the fixed-point zoom, the hand-offs),
+  per-transition strategies; no page chrome. Used by `main.js` and `player.js`.
+- `player.js`: the module the game imports (above).
+- `main.js`: this page (menu, HUD, features, input) and the embed mode.
+- `specimen.js`: the multi-scale specimen and the seven creatures (springtail,
+  0.35 mm box mite with a tetrapod gait, tardigrade from a 215 µm tun to
+  active, *Amoeba proteus* with flowing pseudopods, *P. bursaria* with
+  Chlorella and metachronal cilia, a magnetotactic spirillum with its
+  magnetosome chain, a T4-like phage), the pool floor under the water.
+- `chain.js`: the worlds (with the game's ids), fields, paths, frames, the
+  transition texts and each transition's recommended strategy.
+- `shared/` `pad`, `controls` (`createControls`, `hudControls`), `hud`,
+  `features`, `audio`, `embed`, `boot`.
 
 No other prototype's files were changed. The real prototypes' scene builders
 start their own loops and renderers, so the worlds here are lightweight
