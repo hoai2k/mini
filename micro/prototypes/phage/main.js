@@ -554,12 +554,12 @@ function updateOverlay(where) {
 }
 
 // --- frame ---
-const debug = { freeze: false, isolate: false, camOverride: null };
+const debug = { freeze: false, iso: false, camOverride: null };
 let last = performance.now();
 let blocked = false;
 function frame(now) {
   requestAnimationFrame(frame);
-  const dt = Math.min(0.05, (now - last) / 1000);
+  const dt = Math.min(debug.maxDt || 0.05, (now - last) / 1000);
   last = now;
   t += dt;
   goodsellShared.uTime.value = t;
@@ -633,7 +633,7 @@ function frame(now) {
   } else prog.style.display = 'none';
 
   // outside: UV, amoeba, world
-  if (where === 'outside' && !debug.isolate) {
+  if (where === 'outside' && !debug.iso) {
     if (!c.active && !debug.freeze) {
       if (opts.uv && (P.mode === 'drift' || P.mode === 'walk' || P.mode === 'clay')) {
         const uv = uvAt(centreOf(_v).y);
@@ -678,7 +678,7 @@ function frame(now) {
     // UV line on screen
     _v.set(view.target.x, UV.y0 + 40, 0).project(camera);
     post.uniforms.uUvLine.value = _v.y * 0.5 + 0.5;
-    post.uniforms.uUv.value = opts.uv && !debug.isolate ? 0.9 : 0;
+    post.uniforms.uUv.value = opts.uv && !debug.iso ? 0.9 : 0;
     post.uniforms.uBgOff.value.set(view.target.x * 0.0006, view.target.y * 0.0006);
   } else {
     inside.frame(dt, look, ZOOMS[view.zoom] * 1.05 + 40);
@@ -691,7 +691,7 @@ function frame(now) {
   post.uniforms.uFade.value = P.fade;
   if (P.kind !== 'uv' || !c.active) post.uniforms.uFlash.value *= Math.exp(-dt * 4);
   post.uniforms.uFlashColor.value.set(P.kind === 'uv' ? '#efe4ff' : '#ffffff');
-  for (const o of [world.clay.group]) o.visible = !debug.isolate;
+  for (const o of [world.clay.group]) o.visible = !debug.iso;
   post.render(where === 'outside' ? scene : inside.scene, where === 'outside' ? camera : inside.camera);
 
   updateOverlay(where);
@@ -716,7 +716,7 @@ function frame(now) {
 Object.assign(debug, {
   teleport(x, y, z = 0) { P.pos.set(x, y, z); view.target.copy(P.pos); t4.group.position.copy(P.pos); t4.resetFibres(t); if (P.mode !== 'drift') { P.mode = 'drift'; releaseAnchors(); } },
   orient(ax, ay, az) { P.q.setFromEuler(new THREE.Euler(ax, ay, az)); P.angVel.set(0, 0, 0); },
-  isolate(on) { debug.isolate = on; for (const h of world.hosts) h.group.visible = !on; world.opts.crowd = !on; world.amoeba.mesh.visible = !on; for (const o of scene.children) if (o.isInstancedMesh && o !== t4.fibreMesh && o !== progeny) o.visible = !on && o.visible; },
+  isolate(on) { debug.iso = on; for (const h of world.hosts) h.group.visible = !on; world.opts.crowd = !on; world.amoeba.mesh.visible = !on; for (const o of scene.children) if (o.isInstancedMesh && o !== t4.fibreMesh && o !== progeny) o.visible = !on && o.visible; },
   cam(yaw, pitch, dist) { debug.camOverride = yaw == null ? null : { yaw, pitch, dist }; },
   fold(v) { P.foldTarget = v; },
   walkOn(id, u = 0, phi = 0) {

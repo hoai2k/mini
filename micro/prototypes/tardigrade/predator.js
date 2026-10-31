@@ -186,7 +186,9 @@ export class Predator {
         if (prey.life.state !== 'active') { this.state = 'wander'; this.bored = 6; ev.push('lost'); }
         // once stalking within reach of your scent it sees the hunt through
         else if (d > LOSE) { this.state = 'approach'; ev.push('lost'); }
-        if (mouthD < REACH) {
+        // in reach of the mouth, or right on top of you (it overshot or came
+        // alongside: it would otherwise sit on you without ever biting)
+        if (mouthD < REACH || d < 1.0 * SCALE) {
           this.contact += dt;
           mag = 0.15;
           if (this.cool <= 0) {
