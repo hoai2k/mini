@@ -465,15 +465,20 @@ export function createSplitScreen(renderer, opts = {}) {
       own.push(rx || ry ? viewOffset(players, S, [i], rx, ry) : zeroOffset());
     }
     const m = Math.min(W, H);
+    // Blend weights by on-screen closeness, closed over chains (the strongest
+    // path's weakest link), so players who fully share a view blend alike
+    // and stay together while a third approaches only one of them.
+    const bw = [];
+    for (let i = 0; i < n; i++) {
+      bw.push([]);
+      for (let j = 0; j < n; j++) bw[i][j] = i === j ? 1 : 1 - smooth(mergeBlend * 0.35 * m, mergeBlend * m, Math.hypot(S[i].x - S[j].x, S[i].y - S[j].y));
+    }
+    for (let k = 0; k < n; k++) for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) bw[i][j] = Math.max(bw[i][j], Math.min(bw[i][k], bw[k][j]));
     const off = [];
     for (let i = 0; i < n; i++) {
       const o = zeroOffset();
       let sw = 0;
-      for (let j = 0; j < n; j++) {
-        const dd = Math.hypot(S[i].x - S[j].x, S[i].y - S[j].y);
-        const w = j === i ? 1 : 1 - smooth(mergeBlend * 0.6 * m, mergeBlend * m, dd);
-        if (w > 0) { oAdd(o, own[j], w); sw += w; }
-      }
+      for (let j = 0; j < n; j++) if (bw[i][j] > 0) { oAdd(o, own[j], bw[i][j]); sw += bw[i][j]; }
       off.push(oScale(o, 1 / sw));
     }
     const ppu = (i) => Math.max(1e-6, (S[i].ppuX + S[i].ppuY) / 2);
