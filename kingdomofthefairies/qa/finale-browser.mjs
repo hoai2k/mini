@@ -43,7 +43,7 @@ try {
   assert.equal(await page.evaluate(async () => (await import('/src/save.js')).loadSave().endings?.wedding), true, 'completion is saved before the credits finish');
   assert.equal(await page.evaluate(() => window.__kingdomOfTheFairies.audio.nowPlaying().id), 'period-wedding');
   const samples = [];
-  for (const time of [0, 12, 22, 39, 43.1]) {
+  for (const time of [0, 12, 22, 26, 39, 43.1]) {
     await page.evaluate(t => { window.__kingdomOfTheFairies.S.state.phaseT = t; }, time);
     await page.waitForTimeout(180);
     const sample = await page.evaluate(() => {
@@ -81,7 +81,7 @@ try {
     window.endingReview = { canvas, createRenderer, actBurning, finaleFrame };
   });
   for (const look of ['original', 'tinted']) for (const film of ['off', 'gentle', 'full']) {
-    for (const time of [0, 12, 22, 39, 43]) {
+    for (const time of [0, 12, 22, 26, 39, 43]) {
       await page.evaluate(({ look, film, time }) => {
         const r = window.endingReview, st = r.actBurning.create({ from: { scene: 4 } });
         Object.assign(st, { phase: 'finale', phaseT: time, riseT: 3.2 }); st.w.x = 675; st.az.x = 605;

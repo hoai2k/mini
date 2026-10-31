@@ -11,11 +11,14 @@ export const CREDITS = [
   { y: 465, text: 'Georges Méliès', size: 32 },
   { y: 590, text: 'Wedding Theme', size: 24 },
   { y: 640, text: 'Procession Royale', size: 36 },
-  { y: 790, text: 'Thank you for playing', size: 38 },
+  { y: 790, text: 'Video game inspired by the song', size: 24 },
+  { y: 840, text: "Widow's Bay", size: 36 },
+  { y: 890, text: 'by Langan, Frost, and Wane', size: 28 },
+  { y: 1040, text: 'Thank you for playing', size: 38 },
 ];
 export function finaleFrame(time) {
   const clamp = n => Math.max(0, Math.min(1, n));
   const roll = clamp((time - FINALE.celebrate) / FINALE.roll);
   const fade = clamp((time - FINALE.celebrate - FINALE.roll) / FINALE.fade);
-  return { roll, fade, music: 1 - fade, creditsY: 720 - roll * 1430, done: time >= FINALE_END };
+  return { roll, fade, music: 1 - fade, creditsY: 720 - roll * (CREDITS.at(-1).y + 640), done: time >= FINALE_END };
 }
