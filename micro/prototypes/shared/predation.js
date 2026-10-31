@@ -58,6 +58,8 @@ export function createCapture({ onRestart, restartButton = 0 } = {}) {
   document.body.appendChild(card);
   const api = {
     get active() { return i >= 0; },
+    /** The Eaten card element (multiplayer worlds hide it and respawn instead). */
+    get card() { return card; },
     get phase() { return i >= 0 ? PHASES[i][0] : null; },
     /** Start the sequence. `by`: the predator's name; `how`: a short description. */
     start(opts = {}) {
