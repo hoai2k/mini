@@ -531,6 +531,17 @@ GROUPS.append(
 )
 
 
+# Play-testing, 31 October 2026: as in the film, Aurora's magic shuts the
+# beaten witch in a barrel: it drops out of the air over her.
+GROUPS.append(
+    ("The witch trapped by Aurora's barrel", "Requested 31 October 2026: once the prince beats the witch on the clifftop, Aurora points and a barrel drops out of the air, upside down, over the witch, shutting her in (the film: with Aurora's intervention she is confined in a barrel and cast into the sea). It lands with a thump, rocks, and she bursts her head up through its top as in witch-barrel.webp; the prince then pushes it over the cliff. Meanwhile the game drops witch-barrel itself.", [
+        (f'barrel-upturned{t}', f'A barrel falling upside down{" (tinted)" if t else ""}', 200, 240, 'bottom centre (its open mouth)', TINTED if t else SPRITE,
+         f'The witch\'s barrel exactly as in witch-barrel{t}.webp (attach it), the same staves, hoops, wood colour and size, but EMPTY and turned UPSIDE DOWN, its open mouth at the bottom (we see a sliver of its dark inside at the rim), the closed lid at the top, a few magical sparkles of Aurora\'s gold light clinging to it. Seen from the front. The open rim on the bottom edge. Nothing but the barrel: no witch, ground or shadow.', None)
+        for t in ('', '-tinted')
+    ]),
+)
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 
