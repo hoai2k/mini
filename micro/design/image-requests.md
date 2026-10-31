@@ -2,7 +2,7 @@
 
 Concept references for the [glowing return journey plan](super-gene-return.html) and [Phage visual-style plan](phage-visual-style.html). These are future-design references, separate from the delivered prototype assets listed in [the prototype ledger](../image-requests.md).
 
-7 requested, 7 delivered.
+6 requested, 8 delivered.
 
 Generated with the built-in image_gen tool. Exact prompts and delivery metadata are also saved in [the manifest](generated/super-gene-return/manifest.json).
 
@@ -224,7 +224,8 @@ Scene: Several ordinary bacterial cells in a watery microscopic field, including
 
 ### TZ-07 · Normal phage in the updated environment
 
-Status: requested.
+Status: delivered.
+[View runtime image](../prototypes/assets/game/title-zoom/phage-normal.webp) · [Original PNG](generated/title-zoom/phage-normal.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/phage-normal.png`
 Runtime file: `micro/prototypes/assets/game/title-zoom/phage-normal.webp`
 
