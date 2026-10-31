@@ -28,7 +28,7 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
     if (!AC) return null;
     ctx = new AC();
     master = ctx.createGain();
-    master.gain.value = enabled ? 0.9 : 0;
+    master.gain.value = enabled && !(document.hidden || !document.hasFocus()) ? 0.9 : 0;
     master.connect(ctx.destination);
     sfxBus = ctx.createGain(); sfxBus.connect(master);
     ambBus = ctx.createGain(); ambBus.gain.value = ambience ? 1 : 0; ambBus.connect(master);
@@ -54,9 +54,23 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
 
   const unlock = () => {
     if (!ensure()) return;
-    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    if (ctx.state === 'suspended' && !(document.hidden || !document.hasFocus())) ctx.resume().catch(() => {});
   };
   for (const ev of ['keydown', 'pointerdown', 'touchstart']) addEventListener(ev, unlock, { passive: true });
+
+  // Silent whenever the tab is hidden or the window loses focus; back on return.
+  let away = document.hidden || !document.hasFocus();
+  const updateAway = () => {
+    away = document.hidden || !document.hasFocus();
+    if (!master) return;
+    master.gain.setTargetAtTime(enabled && !away ? 0.9 : 0, ctx.currentTime, 0.05);
+    if (away && ctx.state === 'running') ctx.suspend().catch(() => {});
+    else if (!away && ctx.state === 'suspended') ctx.resume().catch(() => {});
+  };
+  document.addEventListener('visibilitychange', updateAway);
+  addEventListener('blur', updateAway);
+  addEventListener('focus', updateAway);
+  addEventListener('pagehide', updateAway);
 
   const api = {
     /** Call when a controller button is pressed (gamepads don't fire DOM events). */
@@ -120,7 +134,7 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
     addToFeatures(features) {
       features.add({ id: 'sound', group: 'Controls', label: 'Sound effects',
         about: 'Nature-documentary foley generated with ElevenLabs (micro/design/sound-effects.md). Nothing is audible at these scales; these are what a wildlife film would put on the scene.',
-        on: true, onChange: (v) => { enabled = v; if (master) master.gain.setTargetAtTime(v ? 0.9 : 0, ctx.currentTime, 0.05); } });
+        on: true, onChange: (v) => { enabled = v; if (master) master.gain.setTargetAtTime(v && !away ? 0.9 : 0, ctx.currentTime, 0.05); } });
       features.add({ id: 'ambience', group: 'Controls', label: 'Ambience',
         about: 'The looping background bed of the habitat.',
         on: true, onChange: (v) => { ambience = v; if (ambBus) ambBus.gain.setTargetAtTime(v ? 1 : 0, ctx.currentTime, 0.2); } });
