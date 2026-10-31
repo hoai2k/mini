@@ -2,7 +2,7 @@
 
 Concept references for the [glowing return journey plan](super-gene-return.html) and [Phage visual-style plan](phage-visual-style.html). These are future-design references, separate from the delivered prototype assets listed in [the prototype ledger](../image-requests.md).
 
-6 requested, 8 delivered.
+4 requested, 10 delivered.
 
 Generated with the built-in image_gen tool. Exact prompts and delivery metadata are also saved in [the manifest](generated/super-gene-return/manifest.json).
 
@@ -144,7 +144,8 @@ Scene: An ordinary dark water springtail, with segmented body, six little legs a
 
 ### TZ-02 · Mite among wet moss
 
-Status: requested.
+Status: delivered.
+[View runtime image](../prototypes/assets/game/title-zoom/mite-moss.webp) · [Original PNG](generated/title-zoom/mite-moss.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/mite-moss.png`
 Runtime file: `micro/prototypes/assets/game/title-zoom/mite-moss.webp`
 
@@ -160,7 +161,8 @@ Scene: An ordinary tiny box mite in wet moss litter, with its rounded armoured c
 
 ### TZ-03 · Tardigrade in the water film
 
-Status: requested.
+Status: delivered.
+[View runtime image](../prototypes/assets/game/title-zoom/tardigrade-film.webp) · [Original PNG](generated/title-zoom/tardigrade-film.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/tardigrade-film.png`
 Runtime file: `micro/prototypes/assets/game/title-zoom/tardigrade-film.webp`
 
