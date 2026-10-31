@@ -41,7 +41,7 @@
 //      from zero over `splitIn` seconds (no jump); dividers fade with the
 //      difference between the views' shifts. So a merge is continuous: the
 //      offsets reach zero and the dividers vanish on the same frame.
-//   5. Players whose offsets agree (within 1 px, apart again beyond 2 px) share
+//   5. Players whose offsets agree (within 0.3 px, apart beyond 0.8 px) share
 //      one view (one render). While merged there is one view with no shift and
 //      the world renders straight to the screen exactly as without split screen.
 //   6. Each view's shift becomes a camera offset in world units. By default
@@ -478,12 +478,12 @@ export function createSplitScreen(renderer, opts = {}) {
     }
     const ppu = (i) => Math.max(1e-6, (S[i].ppuX + S[i].ppuY) / 2);
 
-    // 5. Group players whose offsets agree (within 1 px, apart beyond 2 px) into views.
+    // 5. Group players whose offsets agree (within 0.3 px, apart beyond 0.8 px) into views.
     const pairKey = (i, j) => `${Math.min(slotOf(i), slotOf(j))}:${Math.max(slotOf(i), slotOf(j))}`;
     for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
       const dd = oDist(off[i], off[j]) * Math.max(ppu(i), ppu(j));
-      if (!st.split || dd < 1) st.together.add(pairKey(i, j));
-      else if (dd > 2) st.together.delete(pairKey(i, j));
+      if (!st.split || dd < 0.3) st.together.add(pairKey(i, j));
+      else if (dd > 0.8) st.together.delete(pairKey(i, j));
     }
     const viewOf = new Array(n).fill(-1);
     const disp = [];

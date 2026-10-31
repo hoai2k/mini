@@ -51,8 +51,8 @@ still held keeps moving the body.
 | Button | Action |
 | --- | --- |
 | **A (Space)** | **Surge**: for 0.9 s every active pseudopod extends up to 2.5× faster and may run a little further ahead, the rear contracts harder and streaming surges to the tips, so the whole cell lunges; recharges over 2.4 s (the `dash` meter). With no stick held it surges along the cell's heading (in lead and follow, the body flows on that way). Tears the membrane free of a fungal trap |
-| **X (E)** | **Close the food cup** round the prey it wraps (needs ≥ 190° of membrane round it): the rims advance and endoplasm floods in to fill round the prey until they meet |
-| B (Shift) | Let go while closing; otherwise egest the oldest food vacuole at the uroid (a live, barely digested prey swims away) |
+| **X (E)** | **Close the food cup** round the prey it wraps (needs ≥ 190° of membrane round it): the rims advance and endoplasm floods in to fill round the prey until they meet. At a trap hypha: a pseudopod jab that cuts its tip. With your membrane round an arm of Chaos: pinch it off |
+| B (Shift) | Let go while closing; otherwise egest the oldest food vacuole at the uroid (a live, barely digested prey swims away). Near a threatening trap hypha (or stuck on one), hold to **stiffen** (defend) |
 | Y (R) | Labels (nucleus, contractile vacuole, uroid, hyaline caps, ectoplasm, endoplasm, prey with real sizes, trap hyphae). At the leaf tip (the backdoor) Y goes back up to the tardigrade instead |
 | D-pad ← → (3 / 4) | Optics: brightfield, phase contrast, darkfield, hypothetical immersive lit view |
 | D-pad ↑ ↓ (1 / 2) | 20× objective (0.9 mm field) / 10× objective (1.8 mm field) |
@@ -67,6 +67,48 @@ piece off, a pulse on capture. The sticks keep the amoeba's own scheme; A, X,
 B, Y and the d-pad follow the shared one (`../CONTROLS.md`).
 
 Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A pool ambience loop; pseudopods flowing out (rate-limited), the surge (A), closing the food cup (X), a vacuole forming, the contractile vacuole emptying, and digestion finishing.
+
+## Fighting back
+
+- **The fungal traps fight readably** (`createFight` per hypha). While the
+  fungus is hungry and a membrane comes within ~40 µm, the hypha **winds up**
+  (it curls and its adhesive knobs swell with a sticky shimmer, `uWind` in
+  `TRAP_FS`), then snaps shut; only then does it stick (`o.grip`, ~7 s). A
+  calm or dormant hypha lies straight with small pale knobs.
+- **Defend (B)**: near a threatening hypha (or stuck), B held stiffens the
+  cell: its pseudopods draw in, the membrane peels off a trap (it keeps 55% of
+  each step instead of 8%), and a snap that meets it is blocked (the hypha
+  slides off). Elsewhere B is still let go / egest.
+- **Attack (X)**: at a hypha (and no cup ready to close), a fast pseudopod jab
+  engulfs its tip and cuts it back (bite back). Blocks and cuts wear the
+  fungus down: the hypha withdraws for ~16 s.
+- **Being eaten** (no card): strike, hold (surge to tear free), drain, then
+  the view pulls back over the fungus at work and holds there, a fade, and a
+  fresh amoeba at the start spot furthest from the traps (in multiplayer,
+  beside a teammate).
+
+## The boss: Chaos (`chaos.js`)
+
+The giant amoeba *Chaos*, multinucleate, an eater of smaller amoebae
+(`../../design/bosses.md`; *Chaos* eating *A. proteus* is plausible but not
+well documented), between the start and the green *P. bursaria*. The same soft
+body as yours at ~1.9× the width (~0.65 mm; real *Chaos* reaches 1–5 mm), with
+nine nuclei, slower.
+
+- Dormant until a player comes within ~950 µm after the calm opening; a brass
+  **resolve** gauge shows while it is awake.
+- **The tell**: it raises and spreads its pseudopods, every arm out at once.
+  **The cup**: two arms reach to your flanks, then curl round behind you; if
+  they wrap you (~170°+) it engulfs you. Every third attack is **a lunge**:
+  one broad arm with the whole cell flowing after it.
+- **Your play**: push into it and pinch its arms off: X when your membrane is
+  on both sides of an arm's neck (within ~70 µm each side) cuts it
+  (`Body.pinchAt`); the piece rounds up and dies. Each cut staggers it and
+  wears it down; then it flows away and rests, and you slip round it to the
+  landmark. Surging (A) in the first moment of an engulf breaks out.
+- **Engulfed**: drawn into its middle, darkened and shrunk in a food vacuole,
+  while the camera follows it carrying you off; then the fade and respawn.
+- It targets the nearest player; the amoebae push against its membrane.
 
 ## Landmarks (the way on and the way back)
 
@@ -415,7 +457,12 @@ the sticks), `press(name)`, `setMode(i)`, `pause()`, `renderOnce()`,
 and `fragments`; for multiplayer and the landmarks: `players`, `cells`,
 `split`, `layout`, `beacon` (the P. bursaria), `leaf`, `landmarks.log`
 (every landmark and near posted), `place(slot, x, y)`, `teleport('forward' |
-'back', slot)` and `forceCapture(slot)`. `body`, `cyto`, `capture` and `surge`
+'back', slot)`, `forceCapture(slot)`, `traps()`, `defend(on, slot)`,
+`cut(slot)`, `chaos`, `pinchChaos(slot, reach)` and `engulf(slot)`. The trap
+fight (windup, a stiffened block, cuts driving it off), Chaos (dormant, the
+spread tell, the cup, pinched-off arms, retreat, an engulf with the camera
+following) and both catches were checked in Playwright; the scripted pinch
+test uses a relaxed reach (120 µm) because it does not drive the sticks. `body`, `cyto`, `capture` and `surge`
 are player 1's. Multiplayer was checked with mocked gamepads in Playwright:
 joins during play, 2 and 4 players splitting and merging, a catch in
 multiplayer, both landmarks standalone and in the shell. Headless (SwiftShader)

@@ -876,7 +876,7 @@ function warn() {
   for (const P of roster) {
     const S = P.S, who = multi() ? `${P.name}: ` : '';
     let text = '', sev = 0;
-    if (P.capture.active && P.cat.phase !== 'eaten') { text = CATCH[P.cat.kind][P.cat.phase]; sev = 3; }
+    if (P.capture.active && P.cat.kind && P.cat.phase !== 'eaten') { text = CATCH[P.cat.kind][P.cat.phase]; sev = 3; }
     else if (attackText(P)) { const a = attackText(P); text = a.text; sev = a.sev; }
     else if (!S.alive && S.over && S.over !== 'won' && !S.caught) { text = `Run over: ${(S.cause || 'the cell has stopped').toLowerCase()}`; sev = 2.5; }
     else if (S.alive && S.warning) {
@@ -1051,7 +1051,7 @@ function stats() {
     `${dash.text()} · phages on you ${S.phages.length}${S.phages.some((p) => p.irreversible) ? ' (IRREVERSIBLE)' : ''}${S.attacker ? ' · BDELLOVIBRIO ATTACHED' : ''}`,
     S.species === 'mtb' ? `field ${world.opts.field} µT, mB/kT ≈ ${(S.mB || 0).toFixed(1)} (gentle pull: steer against it) · running ${S.sense > 0 ? 'north (down the field)' : 'south (up the field)'}` : `run ${sp.v} µm/s, sprint ${sp.dash} µm/s`,
     `predators: ${predators().map((p) => `${p.name} ${!p.on ? 'off' : roster.some((P) => P.capture.active && catcherHunger(P.cat) === p.h) ? 'EATING' : hungerText(p.h)}`).join(' · ')}`,
-    capture.active ? `CAUGHT by ${CATCH[cat.kind].by.toLowerCase()}: ${cat.phase}` : '',
+    capture.active && cat.kind ? `CAUGHT by ${CATCH[cat.kind].by.toLowerCase()}: ${cat.phase}` : '',
     `host cell ${Math.round(Math.hypot(S.x - FWD.x, S.y - FWD.y))} µm · Paramecium ${Math.round(Math.hypot(S.x - BACK.x, S.y - BACK.y))} µm`,
     multi() ? `players ${roster.length} · views ${split.views.length}${split.merged ? ' (together)' : ''}` : '',
     `${Math.round(fps)} fps · ${shapes.count} shapes`,
@@ -1092,7 +1092,7 @@ function forceCapture(kind = 'grazer', slot = 0) {
 window.__micro = { forceCapture, capture,
   pacing: () => ({ t: pacing.now - pacing.t0, firstHungry: pacing.firstHungry, firstThreat: pacing.firstThreat, firstCatch: pacing.firstCatch, grace: pacing.grace,
     hunters: predators().map((p) => ({ name: p.name, state: p.h.state, hungry: isHungry(p.h), left: +p.h.left.toFixed(1) })),
-    capture: capture.active ? { phase: cat.phase, by: CATCH[cat.kind].by } : null, mode: S.mode, alive: S.alive }),
+    capture: capture.active && cat.kind ? { phase: cat.phase, by: CATCH[cat.kind].by } : null, mode: S.mode, alive: S.alive }),
   world, swimmer, game, view, debug, features, optics, shapes, get t() { return t; }, get dash() { return P1.dash; },
   // Micro Zoom: players, split screen and landmarks
   players, split, landmarks: { forward: FWD, back: BACK, log: lm.log, get near() { return lm.near; } },

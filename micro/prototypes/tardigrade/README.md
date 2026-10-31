@@ -16,8 +16,8 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
 | LS (WASD) | Crawl, relative to the view. Push into a leaf edge to reach across to a neighbouring leaf, or round the margin onto the underside |
 | RS (arrows) | Turn and tilt the view. Up looks up (the camera swings down toward the leaf's edge-on view), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
 | **A (Space)** | **Scramble**: 0.9 s of fast wave gait (~400 µm/s), recharging over 2.6 s (the `dash` meter); costs ~3.5% water and 2% reserves. With no stick, straight ahead |
-| **X (E)** | **Pierce** with the stylets: food in reach (algae, diatoms, detritus) or the living leaf cell under the mouth; at a Milnesium touching you, a jab that makes it back off |
-| B (Shift), hold | Grip hard / brace: two legs swing at most, slower, much harder to slip |
+| **X (E)** | **Pierce** with the stylets: food in reach (algae, diatoms, detritus) or the living leaf cell under the mouth; at a Milnesium or Prionchulus, a jab with a head thrust that bites back |
+| B (Shift), hold | **Defend**: grip hard / brace (two legs swing at most, slower, much harder to slip). Facing a predator as it lunges, it blocks |
 | Y (R), hold | Curl into a tun. In a tun on a wet leaf, press again to wake. In the leaf axil (the backdoor) Y goes back up to the mite instead |
 | LT / RT (Z / X) | Fine focus down / up through the layers. Auto-focus keeps the focal plane on the animal: a manual setting holds while you stand still and eases back onto the animal once you walk on (Features → Optics → Auto-focus) |
 | LB / RB (Q / F) | Anatomy labels / rain (test) |
@@ -29,6 +29,53 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
 | View (Tab) | Hide the help panel |
 
 When dead (eaten or a tun that did not wake), A starts a new day.
+
+## Fighting back, eating, being eaten
+
+- **Milnesium fights readably** (`predator.js`, `shared/predation.js`
+  `createFight`). Calm (wandering or resting) it creeps with its mouth shut.
+  Hunting, it stops a little short of you and **winds up**: it rears its
+  front, the mouth ring opens wide (`pose.gape`) and the stylets protrude, a
+  0.9 s pause with a red banner, then **lunges**. Facing it and bracing (B)
+  blocks the lunge: it staggers back and you shove its head away. A stylet
+  jab (X) at its head bites back: it staggers. Facing it, blocks and jabs wear
+  its interest down; at none left it turns and crawls off, then rests. An
+  unblocked lunge bites (−25% reserves); empty, you are caught.
+- **Your moves** (`fightPose` in `main.js`): the attack is a stylet jab with a
+  head thrust (also how every bite starts); defending (B) crouches, head drawn
+  in and down; a block butts its head away; a landed jab recoils a little.
+- **Eating** (`animateEating`): food is drawn to the mouth, through the buccal
+  tube and pharynx and into the gut, visible all the way through the
+  transparent body. There it slowly shrinks and fades over ~9 s, tinting the
+  gut's colour as it goes. A pierced leaf cell becomes a green bolus of
+  chloroplasts that does the same. Labelled departure: inside, food is drawn
+  up to 4× denser than it is so it reads at these magnifications.
+- **Being eaten** (`createCapture`, no card): strike, hold, then the camera
+  pulls back to watch Milnesium swallow you whole (you stay visible inside its
+  transparent body) and follows it for a couple of seconds as it crawls off;
+  a fade, and you wake at whichever start spot is furthest from it (in
+  multiplayer, beside a teammate).
+
+## The boss: Prionchulus (`nematode.js`)
+
+A predatory nematode, *Prionchulus muscorum*, a real hunter of tardigrades in
+moss films (`../../design/bosses.md`), guarding the Sphagnum leaf on the way
+to the pool tip. Drawn ~1.3 mm long and 60 µm wide (adults reach ~2 mm: scaled
+so the arena fits), a transparent tube with a denser pharynx, a darker
+intestine and the large tooth at the head, gliding with a nematode's wave.
+
+- Dormant at its post until a player comes within ~650 µm after the calm
+  opening. Awake, a brass **resolve** gauge shows under the banner.
+- Two attacks, alternating: **the whip** (the tell: the front coils into an
+  S, tooth bared; then the head whips forward) and **the sweep** (the tell:
+  the whole body ripples fast; then the head sweeps sideways across you).
+- Brace (B) facing it on the strike to block; jab its head (X) in its
+  recovery; in thin film (< ~3.5 µm) it flounders and loses heart. A hit
+  stabs you (−35% reserves); empty, it pins you with its tooth and sucks you
+  dry while the camera follows it dragging you off, then the fade and respawn.
+- Worn down (createFight with more interest), it slides off and down into a
+  deep groove between the cells, gone for the rest of the day. It targets the
+  nearest player. Features → Simulation → Prionchulus switches it off.
 
 ## Landmarks (the way on and the way back)
 
@@ -342,8 +389,12 @@ Must print `ok tardigrade` with no console errors. `window.__micro` exposes
 `view`, `features`, `predator` and `dash` for scripted checks (`?pr=1` forces
 full resolution on software GL), plus `players`, `animals`, `split`,
 `layout`, `places` (the landmarks), `landmarks.log` (every landmark and near
-posted), `teleport('forward' | 'back', slot)`, `place(slot, leaf, u, v)` and
-`forceCapture(slot)`. Multiplayer was checked with mocked gamepads in
+posted), `teleport('forward' | 'back', slot)`, `place(slot, leaf, u, v)`,
+`forceCapture(slot)`, `boss`, `forceBossCapture(slot)`, `captor`, and
+`testStep(dt, stick, { down, pressed })` with button ids. The fight, the eating,
+the catches and the boss were checked in Playwright (windup, strike, a block,
+jabs driving Milnesium and Prionchulus off, a diatom visible in the gut
+fading into it, both catches following the predator and respawning). Multiplayer was checked with mocked gamepads in
 Playwright: joins during play, 2 and 4 players splitting and merging, a catch
 in multiplayer (respawn beside a teammate, no card), both landmarks standalone
 and in the shell.

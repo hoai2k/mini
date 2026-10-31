@@ -9,7 +9,7 @@
 //
 // Readable states:
 //   dormant  in the axil, pincers folded; wakes when a player comes within
-//            2.3 mm after the calm opening
+//            1.25 mm after the calm opening
 //   stalk    a slow, deliberate walk toward its target, pincers forward
 //   tell     the pincers held open and dead still (0.9 s; 0.7 s for the sweep)
 //   snap     a fast pincer strike straight ahead (0.16 s)
@@ -156,7 +156,7 @@ export function createPseudoscorpion(scene, tex, { post, home }) {
     switch (st.state) {
       case 'dormant':
         targetA = post.a;
-        if (ctx.awake && tgt && Math.hypot(tgt.x - post.x, tgt.z - post.z) < 2300) { go('stalk'); ev.push({ type: 'wake' }); }
+        if (ctx.awake && tgt && Math.hypot(tgt.x - post.x, tgt.z - post.z) < 1250) { go('stalk'); ev.push({ type: 'wake' }); }
         break;
       case 'stalk':
         if (!tgt) break;
@@ -256,7 +256,7 @@ export function createPseudoscorpion(scene, tex, { post, home }) {
     /** In its recovery: the pincer joints are open to a bite. */
     get open() { return st.state === 'recover'; },
     /** Where a bite can land: the pincer joints (wrists) and the hands. */
-    bitePoints() { if (!group.visible || st.state === 'gone') return []; return [joints[0].clone(), joints[1].clone(), hands[0].position.clone(), hands[1].position.clone()]; },
+    bitePoints() { if (!group.visible || st.state === 'gone' || st.state === 'dormant') return []; return [joints[0].clone(), joints[1].clone(), hands[0].position.clone(), hands[1].position.clone()]; },
     /** A bite by player slot (power 1 a bite, 2 a pounce-bite; doubled on an open joint). True when it gives up. */
     bitten(power = 1, slot = 0) {
       if (['gone', 'retreat', 'capture'].includes(st.state)) return false;

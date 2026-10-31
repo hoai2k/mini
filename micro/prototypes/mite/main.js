@@ -49,7 +49,8 @@ scene.add(world.group);
 const props = createLandmarkProps(world, tex);
 scene.add(props.group);
 // The boss: a pseudoscorpion lying in wait before the leaf axil (boss.js); worn down, it backs into the moss to the side.
-const BOSS_POST = (() => { const L = Math.hypot(FORWARD.x, FORWARD.z), ux = -FORWARD.x / L, uz = -FORWARD.z / L; return { x: FORWARD.x + ux * 900, z: FORWARD.z + uz * 900, a: Math.atan2(uz, ux), ux, uz }; })();
+// (beside the way in, so its long abdomen lies alongside the water, not over it)
+const BOSS_POST = (() => { const L = Math.hypot(FORWARD.x, FORWARD.z), ux = -FORWARD.x / L, uz = -FORWARD.z / L; return { x: FORWARD.x + ux * 600 - uz * 500, z: FORWARD.z + uz * 600 + ux * 500, a: Math.atan2(uz, ux), ux, uz }; })();
 const boss = createPseudoscorpion(scene, tex, { post: BOSS_POST, home: { x: BOSS_POST.x + BOSS_POST.uz * 1300, z: BOSS_POST.z - BOSS_POST.ux * 1300 } });
 
 // The box mite is drawn at about 0.6 mm (mite.js) and placed at 0.58 of that:
@@ -461,7 +462,7 @@ F({ id: 'jump', group: 'Simulation', label: 'Jump (A), borrowed from jumping ori
 F({ id: 'pounce', group: 'Simulation', label: 'Pounce-bite (X in the air; a game stretch)', fixed: true,
   about: 'In a jump, X dives at the nearest enemy point ahead (the predator, or the pseudoscorpion\'s pincer arm): a strong bite on impact (two bites\' worth, a hit-pause and a rumble), then a hop back; a mistimed dive is a clear miss. Box mites neither jump nor pounce: a game stretch on the borrowed Zetorchestes jump.' });
 F({ id: 'boss', group: 'Simulation', label: 'Boss: pseudoscorpion (Neobisium-like)', fixed: true,
-  about: '~2.5 mm, a real hunter of mites in moss, lying in wait before the wet leaf axil. Dormant until you come within 2.3 mm after the calm opening. Its tell: pincers held open and dead still, then a snap, a two-pincer sweep, or a step-in and snap. Stay out of reach, close up (B) to survive a grab (the venom tooth cannot get through), scramble (RT) out of a grab in its strike window, and bite its pincer joints (X) while it recovers. About three good rounds and it backs into the moss. Its resolve is the brass gauge.' });
+  about: '~2.5 mm, a real hunter of mites in moss, lying in wait before the wet leaf axil. Dormant until you come within 1.25 mm after the calm opening. Its tell: pincers held open and dead still, then a snap, a two-pincer sweep, or a step-in and snap. Stay out of reach, close up (B) to survive a grab (the venom tooth cannot get through), scramble (RT) out of a grab in its strike window, and bite its pincer joints (X) while it recovers. About three good rounds and it backs into the moss. Its resolve is the brass gauge.' });
 F({ id: 'bite', group: 'Simulation', label: 'Bite and graze (X)', fixed: true,
   about: 'The rostrum dips and the chelicerae work. In reach of the mouth: fungal spores (eaten) and hyphal branch tips (nibbled; they regrow), the box mite\'s real food. At the predator: a nip that makes it back off for 1.5 s (a game rule).' });
 F({ id: 'predator', group: 'Simulation', label: 'Predatory mite (Parasitidae)', on: true,
@@ -1172,7 +1173,7 @@ const api = {
   },
   fight, fightLog, boss,
   /** Testing: player `slot` near the boss's post, the calm over: it wakes. */
-  bossFight(slot = 0) { const P = pls[slot] || P1; pace.mode = 'Always'; hunger.reset(0); hunger.update(0.01); boss.reset(); predAI.reset(...PRED_START); pace.mode = 'Never'; const b = boss.post; P.mite.place(b.x + b.ux * 2100, b.z + b.uz * 2100, Math.atan2(b.uz, -b.ux)); rig.target.copy(P.mite.center); hunger.reset(0); hunger.update(0.01); },
+  bossFight(slot = 0) { const P = pls[slot] || P1; pace.mode = 'Always'; hunger.reset(0); hunger.update(0.01); boss.reset(); predAI.reset(...PRED_START); pace.mode = 'Never'; const b = boss.post; P.mite.place(b.x + b.ux * 1150, b.z + b.uz * 1150, Math.atan2(b.uz, -b.ux)); rig.target.copy(P.mite.center); hunger.reset(0); hunger.update(0.01); },
   /** Testing: face the boss's nearest pincer joint, within bite reach. */
   bossBite(slot = 0) { const P = pls[slot] || P1; const j = boss.bitePoints()[0]; if (!j) return; const c = P.mite.center; const v = new THREE.Vector3(c.x - j.x, 0, c.z - j.z).normalize(); P.mite.place(j.x + v.x * 330, j.z + v.z * 330, Math.atan2(v.z, -v.x)); },
   impact(slot = 0) { const P = pls[slot] || P1; return { last: P.play.lastImpact || null, pounces: P.play.pounces || 0, mode: P.mite.mode, dive: !!P.play.dive, stam: P.play.stam, scr: !!P.play.scr }; },

@@ -1227,7 +1227,7 @@ function focusFor(v, cam) {
 }
 
 function stateText(s) {
-  if (capture.active) return `${cap.phase === 'strike' ? 'STRUCK' : cap.phase === 'hold' ? 'HELD' : 'BEING EATEN'} by ${CATCH[catchKind(cap.th)].by}`;
+  if (capture.active && cap.th) return `${cap.phase === 'strike' ? 'STRUCK' : cap.phase === 'hold' ? 'HELD' : 'BEING EATEN'} by ${CATCH[catchKind(cap.th)].by}`;
   return s.mode === 'avoid' ? 'avoidance reaction' : s.mode === 'captured' ? (s.captor === amoeba ? 'ENGULFED by the amoeba' : 'HELD by Didinium')
     : s.mode === 'dead' ? 'eaten' : s.dashT > 0 ? 'dashing' : P1.gulpT > 0 ? 'gulping' : s.feed > 0.3 ? 'feeding' : 'swimming';
 }
@@ -1263,7 +1263,7 @@ function updateGoal(s) {
   for (const P of roster) {
     const sP = P.swimmer.state, C = P.cap;
     let w = '';
-    if (P.capture.active && C.phase !== 'eaten') w = catchText(catchKind(C.th), C.phase);
+    if (P.capture.active && C.th && C.phase !== 'eaten') w = catchText(catchKind(C.th), C.phase);
     else if (P.capture.active) w = '';
     else if (sP.mode === 'captured') w = sP.captor === amoeba ? `ENGULFED: ${glyph('X')} trichocysts · ${glyph('A')} struggle` : `HELD by Didinium: ${glyph('X')} trichocysts · ${glyph('A')} struggle`;
     else {
@@ -1505,7 +1505,7 @@ window.__micro = {
   /** Pacing for tests: time since the round began, first hungry and first threat (s), each hunter's hunger. */
   pacing: () => ({ t: t - pacing.t0, firstHungry: pacing.firstHungry, firstThreat: pacing.firstThreat, grace: pacing.grace, cycles: pacing.cycles,
     hunters: hunters().map((th) => ({ name: th.label, state: th.hunger.state, hungry: th.hungry, left: +th.hunger.left.toFixed(1), doing: th === amoeba ? amoeba.state : th.state })),
-    capture: capture.active ? { phase: cap.phase, by: CATCH[catchKind(cap.th)].by } : null, mode: swimmer.state.mode }),
+    capture: capture.active && cap.th ? { phase: cap.phase, by: CATCH[catchKind(cap.th)].by } : null, mode: swimmer.state.mode }),
   capture,
   scene, renderer, cell, world, swimmer, encounters: enc, prey, amoeba, optics, view, debug, MODES, features, game, dash,
   get camera() { return view.kind === 'scope' ? scope : chase; },

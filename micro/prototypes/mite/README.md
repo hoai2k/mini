@@ -114,7 +114,7 @@ Shared rules (`shared/predation.js` `createFight`; B is defend in every world).
 
 `boss.js`; `micro/design/bosses.md`. *Neobisium*-like, ~2.5 mm (seven box
 mites), lying in wait before the wet leaf axil (between the start and the
-water), **dormant** until a player comes within 2.3 mm after the calm
+water), **dormant** until a player comes within 1.25 mm after the calm
 opening. Built from anatomy (MP-R15 is requested, not delivered): carapace
 with eye spots, a flattened ringed abdomen (no tail), eight legs, long
 pedipalps with chelae (hand, fixed finger, movable finger with the venom

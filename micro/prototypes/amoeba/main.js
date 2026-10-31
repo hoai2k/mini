@@ -57,8 +57,8 @@ let cur = null; // the cell being stepped
 const SCHEMES = ['Lead and follow (new)', 'Two pseudopods (classic)'];
 const COMMON_CONTROLS = {
   dash: 'Surge: pseudopods shoot out 2.5× faster and the cell flows after them',
-  attack: 'Close the food cup: cytoplasm fills in round the prey',
-  defend: 'Let go / egest a food vacuole',
+  attack: 'Close the food cup round prey; at a trap hypha, a pseudopod jab cuts its tip; round an arm of Chaos, pinch it off',
+  defend: 'Let go / egest; near a trap hypha, hold to stiffen (it slides off)',
   special: 'Labels',
   look: 'Optics: brightfield, phase, darkfield, immersive',
   zoom: 'Objective 10× / 20×',
@@ -264,6 +264,11 @@ function resetFungus() {
 // a spot away from the traps).
 let caught = createCapture({ onRespawn: () => captureRespawn(cells[0]) });
 let FC = { pts: [], A0: 0, phase: null };
+const CHAOS_TEXT = {
+  strike: 'The cup of Chaos is closing over you: surge (A) to break out!',
+  hold: 'Engulfed: a food vacuole closes round you',
+  eat: 'Chaos is digesting you',
+};
 const CATCH_TEXT = {
   strike: 'Haustoria pierce the membrane! Surge (A) to tear free',
   hold: 'The fungus starts to drain you: surge (A) NOW',
@@ -958,7 +963,7 @@ function othersAsCircles(col, c) {
   const withChaos = typeof chaos !== 'undefined' && chaos.on && !(c.caught.active && c.FC.by === 'chaos') && Math.hypot(chaos.body.cx - c.body.cx, chaos.body.cy - c.body.cy) < chaos.body.req * 2.2 + c.body.req + 300;
   if (cells.length < 2 && !withChaos) return col;
   const circles = col.circles.slice();
-  if (withChaos) { const b = chaos.body; for (let i = 0; i < N; i += 2) circles.push({ x: b.x[i], y: b.y[i], r: 8 }); }
+  if (withChaos) { const b = chaos.body; for (let i = 0; i < N; i++) circles.push({ x: b.x[i], y: b.y[i], r: 11 }); }
   for (const o of cells) {
     if (o === c) continue;
     const b = o.body;
@@ -1042,7 +1047,7 @@ function stepChaos(dt, adt, col) {
     if (c.caught.active && c.FC.by === 'chaos') continue;
     const b = c.body;
     if (Math.hypot(b.cx - chaos.body.cx, b.cy - chaos.body.cy) > chaos.body.req * 2.2 + b.req + 300) continue;
-    for (let i = 0; i < N; i += 2) circles.push({ x: b.x[i], y: b.y[i], r: 8 });
+    for (let i = 0; i < N; i++) circles.push({ x: b.x[i], y: b.y[i], r: 11 });
   }
   const ps = cells.map((c) => ({ cell: c, x: c.body.cx, y: c.body.cy, req: c.body.req, active: !c.caught.active && !c.p.waiting }));
   const ev = chaos.update(dt, adt, ps, { capsules: col.capsules, circles }, { calm: fungus.state === 'grace' || chaos.resting });
@@ -1534,7 +1539,7 @@ function renderAll(dt) {
     renderer.outputColorSpace = cs;
   }
   // Warnings: player 1's, else the first player in trouble.
-  const warn = (c) => (c.caught.active ? (c.FC.phase === 'eaten' ? '' : CATCH_TEXT[c.FC.phase]) : c.s.stuckN ? `Stuck on a fungal trap hypha: surge (A) to tear free (haustoria in ${Math.max(0, 8 - c.s.stuckT).toFixed(1)} s)` : '');
+  const warn = (c) => (c.caught.active ? ((c.FC.by === 'chaos' ? CHAOS_TEXT : CATCH_TEXT)[c.FC.phase] || '') : c.s.stuckN ? `Stuck on a fungal trap hypha: surge (A) to tear free (haustoria in ${Math.max(0, 8 - c.s.stuckT).toFixed(1)} s)` : '');
   const chaosWarn = (c) => (chaos.attacking && chaos.target && chaos.target.cell === c && !c.caught.active
     ? (chaos.fs === 'windup' ? 'Chaos raises and spreads its pseudopods: pinch its arms off (X), or get clear!' : chaos.attack % 3 === 0 ? 'Chaos lunges!' : `Its arms are closing round you: pinch them off (X)! ${Math.round((chaos.wrap || 0) * 57)}° of 225°`) : '');
   const warn0 = warn;
