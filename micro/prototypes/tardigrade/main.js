@@ -804,14 +804,14 @@ function animateEating(a, dt) {
   if (a.eat && a.eat.f !== f) {
     const e = a.eat;
     if (!e.done) {
-      if (e.f.item) { e.mesh.position.copy(e.home); e.mesh.scale.setScalar(1); }
+      if (e.f.item) { e.mesh.position.copy(e.home); e.mesh.scale.setScalar(1); e.mesh.userData.opt.uniforms.uAbs.value.copy(e.abs0); }
       else if (e.mesh) { e.mesh.removeFromParent(); }
     }
     a.eat = null;
   }
   if (f && !a.eat) {
     const mesh = f.item ? f.item.mesh : chloroBolus();
-    a.eat = { f, mesh, home: mesh.position.clone() };
+    a.eat = { f, mesh, home: mesh.position.clone(), abs0: mesh.userData.opt.uniforms.uAbs.value.clone() };
     if (!f.item) bodyPoint(a, ...MOUTH, mesh.position);
   }
   if (a.eat && f) {
@@ -819,6 +819,8 @@ function animateEating(a, dt) {
     if (f.item) {
       if (k < 0.45) { const q = ease(k / 0.45); m.position.copy(e.home).lerp(bodyPoint(a, ...MOUTH, _w0), q); m.scale.setScalar(1 - 0.25 * q); }
       else { const q = ease((k - 0.45) / 0.55); bodyPoint(a, ...MOUTH, _w0).lerp(bodyPoint(a, ...PHARYNX, _w1), q); m.position.copy(_w0); m.scale.set(0.75 + 0.15 * q, 0.75 - 0.25 * Math.sin(Math.PI * q), 0.75 - 0.25 * Math.sin(Math.PI * q)); }
+      // packed into the tube and the gut it reads denser (a labelled departure: real cells are fainter)
+      m.userData.opt.uniforms.uAbs.value.copy(e.abs0).multiplyScalar(1 + 3 * ease(k));
     } else {
       // the cell's contents stream in: a bolus swelling at the mouth, then drawn back
       if (k < 0.6) { bodyPoint(a, ...MOUTH, m.position); m.scale.setScalar(0.2 + 0.8 * ease(k / 0.6)); }
@@ -858,8 +860,7 @@ function swallowed(a, f) {
   const mesh = e ? e.mesh : f.item ? f.item.mesh : chloroBolus();
   if (e) e.done = true;
   const u = mesh.userData.opt.uniforms;
-  // packed into a food mass in the gut it reads darker before it breaks down
-  u.uAbs.value.multiplyScalar(1.6);
+  if (!e || !e.f.item) u.uAbs.value.multiplyScalar(1.6);
   (a.digest ||= []).push({ mesh, t: 0, gut: new THREE.Vector3(...f.gut), dn0: u.uDn.value, abs0: u.uAbs.value.clone(), s0: mesh.scale.x,
     to: [-0.25 + (Math.random() - 0.5) * 0.5, 0.04 + (Math.random() - 0.5) * 0.08, (Math.random() - 0.5) * 0.14] });
 }

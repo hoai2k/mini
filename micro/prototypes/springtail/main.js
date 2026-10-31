@@ -15,6 +15,7 @@ import { createMacro, lens, macroShared, applyLook, MACRO_LOOKS } from '../share
 import { RippleField, Dimples, waterMaterial, waterGeometry, peatFloorTexture } from '../shared/techniques/springtail-surface.js';
 import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHORE_GLSL, BANK_E, LANDMARK } from './world.js';
 import { createLandmarkProps } from './landmarks.js';
+import { createWolfSpider } from './boss.js';
 import { createSpringtail } from './springtail.js';
 import { createStenus, createStrider, createRain } from './enemies.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
@@ -55,6 +56,8 @@ const strider = createStrider(scene);
 const rain = createRain(scene);
 const props = createLandmarkProps(world);
 scene.add(props.group);
+// The boss: a pond wolf spider on guard on the moss tongue (boss.js); it goes back under the bank (home) when worn down.
+const boss = createWolfSpider(scene, { post: { x: LANDMARK.x - 5, z: 3, a: Math.PI }, home: { x: LANDMARK.x + 16, z: 5 } });
 
 art('MP-S01').then((t) => { if (t) { waterMat.uniforms.uSurfTex.value = t; waterMat.uniforms.uHasSurfTex.value = 1; } });
 art('MP-S02').then((t) => t && world.setMossTex(t));
@@ -305,8 +308,10 @@ const isHungry = (h) => (pace.mode === 'Never' ? false : pace.mode === 'Always' 
 function resetHunger() { hunger.stenus.reset(pace.grace); hunger.strider.reset(pace.grace + 15); }
 const cap = { kind: null, x0: 0, y0: 0, z0: 0, h0: 0, leaf: null, phase: null, mid: new THREE.Vector3() };
 // how close the lens frames each catch (field width, mm) and from how high
-const CAP_VIEW = { stenus: { hfw: 12, pitch: 0.45 }, strider: { hfw: 16, pitch: 0.55 }, sundew: { hfw: 7, pitch: 0.75 } };
+const CAP_VIEW = { boss: { hfw: 18, pitch: 0.5 }, stenus: { hfw: 12, pitch: 0.45 }, strider: { hfw: 16, pitch: 0.55 }, sundew: { hfw: 7, pitch: 0.75 } };
 const CAP_TEXT = {
+  boss: { by: 'The pond wolf spider', how: 'ran you down, sank its fangs in and ate you',
+    phases: { strike: 'The wolf spider has you!', hold: 'Held in its fangs…', eat: 'The spider is eating you', follow: 'Eaten', fadeOut: 'Eaten', fadeIn: 'Back again' } },
   stenus: { by: 'Stenus', how: 'harpooned you with its sticky labium, reeled you in and ate you',
     phases: { strike: 'Harpooned by Stenus!', hold: 'Reeled in…', eat: 'Stenus is eating you', follow: 'Eaten', fadeOut: 'Eaten', fadeIn: 'Back again' } },
   strider: { by: 'The water strider', how: 'seized you in its forelegs and sucked you dry',
@@ -324,6 +329,7 @@ function afterCatch() {
   if (cap.leaf) { cap.leaf.target = null; cap.leaf.grip = 0; cap.leaf.close = 0; }
   if (cap.kind === 'stenus') stenus.release();
   if (cap.kind === 'strider') strider.release();
+  if (cap.kind === 'boss') boss.release();
   if (multi()) respawnNear(P);
   else respawnSafe(P);
   cap.kind = null;
@@ -341,7 +347,19 @@ function respawnSafe(P) {
 // its strike (face it and hunker, B) and nipping it (X) wear its interest
 // down; out of interest it retreats (and rests: hunger.missed()).
 const fights = { stenus: createFight(), strider: createFight() };
-const PRED = { stenus: () => stenus, strider: () => strider };
+const PRED = { stenus: () => stenus, strider: () => strider, boss: () => boss };
+/** A bite on predator `kind` by player P (power 2: a pounce-bite counts double). */
+function biteFoe(kind, P, power = 1, how = 'bite') {
+  if (kind === 'boss') {
+    const p = (boss.open ? 2 : 1) * power;
+    const gone = boss.nipped(p, P.slot);
+    hud.toast(gone ? 'The wolf spider has had enough: it backs off under the moss' : `${power > 1 ? 'Pounce-bite' : 'Nipped'}${boss.open ? ' an overreached tarsus' : ''}! The spider flinches`, 1600);
+    return gone;
+  }
+  let gone = false;
+  for (let i = 0; i < power && !gone; i++) gone = wearDown(kind, how);
+  return gone;
+}
 /** Is P facing the predator at (x, z)? (heading within ~55°) */
 const facingTo = (P, x, z) => Math.abs(wrapA(Math.atan2(z - P.z, x - P.x) - P.heading)) < 0.95;
 const fightLog = { blocks: 0, bites: 0, retreats: 0 };
@@ -364,12 +382,13 @@ function wearDown(kind, how) {
 }
 /** The predator's mouth (or the trapped spot on a sundew) for the camera. */
 function capMouth() {
+  if (cap.kind === 'boss') return boss.mouthPos();
   if (cap.kind === 'stenus') return stenus.mouthPos();
   if (cap.kind === 'strider') return strider.mouthPos();
   return new THREE.Vector3(cap.x0, cap.y0, cap.z0);
 }
 function capBody() {
-  const s = cap.kind === 'stenus' ? stenus.st : strider.st;
+  const s = cap.kind === 'boss' ? boss.st : cap.kind === 'stenus' ? stenus.st : strider.st;
   return new THREE.Vector3(s.x, 0.4, s.z);
 }
 /** A predator has you: control stops, and the whole catch is shown. */
@@ -403,7 +422,8 @@ function animateCapture(c, dt) {
   // the mandibles' rhythm, heard while eating
   if (c.phase === 'eat' && cap.kind === 'stenus' && Math.floor(simT * 2.4) !== Math.floor((simT - dt) * 2.4)) audio.play('springtail/eat', { volume: 0.5, rate: 0.8 + Math.random() * 0.2 });
   let o;
-  if (cap.kind === 'stenus') o = stenus.captureStep(phase, c.t, dt, cap);
+  if (cap.kind === 'boss') o = boss.captureStep(phase, c.t, dt, cap);
+  else if (cap.kind === 'stenus') o = stenus.captureStep(phase, c.t, dt, cap);
   else if (cap.kind === 'strider') o = strider.captureStep(phase, c.t, dt, cap);
   else o = sundewStep(phase, c.t, dt);
   P.x = o.x; P.y = o.y; P.z = o.z; P.heading = o.heading; P.pitch = o.pitch; P.roll = o.roll;
@@ -797,7 +817,12 @@ function stepPlayer(dt, inp) {
     for (const k of ['stenus', 'strider']) {
       const pr = PRED[k]();
       if (!pr.group.visible || pr.st.state === 'capture') continue;
+      if (k === 'boss') continue;
       for (const [x, z] of pr.nipPoints()) { const d = Math.hypot(x - h.x, z - h.z); if (d < fd) { fd = d; foe = k; } }
+    }
+    {
+      // the boss: its tarsi and palps
+      for (const [x, z] of boss.nipPoints()) { const d = Math.hypot(x - h.x, z - h.z); if (d < fd) { fd = d; foe = 'boss'; } }
     }
     let best = null, bd = 0.85;
     if (!foe) for (const c of world.food.clumps) {
@@ -832,7 +857,7 @@ function stepPlayer(dt, inp) {
         const pr = PRED[P.foe]();
         const hit = pr.st.state !== 'capture' && pr.nipPoints().some(([x, z]) => Math.hypot(x - h.x, z - h.z) < 2.3);
         audio.play('springtail/eat', { volume: 1, rate: 1.3 });
-        if (hit) { rumble(160, 0.5, 0.5); P.nips = (P.nips || 0) + 1; wearDown(P.foe, 'bite'); }
+        if (hit) { rumble(160, 0.5, 0.5); P.nips = (P.nips || 0) + 1; biteFoe(P.foe, P, 1); }
       }
     } else if (P.act === 'eat' && P.eatFood) {
       const c = P.eatFood;
