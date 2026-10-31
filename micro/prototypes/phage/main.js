@@ -716,7 +716,7 @@ function frame(now) {
 Object.assign(debug, {
   teleport(x, y, z = 0) { P.pos.set(x, y, z); view.target.copy(P.pos); t4.group.position.copy(P.pos); t4.resetFibres(t); if (P.mode !== 'drift') { P.mode = 'drift'; releaseAnchors(); } },
   orient(ax, ay, az) { P.q.setFromEuler(new THREE.Euler(ax, ay, az)); P.angVel.set(0, 0, 0); },
-  isolate(on) { debug.iso = on; for (const h of world.hosts) h.group.visible = !on; world.opts.crowd = !on; world.amoeba.mesh.visible = !on; for (const o of scene.children) if (o.isInstancedMesh && o !== t4.fibreMesh && o !== progeny) o.visible = !on && o.visible; },
+  isolate(on) { debug.iso = on; for (const h of world.hosts) h.group.visible = !on; world.opts.crowd = !on; world.amoeba.mesh.visible = !on; for (const o of scene.children) if (o.isInstancedMesh && o !== t4.fibreMesh && o !== progeny) o.visible = !on; },
   cam(yaw, pitch, dist) { debug.camOverride = yaw == null ? null : { yaw, pitch, dist }; },
   fold(v) { P.foldTarget = v; },
   walkOn(id, u = 0, phi = 0) {
