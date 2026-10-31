@@ -37,7 +37,10 @@
 //      close group shares a view, and its views are already identical when
 //      they join.
 //   4. Merged or split, with hysteresis on E = max |s_i| / rho_i: the screen
-//      splits when E passes `splitAt` (1.12) and merges again only at E <= 1,
+//      splits when E passes `splitAt` (1.12), and the group would not fit
+//      around its own on-screen centre either (or a player is leaving the
+//      screen), so a player joining beside a teammate before the world's
+//      camera has re-centred starts merged; it merges again only at E <= 1,
 //      where every raw shift is already zero. On splitting, the shifts ease in
 //      from zero over `splitIn` seconds (no jump); dividers fade with the
 //      difference between the views' shifts. So a merge is continuous: the
@@ -429,7 +432,8 @@ export function createSplitScreen(renderer, opts = {}) {
 
     // 3. Where each player should appear, and the raw shift of their view.
     const raw = [];
-    let E = 0;
+    let E = 0, Ec = 0, leaving = false;
+    const mx = S.reduce((a, s) => a + s.x, 0) / n, my = S.reduce((a, s) => a + s.y, 0) / n;
     for (let i = 0; i < n; i++) {
       const s = S[i];
       const g = geo[i].c;
@@ -438,6 +442,9 @@ export function createSplitScreen(renderer, opts = {}) {
       const ux = len > 1e-6 ? s.x / len : 0, uy = len > 1e-6 ? s.y / len : 0;
       const rho = Math.max(24, ux * g[0] + uy * g[1], 0.3 * gl);
       E = Math.max(E, len / rho);
+      // The same about the group's own on-screen centre (the camera may still be on its way).
+      Ec = Math.max(Ec, Math.hypot(s.x - mx, s.y - my) / rho);
+      if (Math.abs(s.x) > 0.47 * W || Math.abs(s.y) > 0.47 * H) leaving = true;
       let d;
       if (len <= rho) d = [s.x, s.y];
       else {
@@ -448,7 +455,10 @@ export function createSplitScreen(renderer, opts = {}) {
     }
 
     // 4. Merged or split, with hysteresis; the shifts ease in after a split.
-    if (!st.split && E > splitAt) { st.split = true; st.amount = 0; }
+    // Split only when the group would not fit around its own centre either
+    // (a player joining beside a teammate while the world's camera is still
+    // centred on the teammate stays merged), or when someone is leaving the screen.
+    if (!st.split && E > splitAt && (Ec > splitAt || leaving)) { st.split = true; st.amount = 0; }
     else if (st.split && E <= 1) { st.split = false; st.amount = 0; }
     if (st.split) st.amount = Math.min(1, st.amount + (splitIn > 0 ? dt / splitIn : 1));
     const amt = st.split ? smooth(0, 1, st.amount) : 0;
