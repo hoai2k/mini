@@ -573,7 +573,7 @@ GROUPS = [
         "intro": "One boss per world (micro/design/bosses.md). Orthographic modelling sheets, like the earlier reference sheets: the bosses are built in code from them.",
         "items": [
             {
-                "id": "MP-R14", "name": "Pond wolf spider (Pirata), boss of the bog surface",
+                "id": "MP-R14", "status": "delivered", "name": "Pond wolf spider (Pirata), boss of the bog surface",
                 "file": "assets/reference-sheets/boss-wolf-spider.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling this world's boss.",
                 "standin": "None needed: the model is built from the photographs.",
@@ -581,7 +581,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} A young pond wolf spider (Pirata, family Lycosidae) about 5 mm long, as it stands on the water film of a bog pool: a dark olive-brown carapace with a pale V-shaped mark and a pale band at the sides, eight eyes in three rows (four small in front, two large, two behind), exactly eight hairy legs with dark rings, held wide on the water, chelicerae with fangs, pedipalps. In the three-quarter view show it poised to lunge, front legs raised. {SCIENCE}",
             },
             {
-                "id": "MP-R15", "name": "Pseudoscorpion, boss of the moss canopy",
+                "id": "MP-R15", "status": "delivered", "name": "Pseudoscorpion, boss of the moss canopy",
                 "file": "assets/reference-sheets/boss-pseudoscorpion.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling this world's boss.",
                 "standin": "None needed: the model is built from the photographs.",

@@ -191,11 +191,11 @@ export const ASSETS = {
   },
   "MP-R14": {
     "file": "assets/reference-sheets/boss-wolf-spider.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R15": {
     "file": "assets/reference-sheets/boss-pseudoscorpion.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R16": {
     "file": "assets/reference-sheets/boss-nematode.webp",

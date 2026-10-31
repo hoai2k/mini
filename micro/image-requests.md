@@ -12,43 +12,11 @@ Open artwork requests for the prototypes in `micro/prototypes/`. Delivered reque
 
 ## Status
 
-7 requested, 64 delivered, 71 in total.
+5 requested, 66 delivered, 71 in total.
 
 ## Round 5: boss reference sheets
 
 One boss per world (micro/design/bosses.md). Orthographic modelling sheets, like the earlier reference sheets: the bosses are built in code from them.
-
-### MP-R14 · Pond wolf spider (Pirata), boss of the bog surface
-
-- **File:** `micro/prototypes/assets/reference-sheets/boss-wolf-spider.webp`
-- **Size:** 2048 x 2048, opaque
-- **Used for:** Modelling this world's boss.
-- **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
-- **Reference images:**
-  - [Pirata piraticus; direct wolf-spider anatomy reference, not a claim of juvenile size or bog occurrence.](research/assets/references/production/boss-wolf-spider.jpg) · Lukas Jonaitis from Vilnius, Lithuania, CC BY 2.0 · [source](https://commons.wikimedia.org/wiki/File:Flickr_-_Lukjonis_-_Spider_-_Pirata_piraticus.jpg)
-  - [A swarm of water springtails (Podura aquatica) on a pool surface among algae: colour, scale and habitat.](research/assets/references/springtail-swarm.jpg) · Philippe  Garcelon, CC BY 2.0 · [source](https://commons.wikimedia.org/wiki/File:Podura_aquatica_-_1.jpg)
-  - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
-
-```text
-Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A young pond wolf spider (Pirata, family Lycosidae) about 5 mm long, as it stands on the water film of a bog pool: a dark olive-brown carapace with a pale V-shaped mark and a pale band at the sides, eight eyes in three rows (four small in front, two large, two behind), exactly eight hairy legs with dark rings, held wide on the water, chelicerae with fangs, pedipalps. In the three-quarter view show it poised to lunge, front legs raised. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
-```
-
-### MP-R15 · Pseudoscorpion, boss of the moss canopy
-
-- **File:** `micro/prototypes/assets/reference-sheets/boss-pseudoscorpion.webp`
-- **Size:** 2048 x 2048, opaque
-- **Used for:** Modelling this world's boss.
-- **Stand-in until delivered:** None needed: the model is built from the photographs.
-- **Status:** requested
-- **Reference images:**
-  - [Neobisium sylvaticum; separate walking legs and pedipalpal pincers; species-level analogue for the requested Neobisium form.](research/assets/references/production/boss-pseudoscorpion.jpg) · BKoe, CC BY-SA 2.0 · [source](https://commons.wikimedia.org/wiki/File:Neobisium_sylvaticum_03.jpg)
-  - [Unidentified phthiracarid mite; adult arthropod morphology.](research/assets/references/mite.jpg) · S.E. Thorpe, Public domain · [source](https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg)
-  - [Moss habitat structure; use leaf architecture as environmental reference.](research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
-
-```text
-Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. A moss-dwelling pseudoscorpion (e.g. Neobisium) about 2.5 mm long: a flattened pear-shaped body with a segmented abdomen and no tail or sting, a smooth amber-brown carapace with two or four small eyes, exactly eight slender walking legs, and two very large pedipalps ending in long curved chelae (pincers) with a visible venom tooth at the tip of the movable finger, held forward and open. Chelicerae small at the front. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
-```
 
 ### MP-R16 · Predatory nematode (Prionchulus), boss of the water film
 
