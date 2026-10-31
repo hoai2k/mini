@@ -15,6 +15,7 @@ import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, DIC_MODES, PARAM
 import { squirmerFlow } from '../shared/techniques/paramecium-squirmer.js';
 import { buildWorld, worldColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules } from './world.js';
 import { View } from './render.js';
+import { Chaos } from './chaos.js';
 import { rng, TAU, clamp } from './util.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createPlayers } from '../shared/players.js';
@@ -294,6 +295,7 @@ function placeHaustoria(reach) {
 }
 function stepCatch(dt) {
   if (!caught.active) return;
+  if (FC.by === 'chaos') { stepEngulf(dt); return; }
   if ((FC.phase === 'strike' || FC.phase === 'hold') && surge.active) {
     // torn free in time: the haustoria take a bite, and the fungus rests a while
     caught.reset(false); FC.phase = null;
@@ -321,13 +323,40 @@ function stepCatch(dt) {
     body.A0 = FC.A0 * (1 - 0.45 * e); // the cell shrivels as it is sucked dry
   }
 }
+/** Engulfed by Chaos: drawn into it, digested in a food vacuole (darkening, shrinking), carried off. */
+function stepEngulf(dt) {
+  if (FC.phase === 'strike' && surge.active) {
+    // broke out before the cup sealed
+    caught.reset(false); FC.phase = null; FC.by = null; C.drain = 0;
+    hud.toast(`${who()}Surged out before the cup sealed!`, 2400);
+    rumble(300, 0.6, 0.6);
+    return;
+  }
+  const c = caught.update(dt, pad);
+  if (!c.active) { FC.phase = null; FC.by = null; return; }
+  if (c.phase === 'fadeIn') { FC.phase = c.phase; C.drain = 0; return; }
+  if (c.phase !== FC.phase) {
+    FC.phase = c.phase;
+    if (c.phase === 'eat') { audio.play('amoeba/digest', { volume: 1, rate: 0.6 }); rumble(600, 0.5, 0.7); }
+  }
+  FC.pts = [{ x: chaos.body.cx, y: chaos.body.cy }];
+  // pulled towards its middle
+  const pull = c.phase === 'strike' ? 0.3 : c.phase === 'hold' ? 0.8 : 1.2;
+  const dx = (chaos.body.cx - body.cx) * Math.min(1, pull * dt), dy = (chaos.body.cy - body.cy) * Math.min(1, pull * dt);
+  moveCell(cur, dx, dy);
+  const e = c.phase === 'eat' ? ease(c.t) : c.phase === 'strike' || c.phase === 'hold' ? 0 : 1;
+  C.drain = 0.1 + 0.8 * e;
+  body.A0 = FC.A0 * (1 - 0.55 * e);
+}
 /** The end of a catch (the screen is black): a fresh amoeba, beside a teammate or alone at a safe spot. */
 function captureRespawn(c) {
   const k = cur;
   use(c);
-  FC.phase = null; C.drain = 0;
+  const byChaos = FC.by === 'chaos';
+  FC.phase = null; FC.by = null; C.drain = 0;
   for (const h of haustoria) { h.hidden = true; h.grow = 0; }
   for (const o of trapList()) { o.grip = 0; o.fight.reset(); }
+  if (byChaos) { chaos.state = 'dormant'; chaos.fight.reset(); chaos.restUntil = chaos.t + 40; } // sated
   if (cells.length > 1) respawnCell(c);
   else {
     // the start spot furthest from every trap hypha
@@ -842,6 +871,14 @@ function updateCup(dt) {
 
 // --- pinch-off ----------------------------------------------------------------
 /** Cut the ring across nodes i and j: the piece with the nucleus stays the cell. */
+/** A piece lost to a cut: it rounds up, darkens and breaks up (updateFragments). */
+function addFragment(lost) {
+  const n = lost.xs.length;
+  if (n < 3 || lost.area <= 50) return;
+  let cx = 0, cy = 0;
+  for (let k = 0; k < n; k++) { cx += lost.xs[k]; cy += lost.ys[k]; }
+  fragments.push({ xs: Float64Array.from(lost.xs), ys: Float64Array.from(lost.ys), cx: cx / n, cy: cy / n, R: Math.sqrt(lost.area / Math.PI), A: lost.area, age: 0, seed: rand(), mesh: null });
+}
 function pinchOff(i, j) {
   const nu = cyto.nucleus;
   const lost = body.pinchAt(i, j, nu.x, nu.y);
@@ -918,8 +955,10 @@ function stickToTraps(dt, traps) {
 
 /** Other players' membranes as circles, so amoebae push against one another instead of overlapping. */
 function othersAsCircles(col, c) {
-  if (cells.length < 2) return col;
+  const withChaos = typeof chaos !== 'undefined' && chaos.on && !(c.caught.active && c.FC.by === 'chaos') && Math.hypot(chaos.body.cx - c.body.cx, chaos.body.cy - c.body.cy) < chaos.body.req * 2.2 + c.body.req + 300;
+  if (cells.length < 2 && !withChaos) return col;
   const circles = col.circles.slice();
+  if (withChaos) { const b = chaos.body; for (let i = 0; i < N; i += 2) circles.push({ x: b.x[i], y: b.y[i], r: 8 }); }
   for (const o of cells) {
     if (o === c) continue;
     const b = o.body;
@@ -958,6 +997,7 @@ function simStep(dt) {
     updateCup(adt);
   }
   use(cells[0]);
+  stepChaos(dt, adt, col);
   stepPrey(dt, col);
   for (const c of cells) {
     use(c);
@@ -992,6 +1032,75 @@ function simStep(dt) {
   }
   S.pending = S.pending.filter((x) => x.t > 0);
   S.time += dt;
+}
+
+// --- the boss ---------------------------------------------------------------------
+function stepChaos(dt, adt, col) {
+  if (!chaos.on) return;
+  const circles = col.circles.slice();
+  for (const c of cells) {
+    if (c.caught.active && c.FC.by === 'chaos') continue;
+    const b = c.body;
+    if (Math.hypot(b.cx - chaos.body.cx, b.cy - chaos.body.cy) > chaos.body.req * 2.2 + b.req + 300) continue;
+    for (let i = 0; i < N; i += 2) circles.push({ x: b.x[i], y: b.y[i], r: 8 });
+  }
+  const ps = cells.map((c) => ({ cell: c, x: c.body.cx, y: c.body.cy, req: c.body.req, active: !c.caught.active && !c.p.waiting }));
+  const ev = chaos.update(dt, adt, ps, { capsules: col.capsules, circles }, { calm: fungus.state === 'grace' || chaos.resting });
+  for (const { e, p: pl } of ev) {
+    const c = pl ? pl.cell : null, k = cur;
+    if (c) use(c);
+    if (e === 'wake') hud.toast('A giant amoeba, Chaos, stirs: it has noticed you', 2800);
+    else if (e === 'windupCup') { hud.toast(`${who()}Chaos raises and spreads its pseudopods: it is going to cup you! Pinch its arms off (X with your membrane round them)`, 3000); rumble(150, 0.3, 0); }
+    else if (e === 'windupLunge') { hud.toast(`${who()}Chaos gathers itself to lunge: get out of the way (A)`, 2400); rumble(150, 0.3, 0); }
+    else if (e === 'engulf' && c) startEngulf(c);
+    else if (e === 'retreat') hud.toast('Chaos has had enough: it flows away to rest. The way is open', 3000);
+    use(k);
+  }
+  // engulfed: carried along inside it
+  for (const c of cells) {
+    if (!(c.caught.active && c.FC.by === 'chaos')) continue;
+    const dx = chaos.body.cx - (c.lastChaos ? c.lastChaos.x : chaos.body.cx), dy = chaos.body.cy - (c.lastChaos ? c.lastChaos.y : chaos.body.cy);
+    c.lastChaos = { x: chaos.body.cx, y: chaos.body.cy };
+    moveCell(c, dx, dy);
+  }
+}
+/** Translate a player's whole cell (membrane, granules, organelles, vacuoles). */
+function moveCell(c, dx, dy) {
+  if (!dx && !dy) return;
+  const b = c.body, y = c.cyto;
+  for (let i = 0; i < N; i++) { b.x[i] += dx; b.y[i] += dy; b.sx[i] += dx; b.sy[i] += dy; }
+  b.centroid(); b.ux += dx; b.uy += dy;
+  for (let i = 0; i < y.n; i++) { y.px[i] += dx; y.py[i] += dy; }
+  y.nucleus.x += dx; y.nucleus.y += dy; y.cv.x += dx; y.cv.y += dy;
+  for (const v of y.vacuoles) { v.x += dx; v.y += dy; }
+  b.grid.build(b.x, b.y, N);
+}
+/** Chaos's cup closed round cell c: engulfed (strike, hold, eat, follow, fade, respawn). */
+function startEngulf(c) {
+  const k = cur;
+  use(c);
+  if (C.closing) cancelClose();
+  FC.by = 'chaos'; FC.phase = 'strike'; FC.A0 = body.A0; FC.pts = [{ x: chaos.body.cx, y: chaos.body.cy }];
+  c.lastChaos = { x: chaos.body.cx, y: chaos.body.cy };
+  caught.start({ by: 'Chaos', how: 'cupped you and engulfed you whole' });
+  embed.captured({ by: 'Chaos', player: c.slot });
+  audio.play('amoeba/engulf', { volume: 1, rate: 0.55 });
+  rumble(500, 0.8, 0.9);
+  use(k);
+}
+/** X with your membrane round the neck of one of Chaos's arms: pinch it off. Returns true if it cut. */
+function pinchChaos(c, reach = 45) {
+  if (!chaos.on || !chaos.awake) return false;
+  const pin = chaos.pincer(c.body, reach);
+  if (!pin) return false;
+  const { lost, gone } = chaos.cut(pin.i, pin.j);
+  addFragment(lost);
+  const b = chaos.body;
+  C.jab = { t: 0.35, x: (b.x[pin.i] + b.x[pin.j]) / 2, y: (b.y[pin.i] + b.y[pin.j]) / 2 };
+  audio.play('amoeba/engulf', { volume: 1, rate: 1.4 });
+  rumble(350, 0.7, 0.6);
+  hud.toast(`${who()}Pinched off! The arm rounds up and dies${gone ? '. Chaos gives up' : ` (Chaos's resolve ${Math.round(chaos.interest * 100)}%)`}`, 2400);
+  return true;
 }
 
 // --- players ---------------------------------------------------------------------
@@ -1269,6 +1378,9 @@ resize();
 
 cells.push(firstCell(players.get(0)));
 use(cells[0]);
+// The boss: the giant amoeba Chaos, between the start and the P. bursaria.
+const chaos = new Chaos(rng(41), view, 1750, 300);
+const CH = { gauge: null };
 
 // Warm up: a polypodial resting cell, prey scattered round it.
 for (const k of MIX) spawn(k);
@@ -1311,8 +1423,9 @@ function frame(now) {
       if (fight && pressed(BTN.A) && surge.trigger()) { audio.play('amoeba/boost', { volume: 0.9 }); rumble(220, 0.3, 0.5); if (C.stuckN && !caught.active) hud.toast(`${who()}Surge: torn free of the trap`); }
       const threat = caught.active ? null : threatTrap(c);
       if (!caught.active && pressed(BTN.X) && !C.closing) {
-        // at a hypha (and no cup ready to close): cut it; otherwise close the cup
-        if (threat && !(C.cand && C.cand.cup.wrap >= CUP_WRAP)) cutHypha(threat, threat.near);
+        // round one of Chaos's arms: pinch it off; at a hypha (and no cup ready to close): cut it; otherwise close the cup
+        if (pinchChaos(c)) { /* cut */ }
+        else if (threat && !(C.cand && C.cand.cup.wrap >= CUP_WRAP)) cutHypha(threat, threat.near);
         else tryClose();
       }
       if (!caught.active && pressed(BTN.B)) {
