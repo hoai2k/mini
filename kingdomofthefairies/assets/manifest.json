@@ -4869,6 +4869,46 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "cavern-stalactite": {
+      "status": "requested",
+      "file": "cavern-stalactite.webp",
+      "size": [
+        120,
+        280
+      ],
+      "anchor": "top centre (where it hangs from the ceiling)",
+      "edition": "film"
+    },
+    "cavern-stalactite-tinted": {
+      "status": "requested",
+      "file": "cavern-stalactite-tinted.webp",
+      "size": [
+        120,
+        280
+      ],
+      "anchor": "top centre (where it hangs from the ceiling)",
+      "edition": "film"
+    },
+    "cavern-stalactite-broken": {
+      "status": "requested",
+      "file": "cavern-stalactite-broken.webp",
+      "size": [
+        180,
+        60
+      ],
+      "anchor": "bottom centre (on the ground)",
+      "edition": "film"
+    },
+    "cavern-stalactite-broken-tinted": {
+      "status": "requested",
+      "file": "cavern-stalactite-broken-tinted.webp",
+      "size": [
+        180,
+        60
+      ],
+      "anchor": "bottom centre (on the ground)",
+      "edition": "film"
     }
   },
   "audio": {
