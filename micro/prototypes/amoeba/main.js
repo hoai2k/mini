@@ -45,8 +45,8 @@ renderer.autoClear = false;
 const cells = [];
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { embed.join(p.slot, p.color, p.name); addCell(p); hud.toast(`Player ${p.slot + 1} joined`); },
-  onLeave: (p) => { embed.leave(p.slot); removeCell(p.slot); hud.toast(`Player ${p.slot + 1} left`); },
+  onJoin: (p) => { embed.post('join', { index: p.slot, color: p.color, name: p.name, roster: players.toJSON() }); addCell(p); hud.toast(`Player ${p.slot + 1} joined`); },
+  onLeave: (p) => { embed.post('leave', { index: p.slot, roster: players.toJSON() }); removeCell(p.slot); hud.toast(`Player ${p.slot + 1} left`); },
   onChange: (list) => hud && hud.players(list),
 });
 let pad = players.pad(0);

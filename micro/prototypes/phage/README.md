@@ -30,7 +30,7 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | **A** | Space | **Dash**: a passing *current gust* in open water, or a *push-off* with the fibres from a surface (both departures; recharging, HUD `dash` meter) |
 | **X** | E | **Commit**: the irreversible bind. Works only with at least three long fibres bound on an OmpC patch of a host; then the short fibres bind, the baseplate opens into a star, the sheath contracts, the tube crosses the envelope and the DNA goes in |
 | B | Shift | **Fibres**: fold them back against the sheath (slip past clay and wrong hosts; also lets go of a host) or extend them (catch receptors, and clay) |
-| Y | R | Odds and receptor overlay: receptor patches ringed, each host's receptors, defences and odds of a burst, the UV line, the amoeba's hunger, your distance to the nearest host; inside, each enzyme's sensing range. Marked on screen as data, not optics |
+| Y | R | **At the flagellum (the backdoor)**: back to the sediment (Level 5). Elsewhere: the odds and receptor overlay: receptor patches ringed, each host's receptors, defences and odds of a burst, the UV line, the amoeba's hunger, your distance to the nearest host; inside, each enzyme's sensing range. Marked on screen as data, not optics |
 | D-pad ←→ | 3 / 4 | Look: Goodsell watercolour, cryo-EM greyscale, fluorescence (pseudo-colour) |
 | D-pad ↑↓ | 1 / 2 | Zoom in / out |
 | Menu | Esc | Features panel |
@@ -45,6 +45,36 @@ restriction enzyme and CRISPR complex. Success: the host bursts with 40 new
 phages. The odds overlay says which host is the better bet: Host A (no
 matching CRISPR spacer) or Host B (a matching spacer: its CRISPR complexes
 hunt hard, a near dead end). The third cell is the wrong host.
+
+## In the game, landmarks and players
+
+- **Micro Zoom shell** (`micro/game/`, through `shared/embed.js`): embedded,
+  the world skips its opening toast (the shell's intro has said it), the
+  shell's pause freezes everything (embed.js holds the frames; the sound
+  stops), and Menu posts `menu`.
+- **Forward: the win.** The phage is the last world, so there is no next
+  stage; the shell's README treats `landmark('forward')` from the last world
+  as the ending (its "The end of the light" screen). After the burst plays,
+  the world posts `landmark {kind: 'forward', won: true, burst: 40, host}`;
+  standalone it shows its own Burst card instead.
+- **Back: the flagellum.** In open water above Host B, a flagellum of the
+  Level 5 bacterium sweeps past (a turning helix). Drifting within ~0.55 µm
+  of it posts `near {kind: 'back', label: 'Y: back to Sediment'}`, and Y
+  there posts `landmark('back')`; anywhere else Y is the overlay.
+- **Edge marks** (`shared/landmark.js`): a brass chevron toward Host A's
+  front OmpC patch (the best odds) and a ring toward the flagellum, per view.
+- **Up to four local players** (`shared/players.js`): the roster comes from
+  the shell (`embed.players`) or starts as P1 alone; anyone joins during play
+  by pressing a button on another controller (posted as `join`). Each player
+  has their own phage, its sheath in their colour. The view is the LEGO split
+  (`shared/splitscreen.js`, image-plane offsets for this free-floating 3D
+  world, with `capture` since the Goodsell pass draws to the screen): one view
+  together, split as phages drift apart. The amoeba hunts the nearest phage;
+  UV acts on each. A caught player plays the whole sequence, then drifts back
+  in beside a teammate (no card; `captured` is posted); solo keeps the card.
+  One player at a time can commit: the inside phase is a single shared view
+  steered by the player who injected, while the others wait outside. Any
+  player's camera stick, look and zoom buttons work.
 
 ## Threats and pacing
 
@@ -82,6 +112,7 @@ cuts.
 
 ```bash
 node micro/prototypes/check.mjs phage
+node micro/game/check.mjs
 ```
 
 The smoke check opens the page in headless Chromium, drives the keyboard and
@@ -89,7 +120,20 @@ fails on any console error. `window.__micro.debug` has hooks for scripted
 screenshots: `teleport`, `orient`, `isolate` (the phage alone, for
 turnarounds), `cam(yaw, pitch, dist)`, `fold`, `walkOn(hostId, u, phi)`,
 `commit`, `inside(hostId)`, `win`, `capture('amoeba' | 'uv' | 'cut')`,
-`hungry`, `overlay`, `look`, `zoom`, `reset`, plus `maxDt` and `pause`.
+`hungry`, `overlay`, `look`, `zoom`, `reset`, `place(slot, x, y)`, plus
+`maxDt` and `pause`. `window.__micro` also exposes `team`, `players`,
+`split`, `nearBack` and `where`.
+
+## Known issues
+
+- `shared/landmark.js` throws on an empty split-region polygon, which
+  `shared/splitscreen.js` can emit for a frame while players leave; the
+  phage skips its edge marks on such frames.
+- The overlay's text labels are placed with the shared camera, so in a split
+  they sit in the merged position.
+- Software WebGL: four split views cost about 1–3 s a frame in headless
+  SwiftShader (each view is a full Goodsell pass); on a GPU it is the usual
+  N renders.
 
 ## Approach
 
@@ -172,12 +216,15 @@ The Menu panel lists everything with a switch where it makes sense:
 
 ## Art
 
-- **MP-V01** (envelope surface, tileable) maps onto the hosts, **MP-V02**
-  (water backdrop) replaces the procedural water wash, **MP-V03** (envelope
-  section) is the inside view's envelope band. All three are still
-  `requested`; procedural stand-ins draw until they are delivered (a canvas
-  dot pattern for the envelope, an fbm wash for the water, a Goodsell-style
-  canvas section of LPS, bilayers and periplasm).`loadTexture` is wrapped so
+- **MP-V01** (envelope surface, tileable, delivered) maps onto the hosts
+  over a white base (the wrong host keeps a dull tint); **MP-V02** (water
+  backdrop, delivered) is one painted plate behind the scene, with a small
+  parallax, a 30 % wash toward the water colour so the foreground reads, and
+  the depth fog matched to its average colour; **MP-V03** (envelope section,
+  delivered) is the inside view's envelope band, showing only its membrane
+  rows (12–70 % down the plate). Features → Delivered art off brings back the
+  procedural stand-ins (a canvas dot pattern, an fbm wash, a Goodsell-style
+  canvas section).`loadTexture` is wrapped so
   an id missing from the list warns rather than throws.
 - **MP-E04** (concept, delivered) set the mood: the palette, the LPS forest,
   the crowded water and the envelope section.

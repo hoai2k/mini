@@ -115,7 +115,9 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
 
   function draw({ position, project, kind = 'forward', region = null, anchor = null, label = '', icon = null,
     distance = null, range = Infinity, onScreen = 'marker', color, nearAlpha = 0.72, farAlpha = 0.28, size = 14 }) {
-    const polys = !region ? [[[0, 0], [W, 0], [W, H], [0, H]]] : (Array.isArray(region[0][0]) ? region : [region]);
+    if (region && (!region.length || !region[0] || !region[0].length)) return null;
+    const polys = (!region ? [[[0, 0], [W, 0], [W, H], [0, H]]] : (Array.isArray(region[0][0]) ? region : [region])).filter((p) => p && p.length >= 3);
+    if (!polys.length) return null;
     const inside = (x, y) => polys.some((p) => inPoly(p, x, y));
     const insetInside = (x, y, m) => {
       if (!inside(x, y)) return false;
@@ -198,7 +200,8 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
     const L = split.layout;
     const out = [];
     for (const v of L.views) {
-      const regs = L.regions.filter((r) => r.view === v.index);
+      // Skip empty or degenerate regions (a view can shrink to nothing while players leave).
+      const regs = L.regions.filter((r) => r.view === v.index && r.polygon && r.polygon.length >= 3);
       if (!regs.length) continue;
       const region = L.views.length === 1 ? null : regs.map((r) => r.polygon);
       const anchor = [regs.reduce((s, r) => s + r.anchor[0], 0) / regs.length, regs.reduce((s, r) => s + r.anchor[1], 0) / regs.length];

@@ -112,7 +112,7 @@ function applyArt() {
   for (const h of world.hosts) {
     h.mat.setMap(env ? art.envelope : h.mat.userData.std, env ? [3, 1.5] : [6, 3]);
     // the painted envelope carries its own colour; the wrong host keeps a dull tint so it reads apart
-    h.mat.uniforms.uColor.value.set(env ? (h.wrong ? '#c9b48a' : '#ffffff') : h.color);
+    h.mat.uniforms.uColor.value.set(env ? (h.wrong ? '#bba680' : '#e4e0d8') : h.color);
   }
   post.setBackdrop(use ? art.water : null);
   waterColor = use && art.water ? '#a7c2bc' : '#bcd3ea';
@@ -815,6 +815,7 @@ function frame(now) {
     camera.updateMatrixWorld();
     goodsellShared.uFogNear.value = dist * 0.8; goodsellShared.uFogFar.value = dist + 300;
     post.uniforms.uWater.value.set(waterColor);
+    post.uniforms.uUseBg.value = view.art && art.water ? 1 : 0;
     goodsellShared.uFogColor.value.set(waterColor);
     post.uniforms.uUv.value = opts.uv && !debug.iso ? 0.9 : 0;
     post.uniforms.uBgOff.value.set(view.target.x * 0.0006, view.target.y * 0.0006);
@@ -822,6 +823,7 @@ function frame(now) {
     inside.frame(dt, look, insideOwner && insideOwner.c.active && insideOwner.P.kind === 'cut' ? 85 : ZOOMS[view.zoom] * 1.05 + 40);
     goodsellShared.uFogNear.value = 150; goodsellShared.uFogFar.value = 360;
     post.uniforms.uWater.value.set('#efc4a0');
+    post.uniforms.uUseBg.value = 0; // the cytoplasm, not the water plate
     goodsellShared.uFogColor.value.set('#efc4a0');
     post.uniforms.uUv.value = 0;
   }

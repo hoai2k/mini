@@ -64,11 +64,12 @@ const animals = []; // one per player: { p, slot, creature, walker, life, dash, 
 const players = createPlayers({
   max: 4,
   onJoin: (p) => {
-    embed.join(p.slot, p.color, p.name);
+    // the roster rides along, so the shell carries this player into the next world
+    embed.post('join', { index: p.slot, color: p.color, name: p.name, roster: players.toJSON() });
     addAnimal(p);
     hud.toast(`Player ${p.slot + 1} joined`);
   },
-  onLeave: (p) => { embed.leave(p.slot); removeAnimal(p.slot); hud.toast(`Player ${p.slot + 1} left`); },
+  onLeave: (p) => { embed.post('leave', { index: p.slot, roster: players.toJSON() }); removeAnimal(p.slot); hud.toast(`Player ${p.slot + 1} left`); },
   onChange: (list) => hud && hud.players(list),
 });
 const pad = players.pad(0);
