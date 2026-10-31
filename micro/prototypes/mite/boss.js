@@ -9,7 +9,7 @@
 //
 // Readable states:
 //   dormant  in the axil, pincers folded; wakes when a player comes within
-//            1.3 mm after the calm opening
+//            2.3 mm after the calm opening
 //   stalk    a slow, deliberate walk toward its target, pincers forward
 //   tell     the pincers held open and dead still (0.9 s; 0.7 s for the sweep)
 //   snap     a fast pincer strike straight ahead (0.16 s)
@@ -29,7 +29,7 @@ import { floorH } from './world.js';
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const ease = (x) => x * x * (3 - 2 * x);
 const UP = new THREE.Vector3(0, 1, 0);
-const REACH = 1500; // µm from its body centre to the pincer tips, at full stretch
+const REACH = 2500; // µm from its body centre to the pincer tips, at full stretch (~2.1 mm in the tell)
 
 export function createPseudoscorpion(scene, tex, { post, home }) {
   const group = new THREE.Group();
@@ -156,17 +156,19 @@ export function createPseudoscorpion(scene, tex, { post, home }) {
     switch (st.state) {
       case 'dormant':
         targetA = post.a;
-        if (ctx.awake && tgt && Math.hypot(tgt.x - post.x, tgt.z - post.z) < 1300) { go('stalk'); ev.push({ type: 'wake' }); }
+        if (ctx.awake && tgt && Math.hypot(tgt.x - post.x, tgt.z - post.z) < 2300) { go('stalk'); ev.push({ type: 'wake' }); }
         break;
       case 'stalk':
         if (!tgt) break;
         targetA = toT;
-        targetV = bd > REACH + 150 ? 240 : 0;
+        // it keeps its distance: just inside pincer reach
+        targetV = bd > REACH - 100 ? 240 : bd < 1900 ? -200 : 0;
         st.open += (0.25 - st.open) * Math.min(1, dt * 3);
         st.lower = Math.max(0, st.lower - dt * 2);
         if (Math.hypot(st.x - post.x, st.z - post.z) > 1700) targetA = Math.atan2(post.z - st.z, post.x - st.x);
-        if (st.cool <= 0 && bd < REACH + 450) {
-          st.pattern = bd > REACH + 120 ? 'step' : Math.random() < 0.4 ? 'sweep' : 'snap';
+        if (st.cool <= 0 && bd < REACH + 450 && bd > 1750) {
+          st.pattern = bd > REACH - 50 ? 'step' : Math.random() < 0.4 ? 'sweep' : 'snap';
+          st.extT = Math.max(0.1, Math.min(1, (bd - 1700) / 900));
           go('tell'); ev.push({ type: 'tell', pattern: st.pattern });
         }
         break;
@@ -190,10 +192,10 @@ export function createPseudoscorpion(scene, tex, { post, home }) {
           const d = Math.min(450, Math.max(0, bd - REACH + 100));
           const e = ease(Math.min(1, u * 1.6));
           st.x = st.from.x + Math.cos(st.a) * d * e; st.z = st.from.z + Math.sin(st.a) * d * e;
-          st.ext = u > 0.6 ? (u - 0.6) / 0.4 : 0.15; st.open = u > 0.75 ? 1 - (u - 0.75) / 0.25 : 1;
+          st.ext = u > 0.6 ? 0.15 + ((u - 0.6) / 0.4) * (Math.max(0.1, Math.min(1, (bd - 1700) / 900)) - 0.15) : 0.15; st.open = u > 0.75 ? 1 - (u - 0.75) / 0.25 : 1;
         } else if (st.state === 'sweep') {
-          st.spread = 1 - u; st.ext = 0.5 + 0.4 * u; st.open = 1 - u;
-        } else { st.ext = u; st.open = 1 - u; }
+          st.spread = 1 - u; st.ext = st.extT * u; st.open = 1 - u;
+        } else { st.ext = st.extT * u; st.open = 1 - u; }
         st.crouch = Math.max(0, 1 - u * 2);
         pose();
         if (u >= 1) {

@@ -108,8 +108,8 @@ const hud = mountHud({
   controls: hudControls({
     move: 'Walk on the film (slow, slippery)',
     camera: 'Orbit',
-    dash: 'Furcula jump: hold to cock (hop to full), release; aim with LS',
-    attack: 'Graze pollen, spores and algae; at a predator, rear up and nip it',
+    dash: 'Furcula jump: hold to cock (hop to full), release; aim with LS. Released at an enemy in range: a pounce-bite',
+    attack: 'Graze pollen, spores and algae; at a predator, rear up and nip it; in the air, a pounce-bite (dive and nip)',
     defend: 'Hold: hunker (defend). Facing a predator, it blocks the strike; waves cannot flip you',
     special: 'Camera: top-down / back to your low view',
     analog: 'Focus nearer / farther',
@@ -512,6 +512,10 @@ F({ id: 'righting', group: 'Simulation', label: 'Landing odds', choices: ['Real 
   about: 'Semiaquatic springtails land on their ventral side 85% of the time (Ortega-Jimenez et al. 2022); otherwise you land on your back and must right yourself (tap A).', onChange: (v) => (opt.righting = v.startsWith('Real')) });
 F({ id: 'slow', group: 'Simulation', label: 'Jump time', choices: ['Slowed ~6x (playable)', 'Real time'], value: 'Slowed ~6x (playable)',
   about: 'A real full jump off water lasts ~0.1-0.2 s at ~0.7 m/s take-off. Slowed, a full jump takes 0.85 s, so you can see the tumble, the U-pose and the landing.', onChange: (v) => (opt.slow = v.startsWith('Slow')) });
+F({ id: 'pounce', group: 'Simulation', label: 'Pounce-bite (a departure)', fixed: true,
+  about: 'X in the air, or a jump released at an enemy in range: the springtail tucks into a dive onto the nearest leg or body under its arc (aim assist), nips on impact (worth two nips: a stagger, a splash, a rumble, a brief hit-pause), then rebounds off it; a mistimed dive is a clear miss. Landing on food takes a whole bite. A labelled departure: Podura grazes, and its furcula jump is an escape (a few springtails such as Friesea prey on tiny animals, never by leaping).' });
+F({ id: 'boss', group: 'World', label: 'Boss: pond wolf spider (Pirata)', fixed: true,
+  about: 'A juvenile, ~5 mm (scaled down from adults so the arena fits), on guard on the moss tongue at the way on. Dormant until you come within 30 mm after the calm opening. Its tells: it crouches and raises its first two pairs of legs before a lunge, and turns to pounce on your landing ripples. Jump clear (a dodge wears it down), then nip or pounce on an overreached tarsus (double). About three good rounds and it backs off under the moss, leaving the bank open. Its resolve is the brass gauge. Catches follow the follow-and-respawn sequence.' });
 F({ id: 'upose', group: 'Body', label: 'Mid-air U-pose righting', on: true,
   about: 'Right after take-off the body tumbles; within ~20 ms (here ~0.15 s) it curls head and tail up into a U, which aerodynamically turns the ventral tube downward. Off: it tumbles all the way and lands upright half the time.', onChange: (v) => (opt.uPose = v) });
 F({ id: 'sdf', group: 'Body', label: 'Anatomy from SDF parts', fixed: true,

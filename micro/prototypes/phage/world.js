@@ -219,7 +219,9 @@ export function createWorld(scene) {
   };
   /** Attack posture: 0 calm .. 1 rearing to strike (the lobe darkens toward a flushed rose). */
   amoeba.posture = (k) => {
-    podMat.uniforms.uDark.value = k * 0.45;
+    podMat.uniforms.uDark.value = k * 0.7;
+    podMat.uniforms.uEmissive.value = k * 0.25;
+    amoeba.swell = k;
   };
   podMat.uniforms.uDarkColor.value.set('#b0335a');
   world.amoeba = amoeba;
@@ -229,7 +231,7 @@ export function createWorld(scene) {
     pod.visible = lips[0].visible = lips[1].visible = show && reach > 1;
     if (!pod.visible) return;
     const dir = _v.subVectors(tip, base); const len = dir.length(); dir.normalize();
-    const r = 11 - Math.min(4, len * 0.01);
+    const r = (11 - Math.min(4, len * 0.01)) * (1 + 0.4 * (amoeba.swell || 0));
     pod.position.lerpVectors(base, tip, 0.5);
     pod.quaternion.setFromUnitVectors(UP, dir);
     // CapsuleGeometry(1, 1) is 3 long: stretched, the caps become soft ellipsoids, like a limb of cytoplasm

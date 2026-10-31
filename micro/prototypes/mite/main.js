@@ -87,14 +87,15 @@ const hud = mountHud({
   controls: hudControls({
     move: 'Walk (relative to the view); climbs grains, stems and flakes, pushes through blades',
     camera: 'Orbit the specimen (up looks up)',
-    dash: 'Jump: a crouch and a hop (borrowed from jumping oribatids)',
+    dash: 'Jump: a crouch and a hop (borrowed from jumping oribatids); X in the air: a pounce-bite',
     attack: 'Bite: graze spores and hyphal tips (leg I holds them); at the predator, rear up and nip it',
     defend: 'Hold: close up (ptychoidy, defend): blocks the predator\'s strike',
     special: 'Observer: data bar and scan lines. At the giant springtail: back up a world',
-    analog: 'RT (hold): scramble, a burst of fast running',
+
     secondary: 'Walk slowly / hurry',
     look: 'Imaging mode: SE, BSE, false colour',
     zoom: 'Magnification steps',
+    extra: [['RT', 'Hold: scramble, ~2x the walk, on a stamina meter (also breaks a grab in its strike window)']],
   }),
   note: 'A live mite walking in an SEM is a deliberate fiction: real specimens are dried and gold-coated in a vacuum. The mag and scale bar are true to the field of view. Speeds are a game stretch: the walk (~0.42 mm/s) is a few times a real oribatid\'s, and box mites do not jump (zetorchestid oribatids do).',
 });
@@ -129,12 +130,16 @@ function placeCamera(dt) {
   // several players: frame the group, a little wider as it spreads (the split screen takes over when they part)
   const mp = multi();
   const gc = mp ? groupCentre(recs()) : null;
-  const want = mp ? rig.hfw * (1 + Math.min(0.6, (gc.spread / rig.hfw) * 0.7)) : rig.hfw;
+  let want = mp ? rig.hfw * (1 + Math.min(0.6, (gc.spread / rig.hfw) * 0.7)) : rig.hfw;
+  // a boss fight: the lens widens to keep the pseudoscorpion and its pincers in frame
+  const bd = boss.engaged ? boss.center.distanceTo(mp ? gc.c : mite.center) : Infinity;
+  if (bd < 3200 && !capture.active) want = Math.min(4200, Math.max(want, bd * 1.5 + 1400));
   rig.viewHfw = rig.viewHfw === undefined || !dt ? want : rig.viewHfw + (want - rig.viewHfw) * (1 - Math.exp(-dt / 0.4));
   const d = rig.viewHfw / (2 * tanH);
   const k = dt ? 1 - Math.exp(-dt / 0.25) : 1;
   // a catch is framed whole: you and the predator (alone; with company the camera keeps the group)
-  if (mp) rig.target.lerp(gc.c, k);
+  if (bd < 3200 && !capture.active) rig.target.lerp(_ct.copy(mp ? gc.c : mite.center).lerp(boss.center, 0.3), k);
+  else if (mp) rig.target.lerp(gc.c, k);
   else if (capture.active && capture.phase !== 'fadeIn') {
     // close in side-on to the catch: your body and the predator's chelicerae in frame;
     // once it eats, pull back and follow the predator with its meal
@@ -453,6 +458,10 @@ F({ id: 'scramble', group: 'Simulation', label: 'Scramble (hold RT)', fixed: tru
   about: `0.6 s at up to ~${DASH} µm/s, recharging over 2.2 s. The gait phase runs on distance, so the legs speed up with it and the feet stay planted. A stretch: box mites are slow, steady walkers.` });
 F({ id: 'jump', group: 'Simulation', label: 'Jump (A), borrowed from jumping oribatids', fixed: true,
   about: `A ${Math.round(JUMP.crouch * 1000)} ms crouch, then a ballistic hop (~${Math.round(MITE_SCALE * JUMP.vy ** 2 / 5200)} µm high, ~0.3 mm long; more from a run; scaled with the body), landing on the floor, a grain, a flake or a blade (which takes the landing and bends); ${JUMP.cool} s before the next. Box mites do not jump, but some oribatids do: Zetorchestes with enlarged hind legs and a catch mechanism (Krisper 1990), and the ptychoid Indotritia, a box-mite relative, jumps backwards with its forelegs (Wauthy et al. 1998). Borrowed here as a forward hop.` });
+F({ id: 'pounce', group: 'Simulation', label: 'Pounce-bite (X in the air; a game stretch)', fixed: true,
+  about: 'In a jump, X dives at the nearest enemy point ahead (the predator, or the pseudoscorpion\'s pincer arm): a strong bite on impact (two bites\' worth, a hit-pause and a rumble), then a hop back; a mistimed dive is a clear miss. Box mites neither jump nor pounce: a game stretch on the borrowed Zetorchestes jump.' });
+F({ id: 'boss', group: 'Simulation', label: 'Boss: pseudoscorpion (Neobisium-like)', fixed: true,
+  about: '~2.5 mm, a real hunter of mites in moss, lying in wait before the wet leaf axil. Dormant until you come within 2.3 mm after the calm opening. Its tell: pincers held open and dead still, then a snap, a two-pincer sweep, or a step-in and snap. Stay out of reach, close up (B) to survive a grab (the venom tooth cannot get through), scramble (RT) out of a grab in its strike window, and bite its pincer joints (X) while it recovers. About three good rounds and it backs into the moss. Its resolve is the brass gauge.' });
 F({ id: 'bite', group: 'Simulation', label: 'Bite and graze (X)', fixed: true,
   about: 'The rostrum dips and the chelicerae work. In reach of the mouth: fungal spores (eaten) and hyphal branch tips (nibbled; they regrow), the box mite\'s real food. At the predator: a nip that makes it back off for 1.5 s (a game rule).' });
 F({ id: 'predator', group: 'Simulation', label: 'Predatory mite (Parasitidae)', on: true,
@@ -799,7 +808,7 @@ function diveImpact() {
   play.lastImpact = { t: simTime, hit: false };
   const t = d.target;
   if (t) {
-    const near = (t.foe === 'boss' ? boss.bitePoints() : [pred.center, pred.mouth(new THREE.Vector3())]).some((p) => p.distanceTo(mite.center) < 380);
+    const near = (t.foe === 'boss' ? boss.bitePoints() : [pred.center, pred.mouth(new THREE.Vector3())]).some((p) => p.distanceTo(mite.center) < 460);
     if (near) {
       play.lastImpact.hit = true; play.pounces = (play.pounces || 0) + 1;
       hitPause = 0.12;
@@ -886,6 +895,13 @@ function tick(dt, inputs) {
     if (cs.active && cap.who === P) input = { ...input, mag: 0 };
     const ev = mite.update(dt, input);
     if (play.dive && (ev.includes('land') || ev.includes('impact') || mite.mode === 'walk')) diveImpact();
+    else if (play.dive && play.dive.target && mite.mode === 'air') {
+      // homing: the dive follows its target as it moves
+      const t = play.dive.target, pts = t.foe === 'boss' ? boss.bitePoints() : [pred.center.clone()];
+      let best = null, bd = Infinity;
+      for (const p of pts) { const d = p.distanceTo(t.p); if (d < bd) { bd = d; best = p; } }
+      if (best) { t.p.copy(best); const at = best.clone(); at.y = Math.max(floorH(at.x, at.z), at.y - 120); mite.dive(at); }
+    }
     if (play.rebound > 0 && (play.rebound -= dt) <= 0) mite.st.fwd.negate();
     soundTick(dt, ev);
     evs[P.slot] = ev;
@@ -1156,7 +1172,7 @@ const api = {
   },
   fight, fightLog, boss,
   /** Testing: player `slot` near the boss's post, the calm over: it wakes. */
-  bossFight(slot = 0) { const P = pls[slot] || P1; pace.mode = 'Always'; hunger.reset(0); hunger.update(0.01); boss.reset(); predAI.reset(...PRED_START); pace.mode = 'Never'; const b = boss.post; P.mite.place(b.x + b.ux * 1100, b.z + b.uz * 1100, Math.atan2(b.uz, -b.ux)); rig.target.copy(P.mite.center); hunger.reset(0); hunger.update(0.01); },
+  bossFight(slot = 0) { const P = pls[slot] || P1; pace.mode = 'Always'; hunger.reset(0); hunger.update(0.01); boss.reset(); predAI.reset(...PRED_START); pace.mode = 'Never'; const b = boss.post; P.mite.place(b.x + b.ux * 2100, b.z + b.uz * 2100, Math.atan2(b.uz, -b.ux)); rig.target.copy(P.mite.center); hunger.reset(0); hunger.update(0.01); },
   /** Testing: face the boss's nearest pincer joint, within bite reach. */
   bossBite(slot = 0) { const P = pls[slot] || P1; const j = boss.bitePoints()[0]; if (!j) return; const c = P.mite.center; const v = new THREE.Vector3(c.x - j.x, 0, c.z - j.z).normalize(); P.mite.place(j.x + v.x * 330, j.z + v.z * 330, Math.atan2(v.z, -v.x)); },
   impact(slot = 0) { const P = pls[slot] || P1; return { last: P.play.lastImpact || null, pounces: P.play.pounces || 0, mode: P.mite.mode, dive: !!P.play.dive, stam: P.play.stam, scr: !!P.play.scr }; },
