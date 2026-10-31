@@ -19,10 +19,10 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
 | **X (E)** | **Pierce** with the stylets: food in reach (algae, diatoms, detritus) or the living leaf cell under the mouth; at a Milnesium touching you, a jab that makes it back off |
 | B (Shift), hold | Grip hard / brace: two legs swing at most, slower, much harder to slip |
 | Y (R), hold | Curl into a tun. In a tun on a wet leaf, press again to wake |
-| LT / RT (Z / X) | Fine focus down / up through the layers |
+| LT / RT (Z / X) | Fine focus down / up through the layers. Auto-focus keeps the focal plane on the animal: a manual setting holds while you stand still and eases back onto the animal once you walk on (Features → Optics → Auto-focus) |
 | LB / RB (Q / F) | Anatomy labels / rain (test) |
 | D-pad ← → (3 / 4) | Optical look: DIC / brightfield / lit (hypothetical) |
-| D-pad ↑ ↓ (1 / 2) | Objective 10× / 20× / 40×. It starts on 10× (twice the 20× field, camera twice as far) so the leaf, the film and the surroundings read |
+| D-pad ↑ ↓ (1 / 2) | Magnification 10× / 12.5× / 20× / 40× (12.5× is the 10× objective behind a 1.25× Optovar magnification changer). It starts at 12.5× (1.6× the 20× field) so the leaf, the film and the surroundings read while the animal, centred and in focus, stays the clearest thing in view |
 | LS click (C) | Refocus on the animal |
 | RS click (V) | New day (test) |
 | Menu (Esc) | Features panel: what the prototype is doing, with switches |
@@ -74,6 +74,11 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   (mean 550, was 430) and B at 37 080 µm/s³ (mean 1 350, was 1 310; that
   run includes slips and falls), with the turn-rate change unchanged (0.2°,
   0.7°).
+- **Low magnification reads.** At 10× and 12.5× the defocus blur per unit
+  of distance from the focal plane is stronger (12 and 14 px at 720p, was 5;
+  still far less than a real NA 0.25 lens would give), so with the focal
+  plane on the animal's mid-depth the leaf surface under it softens and the
+  animal stands out with its DIC relief.
 - **Speed.** Walking is 2.25× the original pace (1.5× and then 1.5× again,
   at the owner's request): a limit of 225 µm/s (~0.65 body lengths/s),
   inside the 79–263 µm/s Nirody et al. measured; a scripted straight walk on
@@ -88,7 +93,7 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
 - **Milnesium (`predator.js`).** A second Walker and Creature at 1.5× scale,
   with a wide buccal tube and no placoids (true of *Milnesium*), a browner
   gut and a slightly denser cuticle. It starts far off, near the tip of the
-  steep leaf C (~1.4 mm away, out of the 10× field and above the focal
+  steep leaf C (~1.4 mm away, out of the 10× and 12.5× fields and above the focal
   plane, so at most a defocused shape), and for the first 40 s it only
   browses there, so there is time to explore. Then it hunts: it heads for
   you at under half speed, coming into view from the edge of the field, and
