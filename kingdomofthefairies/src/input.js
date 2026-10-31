@@ -62,6 +62,7 @@ export function createInput(target = window) {
       bPress: ke('KeyX', 'Backspace'),
       anyPad: false, stickNav: false, padA: false, padStart: false, padB: false, padX: false,
       keyAny: keyEdges.length > 0,
+      keyNav: ke('Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'),
     };
 
     const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter(Boolean) : [];

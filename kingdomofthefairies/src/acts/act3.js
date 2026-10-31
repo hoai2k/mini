@@ -335,6 +335,8 @@ function stepPassers(st, dt, emit) {
     if (f.t >= TUNE.fishDur) { f.t = -1; f.next = 99; }
   }
   const wm = w.t >= TUNE.whaleMask[0] && w.t <= TUNE.whaleMask[1];
+  if (wm && !w.masking) emit({ type: 'whaleMask' });
+  w.masking = wm;
   const fm = f.t >= 0 && Math.abs(fishX(f.t) - backX(LANTERN_BX, st.cam)) < 170;
   st.masked = wm || fm;
   st.maskedBy = wm ? 'whale' : fm ? 'fish' : null;

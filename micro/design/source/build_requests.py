@@ -7,7 +7,8 @@ Edit the data in this file, then run:
     python3 micro/design/source/build_requests.py --check  # verify up to date
 
 Outputs:
-    micro/design/image-requests.md          the request document
+    micro/design/image-requests.md          the open requests (status `requested`)
+    micro/design/image-requests-history.md  every delivered request, for the record
     micro/prototypes/shared/asset-list.js   what the prototypes load
 
 Statuses:
@@ -32,6 +33,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]  # micro/
 DOC = ROOT / "design" / "image-requests.md"
+HISTORY = ROOT / "design" / "image-requests-history.md"
 ASSET_LIST = ROOT / "prototypes" / "shared" / "asset-list.js"
 MANIFEST = ROOT / "research" / "assets" / "references" / "manifest.json"
 
@@ -616,14 +618,29 @@ def asset_list() -> str:
     )
 
 
-def document() -> str:
+def document(history: bool = False) -> str:
+    """The open requests, or with history=True every delivered request."""
     refs = load_refs()
     all_items = [i for g in GROUPS for i in g["items"]]
     done = sum(1 for i in all_items if i.get("status") == "delivered")
-    out = [
+    keep = (lambda i: i.get("status") == "delivered") if history else (lambda i: i.get("status") != "delivered")
+    if history:
+        out = [
+            "# Micro prototypes: image request history",
+            "",
+            "Every image request that has been delivered, with its prompt and reference images, for the record. "
+            "Open requests are in [`image-requests.md`](image-requests.md). Generated from `source/build_requests.py`; "
+            "a request moves here when its status is set to `delivered`.",
+            "",
+            f"{done} delivered.",
+            "",
+        ]
+    else:
+        out = [
         "# Micro prototypes: image requests",
         "",
-        "Artwork for the prototypes in `micro/prototypes/`. Generated from `source/build_requests.py`; edit the data there and rerun it, which also rewrites `micro/prototypes/shared/asset-list.js`.",
+        "Open artwork requests for the prototypes in `micro/prototypes/`. Delivered requests are kept in "
+        "[`image-requests-history.md`](image-requests-history.md). Generated from `source/build_requests.py`; edit the data there and rerun it, which also rewrites `micro/prototypes/shared/asset-list.js`.",
         "",
         "## How to use this list",
         "",
@@ -637,10 +654,15 @@ def document() -> str:
         "",
         f"{len(all_items) - done} requested, {done} delivered, {len(all_items)} in total.",
         "",
-    ]
+        ]
+        if done == len(all_items):
+            out += ["Nothing is open right now.", ""]
     for g in GROUPS:
+        items = [i for i in g["items"] if keep(i)]
+        if not items:
+            continue
         out += [f"## {g['title']}", "", g["intro"], ""]
-        for i in g["items"]:
+        for i in items:
             out += [
                 f"### {i['id']} · {i['name']}",
                 "",
@@ -677,13 +699,13 @@ def missing_links(doc: str) -> list[str]:
 
 
 def main() -> int:
-    outputs = {DOC: document(), ASSET_LIST: asset_list()}
+    outputs = {DOC: document(), HISTORY: document(history=True), ASSET_LIST: asset_list()}
     ids = [i["id"] for g in GROUPS for i in g["items"]]
     dupes = sorted({x for x in ids if ids.count(x) > 1})
     if dupes:
         print(f"duplicate request ids: {', '.join(dupes)}")
         return 1
-    missing = missing_links(outputs[DOC])
+    missing = sorted(set(missing_links(outputs[DOC]) + missing_links(outputs[HISTORY])))
     for m in missing:
         print(f"missing linked file: {m}")
     if "--check" in sys.argv:

@@ -35,7 +35,9 @@ export const TUNE = {
 };
 // The film edition's dive: the sword sinks quicker (so it rarely holds him
 // up), and X takes what is within reach: an open clam's pearl or a sleeper.
-export const FILM_DIVE = { lead: 80, sink: [30, 80, 150, 230], reach: 110, wakeR: 170 };
+// sink: the sword's pace (px/s) by how far behind he is; three-quarters of
+// what it was, so it falls slower, as play-testing asked (31 Oct 2026)
+export const FILM_DIVE = { lead: 80, sink: [22.5, 60, 112.5, 172.5], reach: 110, wakeR: 170 };
 
 // Cues in the take: the rose leaves her hand, reaches him, the sleepers rise.
 export const ROSE_CUES = { fly: 0.7, arrive: 1.5, wake: 1.6 };
@@ -370,9 +372,12 @@ function stepSwim(st, dt, input) {
   if (!offering) {
     if (vent && st.air < 1) {
       st.air = Math.min(1, st.air + TUNE.airRefill * dt);
-      if (st.air >= 1) st.events.push({ type: 'airFull' });
+      // once per filling: staying in the vent, it would fire every frame and
+      // stack the words into streaks
+      if (st.air >= 1 && !st.airFulled) { st.airFulled = true; st.events.push({ type: 'airFull' }); }
     }
     else st.air = Math.max(0, st.air - dt / TUNE.air);
+    if (!vent || st.air < 0.9) st.airFulled = false;
     if (st.air < 0.25 && !st.airLowed) { st.airLowed = true; st.events.push({ type: 'airLow' }); }
     if (st.air > 0.4) st.airLowed = false;
     if (st.air <= 0 && hurt(st, 'airOut', s.x, s.y + 40)) st.air = TUNE.airAfterOut;

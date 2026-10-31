@@ -354,6 +354,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     ctx.restore();
 
     if (fx.flash > 0) { ctx.fillStyle = `rgba(255,250,230,${fx.flash * 0.55})`; ctx.fillRect(0, 0, 1280, 720); }
+    if (fx.texts.length) floatingTexts(ctx);
     if (view.card) drawCard(ctx, view.card, t);
     filmLook(ctx, film, t, grain);
   }
@@ -857,6 +858,14 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
       c.restore();
     }
     c.globalAlpha = 1;
+  }
+
+  // Floating words ("Air full", "The sword!"): lettering, not part of the
+  // painted film, so drawn once over the finished frame, after the two
+  // misregistered print passes, rather than doubled and boiling with them.
+  function floatingTexts(c) {
+    const was = P.mode;
+    P.mode = 'tint';
     for (const t of fx.texts) {
       c.globalAlpha = Math.min(1, t.life * 2);
       c.font = t.big ? '44px Yesteryear, cursive' : '700 22px "Josefin Sans", sans-serif';
@@ -865,6 +874,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
       c.fillStyle = P.c(t.big ? PAL.gold : PAL.cream); c.fillText(t.str, t.x, t.y);
     }
     c.globalAlpha = 1;
+    P.mode = was;
   }
 
   function footlights(c, t) {

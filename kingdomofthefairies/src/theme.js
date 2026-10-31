@@ -49,7 +49,7 @@ export function applyDocumentTheme() {
   // data-classic-only: the original acts' pages (both query editions);
   // data-legacy-only: the band and the song (?widowsbay alone).
   for (const el of document.querySelectorAll(FILM ? '[data-classic-only]' : '[data-film-only]')) { el.classList.add('ed-off'); el.hidden = true; }
-  if (PARTIAL) partialWords(document.querySelector('#instructions'));
+  if (PARTIAL || FILM) partialWords(document.querySelector('#instructions'));
   if (!LEGACY) return;
   for (const el of document.querySelectorAll('[data-widowsbay]')) el.textContent = el.dataset.widowsbay;
   for (const el of document.querySelectorAll('[data-legacy-only]:not(.ins-page)')) el.hidden = false;
@@ -66,7 +66,8 @@ export function applyDocumentTheme() {
 export const PARTIAL_CAST = {
   'guitar-sinking': 'sword-sinking', 'keepsake-guitar': 'keepsake-sword', 'sailor-seated': 'sailor-seated-plain',
 };
-export const words = (s) => (PARTIAL ? String(s).replace(/its music wakes/g, 'its glow wakes').replace(/guitar/g, 'sword').replace(/Guitar/g, 'Sword') : s);
+// The partial and film editions have no guitar: the enchanted sword in its place.
+export const words = (s) => (PARTIAL || FILM ? String(s).replace(/its music wakes/g, 'its glow wakes').replace(/guitar/g, 'sword').replace(/Guitar/g, 'Sword') : s);
 function partialWords(root) {
   if (!root) return;
   const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);

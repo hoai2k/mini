@@ -594,7 +594,7 @@ function shoreScene(k, st, t) {
   if (tk > 0 && lift > 0.01) {
     c.save(); c.beginPath(); c.rect(0, 0, 1280, SEA_Y + 4); c.clip();
     const by = SEA_Y + 10 + (1 - lift) * 260;
-    if (!k.asset('whale-tail', 260, by, 350, 250)) tailStandin(k, 260, by);
+    if (!k.asset('whale-tail', 260, by, 350, 250, WHALE_PRINT)) tailStandin(k, 260, by);
     c.restore();
   }
   // the whale, beached on the rocks, then sliding back into the sea
@@ -673,8 +673,11 @@ function figure(k, col, bob) {
   c.fillStyle = k.col('#2a1a22'); c.fillRect(-13, -103, 26, 6);
 }
 
+// The whale is painted dark slate and magenta; against the bright shore cloth
+// the print and dye passes left him pale, so he is printed deeper and richer.
+const WHALE_PRINT = 'brightness(0.74) contrast(1.35) saturate(1.5)';
 function whaleBeached(k, x, bottom, t) {
-  if (k.asset('whale-beached', x, bottom, 900, 450)) return;
+  if (k.asset('whale-beached', x, bottom, 900, 450, WHALE_PRINT)) return;
   const c = k.c, top = bottom - 380;
   // slate body facing right, the tail end curling up at the left
   c.fillStyle = k.col('#5a6470');

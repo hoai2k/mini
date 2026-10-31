@@ -14,8 +14,8 @@ for (const [search, edition] of [['', 'film'], ['?qa', 'film'], ['?widowsbay', '
   assert.equal(theme.FILM, edition === 'film');
   assert.equal(theme.CLASSIC, edition !== 'film');
   assert.equal(theme.TITLE, legacy ? "Widow's Bay" : 'Kingdom of the Fairies');
-  // the partial edition swaps the guitar for the sword in art and words
-  assert.equal(theme.words('Catch the guitar'), edition === 'partial' ? 'Catch the sword' : 'Catch the guitar');
+  // the partial and film editions swap the guitar for the sword in words
+  assert.equal(theme.words('Catch the guitar'), edition === 'widowsbay' ? 'Catch the guitar' : 'Catch the sword');
   assert.equal(new Set([theme.STORAGE_PREFIX]).size, 1);
   const result = theme.themeManifest(manifest);
   assert.equal(!!result.audio.song, legacy);

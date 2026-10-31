@@ -4,7 +4,7 @@ import { walkFrame } from '../walking.js';
 // Act V's drawing (act5-art.js); the sea gap, the tower wall, the tower's
 // stone interior, the clifftop and the tableaux are new. Every requested
 // piece of art has a stand-in. Draw only from state and t.
-import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DIVE, WEDDING, APOTH } from './act5film.js';
+import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DUEL, DIVE, WEDDING, APOTH } from './act5film.js';
 import { HOUSE, QUAY, T } from './act5.js';
 import {
   onEvent as act5Event, cliffScene, holds, climbGuide, climber, rocksWorld, rockWarnings,
@@ -13,7 +13,7 @@ import {
 import { tableau, card, cardAlpha } from './tableau.js';
 import { clamp, lerp, easeOut, easeInOut } from './shared.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
-import { drawPose } from '../pose.js';
+import { drawPose, drawPerson } from '../pose.js';
 
 // ================================================================= Act V
 export function drawTower(k, st, t) {
@@ -23,14 +23,9 @@ export function drawTower(k, st, t) {
   if (ph === 'swim') return swimScene(k, st, t);
   if (ph === 'tower') return towerScene(k, st, t);
   const pt = ph === 'window' ? st.phaseT : FILM_T.window + st.phaseT;
-  // Her window at the top of the wall, Azurine at it, the prince beside her.
+  // Her window at the top of the wall (she has been at it all the climb), the
+  // prince beside her.
   towerScene(k, st, t);
-  const c = k.c;
-  c.save(); c.translate(0, 640 + st.camY);
-  c.globalAlpha = clamp(pt / 0.6, 0, 1);
-  // in the painted window's arch, above its sill
-  if (!k.asset('azurine-window', TOWER_WINDOW.x, -TOWER_TOP - 4, 64, 80)) { c.fillStyle = k.col('#c9d8ee'); k.circle(TOWER_WINDOW.x, -TOWER_TOP - 50, 14); }
-  c.restore();
   card(k, 'Her Window', 'Azurine is held inside', cardAlpha(pt, FILM_T.window + 9));
 }
 
@@ -56,7 +51,8 @@ export function onEventTower(k, e, st) {
 }
 
 // ---------------------------------------------------------------- the sea gap
-const SURFACE = 470;
+// the waterline he swims along: in the painted swell of the coast-gap cloth
+const SURFACE = 548;
 const swimY = (st) => SURFACE + (st.sw?.dive > 0 ? 70 * Math.sin(Math.PI * clamp(1 - st.sw.dive / SWIM.dive, 0, 1)) + 20 : 0);
 const swoopScreenX = (st) => (st.sw?.swoop ? 420 + (st.sw.swoop.x - st.sw.x) : -999);
 
@@ -66,8 +62,9 @@ function swimScene(k, st, t) {
   // rock at the right), panned from the cliff toward the tower as he swims
   const painted = k.img('coast-gap');
   let cliffX = 260 - f * 520;
+  const cloth = () => k.asset('coast-gap', 832 - f * 384, 800, 1664, 936);
   if (painted) {
-    k.asset('coast-gap', 832 - f * 384, 800, 1664, 936);
+    cloth();
     cliffX = 300 - f * 384;
   } else {
   const g = c.createLinearGradient(0, 0, 0, SURFACE);
@@ -81,9 +78,11 @@ function swimScene(k, st, t) {
   c.fillStyle = k.col('#3f5a34'); c.fillRect(cliffX - 400, 92, 440, 8);  // the grass at its top
   towerSilhouette(k, 1180 - f * 380, SURFACE, 0.55 + 0.75 * f, t);
   }
-  // the sea: rolling wave rows
-  c.fillStyle = k.col('#1d3b44'); c.fillRect(0, SURFACE, 1280, 720 - SURFACE);
-  for (let r = 0; r < 3; r++) k.waves(r, sw.x * (0.6 + r * 0.25) + t * 30);
+  // the sea: the cloth's own painted sea (without it, plain water and swell)
+  if (!painted) {
+    c.fillStyle = k.col('#1d3b44'); c.fillRect(0, SURFACE, 1280, 720 - SURFACE);
+    for (let r = 0; r < 3; r++) k.waves(r, sw.x * (0.6 + r * 0.25) + t * 30);
+  }
   // the witch's shadow on the water, then her swoop
   if (sw.swoop) {
     const x = swoopScreenX(st), k2 = clamp(sw.swoop.t / sw.swoop.lead, 0, 1);
@@ -104,18 +103,26 @@ function swimScene(k, st, t) {
       if (!k.asset('aurora-stand', cliffX + 70, 190, 70, 112)) { c.fillStyle = k.col('#f4ead2'); k.circle(cliffX + 70, 150, 16); }
     }
   }
-  // the prince, swimming at the surface or diving under it
+  // the prince, swimming at the surface or diving under it: every stroke on
+  // the one scale (his standing figure 150 px; the audit evens the strokes)
   const y = swimY(st);
   c.save();
   if (st.inv > 0 && Math.floor(st.inv * 10) % 2) c.globalAlpha = 0.45;
-  if (sw.dive > 0) c.globalAlpha *= 0.65;
-  const ab = Math.floor(sw.stroke * 4) % 2 ? 'a' : 'b', under = 'prince-swim-under-' + ab;
-  // under the water, his own underwater stroke (F20); at the surface, his swim
-  if (!(sw.dive > 0 && drawPose(k, under, 420, y + 40, 150))
-      && !k.asset('sailor-swim-' + ab, 420, y + 40, 150, 100)) { c.fillStyle = k.col('#2b3550'); c.fillRect(380, y - 12, 80, 22); }
+  const ab = Math.floor(sw.stroke * 4) % 2 ? 'a' : 'b';
+  const id = (sw.dive > 0 ? 'prince-swim-under-' : 'prince-swim-') + ab;
+  if (!drawPose(k, id, 420, y + 40, 150) && !k.asset('sailor-swim-' + ab, 420, y + 40, 150, 100)) { c.fillStyle = k.col('#2b3550'); c.fillRect(380, y - 12, 80, 22); }
   c.restore();
-  // a water line over him while he is under
-  if (sw.dive > 0) { c.save(); c.globalAlpha = 0.5; c.fillStyle = k.col('#1d3b44'); c.fillRect(330, SURFACE + 8, 190, y - SURFACE + 30); c.restore(); }
+  // the sea over him below its rippling waterline: the painted water laid
+  // back over his lower half at the surface, and over all of him when he
+  // dives (no box: the cloth itself, clipped to the water)
+  const under = sw.dive > 0 ? Math.sin(Math.PI * clamp(1 - sw.dive / SWIM.dive, 0, 1)) : 0;
+  c.save();
+  c.beginPath(); c.moveTo(250, 720);
+  for (let x = 250; x <= 600; x += 10) c.lineTo(x, SURFACE - 2 + Math.sin(x * 0.05 + t * 3) * 4);   // at his chest
+  c.lineTo(600, 720); c.closePath(); c.clip();
+  c.globalAlpha = 0.5 + 0.1 * under;   // under, he shows as a dim shape through it
+  if (!(painted && cloth())) { c.fillStyle = k.col('#1d3b44'); c.fillRect(250, SURFACE, 350, 720 - SURFACE); }
+  c.restore();
   // how far to the tower
   c.save(); c.globalAlpha = 0.85; c.fillStyle = k.col('#2a1424'); c.beginPath(); c.roundRect(440, 96, 400, 14, 7); c.fill();
   c.fillStyle = k.col('#d9b34a'); c.beginPath(); c.roundRect(442, 98, 396 * f, 10, 5); c.fill(); c.restore();
@@ -140,6 +147,17 @@ function towerSilhouette(k, x, base, s, t) {
 
 // ---------------------------------------------------------------- the tower wall
 const WALL = { x0: 400, x1: 880 };
+// Azurine looking out of her window, in the painted arch above its sill, all
+// through the climb, with a warm light behind her, so he can see from below
+// which window he is climbing to.
+function azurineAtWindow(k, t) {
+  const c = k.c, x = TOWER_WINDOW.x, y = -TOWER_TOP - 44;
+  const g = c.createRadialGradient(x, y, 6, x, y, 70);
+  g.addColorStop(0, `rgba(255,214,140,${0.55 + 0.15 * Math.sin(t * 2.2)})`); g.addColorStop(1, 'rgba(255,214,140,0)');
+  c.fillStyle = g; c.fillRect(x - 70, y - 70, 140, 140);
+  if (!k.asset('azurine-window', x, -TOWER_TOP - 4, 64, 80)) { c.fillStyle = k.col('#c9d8ee'); k.circle(x, -TOWER_TOP - 50, 14); }
+}
+
 function towerScene(k, st, t) {
   const c = k.c, cam = st.camY;
   const g = c.createLinearGradient(0, 0, 0, 720);
@@ -182,6 +200,7 @@ function towerScene(k, st, t) {
     c.globalAlpha = 1; c.fillStyle = k.col('#2a2430');
     for (const x of [616, 640, 664]) c.fillRect(x - 2, -TOWER_TOP - 100, 4, 106);
   }
+  azurineAtWindow(k, t);
   holds(k, st, t);
   c.restore();
   c.save(); c.translate(0, 640 + cam);
@@ -209,8 +228,12 @@ export function drawOverBurning(k, st) {
 }
 
 export function onEventBurning(k, e, st) {
-  if (e.type === 'barrelShake') { k.burst(e.x, BARREL.y - 120, '#5fd0c0', 8, 'sparkle'); return; }
-  if (e.type === 'barrelKnock') { k.shake(0.4); k.flash(0.2); k.burst(e.x, BARREL.y - 70, '#c8321e', 12, 'streak'); return; }
+  if (e.type === 'witchStruck') { k.flash(0.3); k.shake(0.25); k.burst(e.x - 20, BARREL.y - 110, '#fff2b0', 22, 'sparkle'); if (e.hp > 0) k.text(e.hp === 1 ? 'Once more!' : 'A hit!', e.x, BARREL.y - 220); return; }
+  if (e.type === 'witchWinds') { k.burst(e.x, BARREL.y - 150, '#b06ad0', 8, 'sparkle'); return; }
+  if (e.type === 'witchBolt') { k.burst(e.x - 40, BARREL.y - 20, '#e9a46a', 10, 'streak'); return; }
+  if (e.type === 'witchBlast') { k.shake(0.4); k.flash(0.25); k.burst(e.x + 20, BARREL.y - 80, '#b06ad0', 18, 'streak'); return; }
+  if (e.type === 'witchHides') { k.flash(0.5); k.burst(e.x, BARREL.y - 120, '#5f3a6a', 34, 'smoke'); k.text('Beaten!', e.x, BARREL.y - 230, true); return; }
+  if (e.type === 'witchInBarrel') { k.burst(st?.barrel?.x ?? 600, BARREL.y - 60, '#5f3a6a', 20, 'smoke'); return; }
   if (e.type === 'barrelFall') { k.flash(0.5); k.shake(0.6); k.burst(1000, 610, '#eef3ea', 40, 'drop'); k.text('Into the whirlpool!', 640, 240, true); return; }
   if (e.type === 'petal') { k.burst(e.x, e.y, '#f3c6dc', 8, 'sparkle'); return; }
   if (e.type === 'ascend') { k.flash(0.6); k.burst(640, 480, '#fff2b0', 50, 'sparkle'); return; }
@@ -391,6 +414,56 @@ function diveScene(k, st, t) {
   if (!d && st.phaseT < 7) hint(k, 'Walk to the cliff edge · [A] dives for the tower');
 }
 
+// The fight before it: the witch at the right of the ledge, her fire running
+// along the ground at him, the prince lunging at her with the sword. Each
+// of them on their person scale (the prince's standing figure 140 px).
+function duel(k, st, t) {
+  const c = k.c, d = st.duel, w = st.w, H = 140;
+  // her fire, rolling along the ground
+  for (const bo of d.bolts) {
+    // a low running flame, its tongues streaming back the way it came
+    c.save(); c.translate(bo.x, BARREL.y + 2);
+    for (const [col, w, h] of [['#c8321e', 30, 46], ['#e9693a', 22, 34], ['#ffcf7a', 12, 20]]) {
+      const fl = Math.sin(t * 24 + w) * 4;
+      c.fillStyle = k.col(col); c.beginPath(); c.moveTo(-w, 0);
+      c.quadraticCurveTo(-w * 0.2, -h * 0.5, w * 1.4 + fl, -h - fl);   // the tip streams back (to the right)
+      c.quadraticCurveTo(w * 0.7, -h * 0.35, w, 0); c.closePath(); c.fill();
+    }
+    c.restore();
+  }
+  // the witch: standing, winding up in a violet glow, reeling from a blow,
+  // or shrinking into smoke as she hides in her barrel
+  const warn = d.state === 'warn' ? d.t / DUEL.warn : 0;
+  const reel = d.state === 'reel' ? 1 - d.t / DUEL.reel : 0;
+  const hide = d.state === 'hide' ? clamp(d.t / DUEL.hide, 0, 1) : 0;
+  if (warn > 0) { c.save(); c.globalAlpha = 0.25 + 0.35 * warn + 0.1 * Math.sin(t * 20); c.fillStyle = k.col('#b06ad0'); k.circle(d.x, BARREL.y - 110, 70 + 20 * warn); c.restore(); }
+  const id = d.state === 'reel' && k.img('witch-recoil') ? 'witch-recoil' : d.state === 'warn' && k.img('witch-cast') ? 'witch-cast' : 'witch-hooded';
+  c.save(); c.translate(d.x, BARREL.y);
+  c.rotate(0.25 * reel * (id === 'witch-hooded' ? 1 : 0));
+  c.scale(1 - 0.8 * hide, 1 - 0.8 * hide); c.globalAlpha = 1 - hide * hide;
+  if (reel > 0.6) { c.save(); c.globalAlpha = 0.6; c.fillStyle = '#ffffff'; k.circle(0, -90, 50); c.restore(); }
+  if (!drawPerson(k, id, 0, 0, H, { t })) { c.fillStyle = k.col('#2f5a50'); c.fillRect(-26, -H, 52, H); }
+  c.restore();
+  if (hide > 0.5) {   // the barrel she has hidden in, appearing in her smoke
+    c.save(); c.globalAlpha = (hide - 0.5) * 2; c.translate(Math.min(d.x, BARREL.edge - 70), BARREL.y);
+    if (!k.asset('witch-barrel', 0, 0, 108, 130)) { c.fillStyle = k.col('#7a5a3a'); c.fillRect(-40, -110, 80, 110); }
+    c.restore();
+  }
+  // the prince: lunging as he strikes, else on foot
+  if (w.strikeT > 0) {
+    const f = w.strikeT / 0.3;
+    if (!(k.img('prince-strike') && drawPerson(k, 'prince-strike', w.x + 10 * f, w.y, H))) {
+      c.save(); c.translate(w.x + 14 * f, w.y); c.rotate(0.15 * f); princeOnFoot(k, { ...w, x: 0, y: 0, vx: 0 }, H); c.restore();
+      // the enchanted sword's blow
+      c.save(); c.globalAlpha = f; c.strokeStyle = k.col('#fff2b0'); c.lineWidth = 6; c.lineCap = 'round';
+      c.beginPath(); c.arc(w.x + 30, w.y - 80, 70, -1.1, 0.5); c.stroke(); c.restore();
+    }
+  } else princeOnFoot(k, w, H);
+  // her strength left, as three marks over her
+  for (let i = 0; i < DUEL.hp; i++) { c.fillStyle = k.col(i < d.hp ? '#b06ad0' : '#3a2a40'); k.circle(d.x - 24 + i * 24, BARREL.y - H - 40, 7); }
+  if (st.phaseT < 7) hint(k, '[A] leaps her fire · [A] beside her strikes with the sword');
+}
+
 // Act VI: the witch's barrel on the cliff over the whirlpool.
 function barrelScene(k, st, t) {
   const c = k.c, b = st.barrel, w = st.w;
@@ -398,14 +471,13 @@ function barrelScene(k, st, t) {
   // the cloth paints its own whirlpool (centre ~ x 1000, y 610); the cut-out only without it
   if (!k.img('cliff-whirlpool')) { c.save(); c.translate(1040, 640); c.scale(1 + 0.03 * Math.sin(t * 2), 1); k.asset('whirlpool', 0, 60, 420, 136); c.restore(); }
   if (!k.asset('aurora-point', 250, BARREL.y + 6, 150, 212)) { c.fillStyle = k.col('#f4ead2'); k.circle(250, BARREL.y - 120, 16); }
+  if (st.duel && w) return duel(k, st, t);
   if (!b || !w) return;
   const fallK = b.fallT == null ? 0 : clamp(b.fallT / FILM_T.barrelFall, 0, 1);
-  // the barrel: shaking when she is about to lurch it back, then over the edge
+  // the barrel she cowers in, then over the edge
   let x = b.x, y = BARREL.y, rot = b.rot * 0.15;
-  if (b.state === 'shake') { x += Math.sin(t * 50) * 4; rot += Math.sin(t * 40) * 0.08; }
   if (fallK > 0) { const f = easeInOut(fallK); x = lerp(b.x, 1000, f); y = BARREL.y + f * f * 200; rot = f * 6; }
   c.save(); c.translate(x, y); c.rotate(rot); c.globalAlpha = 1 - clamp((fallK - 0.8) / 0.2, 0, 1);
-  if (b.state === 'shake') { c.save(); c.globalAlpha *= 0.4 + 0.3 * Math.sin(t * 20); c.fillStyle = k.col('#5fd0c0'); k.circle(0, -60, 70); c.restore(); }
   if (!k.asset('witch-barrel', 0, 0, 108, 130)) { c.fillStyle = k.col('#7a5a3a'); c.fillRect(-40, -110, 80, 110); }
   c.restore();
   // the prince: shoulder to it when pushing, else on foot
@@ -418,7 +490,7 @@ function barrelScene(k, st, t) {
     c.beginPath(); c.moveTo(BARREL.edge - 14, BARREL.y - 170); c.lineTo(BARREL.edge + 14, BARREL.y - 170); c.lineTo(BARREL.edge, BARREL.y - 148); c.closePath(); c.fill();
     c.fillRect(BARREL.edge - 2, BARREL.y - 140, 4, 140); c.restore();
   }
-  if (fallK === 0 && st.phaseT < 6) hint(k, 'Walk into the barrel to push it over the edge · stand clear when it shakes');
+  if (fallK === 0) hint(k, 'She hides in her barrel: walk into it and push it over the edge');
 }
 
 // The wedding street: the court lines the way; he walks Azurine to the gate.
@@ -426,6 +498,7 @@ const CROWD = [
   ['crew-squire', 250], ['crew-helmsman', 340], ['crew-manatarms', 430], ['crew-bosun', 520],
   ['fairy-ring', 610], ['fairy-crown', 690], ['fairy-gold', 770], ['king-stand', 990], ['queen-stand', 1080],
 ];
+const GUESTS_Y = 622;
 function wedding(k, st, t) {
   const c = k.c, w = st.w;
   if (!k.asset('wedding-street', 640, 720, 1280, 720)) { c.fillStyle = k.col('#cfd8e6'); c.fillRect(0, 0, 1280, 720); }
@@ -433,8 +506,10 @@ function wedding(k, st, t) {
   const crew = Math.min(4, st.sleepersShown || 0);
   CROWD.forEach(([id, x], i) => {
     if (i < 4 && i >= crew) return;   // only the crew he woke
-    const near = Math.abs(w.x - x) < 120, hop = near ? Math.abs(Math.sin(t * 8 + i)) * 10 : Math.abs(Math.sin(t * 2 + i)) * 2;
-    c.save(); c.translate(x, 600 - hop); if (x > WEDDING.gate) c.scale(-1, 1);
+    // on the street's paving (the balustrade's foot is at y 600, behind it),
+    // still on the ground except for a cheering hop as he passes
+    const near = Math.abs(w.x - x) < 120, hop = near ? Math.abs(Math.sin(t * 8 + i)) * 10 : 0;
+    c.save(); c.translate(x, GUESTS_Y - hop); if (x > WEDDING.gate) c.scale(-1, 1);
     k.idle(id, t + i, 0, 0, 82, 150);
     c.restore();
   });
