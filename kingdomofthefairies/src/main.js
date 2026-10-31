@@ -549,6 +549,10 @@ function trackInputMode(i) {
   const mode = i.source === 'pad' ? 'pad' : i.source === 'touch' || (TOUCH && !S.keySeen) ? 'touch' : 'key';
   if (mode !== S.inputMode) { S.inputMode = mode; syncTitleHint(); }
   renderer.kit.inputMode = mode; // acts draw button prompts for it (richText)
+  // a phone-sized stage: prompts are drawn larger to stay readable, and on
+  // a touch screen no text is drawn smaller than MIN_TEXT css px
+  renderer.kit.compact = canvas.clientWidth < 900;
+  renderer.setMinFont(TOUCH ? MIN_TEXT * 1280 / Math.max(1, canvas.clientWidth) : 0);
   if (S.card?.prompts) { S.card.mode = mode; S.card.prompt = mode === 'touch' ? S.card.prompts.touch : S.card.prompts.other; }
 }
 
@@ -635,7 +639,7 @@ function update(dt, i) {
     // Hold the player still until the curtains are mostly open.
     const ready = S.curtain > 0.9;
     const actInput = ready
-      ? { moveX: i.moveX, moveY: i.moveY, up: i.up, down: i.down, left: i.left, right: i.right, a: i.leap, aHeld: i.aHeld, b: i.padB || i.bPress || i.touchB, x: i.padX || i.bPress || i.touchB, xHeld: i.xHeld, beat: audio.beat() }
+      ? { moveX: i.moveX, moveY: i.moveY, up: i.up, down: i.down, left: i.left, right: i.right, a: i.leap, aHeld: i.aHeld, b: i.padB || i.bPress || i.touchB, x: i.padX || i.bPress || i.touchB || i.touchX, xHeld: i.xHeld, tapAt: i.playTap, beat: audio.beat() }
       : { moveX: 0, moveY: 0, beat: audio.beat() };
     S.act.step(S.state, dt, actInput);
     trackCheckpoint();
@@ -755,6 +759,7 @@ function touchScheme() {
 // playbill; settings, sound and fullscreen at the right throughout. In play on
 // a phone those hide, and a tap at the bottom right shows them for 7 s.
 const ICONS_SHOW = 7;
+const MIN_TEXT = 13;   // css px: the smallest canvas text on a touch screen
 let iconsT = 0;
 const iconsEl = $('#icons');
 iconsEl.classList.toggle('autohide', TOUCH);
@@ -769,7 +774,8 @@ function updateIcons(dt) {
   const inPlay = S.mode === 'play' && !S.paused && !dialogs.length;
   if (iconsT > 0 && inPlay) { iconsT -= dt; if (iconsT <= 0) iconsEl.classList.remove('revealed'); }
   iconsEl.classList.toggle('menu-up', !inPlay);
-  if (!inPlay && TOUCH) iconsEl.classList.add('revealed'); else if (inPlay && iconsT <= 0) iconsEl.classList.remove('revealed');
+  // on a touch screen the option buttons stay shown, in play too
+  if (TOUCH) iconsEl.classList.add('revealed'); else if (inPlay && iconsT <= 0) iconsEl.classList.remove('revealed');
 }
 let lastPortrait = null, lastTouchScene = '', liveT = 0, lastFrameAt = 0;
 function updateTouch() {
@@ -789,10 +795,15 @@ function updateTouch() {
   const now = performance.now(), dt = Math.min(0.1, (now - (lastFrameAt || now)) / 1000); lastFrameAt = now;
   liveT = S.mode !== 'play' ? 0 : live ? liveT + dt : liveT;
   const sch = playing ? touchScheme() : { mode: 'stick', hint: '' };
-  const verb = live ? touchVerb() : '';
+  // where a tap anywhere does the scene's action, its button is not shown
+  const tapAs = live && S.act?.touchTap ? S.act.touchTap(S.state) : null;
+  const verb = live && tapAs !== 'a' ? touchVerb() : '';
   // an act may keep its second button through a cutscene (the prologue's Skip)
-  const verbB = playing && S.act?.touchVerbB ? S.act.touchVerbB(S.state) : live ? touchVerbB() : '';
-  touch.show({ playing, mode: sch.mode, hintText: live ? sch.hint : '', flickUpIsA: !!sch.flickUpIsA, verb, verbB });
+  let verbB = playing && S.act?.touchVerbB ? S.act.touchVerbB(S.state) : live ? touchVerbB() : '';
+  if (tapAs === 'x') verbB = '';
+  // a button named Leap needs no "tap to leap" in the hint
+  const hint = live ? (/^(Leap|Jump)$/.test(verb) ? sch.hint.split(' · ').filter((h) => !/leap|jump/i.test(h)).join(' · ') : sch.hint) : '';
+  touch.show({ playing, mode: sch.mode, hintText: hint, flickUpIsA: !!sch.flickUpIsA, verb, verbB, tapAs });
   setTouchNames({ A: verb, X: verbB });
   // The hint shows for the first few seconds of play in each act (not counting
   // its opening cutscene), and in the classic party.

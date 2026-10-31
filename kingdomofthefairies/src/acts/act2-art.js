@@ -48,6 +48,7 @@ export function onEvent(k, e, st) {
   switch (e.type) {
     case 'sailorWake': k.burst(x, y - 20, '#eef3ea', 14, 'bubble'); break;
     case 'swimStart': k.text(words('Follow the guitar down'), 640, 200, true); break;
+    case 'tapMark': k.burst(e.x, sy(st, e.y), '#ffe27a', 10, 'sparkle'); break;
     case 'swimKick': k.burst(x - s.face * 70, y + 10, '#eef3ea', 6, 'bubble'); break;
     case 'conchBlow': k.burst(e.x, sy(st, e.y) - 30, '#d9b34a', 22, 'sparkle'); k.text('The conch sings! Wake the sleepers', 640, 200, true); break;
     case 'sleeperWake': k.burst(e.x, sy(st, e.y) - 20, '#d9b34a', 14, 'bubble'); k.burst(e.x, sy(st, e.y) - 20, '#d9b34a', 8, 'sparkle'); k.text(`Awake ${e.n}`, e.x, sy(st, e.y) - 60); break;
@@ -918,6 +919,7 @@ function panel(k, x, y, w, h) {
 }
 function label(k, str, x, y, size = 20, colr = '#f1e3c8') {
   const c = k.c;
+  if (k.compact && k.inputMode === 'touch') size = Math.round(size * 1.5);   // readable on a phone
   c.font = `700 ${size}px "Josefin Sans", sans-serif`; c.textAlign = 'center';
   c.fillStyle = k.col('#2a1424'); c.fillText(str, x + 2, y + 2);
   c.fillStyle = k.col(colr); c.fillText(str, x, y);
@@ -937,12 +939,22 @@ function captions(k, st, t) {
     label(k, 'Breathing in', x, y - 96, 18, '#9fe0d0');
   }
   // X takes what is within reach (film edition)
-  if (ph === 'swim' && st.reach) {
-    const r = st.reach, y = sy(st, r.y), str = r.kind === 'pearl' ? '[X] Take the pearl' : '[X] Wake him';
-    c.save(); c.font = '700 18px "Josefin Sans", sans-serif'; c.textAlign = 'center';
-    c.fillStyle = k.col('#2a1424'); c.globalAlpha = 0.8; const w = c.measureText(str).width + 44;
-    c.beginPath(); c.roundRect(r.x - w / 2, y - 22, w, 32, 16); c.fill(); c.globalAlpha = 1;
-    c.fillStyle = k.col('#ffe27a'); richText(c, str, r.x, y, { px: 18, mode: k.inputMode || 'key', col: k.col });
+  // On touch a tap does it (anywhere, or on the sleeper or pearl itself), so
+  // the prompt says so once, the first time each is in reach, larger on a
+  // phone-sized screen; with keys or a pad it names the button each time.
+  const touch = k.inputMode === 'touch';
+  const since = st.reach && st.firstReach?.[st.reach.kind] != null ? (st.t ?? 0) - st.firstReach[st.reach.kind] : 0;
+  if (ph === 'swim' && st.reach && (!touch || since < 3.5)) {
+    const r = st.reach, y = sy(st, r.y);
+    const str = touch ? (r.kind === 'pearl' ? 'Tap to take the pearl' : 'Tap to wake him') : r.kind === 'pearl' ? '[X] Take the pearl' : '[X] Wake him';
+    const px = touch && k.compact ? 30 : 18, hh = px + 14;
+    c.save(); c.font = `700 ${px}px "Josefin Sans", sans-serif`; c.textAlign = 'center';
+    if (touch) c.globalAlpha = clamp((3.5 - since) / 0.5, 0, 1);
+    const fade = c.globalAlpha;
+    c.fillStyle = k.col('#2a1424'); c.globalAlpha = 0.8 * fade; const w = c.measureText(str).width + 44;
+    const lx = clamp(r.x, 180 + w / 2, 1100 - w / 2);
+    c.beginPath(); c.roundRect(lx - w / 2, y - hh * 0.7, w, hh, hh / 2); c.fill(); c.globalAlpha = fade;
+    c.fillStyle = k.col('#ffe27a'); richText(c, str, lx, y, { px, mode: k.inputMode || 'key', col: k.col });
     c.restore();
   }
   if (ph === 'swim' && !st.conches[0].used && pt < 14 && onScreen(st, SHELF_Y)) {

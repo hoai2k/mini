@@ -113,6 +113,27 @@ test('prologue: bound, he struggles left and right before Aurora frees him; his 
   assert.equal(s3.exitSide, 1);
 });
 
+test('Act II (touch): a tap on a sleeper swims him there and wakes him; a tap elsewhere is just the action', () => {
+  const st = act2.create({ seed: 5, carry: {}, from: { scene: 1 } });
+  for (let i = 0; i < 600 && st.phase !== 'swim'; i++) act2.step(st, 1 / 60, { beat: 0 });
+  assert.equal(st.phase, 'swim');
+  const sl = st.sleepers.find((q) => q.state === 'asleep' && Math.abs(q.y - st.sailor.y) < 600 && Math.hypot(q.x - st.sailor.x, q.y - st.sailor.y) > FILM_DIVE.wakeR + 60);
+  assert.ok(sl, 'a sleeper out of reach');
+  st.air = 1; st.guitar.y = Math.max(st.guitar.y, sl.y + 500);
+  const tap = { x: sl.x, y: sl.y - 30 - st.cam + 60 };   // world to stage
+  act2.step(st, 1 / 60, { tapAt: tap, x: true, beat: 0 });
+  assert.equal(sl.state, 'asleep', 'out of reach, the tap does not wake him at once');
+  assert.ok(st.tapTarget?.ref === sl, 'he heads for the one tapped');
+  for (let i = 0; i < 60 * 8 && sl.state === 'asleep'; i++) { st.air = 1; act2.step(st, 1 / 60, { beat: i / 60 }); }
+  assert.notEqual(sl.state, 'asleep', 'he swam there and woke him');
+  // the stick takes over from a tap target
+  const other = st.sleepers.find((q) => q.state === 'asleep' && q !== sl);
+  act2.step(st, 1 / 60, { tapAt: { x: other.x, y: other.y - 30 - st.cam + 60 }, beat: 0 });
+  act2.step(st, 1 / 60, { moveX: 1, beat: 0 });
+  assert.equal(st.tapTarget, null);
+  assert.equal(act2.touchTap(st), 'x', 'a tap is the action in the dive');
+});
+
 test('prologue: a gift is taken with either hand, not by walking into her', () => {
   const st = prologue.create({});
   const ring = FAIRIES.find((f) => f.gift === 'ring');

@@ -246,6 +246,9 @@ export default {
 
   // touch shows its B button for X in the film's dive, and for refusing
   needB: (st) => (FILM ? st.phase === 'swim' : st.phase === 'offer'),
+  // on touch in the dive, a tap anywhere wakes or takes (no button for it),
+  // and a tap on a sleeper or a clam swims him to it (tapAim)
+  touchTap: (st) => (FILM && st.phase === 'swim' ? 'x' : null),
 
   hud(st) {
     if (st.phase === 'open' || st.phase === 'iris' || st.phase === 'drown') return null;
@@ -303,6 +306,22 @@ function stepOpen(st) {
   if (pt >= PHASE_LEN.open) { setPhase(st, 'swim'); st.events.push({ type: 'swimStart' }); }
 }
 
+// ---------------------------------------------------------------- taps (touch)
+// A tap on the dive (stage coordinates): on a sleeping crewman or a clam, he
+// swims to it (the target) and wakes him or takes its pearl there; anywhere
+// else, or already in reach, the tap is just the action (input.x).
+function tapAim(st, tap) {
+  const wx = tap.x, wy = tap.y + st.cam - 60;   // stage to world (sy, act2-art.js)
+  const sl = st.sleepers.find((q) => q.state === 'asleep' && Math.abs(wx - q.x) < 90 && wy > q.y - 80 && wy < q.y + 25);
+  const cl = !sl && st.clams.find((q) => !clamSpent(q) && Math.abs(wx - q.x) < 70 && wy > q.y - 120 && wy < q.y + 10);
+  const ref = sl || cl;
+  if (ref) { st.tapTarget = { ref, kind: sl ? 'sleeper' : 'clam', t: 0 }; st.events.push({ type: 'tapMark', x: ref.x, y: ref.y - 40 }); }
+}
+function tapTargetAt(tt) {
+  const r = tt.ref;
+  return tt.kind === 'sleeper' ? (r.state === 'asleep' ? { x: r.x, y: r.y - 50 } : null) : { x: r.x, y: r.y - 48 - 70 };
+}
+
 // ---------------------------------------------------------------- the descent
 function stepSwim(st, dt, input) {
   const s = st.sailor, g = st.guitar, offering = st.phase === 'offer';
@@ -311,8 +330,19 @@ function stepSwim(st, dt, input) {
   s.kickCD = Math.max(0, s.kickCD - dt);
   s.kickT = Math.max(0, s.kickT - dt);
 
+  // A tap on the screen (touch): on a sleeper or a clam, he swims to it and
+  // acts there; the stick takes over again as soon as it is used.
+  if (FILM && !offering && input.tapAt) tapAim(st, input.tapAt);
+  if (Math.hypot(input.moveX || 0, input.moveY || 0) > 0.15) st.tapTarget = null;
   // Swim: the stick pushes, the water drags, he drifts slowly down.
   let mx = input.moveX || 0, my = input.moveY || 0;
+  const tg = st.tapTarget && tapTargetAt(st.tapTarget);
+  if (tg) {
+    st.tapTarget.t += dt;
+    const dx = tg.x - s.x, dy = tg.y - s.y, dl = Math.hypot(dx, dy);
+    if (st.tapTarget.t > 8 || st.tapTarget.done) st.tapTarget = null;
+    else if (dl > 50) { mx = dx / dl; my = dy / dl; }
+  }
   const m = Math.hypot(mx, my); if (m > 1) { mx /= m; my /= m; }
   s.vx += mx * TUNE.accel * dt; s.vy += (my * TUNE.accel + TUNE.drift) * dt;
   const d = Math.exp(-TUNE.drag * dt); s.vx *= d; s.vy *= d;
@@ -393,13 +423,19 @@ function stepSwim(st, dt, input) {
   // Sleepers wake as he passes, while the conch sings or the guitar is his;
   // in the film edition X wakes one within reach at any time.
   const grab = FILM && !offering && !!input.x;
+  const aimed = (ref) => st.tapTarget?.ref === ref;   // he swam here at a tap: act on arrival
   st.reach = null;
   for (const sl of st.sleepers) {
     if (sl.state !== 'asleep') continue;
     const d = Math.hypot(s.x - sl.x, s.y - sl.y);
     if ((st.hornT > 0 || g.held) && d < TUNE.wakeR) wake(st, sl, 'sleeperWake');
-    else if (FILM && d < FILM_DIVE.wakeR) { if (grab) wake(st, sl, 'sleeperWake'); else st.reach = { kind: 'sleeper', x: sl.x, y: sl.y - 60 }; }
+    else if (FILM && d < FILM_DIVE.wakeR) {
+      if (grab || aimed(sl)) { wake(st, sl, 'sleeperWake'); if (aimed(sl)) st.tapTarget.done = true; }
+      else st.reach = { kind: 'sleeper', x: sl.x, y: sl.y - 60 };
+    }
   }
+  // the first time each kind is in reach (the touch prompt shows then)
+  if (st.reach && st.firstReach?.[st.reach.kind] == null) (st.firstReach ||= {})[st.reach.kind] = st.t;
 
   // Clams open on the beat, for one beat. Open: a pearl. Closed: solid.
   // Taken, a clam rests shut, then regrows its pearl once, growing only
@@ -416,8 +452,11 @@ function stepSwim(st, dt, input) {
     const dx = (s.x - cl.x) / ex, dy = (s.y - cy) / ey, dd = Math.hypot(dx, dy);
     // film: a visible pearl is his on touch, or with X from within reach
     const near = FILM && open && cl.lastBeat !== bi && clamRipe(cl) && Math.hypot(s.x - cl.x, s.y - cy) < FILM_DIVE.reach;
-    if (near && !grab && dd >= 1) st.reach = { kind: 'pearl', x: cl.x, y: cy - 60 };
-    if (dd >= 1 && !(near && grab)) continue;
+    const take = grab || (aimed(cl) && near);
+    if (near && !take && dd >= 1) st.reach = { kind: 'pearl', x: cl.x, y: cy - 60 };
+    if (aimed(cl) && near) st.tapTarget.done = true;
+    if (aimed(cl) && clamSpent(cl)) st.tapTarget = null;
+    if (dd >= 1 && !(near && take)) continue;
     if (open) {
       if (cl.lastBeat !== bi && clamRipe(cl)) {
         cl.lastBeat = bi; cl.got++; st.pearls++; st.score += 50; cl.grow = 0; cl.rest = TUNE.clamRest;

@@ -170,6 +170,17 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   const tint = document.createElement('canvas');
   tint.width = canvas.width; tint.height = canvas.height;
   const tctx = tint.getContext('2d');
+  // A floor under every font set on the stage (stage px), so on a small
+  // touch screen no text is drawn too small to read (setMinFont, main.js).
+  let minFont = 0;
+  const FONT = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, 'font');
+  for (const cx of [ctx, tctx]) {
+    Object.defineProperty(cx, 'font', {
+      configurable: true,
+      get() { return FONT.get.call(this); },
+      set(v) { FONT.set.call(this, minFont > 0 ? String(v).replace(/(\d+(?:\.\d+)?)px/, (m, n) => Math.max(+n, minFont).toFixed(1) + 'px') : v); },
+    });
+  }
   const P = painter();
   const fx = { particles: [], flash: 0, shake: 0, texts: [] };
   const witch = { x: 1450, y: 150, tx: 1450, ty: 150, face: 1 };
@@ -1179,6 +1190,7 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
   };
 
   return {
+    setMinFont(px) { minFont = px; },
     render, tick, onEvent, kit,
     setLamp(v) { view_lamp = v; },
     clearFx() { fx.particles = []; fx.texts = []; fx.flash = 0; fx.shake = 0; witch.x = witch.tx = 1450; },

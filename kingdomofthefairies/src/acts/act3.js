@@ -177,6 +177,9 @@ export default {
   scenes: SCENES,
   // touch: B held bows past the lobster guards (film passage)
   needB: (st) => !!(FILM && st.tf),
+  // on touch a tap anywhere is A (hide or take in the court, leap in the
+  // palace), so the A button is not shown
+  touchTap: (st) => (FILM && st.phase === 'play' ? 'a' : null),
 
   // `from`: null, { scene } (scene select) or a checkpoint this act made
   // ({ scene, x, row, got, score, pearls, stats }).
