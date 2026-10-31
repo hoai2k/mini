@@ -365,7 +365,7 @@ function fillIntro(w) {
 }
 function renderIntroControls() {
   const w = WORLDS[S.sel];
-  const rows = [...w.controls, ['Y', 'At the backdoor: rise a world'], ['Menu', 'Pause'], ['View', 'Controls card']];
+  const rows = [...w.controls, ...(w.back ? [['Y', 'At the backdoor: rise a world']] : []), ['Menu', 'Pause'], ['View', 'Controls card']];
   $('#intro-controls').innerHTML = controlRows(rows);
 }
 async function openIntro() {
