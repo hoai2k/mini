@@ -26,6 +26,7 @@ One boss per world (micro/design/bosses.md). Orthographic modelling sheets, like
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
 - **Status:** requested
 - **Reference images:**
+  - [Pirata piraticus; direct wolf-spider anatomy reference, not a claim of juvenile size or bog occurrence.](research/assets/references/production/boss-wolf-spider.jpg) · Lukas Jonaitis from Vilnius, Lithuania, CC BY 2.0 · [source](https://commons.wikimedia.org/wiki/File:Flickr_-_Lukjonis_-_Spider_-_Pirata_piraticus.jpg)
   - [A swarm of water springtails (Podura aquatica) on a pool surface among algae: colour, scale and habitat.](research/assets/references/springtail-swarm.jpg) · Philippe  Garcelon, CC BY 2.0 · [source](https://commons.wikimedia.org/wiki/File:Podura_aquatica_-_1.jpg)
   - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
 
@@ -41,6 +42,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
 - **Status:** requested
 - **Reference images:**
+  - [Neobisium sylvaticum; separate walking legs and pedipalpal pincers; species-level analogue for the requested Neobisium form.](research/assets/references/production/boss-pseudoscorpion.jpg) · BKoe, CC BY-SA 2.0 · [source](https://commons.wikimedia.org/wiki/File:Neobisium_sylvaticum_03.jpg)
   - [Unidentified phthiracarid mite; adult arthropod morphology.](research/assets/references/mite.jpg) · S.E. Thorpe, Public domain · [source](https://commons.wikimedia.org/wiki/File:Phthiracarid.jpg)
   - [Moss habitat structure; use leaf architecture as environmental reference.](research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
 
@@ -71,6 +73,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
 - **Status:** requested
 - **Reference images:**
+  - [Chaos amoeba; direct whole-cell morphology reference. Not a calibrated orthographic model.](research/assets/references/production/boss-chaos.jpg) · dr.Tsukii Yuuji, CC BY-SA 2.5 · [source](https://commons.wikimedia.org/wiki/File:Chaos_carolinense.jpg)
   - [Amoeba proteus with pseudopodia, nucleus and contractile vacuole.](research/assets/references/amoeba.jpg) · Cymothoa exigua, CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:Amoeba_proteus.jpg)
   - [Paramecium caudatum; whole-cell outline and internal contrast.](research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
 
@@ -86,6 +89,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
 - **Status:** requested
 - **Reference images:**
+  - [Utricularia australis bladder trap from an Austrian pond; trap anatomy analogue.](research/assets/references/production/utricularia-bladder.jpg) · Stefan.lefnaer, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Utricularia_australis_sl68.jpg)
   - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
   - [Paramecium caudatum; whole-cell outline and internal contrast.](research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
 
@@ -101,6 +105,8 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
 - **Status:** requested
 - **Reference images:**
+  - [Stentor coeruleus pair; whole-body extension reference to complement the contracted oral-view photo.](research/assets/references/production/boss-stentor-extended.jpg) · Martin Kreutz, CC BY 3.0 nl · [source](https://commons.wikimedia.org/wiki/File:StentorCoeruleus.jpg)
+  - [Stentor coeruleus in a contracted oral view; pigment and oral-field reference.](research/assets/references/production/boss-stentor.png) · Algae17, CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Stentor_coeruleus.png)
   - [Marine seagrass biofilm SEM figure: matrix and surface-reference analogue, not freshwater habitat documentation.](research/assets/references/biofilm-sem.jpg) · Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M., CC BY-SA 4.0 · [source](https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg)
   - [Paramecium caudatum; whole-cell outline and internal contrast.](research/assets/references/paramecium.jpg) · MTadey, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg)
 
@@ -116,6 +122,8 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
 - **Status:** requested
 - **Reference images:**
+  - [Goodsell molecular illustration of Cascade with nucleic acid, based on PDB 4UN3; colour is explanatory, not naturally visible.](research/assets/references/production/boss-cascade.jpg) · David Goodsell, CC BY 3.0 · [source](https://commons.wikimedia.org/wiki/File:181-CascadeAndCRISPR_4un3.tiff)
+  - [CRISPR-associated protein molecular illustrations; supporting shape reference, not a four-view atomic reconstruction.](research/assets/references/production/boss-cas-proteins.jpg) · David Goodsell, CC BY 3.0 · [source](https://commons.wikimedia.org/wiki/File:181-CascadeAndCRISPR_CasProteins.tiff)
   - [T4 phage electron micrograph; head, sheath and tail-fibre reference.](research/assets/references/production/phage-t4.jpg) · 7USSR7, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg)
   - [Magnetospirillum gryphiswaldense; electron-microscopy reference. Internal detail is not visible in ordinary light microscopy.](research/assets/references/production/magnetotactic.png) · Caulobacter subvibrioides (Diskussion), CC BY-SA 3.0 · [source](https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png)
 
