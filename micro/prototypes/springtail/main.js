@@ -135,6 +135,9 @@ css.textContent = `
 .st-card.hide { opacity: 0; }
 .st-status .threat { font-weight: 500; color: #a9b2bc; } .st-status .threat.hot { color: #ffb38a; font-weight: 700; }
 .st-status.caught { background: rgba(120,24,16,.72); }
+.st-gauge { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); display: none; align-items: center; gap: 10px; color: #e9d9a8; font: 600 11px/1 system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; text-shadow: 0 1px 2px #000a; pointer-events: none; z-index: 6; }
+.st-gauge .g { width: 180px; height: 5px; border: 1px solid #b8913f; background: rgba(20,16,8,.45); border-radius: 3px; overflow: hidden; }
+.st-gauge .g i { display: block; height: 100%; background: linear-gradient(90deg, #8a6a2c, #d8b268); transition: width .25s; }
 `;
 document.head.appendChild(css);
 const bar = document.createElement('div');
@@ -146,7 +149,11 @@ status.innerHTML = '<span class="food"></span><span class="lives"></span><span c
 const card = document.createElement('div');
 card.className = 'st-card';
 card.innerHTML = '<div><img alt=""><h2>Level 0 · Bog surface</h2><p>You are a water springtail, 1.5 mm long, standing on the surface film of a bog pool.</p><p>Graze the pollen, spores and algae floating on the water (X). Spring away with your furcula (hold and release A). Hunker (B) when ripples come.</p><p>Beware the rove beetle <i>Stenus</i> and its harpoon, the sundews\' glue, the water strider, and the rain.</p><p><b>Press A to start</b></p></div>';
-document.body.append(bar, status, card);
+// the boss's resolve: a quiet brass gauge, shown while it is engaged
+const gauge = document.createElement('div');
+gauge.className = 'st-gauge';
+gauge.innerHTML = '<span class="nm">Pond wolf spider</span><span class="g"><i></i></span>';
+document.body.append(bar, status, card, gauge);
 art('MP-U05', { repeat: false }).then((t) => {
   if (!t || !t.image) return;
   const img = card.querySelector('img');
@@ -565,6 +572,91 @@ function jump(dirX, dirZ, power, { thrown = false } = {}) {
   if (!thrown) { rumble(120, 0.25 + 0.4 * p, 0.2 + 0.5 * p); audio.play('springtail/jump', { volume: 0.5 + 0.5 * p, rate: 1.1 - 0.2 * p + Math.random() * 0.06 }); }
 }
 
+// ---------------------------------------------------------------- the pounce-bite
+// A labelled departure: Podura's furcula jump is an escape (it grazes; a few
+// springtails such as Friesea prey on tiny animals, never by leaping). Here a
+// jump can end in a dive onto an enemy's leg or body, nipping on impact.
+let hitPause = 0;
+/** The best thing to pounce on from (x, z) along (dx, dz) within `range`: enemies first, then food. */
+function pounceTarget(x, z, dx, dz, range, cone = 0.6, enemiesOnly = false) {
+  let best = null, bs = Infinity;
+  const consider = (px, pz, kind, foe, food) => {
+    const vx = px - x, vz = pz - z, d = Math.hypot(vx, vz);
+    if (d > range || d < 0.5) return;
+    const off = Math.abs(wrapA(Math.atan2(vz, vx) - Math.atan2(dz, dx)));
+    if (off > cone) return;
+    const score = d * (1 + off * 2) * (foe ? 1 : 2.5);
+    if (score < bs) { bs = score; best = { x: px, z: pz, kind, foe, food }; }
+  };
+  for (const k of ['stenus', 'strider', 'boss']) {
+    const pr = PRED[k]();
+    if (!pr.group.visible || pr.st.state === 'capture') continue;
+    for (const [px, pz] of pr.nipPoints()) consider(px, pz, 'leg', k);
+    if (pr.bodyPoints) for (const [px, pz] of pr.bodyPoints()) consider(px, pz, 'body', k);
+  }
+  if (!enemiesOnly) for (const c of world.food.clumps) if (c.bites > 0 && !(c.respawnT > 0)) consider(c.x, c.z, 'food', null, c);
+  return best;
+}
+/** Start the dive: with a target in reach of the arc (aim assist), straight onto it; else straight down (a clear miss). */
+function startDive(P, a, forced = null) {
+  // where the jump would come down, then look for a target around there
+  const land = landingPoint() || { x: P.x, z: P.z };
+  const dx = land.x - P.x, dz = land.z - P.z;
+  const reach = Math.hypot(dx, dz) + 7;
+  const t = forced || pounceTarget(P.x, P.z, dx || Math.cos(P.heading), dz || Math.sin(P.heading), reach, 0.9);
+  const tx = t ? t.x : land.x, tz = t ? t.z : land.z;
+  const ty = groundAt(tx, tz).y;
+  const T = Math.max(0.14, Math.min(0.32, Math.hypot(tx - P.x, tz - P.z) / 40 + 0.08));
+  a.dive = { t: 0, T, x0: P.x, z0: P.z, y0: P.y, tx, tz, ty, target: t };
+  if (P.slot === 0 || multi()) rumble(80, 0.2, 0.2);
+}
+function diveImpact(P, a) {
+  const t = a.dive.target;
+  P.air = null; P.y = groundAt(P.x, P.z).y; P.pitch = 0; P.bend = 0;
+  P.sy = 0.55; // squash on impact
+  P.landPulse = 1;
+  P.lastImpact = { t: simT, hit: false, kind: t ? t.kind : null };
+  const inPoolHere = inPool(P.x, P.z);
+  if (t && t.foe) {
+    const pr = PRED[t.foe]();
+    const still = (pr.nipPoints().concat(pr.bodyPoints ? pr.bodyPoints() : [])).some(([x, z]) => Math.hypot(x - P.x, z - P.z) < 1.6);
+    if (still && pr.st.state !== 'capture') {
+      P.lastImpact.hit = true;
+      P.pounces = (P.pounces || 0) + 1;
+      hitPause = 0.12;
+      rumble(260, 0.9, 0.7);
+      audio.play('springtail/eat', { volume: 1, rate: 1.2 });
+      if (inPoolHere) { field.drop(P.x, P.z, 1.2, -0.14); ripples.push({ x: P.x, z: P.z, strength: 1.2 }); }
+      biteFoe(t.foe, P, 2, 'bite');
+      // rebound off it
+      const ax = P.x - (t.x), az = P.z - (t.z);
+      P.mode = 'film';
+      jump(ax || -Math.cos(P.heading), az || -Math.sin(P.heading), 0.22);
+      if (P.air) P.air.upright = true;
+      hud.toast(`Pounce-bite on ${t.foe === 'boss' ? 'the wolf spider' : t.foe === 'stenus' ? 'Stenus' : 'the strider'}!`, 1200);
+      return;
+    }
+  }
+  if (t && t.food && t.food.bites > 0 && Math.hypot(t.food.x - P.x, t.food.z - P.z) < 1.4) {
+    // landing on food: a whole bite at once
+    P.lastImpact.hit = true;
+    hitPause = 0.06;
+    const c = t.food;
+    c.bites--; c.chew = 0;
+    audio.play('springtail/eat', { volume: 0.9, rate: 1.05 });
+    rumble(90, 0.3, 0.2);
+    if (c.bites <= 0) { P.food++; c.respawnT = 6; hud.toast(`Pounced on ${c.type.name} (${P.food}/${GOAL})`); }
+  } else if (!(t && t.food)) {
+    // a clear miss: a splash, a stagger
+    hud.toast('Missed!', 900);
+    P.vx = Math.cos(P.heading) * 2; P.vz = Math.sin(P.heading) * 2;
+  }
+  if (inPoolHere) { field.drop(P.x, P.z, 0.7, -0.08); ripples.push({ x: P.x, z: P.z, strength: 1 }); }
+  audio.play('springtail/land-water', { volume: 0.9, rate: 0.85 });
+  P.mode = modeFor(groundAt(P.x, P.z).kind);
+  P.landT = simT;
+}
+
 function die(cause) {
   if (pl.mode === 'dead' || game.phase !== 'play') return;
   pl.mode = 'dead';
@@ -607,6 +699,7 @@ function respawn() {
   cap.kind = null;
   stenus.reset();
   strider.reset();
+  boss.reset();
   placeThreatsAway();
   rain.clear();
   resetHunger();
@@ -640,6 +733,7 @@ function landAt(g) {
   pl.y = g.y;
   pl.vx = a.vx * 0.04; pl.vz = a.vz * 0.04;
   pl.landPulse = 1;
+  pl.landT = simT;
   const leaf = world.sundews.leafAt(pl.x, pl.y, pl.z);
   if (leaf && g.kind !== 'moss') return;
   if (!a.upright) { pl.mode = 'flipped'; pl.flipT = 0; pl.roll = Math.PI; rumble(160, 0.4, 0.3); hud.toast('Landed on your back: tap A to flick upright', 1600); }
@@ -678,11 +772,25 @@ function stepPlayer(dt, inp) {
 
   if (P.mode === 'air') {
     const a = P.air;
+    // X in the air: the pounce-bite (a dive onto the nearest enemy or food under the arc)
+    if (inp.attackPressed && !a.dive && !a.thrown) startDive(P, a);
+    if (a.dive) {
+      a.dive.t += dt;
+      const k = Math.min(1, a.dive.t / a.dive.T);
+      P.x = a.dive.x0 + (a.dive.tx - a.dive.x0) * k; P.z = a.dive.z0 + (a.dive.tz - a.dive.z0) * k;
+      P.y = a.dive.y0 + (a.dive.ty - a.dive.y0) * k * k;
+      // tucked, nose down, into the dive
+      P.pitch = -0.9 * Math.min(1, k * 3); P.bend = -0.4; P.roll = 0;
+      if (k >= 1) diveImpact(P, a);
+      return;
+    }
     a.t += dt;
     const u = a.t / a.T;
     P.x += a.vx * dt; P.z += a.vz * dt;
     a.vy -= a.g * dt;
     P.y += a.vy * dt;
+    // a jump released at an enemy in range turns into a pounce-bite as it comes down
+    if (a.pounce && u > 0.55 && !a.dive) { startDive(P, a, a.pounce); if (a.dive) return; }
     // tumble backward off the furcula, then the U-pose turns the venter down
     const tumble = Math.min(1, u / 0.18);
     if (a.uPose) {
@@ -783,6 +891,7 @@ function stepPlayer(dt, inp) {
   P.walk += (sp * dt) / 0.32;
   P.y = groundAt(P.x, P.z).y;
   P.pitch = 0; P.roll = 0; P.bend += (0 - P.bend) * Math.min(1, dt * 8);
+  P.sy += (1 - P.sy) * Math.min(1, dt * 7);
   // the fight move rears the forebody (nose up), then drops it into the snap; the attack lunges low
   if (P.actT > 0 && (P.act === 'fight' || P.act === 'attack')) {
     const u = 1 - P.actT / P.actDur;
@@ -798,8 +907,18 @@ function stepPlayer(dt, inp) {
   }
   if (P.charging && !inp.dashDown) {
     P.charging = false;
-    const d = mag > 0.25 ? dir : new THREE.Vector3(Math.cos(P.heading), 0, Math.sin(P.heading));
-    jump(d.x, d.z, 0.12 + 0.88 * P.charge);
+    let d = mag > 0.25 ? dir : new THREE.Vector3(Math.cos(P.heading), 0, Math.sin(P.heading));
+    let power = 0.12 + 0.88 * P.charge;
+    // aim assist: an enemy near the aim line, within this jump's reach, becomes the target
+    const R = 3 + 33 * power;
+    const tgt = pounceTarget(P.x, P.z, d.x, d.z, R * 1.2, 0.45, true);
+    if (tgt) {
+      const dist = Math.hypot(tgt.x - P.x, tgt.z - P.z);
+      d = new THREE.Vector3(tgt.x - P.x, 0, tgt.z - P.z).normalize();
+      power = Math.max(0.12, Math.min(1, (dist - 3) / 33));
+    }
+    jump(d.x, d.z, power);
+    if (tgt && P.air) P.air.pounce = tgt;
     P.charge = 0;
     return;
   }
@@ -951,6 +1070,18 @@ function stepWorld(dt) {
     // (timed on the simulation clock, so a paused game holds it too)
     if (e === 'heard' && ctxR.alive && !(strider.st.heardUntil > simT)) { strider.st.heardUntil = simT + 6; hud.toast('A water strider felt your ripples: keep still and hunker (B)', 1800); }
   }
+  // the boss (boss.js): dormant on the moss tongue until someone comes near after the calm opening
+  const bossCtx = { awake: pace.grace === 0 || hunger.stenus.state !== 'grace', field, inPool,
+    players: recs().map((Q) => ({ slot: Q.slot, x: Q.x, z: Q.z, y: Q.y, heading: Q.heading, airborne: Q.mode === 'air', alive: alive(Q) && game.phase === 'play', landed: Q.landT !== undefined && simT - Q.landT < 0.2 && Q.mode !== 'air' })) };
+  for (const e of boss.update(dt, bossCtx)) {
+    const Q = e.slot !== undefined ? pls[e.slot] : null;
+    if (e.type === 'wake') hud.toast('A pond wolf spider guards the moss bank! Watch it crouch and raise its front legs: then jump clear', 3000);
+    else if (e.type === 'tell') { for (const R of recs()) if (Math.hypot(R.x - boss.st.x, R.z - boss.st.z) < 16) rumbleFor(R, 200, 0.12, 0); }
+    else if (e.type === 'lunge' || e.type === 'pounce') audio.play('springtail/stenus-strike', { volume: 0.9, rate: 0.7 });
+    else if (e.type === 'caught' && Q && alive(Q)) withRec(Q, () => caught('boss'));
+    else if (e.type === 'dodged') hud.toast('Dodged! It overreached: nip its tarsus (X) or pounce (X in the air)', 1500);
+    else if (e.type === 'retreat') hud.toast('The wolf spider backs off under the moss: the bank is open', 2600);
+  }
   ripples.length = 0;
   const drops = rain.update(dt, { field, inPool, mossAt: (x, z) => Math.max(0, mossTop(x, z)), player: ctxS });
   for (const e of drops) {
@@ -1050,12 +1181,14 @@ function updateContacts() {
   const cast = (x, y, z, r, k) => { if (n < 8) { casters[n].set(x, y, z, r); casterK[n] = k; n++; } };
   for (const P of recs()) if (P.mode !== 'dead' && P.scale > 0.3) cast(P.x, P.y + 0.25 * P.scale, P.z, 0.3 * P.scale, 0.55);
   for (const c of stenus.contacts()) dimples.add(...c);
+  if (boss.group.visible) for (const c of boss.contacts()) dimples.add(...c);
   if (strider.group.visible) for (const c of strider.contacts()) dimples.add(...c);
   for (const c of world.food.clumps) {
     if (c.bites <= 0 || c.respawnT > 0) continue;
     if (Math.hypot(c.x - rig.target.x, c.z - rig.target.z) < 30) dimples.add(c.x, c.z, c.type.spread * 0.7, 0.012 * c.bites);
   }
   world.debris.contacts(rig.target, (x, z, r, d) => dimples.add(x, z, r, d));
+  if (boss.group.visible) { const s = boss.st; cast(s.x, s.y + 0.3, s.z, 1.2, 0.5); cast(s.x - Math.cos(s.a) * 2.2, s.y + 0.3, s.z - Math.sin(s.a) * 2.2, 1.3, 0.5); }
   if (stenus.group.visible) { const s = stenus.st; cast(s.x + Math.cos(s.a) * 1.2, 0.65, s.z + Math.sin(s.a) * 1.2, 0.55, 0.55); cast(s.x - Math.cos(s.a) * 1.2, 0.7, s.z - Math.sin(s.a) * 1.2, 0.45, 0.5); }
   if (strider.group.visible) { const s = strider.st; cast(s.x + Math.cos(s.a) * 1.8, 0.9, s.z + Math.sin(s.a) * 1.8, 0.6, 0.5); cast(s.x - Math.cos(s.a) * 1.6, 0.8, s.z - Math.sin(s.a) * 1.6, 0.5, 0.45); }
   for (const c of rain.casters()) cast(c[0], c[1], c[2], c[3], c[4]);
@@ -1196,7 +1329,9 @@ function updateText(L) {
   const thr = status.querySelector('.threat');
   const hs = hunger.stenus, hr = hunger.strider;
   const hunting = ['stalk', 'skim', 'windup', 'strike'].includes(stenus.st.state) || strider.st.state === 'hunt';
-  const attacking = stenus.attacking || strider.attacking;
+  const attacking = stenus.attacking || strider.attacking || boss.attacking;
+  gauge.style.display = boss.engaged ? 'flex' : 'none';
+  gauge.querySelector('i').style.width = `${(boss.resolve * 100).toFixed(0)}%`;
   thr.textContent = capture.active ? '' : attacking ? 'Attacking! Face it + B, or jump' : hunting ? 'Hunted!' : isHungry(hs) || isHungry(hr) ? `${[isHungry(hs) && 'Stenus', isHungry(hr) && 'Strider'].filter(Boolean).join(' & ')} hungry` : 'Calm';
   thr.classList.toggle('hot', hunting || attacking);
   if (capture.active && cap.phase) { furcTxt.textContent = (cap.kind && CAP_TEXT[cap.kind].phases[cap.phase]) || 'Back again'; m.style.width = `${{ strike: 25, hold: 50, eat: 80, follow: 100, fadeOut: 100, fadeIn: 100 }[cap.phase] || 100}%`; m.style.background = '#e04f3a'; }
@@ -1210,6 +1345,8 @@ function updateText(L) {
 // ---------------------------------------------------------------- loop
 let simT = 0, menuOpen = false, frames = 0;
 function step(dt, inputs) {
+  // the pounce-bite's hit-pause: the world all but stops for a moment
+  if (hitPause > 0) { hitPause -= dt; dt *= 0.06; }
   simT += dt;
   macroShared.uTime.value = simT;
   // keep the ripple window on the springtails (their middle); its water mask only needs the islands near it
@@ -1344,7 +1481,13 @@ const api = {
     if (mode === 'top') rig.wantPitch = PITCH_TOP; else if (mode === 'low') rig.wantPitch = rig.pitchLow;
   },
   landingPoint,
-  fights, fightLog,
+  fights, fightLog, boss,
+  /** Testing: the boss wakes and comes for player `slot` (put beside its post). */
+  bossFight(slot = 0) { const P = pls[slot] || pl; pace.mode = 'Always'; hunger.stenus.reset(0); hunger.stenus.update(0.01); resetBody(P, boss.post.x - 14, boss.post.z); P.heading = 0; boss.reset(); rig.target.set(P.x, P.y, P.z); },
+  /** Testing: last pounce-bite result for player `slot`. */
+  impact(slot = 0) { const P = pls[slot] || pl; return { last: P.lastImpact || null, pounces: P.pounces || 0, mode: P.mode, dive: !!(P.air && P.air.dive) }; },
+  /** Testing: jump from player `slot` toward (x, z) with the given power (as if released). */
+  jumpAt(slot, x, z, power = 0.4) { const P = pls[slot] || pl; withRec(P, () => { jump(x - P.x, z - P.z, power); const t = pounceTarget(P.x, P.z, x - P.x, z - P.z, 40, 0.5, true); if (t && P.air) P.air.pounce = t; }); },
   /** Testing: a predator comes for player `slot`, head to head 3 mm off, hungry and stalking (it winds up next). */
   setFoe(kind = 'stenus', slot = 0) {
     if (game.phase !== 'play') newGame();

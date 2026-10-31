@@ -980,8 +980,8 @@ Object.assign(debug, {
   look(i) { features.set('look', LOOKS[i]); },
   zoom(i) { view.zoom = i; view.dist = ZOOMS[i]; },
   reset: resetLevel,
-  get fight() { return { state: fightState, interest: fight.interest }; },
 });
+Object.defineProperty(debug, 'fight', { get: () => ({ state: fightState, interest: fight.interest }) });
 window.__micro = {
   get P() { return team[0].P; }, get t4() { return team[0].t4; }, get capture() { return team[0].capture; },
   team, players, split, world, inside, view, debug, features, hunger, post, get t() { return t; },
