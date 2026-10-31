@@ -591,11 +591,6 @@ function barrelScene(k, st, t) {
     c.save(); c.translate(w.x + 10, w.y); k.asset('prince-push', 0, 0, 140, 172); c.restore();
   } else princeOnFoot(k, w, 140);
   if (fallK > 0) { c.save(); c.globalAlpha = 0.5 * Math.sin(Math.PI * fallK); c.fillStyle = k.col('#eef3ea'); c.fillRect(0, 0, 1280, 720); c.restore(); }
-  if (fallK === 0) {   // the cliff edge it must go over
-    c.save(); c.globalAlpha = 0.4 + 0.25 * Math.sin(t * 5); c.fillStyle = k.col('#fff2b0');
-    c.beginPath(); c.moveTo(BARREL.edge - 14, BARREL.y - 170); c.lineTo(BARREL.edge + 14, BARREL.y - 170); c.lineTo(BARREL.edge, BARREL.y - 148); c.closePath(); c.fill();
-    c.fillRect(BARREL.edge - 2, BARREL.y - 140, 4, 140); c.restore();
-  }
   if (fallK === 0) hint(k, 'She still threatens you! Push her barrel over the edge');
 }
 
