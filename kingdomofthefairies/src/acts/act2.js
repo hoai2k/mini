@@ -376,8 +376,8 @@ function stepSwim(st, dt, input) {
       // stack the words into streaks
       if (st.air >= 1 && !st.airFulled) { st.airFulled = true; st.events.push({ type: 'airFull' }); }
     }
-    if (!vent || st.air < 0.9) st.airFulled = false;
     else st.air = Math.max(0, st.air - dt / TUNE.air);
+    if (!vent || st.air < 0.9) st.airFulled = false;
     if (st.air < 0.25 && !st.airLowed) { st.airLowed = true; st.events.push({ type: 'airLow' }); }
     if (st.air > 0.4) st.airLowed = false;
     if (st.air <= 0 && hurt(st, 'airOut', s.x, s.y + 40)) st.air = TUNE.airAfterOut;
