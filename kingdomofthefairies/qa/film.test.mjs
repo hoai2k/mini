@@ -9,7 +9,7 @@ import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
 import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, NEAR_HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
 import act2, { FAIRY_AT, FILM_DIVE, RIDE } from '../src/acts/act2.js';
 import act3, { PASSAGE } from '../src/acts/act3.js';
-import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW } from '../src/acts/act5film.js';
+import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach } from '../src/acts/act5film.js';
 import { CLIMB, terrainAt } from '../src/acts/climb.js';
 import { CLIMB_MAPS } from '../src/acts/climb-map.js';
 import act4 from '../src/acts/act4.js';
@@ -208,10 +208,11 @@ test('Act II dive: X wakes a sleeper within reach and takes an open clam\'s pear
   assert.equal(st.pearls, before, 'not by hovering near');
   still(); act2.step(st, 1 / 60, { x: true, beat });
   assert.equal(st.pearls, before + 1);
-  // the sword, close below, sinks faster than he cruises
+  // the sword, close below, sinks at its brisk close pace (three-quarters of
+  // the earlier 230 px/s, 31 Oct 2026)
   st.guitar.y = s.y + FILM_DIVE.lead + 20; const gy = st.guitar.y;
   act2.step(st, 1, { beat: 3 });
-  assert.ok(st.guitar.y - gy >= 200, `sword sank ${st.guitar.y - gy}`);
+  assert.ok(st.guitar.y - gy >= 150 && st.guitar.y - gy <= 180, `sword sank ${st.guitar.y - gy}`);
 });
 
 test('Act II ride: pearls to leap for float only over the top row, and the whole carriage catches', () => {
@@ -374,8 +375,15 @@ test('Act VI: out on the cliff, push the barrel over, walk the wedding street an
   run(actBurning, st, 20, () => ({ moveX: 1 }), (s) => s.phase !== 'quay');
   assert.equal(st.phase, 'barrel', st.phase);
   assert.equal(st.checkpoint.scene, 3, 'renumbered to the film scene');
-  // a careful pusher: walks into it, steps back while it shakes
-  run(actBurning, st, 40, (s) => ({ moveX: s.barrel?.state === 'still' ? 1 : -1 }), (s) => s.phase !== 'barrel');
+  // the fight: walk up to her, leap her fire, strike beside her (a fresh
+  // press each time); then she hides in the barrel and he pushes it over
+  let last = false;
+  const fresh = (want) => { const a = want && !last; last = want; return a; };
+  run(actBurning, st, 60, (s) => {
+    if (!s.duel) return { moveX: 1 };
+    const fire = s.duel.bolts.some((b) => b.x > s.w.x && b.x - s.w.x < 90);
+    return { moveX: duelReach(s) ? 0 : 1, a: fresh(fire || (duelReach(s) && s.duel.state !== 'reel')), aHeld: true };
+  }, (s) => s.phase !== 'barrel');
   assert.equal(st.phase, 'wedding', st.phase);
   assert.equal(st.checkpoint.scene, 4);
   run(actBurning, st, 20, () => ({ moveX: 1 }), (s) => s.phase !== 'wedding');
@@ -385,14 +393,24 @@ test('Act VI: out on the cliff, push the barrel over, walk the wedding street an
   assert.equal(st.result.ending, 'wedding');
 });
 
-test('Act VI: the barrel lurching back knocks a prince who leans on it; nothing on the beat', () => {
+test("Act VI: the witch's last stand: her fire costs a lantern, three blows beat her, then the barrel rolls without a fight", () => {
   const st = actBurning.create({ seed: 4, carry: {}, from: { scene: 3 } });
-  run(actBurning, st, 6, () => ({ moveX: 1, a: true }), (s) => s.barrel.knocks > 0);
-  assert.ok(st.barrel.knocks >= 1, 'knocked down');
-  assert.equal(st.phase, 'barrel');
+  assert.ok(st.duel && !st.barrel, 'she fights before she hides');
+  const lanterns = st.lanterns;
+  run(actBurning, st, 8, () => ({}), (s) => s.lanterns < lanterns);
+  assert.equal(st.lanterns, lanterns - 1, 'standing still, her fire reaches him');
+  // A away from her leaps; only beside her does it strike
   const s2 = actBurning.create({ seed: 4, carry: {}, from: { scene: 3 } });
-  run(actBurning, s2, 3, () => ({ a: true }));
-  assert.ok(s2.barrel.x <= BARREL.at, 'A alone does not push it');
+  actBurning.step(s2, 1 / 60, { a: true });
+  assert.equal(s2.duel.hp, DUEL.hp);
+  assert.ok(!s2.w.on, 'a leap');
+  let last = false;
+  const fresh = (want) => { const a = want && !last; last = want; return a; };
+  run(actBurning, s2, 20, (s) => (s.duel ? { moveX: duelReach(s) ? 0 : 1, a: fresh(duelReach(s) && s.duel.state !== 'reel') } : {}), (s) => !s.duel);
+  assert.ok(!s2.duel && s2.barrel, 'beaten, she hides in her barrel');
+  const x0 = s2.barrel.x;
+  run(actBurning, s2, 10, () => ({ moveX: 1 }), (s) => s.phase !== 'barrel');
+  assert.ok(s2.phase === 'wedding' || s2.barrel?.fallT != null || s2.barrel.x > x0, 'he rolls it to the edge');
 });
 
 test('Act V: from the clifftop he walks to the edge and dives into the sea gap', () => {

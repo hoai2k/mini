@@ -137,11 +137,19 @@ export const FILM_T = { dive: 3.8, window: 3.6, iris: 1.6, barrelFall: 2.4, wedd
 export const WALK = { speed: 240, acc: 2000, g: 2000, jump: 720, cut: 2400, buffer: 0.13 };
 export const DIVE = { y: 372, x0: 170, edge: 360, start: 210 };          // coast-gap's cliff path
 export const BARREL = {                                                  // cliff-whirlpool's ledge
-  y: 412, x0: 150, edge: 728, start: 230, at: 470, hw: 40, push: 120,
-  shake: 0.7, lurch: 0.35, lurchDist: 150, every: [1.6, 2.4], knock: 320,
+  y: 412, x0: 150, edge: 728, start: 230, at: 470, hw: 40, push: 150, knock: 320,
 };
-export const WEDDING = { y: 652, x0: 60, gate: 880, start: 90, follow: 96, petals: 14 };
-export const APOTH = { y: 646, x0: 120, x1: 1160, mark: 640, near: 40, start: 220 };
+// The witch's last stand on that ledge, before she hides in her barrel: she
+// winds up (warn), then hurls a bolt of fire along the ground (leap it), or
+// blasts him back if he lingers at her side; three strokes of the sword
+// (A beside her) beat her, and she shrinks into the barrel where she stands.
+export const DUEL = {
+  hp: 3, x: 610, back: 640, idle: [0.9, 1.4], warn: 0.65, reach: 115, near: 150,
+  bolt: 400, boltR: 26, boltH: 34, reel: 0.8, hide: 1.4, hw: 34,
+};
+// (each walk starts with its figures in view, clear of the left curtain at ~x 170)
+export const WEDDING = { y: 652, x0: 60, gate: 880, start: 330, follow: 96, petals: 14 };
+export const APOTH = { y: 592, x0: 120, x1: 1160, mark: 640, near: 40, start: 320 };
 const PRINCE_HW = 18;
 
 const CARRY_DEFAULT = { tea: 0, guitar: false, rose: false, pearl: false, stone: false, sleepers: 0 };
@@ -358,9 +366,9 @@ export const actBurning = {
   scenes: BURNING_SCENES,
   mood: (st) => (st.phase === 'wedding' || st.phase === 'apotheosis' || st.phase === 'iris' ? 'revel' : 'storm'),
   touchLive: (st) => ['house', 'quay'].includes(st.phase) || (st.phase === 'barrel' && st.barrel?.fallT == null),
-  touchVerb: (st) => (['barrel', 'wedding', 'apotheosis'].includes(st.phase) ? '' : st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Action' : 'Leap'),
+  touchVerb: (st) => (st.phase === 'barrel' && st.duel ? (duelReach(st) ? 'Strike' : 'Leap') : ['barrel', 'wedding', 'apotheosis'].includes(st.phase) ? '' : st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Action' : 'Leap'),
   touchHint: 'drag to walk and climb, A to leap',
-  touchScheme: (st) => (['barrel', 'wedding', 'apotheosis'].includes(st.phase) ? { mode: 'swipe', hint: 'Drag ↔ to walk' } : { mode: 'stick', hint: 'Drag to walk · up and down on stairs and ladders' }),
+  touchScheme: (st) => (['wedding', 'apotheosis'].includes(st.phase) || (st.phase === 'barrel' && !st.duel) ? { mode: 'swipe', hint: 'Drag ↔ to walk' } : { mode: 'stick', hint: 'Drag to walk · up and down on stairs and ladders' }),
 
   create({ seed = 1, carry = {}, from = null } = {}) {
     const k = clamp(from?.scene | 0, 0, BURNING_SCENES.length - 1);
@@ -382,7 +390,7 @@ export const actBurning = {
     const cpBefore = st.checkpoint;
     if (st.phase === 'house') stepHouse(st, dt, input);
     else if (st.phase === 'quay') stepQuay(st, dt, input);
-    else if (st.phase === 'barrel') { if (!st.barrel) startBarrel(st); stepBarrel(st, dt, input); }
+    else if (st.phase === 'barrel') { if (!st.barrel && !st.duel) startBarrel(st); stepBarrel(st, dt, input); }
     else if (st.phase === 'wedding') stepWedding(st, dt, input);
     else if (st.phase === 'apotheosis') stepApotheosis(st, dt, input);
     else if (st.phase === 'iris' && st.phaseT >= FILM_T.iris) winFilm(st, { ending: 'wedding' });
@@ -398,7 +406,7 @@ export const actBurning = {
   hud(st) {
     if (!['house', 'quay', 'barrel'].includes(st.phase)) return null;
     const prog = st.phase === 'house' ? (st.p.carry ? 0.45 : 0.15) : st.phase === 'quay' ? 0.7 + 0.2 * clamp((st.p.x - QUAY.x0) / (QUAY.x1 - QUAY.x0), 0, 1)
-      : 0.9 + 0.1 * clamp(((st.barrel?.x ?? BARREL.at) - BARREL.at) / (BARREL.edge - BARREL.at), 0, 1);
+      : st.duel ? 0.9 + 0.05 * (1 - st.duel.hp / DUEL.hp) : 0.95 + 0.05 * clamp(((st.barrel?.x ?? BARREL.at) - BARREL.at) / (BARREL.edge - BARREL.at), 0, 1);
     return { lanterns: st.lanterns, maxLanterns: LANTERNS, pearls: st.pearls, progress: prog, keepsakes: filmKeepsakes(st.carry) };
   },
 
@@ -410,9 +418,10 @@ export const actBurning = {
     if (e.type === 'liftHer') return 'You lift Azurine. Carry her down: no leaping now.';
     if (e.type === 'floorBreak') return 'The way you came is gone. A ladder drops at the right.';
     if (e.type === 'houseFall') return 'Out onto the clifftop. The tower is falling.';
-    if (e.type === 'witchReturns') return 'The witch attacks again, from a barrel! Walk into it to push it over the cliff. Stand clear when it shakes.';
-    if (e.type === 'barrelShake') return 'The barrel shakes.';
-    if (e.type === 'barrelKnock') return 'The barrel lurches back and knocks you down.';
+    if (e.type === 'witchReturns') return 'The witch attacks one last time! Leap her fire, and strike her with A beside her.';
+    if (e.type === 'witchStruck') return e.hp > 0 ? 'You strike the witch.' : 'The witch is beaten.';
+    if (e.type === 'witchBlast') return 'She blasts you back.';
+    if (e.type === 'witchInBarrel') return 'She hides in her barrel. Push it over the cliff.';
     if (e.type === 'barrelFall') return 'Into the whirlpool!';
     if (e.type === 'wedding') return 'The wedding. Walk Azurine along the street to the castle gate; catch the falling petals.';
     if (e.type === 'apotheosis') return 'Walk with Azurine to the light beneath Aurora.';
@@ -467,15 +476,62 @@ function stepDive(st, dt, input) {
   }
 }
 
-// Act VI: the witch's last attack. She rides at the clifftop in a barrel;
-// he walks into it to push it toward the edge. Now and then it shakes and
-// lurches back at him: standing against it then knocks him down.
+// Act VI: the witch's last attack. She stands on the clifftop and fights; once
+// he has beaten her she hides in her barrel, and he pushes it over the edge.
 function startBarrel(st) {
   setPhase(st, 'barrel');
   st.w = walker(BARREL.start, BARREL.y);
-  st.barrel = { x: BARREL.at, v: 0, state: 'still', t: 0, next: 2.0, fallT: null, knocks: 0, rot: 0 };
+  st.duel = { x: DUEL.x, hp: DUEL.hp, state: 'idle', t: 0, next: DUEL.idle[1], bolts: [], strikeT: 0 };
+  st.barrel = null;
+}
+function stepDuel(st, dt, input) {
+  const d = st.duel, w = st.w;
+  const dist = d.x - DUEL.hw - (w.x + PRINCE_HW);   // the gap between them
+  const reach = dist < DUEL.reach - DUEL.hw && d.state !== 'hide';
+  // A beside her strikes with the sword; anywhere else it leaps
+  const strike = input.a && reach && w.on && w.knockT <= 0;
+  walk(w, dt, strike ? { ...input, a: false } : input, { y: BARREL.y, x0: BARREL.x0, x1: d.x - DUEL.hw - PRINCE_HW, leap: true, events: st.events });
+  d.t += dt; w.strikeT = Math.max(0, (w.strikeT || 0) - dt);
+  if (strike && d.state !== 'reel') {
+    d.hp--; w.strikeT = 0.3; d.state = 'reel'; d.t = 0; d.bolts.length = 0;
+    st.events.push({ type: 'witchStruck', x: d.x, hp: d.hp });
+    if (d.hp <= 0) { d.state = 'hide'; st.score += 300; st.events.push({ type: 'witchHides', x: d.x }); }
+  }
+  if (d.state === 'idle' && d.t >= d.next) { d.state = 'warn'; d.t = 0; st.events.push({ type: 'witchWinds', x: d.x }); }
+  else if (d.state === 'warn' && d.t >= DUEL.warn) {
+    d.state = 'idle'; d.t = 0; d.next = lerp(DUEL.idle[0], DUEL.idle[1], st.rand());
+    if (dist < DUEL.near - DUEL.hw) {   // too close: she blasts him back
+      w.knockT = 0.6; w.vx = -BARREL.knock; w.vy = -320; w.on = false;
+      st.events.push({ type: 'witchBlast', x: w.x });
+      duelHit(st);
+    } else { d.bolts.push({ x: d.x - DUEL.hw - 10 }); st.events.push({ type: 'witchBolt', x: d.x }); }
+  } else if (d.state === 'reel') {
+    d.x = lerp(d.x, DUEL.back, Math.min(1, dt * 6));   // driven back toward the edge
+    if (d.t >= DUEL.reel) { d.state = 'idle'; d.t = 0; d.next = DUEL.idle[0]; }
+  } else if (d.state === 'hide' && d.t >= DUEL.hide) {
+    // she has shrunk into her barrel where she stood
+    st.barrel = { x: Math.min(d.x, BARREL.edge - 70), state: 'still', t: 0, fallT: null, rot: 0 };
+    st.duel = null;
+    st.events.push({ type: 'witchInBarrel' });
+    return;
+  }
+  // her bolts run along the ground at him: leap them
+  for (const bo of d.bolts) bo.x -= DUEL.bolt * dt;
+  d.bolts = d.bolts.filter((bo) => {
+    if (bo.x < BARREL.x0 - 60) return false;
+    if (Math.abs(bo.x - w.x) < DUEL.boltR && w.y > BARREL.y - DUEL.boltH) { duelHit(st); return false; }
+    return true;
+  });
+}
+export const duelReach = (st) => !!st.duel && st.duel.x - DUEL.hw - (st.w.x + PRINCE_HW) < DUEL.reach - DUEL.hw && st.duel.state !== 'hide';
+function duelHit(st) {
+  if (hit(st, { cause: 'witch' }) && st.defeatT != null) {
+    st.lostTitle = 'The Witch\nHolds the Cliff';
+    st.lostSub = 'Leap her fire, and strike with A beside her.';
+  }
 }
 function stepBarrel(st, dt, input) {
+  if (st.duel) return stepDuel(st, dt, input);
   const b = st.barrel, w = st.w;
   if (b.fallT != null) {
     b.fallT += dt;
@@ -484,28 +540,12 @@ function stepBarrel(st, dt, input) {
     return;
   }
   walk(w, dt, input, { y: BARREL.y, x0: BARREL.x0, x1: BARREL.edge - 60 });
+  // beaten, she cowers in it: he walks into it and rolls it to the edge
   const contact = w.x + PRINCE_HW >= b.x - BARREL.hw - 2;
-  b.t += dt;
-  if (b.state === 'still') {
-    // he pushes it along when he walks into it
-    if (contact && w.vx > 20) { const nx = b.x + BARREL.push * dt; b.x = nx; b.rot += BARREL.push * dt / 40; w.x = Math.min(w.x, b.x - BARREL.hw - PRINCE_HW); st.pushing = true; }
-    else { st.pushing = false; if (contact) w.x = Math.min(w.x, b.x - BARREL.hw - PRINCE_HW); }
-    if (b.t >= b.next) { b.state = 'shake'; b.t = 0; st.events.push({ type: 'barrelShake', x: b.x }); }
-  } else if (b.state === 'shake') {
-    if (contact) w.x = Math.min(w.x, b.x - BARREL.hw - PRINCE_HW);
-    if (b.t >= BARREL.shake) { b.state = 'lurch'; b.t = 0; b.from = b.x; }
-  } else if (b.state === 'lurch') {
-    const f = Math.min(1, b.t / BARREL.lurch);
-    b.x = Math.max(BARREL.at - 60, b.from - BARREL.lurchDist * Math.sin(f * Math.PI / 2));
-    b.rot -= dt * 6;
-    if (w.x + PRINCE_HW > b.x - BARREL.hw && w.knockT <= 0) {
-      w.knockT = 0.6; w.vx = -BARREL.knock; w.vy = -320; w.on = false; b.knocks++;
-      w.x = b.x - BARREL.hw - PRINCE_HW;
-      st.events.push({ type: 'barrelKnock', x: w.x });
-    }
-    if (f >= 1) { b.state = 'still'; b.t = 0; b.next = lerp(BARREL.every[0], BARREL.every[1], (b.knocks * 0.37 + b.x * 0.013) % 1); }
-  }
-  if (b.x >= BARREL.edge) { b.fallT = 0; st.pushing = false; st.score += 300 + Math.max(0, 3 - b.knocks) * 50; st.events.push({ type: 'barrelFall' }); }
+  if (contact && w.vx > 20) { b.x += BARREL.push * dt; b.rot += BARREL.push * dt / 40; st.pushing = true; }
+  else st.pushing = false;
+  if (contact) w.x = Math.min(w.x, b.x - BARREL.hw - PRINCE_HW);
+  if (b.x >= BARREL.edge) { b.fallT = 0; st.pushing = false; st.score += 150; st.events.push({ type: 'barrelFall' }); }
 }
 
 // The wedding: he walks Azurine (she follows a step behind) along the

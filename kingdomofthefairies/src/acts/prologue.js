@@ -297,7 +297,7 @@ function knighted(st, dt, input) {
 function enter(st, phase) {
   st.phase = phase; st.phaseT = 0; st.near = null;
   const p = st.p;
-  if (phase === 'rampart') { Object.assign(p, { x: 140, y: rampartFloor(140), vx: 0, vy: 0, on: true, face: 1, knockT: 0 }); st.chariot = { x: 480, y: CHARIOT_Y, up: 0 }; st.fires = []; st.dropT = 0; st.fade = 1; st.lanterns = LANTERNS; st.grace = 0; }
+  if (phase === 'rampart') { Object.assign(p, { x: 240, y: rampartFloor(240), vx: 0, vy: 0, on: true, face: 1, knockT: 0 }); st.chariot = { x: 480, y: CHARIOT_Y, up: 0 }; st.fires = []; st.dropT = 0; st.fade = 1; st.lanterns = LANTERNS; st.grace = 0; }
   if (phase === 'bind') { Object.assign(p, { x: BOUND_X, y: ARM_FLOOR, vx: 0, vy: 0, on: true, face: -1 }); st.fade = 1; st.struggle = { n: 0, dir: 0, tilt: 0, doneT: 0, held: false }; st.armed = false; }
   if (phase === 'curse') p.vx = 0;
   st.events.push({ type: 'scene', phase });

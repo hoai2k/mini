@@ -52,10 +52,12 @@ acts. The first four keep their stage machinery and rules, recast:
    floors, watched by the scrying eye.
 4. The Whale's Passage: through the whale to shore, where Aurora points the
    way through the cavern (a run through the dark, by Aurora's lamp).
-5. The Enchanted Tower: the cliff, a dive from its edge, a swim across the sea gap diving under the
-   witch's swoops, and the tower wall up to Azurine's window.
-6. The Burning Tower: the burning floors, carrying Azurine out, pushing the
-   witch's barrel over the cliff (step back when it lurches), walking Azurine
+5. The Enchanted Tower: the cliff, a dive from its edge, a swim across the sea gap in its painted
+   sea, diving a little way under the surface from the witch's swoops, and the tower wall up to
+   Azurine's window, where she watches for him all the climb.
+6. The Burning Tower: the burning floors, carrying Azurine out, the witch's
+   last stand on the clifftop (leap her fire, strike her three times with the
+   sword), after which she hides in her barrel and he pushes it over, walking Azurine
    along the wedding street to the gate, and into the light of the apotheosis.
    Every scene is played: nothing is timed to the beat or shown as a still.
 
