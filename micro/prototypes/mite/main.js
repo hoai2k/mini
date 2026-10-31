@@ -152,6 +152,93 @@ function npcInput(dt) {
   return { dir: new THREE.Vector3(Math.cos(ai.ang), 0, Math.sin(ai.ang)), mag: moving ? 0.6 : 0, maxSpeed: 180 * MITE_SCALE, hold: ai.scared > 0 };
 }
 
+// ---------- threats: pacing and being eaten (shared/predation.js) ----------
+// A calm opening, then hunger that comes and goes; only a hungry predator
+// hunts. Its third grab holds on: strike (it seizes a leg), hold (it pulls you
+// in; close up, Y, and the grip slips off), eat (its chelicerae work at the
+// soft body by the legs, which go limp and fold), then the Eaten card.
+const PRED_START = [1150, -650];
+const pace = { grace: 45, mode: 'Comes and goes' };
+const hunger = createHunger({ grace: pace.grace });
+const isHungry = () => (pace.mode === 'Never' ? false : pace.mode === 'Always' ? hunger.state !== 'grace' : hunger.hungry);
+const capture = createCapture({ onRestart: () => resetLevel() });
+const cap = { phase: null, c0: new THREE.Vector3(), q0: new THREE.Quaternion(), leg: 0, heldOnce: false, t: 0 };
+const _ct = new THREE.Vector3(), _cm = new THREE.Vector3(), _cf = new THREE.Vector3(), _cq = new THREE.Quaternion();
+let capPad = null;
+function resetLevel() {
+  capture.reset();
+  cap.phase = null;
+  mite.place(0, 0, 0.3);
+  predAI.reset(...PRED_START);
+  pred.st.chel = 0;
+  play.hurt = 0; play.stun = 0;
+  hunger.reset(pace.grace);
+}
+function startCapture() {
+  if (capture.active) return;
+  const mouth = pred.mouth(_cm);
+  let best = 0, bd = Infinity;
+  for (let i = 0; i < 8; i++) { const d = mite.footW(i, _ct).distanceTo(mouth); if (d < bd) { bd = d; best = i; } }
+  Object.assign(cap, { phase: null, leg: best, heldOnce: false, t: 0 });
+  cap.c0.copy(mite.center); cap.q0.copy(mite.quat);
+  play.caught++; play.hurt = 0; play.stun = 0;
+  capture.start({ by: 'The predatory mite', how: 'seized a leg, pulled you in and ate you' });
+  audio.play('mite/predator', { volume: 1, rate: 0.9 });
+  if (rumbleOn) pad.rumble(400, 0.9, 1);
+}
+/** Pose the box mite and the predator for the current phase; false if you slipped free. */
+function animateCapture(c, dt) {
+  const ease = (x) => x * x * (3 - 2 * x);
+  cap.t += dt;
+  if (cap.heldOnce && mite.mode !== 'held') {
+    // closed up in time: a smooth capsule, nothing to grip
+    capture.reset();
+    cap.phase = null;
+    pred.st.chel = 0;
+    predAI.state = 'wander'; predAI.bored = 14; predAI.ang += Math.PI;
+    if (hunger.hungry) hunger.missed();
+    hud.toast('Closed up in time: its chelicerae slip off the capsule and it gives up', 2600);
+    if (rumbleOn) pad.rumble(160, 0.3, 0.6);
+    return false;
+  }
+  if (c.phase !== cap.phase) {
+    cap.phase = c.phase;
+    if (c.phase === 'hold') audio.play('mite/predator', { volume: 0.8, rate: 1.2 });
+    if (c.phase === 'eat') { hunger.fed(); audio.play('mite/bite', { volume: 1, rate: 0.7 }); if (rumbleOn) pad.rumble(500, 0.6, 0.3); }
+  }
+  const u = c.t, T = cap.t;
+  const mouth = pred.mouth(_cm);
+  _cf.set(1, 0, 0).applyQuaternion(pred.quat).setY(0).normalize();
+  const half = mite.size.z;
+  // where the body ends up: against the chelicerae, at the same height
+  const end = _ct.copy(mouth).addScaledVector(_cf, half * 0.9);
+  end.y = cap.c0.y;
+  const center = new THREE.Vector3();
+  let flail = 1, limp = 0, escape = true;
+  _cq.copy(cap.q0);
+  if (c.phase === 'strike') {
+    pred.st.chel = ease(Math.min(1, u / 0.35));
+    center.copy(cap.c0).lerp(end, 0.12 * ease(u));
+  } else if (c.phase === 'hold') {
+    pred.st.chel = 1 - 0.3 * ease(u);
+    center.copy(cap.c0).lerp(end, 0.12 + 0.88 * ease(u));
+    center.y += Math.sin(T * 17) * 6;
+  } else {
+    escape = false;
+    const e = c.phase === 'eat' ? ease(u) : 1;
+    pred.st.chel = c.phase === 'eat' ? 0.5 + 0.5 * Math.sin(T * 13) : 0.35 + 0.2 * Math.sin(T * 4);
+    flail = c.phase === 'eat' ? Math.max(0, 1 - 1.6 * u) : 0;
+    limp = e;
+    center.copy(end).addScaledVector(_cf, 6 * Math.sin(T * 13) * (c.phase === 'eat' ? 1 : 0.3));
+    center.y -= mite.anat.stand * mite.scale * 0.35 * e;
+    // it sags onto its side as the legs give way
+    _cq.premultiply(new THREE.Quaternion().setFromAxisAngle(_cf, 0.3 * e));
+  }
+  mite.held(center, _cq, { flail, limp, seizeLeg: cap.leg, seize: pred.mouth(_ct), escape });
+  cap.heldOnce = true;
+  return true;
+}
+
 // ---------- features panel ----------
 const features = createFeatures({ key: 'mite', pad });
 const audio = createAudio(['mite/amb-moss', 'mite/step', 'mite/dash', 'mite/close', 'mite/open', 'mite/bite', 'mite/blade', 'mite/predator']);
@@ -308,93 +395,6 @@ function renderView(dt) {
   if (borrow.id === 'dicTardigrade') looks.dic({ mode: bmode.dic, pxPerUm, time, absK: 1 });
   else if (borrow.id === 'opticsAmoeba') looks.amoeba({ mode: bmode.amoeba, time, umPerPx: 1 / pxPerUm, phaseK: 0.6 });
   else looks.paramecium({ mode: bmode.par, time, opdK: 0.35 });
-}
-
-// ---------- threats: pacing and being eaten (shared/predation.js) ----------
-// A calm opening, then hunger that comes and goes; only a hungry predator
-// hunts. Its third grab holds on: strike (it seizes a leg), hold (it pulls you
-// in; close up, Y, and the grip slips off), eat (its chelicerae work at the
-// soft body by the legs, which go limp and fold), then the Eaten card.
-const PRED_START = [1150, -650];
-const pace = { grace: 45, mode: 'Comes and goes' };
-const hunger = createHunger({ grace: pace.grace });
-const isHungry = () => (pace.mode === 'Never' ? false : pace.mode === 'Always' ? hunger.state !== 'grace' : hunger.hungry);
-const capture = createCapture({ onRestart: () => resetLevel() });
-const cap = { phase: null, c0: new THREE.Vector3(), q0: new THREE.Quaternion(), leg: 0, heldOnce: false, t: 0 };
-const _ct = new THREE.Vector3(), _cm = new THREE.Vector3(), _cf = new THREE.Vector3(), _cq = new THREE.Quaternion();
-let capPad = null;
-function resetLevel() {
-  capture.reset();
-  cap.phase = null;
-  mite.place(0, 0, 0.3);
-  predAI.reset(...PRED_START);
-  pred.st.chel = 0;
-  play.hurt = 0; play.stun = 0;
-  hunger.reset(pace.grace);
-}
-function startCapture() {
-  if (capture.active) return;
-  const mouth = pred.mouth(_cm);
-  let best = 0, bd = Infinity;
-  for (let i = 0; i < 8; i++) { const d = mite.footW(i, _ct).distanceTo(mouth); if (d < bd) { bd = d; best = i; } }
-  Object.assign(cap, { phase: null, leg: best, heldOnce: false, t: 0 });
-  cap.c0.copy(mite.center); cap.q0.copy(mite.quat);
-  play.caught++; play.hurt = 0; play.stun = 0;
-  capture.start({ by: 'The predatory mite', how: 'seized a leg, pulled you in and ate you' });
-  audio.play('mite/predator', { volume: 1, rate: 0.9 });
-  if (rumbleOn) pad.rumble(400, 0.9, 1);
-}
-/** Pose the box mite and the predator for the current phase; false if you slipped free. */
-function animateCapture(c, dt) {
-  const ease = (x) => x * x * (3 - 2 * x);
-  cap.t += dt;
-  if (cap.heldOnce && mite.mode !== 'held') {
-    // closed up in time: a smooth capsule, nothing to grip
-    capture.reset();
-    cap.phase = null;
-    pred.st.chel = 0;
-    predAI.state = 'wander'; predAI.bored = 14; predAI.ang += Math.PI;
-    if (hunger.hungry) hunger.missed();
-    hud.toast('Closed up in time: its chelicerae slip off the capsule and it gives up', 2600);
-    if (rumbleOn) pad.rumble(160, 0.3, 0.6);
-    return false;
-  }
-  if (c.phase !== cap.phase) {
-    cap.phase = c.phase;
-    if (c.phase === 'hold') audio.play('mite/predator', { volume: 0.8, rate: 1.2 });
-    if (c.phase === 'eat') { hunger.fed(); audio.play('mite/bite', { volume: 1, rate: 0.7 }); if (rumbleOn) pad.rumble(500, 0.6, 0.3); }
-  }
-  const u = c.t, T = cap.t;
-  const mouth = pred.mouth(_cm);
-  _cf.set(1, 0, 0).applyQuaternion(pred.quat).setY(0).normalize();
-  const half = mite.size.z;
-  // where the body ends up: against the chelicerae, at the same height
-  const end = _ct.copy(mouth).addScaledVector(_cf, half * 0.9);
-  end.y = cap.c0.y;
-  const center = new THREE.Vector3();
-  let flail = 1, limp = 0, escape = true;
-  _cq.copy(cap.q0);
-  if (c.phase === 'strike') {
-    pred.st.chel = ease(Math.min(1, u / 0.35));
-    center.copy(cap.c0).lerp(end, 0.12 * ease(u));
-  } else if (c.phase === 'hold') {
-    pred.st.chel = 1 - 0.3 * ease(u);
-    center.copy(cap.c0).lerp(end, 0.12 + 0.88 * ease(u));
-    center.y += Math.sin(T * 17) * 6;
-  } else {
-    escape = false;
-    const e = c.phase === 'eat' ? ease(u) : 1;
-    pred.st.chel = c.phase === 'eat' ? 0.5 + 0.5 * Math.sin(T * 13) : 0.35 + 0.2 * Math.sin(T * 4);
-    flail = c.phase === 'eat' ? Math.max(0, 1 - 1.6 * u) : 0;
-    limp = e;
-    center.copy(end).addScaledVector(_cf, 6 * Math.sin(T * 13) * (c.phase === 'eat' ? 1 : 0.3));
-    center.y -= mite.anat.stand * mite.scale * 0.35 * e;
-    // it sags onto its side as the legs give way
-    _cq.premultiply(new THREE.Quaternion().setFromAxisAngle(_cf, 0.3 * e));
-  }
-  mite.held(center, _cq, { flail, limp, seizeLeg: cap.leg, seize: pred.mouth(_ct), escape });
-  cap.heldOnce = true;
-  return true;
 }
 
 let speedMul = 1;
