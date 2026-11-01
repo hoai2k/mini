@@ -1,6 +1,5 @@
 // The data overlay (Y): what the cell senses, drawn as data, NOT optics.
-// Oxygen as a colour wash with the target band outlined, food as contour
-// lines, the Earth's field as streaming field lines, the grazers' feeding
+// Food as contour lines, the Earth's field as streaming field lines, the grazers' feeding
 // currents as streaks, and the magnetosome chain picked out. A microscope
 // shows none of this; the overlay says so on screen.
 import * as THREE from '../shared/vendor/three.module.min.js';
@@ -21,26 +20,10 @@ uniform vec4 uSink[2];
 uniform vec3 uField; // direction xy, strength (µT)
 uniform sampler2D tFl;
 layout(location = 0) out vec4 o;
-float oxy(float y) { return max(0.0, 100.0 * exp((y - uTop) / uScale) - 1.0); }
 void main() {
   vec2 w = uCenter + (vUv - 0.5) * uSize;
   float px = uSize.y / uRes.y;
   vec4 c = vec4(0.0);
-  // oxygen: blue (anoxic) → green (the band) → red (too much); log scale
-  float O = oxy(w.y);
-  float lo = log(uLo + 0.1), hi = log(uHi + 0.1), lO = log(O + 0.1);
-  vec3 col = lO < lo ? mix(vec3(0.1, 0.25, 0.9), vec3(0.2, 0.8, 0.4), smoothstep(lo - 2.0, lo, lO))
-           : lO > hi ? mix(vec3(0.2, 0.8, 0.4), vec3(0.95, 0.25, 0.15), smoothstep(hi, hi + 1.5, lO)) : vec3(0.2, 0.85, 0.4);
-  c = vec4(col, 0.16);
-  // band edges: dashed lines
-  float yLo = uTop + uScale * log((uLo + 1.0) / 100.0), yHi = uTop + uScale * log((uHi + 1.0) / 100.0);
-  float dash = step(0.5, fract(w.x / 4.0));
-  float edge = max(1.0 - smoothstep(0.0, 1.6 * px, abs(w.y - yLo)), 1.0 - smoothstep(0.0, 1.6 * px, abs(w.y - yHi)));
-  c = mix(c, vec4(0.3, 1.0, 0.5, 0.9), edge * dash);
-  // oxygen isolines at 0.1, 1, 10, 100 %
-  float ld = log(O + 1e-3) / log(10.0);
-  float iso = abs(fract(ld + 0.5) - 0.5) / max(fwidth(ld), 1e-4);
-  c = mix(c, vec4(0.85, 0.9, 1.0, 0.45), (1.0 - smoothstep(0.5, 1.5, iso)) * step(0.05, O));
   // food: contour lines of the dissolved-nutrient field
   float f = 0.0;
   for (int i = 0; i < 12; i++) { vec4 p = uPatch[i]; if (p.z <= 0.0) continue; vec2 d = w - p.xy; f += p.w * exp(-dot(d, d) / (p.z * p.z)); }

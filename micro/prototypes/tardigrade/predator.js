@@ -71,7 +71,7 @@ export class Predator {
     this.events = events; // { toast, rumble }
     this.creature = new Creature(scene);
     milnesiumLook(this.creature);
-    this.walker = new Walker(world, this.creature, { catch() {}, slip() {}, fall() {}, transfer() {} }, { scale: SCALE, maxSpeed: 2.7, gravity: false });
+    this.walker = new Walker(world, this.creature, { catch() {}, slip() {}, fall() {}, transfer() {} }, { scale: SCALE, maxSpeed: 1.8, curve: false, gravity: false });
     this.on = true;
     // pace.mode: 'Comes and goes' | 'Always' | 'Never'; pace.grace: the calm opening (s)
     this.pace = { mode: 'Comes and goes', grace: CALM };

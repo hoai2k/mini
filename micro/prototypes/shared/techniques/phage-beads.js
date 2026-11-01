@@ -26,7 +26,7 @@ const VERT = /* glsl */`
 attribute vec2 corner; attribute vec4 bead; attribute vec3 bcol; attribute vec3 gcol; attribute vec3 bout;
 attribute vec4 iPos; attribute vec4 iQuat; attribute vec4 iTint;
 uniform float uTime; uniform float uScaleAll;
-uniform vec3 uCenter; uniform float uHalf; uniform float uJit; uniform float uSpin; uniform float uKeepR;
+uniform vec3 uCenter; uniform float uHalf; uniform float uJit; uniform float uSpin; uniform float uKeepR; uniform float uInner;
 uniform vec4 uPhage[${MAX_PHAGES}]; uniform vec4 uCapA[${MAX_SOLIDS}]; uniform vec4 uCapB[${MAX_SOLIDS}];
 uniform vec4 uGust; uniform vec3 uGustDir;
 varying vec3 vC; varying float vR; varying vec3 vQ; varying vec3 vCol; varying vec3 vGCol; varying vec3 vOut; varying float vGlow;
@@ -47,6 +47,7 @@ void main(){
     base = uCenter + d;
     float edge = max(abs(d.x), max(abs(d.y), abs(d.z)));
     s *= smoothstep(uHalf, uHalf * 0.8, edge); // (molecules shrink away before they wrap: no popping)
+    if (uInner > 0.0) s *= smoothstep(uInner * 0.8, uInner, length(d)); // (an outer bath leaves the middle to the near one)
     // tumbling
     float ang = uTime * uSpin * (0.4 + fract(seed * 3.7)) * w;
     vec3 ax = normalize(vec3(sin(seed * 11.0), cos(seed * 7.0), sin(seed * 3.0 + 1.0)) + 1e-3);
@@ -88,10 +89,13 @@ varying vec3 vC; varying float vR; varying vec3 vQ; varying vec3 vCol; varying v
 void main(){
   // ray-cast the sphere from the eye (view space): exact silhouette, normal and depth
   vec3 rd = normalize(vQ);
-  float b = dot(rd, vC), c = dot(vC, vC) - vR * vR, h = b * b - c;
+  // (closest approach form: |C|^2 - b^2 would cancel catastrophically for small, far beads)
+  float b = dot(rd, vC);
+  vec3 perp = vC - rd * b;
+  float h = vR * vR - dot(perp, perp);
   if (h < 0.0) discard;
   float t = b - sqrt(h);
-  vec3 hp = rd * t, n = (hp - vC) / vR, v = -rd;
+  vec3 hp = rd * t, n = normalize(hp - vC), v = -rd;
   vec4 clip = projectionMatrix * vec4(hp, 1.0);
   gl_FragDepth = clip.z / clip.w * 0.5 + 0.5;
   float depth = -hp.z;
@@ -132,7 +136,7 @@ export function beadMaterial({ bath = false, glow = 0, glowColor = '#ffc65a', sa
     uniforms: {
       ...goodsellShared,
       uScaleAll: { value: 1 },
-      uCenter: { value: new THREE.Vector3() }, uHalf: { value: 100 }, uJit: { value: 0.8 }, uSpin: { value: 0.35 }, uKeepR: { value: 30 },
+      uCenter: { value: new THREE.Vector3() }, uHalf: { value: 100 }, uJit: { value: 0.8 }, uSpin: { value: 0.35 }, uKeepR: { value: 30 }, uInner: { value: 0 },
       uPhage: { value: v4(MAX_PHAGES) }, uCapA: { value: v4(MAX_SOLIDS) }, uCapB: { value: v4(MAX_SOLIDS) },
       uGust: { value: new THREE.Vector4() }, uGustDir: { value: new THREE.Vector3() },
       uGlowAll: { value: glow }, uGlowColor: { value: new THREE.Color(glowColor) }, uSat: { value: sat },
@@ -149,12 +153,14 @@ const C = (hex) => new THREE.Color(hex);
 /** Palette by molecule type (false light, Goodsell). */
 export const PALETTE = {
   violet: ['#5a62c8', '#e9a0b4'], periwinkle: ['#8693e4', '#f0b9c8'], teal: ['#3aa3ae', '#9fd29a'],
-  green: ['#86bd78', '#c2dd8a'], pale: ['#cfe1f2', '#ffffff'], olive: ['#9a8a4c', '#c79b6a'],
+  green: ['#86bd78', '#c2dd8a'], pale: ['#a8c4dc', '#ffffff'], olive: ['#9a8a4c', '#c79b6a'],
   blue: ['#4a63c8', '#7d9de0'], gold: ['#e8b54a', '#f2d36a'], lpsCore: ['#8fb8a0', '#b6d48a'], lpsTip: ['#bcd6f0', '#e6f0c0'],
   pink: ['#b07fd0', '#ec8fae'], porin: ['#3f58c0', '#f08a4b'], ribo: ['#5a4fb8', '#d9708a'],
 };
+let DETAIL = 1; // (beadTemplate's detail: more, smaller beads at the same size)
 function ball(out, cx, cy, cz, R, n, br, pal, rnd, jitter = 0.08) {
   const [a, b] = pal;
+  n = Math.round(n * DETAIL); br /= Math.cbrt(DETAIL) * 0.92 + 0.08;
   for (let i = 0; i < n; i++) {
     const u = rnd() * 2 - 1, t = rnd() * Math.PI * 2, q = Math.sqrt(1 - u * u), k = Math.cbrt(rnd()) * R;
     const r = br * (0.8 + rnd() * 0.4);
@@ -177,8 +183,9 @@ function walk(out, x, y, z, n, step, br, pal, rnd, dir = null) {
  * A molecule as beads. Kinds: globule, small, dimer, chain, complex (ribosome-sized), humic,
  * lps (upright along +y), porin (OmpC trimer, along +y), mprot (membrane protein), floc (a humic tangle).
  */
-export function beadTemplate(kind, seed = 1, pal = null) {
+export function beadTemplate(kind, seed = 1, pal = null, detail = 1) {
   const rnd = rng(seed * 7919 + kind.length * 104729);
+  DETAIL = Math.max(0.5, detail);
   const out = [];
   const P = (k) => pal || PALETTE[k];
   if (kind === 'globule') ball(out, 0, 0, 0, 1.2, 9 + Math.floor(rnd() * 6), 0.8, P('violet'), rnd);
@@ -198,6 +205,7 @@ export function beadTemplate(kind, seed = 1, pal = null) {
     for (let k = 0; k < 7; k++) walk(out, (rnd() - 0.5) * 6, (rnd() - 0.5) * 6, (rnd() - 0.5) * 6, 26, 1.3, 0.75, P('olive'), rnd);
     for (let k = 0; k < 6; k++) ball(out, (rnd() - 0.5) * 14, (rnd() - 0.5) * 14, (rnd() - 0.5) * 14, 2.4, 14, 1.0, k % 2 ? P('olive') : ['#7d6a3c', '#a77d52'], rnd);
   } else throw new Error(`unknown bead kind ${kind}`);
+  DETAIL = 1;
   return out;
 }
 
@@ -273,10 +281,10 @@ export function beadMesh(template, count, { material, dynamic = false } = {}) {
  * A bath of molecules round a centre (see beadMaterial's `bath`). specs: [{ kind, n, s: [min, max], pal?, seed? }],
  * opts: { half, jitter, spin, keepR, scale }. Returns { group, material, meshes, setCenter(v), setLevel(0..2) }.
  */
-export function createBath(specs, { half = 120, jitter = 0.8, spin = 0.35, keepR = 30, scale = 1, seed = 1, sat = 1 } = {}) {
+export function createBath(specs, { half = 120, jitter = 0.8, spin = 0.35, keepR = 30, inner = 0, scale = 1, seed = 1, sat = 1, detail = 1 } = {}) {
   const material = beadMaterial({ bath: true, sat });
   const u = material.uniforms;
-  u.uHalf.value = half; u.uJit.value = jitter; u.uSpin.value = spin; u.uKeepR.value = keepR;
+  u.uHalf.value = half; u.uJit.value = jitter; u.uSpin.value = spin; u.uKeepR.value = keepR; u.uInner.value = inner;
   const group = new THREE.Group();
   const rnd = rng(seed * 31 + 7);
   const meshes = [];
@@ -285,7 +293,7 @@ export function createBath(specs, { half = 120, jitter = 0.8, spin = 0.35, keepR
     const variants = sp.variants || 3;
     const per = Math.ceil(sp.n / variants);
     for (let vi = 0; vi < variants; vi++) {
-      const m = beadMesh(beadTemplate(sp.kind, (sp.seed || 1) * 13 + vi * 101 + k, sp.pal || null), per, { material });
+      const m = beadMesh(beadTemplate(sp.kind, (sp.seed || 1) * 13 + vi * 101 + k, sp.pal || null, detail), per, { material });
       for (let i = 0; i < per; i++) {
         p.set((rnd() * 2 - 1) * half, (rnd() * 2 - 1) * half, (rnd() * 2 - 1) * half);
         q.setFromEuler(e.set(rnd() * 6.3, rnd() * 6.3, rnd() * 6.3));
@@ -298,7 +306,7 @@ export function createBath(specs, { half = 120, jitter = 0.8, spin = 0.35, keepR
     }
   });
   return {
-    group, material, meshes, uniforms: u,
+    group, material, meshes, uniforms: u, jit0: jitter,
     setCenter(v) { u.uCenter.value.copy(v); },
     /** Quality: 2 all, 1 three quarters, 0 half of each species. */
     setLevel(level) { const f = level >= 2 ? 1 : level === 1 ? 0.75 : 0.5; for (const m of meshes) m.setCount(Math.round(m.full * f)); },

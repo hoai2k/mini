@@ -135,8 +135,12 @@ const isHungry = (h) => (pacing.cycles ? h.hungry : h.state !== 'grace');
 const hungerText = (h) => (h.state === 'grace' ? `calm ${Math.ceil(h.left)} s` : !pacing.cycles ? 'hungry' : h.state === 'hungry' ? `hungry ${Math.ceil(h.left)} s` : `resting ${Math.ceil(h.left)} s`);
 // Delivered art, with procedural stand-ins until it arrives.
 const plates = { darkfield: standInPlate('darkfield'), phase: standInPlate('phase') };
-loadTexture('MP-P01', { srgb: false }).then((t) => { if (t) plates.darkfield = t; });
-loadTexture('MP-P02', { srgb: false }).then((t) => { if (t) plates.phase = t; });
+// The seamless tiles (MP-P04, MP-P05, requested) replace the plates when delivered: the plates' edges show as seams.
+const tiled = { darkfield: false, phase: false };
+loadTexture('MP-P01', { srgb: false }).then((t) => { if (t && !tiled.darkfield) plates.darkfield = t; });
+loadTexture('MP-P02', { srgb: false }).then((t) => { if (t && !tiled.phase) plates.phase = t; });
+loadTexture('MP-P04', { srgb: false }).then((t) => { if (t) { tiled.darkfield = true; plates.darkfield = t; } });
+loadTexture('MP-P05', { srgb: false }).then((t) => { if (t) { tiled.phase = true; plates.phase = t; } });
 const pellicleTex = { tex: null };
 loadTexture('MP-P03', { srgb: false }).then((t) => {
   if (!t) return;
@@ -153,12 +157,13 @@ const OBJECTIVES = [ // field of view (FN 18) and a labelled, exaggerated depth 
   { name: '40×', field: 450, dof: [9, 45] },
 ];
 const DOFS = { strong: 'Strong (only your layer sharp)', mild: 'Mild', off: 'Off' };
-const PLATES = { dim: 'Dimmed and blurred', full: 'Full', off: 'Off' };
-const START_ORBIT = { yaw: 0, pitch: -0.25 }; // look down toward the biofilm, up and right
+const PLATES = { rich: 'Rich (softened)', dim: 'Dimmed and blurred', full: 'Full', off: 'Off' };
+const PLATE_MIX = { rich: [0.8, 1.2], dim: [0.3, 3.5], full: [1, 0], off: [0, 0] }; // [mix, mip blur]
+const START_ORBIT = { yaw: 0, pitch: -0.5 }; // from behind and above, so the slipper reads in outline (not end-on); still behind the heading
 const view = {
   fieldStop: true, smoothHelix: true, mode: 0, kind: 'chase', obj: 1, dist: 120 + 310 * (LENGTH / 230), orbitYaw: START_ORBIT.yaw, orbitPitch: START_ORBIT.pitch,
   stage: new THREE.Vector2(), camAxis: new THREE.Vector3().copy(swimmer.state.axis), camYaw: swimmer.state.yaw, camPitch: 0,
-  focusY: swimmer.state.axis.y, scopeYaw: swimmer.state.yaw, turnView: true, lead: new THREE.Vector3(), dof: 'mild', plate: 'dim',
+  focusY: swimmer.state.axis.y, scopeYaw: swimmer.state.yaw, turnView: true, lead: new THREE.Vector3(), dof: 'mild', plate: 'rich',
   focusPull: 0, focusPullY: 0, // a contact pulls fine focus to what you touched, briefly
   lookHold: 0, // hold manual RS framing briefly before following the body
   pull: 0, // being eaten: 0..1, the camera pulls back to frame the hunter
@@ -307,8 +312,8 @@ features.add({ id: 'species', group: 'Body', label: 'Species (reloads)', choices
   about: 'P. bursaria (85–150 µm, S27), the Level 3 protagonist: plump, green with several hundred symbiotic Chlorella 5–6 µm across, gathers on the lit side. P. caudatum (200–260 µm, S07): larger and colourless, no symbionts and no light meter.',
   onChange: (v) => { if (v !== SP.name) setTimeout(() => location.reload(), 60); } });
 // Optics
-features.add({ id: 'look', group: 'Optics', label: 'Microscope technique (D-pad ←→)', choices: MODES.map((m) => MODE_NAMES[m]), value: MODE_NAMES.brightfield,
-  about: 'How the image is formed from the optical-path, scatter and absorption buffers: darkfield (zero order removed), positive phase contrast (dark where the path is long), brightfield (absorption plus a defocus term: the default, because the green Chlorella make P. bursaria the clearest thing in the field), DIC (shear derivative of the path) or a hypothetical lit view.',
+features.add({ id: 'look', group: 'Optics', label: 'Microscope technique (D-pad ←→)', choices: MODES.map((m) => MODE_NAMES[m]), value: MODE_NAMES.darkfield,
+  about: 'How the image is formed from the optical-path, scatter and absorption buffers: darkfield (zero order removed: the default again, as in the first prototype, with the habitat plate behind the glittering pond water), positive phase contrast (dark where the path is long), brightfield (absorption plus a defocus term: the green Chlorella make P. bursaria stand out on the pale field), DIC (shear derivative of the path) or a hypothetical lit view.',
   onChange: (v) => { view.mode = MODES.findIndex((m) => MODE_NAMES[m] === v); } });
 features.add({ id: 'view', group: 'Optics', label: 'Camera (Y)', choices: [VIEW_NAMES.chase, VIEW_NAMES.scope], value: VIEW_NAMES.chase,
   about: 'Chase (default, as before the readability rework): a hypothetical camera in the water that follows the helix axis. LS drives and turns relative to the view; RS orbits and aims swimming, then the camera eases behind you when released. Microscope: orthographic and top-down; the stage keeps your cell centred, a little behind the direction you swim, fine focus tracks your depth and jumps to anything you touch.',
@@ -322,9 +327,9 @@ features.add({ id: 'objective', group: 'Optics', label: 'Objective (D-pad ↑↓
 features.add({ id: 'dof', group: 'Optics', label: 'Depth of field (microscope)', choices: Object.values(DOFS), value: DOFS.mild,
   about: 'Each fragment is split between a sharp and a defocused layer by its distance from the focal plane. Mild (default): about 35 µm sharp at 20×, so whatever you can bump into is visible; touching something pulls focus to it. Strong: only the layer you swim in is crisp (16 µm, fully blurred by 75 µm) and far layers fade. Off: everything sharp.',
   onChange: (v) => { view.dof = Object.keys(DOFS).find((k) => DOFS[k] === v) || 'mild'; shared.uDofOn.value = view.dof === 'off' ? 0 : 1; } });
-features.add({ id: 'plate', group: 'Optics', label: 'Background habitat plate', choices: Object.values(PLATES), value: PLATES.dim,
-  about: 'The pond photograph behind the scene in darkfield and phase (MP-P01, MP-P02). Dimmed and blurred (default) keeps it from competing with your cell; Full is the plate as delivered.',
-  onChange: (v) => { view.plate = Object.keys(PLATES).find((k) => PLATES[k] === v) || 'dim'; T.plate.value = view.plate === 'off' ? 0 : 1; } });
+features.add({ id: 'plate', group: 'Optics', label: 'Background habitat plate', choices: Object.values(PLATES), value: PLATES.rich,
+  about: 'The pond photograph behind the scene in darkfield and phase (MP-P01, MP-P02). Rich (default): most of the plate, slightly softened, as the first prototype showed it (it used the plate in full); Dimmed and blurred keeps it well back; Full is the plate as delivered.',
+  onChange: (v) => { view.plate = Object.keys(PLATES).find((k) => PLATES[k] === v) || 'rich'; T.plate.value = view.plate === 'off' ? 0 : 1; } });
 features.add({ id: 'halo', group: 'Optics', label: 'Phase halo and shade-off', on: true,
   about: 'A real phase ring leaks low spatial frequencies back into the image: φ − 0.82·blur(φ). That gives the bright halo round dark objects and the lighter centres of large ones. Off: an ideal phase plate.', onChange: sw(T.halo) });
 features.add({ id: 'tie', group: 'Optics', label: 'Brightfield defocus contrast', on: true,
@@ -375,10 +380,12 @@ features.add({ id: 'nuclei', group: 'Body', label: 'Macronucleus and micronucleu
 // Motion
 features.add({ id: 'lowre', group: 'Motion', label: 'Low Reynolds number (no coasting)', on: true,
   about: 'Speed follows the ciliary beat with a 35 ms lag, so the cell stops when the movement stick is released. Off: a 1.4 s glide, like a fish; physically wrong at this scale, here for comparison.', onChange: (on) => { swimmer.opts.lowRe = on; } });
-features.add({ id: 'helix', group: 'Motion', label: 'Helical path and roll', on: true,
-  about: 'A left-handed helix (radius and pitch scaled from the 29 µm and 850 µm measured in P. caudatum), one roll per turn, oral side toward the axis. Off: straight, with a slow roll.', onChange: (on) => { swimmer.opts.helix = on; } });
-features.add({ id: 'smooth', group: 'Motion', label: 'Camera follows the helix axis', on: true,
-  about: 'Both cameras track the helix axis and travel heading rather than the wobbling body, so the view stays calm while the cell itself corkscrews. Off: they follow the body itself.', onChange: (on) => { view.smoothHelix = on; } });
+features.add({ id: 'helix', group: 'Motion', label: 'Roll about the long axis', on: true,
+  about: 'The oblique ciliary stroke rolls the cell to the left about its own long axis, through the centre of the body: here a gentle 0.45 turns a second at full speed (real cells roll about once per helix turn, faster), and none at rest. Off: no roll.', onChange: (on) => { swimmer.opts.helix = on; } });
+features.add({ id: 'corkscrew', group: 'Motion', label: 'Corkscrew path (the real helix)', on: false,
+  about: 'The real left-handed helix: radius and pitch scaled from the 29 µm and 850 µm measured in P. caudatum, one roll per turn, the long axis tilted along the path. The body then orbits an axis beside it, which read as spinning round an off-centre axis, so it is off by default.', onChange: (on) => { swimmer.opts.corkscrew = on; } });
+features.add({ id: 'smooth', group: 'Motion', label: 'Camera follows the helix axis (corkscrew)', on: true,
+  about: 'With the corkscrew on, both cameras track the helix axis and travel heading rather than the wobbling body. Without it the axis is the body\'s centre. Off: they follow the body itself.', onChange: (on) => { view.smoothHelix = on; } });
 features.add({ id: 'beat', group: 'Motion', label: 'Ciliary beat rate', choices: ['Slowed (readable)', 'Real (15–35 Hz)'], value: 'Slowed (readable)',
   about: 'Real cilia beat 15–35 Hz, faster than a 60 Hz display can show without aliasing; the slowed rate lets the strokes and waves be followed.', onChange: (v) => { swimmer.opts.beatScale = v.startsWith('Real') ? 4.5 : 1; } });
 features.add({ id: 'dash', group: 'Motion', label: 'Dash (A): ciliary sprint', fixed: true,
@@ -413,7 +420,7 @@ features.add({ id: 'hunger', group: 'World', label: 'Hunger comes and goes', on:
   about: 'After the calm opening each hunter is hungry for 18–32 s (the amoeba 25–40 s), then rests: 45–75 s after a meal, 15–30 s after a miss (trichocysts drive it off, or it gives up). Only a hungry hunter hunts; the HUD shows each one\'s state. Off: once the opening is over they hunt all the time (the old pacing).',
   onChange: (on) => { pacing.cycles = on; } });
 features.add({ id: 'vort', group: 'World', label: 'Vorticella stalk contraction', on: true, about: 'Touch a Vorticella and its stalk coils in one frame (really milliseconds), then re-extends over about 3 s (S10, S11).', onChange: (on) => { world.opts.vortContract = on; } });
-features.add({ id: 'scenery', group: 'World', label: 'Spirogyra, detritus, diatoms, prey', fixed: true, about: 'Three Spirogyra filaments, sparse flakes and sediment, Pinnularia and Fragilaria, bacterial clumps and Chilomonas (which jumps away with its ejectisomes when you come close).' });
+features.add({ id: 'scenery', group: 'World', label: 'Spirogyra, detritus, diatoms, prey', fixed: true, about: 'Five Spirogyra filaments, flakes, suspended flocs, specks and sediment everywhere (ambient.js, repeated round each view), Pinnularia and Fragilaria along the route, thirteen Vorticella in two colonies, bacterial clumps and Chilomonas (which jumps away with its ejectisomes when you come close).' });
 // Borrowed (default off).
 const looks = createBorrowedLooks(renderer);
 const borrow = borrowedSwitches(features);
@@ -1321,7 +1328,7 @@ function frame(now) {
       mode: view.mode, stop: view.kind === 'scope' && view.fieldStop && !many, plate,
       plateOff: new THREE.Vector2(cam.position.x / pf, -cam.position.z / pf),
       blurScale: view.kind === 'scope' ? (view.dof === 'strong' ? 1.6 : 1) : 1.2,
-      plateMix: view.plate === 'full' ? 1 : 0.3, plateBlur: view.plate === 'full' ? 0 : 3.5,
+      plateMix: PLATE_MIX[view.plate][0], plateBlur: PLATE_MIX[view.plate][1],
       plateRot: view.kind === 'scope' ? view.scopeYaw - Math.PI / 2 : 0,
       bfSoft: 1,
     };

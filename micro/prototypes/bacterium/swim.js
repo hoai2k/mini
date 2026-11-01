@@ -1,10 +1,13 @@
 // The player's cell at low Reynolds number. By default the stick steers it
 // (a labelled game assist: a real bacterium cannot steer): while LS is held
 // the body turns toward the stick at a finite rate and swims at a speed set by
-// the stick. Let go and the cell is at the mercy of its world: it keeps
-// running while rotational and translational Brownian motion, flow, grazers'
-// currents and the magnetic torque push it about. B still tumbles into a new,
-// random direction. The honest mode (no steering) is plain run and tumble.
+// the tilt, from a slow drift to a full run. Let go and the motors stop: the
+// cell stops dead (no coasting at low Reynolds number) and only Brownian
+// motion, flow and the magnetic torque move it. Its flagella and body turn
+// with its speed: fast in a run, slowing as it slows, still when stopped. With
+// kin around, collective.js steers it as one member of the flock (the stick
+// sets the flock's heading and speed). B still tumbles into a new, random
+// direction. The honest mode (no steering) is plain run and tumble.
 import { oxygen, gauss, rng, tumbleAngle, WORLD, START } from './world.js';
 
 // Two protagonists. Numbers and their sources are in README.md.
@@ -111,15 +114,14 @@ export function createSwimmer(world) {
   }
 
   // Steering (the assist): max body turn rate (rad/s) and the gain toward the stick.
-  const STEER = { maxTurn: 5.5, gain: 7, rotNoise: 0.35, transNoise: 0.55, magnet: 0.6, cruise: 0.7 };
+  const STEER = { maxTurn: 5.5, gain: 7, rotNoise: 0.35, transNoise: 0.55, magnet: 0.6 };
 
   function step(dt, t, inp, ev) {
     const sp = s.sp;
     // inp.steer: {x, y, m} in world axes (y up), m 0..1; absent or m 0 = released
     const st = inp.steer;
-    const steering = !!(opts.steer && st && st.m > 0.15 && s.mode === 'run' && !s.boring && !s.inside && s.alive);
+    const steering = !!(opts.steer && st && st.m > 0.04 && s.mode === 'run' && !s.boring && !s.inside && s.alive);
     s.steering = steering;
-    s.flPhase += dt * 20 * opts.beat;
     if (!s.alive) { s.overT += dt; s.speed = 0; return; }
     const sq = Math.sqrt(dt);
     // the motor: always running except while tumbling (low Reynolds number: speed follows thrust at once)
@@ -131,15 +133,20 @@ export function createSwimmer(world) {
       s.a = s.tumbleFrom + (s.tumbleTo - s.tumbleFrom) * e;
       if (s.tumbleT <= 0) { s.mode = 'run'; s.flick = 0; }
     } else if (s.mode === 'run') {
-      // steering: speed from the stick; released: keeps running at cruise speed (the honest mode: full speed)
-      const k = steering ? 0.35 + 0.65 * Math.min(1, st.m) : opts.steer ? STEER.cruise : 1;
+      // steering: speed from the tilt (0 .. 1, a little more to catch up with the flock); released: the motors stop
+      // (the honest and tumble-bias modes run at full speed, as a real cell does)
+      const k = steering ? Math.min(1.2, st.m) : opts.steer ? 0 : 1;
       thrust = inp.dashActive ? sp.dash : sp.v * k;
     }
     if (s.boring || s.inside) thrust = 0;
     // in the EPS of the biofilm everything is slower (a viscous, polymer-rich matrix)
     const inFilm = s.y < world.surfaceY(s.x) + 1;
     if (inFilm) thrust *= 0.45;
+    // inside the amoeba's cytoplasm a cell hardly moves (it is being engulfed)
+    if (world.insideAmoeba(s.x, s.y, t) > 0) thrust *= 0.35;
+    // the body and flagella turn with the motor: fast in a run, slowing as it slows, still when stopped
     s.bodyPhase += dt * (thrust / 1.6) * 6.28 * 0.5;
+    s.flPhase += dt * 20 * opts.beat * Math.min(2.2, thrust / sp.v);
 
     // rotational Brownian motion: σ = √(2 D_r dt)
     // (reduced but still visible while steering, so the cell still jitters like a microbe)

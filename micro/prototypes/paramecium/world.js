@@ -3,8 +3,10 @@
 // sediment on the slide, dust on the underside of the coverslip, and the
 // meniscus at the rim, so nothing stops the cell without a visible reason. Spirogyra filaments cross
 // it, detritus flakes float and settle, three Vorticella feed on a flake,
-// diatoms sit on the bottom and bacteria drift in a gentle flow. Kept sparse
-// so the player's cell is the clearest thing in the field.
+// diatoms sit on the bottom and bacteria drift in a gentle flow. The water
+// itself is full again, as in the first prototype (ambient.js: flocs, specks,
+// small flakes and sediment repeated round each view), and the set pieces are
+// spread along the route so the long swim never crosses empty water.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { buildSdfMesh, sd } from '../shared/sdf.js';
 import { volumeMaterial, sheetMaterial, pointsMaterial } from './optics.js';
@@ -12,6 +14,7 @@ import { createStrands, KIND } from './strands.js';
 import { rng, closedTube, axisRef, yAxisRef, segSeg, closestOnSeg, noise3 } from './geom.js';
 import { squirmerFlow, sink } from '../shared/techniques/paramecium-squirmer.js';
 import { routePoint } from './landmarks.js';
+import { createAmbient } from './ambient.js';
 
 // A broad wet mount (about 10 mm across under a 22 mm coverslip), so the route
 // from the start to the biofilm (landmarks.js ROUTE_LEN) fits with room round it.
@@ -195,6 +198,10 @@ export function createWorld(scene) {
     [[-1800, 470, 800], [-400, 500, 660], [700, 460, 500], [1900, 430, 580]],
     [[1100, 90, -1900], [900, 110, -500], [1020, 120, 600], [800, 100, 1900]],
   ];
+  // two more crossing the route further on (the long drop's calm half was bare)
+  for (const [u, y0, y1] of [[1500, 380, 210], [2050, 140, 540]]) {
+    filaments.push([-1500, -500, 500, 1500].map((sd, k) => { const p = routePoint(u + (k - 1.5) * 90, sd, 0); return [p.x, k < 2 ? y0 : y1, p.z]; }));
+  }
   for (const pts of filaments) spirogyra(group, new THREE.CatmullRomCurve3(pts.map(([x, y, z]) => new THREE.Vector3(x, y * YS, z))), rand, obstacles);
 
   // --- Detritus ---
@@ -217,6 +224,10 @@ export function createWorld(scene) {
   const vFlake = new THREE.Matrix4().compose(new THREE.Vector3(560, 30, 330), new THREE.Quaternion().setFromEuler(new THREE.Euler(0.1, 0.4, -0.05)), new THREE.Vector3(150, 150, 150));
   flakeLists[0].push(vFlake);
   flakes.push({ m: vFlake, size: 150 });
+  const v2Pos = routePoint(1250, -260, 30);
+  const vFlake2 = new THREE.Matrix4().compose(v2Pos, new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.08, 1.9, 0.06)), new THREE.Vector3(130, 130, 130));
+  flakeLists[1].push(vFlake2);
+  flakes.push({ m: vFlake2, size: 130 });
   flakeLists.forEach((list, k) => {
     const im = new THREE.InstancedMesh(flakeGeos[k], flakeMat, list.length);
     list.forEach((m, i) => im.setMatrixAt(i, m));
@@ -267,6 +278,10 @@ export function createWorld(scene) {
   const dMat = volumeMaterial({ dn: 0.034, scatter: 1.7, absorb: [0.0035, 0.0075, 0.02], pattern: 2, rimPow: 2.2 });
   const pinGeo = pinnulariaGeometry(), fraGeo = fragilariaGeometry();
   const diatomSpots = [[-220, 7, 260, 0.6, pinGeo], [140, 7, -340, 2.0, pinGeo], [-560, 7, -120, -0.4, pinGeo], [-90, 9, -60, 1.1, fraGeo], [560, 9, -380, 0.3, fraGeo]];
+  for (let k = 0; k < 14; k++) {
+    const p = routePoint(300 + k * 300 + rand() * 150, (rand() - 0.5) * 900, 0);
+    diatomSpots.push([p.x, rand() < 0.5 ? 7 : 9, p.z, rand() * 6.28, rand() < 0.65 ? pinGeo : fraGeo]);
+  }
   for (const [x, y, z, rot, g] of diatomSpots) {
     const m = new THREE.Mesh(g, dMat);
     m.position.set(x, y, z);
@@ -284,9 +299,11 @@ export function createWorld(scene) {
   const vMacroMat = volumeMaterial({ dn: 0.018, scatter: 0.5, centred: true });
   const vorticellas = [];
   const stalkItems = [];
-  const anchorC = new THREE.Vector3(560, 30 + 22, 330);
-  for (let i = 0; i < 3; i++) {
-    const a = (i / 3) * Math.PI * 2 + rand() * 0.5;
+  const colonies = [[new THREE.Vector3(560, 30 + 22, 330), 8], [v2Pos.clone().setY(30 + 19), 5]];
+  for (let i = 0; i < 13; i++) {
+    const [anchorC, nc] = i < 8 ? colonies[0] : colonies[1];
+    const ii = i < 8 ? i : i - 8;
+    const a = (ii / nc) * Math.PI * 2 + rand() * 0.5;
     const anchor = anchorC.clone().add(new THREE.Vector3(Math.cos(a) * (20 + rand() * 40), 0, Math.sin(a) * (20 + rand() * 40)));
     const dir = new THREE.Vector3(Math.cos(a) * 0.55, 1, Math.sin(a) * 0.55).add(new THREE.Vector3(rand() - 0.5, 0, rand() - 0.5).multiplyScalar(0.5)).normalize();
     const perp = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0.3, 0.1, 1).normalize()).normalize();
@@ -393,6 +410,9 @@ export function createWorld(scene) {
       state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3(), home: home.clone(), homeR: 380, tipLen: 160, speedK: 0.62, radius: 45 });
   }
 
+  // --- the water's texture, repeated round every view ---
+  const ambient = createAmbient(group, { tile: 1500, depth: DEPTH });
+
   // --- Bacteria ---
   const NB = 2400, BOX = 700;
   const bPos = new Float32Array(NB * 4), bP = new Float32Array(NB * 4), bVel = new Float32Array(NB * 3), bT = new Float32Array(NB);
@@ -473,7 +493,7 @@ export function createWorld(scene) {
   }
 
   const api = {
-    group, obstacles, opts, vorticellas, didinia, diatoms, bacteria, flowAt, collide, touchVorticella, DEPTH, DROP_R,
+    group, obstacles, opts, vorticellas, ambient, didinia, diatoms, bacteria, flowAt, collide, touchVorticella, DEPTH, DROP_R,
     bacteriaCount: NB,
     /**
      * @param {number} dt
@@ -490,6 +510,7 @@ export function createWorld(scene) {
       for (const p of list) { mx += p.center.x; mz += p.center.z; }
       mx /= list.length; mz /= list.length;
       const eatenBy = list.map(() => 0);
+      ambient.update(t);
       // Vorticella
       const sp = stalks.attrs.iP.array;
       vorticellas.forEach((v, i) => {

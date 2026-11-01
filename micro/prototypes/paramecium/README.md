@@ -90,7 +90,7 @@ that side, and release stops active propulsion. The resting camera framing
 does not pitch the creature into the floor. RS orbits the camera and helps aim
 swimming; after release a 0.45 s hold lets the view settle before it eases
 behind the creature’s heading. LB/RB still dive/rise. The camera follows the
-helix axis, without following the body’s roll. In microscope view LS also
+body's centre, without following its roll (see *Look and roll* below). In microscope view LS also
 propels and aims relative to the stage; RS moves the stage.
 
 This uses the camera-relative movement idea in Cambrian’s
@@ -206,6 +206,89 @@ Test hooks: `__micro.players`, `__micro.split`, `__micro.roster()`,
 `__micro.landmarks` (positions, the log of fired landmarks, `near`),
 `debug.teleport(x, y, z, yaw, pitch, slot)`, `forceCapture(kind, slot)`.
 
+## Look and roll (2026-11-01)
+
+The owner: "I feel like the original prototype looked better … a richer
+environmental feel", "as I move I feel the creature spinning around a
+non-centered axis", and "he looks like a collection of green spheres instead
+of like a creature".
+
+**What made the first prototype richer** (`ef1407e1`, rendered side by side
+with today's from the same viewpoints):
+
+- **Darkfield by default, with the habitat plate in full** (MP-P01: Spirogyra,
+  golden detritus and a Vorticella cluster glowing on black). The readability
+  rework switched to brightfield, which shows no plate, and dimmed the plate to
+  30 % behind a mip blur in darkfield and phase.
+- **Density.** The drop was 3 mm across with 70 flakes, 2200 sediment specks,
+  eight Vorticella, four Spirogyra and 7000 bacteria. The route needs a 10 mm
+  drop (eleven times the area), and its 90 flakes, 3200 specks, three
+  Vorticella and three Spirogyra spread over it left most of the water empty:
+  per square millimetre, about a ninth of the flakes and an eighth of the
+  sediment. No performance pass thinned it; the scene was spread thin.
+
+**What is restored:**
+
+- Darkfield is the default again, and the plate shows at 80 % with a light
+  softening (Features: *Rich*, the default; *Dimmed*, *Full* and *Off* stay).
+  The saved-settings key moves to `paramecium.v4` so the new defaults apply.
+- **The water's texture everywhere** (`ambient.js`): 300 suspended flocs (loose
+  clusters of granules, 15–60 µm), 2600 fine specks, a clumped sediment carpet
+  and 150 small flakes (8–28 µm), laid out in a 1.5 mm tile that each view's
+  vertex shader repeats round the point it looks at, so the density is the
+  same everywhere at the cost of one tile. The suspended matter drifts with the
+  ambient flow. All of it is smaller than anything solid (flakes under 30 µm
+  never blocked the cell), so it is texture to swim through.
+- **Set pieces along the route:** thirteen Vorticella (the original eight on
+  the start flake, five more on a second flake at 1250 µm), two more Spirogyra
+  crossing the route at about 1500 and 2050 µm, and fourteen more diatoms along
+  the way.
+- The plates' edges are not seamless and show as straight seams; seamless
+  tiles are requested (MP-P04, MP-P05) and replace them when delivered.
+
+**Why it spun round an off-centre axis.** The swimmer put the body on a
+left-handed helix (`helixPose`): its centre sat 15 µm (the 29 µm caudatum
+radius, scaled) off the helix axis and went round it once per roll, 2.5 times
+a second at full speed (0.25 even at rest), with the long axis tilted 12° along
+the path. The cameras follow the helix axis, not the body. So on screen the
+body circled a point beside it, rolling and sweeping a cone: a spin about an
+axis that was not its own. (The mesh is fine: its centroid is within 1.5 µm of
+the origin it rolls about.)
+
+**The fix** (`swim.js`): by default the body is not carried round a helix.
+It rolls about its own long axis, through its centre, at 0.45 turns a second at
+full speed and not at all at rest, and the camera follows that centre. The real
+helix is kept as a switch (Features → Motion → *Corkscrew path*, off). A
+scripted straight swim at 1.4 mm/s (`spin.mjs` in the session scratchpad,
+recorded here):
+
+| | before | after |
+| --- | --- | --- |
+| body centre's lateral wobble (max, from the local chord) | 28.5 µm (0.24 body lengths) | 0 µm |
+| centre to the point the camera follows | 15.1 µm | 0 µm |
+| long axis off the heading (max) | 12.0° | 0° |
+| roll | 2.53 turns/s | 0.45 turns/s |
+
+**One creature, not green beads.** The 520 *Chlorella* rode a cyclosis loop
+sized like a box (loop half-widths 22 µm up and 23 µm across against a body
+22 µm deep and tapering to the poles), so many sat outside the body near the
+ends and their dark-green discs drew the cell's outline themselves; the body
+was nearly colourless and its edge faint. Now (`cell.js`):
+
+- the **pellicle** is a thin shell over the body mesh whose path grows toward
+  the silhouette, giving the continuous, crisp outline of the reference sheet
+  (MP-R `paramecium-bursaria.webp`) in every look;
+- the **cytoplasm** carries a faint yellow-green cast, so the cell reads as one
+  green body;
+- the ***Chlorella*** (760, drawn 4–5 µm, real 3–5 µm) stream in their own
+  shader that keeps every one inside the body's real outline (`radiusAt`,
+  mirrored in GLSL), mostly in the outer half, so the middle (macronucleus,
+  food vacuoles, contractile vacuoles with their canals) stays clearer, as in
+  the reference; their pigment is weaker so they are texture inside the cell,
+  not its shape;
+- the **chase camera** rests a little higher (pitch −0.5 from −0.25), so the
+  slipper is seen in outline from behind and above rather than end-on.
+
 ## What changed after the owner's feedback
 
 "It moves too slow, you often get blocked and it's not clear why; remove the
@@ -262,14 +345,14 @@ circle indicators round your creature; the previous feel was good." So:
 
 ## Playing
 
-- **Where you are:** the default view is the chase camera (brightfield): a
-  hypothetical camera in the water behind your cell, following the helix
-  axis, so the corkscrew wobble stays on the cell. LS yaws and pitches; RS
+- **Where you are:** the default view is the chase camera (darkfield): a
+  hypothetical camera in the water behind and above your cell, following its
+  centre. LS yaws and pitches; RS
   orbits. Y switches to the microscope (20×, 0.9 mm field), top-down, with
   the stage keeping your cell centred; that view turns slowly with your
   heading so you swim up the screen, never rolls, and holds still while you
-  steer sideways. Nothing is drawn round your cell: the green *Chlorella*
-  make it the clearest thing in the field.
+  steer sideways. Nothing is drawn round your cell: its bright pellicle outline
+  and green *Chlorella* make it the clearest thing in the field.
 - **Bumping into things:** you glance off and slide along whatever you
   touch (filaments, flakes, the slide, the coverslip, the meniscus at the
   rim). A puff of specks marks the contact, the cell recoils a little and
@@ -388,7 +471,14 @@ prey, food vacuoles and bacteria eaten, the meters, and the nearest hunter.
 
 ```bash
 node micro/prototypes/check.mjs paramecium
+node micro/game/check.mjs
+node micro/tools/perf/measure.mjs paramecium 1   # and 4
 ```
+
+The roll check (a straight swim at full speed, the centre's lateral wobble
+against the local chord, the centre to the followed axis, the long axis to the
+heading) is recorded under *Look and roll*; its numbers must stay at 0 with
+the corkscrew off.
 
 It must pass with no console errors. The page exposes `window.__micro`
 (`scene`, `camera`, `renderer`, `cell`, `world`, `swimmer`, `encounters`,
@@ -413,9 +503,12 @@ an eighth of the field. *P. caudatum* (230 µm, S07) is a Features choice
   *P. caudatum* has a blunt anterior and a conical posterior. The **oral
   groove** is carved by a chain of tapered capsules that twists from the
   anterior left down to the ventral midline, ending in a buccal pocket.
-- **Chlorella** (*P. bursaria*): 520 green algae 5–6 µm across fill the
-  cytoplasm and ride the cyclosis; chlorophyll absorbs red and blue, so the
-  cell is green in brightfield and darkfield (S27).
+- **Pellicle outline:** a thin shell over the body (path ∝ thickness / cos),
+  the crisp continuous edge of the micrographs.
+- **Chlorella** (*P. bursaria*): 760 green algae drawn 4–5 µm across stream
+  inside the cortex, always within the body's outline (their own shader); with
+  the faint green of the cytoplasm, chlorophyll makes the cell green in
+  brightfield and darkfield (S27).
 - **Cilia:** about 2200 (*bursaria*) or 4600 (*caudatum*) on 90–100 kineties,
   10 µm long, as instanced ribbons beating in the vertex shader: a straight
   power stroke toward the posterior and obliquely to the right (which rolls
@@ -440,9 +533,11 @@ an eighth of the field. *P. caudatum* (230 µm, S07) is a Features choice
   eddies) still carries you. Top speed 1400 µm/s for both species, as
   before the readability rework (*P. caudatum* measured 1–1.5 mm/s; for the
   smaller *P. bursaria*, ≈12 body lengths/s, it is a stretch).
-- **Helix:** left-handed, one roll per turn, oral side toward the axis, body
-  tilted along the path. Radius 29 µm and pitch 850 µm as measured in
-  *P. caudatum*, scaled down for the smaller *P. bursaria*.
+- **Roll:** about the body's own long axis, through its centre, 0.45 turns a
+  second at full speed, none at rest. **Corkscrew** (Features, off): the real
+  left-handed helix, one roll per turn, oral side toward the axis, body tilted
+  along the path; radius 29 µm and pitch 850 µm as measured in *P. caudatum*,
+  scaled down for *P. bursaria*.
 - **Steering** comes from asymmetric beating; turn rate 1.7–3.2 rad/s
   (microscope view 2.4–4.5 rad/s).
 - **Dash (A):** every cilium beats hard: a pivot of up to 80° toward the
@@ -465,16 +560,20 @@ an eighth of the field. *P. caudatum* (230 µm, S07) is a Features choice
 
 ## The scene
 
-Kept sparse so your cell is the clearest thing in the field.
+Full pond water again (see *Look and roll*), with your cell's outline the
+clearest thing in the field.
 
 - A wet mount 3 mm across and 650 µm deep (slide at y = 0, coverslip above).
   The boundaries are drawn: sediment on the slide, 700 dust specks on the
   underside of the coverslip, and the meniscus at the rim as a refractile
   wall (Δn 0.33, the air-water step).
-- **Spirogyra:** three filaments 42 µm thick at different depths, with cross
+- **Pond water** (`ambient.js`): flocs, specks, small flakes and sediment
+  repeated round each view in a 1.5 mm tile, drifting with the flow.
+- **Spirogyra:** five filaments 42 µm thick at different depths, with cross
   walls, helical serrated chloroplasts, pyrenoids and nuclei.
 - **Detritus:** 35 flakes, half settled on the slide, plus 900 sediment specks.
-- **Vorticella:** three on a flake, each an inverted bell on a contractile
+- **Vorticella:** eight on a flake near the start and five on another at
+  1250 µm along the route, each an inverted bell on a contractile
   stalk; touch one and the stalk coils in one frame, re-extending over about
   3 s (S10, S11). Their peristome currents feed on the bacteria too.
 - **Diatoms:** *Pinnularia*-type pennates that glide slowly, and two
@@ -589,15 +688,17 @@ sensor noise, and the round eyepiece field stop in the microscope view.
 
 Legibility, so your cell is the clearest thing on screen:
 
-- **Brightfield is the default:** the green *Chlorella* make *P. bursaria*
-  stand out on the pale field, while colourless hunters and the amoeba read
-  as grey. Phase contrast was tried as the default too; its grey field and
-  halos made the green cell no clearer and the plate busier.
+- **Darkfield is the default** again (it was the first prototype's, and the
+  owner preferred it): the habitat plate and the glittering water behind, your
+  cell's bright pellicle outline and green interior in front. Brightfield
+  (D-pad) keeps the green cell on the pale field, colourless hunters grey.
+  Phase contrast was tried as the default too; its grey field and halos made
+  the green cell no clearer and the plate busier.
 - Brightfield here uses the microscope's `bfSoft` option, a soft limit on
   its defocus and edge terms, so thick bodies (Didinium, the amoeba) shade
   grey instead of clipping to black.
-- **The habitat plate** (darkfield and phase) is shown at 30 % and blurred
-  through its mipmaps by default (Features: full or off), and turns with the
+- **The habitat plate** (darkfield and phase) is shown at 80 %, lightly
+  softened, by default (Features: dimmed, full or off), and turns with the
   view.
 - **Mild depth of field** in the microscope view (about 35 µm sharp at 20×;
   Strong: 16 µm), and a contact pulls fine focus to what you touched.
@@ -627,7 +728,7 @@ it (for example `?f=-dof,look:DIC (Nomarski)`).
 | Optics | Depth of field (microscope): mild (default), strong, off | choice |
 | Optics | Phase halo and shade-off | on/off |
 | Optics | Brightfield defocus contrast | on/off |
-| Optics | Background habitat plate: dimmed and blurred (default), full, off | choice |
+| Optics | Background habitat plate: rich (default), dimmed and blurred, full, off | choice |
 | Optics | Hunter arrow (on); hunter rings (off); prey cues (on); light and shade (on) | on/off each |
 | Optics | Lateral chromatic softness, objective point spread, camera noise | on/off each |
 | Optics | Eyepiece field stop | on/off |
@@ -638,7 +739,7 @@ it (for example `?f=-dof,look:DIC (Nomarski)`).
 | Body | Chlorella symbionts (*P. bursaria*) | on/off |
 | Body | Cilia; metachronal waves; pellicle pattern; docked trichocysts; cyclosis; contractile vacuole cycle; nuclei | on/off each |
 | Motion | Low Reynolds number (off: a 1.4 s glide, for comparison) | on/off |
-| Motion | Helical path and roll; camera follows the helix axis | on/off each |
+| Motion | Roll about the long axis (on); corkscrew path, the real helix (off); camera follows the helix axis (with the corkscrew) | on/off each |
 | Motion | Ciliary beat rate: slowed (readable) or real | choice |
 | Motion | Dash; avoidance reaction (B); glance off obstacles; trichocyst defence | always |
 | Motion | Avoidance reaction on hard contact | on/off, default off |
@@ -650,9 +751,8 @@ it (for example `?f=-dof,look:DIC (Nomarski)`).
 | World | Spirogyra, detritus, diatoms, prey | always |
 | Borrowed | SEM (mite), tardigrade DIC, amoeba optics, each with its mode | on/off, default off |
 
-Saved state uses the key `paramecium.v3`, so settings saved with the
-readability rework (microscope view and strong depth of field by default) no
-longer apply.
+Saved state uses the key `paramecium.v4`, so settings saved before darkfield
+and the rich plate were the defaults again no longer apply.
 
 ### Technique modules (for other prototypes)
 
@@ -701,7 +801,9 @@ Not borrowed:
 Procedural stand-ins are used until the images in
 `micro/image-requests.md` are delivered; `shared/assets.js` switches
 automatically: MP-P01 (darkfield plate), MP-P02 (phase plate), MP-P03
-(pellicle, sampled as the kinety pattern).
+(pellicle, sampled as the kinety pattern). MP-P04 and MP-P05 (requested):
+seamless darkfield and phase tiles that replace the plates, whose edges show
+as seams.
 
 ## Departures, labelled
 
@@ -720,6 +822,11 @@ automatically: MP-P01 (darkfield plate), MP-P02 (phase plate), MP-P03
   swims within about 150 µm of the slide.
 - **Glancing off:** a real Paramecium usually answers a collision with the
   avoidance reaction; here it slides along instead unless the switch is on.
+- **Roll:** about 0.45 turns a second at full speed, against roughly one per
+  helix turn (1–2.5 a second) in life, and the body is not carried round the
+  helix unless the corkscrew is switched on: the real motion read as spinning.
+- **Pond water texture** repeats every 1.5 mm (`ambient.js`), and its flocs
+  and small flakes are not solid.
 - **Cyclosis** runs about five times faster than life; the contractile
   vacuole period (6 s) is within the real range.
 - **Trichocyst recharge** (3 charges, one every 9 s) is invented: re-docking

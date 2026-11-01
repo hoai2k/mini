@@ -8,14 +8,14 @@
 // anterior left down to the cytostome at mid-body.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { buildSdfMesh, sd, combine } from '../shared/sdf.js';
-import { volumeMaterial, pointsMaterial } from './optics.js';
+import { volumeMaterial, pointsMaterial, opticMaterial, GLSL_VERT_COMMON, GLSL_FRAG_COMMON } from './optics.js';
 import { createStrands, KIND } from './strands.js';
 
 export const SPECIES = {
-  bursaria: { name: 'P. bursaria (green, 120 µm)', latin: 'Paramecium bursaria', L: 120, XM: -6, RMAX: 28, pA: 2.6, pP: 2.4, taper: 0.12, FLAT: 0.8, chlorella: 520 },
+  bursaria: { name: 'P. bursaria (green, 120 µm)', latin: 'Paramecium bursaria', L: 120, XM: -6, RMAX: 28, pA: 2.6, pP: 2.4, taper: 0.12, FLAT: 0.8, chlorella: 760 },
   caudatum: { name: 'P. caudatum (colourless, 230 µm)', latin: 'Paramecium caudatum', L: 230, XM: -20, RMAX: 31, pA: 3, pP: 1.8, taper: 0.22, FLAT: 0.86, chlorella: 0 },
 };
-export const FEATURE_KEY = 'paramecium.v3'; // v3: chase camera and the old speed by default again
+export const FEATURE_KEY = 'paramecium.v4'; // v4: darkfield and the rich scene by default again, roll about the centred axis
 /** The species chosen in the feature panel (or ?f=species:...), read once at load. */
 function pickSpecies() {
   let v = null;
@@ -80,6 +80,92 @@ function bodyParts() {
   return parts;
 }
 
+// The body's outline in GLSL (radiusAt above), for what must stay inside it.
+const GLSL_RADIUS = /* glsl */ `
+float bodyRadius(float x) {
+  const float HL = ${HL.toFixed(3)}, XM = ${XM.toFixed(3)}, RMAX = ${RMAX.toFixed(3)}, TAPER = ${SP.taper.toFixed(3)}, PA = ${SP.pA.toFixed(3)}, PP = ${SP.pP.toFixed(3)};
+  if (x >= XM) {
+    float s = min(1.0, (x - XM) / (HL - XM));
+    return RMAX * (1.0 - TAPER * s * s) * pow(max(0.0, 1.0 - pow(s, PA)), 1.0 / PA);
+  }
+  float s = min(1.0, (XM - x) / (XM + HL));
+  return RMAX * pow(max(0.0, 1.0 - pow(s, PP)), 1.0 / PP);
+}`;
+
+/** The pellicle: a thin shell (path ∝ thickness / cos) over the body mesh. */
+function pellicleShellMaterial() {
+  return opticMaterial({
+    uniforms: { uDn: { value: 0.04 }, uThick: { value: 0.9 }, uAlpha: { value: 1 } },
+    vertexShader: /* glsl */ `
+      ${GLSL_VERT_COMMON}
+      attribute vec3 aRef;
+      varying float vRef; varying vec3 vN; varying vec3 vV;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vRef = -(modelViewMatrix * vec4(aRef, 1.0)).z;
+        vN = normalize(mat3(modelViewMatrix) * normal);
+        vV = isOrthographic ? vec3(0.0, 0.0, 1.0) : normalize(-mv.xyz);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: /* glsl */ `
+      ${GLSL_FRAG_COMMON}
+      uniform float uDn; uniform float uThick; uniform float uAlpha;
+      varying float vRef; varying vec3 vN; varying vec3 vV;
+      void main() {
+        float ndv = abs(dot(normalize(vN), vV));
+        float t = uThick / max(ndv, 0.16);
+        float rim = pow(1.0 - ndv, 6.0);
+        emit(uDn * t * uAlpha, 0.45 * rim * uAlpha, vec3(0.0012, 0.0012, 0.0016) * t * uAlpha, vRef);
+      }`,
+  });
+}
+
+/**
+ * Chlorella in cyclosis, kept inside the body: per instance iPos = (loop phase,
+ * speed, radial fraction of the local radius, angle round the long axis),
+ * iP = (radius µm, dn, scatter, seed). Uses the cyclosis uniform like pointsMaterial.
+ */
+function chlorellaMaterial() {
+  return opticMaterial({
+    uniforms: { uAbsorb: { value: new THREE.Vector3(0.05, 0.011, 0.062) }, uCyclosis: { value: 0 } },
+    vertexShader: /* glsl */ `
+      ${GLSL_VERT_COMMON}
+      ${GLSL_RADIUS}
+      attribute vec4 iPos;
+      attribute vec4 iP;
+      uniform float uCyclosis;
+      varying vec2 vQ; varying float vK; varying float vRef; varying vec4 vP;
+      void main() {
+        // the endoplasm loop: back along one side, forward along the other
+        float p = fract(iPos.x + uCyclosis * iPos.y);
+        float x = ${(HL * 0.84).toFixed(3)} * (4.0 * abs(p - 0.5) - 1.0);
+        float ang = iPos.w + 1.1 * sin(6.2831853 * p);
+        float r = max(0.0, bodyRadius(x) - iP.x - 3.8) * iPos.z;
+        vec3 c = vec3(x, -cos(ang) * r * ${FLAT.toFixed(3)}, sin(ang) * r);
+        vec4 mv = modelViewMatrix * vec4(c, 1.0);
+        float depth = -mv.z;
+        float re = max(iP.x, pxWorld(depth) * 0.9);
+        vK = (iP.x * iP.x) / (re * re);
+        vec2 cs = position.xy * 1.6;
+        mv.xy += cs * re;
+        vQ = cs; vRef = depth; vP = iP;
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: /* glsl */ `
+      ${GLSL_FRAG_COMMON}
+      uniform vec3 uAbsorb;
+      varying vec2 vQ; varying float vK; varying float vRef; varying vec4 vP;
+      void main() {
+        float d2 = dot(vQ, vQ);
+        if (d2 > 1.44) discard;
+        float prof = max(1.0 - d2, 0.0);
+        float ring = exp(-pow((sqrt(d2) - 0.9) * 3.5, 2.0));
+        float t = sqrt(prof) * 2.0 * vP.x * vK;
+        emit(vP.y * t, vP.z * vK * (ring * 0.6 + prof * 0.4), uAbsorb * t, vRef);
+      }`,
+  });
+}
+
 function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
 
 export function createCell() {
@@ -99,11 +185,20 @@ export function createCell() {
   }
   geo.setAttribute('aRef', new THREE.BufferAttribute(ref, 3));
   geo.setAttribute('aUv', new THREE.BufferAttribute(uv, 2));
-  const bodyMat = volumeMaterial({ dn: 0.026, scatter: 1.0, absorb: SP.chlorella ? [0.0016, 0.0012, 0.0026] : [0.0011, 0.0016, 0.0032], pattern: 1, rimPow: 2.5 });
+  // P. bursaria: the cytoplasm itself carries a faint yellow-green cast (the
+  // symbionts' pigment, spread and out of focus), so the cell reads as one green
+  // body with the algae inside it, not as a cluster of green beads.
+  const bodyMat = volumeMaterial({ dn: 0.026, scatter: 1.0, absorb: SP.chlorella ? [0.0042, 0.0013, 0.0052] : [0.0011, 0.0016, 0.0032], pattern: 1, rimPow: 2.5 });
   bodyMat.uniforms.uLen.value = LENGTH;
   const body = new THREE.Mesh(geo, bodyMat);
   body.frustumCulled = false;
   group.add(body);
+  // The pellicle as a thin shell over the same surface: its path grows toward
+  // the silhouette (seen edge-on), which draws the crisp, continuous outline of
+  // the micrographs (MP-R reference sheet) round the whole cell in every look.
+  const shell = new THREE.Mesh(geo, pellicleShellMaterial());
+  shell.frustumCulled = false;
+  group.add(shell);
 
   // Project a point onto the real (carved) surface along the field gradient.
   const grad = (x, y, z) => {
@@ -260,18 +355,23 @@ export function createCell() {
   // absorbs red and blue, so the cell is green in brightfield.
   let chlorella = null, cMat = null;
   if (SP.chlorella) {
+    // Each alga rides the cyclosis inside the cortex: along the cell and round
+    // it, always within the body's own outline (radiusAt, mirrored in the
+    // shader), mostly in the outer half so the middle (macronucleus, food
+    // vacuoles) stays clearer, as in the reference sheet. Real Chlorella here are
+    // 3–5 µm across; drawn 4–5 µm.
     const NC = SP.chlorella;
     const cPos = new Float32Array(NC * 4), cP = new Float32Array(NC * 4);
     for (let i = 0; i < NC; i++) {
-      cPos.set([rand(), -(0.008 + rand() * 0.01), 0.3 + Math.sqrt(rand()) * 0.85, (rand() - 0.5) * 2.6], i * 4);
-      cP.set([2.5 + rand() * 0.5, 0.045, 0.5, rand()], i * 4);
+      cPos.set([rand(), 0.03 + rand() * 0.02, 0.42 + 0.58 * Math.sqrt(rand()), rand() * Math.PI * 2], i * 4);
+      cP.set([2.0 + rand() * 0.55, 0.04, 0.32, rand()], i * 4);
     }
     const cGeo = new THREE.InstancedBufferGeometry();
     cGeo.index = quad.index; cGeo.attributes.position = quad.attributes.position;
     cGeo.setAttribute('iPos', new THREE.InstancedBufferAttribute(cPos, 4));
     cGeo.setAttribute('iP', new THREE.InstancedBufferAttribute(cP, 4));
     cGeo.instanceCount = NC;
-    cMat = pointsMaterial({ cyclosis: true, absorb: [0.11, 0.022, 0.12], loop: [LOOP[0] * 1.15, LOOP[1] * 1.25, LOOP[2] * 1.5] });
+    cMat = chlorellaMaterial();
     chlorella = new THREE.Mesh(cGeo, cMat);
     chlorella.frustumCulled = false;
     group.add(chlorella);
@@ -285,7 +385,7 @@ export function createCell() {
 
   const opts = { cyclosis: true, cv: true };
   const api = {
-    opts, granules, chlorella, macro, micro, group, body, cilia: ciliaS, trichocysts: triS, surfaceSamples, food, species: SP,
+    opts, granules, chlorella, macro, micro, group, body, shell, cilia: ciliaS, trichocysts: triS, surfaceSamples, food, species: SP,
     get foodCount() { return food.length; },
     /** A bacterium (or a few) reached the cytostome; every 10 makes a food vacuole. */
     ingested: 0,

@@ -14,19 +14,68 @@ watercolour manner (the previous default), cryo-EM greyscale and
 fluorescence pseudo-colour remain on the D-pad. Published in the prototype archive at
 `micro/prototypes/phage/`.
 
+**The revamp (2 November 2026).** The owner found the world sparse and
+geometric next to its lush, organic references, the controls weird (a stick
+could set the view spinning, as if in gimbal lock), a big empty space as soon
+as the camera turned right, and Brownian motion that floated rather than
+knocked. Now: the water is packed in every direction with thousands of
+bead-cluster molecules drawn as sphere impostors, as real-time molecular
+viewers draw them (`shared/techniques/phage-beads.js`, look notes in
+[`LOOK.md`](LOOK.md)); the hosts are furred with LPS, porins and membrane
+proteins all round; the view turns about its own axes (no up or down, no poles,
+and it never turns on its own); and molecules visibly strike the phage and
+bounce off, each knock a small push and a little spin (`kicks.js`).
+
 **LS drives the phage; let go and the water has it.** A real phage has no
 motor: it diffuses until it touches a receptor [S100]. At the owner's request
-LS still controls the motion, as a labelled departure, and the motion is made
-to feel organic: the stick sets a slow, sluggish drift (about 0.3 µm/s on the
-slowed clock) and on top of it act a smooth Brownian velocity, the ambient
-flow, and slow tumbling when idle. Steering turns the baseplate and long attachment
-fibres toward the movement direction, with the head following behind. Release the stick and only Brownian motion and the flow
-remain. *Features → LS drift → Honest* turns the open-water drift off.
+the sticks still move it, as a labelled departure: LS drifts it across the
+view (the view's right and up, in full 3D), RT into the view and LT back
+toward you, a slow, sluggish drift (about 0.3 µm/s on the slowed clock) with
+the baseplate and long fibres turning to lead and the head following.
+Release the sticks and only the water moves it: molecules strike it now and
+then (Brownian motion), the ambient flow carries it, and it tumbles slowly.
+*Features → LS drift → Honest* turns the open-water drift off.
 
-The phage’s water remains a shallow XY slab. LS already supplies analog drive
-and direction relative to the view; its attachment end leads. The camera now
-follows that travel heading within the plane when RS is not overriding it,
-while RS retains the 3D orbit. Idle Brownian tumbling does not spin the camera.
+**No up or down.** The water is open in all three directions (the old play
+slab was ±0.34 µm deep; the field is now ±2.6 µm deep, with a soft current
+back beyond its bounds instead of walls). The camera is a quaternion that RS
+turns about the view's own axes, so it has no poles to flip at, a held stick
+turns it at a steady rate in any orientation, and released it stays exactly
+where it is. Only one thing may turn it on its own: an optional, gentle roll
+(*Features → Keep the surface up*, on) that keeps the sunlit surface, where
+the UV is, toward the top of the screen; it is rate-limited and fades to
+nothing looking straight up or down, so it can never spin the view.
+
+### What was wrong (root causes)
+
+- **The spin.** Three faults fed each other. (1) The camera's up vector
+  followed the travel heading (`followYaw` toward `P.moveHeading`), while the
+  stick's travel direction was computed from the camera's own right and up:
+  holding LS sideways set a heading 90° from the camera's up, the camera
+  rolled toward it, which turned the stick's direction with it, and so on
+  for as long as the stick was held: a steady spin with nothing on RS.
+  (2) The phage was aimed with `setFromUnitVectors(UP, -stick)`, a full
+  orientation built from a fixed reference, which is singular when the stick
+  points up the screen: there the phage flipped and spun about its own axis.
+  (3) `camera.lookAt` with that rolling up vector degenerates when RS orbits
+  the view toward it (the classic gimbal flip). Now: the view is a
+  quaternion turned only by RS (and the bounded levelling roll), the stick is
+  read in the view's frame without feedback, and the phage turns by the
+  shortest rotation from where its baseplate points now. A scripted test
+  drives every LS and trigger direction (the view must not turn at all), RS
+  in every direction with LS held, and checks everything settles after
+  release.
+- **The empty space.** The molecule crowd lived in a thin slab (±1.75 ×
+  ±1.2 µm round the target, 1.2 µm deep, wrapped in x and y only), the far
+  cells only in a band far behind it, and the backdrop was a screen-space
+  gradient. Orbiting right looked along the slab, past its edge, into bare
+  water. Now the baths wrap round each view's centre in all three axes, far
+  cells sit on a shell in every direction, and the backdrop is drawn by view
+  direction. A coverage test orbits fully round both axes and reads the
+  scene's coverage of the frame at each step.
+- **Brownian motion as a float.** The phage's random motion was a smooth
+  Ornstein–Uhlenbeck velocity, and the crowd drifted beside it untouched.
+  Now molecules strike it (see Motion below).
 
 ## Controls
 
@@ -34,8 +83,9 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 
 | Xbox | Keyboard | Action |
 | --- | --- | --- |
-| LS | WASD | **Drift legs-first** (a labelled departure); steer the attachment fibres toward a protein |
-| RS | Arrows | Orbit the view. Manual RS look holds for 0.45 s after release, then the camera eases back to the swimming heading |
+| LS | WASD | **Drift across the view, legs first** (a labelled departure): the view's right and up, in 3D; the baseplate and fibres turn to lead |
+| LT / RT | Z / X | **Drift back toward you / into the view** (analog), so every direction in the water is a stick away |
+| RS | Arrows | **Turn the view** about its own axes (a quaternion: no up or down, no poles, no flips). It stays where you leave it |
 | **A** | Space | **Dash**: a passing *current gust* in open water, or a *push-off* with the fibres from a surface (both departures; recharging, HUD `dash` meter) |
 | **X** | E | **Grab protein**: aim the leading attachment fibres at a protruding protein and press X. The large gold three-lobed receptors fit; violet paired proteins do not. Both can be grabbed: the fibres converge for 0.45 s, then a mismatch slips off with a small recoil and a 0.25 s retry delay. A match latches and automatically starts the existing irreversible attachment: short fibres bind, baseplate opens, sheath contracts and DNA enters (camera close-up and shake on the snap). No automatic cell-contact attachment or hidden three-foot requirement. **At an amoeba's lobe: a fibre jab** (a departure, below) |
 | B | Shift | **Defend: fold the fibres** back against the sheath and slip: an amoeba's lobe gets no purchase, clay and wrong hosts slide past; also lets go of a host. Press again to extend them (ready to grab receptors with X; clay still catches them) |
@@ -47,6 +97,11 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 
 Inside the host, LS steers the DNA's leading end and A is a short *surge* (the
 strand pulled in faster; a departure).
+
+**Goal flow.** The HUD's first line always says what to do now: drift to Host
+A (with its distance; the brass chevron at the screen's edge points the way),
+then aim at a glowing gold receptor and press X, then (inside) get the genome
+in, or, damaged, find a partner to co-infect with.
 
 **Goal.** Drift legs-first, grab a gold three-lobed receptor to attach, and get
 the whole genome (169 kbp, shown as a progress bar) into the cell past its
@@ -165,7 +220,7 @@ in multiplayer:
 ## Checks
 
 ```bash
-node --test micro/prototypes/phage/binding.test.mjs
+node --test micro/prototypes/phage/binding.test.mjs micro/prototypes/phage/kicks.test.mjs
 node micro/prototypes/check.mjs phage
 node micro/game/check.mjs
 ```
@@ -176,7 +231,9 @@ screenshots: `teleport`, `orient`, `isolate` (the phage alone, for
 turnarounds), `cam(yaw, pitch, dist)`, `fold`, `walkOn(hostId, u, phi)`,
 `grab` (the normal aimed grab), `commit` (bypass from a debug walk), `inside(hostId)`, `win`, `capture('amoeba' | 'uv' | 'cut')`,
 `hungry`, `overlay`, `look`, `zoom`, `reset`, `place(slot, x, y)`, plus
-`maxDt` and `pause`; `debug.fight` (the amoeba's fight state and interest) and `debug.boss()` (the CRISPR-Cas state, match, distance). `window.__micro` also exposes `team`, `players`,
+`maxDt` and `pause`; `debug.spin()` (the view's turn rate and each phage's angular speed, rad/s),
+`debug.kicks()` (the last molecule strikes), `debug.coverage()` (the fraction of the frame the scene
+covers, read from the scene target's alpha) and `debug.beads()` (beads drawn in the baths); `debug.fight` (the amoeba's fight state and interest) and `debug.boss()` (the CRISPR-Cas state, match, distance). `window.__micro` also exposes `team`, `players`,
 `split`, `nearBack` and `where`.
 
 ## Known issues
@@ -187,8 +244,13 @@ turnarounds), `cam(yaw, pitch, dist)`, `fold`, `walkOn(hostId, u, phi)`,
 - The overlay's text labels are placed with the shared camera, so in a split
   they sit in the merged position.
 - Software WebGL: four split views cost about 1–3 s a frame in headless
-  SwiftShader (each view is a full Goodsell pass); on a GPU it is the usual
-  N renders.
+  SwiftShader (each view is a full pass); on a GPU it is the usual N renders.
+- The bath's molecules collapse inside the hosts, the amoeba and the clay
+  (capsule and sphere tests in the shader); the flocs and the stray phage are
+  not in that list, so a molecule can pass through them.
+- Molecules wrap round each view's centre, so in a split two views show
+  different molecules at the same place where they overlap (nobody can see
+  both at once).
 
 ## Approach
 
@@ -218,13 +280,23 @@ reference sheet and `research/assets/references/production/phage-t4.jpg`:
 
 ### Motion
 
-- Drift: the stick sets a target velocity the phage eases toward (a 0.7 s
-  lag), so it never snaps. Brownian motion is an Ornstein–Uhlenbeck velocity
-  (D ≈ 0.2 µm²/s on the slowed clock, from T4's 4 µm²/s [S100]), plus a fine
-  tremble. Rotation is a slow random angular velocity; when moving, steering
-  turns the attachment fibres to lead; a soft torque follows a gust with the
-  same end forward, and another eases the
-  phage back toward side-on so it stays readable.
+- Drift: the sticks set a target velocity the phage eases toward (a 0.6 s
+  lag), so it never snaps. Steering turns the baseplate toward the travel by
+  the shortest rotation from where it points now (never a flip); a weak
+  torque eases the body toward side-on to the view so it stays readable;
+  angular speed is capped at 3 rad/s.
+- **Brownian kicks** (`kicks.js`, tested in `kicks.test.mjs`): about 1.7
+  times a second a molecule flies in from a random direction, strikes the
+  phage's body (a capsule from baseplate to head), bounces off and fades. The
+  phage takes a push along the molecule's travel and a spin from the lever
+  arm, then the viscous water takes the velocity away (0.45 s). Small
+  molecules (ions, water clusters) are 60 % of hits, fast and light (6 units/s
+  pushes); sugar chains 28 % (9); proteins 12 %, slow and harder (14), with a
+  soft rumble and a tick. A pale ring flashes where each strikes. While the
+  fibres are aimed at a protein in reach the spin is cut to 30 % so a kick
+  never wrecks a grab; walking and clay soften kicks further. *Features →
+  Molecular kicks* turns them off. The bath itself jostles thermally, the
+  small molecules fastest.
 - Prototype debug walking (`walkOn`): the phage stands on its fibres over the host's surface and
   rocks. Each foot is pinned in the host's own frame (so it rides along as
   the host drifts); when a foot falls behind its ideal place, it lets go and

@@ -16,19 +16,20 @@ import { loadTexture } from '../shared/assets.js';
 import { createLightOptics, LOOK_NAMES, psfSigmaUm } from '../shared/techniques/bacterium-fluorescence.js';
 import { createShapes } from '../shared/techniques/bacterium-shapes.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, DIC_MODES } from '../shared/techniques/adapters.js';
-import { createWorld, oxygenY, segDist, WORLD } from './world.js';
+import { createWorld, segDist, WORLD } from './world.js';
 import { createSwimmer, SPECIES } from './swim.js';
 import { createGame, GOAL_PREY } from './game.js';
 import { createDrawer } from './draw.js';
 import { createStentor } from './stentor.js';
 import { createOverlay } from './overlay.js';
-import { createHunger, createCapture, createFight } from '../shared/predation.js';
+import { createCapture, createFight } from '../shared/predation.js';
 import { createPlayers } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
-import { gauss, progress, HALF_X, START } from './world.js';
+import { gauss, progress, START } from './world.js';
 import { createCollectives, COLL, LEVEL_NAMES } from './collective.js';
+import { createGuards } from './guards.js';
 import { createQuality } from '../shared/quality.js';
 
 const canvas = document.querySelector('canvas.view');
@@ -48,30 +49,32 @@ const pad = players.pad(0);
 const ctl = players.controls(0);
 const hud = mountHud({
   title: 'Bacterium',
-  sub: 'A magnetotactic spirillum, 3 µm long, in bog sediment at 1000× (or the predator Bdellovibrio). Steer with the stick; let go and Brownian motion, flow and the field push you about.',
+  sub: 'A magnetotactic spirillum, 3 µm long, in bog sediment at 1000× (or the predator Bdellovibrio). Gather an army of your kin and fight your way to the host cell.',
   controls: hudControls({
-    move: 'Steer: the cell turns toward the stick and swims (speed from the tilt). Let go: you drift at the mercy of the water',
+    move: 'Steer your flock: it heads where you point, as fast as you tilt. Let go and it slows and stops',
     camera: 'Move the stage',
-    dash: 'Sprint run: every flagellum at full motor speed (recharges). Sprinting out of a grazer\'s current wears it down',
-    attack: 'Hold: take up food · Bdellovibrio: attach and bore into prey',
-    defend: 'Defend: tumble, a quick random turn that leans toward the stick. At the moment a predator strikes (a grazer\'s surge, a phage landing, a Bdellovibrio\'s ram) it evades',
-    special: 'Data overlay: oxygen, food, field lines (data, not optics). At the Paramecium: back to the pool',
+    dash: 'Sprint run: every flagellum at full motor speed (recharges); the whole flock sprints',
+    attack: 'Beacon: a pulse from the flock; kin it reaches answer and join. It also eats prey (rods) in reach and strikes any enemy your flock touches · Bdellovibrio: attach and bore in',
+    defend: 'Defend: tumble, a quick random turn that leans toward the stick. At the moment a predator strikes your cell (a grazer\'s surge, a phage landing, a Bdellovibrio\'s ram) it evades',
+    special: 'Toxin burst when charged (army of 12). Otherwise the data overlay. At the Paramecium: back to the pool',
     analog: 'Fine focus down / up',
     secondary: 'Reverse the run: the other pole leads (back along the field)',
     look: 'Look: phase, fluorescence, darkfield, SEM, DIC',
     zoom: 'Field: 180 µm eyepiece … 22 µm camera crop',
   }),
-  note: 'Real scale and speeds in µm and µm/s; a few labelled stretches (see Features). Goal: find the microaerobic band (0.5–5 % oxygen) and feed until you divide; as Bdellovibrio, take three prey. The brass chevron points to the host cell where phages land (the way on); the ring to the Paramecium (the way back). Up to four players: press any button on another controller to join.',
+  note: 'Real scale and speeds in µm and µm/s; a few labelled stretches (see Features). Goal: press X near kin to call them into your flock, eat prey to grow, then push through the gates (a grazer, a Bdellovibrio pack, a phage cloud, an amoeba, a second grazer) to Stentor and the host cell beyond. A lone cell cannot win a fight; an army can. As Bdellovibrio, take three prey. The brass chevron points to the host (the way on); the ring to the Paramecium (the way back). Up to four players: press any button on another controller to join.',
 });
 hud.players(players.list);
 /** A button as the instructions should name it: the controller's, or the key while no controller is connected. */
 const glyph = (b) => (hud.glyphs === 'keyboard' ? keyFor(b) || b : b);
 
-// --- tiny DOM bits: end card, DATA tag, scale bar, oxygen ticks, warnings, the backdoor prompt ---
+// --- tiny DOM bits: end card, DATA tag, scale bar, the army chip, warnings, the backdoor prompt ---
 const card = Object.assign(document.createElement('div'), { className: 'bx-card' });
 const tag = Object.assign(document.createElement('div'), { className: 'bx-tag', textContent: 'DATA OVERLAY · not optics: what the cell senses' });
 const scaleEl = Object.assign(document.createElement('div'), { className: 'bx-scale' });
-const o2El = Object.assign(document.createElement('div'), { className: 'bx-o2' });
+// the army chip (a HUD line, not a ring round the flock): size, abilities, toxin, or the hint to call kin
+const armyEl = document.createElement('div');
+armyEl.style.cssText = 'position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:6;pointer-events:none;color:#e6d3a3;font:600 12px/1.35 system-ui,sans-serif;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.8);white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis';
 const warnEl = document.createElement('div');
 warnEl.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);background:rgba(10,12,16,.7);color:#ff8a7a;border-radius:12px;padding:6px 14px;font:600 13px/1.3 system-ui,sans-serif;pointer-events:none;white-space:nowrap;z-index:20;display:none;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis;text-align:center';
 const promptEl = document.createElement('div');
@@ -79,7 +82,7 @@ promptEl.style.cssText = 'position:fixed;left:50%;bottom:14vh;transform:translat
 // the corner brackets that mark each player's cell (a game marker, not optics), clipped to each split view
 const markCv = document.createElement('canvas');
 markCv.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:3';
-document.body.append(card, tag, scaleEl, o2El, warnEl, promptEl, markCv);
+document.body.append(card, tag, scaleEl, armyEl, warnEl, promptEl, markCv);
 const markG = markCv.getContext('2d');
 
 // --- simulation ---
@@ -110,27 +113,46 @@ const P1 = makePlayer(players.get(0));
 roster.push(P1);
 
 // --- the collective (collective.js): touch kin and they join you; no leader, one flock ---
-const collMsg = { lostAt: -9, recruitAt: -9, n: 0 };
+const collMsg = { lostAt: -9, recruitAt: -9, n: 0, beaconT: -9, joinSnd: -9 };
 const coll = createCollectives(world, {
   onRecruit: (C) => {
-    if (C.members.length === 1) hud.toast('A kin cell joins you: you are a collective now. No leader: the whole group moves with your stick', 3200);
-    else if ([COLL.shield, COLL.raft, COLL.quorum].includes(C.members.length + C.players.length) && t - collMsg.recruitAt > 2) { collMsg.recruitAt = t; hud.toast(`${C.members.length} kin with you: hold them close for quorum (${glyph('LS')} released: the collective mills in place)`, 2600); }
+    if (t - collMsg.joinSnd > 0.06) { collMsg.joinSnd = t; audio.play('bacterium/tumble', { volume: 0.35, rate: 1.7 + Math.random() * 0.3 }); }
+    const n = C.members.length + C.players.length;
+    if (C.members.length === 1) hud.toast('A kin cell answers your beacon and joins: you are a flock now. Steer and it follows, each cell in its own way', 3200);
+    else if (n === COLL.shield && t - collMsg.recruitAt > 2) { collMsg.recruitAt = t; hud.toast(`An army of ${n}: a slime shield now catches phages`, 2600); }
+    else if (n === COLL.raft && t - collMsg.recruitAt > 2) { collMsg.recruitAt = t; hud.toast(`An army of ${n}: a raft. Currents drag you less, the bigger it grows`, 2600); }
+    else if (n === COLL.toxin && t - collMsg.recruitAt > 2) { collMsg.recruitAt = t; hud.toast(`An army of ${n}: your toxin charges. ${glyph('Y')} fires it when ready`, 2600); }
   },
+  onBeacon: () => { audio.play('bacterium/eat', { volume: 0.4, rate: 1.9 }); },
   onLost: (C, m, kind) => {
     if (!C || !C.players.length || t - collMsg.lostAt < 1.5) return;
     collMsg.lostAt = t;
     const by = { grazer: 'a grazer', amoeba: 'the amoeba', stentor: 'Stentor', bdello: 'a Bdellovibrio', phage: 'a phage' }[kind] || 'a predator';
-    hud.toast(`${by[0].toUpperCase() + by.slice(1)} took a member of your collective (${C.members.length} left): members are your health`, 2200);
+    hud.toast(`${by[0].toUpperCase() + by.slice(1)} took a member of your army (${C.members.length} left): members are your health`, 2200);
   },
-  onShield: (C, P, kind) => { if (t - collMsg.lostAt > 1.5) { collMsg.lostAt = t; hud.toast(kind === 'phage' ? 'The slime catches the phage: it cannot reach your wall' : 'The ram glances off the slime round your collective', 2000); } },
-  onMerge: (C, P) => { hud.toast(`${P.name} joins a collective: ${C.players.map((Q) => Q.name).join(' and ')} now move as one (inputs blend). Move away to leave: the crowd splits evenly`, 3600); },
-  onSplit: (C, N, P, k) => { hud.toast(`${P.name} branches off: the collective splits evenly (${k} with ${P.name}, ${C.members.length} stay)`, 3000); },
-  onTake: () => hud.toast('Quorum on a food patch: your collective takes it over. Rivals are pushed off; members divide three times as fast', 3200),
+  onShield: (C, P, kind) => { if (t - collMsg.lostAt > 1.5) { collMsg.lostAt = t; hud.toast(kind === 'phage' ? 'The slime catches the phage: it cannot reach your wall' : 'The ram glances off the slime round your army', 2000); } },
+  onMerge: (C, P) => { hud.toast(`${P.name} joins a flock: ${C.players.map((Q) => Q.name).join(' and ')} now move as one (sticks blend). Move away to leave: the army splits evenly`, 3600); },
+  onSplit: (C, N, P, k) => { hud.toast(`${P.name} branches off: the army splits evenly (${k} with ${P.name}, ${C.members.length} stay)`, 3000); },
   onDivide: () => {},
   onBurst: (C, b) => toxinBurst(C, b),
 });
 world.coll = coll;
 coll.reset(roster);
+// --- the gates on the way (guards.js): enemies the army fights by contact ---
+const gateMsg = { seen: new Set() };
+const guards = createGuards(world, coll, stentor, {
+  onBeaten: (q) => {
+    audio.play('bacterium/eat', { volume: 1, rate: 0.6 });
+    for (const P of roster) P.pad.rumble(250, 0.6, 0.6);
+    const text = { grazer: 'The peritrich gives up: it coils back on its stalk and its current stops. The way is open', bdello: 'The Bdellovibrio pack is gone: the way is open', phage: 'The phage cloud is swept up in your slime: the way is open', amoeba: 'The amoeba withdraws from your army: the way is open', stentor: 'Stentor has had enough: it contracts and stays shut. The host is yours!' }[q.kind];
+    hud.toast(text, 3600);
+    gateInfo.log.push({ ev: 'beaten', id: q.id, t });
+  },
+  onKill: () => { audio.play('bacterium/eat', { volume: 0.6, rate: 1.3 }); },
+  onInfected: (C) => { if (t - collMsg.lostAt > 1.5) { collMsg.lostAt = t; hud.toast(`A phage infected a member (${C.members.length} left). At an army of ${COLL.shield} the slime shield catches them`, 2400); } },
+  onSwept: () => {},
+});
+const gateInfo = { log: [] };
 /** A predator would take player P: the collective gives a member instead (or the slime stops it). */
 function absorbHit(P, kind, who) {
   const from = kind === 'grazer' ? who.pose.mouth : kind === 'stentor' ? who.mouth : kind === 'phage' ? (who.p || who) : who;
@@ -139,31 +161,29 @@ function absorbHit(P, kind, who) {
   P.pad.rumble(160, 0.5, 0.4);
   return true;
 }
-/** The toxin burst: grazers recoil and give up, Bdellovibrio flee, phages are destroyed, Stentor flinches. */
+/** The toxin burst: every enemy in reach takes a big hit; grazers recoil, Bdellovibrio die or flee, phages are destroyed. */
 function toxinBurst(C, b) {
   const R = b.R;
   audio.play('bacterium/eat', { volume: 1, rate: 0.55 });
   for (const P of C.players) P.pad.rumble(300, 0.8, 0.6);
-  let hit = [];
+  let hit = guards.burstHit(b);
   for (const g of world.grazers) {
     if (Math.hypot(g.pose.mouth.x - b.x, g.pose.mouth.y - b.y) > R + g.R) continue;
-    g.contract = 6; g.ext = 0; g.hunger.missed(); g.fight.bitten(); g.fight.bitten(); g.fight.bitten(); hit.push('grazer');
+    g.contract = 6; g.ext = 0; g.fight.bitten(); g.fight.bitten(); g.fight.bitten();
   }
   for (const c of world.cells) {
     if (c.kind !== 'bdello' || Math.hypot(c.x - b.x, c.y - b.y) > R) continue;
     c.stalking = null; c.cooldown = 14; c.windup = 0; const a = Math.atan2(c.y - b.y, c.x - b.x); c.x += Math.cos(a) * 18; c.y += Math.sin(a) * 18; c.a = a; hit.push('Bdellovibrio');
   }
   for (const P of roster) if (P.bdello && Math.hypot(P.bdello.c.x - b.x, P.bdello.c.y - b.y) < R + 20) { P.bdello.c.stalking = null; P.bdello = null; }
-  for (const p of world.phages) if (!p.stuck && Math.hypot(p.x - b.x, p.y - b.y) < R) { p.x = START.x - 150 - Math.random() * 40; p.y = -60 + Math.random() * 150; p.homing = false; hit.push('phage'); }
+  for (const p of world.phages) if (!p.stuck && Math.hypot(p.x - b.x, p.y - b.y) < R) { p.x = START.x - 150 - Math.random() * 40; p.y = -60 + Math.random() * 150; p.homing = false; p.cloud = null; hit.push('phage'); }
   for (const P of roster) if (P.phage && Math.hypot(P.phage.p.x - b.x, P.phage.p.y - b.y) < R) P.phage = null;
-  if (Math.hypot(stentor.mouth.x - b.x, stentor.mouth.y - b.y) < R + stentor.catchR && stentor.awake) { stentor.fight.bitten(); stentor.fight.bitten(); hit.push('Stentor'); }
-  const A = world.amoeba;
-  if (world.insideAmoeba(b.x, b.y, t) > -R) { const nx = -Math.sin(A.ang), ny = Math.cos(A.ang); A.x -= nx * 15; A.y -= ny * 15; hit.push('the amoeba'); }
+  if (Math.hypot(stentor.mouth.x - b.x, stentor.mouth.y - b.y) < R + stentor.catchR && stentor.awake && !stentor.beaten) stentor.fight.bitten();
   collInfo.bursts.push({ t, x: b.x, y: b.y, hit: [...new Set(hit)] });
   const what = [...new Set(hit)];
-  hud.toast(`Toxin burst! ${what.length ? what.join(', ').replace(/^./, (x) => x.toUpperCase()) + ' recoil' + (what.length > 1 ? '' : 's') : 'Nothing in reach this time'} (quorum-gated toxin, like violacein)`, 2600);
+  hud.toast(`Toxin burst! ${what.length ? what.join(', ').replace(/^./, (x) => x.toUpperCase()) + ' hit' : 'Nothing in reach this time'} (a quorum-gated toxin, like violacein)`, 2600);
 }
-const collInfo = { bursts: [] };
+const collInfo = { bursts: [], presses: [] };
 const collFeature = { on: true };
 const swimmer = P1.swimmer, game = P1.game, S = P1.S;
 const multi = () => roster.length > 1;
@@ -200,49 +220,40 @@ function placeNear(P, M) {
   world.pushOutOfGrains(P.S, P.S.sp.r + 0.2);
 }
 
-// --- pacing: a calm opening, then predators that come and go (shared/predation.js) ---
-// Grazers switch their feeding current on and off; phages come in clouds from a
-// nearby lysis and thin out; Bdellovibrio and the amoeba's edge only come for
-// you while hungry. A restart gives a fresh calm opening.
-const pacing = { grace: 45, cycles: true, now: 0, t0: 0, firstHungry: null, firstThreat: null, firstCatch: null };
-world.grazers.forEach((g, i) => { g.hunger = createHunger({ grace: pacing.grace + i * 10, hungry: [20, 35] }); g.feeding = false; });
-const phageH = createHunger({ grace: pacing.grace + 5, hungry: [20, 30], restMissed: [20, 35] });
-const bdelloH = createHunger({ grace: pacing.grace + 12 });
-const amoebaH = createHunger({ grace: pacing.grace + 15, hungry: [30, 50] });
-const predators = () => [
-  ...world.grazers.map((g, i) => ({ name: `grazer ${i + 1}`, h: g.hunger, on: world.opts.grazers })),
-  { name: 'phages', h: phageH, on: world.opts.phages }, { name: 'Bdellovibrio', h: bdelloH, on: world.opts.hunters }, { name: 'amoeba', h: amoebaH, on: world.opts.amoeba },
-];
-const isHungry = (h) => (pacing.cycles ? h.hungry : h.state !== 'grace');
-const hungerText = (h) => (h.state === 'grace' ? `calm ${Math.ceil(h.left)} s` : !pacing.cycles ? 'on' : h.state === 'hungry' ? `on ${Math.ceil(h.left)} s` : `off ${Math.ceil(h.left)} s`);
+// --- pacing: a rhythm along the way, not a clock (world.js ROUTE, guards.js) ---
+// The owner: "a few seconds of moving, an obstacle, a short calm break, the
+// next, and so on to a boss at the destination". Every gate is on until your
+// army beats it, and stays beaten. Nothing here is timed.
+const pacing = { now: 0, t0: 0, firstThreat: null, firstCatch: null };
 function resetPressure() {
-  const g = pacing.grace, o = g ? 1 : 0;
-  world.grazers.forEach((gr, i) => { gr.hunger.reset(g + o * i * 10); gr.feeding = false; gr.gulping = false; });
-  phageH.reset(g + o * 5); bdelloH.reset(g + o * 12); amoebaH.reset(g + o * 15);
-  pacing.t0 = pacing.now; pacing.firstHungry = null; pacing.firstThreat = null; pacing.firstCatch = null;
+  guards.reset();
+  world.grazers.forEach((gr) => { gr.feeding = true; gr.gulping = false; });
+  pacing.t0 = pacing.now; pacing.firstThreat = null; pacing.firstCatch = null;
   for (const p of world.phages) p.anim = false;
   for (const c of world.cells) if (c.kind === 'bdello' && c.prey && c.prey.isPlayer) { c.prey = null; c.cooldown = 6; c.L = 1.0; }
+  stentor.awake = false; stentor.fight.reset(); bossInfo.log.length = 0;
+  gateMsg.seen.clear();
 }
-let phageWas = false;
-function updatePressure(dt) {
-  for (const p of predators()) p.h.update(dt);
-  for (const g of world.grazers) g.feeding = isHungry(g.hunger) || roster.some((P) => P.S.caught && P.S.caught.who === g);
-  // the challenges come at or beyond halfway: a phage cloud only for a player that far along
-  world.hunt.phage = isHungry(phageH) && alive().some((P) => P.ahead);
-  world.hunt.bdello = isHungry(bdelloH);
-  world.hunt.amoeba = isHungry(amoebaH);
-  // a phage cloud: a nearby infected cell bursts, and its phages drift your way (towards one of the players)
-  const live = alive();
-  if (world.hunt.phage && !phageWas && world.opts.phages && live.length) {
-    const far = live.filter((P) => P.ahead);
-    const T = (far.length ? far : live)[Math.floor(Math.random() * (far.length || live.length))].S;
-    const a = Math.random() * 6.28, d = 24 + Math.random() * 10;
-    world.addPatch(T.x + Math.cos(a) * d, Math.max(world.surfaceY(T.x) + 6, T.y + Math.sin(a) * d), true);
-    hud.toast(`A cell nearby has burst: a cloud of phages drifts in. Keep moving, shake off any that stick (${glyph('A')} / ${glyph('B')})`, 3200);
+function updatePressure() {
+  for (const g of world.grazers) g.feeding = !g.beaten;
+  world.hunt.phage = !guards.byId.phage.beaten;
+  world.hunt.bdello = !guards.byId.bdello.beaten;
+  world.hunt.amoeba = !world.amoeba.beaten;
+  // the first time a player's flock reaches a gate, say what it is and how to beat it
+  for (const q of guards.list) {
+    if (!q.engaged || gateMsg.seen.has(q.id)) continue;
+    gateMsg.seen.add(q.id);
+    const tip = {
+      grazer1: 'A peritrich: its feeding current sweeps cells into its funnel. Swarm its bell with your army to wear it down (X strikes); a lone cell cannot',
+      bdello: 'A Bdellovibrio pack: each takes a member on contact. Surround them: every cell touching one wears it down (X strikes)',
+      phage: 'A phage cloud (spots in fluorescence and darkfield, D-pad ←→): unshielded cells are infected. An army of 5 has a slime shield that sweeps them up',
+      amoeba: 'An amoeba\'s edge blocks the way: cells inside it are engulfed. Push on its edge with your army to drive it back (X strikes)',
+      grazer2: 'A bigger peritrich: bring a bigger army',
+      stentor: `Stentor guards the host: its vortex sweeps in anything near it. Fight it at its rim of membranelles, tumble (${glyph('B')}) at the pull, and fire your toxin (${glyph('Y')})`,
+    }[q.id];
+    hud.toast(tip, 4200);
+    gateInfo.log.push({ ev: 'reached', id: q.id, t });
   }
-  if (!world.hunt.phage && phageWas && live.length) hud.toast('The phage cloud has thinned out', 2000);
-  phageWas = world.hunt.phage;
-  if (pacing.firstHungry === null && predators().some((p) => p.on && isHungry(p.h))) pacing.firstHungry = pacing.now - pacing.t0;
 }
 
 // --- being caught: strike → hold → eat → the Eaten card (shared/predation.js) ---
@@ -275,7 +286,6 @@ function startCatch(P, { kind, who }) {
   if (pacing.firstCatch === null) pacing.firstCatch = pacing.now - pacing.t0;
   embed.captured({ by: CATCH[kind].by, player: P.slot });
 }
-const catcherHunger = (cat) => (cat.kind === 'grazer' || cat.kind === 'stentor' ? cat.who.hunger : cat.kind === 'phage' ? phageH : cat.kind === 'bdello' ? bdelloH : amoebaH);
 const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 function stepCatch(P, dt) {
   const S = P.S, cat = P.cat;
@@ -290,7 +300,6 @@ function stepCatch(P, dt) {
   const k = c.t, e = c.phase === 'eaten' ? 1 : c.phase === 'eat' ? ease(k) : 0;
   if (c.phase !== prev) {
     if (c.phase === 'eat') {
-      catcherHunger(cat).fed();
       audio.play(cat.kind === 'phage' ? 'bacterium/phage' : 'bacterium/eat', { volume: 0.9, rate: 0.7 });
     }
     if (c.phase === 'hold' && cat.kind === 'bdello') audio.play('bacterium/eat', { volume: 0.8, rate: 1.2 });
@@ -345,14 +354,11 @@ function respawnPlayer(P) {
   P.eatenFor = 0; P.phage = null; P.bdello = null;
   const mates = alive().filter((Q) => Q !== P && !Q.capture.active);
   if (mates.length) { placeNear(P, mates[0]); hud.toast(`${P.name} is back, beside ${mates[0].name}`); return; }
-  // a safe spot in the band: the candidate furthest from the grazers' funnels and the amoeba's edge
-  let best = { x: -20, y: 32 }, bd = -1;
-  for (let i = 0; i < 20; i++) {
-    const lo = Math.max(WORLD.x0 + 30, P.S.x - 160), hi = Math.min(WORLD.x1 - 60, P.S.x + 20);
-    const q = { x: lo + Math.random() * Math.max(10, hi - lo), y: oxygenY(1 + Math.random() * 3) };
-    const d = Math.min(...world.grazers.map((g) => Math.hypot(q.x - g.pose.mouth.x, q.y - g.pose.mouth.y)), Math.hypot(q.x - world.amoeba.x, q.y - world.amoeba.y) - 40, Math.hypot(q.x - stentor.mouth.x, q.y - stentor.mouth.y) - stentor.pullR);
-    if (d > bd) { bd = d; best = q; }
-  }
+  // a safe spot: the calm break behind where you were (or the meadow), where kin live to call again
+  const R = world.route;
+  let bx = (R.meadow.x0 + R.meadow.x1) / 2;
+  for (const x of R.breaks) if (x < P.S.x - 5 && x > bx) bx = x;
+  const best = { x: bx + (Math.random() - 0.5) * 10, y: world.wayY(bx) + (Math.random() - 0.5) * 10 };
   P.S.x = best.x; P.S.y = best.y;
   world.pushOutOfGrains(P.S, P.S.sp.r + 0.2);
   if (P === P1) { view.cx = P.S.x; view.cy = P.S.y; }
@@ -411,7 +417,7 @@ function runFights(dt) {
     if (f.hit && d < 8) { const ev = {}; T.game.catchBy('grazer', g, ev); if (ev.caught) startCatch(T, ev.caught); }
     if (f.blocked) { T.pad.rumble(200, 0.6, 0.5); hud.toast(`${who(T)}Tumbled clear: the grazer's surge misses you`, 1800); }
     // out of interest (worn down by sprints and dodges): it coils back on its stalk and its current stops
-    if (g.fight.state === 'retreat' && !g.retreating) { g.retreating = true; g.contract = 3; g.ext = 0; g.hunger.missed(); hud.toast('The grazer gives up: it coils back on its stalk', 2000); }
+    if (g.fight.state === 'retreat' && !g.retreating) { g.retreating = true; g.contract = 3; g.ext = 0; hud.toast('The grazer gives up: it coils back on its stalk', 2000); }
     else if (g.fight.state !== 'retreat') g.retreating = false;
   }
   // phages and Bdellovibrio, per player
@@ -419,7 +425,7 @@ function runFights(dt) {
     const S = P.S;
     // --- a phage homing in ---
     if (P.phage && (!fightable(P) || !world.opts.phages || !world.hunt.phage || P.phage.p.stuck)) { P.phage.p.homing = false; P.phage = null; }
-    if (!P.phage && fightable(P) && P.ahead && world.opts.phages && world.hunt.phage) {
+    if (!P.phage && fightable(P) && P.nearCloud && world.opts.phages && world.hunt.phage) {
       P.phageCool = (P.phageCool ?? 3) - dt;
       if (P.phageCool <= 0) {
         P.phageCool = 0.5;
@@ -459,14 +465,14 @@ function runFights(dt) {
     }
     // --- Bdellovibrio lining up to ram the magnetotactic cell ---
     if (P.bdello && (!fightable(P) || S.species !== 'mtb' || !world.opts.hunters || !world.hunt.bdello || S.attacker)) { P.bdello.c.stalking = null; P.bdello.c.cooldown = 6; P.bdello = null; }
-    if (!P.bdello && fightable(P) && P.ahead && S.species === 'mtb' && world.opts.hunters && world.hunt.bdello && !S.attacker) {
+    if (!P.bdello && fightable(P) && P.nearPack && S.species === 'mtb' && world.opts.hunters && world.hunt.bdello && !S.attacker) {
       P.bdelloCool = (P.bdelloCool ?? 2) - dt;
       if (P.bdelloCool <= 0) {
         P.bdelloCool = 0.5;
         // a dense collective draws them from further off (a dense prey colony suits Bdellovibrio)
         const C = coll.of(P);
-        let best = null, bd = 30 + (C ? 4 * C.q : 0);
-        for (const c of world.cells) { if (c.kind !== 'bdello' || c.prey || c.hidden > 0 || c.cooldown > 0 || c.stalking) continue; const q = Math.hypot(c.x - S.x, c.y - S.y); if (q < bd) { bd = q; best = c; } }
+        let best = null, bd = 30 + (C ? 2 * C.army : 0);
+        for (const c of world.cells) { if (c.kind !== 'bdello' || c.dead || c.prey || c.hidden > 0 || c.cooldown > 0 || c.stalking) continue; const q = Math.hypot(c.x - S.x, c.y - S.y); if (q < bd) { bd = q; best = c; } }
         if (best) { P.bdelloCool = 3; best.stalking = P; best.cooldown = 99; P.bdello = { c: best, fight: createFight({ windup: 0.85, strike: 0.3, recoverT: 1.2, repelT: 1.3, retreatT: 4, facingRate: 0, blockHit: 0.5, biteHit: 0.4 }) }; }
       }
     }
@@ -494,7 +500,6 @@ function runFights(dt) {
         hud.toast(`${who(P)}Bdellovibrio has rammed you! Sprint (${glyph('A')}) or tumble (${glyph('B')}) to shake it off`, 2600);
       } else if (f.blocked || f.retreated || d > 45 || (P.sprintT > 0 && d < 8 && fight.bitten())) {
         if (f.blocked) { P.pad.rumble(150, 0.5, 0.4); hud.toast(`${who(P)}Tumbled: the Bdellovibrio's ram misses`, 1500); }
-        if (f.retreated || fight.state === 'retreat') bdelloH.missed();
         c.stalking = null; c.cooldown = 6; c.windup = 0; P.bdello = null;
       }
     }
@@ -502,41 +507,38 @@ function runFights(dt) {
 }
 
 // --- the boss: Stentor, anchored by the host cell ---------------------------------
-// A shared/predation.js fight with more resolve and three patterns: the steady
-// vortex (swim against it), the pull (tell: membranelles speed up, the vortex
-// brightens), and (resolve under half) a longer, harder pull. Tumbling (B) at
-// the pull breaks you free; each wasted pull and each bump of its foot costs
-// it resolve; bumping its foot makes it contract in a flash and pause.
-// Worn out, it contracts and stays shut for a while: the host is yours.
-stentor.fight = createFight({ windup: 1.4, strike: 0.9, recoverT: 2.4, repelT: 3.5, retreatT: 22, facingRate: 0, blockHit: 0.16, biteHit: 0.2, regain: 0.008 });
-stentor.hunger = createHunger({ grace: 0 });
+// The last gate (guards.js 'stentor'): its health is worn down by the army at
+// its rim of membranelles (and by X's volleys, the toxin burst, a tumble free of
+// its pull, a bump of its foot and every pull that comes up empty). Its
+// patterns (shared/predation.js createFight, as the state machine only): the
+// steady vortex, the pull (tell: membranelles speed up, the vortex brightens),
+// and below half health a longer, harder pull. Anything drawn within catchR of
+// its mouth is swept in, and the host lies inside that: beaten, it contracts
+// and stays shut, and the host is yours.
+stentor.fight = createFight({ windup: 1.4, strike: 0.9, recoverT: 2.4, repelT: 3.5, retreatT: 22, facingRate: 0, blockHit: 0, biteHit: 0, regain: 0 });
+const BOSS_HIT = 6; // health taken by a tumble free of a pull, a foot bump or a wasted pull
 const gaugeEl = document.createElement('div');
 gaugeEl.style.cssText = 'position:fixed;left:50%;top:56px;transform:translateX(-50%);z-index:20;pointer-events:none;display:none;color:#e6d3a3;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.04em;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.7)';
 gaugeEl.innerHTML = '<div class="nm"></div><div style="margin:3px auto 0;width:150px;height:5px;border:1px solid rgba(201,163,90,.85);border-radius:3px;background:rgba(20,16,8,.45)"><i style="display:block;height:100%;background:#c9a35a;border-radius:2px;width:100%"></i></div>';
 document.body.appendChild(gaugeEl);
 const bossInfo = { log: [], footT: 0 };
 function runBoss(dt) {
-  const B = stentor, M = B.mouth;
-  const after = pacing.now - pacing.t0 > pacing.grace;
+  const B = stentor, M = B.mouth, G = guards.byId.stentor;
   const dist = (P) => Math.hypot(P.S.x - M.x, P.S.y - M.y);
   let nd = Infinity;
   for (const P of roster) if (fightable(P)) nd = Math.min(nd, dist(P));
-  if (!B.awake && (after || bossInfo.force) && nd < B.wakeR) {
-    B.awake = true; bossInfo.log.push({ ev: 'wake', t });
-    hud.toast('Stentor, a giant trumpet ciliate, guards the host: ride the edge of its vortex, tumble at the pull, sprint across between pulls', 3800);
-  }
-  if (!B.awake) { B.update(dt, 'stalk', 0); gaugeEl.style.display = 'none'; return; }
+  if (B.beaten) { B.update(dt, 'retreat', 1); return; }
+  if (!B.awake && (nd < B.wakeR || bossInfo.force)) { B.awake = true; bossInfo.log.push({ ev: 'wake', t }); }
+  if (!B.awake) { B.update(dt, 'stalk', 0); return; }
   const inVortex = (P) => fightable(P) && dist(P) < B.pullR;
   // a tumble just before or during the pull breaks free (the pull is long: the window is the whole pull)
-  // (counted for whoever tumbled in the vortex, even once the tumble has kicked them out of it)
   for (const P of roster) if (inVortex(P) && P.blockT > 0) P.vortexTumbleAt = P.tumbleAt;
   const blocking = roster.some((P) => P.vortexTumbleAt !== undefined && (B.fight.state === 'strike' ? P.vortexTumbleAt > (B.strikeAt ?? t) - 0.35 : P.blockT > 0));
   const f = B.fight.update(dt, { near: nd < B.wakeR, inReach: nd < B.pullR, facing: true, blocking });
   if (f.state === 'windup' && B.state !== 'windup') bossInfo.log.push({ ev: 'tell', t });
-  if (f.state === 'strike' && !B.inStrike) { B.inStrike = true; B.strikeAt = t; bossInfo.log.push({ ev: 'pull', t }); }
+  if (f.state === 'strike' && !B.inStrike) { B.inStrike = true; B.strikeAt = t; B.strikeLoss = 0; bossInfo.log.push({ ev: 'pull', t }); }
   else if (f.state !== 'strike') B.inStrike = false;
-  B.phase2 = f.interest < 0.5;
-  // the catch: drawn to the mouth (at any time; the pull makes it likely)
+  B.phase2 = G.hp < G.max * 0.5;
   let caught = false;
   for (const P of roster) {
     if (!fightable(P)) continue;
@@ -544,8 +546,8 @@ function runBoss(dt) {
     // a tumble at the pull breaks you free of it: a kick out of the vortex
     if (B.fight.state === 'strike' && inVortex(P) && P.tumbleAt > (B.strikeAt ?? t) - 0.35 && P.kickedAt !== B.strikeAt) { P.kickedAt = B.strikeAt; P.kickT = 0.7; P.kickFrom = M; }
     // bumping its foot: it contracts in a flash and pauses
-    if (Math.hypot(P.S.x - B.foot.x, P.S.y - B.foot.y) < 9 && bossInfo.footT <= 0 && B.fight.state !== 'retreat') {
-      bossInfo.footT = 4; B.fight.bitten(); bossInfo.log.push({ ev: 'foot', slot: P.slot, t });
+    if (Math.hypot(P.S.x - B.foot.x, P.S.y - B.foot.y) < 9 && bossInfo.footT <= 0) {
+      bossInfo.footT = 4; B.fight.bitten(); guards.hurt(G, BOSS_HIT); bossInfo.log.push({ ev: 'foot', slot: P.slot, t });
       P.pad.rumble(200, 0.6, 0.6);
       hud.toast('You bumped its foot: Stentor contracts in a flash and pauses', 2000);
     }
@@ -553,22 +555,26 @@ function runBoss(dt) {
   bossInfo.footT = Math.max(0, bossInfo.footT - dt);
   if (f.blocked) {
     for (const P of roster) if (P.vortexTumbleAt > (B.strikeAt ?? t) - 0.35 && !(P.kickT > 0)) { P.kickT = 0.6; P.kickFrom = M; }
+    guards.hurt(G, BOSS_HIT);
     bossInfo.log.push({ ev: 'blocked', t });
     hud.toast('Tumbled free of the pull!', 1500);
   }
-  if (f.hit && !caught) { bossInfo.log.push({ ev: 'miss', t }); B.fight.bitten(); }
-  if (B.fight.state === 'retreat' && !B.spent) { B.spent = true; bossInfo.log.push({ ev: 'spent', t }); hud.toast('Stentor has had enough: it contracts and stays shut. The host is yours!', 3600); }
-  else if (B.fight.state !== 'retreat') B.spent = false;
-  // phase 2: a longer, harder pull
+  if (f.hit && !caught) { bossInfo.log.push({ ev: 'miss', t }); guards.hurt(G, BOSS_HIT); }
   B.fightT = f.t;
   B.update(dt, B.fight.state, f.t);
+  // below half health: a longer, harder pull
   if (B.phase2 && B.fight.state === 'strike') B.flowK = Math.max(B.flowK, 6.5);
-  const show = nd < B.wakeR * 1.25;
-  gaugeEl.style.display = show ? 'block' : 'none';
-  if (show) {
-    gaugeEl.querySelector('.nm').textContent = B.spent ? 'Stentor · contracted' : `Stentor${B.phase2 ? ' · straining' : ''}`;
-    gaugeEl.querySelector('i').style.width = `${Math.round(B.fight.interest * 100)}%`;
-  }
+}
+/** The enemy gauge: the nearest gate your flock is fighting, its health as a brass bar. */
+function gauge() {
+  const f = focusOf(P1);
+  const q = guards.nearest(f.x, f.y);
+  gaugeEl.style.display = q ? 'block' : 'none';
+  if (!q) return;
+  const B = stentor;
+  const name = q.kind === 'stentor' ? `Stentor${B.phase2 ? ' · straining' : ''}` : q.kind === 'bdello' ? `Bdellovibrio pack · ${guards.list[1] && world.cells.filter((c) => c.kind === 'bdello' && c.home && !c.dead).length} left` : q.kind === 'phage' ? 'Phage cloud' : q.kind === 'amoeba' ? 'Amoeba' : 'Peritrich';
+  gaugeEl.querySelector('.nm').textContent = `${name}${q.contact ? ` · ${q.contact} fighting` : ''}`;
+  gaugeEl.querySelector('i').style.width = `${Math.round(Math.max(0, q.hp / q.max) * 100)}%`;
 }
 
 // --- rendering ---
@@ -578,6 +584,7 @@ const optics = createLightOptics(renderer);
 const devQ = new URLSearchParams(location.search);
 if (devQ.get('psfdown') === '0') optics.toggles.down = false;
 const useRects = devQ.get('rects') !== '0';
+const FLOCK_N = Math.max(0, Math.min(COLL.max, +(devQ.get('flock') || 0)));
 const shapes = createShapes(6000);
 const overlay = createOverlay();
 const looks = createBorrowedLooks(renderer);
@@ -659,11 +666,11 @@ features.add({ id: 'chFlag', group: 'Optics', label: 'Stain: flagella (Alexa 488
 features.add({ id: 'chMag', group: 'Optics', label: 'Stain: magnetosome chain (MamC-GFP)', on: true, about: 'A fluorescent protein fused to a magnetosome membrane protein: a line down the middle of the cell. Shown in blue so it reads apart from the flagella (pseudo-colour).', onChange: (on) => { drawer.chan.mag = on ? 1 : 0; } });
 features.add({ id: 'chPhage', group: 'Optics', label: 'Stain: phages (SYBR Gold)', on: true, about: 'A nucleic-acid stain makes each 60 nm phage a diffraction-limited spot: the standard way to count viruses in pond water. Without it, no light microscope shows them.', onChange: (on) => { drawer.chan.phage = on ? 1 : 0; } });
 features.add({ id: 'overlay', group: 'Optics', label: 'Data overlay (Y)', on: false,
-  about: 'Oxygen (blue too little, green the band, red too much; isolines at 0.1, 1, 10 %), food contours, the field lines and the grazers\' currents, and the magnetosome chain picked out. Marked on screen as data, not optics.',
-  onChange: (on) => { view.overlay = on; tag.classList.toggle('show', on); o2El.classList.toggle('show', on); } });
+  about: 'Food contours, the field lines and the grazers\' currents, and the magnetosome chain picked out. Marked on screen as data, not optics.',
+  onChange: (on) => { view.overlay = on; tag.classList.toggle('show', on); } });
 features.add({ id: 'mark', group: 'Optics', label: 'Mark your cell', on: true, about: 'Corner brackets round your cell (a game marker, not optics): at 1000× you are one small grey rod among many.', onChange: (on) => { view.mark = on; } });
-features.add({ id: 'collective', group: 'Body', label: 'The collective (kin join you)', on: true,
-  about: 'Touch kin cells (your own species, dim, wandering in the first half of the way) and they join you: you become a collective. No leader: the whole group moves with the stick as one flock, your own cell one member. Members are your health (a predator takes one in your place) and regrow by division in the band. Quorum (how many cells are close together, shown by the brass ring) gates the slime shield (5), the raft that currents barely drag (8), and at 12 the toxin burst (it charges while the collective holds still; Y or LS click fires it) and patch takeover. Together: touch another player\'s collective to join it (your inputs blend); move away to leave: past 20 µm the crowd splits evenly. Real basis: quorum sensing, swarming rafts, multicellular magnetotactic prokaryotes. Departures: a player steers the group, and members die in your place.',
+features.add({ id: 'collective', group: 'Body', label: 'Your army: a flock of kin (X calls them)', on: true,
+  about: 'X sends a beacon from the middle of your flock (an autoinducer pulse, drawn so it shows: a departure, they are invisible small molecules). Kin it reaches (your own species, wandering in the meadow by the start and in the breaks between the gates) answer with their own small pulse, one after another, and join. They never join by themselves. X also lyses prey rods in reach of any member, and each one feeds a member toward dividing, so the army grows. The flock: you steer it (the stick sets its heading and speed); every member follows by its own rules, with its own top speed, turn rate, reaction lag and wander, so the front moves first and the rest catch up, overshoot and turn back. Members are your health (a predator takes one in your place). Army size gates the slime shield (5: phages stick in it), the raft (8: currents drag you at a third) and the toxin (12: it charges; Y or LS click fires it). Together: touch another player\'s flock to join it (sticks blend); move away to leave: past 20 µm the army splits evenly. Real basis: quorum sensing, swarming rafts, multicellular magnetotactic prokaryotes, contact killing. Departures: a player steers the group, kin answering one by one, members die in your place.',
   onChange: (on) => { collFeature.on = on; coll.opts.on = on && S.species === 'mtb'; coll.reset(roster); } });
 features.add({ id: 'shapes', group: 'Rendering', label: 'Instanced 2D distance-field specimen', fixed: true,
   about: 'Every cell, filament, phage, grain and giant-cell edge is a quad whose fragment shader computes its true cross-section chord (2√(r²−d²)) and adds optical path, scatter, stain and absorbance into float buffers. Sub-pixel parts are widened with their total kept.' });
@@ -688,21 +695,15 @@ features.add({ id: 'pattern', group: 'Body', label: 'How each cell turns', fixed
 features.add({ id: 'bfield', group: 'Simulation', label: 'Magnetic field at the slide', choices: ['Earth (20 µT horizontal)', 'Bar magnet (200 µT)', 'Cancelled (0 µT)'], value: 'Earth (20 µT horizontal)',
   about: 'The magnetosome chain\'s moment (~10⁻¹⁵ A·m²) feels a torque m×B: mB/kT ≈ 5 in the Earth\'s horizontal field, so the cell lines up within a second or two. North points into the sediment, as the field\'s downward dip does in the Northern Hemisphere. Cancel it and the magnetotactic cell is as lost as any other.',
   onChange: (v) => { world.opts.field = v.startsWith('Earth') ? 20 : v.startsWith('Bar') ? 200 : 0; } });
-features.add({ id: 'oxygen', group: 'Simulation', label: 'Oxygen stress', on: true, about: 'Too much oxygen damages a microaerophile; too little leaves either cell without energy. Off: no penalty.', onChange: (on) => { game.opts.oxygen = on; } });
 features.add({ id: 'grazers', group: 'World', label: 'Peritrich grazers', on: true, about: 'Two Vorticella-like bells on stalks, oral cilia beating a feeding current (a sink, ~60 µm/s at 16 µm, faster than you near the funnel). Touch the bell and it may contract on its stalk.', onChange: (on) => { world.opts.grazers = on; } });
 features.add({ id: 'amoeba', group: 'World', label: 'Amoeba edge', on: true, about: 'The leading edge of a giant amoeba creeps toward you at ~1.4 µm/s: easy to outswim, deadly to anything parked while feeding.', onChange: (on) => { world.opts.amoeba = on; } });
 features.add({ id: 'phages', group: 'World', label: 'Phages', on: true, about: 'Tail-first adsorption is reversible for a few seconds here (much longer in life), then irreversible; then the DNA goes in. Dashing shears loosely bound phages off (a labelled stretch).', onChange: (on) => { world.opts.phages = on; } });
 features.add({ id: 'hunters', group: 'World', label: 'Bdellovibrio hunters', on: true, about: 'Three predators hunting Gram-negative prey, making bdelloplasts. One may hit you: dash or tumble at once to shake it off before it bores in.', onChange: (on) => { world.opts.hunters = on; } });
-const GRACES = ['45 s', '20 s', '0 s (predators from the start)'];
-features.add({ id: 'grace', group: 'World', label: 'Calm opening before the predators', choices: GRACES, value: GRACES[0],
-  about: 'For the first 45 s of a run (and after every restart) the grazers\' feeding currents are off, no phage cloud drifts in, the Bdellovibrio leave you alone and the amoeba\'s edge does not creep toward you, so you can explore first. They wake one after another over the next 15 s. Shorter openings are for testing.',
-  onChange: (v) => { pacing.grace = parseFloat(v); resetPressure(); } });
-features.add({ id: 'hunger', group: 'World', label: 'Predators come and go', on: true,
-  about: 'After the opening each predator is on for a while, then rests: a grazer beats its feeding current for 20–35 s, then folds its cilia; a phage cloud (a nearby cell bursting) lasts 20–30 s, then thins; Bdellovibrio hunt you for 18–32 s; the amoeba creeps toward you for 30–50 s. They rest 45–75 s after a catch, less after a miss. The stats corner shows each. Off: once the opening is over they are on all the time (the old pacing).',
-  onChange: (on) => { pacing.cycles = on; } });
+features.add({ id: 'gates', group: 'World', label: 'The way: gates in a rhythm', fixed: true,
+  about: 'The meadow by the start, full of kin and prey, then a gate every ~95 µm with a calm break between (a few kin and prey to top up the army): a peritrich, a Bdellovibrio pack, a phage cloud, an amoeba\'s edge, a bigger peritrich, and Stentor at the host. Each is fought by contact: every cell of your army touching it wears it down while it recovers, so a lone cell gets nowhere and an army wins. Beaten, it stays beaten. No timers.' });
 features.add({ id: 'npc', group: 'World', label: 'Other bacteria swim', on: true, about: 'E. coli-like rods run and tumble at 18–28 µm/s; other magnetotactic cells swim along the field and reverse by the oxygen sense. Off: everything sits still (Brownian only).', onChange: (on) => { world.opts.npcRun = on; } });
 features.add({ id: 'scenery', group: 'World', label: 'Biofilm, EPS, clay, detritus', fixed: true, about: 'An EPS-rich biofilm of attached rods and cocci over clay and silt grains larger than you; matrix strands; decaying detritus flakes at the heart of each food patch.' });
-features.add({ id: 'pad', group: 'Controls', label: 'Shared control scheme', fixed: true, about: 'LS steer (released: drift), RS stage, A sprint, X feed/attach, B tumble, Y data, LT/RT focus, LB/RB reverse, D-pad ←→ look, ↑↓ field, Menu features, View panel.' });
+features.add({ id: 'pad', group: 'Controls', label: 'Shared control scheme', fixed: true, about: 'LS steer the flock (released: it slows and stops), RS stage, A sprint, X beacon + eat + strike (Bdellovibrio: attach), B tumble, Y toxin burst (or data), LT/RT focus, LB/RB reverse, D-pad ←→ look, ↑↓ field, Menu features, View panel.' });
 // Borrowed (default off), also reachable from the look cycle.
 const borrow = borrowedSwitches(features);
 const bmode = { dic: 0 };
@@ -739,7 +740,7 @@ function setSpecies(sp) {
   view.zoom = ZOOMS.indexOf(SPECIES[sp].view);
   view.cx = S.x; view.cy = S.y;
   card.classList.remove('show');
-  hud.toast(sp === 'mtb' ? `Magnetospirillum: find the 0.5–5 % oxygen band, feed (hold ${glyph('X')}) until you divide` : `Bdellovibrio: ram and bore into ${GOAL_PREY} Gram-negative prey (${glyph('X')} when touching)`, 3200);
+  hud.toast(sp === 'mtb' ? `Gather an army: press ${glyph('X')} near kin (the spirilla like you) and they answer and join. Then fight your way right to the host` : `Bdellovibrio: ram and bore into ${GOAL_PREY} Gram-negative prey (${glyph('X')} when touching)`, 3600);
 }
 
 // --- the landmarks: forward (the host with phages) and the backdoor (the Paramecium) ---
@@ -759,6 +760,11 @@ function landmarkTick(dt) {
     const [d] = segDist(P.S.x, P.S.y, F.x, F.y, F.a, F.L);
     if (d < F.r + P.S.sp.r + F.reach) at = at || P;
     if (d < 14) close = true;
+    // or any member of the player's flock
+    const C = coll.opts.on && coll.of(P);
+    if (C && C.members.length && Math.abs(C.cx - F.x) < C.extent + 16 && Math.abs(C.cy - F.y) < C.extent + 16) {
+      for (const m of C.members) { const [e] = segDist(m.x, m.y, F.x, F.y, F.a, F.L); if (e < F.r + m.r + F.reach) { at = at || P; close = true; break; } if (e < 14) close = true; }
+    }
     P.backT = Math.hypot(P.S.x - BACK.x, P.S.y - BACK.y) < LMK.back.r ? P.backT + dt : 0;
   }
   // reaching the host: any player touching it zooms everyone in (once, until all have left it)
@@ -792,19 +798,34 @@ const debug = {
   /** Make every predator hungry now (tests of the fights). */
   /** Wake the boss now, whatever the calm opening says. */
   wakeBoss() { bossInfo.force = true; },
-  /** Put n free kin cells touching a player (tests): they join on the next step. */
+  /** Put n free kin cells beside a player (tests): they join only when a beacon (X) reaches them. */
   recruit(n = 5, slot = 0) {
     const P = roster.find((Q) => Q.slot === slot) || P1; let k = 0;
     for (const m of coll.kin) { if (k >= n) break; if (m.coll || m.dying) continue; const a = k * 2.4; m.x = P.S.x + Math.cos(a) * (1.6 + 0.25 * k); m.y = P.S.y + Math.sin(a) * (1.6 + 0.25 * k); k++; }
     return k;
   },
+  /** Give a player's flock n members at once (tests, ?flock=n). */
+  fill(n = 40, slot = 0) {
+    const P = roster.find((Q) => Q.slot === slot) || P1; const C = coll.of(P); let k = 0;
+    for (let i = 0; C && C.members.length < n && i < 64; i++) { const a = i * 2.4, d = 1.5 + 0.35 * i; if (coll.adopt(P, P.S.x + Math.cos(a) * d, P.S.y + Math.sin(a) * d, Math.random() * 6.28)) k++; else break; }
+    return k;
+  },
+  /** X for a player in tests: the beacon, eating prey in reach and a volley on any enemy in contact. */
+  x(slot = 0) { const P = roster.find((Q) => Q.slot === slot) || P1; return pressX(P); },
   /** Fill a player's collective's toxin charge (tests). */
   charge(slot = 0) { const C = coll.of(roster.find((Q) => Q.slot === slot) || P1); if (C) C.charge = 1; },
   burst(slot = 0) { return !!coll.burst(roster.find((Q) => Q.slot === slot) || P1); },
-  hungry() { for (const p of predators()) p.h.reset(0.01); },
   /** A button for a player in tests: 'B' tumble (defend), 'A' sprint. */
   press(b, slot = 0) { const P = roster.find((Q) => Q.slot === slot) || P1; if (b === 'B') { P.blockT = 0.55; P.tumbleAt = t; P.swimmer.tumble(null); } else if (b === 'A' && P.dash.trigger()) { doDash(P); P.sprintT = 0.55; } },
-  step(n = 1, dt = 1 / 60, inp = {}) { for (let i = 0; i < n; i++) tick(dt, { 0: { attack: !!inp.attack, attackPressed: !!inp.attack && i === 0, steer: inp.steer || null } }); },
+  step(n = 1, dt = 1 / 60, inp = {}) {
+    for (let i = 0; i < n; i++) {
+      const ins = {};
+      // inp: one player's input, or { slots: { 0: {...}, 1: {...} } }
+      const per = inp.slots || { 0: inp };
+      for (const k in per) { const q = per[k] || {}; ins[k] = { attack: !!q.attack, attackPressed: !!q.attack && i === 0, steer: q.steer ? { ...q.steer } : null }; }
+      tick(dt, ins);
+    }
+  },
 };
 
 function doDash(P) {
@@ -813,13 +834,38 @@ function doDash(P) {
   P.S.dashOn = true;
   P.pad.rumble(160, 0.5, 0.7);
   const who = multi() ? `${P.name}: ` : '';
-  if (res === 'shook') { bdelloH.missed(); hud.toast(`${who}Shook the Bdellovibrio off before it could bore in`); }
+  if (res === 'shook') { hud.toast(`${who}Shook the Bdellovibrio off before it could bore in`); }
   else if (res === 'detached') hud.toast(`${who}Let go of the prey`);
 }
 
 const idle = () => ({ attack: false, attackPressed: false, focusing: false, steer: null });
+/**
+ * X (the magnetotactic cell): a beacon from the flock's middle (kin it reaches answer and join), every prey
+ * rod in reach of a member lysed, and a volley on any enemy the flock touches. One press every 0.3 s.
+ */
+function pressX(P) {
+  if (!P.S.alive || P.S.species !== 'mtb' || !coll.opts.on) return null;
+  const b = coll.beacon(P, t);
+  if (!b) return null;
+  const C = coll.of(P);
+  const eaten = coll.eat(P);
+  const hits = C ? guards.volley(C, t) : 0;
+  if (eaten.length) {
+    audio.play('bacterium/eat', { volume: 0.8, rate: 1.05 + Math.random() * 0.1 });
+    P.pad.rumble(60, 0.3, 0.2);
+    if (!P.msg.ate) { P.msg.ate = true; hud.toast(`${multi() ? P.name + ': ' : ''}Lysed ${eaten.length > 1 ? eaten.length + ' prey rods' : 'a prey rod'}: the cells that took them grow toward dividing, so your army grows`, 3000); }
+  }
+  if (hits) P.pad.rumble(80, 0.4, 0.3);
+  collInfo.presses.push({ t, slot: P.slot, R: +b.R.toFixed(1), eaten: eaten.length, hits });
+  if (collInfo.presses.length > 50) collInfo.presses.shift();
+  return { beacon: true, R: b.R, eaten: eaten.length, hits };
+}
+/** Where a player's view centres: the flock's smoothed middle; alone, the cell (inside its prey, as Bdellovibrio). */
+const focusOf = (P) => P.S.inside || coll.focus(P) || P.S;
+
 function tick(dt, inputs) {
   t += dt;
+  world.time = t;
   pacing.now = t;
   updatePressure(dt);
   for (const P of roster) if (P !== P1) { Object.assign(P.swimmer.opts, swimmer.opts); Object.assign(P.game.opts, game.opts); }
@@ -828,15 +874,19 @@ function tick(dt, inputs) {
     const inp = inputs[P.slot] || (inputs[P.slot] = idle());
     P.dash.update(dt);
     inp.dashActive = P.dash.active;
-    P.ahead = progress(P.S.x, P.S.y) >= 0.5; // the challenges come at or beyond halfway
+    // which gate a player is at: phages and the pack's rams take hold only there
+    const f = focusOf(P), cl = world.cloud, home = world.route.gates[1];
+    P.nearCloud = Math.hypot(f.x - cl.x, f.y - cl.y) < cl.r + 22;
+    P.nearPack = Math.hypot(f.x - home.x, f.y - world.wayY(home.x)) < home.r + 40;
     P.safeT = Math.max(0, (P.safeT || 0) - dt);
+    if (inp.attackPressed && P.S.species === 'mtb') pressX(P);
   }
-  // the collective: blend the inputs of a shared collective; a released collective mills in place
+  // the flock: its intent from the sticks; each player's own cell steered as one member
   const active = roster.filter((P) => !P.waiting);
   coll.pre(dt, t, active, inputs);
   for (const P of roster) {
     const ev = {}, C = coll.of(P);
-    P.S.flowK = C && C.level >= 2 ? 0.35 : 1; // a raft: currents drag it at a third of their strength
+    P.S.flowK = C ? C.drag : 1; // a raft: currents drag it less, the bigger it is (collective.js dragK)
     P.swimmer.step(dt, t, inputs[P.slot], ev);
     evs.set(P, ev);
   }
@@ -854,6 +904,7 @@ function tick(dt, inputs) {
   // knocked clear (a tumble free of the pull, or a member taken in your place)
   for (const P of roster) if (P.kickT > 0 && P.S.alive) { P.kickT -= dt; const F = P.kickFrom || stentor.mouth; const a = Math.atan2(P.S.y - F.y, P.S.x - F.x); P.S.x += Math.cos(a) * 130 * dt; P.S.y += Math.sin(a) * 130 * dt; }
   coll.post(dt, t, active);
+  guards.update(dt, t, active);
   for (const P of roster) {
     const ev = evs.get(P), inp = inputs[P.slot], S = P.S;
     const C = coll.of(P);
@@ -868,9 +919,9 @@ function tick(dt, inputs) {
     if (ev.phage && snd.t - snd.lastPhage > 0.2) { snd.lastPhage = snd.t; audio.play('bacterium/phage', { volume: 0.8 }); }
     if (ev.captured) audio.play('bacterium/graze', { volume: 0.9 });
     const wasAlive = S.alive;
-    // phages and Bdellovibrio take hold only of a player at or beyond halfway
+    // phages and the pack's Bdellovibrio take hold only of a player at their gate
     const hp = world.hunt.phage, hb = world.hunt.bdello;
-    world.hunt.phage = hp && P.ahead; world.hunt.bdello = hb && P.ahead;
+    world.hunt.phage = hp && P.nearCloud; world.hunt.bdello = hb && P.nearPack;
     P.game.update(dt, t, inp, ev);
     world.hunt.phage = hp; world.hunt.bdello = hb;
     if (ev.caught) startCatch(P, ev.caught);
@@ -881,11 +932,11 @@ function tick(dt, inputs) {
   if (pacing.firstThreat === null && S.alive && (S.flow > 15 || S.phages.length || S.attacker || world.insideAmoeba(S.x, S.y, t) > 0)) pacing.firstThreat = t - pacing.t0;
   // focus drifts back to the cell's plane
   if (view.focusFollows && !(inputs[0] && inputs[0].focusing)) view.focus *= Math.exp(-dt * 1.5);
-  // camera: the stage follows the cell (the group's middle with friends; the split screen does the rest)
+  // camera: the stage follows your flock's middle (the players' middles together; the split screen does the rest)
   const k = 1 - Math.exp(-dt * 5);
-  let fx = S.x, fy = S.y;
+  let { x: fx, y: fy } = focusOf(P1);
   if (multi()) {
-    const ps = roster.filter((P) => !P.waiting).map((P) => P.S.inside || P.S);
+    const ps = roster.filter((P) => !P.waiting).map(focusOf);
     fx = ps.reduce((a, p) => a + p.x, 0) / ps.length; fy = ps.reduce((a, p) => a + p.y, 0) / ps.length;
   }
   // once eaten, the view slides down so your remains sit above the Eaten card
@@ -928,7 +979,7 @@ function readInput(P, dt) {
       if (P.swimmer.tumble(bias)) {
         audio.play('bacterium/tumble', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
         P.pad.rumble(40, 0.2, 0);
-        if (S.attacker) { S.attacker.cooldown = 4; S.attacker.prey = null; S.attacker = null; bdelloH.missed(); hud.toast(`${multi() ? P.name + ': ' : ''}Tumbled free of the Bdellovibrio`); }
+        if (S.attacker) { S.attacker.cooldown = 4; S.attacker.prey = null; S.attacker = null; hud.toast(`${multi() ? P.name + ': ' : ''}Tumbled free of the Bdellovibrio`); }
       }
     }
     if (c.lb.pressed() || c.rb.pressed()) { if (P.swimmer.reverse() && me) hud.toast(S.species === 'mtb' ? (S.sense > 0 ? 'Reversed: swimming north, along the field (down)' : 'Reversed: swimming south, against the field (up)') : 'Reversed'); }
@@ -973,6 +1024,8 @@ function frame(now) {
   if (!blocked) hud.update(pad);
   const inputs = {};
   if (!blocked) for (const P of roster) if (!P.waiting) inputs[P.slot] = readInput(P, dt);
+  // ?flock=n (tests and perf): every player starts with an army of n
+  if (FLOCK_N) for (const P of roster) if (P.S.alive && P.S.species === 'mtb' && coll.opts.on) { const C = coll.of(P); if (C && C.members.length < FLOCK_N && !P.flockFilled) { debug.fill(FLOCK_N, P.slot); P.flockFilled = true; } }
   if (!debug.freeze) tick(dt, inputs);
   else for (const P of roster) P.S.dashOn = P.dash.active;
   for (const P of roster) {
@@ -986,6 +1039,7 @@ function frame(now) {
   if (S.alive && S.overT === 0 && !S.over && card.classList.contains('show') && !roster.some((P) => P.S.over === 'won')) card.classList.remove('show');
   if (roster.some((P) => P.S.over === 'won') && (pad.pressed(players.BTN.A))) setSpecies(S.species);
   warn();
+  gauge();
 
   render(dt);
   frames++; fpsT += dt;
@@ -996,22 +1050,13 @@ function frame(now) {
 /** The red line at the top: what is happening to whom, and what to do. */
 function warn() {
   const lines = [];
-  const bar = (k) => '▮'.repeat(Math.round(k * 5)) + '▯'.repeat(5 - Math.round(k * 5));
   for (const P of roster) {
     const S = P.S, who = multi() ? `${P.name}: ` : '';
     let text = '', sev = 0;
     if (P.capture.active && P.cat.kind && P.cat.phase !== 'eaten') { text = CATCH[P.cat.kind][P.cat.phase]; sev = 3; }
     else if (attackText(P)) { const a = attackText(P); text = a.text; sev = a.sev; }
     else if (!S.alive && S.over && S.over !== 'won' && !S.caught) { text = `Run over: ${(S.cause || 'the cell has stopped').toLowerCase()}`; sev = 2.5; }
-    else if (S.alive && S.warning) {
-      const w = S.warning;
-      let hint = '';
-      if (w.kind === 'o2high') hint = S.species === 'mtb' && S.sense < 0 ? ` (you are swimming up: ${glyph('LB/RB')} reverses)` : ' (down toward the sediment)';
-      if (w.kind === 'o2low') hint = S.species === 'mtb' && S.sense > 0 ? ` (you are swimming down: ${glyph('LB/RB')} reverses)` : '';
-      text = `${w.text}${hint} ${w.kind === 'heal' ? '' : w.kind === 'o2high' ? 'damage ' : 'energy '}${w.kind === 'o2low' || w.kind === 'starve' ? bar(1 - w.level) : bar(w.level)}`;
-      sev = w.kind === 'heal' ? 0.5 : 1 + w.level;
-    }
-    if (text) lines.push({ text: who + text, sev, color: sev >= 2 || (S.warning && S.warning.level > 0.5) ? '#ff8a7a' : sev <= 0.5 ? '#bfe3c0' : '#ffc27a' });
+    if (text) lines.push({ text: who + text, sev, color: sev >= 2 ? '#ff8a7a' : sev <= 0.5 ? '#bfe3c0' : '#ffc27a' });
   }
   lines.sort((a, b) => b.sev - a.sev);
   const top = lines.slice(0, multi() ? 2 : 1);
@@ -1022,11 +1067,11 @@ function warn() {
 /** What is attacking a player right now, for the warning line. */
 function attackText(P) {
   if (!P.S.alive) return null;
-  if (stentor.awake && Math.hypot(P.S.x - stentor.mouth.x, P.S.y - stentor.mouth.y) < stentor.pullR + 15) {
+  if (stentor.awake && !stentor.beaten && Math.hypot(P.S.x - stentor.mouth.x, P.S.y - stentor.mouth.y) < stentor.pullR + 15) {
     const st = stentor.fight.state;
     if (st === 'windup') return { text: `Stentor's membranelles speed up, its vortex brightens: get to the edge, or tumble (${glyph('B')}) at the pull`, sev: 2.3 };
     if (st === 'strike') return { text: `Stentor PULLS: tumble (${glyph('B')}) to break free, sprint (${glyph('A')}) out`, sev: 2.6 };
-    if (st === 'recover') return { text: 'Its vortex slackens: sprint across now!', sev: 0.4 };
+    if (st === 'recover') return { text: 'Its vortex slackens: press in on its rim now!', sev: 0.4 };
   }
   const g = world.grazers.find((q) => q.target === P && (q.fightState === 'windup' || q.fightState === 'strike'));
   if (g) return { text: `A grazer's current is ${g.fightState === 'strike' ? 'SURGING' : 'intensifying'}: tumble (${glyph('B')}) as it pulls, or sprint out (${glyph('A')})`, sev: 2.2 };
@@ -1078,7 +1123,8 @@ function drawField(cx, cy, stopOk, rect = null) {
   if (view.overlay) overlay.render(renderer, { center: [cx, cy], size: [fieldW, fieldH], res: [W, H], time: t, band: S.sp.o2, world, flTex: optics.field.textures[1] });
 }
 
-const posOf = (P) => { const p = P.S.inside || P.S; return { x: p.x, y: p.y, z: 0 }; };
+const posOf = (P) => { const p = focusOf(P); return { x: p.x, y: p.y, z: 0 }; };
+const cellPos = (P) => { const p = P.S.inside || P.S; return { x: p.x, y: p.y, z: 0 }; };
 function render(dt) {
   const fieldH = ZOOMS[zoomIdx()];
   const cx = view.cx + view.stage.x, cy = view.cy + view.stage.y;
@@ -1109,18 +1155,31 @@ function render(dt) {
   marks.drawSplit(arrowSplit(), FWD, { kind: 'forward', label: 'Host', range: 420, onScreen: 'none' });
   marks.drawSplit(arrowSplit(), BACK, { kind: 'backdoor', label: 'Pool', range: 420, onScreen: 'none' });
   drawMarks(L, fieldH);
-  // scale bar and oxygen ticks
+  // scale bar
   const bar = fieldH >= 90 ? 20 : fieldH >= 40 ? 5 : 2;
   const cssPerUm = innerHeight / fieldH;
   scaleEl.innerHTML = `<i style="width:${Math.round(bar * cssPerUm)}px"></i>${bar} µm · field ${fieldH} µm${view.zoom ? ' (crop)' : ''}`;
-  if (view.overlay) {
-    const ticks = [0.1, 0.5, 1, 2, 5, 10, 20, 50];
-    o2El.innerHTML = ticks.map((p) => {
-      const y = oxygenY(p);
-      const top = innerHeight / 2 - (y - cy) * cssPerUm;
-      return top > 10 && top < innerHeight - 10 ? `<span style="top:${top}px">${p} % O₂</span>` : '';
-    }).join('');
+  armyChip();
+}
+
+/** The army chip at the bottom: per player, the army's size, its abilities and the toxin (text, no ring). */
+let armyText = '';
+function armyChip() {
+  let html = '';
+  if (coll.opts.on) {
+    const seen = new Set();
+    for (const P of roster) {
+      if (P.waiting) continue;
+      const C = coll.of(P);
+      if (!C || seen.has(C)) continue;
+      seen.add(C);
+      const who = multi() ? `<span style="color:${C.players.length > 1 ? '#e6d3a3' : P.color}">${C.players.map((Q) => 'P' + (Q.slot + 1)).join('+')}</span> ` : '';
+      if (!C.members.length) { html += `<div>${who}Alone: press ${glyph('X')} near kin to call them</div>`; continue; }
+      const ab = [C.level >= 1 ? 'slime shield' : '', C.level >= 2 ? 'raft' : '', C.level >= 3 ? (C.charge >= 1 ? `toxin ready (${glyph('Y')})` : `toxin ${Math.round(C.charge * 100)} %`) : ''].filter(Boolean).join(' · ');
+      html += `<div>${who}Army ${C.army}${ab ? ' · ' + ab : ''}</div>`;
+    }
   }
+  if (html !== armyText) { armyText = html; armyEl.innerHTML = html; }
 }
 
 /** A split view's region as a rectangle (fractions of the screen, origin bottom left), for the optics' scissor. */
@@ -1158,7 +1217,9 @@ function drawMarks(L, fieldH) {
       const S = P.S;
       if (S.over && S.over !== 'won' && S.overT > 2.5) continue;
       if (P.capture.active && P.cat.phase === 'eaten' && multi()) continue;
-      const q = split.project(v.index, posOf(P));
+      // with a flock (alone at the stick), your cell is just one member: no marker
+      if (!multi() && coll.focus(P)) continue;
+      const q = split.project(v.index, cellPos(P));
       const size = Math.max(26, S.sp.L * cssPerUm + 18), hs = size / 2, arm = 7;
       markG.globalAlpha = multi() ? 0.8 : 0.55;
       markG.strokeStyle = multi() ? P.color : '#ffd28a';
@@ -1171,7 +1232,6 @@ function drawMarks(L, fieldH) {
       markG.stroke();
       if (multi()) { markG.fillStyle = P.color; markG.font = '600 10px system-ui, sans-serif'; markG.textAlign = 'center'; markG.fillText(`P${P.slot + 1}`, q.x, q.y - hs - 4); }
     }
-    if (coll.opts.on) drawCollective(v.index, cssPerUm);
     // an attack under way: a pulsing red ring on the predator (a game marker, not optics)
     const ring = (x, y, r) => { const q = split.project(v.index, { x, y, z: 0 }); markG.globalAlpha = 0.35 + 0.45 * (0.5 + 0.5 * Math.sin(t * 18)); markG.strokeStyle = '#ff5a46'; markG.lineWidth = 2; markG.beginPath(); markG.arc(q.x, q.y, r, 0, Math.PI * 2); markG.stroke(); };
     for (const g of world.grazers) if (g.fightState === 'windup' || g.fightState === 'strike') ring(g.pose.mouth.x, g.pose.mouth.y, Math.max(16, 7 * cssPerUm));
@@ -1184,65 +1244,23 @@ function drawMarks(L, fieldH) {
   }
 }
 
-/**
- * The collective in the HUD's quiet brass: a faint ring marks each free kin cell nearby (so you
- * can find your own kind among the other rods), and round each collective a thin quorum ring
- * fills with how many cells are close together, with ticks at slime (5), raft (8) and quorum (12),
- * an inner purple arc for the toxin charge, and a small label. A game marker, not optics.
- */
-function drawCollective(vi, cssPerUm) {
-  const g = markG;
-  g.lineWidth = 1;
-  g.strokeStyle = '#c9a35a';
-  g.globalAlpha = 0.3;
-  g.beginPath();
-  for (const k of coll.kin) {
-    if (k.coll || k.dying) continue;
-    const q = split.project(vi, { x: k.x, y: k.y, z: 0 });
-    if (q.x < -10 || q.y < -10 || q.x > innerWidth + 10 || q.y > innerHeight + 10) continue;
-    const r = Math.max(5, k.L * 0.5 * cssPerUm + 3);
-    g.moveTo(q.x + r, q.y); g.arc(q.x, q.y, r, 0, Math.PI * 2);
-  }
-  g.stroke();
-  for (const C of coll.list) {
-    if (!C.members.length || !C.players.length) continue;
-    const q = split.project(vi, { x: C.cx, y: C.cy, z: 0 });
-    const R = Math.max(30, (C.R + 3) * cssPerUm);
-    if (q.x < -R || q.y < -R || q.x > innerWidth + R || q.y > innerHeight + R) continue;
-    const top = -Math.PI / 2, frac = Math.min(1, C.q / COLL.quorum);
-    g.globalAlpha = 0.22; g.lineWidth = 2; g.beginPath(); g.arc(q.x, q.y, R, 0, Math.PI * 2); g.stroke();
-    g.globalAlpha = 0.7; g.beginPath(); g.arc(q.x, q.y, R, top, top + frac * Math.PI * 2); g.stroke();
-    g.lineWidth = 1; g.globalAlpha = 0.6; g.beginPath();
-    for (const n of [COLL.shield, COLL.raft]) { const a = top + (n / COLL.quorum) * Math.PI * 2; g.moveTo(q.x + Math.cos(a) * (R - 4), q.y + Math.sin(a) * (R - 4)); g.lineTo(q.x + Math.cos(a) * (R + 4), q.y + Math.sin(a) * (R + 4)); }
-    g.stroke();
-    if (C.charge > 0) { g.strokeStyle = '#b48ad8'; g.globalAlpha = C.charge >= 1 ? 0.6 + 0.3 * Math.sin(t * 6) : 0.55; g.lineWidth = 2; g.beginPath(); g.arc(q.x, q.y, R - 5, top, top + C.charge * Math.PI * 2); g.stroke(); g.strokeStyle = '#c9a35a'; }
-    g.globalAlpha = 0.75; g.fillStyle = '#e6d3a3'; g.font = '600 10px system-ui, sans-serif'; g.textAlign = 'center';
-    const lv = LEVEL_NAMES[C.level];
-    g.fillText(`${C.members.length + C.players.length} · quorum ${C.q}${lv ? ' · ' + lv : ''}${C.charge >= 1 ? ` · toxin ready (${glyph('Y')})` : ''}`, q.x, q.y + R + 13);
-  }
-  g.globalAlpha = 1;
-}
-
 function stats() {
   const sp = S.sp;
   const look = currentLookKey();
   const lookName = { phase: 'Phase contrast', fluorescence: 'Fluorescence (pseudo-colour)', darkfield: 'Darkfield', sem: 'SEM (borrowed)', dic: 'DIC (borrowed)' }[look];
-  const feel = S.signal > 0.08 ? '↑ getting better: keep running' : S.signal < -0.08 ? '↓ getting worse: tumble?' : '· no change';
   const dash = P1.dash;
   const lines = [
     `${sp.short} · ${lookName} · focus ${view.focus >= 0 ? '+' : ''}${view.focus.toFixed(1)} µm`,
-    `speed ${Math.round(S.speed).toString().padStart(3)} µm/s · ${(S.speed / sp.L).toFixed(0)} body lengths/s · ${S.mode === 'tumble' ? 'TUMBLE' : S.boring ? 'BORING IN' : S.inside ? 'INSIDE PREY' : dash.active ? 'SPRINT' : 'run'}${S.mode === 'run' && !S.boring && !S.inside ? (S.steering ? ' · steering (LS)' : swimmer.opts.steer ? ' · adrift: Brownian, flow, field' : '') : ''}`,
-    `O₂ ${S.o2 < 1 ? S.o2.toFixed(2) : S.o2.toFixed(1)} % air sat. (wants ${sp.o2[0]}–${sp.o2[1] > 50 ? 'any higher' : sp.o2[1] + ' %'}) ${S.inBand ? '✓ in band' : ''}`,
-    `senses: ${feel}`,
+    `speed ${Math.round(S.speed).toString().padStart(3)} µm/s · ${(S.speed / sp.L).toFixed(0)} body lengths/s · ${S.mode === 'tumble' ? 'TUMBLE' : S.boring ? 'BORING IN' : S.inside ? 'INSIDE PREY' : dash.active ? 'SPRINT' : 'run'}${S.mode === 'run' && !S.boring && !S.inside ? (S.steering ? ' · steering (LS)' : swimmer.opts.steer ? ' · stopped: Brownian, flow, field' : '') : ''}`,
     S.species === 'mtb'
-      ? `growth ${'█'.repeat(Math.round(S.growth * 10))}${'░'.repeat(10 - Math.round(S.growth * 10))} · food ${S.food.toFixed(2)}${S.feeding ? ' (uptake)' : ''} · O₂ damage ${Math.round(S.stress * 100)} % · energy ${Math.round(S.energy * 100)} %`
-      : `prey ${S.prey}/${GOAL_PREY} · energy ${Math.round(S.energy * 100)} %${S.boring ? ` · boring ${Math.min(100, Math.round((S.boreT / 2.5) * 100))} %` : ''}`,
+      ? `growth ${'█'.repeat(Math.round(Math.min(1, S.growth) * 10))}${'░'.repeat(10 - Math.round(Math.min(1, S.growth) * 10))} · food ${S.food.toFixed(2)}${S.feeding ? ' (uptake)' : ''}`
+      : `prey ${S.prey}/${GOAL_PREY}${S.boring ? ` · boring ${Math.min(100, Math.round((S.boreT / 2.5) * 100))} %` : ''}`,
     `${dash.text()} · phages on you ${S.phages.length}${S.phages.some((p) => p.irreversible) ? ' (IRREVERSIBLE)' : ''}${S.attacker ? ' · BDELLOVIBRIO ATTACHED' : ''}`,
     S.species === 'mtb' ? `field ${world.opts.field} µT, mB/kT ≈ ${(S.mB || 0).toFixed(1)} (gentle pull: steer against it) · running ${S.sense > 0 ? 'north (down the field)' : 'south (up the field)'}` : `run ${sp.v} µm/s, sprint ${sp.dash} µm/s`,
-    `predators: ${predators().map((p) => `${p.name} ${!p.on ? 'off' : roster.some((P) => P.capture.active && catcherHunger(P.cat) === p.h) ? 'EATING' : hungerText(p.h)}`).join(' · ')}`,
+    `gates: ${guards.list.map((q) => `${q.id} ${q.beaten ? 'beaten' : `${Math.round((100 * Math.max(0, q.hp)) / q.max)} %${q.contact ? ` (${q.contact} fighting)` : ''}`}`).join(' · ')}`,
     capture.active && cat.kind ? `CAUGHT by ${CATCH[cat.kind].by.toLowerCase()}: ${cat.phase}` : '',
-    (() => { const C = coll.of(P1); return C && C.members.length ? `collective: ${C.members.length + C.players.length} cells (${C.players.length > 1 ? C.players.length + ' players' : 'you'}), quorum ${C.q}${LEVEL_NAMES[C.level] ? ' · ' + LEVEL_NAMES[C.level] : ''} · toxin ${Math.round(C.charge * 100)} %${C.patch ? ' · patch taken' : ''}` : coll.opts.on ? 'collective: none yet (touch kin cells: the faint brass rings)' : ''; })(),
-    `way on ${Math.round(Math.max(0, Math.min(1, progress(S.x, S.y))) * 100)} %${progress(S.x, S.y) >= 0.5 ? ' (past halfway: predators)' : ' (calm first half)'} · host cell ${Math.round(Math.hypot(S.x - FWD.x, S.y - FWD.y))} µm · Paramecium ${Math.round(Math.hypot(S.x - BACK.x, S.y - BACK.y))} µm`,
+    (() => { const C = coll.of(P1); return C && C.members.length ? `army: ${C.army} cells (${C.players.length > 1 ? C.players.length + ' players' : 'you'})${LEVEL_NAMES[C.level] ? ' · ' + LEVEL_NAMES[C.level] : ''} · toxin ${Math.round(C.charge * 100)} % · flock ${C.speed.toFixed(0)} µm/s, ${C.extent.toFixed(0)} µm across` : coll.opts.on ? `army: none yet (press ${glyph('X')} near kin)` : ''; })(),
+    `way on ${Math.round(Math.max(0, Math.min(1, progress(S.x, S.y))) * 100)} % · host cell ${Math.round(Math.hypot(S.x - FWD.x, S.y - FWD.y))} µm · Paramecium ${Math.round(Math.hypot(S.x - BACK.x, S.y - BACK.y))} µm`,
     multi() ? `players ${roster.length} · views ${split.views.length}${split.merged ? ' (together)' : ''}` : '',
     `${Math.round(fps)} fps · ${shapes.count} shapes · render ${Math.round(quality.scale * 100)} %${optics.stats.down > 1 ? ` · PSF at 1/${optics.stats.down}` : ''}`,
   ];
@@ -1280,8 +1298,8 @@ function forceCapture(kind = 'grazer', slot = 0) {
   return P.capture.phase;
 }
 window.__micro = { forceCapture, capture,
-  pacing: () => ({ t: pacing.now - pacing.t0, firstHungry: pacing.firstHungry, firstThreat: pacing.firstThreat, firstCatch: pacing.firstCatch, grace: pacing.grace,
-    hunters: predators().map((p) => ({ name: p.name, state: p.h.state, hungry: isHungry(p.h), left: +p.h.left.toFixed(1) })),
+  pacing: () => ({ t: pacing.now - pacing.t0, firstThreat: pacing.firstThreat, firstCatch: pacing.firstCatch,
+    gates: guards.report(), log: gateInfo.log,
     capture: capture.active && cat.kind ? { phase: cat.phase, by: CATCH[cat.kind].by } : null, mode: S.mode, alive: S.alive }),
   world, swimmer, game, view, debug, features, optics, shapes, get t() { return t; }, get dash() { return P1.dash; },
   // Micro Zoom: players, split screen and landmarks
@@ -1293,25 +1311,22 @@ window.__micro = { forceCapture, capture,
   coll: () => coll.report(),
   collInfo,
   /** Where each challenge starts, and how far along the way (0 start .. 1 host) that is. */
+  /** The way on: each gate (world.js ROUTE, guards.js) and the breaks, with how far along (0 start .. 1 host). */
   challenges: () => {
     const at = (name, x, y) => ({ name, x: +x.toFixed(1), y: +y.toFixed(1), progress: +progress(x, y).toFixed(3) });
-    const out = [];
-    world.grazers.forEach((g, i) => { out.push(at(`grazer ${i + 1} mouth`, g.pose.mouth.x, g.pose.mouth.y)); out.push(at(`grazer ${i + 1} current reach`, g.pose.mouth.x - 70, g.pose.mouth.y)); });
-    out.push(at('amoeba edge', world.amoeba.x - world.amoeba.width * 0.45, world.amoeba.y));
-    out.push(at('amoeba creep limit', HALF_X + 60 - world.amoeba.width * 0.45, world.amoeba.y));
-    const bd = world.cells.filter((c) => c.kind === 'bdello');
-    const bmin = bd.reduce((a, c) => (c.x < a.x ? c : a), bd[0]);
-    out.push(at('nearest Bdellovibrio', bmin.x, bmin.y));
-    out.push(at('Bdellovibrio limit', HALF_X + 10, bmin.y));
-    out.push(at('phage clouds: only for a player past', HALF_X, START.y + (FWD.y - START.y) * 0.5));
-    out.push(at('Stentor wakes within', stentor.mouth.x - stentor.wakeR, stentor.mouth.y));
-    out.push(at('Stentor vortex edge', stentor.mouth.x - stentor.pullR, stentor.mouth.y));
+    const out = [at('meadow (kin and prey)', (world.route.meadow.x0 + world.route.meadow.x1) / 2, world.wayY(50))];
+    for (const q of guards.list) { const c = guards.centre(q); out.push(at(`gate ${q.id}`, c.x, c.y)); }
+    for (const x of world.route.breaks) out.push(at('break', x, world.wayY(x)));
     out.push(at('host cell (the way on)', FWD.x, FWD.y));
-    return out;
+    return out.sort((a, b) => a.progress - b.progress);
   },
+  gates: () => guards.report(), guards,
+  /** Every flock member (tests): position, velocity, speed, heading, spin. */
+  members: (slot = 0) => { const C = coll.of(roster.find((Q) => Q.slot === slot) || P1); return C ? C.members.map((m) => ({ x: m.x, y: m.y, vx: m.vx, vy: m.vy, sp: m.sp, a: m.a, body: m.bodyPhase, fl: m.flPhase, lag: m.lag, vmax: m.vmax })) : []; },
   fights: () => ({ grazers: world.grazers.map((g) => ({ state: g.fightState, t: +(g.fightT || 0).toFixed(2), interest: +g.fight.interest.toFixed(2), pull: +(g.pull || 1).toFixed(2), target: g.target ? g.target.slot : null })),
     phage: roster.map((P) => (P.phage ? P.phage.fight.state : null)), bdello: roster.map((P) => (P.bdello ? P.bdello.fight.state : null)) }),
-  roster: () => roster.map((P) => ({ slot: P.slot, x: P.S.x, y: P.S.y, alive: P.S.alive, mode: P.S.mode, over: P.S.over, cause: P.S.cause, warning: P.S.warning && P.S.warning.text, stress: P.S.stress, energy: P.S.energy, o2: P.S.o2, capture: P.capture.active ? P.cat.phase : null })),
+  roster: () => roster.map((P) => ({ slot: P.slot, x: P.S.x, y: P.S.y, speed: P.S.speed, body: P.S.bodyPhase, fl: P.S.flPhase, alive: P.S.alive, mode: P.S.mode, over: P.S.over, cause: P.S.cause, focus: { ...focusOf(P) }, capture: P.capture.active ? P.cat.phase : null })),
+  get army() { return armyEl.textContent; },
   get warning() { return warnEl.textContent; },
 };
 requestAnimationFrame((n) => { last = n; frame(n); });

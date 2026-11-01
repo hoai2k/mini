@@ -1,8 +1,9 @@
 // How the Paramecium moves. Low Reynolds number (S15): there is no coasting.
 // Speed follows the ciliary beat within a few hundredths of a second, so the
 // cell stops the moment the movement stick is released, though the water around it
-// still carries it. It swims along a left-handed helix while rolling about its
-// long axis, oral groove toward the helix axis; the camera follows the axis.
+// still carries it. It rolls gently about its own long axis, through the body's
+// centre, and the camera follows that centre. (The real left-handed helix, which
+// carried the body round an axis beside it, is the Corkscrew switch, off.)
 //
 // Contact: the cell glances off whatever it touches and slides along it (the
 // heading turns along the surface, a short bump plays), so nothing stops it
@@ -29,6 +30,9 @@ const TAU = 0.035; // s, beat-to-speed lag
 const HELIX_PITCH = 850 * Math.sqrt(LENGTH / 230); // µm per turn (≈849 µm measured in caudatum; scaled)
 const HELIX_R = 29 * (LENGTH / 230); // µm (≈29 µm measured in caudatum; scaled)
 const HL = LENGTH / 2;
+// Roll rate at full speed, about the long axis (rev/s). Real cells roll about once per
+// helix turn, ≈1–2.5 rev/s at these speeds; slowed here so it reads as swimming, not spinning.
+const ROLL_HZ = 0.45;
 const CAPSULE_R = WIDTH * 0.42, CAPSULE_HALF = HL - WIDTH * 0.45;
 export const BODY_R = CAPSULE_R;
 
@@ -57,7 +61,7 @@ export function createSwimmer(cell, world) {
   };
   const prevCenter = new THREE.Vector3(), tmp = new THREE.Vector3();
   // switches (the feature panel): lowRe off = an inertial glide, for comparison
-  const opts = { lowRe: true, helix: true, beatScale: 1, avoidOnContact: false };
+  const opts = { lowRe: true, helix: true, corkscrew: false, beatScale: 1, avoidOnContact: false };
   const tan = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);
 
   function frame() {
@@ -182,13 +186,20 @@ export function createSwimmer(cell, world) {
       s.amp = s.mode === 'swim' ? (s.dashT > 0 ? 1 : 0.55 + 0.45 * Math.max(inp.thrust, 0.3 * inp.hover)) : 0.95;
       s.oral = Math.min(1, 0.35 + 0.65 * s.feed + 0.2 * inp.thrust);
 
-      // helix and roll: one roll per helix turn (≈1.2 turns/s at 1 mm/s)
+      // Roll about the body's own long axis, through its centre (the oblique
+      // stroke rolls the cell to the left): gentle, and only while swimming.
+      // The body is no longer carried round a helix by default: with the helix
+      // the centre orbited a point 15 µm off the body (the axis the camera
+      // follows) 2.5 times a second while the tilted long axis swept a cone, so
+      // the cell seemed to spin about an axis beside it. Corkscrew (Features,
+      // off) brings that real path back for comparison.
       const v = Math.abs(s.speed);
-      const omega = 2 * Math.PI * (0.25 + v / HELIX_PITCH);
-      s.phi -= omega * dt * (opts.helix ? 1 : 0.25);
-      const rhT = s.mode === 'avoid' || s.inspect || !opts.helix ? 0 : HELIX_R * Math.min(1, 0.12 + v / 500);
+      const omega = opts.corkscrew ? 2 * Math.PI * (0.25 + v / HELIX_PITCH) : 2 * Math.PI * ROLL_HZ * Math.min(1, v / VMAX);
+      s.phi -= omega * dt * (opts.helix ? 1 : 0);
+      const coil = opts.corkscrew && opts.helix && s.mode !== 'avoid' && !s.inspect;
+      const rhT = coil ? HELIX_R * Math.min(1, 0.12 + v / 500) : 0;
       s.rh = approach(s.rh, rhT, dt * 80);
-      s.tilt = approach(s.tilt, s.mode === 'avoid' || s.inspect || !opts.helix ? 0 : 0.21 * Math.min(1, v / 400), dt * 1.5);
+      s.tilt = approach(s.tilt, coil ? 0.21 * Math.min(1, v / 400) : 0, dt * 1.5);
 
       // move
       fwdOf(s.yaw, s.pitch, s.F);

@@ -51,7 +51,7 @@ const inside = createInside();
 // the cheapest bloom, and (Goodsell) no ink on the crowds.
 let qScale = 1, qLevel = 2;
 const quality = createQuality({ renderer, key: 'phage', min: 0.5, max: 1,
-  onChange: ({ scale, level }) => { qScale = scale; qLevel = level; post.quality = level; resize(); applyInk(); } });
+  onChange: ({ scale, level }) => { qScale = scale; qLevel = level; post.quality = level; resize(); applyInk(); try { world.setCrowdLevel(level); } catch { /* (before the world exists) */ } } });
 function resize() {
   // Keep split-screen projections in CSS pixels, independently of render resolution.
   const w = innerWidth, h = innerHeight;
@@ -100,6 +100,7 @@ document.body.append(tag, label, scaleEl, card, prog, labels);
 
 // --- the world and the phage ---
 const world = createWorld(scene);
+world.setCrowdLevel(qLevel);
 let t4 = null; // the current member's model (see use())
 const progenyGeo = t4LiteGeometry();
 const progeny = inkedInstanced(progenyGeo, toonMaterial({ vertexColors: true, fl: T4_FL.gold }), 40, { width: 0.8 });
@@ -110,6 +111,7 @@ scene.add(progeny);
 const safeTexture = (id, o) => { try { return loadTexture(id, o); } catch (e) { console.warn(`[micro] ${e.message}`); return Promise.resolve(null); } };
 const art = { envelope: null, water: null, section: null, pano: null, envFL: null };
 safeTexture('MP-V06').then((t) => { if (t) { art.pano = t; applyArt(); } });
+safeTexture('MP-V05').then((t) => { if (t) { art.envFL = t; applyArt(); } });
 safeTexture('MP-V01').then((t) => { if (t) { art.envelope = t; applyArt(); } });
 safeTexture('MP-V02').then((t) => { if (t) { art.water = t; applyArt(); } });
 safeTexture('MP-V03', { repeat: false }).then((t) => { if (t) { art.section = t; applyArt(); } });
@@ -126,9 +128,10 @@ const opts = { drive: true, brownian: true, kicks: true, tumble: true, uv: true,
 
 function applyArt() {
   const use = view.art;
-  const env = use && art.envelope;
+  // (in false light the painted Goodsell envelope's grain streaked the wet relief: it waits for MP-V05)
+  const env = use && (isFL() ? art.envFL : art.envelope);
   for (const h of world.hosts) {
-    h.mat.setMap(env ? art.envelope : h.mat.userData.std, env ? [3, 1.5] : [6, 3]);
+    h.mat.setMap(env || (isFL() ? null : h.mat.userData.std), env ? [3, 1.5] : [6, 3]);
     // the painted envelope carries its own colour; the wrong host keeps a dull tint so it reads apart
     h.mat.uniforms.uColor.value.set(env ? (h.wrong ? '#bba680' : '#e4e0d8') : h.color);
   }
@@ -256,6 +259,7 @@ function applyStyle() {
   for (const m of members()) m.t4.setStyle(fl);
   try { stray.t4.setStyle(fl); } catch { /* (during set-up, before the stray exists) */ }
   applyInk();
+  applyArt();
 }
 /** Ink hulls only where they draw something: Goodsell-style looks with Ink on; at the lowest quality not on the crowds. */
 function applyInk() {
@@ -469,56 +473,50 @@ let t = 0;
 function updateDrift(dt, inp) {
   const drive = _v.set(0, 0, 0);
   if (inp.stick && opts.drive) drive.copy(inp.stick).multiplyScalar(30 * inp.stickM);
-  P.vel.lerp(drive, 1 - Math.exp(-dt * 1.4));
-  if (opts.brownian) {
-    const sig = inp.stick ? 7 : 10.5, tau = 0.6;
-    P.bvel.multiplyScalar(Math.exp(-dt / tau));
-    P.bvel.x += gauss() * sig * Math.sqrt(dt); P.bvel.y += gauss() * sig * Math.sqrt(dt); P.bvel.z += gauss() * sig * 0.4 * Math.sqrt(dt);
-  } else P.bvel.multiplyScalar(Math.exp(-dt * 3));
+  P.vel.lerp(drive, 1 - Math.exp(-dt * 1.6));
+  // Brownian motion: the kicks (kicks.js) leave a velocity that the viscous water takes away again
+  P.kv.multiplyScalar(Math.exp(-dt / 0.45));
   P.gust.multiplyScalar(Math.exp(-dt * 2.2));
   world.flowAt(P.pos, t, flow);
-  P.pos.addScaledVector(P.vel, dt).addScaledVector(P.bvel, dt).addScaledVector(P.gust, dt).addScaledVector(flow, dt);
-  P.pos.z += -P.pos.z * dt * 0.6;
-  P.pos.x = clamp(P.pos.x, BOUNDS.x0, BOUNDS.x1); P.pos.y = clamp(P.pos.y, BOUNDS.y0, BOUNDS.y1); P.pos.z = clamp(P.pos.z, BOUNDS.z0, BOUNDS.z1);
-  // Slow tumbling remains in free water; steering aims the attachment end first.
-  if (opts.tumble) {
-    P.angVel.multiplyScalar(Math.exp(-dt / 0.9));
-    P.angVel.x += gauss() * 0.45 * Math.sqrt(dt); P.angVel.y += gauss() * 0.45 * Math.sqrt(dt); P.angVel.z += gauss() * 0.45 * Math.sqrt(dt);
-  } else P.angVel.multiplyScalar(Math.exp(-dt * 2));
+  P.pos.addScaledVector(P.vel, dt).addScaledVector(P.kv, dt).addScaledVector(P.gust, dt).addScaledVector(flow, dt);
+  softBounds(dt);
+  // rotation: damped by the water; a slow thermal tumble while idle
+  P.angVel.multiplyScalar(Math.exp(-dt / 0.7));
+  if (opts.tumble && !inp.stick) { const k = 0.14 * Math.sqrt(dt); P.angVel.x += gauss() * k; P.angVel.y += gauss() * k; P.angVel.z += gauss() * k; }
   const mv = _w.copy(P.vel).add(P.gust);
   const sp = mv.length();
   // close to a cell with the fibres out, they catch the water near it and swing the baseplate round to face it
   const near = world.nearestHost(centreOf(new THREE.Vector3()));
   const facing = !inp.stick && near.host && near.d < 45 && P.fold < 0.5;
   if (facing) {
-    const ax = axisOf(new THREE.Vector3());
     world.sdHost(near.host, P.pos, _s);
-    const k = (1 - near.d / 45) * 3.0;
-    P.angVel.addScaledVector(new THREE.Vector3().crossVectors(ax, _s), dt * k);
-  } else if (sp > 4) {
-    const ax = axisOf(_n);
-    const tq = new THREE.Vector3().crossVectors(ax, mv.normalize().negate());
-    P.angVel.addScaledVector(tq, dt * Math.min(1, sp / 25) * 3.2);
-  }
-  // it turns in depth too, but drifts back toward side-on so you can read it (part of the slowed-tumbling departure)
-  { const ax = axisOf(_n); const flat = _w.set(ax.x, ax.y, 0); if (flat.lengthSq() > 1e-4) P.angVel.addScaledVector(new THREE.Vector3().crossVectors(ax, flat.normalize()), dt * 0.9); }
+    turnBaseToward(_s.negate(), dt * (1 - near.d / 45) * 1.6);
+  } else if (sp > 4) turnBaseToward(mv.normalize(), dt * Math.min(1, sp / 25) * 3.0); // steering: the fibres lead
+  // readability: the body eases toward side-on to the view (weak; nothing else turns it)
+  { const ax = axisOf(_n), f = camFwd(_s); const flat = _w.copy(ax).addScaledVector(f, -ax.dot(f)); if (flat.lengthSq() > 0.01) P.angVel.addScaledVector(_v.crossVectors(ax, flat.normalize()), dt * 0.5); }
+  if (P.angVel.length() > 3) P.angVel.setLength(3); // a hard cap: nothing ever spins fast
   integrateRotation(dt);
-  if (inp.stick && opts.drive) {
-    const aim = new THREE.Quaternion().setFromUnitVectors(UP, inp.stick.clone().negate().normalize());
-    P.q.slerp(aim, 1 - Math.exp(-dt * 12));
-    P.angVel.multiplyScalar(Math.exp(-dt * 12));
-  }
   // solids
   const c = centreOf(_v);
   for (const h of world.hosts) {
     if (h.burst) continue;
     const sd = world.sdHost(h, c, _n);
-    if (sd < 11) { if (sd < 9) P.angVel.add(new THREE.Vector3(gauss(), gauss(), gauss()).multiplyScalar(0.4 * dt * 10)); P.pos.addScaledVector(_n, 11 - sd); const vn = P.vel.dot(_n); if (vn < 0) P.vel.addScaledVector(_n, -vn); P.gust.addScaledVector(_n, -Math.min(0, P.gust.dot(_n))); }
+    if (sd < 11) { P.pos.addScaledVector(_n, 11 - sd); const vn = P.vel.dot(_n); if (vn < 0) P.vel.addScaledVector(_n, -vn); P.gust.addScaledVector(_n, -Math.min(0, P.gust.dot(_n))); P.kv.addScaledVector(_n, -Math.min(0, P.kv.dot(_n))); }
   }
   const sa = world.sdAmoeba(c);
   if (sa < 12) P.pos.addScaledVector(_n.subVectors(c, world.amoeba.center).normalize(), 12 - sa);
   const sc = world.sdClay(c);
   if (sc < 9) { _n.set(0, Math.sign(c.y - world.clay.pos.y) || 1, 0); P.pos.addScaledVector(_n, 9 - sc); }
+  // humic flocs: extended fibres snag in the tangle and drag you to a crawl; folded (B) you slip through
+  const fl = world.sdFloc(c);
+  const was = P.snag;
+  P.snag = fl.d < 8 && P.fold < 0.5 ? fl.floc : null;
+  if (P.snag) {
+    P.snagT += dt;
+    P.vel.multiplyScalar(Math.exp(-dt * 4)); P.kv.multiplyScalar(Math.exp(-dt * 4));
+    P.pos.lerp(P.snag.pos, 1 - Math.exp(-dt * 0.25)); // pulled into the tangle
+    if (!was) { say('Fibres snagged in a humic floc: it drags you in. Fold them (B) to slip through.', 2600, true); curPad().rumble(140, 0.3, 0.2); audio.play('bacterium/tumble', { volume: 0.45, rate: 0.7 }); }
+  } else P.snagT = 0;
   // fibre tips touching things
   if (P.fold < 0.4) {
     for (let f = 0; f < 6; f++) {
@@ -527,6 +525,15 @@ function updateDrift(dt, inp) {
       // Cell contact alone never attaches: X explicitly tries the aimed protein.
     }
   }
+}
+
+/** No walls or floor: beyond the field's bounds a current carries you gently back. */
+function softBounds(dt) {
+  const k = 1.2 * dt;
+  const push = (v, lo, hi) => (v < lo ? (lo - v) * k : v > hi ? (hi - v) * k : 0);
+  P.pos.x += push(P.pos.x, BOUNDS.x0, BOUNDS.x1); P.pos.y += push(P.pos.y, BOUNDS.y0, BOUNDS.y1); P.pos.z += push(P.pos.z, BOUNDS.z0, BOUNDS.z1);
+  // and never far beyond them
+  P.pos.x = clamp(P.pos.x, BOUNDS.x0 - 150, BOUNDS.x1 + 150); P.pos.y = clamp(P.pos.y, BOUNDS.y0 - 150, BOUNDS.y1 + 60); P.pos.z = clamp(P.pos.z, BOUNDS.z0 - 150, BOUNDS.z1 + 150);
 }
 
 function integrateRotation(dt) {
@@ -958,6 +965,56 @@ let nearBack = false;
 const ZERO_LS = { x: 0, y: 0, m: 0 }, ZERO_LOOK = { yaw: 0, pitch: 0, m: 0 };
 const outsideModes = ['drift', 'walk', 'clay'];
 
+// --- Brownian kicks (kicks.js): molecules striking the phage and rebounding ---
+const KICK_MODES = { drift: 1, walk: 0.35, clay: 0.25 };
+const kickMat = beadMaterial({ sat: 1 });
+const kickMeshes = Object.fromEntries([['small', beadTemplate('small', 9)], ['chain', beadTemplate('chain', 9)], ['globule', beadTemplate('globule', 9, PALETTE.periwinkle)]]
+  .map(([k, tpl]) => { const bm = beadMesh(tpl, 32, { material: kickMat, dynamic: true }); scene.add(bm.mesh); return [k, bm]; }));
+// a soft ring where a molecule strikes (camera-facing, additive), pooled
+const pingGeo = new THREE.RingGeometry(0.55, 1, 24);
+const pings = Array.from({ length: 12 }, () => { const mm = new THREE.Mesh(pingGeo, new THREE.MeshBasicMaterial({ color: '#bfe8ff', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); mm.visible = false; mm.renderOrder = 5; scene.add(mm); return { mesh: mm, t: 1, s: 1 }; });
+let pingNext = 0;
+const kickLog = []; // the last few hits (tests read it)
+function stepKicks(m, dt, on) {
+  const k = KICK_MODES[P.mode] || 0;
+  if (!on || !k || !opts.brownian || !opts.kicks) { if (!on || !opts.kicks || !opts.brownian) m.kicks.reset(); return; }
+  const ax = axisOf(new THREE.Vector3());
+  const body = { a: _v.copy(P.pos).addScaledVector(ax, 3).clone(), b: P.pos.clone().addScaledVector(ax, 21 * P.scale), r: 6 };
+  // fair: while the fibres are aimed at a protein in reach, the spin is softened (a kick never wrecks a grab)
+  const aiming = aimedProtein(P.pos, attachmentForward(P.q), world.proteins, (q) => world.toWorld(q.host, q.local)) != null;
+  const hits = m.kicks.step(dt, body, { scale: k, spinScale: aiming ? 0.3 : 1 });
+  for (const h of hits) {
+    P.kv.add(h.dv); P.angVel.add(h.dw);
+    if (P.mode === 'walk') P.bvel.addScaledVector(h.dv, 0.5);
+    const big = h.kind === 'globule';
+    players.pad(m.slot).rumble(big ? 90 : 45, big ? 0.22 : 0.08, big ? 0.3 : 0.14);
+    if (big) audio.play('bacterium/tumble', { volume: 0.18, rate: 1.9 });
+    const pg = pings[pingNext++ % pings.length];
+    pg.mesh.position.copy(h.at); pg.t = 0; pg.s = big ? 5 : 3; pg.mesh.visible = true;
+    kickLog.push({ t: +t.toFixed(2), slot: m.slot, kind: h.kind, dv: +h.dv.length().toFixed(2), dw: +h.dw.length().toFixed(3) });
+    if (kickLog.length > 40) kickLog.shift();
+  }
+}
+/** Draw every member's flying molecules and the strike rings. */
+function drawKicks(dt) {
+  const n = { small: 0, chain: 0, globule: 0 };
+  for (const mm of members()) for (const f of mm.kicks.flying) {
+    const bm = kickMeshes[f.k.kind];
+    if (n[f.k.kind] >= bm.count) continue;
+    const fade = f.hit ? Math.max(0, 1 - f.age / f.life) : Math.min(1, f.age * 6);
+    bm.set(n[f.k.kind]++, f.p, f.q, f.k.size * (0.4 + 0.6 * fade));
+  }
+  for (const [k, bm] of Object.entries(kickMeshes)) { bm.setCount(n[k]); if (n[k]) bm.commit(); }
+  for (const pg of pings) {
+    if (!pg.mesh.visible) continue;
+    pg.t += dt * 3.2;
+    if (pg.t >= 1) { pg.mesh.visible = false; continue; }
+    pg.mesh.material.opacity = 0.55 * (1 - pg.t);
+    pg.mesh.scale.setScalar(pg.s * (0.4 + pg.t));
+    pg.mesh.quaternion.copy(camera.quaternion);
+  }
+}
+
 function stepMember(m, dt, insideOwner, where) {
   use(m);
   P.msgT -= dt;
@@ -965,8 +1022,10 @@ function stepMember(m, dt, insideOwner, where) {
   const pl = players.get(m.slot);
   const idle = blocked || !pl || pl.waiting;
   const ls = idle ? ZERO_LS : ctl.move();
+  const depth = idle ? 0 : ctl.rt() - ctl.lt();
   const inp = { stick: null, stickM: 0 };
-  if (ls.m > 0) { inp.stick = stickWorld(ls, new THREE.Vector3()).normalize(); inp.stickM = Math.min(1, ls.m); P.lastStick = inp.stick.clone(); P.lastStickT = 0.3; P.moveHeading = Math.atan2(inp.stick.y, inp.stick.x); }
+  const mag = Math.min(1, Math.hypot(ls.m, depth));
+  if (mag > 0.05) { inp.stick = stickWorld(ls, depth, new THREE.Vector3()).normalize(); inp.stickM = mag; P.lastStick = inp.stick.clone(); P.lastStickT = 0.3; }
   P.lastStickT = (P.lastStickT || 0) - dt;
   const multi = isMulti();
   const c = capture.update(dt, pad);
@@ -1019,6 +1078,7 @@ function stepMember(m, dt, insideOwner, where) {
     else if (P.mode === 'coinfect') updateCoinfect(dt);
     else if (P.mode === 'burst') updateBurst(dt);
   }
+  stepKicks(m, dt, !debug.freeze && !c.active && where === 'outside');
   if (P.mode === 'inside' || (P.mode === 'burst' && P.burstT < 2.6)) {
     const ev = inside.update(dt, t, { steer: live && ls.m > 0 ? { x: ls.x, y: -ls.y } : null, surge: live && ctl.dash.pressed() }, c.active || debug.freeze);
     if (P.mode === 'inside' && !c.active) P.fade = Math.max(0, P.fade - dt * 1.5);
@@ -1061,6 +1121,35 @@ function stepMember(m, dt, insideOwner, where) {
   for (let f = 0; f < 6; f++) t4.fibres[f].reach = m.jab > 0 ? 1.2 * Math.sin((m.jab / 0.45) * Math.PI) : P.mode === 'grab' ? 0.8 : P.mode === 'drift' && inp.stick ? 0.25 : 0;
   t4.state.sway = P.mode === 'walk' || P.mode === 'commit' ? 0.4 : 1;
   t4.update(dt, t);
+}
+
+/**
+ * RS turns the view about its own axes: yaw about the view's up, pitch about its right. A quaternion
+ * composed in the view's frame has no poles, so a held stick turns at a steady rate in any orientation,
+ * and with the stick released the view stays exactly where it is. The optional levelling roll (Features:
+ * Keep the surface up) turns about the line of sight only, weighted by how far the surface direction is
+ * from it (zero looking straight up or down) and rate-limited, so it can never spin the view.
+ */
+const _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _prevQ = new THREE.Quaternion();
+function turnView(look, dt) {
+  _prevQ.copy(view.q);
+  if (look.m > 0.01) {
+    view.q.multiply(_qa.setFromAxisAngle(AX_X, look.pitch * 1.25 * dt));
+    view.q.multiply(_qb.setFromAxisAngle(UP, look.yaw * 1.6 * dt));
+  }
+  if (view.level) {
+    const fwd = camFwd(_v), up = camUp(_w);
+    const proj = _n.copy(UP).addScaledVector(fwd, -fwd.dot(UP));
+    const w = proj.length();
+    if (w > 1e-3) {
+      proj.multiplyScalar(1 / w);
+      const ang = Math.atan2(_s.crossVectors(up, proj).dot(fwd.negate()), up.dot(proj));
+      const step = clamp(ang, -0.9 * dt, 0.9 * dt) * w * w;
+      view.q.multiply(_qa.setFromAxisAngle(AX_Z, step));
+    }
+  }
+  view.q.normalize();
+  view.turnRate = dt > 0 ? 2 * Math.acos(Math.min(1, Math.abs(_prevQ.dot(view.q)))) / dt : 0;
 }
 
 function frame(now) {
@@ -1127,9 +1216,7 @@ function frame(now) {
   const commitFocus = solo && P.mode === 'commit';
   if (look.m > 0.01) view.lookHold = 0.45;
   else view.lookHold = Math.max(0, view.lookHold - dt);
-  if (commitFocus) { view.yaw *= Math.exp(-dt * 2); view.pitch += (0.1 - view.pitch) * (1 - Math.exp(-dt * 2)); }
-  else if (look.m > 0) { view.yaw = clamp(view.yaw + look.yaw * 1.4 * dt, -1.1, 1.1); view.pitch = clamp(view.pitch + look.pitch * 1.1 * dt, -0.75, 0.75); }
-  else if (view.lookHold === 0) { view.yaw *= Math.exp(-dt * 0.4); view.pitch *= Math.exp(-dt * 0.4); }
+  if (where === 'outside') turnView(look, dt);
   // caught: pull back to watch the predator swallow you, then follow it
   const watching = solo && team[0].c.active && ['eat', 'follow', 'fadeOut'].includes(team[0].c.phase) && team[0].P.kind !== 'cut';
   const wantDist = commitFocus ? Math.min(ZOOMS[view.zoom], 75) : watching ? Math.max(ZOOMS[view.zoom], 110) * 2.1 : ZOOMS[view.zoom];
@@ -1143,14 +1230,11 @@ function frame(now) {
     const want = lead.P.mode === 'burst' ? lead.P.commitHost.pos : split.centroid(focusPts);
     view.target.lerp(_v.set(want.x, want.y, want.z), 1 - Math.exp(-dt * (lead.P.mode === 'burst' ? 1 : 2.5)));
     const o = debug.camOverride;
-    const yaw = o ? o.yaw : view.yaw, pitch = o ? o.pitch : view.pitch, dist = o ? o.dist : view.dist * (lead.P.mode === 'burst' ? 1.6 : 1);
-    camera.position.set(Math.sin(yaw) * Math.cos(pitch), -Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch)).multiplyScalar(dist).add(view.target);
-    // This board swims in an XY water slab. Follow its travel heading in that
-    // plane, while RS retains the existing 3D orbit and temporarily overrides follow.
-    if (!watching && !commitFocus) view.followHeading = followYaw(view.followHeading, lead.P.moveHeading, dt, view.lookHold);
-    camera.up.set(Math.cos(view.followHeading), Math.sin(view.followHeading), 0);
-    if (o) camera.up.set(0, 1, 0); // preserve explicit prototype camera overrides
-    camera.lookAt(view.target);
+    const dist = o ? o.dist : view.dist * (lead.P.mode === 'burst' ? 1.6 : 1);
+    // the camera is the view quaternion, at `dist` behind the target along its own back axis
+    if (o) view.q.setFromEuler(new THREE.Euler(o.pitch, o.yaw, 0, 'YXZ'));
+    camera.quaternion.copy(view.q);
+    camera.position.set(0, 0, dist).applyQuaternion(view.q).add(view.target);
     if (commitFocus && P.contract > 0.05 && P.contract < 1.1 && P.commitT < 2.2) { const k = (2.2 - P.commitT) * 0.25; camera.position.x += Math.sin(t * 61) * k; camera.position.y += Math.cos(t * 53) * k; } // the snap
     camera.updateMatrixWorld();
     goodsellShared.uFogNear.value = dist * 0.8; goodsellShared.uFogFar.value = dist + 300;
@@ -1160,8 +1244,14 @@ function frame(now) {
     goodsellShared.uHaze.value.set('#1d5e6e');
     post.uniforms.uTop.value.set('#2a8090'); post.uniforms.uBot.value.set('#0b2a3a'); post.uniforms.uShaft.value.set('#8ad8da');
     post.uniforms.uFocus.value = dist;
-    // the UV wash only where the sun gets through the peat mat
-    post.uniforms.uUv.value = opts.uv && !debug.iso ? 0.9 * uvSun(view.target.x) : 0;
+    // the UV wash, placed in the world (from the depth buffer): above UV.y0, where the sun gets through the peat mat
+    post.uniforms.uUv.value = opts.uv && !debug.iso ? 0.9 : 0;
+    post.uniforms.uUvWorld.value = 1; post.uniforms.uUvY.value.set(UV.y0, UV.y1); post.uniforms.uUvX.value.set(UV.x0, UV.x1);
+    // ambient occlusion and outlines (QuteMol-like): strong in false light and Goodsell, subtle in cryo-EM, none in fluorescence
+    // (view.look: 0 false light, 1 Goodsell, 2 cryo-EM, 3 fluorescence)
+    post.uniforms.uAO.value = [0.45, 0.6, 0.4, 0.2][view.look];
+    post.uniforms.uEdge.value = [0.3, 0.6, 0.8, 0.25][view.look];
+    post.uniforms.uInk.value.set(view.look === 1 ? '#2b2236' : '#0c1c28');
     post.uniforms.uBgOff.value.set(view.target.x * 0.0006, view.target.y * 0.0006);
   } else {
     const cutting = insideOwner && insideOwner.c.active && insideOwner.P.kind === 'cut';
@@ -1175,6 +1265,7 @@ function frame(now) {
     post.uniforms.uTop.value.set('#3a74b0'); post.uniforms.uBot.value.set('#081a34'); post.uniforms.uShaft.value.set('#a6dcf4');
     post.uniforms.uFocus.value = inside.camera.position.distanceTo(inside.tip());
     post.uniforms.uUv.value = 0;
+    post.uniforms.uAO.value = [0.45, 0.6, 0.4, 0.2][view.look]; post.uniforms.uEdge.value = [0.3, 0.6, 0.8, 0.25][view.look];
   }
   post.uniforms.uLook.value = POST_LOOK[view.look];
   post.uniforms.uTime.value = t;
@@ -1188,12 +1279,14 @@ function frame(now) {
     const list = inPlay.length ? inPlay.map((m, i) => ({ slot: m.slot, position: focusPts[i] })) : [{ slot: 0, position: view.target }];
     split.update(list, { camera }, dt);
     quality.setSplitViews(split.views.length);
-    if (!debug.iso) coverCrowd(dt);
+    // the phages' wakes in the bath (molecules make way round each phage, so it always reads)
+    world.setWake(debug.iso ? [] : members().filter((m) => m.t4.group.visible).map((m) => { use(m); return { p: centreOf(new THREE.Vector3()), r: 16 * P.scale }; }));
+    use(lead);
+    drawKicks(dt);
     split.render(camera, (v) => {
-      world.crowdView(crowdKey(v));
+      // each view wraps the bath round its own centre: the water is full in every view, together or apart
+      world.viewBath(_v.set(0, 0, -view.dist).applyQuaternion(camera.quaternion).add(camera.position));
       for (const m of members()) m.t4.setCutFrom(camera.position);
-      _v.set(camera.position.x, UV.y0 + 40, 0).project(camera);
-      post.uniforms.uUvLine.value = _v.y * 0.5 + 0.5;
       // every internal pass (scene, DOF copy, bloom) scissored to this view's region when split
       post.render(scene, camera, (rt) => split.scissor(v, rt));
     });
@@ -1215,22 +1308,18 @@ function frame(now) {
   const modeName = { drift: 'drifting legs-first', grab: 'grabbing a surface protein', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', coinfect: `damaged genome waiting in ${P.coHost?.name} for a partner (B: give up)`, inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
   const am = hunger.state === 'grace' ? `calm (${Math.ceil(hunger.left)} s)` : hunger.state === 'hungry' ? ({ stalk: 'HUNGRY: reaching', windup: 'WINDING UP!', strike: 'STRIKING!', recover: 'recovering', repelled: 'repelled', retreat: 'retreating' }[fightState] || 'HUNGRY') + ` · interest ${Math.round(fight.interest * 100)} %` : fightState === 'retreat' ? 'retreating' : 'resting';
   const others = isMulti() ? '\n' + members().filter((m) => m.slot).map((m) => `P${m.slot + 1} ${m.P.mode} ${n5(m.P.integrity)}`).join('  ') : '';
-  hud.stats(`${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\n${P.damaged ? `DAMAGED · UV ${n5(1 - P.wreck)}` : `integrity ${n5(P.integrity)}`}  ${dash.text()}\nUV ${Math.round(uvAt(centreOf(_v).x, _v.y) * 100)} %  amoeba ${am}${world.crowdCopies().length ? `  crowd copies ${world.crowdCopies().length}` : ''}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `x ${(P.pos.x / 100).toFixed(2)} µm  depth below UV ${Math.max(0, (UV.y0 - centreOf(_v).y) / 100).toFixed(2)} µm`}${others}`);
+  hud.stats(`${goalLine(where)}\n${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\n${P.damaged ? `DAMAGED · UV ${n5(1 - P.wreck)}` : `integrity ${n5(P.integrity)}`}  ${dash.text()}\nUV ${Math.round(uvAt(centreOf(_v).x, _v.y) * 100)} %  amoeba ${am}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `x ${(P.pos.x / 100).toFixed(2)} µm  depth below UV ${Math.max(0, (UV.y0 - centreOf(_v).y) / 100).toFixed(2)} µm`}${others}`);
 }
 
-// The crowd follows the group; a split view that drifts off it gets its own copy (world.coverCrowd).
-const crowdKey = (v) => (v && v.slots ? v.slots.join(',') : '');
-const FULL_NDC = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
-const crowdRef = { x0: 0, y0: 0, x1: 0, y1: 0 };
-function coverCrowd(dt) {
-  const L = split.layout, W = L.width, H = L.height;
-  world.crowdFootprint(camera, FULL_NDC, crowdRef); // what the merged screen shows today
-  const views = split.views.map((v) => {
-    const pts = [];
-    for (const r of L.regions) if (r.view === v.index && r.polygon && r.polygon.length >= 3) for (const [x, y] of r.polygon) pts.push([(x / W) * 2 - 1, 1 - (y / H) * 2]);
-    return { key: crowdKey(v), box: split.withView(v.index, camera, () => world.crowdFootprint(camera, pts.length ? pts : FULL_NDC)) };
-  });
-  world.coverCrowd(world.opts.crowdSplit === false ? [] : views, crowdRef, dt);
+/** The goal, one line, for the stage you are at (the HUD's first line). */
+function goalLine(where) {
+  if (where === 'inside') return 'GOAL: get the whole genome in · lead your end away from CRISPR-Cas';
+  if (P.mode === 'commit' || P.mode === 'burst') return 'GOAL: injecting…';
+  if (P.damaged) return 'GOAL: co-infect a host with a partner (stray phage below the clay, or a teammate)';
+  const hA = world.hosts.find((h) => h.id === 'A');
+  const d = Math.max(0, world.sdHost(hA, centreOf(_v)));
+  if (d < 60) return 'GOAL: aim the fibres at a glowing gold receptor and press X';
+  return `GOAL: drift to Host A (brass chevron) · ${(d / 100).toFixed(1)} µm`;
 }
 
 function showWinCard() {
@@ -1272,6 +1361,21 @@ Object.assign(debug, {
   damage: (slot = 0) => { const was = cur; use(team[slot]); damage(); use(was); },
   stray: () => ({ pos: stray.pos.toArray().map((x) => +x.toFixed(0)), paired: stray.paired ? stray.paired.slot : null, used: stray.used, log: stray.log.slice() }),
   placements: () => world.placements(),
+  /** Turn rates now: the view (rad/s) and each phage's angular speed (rad/s). */
+  spin: () => ({ view: +view.turnRate.toFixed(4), phages: members().map((m) => +m.P.angVel.length().toFixed(4)) }),
+  kicks: () => kickLog.slice(),
+  /** Fraction of the last frame's pixels covered by the scene (not bare backdrop), from the scene target's alpha. */
+  coverage() {
+    const rt = post.target, w = rt.width, h = rt.height;
+    const half = rt.texture.type === THREE.HalfFloatType;
+    const buf = half ? new Uint16Array(w * h * 4) : new Uint8Array(w * h * 4);
+    renderer.readRenderTargetPixels(rt, 0, 0, w, h, buf);
+    const alpha = (i) => { if (!half) return buf[i] / 255; const x = buf[i], e = (x >> 10) & 31, f = x & 1023; return e === 0 ? f / 1024 / 16384 : e === 31 ? 1 : (1 + f / 1024) * 2 ** (e - 15); };
+    let n = 0, c = 0;
+    for (let y = 0; y < h; y += 4) for (let x = 0; x < w; x += 4) { n++; if (alpha((y * w + x) * 4 + 3) > 0.5) c++; }
+    return c / n;
+  },
+  beads: () => world.bathBeads(),
   hungry() { hunger.update(1e6); while (!hunger.hungry) hunger.update(1e6); },
   overlay(on) { view.overlay = on; inside.setRadar(on); },
   look(i) { features.set('lookFL', LOOKS[i]); },

@@ -6,6 +6,7 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { toonMaterial, inked, inkedInstanced, blobGeometry, lumpyGeometry, goodsellShared, setInkVisible } from '../shared/techniques/phage-goodsell.js';
 import { createFight } from '../shared/predation.js';
+import { createBath, PALETTE } from '../shared/techniques/phage-beads.js';
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
@@ -101,6 +102,21 @@ export function createInside() {
     scene.add(T.mesh);
     T.items = Array.from({ length: T.n }, () => ({ p: new THREE.Vector3(rand(AREA.x0 - 60, AREA.x1 + 60), rand(AREA.y0 - 20, AREA.y1), T.s[0] > 6 ? rand(-75, -24) : rand(-60, 4)), v: new THREE.Vector3(), q: new THREE.Quaternion().random(), s: rand(...T.s) }));
   }
+
+  // behind the play plane, a packed cytoplasm as far as the eye goes (phage-beads.js): ribosomes, proteins
+  // and small molecules filling every gap, as in the false-light reference (PFL-02); it wraps round the
+  // view's centre, always behind z = -30, so it never covers the strand
+  const bath = createBath([
+    { kind: 'complex', n: 160, s: [5.5, 7.5] },
+    { kind: 'globule', n: 420, s: [4, 6.5], pal: PALETTE.violet, seed: 2 },
+    { kind: 'globule', n: 320, s: [3.5, 5.5], pal: PALETTE.green, seed: 3 },
+    { kind: 'globule', n: 260, s: [3.5, 5], pal: ['#e0965a', '#f0a24a'], seed: 4 },
+    { kind: 'dimer', n: 220, s: [3.5, 5], pal: PALETTE.teal, seed: 5 },
+    { kind: 'chain', n: 260, s: [4, 6], pal: PALETTE.pink, seed: 6 },
+    { kind: 'small', n: 900, s: [4, 6], seed: 7 },
+  ], { half: 210, jitter: 1.2, spin: 0.2, keepR: 0, scale: 1, seed: 9 });
+  scene.add(bath.group);
+  const bathCentre = new THREE.Vector3(0, -40, -245);
 
   // the phage DNA: a double helix of beads along a rope of nodes
   const MAXB = (GENOME_NODES + 40) * 6;
@@ -403,6 +419,7 @@ export function createInside() {
     },
     /** Camera: follow the leading end, with RS orbit and a zoom distance. */
     frame(dt, look, dist, focus = null) {
+      bath.setCenter(_sc.set(camera.position.x * 0.5, bathCentre.y + camera.position.y * 0.5, bathCentre.z));
       const tip = S.nodes[S.nodes.length - 1] || PORE;
       // (biased toward the pore so the membrane and the entering tail tube stay in frame, as in the reference)
       const target = focus ? _p.copy(focus) : _p.copy(tip).lerp(PORE, 0.4);

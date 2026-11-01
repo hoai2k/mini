@@ -17,7 +17,7 @@
 //   strike   the pull: a strong draw into the mouth (faster than you sprint)
 //   recover  the vortex slackens: sprint across now
 //   repelled contracted (you bumped its foot, or tumbled free at the pull)
-//   retreat  sated / worn out: it contracts and stays shut for a while (you pass)
+//   retreat  worn out by your army (guards.js): it contracts and stays shut (the host is yours)
 // Departure (labelled in the README): the vortex's reach and speed are game
 // values, and its pulses are a rhythm for play (a real Stentor feeds steadily).
 import { WORLD, LANDMARK } from './world.js';
@@ -27,9 +27,9 @@ export const STENTOR = {
   mouth: { x: LANDMARK.x + 122, y: LANDMARK.y + 20 }, // off the right edge of the field: the oral pouch
   discR: 112, // the oral disc's radius: its rim (and the membranelles) reaches into the field
   pullR: 175, // the vortex reaches this far from the mouth
-  catchR: 96, // drawn this close to the mouth, you are swept in
+  catchR: 128, // drawn this close to the mouth, you are swept in (the host lies inside: beat Stentor to reach it)
   foot: { x: LANDMARK.x + 34, y: WORLD.slabY + 6 }, // the holdfast on the biofilm
-  wakeR: 230,
+  wakeR: 200,
 };
 
 export function createStentor() {

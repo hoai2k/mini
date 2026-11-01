@@ -5,19 +5,38 @@
 // Units: µm and seconds. +y is toward the air (the meniscus), −y into the sediment.
 
 // The level runs left to right: you start at START (lower left) and the way on
-// (the host cell, LANDMARK) is far to the upper right, far enough for a calm
-// first half (exploring, gathering a collective) and every challenge in the
-// second: grazers, phage clouds, Bdellovibrio, the amoeba and the boss all sit
-// (or only come) at or beyond halfway.
-export const WORLD = { x0: -210, x1: 650, y0: -135, y1: 135, slabY: -72 };
+// (the host cell, LANDMARK) is far to the right. It is paced as a rhythm
+// (ROUTE): a meadow where kin are plentiful and you gather an army, then a
+// gate (an enemy your army must push through), a short calm break with a few
+// kin and prey, the next gate, and so on to the boss (Stentor) at the host.
+export const WORLD = { x0: -210, x1: 760, y0: -135, y1: 135, slabY: -72 };
 export const START = { x: -20, y: -20 };
-export const LANDMARK = { x: 560, y: 24 };
+export const LANDMARK = { x: 660, y: 24 };
 const PATH = { dx: LANDMARK.x - START.x, dy: LANDMARK.y - START.y };
 PATH.len = Math.hypot(PATH.dx, PATH.dy);
 /** How far along the way from the start to the host cell (0 at the start, 1 at the host). */
 export function progress(x, y) { return ((x - START.x) * PATH.dx + (y - START.y) * PATH.dy) / (PATH.len * PATH.len); }
 /** The x where progress reaches one half (in the band). */
 export const HALF_X = START.x + PATH.dx * 0.5 + 2;
+/** The y of the straight way from the start to the host at x. */
+export const wayY = (x) => START.y + ((x - START.x) * PATH.dy) / PATH.dx;
+/**
+ * The way on, as a rhythm: the meadow (gather), then a gate every ~95 µm with a
+ * calm break between (a few kin and prey), then the boss. Gate x is where the
+ * enemy stands on the way (main.js and guards.js run them).
+ */
+export const ROUTE = {
+  meadow: { x0: -15, x1: 115 },
+  gates: [
+    { id: 'grazer1', name: 'Peritrich', x: 170 },
+    { id: 'bdello', name: 'Bdellovibrio pack', x: 265, r: 30 },
+    { id: 'phage', name: 'Phage cloud', x: 360, r: 16 },
+    { id: 'amoeba', name: 'Amoeba', x: 455 },
+    { id: 'grazer2', name: 'Peritrich', x: 548 },
+    { id: 'stentor', name: 'Stentor', x: 660 },
+  ],
+  breaks: [215, 312, 405, 505, 590],
+};
 
 // Oxygen in % of air saturation: falls roughly exponentially from the
 // meniscus and is used up by the biofilm, reaching zero just above it.
@@ -43,7 +62,6 @@ export function gauss(r) {
   v = r();
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
-const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
 /** Distance from point (px, py) to a segment centred at (x, y), angle a, length L. Returns [dist, s along]. */
 export function segDist(px, py, x, y, a, L) {
@@ -117,9 +135,14 @@ export function createWorld() {
   for (let i = 0; i < 180; i++) addCell('rod', W.x0 + r() * (W.x1 - W.x0), W.slabY + 4 + Math.pow(r(), 1.4) * 170);
   for (let i = 0; i < 80; i++) addCell('coccus', W.x0 + r() * (W.x1 - W.x0), W.slabY + 3 + r() * 190);
   for (let i = 0; i < 32; i++) addCell('chain', W.x0 + r() * (W.x1 - W.x0), W.slabY + 3 + r() * 190);
-  for (let i = 0; i < 20; i++) addCell('mtb', W.x0 + r() * (W.x1 - W.x0), oxygenY(2.5) + (r() - 0.5) * 40);
-  // Bdellovibrio live in the second half only (a challenge: at or beyond halfway)
-  for (let i = 0; i < 4; i++) addCell('bdello', HALF_X + 70 + r() * 160, oxygenY(3) + (r() - 0.5) * 30);
+  // prey for the army (X lyses rods in reach): plentiful along the way, most in the meadow and the breaks
+  for (let i = 0; i < 150; i++) {
+    const zone = i < 60 ? ROUTE.meadow.x0 + r() * (ROUTE.meadow.x1 - ROUTE.meadow.x0) : ROUTE.breaks[i % ROUTE.breaks.length] + (r() - 0.5) * 40;
+    addCell('rod', zone, wayY(zone) + (r() - 0.5) * 50);
+  }
+  // the Bdellovibrio pack: four predators that keep to their gate on the way (guards.js)
+  const pack = ROUTE.gates[1];
+  for (let i = 0; i < 4; i++) { const c = addCell('bdello', pack.x + (r() - 0.5) * 30, wayY(pack.x) + (r() - 0.5) * 30); c.home = { x: pack.x, y: wayY(pack.x), r: pack.r }; c.hp = 1; }
 
   // --- food patches: dissolved organic matter round decaying detritus or a lysed cell ---
   const patches = [];
@@ -134,14 +157,18 @@ export function createWorld() {
   const phages = [];
   function newPhage(x, y) { return { x, y, z: (r() - 0.5) * 1.6, stuck: null }; }
   for (let i = 0; i < 220; i++) phages.push(newPhage(W.x0 + r() * (W.x1 - W.x0), W.slabY + r() * 200));
+  // the phage cloud gate: a lysed host's progeny hanging across the way (guards.js)
+  const cloud = { x: ROUTE.gates[2].x, y: wayY(ROUTE.gates[2].x), r: ROUTE.gates[2].r };
+  for (let i = 0; i < 80; i++) { const p = newPhage(cloud.x + gauss(r) * cloud.r * 0.6, cloud.y + gauss(r) * cloud.r * 0.8); p.z = (r() - 0.5) * 0.6; p.cloud = cloud; phages.push(p); }
 
   for (const [x, y, lys] of [[-40, oxygenY(2), false], [55, oxygenY(1.2), true], [140, oxygenY(3.5), false], [-150, oxygenY(1.0), true], [10, oxygenY(0.6), false], [-95, oxygenY(4), false], [100, W.slabY + 10, false], [210, oxygenY(1.5), false], [330, oxygenY(2.5), true], [470, oxygenY(1.0), false]]) addPatch(x, y, lys);
 
   // --- grazers: two peritrichs (Vorticella-like) on stalks from the biofilm ---
   const grazers = [
     // both beyond halfway: their feeding currents reach ~70 µm, so the first stands 85 µm past it
-    { x: HALF_X + 85, base: W.slabY - 4, ang: 0.35, R: 17, ext: 1, contract: 0, next: 18 + r() * 10, seed: 3.1 },
-    { x: HALF_X + 185, base: W.slabY - 4, ang: -0.3, R: 15, ext: 1, contract: 0, next: 26 + r() * 10, seed: 7.7 },
+    // gates 1 and 5 (ROUTE): the mouth stands a few µm off the stalk's foot
+    { x: ROUTE.gates[0].x + 2, base: W.slabY - 4, ang: 0.35, R: 17, ext: 1, contract: 0, next: 18 + r() * 10, seed: 3.1 },
+    { x: ROUTE.gates[4].x - 1, base: W.slabY - 4, ang: -0.3, R: 15, ext: 1, contract: 0, next: 26 + r() * 10, seed: 7.7 },
   ];
   const STALK = 46;
   for (const g of grazers) g.stalk = STALK;
@@ -159,8 +186,10 @@ export function createWorld() {
     return { ox, oy, up, top, mouth, ang, R: g.R };
   }
 
-  // --- the amoeba's edge, creeping in from the lower right ---
-  const amoeba = { x: HALF_X + 160, y: W.slabY + 26, ang: 2.0, width: 110, depth: 70, amp: 5, seed: 2.2, speed: 1.4 };
+  // --- the amoeba's edge: gate 4, a wall across the way (its body to the right; guards.js) ---
+  // ang: the edge runs along (cos, sin); its outward normal (−sin, cos) faces the way you come from
+  const AX = ROUTE.gates[3].x, AY = wayY(AX) + 8;
+  const amoeba = { x: AX, y: AY, ang: Math.PI / 2 + 0.12, width: 190, depth: 46, amp: 5, seed: 2.2, speed: 1.4, home: { x: AX, y: AY }, beaten: false };
 
   // The grazers whose feeding current is on, listed once per step (perf B1):
   // the sink and the "eaten" test then skip resting grazers and far points cheaply.
@@ -241,7 +270,7 @@ export function createWorld() {
   }
 
   const world = {
-    landmarks, start: START, halfX: HALF_X, progress,
+    landmarks, start: START, halfX: HALF_X, progress, wayY, route: ROUTE, cloud,
     /** The y of a given oxygen level (% air saturation). */
     bandY: oxygenY,
     /** Is (x, y) within √r2 µm of a feeding grazer's mouth? (members and kin are eaten there) */
@@ -268,21 +297,23 @@ export function createWorld() {
       for (const g of grazers) {
         g.pose = grazerPose(g);
         // stalk contraction: the spasmoneme coils in milliseconds, re-extends over seconds
+        if (g.beaten) { g.contract = 1; g.ext = Math.max(0.12, g.ext - dt * 3); continue; } // beaten (guards.js): coiled on its stalk for good
         if (g.contract > 0) { g.contract -= dt; g.ext = Math.min(1, g.ext + dt / 3); if (g.contract <= 0) g.ext = 1; }
         else if (t > g.next) { g.contract = 3; g.ext = 0; g.next = t + 20 + r() * 15; }
       }
-      // the amoeba creeps toward the player when near (≈1.4 µm/s), otherwise wanders
+      // the amoeba's edge holds its gate: it slides a little toward the nearest player (≈1.4 µm/s,
+      // leashed to its place); beaten (guards.js), it withdraws down and to the right and stays there
       if (opts.amoeba) {
-        const dx = player.x - amoeba.x, dy = player.y - amoeba.y, d = Math.hypot(dx, dy);
-        if (d < 90 && player.alive && hunt.amoeba) {
-          const nAng = Math.atan2(-dx, dy); // turn the edge's outward normal (local +y) toward the player
-          amoeba.ang += wrapA(nAng - amoeba.ang) * Math.min(1, dt * 0.15);
-          amoeba.x += (dx / d) * amoeba.speed * dt; amoeba.y += (dy / d) * amoeba.speed * dt;
+        const H = amoeba.home;
+        if (amoeba.beaten) {
+          const tx = H.x + 60, ty = H.y - 70, dx = tx - amoeba.x, dy = ty - amoeba.y, d = Math.hypot(dx, dy);
+          if (d > 0.5) { amoeba.x += (dx / d) * Math.min(d, 9 * dt); amoeba.y += (dy / d) * Math.min(d, 9 * dt); }
         } else {
-          amoeba.x += Math.sin(t * 0.05) * 0.3 * dt;
+          const dx = player.x - amoeba.x, dy = player.y - amoeba.y, d = Math.hypot(dx, dy);
+          if (d < 90 && player.alive && hunt.amoeba) { amoeba.x += (dx / d) * amoeba.speed * dt; amoeba.y += (dy / d) * amoeba.speed * dt; }
+          amoeba.x = Math.max(H.x - 12, Math.min(H.x + 12, amoeba.x));
+          amoeba.y = Math.max(H.y - 25, Math.min(H.y + 25, amoeba.y));
         }
-        amoeba.x = Math.max(HALF_X + 60, Math.min(W.x1 - 10, amoeba.x)); // it never creeps back into the first half
-        amoeba.y = Math.max(W.slabY - 10, Math.min(W.y1 - 40, amoeba.y));
       }
       const sq = Math.sqrt(dt);
       const br = opts.brownian ? 1 : 0;
@@ -300,6 +331,8 @@ export function createWorld() {
         const f = feedingNow.length ? grazerFlow(p.x, p.y, tmpF) : (tmpF.x = tmpF.y = 0, tmpF);
         p.x += f.x * dt + br * 2.9 * sq * gauss(r);
         p.y += f.y * dt + br * 2.9 * sq * gauss(r);
+        // the cloud hangs together (a game value: a real cloud would spread over minutes)
+        if (p.cloud) { p.x += (p.cloud.x - p.x) * 0.25 * dt; p.y += (p.cloud.y - p.y) * 0.25 * dt; continue; }
         if (eatenByGrazer(p) || p.x < W.x0 || p.x > W.x1 || p.y < W.slabY - 10 || p.y > W.y1) respawnFar(p, player);
       }
       // free cells
@@ -341,6 +374,16 @@ export function createWorld() {
 
   function stepCell(c, dt, t, sq, br, player) {
     c.flPhase += dt * 30;
+    // lysed by the army (collective.js eat): rounds up and bursts, then a new rod swims in elsewhere
+    if (c.lysed) {
+      c.lysed += dt / 0.8;
+      if (c.lysed >= 1) {
+        c.lysed = 0; c.ghost = false;
+        for (let k = 0; k < 6; k++) { c.x = W.x0 + 20 + r() * (W.x1 - W.x0 - 40); c.y = wayY(c.x) + (r() - 0.5) * 70; if (Math.abs(c.x - player.x) > 60) break; }
+      }
+      return;
+    }
+    if (c.dead) { c.dead += dt; return; } // a Bdellovibrio killed by the army: it rounds and fades (draw.js)
     if (c.ghost) return;
     const f = grazerFlow(c.x, c.y, tmpF);
     if (c.bdelloplast > 0 || c.attachedBy) {
@@ -375,7 +418,7 @@ export function createWorld() {
         if (c.kind === 'bdello' && opts.hunters) {
           c.cooldown -= dt;
           // collide with prey: attach and enter (time-compressed)
-          if (c.cooldown <= 0) for (const p of cells) {
+          if (c.cooldown <= 0 && !c.home) for (const p of cells) {
             if (!p.prey || p === c || p.bdelloplast || p.ghost || p.attachedBy) continue;
             if (Math.abs(p.x - c.x) > 3 || Math.abs(p.y - c.y) > 3) continue;
             const [d] = segDist(c.x, c.y, p.x, p.y, p.a, p.L);
@@ -402,10 +445,10 @@ export function createWorld() {
     if (c.y > W.y1 - 2) { c.y = W.y1 - 2; c.a = -c.a; }
     if (c.x < W.x0) c.x += W.x1 - W.x0;
     if (c.x > W.x1) c.x -= W.x1 - W.x0;
-    // Bdellovibrio keep to the second half (they turn back at halfway)
-    if (c.kind === 'bdello' && c.x < HALF_X + 10) { c.x = HALF_X + 10; c.a = Math.PI - c.a; }
+    // the pack keeps to its gate: beyond its reach a Bdellovibrio turns home
+    if (c.home && Math.hypot(c.x - c.home.x, c.y - c.home.y) > c.home.r + 25) c.a = Math.atan2(c.home.y - c.y, c.home.x - c.x);
     pushOutOfGrains(c, c.r);
-    if (feedingNow.length && eatenByGrazer(c)) { c.x = c.kind === 'bdello' ? HALF_X + 40 + r() * 200 : W.x0 + r() * (W.x1 - W.x0); c.y = W.slabY + 20 + r() * 150; }
+    if (feedingNow.length && eatenByGrazer(c)) { if (c.home) { c.x = c.home.x; c.y = c.home.y; } else { c.x = W.x0 + r() * (W.x1 - W.x0); c.y = W.slabY + 20 + r() * 150; } }
     void player; void t;
   }
 

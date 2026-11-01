@@ -20,6 +20,13 @@ export function createDrawer(world) {
 
   function rodCell(S, c, t, mat = cell()) {
     const k = c.bdelloplast || 0;
+    if (c.lysed) {
+      // lysed by your army (X): the rod rounds up and swells, then bursts into a fading puff of its contents
+      const e = c.lysed;
+      if (e < 0.55) { const q = e / 0.55; S.rod(c.x, c.y, c.a, c.L * (1 - q), c.r * (1 + 0.9 * q), { ...mat, z: c.z }); }
+      else { const q = (e - 0.55) / 0.45; S.disc(c.x, c.y, 0.9 + 1.6 * q, { dn: 0.02 * (1 - q), scat: 0.3 * (1 - q), fl: [0.3 * chan.memb * (1 - q), 0.05 * (1 - q), 0], ab: [0.004, 0.004, 0.004], z: c.z }); }
+      return;
+    }
     if (c.ghost) { S.disc(c.x, c.y, 0.8, { dn: 0.012, scat: 0.05, fl: [0.25 * chan.memb, 0, 0], memb: 1, z: c.z }); return; }
     if (k > 0) {
       // rounding into a bdelloplast: the rod becomes a sphere
@@ -152,6 +159,11 @@ export function createDrawer(world) {
     if (W.opts.grazers) for (const g of W.grazers) grazer(S, g, t);
     if (W.opts.amoeba) amoeba(S, W.amoeba, t);
     for (const c of W.cells) {
+      if (c.dead) {
+        // killed by your army: it rounds, darkens and fades
+        if (c.dead < 1.5 && S.inView(c.x, c.y, 4)) { const e = c.dead / 1.5; S.rod(c.x, c.y, c.a, c.L * (1 - 0.8 * e), c.r * (1 + e), { dn: 0.05 * (1 - e), scat: 0.12, fl: [MEMB * chan.memb * (1 - e), 0, 0], memb: 0.85, ab: [0.002 + 0.05 * e, 0.002 + 0.045 * e, 0.003 + 0.03 * e], z: c.z }); }
+        continue;
+      }
       if (c.hidden > 0 || !S.inView(c.x, c.y, 12)) continue;
       if (c.kind === 'rod') { rodCell(S, c, t); peritrichous(S, c, t); }
       else if (c.kind === 'coccus') S.disc(c.x, c.y, c.r, { ...cell(), z: c.z });
@@ -170,7 +182,12 @@ export function createDrawer(world) {
         if (c.windup > 0) S.disc(c.x + Math.cos(c.a) * c.L * 0.5, c.y + Math.sin(c.a) * c.L * 0.5, 0.12 + 0.12 * c.windup, { dn: 0.12, scat: 2.5, fl: [0.4 * chan.memb, 20 * chan.flag * c.windup, 0], z: c.z, hk: 0.5 });
       }
     }
-    if (W.opts.phages) for (const p of W.phages) if (!p.anim && !p.homing && S.inView(p.x, p.y, 3.1)) S.disc(p.x, p.y, 0.03, { dn: 0.15, scat: 18, fl: [0, PHAGE * chan.phage, 0], z: p.stuck ? 0 : p.z, hk: 1 });
+    if (W.opts.phages) for (const p of W.phages) {
+      if (p.anim || p.homing || !S.inView(p.x, p.y, 3.1)) continue;
+      // the cloud on the way (a gate) is drawn 3× so it reads in every look (a labelled stretch, as for a homing phage)
+      if (p.cloud) S.disc(p.x, p.y, 0.09, cloudPhage);
+      else S.disc(p.x, p.y, 0.03, { dn: 0.15, scat: 18, fl: [0, PHAGE * chan.phage, 0], z: p.stuck ? 0 : p.z, hk: 1 });
+    }
     // a phage homing in on a player (main.js): drawn 3× and denser so it reads in every look (a labelled
     // stretch, as in the catch); its long tail fibres splay as they catch the wall (the wind-up)
     if (W.opts.phages) for (const p of W.phages) if (p.homing) homingPhage(S, p, t);
@@ -255,8 +272,21 @@ export function createDrawer(world) {
     }
   }
 
-  // --- the collective (collective.js): kin cells, free or members, the slime, the toxin ---
+  const cloudPhage = { dn: 0.32, scat: 9, fl: [0, PHAGE * 0.12, 0], z: 0, hk: 1 };
+
+  // --- your army (collective.js): kin cells, free or members, the beacon and answers, the slime, the toxin ---
   const KIN_MEMBER = { tumbling: false, fl: 1 }, KIN_FREE = { tumbling: false, fl: 0.8 };
+  const pulse = { dn: 0, scat: 0, fl: [0, 0, 0], ab: [0, 0, 0], z: 0 };
+  /** A ring of soft spots: the beacon on the medium (autoinducer drawn so it shows: a labelled departure). */
+  function ring(S, x, y, R, fade, size, n) {
+    pulse.dn = 0.03 * fade; pulse.scat = 0.9 * fade;
+    pulse.fl[0] = 0.12 * fade * chan.memb; pulse.fl[1] = 0.5 * fade; pulse.fl[2] = 0.08 * fade;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * 6.283;
+      const px = x + Math.cos(a) * R, py = y + Math.sin(a) * R;
+      if (S.inView(px, py, 1)) S.disc(px, py, size, pulse);
+    }
+  }
   const kinTox = { dn: 0.004, scat: 0.05, ab: [0, 0, 0], z: 0 };
   const kinSlime = { dn: 0.003, scat: 0.02, fl: [0, 0.01, 0.03], z: 0.05 };
   function kin(S, t, coll) {
@@ -264,6 +294,8 @@ export function createDrawer(world) {
     for (const k of coll.kin) {
       if (!S.inView(k.x, k.y, 6)) continue;
       const C = k.coll;
+      // its answer to a beacon: a small pulse of its own as it joins
+      if (k.answer && k.answer.t >= 0) { const e = Math.min(1, k.answer.t / 0.7); ring(S, k.x, k.y, 0.9 + 2.8 * e, (1 - e) * 1.3, 0.2, 12); }
       if (k.dying) {
         // a member taken in your place: it rounds up, darkens and fades
         const e = Math.min(1, k.dying.t / 1.2);
@@ -276,6 +308,14 @@ export function createDrawer(world) {
       if (charge > 0.2) { const ab = kinTox.ab; ab[0] = 0.03 * charge; ab[1] = 0.09 * charge; ab[2] = 0.02 * charge; S.disc(k.x, k.y, 0.5, kinTox); }
       // the slime shield: EPS round every member (thin, faint in phase, a haze in fluorescence)
       if (C && C.level >= 1) { kinSlime.fl[0] = 0.03 * chan.memb; S.disc(k.x, k.y, 2.1, kinSlime); }
+    }
+    // the beacon (X): a pulse spreading from the flock's middle to its reach, then fading
+    for (const C of coll.list) {
+      for (const b of C.beacons) {
+        const e = Math.min(1, b.t / b.dur) ** 0.7, R = 0.6 + (b.R - 0.6) * e;
+        const fade = b.t < b.dur ? 0.65 + 0.35 * (1 - e) : Math.max(0, 1 - (b.t - b.dur) / 0.5) * 0.65;
+        if (fade > 0.01) ring(S, b.x, b.y, R, fade, 0.32, Math.max(14, Math.min(84, Math.round((6.283 * R) / 1.1))));
+      }
     }
     // the toxin burst: a ring of purple granules racing outward
     for (const C of coll.list) {

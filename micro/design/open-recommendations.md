@@ -105,6 +105,8 @@ Each of these was left out because it changes the picture or feel, or needs more
 - [Medium] Green shield: algae are armour in bright water, and a cell that loses them in shade is fragile. Shade now slows only the dash recharge. Source: [combat-ideas.md](combat-ideas.md) (Paramecium idea 3).
 - [Medium] *Didinium* tether and a teammate's ram that knocks the proboscis off. Today a hold ends in a capture. It is a departure. Source: [combat-ideas.md](combat-ideas.md) (Paramecium idea 4).
 - [Medium] The suctorian forest: a minefield where moving fast protects you. Source: [zoom-chain-levels.md](zoom-chain-levels.md) (3.7).
+- [Small] Generate the seamless habitat tiles MP-P04 and MP-P05 (requested; the code already prefers them once delivered) and check the seams are gone: the delivered plates' edges show as straight seams in darkfield, the default look again since 2026-11-01. Source: [paramecium README](../prototypes/paramecium/README.md) (Look and roll).
+- [Small] A brightfield habitat backdrop: brightfield has no plate in `shared/techniques/paramecium-microscope.js`, so its richness comes only from the scene (`ambient.js`). Adding one changes a shared module that other prototypes borrow. Source: [paramecium README](../prototypes/paramecium/README.md) (Look and roll).
 - [Small] The CO2 ring (co-op): a weak-acid ring round a bubble as a safe spot. Low value and not shown to protect, so it is optional. Source: [combat-ideas.md](combat-ideas.md) (Paramecium idea 5).
 - [Large] Level 4, *Trachelomonas* (find the light, *Peranema*, the chytrid storm). It is not in the chain; the zoom skips it. Source: [zoom-chain-levels.md](zoom-chain-levels.md) (4.7), [zoom README](../prototypes/zoom/README.md).
 

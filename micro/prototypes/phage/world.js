@@ -143,9 +143,10 @@ export function createWorld(scene) {
     forest(beadTemplate('lps', 1), Math.ceil(nL / 2), def.wrong ? [0.6, 0.8] : [0.55, 0.8], lc);
     forest(beadTemplate('lps', 2), Math.floor(nL / 2), def.wrong ? [0.6, 0.8] : [0.55, 0.8], lc);
     if (!def.wrong) {
-      forest(beadTemplate('mprot', 3), Math.round(area / 260), [0.9, 1.3], null, false);
-      forest(beadTemplate('porin', 4), Math.round(area / 200), [0.9, 1.15], null);
-      forest(beadTemplate('globule', 5, PALETTE.teal), Math.round(area / 420), [0.9, 1.3], null, false);
+      forest(beadTemplate('mprot', 3, null, 1.6), Math.round(area / 170), [1.2, 1.9], null, false);
+      forest(beadTemplate('porin', 4, null, 1.5), Math.round(area / 160), [1.0, 1.4], null);
+      forest(beadTemplate('globule', 5, PALETTE.teal, 1.8), Math.round(area / 300), [1.3, 2.0], null, false);
+      forest(beadTemplate('globule', 8, PALETTE.blue, 1.8), Math.round(area / 380), [1.5, 2.3], null, false);
     } else forest(beadTemplate('globule', 6, PALETTE.olive), Math.round(area / 300), [0.9, 1.3], null, false);
     // OmpC receptor patches
     if (def.patches.length) {
@@ -355,14 +356,14 @@ export function createWorld(scene) {
   // the camera can turn, and round every split view (world.viewBath sets the centre per view). The
   // near bath is dense and detailed; the mid bath fills out to the haze with fewer, larger molecules.
   const NEAR = [
-    { kind: 'small', n: 900, s: [1.0, 1.5], variants: 4 },
-    { kind: 'globule', n: 300, s: [1.1, 1.9], pal: PALETTE.violet },
-    { kind: 'globule', n: 240, s: [0.8, 1.3], pal: PALETTE.teal, seed: 3 },
-    { kind: 'dimer', n: 150, s: [0.9, 1.4] },
-    { kind: 'chain', n: 180, s: [1.0, 1.5] },
-    { kind: 'globule', n: 120, s: [1.0, 1.6], pal: PALETTE.periwinkle, seed: 5 },
-    { kind: 'humic', n: 70, s: [1.0, 1.6] },
-    { kind: 'complex', n: 30, s: [1.0, 1.5] },
+    { kind: 'small', n: 1100, s: [0.9, 1.3], variants: 4 },
+    { kind: 'globule', n: 320, s: [0.9, 1.5], pal: PALETTE.violet },
+    { kind: 'globule', n: 260, s: [0.7, 1.1], pal: PALETTE.teal, seed: 3 },
+    { kind: 'dimer', n: 160, s: [0.8, 1.2] },
+    { kind: 'chain', n: 200, s: [0.9, 1.3] },
+    { kind: 'globule', n: 140, s: [0.8, 1.3], pal: PALETTE.periwinkle, seed: 5 },
+    { kind: 'humic', n: 80, s: [0.9, 1.4] },
+    { kind: 'complex', n: 30, s: [0.9, 1.3] },
   ];
   const MID = [
     { kind: 'globule', n: 900, s: [2.0, 3.2], pal: PALETTE.violet, seed: 7 },
@@ -372,8 +373,8 @@ export function createWorld(scene) {
     { kind: 'humic', n: 200, s: [2.0, 3.0], seed: 8 },
     { kind: 'complex', n: 80, s: [1.8, 2.6], seed: 2 },
   ];
-  const nearBath = createBath(NEAR, { half: 115, jitter: 0.9, spin: 0.4, keepR: 26, seed: 1 });
-  const midBath = createBath(MID, { half: 330, jitter: 1.4, spin: 0.25, keepR: 70, seed: 2, sat: 0.85 });
+  const nearBath = createBath(NEAR, { half: 115, jitter: 0.9, spin: 0.4, keepR: 26, seed: 1, detail: 2 });
+  const midBath = createBath(MID, { half: 330, jitter: 1.4, spin: 0.25, keepR: 70, inner: 105, seed: 2, sat: 0.85 });
   const baths = [nearBath, midBath];
   for (const b of baths) scene.add(b.group);
   world.baths = baths;

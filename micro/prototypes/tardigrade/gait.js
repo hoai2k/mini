@@ -20,19 +20,36 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { LEGS, BODY_HEIGHT } from './creature.js';
 
-export const MAX_SPEED = 2.25;    // units/s = 225 µm/s ≈ 0.65 body lengths/s (Nirody: 79-263 µm/s)
-export const DASH_SPEED = 4.0;    // the scramble: ~400 µm/s, well past the fastest measured walking (a stretch)
-const STRIDE_REF = 1.5;            // strides lengthen above this pace (the old walking speed)
-const STRIDE = 0.55;               // 55 µm per cycle
-const SWING_FRAC = 0.34;
+// Speed. The stick is analogue: a slight push walks at WALK_MIN, full tilt at
+// WALK_MAX, with a quadratic curve between (fine control near the slow end);
+// the scramble (A) is DASH_SPEED. Before 2026-11 the walk limit was 225 µm/s
+// but the gait could not keep up: a leg that fell behind held the trunk back
+// to 15% of the limit at any deflection, so the walk really ran at ~7-34 µm/s
+// and the scramble at ~100-150. The slow end and full tilt are those speeds.
+export const WALK_MIN = 0.3;      // units/s = 30 µm/s, a slight push
+export const WALK_MAX = 1.5;      // 150 µm/s at full tilt (~0.43 body lengths/s; Nirody: 79-263 µm/s)
+export const DASH_SPEED = 2.8;    // the scramble: 280 µm/s, past the fastest measured walking (a stretch)
+export const MAX_SPEED = WALK_MAX;
+/** The walk speed for a stick deflection 0..1 (after the pad's dead zone). */
+export function walkSpeed(m, min = WALK_MIN, max = WALK_MAX) { return m > 0 ? min + (max - min) * Math.min(1, m) * Math.min(1, m) : 0; }
+const SWING_FRAC = 0.34;           // of each cycle in swing at a walk; up to 0.45 at a scramble
 // Grip hysteresis: start slipping below SLIP_AT of the load, catch again at CATCH_AT.
 const SLIP_AT = 0.85, CATCH_AT = 0.75;
 // Display smoothing: three first-order lags in series, so the trunk's velocity
 // and acceleration stay continuous even when the target jumps (a transfer, the
 // leaf margin, a catch).
 const SMOOTH_TAU = 0.065;
-const MAX_REACH = 0.4;
 const FOOT_UP = 0.07;              // claw base above the leaf surface
+// Leg reach, as a multiple of each leg's rest length (hip to claw base), measured
+// on the body as drawn (the displayed trunk, with its sway). Lobopods telescope
+// a little, never more: a planted foot is placed and kept within R_PLANT; past
+// R_STEP it must step whatever the wave says; past R_CAP it lets go (or, in
+// the air, reaches no further). Nothing is drawn longer than R_CAP.
+export const R_PLANT = 1.08, R_STEP = 1.11, R_CAP = 1.14;
+// Stance travel (body units) that fits the narrowest leg range at R_PLANT
+// (pairs II and III: 0.58) with a margin for turning and the foothold snap.
+const T_MAX = 0.5;
+const HANDOFF_STAGGER = 0.06;      // s between feet letting go of the old face after a transfer
 // Leg phase offsets. 'wave': back-to-front along each side, sides in
 // antiphase (Nirody et al. 2021). The others are for comparison.
 export const GAITS = {
@@ -46,12 +63,24 @@ export function setGait(name) { setGaitWith(GAITS[name]); }
 export function setGaitWith(fn) { for (const L of LEGS) OFF[L.index] = ((fn(L) % 1) + 1) % 1; }
 setGait('Back-to-front wave (measured)');
 
-const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion();
-const UPW = new THREE.Vector3(0, 1, 0);
+// Per leg: rest length (hip to claw base, body units) and the centre of its
+// stance range: under the hip for pairs I-III, behind it for the terminal
+// pair IV, which points backwards (the range at R_PLANT runs from the hip to
+// about the rest claw).
+export const LEG_L0 = LEGS.map((L) => L.ground.distanceTo(L.hip));
+const CENTRE = LEGS.map((L) => new THREE.Vector3(L.pair === 3 ? -1.43 : L.hip.x, L.ground.y, L.ground.z));
+// Where a foot with nothing in reach is held: drawn up and in under the body.
+const TUCK = LEGS.map((L) => new THREE.Vector3(CENTRE[L.index].x + (L.pair === 3 ? 0.25 : 0.04), L.ground.y + 0.2, L.ground.z * 0.88));
+const BACK_TO_FRONT = [6, 7, 4, 5, 2, 3, 0, 1];
+
+const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _f = new THREE.Vector3(), _h = new THREE.Vector3(), _w = new THREE.Vector3();
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _loc = {};
+const clamp = THREE.MathUtils.clamp;
 
 export class Walker {
   /**
-   * opts: { scale (body size relative to the player's 350 µm animal), maxSpeed, smooth }
+   * opts: { scale (body size relative to the player's 350 µm animal), maxSpeed,
+   * minSpeed, curve (false: speed is maxSpeed × mag, linear, for the AI), smooth }
    * The predator (Milnesium) is a second walker at scale ~1.5.
    */
   constructor(world, creature, events, opts = {}) {
@@ -60,19 +89,26 @@ export class Walker {
     this.events = events; // { catch(q), slip(), fall(text), transfer(text) }
     this.opts = { footholds: true, gravity: true, smooth: true, ...opts };
     this.s = opts.scale || 1;
-    this.maxSpeed = opts.maxSpeed || MAX_SPEED;
+    this.maxSpeed = opts.maxSpeed || WALK_MAX;
+    this.minSpeed = opts.minSpeed ?? WALK_MIN;
+    this.curve = opts.curve !== false;
     this.midPos = new THREE.Vector3(); this.midPos2 = new THREE.Vector3();
     this.midQuat = new THREE.Quaternion(); this.midQuat2 = new THREE.Quaternion();
     this.dispPos = new THREE.Vector3();
     this.dispQuat = new THREE.Quaternion();
     this.matrix = new THREE.Matrix4();
     this.inv = new THREE.Matrix4();
-    this.feet = LEGS.map(() => ({ world: new THREE.Vector3(), n: new THREE.Vector3(0, 1, 0), state: 'stance', grip: 0, from: new THREE.Vector3(), to: new THREE.Vector3(), toGrip: 0, t: 0, dur: 0.3, cycle: -1 }));
+    this.clock = 0;
+    this.stats = { letGo: 0, capped: 0, steps: 0 }; // for scripted checks
+    // state: 'stance' (claws hooked or resting on a cell), 'swing' (stepping to
+    // a hold), 'reach' (let go, nothing in reach: held tucked, looking for a
+    // hold), 'drag' (scraped along while slipping). leaf/side: the face it holds.
+    this.feet = LEGS.map(() => ({ world: new THREE.Vector3(), n: new THREE.Vector3(0, 1, 0), state: 'stance', grip: 0, from: new THREE.Vector3(), to: new THREE.Vector3(), toGrip: 0, t: 0, dur: 0.3, cycle: -1, leaf: null, side: 1, retry: 0 }));
     this.spawn(world.leaves[0], 1, 6.5, 0.6, 1, 0);
   }
 
   spawn(leaf, side, u, v, hu, hv) {
-    Object.assign(this, { leaf, side, u, v, hu, hv, speed: 0, phase: 0, slipping: false, slipT: 0, deficitT: 0, slipVel: [0, 0], pushT: 0, grace: 1, tau: SMOOTH_TAU, blend: null, atEdge: false, wrapCandidate: null });
+    Object.assign(this, { leaf, side, u, v, hu, hv, speed: 0, phase: 0, slipping: false, slipT: 0, deficitT: 0, slipVel: [0, 0], pushT: 0, grace: 1, tau: SMOOTH_TAU, blend: null, atEdge: false, wrapCandidate: null, handoffT: 0, hold: 1 });
     this.targetFrame();
     this.dispPos.copy(this.tPos);
     this.dispQuat.copy(this.tQuat);
@@ -102,55 +138,117 @@ export class Walker {
   get up() { return this.leaf.N.clone().multiplyScalar(this.side); }
   get forward() { return this.leaf.dirWorld(this.hu, this.hv).normalize(); }
 
-  /** Where leg i would stand now: its rest ground point under the target frame, on the leaf. */
-  neutral(i, out) {
-    const L = this.leaf;
-    out.copy(LEGS[i].ground).applyMatrix4(this.tMat);
-    const loc = L.toLocal(out, {});
-    return { u: loc.u, v: loc.v };
-  }
-
   surfacePoint(u, v, out) { return this.leaf.toWorld(u, v, this.side * (this.leaf.thick / 2 + FOOT_UP), out); }
 
-  /** Choose the hold for leg i, led by the body's velocity. */
-  chooseHold(i, lead) {
-    const n = this.neutral(i, _a);
-    const u = n.u + this.hu * lead, v = n.v + this.hv * lead;
-    const L = this.leaf;
-    if (!this.opts.footholds) return { pos: this.surfacePoint(u, v, new THREE.Vector3()), grip: L.inside(u, v) ? 0.8 : 0 };
-    const hold = this.world.foothold(L, u, v, 0.2, this.hu, this.hv);
-    if (hold) return { pos: this.surfacePoint(hold.u, hold.v, new THREE.Vector3()), grip: hold.quality };
-    // No wall in reach: the foot rests on a cell (poor hold), or dangles off the edge.
-    return { pos: this.surfacePoint(u, v, new THREE.Vector3()), grip: L.inside(u, v) ? 0.15 : 0 };
+  /** Leg i's hip on the body as drawn (body units, with the trunk's sway and surge). */
+  hipBody(i, out) { const h = LEGS[i].hip; return this.creature.bodyDeform(h.x, h.y, h.z, out); }
+
+  /**
+   * How far leg i is stretched to a foot at world point p: hip-to-foot over its
+   * rest length, on the displayed body. `ahead`: the body will have moved that
+   * far forward (world units) by then.
+   */
+  ratio(i, p, ahead = 0) {
+    _f.copy(p).applyMatrix4(this.inv);
+    _f.x -= ahead / this.s;
+    return _f.distanceTo(this.hipBody(i, _h)) / LEG_L0[i];
   }
 
+  /** Pull a foot in towards its hip until the leg is no longer than R_CAP. */
+  capFoot(i, p) {
+    _f.copy(p).applyMatrix4(this.inv);
+    this.hipBody(i, _h);
+    const d = _f.distanceTo(_h), lim = R_CAP * LEG_L0[i];
+    if (d <= lim) return false;
+    _f.sub(_h).multiplyScalar(lim / d).add(_h);
+    p.copy(_f).applyMatrix4(this.matrix);
+    return true;
+  }
+
+  /** Leg i's stance centre on the displayed body, as (u, v) on the current face. */
+  neutralUV(i) { return this.leaf.toLocal(_c.copy(CENTRE[i]).applyMatrix4(this.matrix), _loc); }
+
+  /**
+   * Choose a hold for leg i on the face the body is on: its stance centre,
+   * `lead` ahead along the heading, kept on the leaf, snapped to a cell wall if
+   * one is in reach. ok: the leg reaches it (with the body `ahead` further on).
+   */
+  chooseHold(i, lead = 0, ahead = 0) {
+    const L = this.leaf;
+    const n = this.neutralUV(i);
+    let u = n.u + this.hu * lead, v = n.v + this.hv * lead;
+    // Stay on the leaf: a foot over the edge comes in to the margin.
+    u = clamp(u, 0.1, L.len - 0.1);
+    const lim = Math.max(0, L.hwAt(u) - 0.08);
+    v = clamp(v, -lim, lim);
+    if (!this.opts.footholds) {
+      const pos = this.surfacePoint(u, v, new THREE.Vector3());
+      return { pos, grip: 0.8, ok: this.ratio(i, pos, ahead) <= R_STEP };
+    }
+    // A wall within the stance range is best; the cell under the stance point
+    // (a poor hold) next; a wall the leg only just reaches last.
+    const hold = this.world.foothold(L, u, v, 0.16 * this.s, this.hu, this.hv);
+    let wall = null;
+    if (hold) {
+      wall = this.surfacePoint(hold.u, hold.v, new THREE.Vector3());
+      const r = this.ratio(i, wall, ahead);
+      if (r <= R_PLANT) return { pos: wall, grip: hold.quality, ok: true };
+      if (r > R_STEP) wall = null;
+    }
+    const pos = this.surfacePoint(u, v, new THREE.Vector3());
+    const r = this.ratio(i, pos, ahead);
+    if (r <= R_PLANT || !wall) return { pos, grip: 0.15, ok: r <= R_STEP };
+    return { pos: wall, grip: hold.quality, ok: true };
+  }
+
+  /** Where leg i is held when it has nothing in reach: tucked, paddling a little. */
+  tuckPoint(i, out) {
+    const w = this.clock * 7 + i * 1.7;
+    return out.set(0.05 * Math.sin(w), 0.03 * Math.cos(w), 0).add(TUCK[i]).applyMatrix4(this.matrix);
+  }
+
+  setFace(f) { f.leaf = this.leaf; f.side = this.side; f.n.copy(this.leaf.N).multiplyScalar(this.side); }
+
+  /** Plant every foot where it stands (a spawn, a catch): those out of reach are held tucked. */
   plantAll() {
     LEGS.forEach((_, i) => {
       const h = this.chooseHold(i, 0);
       const f = this.feet[i];
-      f.world.copy(h.pos); f.grip = h.grip; f.state = 'stance';
-      f.n.copy(this.leaf.N).multiplyScalar(this.side);
+      this.setFace(f);
+      if (h.ok) { f.world.copy(h.pos); f.grip = h.grip; f.state = 'stance'; } else { this.letGo(f); this.tuckPoint(i, f.world); }
     });
+  }
+
+  letGo(f, why = '') { (this.stats.why ||= []).push(why + ':' + f.state + ':' + this.feet.indexOf(f)); f.state = 'reach'; f.grip = 0; f.retry = 0; this.stats.letGo++; }
+
+  /** Start a swing of foot f to hold h. */
+  swing(f, h, dur) {
+    f.from.copy(f.world); f.to.copy(h.pos); f.toGrip = h.grip;
+    f.t = 0; f.dur = dur; f.state = 'swing'; f.grip = 0; this.stats.steps++;
+    this.setFace(f);
   }
 
   /**
    * @param dt seconds
-   * @param input { dir: Vector3 world (desired), mag 0..1, brace, frozen, film, energy }
+   * @param input { dir: Vector3 world (desired), mag 0..1, brace, frozen, film, energy, tun, dash }
    */
   update(dt, input) {
-    const L = this.leaf;
+    const L = this.leaf, S = this.s;
     this.grace = Math.max(0, this.grace - dt);
+    this.handoffT = Math.max(0, this.handoffT - dt);
+    this.clock += dt;
     const ev = this.events;
-    // ---- speed: heavy, held back by stretched legs
-    let maxErr = 0;
-    const tmp = new THREE.Vector3();
+    // ---- footing: a planted foot trailing near the end of its reach holds the
+    // trunk back (it should have stepped); with few feet down it cannot push.
+    let rmax = 0, planted = 0;
     this.feet.forEach((f, i) => {
       if (f.state !== 'stance') return;
-      this.neutral(i, tmp);
-      maxErr = Math.max(maxErr, f.world.distanceTo(tmp.copy(LEGS[i].ground).applyMatrix4(this.tMat)));
+      planted++;
+      if (f.leaf !== L || f.side !== this.side) return;
+      const r = this.ratio(i, f.world), rNext = this.ratio(i, f.world, 0.02 * this.speed);
+      if (rNext > r) rmax = Math.max(rmax, rNext);
     });
-    const S = this.s, REACH = MAX_REACH * S;
-    const stretch = THREE.MathUtils.clamp((REACH * 1.3 - maxErr) / (REACH * 0.4), input.dash ? 0.5 : 0.15, 1);
+    this.hold = clamp((R_CAP - rmax) / (R_CAP - R_STEP), 0.35, 1) * clamp(planted / 4, 0.3, 1);
     // ---- steering, in leaf coordinates
     let du = input.dir.dot(L.U), dv = input.dir.dot(L.V);
     const dl = Math.hypot(du, dv);
@@ -160,21 +258,22 @@ export class Walker {
       du /= dl; dv /= dl;
       const cross = this.hu * dv - this.hv * du, dot = this.hu * du + this.hv * dv;
       const diff = Math.atan2(cross, dot);
-      const maxTurn = (input.brace ? 0.6 : input.dash ? 1.6 : 1.1) * stretch * dt;
-      turn = THREE.MathUtils.clamp(diff, -maxTurn, maxTurn);
+      const maxTurn = (input.brace ? 0.6 : input.dash ? 1.6 : 1.1) * Math.max(0.5, this.hold) * dt;
+      turn = clamp(diff, -maxTurn, maxTurn);
       const c = Math.cos(turn), s = Math.sin(turn);
       [this.hu, this.hv] = [this.hu * c - this.hv * s, this.hu * s + this.hv * c];
       this.align = Math.max(0, Math.cos(diff - turn));
     } else this.align = 0;
 
-    // A (dash): the scramble, a faster wave gait in the stick direction.
-    const top = input.dash ? Math.max(DASH_SPEED * S, this.maxSpeed) : this.maxSpeed;
-    const target = top * mag * this.align * input.film * (input.brace ? 0.45 : 1) * (0.6 + 0.4 * input.energy) * stretch;
-    const acc = (target > this.speed ? (input.dash ? 9 : 1.35) : 2.6) * S;
-    this.speed += THREE.MathUtils.clamp(target - this.speed, -acc * dt, acc * dt);
+    // Speed: the analogue walk (walkSpeed), or A's scramble.
+    const base = input.dash ? Math.max(DASH_SPEED * S, this.maxSpeed) * Math.min(1, mag)
+      : this.curve ? walkSpeed(mag, this.minSpeed, this.maxSpeed) : this.maxSpeed * mag;
+    const target = base * this.align * input.film * (input.brace ? 0.45 : 1) * (0.6 + 0.4 * input.energy) * this.hold;
+    const acc = (target > this.speed ? (input.dash ? 14 : 3) : 4) * S;
+    this.speed += clamp(target - this.speed, -acc * dt, acc * dt);
     if (this.speed < 0.002) this.speed = 0;
     // Pulsed propulsion: the trunk surges as each wave of legs pushes.
-    const surge = 0.75 + 0.25 * Math.cos(this.phase * Math.PI * 4);
+    const surge = 1 + 0.3 * Math.cos(this.phase * Math.PI * 4); // mean 1: the speed is the speed over the ground
     let mu = this.hu * this.speed * surge * dt, mv = this.hv * this.speed * surge * dt;
 
     // ---- slipping: slide downhill until the claws catch again
@@ -193,78 +292,93 @@ export class Walker {
     else if (mag > 0) { this.atEdge = true; this.speed *= 0.5; }
 
     const moving = this.speed > 0.03 || Math.abs(turn) > 0.002;
-    // Strides lengthen a little at a scramble, so the cadence stays possible.
-    const stride = STRIDE * S * (1 + 0.35 * THREE.MathUtils.clamp(this.speed / S - STRIDE_REF, 0, 2.5));
+    // Cadence: strides lengthen with speed only as far as the legs reach (the
+    // stance travel fits every leg's range); beyond that the legs step faster,
+    // and at a scramble a larger share of each cycle is in swing.
+    const sp = this.speed / S;
+    const SF = SWING_FRAC + 0.11 * clamp((sp - WALK_MAX) / (DASH_SPEED - WALK_MAX), 0, 1);
+    const stride = Math.min(T_MAX / (1 - SF), 0.45 + 0.22 * sp) * S;
+    const travel = stride * (1 - SF);
     this.stride = stride;
     this.phase += (this.speed / stride) * dt + (Math.abs(turn) * 0.9 * S / stride);
     this.targetFrame();
 
     // ---- legs
-    const swinging = () => this.feet.filter((f) => f.state === 'swing').length;
-    const isSwing = (i) => i >= 0 && i < 8 && this.feet[i].state === 'swing';
-    const lead = Math.min(0.25 * S, this.speed * 0.22);
+    const swinging = () => this.feet.reduce((n, f) => n + (f.state === 'swing' ? 1 : 0), 0);
+    const early = (j) => j >= 0 && j < 8 && this.feet[j].state === 'swing' && this.feet[j].t < 0.6;
+    const isSwing = (j) => this.feet[j].state === 'swing';
+    const dur0 = clamp((SF * stride) / Math.max(this.speed, 0.2 * S), input.dash ? 0.06 : 0.08, 0.35) * (input.brace ? 1.35 : 1);
+    const limit = input.brace ? 2 : sp > WALK_MAX ? 4 : 3;
     let settleDone = false;
-    // Largest error first so settling steps go to the worst leg.
-    const order = [...this.feet.keys()].sort((a, b) => this.errOf(b) - this.errOf(a));
+    // Largest error first so settling steps go to the worst leg; after a
+    // transfer, the feet still on the old face let go back to front.
+    const order = this.handoffPending() ? BACK_TO_FRONT : [...this.feet.keys()].sort((a, b) => this.errOf(b) - this.errOf(a));
     for (const i of order) {
       const f = this.feet[i];
       if (f.state === 'swing') continue;
       if (this.slipping) {
-        // Dragged: claws scrape over the walls.
-        this.neutral(i, tmp);
-        f.world.copy(tmp.copy(LEGS[i].ground).applyMatrix4(this.tMat));
-        f.grip = 0; f.state = 'drag';
+        // Dragged: claws scrape over the walls under the body.
+        const h = this.chooseHold(i, 0);
+        if (h.ok) { f.world.copy(h.pos); f.state = 'drag'; this.setFace(f); } else if (f.state !== 'reach') this.letGo(f);
+        f.grip = 0;
         continue;
       }
-      const err = this.errOf(i);
+      if (f.state === 'reach') {
+        // Let go with nothing in reach: look again every few frames for a hold.
+        if ((f.retry -= dt) > 0 || input.tun) continue;
+        f.retry = 0.05;
+        const h = this.chooseHold(i, moving ? travel * 0.5 : 0, this.speed * 0.15);
+        if (h.ok && !isSwing(i ^ 1)) this.swing(f, h, 0.15);
+        continue;
+      }
+      if (f.state === 'drag') { f.state = 'stance'; f.grip = 0.15; }
+      // Judged where the body will be drawn this frame (it moves after the legs).
+      const r = this.ratio(i, f.world, this.speed * dt * 2 + 0.01 * S);
       const ph = this.phase + OFF[i];
       const cyc = Math.floor(ph), loc = ph - cyc;
-      const want = moving && loc < SWING_FRAC && f.cycle !== cyc;
-      const need = err > REACH;
-      const settle = !moving && !settleDone && err > 0.09 * S && swinging() === 0;
-      if (!(want || need || settle || f.state === 'drag')) continue;
-      const leg = LEGS[i];
-      const ipsi = [i - 2, i + 2].filter((j) => j >= 0 && j < 8);
-      const contra = i ^ 1;
-      const limit = input.brace ? 2 : 3;
-      const ok = !ipsi.some(isSwing) && !isSwing(contra) && swinging() < limit && !input.tun;
-      if (!ok && f.state !== 'drag') continue;
-      // Lift.
-      const h = this.chooseHold(i, lead);
-      f.from.copy(f.state === 'drag' ? h.pos : f.world);
-      f.to.copy(h.pos); f.toGrip = h.grip;
-      f.t = 0;
-      f.dur = THREE.MathUtils.clamp((SWING_FRAC * stride) / Math.max(this.speed, 0.25 * S), input.dash ? 0.09 : 0.1, 0.55) * (input.brace ? 1.35 : 1);
-      f.state = 'swing'; f.cycle = cyc; f.grip = 0;
-      f.n.copy(this.leaf.N).multiplyScalar(this.side);
+      const onOld = f.leaf !== this.leaf || f.side !== this.side;
+      const want = moving && loc < SF && f.cycle !== cyc;
+      const need = r > R_STEP;
+      const handoff = onOld && this.handoffT <= 0;
+      const settle = !moving && !settleDone && this.errOf(i) > 0.09 * S && swinging() === 0;
+      if (!(want || need || handoff || settle)) continue;
+      const ok = !early(i - 2) && !early(i + 2) && !isSwing(i ^ 1) && swinging() < limit && !input.tun;
+      if (!ok && !need) continue;
+      // Lift, to a hold ahead: it lands half a stance forward of its centre
+      // and the body moves on while it swings.
+      const dur = settle && !moving ? 0.25 : dur0;
+      const ahead = moving ? this.speed * dur : 0;
+      const h = this.chooseHold(i, moving ? travel * 0.5 + ahead : 0, ahead);
+      if (handoff) this.handoffT = HANDOFF_STAGGER;
+      if (!h.ok) {
+        // Nothing in reach on the face under the body yet: keep the hold it
+        // has while the leg reaches it, let go once it cannot.
+        if (need || (onOld && r > R_PLANT)) this.letGo(f, 'need');
+        continue;
+      }
+      this.swing(f, h, dur);
+      f.cycle = cyc;
       if (settle) settleDone = true;
-      void leg;
     }
-    for (const f of this.feet) {
-      if (f.state !== 'swing') continue;
+    this.feet.forEach((f, i) => {
+      if (f.state !== 'swing') return;
       f.t += dt / f.dur;
-      const tt = THREE.MathUtils.clamp(f.t, 0, 1);
+      // A swing aims where the leg will reach when it lands. If the body has
+      // not gone where it was expected (it slowed, turned, a transfer), the
+      // foot picks a new hold on the way rather than landing stretched.
+      const left = Math.max(0, 1 - f.t) * f.dur;
+      if (f.t > 0 && this.ratio(i, f.to, this.speed * left) > R_STEP && f.leaf === this.leaf && f.side === this.side) {
+        const h = this.chooseHold(i, moving ? travel * 0.5 + this.speed * left : 0, this.speed * left);
+        if (h.ok) { f.to.copy(h.pos); f.toGrip = h.grip; }
+      }
+      const tt = clamp(f.t, 0, 1);
       const e = THREE.MathUtils.smootherstep(tt, 0, 1);
       f.world.lerpVectors(f.from, f.to, e).addScaledVector(f.n, 0.13 * S * Math.sin(Math.PI * tt));
       if (f.t >= 1) {
-        f.state = 'stance'; f.world.copy(f.to); f.grip = f.toGrip;
+        f.world.copy(f.to);
+        if (this.ratio(i, f.to) > R_STEP) { this.letGo(f, 'land'); return; } // nothing to land on in reach
+        f.state = 'stance'; f.grip = f.toGrip;
         if (f.grip > 0.5) ev.catch(f.grip);
-      }
-    }
-
-    // ---- a lobopod stretches, but not forever: past its reach the claws
-    // scrape off and the foot is dragged after the body.
-    this.feet.forEach((f, i) => {
-      if (f.state !== 'stance') return;
-      const hip = _a.copy(LEGS[i].hip).applyMatrix4(this.tMat);
-      const rest = LEGS[i].ground.distanceTo(LEGS[i].hip) * S;
-      const d = _b.subVectors(f.world, hip);
-      const lim = rest * 1.5;
-      if (d.length() > lim) {
-        f.world.copy(hip).addScaledVector(d.normalize(), lim);
-        const loc = this.leaf.toLocal(f.world, {});
-        this.surfacePoint(loc.u, loc.v, f.world);
-        f.grip = Math.min(f.grip, 0.15);
       }
     });
 
@@ -287,7 +401,7 @@ export class Walker {
       if (canCatch) {
         // Claws scrabble for walls as they slide: catch when enough of them hook.
         const holds = LEGS.map((_, i) => this.chooseHold(i, 0));
-        const G2 = holds.reduce((s, h) => s + h.grip, 0);
+        const G2 = holds.reduce((s, h) => s + (h.ok ? h.grip : 0), 0);
         const need = input.brace ? this.required : this.required * CATCH_AT;
         if (G2 >= need) {
           this.plantAll();
@@ -305,10 +419,13 @@ export class Walker {
     // the target is filtered three times. A change of face (transfer, margin,
     // fall) does not jump the target: the old pose is blended out over a
     // smootherstep (blendTarget), so the filter only ever sees a smooth path.
+    // The steady lag of the three filters (3 tau at a constant speed) is fed
+    // forward, so the body drawn is where the feet are placed for.
     if (this.opts.smooth) {
       const k = 1 - Math.exp(-dt / this.tau);
       const [bp, bq] = this.blendTarget(dt);
-      this.midPos.lerp(bp, k); this.midPos2.lerp(this.midPos, k); this.dispPos.lerp(this.midPos2, k);
+      const lead = _c.copy(this.forward).multiplyScalar(this.speed * 3 * this.tau).add(bp);
+      this.midPos.lerp(lead, k); this.midPos2.lerp(this.midPos, k); this.dispPos.lerp(this.midPos2, k);
       this.midQuat.slerp(bq, k); this.midQuat2.slerp(this.midQuat, k); this.dispQuat.slerp(this.midQuat2, k);
     } else {
       const k = 1 - Math.exp(-dt / (this.blend ? 0.4 : 0.12)); // the old single lag
@@ -319,11 +436,30 @@ export class Walker {
       this.midQuat.copy(this.dispQuat); this.midQuat2.copy(this.dispQuat);
     }
     this.composeDisplay();
-    this.writePose(dt, input);
+    this.trunkPose(dt);
+    this.enforceReach(dt);
+    this.writePose(input);
+  }
+
+  /** Feet still holding the face the body left (after a transfer, the margin, a fall). */
+  handoffPending() { return this.feet.some((f) => f.state === 'stance' && (f.leaf !== this.leaf || f.side !== this.side)); }
+
+  /**
+   * On the body as drawn this frame: no leg longer than R_CAP. A planted foot
+   * past it lets go; a foot in the air reaches no further than it; a foot with
+   * nothing in reach is drawn in to its tuck.
+   */
+  enforceReach(dt) {
+    const k = 1 - Math.exp(-dt / 0.07);
+    this.feet.forEach((f, i) => {
+      if (f.state === 'reach') f.world.lerp(this.tuckPoint(i, _w), k);
+      else if ((f.state === 'stance' || f.state === 'drag') && this.ratio(i, f.world) > R_CAP) this.letGo(f, 'cap');
+      if (this.capFoot(i, f.world) && f.state !== 'reach') this.stats.capped++;
+    });
   }
 
   /** The pose before a change of face, for blendTarget. */
-  snapshot() { return { pos: this.tPos.clone(), quat: this.tQuat.clone() }; }
+  snapshot() { return { pos: this.tPos.clone().addScaledVector(this.forward, this.speed * 3 * this.tau), quat: this.tQuat.clone() }; }
 
   /** Start blending from a snapshot to the new target over T seconds. */
   startBlend(snap, T) {
@@ -341,9 +477,9 @@ export class Walker {
     return [this._bp, this._bq];
   }
 
+  /** How far foot i is from its stance centre on the displayed body (world units). */
   errOf(i) {
-    const f = this.feet[i];
-    return f.world.distanceTo(_b.copy(LEGS[i].ground).applyMatrix4(this.tMat));
+    return this.feet[i].world.distanceTo(_b.copy(CENTRE[i]).applyMatrix4(this.matrix));
   }
 
   /** How hard gravity pulls the animal off this face. (Exaggerated: see README.) */
@@ -409,24 +545,8 @@ export class Walker {
     Object.assign(this, { leaf: M, side, u, v, hu, hv, grace: 1.4, speed: 0 });
     this.targetFrame();
     this.startBlend(snap, 0.7);
-    this.restep(0.07);
+    this.handoffT = 0;
     this.events.transfer(`${bridged ? 'Across the water bridge to ' : 'Claws over onto '}${M.name}${side < 0 ? ' (underside)' : ''}`);
-  }
-
-  /**
-   * After the body moves onto another face, every foot steps over to a hold
-   * there, one after another (stagger seconds apart, back to front), instead
-   * of being left stretched across the gap with no grip.
-   */
-  restep(stagger) {
-    const order = [6, 7, 4, 5, 2, 3, 0, 1];
-    order.forEach((i, k) => {
-      const f = this.feet[i];
-      const h = this.chooseHold(i, 0);
-      f.from.copy(f.world); f.to.copy(h.pos); f.toGrip = h.grip;
-      f.t = -k * stagger; f.dur = 0.3; f.state = 'swing'; f.grip = 0;
-      f.n.copy(this.leaf.N).multiplyScalar(this.side);
-    });
   }
 
   wrapMargin() {
@@ -439,7 +559,7 @@ export class Walker {
     Object.assign(this, { grace: 1.4, speed: 0 });
     this.targetFrame();
     this.startBlend(snap, 0.8);
-    this.restep(0.06);
+    this.handoffT = 0;
     this.events.transfer(`Round the leaf margin onto the ${this.side > 0 ? 'upper' : 'lower'} face`);
   }
 
@@ -482,7 +602,8 @@ export class Walker {
       Object.assign(this, { leaf: M, side, u: best.loc.u, v: best.loc.v, hu: hu / hl, hv: hv / hl, grace: 1.5, speed: 0 });
       this.targetFrame();
       this.startBlend(snap, 0.45);
-      this.plantAll();
+      // Falling, the legs let go and paddle; they catch as the body lands.
+      this.feet.forEach((f) => this.letGo(f));
       this.events.fall(`Lost grip and fell ${Math.round(best.t * 100)} µm onto ${M.name}`);
     } else {
       this.spawn(this.world.leaves[0], 1, 6.5, 0.6, 1, 0);
@@ -490,20 +611,25 @@ export class Walker {
     }
   }
 
-  /** Feed the creature rig: feet and normals in body space, sway, claws. */
-  writePose(dt, input) {
+  /** The trunk's sway, bob and surge for this frame (the hips move with them). */
+  trunkPose(dt) {
     const P = this.creature.pose;
-    const sp = THREE.MathUtils.clamp(this.speed / (MAX_SPEED * this.s), 0, 1.4);
+    const sp = clamp(this.speed / (WALK_MAX * this.s), 0, 1.4);
     P.phase = this.phase;
     P.sway = 0.04 * Math.min(1, sp) + (this.slipping ? 0.03 : 0);
     P.bob = 0.018 * Math.sin(this.phase * Math.PI * 4) * sp;
     P.surge = 0.03 * Math.cos(this.phase * Math.PI * 4) * sp;
     P.breath += dt * 1.3;
+  }
+
+  /** Feed the creature rig: feet and normals in body space, claws. */
+  writePose() {
+    const P = this.creature.pose;
     _q.copy(this.dispQuat).invert();
     this.feet.forEach((f, i) => {
       P.feet[i].copy(f.world).applyMatrix4(this.inv);
       P.footN[i].copy(f.n).applyQuaternion(_q);
-      P.clawOpen[i] = f.state === 'swing' ? Math.sin(Math.PI * THREE.MathUtils.clamp(f.t, 0, 1)) : f.state === 'drag' ? 0.6 : (f.grip > 0.5 ? 0 : 0.25);
+      P.clawOpen[i] = f.state === 'swing' ? Math.sin(Math.PI * clamp(f.t, 0, 1)) : f.state === 'reach' ? 0.7 : f.state === 'drag' ? 0.6 : (f.grip > 0.5 ? 0 : 0.25);
     });
   }
 }

@@ -1,16 +1,10 @@
-// The level's rules: oxygen, feeding, grazers, the amoeba, phages,
-// Bdellovibrio, and the two goals (grow and divide in the right oxygen band;
-// or, as Bdellovibrio, take three prey).
+// The level's rules: feeding and dividing, grazers, the amoeba, phages,
+// Bdellovibrio, and the Bdellovibrio protagonist's goal (take three prey).
+// (No oxygen meter any more: the owner's call. The challenge is to gather an
+// army and fight your way to the host; see collective.js and guards.js.)
 import { segDist, gauss } from './world.js';
 
 export const GOAL_PREY = 3;
-
-/**
- * Oxygen and energy rates (per second). Before: damage (o2 − 8)/60 with no cap
- * (dead in seconds near the air), starvation 0.02 (50 s in the anoxic sediment),
- * Bdellovibrio 0.008 even in good water (about two minutes).
- */
-export const RATE = { stressDiv: 300, stressMax: 0.04, stressHeal: 0.05, anoxic: 0.004, recover: 0.015, bdello: 0.0025, bdelloLow: 0.008 };
 
 export function createGame(world, swimmer) {
   const s = swimmer.state;
@@ -18,42 +12,18 @@ export function createGame(world, swimmer) {
   // absorb(kind, who) -> true when the collective takes the hit (a member in your place: main.js);
   // shielded: the collective's slime is up (phages and Bdellovibrio rams don't take hold);
   // adopt(x, y, a) -> true when your daughter cell joins your collective
-  const opts = { oxygen: true, timeScale: 1, absorb: null, shielded: false, adopt: null };
+  const opts = { timeScale: 1, absorb: null, shielded: false, adopt: null };
 
   function update(dt, t, inp, ev) {
     const sp = s.sp;
     if (!s.alive) return;
     const mtb = s.species === 'mtb';
 
-    // --- oxygen ---
-    // Softened after play tests (an idle cell used to die in about a minute with no
-    // clear cause): damage and starvation now build over minutes, are capped in
-    // rate, recover when the cell is back in a good place, and s.warning says what
-    // is wrong and what to do long before it matters (main.js shows it on screen).
-    s.warning = null;
-    if (opts.oxygen) {
-      if (mtb) {
-        // microaerophile: too much O2 damages it (and stops magnetite forming); too little starves it
-        if (s.o2 > 8) s.stress = Math.min(1, s.stress + Math.min(RATE.stressMax, (s.o2 - 8) / RATE.stressDiv) * dt);
-        else s.stress = Math.max(0, s.stress - RATE.stressHeal * dt);
-        if (s.o2 < 0.3) s.energy -= RATE.anoxic * dt; else s.energy = Math.min(1, s.energy + RATE.recover * dt);
-        if (s.stress > 0.04 && s.o2 > 8) s.warning = { kind: 'o2high', level: s.stress, text: 'Too much oxygen: head down the field lines' };
-        else if (s.o2 < 0.3 && s.energy < 0.92) s.warning = { kind: 'o2low', level: 1 - s.energy, text: 'No oxygen down here: you are starving. Head up toward the air' };
-        else if (s.stress > 0.04) s.warning = { kind: 'heal', level: s.stress, text: 'Out of the oxygen: the damage is healing' };
-        if (s.stress >= 1) swimmer.end('Oxidative damage: too much oxygen for a microaerophile. Reverse along the field (LB/RB) to swim back down.', 'Too much oxygen');
-      } else {
-        s.energy -= (s.o2 < sp.o2[0] ? RATE.bdelloLow : RATE.bdello) * dt;
-        if (s.energy < 0.5) s.warning = { kind: 'starve', level: 1 - s.energy, text: s.o2 < sp.o2[0] ? 'Starving, and too little oxygen: swim up and take prey (X on a rod)' : 'Starving: take prey (X on a rod)' };
-      }
-      if (s.energy <= 0) swimmer.end(mtb ? 'Starved: no oxygen or other electron acceptor down here.' : 'Starved: no prey, and too little oxygen to keep going.', 'Starved');
-    }
-
     // --- feeding (magnetotactic): X switches on uptake ---
     if (mtb) {
-      const bandK = s.inBand ? 1 : s.o2 < sp.o2[0] ? 0.15 : 0.3;
       const want = (inp.attack ? 0.32 : 0.07) * dt;
       const got = world.eat(s.x, s.y, want * Math.min(1, s.food * 1.5));
-      s.growth = Math.min(1, s.growth + got * bandK * 0.85);
+      s.growth = Math.min(1, s.growth + got * 0.6);
       s.feeding = inp.attack && s.food > 0.05;
       if (s.growth >= 1 && !s.divideT) { s.divideT = 0.001; ev.divide = true; }
       if (s.divideT) {
@@ -90,7 +60,7 @@ export function createGame(world, swimmer) {
         s.insideT += dt;
         if (s.inside.bdelloplast < 1 && world.film.includes(s.inside)) s.inside.bdelloplast = Math.min(1, s.inside.bdelloplast + dt / 1.5);
         if (s.insideT > 4) {
-          s.prey++; s.energy = 1;
+          s.prey++;
           const p = s.inside;
           s.inside = null;
           if (s.prey >= GOAL_PREY) {
