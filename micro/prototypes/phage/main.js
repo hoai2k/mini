@@ -224,8 +224,8 @@ features.add({ id: 'drive', group: 'Motion', label: 'LS drift', choices: ['Drift
   about: 'A phage has no motor: it moves only by diffusion until it touches a host [S100]. The default lets LS push a soft, slow drift (about 0.3 µm/s on the slowed clock) as a labelled game departure, with Brownian jitter, the flow and tumbling layered on. Honest: the stick does nothing in open water (walking on a host still works, since bound phages do wander on the surface [S99]).',
   onChange: (v) => { opts.drive = v.startsWith('Drift'); } });
 features.add({ id: 'brown', group: 'Motion', label: 'Brownian motion', on: true,
-  about: 'T4 diffuses with D ≈ 4 µm²/s [S100]. On the ~20× slowed clock that is ~0.2 µm²/s, drawn as a smooth random velocity (Ornstein–Uhlenbeck, not frame jitter) so it reads as organic. Everything jostles: hosts, molecules, the amoeba\'s edge.',
-  onChange: (on) => { opts.brownian = on; world.opts.hostBrownian = on; } });
+  about: 'T4 diffuses with D ≈ 4 µm²/s [S100]. On the ~20× slowed clock that is ~0.2 µm²/s. You feel it as discrete kicks from molecules striking you (Molecular kicks); the water round you jostles thermally (the small molecules fastest), and the hosts and the amoeba\'s edge drift. Off: no kicks, and the phage drifts only where you steer it.',
+  onChange: (on) => { opts.brownian = on; world.opts.hostBrownian = on; for (const b of world.baths) b.uniforms.uJit.value = on ? b.jit0 : 0; } });
 features.add({ id: 'tumble', group: 'Motion', label: 'Slow tumbling', on: true,
   about: 'A 0.1 µm particle forgets its orientation within about a millisecond (rotational diffusion ~1.3 × 10³ rad²/s). Here it turns slowly instead, so you can see the phage (a labelled departure).',
   onChange: (on) => { opts.tumble = on; } });
@@ -236,11 +236,14 @@ features.add({ id: 'amoeba', group: 'Simulation', label: 'Amoeba edge', on: true
   about: 'A grazing amoeba at the left edge. After a calm opening (45 s) it gets hungry now and then and reaches a pseudopod toward you; drift away or ride a gust. Amoebae grazing on viruses is [Unverified] in the spec.',
   onChange: (on) => { opts.amoeba = on; } });
 features.add({ id: 'crowd', group: 'World', label: 'Crowded water', on: true,
-  about: 'Humic colloids, proteins, sugars and solutes jostling, pushed by gusts and by your passage. Small solutes are drawn several times too large so they read (departure).',
+  about: 'Thousands of molecules (proteins, humic colloids, sugars, ions) as bead clusters, jostling and tumbling, pushed by gusts and by your passage, filling the water in every direction and round every split view (they wrap round each view on the GPU). Small solutes are drawn several times too large so they read, and the water is far more crowded than a real bog (departures).',
   onChange: (on) => { world.opts.crowd = on; } });
-features.add({ id: 'crowdSplit', group: 'World', label: 'Crowd per split view', on: new URL(location.href).searchParams.get('crowdsplit') !== '0',
-  about: 'The crowd wraps round the group. When a split view drifts far enough that it would show bare water, it gets its own copy of the crowd (fading in, then out again once the views come back together). Off: one crowd only, and far views show empty water.',
-  onChange: (on) => { world.opts.crowdSplit = on; } });
+features.add({ id: 'kicks', group: 'Motion', label: 'Molecular kicks', on: true,
+  about: 'Brownian motion made visible: now and then a molecule from the water strikes you and rebounds, leaving a small push and a little spin (small ions and sugars often and lightly, a protein rarely and harder). Real phages are struck about 10^13 times a second and the sum is a smooth random walk [S100]; a few drawn hits are a labelled departure. While you aim at a protein the spin is softened, so a kick never wrecks a grab.',
+  onChange: (on) => { opts.kicks = on; } });
+features.add({ id: 'level', group: 'Controls', label: 'Keep the surface up', on: true,
+  about: 'The water has no up or down for a phage, and RS turns the view freely about its own axes (a quaternion: no pole to flip at, and it never turns on its own). On: a gentle roll keeps the sunlit surface, where the UV is, toward the top of the screen; it fades out when you look straight up or down, so it can never spin the view. Off: the view rolls only when you turn it.',
+  onChange: (on) => { view.level = on; } });
 addInvertY(features);
 quality.addToFeatures(features);
 
@@ -268,11 +271,28 @@ let toastT = 0;
 function say(text, ms = 2200, force = false) { if (!force && toastT > 0) return; hud.toast(text, ms); toastT = Math.min(1.2, ms / 1000); }
 function axisOf(out = new THREE.Vector3()) { return out.copy(UP).applyQuaternion(P.q); }
 function centreOf(out = new THREE.Vector3()) { return axisOf(out).multiplyScalar(10 * P.scale).add(P.pos); }
-function stickWorld(ls, out) {
-  // the stick in the view: camera right and up, flattened onto the play plane
-  const r = _w.setFromMatrixColumn(camera.matrixWorld, 0); r.z = 0; r.normalize();
-  const u = _n.setFromMatrixColumn(camera.matrixWorld, 1); u.z = 0; u.normalize();
-  return out.copy(r).multiplyScalar(ls.x).addScaledVector(u, -ls.y);
+/** The camera's own axes from view.q (right, up, forward into the screen). */
+const camRight = (out = new THREE.Vector3()) => out.set(1, 0, 0).applyQuaternion(view.q);
+const camUp = (out = new THREE.Vector3()) => out.set(0, 1, 0).applyQuaternion(view.q);
+const camFwd = (out = new THREE.Vector3()) => out.set(0, 0, -1).applyQuaternion(view.q);
+/** The sticks in the water: LS across the view (its right and up, in 3D), the triggers into and out of it. */
+function stickWorld(ls, depth, out) {
+  out.copy(camRight(_w)).multiplyScalar(ls.x).addScaledVector(camUp(_n), -ls.y).addScaledVector(camFwd(_s), depth);
+  if (out.lengthSq() > 1) out.normalize();
+  return out;
+}
+/**
+ * Turn the phage so its baseplate (attachment end) points a fraction k of the way toward `dir`, by the
+ * shortest rotation from where it points now. (The old code aimed it with setFromUnitVectors(UP, -stick),
+ * a full orientation built from a fixed reference: singular when the stick pointed up the screen, where the
+ * phage flipped and spun about its axis.)
+ */
+function turnBaseToward(dir, k) {
+  const cur = attachmentForward(P.q);
+  const d = cur.dot(dir);
+  if (d < -0.999) _q.setFromAxisAngle(_v.crossVectors(cur, camFwd(_w)).lengthSq() > 1e-6 ? _v.normalize() : AX_X, Math.PI * Math.min(1, k));
+  else _q.identity().slerp(new THREE.Quaternion().setFromUnitVectors(cur, dir), Math.min(1, k));
+  P.q.premultiply(_q).normalize();
 }
 function releaseAnchors() { for (let f = 0; f < 6; f++) { P.anchors[f] = null; t4.fibres[f].anchor = null; } P.stepping = -1; }
 
@@ -280,11 +300,12 @@ function releaseAnchors() { for (let f = 0; f < 6; f++) { P.anchors[f] = null; t
 function placeAtStart(m, at = null) {
   use(m);
   P.pos.copy(at || START).add(at ? _v.set(0, 0, 0) : _v.set(m.slot * 26, (m.slot % 2) * 14, 0));
-  P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0); P.angVel.set(0, 0, 0);
+  P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.kv.set(0, 0, 0); P.gust.set(0, 0, 0); P.angVel.set(0, 0, 0);
+  m.kicks.reset();
   P.q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.95);
   Object.assign(P, { damaged: false, wreck: 0, coHost: null, coT: 0 });
   if (stray.paired === m) stray.paired = null;
-  Object.assign(P, { mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, canCommit: false, bound: 0, commitT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1, grab: null, grabCooldown: 0, moveHeading: 2.95 - Math.PI / 2, lift: 4 });
+  Object.assign(P, { mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, canCommit: false, bound: 0, commitT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1, grab: null, grabCooldown: 0, snag: null, snagT: 0, lift: 4 });
   releaseAnchors();
   P.stuckTip.fill(null);
   t4.set({ contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0 });
@@ -327,9 +348,9 @@ function resetLevel() {
   progeny.setCount(0);
   card.classList.remove('show');
   P.burstSent = false;
-  view.target.copy(P.pos); view.followHeading = P.moveHeading; view.lookHold = 0;
+  view.target.copy(P.pos); view.q.identity(); view.lookHold = 0;
   // in the game shell its intro has already said this
-  if (!embed.active || started) say('You are a T4-like phage in bog water. Drift legs-first with LS. Aim at a gold three-lobed protein and grab (X); violet pairs slip off. It is calm for now.', 4200, true);
+  if (!embed.active || started) say('You are a T4-like phage in bog water. Drift with LS (RT/LT: into or out of the view), turn the view with RS. Follow the brass chevron to Host A and grab a glowing gold receptor (X). It is calm for now.', 4800, true);
   started = true;
 }
 
