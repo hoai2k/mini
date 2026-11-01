@@ -483,7 +483,7 @@ Again nothing visible or playable changed. Seeded, fixed-step screenshots of
 the original and the new code are byte-identical in ten scenes (the start,
 walking through bending blades, closed up, mid-jump, the predator's ground,
 the thicket, the boss, a capture, and two frames of 4 views), landmark
-overlay included, and a 450-step simulation replay (bodies, feet, blade
+overlay included, and a 486-step simulation replay (bodies, feet, blade
 offsets and vertices) is bit-identical.
 
 - **Fewer draws per mite: 9 → 5** (4 for the predator). Parts that share a
@@ -505,10 +505,12 @@ offsets and vertices) is bit-identical.
   conservative (checked: 2894 visible objects over 240 steps of bending
   blades and moving cameras, none left out). three.js's own per-object cull
   reads each matrix back from its texture (0.67 ms per view); the one here
-  tests cached spheres (0.03 ms). The hyphae stay chunked: their threads
-  are rewritten by the thicket. three r186 has `BatchedMesh` and
-  `WEBGL_multi_draw`; without the extension it falls back to one draw per
-  object, still culled.
+  tests cached spheres (0.03 ms). As every matrix is identity, the shader
+  looks none up (`BATCH_IDENTITY`), so three.js no longer re-uploads its
+  draw-index texture for every view (that alone cost ~6 ms a frame at 4
+  views). The hyphae stay chunked: their threads are rewritten by the
+  thicket. three r186 has `BatchedMesh` and `WEBGL_multi_draw`; without the
+  extension it falls back to one draw per object, still culled.
 - **Shaders built while loading** (`sem.warm()`, called from `main.js` as
   the world, the boss, the mites and the dust are made): it links each new
   program (three.js enables `KHR_parallel_shader_compile`), fetches their
@@ -522,6 +524,37 @@ offsets and vertices) is bit-identical.
   batched ×2, frames ×2, composite); the split views use the same ones.
   `renderer.compileAsync` is not used: the page is built in one synchronous
   module, so its promise would only resolve after the first frame.
+
+Measured against the original, back to back (headless SwiftShader,
+`?q=high`, 1280×720; draws counted at the WebGL calls, a multi-draw as one,
+all views of a frame; walking, 60 frames a run):
+
+| | before | after |
+| --- | --- | --- |
+| draws, 1 player | 70 | 44 |
+| triangles, 1 player | 267 k | 182 k |
+| draws, 4 views | 380 | 244 |
+| triangles, 4 views | 1.20 M | 0.91 M |
+| render CPU, 4 views (median of 9 runs) | 8.7 ms | 7.4 ms |
+| first frame's SwiftShader time | 2.3–2.7 s | 1.0–2.0 s |
+| navigation to first frame (5 runs each) | 5.4–6.0 s, median 5.7 | 3.9–6.5 s, median 5.3 |
+
+`perf/measure.mjs` (10–12 frames a run, its draw counter extended to see
+multi-draws): 1p 70 → 43 draws, 275 k → 212 k primitives, CPU 10.7 → 7.9
+ms; 4 players (its spread does not split the screen) 116 → 69 draws,
+467 k → 382 k, CPU 9.9 → 7.5 ms. A simulation step plus a frame measured
+over 60 frames varies more between runs than between the versions (1p
+4.6–6.4 → 6.7–9.1 ms, 4 views 8.4–10.5 → 9.9–11.4 ms medians), so no
+change in CPU is claimed: the gains are draws and triangles.
+
+The load time is noisy here: the container was shared with other agents'
+runs (load average 6–17 on 4 cores), and the shaders built ahead now
+compete with the page's own start-up for the same cores. On a machine
+with spare cores the overlap is larger. The first-sight costs of the boss,
+the crowd and the predator, and of the first split (2 players), were
+measured too: no program links and no frame slower than the steady ones,
+before or after. They use the programs the first frame already built, and
+`shared/splitscreen.js` warms its own compose shaders.
 
 
 ## Textures (`textures.js`)
