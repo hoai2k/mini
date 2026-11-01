@@ -23,7 +23,7 @@ import { createBath, createSprites, beadMesh, beadMaterial, beadTemplate, setSol
 // receptor under the shared golden glow, placed at the bearing of whoever first gets far enough, with the
 // amoeba's lobe on guard. Units: 1 = 10 nm. y is toward the sunlit surface (the shafts are vertical).
 export const START = new THREE.Vector3(0, 0, 0);
-export const RINGS = { warm: 220, floc: 300, decoy: 480, uv: 650, portal: 880 };
+export const RINGS = { warm: 220, floc: 300, decoy: 490, uv: 680, portal: 880 }; // (obstacles evenly spaced from the warm-up to the boss: ~1.9 µm apart)
 export const PORTAL_R = RINGS.portal;
 /** No walls or floor: beyond FIELD_R from the start a soft current carries you back (main.js). */
 export const FIELD_R = 1080;

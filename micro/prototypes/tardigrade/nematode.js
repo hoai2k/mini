@@ -40,8 +40,8 @@ const M = 12;            // ring vertices
 const WAKE = 6.5;        // a player this close to the post wakes it
 const LEASH = 8.5;       // it follows you no further than this from its post
 const LOSE = 10;         // nor a player further than this from its head
-const BACK = 0.6;        // units/s gliding back to its post (you walk 1.5, scramble 2.8)
-export const GUARD = 4.5; // within this of its post (head) it guards the portal
+const BACK = 0.3;        // units/s gliding back to its post (you walk 1.5, scramble 2.8)
+export const GUARD = 3.5; // within this of its post (head) it guards the portal
 const REACH = 1.35;      // head to the player's body at the end of a strike
 const THIN = 0.16;       // film index below which it flounders
 

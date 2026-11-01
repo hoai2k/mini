@@ -125,10 +125,10 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
       position.set(L.x, topY, L.z);
     },
     /** Walk the speck about on its capitulum; the sparkle twinkles (open: brighter). */
-    update(t, dt = 0, camera = null, open = false) {
+    update(t, dt = 0, camera = null, open = false, burstT = undefined) {
       if (!raft.visible) return;
       glow.setOpen(open);
-      glow.update(dt, t, camera);
+      glow.update(dt, t, camera, burstT);
       const a = t * 0.45 + Math.sin(t * 0.31) * 1.3;
       const r = 0.55 + 0.25 * Math.sin(t * 0.23);
       speck.set(top.x + Math.cos(a) * r, topY + 0.05 * Math.sin(t * 1.7), top.z + Math.sin(a) * r);

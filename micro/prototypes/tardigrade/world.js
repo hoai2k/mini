@@ -22,10 +22,10 @@ export const SPOKES = 12;              // radial chains of leaves, 30° apart
 export const RINGS = {
   warm: 15,                            // 0-15: the shoot round the start, calm
   milnesium: { ring: 22, r: 7, leash: 5 }, // its water: 15-29 (it stalks within 6.5); it lets you go past 34
-  meadow: [39, 45],                    // a band of rotifers across every spoke
-  dry: [51, 58],                       // dry patches: bare cells, slow going, plain to see
-  portal: 72,                          // the way on: a pool at a spoke's tip
-  post: 4.2,                           // Prionchulus on guard this far inside the portal
+  meadow: [40, 46],                    // a band of rotifers across every spoke
+  dry: [55, 62],                       // dry patches: bare cells, slow going, plain to see
+  portal: 84,                          // the way on: a pool at a spoke's tip
+  post: 4.2,                           // Prionchulus on guard this far inside the portal (it wakes ~10.7 inside)
 };
 /** Where you start (leaf A, 650 µm from its base) and wake after a restart. */
 export const START_SPOT = { leaf: 0, u: 6.5, v: 0.6 };

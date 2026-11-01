@@ -128,7 +128,7 @@ const ang = (p) => { const l = Math.hypot(...p); return Math.acos((p[0] * u[0] +
 for (const h of log.hosts.filter((h) => !h.hidden)) if (ang(h.pos) > 0.7) fails.push(`decoy ${h.id} did not come round to meet the player (angle ${ang(h.pos).toFixed(2)})`);
 // 2. the portal appears at the bearing of whoever first gets past the UV shell
 if (await D('portal')) fails.push('portal placed too early');
-await D('teleport', u[0] * 705, u[1] * 705, u[2] * 705);
+await D('teleport', u[0] * 740, u[1] * 740, u[2] * 740);
 await waitSim(0.5);
 log.portal = await D('portal');
 if (!log.portal) fails.push('no portal after passing the UV shell');

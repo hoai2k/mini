@@ -879,7 +879,7 @@ function updateBurst(dt) {
 // far enough, out of view, with the amoeba beside it on guard.
 const ringLog = []; // what moved where, and when each ring was first reached (tests and tuning)
 const UNSEEN = 230; // nothing moves within this distance of any phage
-const portalGlow = createPortalGlow({ THREE, scene, size: 13, intensity: 1.4, beam: 70, beamWidth: 7 });
+const portalGlow = createPortalGlow({ THREE, scene, size: 18, intensity: 1.9, beam: 110, beamWidth: 9 });
 portalGlow.group.visible = false;
 const portalLight = createPortalLight();
 const guard = { gone: false, turned: false, hinted: false };

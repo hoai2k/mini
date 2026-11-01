@@ -49,12 +49,14 @@
 //   glow.group             THREE.Group (add it yourself if no scene is given)
 //   glow.setPosition(x, y, z)
 //   glow.setOpen(open)     eases between guarded (false) and open (true)
-//   glow.update(dt, time, camera)
-//   glow.burst()           the success burst (1.4 s, on its own real-time clock)
+//   glow.update(dt, time, camera, burstT?)
+//   glow.burst()           the success burst (1.4 s, on its own real-time clock,
+//                          or on burstT, seconds since it began, when update gets it)
 //   glow.open              the eased openness, 0..1
 //   glow.dispose()
 //
-//   createPortalLight({ parent = document.body, zIndex = 3, color = '#f0b44a' }) -> light
+//   createPortalLight({ parent = document.body, zIndex = 3, color = '#f0b44a',
+//     clock = real seconds }) -> light   (clock: the blooms' time, e.g. the world's frame time)
 //   light.begin()          clear (once per frame, before drawing)
 //   light.draw({ x, y, angle, onScreen, strength = 1, open = 1, region = null })
 //       x, y, angle, onScreen: shared/landmark.js draw()'s result (CSS px;
@@ -243,11 +245,11 @@ export function createPortalGlow({ THREE, scene = null, size = 10, color = '#f0b
     setOpen(o) { want = o ? 1 : 0; },
     burst() { burstAt = now(); want = 1; },
     get bursting() { return burstAt >= 0 && now() - burstAt < 1.6; },
-    update(dt, time, camera) {
+    update(dt, time, camera, burstT) {
       uniforms.uTime.value = time;
       uniforms.uOpen.value += (want - uniforms.uOpen.value) * Math.min(1, (dt || 0) * 1.5);
       uniforms.uViewH.value = pxH();
-      const b = burstAt >= 0 ? now() - burstAt : 99;
+      const b = burstAt < 0 ? 99 : burstT != null ? burstT : now() - burstAt;
       uniforms.uBurst.value = b;
       ring.visible = sparks.visible = b < 1.6;
       if (b < 1.6) uniforms.uOpen.value = Math.max(uniforms.uOpen.value, 1);
@@ -315,7 +317,7 @@ function inPoly(poly, x, y) {
   return c;
 }
 
-export function createPortalLight({ parent = document.body, zIndex = 3, color = '#f0b44a' } = {}) {
+export function createPortalLight({ parent = document.body, zIndex = 3, color = '#f0b44a', clock = () => performance.now() / 1000 } = {}) {
   const canvas = document.createElement('canvas');
   canvas.className = 'portal-light';
   Object.assign(canvas.style, { position: 'fixed', left: '0', top: '0', width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: String(zIndex), mixBlendMode: 'screen' });
@@ -430,7 +432,7 @@ export function createPortalLight({ parent = document.body, zIndex = 3, color = 
   }
 
   function drawBlooms() {
-    const t = performance.now() / 1000;
+    const t = clock();
     ctx.save();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.globalCompositeOperation = 'lighter';
@@ -454,7 +456,7 @@ export function createPortalLight({ parent = document.body, zIndex = 3, color = 
 
   return {
     canvas, begin, draw, drawSplit,
-    bloom(x, y, { scale = 1 } = {}) { blooms.push({ x, y, scale, t: performance.now() / 1000 }); },
+    bloom(x, y, { scale = 1 } = {}) { blooms.push({ x, y, scale, t: clock() }); },
     dispose() { canvas.remove(); },
   };
 }

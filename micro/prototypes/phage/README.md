@@ -160,13 +160,14 @@ reached and what moved):
 | --- | --- | --- |
 | 0–2.2 µm | Calm warm-up (the backdoor flagellum sits here, off to one side) | — |
 | ~3 µm | **Humic flocs** | a shell of 30 static tangles, close enough that every bearing meets one |
-| ~4.8 µm | **Decoy hosts**: Host B (a matching CRISPR spacer) and the wrong host | each is moved round its shell to meet whoever approaches, only out of everyone's view and away from every phage (`moveRings`) |
-| ~6.5 µm | **UV sunfleck shafts** (a shell of 22) | static, visible from afar |
+| ~4.9 µm | **Decoy hosts**: Host B (a matching CRISPR spacer) and the wrong host | each is moved round its shell to meet whoever approaches, only out of everyone's view and away from every phage (`moveRings`) |
+| ~6.8 µm | **UV sunfleck shafts** (a shell of 22) | static, visible from afar |
 | 8.8 µm | **The way on**: Host A's gold receptor under the golden glow, the amoeba on guard | placed once a game, out of view, at the bearing of whoever first gets past the UV shell |
 
 Drifting straight out takes about 30–40 s; dealing with what is on the way,
-two to three minutes. The calm breaks between shells are each a few seconds of
-drifting.
+two to three minutes. The obstacles are spaced evenly from the warm-up to the
+boss (about 1.9 µm, five or six seconds of drifting, apart); the old "calm
+first half" placement is gone.
 
 - **No clocks.** The amoeba's old hunger timer, the UV's slow integrity drain
   and its meter are gone. Hang about anywhere outside a shaft for as long as

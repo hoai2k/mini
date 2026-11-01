@@ -501,7 +501,7 @@ function buildSundews(group, rnd, sundewTex) {
       blade.scale.set(R, R, R);
       blade.rotation.set(0, -a, (rnd() - 0.5) * 0.15);
       group.add(blade);
-      const leaf = { x: cx, y: cy + 0.12 * R, z: cz, r: R, a, curl: 0, target: null, tent: [], blade, grip: 0, close: 0, closeW: 0, patch: P, i0: P.tents.length };
+      const leaf = { x: cx, y: cy + 0.12 * R, z: cz, r: R, a, curl: 0, target: null, tent: [], blade, grip: 0, close: 0, closeW: 0, shake: 0, shakeW: 0, rz0: blade.rotation.z, patch: P, i0: P.tents.length };
       // tentacles: rim ones long and splayed outward, inner ones short and upright
       const n = 90;
       for (let k = 0; k < n; k++) {
@@ -556,7 +556,7 @@ function buildSundews(group, rnd, sundewTex) {
     /**
      * Curl the tentacles of a leaf toward a target (real: minutes; here seconds).
      * A leaf's `grip` (0..1, set during a capture) folds every tentacle over the
-     * target, and `close` (0..1) cups the blade round it.
+     * target, and `close` (0..1) cups the blade round it; `shake` wobbles the blade.
      */
     update(dt) {
       for (const l of leaves) {
@@ -569,6 +569,8 @@ function buildSundews(group, rnd, sundewTex) {
           l.blade.scale.set(l.r * (1 - 0.35 * c), l.r * (1 + 1.3 * c), l.r * (1 - 0.35 * c));
           l.closeW = c;
         }
+        // a struggling springtail shakes the blade (radians of wobble)
+        if (l.shake !== l.shakeW) { l.blade.rotation.z = l.rz0 + l.shake; l.blade.rotation.x = l.shake * 0.7; l.shakeW = l.shake; }
         if (!active) continue;
         let i = l.i0;
         for (const t of l.tent) {

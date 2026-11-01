@@ -86,7 +86,7 @@ export function buildWorld(seed = 7) {
   // hyphae (room to pass them), and the band where Chaos and the portal go.
   const clear = (x, y, rad, big) => {
     const d = Math.hypot(x, y);
-    if (d < (big ? 560 : 330) + rad) return false;
+    if (d < (big ? 560 : RINGS.warm) + rad) return false; // the warm-up: clear glass
     if (leafDist(x, y) < LEAF.W / 2 + 80 + rad) return false;
     if (traps.some((t) => segDist(x, y, segOf(t)) < 150 + rad)) return false;
     if (big && d > RINGS.chaos - 600 - rad && d < RINGS.portal + 400 + rad) return false;
@@ -172,7 +172,9 @@ function colliders(o) {
     const h = o.L / 2 - o.W / 2;
     return { capsules: [{ ax: o.x - c * h, ay: o.y - s * h, bx: o.x + c * h, by: o.y + s * h, r: o.W / 2 * (o.type === 'diatom' ? 0.9 : 1) }], circles: [] };
   }
-  // A flake: a circle of most of its size (the ragged rim is passable).
+  // A flake: a circle of most of its size (the ragged rim is passable); a
+  // small one (under ~40 µm) the membrane flows over rather than snagging on.
+  if (Math.min(o.L, o.W) < 40) return { capsules: [], circles: [] };
   return { capsules: [], circles: [{ x: o.x, y: o.y, r: Math.min(o.L, o.W) * 0.36 }] };
 }
 

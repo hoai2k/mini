@@ -22,7 +22,10 @@ import { createPortalLight } from '../shared/portal.js';
 import { createWolfSpider, LEASH as BOSS_LEASH } from './boss.js';
 import { createSpringtail } from './springtail.js';
 import { updateJumpInput, takeQueuedJump } from './jump-input.js';
-import { SUNDEW_PHASES, digestion } from './sundew-digestion.js';
+import { SUNDEW_PHASES, CATCH_PHASES, REFORM, digestion, reform } from './sundew-digestion.js';
+import { newStruggle, stepStruggle } from './sundew-struggle.js';
+import { createGlue } from './sundew-glue.js';
+import { createMotes, surfacePoint } from './motes.js';
 import { createStenus, createStrider, createRain } from './enemies.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 
@@ -59,6 +62,8 @@ scene.add(world.group);
 let tail = createSpringtail();
 scene.add(tail.group);
 const tail0 = tail;
+// a digested springtail's drifting motes, and a respawn's gathering ones (motes.js)
+const motes = createMotes(scene);
 const stenus = createStenus(scene);
 const strider = createStrider(scene);
 // each predator keeps to its own water on its ring (world.js ZONES; placeZone moves it round the ring)
@@ -118,7 +123,7 @@ Object.assign(P1, { slot: 0, tail, ring: props.ring(PLAYER_COLORS[0]), color: PL
 const pls = [P1];
 const recs = () => pls.filter(Boolean);
 const multi = () => recs().length > 1;
-const alive = (P) => P.mode !== 'dead' && P.mode !== 'caught';
+const alive = (P) => P.mode !== 'dead' && P.mode !== 'caught' && P.mode !== 'reform';
 function withRec(P, fn) {
   const sp = pl, st = tail;
   pl = P; tail = P.tail;
@@ -240,7 +245,9 @@ function landingPoint() {
 function placeCamera(dt) {
   // while a predator has you, the lens widens (or closes in) to frame you and
   // it together, and swings side-on to the catch
-  const capOn = capture.active && cap.kind && cap.phase !== 'fadeIn' && !multi();
+  // after the catch (fadeOut), alone, the camera glides to where you will come back
+  const glide = capture.active && cap.phase === 'fadeOut' && cap.to && cap.from && !cap.dip && !multi();
+  const capOn = capture.active && cap.kind && cap.phase !== 'fadeIn' && !glide && !multi();
   // once it is eating, the lens pulls back and follows the predator with its meal
   const capFollow = capOn && cap.kind !== 'sundew' && ['eat', 'follow', 'fadeOut'].includes(cap.phase);
   // several players: frame the group (the split screen takes over when they part)
@@ -269,10 +276,14 @@ function placeCamera(dt) {
       rig.yaw += wrapA(side - rig.yaw) * (dt ? 1 - Math.exp(-dt * 2) : 1);
     } else frameAt.set(cap.x0, cap.y0 + 0.3, cap.z0);
   }
+  if (glide) {
+    const u = cap.u * cap.u * (3 - 2 * cap.u);
+    frameAt.set(cap.to.x, groundAt(cap.to.x, cap.to.z).y + 0.25, cap.to.z).sub(cap.from).multiplyScalar(u).add(cap.from);
+  }
   // in a leap, frame low enough that the shadow below stays in the picture
   if (pl.mode === 'air' && !mp) { const gy = groundAt(pl.x, pl.z).y; frameAt.y = gy + 0.25 + (pl.y - gy) * 0.35; }
   if (land) frameAt.lerp(new THREE.Vector3(land.x, land.y + 0.25, land.z), 0.3);
-  const k = dt ? 1 - Math.exp(-dt * (pl.mode === 'air' && !mp ? 3.5 : 6)) : 1;
+  const k = dt ? 1 - Math.exp(-dt * (glide ? 14 : pl.mode === 'air' && !mp ? 3.5 : 6)) : 1;
   rig.target.lerp(frameAt, k);
   rig.wantPitch = THREE.MathUtils.clamp(rig.wantPitch, PITCH_MIN, PITCH_MAX);
   const pitchWant = capOn ? CAP_VIEW[cap.kind].pitch : rig.wantPitch;
@@ -290,7 +301,7 @@ function placeCamera(dt) {
   // the water sheet follows the camera's aim, snapped to whole ripple cells
   world.sky.position.copy(camera.position);
   water.position.set(Math.round(rig.target.x / field.dx) * field.dx, 0, Math.round(rig.target.z / field.dx) * field.dx);
-  let focusD = opt.autofocus ? camera.position.distanceTo(capOn ? frameAt : want) : L.s;
+  let focusD = opt.autofocus ? camera.position.distanceTo(capOn || glide ? frameAt : want) : L.s;
   let wantK = 1;
   // keep both the predator and you sharp
   if (capOn) { focusD = camera.position.distanceTo(frameAt); wantK = THREE.MathUtils.clamp((capSpan + 1.5) / L.dof, 1, 14); }
@@ -485,9 +496,13 @@ const CAP_TEXT = {
 };
 const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 // A catch plays out (strike, hold, eat), the camera pulls back and follows the
-// predator for a couple of seconds, a fade, and you are back: beside a
-// teammate, or (alone) at your last safe spot.
-const capture = createCapture({ onRespawn: () => afterCatch() });
+// predator a moment, then (no black fade: `fade: false`) glides to where you
+// come back, beside a teammate or (alone) at your last safe spot, and you
+// re-form there out of gathering motes (mode 'reform', REFORM s). None of it
+// is skippable, and A held or mashed through it does nothing (P.lockA).
+const capture = createCapture({ onRespawn: () => afterCatch(), fade: false });
+// a glide longer than this dips through black instead of whipping across the pool
+const GLIDE_MAX = 70;
 function afterCatch() {
   const P = cap.who || P1;
   if (cap.leaf) { cap.leaf.target = null; cap.leaf.grip = 0; cap.leaf.close = 0; }
@@ -495,17 +510,37 @@ function afterCatch() {
   if (cap.kind === 'strider') strider.release();
   if (cap.kind === 'boss') boss.release();
   if (multi()) respawnNear(P);
-  else respawnSafe(P);
-  cap.kind = null;
-  // the camera starts over on you, under the fade
-  if (P === P1 || multi()) { rig.hfw = undefined; rig.target.set(P.x, P.y + 0.25, P.z); }
+  else respawnSafe(P, cap.to);
+  cap.kind = null; cap.to = null;
+  startReform(P);
+  P.dip = cap.dip;
+  // a long way: the camera starts over on you (it was dipped to black)
+  if (cap.dip && (P === P1 || multi())) { rig.hfw = undefined; rig.target.set(P.x, P.y + 0.25, P.z); }
+  cap.dip = false;
 }
 /** Respawn alone: at the last safe spot (out of reach of both predators), or the start. */
-function respawnSafe(P) {
-  const at = P.safe && Math.hypot(P.safe.x - stenus.st.x, P.safe.z - stenus.st.z) > 12 ? P.safe : spotNear(START.x, START.z, 0);
+function safeSpot(P) {
+  return P.safe && Math.hypot(P.safe.x - stenus.st.x, P.safe.z - stenus.st.z) > 12 ? P.safe : spotNear(START.x, START.z, 0);
+}
+function respawnSafe(P, at = safeSpot(P)) {
   if (P.leaf) { P.leaf.target = null; P.leaf.grip = 0; P.leaf.close = 0; }
   resetBody(P, at.x, at.z);
   P.landPulse = 1;
+}
+/** Stuck on a sundew leaf: the struggle starts (sundew-struggle.js); the glue strands attach on the first step. */
+function stickToLeaf(P, leaf) {
+  P.air = null; P.mode = 'stuck'; P.leaf = leaf; P.y = leaf.y + 0.12; P.struggle = 0; P.pitch = 0; P.roll = 0; P.bend = 0;
+  P.ax = P.x; P.az = P.z; P.tugX = undefined; P.tugZ = undefined; P.yank = 0; P.pauseSaid = false;
+  P.stuckS = newStruggle(); P.glueOn = false;
+  P.charging = false; P.charge = 0; P.queuedJump = null;
+  leaf.target = new THREE.Vector3(P.x, P.y + 0.2, P.z);
+  hud.toast('Stuck in sundew glue! Wriggle (LS) and kick (A) together to tear free', 2200);
+}
+/** Come back: hidden, then the body re-forms from motes gathering on it (poseTail seeds them), with a ripple ring. */
+function startReform(P) {
+  P.mode = 'reform'; P.reformT = 0; P.reformSeeded = false; P.reformRing = false;
+  P.dissolve = 1; P.digestWhite = 1; P.lockA = true;
+  P.charging = false; P.charge = 0; P.queuedJump = null;
 }
 // Fighting back (shared/predation.js createFight): facing a predator, blocking
 // its strike (face it and hunker, B) and nipping it (X) wear its interest
@@ -585,14 +620,18 @@ function caught(kind) {
   if (capture.active || pl.mode === 'dead' || game.phase !== 'play') return;
   const P = pl;
   const solo = !multi();
-  Object.assign(cap, { kind, who: P, x0: P.x, y0: P.y, z0: P.z, h0: P.heading, leaf: P.leaf, phase: null });
+  Object.assign(cap, { kind, who: P, x0: P.x, y0: P.y, z0: P.z, h0: P.heading, leaf: P.leaf, phase: null, u: 0, to: null, dip: false,
+    grip0: P.leaf ? P.leaf.grip : 0, close0: P.leaf ? P.leaf.close : 0 });
+  if (P.glue) P.glue.clear();
+  P.glueOn = false;
+  if (P.leaf) P.leaf.shake = 0;
   P.mode = 'caught'; P.air = null; P.charging = false; P.charge = 0; P.vx = P.vz = 0; P.hunker = 0; P.eatT = 0; P.actT = 0; P.act = null;
   if (fights[kind]) fights[kind].reset();
   if (kind !== 'sundew') { P.pitch = 0; P.roll = 0; P.bend = 0; }
   if (hunger[kind]) hunger[kind].fed();
   const t = CAP_TEXT[kind];
   const left = !solo ? `. ${P === P1 ? 'You' : `Player ${P.slot + 1}`} will come back beside a teammate` : '';
-  capture.start({ by: t.by, how: t.how + left, ...(kind === 'sundew' ? { phases: SUNDEW_PHASES } : {}) });
+  capture.start({ by: t.by, how: t.how + left, phases: kind === 'sundew' ? SUNDEW_PHASES : CATCH_PHASES });
   hud.toast(solo ? t.phases.strike : `Player ${P.slot + 1}: ${t.phases.strike}`, 1500);
   embed.captured({ by: kind, player: P.slot });
   rumbleFor(P, 450, 0.8, 1);
@@ -605,7 +644,16 @@ function animateCapture(c, dt) {
     if (c.phase === 'hold') { rumble(300, 0.5, 0.7); if (cap.kind === 'strider') audio.play('springtail/raindrop', { volume: 0.25, rate: 1.8 }); }
     if (c.phase === 'eat') { audio.play('springtail/eat', { volume: 1, rate: cap.kind === 'stenus' ? 0.7 : 0.55 }); rumble(600, 0.6, 0.3); }
     if (c.phase === 'follow') audio.play('springtail/eat', { volume: 0.7, rate: 0.5 });
+    if (c.phase === 'fadeOut') {
+      // where you will come back (alone: your last safe spot); the camera glides there
+      cap.to = multi() ? null : safeSpot(P);
+      cap.from = rig.target.clone();
+      cap.dip = !!cap.to && Math.hypot(cap.to.x - cap.from.x, cap.to.z - cap.from.z) > GLIDE_MAX;
+    }
   }
+  cap.u = c.t;
+  // a long way back dips through black (the camera jumps under it)
+  if (c.phase === 'fadeOut' && cap.dip && (P === P1 || multi())) capture.veil.style.opacity = String(Math.min(1, c.t * 2.5));
   if (c.phase === 'fadeIn') return; // already back (afterCatch)
   const phase = c.phase === 'fadeOut' ? 'follow' : c.phase;
   // the mandibles' rhythm, heard while eating
@@ -624,14 +672,23 @@ function sundewStep(phase, u, dt) {
   const leaf = cap.leaf, ease = (x) => x * x * (3 - 2 * x);
   const out = { x: cap.x0, y: cap.y0, z: cap.z0, heading: cap.h0 + Math.sin(simT * 9) * 0.15, pitch: 0, roll: 0, scale: 1, flail: 1, ...digestion(phase, u) };
   if (!leaf) return out;
-  if (phase === 'strike') { leaf.grip = ease(u); leaf.close = 0; out.roll = Math.sin(simT * 16) * 0.3; }
-  else if (phase === 'hold') { leaf.grip = 1; leaf.close = 0.25 * ease(u); out.flail = 1 - 0.5 * u; out.roll = Math.sin(simT * 12) * 0.25 * (1 - u); out.y -= 0.06 * u; }
+  // carry on from how far the struggle had already been lost (grip0, close0);
+  // the blade stops part-closed, so the white motes are seen rising out of it
+  const c1 = Math.max(cap.close0, 0.35), c2 = 0.6;
+  if (phase === 'strike') { leaf.grip = cap.grip0 + (1 - cap.grip0) * ease(u); leaf.close = cap.close0; out.roll = Math.sin(simT * 16) * 0.3; }
+  else if (phase === 'hold') { leaf.grip = 1; leaf.close = cap.close0 + (c1 - cap.close0) * ease(u); out.flail = 1 - 0.5 * u; out.roll = Math.sin(simT * 12) * 0.25 * (1 - u); out.y -= 0.06 * u; }
   else if (phase === 'eat') {
     const e = ease(u);
-    leaf.grip = 1; leaf.close = 0.25 + 0.75 * e;
-    out.flail = 0.5 * (1 - u); out.y -= 0.06 + 0.12 * e;
-  } else { leaf.grip = 1; leaf.close = 1; out.flail = 0; out.y -= 0.18; }
+    leaf.grip = 1; leaf.close = c1 + (c2 - c1) * e;
+    out.flail = 0.5 * (1 - u); out.y -= 0.06 + 0.06 * e;
+  } else { leaf.grip = 1; leaf.close = c2; out.flail = 0; out.y -= 0.12; }
   leaf.target = new THREE.Vector3(out.x, out.y + 0.15 * out.scale, out.z);
+  // digestion: whitish motes shed from the body as it dissolves, and drift up and away
+  const shed = Math.round((out.dissolve - (pl.dissolve || 0)) * 480);
+  if (shed > 0) {
+    const ctr = _v.set(out.x, out.y + 0.2, out.z).clone();
+    for (let i = 0; i < shed; i++) motes.shed(surfacePoint(tail), ctr);
+  }
   return out;
 }
 
@@ -862,6 +919,8 @@ function resetBody(P, x, z) {
   P.x = x; P.z = z; P.vx = P.vz = 0; P.mode = 'film'; P.air = null; P.cock = 1; P.roll = 0; P.pitch = 0; P.charging = false; P.charge = 0; P.queuedJump = null;
   P.bend = 0; P.furc = 0; P.leaf = null; P.struggle = 0; P.scale = 1; P.sy = 1; P.flailK = 0; P.heading = Math.PI / 2; P.hunker = 0; P.eatT = 0; P.deadT = 0;
   P.digestWhite = 0; P.dissolve = 0; P.rightT = undefined; P.flipHop = 0;
+  if (P.glue) P.glue.clear();
+  P.glueOn = false; P.stuckS = null; P.reformT = 0; P.dip = false;
   P.act = null; P.actT = 0; P.eatFood = null;
   const g = groundAt(x, z);
   P.y = g.y; P.mode = modeFor(g.kind);
@@ -886,8 +945,10 @@ function respawnNear(P) {
 }
 function respawn() {
   resetBody(pl, START.x, START.z);
-  for (const l of world.sundews.leaves) { l.target = null; l.grip = 0; l.close = 0; }
+  for (const l of world.sundews.leaves) { l.target = null; l.grip = 0; l.close = 0; l.shake = 0; }
   capture.reset();
+  capture.veil.style.opacity = '0';
+  motes.clear();
   cap.kind = null;
   stenus.reset();
   strider.reset();
@@ -950,6 +1011,11 @@ function landAt(g) {
 const FLIP_SELF = 1.2, FLIP_TIME = 0.28;
 function stepPlayer(dt, inp) {
   const P = pl;
+  // back from a catch: A held (or still being mashed) from the struggle does nothing until it is let go
+  if (P.lockA) {
+    if (P.mode !== 'reform' && !inp.dashDown) P.lockA = false;
+    else inp = { ...inp, dashDown: false, dashPressed: false };
+  }
   P.furc += ((P.mode === 'air' ? (P.air && P.air.t / P.air.T > 0.55 ? 0.6 : 1) : P.cock < 1 ? 1 - P.cock : 0) - P.furc) * Math.min(1, dt * (P.mode === 'air' ? 30 : 6));
   P.landPulse = Math.max(0, P.landPulse - dt * 2.5);
   P.eatT = Math.max(0, P.eatT - dt);
@@ -963,11 +1029,34 @@ function stepPlayer(dt, inp) {
   P.moved = Math.max(0, P.moved - dt);
 
   if (P.mode === 'caught') return; // posed by animateCapture
+  if (P.mode === 'reform') {
+    // re-forming at the respawn spot (startReform): no control, not skippable
+    P.reformT += dt;
+    const u = Math.min(1, P.reformT / REFORM);
+    const r = reform(u);
+    P.dissolve = r.dissolve; P.digestWhite = r.white; P.vx = P.vz = 0;
+    const veil = capture.veil;
+    if (P.dip && (P === P1 || multi())) veil.style.opacity = String(Math.max(0, 1 - P.reformT / 0.35));
+    if (!P.reformRing && u > 0.55) {
+      // the body settles onto the film: a ring spreads from it
+      P.reformRing = true; P.landPulse = 1;
+      if (inPool(P.x, P.z)) { field.drop(P.x, P.z, 0.5, -0.07); ripples.push({ x: P.x, z: P.z, strength: 0.5 }); }
+      audio.play('springtail/land-water', { volume: 0.5, rate: 1.1 });
+      rumble(80, 0.25, 0.1);
+    }
+    if (u >= 1) {
+      P.dissolve = 0; P.digestWhite = 0; P.dip = false;
+      if (veil.style.opacity !== '0') veil.style.opacity = '0';
+      P.mode = modeFor(groundAt(P.x, P.z).kind);
+    }
+    return;
+  }
   if (P.mode === 'dead') {
     P.deadT += dt;
     if (P.deadT > 2.4) {
       if (multi()) respawnNear(P);
       else respawnSafe(P);
+      startReform(P);
     }
     return;
   }
@@ -1009,9 +1098,7 @@ function stepPlayer(dt, inp) {
       // descending: check what we come down on
       const leaf = world.sundews.leafAt(P.x, P.y, P.z);
       if (leaf && P.y <= leaf.y + 0.15 && a.vy < 0) {
-        P.air = null; P.mode = 'stuck'; P.leaf = leaf; P.y = leaf.y + 0.12; P.struggle = 0; P.pitch = 0; P.roll = 0; P.bend = 0;
-        leaf.target = new THREE.Vector3(P.x, P.y + 0.2, P.z);
-        hud.toast('Stuck in sundew glue! Mash A to tear free', 2000);
+        stickToLeaf(P, leaf);
         logChallenge('sundewStuck', P);
         audio.play('springtail/land-sticky');
         rumble(200, 0.5, 0.4);
@@ -1059,18 +1146,46 @@ function stepPlayer(dt, inp) {
   }
 
   if (P.mode === 'stuck') {
+    // Stuck in the glue (sundew-struggle.js): tug with LS and kick with A,
+    // both together; stop and the leaf pulls you in. The body thrashes with
+    // each effort, the strands to its legs thin and snap (sundew-glue.js, in poseTail).
     P.vx = P.vz = 0;
-    if (inp.dashPressed) { P.struggle += 0.16; rumble(40, 0.3, 0.1); ripples.push({ x: P.x, z: P.z, strength: 0.4 }); }
-    P.struggle = Math.max(0, P.struggle - dt * 0.12);
-    P.leaf.target.set(P.x, P.y + 0.2, P.z);
-    if (P.struggle >= 1) {
-      const leaf = P.leaf;
-      leaf.target = null; P.leaf = null;
-      P.mode = 'film';
+    const leaf = P.leaf, S = P.stuckS;
+    if (!P.glueOn) { P.glue = P.glue || createGlue(scene); P.glue.attach(leaf, tail.feet()); P.glueOn = true; }
+    const r = stepStruggle(S, inp, dt);
+    if (r.tug && dir.lengthSq() > 0) { P.tugX = dir.x; P.tugZ = dir.z; P.heading += wrapA(Math.atan2(dir.z, dir.x) - P.heading) * 0.25; }
+    if (r.tug || r.kick) {
+      P.yank = 1;
+      rumble(40, r.both ? 0.4 : 0.25, 0.1);
+      ripples.push({ x: P.x, z: P.z, strength: 0.35 });
+      if (r.kick) P.furc = 1; // the furcula slaps against the leaf
+    }
+    P.yank = Math.max(0, (P.yank || 0) - dt * 4);
+    if (r.paused && !P.pauseSaid) { P.pauseSaid = true; hud.toast('The leaf is pulling you in: keep struggling!', 1400); }
+    if (!r.paused) P.pauseSaid = false;
+    // the pose: big bends and rolls with the effort, a lunge against the strands toward the stick
+    const th = S.thrash;
+    P.bend = th * 0.9 * Math.sin(simT * 13) - 0.15 * S.sink;
+    P.roll = th * 0.35 * Math.sin(simT * 9.3) + (1 - th) * 0.05 * Math.sin(simT * 3);
+    P.pitch = th * 0.12 * Math.sin(simT * 7.7);
+    const pull = 0.16 * P.yank * (1 - S.sink);
+    P.x = P.ax + (P.tugX || 0) * pull; P.z = P.az + (P.tugZ || 0) * pull;
+    // pulled in: down among the tentacles, which fold over, and the blade starts to cup
+    P.y = leaf.y + 0.12 - 0.14 * S.sink;
+    leaf.grip = 0.8 * S.sink; leaf.close = 0.3 * S.sink;
+    leaf.shake = (0.03 * th + 0.03 * P.yank) * Math.sin(simT * 23);
+    leaf.target.set(P.x, P.y + 0.2, P.z);
+    P.struggle = S.progress;
+    if (r.escaped) {
+      P.glue.clear(); P.glueOn = false;
+      leaf.target = null; leaf.grip = 0; leaf.close = 0; leaf.shake = 0; P.leaf = null;
+      P.mode = 'film'; P.roll = 0; P.pitch = 0; P.bend = 0;
       P.cock = 1;
-      jump(P.x - leaf.x || 1, P.z - leaf.z, 0.3);
+      const tugged = S.t - S.lastTug < 0.7 && P.tugX !== undefined;
+      jump(tugged ? P.tugX : P.x - leaf.x || 1, tugged ? P.tugZ : P.z - leaf.z, 0.3);
+      rumble(160, 0.5, 0.3);
       hud.toast('Free!');
-    } else if (P.leaf.curl > 0.82) caught('sundew');
+    } else if (r.engulfed) caught('sundew');
     return;
   }
 
@@ -1439,6 +1554,9 @@ function poseTail(t) {
   p.tuck = P.mode === 'air' ? 1 : 0;
   p.flail = P.mode === 'flipped' || P.mode === 'stuck' || P.mode === 'labium' || P.mode === 'dead' ? 1 : 0;
   if (P.mode === 'caught') { p.flail = P.flailK; p.stride = 0; p.tuck = 0; p.nod = 0; p.hunker = 0; p.bend = 0.3 * P.flailK * Math.sin(t * 11); }
+  // stuck: the legs and antennae thrash with every tug and kick, and go weak in a pause
+  if (P.mode === 'stuck' && P.stuckS) p.flail = 0.3 + 0.95 * P.stuckS.thrash;
+  if (P.mode === 'reform') p.flail = 0.15;
   tail.update();
   const g = tail.group;
   let y = P.y;
@@ -1447,6 +1565,7 @@ function poseTail(t) {
   // at the bottom: it lies in the film, sunk a little into its dimple
   if (P.mode === 'flipped') y = P.y - 0.03 + (P.flipHop || 0);
   if (P.mode === 'dead') y = P.y - Math.min(1, P.deadT) * 0.2;
+  if (P.mode === 'reform' && inPool(P.x, P.z)) y = field.height(P.x, P.z) - 0.01;
   g.position.set(P.x, y, P.z);
   // in the air the body spins about its centre (pitch about the lateral axis)
   const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, -P.heading, 0));
@@ -1463,6 +1582,24 @@ function poseTail(t) {
   g.scale.set(P.scale, P.scale * P.sy, P.scale);
   g.visible = P.scale > 0.02;
   g.updateMatrixWorld(true);
+  const pdt = Math.max(0, Math.min(0.1, t - (P.poseT ?? t)));
+  P.poseT = t;
+  // the glue strands, from the tentacle tips to the legs as they are posed now
+  if (P.mode === 'stuck' && P.glueOn && P.stuckS) {
+    const snaps = P.glue.update(pdt, tail.feet(), P.stuckS.progress, Math.max(P.yank || 0, P.stuckS.thrash * 0.6), t);
+    if (snaps) { audio.play('springtail/land-sticky', { volume: 0.55, rate: 1.7 + Math.random() * 0.2 }); rumble(90, 0.5, 0.2); }
+  }
+  // re-forming: motes fly in from round about and gather on the body
+  if (P.mode === 'reform' && !P.reformSeeded) {
+    P.reformSeeded = true;
+    const from = new THREE.Vector3();
+    for (let i = 0; i < 260; i++) {
+      const to = surfacePoint(tail);
+      const a = Math.random() * Math.PI * 2, r = 0.9 + Math.random() * 1.2;
+      from.set(to.x + Math.cos(a) * r, to.y + 0.2 + Math.random() * 1.1, to.z + Math.sin(a) * r);
+      motes.gather(from, to, { dur: 0.45 + Math.random() * 0.15, delay: Math.random() * 0.3 });
+    }
+  }
 }
 
 function updateContacts() {
@@ -1641,7 +1778,9 @@ function enterPortal(P) {
 // freeze holds a moment and time comes back.
 const OUTRO = { beat: 0.3, ease: 1.0, hold: 1.4, back: 0.6, giveUp: 8, rate: 1 }; // rate: tests slow it down
 let outro = null;
-const portalLight = createPortalLight({ zIndex: 3 });
+// the success effects run on frame time too (fxT), so a slow machine or a test sees all of them
+let fxT = 0;
+const portalLight = createPortalLight({ zIndex: 3, clock: () => fxT });
 function startOutro(P) {
   outro = { t: 0, scale: 1, frozenAt: null, cam: null, P, L: null, heard: false };
   props.glow.burst();
@@ -1657,6 +1796,7 @@ function startOutro(P) {
 function stepOutro(dt) {
   const o = outro;
   o.t += dt * OUTRO.rate;
+  fxT += dt * OUTRO.rate;
   const k = THREE.MathUtils.smoothstep(o.t, OUTRO.beat, OUTRO.beat + OUTRO.ease);
   o.scale = 1 - k;
   if (o.scale <= 0 && o.frozenAt === null) {
@@ -1729,12 +1869,13 @@ function updateText(L) {
   gauge.style.display = boss.engaged ? 'flex' : 'none';
   gauge.querySelector('i').style.width = `${(boss.resolve * 100).toFixed(0)}%`;
   const stage = stenus.stage;
-  thr.textContent = capture.active ? '' : stage === 'tell' ? 'Stenus: jump now!' : stage === 'stuck' ? 'Stuck: mash A!' : stage === 'lungeTell' || stage === 'lunge' ? 'Mandibles: jump or step aside!' : attacking ? 'Attacking! Face it + B, or jump' : hunting ? 'Hunted!' : isHungry(hs) || isHungry(hr) ? `${[isHungry(hs) && 'Stenus', isHungry(hr) && 'Strider'].filter(Boolean).join(' & ')} hungry` : 'Calm';
+  thr.textContent = capture.active ? '' : pl.mode === 'stuck' ? 'Sundew: wriggle and kick!' : stage === 'tell' ? 'Stenus: jump now!' : stage === 'stuck' ? 'Stuck: mash A!' : stage === 'lungeTell' || stage === 'lunge' ? 'Mandibles: jump or step aside!' : attacking ? 'Attacking! Face it + B, or jump' : hunting ? 'Hunted!' : isHungry(hs) || isHungry(hr) ? `${[isHungry(hs) && 'Stenus', isHungry(hr) && 'Strider'].filter(Boolean).join(' & ')} hungry` : 'Calm';
   thr.classList.toggle('hot', hunting || attacking);
   const prog = Math.max(0, Math.min(1, progressAt(pl.x, pl.z)));
   if (!hunting && !attacking && !capture.active && !inZone('stenus', pl.x, pl.z) && !inZone('strider', pl.x, pl.z)) thr.textContent = 'Calm water';
   if (capture.active && cap.phase) { furcTxt.textContent = (cap.kind && CAP_TEXT[cap.kind].phases[cap.phase]) || 'Back again'; m.style.width = `${{ strike: 25, hold: 50, eat: 80, follow: 100, fadeOut: 100, fadeIn: 100 }[cap.phase] || 100}%`; m.style.background = '#e04f3a'; }
-  else if (pl.mode === 'stuck') { furcTxt.textContent = 'Struggle'; m.style.width = `${pl.struggle * 100}%`; m.style.background = '#e07a5f'; }
+  else if (pl.mode === 'stuck') { const S = pl.stuckS; furcTxt.textContent = S && S.idle > 0.8 ? 'Pulled in: struggle!' : 'Struggle: LS + A'; m.style.width = `${pl.struggle * 100}%`; m.style.background = '#e07a5f'; }
+  else if (pl.mode === 'reform') { furcTxt.textContent = 'Back again'; m.style.width = `${Math.min(1, pl.reformT / REFORM) * 100}%`; m.style.background = '#c9d6df'; }
   else if (pl.mode === 'labium') { furcTxt.textContent = 'Wriggle (mash A)'; m.style.width = `${Math.min(1, pl.wriggle) * 100}%`; m.style.background = '#e07a5f'; }
   else if (pl.charging) { furcTxt.textContent = pl.charge > 0.98 ? 'Full jump' : 'Cocking'; m.style.width = `${pl.charge * 100}%`; m.style.background = '#f2cc8f'; }
   else { furcTxt.textContent = pl.cock < 1 ? 'Re-cocking' : 'Furcula'; m.style.width = `${Math.max(0, pl.cock) * 100}%`; m.style.background = pl.cock < 1 ? '#7a8a99' : '#9fd0ff'; }
@@ -1764,8 +1905,9 @@ function step(dt, inputs) {
   stepWorld(dt);
   if (c.active) withRec(who, () => animateCapture(c, dt));
   for (const P of recs()) withRec(P, () => poseTail(simT));
+  motes.update(dt);
   placeRings();
-  props.update(simT, dt, camera, !guarded());
+  props.update(simT, dt, camera, !guarded(), outro ? outro.t : undefined);
   if (game.phase === 'play') { moveRings(); checkLandmark(); logNear(); }
   // only the food near a player or the view is drawn (world.js buildFood)
   foodNear.length = 0;
@@ -1892,6 +2034,24 @@ const api = {
       mode: pl.mode,
     };
   },
+  /**
+   * Testing: land player `slot` on sundew leaf `i` (stuck in its glue; the struggle starts).
+   * Returns the leaf's { x, y, z, r }.
+   */
+  stickOnLeaf(i = 0, slot = 0) {
+    if (game.phase !== 'play') newGame();
+    const P = pls[slot] || pl, leaf = world.sundews.leaves[i];
+    if (capture.active) return null;
+    withRec(P, () => { resetBody(P, leaf.x, leaf.z); stickToLeaf(P, leaf); });
+    rig.target.set(P.x, P.y + 0.25, P.z);
+    return { x: leaf.x, y: leaf.y, z: leaf.z, r: leaf.r };
+  },
+  /** Testing: the struggle on a sundew leaf (null when not stuck), the glue strands snapped, the motes in flight, and a respawn's re-forming. */
+  struggle(slot = 0) {
+    const P = pls[slot] || pl, S = P.stuckS;
+    return { mode: P.mode, progress: S ? +S.progress.toFixed(3) : null, sink: S ? +S.sink.toFixed(3) : null, idle: S ? +S.idle.toFixed(2) : null, thrash: S ? +S.thrash.toFixed(2) : null,
+      snapped: P.glue && P.glueOn ? P.glue.snapped : 0, motes: motes.count, reformT: P.mode === 'reform' ? +P.reformT.toFixed(2) : null, dissolve: +P.dissolve.toFixed(2), x: P.x, z: P.z };
+  },
   /** Testing: get caught right now by 'stenus', 'strider' or 'sundew' (the full sequence plays). */
   forceCapture(kind = 'stenus', slot = 0) {
     if (game.phase !== 'play') newGame();
@@ -1903,7 +2063,7 @@ const api = {
     if (P.mode === 'air' || P.mode === 'flipped' || P.mode === 'dead') { P.mode = 'film'; P.air = null; P.roll = 0; P.pitch = 0; }
     if (kind === 'sundew') {
       const leaf = world.sundews.leaves[0];
-      P.x = leaf.x; P.z = leaf.z; P.y = leaf.y + 0.12; P.mode = 'stuck'; P.leaf = leaf; leaf.target = new THREE.Vector3(P.x, P.y + 0.2, P.z); leaf.curl = 0.85;
+      P.x = leaf.x; P.z = leaf.z; stickToLeaf(P, leaf); P.stuckS.sink = 1; leaf.curl = 0.85;
       caught('sundew');
       return;
     }

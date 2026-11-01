@@ -714,6 +714,7 @@ function restartRings() {
   Object.assign(portal, { placed: false, k: -1, leaf: null, found: false, hinted: false, turned: false, t: null });
   meadow.reset();
   lm.fired = false;
+  challenges.length = 0;
 }
 placeZone(0);
 
