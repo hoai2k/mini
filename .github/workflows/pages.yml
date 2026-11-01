@@ -83,11 +83,52 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      # A plain full checkout, smoothcraft/ included. Leaving it out was tried
-      # (a blobless partial clone with a sparse checkout, October 2026): it
-      # saves only the mod's ~8% of the data, and fetching the rest blob by
-      # blob during checkout was slower than one ordinary fetch of everything.
-      - uses: actions/checkout@v4
+      # A sparse checkout that leaves out the folders no build reads: the
+      # big design/reference/research folders and smoothcraft/, about 3 GB of
+      # the 5.6 GB tree. Measured on 1 November 2026 against the full checkout
+      # on the same commit: checkout 77 s against 162 s, build job 104 s
+      # against 185 s, and the published site identical (5,379 files, one
+      # hash). An earlier try that left out only smoothcraft/ (~8 % of the
+      # data) was slower than a full fetch; this one skips enough to win.
+      # Hopper's build reads only three JSON files from hopper/3d/design and
+      # hopper/3d/models (the 3D edition's code is bundled; its models,
+      # textures and design files were never published), so the rest of those
+      # folders, hopper/design and hopper/models stay out too: checkout 69 s,
+      # same site hash.
+      # A publish.sh that starts reading one of these folders must take it
+      # off this list. The full test run reads the design folders (their
+      # generators' --check), so it keeps the full checkout.
+      - name: Checkout (full, for the full test run)
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        uses: actions/checkout@v4
+      - name: Checkout (sparse)
+        if: "!(github.event_name == 'workflow_dispatch' && inputs.tests == 'full')"
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/kingdomofthefairies/design/
+            !/percyjackson/design/
+            !/percyjackson/reference/
+            !/smoothcraft/
+            !/bronzedrum/design/
+            !/musicpractice/design/
+            !/musicpractice/mobile/
+            !/micro/design/
+            !/micro/research/
+            !/onemonster/reference/
+            !/fibreart/reference/
+            !/imageannotator/design/
+            !/icecreamcone/design/
+            !/hopper/design/
+            !/hopper/models/
+            !/hopper/3d/textures/
+            !/hopper/3d/design/*
+            /hopper/3d/design/standin-manifest.json
+            !/hopper/3d/models/*
+            /hopper/3d/models/manifest.json
+            /hopper/3d/models/collision.json
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -98,8 +139,10 @@ jobs:
           cache-dependency-path: hopper/game/pnpm-lock.yaml
       # The shared root files must build, or the whole deploy fails: every
       # game needs them.
+      # The library page leaves out the card of every game deploy_config.json
+      # switches off (.github/scripts/deploy-config.py).
       - name: Shared root files
-        run: test -f multiplayer/client/mini-rooms.js && mkdir -p local/pages && cp index.html favicon.ico local/pages/
+        run: test -f multiplayer/client/mini-rooms.js && mkdir -p local/pages && cp favicon.ico local/pages/ && python3 .github/scripts/deploy-config.py library index.html local/pages/index.html
       - name: Build Hopper
         run: .github/scripts/build-game.sh hopper 'cd hopper/game && pnpm install --frozen-lockfile && pnpm build:pages'
       - name: Hopper tests

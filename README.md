@@ -5,20 +5,20 @@ is at https://hoai2k.github.io/mini/.
 
 ## Games
 
-- **[Micro Zoom](https://hoai2k.github.io/mini/micro/)** · [`micro/`](micro/README.md): play as microscopic creatures, world by world ([prototypes](https://hoai2k.github.io/mini/micro/prototypes/))
+- **[Micro Zoom](https://hoai2k.github.io/mini/micro/)** · [`micro/`](micro/README.md): play as microscopic creatures, world by world ([prototypes](https://hoai2k.github.io/mini/micro/prototypes/)) (not deployed)
 - **[Meditation Timer](https://hoai2k.github.io/mini/meditation/)** · [`meditation/`](meditation/README.md): a quiet sitting timer with a starting and an ending chime
 - **[Image Annotator](https://hoai2k.github.io/mini/imageannotator/)** · [`imageannotator/`](imageannotator/README.md): point things out on a picture with arrows, circles and drawing
 - **[MP3 Player](https://hoai2k.github.io/mini/mp3player/)** · [`mp3player/`](mp3player/README.md): the music on your device, played like a streaming app
 - **[Stocks](https://hoai2k.github.io/mini/stocks/)** · [`stocks/`](stocks/README.md): price history with total return, dividends paid out or reinvested
-- **[Bookzam](https://hoai2k.github.io/mini/bookzam/)** · [`bookzam/`](bookzam/README.md): snap a shelf to catalogue its books and board games, or find the one you want
+- **[Bookzam](https://hoai2k.github.io/mini/bookzam/)** · [`bookzam/`](bookzam/README.md): snap a shelf to catalogue its books and board games, or find the one you want (not deployed)
 - **[Music Practice](https://hoai2k.github.io/mini/musicpractice/)** · [`musicpractice/`](musicpractice/README.md): a metronome, a tuner, a drone and a recorder that plays your takes back
 - **[Half-Blood Quests](https://hoai2k.github.io/mini/percyjackson/)** · [`percyjackson/`](percyjackson/README.md): a Percy Jackson co-op dungeon crawler in the style of Minecraft Dungeons
 - **[Ear Trainer](https://hoai2k.github.io/mini/eartrainer/)** · [`eartrainer/`](eartrainer/README.md): hear a melody, play it back on the piano
 - **[Ai-Ching](https://hoai2k.github.io/mini/aiching/)** · [`aiching/`](aiching/README.md): ask anything, and an I Ching reading answers
 - **[Fibre Art](https://hoai2k.github.io/mini/fibreart/)** · [`fibreart/`](fibreart/README.md): a shifting collage after the fibre art of Hanneke de Neve
 - **[The Ice-Cream Cone Coot](https://hoai2k.github.io/mini/icecreamcone/)** · [`icecreamcone/`](icecreamcone/README.md): a field guide of rare birds, with a minigame for each
-- **[One Monster After Another](https://hoai2k.github.io/mini/onemonster/)** · [`onemonster/`](onemonster/README.md)
-- **[Gliders](https://hoai2k.github.io/mini/gliders/)** · [`gliders/`](gliders/README.md): Superflight-style gliding for one to four players
+- **[One Monster After Another](https://hoai2k.github.io/mini/onemonster/)** · [`onemonster/`](onemonster/README.md) (not deployed)
+- **[Gliders](https://hoai2k.github.io/mini/gliders/)** · [`gliders/`](gliders/README.md): Superflight-style gliding for one to four players (not deployed)
 - **[Games Chat](https://hoai2k.github.io/mini/chat/)** · [`chat/`](chat/README.md): video chat with face effects and minigames
 - **[Tank Wars](https://hoai2k.github.io/mini/tankwars/)** · [`tankwars/`](tankwars/README.md)
 - **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)** · [`hopper/`](hopper/README.md)
