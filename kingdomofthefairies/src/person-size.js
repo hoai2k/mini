@@ -2,8 +2,14 @@
 // standing height as painted in it (art px), measured by the head against
 // the character's reference sprite. Draw with drawPerson (src/pose.js) so
 // every sprite of a character comes out at one person size.
-// Inputs fingerprint 529e9112185f1c29 (person_sizes.py --check).
+// Inputs fingerprint 1b9ab8618fab08ef (person_sizes.py --check).
 export const PERSON = {
+  'prince-court': { who: 'prince-court', px: 353 },
+  'prince-court-stairs-a': { who: 'prince-court', px: 440 },
+  'prince-court-stairs-b': { who: 'prince-court', px: 440 },
+  'prince-court-tinted': { who: 'prince-court', px: 354 },
+  'prince-court-stairs-a-tinted': { who: 'prince-court', px: 440 },
+  'prince-court-stairs-b-tinted': { who: 'prince-court', px: 440 },
   'prince-stand': { who: 'prince-armed', px: 360 },
   'prince-strike': { who: 'prince-armed', px: 209 },
   'prince-caught-lobster': { who: 'prince-armed', px: 439 },
@@ -13,6 +19,8 @@ export const PERSON = {
   'prince-caught-lobster-tinted': { who: 'prince-armed', px: 424 },
   'prince-caught-human-tinted': { who: 'prince-armed', px: 323 },
   'azurine-stand': { who: 'azurine', px: 380 },
+  'azurine-stairs-a': { who: 'azurine', px: 440 },
+  'azurine-stairs-b': { who: 'azurine', px: 440 },
   'azurine-walk-a': { who: 'azurine', px: 372 },
   'azurine-walk-b': { who: 'azurine', px: 372 },
   'azurine-pass-a': { who: 'azurine', px: 372 },
@@ -22,6 +30,8 @@ export const PERSON = {
   'azurine-asleep': { who: 'azurine', px: 365 },
   'azurine-window': { who: 'azurine', px: 570 },
   'azurine-stand-tinted': { who: 'azurine', px: 380 },
+  'azurine-stairs-a-tinted': { who: 'azurine', px: 440 },
+  'azurine-stairs-b-tinted': { who: 'azurine', px: 440 },
   'azurine-walk-a-tinted': { who: 'azurine', px: 380 },
   'azurine-walk-b-tinted': { who: 'azurine', px: 380 },
   'azurine-pass-a-tinted': { who: 'azurine', px: 380 },
@@ -106,6 +116,7 @@ export const PERSON = {
 
 // Each character's reference sprite (standing).
 export const PERSON_REF = {
+  'prince-court': 'prince-court',
   'prince-armed': 'prince-stand',
   'azurine': 'azurine-stand',
   'aurora': 'aurora-stand',

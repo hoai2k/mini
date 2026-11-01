@@ -1,6 +1,6 @@
 // One clock keeps the closing tableau, credits and score in sync.
-export const FINALE = { celebrate: 5, roll: 30, fade: 8, black: 2 };
-export const FINALE_END = FINALE.celebrate + FINALE.roll + FINALE.fade + FINALE.black;
+export const FINALE = { celebrate: 5, roll: 30 };
+export const FINALE_END = FINALE.celebrate + FINALE.roll;
 export const CREDITS = [
   { y: 0, text: 'Kingdom of the Fairies', size: 48, title: true },
   { y: 68, text: 'A hand-tinted toy theatre', size: 25 },
@@ -19,6 +19,7 @@ export const CREDITS = [
 export function finaleFrame(time) {
   const clamp = n => Math.max(0, Math.min(1, n));
   const roll = clamp((time - FINALE.celebrate) / FINALE.roll);
-  const fade = clamp((time - FINALE.celebrate - FINALE.roll) / FINALE.fade);
-  return { roll, fade, music: 1 - fade, creditsY: 720 - roll * (CREDITS.at(-1).y + 640), done: time >= FINALE_END };
+  // The roll ends; the celebration, music and player controls continue.
+  const fade = 0;
+  return { roll, fade, music: 1, creditsY: 720 - roll * (CREDITS.at(-1).y + 640), done: time >= FINALE_END };
 }

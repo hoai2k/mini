@@ -71,10 +71,11 @@ try {
   evidence.push({look,...jump});
   await page.waitForTimeout(900);
  }
- await page.evaluate(()=>{const st=window.__kingdomOfTheFairies.S.state;st.w.x=900;});
- await page.waitForFunction(()=>window.__kingdomOfTheFairies.S.state.phase==='apotheosis');
+ await page.keyboard.down('ArrowRight');
+ await page.waitForFunction(()=>window.__kingdomOfTheFairies.S.state.phase==='apotheosis', {timeout:15000});
+ await page.keyboard.up('ArrowRight');
  await page.keyboard.down('ArrowRight');await page.waitForTimeout(1500);await page.keyboard.up('ArrowRight');
- await page.keyboard.down('ArrowLeft');await page.waitForTimeout(1800);await page.keyboard.up('ArrowLeft');
+ await page.keyboard.down('ArrowLeft');await page.waitForTimeout(800);await page.keyboard.up('ArrowLeft');
  assert.equal(await page.evaluate(()=>window.__kingdomOfTheFairies.S.state.riseT),null);
  await page.evaluate(()=>{const st=window.__kingdomOfTheFairies.S.state;st.w.x=640;st.w.vx=0;});
  await page.waitForTimeout(350);

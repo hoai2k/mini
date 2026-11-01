@@ -564,6 +564,13 @@ GROUPS.append(("The witch rants from the barrel", "Two furious pantomime poses f
 ]))
 
 
+GROUPS.append(("The couple climb the wedding stairs", "Two restrained alternating stair steps in court dress, matched to the standing sprites. Face right going up and mirror going down, behind the painted banister mask.", [
+    (f'{who}-stairs-{frame}{t}', f'{who} on the stairs, frame {frame.upper()}{t}', width, 440, 'bottom centre', TINTED if t else SPRITE,
+     f'Preserve the exact face, costume, head size, muted palette and brightness of {ref}{t}.webp. One full-body natural stair step facing RIGHT, one foot a step higher and the other pushing off; no jumping. Frame B swaps the weight-bearing legs of frame A without changing face, scale or costume. Azurine gently lifts her gown hem. Transparent alpha, no stair, floor, shadow, glow or scenery. Full figure with lowest shoe at bottom centre.', None)
+    for who, ref, width in (('prince-court', 'prince-court', 320), ('azurine', 'azurine-stand', 300)) for frame in ('a', 'b') for t in ('', '-tinted')
+]))
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 

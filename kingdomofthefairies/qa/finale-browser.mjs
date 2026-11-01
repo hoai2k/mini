@@ -34,65 +34,96 @@ try {
     S.mode = 'play'; S.card = null; S.curtain = S.curtainTarget = 1; S.paused = false;
   });
   await page.waitForFunction(() => window.__kingdomOfTheFairies.audio.nowPlaying()?.id === 'period-wedding');
-  await page.evaluate(() => { window.__kingdomOfTheFairies.S.state.w.x = 900; });
+  await page.keyboard.down('ArrowRight');
+  await page.waitForFunction(() => window.__kingdomOfTheFairies.S.state.w.x > 950);
+  await page.keyboard.up('ArrowRight');
+  await page.locator('#stage').screenshot({ path: `${output}/stairs-live.png` });
+  await page.keyboard.down('ArrowRight');
   await page.waitForFunction(() => window.__kingdomOfTheFairies.S.state.phase === 'apotheosis');
-  await page.evaluate(() => {
-    const st = window.__kingdomOfTheFairies.S.state; st.w.x = 675; st.az.x = 605;
-  });
+  await page.keyboard.up('ArrowRight');
+  const walkToLight = async () => {
+    await page.keyboard.down('ArrowRight');
+    await page.waitForFunction(() => window.__kingdomOfTheFairies.S.state.w.x > 635);
+    await page.keyboard.up('ArrowRight');
+    await page.waitForTimeout(180);
+    await page.keyboard.press('Space');
+    await page.waitForFunction(() => window.__kingdomOfTheFairies.S.state.flight === 'hold');
+  };
+  await walkToLight();
+  assert.equal(await page.evaluate(async () => (await import('/src/save.js')).loadSave().endings?.wedding), true);
+  const held = await page.evaluate(() => window.__kingdomOfTheFairies.S.state.lift);
+  await page.waitForTimeout(350);
+  assert.equal(await page.evaluate(() => window.__kingdomOfTheFairies.S.state.lift), held, 'no input preserves the elevated pose');
+  await page.locator('#stage').screenshot({ path: `${output}/credits-held.png` });
+  await page.keyboard.press('ArrowUp');
+  await page.waitForFunction(() => window.__kingdomOfTheFairies.S.state.flight === 'descend');
+  await page.waitForTimeout(550);
+  const descending = await page.evaluate(() => window.__kingdomOfTheFairies.S.state.lift);
+  assert.ok(descending < held && descending > 0, 'vertical input starts a gradual descent');
+  await page.waitForFunction(() => !window.__kingdomOfTheFairies.S.state.flight);
+  const beforeReturn = await page.evaluate(() => window.__kingdomOfTheFairies.S.state.creditsT);
+  await page.keyboard.down('ArrowLeft');
+  await page.waitForFunction(() => window.__kingdomOfTheFairies.S.state.w.x <= 120.5);
+  await page.waitForTimeout(600);
+  assert.equal(await page.evaluate(() => window.__kingdomOfTheFairies.S.state.phase), 'finale', 'backward travel waits for a sustained hold at the exit');
+  await page.waitForFunction(() => window.__kingdomOfTheFairies.S.state.phase === 'wedding');
+  await page.keyboard.up('ArrowLeft');
+  await page.keyboard.down('ArrowRight');
+  await page.waitForFunction(() => !window.__kingdomOfTheFairies.S.state.weddingExit);
+  assert.ok(await page.evaluate(() => window.__kingdomOfTheFairies.S.state.w.x) < 1125, 'return finishes a short descent even when forward is held immediately');
+  await page.keyboard.up('ArrowRight');
+  await page.keyboard.down('ArrowLeft');
+  await page.waitForFunction(() => window.__kingdomOfTheFairies.S.state.w.x < 690);
+  await page.keyboard.up('ArrowLeft');
   await page.keyboard.press('Space');
+  await page.waitForTimeout(180);
+  assert.ok(await page.evaluate(() => window.__kingdomOfTheFairies.S.state.cheers.length > 0), 'guests still join in during credits');
+  assert.ok(await page.evaluate(() => window.__kingdomOfTheFairies.S.state.creditsT) > beforeReturn);
+  await page.locator('#stage').screenshot({ path: `${output}/credits-outside-dancing.png` });
+  await page.waitForTimeout(700);
+  await page.keyboard.down('ArrowRight');
   await page.waitForFunction(() => window.__kingdomOfTheFairies.S.state.phase === 'finale');
-  assert.equal(await page.evaluate(async () => (await import('/src/save.js')).loadSave().endings?.wedding), true, 'completion is saved before the credits finish');
-  assert.equal(await page.evaluate(() => window.__kingdomOfTheFairies.audio.nowPlaying().id), 'period-wedding');
+  await page.keyboard.up('ArrowRight');
+  await walkToLight();
+  assert.ok(await page.evaluate(() => window.__kingdomOfTheFairies.S.state.creditsT) > beforeReturn + 5, 'a repeated light jump does not restart the credits');
   const samples = [];
-  for (const time of [0, 12, 22, 26, 39, 43.1]) {
-    await page.evaluate(t => { window.__kingdomOfTheFairies.S.state.phaseT = t; }, time);
+  for (const time of [12, 22, 36, 50]) {
+    await page.evaluate(t => { window.__kingdomOfTheFairies.S.state.creditsT = t; }, time);
     await page.waitForTimeout(180);
     const sample = await page.evaluate(() => {
       const q = window.__kingdomOfTheFairies, data = new Float32Array(window.scoreAnalyser.fftSize);
       window.scoreAnalyser.getFloatTimeDomainData(data);
-      return { time: q.S.state.phaseT, music: q.audio.musicLevel(), track: q.audio.nowPlaying()?.id,
+      return { time: q.S.state.creditsT, music: q.audio.musicLevel(), track: q.audio.nowPlaying()?.id,
         rms: Math.sqrt(data.reduce((s, v) => s + v * v, 0) / data.length),
-        starts: window.scoreStarts.filter(d => d > 118 && d < 120).length };
+        starts: window.scoreStarts.filter(d => d > 118 && d < 120).length, mode: q.S.mode };
     });
-    assert.equal(sample.track, 'period-wedding'); assert.equal(sample.starts, 1, 'the wedding recording continues without restarting for credits');
-    if (time === 0) assert.ok(sample.rms > 0.0001, 'actual decoded recording is audible');
-    if (time === 39) assert.ok(sample.music > 0.4 && sample.music < 0.6);
-    if (time > 43) assert.equal(sample.music, 0);
+    assert.equal(sample.track, 'period-wedding'); assert.equal(sample.starts, 1);
+    assert.equal(sample.music, 1); assert.equal(sample.mode, 'play');
+    assert.ok(sample.rms > 0.0001, 'actual wedding recording remains audible');
     samples.push(sample);
-    await page.locator('#stage').screenshot({ path: `${output}/finale-${time}.png` });
   }
-  // The shared game clock freezes both the roll and the fade while paused.
-  await page.evaluate(() => { const q = window.__kingdomOfTheFairies; q.S.state.phaseT = 39; q.S.paused = true; });
+  await page.evaluate(() => { const q = window.__kingdomOfTheFairies; q.S.state.creditsT = 39; q.S.paused = true; });
   await page.waitForTimeout(250);
-  assert.equal(await page.evaluate(() => window.__kingdomOfTheFairies.S.state.phaseT), 39);
-  assert.equal(await page.evaluate(() => window.__kingdomOfTheFairies.audio.musicLevel()), 0.5);
-  await page.evaluate(() => { const q = window.__kingdomOfTheFairies; q.S.paused = false; q.S.state.phaseT = 45; });
-  await page.waitForFunction(() => window.__kingdomOfTheFairies.S.mode === 'playbill');
-  await page.waitForFunction(() => window.__kingdomOfTheFairies.audio.nowPlaying()?.id === 'period-tender');
-  assert.equal(await page.evaluate(() => window.scoreStarts.filter(d => d > 118 && d < 120).length), 1, 'the faded wedding source does not restart when menu music returns');
-  // The same credits/fade must remain legible and reach black in both cast
-  // looks and each film-effect setting, through the production renderer.
+  assert.equal(await page.evaluate(() => window.__kingdomOfTheFairies.S.state.creditsT), 39);
   await page.evaluate(async () => {
     const { createRenderer } = await import('/src/art.js');
-    const { actBurning } = await import('/src/acts/act5film.js');
-    const { finaleFrame } = await import('/src/finale.js');
+    const { actBurning, weddingFloor } = await import('/src/acts/act5film.js');
     await window.__kingdomOfTheFairies.assets.all;
     const canvas = document.createElement('canvas'); canvas.id = 'ending-review'; canvas.width = 1280; canvas.height = 720;
     canvas.style.cssText = 'position:fixed;inset:0;z-index:99999;width:1280px;height:720px'; document.body.append(canvas);
-    window.endingReview = { canvas, createRenderer, actBurning, finaleFrame };
+    window.endingReview = { canvas, createRenderer, actBurning, weddingFloor };
   });
-  for (const look of ['original', 'tinted']) for (const film of ['off', 'gentle', 'full']) {
-    for (const time of [0, 12, 22, 26, 39, 43]) {
-      await page.evaluate(({ look, film, time }) => {
-        const r = window.endingReview, st = r.actBurning.create({ from: { scene: 4 } });
-        Object.assign(st, { phase: 'finale', phaseT: time, riseT: 3.2 }); st.w.x = 675; st.az.x = 605;
-        r.createRenderer(r.canvas, window.__kingdomOfTheFairies.assets).render({ act: r.actBurning, state: st,
-          t: time + 8, curtain: 1, film, tinted: look === 'tinted', fade: r.finaleFrame(time).fade });
-      }, { look, film, time });
-      await page.locator('#ending-review').screenshot({ path: `${output}/${look}-${film}-${time}.png` });
-    }
+  for (const look of ['original', 'tinted']) for (const x of [800, 920, 1000, 1150, 1210]) {
+    await page.evaluate(({ look, x }) => {
+      const r = window.endingReview, st = r.actBurning.create({ from: { scene: 4 } });
+      Object.assign(st, { phaseT: 8, weddingIntro: false });
+      for (const [actor, px] of [[st.w,x],[st.az,x-65]]) Object.assign(actor, { x:px,y:r.weddingFloor(px),stairs:true,vx:240,walk:x });
+      r.createRenderer(r.canvas, window.__kingdomOfTheFairies.assets).render({ act: r.actBurning, state: st,
+        t: 8, curtain: 1, film: 'off', tinted: look === 'tinted', fade: 0 });
+    }, { look, x });
+    await page.locator('#ending-review').screenshot({ path: `${output}/stairs-${look}-${x}.png` });
   }
   assert.deepEqual(errors, []);
   await writeFile(`${output}/audio-and-timing.json`, JSON.stringify(samples, null, 2) + '\n');
-  console.log('Real wedding audio, uninterrupted credits playback, shared fade, pause and playbill return pass');
+  console.log('Two-way stairs, held/repeated light jumps, gradual release, continuous audio and credits free play pass');
 } finally { await browser.close(); server.close(); }

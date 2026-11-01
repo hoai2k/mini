@@ -7,11 +7,9 @@ assert.equal(finaleFrame(FINALE.celebrate).creditsY, 720, 'credits enter from be
 assert.ok(finaleFrame(20).creditsY < finaleFrame(10).creditsY, 'credits roll upward');
 assert.ok(finaleFrame(35).creditsY + CREDITS.at(-1).y < 100, 'last credit exits above the visible stage');
 assert.equal(finaleFrame(35).music, 1, 'music holds through the roll');
-assert.equal(finaleFrame(39).music, 0.5);
-assert.equal(finaleFrame(39).fade, 0.5, 'audio and scene share one fade clock');
-assert.equal(finaleFrame(43).music, 0);
-assert.equal(finaleFrame(43).done, false, 'a short black hold follows the fade');
-assert.equal(finaleFrame(FINALE_END).done, true);
+assert.equal(finaleFrame(39).music,1,'the wedding score continues after the credits');
+assert.equal(finaleFrame(39).fade,0,'the scene stays available for free play');
+assert.equal(finaleFrame(FINALE_END).done,true,'only the credit roll finishes');
 
 // The finale's gain must multiply, rather than overwrite, the saved volume.
 const previousWindow = globalThis.window, gains = [];
@@ -31,4 +29,4 @@ try {
   audio.setMusicLevel(0); assert.equal(gains[2].gain.value, 0);
   audio.setMusicLevel(1); assert.equal(gains[2].gain.value, 0.4 * 0.55);
 } finally { if (previousWindow === undefined) delete globalThis.window; else globalThis.window = previousWindow; }
-console.log('Finale credits timing, coordinated fade, black hold and volume preservation pass');
+console.log('Credits roll once while the scene and music remain available; volume preservation passes');

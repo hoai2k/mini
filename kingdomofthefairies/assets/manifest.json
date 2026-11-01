@@ -5089,6 +5089,86 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "prince-court-stairs-a": {
+      "status": "delivered",
+      "file": "prince-court-stairs-a.webp",
+      "size": [
+        320,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-stairs-a-tinted": {
+      "status": "delivered",
+      "file": "prince-court-stairs-a-tinted.webp",
+      "size": [
+        320,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-stairs-a": {
+      "status": "delivered",
+      "file": "azurine-stairs-a.webp",
+      "size": [
+        300,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-stairs-a-tinted": {
+      "status": "delivered",
+      "file": "azurine-stairs-a-tinted.webp",
+      "size": [
+        300,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-stairs-b": {
+      "status": "delivered",
+      "file": "prince-court-stairs-b.webp",
+      "size": [
+        320,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "prince-court-stairs-b-tinted": {
+      "status": "delivered",
+      "file": "prince-court-stairs-b-tinted.webp",
+      "size": [
+        320,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-stairs-b": {
+      "status": "delivered",
+      "file": "azurine-stairs-b.webp",
+      "size": [
+        300,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
+    },
+    "azurine-stairs-b-tinted": {
+      "status": "delivered",
+      "file": "azurine-stairs-b-tinted.webp",
+      "size": [
+        300,
+        440
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {

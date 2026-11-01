@@ -9,7 +9,7 @@ import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
 import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, NEAR_HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
 import act2, { FAIRY_AT, FILM_DIVE, RIDE } from '../src/acts/act2.js';
 import act3, { PASSAGE } from '../src/acts/act3.js';
-import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach, weddingGuests, guestHop, CELEBRATION, AURORA, auroraFacing } from '../src/acts/act5film.js';
+import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach, weddingGuests, guestHop, CELEBRATION, AURORA, auroraFacing, WEDDING, weddingFloor } from '../src/acts/act5film.js';
 import { CLIMB, terrainAt } from '../src/acts/climb.js';
 import { CLIMB_MAPS } from '../src/acts/climb-map.js';
 import act4 from '../src/acts/act4.js';
@@ -419,7 +419,8 @@ test('Act VI: out on the cliff, push the barrel over, walk the wedding street an
   assert.equal(st.status, 'play', 'the ending is not cut short by the old iris');
   assert.equal(actBurning.mood(st), 'wedding');
   run(actBurning, st, FINALE_END + 1);
-  assert.equal(st.status, 'won', st.phase);
+  assert.equal(st.status, 'play', 'free play continues after the credits');
+  assert.ok(st.creditsT > FINALE_END);
   assert.equal(st.result.ending, 'wedding');
 });
 
@@ -544,7 +545,7 @@ test('Act VI: celebratory jumps lift the couple together and ripple through gues
   assert.equal(st.cheers.length, 1);
   const expected = [...weddingGuests(st)].sort((a,b) => Math.abs(a[1]-st.w.x)-Math.abs(b[1]-st.w.x)).map(([id])=>id);
   assert.deepEqual(st.cheers[0].order, expected);
-  st.phaseT += CELEBRATION.stagger / 2;
+  st.clock += CELEBRATION.stagger / 2;
   assert.ok(guestHop(st, expected[0]) > 0);
   assert.equal(guestHop(st, expected[1]), 0, 'the next guest has not jumped yet');
   run(actBurning, st, 3);
@@ -556,10 +557,10 @@ test('Act VI: celebratory jumps lift the couple together and ripple through gues
 test('Act VI: walking across the final tableau never ends it; jump beneath Aurora to ascend', () => {
   const st = actBurning.create({ from: { scene: 4 } });
   st.phaseT = FILM_T.weddingLead;
-  st.w.x = 900; actBurning.step(st, DT);
+  run(actBurning,st,20,()=>({moveX:1}),s=>s.phase!=='wedding');
   assert.equal(st.phase, 'apotheosis');
   run(actBurning, st, 3, () => ({ moveX: 1 }));
-  run(actBurning, st, 5, () => ({ moveX: -1 }));
+  run(actBurning, st, 2, () => ({ moveX: -1 }));
   assert.equal(st.riseT, null);
   actBurning.step(st, DT, { a: true });
   assert.equal(st.riseT, null, 'jumping away from Aurora is only a celebration');
@@ -572,6 +573,56 @@ test('Act VI: walking across the final tableau never ends it; jump beneath Auror
   assert.equal(st.w.on, false); assert.equal(st.az.on, false);
   run(actBurning, st, FILM_T.rise + 0.1);
   assert.equal(st.phase, 'finale');
+});
+
+test('Wedding: climb the painted stairs, cross the whole doorway together, and return to the same guests',()=>{
+ const st=actBurning.create({carry:{sleepers:4},from:{scene:4}});st.phaseT=5;st.weddingIntro=false;
+ st.petals[0].got=true;st.petalsGot=1;st.score=20;
+ run(actBurning,st,2,()=>({moveX:1}));
+ assert.ok(st.w.stairs);assert.ok(st.w.y<WEDDING.y-40);
+ const high=st.w.y;run(actBurning,st,.6,()=>({moveX:-1}));assert.ok(st.w.y>high,'walking back descends');
+ st.w.x=WEDDING.gate;st.w.y=weddingFloor(st.w.x);st.w.vx=0;st.az.x=WEDDING.gate-100;st.az.y=weddingFloor(st.az.x);
+ actBurning.step(st,DT,{});assert.equal(st.phase,'wedding','the prince waits for Azurine to cross');
+ run(actBurning,st,3,()=>({moveX:1}),s=>s.phase!=='wedding');assert.equal(st.phase,'apotheosis');
+ run(actBurning,st,3,()=>({moveX:-1}),s=>s.phase==='wedding');assert.equal(st.phase,'wedding');
+ assert.equal(st.weddingIntro,false);assert.equal(actBurning.touchLive(st),true,'touch movement remains active immediately outside');assert.equal(st.weddingMusicStarted,true);assert.equal(st.petalsGot,1);assert.equal(st.score,20);assert.ok(st.petals[0].got);
+ actBurning.step(st,1/144,{moveX:-1});assert.equal(st.phase,'wedding','high refresh-rate return cannot re-enter the door');
+ const landing=st.w.y;run(actBurning,st,2,()=>({moveX:-1}));assert.ok(st.w.y>landing,'the return path comes down the stairs');
+});
+
+test('The backward exit needs a continuous one-second hold; releasing or walking away resets it',()=>{
+ const st=actBurning.create({from:{scene:4}});st.phaseT=5;st.weddingIntro=false;
+ run(actBurning,st,20,()=>({moveX:1}),s=>s.phase!=='wedding');
+ st.w.x=APOTH.x0;st.w.vx=0;
+ run(actBurning,st,.7,()=>({moveX:-1}));assert.equal(st.phase,'apotheosis');assert.ok(st.backT>.6);
+ actBurning.step(st,DT,{});assert.equal(st.backT,0);
+ run(actBurning,st,.7,()=>({moveX:-1}));assert.equal(st.phase,'apotheosis');
+ actBurning.step(st,DT,{moveX:1});assert.equal(st.backT,0);
+ run(actBurning,st,1.2,()=>({moveX:-1}),s=>s.phase==='wedding');assert.equal(st.phase,'wedding');
+ assert.equal(st.weddingIntro,false);
+ // Even holding forward immediately must first finish the short descent.
+ run(actBurning,st,.8,()=>({moveX:1}),s=>!s.weddingExit);assert.equal(st.phase,'wedding');
+ assert.equal(st.weddingExit,false);assert.ok(st.w.x < WEDDING.door-40);
+ run(actBurning,st,.2,()=>({moveX:1}));assert.equal(st.phase,'wedding');
+ run(actBurning,st,3,()=>({moveX:1}),s=>s.phase!=='wedding');assert.equal(st.phase,'apotheosis');
+});
+
+test('Credits free play: hold the jump, release slowly on any direction, visit both sets and jump again without restarting credits',()=>{
+ const st=actBurning.create({from:{scene:4}});st.phaseT=5;st.weddingIntro=false;
+ run(actBurning,st,20,()=>({moveX:1}),s=>s.phase!=='wedding');
+ st.w.x=APOTH.mark;st.w.vx=0;st.az.x=APOTH.mark-70;
+ actBurning.step(st,DT,{a:true,aHeld:true});run(actBurning,st,FILM_T.rise+.1);
+ assert.equal(st.flight,'hold');assert.equal(st.lift,140);assert.equal(st.phase,'finale');
+ run(actBurning,st,3);assert.equal(st.flight,'hold');const firstClock=st.creditsT;
+ actBurning.step(st,DT,{moveY:1});assert.equal(st.flight,'descend');assert.ok(st.lift>130);
+ run(actBurning,st,2.1,()=>({moveY:1}));assert.equal(st.flight,null);assert.equal(st.w.on,true);assert.equal(st.az.on,true);
+ assert.equal(st.w.y,APOTH.y);assert.ok(st.creditsT>firstClock);
+ const beforeJump=st.creditsT;actBurning.step(st,DT,{a:true});run(actBurning,st,FILM_T.rise+.1);
+ assert.equal(st.flight,'hold');assert.ok(st.creditsT>beforeJump,'a repeated jump never restarts the roll');
+ run(actBurning,st,2.1,()=>({moveX:-1}));run(actBurning,st,8,()=>({moveX:-1}),s=>s.phase==='wedding');
+ assert.equal(st.phase,'wedding');const outsideClock=st.creditsT;
+ run(actBurning,st,20,()=>({moveX:1}),s=>s.phase!=='wedding');assert.equal(st.phase,'finale');assert.ok(st.creditsT>outsideClock);
+ run(actBurning,st,FINALE_END+1);assert.equal(st.status,'play');assert.equal(st.phase,'finale');
 });
 
 test('Act V: from the clifftop he walks to the edge and dives into the sea gap', () => {

@@ -92,9 +92,9 @@ and the production art for the film edition (F1–F4) after them.
 
 ## Production art for the film edition
 
-Requested 11 October 2026: 398 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
+Requested 11 October 2026: 406 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 398 of 398 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 406 of 406 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -3084,6 +3084,69 @@ Two furious pantomime poses facing the prince to the left. The barrel stays regi
 400 × 360 px, anchor bottom centre.
 
 > The same elderly witch and iron-hooped barrel as witch-barrel-tinted.webp, now facing LEFT toward the prince, snarling and shouting defiantly. The pointing arm bends into a clenched fist shaken left in front of her chest; the other fist rises higher beside her hood. Preserve pose A barrel, head and torso pixel positions. Same teal wool hood, white hair, wrinkled hooked-nose face, wood staves, hoops and palette. Full figure in frame on genuine transparent alpha; no floor, shadow, halo, scenery or text. Barrel base centred at the bottom; identical barrel size between frames. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### F30. The couple climb the wedding stairs
+
+Two restrained alternating stair steps in court dress, matched to the standing sprites. Face right going up and mirror going down, behind the painted banister mask.
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `prince-court-stairs-a` | 320 × 440 | bottom centre | new | [delivered](../assets/prince-court-stairs-a.webp) |
+| `prince-court-stairs-a-tinted` | 320 × 440 | bottom centre | new | [delivered](../assets/prince-court-stairs-a-tinted.webp) |
+| `prince-court-stairs-b` | 320 × 440 | bottom centre | new | [delivered](../assets/prince-court-stairs-b.webp) |
+| `prince-court-stairs-b-tinted` | 320 × 440 | bottom centre | new | [delivered](../assets/prince-court-stairs-b-tinted.webp) |
+| `azurine-stairs-a` | 300 × 440 | bottom centre | new | [delivered](../assets/azurine-stairs-a.webp) |
+| `azurine-stairs-a-tinted` | 300 × 440 | bottom centre | new | [delivered](../assets/azurine-stairs-a-tinted.webp) |
+| `azurine-stairs-b` | 300 × 440 | bottom centre | new | [delivered](../assets/azurine-stairs-b.webp) |
+| `azurine-stairs-b-tinted` | 300 × 440 | bottom centre | new | [delivered](../assets/azurine-stairs-b-tinted.webp) |
+
+#### `prince-court-stairs-a` — prince-court on the stairs, frame A
+
+320 × 440 px, anchor bottom centre.
+
+> Preserve the exact face, costume, head size, muted palette and brightness of prince-court.webp. One full-body natural stair step facing RIGHT, one foot a step higher and the other pushing off; no jumping. Frame B swaps the weight-bearing legs of frame A without changing face, scale or costume. Azurine gently lifts her gown hem. Transparent alpha, no stair, floor, shadow, glow or scenery. Full figure with lowest shoe at bottom centre. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-court-stairs-a-tinted` — prince-court on the stairs, frame A-tinted
+
+320 × 440 px, anchor bottom centre.
+
+> Preserve the exact face, costume, head size, muted palette and brightness of prince-court-tinted.webp. One full-body natural stair step facing RIGHT, one foot a step higher and the other pushing off; no jumping. Frame B swaps the weight-bearing legs of frame A without changing face, scale or costume. Azurine gently lifts her gown hem. Transparent alpha, no stair, floor, shadow, glow or scenery. Full figure with lowest shoe at bottom centre. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-court-stairs-b` — prince-court on the stairs, frame B
+
+320 × 440 px, anchor bottom centre.
+
+> Preserve the exact face, costume, head size, muted palette and brightness of prince-court.webp. One full-body natural stair step facing RIGHT, one foot a step higher and the other pushing off; no jumping. Frame B swaps the weight-bearing legs of frame A without changing face, scale or costume. Azurine gently lifts her gown hem. Transparent alpha, no stair, floor, shadow, glow or scenery. Full figure with lowest shoe at bottom centre. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-court-stairs-b-tinted` — prince-court on the stairs, frame B-tinted
+
+320 × 440 px, anchor bottom centre.
+
+> Preserve the exact face, costume, head size, muted palette and brightness of prince-court-tinted.webp. One full-body natural stair step facing RIGHT, one foot a step higher and the other pushing off; no jumping. Frame B swaps the weight-bearing legs of frame A without changing face, scale or costume. Azurine gently lifts her gown hem. Transparent alpha, no stair, floor, shadow, glow or scenery. Full figure with lowest shoe at bottom centre. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `azurine-stairs-a` — azurine on the stairs, frame A
+
+300 × 440 px, anchor bottom centre.
+
+> Preserve the exact face, costume, head size, muted palette and brightness of azurine-stand.webp. One full-body natural stair step facing RIGHT, one foot a step higher and the other pushing off; no jumping. Frame B swaps the weight-bearing legs of frame A without changing face, scale or costume. Azurine gently lifts her gown hem. Transparent alpha, no stair, floor, shadow, glow or scenery. Full figure with lowest shoe at bottom centre. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `azurine-stairs-a-tinted` — azurine on the stairs, frame A-tinted
+
+300 × 440 px, anchor bottom centre.
+
+> Preserve the exact face, costume, head size, muted palette and brightness of azurine-stand-tinted.webp. One full-body natural stair step facing RIGHT, one foot a step higher and the other pushing off; no jumping. Frame B swaps the weight-bearing legs of frame A without changing face, scale or costume. Azurine gently lifts her gown hem. Transparent alpha, no stair, floor, shadow, glow or scenery. Full figure with lowest shoe at bottom centre. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `azurine-stairs-b` — azurine on the stairs, frame B
+
+300 × 440 px, anchor bottom centre.
+
+> Preserve the exact face, costume, head size, muted palette and brightness of azurine-stand.webp. One full-body natural stair step facing RIGHT, one foot a step higher and the other pushing off; no jumping. Frame B swaps the weight-bearing legs of frame A without changing face, scale or costume. Azurine gently lifts her gown hem. Transparent alpha, no stair, floor, shadow, glow or scenery. Full figure with lowest shoe at bottom centre. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `azurine-stairs-b-tinted` — azurine on the stairs, frame B-tinted
+
+300 × 440 px, anchor bottom centre.
+
+> Preserve the exact face, costume, head size, muted palette and brightness of azurine-stand-tinted.webp. One full-body natural stair step facing RIGHT, one foot a step higher and the other pushing off; no jumping. Frame B swaps the weight-bearing legs of frame A without changing face, scale or costume. Azurine gently lifts her gown hem. Transparent alpha, no stair, floor, shadow, glow or scenery. Full figure with lowest shoe at bottom centre. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 <!-- FILM ASSETS END -->
 

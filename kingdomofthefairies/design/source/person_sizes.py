@@ -36,12 +36,13 @@ REPORT = ROOT / 'design' / 'person-sizes.md'
 
 # who: (reference, {look: head box x0, y0, x1, y1}, [sprites], rotation searched)
 CAST = {
+    'prince-court': ('prince-court', {'': (58, 8, 114, 65), '-tinted': (58, 8, 114, 65)}, ['prince-court-stairs-a', 'prince-court-stairs-b'], 45),
     # The strike is drawn through drawPerson; its extended sword makes the
     # figure much smaller within its canvas than the standing prince.
     'prince-armed': ('prince-stand', {'': (119, 34, 148, 75), '-tinted': (119, 34, 148, 75)},
                      ['prince-strike', 'prince-caught-lobster', 'prince-caught-human'], 30),
     'azurine': ('azurine-stand', {'': (60, 8, 115, 60), '-tinted': (55, 8, 105, 58)},
-                ['azurine-walk-a', 'azurine-walk-b', 'azurine-pass-a', 'azurine-pass-b', 'azurine-swoon', 'azurine-jump', 'azurine-asleep', 'azurine-window'], 100),
+                ['azurine-stairs-a', 'azurine-stairs-b', 'azurine-walk-a', 'azurine-walk-b', 'azurine-pass-a', 'azurine-pass-b', 'azurine-swoon', 'azurine-jump', 'azurine-asleep', 'azurine-window'], 100),
     'aurora': ('aurora-stand', {'': (105, 58, 152, 110), '-tinted': (108, 55, 152, 106)},
                ['aurora-point', 'aurora-glide-a', 'aurora-glide-b'], 45),
     'witch': ('witch-hooded', {'': (55, 60, 97, 115), '-tinted': (25, 68, 72, 120)},
@@ -65,6 +66,15 @@ CAST = {
 # pose; looked at on the sheets, every sprite at one person height.
 # Measured brow to chin against the reference at native scale, 30 Oct 2026.
 BY_EYE = {
+    # Stair frames calibrated at the same full person height; reviewed in play.
+    'azurine-stairs-a': 1.15789474,
+    'azurine-stairs-b': 1.15789474,
+    'azurine-stairs-a-tinted': 1.15789474,
+    'azurine-stairs-b-tinted': 1.15789474,
+    'prince-court-stairs-a': 1.24645892,
+    'prince-court-stairs-b': 1.24645892,
+    'prince-court-stairs-a-tinted': 1.24293785,
+    'prince-court-stairs-b-tinted': 1.24293785,
     # Face comparison in barrel-defiance/witch-heads.jpg; the arm gesture
     # confuses the template. Both frames preserve exactly the same head.
     'witch-barrel-anger-a': 1.16,

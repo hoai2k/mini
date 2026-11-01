@@ -1,11 +1,12 @@
 import { walkFrame } from '../walking.js';
+import { weddingForeground } from '../wedding-foreground.js';
 import { CREDITS, finaleFrame } from '../finale.js';
 // Drawing for the film edition's Act V and Act VI (act5film.js). The climbs,
 // the burning interior's floors, connectors and hazards, and the carry reuse
 // Act V's drawing (act5-art.js); the sea gap, the tower wall, the tower's
 // stone interior, the clifftop and the tableaux are new. Every requested
 // piece of art has a stand-in. Draw only from state and t.
-import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DUEL, DIVE, WEDDING, APOTH, weddingGuests, guestHop, AURORA, auroraFacing } from './act5film.js';
+import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DUEL, DIVE, WEDDING, APOTH, weddingGuests, guestHop, AURORA, auroraFacing, weddingDoorAlpha } from './act5film.js';
 import { HOUSE, QUAY, T, climberPos } from './act5.js';
 import {
   onEvent as act5Event, cliffScene, holds, climbGuide, climber, rocksWorld, rockWarnings,
@@ -236,7 +237,7 @@ export function drawBurning(k, st, t) {
 }
 
 export function drawOverBurning(k, st) {
-  if (st.phase === 'finale') rollingCredits(k, st.phaseT);
+  if (st.creditsT != null) rollingCredits(k, st.creditsT);
   if (st.defeatT != null) k.wash('#2a1424', 0.55 * clamp(st.defeatT / FILM_T.defeat, 0, 1));
   if (st.phase === 'iris') k.iris(640, 300, 760 * (1 - easeInOut(st.phaseT / FILM_T.iris)));
   if (st.status === 'won') k.iris(640, 300, 0);
@@ -372,8 +373,8 @@ function clifftop(k, st, t) {
 // The prince on foot (walker state `w`), facing his way, `h` tall.
 function princeOnFoot(k, w, h = 170, celebrating = false) {
   if (celebrating) {
-    const id = !w.on ? 'prince-court-leap' : Math.abs(w.vx) > 20 ? walkFrame('prince-court', w.walk, 36) : 'prince-court';
-    if (drawPose(k, id, w.x, w.y, h, { face: w.face })) return;
+    const id = !w.on ? 'prince-court-leap' : w.stairs && Math.abs(w.vx)>20 ? 'prince-court-stairs-'+(Math.floor(w.walk/24)%2?'b':'a') : Math.abs(w.vx) > 20 ? walkFrame('prince-court', w.walk, 36) : 'prince-court';
+    if ((id.includes('-stairs-') ? drawPerson : drawPose)(k, id, w.x, w.y, h, { face: w.face })) return;
   }
   const c = k.c, moving = Math.abs(w.vx) > 20, step = walkFrame('prince', w.walk, 36);
   const id = w.knockT > 0 ? 'prince-fall' : !w.on ? (w.vy < -95 ? 'prince-leap' : w.vy > 95 ? 'prince-fall' : 'prince-apex')
@@ -389,8 +390,8 @@ function azurineOnFoot(k, a, y, h = 168) {
   const c = k.c, moving = Math.abs(a.vx || 0) > 20;
   const stride = moving && ['walk-a', 'pass-a', 'walk-b', 'pass-b'].every(pose => k.img('azurine-' + pose));
   const bob = !moving || stride ? 0 : Math.abs(Math.sin(a.walk / 24)) * 4;
-  const id = a.on === false ? 'azurine-jump' : stride ? walkFrame('azurine', a.walk, 36) : 'azurine-stand';
-  if (drawPerson(k, id, a.x, (a.y ?? y) - (a.on === false ? 0 : bob), h, { face: -a.face })) return;
+  const id = a.on === false ? 'azurine-jump' : a.stairs && moving ? 'azurine-stairs-'+(Math.floor(a.walk/24)%2?'b':'a') : stride ? walkFrame('azurine', a.walk, 36) : 'azurine-stand';
+  if (drawPerson(k, id, a.x, (a.y ?? y) - (a.on === false ? 0 : bob), h, { face: id.startsWith('azurine-stairs-') ? a.face : -a.face })) return;
   c.save(); c.translate(a.x, y - bob); c.scale(-a.face, 1); if (!stride) c.rotate(Math.sin(a.walk / 24) * 0.03);
   if (!k.asset(id, 0, 0, h * 0.53, h)) { c.fillStyle = k.col('#c9d8ee'); c.fillRect(-16, -h * 0.8, 32, h * 0.8); }
   c.restore();
@@ -596,28 +597,32 @@ function barrelScene(k, st, t) {
 
 // The wedding street: the court lines the way; he walks Azurine to the gate.
 const GUESTS_Y = 622;
-function wedding(k, st, t) {
-  const c = k.c, w = st.w;
-  if (!k.asset('wedding-street', 640, 720, 1280, 720)) { c.fillStyle = k.col('#cfd8e6'); c.fillRect(0, 0, 1280, 720); }
-  if (!w) return;
-  weddingGuests(st).forEach(([id, x], i) => {
-    const hop = guestHop(st, id);
-    c.save(); c.translate(x, GUESTS_Y - hop); if (x > WEDDING.gate) c.scale(-1, 1);
-    k.idle(id, t + i, 0, 0, 82, 150);
-    c.restore();
+function wedding(k,st,t){
+  const c=k.c,w=st.w;
+  if(!k.asset('wedding-street',640,720,1280,720)){c.fillStyle=k.col('#cfd8e6');c.fillRect(0,0,1280,720);}
+  if(!w)return;
+  const couple=stairs=>{
+    for(const [actor,princess] of [[st.az,true],[w,false]]){
+      if((actor.x>=WEDDING.stairs)!==stairs)continue;
+      c.save();c.globalAlpha=weddingDoorAlpha(actor.x);
+      if(princess)azurineOnFoot(k,actor,WEDDING.y,160);else princeOnFoot(k,actor,160,true);
+      c.restore();
+    }
+  };
+  couple(true);
+  weddingForeground(k);
+  weddingGuests(st).forEach(([id,x],i)=>{
+    const hop=guestHop(st,id);c.save();c.translate(x,GUESTS_Y-hop);if(x>WEDDING.gate-300)c.scale(-1,1);
+    k.idle(id,t+i,0,0,82,150);c.restore();
   });
-  // the gate glows
-  c.save(); c.globalAlpha = 0.25 + 0.15 * Math.sin(t * 3); c.fillStyle = k.col('#fff2b0'); c.beginPath(); c.ellipse(WEDDING.gate, 560, 70, 110, 0, 0, Math.PI * 2); c.fill(); c.restore();
-  azurineOnFoot(k, st.az, WEDDING.y, 160);
-  princeOnFoot(k, w, 160, true);
-  for (const p of st.petals) if (!p.got && p.y > -20) { c.fillStyle = k.col('#f3c6dc'); c.save(); c.translate(p.x, p.y); c.rotate(p.y * 0.05); c.beginPath(); c.ellipse(0, 0, 8, 4, 0, 0, Math.PI * 2); c.fill(); c.restore(); }
-  if (st.phaseT < 6) hint(k, 'Walk to the castle gate · [A] jump for joy together');
-  else if (st.petalsGot) { c.save(); c.textAlign = 'left'; c.font = '700 16px "Josefin Sans", sans-serif'; c.fillStyle = k.col('#f3c6dc'); c.fillText(`Petals ${st.petalsGot}`, 160, 110); c.restore(); }
+  couple(false);
+  for(const p of st.petals)if(!p.got&&p.y>-20){c.fillStyle=k.col('#f3c6dc');c.save();c.translate(p.x,p.y);c.rotate(p.y*.05);c.beginPath();c.ellipse(0,0,8,4,0,0,Math.PI*2);c.fill();c.restore();}
+  if(st.phaseT<6&&st.weddingIntro!==false)hint(k,'Dance with the guests · walk up the stairs and through the door');
 }
 
 // The apotheosis: walk together into the light beneath Aurora, and rise.
 function apotheosis(k, st, t) {
-  const c = k.c, w = st.w, rise = st.riseT == null ? 0 : easeInOut(clamp(st.riseT / FILM_T.rise, 0, 1));
+  const c = k.c, w = st.w, rise = (st.lift || 0) / 140;
   if (!k.asset('apotheosis', 640, 720, 1280, 720)) { c.fillStyle = k.col('#f4e6c8'); c.fillRect(0, 0, 1280, 720); }
   // the pillar of light at the centre
   const g = c.createLinearGradient(APOTH.mark - 90, 0, APOTH.mark + 90, 0);
@@ -632,8 +637,9 @@ function apotheosis(k, st, t) {
   azurineOnFoot(k, st.az, APOTH.y, 166);
   princeOnFoot(k, w, 166, true);
   c.restore();
-  if (st.riseT == null) hint(k, Math.abs(w.x - APOTH.mark) < APOTH.near + 35 ? '[A] Jump into the light' : 'Celebrate together · jump into the light beneath Aurora when ready');
-  if (rise > 0) celebrationSparkles(k, st.phaseT);
+  if (st.flight === 'hold') hint(k,'Move to float down and keep celebrating');
+  else if (!st.flight) hint(k,Math.abs(w.x-APOTH.mark)<APOTH.near+35?'[A] Jump into the light':st.backT > 0 ? 'Keep holding left to return to the guests' : 'Dance here · hold left at the exit to return to the guests');
+  if (rise > 0 || st.creditsT != null) celebrationSparkles(k, st.clock);
   if (rise > 0 && st.phase !== 'finale') card(k, 'The Kingdom of the Fairies', 'The end', clamp(st.riseT - 1, 0, 1));
 }
 

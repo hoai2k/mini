@@ -58,13 +58,17 @@ acts. The first four keep their stage machinery and rules, recast:
 6. The Burning Tower: the burning floors, carrying Azurine out, the witch's
    last stand on the clifftop (leap her fire, strike her three times with the
    sword), after which she hides in her barrel and he pushes it over, walking Azurine
-   along the wedding street to the gate, jumping for joy with Azurine as the guests cheer in a ripple. Explore the apotheosis freely, then jump into the light beneath Aurora when ready to finish. The witch’s disappearance holds for the opening of the victory flourish, then fades with its last chord into a gradual wedding entrance.
+   along the wedding street, jumping for joy with Azurine as the guests cheer in a ripple. Climb the painted stairs and walk through the doorway into the apotheosis; hold left at its exit for one second to come back out and dance with the guests. Jump into the light beneath Aurora to begin the credits. The witch’s disappearance holds for the opening of the victory flourish, then fades with its last chord into a gradual wedding entrance.
    Every scene is played: nothing is timed to the beat or shown as a still.
 
-The final ascent opens a 45-second closing sequence: five seconds of sparkling
-celebration, a 30-second bottom-to-top credit roll, an eight-second fade of the
-scene and music together, and a brief black hold. “Procession Royale” continues
-from the wedding through the credits. Completion is saved before the roll.
+The final ascent holds the couple in their celebratory pose: five seconds of
+sparkling celebration precede the 30-second credit roll. Any direction gently
+releases them to the ground over two seconds. Keep walking, dancing and
+travelling between the wedding street and the final tableau during and after
+the credits. Returning outside begins with a short automatic stair descent,
+so an immediate forward press cannot send you straight back inside. Each jump into Aurora’s light repeats the slow ascent and hold,
+while the credits run only once. “Procession Royale” continues throughout,
+and completion is saved before the roll.
 
 The film cast, props and sets use the delivered production art; anything still
 requested is drawn by an interim cut-out from the planning sheets (`assets/interim/`, `assets/tableaux/`, made by
