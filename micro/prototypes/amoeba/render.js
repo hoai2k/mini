@@ -512,10 +512,13 @@ export class View {
     }
     for (const c of this.cells) c.granMat.uniforms.uPx.value = this.px;
 
-    // Obstacles.
+    // Obstacles (and prey, below) outside this view are not drawn: the slide
+    // runs on for millimetres in every direction.
+    const [cl, cb, cw, ch] = this.view;
+    const inView = (x, y, e) => x > cl - e && x < cl + cw + e && y > cb - e && y < cb + ch + e;
     for (const ob of this.world.obstacles) {
       const m = this.obstacleMesh(ob);
-      m.visible = ob.layer === 'above' ? flags.above && !this.photo : (flags.obstacles && !ob.hidden) || ob.residue;
+      m.visible = (ob.layer === 'above' ? flags.above && !this.photo : (flags.obstacles && !ob.hidden) || ob.residue) && inView(ob.x, ob.y, Math.max(ob.L, ob.W) * 0.6 + 80);
       m.position.set(ob.x, ob.y, 0);
       m.rotation.z = ob.ang;
       m.material.uniforms.uPx.value = this.px;
@@ -534,8 +537,11 @@ export class View {
     }
 
     // Prey.
+    for (const m of this.preyMeshes.values()) m.visible = false;
     for (const p of prey) {
       const m = this.preyMesh(p);
+      m.visible = inView(p.x, p.y, 300);
+      if (!m.visible) continue;
       const u = m.material.uniforms;
       m.position.set(p.x, p.y, 0);
       m.rotation.z = p.heading;

@@ -396,7 +396,7 @@ function buildSpokes(world) {
       const len = last ? Math.max(14, left + 2.6) : Math.max(12, Math.min(16 + rnd() * 3, left - 16));
       const kind = last || j % 2 ? 'sphagnum' : 'lamina';
       const hw = last ? 4.4 : Math.min(4.2, 2.3 + 0.5 * j);
-      const make = (b) => new Leaf({ id: -1, name: last ? `Sphagnum leaf (spoke ${k + 1}, the rim)` : `${kind === 'sphagnum' ? 'Sphagnum leaf' : 'leaf'} (spoke ${k + 1}, ${j + 1})`, kind, base: b.toArray(), dir: lead.toArray(), normalHint: nh.toArray(), len, hw, spoke: k });
+      const make = (b) => new Leaf({ id: -1, name: last ? `Sphagnum leaf (spoke ${k + 1}, the rim)` : `${kind === 'sphagnum' ? 'Sphagnum leaf' : 'leaf'} (spoke ${k + 1}, ${j + 1})`, kind, base: b.toArray(), dir: lead.toArray(), normalHint: nh.toArray(), len, hw, spoke: k, pool: last });
       let L = make(base);
       // tuck it under the last leaf: clear of it everywhere they overlap
       // (0.08 units at least), the head's gap at the hand-over ~0.25

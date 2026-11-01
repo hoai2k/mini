@@ -47,7 +47,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     G({ id: 'bdello', name: 'Bdellovibrio pack', kind: 'bdello', max: pack.length * FIGHT.bdelloHp, regen: 0, zone: 55 }),
     G({ id: 'phage', name: 'Phage cloud', kind: 'phage', max: cloudN0, regen: 0, zone: cloud.r + 32 }),
     G({ id: 'amoeba', name: 'Amoeba', kind: 'amoeba', A: world.amoeba, max: 75, regen: 5, zone: 70 }),
-    G({ id: 'grazer2', name: 'Peritrich', kind: 'grazer', g: g2, max: 55, regen: 6, zone: 55 }),
+    G({ id: 'grazer2', name: 'Peritrich', kind: 'grazer', g: g2, max: 50, regen: 5, zone: 55 }),
     G({ id: 'stentor', name: 'Stentor', kind: 'stentor', B: stentor, max: 170, regen: 3, zone: stentor.wakeR }),
   ];
   const byId = Object.fromEntries(list.map((q) => [q.id, q]));

@@ -1,5 +1,7 @@
-// Tardigrade: climbing moss-leaf cell walls with your claws while the water
-// film dries ("The Drying"). Seen through a DIC microscope.
+// Tardigrade: climbing moss-leaf cell walls with your claws, out from the
+// shoot along spokes of leaves through rings of encounters (Milnesium, the
+// rotifer meadows, dry patches) to the portal Prionchulus guards. Seen
+// through a DIC microscope.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createPlayers } from '../shared/players.js';
@@ -13,17 +15,18 @@ import { createAudio } from '../shared/audio.js';
 import { DicMicroscope } from '../shared/techniques/tardigrade-dic.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, AMOEBA_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
 import { legOffset } from '../shared/techniques/mite-gait.js';
-import { World, Particles, LAYER_SUBSTRATE, LAYER_SPECIMEN } from './world.js';
+import { World, Particles, LAYER_SUBSTRATE, LAYER_SPECIMEN, RINGS, SPOKES, START_SPOT, tipU } from './world.js';
 import { Creature } from './creature.js';
 import { Walker, GAITS, setGait, setGaitWith } from './gait.js';
-import { Life, COMPRESSIONS } from './life.js';
+import { Life } from './life.js';
 import { Predator } from './predator.js';
 import { createCapture } from '../shared/predation.js';
 import { wireAssets } from './textures.js';
 import { LEAF_FX, opticalMaterial, litMaterial } from './materials.js';
-import { Landmarks } from './landmarks.js';
-import { Nematode } from './nematode.js';
-import { Meadow, MEADOW } from './meadow.js';
+import { Landmarks, PORTAL_IN } from './landmarks.js';
+import { Nematode, GUARD } from './nematode.js';
+import { Meadows } from './meadow.js';
+import { createPortalLight } from '../shared/portal.js';
 
 const MODES = ['DIC (Nomarski)', 'Brightfield', 'Lit (hypothetical)'];
 // The second entry is the 10× objective behind a 1.25× intermediate
@@ -78,22 +81,22 @@ const players = createPlayers({
 const pad = players.pad(0);
 const ctl = players.controls(0);
 const hud = mountHud({
-  title: 'Tardigrade · The Drying',
-  sub: 'A ~350 µm eutardigrade gripping moss-leaf cell walls in a drying water film, stalked by a Milnesium. Differential interference contrast (DIC) look.',
+  title: 'Tardigrade · The Moss Film',
+  sub: 'A ~350 µm eutardigrade gripping moss-leaf cell walls in the water film: out from the shoot past a Milnesium, rotifer meadows and dry patches to the pool Prionchulus guards. Differential interference contrast (DIC) look.',
   controls: hudControls({
     move: 'Crawl (relative to the view): a slight push creeps, full tilt hurries; keys walk at a middle pace, hold G to hurry, T to creep. Push into a leaf edge to reach across',
     camera: 'Turn and tilt the view (up looks up)',
-    dash: 'Scramble: a burst of fast wave gait (costs water and reserves)',
+    dash: 'Scramble: a burst of fast wave gait (recharges in a few seconds)',
     attack: 'Pierce with the stylets: feed, or jab a Milnesium (bite back)',
     defend: 'Hold: brace. Facing a Milnesium, it blocks the lunge',
-    special: 'Hold: curl into a tun (again: wake, if wet)',
+    special: 'Hold: curl into a tun (again: wake)',
     analog: 'Fine focus down / up',
     secondary: 'Anatomy labels / rain (test)',
     look: 'Optical look: DIC / brightfield / lit',
     zoom: 'Magnification 10× / 12.5× / 20× / 40×',
-    extra: [['LS click', 'Refocus on the animal'], ['RS click', 'New day (test)']],
+    extra: [['LS click', 'Refocus on the animal'], ['RS click', 'Restart (test)']],
   }),
-  note: 'Head for the brass chevron: down onto the Sphagnum leaf, across the broad leaf below (a meadow of rotifers to push and jab through, a Milnesium hunting there) and past Prionchulus to the far Sphagnum leaf\'s tip, where the film meets the pool, to zoom in to the pool floor. The first half is yours to explore and feed in; the leaf axil at the stem, left (the ring), is the way back up: Y there. Other controllers join with any button. 1 s = 4 min of the day (240×; change it in Features). Walking and feeding are real time: ~30 µm/s at a slight push of the stick to ~150 µm/s at full tilt (inside the measured 79-263 µm/s); the scramble (~280 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
+  note: 'Goal: head out along the leaves in any direction. The encounters come in rings round the start, the same whichever way you go: a few seconds of calm leaves, then a Milnesium\'s water, a calm stretch, a band of rotifers across the way (push and jab through), another, a stretch of dry patches (bare cells, slow going: walk round them), and about 7 mm out the way on: the tip of a broad Sphagnum leaf dipping into the pool under a golden sparkle, guarded by Prionchulus. Lure it off its post (it gives up and glides back slowly), then get round it to the tip, to zoom in to the pool floor. Nothing runs out while you stay put; food heals. The leaf axil at the stem, left of the start (the ring), is the way back up: Y there. Other controllers join with any button. Walking ~30 µm/s at a slight push to ~150 µm/s at full tilt (inside the measured 79-263 µm/s); the scramble (~280 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
 });
 
 const toast = (t, ms) => hud.toast(t, ms);
@@ -147,7 +150,8 @@ const walker = new Walker(world, creature, walkerEvents(p1));
 const lifeEvents = (a) => ({
   toast: (t, ms) => toast(who(a) + t, ms),
   rumble: (ms, w, s) => { if (rumbleOn) a.pad.rumble(ms, w, s); },
-  newDay: () => { predator.reset(); boss.reset(); meadow.reset(); endCapture(); for (const b of animals) if (b !== a) { b.life.respawn(0.5); spawnNear(b, a); } },
+  newDay: () => { restartRings(); endCapture(); for (const b of animals) if (b !== a) { b.life.respawn(1); spawnNear(b, a); } },
+  startSpot: () => [world.leaves[START_SPOT.leaf], 1, START_SPOT.u, START_SPOT.v, 1, 0],
   // Local multiplayer: a dead animal (a tun that did not wake) comes back beside a teammate.
   restart: (life) => { if (players.count > 1) respawnNear(a); else life.newDay(); },
   // The food is drawn in through the buccal tube and stays visible inside, fading into the gut.
@@ -158,26 +162,29 @@ const predator = new Predator(scene, world, { toast, rumble });
 const dash = createDash({ duration: 0.9, cooldown: 2.6 });
 Object.assign(p1, { walker, life, dash, particles: null });
 animals.push(p1);
-const places = new Landmarks(scene, world);
-// The boss: Prionchulus, a predatory nematode guarding the Sphagnum leaf on the way to the pool.
+const places = new Landmarks(scene, world, { pixelHeight: () => renderer.getDrawingBufferSize(_db).y });
+// The boss: Prionchulus, a predatory nematode guarding the portal (placed with it, placePortal).
 const boss = new Nematode(scene, world);
-// The rotifer meadow: a crowd to push and bite through, past halfway (meadow.js, shared/crowd.js).
-const meadow = new Meadow(scene, world);
-meadow.on = true;
+// The rotifer meadows: a band across every spoke on the meadow ring (meadow.js, shared/crowd.js).
+const meadowBands = world.spokes.map((sp) => {
+  const mid = world.spokeAt(sp.k, (RINGS.meadow[0] + RINGS.meadow[1]) / 2, 2);
+  const L = mid.leaf, half = (RINGS.meadow[1] - RINGS.meadow[0]) / 2;
+  const u0 = THREE.MathUtils.clamp(mid.u - half, 1.4, tipU(L) - 1 - 2 * half);
+  return { leaf: L, u0, u1: u0 + 2 * half };
+});
+const meadow = new Meadows(scene, world, meadowBands);
 
-// ---------------------------------------------------------------- the route
-// Progress from the start to the pool tip (0 .. 1, along the straight line).
-// Every challenge waits until a player is at least halfway: Milnesium hunts
-// only a player past HALF, the meadow and Prionchulus lie beyond it.
-const START = walker.dispPos.clone();
-const HALF = 0.5;
-const _pg = new THREE.Vector3(), _pq = new THREE.Vector3();
-function progress(p) { const d = _pg.subVectors(places.forward, START); return _pq.subVectors(p, START).dot(d) / d.lengthSq(); }
-const challenges = []; // the first time each challenge starts: { kind, progress, um }
+// ---------------------------------------------------------------- the rings
+// The encounter pattern (../../design/encounter-pattern.md): the same rings in
+// every direction (world.js RINGS, checked by route.test.mjs). Progress is the
+// straight-line (horizontal) distance from the start over the portal ring's.
+const START = world.start.clone();
+function progress(p) { return world.radius(p) / RINGS.portal; }
+const challenges = []; // the first time each challenge starts: { kind, progress, um, time }
 function logChallenge(kind, a) {
   if (challenges.some((c) => c.kind === kind)) return;
   const p = a.walker.dispPos;
-  challenges.push({ kind, slot: a.slot, progress: +progress(p).toFixed(3), um: Math.round(p.distanceTo(START) * 100), totalUm: Math.round(places.forward.distanceTo(START) * 100), time: +time.toFixed(1) });
+  challenges.push({ kind, slot: a.slot, progress: +progress(p).toFixed(3), um: Math.round(world.radius(p) * 100), spoke: world.spokeOf(a.walker.leaf, p), time: +time.toFixed(1) });
 }
 // The optical buffers are allocated once at the governor's best scale and
 // each view uses a fraction of them (render({ viewScale })): no reallocation
@@ -201,8 +208,8 @@ const viewScale = () => (quality ? quality.scale / Q_MAX : SPLIT_SW[Math.min(4, 
 // Starts at 12.5× (10× with the 1.25× Optovar: 1.6× the 20× field) so the
 // leaf, the film and the surroundings read while the animal stays readable;
 // D-pad down steps out to 10×, up in to 20× and 40×.
-const startBearing = places.forward.clone().sub(walker.dispPos);
-const view = { yaw: Math.atan2(startBearing.x, startBearing.z) + Math.PI + Math.PI / 6, pitch: 1.18, obj: 1, manualFocusT: 99, focus: 0, mode: 0, labels: false, target: new THREE.Vector3(), claws: 1, internals: true, sway: true };
+// (opens looking along leaf A, the +x spoke up and to the right)
+const view = { yaw: Math.atan2(1, 0) + Math.PI + Math.PI / 6, pitch: 1.18, obj: 1, manualFocusT: 99, focus: 0, mode: 0, labels: false, target: new THREE.Vector3(), claws: 1, internals: true, sway: true };
 view.target.copy(walker.dispPos);
 
 function applyMode(m) {
@@ -264,32 +271,30 @@ F({ id: 'footholds', group: 'Motion', label: 'Claws need cell walls', on: true,
   about: 'Each foot searches for the nearest wall within reach and hooks it; junctions and walls across the pull hold best. Off: feet grip anywhere.', onChange: (v) => (walker.opts.footholds = v) });
 F({ id: 'gravity', group: 'Motion', label: 'Slope load and slipping (exaggerated)', on: true,
   about: 'Steep and overhanging faces need more claws planted, or the animal slides. Real 0.35 mm animals are held mainly by surface tension; this is a game rule.', onChange: (v) => (walker.opts.gravity = v) });
-F({ id: 'time', group: 'Simulation', label: 'Time compression', choices: Object.keys(COMPRESSIONS), value: Object.keys(COMPRESSIONS)[0],
-  about: 'How fast the day (and so the drying) runs. Walking and feeding stay real time.', onChange: (v) => (life.compression = COMPRESSIONS[v]) });
-F({ id: 'desic', group: 'Simulation', label: 'Desiccation', on: true, about: 'Dry leaf drains the water meter; empty, it forces a hasty tun.', onChange: (v) => (life.opts.desiccation = v) });
-F({ id: 'risk', group: 'Simulation', label: 'Revival risk', on: true, about: 'A tun may not wake: worse after a hasty tun, on low reserves and long droughts.', onChange: (v) => (life.opts.risk = v) });
+F({ id: 'rings', group: 'Simulation', label: 'Rings round the start (the encounter pattern)', fixed: true,
+  about: 'The shoot round the start, then a spoke of leaves every 30° out to the portal ring (~7.2 mm), with the same encounters at the same distances whichever way you go: calm leaves for the first ~1.5 mm, Milnesium\'s water (1.5-2.9 mm), a calm stretch, a band of rotifers across every spoke (3.9-4.5 mm), another, dry patches (5.1-5.8 mm), and the portal with Prionchulus at 7.2 mm. One Milnesium is moved round its ring, out of sight, to the spoke of whoever is coming out (never while it is busy with someone). No drying clock, no water meter, no hunger: nothing runs out while you stay in a safe spot.' });
 F({ id: 'capacity', group: 'Simulation', label: 'Film capacity field', fixed: true,
-  about: 'Per leaf: wetter towards the stem, in random hollows and where another leaf nearly touches (capillary bridges); margins dry first. Film = capacity - dryness, which climbs through the day.' });
+  about: 'Per leaf: wetter towards the stem, in random hollows and where another leaf nearly touches (capillary bridges); margins thinner. The dry ring\'s patches are bare: no film, a sharp contact line round them, slow going (claws on dry cell walls). The film does not dry out over time.' });
 F({ id: 'labels', group: 'Controls', label: 'Anatomy labels', on: false, about: 'Name the claws, leg IV, buccal tube, bulb, eyespot, gut and storage cells (LB).', onChange: (v) => (view.labels = v) });
 F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'A small knock as each claw hooks a wall; heavy on slips and falls; a kick on each scramble and on a Milnesium bite.', onChange: (v) => (rumbleOn = v) });
 F({ id: 'scramble', group: 'Motion', label: 'Scramble (A)', fixed: true,
-  about: 'A 0.9 s burst of the same back-to-front wave gait at ~280 µm/s, nearly twice the full-tilt walk (150 µm/s): the legs step faster rather than further (each reaches only so far), with up to 45% of each cycle in swing and swings as short as 60 ms. It recharges over 2.6 s; each costs ~3.5% water and 2% reserves. A stretch: the fastest walking measured in Hypsibius is ~260 µm/s.' });
+  about: 'A 0.9 s burst of the same back-to-front wave gait at ~280 µm/s, nearly twice the full-tilt walk (150 µm/s): the legs step faster rather than further (each reaches only so far), with up to 45% of each cycle in swing and swings as short as 60 ms. It recharges over 2.6 s; it costs nothing else. A stretch: the fastest walking measured in Hypsibius is ~260 µm/s.' });
 F({ id: 'reach', group: 'Motion', label: 'Leg reach and hand-off', fixed: true,
   about: 'A lobopod telescopes a little, never more: no leg is drawn longer than 1.14× its rest length. A planted foot steps before it is stretched past 1.11×, and one that cannot lets go; a foot with nothing in reach (crossing to another leaf, over a gap, falling) is drawn up under the body, paddling, until a hold comes into reach. After a transfer the feet let go of the old leaf one by one, back to front, each catching the new one as it comes in reach.' });
 F({ id: 'smooth', group: 'Motion', label: 'Smoothed trunk and camera', on: true,
   about: 'The trunk follows its target through three lags in series, and a change of face (a transfer, the leaf margin, a fall) blends the old pose out over a smootherstep, so position, velocity and acceleration stay continuous. Slipping uses grip hysteresis (slide below 85% of the load for 0.6 s, catch at 75%). Off: the old single lag.',
   onChange: (v) => (walker.opts.smooth = v) });
 F({ id: 'milnesium', group: 'Simulation', label: 'Milnesium (predator)', on: true,
-  about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It browses among the rotifers at the far end of the meadow leaf and hunts only a player who has come at least halfway; after the calm opening (40 s) it is hungry only some of the time (see Threats), and only hungry does it close in slowly (you see it coming), stalk you within ~650 µm and bite (reserves drain; empty, it grips you and swallows you whole, all of it shown). After a bite it lets go, backs off and rests 45-75 s. Escape: scramble (A), retreat into film too thin for its body (it barely moves below ~3.5 µm of water), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
+  about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It browses in its water on the first ring (1.5-2.9 mm out) and hunts only a player in its water (it lets you go ~0.5 mm past it); it is moved round its ring, unseen, to meet whoever is coming out. A moment after someone first comes into its water it gets hungry, then hunger comes and goes (see Threats); only hungry does it close in, stalk you within ~650 µm and bite (each bite −25% health; at none, it grips you and swallows you whole, all of it shown). After a bite it lets go, backs off and rests 45-75 s. Escape: scramble (A) past it, retreat into film too thin for its body (a dry patch), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
   onChange: (v) => { predator.on = v; predator.setVisible(v); } });
 F({ id: 'boss', group: 'Simulation', label: 'Prionchulus (the boss)', on: true,
-  about: 'A predatory nematode (~1.3 mm here; adults reach ~2 mm) guarding the far Sphagnum leaf on the way to the pool, past the meadow (about 85% of the way). Dormant until you come near its post after the calm opening. Its tells: coiling into an S (then a forward whip) or rippling fast (then a sideways sweep), tooth bared. Brace (B) facing it to block, jab its head (X) as it recovers, lure it into thin film where it flounders. Worn down (the brass resolve gauge), it slides away into a deep groove for the rest of the day.',
-  onChange: (v) => { boss.on = v; if (!v) boss.group.visible = false; } });
+  about: 'A predatory nematode (~1.3 mm here; adults reach ~2 mm) on guard at the portal, 420 µm inside it, placed with the portal on the spoke of whoever first nears the portal ring. Reaching the portal while it guards turns you back. It wakes when you come within ~650 µm of its post and follows you up to ~850 µm from it; then (or when it has lost you) it glides back at 60 µm/s, ignoring everyone: that is the way in. Its tells: coiling into an S (then a forward whip) or rippling fast (then a sideways sweep), tooth bared. Brace (B) facing it to block, jab its head (X) as it recovers. Worn down (the brass resolve gauge), it slides away into a deep groove for good, leaving the way open. Off: the portal is open.',
+  onChange: (v) => { boss.on = v; if (!v) boss.group.visible = false; else boss.group.visible = boss.placed; } });
 F({ id: 'meadow', group: 'Simulation', label: 'Rotifer meadow (a crowd)', on: true,
-  about: 'Past halfway, at the far end of leaf E: ~160 bdelloid rotifers anchored by the foot, swaying, their wheel-like coronae beating. Walk into them and they bend aside; a stylet jab (X) makes those in front contract onto their foot and opens a lane (they re-extend later, a little further off). They never hurt you; a dense patch slows you a little. No timer. shared/crowd.js.',
+  about: 'On the meadow ring (3.9-4.5 mm out): a band of ~110 bdelloid rotifers across every spoke\'s leaf, anchored by the foot, swaying, their wheel-like coronae beating. Walk into them and they bend aside; a stylet jab (X) makes those in front contract onto their foot and opens a lane (they re-extend later, a little further off). They never hurt you; a dense patch slows you by up to a quarter. No timer. Only bands with someone on their leaf move. shared/crowd.js.',
   onChange: (v) => { meadow.on = v; meadow.mesh.visible = v; } });
-F({ id: 'grace', group: 'Simulation', label: 'Calm opening', choices: ['40 s', '20 s', '90 s', 'Off'], value: '40 s',
-  about: 'How long after a start (and after each new day) Milnesium browses before it first gets hungry. Either way it hunts only a player past halfway. shared/predation.js.',
+F({ id: 'grace', group: 'Simulation', label: 'Milnesium wakes', choices: ['2 s', '10 s', '30 s', 'Off'], value: '2 s',
+  about: 'How long after someone first comes into its water Milnesium browses before it first gets hungry. Either way it hunts only a player in its water. shared/predation.js.',
   onChange: (v) => { predator.pace.grace = v === 'Off' ? 0 : parseFloat(v); predator.hunger.reset(predator.pace.grace); } });
 F({ id: 'hunger', group: 'Simulation', label: 'Milnesium hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
   about: 'Comes and goes: after the calm opening it is hungry for ~30-45 s at a time (once stalking it sees the hunt through), then rests (45-75 s after a bite or eating you, 15-30 s after a jab, losing you or giving up on a tun); only a hungry Milnesium closes in, stalks and bites. Always: hungry from the end of the calm opening on. Never: it only browses (for exploring and testing).',
@@ -385,7 +390,7 @@ function addAnimal(p) {
   const a = { p, slot: p.slot, pad: players.pad(p.slot), ctl: players.controls(p.slot), creature: c, lastStep: -1, side: 1, catchBudget: 0, state: 'active', feeding: false };
   a.walker = new Walker(world, c, walkerEvents(a));
   a.life = new Life(world, a.walker, c, lifeEvents(a), { clock: false, day: life });
-  a.life.opts = life.opts; // the Features switches (desiccation, revival risk) are shared
+  a.life.opts = life.opts;
   a.dash = createDash({ duration: 0.9, cooldown: 2.6 });
   a.particles = new Particles(scene, assets.atlas, 220);
   c.group.traverse((o) => { if (o.userData && o.userData.opt) o.material = view.mode === 2 ? o.userData.lit : o.userData.opt; });
@@ -435,7 +440,7 @@ function respawnNear(a) {
   a.life.respawn();
   a.dash = createDash({ duration: 0.9, cooldown: 2.6 });
   const mate = teammate(a);
-  if (mate) spawnNear(a, mate); else a.walker.spawn(world.leaves[0], 1, 6.5, 0.6, 1, 0);
+  if (mate) spawnNear(a, mate); else a.walker.spawn(world.leaves[START_SPOT.leaf], 1, START_SPOT.u, START_SPOT.v, 1, 0);
   toast(`${a.p.name} wakes again${mate ? ` beside ${mate.p.name}` : ''}`, 2400);
 }
 
@@ -484,28 +489,27 @@ function captureRespawn() {
   const a = captive || p1;
   if (animals.length > 1) respawnNear(a); else respawnSafe(a);
   a.creature.group.visible = true;
-  if (captor === 'boss') { boss.state = 'dormant'; boss.fight.reset(); boss.fs = 'stalk'; }
+  if (captor === 'boss') { boss.reset(); }
   else { Object.assign(predator, { state: 'wander', bored: 15, lunge: 0, rear: 0, sated: false }); predator.fight.reset(); }
   if (animals.length === 1) { view.target.copy(a.walker.dispPos); view.dist = undefined; }
 }
 /**
- * Alone: wake at the furthest checkpoint along the way that you had passed
- * and that is well away from whatever caught you (the long route is not
- * walked twice), else at the start.
+ * Alone: wake in a safe spot near where you were: on your spoke, at the
+ * nearest calm stretch behind you (or the start), well away from whatever
+ * caught you. Never further back than that.
  */
-const SAFE = [[0, 6.5, 0.6], [3, 6, 0], [3, 11, 0], [5, 4.5, 0], [5, 8.5, 0.6]];
+const SAFE_R = [0, (RINGS.milnesium.ring + RINGS.milnesium.r + RINGS.milnesium.leash + RINGS.meadow[0]) / 2, (RINGS.meadow[1] + RINGS.dry[0]) / 2, (RINGS.dry[1] + RINGS.portal - RINGS.post - 6.5) / 2];
 function respawnSafe(a) {
-  const reached = progress(a.walker.dispPos) + 0.02;
+  const p = a.walker.dispPos.clone(), r = world.radius(p), k = world.spokeOf(a.walker.leaf, p);
   a.life.respawn();
   a.dash = createDash({ duration: 0.9, cooldown: 2.6 });
   const danger = captor === 'boss' ? boss.headW || boss.pointWorld(0) : predator.walker.dispPos;
-  let best = SAFE[0], bp = -1;
-  for (const sp of SAFE) {
-    const p = world.leaves[sp[0]].toWorld(sp[1], sp[2], 0);
-    const pr = progress(p);
-    if (pr <= reached && pr > bp && p.distanceTo(danger) > 6) { bp = pr; best = sp; }
+  for (const R of SAFE_R.filter((x) => x <= r + 1).reverse()) {
+    if (R === 0) break;
+    const at = world.spokeAt(k, R);
+    if (at && at.p.distanceTo(danger) > 6) { a.walker.spawn(at.leaf, 1, at.u, at.v, at.leaf.spoke >= 0 ? 1 : 1, 0); return; }
   }
-  a.walker.spawn(world.leaves[best[0]], 1, best[1], best[2], 1, 0);
+  a.walker.spawn(world.leaves[START_SPOT.leaf], 1, START_SPOT.u, START_SPOT.v, 1, 0);
 }
 function endCapture() {
   capture.reset();
@@ -605,13 +609,13 @@ function animateCapture(c, dt) {
 }
 
 // ---------------------------------------------------------------- landmarks
-// Reaching the pool tip posts the forward landmark (once per visit); in the
+// The portal (the pool at a rim leaf's tip) is the way on: enterPortal. In the
 // leaf axil a quiet "Y: back to the mite" prompt shows (the shell's, or this
 // page's own when standalone) and Y there posts the back landmark.
 const promptEl = document.createElement('div');
 promptEl.style.cssText = 'position:fixed;left:50%;bottom:9vh;transform:translateX(-50%);z-index:7;padding:6px 14px;border-radius:999px;background:rgba(18,16,10,.62);color:#efe3c2;border:1px solid rgba(201,163,90,.55);font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;pointer-events:none;white-space:nowrap;display:none';
 document.body.appendChild(promptEl);
-const lm = { fwdLatch: false, near: false, log: [] };
+const lm = { fired: false, near: false, nearing: false, log: [] };
 function setNear(on) {
   if (on === lm.near) return;
   lm.near = on;
@@ -622,9 +626,143 @@ function setNear(on) {
   promptEl.style.display = on && !embed.active ? 'block' : 'none';
 }
 function fireLandmark(kind, a) {
-  lm.log.push({ type: 'landmark', kind, slot: a.slot });
+  lm.log.push({ type: 'landmark', kind, slot: a.slot, t: +time.toFixed(2) });
   embed.landmark(kind, { player: a.slot });
 }
+
+// ---------------------------------------------------------------- the rings: one Milnesium, met in every direction
+// There is one Milnesium. Its water (RINGS.milnesium) is moved round its ring
+// to the spoke of whoever is coming out (from a little before its water to
+// its middle, the one farthest out first), out of everyone's sight: only
+// while it is not busy with anyone (hunting, stalking, backing off, holding
+// anyone, or anyone within its leash), and only when both where it is and
+// where it goes are farther than UNSEEN from every player (the 10× field is
+// 18 units across). It is never put on a player.
+const UNSEEN = 10;
+const MZ = RINGS.milnesium;
+const mz = { k: -1, p: new THREE.Vector3(), entered: false };
+const relocLog = [];
+const alive = (a) => a.life.state !== 'caught' && a !== captive;
+const unseen = (p) => animals.every((a) => a.walker.dispPos.distanceTo(p) > UNSEEN);
+/** Is p in Milnesium's water (plus pad)? */
+const inZone = (p, pad = 0) => mz.p.distanceTo(p) < MZ.r + pad;
+/** Put Milnesium's water (and it, browsing, facing back the way you come) on spoke k. */
+function placeZone(k, why = 'init') {
+  const at = world.spokeAt(k, MZ.ring, 2);
+  const back = _zb.subVectors(START, at.p);
+  let hu = back.dot(at.leaf.U), hv = back.dot(at.leaf.V);
+  const l = Math.hypot(hu, hv) || 1;
+  predator.setHome(at.leaf, at.u, at.v, hu / l, hv / l);
+  predator.walker.dispPos.copy(predator.walker.tPos);
+  mz.k = k; mz.p.copy(at.p);
+  if (why !== 'init') relocLog.push({ k, t: +time.toFixed(2), why });
+}
+const _zb = new THREE.Vector3();
+/** Is Milnesium busy with someone (it then stays where it is)? */
+function engaged() {
+  if (predator.state !== 'wander' || (capture.active && captor === 'milnesium')) return true;
+  return animals.some((a) => alive(a) && inZone(a.walker.dispPos, MZ.leash + 2));
+}
+// The portal: placed once a game on the spoke of the first player to come
+// within PORTAL_SEEN of its ring (out of everyone's sight), with Prionchulus
+// on guard RINGS.post inside it. The arrow shows once it has been found
+// (someone has been within FOUND of it); before that its golden light spills
+// in from the edge of the view on its side.
+const PORTAL_SEEN = 14, FOUND = 9, HINT = 9;
+const portal = { placed: false, k: -1, leaf: null, found: false, hinted: false, turned: false, t: null };
+function placePortal(k) {
+  const L = world.spokes[k].leaves.at(-1);
+  places.placeForward(L);
+  world.pool = L;
+  applyMode(view.mode); // the pool's material follows the look
+  boss.setPost(L, L.len - PORTAL_IN - RINGS.post, 0);
+  Object.assign(portal, { placed: true, k, leaf: L, found: false, hinted: false, turned: false, t: +time.toFixed(2) });
+}
+/** Is Prionchulus on guard at the portal (placed, at its post, not lured off or beaten)? */
+const guarded = () => boss.guarding;
+function moveRings() {
+  // Milnesium: whoever is approaching its ring, farthest out first
+  const lo = MZ.ring - MZ.r - 6, hi = MZ.ring + MZ.r;
+  const who = animals.filter(alive).map((a) => ({ a, r: world.radius(a.walker.dispPos) })).filter((o) => o.r > lo && o.r < hi).sort((x, y) => y.r - x.r);
+  if (who.length && !engaged()) {
+    const a = who[0].a, k = world.spokeOf(a.walker.leaf, a.walker.dispPos);
+    if (k !== mz.k && unseen(predator.walker.dispPos) && unseen(world.spokeAt(k, MZ.ring, 2).p)) placeZone(k, `slot ${a.slot}`);
+  }
+  // first into its water: its hunger starts a moment later (until then it only browses)
+  if (!mz.entered) {
+    const a = animals.find((b) => alive(b) && inZone(b.walker.dispPos));
+    if (a) { mz.entered = true; predator.hunger.reset(predator.pace.grace); logChallenge('milnesiumWater', a); }
+    else predator.hunger.reset(predator.pace.grace);
+  }
+  // the portal: once a game, on the lead player's spoke (or the nearest one it can go on unseen)
+  if (!portal.placed) {
+    const lead = animals.filter(alive).map((a) => ({ a, r: world.radius(a.walker.dispPos) })).sort((x, y) => y.r - x.r)[0];
+    if (lead && lead.r >= RINGS.portal - PORTAL_SEEN) {
+      const k0 = world.spokeOf(lead.a.walker.leaf, lead.a.walker.dispPos);
+      for (let i = 0; i < SPOKES; i++) {
+        const k = (k0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) + SPOKES) % SPOKES;
+        const L = world.spokes[k].leaves.at(-1);
+        if (unseen(L.toWorld(L.len - PORTAL_IN, 0, 0))) { placePortal(k); logChallenge('portal', lead.a); break; }
+      }
+    }
+  }
+}
+/** A restart: Milnesium back on the +x spoke, no portal, the meadows out again. */
+function restartRings() {
+  predator.reset(); placeZone(0); mz.entered = false;
+  boss.unplace(); places.clearForward(); world.pool = null;
+  Object.assign(portal, { placed: false, k: -1, leaf: null, found: false, hinted: false, turned: false, t: null });
+  meadow.reset();
+  lm.fired = false;
+}
+
+// ---------------------------------------------------------------- the portal (the way on)
+// Reaching the portal (the rim leaf's tip, either face) zooms into the next
+// world, but only while Prionchulus is off guard: lured more than GUARD from
+// its post, or beaten. On guard, it turns you back (a toast, once). Any player
+// counts; in the game the others follow through the transition.
+function checkPortal() {
+  if (!portal.placed) return;
+  let at = null, dmin = Infinity;
+  for (const a of animals) {
+    if (!alive(a) || a.life.state !== 'active') continue;
+    const d = a.walker.dispPos.distanceTo(places.forward);
+    dmin = Math.min(dmin, d);
+    if (places.atForward(a.walker)) at = a;
+  }
+  if (dmin < FOUND) portal.found = true;
+  if (!portal.hinted && dmin < HINT && guarded()) { portal.hinted = true; toast('Prionchulus guards the way on. Lure it off its post, then get round it', 3600); }
+  // nearing the way on: the shell can start loading the next world (no prompt is shown)
+  const nearing = dmin < 14;
+  if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
+  if (at && !lm.fired) {
+    if (guarded()) {
+      if (!lm.blocked) {
+        if (!portal.turned) { portal.turned = true; toast('Turned back: Prionchulus is on guard. Lead it away from its post first, then get round it', 3600); }
+        lm.log.push({ type: 'turnedBack', slot: at.slot, t: +time.toFixed(2) });
+        lm.blocked = true;
+      }
+    } else enterPortal(at); // (turned back earlier but open now, still on it: through)
+  }
+  if (!at) lm.blocked = false;
+  if (dmin > 6) lm.fired = false; // once per visit
+}
+/**
+ * The way on: player `a` has reached the open portal. This is the one place
+ * the zoom into the next world is triggered (embed.landmark('forward'); the
+ * shell runs the transition; standalone, embed.js shows a toast).
+ */
+function enterPortal(a) {
+  if (lm.fired) return;
+  lm.fired = true;
+  places.glow.burst();
+  const pr = split.project(0, places.forward);
+  if (!pr.behind) portalLight.bloom(pr.x, pr.y, { scale: 1.1 });
+  rumble(520, 0.55, 0.85);
+  toast(`${who(a)}The pool: the film meets open water`, 2400);
+  fireLandmark('forward', a);
+}
+const portalLight = createPortalLight({ zIndex: 3 });
 
 // ---------------------------------------------------------------- loop
 let last = performance.now();
@@ -685,20 +823,39 @@ const api = window.__micro = { cullViews: true, // per-view culling of the anima
     const a = animals.find((b) => b.slot === slot) || p1;
     const [L, side, u, v, hu, hv] = places.spot(kind);
     a.walker.spawn(L, side, u, v, hu, hv);
-    if (kind === 'forward') lm.fwdLatch = false;
   },
   /** Testing: place player `slot` at (u, v) on a leaf index. */
   place(slot, leaf, u, v, side = 1) { const a = animals.find((b) => b.slot === slot); if (a) a.walker.spawn(world.leaves[leaf], side, u, v, 1, 0); },
   get layout() { return split.layout; },
   meadow, challenges, progress: (slot = 0) => progress((animals.find((b) => b.slot === slot) || p1).walker.dispPos),
-  /** Where each challenge sits on the route (progress 0 start .. 1 the pool tip) before anyone moves. */
+  relocLog, rings: RINGS,
+  /** The layout: the rings (units of 100 µm, from the start), each spoke's leaves and where its encounters sit. */
   route() {
-    const M = world.meadow, P = world.pool;
-    const at = (v) => ({ progress: +progress(v).toFixed(3), um: Math.round(v.distanceTo(START) * 100) });
-    return { totalUm: Math.round(places.forward.distanceTo(START) * 100),
-      meadowStart: at(M.toWorld(MEADOW.u0, 0, 0)), meadowEnd: at(M.toWorld(MEADOW.u1, 0, 0)),
-      milnesiumSpawn: at(predator.walker.dispPos), bossPost: at(boss.pointWorld(0)), bossWakeRadiusUm: 650, pool: at(places.forward) };
+    const um = (p) => Math.round(world.radius(p) * 100);
+    return { rings: RINGS, start: START.toArray(), spokes: world.spokes.map((sp) => ({ k: sp.k, bearing: Math.round(sp.a * 180 / Math.PI), exitUm: um(sp.exit.p), leaves: sp.leaves.map((L) => L.id),
+      milnesiumUm: um(world.spokeAt(sp.k, MZ.ring, 2).p), meadowUm: [um(meadowBands[sp.k].leaf.toWorld(meadowBands[sp.k].u0, 0, 0)), um(meadowBands[sp.k].leaf.toWorld(meadowBands[sp.k].u1, 0, 0))],
+      dry: sp.leaves.flatMap((L) => L.dry.map((d) => um(L.toWorld(d.u, d.v, 0)))), portalUm: um(sp.leaves.at(-1).toWorld(sp.leaves.at(-1).len - PORTAL_IN, 0, 0)) })) };
   },
+  /** How far out player `slot` is (units of 100 µm) and on which spoke. */
+  where(slot = 0) { const a = animals.find((b) => b.slot === slot) || p1; const p = a.walker.dispPos; return { r: +world.radius(p).toFixed(2), spoke: world.spokeOf(a.walker.leaf, p), leaf: a.walker.leaf.id, u: +a.walker.u.toFixed(2), v: +a.walker.v.toFixed(2), side: a.walker.side }; },
+  /**
+   * The portal for the level transition: its world position, whether it is
+   * placed, found (seen), guarded (Prionchulus on its post) or open, and the
+   * boss's state and distance from its post.
+   */
+  portal() {
+    const f = places.forward;
+    return { placed: portal.placed, spoke: portal.k, x: f.x, y: f.y, z: f.z, found: portal.found, guarded: portal.placed && guarded(), open: portal.placed && !guarded(),
+      boss: { state: boss.state, fromPost: portal.placed ? +boss.fromPost.toFixed(2) : null, interest: +boss.interest.toFixed(2) }, glow: +places.glow.open.toFixed(2), t: portal.t };
+  },
+  /** Testing: place the portal now on spoke `k` (default: player `slot`'s spoke). */
+  placePortal(k = null, slot = 0) { const a = animals.find((b) => b.slot === slot) || p1; placePortal(k ?? world.spokeOf(a.walker.leaf, a.walker.dispPos)); return api.portal(); },
+  /** Testing: put Milnesium's water on spoke `k`. */
+  placeZone(k) { placeZone(k, 'test'); return { k: mz.k, p: mz.p.toArray() }; },
+  /** Go through the portal now as player `slot` (what reaching it while open does). */
+  enterPortal(slot = 0) { lm.fired = false; enterPortal(animals.find((b) => b.slot === slot) || p1); },
+  /** Testing: a restart (the RS button). */
+  restart() { life.newDay(); },
 };
 
 function frame() {
@@ -721,7 +878,7 @@ function frame() {
   if (zs < 0 && view.obj > 0) { view.obj--; toast(`Objective ${OBJECTIVES[view.obj].name}`); }
   if (zs > 0 && view.obj < OBJECTIVES.length - 1) { view.obj++; toast(`Objective ${OBJECTIVES[view.obj].name}`); }
   if (P(B.RB)) life.rain();
-  if (P(B.RS)) { life.newDay(); toast('A new day: 05:00, dew-soaked'); }
+  if (P(B.RS)) { life.newDay(); toast('Back at the start'); }
   if (P(B.LB)) features.set('labels', !view.labels);
   if (P(B.LS)) { view.focus = 0; toast('Refocused on the animal'); }
   // RS: yaw, and pitch by intent (up = look up: the camera swings down). Any player turns the shared view.
@@ -765,7 +922,7 @@ function chooseTarget() {
 function step(dt, G) {
   time += dt;
   snd.t += dt;
-  places.update(dt);
+  places.update(dt, camera, portal.placed && !guarded());
   const cs = capture.update(dt, capPad);
   if (!cs.active && captive) captive = null;
   // the caught player is back (after the fade) while the screen fades in
@@ -778,13 +935,11 @@ function step(dt, G) {
     a.catchBudget -= dt;
     // A: the scramble.
     a.dash.update(dt);
+    // (its only cost is the recharge: no water, no reserves)
     if (g.dashPressed && L.state === 'active') {
       if (L.frozen || w.slipping) { /* curled, feeding or sliding: no scramble */ }
-      else if (L.energy < 0.04) toast(`${who(a)}Too weak to scramble: feed first`);
       else if (a.dash.trigger()) {
         audio.play('tardigrade/dash', { volume: 0.9 });
-        L.desic = Math.min(1, L.desic + 0.035);
-        L.energy = Math.max(0, L.energy - 0.02);
         if (rumbleOn) a.pad.rumble(160, 0.25, 0.55);
       }
     }
@@ -800,14 +955,15 @@ function step(dt, G) {
     if (dashing && ls.m < 0.2) dirV.copy(w.forward); // no stick: scramble straight ahead
     w.update(dt, { dir: dirV, mag: dashing ? Math.max(ls.m, 1) : ls.m, brace: g.D(BTN_B), frozen: L.frozen, film: filmF, energy: L.energy, tun: L.tun > 0.02, dash: dashing });
     a.mouth = a.creature.anchorWorld('buccal tube + stylets', a.mouth || new THREE.Vector3());
-    // The landmarks: the pool tip (forward) and the axil (the backdoor, where Y goes back).
+    // The backdoor: the axil (where Y goes back). The portal: checkPortal below.
     const up = L.state === 'active' && a !== captive;
     a.atBack = up && places.atBack(w);
     if (a.atBack) backNear = true;
-    if (up && places.atForward(w) && !lm.fwdLatch) { lm.fwdLatch = true; fireLandmark('forward', a); toast(`${who(a)}The pool: the film meets open water`, 2400); }
+    if (L.state === 'active' && world.filmAt(w.leaf, w.u, w.v) < 0.03 && w.speed > 0.05) logChallenge('dry', a);
   }
-  if (lm.fwdLatch && !animals.some((a) => places.atForward(a.walker))) lm.fwdLatch = false;
   setNear(backNear);
+  moveRings();
+  checkPortal();
 
   // The rotifer meadow: pushed aside by every animal in it.
   if (meadow.on) {
@@ -815,9 +971,9 @@ function step(dt, G) {
     animals.forEach((a, i) => { a.crowd = crowd[i]; if (crowd[i] > 0 && a.life.state === 'active') logChallenge('meadow', a); });
   }
 
-  // Milnesium hunts one of you, once you have come at least halfway.
+  // Milnesium hunts one of you: whoever is in its water (or, once it is stalking, within its leash).
   const target = held ? null : chooseTarget();
-  const allowed = !!target && progress(target.walker.dispPos) >= (predator.target === target.slot && predator.state === 'stalk' ? HALF - 0.05 : HALF);
+  const allowed = !!target && inZone(target.walker.dispPos, predator.target === target.slot && predator.state === 'stalk' ? MZ.leash : 0);
   const tg = target && allowed ? inputs.get(target) : IDLE;
   const xT = tg.P(BTN_X);
   let facing = false;
@@ -835,24 +991,27 @@ function step(dt, G) {
   const bev = bossHeld ? [] : boss.update(dt, animals.map((a) => {
     const g = inputs.get(a), up = a.life.state === 'active' && !(held && a === captive);
     return { a, pos: a.walker.dispPos, mouth: a.mouth, forward: a.walker.forward, active: up, blocking: up && g.D(BTN_B), jab: up && g.P(BTN_X) && !a.life.feeding };
-  }), { calm: predator.on && predator.hunger.state === 'grace' });
+  }), { calm: false });
   for (const { e, a: pr } of bev) {
     const a = pr ? pr.a : null;
     const rb = (ms, w, s2) => { if (a && rumbleOn) a.pad.rumble(ms, w, s2); };
-    if (e === 'wake') { toast('A predatory nematode, Prionchulus, uncoils across the Sphagnum leaf', 2800); logChallenge('boss', pr ? pr.a : p1); }
+    if (e === 'wake') { toast('A predatory nematode, Prionchulus, uncoils off its post', 2800); logChallenge('boss', pr ? pr.a : p1); }
+    else if (e === 'rewake') toast('Prionchulus stirs on its post', 1600);
+    else if (e === 'return') { toast('Prionchulus gives up and glides back to its post: get round it!', 2400); logChallenge('bossLured', pr ? pr.a : p1); }
+    else if (e === 'guard') toast('Prionchulus is back on guard', 1600);
     else if (e === 'windupWhip') { toast(`${a ? who(a) : ''}Prionchulus coils into an S, tooth bared: face it and brace (B)!`, 1800); rb(140, 0.3, 0); }
     else if (e === 'windupThrash') { toast(`${a ? who(a) : ''}Prionchulus thrashes: face it and brace (B)!`, 1800); rb(140, 0.3, 0); }
     else if (e === 'strike') audio.play('tardigrade/dash', { volume: 0.8, rate: 0.7 });
     else if (e === 'blocked' && a) { toast(`${who(a)}Braced! Its head glances off your claws (resolve ${Math.round(boss.interest * 100)}%)`); rb(260, 0.6, 0.5); (a.anim ||= {}).shove = 0.3; }
     else if (e === 'bitten' && a) { a.bossJab = true; toast(`${who(a)}Stylets into its head! (resolve ${Math.round(boss.interest * 100)}%)`); rb(200, 0.5, 0.4); audio.play('tardigrade/bite', { volume: 1, rate: 0.8 }); }
     else if (e === 'flounder') toast('In the thin film Prionchulus flounders and loses heart', 2000);
-    else if (e === 'retreat') toast('Worn down, Prionchulus slides away into a deep groove between the cells', 3000);
+    else if (e === 'retreat') toast('Worn down, Prionchulus slides away into a deep groove between the cells: the way on is open', 3000);
     else if (e === 'hit' && a) {
       const L = a.life;
       L.energy = Math.max(0, L.energy - 0.35); L.feeding = null; a.walker.speed = 0;
       rb(320, 0.8, 0.9); audio.play('tardigrade/milnesium', { volume: 1, rate: 0.6 });
       if (L.energy <= 0.001) startCapture(a, 'boss');
-      else toast(`${who(a)}Its tooth stabs you! Reserves ${Math.round(L.energy * 100)}%`, 2400);
+      else toast(`${who(a)}Its tooth stabs you! Health ${Math.round(L.energy * 100)}%`, 2400);
     }
   }
   const jabbed = pev.includes('recoil');
@@ -905,7 +1064,7 @@ function step(dt, G) {
       a.walker.speed = 0;
       rb(300, 0.8, 0.9);
       if (L.energy <= 0.001) startCapture(a);
-      else toast(`${who(a)}Milnesium bites! Reserves ${Math.round(L.energy * 100)}%. It lets go and backs off, for now`, 2600);
+      else toast(`${who(a)}Milnesium bites! Health ${Math.round(L.energy * 100)}%. It lets go and backs off, for now`, 2600);
     }
   }
 
@@ -1107,7 +1266,15 @@ function renderView(dt) {
 
   // Edge arrows (shared/landmark.js) and, with more than one player, a ring in each player's colour.
   marks.begin();
-  marks.drawSplit(split, places.forward, { kind: 'forward', label: 'Pool', range: 30 });
+  portalLight.begin();
+  // no arrow until the portal is found; then it points the way back to it.
+  // Its golden light spills in from that edge once it is placed (or haloes it in view): no text
+  if (portal.placed && !(capture.active && solo)) {
+    const res = portal.found ? marks.drawSplit(split, places.forward, { kind: 'forward', range: 30 }) : marks.drawSplit(split, places.forward, { kind: 'forward', range: 30, dry: true });
+    let d = Infinity;
+    for (const a of animals) d = Math.min(d, a.walker.dispPos.distanceTo(places.forward));
+    portalLight.drawSplit(split, res, { strength: THREE.MathUtils.clamp(1.15 - d / 30, 0.3, 1), open: places.glow.open });
+  }
   marks.drawSplit(split, places.back, { kind: 'backdoor', label: 'Moss', range: 30 });
   if (animals.length > 1) drawRings(L);
 }
@@ -1240,19 +1407,18 @@ function readout() {
   const ob = OBJECTIVES[view.obj];
   // Readout.
   const st = { caught: `caught by Milnesium (${capture.phase || ''})`, active: walker.slipping ? 'SLIPPING' : life.feeding ? 'feeding' : life.tun > 0.02 ? 'curling up…' : walker.speed > 0.03 ? 'walking' : 'holding on',
-    tun: 'tun (dry: waits for rain; wet: Y to wake)', skip: 'tun · time passing…', revive: 'rehydrating…', dead: life.energy <= 0.001 ? 'eaten' : 'did not wake' }[life.state];
+    tun: 'tun (Y to wake)', revive: 'rehydrating…', dead: 'eaten' }[life.state];
   const planted = walker.feet.filter((f) => f.state === 'stance' && f.grip > 0.5).length;
   const bar = (x) => '█'.repeat(Math.round(x * 10)).padEnd(10, '·');
   const L = split.layout;
   hud.stats([
-    `${life.clock}   (${life.compression ? life.compression + '×' : 'paused'})`,
+    `out ${Math.round(world.radius(walker.dispPos) * 100)} µm of ${RINGS.portal * 100} (spoke ${world.spokeOf(walker.leaf, walker.dispPos) + 1})${portal.placed ? (guarded() ? ' · portal guarded' : ' · portal open') : ''}`,
     `${ob.name}  ${MODES[view.mode].split(' ')[0]}  focus ${view.focus >= 0 ? '+' : ''}${Math.round(-view.focus * 100)} µm`,
     `${walker.leaf.name}${walker.side < 0 ? ' · underside' : ''}`,
-    `film     ${film > 0 ? Math.round(Math.min(film, 2) * 22) + ' µm' : 'DRY'}`,
-    `water    ${bar(1 - life.desic)}`,
-    `reserves ${bar(life.energy)}`,
+    `film     ${film > 0.03 ? Math.round(Math.min(film, 2) * 22) + ' µm' : 'DRY patch (slow going)'}`,
+    `health   ${bar(life.energy)}`,
     `claws    ${planted}/8 hooked · grip ${walker.gripSum.toFixed(1)} / need ${Math.max(0, walker.required).toFixed(1)}`,
-    `state    ${st}${life.state === 'skip' || life.state === 'revive' ? ` · revival ~${Math.round(life.chance * 100)}%` : ''}`,
+    `state    ${st}`,
     walker.candidate ? `reach    ${walker.candidate.M.name}${walker.candidate.bridged ? ' (film bridge)' : ''}` : '',
     `${dash.active ? 'SCRAMBLE' : dash.text()}   ${Math.round(walker.speed * 100)} µm/s`,
     predator.on ? `Milnesium ${predator.state === 'capture' ? 'eating you' : predator.state === 'wander' ? (predator.firstHunt ? 'browsing far off' : 'keeping off') : predator.state === 'recoil' ? 'backing off' : predator.state === 'approach' ? 'closing in' : predator.state === 'retreat' ? 'retreating' : `stalking (${predator.fstate})`} · interest ${Math.round(predator.fight.interest * 100)}% · ${Math.round(predator.dist * 100)} µm${predator.thinFilm ? ' · film too thin for it' : ''} · ${predator.hunger.state} ${Math.round(predator.hunger.left)} s` : '',

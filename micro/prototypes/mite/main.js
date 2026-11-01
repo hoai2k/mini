@@ -185,9 +185,10 @@ function placePoseCamera(pose) {
   camera.far = d + 9000;
   camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
-  shared.uCutP.value.copy(rig.target).applyMatrix4(camera.matrixWorldInverse);
-  shared.uCutR.value = 380 + rig.hfw * 0.06;
-  world.cut.update(1 / 30, camera.position, rig.target, { radius: 340, margin: 110, keep: cutKeep });
+  // the cutaway clears the line of sight to the mite itself (the target may be off it)
+  shared.uCutP.value.copy(mite.center).applyMatrix4(camera.matrixWorldInverse);
+  shared.uCutR.value = 380 + rig.viewHfw * 0.06;
+  world.cut.update(1 / 30, camera.position, mite.center, { radius: 340, margin: 110, keep: cutKeep });
   return d;
 }
 

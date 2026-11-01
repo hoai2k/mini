@@ -1,7 +1,7 @@
 // The boss of the water film: a predatory nematode, Prionchulus muscorum
 // (Mononchida), a real hunter of tardigrades and rotifers in moss films
-// (../../design/bosses.md). It guards the Sphagnum leaf on the way to the pool
-// tip (the forward landmark).
+// (../../design/bosses.md). It guards the portal (the way on: the pool at a
+// rim leaf's tip, placed by main.js placePortal) from a post just inside it.
 //
 // Body (after the delivered sheet, assets/reference-sheets/boss-nematode.webp):
 // a slim, smooth, unsegmented, transparent worm drawn ~1.3 mm long and ~52 µm
@@ -13,8 +13,12 @@
 // its head (follow-the-leader on the leaf).
 //
 // Fight (shared/predation.js createFight, with more interest and two attacks):
-//   dormant: lies in a loose curve at its post until a player comes near
-//     after the calm opening;
+//   unplaced: hidden until the portal is placed (setPost);
+//   dormant: on guard, lying in a loose curve at its post until a player
+//     comes near;
+//   return: lured too far from its post (LEASH), or it lost you: it glides
+//     back to its post, slower than you walk, paying no one any mind, then
+//     lies on guard again (that is the way in: lure it off, then get round);
 //   whip: the tell is the front coiling into an S, head drawn back, the
 //     tooth bared; then the head whips forward;
 //   thrash: the tell is the whole body rippling fast; then the head sweeps
@@ -22,7 +26,7 @@
 //   Brace (B) facing it on the strike blocks; a stylet jab (X) at its head in
 //   its recovery bites back; in thin film (< ~3.5 µm) it flounders (slower,
 //   and it loses heart). Worn down, it slides away into a deep groove between
-//   cells and is gone for the rest of the day.
+//   cells and is gone for good (until a restart).
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { opticalMaterial, litMaterial } from './materials.js';
 import { LAYER_SPECIMEN } from './world.js';
@@ -33,8 +37,11 @@ const LEN = 13;          // units (100 µm): 1.3 mm
 const SEG = LEN / (K - 1);
 const R = 0.26;          // body radius: 52 µm across (slim: ~25x longer than wide)
 const M = 12;            // ring vertices
-const POST = [9.2, -0.4];// on the Sphagnum leaf (u, v)
 const WAKE = 6.5;        // a player this close to the post wakes it
+const LEASH = 8.5;       // it follows you no further than this from its post
+const LOSE = 10;         // nor a player further than this from its head
+const BACK = 0.6;        // units/s gliding back to its post (you walk 1.5, scramble 2.8)
+export const GUARD = 4.5; // within this of its post (head) it guards the portal
 const REACH = 1.35;      // head to the player's body at the end of a strike
 const THIN = 0.16;       // film index below which it flounders
 
@@ -72,7 +79,9 @@ function tubeGeometry(n0, n1) {
 export class Nematode {
   constructor(scene, world) {
     this.world = world;
-    this.L = world.pool;
+    this.L = world.leaves[0];
+    this.post = [9.2, -0.4]; // (u, v) on this.L; setPost puts it on a rim leaf
+    this.placed = false;
     const mk = (geo, opt, lit) => {
       const o = opticalMaterial(opt), l = litMaterial(lit);
       const m = new THREE.Mesh(geo, o);
@@ -109,19 +118,33 @@ export class Nematode {
     this.reset();
   }
 
-  /** A new day: back at its post, asleep. */
+  /** On guard at (u, v) on leaf L, the portal further along (+u). */
+  setPost(L, u, v) {
+    this.L = L; this.post = [u, v]; this.placed = true;
+    this.reset();
+  }
+
+  /** A restart (or placed): on guard at its post, asleep; hidden until the portal is placed. */
   reset() {
-    const [u0, v0] = POST;
+    const [u0, v0] = this.post;
+    // lying across the way in, head towards whoever comes, the body curled back towards the portal
     this.spine.forEach((p, i) => {
       const s = i / (K - 1), a = s * 3.6;
-      p.u = u0 - 2.4 * Math.sin(a) * 0.9; p.v = v0 + 2.6 * Math.cos(a) * 0.8 - s * 0.6;
+      p.u = u0 + 2.4 * Math.sin(a) * 0.9 - 0.6; p.v = v0 + 2.6 * Math.cos(a) * 0.8 - s * 0.6 - 1.2;
     });
     this.relax();
-    Object.assign(this, { state: 'dormant', t: 0, pattern: 1, fs: 'stalk', ft: 0, coil: 0, ripple: 0, bare: 0, whip: 0, sink: 0, fade: 1, target: null, swipe: 0, aim: [1, 0], hitT: 0 });
+    for (const p of this.spine) { p.u = THREE.MathUtils.clamp(p.u, 0.8, this.L.len - 0.9); const lim = Math.max(0, this.L.hwAt(p.u) - 0.35); p.v = THREE.MathUtils.clamp(p.v, -lim, lim); }
+    Object.assign(this, { state: this.placed ? 'dormant' : 'unplaced', t: 0, pattern: 1, fs: 'stalk', ft: 0, coil: 0, ripple: 0, bare: 0, whip: 0, sink: 0, fade: 1, target: null, swipe: 0, aim: [1, 0], hitT: 0, woke: false });
     this.fight.reset();
-    this.group.visible = this.on;
+    this.group.visible = this.on && this.placed;
     this.setFade(1);
   }
+  /** Not placed yet: hidden, and nothing to guard. */
+  unplace() { this.placed = false; this.reset(); }
+  /** Its head's distance from its post (leaf units). */
+  get fromPost() { return Math.hypot(this.head.u - this.post[0], this.head.v - this.post[1]); }
+  /** On guard at the portal: placed, there, and not beaten. */
+  get guarding() { return this.on && this.placed && !['gone', 'leaving', 'unplaced'].includes(this.state) && this.fromPost < GUARD; }
 
   get head() { return this.spine[0]; }
   /** Head (or another spine point) in world space. */
@@ -135,7 +158,7 @@ export class Nematode {
     const du = a.u - b.u, dv = a.v - b.v, l = Math.hypot(du, dv) || 1;
     return [du / l, dv / l];
   }
-  get awake() { return this.state === 'fight' || this.state === 'leaving'; }
+  get awake() { return this.state === 'fight' || this.state === 'leaving' || this.state === 'return'; }
   get attacking() { return this.state === 'fight' && (this.fs === 'windup' || this.fs === 'strike'); }
   get interest() { return this.fight.interest; }
 
@@ -176,7 +199,7 @@ export class Nematode {
   update(dt, prey, { calm = false } = {}) {
     const ev = [];
     this.t += dt;
-    if (!this.on || this.state === 'gone') { this.group.visible = false; return ev; }
+    if (!this.on || this.state === 'gone' || this.state === 'unplaced') { this.group.visible = false; return ev; }
     this.group.visible = true;
     const head = this.pointWorld(0, _h);
     const L = this.L;
@@ -193,8 +216,14 @@ export class Nematode {
     if (this.state === 'dormant') {
       // asleep at its post: a slow, lazy ripple
       this.coil += (0 - this.coil) * dt; this.ripple = 0.25;
-      const near = prey.some((p) => p.active && p.pos.distanceTo(L.toWorld(POST[0], POST[1], 0, _p)) < WAKE);
-      if (!calm && near) { this.state = 'fight'; this.fight.reset(); ev.push({ e: 'wake', a: tgt }); }
+      const near = prey.some((p) => p.active && p.pos.distanceTo(L.toWorld(this.post[0], this.post[1], 0, _p)) < WAKE);
+      if (!calm && near) { const first = !this.woke; this.woke = true; this.state = 'fight'; if (first || this.fight.interest <= 0.05) this.fight.reset(); ev.push({ e: first ? 'wake' : 'rewake', a: tgt }); }
+    } else if (this.state === 'return') {
+      // lured off (or it lost you): back to its post, slow and single-minded
+      this.ripple = 0.8; this.coil *= Math.exp(-dt * 2); this.bare = Math.max(0, this.bare - dt);
+      du = this.post[0] - this.head.u; dv = this.post[1] - this.head.v;
+      if (Math.hypot(du, dv) < 0.6) { this.state = 'dormant'; ev.push({ e: 'guard', a: null }); }
+      else speed = BACK;
     } else if (this.state === 'fight') {
       const inReach = !!tgt && td < REACH + 1.4;
       // facing its front (a sweeping head can pass right over you: judge by its neck)
@@ -240,6 +269,8 @@ export class Nematode {
         }
       }
       if (f.retreated || this.fight.state === 'retreat') { this.state = 'leaving'; this.t = 0; ev.push({ e: 'retreat', a: tgt }); }
+      // the leash: lured this far off its post, or you have got away, it gives up and goes back
+      else if ((this.fromPost > LEASH || !tgt || td > LOSE) && (f.state === 'stalk' || f.state === 'recover' || f.state === 'repelled')) { this.state = 'return'; ev.push({ e: 'return', a: tgt }); }
     } else if (this.state === 'leaving') {
       // slides off along the leaf and down into a deep groove between the cells
       this.coil *= Math.exp(-dt * 2); this.ripple = 1.4; this.bare = Math.max(0, this.bare - dt);

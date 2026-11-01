@@ -8,7 +8,7 @@
 // the film under each springtail when more than one plays. Units: mm.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { litMaterial } from '../shared/techniques/springtail-macro.js';
-import { createPortalGlow } from '../shared/portal.js';
+import { createPortalGlow, createGlint } from '../shared/portal.js';
 import { capitulumGeometry, PORTAL, raftTop } from './world.js';
 
 export function createLandmarkProps(world, { pixelHeight } = {}) {
@@ -81,6 +81,10 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
   }
   raft.add(mite);
   const speck = new THREE.Vector3(top.x, topY, top.z);
+  // a golden glint on the speck: the creature the portal leads to (and the
+  // point the camera pushes into when you go through)
+  const glint = createGlint({ THREE, size: 0.9, intensity: 0.9, pixelHeight });
+  raft.add(glint.points);
 
   // player rings: a faint loop of light on the film, one per player
   const rings = [];
@@ -100,7 +104,7 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
   const position = new THREE.Vector3(0, topY, 0);
   const _fw = new THREE.Vector3();
   return {
-    group, raft, glow, position, speck, ring, rings,
+    group, raft, glow, glint, position, speck, ring, rings,
     /**
      * The mite speck for a continuous transition (embed.js "Continuous
      * transitions"): its centre in world space, its heading (atan2(z, x) of
@@ -129,6 +133,8 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
       const r = 0.55 + 0.25 * Math.sin(t * 0.23);
       speck.set(top.x + Math.cos(a) * r, topY + 0.05 * Math.sin(t * 1.7), top.z + Math.sin(a) * r);
       mite.position.copy(speck);
+      glint.setPosition(speck.x, speck.y + 0.12, speck.z);
+      glint.update(t);
       mite.rotation.y = -a - Math.PI / 2;
       for (const leg of legs) {
         const { k, s } = leg.userData;

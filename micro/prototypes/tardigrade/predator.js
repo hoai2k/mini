@@ -7,9 +7,12 @@
 // Creature, so it climbs the same cell walls with the same gait.
 //
 // Behaviour (game rules, labelled in the README):
-// - It starts far off, on the tip of the steep leaf C, and for the first CALM
-//   seconds it only browses there, so the player can explore first.
-// - After that its hunger comes and goes (shared/predation.js createHunger):
+// - It keeps to its water on the Milnesium ring (world.js RINGS.milnesium),
+//   browsing; main.js moves it round the ring, unseen, to the spoke of
+//   whoever is coming out (placeZone), and lets it hunt only a player in its
+//   water (or, once stalking, within its leash). Its hunger starts a moment
+//   after someone first comes into its water.
+// - Its hunger comes and goes (shared/predation.js createHunger):
 //   hungry for ~30-45 s (it is slow to close in), then resting (45-75 s after a bite or a meal, 15-30 s
 //   after a jab, losing you or giving up on a tun). Only a hungry one hunts.
 // - Hungry, it hunts: it heads for the player slowly (an approach you can see
@@ -39,7 +42,7 @@ import { createHunger, createFight } from '../shared/predation.js';
 export const SCALE = 1.5;
 const SENSE = 6.5;        // units (100 µm): stalks at full speed within 650 µm
 const LOSE = 11;          // drops back to a slow approach beyond this
-const CALM = 40;          // s of browsing at the start before it hunts
+const CALM = 2;           // s after someone first comes into its water before it hunts
 const APPROACH = 0.42;    // speed fraction while closing in from afar (slower than the player's walk)
 const SATED = 9;          // s it keeps off after a bite
 const SHY = 7;            // s it keeps off after a jab
@@ -81,12 +84,17 @@ export class Predator {
     this.reset();
   }
 
+  /** Its water: browsing on (leaf, u, v), facing (hu, hv) on the leaf; main.js placeZone. */
+  setHome(leaf, u, v, hu = -1, hv = 0) {
+    this.homeSpot = [leaf, 1, u, v, hu, hv];
+    this.home = leaf.toWorld(u, v, 0);
+    this.walker.spawn(...this.homeSpot);
+  }
+
   reset() {
-    // Far off, beyond halfway: browsing among the rotifers it hunts, near the
-    // far end of the meadow leaf (~2 mm from the player's start). It only
-    // hunts a player who has come at least halfway (main.js: allowed).
-    const E = this.world.meadow;
-    this.walker.spawn(E, 1, 14.5, 0.8, 1, 0);
+    // Browsing in its water on its ring (main.js placeZone sets it); it hunts
+    // only a player in its water (main.js: allowed).
+    if (this.homeSpot) this.walker.spawn(...this.homeSpot);
     Object.assign(this, { state: 'wander', t: 0, cool: 0, recoil: 0, tries: 0, bored: 0, wanderAng: 0, contact: 0, sated: false, after: 0, firstHunt: true, stuck: 0, lastD: Infinity, lunge: 0, rear: 0, fstate: 'stalk', ft: 0, retreatT: 0 });
     this.hunger.reset(this.pace.grace);
     this.fight.reset();
@@ -184,6 +192,8 @@ export class Predator {
         if (!w.leaf.inside(w.u + Math.cos(this.wanderAng), w.v + Math.sin(this.wanderAng), 0.8)) this.wanderAng += 2 * dt * 3;
         // Keeping off: drift away from the player rather than about.
         if (!this.firstHunt && d < SENSE) dir.lerp(_e.subVectors(me, them).normalize(), 0.6).normalize();
+        // and keep to its water: wandered off, it heads back
+        else if (this.home && me.distanceTo(this.home) > 4) dir.lerp(_e.subVectors(this.home, me).normalize(), 0.8).normalize();
         mag = this.firstHunt ? 0.3 : 0.45;
         this.bored = Math.max(0, this.bored - dt);
         if (hungry && this.bored <= 0 && prey.life.state === 'active') {

@@ -261,6 +261,49 @@ export function createPortalGlow({ THREE, scene = null, size = 10, color = '#f0b
   return api;
 }
 
+/**
+ * One golden star glint on a point: the next world's creature on a portal
+ * (the springtail's mite speck), so the eye and the camera have something to
+ * go to. createGlint({ THREE, size, color, intensity, pixelHeight }) ->
+ * { points, setPosition(x, y, z), update(time), dispose() }; add `points` to
+ * the creature's parent. size: world units across.
+ */
+export function createGlint({ THREE, size = 0.5, color = '#f0b44a', intensity = 1, pixelHeight = null } = {}) {
+  const gold = new THREE.Color(color);
+  const pxH = pixelHeight || (() => (typeof innerHeight === 'number' ? innerHeight * Math.min(2, (typeof devicePixelRatio === 'number' && devicePixelRatio) || 1) : 720));
+  const uniforms = { uTime: { value: 0 }, uSize: { value: size }, uViewH: { value: 720 }, uI: { value: intensity }, uColor: { value: new THREE.Vector3(gold.r, gold.g, gold.b) } };
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3), 3));
+  const points = new THREE.Points(geo, new THREE.ShaderMaterial({
+    uniforms, transparent: true, depthWrite: false, depthTest: false, blending: THREE.CustomBlending,
+    blendEquation: THREE.AddEquation, blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor,
+    vertexShader: /* glsl */ `uniform float uSize, uViewH, uTime; varying float vTw;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * mv;
+        vTw = 0.75 + 0.25 * sin(uTime * 2.2);
+        gl_PointSize = clamp(uSize * projectionMatrix[1][1] * uViewH * 0.5 / max(-mv.z, 1e-3), 10.0, 160.0);
+      }`,
+    fragmentShader: /* glsl */ `uniform float uI; uniform vec3 uColor; varying float vTw;
+      void main() {
+        vec2 q = gl_PointCoord * 2.0 - 1.0;
+        float r = length(q);
+        float star = exp(-r * r * 14.0) + 0.5 * exp(-abs(q.x) * 22.0) * exp(-abs(q.y) * 3.0) + 0.5 * exp(-abs(q.y) * 22.0) * exp(-abs(q.x) * 3.0) + 0.25 * exp(-r * r * 3.0);
+        float a = star * smoothstep(1.0, 0.7, r) * vTw * uI;
+        gl_FragColor = vec4(mix(uColor, vec3(1.0, 0.96, 0.84), 0.5 * exp(-r * r * 10.0)) * 2.4, min(1.0, a));
+      }`,
+  }));
+  points.frustumCulled = false;
+  points.renderOrder = 5;
+  return {
+    points,
+    setPosition(x, y, z) { const a = geo.attributes.position; a.setXYZ(0, x, y, z); a.needsUpdate = true; },
+    update(time) { uniforms.uTime.value = time; uniforms.uViewH.value = pxH(); },
+    set intensity(v) { uniforms.uI.value = v; },
+    dispose() { points.removeFromParent(); geo.dispose(); points.material.dispose(); },
+  };
+}
+
 // ---------------------------------------------------------------- the light on the screen
 
 function inPoly(poly, x, y) {
