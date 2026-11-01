@@ -39,8 +39,8 @@ export const WORLDS = [
     mag: '10–12.5×', magNote: 'objective, DIC', field: '1.8–1.4 mm', fieldMm: 1.8, body: '0.35 mm', look: 'Differential interference contrast',
     card: 'MP-U02', intro: 'MP-G09', tint: ['#a9b4a0', '#3d4a3a'], accent: '#c8d4b8',
     line: 'Climb moss leaf cells with clawed stubby legs while the water film dries.',
-    goal: 'Feed and keep wet as the film dries; face Milnesium and brace (B) or jab (X) to drive it off, and get past Prionchulus, the predatory nematode guarding the Sphagnum leaf.',
-    forward: 'The tip of the Sphagnum leaf below, dipping into the pool where the film meets open water.',
+    goal: 'Explore and feed while the film dries; past halfway push and jab (X) through a meadow of rotifers, face Milnesium and brace (B) or jab (X), then get past Prionchulus, the predatory nematode guarding the last Sphagnum leaf.',
+    forward: 'The tip of the far Sphagnum leaf, down the shoot past the rotifer meadow, dipping into the pool where the film meets open water.',
     back: 'The leaf axil to the left, where leaves meet the stem: dwell there and press Y to rise to the moss.',
     controls: [['LS', 'Crawl'], ['RS', 'Turn and tilt'], ['A', 'Scramble'], ['X', 'Pierce: feed, or jab back'], ['B', 'Brace: block facing a predator'], ['Y', 'Curl into a tun'], ['LT/RT', 'Fine focus'], ['D-pad ↑↓', 'Magnification']],
     facts: [
