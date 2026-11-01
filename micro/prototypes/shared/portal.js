@@ -20,7 +20,8 @@
 //                     light spills in from the edge of the view on its side,
 //                     the way a bright source just out of frame flares a real
 //                     lens: a warm glow, an anamorphic streak and gold bokeh
-//                     discs drifting in. In view, a soft halo and a glint mark
+//                     discs drifting in. There is no arrow (the owner,
+//                     2026-11-01): this light is what leads you to it. In view, a soft halo and a glint mark
 //                     it through the depth of field. On success, a bloom.
 //
 //   import { createPortalGlow, createPortalLight } from '../shared/portal.js';
@@ -31,10 +32,9 @@
 //   glow.burst();                       // success (real time: it plays on through a freeze)
 //
 //   const light = createPortalLight();
-//   ... each frame, after the landmark arrow (shared/landmark.js):
-//   const marks = arrows.drawSplit(split, portalPos, { kind: 'forward' });
+//   ... each frame, after rendering:
 //   light.begin();
-//   light.drawSplit(split, marks, { strength, open });
+//   light.drawSplit(split, portalPos, { strength, open });   // (shared/splitscreen.js)
 //   light.bloom(x, y);                  // success, at a point on screen (CSS px)
 //
 // API
@@ -59,10 +59,10 @@
 //     clock = real seconds }) -> light   (clock: the blooms' time, e.g. the world's frame time)
 //   light.begin()          clear (once per frame, before drawing)
 //   light.draw({ x, y, angle, onScreen, strength = 1, open = 1, region = null })
-//       x, y, angle, onScreen: shared/landmark.js draw()'s result (CSS px;
-//       off screen, the arrow's spot just inside the edge and its direction)
+//       x, y (CSS px): the portal on screen, or off screen the spot just inside
+//       the edge toward it and `angle` its direction (drawSplit works them out)
 //       strength 0..1 (nearer: stronger), region: polygon(s) to clip to
-//   light.drawSplit(split, marks, opts)   one per view of a shared/splitscreen.js layout
+//   light.drawSplit(split, position, opts)  one per view of a shared/splitscreen.js layout
 //   light.bloom(x, y, { scale = 1 })      a golden bloom that swells and fades (1.3 s)
 //   light.canvas, light.dispose()
 //
@@ -419,15 +419,32 @@ export function createPortalLight({ parent = document.body, zIndex = 3, color = 
     ctx.restore();
   }
 
-  function drawSplit(split, marks, opts = {}) {
+  /** Where the portal is for a view: on screen, or the spot just inside the view's edge toward it. */
+  function locate(pr, polys, anchor, margin = 26) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const p of polys) for (const [x, y] of p) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+    const inside = (x, y) => polys.some((p) => inPoly(p, x, y));
+    if (!pr.behind && inside(pr.x, pr.y)) return { x: pr.x, y: pr.y, angle: 0, onScreen: true };
+    const [ax, ay] = anchor || [(x0 + x1) / 2, (y0 + y1) / 2];
+    let dx = pr.x - ax, dy = pr.y - ay;
+    if (pr.behind) { dx = -dx; dy = -dy; }
+    const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
+    // march out to the last point still inside (and a margin in from the edge)
+    let lo = 0, hi = Math.hypot(x1 - x0, y1 - y0);
+    for (let i = 0; i < 20; i++) { const m = (lo + hi) / 2; if (inside(ax + dx * (m + margin), ay + dy * (m + margin))) lo = m; else hi = m; }
+    return { x: ax + dx * lo, y: ay + dy * lo, angle: Math.atan2(dy, dx), onScreen: false };
+  }
+
+  /** One light per view of a shared/splitscreen.js layout, for the portal at world `position`. */
+  function drawSplit(split, position, opts = {}) {
     const L = split.layout;
-    let j = 0;
     for (const v of L.views) {
       const regs = L.regions.filter((r) => r.view === v.index && r.polygon && r.polygon.length >= 3);
       if (!regs.length) continue;
-      const mk = marks && marks[j++];
-      if (!mk) continue;
-      draw({ ...opts, ...mk, region: L.views.length === 1 ? null : regs.map((r) => r.polygon) });
+      const polys = L.views.length === 1 ? [[[0, 0], [W, 0], [W, H], [0, H]]] : regs.map((r) => r.polygon);
+      const anchor = [regs.reduce((a, r) => a + r.anchor[0], 0) / regs.length, regs.reduce((a, r) => a + r.anchor[1], 0) / regs.length];
+      const at = locate(split.project(v.index, position), polys, anchor);
+      draw({ ...opts, ...at, region: L.views.length === 1 ? null : polys });
     }
   }
 

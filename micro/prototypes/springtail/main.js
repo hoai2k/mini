@@ -1965,13 +1965,12 @@ function render(dt) {
   if (!one) { macroShared.uFocus.value = focus0; setDrop(pl); }
   marks.begin();
   portalLight.begin();
-  // no arrow until the portal is found; then it points the way back to it (after luring the spider off),
-  // and the portal's golden light spills in from that edge (or haloes it in view): no text
+  // no arrow (the owner: keep moving and you find it): once placed, the portal's golden
+  // light spills in from the edge of the view on its side, or haloes it in view; no text
   if (game.phase === 'play' && PORTAL.placed && !outro) {
-    const res = marks.drawSplit(split, props.position, { kind: 'forward', range: 600 });
     let d = Infinity;
     for (const P of recs()) d = Math.min(d, Math.hypot(P.x - PORTAL.x, P.z - PORTAL.z));
-    portalLight.drawSplit(split, res, { strength: THREE.MathUtils.clamp(1.2 - d / 300, 0.65, 1), open: props.glow.open });
+    portalLight.drawSplit(split, props.position, { strength: THREE.MathUtils.clamp(1.2 - d / 300, 0.65, 1), open: props.glow.open });
   }
   return L;
 }

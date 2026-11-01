@@ -142,7 +142,7 @@ plays for springtail → mite:
    since the narrow macro view has the raft out of frame until you are on
    it, its light also spills in from the edge of the view on its side (a
    warm glow, an anamorphic streak and gold bokeh discs, stronger as you come
-   closer; `createPortalLight`), beside the brass arrow. In view, a halo
+   closer; `createPortalLight`). There is no arrow: this light leads you. In view, a halo
    marks it through the depth of field, and the raft is brought into focus as
    you reach it. No text.
 2. **Success.** Reaching it, the world posts `landmark {kind: 'forward',

@@ -64,8 +64,8 @@ you (farther than 40 mm), it walks back at 6 mm/s (a jumping springtail does
 13–17). A big ripple within 50 mm of it and away from the raft (a charged
 landing, a raindrop) draws it off to look. The golden sparkle over the raft
 (`shared/portal.js`) is dim and restless while it is guarded, bright once it
-is open. No arrow points the way until the raft has been found; after that the
-brass arrow at the edge of each view points back to it.
+is open. No arrow points the way (the owner: keep moving and you find it):
+once the raft is placed its golden light leads you (see Landmarks).
 
 **The water is the ground.** The pool is a 1.5 x 0.9 m sheet of open water
 with 72 moss islands standing in it (a hand-placed cluster round the start,
@@ -132,9 +132,8 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   Standalone, the freeze holds 1.4 s, time comes back and `embed.js` shows its
   toast. Test hooks: `outro()`, `outroStep(n, dt)`.
 - **No backdoor:** this is the top of the Zoom Chain.
-- **Landmark arrow** (`shared/landmark.js`): none until the raft is placed;
-  then a brass arrow near the edge of each view indicates its bearing without
-  text; on screen, the same arrow points down at it.
+- **No arrow** (`shared/landmark.js` draws no forward mark): the portal's
+  light at the edge of the view, and its sparkle in view, are the only marker.
 
 ## Multiplayer
 
