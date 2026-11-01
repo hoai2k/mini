@@ -709,7 +709,7 @@ async function continuousForward(next) {
   if (!validPose(frozen) || S.frame !== old) return false;
   // the freeze holds while the next world finishes loading (it began when the player neared the portal)
   S.cont.phase = 'loading';
-  const p = await waitFor(() => (preloaded?.i === next && preloaded.ready ? preloaded : null), 25000);
+  const p = await waitFor(() => (preloaded?.i === next && preloaded.ready ? preloaded : null), 45000); // the freeze holds meanwhile; a slow machine waits rather than falling back
   if (!p || !p.provides.includes('intro') || S.frame !== old) return false;
   S.cont.phase = 'hold';
   p.opening = null;
