@@ -227,6 +227,27 @@ nematode's wave and coils into an S as its tell.
   and it is back on guard, its resolve restored. Features → Simulation →
   Prionchulus switches it off (the portal is then open).
 
+## The intro (from the mite)
+
+In the game this world is the far end of the continuous transition from the
+mite (`../../game/README.md`, "The continuous transition"): the mite's freeze
+frame holds a tardigrade walking in the water film of its leaf axil, and this
+world fades in under the same framing, the animal where that glimpse was. The
+two creatures are the same size (350 µm), so the pair is a hand-off: the
+mite world settles its freeze frame on the glimpse from this world's opening
+side and height (pitch 1.18, its heading turned to match) a little wider
+than here, and the shell's move is a short push (×1.34) while the light
+changes from SEM to DIC. This world preloads hidden while the mite nears its
+portal, declares `embed.provide('intro')`, and on `hold` stays frozen at its
+start but renders (the HUD hidden), reporting how its opening view (12.5×,
+the animal centred) frames the animal (`embed.opening`; a pose's `len` is
+3.5, the 350 µm body). While held it takes the shell's `camera` poses
+(`placePoseCamera`: a dolly, the field of view kept; the view's yaw, pitch,
+target and distance follow, so play carries on from where the move ends,
+which is exactly the opening view). On `begin` its time eases back in over
+0.6 s. Test hooks: `__micro.pose()` (how the view frames player 1's animal
+now), `__micro.intro`.
+
 ## Landmarks (the way on and the way back)
 
 Both are things in the moss patch (`landmarks.js`), drawn through the same

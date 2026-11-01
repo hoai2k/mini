@@ -786,7 +786,7 @@ const toggleControls = () => (S.controlsShown ? hideControlsCard() : showControl
 
 // ---------------------------------------------------------------- settings
 // 'microscope' (the default): the continuous transition where both worlds
-// support it (springtail → mite, amoeba → paramecium → bacterium → phage), the
+// support it (springtail → mite → tardigrade, amoeba → paramecium → bacterium → phage), the
 // microscope zoom between the rest.
 const TRANSITIONS = { microscope: 'Continuous', zoom: 'Microscope zoom', card: 'Specimen plates' };
 function settingItems() {
@@ -799,7 +799,7 @@ function settingItems() {
       send(S.frame, 'settings', { invertY });
     } },
     { id: 'controls', label: 'Controls card at the start of each world', about: 'Every world after the first shows its controls for 8 seconds; View brings them back.', get: () => settings.controlsAtStart, toggle: () => { settings.controlsAtStart = !settings.controlsAtStart; saveSettings(); } },
-    { id: 'transition', label: 'Transition between worlds', about: 'Continuous: from the portal the scene slows to a freeze and the camera moves straight into the next world (springtail → mite and amoeba → paramecium → bacterium → phage so far; the microscope zoom between the others). Microscope zoom: the zoom-transitions prototype everywhere. Specimen plates: the shell’s own plate zoom.', choices: Object.keys(TRANSITIONS), get: () => settings.transition,
+    { id: 'transition', label: 'Transition between worlds', about: 'Continuous: from the portal the scene slows to a freeze and the camera moves straight into the next world (springtail → mite → tardigrade and amoeba → paramecium → bacterium → phage so far; the microscope zoom between the others). Microscope zoom: the zoom-transitions prototype everywhere. Specimen plates: the shell’s own plate zoom.', choices: Object.keys(TRANSITIONS), get: () => settings.transition,
       step: (d) => { const k = Object.keys(TRANSITIONS); settings.transition = k[(k.indexOf(settings.transition) + d + k.length) % k.length]; saveSettings(); } },
     { id: 'fullscreen', label: 'Fullscreen', get: () => !!fsEl(), toggle: () => { toggleFullscreen(); setTimeout(renderSettings, 250); } },
   ];

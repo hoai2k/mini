@@ -5,13 +5,13 @@
 //   from (µm)        what
 //   0 - 3800         warm-up: open moss, spores and hyphal tips to graze, the second box mite
 //   3800 - 6200      the first ring of hyphal thickets, full of springtails (the crowd)
-//   ~10900 - 13100   the predatory mite's hunting ground (one predator, moved round its ring)
-//   ~18600 - 21000   the second ring of thickets
-//   ~26400 - 28600   the predatory mite again (the same one, moved out to its outer ring)
-//   ~34500 on        the pseudoscorpion on guard (it wakes 0.9 mm from its post)
-//   36000            the portal: a wet leaf axil (the way to the tardigrade's water film)
+//   ~11300 - 14200   the predatory mite's hunting ground (one predator, moved round its ring)
+//   ~19100 - 21500   the second ring of thickets
+//   ~27500 - 30400   the predatory mite again (the same one, moved out to its outer ring)
+//   ~36000 on        the pseudoscorpion on guard (it wakes 0.9 mm from its post)
+//   37500            the portal: a wet leaf axil (the way to the tardigrade's water film)
 //
-// with calm stretches of ~5-6 mm (7-9 s of hurrying) between. Rushing straight
+// with calm stretches of ~5-6 mm (7-8 s of rushing) between. Rushing straight
 // out (hurrying with every scramble) takes about a minute; dealing with them,
 // about three. The moss itself is one 9.6 mm scenery tile repeated in every
 // direction (world.js TILE), so there is no edge to walk off; the walkable
@@ -25,12 +25,12 @@ export const bearingFromStart = (x, z) => Math.atan2(z, x);
 export const ringPoint = (r, a) => ({ x: Math.cos(a) * r, z: Math.sin(a) * r });
 
 /** The portal ring: the wet leaf axil's water lies this far out, at the bearing it is placed on. */
-export const PORTAL_R = 36000;
+export const PORTAL_R = 37500;
 /** The rings (µm from the start). */
 export const RINGS = {
   warm: 3800,          // warm-up ends: the first thickets begin
-  thicket: [5000, 19800], // the two thicket rings (cluster centres; alternate clusters 350 µm in and out)
-  pred: [12000, 27500],   // the predator's two rings (its hunting ground's centre)
+  thicket: [5000, 20300], // the two thicket rings (cluster centres; alternate clusters 350 µm in and out)
+  pred: [12400, 28600],   // the predator's two rings (its hunting ground's centre)
   portal: PORTAL_R,
 };
 /** A thicket cluster: radius, and the spacing of clusters along their ring (µm of arc). */

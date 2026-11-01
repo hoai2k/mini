@@ -11,30 +11,66 @@ back.
 
 Open `micro/prototypes/mite/` (the invite gate is off on localhost).
 
-The walkable patch is a bounded 9 × 9 mm square round the route
-(`layout.js` `BOUNDS`), with the body kept slightly inside its edges by the
-walker. The rendered floor extends 2.2 mm beyond it on every side to fill the
-camera view, so it looks like open ground beyond the movement limit; the
-limit is not a terrain collider.
+**Goal:** head out through the moss in any direction. The level is a set of
+rings round the start, the same whichever way you go (the encounter pattern,
+`../../design/encounter-pattern.md`); 37.5 mm out (`PORTAL_R`) is the way on:
+a wet leaf axil under a golden glow, where a tardigrade walks in the water,
+guarded by a pseudoscorpion. Lure it off its post and get round it (or bite
+its pincer joints until it backs into the moss), reach the water, and in the
+Micro Zoom game the light changes to the tardigrade's world. Nothing runs you
+down while you stay put: no hunger, no timers; food heals nothing and is
+never needed, it is grazing.
 
-## The way on (`layout.js`)
+## The rings (`layout.js`)
 
-One route runs from the start (the origin) to the wet leaf axil, up and to
-the right in the opening view, 7.3 mm long (~17 s of straight walking). The
-first half is calm exploration and food; every challenge lies at or beyond
-halfway, in sequence (distance along the route):
+The owner (2026-11-01): obstacles soon but not immediately, the same in every
+direction, spaced about evenly from the warm-up to the boss, a portal and its
+boss far enough out in any direction, and no arrow ("keep moving in any
+direction and we will eventually find a portal"). By distance from the start:
 
-| s (mm) | What |
+| From (mm) | What |
 | --- | --- |
-| 0–3.65 | Open moss: grazing (extra spores and hyphal tips in this half), the second box mite, no threats |
-| 3.97 | The predatory mite's hunting ground begins (it lurks at the thicket's edge and inside it) |
-| 4.25–5.85 | The hyphal thicket full of springtails (the crowd) |
-| ~5.95 | The pseudoscorpion wakes (its post at 6.7 mm, beside the way in) |
-| 7.3 | The water film in the leaf axil |
+| 0–3.8 | Warm-up: open moss (the start's ten shoots), extra spores and hyphal tips to graze, the second box mite, the giant springtail (the backdoor) behind the start view |
+| 3.8–6.2 | **Thickets, ring 1** (`CLUSTERS`): 13 hyphal thickets full of springtails, 1.64 mm across, round the 5 mm ring (alternately 0.35 mm in and out), so every straight way out passes within 0.4 mm of one (`route.test.mjs` checks every half degree) |
+| 11.3–14.2 | **The predatory mite**, on its hunting ground (1.1 mm radius, plus a 0.7 mm chase) on the 12.4 mm ring |
+| 19.1–21.5 | **Thickets, ring 2**: 54 more round the 20.3 mm ring |
+| 27.5–30.4 | **The predatory mite again**, on the 28.6 mm ring |
+| 36–37.5 | **The pseudoscorpion** on guard (it wakes 0.9 mm from its post, 0.6 mm before the water and 0.5 mm to the side), and **the portal** at 37.5 mm |
 
-A scripted walk along the route logs where each starts (`__micro.challenges`):
-predator ground 3978 µm (54.5 %), crowd 4260 µm (58.4 %), the predator's
-first hunt 4650 µm (63.7 %), the boss waking 5965 µm (81.7 %).
+Between them, calm stretches of 4.9–6.0 mm (7–8 s of rushing). RUSH_SUMMARY
+
+**One predator, met in every direction.** There is one predatory mite. When
+a player comes within 5 mm of its ground's ring (`LEAD`), at a bearing away
+from where its ground is, its ground and the predator are moved round to
+that ring at that bearing (`placeZone` in `main.js`, like the springtail's):
+only while it is not busy with anyone (hunting, striking, recovering, or
+anyone within 1.8 mm of it), and only when no view's frustum holds where it
+is or where it goes and both are more than 1.5 mm (plus its ground's radius)
+from every player, so nobody sees it move. In multiplayer the one farthest
+out decides. A new game puts it ahead of the start view on the inner ring.
+The thickets do not move: they are laid out as rings of clusters.
+
+**The portal and the boss.** The portal is placed once a game, on its ring at
+the bearing of the first player to get 29.5 mm out (`PORTAL_PLACE`), or the
+nearest bearing within ±60° where no view could see it or the pseudoscorpion
+(`placePortal`); the moss shoots stand aside there (an exclusion disc: its
+arena). Its golden glow (`shared/portal.js`) then draws you on; there is no
+arrow. A brief hint comes once, within 3.2 mm: "A pseudoscorpion guards the
+water. Lure it away from its post and get round it, or bite its pincer
+joints until it backs off". A player who reaches the water (within 360 µm of
+its centre) while the pseudoscorpion is on guard (not driven off, and within
+1.3 mm of the water) is turned back: a toast, once a visit, and its pincers.
+Lured off or driven off, the water lets you through (`enterPortal`, the one
+place `embed.landmark('forward')` fires). Luring: it follows its target out
+to 2.6 mm from its post (`BOSS.leash`), gives up one that gets 3.6 mm away
+(`BOSS.lose`), and then walks back at 260 µm/s (a walking mite does ~420, a
+scramble ~880) and guards again; someone close by on its way back turns it
+round. The glow is dim and restless while it is guarded, bright once open.
+
+**The moss reaches the portal and beyond in every direction**, with no edge:
+one 9.6 mm scenery tile repeated (see World). The walkable square
+(`BOUNDS`) reaches 6 mm past the portal ring; the walker keeps the body
+inside it (not a collider).
 
 ## Controls (Xbox controller; keyboard in brackets)
 
@@ -76,18 +112,48 @@ then takes the shell's `camera` poses (`placePoseCamera`: a dolly, the scan's
 over the springtail's push onto the speck, the mite where the speck was. On
 `begin` its time eases back in over 0.6 s.
 
+## The outro (to the tardigrade)
+
+Reaching the open portal (`enterPortal`) plays the outgoing side of the
+continuous transition (`../../game/README.md`, "The continuous transition";
+the springtail's is the reference): a golden burst from the water (a ring
+over the floor, a fountain of sparks), blooms on the screen, a chime
+(`shared/portal-chime`), a rumble, the HUD hidden; then time eases to a
+freeze over 1 s (`OUTRO`, on the outro's own clock, so a slow machine plays
+it slower rather than skipping it) while rendering goes on. The mite and the
+tardigrade are the same size, so this is a hand-off (`transition.js`'s
+`HANDOFF`), and it is designed as one: while time slows, the view settles on
+the tardigrade walking in the water, from the side and height the
+tardigrade world opens on (`NEXT_OPENING`: pitch 1.18, its heading turned
+the way it faces there; measured from that world's `__micro.pose()`), a
+little wider than there (the glimpse at 0.18 of the view's width against
+0.243), and the glow dims so the animal reads. Frozen, it reports that
+framing (`embed.frozen`) and follows the shell's `camera` poses
+(`placeOutroCamera`); the shell's move is then a short push (×1.34) while the
+tardigrade's world crossfades in under the same framing: the change of
+light, SEM to DIC. Within 3 mm of the water it posts `near('forward')` so
+the shell preloads the tardigrade (no prompt is shown). Standalone, the
+freeze holds 1.4 s, time comes back and `embed.js` shows its toast. Test
+hooks: `outro()`, `outroStep(n, dt)`, `OUTRO` (`rate` slows it),
+`tardiPose()`.
+
 ## Landmarks
 
 Both are built into the moss (`landmarks.js`) and drawn by the SEM like
 everything else.
 
-- **Forward: the wet leaf axil** (design §1.6), up and right in the start
-  view, 7.3 mm off at the end of the route (`FORWARD`, toward −x, +z). A moss stem 1.5 mm tall with
-  its lowest leaf arching out and down to the floor; in the angle between them
-  a smooth lens of water, and lying in it a tardigrade tun, a wrinkled barrel
-  ~0.2 mm long that swells a little as a mite comes near (rehydration). Any
-  player within 330 µm of the water reaches it: `embed.landmark('forward')`,
-  once, and again only after everyone has left.
+- **Forward: the wet leaf axil** (design §1.6), the portal, built where it is
+  placed (`place(a)`; see The rings). A moss stem 1.5 mm tall behind the
+  water with its lowest leaf arching out and down to the floor beside it; in
+  the angle between them a film of water, and walking slowly about in it a
+  tardigrade, 350 µm (a ringed barrel, a rounded head, four pairs of stubby
+  legs with claws stepping in a wave): the next world's creature, the glimpse
+  the transition pushes in on. Over it the golden glow (`createPortalGlow`:
+  a 620 µm pool, sparks and glints, a 3.2 mm beacon), drawn after the SEM
+  composite (additive, so it reads through the moss), and its light at the
+  edge of the view on its side (`createPortalLight`). Any player within
+  360 µm of the water's centre reaches it (see The rings: turned back while
+  guarded).
 - **Backdoor: a giant springtail at rest**, the creature of the stage above
   (~1.5 mm long, four box mites; `BACKDOOR`, behind the start view,
   ~1.8 mm off). It is solid: mites climb onto it. Dwell beside its head
@@ -96,10 +162,9 @@ everything else.
   when no controller is connected). There **Y goes back**
   (`embed.landmark('back')`) instead of closing up; anywhere else Y still
   closes up, and a mite held by the predator can still close up there.
-- **Landmark arrow** (`shared/landmark.js`): a brass arrow shows the water's
-  bearing near the edge of each view. Orbiting changes its screen direction.
-- The predatory mite starts in its hunting ground, to the side of the way on
-  (`PRED_START` in `layout.js`).
+- **No arrow** (`shared/landmark.js` draws no forward mark): the portal's
+  golden light, at the edge of the view or over it in view, is the only
+  marker. The backdoor keeps its quiet "Up" mark near it.
 
 ## Multiplayer
 
@@ -123,8 +188,13 @@ game the roster comes in from the shell (`embed.players`).
   Eaten card: they come back beside a teammate. Alone, the Eaten card and
   restart are as before.
 - Test hooks on `window.__micro`: `players`, `split`, `layout`, `recs()`,
-  `teleport(slot, x, z)`, `settle(n)`, `landmarks`, `landmarkLog`,
-  `nearBack`, `joins`, `forceCapture(slot)`.
+  `teleport(slot, x, z)`, `settle(n)`, `steps(n, dt, inputs)` (simulate
+  without rendering), `landmarks`, `landmarkLog` (`forward`, `turnedBack`,
+  `back`), `nearBack`, `joins`, `forceCapture(slot)`; for the rings
+  `route()`, `portal()`, `placePortal(a)`, `placeZone(k, a)`, `relocLog`,
+  `enterPortal(slot)`, `progress(slot)`, `challenges` (each challenge's first
+  start and first approach within 0.4 mm: `kind`, `d` µm from the start,
+  `t`), `unseen(x, z, r)`, `plan`.
 
 ## Fighting back
 
@@ -152,9 +222,11 @@ Shared fight rules (`shared/predation.js`, `createFight`); the mite uses Y for d
 ## The boss: a pseudoscorpion
 
 `boss.js`; `micro/design/bosses.md`. *Neobisium*-like, ~2.5 mm (seven box
-mites), lying in wait before the wet leaf axil, the last challenge on the
-route, **dormant** until a player comes within 0.9 mm of its post (placement
-paces it: no timer). Built from anatomy and compared side by side with the
+mites), on guard before the wet leaf axil (the portal), put on its post there
+when the portal is placed (`setPost`), **dormant** until a player comes
+within 0.9 mm of its post (placement paces it: no timer). It can be lured
+off (it follows you out to 2.6 mm from its post, then walks back slowly and
+guards again: see The rings). Built from anatomy and compared side by side with the
 delivered sheet (`../assets/reference-sheets/boss-pseudoscorpion.webp`): a
 narrow carapace tapering to the chelicerae, with eye spots; behind it a much
 broader smooth ovoid abdomen (widest two-thirds back, rounded at the end)
@@ -300,13 +372,13 @@ The predator stays at ~0.8 mm, more than twice your length; the springtail
 
 The predatory mite follows the shared pacing in `shared/predation.js`:
 
-- **Its hunting ground.** It lurks at the thicket's edge and inside it
-  (`PRED_ZONE`, past halfway: 3.97–5.15 mm along the route), notices and hunts
-  prey only there (plus a short chase out of it) and goes back after a
-  retreat. While it is not after you it feeds on the springtails (S38: gamasids
-  favour springtails).
-- **A calm opening.** For the first 45 s (and again after every restart) it
-  only wanders; entering its ground ends the calm at once.
+- **Its hunting ground.** One ground (1.1 mm across, `PRED_GROUND`) on one
+  of its two rings (12.4 and 28.6 mm out), moved round them to meet whoever is
+  heading out (see The rings). It notices and hunts prey only there (plus a
+  short chase out of it) and goes back after a retreat. Coming upon a
+  thicket it feeds on the springtails (S38: gamasids favour springtails).
+- **Calm until its ground.** It only wanders until someone first walks onto
+  its ground (no clock); then it is awake.
 - **Hunger comes and goes.** Then it is hungry for ~18–32 s at a time and
   rests in between: 45–75 s after eating you, 15–30 s after you slip free,
   lose it, or it gives up on your closed capsule. Hungry, it wanders toward
@@ -317,12 +389,14 @@ The predatory mite follows the shared pacing in `shared/predation.js`:
   in side-on with a red banner naming the phase: **strike**, it seizes a leg
   with its chelicerae; **hold**, it pulls you in and lifts you, legs kicking;
   **eat**, the chelicerae work at the soft body by the legs, which go limp
-  and fold, and you sag; **eaten**, the Eaten card (A restarts, with the calm
-  opening again).
+  and fold, and you sag; **eaten**: the camera pulls back and follows it
+  with its meal, a fade, and you are back at your last safe spot (or 1.5 mm
+  back toward the start on the same bearing), beside a teammate with company.
+  No lives.
 - **Closing up still saves you**: hold Y during the strike or the hold and you
   seal into the capsule, drop out of its grip, and it gives up.
 
-Features → Simulation → **Calm opening** (45 s / 20 s / 90 s / off) and
+Features → Simulation → **Calm opening** (until its ground / 20 s / off) and
 **Predator hunger** (comes and goes / always / never) for testing.
 `window.__micro.forceCapture()` plays a catch; `__micro.pacing()` reports
 hunger and state.
@@ -583,60 +657,88 @@ pits) works through the same path.
 
 ## World (`world.js`)
 
-The world is a 9 × 9 mm walkable square of humus floor (an analytic height
-field, so feet and probes query it exactly), holding:
+The moss is one **scenery tile**, 9.6 × 9.6 mm (`TILE`), repeated in every
+direction, so the rings (37.5 mm out) have moss all the way and there is no
+edge. The tile holds:
 
-- about 500 angular mineral grains, 20–300 µm;
-- curled litter flakes;
-- 24 moss shoots with lanceolate leaves on a 137.5° spiral, each leaf with a
+- about 600 angular mineral grains, 20–300 µm;
+- ~40 curled litter flakes;
+- 28 moss shoots with lanceolate leaves on a 137.5° spiral, each leaf with a
   costa, a channelled blade, a serrate apex, real thickness (12 µm) and
-  cell relief (the ten old ones round the start, the rest scattered);
-- 3–5 µm fungal hyphae strung between surfaces, with branches (their tips
-  are food; more of them, and more spores, in the calm first half);
-- fungal conidia, echinate (aster-type) pollen and bisaccate conifer pollen;
-- the hyphal thicket (`THICKET`): fifty conidiophores (upright fungal stalks,
-  120–270 µm, a spore head on top, food) with ~70 threads strung between
-  them at a mite's body height.
+  cell relief (the ten old ones round the start, the rest at least 1.3 mm
+  apart across the tile's wrap);
+- 3–5 µm fungal hyphae strung between the floor, grains and litter, with
+  branches (their tips are food, regrowing after 25 s; more of them, and more
+  spores, round the start);
+- fungal conidia, echinate (aster-type) pollen and bisaccate conifer pollen.
 
-Render geometry is merged per material and per 1.5 mm chunk (the floor in
-8 × 8 tiles), so a view draws only the chunks it sees.
+The floor is an analytic height field (feet and probes query it exactly)
+whose three value-noise lattices wrap with the tile (cells of ~690, 259 and
+90 µm), so copies meet without a seam, and the tile is a whole number of the
+floor and grain textures' repeats (320 and 160 µm), so the triplanar
+textures match too.
 
-Walking queries go to low-poly colliders. A broadphase hash (0.5 mm cells by
-each collider's footprint) finds the colliders near a ray, and every big
-static mesh (the giant springtail, stems, flakes, large grains) has a uniform
+**Drawing the copies.** Each view draws the 3 × 3 copies of the tile round
+its target (`setView`, called per view; each copy culled whole when its box
+is outside the view, so usually one to four are drawn): at least 9.6 mm of
+moss on every side, beyond any view's far plane. Copy 0 holds the meshes;
+the other eight hold proxies that share their geometry: a `Mesh` or
+`InstancedMesh` on the same buffers, and for each `BatchedMesh` (grains,
+litter, stems, leaves) a BatchedMesh that draws the original's geometry,
+info and textures with its own draw list. Their per-object cull (cached
+spheres against the view) runs per copy. The floor is 8 × 8 tiles over one
+scenery tile; the hyphae and spores are merged per 1.6 mm chunk.
+
+**Exclusion discs** (`exclude.set`) take moss shoots (the stem and its
+leaves, by the stem's foot) out where something else stands, in world space:
+the 67 thickets, the giant springtail and, once placed, the portal's arena.
+An excluded shoot is skipped in that copy's draw list and its colliders are
+skipped in casts there. Spores and hyphae rest only on the floor, grains and
+litter, so nothing is left hanging.
+
+**Walking queries** go to low-poly colliders: the tile's set, through a
+periodic broadphase (0.48 mm cells that wrap every tile: each collider is
+binned with the copy offset of every wrapped cell its footprint covers, and a
+ray meets each copy it reaches at that copy's shift, so hits are in world
+space), and a fixed set at real places (the giant springtail). Every big
+static mesh (stems, flakes, large grains, the giant springtail) has a uniform
 grid of its triangles walked cell by cell along the ray; moving blades are
-small and tested whole. The analytic floor is marched in steps as long as
-its slopes allow. Hits come from a ring of reused objects (no allocation per
-cast). 3000 random rays matched three.js's raycaster exactly.
-Floor, grains, flakes and stems are rigid; every moss leaf is a `blade`
-collider that bends with its leaf (the lowest leaves, which rest on the floor
-as ramps, are 3× stiffer and give little).
+small and tested whole. The analytic floor is marched in steps as long as its
+slopes allow. Hits come from a ring of reused objects. Floor, grains, flakes
+and stems are rigid; every moss leaf is a `blade` collider that bends with
+its leaf (the lowest leaves, which rest on the floor as ramps, are 3× stiffer
+and give little). The bending blades and hyphae are simulated in tile
+coordinates: each body is handed to them in every copy within reach of the
+tile (`tileBodies`). The per-object cutaway tests each copy of an object
+near the line of sight (`createObjectCut` `period`). Food in the tile is
+eaten from the copy nearest the mouth.
 
-## The crowd: the hyphal thicket (`thicket.js`)
+## The crowd: the hyphal thickets (`thicket.js`)
 
 The set piece of `micro/design/combat-ideas.md`: pushing and biting through a
 crowd. The owner: moving and attacking clear the way without much
-difficulty, and nothing is timed.
+difficulty, and nothing is timed. Laid out as two rings of clusters round the
+start (`layout.js` `CLUSTERS`: 13 at 5 mm, 54 at 20.3 mm, each 1.64 mm
+across), built where they stand. Each thicket:
 
-- **Springtails** (`../shared/crowd.js`): 120 small soil springtails
-  (~190 µm, Isotomidae-like: a ringed body, head, four-segment antennae, six
-  legs, the folded furcula; one SEM-drawn instanced mesh) drift and jostle in
-  the thicket. They part round a mite walking into them; they never attack.
-  Closed up (Y), they flow round the capsule.
+- **Conidiophores and threads**: 34 upright fungal stalks (120–270 µm, a
+  spore head on top, food that regrows after 30 s) with ~50 threads strung
+  between them at a mite's body height.
+- **Springtails** (`../shared/crowd.js`): 30 small soil springtails (~190 µm,
+  Isotomidae-like: a ringed body, head, four-segment antennae, six legs, the
+  folded furcula; one SEM-drawn instanced mesh, shared by every thicket)
+  drift and jostle in it. They part round a mite walking into them; they
+  never attack. Closed up (Y), they flow round the capsule.
 - **Threads**: every thread across your body drags (with the springtails
   pressing on you, at worst half speed; the scramble halves the drag).
-- **Bite (X)** in the thicket grazes away up to three threads in front (real
+- **Bite (X)** in a thicket grazes away up to three threads in front (real
   oribatid feeding; they regrow after ~40 s once nobody is near) and shoves
-  the springtails in front aside (a box mite does not eat springtails). The
-  conidiophores' spore heads are food too.
-- **The predator lurks here** (its hunting ground overlaps the thicket's
-  near half) and eats a springtail in front of its chelicerae every few
-  seconds while it is not after you.
-- A scripted push measured 0.69 of walking speed among 4 threads and 3
-  springtails, back to full after two bites, and ~270 µm/s average through
-  1.4 mm of thicket walking and biting (~400 µm/s with a lane already bitten).
-- Test hooks: `bite(slot)`, `drag(slot)`, `thicket` (its `log`: threads
-  cleared, springtails shoved, eaten by the predator), `challenges`, `plan`.
+  the springtails in front aside (a box mite does not eat springtails).
+- Only the thickets near someone are simulated (their threads within 1.4 mm
+  of a body, their crowd within 2.8 mm of a player).
+- Test hooks: `bite(slot)`, `drag(slot)`, `thicket` (its `clusters`, `log`:
+  threads cleared, springtails shoved, eaten by the predator), `challenges`,
+  `plan`.
 
 ## Features
 
@@ -678,7 +780,7 @@ live and persist per browser.
 | Simulation | Jump (A), borrowed from jumping oribatids | always |
 | Simulation | Bite and graze (X) | always |
 | Simulation | Predatory mite (Parasitidae) | on |
-| Simulation | Calm opening: 45 s / 20 s / 90 s / off | 45 s |
+| Simulation | Calm opening: until its ground / 20 s / off | until its ground |
 | Simulation | Predator hunger: comes and goes / always / never | comes and goes |
 | World | Moss shoots, mineral grains, litter, hyphae, spores and pollen | on (each; off also removes it from walking) |
 | World | Procedural SEM textures | always |
@@ -767,7 +869,15 @@ Not borrowed:
 
 ```bash
 node micro/prototypes/check.mjs mite
+node micro/prototypes/mite/route.test.mjs
 ```
+
+`route.test.mjs` checks the rings without a browser: the tile's floor
+repeats, the first obstacle comes after a warm-up of ~5 s of rushing, the
+calm breaks (2.5–7.5 mm) and an even spacing, every way out passing within
+0.4 mm of a thicket on both rings, the predator's rings clear of the
+thickets, the boss's post and leash, and the portal ring (~51 s of straight
+rushing).
 
 The check loads the page in headless Chromium (software WebGL), drives the
 keyboard, and fails on any console error. Software WebGL is slow, so the

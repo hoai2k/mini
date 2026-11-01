@@ -127,7 +127,7 @@ press both sides see (Menu, View) is counted once.
 
 ## Transitions
 
-### The continuous transition (springtail → mite, amoeba → paramecium → bacterium → phage; the pattern for every pair)
+### The continuous transition (springtail → mite → tardigrade, amoeba → paramecium → bacterium → phage; the pattern for every pair)
 
 The owner (2026-11-01): a landmark "you see and intentionally go into, and
 then an indication of success and then a slowdown to freeze frame, and a
@@ -173,6 +173,15 @@ plays for springtail → mite:
 
 The other wired pairs follow the same steps; what each pushes in on:
 
+- **Mite → tardigrade (a hand-off):** the two are the same size, so the move
+  is a change of light more than of scale. A 350 µm tardigrade walks in the
+  water film of the leaf axil (the portal). As time slows the mite's camera
+  settles on it from the side and height the tardigrade world opens on
+  (pitch 1.18 and the same `rel`, its heading turned to match), a little
+  wider than there, and the portal's glow dims so the animal reads; the move
+  is then a short push (f 0.18 → 0.243) while the DIC world crossfades in
+  over the SEM. The tardigrade world settles its view state from each
+  `camera` pose, so play carries on from the opening view. Back keeps the zoom.
 - **Amoeba → paramecium:** the green *P. bursaria* in the portal's glow is
   the next creature itself. Through the portal it turns up the screen as time
   slows (the paramecium's chase camera sees it from behind), and the amoeba's
