@@ -420,6 +420,14 @@ GROUPS = [
                 "refs": ref("bog-pool"),
                 "prompt": f"{MACRO} A 4 by 4 grid of sixteen frames, each centred in its own cell with clear space around it, showing one raindrop hitting still dark water from directly above in sequence: the falling drop, the crater, the crown splash, the rebound jet, then expanding concentric ripple rings that grow and fade. Same scale in every frame, the drop about 3 mm across. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. {SCIENCE}",
             },
+            {
+                "id": "MP-S06", "status": "requested", "name": "Bog pondweed floating leaf plate",
+                "file": "assets/springtail/pondweed-leaf.png", "size": "1536 x 768, transparent",
+                "used": "The floating leaves of bog pondweed that grow thick round each portal raft (the wolf spiders' hunting grounds) and only here and there elsewhere: a sign that the way on is a few seconds off. Mapped onto each leaf from above.",
+                "standin": "Procedural olive-to-red leaves with a pale midrib and faint veins.",
+                "refs": ref("bog-pool", "moss"), "concepts": ["01-moss-frontier.webp"],
+                "prompt": f"{MACRO} One floating leaf of bog pondweed (Potamogeton polygonifolius) seen from directly above, isolated, its long axis left to right filling the frame: a leathery elliptic blade about 30 mm long and 12 mm wide with a blunt tip, olive green flushed wine red toward the edges and the base, a glossy waxy surface beaded with a few tiny water droplets, a pale midrib and fine curved parallel veins running tip to base, the short stalk at the left edge. Even soft daylight, the whole leaf in focus. No insect on it. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. {SCIENCE}",
+            },
         ],
     },
     {
