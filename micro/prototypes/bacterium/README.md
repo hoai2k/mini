@@ -382,6 +382,30 @@ lists the bottlenecks.
 - A/B switches: `?psfdown=0` (full-resolution PSF), `?rects=0` (no
   per-view scissor).
 
+### Performance (second pass)
+
+Measured on 1 November 2026 with `micro/tools/perf/measure.mjs` and hot loops
+of one simulation step and one `draw()` (40 members per player, `?q=high`).
+Screenshots before and after, on a seeded, fixed-step clock, are identical to
+the pixel (phase, fluorescence, darkfield, 4 players).
+
+- **The collective is cheap:** `collective.post` is about 4 % of a step.
+  Separation is 40² pairs per collective behind an axis test, and quorum is one
+  pass, so it needs no spatial grid below ~150 members per collective.
+- **The step allocated 1.5 MB.** `pushOutOfGrains` ran `Math.hypot` against
+  all 54 grains for every cell, kin cell and speck. V8 doesn't inline
+  `Math.hypot` and boxes its result, and the reads of `o.x` were megamorphic.
+  An exact axis test now skips far grains, and the position is read once. Per
+  step: 1.53 MB → 0.22 MB, about 9 → 3.7 ms in this container.
+- **`draw.js`**: the spirillum and kin parts reuse scratch materials, which
+  saves about 45 KB a frame per 40 members. `collective.js` finds the
+  recruiting collectives once per step and passes a scratch vector to
+  `world.flowAt(x, y, out)`. In `bacterium-shapes.js`, a round disc (no
+  wobble) skips its outline noise.
+- Not done: the other shapes in `draw.js` (grazer cilia, film, cells) still
+  build option objects, about 200 KB a frame. World cells come in five shapes,
+  so the reads in `stepCell` are megamorphic and box, about 100 KB a step.
+
 ## Checks
 
 ```bash

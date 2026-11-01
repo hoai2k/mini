@@ -290,6 +290,36 @@ wandering through it.
 - `?pr=1` renders at full resolution on software WebGL (for judging
   screenshots); otherwise software WebGL renders at 0.6.
 
+### Performance (second pass)
+
+Measured on 1 November 2026 with `micro/tools/perf/measure.mjs` (`?q=high`, 1 and
+4 players, outside and inside). Screenshots before and after, on a seeded,
+fixed-step clock, differ by at most 1/255. They cover false light at high,
+medium and low quality, inside, Goodsell, cryo-EM, fluorescence and 4 players.
+
+- **Culling:** each host's instanced meshes (LPS forest, OmpC, grab
+  proteins) get a bounding sphere once and are culled with their host. The
+  molecule crowd gets a sphere fitted every frame. The crowd wraps round
+  `view.target`, so a split view far from it no longer draws the crowd. Outside,
+  1 player: 52 → 42 draws, 0.58 M → 0.36 M triangles. 4 players (4 views):
+  247 → 191 draws, 2.54 M → 1.38 M triangles. Inside is unchanged.
+- **`world.update`:** a crowd molecule tests a host's envelope only inside the
+  host's bounding sphere. The update runs about 3× faster (≈1.3 → 0.45 ms
+  here) and allocates 62 → 40 KB.
+- **Bloom:** the bright pass thresholds the DOF's quarter-resolution copy (the
+  same 4-tap average) instead of reading the full-resolution scene a second
+  time.
+- Not done:
+  - Specialise the post and toon shaders per look. They branch on uniforms, so
+    the gain is small, and each look switch would recompile unless prewarmed.
+  - Draw the false-light background noise (cloud and shafts, 10 noise
+    octaves per pixel) at ¼ resolution. It is an estimated 40 % of the final pass's ALU,
+    but the finest octave would soften.
+  - A non-boxing random generator for the crowd's jostle (40 KB a frame).
+    It changes the random stream, so it can't be checked pixel for pixel.
+  - The crowd follows the split centroid, so far split views show none. That
+    is a look question for the owner.
+
 ## Features
 
 The Menu panel lists everything with a switch where it makes sense:
