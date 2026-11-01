@@ -183,6 +183,12 @@ hunt hard, a near dead end). The third cell is the wrong host.
   a shelter from UV. Fold the fibres (B) to slip free.
 - **The wrong host**: a Gram-positive with no outer membrane and no OmpC. The
   fibres slide off; fold them to pass cleanly.
+- **Humic flocs** (new; MP-R21 is the reference request): four loose,
+  slowly turning tangles of humic matter drifting past halfway (`FLOCS` in
+  `world.js`, listed by `debug.placements()`'s route rule). Extended fibres
+  snag in one: it drags you in and slows you to a crawl; fold them (B) and
+  you slip through. Bog water is rich in humic matter **[Unverified for the
+  size and stickiness drawn]**.
 - **Inside: the boss, a CRISPR-Cas complex** (type I, shaped after the delivered
   sheet `assets/reference-sheets/boss-cas.webp`: Cascade, a bulky blue body
   of Cas7 subunits curled round a yellow groove carrying the red crRNA guide,
@@ -310,7 +316,40 @@ reference sheet and `research/assets/references/production/phage-t4.jpg`:
   two twisting bead strands. New DNA enters at the pore and pushes the strand
   out; you steer the leading end with wobble and drag.
 
-### The look (`shared/techniques/phage-goodsell.js`)
+### The look since the revamp (`shared/techniques/phage-beads.js`, [`LOOK.md`](LOOK.md))
+
+- **Bead-cluster molecules as sphere impostors**: every molecule in the water
+  and on the hosts is a template of small spheres (`beadTemplate`: globule,
+  small, dimer, chain, complex, humic, lps, porin, mprot, floc), and every
+  sphere is one camera-facing quad ray-cast in the fragment shader, writing
+  its true depth. One instanced draw per template.
+- **Two baths that never touch the CPU**: a near bath (≈2,300 molecules,
+  detailed, in a 2.3 µm box) and a mid bath (≈3,200 larger, coarser
+  molecules out to the haze, leaving the middle to the near one), each
+  wrapped round the view's centre on the GPU, jostling (small ones fastest),
+  tumbling, making way for each phage and a gust, vanishing inside solids,
+  clearing a lens in front of the camera. Each split view wraps them round
+  itself, so every view is full (this replaces the CPU crowd and its
+  per-view copies).
+- **Hosts furred all round**: LPS chains every ~15 units² (≈3,700 on Host
+  A), porins, membrane proteins and globular proteins in the forest, porin
+  patches at the receptor sites, and the grab proteins as bead clusters (the
+  gold receptors glow a little: the thing to find). The capsule body wobbles
+  more under its wet relief.
+- **Light and shadow**: per-bead crease occlusion (the side of a bead facing
+  into its cluster darkens), screen-space ambient occlusion and depth
+  outlines in the final pass (QuteMol-like), per look: false light 0.45 / 0.3,
+  Goodsell 0.6 / 0.6, cryo-EM 0.4 / 0.8, fluorescence 0.2 / 0.25.
+- **Every direction full**: 48 far cells on a shell round the field; the
+  backdrop and the UV wash are placed by view direction and world position,
+  not by screen (MP-V06, a panorama, replaces the procedural backdrop when it
+  arrives).
+- **Palette by type** (`PALETTE`): violet-blue and periwinkle proteins, teal
+  and green ones, pale small molecules, olive humic matter, a gold-green LPS
+  core with pale tips, blue porins, a blue-violet ribosome-sized complex;
+  each with its Goodsell colour for the watercolour look.
+
+### The look before the revamp (`shared/techniques/phage-goodsell.js`)
 
 **False light (the default).** The same materials carry a second branch
 (`goodsellShared.uStyle = 1`), each with its own false-light parameters
@@ -417,10 +456,12 @@ The Menu panel lists everything with a switch where it makes sense:
   desaturation (the haze in false light); Delivered art (in false light the
   painted envelope lends only its grain); Quality governor and Manual quality.
 - **Body**: T4 from its anatomy (always).
-- **Motion**: LS drift (Drift / Honest); Brownian motion; Slow tumbling.
+- **Motion**: LS drift (Drift / Honest); Brownian motion; Molecular kicks;
+  Slow tumbling.
 - **Simulation**: UV near the surface; Amoeba edge.
-- **World**: Crowded water.
-- **Controls**: Invert camera Y (shared).
+- **World**: Crowded water (the baths).
+- **Controls**: Keep the surface up (the gentle levelling roll); Invert
+  camera Y (shared).
 - **Sound**: the shared Sound and Ambience switches.
 
 ## Art
@@ -448,6 +489,14 @@ snap, DNA translocation (a fast zipper), an enzyme clamp, a capsid crack, and
 the lysis burst.
 
 ## Departures, labelled
+
+- **Individual molecular kicks**: a real phage is struck ~10^13 times a
+  second and the sum is a smooth random walk [S100]; a strike every half
+  second or so, each a visible molecule bouncing off, makes the cause
+  visible. The water is also far more crowded and its small molecules far
+  larger than real (so they read).
+- **Free 3D drift with the triggers** (RT/LT into and out of the view): the
+  same departure as LS drift.
 
 - **LS drift and the dash** (current gust, fibre push-off, inside surge): a
   phage has no motor and makes no decisions; the player's choices stand for

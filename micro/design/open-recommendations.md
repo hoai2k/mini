@@ -53,8 +53,6 @@ Each of these was left out because it changes the picture or feel, or needs more
 - [Medium] Bacterium: the remaining `draw.js` / `stepCell` garbage, about 300 KB a frame (no visible change).
 - [Small] Phage: per-look shader variants (small gain; recompiles when the look changes).
 - [Small] Phage: background noise at quarter resolution (about 40% of the final pass; slightly softer). Deferred in the third pass because it changes the look.
-- [Small] Phage: the crowd's random generator allocates 40 KB a frame.
-- [Small] Phage, owner's call: in split screen, views far from the group's centre show no molecule crowd.
 - [Small] Perf harness: runs get only 5–8 frames on a loaded machine and its 4-player spread never splits the screen; widen the spread and lengthen runs.
 
 ## Springtail
@@ -128,8 +126,13 @@ Each of these was left out because it changes the picture or feel, or needs more
 - [Medium] The first one in pays: a cut injection leaves the host weakened for a while, so a second player can get in. A departure for T4. Source: [combat-ideas.md](combat-ideas.md) (phage idea 4).
 - [Small] Escape mutant: after a Cas3 cut, a small chance you respawn as a variant the complex ignores. Source: [combat-ideas.md](combat-ideas.md) (phage idea 5).
 - [Large] Lineage play: after a burst, pick which new phage to follow. Source: [zoom-chain-levels.md](zoom-chain-levels.md) (6.5).
-- [Medium] Real Brownian drift: the phage now drifts without it. Source: [zoom README](../prototypes/zoom/README.md) (known issues).
-- [Medium] Denser look: more host surface proteins, nearer framing, a crowded mesh inside, a richer membrane and true transmission. Source: tonight's notes, [phage README](../prototypes/phage/README.md).
+- [Medium] Real Brownian drift in the zoom player: the phage there drifts without it (the phage world now has molecular kicks). Source: [zoom README](../prototypes/zoom/README.md) (known issues).
+- [Medium] Richer host membrane: a true membrane mesh with a lipid-headgroup texture (MP-V05 gives its albedo) under the bead forest, and true transmission. The revamp (2 November 2026) did the density: GPU baths of bead-cluster molecules in every direction, hosts furred all round. Source: [phage LOOK.md](../prototypes/phage/LOOK.md).
+- [Small] Phage: ambient occlusion that spares the phage's own glow (the pass darkens creases on it too). Source: [phage LOOK.md](../prototypes/phage/LOOK.md).
+- [Small] Phage: keep the bath's molecules out of the flocs and the stray phage too (only hosts, the amoeba and the clay are solids in the shader now). Source: [phage README](../prototypes/phage/README.md) (known issues).
+- [Small] Phage: a kick sound of its own (a soft click per strike, pitched by the molecule's size); the strikes are silent except for proteins, which reuse the bacterium's tumble. Source: [phage README](../prototypes/phage/README.md).
+- [Medium] Phage: impostor beads for the far bath at quarter resolution, or MP-V07's sprites, if the bath's fill is too much on weak GPUs (software WebGL halves the frame rate against the old slab). Source: [phage README](../prototypes/phage/README.md) (performance, revamp).
+- [Small] Phage, owner's call: an optional chase camera that turns slowly behind the travel direction (the revamp keeps the view where you leave it, which fixes the spin). Source: [phage README](../prototypes/phage/README.md).
 
 ## Game shell
 

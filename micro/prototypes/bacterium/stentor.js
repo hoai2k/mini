@@ -27,11 +27,12 @@ export const STENTOR = {
   mouth: { x: LANDMARK.x + 122, y: LANDMARK.y + 20 }, // off the right edge of the field: the oral pouch
   discR: 112, // the oral disc's radius: its rim (and the membranelles) reaches into the field
   pullR: 175, // the vortex reaches this far from the mouth
-  catchR: 128, // drawn this close to the mouth, you are swept in (the host lies inside: beat Stentor to reach it)
+  catchR: 96, // the vortex's shape (and a catch's path into the mouth); cells inside the oral disc's rim are swept in (disc())
   foot: { x: LANDMARK.x + 34, y: WORLD.slabY + 6 }, // the holdfast on the biofilm
   wakeR: 200,
 };
 
+const DISC = { rho: 0, out: 0 };
 export function createStentor() {
   const st = {
     kind: 'stentor', label: 'Stentor', ...STENTOR,
@@ -51,6 +52,19 @@ export function createStentor() {
       // contracted (a flash) and re-extending over seconds
       const cW = s === 'repelled' || s === 'retreat' ? 1 : 0;
       st.contract += (cW - st.contract) * Math.min(1, dt * (cW > st.contract ? 25 : 0.8));
+    },
+    /**
+     * Where (x, y) is against the oral disc as drawn (draw.js: an ellipse round the mouth, 0.42 R along
+     * the body, R across): rho < 1 inside the rim (swept in), and `out`, how far outside the rim, µm.
+     */
+    disc(x, y, o = DISC) {
+      const R = st.discR * (1 - 0.4 * st.contract), ex = 0.42 * R;
+      const ang = Math.atan2(st.mouth.y - st.foot.y, st.mouth.x - st.foot.x), c = Math.cos(ang), s = Math.sin(ang);
+      const dx = x - st.mouth.x, dy = y - st.mouth.y;
+      const lu = dx * c + dy * s, lv = -dx * s + dy * c;
+      o.rho = Math.hypot(lu / ex, lv / R);
+      o.out = o.rho > 1e-6 ? Math.hypot(dx, dy) * (1 - 1 / o.rho) : -R;
+      return o;
     },
     /** The vortex's flow at (x, y) in µm/s, into `out`. */
     flow(x, y, out) {

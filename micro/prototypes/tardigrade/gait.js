@@ -287,7 +287,11 @@ export class Walker {
 
     this.atEdge = false;
     const nu = this.u + mu, nv = this.v + mv;
-    if (L.inside(nu, nv, 0.55)) { this.u = nu; this.v = nv; }
+    // A leaf rising across the way is a wall: the head presses against it
+    // (and, held there, climbs it) instead of walking through it.
+    const wall = this.candidate && this.candidate.wall && this.candidate.dist < 0.3 && mag > 0 && !this.slipping;
+    if (wall) { this.atEdge = true; this.speed *= 0.5; }
+    else if (L.inside(nu, nv, 0.55)) { this.u = nu; this.v = nv; }
     else if (this.slipping) { this.fall(); return; }
     else if (mag > 0) { this.atEdge = true; this.speed *= 0.5; }
 
@@ -517,11 +521,13 @@ export class Walker {
       const ahead = p.sub(this.tPos).dot(fwd) > 0;
       const wall = direct && angle > 0.45 && ahead;
       if (!(this.atEdge || wall)) continue;
-      if (!best || dist < best.dist) best = { M, loc, dist, bridged: !direct };
+      if (!best || dist < best.dist) best = { M, loc, dist, bridged: !direct, wall };
     }
     this.candidate = best;
     const wrapOk = !best && this.atEdge && this.u > 1.0;
-    if (best || wrapOk) this.pushT += dt; else this.pushT = 0;
+    // (at a run the body bumps the edge every other frame: a missed frame
+    // lets the push decay rather than start again)
+    if (best || wrapOk) this.pushT += dt; else this.pushT = Math.max(0, this.pushT - 2 * dt);
     if (this.pushT < 0.6) return;
     this.pushT = 0;
     if (best) this.transferTo(best, head);

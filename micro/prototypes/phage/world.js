@@ -356,7 +356,7 @@ export function createWorld(scene) {
   // the camera can turn, and round every split view (world.viewBath sets the centre per view). The
   // near bath is dense and detailed; the mid bath fills out to the haze with fewer, larger molecules.
   const NEAR = [
-    { kind: 'small', n: 1100, s: [0.9, 1.3], variants: 4 },
+    { kind: 'small', n: 1100, s: [0.9, 1.3], variants: 3 },
     { kind: 'globule', n: 320, s: [0.9, 1.5], pal: PALETTE.violet },
     { kind: 'globule', n: 260, s: [0.7, 1.1], pal: PALETTE.teal, seed: 3 },
     { kind: 'dimer', n: 160, s: [0.8, 1.2] },

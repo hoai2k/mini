@@ -13,9 +13,9 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
 
 | Button | Action |
 | --- | --- |
-| LS (WASD) | Crawl, relative to the view. Push into a leaf edge to reach across to a neighbouring leaf, or round the margin onto the underside |
+| LS (WASD) | Crawl, relative to the view. The stick is analogue: a slight push creeps at ~30 µm/s, full tilt hurries at ~150 µm/s (a quadratic curve between, so the slow end is easy to hold). The keys walk at a middle pace (~90 µm/s); hold **G** to hurry (full tilt) or **T** to creep (keyboard only). Push into a leaf edge, or into a leaf rising across the way, to reach across to it, or round the margin onto the underside |
 | RS (arrows) | Turn and tilt the view. Up looks up (the camera swings down toward the leaf's edge-on view), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
-| **A (Space)** | **Scramble**: 0.9 s of fast wave gait (~400 µm/s), recharging over 2.6 s (the `dash` meter); costs ~3.5% water and 2% reserves. With no stick, straight ahead |
+| **A (Space)** | **Scramble**: 0.9 s of fast wave gait (~280 µm/s, nearly twice the full-tilt walk), recharging over 2.6 s (the `dash` meter); costs ~3.5% water and 2% reserves. With no stick, straight ahead |
 | **X (E)** | **Pierce** with the stylets: food in reach (algae, diatoms, detritus) or the living leaf cell under the mouth; at a Milnesium or Prionchulus, a jab with a head thrust that bites back |
 | B (Shift), hold | **Defend**: grip hard / brace (two legs swing at most, slower, much harder to slip). Facing a predator as it lunges, it blocks |
 | Y (R), hold | Curl into a tun. In a tun on a wet leaf, press again to wake. In the leaf axil (the backdoor) Y goes back up to the mite instead |
@@ -195,12 +195,39 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   it; junctions and walls across the pull hold best. The gait clock advances
   with distance; the leg phases follow the back-to-front ipsilateral wave with
   the sides in antiphase measured in *Hypsibius exemplaris* (Nirody et al.
-  2021), about a third of each cycle in swing. A leg only lifts when its
-  neighbours are down; a stretched leg must step; a body that outruns its feet
-  is held back and the claws scrape. Grip (sum of hold qualities) is compared
+  2021), about a third of each cycle in swing. A leg lifts only when its
+  partner on the other side is down and its neighbours on the same side are
+  past mid-swing; a leg near the end of its reach must step whatever the wave
+  says (see Legs). Grip (sum of hold qualities) is compared
   with what the slope needs: walking fast up the steep leaf C slips unless you
   brace. Leaves are walkable on both faces, at any angle; transfers happen
-  where leaves touch or where the film bridges a wider gap.
+  where leaves touch or where the film bridges a wider gap. A leaf rising
+  across the way (leaf C from leaf B) is a wall: the head presses against it
+  and, held there ~0.6 s, the animal climbs onto it (at the new speeds it
+  used to walk straight through it).
+- **Legs: reach and hand-off (`gait.js`).** A lobopod telescopes a little,
+  never more. Every leg's length is measured hip to claw base on the body as
+  drawn (the displayed trunk with its sway and surge, `creature.bodyDeform`),
+  as a multiple of its rest length: a foot is placed within 1.08× (`R_PLANT`),
+  must step past 1.11× (`R_STEP`, judged where the body will be this frame),
+  and a planted foot past 1.14× (`R_CAP`) lets go; a foot in the air reaches
+  no further than 1.14×, and `creature.js` clamps anything else at 1.15×
+  (`LEG_STRETCH_MAX`). Holds are chosen on the face the body is on, round
+  each leg's stance centre (under the hip for pairs I-III, behind it for the
+  backward-pointing pair IV), half a stance ahead plus the distance the body
+  covers during the swing, kept on the leaf, snapped to a wall only if the
+  leg reaches it; a swing whose hold drifts out of reach (the body slowed or
+  turned) picks a new one on the way, and one that lands out of reach lets
+  go. A foot with nothing in reach is **let go**: drawn up and in under the
+  body, paddling, looking for a hold every 50 ms. After a transfer or the
+  margin the feet keep the old leaf while they reach it and let go of it one
+  at a time, back to front (60 ms apart), each catching the new leaf as it
+  comes in reach; falling, all eight let go and catch as the body lands. So
+  nothing is stretched across a gap. Stride length is capped by reach (stance
+  travel ≤ 0.5 body units, what pairs II and III reach): faster means faster
+  steps, with up to 45% of each cycle in swing at a scramble, and the
+  display filter's steady lag is fed forward so the feet are placed for the
+  body that is drawn. `legs.test.mjs` checks it (see Checks).
 - **Smooth climbing.** The trunk follows its target through three first-order
   lags in series, so position, velocity and acceleration stay continuous; a
   change of face (a transfer, the margin, a fall) no longer jumps the target
@@ -225,16 +252,33 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   still far less than a real NA 0.25 lens would give), so with the focal
   plane on the animal's mid-depth the leaf surface under it softens and the
   animal stands out with its DIC relief.
-- **Speed.** Walking is 2.25× the original pace (1.5× and then 1.5× again,
-  at the owner's request): a limit of 225 µm/s (~0.65 body lengths/s),
-  inside the 79–263 µm/s Nirody et al. measured; a scripted straight walk on
-  leaf A covers ~150 µm/s over the ground (was ~100), because the trunk
-  surges with each wave and stretched legs hold it back. Strides lengthen
-  above the old 150 µm/s pace (55 µm, up to 35% longer at the walking limit)
-  and swings may shorten to 100 ms, so footfalls stay matched to the wave.
-- **Scramble (A).** The speed limit rises to ~400 µm/s with a fast pick-up
-  (~270 µm/s over the ground), strides lengthen up to ~90% and swings shorten
-  to 90 ms, keeping the back-to-front wave. It costs water and reserves; too weak (reserves under
+- **Speed (analogue, 2026-11).** The owner found no difference between the
+  slowest and fastest walk. The cause: the old gait could not keep up with
+  its own 225 µm/s limit. Swings lasted up to 0.55 s at low speed, the feet
+  fell behind, and the "stretched legs hold the trunk back" rule then held it
+  at its 15% floor whatever the stick said, so the walk really ran at
+  ~6-34 µm/s and the scramble at ~100 µm/s. Now `walkSpeed(m)` (`gait.js`)
+  maps the stick after the pad's dead zone: a slight push is 30 µm/s (the old
+  walk as it ran), full tilt 150 µm/s (the old scramble's peak),
+  30 + 120·m² between; the gait keeps up, so the hold-back only acts on a
+  foot that could not step. The keyboard walks at m = 0.7 (~90 µm/s), G
+  hurries, T creeps. Acceleration 3 units/s² (the old 1.35 took 1.7 s to
+  reach the limit). The trunk still surges with each wave, now round its
+  mean speed (±30%), so the speed is the speed over the ground. Scripted
+  straight walks on leaf A at 60 Hz, 2 s after a 2 s run-up, over the ground:
+
+  | Stick | Before | After |
+  | --- | --- | --- |
+  | 0.2 | 6 µm/s | 35 µm/s |
+  | 0.5 | 14 µm/s | 60 µm/s |
+  | 1.0 (full tilt) | 27 µm/s | 148 µm/s |
+  | Scramble (A, the 0.9 s burst) | 103 µm/s (peak 151) | 248 µm/s (peak 318) |
+  | Longest leg drawn | 1.41-1.54× rest | 1.07-1.09× |
+
+- **Scramble (A).** ~280 µm/s with a fast pick-up (0.2 s), nearly twice the
+  full-tilt walk; strides are capped by reach, so the legs step faster
+  (swings down to 60 ms, up to 45% of each cycle in swing), keeping the
+  back-to-front wave. It costs water and reserves; too weak (reserves under
   4%) it refuses.
 - **Milnesium (`predator.js`).** A second Walker and Creature at 1.5× scale,
   with a wide buccal tube and no placoids (true of *Milnesium*), a browner
@@ -243,8 +287,10 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   has come at least halfway (see The route); for the first 40 s it only
   browses in any case. Then it hunts: it heads for
   you at under half speed, coming into view from the edge of the field, and
-  within ~650 µm stalks at up to ~270 µm/s (faster than your walk, slower
-  than your scramble). Its mouth on you is a bite: −20% reserves, and empty,
+  within ~650 µm stalks at up to ~180 µm/s (faster than your full-tilt walk,
+  slower than your scramble; it closes in from afar at ~75 µm/s). Its walker
+  takes the stick linearly (`curve: false`, limit 1.8 units/s): it measured
+  175-180 µm/s stalking before and after the gait change. Its mouth on you is a bite: −20% reserves, and empty,
   it swallows you (see Threats and pacing). After a bite it lets go, backs
   off for 2.2 s, keeps its distance and rests 45–75 s before it is hungry
   again (it no longer bites every
@@ -461,9 +507,11 @@ Not borrowed:
 - **Leaves** are flat laminae with cells in the shader; real leaves curve,
   and fold in as they dry. Cell sizes are lax-celled (about 20 × 100 µm
   procedural, ~30 × 60 µm with the delivered art).
-- **Speed:** up to 225 µm/s walking (~0.65 body lengths/s) and ~400 µm/s
-  scrambling; Nirody et al. measured 79–263 µm/s, so the walk is at the
-  fast end and the scramble is a stretch.
+- **Speed:** 30-150 µm/s walking (up to ~0.43 body lengths/s) and
+  ~280 µm/s scrambling; Nirody et al. measured 79–263 µm/s, so the walk
+  spans the slow end to the middle and the scramble is a stretch.
+- **Leg reach:** the 1.14× telescoping limit and the tucked, paddling foot
+  are game choices for legibility, not measured.
 - **Milnesium's rules** are game rules: the calm start, hunting only past halfway, the slow approach,
   backing off after a bite, hunger that comes and goes, the sensing range, its speed, the
   −20% bites, the thin-film refuge threshold, backing off after a stylet jab
@@ -493,9 +541,18 @@ Not borrowed:
 
 ```bash
 node micro/prototypes/check.mjs tardigrade
+node --test micro/prototypes/tardigrade/legs.test.mjs
 ```
 
-Must print `ok tardigrade` with no console errors. `window.__micro` exposes
+The first must print `ok tardigrade` with no console errors. The second
+(headless Chromium, ~30 s) drives the animal at 60 Hz from the Sphagnum leaf
+onto leaf E, across the film gap from leaf A to leaf B, up onto the steep
+leaf C (then braced), round the margin of leaf D, through scrambles with
+turns, a scramble into the climb onto C, a fall and a teleport, and checks
+every leg on every frame (`creature.legFrames()[i].raw`, before the backstop
+clamp) stays within 1.15× its rest length, and that after each transfer all
+eight feet catch the new face (0.9-1.8 s). Latest run: longest 1.14×
+(a foot reaching in mid-swing), every transfer handed off. `window.__micro` exposes
 `scene`, `camera`, `renderer`, `world`, `walker`, `creature`, `life`, `mic`,
 `view`, `features`, `predator` and `dash` for scripted checks (`?pr=1` forces
 full resolution on software GL), plus `players`, `animals`, `split`,

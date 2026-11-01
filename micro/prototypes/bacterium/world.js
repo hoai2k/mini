@@ -230,7 +230,7 @@ export function createWorld() {
   }
 
   function insideAmoeba(x, y, t) {
-    if (!opts.amoeba) return -1;
+    if (!opts.amoeba || amoeba.beaten) return -1; // beaten, it withdraws and engulfs nothing more
     const c = Math.cos(amoeba.ang), s = Math.sin(amoeba.ang);
     const dx = x - amoeba.x, dy = y - amoeba.y;
     const lx = dx * c + dy * s, ly = -dx * s + dy * c;
@@ -302,12 +302,12 @@ export function createWorld() {
         else if (t > g.next) { g.contract = 3; g.ext = 0; g.next = t + 20 + r() * 15; }
       }
       // the amoeba's edge holds its gate: it slides a little toward the nearest player (≈1.4 µm/s,
-      // leashed to its place); beaten (guards.js), it withdraws down and to the right and stays there
+      // leashed to its place); beaten (guards.js), it withdraws down into the sediment and stays there
       if (opts.amoeba) {
         const H = amoeba.home;
         if (amoeba.beaten) {
-          const tx = H.x + 60, ty = H.y - 70, dx = tx - amoeba.x, dy = ty - amoeba.y, d = Math.hypot(dx, dy);
-          if (d > 0.5) { amoeba.x += (dx / d) * Math.min(d, 9 * dt); amoeba.y += (dy / d) * Math.min(d, 9 * dt); }
+          const tx = H.x + 10, ty = H.y - 140, dx = tx - amoeba.x, dy = ty - amoeba.y, d = Math.hypot(dx, dy);
+          if (d > 0.5) { amoeba.x += (dx / d) * Math.min(d, 25 * dt); amoeba.y += (dy / d) * Math.min(d, 25 * dt); }
         } else {
           const dx = player.x - amoeba.x, dy = player.y - amoeba.y, d = Math.hypot(dx, dy);
           if (d < 90 && player.alive && hunt.amoeba) { amoeba.x += (dx / d) * amoeba.speed * dt; amoeba.y += (dy / d) * amoeba.speed * dt; }

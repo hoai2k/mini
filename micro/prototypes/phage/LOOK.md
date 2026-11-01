@@ -15,7 +15,7 @@ them lush, and what the game lacked:
 
 | In the references | In the game before | Now |
 | --- | --- | --- |
-| Water packed with molecules in every direction, small ones filling the gaps | ~550 molecules in a thin slab round the target; empty past its edges | ~5,800 molecules (≈47,000 beads) in two nested GPU baths wrapped round every view |
+| Water packed with molecules in every direction, small ones filling the gaps | ~550 molecules in a thin slab round the target; empty past its edges | ~5,500 molecules (BEADS beads) in two nested GPU baths wrapped round every view |
 | Every molecule a lumpy cluster of small spheres | smooth icosahedral blobs | bead clusters (sphere impostors) |
 | Soft contact shadows in the creases | none | per-bead crease occlusion (baked) + screen-space AO in the outlined looks |
 | Hosts furred with LPS and studded with proteins | sparse LPS on the front half | a dense bead forest of LPS, porins and membrane proteins all round each cell |
@@ -66,9 +66,10 @@ them lush, and what the game lacked:
   and it makes every cluster read as a lumpy solid.
 - **Screen-space ambient occlusion and outlines** (in the final pass,
   `phage-goodsell.js`): up to 10 depth taps per pixel in a ring scaled by
-  depth, plus a 4-tap depth-discontinuity outline. On in the Goodsell,
-  cryo-EM and fluorescence looks; in false light the baked occlusion and the
-  translucent rim carry it (the pass's AO there darkened the glow).
+  depth, plus a 4-tap depth-discontinuity outline that fades with distance.
+  Strength per look (AO / outline): false light 0.45 / 0.3, Goodsell 0.6 /
+  0.6, cryo-EM 0.4 / 0.8, fluorescence 0.2 / 0.25. The quality governor
+  trims the taps (10, 6, none).
 - **A bath that is never empty.** The baths never touch the CPU: the vertex
   shader wraps each molecule round the view's centre (`mod` in a box), so the
   water is full whichever way the camera turns and round every split view (the
@@ -92,7 +93,7 @@ them lush, and what the game lacked:
 
 - A true membrane mesh with a lipid-headgroup texture for the hosts (MP-V05
   will give its albedo; the bead forest stands in).
-- Per-bead SSAO in false light without darkening the glow.
+- AO that spares the phage's glow (the pass darkens creases on it too).
 - Impostor beads for the phage itself (its capsid is the T4 model, which is
   geometric because the real capsid is).
 

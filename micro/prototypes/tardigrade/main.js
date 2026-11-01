@@ -81,7 +81,7 @@ const hud = mountHud({
   title: 'Tardigrade · The Drying',
   sub: 'A ~350 µm eutardigrade gripping moss-leaf cell walls in a drying water film, stalked by a Milnesium. Differential interference contrast (DIC) look.',
   controls: hudControls({
-    move: 'Crawl (relative to the view); push into a leaf edge to reach across',
+    move: 'Crawl (relative to the view): a slight push creeps, full tilt hurries; keys walk at a middle pace, hold G to hurry, T to creep. Push into a leaf edge to reach across',
     camera: 'Turn and tilt the view (up looks up)',
     dash: 'Scramble: a burst of fast wave gait (costs water and reserves)',
     attack: 'Pierce with the stylets: feed, or jab a Milnesium (bite back)',
@@ -93,7 +93,7 @@ const hud = mountHud({
     zoom: 'Magnification 10× / 12.5× / 20× / 40×',
     extra: [['LS click', 'Refocus on the animal'], ['RS click', 'New day (test)']],
   }),
-  note: 'Head for the brass chevron: down onto the Sphagnum leaf, across the broad leaf below (a meadow of rotifers to push and jab through, a Milnesium hunting there) and past Prionchulus to the far Sphagnum leaf\'s tip, where the film meets the pool, to zoom in to the pool floor. The first half is yours to explore and feed in; the leaf axil at the stem, left (the ring), is the way back up: Y there. Other controllers join with any button. 1 s = 4 min of the day (240×; change it in Features). Walking and feeding are real time: up to ~225 µm/s, at the fast end of the measured range; the scramble (~400 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
+  note: 'Head for the brass chevron: down onto the Sphagnum leaf, across the broad leaf below (a meadow of rotifers to push and jab through, a Milnesium hunting there) and past Prionchulus to the far Sphagnum leaf\'s tip, where the film meets the pool, to zoom in to the pool floor. The first half is yours to explore and feed in; the leaf axil at the stem, left (the ring), is the way back up: Y there. Other controllers join with any button. 1 s = 4 min of the day (240×; change it in Features). Walking and feeding are real time: ~30 µm/s at a slight push of the stick to ~150 µm/s at full tilt (inside the measured 79-263 µm/s); the scramble (~280 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
 });
 
 const toast = (t, ms) => hud.toast(t, ms);
@@ -273,7 +273,9 @@ F({ id: 'capacity', group: 'Simulation', label: 'Film capacity field', fixed: tr
 F({ id: 'labels', group: 'Controls', label: 'Anatomy labels', on: false, about: 'Name the claws, leg IV, buccal tube, bulb, eyespot, gut and storage cells (LB).', onChange: (v) => (view.labels = v) });
 F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'A small knock as each claw hooks a wall; heavy on slips and falls; a kick on each scramble and on a Milnesium bite.', onChange: (v) => (rumbleOn = v) });
 F({ id: 'scramble', group: 'Motion', label: 'Scramble (A)', fixed: true,
-  about: 'A 0.9 s burst of the same back-to-front wave gait at about 1.8× the walking pace (~400 µm/s, strides up to ~90% longer, swings as short as 90 ms), recharging over 2.6 s. Each costs ~3.5% water and 2% reserves. A stretch: the fastest walking measured in Hypsibius is ~260 µm/s.' });
+  about: 'A 0.9 s burst of the same back-to-front wave gait at ~280 µm/s, nearly twice the full-tilt walk (150 µm/s): the legs step faster rather than further (each reaches only so far), with up to 45% of each cycle in swing and swings as short as 60 ms. It recharges over 2.6 s; each costs ~3.5% water and 2% reserves. A stretch: the fastest walking measured in Hypsibius is ~260 µm/s.' });
+F({ id: 'reach', group: 'Motion', label: 'Leg reach and hand-off', fixed: true,
+  about: 'A lobopod telescopes a little, never more: no leg is drawn longer than 1.14× its rest length. A planted foot steps before it is stretched past 1.11×, and one that cannot lets go; a foot with nothing in reach (crossing to another leaf, over a gap, falling) is drawn up under the body, paddling, until a hold comes into reach. After a transfer the feet let go of the old leaf one by one, back to front, each catching the new one as it comes in reach.' });
 F({ id: 'smooth', group: 'Motion', label: 'Smoothed trunk and camera', on: true,
   about: 'The trunk follows its target through three lags in series, and a change of face (a transfer, the leaf margin, a fall) blends the old pose out over a smootherstep, so position, velocity and acceleration stay continuous. Slipping uses grip hysteresis (slide below 85% of the load for 0.6 s, catch at 75%). Off: the old single lag.',
   onChange: (v) => (walker.opts.smooth = v) });
@@ -633,9 +635,21 @@ applyMode(view.mode);
 let capPad = null;
 const ZERO = { x: 0, y: 0, m: 0 };
 const IDLE = { P: () => false, D: () => false, dashPressed: false, ls: ZERO };
+// The keyboard has no analogue stick: WASD walks at a middle pace (KEY_WALK on
+// the stick's curve, ~90 µm/s), G held hurries to full tilt, T held creeps.
+const KEY_WALK = 0.7, heldKeys = new Set();
+addEventListener('keydown', (e) => heldKeys.add(e.code));
+addEventListener('keyup', (e) => heldKeys.delete(e.code));
+addEventListener('blur', () => heldKeys.clear());
+function moveOf(a) {
+  const m = a.ctl.move();
+  if (a.pad.kind !== 'keyboard' || !m.m) return m;
+  const k = heldKeys.has('KeyG') ? 1 : heldKeys.has('KeyT') ? 0.05 : KEY_WALK;
+  return { x: m.x * k, y: m.y * k, m: m.m * k };
+}
 function inputOf(a, inMenu) {
   if (inMenu || a.p.waiting) return IDLE;
-  return { P: (b) => a.pad.pressed(b), D: (b) => a.pad.down(b), dashPressed: a.ctl.dash.pressed(), ls: a.ctl.move() };
+  return { P: (b) => a.pad.pressed(b), D: (b) => a.pad.down(b), dashPressed: a.ctl.dash.pressed(), ls: moveOf(a) };
 }
 
 const api = window.__micro = { cullViews: true, // per-view culling of the animals (false for A/B checks)

@@ -125,6 +125,8 @@ const coll = createCollectives(world, {
   },
   onBeacon: () => { audio.play('bacterium/eat', { volume: 0.4, rate: 1.9 }); },
   onLost: (C, m, kind) => {
+    // a member eaten by a grazer, the amoeba or Stentor poisons it (guards.js poison)
+    if (C && C.players.length) guards.poison(kind, m, C);
     if (!C || !C.players.length || t - collMsg.lostAt < 1.5) return;
     collMsg.lostAt = t;
     const by = { grazer: 'a grazer', amoeba: 'the amoeba', stentor: 'Stentor', bdello: 'a Bdellovibrio', phage: 'a phage' }[kind] || 'a predator';
@@ -157,7 +159,7 @@ const gateInfo = { log: [] };
 function absorbHit(P, kind, who) {
   const from = kind === 'grazer' ? who.pose.mouth : kind === 'stentor' ? who.mouth : kind === 'phage' ? (who.p || who) : who;
   if (!coll.absorb(P, kind, from)) return false;
-  if (from && !(P.kickT > 0)) { P.kickT = kind === 'phage' || kind === 'bdello' ? 0.2 : 0.6; P.kickFrom = { x: from.x, y: from.y }; }
+  if (from && !(P.kickT > 0)) { P.kickT = kind === 'phage' || kind === 'bdello' || kind === 'stentor' ? 0.2 : 0.6; P.kickFrom = { x: from.x, y: from.y }; }
   P.pad.rumble(160, 0.5, 0.4);
   return true;
 }
@@ -512,9 +514,9 @@ function runFights(dt) {
 // its pull, a bump of its foot and every pull that comes up empty). Its
 // patterns (shared/predation.js createFight, as the state machine only): the
 // steady vortex, the pull (tell: membranelles speed up, the vortex brightens),
-// and below half health a longer, harder pull. Anything drawn within catchR of
-// its mouth is swept in, and the host lies inside that: beaten, it contracts
-// and stays shut, and the host is yours.
+// and below half health a longer, harder pull. Anything inside the rim of its
+// oral disc is swept in, and the host lies in its feeding current: only once
+// it is beaten (it contracts and stays shut) does the host let you in.
 stentor.fight = createFight({ windup: 1.4, strike: 0.9, recoverT: 2.4, repelT: 3.5, retreatT: 22, facingRate: 0, blockHit: 0, biteHit: 0, regain: 0 });
 const BOSS_HIT = 6; // health taken by a tumble free of a pull, a foot bump or a wasted pull
 const gaugeEl = document.createElement('div');
@@ -542,7 +544,9 @@ function runBoss(dt) {
   let caught = false;
   for (const P of roster) {
     if (!fightable(P)) continue;
-    if (dist(P) < B.catchR) { const ev = {}; P.game.catchBy('stentor', B, ev); if (ev.caught) { startCatch(P, ev.caught); caught = true; bossInfo.log.push({ ev: 'catch', slot: P.slot, t }); } }
+    // inside its oral disc's rim you are swept in, faster the harder it pulls (members first, collective.js)
+    P.sweptT = B.disc(P.S.x, P.S.y).rho < 1 ? (P.sweptT || 0) + dt * B.flowK * 0.35 : 0;
+    if (P.sweptT > 1) { P.sweptT = 0; const ev = {}; P.game.catchBy('stentor', B, ev); if (ev.caught) { startCatch(P, ev.caught); caught = true; bossInfo.log.push({ ev: 'catch', slot: P.slot, t }); } }
     // a tumble at the pull breaks you free of it: a kick out of the vortex
     if (B.fight.state === 'strike' && inVortex(P) && P.tumbleAt > (B.strikeAt ?? t) - 0.35 && P.kickedAt !== B.strikeAt) { P.kickedAt = B.strikeAt; P.kickT = 0.7; P.kickFrom = M; }
     // bumping its foot: it contracts in a flash and pauses
@@ -768,7 +772,9 @@ function landmarkTick(dt) {
     P.backT = Math.hypot(P.S.x - BACK.x, P.S.y - BACK.y) < LMK.back.r ? P.backT + dt : 0;
   }
   // reaching the host: any player touching it zooms everyone in (once, until all have left it)
-  if (at && !lm.fired) { lm.fired = true; landmark('forward', at); }
+  // the host lies in Stentor's feeding current: it lets you in only once Stentor is beaten (a game rule)
+  if (at && !lm.fired && !stentor.beaten && t - (lm.deniedAt ?? -9) > 3) { lm.deniedAt = t; hud.toast('Stentor\'s current tears you away from the host: beat Stentor first', 2600); }
+  if (at && !lm.fired && stentor.beaten) { lm.fired = true; landmark('forward', at); }
   if (!close) lm.fired = false;
   const dweller = roster.find((P) => P.backT > 0.5) || null;
   if (!!dweller !== lm.near) { lm.near = !!dweller; embed.near('back', lm.near); }
@@ -783,6 +789,9 @@ const debug = {
   freeze: false,
   teleport(x, y, a, slot = 0) {
     const P = roster.find((Q) => Q.slot === slot) || P1;
+    // the player's flock comes along (if it is theirs alone)
+    const C = coll.of(P);
+    if (C && C.players.length === 1) { const dx = x - P.S.x, dy = y - P.S.y; for (const m of C.members) { m.x += dx; m.y += dy; } C.cx += dx; C.cy += dy; C.fx += dx; C.fy += dy; }
     P.S.x = x; P.S.y = y; if (a !== undefined) P.S.a = a;
     if (P === P1 || !multi()) { view.cx = x; view.cy = y; }
   },

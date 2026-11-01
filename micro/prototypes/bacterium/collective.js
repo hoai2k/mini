@@ -62,6 +62,7 @@ export const COLL = {
   beaconPad: 7,    // a beacon reaches this far beyond the flock's edge, µm
   beaconMin: 9,    // a lone cell's beacon reaches this far (three body lengths)
   beaconMax: 44,   // and never further than this from the middle
+  latch: 1.5,      // s a pack Bdellovibrio clings to a member before it bores in
   eatReach: 1.7,   // a prey rod this close to a member's middle (beyond its half length) is lysed
 };
 
@@ -433,7 +434,7 @@ export function createCollectives(world, hooks = {}) {
       for (const m of nodes) { const d2 = (m.x - c.x) ** 2 + (m.y - c.y) ** 2; if (d2 < bd) { bd = d2; best = m; } }
       if (!best) continue;
       c.lysed = 0.001;
-      best.growth = Math.min(1.2, (best.growth || 0) + 0.45);
+      best.growth = Math.min(1.2, (best.growth || 0) + 0.34); // three rods make a division
       got.push(c);
     }
     return got;
@@ -500,7 +501,8 @@ export function createCollectives(world, hooks = {}) {
         const m = C.members[i];
         if (world.grazerMouthAt && world.grazerMouthAt(m.x, m.y, 9)) { lose(m, 'grazer'); continue; }
         if (world.insideAmoeba(m.x, m.y, t) > 1.5) { m.engulf = (m.engulf || 0) + dt; if (m.engulf > 1.2) { lose(m, 'amoeba'); continue; } } else m.engulf = 0;
-        if (st && st.awake && !st.beaten && st.flowK > 0.3 && Math.hypot(m.x - st.mouth.x, m.y - st.mouth.y) < st.catchR) { lose(m, 'stentor'); continue; }
+        // Stentor: inside its oral disc's rim a cell is swept in, faster the harder it pulls (~3 s steady, ~0.5 s in a pull)
+        if (st && st.awake && !st.beaten && Math.abs(m.x - st.mouth.x) < st.discR + 5 && Math.abs(m.y - st.mouth.y) < st.discR + 5 && st.disc(m.x, m.y).rho < 1) { m.swept = (m.swept || 0) + dt * st.flowK * 0.35; if (m.swept > 1) { lose(m, 'stentor'); continue; } } else m.swept = 0;
       }
     }
     // free kin can be eaten too (they come back elsewhere)
@@ -550,25 +552,41 @@ export function createCollectives(world, hooks = {}) {
     return true;
   }
 
-  // --- the Bdellovibrio pack (a gate): they go for the nearest member of a flock near their gate ---
+  // --- the Bdellovibrio pack (a gate): they go for the nearest member of a flock near their gate, latch
+  // on to its pole for COLL.latch s (trembling: the members round it can kill it then; guards.js), and
+  // if it lives it bores in: the member is lost and the predator hides in the bdelloplast for a while ---
   function bdelloPack(dt) {
     if (!world.opts.hunters) return;
     for (const c of world.cells) {
-      if (c.kind !== 'bdello' || !c.home || c.dead || c.prey || c.hidden > 0 || c.stalking || c.cooldown > 1) continue;
+      if (c.kind !== 'bdello' || !c.home || c.dead) continue;
+      const L = c.latch;
+      if (L) {
+        // latched: glued to the member's pole, trembling
+        const m = L.m;
+        if (!m.coll || m.dying) { c.latch = null; m.latched = null; c.cooldown = 1; continue; }
+        L.t += dt;
+        const pa = m.a;
+        c.x = m.x + Math.cos(pa) * m.L * 0.55; c.y = m.y + Math.sin(pa) * m.L * 0.55;
+        c.a = pa + Math.PI + Math.sin(L.t * 46) * 0.12; c.windup = Math.min(1, L.t / COLL.latch);
+        if (L.t >= COLL.latch) { m.latched = null; lose(m, 'bdello'); m.dying.bdello = c; c.latch = null; c.windup = 0; c.hidden = 1.5; c.cooldown = 3; }
+        continue;
+      }
+      if (c.prey || c.hidden > 0 || c.stalking || c.cooldown > 1) continue;
       let best = null, bd = 40;
       for (const C of list) {
         if (!C.members.length || !C.players.length) continue;
         if (Math.hypot(C.cx - c.home.x, C.cy - c.home.y) > c.home.r + 45) continue;
-        for (const m of C.members) { const d = Math.abs(m.x - c.x) + Math.abs(m.y - c.y); if (d < bd) { bd = d; best = m; } }
+        for (const m of C.members) { const d = Math.abs(m.x - c.x) + Math.abs(m.y - c.y); if (d < bd && !m.latched) { bd = d; best = m; } }
       }
       if (!best) continue;
       const want = Math.atan2(best.y - c.y, best.x - c.x);
       c.a += wrap(want - c.a) * Math.min(1, dt * 5);
       c.tumble = 0; c.run = Math.max(c.run || 0, 0.3);
-      if (Math.hypot(best.x - c.x, best.y - c.y) < 1.3) {
+      if (Math.hypot(best.x - c.x, best.y - c.y) < 1.4) {
         const C = best.coll;
+        // the slime shield: half the rams glance off
         if (C.level >= 1 && r() < 0.5) { c.cooldown = 1.6; c.a += Math.PI; hooks.onShield?.(C, null, 'bdello'); continue; }
-        lose(best, 'bdello'); best.dying.bdello = c; c.hidden = 3; c.cooldown = 5;
+        c.latch = { m: best, t: 0 }; best.latched = c;
       }
     }
   }

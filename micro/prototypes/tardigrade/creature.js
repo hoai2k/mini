@@ -30,6 +30,8 @@ export const PAIRS = [
   { hip: [-1.1, -0.16, 0.24], ground: [-1.66, -0.54, 0.36] },
 ];
 export const LEGS = [];
+/** No leg is drawn longer than this × its rest length (hip to claw base). */
+export const LEG_STRETCH_MAX = 1.15;
 for (let p = 0; p < 4; p++) for (let s = 0; s < 2; s++) {
   const m = s === 0 ? 1 : -1;
   const [hx, hy, hz] = PAIRS[p].hip, [gx, gy, gz] = PAIRS[p].ground;
@@ -396,12 +398,15 @@ export class Creature {
       // Tun: the leg is drawn into the body.
       const target = P.feet[i].clone().lerp(H1.clone().addScaledVector(a0, l0 * 0.12), P.tun);
       const a1 = target.sub(H1);
-      const l1 = Math.max(0.02, a1.length());
+      // The gait keeps every leg within 1.14× its rest length (gait.js R_CAP);
+      // this is the backstop for anything else that poses the feet. raw: as asked.
+      const raw = a1.length() / l0;
+      const l1 = THREE.MathUtils.clamp(a1.length(), 0.02, l0 * LEG_STRETCH_MAX);
       a1.normalize();
       const rot = new THREE.Quaternion().setFromUnitVectors(a0, a1);
       const s = l1 / l0;
       const ps = THREE.MathUtils.clamp(1 / Math.sqrt(s), 0.8, 1.15) * (1 - 0.25 * P.tun);
-      return { H0: L.hip, H1, a0, rot, s, ps, foot: H1.clone().addScaledVector(a1, l1) };
+      return { H0: L.hip, H1, a0, rot, s, ps, raw, foot: H1.clone().addScaledVector(a1, l1) };
     });
   }
 

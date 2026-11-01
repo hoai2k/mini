@@ -290,7 +290,7 @@ export function createBath(specs, { half = 120, jitter = 0.8, spin = 0.35, keepR
   const meshes = [];
   const q = new THREE.Quaternion(), p = new THREE.Vector3(), e = new THREE.Euler();
   specs.forEach((sp, k) => {
-    const variants = sp.variants || 3;
+    const variants = sp.variants || 2;
     const per = Math.ceil(sp.n / variants);
     for (let vi = 0; vi < variants; vi++) {
       const m = beadMesh(beadTemplate(sp.kind, (sp.seed || 1) * 13 + vi * 101 + k, sp.pal || null, detail), per, { material });

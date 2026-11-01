@@ -5,8 +5,8 @@
 //
 //   grazer1  a peritrich (Vorticella-like) whose feeding current sweeps cells
 //            into its funnel                                    (army ~6+)
-//   bdello   a pack of four Bdellovibrio, each taking a member on contact
-//                                                               (army ~6+)
+//   bdello   a pack of four Bdellovibrio: each latches on to a member and bores
+//            in unless the cells round it kill it first         (army ~8+)
 //   phage    a cloud of phages from a lysed host: an unshielded member that
 //            touches one is infected and lost; at army 5 the slime shield
 //            catches them and the flock sweeps the cloud away   (army 5+)
@@ -19,8 +19,9 @@
 // Fighting is by contact: each member (and your own cell) touching an enemy
 // wears it down by FIGHT.dps, while it recovers by its own regen, so a small
 // flock never gets anywhere and a big one wins quickly, losing members on the
-// way. X adds a volley (FIGHT.volley per member in contact), Y's toxin burst a
-// big hit. Beaten, an enemy stays beaten: the grazer coils on its stalk, the
+// way. A member an enemy eats poisons it (FIGHT.poison, more in a bigger
+// army). X adds a volley (FIGHT.volley per member in contact), Y's toxin burst
+// a big hit. Beaten, an enemy stays beaten: the grazer coils on its stalk, the
 // amoeba withdraws, the pack dies, the cloud is swept up, Stentor contracts
 // and stays shut. No timers anywhere (the owner's standing rule).
 //
@@ -31,7 +32,7 @@
 // (Vidakovic et al. 2018). [Departure]: a magnetotactic spirillum doing any
 // of this, Bdellovibrio dying of it, and the numbers (game values).
 
-export const FIGHT = { dps: 1.2, volley: 0.3, burst: 15, bdelloHp: 5, bdelloRegen: 1.6 };
+export const FIGHT = { dps: 1.2, volley: 0.3, burst: 15, poison: 1.5, bdelloHp: 3, bdelloRegen: 1.4, sweep: 1.5 };
 
 export function createGuards(world, coll, stentor, hooks = {}) {
   const [g1, g2] = world.grazers;
@@ -43,9 +44,9 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     G({ id: 'grazer1', name: 'Peritrich', kind: 'grazer', g: g1, max: 40, regen: 4, zone: 55 }),
     G({ id: 'bdello', name: 'Bdellovibrio pack', kind: 'bdello', max: pack.length * FIGHT.bdelloHp, regen: 0, zone: 75 }),
     G({ id: 'phage', name: 'Phage cloud', kind: 'phage', max: cloudN0, regen: 0, zone: cloud.r + 32 }),
-    G({ id: 'amoeba', name: 'Amoeba', kind: 'amoeba', A: world.amoeba, max: 60, regen: 5, zone: 70 }),
+    G({ id: 'amoeba', name: 'Amoeba', kind: 'amoeba', A: world.amoeba, max: 75, regen: 5, zone: 70 }),
     G({ id: 'grazer2', name: 'Peritrich', kind: 'grazer', g: g2, max: 55, regen: 6, zone: 55 }),
-    G({ id: 'stentor', name: 'Stentor', kind: 'stentor', B: stentor, max: 120, regen: 5, zone: stentor.wakeR }),
+    G({ id: 'stentor', name: 'Stentor', kind: 'stentor', B: stentor, max: 170, regen: 3, zone: stentor.wakeR }),
   ];
   const byId = Object.fromEntries(list.map((q) => [q.id, q]));
   for (const c of pack) c.hp = FIGHT.bdelloHp;
@@ -73,8 +74,11 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     }
     if (q.kind === 'amoeba') return world.insideAmoeba(x, y, t) > -2.5;
     if (q.kind === 'stentor') {
-      const B = q.B, d = Math.hypot(x - B.mouth.x, y - B.mouth.y);
-      return B.awake && d > B.catchR - 4 && d < B.catchR + 22;
+      // at its rim, among the membranelles (they reach ~15 µm out): inside the rim you are swept in
+      const B = q.B;
+      if (!B.awake || Math.abs(x - B.mouth.x) > B.discR + 30 || Math.abs(y - B.mouth.y) > B.discR + 30) return false;
+      const D = B.disc(x, y);
+      return D.rho > 0.9 && D.out < 20;
     }
     return false;
   }
@@ -115,6 +119,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     if (q.hp <= 0) beat(q);
   }
   function killBdello(c, q) {
+    if (c.latch) { c.latch.m.latched = null; c.latch = null; } // the member it clung to is saved
     c.dead = 0.001; c.hidden = 0; c.stalking = null; c.windup = 0; c.prey = null;
     hooks.onKill?.(q, c);
   }
@@ -129,7 +134,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
         for (const c of pack) {
           if (c.dead) continue;
           let k = 0;
-          if (!(c.hidden > 0)) eachCell(q, (m) => { if (Math.abs(m.x - c.x) < 2.4 && Math.abs(m.y - c.y) < 2.4) k++; });
+          if (!(c.hidden > 0)) eachCell(q, (m) => { if ((m.x - c.x) ** 2 + (m.y - c.y) ** 2 < 3.2 * 3.2) k++; });
           c.hp = Math.min(FIGHT.bdelloHp, c.hp + FIGHT.bdelloRegen * dt - k * FIGHT.dps * dt);
           c.hit = k;
           n += k;
@@ -160,8 +165,10 @@ export function createGuards(world, coll, stentor, hooks = {}) {
       let gone = false;
       for (const C of near) {
         for (const m of C.members) {
-          if (Math.abs(m.x - p.x) > 1 || Math.abs(m.y - p.y) > 1) continue;
-          if ((m.x - p.x) ** 2 + (m.y - p.y) ** 2 > 0.81) continue;
+          // the slime (army 5) reaches further than a bare wall
+          const reach = C.level >= 1 ? FIGHT.sweep : 0.9;
+          if (Math.abs(m.x - p.x) > reach || Math.abs(m.y - p.y) > reach) continue;
+          if ((m.x - p.x) ** 2 + (m.y - p.y) ** 2 > reach * reach) continue;
           if (C.level >= 1) { hooks.onSwept?.(C, p); } // caught in the slime and carried off
           else { coll.lose(m, 'phage'); hooks.onInfected?.(C, m); }
           gone = true; break;
@@ -172,7 +179,20 @@ export function createGuards(world, coll, stentor, hooks = {}) {
       left++;
     }
     q.hp = left; q.contact = near.length;
-    if (left < 10) beat(q);
+    // swept through: once under half of it is left, the rest drifts apart
+    if (left < q.max * 0.45) beat(q);
+  }
+
+  /**
+   * A member eaten by an enemy poisons it: violacein-like toxins kill the protists that graze on such
+   * bacteria (atlas C28). More toxic the bigger the army (quorum-regulated): FIGHT.poison + 1 per level.
+   */
+  function poison(kind, m, C) {
+    let q = null;
+    if (kind === 'grazer') { let bd = Infinity; for (const g of world.grazers) { const d = Math.hypot(g.pose.mouth.x - m.x, g.pose.mouth.y - m.y); if (d < bd) { bd = d; q = g === g1 ? byId.grazer1 : byId.grazer2; } } }
+    else if (kind === 'amoeba') q = byId.amoeba;
+    else if (kind === 'stentor') q = byId.stentor;
+    if (q) hurt(q, FIGHT.poison + C.level);
   }
 
   /** X: a volley from every member in contact with an enemy. */
@@ -188,7 +208,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
         for (const c of pack) {
           if (c.dead || c.hidden > 0) continue;
           let k = 0;
-          for (const m of cells) if (Math.abs(m.x - c.x) < 2.6 && Math.abs(m.y - c.y) < 2.6) k++;
+          for (const m of cells) if ((m.x - c.x) ** 2 + (m.y - c.y) ** 2 < 3.2 * 3.2) k++;
           if (!k) continue;
           c.hp -= k * FIGHT.volley * 2; hits += k;
           if (c.hp <= 0) killBdello(c, q);
@@ -246,6 +266,6 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     for (let i = 0; i < cloudN0; i++) { const p = world.newPhage(cloud.x + (Math.random() - 0.5) * cloud.r * 1.4, cloud.y + (Math.random() - 0.5) * cloud.r * 1.6); p.z = (Math.random() - 0.5) * 0.6; p.cloud = cloud; P.push(p); }
   }
 
-  return { list, byId, FIGHT, update, volley, burstHit, nearest, reset, hurt, centre: (q) => centre(q, { x: 0, y: 0 }), touching,
+  return { list, byId, FIGHT, update, volley, burstHit, nearest, reset, hurt, poison, centre: (q) => centre(q, { x: 0, y: 0 }), touching,
     report: () => list.map((q) => ({ id: q.id, hp: +q.hp.toFixed(1), max: q.max, beaten: q.beaten, engaged: q.engaged, contact: q.contact })) };
 }
