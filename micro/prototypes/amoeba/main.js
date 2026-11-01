@@ -659,7 +659,7 @@ function rawInput() {
 const IDLE = { ls: NONE, rs: NONE, lt: 0, rt: 0, lb: 0, rb: 0, lsc: false, rsc: false };
 function readInput() {
   // caught by the fungus: the cell no longer answers the sticks (only a surge, A, in the strike or hold)
-  const r = caught.active ? IDLE : rawInput();
+  const r = caught.active || outro ? IDLE : rawInput();
   if (S.scheme === 'classic') {
     const pods = [r.ls, r.rs];
     // A surge with no stick held goes along the cell's heading.
@@ -1589,7 +1589,11 @@ function stepBeacon(dt) {
   if (!PORTAL.placed) return;
   // it wanders in a small loose circle round the portal, low over the slide
   const dx = PORTAL.x - b.x, dy = PORTAL.y - b.y;
-  if (Math.hypot(dx, dy) > 70) {
+  if (outro) {
+    // through the portal: it turns up the screen, to swim off into the pool (the next world's view is from behind it)
+    let da = Math.PI / 2 - b.th; da = Math.atan2(Math.sin(da), Math.cos(da));
+    b.th += clamp(da, -1, 1) * dt * 5;
+  } else if (Math.hypot(dx, dy) > 70) {
     const want = Math.atan2(dy, dx);
     let da = want - b.th; da = Math.atan2(Math.sin(da), Math.cos(da));
     b.th += clamp(da, -1, 1) * dt * 1.6;
@@ -1679,8 +1683,70 @@ function enterPortal(c) {
   portalLight.bloom(sx, sy, { scale: 1.1 });
   audio.play('shared/portal-chime', { volume: 0.9 });
   const k = cur; use(c); rumble(520, 0.55, 0.85); use(k);
-  hud.toast(`${who(c)}A green Paramecium bursaria: follow it out into the pool`, 2600);
-  embed.landmark('forward', { player: c.slot });
+  if (!embed.active) hud.toast(`${who(c)}A green Paramecium bursaria: follow it out into the pool`, 2600);
+  startOutro(c);
+  embed.landmark('forward', { player: c.slot, outro: embed.active });
+}
+
+// --- the outro (success, slow-down, freeze; embed.js "Continuous transitions") ----------
+// Through the portal: the golden burst, bloom, chime and rumble above, then the
+// world's time eases to a stop over ~1 s while it keeps rendering (the freeze
+// frame), the P. bursaria turning up the screen to swim off into the pool as it
+// slows. Frozen, it reports how the bursaria is framed (embed.frozen): it is
+// the next world's creature, so the shell pushes in on it while the
+// Paramecium's world fades in under the same framing (embed.on('camera')
+// below drives this view's centre and field). All in frame time, so a slow
+// machine plays it slower rather than skipping it. Standalone (or a shell that
+// never answers) the freeze holds a moment and time comes back.
+const OUTRO = { beat: 0.3, ease: 1.0, hold: 1.4, back: 0.6, giveUp: 8, rate: 1 }; // rate: tests slow it down
+let outro = null;
+const smooth01 = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+// a 2D microscope view seen as a pose: looking straight down (pitch just short
+// of vertical), the screen's up the slide's +y. `rel` is the camera's azimuth
+// round the creature minus its heading in embed.js's three.js convention
+// (azimuth atan2(z, x), the slide's +y as −z), so a 3D world turning to this
+// pose shows the creature at the same angle on screen.
+const TOP_PITCH = 1.55;
+/** The pose of a creature at (x, y) µm, heading th, length len, in the view just drawn. */
+function pose2D(x, y, th, len) {
+  const [l, b, w, h] = view.view;
+  return { f: len / w, x: (x - (l + w / 2)) / (w / 2), y: (y - (b + h / 2)) / (h / 2), pitch: TOP_PITCH, rel: Math.atan2(Math.sin(th + Math.PI / 2), Math.cos(th + Math.PI / 2)) };
+}
+const beaconLen = () => beacon.sp.L * (beacon.sc || 1);
+function startOutro(c) {
+  outro = { t: 0, scale: 1, frozenAt: null, cam: null, heard: false, slot: c.slot };
+  if (embed.active) embed.cinematic(true, canvas);
+}
+/** Advance the outro by dt (frame time); returns the time scale for the world. */
+function stepOutro(dt) {
+  const o = outro;
+  o.t += dt * OUTRO.rate;
+  o.scale = 1 - smooth01(OUTRO.beat, OUTRO.beat + OUTRO.ease, o.t);
+  if (o.scale <= 0 && o.frozenAt === null) {
+    o.frozenAt = o.t;
+    if (embed.active) embed.frozen(pose2D(beacon.x, beacon.y, beacon.heading, beaconLen()));
+  }
+  if (o.frozenAt !== null) {
+    const held = o.t - o.frozenAt;
+    const back = !embed.active ? held - OUTRO.hold : !o.heard && held > OUTRO.giveUp ? held - OUTRO.giveUp : -1;
+    if (back >= 0) {
+      o.scale = smooth01(0, OUTRO.back, back);
+      if (back >= OUTRO.back) endOutro();
+    }
+  }
+  return outro ? outro.scale : 1;
+}
+function endOutro() {
+  outro = null;
+  if (embed.active) embed.cinematic(false, canvas);
+}
+// the shell drives the view from the freeze frame into the Paramecium's world
+embed.on('camera', (d) => { if (outro && d.pose) { outro.cam = d.pose; outro.heard = true; } });
+embed.on('pause', () => { if (outro) outro.heard = true; });
+/** The view for a pose from the shell: centre and field width that frame the bursaria as the pose says. */
+function poseView(pose) {
+  const w = beaconLen() / Math.max(1e-6, pose.f), h = w * (view.bh / view.bw);
+  return { x: beacon.x - pose.x * (w / 2), y: beacon.y - pose.y * (h / 2), w };
 }
 const promptEl = document.createElement('div');
 promptEl.style.cssText = 'position:fixed;left:50%;bottom:9vh;transform:translateX(-50%);z-index:21;padding:6px 14px;border-radius:999px;background:rgba(18,16,10,.62);color:#efe3c2;border:1px solid rgba(201,163,90,.55);font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;pointer-events:none;white-space:nowrap;display:none';
@@ -1885,7 +1951,9 @@ function frame(now) {
   use(cells[0]);
   unlockOnPad();
   const menu = features.update();
-  if (!menu) {
+  // the outro (through the portal): no input; time eases to a freeze while the view keeps drawing
+  const ts = outro ? stepOutro(dtReal) : 1;
+  if (!menu && !outro) {
     hud.update(pad);
     for (const c of cells) {
       if (c.p.waiting) continue;
@@ -1929,7 +1997,7 @@ function frame(now) {
     // Fixed 60 Hz steps, at most two per frame (the owner's trade-off: on a
     // slow machine the world slows down rather than stutters); the soft bodies
     // run every step, the granules once per frame (on the last step).
-    acc += dtReal;
+    acc += dtReal * ts;
     const steps = Math.min(MAX_CATCHUP, Math.floor(acc * 60 + 1e-6));
     for (let k = 0; k < steps; k++) simStep(1 / 60, k === steps - 1);
     acc = steps === MAX_CATCHUP ? 0 : acc - steps / 60;
@@ -1945,8 +2013,10 @@ function frame(now) {
   if (watching) { tx = (body.cx + FC.pts[0].x) / 2; ty = (body.cy + FC.pts[0].y) / 2; }
   else if (solo) { tx = body.cx + body.fx * 60 * Math.min(1, body.fm); ty = body.cy + body.fy * 60 * Math.min(1, body.fm) - lift; }
   else { tx = 0; ty = 0; for (const c of cells) { tx += c.body.cx; ty += c.body.cy; } tx /= cells.length; ty /= cells.length; }
-  S.camX += (tx - S.camX) * Math.min(1, dtReal * 0.8);
-  S.camY += (ty - S.camY) * Math.min(1, dtReal * 0.8);
+  S.camX += (tx - S.camX) * Math.min(1, dtReal * ts * 0.8);
+  S.camY += (ty - S.camY) * Math.min(1, dtReal * ts * 0.8);
+  // the continuous transition: the shell's pose sets the view's centre and field
+  if (outro && outro.cam) { const pv = poseView(outro.cam); S.camX = pv.x; S.camY = pv.y; }
   renderAll(dtReal);
   S.statT -= dtReal;
   if (S.statT <= 0) {
@@ -1975,6 +2045,7 @@ function frame(now) {
 // while you are drained the view pulls back (eased) to show the fungus at work
 const pull = { k: 1 };
 const fieldWidth = () => {
+  if (outro && outro.cam) return poseView(outro.cam).w;
   const want = cells.length === 1 && caught.active && ['eat', 'follow', 'fadeOut'].includes(FC.phase) ? 1.45 : 1;
   pull.k += (want - pull.k) * 0.04;
   return OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6) * pull.k;
@@ -1986,7 +2057,8 @@ function renderAll(dt) {
   view.bodyMat.uniforms.uDrain.value = cells[0].s.drain || 0;
   split.update(cells.map((c) => ({ slot: c.slot, position: c.pos })), { center: { x: S.camX, y: S.camY }, pxPerUnit: innerWidth / fieldW, yUp: true }, dt);
   const L = split.layout;
-  const many = L.views.length > 1;
+  // (the camera move frames one creature: a single view)
+  const many = L.views.length > 1 && !(outro && outro.cam);
   splitT.on = many ? splitT.on + dt : 0;
   splitT.off = many ? 0 : splitT.off + dt;
   // The governor scales the property buffers (and by 0.7 / 0.55 while split;
@@ -2003,7 +2075,7 @@ function renderAll(dt) {
   const o0 = view.optics, internal = [view.maskRT, o0.focusRT, o0.defRT, o0.tmpRT, o0.defBlurRT, o0.haloRT, o0.haloTmp];
   if (!many) {
     if (splitT.scissored) { for (const t of internal) split.unscissor(t); splitT.scissored = false; }
-    const o = L.views[0] ? L.views[0].offset : { x: 0, y: 0 };
+    const o = L.views[0] && !(outro && outro.cam) ? L.views[0].offset : { x: 0, y: 0 };
     split.prewarm(); // the split compose programs' first draw, unseen, once they are built
     view.setView(S.camX + o.x, S.camY + o.y, fieldW);
     view.render({ ...args, buffersOnly: !!borrow.id });
@@ -2226,6 +2298,12 @@ window.__micro = {
   placePortal(a = null, slot = 0) { const c = cellOf(slot); placePortal(a ?? bearingFromStart(c.body.cx, c.body.cy)); return window.__micro.portal(); },
   /** Go through the portal now as player `slot` (what reaching it while open does). */
   enterPortal(slot = 0) { enterPortal(cellOf(slot)); },
+  /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
+  outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
+  /** The outro's timings (seconds); `rate` slows it (tests). */
+  OUTRO,
+  /** The bursaria (the next world's creature) as a pose in the view just drawn. */
+  beaconPose: () => pose2D(beacon.x, beacon.y, beacon.heading, beaconLen()),
   /** Testing: traps never arm and Chaos never wakes (scripted runs). */
   passive(on = true) { S.passive = on; },
   log: challengeLog,
