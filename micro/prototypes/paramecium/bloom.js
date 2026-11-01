@@ -42,7 +42,7 @@ export function createBloom(scene) {
   group.updateMatrixWorld();
 
   const R = 7; // member radius (µm)
-  const geo = new THREE.SphereGeometry(1, 12, 8);
+  const geo = new THREE.SphereGeometry(1, 10, 6); // ≈100 triangles: 14 µm cells
   geo.scale(R * 1.15, R * 0.95, R * 0.95); // a little egg, long axis along its heading (+x)
   const mat = volumeMaterial({ dn: 0.03, scatter: 1.1, absorb: [0.022, 0.0048, 0.026], centred: true, rimPow: 2 });
   // tiers: [y0, y1, count]; more cells toward the surface (the coverslip)
@@ -138,6 +138,19 @@ export function createBloom(scene) {
         for (let i = 0; i < T.count; i++) if (M.alive(i) && Math.hypot(M.x[i] - lp.x, M.z[i] - lp.z) < r) n++;
       }
       return n;
+    },
+    /**
+     * Level of detail for a view from `camPos`: far off, only a share of the
+     * cells is drawn (the members are in random order, so any prefix is an
+     * even thinning). Returns the share drawn.
+     */
+    lod(camPos) {
+      toLocal(camPos, lp);
+      const dx = Math.max(0, Math.abs(lp.x) - BLOOM.half), dz = Math.max(0, Math.abs(lp.z) - BLOOM.across);
+      const d = Math.hypot(dx, dz);
+      const k = d < 900 ? 1 : d < 2000 ? 0.5 : 0.25;
+      for (const T of tiers) T.mesh.count = Math.max(1, Math.round(T.count * k));
+      return k;
     },
     get alive() { return tiers.reduce((s, T) => s + T.crowd.alive, 0); },
   };

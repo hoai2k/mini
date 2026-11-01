@@ -253,7 +253,8 @@ export function createCollectives(world, hooks = {}) {
 
   function clampCell(c) {
     if (c.y > W.y1 - 2) c.y = W.y1 - 2;
-    const floor = world.surfaceY(c.x) + 0.5;
+    // free kin keep to the water; members follow you into the biofilm, as far as your cell can go
+    const floor = world.surfaceY(c.x) + (c.coll ? -20 : 0.5);
     if (c.y < floor) c.y = floor;
     c.x = Math.max(W.x0 + 2, Math.min(W.x1 - 2, c.x));
     world.pushOutOfGrains(c, c.r + 0.1);

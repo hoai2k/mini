@@ -42,6 +42,7 @@ export class Chaos {
     // Broad, blunt, finger-like arms (the reference sheet, boss-chaos.webp): its
     // idle arms and its two cup arms are about 1.7x the player's in width.
     b.opts.podScale = 1.7;
+    b.opts.reach = 230; // long fingers: an arm runs out about 2/3 of its radius
     b.pods[0].rad = b.pods[1].rad = 50;
     b.grid.build(b.x, b.y, N);
     b.centroid();
@@ -51,7 +52,7 @@ export class Chaos {
     const cy = this.cyto;
     for (let i = 0; i < cy.n; i++) {
       const u = rand();
-      if (u < 0.3) { cy.kind[i] = 3; cy.size[i] = rand.range(2.5, 5.5); }   // lipid / refractile spheres
+      if (u < 0.3) { cy.kind[i] = 3; cy.size[i] = rand.range(4, 8); }       // lipid / refractile spheres
       else if (u < 0.42) { cy.kind[i] = 4; cy.size[i] = rand.range(3, 6); }  // olive food granules
       else if (u < 0.5) { cy.kind[i] = 2; cy.size[i] = rand.range(3, 5); }   // crystals
     }

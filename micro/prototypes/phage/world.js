@@ -26,7 +26,7 @@ export const BOUNDS = { x0: -420, x1: 1120, y0: -330, y1: 680, z0: -34, z1: 34 }
 export const START = new THREE.Vector3(-200, -200, 0);
 export const DEST = new THREE.Vector3(880, 420, 0);
 /** The sunlit water: above y0 (to y1), and only right of the peat mat's edge (x0 to x1 fades it in). */
-export const UV = { y0: 520, y1: 660, x0: 300, x1: 470 };
+export const UV = { y0: 520, y1: 660, x0: 340, x1: 500 }; // x0: exactly halfway along the route
 const smooth01 = (x) => { const s = Math.max(0, Math.min(1, x)); return s * s * (3 - 2 * s); };
 /** How much sun gets through the floating peat mat at x (0 shaded .. 1 open). */
 export const uvSun = (x) => smooth01((x - UV.x0) / (UV.x1 - UV.x0));

@@ -81,7 +81,7 @@ furthest checkpoint you had passed that is well away from what caught you
 
 ## The rotifer meadow (`meadow.js`, `../shared/crowd.js`)
 
-~200 bdelloid rotifers (~190 µm extended, ~45 µm across) on leaf E's upper
+~160 bdelloid rotifers (~150 µm extended, ~40 µm across) on leaf E's upper
 face, each anchored by its foot, the trunk telescoped up and leaning, the two
 wheel discs of the corona spread on top with a wave running round each rim
 (the beating cilia), swaying as they feed. The shared crowd runs in the

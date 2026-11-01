@@ -21,7 +21,8 @@
 //   body.collideCircle(cx, cy, r, share, out), body.blast(x, y, radius, amount).
 //   body.opts: { area, rearWeight, selfContact, idlePods, adhesion, untangle, neck } switches
 //   (all true by default), plus podScale (1: the idle pseudopods' width; a bigger cell
-//   sets more, for broad blunt arms), speed (1: pseudopod extension rate multiplier) and boost
+//   sets more, for broad blunt arms), reach (110 µm: how far a pseudopod runs out beyond
+//   the body's radius before the body must follow), speed (1: pseudopod extension rate multiplier) and boost
 //   (1: a transient extra multiplier, e.g. a dash, that also drives the rear contraction harder).
 //   body.flowK: speed × boost, for anything that streams with the pseudopods.
 // Optional, all backward compatible (leave them out for the original behaviour):
@@ -281,7 +282,7 @@ export class Body {
         pod.tip = best;
         const reach = (x[best] - this.cx) * pod.dx + (y[best] - this.cy) * pod.dy;
         // A boosted pseudopod may run a little further out before the body must follow.
-        const lim = clamp(1 - (reach - (req * 1.0 + 110 + 40 * (boost - 1))) / 80, 0, 1);
+        const lim = clamp(1 - (reach - (req * 1.0 + (this.opts.reach ?? 110) + 40 * (boost - 1))) / 80, 0, 1);
         drive += pod.s * (1 - lim) * (pod.idle ? 0.3 : 1);
         const v = (P.vPro + (pod.idle ? 0 : P.vBoost * (input.push || 0))) * pod.s * lim * (pod.idle ? 0.7 : spd * boost);
         // A blunt cap of fixed width: membrane within the cap radius of the tip,

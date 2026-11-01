@@ -66,7 +66,7 @@ function bladderGeometry() {
     { id: 0, sdf: sd.ellipsoid([-10, -10, 0], [240, 205, 210]) },
     { id: 1, blend: 60, sdf: sd.roundCone([90, 60, 0], [262, TRAP.doorAt.y, 0], 120, 84) },
   ];
-  return buildSdfMesh(parts, { min: [-262, -228, -224], max: [300, 232, 224], cell: 7 });
+  return buildSdfMesh(parts, { min: [-262, -228, -224], max: [300, 232, 224], cell: 9 });
 }
 
 export function createBladderwort(scene, world) {

@@ -1867,7 +1867,7 @@ function drawPodMarks(L) {
   g.save();
   g.setTransform(k, 0, 0, k, 0, 0);
   g.lineCap = 'round'; g.lineJoin = 'round';
-  g.font = '700 11px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = '700 12px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
   for (const c of cells) {
     if (c.caught.active || c.p.waiting) continue;
     const b = c.body, reg = L.regions.find((r) => r.slot === c.slot);
@@ -1879,19 +1879,21 @@ function drawPodMarks(L) {
       const tip = b.pods[pk].tip;
       // along the membrane, 8 µm outside it, either side of the tip
       g.beginPath();
-      for (let r = -8; r <= 8; r++) {
+      for (let r = -6; r <= 6; r++) {
         const i = (tip + r + N) % N;
         const [sx, sy] = toScreen(b.x[i] + b.nx[i] * 8, b.y[i] + b.ny[i] * 8, c.slot);
-        if (r === -8) g.moveTo(sx, sy); else g.lineTo(sx, sy);
+        if (r === -6) g.moveTo(sx, sy); else g.lineTo(sx, sy);
       }
       g.strokeStyle = c.p.color; g.globalAlpha = letter === 'R' ? 0.7 : 0.6; g.lineWidth = 2;
       g.stroke();
       const [ax, ay] = toScreen(b.x[tip] + b.nx[tip] * 12, b.y[tip] + b.ny[tip] * 12, c.slot);
       const [bx, by] = toScreen(b.x[tip] + b.nx[tip] * 13, b.y[tip] + b.ny[tip] * 13, c.slot);
       const dx = bx - ax, dy = by - ay, dl = Math.hypot(dx, dy) || 1, ux = dx / dl, uy = dy / dl;
-      g.beginPath(); g.moveTo(ax, ay); g.lineTo(ax + ux * 7, ay + uy * 7); g.lineWidth = 1.5; g.stroke();
-      g.globalAlpha = 0.9; g.fillStyle = c.p.color;
-      g.fillText(letter, ax + ux * 15, ay + uy * 15);
+      g.beginPath(); g.moveTo(ax, ay); g.lineTo(ax + ux * 9, ay + uy * 9); g.lineWidth = 2; g.stroke();
+      // the letter, with a faint dark halo so it reads on the pale slide and in darkfield
+      const lx = ax + ux * 19, ly = ay + uy * 19;
+      g.globalAlpha = 0.5; g.lineWidth = 3; g.strokeStyle = 'rgba(20,18,12,0.8)'; g.strokeText(letter, lx, ly);
+      g.globalAlpha = 1; g.fillStyle = c.p.color; g.fillText(letter, lx, ly);
     }
     g.restore();
   }
@@ -1992,7 +1994,7 @@ window.__micro = {
   /** Select and steer: player `slot`'s pseudopods round the outline and which the sticks hold. */
   pods(slot = 0) {
     const c = cellOf(slot), b = c.body;
-    return { sel: c.R.sel, adj: c.R.adj, list: podList(b).map((p) => ({ k: p.k, deg: Math.round(p.a / DEG), y: Math.round(p.y - b.cy), idle: p.idle, s: +b.pods[p.k].s.toFixed(2) })) };
+    return { sel: c.R.sel, adj: c.R.adj, list: podList(b).map((p) => ({ k: p.k, deg: Math.round(p.a / DEG), y: Math.round(p.y - b.cy), idle: p.idle, s: +b.pods[p.k].s.toFixed(2), screen: toScreen(b.x[b.pods[p.k].tip], b.y[b.pods[p.k].tip], c.slot).map(Math.round) })) };
   },
   rolesText, fragments,
   /** 'select' (default), 'lead' or 'classic'. */

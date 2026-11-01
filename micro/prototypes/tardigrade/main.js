@@ -284,7 +284,7 @@ F({ id: 'boss', group: 'Simulation', label: 'Prionchulus (the boss)', on: true,
   about: 'A predatory nematode (~1.3 mm here; adults reach ~2 mm) guarding the far Sphagnum leaf on the way to the pool, past the meadow (about 85% of the way). Dormant until you come near its post after the calm opening. Its tells: coiling into an S (then a forward whip) or rippling fast (then a sideways sweep), tooth bared. Brace (B) facing it to block, jab its head (X) as it recovers, lure it into thin film where it flounders. Worn down (the brass resolve gauge), it slides away into a deep groove for the rest of the day.',
   onChange: (v) => { boss.on = v; if (!v) boss.group.visible = false; } });
 F({ id: 'meadow', group: 'Simulation', label: 'Rotifer meadow (a crowd)', on: true,
-  about: 'Past halfway, at the far end of leaf E: ~200 bdelloid rotifers anchored by the foot, swaying, their wheel-like coronae beating. Walk into them and they bend aside; a stylet jab (X) makes those in front contract onto their foot and opens a lane (they re-extend later, a little further off). They never hurt you; a dense patch slows you a little. No timer. shared/crowd.js.',
+  about: 'Past halfway, at the far end of leaf E: ~160 bdelloid rotifers anchored by the foot, swaying, their wheel-like coronae beating. Walk into them and they bend aside; a stylet jab (X) makes those in front contract onto their foot and opens a lane (they re-extend later, a little further off). They never hurt you; a dense patch slows you a little. No timer. shared/crowd.js.',
   onChange: (v) => { meadow.on = v; meadow.mesh.visible = v; } });
 F({ id: 'grace', group: 'Simulation', label: 'Calm opening', choices: ['40 s', '20 s', '90 s', 'Off'], value: '40 s',
   about: 'How long after a start (and after each new day) Milnesium browses before it first gets hungry. Either way it hunts only a player past halfway. shared/predation.js.',
@@ -820,7 +820,7 @@ function step(dt, G) {
   const bev = bossHeld ? [] : boss.update(dt, animals.map((a) => {
     const g = inputs.get(a), up = a.life.state === 'active' && !(held && a === captive);
     return { a, pos: a.walker.dispPos, mouth: a.mouth, forward: a.walker.forward, active: up, blocking: up && g.D(BTN_B), jab: up && g.P(BTN_X) && !a.life.feeding };
-  }), { calm: predator.hunger.state === 'grace' });
+  }), { calm: predator.on && predator.hunger.state === 'grace' });
   for (const { e, a: pr } of bev) {
     const a = pr ? pr.a : null;
     const rb = (ms, w, s2) => { if (a && rumbleOn) a.pad.rumble(ms, w, s2); };

@@ -94,10 +94,10 @@ void main() {
   vec3 cod = -log(clamp(c / uCytoMean, 0.08, 4.));
   // Drained by a fungus: the cytoplasm darkens and turns brown as it is sucked out.
   float e2 = endo * clear;
-  od += e2 * (vec3(0.1, 0.1, 0.15) + h * vec3(0.5, 0.5, 0.66) + cod * 0.4 * uLook.z);
+  od += e2 * ((vec3(0.1, 0.1, 0.15) + h * vec3(0.5, 0.5, 0.66)) * (1. - 0.55 * uLook.x) + cod * 0.4 * uLook.z);
   phase += e2 * (0.08 + dot(cod, vec3(0.08)) * uLook.z);
   // Chaos: denser, olive-golden endoplasm (absorbs blue most), mottled.
-  od += uLook.x * e2 * vec3(0.07, 0.1, 0.3) * (0.75 + 0.5 * fbm(vW * 0.035));
+  od += uLook.x * e2 * vec3(0.02, 0.05, 0.24) * (0.75 + 0.5 * fbm(vW * 0.035));
   // The uroid: the crumpled rear, denser and darker.
   float u = 1. - smoothstep(0., uUroid.z, distance(vW, uUroid.xy));
   od += u * endo * vec3(0.11, 0.12, 0.16) * (0.6 + 0.8 * fbm(vW * 0.08));

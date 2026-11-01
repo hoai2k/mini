@@ -2,7 +2,7 @@
 // "A set piece: pushing and biting through a crowd"), at the far end of leaf E
 // past halfway, before Prionchulus.
 //
-// The members are bdelloid rotifers (~240 µm extended here, ~45 µm across),
+// The members are bdelloid rotifers (~150 µm extended here, ~40 µm across),
 // each attached to the leaf by its foot (the toes and spurs), body telescoped
 // up and leaning, the two wheel-like ciliary discs of the corona spread at the
 // top, beating to pull water in. Pushing through bends them: the crowd
@@ -24,9 +24,9 @@ import { OPT, OPTICAL_BLEND, OPTICAL_FRAG_HEAD } from '../shared/techniques/tard
 import { litMaterial } from './materials.js';
 import { LAYER_SPECIMEN } from './world.js';
 
-export const MEADOW = { u0: 12.0, u1: 17.4, count: 200, radius: 0.27 };
-const H = 1.9;          // extended height (units of 100 µm)
-const BODY_R = 0.22;    // trunk radius
+export const MEADOW = { u0: 12.0, u1: 17.4, count: 160, radius: 0.27 };
+const H = 1.45;         // extended height (units of 100 µm)
+const BODY_R = 0.2;     // trunk radius
 
 /** Closed rotifer geometry, foot at z = 0, the corona at z = H (leaf normal = +z). */
 function rotiferGeometry() {
@@ -94,7 +94,7 @@ void main() {
   float t = clamp(p.z / ${H.toFixed(3)}, 0.0, 1.2);
   vec4 w = instanceMatrix * vec4(p, 1.0);
   // feeding sway, then the push: the body curves from the foot to the head
-  vec2 b = aBend.xy + aBend.w * 0.14 * vec2(sin(uTime * 0.9 + aBend.z), cos(uTime * 0.7 + aBend.z * 1.3));
+  vec2 b = aBend.xy + aBend.w * 0.2 * vec2(sin(uTime * 0.9 + aBend.z), cos(uTime * 0.7 + aBend.z * 1.3));
   w.xy += b * t * t;
   w.z -= dot(b, b) * t * t * 0.22;
   vec4 mv = modelViewMatrix * w;
@@ -106,7 +106,7 @@ void main() {
 function rotiferMaterial() {
   return new THREE.RawShaderMaterial({
     ...OPTICAL_BLEND,
-    uniforms: { uRef: OPT.uRef, uTime: { value: 0 }, uDn: { value: 0.032 }, uAbs: { value: new THREE.Vector3(0.1, 0.22, 0.26) } },
+    uniforms: { uRef: OPT.uRef, uTime: { value: 0 }, uDn: { value: 0.022 }, uAbs: { value: new THREE.Vector3(0.03, 0.07, 0.09) } },
     vertexShader: VERT,
     fragmentShader: OPTICAL_FRAG_HEAD + /* glsl */ `
 uniform float uDn;
@@ -224,8 +224,8 @@ export class Meadow {
       a[o + 8] = 0; a[o + 9] = 0; a[o + 10] = ext * (0.85 + 0.3 * ((i * 0.37) % 1)); a[o + 11] = 0;
       a[o + 12] = home[2 * i]; a[o + 13] = home[2 * i + 1]; a[o + 14] = this.L.thick / 2; a[o + 15] = 1;
       // the head's offset from the foot is the bend (a resting lean towards the light)
-      b[4 * i] = (m.x[i] - home[2 * i]) * 1.6 * ext + 0.25 * Math.cos(ang * 3) * ext;
-      b[4 * i + 1] = (m.y[i] - home[2 * i + 1]) * 1.6 * ext + 0.25 * Math.sin(ang * 3) * ext;
+      b[4 * i] = (m.x[i] - home[2 * i]) * 1.6 * ext + 0.6 * Math.cos(ang * 3) * ext;
+      b[4 * i + 1] = (m.y[i] - home[2 * i + 1]) * 1.6 * ext + 0.6 * Math.sin(ang * 3) * ext;
       b[4 * i + 3] = ext;
     }
     this.mesh.instanceMatrix.needsUpdate = true;

@@ -1326,7 +1326,7 @@ function frame(now) {
       bfSoft: 1,
     };
     // per view: draw only what this view can see, and (split) only its own region
-    if (cullOn) { cullFor(cam, v); if (many) optP.rect = viewRect(v); }
+    if (cullOn) { cullFor(cam, v); if (many) optP.rect = viewRect(v); bloom.lod(cam.position); }
     if (borrow.id) renderBorrowed(cam, optP, dt);
     else optics.render(scene, cam, optP);
     if (cullOn) uncull();
@@ -1372,6 +1372,8 @@ const cullables = () => {
   L.push({ obj: trap.group.children[0], c: trap.centre, r: 720 });
   L.push({ obj: drop.fwdGroup, c: FWD.pos, r: 340 });
   L.push({ obj: drop.backGroup, c: BACK.pos, r: 380 });
+  for (const dm of world.diatoms) L.push({ obj: dm.mesh, c: dm.mesh.position, r: 70 }); // 20–41 k triangles each
+  for (const v of world.vorticellas) L.push({ obj: v.group, c: v.group.position, r: 60 });
   return L;
 };
 function cullFor(cam, v) {
