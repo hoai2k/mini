@@ -541,7 +541,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ## Phage (molecular illustration)
 
-Images for the phage prototype (Level 6): no light microscope can see a phage, so the level is a Goodsell-style molecular illustration grounded in cryo-EM shapes. The phage and host are built in code; these give the surfaces and the crowded water.
+Images for the phage world (Level 6): no light microscope can see a phage, so the level is an illustration grounded in cryo-EM shapes. Since the revamp (November 2026) its default look is an illustrative molecular scene in false light (micro/prototypes/phage/LOOK.md): dense bead-cluster molecules with ambient occlusion, thin silhouettes and colour by molecule type. The phage, hosts and molecules are built in code; these give surfaces, the backdrop in every direction, look-development sheets, the new humic-floc obstacle, and an updated card and intro plate. Everything open here has a procedural stand-in (the card and intro keep the current art until delivered).
 
 ### MP-V01 · Outer membrane surface (top view)
 
