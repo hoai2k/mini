@@ -431,6 +431,35 @@ wandering through it.
 - `?pr=1` renders at full resolution on software WebGL (for judging
   screenshots); otherwise software WebGL renders at 0.6.
 
+### Performance (the revamp, 1–2 November 2026)
+
+`micro/tools/perf/measure.mjs phage <players> 8 --url=q=high`, 1280 × 720,
+headless SwiftShader. Before = the code at the image-request commit; after =
+the revamp with the delivered art. (The after runs shared the machine with
+other agents' browsers, load average ~20, so the SwiftShader times are
+pessimistic.)
+
+| | CPU ms/frame (median) | SwiftShader ms/frame | draws | triangles | heap KB/frame | buffer upload KB/frame |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 player, before | 4.9 | 912 | 42 | 361 k | 473 | 74 |
+| 1 player, after | 7.5 | 1734 | 66 | 252 k | 293 | 21 |
+| 4 players, before (the harness's players never split: 1 view) | 17.4 | 1538 | 90 | 458 k | 283 | 135 |
+| 4 players, after (3 views) | 6.7 | 1966 | 107 | 330 k | 185 | 87 |
+
+- **Fewer triangles, less CPU work per molecule, far more molecules.** The
+  CPU crowd (≈550 molecules stepped, wrapped and uploaded every frame, and
+  copied per split view) is gone; ≈5,500 molecules (≈63,000 bead quads) live
+  on the GPU and cost no uploads. Allocation fell by a third and uploads by
+  70 % at 1 player.
+- **The cost moved to fill**: impostor beads discard outside their sphere and
+  write depth, so software WebGL roughly halves its frame rate; on a GPU it
+  is a few hundred thousand small quads. The quality governor trims the baths
+  (all, three quarters, half) and the far sprites, and the pass's AO taps
+  (10, 6, none).
+- **Draws**: two variants per bath species (one draw each), a handful per
+  host's forest, one for the flocs, one for the shafts, one for the far
+  sprites, five for the portal glow.
+
 ### Performance (second pass)
 
 Measured on 1 November 2026 with `micro/tools/perf/measure.mjs` (`?q=high`, 1 and
@@ -444,7 +473,7 @@ medium and low quality, inside, Goodsell, cryo-EM, fluorescence and 4 players.
   `view.target`, so a split view far from it no longer draws the crowd. Outside,
   1 player: 52 → 42 draws, 0.58 M → 0.36 M triangles. 4 players (4 views):
   247 → 191 draws, 2.54 M → 1.38 M triangles. Inside is unchanged.
-- **A crowd per split view, only when needed:** one crowd wraps round the
+- **A crowd per split view, only when needed** (superseded by the revamp: the GPU baths wrap round every view on their own, so this machinery and its feature switch are gone): one crowd wraps round the
   group (`view.target`). Each frame `main.js` unprojects each split view's
   screen region onto the crowd's top and bottom planes; a view that would show
   more than 12 units (120 nm) of bare water beyond what the merged screen shows

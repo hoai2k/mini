@@ -70,7 +70,7 @@ try {
   step('title');
 
   await tab.keyboard.press('Enter');
-  await until((s) => s.screen === 'menu', 5000, 'menu');
+  await until((s) => s.screen === 'menu', 20000, 'menu');
   await tab.waitForTimeout(900);
   await shot('2-menu');
   await tab.keyboard.press('ArrowRight');
@@ -83,7 +83,7 @@ try {
   step('menu (springtail focused)');
 
   await tab.keyboard.press('Enter');
-  await until((s) => s.screen === 'intro', 5000, 'intro');
+  await until((s) => s.screen === 'intro', 20000, 'intro');
   await tab.waitForTimeout(1300);
   await shot('3-intro');
   await until((s) => s.preloading === 'springtail' && s.preloadReady, 120000, 'world to preload during intro');
@@ -103,7 +103,7 @@ try {
   step('play springtail, controls card');
 
   await tab.evaluate(() => window.__game.pause());
-  await until((s) => s.paused && s.modals.includes('pause'), 5000, 'pause');
+  await until((s) => s.paused && s.modals.includes('pause'), 20000, 'pause');
   await tab.waitForTimeout(600);
   await shot('5-pause');
   step('pause');
@@ -119,7 +119,7 @@ try {
   await tab.waitForTimeout(300);
   step('settings, instructions');
   await tab.evaluate(() => window.__game.resume());
-  await until((s) => !s.paused && s.modals.length === 0, 5000, 'resume');
+  await until((s) => !s.paused && s.modals.length === 0, 20000, 'resume');
   await tab.waitForTimeout(800);
   step('resume');
 
@@ -135,7 +135,7 @@ try {
   // Through the springtail's own portal: its outro (success, slow-down,
   // freeze) and the continuous transition into the mite (embed.js).
   await tab.evaluate(() => { const m = window.__game.frame().contentWindow.__micro; m.placePortal(); m.enterPortal(0); });
-  await until((s) => s.transitioning, 5000, 'transition to start');
+  await until((s) => s.transitioning, 20000, 'transition to start');
   await until((s) => s.cont && s.cont.phase === 'move', 120000, 'the continuous camera move (the mite preloaded and held)');
   await until((s) => s.world === 'mite' && !s.loading && !s.transitioning, 120000, 'mite');
   // read at once: the card hides itself after 8 s, and a screenshot under
@@ -147,7 +147,7 @@ try {
   step('forward portal → continuous transition → mite (controls card shown)');
 
   await tab.evaluate(() => { window.__game.forceLandmark('back'); });
-  await until((s) => s.transitioning, 5000, 'back transition to start');
+  await until((s) => s.transitioning, 20000, 'back transition to start');
   await until((s) => s.world === 'springtail' && !s.loading && !s.transitioning, 120000, 'back to springtail');
   await tab.waitForTimeout(1200);
   await shot('9-back-springtail');

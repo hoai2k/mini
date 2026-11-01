@@ -54,14 +54,15 @@ export const WORLDS = [
     mag: '10–20×', magNote: 'objective, brightfield', field: '1.8–0.9 mm', fieldMm: 1.4, body: '0.45 mm', look: 'Brightfield',
     card: 'MP-U03', intro: 'MP-G10', tint: ['#efe6cf', '#a99f84'], accent: '#e8d9a8',
     line: 'Push out pseudopods, each drawing body from elsewhere, and cup a food vacuole round prey.',
-    goal: 'Crawl the calm first half and hunt easy prey; past halfway, stiffen (B) against the fungal traps and cut their tips (X), then hold LT and close two pseudopods round an arm of Chaos to pinch it off (X), and slip past it.',
-    forward: 'A green Paramecium bursaria swimming low over the slide, up and to the right.',
+    goal: 'Crawl out any way you like: easy prey, then fleeing ciliates (surge to catch them), then fungal traps (stiffen with B, cut tips with X), each a short crawl apart. About 2.8 mm out the way on glows gold, guarded by the giant amoeba Chaos: lure it off, or pinch its arms (hold LT, close two pseudopods round one, X) until it gives up.',
+    forward: 'A green Paramecium bursaria in a golden glow, at the opening toward open water, in whichever direction you first head out.',
     back: 'A Sphagnum leaf tip dipping into the pool, to the left: dwell there and press Y to rise to the water film.',
     controls: [['LS', 'Move the body · LT: steer the L pseudopod'], ['RS', 'Steer the selected (R) pseudopod · grow one'], ['A', 'Surge'], ['X', 'Close the cup / cut / pinch'], ['B', 'Let go / stiffen'], ['LT', 'Hold: LS takes the neighbouring pseudopod'], ['RT', 'Next pseudopod clockwise'], ['LB/RB', 'Spread / push'], ['D-pad ↑↓', 'Objective']],
     facts: [
       'An amoeba keeps its volume: every arm it grows takes body from somewhere else.',
       'It cups prey without touching it, then closes the cup into a food vacuole.',
       'At 0.45 mm it is longer than the tardigrade: here the habitat changes, not the size.',
+      'Some fungi farm amoebae: their sticky hyphae catch a passing cell and grow feeding threads into it.',
     ],
   },
   {

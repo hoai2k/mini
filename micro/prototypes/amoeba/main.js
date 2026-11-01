@@ -1227,8 +1227,21 @@ function stickToTraps(dt, traps) {
  */
 const CHAOS_COL = { capsules: [], circles: [] }, PREY_COL = { capsules: [], circles: [] };
 function nearCol(c) {
-  const g = c.body.grid, out = (c.nearCol ||= { capsules: [], circles: [] });
-  return nearColliders(lastCol, g.ox, g.oy, g.ox + g.size, g.oy + g.size, 160, out);
+  const b = c.body, out = (c.nearCol ||= { capsules: [], circles: [] });
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let i = 0; i < N; i += 2) { const x = b.x[i], y = b.y[i]; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  nearColliders(lastCol, x0, y0, x1, y1, 60, out);
+  // Snagged: a cell whose rear has hooked round a flake or a diatom stretches
+  // out thinner and thinner behind its pseudopod. Stretched past ~1.8x its
+  // usual length, it flows over the small debris (as amoebae crawl over
+  // detritus) until it has gathered itself up again.
+  const span = Math.max(x1 - x0, y1 - y0);
+  c.overSpan = span > 900 ? true : span < 700 ? false : !!c.overSpan;
+  if (c.overSpan) {
+    out.circles.length = 0; // flakes
+    out.capsules = out.capsules.filter((k) => hyp(k.bx - k.ax, k.by - k.ay) > 160); // diatoms out; filaments and the leaf stay
+  }
+  return out;
 }
 /** The colliders round every player (the prey that are awake are all there). */
 function preyCol(col) {
