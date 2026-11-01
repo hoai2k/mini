@@ -666,3 +666,27 @@ itself drew a mark (`dirty`). If a world paints rings on `marks.canvas` in a
 frame where no mark is drawn (the forward mark suppressed, or `onScreen:
 'none'`), those rings are never cleared and smear. Today the mite and amoeba
 always draw a mark, so it doesn't show.
+
+### Second pass in the worlds (2026-11-01)
+
+Every change below left the picture, gameplay and timing unchanged: seeded or
+frozen-frame screenshots were compared before and after (identical, or within
+1/255 where a faster square root changes the last bit), and the worlds' own
+tests and `check.mjs` passed. Measured with `micro/tools/perf/measure.mjs`
+at `q=high`, before and after back to back; SwiftShader times are relative.
+
+| World | Change | Before → after |
+| --- | --- | --- |
+| Mite | Objects keep one shape, no rest arrays or destructuring in hot paths; mites culled per view (they were `frustumCulled = false`) | 1p heap 463 → 144 KB/frame, CPU 7.1 → 3.9 ms; 4 views CPU 40 → 16 ms, draws 581 → 439, triangles 2.28 → 1.97 M |
+| Amoeba | `hyp()` instead of `Math.hypot` in hot loops, array reuse, faster distance grid (bit-identical), unseen cells not updated | garbage per step 1.45 → 0.20 MB (1p); grid build 1.17 → 0.61 ms; 3p step 7.6–9.1 → 5.4 ms |
+| Springtail | Water shader evaluates dimples and island distance once per pixel; `RippleField.recenter` without allocation; `islandEdge` indexed; no ripple upload on still water | scene pass 1p 2.78 → 2.14 s, 4p 1.66 → 1.16 s per view; first frame 7.4 → 6.1 s; upload 512 KB → 0 when still |
+| Tardigrade | Each view hides animals outside its part of the buffer | 4p spread 3.66 → 2.13 M triangles, draws 572 → 405 |
+| Paramecium | Each view draws only bloom cells and objects in its region (`bloom.cullView`) | 1p 667 → 529 k triangles, upload 152 → 80 KB; 4p 2.56 → 2.09 M triangles |
+| Bacterium | Distant grains skipped before the exact push-out test; shared materials | step garbage 1.53 → 0.22 MB, ~9 → 3.7 ms; 4p heap 944 → 262 KB/frame |
+| Phage | Hosts and crowd culled per view; host-distance pre-check; bloom reads the scene once | 1p 0.58 → 0.36 M triangles, 4p 2.54 → 1.38 M; update 1.3 → 0.45 ms |
+| Shared | `landmark.js` point tests without destructuring | about 275 KB/frame less garbage at 4 views |
+
+Findings that needed no change: the rotifer meadow (about 0.5 ms a frame), the
+bacterium collective (about 4% of a step at 40 members) and the R/L pseudopod
+marks (0.03 ms) are cheap. The remaining recommendations are listed in
+[open-recommendations.md](open-recommendations.md) under Performance.

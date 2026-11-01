@@ -21,7 +21,6 @@ Source for most lines: [`performance.md`](performance.md), "Fixes, ranked".
 
 - [Medium] Move the tardigrade body bend and leg frames into the vertex shader. The CPU skip is done, but the real fix removes the per-creature upload for good. Source: [performance.md](performance.md) (T2).
 - [Small] Tardigrade: reuse one matrix per claw and other temporaries to cut garbage. Check. Source: [performance.md](performance.md) (T4).
-- [Small] Mite: reuse scratch vectors in the leg code, so the heap stops growing about 0.9 MB a frame (1.8 MB at four views; the target is under 0.2). Source: [performance.md](performance.md) (M2), tonight's notes.
 - [Small] Amoeba: compute the density gradient once per step instead of four lookups per granule. Check. Source: [performance.md](performance.md) (A4).
 - [Small] Make the quality governor on by default in every world, with a "fixed quality" switch in the developer features. Check. Source: [performance.md](performance.md) (owner question 4).
 - [Medium] Throttle predators and wandering creatures that no player can see to 20 to 30 updates a second. Nobody sees them, and it saves CPU in every world. Source: [performance.md](performance.md) (Trade-off T11).
@@ -32,6 +31,37 @@ Source for most lines: [`performance.md`](performance.md), "Fixes, ranked".
 - [Medium] Mite: a lighter G-buffer (16-bit colour plus a separate depth). Compare screenshots for banding first. Not needed for 60 fps. Source: [performance.md](performance.md) (Trade-off T6).
 - [Small] Draw the title background at pixel ratio 1 and stop at five nested fields. Optional, because it does not run in play. Source: [performance.md](performance.md) (Trade-off T12).
 - [Large] Compress textures with KTX2. It would cut texture memory (60 to 100 MB per world) and load time, but needs a decoder and a new step in the art pipeline. Source: [performance.md](performance.md).
+
+
+### From the second performance pass (2026-11-01)
+
+Each of these was left out because it changes the picture or feel, or needs more work than a safe pass. Source: [performance.md](performance.md) (Second pass).
+
+- [Small] Shared: compile the split-screen shaders when a world loads, not when the second player joins; removes the 100–430 ms join pause seen in the amoeba. Check first which of the six programs belong to `splitscreen.js`.
+- [Small] Shared: cache landmark arrows as sprites (not pixel-identical, so needs a look).
+- [Medium] Shared: skip redrawing an unchanged landmark overlay; the mite and amoeba draw on its canvas, so it needs a small API.
+- [Small] Shared: rings a world draws on the landmark canvas can smear on a frame with no landmark (latent; nothing shows it today).
+- [Small] Springtail: re-save the big PNG textures as lossless WebP (about 2–3 MB less to load).
+- [Medium] Mite and amoeba: pre-compile shaders at load; most of their 30–35 s software-renderer load time.
+- [Small] Shell: load the zoom transition player during the intro (about 200 ms off the first transition; could stutter a running world).
+- [Medium] Mite: merge each mite's parts into fewer draws (about 10 to 4); needs a shader change.
+- [Large] Mite: `BatchedMesh` with per-instance culling for the moss chunks (fewer draws and triangles).
+- [Small] Mite: 3 mm chunks (98 fewer draws, 360 k more triangles), a trade.
+- [Small] Mite: lower-poly springtails at the far edge of the thicket crowd (about 100 k triangles per view; slightly changes the look).
+- [Medium] Amoeba: replace three.js mask triangulation (about 600 KB a frame of garbage).
+- [Small] Amoeba: granules at 30 Hz (about 30% less granule CPU; motion less smooth).
+- [Medium] Springtail: cluster the water's dimples by position (about 15% off the water shader).
+- [Medium] Springtail: cache the SDF meshes between visits (1.2 s at startup, returning players only).
+- [Small] Springtail: the ripple wave step costs about 2 ms a frame; cheaper steps change the feel.
+- [Small] Paramecium: thin far bloom cells and freeze members far from every player (about 30% of the bloom's fill; visible; freezing needs `shared/crowd.js`).
+- [Small] Paramecium bug: the bloom lies flat on the slide until a player comes within 1400 µm; a one-line fix that changes the distant view.
+- [Small] Tardigrade: lower-poly rotifers (visible, small gain).
+- [Medium] Bacterium: the remaining `draw.js` / `stepCell` garbage, about 300 KB a frame (no visible change).
+- [Small] Phage: per-look shader variants (small gain; recompiles when the look changes).
+- [Small] Phage: background noise at quarter resolution (about 40% of the final pass; slightly softer).
+- [Small] Phage: the crowd's random generator allocates 40 KB a frame.
+- [Small] Phage, owner's call: in split screen, views far from the group's centre show no molecule crowd.
+- [Small] Perf harness: runs get only 5–8 frames on a loaded machine and its 4-player spread never splits the screen; widen the spread and lengthen runs.
 
 ## Springtail
 
@@ -124,13 +154,8 @@ Source for most lines: [`performance.md`](performance.md), "Fixes, ranked".
 
 Tonight's "open" lines, plus items in the world READMEs.
 
-- [Medium] Mite: draw calls rose to 88 solo and 527 at four views after chunking. Merge chunks. Source: tonight's notes.
-- [Small] The scratch perf script (`perf/measure.mjs`, kept outside the repo) mis-parses `--url` because it splits on "="; worlds measured with fixed copies. Source: tonight's notes.
-- [Small] `shared/landmark.js` `shapes()` costs about 17 ms per second at four players (measured in the tardigrade); cache or throttle it. Source: tonight's notes.
 - [Medium] Tardigrade: the rotifers in the meadow read mostly as blobs at high zoom; add the corona and foot detail. Source: tonight's notes.
-- [Medium] Amoeba: per-frame allocation rises at one player (546 to 837 KB) and has not been traced. Source: tonight's notes.
-- [Small] Springtail: the first frame is slower (about 12 s against 9 s in software rendering), so screenshot checks time out under load. Ripple upload is 512 KB a frame. Source: tonight's notes.
+- [Small] Springtail: the first frame takes about 6 s in software rendering (7.4 s before the second performance pass); caching SDF meshes would cut more. Source: [performance.md](performance.md) (Second pass).
 - [Medium] Paramecium: *Dileptus* engages in some test runs and not others. Tune its homing. Source: tonight's notes.
-- [Medium] Paramecium: the 1660-cell bloom is heavy at four players. Source: tonight's notes.
 - [Small] Phage: text labels use the shared camera, so in a split they sit in the merged position. Source: [phage README](../prototypes/phage/README.md).
 - [Small] Zoom: the springtail shows as a dark shape at the top of the amoeba and Paramecium fields. Source: [zoom README](../prototypes/zoom/README.md).
