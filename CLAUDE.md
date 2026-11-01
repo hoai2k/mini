@@ -98,7 +98,8 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
   `/swingers/...` on the same site). Their gates ignore the public-access
   switch, so their cards sit in `<template data-invite>` blocks that the
   library reveals only to visitors holding an invite pass;
-  they keep the shelf's newest-first order. `GAME_GUIDELINES.md` applies to every game.
+  they keep the shelf's newest-first order, except that Swingers sits just
+  after Half-Blood Quests at the owner's request. `GAME_GUIDELINES.md` applies to every game.
 - **Which games deploy is the root `deploy_config.json`.** A folder set to
   `false` under `"games"` is not built or published (`build-game.sh` skips it
   without restoring a live copy) and its card is left out of the published
