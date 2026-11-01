@@ -117,6 +117,10 @@ export const ASSETS = {
     "file": "assets/springtail/ripples.png",
     "status": "delivered"
   },
+  "MP-S06": {
+    "file": "assets/springtail/pondweed-leaf.png",
+    "status": "requested"
+  },
   "MP-B01": {
     "file": "assets/bacterium/sediment-phase.webp",
     "status": "delivered"
