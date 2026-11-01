@@ -6,6 +6,9 @@ it follows this; where a world departs from it, the README says why.
 
 ## A series of encounters and exploration, not a race
 
+(The rings below were the first version; the director, further down, places the
+same sequence dynamically and takes precedence where a world uses it.)
+
 - **Rings round the start, the same in every direction.** A short warm-up of
   calm space (a few seconds of moving: two or three screen widths), then the
   first obstacle, a short calm break, the next obstacle, and so on, out to the
@@ -35,6 +38,30 @@ it follows this; where a world departs from it, the README says why.
   and a camera move from the frozen scene into the next world's opening view,
   with the next world loaded in the background during the animation (the
   protocol is in `game/README.md`).
+
+## Placed as you go (the director)
+
+The owner (2026-11-01): the world doesn't need to be laid out before play.
+Things can be placed dynamically, into areas the player hasn't reached yet,
+while every area a player has already seen stays as it was.
+
+- **Explored stays constant.** Whatever a player has seen (a coarse grid of
+  explored cells, marked from every view) is never changed behind their back:
+  nothing placed, moved or removed there.
+- **The next encounter is placed ahead.** When a player has had their calm
+  break after one encounter, the next one in the world's order is placed in
+  unexplored space near them, in the direction they're moving, out of view,
+  a short way off (so it arrives soon, but not immediately).
+- **Nothing is skipped.** Encounters come in the world's order; the boss and
+  the portal are placed only after the player has met every earlier
+  encounter. A player who hangs about in a safe area still gets them: if they
+  linger, the next encounter is placed near them (in unexplored space), and in
+  the end the portal and its boss too.
+- **Rings are the fallback.** A world may still pre-place scenery and
+  ambient life everywhere; the encounters themselves come from the director
+  (`shared/director.js`). In multiplayer, each encounter is placed for the
+  player who is furthest along the order, and the others meet it or the next
+  one placed near them.
 
 ## Everything is action
 
