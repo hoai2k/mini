@@ -210,7 +210,7 @@ vec4 membraneLight(vec3 n, vec3 v){
   vec3 nb = n - gv * uFLBump;
   nb = dot(nb, nb) > 1e-8 ? normalize(nb) : n;
   float wr = ridge(vObj * 0.22 + 3.7);
-  float hh = vLump * 0.7 + n3(vObj * 0.13) * 0.35;
+  float hh = vLump * 0.45 + n3(vObj * 0.13) * 0.25 + r0 * 0.4; // (big lumps, softer medium relief and the fine wrinkles all colour it: no leopard spots)
   float blotch = n3(vObj * 0.035 + 11.0);
   // deep navy in the hollows, teal on the lumps, a greener teal on their tops, blue patches, pale wet crests
   vec3 alb = mix(uFLColor, uFLColor2, smoothstep(0.15, 0.9, hh));
@@ -441,7 +441,7 @@ varying vec3 vBase; varying vec3 vBN; varying float vLayer; varying vec3 vN; var
 void main(){
   vec3 n = normalize(vN), v = normalize(vView);
   float ndv = abs(dot(n, v));
-  float sil = mix(0.012, 1.0, pow(1.0 - ndv, 2.0)) * uFurAlpha;  // a fringe at the silhouette, a faint fuzz face-on
+  float sil = pow(1.0 - ndv, 2.6) * uFurAlpha;                   // a fringe at the silhouette, next to nothing face-on
   if (sil < 0.03) discard;
   // one strand per cell of a 3D grid on the surface: a jittered centre, a random length, tapering out
   vec3 q = vBase * uFurDens;
@@ -642,7 +642,7 @@ void main(){
       // background's depth: it is near and must stay crisp
       coc *= 1.0 - smoothstep(0.01, 0.2, sc.a) * (1.0 - smoothstep(0.9, 0.995, sc.a));
       // and a molecule drifting right past the lens softens a little, as in the look target's foreground
-      coc = max(coc, smoothstep(uFocus * 0.5, uFocus * 0.28, z) * 0.75 * uDof * step(0.5, sc.a));
+      coc = max(coc, smoothstep(uFocus * 0.4, uFocus * 0.2, z) * 0.6 * uDof * step(0.5, sc.a));
       // soften toward a blurred quarter-resolution copy (smooth, no ring artefacts)
       sc = mix(sc, texture2D(tSoft, vUv), clamp(coc, 0.0, 1.0) * 0.6);
     }

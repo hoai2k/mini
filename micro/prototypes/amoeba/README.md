@@ -712,6 +712,22 @@ trap hypha (stretched out, the sticks flailing) and never got there in 240 s.
 The scripted push snags far more than a player steering would; the director's
 own timings are the node runs above.
 
+Re-run 2026-11-01 (the pre-deploy audit's script, no animation frames so it
+is deterministic, Chaos kept stood down every step, and "reached" meaning
+the portal was entered: the outro starts): 0° 44.8 s, 45° 55.5 s, 90°
+63.5 s, 180° 160.3 s, 270° not in 240 s. The audit had 90° "never arriving"
+with the cell crawling 90-140° off the stick from ~200 µm out: it had in
+fact gone through the portal at 63.5 s (the way on opens when the membrane
+touches the *P. bursaria* beacon, 210-300 µm from the portal's centre, and
+the outro then takes the sticks), and the script, waiting for the centre to
+come within 85 µm, kept steering a cell that no longer listened. Two things
+it did find stand: the director re-placing an unseen portal (`placePortal`)
+puts Chaos back on guard, and a pseudopod pushed straight into a large
+obstacle (the Sphagnum leaf's tip at 180°, a diatom on the line at 270°)
+slides along it and the cell backs away from it rather than going round,
+so a stick held straight at the portal behind one does not get there (at
+270° the cell drifted away from it for ~70 s); steering round works.
+
 `window.__micro` exposes `{ renderer, camera, scene, scenes, view, body,
 cyto, prey, world, state, features }` plus test hooks: `input` (override
 the sticks), `press(name)`, `setMode(i)`, `pause()`, `renderOnce()`,

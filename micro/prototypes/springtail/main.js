@@ -13,12 +13,12 @@ import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
 import { createMacro, lens, macroShared, applyLook, MACRO_LOOKS } from '../shared/techniques/springtail-macro.js';
 import { RippleField, Dimples, waterMaterial, waterGeometry, peatFloorTexture } from '../shared/techniques/springtail-surface.js';
-import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHORE_GLSL, BANK_E, START, ZONES, PORTAL, distFromStart, setZoneAt, parkZone, setPortal, clearPortal, DIRECTOR, ENCOUNTERS, canPlace, inReach } from './world.js';
+import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHORE_GLSL, BANK_E, START, ZONES, PORTAL, PORTALS, GROUND, PONDWEED, focusPortal, nearestPortal, pondweedAt, distFromStart, setZoneAt, parkZone, DIRECTOR, ENCOUNTERS, canPlace, inReach } from './world.js';
 import { createDirector } from '../shared/director.js';
 import { createQuality } from '../shared/quality.js';
 import { createCrowd } from '../shared/crowd.js';
 import { litMaterial } from '../shared/techniques/springtail-macro.js';
-import { createLandmarkProps } from './landmarks.js';
+import { createLandmarkProps, RAFT_SHOW } from './landmarks.js';
 import { createPortalLight } from '../shared/portal.js';
 import { createWolfSpider, LEASH as BOSS_LEASH } from './boss.js';
 import { createSpringtail } from './springtail.js';
@@ -92,11 +92,26 @@ crowd.mesh.frustumCulled = true;
 crowdG.add(crowd.mesh);
 crowdG.position.set(ZONES.crowd.x, 0, ZONES.crowd.z);
 const crowdBodies = [];
-// The boss: a pond wolf spider on guard at the portal raft (boss.js); it is
-// put there when the portal is placed (placePortal), and backs off under the
-// raft (home) when worn down.
-const boss = createWolfSpider(scene, { post: { x: 0, z: 0, a: 0 }, home: { x: 0, z: 0 } });
-boss.setVisible(false);
+// The bosses: a pond wolf spider at every portal raft (boss.js), made the
+// first time someone comes near its hunting ground (`spiderFor`). It rests on
+// the raft's rim (its post, facing out toward the start), goes out on rounds
+// of its ground (GROUND.r round the raft, the pondweed patch) and walks back,
+// and backs off under the raft (home) when worn down. Spiders whose ground
+// nobody is near are parked: hidden and not updated (`stepSpiders`). `boss`
+// is the one in focus: the spider of the portal nearest the players, the one
+// that hunts them, fights and catches (`focusSpider`).
+const spiders = PORTALS.map(() => null);
+/** The spider of portal i (made on first use). */
+function spiderFor(i) {
+  if (spiders[i]) return spiders[i];
+  const L = PORTALS[i], ux = Math.cos(L.a), uz = Math.sin(L.a);
+  // its post: on the raft's near rim (toward the start), facing out; it backs off over the raft when beaten
+  const s = createWolfSpider(scene, { post: { x: L.x - ux * (PORTAL.r - 3), z: L.z - uz * (PORTAL.r - 3), a: L.a + Math.PI }, home: { x: L.x + ux * 12, z: L.z + uz * 12 }, ground: { x: L.x, z: L.z, r: GROUND.r - 6 }, seed: i + 1 });
+  s.portal = i; s.parked = false;
+  spiders[i] = s;
+  return s;
+}
+let boss = spiderFor(0);
 // hidden and parked until the director places them (placeEncounter)
 stenus.setVisible(false); strider.setVisible(false); crowd.mesh.visible = false;
 stenus.relocate(ZONES.stenus.x, ZONES.stenus.z);
@@ -107,6 +122,7 @@ art('MP-S02').then((t) => t && world.setMossTex(t));
 art('MP-S03', { repeat: false }).then((t) => { if (t) { macroShared.uBackdrop.value = t; macroShared.uHasBackdrop.value = 1; } });
 art('MP-S04', { repeat: false }).then((t) => t && world.sundews.setTexture(t));
 art('MP-S05', { repeat: false }).then((t) => t && rain.setSprite(t));
+art('MP-S06', { repeat: false }).then((t) => t && world.pondweed.setTexture(t));
 
 // ---------------------------------------------------------------- player
 // START (world.js): mid-pool; the rings (and the way on) lie round it
@@ -396,10 +412,12 @@ function logChallenge(kind, P) { if (!challengeLog[kind] && P) challengeLog[kind
 // you go") places the enemies and events one at a time, in this order, in
 // water nobody has seen, a little ahead of whoever is furthest along (or, if
 // they linger, round them): Stenus, the water strider with its Podura mass,
-// the rain, then the wolf spider on the portal raft. Each comes only after
-// the one before was met and a calm break has passed; nothing a player has
-// seen is ever placed, moved or removed. Sundews are scenery (world.js).
-// Until placed, each predator is hidden and parked (world.js parkZone).
+// then the rain. Each comes only after the one before was met and a calm
+// break has passed; nothing a player has seen is ever placed, moved or
+// removed. Sundews, the pondweed and the portal rafts with their spiders are
+// fixed (world.js). Until placed, each predator is hidden and parked
+// (world.js parkZone). The portals stay closed until the director is done
+// (`sealed`): nothing is skipped on the way to the way on.
 const placed = { stenus: false, strider: false, rain: false };
 const showPreds = () => {
   stenus.setVisible(placed.stenus && stenus.st.enabled);
@@ -413,10 +431,8 @@ const ENC = {
     met: (h, [P]) => inReach('stenus', P.x, P.z) || Math.hypot(stenus.st.x - P.x, stenus.st.z - P.z) < 30 },
   strider: { place: (x, z, b) => placeEncounter('strider', x, z, b),
     met: (h, [P]) => inReach('strider', P.x, P.z) || inReach('crowd', P.x, P.z) || Math.hypot(strider.st.x - P.x, strider.st.z - P.z) < 30 },
-  // from here on it rains round whoever leads
+  // from here on it rains round whoever leads (the last: then the portals open)
   rain: { place: () => { placed.rain = true; return true; }, met: () => true },
-  // the last: entering the open portal ends the level
-  portal: { place: (x, z, b) => placeEncounter('portal', x, z, b), met: () => false },
 };
 const director = createDirector({ ...DIRECTOR, canPlace, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id] })) });
 /** How far through the encounters the game is: met / all (0..1). */
@@ -436,9 +452,6 @@ function placeEncounter(k, x, z, b) {
     crowdG.position.set(ZONES.crowd.x, 0, ZONES.crowd.z);
     crowdG.updateMatrixWorld(true);
     hunger.strider.reset(Infinity); armed.strider = false;
-  } else if (k === 'portal') {
-    placePortal(x, z, b);
-    logChallenge('portal', recs().find(alive) || pl);
   }
   if (k in placed) placed[k] = true;
   showPreds();
@@ -465,9 +478,12 @@ function directorViews() {
 }
 function stepDirector(dt) {
   if (game.phase !== 'play' || outro) return;
+  // in a portal's hunting ground before everything is met: the next encounter now, near them (no waiting out the break)
+  if (!director.done && recs().some((P) => alive(P) && nearestPortal(P.x, P.z).d < GROUND.r)) { director.placeNow(); logChallenge('groundEarly', recs().find((P) => alive(P) && nearestPortal(P.x, P.z).d < GROUND.r)); }
   const ev = director.update(dt, recs().map((P) => ({ id: P.slot, x: P.x, z: P.z, alive: alive(P) })), seenViews);
   seenViews = null;
   for (const e of ev) if (e.type === 'met') logChallenge(`${e.id}Met`, pls[e.by && e.by[0]] || recs().find(alive) || pl);
+  if (director.done && !challengeLog.portal) logChallenge('portal', recs().find(alive) || pl);
   driftStrider(dt);
 }
 /**
@@ -491,24 +507,38 @@ function driftStrider(dt) {
     if (islandEdge(nx, nz).d > 4) { Z.x = nx; Z.z = nz; return; }
   }
 }
-// The spider's hint waits until someone is within PORTAL_HINT mm of the raft.
+// The spider's hint waits until someone is within PORTAL_HINT mm of a raft.
 const PORTAL_HINT = 70;
-/** Put the portal raft at (x, z), met coming along bearing a, with the wolf spider on guard at its near rim. */
-function placePortal(x, z, a) {
-  setPortal(x, z, a);
-  props.place();
-  const ux = Math.cos(a), uz = Math.sin(a);
-  // its post: on the raft's near rim, facing the way you come; it backs off over the raft when beaten
-  boss.setPost({ x: x - ux * (PORTAL.r - 3), z: z - uz * (PORTAL.r - 3), a: a + Math.PI }, { x: x + ux * 12, z: z + uz * 12 });
-  portal.hinted = false; portal.turned = false;
+/**
+ * Don't skip (the owner: "ensure the user encounters each thing in the game
+ * before giving them the boss and portal"): the portals are fixed, so a
+ * player can reach one early. Until the director is done (Stenus, the
+ * strider and its mass, and the rain all met) every portal is sealed: its
+ * sparkle stays dim and reaching it turns you back, whatever its spider is
+ * doing; meanwhile the director places the rest promptly round anyone in a
+ * hunting ground (stepDirector). `testOpen` (placePortal) lifts it for tests.
+ */
+let testOpen = false;
+const sealed = () => !testOpen && !director.done;
+/** Put portal i in focus: the nearest to the players (its raft's glow and the outro, its spider the one that hunts). */
+function focusSpider(i) {
+  if (i === PORTAL.i && boss === spiders[i]) return;
+  focusPortal(i);
+  props.setFocus(i);
+  boss = spiderFor(i);
 }
-/** The portal's state: is the wolf spider on guard at it (on its post, not lured off or beaten)? */
-const portal = { hinted: false, turned: false };
-function guarded() {
-  if (!PORTAL.placed) return true;
-  if (!boss.group.visible || ['gone', 'retreat'].includes(boss.st.state)) return false;
-  return Math.hypot(boss.st.x - PORTAL.x, boss.st.z - PORTAL.z) < 15;
+/** The portals' state: hints shown, turned back. */
+const portal = { hinted: false, turned: false, sealedSaid: false };
+/** Is the wolf spider of portal i on guard at it (on its post, not lured off, out on its ground or beaten)? */
+function guardedAt(i) {
+  const s = spiders[i];
+  if (!s) return true;
+  if (!s.group.visible && !s.parked) return false;
+  if (['gone', 'retreat'].includes(s.st.state)) return false;
+  return Math.hypot(s.st.x - PORTALS[i].x, s.st.z - PORTALS[i].z) < 15;
 }
+/** The focus portal: guarded (or sealed)? */
+const guarded = () => sealed() || guardedAt(PORTAL.i);
 
 // A clean escape from the labium plays in slow motion for a moment.
 let slowMo = 0;
@@ -788,7 +818,7 @@ F({ id: 'slow', group: 'Simulation', label: 'Jump time', choices: ['Slowed ~6x (
 F({ id: 'pounce', group: 'Simulation', label: 'Pounce-bite (a departure)', fixed: true,
   about: 'X in the air, or a jump released at an enemy in range: the springtail tucks into a dive onto the nearest leg or body under its arc (aim assist), nips on impact (worth two nips: a stagger, a splash, a rumble, a brief hit-pause), then rebounds off it; a mistimed dive is a clear miss. Landing on food takes a whole bite. A labelled departure: Podura grazes, and its furcula jump is an escape (a few springtails such as Friesea prey on tiny animals, never by leaping).' });
 F({ id: 'boss', group: 'World', label: 'Boss: pond wolf spider (Pirata)', fixed: true,
-  about: 'A juvenile, ~5 mm (scaled down from adults so the arena fits), on guard at the rim of the portal raft (the way on, ~415 mm from the start, placed at the bearing of whoever first nears it). It wakes when you come within 30 mm of its post and follows you up to 90 mm out before it gives up and walks back (slower than you jump); a big ripple (a charged landing, a raindrop) within 50 mm draws it off to look. While it is more than 15 mm off its post, the raft lets you through; on guard, it turns you back. Its tells: it crouches and raises its first two pairs of legs before a lunge, and turns to pounce on your landing ripples. Jump clear (a dodge wears it down), then nip or pounce on an overreached tarsus (double). About three good rounds and it backs off under the moss for good, leaving the way open. Its resolve is the brass gauge. Catches follow the follow-and-respawn sequence.' });
+  about: 'A juvenile, ~5 mm (scaled down from adults so the arena fits). One lives at every portal raft (the ways on, fixed across the pool where the bog pondweed grows thick). It rests on the raft\'s rim, goes out on rounds of its hunting ground (the pondweed, 80 mm round the raft) and walks back, so you can follow it home. Out on its ground it comes for a springtail within 22 mm (or one landing within 20), and hurries home if one makes for the raft; on its post it wakes when you come within 30 mm, follows you up to 90 mm out, then gives up and walks back (slower than you jump); a big ripple (a charged landing, a raindrop) within 50 mm draws it off to look. While it is more than 15 mm off its post, the raft lets you through (once the beetle, the strider and the rain have all been met). Its tells: it crouches and raises its first two pairs of legs before a lunge, and turns to pounce on your landing ripples. Jump clear (a dodge wears it down), then nip or pounce on an overreached tarsus (double). About three good rounds and it backs off under the moss for good, leaving the way open. Its resolve is the brass gauge. Catches follow the follow-and-respawn sequence.' });
 F({ id: 'sundewGlue', group: 'World', label: 'Sundews: struggle, digestion, re-forming', fixed: true,
   about: 'Land on a sundew leaf and you are held on its glue drops, a glue strand from a tentacle tip to each leg. Tear free by struggling: tug with LS (each new push or change of direction; WASD on a keyboard) and kick with A, both together (about 2 s; A alone takes ~5-6 s of hard mashing and is barely faster than the leaf, LS alone loses). The body thrashes with every effort and the strands thin and snap one by one as you win. Stop for 0.8 s and the hold wins: you slip back, sink among the tentacles as they fold over and the blade cups; about 2.5 s more and you are engulfed: the body turns white and breaks up into motes that drift away (digestion; real sundews take days). After any catch the camera glides to where you come back (a dip to black if that is far) and you re-form there from gathering motes, with a ring on the film: ~2 s, not skippable, and A held through it does nothing until let go. sundew-struggle.js, sundew-glue.js, motes.js.' });
 F({ id: 'upose', group: 'Body', label: 'Mid-air U-pose righting', on: true,
@@ -802,7 +832,7 @@ F({ id: 'strider', group: 'World', label: 'Water strider (Gerris)', on: true, on
 F({ id: 'rain', group: 'World', label: 'Rain', choices: ['Sometimes', 'Often', 'Off'], value: 'Sometimes',
   about: 'A drop ~3 mm across (twice your length) is telegraphed by its shadow, falls, craters the film and rings it.', onChange: (v) => { rain.enabled = v !== 'Off'; rain.every = v === 'Often' ? 3.5 : 7; } });
 F({ id: 'grace', group: 'World', label: 'Calm on arrival', choices: ['Off', '5 s', '15 s'], value: 'Off',
-  about: 'The encounters are placed as you go (shared/director.js), in order, each in water nobody has seen yet a little ahead of whoever leads: after a few seconds of moving, Stenus and its water; a calm break; the strider and the Podura mass; the rain; then the wolf spider on the portal raft. Linger and they come to you all the same. Each predator stays calm until someone first comes into its water, then waits this long before its hunger starts. shared/predation.js.',
+  about: 'The encounters are placed as you go (shared/director.js), in order, each in water nobody has seen yet a little ahead of whoever leads: after a few seconds of moving, Stenus and its water; a calm break; the strider and the Podura mass; the rain; then the way on opens: the portal rafts (fixed, each with its wolf spider and its pondweed). Linger and they come to you all the same; reach a portal first and the rest are placed round you at once. Each predator stays calm until someone first comes into its water, then waits this long before its hunger starts. shared/predation.js.',
   onChange: (v) => { pace.grace = v === 'Off' ? 0 : parseFloat(v); resetHunger(); } });
 F({ id: 'hunger', group: 'World', label: 'Predator hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
   about: 'Comes and goes: once awake (a player came into its water) each predator is hungry for ~18-32 s, then rests (45-75 s after a meal, 15-30 s after a miss or when it loses you); only a hungry one stalks, skims, strikes, answers ripples or grabs. Always: hungry from the moment it wakes. Never: they patrol and never hunt (for exploring and testing).',
@@ -825,9 +855,11 @@ const groundAt = (x, z) => {
   if (m > -Infinity) return { y: m, kind: 'moss' };
   const d = world.debris.at(x, z);
   if (d) return { y: d.top, kind: 'debris', piece: d };
+  const w = pondweedAt(x, z);
+  if (w) return { y: w.top, kind: 'leaf', leaf: w };
   return { y: field.height(x, z), kind: 'film' };
 };
-/** The player mode for standing on a ground kind: debris is solid footing, like moss. */
+/** The player mode for standing on a ground kind: debris and pondweed leaves are solid footing, like moss. */
 const modeFor = (kind) => (kind === 'film' ? 'film' : 'moss');
 
 function jump(dirX, dirZ, power, { thrown = false } = {}) {
@@ -845,7 +877,7 @@ function jump(dirX, dirZ, power, { thrown = false } = {}) {
   pl.cock = 0;
   pl.furc = 1;
   pl.flipT = 0;
-  if (inPool(pl.x, pl.z) && pl.y < 0.5 && !world.debris.at(pl.x, pl.z)) {
+  if (inPool(pl.x, pl.z) && pl.y < 0.5 && !world.debris.at(pl.x, pl.z) && !pondweedAt(pl.x, pl.z)) {
     // the furcula's strike pushes the film down; the collophore lets go
     field.drop(pl.x - (dirX / n) * 0.6, pl.z - (dirZ / n) * 0.6, 0.4, -0.05 - 0.08 * p);
     ripples.push({ x: pl.x, z: pl.z, strength: 0.5 + 0.4 * p });
@@ -985,8 +1017,8 @@ function respawn() {
   cap.kind = null;
   stenus.reset();
   strider.reset();
-  boss.reset();
-  if (!PORTAL.placed) boss.setVisible(false);
+  // every spider back on its post (one that was beaten stays gone), parked until someone is near
+  for (const s of spiders) if (s && s.st.state !== 'gone') { s.release(); s.parked = true; s.setVisible(false); }
   placeThreatsAway();
   rain.clear();
   resetHunger();
@@ -996,7 +1028,7 @@ function placeThreatsAway() {
   stenus.relocate(ZONES.stenus.x, ZONES.stenus.z);
   strider.relocate(ZONES.strider.x, ZONES.strider.z);
 }
-/** A new game: nothing placed yet (the director starts over; the predators hidden and parked), no portal. */
+/** A new game: nothing placed yet (the director starts over; the predators hidden and parked); the portals sealed again, every spider back on guard. */
 function resetEncounters() {
   director.reset();
   for (const k of ['stenus', 'strider', 'crowd']) parkZone(k);
@@ -1004,9 +1036,9 @@ function resetEncounters() {
   showPreds();
   stenus.relocate(ZONES.stenus.x, ZONES.stenus.z); strider.relocate(ZONES.strider.x, ZONES.strider.z);
   crowdG.position.set(ZONES.crowd.x, 0, ZONES.crowd.z);
-  clearPortal(); props.place();
-  boss.setVisible(false);
-  portal.hinted = false; portal.turned = false; bossSaid.wake = false;
+  testOpen = false;
+  for (const s of spiders) if (s) { s.reset(); s.parked = true; s.setVisible(false); }
+  portal.hinted = false; portal.turned = false; portal.sealedSaid = false; bossSaid.wake = false;
   lm.fired = false; lm.blocked = false;
   for (const k of Object.keys(challengeLog)) delete challengeLog[k];
 }
@@ -1391,7 +1423,7 @@ function stepPlayer(dt, inp) {
   if (P.safeT > 1 && Math.hypot(stenus.st.x - P.x, stenus.st.z - P.z) > 15 && Math.hypot(strider.st.x - P.x, strider.st.z - P.z) > 18 && !world.sundews.leafAt(P.x, P.y + 0.1, P.z)) { P.safeT = 0; P.safe = { x: P.x, z: P.z }; }
   if (game.phase === 'play' && P.food >= GOAL && onMoss && !P.fedSaid) {
     P.fedSaid = true;
-    hud.toast(PORTAL.placed ? 'Fed and safe on the moss. The way on: the golden sparkle over the raft of red capitula' : 'Fed and safe on the moss. Head out across the pool: the way on comes after the beetle, the strider and the rain', 3200);
+    hud.toast(!sealed() ? 'Fed and safe on the moss. The way on: the golden sparkle over a raft of red capitula, where the pondweed grows thick' : 'Fed and safe on the moss. Head out across the pool: the way on opens after the beetle, the strider and the rain', 3200);
   }
 }
 
@@ -1496,19 +1528,21 @@ function stepWorld(dt) {
     if (e === 'heard' && ctxR.alive) logChallenge('striderHunt', preyR);
     if (e === 'heard' && ctxR.alive && !(strider.st.heardUntil > simT)) { strider.st.heardUntil = simT + 6; hud.toast('A water strider felt your ripples: keep still and hunker (B)', 1800); }
   }
-  // the boss (boss.js): on guard at the portal raft until someone comes near;
-  // big ripples (charged landings, raindrops) can draw it off (none before the portal is placed)
+  // the spiders (boss.js): each rests at its raft and goes out on rounds of
+  // its hunting ground; the one in focus (`boss`, nearest the players) hunts
+  // them; big ripples (charged landings, raindrops) can draw it off
   bossRipples.push(...ripples.filter((r) => r.big));
-  const bossCtx = { awake: PORTAL.placed, field, inPool, ripples: bossRipples,
+  const bossCtx = { awake: true, field, inPool, ripples: bossRipples,
     players: recs().map((Q) => ({ slot: Q.slot, x: Q.x, z: Q.z, y: Q.y, heading: Q.heading, airborne: Q.mode === 'air', alive: alive(Q) && game.phase === 'play', landed: Q.landT !== undefined && simT - Q.landT < 0.2 && Q.mode !== 'air' })) };
-  const bossEv = PORTAL.placed ? boss.update(dt, bossCtx) : [];
+  const bossEv = stepSpiders(dt, bossCtx);
   bossRipples.length = 0;
   for (const e of bossEv) {
     const Q = e.slot !== undefined ? pls[e.slot] : null;
     if (e.type === 'wake') logChallenge('boss', recs().reduce((a, R) => (!a || Math.hypot(R.x - boss.st.x, R.z - boss.st.z) < Math.hypot(a.x - boss.st.x, a.z - boss.st.z) ? R : a), null));
     if (e.type === 'wake' && !bossSaid.wake) { bossSaid.wake = true; hud.toast('The wolf spider comes for you! Lead it away from the raft: it follows you out, then walks back slowly. Jump clear when it crouches and raises its front legs', 3600); }
     else if (e.type === 'investigate') logChallenge('bossLured', boss.st);
-    else if (e.type === 'return') logChallenge('bossReturn', boss.st);
+    else if (e.type === 'return' && !boss.st.homeward) logChallenge('bossReturn', boss.st);
+    else if (e.type === 'wander') logChallenge('spiderWander', boss.st);
     else if (e.type === 'tell') { for (const R of recs()) if (Math.hypot(R.x - boss.st.x, R.z - boss.st.z) < 16) rumbleFor(R, 200, 0.12, 0); }
     else if (e.type === 'lunge' || e.type === 'pounce') audio.play('springtail/stenus-strike', { volume: 0.9, rate: 0.7 });
     else if (e.type === 'caught' && Q && alive(Q)) withRec(Q, () => caught('boss'));
@@ -1522,7 +1556,7 @@ function stepWorld(dt) {
   const drops = rain.update(dt, { field, inPool, mossAt: (x, z) => Math.max(0, mossTop(x, z)), player: rainP === preyS ? ctxS : ctxOf(rainP, null), allow: rainOn && game.phase === 'play' });
   if (drops.length) logChallenge('rain', rainP);
   for (const e of drops) {
-    if (PORTAL.placed) bossRipples.push({ x: e.x, z: e.z, big: true });
+    bossRipples.push({ x: e.x, z: e.z, big: true });
     const d0 = Math.hypot(e.x - P.x, e.z - P.z);
     audio.play('springtail/raindrop', { volume: Math.max(0.12, Math.min(0.9, 4 / (d0 + 3))), rate: 0.92 + Math.random() * 0.16, pan: Math.max(-1, Math.min(1, (e.x - P.x) / 25)) });
     for (const Q of recs()) withRec(Q, () => {
@@ -1560,7 +1594,11 @@ function logNear() {
     if (!challengeLog.striderNear && strider.group.visible && Math.hypot(strider.st.x - R.x, strider.st.z - R.z) < 40) logChallenge('striderNear', R);
     if (!challengeLog.crowdNear && Math.hypot(ZONES.crowd.x - R.x, ZONES.crowd.z - R.z) < 40 + ZONES.crowd.r) logChallenge('crowdNear', R);
     if (!challengeLog.sundewNear && (({ d, island }) => d - island.r < 40)(world.sundews.nearest(R.x, R.z))) logChallenge('sundewNear', R);
-    if (!challengeLog.portalNear && PORTAL.placed && Math.hypot(PORTAL.x - R.x, PORTAL.z - R.z) < 40) logChallenge('portalNear', R);
+    const np = nearestPortal(R.x, R.z);
+    if (!challengeLog.portalNear && np.d < 40) logChallenge('portalNear', R);
+    // a portal's hunting ground (its pondweed thick round you), and a spider in sight close by
+    if (!challengeLog.groundNear && np.d < GROUND.r) logChallenge('groundNear', R);
+    if (!challengeLog.spiderNear && spiders.some((s) => s && !s.parked && s.group.visible && Math.hypot(s.st.x - R.x, s.st.z - R.z) < 45)) logChallenge('spiderNear', R);
   }
 }
 /** The drop shadow (one at a time): straight down from this springtail onto whatever is below. */
@@ -1754,6 +1792,43 @@ function placeRings() {
   }
 }
 
+// ---------------------------------------------------------------- the spiders, kept where someone is
+/** A spider is stepped and shown only while someone is within this (mm) of its raft: past every view's reach of its ground (it keeps within LEASH of its post). */
+const SPIDER_ACTIVE = 330;
+const idleCtx = { awake: false, field, inPool, ripples: [], players: [] };
+/** Which portal is in focus: the nearest to any player (20 mm of hysteresis), never while its spider is busy with someone. */
+function chooseFocus() {
+  if (boss.engaged || cap.kind === 'boss' || boss.st.state === 'capture') return;
+  const live = recs().filter(alive), list = live.length ? live : recs();
+  let bi = PORTAL.i, bd = Infinity, cd = Infinity;
+  for (const P of list) {
+    const n = nearestPortal(P.x, P.z);
+    if (n.d < bd) { bd = n.d; bi = n.p.i; }
+    cd = Math.min(cd, Math.hypot(P.x - PORTAL.x, P.z - PORTAL.z));
+  }
+  if (bi !== PORTAL.i && bd < cd - 20) focusSpider(bi);
+}
+/** Step the spiders near anyone (the focus one hunts: ctx); park the rest (hidden, still). Returns the focus spider's events. */
+function stepSpiders(dt, ctx) {
+  chooseFocus();
+  let out = [];
+  for (let i = 0; i < PORTALS.length; i++) {
+    const L = PORTALS[i];
+    const near = recs().some((P) => Math.abs(P.x - L.x) < SPIDER_ACTIVE && Math.abs(P.z - L.z) < SPIDER_ACTIVE && Math.hypot(P.x - L.x, P.z - L.z) < SPIDER_ACTIVE);
+    let s = spiders[i];
+    if (!near && !(s === boss && cap.kind === 'boss')) {
+      if (s && !s.parked) { s.parked = true; s.setVisible(false); }
+      continue;
+    }
+    s = spiderFor(i);
+    if (s.parked) { s.parked = false; s.setVisible(s.st.state !== 'gone'); }
+    const ev = s.update(dt, s === boss ? ctx : idleCtx);
+    if (s === boss) out = ev;
+    else for (const e of ev) if (e.type === 'wander') logChallenge('spiderWander', s.st);
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------- the portal (the way on)
 // Reaching the portal raft (PORTAL, world.js) zooms into the next world, but
 // only while the wolf spider is off guard: lured more than 15 mm off it, or
@@ -1761,46 +1836,55 @@ function placeRings() {
 // player counts; in the game the others follow through the transition. No
 // backdoor: this is the top of the chain.
 const lm = { fired: false, log: [] };
-/** Is player P at the portal (on the raft or at its edge)? */
-const atPortal = (P) => PORTAL.placed && Math.hypot(P.x - PORTAL.x, P.z - PORTAL.z) < PORTAL.reach;
+/** The portal player P is at (on the raft or at its edge): its index, or -1. */
+const atPortal = (P) => { const n = nearestPortal(P.x, P.z); return n.d < n.p.reach ? n.p.i : -1; };
 function checkLandmark() {
-  if (game.phase !== 'play' || !PORTAL.placed) return;
+  if (game.phase !== 'play') return;
   if (outro) return;
-  let at = null, near = false, dmin = Infinity;
+  let at = null, atI = -1, near = false, dmin = Infinity;
   for (const P of recs()) {
     if (!alive(P)) continue;
-    const d = Math.hypot(P.x - PORTAL.x, P.z - PORTAL.z);
-    dmin = Math.min(dmin, d);
-    if (d < PORTAL.reach) at = P;
-    if (d < PORTAL.reach + 12) near = true;
+    const n = nearestPortal(P.x, P.z);
+    dmin = Math.min(dmin, n.d);
+    if (n.d < n.p.reach) { at = P; atI = n.p.i; }
+    if (n.d < n.p.reach + 12) near = true;
   }
   // the boss's hint (brief): only once someone is close enough to meet it
   if (!portal.hinted && dmin < PORTAL_HINT) { portal.hinted = true; hud.toast('The wolf spider guards the way on. Lure it off the moss, then get round it', 3600); }
   // nearing the way on: the shell starts loading the next world (no prompt is shown)
   const nearing = dmin < 120;
   if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
+  const shut = (i) => sealed() || guardedAt(i);
   if (at && !lm.fired) {
-    if (guarded()) {
-      if (!portal.turned) { portal.turned = true; hud.toast('Turned back: the wolf spider is on guard. Lead it away from the raft first, then get round it', 3600); }
-      lm.log.push({ kind: 'turnedBack', slot: at.slot, t: +simT.toFixed(2) });
+    if (shut(atI)) {
+      if (sealed()) {
+        if (!portal.sealedSaid) { portal.sealedSaid = true; hud.toast('Not yet: the way on opens once you have met what else the pool holds', 3600); }
+        lm.log.push({ kind: 'sealed', slot: at.slot, portal: atI, t: +simT.toFixed(2) });
+      } else {
+        if (!portal.turned) { portal.turned = true; hud.toast('Turned back: the wolf spider is on guard. Lead it away from the raft first, then get round it', 3600); }
+        lm.log.push({ kind: 'turnedBack', slot: at.slot, portal: atI, t: +simT.toFixed(2) });
+      }
       lm.blockedT = simT;
       lm.fired = true; // once per visit (it can fire again after everyone has left)
       lm.blocked = true;
-    } else enterPortal(at);
+    } else enterPortal(at, atI);
   }
   if (!near) { lm.fired = false; lm.blocked = false; }
   // turned back earlier but now open while still on it: go through
-  if (lm.blocked && at && !guarded()) { lm.blocked = false; enterPortal(at); }
+  if (lm.blocked && at && !shut(atI)) { lm.blocked = false; enterPortal(at, atI); }
 }
 /**
  * The way on: player P has reached the open portal. This is the one place the
  * zoom into the next world is triggered (embed.landmark('forward'); the shell
  * runs the transition; standalone, embed.js shows a toast).
  */
-function enterPortal(P) {
+function enterPortal(P, i = atPortal(P) >= 0 ? atPortal(P) : nearestPortal(P.x, P.z).p.i) {
   if (outro) return;
+  // the outro plays from this raft
+  focusPortal(i); props.setFocus(i);
+  if (!(boss.engaged || cap.kind === 'boss')) boss = spiderFor(i);
   lm.fired = true;
-  lm.log.push({ kind: 'forward', slot: P.slot, t: +simT.toFixed(2) });
+  lm.log.push({ kind: 'forward', slot: P.slot, portal: i, t: +simT.toFixed(2) });
   startOutro(P);
   embed.landmark('forward', { player: P.slot, outro: embed.active });
 }
@@ -1919,7 +2003,7 @@ function updateText(L) {
   else if (pl.charging) { furcTxt.textContent = pl.charge > 0.98 ? 'Full jump' : 'Cocking'; m.style.width = `${pl.charge * 100}%`; m.style.background = '#f2cc8f'; }
   else { furcTxt.textContent = pl.cock < 1 ? 'Re-cocking' : 'Furcula'; m.style.width = `${Math.max(0, pl.cock) * 100}%`; m.style.background = pl.cock < 1 ? '#7a8a99' : '#9fd0ff'; }
   const info = renderer.info.render;
-  hud.stats(`${pl.mode}${pl.mode === 'film' ? ` ${Math.hypot(pl.vx, pl.vz).toFixed(1)} mm/s` : ''}  Stenus: ${stenus.st.state} (${hs.state} ${hs.left.toFixed(0)} s)  strider: ${strider.st.state} (${hr.state} ${hr.left.toFixed(0)} s)${capture.active ? `  capture: ${cap.kind} ${cap.phase}` : ''}  encounters ${director.index}/${ENCOUNTERS.length}${PORTAL.placed ? (guarded() ? ' portal guarded' : ' portal open') : ''}\n${MACRO_LOOKS[rig.look].name}  quality ${quality.level} (res ${(quality.scale * 100).toFixed(0)}%)\n${fps.toFixed(0)} fps  ${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
+  hud.stats(`${pl.mode}${pl.mode === 'film' ? ` ${Math.hypot(pl.vx, pl.vz).toFixed(1)} mm/s` : ''}  Stenus: ${stenus.st.state} (${hs.state} ${hs.left.toFixed(0)} s)  strider: ${strider.st.state} (${hr.state} ${hr.left.toFixed(0)} s)${capture.active ? `  capture: ${cap.kind} ${cap.phase}` : ''}  encounters ${director.index}/${ENCOUNTERS.length}${sealed() ? ' portals sealed' : guarded() ? ' portal guarded' : ' portal open'}\n${MACRO_LOOKS[rig.look].name}  quality ${quality.level} (res ${(quality.scale * 100).toFixed(0)}%)\n${fps.toFixed(0)} fps  ${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
 }
 
 // ---------------------------------------------------------------- loop
@@ -1946,7 +2030,7 @@ function step(dt, inputs) {
   for (const P of recs()) withRec(P, () => poseTail(simT));
   motes.update(dt);
   placeRings();
-  props.update(simT, dt, camera, !guarded(), outro ? outro.t : undefined);
+  props.update(simT, dt, camera, (i) => !sealed() && !guardedAt(i), outro ? outro.t : undefined, recs());
   if (game.phase === 'play') { stepDirector(dt); checkLandmark(); logNear(); }
   // only the food near a player or the view is drawn (world.js buildFood)
   foodNear.length = 0;
@@ -1999,12 +2083,13 @@ function render(dt) {
   if (!one) { macroShared.uFocus.value = focus0; setDrop(pl); }
   marks.begin();
   portalLight.begin();
-  // no arrow (the owner: keep moving and you find it): once placed, the portal's golden
-  // light spills in from the edge of the view on its side, or haloes it in view; no text
-  if (game.phase === 'play' && PORTAL.placed && !outro) {
+  // no arrow (the owner: keep moving and you find it): the nearest portal's golden
+  // light haloes it in view; no text
+  if (game.phase === 'play' && !outro) {
     let d = Infinity;
     for (const P of recs()) d = Math.min(d, Math.hypot(P.x - PORTAL.x, P.z - PORTAL.z));
-    portalLight.drawSplit(split, props.position, { strength: THREE.MathUtils.clamp(1.2 - d / 300, 0.65, 1), open: props.glow.open });
+    // (the nearest raft, while it is drawn at all)
+    if (d < RAFT_SHOW) portalLight.drawSplit(split, props.position, { strength: THREE.MathUtils.clamp(1.2 - d / 300, 0.65, 1), open: props.glow.open });
   }
   return L;
 }
@@ -2029,25 +2114,52 @@ const api = {
     stepViews(dt);
   },
   // ---- multiplayer and landmarks (Playwright drives these)
-  players, split, marks, joins, landmarkLog: lm.log, props, crowd, crowdG, director,
+  players, split, marks, joins, landmarkLog: lm.log, props, crowd, crowdG, director, spiders,
   /** The way on once placed: { x, z, r, reach, a } (null before). */
-  get landmark() { return PORTAL.placed ? { x: PORTAL.x, z: PORTAL.z, r: PORTAL.r, reach: PORTAL.reach, a: PORTAL.a } : null; },
+  /** The way on in focus (the portal nearest the players): { i, x, z, r, reach, a }. */
+  get landmark() { return { i: PORTAL.i, x: PORTAL.x, z: PORTAL.z, r: PORTAL.r, reach: PORTAL.reach, a: PORTAL.a }; },
   /**
-   * The portal for the level transition: its world position (the raft's top,
-   * x, y, z), whether it is placed, guarded (the wolf spider on its post) or
-   * open, the spider's distance from it, and the sparkle's eased openness.
+   * The portal in focus (the nearest to the players) for the level
+   * transition: its world position (the raft's top, x, y, z), whether the way
+   * on is still sealed (encounters left), guarded (its wolf spider on its
+   * post) or open, its spider, and the sparkle's eased openness.
    */
   portal() {
-    return { placed: PORTAL.placed, x: PORTAL.x, y: props.position.y, z: PORTAL.z, r: PORTAL.r, reach: PORTAL.reach, bearing: PORTAL.a,
-      guarded: PORTAL.placed && guarded(), open: PORTAL.placed && !guarded(), spider: { state: boss.st.state, x: boss.st.x, z: boss.st.z, d: PORTAL.placed ? Math.hypot(boss.st.x - PORTAL.x, boss.st.z - PORTAL.z) : null }, glow: props.glow.open };
+    const s = spiders[PORTAL.i];
+    return { placed: true, i: PORTAL.i, x: PORTAL.x, y: props.position.y, z: PORTAL.z, r: PORTAL.r, reach: PORTAL.reach, bearing: PORTAL.a,
+      sealed: sealed(), guarded: guarded(), open: !guarded(), spider: s ? { state: s.st.state, x: s.st.x, z: s.st.z, d: Math.hypot(s.st.x - PORTAL.x, s.st.z - PORTAL.z), parked: s.parked } : null, glow: props.glow.open };
   },
+  /** Every portal (fixed: world.js PORTALS) and its spider: { i, x, z, a, fill, spider: { state, x, z, d, parked, visible } | null }. */
+  portals() {
+    return PORTALS.map((L) => { const s = spiders[L.i]; return { i: L.i, x: L.x, z: L.z, a: +L.a.toFixed(3), fill: L.fill, spider: s ? { state: s.st.state, x: +s.st.x.toFixed(1), z: +s.st.z.toFixed(1), d: +Math.hypot(s.st.x - L.x, s.st.z - L.z).toFixed(1), parked: s.parked, visible: s.group.visible, rounds: s.st.rounds } : null }; });
+  },
+  /** The pondweed (world.js PONDWEED) and the hunting grounds' radius. */
+  pondweed: { leaves: PONDWEED, ground: GROUND },
   /**
-   * Testing only (it breaks the order on purpose): the portal now, `d` mm from
-   * player `slot` at bearing `a` (default: their heading). director.force marks
-   * every earlier encounter met ('forced').
+   * Testing only (it breaks the order on purpose): take player `slot` to a
+   * portal, `d` mm short of its raft on its side toward the start (portal i,
+   * or the nearest to them), and open the way on (the earlier encounters
+   * not met: `testOpen`). Returns portal().
    */
-  placePortal(a = null, slot = 0, d = 60) { const P = pls[slot] || pl; if (game.phase !== 'play') newGame(); const b = a ?? P.heading; director.force('portal', P.x + Math.cos(b) * d, P.z + Math.sin(b) * d, b); return api.portal(); },
-  /** Testing only: place encounter `k` ('stenus' | 'strider' | 'rain' | 'portal') at (x, z), met along bearing b, out of order. */
+  placePortal(a = null, slot = 0, d = 30, i = null) {
+    const P = pls[slot] || pl;
+    if (game.phase !== 'play') newGame();
+    const L = PORTALS[i ?? nearestPortal(P.x, P.z).p.i];
+    testOpen = true;
+    api.teleport(slot, L.x - Math.cos(L.a) * d, L.z - Math.sin(L.a) * d);
+    P.heading = L.a;
+    focusSpider(L.i);
+    return api.portal();
+  },
+  /** Testing: put player `slot` at (x, z) by portal i's raft, `d` mm out along bearing b from it (the way on not opened). */
+  nearPortal(i, d = 120, b = null, slot = 0) {
+    const L = PORTALS[i], a = b ?? L.a + Math.PI;
+    api.teleport(slot, L.x + Math.cos(a) * d, L.z + Math.sin(a) * d);
+    return { x: L.x + Math.cos(a) * d, z: L.z + Math.sin(a) * d };
+  },
+  /** Testing: are the portals still sealed (encounters left)? Set testOpen. */
+  sealed(open = null) { if (open !== null) testOpen = !!open; return sealed(); },
+  /** Testing only: place encounter `k` ('stenus' | 'strider' | 'rain') at (x, z), met along bearing b, out of order. */
   placeEncounter(k, x, z, b = 0) { if (game.phase !== 'play') newGame(); return director.force(k, x, z, b); },
   /** The director (shared/director.js): state(), seenAt(x, z), placeNow(), log. */
   encounters() { return director.state(); },
@@ -2142,14 +2254,14 @@ const api = {
   },
   landingPoint,
   fights, fightLog, boss,
-  /** Testing: the boss wakes and comes for player `slot` (put beside its post). */
+  /** Testing: the boss (the nearest portal's spider) wakes and comes for player `slot` (put beside its post; the way on opened). */
   bossFight(slot = 0) {
     const P = pls[slot] || pl;
     if (game.phase !== 'play') newGame();
     pace.mode = 'Always'; pace.anywhere = true; hunger.stenus.reset(0); hunger.stenus.update(0.01);
-    if (!PORTAL.placed) api.placePortal(P.heading, slot, 40);
+    api.placePortal(null, slot, 40);
     const ux = Math.cos(PORTAL.a), uz = Math.sin(PORTAL.a);
-    resetBody(P, boss.post.x - ux * 14, boss.post.z - uz * 14); P.heading = PORTAL.a; boss.reset(); rig.target.set(P.x, P.y, P.z);
+    resetBody(P, boss.post.x - ux * 14, boss.post.z - uz * 14); P.heading = PORTAL.a; boss.reset(); boss.parked = false; rig.target.set(P.x, P.y, P.z);
   },
   /** Testing: last pounce-bite result for player `slot`. */
   impact(slot = 0) { const P = pls[slot] || pl; return { last: P.lastImpact || null, pounces: P.pounces || 0, mode: P.mode, dive: !!(P.air && P.air.dive) }; },
