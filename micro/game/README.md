@@ -8,9 +8,9 @@ direction of play. Reach it and the microscope zooms into the next world. In
 the opposite direction is an optional **backdoor**: dwell on it and press Y to
 zoom back out to the world above.
 
-Published at https://hoai2k.github.io/mini/micro/ in the prototype archive,
-behind the invite gate (`public-access.json` beside `index.html`, opened
-through `../prototypes/shared/boot.js`). The gate is off on localhost.
+Published at https://hoai2k.github.io/mini/micro/, public: it has no invite
+gate (`../prototypes/shared/boot.js` starts the page directly). Visits are
+counted for games.hoai.net/stats/ (the GoatCounter script in `index.html`).
 
 ## Structure
 

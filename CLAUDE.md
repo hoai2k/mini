@@ -57,7 +57,7 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
 | `mp3player/` | MP3 Player (the music files on the device, played like a streaming app: songs, albums, artists, shuffle, repeat, a queue and a custom order; songs are copied into the browser's storage, never changed on the device) | https://hoai2k.github.io/mini/mp3player/ |
 | `imageannotator/` | Image Annotator (open a picture, point things out with arrows, circles and free drawing, each with an optional title that is placed clear of the others; save, then export as the original format, JPEG or JPEG for web) | https://hoai2k.github.io/mini/imageannotator/ |
 | `meditation/` | Meditation Timer (a sitting timer: a preroll to settle, 5 seconds by default, then a starting chime, the time, and an ending chime; singing bowls, rin, tingsha, Koshi chimes or a temple bell, recorded or synthesized) | https://hoai2k.github.io/mini/meditation/ |
-| `micro/` | Micro Zoom (play as microscopic creatures: the game shell in `micro/game/` hosts the worlds in `micro/prototypes/` (springtail, mite, tardigrade, amoeba, Paramecium, bacterium, phage, each in a different microscope look) and zooms between them; a cited research atlas in `micro/research/` and the Zoom Chain level spec in `micro/design/`); behind the invite gate, its library card shown only to invite holders | https://hoai2k.github.io/mini/micro/ (prototypes at `/micro/prototypes/`) |
+| `micro/` | Micro Zoom (play as microscopic creatures: the game shell in `micro/game/` hosts the worlds in `micro/prototypes/` (springtail, mite, tardigrade, amoeba, Paramecium, bacterium, phage, each in a different microscope look) and zooms between them; a cited research atlas in `micro/research/` and the Zoom Chain level spec in `micro/design/`); public, with no invite gate | https://hoai2k.github.io/mini/micro/ (prototypes at `/micro/prototypes/`) |
 | `smoothcraft/` | Smoothcraft (a Minecraft Java Edition mod for Fabric: smooth terrain, rounded mobs, physically based materials and lighting, high-resolution textures from its image requests); a Gradle project in `smoothcraft/mod/`, not a browser game, so it has no `publish.sh`, Pages step or library card; `pages.yml` skips pushes that only change `smoothcraft/` | — |
 | `chat/` | Games Chat (video chat with face effects and minigames); its iPhone/iPad app, calls server and TestFlight guide are in `chat/ios/` | https://hoai2k.github.io/mini/chat/ |
 | `multiplayer/` | Shared online-multiplayer relay (Cloudflare Worker) and its browser client, used by any game; see `MULTIPLAYER.md` | https://mini-rooms.hoai2k.workers.dev |
@@ -103,8 +103,8 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
   `/swingers/...` on the same site). Their gates ignore the public-access
   switch, so their cards sit in `<template data-invite>` blocks that the
   library reveals only to visitors holding an invite pass;
-  at the owner's request mini's recent games come first (Micro Zoom, then
-  Half-Blood Quests), then the Swingers-repo games (Spider Swingers, Wobblers,
+  at the owner's request mini's recent games come first (Micro Zoom, public,
+  then Half-Blood Quests), then the Swingers-repo games (Spider Swingers, Wobblers,
   Wobbly Battles, Swingers), then the older mini games (Hopper, Tank Wars). `GAME_GUIDELINES.md` applies to every game.
 - **Which games deploy is the root `deploy_config.json`.** A folder set to
   `false` under `"games"` is not built or published (`build-game.sh` skips it
@@ -113,10 +113,10 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
   root files" step); games not listed deploy, and a missing or unreadable file
   deploys every game. Bookzam, One Monster After Another and Gliders are
   off today (they were the Prototype archive, with Micro Zoom, which is back
-  on), so their pages 404.
+  on and public now, with no gate), so their pages 404.
   Turning one back on means setting it to `true` (or deleting its line) and
   adding a card for it to `index.html`, since the archive's links are gone.
-  Those three, and Micro Zoom, still carry the shared invite gate opened with
+  Those three still carry the shared invite gate opened with
   `ignorePublicAccess: true` (copy `onemonster/game/src/gate/gate.js` byte for
   byte, opened from a `boot.js`), so the owner's public-access switch
   (`/public-access.json` in `hoai2k.github.io`) never opens them; dropping
