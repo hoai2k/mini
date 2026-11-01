@@ -23,7 +23,7 @@ import { createPrey } from './prey.js';
 import { createProteus } from './proteus.js';
 import { createCatchFx, sstep } from './catch.js';
 import { createLandmarks as createDropLandmarks, LANDMARKS, progress, lateral, HALF, ROUTE_LEN, RINGS, ringPoint, bearingOf, distFromStart, START } from './landmarks.js';
-import { createPortalGlow, createPortalLight } from '../shared/portal.js';
+import { createPortalGlow, createPortalLight, createGlint } from '../shared/portal.js';
 import { createBloom, BLOOM } from './bloom.js';
 import { createQuality } from '../shared/quality.js';
 import { createBladderwort } from './bladderwort.js';
@@ -128,7 +128,7 @@ const spir = (() => {
       return out.set((u - 0.5) * SPIRILLUM.L, Math.cos(a) * SPIRILLUM.amp * taper, Math.sin(a) * SPIRILLUM.amp * taper);
     }
   }
-  const mesh = new THREE.Mesh(closedTube(new Helix(), 48, SPIRILLUM.r, 10), volumeMaterial({ dn: 0.06, scatter: 2.6, absorb: [0.02, 0.022, 0.03], rimPow: 1.6 }));
+  const mesh = new THREE.Mesh(closedTube(new Helix(), 48, SPIRILLUM.r, 10).geo, volumeMaterial({ dn: 0.06, scatter: 2.6, absorb: [0.02, 0.022, 0.03], rimPow: 1.6 }));
   mesh.frustumCulled = false;
   const group = new THREE.Group();
   group.add(mesh);
@@ -137,6 +137,13 @@ const spir = (() => {
   return { group, mesh, pos: new THREE.Vector3(0, 28, 0), heading: 0, roll: 0, home: 0 };
 })();
 const spirHeading = () => spir.heading;
+// its gold glint (as the springtail's mite speck has), drawn with the portal's glow
+const spirGlint = createGlint({ THREE, size: 5, intensity: 0.9, pixelHeight: () => renderer.getDrawingBufferSize(new THREE.Vector2()).y });
+spirGlint.points.visible = false;
+glowScene.add(spirGlint.points);
+// the glow's brightness (one uniform shared by its parts): it fades as the camera dives in, so its glints do not blow up into the frame
+const glowUI = (() => { let u = null; portalGlow.group.traverse((o) => { if (!u && o.material && o.material.uniforms && o.material.uniforms.uI) u = o.material.uniforms.uI; }); return u; })();
+const GLOW_I = glowUI ? glowUI.value : 1;
 // the Amoeba proteus keeps to its patch of slide (the backdoor) when it is not hunting
 amoeba.home = LANDMARKS.back.pos.clone(); amoeba.homeR = 220;
 amoeba.pos.set(LANDMARKS.back.pos.x, 0, LANDMARKS.back.pos.z);
@@ -1283,7 +1290,7 @@ function stepSpirillum(dt, snap = false) {
   const want = new THREE.Vector3();
   if (best) {
     const s = best.swimmer.state, f = fwdOf(s.yaw);
-    want.copy(s.center).addScaledVector(f, HL + 18).setY(26);
+    want.copy(s.center).addScaledVector(f, HL + 45).setY(26);
   } else {
     spir.home += dt * 0.25;
     want.set(FWD.pos.x + Math.cos(spir.home) * 40, 27, FWD.pos.z + Math.sin(spir.home) * 40);
@@ -1303,6 +1310,8 @@ function stepSpirillum(dt, snap = false) {
   // heading as atan2(z, x): three.js yaw turns +x toward -z, so the rotation is its negative
   spir.group.rotation.set(0, -spir.heading, 0);
   spir.mesh.rotation.x = spir.roll;
+  spirGlint.points.visible = true;
+  spirGlint.setPosition(spir.pos.x, spir.pos.y, spir.pos.z);
 }
 
 // ---------------------------------------------------------------- the continuous transition
@@ -1348,6 +1357,7 @@ function stepOutro(dt) {
   o.scale = 1 - sm01(OUTRO.beat, OUTRO.beat + OUTRO.ease, o.t);
   if (o.scale <= 0 && o.frozenAt === null) {
     o.frozenAt = o.t;
+    o.f0 = spirPose().f;
     if (embed.active) embed.frozen(spirPose());
   }
   if (o.frozenAt !== null) {
@@ -1640,6 +1650,11 @@ function frame(now) {
     : outro && outro.cam ? placePoseCamera(outro.cam, spir.pos, SPIRILLUM.L, spirHeading())
       : updateCameras(held ? 1e-4 : dt * ts, s, ls, group());
   if (portalGlow.group.visible) { portalGlow.setOpen(!guarded()); portalGlow.update(dt, t, cam); }
+  // the camera move: the glow fades out over the first ×4 of magnification, the spirillum's glint over ×8 (the shell's halo carries it on)
+  const dive = outro && outro.cam && outro.f0 ? Math.log(Math.max(1, outro.cam.f / outro.f0)) : 0;
+  if (glowUI) glowUI.value = GLOW_I * (1 - sm01(0, Math.log(4), dive));
+  spirGlint.intensity = 0.9 * (1 - sm01(Math.log(2), Math.log(8), dive));
+  spirGlint.update(t);
   // the split screen (one view while together: the fast path, as before)
   const list = liveRoster().map((P) => ({ slot: P.slot, position: P.swimmer.state.center }));
   const L = split.update(list.length ? list : [{ slot: 0, position: s.center }], { camera: cam }, dt);
@@ -2062,8 +2077,6 @@ const debug = {
   wakeBoss() { bossInfo.force = true; },
   /** Place the portal now at bearing a (default: player 1's), as if found. */
   placePortal(a) { placePortal(a ?? bearingOf(swimmer.state.center)); },
-  /** Go through the portal now as player `slot` (what reaching it while open does). */
-  enterPortal(slot = 0) { enterPortal(slotP(slot)); },
   hungry() { for (const th of hunters()) { th.hunger.reset(0.01); th.sated = 0; th.stun = 0; } swimmer.state.safeT = 0; },
   /** Player 1's buttons for tests: 'B' defend, 'X' attack (eat or fight back). */
   press(b, slot = 0) { const P = slotP(slot); if (b === 'B') defend(P); else if (b === 'X') doAttack(P); },
@@ -2107,6 +2120,8 @@ window.__micro = {
   scene, renderer, cell, world, swimmer, encounters: enc, prey, amoeba, optics, view, debug, MODES, features, game, dash,
   get camera() { return view.kind === 'scope' ? scope : chase; },
   get t() { return t; },
+  /** Go through the portal now as player `slot` (what reaching it while open does). */
+  enterPortal: (slot = 0) => enterPortal(slotP(slot)),
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
   OUTRO,

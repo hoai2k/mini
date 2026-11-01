@@ -1298,6 +1298,11 @@ function phageCentre() { const was = cur; use(team[0]); const c = centreOf(new T
 const openingPose = () => embed.poseOf(camera, phageCentre(), { len: PHAGE_LEN, heading: 0, ...camAngles(camera) });
 embed.on('hold', () => {
   intro = { cam: null };
+  // the opening view settled (the camera's distance and target eased home), so play carries on from it without a drift
+  view.dist = ZOOMS[view.zoom]; view.target.copy(phageCentre());
+  camera.quaternion.copy(view.q);
+  camera.position.set(0, 0, view.dist).applyQuaternion(view.q).add(view.target);
+  camera.updateMatrixWorld();
   embed.cinematic(true, canvas);
   embed.opening(openingPose());
 });

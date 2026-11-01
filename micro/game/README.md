@@ -95,7 +95,8 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   Phage fields start their creature below and left of the host. Camera and stage controls
   continue to work, and the arrow follows the landmark's actual projection.
 - **Progression.** A forward landmark plays the transition in (springtail →
-  mite: the continuous transition; the others: the zoom) and the next world
+  mite, amoeba → paramecium → bacterium → phage: the continuous transition;
+  the others: the zoom) and the next world
   takes over; a back landmark plays the zoom out to the previous one. The furthest
   world reached and the worlds visited are kept in localStorage.
 
@@ -126,7 +127,7 @@ press both sides see (Menu, View) is counted once.
 
 ## Transitions
 
-### The continuous transition (springtail → mite; the pattern for every pair)
+### The continuous transition (springtail → mite, amoeba → paramecium → bacterium → phage; the pattern for every pair)
 
 The owner (2026-11-01): a landmark "you see and intentionally go into, and
 then an indication of success and then a slowdown to freeze frame, and a
@@ -169,6 +170,34 @@ plays for springtail → mite:
 5. **Begin.** The old frame goes, the new world gets `begin` (its time eases
    back in over 0.6 s; the camera is its own again, from where the move left
    it), then its sound and the controls card.
+
+The other wired pairs follow the same steps; what each pushes in on:
+
+- **Amoeba → paramecium:** the green *P. bursaria* in the portal's glow is
+  the next creature itself. Through the portal it turns up the screen as time
+  slows (the paramecium's chase camera sees it from behind), and the amoeba's
+  view (2D) narrows and re-centres on it while the darkfield paramecium
+  world fades in over the brightfield.
+- **Paramecium → bacterium:** a magnetotactic spirillum (3 µm, with a small
+  gold glint) swims over the biofilm and comes up to just ahead of whoever
+  is down on the leaf. The chase camera dives in on it and turns to look down
+  on the film, as the bacterium's microscope does; the portal's glow fades
+  over the first ×4 of the dive so its glints do not blow up into the frame.
+  The bacterium's phase contrast comes in under the crossfade.
+- **Bacterium → phage:** one of the phages landed on the host (0.23 µm, a
+  gold glint on the host's wall); the field closes in on it (empty
+  magnification below the eyepiece field) and the phage's false-light world
+  fades in with your gold phage where the glimpse was. The phage world
+  settles its camera on `hold`, so play carries on from the opening view
+  without a drift.
+
+A 2D microscope world gives its poses looking straight down (`pitch` 1.55,
+just short of vertical) with `rel` = its heading + π/2, so a 3D world turning
+to the pose shows the creature at the same angle on screen; a 3D world
+measures `pitch` and `yaw` from its camera's own direction. Each world
+exposes `__micro.outro()`, `OUTRO.rate` (slow it for tests) and its creatures'
+poses (`beaconPose`, `spirillum().pose`, `glimpsePose`, `cellPose`) for the
+shell-path checks.
 
 A **pose** frames a creature in a view the same way in every world: `f` (its
 length over the view's width at its depth), `x, y` (its centre in normalised

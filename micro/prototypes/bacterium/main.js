@@ -622,6 +622,9 @@ const portalLight = createPortalLight({ zIndex: 3 });
 const PHAGE_LEN = 0.23; // µm: a T4-like phage, head and tail (phage/main.js: ~23 units of 10 nm)
 const glimpse = createGlint({ THREE, size: 70, intensity: 1.1, pixelHeight: () => renderer.getDrawingBufferSize(_b).y });
 glowScene.add(glimpse.points);
+// the glow's brightness (one uniform shared by its parts): it fades as the field closes in on the phage
+const glowUI = (() => { let u = null; glow.group.traverse((o) => { if (!u && o.material && o.material.uniforms && o.material.uniforms.uI) u = o.material.uniforms.uI; }); return u; })();
+const GLOW_I = glowUI ? glowUI.value : 1;
 /** The glimpsed phage: its centre on the host's wall and its heading (outward). */
 function glimpsePhage() {
   const F = world.landmarks.forward, q = F.phages[0], ca = Math.cos(F.a), sa = Math.sin(F.a);
@@ -927,7 +930,6 @@ const OUTRO = { beat: 0.3, ease: 1.0, hold: 1.4, back: 0.6, giveUp: 8, rate: 1 }
 const INTRO_EASE = 0.6;
 let outro = null, intro = null; // intro: { cam } while held; { ease } while time comes back
 const sm01 = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
-const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 /** The field's width over its height (the optics' buffers). */
 const aspect = () => { const [W, H] = optics.size; return W / H; };
 /** A creature at (x, y), heading a, length len, as a pose in the field centred (cx, cy), fieldH tall. */
@@ -962,6 +964,7 @@ function stepOutro(dt) {
   o.scale = 1 - sm01(OUTRO.beat, OUTRO.beat + OUTRO.ease, o.t);
   if (o.scale <= 0 && o.frozenAt === null) {
     o.frozenAt = o.t;
+    o.f0 = glimpsePose().f;
     if (embed.active) embed.frozen(glimpsePose());
   }
   if (o.frozenAt !== null) {
@@ -1363,6 +1366,10 @@ function render(dt) {
   const cx = ov ? ov.cx : view.cx + view.stage.x, cy = ov ? ov.cy : view.cy + view.stage.y;
   if (world.landmarks.forward.placed) { const g = glimpsePhage(); glimpse.setPosition(g.x, g.y, 0); } else glimpse.setPosition(1e6, 1e6, 0);
   glimpse.update(t);
+  // the camera move: the glow fades over the first ×4 of magnification, the glint over ×4 to ×20 (the shell's halo carries it on)
+  const dive = outro && outro.cam && outro.f0 ? Math.log(Math.max(1, outro.cam.f / outro.f0)) : 0;
+  if (glowUI) glowUI.value = GLOW_I * (1 - sm01(0, Math.log(4), dive));
+  glimpse.intensity = 1.1 * (1 - sm01(Math.log(4), Math.log(20), dive));
   const list = roster.filter((P) => !P.waiting).map((P) => ({ slot: P.slot, position: posOf(P) }));
   const L = split.update(list.length ? list : [{ slot: 0, position: posOf(P1) }], { center: { x: cx, y: cy }, pxPerUnit: innerHeight / fieldH, yUp: true }, dt);
   // split frames render every view: the governor drops each one's resolution (0.7 at 2 views, 0.55 at 3-4)
