@@ -210,8 +210,14 @@ export function createWorld() {
   }
 
   function pushOutOfGrains(o, rad) {
+    // (o's position read once: o is a cell, a kin cell, a speck or a player, so these reads are megamorphic and box)
+    const ox = o.x, oy = o.y;
     for (const g of grains) {
-      const dx = o.x - g.x, dy = o.y - g.y, d = Math.hypot(dx, dy), m = g.r * 0.92 + rad;
+      // a grain more than its reach away along either axis can't touch (Math.hypot >= |dx|, |dy|): skipping it
+      // first saves a Math.hypot, which V8 doesn't inline and which boxes its result (~1 MB a step)
+      const m = g.r * 0.92 + rad, ex = ox - g.x, ey = oy - g.y;
+      if (ex >= m || ex <= -m || ey >= m || ey <= -m) continue;
+      const dx = ex, dy = ey, d = Math.hypot(dx, dy);
       if (d < m && d > 1e-6) { o.x = g.x + (dx / d) * m; o.y = g.y + (dy / d) * m; return true; }
     }
     return false;
