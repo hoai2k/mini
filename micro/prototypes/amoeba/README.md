@@ -431,6 +431,33 @@ applied:
 - **Software GL** (SwiftShader, headless checks): the buffers at 0.5 of the
   screen or less, like the other worlds' fallbacks. Players never see it.
 
+### Performance (second pass)
+
+Nothing visible or felt changed: deterministic screenshots (fixed clock and
+seed) match the previous build to within 1/255. Measured with a paused
+JS-only bench of 60 Hz steps (`advance`), since the frame harness is noisy here:
+
+- **Garbage**: `Math.hypot` returns a boxed number, and the per-pseudopod
+  loops call it per membrane node and per granule, so the 8-pseudopod scheme
+  multiplied it. Hot loops now use `hyp()` (`util.js`; a last-bit rounding
+  difference at most). `Cytoplasm.flowAt` takes its point through a typed
+  array (`flowQ`), the granule loop samples the distance grid inline, scratch
+  objects are `Scratch` instances, and the self-crossing checks and collision
+  circles reuse their storage. One player: 1.45 MB → 0.20 MB per step; three
+  players together 3.0 → 0.3 MB; beside Chaos 3.6 → 0.46 MB.
+- **Distance grid** (`amoeba-sdfgrid.js`): crossings sorted in place, column
+  passes as two linear sweeps, the inside transform limited to the cell's box,
+  the outside rows to the columns that hold the cell. Bit-identical output over
+  3000 test outlines, 1.17 → 0.61 ms per build.
+- **Collisions**: circles clear of the ring's bounding box are skipped (exact).
+- **Render**: a cell's outline, uniforms and granules update only when a view
+  draws it (Chaos far away costs nothing).
+- Simulation per step, three players together: 7.6–9.1 → 5.4 ms.
+- **Join**: the 90 warm-up steps are gone (since the first pass). What remains
+  in the join frame is the first use of the split-screen shader programs (six
+  links, 100–400 ms in SwiftShader); prewarming them at load belongs in
+  `../shared/splitscreen.js`.
+
 ## Features (Menu panel)
 
 | Group | Feature | Default |
