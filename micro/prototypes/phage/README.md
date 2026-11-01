@@ -131,8 +131,9 @@ hunt hard, a near dead end). The third cell is the wrong host.
   there posts `landmark('back')`; anywhere else Y is the overlay.
 - **Edge marks** (`shared/landmark.js`): only the ring toward the flagellum
   (the way back), per view. There is no arrow to the way on (the owner: keep
-  moving in any direction and you find it); its golden sparkle is the only
-  marker.
+  moving in any direction and you find it); once placed, its golden light
+  spills in from the edge of each view on its side (`createPortalLight`),
+  and the sparkle marks it in view.
 - **Up to four local players** (`shared/players.js`): the roster comes from
   the shell (`embed.players`) or starts as P1 alone; anyone joins during play
   by pressing a button on another controller (posted as `join`). Each player
@@ -149,25 +150,52 @@ hunt hard, a near dead end). The third cell is the wrong host.
 ## Threats and pacing
 
 The world follows the encounter pattern every Micro Zoom world shares
-([`micro/design/encounter-pattern.md`](../../design/encounter-pattern.md)):
-a series of encounters and exploration, not a race, with nothing that runs
-down while you explore. The water has no up or down, so the rings round the
-start are **shells**, the same in every direction (`RINGS` in `world.js`;
-`__micro.debug.placements()` lists them and `debug.rings()` logs when each was
-reached and what moved):
+([`micro/design/encounter-pattern.md`](../../design/encounter-pattern.md),
+"Placed as you go"): a series of encounters and exploration, not a race,
+with nothing that runs down while you explore. The encounters are placed by
+the shared director (`shared/director.js`, `director` in `main.js`; its
+settings and the order in `world.js` `DIRECTOR` and `encounterSpecs`), one
+at a time, in water nobody has seen (a 3D grid, 45 units a cell, of what
+every split view has framed: its frustum out to 380 units past what it
+frames, where the haze has closed in), a little ahead of whoever leads, out
+of every view, with a calm break between. What anyone has seen never
+changes. Until placed, the hosts are hidden and parked far off.
 
-| From the start | What | How it meets you |
+| Order | What | How it meets you |
 | --- | --- | --- |
-| 0–2.2 µm | Calm warm-up (the backdoor flagellum sits here, off to one side) | — |
-| ~3 µm | **Humic flocs** | a shell of 30 static tangles, close enough that every bearing meets one |
-| ~4.9 µm | **Decoy hosts**: Host B (a matching CRISPR spacer) and the wrong host | each is moved round its shell to meet whoever approaches, only out of everyone's view and away from every phage (`moveRings`) |
-| ~6.8 µm | **UV sunfleck shafts** (a shell of 22) | static, visible from afar |
-| 8.8 µm | **The way on**: Host A's gold receptor under the golden glow, the amoeba on guard | placed once a game, out of view, at the bearing of whoever first gets past the UV shell |
+| warm-up | ~6 s of drifting in the calm water round the start (no hazard within ~2 µm; the backdoor flagellum off to one side) | — |
+| 1 | **Host B** (a matching CRISPR spacer), the clay platelet beside it | placed ahead of you, met within ~0.7 µm of it |
+| 2 | **The wrong host** (a Gram-positive) | the same, after a calm break of ~5 s of drifting |
+| last | **The way on**: Host A's gold receptor under the golden glow, the amoeba on guard | placed after both decoys; its golden light spills in from the edge of the view on its side (no arrow) |
 
-Drifting straight out takes about 30–40 s; dealing with what is on the way,
-two to three minutes. The obstacles are spaced evenly from the warm-up to the
-boss (about 1.9 µm, five or six seconds of drifting, apart); the old "calm
-first half" placement is gone.
+**Scenery, everywhere** (pre-placed, the same every visit, all through the
+water but the start's calm water): 36 **humic flocs**, 26 **UV sunfleck
+shafts** and 9 big **bacteria of other kinds** (not hosts: no receptor for
+this phage; some huge, as things to move round and toward; solid). All are
+avoidable, so they can be anywhere; encounters are never placed in or
+against them. Heading straight up or down meets shafts and flocs like any
+other way (they are no longer a shell round the start).
+
+- **Ahead, in 3D.** While the leader drifts, each encounter goes within ~40°
+  of their heading (in a 3D view a thing off to the side stays off the
+  screen however far you go), and the director's search follows their climb
+  or dive (heading straight up or down meets things too). Drifting across
+  the view the next thing goes just past the screen's edge; drifting
+  straight into the view it has to go past the haze (~450 units on), so that
+  way is slower. Near the field's edge (FIELD_R) it goes wherever there is
+  room.
+- **Linger and they come:** stay put and the next decoy is placed round you
+  anyway (after the break plus 6 s), out of view; after 4 s more it swims
+  over to you (behaviour: host bacteria swim; here 12 units/s) until you are
+  within reach. Then the portal is placed near you.
+- **Timings** (`route.test.mjs`: the director with the world's settings, the
+  game's camera and a phage drifting at 30 units/s, going to each thing once
+  seen and to the portal once placed): drifting out across the view (±x),
+  up and down (±y) or out of it (+z): Host B placed at 6.2 s, met at
+  10-15 s; the portal placed at 36-40 s and reached at 46-57 s; straight
+  into the view (-z) 80 s; lingering at the start: Host B placed at 12 s,
+  the portal at ~69 s, reached at ~79 s; heading out and turning back,
+  nothing placed on water a view has seen.
 
 - **No clocks.** The amoeba's old hunger timer, the UV's slow integrity drain
   and its meter are gone. Hang about anywhere outside a shaft for as long as
@@ -189,7 +217,13 @@ first half" placement is gone.
   grazing viruses is [Unverified] in the spec.*
 - **UV sunfleck shafts.** Where gaps in the floating peat mat let the sun
   through, a column of UV-B reaches down into the humic water [S104]: drawn
-  as violet light with rising glints, visible from afar. **Touch one and you
+  as soft volumetric light (god rays: a glowing haze round the column's
+  axis, integrated along the view ray, brighter toward the sunlit top,
+  fading out above and below, slow streaks and sinking motes), violet,
+  visible from afar. (They used to be flat glowing pillars, and with plain
+  additive blending they blanked the backdrop behind them into dark
+  rectangles: the light now adds its colour and leaves the scene's alpha
+  alone.) **Touch one and you
   are damaged at once** (a violet flash; knocked out of the light; 2.5 s to
   get clear); touch one again while damaged and you are destroyed. Damaged:
   dimmed, cracked, the glow fading.
@@ -206,14 +240,14 @@ first half" placement is gone.
   damaged phage alone in a host fails after 5 s (solo, said on screen) and
   drifts back in at a safe spot.
 - **Lost a life?** You drift back in at a safe spot about 1.6 µm back toward
-  the start from where you were lost (clear of the shafts and flocs), or
-  beside a teammate; never further back than that.
+  the start from where you were lost (clear of the shafts, flocs and big
+  cells), or beside a teammate; never further back than that.
 - **Clay / peat platelet** (beside Host B, moving with it): extended fibres
   stick to it [S103]. Fold the fibres (B) to slip free.
 - **The wrong host**: a Gram-positive with no outer membrane and no OmpC. The
   fibres slide off; fold them to pass cleanly.
-- **Humic flocs** (new; after MP-R21): a shell of 30 loose, slowly turning
-  tangles of humic matter (`FLOCS` in `world.js`). Extended fibres snag in
+- **Humic flocs** (after MP-R21): 36 loose, slowly turning tangles of humic
+  matter all through the water (`FLOCS` in `world.js`). Extended fibres snag in
   one: it drags you in and slows you to a crawl; fold them (B) and you slip
   through. Bog water is rich in humic matter **[Unverified for the size and
   stickiness drawn]**.
@@ -255,6 +289,7 @@ in multiplayer:
 
 ```bash
 node --test micro/prototypes/phage/binding.test.mjs micro/prototypes/phage/kicks.test.mjs
+node micro/prototypes/phage/route.test.mjs     # the director: 6 directions, lingering, out and back (V=1: each run's placements)
 node micro/prototypes/phage/play-check.mjs   # controls (no spin), coverage (no empty side), encounters
 node micro/prototypes/check.mjs phage
 node micro/game/check.mjs
@@ -267,7 +302,7 @@ turnarounds), `cam(yaw, pitch, dist)`, `fold`, `walkOn(hostId, u, phi)`,
 `grab` (the normal aimed grab), `commit` (bypass from a debug walk), `inside(hostId)`, `win`, `capture('amoeba' | 'uv' | 'cut')`,
 `hungry`, `overlay`, `look`, `zoom`, `reset`, `place(slot, x, y)`, plus
 `maxDt` and `pause`; `debug.spin()` (the view's turn rate and each phage's angular speed, rad/s),
-`debug.kicks()` (the last molecule strikes), `debug.coverage()` (the fraction of the frame the scene
+`debug.kicks()` (the last molecule strikes), `debug.encounters()` (the director's state), `debug.encounterLog()`, `debug.seenAt(x, y, z)`, `debug.placeNow()`, `debug.placePortal(dir, d)` (out of order: tests), `debug.flocs()`, `debug.coverage()` (the fraction of the frame the scene
 covers, read from the scene target's alpha) and `debug.beads()` (beads drawn in the baths); `debug.fight` (the amoeba's fight state and interest) and `debug.boss()` (the CRISPR-Cas state, match, distance). `window.__micro` also exposes `team`, `players`,
 `split`, `nearBack` and `where`.
 

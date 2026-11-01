@@ -129,7 +129,7 @@ export function encounterSpecs(lead) {
 export function canPlace(x, z, r, { y }) {
   const p = _u.set(x, y, z);
   const h = Math.min(r, 140);
-  return uvClear(p) > h + 30 && flocClear(p) > h + 20 && p.distanceTo(BACKDOOR) > 200 + h;
+  return uvClear(p) > h + 30 && flocClear(p) > h + 20 && bystanderClear(p) > h + 10 && p.distanceTo(BACKDOOR) > 200 + h;
 }
 const rand = (a, b) => a + Math.random() * (b - a);
 const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
@@ -146,6 +146,34 @@ const HOSTS = [
   { id: 'W', name: 'Wrong host', home: PARKED, angle: 0.85, half: 46, r: 30, patches: [],
     receptors: 'none (a Gram-positive: thick wall, no outer membrane, no OmpC)', defence: '—', odds: 0, crispr: false, wrong: true, color: '#ead9b8', lps: '#c9ad78', hidden: true },
 ];
+
+/**
+ * Scenery: big bacteria of other kinds (not hosts: no receptor for this phage) hanging all through the
+ * water, some huge, as things to move round and toward (the owner's look target). Solid: the bath
+ * clears round them and a phage is pushed off them. Placed once, the same every visit, clear of the start.
+ */
+export const BYSTANDERS = (() => {
+  const out = [], dirs = shellDirs(30, 1.3);
+  for (let i = 0; i < dirs.length && out.length < 9; i++) {
+    const u = (i * 0.618034 + 0.2) % 1, R = 260 + u * 720;
+    const p = dirs[(i * 11) % dirs.length].clone().multiplyScalar(R);
+    if (p.distanceTo(BACKDOOR) < 260) continue;
+    const big = out.length % 3 === 0;
+    out.push({ id: `S${out.length}`, name: 'a bacterium of another kind', bystander: true, home: p.toArray(), angle: (i * 1.7) % 3.1,
+      half: big ? 120 + (i % 3) * 20 : 70 + (i % 4) * 12, r: big ? 62 + (i % 2) * 10 : 40 + (i % 3) * 5, patches: [], color: '#e8eedc', lps: '#86b0a0' });
+  }
+  return out;
+})();
+/** Distance from p to the nearest bystander's surface (capsule, its long axis turned `angle` about z, then tilt about y). */
+export function bystanderClear(p) {
+  let best = 1e9;
+  for (const b of BYSTANDERS) {
+    _bv.set(p.x - b.home[0], p.y - b.home[1], p.z - b.home[2]).applyAxisAngle(_by, -(b.tilt || 0)).applyAxisAngle(_bz, -b.angle);
+    best = Math.min(best, Math.hypot(_bv.x - Math.max(-b.half, Math.min(b.half, _bv.x)), _bv.y, _bv.z) - b.r);
+  }
+  return best;
+}
+const _bv = new THREE.Vector3(), _by = new THREE.Vector3(0, 1, 0), _bz = new THREE.Vector3(0, 0, 1);
 
 function proceduralEnvelope() {
   const c = document.createElement('canvas'); c.width = c.height = 256;
@@ -184,13 +212,15 @@ export function createWorld(scene) {
   };
   const goodProtein = proteinBeads(3, '#f2b03c', '#ffd264'), badProtein = proteinBeads(2, '#9a6ccc', '#aa84cc');
   const forestMat = beadMaterial({ sat: 0.95 });
+  const piliMat = toonMaterial({ color: '#8fb8bc', mottle: 0.1, fl: { color: '#4f8a98', color2: '#86b8c0', keep: 0, trans: 0.9, spec: 0.6, scale: 0.05 } });
   const receptorMat = beadMaterial({ glow: 0.22, glowColor: '#ffb43a' }); // the gold receptors glow a little: the thing to find
-  for (const def of HOSTS) {
+  world.bystanders = [];
+  for (const def of [...HOSTS, ...BYSTANDERS]) {
     const g = new THREE.Group();
     // false light: a teal-blue, translucent, wet and lumpy envelope; the Gram-positive decoy duller and greener
     const mat = toonMaterial({ color: def.color, wobble: 2.6, wobbleFreq: 0.045, map: envTex, mapRepeat: [6, 3], mottle: 0.2,
       fl: def.wrong ? { color: '#3f6f62', color2: '#7a8a52', keep: 0, trans: 0.7, bump: 1.2, spec: 0.5, scale: 0.05 }
-        : { color: '#2fa2ac', color2: '#3a6cba', keep: 0, trans: 0.95, bump: 1.7, spec: 0.9, scale: 0.045 } });
+        : { color: '#1c6f84', color2: '#2b4c96', keep: 0, trans: 0.8, bump: 2.4, spec: 1.0, scale: 0.045 } }); // (a deep teal-blue, wet and lumpy: the look target)
     const geo = new THREE.CapsuleGeometry(def.r, def.half * 2, 10, 32);
     geo.rotateZ(Math.PI / 2);
     const body = inked(geo, mat, { width: 1.3 });
@@ -221,16 +251,42 @@ export function createWorld(scene) {
       m.commit(); m.fitBounds(); g.add(m.mesh);
       return m;
     };
-    const lc = def.wrong ? new THREE.Color('#7f9a4a') : null; // (MP-R22: the Gram-positive's duller olive fuzz)
-    const nL = Math.round(area / (def.wrong ? 34 : 15));
-    forest(beadTemplate('lps', 1), Math.ceil(nL / 2), def.wrong ? [0.6, 0.8] : [0.55, 0.8], lc);
-    forest(beadTemplate('lps', 2), Math.floor(nL / 2), def.wrong ? [0.6, 0.8] : [0.55, 0.8], lc);
+    const lc = def.wrong ? new THREE.Color('#7f9a4a') : new THREE.Color('#9cb6d6'); // (MP-R22: the Gram-positive's duller olive fuzz; the others a pale blue fur)
+    const by = !!def.bystander;
+    const nL = Math.round(area / (def.wrong ? 34 : by ? 110 : 15));
+    forest(beadTemplate('lps', 1), Math.ceil(nL / 2), def.wrong ? [0.6, 0.8] : by ? [1.2, 1.7] : [0.55, 0.8], lc);
+    forest(beadTemplate('lps', 2), Math.floor(nL / 2), def.wrong ? [0.6, 0.8] : by ? [1.2, 1.7] : [0.55, 0.8], lc);
+    // the protein "flowers" standing out of the fur on their stalks (the look target), and a few pili or
+    // flagella curving off into the water: decoration (the grab targets are below, on the hosts)
     if (!def.wrong) {
+      const nf = Math.round(area / (by ? 2200 : 1300));
+      const fm = beadMesh(badProtein, nf, { material: forestMat });
+      for (let i = 0; i < nf; i++) {
+        surf(rand(-def.half - def.r * 0.8, def.half + def.r * 0.8), rand(-Math.PI, Math.PI), _p, n);
+        _q.setFromUnitVectors(UP, n).multiply(new THREE.Quaternion().setFromAxisAngle(UP, Math.random() * 6));
+        fm.set(i, _p.addScaledVector(n, -0.5), _q, rand(1.3, 2.0), _c.set(i % 3 ? '#a4b2ec' : '#b8a8e4'));
+      }
+      fm.commit(); fm.fitBounds(); g.add(fm.mesh);
+    }
+    for (let i = 0; i < (by ? 4 : 3); i++) {
+      surf(rand(-def.half, def.half), rand(-Math.PI, Math.PI), _p, n);
+      const pts = [_p.clone()], dir = n.clone(), side = new THREE.Vector3().crossVectors(n, Z).normalize();
+      let q = _p.clone();
+      for (let k = 1; k < 8; k++) { dir.addScaledVector(side, Math.sin(k * 0.9 + i) * 0.35).normalize(); q = q.clone().addScaledVector(dir, (by ? 26 : 18) + k * 2); pts.push(q); }
+      g.add(inked(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, by ? 0.9 : 0.7, 6), piliMat, { width: 0.5 }));
+    }
+    if (!def.wrong && !by) {
       forest(beadTemplate('mprot', 3, null, 1.6), Math.round(area / 170), [1.2, 1.9], null, false);
       forest(beadTemplate('porin', 4, null, 1.5), Math.round(area / 160), [1.0, 1.4], null);
       forest(beadTemplate('globule', 5, PALETTE.teal, 1.8), Math.round(area / 300), [1.3, 2.0], null, false);
       forest(beadTemplate('globule', 8, PALETTE.blue, 1.8), Math.round(area / 380), [1.5, 2.3], null, false);
     } else forest(beadTemplate('globule', 6, PALETTE.olive), Math.round(area / 300), [0.9, 1.3], null, false);
+    if (by) {
+      g.position.copy(host.pos); g.rotation.z = host.ang; g.rotation.y = def.tilt || 0;
+      for (const o of g.children) if (o.isInstancedMesh) for (const m of o.ink ? [o, o.ink] : [o]) { m.computeBoundingSphere(); m.boundingSphere.radius += 8; m.frustumCulled = true; }
+      scene.add(g); world.bystanders.push(host);
+      continue;
+    }
     // OmpC receptor patches
     if (def.patches.length) {
       const per = 22;
@@ -441,26 +497,28 @@ export function createWorld(scene) {
   // the CPU. Each bath wraps round a centre in its own box, so the water is full in every direction
   // the camera can turn, and round every split view (world.viewBath sets the centre per view). The
   // near bath is dense and detailed; the mid bath fills out to the haze with fewer, larger molecules.
+  // (the owner's look target, 2 Nov 2026: big cells to move round and toward, not a uniform sea of
+  // particles: the crowd thinned to about a quarter, varied in size, most of it in loose clumps)
   const NEAR = [
-    { kind: 'small', n: 1100, s: [0.9, 1.3], variants: 3 },
-    { kind: 'globule', n: 320, s: [0.9, 1.5], pal: PALETTE.violet },
-    { kind: 'globule', n: 260, s: [0.7, 1.1], pal: PALETTE.teal, seed: 3 },
-    { kind: 'dimer', n: 160, s: [0.8, 1.2] },
-    { kind: 'chain', n: 200, s: [0.9, 1.3] },
-    { kind: 'globule', n: 140, s: [0.8, 1.3], pal: PALETTE.periwinkle, seed: 5 },
-    { kind: 'humic', n: 80, s: [0.9, 1.4] },
-    { kind: 'complex', n: 30, s: [0.9, 1.3] },
+    { kind: 'small', n: 260, s: [0.8, 1.4], variants: 3 },
+    { kind: 'globule', n: 90, s: [0.9, 2.0], pal: PALETTE.violet },
+    { kind: 'globule', n: 70, s: [0.7, 1.6], pal: PALETTE.teal, seed: 3 },
+    { kind: 'dimer', n: 45, s: [0.8, 1.5] },
+    { kind: 'chain', n: 50, s: [0.9, 1.4] },
+    { kind: 'globule', n: 40, s: [0.8, 1.8], pal: PALETTE.periwinkle, seed: 5 },
+    { kind: 'humic', n: 24, s: [0.9, 1.6] },
+    { kind: 'complex', n: 14, s: [1.0, 1.8] },
   ];
   const MID = [
-    { kind: 'globule', n: 900, s: [2.0, 3.2], pal: PALETTE.violet, seed: 7 },
-    { kind: 'globule', n: 700, s: [1.8, 2.8], pal: PALETTE.teal, seed: 9 },
-    { kind: 'dimer', n: 400, s: [2.0, 3.0], seed: 4 },
-    { kind: 'small', n: 900, s: [2.2, 3.0], seed: 6 },
-    { kind: 'humic', n: 200, s: [2.0, 3.0], seed: 8 },
-    { kind: 'complex', n: 80, s: [1.8, 2.6], seed: 2 },
+    { kind: 'globule', n: 170, s: [2.0, 3.6], pal: PALETTE.violet, seed: 7 },
+    { kind: 'globule', n: 130, s: [1.8, 3.2], pal: PALETTE.teal, seed: 9 },
+    { kind: 'dimer', n: 80, s: [2.0, 3.2], seed: 4 },
+    { kind: 'small', n: 160, s: [2.2, 3.0], seed: 6 },
+    { kind: 'humic', n: 40, s: [2.0, 3.0], seed: 8 },
+    { kind: 'complex', n: 24, s: [1.8, 3.0], seed: 2 },
   ];
-  const nearBath = createBath(NEAR, { half: 115, jitter: 0.9, spin: 0.4, keepR: 26, seed: 1, detail: 2 });
-  const midBath = createBath(MID, { half: 330, jitter: 1.4, spin: 0.25, keepR: 70, inner: 105, seed: 2, sat: 0.85 });
+  const nearBath = createBath(NEAR, { half: 115, jitter: 0.9, spin: 0.4, keepR: 26, seed: 1, detail: 2, clump: 0.65, clumps: 9 });
+  const midBath = createBath(MID, { half: 330, jitter: 1.4, spin: 0.25, keepR: 70, inner: 105, seed: 2, sat: 0.85, clump: 0.7, clumps: 14 });
   const baths = [nearBath, midBath];
   for (const b of baths) scene.add(b.group);
   world.baths = baths;
@@ -517,10 +575,13 @@ export function createWorld(scene) {
         float rays = 0.72 + 0.28 * sin(ang * 7.0 + uTime * 0.35 + vC.x * 0.05) * sin(ang * 3.0 - uTime * 0.21 + vC.z * 0.03);
         float motes = smoothstep(0.965, 1.0, sin(y * 0.23 + uTime * 1.4 + ang * 5.0) * sin(y * 0.071 - ang * 11.0 + vC.z));
         float far = 1.0 - 0.5 * smoothstep(uFogNear, uFogFar * 2.0, distance(ro, vC));
-        vec3 c = mix(vec3(0.40, 0.32, 0.92), vec3(0.72, 0.68, 1.0), exp(-r2 * 3.0)); // (violet, kept below the bloom's white)
+        vec3 c = mix(vec3(0.42, 0.28, 0.95), vec3(0.74, 0.64, 1.0), exp(-r2 * 3.0)); // (violet, kept below the bloom's white)
         float a = dens * ends * (rays + 0.8 * motes * exp(-r2 * 0.6)) * far * uOn;
-        gl_FragColor = vec4(c * a * 0.5, 1.0); }`,
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.BackSide,
+        gl_FragColor = vec4(c * a * 0.95, 0.0); }`,
+    // light adds its colour and leaves the target's alpha alone, so the backdrop behind it still shows (the
+    // post pass composites by alpha: with plain additive blending the columns blanked it, dark pillars)
+    transparent: true, depthWrite: false, side: THREE.BackSide,
+    blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor,
   });
   const shaftGeo = new THREE.CylinderGeometry(1, 1, 2, 28, 1, false);
   const shafts = new THREE.InstancedMesh(shaftGeo, shaftMat, UV_SHAFTS.length);
@@ -679,7 +740,12 @@ export function createWorld(scene) {
       solids.push({ a: _a.clone(), b: _b.clone(), r: h.r + 2 });
     }
     if (amGroup.visible && amoeba.mesh.visible) solids.push({ a: amoeba.center, b: amoeba.center, r: amoeba.r + 4 });
-    solids.push({ a: clay.pos, b: clay.pos, r: 30 });
+    if (clay.group.visible) solids.push({ a: clay.pos, b: clay.pos, r: 30 });
+    // the nearest bystanders (the bath keeps a few solids: the ones round the view)
+    for (const h of world.bystanders) { h.mat.uniforms.uTime.value = t; h.near = h.pos.distanceTo(center); }
+    for (const h of world.bystanders.filter((x) => x.near < 700).sort((a, b) => a.near - b.near).slice(0, 10 - solids.length)) {
+      h.group.updateMatrixWorld(); solids.push({ a: _a.set(-h.half, 0, 0).applyMatrix4(h.group.matrixWorld).clone(), b: _b.set(h.half, 0, 0).applyMatrix4(h.group.matrixWorld).clone(), r: h.r + 2 });
+    }
     if (sprites) sprites.mesh.visible = world.opts.crowd;
     for (const b of baths) {
       setSolids(b.material, solids);

@@ -15,10 +15,10 @@ that kin touching the group answer as they join (no automatic joining), and
 X also eats prey; no oxygen meter; the challenge is to gather an army and
 fight your way to your destination, paced as a rhythm of moving, an
 obstacle, a calm break, the next, to a boss at the end. No time limits. And
-(the same day, for every world: `../../design/encounter-pattern.md`) rings of
-obstacles round the start, the same in every direction, a portal at a set
-distance in whatever direction you first get far enough, guarded by the
-boss, every danger visible, and a safe area you can stay in forever.
+(the same day, for every world: `../../design/encounter-pattern.md`) the
+encounters placed as you go, in water you haven't seen, the same order
+whichever way you head, explored water never changing, every danger
+visible, and a safe area you can stay in forever.
 
 **You steer with LS, as fast as you tilt; let go and you stop.** A real
 bacterium cannot steer: it runs straight, rotational Brownian motion slowly
@@ -36,14 +36,14 @@ Honest run and tumble (no steering) is a Features choice.
 
 World 6 of the game (`micro/game/`), between the Paramecium and the phage.
 Both landmarks are drawn into the specimen with the same optics as
-everything else (`draw.js`, `landmarks`), and a quiet edge arrow
-(`shared/landmark.js`) shows where each is when it is off screen: a brass
-chevron for the way on, a hollow ring for the way back.
+everything else (`draw.js`, `landmarks`). A quiet edge mark
+(`shared/landmark.js`, a hollow ring) shows where the way back is when it is
+off screen; there is no arrow to the way on.
 
-- **Forward (the portal): a host cell with phages landing on it**, on the
-  portal ring 510 µm from the start, **in whatever direction a player first
-  gets within 150 µm of that ring**, placed out of view (`placePortal` in
-  `main.js`); until then there is no arrow to it. The shared golden glow
+- **Forward (the portal): a host cell with phages landing on it**, the
+  director's last encounter (see **The way**): placed after every gate has
+  been met, in water nobody has seen, a little ahead of whoever leads, out of
+  view (`placePortal` in `main.js`). The shared golden glow
   (`shared/portal.js` `createPortalGlow`, its ground plane turned to face the
   microscope, drawn over the optics with an orthographic camera; dimmer while
   guarded) and its light spilling in from the screen's edge
@@ -106,8 +106,8 @@ spirals into the oral pouch off-frame.
   few.
 - **Swept in:** the follow-and-respawn catch: round the vortex, into the
   oral pouch, packed into a food vacuole carried down into its body, the
-  camera pulled back to the 90 µm field; then the fade and a respawn in the
-  calm break just inside (together: beside a teammate).
+  camera pulled back to the 90 µm field; then the fade and a respawn in open
+  water nearby, away from the gates (together: beside a teammate).
 - **Departures:** the vortex's reach and strength are game values, the pulls
   are a rhythm for play (a real Stentor feeds steadily), and the host only
   letting you in once it is beaten is a game rule.
@@ -122,7 +122,7 @@ spirals into the oral pouch off-frame.
   its reach: its edge plus 7 µm (alone: 9 µm, three body lengths; at most
   44 µm). It is drawn on the medium as a ring of soft spots spreading and
   fading. Free kin cells (your own species, the dim spirilla wandering in the
-  meadow by the start and in each calm break) that the ring passes answer
+  meadow by the start and kept near you wherever you go) that the ring passes answer
   with their own small pulse, one after another (0.08 s plus 0.09 s per
   answer before them), and join. **Kin never join by themselves.** One
   beacon every 0.3 s, so you can press X everywhere.
@@ -196,43 +196,74 @@ spirals into the oral pouch off-frame.
   beside you, for a beacon), `debug.charge(slot)`, `debug.burst(slot)`;
   `?flock=n` keeps every player's army at n.
 
-## The way: rings round the start
+## The way: placed as you go
 
-`world.js` `ROUTE`, `guards.js`, `moveRings` in `main.js`
-(`../../design/encounter-pattern.md`). The world is open water 1120 µm
-across round the start, clay grains with microcolonies on them scattered
-everywhere, the biofilm along its bottom edge. Whichever way you head you meet
-the same things at the same distances, spaced evenly from the warm-up to the
-boss:
+`world.js` `DIRECTOR` and `ENCOUNTERS`, `guards.js`, the director in
+`main.js` (`shared/director.js`; `../../design/encounter-pattern.md`,
+"Placed as you go"). The world is open water 1120 µm across round the
+start, clay grains with microcolonies on them scattered everywhere, the
+biofilm along its bottom edge: that scenery is there from the start and never
+moves. The gates are not: the director places each one, in this order, in
+water nobody has seen (a 20 µm grid of what every split view has framed),
+a little ahead of whoever leads, out of every view, after a calm break;
+until then it is parked far off, invisible and inert.
 
-| Ring (distance from the start, µm) | What | Army that beats it (scripted runs) |
+| Order | What | Army that beats it (scripted runs; its `need`) |
 | --- | --- | --- |
-| 0–60: the meadow | most of the 100 kin and plenty of prey; safe for ever | — |
-| 110 | a peritrich (Vorticella-like), its funnel turned along the ring | 6 is swept in; 12 wins in ~7 s |
-| 150 | calm break: twelve kin, prey | |
-| 190 | a Bdellovibrio pack (four) | 4 loses; 8 wins in ~15 s, 12 in ~9 s |
-| 230 | calm break | |
-| 270 | a phage cloud (80 phages) | 3 loses members; 6 (the slime shield) sweeps it in ~2 s |
-| 310 | calm break | |
-| 350 | an amoeba's edge, a wall 170 µm long across the ring | 8 and 12 are engulfed; 16 wins in ~3 s |
-| 390 | calm break | |
-| 430 | a bigger peritrich | 10 loses; 14 wins in ~8 s |
-| 470 | calm break | |
-| 510 | the portal (the host), guarded by Stentor | ~24 (16 is swept in) |
+| warm-up | ~5 s of moving in the meadow round the start: most kin and plenty of prey; safe for ever | — |
+| 1 | a peritrich (Vorticella-like), its funnel turned aside as you come | 6 is swept in; 12 wins in ~7 s (12) |
+| 2 | a Bdellovibrio pack (four) | 4 loses; 8 wins in ~15 s, 12 in ~9 s (8) |
+| 3 | a phage cloud (80 phages) | 3 loses members; 6 (the slime shield) sweeps it in ~2 s (6) |
+| 4 | an amoeba's edge, a wall 170 µm long across your way | 8 and 12 are engulfed; 16 wins in ~3 s (16) |
+| 5 | a bigger peritrich | 10 loses; 14 wins in ~8 s (14) |
+| last | the portal (the host), guarded by Stentor | ~24 (16 is swept in) (24) |
 
-- **One instance serves each ring.** A gate that is not beaten and not busy
-  is moved round its ring to the bearing of whoever is heading out toward it,
-  only where nobody can see: where it is and where it goes must both be
-  farther from every player and their flock than the field's half-diagonal
-  at the current zoom plus 20 µm. Measured on two bearings (1.0 and −2.2 rad)
-  with an army of 24 driving straight out: each gate met them on their
-  bearing, at 56–72, 88–146, 174–233, 204–287 and 299–389 µm out, the
-  portal placed at 256 µm out, then turned back at the host while Stentor
-  was on guard, and through once it was beaten. Rushing straight out takes
-  about 13 s of swimming; the fights make it a few minutes.
-- **The calm breaks** keep their kin and prey round them: free kin of a break
-  that nobody can see gather toward the bearing of a player coming through.
-- **Safe for ever:** the meadow has no enemy in reach. The peritrichs'
+Between each and the next, a calm break of ~5 s of moving clear of the one
+just met. An encounter counts as met when a flock comes into its zone (where
+the army fights it) or beats it; one that has been seen and left behind
+(everyone 200 µm off) or watched for 10 s counts as met too, and is never
+moved, so it cannot hold the game up.
+
+- **Army sizes (the decision).** A gate is placed whatever your army: the
+  owner's rule is that nothing waits on the player for ever and lingering
+  still progresses, and a gate's threat is the point of growing an army, so
+  it does not scale down. Instead the world makes sure you can always grow
+  it first: while the leader's army is short of the next gate's need, the
+  calm break before it lasts up to 8 s longer (`ARMY_HOLD`: a second per
+  missing cell), and every player who is short has 18 free kin kept within
+  130 µm (8 otherwise) and 14 prey rods (eating three makes a division).
+  So a player who presses X on the way meets each gate with about the army
+  it needs; one who rushes on meets it short, and can always go back to the
+  kin round them.
+- **Kin and prey are ambient** (`keepAmbient` in `main.js`): 40 kin and 60
+  prey rods in the meadow, the other 60 kin scattered over the water, and
+  every 0.4 s the counts round each player are topped up from the parked
+  ones (lysed rods, members lost in battle) or from free ones far from every
+  player, only from water nobody has seen to water nobody has seen, out of
+  view, ahead of the flock. Water a player has seen keeps what it had.
+- **Lingering:** stay put and the next gate is placed anyway (after the
+  break plus 6 s), round you, out of view; after 4 s more it comes over to
+  you (behaviour, not a placement: the pack swims, the cloud drifts, the
+  amoeba creeps, a peritrich's clay grain is carried on a slow current at
+  6 µm/s, a labelled departure) until its zone reaches you. In the end the
+  portal is placed near you too.
+- **Timings** (`route.test.mjs`, headless, the real gates and the director,
+  a flock at 45 µm/s that goes to each thing once it has seen it and to the
+  portal once its light shows; and scripted browser runs, `debug.step`):
+  rushing out in 16 directions at the default field: the first gate placed
+  at 5.1 s and met at 6–7 s, the portal placed at 50–63 s and reached at
+  54–67 s (browser, 4 directions: 56–60 s); at the eyepiece field (180 µm,
+  more seen, so things go farther) 68–86 s; with a one-cell army the warm-up
+  is 13 s and the portal comes at ~94 s; lingering at the start, a gate every
+  ~26 s (placed round you, then coming over) and the portal at ~145 s;
+  heading out and turning back past the start, nothing is ever placed on
+  seen water and no grain or biofilm cell a view has seen ever moves.
+- **No arrow** to the way on: once placed, its golden light spills in from
+  the edge of the view on its side (`createPortalLight`), and haloes it in
+  view.
+
+- **Calm water:** the meadow has no enemy in it (linger there and the next
+  encounter comes to you all the same: the owner's rule). The peritrichs'
   currents reach 45 µm, in a cone in front of the funnel (to the sides and
   behind only within 20 µm of the bell), the pack keeps within about 40 µm of
   its post, so the breaks are calm too. Nothing runs down: no oxygen, no
@@ -270,8 +301,9 @@ boss:
 - **A lone cell** still has its own fights with the predators that come for
   it (`runFights`: a grazer's surge, a phage homing in, a pack Bdellovibrio's
   ram), each with a wind-up and B to evade; it cannot beat a gate.
-- **Respawn:** a catch puts you back in the calm break just inside where you
-  were, on your bearing (or the meadow), where kin live to call again.
+- **Respawn:** a catch puts you back in open water 90-130 µm from where you
+  were, as far as it can from every gate still standing and from Stentor
+  (`safeSpot`); kin are kept near you wherever you are.
 
 ## Multiplayer
 
@@ -293,7 +325,7 @@ shell's roster comes in with `embed.players`).
   warning line names the player. The gates are fought by every flock at once.
 - **Caught together:** a catch plays out as alone (strike, hold, eat,
   follow; only the full-screen fade is left out); then the player rejoins
-  beside a teammate. Alone a catch respawns you in the calm break behind.
+  beside a teammate. Alone a catch respawns you in open water nearby.
 - **Landmarks** fire for any player.
 - **Flocks:** see **The army** (join by touch, leave by moving away, an
   even split).
@@ -344,7 +376,7 @@ cells.
 swept into a grazer's oral funnel or Stentor's oral pouch; the amoeba's edge
 closing over you; a phage binding irreversibly and injecting;
 (magnetotactic) a Bdellovibrio boring in. Each is played out on screen, then
-you respawn in the calm break behind (see **Threats**).
+you respawn in open water nearby (see **Threats**).
 
 ## Threats
 
@@ -377,8 +409,8 @@ other prototypes.
   camera pulls back to the 90 µm field and follows the predator for 2 s:
   the grazer's bell jerks back on its stalk carrying your vacuole, the
   amoeba's edge creeps on with you inside, the new phages drift off; a
-  caption says what ate you; then a fade and you respawn in the calm break
-  behind). Your members go free where they are, so you can call them again.
+  caption says what ate you; then a fade and you respawn in open water
+  nearby). Your members go free where they are, so you can call them again.
   Control stops only for it, and a red line at the top says what is
   happening:
   - *Grazer:* drawn into the oral funnel, spinning; swept down it by the
@@ -392,9 +424,12 @@ other prototypes.
     30 new phages into the water (`bacterium/phage`).
   - *Bdellovibrio:* it rams your pole, bores through into the periplasm and
     you round into a bdelloplast with it curled inside.
-- **Testing:** `__micro.rings()` (the relocation log, the portal, how often
-  someone was turned back), `__micro.placePortal(a)`, `__micro.enterPortal()`,
-  `__micro.challenges()` (every ring and where each gate stands now);
+- **Testing:** `__micro.encounters()` (the director's state: the order, what
+  is placed and met, when, how), `__micro.encounterLog()`, `seenAt(x, y)`,
+  `placeNow()`, `__micro.rings()` (the director's log, the portal, how often
+  someone was turned back), `__micro.placePortal(a, slot, d)` and
+  `placeEncounter(id, x, y, b)` (out of order: tests), `__micro.enterPortal()`,
+  `__micro.challenges()` (where each gate stands now, placed or not);
   `window.__micro.pacing()` reports the run time, the first
   threat and catch, each gate's health and a log of gates reached and
   beaten; `__micro.gates()`, `__micro.guards`;
@@ -483,6 +518,7 @@ pulses are a ring of discs in the existing shape batch (no new draw calls).
 
 ```bash
 node micro/prototypes/bacterium/flock.test.mjs
+node micro/prototypes/bacterium/route.test.mjs   # the director: 16 rushes, the eyepiece field, a small army, lingering, out and back
 node micro/prototypes/check.mjs bacterium
 ```
 

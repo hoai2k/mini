@@ -20,7 +20,7 @@
 import * as THREE from '../vendor/three.module.min.js';
 import { goodsellShared } from './phage-goodsell.js';
 
-const MAX_PHAGES = 4, MAX_SOLIDS = 6;
+const MAX_PHAGES = 4, MAX_SOLIDS = 10;
 
 const VERT = /* glsl */`
 attribute vec2 corner; attribute vec4 bead; attribute vec3 bcol; attribute vec3 gcol; attribute vec3 bout;
@@ -114,7 +114,7 @@ void main(){
     col += fres * (albedo * 0.45 + vec3(0.25, 0.55, 0.65)) * 0.55 * ao;     // soft translucent rim
     col += vec3(1.0, 0.95, 0.85) * pow(max(dot(n, normalize(L + v)), 0.0), 40.0) * 0.28 * ao; // wet glint
     col += uGlowColor * uGlowAll * (0.4 + fres);
-    float f = uDepthOn * smoothstep(uFogNear, uFogFar * 1.8, depth) * 0.78;
+    float f = uDepthOn * smoothstep(uFogNear * 1.8, uFogFar + 80.0, depth) * 0.9; // (as the toon materials: crisp near and mid, the far gone into the water)
     col = mix(col, uHaze, f);
   } else {
     // Goodsell: flat colour, a soft two-tone light, depth by desaturation (outlines come from the pass)
@@ -290,7 +290,7 @@ export function beadMesh(template, count, { material, dynamic = false } = {}) {
  * A bath of molecules round a centre (see beadMaterial's `bath`). specs: [{ kind, n, s: [min, max], pal?, seed? }],
  * opts: { half, jitter, spin, keepR, scale }. Returns { group, material, meshes, setCenter(v), setLevel(0..2) }.
  */
-export function createBath(specs, { half = 120, jitter = 0.8, spin = 0.35, keepR = 30, inner = 0, scale = 1, seed = 1, sat = 1, detail = 1 } = {}) {
+export function createBath(specs, { half = 120, jitter = 0.8, spin = 0.35, keepR = 30, inner = 0, scale = 1, seed = 1, sat = 1, detail = 1, clump = 0, clumps = 12 } = {}) {
   const material = beadMaterial({ bath: true, sat });
   const u = material.uniforms;
   u.uHalf.value = half; u.uJit.value = jitter; u.uSpin.value = spin; u.uKeepR.value = keepR; u.uInner.value = inner;
@@ -298,13 +298,18 @@ export function createBath(specs, { half = 120, jitter = 0.8, spin = 0.35, keepR
   const rnd = rng(seed * 31 + 7);
   const meshes = [];
   const q = new THREE.Quaternion(), p = new THREE.Vector3(), e = new THREE.Euler();
+  // clump (0..1): that share of the molecules gathers round a few centres (loose clusters with open water
+  // between them) instead of spreading evenly: a sparse, varied crowd rather than a uniform sea
+  const centres = Array.from({ length: clumps }, () => new THREE.Vector3((rnd() * 2 - 1) * half, (rnd() * 2 - 1) * half, (rnd() * 2 - 1) * half));
+  const gauss = () => { let a = 0; for (let i = 0; i < 4; i++) a += rnd(); return (a - 2) * 0.87; };
   specs.forEach((sp, k) => {
     const variants = sp.variants || 2;
     const per = Math.ceil(sp.n / variants);
     for (let vi = 0; vi < variants; vi++) {
       const m = beadMesh(beadTemplate(sp.kind, (sp.seed || 1) * 13 + vi * 101 + k, sp.pal || null, detail), per, { material });
       for (let i = 0; i < per; i++) {
-        p.set((rnd() * 2 - 1) * half, (rnd() * 2 - 1) * half, (rnd() * 2 - 1) * half);
+        if (rnd() < clump) { const c = centres[Math.floor(rnd() * centres.length)], sg = half * (0.07 + 0.08 * rnd()); p.set(c.x + gauss() * sg, c.y + gauss() * sg, c.z + gauss() * sg); }
+        else p.set((rnd() * 2 - 1) * half, (rnd() * 2 - 1) * half, (rnd() * 2 - 1) * half);
         q.setFromEuler(e.set(rnd() * 6.3, rnd() * 6.3, rnd() * 6.3));
         m.set(i, p, q, (sp.s[0] + rnd() * (sp.s[1] - sp.s[0])) * scale, null, rnd() * 100);
       }

@@ -94,9 +94,9 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   to the right. Orbit views use a starting camera angle; the bacterium and
   Phage fields start their creature below and left of the host. Camera and stage controls
   continue to work, and the arrow follows the landmark's actual projection.
-- **Progression.** A forward landmark plays the transition in (springtail →
-  mite, amoeba → paramecium → bacterium → phage: the continuous transition;
-  the others: the zoom) and the next world
+- **Progression.** A forward landmark plays the transition in (every pair
+  from the springtail to the phage: the continuous transition; the microscope
+  zoom if a world cannot answer in time) and the next world
   takes over; a back landmark plays the zoom out to the previous one. The furthest
   world reached and the worlds visited are kept in localStorage.
 
@@ -127,7 +127,7 @@ press both sides see (Menu, View) is counted once.
 
 ## Transitions
 
-### The continuous transition (springtail → mite → tardigrade, amoeba → paramecium → bacterium → phage; the pattern for every pair)
+### The continuous transition (springtail → mite → tardigrade → amoeba → paramecium → bacterium → phage; the pattern for every pair)
 
 The owner (2026-11-01): a landmark "you see and intentionally go into, and
 then an indication of success and then a slowdown to freeze frame, and a
@@ -182,6 +182,14 @@ The other wired pairs follow the same steps; what each pushes in on:
   is then a short push (f 0.18 → 0.243) while the DIC world crossfades in
   over the SEM. The tardigrade world settles its view state from each
   `camera` pose, so play carries on from the opening view. Back keeps the zoom.
+- **Tardigrade → amoeba (a hand-off):** an *Amoeba proteus* (344 µm, the
+  amoeba world's cell at its start) crawls on the pool floor past the rim
+  leaf's tip. As time slows the tardigrade's view settles on it from straight
+  above (pitch 1.55, the 2D amoeba world's), the amoeba turning the way that
+  world's cell faces (`rel` π), a little wider than there, and the sparkle
+  dims; the move is a short push (f 0.283 → 0.382) while the brightfield
+  world crossfades in over the DIC, the cell where the glimpse was. The amoeba
+  world takes each `camera` pose as its view's centre and field.
 - **Amoeba → paramecium:** the green *P. bursaria* in the portal's glow is
   the next creature itself. Through the portal it turns up the screen as time
   slows (the paramecium's chase camera sees it from behind), and the amoeba's

@@ -275,6 +275,39 @@ which is exactly the opening view). On `begin` its time eases back in over
 0.6 s. Test hooks: `__micro.pose()` (how the view frames player 1's animal
 now), `__micro.intro`.
 
+## The outro (to the amoeba)
+
+Through the portal (the open pool, `enterPortal`): the world posts
+`embed.landmark('forward', { outro: true })` in the game and keeps running
+(the mite's outro is the reference): a golden burst from the tip, a bloom on
+the screen over the tip and over you, the portal chime and a rumble, the HUD
+hidden (`embed.cinematic`). Then time eases from 1 to 0 over 1 s while the
+view keeps drawing (`stepOutro`, in frame time, so a slow machine plays it
+slower rather than skipping it), and the view settles on the *Amoeba
+proteus* crawling on the pool floor 340 µm past the tip (in view from the tip) (`landmarks.js`
+`buildAmoeba`: a flattened, granular cell with three blunt pseudopods, a
+nucleus and a contractile vacuole, 344 µm across: the amoeba world's own
+cell at its start): from straight above (pitch 1.55, the amoeba world's 2D
+microscope), the focal plane on it, the amoeba turning the way that world's
+cell faces as it opens (`rel` π), framed 1.35× smaller than there
+(`NEXT_OPENING`), while the sparkle dims so the cell reads. Frozen, it posts
+`embed.frozen` (how it frames the amoeba: `__micro.amoebaPose()`) and follows
+the shell's `camera` poses (`placeOutroCamera`: a dolly onto the amoeba, the
+field of view kept) while the brightfield amoeba world fades in over the DIC,
+the cell where the glimpse was. Standalone the freeze holds 1.4 s and time
+comes back. `embed.near('forward')` is posted within 1.4 mm of the tip, so the
+shell has the amoeba world loaded by then. Test hooks: `outro()`, `OUTRO`
+(`rate` slows it), `outroStep(n, dt)`, `amoebaPose()`.
+
+Checked through the shell (Playwright, SwiftShader, 960×540): at the open
+pool, through it: the outro froze 1.8 s (frame time) later and the move
+began; held at fixed progress, the two worlds reported the same pose of
+their amoeba at every step until the crossfade completed (f 0.283 at
+u 0-0.1, 0.286 at 0.2-0.3, 0.306 at 0.4, 0.329 at 0.5-0.6, the old world
+then hidden while the new reached 0.382; x, y 0, pitch 1.55, rel π in both
+throughout), the crossfade from u ≈ 0.45, and the amoeba world began on its
+opening view (f 0.382) and played on with no errors.
+
 ## Landmarks (the way on and the way back)
 
 Both are things in the moss patch (`landmarks.js`), drawn through the same

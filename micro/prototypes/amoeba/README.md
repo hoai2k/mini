@@ -316,6 +316,28 @@ Inside the Micro Zoom shell the roster from its menus is restored.
 - **The landmarks** trigger for any player. Labels, look, objective and focus
   are player 1's.
 
+## The intro (from the tardigrade)
+
+In the game this world is the far end of the continuous transition from the
+tardigrade (`../../game/README.md`, "The continuous transition"): the
+tardigrade's freeze frame holds an *Amoeba proteus* crawling on the pool
+floor past the rim leaf's tip, seen from straight above and turned the way
+this cell faces as it opens, and this world fades in under the same framing,
+the cell where that glimpse was. The two are the same size (the glimpse and
+this cell are both 344 µm across: a pose's `len` here is 2 √(A0/π), the
+disc of the starting area), so the pair is a hand-off: a short push (×1.35)
+while the light changes from DIC to brightfield. This world preloads hidden
+while the tardigrade nears its portal, declares `embed.provide('intro')`,
+and on `hold` stays frozen at its start but renders (the HUD hidden), the
+view centred on the cell, reporting how its opening view frames it
+(`embed.opening`: looking straight down, `pitch` 1.55, `rel` π, the round
+cell's starting front up the slide, `f` 344 µm over the 900 µm field). While held it takes the
+shell's `camera` poses (`introView`: the view's centre and field from each,
+on the cell), so the move ends exactly on the opening view and play carries
+on from it; on `begin` its time eases back in over 0.6 s. Test hooks:
+`__micro.pose()` (how the view just drawn frames player 1's cell),
+`__micro.intro`.
+
 ## The biology it follows
 
 - **Size and shape.** *A. proteus* reaches roughly 600 µm or more [S04]; the

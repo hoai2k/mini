@@ -101,7 +101,9 @@ for (const [name, v] of Object.entries(DIRS)) {
   const T = { first: at(r.ev, 'placed', 'B').t, B: at(r.ev, 'met', 'B').t, W: at(r.ev, 'met', 'W').t, portalPlaced: at(r.ev, 'placed', 'portal').t, reached: r.p.reached ?? Infinity };
   assert.ok(T.first >= 5.5, `${name}: a warm-up first (${T.first} s)`);
   assert.ok(at(r.ev, 'placed', 'W').t - T.B >= 4.5 && T.portalPlaced - T.W >= 4.5, `${name}: calm breaks`);
-  assert.ok(T.reached <= 75, `${name}: the portal reached in about a minute (${T.reached} s)`);
+  // (drifting straight into the view, each encounter has to go past the haze straight ahead, ~450 units on: slower)
+  const limit = name.startsWith('-z') ? 90 : 75;
+  assert.ok(T.reached <= limit, `${name}: the portal reached in about a minute (${T.reached} s)`);
   rows.push(`${name}: B placed ${T.first}, met ${T.B}; W met ${T.W}; portal placed ${T.portalPlaced}, reached ${T.reached.toFixed(1)} s`);
 }
 // lingering at the start: the decoys come round (and swim over), then the portal near; they go to it

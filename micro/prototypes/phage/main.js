@@ -19,7 +19,7 @@ import { loadTexture } from '../shared/assets.js';
 import { createCapture, createFight } from '../shared/predation.js';
 import { createPost, goodsellShared, toonMaterial, inkedInstanced, setInkVisible } from '../shared/techniques/phage-goodsell.js';
 import { createT4, t4LiteGeometry, T4_FL } from '../shared/techniques/phage-model.js';
-import { createWorld, uvAt, progressAt, FIELD_R, START, UV_SHAFTS, DIRECTOR, encounterSpecs, canPlace } from './world.js';
+import { createWorld, uvAt, progressAt, FIELD_R, START, UV_SHAFTS, DIRECTOR, encounterSpecs, canPlace, bystanderClear } from './world.js';
 import { createDirector } from '../shared/director.js';
 import { createPortalGlow, createPortalLight } from '../shared/portal.js';
 import { createQuality } from '../shared/quality.js';
@@ -94,7 +94,7 @@ const hud = mountHud({
     zoom: 'Zoom in / out',
     extra: [['Y', 'At the flagellum (backdoor): back to the sediment']],
   }),
-  note: 'Time is slowed about 20× (a phage crosses a host cell in ~0.04 s). Molecules strike you now and then: each knock is Brownian motion you can see. Head out any way you like: the same things wait in every direction, in rings: a shell of humic flocs (fold your fibres, B, to slip through), two decoy hosts, violet UV shafts (touch one and you are damaged at once: keep out of the light), and about 9 µm out, the way on: a golden glow on Host A\'s gold receptor, guarded by an amoeba\'s lobe. Lure it off, or fold and jab it (X) until it gives up, then grab the receptor (X) and get the whole genome in past the host\'s defences. Nothing runs down while you explore. Up to four players: press any button on another controller to join.',
+  note: 'Time is slowed about 20× (a phage crosses a host cell in ~0.04 s). Molecules strike you now and then: each knock is Brownian motion you can see. Head out any way you like: two decoy hosts come your way one after the other, then the way on: a golden glow on Host A\'s gold receptor, guarded by an amoeba\'s lobe (its light spills in from the edge of the view once placed). All through the water: humic flocs (fold your fibres, B, to slip through), big bacteria of other kinds, and violet UV shafts (touch one and you are damaged at once: keep out of the light). Lure it off, or fold and jab it (X) until it gives up, then grab the receptor (X) and get the whole genome in past the host\'s defences. Nothing runs down while you explore. Up to four players: press any button on another controller to join.',
 });
 const tag = Object.assign(document.createElement('div'), { className: 'ph-tag', textContent: 'DATA OVERLAY · receptors, defences and odds: data, not optics' });
 const label = Object.assign(document.createElement('div'), { className: 'ph-label' });
@@ -139,12 +139,12 @@ function applyArt() {
   const use = view.art;
   // (in false light the painted Goodsell envelope's grain streaked the wet relief: it waits for MP-V05)
   const env = use && (isFL() ? art.envFL : art.envelope);
-  for (const h of world.hosts) {
+  for (const h of [...world.hosts, ...world.bystanders]) {
     // MP-V05 (the false-light envelope, about 150 nm across a tile) carries its own colour: tiled at true scale,
     // it takes over the albedo on Hosts A and B; the Gram-positive wrong host has no outer membrane, so not there
     const flEnv = isFL() && env && !h.wrong;
     h.mat.setMap(flEnv ? env : isFL() ? null : (env || h.mat.userData.std), flEnv ? [14, 9] : env ? [3, 1.5] : [6, 3]);
-    h.mat.uniforms.uFLMap.value = flEnv ? 0.75 : 0;
+    h.mat.uniforms.uFLMap.value = flEnv ? 0.4 : 0; // (the delivered envelope lends its relief and some colour; the deep teal shows through)
     // the painted envelope carries its own colour; the wrong host keeps a dull tint so it reads apart
     h.mat.uniforms.uColor.value.set(env ? (h.wrong ? '#bba680' : '#e4e0d8') : h.color);
   }
@@ -154,7 +154,7 @@ function applyArt() {
   // in false light the painted (Goodsell) envelope only lends its grain
   inside.setSection(use ? art.section : null);
 }
-for (const h of world.hosts) h.mat.userData = { std: h.mat.uniforms.uMap.value };
+for (const h of [...world.hosts, ...world.bystanders]) h.mat.userData = { std: h.mat.uniforms.uMap.value };
 let waterColor = '#bcd3ea';
 
 // --- phage state ---
@@ -348,7 +348,7 @@ function safeSpot(p) {
   if (d < 200) return null;
   at.setLength(Math.max(0, d - 160)).add(START);
   for (let i = 0; i < 12; i++) {
-    if (uvAt(at).k === 0 && world.sdFloc(at).d > 30 && world.nearestHost(at).d > 40) return at;
+    if (uvAt(at).k === 0 && world.sdFloc(at).d > 30 && world.nearestHost(at).d > 40 && bystanderClear(at) > 40) return at;
     at.sub(START).multiplyScalar(0.93).add(START);
   }
   return at;
@@ -380,7 +380,7 @@ function resetLevel() {
   P.burstSent = false;
   view.target.copy(P.pos); view.q.identity(); view.lookHold = 0;
   // in the game shell its intro has already said this
-  if (!embed.active || started) say('You are a T4-like phage in bog water. Drift with LS (RT/LT: into or out of the view), turn the view with RS. Head out any way you like: what waits is the same in every direction, a little way out. Far out, a golden glow marks the way on.', 4800, true);
+  if (!embed.active || started) say('You are a T4-like phage in bog water. Drift with LS (RT/LT: into or out of the view), turn the view with RS. Head out any way you like: what waits comes to meet you, whichever way you go. Last, a golden glow marks the way on.', 4800, true);
   started = true;
 }
 
@@ -539,6 +539,12 @@ function updateDrift(dt, inp) {
     if (h.burst) continue;
     const sd = world.sdHost(h, c, _n);
     if (sd < 11) { P.pos.addScaledVector(_n, 11 - sd); const vn = P.vel.dot(_n); if (vn < 0) P.vel.addScaledVector(_n, -vn); P.gust.addScaledVector(_n, -Math.min(0, P.gust.dot(_n))); P.kv.addScaledVector(_n, -Math.min(0, P.kv.dot(_n))); }
+  }
+  // the bystanders (big bacteria of other kinds): solid scenery
+  for (const h of world.bystanders) {
+    if (Math.abs(h.pos.x - c.x) > h.half + h.r + 20 || Math.abs(h.pos.y - c.y) > h.half + h.r + 20 || Math.abs(h.pos.z - c.z) > h.half + h.r + 20) continue;
+    const sd = world.sdHost(h, c, _n);
+    if (sd < 11) { P.pos.addScaledVector(_n, 11 - sd); const vn = P.vel.dot(_n); if (vn < 0) P.vel.addScaledVector(_n, -vn); }
   }
   const sa = world.sdAmoeba(c);
   if (sa < 12) P.pos.addScaledVector(_n.subVectors(c, world.amoeba.center).normalize(), 12 - sa);
@@ -927,7 +933,7 @@ const director = createDirector({ ...DIRECTOR, canPlace, entries: encounterSpecs
 // past what it frames: beyond that the haze leaves only a faint ghost) and its focus. Filled while drawing.
 const viewPool = [0, 1, 2, 3].map(() => ({ frustum: new THREE.Frustum(), focus: new THREE.Vector3() }));
 const _pm = new THREE.Matrix4(), _cf = new THREE.Vector3();
-let seenViews = [], seenN = 0;
+let seenViews = [], seenN = 0, markTick = 0;
 function noteView() {
   if (seenN >= 4) return;
   const v = viewPool[seenN++];
@@ -950,7 +956,9 @@ function stepDirector(dt) {
   const ps = members().map((m) => ({ id: m.slot, x: m.P.pos.x, y: m.P.pos.y, z: m.P.pos.z, alive: out.includes(m) }));
   const L = director.leader, lm = (L && team.find((o) => o.slot === L.id)) || out[0] || team[0];
   if (lm) leadPos.copy(lm.P.pos);
-  const ev = director.update(dt, ps, seenViews.length ? seenViews : null);
+  // (what the views see is marked every third frame: a 3D grid walk is the director's one real cost here)
+  const mark = seenViews.length && (++markTick % 3 === 0 || !director.state().seenCells);
+  const ev = director.update(dt, ps, mark ? seenViews : null);
   seenN = 0;
   for (const e of ev) ringLog.push({ kind: e.type, id: e.id, t: +t.toFixed(2), how: e.how, at: [e.x, e.z] });
   // the lingering leader's decoy comes over

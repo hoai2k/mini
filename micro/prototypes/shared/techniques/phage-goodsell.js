@@ -128,9 +128,10 @@ vec4 falseLight(vec3 n, vec3 v){
   float wrapD = clamp((ndl + 0.6) / 1.6, 0.0, 1.0);
   float ndv = clamp(dot(n, v), 0.0, 1.0);
   float fres = pow(1.0 - ndv, 2.6);
+  // (shaded, not lit from within: a stronger key and a lower fill, so form reads from the light, 2 Nov 2026)
   vec3 key = vec3(1.0, 0.93, 0.8);
-  vec3 fill = vec3(0.3, 0.58, 0.7);
-  vec3 col = albedo * (key * wrapD * 0.9 + fill * (0.6 + 0.4 * n.y));
+  vec3 fill = vec3(0.24, 0.46, 0.58);
+  vec3 col = albedo * (key * wrapD * 1.12 + fill * (0.42 + 0.34 * n.y));
   // translucency: thick centres absorb toward deep blue, thin edges let the light through
   col = mix(col, albedo * vec3(0.28, 0.5, 0.78), uFLTrans * ndv * ndv * 0.5);
   col += uFLTrans * fres * (albedo * 0.55 + vec3(0.32, 0.66, 0.76)) * 0.8;
@@ -140,11 +141,12 @@ vec4 falseLight(vec3 n, vec3 v){
   col *= mix(1.0, cav, 0.8);
   // emissive glow (the phage's false light; the guide RNA's tell)
   float glow = uFLGlow * (1.0 - uDark * 0.85);
-  col += uFLGlowColor * glow * (0.5 + 1.3 * fres);
+  col += uFLGlowColor * glow * (0.12 + 1.0 * fres * fres); // (only a rim now: the scene is shaded, not emissive)
   col += albedo * uEmissive * 1.6;
   col = mix(col, uDarkColor * 0.35, uDark * 0.6);
-  // haze: a long, gentle fade into the water (a large depth of field: things stay readable)
-  float f = uDepthOn * smoothstep(uFogNear, uFogFar * 1.8, vDepth) * 0.72;
+  // haze: near and mid things crisp, the far ones fading fully into the water (~uFogFar + 80: what lies
+  // beyond is not seen; phage/world.js DIRECTOR seenDist)
+  float f = uDepthOn * smoothstep(uFogNear * 1.8, uFogFar + 80.0, vDepth) * 0.88;
   col = mix(col, uHaze, f * (1.0 - min(glow, 1.0) * 0.45));
   float a = uOpacity;
   if (uOpacity < 0.99) a = clamp(uOpacity * 0.55 + fres * 0.7 + glow * 0.1, 0.0, 1.0);
@@ -446,18 +448,18 @@ void main(){
     bg += uShaft * pow(shaft, 2.0) * 0.55;
     vec4 sc = S(vec2(0.0));
     if (uDof > 0.0) {
-      // a large depth of field: only far layers soften, gently (and the very near)
+      // a large depth of field: near and mid crisp; only the far layers soften, gently
       float z = linDepth(vUv);
-      float coc = (smoothstep(uFocus * 1.6, uFocus * 6.0, z) + (1.0 - smoothstep(uFocus * 0.25, uFocus * 0.55, z))) * uDof;
+      float coc = smoothstep(uFocus * 2.6, uFocus * 7.0, z) * uDof;
       // soften toward a blurred quarter-resolution copy (smooth, no ring artefacts)
-      sc = mix(sc, texture2D(tSoft, vUv), clamp(coc, 0.0, 1.0) * 0.85);
+      sc = mix(sc, texture2D(tSoft, vUv), clamp(coc, 0.0, 1.0) * 0.6);
     }
     sc.rgb *= shadeK;
     sc.rgb = mix(sc.rgb, uInk * sc.a * 0.35, inkK * 0.75);
     col = bg * (1.0 - sc.a) + sc.rgb;
     // haze lifted by the light near the key's corner
     col += uShaft * 0.06 * smoothstep(1.3, 0.0, length(q0 - vec2(0.15 * asp, 1.0)));
-    if (uBloom > 0.0) col += (texture2D(tBloomA, vUv).rgb * 0.9 + texture2D(tBloomB, vUv).rgb * 1.2) * uBloom;
+    if (uBloom > 0.0) col += (texture2D(tBloomA, vUv).rgb * 0.9 + texture2D(tBloomB, vUv).rgb * 1.2) * uBloom * 0.3; // (a faint bloom: highlights, not glow)
     // exposure, a filmic tone curve, then a teal grade with golden highlights
     col *= 1.6;
     col = (col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14);

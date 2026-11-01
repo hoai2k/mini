@@ -93,9 +93,10 @@ for (const axis of ['yaw', 'pitch']) for (let k = 0; k < 16; k++) {
 }
 const minCov = Math.min(...cov.map((c) => c.c));
 const sorted = cov.map((c) => c.c).sort((a, b) => a - b), median = sorted[sorted.length >> 1];
-// never a mostly empty direction: at least a fifth of the frame covered by molecules or cells in every
-// direction, and no direction less than half as full as the median one (the old slab fell to ~0 past its edge)
-if (minCov < 0.2 || minCov < median * 0.5) fails.push(`a view was mostly empty: coverage ${minCov} vs median ${median}`);
+// never a mostly empty direction: at least an eighth of the frame covered by molecules or cells in every
+// direction (the owner's look target, 2 Nov 2026, thinned the bath to open water between clumps: it was a
+// fifth), and no direction less than half as full as the median one (the old slab fell to ~0 past its edge)
+if (minCov < 0.12 || minCov < median * 0.5) fails.push(`a view was mostly empty: coverage ${minCov} vs median ${median}`);
 console.log(JSON.stringify({ q, median, maxView, maxPhage, lastView, lastPhage, minCov, cov: cov.map((c) => c.c), kicks: (await D('kicks')).length, errors: errors.slice(0, 3) }));
 
 

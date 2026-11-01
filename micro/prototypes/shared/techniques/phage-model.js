@@ -29,18 +29,19 @@ export const T4 = {
 };
 export const T4_COLORS = {
   capsid: '#6f9be0', capsidDeep: '#4f78c4', vertex: '#7fc79a', dna: '#a77ae0', collar: '#58b7d8', whisker: '#8fd6cf',
-  sheath: '#e2bd55', sheath2: '#d3a843', tube: '#a7e0d6', plate: '#e98a3c', plate2: '#f0a649',
+  sheath: '#b07a3c', sheath2: '#946428', tube: '#a7e0d6', plate: '#e98a3c', plate2: '#f0a649',
   fibre: '#ec8a3a', knee: '#f3c04a', tip: '#d8662c', short: '#f2b25a',
 };
 
-// False light (the default look): the phage glows gold, translucent and faceted, against the teal water.
+// False light (the default look): the phage a translucent bronze and amber crystal, faceted, with a fine sheen
+// (shaded, not glowing: the owner's look target, design/reference/phage-look-target.webp).
 export const T4_FL = {
-  gold: { color: '#df9a30', color2: '#f8cc78', keep: 0, glow: 0.32, glowColor: '#ffb23a', trans: 0.85, spec: 0.9, scale: 0.6 },
-  capsid: { color: '#c98a2a', color2: '#e8b860', keep: 0, glow: 0.12, glowColor: '#ffb43a', trans: 0.9, spec: 1.2, scale: 0.5 },
-  beads: { color: '#e8a640', color2: '#f8cf78', keep: 0, glow: 0.18, glowColor: '#ffb840', trans: 0.9, spec: 0.6, scale: 0.8 },
+  gold: { color: '#a46628', color2: '#c48842', keep: 0, glow: 0.08, glowColor: '#e09040', trans: 0.75, spec: 1.3, scale: 0.6 },
+  capsid: { color: '#9a5e26', color2: '#c08038', keep: 0, glow: 0.04, glowColor: '#e09a48', trans: 0.9, spec: 1.6, scale: 0.5 },
+  beads: { color: '#a46a30', color2: '#c89050', keep: 0, glow: 0.05, glowColor: '#e0a050', trans: 0.85, spec: 1.0, scale: 0.8 },
   dna: { color: '#ffd88a', color2: '#ffb850', keep: 0, glow: 0.32, glowColor: '#ffb84a', trans: 0.5, spec: 0.4 },
-  sheath: { color: '#df9a30', color2: '#f8cc78', keep: 0.75, glow: 0.36, glowColor: '#ffb23a', trans: 0.8, spec: 0.9, scale: 0.6 },
-  fibre: { color: '#e8a440', color2: '#ffd890', keep: 0, glow: 0.46, glowColor: '#ffbb44', trans: 0.7, spec: 0.6, scale: 1.2 },
+  sheath: { color: '#a46628', color2: '#c48842', keep: 0.75, glow: 0.1, glowColor: '#e09040', trans: 0.7, spec: 1.2, scale: 0.6 },
+  fibre: { color: '#a86a2c', color2: '#c89050', keep: 0, glow: 0.12, glowColor: '#e09a48', trans: 0.6, spec: 0.9, scale: 1.2 },
 };
 
 function mergeSimple(list) {
@@ -171,7 +172,7 @@ export function createT4({ clip = true } = {}) {
     }
   }
   const edgeGeo = mergeSimple(edgeParts);
-  const edgeMat = toonMaterial({ color: '#ffd27a', clip, fl: { color: '#ffd27a', color2: '#fff0c8', keep: 0, glow: 0.7, glowColor: '#ffc65a', trans: 0.3, spec: 0.5 } });
+  const edgeMat = toonMaterial({ color: '#d8a056', clip, fl: { color: '#c88a3c', color2: '#f0c890', keep: 0, glow: 0.18, glowColor: '#e8a050', trans: 0.3, spec: 1.4 } });
   const edges = new THREE.Mesh(edgeGeo, edgeMat);
   edges.visible = false;
   head.add(edges);

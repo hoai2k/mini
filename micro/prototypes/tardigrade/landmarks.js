@@ -6,10 +6,12 @@
 // hollow pool. The pool is a slab of open water beyond the tip: its meniscus
 // is a bright relief line in DIC where the film meets open water, a few green
 // Paramecium bursaria swim in it (§2.6 of ../../design/zoom-chain-levels.md),
-// and the shared golden sparkle (../shared/portal.js) hangs over the tip,
-// dim and restless while Prionchulus guards it, bright once it is open. It is
-// placed once a game, on the spoke of whoever first gets near the portal ring
-// (main.js placePortal): until then there is nothing at any rim.
+// an Amoeba proteus crawls on its floor a little way out (the next world's
+// creature: the glimpse the transition pushes in on), and the shared golden
+// sparkle (../shared/portal.js) hangs over the tip, dim and restless while
+// Prionchulus guards it, bright once it is open. It is placed by the
+// encounter director at the rim of the spoke whoever leads is heading out
+// along (main.js placePortal): until then there is nothing at any rim.
 //
 // Backdoor (up to the mite): the drier leaf axil by the start, where leaf A
 // and leaf D leave the stem. The stem is drawn as a chain of capsules (their
@@ -23,6 +25,13 @@ import { LAYER_SUBSTRATE, LAYER_SPECIMEN } from './world.js';
 import { createPortalGlow } from '../shared/portal.js';
 
 export const PORTAL_IN = 2.6; // the portal: this far back from the rim leaf's tip (on the portal ring)
+/**
+ * The amoeba in the pool: its length in a pose (units of 100 µm), the amoeba
+ * world's creature's (its cell is a disc of 344 µm across at the start: a
+ * pose's `len` there is 2 √(A0/π)), and where it crawls (leaf u past the tip, v).
+ */
+export const AMOEBA_LEN = 3.44;
+const AMOEBA_AT = { du: 3.4, v: 1.4 };
 const REACH = 1.7;            // reaching within this (along the leaf) of it goes through
 const AXIL_U = 2.1;           // the backdoor zone: u below this on leaf A or D
 
@@ -50,6 +59,12 @@ export class Landmarks {
     // Green Paramecium bursaria (~120 µm, Chlorella symbionts) swimming in the pool.
     const pb = new THREE.SphereGeometry(1, 20, 12);
     pb.scale(0.62, 0.27, 0.3);
+    // Amoeba proteus on the pool floor (~340 µm): a flattened, granular cell
+    // pushing out three blunt pseudopods, a nucleus and a contractile vacuole
+    // inside (the glimpse of the next world; the amoeba world's own cell at the
+    // same size). Its local +x is its heading; the group sits in the leaf plane.
+    this.amoeba = this.buildAmoeba();
+    this.portalGroup.add(this.amoeba.group);
     this.swimmers = [0, 1, 2].map((k) => {
       const m = optMesh(pb, { dn: 0.045, absorb: [2.4, 0.55, 2.7] }, { color: 0x5f9a40, roughness: 0.5 }, LAYER_SPECIMEN);
       this.portalGroup.add(m);
@@ -102,6 +117,12 @@ export class Landmarks {
     this.portalGroup.add(pool);
     this.pool = pool;
     for (const s of this.swimmers) s.c[0] = S.len + s.dc;
+    // the amoeba on the pool floor a little way out, heading back toward the tip
+    const am = this.amoeba;
+    am.leaf = S;
+    S.toWorld(S.len + AMOEBA_AT.du, AMOEBA_AT.v, S.thick / 2 - 0.2, am.group.position);
+    am.center.copy(am.group.position);
+    am.setHeading(Math.atan2(-S.U.z, -S.U.x) + 0.6);
     this.portalGroup.visible = true;
     this.forward.copy(S.toWorld(S.len - PORTAL_IN, 0, S.thick / 2 + 0.05));
     // the sparkle: on the tip, upright off the leaf
@@ -110,6 +131,39 @@ export class Landmarks {
     g.quaternion.setFromUnitVectors(_up.set(0, 1, 0), S.N);
     g.visible = true;
   }
+  /** The glimpsed amoeba: a lobed, flattened disc (radius ~AMOEBA_LEN / 2), with a nucleus and a vacuole. */
+  buildAmoeba() {
+    const group = new THREE.Group();
+    const R = AMOEBA_LEN / 2;
+    const g = new THREE.SphereGeometry(1, 48, 16);
+    const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+      const a = Math.atan2(z, x), rr = Math.hypot(x, z);
+      // three blunt pseudopods (the front one longest), a rounded uroid behind
+      const lobe = 0.26 * Math.pow(Math.max(0, Math.cos(a)), 6) + 0.18 * Math.pow(Math.max(0, Math.cos(a - 2.1)), 8) + 0.15 * Math.pow(Math.max(0, Math.cos(a + 2.0)), 8) + 0.04 * Math.sin(5 * a + 1);
+      const k = R * (0.9 + lobe);
+      p.setXYZ(i, (x / (rr || 1)) * rr * k, y * 0.32 * (0.6 + 0.4 * (1 - lobe)), (z / (rr || 1)) * rr * k);
+    }
+    g.computeVertexNormals();
+    group.add(optMesh(g, { dn: 0.028, absorb: [0.45, 0.5, 0.62] }, { color: 0xb9b49c, roughness: 0.55 }, LAYER_SPECIMEN));
+    const nuc = new THREE.SphereGeometry(1, 20, 10); nuc.scale(0.32, 0.16, 0.28); nuc.translate(-0.35, 0.02, 0.15);
+    group.add(optMesh(nuc, { dn: 0.05, absorb: [0.7, 0.75, 0.85] }, { color: 0x9c977f, roughness: 0.5 }, LAYER_SPECIMEN));
+    const cv = new THREE.SphereGeometry(1, 16, 8); cv.scale(0.2, 0.12, 0.2); cv.translate(-1.05, 0.02, -0.2);
+    group.add(optMesh(cv, { dn: -0.02, absorb: [0.05, 0.05, 0.05] }, { color: 0xd8dccc, roughness: 0.2 }, LAYER_SPECIMEN));
+    const am = { group, center: new THREE.Vector3(), heading: 0, len: AMOEBA_LEN, leaf: null };
+    /** Turn it to heading h (atan2(z, x) of its front, in the leaf's plane). */
+    am.setHeading = (h) => {
+      am.heading = h;
+      const L = am.leaf;
+      if (!L) return;
+      const f = new THREE.Vector3(Math.cos(h), 0, Math.sin(h)).addScaledVector(L.N, -(Math.cos(h) * L.N.x + Math.sin(h) * L.N.z)).normalize();
+      const zz = new THREE.Vector3().crossVectors(f, L.N).normalize();
+      group.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(f, L.N, zz));
+    };
+    return am;
+  }
+
   /** No portal (a restart): nothing at any rim. */
   clearForward() { this.S = null; this.portalGroup.visible = false; this.glow.group.visible = false; }
   get placed() { return !!this.S; }

@@ -105,3 +105,45 @@ them lush, and what the game lacked:
 [qutemol-site]: https://qutemol.sourceforge.net/
 [iwasa]: https://bioscience.utah.edu/faculty/iwasa/
 [crowd]: https://pmc.ncbi.nlm.nih.gov/articles/PMC2957576
+
+## The look target (2 November 2026)
+
+The owner sent `micro/design/reference/phage-look-target.webp` (a bronze
+crystal phage left of centre, a huge furred host at the lower right, more
+cells mid-distance and far, few free particles) with: *"a bit more 'lush'
+feeling, smoother, more furry less blurry, not emissive, more shaded, with
+the gold color of the phage a little more bronze less yellow, more big
+objects to move around and toward as opposed to a uniform sea of particles."*
+
+- **Shaded, not emissive.** The false-light key is stronger and the fill
+  lower (`phage-goodsell.js` `falseLight`); the phage's glow is a thin rim
+  only (glow 0.04-0.12, was 0.12-0.46) and the bloom is under a third of
+  what it was: highlights, not glow.
+- **Bronze.** The phage's false-light colours are amber and bronze
+  (`#9a5e26`-`#c48842`, `phage-model.js` `T4_FL`; the sheath rings
+  `#946428`/`#b07a3c`), with more specular.
+- **Less blurry.** The depth of field softens only the far layers (from 2.6x
+  the focus distance, at most 60 %); nothing near is blurred. The haze leaves
+  near and mid things crisp and closes in on the far ones (to a 12 % ghost by
+  uFogFar + 80: the encounter director counts that as the limit of what a
+  view sees).
+- **Big things to move toward, fewer particles.** The bath is about a
+  quarter of what it was (near ~600 molecules, mid ~600), varied in size,
+  two thirds of it in loose clumps (`createBath` `clump`), so open water
+  shows between. Nine big bacteria of other kinds (`BYSTANDERS` in
+  `world.js`, some twice a host's size) hang all through the water as
+  scenery, solid, furred.
+- **Furrier hosts.** The envelope is a deep teal-blue, wetter and lumpier
+  (bump 2.4), the delivered false-light envelope (MP-V05) lending its relief
+  at 40 % instead of taking over; a pale blue LPS fur; protein "flowers" on
+  stalks standing out of it; thin pili and flagella curving off into the
+  water.
+- **The UV shafts** are soft volumetric light (README, "Threats").
+
+Side by side with the target (same framing: the phage left of centre, a host
+at the lower right): closer in the lighting and the colour (shaded, a deep
+teal, the phage a bronze crystal, open water between fewer molecules); the
+target's huge host is a smooth wet membrane under a fine fur, where ours
+still reads busier and more speckled (bead fur at true scale); and the
+painted panorama behind (MP-V06) still carries a dense crowd of its own, so
+the far water reads fuller than the target's.

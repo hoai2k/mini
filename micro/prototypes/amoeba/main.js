@@ -1830,6 +1830,52 @@ function poseView(pose) {
   const w = beaconLen() / Math.max(1e-6, pose.f), h = w * (view.bh / view.bw);
   return { x: beacon.x - pose.x * (w / 2), y: beacon.y - pose.y * (h / 2), w };
 }
+
+// --- the intro (continuous transitions; embed.js) -----------------------------
+// In the game this world is the far end of the continuous transition from the
+// tardigrade: its freeze frame holds an Amoeba proteus on the pool floor past
+// the rim leaf's tip, seen from straight above and turned the way this cell
+// faces, and this world fades in under the same framing, the cell where that
+// glimpse was (the same size: a change of light, DIC to brightfield, more
+// than of scale). On `hold` it stays frozen at its start but renders, the
+// view centred on the cell, and reports how its opening view frames it
+// (embed.opening); while held it takes the shell's `camera` poses (the view's
+// centre and field from each), ending exactly on the opening view; on `begin`
+// its time eases back in over INTRO_EASE s.
+embed.provide('intro');
+const INTRO_EASE = 0.6;
+let intro = null; // { cam } while held; { ease } while time comes back
+/** The cell's length in a pose (µm): the disc of its starting area, 2 √(A0/π) (344 µm; the tardigrade's glimpse is the same). */
+const cellLen = () => 2 * Math.sqrt(body.A0 / Math.PI);
+// (the cell is round as it opens, its front noise: poses give it its starting front, up the slide (Body's fy = 1), so the
+// opening's rel is π, the angle the tardigrade's glimpse is turned to)
+const cellHeading = () => Math.PI / 2;
+const introHeld = () => embed.held || !!(intro && !('ease' in intro));
+/** The opening view's field (µm across): the objective's, as play starts. */
+const baseField = () => OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6);
+/** While held: the view's centre and field, from the shell's pose (or the opening view: centred on the cell). */
+function introView() {
+  const pose = intro && intro.cam;
+  if (!pose) return { x: body.cx, y: body.cy, w: baseField() };
+  const w = cellLen() / Math.max(1e-6, pose.f), h = w * (view.bh / view.bw);
+  return { x: body.cx - pose.x * (w / 2), y: body.cy - pose.y * (h / 2), w };
+}
+embed.on('hold', () => {
+  intro = { cam: null };
+  S.camX = body.cx; S.camY = body.cy;
+  embed.cinematic(true, canvas);
+  embed.opening({ f: cellLen() / baseField(), x: 0, y: 0, pitch: TOP_PITCH, rel: Math.atan2(Math.sin(cellHeading() + Math.PI / 2), Math.cos(cellHeading() + Math.PI / 2)) });
+});
+embed.on('camera', (d) => { if (intro && !('ease' in intro) && d.pose) intro.cam = d.pose; });
+embed.on('begin', () => { embed.cinematic(false, canvas); intro = { ease: 0 }; });
+/** After the transition: time eases back in (the world's time scale, 0..1). */
+function introEase(dt) {
+  if (!intro || !('ease' in intro)) return 1;
+  intro.ease += dt;
+  const k = smooth01(0, INTRO_EASE, intro.ease);
+  if (intro.ease >= INTRO_EASE) intro = null;
+  return k;
+}
 const promptEl = document.createElement('div');
 promptEl.style.cssText = 'position:fixed;left:50%;bottom:9vh;transform:translateX(-50%);z-index:21;padding:6px 14px;border-radius:999px;background:rgba(18,16,10,.62);color:#efe3c2;border:1px solid rgba(201,163,90,.55);font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;pointer-events:none;white-space:nowrap;display:none';
 document.body.appendChild(promptEl);
@@ -2035,8 +2081,10 @@ function frame(now) {
   unlockOnPad();
   const menu = features.update();
   // the outro (through the portal): no input; time eases to a freeze while the view keeps drawing
-  const ts = outro ? stepOutro(dtReal) : 1;
-  if (!menu && !outro) {
+  // (held in the intro, the transition from the tardigrade: drawn, not stepped, no input)
+  const held = introHeld();
+  const ts = (outro ? stepOutro(dtReal) : 1) * (held ? 0 : introEase(dtReal));
+  if (!menu && !outro && !held) {
     hud.update(pad);
     for (const c of cells) {
       if (c.p.waiting) continue;
@@ -2076,7 +2124,7 @@ function frame(now) {
   }
   for (const c of cells) c.surge.update(dtReal);
   test.presses.clear();
-  if (!menu && !paused) {
+  if (!menu && !paused && !held) {
     // Fixed 60 Hz steps, at most two per frame (the owner's trade-off: on a
     // slow machine the world slows down rather than stutters); the soft bodies
     // run every step, the granules once per frame (on the last step).
@@ -2100,6 +2148,7 @@ function frame(now) {
   S.camY += (ty - S.camY) * Math.min(1, dtReal * ts * 0.8);
   // the continuous transition: the shell's pose sets the view's centre and field
   if (outro && outro.cam) { const pv = poseView(outro.cam); S.camX = pv.x; S.camY = pv.y; }
+  if (held) { const pv = introView(); S.camX = pv.x; S.camY = pv.y; }
   renderAll(dtReal);
   S.statT -= dtReal;
   if (S.statT <= 0) {
@@ -2129,6 +2178,7 @@ function frame(now) {
 const pull = { k: 1 };
 const fieldWidth = () => {
   if (outro && outro.cam) return poseView(outro.cam).w;
+  if (introHeld()) return introView().w;
   const want = cells.length === 1 && caught.active && ['eat', 'follow', 'fadeOut'].includes(FC.phase) ? 1.45 : 1;
   pull.k += (want - pull.k) * 0.04;
   return OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6) * pull.k;
@@ -2396,6 +2446,9 @@ window.__micro = {
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
   /** The outro's timings (seconds); `rate` slows it (tests). */
   OUTRO,
+  /** How the view just drawn frames player 1's cell (what embed.opening reports on hold), and the intro's state. */
+  pose: () => pose2D(body.cx, body.cy, cellHeading(), cellLen()),
+  get intro() { return intro ? { held: !('ease' in intro), cam: intro.cam } : null; },
   /** The bursaria (the next world's creature) as a pose in the view just drawn. */
   beaconPose: () => pose2D(beacon.x, beacon.y, beacon.heading, beaconLen()),
   /** Testing: traps never arm and Chaos never wakes (scripted runs). */

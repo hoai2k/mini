@@ -23,7 +23,7 @@ import { Predator } from './predator.js';
 import { createCapture } from '../shared/predation.js';
 import { wireAssets } from './textures.js';
 import { LEAF_FX, opticalMaterial, litMaterial } from './materials.js';
-import { Landmarks, PORTAL_IN } from './landmarks.js';
+import { Landmarks, PORTAL_IN, AMOEBA_LEN } from './landmarks.js';
 import { Nematode, GUARD } from './nematode.js';
 import { Meadows } from './meadow.js';
 import { createPortalLight } from '../shared/portal.js';
@@ -116,7 +116,7 @@ function tintCreature(c, color, on) {
 }
 let rumbleOn = true;
 const rumble = (ms, w, s) => { if (rumbleOn) pad.rumble(ms, w, s); };
-const audio = createAudio(['tardigrade/amb-film', 'tardigrade/step', 'tardigrade/dash', 'tardigrade/bite', 'tardigrade/tun', 'tardigrade/revive', 'tardigrade/rain', 'tardigrade/milnesium']);
+const audio = createAudio(['tardigrade/amb-film', 'tardigrade/step', 'tardigrade/dash', 'tardigrade/bite', 'tardigrade/tun', 'tardigrade/revive', 'tardigrade/rain', 'tardigrade/milnesium', 'shared/portal-chime']);
 audio.loop('tardigrade/amb-film', { volume: 0.6 });
 const snd = { t: 0, lastStep: -1, side: 1, state: 'active', feeding: false, rain: false };
 /** Gamepads fire no DOM events: unlock sound on any pad button. */
@@ -823,16 +823,106 @@ function checkPortal() {
  * shell runs the transition; standalone, embed.js shows a toast).
  */
 function enterPortal(a) {
-  if (lm.fired) return;
+  if (lm.fired || outro) return;
   lm.fired = true;
+  startOutro(a);
+  lm.log.push({ type: 'landmark', kind: 'forward', slot: a.slot, t: +time.toFixed(2) });
+  embed.landmark('forward', { player: a.slot, outro: embed.active });
+}
+const portalLight = createPortalLight({ zIndex: 3 });
+
+// ---------------------------------------------------------------- the outro: success, slow-down, freeze (embed.js "Continuous transitions")
+// Into the pool: a golden burst from the tip, a bloom on the screen, a chime
+// and a rumble; then time eases to a stop over ~1 s while rendering carries on
+// (the freeze frame), the view settling on the Amoeba proteus crawling on the
+// pool floor a little way out (the glimpse: the next world's creature). It
+// settles from straight above (the amoeba world's microscope looks straight
+// down) and turns the amoeba the way that world's cell faces when it opens,
+// a little wider than there, while the sparkle dims so the cell reads. Frozen,
+// it reports how the amoeba is framed (embed.frozen) and follows the shell's
+// `camera` poses: a short push in while the amoeba world fades in under the
+// same framing (the same size: DIC to brightfield, a change of light more than
+// of scale). In frame time (dt is clamped), so a slow machine plays it slower
+// rather than skipping it. Standalone the freeze holds a moment and time comes back.
+const OUTRO = { beat: 0.3, ease: 1.0, hold: 1.4, back: 0.6, giveUp: 8, rate: 1 }; // rate: tests slow it down
+// The amoeba world's opening view of its cell (a pose: embed.js; measured with
+// its __micro.pose() on hold): looking straight down (2D), the cell's front up
+// the slide (rel π), 0.382 of the view's width (344 µm in a 900 µm field). The
+// freeze holds the glimpse 1.35× smaller, so the move is a short push.
+const NEXT_OPENING = { f: 0.382, pitch: 1.55, rel: Math.PI };
+let outro = null;
+const glowU = places.glow.group.children[0].material.uniforms; // (its shared uniforms: uI is its brightness)
+const glowI0 = glowU.uI.value;
+const azimuth = () => Math.PI / 2 - view.yaw; // this world's orbit: the camera's azimuth round its target
+function startOutro(a) {
+  const am = places.amoeba;
+  outro = { t: 0, scale: 1, frozenAt: null, cam: null, heard: false, a,
+    from: { target: view.target.clone(), pitch: view.pitch, dist: view.dist || 20, h: am.heading } };
   places.glow.burst();
   const pr = split.project(0, places.forward);
   if (!pr.behind) portalLight.bloom(pr.x, pr.y, { scale: 1.1 });
+  const me = split.project(0, a.walker.dispPos);
+  if (!me.behind) portalLight.bloom(me.x, me.y, { scale: 0.7 });
+  audio.play('shared/portal-chime', { volume: 0.9 });
   rumble(520, 0.55, 0.85);
-  toast(`${who(a)}The pool: the film meets open water`, 2400);
-  fireLandmark('forward', a);
+  if (embed.active) embed.cinematic(true, canvas);
+  else toast(`${who(a)}The pool: the film meets open water`, 2400);
 }
-const portalLight = createPortalLight({ zIndex: 3 });
+/** Advance the outro by dt (frame time); returns the time scale for the world. */
+function stepOutro(dt) {
+  const o = outro;
+  o.t += dt * OUTRO.rate;
+  o.scale = 1 - THREE.MathUtils.smoothstep(o.t, OUTRO.beat, OUTRO.beat + OUTRO.ease);
+  // after the burst the sparkle dims, so the amoeba on the pool floor reads in the freeze frame
+  glowU.uI.value = glowI0 * (1 - 0.8 * THREE.MathUtils.smoothstep(o.t, 0.5, 1.3));
+  if (o.scale <= 0 && o.frozenAt === null) {
+    o.frozenAt = o.t;
+    // the freeze frame: the camera exactly where the outro's framing ends, and how it frames the amoeba
+    placeViewCamera(0);
+    if (embed.active) embed.frozen(amoebaPose());
+  }
+  if (o.frozenAt !== null) {
+    const heldT = o.t - o.frozenAt;
+    // standalone (or a shell that never answered): time comes back
+    const back = !embed.active ? heldT - OUTRO.hold : !o.heard && heldT > OUTRO.giveUp ? heldT - OUTRO.giveUp : -1;
+    if (back >= 0) {
+      o.scale = THREE.MathUtils.smoothstep(back, 0, OUTRO.back);
+      if (back >= OUTRO.back) endOutro();
+    }
+  }
+  return outro ? outro.scale : 1;
+}
+function endOutro() {
+  outro = null;
+  glowU.uI.value = glowI0;
+  if (embed.active) embed.cinematic(false, canvas);
+}
+/** How the view frames the amoeba in the pool (embed.poseOf). */
+const amoebaPose = () => embed.poseOf(camera, places.amoeba.center, { len: AMOEBA_LEN, heading: places.amoeba.heading, pitch: view.pitch, yaw: azimuth() });
+// the shell drives the camera from the freeze frame into the amoeba's world
+embed.on('camera', (d) => { if (outro && d.pose) { outro.cam = d.pose; outro.heard = true; } });
+embed.on('pause', () => { if (outro) outro.heard = true; });
+/** The outro's own framing (before the shell's poses): eased by its clock onto the amoeba, from straight above. */
+function placeOutroView() {
+  const o = outro, f = o.from, am = places.amoeba;
+  const b = THREE.MathUtils.smootherstep(o.t, 0, OUTRO.beat + OUTRO.ease);
+  const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
+  const dist = AMOEBA_LEN / (2 * (NEXT_OPENING.f / 1.35) * tanH);
+  view.target.lerpVectors(f.target, am.center, b);
+  view.pitch = f.pitch + (NEXT_OPENING.pitch - f.pitch) * b;
+  view.dist = f.dist + (dist - f.dist) * b;
+  // the amoeba turns the way the amoeba world's cell faces as it opens (the same angle on screen)
+  const want = azimuth() - NEXT_OPENING.rel;
+  am.setHeading(f.h + Math.atan2(Math.sin(want - f.h), Math.cos(want - f.h)) * b);
+}
+/** The camera for a pose from the shell during the outro: a dolly onto the amoeba (the field of view kept); the view state follows. */
+function placeOutroCamera(pose) {
+  const am = places.amoeba;
+  const r = embed.poseCamera(camera, pose, am.center, { len: AMOEBA_LEN, heading: am.heading });
+  view.yaw = Math.PI / 2 - r.yaw; view.pitch = r.pitch;
+  view.target.set(r.target.x, r.target.y, r.target.z);
+  view.dist = r.depth;
+}
 
 // ---------------------------------------------------------------- loop
 let last = performance.now();
@@ -942,6 +1032,17 @@ const api = window.__micro = { cullViews: true, // per-view culling of the anima
   placeEncounter(k, x, z, b = 0) { const pr = E.prefer; E.prefer = null; try { return director.force(k, x, z, b); } finally { E.prefer = pr; } },
   /** Go through the portal now as player `slot` (what reaching it while open does). */
   enterPortal(slot = 0) { lm.fired = false; enterPortal(animals.find((b) => b.slot === slot) || p1); },
+  /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
+  outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
+  /** The outro's timings (seconds); `rate` slows it (tests). */
+  OUTRO,
+  /** Testing: advance the outro by n frames of dt, rendering each (deterministic stills). */
+  outroStep(n = 1, dt = 1 / 30) {
+    for (let i = 0; i < n && outro; i++) { const k = stepOutro(dt); if (k > 0) step(dt * k, IDLE); else places.update(0, camera, true); renderView(dt); }
+    return api.outro();
+  },
+  /** How the view frames the amoeba in the pool (what embed.frozen reports). */
+  amoebaPose: () => amoebaPose(),
   /** Testing: a restart (the RS button). */
   restart() { life.newDay(); },
   /** How the view frames player 1's animal now (what embed.opening reports on hold), and the intro's state. */
@@ -987,7 +1088,7 @@ function frame() {
   if (P(B.LS)) { view.focus = 0; toast('Refocused on the animal'); }
   // RS: yaw, and pitch by intent (up = look up: the camera swings down). Any player turns the shared view.
   let yaw = 0, pitch = 0;
-  if (!inMenu) for (const a of animals) { if (a.p.waiting) continue; const lk = a.ctl.look(); yaw += lk.yaw; pitch += lk.pitch; }
+  if (!inMenu && !outro) for (const a of animals) { if (a.p.waiting) continue; const lk = a.ctl.look(); yaw += lk.yaw; pitch += lk.pitch; }
   yaw = THREE.MathUtils.clamp(yaw, -1, 1); pitch = THREE.MathUtils.clamp(pitch, -1, 1);
   view.yaw -= yaw * dt * 1.6;
   view.pitch = THREE.MathUtils.clamp(view.pitch - pitch * dt * 1.2, 0.35, 1.52);
@@ -999,10 +1100,15 @@ function frame() {
   view.manualFocusT = Math.abs(fin) > 0.05 ? 0 : view.manualFocusT + dt;
   if (view.autoFocus !== false && view.manualFocusT > 4 && (walker.speed > 0.05 || view.manualFocusT > 8)) view.focus *= Math.exp(-dt / 0.6);
 
-  const G = inputOf(p1, inMenu);
+  // through the portal: time eases to a freeze (stepOutro), no input
+  const k = outro ? stepOutro(Math.min(rawDt, 0.05)) : 1;
+  const G = outro ? IDLE : inputOf(p1, inMenu);
   G.others = {};
-  for (const a of animals) if (a !== p1) G.others[a.slot] = inputOf(a, inMenu);
-  if (!api.paused) step(dt, G);
+  if (!outro) for (const a of animals) if (a !== p1) G.others[a.slot] = inputOf(a, inMenu);
+  if (!api.paused) {
+    if (k > 0) step(dt * k, G);
+    else places.update(0, camera, true); // frozen: the burst plays on (its own clock)
+  }
   renderView(dt);
   readout();
   requestAnimationFrame(frame);
@@ -1309,6 +1415,7 @@ const _ct = new THREE.Vector3(), _c2 = new THREE.Vector3();
 const shownAt = (a, out) => (captive === a && capture.active ? out.setFromMatrixPosition(a.creature.group.matrix) : out.copy(a.walker.dispPos));
 function renderView(dt) {
   if (intro && intro.cam) placePoseCamera(intro.cam);
+  else if (outro && outro.cam) placeOutroCamera(outro.cam);
   else placeViewCamera(dt);
   sun.target.position.copy(view.target);
   drawViews(dt);
@@ -1323,12 +1430,13 @@ function placeViewCamera(dt) {
   const following = ph === 'eat' || ph === 'follow' || ph === 'fadeOut';
   const field = capture.active && solo ? (following ? ob.field * 1.3 : Math.min(ob.field, 9)) : ob.field;
   const dist = field / 2 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.max(1, camera.aspect) * 1.0;
-  view.dist = THREE.MathUtils.lerp(view.dist || dist, dist, 1 - Math.exp(-dt * 4));
+  if (outro) placeOutroView();
+  else view.dist = THREE.MathUtils.lerp(view.dist || dist, dist, 1 - Math.exp(-dt * 4));
   let aim;
   if (capture.active && solo && following) aim = captor === 'boss' ? _ct.copy(boss.headW) : _ct.copy(predator.walker.dispPos);
   else if (capture.active && solo && ph !== 'fadeIn') aim = _ct.copy(walker.dispPos).lerp(captor === 'boss' ? boss.headW : predator.walker.dispPos, 0.5);
   else { aim = _ct.set(0, 0, 0); for (const a of animals) aim.add(shownAt(a, _c2)); aim.multiplyScalar(1 / animals.length); }
-  view.target.lerp(aim, 1 - Math.exp(-dt * 3));
+  if (!outro) view.target.lerp(aim, 1 - Math.exp(-dt * 3));
   camera.position.set(
     view.target.x + view.dist * Math.cos(view.pitch) * Math.sin(view.yaw),
     view.target.y + view.dist * Math.sin(view.pitch),
@@ -1381,12 +1489,13 @@ function drawViews(dt) {
   portalLight.begin();
   // no arrow (the owner: keep moving and you find it): once placed, the portal's golden
   // light spills in from the edge of the view on its side (or haloes it in view); no text
-  if (portal.placed && !(capture.active && solo)) {
+  if (portal.placed && !(capture.active && solo) && !outro) {
     const res = marks.drawSplit(split, places.forward, { kind: 'forward', range: 30, nearAlpha: 0, farAlpha: 0 });
     let d = Infinity;
     for (const a of animals) d = Math.min(d, a.walker.dispPos.distanceTo(places.forward));
     portalLight.drawSplit(split, res, { strength: THREE.MathUtils.clamp(1.15 - d / 30, 0.3, 1), open: places.glow.open });
   }
+  if (outro) return;
   marks.drawSplit(split, places.back, { kind: 'backdoor', label: 'Moss', range: 30 });
   if (animals.length > 1) drawRings(L);
 }
@@ -1484,6 +1593,7 @@ function drawViewCulled(v, target, dt) {
   for (const a of members) at.add(a.shown || a.walker.dispPos);
   at.multiplyScalar(1 / members.length);
   if (!members.length || (capture.active && animals.length === 1)) at.copy(walker.dispPos);
+  if (outro) at.copy(places.amoeba.center); // through the portal: the focal plane on the amoeba in the pool
   const ob = OBJECTIVES[view.obj];
   const H = renderer.getDrawingBufferSize(_db).y;
   const ref = camera.position.distanceTo(at);

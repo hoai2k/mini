@@ -90,6 +90,11 @@ walk around can be in safe areas too, because you can just avoid them."
   (`prototypes/paramecium/README.md`, "Placed as you go", the director in 2D
   over a shallow drop) followed; how to adopt it is at the top of
   `shared/director.js`.
+  The bacterium (`prototypes/bacterium/README.md`, "The way: placed as you
+  go": the gates in order, the breaks held longer while the army is short,
+  kin and prey kept near every player) and the phage
+  (`prototypes/phage/README.md`, "Threats and pacing": a 3D grid, the decoys
+  then the portal, flocs, UV shafts and big cells as scenery) use it too.
 
 ## Everything is action
 

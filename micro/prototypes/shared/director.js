@@ -161,18 +161,25 @@ export function createDirector(o) {
   const ok = (i, j, k) => i >= 0 && k >= 0 && j >= 0 && i < nx && k < nz && j < ny;
   const centre = (i, j, k) => [B.x0 + (i + 0.5) * cell, three ? y0 + (j + 0.5) * cell : groundY, B.z0 + (k + 0.5) * cell];
   function mark(i, j, k) { const n = at(i, j, k); if (!seen[n]) { seen[n] = 1; seenCount++; } }
-  /** Visit the cells whose centres lie within r (+ a cell's reach) of a point. */
+  /** Visit the cells whose centres lie within r (+ a cell's reach) of a point (fn gets one reused centre array). */
+  const cc = [0, 0, 0];
   function cellsNear(x, y, z, r, fn) {
-    const R = r + cellR;
+    const R = r + cellR, R2 = R * R;
     const i0 = ci(x - R), i1 = ci(x + R), k0 = ck(z - R), k1 = ck(z + R);
     const j0 = three ? cj(y - R) : 0, j1 = three ? cj(y + R) : 0;
-    for (let j = Math.max(0, j0); j <= Math.min(ny - 1, j1); j++)
-      for (let k = Math.max(0, k0); k <= Math.min(nz - 1, k1); k++)
+    for (let j = Math.max(0, j0); j <= Math.min(ny - 1, j1); j++) {
+      const cyv = three ? y0 + (j + 0.5) * cell : groundY, dy2 = three ? (cyv - y) * (cyv - y) : 0;
+      for (let k = Math.max(0, k0); k <= Math.min(nz - 1, k1); k++) {
+        const czv = B.z0 + (k + 0.5) * cell, dz2 = (czv - z) * (czv - z);
+        if (dy2 + dz2 > R2) continue;
         for (let i = Math.max(0, i0); i <= Math.min(nx - 1, i1); i++) {
-          const c = centre(i, j, k);
-          const d = three ? Math.hypot(c[0] - x, c[1] - y, c[2] - z) : Math.hypot(c[0] - x, c[2] - z);
-          if (d <= R && fn(i, j, k, c) === false) return false;
+          const cxv = B.x0 + (i + 0.5) * cell;
+          if ((cxv - x) * (cxv - x) + dy2 + dz2 > R2) continue;
+          cc[0] = cxv; cc[1] = cyv; cc[2] = czv;
+          if (fn(i, j, k, cc) === false) return false;
         }
+      }
+    }
     return true;
   }
   function markSphere(x, y, z, r) { cellsNear(x, y ?? groundY, z, r, (i, j, k) => { mark(i, j, k); }); }
