@@ -48,6 +48,10 @@ const STYLE = {
 };
 
 const SHOW_BACKDOOR = false;
+// The owner (2026-11-01): no arrow to the way on either. Every direction leads
+// to a portal, and its golden sparkle is the only marker. Set true to bring the
+// forward arrow back.
+const SHOW_FORWARD = false;
 
 // The forward mark's shape: 'arrow' (the owner's choice, 2026-11-01) or the
 // earlier 'sun'.
@@ -180,6 +184,7 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
     // quiet optional landmark found by exploring (its "Y: back" prompt still
     // shows when a player dwells on it). Set SHOW_BACKDOOR to bring it back.
     if (kind === 'backdoor' && !SHOW_BACKDOOR) return null;
+    if (kind !== 'backdoor' && !SHOW_FORWARD) return null;
     if (region && (!region.length || !region[0] || !region[0].length)) return null;
     const polys = (!region ? [[[0, 0], [W, 0], [W, H], [0, H]]] : (Array.isArray(region[0][0]) ? region : [region])).filter((p) => p && p.length >= 3);
     if (!polys.length) return null;

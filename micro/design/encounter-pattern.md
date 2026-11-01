@@ -24,8 +24,9 @@ it follows this; where a world departs from it, the README says why.
   the player first gets far enough**, out of their view, and is guarded by the
   world's boss. The boss blocks it: reaching it while the boss is on guard
   turns you back; you have to do something simple to get in (lure the boss
-  away, distract it, drive it off). The arrow (`shared/landmark.js`) is hidden
-  until the portal has been found, then points to it.
+  away, distract it, drive it off). There is no arrow (`shared/landmark.js`
+  draws no forward mark): every direction leads to a portal, and its golden
+  sparkle is the only marker.
 - **The portal looks like somewhere you want to be**, with no text about it:
   the shared golden sparkle and glow (`shared/portal.js`), the same gold as the
   super-gene glow (`design/super-gene-return.html`), the same in every world
