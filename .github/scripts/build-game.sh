@@ -24,6 +24,14 @@ out="$root/local/pages/$folder"
 state="${RUNNER_TEMP:-/tmp}"
 summary="${GITHUB_STEP_SUMMARY:-/dev/stderr}"
 
+# A game switched off in the root deploy_config.json is not built or
+# published at all (and is not a failure, so no live copy is restored).
+if ! python3 "$root/.github/scripts/deploy-config.py" enabled "$folder"; then
+  echo "$folder is off in deploy_config.json; not deployed"
+  echo "- **$folder** is off in deploy_config.json: not deployed." >> "$summary"
+  exit 0
+fi
+
 if bash -e -c "$cmd"; then
   echo "$folder" >> "$state/built"
   exit 0

@@ -48,20 +48,20 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
 | `kingdomofthefairies/` | Kingdom of the Fairies (includes the preserved Widow's Bay edition) | https://hoai2k.github.io/mini/kingdomofthefairies/ |
 | `bronzedrum/` | Bronze Drum | https://hoai2k.github.io/mini/bronzedrum/ |
 | `tankwars/` | Tank Wars | https://hoai2k.github.io/mini/tankwars/ |
-| `gliders/` | Gliders (Superflight-style gliding, 1–4 players split screen); in the prototype archive, behind the invite gate | https://hoai2k.github.io/mini/gliders/ |
+| `gliders/` | Gliders (Superflight-style gliding, 1–4 players split screen); not deployed (off in `deploy_config.json`), behind the invite gate | https://hoai2k.github.io/mini/gliders/ |
 | `icecreamcone/` | The Ice-Cream Cone Coot (a field guide of rare birds from Arnold Lobel's book, with a minigame for each) | https://hoai2k.github.io/mini/icecreamcone/ |
-| `onemonster/` | One Monster After Another (after Mercer Mayer's book: play each monster as it snatches the letter from the last, as a side-scrolling Adventure or as minigames, alone or two players head to head); in the prototype archive, behind the invite gate | https://hoai2k.github.io/mini/onemonster/ |
+| `onemonster/` | One Monster After Another (after Mercer Mayer's book: play each monster as it snatches the letter from the last, as a side-scrolling Adventure or as minigames, alone or two players head to head); not deployed (off in `deploy_config.json`), behind the invite gate | https://hoai2k.github.io/mini/onemonster/ |
 | `fibreart/` | Fibre Art (a shifting collage after the fibre art, paintings and drawings of Hanneke de Neve: controllers move, stretch, swirl and dissolve the parts of her pictures) | https://hoai2k.github.io/mini/fibreart/ |
 | `percyjackson/` | Half-Blood Quests (a Percy Jackson co-op dungeon crawler in the style of Minecraft Dungeons; style references in `reference/` are private) | https://hoai2k.github.io/mini/percyjackson/ |
 | `aiching/` | Ai-Ching (an I Ching reader styled like an AI prompt: a question seeds the cast and shapes the reading) | https://hoai2k.github.io/mini/aiching/ |
 | `eartrainer/` | Ear Trainer (hear a melody, play it back on a 1.5-octave piano; after the Chet app) | https://hoai2k.github.io/mini/eartrainer/ |
 | `musicpractice/` | Music Practice (a metronome, a tuner, a drone, and a Playback Recorder that hears when you start and stop playing and plays each take back); its iOS and Android apps (Capacitor, with Music Practice Pro) are in `musicpractice/mobile/` | https://hoai2k.github.io/mini/musicpractice/ |
-| `bookzam/` | Bookzam (Shazam for books: photos of shelves become book and board game catalogues, and Find Book circles a named book in a photo; photos are read on the device with PaddleOCR models and books identified on Open Library); in the prototype archive, behind the invite gate | https://hoai2k.github.io/mini/bookzam/ |
+| `bookzam/` | Bookzam (Shazam for books: photos of shelves become book and board game catalogues, and Find Book circles a named book in a photo; photos are read on the device with PaddleOCR models and books identified on Open Library); not deployed (off in `deploy_config.json`), behind the invite gate | https://hoai2k.github.io/mini/bookzam/ |
 | `stocks/` | Stocks (stock and ETF charts with total return: price only, with dividends, or dividends reinvested; live data through its own `mini-stocks` Cloudflare Worker in `stocks/server/`, separate from the relay) | https://hoai2k.github.io/mini/stocks/ |
 | `mp3player/` | MP3 Player (the music files on the device, played like a streaming app: songs, albums, artists, shuffle, repeat, a queue and a custom order; songs are copied into the browser's storage, never changed on the device) | https://hoai2k.github.io/mini/mp3player/ |
 | `imageannotator/` | Image Annotator (open a picture, point things out with arrows, circles and free drawing, each with an optional title that is placed clear of the others; save, then export as the original format, JPEG or JPEG for web) | https://hoai2k.github.io/mini/imageannotator/ |
 | `meditation/` | Meditation Timer (a sitting timer: a preroll to settle, 5 seconds by default, then a starting chime, the time, and an ending chime; singing bowls, rin, tingsha, Koshi chimes or a temple bell, recorded or synthesized) | https://hoai2k.github.io/mini/meditation/ |
-| `micro/` | Micro Zoom (play as microscopic creatures: the game shell in `micro/game/` hosts the worlds in `micro/prototypes/` (springtail, mite, tardigrade, amoeba, Paramecium, bacterium, phage, each in a different microscope look) and zooms between them; a cited research atlas in `micro/research/` and the Zoom Chain level spec in `micro/design/`); in the prototype archive, behind the invite gate | https://hoai2k.github.io/mini/micro/ (prototypes at `/micro/prototypes/`) |
+| `micro/` | Micro Zoom (play as microscopic creatures: the game shell in `micro/game/` hosts the worlds in `micro/prototypes/` (springtail, mite, tardigrade, amoeba, Paramecium, bacterium, phage, each in a different microscope look) and zooms between them; a cited research atlas in `micro/research/` and the Zoom Chain level spec in `micro/design/`); not deployed (off in `deploy_config.json`), behind the invite gate | https://hoai2k.github.io/mini/micro/ (prototypes at `/micro/prototypes/`) |
 | `smoothcraft/` | Smoothcraft (a Minecraft Java Edition mod for Fabric: smooth terrain, rounded mobs, physically based materials and lighting, high-resolution textures from its image requests); a Gradle project in `smoothcraft/mod/`, not a browser game, so it has no `publish.sh`, Pages step or library card; `pages.yml` skips pushes that only change `smoothcraft/` | — |
 | `chat/` | Games Chat (video chat with face effects and minigames); its iPhone/iPad app, calls server and TestFlight guide are in `chat/ios/` | https://hoai2k.github.io/mini/chat/ |
 | `multiplayer/` | Shared online-multiplayer relay (Cloudflare Worker) and its browser client, used by any game; see `MULTIPLAYER.md` | https://mini-rooms.hoai2k.workers.dev |
@@ -90,22 +90,29 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
   README. `index.html` is the game library published at
   https://hoai2k.github.io/mini/, one card per game. Apps (tools such as Ear Trainer,
   Ai-Ching, Music Practice, Stocks, MP3 Player, Image Annotator and Meditation Timer) go on its mini apps shelf below the games, with Music
-  Practice pinned first and Games Chat second, then the rest newest first. Games that haven't turned out as hoped yet are listed as
-  plain links in its Prototype archive, at the bottom. The games shelf also
+  Practice pinned first and Games Chat second, then the rest newest first. There is
+  no Prototype archive any more: games that haven't turned out as hoped are
+  switched off instead (next bullet). The games shelf also
   carries cards for invite-only games from the `swingers` repository (Spider
   Swingers, Wobblers, Wobbly Battles and Swingers, published at
   `/swingers/...` on the same site). Their gates ignore the public-access
   switch, so their cards sit in `<template data-invite>` blocks that the
-  library reveals only to visitors holding an invite pass, like the archive;
+  library reveals only to visitors holding an invite pass;
   they keep the shelf's newest-first order. `GAME_GUIDELINES.md` applies to every game.
-- **The Prototype archive is code-locked.** The library shows it only to
-  visitors holding an invite pass, and every game or app listed there sits
-  behind the shared invite gate opened with `ignorePublicAccess: true`, so the
-  owner's public-access switch (`/public-access.json` in `hoai2k.github.io`)
-  never opens a prototype. Moving a game or app into the archive means adding
-  that gate (copy `onemonster/game/src/gate/gate.js` byte for byte, open it
-  from a `boot.js` the way One Monster and Gliders do); moving one out to a
-  shelf means dropping `ignorePublicAccess` (or the gate) as the owner wants.
+- **Which games deploy is the root `deploy_config.json`.** A folder set to
+  `false` under `"games"` is not built or published (`build-game.sh` skips it
+  without restoring a live copy) and its card is left out of the published
+  library (`.github/scripts/deploy-config.py library`, run by the "Shared
+  root files" step); games not listed deploy, and a missing or unreadable file
+  deploys every game. Micro Zoom, Bookzam, One Monster After Another and
+  Gliders are off today (they were the Prototype archive), so their pages 404.
+  Turning one back on means setting it to `true` (or deleting its line) and
+  adding a card for it to `index.html`, since the archive's links are gone.
+  Those four still carry the shared invite gate opened with
+  `ignorePublicAccess: true` (copy `onemonster/game/src/gate/gate.js` byte for
+  byte, opened from a `boot.js`), so the owner's public-access switch
+  (`/public-access.json` in `hoai2k.github.io`) never opens them; dropping
+  `ignorePublicAccess` (or the gate) is the owner's call when one comes back.
   Each locked game or site also carries its own `public-access.json` beside
   its `index.html`, holding `{ "followPublicAccess": false }` and named in
   its gate call as `accessFile: 'public-access.json'` (publish it with the

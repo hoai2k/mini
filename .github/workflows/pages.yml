@@ -139,8 +139,10 @@ jobs:
           cache-dependency-path: hopper/game/pnpm-lock.yaml
       # The shared root files must build, or the whole deploy fails: every
       # game needs them.
+      # The library page leaves out the card of every game deploy_config.json
+      # switches off (.github/scripts/deploy-config.py).
       - name: Shared root files
-        run: test -f multiplayer/client/mini-rooms.js && mkdir -p local/pages && cp index.html favicon.ico local/pages/
+        run: test -f multiplayer/client/mini-rooms.js && mkdir -p local/pages && cp favicon.ico local/pages/ && python3 .github/scripts/deploy-config.py library index.html local/pages/index.html
       - name: Build Hopper
         run: .github/scripts/build-game.sh hopper 'cd hopper/game && pnpm install --frozen-lockfile && pnpm build:pages'
       - name: Hopper tests

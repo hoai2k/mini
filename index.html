@@ -149,9 +149,6 @@
     line-height: 1;
   }
   .section-title span { color: var(--accent); }
-  .archive { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 28px; }
-  .archive a { color: var(--ink); font-size: 1.05rem; text-decoration-color: var(--accent); text-underline-offset: 3px; }
-  .archive a:hover, .archive a:focus-visible { color: var(--accent); }
 
   footer { margin-top: 40px; color: var(--muted); font-size: 0.95rem; }
   footer a { color: var(--ink); }
@@ -171,15 +168,15 @@
        after Kingdom of the Fairies at the owner's request. A new game's card
        goes at the top. Apps (tools rather than games) go on the mini apps
        shelf below: Music Practice is pinned first and Games Chat second, then
-       the rest newest first, so a new app's card goes after Games Chat. Games
-       that haven't turned out as hoped yet go in the prototype archive at the
-       bottom as plain links, in the same order. -->
+       the rest newest first, so a new app's card goes after Games Chat. A game
+       switched off in deploy_config.json is not published and its card is
+       left out of the published copy of this page. -->
   <section class="shelf" aria-label="Games">
     <!-- Swingers-repo games (Spider Swingers, Wobblers, Wobbly Battles here,
          Swingers further down) sit behind the shared invite gate with
-         ignorePublicAccess: true, so like the prototype archive their cards
-         live in <template data-invite> and appear only to visitors holding an
-         invite pass (revealed by the script after the archive). -->
+         ignorePublicAccess: true, so their cards live in <template data-invite>
+         and appear only to visitors holding an invite pass (revealed by the
+         script at the end of the page). -->
     <template data-invite>
     <a class="game spiders" href="../swingers/spiders/">
       <div class="cover">
@@ -416,22 +413,6 @@
     </a>
   </section>
 
-  <!-- The prototype archive is shown only to visitors holding an invite pass
-       (the shared gate's `gate.pass`, written by any game's invite door). The
-       owner's public-access switch does not reveal it, and every game listed
-       here opens its gate with `ignorePublicAccess: true`, so a prototype
-       stays code-locked while the finished games are public. It lives in a
-       <template> so nothing in it renders or is followed until a pass is
-       found; on localhost it always shows, as the gate is off there. -->
-  <template id="prototype-archive">
-    <h2 class="shelf-title">Prototype archive</h2>
-    <ul class="archive">
-      <li><a href="micro/">Micro Zoom</a></li>
-      <li><a href="bookzam/">Bookzam</a></li>
-      <li><a href="onemonster/">One Monster After Another</a></li>
-      <li><a href="gliders/">Gliders</a></li>
-    </ul>
-  </template>
   <script>
     (function () {
       var h = location.hostname;
@@ -443,7 +424,7 @@
       // public-access switch would, so it does not reveal these either.
       var hasPass = !!pass && typeof pass.id === 'string' && pass.id !== '' && pass.scope !== 'public';
       if (!hasPass && !(local && !/[?&]gatetest/.test(location.search))) return;
-      document.querySelectorAll('template[data-invite], #prototype-archive').forEach(function (t) {
+      document.querySelectorAll('template[data-invite]').forEach(function (t) {
         t.replaceWith(t.content.cloneNode(true));
       });
     })();
