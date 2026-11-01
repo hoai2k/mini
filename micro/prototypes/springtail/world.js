@@ -834,11 +834,12 @@ function buildPondweed(group, leafTex) {
       // wet and dark where it lies on the water
       c *= mix(0.45, 1.0, smoothstep(-0.02, 0.06, vLocal.y));
       s.N = normalize(s.N + vec3(0.0, 0.0, (vein - 0.5) * 0.06));
-      s.albedo = c; s.rough = 0.24; s.f0 = 0.045; s.wrap = 0.4; s.trans = 0.55; s.sheen = 0.12; s.sheenCol = vColor;
+      s.albedo = c; s.rough = 0.3; s.f0 = 0.04; s.wrap = 0.35; s.trans = 0.3; s.sheen = 0.1; s.sheenCol = vColor;
     }`,
   });
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), col = new THREE.Color(), e = new THREE.Euler();
-  const palette = [[0.12, 0.15, 0.025], [0.16, 0.13, 0.03], [0.2, 0.07, 0.03], [0.1, 0.13, 0.03], [0.18, 0.1, 0.03]];
+  // olive to bronze and wine red (the floating leaves of bog pondweed are often flushed red in acid water)
+  const palette = [[0.055, 0.07, 0.012], [0.08, 0.06, 0.014], [0.1, 0.035, 0.014], [0.05, 0.065, 0.014], [0.09, 0.05, 0.012]];
   let seed = 5150;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   const patches = new Map();
