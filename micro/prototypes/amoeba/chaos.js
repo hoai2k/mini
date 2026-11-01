@@ -67,7 +67,7 @@ export class Chaos {
    * players: [{ cell, x, y, req, active }] (centroids, µm). Returns events [{ e, p }].
    * calm: still in the calm opening. col: colliders for the body (obstacles and the players' membranes).
    */
-  update(dt, adt, players, col, { calm = false } = {}) {
+  update(dt, adt, players, col, { calm = false, granules = true } = {}) {
     const ev = [];
     const b = this.body;
     this.t += dt;
@@ -137,7 +137,9 @@ export class Chaos {
     b.step(adt, input, col);
     b.grid.build(b.x, b.y, N);
     b.untangle();
-    this.cyto.update(adt, b, this.t);
+    // the granules once per frame (main.js passes granules on its last catch-up step)
+    this.gAcc = (this.gAcc || 0) + adt;
+    if (granules) { this.cyto.update(Math.min(this.gAcc, 4 / 60), b, this.t); this.gAcc = 0; }
     this.placeNuclei();
     return ev;
   }

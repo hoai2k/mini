@@ -30,6 +30,8 @@
 //   input.pods[k].tip: the membrane node a pseudopod starts from when it activates
 //     (default pickTip()); body.branchTip(dx, dy, pod) picks one beside another pod.
 //   body.podReach(pod): how far a pod's tip stands out beyond the body's radius.
+//   body.addPod(): one more steered pseudopod (input.pods[k] drives every pods[k] that
+//     is not idle; pods[0] and pods[1] are the two the original interface steers).
 //   The ring never crosses itself: self-contact keeps nodes off non-adjacent segments
 //   (spatial hash), necks resist thinning (opts.neck), and step() ends with untangle(),
 //   which undoes any move that made two segments cross (call it again after moving
@@ -204,12 +206,15 @@ export class Body {
 
     // -- pseudopod controls ---------------------------------------------------
     const pl = this.pods;
-    for (let k = 0; k < 2; k++) {
-      const pod = pl[k], st = input.pods[k];
+    let playing = 0;
+    for (let k = 0; k < pl.length; k++) {
+      const pod = pl[k];
+      if (pod.idle) continue;
+      const st = input.pods[k];
       if (st && st.m > 0.06) {
         if (!pod.active) {
           pod.active = true;
-          pod.tip = st.tip != null ? st.tip : this.pickTip(st.dx, st.dy, pl[1 - k].active ? pl[1 - k].tip : -1);
+          pod.tip = st.tip != null ? st.tip : this.pickTip(st.dx, st.dy, k < 2 ? (pl[1 - k].active ? pl[1 - k].tip : -1) : -1);
           pod.ret = 0;
         }
         pod.dx = st.dx; pod.dy = st.dy;
@@ -220,10 +225,11 @@ export class Body {
         pod.target = 0;
         pod.ret = 1;
       }
+      playing += pod.s;
     }
-    const playing = pl[0].s + pl[1].s;
     for (let k = 2; k < pl.length; k++) {
       const pod = pl[k];
+      if (!pod.idle) continue;
       pod.life -= dt;
       if (pod.life <= 0) {
         const a = this.rand() * TAU;
@@ -829,6 +835,16 @@ export class Body {
       x[k] = ox[seg] + (ox[j] - ox[seg]) * t;
       y[k] = oy[seg] + (oy[j] - oy[seg]) * t;
     }
+  }
+
+  /**
+   * Another steered pseudopod (appended after the idle ones): input.pods[k] drives
+   * pods[k] for every pod that is not idle, so a caller can steer more than two.
+   */
+  addPod() {
+    const p = new Pod(this.pods.length);
+    this.pods.push(p);
+    return p;
   }
 
   /** How far a pod's tip stands out along its direction beyond the body's radius (µm). */

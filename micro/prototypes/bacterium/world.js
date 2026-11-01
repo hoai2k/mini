@@ -4,7 +4,20 @@
 // drift; other bacteria run and tumble or sit in the biofilm.
 // Units: µm and seconds. +y is toward the air (the meniscus), −y into the sediment.
 
-export const WORLD = { x0: -210, x1: 210, y0: -135, y1: 135, slabY: -72 };
+// The level runs left to right: you start at START (lower left) and the way on
+// (the host cell, LANDMARK) is far to the upper right, far enough for a calm
+// first half (exploring, gathering a collective) and every challenge in the
+// second: grazers, phage clouds, Bdellovibrio, the amoeba and the boss all sit
+// (or only come) at or beyond halfway.
+export const WORLD = { x0: -210, x1: 650, y0: -135, y1: 135, slabY: -72 };
+export const START = { x: -20, y: -20 };
+export const LANDMARK = { x: 560, y: 24 };
+const PATH = { dx: LANDMARK.x - START.x, dy: LANDMARK.y - START.y };
+PATH.len = Math.hypot(PATH.dx, PATH.dy);
+/** How far along the way from the start to the host cell (0 at the start, 1 at the host). */
+export function progress(x, y) { return ((x - START.x) * PATH.dx + (y - START.y) * PATH.dy) / (PATH.len * PATH.len); }
+/** The x where progress reaches one half (in the band). */
+export const HALF_X = START.x + PATH.dx * 0.5 + 2;
 
 // Oxygen in % of air saturation: falls roughly exponentially from the
 // meniscus and is used up by the biofilm, reaching zero just above it.
@@ -62,8 +75,8 @@ export function createWorld() {
 
   // --- sediment grains (clay and silt, bigger than any bacterium), static ---
   const grains = [];
-  for (let i = 0; i < 26; i++) {
-    const big = i < 14;
+  for (let i = 0; i < 54; i++) {
+    const big = i < 29;
     const x = W.x0 + r() * (W.x1 - W.x0);
     const y = big ? W.slabY - 6 + r() * 14 : W.slabY + 5 + r() * 120;
     const rad = big ? 6 + r() * 10 : 1.6 + r() * 3;
@@ -71,18 +84,18 @@ export function createWorld() {
   }
   // small clay specks and colloids: Brownian
   const specks = [];
-  for (let i = 0; i < 260; i++) specks.push({ x: W.x0 + r() * (W.x1 - W.x0), y: W.y0 + 30 + r() * (W.y1 - W.y0 - 30), r: 0.12 + r() * 0.3, z: (r() - 0.5) * 2.5, seed: r() * 9 });
+  for (let i = 0; i < 520; i++) specks.push({ x: W.x0 + r() * (W.x1 - W.x0), y: W.y0 + 30 + r() * (W.y1 - W.y0 - 30), r: 0.12 + r() * 0.3, z: (r() - 0.5) * 2.5, seed: r() * 9 });
 
   // --- matrix (EPS) strands in and above the biofilm ---
   const eps = [];
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < 140; i++) {
     const x = W.x0 + r() * (W.x1 - W.x0);
     eps.push({ x, y: W.slabY - 4 + r() * 14, a: (r() - 0.5) * 2.2, L: 8 + r() * 22, amp: 0.4 + r() * 1.2, wl: 6 + r() * 10, ph: r() * 6, z: (r() - 0.5) * 1.2 });
   }
 
   // --- biofilm cells: attached rods, cocci in clusters, below the surface ---
   const film = [];
-  for (let i = 0; i < 520; i++) {
+  for (let i = 0; i < 1040; i++) {
     const x = W.x0 + 4 + r() * (W.x1 - W.x0 - 8);
     const y = surfaceY(x) - 0.8 - Math.pow(r(), 1.6) * 26;
     const coccus = r() < 0.3;
@@ -101,11 +114,12 @@ export function createWorld() {
     cells.push(c);
     return c;
   };
-  for (let i = 0; i < 90; i++) addCell('rod', W.x0 + r() * (W.x1 - W.x0), W.slabY + 4 + Math.pow(r(), 1.4) * 170);
-  for (let i = 0; i < 40; i++) addCell('coccus', W.x0 + r() * (W.x1 - W.x0), W.slabY + 3 + r() * 190);
-  for (let i = 0; i < 16; i++) addCell('chain', W.x0 + r() * (W.x1 - W.x0), W.slabY + 3 + r() * 190);
-  for (let i = 0; i < 10; i++) addCell('mtb', W.x0 + r() * (W.x1 - W.x0), oxygenY(2.5) + (r() - 0.5) * 40);
-  for (let i = 0; i < 3; i++) addCell('bdello', -60 + r() * 120, oxygenY(3) + (r() - 0.5) * 30);
+  for (let i = 0; i < 180; i++) addCell('rod', W.x0 + r() * (W.x1 - W.x0), W.slabY + 4 + Math.pow(r(), 1.4) * 170);
+  for (let i = 0; i < 80; i++) addCell('coccus', W.x0 + r() * (W.x1 - W.x0), W.slabY + 3 + r() * 190);
+  for (let i = 0; i < 32; i++) addCell('chain', W.x0 + r() * (W.x1 - W.x0), W.slabY + 3 + r() * 190);
+  for (let i = 0; i < 20; i++) addCell('mtb', W.x0 + r() * (W.x1 - W.x0), oxygenY(2.5) + (r() - 0.5) * 40);
+  // Bdellovibrio live in the second half only (a challenge: at or beyond halfway)
+  for (let i = 0; i < 4; i++) addCell('bdello', HALF_X + 70 + r() * 160, oxygenY(3) + (r() - 0.5) * 30);
 
   // --- food patches: dissolved organic matter round decaying detritus or a lysed cell ---
   const patches = [];
@@ -119,14 +133,15 @@ export function createWorld() {
   // --- phages ---
   const phages = [];
   function newPhage(x, y) { return { x, y, z: (r() - 0.5) * 1.6, stuck: null }; }
-  for (let i = 0; i < 110; i++) phages.push(newPhage(W.x0 + r() * (W.x1 - W.x0), W.slabY + r() * 200));
+  for (let i = 0; i < 220; i++) phages.push(newPhage(W.x0 + r() * (W.x1 - W.x0), W.slabY + r() * 200));
 
-  for (const [x, y, lys] of [[-40, oxygenY(2), false], [55, oxygenY(1.2), true], [140, oxygenY(3.5), false], [-150, oxygenY(1.0), true], [10, oxygenY(0.6), false], [-95, oxygenY(4), false], [100, W.slabY + 10, false]]) addPatch(x, y, lys);
+  for (const [x, y, lys] of [[-40, oxygenY(2), false], [55, oxygenY(1.2), true], [140, oxygenY(3.5), false], [-150, oxygenY(1.0), true], [10, oxygenY(0.6), false], [-95, oxygenY(4), false], [100, W.slabY + 10, false], [210, oxygenY(1.5), false], [330, oxygenY(2.5), true], [470, oxygenY(1.0), false]]) addPatch(x, y, lys);
 
   // --- grazers: two peritrichs (Vorticella-like) on stalks from the biofilm ---
   const grazers = [
-    { x: -118, base: W.slabY - 4, ang: 0.35, R: 17, ext: 1, contract: 0, next: 18 + r() * 10, seed: 3.1 },
-    { x: 92, base: W.slabY - 4, ang: -0.3, R: 15, ext: 1, contract: 0, next: 26 + r() * 10, seed: 7.7 },
+    // both beyond halfway: their feeding currents reach ~70 µm, so the first stands 85 µm past it
+    { x: HALF_X + 85, base: W.slabY - 4, ang: 0.35, R: 17, ext: 1, contract: 0, next: 18 + r() * 10, seed: 3.1 },
+    { x: HALF_X + 185, base: W.slabY - 4, ang: -0.3, R: 15, ext: 1, contract: 0, next: 26 + r() * 10, seed: 7.7 },
   ];
   const STALK = 46;
   for (const g of grazers) g.stalk = STALK;
@@ -145,15 +160,22 @@ export function createWorld() {
   }
 
   // --- the amoeba's edge, creeping in from the lower right ---
-  const amoeba = { x: 175, y: W.slabY + 26, ang: 2.0, width: 110, depth: 70, amp: 5, seed: 2.2, speed: 1.4 };
+  const amoeba = { x: HALF_X + 160, y: W.slabY + 26, ang: 2.0, width: 110, depth: 70, amp: 5, seed: 2.2, speed: 1.4 };
 
+  // The grazers whose feeding current is on, listed once per step (perf B1):
+  // the sink and the "eaten" test then skip resting grazers and far points cheaply.
+  const feedingNow = [];
+  function listFeeding() {
+    feedingNow.length = 0;
+    if (opts.grazers) for (const g of grazers) if (g.contract <= 0 && g.feeding !== false) feedingNow.push(g);
+  }
   function grazerFlow(x, y, out) {
     out.x = 0; out.y = 0;
-    if (!opts.grazers) return out;
-    for (const g of grazers) {
-      if (g.contract > 0 || g.feeding === false) continue; // the feeding current is off while it rests
+    for (let i = 0; i < feedingNow.length; i++) {
+      const g = feedingNow[i];
       const P = g.pose;
       const dx = P.mouth.x - x, dy = P.mouth.y - y;
+      if (dx > 70 || dx < -70 || dy > 70 || dy < -70) continue;
       const d = Math.hypot(dx, dy) + 1e-6;
       if (d > 70) continue;
       // a sink at the oral funnel, strongest in front of the opening (1/r² in this thin layer)
@@ -203,7 +225,7 @@ export function createWorld() {
   // Paramecium in the open water at the top left, its cilia sweeping the edge
   // of the field.
   const landmarks = {
-    forward: { x: 170, y: 20, a: 0.5, L: 4.4, r: 0.72, reach: 1.6, phages: [], incoming: [] },
+    forward: { x: LANDMARK.x, y: LANDMARK.y, a: 0.5, L: 4.4, r: 0.72, reach: 1.6, phages: [], incoming: [] },
     back: { x: -186, y: 96, r: 38, edge: { x: -203, y: 112, ang: Math.atan2(-0.62, -0.78), L: 150, depth: 90, amp: 3, seed: 4.4 } },
   };
   {
@@ -213,7 +235,14 @@ export function createWorld() {
   }
 
   const world = {
-    landmarks,
+    landmarks, start: START, halfX: HALF_X, progress,
+    /** The y of a given oxygen level (% air saturation). */
+    bandY: oxygenY,
+    /** Is (x, y) within √r2 µm of a feeding grazer's mouth? (members and kin are eaten there) */
+    grazerMouthAt(x, y, r2 = 9) {
+      for (let i = 0; i < feedingNow.length; i++) { const M = feedingNow[i].pose.mouth; if ((x - M.x) ** 2 + (y - M.y) ** 2 < r2) return true; }
+      return false;
+    },
     opts, hunt, grains, specks, eps, film, cells, phages, patches, grazers, amoeba, slab, surfaceY,
     oxygen, food, eat, insideAmoeba, pushOutOfGrains, grazerPose,
     flowAt(x, y) {
@@ -228,6 +257,7 @@ export function createWorld() {
     newPhage,
     r,
     update(dt, t, player) {
+      listFeeding();
       for (const g of grazers) {
         g.pose = grazerPose(g);
         // stalk contraction: the spasmoneme coils in milliseconds, re-extends over seconds
@@ -244,7 +274,7 @@ export function createWorld() {
         } else {
           amoeba.x += Math.sin(t * 0.05) * 0.3 * dt;
         }
-        amoeba.x = Math.max(W.x0 + 30, Math.min(W.x1 - 10, amoeba.x));
+        amoeba.x = Math.max(HALF_X + 50, Math.min(W.x1 - 10, amoeba.x)); // it never creeps back into the first half
         amoeba.y = Math.max(W.slabY - 10, Math.min(W.y1 - 40, amoeba.y));
       }
       const sq = Math.sqrt(dt);
@@ -252,7 +282,7 @@ export function createWorld() {
       // specks: Brownian (D = kT / 6πηr ≈ 0.22/r µm²/s) and carried by the feeding currents
       for (const p of specks) {
         const D = 0.22 / p.r;
-        const f = grazerFlow(p.x, p.y, tmpF);
+        const f = feedingNow.length ? grazerFlow(p.x, p.y, tmpF) : (tmpF.x = tmpF.y = 0, tmpF);
         p.x += f.x * dt + br * Math.sqrt(2 * D) * sq * gauss(r);
         p.y += f.y * dt + br * Math.sqrt(2 * D) * sq * gauss(r);
         if (eatenByGrazer(p)) respawnFar(p, player);
@@ -260,7 +290,7 @@ export function createWorld() {
       // phages: D ≈ 4 µm²/s (a 60 nm head and tail)
       if (opts.phages) for (const p of phages) {
         if (p.stuck) continue;
-        const f = grazerFlow(p.x, p.y, tmpF);
+        const f = feedingNow.length ? grazerFlow(p.x, p.y, tmpF) : (tmpF.x = tmpF.y = 0, tmpF);
         p.x += f.x * dt + br * 2.9 * sq * gauss(r);
         p.y += f.y * dt + br * 2.9 * sq * gauss(r);
         if (eatenByGrazer(p) || p.x < W.x0 || p.x > W.x1 || p.y < W.slabY - 10 || p.y > W.y1) respawnFar(p, player);
@@ -273,7 +303,8 @@ export function createWorld() {
           patches.splice(i, 1);
           const y = oxygenY(0.6 + r() * 5);
           let x = W.x0 + 20 + r() * (W.x1 - W.x0 - 40);
-          if (Math.abs(x - player.x) < 40) x = -x;
+          if (Math.abs(x - player.x) < 40) x = player.x + (x < player.x ? -60 : 60);
+          x = Math.max(W.x0 + 20, Math.min(W.x1 - 20, x));
           addPatch(x, y, r() < 0.4);
         }
       }
@@ -288,11 +319,9 @@ export function createWorld() {
   };
 
   function eatenByGrazer(p) {
-    if (!opts.grazers) return false;
-    for (const g of grazers) {
-      if (g.contract > 0 || g.feeding === false) continue;
-      const P = g.pose;
-      if ((p.x - P.mouth.x) ** 2 + (p.y - P.mouth.y) ** 2 < 9) return true;
+    for (let i = 0; i < feedingNow.length; i++) {
+      const M = feedingNow[i].pose.mouth;
+      if ((p.x - M.x) ** 2 + (p.y - M.y) ** 2 < 9) return true;
     }
     return false;
   }
@@ -366,11 +395,14 @@ export function createWorld() {
     if (c.y > W.y1 - 2) { c.y = W.y1 - 2; c.a = -c.a; }
     if (c.x < W.x0) c.x += W.x1 - W.x0;
     if (c.x > W.x1) c.x -= W.x1 - W.x0;
+    // Bdellovibrio keep to the second half (they turn back at halfway)
+    if (c.kind === 'bdello' && c.x < HALF_X + 10) { c.x = HALF_X + 10; c.a = Math.PI - c.a; }
     pushOutOfGrains(c, c.r);
-    if (eatenByGrazer(c)) { c.x = W.x0 + r() * (W.x1 - W.x0); c.y = W.slabY + 20 + r() * 150; }
+    if (feedingNow.length && eatenByGrazer(c)) { c.x = c.kind === 'bdello' ? HALF_X + 40 + r() * 200 : W.x0 + r() * (W.x1 - W.x0); c.y = W.slabY + 20 + r() * 150; }
     void player; void t;
   }
 
   for (const g of grazers) g.pose = grazerPose(g);
+  listFeeding();
   return world;
 }

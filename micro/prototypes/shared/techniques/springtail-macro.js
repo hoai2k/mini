@@ -288,7 +288,7 @@ void main() {
 // The output is the background colour with the foreground composited over it
 // (alpha = foreground coverage), independent of the tap radius.
 const GATHER_FS = /* glsl */ `
-uniform sampler2D tPre, tTile; uniform vec2 uTexel, uTileTexel; uniform float uMaxCoc, uRim;
+uniform sampler2D tPre, tTile; uniform vec2 uTexel, uTileTexel; uniform float uMaxCoc, uRim, uTaps;
 varying vec2 vUv;
 void main() {
   vec4 c = texture2D(tPre, vUv);
@@ -298,12 +298,13 @@ void main() {
   float R = min(max(cc, tfg), uMaxCoc);
   if (R < 0.75) { gl_FragColor = vec4(c.rgb, 0.0); return; }
   float rot = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) * 6.2831853;
-  float tapA = R * R / 64.0; // tap area / pi
+  float tapA = R * R / uTaps; // tap area / pi
   vec3 bg = c.rgb; float bw = 1.0;
   vec3 fg = vec3(0.0); float fw = 0.0;
   for (int i = 0; i < 64; i++) {
     float fi = float(i);
-    float r = sqrt((fi + 0.5) / 64.0) * R;
+    if (fi >= uTaps) break; // fewer taps at a lower quality level (options.taps)
+    float r = sqrt((fi + 0.5) / uTaps) * R;
     float th = fi * 2.3999632 + rot;
     vec4 s = texture2D(tPre, vUv + vec2(cos(th), sin(th)) * r * uTexel);
     float cs = abs(s.a);
@@ -373,7 +374,7 @@ export function createMacro(renderer) {
   const mk = (fs, uniforms) => new THREE.ShaderMaterial({ vertexShader: FS_VS, fragmentShader: fs, uniforms, depthTest: false, depthWrite: false });
   const pre = mk(PRE_FS, { tScene: { value: sceneRT.texture }, uTexel: { value: new THREE.Vector2() }, uCocK: { value: 1 }, uFocus: macroShared.uFocus, uMaxCoc: { value: 48 } });
   const tile = mk(TILE_FS, { tPre: { value: preRT.texture }, uTexel: { value: new THREE.Vector2() } });
-  const gather = mk(GATHER_FS, { tPre: { value: preRT.texture }, tTile: { value: tileRT.texture }, uTexel: { value: new THREE.Vector2() }, uTileTexel: { value: new THREE.Vector2() }, uMaxCoc: { value: 24 }, uRim: { value: 0.35 } });
+  const gather = mk(GATHER_FS, { tPre: { value: preRT.texture }, tTile: { value: tileRT.texture }, uTexel: { value: new THREE.Vector2() }, uTileTexel: { value: new THREE.Vector2() }, uMaxCoc: { value: 24 }, uRim: { value: 0.35 }, uTaps: { value: 64 } });
   const comp = mk(COMP_FS, {
     tScene: { value: sceneRT.texture }, tBlur: { value: blurRT.texture }, uRes: { value: new THREE.Vector2() }, uCocK: { value: 1 }, uFocus: macroShared.uFocus,
     uMaxCoc: { value: 48 }, uExposure: { value: 1 }, uWarm: { value: 0 }, uCircle: { value: 0 }, uTime: macroShared.uTime, uDof: { value: 1 }, uGrain: { value: 0.012 },
@@ -382,7 +383,7 @@ export function createMacro(renderer) {
   const pass = (mat, target) => { quad.material = mat; renderer.setRenderTarget(target); renderer.render(fsScene, fsCam); };
   const api = {
     sceneRT,
-    options: { dof: true, maxCoc: 48, rim: 0.35, grain: 0.012 },
+    options: { dof: true, maxCoc: 48, rim: 0.35, grain: 0.012, taps: 64 },
     resize(w, h) {
       W = w; H = h;
       sceneRT.setSize(w, h);
@@ -402,7 +403,7 @@ export function createMacro(renderer) {
       const o = api.options;
       pre.uniforms.uCocK.value = k; comp.uniforms.uCocK.value = k;
       pre.uniforms.uMaxCoc.value = o.maxCoc; comp.uniforms.uMaxCoc.value = o.maxCoc;
-      gather.uniforms.uMaxCoc.value = o.maxCoc / 2; gather.uniforms.uRim.value = o.rim;
+      gather.uniforms.uMaxCoc.value = o.maxCoc / 2; gather.uniforms.uRim.value = o.rim; gather.uniforms.uTaps.value = Math.max(8, Math.min(64, o.taps));
       comp.uniforms.uExposure.value = look.exposure; comp.uniforms.uWarm.value = look.warm;
       comp.uniforms.uCircle.value = look.circle; comp.uniforms.uDof.value = o.dof ? 1 : 0; comp.uniforms.uGrain.value = o.grain;
       renderer.setRenderTarget(sceneRT);

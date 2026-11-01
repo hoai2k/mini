@@ -125,7 +125,8 @@ export function createDrawer(world) {
   function draw(S, t, player, view) {
     const W = world;
     // the biofilm and sediment surface
-    S.slab(0, WORLD.slabY, 440, 70, W.slab.amp, W.slab.seed, { dn: 0.014, scat: 0.04, fl: [0.06 * chan.memb, 0, 0.0], ab: [0.012, 0.015, 0.024], z: -0.2, hk: 3 });
+    // centred on x = 0 (its wavy top edge is in local x, matching world.js surfaceY), wide enough for the whole level
+    S.slab(0, WORLD.slabY, 2 * Math.max(-WORLD.x0, WORLD.x1) + 40, 70, W.slab.amp, W.slab.seed, { dn: 0.014, scat: 0.04, fl: [0.06 * chan.memb, 0, 0.0], ab: [0.012, 0.015, 0.024], z: -0.2, hk: 3 });
     for (const e of W.eps) S.strand(e.x, e.y, e.a, e.L, 0.14, e.amp, e.wl, { dn: 0.012, scat: 0.15, centred: true, fl: [0.35 * chan.memb, 0, 0.04], z: e.z, phase: e.ph });
     for (const c of W.film) {
       if (c.kind === 'coccus') S.disc(c.x, c.y, c.r, { ...cell(), z: c.z });

@@ -71,7 +71,6 @@ float lapAt(vec2 uv, float c, float s, vec2 px) {
 void main() {
   vec2 px = 1. / uRes;
   vec4 P = texture2D(uFocus, vUv) + texture2D(uDef, vUv);
-  vec4 Hb = texture2D(uHalo, vUv) + texture2D(uDef, vUv);
   float s = 1.6;
   float pr = phaseAt(vUv + vec2(px.x * s, 0.)), pl = phaseAt(vUv - vec2(px.x * s, 0.));
   float pu = phaseAt(vUv + vec2(0., px.y * s)), pd = phaseAt(vUv - vec2(0., px.y * s));
@@ -92,11 +91,13 @@ void main() {
     col = bg * T * clamp(tie, 0.2, 2.) * refr;
     col *= 1. - 0.05 * clamp(P.r, 0., 1.);
   } else if (uMode < 1.5) {
+    vec4 Hb = texture2D(uHalo, vUv) + texture2D(uDef, vUv);
     float ph = P.r - Hb.r;
     vec3 base = vec3(0.55, 0.6, 0.56) * mix(vec3(1.), bgn, 0.5);
     col = base * (1. - 1.9 * ph - 0.25 * P.r) * mix(vec3(1.), T, 0.55);
     col += vec3(0.02) * uFocusK * lap * uTie;
   } else if (uMode < 2.5) {
+    vec4 Hb = texture2D(uHalo, vUv) + texture2D(uDef, vUv);
     float sc = length(grad) * 2.4 + abs(lap) * 0.35 + abs(P.r - Hb.r) * 0.25;
     float bgs = length(bgn - 1.) * 0.6;
     vec3 tint = mix(vec3(0.85, 0.92, 1.), T * 1.4, 0.45);
@@ -193,8 +194,8 @@ export class PropertyOptics {
     // Depth of field: the out-of-focus layer, blurred more the further focus is from it.
     const dof = flags.dof !== false;
     if (dof) this.blur(this.defRT.texture, this.tmpRT, this.defBlurRT, 7 + 5 * (1 - focus));
-    // Halo / low-pass of the focal plane for phase contrast and darkfield.
-    this.blur(this.focusRT.texture, this.haloTmp, this.haloRT, 4.5);
+    // Halo / low-pass of the focal plane: only phase contrast and darkfield read it.
+    if (mode === 1 || mode === 2) this.blur(this.focusRT.texture, this.haloTmp, this.haloRT, 4.5);
     const u = this.compMat.uniforms;
     u.uFocus.value = this.focusRT.texture;
     u.uDef.value = dof ? this.defBlurRT.texture : this.defRT.texture;

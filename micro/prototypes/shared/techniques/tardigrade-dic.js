@@ -45,9 +45,17 @@
 //                blurred 2-texture targets) instead of composing an image
 //     target     optional: compose into this render target instead of the screen
 //                (a split-screen view, see shared/splitscreen.js)
+//     viewScale  optional (default 1): use only this fraction (each axis) of the
+//                optical buffers, e.g. 0.55 for a quarter-screen split view. The
+//                buffers are not reallocated, so changing it every frame is free.
 //   Options (live): mic.mode 0 DIC / 1 brightfield; mic.opts = { dof, grain, vignette, fringes,
 //     backdrop, shear (nm), bias (nm), angle (shear direction, radians) }.
-//   Performance: mic.setQuality(0..3), or mic.autoQuality(dt) every frame.
+//   Performance: mic.setQuality(0..3), or mic.autoQuality(dt) every frame; or drive it from
+//     a governor (shared/quality.js) with mic.setScale(s) (buffer resolution, reallocates)
+//     and mic.taps (blur taps, free), plus render({ viewScale }) per split view.
+//   Precision: new DicMicroscope(..., { precision: 'half' }) uses RGBA16F buffers (half the
+//     bandwidth; blending needs no extension in WebGL2). Default 'auto': RGBA32F where
+//     EXT_float_blend exists, else half float.
 //   Lit or other looks: render your own way instead of calling render().
 import * as THREE from '../vendor/three.module.min.js';
 
@@ -115,6 +123,7 @@ in vec2 vUv;
 uniform sampler2D tOpd;
 uniform sampler2D tAbs;
 uniform vec2 uRes;
+uniform vec2 uUv;   // fraction of the buffer in use (viewScale)
 uniform float uCoc;
 uniform float uMaxR;
 uniform float uFocus;
@@ -129,8 +138,10 @@ float coc(vec4 o) {
 }
 float ign(vec2 p) { return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }
 void main() {
-  vec4 c0 = texture(tOpd, vUv);
-  vec4 a0 = texture(tAbs, vUv);
+  vec2 uv0 = vUv * uUv;
+  vec2 lo = 0.5 / uRes, hi = uUv - 0.5 / uRes;
+  vec4 c0 = texture(tOpd, uv0);
+  vec4 a0 = texture(tAbs, uv0);
   if (uMaxR < 0.5) { oOpd = c0; oAbs = a0; return; }
   float cself = coc(c0);
   vec4 sumO = c0, sumA = a0;
@@ -141,7 +152,7 @@ void main() {
     float fi = float(i);
     float r = sqrt(fi / float(uTaps)) * uMaxR;
     float a = fi * 2.39996 + rot;
-    vec2 uv = vUv + vec2(cos(a), sin(a)) * r / uRes;
+    vec2 uv = clamp(uv0 + vec2(cos(a), sin(a)) * r / uRes, lo, hi);
     vec4 o = texture(tOpd, uv);
     // A sample spreads here if its blur circle reaches this far; empty samples
     // count where this pixel itself is defocused, so edges soften both ways.
@@ -159,6 +170,7 @@ precision highp float;
 in vec2 vUv;
 uniform sampler2D tOpdA, tAbsA, tOpdB, tAbsB, tBack;
 uniform vec2 uRes;
+uniform vec2 uUv;
 uniform int uMode;
 uniform float uPxPerUnit;
 uniform float uShear;
@@ -172,14 +184,15 @@ float opd(vec2 uv) { return texture(tOpdA, uv).r + texture(tOpdB, uv).r; }
 float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 void main() {
   vec2 px = 1.0 / uRes;
-  vec4 aA = texture(tAbsA, vUv), aB = texture(tAbsB, vUv);
+  vec2 uv = vUv * uUv;
+  vec4 aA = texture(tAbsA, uv), aB = texture(tAbsB, uv);
   vec3 absb = aA.rgb + aB.rgb;
   float direct = aA.a + aB.a;
   float back = (texture(tBack, vUv * uBackOff.z + uBackOff.xy).r - 0.5) * uBackdrop;
   vec3 col;
   if (uMode == 0) {
     vec2 s = uDir * px * 1.5;
-    float g = (opd(vUv + s) - opd(vUv - s)) / (3.0 / uPxPerUnit);
+    float g = (opd(uv + s) - opd(uv - s)) / (3.0 / uPxPerUnit);
     // Strong steps (menisci, leaf margins) saturate softly instead of clipping.
     float gamma = uBias + 230.0 * tanh(uShear * g / 230.0) + back * 40.0;
     vec3 lam = mix(vec3(540.0), vec3(630.0, 540.0, 465.0), uFringes);
@@ -191,9 +204,9 @@ void main() {
     col += direct * 0.6;
     col *= vec3(1.02, 1.0, 0.95);
   } else {
-    float c = opd(vUv);
-    float xp = opd(vUv + vec2(px.x, 0.0)), xm = opd(vUv - vec2(px.x, 0.0));
-    float yp = opd(vUv + vec2(0.0, px.y)), ym = opd(vUv - vec2(0.0, px.y));
+    float c = opd(uv);
+    float xp = opd(uv + vec2(px.x, 0.0)), xm = opd(uv - vec2(px.x, 0.0));
+    float yp = opd(uv + vec2(0.0, px.y)), ym = opd(uv - vec2(0.0, px.y));
     float l = xp + xm + yp + ym - 4.0 * c;
     vec2 gr = vec2(xp - xm, yp - ym) * uPxPerUnit * 0.5;
     col = vec3(0.92, 0.9, 0.82) * (1.0 + back * 0.08);
@@ -209,12 +222,12 @@ void main() {
 }`;
 
 export class DicMicroscope {
-  constructor(renderer, scene, camera, { layers = [1, 2], backdrop = null, scale = 0.7 } = {}) {
+  constructor(renderer, scene, camera, { layers = [1, 2], backdrop = null, scale = 0.7, precision = 'auto' } = {}) {
     Object.assign(this, { renderer, scene, camera, layers, scale });
     this.mode = 0;
     this.opts = { dof: true, grain: true, vignette: true, fringes: true, backdrop: true, shear: 260, bias: 95, angle: Math.PI / 4 };
     renderer.extensions.get('EXT_color_buffer_float');
-    this.type = renderer.extensions.get('EXT_float_blend') ? THREE.FloatType : THREE.HalfFloatType;
+    this.type = precision !== 'half' && renderer.extensions.get('EXT_float_blend') ? THREE.FloatType : THREE.HalfFloatType;
     const mk = this.mk = (w = 4, h = 4) => {
       const rt = new THREE.WebGLRenderTarget(w, h, { count: 2, type: this.type, format: THREE.RGBAFormat, depthBuffer: false });
       for (const t of rt.textures) { t.minFilter = t.magFilter = THREE.LinearFilter; t.generateMipmaps = false; }
@@ -230,10 +243,10 @@ export class DicMicroscope {
     tri.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
     this.fsCam = new THREE.Camera();
     const raw = (frag, uniforms) => new THREE.RawShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: FS_VERT, fragmentShader: frag, depthTest: false, depthWrite: false, uniforms });
-    this.blurMat = raw(BLUR_FRAG, { tOpd: { value: null }, tAbs: { value: null }, uRes: { value: new THREE.Vector2() }, uCoc: { value: 10 }, uMaxR: { value: 16 }, uFocus: { value: 0 }, uDof: { value: 0.05 }, uTaps: { value: 36 } });
+    this.blurMat = raw(BLUR_FRAG, { tOpd: { value: null }, tAbs: { value: null }, uRes: { value: new THREE.Vector2() }, uUv: { value: new THREE.Vector2(1, 1) }, uCoc: { value: 10 }, uMaxR: { value: 16 }, uFocus: { value: 0 }, uDof: { value: 0.05 }, uTaps: { value: 36 } });
     this.compMat = raw(COMP_FRAG, {
       tOpdA: { value: null }, tAbsA: { value: null }, tOpdB: { value: null }, tAbsB: { value: null },
-      tBack: backdrop, uRes: { value: new THREE.Vector2() }, uMode: { value: 0 }, uPxPerUnit: { value: 100 },
+      tBack: backdrop, uRes: { value: new THREE.Vector2() }, uUv: { value: new THREE.Vector2(1, 1) }, uMode: { value: 0 }, uPxPerUnit: { value: 100 },
       uShear: { value: 260 }, uBias: { value: 95 }, uDir: { value: new THREE.Vector2(0.7071, 0.7071) }, uTime: { value: 0 },
       uBackOff: { value: new THREE.Vector3(0, 0, 1) }, uGrain: { value: 1 }, uVignette: { value: 1 }, uFringes: { value: 1 }, uBackdrop: { value: 1 },
     });
@@ -254,6 +267,17 @@ export class DicMicroscope {
     this.blurMat.uniforms.uTaps.value = [10, 16, 26, 36][this.quality];
     if (this.out) this.setSize(this.out.x, this.out.y);
   }
+
+  /** Buffer resolution as a fraction of the output (reallocates when it changes). */
+  setScale(s) {
+    if (Math.abs(s - this.scale) < 1e-4) return;
+    this.scale = s;
+    if (this.out) this.setSize(this.out.x, this.out.y);
+  }
+
+  /** Defocus blur taps (cost per pixel), free to change. */
+  get taps() { return this.blurMat.uniforms.uTaps.value; }
+  set taps(n) { this.blurMat.uniforms.uTaps.value = Math.max(4, Math.min(47, n | 0)); }
 
   autoQuality(dt) {
     const a = (this._aq ||= { t: 0, n: 0, sum: 0, cool: 2 });
@@ -280,6 +304,17 @@ export class DicMicroscope {
     const prevClear = r.getClearColor(new THREE.Color()), prevA = r.getClearAlpha();
     const prevMask = cam.layers.mask;
     r.setClearColor(0x000000, 0);
+    // Only part of each buffer may be used (a split view): a sub-viewport.
+    const vs = Math.max(0.05, Math.min(1, p.viewScale || 1));
+    const uw = Math.max(4, Math.round(this.size.x * vs)), uh = Math.max(4, Math.round(this.size.y * vs));
+    const full = uw === this.size.x && uh === this.size.y;
+    const sub = (rt) => {
+      rt.viewport.set(0, 0, uw, uh); rt.scissor.set(0, 0, uw, uh); rt.scissorTest = !full;
+      return rt;
+    };
+    for (const k in this.rt) sub(this.rt[k]);
+    const used = _used.set(uw, uh);
+    const frac = _frac.set(uw / this.size.x, uh / this.size.y);
     const pass = (layer, rt) => {
       cam.layers.set(layer);
       r.setRenderTarget(rt);
@@ -295,9 +330,10 @@ export class DicMicroscope {
       pass(this.layers[1], this.rt.b);
     }
     cam.layers.mask = prevMask;
-    const scale = this.size.y / 720;
+    const scale = used.y / 720;
     const bu = this.blurMat.uniforms;
     bu.uRes.value.copy(this.size);
+    bu.uUv.value.copy(frac);
     bu.uCoc.value = p.cocPerUnit * scale;
     bu.uMaxR.value = o.dof ? Math.min(22, 18 * scale + 2) : 0;
     bu.uFocus.value = p.focus;
@@ -319,8 +355,9 @@ export class DicMicroscope {
     cu.tOpdA.value = this.rt.ab.textures[0]; cu.tAbsA.value = this.rt.ab.textures[1];
     cu.tOpdB.value = this.rt.bb.textures[0]; cu.tAbsB.value = this.rt.bb.textures[1];
     cu.uRes.value.copy(this.size);
+    cu.uUv.value.copy(frac);
     cu.uMode.value = this.mode;
-    cu.uPxPerUnit.value = p.pxPerUnit * (this.size.y / this.out.y);
+    cu.uPxPerUnit.value = p.pxPerUnit * (used.y / this.out.y);
     cu.uTime.value = p.time;
     if (p.backOff) cu.uBackOff.value.copy(p.backOff);
     cu.uShear.value = o.shear; cu.uBias.value = o.bias;
@@ -333,3 +370,4 @@ export class DicMicroscope {
     r.render(this.fsScene, this.fsCam);
   }
 }
+const _used = new THREE.Vector2(), _frac = new THREE.Vector2();

@@ -1,5 +1,5 @@
-// The water around one host cell, as a Goodsell-style molecular illustration.
-// Units: 1 = 10 nm. x right, y up toward the sunlit surface film, z toward the
+// The water around the host cells, drawn in realistic false light by default
+// (or as a Goodsell-style molecular illustration). Units: 1 = 10 nm. x right, y up toward the sunlit surface film, z toward the
 // camera (the play space is a thick slab, ~0.8 µm deep).
 //
 //  - Host rods (two with receptor patches, one wrong host with none), slowly
@@ -8,14 +8,42 @@
 //  - A clay/peat platelet near the top: grabs extended fibres, shields from UV.
 //  - The edge of an amoeba at the left, which can reach out a pseudopod.
 //  - A crowd of jostling molecules and colloids that wraps around the camera.
-//  - UV from the surface: uvAt(y).
+//  - UV from the surface: uvAt(x, y), only where a gap in the floating peat
+//    mat lets the sun in (the far half of the route).
+//
+// Placement (the owner, 31 October 2026): the destination, Host A (the
+// receptor-rich host with the best odds), lies far up and to the right of the
+// start, so the first half of the route is calm open water to explore. Every
+// challenge (the wrong-host decoy, Host B with its matching CRISPR spacer, the
+// amoeba's edge, the sunlit UV and its clay shelter, the stray damaged phage)
+// sits at or beyond halfway; the CRISPR boss is inside the host. world.placements()
+// lists each one's fraction of the route.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { toonMaterial, inked, inkedInstanced, blobGeometry } from '../shared/techniques/phage-goodsell.js';
 
-export const BOUNDS = { x0: -275, x1: 470, y0: -245, y1: 255, z0: -34, z1: 34 };
-export const UV = { y0: 105, y1: 245 };
-/** UV-B dose rate 0..1 at height y (humic water absorbs it within a short depth). */
-export const uvAt = (y) => { const s = Math.max(0, Math.min(1, (y - UV.y0) / (UV.y1 - UV.y0))); return s * s * (3 - 2 * s); };
+export const BOUNDS = { x0: -420, x1: 1120, y0: -330, y1: 680, z0: -34, z1: 34 };
+/** The start (clear water, lower left) and the destination (Host A's home, upper right). */
+export const START = new THREE.Vector3(-200, -200, 0);
+export const DEST = new THREE.Vector3(880, 420, 0);
+/** The sunlit water: above y0 (to y1), and only right of the peat mat's edge (x0 to x1 fades it in). */
+export const UV = { y0: 520, y1: 660, x0: 300, x1: 470 };
+const smooth01 = (x) => { const s = Math.max(0, Math.min(1, x)); return s * s * (3 - 2 * s); };
+/** How much sun gets through the floating peat mat at x (0 shaded .. 1 open). */
+export const uvSun = (x) => smooth01((x - UV.x0) / (UV.x1 - UV.x0));
+/** UV-B dose rate 0..1 at (x, y): humic water absorbs it within a short depth, and the mat shades the first half. */
+export const uvAt = (x, y) => smooth01((y - UV.y0) / (UV.y1 - UV.y0)) * uvSun(x);
+/** Fraction of the route (start 0 .. destination 1) at point p, by projection. */
+/** Where the stray UV-damaged phage drifts (solo multiplicity reactivation), sheltering below the clay. */
+export const STRAY_HOME = new THREE.Vector3(690, 470, 0);
+export function routeProgress(p) {
+  const dx = DEST.x - START.x, dy = DEST.y - START.y;
+  return ((p.x - START.x) * dx + (p.y - START.y) * dy) / (dx * dx + dy * dy);
+}
+/** Distance of p from the straight route. */
+export function routeOffset(p) {
+  const dx = DEST.x - START.x, dy = DEST.y - START.y, l = Math.hypot(dx, dy);
+  return Math.abs((p.x - START.x) * dy - (p.y - START.y) * dx) / l;
+}
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
@@ -23,11 +51,11 @@ const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vect
 const UP = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
 
 const HOSTS = [
-  { id: 'A', name: 'Host A', home: [-30, -150, 0], angle: 0.1, half: 78, r: 38, patches: [[-48, -0.25], [8, 0.35], [52, -0.1], [-48, Math.PI - 0.25]],
+  { id: 'A', name: 'Host A', home: [DEST.x, DEST.y, 0], angle: 0.1, half: 78, r: 38, patches: [[-48, -0.25], [8, 0.35], [52, -0.1], [-48, Math.PI - 0.25]],
     receptors: 'OmpC + LPS', defence: 'Restriction enzyme; CRISPR with no matching spacer', odds: 0.6, crispr: false, color: '#eef3c4', lps: '#86c06a' },
-  { id: 'B', name: 'Host B', home: [300, -130, -4], angle: -0.45, half: 58, r: 36, patches: [[-20, 0.2], [30, -0.3]],
+  { id: 'B', name: 'Host B', home: [650, 160, -4], angle: -0.45, half: 58, r: 36, patches: [[-20, 0.2], [30, -0.3]],
     receptors: 'OmpC + LPS', defence: 'Restriction enzyme; CRISPR carrying a matching spacer', odds: 0.15, crispr: true, color: '#f1efc0', lps: '#9cc36a' },
-  { id: 'W', name: 'Wrong host', home: [150, 10, 0], angle: 0.85, half: 46, r: 30, patches: [],
+  { id: 'W', name: 'Wrong host', home: [430, 175, 0], angle: 0.85, half: 46, r: 30, patches: [],
     receptors: 'none (a Gram-positive: thick wall, no outer membrane, no OmpC)', defence: '—', odds: 0, crispr: false, wrong: true, color: '#ead9b8', lps: '#c9ad78' },
 ];
 
@@ -51,17 +79,30 @@ export function createWorld(scene) {
 
   // --- hosts ---
   const lpsGeo = blobGeometry([{ p: [0, 0.6, 0], r: 0.7, c: '#ffffff' }, { p: [0, 1.7, 0], r: 0.65, c: '#ffffff' }, { p: [0.2, 2.8, 0], r: 0.6, c: '#ffffff' }, { p: [0, 3.8, 0.2], r: 0.7, c: '#e8f0c0' }], 0);
+  // The grab targets: matching receptors have three gold lobes with dark sockets on a beaded stalk;
+  // non-matching proteins two violet lobes (shape tells them apart in greyscale too).
+  const proteinGeo = (lobes, c) => blobGeometry([
+    { p: [0, 1.0, 0], r: 1.15, c }, { p: [0, 2.9, 0], r: 1.0, c }, { p: [0, 4.7, 0], r: 0.95, c },
+    ...Array.from({ length: lobes }, (_, k) => { const a = k * Math.PI * 2 / lobes; return { p: [Math.cos(a) * 2.2, 7, Math.sin(a) * 2.2], r: 2.5, c }; }),
+    ...Array.from({ length: lobes }, (_, k) => { const a = k * Math.PI * 2 / lobes; return { p: [Math.cos(a) * 2.2, 8.9, Math.sin(a) * 2.2], r: 0.8, c: '#4b4055' }; }),
+  ], 1);
+  const goodProteinGeo = proteinGeo(3, '#ffd264'), badProteinGeo = proteinGeo(2, '#aa84cc');
+  const goodProteinMat = toonMaterial({ vertexColors: true, fl: { color: '#ffd264', keep: 1, glow: 0.22, glowColor: '#ffc24a', trans: 0.7, spec: 0.7 } });
+  const badProteinMat = toonMaterial({ vertexColors: true, fl: { color: '#aa84cc', keep: 0.85, trans: 0.8, spec: 0.6 } });
   const ompGeo = blobGeometry([{ p: [0.9, 1, 0], r: 1.1, c: '#ffffff' }, { p: [-0.45, 1, 0.8], r: 1.1, c: '#ffffff' }, { p: [-0.45, 1, -0.8], r: 1.1, c: '#ffffff' }, { p: [0, 2.2, 0], r: 0.7, c: '#ffe0b0' }], 1);
   for (const def of HOSTS) {
     const g = new THREE.Group();
-    const mat = toonMaterial({ color: def.color, wobble: 1.2, wobbleFreq: 0.05, map: envTex, mapRepeat: [6, 3], mottle: 0.2 });
+    // false light: a teal-blue, translucent, wet and lumpy envelope; the Gram-positive decoy duller and greener
+    const mat = toonMaterial({ color: def.color, wobble: 1.2, wobbleFreq: 0.05, map: envTex, mapRepeat: [6, 3], mottle: 0.2,
+      fl: def.wrong ? { color: '#3f6f62', color2: '#7a8a52', keep: 0, trans: 0.7, bump: 1.2, spec: 0.5, scale: 0.05 }
+        : { color: '#1d7187', color2: '#2a4d9a', keep: 0, trans: 0.95, bump: 1.7, spec: 0.9, scale: 0.045 } });
     const geo = new THREE.CapsuleGeometry(def.r, def.half * 2, 10, 32);
     geo.rotateZ(Math.PI / 2);
     const body = inked(geo, mat, { width: 1.3 });
     g.add(body);
     // LPS forest
     const nL = Math.round(def.half * def.r * 0.34);
-    const lps = inkedInstanced(lpsGeo, toonMaterial({ color: '#ffffff', mottle: 0.1 }), nL, { width: 0.5 });
+    const lps = inkedInstanced(lpsGeo, toonMaterial({ color: '#ffffff', mottle: 0.1, fl: { color: '#8ea4dc', color2: '#cfe0f4', keep: 0, trans: 0.8, spec: 0.5, scale: 0.3 } }), nL, { width: 0.5 });
     const lc = new THREE.Color(def.lps);
     const host = { ...def, group: g, body, mat, pos: new THREE.Vector3(...def.home), vel: new THREE.Vector3(), ang: def.angle, angVel: 0, patchList: [], rings: [] };
     const pt = (u, phi, out) => out.set(u, Math.cos(phi) * def.r, Math.sin(phi) * def.r);
@@ -85,7 +126,7 @@ export function createWorld(scene) {
     // OmpC receptor patches
     if (def.patches.length) {
       const per = 16;
-      const omp = inkedInstanced(ompGeo, toonMaterial({ color: '#ffffff' }), def.patches.length * per, { width: 0.6 });
+      const omp = inkedInstanced(ompGeo, toonMaterial({ color: '#ffffff', fl: { color: '#4560c8', color2: '#86a6f2', keep: 0, trans: 0.75, spec: 0.7, scale: 0.35 } }), def.patches.length * per, { width: 0.6 });
       let k = 0;
       for (const [u0, phi0] of def.patches) {
         surf(u0, phi0, _p, n);
@@ -115,25 +156,21 @@ export function createWorld(scene) {
       ...[[-def.half * 0.8, 2.25], [0, Math.PI], [def.half * 0.65, 2.8], [0, -0.35]]
         .map(([u, phi]) => ({ u, phi, compatible: false })),
     ];
-    for (const [i, site] of sites.entries()) {
-      surf(site.u, site.phi, _p, n);
-      const protein = { id: `${def.id}-${i}`, host, compatible: site.compatible,
-        surface: _p.clone(), normal: n.clone(), local: _p.clone().addScaledVector(n, 7) };
-      const model = new THREE.Group(); model.position.copy(protein.surface);
-      model.quaternion.setFromUnitVectors(UP, n);
-      const color = site.compatible ? '#ffd264' : '#aa84cc';
-      const stem = inked(new THREE.CylinderGeometry(0.8, 1.2, 6, 8), toonMaterial({ color }), { width: 0.4 });
-      stem.position.y = 3; model.add(stem);
-      const count = site.compatible ? 3 : 2;
-      for (let lobe = 0; lobe < count; lobe++) {
-        const angle = lobe * Math.PI * 2 / count;
-        const bead = inked(new THREE.IcosahedronGeometry(2.5, 1), toonMaterial({ color }), { width: 0.45 });
-        bead.position.set(Math.cos(angle) * 2.2, 7, Math.sin(angle) * 2.2); model.add(bead);
-        // A dark central socket reinforces the three-lobed shape in greyscale too.
-        const socket = new THREE.Mesh(new THREE.SphereGeometry(0.8, 8, 6), toonMaterial({ color: '#4b4055' }));
-        socket.position.copy(bead.position).add(new THREE.Vector3(0, 1.9, 0)); model.add(socket);
-      }
-      g.add(model); protein.model = model; world.proteins.push(protein);
+    // One instanced mesh per kind and host (two draws, not a dozen meshes per protein).
+    for (const compatible of [true, false]) {
+      const list = sites.filter((x) => x.compatible === compatible);
+      const mesh = inkedInstanced(compatible ? goodProteinGeo : badProteinGeo, compatible ? goodProteinMat : badProteinMat, list.length, { width: 0.45 });
+      mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+      list.forEach((site, k) => {
+        surf(site.u, site.phi, _p, n);
+        const protein = { id: `${def.id}-${world.proteins.filter((q) => q.host === host).length}`, host, compatible,
+          surface: _p.clone(), normal: n.clone(), local: _p.clone().addScaledVector(n, 7) };
+        _m.compose(_p, _q.setFromUnitVectors(UP, n), _s.setScalar(1));
+        mesh.setMatrixAt(k, _m);
+        world.proteins.push(protein);
+      });
+      mesh.frustumCulled = false;
+      g.add(mesh);
     }
     g.position.copy(host.pos); g.rotation.z = host.ang;
     scene.add(g);
@@ -183,17 +220,17 @@ export function createWorld(scene) {
   };
 
   // --- clay / peat platelet ---
-  const clay = { group: new THREE.Group(), pos: new THREE.Vector3(250, 172, -6), half: new THREE.Vector3(40, 5.5, 26), ang: 0.14 };
+  const clay = { group: new THREE.Group(), pos: new THREE.Vector3(720, 565, -6), half: new THREE.Vector3(40, 5.5, 26), ang: 0.14 };
   const clayCols = ['#a98b6a', '#8f7556', '#b89b78'];
   for (let i = 0; i < 3; i++) {
     const g = new THREE.BoxGeometry(80 - i * 9, 3.4, 52 - i * 6, 8, 1, 6);
-    const b = inked(g, toonMaterial({ color: clayCols[i], wobble: 0.7, wobbleFreq: 0.08, mottle: 0.35 }), { width: 1.1 });
+    const b = inked(g, toonMaterial({ color: clayCols[i], wobble: 0.7, wobbleFreq: 0.08, mottle: 0.35, fl: { color: '#5f6a5c', color2: '#a08e66', keep: 0.2, trans: 0.35, bump: 1.0, spec: 0.4, scale: 0.08 } }), { width: 1.1 });
     b.position.set(i * 3 - 3, (i - 1) * 3.6, i * 2);
     b.rotation.y = (i - 1) * 0.05;
     clay.group.add(b);
   }
   // humic strands draped on it
-  const strandMat = toonMaterial({ color: '#c9a46a', mottle: 0.25 });
+  const strandMat = toonMaterial({ color: '#c9a46a', mottle: 0.25, fl: { color: '#8a7a50', color2: '#c8b070', keep: 0.2, trans: 0.6 } });
   for (let i = 0; i < 4; i++) {
     const pts = []; let x = rand(-45, -10), y = rand(-2, 8), z = rand(-20, 20);
     for (let k = 0; k < 8; k++) { pts.push(new THREE.Vector3(x, y, z)); x += rand(8, 14); y += rand(-4, 4); z += rand(-5, 5); }
@@ -212,29 +249,30 @@ export function createWorld(scene) {
   };
 
   // --- the amoeba's edge ---
-  const amoeba = { center: new THREE.Vector3(-650, 0, -40), r: 372, reach: 0, tip: new THREE.Vector3(), base: new THREE.Vector3(), cup: 0, target: null };
-  const amoebaMat = toonMaterial({ color: '#d7c3dc', wobble: 22, wobbleFreq: 0.008, mottle: 0.25 });
+  const amoeba = { center: new THREE.Vector3(860, -260, -40), r: 372, reach: 0, tip: new THREE.Vector3(), base: new THREE.Vector3(), cup: 0, target: null };
+  const AMOEBA_FL = { color: '#5b6fb0', color2: '#9ab0d8', keep: 0.15, trans: 1, bump: 0.7, spec: 0.7, scale: 0.02 };
+  const amoebaMat = toonMaterial({ color: '#d7c3dc', wobble: 22, wobbleFreq: 0.008, mottle: 0.25, fl: AMOEBA_FL });
   const amBody = inked(new THREE.SphereGeometry(amoeba.r, 72, 48), amoebaMat, { width: 1.4, wobble: 22, wobbleFreq: 0.008, color: '#4a3550' });
   amBody.position.copy(amoeba.center);
   scene.add(amBody);
   // granules in its ectoplasm, seen through the edge
   const granGeo = blobGeometry([{ p: [0, 0, 0], r: 3, c: '#ffffff' }, { p: [2.4, 1, 0], r: 2.2, c: '#ffffff' }], 1);
-  const gran = inkedInstanced(granGeo, toonMaterial({ color: '#b48fc0' }), 70, { width: 0.8 });
+  const gran = inkedInstanced(granGeo, toonMaterial({ color: '#b48fc0', fl: { color: '#8a7ad0', color2: '#c0b0f0', keep: 0.3, trans: 0.6 } }), 70, { width: 0.8 });
   for (let i = 0; i < 70; i++) {
-    _p.set(-1, rand(-0.6, 0.6), rand(-0.3, 0.5)).normalize().multiplyScalar(amoeba.r - rand(14, 40)).add(amoeba.center);
-    _p.x = Math.max(_p.x, -330);
+    _p.set(rand(-0.7, 0.3), 1, rand(-0.3, 0.5)).normalize().multiplyScalar(amoeba.r - rand(14, 40)).add(amoeba.center);
+    _p.y = Math.max(_p.y, amoeba.center.y + 120);
     _m.compose(_p, _q.random(), _s.setScalar(rand(0.7, 1.6)));
     gran.setMatrixAt(i, _m);
     gran.setColorAt(i, _c.set(['#b48fc0', '#9fb2d8', '#d6a2b6'][i % 3]));
   }
   scene.add(gran);
-  const podMat = toonMaterial({ color: '#d9c4de', wobble: 2.5, wobbleFreq: 0.06, mottle: 0.25 });
+  const podMat = toonMaterial({ color: '#d9c4de', wobble: 2.5, wobbleFreq: 0.06, mottle: 0.25, fl: { ...AMOEBA_FL, scale: 0.08 } });
   const pod = inked(new THREE.CapsuleGeometry(1, 1, 8, 20), podMat, { width: 1.2, color: '#4a3550' });
   pod.visible = false;
   scene.add(pod);
   const lipGeo = new THREE.CapsuleGeometry(4.5, 16, 6, 12);
   const lips = [0, 1].map(() => { const l = inked(lipGeo, podMat, { width: 1.2, color: '#4a3550' }); l.visible = false; scene.add(l); return l; });
-  const vacuole = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), toonMaterial({ color: '#efe2f2', opacity: 0.45 }));
+  const vacuole = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), toonMaterial({ color: '#efe2f2', opacity: 0.45, fl: { color: '#9ab8e0', keep: 0, trans: 1 } }));
   vacuole.visible = false;
   scene.add(vacuole);
   amoeba.mesh = amBody; amoeba.pod = pod; amoeba.lips = lips; amoeba.vacuole = vacuole;
@@ -275,11 +313,11 @@ export function createWorld(scene) {
 
   // --- the backdoor: a flagellum of the Level 5 bacterium sweeping through open water above the hosts ---
   // (20 nm wide; a rotating helix reads as a wave travelling along it)
-  const BACKDOOR = new THREE.Vector3(415, 60, -4);
+  const BACKDOOR = new THREE.Vector3(-300, 20, -4); // beside the start, away from the route
   const flag = new THREE.Group();
   const fpts = [];
   for (let i = 0; i <= 160; i++) { const x = -260 + i * 3.4; const a = i * 0.21; fpts.push(new THREE.Vector3(x, Math.cos(a) * 9, Math.sin(a) * 9)); }
-  const flagMat = toonMaterial({ color: '#9fd0c8', mottle: 0.15 });
+  const flagMat = toonMaterial({ color: '#9fd0c8', mottle: 0.15, fl: { color: '#4f9fb0', color2: '#a0e0e0', keep: 0.2, trans: 0.8, spec: 0.6 } });
   flag.add(inked(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(fpts), 320, 1.3, 6), flagMat, { width: 0.8 }));
   const spin = new THREE.Group(); spin.add(flag);
   spin.position.copy(BACKDOOR); spin.rotation.z = -0.35;
@@ -288,17 +326,18 @@ export function createWorld(scene) {
 
   // --- the crowd of molecules ---
   const TYPES = [
-    { n: 110, s: [1.6, 2.8], sig: 6, geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#b58a52' }, { p: [1, 0.4, 0.2], r: 0.8, c: '#c49a5c' }, { p: [-0.7, 0.8, 0], r: 0.7, c: '#a97f4a' }, { p: [0.2, -0.8, 0.5], r: 0.6, c: '#c8a066' }, { p: [-0.9, -0.4, -0.4], r: 0.6, c: '#b88d55' }], 1) },
-    { n: 80, s: [1.2, 2.0], sig: 8, geo: blobGeometry([{ p: [0, 0, 0], r: 0.9, c: '#ec8fae' }, { p: [0.9, 0.3, 0], r: 0.75, c: '#f1a0bd' }, { p: [-0.5, 0.8, 0.3], r: 0.7, c: '#e07a9c' }, { p: [0.1, -0.7, -0.4], r: 0.7, c: '#f3b0c6' }], 1) },
-    { n: 100, s: [0.9, 1.4], sig: 11, geo: blobGeometry([{ p: [-1, 0, 0], r: 0.55, c: '#8fcf6c' }, { p: [0, 0.3, 0], r: 0.55, c: '#a6dc7a' }, { p: [1, 0, 0.2], r: 0.55, c: '#8fcf6c' }], 0) },
-    { n: 190, s: [0.5, 0.8], sig: 16, geo: blobGeometry([{ p: [0, 0, 0], r: 0.8, c: '#e2483d' }, { p: [0.75, 0.5, 0], r: 0.45, c: '#ffffff' }, { p: [-0.75, 0.5, 0], r: 0.45, c: '#ffffff' }], 0) },
-    { n: 36, s: [2.6, 3.6], sig: 4, geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#6d8fd6' }, { p: [1.3, 0.2, 0], r: 0.9, c: '#7d9de0' }, { p: [-1.2, 0.3, 0.3], r: 0.9, c: '#5f80c8' }, { p: [0.2, 1.2, 0], r: 0.8, c: '#8aa8e6' }, { p: [0.1, -1.1, 0.3], r: 0.85, c: '#6d8fd6' }, { p: [0.3, 0.1, 1.1], r: 0.8, c: '#5d7ec6' }, { p: [-0.3, 0.2, -1.1], r: 0.8, c: '#7d9de0' }], 1) },
-    { n: 40, s: [1.4, 2.0], sig: 5, geo: blobGeometry(Array.from({ length: 7 }, (_, i) => ({ p: [i * 0.9 - 2.7, Math.sin(i * 1.3) * 0.5, Math.cos(i) * 0.3], r: 0.5, c: i % 2 ? '#d8d36a' : '#c2cc5e' })), 1) },
+    { fl: { color: '#4a5fa6', color2: '#8d9fd8', keep: 0.2, trans: 0.7 }, n: 110, s: [1.6, 2.8], sig: 6, geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#b58a52' }, { p: [1, 0.4, 0.2], r: 0.8, c: '#c49a5c' }, { p: [-0.7, 0.8, 0], r: 0.7, c: '#a97f4a' }, { p: [0.2, -0.8, 0.5], r: 0.6, c: '#c8a066' }, { p: [-0.9, -0.4, -0.4], r: 0.6, c: '#b88d55' }], 1) },
+    { fl: { color: '#7a74d4', color2: '#b6a8f0', keep: 0.2, trans: 0.7 }, n: 80, s: [1.2, 2.0], sig: 8, geo: blobGeometry([{ p: [0, 0, 0], r: 0.9, c: '#ec8fae' }, { p: [0.9, 0.3, 0], r: 0.75, c: '#f1a0bd' }, { p: [-0.5, 0.8, 0.3], r: 0.7, c: '#e07a9c' }, { p: [0.1, -0.7, -0.4], r: 0.7, c: '#f3b0c6' }], 1) },
+    { fl: { color: '#5aa6c4', color2: '#9fd6e4', keep: 0.25, trans: 0.7 }, n: 100, s: [0.9, 1.4], sig: 11, geo: blobGeometry([{ p: [-1, 0, 0], r: 0.55, c: '#8fcf6c' }, { p: [0, 0.3, 0], r: 0.55, c: '#a6dc7a' }, { p: [1, 0, 0.2], r: 0.55, c: '#8fcf6c' }], 0) },
+    { fl: { color: '#cfe6f4', color2: '#ffffff', keep: 0, trans: 0.4, glow: 0.35, glowColor: '#bfe6ff' }, n: 190, s: [0.5, 0.8], sig: 16, geo: blobGeometry([{ p: [0, 0, 0], r: 0.8, c: '#e2483d' }, { p: [0.75, 0.5, 0], r: 0.45, c: '#ffffff' }, { p: [-0.75, 0.5, 0], r: 0.45, c: '#ffffff' }], 0) },
+    { fl: { color: '#3a62c4', color2: '#7a9cf0', keep: 0.45, trans: 0.75, spec: 0.6 }, n: 36, s: [2.6, 3.6], sig: 4, geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#6d8fd6' }, { p: [1.3, 0.2, 0], r: 0.9, c: '#7d9de0' }, { p: [-1.2, 0.3, 0.3], r: 0.9, c: '#5f80c8' }, { p: [0.2, 1.2, 0], r: 0.8, c: '#8aa8e6' }, { p: [0.1, -1.1, 0.3], r: 0.85, c: '#6d8fd6' }, { p: [0.3, 0.1, 1.1], r: 0.8, c: '#5d7ec6' }, { p: [-0.3, 0.2, -1.1], r: 0.8, c: '#7d9de0' }], 1) },
+    { fl: { color: '#d6b45c', color2: '#f2dc96', keep: 0.4, trans: 0.6, glow: 0.12 }, n: 40, s: [1.4, 2.0], sig: 5, geo: blobGeometry(Array.from({ length: 7 }, (_, i) => ({ p: [i * 0.9 - 2.7, Math.sin(i * 1.3) * 0.5, Math.cos(i) * 0.3], r: 0.5, c: i % 2 ? '#d8d36a' : '#c2cc5e' })), 1) },
   ];
   const HALF = new THREE.Vector3(175, 120, 0);
   const Z0 = -80, Z1 = 38;
   for (const T of TYPES) {
-    const mesh = inkedInstanced(T.geo, toonMaterial({ vertexColors: true, mottle: 0.12 }), T.n, { width: 0.6 });
+    const mesh = inkedInstanced(T.geo, toonMaterial({ vertexColors: true, mottle: 0.12, fl: T.fl }), T.n, { width: 0.6 });
+    mesh.userData.crowd = true; // its ink is the first to go at low quality
     scene.add(mesh);
     T.mesh = mesh;
     T.items = Array.from({ length: T.n }, () => ({
@@ -308,6 +347,61 @@ export function createWorld(scene) {
     }));
   }
   world.types = TYPES;
+
+  // --- false light only: far cells in the haze (one instanced draw) and fine suspended motes (one draw) ---
+  const farGeo = new THREE.CapsuleGeometry(36, 110, 6, 18); farGeo.rotateZ(Math.PI / 2);
+  const farMat = toonMaterial({ color: '#ffffff', fl: { color: '#1d6a82', color2: '#2d4f98', keep: 0, trans: 1, spec: 0.5, scale: 0.03 } });
+  const FAR = 16;
+  const far = new THREE.InstancedMesh(farGeo, farMat, FAR);
+  for (let i = 0; i < FAR; i++) {
+    const x = BOUNDS.x0 - 200 + (i / (FAR - 1)) * (BOUNDS.x1 - BOUNDS.x0 + 400) + rand(-60, 60);
+    const y = rand(BOUNDS.y0 - 150, BOUNDS.y1 + 50) * 0.7 + (x - START.x) * 0.25;
+    _m.compose(_p.set(x, y, rand(-650, -260)), _q.setFromAxisAngle(Z, rand(-1.2, 1.2)).multiply(new THREE.Quaternion().setFromAxisAngle(UP, rand(-0.6, 0.6))), _s.setScalar(rand(0.8, 1.4)));
+    far.setMatrixAt(i, _m);
+  }
+  far.frustumCulled = false;
+  scene.add(far);
+  const MOTES = 900, moteBox = new THREE.Vector3(240, 180, 110);
+  const mp = new Float32Array(MOTES * 3), ms = new Float32Array(MOTES);
+  for (let i = 0; i < MOTES; i++) { mp[i * 3] = rand(-1, 1) * moteBox.x; mp[i * 3 + 1] = rand(-1, 1) * moteBox.y; mp[i * 3 + 2] = rand(-1, 1) * moteBox.z; ms[i] = rand(0.4, 1); }
+  const moteGeo = new THREE.BufferGeometry();
+  moteGeo.setAttribute('position', new THREE.BufferAttribute(mp, 3));
+  moteGeo.setAttribute('size', new THREE.BufferAttribute(ms, 1));
+  const moteMat = new THREE.ShaderMaterial({
+    uniforms: { uCenter: { value: new THREE.Vector3() }, uBox: { value: moteBox }, uTime: { value: 0 }, uPx: { value: 1 } },
+    vertexShader: `uniform vec3 uCenter; uniform vec3 uBox; uniform float uTime; uniform float uPx; attribute float size; varying float vA;
+      void main(){
+        vec3 p = position + vec3(sin(uTime * 0.3 + position.y) * 3.0, uTime * 1.5 * size, cos(uTime * 0.27 + position.x) * 2.0);
+        p = mod(p - uCenter + uBox, 2.0 * uBox) - uBox + uCenter; // a box of motes wrapped round the view
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        gl_PointSize = clamp(size * uPx * 140.0 / -mv.z, 1.0, 6.0);
+        vA = size * smoothstep(900.0, 60.0, -mv.z);
+        gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `varying float vA; void main(){ vec2 d = gl_PointCoord - 0.5; float a = smoothstep(0.5, 0.0, length(d)); gl_FragColor = vec4(vec3(0.75, 0.92, 1.0) * a * vA * 0.9, a * vA * 0.5); }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  const motes = new THREE.Points(moteGeo, moteMat);
+  motes.frustumCulled = false;
+  scene.add(motes);
+  world.far = far; world.motes = motes;
+  /** Switch the world's false-light extras on or off (with the look). */
+  world.setStyle = (falseLight) => { far.visible = motes.visible = falseLight; };
+  /** Where each challenge sits along the route (0 start .. 1 Host A), for the placement log. */
+  world.placements = () => {
+    const row = (name, p, r = 0) => ({ name, t: +routeProgress(p).toFixed(2), off: +routeOffset(p).toFixed(0), r });
+    const am = amoeba.center.clone();
+    // the amoeba's nearest surface point to the route
+    const t0 = routeProgress(am), on = START.clone().lerp(DEST, t0), edge = am.clone().add(on.clone().sub(am).setLength(amoeba.r));
+    return [
+      row('start', START), row('Host A (destination)', DEST),
+      ...world.hosts.filter((h) => h.id !== 'A').map((h) => row(h.name + (h.wrong ? ' (wrong-host decoy)' : ' (decoy: matching CRISPR spacer)'), new THREE.Vector3(...h.home))),
+      row('amoeba edge (closest to the route)', edge),
+      row('UV: sun gap opens (x0)', new THREE.Vector3(UV.x0, START.y + (UV.x0 - START.x) * (DEST.y - START.y) / (DEST.x - START.x), 0)),
+      row('clay platelet (UV shelter)', clay.pos),
+      row('stray damaged phage', STRAY_HOME),
+      row('backdoor flagellum (not a challenge)', BACKDOOR),
+    ];
+  };
   world.gusts = []; // { p, dir, t }
 
   /** Push the crowd (a gust or a passing phage). */
@@ -320,6 +414,8 @@ export function createWorld(scene) {
     world.t = t;
     for (const m of [amoebaMat, amBody.ink.material, podMat]) m.uniforms.uTime.value = t;
     world.backdoor.flag.rotation.x = -t * 2.2; // the motor turns the helix
+    moteMat.uniforms.uCenter.value.copy(center); moteMat.uniforms.uTime.value = t;
+    moteMat.uniforms.uPx.value = Math.min(2, innerHeight / 720);
     // hosts: slow Brownian drift around home, gentle rocking
     for (const h of world.hosts) {
       if (world.opts.hostBrownian && !h.locked) {

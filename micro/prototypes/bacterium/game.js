@@ -15,7 +15,10 @@ export const RATE = { stressDiv: 300, stressMax: 0.04, stressHeal: 0.05, anoxic:
 export function createGame(world, swimmer) {
   const s = swimmer.state;
   const r = world.r;
-  const opts = { oxygen: true, timeScale: 1 };
+  // absorb(kind, who) -> true when the collective takes the hit (a member in your place: main.js);
+  // shielded: the collective's slime is up (phages and Bdellovibrio rams don't take hold);
+  // adopt(x, y, a) -> true when your daughter cell joins your collective
+  const opts = { oxygen: true, timeScale: 1, absorb: null, shielded: false, adopt: null };
 
   function update(dt, t, inp, ev) {
     const sp = s.sp;
@@ -57,7 +60,9 @@ export function createGame(world, swimmer) {
         s.divideT += dt;
         if (s.divideT > 2.2) {
           // the daughter that is not you joins the swimmers
-          const c = world.cells.find((c) => c.kind === 'mtb' && Math.hypot(c.x - s.x, c.y - s.y) > 60) || world.cells.find((c) => c.kind === 'mtb');
+          const dx = s.x - Math.cos(s.a) * sp.L * 0.6, dy = s.y - Math.sin(s.a) * sp.L * 0.6;
+          const adopted = opts.adopt && opts.adopt(dx, dy, s.a + Math.PI);
+          const c = adopted ? null : world.cells.find((c) => c.kind === 'mtb' && Math.hypot(c.x - s.x, c.y - s.y) > 60) || world.cells.find((c) => c.kind === 'mtb');
           if (c) { c.x = s.x - Math.cos(s.a) * sp.L * 0.6; c.y = s.y - Math.sin(s.a) * sp.L * 0.6; c.a = s.a + Math.PI; c.sense = -s.sense; }
           s.divideT = 0; s.growth = 0; s.divisions = (s.divisions || 0) + 1; ev.divided = true;
         }
@@ -124,7 +129,7 @@ export function createGame(world, swimmer) {
     if (world.opts.phages && !s.inside) {
       const ca = Math.cos(s.a), sa = Math.sin(s.a);
       // phages adsorb only while the phage pressure is on (main.js: a lysis cloud drifts by, then thins)
-      if (world.hunt.phage) for (const p of world.phages) {
+      if (world.hunt.phage && !opts.shielded) for (const p of world.phages) {
         if (p.stuck) continue;
         if (Math.abs(p.x - s.x) > 3 || Math.abs(p.y - s.y) > 3) continue;
         const [d, u] = segDist(p.x, p.y, s.x, s.y, s.a, sp.L);
@@ -154,7 +159,7 @@ export function createGame(world, swimmer) {
     }
 
     // --- Bdellovibrio hunting the magnetotactic player ---
-    if (mtb && world.opts.hunters && world.hunt.bdello && !s.attacker) {
+    if (mtb && world.opts.hunters && world.hunt.bdello && !s.attacker && !opts.shielded) {
       for (const c of world.cells) {
         if (c.kind !== 'bdello' || c.prey || c.hidden > 0 || c.cooldown > 0) continue;
         if (Math.abs(c.x - s.x) > 3 || Math.abs(c.y - s.y) > 3) continue;
@@ -173,7 +178,25 @@ export function createGame(world, swimmer) {
   }
 
   /** A predator has you: stop control and let main.js play the catch. */
-  function catchBy(kind, who, ev) { if (swimmer.caught(kind, who)) ev.caught = { kind, who }; }
+  function catchBy(kind, who, ev) {
+    // the collective takes it: a member is lost in your place (or the slime stops it)
+    if (s.alive && opts.absorb && opts.absorb(kind, who)) { release(kind, who); ev.absorbed = { kind, who }; return; }
+    if (swimmer.caught(kind, who)) ev.caught = { kind, who };
+  }
+  /** Let go of whatever had you after the collective took the hit. */
+  function release(kind, who) {
+    if (kind === 'grazer' || kind === 'stentor') s.captureT = 0;
+    if (kind === 'amoeba') s.engulfT = 0;
+    if (kind === 'phage' && who) {
+      const i = s.phages.indexOf(who);
+      if (i >= 0) s.phages.splice(i, 1);
+      if (who.p) { who.p.stuck = null; who.p.homing = false; who.p.x += (r() - 0.5) * 6; who.p.y += 3; }
+    }
+    if (kind === 'bdello' && who) {
+      if (s.attacker === who) { s.attacker = null; s.attackT = 0; }
+      who.prey = null; who.cooldown = 6; who.attachT = 0;
+    }
+  }
 
   function nearestPrey(x, y, reach) {
     let best = null, bd = reach;

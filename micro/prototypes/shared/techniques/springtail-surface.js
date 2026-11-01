@@ -5,7 +5,9 @@
 //    from raindrops, landings and skimming insects, plus a surfactant field
 //    that spreads, decays, damps capillary waves where it lies and pushes
 //    floating things away from it (Marangoni flow). Uploaded each frame as an
-//    RG half-float texture (r = height mm, g = surfactant 0..1). The field is
+//    RG texture (r = height mm, g = surfactant 0..1): 32-bit float after
+//    useFloat(renderer) where float textures can be filtered linearly (one
+//    interleaving copy), else half-float (a per-texel conversion). The field is
 //    a window that can follow the player (recenter()), so the water itself
 //    can be endless; a sponge layer at the window's rim soaks ripples up
 //    instead of reflecting them.
@@ -198,10 +200,31 @@ export class RippleField {
     }
     this.s = b; this.s2 = a;
   }
+  /**
+   * Upload as RG 32-bit float when the renderer can filter float textures
+   * linearly (OES_texture_float_linear): a plain interleaving copy instead of
+   * a toHalfFloat per texel. Call before the first upload; returns whether it
+   * switched.
+   */
+  useFloat(renderer) {
+    if (!renderer || !renderer.extensions.has('OES_texture_float_linear')) return false;
+    const { n } = this;
+    this.rg = new Float32Array(n * n * 2);
+    this.texture.dispose();
+    this.texture.image = { data: this.rg, width: n, height: n };
+    this.texture.type = THREE.FloatType;
+    this.texture.needsUpdate = true;
+    return true;
+  }
   upload() {
-    const { h, s, half } = this;
-    const toHalf = THREE.DataUtils.toHalfFloat;
-    for (let k = 0, m = h.length; k < m; k++) { half[2 * k] = toHalf(h[k]); half[2 * k + 1] = toHalf(s[k]); }
+    const { h, s } = this;
+    if (this.rg) {
+      const rg = this.rg;
+      for (let k = 0, m = h.length; k < m; k++) { rg[2 * k] = h[k]; rg[2 * k + 1] = s[k]; }
+    } else {
+      const half = this.half, toHalf = THREE.DataUtils.toHalfFloat;
+      for (let k = 0, m = h.length; k < m; k++) { half[2 * k] = toHalf(h[k]); half[2 * k + 1] = toHalf(s[k]); }
+    }
     this.texture.needsUpdate = true;
   }
   clear() { this.h.fill(0); this.p.fill(0); this.s.fill(0); }

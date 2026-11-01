@@ -109,6 +109,86 @@ function merge(geos) {
 }
 
 const q = new THREE.Quaternion(), va = new THREE.Vector3(), vb = new THREE.Vector3(), vc = new THREE.Vector3();
+const _m4 = new THREE.Matrix4(), _cz = new THREE.Vector3();
+
+// The part rig on the GPU (performance.md T2): the same bodyDeform and leg
+// transforms as deformAll, in the optical materials' vertex shader. The
+// geometry keeps its rest positions; the pose and the eight leg frames are
+// uniforms. The CPU path (deformAll writing positions) stays for the lit look
+// and the borrowed SEM, which draw the geometry with other materials.
+const DEFORM_GLSL = /* glsl */ `
+uniform vec4 uPoseA;   // phase, sway, bob, surge
+uniform vec4 uPoseB;   // tun, breath, stylet, gape
+uniform float uPump;
+uniform vec3 uH0[8];
+uniform vec3 uH1[8];
+uniform vec3 uA0[8];
+uniform vec4 uRot[8];
+uniform vec2 uSP[8];   // s (stretch), ps (section)
+vec3 bodyDeform(vec3 p) {
+  float T = uPoseB.x;
+  float X = p.x * (1.0 - 0.43 * T);
+  float sec = (1.0 - 0.16 * T) * (1.0 - 0.07 * T * (0.5 + 0.5 * cos(p.x * 17.0)));
+  float Y = (p.y - 0.05) * sec + 0.05;
+  float Z = p.z * sec * (1.0 + 0.04 * T);
+  Y -= 0.17 * T;
+  float w = 1.0 - T;
+  Z += w * uPoseA.y * sin(uPoseA.x * 6.28318530718 - 1.4 * p.x) * (0.6 + 0.25 * abs(p.x));
+  Y += w * (uPoseA.z + 0.012 * sin(uPoseB.y) * (p.y + 0.5));
+  X += w * uPoseA.w * (0.5 + 0.5 * cos((p.x - 1.7) * 0.9));
+  return vec3(X, Y, Z);
+}
+vec3 qrot(vec4 q, vec3 v) { vec3 t = 2.0 * cross(q.xyz, v); return v + q.w * t + cross(q.xyz, t); }
+vec3 partT(float id, vec3 p) {
+  if (id < 9.5) return bodyDeform(p);
+  int i = int(id - 10.0 + 0.5);
+  vec3 o = p - uH0[i];
+  vec3 a0 = uA0[i];
+  float a = dot(o, a0);
+  o = (o - a0 * a) * uSP[i].y + a0 * (a * uSP[i].x);
+  return qrot(uRot[i], o) + uH1[i];
+}
+`;
+const BODY_VERT = /* glsl */ `
+precision highp float;
+in vec3 position;
+in float part;
+in float part2;
+in float partW;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+out float vDepth;
+out vec3 vLocal;
+${DEFORM_GLSL}
+void main() {
+  vec3 p = partT(part, position);
+  if (part2 != part && partW < 0.999 && (part >= 9.5 || part2 >= 9.5)) p = p * partW + partT(part2, position) * (1.0 - partW);
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  vDepth = -mv.z;
+  vLocal = position;
+  gl_Position = projectionMatrix * mv;
+}`;
+const INNER_VERT = /* glsl */ `
+precision highp float;
+in vec3 position;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+uniform vec3 uIn;      // slide, gape, pump switches
+uniform vec3 uGapeC;
+uniform vec3 uPumpC;
+out float vDepth;
+out vec3 vLocal;
+${DEFORM_GLSL}
+void main() {
+  vec3 p = position;
+  p.x += uIn.x * uPoseB.z * 0.16;
+  if (uIn.y > 0.5 && uPoseB.w > 0.0) { float k = 1.0 + 0.9 * uPoseB.w; p.y = uGapeC.y + (p.y - uGapeC.y) * k; p.z *= k; }
+  if (uIn.z > 0.5) { float k = 1.0 + 0.14 * uPump; p.y = uPumpC.y + (p.y - uPumpC.y) * k; p.z = uPumpC.z + (p.z - uPumpC.z) * k; }
+  vec4 mv = modelViewMatrix * vec4(bodyDeform(p), 1.0);
+  vDepth = -mv.z;
+  vLocal = position;
+  gl_Position = projectionMatrix * mv;
+}`;
 
 export class Creature {
   constructor(parent) {
@@ -123,17 +203,32 @@ export class Creature {
       clawOpen: LEGS.map(() => 0),
     };
     this.gutAbs = new THREE.Vector3(0.5, 0.45, 0.7);
+    // Shared by every part's GPU rig (one object per animal).
+    this.rig = {
+      uPoseA: { value: new THREE.Vector4() }, uPoseB: { value: new THREE.Vector4() }, uPump: { value: 0 },
+      uH0: { value: LEGS.map(() => new THREE.Vector3()) }, uH1: { value: LEGS.map(() => new THREE.Vector3()) },
+      uA0: { value: LEGS.map(() => new THREE.Vector3()) }, uRot: { value: LEGS.map(() => new THREE.Vector4()) },
+      uSP: { value: LEGS.map(() => new THREE.Vector2()) },
+    };
+    this.gpu = false;
+    this.clawScale = 1; // Features: enhanced (1) or true size
 
     // Body (with legs): the SDF mesh.
     const geo = buildSdfMesh(bodyParts(), { min: [-2.0, -0.92, -1.02], max: [2.0, 0.82, 1.02], cell: 0.03 });
     this.body = this.addPart('cuticle and body', geo, { dn: 0.04, absorb: [0.05, 0.08, 0.18] }, { color: 0xeadfc6, opacity: 0.55, roughness: 0.4 });
     this.restBody = geo.attributes.position.array.slice();
+    this.gpuMat(this.body, BODY_VERT);
 
     // Internals, all deformed with the trunk.
     this.internals = [];
     const I = (name, g, opt, lit, extra = {}) => {
       const m = this.addPart(name, g, opt, lit);
       const rec = { mesh: m, rest: g.attributes.position.array.slice(), ...extra };
+      this.gpuMat(m, INNER_VERT, {
+        uIn: { value: new THREE.Vector3(extra.slide ? 1 : 0, extra.gape ? 1 : 0, extra.pump ? 1 : 0) },
+        uGapeC: { value: new THREE.Vector3(...(extra.gape || [0, 0, 0])) },
+        uPumpC: { value: new THREE.Vector3(...(extra.pump || [0, 0, 0])) },
+      });
       this.internals.push(rec);
       return rec;
     };
@@ -212,7 +307,48 @@ export class Creature {
       'midgut (food colour)': { rest: [-0.2, 0.05, 0] },
       'storage cells': { rest: [-1.0, 0.25, 0.3] },
     };
+    this.setGpu(true);
+  }
+
+  /** A GPU-rigged copy of a part's optical material (userData.gpu); userData.opt stays the CPU-path one. */
+  gpuMat(mesh, vert, extra = {}) {
+    const o = mesh.userData.opt;
+    const m = new THREE.RawShaderMaterial({
+      blending: o.blending, blendEquation: o.blendEquation, blendSrc: o.blendSrc, blendDst: o.blendDst,
+      blendEquationAlpha: o.blendEquationAlpha, blendSrcAlpha: o.blendSrcAlpha, blendDstAlpha: o.blendDstAlpha,
+      depthTest: false, depthWrite: false, side: o.side, transparent: true, glslVersion: o.glslVersion,
+      uniforms: { ...o.uniforms, ...this.rig, ...extra }, // uDn, uAbs shared with the CPU material
+      vertexShader: vert, fragmentShader: o.fragmentShader,
+    });
+    mesh.userData.gpu = m;
+    mesh.userData.cpuOpt = o;
+  }
+
+  /**
+   * Rig on the GPU (optical looks) or on the CPU (the lit look, the borrowed
+   * SEM: they draw the geometry with their own materials). Switching to the
+   * GPU puts the rest positions back; the CPU path writes deformed ones.
+   * userData.opt is what main.js swaps in for the optical looks, so it follows.
+   */
+  setGpu(on) {
+    on = !!on;
+    if (on === this.gpu) return;
+    this.gpu = on;
+    const parts = [{ mesh: this.body, rest: this.restBody }, ...this.internals];
+    for (const { mesh, rest } of parts) {
+      const ud = mesh.userData;
+      const wasOpt = mesh.material === ud.opt;
+      ud.opt = on ? ud.gpu : ud.cpuOpt;
+      if (wasOpt) mesh.material = ud.opt;
+      if (on) { mesh.geometry.attributes.position.array.set(rest); mesh.geometry.attributes.position.needsUpdate = true; }
+    }
     this.deformAll();
+  }
+
+  /** After editing a part's rest positions (Milnesium's look): show them on the GPU path too. */
+  restChanged() {
+    if (!this.gpu) return;
+    for (const { mesh, rest } of this.internals) { mesh.geometry.attributes.position.array.set(rest); mesh.geometry.attributes.position.needsUpdate = true; }
   }
 
   addPart(name, geo, opt, lit) {
@@ -272,6 +408,7 @@ export class Creature {
   deformAll() {
     const frames = this.legFrames();
     this.frames = frames;
+    if (this.gpu) { this.uploadRig(frames); this.placeClaws(frames); return; }
     const geo = this.body.geometry;
     const pos = geo.attributes.position.array, rest = this.restBody;
     const part = geo.attributes.part.array, part2 = geo.attributes.part2.array, w = geo.attributes.partW.array;
@@ -314,7 +451,26 @@ export class Creature {
       g.attributes.position.needsUpdate = true;
     }
 
-    // Claws at each foot, hooking along the foot's distal direction.
+    this.placeClaws(frames);
+  }
+
+  /** The GPU rig's uniforms for this frame. */
+  uploadRig(frames) {
+    const P = this.pose, r = this.rig;
+    r.uPoseA.value.set(P.phase, P.sway, P.bob, P.surge);
+    r.uPoseB.value.set(P.tun, P.breath, P.stylet, P.gape || 0);
+    r.uPump.value = P.pump;
+    for (let i = 0; i < frames.length; i++) {
+      const F = frames[i];
+      r.uH0.value[i].copy(F.H0); r.uH1.value[i].copy(F.H1); r.uA0.value[i].copy(F.a0);
+      r.uRot.value[i].set(F.rot.x, F.rot.y, F.rot.z, F.rot.w);
+      r.uSP.value[i].set(F.s, F.ps);
+    }
+  }
+
+  /** Claws at each foot, hooking along the foot's distal direction. */
+  placeClaws(frames) {
+    const P = this.pose;
     LEGS.forEach((L, i) => {
       const F = frames[i];
       const n = P.footN[i];
@@ -324,11 +480,11 @@ export class Creature {
       d.normalize();
       // Legs I-III point their claws forward-out, leg IV backwards.
       const m = this.claws[i].matrix;
-      m.makeBasis(d, n, new THREE.Vector3().crossVectors(d, n));
+      m.makeBasis(d, n, _cz.crossVectors(d, n));
       const open = P.clawOpen[i];
-      m.multiply(new THREE.Matrix4().makeRotationZ(open * 0.7));
-      const sc = 1 - 0.55 * P.tun;
-      m.multiply(new THREE.Matrix4().makeScale(sc, sc, sc));
+      m.multiply(_m4.makeRotationZ(open * 0.7));
+      const sc = (1 - 0.55 * P.tun) * this.clawScale;
+      m.multiply(_m4.makeScale(sc, sc, sc));
       m.setPosition(F.foot.x, F.foot.y + 0.015, F.foot.z);
       this.claws[i].matrixWorldNeedsUpdate = true;
     });

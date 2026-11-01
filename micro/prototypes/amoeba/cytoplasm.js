@@ -38,7 +38,13 @@ export class Cytoplasm {
     this.cv = { x: body.cx + 40, y: body.cy - 80, r: 4, t: rand() * CV_PERIOD * 0.6, systole: 0, pulse: 0 };
     this.vacuoles = [];
     this.dens = new Float32Array(40 * 40);
+    // The crowding gradient on the same grid (computed once per update).
+    this.gdx = new Float32Array(40 * 40);
+    this.gdy = new Float32Array(40 * 40);
     this.tmp = {};
+    this.fl = {}; this.gr = {};
+    this.orgs = [];
+    this.tipCaps = [];
     this.cvExtra = 0; // water from shrinking food vacuoles speeds the contractile vacuole
   }
 
@@ -101,17 +107,26 @@ export class Cytoplasm {
     // Mean count over cells inside the cell body, for normalising.
     const area = body.A0 / body.flat;
     const mean = (n / area) * gc * gc;
-    const sampleDens = (x, y) => {
-      const fx = (x - grid.ox) / gc - 0.5, fy = (y - grid.oy) / gc - 0.5;
-      const ix = clamp(Math.floor(fx), 0, R - 2), iy = clamp(Math.floor(fy), 0, R - 2);
-      const tx = clamp(fx - ix, 0, 1), ty = clamp(fy - iy, 0, 1);
-      const k = iy * R + ix;
-      return (dens[k] * (1 - tx) + dens[k + 1] * tx) * (1 - ty) + (dens[k + R] * (1 - tx) + dens[k + R + 1] * tx) * ty;
-    };
+    // The crowding gradient (counts per cell, across one cell) at each cell
+    // centre, from central differences; sampled once per granule below. The
+    // same as differencing the bilinear density half a cell either side.
+    const gdx = this.gdx, gdy = this.gdy;
+    for (let y = 0; y < R; y++) {
+      for (let x = 0; x < R; x++) {
+        const k = y * R + x;
+        const xl = x > 0 ? k - 1 : k, xr = x < R - 1 ? k + 1 : k;
+        const yd = y > 0 ? k - R : k, yu = y < R - 1 ? k + R : k;
+        gdx[k] = (dens[xr] - dens[xl]) / (xr - xl || 1);
+        gdy[k] = (dens[yu] - dens[yd]) / ((yu - yd) / R || 1);
+      }
+    }
+    const kCrowd = 22 / mean;
 
-    const fl = {}, gr = {};
+    const fl = this.fl, gr = this.gr;
     const orgs = this.obstacleList();
-    const tipCaps = this.caps === false ? [] : body.pods.filter((p) => p.s > 0.1);
+    const tipCaps = this.tipCaps;
+    tipCaps.length = 0;
+    if (this.caps !== false) for (const p of body.pods) if (p.s > 0.1) tipCaps.push(p);
     const r = this.rand;
     for (let i = 0; i < n; i++) {
       let x = px[i], y = py[i];
@@ -125,10 +140,15 @@ export class Cytoplasm {
       this.flowAt(body, x, y, d, fl);
       let vx = fl.x, vy = fl.y;
       // Granules spread out from crowded places (crowding, not real pressure physics).
-      const h = gc * 0.5;
-      const ddx = sampleDens(x + h, y) - sampleDens(x - h, y);
-      const ddy = sampleDens(x, y + h) - sampleDens(x, y - h);
-      vx -= (ddx / mean) * 22; vy -= (ddy / mean) * 22;
+      {
+        const fx = (x - grid.ox) / gc - 0.5, fy = (y - grid.oy) / gc - 0.5;
+        const ix = clamp(Math.floor(fx), 0, R - 2), iy = clamp(Math.floor(fy), 0, R - 2);
+        const tx = clamp(fx - ix, 0, 1), ty = clamp(fy - iy, 0, 1);
+        const k = iy * R + ix;
+        const w00 = (1 - tx) * (1 - ty), w10 = tx * (1 - ty), w01 = (1 - tx) * ty, w11 = tx * ty;
+        vx -= (gdx[k] * w00 + gdx[k + 1] * w10 + gdx[k + R] * w01 + gdx[k + R + 1] * w11) * kCrowd;
+        vy -= (gdy[k] * w00 + gdy[k + 1] * w10 + gdy[k + R] * w01 + gdy[k + R + 1] * w11) * kCrowd;
+      }
       // Brownian and saltatory jitter.
       if (this.brownian !== false) { vx += (r() - 0.5) * 30; vy += (r() - 0.5) * 30; }
       x += vx * dt; y += vy * dt;
@@ -164,11 +184,15 @@ export class Cytoplasm {
   }
 
   obstacleList() {
-    const list = [];
+    // reused objects: no garbage per update
+    const list = this.orgs;
+    let n = 0;
+    const put = (x, y, r) => { const o = list[n] || (list[n] = { x: 0, y: 0, r: 0 }); o.x = x; o.y = y; o.r = r; n++; };
     const nu = this.nucleus;
-    list.push({ x: nu.x, y: nu.y, r: nu.r + 2 });
-    if (this.cv.r > 2) list.push({ x: this.cv.x, y: this.cv.y, r: this.cv.r + 1.5 });
-    for (const v of this.vacuoles) list.push({ x: v.x, y: v.y, r: Math.max(v.rx, v.ry) * 0.92 + 1.5 });
+    put(nu.x, nu.y, nu.r + 2);
+    if (this.cv.r > 2) put(this.cv.x, this.cv.y, this.cv.r + 1.5);
+    for (const v of this.vacuoles) put(v.x, v.y, Math.max(v.rx, v.ry) * 0.92 + 1.5);
+    list.length = n;
     return list;
   }
 

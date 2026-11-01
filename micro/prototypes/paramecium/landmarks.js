@@ -11,15 +11,32 @@
 //    its slime trail, egested food vacuoles and the sediment it has swept. Swim
 //    down to it and press Y.
 //
-// Positions in µm (slide at y = 0). Kept clear of the Spirogyra filaments and
-// the Vorticella flake.
+// Positions in µm (slide at y = 0), placed along the route below.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { volumeMaterial, pointsMaterial } from './optics.js';
 import { rng } from './geom.js';
 
+// The route: from the start (swim.js puts the cell here) straight to the
+// biofilm, up and to the right of the opening view. Everything along it is
+// placed by its progress (µm along DIR from START): the first half is calm
+// swimming and feeding (prey, Vorticella, diatoms, the light); the hunters,
+// the bloom and the bladderwort trap all come at or beyond halfway.
+export const START = new THREE.Vector3(-150, 0, 60);
+export const DIR = new THREE.Vector3(0.553, 0, 0.833).normalize(); // toward the biofilm
+export const SIDE = new THREE.Vector3(-DIR.z, 0, DIR.x); // to the right of DIR (as the opening view sees it)
+export const ROUTE_LEN = 4600; // µm, start to biofilm: ≈3.3 s flat out, a minute or two of play
+export const HALF = ROUTE_LEN / 2;
+/** A point on the route: `u` µm along it, `side` µm to its right, at height y. */
+export const routePoint = (u, side = 0, y = 0, out = new THREE.Vector3()) => out.copy(START).addScaledVector(DIR, u).addScaledVector(SIDE, side).setY(y);
+/** Progress along the route (µm from the start toward the biofilm) of a world point. */
+export const progress = (p) => (p.x - START.x) * DIR.x + (p.z - START.z) * DIR.z;
+/** Lateral offset from the route line (µm, + to the right). */
+export const lateral = (p) => (p.x - START.x) * SIDE.x + (p.z - START.z) * SIDE.z;
+
 export const LANDMARKS = {
-  forward: { pos: new THREE.Vector3(560, 0, 1130), r: 230, reachY: 120, label: 'Biofilm' },
-  back: { pos: new THREE.Vector3(-860, 0, -700), r: 240, reachY: 170, label: 'Amoeba' },
+  forward: { pos: routePoint(ROUTE_LEN), r: 230, reachY: 120, label: 'Biofilm' },
+  // the way back: behind the start, the other way from every challenge
+  back: { pos: routePoint(-1500, -250), r: 240, reachY: 170, label: 'Amoeba' },
 };
 
 function quads(n, iPos, iP) {
@@ -53,6 +70,9 @@ export function createLandmarks(scene) {
   const rand = rng(77);
   const group = new THREE.Group();
   scene.add(group);
+  // one group per landmark, so main.js can cull each per view
+  const fwdGroup = new THREE.Group(), backGroup = new THREE.Group();
+  group.add(fwdGroup, backGroup);
 
   // --- forward: the biofilm on a leaf fragment ---
   const F = LANDMARKS.forward;
@@ -61,7 +81,7 @@ export function createLandmarks(scene) {
   leaf.position.set(F.pos.x, 10, F.pos.z);
   leaf.rotation.y = leafRot;
   leaf.frustumCulled = false;
-  group.add(leaf);
+  fwdGroup.add(leaf);
   // veins: thin dense ridges along the blade
   const veinMat = volumeMaterial({ dn: 0.03, scatter: 1.6, absorb: [0.009, 0.008, 0.014], centred: true });
   const vein = (x0, z0, x1, z1, r) => {
@@ -93,14 +113,14 @@ export function createLandmarks(scene) {
   }
   const film = new THREE.Mesh(quads(n, iPos, iP), pointsMaterial({ rod: true, absorb: [0.035, 0.04, 0.06] }));
   film.frustumCulled = false;
-  group.add(film);
+  fwdGroup.add(film);
   // the slime (EPS) over it: a faint, slightly scattering skin
   const eps = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 12), volumeMaterial({ dn: 0.004, scatter: 0.9, absorb: [0.0006, 0.0006, 0.0008], centred: true, rimPow: 1.4 }));
   eps.scale.set(240, 12, 160);
   eps.position.set(F.pos.x, 22, F.pos.z);
   eps.rotation.y = leafRot;
   eps.frustumCulled = false;
-  group.add(eps);
+  fwdGroup.add(eps);
 
   // --- backdoor: where the amoeba crawls on the slide ---
   const B = LANDMARKS.back;
@@ -117,7 +137,7 @@ export function createLandmarks(scene) {
     }
     const trail = new THREE.Mesh(quads(m, tPos, tP), pointsMaterial({ absorb: [0.002, 0.003, 0.004] }));
     trail.frustumCulled = false;
-    group.add(trail);
+    backGroup.add(trail);
     // egested food vacuoles and digested remains, dark and granular
     const k = 26, dPos = new Float32Array(k * 4), dP = new Float32Array(k * 4);
     for (let i = 0; i < k; i++) {
@@ -127,8 +147,8 @@ export function createLandmarks(scene) {
     }
     const remains = new THREE.Mesh(quads(k, dPos, dP), pointsMaterial({ absorb: [0.05, 0.05, 0.035] }));
     remains.frustumCulled = false;
-    group.add(remains);
+    backGroup.add(remains);
   }
 
-  return { group, forward: F, back: B };
+  return { group, fwdGroup, backGroup, forward: F, back: B };
 }

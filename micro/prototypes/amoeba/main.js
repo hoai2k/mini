@@ -22,6 +22,7 @@ import { createPlayers } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
+import { createQuality } from '../shared/quality.js';
 
 const MODES = ['Brightfield', 'Phase contrast', 'Darkfield', 'Immersive (hypothetical)'];
 const OBJECTIVES = [{ name: '10×', field: 1800 }, { name: '20×', field: 900 }];
@@ -34,8 +35,15 @@ const SURGE = 2.5; // pseudopod rate multiplier at the peak of a surge // radian
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.25)); // the quality governor owns it from here
 renderer.autoClear = false;
+// Software GL (SwiftShader, as in headless checks): the property buffers at
+// half resolution or less, like the other worlds' fallbacks. Players never see it.
+const SOFTWARE = (() => {
+  const gl = renderer.getContext();
+  const ext = gl.getExtension('WEBGL_debug_renderer_info');
+  return /swiftshader|llvmpipe|software/i.test(String(gl.getParameter(gl.RENDERER)) + (ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : ''));
+})();
 
 // Local multiplayer (shared/players.js): player 1 on the keyboard and the first
 // controller, players 2-4 join with any button on another controller at any
@@ -54,7 +62,8 @@ let pad = players.pad(0);
 let ctl = players.controls(0);
 let surge = createDash({ duration: 0.9, cooldown: 2.4 });
 let cur = null; // the cell being stepped
-const SCHEMES = ['Lead and follow (new)', 'Two pseudopods (classic)'];
+const SCHEMES = ['Select and steer (default)', 'Lead and follow', 'Two pseudopods (classic)'];
+const SCHEME_IDS = ['select', 'lead', 'classic'];
 const COMMON_CONTROLS = {
   dash: 'Surge: pseudopods shoot out 2.5× faster and the cell flows after them',
   attack: 'Close the food cup round prey; at a trap hypha, a pseudopod jab cuts its tip; round an arm of Chaos, pinch it off',
@@ -64,6 +73,17 @@ const COMMON_CONTROLS = {
   zoom: 'Objective 10× / 20×',
 };
 const CONTROLS = {
+  select: {
+    rows: hudControls({
+      ...COMMON_CONTROLS,
+      move: 'Moves the body (twin-stick). With LT held: steers the pseudopod next to the selected one (L)',
+      camera: 'Steers the selected pseudopod (R); with none, grows one; pushed well away from it (>70°), starts a new one there',
+      analog: 'LT held: LS takes the neighbouring pseudopod (above, or below the topmost), sprouting one if there is none. RT: select the next pseudopod clockwise (with LT, the pair moves)',
+      secondary: 'Spread out / push harder',
+      extra: [['LS click', 'Fine focus down'], ['RS click', 'Fine focus up']],
+    }),
+    note: 'R and L ticks mark the pseudopods your sticks hold. RS and LS together: the cell travels behind its pseudopod. Hold LT and close RS and LS round prey (or round an arm of Chaos, then X to pinch it off). A centred stick lets its pseudopod flow slowly back. Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
+  },
   lead: {
     rows: hudControls({
       ...COMMON_CONTROLS,
@@ -90,8 +110,8 @@ const WAY_NOTE = ' Crawl right to the green Paramecium bursaria swimming low ove
 const hud = mountHud({
   title: 'Amoeba',
   sub: 'Amoeba proteus (~450 µm) on a wet-mount slide. Push out pseudopods, chase down ciliates, cup round them and fill in. Mind the fungal traps.',
-  controls: CONTROLS.lead.rows,
-  note: CONTROLS.lead.note + WAY_NOTE,
+  controls: CONTROLS.select.rows,
+  note: CONTROLS.select.note + WAY_NOTE,
 });
 /** Swap the help panel's controls list when the scheme changes (same markup as mountHud). */
 function showControls(which) {
@@ -144,11 +164,14 @@ const S = {
   streaming: true, brownian: true, cv: true, respawn: true,
   fps: 60, statT: 0, pending: [],
   flee: true, traps: true,
-  scheme: 'lead', pinches: 0, pinch: true,
+  scheme: 'select', pinches: 0, pinch: true,
 };
 // Lead and follow: which stick grows the pseudopod (body.pods[0]) and which
 // moves the body; a stick in `latch` must be let go before it can lead again.
-let R = { pod: null, body: null, latch: new Set(), branch: false, last: null };
+// Select and steer: R.sel / R.adj are the indices (in body.pods) of the pseudopods
+// RS and (with LT held) LS steer; see selectInput().
+const newRoles = () => ({ pod: null, body: null, latch: new Set(), branch: false, last: null, sel: null, adj: null, lt: false, rsOn: false, rsLatch: false, offT: 0, budT: 0, cycled: 0 });
+let R = newRoles();
 // Per-player game state (was in S): food eaten, the cup candidate and the closing cup, trap contact, bites, surge, drain.
 const newCellState = () => ({ eaten: 0, cand: null, closing: null, stuckT: 0, stuckN: 0, bitten: 0, surgeK: 1, drain: 0, A0init: 0 });
 let C = newCellState();
@@ -230,9 +253,16 @@ function trapFight(o, dt, armed) {
   if (f.blocked && n) { o.grip = 0; const k = cur; use(n.cell); hud.toast(`${who()}Stiffened: the hypha slides off the membrane (trap resolve ${Math.round(o.fight.interest * 100)}%)`); rumble(200, 0.5, 0.3); use(k); }
   if (f.retreated) { o.grip = 0; hud.toast('The fungus gives up on you: the hypha withdraws', 2400); }
 }
+/** The pseudopod a jab uses: the first (lead, classic), or a free one (select and steer). */
+function jabSlot() {
+  if (S.scheme !== 'select') return 0;
+  const k = steeredSlot(body, held());
+  body.pods[k].active = false; body.pods[k].s = 0;
+  return k;
+}
 /** X at a trap hypha: a fast pseudopod jab engulfs its tip and cuts it (bite back). */
 function cutHypha(o, n) {
-  C.jab = { t: 0.45, x: n.x, y: n.y };
+  C.jab = { t: 0.45, x: n.x, y: n.y, k: jabSlot() };
   o.grow = Math.max(0.2, o.grow - 0.28);
   o.grip = 0;
   C.stuckT = 0;
@@ -372,7 +402,7 @@ function captureRespawn(c) {
       if (d > bd) { bd = d; best = [x, y]; }
     }
     c.s = Object.assign(newCellState(), { eaten: c.s.eaten });
-    c.R.pod = c.R.body = null; c.R.latch.clear();
+    Object.assign(c.R, newRoles());
     makeBody(c, best[0], best[1]);
     S.camX = best[0]; S.camY = best[1];
     resetFungus();
@@ -499,10 +529,10 @@ F({ id: 'above', group: 'World', label: 'Out-of-focus layer', on: true,
   about: 'Filaments and flakes floating above the focal plane (MP-A03 when delivered).', onChange: (v) => { S.flags.above = v; } });
 F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'Controller rumble on contact, surges, trichocyst bursts, captures and when a trap hypha grabs the membrane.', onChange: (v) => { S.rumble = v; } });
 F({ id: 'scheme', group: 'Controls', label: 'Controls', choices: SCHEMES, value: SCHEMES[0],
-  about: 'Lead and follow: the first stick pushed grows a pseudopod (the pseudopod stick); the other stick moves the bulk of the cell (the body stick): the rear contracts and the cytoplasm streams after it. Both held: the cell travels behind its pseudopod, which holds its length. Body stick alone towards the pseudopod: the body flows into it and takes it back. Hold LT or RT and the body stick grows a second pseudopod 30–70° beside the first instead, to encircle prey. LB spreads out, RB pushes harder. Roles reset once the pseudopod is gone or after eating. Two pseudopods (classic): each stick grows its own pseudopod, LT/RT spread out and push harder, LB/RB focus.',
+  about: 'Select and steer (default): RS steers the selected pseudopod (marked R), growing one if there is none, and pushed more than ~70° away from it starts a new one there; LS moves the body. Hold LT and LS steers the neighbouring pseudopod (marked L: the next one round the outline towards the top of the screen, or below if the selected one is the topmost; one sprouts if there is none), so the two can close round prey or pinch an arm of Chaos. RT selects the next pseudopod clockwise round the outline (with LT held the pair moves together). LB spreads out, RB pushes harder. Lead and follow: the first stick pushed grows a pseudopod (the pseudopod stick); the other stick moves the bulk of the cell (the body stick): the rear contracts and the cytoplasm streams after it. Both held: the cell travels behind its pseudopod, which holds its length. Body stick alone towards the pseudopod: the body flows into it and takes it back. Hold LT or RT and the body stick grows a second pseudopod 30–70° beside the first instead, to encircle prey. LB spreads out, RB pushes harder. Roles reset once the pseudopod is gone or after eating. Two pseudopods (classic): each stick grows its own pseudopod, LT/RT spread out and push harder, LB/RB focus.',
   onChange: (v) => {
-    S.scheme = v === SCHEMES[1] ? 'classic' : 'lead';
-    R.pod = R.body = null; R.latch.clear(); R.branch = false;
+    S.scheme = SCHEME_IDS[Math.max(0, SCHEMES.indexOf(v))];
+    for (const c of cells) Object.assign(c.R, newRoles());
     showControls(S.scheme);
   } });
 F({ id: 'sticks', group: 'Controls', label: 'Stick-driven pseudopods', fixed: true,
@@ -597,6 +627,7 @@ function readInput() {
     if (surge.active && pods[0].m === 0 && pods[1].m === 0) pods[0] = { m: 1, dx: body.fx || 1, dy: body.fy || 0 };
     return { pods, push: r.rt, spread: r.lt };
   }
+  if (S.scheme === 'select') return selectInput(r);
   return leadInput(r);
 }
 const other = (k) => (k === 'ls' ? 'rs' : 'ls');
@@ -637,6 +668,171 @@ function leadInput(r) {
   R.last = { pod: R.pod, body: bk };
   return { pods, push: r.rb, spread: r.lb, body: bodyIn };
 }
+// --- select and steer (the default scheme) ------------------------------------
+// RS steers the selected pseudopod (body.pods[R.sel]); LS moves the body, or,
+// while LT is held, steers the neighbouring pseudopod (R.adj). RT selects the
+// next pseudopod clockwise round the outline. Pseudopods are any steered pod
+// still standing out, and the idle (polypodial) ones, which are adopted into a
+// steered slot when selected. The soft body steers as many as it is given
+// (Body.addPod), so a released pseudopod keeps flowing back on its own.
+const DEG = Math.PI / 180;
+const MAX_STEERED = 8;
+const ringGap = (i, j) => { const d = Math.abs(i - j) % N; return Math.min(d, N - d); };
+const angOf = (b, pod) => Math.atan2(b.y[pod.tip] - b.cy, b.x[pod.tip] - b.cx);
+const angDiff = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
+/** Does pods[k] stand out as a pseudopod the sticks can select? */
+function podExists(b, k) {
+  const pod = k == null ? null : b.pods[k];
+  if (!pod) return false;
+  const r = Math.hypot(b.x[pod.tip] - b.cx, b.y[pod.tip] - b.cy) - b.req;
+  if (pod.idle) return pod.s > 0.3 && r > 10;
+  return pod.active || pod.s > 0.1 || (pod.ret > 0.02 && r > 22);
+}
+/** The pseudopods round the outline: [{ k, a (angle of the tip about the centroid), y, idle }]. */
+function podList(b) {
+  const out = [];
+  b.pods.forEach((pod, k) => { if (podExists(b, k)) out.push({ k, a: angOf(b, pod), y: b.y[pod.tip], idle: pod.idle }); });
+  // an idle pseudopod right beside a steered one is the same lobe
+  return out.filter((c) => !c.idle || !out.some((o) => !o.idle && ringGap(b.pods[o.k].tip, b.pods[c.k].tip) < 12));
+}
+/** A steered slot for a new pseudopod (free, or a new one, or the one with least left). */
+function steeredSlot(b, avoid) {
+  for (let k = 0; k < b.pods.length; k++) {
+    const p = b.pods[k];
+    if (p.idle || avoid.includes(k)) continue;
+    if (!p.active && p.s < 0.05 && !(p.ret > 0.02)) return k;
+  }
+  if (b.pods.filter((p) => !p.idle).length < MAX_STEERED) return b.pods.indexOf(b.addPod());
+  let best = -1, bv = Infinity;
+  b.pods.forEach((p, k) => { if (!p.idle && !avoid.includes(k) && p.s + p.ret < bv) { bv = p.s + p.ret; best = k; } });
+  return best;
+}
+const held = () => [R.sel, R.adj].filter((v) => v != null);
+/** Start a pseudopod towards (dx, dy) (from membrane node `tip` if given). Returns its index. */
+function newPod(b, dx, dy, tip = null) {
+  const k = steeredSlot(b, held());
+  const p = b.pods[k];
+  Object.assign(p, { tip: tip != null && tip >= 0 ? tip : b.pickTip(dx, dy), dx, dy, s: 0, target: 0, ret: 0, active: false, rad: undefined, cut: undefined });
+  return k;
+}
+/** Selecting an idle pseudopod moves it into a steered slot (same tip, same reach). */
+function adopt(b, k) {
+  const ip = b.pods[k];
+  if (!ip.idle) return k;
+  const j = steeredSlot(b, held());
+  Object.assign(b.pods[j], { tip: ip.tip, dx: ip.dx, dy: ip.dy, s: ip.s, target: 0, rad: ip.rad, active: false, ret: 1, cut: undefined });
+  ip.s = 0; ip.target = 0; ip.life = 0; ip.active = false; // it reappears somewhere else later
+  return j;
+}
+/** A pseudopod lying within `tol` of a direction (to select instead of starting a new one). */
+function podToward(b, dx, dy, tol) {
+  const a = Math.atan2(dy, dx);
+  let best = null, bd = tol;
+  for (const c of podList(b)) { const d = Math.abs(angDiff(c.a, a)); if (c.k !== R.sel && d < bd) { bd = d; best = c; } }
+  return best;
+}
+/**
+ * The neighbour of the selected pseudopod round the outline towards the top of
+ * the screen (anticlockwise on the right half, clockwise on the left), or
+ * towards the bottom when the selected one is the topmost.
+ */
+function neighbour(b, list, k) {
+  const sp = b.pods[k], a = angOf(b, sp), sy = b.y[sp.tip];
+  const others = list.filter((c) => c.k !== k);
+  const topmost = !others.some((c) => c.y > sy);
+  let dir = Math.cos(a) >= 0 ? 1 : -1; // +1: anticlockwise
+  if (topmost) dir = -dir;
+  let best = null, bd = Infinity;
+  for (const c of others) {
+    const d = (((dir * (c.a - a)) % TAU) + TAU) % TAU;
+    if (d > 0.05 && d <= Math.PI + 0.01 && d < bd) { bd = d; best = c; }
+  }
+  return best;
+}
+/** LT: LS takes the neighbouring pseudopod, or one sprouts there. */
+function pickAdjacent(b) {
+  const best = neighbour(b, podList(b), R.sel);
+  if (best) { R.adj = adopt(b, best.k); R.budT = 0; return; }
+  // None: sprout one 55° round, towards the top of the screen (below, if the
+  // selected one already points up).
+  const sp = b.pods[R.sel], a = angOf(b, sp);
+  let d = Math.cos(a) >= 0 ? 1 : -1;
+  if (Math.sin(a) > Math.cos(40 * DEG)) d = -d;
+  const a2 = a + d * 55 * DEG, dx = Math.cos(a2), dy = Math.sin(a2);
+  R.adj = newPod(b, dx, dy, b.branchTip(dx, dy, sp, 40, 70));
+  R.budT = 0.6;
+}
+function selectInput(r) {
+  const b = body, dt = 1 / 60;
+  const pods = [];
+  for (const k of [...R.latch]) if (r[k].m < ROLE_OFF) R.latch.delete(k);
+  if (!podExists(b, R.sel)) R.sel = null;
+  if (!podExists(b, R.adj) || R.adj === R.sel) R.adj = null;
+  const rs = R.latch.has('rs') ? NONE : r.rs, ls = r.ls;
+  const rsOn = rs.m >= (R.rsOn ? ROLE_OFF : ROLE_ON);
+  const fresh = rsOn && !R.rsOn;
+  R.rsOn = rsOn;
+  let reselected = false;
+  if (rsOn) {
+    const off = R.sel == null ? Infinity : Math.abs(angDiff(Math.atan2(rs.dy, rs.dx), angOf(b, b.pods[R.sel])));
+    if (R.rsLatch) { if (off < 60 * DEG) R.rsLatch = false; R.offT = 0; }
+    else if (off > 70 * DEG) {
+      R.offT += dt;
+      // with none selected, or pushed well away from it (on a fresh push, or held there briefly)
+      if (R.sel == null || fresh || R.offT > 0.15) {
+        const there = podToward(b, rs.dx, rs.dy, 30 * DEG);
+        R.sel = there ? adopt(b, there.k) : newPod(b, rs.dx, rs.dy);
+        if (R.adj === R.sel) R.adj = null;
+        reselected = true; R.offT = 0;
+      }
+    } else R.offT = 0;
+  } else { R.offT = 0; R.rsLatch = false; }
+  if (R.sel != null && rsOn) {
+    const sp = b.pods[R.sel];
+    let dx = rs.dx, dy = rs.dy;
+    if (R.rsLatch) {
+      // just cycled with RS held: the new one leans towards the stick, at most 60° off its base
+      const a0 = angOf(b, sp), d = clamp(angDiff(Math.atan2(dy, dx), a0), -60 * DEG, 60 * DEG);
+      dx = Math.cos(a0 + d); dy = Math.sin(a0 + d);
+    }
+    pods[R.sel] = { m: rs.m, dx, dy, tip: sp.tip };
+  }
+  const lt = r.lt > 0.5 && R.sel != null;
+  if (lt && (!R.lt || R.adj == null || reselected || R.cycled)) pickAdjacent(b);
+  R.lt = lt; R.cycled = 0;
+  let bodyIn = null;
+  if (lt && R.adj != null) {
+    const ap = b.pods[R.adj];
+    if (ls.m > 0.06) pods[R.adj] = { m: ls.m, dx: ls.dx, dy: ls.dy, tip: ap.tip };
+    else if (R.budT > 0) pods[R.adj] = { m: 0.35, dx: ap.dx, dy: ap.dy, tip: ap.tip }; // a sprout shows where it is
+    R.budT -= dt;
+  } else {
+    if (!lt) R.adj = null;
+    if (ls.m > 0) bodyIn = ls;
+  }
+  // A surge with no stick held: the body flows on along its heading.
+  if (surge.active && !pods.some((p) => p && p.m > 0) && !bodyIn) bodyIn = { m: 1, dx: b.fx || 1, dy: b.fy || 0 };
+  return { pods, push: r.rb, spread: r.lb, body: bodyIn };
+}
+/** RT: select the next pseudopod clockwise round the outline (with LT held the pair moves). */
+function cyclePods() {
+  if (S.scheme !== 'select') return false;
+  const b = body, list = podList(b);
+  const from = R.sel != null && podExists(b, R.sel) ? angOf(b, b.pods[R.sel]) : Math.PI / 2 + 1e-3;
+  let best = null, bd = Infinity;
+  for (const c of list) {
+    if (c.k === R.sel) continue;
+    const d = (((from - c.a) % TAU) + TAU) % TAU;
+    if (d > 1e-4 && d < bd) { bd = d; best = c; }
+  }
+  if (!best) { rumble(40, 0.12, 0); return false; }
+  R.sel = adopt(b, best.k);
+  if (R.adj === R.sel) R.adj = null;
+  R.rsLatch = R.rsOn; R.offT = 0; R.cycled = 1;
+  rumble(50, 0.15, 0);
+  return true;
+}
+
 /** After a step: the roles reset once the lead pseudopod has gone back into the body. */
 function updateRoles() {
   if (S.scheme !== 'lead' || !R.pod) return;
@@ -654,6 +850,10 @@ function resetRoles(latch) {
   R.pod = null;
 }
 function rolesText() {
+  if (S.scheme === 'select') {
+    const n = podList(body).length;
+    return `${R.sel != null ? `RS: pseudopod R (${n} out)` : 'RS: grow a pseudopod'} · ${R.adj != null ? 'LS: pseudopod L (LT)' : 'LS: body'} · RT: next clockwise`;
+  }
   if (S.scheme !== 'lead') return 'Controls: two pseudopods (classic) · LS: pseudopod 1 · RS: pseudopod 2';
   if (!R.pod && !R.body) return 'LS: free · RS: free (push one to grow a pseudopod)';
   const bk = R.pod ? other(R.pod) : R.body;
@@ -704,6 +904,12 @@ function capture(p, cup) {
     // The cup has closed: its pseudopods dissolve into the vacuole and the roles reset.
     for (const pod of body.pods.slice(0, 2)) { pod.active = false; pod.target = 0; pod.ret = 1; }
     resetRoles(true);
+  } else if (S.scheme === 'select') {
+    // The cup's pseudopods dissolve into the vacuole; a stick still held must be let go first.
+    for (const pod of body.pods) if (!pod.idle) { pod.active = false; pod.target = 0; pod.ret = 1; }
+    const r = rawInput();
+    R.sel = R.adj = null; R.rsOn = false;
+    if (r.rs.m >= ROLE_OFF) R.latch.add('rs');
   }
   C.closing = null;
   hud.toast(who() + `${p.sp.name} engulfed: a food vacuole forms`);
@@ -973,7 +1179,12 @@ function othersAsCircles(col, c) {
   return { capsules: col.capsules, circles };
 }
 
-function simStep(dt) {
+/**
+ * One fixed step of the world. granules: false skips the granule (cytoplasm)
+ * update; the next step that runs it integrates the time skipped, so a frame
+ * that catches up with two steps moves the granules once.
+ */
+function simStep(dt, granules = true) {
   const col = S.flags.obstacles ? worldColliders(world, dt) : { capsules: [], circles: [] };
   const adt = dt * S.amoebaK;
   updateFungus(dt);
@@ -985,12 +1196,13 @@ function simStep(dt) {
     let sk = surge.active ? 1 + (SURGE - 1) * Math.sin(Math.PI * Math.min(1, 1 - surge.phase)) ** 0.6 : 1;
     // Defend (B held near a trap): the cell stiffens and draws its pseudopods in.
     C.defend = clamp((C.defend || 0) + ((C.defendHeld && !caught.active) ? 1 : -1) * dt * 6, 0, 1);
-    if (C.defend > 0.5) { input.pods = [NONE, NONE]; input.body = null; }
+    if (C.defend > 0.5) { input.pods = []; input.body = null; }
     // Attack (X at a hypha): a fast pseudopod jab at the cut.
     if (C.jab && C.jab.t > 0) {
       C.jab.t -= dt;
       const dx = C.jab.x - body.cx, dy = C.jab.y - body.cy, l = Math.hypot(dx, dy) || 1;
-      input.pods = [{ m: 1, dx: dx / l, dy: dy / l }, input.pods[1] || NONE];
+      input.pods = input.pods.slice();
+      input.pods[C.jab.k || 0] = { m: 1, dx: dx / l, dy: dy / l };
       sk = Math.max(sk, SURGE);
     }
     body.opts.boost = sk; C.surgeK = sk;
@@ -1002,7 +1214,7 @@ function simStep(dt) {
     updateCup(adt);
   }
   use(cells[0]);
-  stepChaos(dt, adt, col);
+  stepChaos(dt, adt, col, granules);
   stepPrey(dt, col);
   for (const c of cells) {
     use(c);
@@ -1014,12 +1226,15 @@ function simStep(dt) {
     }
     updateRoles();
     soundTick(dt);
-    // Optional parts of the cytoplasm simulation.
+    // Optional parts of the cytoplasm simulation (granules on the frame's last step).
+    C.gAcc = (C.gAcc || 0) + adt;
+    if (!granules) continue;
     const saved = body.pods.map((p) => p.s);
     if (!S.streaming) for (const p of body.pods) p.s = 0;
     const cvT = cyto.cv.t;
     cyto.brownian = S.brownian;
-    cyto.update(adt, body, S.time);
+    cyto.update(Math.min(C.gAcc, 4 / 60 * S.amoebaK), body, S.time);
+    C.gAcc = 0;
     if (!S.cv) { cyto.cv.t = cvT; cyto.cv.r = Math.max(cyto.cv.r, 6); cyto.cv.systole = 0; }
     body.pods.forEach((p, k) => { p.s = saved[k]; });
   }
@@ -1040,7 +1255,7 @@ function simStep(dt) {
 }
 
 // --- the boss ---------------------------------------------------------------------
-function stepChaos(dt, adt, col) {
+function stepChaos(dt, adt, col, granules = true) {
   if (!chaos.on) return;
   const circles = col.circles.slice();
   for (const c of cells) {
@@ -1050,7 +1265,7 @@ function stepChaos(dt, adt, col) {
     for (let i = 0; i < N; i++) circles.push({ x: b.x[i], y: b.y[i], r: 11 });
   }
   const ps = cells.map((c) => ({ cell: c, x: c.body.cx, y: c.body.cy, req: c.body.req, active: !c.caught.active && !c.p.waiting }));
-  const ev = chaos.update(dt, adt, ps, { capsules: col.capsules, circles }, { calm: fungus.state === 'grace' || chaos.resting });
+  const ev = chaos.update(dt, adt, ps, { capsules: col.capsules, circles }, { calm: fungus.state === 'grace' || chaos.resting, granules });
   for (const { e, p: pl } of ev) {
     const c = pl ? pl.cell : null, k = cur;
     if (c) use(c);
@@ -1101,7 +1316,7 @@ function pinchChaos(c, reach = 70) {
   const { lost, gone } = chaos.cut(pin.i, pin.j);
   addFragment(lost);
   const b = chaos.body;
-  C.jab = { t: 0.35, x: (b.x[pin.i] + b.x[pin.j]) / 2, y: (b.y[pin.i] + b.y[pin.j]) / 2 };
+  C.jab = { t: 0.35, x: (b.x[pin.i] + b.x[pin.j]) / 2, y: (b.y[pin.i] + b.y[pin.j]) / 2, k: jabSlot() };
   audio.play('amoeba/engulf', { volume: 1, rate: 1.4 });
   rumble(350, 0.7, 0.6);
   hud.toast(`${who()}Pinched off! The arm rounds up and dies${gone ? '. Chaos gives up' : ` (Chaos's resolve ${Math.round(chaos.interest * 100)}%)`}`, 2400);
@@ -1129,7 +1344,7 @@ function addCell(p) {
   if (cells.some((c) => c.slot === p.slot)) return;
   const c = { p, slot: p.slot, pad: players.pad(p.slot), ctl: players.controls(p.slot), surge: createDash({ duration: 0.9, cooldown: 2.4 }),
     caught: null, FC: { pts: [], A0: 0, phase: null },
-    R: { pod: null, body: null, latch: new Set(), branch: false, last: null }, trapX: new Float64Array(N), trapY: new Float64Array(N),
+    R: newRoles(), trapX: new Float64Array(N), trapY: new Float64Array(N),
     haustoria: makeHaustoria(), s: newCellState() };
   c.caught = createCapture({ onRespawn: () => captureRespawn(c) });
   const [x, y] = spotBeside(c);
@@ -1162,12 +1377,42 @@ function makeBody(c, x, y) {
   const c0 = cells[0] ? cells[0].cyto : null;
   if (c0) Object.assign(c.cyto, { caps: c0.caps, infill: c0.infill });
   c.cyto.onEgest = (v) => onEgest(c, v);
+  // Not a perfect disc: start from a settled teammate's shape (turned, scaled to
+  // this cell's area), or warm up as a resting, polypodial cell over the next
+  // few frames (stepWarmups), so a join costs no long frame.
+  const src = cells.find((o) => o !== c && o.body && o.cyto && !o.warm && !o.caught.active);
+  c.warm = 0;
+  if (src) copySettled(c, src, x, y);
+  else c.warm = 90;
   c.body.grid.build(c.body.x, c.body.y, N);
-  // a short warm-up: a resting, polypodial cell
-  const idle = { pods: [{ m: 0, dx: 1, dy: 0 }, { m: 0, dx: 1, dy: 0 }], push: 0, spread: 0, body: null };
-  for (let i = 0; i < 90; i++) { c.body.step(1 / 60, idle, { capsules: [], circles: [] }); c.body.grid.build(c.body.x, c.body.y, N); c.cyto.update(1 / 60, c.body, S.time); }
   c.s.A0init = c.body.A0;
   if (c.layer) view.rebindCell(c.layer, c.body, c.cyto); else c.layer = view.addCell(c.body, c.cyto);
+}
+
+/** Cell c takes settled cell src's outline and contents, turned and centred at (x, y). */
+function copySettled(c, src, x, y) {
+  const a = src.body, b = c.body, ya = src.cyto, yb = c.cyto;
+  const k = Math.sqrt(b.A0 / Math.max(1, Math.abs(a.area) * a.flat));
+  const th = c.slot * 2.1 + 0.9, cs = Math.cos(th) * k, sn = Math.sin(th) * k;
+  const tx = (px, py) => x + (px - a.cx) * cs - (py - a.cy) * sn;
+  const ty = (px, py) => y + (px - a.cx) * sn + (py - a.cy) * cs;
+  for (let i = 0; i < N; i++) { const px = a.x[i], py = a.y[i]; b.x[i] = tx(px, py); b.y[i] = ty(px, py); }
+  b.centroid();
+  b.ux = tx(a.ux, a.uy); b.uy = ty(a.ux, a.uy);
+  for (let i = 0; i < yb.n; i++) { const j = i % ya.n; const px = ya.px[j], py = ya.py[j]; yb.px[i] = tx(px, py); yb.py[i] = ty(px, py); }
+  for (const key of ['nucleus', 'cv']) { const o = ya[key]; const ox = o.x, oy = o.y; yb[key].x = tx(ox, oy); yb[key].y = ty(ox, oy); }
+}
+/** Spread a new cell's warm-up (90 resting steps of its soft body) over the frames after it appears. */
+const WARM_IDLE = { pods: [], push: 0, spread: 0, body: null };
+const NO_COLLIDE = { capsules: [], circles: [] };
+function stepWarmups() {
+  for (const c of cells) {
+    if (!c.warm) continue;
+    const n = Math.min(c.warm, 15);
+    for (let i = 0; i < n; i++) c.body.step(1 / 60, WARM_IDLE, NO_COLLIDE);
+    c.warm -= n;
+    c.body.grid.build(c.body.x, c.body.y, N);
+  }
 }
 
 function removeCell(slot) {
@@ -1188,7 +1433,7 @@ function removeCell(slot) {
 function respawnCell(c) {
   const [x, y] = spotBeside(c);
   c.s = Object.assign(newCellState(), { eaten: c.s.eaten });
-  c.R.pod = c.R.body = null; c.R.latch.clear();
+  Object.assign(c.R, newRoles());
   makeBody(c, x, y);
   use(c);
   const m = cells.find((o) => o !== c);
@@ -1394,7 +1639,7 @@ for (const a of ambient) a.layer = 'above';
 for (let i = 0; i < 600; i++) {
   const saved = test.input;
   test.input = { ls: null, rs: null };
-  simStep(1 / 60);
+  simStep(1 / 60, i % 3 === 2);
   test.input = saved;
 }
 S.camX = body.cx; S.camY = body.cy;
@@ -1403,15 +1648,24 @@ resetFungus(); // the warm-up does not use up the calm opening
 
 let last = performance.now();
 let acc = 0;
+const MAX_CATCHUP = 2;
 // Split screen: a 2D microscope field drawn round a centre (shared/splitscreen.js);
 // while split each view draws its property buffers at SPLIT_SCALE of the screen.
-const split = createSplitScreen(renderer, { renderScale: 0.75 });
-const SPLIT_SCALE = 0.7;
-const splitT = { on: 0, off: 0 };
+const split = createSplitScreen(renderer, { renderScale: SOFTWARE ? 1 : 0.75 });
+const splitT = { on: 0, off: 0, n: 1 };
+// The shared quality governor: it steps the property buffers' scale (and then
+// the effects level) down when frames run long, up when there is headroom,
+// and owns the pixel ratio (shared/quality.js). Software GL caps it at 0.5.
+const quality = createQuality({
+  renderer, key: 'amoeba', min: SOFTWARE ? 0.3 : 0.5, max: SOFTWARE ? 0.5 : 1,
+  onChange: ({ scale }) => { resize(); view.setScale(scale); },
+});
+quality.addToFeatures(features);
 const marks = createLandmarks();
 function frame(now) {
   if (paused && !renderOnce) { last = now; requestAnimationFrame(frame); return; }
   renderOnce = false;
+  quality.update((now - last) / 1000);
   const dtReal = clamp((now - last) / 1000, 0, 0.1);
   last = now;
   S.fps += (1 / Math.max(dtReal, 1e-3) - S.fps) * 0.05;
@@ -1426,6 +1680,7 @@ function frame(now) {
       use(c);
       const fight = !caught.active || FC.phase === 'strike' || FC.phase === 'hold';
       if (fight && pressed(BTN.A) && surge.trigger()) { audio.play('amoeba/boost', { volume: 0.9 }); rumble(220, 0.3, 0.5); if (C.stuckN && !caught.active) hud.toast(`${who()}Surge: torn free of the trap`); }
+      if (S.scheme === 'select' && !caught.active && pressed(BTN.RT)) cyclePods();
       const threat = caught.active ? null : threatTrap(c);
       if (!caught.active && pressed(BTN.X) && !C.closing) {
         // round one of Chaos's arms: pinch it off; at a hypha (and no cup ready to close): cut it; otherwise close the cup
@@ -1459,10 +1714,14 @@ function frame(now) {
   for (const c of cells) c.surge.update(dtReal);
   test.presses.clear();
   if (!menu && !paused) {
+    // Fixed 60 Hz steps, at most two per frame (the owner's trade-off: on a
+    // slow machine the world slows down rather than stutters); the soft bodies
+    // run every step, the granules once per frame (on the last step).
     acc += dtReal;
-    let steps = 0;
-    while (acc >= 1 / 60 && steps < 4) { simStep(1 / 60); acc -= 1 / 60; steps++; }
-    if (steps === 4) acc = 0;
+    const steps = Math.min(MAX_CATCHUP, Math.floor(acc * 60 + 1e-6));
+    for (let k = 0; k < steps; k++) simStep(1 / 60, k === steps - 1);
+    acc = steps === MAX_CATCHUP ? 0 : acc - steps / 60;
+    stepWarmups();
   }
   checkLandmarks();
   // Camera: follow the cell, gently, leading a little in the direction of travel
@@ -1519,9 +1778,14 @@ function renderAll(dt) {
   const many = L.views.length > 1;
   splitT.on = many ? splitT.on + dt : 0;
   splitT.off = many ? 0 : splitT.off + dt;
-  if (splitT.on > 0.4) view.setScale(SPLIT_SCALE);
-  if (splitT.off > 1) view.setScale(1);
-  const args = { time: S.time, prey: [...prey, ...ambient, beacon], mode: S.mode, focus: S.focus, flags: S.flags, granuleCount: S.granules, fragments };
+  // The governor scales the property buffers (and by 0.7 / 0.55 while split).
+  if (splitT.on > 0.4 || (many && L.views.length !== splitT.n)) splitT.n = L.views.length;
+  if (splitT.off > 1) splitT.n = 1;
+  quality.setSplitViews(splitT.n);
+  // Its effects level: fewer granules drawn, then no chromatic fringes.
+  const lvl = quality.level;
+  const flags = lvl > 0 ? S.flags : { ...S.flags, chroma: false };
+  const args = { time: S.time, prey: [...prey, ...ambient, beacon], mode: S.mode, focus: S.focus, flags, granuleCount: Math.min(S.granules, [1100, 1800, 2600][lvl]), fragments };
   if (!many) {
     const o = L.views[0] ? L.views[0].offset : { x: 0, y: 0 };
     view.setView(S.camX + o.x, S.camY + o.y, fieldW);
@@ -1653,10 +1917,15 @@ window.__micro = {
   clearPrey() { for (const p of prey.slice()) if (!p.captured) despawn(p); S.respawn = false; },
   close: tryClose, get surge() { return cells[0].surge; }, ctl, readInput,
   /** Lead and follow roles: { pod: 'ls'|'rs'|null, body, branch }. */
-  get roles() { const R0 = cells[0].R; return { pod: R0.pod, body: R0.pod ? other(R0.pod) : R0.body, branch: R0.branch, latch: [...R0.latch] }; },
+  get roles() { const R0 = cells[0].R; return { pod: R0.pod, body: R0.pod ? other(R0.pod) : R0.body, branch: R0.branch, latch: [...R0.latch], sel: R0.sel, adj: R0.adj }; },
+  /** Select and steer: player `slot`'s pseudopods round the outline and which the sticks hold. */
+  pods(slot = 0) {
+    const c = cellOf(slot), b = c.body;
+    return { sel: c.R.sel, adj: c.R.adj, list: podList(b).map((p) => ({ k: p.k, deg: Math.round(p.a / DEG), y: Math.round(p.y - b.cy), idle: p.idle, s: +b.pods[p.k].s.toFixed(2) })) };
+  },
   rolesText, fragments,
-  /** 'lead' or 'classic'. */
-  scheme(v) { features.set('scheme', v === 'classic' ? SCHEMES[1] : SCHEMES[0]); },
+  /** 'select' (default), 'lead' or 'classic'. */
+  scheme(v) { features.set('scheme', SCHEMES[Math.max(0, SCHEME_IDS.indexOf(v))]); },
   /** Test hook: cut the neck between ring nodes i and j as a hypha would (pinch-off demo). */
   pinch(i, j) { pinchOff(i, j); },
   /** Test hook: make the cell a fresh disc at its centroid (organelles kept). */

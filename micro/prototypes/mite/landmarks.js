@@ -13,9 +13,14 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { gMaterial, CLS } from '../shared/techniques/mite-sem.js';
 import { floorH, mergeGeos } from './world.js';
+import { along, ROUTE } from './layout.js';
 
-/** The opening camera places the forward landmark up and right; the backdoor is behind. */
-export const FORWARD = { x: -1500, z: 1030, reach: 330 };
+/**
+ * The opening camera places the forward landmark up and right, at the end of
+ * the route (layout.js: ~7.3 mm off, past every challenge); the backdoor is
+ * behind the start.
+ */
+export const FORWARD = { ...along(ROUTE.length), reach: 330 };
 export const BACKDOOR = { x: 1450, z: -1000, dwell: 380 };
 
 export function createLandmarkProps(world, tex) {

@@ -8,6 +8,7 @@ import { createLandmarks } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
 import { mountHud } from '../shared/hud.js';
 import { createFeatures } from '../shared/features.js';
+import { createQuality } from '../shared/quality.js';
 import { createAudio } from '../shared/audio.js';
 import { DicMicroscope } from '../shared/techniques/tardigrade-dic.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, AMOEBA_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
@@ -159,8 +160,23 @@ animals.push(p1);
 const places = new Landmarks(scene, world);
 // The boss: Prionchulus, a predatory nematode guarding the Sphagnum leaf on the way to the pool.
 const boss = new Nematode(scene, world);
-const mic = new DicMicroscope(renderer, scene, camera, { layers: [LAYER_SUBSTRATE, LAYER_SPECIMEN], backdrop: assets.backdrop });
+// The optical buffers are allocated once at the governor's best scale and
+// each view uses a fraction of them (render({ viewScale })): no reallocation
+// when the screen splits or the governor steps. Half float: half the
+// bandwidth of the heaviest passes (screenshots compared, see README).
+const Q_MAX = 0.85, Q_MIN = 0.4, Q_TAPS = [10, 16, 26];
+const TEST = new URLSearchParams(location.search); // ?prec=float, ?rig=cpu: comparisons
+const mic = new DicMicroscope(renderer, scene, camera, { layers: [LAYER_SUBSTRATE, LAYER_SPECIMEN], backdrop: assets.backdrop, scale: Q_MAX, precision: TEST.get('prec') === 'float' ? 'auto' : 'half' });
 if (SOFTWARE) mic.setQuality(PR ? 2 : 0);
+// One governor for every world (shared/quality.js): the render scale (here the
+// share of the optical buffers each view uses, split factor included), the
+// blur taps by effects level, and the renderer's pixel ratio. Software GL
+// keeps its own fixed low path.
+const quality = SOFTWARE ? null : createQuality({ renderer, key: 'tardigrade', min: Q_MIN, max: Q_MAX,
+  onChange: ({ level }) => { mic.taps = Q_TAPS[level]; } });
+const SPLIT_SW = [1, 1, 0.7, 0.55, 0.55];
+/** The share of the optical buffers a view uses this frame. */
+const viewScale = () => (quality ? quality.scale / Q_MAX : SPLIT_SW[Math.min(4, split.layout.views.length)]);
 
 // ---------------------------------------------------------------- view state
 // Starts at 12.5× (10× with the 1.25× Optovar: 1.6× the 20× field) so the
@@ -255,6 +271,7 @@ F({ id: 'hunger', group: 'Simulation', label: 'Milnesium hunger', choices: ['Com
   about: 'Comes and goes: after the calm opening it is hungry for ~30-45 s at a time (once stalking it sees the hunt through), then rests (45-75 s after a bite or eating you, 15-30 s after a jab, losing you or giving up on a tun); only a hungry Milnesium closes in, stalks and bites. Always: hungry from the end of the calm opening on. Never: it only browses (for exploring and testing).',
   onChange: (v) => (predator.pace.mode = v) });
 addInvertY(features);
+if (quality) quality.addToFeatures(features);
 F({ id: 'camrel', group: 'Controls', label: 'Camera-relative crawl', fixed: true, about: 'The stick direction on screen is projected onto the leaf the animal is on.' });
 
 // ---------------------------------------------------------------- borrowed (default off)
@@ -309,8 +326,14 @@ function resize() {
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  const b = renderer.getDrawingBufferSize(new THREE.Vector2());
+  const b = renderer.getDrawingBufferSize(_db);
   mic.setSize(b.x, b.y);
+}
+const _db = new THREE.Vector2();
+/** The governor changes the pixel ratio (and so the drawing buffer) on a split: follow it. */
+function followBuffer() {
+  const b = renderer.getDrawingBufferSize(_db);
+  if (!mic.out || b.x !== mic.out.x || b.y !== mic.out.y) resize();
 }
 addEventListener('resize', resize);
 resize();
@@ -406,7 +429,7 @@ let captive = null;
 const cap = { phase: null, m0: new THREE.Matrix4(), feet0: [], t: 0 };
 const _p0 = new THREE.Vector3(), _q0 = new THREE.Quaternion(), _s0 = new THREE.Vector3();
 const _p1 = new THREE.Vector3(), _q1 = new THREE.Quaternion(), _s1 = new THREE.Vector3();
-const _M = new THREE.Matrix4(), _R = new THREE.Matrix4().makeRotationY(Math.PI), _S = new THREE.Matrix4();
+const _Tm = new THREE.Matrix4(), _M = new THREE.Matrix4(), _R = new THREE.Matrix4().makeRotationY(Math.PI), _S = new THREE.Matrix4();
 const gauge = document.createElement('div');
 gauge.style.cssText = 'position:fixed;left:50%;top:50px;transform:translateX(-50%);z-index:6;display:none;align-items:center;gap:8px;padding:3px 10px;border-radius:999px;background:rgba(18,16,10,.55);color:#e8d6a6;font:600 11px system-ui,sans-serif;letter-spacing:.04em;pointer-events:none';
 gauge.innerHTML = '<span>PRIONCHULUS</span><span style="display:block;width:120px;height:5px;border:1px solid #b8913f;border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:100%;background:#d2a24c"></i></span>';
@@ -469,8 +492,8 @@ function animateBossCapture(c, dt) {
   boss.captureStep(c.phase, c.t, dt);
   const h = boss.headW, f = boss.headDir;
   const fwd = _bc.copy(f).negate();
-  const up = boss.L.N.clone();
-  const z = new THREE.Vector3().crossVectors(fwd, up).normalize();
+  const up = _bu.copy(boss.L.N);
+  const z = _bz.crossVectors(fwd, up).normalize();
   const flail = c.phase === 'strike' || c.phase === 'hold' ? 1 : c.phase === 'eat' ? 1 - c.t : 0;
   const drained = c.phase === 'eat' ? ease(c.t) : c.phase === 'strike' || c.phase === 'hold' ? 0 : 1;
   const sc = 1 - 0.3 * drained;
@@ -495,7 +518,7 @@ function animateBossCapture(c, dt) {
   cr.pose.stylet = 0;
   cr.deformAll();
 }
-const _bc = new THREE.Vector3(), _bp = new THREE.Vector3();
+const _bc = new THREE.Vector3(), _bp = new THREE.Vector3(), _bu = new THREE.Vector3(), _bz = new THREE.Vector3();
 function animateCapture(c, dt) {
   if (captor === 'boss') { animateBossCapture(c, dt); return; }
   const a = captive || p1;
@@ -527,7 +550,7 @@ function animateCapture(c, dt) {
     _M.compose(_p0, _q0, _s0);
   } else {
     _S.makeScale(sc * sp, sc * sp, sc * sp);
-    _M.copy(PM).multiply(new THREE.Matrix4().makeTranslation(x, y, Math.sin(T * 11) * 0.06 * flail)).multiply(_R).multiply(_S);
+    _M.copy(PM).multiply(_Tm.makeTranslation(x, y, Math.sin(T * 11) * 0.06 * flail)).multiply(_R).multiply(_S);
     if (c.phase === 'hold') {
       // pulled in from where it stood
       const k = ease(Math.min(1, c.t * 1.6));
@@ -630,7 +653,7 @@ function frame() {
   const rawDt = (now - last) / 1000;
   last = now;
   const dt = Math.min(view.dtMax || 0.05, rawDt);
-  if (view.mode !== 2 && !SOFTWARE) mic.autoQuality(rawDt);
+  if (quality) { quality.setSplitViews(split.layout.views.length); quality.update(rawDt); followBuffer(); }
   players.poll();
   unlockOnPad();
   const inMenu = features.update();
@@ -818,9 +841,14 @@ function step(dt, G) {
     }
   }
 
-  // Creature rigs.
+  // Creature rigs: on the GPU for the optical looks (the lit look and the
+  // borrowed SEM draw the geometry with their own materials: CPU).
+  const gpu = view.mode !== 2 && borrow.id !== 'semMite' && TEST.get('rig') !== 'cpu';
+  predator.creature.setGpu(gpu);
   for (const a of animals) {
     const c = a.creature;
+    c.setGpu(gpu);
+    c.clawScale = view.claws;
     if (held && a === captive) animateCapture(cs, dt);
     else {
       if (!view.sway) { c.pose.sway = 0; c.pose.surge = 0; c.pose.bob = 0; }
@@ -830,7 +858,6 @@ function step(dt, G) {
       c.deformAll();
     }
     animateEating(a, dt);
-    if (view.claws !== 1) for (const cl of c.claws) { const s = view.claws; cl.matrix.multiply(new THREE.Matrix4().makeScale(s, s, s)); }
     if (view.mode === 2 || borrow.id === 'semMite') c.refreshNormals();
     const pt = a.particles || particles;
     if (a.particles) a.particles.points.visible = particles.points.visible;
@@ -1045,22 +1072,22 @@ function drawRings(L) {
 
 function drawView(v, target, dt) {
   const members = v && v.slots && v.slots.length ? animals.filter((a) => v.slots.includes(a.slot)) : [p1];
-  const at = new THREE.Vector3();
+  const at = _at.set(0, 0, 0);
   for (const a of members) at.add(a.shown || a.walker.dispPos);
   at.multiplyScalar(1 / members.length);
   if (!members.length || (capture.active && animals.length === 1)) at.copy(walker.dispPos);
   const ob = OBJECTIVES[view.obj];
-  const H = renderer.getDrawingBufferSize(new THREE.Vector2()).y;
+  const H = renderer.getDrawingBufferSize(_db).y;
   const ref = camera.position.distanceTo(at);
   const pxPerUnit = H / (2 * ref * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
   for (const m of [particles.optMat, ...animals.filter((a) => a.particles).map((a) => a.particles.optMat)]) m.uniforms.uPx.value = H / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
-  const micP = { ref, focus: view.focus, cocPerUnit: ob.coc, dof: ob.dof, pxPerUnit, time, backOff: new THREE.Vector3(view.yaw * 0.15, view.pitch * 0.1, 1), target };
+  const micP = { ref, focus: view.focus, cocPerUnit: ob.coc, dof: ob.dof, pxPerUnit, time, backOff: _bo.set(view.yaw * 0.15, view.pitch * 0.1, 1), target, viewScale: viewScale() };
   if (borrow.id && !target) {
     if (borrow.id === 'semMite') {
       looks.semScene(scene, camera, { dt, umPerUnit: 100, cls: (o) => (bodyMeshes.has(o) ? CLS.CUTICLE : leafMeshes.has(o) ? CLS.LEAF : CLS.LITTER) });
     } else {
       // Optical-path units are scene units (100 µm): ×100 gives µm of path.
-      const { a, b } = mic.render({ ...micP, buffersOnly: true });
+      const { a, b } = mic.render({ ...micP, buffersOnly: true, viewScale: 1 });
       looks.fieldFromBuffers(a.width, a.height, { a: { opd: a.textures[0], abs: a.textures[1] }, b: { opd: b.textures[0], abs: b.textures[1] }, opdK: 100, absK: 1 });
       if (borrow.id === 'opticsAmoeba') looks.amoeba({ mode: bmode.amoeba, focus: 0.6, time, umPerPx: 100 / pxPerUnit, phaseK: 0.3, odK: 1 });
       else looks.paramecium({ mode: bmode.par, time, opdK: 0.5, absK: 1 });
@@ -1071,6 +1098,8 @@ function drawView(v, target, dt) {
     renderer.setRenderTarget(null);
   } else mic.render(micP);
 }
+
+const _at = new THREE.Vector3(), _bo = new THREE.Vector3();
 
 function readout() {
   // What Milnesium is up to, on screen whenever it matters.

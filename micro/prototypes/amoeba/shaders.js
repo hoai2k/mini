@@ -36,6 +36,7 @@ void main() {
 export const BODY_FS = /* glsl */ `
 ${COMMON}
 uniform sampler2D uMask, uSdf, uCyto;
+uniform vec4 uChan; // this cell's channel of the shared mask target
 uniform vec2 uRes; uniform vec3 uGrid;
 uniform vec3 uCytoMean; uniform vec2 uCytoOff; uniform float uCytoTile;
 uniform vec4 uOrgA[12]; uniform vec4 uOrgB[12]; uniform int uOrgN;
@@ -44,7 +45,7 @@ uniform vec3 uUroid; uniform float uFlat, uTime, uDrain;
 uniform vec4 uTint; // local multiplayer: the player's colour as a faint optical density (rgb), strength (a)
 varying vec2 vW;
 void main() {
-  float m = texture2D(uMask, gl_FragCoord.xy / uRes).r;
+  float m = dot(texture2D(uMask, gl_FragCoord.xy / uRes), uChan);
   if (m < 0.004) discard;
   vec2 g = (vW - uGrid.xy) / uGrid.z;
   float d = texture2D(uSdf, g).r * 63.75;     // distance from the membrane, µm

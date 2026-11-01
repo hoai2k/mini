@@ -1,4 +1,4 @@
-// The bog pool: a wide sheet of open water (1.2 x 0.9 m: some 17 full jumps from the middle to the bank) ringed by a steep
+// The bog pool: a wide sheet of open water (1.5 x 0.9 m: some 35 full jumps from the start to the far bank) ringed by a steep
 // Sphagnum bank, with moss islands standing in it, sundew rosettes on the
 // islands, floating debris (dead Sphagnum leaves, bark flakes, needles) and
 // food on the film. The water is the ground everywhere the springtail can
@@ -7,18 +7,36 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { litMaterial, macroShared, MACRO_GLSL } from '../shared/techniques/springtail-macro.js';
 
-export const POOL = { a: 600, b: 450 };
-/** Moss islands standing in the pool: centre and radius (mm). Hand-placed near the start, scattered farther out. */
+export const POOL = { a: 760, b: 450 };
+/**
+ * Where a game starts: near the pool's west (-x) shore, so the forward
+ * landmark on the east bank lies ~1.27 m ahead (+x, up and to the right in the
+ * starting view). The first half of the way is calm water, islands and food;
+ * the challenges come one after another in the second half (`ZONES`).
+ */
+export const START = { x: -560, z: 2 };
+/** Moss islands standing in the pool: centre and radius (mm). Hand-placed round the start, scattered farther out. */
 export const ISLANDS = [
   [15, -9, 4], [-24, 16, 5], [34, 20, 5.5], [-38, -20, 5], [62, -6, 7], [-66, 22, 6], [8, 44, 5], [86, 36, 6],
   [-18, -52, 6], [96, -46, 5], [-104, -8, 6.5], [44, -58, 5], [-60, -62, 5], [-50, 62, 5.5], [40, 78, 5], [120, 0, 5],
-].map(([x, z, r]) => ({ x, z, r }));
+].map(([x, z, r]) => ({ x: x + START.x + 8, z, r }));
+/**
+ * The sundew patch: a band of small islands across the way, each with a
+ * rosette whose glue-tipped leaves reach out over the gaps (`buildSundews`).
+ */
+const SUNDEW_X = 530;
+export const SUNDEW_ISLANDS = [[-4, -58, 4.5], [10, -38, 4], [-6, -19, 4.5], [12, 0, 4], [-5, 19, 4.5], [11, 38, 4], [-3, 57, 4.5]]
+  .map(([x, z, r]) => ({ x: SUNDEW_X + x, z, r, sundew: true }));
+ISLANDS.push(...SUNDEW_ISLANDS);
+const HAND = ISLANDS.length;
 {
   let seed = 4242;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  for (let k = 0; k < 8000 && ISLANDS.length < 64; k++) {
+  for (let k = 0; k < 12000 && ISLANDS.length < 72; k++) {
     const a = rnd() * Math.PI * 2, e = 0.24 + rnd() * 0.68;
     const x = Math.cos(a) * POOL.a * e, z = Math.sin(a) * POOL.b * e, r = 4 + rnd() * 4;
+    // keep the sundew band's gaps open (only its own islands stand in it)
+    if (Math.abs(x - SUNDEW_X) < 40 && Math.abs(z) < 90) continue;
     if (ISLANDS.every((I) => Math.hypot(I.x - x, I.z - z) > I.r + r + 40)) ISLANDS.push({ x: Math.round(x), z: Math.round(z), r: Math.round(r * 2) / 2 });
   }
 }
@@ -26,21 +44,38 @@ export const ISLAND = ISLANDS[0];
 
 /**
  * The forward landmark (the Zoom Chain's way on, design §0.6): a tongue of
- * Sphagnum where the bank reaches into the pool, straight ahead of the start
- * (+x, ~0.56 m off: a minute or so of full jumps). Its capitula overhang the
- * water low enough to land on, and on the tallest one a speck moves: the
- * Limnozetes mite of Level 1. It is an island joined to the bank, so the
- * shoreline, the water mask and landing on moss all treat it like one.
+ * Sphagnum where the east bank reaches into the pool, straight ahead of the
+ * start (+x, ~1.27 m off). Its capitula overhang the water low enough to land
+ * on, and on the tallest one a speck moves: the Limnozetes mite of Level 1.
+ * It is an island joined to the bank, so the shoreline, the water mask and
+ * landing on moss all treat it like one.
  */
 export const LANDMARK = (() => {
   const a = 0, e = 0.982;
   const f = 1 + 0.05 * Math.sin(3 * a + 0.5) + 0.035 * Math.sin(5 * a + 1.3);
-  const x = Math.round((e * 600) / f), z = 0, r = 10;
-  for (let i = ISLANDS.length - 1; i >= 16; i--) if (Math.hypot(ISLANDS[i].x - x, ISLANDS[i].z - z) < ISLANDS[i].r + r + 30) ISLANDS.splice(i, 1);
+  const x = Math.round((e * POOL.a) / f), z = 0, r = 10;
+  for (let i = ISLANDS.length - 1; i >= HAND; i--) if (Math.hypot(ISLANDS[i].x - x, ISLANDS[i].z - z) < ISLANDS[i].r + r + 30) ISLANDS.splice(i, 1);
   const island = { x, z, r, landmark: true };
   ISLANDS.push(island);
   return { x, z, r, island, reach: r + 3 };
 })();
+
+/** The way from the start to the landmark (mm) and how far along it a point is (0 at the start, 1 at the landmark). */
+export const ROUTE_LEN = Math.hypot(LANDMARK.x - START.x, LANDMARK.z - START.z);
+export const progressAt = (x, z) => ((x - START.x) * (LANDMARK.x - START.x) + (z - START.z) * (LANDMARK.z - START.z)) / (ROUTE_LEN * ROUTE_LEN);
+const along = (u) => START.x + (LANDMARK.x - START.x) * u;
+/**
+ * The challenges, in the order you meet them, all in the second half of the
+ * way (progress >= 0.5). Each predator keeps to its own water (radius r, and
+ * gives up a chase `leash` mm beyond it); rain starts at `rain`.
+ */
+export const ZONES = {
+  rain: 0.5,
+  stenus: { x: along(0.6), z: 6, r: 58, leash: 30 },
+  strider: { x: along(0.745), z: -8, r: 52, leash: 26 },
+  sundew: { x: SUNDEW_X, z: 0, from: progressAt(SUNDEW_X - 30, 0) },
+  boss: { from: progressAt(LANDMARK.x - 35, 0) },
+};
 
 /** Normalised pool radius: < 1 inside the pool (matches POOL_GLSL). */
 export function poolE(x, z) {
@@ -252,6 +287,9 @@ export function buildWorld({ mossTex = null, sundewTex = null } = {}) {
   // capitula
   const mossMat = litMaterial({ surface: MOSS_SURFACE, uniforms: { uMossTex: mossTexU, uHasMossTex: hasMossTexU } });
   const variants = [capitulumGeometry(rnd, { sides: 4 }), capitulumGeometry(rnd, { spreading: 18, bud: 12, sides: 4 }), capitulumGeometry(rnd, { spreading: 12, bud: 8, sides: 4, segs: 4 })];
+  // far moss: the same heads with fewer, coarser branches (their ribs are under
+  // a pixel or deep in the bokeh out there)
+  const farVariant = capitulumGeometry(rnd, { spreading: 10, bud: 4, sides: 3, segs: 2 });
   const palette = [[0.06, 0.16, 0.025], [0.11, 0.18, 0.02], [0.2, 0.03, 0.03], [0.24, 0.14, 0.03], [0.09, 0.13, 0.02], [0.16, 0.05, 0.03]];
   const spots = [[], [], []];
   const tryPlace = (x, z, v, s) => {
@@ -282,26 +320,57 @@ export function buildWorld({ mossTex = null, sundewTex = null } = {}) {
     const ok = spots[2].every((p) => Math.hypot(p.x - x, p.z - z) > 22);
     if (ok) tryPlace(x, z, 2, 1.8 + rnd() * 0.8);
   }
+  // Chunked by tiles of the pool, so the renderer frustum-culls whole tiles
+  // per view (the macro lens sees a narrow cone), and each tile is an LOD:
+  // full heads near the focal plane, the coarse variant beyond `lodDistance`
+  // (set per view from the focus distance: setLodDistance()).
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), col = new THREE.Color();
+  const TILE = 64;
+  const lods = [];
+  const tiles = new Map();
   variants.forEach((geo, v) => {
-    const list = spots[v];
-    const im = new THREE.InstancedMesh(geo, mossMat, Math.max(1, list.length));
-    list.forEach((p, i) => {
-      q.setFromEuler(new THREE.Euler((rnd() - 0.5) * 0.25, p.rot, (rnd() - 0.5) * 0.25));
-      m4.compose(new THREE.Vector3(p.x, p.y, p.z), q, new THREE.Vector3(p.s, p.s, p.s));
-      im.setMatrixAt(i, m4);
-      im.setColorAt(i, col.setRGB(...p.c));
-    });
-    im.count = list.length;
-    im.frustumCulled = false;
-    group.add(im);
+    for (const p of spots[v]) {
+      const key = `${Math.floor(p.x / TILE)},${Math.floor(p.z / TILE)}`;
+      let t = tiles.get(key);
+      if (!t) tiles.set(key, (t = [[], [], []]));
+      t[v].push(p);
+    }
   });
+  for (const t of tiles.values()) {
+    const all = t.flat();
+    const cx = all.reduce((a, p) => a + p.x, 0) / all.length, cz = all.reduce((a, p) => a + p.z, 0) / all.length;
+    const lod = new THREE.LOD();
+    lod.position.set(cx, 0, cz);
+    const near = new THREE.Group(), far = new THREE.Group();
+    t.forEach((list, v) => {
+      if (!list.length) return;
+      const im = new THREE.InstancedMesh(variants[v], mossMat, list.length);
+      list.forEach((p, i) => {
+        q.setFromEuler(new THREE.Euler((rnd() - 0.5) * 0.25, p.rot, (rnd() - 0.5) * 0.25));
+        m4.compose(new THREE.Vector3(p.x - cx, p.y, p.z - cz), q, new THREE.Vector3(p.s, p.s, p.s));
+        im.setMatrixAt(i, m4);
+        im.setColorAt(i, col.setRGB(...p.c));
+      });
+      im.computeBoundingSphere();
+      near.add(im);
+      // the far tile shares the instance data
+      const fm = new THREE.InstancedMesh(farVariant, mossMat, list.length);
+      fm.instanceMatrix = im.instanceMatrix; fm.instanceColor = im.instanceColor;
+      fm.boundingSphere = im.boundingSphere;
+      far.add(fm);
+    });
+    lod.addLevel(near, 0);
+    lod.addLevel(far, 60, 0.05);
+    lods.push(lod);
+    group.add(lod);
+  }
+  const lodDistance = (d) => { for (const l of lods) l.levels[1].distance = d; };
 
   const sundews = buildSundews(group, rnd, sundewTex);
   const food = buildFood(group, rnd);
   const debris = buildDebris(group, rnd);
 
-  return { group, sundews, food, debris, mossMat, sky, setMossTex(t) { mossMat.uniforms.uMossTex.value = t; mossMat.uniforms.uHasMossTex.value = t ? 1 : 0; } };
+  return { group, sundews, food, debris, mossMat, sky, mossTiles: lods, setLodDistance: lodDistance, setMossTex(t) { mossMat.uniforms.uMossTex.value = t; mossMat.uniforms.uHasMossTex.value = t ? 1 : 0; } };
 }
 
 // ---------------------------------------------------------------- sundews
@@ -317,9 +386,9 @@ const GLUE_SURFACE = /* glsl */ `
  * ~90 red glandular tentacles (longer at the rim) tipped with glue drops.
  */
 function buildSundews(group, rnd, sundewTex) {
-  // rosettes on islands, their leaves held out over the water all round
-  // (not on the first island, which is a safe landing near the start)
-  const rosettes = [1, 3, 4, 6, 9, 10, 13].map((i, k) => ({ x: ISLANDS[i].x, z: ISLANDS[i].z, n: 3 + (k % 3), R: ISLANDS[i].r }));
+  // the sundew patch: a rosette on each island of the band across the way,
+  // its leaves held out over the gaps between the islands (north and south)
+  const rosettes = SUNDEW_ISLANDS.map((I, k) => ({ x: I.x, z: I.z, n: 4 + (k % 2), R: I.r, a0: k % 2 ? Math.PI / 2 : -Math.PI / 2 }));
   const leafMat = litMaterial({
     uniforms: { uLeafTex: { value: sundewTex }, uHasLeafTex: { value: sundewTex ? 1 : 0 } },
     surface: `uniform sampler2D uLeafTex; uniform float uHasLeafTex;
@@ -343,9 +412,10 @@ function buildSundews(group, rnd, sundewTex) {
   for (const ro of rosettes) {
     const baseY = Math.max(mossTop(ro.x, ro.z), 0.6);
     // leaves on one side of the island, so its moss stays in view
-    const a0 = rnd() * Math.PI * 2;
+    const a0 = ro.a0 ?? rnd() * Math.PI * 2;
     for (let i = 0; i < ro.n; i++) {
-      const a = a0 + (i / Math.max(1, ro.n - 1) - 0.5) * 2.2 + (rnd() - 0.5) * 0.25;
+      // alternate leaves to either side of the band, fanned along it
+      const a = a0 + (i % 2 ? Math.PI : 0) + (Math.floor(i / 2) / Math.max(1, Math.ceil(ro.n / 2) - 1) - 0.5) * 1.6 + (rnd() - 0.5) * 0.25;
       const L = ro.R + 1.8 + rnd() * 2.2, R = 2.0 + rnd() * 0.6;
       const cx = ro.x + Math.cos(a) * L, cz = ro.z + Math.sin(a) * L;
       const under = Math.max(mossTop(cx, cz), 0);
@@ -385,7 +455,6 @@ function buildSundews(group, rnd, sundewTex) {
   }
   const tentIM = new THREE.InstancedMesh(tentGeo, tentMat, tents.length);
   const dropIM = new THREE.InstancedMesh(dropGeo, glueMat, tents.length);
-  tentIM.frustumCulled = dropIM.frustumCulled = false;
   group.add(tentIM, dropIM);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), Y = new THREE.Vector3(0, 1, 0), tip = new THREE.Vector3();
   const write = (t, i) => {
@@ -397,6 +466,8 @@ function buildSundews(group, rnd, sundewTex) {
     dropIM.setMatrixAt(i, m4);
   };
   tents.forEach(write);
+  // culled as one patch: the bounds of every tentacle, padded for the curl
+  for (const im of [tentIM, dropIM]) { im.computeBoundingSphere(); im.boundingSphere.radius += 4; }
   const want = new THREE.Vector3();
   return {
     leaves,
@@ -453,19 +524,21 @@ export const FOOD_TYPES = [
 ];
 
 function buildFood(group, rnd) {
-  const COUNT = 90;
+  const COUNT = 110;
   const maxGrains = COUNT * 26;
   const mat = litMaterial({ surface: `s.albedo = vColor * (0.8 + 0.4 * mNoise(vLocal.xy * 9.0)); s.rough = 0.5; s.wrap = 0.4; s.trans = 0.4; s.sheen = 0.2; s.sheenCol = vColor;` });
   const im = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), mat, maxGrains);
   im.frustumCulled = false;
+  im.count = 0;
   group.add(im);
   const clumps = [];
   let gi = 0;
   const place = (c) => {
     for (let tries = 0; tries < 80; tries++) {
       const near = rnd() < 0.5;
-      const x = (rnd() - 0.5) * (near ? 70 : 2 * POOL.a), z = (rnd() - 0.5) * (near ? 55 : 2 * POOL.b);
-      if (poolE(x, z) < 0.9 && islandEdge(x, z).d > 1.5 && Math.hypot(x + 8, z - 2) > 2.5) { c.x = x; c.z = z; return; }
+      // half round the start, half anywhere along the way
+      const x = near ? START.x + (rnd() - 0.5) * 70 : START.x + rnd() * ROUTE_LEN * 1.05, z = near ? START.z + (rnd() - 0.5) * 55 : (rnd() - 0.5) * 2 * POOL.b * 0.6;
+      if (poolE(x, z) < 0.9 && islandEdge(x, z).d > 1.5 && Math.hypot(x - START.x, z - START.z) > 2.5) { c.x = x; c.z = z; return; }
     }
   };
   for (let i = 0; i < COUNT; i++) {
@@ -478,31 +551,45 @@ function buildFood(group, rnd) {
     }
     clumps.push(c);
   }
-  im.count = gi;
   const col = new THREE.Color();
-  for (const c of clumps) for (const g of c.grains) im.setColorAt(g.i, col.setRGB(...c.type.color).multiplyScalar(0.8 + rnd() * 0.4));
+  for (const c of clumps) for (const g of c.grains) g.col = col.setRGB(...c.type.color).multiplyScalar(0.8 + rnd() * 0.4).clone();
+  im.setColorAt(0, col); // allocate the colour buffer
+  const owner = new Array(maxGrains).fill(null);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s = new THREE.Vector3();
   return {
     clumps, im,
     respawn(c) { place(c); c.bites = 3; c.chew = 0; c.vx = c.vz = 0; },
-    /** Float the grains on the film; hide eaten ones. */
-    update(heightAt) {
+    /**
+     * Float the grains on the film; hide eaten ones. Only clumps within
+     * `range` mm of one of `near` ([{x, z}]: the players and the views) are
+     * drawn: a grain is ~0.1 mm, under a pixel farther out. They are packed
+     * into the first instances, so far food costs neither CPU nor GPU.
+     */
+    update(heightAt, near = null, range = 80) {
+      let n = 0, recolour = false;
       for (const c of clumps) {
+        if (c.respawnT > 0 || c.bites <= 0) continue;
+        if (near && !near.some((p) => Math.abs(p.x - c.x) < range && Math.abs(p.z - c.z) < range)) continue;
         // a bite being eaten (c.chew 0..1) shrinks the clump's last grains away
         const shown = (c.grains.length * Math.max(0, c.bites - (c.chew || 0))) / 3;
-        c.grains.forEach((g, k) => {
-          const x = c.x + g.ox, z = c.z + g.oz;
+        for (let k = 0; k < c.grains.length; k++) {
+          const g = c.grains[k];
           const on = Math.max(0, Math.min(1, shown - k));
+          if (on <= 0) continue;
+          const x = c.x + g.ox, z = c.z + g.oz;
           v.set(x, heightAt(x, z) + g.r * 0.45, z);
           e.set(g.tilt, g.rot + c.spin, 0);
           q.setFromEuler(e);
-          const L = on;
-          s.set(g.r * c.type.stretch * L, g.r * L, g.r * L);
+          s.set(g.r * c.type.stretch * on, g.r * on, g.r * on);
           m4.compose(v, q, s);
-          im.setMatrixAt(g.i, m4);
-        });
+          im.setMatrixAt(n, m4);
+          if (owner[n] !== g) { owner[n] = g; im.setColorAt(n, g.col); recolour = true; }
+          n++;
+        }
       }
+      im.count = n;
       im.instanceMatrix.needsUpdate = true;
+      if (recolour) im.instanceColor.needsUpdate = true;
     },
   };
 }
@@ -531,8 +618,8 @@ function buildDebris(group, rnd) {
     const d = { type, x: 0, z: 0, a: rnd() * Math.PI, vx: 0, vz: 0, va: (rnd() - 0.5) * 0.04, y: 0, top: 0, L: type.L * (0.8 + rnd() * 0.4), W: type.W * (0.8 + rnd() * 0.4), T: type.T, i: pieces.length };
     for (let t = 0; t < 80; t++) {
       const near = rnd() < 0.5;
-      const x = (rnd() - 0.5) * (near ? 80 : 2 * POOL.a), z = (rnd() - 0.5) * (near ? 60 : 2 * POOL.b);
-      if (poolE(x, z) < 0.92 && islandEdge(x, z).d > d.L && Math.hypot(x + 8, z - 2) > 4) { d.x = x; d.z = z; break; }
+      const x = near ? START.x + (rnd() - 0.5) * 80 : (rnd() - 0.5) * 2 * POOL.a, z = (rnd() - 0.5) * (near ? 60 : 2 * POOL.b);
+      if (poolE(x, z) < 0.92 && islandEdge(x, z).d > d.L && Math.hypot(x - START.x, z - START.z) > 4) { d.x = x; d.z = z; break; }
     }
     pieces.push(d);
   }

@@ -32,7 +32,7 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { buildSdfMesh, sd, combine } from '../shared/sdf.js';
 import { gMaterial } from './sem.js';
-import { HALF as WORLD_HALF, floorH as worldFloorH, floorN as worldFloorN } from './world.js';
+import { BOUNDS, floorH as worldFloorH, floorN as worldFloorN } from './world.js';
 import { GAITS, legOffset, gaitTriggers, swingTarget, twoBoneIK } from '../shared/techniques/mite-gait.js';
 
 /** Live switches, shared by every mite (the feature panel edits it). */
@@ -354,12 +354,25 @@ function support(c, r, d, out) {
 /** The world's colliders seen from a mite drawn `k` times its anatomy's size. */
 function scaledColliders(c, k) {
   const o = new THREE.Vector3();
+  // hits from a ring of reused objects, like the world's own (read them before ~200 more casts)
+  const ring = Array.from({ length: 256 }, () => ({ point: new THREE.Vector3(), normal: null, dist: 0, kind: '', entry: null }));
+  let ri = 0;
   return {
     cast(origin, dir, far, skipFloor, skip) {
       const h = c.cast(o.copy(origin).multiplyScalar(k), dir, far * k, skipFloor, skip);
-      return h && { ...h, point: h.point.clone().divideScalar(k), dist: h.dist / k };
+      if (!h) return null;
+      const r = ring[ri]; ri = (ri + 1) & 255;
+      r.point.copy(h.point).divideScalar(k); r.normal = h.normal; r.dist = h.dist / k; r.kind = h.kind; r.entry = h.entry;
+      return r;
     },
   };
+}
+/** Copy a collider hit into a kept object (hits themselves are reused). */
+function keepHit(h, out) {
+  if (!h) return null;
+  out = out || { point: new THREE.Vector3(), normal: new THREE.Vector3(), dist: 0, kind: '', entry: null };
+  out.point.copy(h.point); out.normal.copy(h.normal); out.dist = h.dist; out.kind = h.kind; out.entry = h.entry;
+  return out;
 }
 
 export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT, scale = 1 }) {
@@ -373,7 +386,8 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
   if (k !== 1) colliders = scaledColliders(colliders, k);
   const floorH = (x, z) => worldFloorH(x * k, z * k) / k;
   const floorN = (x, z, out) => worldFloorN(x * k, z * k, out);
-  const HALF = WORLD_HALF / k;
+  // the walkable square (world.js BOUNDS), kept 150 µm inside, in this mite's units
+  const BX0 = (BOUNDS.x0 + 150) / k, BX1 = (BOUNDS.x1 - 150) / k, BZ0 = (BOUNDS.z0 + 150) / k, BZ1 = (BOUNDS.z1 - 150) / k;
   const G = AN.kind === 'pred' ? predGeometry() : geometry();
   const cut = gMaterial({ cls, tex: tex.cuticle, map: 'tri', scale: 150, bump: 1.6, objSpace: true });
   const legMat = gMaterial({ cls });
@@ -436,18 +450,20 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
   };
   const events = [];
 
-  const right = () => new THREE.Vector3().crossVectors(st.fwd, st.up).normalize();
+  const right = (out = new THREE.Vector3()) => out.crossVectors(st.fwd, st.up).normalize();
+  const _br = new THREE.Vector3(), _bm = new THREE.Matrix4();
   const basisQ = (fwd, up, out = new THREE.Quaternion()) => {
-    const r = new THREE.Vector3().crossVectors(fwd, up).normalize();
-    return out.setFromRotationMatrix(new THREE.Matrix4().makeBasis(fwd, up, r));
+    const r = _br.crossVectors(fwd, up).normalize();
+    return out.setFromRotationMatrix(_bm.makeBasis(fwd, up, r));
   };
   const toWorld = (local, center, q, out = new THREE.Vector3()) => out.copy(local).applyQuaternion(q).add(center);
+  const _rw = new THREE.Vector3();
   const restWorld = (L, out = new THREE.Vector3()) => {
-    const r = right();
+    const r = right(_rw);
     return out.copy(st.pos).addScaledVector(st.fwd, L.rest.x).addScaledVector(r, L.rest.z);
   };
-  const down = new THREE.Vector3();
-  const ground = (p, up, above = 140, far = 380) => colliders.cast(p.clone().addScaledVector(up, above), down.copy(up).negate(), far);
+  const down = new THREE.Vector3(), _go = new THREE.Vector3();
+  const ground = (p, up, above = 140, far = 380) => colliders.cast(_go.copy(p).addScaledVector(up, above), down.copy(up).negate(), far);
 
   const isFeeler = (L) => AN.feelers && L.k === 0;
   function plantAll() {
@@ -474,29 +490,35 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
 
   // probe the ground around the body: height and surface normal
   const PROBES = [[0, 0], [210, 0], [-220, 0], [0, -125], [0, 125]];
+  const _ph = [null, null, null, null, null], _pr = { point: new THREE.Vector3(), normal: new THREE.Vector3() };
+  const _pa = new THREE.Vector3(), _pb = new THREE.Vector3(), _pp = new THREE.Vector3(), _rt = new THREE.Vector3();
   function probe(at) {
-    const r = right();
-    const hits = PROBES.map(([a, b]) => ground(at.clone().addScaledVector(st.fwd, a).addScaledVector(r, b), st.up));
+    const r = right(_rt);
+    for (let i = 0; i < 5; i++) _ph[i] = ground(_pp.copy(at).addScaledVector(st.fwd, PROBES[i][0]).addScaledVector(r, PROBES[i][1]), st.up);
+    const hits = _ph;
     if (!hits[0]) return null;
-    st.groundHit = hits[0];
-    const h0 = hits[0].point.clone().sub(at).dot(st.up);
-    const ok = hits.map((h) => h && Math.abs(h.point.clone().sub(at).dot(st.up) - h0) < 120 ? h : null);
-    const n = new THREE.Vector3();
+    st.groundHit = keepHit(hits[0], st.groundHit);
+    const h0 = _pa.copy(hits[0].point).sub(at).dot(st.up);
+    for (let i = 0; i < 5; i++) if (hits[i] && Math.abs(_pa.copy(hits[i].point).sub(at).dot(st.up) - h0) >= 120) hits[i] = null;
+    const ok = hits;
+    const n = _pr.normal.set(0, 0, 0);
     for (const h of ok) if (h) n.add(h.normal);
     if (ok[1] && ok[2] && ok[3] && ok[4]) {
-      const a = ok[1].point.clone().sub(ok[2].point), b = ok[4].point.clone().sub(ok[3].point);
-      const pn = new THREE.Vector3().crossVectors(b, a).normalize();
+      const a = _pa.copy(ok[1].point).sub(ok[2].point), b = _pb.copy(ok[4].point).sub(ok[3].point);
+      const pn = _pp.crossVectors(b, a).normalize();
       if (pn.dot(st.up) < 0) pn.negate();
       n.normalize().add(pn.multiplyScalar(1.5));
     }
-    return { point: hits[0].point, normal: n.normalize() };
+    _pr.point.copy(hits[0].point);
+    n.normalize();
+    return _pr;
   }
 
   function settleBody(dt, snap = false) {
     const pr = probe(st.pos);
     if (!pr) return false;
     const k = snap ? 1 : 1 - Math.exp(-dt / 0.06);
-    const dh = pr.point.clone().sub(st.pos).dot(st.up);
+    const dh = _pa.copy(pr.point).sub(st.pos).dot(st.up);
     st.pos.addScaledVector(st.up, dh * k);
     const tgt = pr.normal;
     if (tgt.y < -0.2) { tgt.y = -0.2; tgt.normalize(); }
@@ -506,16 +528,19 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
   }
 
   let gaitNow = cfg.gait;
+  const _wd = new THREE.Vector3(), _wu = new THREE.Vector3(), _wo = new THREE.Vector3(), _wm = new THREE.Vector3(), _wn = new THREE.Vector3(), _wp = new THREE.Vector3();
+  const _vb = new THREE.Vector3(), _sw = new THREE.Vector3(), _sr = new THREE.Vector3(), _sv = new THREE.Vector3();
+  const _trig = new Set();
   function walk(dt, input) {
     if (gaitNow !== cfg.gait) { gaitNow = cfg.gait; for (const L of legs) L.off = legOffset(gaitNow, L.k, L.sideIdx); }
     const duty = GAITS[gaitNow].duty;
     let want = 0, turn = 0;
     if (input.mag > 0.01) {
-      const d = input.dir.clone().addScaledVector(st.up, -input.dir.dot(st.up));
-      if (d.lengthSq() < 0.05) d.addScaledVector(V3(0, 1, 0).addScaledVector(st.up, -st.up.y), 1); // on a wall: push = climb
+      const d = _wd.copy(input.dir).addScaledVector(st.up, -input.dir.dot(st.up));
+      if (d.lengthSq() < 0.05) d.addScaledVector(_wu.set(0, 1, 0).addScaledVector(st.up, -st.up.y), 1); // on a wall: push = climb
       if (d.lengthSq() > 1e-6) {
         d.normalize();
-        const ang = Math.atan2(new THREE.Vector3().crossVectors(st.fwd, d).dot(st.up), st.fwd.dot(d));
+        const ang = Math.atan2(_wu.crossVectors(st.fwd, d).dot(st.up), st.fwd.dot(d));
         const rate = (1.5 + 1.2 * clamp(1 - st.speed / 200, 0, 1)) * (input.turnK || 1); // turns tighter when slow (and in a scramble)
         turn = clamp(ang, -rate * dt, rate * dt);
         want = input.maxSpeed * input.mag * sstep(-0.15, 0.75, Math.cos(ang));
@@ -528,11 +553,11 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
 
     // wall ahead (taller than a step)?
     let step = st.speed * dt;
-    const wall = colliders.cast(st.pos.clone().addScaledVector(st.up, 130), st.fwd, 300 + step, false, SOFT);
-    const move = st.fwd.clone().multiplyScalar(step);
+    const wall = colliders.cast(_wo.copy(st.pos).addScaledVector(st.up, 130), st.fwd, 300 + step, false, SOFT);
+    const move = _wm.copy(st.fwd).multiplyScalar(step);
     st.climbing = Math.max(0, st.climbing - dt * 2);
     if (wall && wall.normal.dot(st.up) < 0.55) {
-      const n = wall.normal.clone().addScaledVector(st.up, -wall.normal.dot(st.up)).normalize();
+      const n = _wn.copy(wall.normal).addScaledVector(st.up, -wall.normal.dot(st.up)).normalize();
       const into = move.dot(n);
       if (cfg.climb && step > 0.01 && wall.normal.dot(st.up) > -0.35) {
         // Too steep to step onto (a grain face, a stem, a flake on edge): the
@@ -550,10 +575,10 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
         move.addScaledVector(n, -into * clamp((330 - wall.dist) / 60, 0, 1));
       }
     }
-    const prev = st.pos.clone();
+    const prev = _wp.copy(st.pos);
     st.pos.add(move);
-    st.pos.x = clamp(st.pos.x, -HALF + 150, HALF - 150);
-    st.pos.z = clamp(st.pos.z, -HALF + 150, HALF - 150);
+    st.pos.x = clamp(st.pos.x, BX0, BX1);
+    st.pos.z = clamp(st.pos.z, BZ0, BZ1);
     if (!settleBody(dt)) {
       st.pos.copy(prev); st.speed *= 0.5;
       // Walked off the end or edge of something with nothing within reach:
@@ -573,8 +598,9 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     // the front feet are ~330 µm from the centre, so turning sweeps them fast
     let dphi = (moved + Math.abs(turn) * 330) / stride;
     if (dphi < 0.25 * dt && err > 22) dphi = 1.4 * dt; // shuffle feet back under the body when stopped
-    const vBody = st.fwd.clone().multiplyScalar(moved / dt);
-    const trig = new Set(gaitTriggers(st.phase, dphi, legs));
+    const vBody = _vb.copy(st.fwd).multiplyScalar(moved / dt);
+    const trig = _trig; trig.clear();
+    for (const L of gaitTriggers(st.phase, dphi, legs)) trig.add(L);
     for (const L of legs) {
       if (isFeeler(L)) continue;
       if (!L.swing && (trig.has(L) || L.foot.distanceTo(restWorld(L, _x)) > stride * 1.25)) {
@@ -591,9 +617,9 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       // begun slowly never overlaps the other group's
       L.s = Math.min(1, L.s + Math.max(dt / L.dur, dphi / (1 - duty)));
       // where the rest point will be at touchdown, plus half a stance ahead
-      const rw = restWorld(L, new THREE.Vector3());
-      const rel = rw.clone().sub(st.pos);
-      const vFoot = vBody.clone().add(new THREE.Vector3().crossVectors(st.up, rel).multiplyScalar(st.omega));
+      const rw = restWorld(L, _sw);
+      const rel = _sr.copy(rw).sub(st.pos);
+      const vFoot = _sv.crossVectors(st.up, rel).multiplyScalar(st.omega).add(vBody);
       const tgt = swingTarget(rw, vFoot, (1 - L.s) * L.dur, duty, stride, vBody.length());
       const h = ground(tgt, st.up, 120, 320);
       if (h) L.to.copy(h.point); else L.to.copy(tgt);
@@ -703,8 +729,8 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       if (g3 && c3.y - g3.point.y < 30) st.center.y += g3.point.y - c3.y;
       else if (!g3 || c3.y - g3.point.y >= 30) st.vel.y = 0; // leaves the surface: falls next frame
     }
-    st.center.x = clamp(st.center.x, -HALF + 150, HALF - 150);
-    st.center.z = clamp(st.center.z, -HALF + 150, HALF - 150);
+    st.center.x = clamp(st.center.x, BX0, BX1);
+    st.center.z = clamp(st.center.z, BZ0, BZ1);
   }
 
   // The hop: a ballistic arc after the crouch, landing on whatever is below.
@@ -729,8 +755,8 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     }
     if (st.vel.y > 0) { const hit = colliders.cast(st.center, WUP, 180 + st.vel.y * dt, true, SOFT); if (hit) st.vel.y = 0; }
     st.center.addScaledVector(st.vel, dt);
-    st.center.x = clamp(st.center.x, -HALF + 150, HALF - 150);
-    st.center.z = clamp(st.center.z, -HALF + 150, HALF - 150);
+    st.center.x = clamp(st.center.x, BX0, BX1);
+    st.center.z = clamp(st.center.z, BZ0, BZ1);
     st.up.lerp(WUP, 1 - Math.exp(-dt / 0.15)).normalize();
     st.fwd.addScaledVector(st.up, -st.fwd.dot(st.up)).normalize();
     st.pos.copy(st.center).addScaledVector(st.up, -AN.stand);
@@ -757,22 +783,29 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     events.push('land');
   }
 
+  // scratch for pose (no allocations per leg per frame)
+  const _U = new THREE.Vector3(), _H = new THREE.Vector3(), _F = new THREE.Vector3(), _F2 = new THREE.Vector3(), _t1 = new THREE.Vector3(), _t2 = new THREE.Vector3();
+  const _tf = new THREE.Vector3(), _T = new THREE.Vector3(), _K = new THREE.Vector3(), _Fe = new THREE.Vector3(), _u1 = new THREE.Vector3(), _b = new THREE.Vector3();
+  const _Fm = new THREE.Vector3(), _w2 = new THREE.Vector3(), _bend = new THREE.Vector3(), _tib = new THREE.Vector3(), _J = new THREE.Vector3(), _ta = new THREE.Vector3();
+  const _kd = new THREE.Vector3(), _X = new THREE.Vector3(), _Z = new THREE.Vector3(), _seg = [0, 0, 0, 0, 0], _rad = [0, 0, 0, 0, 0];
+  const _frames = [null, [null, null, 0, 0], [null, null, 0, 0], [null, null, 0, 0], [null, null, 0, 0]];
+  const _pq = new THREE.Quaternion(), _pq2 = new THREE.Quaternion(), _pc = new THREE.Vector3(), _ax = new THREE.Vector3();
   // place every part for the current state
   function pose(dt) {
     let q, center;
     if (st.mode === 'walk' || st.mode === 'closing' || st.mode === 'crouch') {
       const bob = st.mode === 'walk' && cfg.bob ? 2.5 * Math.sin(st.phase * Math.PI * 4) : 0;
       const sway = st.mode === 'walk' && cfg.bob ? 0.02 * Math.sin(st.phase * Math.PI * 2) * Math.min(1, st.speed / 120) : 0;
-      q = basisQ(st.fwd, st.up);
-      q.multiply(new THREE.Quaternion().setFromAxisAngle(V3(1, 0, 0), sway));
-      if (st.rear > 0) q.multiply(new THREE.Quaternion().setFromAxisAngle(V3(0, 0, 1), 0.42 * st.rear));
-      if (st.lean > 0.01) q.multiply(new THREE.Quaternion().setFromAxisAngle(V3(0, 0, 1), -0.14 * st.lean)); // the scramble: nose down, driving
+      q = basisQ(st.fwd, st.up, _pq);
+      q.multiply(_pq2.setFromAxisAngle(_ax.set(1, 0, 0), sway));
+      if (st.rear > 0) q.multiply(_pq2.setFromAxisAngle(_ax.set(0, 0, 1), 0.42 * st.rear));
+      if (st.lean > 0.01) q.multiply(_pq2.setFromAxisAngle(_ax.set(0, 0, 1), -0.14 * st.lean)); // the scramble: nose down, driving
       st.lift += (st.liftT - st.lift) * (st.liftT > st.lift ? 0.5 : 0.08);
       st.squash = Math.max(0, st.squash - dt * 4);
       let h = AN.stand + bob + st.lift - 75 * st.crouch - 55 * Math.sin(Math.PI * Math.min(1, 1 - st.squash)) * (st.squash > 0 ? 1 : 0);
       if (st.mode === 'closing') h = AN.stand + (st.h0 - AN.stand) * sstep(0.2, 1, st.t);
       h += 28 * st.rear;
-      center = st.pos.clone().addScaledVector(st.up, h).addScaledVector(st.fwd, 46 * st.lunge);
+      center = _pc.copy(st.pos).addScaledVector(st.up, h).addScaledVector(st.fwd, 46 * st.lunge);
       st.center.copy(center); st.q.copy(q);
     } else if (st.mode === 'opening') {
       const e = sstep(0, 0.75, st.t);
@@ -781,8 +814,8 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       st.center.copy(center); st.q.copy(q);
     } else if (st.mode === 'air') {
       // nose up on the way up, down on the way down
-      q = basisQ(st.fwd, st.up);
-      q.multiply(new THREE.Quaternion().setFromAxisAngle(V3(0, 0, 1), clamp(st.vel.y / 3000, -0.3, 0.3)));
+      q = basisQ(st.fwd, st.up, _pq);
+      q.multiply(_pq2.setFromAxisAngle(_ax.set(0, 0, 1), clamp(st.vel.y / 3000, -0.3, 0.3)));
       center = st.center;
       st.q.copy(q);
       // legs: hind legs kicked back at take-off, then all reach down for the landing
@@ -819,61 +852,71 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     for (const m of setaeMeshes) m.visible = cfg.setae;
     segIM.count = hide ? 0 : 32; tarIM.count = clawIM.count = hide ? 0 : 8; setIM.count = hide ? 0 : setIM.instanceMatrix.count;
     if (!hide) {
-      const U = V3(0, 1, 0).applyQuaternion(q);
+      const U = _U.set(0, 1, 0).applyQuaternion(q);
       const shrink = 1 - 0.72 * rc;
       let si = 0;
-      legs.forEach((L, i) => {
-        const hipL = L.hip.clone().add(V3(-24 * rc, 46 * rc, -L.side * 18 * rc));
-        const H = toWorld(hipL, center, q);
+      for (let i = 0; i < legs.length; i++) {
+        const L = legs[i];
+        const H = toWorld(_t1.copy(L.hip).add(_t2.set(-24 * rc, 46 * rc, -L.side * 18 * rc)), center, q, _H);
         let F = L.foot;
         // leg I holds food to the mouth (or reaches up in a rear)
-        if (L.k === 0 && st.holdK > 0 && !isFeeler(L)) F = L.foot.clone().lerp(st.hold.clone().addScaledVector(V3(0, 0, 1).applyQuaternion(q), L.side * 28), st.holdK);
-        else if (L.k === 0 && st.rear > 0 && !isFeeler(L)) F = L.foot.clone().lerp(toWorld(V3(L.rest.x + 60, 70, L.rest.z * 0.8), center, q), st.rear);
+        if (L.k === 0 && st.holdK > 0 && !isFeeler(L)) F = _F.copy(L.foot).lerp(_t1.copy(st.hold).addScaledVector(_t2.set(0, 0, 1).applyQuaternion(q), L.side * 28), st.holdK);
+        else if (L.k === 0 && st.rear > 0 && !isFeeler(L)) F = _F.copy(L.foot).lerp(toWorld(_t1.set(L.rest.x + 60, 70, L.rest.z * 0.8), center, q, _t2), st.rear);
         if (isFeeler(L)) {
           // leg I as a feeler: held up and forward, tapping ahead
           const s = L.side, t = st.time;
-          F = toWorld(V3(L.rest.x + 40 * Math.sin(t * 6.1 + s) - 60 * (1 - Math.min(1, st.speed / 200)) + 80 * st.rear, L.rest.y + 40 * Math.sin(t * 4.3 + 2 * s) - 90 + 170 * st.rear, L.rest.z + 30 * Math.sin(t * 5.2 + s) + s * 70 * st.rear), center, q);
+          F = toWorld(_t1.set(L.rest.x + 40 * Math.sin(t * 6.1 + s) - 60 * (1 - Math.min(1, st.speed / 200)) + 80 * st.rear, L.rest.y + 40 * Math.sin(t * 4.3 + 2 * s) - 90 + 170 * st.rear, L.rest.z + 30 * Math.sin(t * 5.2 + s) + s * 70 * st.rear), center, q, _F);
         }
-        if (rc > 0 && i !== (st.mode === 'held' ? st.seizeLeg : -1)) F = L.foot.clone().lerp(toWorld(V3(L.hip.x - 30, L.hip.y + 20, L.hip.z * 0.4), center, q), sstep(0, 1, rc));
-        const seg = L.seg.map((s) => s * shrink), rad = L.rad.map((s) => s * (1 - 0.3 * rc));
+        if (rc > 0 && i !== (st.mode === 'held' ? st.seizeLeg : -1)) F = _F2.copy(L.foot).lerp(toWorld(_t1.set(L.hip.x - 30, L.hip.y + 20, L.hip.z * 0.4), center, q, _t2), sstep(0, 1, rc));
+        const seg = _seg, rad = _rad;
+        for (let j = 0; j < 5; j++) { seg[j] = L.seg[j] * shrink; rad[j] = L.rad[j] * (1 - 0.3 * rc); }
         const L1 = seg[1] + seg[2], L2 = seg[3] + seg[4];
         // trochanter: out from the hip, toward the foot, tilted up
-        const tf = F.clone().sub(H); tf.addScaledVector(U, -tf.dot(U));
+        const tf = _tf.copy(F).sub(H); tf.addScaledVector(U, -tf.dot(U));
         if (tf.lengthSq() < 1) tf.copy(L.rest).applyQuaternion(q);
         const dirT = tf.normalize().addScaledVector(U, 0.55).normalize();
-        const T = H.clone().addScaledVector(dirT, seg[0]);
+        const T = _T.copy(H).addScaledVector(dirT, seg[0]);
         // two-bone IK, the knee (femur-genu) bent upward
-        const K = new THREE.Vector3(), Fe = new THREE.Vector3();
+        const K = _K, Fe = _Fe;
         twoBoneIK(T, F, L1, L2, U, K, Fe, !cfg.ik);
-        const u1 = K.clone().sub(T).normalize();
-        const b = U.clone().addScaledVector(u1, -u1.dot(U)).normalize();
-        const Fm = T.clone().addScaledVector(u1, seg[1]);
+        const u1 = _u1.copy(K).sub(T).normalize();
+        const b = _b.copy(U).addScaledVector(u1, -u1.dot(U)).normalize();
+        const Fm = _Fm.copy(T).addScaledVector(u1, seg[1]);
         // tibia a little above the straight line, tarsus angled down to the foot
-        const w2 = Fe.clone().sub(K).normalize();
-        const bend = b.clone().addScaledVector(w2, -w2.dot(b)).normalize();
+        const w2 = _w2.copy(Fe).sub(K).normalize();
+        const bend = _bend.copy(b).addScaledVector(w2, -w2.dot(b)).normalize();
         const tb = cfg.ik ? 0.2 : 0;
-        const tib = bend.lengthSq() > 0.5 ? w2.clone().multiplyScalar(Math.cos(tb)).addScaledVector(bend, Math.sin(tb)).normalize() : w2.clone();
-        const J = K.clone().addScaledVector(tib, seg[3]);
-        const ta = Fe.clone().sub(J);
+        const tib = bend.lengthSq() > 0.5 ? _tib.copy(w2).multiplyScalar(Math.cos(tb)).addScaledVector(bend, Math.sin(tb)).normalize() : _tib.copy(w2);
+        const J = _J.copy(K).addScaledVector(tib, seg[3]);
+        const ta = _ta.copy(Fe).sub(J);
         const taLen = ta.length();
-        const pts = [[H, dirT, seg[0], rad[0]], [T, u1, seg[1], rad[1]], [Fm, K.clone().sub(Fm).normalize(), seg[2], rad[2]], [K, tib, seg[3], rad[3]]];
-        pts.forEach(([p, dir, len, r], j) => setInst(segIM, i * 4 + j, p, dir, U, r, len + r * 0.4));
+        const kneeDir = _kd.copy(K).sub(Fm).normalize();
+        setInst(segIM, i * 4, H, dirT, U, rad[0], seg[0] + rad[0] * 0.4);
+        setInst(segIM, i * 4 + 1, T, u1, U, rad[1], seg[1] + rad[1] * 0.4);
+        setInst(segIM, i * 4 + 2, Fm, kneeDir, U, rad[2], seg[2] + rad[2] * 0.4);
+        setInst(segIM, i * 4 + 3, K, tib, U, rad[3], seg[3] + rad[3] * 0.4);
         const taDir = ta.divideScalar(taLen || 1);
         setInst(tarIM, i, J, taDir, U, rad[4], taLen);
-        setInst(clawIM, i, Fe.clone().addScaledVector(taDir, -4 * shrink), taDir, U, 24 * shrink, 24 * shrink);
+        setInst(clawIM, i, _t1.copy(Fe).addScaledVector(taDir, -4 * shrink), taDir, U, 24 * shrink, 24 * shrink);
         // leg setae
-        const frames = [null, [T, u1, seg[1], rad[1]], [Fm, K.clone().sub(Fm).normalize(), seg[2], rad[2]], [K, tib, seg[3], rad[3]], [J, taDir, taLen, rad[4]]];
-        for (const [sg, at, az, len] of LS) {
-          const [p, dir, l, r] = frames[sg];
-          const X = new THREE.Vector3().crossVectors(dir, U).normalize();
-          const Z = new THREE.Vector3().crossVectors(X, dir).normalize();
-          const radial = X.multiplyScalar(Math.cos(az + L.side)).addScaledVector(Z, Math.sin(az + L.side));
-          const base = p.clone().addScaledVector(dir, at * l).addScaledVector(radial, r * 0.8);
-          const sdir = dir.clone().multiplyScalar(0.8).addScaledVector(radial, 0.6).normalize();
-          const long = L.k === 0 && sg === 3 && at < 0.5; // the long tactile seta on tibia I
-          setInst(setIM, si++, base, sdir, U, 2.6 * shrink, (long ? 72 : len) * shrink);
+        if (cfg.setae) {
+          const FR = _frames;
+          FR[1][0] = T; FR[1][1] = u1; FR[1][2] = seg[1]; FR[1][3] = rad[1];
+          FR[2][0] = Fm; FR[2][1] = kneeDir; FR[2][2] = seg[2]; FR[2][3] = rad[2];
+          FR[3][0] = K; FR[3][1] = tib; FR[3][2] = seg[3]; FR[3][3] = rad[3];
+          FR[4][0] = J; FR[4][1] = taDir; FR[4][2] = taLen; FR[4][3] = rad[4];
+          for (const [sg, at, az, len] of LS) {
+            const [p, dir, l, r] = FR[sg];
+            const X = _X.crossVectors(dir, U).normalize();
+            const Z = _Z.crossVectors(X, dir).normalize();
+            const radial = X.multiplyScalar(Math.cos(az + L.side)).addScaledVector(Z, Math.sin(az + L.side));
+            const base = _t1.copy(p).addScaledVector(dir, at * l).addScaledVector(radial, r * 0.8);
+            const sdir = _t2.copy(dir).multiplyScalar(0.8).addScaledVector(radial, 0.6).normalize();
+            const long = L.k === 0 && sg === 3 && at < 0.5; // the long tactile seta on tibia I
+            setInst(setIM, si++, base, sdir, U, 2.6 * shrink, (long ? 72 : len) * shrink);
+          }
         }
-      });
+      }
       setIM.count = cfg.setae ? si : 0;
       for (const im of [segIM, tarIM, clawIM, setIM]) im.instanceMatrix.needsUpdate = true;
     }
@@ -956,6 +999,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
   }
 
   const _mouth = new THREE.Vector3(), _cw = new THREE.Vector3(), _sz = new THREE.Vector3();
+  const _gw = { point: new THREE.Vector3(), normal: null, dist: 0, kind: '', entry: null };
   return {
     body, update, legs, st, anat: AN, clearance, scale: k, root,
     /** Stand at (x, z) world µm, facing yaw. */
@@ -1019,7 +1063,9 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     /** The surface under the body (a collider hit with .kind and .entry, point in world µm), or null. */
     get ground() {
       const g = st.mode === 'walk' || st.mode === 'crouch' ? st.groundHit : null;
-      return g && k !== 1 ? { ...g, point: g.point.clone().multiplyScalar(k) } : g;
+      if (!g || k === 1) return g;
+      _gw.point.copy(g.point).multiplyScalar(k); _gw.normal = g.normal; _gw.dist = g.dist * k; _gw.kind = g.kind; _gw.entry = g.entry;
+      return _gw;
     },
     /** Body centre, world µm. */
     get center() { return k === 1 ? st.center : _cw.copy(st.center).multiplyScalar(k); },

@@ -61,7 +61,7 @@ function tubeGeometry(n0, n1) {
 export class Nematode {
   constructor(scene, world) {
     this.world = world;
-    this.L = world.leaves[3];
+    this.L = world.pool;
     const mk = (geo, opt, lit) => {
       const o = opticalMaterial(opt), l = litMaterial(lit);
       const m = new THREE.Mesh(geo, o);

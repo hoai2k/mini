@@ -8,6 +8,13 @@
 // joins by pressing a button on another controller. Y switches between the
 // perspective orbit camera and a top-down orthographic view (both are what
 // the worlds use). D-pad up/down changes the render scale of split views.
+//
+// It is also the working reference for two shared modules:
+//   shared/quality.js  the quality governor: it sets the pixel ratio (1.25 cap
+//                      alone, 1.0 split), lowers it when frames run long, and
+//                      gives the split views their 0.7 / 0.55 scale.
+//   shared/crowd.js    a crowd of soft bodies east of the start: walk into it
+//                      to shove through, X bites a cone clear in front.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { createPlayers } from '../shared/players.js';
 import { hudControls } from '../shared/controls.js';
@@ -15,10 +22,12 @@ import { mountHud } from '../shared/hud.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks } from '../shared/landmark.js';
 import { createFeatures } from '../shared/features.js';
+import { createQuality } from '../shared/quality.js';
+import { createCrowd } from '../shared/crowd.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+// The pixel ratio is the quality governor's (below).
 
 // ------------------------------------------------------------------ world
 const scene = new THREE.Scene();
@@ -93,6 +102,11 @@ const BACKDOOR = new THREE.Vector3(-64, 0.1, 52);
   scene.add(rim);
 }
 
+// A crowd to push and bite through, east of the start (shared/crowd.js).
+const CROWD = { minX: 8, maxX: 58, minZ: -34, maxZ: 22 };
+const crowd = createCrowd({ scene, THREE, count: 500, bounds: CROWD, radius: 0.75, height: () => 0, color: '#c6b48a', playerRadius: 1.25 });
+const crowdBites = [];
+
 // ---------------------------------------------------------------- players
 const bodies = []; // slot -> { mesh, vel, dash }
 function makeBody(p, at) {
@@ -107,7 +121,7 @@ function makeBody(p, at) {
   g.add(cap, nose, ring);
   g.position.copy(at);
   scene.add(g);
-  bodies[p.slot] = { mesh: g, vel: new THREE.Vector3(), dash: 0, heading: 0 };
+  bodies[p.slot] = { mesh: g, vel: new THREE.Vector3(), dash: 0, heading: 0, bite: 0 };
 }
 
 const joins = [];
@@ -139,6 +153,7 @@ const hud = mountHud({
     move: 'Walk (relative to the view)',
     camera: 'Turn the shared camera (any player)',
     dash: 'Dash',
+    attack: 'Bite (clears the crowd in front)',
     special: 'Perspective orbit / top-down view',
     zoom: 'Render scale of each split view (quality)',
   }),
@@ -152,9 +167,20 @@ features.add({ id: 'view', group: 'Rendering', label: 'Camera', choices: ['Orbit
   about: 'Orbit: a perspective camera looking down at about 50°, like the 3D worlds. Top-down: an orthographic camera straight down, like the microscope views. The split works the same in both.',
   onChange: (v) => { camMode = v === 'Top-down' ? 'top' : 'orbit'; } });
 const split = createSplitScreen(renderer, { renderScale: 1 });
+// The split views' scale: the governor's split factor (0.7 at 2 views, 0.55 at
+// 3-4) times this manual choice. The governor's own step goes into the pixel
+// ratio (scalePixelRatio), since this world has no buffers of its own.
+let manualScale = 1, splitFactor = 1;
+const applyScale = () => { split.renderScale = manualScale * splitFactor; };
+const quality = createQuality({ renderer, key: 'split-demo', scalePixelRatio: true,
+  onChange: (q) => { splitFactor = q.split; applyScale(); } });
+quality.addToFeatures(features);
 features.add({ id: 'scale', group: 'Rendering', label: 'Split view render scale', choices: ['100%', '85%', '70%', '50%'], value: '100%',
-  about: 'Each split view renders into its own target at this fraction of the screen size, then the regions are drawn through polygon masks. N views cost N renders; one shared view renders straight to the screen with no extra cost.',
-  onChange: (v) => { split.renderScale = parseFloat(v) / 100; } });
+  about: 'Each split view renders into its own target at this fraction of the split resolution (the governor already gives 70% at 2 views, 55% at 3-4), scissored to its region, then the regions are drawn through polygon masks. One shared view renders straight to the screen with no extra cost.',
+  onChange: (v) => { manualScale = parseFloat(v) / 100; applyScale(); } });
+features.add({ id: 'crowd', group: 'World', label: 'Crowd (shared/crowd.js)', on: true,
+  about: '500 instanced soft bodies drifting east of the start. Walking into them shoves them aside; X bites a cone clear (eaten members come back later, away from every player). No time limits.',
+  onChange: (on) => { crowd.mesh.visible = on; } });
 const marks = createLandmarks();
 
 // ----------------------------------------------------------------- camera
@@ -164,6 +190,7 @@ const rig = { yaw: 0, pitch: 0.92, focus: new THREE.Vector3(), dist: 28 };
 
 function resize() {
   const w = innerWidth, h = innerHeight;
+  renderer.setPixelRatio(quality.pixelRatio);
   renderer.setSize(w, h, false);
   persp.aspect = w / h;
   persp.updateProjectionMatrix();
@@ -221,6 +248,12 @@ function step(dt) {
     const m = ctl.move();
     yaw += ctl.look().yaw;
     if (ctl.dash.pressed() && b.dash <= 0) b.dash = 0.25;
+    b.bite = Math.max(0, b.bite - dt);
+    if (ctl.attack.pressed() && b.bite <= 0 && crowd.mesh.visible) {
+      b.bite = 0.3;
+      const face = { x: -Math.sin(b.heading), z: -Math.cos(b.heading) };
+      crowdBites.push(crowd.bite(b.mesh.position, face, 3.2));
+    }
     b.dash -= dt;
     const speed = b.dash > 0 ? 26 : 9;
     const want = new THREE.Vector3().addScaledVector(rgt, m.x).addScaledVector(fwd, -m.y).multiplyScalar(speed);
@@ -245,6 +278,7 @@ function step(dt) {
     }
   }
   rig.yaw -= THREE.MathUtils.clamp(yaw, -1, 1) * 1.8 * dt;
+  if (crowd.mesh.visible) crowd.update(dt, players.list.filter((p) => bodies[p.slot]).map((p) => ({ slot: p.slot, position: bodies[p.slot].mesh.position, radius: 1.25 })));
 }
 
 let lastCam = null;
@@ -253,6 +287,7 @@ function render(dt, snap = false) {
   lastCam = cam;
   const list = players.list.filter((p) => bodies[p.slot]).map((p) => ({ slot: p.slot, position: bodies[p.slot].mesh.position }));
   split.update(list, { camera: cam }, dt);
+  quality.setSplitViews(split.views.length);
   split.render(cam, (view, target) => {
     renderer.setRenderTarget(target);
     renderer.clear();
@@ -262,14 +297,15 @@ function render(dt, snap = false) {
   marks.drawSplit(split, FORWARD, { kind: 'forward', label: 'Next', range: 160 });
   marks.drawSplit(split, BACKDOOR, { kind: 'backdoor', label: 'Back', range: 160 });
   const L = split.layout;
-  hud.stats(`players ${players.count} · views ${L.views.length}${L.merged ? ' (merged)' : ''} · scale ${Math.round(split.renderScale * 100)}%`);
+  hud.stats(`players ${players.count} · views ${L.views.length}${L.merged ? ' (merged)' : ''} · scale ${Math.round(split.renderScale * 100)}% · px ${quality.pixelRatio.toFixed(2)}${quality.auto ? ' auto' : ''} · crowd ${crowd.alive}`);
 }
 
 let frames = 0, manual = false;
 function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000);
+  const real = (now - last) / 1000;
+  const dt = Math.min(0.05, real);
   last = now;
-  if (!manual) { frames++; step(dt); render(dt); }
+  if (!manual) { frames++; quality.update(real); step(dt); render(dt); }
   requestAnimationFrame(frame);
 }
 
@@ -287,7 +323,7 @@ requestAnimationFrame(frame);
 
 // Test hooks (Playwright drives these; harmless otherwise).
 window.__splitDemo = {
-  players, split, joins, leaves, hud,
+  players, split, joins, leaves, hud, quality, crowd, crowdBites,
   get frames() { return frames; },
   get layout() { return split.layout; },
   positions: () => players.list.map((p) => (bodies[p.slot] ? bodies[p.slot].mesh.position.toArray() : null)),

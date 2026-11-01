@@ -20,14 +20,15 @@
 //   retreat  sated / worn out: it contracts and stays shut for a while (you pass)
 // Departure (labelled in the README): the vortex's reach and speed are game
 // values, and its pulses are a rhythm for play (a real Stentor feeds steadily).
-import { WORLD } from './world.js';
+import { WORLD, LANDMARK } from './world.js';
 
 export const STENTOR = {
-  mouth: { x: 292, y: 40 }, // off the right edge of the field: the oral pouch
+  // placed relative to the host cell (the forward landmark, far to the upper right of the start)
+  mouth: { x: LANDMARK.x + 122, y: LANDMARK.y + 20 }, // off the right edge of the field: the oral pouch
   discR: 112, // the oral disc's radius: its rim (and the membranelles) reaches into the field
   pullR: 175, // the vortex reaches this far from the mouth
   catchR: 96, // drawn this close to the mouth, you are swept in
-  foot: { x: 204, y: WORLD.slabY + 6 }, // the holdfast on the biofilm
+  foot: { x: LANDMARK.x + 34, y: WORLD.slabY + 6 }, // the holdfast on the biofilm
   wakeR: 230,
 };
 

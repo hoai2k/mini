@@ -5,7 +5,7 @@
 // running while rotational and translational Brownian motion, flow, grazers'
 // currents and the magnetic torque push it about. B still tumbles into a new,
 // random direction. The honest mode (no steering) is plain run and tumble.
-import { oxygen, gauss, rng, tumbleAngle, WORLD } from './world.js';
+import { oxygen, gauss, rng, tumbleAngle, WORLD, START } from './world.js';
 
 // Two protagonists. Numbers and their sources are in README.md.
 export const SPECIES = {
@@ -37,7 +37,7 @@ export function createSwimmer(world) {
   const r = rng(7);
   const s = {
     sp: SPECIES.mtb, species: 'mtb',
-    x: 0, y: -20, a: -Math.PI / 2, sense: 1, // a: swimming direction; sense +1 = moment leads (north-seeking run)
+    x: START.x, y: START.y, a: -Math.PI / 2, sense: 1, flowK: 1, // a: swimming direction; sense +1 = moment leads (north-seeking run)
     mode: 'run', tumbleT: 0, tumbleFrom: 0, tumbleTo: 0, flick: 0,
     speed: 0, vx: 0, vy: 0, bodyPhase: 0, flPhase: 0,
     alive: true, over: null, overT: 0,
@@ -53,7 +53,7 @@ export function createSwimmer(world) {
     const mtb = species === 'mtb';
     Object.assign(s, {
       // The fixed microscope axes stay upright; begin below the host landmark.
-      x: mtb ? -20 : 30, y: mtb ? -20 : 0, a: -Math.PI / 2 + (mtb ? 0 : 0.6), sense: 1, mode: 'run', tumbleT: 0, flick: 0,
+      x: mtb ? START.x : START.x + 50, y: mtb ? START.y : START.y + 20, a: -Math.PI / 2 + (mtb ? 0 : 0.6), sense: 1, mode: 'run', tumbleT: 0, flick: 0,
       speed: 0, vx: 0, vy: 0, alive: true, over: null, overT: 0, growth: 0, stress: 0, energy: 1, prey: 0, phages: [],
       attacker: null, attackT: 0, boring: null, boreT: 0, inside: null, insideT: 0, divideT: 0, won: false, engulfT: 0, captureT: 0,
       caught: null, catchAnim: null, shedFlagellum: null, cause: null, warning: null,
@@ -170,6 +170,8 @@ export function createSwimmer(world) {
       if (r() < rate * dt) { if (s.species === 'mtb' && r() < 0.6) reverse(); else tumble(null); ev.spontaneous = true; }
     }
     const f = world.flowAt(s.x, s.y);
+    // s.flowK (main.js): a collective at raft size is dragged by currents at a third of their strength
+    if (s.flowK !== undefined && s.flowK !== 1) { f.x *= s.flowK; f.y *= s.flowK; }
     const lag = opts.lowRe ? 1 : 1 - Math.exp(-dt / 1.0);
     const tvx = Math.cos(s.a) * thrust, tvy = Math.sin(s.a) * thrust;
     s.vx += (tvx - s.vx) * lag; s.vy += (tvy - s.vy) * lag;

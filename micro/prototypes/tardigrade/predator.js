@@ -62,6 +62,7 @@ function milnesiumLook(c) {
   c.setGut(new THREE.Vector3(0.9, 1.25, 1.9));
   const u = c.body.userData.opt.uniforms;
   if (u && u.uAbs) u.uAbs.value.multiplyScalar(1.4);
+  c.restChanged();
 }
 
 export class Predator {
@@ -81,9 +82,11 @@ export class Predator {
   }
 
   reset() {
-    // Far off: near the tip of the steep leaf C, ~1.4 mm from the player's start.
-    const C = this.world.leaves[2];
-    this.walker.spawn(C, 1, 10.5, 0.3, 1, 0);
+    // Far off, beyond halfway: browsing among the rotifers it hunts, near the
+    // far end of the meadow leaf (~2 mm from the player's start). It only
+    // hunts a player who has come at least halfway (main.js: allowed).
+    const E = this.world.meadow;
+    this.walker.spawn(E, 1, 14.5, 0.8, 1, 0);
     Object.assign(this, { state: 'wander', t: 0, cool: 0, recoil: 0, tries: 0, bored: 0, wanderAng: 0, contact: 0, sated: false, after: 0, firstHunt: true, stuck: 0, lastD: Infinity, lunge: 0, rear: 0, fstate: 'stalk', ft: 0, retreatT: 0 });
     this.hunger.reset(this.pace.grace);
     this.fight.reset();

@@ -108,20 +108,33 @@ export function createStenus(scene) {
   const st = {
     x: -18, z: 8, a: 0.3, v: 0, state: 'patrol', t: 0, reach: 2.2, ext: 0, skimCool: 0, gait: 0, wp: 0, seen: 0,
     alert: 0, hit: false, tailDown: 0, windup: 0, enabled: true, ox: 0, oz: 0, chew: 0, lift: 0,
-    rear: 0, crouch: 0, groom: 0, groomT: 4, flee: 0,
+    rear: 0, crouch: 0, groom: 0, groomT: 4, flee: 0, gape: 0, reelExt: 0, escaped: false,
+    zone: null, // { x, z, r, leash }: the water it keeps to (it never follows you out of it)
   };
   // Readable fighting: calm (patrolling, pausing to groom its antennae),
-  // hunting (low, fast, locked on), the wind-up (it rears its forebody and
-  // lowers its head, the mandibles gape and the labium cocks under the head:
-  // 0.8 s), the strike. A strike that meets a facing, hunkered springtail is
-  // blocked; a block or a nip on its tarsus staggers it back ('repelled'), and
-  // a beetle that has lost interest skims away ('retreat').
-  const WINDUP = 0.8;
+  // hunting (low, fast, locked on), then the two-stage strike
+  // (combat-ideas.md §0 idea 1):
+  //  1. the tell ('windup', 0.8 s): it lowers its head and freezes, the labium
+  //     cocks under the head. A springtail already in the air when the labium
+  //     shoots ('strike') escapes clean ('escaped': the game slows for a
+  //     moment). One still on the film is stuck to the sticky pads ('reel',
+  //     1.5 s): mashing A tears it loose (the real slip-off from the labium's
+  //     tip, at the cost of the jump), else it is reeled into the mouth.
+  //  2. Free or escaped, it follows up: the second, slower tell ('lungeTell',
+  //     1.1 s: it rears its forebody high and sways back, the mandibles gape
+  //     wide), then a mandible lunge ('lunge') that a jump or a step aside
+  //     dodges ('dodged'). Each miss wears its interest down.
+  // A strike that meets a facing, hunkered springtail is still blocked; a
+  // block or a nip on its tarsus staggers it back ('repelled'), and a beetle
+  // that has lost interest skims away ('retreat').
+  const WINDUP = 0.8, REEL = 1.5, LUNGE_TELL = 1.1, LUNGE = 0.24;
   const ROUTE = [[-18, 8], [-4, 14], [10, 14], [22, -2], [8, -18], [-12, -16], [-24, -2]];
   const hips = [[1.45, 0.48, 0.22], [1.1, 0.45, 0.28], [0.75, 0.45, 0.3]];
   const footRest = [[2.3, 0, 1.15], [0.9, 0, 1.5], [-0.7, 0, 1.4]];
   const feetW = [];
 
+  /** Where the mandibles close (x, z) in the lunge. */
+  function mandPos() { return new THREE.Vector3(st.x + Math.cos(st.a) * 2.7, 0.3, st.z + Math.sin(st.a) * 2.7); }
   function headPos() { return new THREE.Vector3(st.x + Math.cos(st.a) * 2.35, 0.45, st.z + Math.sin(st.a) * 2.35); }
   function labTip() { return new THREE.Vector3(st.x + Math.cos(st.a) * (2.1 + st.ext * st.reach), 0.25, st.z + Math.sin(st.a) * (2.1 + st.ext * st.reach)); }
 
@@ -150,6 +163,8 @@ export function createStenus(scene) {
       case 'patrol': {
         // hungry, it works its patrol over toward where you are
         if (hungry && P.alive) { const k = Math.min(1, dt * 0.05); st.ox += (P.x - ROUTE[st.wp][0] * 0.3 - st.ox) * k; st.oz += (P.z - ROUTE[st.wp][1] * 0.3 - st.oz) * k; }
+        // ... but only within its own water
+        if (st.zone) { const Z = st.zone, d = Math.hypot(st.ox - Z.x, st.oz - Z.z), m = Math.max(0, Z.r - 26); if (d > m) { st.ox = Z.x + (st.ox - Z.x) * m / d; st.oz = Z.z + (st.oz - Z.z) * m / d; } }
         const wx = ROUTE[st.wp][0] + st.ox, wz = ROUTE[st.wp][1] + st.oz;
         if (Math.hypot(wx - st.x, wz - st.z) < 2) st.wp = (st.wp + 1) % ROUTE.length;
         targetA = Math.atan2(wz - st.z, wx - st.x);
@@ -182,12 +197,16 @@ export function createStenus(scene) {
         break;
       }
       case 'windup': {
-        // it rears, the head lowers, the mandibles gape, the labium cocks: the telegraph (jump, or face it and hunker)
-        targetA = toP; targetV = 0;
-        st.windup = Math.min(1, st.t / (WINDUP * 0.6));
-        st.rear = Math.min(1, st.t / (WINDUP * 0.5));
-        st.chew = Math.max(st.chew, 0.9 + 0.1 * Math.sin(st.t * 30));
-        if (st.t > WINDUP) { st.state = 'strike'; st.t = 0; st.hit = false; ev.push('strike'); }
+        // tell 1: the head goes down and it freezes, the labium cocks (jump now; or face it and hunker)
+        targetA = st.t < 0.25 ? toP : st.a; targetV = 0;
+        st.windup = Math.min(1, st.t / (WINDUP * 0.5));
+        st.chew = Math.max(st.chew, 0.55);
+        if (st.t > WINDUP) {
+          st.state = 'strike'; st.t = 0; st.hit = false; ev.push('strike');
+          // already in the air as the labium shoots: a clean escape
+          st.escaped = P.airborne && P.alive && dist < st.reach + 2.35 + 6;
+          if (st.escaped) ev.push('escaped');
+        }
         break;
       }
       case 'repelled': {
@@ -209,16 +228,59 @@ export function createStenus(scene) {
         targetV = 0;
         // out in 0.06 s (real: a few ms), hold, retract
         st.ext = st.t < 0.06 ? st.t / 0.06 : st.t < 0.16 ? 1 : Math.max(0, 1 - (st.t - 0.16) / 0.25);
-        if (!st.hit && st.ext > 0.6) {
+        if (!st.hit && !st.escaped && st.ext > 0.6) {
           const tip = labTip();
           const d = Math.hypot(tip.x - P.x, tip.z - P.z);
-          if (d < 0.75 && P.y < 0.9 && P.alive) {
+          if (d < 0.75 && !P.airborne && P.alive) {
             st.hit = true;
             if (P.blocking) { ev.push('blocked'); st.state = 'repelled'; st.t = 0; st.ext = 0.4; break; }
-            ev.push('caught');
+            // the sticky pads hold: it starts to reel you in
+            st.state = 'reel'; st.t = 0; st.reelExt = Math.max(0.35, st.ext); ev.push('stuck'); break;
           }
         }
-        if (st.t > 0.42) { if (!st.hit) ev.push('miss'); st.state = 'recover'; st.t = 0; st.windup = 0; st.ext = 0; }
+        if (st.t > 0.42) {
+          if (!st.hit && !st.escaped) ev.push('miss');
+          st.windup = 0; st.ext = 0;
+          // it follows up with the mandibles if you are still close
+          if (hungry && P.alive && dist < 14) { st.state = 'lungeTell'; st.t = 0; ev.push('lungeTell'); } else { st.state = 'recover'; st.t = 0; }
+        }
+        break;
+      }
+      case 'reel': {
+        // the labium shortens, drawing the stuck springtail to the mouth
+        targetV = 0;
+        const u = Math.min(1, st.t / REEL);
+        st.ext = st.reelExt * (1 - 0.8 * u * u);
+        st.windup = 1 - 0.4 * u; st.chew = 0.7 + 0.3 * Math.sin(st.t * 14);
+        if (st.t > REEL) { ev.push('reeled'); st.t = 0; }
+        break;
+      }
+      case 'lungeTell': {
+        // tell 2, slower: it rears its forebody high and sways back, mandibles wide open
+        targetA = toP; targetV = st.t < 0.5 ? -1.6 : 0;
+        st.rear = Math.max(0, Math.min(1, st.t / (LUNGE_TELL * 0.6)));
+        st.gape = Math.max(0, Math.min(1, st.t / (LUNGE_TELL * 0.4)));
+        st.windup = Math.max(0, st.windup - dt * 3);
+        if (st.t > LUNGE_TELL) { st.state = 'lunge'; st.t = 0; st.hit = false; st.lungeFrom = { x: st.x, z: st.z }; ev.push('lunge'); }
+        break;
+      }
+      case 'lunge': {
+        // it throws itself forward ~3.5 mm and the mandibles snap shut
+        const u = Math.min(1, st.t / LUNGE);
+        const reach = 3.5 * (1 - (1 - u) * (1 - u));
+        const nx2 = st.lungeFrom.x + Math.cos(st.a) * reach, nz2 = st.lungeFrom.z + Math.sin(st.a) * reach;
+        if (ctx.inPool(nx2, nz2)) { st.x = nx2; st.z = nz2; }
+        st.rear = 1 - u; st.gape = u < 0.75 ? 1 : 1 - (u - 0.75) * 4;
+        targetV = 0; st.v = 0;
+        if (u >= 1 && !st.hit) {
+          st.hit = true;
+          const m = mandPos();
+          const d = Math.hypot(m.x - P.x, m.z - P.z);
+          if (P.alive && !P.airborne && d < 1.15) ev.push('lungeHit');
+          else ev.push('dodged');
+          if (ctx.inPool(m.x, m.z)) ctx.field.drop(m.x, m.z, 0.8, -0.05);
+          st.state = 'recover'; st.t = 0; st.gape = 0;
+        }
         break;
       }
       case 'recover': {
@@ -229,11 +291,12 @@ export function createStenus(scene) {
       case 'capture': targetV = 0; st.v *= Math.exp(-dt * 10); break; // posed by captureStep
     }
     if (st.state === 'capture') { pose(); return ev; }
-    if (st.state !== 'strike') st.ext = Math.max(0, st.ext - dt * 4);
-    if (st.state !== 'windup' && st.state !== 'strike') st.windup = Math.max(0, st.windup - dt * 3);
-    if (st.state !== 'windup' && st.state !== 'repelled') st.rear = Math.max(0, st.rear - dt * (st.state === 'strike' ? 6 : 3));
+    if (st.state !== 'strike' && st.state !== 'reel') st.ext = Math.max(0, st.ext - dt * 4);
+    if (st.state !== 'windup' && st.state !== 'strike' && st.state !== 'reel') st.windup = Math.max(0, st.windup - dt * 3);
+    if (!['repelled', 'lungeTell', 'lunge'].includes(st.state)) st.rear = Math.max(0, st.rear - dt * (st.state === 'strike' ? 6 : 3));
+    if (st.state !== 'lungeTell' && st.state !== 'lunge') st.gape = Math.max(0, st.gape - dt * 4);
     // low and tense while it hunts; easy while it patrols
-    st.crouch += ((['stalk', 'windup', 'strike', 'skim'].includes(st.state) ? 1 : 0) - st.crouch) * Math.min(1, dt * 4);
+    st.crouch += ((['stalk', 'windup', 'strike', 'skim', 'reel'].includes(st.state) ? 1 : 0) - st.crouch) * Math.min(1, dt * 4);
     st.chew = Math.max(st.ext > 0.3 ? 0.8 : 0, st.chew - dt * 3);
     st.lift = Math.max(0, st.lift - dt * 2);
     // steer and move
@@ -242,6 +305,7 @@ export function createStenus(scene) {
     st.v += (targetV - st.v) * Math.min(1, dt * (targetV > st.v ? 4 : 3));
     const nx = st.x + Math.cos(st.a) * st.v * dt, nz = st.z + Math.sin(st.a) * st.v * dt;
     if (ctx.inPool(nx, nz)) { st.x = nx; st.z = nz; } else { st.a += 2.0 * dt * 3; st.v *= 0.5; }
+    keepToZone(st, 10);
     if (st.state !== 'skim' && st.v > 1) ctx.field.drop(st.x + Math.cos(st.a) * 2.4, st.z + Math.sin(st.a) * 2.4, 0.3, -0.004 * st.v);
     st.tailDown += ((st.state === 'skim' ? 1 : 0) - st.tailDown) * Math.min(1, dt * 8);
     st.gait += (st.state === 'skim' ? 0 : st.v * dt) / 1.4;
@@ -252,14 +316,14 @@ export function createStenus(scene) {
   const pivot = new THREE.Vector3(-0.1, 0.62, 0);
   function pose() {
     group.position.set(st.x, 0.18 * st.rear - 0.05 * st.crouch, st.z);
-    // the wind-up rears the forebody (pitch about the hind legs)
-    group.rotation.set(0, -st.a, 0.2 * st.rear);
+    // the follow-up's tell rears the forebody (pitch about the hind legs)
+    group.rotation.set(0, -st.a, 0.3 * st.rear);
     group.updateMatrixWorld(true);
     // head and thorax dip in the wind-up; a calm beetle grooms (head bobs)
     const gr = st.groom > 0 ? Math.sin(st.t * 9) * 0.08 : 0;
     bones[0].makeRotationZ(-st.windup * 0.22 + st.lift * 0.1 + gr);
     // mandibles open (chew 1) and close (0) about their bases
-    mands.forEach((m, k) => { const s = k ? 1 : -1; m.rotation.set(0, -s * (st.chew * 0.75 - 0.15), 0); m.position.y = 0.46 - st.windup * 0.06 + st.lift * 0.08; });
+    mands.forEach((m, k) => { const s = k ? 1 : -1; m.rotation.set(0, -s * (Math.max(st.chew * 0.75, st.gape * 1.25) - 0.15), 0); m.position.y = 0.46 - st.windup * 0.06 + st.lift * 0.08 + st.gape * 0.05; });
     // abdomen: tail down onto the film while skimming, raised otherwise
     tmpM.makeTranslation(pivot.x, pivot.y, pivot.z);
     tmpM.multiply(new THREE.Matrix4().makeRotationZ(0.12 - st.tailDown * 0.32)).multiply(new THREE.Matrix4().makeTranslation(-pivot.x, -pivot.y, -pivot.z));
@@ -292,11 +356,15 @@ export function createStenus(scene) {
   }
   pose();
 
-  return {
+  const api = {
     st, group, legs,
-    update, headPos, labTip,
-    /** True while it visibly attacks (wind-up or strike). */
-    get attacking() { return st.state === 'windup' || st.state === 'strike'; },
+    update, headPos, labTip, mandPos,
+    /** True while it visibly attacks (either tell, the strike, the reel or the lunge). */
+    get attacking() { return ['windup', 'strike', 'reel', 'lungeTell', 'lunge'].includes(st.state); },
+    /** Which stage of the two-stage strike it is in, or null. */
+    get stage() { return { windup: 'tell', strike: 'labium', reel: 'stuck', lungeTell: 'lungeTell', lunge: 'lunge' }[st.state] || null; },
+    /** The stuck springtail tore free of the labium: retract it, then the follow-up. */
+    slip() { if (st.state !== 'reel') return; st.ext = 0; st.windup = 0; st.state = 'lungeTell'; st.t = -0.35; },
     /** A nip on its tarsus (or a blocked strike) staggers it back. */
     repel() { if (st.state === 'capture' || st.state === 'retreat') return; st.state = 'repelled'; st.t = 0; st.windup = 0; st.ext = 0; st.rear = 0.6; },
     /** Lost interest: once staggered, it turns and skims away. */
@@ -375,7 +443,7 @@ export function createStenus(scene) {
     },
     /** Where the beetle's mouth is (for the camera). */
     mouthPos() { return new THREE.Vector3(st.x + Math.cos(st.a) * 2.5, 0.4, st.z + Math.sin(st.a) * 2.5); },
-    reset() { Object.assign(st, { x: -18, z: 8, a: 0.3, v: 0, state: 'patrol', t: 0, ext: 0, skimCool: 2, wp: 0, seen: 0, windup: 0, ox: 0, oz: 0, chew: 0, lift: 0, rear: 0, flee: 0, groom: 0 }); pose(); },
+    reset() { Object.assign(st, { x: -18, z: 8, a: 0.3, v: 0, state: 'patrol', t: 0, ext: 0, skimCool: 2, wp: 0, seen: 0, windup: 0, ox: 0, oz: 0, chew: 0, lift: 0, rear: 0, flee: 0, groom: 0, gape: 0 }); if (st.zone) api.relocate(st.zone.x, st.zone.z); pose(); },
     /** After a meal: back to its patrol from where it is. */
     release() { st.state = 'patrol'; st.t = 0; st.seen = 0; st.flee = 0; st.ox = st.x - ROUTE[st.wp][0]; st.oz = st.z - ROUTE[st.wp][1]; },
     /** Move the patrol route (and the beetle, unseen) so it centres on (x, z). */
@@ -383,6 +451,15 @@ export function createStenus(scene) {
     /** Where relocate(x, z) would put the beetle. */
     startFor(x, z) { return { x: ROUTE[0][0] + x, z: ROUTE[0][1] + z }; },
   };
+  return api;
+}
+
+/** A predator with a zone never goes more than its leash (+ margin) beyond it. */
+function keepToZone(st, margin) {
+  const Z = st.zone;
+  if (!Z) return;
+  const R = Z.r + Z.leash + margin, d = Math.hypot(st.x - Z.x, st.z - Z.z);
+  if (d > R) { st.x = Z.x + (st.x - Z.x) * R / d; st.z = Z.z + (st.z - Z.z) * R / d; }
 }
 
 // ---------------------------------------------------------------- water strider
@@ -412,7 +489,7 @@ export function createStrider(scene) {
   const legs = segments(18, legMat);
   scene.add(legs.im);
   const st = { x: 22, z: 12, a: Math.PI, v: 0, vx: 0, vz: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0, t: 0, enabled: true, grab: 0, grabL: [4.6, 0.25, 0.3], bob: 0, hx: 0, hz: 0,
-    raise: 0, st2: 'none', t2: 0, flee: 0 };
+    raise: 0, st2: 'none', t2: 0, flee: 0, zone: null };
   // The attack, readable: a hunting strider rows in, stops a body length off,
   // raises its raptorial forelegs high and holds them (the wind-up, 0.7 s),
   // then lunges and snaps them shut (the strike). A facing, hunkered springtail
@@ -475,6 +552,7 @@ export function createStrider(scene) {
     if (st.state === 'capture') { st.v = 0; pose(); return ev; }
     const hungry = ctx.hungry !== false && st.st2 !== 'retreat';
     if (st.st2 === 'retreat' && st.t2 < 0.1) { st.state = 'idle'; const P0 = ctx.player; const aw = Math.atan2(st.z - P0.z, st.x - P0.x); st.target = { x: st.x + Math.cos(aw) * 45, z: st.z + Math.sin(aw) * 45 }; st.hx = st.target.x; st.hz = st.target.z; st.strokeT = 9; }
+    if (st.zone && st.target && st.state !== 'hunt') { const Z = st.zone, d = Math.hypot(st.target.x - Z.x, st.target.z - Z.z), m = Z.r + Z.leash; if (d > m) st.target = { x: Z.x + (st.target.x - Z.x) * m / d, z: Z.z + (st.target.z - Z.z) * m / d }; }
     if (!hungry && st.state === 'hunt') { st.state = 'idle'; st.target = null; st.interest = 0; ev.push('lost'); }
     if (hungry) for (const r of ctx.ripples) {
       const d = Math.hypot(r.x - st.x, r.z - st.z);
@@ -483,6 +561,8 @@ export function createStrider(scene) {
     st.interest -= dt;
     // hungry, its idle rowing drifts toward your part of the pool
     if (hungry && ctx.player.alive) { const k = Math.min(1, dt * 0.05); st.hx += (ctx.player.x - st.hx) * k; st.hz += (ctx.player.z - st.hz) * k; }
+    // its home water stays inside its zone
+    if (st.zone) { const Z = st.zone, d = Math.hypot(st.hx - Z.x, st.hz - Z.z), m = Math.max(0, Z.r - 22); if (d > m) { st.hx = Z.x + (st.hx - Z.x) * m / d; st.hz = Z.z + (st.hz - Z.z) * m / d; } }
     if (st.interest <= 0 && st.state === 'hunt') { st.state = 'idle'; st.target = null; ev.push('lost'); }
     const P = ctx.player;
     let goal = null;
@@ -518,6 +598,7 @@ export function createStrider(scene) {
     st.v *= Math.exp(-dt * 2.2);
     const nx = st.x + Math.cos(st.a) * st.v * dt, nz = st.z + Math.sin(st.a) * st.v * dt;
     if (ctx.inPool(nx, nz)) { st.x = nx; st.z = nz; } else { st.v *= 0.3; st.a += Math.PI * dt; }
+    keepToZone(st, 12);
     // the attack: wind-up (forelegs raised), strike (lunge, snap), recover
     const hx = st.x + Math.cos(st.a) * 4.6, hz = st.z + Math.sin(st.a) * 4.6;
     const pd = Math.hypot(P.x - hx, P.z - hz);
@@ -561,7 +642,7 @@ export function createStrider(scene) {
     nipPoints() { const f = Math.cos(st.a), g = Math.sin(st.a); return [[st.x + f * 4.7 - g * 1.0, st.z + g * 4.7 + f * 1.0], [st.x + f * 4.7 + g * 1.0, st.z + g * 4.7 - f * 1.0], [st.x + f * 4.3, st.z + g * 4.3]]; },
     release() { st.state = 'idle'; st.st2 = 'none'; st.t2 = 0; st.grab = 0; st.raise = 0; st.target = null; },
     setVisible(v) { group.visible = v; legs.im.visible = v; },
-    reset() { Object.assign(st, { x: 22, z: 12, a: Math.PI, v: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0, hx: 0, hz: 0, grab: 0, bob: 0, st2: 'none', raise: 0, flee: 0 }); pose(); },
+    reset() { Object.assign(st, { x: 22, z: 12, a: Math.PI, v: 0, stroke: 1, strokeT: 0, state: 'idle', target: null, interest: 0, hx: 0, hz: 0, grab: 0, bob: 0, st2: 'none', raise: 0, flee: 0 }); if (st.zone) api.relocate(st.zone.x, st.zone.z); pose(); },
     /**
      * Drive the catch and return the springtail's pose (see Stenus.captureStep).
      * The raptorial forelegs snap shut on it (strike), lift it, kicking, to the
@@ -662,7 +743,7 @@ export function createRain(scene) {
     /** ctx: { dt, field, inPool, mossAt, player } → events [{type:'impact', x, z} ...] */
     update(dt, ctx) {
       const ev = [];
-      if (api.enabled) {
+      if (api.enabled && ctx.allow !== false) {
         api.timer -= dt;
         if (api.timer <= 0) {
           api.timer = api.every * (0.6 + Math.random() * 0.8);

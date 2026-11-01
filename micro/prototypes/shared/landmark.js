@@ -29,6 +29,7 @@
 // API
 //   createLandmarks({ parent = document.body, zIndex = 4, margin = 26 }) -> marks
 //   marks.begin()                         clear (and resize) the overlay; once per frame
+//                                         (an overlay with nothing drawn since is left alone)
 //   marks.draw({ position, project, kind = 'forward', region = null, anchor = null,
 //     label = '', icon = null, distance = null, range = Infinity, onScreen = 'marker',
 //     color, nearAlpha = 0.95, farAlpha = 0.7 })
@@ -62,14 +63,22 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
   parent.appendChild(canvas);
   const ctx = canvas.getContext('2d');
   let W = 1, H = 1, dpr = 1;
+  // Something was painted since the last clear: an idle overlay (nothing to
+  // point at) is not cleared, so it isn't a full-screen layer redrawn each frame.
+  let dirty = true;
+  // The march to the region's edge, cached while the regions, anchor and
+  // direction stay put (quantised), so still players cost nothing.
+  const marchCache = new Map();
 
   function begin() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = canvas.clientWidth || innerWidth; H = canvas.clientHeight || innerHeight;
     const bw = Math.round(W * dpr), bh = Math.round(H * dpr);
-    if (canvas.width !== bw || canvas.height !== bh) { canvas.width = bw; canvas.height = bh; }
+    if (canvas.width !== bw || canvas.height !== bh) { canvas.width = bw; canvas.height = bh; dirty = false; return; } // resizing cleared it
+    if (!dirty) return;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    dirty = false;
   }
 
   function shapes(kind, color, shadow, alpha, size) {
@@ -101,6 +110,7 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
   }
 
   function marker(kind, x, y, color, shadow, alpha) {
+    dirty = true;
     ctx.save();
     ctx.translate(x, y);
     ctx.lineCap = 'round';
@@ -171,13 +181,23 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
       const l2 = Math.hypot(dx, dy) || 1;
       dx /= l2; dy /= l2;
     }
-    let lo = 0, hi = Math.hypot(W, H);
-    for (let i = 0; i < 22; i++) {
-      const mid = (lo + hi) / 2;
-      if (insetInside(ax + dx * mid, ay + dy * mid, margin)) lo = mid; else hi = mid;
+    const q = (v) => Math.round(v * 4);
+    let key = `${q(W)},${q(H)},${q(ax)},${q(ay)},${Math.round(dx * 2000)},${Math.round(dy * 2000)}`;
+    for (const p of polys) for (const v of p) key += `,${q(v[0])},${q(v[1])}`;
+    let lo = marchCache.get(key);
+    if (lo === undefined) {
+      lo = 0;
+      let hi = Math.hypot(W, H);
+      for (let i = 0; i < 22; i++) {
+        const mid = (lo + hi) / 2;
+        if (insetInside(ax + dx * mid, ay + dy * mid, margin)) lo = mid; else hi = mid;
+      }
+      if (marchCache.size > 64) marchCache.clear();
+      marchCache.set(key, lo);
     }
     const x = ax + dx * lo, y = ay + dy * lo;
     const angle = Math.atan2(dy, dx);
+    dirty = true;
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);

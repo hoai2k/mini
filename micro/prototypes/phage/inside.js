@@ -51,21 +51,22 @@ export function createInside() {
 
   // the envelope section along the top
   const secStandIn = proceduralSection();
-  const secMat = toonMaterial({ color: '#ffffff', map: secStandIn, mapRepeat: [1, 1], mottle: 0.12 });
+  const secMat = toonMaterial({ color: '#ffffff', map: secStandIn, mapRepeat: [1, 1], mottle: 0.12, fl: { color: '#2a74c0', color2: '#56b4dc', keep: 0, trans: 0.7, spec: 0.6, scale: 0.06 } });
   const section = new THREE.Mesh(new THREE.PlaneGeometry(420, 52), secMat);
   section.position.set(0, 52 + 26, -8);
   scene.add(section);
   // the tail tube through the envelope, the baseplate above it
-  const tube = inked(new THREE.CylinderGeometry(4.5, 4.5, 70, 14), toonMaterial({ color: '#a7e0d6' }), { width: 0.7 });
+  const GOLD = { color: '#e9a83a', color2: '#ffd98a', keep: 0, glow: 0.35, glowColor: '#ffb23a', trans: 0.9, spec: 0.8, scale: 0.05 };
+  const tube = inked(new THREE.CylinderGeometry(4.5, 4.5, 70, 14), toonMaterial({ color: '#a7e0d6', fl: { ...GOLD, color: '#7a9cc8', color2: '#b0c8e8', glow: 0.1 } }), { width: 0.7 });
   tube.position.set(0, 52 + 30, 0);
   scene.add(tube);
-  const plate = inked(new THREE.CylinderGeometry(26, 30, 10, 6), toonMaterial({ color: '#e98a3c' }), { width: 0.8 });
+  const plate = inked(new THREE.CylinderGeometry(26, 30, 10, 6), toonMaterial({ color: '#e98a3c', fl: GOLD }), { width: 0.8 });
   plate.position.set(0, 52 + 62, 0);
   scene.add(plate);
 
   // host DNA: double helices wandering through the nucleoid
   const hostDna = [];
-  const hostMat = toonMaterial({ color: '#6c5ab8', mottle: 0.1 });
+  const hostMat = toonMaterial({ color: '#6c5ab8', mottle: 0.1, fl: { color: '#7656b8', color2: '#a684dc', keep: 0, trans: 0.7, spec: 0.5, scale: 0.08 } });
   for (let k = 0; k < 4; k++) {
     const pts = [];
     let x = -260, y = -30 - k * 22 + rand(-8, 8), z = -14 - k * 4;
@@ -87,23 +88,25 @@ export function createInside() {
 
   // the crowded cytoplasm
   const types = [
-    { n: 22, s: [8, 11], geo: blobGeometry([{ p: [0, 0, 0], r: 1.2, c: '#f08a5a' }, { p: [1.1, 0.5, 0.3], r: 1, c: '#f39a66' }, { p: [-0.9, 0.7, 0], r: 1, c: '#ea7d52' }, { p: [0.3, -1.0, 0.5], r: 0.9, c: '#f5a774' }, { p: [-0.6, -0.6, -0.8], r: 0.9, c: '#ee8c5c' }, { p: [0.6, 0.2, -1.0], r: 0.9, c: '#f08a5a' }, { p: [-1.2, -0.3, 0.6], r: 0.8, c: '#f6b07a' }], 1) },
-    { n: 90, s: [3, 5], geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#f2c14e' }, { p: [1, 0.3, 0], r: 0.8, c: '#f5cf6a' }, { p: [-0.6, 0.8, 0.3], r: 0.75, c: '#e8b23e' }], 1) },
-    { n: 90, s: [3, 5], geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#e48ab8' }, { p: [0.9, -0.4, 0.2], r: 0.8, c: '#ec9cc4' }, { p: [-0.5, 0.8, -0.3], r: 0.8, c: '#d878aa' }], 1) },
-    { n: 70, s: [2, 3], geo: blobGeometry([{ p: [-1, 0, 0], r: 0.6, c: '#c26fc8' }, { p: [0, 0.6, 0], r: 0.6, c: '#d186d6' }, { p: [1, 0, 0], r: 0.6, c: '#b862be' }, { p: [0, -0.7, 0.2], r: 0.5, c: '#d89ade' }], 1) },
-    { n: 60, s: [4, 6], geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#8fb6e0' }, { p: [1.2, 0, 0], r: 0.9, c: '#9fc4ea' }, { p: [-1.2, 0.2, 0], r: 0.9, c: '#7ea6d4' }, { p: [0, 1.1, 0], r: 0.8, c: '#8fb6e0' }], 1) },
+    { fl: { color: '#4c4cbc', color2: '#8c7ee0', keep: 0, trans: 0.85, spec: 0.5, scale: 0.15 }, n: 22, s: [8, 11], geo: blobGeometry([{ p: [0, 0, 0], r: 1.2, c: '#f08a5a' }, { p: [1.1, 0.5, 0.3], r: 1, c: '#f39a66' }, { p: [-0.9, 0.7, 0], r: 1, c: '#ea7d52' }, { p: [0.3, -1.0, 0.5], r: 0.9, c: '#f5a774' }, { p: [-0.6, -0.6, -0.8], r: 0.9, c: '#ee8c5c' }, { p: [0.6, 0.2, -1.0], r: 0.9, c: '#f08a5a' }, { p: [-1.2, -0.3, 0.6], r: 0.8, c: '#f6b07a' }], 1) },
+    { fl: { color: '#5f9e58', color2: '#a6d48c', keep: 0, trans: 0.75, spec: 0.5 }, n: 90, s: [3, 5], geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#f2c14e' }, { p: [1, 0.3, 0], r: 0.8, c: '#f5cf6a' }, { p: [-0.6, 0.8, 0.3], r: 0.75, c: '#e8b23e' }], 1) },
+    { fl: { color: '#c06c38', color2: '#eea566', keep: 0, trans: 0.7, spec: 0.5 }, n: 90, s: [3, 5], geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#e48ab8' }, { p: [0.9, -0.4, 0.2], r: 0.8, c: '#ec9cc4' }, { p: [-0.5, 0.8, -0.3], r: 0.8, c: '#d878aa' }], 1) },
+    { fl: { color: '#3a98aa', color2: '#8ad6e0', keep: 0, trans: 0.75 }, n: 70, s: [2, 3], geo: blobGeometry([{ p: [-1, 0, 0], r: 0.6, c: '#c26fc8' }, { p: [0, 0.6, 0], r: 0.6, c: '#d186d6' }, { p: [1, 0, 0], r: 0.6, c: '#b862be' }, { p: [0, -0.7, 0.2], r: 0.5, c: '#d89ade' }], 1) },
+    { fl: { color: '#4672cc', color2: '#8aaef0', keep: 0, trans: 0.8 }, n: 60, s: [4, 6], geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#8fb6e0' }, { p: [1.2, 0, 0], r: 0.9, c: '#9fc4ea' }, { p: [-1.2, 0.2, 0], r: 0.9, c: '#7ea6d4' }, { p: [0, 1.1, 0], r: 0.8, c: '#8fb6e0' }], 1) },
   ];
   for (const T of types) {
-    T.mesh = inkedInstanced(T.geo, toonMaterial({ vertexColors: true }), T.n, { width: 0.6 });
+    T.mesh = inkedInstanced(T.geo, toonMaterial({ vertexColors: true, fl: T.fl }), T.n, { width: 0.6 });
+    T.mesh.userData.crowd = true;
     scene.add(T.mesh);
     T.items = Array.from({ length: T.n }, () => ({ p: new THREE.Vector3(rand(AREA.x0 - 60, AREA.x1 + 60), rand(AREA.y0 - 20, AREA.y1), T.s[0] > 6 ? rand(-75, -24) : rand(-60, 4)), v: new THREE.Vector3(), q: new THREE.Quaternion().random(), s: rand(...T.s) }));
   }
 
   // the phage DNA: a double helix of beads along a rope of nodes
   const MAXB = (GENOME_NODES + 40) * 6;
-  const dnaBeads = inkedInstanced(new THREE.IcosahedronGeometry(1, 1), toonMaterial({ color: '#ffffff' }), MAXB, { width: 0.6 });
+  // the entering genome: in false light a glowing gold-white strand (its own colour kept toward the tip)
+  const dnaBeads = inkedInstanced(new THREE.IcosahedronGeometry(1, 1), toonMaterial({ color: '#ffffff', fl: { color: '#ffcf70', color2: '#fff2c8', keep: 0, glow: 0.95, glowColor: '#ffc85a', trans: 0.5, spec: 0.6, scale: 0.3 } }), MAXB, { width: 0.6 });
   scene.add(dnaBeads);
-  const tipGlow = new THREE.Mesh(new THREE.SphereGeometry(4.2, 16, 12), toonMaterial({ color: '#ffd85a', opacity: 0.55 }));
+  const tipGlow = new THREE.Mesh(new THREE.SphereGeometry(4.2, 16, 12), toonMaterial({ color: '#ffd85a', opacity: 0.55, fl: { color: '#ffd27a', keep: 0, glow: 1.4, glowColor: '#ffd070', trans: 0.3 } }));
   scene.add(tipGlow);
 
   // enzymes
@@ -113,32 +116,58 @@ export function createInside() {
     const blade = blobGeometry(Array.from({ length: 6 }, (_, i) => ({ p: [i * 0.75, Math.sin(i * 0.5) * 0.25, 0], r: 1.05 - i * 0.11, c: i === 5 ? accent : color })), 1);
     const jaws = [0, 1].map((i) => {
       const pivot = new THREE.Group();
-      const j = inked(blade, toonMaterial({ vertexColors: true }), { width: 0.8 });
+      const j = inked(blade, toonMaterial({ vertexColors: true, fl: { keep: 0.7, trans: 0.7, spec: 0.6 } }), { width: 0.8 });
       j.position.set(0.2, i ? -0.55 : 0.55, i ? -0.25 : 0.25);
       pivot.add(j); g.add(pivot);
       return pivot;
     });
-    const hinge = inked(blobGeometry([{ p: [-0.6, 0, 0], r: 1.25, c: color }, { p: [-1.4, 0.6, 0.3], r: 0.9, c: accent }, { p: [-1.4, -0.6, -0.3], r: 0.9, c: color }], 1), toonMaterial({ vertexColors: true }), { width: 0.8 });
+    const hinge = inked(blobGeometry([{ p: [-0.6, 0, 0], r: 1.25, c: color }, { p: [-1.4, 0.6, 0.3], r: 0.9, c: accent }, { p: [-1.4, -0.6, -0.3], r: 0.9, c: color }], 1), toonMaterial({ vertexColors: true, fl: { keep: 0.7, trans: 0.7, spec: 0.6 } }), { width: 0.8 });
     g.add(hinge);
     g.scale.setScalar(size);
     return { g, jaws };
   }
-  // The boss: a type I CRISPR complex, Cascade (the blue backbone of Cas7 subunits
-  // wrapped along its crRNA, the guide) with Cas3 (the nuclease-helicase, amber)
-  // docked at one end. The guide glows as it nears a match (the tell).
+  // The boss: a type I CRISPR complex, after the delivered sheet (assets/reference-sheets/boss-cas.webp):
+  // Cascade, a bulky blue body of Cas7 subunits curled round a yellow groove that
+  // carries the red crRNA guide, a red Cas6 cap at its head end, and Cas3, the
+  // nuclease-helicase, a sky-cyan lobe with orange active-site patches docked
+  // beside it. Every subunit is drawn as a lumpy cluster of small spheres.
+  // The guide glows as it nears a match (the tell).
+  function lumps(list, cx, cy, cz, r, c, k = 7) {
+    list.push({ p: [cx, cy, cz], r: r * 0.62, c });
+    for (let i = 0; i < k; i++) {
+      const u = rand(-1, 1), a = rand(0, Math.PI * 2), q = Math.sqrt(1 - u * u);
+      list.push({ p: [cx + q * Math.cos(a) * r * 0.55, cy + u * r * 0.55, cz + q * Math.sin(a) * r * 0.55], r: r * rand(0.36, 0.5), c });
+    }
+  }
+  const CASFL = { keep: 1, trans: 0.75, spec: 0.7 };
   function cascade() {
     const g = new THREE.Group();
-    const body = inked(blobGeometry(Array.from({ length: 9 }, (_, i) => ({ p: [i * 1.25 - 5, Math.sin(i * 0.8) * 0.9, Math.cos(i * 1.1) * 0.5], r: 1.5 + (i % 3) * 0.25, c: i % 2 ? '#6d8fd6' : '#5c7ec8' })), 1), toonMaterial({ vertexColors: true }), { width: 0.8 });
+    const parts = [];
+    // the Cas7 backbone: a curled filament of blue subunits, with a second row behind for bulk
+    for (let i = 0; i < 7; i++) {
+      const x = i * 1.45 - 4.6, y = Math.sin(i * 0.55 + 0.3) * 1.1 - 0.5;
+      lumps(parts, x, y, 0, 1.55, i % 2 ? '#3d8fe0' : '#4a9cec');
+      lumps(parts, x + 0.6, y - 1.4, -1.1, 1.35, '#3a86d8', 5);
+    }
+    lumps(parts, 3.6, -2.2, 0.2, 1.3, '#4a9cec', 5); // the tail end, like the sheet's lower lobe
+    // the yellow groove along the guide (Cas5/Cas11 small subunits), in front
+    for (let i = 0; i < 6; i++) lumps(parts, i * 1.25 - 3.6, 1.0 + Math.sin(i * 0.9) * 0.35, 1.1, 0.85, i % 2 ? '#f2c24a' : '#e8b23c', 5);
+    // Cas6, the red cap that holds the crRNA's end
+    lumps(parts, -4.4, 2.9, 0.3, 1.3, '#e8483f'); lumps(parts, -3.3, 3.6, -0.2, 1.0, '#ef5a4c', 5);
+    const body = inked(blobGeometry(parts, 0), toonMaterial({ vertexColors: true, fl: CASFL }), { width: 0.6 });
     g.add(body);
-    const rnaMat = toonMaterial({ vertexColors: true });
-    const rna = inked(blobGeometry(Array.from({ length: 12 }, (_, i) => ({ p: [i * 0.95 - 5.2, 1.6 + Math.sin(i * 0.9) * 0.3, 1.2], r: 0.45, c: '#e8485a' })), 0), rnaMat, { width: 0.6 });
+    const rnaMat = toonMaterial({ vertexColors: true, fl: { keep: 1, glow: 0, glowColor: '#ff4a5a', trans: 0.6 } });
+    const rna = inked(blobGeometry(Array.from({ length: 16 }, (_, i) => ({ p: [i * 0.62 - 4.4, 1.55 + Math.sin(i * 0.8) * 0.35, 1.75], r: 0.36, c: '#e8303f' })), 0), rnaMat, { width: 0.5 });
     g.add(rna);
     const halo = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), new THREE.MeshBasicMaterial({ color: '#ff6a7a', transparent: true, opacity: 0, depthWrite: false }));
-    halo.scale.set(7, 2.2, 2.2); halo.position.set(0, 1.6, 1.2);
+    halo.scale.set(7, 2.2, 2.2); halo.position.set(-0.6, 1.6, 1.4);
     g.add(halo);
     const cas3 = new THREE.Group();
-    cas3.add(inked(blobGeometry([{ p: [0, 0, 0], r: 1.8, c: '#e9a640' }, { p: [1.4, 0.9, 0.3], r: 1.4, c: '#f2bd5a' }, { p: [1.2, -1.0, -0.2], r: 1.3, c: '#d99232' }, { p: [2.4, 0, 0.5], r: 1.0, c: '#f6cf74' }], 1), toonMaterial({ vertexColors: true }), { width: 0.8 }));
-    cas3.position.set(6.4, -0.3, 0.2);
+    const c3 = [];
+    for (const [x, y, z, r] of [[0.4, 0, 0, 1.5], [1.9, 1.0, 0.2, 1.3], [1.7, -1.2, -0.1, 1.35], [3.0, 0.1, 0.4, 1.15], [1.0, 0.3, -1.2, 1.2]]) lumps(c3, x, y, z, r, '#5fd0f0', 6);
+    for (const [x, y, z] of [[1.6, 0.4, 1.3], [2.5, -0.6, 1.0], [1.0, -0.7, 1.2]]) lumps(c3, x, y, z, 0.42, '#f7a87a', 4); // the active-site patches
+    cas3.add(inked(blobGeometry(c3, 0), toonMaterial({ vertexColors: true, fl: CASFL }), { width: 0.6 }));
+    cas3.position.set(6.2, -0.3, 0.2);
     g.add(cas3);
     const jaws = [new THREE.Group(), new THREE.Group()];
     g.scale.setScalar(2.6);
@@ -192,6 +221,7 @@ export function createInside() {
     const bound = f.state === 'windup' || f.state === 'strike';
     const glow = bound ? 1 : e.match;
     e.rnaMat.uniforms.uEmissive.value = glow * 0.9 + (glow > 0.3 ? Math.sin(t * (6 + glow * 10)) * 0.15 * glow : 0);
+    e.rnaMat.uniforms.uFLGlow.value = glow * 1.3; // in false light the tell blooms
     e.halo.material.opacity = glow * 0.35;
     e.halo.scale.set(7 + glow * 2, 2.2 + glow, 2.2 + glow);
     e.cas3.position.x = bound ? 6.4 - (f.state === 'strike' ? 2.2 : 1.2 * f.t) : 6.4;

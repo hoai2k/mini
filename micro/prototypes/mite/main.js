@@ -7,13 +7,17 @@ import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks } from '../shared/landmark.js';
 import { createLandmarkProps, FORWARD, BACKDOOR } from './landmarks.js';
 import { createPseudoscorpion } from './boss.js';
+import { createThicket } from './thicket.js';
 import { createControls, createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createPredatorAI } from './predator.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { mountHud } from '../shared/hud.js';
 import { createSem, shared, MODES, CLS, gMaterial } from './sem.js';
 import { semTextures } from './textures.js';
-import { buildWorld, HALF, floorH } from './world.js';
+import { buildWorld, floorH } from './world.js';
+import { ROUTE, along, progress, PRED_ZONE, PRED_START as PRED_AT, THICKET, BOSS } from './layout.js';
+import { createCrowd } from '../shared/crowd.js';
+import { createQuality } from '../shared/quality.js';
 import { createMite, CFG, PRED, JUMP } from './mite.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
@@ -46,14 +50,18 @@ tex = semTextures((k, t) => swapTex(k, t));
 
 const sem = createSem(renderer, tex.backdrop);
 // (beside the way in, so its long abdomen lies alongside the water, not over it)
-const BOSS_POST = (() => { const L = Math.hypot(FORWARD.x, FORWARD.z), ux = -FORWARD.x / L, uz = -FORWARD.z / L; return { x: FORWARD.x + ux * 600 - uz * 500, z: FORWARD.z + uz * 600 + ux * 500, a: Math.atan2(uz, ux), ux, uz }; })();
-// its arena: a patch of bare litter round its post, so it stands on open ground
-const world = buildWorld(tex, { clear: [{ x: BOSS_POST.x + BOSS_POST.ux * 250, z: BOSS_POST.z + BOSS_POST.uz * 250, r: 1000 }] });
+// (layout.js: the last of the challenges, ~0.6 mm before the water; it wakes at ~0.9 mm)
+const BOSS_POST = (() => { const ux = -ROUTE.ux, uz = -ROUTE.uz, p = along(BOSS.s, BOSS.side); return { ...p, a: Math.atan2(uz, ux), ux, uz }; })();
+// its arena: a patch of bare litter round its post, so it stands on open ground;
+// the hyphal thicket (the crowd) lies before it
+const world = buildWorld(tex, { clear: [{ x: BOSS_POST.x + BOSS_POST.ux * 150, z: BOSS_POST.z + BOSS_POST.uz * 150, r: 800 }], thicket: THICKET });
 scene.add(world.group);
 const props = createLandmarkProps(world, tex);
 scene.add(props.group);
+// The crowd: a hyphal thicket full of springtails (thicket.js), past halfway, before the boss
+const thicket = createThicket({ scene, world, tex, region: THICKET });
 // The boss: a pseudoscorpion lying in wait before the leaf axil (boss.js); worn down, it backs into the moss to the side.
-const boss = createPseudoscorpion(scene, tex, { post: BOSS_POST, home: { x: BOSS_POST.x + BOSS_POST.uz * 1300, z: BOSS_POST.z - BOSS_POST.ux * 1300 } });
+const boss = createPseudoscorpion(scene, tex, { post: BOSS_POST, wake: BOSS.wake, home: { x: BOSS_POST.x + BOSS_POST.uz * 1300, z: BOSS_POST.z - BOSS_POST.ux * 1300 } });
 
 // The box mite is drawn at about 0.6 mm (mite.js) and placed at 0.58 of that:
 // ~0.35 mm long, the size of a small phthiracarid (the Level 1 spec asks for
@@ -62,11 +70,13 @@ const MITE_SCALE = 0.58;
 let mite = createMite(scene, world.colliders, { cls: CLS.CUTICLE, tex, scale: MITE_SCALE });
 mite.place(0, 0, 0.3);
 const npc = createMite(scene, world.colliders, { cls: CLS.NPC, tex, scale: MITE_SCALE });
-npc.place(-950, 820, 2.2);
+const NPC_PLACE = along(1300, 250);
+npc.place(NPC_PLACE.x, NPC_PLACE.z, 2.2);
 // The predator: a parasitid (Mesostigmata), pale, long-legged, hunting by touch.
 const pred = createMite(scene, world.colliders, { cls: CLS.NPC, tex, anat: PRED });
-const predAI = createPredatorAI(pred, HALF);
-predAI.reset(900, 1250); // ~1.5 mm off, to the side of the way on: it starts well away from you
+// It lurks in its hunting ground past halfway, at the edge of and inside the thicket (layout.js PRED_ZONE)
+const predAI = createPredatorAI(pred, PRED_ZONE);
+predAI.reset(PRED_AT.x, PRED_AT.z);
 
 // Local multiplayer (shared/players.js): each player is a box mite of their
 // own, with their own dash, wounds and sounds (a record, see makeRec).
@@ -197,18 +207,20 @@ function niceScale(hfw) {
 
 // NPC: wanders, and shuts when the player comes close
 const ai = { ang: 2.2, t: 0, scared: 0, pause: 0 };
+const NPC_HOME = along(1300, 200);
 function npcInput(dt) {
   ai.t += dt;
   ai.ang += (Math.sin(ai.t * 0.37) + Math.sin(ai.t * 0.83 + 1)) * 0.5 * dt;
   const c = npc.center;
-  if (Math.hypot(c.x, c.z) > HALF * 0.75) ai.ang = Math.atan2(-c.z, -c.x);
+  if (Math.hypot(c.x - NPC_HOME.x, c.z - NPC_HOME.z) > 1400) ai.ang = Math.atan2(NPC_HOME.z - c.z, NPC_HOME.x - c.x); // it stays in the calm first half
   let dist = Infinity;
   for (const P of recs()) dist = Math.min(dist, c.distanceTo(P.mite.center));
   if (dist < 300 && ai.scared <= 0 && npc.mode === 'walk') ai.scared = 3 + Math.random() * 2;
   ai.scared -= dt;
   ai.pause = (ai.pause + dt) % 14;
   const moving = ai.pause < 10;
-  return { dir: new THREE.Vector3(Math.cos(ai.ang), 0, Math.sin(ai.ang)), mag: moving ? 0.6 : 0, maxSpeed: 180 * MITE_SCALE, hold: ai.scared > 0 };
+  npcIn.dir.set(Math.cos(ai.ang), 0, Math.sin(ai.ang)); npcIn.mag = moving ? 0.6 : 0; npcIn.hold = ai.scared > 0;
+  return npcIn;
 }
 
 // ---------- threats: pacing and being eaten (shared/predation.js) ----------
@@ -216,7 +228,8 @@ function npcInput(dt) {
 // hunts. Its third grab holds on: strike (it seizes a leg), hold (it pulls you
 // in; close up, Y, and the grip slips off), eat (its chelicerae work at the
 // soft body by the legs, which go limp and fold), then the Eaten card.
-const PRED_START = [900, 1250];
+const PRED_START = [PRED_AT.x, PRED_AT.z];
+const npcIn = { dir: new THREE.Vector3(), mag: 0, maxSpeed: 180 * MITE_SCALE, hold: false };
 const pace = { grace: 45, mode: 'Comes and goes' };
 const hunger = createHunger({ grace: pace.grace });
 const isHungry = () => (pace.mode === 'Never' ? false : pace.mode === 'Always' ? hunger.state !== 'grace' : hunger.hungry);
@@ -545,6 +558,11 @@ function biteNow() {
     Object.assign(play, { act: 'fight', actT: 0, actDur: 0.6, snapped: false, foe: 'pred' });
     return;
   }
+  // in the thicket: graze the threads in front away and shove the springtails aside
+  if (thicket.canClear(m)) {
+    Object.assign(play, { act: 'clear', actT: 0, actDur: 0.32, snapped: false });
+    return;
+  }
   let best = null, bd = 130;
   for (const f of world.food) {
     if (f.left <= 0) continue;
@@ -572,7 +590,11 @@ function placeSpore(f, at, s) {
 }
 /** Advance the current player's act and pose it (mite.act). */
 function stepAct(dt) {
-  if (!play.act || mite.mode !== 'walk') { if (play.act && play.food && play.food.kind === 'spore') placeSpore(play.food, play.food0, 1); play.act = null; mite.act({}); return; }
+  if (!play.act || mite.mode !== 'walk') {
+    if (play.act === 'eat' && play.food && play.food.kind === 'spore') placeSpore(play.food, play.food0, 1);
+    if (play.act === 'eat' && play.food && play.food.kind === 'head' && play.food.left > 0) world.shrinkHead(play.food, 1);
+    play.act = null; mite.act({}); return;
+  }
   play.actT += dt;
   const u = Math.min(1, play.actT / play.actDur);
   const m = mite.mouth(new THREE.Vector3());
@@ -608,11 +630,27 @@ function stepAct(dt) {
     mite.act({ hold: at, holdK: reach, rear: 0.15 * reach });
     if (Math.floor(play.actT / 0.22) !== Math.floor((play.actT - dt) / 0.22)) mite.bite();
     if (f.kind === 'spore') placeSpore(f, at, 1 - Math.max(0, (u - 0.3) / 0.7));
+    if (f.kind === 'head') world.shrinkHead(f, 1 - Math.max(0, (u - 0.3) / 0.7));
     if (u >= 1) {
       play.grazed++;
       if (f.kind === 'spore') { f.left = 0; world.eatSpore(f); hud.toast(`Ate a fungal spore (${play.grazed} grazed)`); }
+      else if (f.kind === 'head') { f.left = 0; f.t = 30; world.shrinkHead(f, 0); hud.toast(`Grazed a conidiophore's spore head (${play.grazed} grazed)`); }
       else { f.left = 0; f.t = 25; hud.toast(`Nibbled a hyphal tip (${play.grazed} grazed)`); }
       if (rumbleOn) padOf().rumble(60, 0.25, 0.1);
+    }
+  } else if (play.act === 'clear') {
+    // a quick lunge into the thicket: the chelicerae shear the threads, the head shoves springtails aside
+    mite.act({ lunge: Math.sin(u * Math.PI), rear: 0.08 * Math.sin(u * Math.PI) });
+    if (u > 0.4 && !play.snapped) {
+      play.snapped = true;
+      mite.bite();
+      const f = _ct.set(1, 0, 0).applyQuaternion(mite.quat).setY(0).normalize();
+      const r = thicket.bite(m, { x: f.x, z: f.z });
+      play.cleared = (play.cleared || 0) + r.threads;
+      if (r.threads) { play.grazed += r.threads; audio.play('mite/bite', { volume: 0.8, rate: 1.05 }); }
+      else audio.play('mite/bite', { volume: 0.6, rate: 1.25 });
+      if (r.shoved && rumbleOn) padOf().rumble(70, 0.3, 0.2);
+      if (!thickLog.biteTip) { thickLog.biteTip = true; hud.toast(r.threads ? 'Grazed through the threads: bite (X) to clear a lane, walk to shove the springtails aside' : 'Shoved the springtails aside', 2400); }
     }
   } else {
     mite.act({ lunge: Math.sin(u * Math.PI), rear: 0.1 * Math.sin(u * Math.PI) });
@@ -808,6 +846,32 @@ function startDive() {
   if (mite.dive(at)) { play.dive = { target: best, at }; if (rumbleOn) padOf().rumble(80, 0.2, 0.2); }
 }
 let hitPause = 0;
+// ---------- where the challenges start (layout.js: all at or past halfway) ----------
+const thickLog = { biteTip: false };
+const thickBodies = [], bodyRefs = [];
+const bodyRef = (slot, p, radius) => { const b = bodyRefs[slot] || (bodyRefs[slot] = { position: new THREE.Vector3(), radius, slot }); b.position.copy(p); b.radius = radius; return b; };
+/** First start of each challenge: { kind, slot, s (µm along the route), frac (of the way), t }. */
+const challengeLog = [];
+function logChallenge(kind, P) {
+  if (challengeLog.some((c) => c.kind === kind)) return;
+  const c = P.mite.center, sAlong = progress(c.x, c.z);
+  challengeLog.push({ kind, slot: P.slot, s: Math.round(sAlong), frac: +(sAlong / ROUTE.length).toFixed(3), t: +simTime.toFixed(2) });
+}
+function challenges() {
+  for (const P of recs()) {
+    if (held(P)) continue;
+    const c = P.mite.center;
+    if (predAI.onGround(c)) {
+      // entering its ground ends the calm opening: it is hungry and lurking
+      if (!challengeLog.some((x) => x.kind === 'predator ground')) { if (hunger.state === 'grace') { hunger.reset(0); hunger.update(0.01); } hud.toast('The predatory mite\'s hunting ground: it lurks at the thicket\'s edge', 2600); }
+      logChallenge('predator ground', P);
+    }
+    if (thicket.inside(c)) {
+      if (!challengeLog.some((x) => x.kind === 'crowd')) hud.toast('A hyphal thicket full of springtails: push through (LS), bite the threads away (X), scramble (B)', 3200);
+      logChallenge('crowd', P);
+    }
+  }
+}
 /** The dive lands: a strong bite if the target is still there, a squash, a rebound; or a clear miss. */
 function diveImpact() {
   const d = play.dive;
@@ -873,7 +937,11 @@ function tick(dt, inputs) {
     if (pl.scr) { pl.stam = Math.max(0, pl.stam - dt / 1.6); if (Math.random() < dt * 30) kickDust(P.mite, 1); }
     else pl.stam = Math.min(1, pl.stam + dt / 2.8);
   }
-  for (const f of world.food) if (f.kind === 'hypha' && f.left <= 0 && (f.t -= dt) <= 0) f.left = 1;
+  for (const f of world.food) {
+    if (f.left > 0 || (f.kind !== 'hypha' && f.kind !== 'head') || (f.t -= dt) > 0) continue;
+    f.left = 1;
+    if (f.kind === 'head') world.shrinkHead(f, 1);
+  }
   // the catch: the victim's own pad restarts (alone) or closes up
   const who = capture.active && cap.who ? cap.who : P1;
   let cs = withRec(who, () => capture.update(dt, capPad ? players.pad(who.slot) : null));
@@ -898,6 +966,9 @@ function tick(dt, inputs) {
     play.stun = Math.max(0, play.stun - dt);
     if (play.hurt > 0 && (play.heal += dt) > 20) { play.hurt--; play.heal = 0; }
     let input = (inputs && inputs[P.slot]) || { dir: new THREE.Vector3(), mag: 0, maxSpeed: WALK, hold: false };
+    // the thicket drags (threads across the body, springtails pressing); the scramble halves it
+    const dr = thicket.drag(mite.center, P.drag || (P.drag = { k: 1, threads: 0, press: 0 }));
+    if (dr.k < 1 && input.maxSpeed) input.maxSpeed *= play.scr ? 1 - (1 - dr.k) * 0.5 : dr.k;
     if (play.stun > 0) input = { ...input, mag: 0 };
     if (cs.active && cap.who === P) input = { ...input, mag: 0 };
     const ev = mite.update(dt, input);
@@ -914,6 +985,12 @@ function tick(dt, inputs) {
     evs[P.slot] = ev;
   });
   if (npcOn) npc.update(dt, npcInput(dt));
+  // the crowd: every mite shoves springtails aside; the gamasid feeds on them when it is not after you
+  thickBodies.length = 0;
+  for (const P of recs()) if (!held(P)) thickBodies.push(bodyRef(P.slot, P.mite.center, 175));
+  if (predOn) thickBodies.push(bodyRef(9, pred.center, 330));
+  thicket.update(dt, thickBodies, { pred: predOn ? pred : null, predFree: predOn && !capture.active && ['wander'].includes(predAI.state) });
+  challenges(dt);
   const nip = recs().some((P) => P.play.nip);
   if (predOn && capture.active && cap.who && !cap.byBoss) {
     if (['follow', 'fadeOut', 'fadeIn'].includes(capture.phase)) {
@@ -947,7 +1024,7 @@ function tick(dt, inputs) {
       const who = multi() ? `Player ${cur.slot + 1}: ` : '';
       for (const e of r.events) {
         if ((e === 'gaveUp' || e === 'lost') && hunger.hungry) hunger.missed();
-        if (e === 'hunt') audio.play('mite/predator', { volume: 0.9 });
+        if (e === 'hunt') { audio.play('mite/predator', { volume: 0.9 }); logChallenge('predator hunt', cur); }
         if (e === 'legHit') audio.play('mite/predator', { volume: 0.6, rate: 1.25 });
         if (e === 'hunt') hud.toast(`${who}A predatory mite has touched you: run (B), jump (A), close up (Y) or nip it (X)`, 2600);
         else if (e === 'windup') { hud.toast(`${who}It rears to strike: close up (Y), or jump`, 1400); if (rumbleOn) padOf().rumble(250, 0.15, 0); }
@@ -966,14 +1043,20 @@ function tick(dt, inputs) {
   for (const P of recs()) P.play.nip = false;
   // the boss (boss.js): dormant before the axil until someone comes near after the calm opening
   if (!(capture.active && cap.byBoss)) {
-    const bctx = { awake: pace.grace === 0 || hunger.state !== 'grace', players: recs().map((P) => {
+    // placement paces it (layout.js): it wakes whenever someone comes near its post
+    const bctx = { awake: true, players: recs().map((P) => {
       const c = P.mite.center, f = new THREE.Vector3(1, 0, 0).applyQuaternion(P.mite.quat).setY(0).normalize();
       const to = new THREE.Vector3(boss.st.x - c.x, 0, boss.st.z - c.z).normalize();
       return { slot: P.slot, x: c.x, z: c.z, center: c.clone(), alive: !held(P), closed: withRec(P, closedNow), airborne: P.mite.airborne, facing: f.dot(to) > 0.5 };
     }) };
     for (const e of boss.update(dt, bctx)) {
       const P = e.slot !== undefined ? pls[e.slot] : null;
-      if (e.type === 'wake') hud.toast('A pseudoscorpion lies in wait before the water! Watch for its pincers held open and still', 3000);
+      if (e.type === 'wake') {
+        let nearest = P1, nd = Infinity;
+        for (const Q of recs()) { const d = Math.hypot(Q.mite.center.x - boss.post.x, Q.mite.center.z - boss.post.z); if (d < nd) { nd = d; nearest = Q; } }
+        logChallenge('boss', nearest);
+        hud.toast('A pseudoscorpion lies in wait before the water! Watch for its pincers held open and still', 3000);
+      }
       else if (e.type === 'tell') { for (const Q of recs()) if (Q.mite.center.distanceTo(boss.center) < 2600) withRec(Q, () => { if (rumbleOn) padOf().rumble(200, 0.12, 0); }); }
       else if (['snap', 'sweep', 'step'].includes(e.type)) audio.play('mite/predator', { volume: 0.8, rate: 0.7 });
       else if (e.type === 'grab' && P) withRec(P, () => startBossCapture());

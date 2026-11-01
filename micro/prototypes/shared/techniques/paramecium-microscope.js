@@ -23,7 +23,10 @@
 //     plain background; default 1), plateBlur (mip bias, default 0) and
 //     plateRot (radians, for a view that turns) keep a plate from competing
 //     with the subject; bfSoft (0..1, default 0) soft-limits brightfield's
-//     defocus and edge terms so thick bodies shade rather than clip to black. pointsMaterial({ loop: [a, b, zSpread] }) sizes the
+//     defocus and edge terms so thick bodies shade rather than clip to black.
+//     Optional: rect [x0, y0, x1, y1] (fractions of the screen, top-left
+//     origin) renders only that box (a split-screen view's region): every pass
+//     is scissored to it, padded where a blur reads its neighbours. pointsMaterial({ loop: [a, b, zSpread] }) sizes the
 //     cyclosis loop (default the 230 µm P. caudatum: [72, 15, 30]);
 //     volumeMaterial's uLen uniform sets the pellicle's cell length (230).
 //
@@ -519,6 +522,15 @@ export function createOptics(renderer) {
   }
 
   const draw = (mat, target) => { quad.material = mat; renderer.setRenderTarget(target); renderer.render(qScene, qCam); };
+  // Scissor every target to `rect` (fractions, top-left origin), padded by `pad` of the target's own pixels.
+  const scissorTo = (t, rect, pad) => {
+    if (!rect) { t.scissorTest = false; return; }
+    const w = t.width, h = t.height;
+    const x0 = Math.max(0, Math.floor(rect[0] * w) - pad), x1 = Math.min(w, Math.ceil(rect[2] * w) + pad);
+    const y0 = Math.max(0, Math.floor((1 - rect[3]) * h) - pad), y1 = Math.min(h, Math.ceil((1 - rect[1]) * h) + pad);
+    t.scissor.set(x0, y0, Math.max(1, x1 - x0), Math.max(1, y1 - y0));
+    t.scissorTest = true;
+  };
 
   return {
     resize,
@@ -527,7 +539,11 @@ export function createOptics(renderer) {
     /** 0/1 switches: halo (phase ring leakage), tie (brightfield defocus), plate, chroma, soft, grain. */
     toggles: { halo: formMat.uniforms.uHalo, tie: formMat.uniforms.uTie, plate: formMat.uniforms.uPlateOn, chroma: postMat.uniforms.uChroma, soft: postMat.uniforms.uSoft, grain: postMat.uniforms.uGrain },
     /** Render the scene with `camera` and form the image in `mode` (index into MODES). */
-    render(scene, camera, { mode, stop, plate, plateOff, blurScale = 1, upTo = 9, fill = null, plateMix = 1, plateBlur = 0, plateRot = 0, bfSoft = 0 }) {
+    render(scene, camera, { mode, stop, plate, plateOff, blurScale = 1, upTo = 9, fill = null, plateMix = 1, plateBlur = 0, plateRot = 0, bfSoft = 0, rect = null }) {
+      // the blur reaches ≈ 7 taps × 1.5 × blurScale × uWide quarter-res texels: pad the
+      // earlier passes by that so the region's edge reads freshly drawn neighbours
+      const reach = Math.ceil(7 * 1.5 * blurScale * Math.max(1, 1.4 * blurScale)) + 2;
+      scissorTo(main, rect, reach * 8); scissorTo(down, rect, reach * 2); scissorTo(ping, rect, reach); scissorTo(pong, rect, 2); scissorTo(img, rect, 4);
       renderer.setRenderTarget(main);
       renderer.setClearColor(0x000000, 0);
       renderer.clear();
@@ -563,7 +579,15 @@ export function createOptics(renderer) {
       postMat.uniforms.tC.value = img.texture;
       postMat.uniforms.uStop.value = stop ? 1 : 0;
       postMat.uniforms.uMode.value = mode;
+      if (rect) {
+        const c = renderer.domElement, pr = renderer.getPixelRatio();
+        const W0 = c.width / pr, H0 = c.height / pr; // the screen in CSS px, as setScissor takes it
+        const x0 = Math.max(0, rect[0] * W0 - 4), y0 = Math.max(0, (1 - rect[3]) * H0 - 4);
+        renderer.setScissor(x0, y0, Math.min(W0, rect[2] * W0 + 4) - x0, Math.min(H0, (1 - rect[1]) * H0 + 4) - y0);
+        renderer.setScissorTest(true);
+      }
       draw(postMat, null);
+      if (rect) renderer.setScissorTest(false);
     },
   };
 }

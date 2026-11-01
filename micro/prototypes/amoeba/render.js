@@ -9,8 +9,9 @@
 //   above  — things floating above the focal plane, half resolution, blurred;
 //   compose — the optics.
 // Local multiplayer: each player's amoeba is a cell layer (addCell): its own
-// mask, body quad and granules. The mask and body passes run once per cell
-// (the shared mask target is reused), adding into the same property buffer.
+// mask, body quad and granules. The masks of up to four cells go into one
+// RGBA mask target, one channel each (one clear, one pass, one MSAA resolve
+// per view), and each body reads its channel; cells outside a view are skipped.
 // render({ target }) composes into a split-screen view's target instead of
 // the screen; setScale(k) draws the buffers at k × the screen (split views).
 import * as THREE from '../shared/vendor/three.module.min.js';
@@ -19,6 +20,7 @@ import { N } from '../shared/techniques/amoeba-softbody.js';
 import { QUAD_VS, FRAG_FS, BODY_FS, GRAN_VS, GRAN_FS, PREY_FS, SPIRO_FS, DIATOM_FS, FLAKE_FS, PHOTO_FS, TRAP_FS, LEAF_FS } from './shaders.js';
 
 const SUB = 3; // Catmull-Rom subdivisions per membrane segment for the mask
+const CHANNELS = [new THREE.Vector4(1, 0, 0, 0), new THREE.Vector4(0, 1, 0, 0), new THREE.Vector4(0, 0, 1, 0), new THREE.Vector4(0, 0, 0, 1)];
 
 /** Does the closed contour (Vector2s) cross itself? A grid hash over its segments. */
 function contourCrosses(ct) {
@@ -86,9 +88,18 @@ export class View {
     c.maskGeo.setAttribute('position', new THREE.BufferAttribute(c.maskPos, 3));
     c.maskGeo.setIndex(new THREE.BufferAttribute(new Uint32Array((nv - 2) * 3), 1));
     c.contour = Array.from({ length: nv }, () => new THREE.Vector2());
-    const mask = new THREE.Mesh(c.maskGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
-    mask.frustumCulled = false;
-    c.maskScene.add(mask);
+    // The mask writes 1 into this cell's channel of the shared mask target (see render()).
+    c.maskMat = new THREE.ShaderMaterial({
+      uniforms: { uChan: { value: new THREE.Vector4(1, 0, 0, 0) } },
+      vertexShader: 'void main() { gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
+      fragmentShader: 'uniform vec4 uChan; void main() { gl_FragColor = uChan; }',
+      transparent: true, depthTest: false, depthWrite: false,
+      blending: THREE.CustomBlending, blendEquation: THREE.AddEquation,
+      blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneFactor,
+    });
+    c.mask = new THREE.Mesh(c.maskGeo, c.maskMat);
+    c.mask.frustumCulled = false;
+    c.maskScene.add(c.mask);
     const g = body.grid, textures = this.tex;
     c.sdfTex = new THREE.DataTexture(g.bytes, g.res, g.res, THREE.RedFormat, THREE.UnsignedByteType);
     c.sdfTex.minFilter = c.sdfTex.magFilter = THREE.LinearFilter;
@@ -97,7 +108,7 @@ export class View {
     c.bodyMat = propertyMaterial({
       vertexShader: QUAD_VS, fragmentShader: BODY_FS,
       uniforms: {
-        uSize: { value: new THREE.Vector2(1, 1) }, uMask: { value: this.maskRT.texture }, uSdf: { value: c.sdfTex },
+        uSize: { value: new THREE.Vector2(1, 1) }, uMask: { value: this.maskRT.texture }, uChan: { value: new THREE.Vector4(1, 0, 0, 0) }, uSdf: { value: c.sdfTex },
         uCyto: first ? first.bodyMat.uniforms.uCyto : { value: textures.cyto }, uCytoMean: first ? first.bodyMat.uniforms.uCytoMean : { value: new THREE.Vector3(...textures.cytoMean) },
         uCytoOff: { value: new THREE.Vector2() }, uCytoTile: { value: 80 },
         uRes: first ? first.bodyMat.uniforms.uRes : { value: new THREE.Vector2(1, 1) }, uGrid: { value: new THREE.Vector3() },
@@ -146,7 +157,7 @@ export class View {
     const i = this.cells.indexOf(c);
     if (i <= 0) return;
     this.cells.splice(i, 1);
-    for (const o of [c.maskGeo, c.granGeo, c.bodyQuad.geometry, c.bodyMat, c.granMat, c.sdfTex]) o.dispose();
+    for (const o of [c.maskGeo, c.maskMat, c.granGeo, c.bodyQuad.geometry, c.bodyMat, c.granMat, c.sdfTex]) o.dispose();
   }
 
   /** A player's colour as a faint tint of the cell (strength 0: none). */
@@ -427,16 +438,30 @@ export class View {
       u.uPx.value = this.px;
     }
 
-    // Each cell: its mask, then its body and granules into the property buffer;
+    // The cells in this view, four at a time: their masks into one target (a
+    // channel each), then their bodies and granules into the property buffer;
     // then everything else, the out-of-focus layer, and the optics.
     r.setClearColor(0x000000, 0);
     this.optics.clear();
-    for (const c of this.cells) {
+    const [vl, vb, vw, vh] = this.view, pad = 40;
+    const seen = this.cells.filter((c) => {
+      const g = c.body.grid;
+      return g.ox < vl + vw + pad && g.ox + g.size > vl - pad && g.oy < vb + vh + pad && g.oy + g.size > vb - pad;
+    });
+    this.maskPasses = 0;
+    for (let i = 0; i < seen.length; i += 4) {
+      const batch = seen.slice(i, i + 4);
       r.setRenderTarget(this.maskRT);
       r.clear(true, false, false);
-      r.render(c.maskScene, this.camera);
+      batch.forEach((c, k) => {
+        const ch = CHANNELS[k];
+        c.maskMat.uniforms.uChan.value.copy(ch);
+        c.bodyMat.uniforms.uChan.value.copy(ch);
+        r.render(c.maskScene, this.camera);
+      });
+      this.maskPasses++;
       r.setRenderTarget(this.optics.focusRT);
-      r.render(c.scene, this.camera);
+      for (const c of batch) r.render(c.scene, this.camera);
     }
     r.setRenderTarget(this.optics.focusRT);
     r.render(this.focusScene, this.camera);

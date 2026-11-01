@@ -13,7 +13,8 @@ import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
 import { createMacro, lens, macroShared, applyLook, MACRO_LOOKS } from '../shared/techniques/springtail-macro.js';
 import { RippleField, Dimples, waterMaterial, waterGeometry, peatFloorTexture } from '../shared/techniques/springtail-surface.js';
-import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHORE_GLSL, BANK_E, LANDMARK } from './world.js';
+import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHORE_GLSL, BANK_E, LANDMARK, START, ZONES, progressAt, ROUTE_LEN } from './world.js';
+import { createQuality } from '../shared/quality.js';
 import { createLandmarkProps } from './landmarks.js';
 import { createWolfSpider } from './boss.js';
 import { createSpringtail } from './springtail.js';
@@ -26,8 +27,7 @@ const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
 renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 renderer.autoClear = false;
-const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
-const PR = Number(new URLSearchParams(location.search).get('pr')) || 0; // testing override: a fixed pixel ratio, no dynamic resolution
+const PR = Number(new URLSearchParams(location.search).get('pr')) || 0; // testing override: a fixed pixel ratio, no quality governor
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(10, 16 / 9, 4, 2600);
 const macro = createMacro(renderer);
@@ -42,6 +42,7 @@ function art(id, opts) {
 // (fine cells close up, coarse to the horizon), with the ripple simulation an
 // 84 mm window that scrolls with the springtail.
 const field = new RippleField({ size: 84, n: 256, inside: inPool });
+field.useFloat(renderer); // a float upload where linear filtering of float textures exists (no per-texel half-float packing)
 const dimples = new Dimples(96);
 const floorTex = peatFloorTexture();
 const waterMat = waterMaterial({ field, dimples, depthGlsl: POOL_GLSL, shoreGlsl: SHORE_GLSL, floorTex, floorScale: 1 / 22 });
@@ -56,6 +57,9 @@ scene.add(tail.group);
 const tail0 = tail;
 const stenus = createStenus(scene);
 const strider = createStrider(scene);
+// each predator keeps to its own water in the second half of the way (world.js ZONES)
+stenus.st.zone = ZONES.stenus;
+strider.st.zone = ZONES.strider;
 const rain = createRain(scene);
 const props = createLandmarkProps(world);
 scene.add(props.group);
@@ -69,12 +73,12 @@ art('MP-S04', { repeat: false }).then((t) => t && world.sundews.setTexture(t));
 art('MP-S05', { repeat: false }).then((t) => t && rain.setSprite(t));
 
 // ---------------------------------------------------------------- player
-const START = { x: -8, z: 2 };
+// START (world.js): by the west shore; the landmark is ~1.27 m ahead (+x)
 let pl = {
   x: START.x, z: START.z, y: 0, vx: 0, vz: 0, heading: Math.PI / 2, mode: 'film',
   charge: 0, charging: false, queuedJump: null, cock: 1, hunker: 0, eatT: 0, flipT: 0, roll: 0, pitch: 0, bend: 0, furc: 0,
   air: null, leaf: null, struggle: 0, deadT: 0, cause: '', walk: 0, lives: 3, food: 0, moved: 0, landPulse: 0, onIsland: false,
-  scale: 1, sy: 1, flailK: 0, digestWhite: 0, dissolve: 0,
+  scale: 1, sy: 1, flailK: 0, digestWhite: 0, dissolve: 0, wriggle: 0,
 };
 // Local multiplayer (shared/players.js): every player is a springtail of
 // their own (this record is player 1's; others are made by makeRec). Code
@@ -121,7 +125,7 @@ const hud = mountHud({
     zoom: 'Magnification 1x, 2x, 3x, 5x',
     extra: [['LS click', 'Autofocus on the springtail']],
   }),
-  note: `Goal: eat ${GOAL} clumps of food, then climb onto moss (an island or the bank). The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
+  note: `Goal: cross the pool to the moss tongue on the far bank (up and to the right at the start: the brass sun), grazing on the way. The first half is calm; then Stenus's water, the strider's, a sundew patch, and the wolf spider at the bank. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
 });
 
 // ---------------------------------------------------------------- overlay DOM
@@ -151,7 +155,7 @@ status.className = 'st-status';
 status.innerHTML = '<span class="food"></span><span class="lives"></span><span class="furc">Furcula</span><span class="st-meter"><i></i></span><span class="threat"></span>';
 const card = document.createElement('div');
 card.className = 'st-card';
-card.innerHTML = '<div><img alt=""><h2>Level 0 · Bog surface</h2><p>You are a water springtail, 1.5 mm long, standing on the surface film of a bog pool.</p><p>Graze the pollen, spores and algae floating on the water (X). Spring away with your furcula (hold and release A). Hunker (B) when ripples come.</p><p>Beware the rove beetle <i>Stenus</i> and its harpoon, the sundews\' glue, the water strider, and the rain.</p><p><b>Press A to start</b></p></div>';
+card.innerHTML = '<div><img alt=""><h2>Level 0 · Bog surface</h2><p>You are a water springtail, 1.5 mm long, standing on the surface film of a bog pool.</p><p>Graze the pollen, spores and algae floating on the water (X). Spring away with your furcula (hold and release A). Hunker (B) when ripples come.</p><p>The way on is the moss bank far ahead, up and to the right. The first half of the pool is calm; past it wait the rove beetle <i>Stenus</i> and its harpoon, a water strider, a patch of sundews, the rain, and a wolf spider at the bank.</p><p><b>Press A to start</b></p></div>';
 // the boss's resolve: a quiet brass gauge, shown while it is engaged
 const gauge = document.createElement('div');
 gauge.className = 'st-gauge';
@@ -292,12 +296,16 @@ function groupCentre(list) {
   return { x, y, z, spread };
 }
 
-// splitK: a split screen renders the macro chain once per view, so each view
-// renders at a lower resolution (the views are smaller anyway)
-let renderScale = 1, dynRes = !PR, slowEma = 16, scaleT = 0, splitK = 1;
+// The quality governor (shared/quality.js) sets the resolution: its render
+// scale (stepped down when frames run long) times the split factor (a split
+// screen renders the macro chain once per view, so each view renders at 0.7,
+// or 0.55 for 3-4 views); its effects level sets the bokeh gather's taps.
+let slowEma = 16;
+const quality = createQuality({ renderer: null, key: 'springtail', min: 0.45, max: 1,
+  onChange: ({ level }) => { macro.options.taps = [24, 40, 64][level]; resize(); } });
 function resize() {
   const w = innerWidth, h = innerHeight;
-  renderer.setPixelRatio(PR || DPR * renderScale * splitK);
+  renderer.setPixelRatio(PR || quality.pixelRatio * quality.scale);
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
@@ -312,10 +320,23 @@ resize();
 // hungry Stenus stalks and strikes, only a hungry strider answers ripples and
 // grabs; a resting one patrols or rows about. Every catch plays out on screen
 // (strike, hold, eat, then the Eaten card).
-const pace = { grace: 45, mode: 'Comes and goes' };
-const hunger = { stenus: createHunger({ grace: pace.grace }), strider: createHunger({ grace: pace.grace + 15 }) };
+// The challenges wait in the second half of the way (world.js ZONES): each
+// predator stays calm ('grace') until a player first comes into its water,
+// then, after `pace.grace` seconds, its hunger comes and goes as before. So
+// the first half is calm exploration and food whatever the clock says.
+const pace = { grace: 0, mode: 'Comes and goes', anywhere: false };
+const hunger = { stenus: createHunger({ grace: Infinity }), strider: createHunger({ grace: Infinity }) };
 const isHungry = (h) => (pace.mode === 'Never' ? false : pace.mode === 'Always' ? h.state !== 'grace' : h.hungry);
-function resetHunger() { hunger.stenus.reset(pace.grace); hunger.strider.reset(pace.grace + 15); }
+/** Re-arm the zones: calm until someone comes into each predator's water. */
+function resetHunger() { hunger.stenus.reset(Infinity); hunger.strider.reset(Infinity); armed.stenus = armed.strider = false; }
+const armed = { stenus: false, strider: false };
+/** Is (x, z) in predator `k`'s water (its zone plus its leash)? */
+const inZone = (k, x, z, pad = 0) => { const Z = ZONES[k]; return Math.hypot(x - Z.x, z - Z.z) < Z.r + Z.leash + pad; };
+// When each challenge first became active (progress along the way, 0..1), for tests and tuning.
+const challengeLog = {};
+function logChallenge(kind, P) { if (!challengeLog[kind] && P) challengeLog[kind] = { progress: +progressAt(P.x, P.z).toFixed(3), x: +P.x.toFixed(1), z: +P.z.toFixed(1), t: +simT.toFixed(2) }; }
+// A clean escape from the labium plays in slow motion for a moment.
+let slowMo = 0;
 const cap = { kind: null, x0: 0, y0: 0, z0: 0, h0: 0, leaf: null, phase: null, mid: new THREE.Vector3() };
 // how close the lens frames each catch (field width, mm) and from how high
 const CAP_VIEW = { boss: { hfw: 18, pitch: 0.5 }, stenus: { hfw: 12, pitch: 0.45 }, strider: { hfw: 16, pitch: 0.55 }, sundew: { hfw: 7, pitch: 0.75 } };
@@ -372,7 +393,7 @@ function biteFoe(kind, P, power = 1, how = 'bite') {
 }
 /** Is P facing the predator at (x, z)? (heading within ~55°) */
 const facingTo = (P, x, z) => Math.abs(wrapA(Math.atan2(z - P.z, x - P.x) - P.heading)) < 0.95;
-const fightLog = { blocks: 0, bites: 0, retreats: 0 };
+const fightLog = { blocks: 0, bites: 0, retreats: 0, escapes: 0, slips: 0, dodges: 0 };
 function wearDown(kind, how) {
   fightLog[how === 'bite' ? 'bites' : 'blocks']++;
   const gone = fights[kind].bitten();
@@ -389,6 +410,31 @@ function wearDown(kind, how) {
     hud.toast(how === 'bite' ? `Nipped ${kind === 'stenus' ? 'its tarsus' : 'a foreleg'}! ${name} staggers back` : `Blocked! ${name}'s strike glances off`, 1500);
   }
   return gone;
+}
+/**
+ * A predator's attack missed you (a clean escape, a slip off the labium, a
+ * dodged lunge): its interest falls as for a nip, but it is not staggered, so
+ * the two-stage strike plays on.
+ */
+function missFoe(kind, how) {
+  fightLog[how === 'slip' ? 'slips' : how === 'escape' ? 'escapes' : 'dodges'] = (fightLog[how === 'slip' ? 'slips' : how === 'escape' ? 'escapes' : 'dodges'] || 0) + 1;
+  const gone = fights[kind].bitten();
+  if (!gone) return false;
+  fightLog.retreats++;
+  PRED[kind]().retreat();
+  hunger[kind].missed();
+  fights[kind].reset();
+  hud.toast(`${kind === 'stenus' ? 'Stenus' : 'The strider'} has missed too often: it ${kind === 'stenus' ? 'skims' : 'rows'} away`, 2200);
+  return true;
+}
+/** Stage 1 went wrong: the labium's sticky pads hold you. Mash A to tear loose before it reels you in. */
+function stickToLabium() {
+  const P = pl;
+  P.mode = 'labium'; P.air = null; P.charging = false; P.charge = 0; P.queuedJump = null; P.vx = P.vz = 0; P.hunker = 0; P.act = null; P.actT = 0; P.eatT = 0;
+  P.wriggle = 0;
+  hud.toast('Stuck on the labium! Mash A to wriggle free', 1600);
+  audio.play('springtail/land-sticky', { volume: 0.8, rate: 1.3 });
+  rumble(220, 0.6, 0.5);
 }
 /** The predator's mouth (or the trapped spot on a sundew) for the camera. */
 function capMouth() {
@@ -483,8 +529,7 @@ F({ id: 'refraction', group: 'Rendering', label: 'Water film shading', fixed: tr
 F({ id: 'velvet', group: 'Rendering', label: 'Velvety cuticle', fixed: true,
   about: 'Slate blue-black dorsum, reddish-brown venter and legs, fine granules as noise bump with frosty specks, a blue-grey sheen at grazing angles, dark furrows where two body rings meet (from the sdf.js part weights), glossy black eye patches. Checked against photographs of Podura.' });
 F({ id: 'grain', group: 'Rendering', label: 'Sensor grain', on: true, about: 'A faint per-frame noise, like a high-ISO macro shot.', onChange: (v) => (macro.options.grain = v ? 0.012 : 0) });
-F({ id: 'dynres', group: 'Rendering', label: 'Dynamic resolution', on: true,
-  about: 'Drops the render resolution while frames are slow, climbs back when they are fast.', onChange: (v) => { dynRes = v && !PR; if (!v && renderScale !== 1) { renderScale = 1; resize(); } } });
+quality.addToFeatures(features);
 F({ id: 'look', group: 'Optics', label: 'Look (D-pad left/right)', choices: MACRO_LOOKS.map((l) => l.name), value: MACRO_LOOKS[0].name,
   about: 'Low sun: daylight with glints and backlit moss. Overcast: soft sky light, no glints. Stereo microscope: a ring light round the objective, a round field stop, and ~4x the depth of field (stereo microscopes work at low aperture).',
   onChange: (v) => { rig.look = MACRO_LOOKS.findIndex((l) => l.name === v); lookDef = applyLook(rig.look); } });
@@ -530,8 +575,8 @@ F({ id: 'strider', group: 'World', label: 'Water strider (Gerris)', on: true, on
   about: 'Hears ripples: landings, grazing and struggling bring it rowing over; its strokes send waves that flip an unbraced springtail; its forelegs grab.' });
 F({ id: 'rain', group: 'World', label: 'Rain', choices: ['Sometimes', 'Often', 'Off'], value: 'Sometimes',
   about: 'A drop ~3 mm across (twice your length) is telegraphed by its shadow, falls, craters the film and rings it.', onChange: (v) => { rain.enabled = v !== 'Off'; rain.every = v === 'Often' ? 3.5 : 7; } });
-F({ id: 'grace', group: 'World', label: 'Calm opening', choices: ['45 s', '20 s', '90 s', 'Off'], value: '45 s',
-  about: 'How long after a start (and after each life) before Stenus or the strider (15 s later) gets hungry. They patrol and row about meanwhile, keeping to the water away from you, and raindrops land around you rather than on you. shared/predation.js.',
+F({ id: 'grace', group: 'World', label: 'Calm on arrival', choices: ['Off', '5 s', '15 s'], value: 'Off',
+  about: 'The first half of the way is calm water and food: Stenus and the strider keep to their own water farther on (Stenus from ~55% of the way, the strider from ~70%), the sundew patch is at ~84%, the wolf spider at the landmark, and rain falls only from halfway. Each predator stays calm until someone first comes into its water, then waits this long before its hunger starts. shared/predation.js.',
   onChange: (v) => { pace.grace = v === 'Off' ? 0 : parseFloat(v); resetHunger(); } });
 F({ id: 'hunger', group: 'World', label: 'Predator hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
   about: 'Comes and goes: after the calm opening each predator is hungry for ~18-32 s, then rests (45-75 s after a meal, 15-30 s after a miss or when it loses you); only a hungry one stalks, skims, strikes, answers ripples or grabs. Always: hungry from the end of the calm opening on. Never: they patrol and never hunt (for exploring and testing).',
@@ -713,18 +758,10 @@ function respawn() {
   rain.clear();
   resetHunger();
 }
-/** Start the beetle and the strider well away from you, out on open water. */
+/** Put the beetle and the strider back in their own water (the second half of the way). */
 function placeThreatsAway() {
-  for (let k = 0; k < 30; k++) {
-    const c = nearbyWater(pl.x, pl.z, 34 + k, 0.8);
-    if (!c) continue;
-    const s = stenus.startFor(c.x, c.z);
-    if (Math.hypot(s.x - pl.x, s.z - pl.z) > 30 && inPool(s.x, s.z)) { stenus.relocate(c.x, c.z); break; }
-  }
-  for (let k = 0; k < 30; k++) {
-    const c = nearbyWater(pl.x, pl.z, 38 + k, 0.85);
-    if (c && Math.hypot(c.x - stenus.st.x, c.z - stenus.st.z) > 20) { strider.relocate(c.x, c.z); break; }
-  }
+  stenus.relocate(ZONES.stenus.x, ZONES.stenus.z);
+  strider.relocate(ZONES.strider.x, ZONES.strider.z);
 }
 
 function newGame() {
@@ -820,6 +857,7 @@ function stepPlayer(dt, inp) {
         P.air = null; P.mode = 'stuck'; P.leaf = leaf; P.y = leaf.y + 0.12; P.struggle = 0; P.pitch = 0; P.roll = 0; P.bend = 0;
         leaf.target = new THREE.Vector3(P.x, P.y + 0.2, P.z);
         hud.toast('Stuck in sundew glue! Mash A to tear free', 2000);
+        logChallenge('sundewStuck', P);
         audio.play('springtail/land-sticky');
         rumble(200, 0.5, 0.4);
         ripples.push({ x: P.x, z: P.z, strength: 0.3 });
@@ -837,6 +875,30 @@ function stepPlayer(dt, inp) {
       const nx = P.x / Math.hypot(P.x, P.z), nz = P.z / Math.hypot(P.x, P.z);
       P.x -= nx * 0.3; P.z -= nz * 0.3;
       a.vx = -nx * 1.5; a.vz = -nz * 1.5;
+    }
+    return;
+  }
+
+  if (P.mode === 'labium') {
+    // held on the tip of Stenus's labium, being reeled in: mash A to come loose
+    const tip = stenus.labTip();
+    P.x = tip.x; P.z = tip.z; P.y = Math.max(0, field.height(P.x, P.z)) + 0.05;
+    P.heading = stenus.st.a + Math.PI + Math.sin(simT * 13) * 0.4;
+    P.roll = Math.sin(simT * 17) * 0.5; P.pitch = Math.sin(simT * 11) * 0.2;
+    if (inp.dashPressed) { P.wriggle += 0.2; rumble(40, 0.35, 0.15); ripples.push({ x: P.x, z: P.z, strength: 0.3 }); }
+    P.wriggle = Math.max(0, P.wriggle - dt * 0.35);
+    if (stenus.st.state !== 'reel') { P.mode = 'film'; P.roll = 0; P.pitch = 0; return; }
+    if (P.wriggle >= 1) {
+      // torn loose: it costs the jump (the furcula re-cocks slowly), and the mandibles come next
+      P.mode = 'film'; P.roll = 0; P.pitch = 0; P.wriggle = 0;
+      P.cock = -12; // ~1 s before the next jump (jump-input.js re-cocks at 1 / 0.08 s)
+      const away = stenus.st.a;
+      P.vx = Math.cos(away) * 6; P.vz = Math.sin(away) * 6;
+      stenus.slip();
+      fightLog.slipT = simT;
+      missFoe('stenus', 'slip');
+      hud.toast('Wriggled free! No jump for a moment: step aside from the mandibles', 1800);
+      rumble(160, 0.5, 0.3);
     }
     return;
   }
@@ -1032,7 +1094,7 @@ function ctxOf(P, pred) {
   const live = alive(P) && game.phase === 'play';
   // a block: hunkered (B) and facing the predator
   const blocking = live && P.hunker > 0.5 && !!pred && facingTo(P, pred.st.x, pred.st.z);
-  return { blocking, x: P.x, y: P.mode === 'air' ? P.y : 0, z: P.z, vx: P.air ? P.air.vx : P.vx, vz: P.air ? P.air.vz : P.vz, airborne: P.mode === 'air', hunker: P.hunker > 0.5, moving: (P.moved > 0 && P.hunker < 0.5) || P.mode === 'air' || P.mode === 'stuck' || P.eatT > 0, alive: live };
+  return { blocking, x: P.x, y: P.mode === 'air' ? P.y : 0, z: P.z, vx: P.air ? P.air.vx : P.vx, vz: P.air ? P.air.vz : P.vz, airborne: P.mode === 'air', hunker: P.hunker > 0.5, moving: (P.moved > 0 && P.hunker < 0.5) || P.mode === 'air' || P.mode === 'stuck' || P.mode === 'labium' || P.eatT > 0, alive: live };
 }
 function stepWorld(dt) {
   const P = pl;
@@ -1044,20 +1106,30 @@ function stepWorld(dt) {
     const f = fights[k].update(dt, { near: hunting && Math.hypot(prey.x - pr.st.x, prey.z - pr.st.z) < 12, facing: facingTo(prey, pr.st.x, pr.st.z) });
     if (f.retreated) { pr.retreat(); hunger[k].missed(); fights[k].reset(); hud.toast(`${k === 'stenus' ? 'Stenus' : 'The strider'} gives up on you`, 1800); }
   }
+  // a predator wakes (its hunger starts) when a player first comes into its water
+  if (game.phase === 'play') for (const k of ['stenus', 'strider']) {
+    if (armed[k]) continue;
+    const Q = recs().find((R) => alive(R) && inZone(k, R.x, R.z));
+    if (Q) { armed[k] = true; hunger[k].reset(pace.grace); hunger[k].update(0); logChallenge(k, Q); }
+  }
   if (game.phase === 'play' && !capture.active) { hunger.stenus.update(dt); hunger.strider.update(dt); }
+  // rain only from halfway on (and none on you while both predators are still calm)
   rain.calm = hunger.stenus.state === 'grace' && hunger.strider.state === 'grace';
-  // the beetle and the strider keep to the water near you, wherever you go
-  if (Math.hypot(stenus.st.x - preyS.x, stenus.st.z - preyS.z) > 70 && stenus.st.state === 'patrol') {
-    const c = nearbyWater(preyS.x, preyS.z, 32, 0.8);
-    if (c) stenus.relocate(c.x, c.z);
-  }
-  if (Math.hypot(strider.st.x - preyR.x, strider.st.z - preyR.z) > 75 && strider.st.state === 'idle') {
-    const c = nearbyWater(preyR.x, preyR.z, 34, 0.85);
-    if (c) strider.relocate(c.x, c.z);
-  }
+  const rainOn = recs().some((R) => alive(R) && progressAt(R.x, R.z) >= ZONES.rain);
   world.debris.update(dt, field, inPool);
-  for (const e of stenus.update(dt, { player: ctxS, field, inPool, hungry: isHungry(hunger.stenus) })) {
+  // a predator only hunts a player in its own water (a stuck one stays its prey)
+  const sHeld = recs().find((R) => R.mode === 'labium');
+  const huntS = isHungry(hunger.stenus) && (pace.anywhere || inZone('stenus', preyS.x, preyS.z) || !!sHeld);
+  for (const e of stenus.update(dt, { player: ctxS, field, inPool, hungry: huntS })) {
     if (e === 'caught' && ctxS.alive) withRec(preyS, () => caught('stenus'));
+    // the two-stage strike (enemies.js): a clean escape, stuck on the labium, the follow-up lunge
+    if (e === 'escaped') { slowMo = 0.7; rumbleFor(preyS, 160, 0.3, 0.6); hud.toast('Clean escape! Its labium snaps shut on nothing. Now the mandibles: dodge the lunge', 1800); missFoe('stenus', 'escape'); }
+    if (e === 'stuck' && ctxS.alive) withRec(preyS, () => stickToLabium());
+    if (e === 'reeled') { const Q = sHeld || preyS; withRec(Q, () => { Q.mode = 'film'; caught('stenus'); }); }
+    if (e === 'lungeTell' && ctxS.alive) { rumbleFor(preyS, 400, 0.25, 0.05); hud.toast('Stenus rears, mandibles wide: jump or step aside!', 1300); }
+    if (e === 'lunge') audio.play('springtail/stenus-strike', { volume: 0.7, rate: 0.6 });
+    if (e === 'lungeHit' && ctxS.alive) withRec(preyS, () => caught('stenus'));
+    if (e === 'dodged' && ctxS.alive) { hud.toast('Dodged the mandibles!', 1100); missFoe('stenus', 'dodge'); }
     if (e === 'blocked') { rumbleFor(preyS, 220, 0.6, 0.3); audio.play('springtail/land-water', { volume: 0.8, rate: 1.6 }); wearDown('stenus', 'block'); }
     if (e === 'gaveUp') hunger.stenus.missed();
     if (e === 'miss' && hunger.stenus.hungry) hunger.stenus.missed();
@@ -1065,21 +1137,26 @@ function stepWorld(dt) {
     if (e === 'skim') audio.play('springtail/stenus-skim', { volume: 0.7 });
     if (e === 'strike') audio.play('springtail/stenus-strike', { volume: 0.9 });
     if (e === 'skim') hud.toast('Stenus is skimming at you!', 1000);
-    if (e === 'windup' && ctxS.alive) { rumbleFor(preyS, 300, 0.15, 0); hud.toast('Stenus rears to strike: face it and hunker (B), or jump', 1400); } // the head dips: jump now
+    if (e === 'windup' && ctxS.alive) { rumbleFor(preyS, 300, 0.15, 0); hud.toast('Stenus lowers its head and freezes: jump now!', 1400); } // the head dips: jump now
+    if ((e === 'spotted' || e === 'windup') && ctxS.alive) logChallenge('stenusHunt', preyS);
   }
-  for (const e of strider.update(dt, { player: ctxR, field, inPool, ripples, hungry: isHungry(hunger.strider) })) {
+  const huntR = isHungry(hunger.strider) && (pace.anywhere || inZone('strider', preyR.x, preyR.z));
+  for (const e of strider.update(dt, { player: ctxR, field, inPool, ripples: pace.anywhere ? ripples : ripples.filter((r) => inZone('strider', r.x, r.z)), hungry: huntR })) {
     if (e === 'caught' && ctxR.alive) withRec(preyR, () => caught('strider'));
     if (e === 'blocked') { rumbleFor(preyR, 220, 0.6, 0.3); audio.play('springtail/land-water', { volume: 0.8, rate: 1.6 }); wearDown('strider', 'block'); }
     if (e === 'windup' && ctxR.alive) { rumbleFor(preyR, 300, 0.15, 0); hud.toast('The strider raises its forelegs: face it and hunker (B), or jump', 1400); }
     if (e === 'lost' && hunger.strider.hungry) hunger.strider.missed();
     // (timed on the simulation clock, so a paused game holds it too)
+    if (e === 'heard' && ctxR.alive) logChallenge('striderHunt', preyR);
     if (e === 'heard' && ctxR.alive && !(strider.st.heardUntil > simT)) { strider.st.heardUntil = simT + 6; hud.toast('A water strider felt your ripples: keep still and hunker (B)', 1800); }
   }
   // the boss (boss.js): dormant on the moss tongue until someone comes near after the calm opening
-  const bossCtx = { awake: pace.grace === 0 || hunger.stenus.state !== 'grace', field, inPool,
+  // (it stands at the very end of the way, so it may wake whenever someone comes near)
+  const bossCtx = { awake: true, field, inPool,
     players: recs().map((Q) => ({ slot: Q.slot, x: Q.x, z: Q.z, y: Q.y, heading: Q.heading, airborne: Q.mode === 'air', alive: alive(Q) && game.phase === 'play', landed: Q.landT !== undefined && simT - Q.landT < 0.2 && Q.mode !== 'air' })) };
   for (const e of boss.update(dt, bossCtx)) {
     const Q = e.slot !== undefined ? pls[e.slot] : null;
+    if (e.type === 'wake') logChallenge('boss', recs().reduce((a, R) => (!a || Math.hypot(R.x - boss.st.x, R.z - boss.st.z) < Math.hypot(a.x - boss.st.x, a.z - boss.st.z) ? R : a), null));
     if (e.type === 'wake') hud.toast('A pond wolf spider guards the moss bank! Watch it crouch and raise its front legs: then jump clear', 3000);
     else if (e.type === 'tell') { for (const R of recs()) if (Math.hypot(R.x - boss.st.x, R.z - boss.st.z) < 16) rumbleFor(R, 200, 0.12, 0); }
     else if (e.type === 'lunge' || e.type === 'pounce') audio.play('springtail/stenus-strike', { volume: 0.9, rate: 0.7 });
@@ -1088,7 +1165,10 @@ function stepWorld(dt) {
     else if (e.type === 'retreat') hud.toast('The wolf spider backs off under the moss: the bank is open', 2600);
   }
   ripples.length = 0;
-  const drops = rain.update(dt, { field, inPool, mossAt: (x, z) => Math.max(0, mossTop(x, z)), player: ctxS });
+  // the rain falls round whoever is farthest along (from halfway on)
+  const rainP = recs().filter(alive).reduce((a, R) => (!a || progressAt(R.x, R.z) > progressAt(a.x, a.z) ? R : a), null) || P;
+  const drops = rain.update(dt, { field, inPool, mossAt: (x, z) => Math.max(0, mossTop(x, z)), player: rainP === preyS ? ctxS : ctxOf(rainP, null), allow: rainOn && game.phase === 'play' });
+  if (drops.length) logChallenge('rain', rainP);
   for (const e of drops) {
     const d0 = Math.hypot(e.x - P.x, e.z - P.z);
     audio.play('springtail/raindrop', { volume: Math.max(0.12, Math.min(0.9, 4 / (d0 + 3))), rate: 0.92 + Math.random() * 0.16, pan: Math.max(-1, Math.min(1, (e.x - P.x) / 25)) });
@@ -1146,7 +1226,7 @@ function poseTail(t) {
     else if (P.act === 'fight') p.nod = u < 0.45 ? -0.6 * (u / 0.45) : 1.1 * Math.sin(((u - 0.45) / 0.55) * Math.PI); // head up, then the snap
   }
   p.tuck = P.mode === 'air' ? 1 : 0;
-  p.flail = P.mode === 'flipped' || P.mode === 'stuck' || P.mode === 'dead' ? 1 : 0;
+  p.flail = P.mode === 'flipped' || P.mode === 'stuck' || P.mode === 'labium' || P.mode === 'dead' ? 1 : 0;
   if (P.mode === 'caught') { p.flail = P.flailK; p.stride = 0; p.tuck = 0; p.nod = 0; p.hunker = 0; p.bend = 0.3 * P.flailK * Math.sin(t * 11); }
   tail.update();
   const g = tail.group;
@@ -1335,25 +1415,32 @@ function updateText(L) {
   status.classList.toggle('caught', capture.active);
   const thr = status.querySelector('.threat');
   const hs = hunger.stenus, hr = hunger.strider;
-  const hunting = ['stalk', 'skim', 'windup', 'strike'].includes(stenus.st.state) || strider.st.state === 'hunt';
+  const hunting = ['stalk', 'skim', 'windup', 'strike', 'reel', 'lungeTell', 'lunge'].includes(stenus.st.state) || strider.st.state === 'hunt';
   const attacking = stenus.attacking || strider.attacking || boss.attacking;
   gauge.style.display = boss.engaged ? 'flex' : 'none';
   gauge.querySelector('i').style.width = `${(boss.resolve * 100).toFixed(0)}%`;
-  thr.textContent = capture.active ? '' : attacking ? 'Attacking! Face it + B, or jump' : hunting ? 'Hunted!' : isHungry(hs) || isHungry(hr) ? `${[isHungry(hs) && 'Stenus', isHungry(hr) && 'Strider'].filter(Boolean).join(' & ')} hungry` : 'Calm';
+  const stage = stenus.stage;
+  thr.textContent = capture.active ? '' : stage === 'tell' ? 'Stenus: jump now!' : stage === 'stuck' ? 'Stuck: mash A!' : stage === 'lungeTell' || stage === 'lunge' ? 'Mandibles: jump or step aside!' : attacking ? 'Attacking! Face it + B, or jump' : hunting ? 'Hunted!' : isHungry(hs) || isHungry(hr) ? `${[isHungry(hs) && 'Stenus', isHungry(hr) && 'Strider'].filter(Boolean).join(' & ')} hungry` : 'Calm';
   thr.classList.toggle('hot', hunting || attacking);
+  const prog = Math.max(0, Math.min(1, progressAt(pl.x, pl.z)));
+  if (!hunting && !attacking && !capture.active && prog < 0.5) thr.textContent = 'Calm water';
   if (capture.active && cap.phase) { furcTxt.textContent = (cap.kind && CAP_TEXT[cap.kind].phases[cap.phase]) || 'Back again'; m.style.width = `${{ strike: 25, hold: 50, eat: 80, follow: 100, fadeOut: 100, fadeIn: 100 }[cap.phase] || 100}%`; m.style.background = '#e04f3a'; }
   else if (pl.mode === 'stuck') { furcTxt.textContent = 'Struggle'; m.style.width = `${pl.struggle * 100}%`; m.style.background = '#e07a5f'; }
+  else if (pl.mode === 'labium') { furcTxt.textContent = 'Wriggle (mash A)'; m.style.width = `${Math.min(1, pl.wriggle) * 100}%`; m.style.background = '#e07a5f'; }
   else if (pl.charging) { furcTxt.textContent = pl.charge > 0.98 ? 'Full jump' : 'Cocking'; m.style.width = `${pl.charge * 100}%`; m.style.background = '#f2cc8f'; }
-  else { furcTxt.textContent = pl.cock < 1 ? 'Re-cocking' : 'Furcula'; m.style.width = `${pl.cock * 100}%`; m.style.background = pl.cock < 1 ? '#7a8a99' : '#9fd0ff'; }
+  else { furcTxt.textContent = pl.cock < 1 ? 'Re-cocking' : 'Furcula'; m.style.width = `${Math.max(0, pl.cock) * 100}%`; m.style.background = pl.cock < 1 ? '#7a8a99' : '#9fd0ff'; }
   const info = renderer.info.render;
-  hud.stats(`${pl.mode}${pl.mode === 'film' ? ` ${Math.hypot(pl.vx, pl.vz).toFixed(1)} mm/s` : ''}  Stenus: ${stenus.st.state} (${hs.state} ${hs.left.toFixed(0)} s)  strider: ${strider.st.state} (${hr.state} ${hr.left.toFixed(0)} s)${capture.active ? `  capture: ${cap.kind} ${cap.phase}` : ''}\n${MACRO_LOOKS[rig.look].name}${renderScale < 1 ? ` (res ${(renderScale * 100).toFixed(0)}%)` : ''}\n${fps.toFixed(0)} fps  ${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
+  hud.stats(`${pl.mode}${pl.mode === 'film' ? ` ${Math.hypot(pl.vx, pl.vz).toFixed(1)} mm/s` : ''}  Stenus: ${stenus.st.state} (${hs.state} ${hs.left.toFixed(0)} s)  strider: ${strider.st.state} (${hr.state} ${hr.left.toFixed(0)} s)${capture.active ? `  capture: ${cap.kind} ${cap.phase}` : ''}  way ${(prog * 100).toFixed(0)}%\n${MACRO_LOOKS[rig.look].name}  quality ${quality.level} (res ${(quality.scale * 100).toFixed(0)}%)\n${fps.toFixed(0)} fps  ${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
 }
 
 // ---------------------------------------------------------------- loop
 let simT = 0, menuOpen = false, frames = 0;
+const foodNear = [];
 function step(dt, inputs) {
   // the pounce-bite's hit-pause: the world all but stops for a moment
   if (hitPause > 0) { hitPause -= dt; dt *= 0.06; }
+  // a clean escape from the labium: a moment of slow motion
+  else if (slowMo > 0) { slowMo -= dt; dt *= 0.3; }
   simT += dt;
   macroShared.uTime.value = simT;
   // keep the ripple window on the springtails (their middle); its water mask only needs the islands near it
@@ -1371,7 +1458,12 @@ function step(dt, inputs) {
   placeRings();
   props.update(simT);
   checkLandmark();
-  world.food.update((x, z) => field.height(x, z) + dimples.height(x, z) * 0.5);
+  if (game.phase === 'play' && !challengeLog.sundew) { const Q = recs().find((R) => alive(R) && progressAt(R.x, R.z) >= ZONES.sundew.from); if (Q) logChallenge('sundew', Q); }
+  // only the food near a player or the view is drawn (world.js buildFood)
+  foodNear.length = 0;
+  for (const P of recs()) foodNear.push(P);
+  foodNear.push(rig.target);
+  world.food.update((x, z) => field.height(x, z) + dimples.height(x, z) * 0.5, foodNear);
   updateContacts();
 }
 const split = createSplitScreen(renderer, { capture: true });
@@ -1381,12 +1473,12 @@ const posOf = (P) => {
   if (P.mode === 'caught' && cap.who === P && (cap.kind === 'stenus' || cap.kind === 'strider' || cap.kind === 'boss') && ['eat', 'follow', 'fadeOut'].includes(cap.phase)) { const b = capBody(); return { x: b.x, y: 0.4, z: b.z }; }
   return { x: P.x, y: P.y + 0.25, z: P.z };
 };
+const MOSS_LOD_BEYOND = 90; // mm past the focus distance (a 64 mm tile reaches ~45 mm from its centre)
 function render(dt) {
   const L = placeCamera(dt);
   field.upload();
   split.update(recs().map((P) => ({ slot: P.slot, position: posOf(P) })), { camera }, dt);
-  const k = split.views.length > 2 ? 0.55 : split.views.length > 1 ? 0.7 : 1;
-  if (k !== splitK) { splitK = k; resize(); }
+  quality.setSplitViews(split.views.length);
   const focus0 = macroShared.uFocus.value;
   const one = split.views.length === 1;
   split.render(camera, (view, target) => {
@@ -1404,6 +1496,8 @@ function render(dt) {
       world.sky.position.copy(camera.position);
       setDrop(vr[0]);
     }
+    // moss tiles beyond the focal plane (plus a tile's reach) switch to the coarse heads
+    world.setLodDistance(macroShared.uFocus.value + MOSS_LOD_BEYOND);
     macro.render(scene, camera, { lens: L, look: lookDef, dofK });
   });
   if (!one) { macroShared.uFocus.value = focus0; setDrop(pl); }
@@ -1490,7 +1584,7 @@ const api = {
   landingPoint,
   fights, fightLog, boss,
   /** Testing: the boss wakes and comes for player `slot` (put beside its post). */
-  bossFight(slot = 0) { const P = pls[slot] || pl; pace.mode = 'Always'; hunger.stenus.reset(0); hunger.stenus.update(0.01); resetBody(P, boss.post.x - 14, boss.post.z); P.heading = 0; boss.reset(); rig.target.set(P.x, P.y, P.z); },
+  bossFight(slot = 0) { const P = pls[slot] || pl; pace.mode = 'Always'; pace.anywhere = true; hunger.stenus.reset(0); hunger.stenus.update(0.01); resetBody(P, boss.post.x - 14, boss.post.z); P.heading = 0; boss.reset(); rig.target.set(P.x, P.y, P.z); },
   /** Testing: last pounce-bite result for player `slot`. */
   impact(slot = 0) { const P = pls[slot] || pl; return { last: P.lastImpact || null, pounces: P.pounces || 0, mode: P.mode, dive: !!(P.air && P.air.dive) }; },
   /** Testing: jump from player `slot` toward (x, z) with the given power (as if released). */
@@ -1499,7 +1593,7 @@ const api = {
   setFoe(kind = 'stenus', slot = 0) {
     if (game.phase !== 'play') newGame();
     const P = pls[slot] || pl;
-    hunger[kind].reset(0); hunger[kind].update(0.01); pace.mode = 'Always';
+    hunger[kind].reset(0); hunger[kind].update(0.01); pace.mode = 'Always'; pace.anywhere = true;
     const a = P.heading;
     if (kind === 'stenus') { const s = stenus.st; Object.assign(s, { x: P.x + Math.cos(a) * 4.3, z: P.z + Math.sin(a) * 4.3, a: a + Math.PI, state: 'stalk', t: 0, seen: 3, v: 0, skimCool: 9, groom: 0 }); }
     else { strider.relocate(P.x + Math.cos(a) * 7.2, P.z + Math.sin(a) * 7.2); Object.assign(strider.st, { a: a + Math.PI, state: 'hunt', target: { x: P.x, z: P.z }, interest: 6 }); }
@@ -1512,7 +1606,16 @@ const api = {
     else { Object.assign(strider.st, { x: P.x + Math.cos(a) * 6.6, z: P.z + Math.sin(a) * 6.6, a: a + Math.PI, state: 'hunt', st2: 'none', target: { x: P.x, z: P.z }, interest: 6 }); }
   },
   /** Testing: calm the predators again (patrolling, grooming). */
-  calm() { pace.mode = 'Never'; stenus.release(); strider.release(); },
+  calm() { pace.mode = 'Never'; pace.anywhere = false; stenus.release(); strider.release(); },
+  /** The way: start, landmark, length (mm), the challenge zones, and how far along player `slot` is (0..1). */
+  route: { start: START, landmark: LANDMARK, length: ROUTE_LEN, zones: ZONES },
+  progress(slot = 0) { const P = pls[slot] || pl; return progressAt(P.x, P.z); },
+  /** When each challenge first became active: { stenus, stenusHunt, strider, striderHunt, rain, sundew, sundewStuck, boss } -> { progress, x, z, t }. */
+  challengeLog,
+  /** Testing: read the pads and step the simulation n times (no rendering): mock pads drive it fast. */
+  tick(n = 1, dt = 1 / 30) { for (let i = 0; i < n; i++) { const inp = readInput(dt); step(dt, inp); } },
+  /** Testing: what Stenus is doing in its two-stage strike. */
+  stenusStage() { return { state: stenus.st.state, stage: stenus.stage, t: +stenus.st.t.toFixed(2), wriggle: pl.wriggle, mode: pl.mode, cock: pl.cock }; },
   /** Testing: what player `slot` is doing (act: 'fight' | 'eat' | 'attack' | null). */
   me(slot = 0) { const P = pls[slot] || pl; return { act: P.act, actT: P.actT, nips: P.nips || 0, food: P.food, mode: P.mode, hunker: P.hunker, x: P.x, z: P.z, heading: P.heading }; },
   /** Testing: put food right under player `slot`'s head. */
@@ -1554,12 +1657,7 @@ function frame() {
   lastSubmit = now;
   slowEma += (raw - slowEma) * 0.25;
   fps = 1000 / Math.max(slowEma, 1);
-  scaleT += raw;
-  if (dynRes && scaleT > 300) {
-    if (raw > 120 && renderScale > 0.26) { renderScale = Math.max(0.25, renderScale * 0.6); resize(); scaleT = 0; }
-    else if (slowEma > 40 && scaleT > 800 && renderScale > 0.26) { renderScale = Math.max(0.25, renderScale * 0.8); resize(); scaleT = 0; }
-    else if (slowEma < 20 && renderScale < 1 && scaleT > 2500) { renderScale = Math.min(1, renderScale * 1.15); resize(); scaleT = 0; }
-  }
+  if (!PR) quality.update(raw / 1000);
   const L = render(dt);
   fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
   gl.flush();

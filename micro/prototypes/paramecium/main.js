@@ -22,7 +22,9 @@ import { createEncounters } from './encounters.js';
 import { createPrey } from './prey.js';
 import { createProteus } from './proteus.js';
 import { createCatchFx, sstep } from './catch.js';
-import { createLandmarks as createDropLandmarks, LANDMARKS } from './landmarks.js';
+import { createLandmarks as createDropLandmarks, LANDMARKS, progress, lateral, routePoint, HALF, ROUTE_LEN, DIR } from './landmarks.js';
+import { createBloom, BLOOM } from './bloom.js';
+import { createQuality } from '../shared/quality.js';
 import { createBladderwort } from './bladderwort.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createFeatures } from '../shared/features.js';
@@ -99,22 +101,35 @@ const catchFx = createCatchFx(scene, world, amoeba);
 const drop = createDropLandmarks(scene);
 // the boss: a bladderwort trap guarding the biofilm (bladderwort.js; runBoss below)
 const trap = createBladderwort(scene, world);
+// the crowd: a Chlamydomonas bloom across the route before the biofilm (bloom.js, shared/crowd.js)
+const bloom = createBloom(scene);
 // the Amoeba proteus keeps to its patch of slide (the backdoor) when it is not hunting
 amoeba.home = LANDMARKS.back.pos.clone(); amoeba.homeR = 220;
 
-// --- pacing: a calm opening, then hunger that comes and goes (shared/predation.js) ---
-// Each hunter has its own hunger. Only a hungry one hunts; a resting one wanders
-// or creeps and leaves you be. A restart gives a fresh calm opening.
-const pacing = { grace: 45, cycles: true, now: 0, t0: 0, firstHungry: null, firstThreat: null };
-world.didinia.forEach((d, i) => { d.hunger = createHunger({ grace: pacing.grace + i * 12 }); });
-amoeba.hunger = createHunger({ grace: pacing.grace + 6, hungry: [25, 40] });
+// --- pacing: placed, not timed (the owner: challenges only from halfway on) ---
+// The first half of the route is calm swimming and feeding. The ciliate
+// hunters keep to their own waters beyond halfway (world.js homes) and hunt
+// only a player who is there; their hunger clocks start when someone first
+// reaches halfway, after a short grace. Then hunger comes and goes: only a
+// hungry hunter hunts; a resting one wanders and leaves you be. The amoeba
+// guards the way back (behind the start, the other way) with its own calm
+// opening. A restart gives fresh calm.
+const pacing = { grace: 6, amoebaGrace: 45, cycles: true, now: 0, t0: 0, firstHungry: null, firstThreat: null, reached: false, reachedAt: null };
+world.didinia.forEach((d, i) => { d.hunger = createHunger({ grace: pacing.grace + i * 5 }); });
+amoeba.hunger = createHunger({ grace: pacing.amoebaGrace, hungry: [25, 40] });
 const hunters = () => [...world.didinia, amoeba];
+const ciliates = () => world.didinia; // Didinium ×2 and Dileptus (world.js)
 function resetHunger() {
   const g = pacing.grace;
-  world.didinia.forEach((d, i) => d.hunger.reset(g + (g ? i * 12 : 0)));
-  amoeba.hunger.reset(g + (g ? 6 : 0));
-  pacing.t0 = pacing.now; pacing.firstHungry = null; pacing.firstThreat = null;
+  world.didinia.forEach((d, i) => d.hunger.reset(g + (g ? i * 5 : 0)));
+  amoeba.hunger.reset(pacing.amoebaGrace);
+  pacing.t0 = pacing.now; pacing.firstHungry = null; pacing.firstThreat = null; pacing.reached = false; pacing.reachedAt = null;
 }
+/** A player is in a ciliate hunter's waters: beyond halfway and near its home. */
+const inWaters = (d, s) => progress(s.center) >= HALF && Math.hypot(s.center.x - d.home.x, s.center.z - d.home.z) < d.homeR + 520;
+for (const d of world.didinia) d.allowed = (s) => inWaters(d, s);
+/** The amoeba hunts only round its own floor (the way back). */
+const nearAmoebaFloor = (s) => Math.hypot(s.center.x - LANDMARKS.back.pos.x, s.center.z - LANDMARKS.back.pos.z) < 900;
 const isHungry = (h) => (pacing.cycles ? h.hungry : h.state !== 'grace');
 const hungerText = (h) => (h.state === 'grace' ? `calm ${Math.ceil(h.left)} s` : !pacing.cycles ? 'hungry' : h.state === 'hungry' ? `hungry ${Math.ceil(h.left)} s` : `resting ${Math.ceil(h.left)} s`);
 // Delivered art, with procedural stand-ins until it arrives.
@@ -151,31 +166,32 @@ const view = {
 const fwdOf = (yaw, out = new THREE.Vector3()) => out.set(Math.cos(yaw), 0, -Math.sin(yaw));
 const angleWrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
-// Render scale adapts to the GPU: a fence per frame tells us when the GPU is
-// behind, then that frame's render is skipped (the simulation keeps running)
-// and the internal resolution steps down until frames keep up.
+// Resolution: the shared quality governor (shared/quality.js) steps the render
+// scale (and an effects level) with the frame time, caps the pixel ratio
+// (1.25 alone, 1.0 split) and lowers each split view's resolution (0.7 at two
+// views, 0.55 at three or four). A GPU fence per frame skips a render while the
+// GPU is still busy with the last one (the simulation keeps running); the
+// governor is fed the time between real renders, so skipped frames count.
 const gl = renderer.getContext();
-// a software renderer (headless checks, blocklisted GPUs) starts small
+// a software renderer (headless checks, blocklisted GPUs) runs small
 const softGpu = /SwiftShader|llvmpipe|Software/i.test(gl.getParameter(gl.RENDERER) + (gl.getExtension('WEBGL_debug_renderer_info') ? gl.getParameter(0x9246) : ''));
-let renderScale = softGpu ? 0.4 : 1;
-let splitScale = 1; // a split frame renders the whole optics pipeline once per view: each at a lower resolution
-let fence = null, rendered = 0, renderClock = 0, renderFps = 60;
+let fence = null, rendered = 0, renderClock = 0, renderFps = 60, lastRender = 0;
 function gpuBusy() {
   if (!fence) return false;
   if (gl.getSyncParameter(fence, gl.SYNC_STATUS) !== gl.SIGNALED) return true;
   gl.deleteSync(fence); fence = null;
   return false;
 }
-let adaptive = true;
-function adapt(dt) {
-  renderClock += dt;
-  if (!adaptive) return;
-  if (renderClock < 1) return;
-  renderFps = rendered / renderClock; rendered = 0; renderClock = 0;
-  const old = renderScale;
-  if (renderFps < 42) renderScale = Math.max(0.4, renderScale * 0.82);
-  else if (renderFps > 57 && renderScale < 1) renderScale = Math.min(1, renderScale * 1.1);
-  if (renderScale !== old) resize();
+let adaptive = true; // the frame skip
+let cullOn = true; // per-view culling and the split views' scissor
+let qLevel = 2;
+const quality = createQuality({ renderer: null, key: 'paramecium', min: softGpu ? 0.4 : 0.5, max: softGpu ? 0.4 : 1,
+  onChange: () => resize() });
+function countRender(now, dt) {
+  renderClock += dt; rendered++;
+  if (renderClock >= 1) { renderFps = rendered / renderClock; rendered = 0; renderClock = 0; }
+  if (lastRender) quality.update((now - lastRender) / 1000);
+  lastRender = now;
 }
 
 // overlays: a shade layer (multiplied over the image) and the markers
@@ -190,7 +206,8 @@ const shadeG = shadeCv.getContext('2d'), markG = markCv.getContext('2d');
 let cssW = 1, cssH = 1, dpr = 1;
 
 function resize() {
-  const pr = Math.min(devicePixelRatio || 1, 1.5) * renderScale * splitScale;
+  qLevel = quality.level;
+  const pr = quality.pixelRatio * quality.scale;
   // CSS size with a pixel ratio, so the split screen and the edge arrows work in CSS px
   renderer.setPixelRatio(pr);
   renderer.setSize(innerWidth, innerHeight, false);
@@ -201,6 +218,8 @@ function resize() {
   chase.updateProjectionMatrix();
   cssW = innerWidth; cssH = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2);
   for (const c of [shadeCv, markCv]) { c.width = Math.round(cssW * dpr); c.height = Math.round(cssH * dpr); }
+  // the overlay font is set once here (a canvas resize resets it), not per label
+  for (const g of [markG, shadeG]) { g.setTransform(dpr, 0, 0, dpr, 0, 0); g.font = '600 12px system-ui, sans-serif'; g.textAlign = 'center'; }
 }
 addEventListener('resize', resize);
 resize();
@@ -327,8 +346,11 @@ features.add({ id: 'chord', group: 'Rendering', label: 'Front/back-face chord tr
   about: 'A closed body adds −depth on front faces and +depth on back faces (relative to its own axis, for precision), so each pixel receives the chord through it. Thin parts (cilia, threads, stalks, bacteria) add a fixed path instead.' });
 features.add({ id: 'minpx', group: 'Rendering', label: 'Sub-pixel widening with energy kept', fixed: true,
   about: 'Ribbons and specks thinner than a pixel are drawn one pixel wide with their path scaled down, so distant cilia aggregate into a faint fringe instead of shimmering.' });
-features.add({ id: 'adaptive', group: 'Rendering', label: 'Adaptive resolution and frame skip', on: true,
-  about: 'A GPU fence per frame: if the previous frame is unfinished the render is skipped (the simulation keeps running) and the internal resolution steps down. Off: fixed resolution.', onChange: (on) => { adaptive = on; if (!on && renderScale !== 1 && !/SwiftShader/i.test(gl.getParameter(gl.RENDERER))) { renderScale = 1; resize(); } } });
+features.add({ id: 'adaptive', group: 'Rendering', label: 'Frame skip while the GPU is behind', on: true,
+  about: 'A GPU fence per frame: if the previous frame is unfinished the render is skipped (the simulation keeps running). The quality governor below sets the resolution.', onChange: (on) => { adaptive = on; } });
+quality.addToFeatures(features);
+features.add({ id: 'cull', group: 'Rendering', label: 'Per-view culling', on: true,
+  about: 'Each view (one per split region) draws only the cells, hunters and set pieces inside its own frustum and within reach of its depth of field, and each split view renders only its own region (a scissor round it). Off: every view draws everything over the whole screen.', onChange: (on) => { cullOn = on; } });
 // Body
 features.add({ id: 'sdf', group: 'Body', label: 'SDF body with carved oral groove', fixed: true,
   about: 'Slipper outline from two superellipse halves (P. bursaria: short, plump, rounded at both ends; P. caudatum: blunt anterior, conical posterior), meshed with surface nets; the oral groove is carved by a chain of tapered capsules ending in a buccal pocket.' });
@@ -1168,15 +1190,16 @@ function frame(now) {
 
   const s = swimmer.state;
   const cam = updateCameras(dt, s, ls, group());
-  adapt(dt);
   // the split screen (one view while together: the fast path, as before)
   const list = liveRoster().map((P) => ({ slot: P.slot, position: P.swimmer.state.center }));
   const L = split.update(list.length ? list : [{ slot: 0, position: s.center }], { camera: cam }, dt);
-  const want = L.views.length > 1 ? 0.75 : 1;
-  if (want !== splitScale) { splitScale = want; resize(); }
+  quality.setSplitViews(L.views.length); // split views render at a lower resolution (the governor's split factor)
+  // the amoeba re-meshes rarely while no one is near its floor
+  amoeba.skipShape = !roster.some((P) => Math.hypot(P.swimmer.state.center.x - amoeba.pos.x, P.swimmer.state.center.z - amoeba.pos.z) < 2200);
   drawOverlay(cam);
   updateGoal(s);
-  if (gpuBusy()) return; // the GPU is still on an earlier frame: skip this render
+  if (adaptive && gpuBusy()) return; // the GPU is still on an earlier frame: skip this render
+  countRender(now, dt);
   const modeName = MODES[view.mode];
   const plate = modeName === 'darkfield' ? plates.darkfield : modeName === 'phase' ? plates.phase : null;
   const pf = OBJECTIVES[view.obj].field * 4;
@@ -1192,11 +1215,13 @@ function frame(now) {
       plateRot: view.kind === 'scope' ? view.scopeYaw - Math.PI / 2 : 0,
       bfSoft: 1,
     };
+    // per view: draw only what this view can see, and (split) only its own region
+    if (cullOn) { cullFor(cam, v); if (many) optP.rect = viewRect(v); }
     if (borrow.id) renderBorrowed(cam, optP, dt);
     else optics.render(scene, cam, optP);
+    if (cullOn) uncull();
   });
   fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
-  rendered++;
   // the edge arrows: the brass chevron to the biofilm, the ring to the amoeba's floor
   edgeMarks.begin();
   edgeMarks.drawSplit(arrowSplit(), FWD.pos, { kind: 'forward', label: FWD.label, range: 3000 });
@@ -1216,8 +1241,54 @@ function frame(now) {
     `hunger: ${world.didinia.map((d, i) => `Didinium ${i + 1} ${enc.opts.didinium ? hungerText(d.hunger) : 'off'}`).join(' · ')} · amoeba ${amoeba.opts.on ? hungerText(amoeba.hunger) : 'off'}`,
     `biofilm ${Math.round(flatDist(s, FWD))} µm · amoeba's floor ${Math.round(flatDist(s, BACK))} µm`,
     multi() ? `players ${roster.length} · views ${L.views.length}${L.merged ? ' (together)' : ''}` : '',
-    `${Math.round(renderFps)} fps · render scale ${(renderScale * splitScale).toFixed(2)}`,
+    `${Math.round(renderFps)} fps · render scale ${quality.scale.toFixed(2)} × pixel ratio ${quality.pixelRatio.toFixed(2)} · effects ${['low', 'medium', 'high'][qLevel]}${quality.auto ? ' (auto)' : ''}`,
   ].filter((l) => l).join('\n'));
+}
+
+// --- per-view culling ----------------------------------------------------------
+// The optic materials displace nothing, but most meshes are marked
+// frustumCulled = false (their instanced or shader-built geometry has no
+// usable bounds), so three.js would draw every cell, hunter and set piece in
+// every view. Here each is tested against the view's own frustum (the camera
+// is already offset for the view) and against the depth of field's fade, and
+// hidden for that view's render only.
+const frustum = new THREE.Frustum(), projM = new THREE.Matrix4(), cullS = new THREE.Sphere();
+const culled = [];
+const cullables = () => {
+  const L = [];
+  for (const P of roster) L.push({ obj: P.cell.group, c: P.cell.group.position, r: HL * 1.5, cell: P });
+  for (const d of world.didinia) L.push({ obj: d.group, c: d.pos, r: (d.tipLen || 66) + 80 });
+  L.push({ obj: amoeba.group, c: amoeba.group.position, r: amoeba.R + 420 });
+  L.push({ obj: trap.group.children[0], c: trap.centre, r: 720 });
+  L.push({ obj: drop.fwdGroup, c: FWD.pos, r: 340 });
+  L.push({ obj: drop.backGroup, c: BACK.pos, r: 380 });
+  return L;
+};
+function cullFor(cam, v) {
+  projM.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
+  frustum.setFromProjectionMatrix(projM);
+  // beyond this, the depth of field has faded a contribution below ~4 %
+  const far = cam.isPerspectiveCamera ? shared.uFocus.value + shared.uDof.value.y + 5 * shared.uFade.value : Infinity;
+  for (const it of cullables()) {
+    if (!it.obj.visible) continue;
+    cullS.center.copy(it.c); cullS.radius = it.r;
+    const d = cam.position.distanceTo(it.c) - it.r;
+    if (!frustum.intersectsSphere(cullS) || d > far) { it.obj.visible = false; culled.push(it.obj); continue; }
+    // lowest effects step: another player's cell far off keeps its body but not its cilia
+    if (it.cell && qLevel === 0 && !v.slots.includes(it.cell.slot) && d > 600 && it.cell.cell.cilia.mesh.visible) { it.cell.cell.cilia.mesh.visible = false; culled.push(it.cell.cell.cilia.mesh); }
+  }
+}
+function uncull() { for (const o of culled) o.visible = true; culled.length = 0; }
+/** A split view's region as a padded box (fractions of the screen, top-left origin) for the scissor. */
+function viewRect(v) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const r of split.layout.regions) {
+    if (r.view !== v.index || r.polygon.length < 3) continue;
+    for (const [x, y] of r.polygon) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  }
+  if (!(x1 > x0)) return null;
+  const pad = 12;
+  return [Math.max(0, (x0 - pad) / cssW), Math.max(0, (y0 - pad) / cssH), Math.min(1, (x1 + pad) / cssW), Math.min(1, (y1 + pad) / cssH)];
 }
 
 /** A split view's focal plane: the depth of the players it shows. */
@@ -1331,7 +1402,7 @@ function drawViewOverlay(cam, s, proj, anchor, many) {
     g.fillStyle = col; g.beginPath(); g.moveTo(13, 0); g.lineTo(-7, -9); g.lineTo(-3, 0); g.lineTo(-7, 9); g.closePath(); g.fill();
     g.restore();
     if (text) {
-      g.font = '600 12px system-ui, sans-serif'; g.fillStyle = col; g.textAlign = 'center';
+      g.fillStyle = col;
       g.fillText(text, ex - Math.cos(a) * 34, ey - Math.sin(a) * 26 + 4);
     }
   };
@@ -1361,7 +1432,7 @@ function drawViewOverlay(cam, s, proj, anchor, many) {
       g.globalAlpha = 0.55; g.strokeStyle = P.color; g.lineWidth = 1.6;
       g.beginPath(); g.arc(q.x, q.y, r, -0.3, Math.PI * 0.55); g.stroke();
       g.beginPath(); g.arc(q.x, q.y, r, Math.PI * 0.85, Math.PI * 1.55); g.stroke();
-      g.globalAlpha = 0.8; g.fillStyle = P.color; g.font = '600 10px system-ui, sans-serif'; g.textAlign = 'center';
+      g.globalAlpha = 0.8; g.fillStyle = P.color;
       g.fillText(`P${P.slot + 1}`, q.x, q.y - r - 4);
       g.globalAlpha = 1;
     }
@@ -1418,7 +1489,7 @@ function drawViewOverlay(cam, s, proj, anchor, many) {
         const r = isA ? (amoeba.R + 70) * pxPerUm : Math.max(24, 80 * pxPerUm);
         g.strokeStyle = col; g.lineWidth = 1.5; g.setLineDash([8, 6]);
         g.beginPath(); g.arc(q.x, q.y, r, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
-        g.font = '600 12px system-ui, sans-serif'; g.fillStyle = col; g.textAlign = 'center';
+        g.fillStyle = col;
         g.fillText(th.label, q.x, Math.min(cssH - 8, q.y + r + 15));
       } else if (marks.threats && hot && s.mode !== 'dead') {
         const a = 0.35 + 0.45 * Math.max(0, 1 - d / 900);

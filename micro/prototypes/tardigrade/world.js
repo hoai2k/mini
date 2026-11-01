@@ -24,8 +24,8 @@ function vnoise(x, y, seed) {
 const fbm = (x, y, seed) => 0.55 * vnoise(x, y, seed) + 0.3 * vnoise(x * 2.1, y * 2.1, seed + 3) + 0.15 * vnoise(x * 4.3, y * 4.3, seed + 9);
 
 export class Leaf {
-  constructor({ id, name, kind = 'lamina', base, dir, normalHint, len, hw, thick = 0.12 }) {
-    Object.assign(this, { id, name, kind, len, hw0: hw, thick });
+  constructor({ id, name, kind = 'lamina', base, dir, normalHint, len, hw, thick = 0.12, pool = false }) {
+    Object.assign(this, { id, name, kind, len, hw0: hw, thick, pool });
     this.U = new THREE.Vector3(...dir).normalize();
     const nh = new THREE.Vector3(...normalHint);
     this.N = nh.sub(this.U.clone().multiplyScalar(nh.dot(this.U))).normalize();
@@ -140,7 +140,17 @@ export class World {
       new Leaf({ id: 2, name: 'leaf C (steep)', base: [6.3, -0.15, 0.6], dir: [0.3, 0.78, 0.55], normalHint: [-1, 0.25, -0.2], len: 13, hw: 2.6 }),
       new Leaf({ id: 3, name: 'Sphagnum leaf (below)', kind: 'sphagnum', base: [-6.5, -1.55, 2.2], dir: [1, 0.07, 0.18], normalHint: [0, 1, 0.02], len: 15, hw: 2.9 }),
       new Leaf({ id: 4, name: 'leaf D (left)', base: [-7.2, 0.2, -0.6], dir: [-0.8, 0.45, -0.3], normalHint: [0.3, 1, 0.1], len: 12, hw: 2.5 }),
+      // The way on (the second half of the level): the Sphagnum leaf's tip
+      // rests on a broad leaf further down the shoot, the rotifer meadow at its
+      // far end; its tip in turn rests on the Sphagnum leaf that dips into the
+      // pool. Each overlaps the last ~0.35 units (35 µm) below it, so the
+      // claws reach across at the tip.
+      new Leaf({ id: 5, name: 'leaf E (the meadow)', base: [4.155, -1.016, 3.83], dir: [1, 0, 0.3], normalHint: [0, 1, 0], len: 18, hw: 3.8 }),
+      new Leaf({ id: 6, name: 'Sphagnum leaf (the pool)', kind: 'sphagnum', base: [17.83, -1.517, 8.045], dir: [1, 0.05, 0.25], normalHint: [0, 1, 0.02], len: 15, hw: 2.9, pool: true }),
     ];
+    /** The leaf whose tip dips into the pool (the forward landmark), and the meadow leaf. */
+    this.pool = this.leaves[6];
+    this.meadow = this.leaves[5];
     for (const l of this.leaves) scene.add(l.buildMesh());
     this.food = [];
     this.foodGroup = new THREE.Group();
@@ -171,8 +181,8 @@ export class World {
           bridge = Math.max(bridge, Math.pow(Math.max(0, 1 - gap / 1.3), 2));
         }
         cap += 1.15 * bridge;
-        // The Sphagnum leaf's tip dips into the hollow pool (landmarks.js): open water there.
-        if (L.kind === 'sphagnum') cap += 1.6 * THREE.MathUtils.smoothstep(t, 0.72, 0.86);
+        // The pool leaf's tip dips into the hollow pool (landmarks.js): open water there.
+        if (L.pool) cap += 1.6 * THREE.MathUtils.smoothstep(t, 0.72, 0.86);
         L.cap[j * FL + i] = cap;
         L.filmData[j * FL + i] = Math.max(0, Math.min(255, Math.round(((cap + 0.5) / 2.5) * 255)));
       }
@@ -202,8 +212,8 @@ export class World {
       { type: 'pennate diatom', geo: () => new THREE.CapsuleGeometry(0.045, 0.24, 4, 10), dn: 0.05, abs: [0.9, 1.3, 2.4], lit: 0xa8893a, value: 0.28, time: 3.0, gut: [0.55, 0.45, 0.2] },
       { type: 'detritus', geo: () => lumpy(0.09, r), dn: 0.025, abs: [1.0, 1.5, 2.2], lit: 0x7a5a38, value: 0.12, time: 2.0, gut: [0.45, 0.33, 0.2] },
     ];
-    const tries = 400;
-    for (let n = 0; n < tries && this.food.length < 34; n++) {
+    const tries = 600;
+    for (let n = 0; n < tries && this.food.length < 50; n++) {
       const L = this.leaves[Math.floor(r() * this.leaves.length)];
       const u = 1 + r() * (L.len - 2), v = (r() - 0.5) * 2 * L.hwAt(u) * 0.9;
       if (!L.inside(u, v, 0.3) || L.capAt(u, v) < 0.55) continue;

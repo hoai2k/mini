@@ -1,8 +1,8 @@
 // The way on and the way back, as things in the moss patch (Micro Zoom
 // landmarks, see ../shared/embed.js and ../shared/landmark.js).
 //
-// Forward (to the amoeba's pool floor): the tip of the Sphagnum leaf below
-// dips into the hollow pool. The pool is a slab of open water beyond the tip:
+// Forward (to the amoeba's pool floor): the tip of the far Sphagnum leaf
+// (world.pool, at the end of the shoot) dips into the hollow pool. The pool is a slab of open water beyond the tip:
 // its meniscus is a bright relief line in DIC where the film meets open
 // water, and a few green Paramecium bursaria swim past in it (§2.6 of
 // ../../design/zoom-chain-levels.md). Reaching the last ~250 µm of that leaf,
@@ -14,9 +14,11 @@
 // the backdoor zone, where Y means "go back".
 //
 // Placement: from the start (leaf A, 650 µm from its base) the backdoor is
-// ~0.5 mm to the left along leaf A (about 30 s of walking), the pool tip
-// ~1 mm to the right, down onto the Sphagnum leaf (15-40 s, more with the
-// detours and the Milnesium). They lie in opposite directions.
+// ~0.5 mm to the left along leaf A (about 30 s of walking). The pool tip is
+// ~3.4 mm away the other way: down onto the Sphagnum leaf, along it onto the
+// broad leaf E (the rotifer meadow at its far end), then onto the pool leaf
+// (Prionchulus guards it). The first half is calm exploring and feeding; every
+// challenge lies at or beyond halfway (main.js logs it: __micro.challenges).
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { opticalMaterial, litMaterial } from './materials.js';
 import { LAYER_SUBSTRATE, LAYER_SPECIMEN } from './world.js';
@@ -36,7 +38,8 @@ function optMesh(geo, opt, lit, layer) {
 export class Landmarks {
   constructor(scene, world) {
     this.world = world;
-    const [A, , , S, D] = world.leaves;
+    const [A, , , , D] = world.leaves;
+    const S = world.pool;
     this.S = S; this.A = A; this.D = D;
     this.group = new THREE.Group();
     scene.add(this.group);

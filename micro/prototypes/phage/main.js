@@ -1,5 +1,6 @@
 // Phage prototype (Level 6 of the Zoom Chain): a T4-like tailed phage in bog
-// water, drawn as a Goodsell-style molecular illustration. LS drives a soft,
+// water, drawn in realistic microscopic false light (the Goodsell watercolour,
+// cryo-EM and fluorescence looks remain on the D-pad). LS drives a soft,
 // wobbly drift (a labelled departure: phages have no motor); Brownian motion,
 // the flow and slow tumbling act on top. Move attachment-fibres first and grab
 // a protruding protein (X): a matching receptor latches and starts injection.
@@ -16,9 +17,10 @@ import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
-import { createPost, goodsellShared, toonMaterial, inkedInstanced } from '../shared/techniques/phage-goodsell.js';
-import { createT4, t4LiteGeometry } from '../shared/techniques/phage-model.js';
-import { createWorld, uvAt, BOUNDS, UV } from './world.js';
+import { createPost, goodsellShared, toonMaterial, inkedInstanced, setInkVisible } from '../shared/techniques/phage-goodsell.js';
+import { createT4, t4LiteGeometry, T4_FL } from '../shared/techniques/phage-model.js';
+import { createWorld, uvAt, uvSun, routeProgress, BOUNDS, UV, START, STRAY_HOME } from './world.js';
+import { createQuality } from '../shared/quality.js';
 import { createInside, GENOME_NODES } from './inside.js';
 import { attachmentForward, aimedProtein } from './binding.js';
 import { followYaw } from '../shared/swim-control.js';
@@ -42,14 +44,19 @@ const gl = renderer.getContext();
 const soft = /SwiftShader|llvmpipe|Software/i.test(String(gl.getParameter(gl.RENDERER)) + (gl.getExtension('WEBGL_debug_renderer_info') ? gl.getParameter(0x9246) : ''));
 const renderScale = soft ? 0.6 : 1;
 const inside = createInside();
+// The quality governor (shared/quality.js) owns the pixel ratio (1.0 while split)
+// and gives a render scale (lower per split view) for the post target, and an
+// effects level: 2 = DOF and two bloom levels, 1 = one bloom level, 0 = no DOF,
+// the cheapest bloom, and (Goodsell) no ink on the crowds.
+let qScale = 1, qLevel = 2;
+const quality = createQuality({ renderer, key: 'phage', min: 0.5, max: 1,
+  onChange: ({ scale, level }) => { qScale = scale; qLevel = level; post.quality = level; resize(); applyInk(); } });
 function resize() {
-  const pr = Math.min(devicePixelRatio || 1, 1.5) * renderScale;
   // Keep split-screen projections in CSS pixels, independently of render resolution.
   const w = innerWidth, h = innerHeight;
-  renderer.setPixelRatio(pr);
   renderer.setSize(w, h, false);
   const buffer = renderer.getDrawingBufferSize(new THREE.Vector2());
-  post.resize(buffer.x, buffer.y);
+  post.resize(buffer.x * qScale * renderScale, buffer.y * qScale * renderScale);
   camera.aspect = inside.camera.aspect = w / h;
   camera.updateProjectionMatrix(); inside.camera.updateProjectionMatrix();
 }
@@ -75,7 +82,7 @@ const hud = mountHud({
     attack: 'Grab a protein with the leading fibres: gold three-lobed receptors bind and inject; violet pairs slip off · at an amoeba lobe: fibre jab',
     defend: 'Defend: fold the fibres and slip (the amoeba gets no purchase; past clay and wrong hosts) / extend (grab receptors with X)',
     special: 'Odds and receptor overlay (data, not optics)',
-    look: 'Look: Goodsell watercolour, cryo-EM greyscale, fluorescence',
+    look: 'Look: realistic false light, Goodsell watercolour, cryo-EM greyscale, fluorescence',
     zoom: 'Zoom in / out',
     extra: [['Y', 'At the flagellum (backdoor): back to the sediment']],
   }),
@@ -93,7 +100,7 @@ document.body.append(tag, label, scaleEl, card, prog, labels);
 const world = createWorld(scene);
 let t4 = null; // the current member's model (see use())
 const progenyGeo = t4LiteGeometry();
-const progeny = inkedInstanced(progenyGeo, toonMaterial({ vertexColors: true }), 40, { width: 0.8 });
+const progeny = inkedInstanced(progenyGeo, toonMaterial({ vertexColors: true, fl: T4_FL.gold }), 40, { width: 0.8 });
 progeny.setCount(0);
 scene.add(progeny);
 
@@ -104,8 +111,9 @@ safeTexture('MP-V01').then((t) => { if (t) { art.envelope = t; applyArt(); } });
 safeTexture('MP-V02').then((t) => { if (t) { art.water = t; applyArt(); } });
 safeTexture('MP-V03', { repeat: false }).then((t) => { if (t) { art.section = t; applyArt(); } });
 
-const LOOKS = ['Goodsell watercolour', 'Cryo-EM greyscale', 'Fluorescence (pseudo-colour)'];
-const LOOK_KEY = ['goodsell', 'cryo', 'fluor'];
+const LOOKS = ['Realistic false light', 'Goodsell watercolour', 'Cryo-EM greyscale', 'Fluorescence (pseudo-colour)'];
+const POST_LOOK = [3, 0, 1, 2]; // createPost's look index for each
+const isFL = () => view.look === 0;
 const ZOOMS = [60, 110, 180, 290];
 const view = { look: 0, zoom: 1, yaw: 0, pitch: 0, overlay: false, ink: true, art: true, target: new THREE.Vector3(), dist: 180, iso: null, followHeading: 2.95 - Math.PI / 2, lookHold: 0 };
 const opts = { drive: true, brownian: true, tumble: true, uv: true, amoeba: true };
@@ -120,6 +128,7 @@ function applyArt() {
   }
   post.setBackdrop(use ? art.water : null);
   waterColor = use && art.water ? '#a7c2bc' : '#bcd3ea';
+  // in false light the painted (Goodsell) envelope only lends its grain
   inside.setSection(use ? art.section : null);
 }
 for (const h of world.hosts) h.mat.userData = { std: h.mat.uniforms.uMap.value };
@@ -127,7 +136,7 @@ let waterColor = '#bcd3ea';
 
 // --- phage state ---
 // Clear water below and left of Host A; keep the surface/UV direction upright.
-const START = new THREE.Vector3(-170, -210, 0);
+// START comes from world.js: clear water at the lower left, far from Host A (upper right).
 const newP = () => ({
   pos: START.clone(), vel: new THREE.Vector3(), bvel: new THREE.Vector3(), gust: new THREE.Vector3(),
   q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.95), angVel: new THREE.Vector3(),
@@ -142,7 +151,7 @@ const hunger = createHunger({ grace: 45 });
 // "current" member through P, t4, dash, capture and ctl; use(m) switches them.
 const team = []; // by slot
 let P = null, dash = null, capture = null, cur = null;
-let capsidMode = 'cutaway';
+let capsidMode = 'translucent';
 function use(m) { cur = m; P = m.P; t4 = m.t4; dash = m.dash; capture = m.capture; ctl = players.controls(m.slot); }
 const curPad = () => players.pad(cur ? cur.slot : 0);
 const members = () => team.filter(Boolean);
@@ -185,13 +194,13 @@ audio.loop('bacterium/amb-sediment', { volume: 0.5 });
 const driftLoop = audio.loop('bacterium/run', { volume: 0 });
 function unlockOnPad() { if (pad.kind !== 'controller') return; for (let b = 0; b < 16; b++) if (pad.value(b) > 0.5) { audio.unlock(); return; } }
 
-features.add({ id: 'look', group: 'Rendering', label: 'Look (D-pad ←→)', choices: LOOKS, value: LOOKS[0],
-  about: 'Goodsell watercolour: crowded, colour-coded molecules with ink outlines, flat soft light and depth by desaturation, after David Goodsell\'s paintings. Cryo-EM greyscale: what cryo-electron tomography really gives (Hu et al. 2015 [S99]): protein density dark on grey, a bright defocus fringe, heavy shot noise. Fluorescence: every protein glowing as if tagged, a pseudo-colour fantasy (no light microscope resolves a phage). All three are illustrations.',
-  onChange: (v) => { view.look = Math.max(0, LOOKS.indexOf(v)); } });
-features.add({ id: 'capsid', group: 'Rendering', label: 'Capsid', choices: ['Cutaway', 'Translucent', 'Solid'], value: 'Cutaway',
-  about: 'Cutaway: the half of the head facing you is clipped away, showing the DNA packed inside as a coaxial spool (~169 kbp, about 57 µm of DNA in a 0.12 µm head [S98]). Translucent: the capsid as a glassy shell. Solid: as it would look from outside.',
-  onChange: (v) => { capsidMode = v.toLowerCase(); for (const m of members()) m.t4.set({ capsid: capsidMode }); } });
-features.add({ id: 'ink', group: 'Rendering', label: 'Ink outlines', on: true, about: 'An inverted-hull outline around every molecule, fading with depth, as in a Goodsell painting.', onChange: (on) => { goodsellShared.uInkOn.value = on ? 1 : 0; } });
+features.add({ id: 'lookFL', group: 'Rendering', label: 'Look (D-pad ←→)', choices: LOOKS, value: LOOKS[0],
+  about: 'Realistic false light (the default): realistic biological surfaces and translucent materials lit by a hypothetical light, as in micro/design/phage-visual-style.html: the phage glows gold against teal-blue translucent cells covered in surface proteins, in a crowded, softly lit molecular water with haze, bloom and a large depth of field (only far layers soften). No microscope makes this picture: the light is invented. Goodsell watercolour: crowded, colour-coded molecules with ink outlines, flat soft light and depth by desaturation, after David Goodsell\'s paintings. Cryo-EM greyscale: what cryo-electron tomography really gives (Hu et al. 2015 [S99]): protein density dark on grey, a bright defocus fringe, heavy shot noise. Fluorescence: every protein glowing as if tagged, a pseudo-colour fantasy (no light microscope resolves a phage). All three are illustrations.',
+  onChange: (v) => { view.look = Math.max(0, LOOKS.indexOf(v)); applyStyle(); } });
+features.add({ id: 'capsid2', group: 'Rendering', label: 'Capsid', choices: ['Cutaway', 'Translucent', 'Solid'], value: 'Translucent',
+  about: 'Translucent (the default): the capsid as a glassy, faceted shell, the DNA glowing inside. Cutaway: the half of the head facing you is clipped away, showing the DNA packed inside as a coaxial spool (~169 kbp, about 57 µm of DNA in a 0.12 µm head [S98]). Translucent: the capsid as a glassy shell. Solid: as it would look from outside.',
+  onChange: (v) => { capsidMode = v.toLowerCase(); for (const m of members()) m.t4.set({ capsid: capsidMode }); applyInk(); } });
+features.add({ id: 'ink', group: 'Rendering', label: 'Ink outlines', on: true, about: 'An inverted-hull outline around every molecule, fading with depth, as in a Goodsell painting (Goodsell, cryo-EM and fluorescence looks; false light has none). Hidden hulls cost nothing.', onChange: (on) => { view.ink = on; goodsellShared.uInkOn.value = on ? 1 : 0; applyInk(); } });
 features.add({ id: 'depth', group: 'Rendering', label: 'Depth by desaturation', on: true, about: 'Far things fade toward the water colour and lose saturation (Goodsell\'s depth cue) instead of getting smaller and darker.', onChange: (on) => { goodsellShared.uDepthOn.value = on ? 1 : 0; } });
 features.add({ id: 'art', group: 'Rendering', label: 'Delivered art (MP-V01/V02/V03)', on: true,
   about: 'The envelope surface (MP-V01) on the hosts, the water backdrop (MP-V02) behind the scene and the envelope section (MP-V03) above the cytoplasm inside the host. Off: the procedural watercolour stand-ins.',
@@ -217,6 +226,23 @@ features.add({ id: 'crowd', group: 'World', label: 'Crowded water', on: true,
   about: 'Humic colloids, proteins, sugars and solutes jostling, pushed by gusts and by your passage. Small solutes are drawn several times too large so they read (departure).',
   onChange: (on) => { world.opts.crowd = on; } });
 addInvertY(features);
+quality.addToFeatures(features);
+
+/** The look's switches beyond the pass: the materials' style, the world's false-light extras, the ink hulls. */
+function applyStyle() {
+  const fl = isFL();
+  goodsellShared.uStyle.value = fl ? 1 : 0;
+  world.setStyle(fl);
+  applyInk();
+}
+/** Ink hulls only where they draw something: Goodsell-style looks with Ink on; at the lowest quality not on the crowds. */
+function applyInk() {
+  if (!world) return;
+  const on = view.ink && !isFL();
+  setInkVisible(scene, on);
+  setInkVisible(inside.scene, on);
+  if (on && qLevel === 0) for (const root of [scene, inside.scene]) root.traverse((o) => { if (o.userData.crowd && o.ink) o.ink.visible = false; });
+}
 
 // --- helpers ---
 let toastT = 0;

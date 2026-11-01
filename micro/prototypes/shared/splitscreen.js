@@ -80,6 +80,17 @@
 // center + offset, into split.target(i), then split.compose().
 //
 // Performance: N views cost N renders of the world (plus a cheap compose).
+// Each split view only needs its own region, so every view carries `rect`, the
+// bounding box of its regions (drawing-buffer px, bottom-left origin, padded
+// by `margin`), and the split scissors to it: split.render() scissors the
+// view's target (or, with `capture`, the screen) before drawView, and
+// split.target(i) comes back already scissored. A world with passes of its
+// own (G-buffers, blurs at other sizes) calls split.scissor(view, rt) on each
+// of them (scaled to that target's size; null = the screen); with 4 players
+// that cuts the fill to about 35-45%. Merged, nothing is scissored. Render
+// targets are pooled by size (no reallocation on split/merge or when the
+// scale toggles), the compose geometry is preallocated, and the compose
+// shaders are compiled before the first split.
 // While merged there is one view and it renders straight to the screen, with
 // no extra pass at all (the fast path); one player is always the fast path.
 // `renderScale` (0.4-1, also settable live as split.renderScale) sizes each
@@ -89,6 +100,7 @@
 //
 // API
 //   createSplitScreen(renderer, { renderScale = 1, capture = false,
+//     scissor = true, margin = 24 (drawing-buffer px), captureScale = false,
 //     divider = { color: '#c9a35a', width: 1.75, shadow: 'rgba(16,12,6,0.5)', soft: 5 },
 //     mergeBlend = 0.2, minArea, up = [0, 1, 0] | null,
 //     splitAt = 1.12, splitIn = 0.5, turnRate = 3 (rad/s) }) -> split
@@ -99,19 +111,34 @@
 //                     amount (0-1 split ease-in), spread (E), angle (2 players:
 //                     on-screen direction from the lower slot to the higher,
 //                     radians, unwrapped) }
-//     views[i]:   { index, slots, shift: {x,y} px, offset: Vector3 | {x,y} }
+//     views[i]:   { index, slots, shift: {x,y} px, offset: Vector3 | {x,y},
+//                   rect: {x,y,w,h} drawing-buffer px from the bottom-left (padded by margin),
+//                   box: {x,y,w,h} CSS px from the top-left (unpadded) }
 //     regions[k]: { slot, view, polygon: [[x,y],...], centroid: [x,y], anchor: [x,y] }
 //                 CSS px from the top-left; anchor = where the player is drawn
 //     edges[k]:   { a: [x,y], b: [x,y], alpha, slots: [s, t], angle }  the dividers
 //   split.views / split.regions / split.merged   shortcuts
 //   split.render(camera, drawView)   drawView(view, target): render the view
 //   split.withView(i, camera, fn)    offset the camera for view i, run fn, put it back
-//   split.target(i)                  WebGLRenderTarget for view i (screen x renderScale)
+//   split.target(i)                  WebGLRenderTarget for view i (screen x renderScale), scissored to its rect
+//   split.scissor(view|i, target|null, margin?)  scissor a pass of view i to its rect,
+//                                    scaled to the target's size (null: the screen, in the
+//                                    renderer's current viewport scale); off while merged.
+//                                    Returns the rect used, or null when not scissored.
+//   split.unscissor(target|null)     turn it off again (targets the world reuses unsplit)
+//   split.rectFor(view|i, w, h, margin?)  the rect scaled to a w x h buffer
+//   split.viewScale                  the shared per-view resolution factor for the view
+//                                    count: 1, 0.7 (2 views), 0.55 (3-4); for worlds that
+//                                    scale their own buffers (shared/quality.js includes it)
 //   split.compose()                  draw the regions and dividers to the screen
 //   split.project(i, position)       -> { x, y, behind } in CSS px, as view i shows it
 //   split.centroid(positions)        -> { x, y, z } for aiming the shared camera
 //   split.spread(positions)          -> largest distance from the centroid
-//   split.renderScale                 quality knob (read/write)
+//   split.renderScale                 quality knob (read/write); with captureScale the
+//                                    capture path renders each view into the bottom-left
+//                                    renderScale part of the screen (renderer viewport) and
+//                                    copies only its rect, so a world drawing through
+//                                    three's screen viewport gets cheaper views too
 //   split.dispose()
 import * as THREE from './vendor/three.module.min.js';
 
@@ -153,13 +180,13 @@ const VERT = /* glsl */`
 const FRAG_LINEAR = /* glsl */`
   uniform sampler2D tex; uniform vec2 res;
   void main() {
-    gl_FragColor = texture2D(tex, gl_FragCoord.xy / res);
+    gl_FragColor = texture2D(tex, gl_FragCoord.xy * res);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }`;
 const FRAG_RAW = /* glsl */`
   uniform sampler2D tex; uniform vec2 res;
-  void main() { gl_FragColor = texture2D(tex, gl_FragCoord.xy / res); }`;
+  void main() { gl_FragColor = texture2D(tex, gl_FragCoord.xy * res); }`;
 const LINE_VERT = /* glsl */`
   attribute vec4 rgba; varying vec4 vC;
   void main() { vC = rgba; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
@@ -187,6 +214,9 @@ export function createSplitScreen(renderer, opts = {}) {
     splitAt = 1.12,
     splitIn = 0.5,
     turnRate = 3,
+    scissor: autoScissor = true,
+    margin = 24,
+    captureScale = false,
   } = opts;
   // Camera offsets slide along the ground plane (normal `up`) by default, so
   // each view keeps the shared camera's height and angle over its player (as
@@ -224,7 +254,16 @@ export function createSplitScreen(renderer, opts = {}) {
   const scene = new THREE.Scene();
   const cam = new THREE.Camera();
   const regionMeshes = [];
+  // Preallocated compose geometry: region fans (a power-diagram cell clipped
+  // to the screen has at most 7 corners; room for 24) and divider strips (6
+  // dividers x 2 strips x 3 bands x 6 vertices = 216; room for 288).
+  const REGION_V = 3 * 22, LINE_V = 288;
   const lineGeo = new THREE.BufferGeometry();
+  const linePos = new THREE.BufferAttribute(new Float32Array(LINE_V * 3), 3).setUsage(THREE.DynamicDrawUsage);
+  const lineCol = new THREE.BufferAttribute(new Float32Array(LINE_V * 4), 4).setUsage(THREE.DynamicDrawUsage);
+  lineGeo.setAttribute('position', linePos);
+  lineGeo.setAttribute('rgba', lineCol);
+  lineGeo.setDrawRange(0, 0);
   const lineMat = new THREE.ShaderMaterial({ vertexShader: LINE_VERT, fragmentShader: LINE_FRAG, transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide });
   const lineMesh = new THREE.Mesh(lineGeo, lineMat);
   lineMesh.frustumCulled = false;
@@ -234,7 +273,10 @@ export function createSplitScreen(renderer, opts = {}) {
   function regionMesh(k) {
     if (!regionMeshes[k]) {
       const mk = (frag) => new THREE.ShaderMaterial({ vertexShader: VERT, fragmentShader: frag, uniforms: { tex: { value: null }, res: { value: new THREE.Vector2() } }, depthTest: false, depthWrite: false, side: THREE.DoubleSide });
-      const m = new THREE.Mesh(new THREE.BufferGeometry(), mk(FRAG_LINEAR));
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(REGION_V * 3), 3).setUsage(THREE.DynamicDrawUsage));
+      g.setDrawRange(0, 0);
+      const m = new THREE.Mesh(g, mk(FRAG_LINEAR));
       m.userData.mats = { linear: m.material, raw: mk(FRAG_RAW) };
       m.frustumCulled = false;
       scene.add(m);
@@ -354,6 +396,7 @@ export function createSplitScreen(renderer, opts = {}) {
       views.push({ index: 0, slots: n ? [slotOf(0)] : [], members: n ? [0] : [], shift: { x: 0, y: 0 }, offset: zeroOffset() });
       if (n) regions.push({ slot: slotOf(0), view: 0, polygon: full.map(toAbs), centroid: [W / 2, H / 2], anchor: toAbs([S[0].x, S[0].y]), area: W * H });
       layout = { merged: true, width: W, height: H, views, regions, edges, players, amount: 0, spread: 0, angle: 0 };
+      setRects(layout);
       return layout;
     }
 
@@ -548,7 +591,81 @@ export function createSplitScreen(renderer, opts = {}) {
     }
     const merged = !st.split;
     layout = { merged, width: W, height: H, views, regions, edges, players, amount: amt, spread: E, angle: n === 2 ? st.angle : null };
+    setRects(layout);
+    if (!warmed) warm();
     return layout;
+  }
+
+  // Each view's box (CSS px, top-left) and rect (drawing-buffer px, bottom-left, padded).
+  function setRects(L) {
+    for (const v of L.views) {
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      if (L.views.length <= 1) { x0 = 0; y0 = 0; x1 = W; y1 = H; }
+      else for (const r of L.regions) {
+        if (r.view !== v.index) continue;
+        for (const p of r.polygon) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
+      }
+      if (!(x1 > x0 && y1 > y0)) { x0 = y0 = 0; x1 = y1 = 0; }
+      x0 = Math.max(0, x0); y0 = Math.max(0, y0); x1 = Math.min(W, x1); y1 = Math.min(H, y1);
+      v.box = { x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) };
+      v.rect = rectFor(v, bufSize.x, bufSize.y, margin);
+    }
+  }
+
+  /** View v's box as a rect in a w x h buffer (bottom-left origin), padded by m buffer px (scaled). */
+  function rectFor(v, w, h, m = margin) {
+    if (typeof v === 'number') v = layout.views[v];
+    if (!v || !v.box || layout.views.length <= 1) return { x: 0, y: 0, w, h };
+    const b = v.box, kx = w / W, ky = h / H;
+    const pad = m * (w / Math.max(1, bufSize.x));
+    const x0 = Math.max(0, Math.floor(b.x * kx - pad)), x1 = Math.min(w, Math.ceil((b.x + b.w) * kx + pad));
+    const yt = Math.max(0, Math.floor(b.y * ky - pad)), yb = Math.min(h, Math.ceil((b.y + b.h) * ky + pad));
+    return { x: x0, y: h - yb, w: Math.max(0, x1 - x0), h: Math.max(0, yb - yt) };
+  }
+
+  const scissorPrev = new THREE.Vector4(), vp4 = new THREE.Vector4();
+  let scissorPrevTest = false, screenScissored = false;
+  /** Scissor a pass of view v: a render target (scaled to its size) or the screen (null). */
+  function scissor(v, t = null, m = margin) {
+    if (typeof v === 'number') v = layout.views[v];
+    const on = !!v && layout.views.length > 1;
+    if (t) {
+      if (!on) { t.scissorTest = false; return null; }
+      const r = rectFor(v, t.width, t.height, m);
+      t.scissor.set(r.x, r.y, r.w, r.h);
+      t.scissorTest = true;
+      return r;
+    }
+    if (!on) { unscissor(null); return null; }
+    // The screen: three's scissor is in CSS px of the renderer's current viewport scale.
+    renderer.getViewport(vp4);
+    const sw = vp4.z / W || 1, sh = vp4.w / H || 1; // the part of the screen in use (captureScale)
+    const r = rectFor(v, W * sw, H * sh, m);
+    if (!screenScissored) { renderer.getScissor(scissorPrev); scissorPrevTest = renderer.getScissorTest(); screenScissored = true; }
+    renderer.setScissor(r.x, r.y, r.w, r.h);
+    renderer.setScissorTest(true);
+    return r;
+  }
+  function unscissor(t = null) {
+    if (t) { t.scissorTest = false; return; }
+    if (!screenScissored) return;
+    screenScissored = false;
+    renderer.setScissor(scissorPrev);
+    renderer.setScissorTest(scissorPrevTest);
+  }
+
+  // Compile the compose shaders before the first split (no hitch when it splits).
+  let warmed = false;
+  function warm() {
+    if (layout.views.length < 1 || layout.players.length < 2) return;
+    warmed = true;
+    try {
+      const m = regionMesh(0);
+      const prev = renderer.getRenderTarget();
+      renderer.setRenderTarget(null);
+      for (const mat of [m.userData.mats.linear, m.userData.mats.raw]) { m.material = mat; renderer.compile(scene, cam); }
+      renderer.setRenderTarget(prev);
+    } catch (e) { /* only a warm-up */ }
   }
 
   function zeroOffset() { return mode && mode.camera ? new THREE.Vector3() : { x: 0, y: 0 }; }
@@ -603,29 +720,59 @@ export function createSplitScreen(renderer, opts = {}) {
   }
 
   // ---------------------------------------------------------------- targets
+  // Targets are pooled by size: a split, a merge or a scale change hands back
+  // a target of the right size from the pool instead of reallocating (up to
+  // POOL idle targets are kept; the oldest beyond that is freed).
+  const pool = [];
+  const POOL = 6;
   function target(i) {
     sizes();
     const w = Math.max(1, Math.round(bufSize.x * renderScale)), h = Math.max(1, Math.round(bufSize.y * renderScale));
     let t = targets[i];
-    if (!t) {
-      t = targets[i] = new THREE.WebGLRenderTarget(w, h, { depthBuffer: true, samples: 0 });
-      t.texture.colorSpace = THREE.SRGBColorSpace;
-      t.texture.minFilter = THREE.LinearFilter;
-      t.texture.generateMipmaps = false;
-    } else if (t.width !== w || t.height !== h) t.setSize(w, h);
+    if (!t || t.width !== w || t.height !== h) {
+      if (t) { pool.push(t); targets[i] = null; }
+      const k = pool.findIndex((p) => p.width === w && p.height === h);
+      if (k >= 0) t = pool.splice(k, 1)[0];
+      else {
+        t = new THREE.WebGLRenderTarget(w, h, { depthBuffer: true, samples: 0 });
+        t.texture.colorSpace = THREE.SRGBColorSpace;
+        t.texture.minFilter = THREE.LinearFilter;
+        t.texture.generateMipmaps = false;
+      }
+      targets[i] = t;
+      while (pool.length > POOL) pool.shift().dispose();
+    }
+    if (autoScissor) scissor(layout.views[i], t);
+    else t.scissorTest = false;
     return t;
   }
 
-  function grab(i) {
+  // The screen copy of view i: only its rect (scaled by `k` with captureScale)
+  // is copied into a full-size texture kept per view.
+  const gl = renderer.getContext();
+  function grab(i, k = 1) {
     sizes();
     let g = grabs[i];
     if (!g || g.image.width !== bufSize.x || g.image.height !== bufSize.y) {
       if (g) g.dispose();
       g = grabs[i] = new THREE.FramebufferTexture(bufSize.x, bufSize.y);
       g.minFilter = THREE.LinearFilter;
+      g.userData.ready = false;
     }
     renderer.setRenderTarget(null);
-    renderer.copyFramebufferToTexture(g);
+    const v = layout.views[i];
+    const r = v && layout.views.length > 1 ? rectFor(v, Math.round(bufSize.x * k), Math.round(bufSize.y * k), margin) : null;
+    const handle = g.userData.ready ? renderer.properties.get(g).__webglTexture : null;
+    if (r && handle && renderer.state && renderer.state.bindTexture) {
+      if (r.w > 0 && r.h > 0) {
+        renderer.state.bindTexture(gl.TEXTURE_2D, handle);
+        gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, r.x, r.y, r.x, r.y, r.w, r.h);
+        renderer.state.unbindTexture();
+      }
+    } else {
+      renderer.copyFramebufferToTexture(g);
+      g.userData.ready = true;
+    }
     return g;
   }
 
@@ -639,45 +786,67 @@ export function createSplitScreen(renderer, opts = {}) {
   }
 
   const sources = [];
+  const setSource = (i, texture, raw, k = 1) => {
+    const s = sources[i] || (sources[i] = {});
+    s.texture = texture; s.raw = raw; s.k = k;
+  };
+  const hasSource = (i) => !!(sources[i] && sources[i].texture);
+  const clearSources = () => { for (const s of sources) if (s) s.texture = null; };
+  // Divider profiles: offsets (CSS px) from the line and alpha there.
+  const hw0 = dividerWidth / 2, f0 = 0.6;
+  const shadowProfile = [[-shadowSoft, 0], [-hw0, 1], [hw0, 1], [shadowSoft, 0]];
+  const lineProfile = [[-hw0 - f0, 0], [-hw0 + f0 * 0.5, 1], [hw0 - f0 * 0.5, 1], [hw0 + f0, 0]];
+  const QUAD = [0, 1, 2, 0, 2, 3];
+  const qx = [0, 0, 0, 0], qy = [0, 0, 0, 0], qa = [0, 0, 0, 0];
   function compose() {
     sizes();
-    const toNdc = (p) => [(p[0] / W) * 2 - 1, 1 - (p[1] / H) * 2];
+    unscissor(null);
+    const sx = 2 / W, sy = 2 / H;
     let used = 0;
     for (const r of layout.regions) {
       const src = sources[r.view];
-      if (!src || r.polygon.length < 3) continue;
+      if (!src || !src.texture || r.polygon.length < 3) continue;
       const mesh = regionMesh(used++);
-      const pts = r.polygon.map(toNdc);
-      const pos = [];
-      for (let t = 1; t < pts.length - 1; t++) pos.push(pts[0][0], pts[0][1], 0, pts[t][0], pts[t][1], 0, pts[t + 1][0], pts[t + 1][1], 0);
-      mesh.geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      const attr = mesh.geometry.attributes.position, a = attr.array;
+      const P = r.polygon;
+      const tris = Math.min(P.length - 2, REGION_V / 3);
+      let o = 0;
+      for (let t = 1; t <= tris; t++) {
+        for (const p of [P[0], P[t], P[t + 1]]) { a[o++] = p[0] * sx - 1; a[o++] = 1 - p[1] * sy; a[o++] = 0; }
+      }
+      attr.needsUpdate = true;
+      mesh.geometry.setDrawRange(0, tris * 3);
       mesh.material = src.raw ? mesh.userData.mats.raw : mesh.userData.mats.linear;
       mesh.material.uniforms.tex.value = src.texture;
-      mesh.material.uniforms.res.value.set(bufSize.x, bufSize.y);
+      mesh.material.uniforms.res.value.set((src.k || 1) / bufSize.x, (src.k || 1) / bufSize.y);
       mesh.visible = true;
     }
     for (let k = used; k < regionMeshes.length; k++) regionMeshes[k].visible = false;
     // Dividers: a soft dark shadow under an antialiased brass hairline. Each
     // is a strip across the line, its alpha given at offsets (CSS px) from it.
-    const pos = [], col = [];
+    const pos = linePos.array, col = lineCol.array;
+    let nv = 0;
     const strip = (a, b, profile, rgb, alpha) => {
       const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
       const nx = -dy / l, ny = dx / l;
       for (let k = 0; k < profile.length - 1; k++) {
-        const [o0, a0] = profile[k], [o1, a1] = profile[k + 1];
-        const P = [[a[0] + nx * o0, a[1] + ny * o0], [b[0] + nx * o0, b[1] + ny * o0], [b[0] + nx * o1, b[1] + ny * o1], [a[0] + nx * o1, a[1] + ny * o1]].map(toNdc);
-        const A = [a0, a0, a1, a1];
-        for (const ix of [0, 1, 2, 0, 2, 3]) { pos.push(P[ix][0], P[ix][1], 0); col.push(rgb[0], rgb[1], rgb[2], A[ix] * alpha); }
+        if (nv + 6 > LINE_V) return;
+        const o0 = profile[k][0], a0 = profile[k][1], o1 = profile[k + 1][0], a1 = profile[k + 1][1];
+        qx[0] = a[0] + nx * o0; qy[0] = a[1] + ny * o0; qx[1] = b[0] + nx * o0; qy[1] = b[1] + ny * o0;
+        qx[2] = b[0] + nx * o1; qy[2] = b[1] + ny * o1; qx[3] = a[0] + nx * o1; qy[3] = a[1] + ny * o1;
+        qa[0] = qa[1] = a0; qa[2] = qa[3] = a1;
+        for (const ix of QUAD) {
+          pos[nv * 3] = qx[ix] * sx - 1; pos[nv * 3 + 1] = 1 - qy[ix] * sy; pos[nv * 3 + 2] = 0;
+          col[nv * 4] = rgb[0]; col[nv * 4 + 1] = rgb[1]; col[nv * 4 + 2] = rgb[2]; col[nv * 4 + 3] = qa[ix] * alpha;
+          nv++;
+        }
       }
     };
-    const hw = dividerWidth / 2, f = 0.6, sh = shadowSoft;
-    const shadowProfile = [[-sh, 0], [-hw, 1], [hw, 1], [sh, 0]];
-    const lineProfile = [[-hw - f, 0], [-hw + f * 0.5, 1], [hw - f * 0.5, 1], [hw + f, 0]];
     for (const e of layout.edges) strip(e.a, e.b, shadowProfile, shadowColor, shadowColor[3] * e.alpha);
     for (const e of layout.edges) strip(e.a, e.b, lineProfile, dividerColor, dividerColor[3] * e.alpha);
-    lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    lineGeo.setAttribute('rgba', new THREE.Float32BufferAttribute(col, 4));
-    lineMesh.visible = pos.length > 0;
+    if (nv) { linePos.needsUpdate = true; lineCol.needsUpdate = true; }
+    lineGeo.setDrawRange(0, nv);
+    lineMesh.visible = nv > 0;
     const ac = renderer.autoClear;
     renderer.autoClear = false;
     renderer.setRenderTarget(null);
@@ -692,15 +861,22 @@ export function createSplitScreen(renderer, opts = {}) {
       withView(0, camera, () => drawView(L.views[0] || { index: 0, slots: [], shift: { x: 0, y: 0 }, offset: zeroOffset() }, null));
       return;
     }
-    sources.length = 0;
+    clearSources();
+    const k = capture && captureScale ? renderScale : 1;
+    const vp = k < 1 ? renderer.getViewport(new THREE.Vector4()) : null;
     for (const v of L.views) {
       if (capture) {
-        withView(v.index, camera, () => drawView(v, null));
-        sources[v.index] = { texture: grab(v.index), raw: true };
+        if (vp) renderer.setViewport(vp.x * k, vp.y * k, vp.z * k, vp.w * k);
+        if (autoScissor) scissor(v, null);
+        try { withView(v.index, camera, () => drawView(v, null)); } finally {
+          unscissor(null);
+          if (vp) renderer.setViewport(vp);
+        }
+        setSource(v.index, grab(v.index, k), true, k);
       } else {
         const t = target(v.index);
         withView(v.index, camera, () => drawView(v, t));
-        sources[v.index] = { texture: t.texture, raw: false };
+        setSource(v.index, t.texture, false);
       }
     }
     compose();
@@ -712,12 +888,12 @@ export function createSplitScreen(renderer, opts = {}) {
     withView,
     target,
     /** Copy the screen into view i's texture (for pipelines that draw to the screen). */
-    capture(i) { sources[i] = { texture: grab(i), raw: true }; },
+    capture(i) { setSource(i, grab(i), true); },
     /** Draw the regions (from target(i) or capture(i)) and the dividers. */
     compose() {
-      for (const v of layout.views) if (!sources[v.index] && targets[v.index]) sources[v.index] = { texture: targets[v.index].texture, raw: false };
+      for (const v of layout.views) if (!hasSource(v.index) && targets[v.index]) setSource(v.index, targets[v.index].texture, false);
       compose();
-      sources.length = 0;
+      clearSources();
     },
     get layout() { return layout; },
     get views() { return layout.views; },
@@ -725,6 +901,12 @@ export function createSplitScreen(renderer, opts = {}) {
     get merged() { return layout.merged; },
     get renderScale() { return renderScale; },
     set renderScale(v) { renderScale = Math.max(0.25, Math.min(1, v)); },
+    /** The shared per-view resolution factor for the current view count (1, 0.7, 0.55). */
+    get viewScale() { const n = layout.views.length; return n >= 3 ? 0.55 : n === 2 ? 0.7 : 1; },
+    scissor,
+    unscissor,
+    rectFor(v, w, h, m = margin) { return rectFor(v, w, h, m); },
+    get margin() { return margin; },
     /** Screen position (CSS px from the top-left) of a world point as view i shows it. */
     project(i, p) {
       if (!mode) return { x: 0, y: 0, behind: false };
@@ -747,6 +929,8 @@ export function createSplitScreen(renderer, opts = {}) {
     },
     dispose() {
       for (const t of targets) if (t) t.dispose();
+      for (const t of pool) t.dispose();
+      pool.length = 0;
       for (const g of grabs) if (g) g.dispose();
       for (const m of regionMeshes) { m.geometry.dispose(); m.userData.mats.linear.dispose(); m.userData.mats.raw.dispose(); }
       lineGeo.dispose(); lineMat.dispose();

@@ -9,7 +9,7 @@
 //
 // Readable states:
 //   dormant  in the axil, pincers folded; wakes when a player comes within
-//            1.25 mm after the calm opening
+//            `wake` (the mite's layout: 0.9 mm) after the calm opening
 //   stalk    a slow, deliberate walk toward its target, pincers forward
 //   tell     the pincers held open and dead still (0.9 s; 0.7 s for the sweep)
 //   snap     a fast pincer strike straight ahead (0.16 s)
@@ -31,7 +31,7 @@ const ease = (x) => x * x * (3 - 2 * x);
 const UP = new THREE.Vector3(0, 1, 0);
 const REACH = 2500; // µm from its body centre to the pincer tips, at full stretch (~2.1 mm in the tell)
 
-export function createPseudoscorpion(scene, tex, { post, home }) {
+export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
   const group = new THREE.Group();
   scene.add(group);
   const shell = gMaterial({ cls: CLS.NPC, tex: tex.cuticle, map: 'tri', scale: 220, bump: 2.2 });
@@ -159,7 +159,7 @@ export function createPseudoscorpion(scene, tex, { post, home }) {
     switch (st.state) {
       case 'dormant':
         targetA = post.a;
-        if (ctx.awake && tgt && Math.hypot(tgt.x - post.x, tgt.z - post.z) < 1250) { go('stalk'); ev.push({ type: 'wake' }); }
+        if (ctx.awake && tgt && Math.hypot(tgt.x - post.x, tgt.z - post.z) < wake) { go('stalk'); ev.push({ type: 'wake' }); }
         break;
       case 'stalk':
         if (!tgt) break;

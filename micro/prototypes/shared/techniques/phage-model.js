@@ -33,6 +33,16 @@ export const T4_COLORS = {
   fibre: '#ec8a3a', knee: '#f3c04a', tip: '#d8662c', short: '#f2b25a',
 };
 
+// False light (the default look): the phage glows gold, translucent and faceted, against the teal water.
+export const T4_FL = {
+  gold: { color: '#e9a83a', color2: '#ffd98a', keep: 0, glow: 0.42, glowColor: '#ffb23a', trans: 0.85, spec: 0.9, scale: 0.6 },
+  capsid: { color: '#f4bc54', color2: '#ffe4a0', keep: 0, glow: 0.3, glowColor: '#ffbe4a', trans: 1, spec: 1.2, scale: 0.5 },
+  beads: { color: '#ffc964', color2: '#fff0c2', keep: 0, glow: 0.55, glowColor: '#ffc04a', trans: 0.7, spec: 0.8, scale: 0.8 },
+  dna: { color: '#fff1c4', color2: '#ffd27a', keep: 0, glow: 1.0, glowColor: '#ffcf6a', trans: 0.4, spec: 0.4 },
+  sheath: { color: '#e9a83a', color2: '#ffd98a', keep: 0.75, glow: 0.48, glowColor: '#ffb23a', trans: 0.8, spec: 0.9, scale: 0.6 },
+  fibre: { color: '#f0b04a', color2: '#ffe2a0', keep: 0, glow: 0.62, glowColor: '#ffbb44', trans: 0.7, spec: 0.6, scale: 1.2 },
+};
+
 const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 const ease = (t) => t * t * (3 - 2 * t);
@@ -102,9 +112,9 @@ export function createT4({ clip = true } = {}) {
 
   // --- head ---
   const icos = prolateIcosahedron();
-  const headMat = toonMaterial({ color: T4_COLORS.capsidDeep, clip, side: THREE.DoubleSide, mottle: 0.1 });
+  const headMat = toonMaterial({ color: T4_COLORS.capsidDeep, clip, side: THREE.DoubleSide, mottle: 0.1, fl: T4_FL.capsid });
   const head = inked(polyGeometry(icos), headMat, { clip });
-  const capsMat = toonMaterial({ color: '#ffffff', clip, mottle: 0.12 });
+  const capsMat = toonMaterial({ color: '#ffffff', clip, mottle: 0.12, fl: T4_FL.beads });
   const bumpGeo = new THREE.IcosahedronGeometry(0.7, 1);
   // capsomer beads on each face
   const capPts = [];
@@ -135,12 +145,12 @@ export function createT4({ clip = true } = {}) {
   head.add(caps);
   // DNA spool
   const dnaGeo = new THREE.TubeGeometry(dnaSpoolCurve(), 1100, 0.33, 5, false);
-  const dnaMat = toonMaterial({ color: T4_COLORS.dna, mottle: 0.08 });
+  const dnaMat = toonMaterial({ color: T4_COLORS.dna, mottle: 0.08, fl: T4_FL.dna });
   const dna = inked(dnaGeo, dnaMat, { width: 0.5 });
   const dnaIndexCount = dnaGeo.index.count;
   head.add(dna);
   // cracks (UV damage)
-  const crackMat = toonMaterial({ color: '#ffd9a8', clip });
+  const crackMat = toonMaterial({ color: '#ffd9a8', clip, fl: { color: '#2a1408', keep: 0, glow: 0, trans: 0 } });
   const cracks = [];
   for (let k = 0; k < 5; k++) {
     const pts = [];
@@ -159,25 +169,25 @@ export function createT4({ clip = true } = {}) {
   }
   headGroup.add(head);
   // collar, portal, whiskers
-  const collar = inked(new THREE.CylinderGeometry(1.95, 1.55, T4.COLLAR, 12), toonMaterial({ color: T4_COLORS.collar }));
+  const collar = inked(new THREE.CylinderGeometry(1.95, 1.55, T4.COLLAR, 12), toonMaterial({ color: T4_COLORS.collar, fl: T4_FL.gold }));
   headGroup.add(collar);
-  const tube = inked(new THREE.CylinderGeometry(0.45, 0.45, 10.8, 10), toonMaterial({ color: T4_COLORS.tube }), { width: 0.6 });
+  const tube = inked(new THREE.CylinderGeometry(0.45, 0.45, 10.8, 10), toonMaterial({ color: T4_COLORS.tube, fl: T4_FL.gold }), { width: 0.6 });
   headGroup.add(tube);
   const whiskGeo = new THREE.IcosahedronGeometry(0.24, 0);
-  const whiskers = inkedInstanced(whiskGeo, toonMaterial({ color: T4_COLORS.whisker }), 6 * 9, { width: 0.6 });
+  const whiskers = inkedInstanced(whiskGeo, toonMaterial({ color: T4_COLORS.whisker, fl: T4_FL.fibre }), 6 * 9, { width: 0.6 });
   headGroup.add(whiskers);
 
   // --- sheath ---
   const ringGeo = new THREE.TorusGeometry(0.72, 0.4, 6, 12);
   ringGeo.rotateX(Math.PI / 2);
-  const sheath = inkedInstanced(ringGeo, toonMaterial({ color: '#ffffff', mottle: 0.1 }), T4.RINGS, { width: 0.8 });
+  const sheath = inkedInstanced(ringGeo, toonMaterial({ color: '#ffffff', mottle: 0.1, fl: T4_FL.sheath }), T4.RINGS, { width: 0.8 });
   for (let i = 0; i < T4.RINGS; i++) sheath.setColorAt(i, _c.set(i % 2 ? T4_COLORS.sheath : T4_COLORS.sheath2));
   group.add(sheath);
 
   // --- baseplate ---
   const plate = new THREE.Group();
   group.add(plate);
-  const hub = inked(new THREE.CylinderGeometry(1.25, 1.5, 1.1, 6), toonMaterial({ color: T4_COLORS.plate }));
+  const hub = inked(new THREE.CylinderGeometry(1.25, 1.5, 1.1, 6), toonMaterial({ color: T4_COLORS.plate, fl: T4_FL.gold }));
   hub.position.y = 0.55;
   plate.add(hub);
   const wedgeGeo = new THREE.BoxGeometry(1.5, 0.95, 1.25);
@@ -185,14 +195,14 @@ export function createT4({ clip = true } = {}) {
   for (let k = 0; k < 6; k++) {
     const pivot = new THREE.Group();
     pivot.rotation.y = (k * Math.PI) / 3 + Math.PI / 6;
-    const w = inked(wedgeGeo, toonMaterial({ color: k % 2 ? T4_COLORS.plate2 : T4_COLORS.plate }));
+    const w = inked(wedgeGeo, toonMaterial({ color: k % 2 ? T4_COLORS.plate2 : T4_COLORS.plate, fl: T4_FL.gold }));
     pivot.add(w);
     plate.add(pivot);
     wedges.push(w);
   }
   // short tail fibres (gp12)
   const shortGeo = new THREE.IcosahedronGeometry(0.3, 0);
-  const shorts = inkedInstanced(shortGeo, toonMaterial({ color: T4_COLORS.short }), 6 * 7, { width: 0.6 });
+  const shorts = inkedInstanced(shortGeo, toonMaterial({ color: T4_COLORS.short, fl: T4_FL.fibre }), 6 * 7, { width: 0.6 });
   group.add(shorts);
 
   // --- long tail fibres (world space) ---
@@ -200,7 +210,7 @@ export function createT4({ clip = true } = {}) {
   const BPS = 4; // beads per segment
   const perFibre = (NODES - 1) * BPS + 1;
   const beadGeo = new THREE.IcosahedronGeometry(1, 1);
-  const fibreMesh = inkedInstanced(beadGeo, toonMaterial({ color: '#ffffff', mottle: 0.1 }), 6 * perFibre, { width: 0.6 });
+  const fibreMesh = inkedInstanced(beadGeo, toonMaterial({ color: '#ffffff', mottle: 0.1, fl: T4_FL.fibre }), 6 * perFibre, { width: 0.6 });
   const beadR = [], beadC = [];
   for (let f = 0; f < 6; f++) for (let i = 0; i < perFibre; i++) {
     const seg = Math.floor(i / BPS), sub = i % BPS;
@@ -284,7 +294,7 @@ export function createT4({ clip = true } = {}) {
     dnaGeo.setDrawRange(0, Math.floor((dnaIndexCount * clamp01(state.dna)) / 3) * 3);
     headMat.uniforms.uDark.value = state.dark * 0.85;
     capsMat.uniforms.uDark.value = state.dark * 0.85;
-    for (const m of cracks) m.geometry.setDrawRange(0, Math.floor((m.userData.count * clamp01(state.crack)) / 3) * 3);
+    for (const m of cracks) { m.geometry.setDrawRange(0, Math.floor((m.userData.count * clamp01(state.crack)) / 3) * 3); m.visible = state.crack > 0.001; } // no empty draws
   }
 
   function setCapsid(mode) {
@@ -296,7 +306,7 @@ export function createT4({ clip = true } = {}) {
     }
     head.ink.material.uniforms.uOpacity.value = translucent ? 0.35 : 1;
     head.ink.material.transparent = translucent; head.ink.material.needsUpdate = true;
-    caps.ink.visible = !translucent;
+    caps.ink.userData.inkOff = translucent; caps.ink.visible = !translucent && caps.ink.userData.inkOn !== false;
     dna.visible = mode !== 'solid';
     const planes = mode === 'cutaway' ? clipPlanes : [];
     for (const m of [headMat, capsMat, head.ink.material, caps.ink.material, crackMat]) { m.clippingPlanes = planes; m.needsUpdate = true; }

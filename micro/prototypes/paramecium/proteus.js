@@ -220,7 +220,8 @@ export function createProteus(scene, start = new THREE.Vector3(-760, 0, -520)) {
     group.position.set(a.pos.x, H0 * 0.92 * (1 + (a.rise || 0)), a.pos.z);
     group.scale.y = 1 + (a.rise || 0) * 1.4;
     nucleus.position.set(Math.cos(a.heading) * -20, 0, Math.sin(a.heading) * -20);
-    reshape(t);
+    // far from every player (main.js sets skipShape): re-mesh only every 8th step (the CPU reshape and normals are the cost)
+    if (!a.skipShape || (a.shapeTick = (a.shapeTick || 0) + 1) % 8 === 0) reshape(t);
     return a.cup;
   };
   /** Distance from p to the amoeba's edge (0 inside), for markers and defence. */

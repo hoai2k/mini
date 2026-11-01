@@ -1,16 +1,20 @@
-// Encounters: Didinium hunting, and the trichocyst threads left in the water
-// after a discharge.
+// Encounters: the ciliate hunters (two Didinium and a Dileptus), and the
+// trichocyst threads left in the water after a discharge.
 //
 // Didinium nasutum finds prey by bumping into it while swimming fast and
-// rotating; its proboscis fires toxicysts on contact and the Paramecium is
-// reeled in and swallowed whole (S28, S56). Here it also homes on the player
-// within about two body lengths [Departure: chemosensing is not established;
-// it makes the encounter readable]. Trichocyst discharge breaks the hold
-// [S09 shows this against Dileptus; against Didinium it is unverified].
+// rotating; its proboscis fires pexicysts and toxicysts on contact and the
+// Paramecium is reeled in and swallowed whole (S28, S56). Dileptus slashes
+// with a long trunk lined with toxicysts and engulfs at the trunk's base.
+// Here both home on the player within a few body lengths [Departure:
+// chemosensing is not established; it makes the encounter readable], and
+// each keeps to its own waters beyond the halfway point of the route.
+// Trichocysts drive Dileptus off (C14, S09); against Didinium they do not
+// help (C15): main.js plays both outcomes as they are.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { createStrands, KIND } from './strands.js';
 import { DROP_R, DEPTH } from './world.js';
 import { volumeMaterial } from './optics.js';
+import { progress, HALF, DIR } from './landmarks.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), X = new THREE.Vector3(1, 0, 0);
 const qa = new THREE.Quaternion(), qb = new THREE.Quaternion();
@@ -80,7 +84,7 @@ export function createEncounters(scene, world, cell) {
   for (const d of world.didinia) {
     // the toxicyst battery at the proboscis tip: dense, scattering, reddish; shown in the wind-up
     const tipM = new THREE.Mesh(tipGeo, volumeMaterial({ dn: 0.07, scatter: 3.6, absorb: [0.0004, 0.022, 0.03], centred: true, rimPow: 1.3 }));
-    tipM.position.set(64, 0, 0); tipM.visible = false; tipM.frustumCulled = false;
+    tipM.position.set((d.tipLen || 66) - 2, 0, 0); tipM.visible = false; tipM.frustumCulled = false;
     d.group.add(tipM);
     d.tipFx = tipM;
     d.posture = 0;
@@ -98,7 +102,9 @@ export function createEncounters(scene, world, cell) {
       const toP = tmp.subVectors(s.center, d.pos);
       const dist = toP.length();
       // only a hungry Didinium hunts (main.js runs its hunger: shared/predation.js)
-      const canHunt = s.mode !== 'dead' && d.stun <= 0 && d.sated <= 0 && s.safeT <= 0 && d.hungry !== false;
+      // ...and only a player in its waters: beyond halfway and near its home (main.js d.allowed)
+      const canHunt = s.mode !== 'dead' && d.stun <= 0 && d.sated <= 0 && s.safeT <= 0 && d.hungry !== false && (!d.allowed || d.allowed(s));
+      const K = d.speedK || 1, TL = d.tipLen || 66;
       let desired = null, speed = 450;
       if (s.captor === d && (s.mode === 'captured' || s.mode === 'dead')) {
         d.state = s.mode === 'dead' ? (d.followSpeed ? 'swimming off with you' : 'swallowing you') : 'feeding'; speed = s.mode === 'dead' ? d.followSpeed || 0 : 0;
@@ -111,10 +117,10 @@ export function createEncounters(scene, world, cell) {
         const fs = d.fightState || 'stalk';
         desired = toP.clone().normalize();
         if (fs === 'windup') { d.state = 'winding up'; speed = 40; }
-        else if (fs === 'strike') { d.state = 'striking'; speed = Math.min(2600, Math.max(0, dist - 70) / 0.1); }
+        else if (fs === 'strike') { d.state = 'striking'; speed = Math.min(2600, Math.max(0, dist - TL - 4) / 0.1); }
         else if (fs === 'repelled') { d.state = 'repelled'; speed = -520; }
         else if (fs === 'recover') { d.state = 'recovering'; speed = 120; }
-        else { d.state = 'hunting'; speed = dist > 210 ? 1050 : 260; }
+        else { d.state = 'hunting'; speed = (dist > TL + 150 ? 1050 : 260) * K; }
       } else if (canHunt && dist < (opts.homing ? 480 : 0)) {
         // fast and nearly straight: a dash sideways makes it overshoot
         d.state = dist < 200 ? 'striking' : 'hunting'; speed = dist < 200 ? 1250 : 1050;
@@ -130,7 +136,9 @@ export function createEncounters(scene, world, cell) {
         desired = d.wander || d.dir;
         // patrol: drift back toward the player's part of the drop so encounters keep coming
         // (only while hungry: a calm or resting Didinium leaves you be)
-        if (dist > 900 && d.state === 'wandering') desired = desired.clone().addScaledVector(tmp2.copy(toP).setY(0).normalize(), 0.8).normalize();
+        // keep to its own waters (home): it drifts back when it strays
+        if (d.home) { const hx = d.home.x - d.pos.x, hz = d.home.z - d.pos.z, hd = Math.hypot(hx, hz); if (hd > d.homeR * 0.7) desired = desired.clone().addScaledVector(tmp2.set(hx / hd, 0, hz / hd), 1.2 * Math.min(1, hd / d.homeR)).normalize(); }
+        speed *= K;
         if (d.stun > 0) desired = tmp2.subVectors(d.pos, s.center).normalize();
       }
       // keep inside the drop
@@ -150,6 +158,8 @@ export function createEncounters(scene, world, cell) {
       d.pos.addScaledVector(d.dir, d.speed * dt).addScaledVector(world.flowAt(d.pos, t), dt);
       d.pos.y = Math.max(45, Math.min(DEPTH - 45, d.pos.y));
       { const rr = Math.hypot(d.pos.x, d.pos.z); if (rr > DROP_R - 60) { d.pos.x *= (DROP_R - 60) / rr; d.pos.z *= (DROP_R - 60) / rr; } }
+      // never into the calm first half of the route (unless it is carrying you off)
+      if (d.home && s.captor !== d) { const pr = progress(d.pos); if (pr < HALF + 60) d.pos.addScaledVector(DIR, HALF + 60 - pr); }
       // obstacles push it round
       const a = tmp2.copy(d.pos).addScaledVector(d.dir, -25);
       const b = new THREE.Vector3().copy(d.pos).addScaledVector(d.dir, 30);
@@ -178,7 +188,7 @@ export function createEncounters(scene, world, cell) {
         }
       }
       d.tip = d.tip || new THREE.Vector3();
-      d.tip.copy(d.pos).addScaledVector(d.dir, 66);
+      d.tip.copy(d.pos).addScaledVector(d.dir, TL);
       // the proboscis touches the Paramecium: toxicysts fire, it holds on
       if (!opts.fight && canHunt && s.mode !== 'captured') {
         const c = tmp.copy(d.tip);
