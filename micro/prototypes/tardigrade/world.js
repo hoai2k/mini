@@ -14,17 +14,19 @@ import { cellAt, sphagCell, snapToWall, LAMINA, SPHAG, hash1 } from './patterns.
 import { opticalMaterial, leafOpticalMaterial, particleOpticalMaterial, litMaterial, leafLitMaterial } from './materials.js';
 
 // ---------------------------------------------------------------- the rings
-// The owner's encounter pattern (../../design/encounter-pattern.md): rings
-// round the start, the same in every direction. Distances are straight-line,
-// horizontal (x-z), from the start, in units of 100 µm. The default view
-// (12.5×) is 14.4 units across.
+// The scenery is laid out in rings round the start, the same in every
+// direction (the meadows and the dry patches: you push through the one and
+// walk round the other); the enemies and events (Milnesium, the pool and
+// Prionchulus) are placed as you go by the encounter director
+// (encounters.js). Distances are straight-line, horizontal (x-z), from the
+// start, in units of 100 µm. The default view (12.5×) is 14.4 units across.
 export const SPOKES = 12;              // radial chains of leaves, 30° apart
 export const RINGS = {
-  warm: 15,                            // 0-15: the shoot round the start, calm
-  milnesium: { ring: 22, r: 7, leash: 5 }, // its water: 15-29 (it stalks within 6.5); it lets you go past 34
+  warm: 15,                            // 0-15: the shoot round the start
+  milnesium: { r: 7, leash: 5 },       // Milnesium's water round where it is placed (it stalks within 6.5; it lets you go 5 past it)
   meadow: [40, 46],                    // a band of rotifers across every spoke
   dry: [55, 62],                       // dry patches: bare cells, slow going, plain to see
-  portal: 84,                          // the way on: a pool at a spoke's tip
+  portal: 84,                          // the rim: a pool can dip at a spoke's tip here
   post: 4.2,                           // Prionchulus on guard this far inside the portal (it wakes ~10.7 inside)
 };
 /** Where you start (leaf A, 650 µm from its base) and wake after a restart. */

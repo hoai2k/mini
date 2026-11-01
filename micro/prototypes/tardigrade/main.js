@@ -27,6 +27,8 @@ import { Landmarks, PORTAL_IN } from './landmarks.js';
 import { Nematode, GUARD } from './nematode.js';
 import { Meadows } from './meadow.js';
 import { createPortalLight } from '../shared/portal.js';
+import { createDirector } from '../shared/director.js';
+import { DIRECTOR, encounters, canPlace, wayOut } from './encounters.js';
 
 const MODES = ['DIC (Nomarski)', 'Brightfield', 'Lit (hypothetical)'];
 // The second entry is the 10× objective behind a 1.25× intermediate
@@ -96,7 +98,7 @@ const hud = mountHud({
     zoom: 'Magnification 10× / 12.5× / 20× / 40×',
     extra: [['LS click', 'Refocus on the animal'], ['RS click', 'Restart (test)']],
   }),
-  note: 'Goal: head out along the leaves in any direction. The encounters come in rings round the start, the same whichever way you go: a few seconds of calm leaves, then a Milnesium\'s water, a calm stretch, a band of rotifers across the way (push and jab through), another, a stretch of dry patches (bare cells, slow going: walk round them), and about 8.4 mm out the way on: the tip of a broad Sphagnum leaf dipping into the pool under a golden sparkle, guarded by Prionchulus. Lure it off its post (it gives up and glides back slowly), then get round it to the tip, to zoom in to the pool floor. Nothing runs out while you stay put; food heals. The leaf axil at the stem, left of the start (the ring), is the way back up: Y there. Other controllers join with any button. Walking ~30 µm/s at a slight push to ~150 µm/s at full tilt (inside the measured 79-263 µm/s); the scramble (~280 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
+  note: 'Goal: head out along the leaves in any direction. A few seconds of calm leaves, then a Milnesium in its water, a calm stretch, a band of rotifers across the way (push and jab through), a stretch of dry patches (bare cells, slow going: walk round them), and at the rim, about 8.4 mm out, the way on: the tip of a broad Sphagnum leaf dipping into the pool under a golden sparkle, guarded by Prionchulus. Lure it off its post (it gives up and glides back slowly), then get round it to the tip, to zoom in to the pool floor. Nothing runs out while you stay put; food heals. The leaf axil at the stem, left of the start (the ring), is the way back up: Y there. Other controllers join with any button. Walking ~30 µm/s at a slight push to ~150 µm/s at full tilt (inside the measured 79-263 µm/s); the scramble (~280 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
 });
 
 const toast = (t, ms) => hud.toast(t, ms);
@@ -159,6 +161,10 @@ const lifeEvents = (a) => ({
 });
 const life = new Life(world, walker, creature, lifeEvents(p1));
 const predator = new Predator(scene, world, { toast, rumble });
+// Milnesium's water (placed by the director: see "the encounters, placed as you go" below)
+const MZ = RINGS.milnesium;
+const mz = { p: new THREE.Vector3(1e5, 0, 1e5), entered: false, placed: false, slot: null, t: 0 };
+let milOn = true; // the feature switch (Simulation → Milnesium)
 const dash = createDash({ duration: 0.9, cooldown: 2.6 });
 Object.assign(p1, { walker, life, dash, particles: null });
 animals.push(p1);
@@ -309,7 +315,7 @@ F({ id: 'footholds', group: 'Motion', label: 'Claws need cell walls', on: true,
 F({ id: 'gravity', group: 'Motion', label: 'Slope load and slipping (exaggerated)', on: true,
   about: 'Steep and overhanging faces need more claws planted, or the animal slides. Real 0.35 mm animals are held mainly by surface tension; this is a game rule.', onChange: (v) => (walker.opts.gravity = v) });
 F({ id: 'rings', group: 'Simulation', label: 'Rings round the start (the encounter pattern)', fixed: true,
-  about: 'The shoot round the start, then a spoke of leaves every 30° out to the portal ring (~8.4 mm), with the same encounters at the same distances whichever way you go: calm leaves for the first ~1.5 mm, Milnesium\'s water (1.5-2.9 mm), a calm stretch, a band of rotifers across every spoke (4.0-4.6 mm), another, dry patches (5.5-6.2 mm), another, and the portal with Prionchulus at 8.4 mm. One Milnesium is moved round its ring, out of sight, to the spoke of whoever is coming out (never while it is busy with someone). No drying clock, no water meter, no hunger: nothing runs out while you stay in a safe spot.' });
+  about: 'The shoot round the start, then a spoke of leaves every 30° out to the rim (~8.4 mm), with the same scenery at the same distances whichever way you go: a band of rotifers across every spoke (4.0-4.6 mm) and dry patches (5.5-6.2 mm). The enemies and events are placed as you go (shared/director.js), in order, on leaves nobody has seen yet a little ahead of whoever leads along their spoke: after a few seconds, Milnesium in its water; after a long calm (the meadow, the dry patches), the pool at the rim of your spoke with Prionchulus on guard. Linger and they come to you all the same. No drying clock, no water meter, no hunger: nothing runs out while you stay in a safe spot.' });
 F({ id: 'capacity', group: 'Simulation', label: 'Film capacity field', fixed: true,
   about: 'Per leaf: wetter towards the stem, in random hollows and where another leaf nearly touches (capillary bridges); margins thinner. The dry ring\'s patches are bare: no film, a sharp contact line round them, slow going (claws on dry cell walls). The film does not dry out over time.' });
 F({ id: 'labels', group: 'Controls', label: 'Anatomy labels', on: false, about: 'Name the claws, leg IV, buccal tube, bulb, eyespot, gut and storage cells (LB).', onChange: (v) => (view.labels = v) });
@@ -322,10 +328,10 @@ F({ id: 'smooth', group: 'Motion', label: 'Smoothed trunk and camera', on: true,
   about: 'The trunk follows its target through three lags in series, and a change of face (a transfer, the leaf margin, a fall) blends the old pose out over a smootherstep, so position, velocity and acceleration stay continuous. Slipping uses grip hysteresis (slide below 85% of the load for 0.6 s, catch at 75%). Off: the old single lag.',
   onChange: (v) => (walker.opts.smooth = v) });
 F({ id: 'milnesium', group: 'Simulation', label: 'Milnesium (predator)', on: true,
-  about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It browses in its water on the first ring (1.5-2.9 mm out) and hunts only a player in its water (it lets you go ~0.5 mm past it); it is moved round its ring, unseen, to meet whoever is coming out. A moment after someone first comes into its water it gets hungry, then hunger comes and goes (see Threats); only hungry does it close in, stalk you within ~650 µm and bite (each bite −25% health; at none, it grips you and swallows you whole, all of it shown). After a bite it lets go, backs off and rests 45-75 s. Escape: scramble (A) past it, retreat into film too thin for its body (a dry patch), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
-  onChange: (v) => { predator.on = v; predator.setVisible(v); } });
+  about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It browses in its water (placed as you go: the first encounter, a few seconds out, on a leaf nobody has seen yet a little ahead of you) and hunts only a player in its water (it lets you go ~0.5 mm past it). A moment after someone first comes into its water it gets hungry, then hunger comes and goes (see Threats); only hungry does it close in, stalk you within ~650 µm and bite (each bite −25% health; at none, it grips you and swallows you whole, all of it shown). After a bite it lets go, backs off and rests 45-75 s. Escape: scramble (A) past it, retreat into film too thin for its body (a dry patch), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
+  onChange: (v) => { milOn = v; predator.on = v && mz.placed; predator.setVisible(v && mz.placed); } });
 F({ id: 'boss', group: 'Simulation', label: 'Prionchulus (the boss)', on: true,
-  about: 'A predatory nematode (~1.3 mm here; adults reach ~2 mm) on guard at the portal, 420 µm inside it, placed with the portal on the spoke of whoever first nears the portal ring. Reaching the portal while it guards turns you back. It wakes when you come within ~650 µm of its post and follows you up to ~850 µm from it; then (or when it has lost you) it glides back at 30 µm/s, ignoring everyone: that is the way in. Its tells: coiling into an S (then a forward whip) or rippling fast (then a sideways sweep), tooth bared. Brace (B) facing it to block, jab its head (X) as it recovers. Worn down (the brass resolve gauge), it slides away into a deep groove for good, leaving the way open. Off: the portal is open.',
+  about: 'A predatory nematode (~1.3 mm here; adults reach ~2 mm) on guard at the portal, 420 µm inside it, placed with the portal (the last encounter) at the rim of the spoke whoever leads is heading out along. Reaching the portal while it guards turns you back. It wakes when you come within ~650 µm of its post and follows you up to ~850 µm from it; then (or when it has lost you) it glides back at 30 µm/s, ignoring everyone: that is the way in. Its tells: coiling into an S (then a forward whip) or rippling fast (then a sideways sweep), tooth bared. Brace (B) facing it to block, jab its head (X) as it recovers. Worn down (the brass resolve gauge), it slides away into a deep groove for good, leaving the way open. Off: the portal is open.',
   onChange: (v) => { boss.on = v; if (!v) boss.group.visible = false; else boss.group.visible = boss.placed; } });
 F({ id: 'meadow', group: 'Simulation', label: 'Rotifer meadow (a crowd)', on: true,
   about: 'On the meadow ring (4.0-4.6 mm out): a band of ~110 bdelloid rotifers across every spoke\'s leaf, anchored by the foot, swaying, their wheel-like coronae beating. Walk into them and they bend aside; a stylet jab (X) makes those in front contract onto their foot and opens a lane (they re-extend later, a little further off). They never hurt you; a dense patch slows you by up to a quarter. No timer. Only bands with someone on their leaf move. shared/crowd.js.',
@@ -535,7 +541,7 @@ function captureRespawn() {
  * nearest calm stretch behind you (or the start), well away from whatever
  * caught you. Never further back than that.
  */
-const SAFE_R = [0, (RINGS.milnesium.ring + RINGS.milnesium.r + RINGS.milnesium.leash + RINGS.meadow[0]) / 2, (RINGS.meadow[1] + RINGS.dry[0]) / 2, (RINGS.dry[1] + RINGS.portal - RINGS.post - 6.5) / 2];
+const SAFE_R = [0, (RINGS.warm + RINGS.meadow[0]) / 2, (RINGS.meadow[1] + RINGS.dry[0]) / 2, (RINGS.dry[1] + RINGS.portal - RINGS.post - 6.5) / 2];
 function respawnSafe(a) {
   const p = a.walker.dispPos.clone(), r = world.radius(p), k = world.spokeOf(a.walker.leaf, p);
   a.life.respawn();
@@ -667,45 +673,46 @@ function fireLandmark(kind, a) {
   embed.landmark(kind, { player: a.slot });
 }
 
-// ---------------------------------------------------------------- the rings: one Milnesium, met in every direction
-// There is one Milnesium. Its water (RINGS.milnesium) is moved round its ring
-// to the spoke of whoever is coming out (from a little before its water to
-// its middle, the one farthest out first), out of everyone's sight: only
-// while it is not busy with anyone (hunting, stalking, backing off, holding
-// anyone, or anyone within its leash), and only when both where it is and
-// where it goes are farther than UNSEEN from every player (the 10× field is
-// 18 units across). It is never put on a player.
-const UNSEEN = 10;
-const MZ = RINGS.milnesium;
-const mz = { k: -1, p: new THREE.Vector3(), entered: false };
-const relocLog = [];
+// ---------------------------------------------------------------- the encounters, placed as you go
+// The director (../shared/director.js; design/encounter-pattern.md, "Placed
+// as you go") places the enemies and events one at a time, in this order, on
+// leaves nobody has seen yet, a short way ahead of whoever leads along their
+// spoke (or, if they linger, round them): Milnesium in its water, then the
+// pool at a rim leaf's tip with Prionchulus on guard (encounters.js). Each
+// comes only after the one before was met and a calm break has passed;
+// nothing a player has seen is placed, moved or removed. The meadows and the
+// dry patches are scenery (world.js). Until placed, Milnesium is hidden and
+// still, and there is no pool at any rim.
 const alive = (a) => a.life.state !== 'caught' && a !== captive;
-const unseen = (p) => animals.every((a) => a.walker.dispPos.distanceTo(p) > UNSEEN);
 /** Is p in Milnesium's water (plus pad)? */
 const inZone = (p, pad = 0) => mz.p.distanceTo(p) < MZ.r + pad;
-/** Put Milnesium's water (and it, browsing, facing back the way you come) on spoke k. */
-function placeZone(k, why = 'init') {
-  const at = world.spokeAt(k, MZ.ring, 2);
-  const back = _zb.subVectors(START, at.p);
-  let hu = back.dot(at.leaf.U), hv = back.dot(at.leaf.V);
-  const l = Math.hypot(hu, hv) || 1;
-  predator.setHome(at.leaf, at.u, at.v, hu / l, hv / l);
-  predator.walker.dispPos.copy(predator.walker.tPos);
-  mz.k = k; mz.p.copy(at.p);
-  if (why !== 'init') relocLog.push({ k, t: +time.toFixed(2), why });
-}
 const _zb = new THREE.Vector3();
+/** Put Milnesium's water on walkable spot s ({ leaf, u, v, p }), it browsing there, facing back toward the start. */
+function placeMilnesium(s) {
+  const back = _zb.subVectors(START, s.p);
+  let hu = back.dot(s.leaf.U), hv = back.dot(s.leaf.V);
+  const l = Math.hypot(hu, hv) || 1;
+  predator.setHome(s.leaf, s.u, s.v, hu / l, hv / l);
+  predator.walker.dispPos.copy(predator.walker.tPos);
+  predator.reset();
+  mz.p.copy(s.p); mz.placed = true; mz.slot = s; mz.t = 0; mz.entered = false;
+  predator.on = milOn; predator.setVisible(milOn);
+}
+/** No Milnesium (a new game): hidden, still, its water far off. */
+function parkMilnesium() {
+  mz.placed = false; mz.slot = null; mz.entered = false; mz.p.set(1e5, 0, 1e5);
+  predator.on = false; predator.setVisible(false);
+}
 /** Is Milnesium busy with someone (it then stays where it is)? */
 function engaged() {
   if (predator.state !== 'wander' || (capture.active && captor === 'milnesium')) return true;
   return animals.some((a) => alive(a) && inZone(a.walker.dispPos, MZ.leash + 2));
 }
-// The portal: placed once a game on the spoke of the first player to come
-// within PORTAL_SEEN of its ring (out of everyone's sight), with Prionchulus
-// on guard RINGS.post inside it. The arrow shows once it has been found
-// (someone has been within FOUND of it); before that its golden light spills
-// in from the edge of the view on its side.
-const PORTAL_SEEN = 14, FOUND = 9, HINT = 9;
+// The portal: the last encounter, on the rim of the spoke whoever leads is
+// heading out along (out of everyone's sight), with Prionchulus on guard
+// RINGS.post inside it. No arrow: its golden light spills in from the edge of
+// the view on its side, and haloes it once in view.
+const FOUND = 9, HINT = 9;
 const portal = { placed: false, k: -1, leaf: null, found: false, hinted: false, turned: false, t: null };
 function placePortal(k) {
   const L = world.spokes[k].leaves.at(-1);
@@ -714,46 +721,70 @@ function placePortal(k) {
   applyMode(view.mode); // the pool's material follows the look
   boss.setPost(L, L.len - PORTAL_IN - RINGS.post, 0);
   Object.assign(portal, { placed: true, k, leaf: L, found: false, hinted: false, turned: false, t: +time.toFixed(2) });
+  const lead = director.leader && animals.find((a) => a.slot === director.leader.id);
+  logChallenge('portal', lead || p1);
 }
 /** Is Prionchulus on guard at the portal (placed, at its post, not lured off or beaten)? */
 const guarded = () => boss.guarding;
-function moveRings() {
-  // Milnesium: whoever is approaching its ring, farthest out first
-  const lo = MZ.ring - MZ.r - 6, hi = MZ.ring + MZ.r;
-  const who = animals.filter(alive).map((a) => ({ a, r: world.radius(a.walker.dispPos) })).filter((o) => o.r > lo && o.r < hi).sort((x, y) => y.r - x.r);
-  if (who.length && !engaged()) {
-    const a = who[0].a, k = world.spokeOf(a.walker.leaf, a.walker.dispPos);
-    if (k !== mz.k && unseen(predator.walker.dispPos) && unseen(world.spokeAt(k, MZ.ring, 2).p)) placeZone(k, `slot ${a.slot}`);
+const E = encounters(world);
+const ENC = {
+  milnesium: { place: (x, z) => { const s = E.milAt(x, z); placeMilnesium(s); return s; },
+    met: (h, [p]) => { const a = animals.find((b) => b.slot === p.id); return !!a && (inZone(a.walker.dispPos) || a.walker.dispPos.distanceTo(predator.walker.dispPos) < 5); } },
+  // the last: entering the open portal ends the level
+  portal: { place: (x, z) => { const R = E.rimAt(x, z); placePortal(R.k); return R; }, met: () => false },
+};
+const director = createDirector({ ...DIRECTOR, canPlace, progress: (p) => world.radius(p), entries: E.list.map((e) => ({ ...e, ...ENC[e.id] })) });
+/** How far through the encounters the game is: met / all (0..1). */
+const encounterProgress = () => director.index / E.list.length;
+let seenViews = null;
+const _lastP = new Map();
+function stepDirector(dt) {
+  const ps = animals.map((a) => ({ id: a.slot, x: a.walker.dispPos.x, y: a.walker.dispPos.y, z: a.walker.dispPos.z, alive: alive(a) && a.life.state === 'active' }));
+  // "ahead" on a spoke is along the spoke whoever leads is heading out on
+  const lead = director.leader && animals.find((a) => a.slot === director.leader.id);
+  if (lead && dt > 0) {
+    const p = lead.walker.dispPos, q = _lastP.get(lead) || p;
+    E.prefer = wayOut(world, lead.walker.leaf, p, (p.x - q.x) / dt, (p.z - q.z) / dt);
   }
+  for (const a of animals) (_lastP.get(a) || _lastP.set(a, new THREE.Vector3()).get(a)).copy(a.walker.dispPos);
+  const ev = director.update(dt, ps, seenViews);
+  seenViews = null;
+  for (const e of ev) if (e.type === 'met') logChallenge(`${e.id}Met`, animals.find((a) => e.by && a.slot === e.by[0]) || p1);
+  driftMilnesium(dt);
   // first into its water: its hunger starts a moment later (until then it only browses)
-  if (!mz.entered) {
+  if (mz.placed && !mz.entered) {
     const a = animals.find((b) => alive(b) && inZone(b.walker.dispPos));
     if (a) { mz.entered = true; predator.hunger.reset(predator.pace.grace); logChallenge('milnesiumWater', a); }
     else predator.hunger.reset(predator.pace.grace);
   }
-  // the portal: once a game, on the lead player's spoke (or the nearest one it can go on unseen)
-  if (!portal.placed) {
-    const lead = animals.filter(alive).map((a) => ({ a, r: world.radius(a.walker.dispPos) })).sort((x, y) => y.r - x.r)[0];
-    if (lead && lead.r >= RINGS.portal - PORTAL_SEEN) {
-      const k0 = world.spokeOf(lead.a.walker.leaf, lead.a.walker.dispPos);
-      for (let i = 0; i < SPOKES; i++) {
-        const k = (k0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) + SPOKES) % SPOKES;
-        const L = world.spokes[k].leaves.at(-1);
-        if (unseen(L.toWorld(L.len - PORTAL_IN, 0, 0))) { placePortal(k); logChallenge('portal', lead.a); break; }
-      }
-    }
-  }
 }
-/** A restart: Milnesium back on the +x spoke, no portal, the meadows out again. */
+/**
+ * Milnesium placed out of a lingering player's reach wanders over: its water
+ * (its home, which it keeps near) drifts toward the leader at MIL_DRIFT units
+ * a second until they are in it. Behaviour, not a placement.
+ */
+const MIL_DRIFT = 0.8;
+function driftMilnesium(dt) {
+  const S = director.entry('milnesium');
+  if (!mz.placed || !S || S.state !== 'placed') return;
+  mz.t += dt;
+  const lead = director.leader, a = lead && animals.find((b) => b.slot === lead.id);
+  if (mz.t < 5 || !a || lead.moving || predator.state !== 'wander' || (capture.active && captor === 'milnesium') || inZone(a.walker.dispPos)) return;
+  const p = a.walker.dispPos, d = mz.p.distanceTo(p) || 1;
+  mz.p.addScaledVector(_zb.subVectors(p, mz.p), (MIL_DRIFT * dt) / d);
+  if (predator.home) predator.home.copy(mz.p);
+}
+/** A restart: the director starts over (Milnesium hidden, no portal), the meadows out again. */
 function restartRings() {
-  predator.reset(); placeZone(0); mz.entered = false;
+  director.reset();
+  predator.reset(); parkMilnesium();
   boss.unplace(); places.clearForward(); world.pool = null;
   Object.assign(portal, { placed: false, k: -1, leaf: null, found: false, hinted: false, turned: false, t: null });
   meadow.reset();
   lm.fired = false;
   challenges.length = 0;
 }
-placeZone(0);
+parkMilnesium();
 
 // ---------------------------------------------------------------- the portal (the way on)
 // Reaching the portal (the rim leaf's tip, either face) zooms into the next
@@ -829,6 +860,15 @@ function inputOf(a, inMenu) {
   return { P: (b) => a.pad.pressed(b), D: (b) => a.pad.down(b), dashPressed: a.ctl.dash.pressed(), ls: moveOf(a) };
 }
 
+/** Tests that step without drawing: the camera and the views as a drawn frame would have them, so the director sees what they see. */
+function stepViews(dt) {
+  placeViewCamera(dt);
+  split.update(animals.map((a) => ({ slot: a.slot, position: shownAt(a, a.shown || (a.shown = new THREE.Vector3())) })), { camera }, dt);
+  viewN = 0;
+  const L = split.layout;
+  if (L.views.length <= 1) split.withView(0, camera, noteView);
+  else for (const v of L.views) split.withView(v.index, camera, noteView);
+}
 const api = window.__micro = { cullViews: true, // per-view culling of the animals (false for A/B checks)
   SOFTWARE, scene, camera, renderer, world, walker, creature, life, mic, view, features, applyMode, pad, predator, dash, capture, paused: false,
   players, animals, split, marks, places, landmarks: lm, boss, quality, get captor() { return captor; },
@@ -838,6 +878,7 @@ const api = window.__micro = { cullViews: true, // per-view culling of the anima
     // buttons: { down: [button ids held], pressed: [button ids pressed this step] }
     const down = new Set(buttons.down || []), pr = new Set(buttons.pressed || []);
     step(dt, { P: (b) => pr.has(b), D: (b) => down.has(b) || pr.has(b), dashPressed: pr.has(0), ls: stick ? { x: stick.x, y: stick.y, m: Math.min(1, Math.hypot(stick.x, stick.y)) } : ZERO });
+    stepViews(dt);
   },
   render(dt = 1 / 30) { renderView(dt); readout(); },
   pacing() {
@@ -867,12 +908,16 @@ const api = window.__micro = { cullViews: true, // per-view culling of the anima
   place(slot, leaf, u, v, side = 1) { const a = animals.find((b) => b.slot === slot); if (a) a.walker.spawn(world.leaves[leaf], side, u, v, 1, 0); },
   get layout() { return split.layout; },
   meadow, challenges, progress: (slot = 0) => progress((animals.find((b) => b.slot === slot) || p1).walker.dispPos),
-  relocLog, rings: RINGS,
-  /** The layout: the rings (units of 100 µm, from the start), each spoke's leaves and where its encounters sit. */
+  rings: RINGS,
+  /** The director (shared/director.js): state(), seenAt(x, y, z), placeNow(), log. */
+  director, encounters: () => director.state(), seenAt: (x, y, z) => director.seenAt(x, y, z), placeNow: () => director.placeNow(),
+  /** Testing: the camera and the views' frustums as a drawn frame would have them (for the director), without drawing. */
+  views(dt = 1 / 30) { stepViews(dt); },
+  /** The layout: the rings (units of 100 µm, from the start), each spoke's leaves and where its scenery sits, and where Milnesium is now. */
   route() {
     const um = (p) => Math.round(world.radius(p) * 100);
-    return { rings: RINGS, start: START.toArray(), spokes: world.spokes.map((sp) => ({ k: sp.k, bearing: Math.round(sp.a * 180 / Math.PI), exitUm: um(sp.exit.p), leaves: sp.leaves.map((L) => L.id),
-      milnesiumUm: um(world.spokeAt(sp.k, MZ.ring, 2).p), meadowUm: [um(meadowBands[sp.k].leaf.toWorld(meadowBands[sp.k].u0, 0, 0)), um(meadowBands[sp.k].leaf.toWorld(meadowBands[sp.k].u1, 0, 0))],
+    return { rings: RINGS, start: START.toArray(), milnesium: mz.placed ? { um: um(mz.p), spoke: mz.slot.spoke, leaf: mz.slot.leaf.id } : null, spokes: world.spokes.map((sp) => ({ k: sp.k, bearing: Math.round(sp.a * 180 / Math.PI), exitUm: um(sp.exit.p), leaves: sp.leaves.map((L) => L.id),
+      meadowUm: [um(meadowBands[sp.k].leaf.toWorld(meadowBands[sp.k].u0, 0, 0)), um(meadowBands[sp.k].leaf.toWorld(meadowBands[sp.k].u1, 0, 0))],
       dry: sp.leaves.flatMap((L) => L.dry.map((d) => um(L.toWorld(d.u, d.v, 0)))), portalUm: um(sp.leaves.at(-1).toWorld(sp.leaves.at(-1).len - PORTAL_IN, 0, 0)) })) };
   },
   /** How far out player `slot` is (units of 100 µm) and on which spoke. */
@@ -887,10 +932,14 @@ const api = window.__micro = { cullViews: true, // per-view culling of the anima
     return { placed: portal.placed, spoke: portal.k, x: f.x, y: f.y, z: f.z, found: portal.found, guarded: portal.placed && guarded(), open: portal.placed && !guarded(),
       boss: { state: boss.state, fromPost: portal.placed ? +boss.fromPost.toFixed(2) : null, interest: +boss.interest.toFixed(2) }, glow: +places.glow.open.toFixed(2), t: portal.t };
   },
-  /** Testing: place the portal now on spoke `k` (default: player `slot`'s spoke). */
-  placePortal(k = null, slot = 0) { const a = animals.find((b) => b.slot === slot) || p1; placePortal(k ?? world.spokeOf(a.walker.leaf, a.walker.dispPos)); return api.portal(); },
-  /** Testing: put Milnesium's water on spoke `k`. */
-  placeZone(k) { placeZone(k, 'test'); return { k: mz.k, p: mz.p.toArray() }; },
+  /**
+   * Testing only (it breaks the order on purpose): the portal now on spoke `k`
+   * (default: player `slot`'s spoke). director.force marks every earlier
+   * encounter met ('forced').
+   */
+  placePortal(k = null, slot = 0) { const a = animals.find((b) => b.slot === slot) || p1; const R = E.rims[k ?? world.spokeOf(a.walker.leaf, a.walker.dispPos)]; api.placeEncounter('portal', R.spot.x, R.spot.z); return api.portal(); },
+  /** Testing only: place encounter `k` ('milnesium' | 'portal') at (x, z), snapped to a leaf (a rim for the portal), out of order. */
+  placeEncounter(k, x, z, b = 0) { const pr = E.prefer; E.prefer = null; try { return director.force(k, x, z, b); } finally { E.prefer = pr; } },
   /** Go through the portal now as player `slot` (what reaching it while open does). */
   enterPortal(slot = 0) { lm.fired = false; enterPortal(animals.find((b) => b.slot === slot) || p1); },
   /** Testing: a restart (the RS button). */
@@ -1017,7 +1066,7 @@ function step(dt, G) {
     if (L.state === 'active' && world.filmAt(w.leaf, w.u, w.v) < 0.03 && w.speed > 0.05) logChallenge('dry', a);
   }
   setNear(backNear);
-  moveRings();
+  stepDirector(dt);
   checkPortal();
 
   // The rotifer meadow: pushed aside by every animal in it.
@@ -1298,6 +1347,7 @@ function placeViewCamera(dt) {
 }
 function drawViews(dt) {
   const solo = animals.length === 1;
+  viewN = 0;
   // Split screen (one view, straight to the screen, while together).
   const list = animals.map((a) => ({ slot: a.slot, position: shownAt(a, a.shown || (a.shown = new THREE.Vector3())) }));
   split.update(list, { camera }, dt);
@@ -1329,10 +1379,10 @@ function drawViews(dt) {
   // Edge arrows (shared/landmark.js) and, with more than one player, a ring in each player's colour.
   marks.begin();
   portalLight.begin();
-  // no arrow until the portal is found; then it points the way back to it.
-  // Its golden light spills in from that edge once it is placed (or haloes it in view): no text
+  // no arrow (the owner: keep moving and you find it): once placed, the portal's golden
+  // light spills in from the edge of the view on its side (or haloes it in view); no text
   if (portal.placed && !(capture.active && solo)) {
-    const res = portal.found ? marks.drawSplit(split, places.forward, { kind: 'forward', range: 30 }) : marks.drawSplit(split, places.forward, { kind: 'forward', range: 30, nearAlpha: 0, farAlpha: 0 });
+    const res = marks.drawSplit(split, places.forward, { kind: 'forward', range: 30, nearAlpha: 0, farAlpha: 0 });
     let d = Infinity;
     for (const a of animals) d = Math.min(d, a.walker.dispPos.distanceTo(places.forward));
     portalLight.drawSplit(split, res, { strength: THREE.MathUtils.clamp(1.15 - d / 30, 0.3, 1), open: places.glow.open });
@@ -1409,7 +1459,21 @@ function cullAnimals(cam, box = null) {
 }
 function uncullAnimals() { for (const g of cullHid) g.visible = true; cullHid.length = 0; }
 
+// What every view sees, for the director: its frustum and the point it frames (the camera's target at its distance).
+const viewPool = [0, 1, 2, 3].map(() => ({ frustum: new THREE.Frustum(), focus: new THREE.Vector3() }));
+const _vm = new THREE.Matrix4(), _vdir = new THREE.Vector3();
+let viewN = 0;
+function noteView() {
+  if (viewN >= 4) return;
+  const v = viewPool[viewN++];
+  camera.updateMatrixWorld();
+  v.frustum.setFromProjectionMatrix(_vm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+  camera.getWorldDirection(_vdir);
+  v.focus.copy(camera.position).addScaledVector(_vdir, view.dist || camera.position.distanceTo(view.target));
+  seenViews = viewPool.slice(0, viewN);
+}
 function drawView(v, target, dt) {
+  noteView();
   cullAnimals(camera);
   try { drawViewCulled(v, target, dt); } finally { uncullAnimals(); }
 }

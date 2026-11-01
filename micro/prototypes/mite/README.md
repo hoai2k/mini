@@ -11,61 +11,78 @@ back.
 
 Open `micro/prototypes/mite/` (the invite gate is off on localhost).
 
-**Goal:** head out through the moss in any direction. The level is a set of
-rings round the start, the same whichever way you go (the encounter pattern,
-`../../design/encounter-pattern.md`); 37.5 mm out (`PORTAL_R`) is the way on:
-a wet leaf axil under a golden glow, where a tardigrade walks in the water,
-guarded by a pseudoscorpion. Lure it off its post and get round it (or bite
+**Goal:** head out through the moss in any direction. The encounters are
+placed as you go, in order, in moss you have not seen yet (the encounter
+pattern, `../../design/encounter-pattern.md`, "Placed as you go"): after a
+few seconds the predatory mite, after a calm stretch the predatory mite
+again, and then the way on: a wet leaf axil under a golden glow, where a
+tardigrade walks in the water, guarded by a pseudoscorpion. Lure it off its post and get round it (or bite
 its pincer joints until it backs into the moss), reach the water, and in the
 Micro Zoom game the light changes to the tardigrade's world. Nothing runs you
 down while you stay put: no hunger, no timers; food heals nothing and is
 never needed, it is grazing.
 
-## The rings (`layout.js`)
+## The encounters, placed as you go (`layout.js`, `../shared/director.js`)
 
-The owner (2026-11-01): obstacles soon but not immediately, the same in every
-direction, spaced about evenly from the warm-up to the boss, a portal and its
-boss far enough out in any direction, and no arrow ("keep moving in any
-direction and we will eventually find a portal"). By distance from the start:
+The owner (2026-11-01): obstacles soon but not immediately, calm breaks
+between, a portal and its boss at the end whichever way you go, no arrow;
+and "feel free to place things in the world dynamically … keep the areas
+they've explored constant … don't skip obstacles". So the scenery is laid
+out before play and the enemies and events are placed by the shared
+encounter director (`createDirector` with `layout.js` `DIRECTOR` and
+`ENCOUNTERS`; `main.js` adds what placing and meeting each one does).
 
-| From (mm) | What |
-| --- | --- |
-| 0–3.8 | Warm-up: open moss (the start's ten shoots), extra spores and hyphal tips to graze, the second box mite, the giant springtail (the backdoor) behind the start view |
-| 3.8–6.2 | **Thickets, ring 1** (`CLUSTERS`): 13 hyphal thickets full of springtails, 1.64 mm across, round the 5 mm ring (alternately 0.35 mm in and out), so every straight way out passes within 0.4 mm of one (`route.test.mjs` checks every half degree) |
-| 11.3–14.2 | **The predatory mite**, on its hunting ground (1.1 mm radius, plus a 0.7 mm chase) on the 12.4 mm ring |
-| 19.1–21.5 | **Thickets, ring 2**: 54 more round the 20.3 mm ring |
-| 27.5–30.4 | **The predatory mite again**, on the 28.6 mm ring |
-| 36–37.5 | **The pseudoscorpion** on guard (it wakes 0.9 mm from its post, 0.6 mm before the water and 0.5 mm to the side), and **the portal** at 37.5 mm |
+**Scenery (laid out, anywhere, you can walk round all of it):** the moss
+tile in every direction (see World), the start's ten shoots, spores and
+hyphal tips to graze, the second box mite, the giant springtail (the
+backdoor) behind the start view, and the **hyphal thickets full of
+springtails** (`CLUSTERS`: 13 round the 5 mm ring and 54 round the 20.3 mm
+ring, each 1.64 mm across, alternately 0.35 mm in and out, so every straight
+way out passes within 0.4 mm of one on each ring and there is always a way
+round). The thickets are a harmless crowd you push or bite through (a drag,
+never a stop), so they are scenery, not encounters.
 
-Between them, calm stretches of 4.9–6.0 mm (7–8 s of rushing). Rushing
-straight out (a script hurrying with RB and scrambling whenever the stamina
-allows, the predator and the boss passive, steering round whatever blocks
-it) from the opening bearing and at +90°, +180° and +270°: the first thicket
-came within 0.4 mm at 5.5, 4.6, 10.1 and 15.1 s (the last two after the
-script had bumped about the start's moss shoots and the giant springtail for
-~4 and ~10 s), and the water was reached at 50.4, 55.3, 61.3 and 65.7 s
-(2–10 s of such stalls included). In every run the predator was moved out
-of sight to meet the script on both its rings, and the portal was placed on
-its bearing, out of view, about 10 s before it got there. Over open moss rushing
-averages ~735 µm/s; hurrying alone, ~585 (about 65 s out). Dealing with the
-thickets, the predator twice and the pseudoscorpion makes it a few minutes.
+**The encounters, in order** (`ENCOUNTERS`), each placed by the director in
+moss nobody has seen yet (a 0.5 mm grid marked from every view's frustum
+within 4.2 mm of what it frames, plus 0.45 mm round every player), out of
+every view, a short way ahead of whoever leads (or, if they linger, round
+them), and only after the one before was met and a calm break has passed:
 
-**One predator, met in every direction.** There is one predatory mite. When
-a player comes within 5 mm of its ground's ring (`LEAD`), at a bearing away
-from where its ground is, its ground and the predator are moved round to
-that ring at that bearing (`placeZone` in `main.js`, like the springtail's):
-only while it is not busy with anyone (hunting, striking, recovering, or
-anyone within 1.8 mm of it), and only when no view's frustum holds where it
-is or where it goes and both are more than 1.5 mm (plus its ground's radius)
-from every player, so nobody sees it move. In multiplayer the one farthest
-out decides. A new game puts it ahead of the start view on the inner ring.
-The thickets do not move: they are laid out as rings of clusters.
+| # | What | Placed | Met |
+| --- | --- | --- | --- |
+| 1 | **The predatory mite** on its hunting ground (1.1 mm radius, plus a 0.7 mm chase) | after the warm-up (5 s of moving), 3.8–5.8 mm ahead (2.6–4 mm round a lingering player), its ground clear of the thickets, the giant springtail and the second box mite | within 1.5 mm of its ground's centre or of it |
+| 2 | **The predatory mite again** (the same one: it has gone on through the moss) | after 8 s of moving clear of the first, the same way; only once it is out of every view and busy with nobody (so nobody sees it go) | as above |
+| 3 | **The pseudoscorpion and the portal** (the wet leaf axil) | after 9 s of moving clear of the second, 5.2–7.8 mm ahead (3.6–5.2 mm round a lingering player), the water's 1.5 mm arena, the post and the boss's retreat clear of the thickets, the stem and glow (2.4 mm tall) out of every view | entering the open portal |
 
-**The portal and the boss.** The portal is placed once a game, on its ring at
-the bearing of the first player to get 29.5 mm out (`PORTAL_PLACE`), or the
-nearest bearing within ±60° where no view could see it or the pseudoscorpion
-(`placePortal`); the moss shoots stand aside there (an exclusion disc: its
-arena). Its golden glow (`shared/portal.js`) then draws you on; there is no
+Anything placed but not yet seen moves (unseen to unseen) if the leader
+heads elsewhere; anything seen stays where it is (seen and walked away from,
+it counts as met). A predator placed beyond a lingering player's reach
+wanders over: its ground drifts toward the leader at 200 µm/s after 5 s
+(`driftPred`, behaviour rather than a placement). Until placed, the
+predator is hidden, parked in a corner of the square and not stepped, and
+there is no portal; a new game (`resetLevel`) starts the director over.
+
+**Timing.** `route.test.mjs` runs the director with the SEM view's own
+frustum and a player rushing (~730 µm/s, a third slower in a thicket) in 16
+directions: the predator placed at 5.1 s and met at 8.3–9.5 s, placed again
+at 20.9–22.1 s and met at 30.0–35.4 s, the portal placed at 43.5–48.1 s and
+reached at 50.2–54.8 s. On the page (a script hurrying with every scramble
+the stamina allows, steering round whatever blocks it, the predator and the
+boss passive, views from the camera each step), from the opening bearing and
++90°, +180°, +270°: met the predator at 12.4, 8.1, 18.4 (after ~6 s stuck
+among the start's shoots) and 8.6 s, again at 26.9, 32.3, 35.2 and 32.5 s,
+and reached the water at 47.1, 52.4, 55.6 and 49.7 s. Lingering at the
+start: the predator placed round them at 11 s and over to them by 21.5 s,
+again at 35.5 and 46 s, the portal placed 6.9 mm off (just past the inner
+thickets: there is no room for its arena nearer) at 61 s and reached at
+72 s. Turning back 6 s out: the unseen predator was moved to follow (twice)
+and met at 23.7 s, the portal reached at 64.6 s. Dealing with the predator
+twice and the pseudoscorpion makes it a few minutes.
+
+**The portal and the boss.** The portal is the last encounter
+(`placePortal`: the water where the director put it, the pseudoscorpion's
+post 0.6 mm before it toward the way you came); the moss shoots stand aside
+there (an exclusion disc: its arena). Its golden glow (`shared/portal.js`) then draws you on; there is no
 arrow. A brief hint comes once, within 3.2 mm: "A pseudoscorpion guards the
 water. Lure it away from its post and get round it, or bite its pincer
 joints until it backs off". A player who reaches the water (within 360 µm of
@@ -80,8 +97,8 @@ round. The glow is dim and restless while it is guarded, bright once open.
 
 **The moss reaches the portal and beyond in every direction**, with no edge:
 one 9.6 mm scenery tile repeated (see World). The walkable square
-(`BOUNDS`) reaches 6 mm past the portal ring; the walker keeps the body
-inside it (not a collider).
+(`BOUNDS`, 87 mm across) keeps the body inside it (not a collider); the
+director places nothing within 2.5 mm of its edge.
 
 ## Controls (Xbox controller; keyboard in brackets)
 
@@ -154,7 +171,7 @@ Both are built into the moss (`landmarks.js`) and drawn by the SEM like
 everything else.
 
 - **Forward: the wet leaf axil** (design §1.6), the portal, built where it is
-  placed (`place(a)`; see The rings). A moss stem 1.5 mm tall behind the
+  placed (`place(a, x, z)`; see The encounters). A moss stem 1.5 mm tall behind the
   water with its lowest leaf arching out and down to the floor beside it; in
   the angle between them a film of water, and walking slowly about in it a
   tardigrade, 350 µm (a ringed barrel, a rounded head, four pairs of stubby
@@ -163,7 +180,7 @@ everything else.
   a 620 µm pool, sparks and glints, a 3.2 mm beacon), drawn after the SEM
   composite (additive, so it reads through the moss), and its light at the
   edge of the view on its side (`createPortalLight`). Any player within
-  360 µm of the water's centre reaches it (see The rings: turned back while
+  360 µm of the water's centre reaches it (see The encounters: turned back while
   guarded).
 - **Backdoor: a giant springtail at rest**, the creature of the stage above
   (~1.5 mm long, four box mites; `BACKDOOR`, behind the start view,
@@ -201,11 +218,14 @@ game the roster comes in from the shell (`embed.players`).
 - Test hooks on `window.__micro`: `players`, `split`, `layout`, `recs()`,
   `teleport(slot, x, z)`, `settle(n)`, `steps(n, dt, inputs)` (simulate
   without rendering), `landmarks`, `landmarkLog` (`forward`, `turnedBack`,
-  `back`), `nearBack`, `joins`, `forceCapture(slot)`; for the rings
-  `route()`, `portal()`, `placePortal(a)`, `placeZone(k, a)`, `relocLog`,
-  `enterPortal(slot)`, `progress(slot)`, `challenges` (each challenge's first
-  start and first approach within 0.4 mm: `kind`, `d` µm from the start,
-  `t`), `unseen(x, z, r)`, `plan`.
+  `back`), `nearBack`, `joins`, `forceCapture(slot)`; for the encounters
+  `route()`, `encounters()` (the director's state), `director`,
+  `seenAt(x, z)`, `placeNow()`, `views(dt)` (the views' frustums without
+  drawing; `testStep` does it too), `portal()`, `placePortal(a, slot, d)` and
+  `placeEncounter(k, x, z, b)` (tests: out of order), `enterPortal(slot)`,
+  `progress()`, `challenges` (each challenge's first start and first
+  approach within 0.4 mm: `kind`, `d` µm from the start, `progress`, `t`),
+  `unseen(x, z, r)`, `plan`.
 
 ## Fighting back
 
@@ -237,7 +257,7 @@ mites), on guard before the wet leaf axil (the portal), put on its post there
 when the portal is placed (`setPost`), **dormant** until a player comes
 within 0.9 mm of its post (placement paces it: no timer). It can be lured
 off (it follows you out to 2.6 mm from its post, then walks back slowly and
-guards again: see The rings). Built from anatomy and compared side by side with the
+guards again: see The encounters). Built from anatomy and compared side by side with the
 delivered sheet (`../assets/reference-sheets/boss-pseudoscorpion.webp`): a
 narrow carapace tapering to the chelicerae, with eye spots; behind it a much
 broader smooth ovoid abdomen (widest two-thirds back, rounded at the end)
@@ -383,9 +403,9 @@ The predator stays at ~0.8 mm, more than twice your length; the springtail
 
 The predatory mite follows the shared pacing in `shared/predation.js`:
 
-- **Its hunting ground.** One ground (1.1 mm across, `PRED_GROUND`) on one
-  of its two rings (12.4 and 28.6 mm out), moved round them to meet whoever is
-  heading out (see The rings). It notices and hunts prey only there (plus a
+- **Its hunting ground.** One ground (1.1 mm radius, `PRED_GROUND`), placed
+  by the director a short way ahead of whoever leads, twice (see The
+  encounters). It notices and hunts prey only there (plus a
   short chase out of it) and goes back after a retreat. Coming upon a
   thicket it feeds on the springtails (S38: gamasids favour springtails).
 - **Calm until its ground.** It only wanders until someone first walks onto
@@ -657,7 +677,7 @@ before or after. They use the programs the first frame already built, and
 
 ### Performance (the scenery tile and the rings)
 
-The rings need moss 37.5 mm out in every direction; the tile's copies give it
+The encounters need moss far out in every direction; the tile's copies give it
 without building more. Measured against the bounded patch, back to back
 (headless SwiftShader, 1280×720, `?q=high`; `perf/measure.mjs` gets only
 13–25 frames a run on this shared machine, so its CPU figures swing by 2×
@@ -695,7 +715,7 @@ pits) works through the same path.
 ## World (`world.js`)
 
 The moss is one **scenery tile**, 9.6 × 9.6 mm (`TILE`), repeated in every
-direction, so the rings (37.5 mm out) have moss all the way and there is no
+direction, so wherever the encounters are placed there is moss all the way and there is no
 edge. The tile holds:
 
 - about 600 angular mineral grains, 20–300 µm;
@@ -912,12 +932,15 @@ node micro/prototypes/check.mjs mite
 node micro/prototypes/mite/route.test.mjs
 ```
 
-`route.test.mjs` checks the rings without a browser: the tile's floor
-repeats, the first obstacle comes after a warm-up of ~5 s of rushing, the
-calm breaks (2.5–7.5 mm) and an even spacing, every way out passing within
-0.4 mm of a thicket on both rings, the predator's rings clear of the
-thickets, the boss's post and leash, and the portal ring (~51 s of straight
-rushing).
+`route.test.mjs` checks the moss and the encounters without a browser: the
+tile's floor repeats, every way out passes within 0.4 mm of a thicket on both
+rings (with a way round), and the director with the SEM view's frustum:
+rushing in 16 directions meets the predator, the predator again and the
+portal in order (the first within ~10 s after a warm-up, a calm break before
+the second, the portal reached in 42–62 s), nothing placed in view, on seen
+moss or where it does not fit, nothing moved once seen; lingering brings
+them all round the player in order; turning back moves the unseen predator
+to follow; two players heading apart meet them all.
 
 The check loads the page in headless Chromium (software WebGL), drives the
 keyboard, and fails on any console error. Software WebGL is slow, so the

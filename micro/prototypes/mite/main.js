@@ -16,7 +16,8 @@ import { mountHud } from '../shared/hud.js';
 import { createSem, shared, MODES, CLS, gMaterial } from './sem.js';
 import { semTextures } from './textures.js';
 import { buildWorld, floorH, TILE } from './world.js';
-import { RINGS, PORTAL_R, PORTAL_PLACE, PORTAL_CLEAR, CLUSTER, CLUSTERS, PRED_GROUND, BOSS, OPENING, NPC_HOME, predZoneAt, portalAt, ringPoint, distFromStart, bearingFromStart, progressAt } from './layout.js';
+import { RINGS, PORTAL_CLEAR, CLUSTER, CLUSTERS, PRED_GROUND, BOSS, OPENING, NPC_HOME, predZoneAt, distFromStart, bearingFromStart, DIRECTOR, ENCOUNTERS, canPlace, BOUNDS } from './layout.js';
+import { createDirector } from '../shared/director.js';
 import { createQuality } from '../shared/quality.js';
 import { createMite, CFG, PRED, JUMP } from './mite.js';
 import { createFeatures } from '../shared/features.js';
@@ -83,14 +84,19 @@ const npc = createMite(scene, world.colliders, { cls: CLS.NPC, tex, scale: MITE_
 npc.place(NPC_HOME.x, NPC_HOME.z, 2.2);
 // The predator: a parasitid (Mesostigmata), pale, long-legged, hunting by touch.
 const pred = createMite(scene, world.colliders, { cls: CLS.NPC, tex, anat: PRED });
-// It hunts on its own ground, on one of its two rings (layout.js RINGS.pred), and
-// is moved round them to meet whoever is heading out (moveRings: unseen,
-// unengaged, never onto a player). A new game puts it ahead of the start view.
+// It hunts on its own ground, placed by the encounter director (placeEncounter:
+// in moss nobody has seen, a short way ahead of whoever leads), twice. Until
+// placed it is hidden, parked in a corner of the square and not stepped.
 const A0 = Math.atan2(OPENING.uz, OPENING.ux);
-const predZone = predZoneAt(0, A0);
+const PRED_PARK = { x: BOUNDS.x1 - 400, z: BOUNDS.z1 - 400 };
+const predZone = predZoneAt(PRED_PARK.x, PRED_PARK.z);
 const predAI = createPredatorAI(pred, predZone);
+let predPlaced = false;
+/** Is the predator in play (switched on and placed by the director)? */
+const predHere = () => predOn && predPlaced;
 const PRED_AT = { x: predZone.x, z: predZone.z };
 predAI.reset(PRED_AT.x, PRED_AT.z);
+pred.setVisible(false);
 sem.warm(scene, camera);
 
 // Local multiplayer (shared/players.js): each player is a box mite of their
@@ -357,9 +363,7 @@ function resetLevel() {
   cap.phase = null;
   mite.place(0, 0, 0.3);
   recs().forEach((P, i) => { if (P.mite !== mite) { P.mite.place(Math.cos(i * 2.1) * 260, Math.sin(i * 2.1) * 260, 0.3); P.play.hurt = 0; P.play.stun = 0; } });
-  Object.assign(predZone, predZoneAt(0, A0));
-  predAI.reset(...PRED_START);
-  if (PORTAL.placed) boss.reset();
+  newEncounters();
   pred.st.chel = 0;
   play.hurt = 0; play.stun = 0;
   hunger.reset(pace.grace);
@@ -557,12 +561,12 @@ F({ id: 'jump', group: 'Simulation', label: 'Jump (A), borrowed from jumping ori
 F({ id: 'pounce', group: 'Simulation', label: 'Pounce-bite (X in the air; a game stretch)', fixed: true,
   about: 'In a jump, X dives at the nearest enemy point ahead (the predator, or the pseudoscorpion\'s pincer arm): a strong bite on impact (two bites\' worth, a hit-pause and a rumble), then a hop back; a mistimed dive is a clear miss. Box mites neither jump nor pounce: a game stretch on the borrowed Zetorchestes jump.' });
 F({ id: 'boss', group: 'Simulation', label: 'Boss: pseudoscorpion (Neobisium-like)', fixed: true,
-  about: `~2.5 mm, a real hunter of mites in moss, on guard before the wet leaf axil (the portal, ${PORTAL_R / 1000} mm out wherever you head: layout.js).` + ' Dormant until you come within 0.9 mm of its post; reaching the water while it guards turns you back. Lure it off (it follows you up to 2.6 mm from its post, then walks back slowly) and get round it, or wear it down. Its tell: pincers held open and dead still, then a snap, a two-pincer sweep, or a step-in and snap. Stay out of reach, close up (Y) to survive a grab (the venom tooth cannot get through), scramble (B) out of a grab in its strike window, and bite its pincer joints (X) while it recovers. About three good rounds and it backs into the moss. Its resolve is the brass gauge.' });
+  about: '~2.5 mm, a real hunter of mites in moss, on guard before the wet leaf axil (the portal: placed as you go, the last encounter, in moss nobody has seen yet a short way ahead of you).' + ' Dormant until you come within 0.9 mm of its post; reaching the water while it guards turns you back. Lure it off (it follows you up to 2.6 mm from its post, then walks back slowly) and get round it, or wear it down. Its tell: pincers held open and dead still, then a snap, a two-pincer sweep, or a step-in and snap. Stay out of reach, close up (Y) to survive a grab (the venom tooth cannot get through), scramble (B) out of a grab in its strike window, and bite its pincer joints (X) while it recovers. About three good rounds and it backs into the moss. Its resolve is the brass gauge.' });
 F({ id: 'bite', group: 'Simulation', label: 'Bite and graze (X)', fixed: true,
   about: 'The rostrum dips and the chelicerae work. In reach of the mouth: fungal spores (eaten) and hyphal branch tips (nibbled; they regrow), the box mite\'s real food. At the predator: a nip that makes it back off for 1.5 s (a game rule).' });
 F({ id: 'predator', group: 'Simulation', label: 'Predatory mite (Parasitidae)', on: true,
-  about: 'A pale, flattened gamasid ~0.8 mm long with long legs, leg I held up as a feeler. More than twice your length. It hunts on its own ground on two rings (' + RINGS.pred.map((r) => r / 1000).join(' and ') + ' mm out), moved round them unseen to meet you. Calm until you first walk onto its ground, then hungry only some of the time (see Threats); hungry, it searches toward you, and when it touches you or feels you scramble close by it runs you down at ~0.6 mm/s (faster than your walk, slower than your scramble; all game speeds). Resting, it wanders and ignores you. It strikes at legs: on the third grab it holds on, pulls you in and eats you (the whole catch is shown); close up (Y) while it holds you and its grip slips off. Each strike is telegraphed: it rears, leg I and the palps up, the chelicerae open (0.8 s). Closed up (Y), you are a smooth capsule its strike slides off; blocks, nips (X) and facing it wear its interest down until it runs off (adult ptychoid mites are nearly immune: Peschel et al. 2006).',
-  onChange: (v) => { predOn = v; pred.setVisible(v); } });
+  about: 'A pale, flattened gamasid ~0.8 mm long with long legs, leg I held up as a feeler. More than twice your length. It hunts on its own ground, placed as you go (the first encounter after a few seconds of open moss, and again later), in moss nobody has seen yet a short way ahead of you. Calm until you first walk onto its ground, then hungry only some of the time (see Threats); hungry, it searches toward you, and when it touches you or feels you scramble close by it runs you down at ~0.6 mm/s (faster than your walk, slower than your scramble; all game speeds). Resting, it wanders and ignores you. It strikes at legs: on the third grab it holds on, pulls you in and eats you (the whole catch is shown); close up (Y) while it holds you and its grip slips off. Each strike is telegraphed: it rears, leg I and the palps up, the chelicerae open (0.8 s). Closed up (Y), you are a smooth capsule its strike slides off; blocks, nips (X) and facing it wear its interest down until it runs off (adult ptychoid mites are nearly immune: Peschel et al. 2006).',
+  onChange: (v) => { predOn = v; pred.setVisible(v && predPlaced); } });
 F({ id: 'grace', group: 'Simulation', label: 'Calm opening', choices: ['Until its ground', '20 s', 'Off'], value: 'Until its ground',
   about: 'Until its ground (default): the predatory mite stays calm until someone first walks onto its hunting ground (no clock). 20 s / Off: a test calm on a timer, or none. shared/predation.js.',
   onChange: (v) => { pace.grace = v === 'Off' ? 0 : v === '20 s' ? 20 : Infinity; hunger.reset(pace.grace); } });
@@ -630,7 +634,7 @@ function biteNow() {
     Object.assign(play, { act: 'fight', actT: 0, actDur: 0.6, snapped: false, foe: 'boss' });
     return;
   }
-  if (predOn && !capture.active && pred.center.distanceTo(m) < 600) {
+  if (predHere() && !capture.active && pred.center.distanceTo(m) < 600) {
     Object.assign(play, { act: 'fight', actT: 0, actDur: 0.6, snapped: false, foe: 'pred' });
     return;
   }
@@ -701,7 +705,7 @@ function stepAct(dt) {
         const open = boss.open;
         const gone = boss.bitten(1, cur.slot);
         hud.toast(gone ? 'The pseudoscorpion has had enough: it backs into the moss' : `Bit ${open ? 'a pincer joint' : 'its pincer'}! It flinches`, 1500);
-      } else if (play.foe !== 'boss' && predOn && !capture.active && pred.center.distanceTo(m) < 700) {
+      } else if (play.foe !== 'boss' && predHere() && !capture.active && pred.center.distanceTo(m) < 700) {
         play.nips = (play.nips || 0) + 1;
         if (rumbleOn) padOf().rumble(140, 0.5, 0.4);
         wearDown('bite');
@@ -838,9 +842,9 @@ function respawnNear(P) {
 }
 
 // ---------- landmarks: the portal (forward) and the backdoor ----------
-// Forward, the portal: the wet leaf axil (landmarks.js), placed once a game on
-// the portal ring at the bearing of whoever first gets PORTAL_PLACE out (out
-// of everyone's view), guarded by the pseudoscorpion. Reaching its water while
+// Forward, the portal: the wet leaf axil (landmarks.js), placed by the director
+// as the last encounter (out of everyone's view, in moss nobody has seen, a
+// short way ahead of whoever leads), guarded by the pseudoscorpion. Reaching its water while
 // the pseudoscorpion is on guard turns you back (a toast, once a visit); lured
 // off or driven off, the water lets you through (enterPortal: the one place
 // the zoom into the tardigrade's world starts). Backdoor (BACKDOOR): dwell
@@ -919,73 +923,96 @@ function enterPortal(P) {
   embed.landmark('forward', { player: P.slot, outro: embed.active });
 }
 
-// ---------- the rings: one predator and one portal, met in every direction ----------
-// The views' frustums from the last frame drawn: a thing can move only where no view sees it.
+// ---------- the encounters, placed as you go (shared/director.js) ----------
+// The director (design/encounter-pattern.md, "Placed as you go") places the
+// enemies and events one at a time, in this order, in moss nobody has seen
+// yet, a short way ahead of whoever leads (or, if they linger, round them):
+// the predatory mite on its hunting ground, the predatory mite again (it has
+// gone on through the moss, out of sight), then the wet leaf axil with the
+// pseudoscorpion on guard. Each comes only after the one before was met and a
+// calm break has passed; nothing a player has seen is placed, moved or
+// removed. The thickets, the moss and its food are scenery (layout.js).
+// What every view sees comes from the frame drawn (drawFrame: each view's
+// frustum and the point it frames).
 const viewFrusta = [];
+const viewFoci = [];
 const _vs = new THREE.Sphere(), _vp = new THREE.Vector3();
-/** Can no view see a disc of radius r (µm) at (x, z), and is it clear of every player by `clear`? */
-function unseen(x, z, r, clear = 1500) {
-  _vs.center.set(x, floorH(x, z) + 300, z); _vs.radius = r + 400;
-  for (const f of viewFrusta) if (f.intersectsSphere(_vs)) return false;
-  for (const P of recs()) if (Math.hypot(P.mite.center.x - x, P.mite.center.z - z) < r + clear) return false;
-  return true;
-}
-const relocLog = [];
+let seenViews = null;
+/** Can any view (last drawn) see a disc of radius r (µm) at (x, z)? */
+const inSight = (x, z, r) => { _vs.center.set(x, floorH(x, z) + 300, z); _vs.radius = r + 400; return viewFrusta.some((f) => f.intersectsSphere(_vs)); };
 /** Is the predator busy with anyone (hunting, striking, holding, or anyone within its reach)? */
 const predEngaged = () => (capture.active && !cap.byBoss) || ['hunt', 'windup', 'strike', 'recover', 'recoil'].includes(predAI.state) || recs().some((P) => P.mite.center.distanceTo(pred.center) < 1800);
-/** Put the predator's ground on its ring k at bearing a (and the predator in it). */
-function placeZone(k, a, why = 'test') {
-  Object.assign(predZone, predZoneAt(k, a));
-  predZone.k = k; predZone.a = a;
-  // it starts a little to one side of the bearing, inside its ground
-  const s = predZoneAt(k, a + 0.25 * (PRED_GROUND.r / RINGS.pred[k]));
-  predAI.reset(s.x, s.z);
+/** Which of the predator's encounters it is on now (1 or 2; 0 before it is placed). */
+let predK = 0;
+/** Put the predator's ground at (x, z), and the predator at its centre. */
+function placePred(x, z, k) {
+  Object.assign(predZone, predZoneAt(x, z));
+  predAI.reset(x, z);
   pred.st.chel = 0;
-  relocLog.push({ k, a: +a.toFixed(3), t: +simTime.toFixed(2), why });
+  predPlaced = true; predK = k;
+  pred.setVisible(predOn);
 }
-predZone.k = 0; predZone.a = A0;
-const LEAD = 5000; // µm: how far before its ground a player's approach moves it (it must still be out of view there)
-function moveRings() {
-  // the predator: to whoever is approaching one of its rings (farthest out first), when nobody sees it go
-  if (predOn && !predEngaged()) {
-    const who = [];
-    for (const P of recs()) {
-      if (held(P)) continue;
-      const d = distFromStart(P.mite.center.x, P.mite.center.z);
-      for (let k = 0; k < RINGS.pred.length; k++) if (d > RINGS.pred[k] - PRED_GROUND.r - LEAD && d < RINGS.pred[k] + PRED_GROUND.r) who.push({ P, d, k });
-    }
-    who.sort((a, b) => b.d - a.d);
-    if (who.length) {
-      const { P, k } = who[0];
-      const a = bearingFromStart(P.mite.center.x, P.mite.center.z);
-      const to = predZoneAt(k, a);
-      const there = predZone.k === k && Math.hypot(to.x - predZone.x, to.z - predZone.z) < PRED_GROUND.r * 0.6;
-      if (!there && unseen(pred.center.x, pred.center.z, 600) && unseen(to.x, to.z, PRED_GROUND.r)) placeZone(k, a, `slot ${P.slot}`);
-    }
-  }
-  // the portal: once a game, on its ring at the bearing of the first player to get
-  // PORTAL_PLACE out (or the nearest bearing within ±60° where no view sees it)
-  if (!PORTAL.placed) {
-    let lead = null, ld = 0;
-    for (const P of recs()) { const d = distFromStart(P.mite.center.x, P.mite.center.z); if (!held(P) && d > ld) { ld = d; lead = P; } }
-    if (lead && ld >= PORTAL_PLACE) {
-      const a0 = bearingFromStart(lead.mite.center.x, lead.mite.center.z);
-      for (let i = 0; i < 41; i++) {
-        const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.05;
-        const q = portalAt(a);
-        if (unseen(q.x, q.z, PORTAL_CLEAR + 1200, 3000) && unseen(q.post.x, q.post.z, 1500, 3000)) { placePortal(a); logChallenge('portal', lead); break; }
-      }
-    }
-  }
+/** Park the predator, hidden (a new game: nothing placed yet). */
+function parkPred() {
+  Object.assign(predZone, predZoneAt(PRED_PARK.x, PRED_PARK.z));
+  predAI.reset(PRED_PARK.x, PRED_PARK.z);
+  predPlaced = false; predK = 0;
+  pred.setVisible(false);
 }
-/** Put the portal (the wet leaf axil) on its ring at bearing a, with the pseudoscorpion on guard before it. */
-function placePortal(a) {
-  props.place(a);
+const reachPred = (P) => Math.hypot(P.mite.center.x - predZone.x, P.mite.center.z - predZone.z) < predZone.r + 400 || P.mite.center.distanceTo(pred.center) < 1500;
+// what each encounter does when placed, and when it counts as met
+const ENC = {
+  pred: { place: (x, z) => { placePred(x, z, 1); return { k: 1 }; }, met: (h, [p]) => reachPred(pls[p.id] || P1) },
+  // the second time: only once the predator is out of every view and busy with nobody (it walks off, unseen)
+  pred2: { place: (x, z) => { placePred(x, z, 2); return { k: 2 }; }, met: (h, [p]) => reachPred(pls[p.id] || P1),
+    fits: (x, z, b) => ENCOUNTERS[1].fits(x, z, b) && (predK === 2 || (!predEngaged() && !inSight(pred.center.x, pred.center.z, 600))) },
+  // the last: entering the open portal ends the level
+  portal: { place: (x, z, b) => { placePortal(b, x, z); return { k: 'portal' }; }, met: () => false },
+};
+const director = createDirector({ ...DIRECTOR, canPlace, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id] })) });
+/** How far through the encounters the game is: met / all (0..1). */
+const encounterProgress = () => director.index / ENCOUNTERS.length;
+function stepDirector(dt) {
+  if (outro) return;
+  const ev = director.update(dt, recs().map((P) => ({ id: P.slot, x: P.mite.center.x, z: P.mite.center.z, alive: !held(P) })), seenViews);
+  seenViews = null;
+  for (const e of ev) if (e.type === 'met') logChallenge(`${e.id}Met`, pls[e.by && e.by[0]] || P1);
+  driftPred(dt);
+}
+/**
+ * A predator placed out of a lingering player's reach wanders over: its
+ * ground (and so the predator, which keeps inside it) drifts toward the
+ * leader at PRED_DRIFT µm/s until they are on it. Behaviour, not a placement.
+ */
+const PRED_DRIFT = 200;
+let predDriftT = 0;
+function driftPred(dt) {
+  const S = director.entry(predK === 2 ? 'pred2' : 'pred');
+  if (!predPlaced || !S || S.state !== 'placed') { predDriftT = 0; return; }
+  predDriftT += dt;
+  const lead = director.leader, P = lead && pls[lead.id];
+  if (predDriftT < 5 || !P || lead.moving || (capture.active && !cap.byBoss) || ['hunt', 'windup', 'strike', 'recover', 'recoil'].includes(predAI.state) || reachPred(P)) return;
+  const dx = P.mite.center.x - predZone.x, dz = P.mite.center.z - predZone.z, d = Math.hypot(dx, dz) || 1;
+  predZone.x += (dx / d) * PRED_DRIFT * dt; predZone.z += (dz / d) * PRED_DRIFT * dt;
+}
+/** A new game: the director starts over, the predator hidden and parked, no portal. */
+function newEncounters() {
+  director.reset();
+  parkPred();
+  props.unplace();
+  boss.setVisible(false);
+  world.exclude.set('portal', []);
+  portalState.hinted = false; portalState.turned = false;
+  challengeLog.length = 0;
+}
+/** Put the portal (the wet leaf axil) at (x, z), met along bearing a, with the pseudoscorpion on guard before it. */
+function placePortal(a, x, z) {
+  props.place(a, x, z);
   boss.setPost(PORTAL.post, PORTAL.home);
   boss.setVisible(true);
   world.exclude.set('portal', [{ x: PORTAL.x, z: PORTAL.z, r: PORTAL_CLEAR }, { x: PORTAL.post.x, z: PORTAL.post.z, r: 1100 }]);
   portalState.hinted = false; portalState.turned = false;
-  relocLog.push({ k: 'portal', a: +a.toFixed(3), t: +simTime.toFixed(2) });
+  logChallenge('portal', recs().find((P) => !held(P)) || P1);
 }
 
 // ---------- the outro: success, slow-down, freeze (embed.js "Continuous transitions") ----------
@@ -1104,7 +1131,7 @@ function stepDust(dt) {
 /** Enemy points a pounce-bite can land on: [{ p, foe: 'pred' | 'boss' }]. */
 function pounceTargets() {
   const out = [];
-  if (predOn && !(capture.active && !cap.byBoss)) { out.push({ p: pred.center.clone(), foe: 'pred' }); out.push({ p: pred.mouth(new THREE.Vector3()).clone(), foe: 'pred' }); }
+  if (predHere() && !(capture.active && !cap.byBoss)) { out.push({ p: pred.center.clone(), foe: 'pred' }); out.push({ p: pred.mouth(new THREE.Vector3()).clone(), foe: 'pred' }); }
   for (const p of boss.bitePoints()) out.push({ p, foe: 'boss' });
   return out;
 }
@@ -1130,21 +1157,21 @@ let hitPause = 0;
 const thickLog = { biteTip: false };
 const thickBodies = [], bodyRefs = [];
 const bodyRef = (slot, p, radius) => { const b = bodyRefs[slot] || (bodyRefs[slot] = { position: new THREE.Vector3(), radius, slot }); b.position.copy(p); b.radius = radius; return b; };
-/** First start of each challenge: { kind, slot, d (µm from the start), frac (of the portal ring), t }. */
+/** First start of each challenge: { kind, slot, d (µm from the start), progress (encounters met / all), t }. */
 const challengeLog = [];
 function logChallenge(kind, P) {
   if (challengeLog.some((c) => c.kind === kind)) return;
   const c = P.mite.center, d = distFromStart(c.x, c.z);
-  challengeLog.push({ kind, slot: P.slot, d: Math.round(d), frac: +(d / PORTAL_R).toFixed(3), t: +simTime.toFixed(2) });
+  challengeLog.push({ kind, slot: P.slot, d: Math.round(d), progress: +encounterProgress().toFixed(3), t: +simTime.toFixed(2) });
 }
 function challenges() {
   for (const P of recs()) {
     if (held(P)) continue;
     const c = P.mite.center;
-    if (predOn && predAI.onGround(c)) {
+    if (predHere() && predAI.onGround(c)) {
       // walking onto its ground ends its calm: it is awake (hungry now and then) and lurking
       if (!challengeLog.some((x) => x.kind.startsWith('predator ground'))) { if (hunger.state === 'grace') { hunger.reset(0); hunger.update(0.01); } hud.toast('The predatory mite\'s hunting ground: watch for it rearing to strike', 2600); }
-      logChallenge(`predator ground ${predZone.k + 1}`, P);
+      logChallenge(`predator ground ${predK}`, P);
     }
     const cl = thicket.inside(c);
     if (cl) {
@@ -1153,7 +1180,7 @@ function challenges() {
     }
     // near each challenge (within 400 µm of it): the times a scripted rush meets them
     if (thicket.inside(c, 400)) logChallenge(`thicketNear ${thicket.inside(c, 400).ring + 1}`, P);
-    if (predOn && Math.hypot(c.x - predZone.x, c.z - predZone.z) < predZone.r + 400) logChallenge(`predatorNear ${predZone.k + 1}`, P);
+    if (predHere() && Math.hypot(c.x - predZone.x, c.z - predZone.z) < predZone.r + 400) logChallenge(`predatorNear ${predK}`, P);
     if (PORTAL.placed && flat(c, PORTAL) < 3000) logChallenge('portalNear', P);
   }
 }
@@ -1246,11 +1273,11 @@ function tick(dt, inputs) {
   // the strike window: a scramble (B, with stamina) breaks out of the grip
   if (cs.active && cs.phase === 'strike' && capPad && players.controls(who.slot).defend.down() && (who.play.stam ?? 1) > 0.3) { dashOut(who); cs = { active: false }; }
   if (cs.active) withRec(who, () => animateCapture(cs, dt));
-  else if (predOn) hunger.update(dt);
+  else if (predHere()) hunger.update(dt);
   // Blades and hyphae move first (pushed and loaded by where the mites were),
   // so each mite then settles on, and clears, the surfaces as they are now.
   // (the tile's blades and hyphae see each body's copies in tile coordinates; the thickets' threads stand where they are)
-  const fbodies = [...recs().map((P) => P.mite), ...(npcOn ? [npc] : []), ...(predOn ? [pred] : [])].map(bodyOf);
+  const fbodies = [...recs().map((P) => P.mite), ...(npcOn ? [npc] : []), ...(predHere() ? [pred] : [])].map(bodyOf);
   world.foliage.update(dt, world.tileBodies(fbodies));
   thicket.updateFoliage(dt, fbodies);
   const evs = [];
@@ -1281,12 +1308,12 @@ function tick(dt, inputs) {
   // the crowd: every mite shoves springtails aside; the gamasid feeds on them when it is not after you
   thickBodies.length = 0;
   for (const P of recs()) if (!held(P)) thickBodies.push(bodyRef(P.slot, P.mite.center, 175));
-  const predBody = predOn ? bodyRef(9, pred.center, 330) : null;
+  const predBody = predHere() ? bodyRef(9, pred.center, 330) : null;
   if (predBody) thickBodies.push(predBody);
-  thicket.update(dt, thickBodies, { pred: predOn ? pred : null, predBody, predFree: predOn && !capture.active && ['wander'].includes(predAI.state) });
+  thicket.update(dt, thickBodies, { pred: predHere() ? pred : null, predBody, predFree: predHere() && !capture.active && ['wander'].includes(predAI.state) });
   challenges(dt);
   const nip = recs().some((P) => P.play.nip);
-  if (predOn && capture.active && cap.who && !cap.byBoss) {
+  if (predHere() && capture.active && cap.who && !cap.byBoss) {
     if (['follow', 'fadeOut', 'fadeIn'].includes(capture.phase)) {
       // its meal swallowed, it walks on (the camera follows)
       const f = _ct.set(1, 0, 0).applyQuaternion(pred.quat).setY(0).normalize().clone();
@@ -1298,7 +1325,7 @@ function tick(dt, inputs) {
       pred.update(dt, { dir: to.lengthSq() > 1 ? to.normalize().clone() : new THREE.Vector3(), mag: 0.02, maxSpeed: 40, hold: false, accel: 0.2 });
     }
     pred.act({});
-  } else if (predOn) {
+  } else if (predHere()) {
     // it goes for the nearest player
     let prey = P1, bd = Infinity;
     for (const P of recs()) { const d = P.mite.center.distanceTo(pred.center); if (d < bd) { bd = d; prey = P; } }
@@ -1362,7 +1389,7 @@ function tick(dt, inputs) {
     }
   }
   props.update(simTime, dt);
-  moveRings();
+  stepDirector(dt);
   checkLandmarks();
   return evs;
 }
@@ -1453,10 +1480,10 @@ function updateBanner() {
   gauge.querySelector('i').style.width = `${(boss.resolve * 100).toFixed(0)}%`;
   if (capture.active) txt = cap.byBoss && ['strike', 'hold'].includes(capture.phase) ? 'In its pincer! Close up (Y), or scramble out (B) now' : cap.byBoss && capture.phase === 'eat' ? 'The pseudoscorpion is eating you' : CAP_LINES[capture.phase] || '';
   else if (boss.attacking) txt = boss.st.state === 'tell' ? 'Pincers open and still: get out of reach, or close up (Y)' : 'It snaps!';
-  else if (predOn && predAI.attacking) txt = 'It rears to strike! Close up (Y), or jump (A)';
-  else if (predOn && predAI.state === 'retreat') { txt = 'The predatory mite is running off'; hot = false; }
-  else if (predOn && predAI.state === 'hunt') txt = `A predatory mite is hunting you${play.hurt ? ` (legs grabbed ${play.hurt}/3)` : ''}`;
-  else if (predOn && isHungry()) { txt = 'The predatory mite is hungry'; hot = false; }
+  else if (predHere() && predAI.attacking) txt = 'It rears to strike! Close up (Y), or jump (A)';
+  else if (predHere() && predAI.state === 'retreat') { txt = 'The predatory mite is running off'; hot = false; }
+  else if (predHere() && predAI.state === 'hunt') txt = `A predatory mite is hunting you${play.hurt ? ` (legs grabbed ${play.hurt}/3)` : ''}`;
+  else if (predHere() && isHungry()) { txt = 'The predatory mite is hungry'; hot = false; }
   banner.style.display = txt ? 'block' : 'none';
   banner.textContent = txt;
   banner.style.background = hot ? 'rgba(150,30,20,.8)' : 'rgba(10,12,16,.6)';
@@ -1494,11 +1521,12 @@ function drawFrame(dt) {
   const cut0 = shared.uCutP.value.clone();
   let fi = 0;
   split.render(camera, (view) => {
-    // the scenery tile's copies round this view's target, and this view's frustum (what it can see: moveRings)
+    // the scenery tile's copies round this view's target, and this view's frustum and focus (what it sees: the director)
     viewTarget(camera, _vc);
     world.setView(camera, _vc.x, _vc.z);
     const f = viewFrusta[fi] || (viewFrusta[fi] = new THREE.Frustum());
     f.setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    (viewFoci[fi] || (viewFoci[fi] = new THREE.Vector3())).copy(_vc);
     fi++;
     if (!one) {
       // the cutaway clears the way to this view's own players
@@ -1514,6 +1542,8 @@ function drawFrame(dt) {
     if (PORTAL.placed) { renderer.clearDepth(); renderer.render(glowScene, camera); }
   });
   viewFrusta.length = fi;
+  viewFoci.length = fi;
+  seenViews = viewFrusta.map((f, i) => ({ frustum: f, focus: viewFoci[i] }));
   split.unscissor(sem.target);
   shared.uCutP.value.copy(cut0);
   marks.begin();
@@ -1559,7 +1589,7 @@ function updateText(d) {
   const mag = 127000 / rig.hfw; // relative to a 127 mm (Polaroid 4x5) reference image width
   const st = mite.mode === 'air' ? 'jumping' : mite.mode === 'crouch' ? 'crouching to jump' : mite.mode === 'walk' ? (play.scr ? `SCRAMBLE ${mite.speed.toFixed(0)} µm/s` : mite.st.climbing > 0.2 ? `climbing ${mite.speed.toFixed(0)} µm/s` : mite.speed > 5 ? `walking ${mite.speed.toFixed(0)} µm/s` : 'standing') : mite.mode === 'closed' ? 'closed (ptychoid)' : mite.mode;
   const fol = world.foliage.stats;
-  const pst = predOn ? `predator ${capture.active ? `CAPTURE ${capture.phase}` : predAI.state === 'hunt' ? 'HUNTING' : predAI.state === 'recoil' ? 'recoiling' : 'wandering'} ${predAI.dist.toFixed(0)} µm · ${hunger.state === 'grace' ? 'calm until its ground' : `${hunger.state} ${hunger.left.toFixed(0)} s`}` : '';
+  const pst = predHere() ? `predator ${capture.active ? `CAPTURE ${capture.phase}` : predAI.state === 'hunt' ? 'HUNTING' : predAI.state === 'recoil' ? 'recoiling' : 'wandering'} ${predAI.dist.toFixed(0)} µm · ${hunger.state === 'grace' ? 'calm until its ground' : `${hunger.state} ${hunger.left.toFixed(0)} s`}` : '';
   const info = renderer.info.render;
   const out = distFromStart(mite.center.x, mite.center.z);
   hud.stats(`${MODES[sem.mode]}${qScale < 1 ? `  (res ${(qScale * 100).toFixed(0)}%)` : ''}\n${(out / 1000).toFixed(1)} mm out${PORTAL.placed ? (guarded() ? ' · portal guarded' : ' · portal open') : ''}\nHFW ${rig.hfw.toFixed(0)} µm   mag ${mag.toFixed(0)}x\n${st}\n${stamText(play)}   legs grabbed ${play.hurt}/3   grazed ${play.grazed}\n${pst}\nblades bending ${fol.moving}   pen ${mite.st.pen.toFixed(0)} µm\n${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
@@ -1571,17 +1601,31 @@ function updateText(d) {
   }
 }
 
+/** Tests that step without drawing: the camera and the views' frustums as a drawn frame would have them, so the director sees what they see. */
+function stepViews(dt) {
+  placeCamera(dt);
+  split.update(recs().map((P) => ({ slot: P.slot, position: P.mite.center.clone() })), { camera }, dt);
+  const n = Math.max(1, split.views.length);
+  for (let i = 0; i < n && i < 4; i++) split.withView(i, camera, () => {
+    camera.updateMatrixWorld();
+    (viewFrusta[i] || (viewFrusta[i] = new THREE.Frustum())).setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    viewTarget(camera, viewFoci[i] || (viewFoci[i] = new THREE.Vector3()));
+  });
+  viewFrusta.length = Math.min(n, 4); viewFoci.length = viewFrusta.length;
+  seenViews = viewFrusta.map((f, i) => ({ frustum: f, focus: viewFoci[i] }));
+}
 let last = performance.now(), simTime = 0;
 const api = {
   scene, camera, renderer, sem, world, mite, npc, pred, predAI, play, dash, rig, features, cfg: CFG, paused: false,
   tick(dt, input = { dir: new THREE.Vector3(), mag: 0, maxSpeed: WALK, hold: false }) { return tick(dt, [input])[0]; },
   hunger, capture, pace, resetLevel,
   get time() { return simTime; },
-  /** Testing: one fixed step with the left stick at (x, y) in world x/z (null: hands off); hold: Y. */
-  testStep(dt = 1 / 30, stick = null, hold = false) {
+  /** Testing: one fixed step with the left stick at (x, y) in world x/z (null: hands off); hold: Y; speed: µm/s at full tilt (a rush: ~730). */
+  testStep(dt = 1 / 30, stick = null, hold = false, speed = WALK) {
     simTime += dt;
     const m = stick ? Math.min(1, Math.hypot(stick.x, stick.y)) : 0;
-    tick(dt, [{ dir: new THREE.Vector3(stick ? stick.x : 0, 0, stick ? stick.y : 0).normalize(), mag: m, maxSpeed: WALK, hold, accel: 0.18 }]);
+    tick(dt, [{ dir: new THREE.Vector3(stick ? stick.x : 0, 0, stick ? stick.y : 0).normalize(), mag: m, maxSpeed: speed, hold, accel: 0.18 }]);
+    stepViews(dt);
   },
   // ---- multiplayer and landmarks (Playwright drives these)
   players, split, marks, joins, landmarks: { forward: FORWARD, back: BACKDOOR, forwardAt: props.forward.at, backAt: props.back }, landmarkLog: lm.log, props,
@@ -1597,30 +1641,38 @@ const api = {
     return true;
   },
   fight, fightLog, boss, thicket, quality,
-  /** Where each challenge first started: [{ kind, slot, d (µm from the start), frac (of the portal ring), t }]. */
+  /** Where each challenge first started: [{ kind, slot, d (µm from the start), progress (encounters met / all), t }]. */
   challenges: challengeLog,
-  plan: { rings: RINGS, portalR: PORTAL_R, place: PORTAL_PLACE, clusters: CLUSTERS, predZone, tile: TILE },
-  /** The rings now: where the predator is, the portal (placed, bearing, guarded), the relocations. */
+  plan: { rings: RINGS, clusters: CLUSTERS, predZone, tile: TILE, encounters: ENCOUNTERS.map((e) => e.id) },
+  /** The encounters now: where the predator is (which time), the portal (placed, guarded), the director's state. */
   route() {
-    return { rings: RINGS, portalR: PORTAL_R, pred: { k: predZone.k, a: +predZone.a.toFixed(3), x: Math.round(predZone.x), z: Math.round(predZone.z), state: predAI.state },
-      portal: api.portal(), reloc: relocLog.slice() };
+    return { rings: RINGS, pred: { k: predK, placed: predPlaced, x: Math.round(predZone.x), z: Math.round(predZone.z), state: predAI.state },
+      portal: api.portal(), encounters: director.state() };
   },
-  relocLog,
-  /** Testing: could no view see a disc of radius r at (x, z) (and is it clear of the players)? */
-  unseen: (x, z, r = 600, clear = 1500) => unseen(x, z, r, clear),
+  /** The director (shared/director.js): state(), seenAt(x, z), placeNow(), log. */
+  director,
+  encounters() { return director.state(); },
+  seenAt(x, z) { return director.seenAt(x, z); },
+  placeNow() { return director.placeNow(); },
+  /** Testing: could no view (last drawn) see a disc of radius r at (x, z)? */
+  unseen: (x, z, r = 600) => !inSight(x, z, r),
   get viewCount() { return viewFrusta.length; },
-  /** How far out player `slot` is (0 at the start .. 1 on the portal ring). */
-  progress(slot = 0) { const P = pls[slot] || P1; return progressAt(P.mite.center.x, P.mite.center.z); },
+  /** How far through the encounters the game is (met / all, 0..1). */
+  progress() { return encounterProgress(); },
   /** The portal: placed, where, guarded or open, the boss's state and how far it is from the water. */
   portal() {
     return { placed: PORTAL.placed, a: +PORTAL.a.toFixed(3), x: Math.round(PORTAL.x), z: Math.round(PORTAL.z), guarded: PORTAL.placed && guarded(), open: PORTAL.placed && !guarded(),
       boss: { state: boss.st.state, x: Math.round(boss.st.x), z: Math.round(boss.st.z), fromWater: PORTAL.placed ? Math.round(Math.hypot(boss.st.x - PORTAL.x, boss.st.z - PORTAL.z)) : null, fromPost: PORTAL.placed ? Math.round(Math.hypot(boss.st.x - boss.post.x, boss.st.z - boss.post.z)) : null },
       glow: +props.glow.open.toFixed(2), tardigrade: PORTAL.placed ? props.tardi.center.toArray().map(Math.round) : null };
   },
-  /** Testing: place the portal now at bearing a (default: player `slot`'s bearing). */
-  placePortal(a = null, slot = 0) { const P = pls[slot] || P1; placePortal(a ?? bearingFromStart(P.mite.center.x, P.mite.center.z)); return api.portal(); },
-  /** Testing: put the predator's ground on ring k at bearing a. */
-  placeZone(k, a) { placeZone(k, a); return { k: predZone.k, x: Math.round(predZone.x), z: Math.round(predZone.z) }; },
+  /**
+   * Testing only (it breaks the order on purpose): the portal now, `d` µm from
+   * player `slot` at bearing `a` (default: the way they face). director.force
+   * marks every earlier encounter met ('forced').
+   */
+  placePortal(a = null, slot = 0, d = 3000) { const P = pls[slot] || P1, c = P.mite.center, b = a ?? Math.atan2(P.mite.st.fwd.z, P.mite.st.fwd.x); director.force('portal', c.x + Math.cos(b) * d, c.z + Math.sin(b) * d, b); return api.portal(); },
+  /** Testing only: place encounter `k` ('pred' | 'pred2' | 'portal') at (x, z), met along bearing b, out of order. */
+  placeEncounter(k, x, z, b = 0) { return director.force(k, x, z, b); },
   /** Go through the portal now as player `slot` (what reaching it while open does). */
   enterPortal(slot = 0) { lm.fired = false; enterPortal(pls[slot] || P1); },
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
@@ -1635,7 +1687,7 @@ const api = {
   /** How the frozen view frames the tardigrade (what embed.frozen reports). */
   tardiPose: () => tardiPose(),
   /** Testing: player `slot` near the boss's post (the portal placed on their bearing if it is not yet), the calm over: it wakes. */
-  bossFight(slot = 0) { const P = pls[slot] || P1; if (!PORTAL.placed) placePortal(bearingFromStart(P.mite.center.x, P.mite.center.z) || A0); pace.mode = 'Always'; hunger.reset(0); hunger.update(0.01); boss.reset(); predAI.reset(...PRED_START); pace.mode = 'Never'; const b = boss.post; P.mite.place(b.x + b.ux * 1150, b.z + b.uz * 1150, Math.atan2(b.uz, -b.ux)); rig.target.copy(P.mite.center); hunger.reset(0); hunger.update(0.01); },
+  bossFight(slot = 0) { const P = pls[slot] || P1; if (!PORTAL.placed) api.placePortal(bearingFromStart(P.mite.center.x, P.mite.center.z) || A0, slot); pace.mode = 'Always'; hunger.reset(0); hunger.update(0.01); boss.reset(); predAI.reset(...PRED_START); pace.mode = 'Never'; const b = boss.post; P.mite.place(b.x + b.ux * 1150, b.z + b.uz * 1150, Math.atan2(b.uz, -b.ux)); rig.target.copy(P.mite.center); hunger.reset(0); hunger.update(0.01); },
   /** Testing: face the boss's nearest pincer joint, within bite reach. */
   bossBite(slot = 0) { const P = pls[slot] || P1; const j = boss.bitePoints()[0]; if (!j) return; const c = P.mite.center; const v = new THREE.Vector3(c.x - j.x, 0, c.z - j.z).normalize(); P.mite.place(j.x + v.x * 330, j.z + v.z * 330, Math.atan2(v.z, -v.x)); },
   impact(slot = 0) { const P = pls[slot] || P1; return { last: P.play.lastImpact || null, pounces: P.play.pounces || 0, mode: P.mite.mode, dive: !!P.play.dive, stam: P.play.stam, scr: !!P.play.scr }; },
@@ -1653,10 +1705,11 @@ const api = {
     const P = pls[slot] || P1, c = P.mite.center;
     const f = new THREE.Vector3(1, 0, 0).applyQuaternion(P.mite.quat).setY(0).normalize();
     pred.place(c.x + f.x * 560, c.z + f.z * 560, Math.atan2(f.z, -f.x));
+    predPlaced = true; pred.setVisible(predOn);
     predAI.state = 'hunt'; predAI.cool = 0.3; predAI.t2 = 0; predAI.bored = 0;
   },
   /** Testing: calm the predator again (wandering, grooming). */
-  calm() { pace.mode = 'Never'; predAI.reset(...PRED_START); predAI.rear = 0; },
+  calm() { pace.mode = 'Never'; predAI.reset(predZone.x, predZone.z); predAI.rear = 0; },
   /** Testing: player `slot` presses X (bite / graze / clear, by what is in front). */
   bite(slot = 0) { const P = pls[slot] || P1; withRec(P, biteNow); return P.play.act || null; },
   /** Testing: the thicket's drag on player `slot` now ({ k, threads, press }). */
@@ -1673,6 +1726,8 @@ const api = {
     f.s0 = null; placeSpore(f, f.p, 1); f.s0 = null;
     return true;
   },
+  /** Testing: the camera and the views' frustums as a drawn frame would have them (for the director), without drawing. */
+  views(dt = 1 / 30) { stepViews(dt); },
   /** Run n render passes (camera and split screen) without stepping the simulation. */
   settle(n = 30) { for (let i = 0; i < n; i++) { placeCamera(1 / 30); drawFrame(1 / 30); } },
   /** Is anyone dwelling on the backdoor (the prompt is up)? */
@@ -1693,13 +1748,14 @@ const api = {
     const a = 0.3 + Math.PI / 2, c = mite.center;
     const x = c.x + Math.cos(a) * 560, z = c.z - Math.sin(a) * 560;
     pred.place(x, z, Math.atan2(-(c.z - z), c.x - x));
+    predPlaced = true; pred.setVisible(predOn);
     predAI.state = 'hunt';
     startCapture();
   },
   render(dt = 1 / 60) { const d = placeCamera(0); drawFrame(dt); updateText(d); },
   /** Testing: n steps of the simulation (players' pads as they are), no rendering; returns the frames stepped. */
   steps(n = 1, dt = 1 / 30, inputs = []) { for (let i = 0; i < n; i++) { simTime += dt; tick(dt, inputs); } return n; },
-  isolate(on) { world.group.visible = !on; npc.setVisible(!on); pred.setVisible(!on && predOn); },
+  isolate(on) { world.group.visible = !on; npc.setVisible(!on); pred.setVisible(!on && predHere()); },
   setMode(m) { sem.setMode(m); sem.skipScan(); },
 };
 window.__micro = api;

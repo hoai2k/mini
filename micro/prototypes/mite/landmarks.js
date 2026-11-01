@@ -5,9 +5,10 @@
 // the floor, its lowest leaf arches out and down, and in the angle between
 // them water has gathered in a smooth film; a tardigrade, the creature of the
 // next world, walks slowly about in it (the glimpse the transition pushes in
-// on). It is built where the portal is placed (place(): once a game, on the
-// portal ring at the bearing of whoever first gets far enough; layout.js
-// portalAt), with the shared golden glow over it (shared/portal.js; main.js
+// on). It is built where the portal is placed (place(): by the encounter
+// director, the last of the mite's encounters, in moss nobody has seen yet,
+// a short way ahead of whoever leads; layout.js portalAt), with the shared
+// golden glow over it (shared/portal.js; main.js
 // draws it after the SEM composite). Reach the water while the pseudoscorpion
 // is off guard and the microscope goes on into the tardigrade's world.
 //
@@ -47,8 +48,9 @@ export function createLandmarkProps(world, tex, { glowScene }) {
   glow.group.visible = false;
   const forward = { placed: false, a: 0, x: 0, z: 0, y: 0, ux: 0, uz: 0, at: new THREE.Vector3(), post: null, home: null };
   const water = { x: 0, z: 0, y: 0, rx: 520, rz: 380, yaw: 0 };
-  function place(a) {
-    const P = portalAt(a);
+  /** Build the axil with its water at (x, z), met coming along bearing a (outward). */
+  function place(a, x, z) {
+    const P = portalAt(a, x, z);
     for (const m of [...axil.children]) if (m !== tardi.group) { axil.remove(m); m.geometry.dispose(); }
     const toStart = new THREE.Vector2(-P.ux, -P.uz); // the leaf reaches out toward where you come from
     const wx = P.x, wz = P.z, wy = floorH(wx, wz);
@@ -180,6 +182,8 @@ export function createLandmarkProps(world, tex, { glowScene }) {
     /** The portal (forward): { placed, a, x, z, y, at (Vector3), post, home }. */
     forward,
     place,
+    /** No portal (a new game): nothing in the moss until the director places it again. */
+    unplace() { forward.placed = false; axil.visible = false; glow.group.visible = false; },
     back: dwell,
     /** The tardigrade walks about in the film (its legs going); t: world time, dt: step. */
     update(t, dt) { if (forward.placed) tardi.update(t, dt, water); },

@@ -1,16 +1,18 @@
 # Tardigrade · The Moss Film
 
 A ~350 µm eutardigrade climbing the cell walls of overlapping moss leaves with
-its claws, out from the shoot it starts on along spokes of leaves, through
-rings of encounters, to the pool at a leaf tip that is the way on. Seen
+its claws, out from the shoot it starts on along spokes of leaves, past
+encounters placed as you go, to the pool at a leaf tip that is the way on. Seen
 through a DIC (Nomarski) microscope with a real, shallow focal plane.
 Published at https://hoai2k.github.io/mini/micro/prototypes/tardigrade/
 (behind the invite gate).
 
-It follows the encounter pattern (`../../design/encounter-pattern.md`):
-rings round the start, the same in every direction, obstacles spaced evenly
-from the warm-up to the boss, a portal the boss guards, and nothing that runs
-you down while you stay put (see The rings, and What was removed).
+It follows the encounter pattern (`../../design/encounter-pattern.md`): the
+scenery laid out round the start, the same in every direction, the enemies
+and events placed as you go by the shared director (in order, on leaves
+nobody has seen yet, a short way ahead of whoever leads), a portal the boss
+guards, no arrow, and nothing that runs you down while you stay put (see The
+rings and the encounters, and What was removed).
 
 ## Controls (Xbox; keyboard in brackets)
 
@@ -58,14 +60,18 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
   pulls back to watch Milnesium swallow you whole (you stay visible inside its
   transparent body) and follows it for a couple of seconds as it crawls off;
   a fade, and you wake on your spoke at the last calm stretch behind you
-  (3.7, 5.05 or 6.8 mm out) that is well away from what caught you, else at
+  (2.75, 5.05 or 6.8 mm out) that is well away from what caught you, else at
   the start; in multiplayer, beside a teammate. Never further back than that.
 
-## The rings (`world.js` RINGS and buildSpokes, checked by `route.test.mjs`)
+## The rings and the encounters (`world.js`, `encounters.js`, checked by `route.test.mjs`)
 
-The owner's encounter pattern (2026-11-01): rings round the start, the same
-whichever way you go, a short warm-up, the obstacles spaced roughly evenly
-with short calm breaks, out to a portal guarded by the boss.
+The owner's encounter pattern (2026-11-01): the same whichever way you go, a
+short warm-up, the obstacles with calm breaks between, out to a portal
+guarded by the boss; and "feel free to place things in the world dynamically
+… keep the areas they've explored constant … don't skip obstacles". The
+scenery (the spokes, the meadows, the dry patches) is laid out in rings; the
+enemies and events (Milnesium, then the pool with Prionchulus) are placed by
+the shared director (`../shared/director.js`).
 
 **The layout.** The start is on leaf A of the shoot (six of the old patch's
 overlapping leaves, kept as they were: leaf A, B above, the steep C, the
@@ -83,66 +89,84 @@ the portal ring. Every bearing is within 15° of a spoke; between spokes is
 the defocused moss below. 58 leaves in all (was 7). Walking off a spoke's
 side goes round the margin onto the underside, as on any leaf.
 
-By straight-line (horizontal) distance from the start (the default 12.5× view
-is 1.44 mm across):
+The scenery, by straight-line (horizontal) distance from the start (the
+default 12.5× view is 1.44 mm across):
 
-| From | Encounter |
+| From | Scenery |
 | --- | --- |
-| 0-1.5 mm | Calm: the shoot, food, the backdoor axil |
-| 1.5-2.9 mm (its water centred 2.2 mm out, it lets you go at 3.4) | *Milnesium* |
-| 3.4-4.0 mm | Calm |
+| 0-1.5 mm | The shoot, food, the backdoor axil |
 | 4.0-4.6 mm | A band of ~110 rotifers across every spoke's leaf (the meadows) |
-| 4.6-5.5 mm | Calm |
 | 5.5-6.2 mm | Dry patches: three on every spoke, staggered across the leaf |
-| 6.2-7.35 mm | Calm |
-| 7.35-8.4 mm | *Prionchulus* on guard (its post 420 µm inside the portal, waking within 650 µm) and the portal at 8.4 mm |
+| 8.4 mm | The rims, where the pool can dip (its tip 260 µm in) |
 
-The encounters start at 1.5, 4.0, 5.5 and 7.35 mm: spaced roughly evenly from
-the warm-up to the boss (the owner's clarification), none held back. The
-pattern suggests two or three screen widths of warm-up; here that would be
-3-4 mm, 20-30 s of walking, so the first obstacle comes at about one screen
-instead, to meet the 5-10 s target.
+**The encounters, placed as you go** (`encounters.js` `DIRECTOR` and
+`encounters(world)`; `main.js` adds what placing and meeting each does).
+The director keeps a 3D grid of 3-unit (300 µm) cells, marked from every
+view's frustum within 2.2 mm of what it frames and 300 µm round every
+player: the view looks down through the leaves, and the west spokes climb
+2.2 mm above the rest, so what is seen is kept at the leaves' own height.
+The walkable world is the spokes, so every spot is snapped to a leaf, and
+"ahead" is along the spoke whoever leads is heading out on (`wayOut`: their
+leaf's spoke, or on the shoot the spoke whose exit they are making for;
+none while idle or heading back in):
 
-**One Milnesium, met in every direction** (`placeZone` in `main.js`): its
-water is moved round its ring to the spoke of whoever is coming out (from
-0.9 mm out to its middle, the one farthest out first), only while it is not
-busy (browsing, nobody within its leash) and only when both where it is and
-where it goes are more than 1 mm from every player (the 10× field is 1.8 mm
-across), so nobody sees it move and it is never put on a player; a restart
-puts it back on the +x spoke. `__micro.relocLog` records each move. **The
-meadows** are static: a band on every spoke (`Meadows` in `meadow.js`); only
+| # | What | Placed | Met |
+| --- | --- | --- | --- |
+| 1 | *Milnesium* browsing in its water (radius 700 µm; it lets you go 500 µm past it) | after the warm-up (4.5 s of moving), 1.2-1.8 mm ahead on a wet spot of that spoke's leaves (1-1.6 mm round a lingering player), past the shoot's middle and short of the rim's arena, its body out of every view and on unseen leaf | in its water, or within 500 µm of it |
+| 2 | *Prionchulus* and **the pool** at the rim leaf's tip of that spoke | after 16 s of moving clear of Milnesium's reach (the meadow and the dry patches come in this calm), when that rim is within 4 mm, the tip, the sparkle over it, the pool beyond and the boss's post all out of every view and unseen | entering the open portal |
+
+Anything placed but not yet seen moves (unseen to unseen) if the leader
+heads elsewhere; anything seen stays (seen and walked away from, or watched
+12 s, it counts as met). Milnesium placed beyond a lingering player's reach
+wanders over: its water drifts toward the leader at 80 µm/s after 5 s
+(`driftMilnesium`, behaviour, not a placement). Until placed Milnesium is
+hidden and still and there is no pool at any rim; a restart starts the
+director over. The pool can only dip at a rim leaf's tip, so a player who
+lingers at the start gets Milnesium round them and then the pool at the
+nearest rim, ~8.4 mm off: they still have to walk out to it.
+
+**The meadows** are static: a band on every spoke (`Meadows` in `meadow.js`); only
 the bands with someone on their leaf move, and each is culled per view.
 **The dry patches** are in the film-capacity field (`world.js`): bare cells
 with a sharp contact line round them (DIC draws it as a bright rim), slow
 going (claws on dry walls: 30% speed); a wet way winds between them.
-Milnesium, needing thicker film, barely moves in them.
+Milnesium, needing thicker film, barely moves in them. Both are scenery: a
+harmless crowd you push through and patches you walk round.
 
-**Timing** (scripted rush at 30 Hz: full tilt with a scramble whenever it is
-ready, steering out along the spoke; Milnesium never hungry and Prionchulus
-off, the meadows and dry patches on, so the slow-downs count):
+**Timing.** `route.test.mjs` runs the director with the microscope's own
+frustum (12.5×) and a player rushing along each of the 12 spokes (~1.6
+units/s): Milnesium placed at 4.7 s and met at 7.9-11.8 s, the pool placed at
+29.9-33.8 s (at that spoke's rim) and reached at 52.0-54.8 s. On the page
+(scripted rush at 30 Hz: full tilt with a scramble whenever it is ready,
+steering out along the spoke; Milnesium never hungry and Prionchulus off, the
+meadows and dry patches on, so the slow-downs count; the views from the
+camera each step):
 
-| Spoke | First obstacle (Milnesium's water) | Meadow | Dry ring | Portal placed | Portal reached |
-| --- | --- | --- | --- | --- | --- |
-| 0° (+x, out of leaf B) | 8.3 s | 23 s | 30 s | 45 s | 51 s |
-| 90° (out of the Sphagnum leaf) | 10.1 s | 27 s | 34 s | 50 s | 56 s |
-| 180° (out of leaf D, climbing) | 13.0 s | 29 s | 38 s | 54 s | 60 s |
-| 270° (out of leaf B) | 10.5 s | 27 s | 34 s | 51 s | 57 s |
+| Spoke | Milnesium placed | met | Meadow | Dry ring | Pool placed | Pool reached |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0° (+x, out of leaf B) | 4.7 s | 10.1 s | 23 s | 32 s | 32.1 s | 51.2 s |
+| 90° (out of the Sphagnum leaf) | 6.0 s | 10.7 s | 27 s | 34 s | 32.7 s | 56.8 s |
+| 180° (out of leaf D, climbing) | 6.9 s | 13.6 s | 28 s | 38 s | 35.6 s | 59.5 s |
+| 270° (out of leaf B) | 5.7 s | 14.3 s | 26 s | 34 s | 31.0 s | 56.7 s |
 
-Dealing with the encounters (a Milnesium fight, jabbing through a meadow,
-luring the boss) makes it a few minutes.
+Lingering at the start: Milnesium placed round them at 10.5 s and its water
+over them by 25 s, the pool placed at the 150° rim (the nearest unseen) at
+47 s; walking out to it, it was reached at 106.9 s. Turning back 0.7 mm out on the +x spoke and heading out the
+180° spoke: Milnesium (placed ahead at 4.7 s, in sight while the script
+turned) counted as watched at 17.8 s, the pool placed at the 180° rim at
+38.1 s and reached at 82.7 s. Dealing with the encounters (a Milnesium fight,
+jabbing through a meadow, luring the boss) makes it a few minutes.
 
-**The portal and the boss.** The portal is placed once a game, on the spoke
-of the first player to come within 1.4 mm of the portal ring (on the nearest
-other spoke if that rim were in someone's sight): the pool appears beyond that
+**The portal and the boss.** The portal is the last encounter, at the rim
+of the spoke whoever leads is heading out along: the pool appears beyond that
 rim leaf's tip (open water, its meniscus a bright DIC line, green *Paramecium
 bursaria* swimming in it, towards the amoeba's pool floor), the golden
 sparkle (`../shared/portal.js` `createPortalGlow`, drawn over the
 microscope's picture, not through the optics) hangs over the tip, dim and
 restless while guarded, bright once open, and *Prionchulus* goes on guard at
-its post 420 µm inside it. Until the portal has been found (someone within
-0.9 mm) there is no arrow, only its golden light (`createPortalLight`)
-spilling in from the edge of the view on its side; then the brass arrow points
-to it. Reaching the portal (the last ~430 µm before it and beyond, on the rim
+its post 420 µm inside it. There is no arrow: its golden light
+(`createPortalLight`) spills in from the edge of the view on its side, and
+haloes it in view. Reaching the portal (the last ~430 µm before it and beyond, on the rim
 leaf, either face) while Prionchulus is on guard (its head within 350 µm of
 its post) turns you back (a toast, once). **The way in: lure it off.** It
 wakes when you come within 650 µm of its post and follows you up to 850 µm
@@ -156,11 +180,14 @@ the rim leaf with it on guard, turned back; backing off 2 mm (it gave up
 835 µm from its post), then straight for the tip: through, with it still
 380 µm off its post.
 
-`__micro.route()` gives the static layout per spoke, `__micro.challenges`
-when each encounter first started (`milnesiumWater`, `milnesium`, `meadow`,
-`dry`, `portal`, `boss`, `bossLured`), `__micro.where()` how far out player 1
-is, `placePortal(k)`, `placeZone(k)`, `enterPortal(slot)` and `restart()` for
-tests.
+`__micro.route()` gives the static layout per spoke and where Milnesium is,
+`encounters()` the director's state (`director`, `seenAt(x, y, z)`,
+`placeNow()`), `views(dt)` the views' frustums without drawing (`testStep`
+does it too), `__micro.challenges` when each encounter first started
+(`milnesiumMet`, `milnesiumWater`, `milnesium`, `meadow`, `dry`, `portal`,
+`boss`, `bossLured`), `__micro.where()` how far out player 1 is,
+`placePortal(k)` and `placeEncounter(k, x, z)` (tests: out of order),
+`enterPortal(slot)` and `restart()`.
 
 ## What was removed (the pattern: no hidden clocks)
 
@@ -253,8 +280,8 @@ now), `__micro.intro`.
 Both are things in the moss patch (`landmarks.js`), drawn through the same
 optics as everything else (the portal's sparkle on top of them);
 `../shared/landmark.js` adds a quiet mark near the edge of each view when
-they are off screen: a brass arrow towards the portal once it has been found,
-a hollow ring labelled Moss towards the way back.
+they are off screen: none for the portal (its light leads you), a hollow
+ring labelled Moss towards the way back.
 
 - **Forward: the portal**, the pool at a rim leaf's tip, towards the amoeba's
   pool floor (design §2.6): open water beyond the tip, a slab whose bevelled
@@ -675,10 +702,14 @@ The first must print `ok tardigrade` with no console errors. The second
 (Node, no browser, ~5 s) builds the world and checks the rings: 12 spokes,
 every hand-over leaf to leaf within the claws' reach (or bridged by wet
 film), each spoke on its bearing, every bearing within 15° of one, each rim
-leaf's tip on the portal ring with room to lure the boss, Milnesium's water,
-a meadow band and two or three dry patches (dry, with a wet way beside) at
-the same distances on every spoke, the calm stretches between them and their
-even spacing, and a wet, calm start. The third
+leaf's tip on the portal ring with room to lure the boss, a meadow band and
+two or three dry patches (dry, with a wet way beside) at the same distances
+on every spoke with calm stretches between, and a wet, calm start; then the
+director: rushing along every spoke meets Milnesium (within ~10 s, after a
+warm-up) and then the pool at that spoke's rim (reached in 45-62 s), nothing
+placed in view, on seen leaves or off the leaves, nothing moved once seen;
+lingering brings Milnesium round them and then the pool; turning back moves
+nothing that was seen. The third
 (headless Chromium, ~30 s) drives the animal at 60 Hz from the Sphagnum leaf
 onto leaf E, across the film gap from leaf A to leaf B, up onto the steep
 leaf C (then braced), round the margin of leaf D, through scrambles with

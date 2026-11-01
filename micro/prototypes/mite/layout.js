@@ -1,21 +1,19 @@
-// Where things are in the mite's moss (µm): rings round the start, the same in
-// every direction (the encounter pattern, micro/design/encounter-pattern.md).
-// The start is the origin. Whichever way you walk you meet, in turn:
+// Where things are in the mite's moss (µm). The start is the origin.
 //
-//   from (µm)        what
-//   0 - 3800         warm-up: open moss, spores and hyphal tips to graze, the second box mite
-//   3800 - 6200      the first ring of hyphal thickets, full of springtails (the crowd)
-//   ~11300 - 14200   the predatory mite's hunting ground (one predator, moved round its ring)
-//   ~19100 - 21500   the second ring of thickets
-//   ~27500 - 30400   the predatory mite again (the same one, moved out to its outer ring)
-//   ~36000 on        the pseudoscorpion on guard (it wakes 0.9 mm from its post)
-//   37500            the portal: a wet leaf axil (the way to the tardigrade's water film)
-//
-// with calm stretches of ~5-6 mm (7-8 s of rushing) between. Rushing straight
-// out (hurrying with every scramble) takes about a minute; dealing with them,
-// about three. The moss itself is one 9.6 mm scenery tile repeated in every
-// direction (world.js TILE), so there is no edge to walk off; the walkable
-// square (BOUNDS) reaches 6 mm past the portal ring.
+// Scenery is laid out before play (the moss tile everywhere, the two rings of
+// hyphal thickets full of springtails, the second box mite, the giant
+// springtail): you can walk round all of it. The enemies and events (the
+// predatory mite, met twice, then the pseudoscorpion on guard at the portal,
+// the wet leaf axil) are placed as you go by the encounter director
+// (../shared/director.js; ../../design/encounter-pattern.md, "Placed as you
+// go"): in order, in moss nobody has seen yet, a short way ahead of whoever
+// leads, after a warm-up and a calm break each. DIRECTOR and ENCOUNTERS below
+// are its settings (main.js adds place and met; route.test.mjs runs them
+// without a browser). Rushing (hurrying with every scramble) meets them all
+// and reaches the portal in about a minute; dealing with them, a few. The
+// moss itself is one 9.6 mm scenery tile repeated in every direction
+// (world.js TILE), so there is no edge to walk off; the walkable square is
+// BOUNDS.
 
 /** Distance from the start (µm). */
 export const distFromStart = (x, z) => Math.hypot(x, z);
@@ -24,14 +22,10 @@ export const bearingFromStart = (x, z) => Math.atan2(z, x);
 /** A point `r` µm from the start at bearing `a`. */
 export const ringPoint = (r, a) => ({ x: Math.cos(a) * r, z: Math.sin(a) * r });
 
-/** The portal ring: the wet leaf axil's water lies this far out, at the bearing it is placed on. */
-export const PORTAL_R = 37500;
-/** The rings (µm from the start). */
+/** The thickets' rings (µm from the start; scenery: every way out meets them, and you can walk round them). */
 export const RINGS = {
-  warm: 3800,          // warm-up ends: the first thickets begin
+  warm: 3800,             // the open moss round the start: the first thickets begin here
   thicket: [5000, 20300], // the two thicket rings (cluster centres; alternate clusters 350 µm in and out)
-  pred: [12400, 28600],   // the predator's two rings (its hunting ground's centre)
-  portal: PORTAL_R,
 };
 /** A thicket cluster: radius, and the spacing of clusters along their ring (µm of arc). */
 export const CLUSTER = { r: 820, spacing: 2350, stagger: 350, posts: 34 };
@@ -50,39 +44,79 @@ export function clusterRing(k) {
 /** Every thicket cluster. */
 export const CLUSTERS = [...clusterRing(0), ...clusterRing(1)];
 
-/** The predator's hunting ground on ring k at bearing a: { x, z, r } (its leash: `chase` past r). */
+/** The predator's hunting ground: radius r round where it is placed; it gives up a chase `chase` past r. */
 export const PRED_GROUND = { r: 1100, chase: 700 };
-export function predZoneAt(k, a) { return { ...ringPoint(RINGS.pred[k], a), r: PRED_GROUND.r }; }
+export const predZoneAt = (x, z) => ({ x, z, r: PRED_GROUND.r });
 
 /**
- * The portal at bearing a: the water in the leaf axil, the pseudoscorpion's
- * post 600 µm before it and 500 µm to the side (its long abdomen lies
- * alongside the water, not over it), and how near its post wakes it.
+ * The portal: the water in the leaf axil at (x, z), met coming along bearing
+ * a (outward, from the player who leads), the pseudoscorpion's post 600 µm
+ * before it and 500 µm to the side (its long abdomen lies alongside the
+ * water, not over it), and how near its post wakes it.
  */
 export const BOSS = { before: 600, side: -500, wake: 900, leash: 2600, lose: 3600 };
-export function portalAt(a) {
+export function portalAt(a, x, z) {
   const ux = Math.cos(a), uz = Math.sin(a); // outward
   const sx = -uz, sz = ux;                  // to the right looking outward
-  const w = ringPoint(PORTAL_R, a);
-  const post = { x: w.x - ux * BOSS.before + sx * BOSS.side, z: w.z - uz * BOSS.before + sz * BOSS.side };
-  // it faces back toward the start; worn down it backs off into the moss to the side
+  const post = { x: x - ux * BOSS.before + sx * BOSS.side, z: z - uz * BOSS.before + sz * BOSS.side };
+  // it faces back toward the way you come; worn down it backs off into the moss to the side
   const home = { x: post.x + sx * 1300, z: post.z + sz * 1300 };
-  return { a, x: w.x, z: w.z, ux, uz, post: { ...post, a: a + Math.PI, ux: -ux, uz: -uz }, home };
+  return { a, x, z, ux, uz, post: { ...post, a: a + Math.PI, ux: -ux, uz: -uz }, home };
 }
-/** When the portal is placed: the first player to get this far out (it appears out of everyone's view, on the ring). */
-export const PORTAL_PLACE = PORTAL_R - 8000;
 /** The moss kept clear round the portal (stems and leaves only; its arena), µm. */
 export const PORTAL_CLEAR = 1500;
 
 /** The walkable square (the floor repeats beyond it; the walker keeps inside). */
-export const HALF = PORTAL_R + 6000;
+export const HALF = 43500;
 export const BOUNDS = { x0: -HALF, x1: HALF, z0: -HALF, z1: HALF, cx: 0, cz: 0, half: HALF };
 
-/** Where the opening view looks (up and right on screen): the old way on, kept for the start view. */
+/** Where the opening view looks (up and right on screen). */
 const DX = -1500, DZ = 1030, DL = Math.hypot(DX, DZ);
 export const OPENING = { ux: DX / DL, uz: DZ / DL };
-/** The second box mite's patch (in the warm-up). */
+/** The second box mite's patch (by the start). */
 export const NPC_HOME = { x: OPENING.ux * 1300 - OPENING.uz * 200, z: OPENING.uz * 1300 + OPENING.ux * 200 };
+/** The giant springtail (the backdoor), behind the start view: landmarks.js BACKDOOR. */
+const BACK_AT = { x: 1450, z: -1000 };
 
-/** Progress (0 at the start .. 1 on the portal ring) of a point. */
-export const progressAt = (x, z) => distFromStart(x, z) / PORTAL_R;
+/** Is a disc (x, z, r) clear of every thicket (by `pad` more)? */
+export function clearOfThickets(x, z, r, pad = 0) {
+  for (const c of CLUSTERS) if (Math.hypot(c.x - x, c.z - z) < r + c.r + pad) return false;
+  return true;
+}
+
+/**
+ * The director's settings (shared/director.js) and the encounters in order.
+ * Distances in µm: the opening view is 1.6 mm across (its footprint on the
+ * moss ~1.6 mm, up to 4.2 mm in a boss fight); rushing averages ~730 µm/s.
+ *   size     clearance (the predator's ground and its chase; the portal's arena)
+ *   visible  / parts: what can be seen of it when placed: unseen moss, out of view
+ *   top      how tall (the axil's stem and the glow over it)
+ *   min/maxAhead  how far ahead of the leader it goes; min/maxNear when they linger
+ */
+export const DIRECTOR = {
+  cell: 500, seenDist: 4200, nearSeen: 450, seed: 29,
+  bounds: { x0: -HALF + 2500, x1: HALF - 2500, z0: -HALF + 2500, z1: HALF - 2500 },
+  // the warm-up: ~5 s of moving over open moss; a calm break of ~8 s of moving clear of the last
+  warmup: { sec: 5 }, calm: { sec: 8 }, linger: 6, moveSpeed: 120,
+  // seen but not gone to: met once everyone is ~2 screens past it, or after 12 s in sight nearby (it is never moved)
+  watchSec: 12, passDist: 6000,
+};
+/** The predator's ground placed at (x, z): clear of the thickets (a chase may run into one: it eats springtails there), the giant springtail and the second box mite. */
+const predFits = (x, z) => clearOfThickets(x, z, PRED_GROUND.r, 150)
+  && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 2600 && Math.hypot(x - NPC_HOME.x, z - NPC_HOME.z) > 2200;
+const PRED = {
+  size: PRED_GROUND.r + PRED_GROUND.chase + 100, visible: 650,
+  minAhead: 3800, maxAhead: 5800, minNear: 2600, maxNear: 4000, fits: predFits,
+};
+export const ENCOUNTERS = [
+  // the predatory mite on its hunting ground (it starts at the spot itself; the ground is invisible)
+  { id: 'pred', ...PRED },
+  // and again, a way on (the same one: it has gone on through the moss, out of sight)
+  { id: 'pred2', ...PRED },
+  // the boss and the way on: the wet leaf axil (its stem 1.5 mm tall, the glow over it) and the pseudoscorpion on its post
+  { id: 'portal', size: PORTAL_CLEAR + 900, top: 2400, minAhead: 5200, maxAhead: 7800, minNear: 3600, maxNear: 5200, final: true, calm: { sec: 9 },
+    parts: (x, z, b) => { const P = portalAt(b, x, z); return [[x, z, PORTAL_CLEAR], [P.post.x, P.post.z, 1100], [P.home.x, P.home.z, 700]]; },
+    fits: (x, z, b) => { const P = portalAt(b, x, z); return clearOfThickets(x, z, PORTAL_CLEAR, 200) && clearOfThickets(P.post.x, P.post.z, 1100, 200) && clearOfThickets(P.home.x, P.home.z, 700, 100) && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 4000; } },
+];
+/** Anything placed stays well inside the walkable square. */
+export const canPlace = (x, z, r) => Math.abs(x) < HALF - 2000 - r * 0.5 && Math.abs(z) < HALF - 2000 - r * 0.5;

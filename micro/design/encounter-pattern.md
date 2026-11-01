@@ -67,7 +67,12 @@ walk around can be in safe areas too, because you can just avoid them."
   view, a short way off (so it arrives soon, but not immediately). If there is
   no room there it goes to the side, then farther out, then to the nearest
   unseen spot anywhere. One placed but not yet seen may be moved again (unseen
-  to unseen) when the player heads elsewhere.
+  to unseen) when the player heads elsewhere. Where the walkable world is
+  narrow, "ahead" is along the way the player is going and every spot is
+  snapped onto it: the tardigrade's spokes of leaves (Milnesium onto a wet
+  leaf of the spoke the leader is heading out along, the pool onto that
+  spoke's rim: `prototypes/tardigrade/encounters.js`). The mite
+  (`prototypes/mite/layout.js`) and the tardigrade use the director too.
 - **Nothing is skipped.** Encounters come strictly in order; the boss and the
   portal are placed only after the player has met every earlier encounter. A
   player who hangs about in a safe area still gets them: if they linger, the
