@@ -15,15 +15,15 @@ is at https://hoai2k.github.io/mini/.
 - **[Half-Blood Quests](https://hoai2k.github.io/mini/percyjackson/)** · [`percyjackson/`](percyjackson/README.md): a Percy Jackson co-op dungeon crawler in the style of Minecraft Dungeons
 - **[Ear Trainer](https://hoai2k.github.io/mini/eartrainer/)** · [`eartrainer/`](eartrainer/README.md): hear a melody, play it back on the piano
 - **[Ai-Ching](https://hoai2k.github.io/mini/aiching/)** · [`aiching/`](aiching/README.md): ask anything, and an I Ching reading answers
-- **[Fibre Art](https://games.hoai.net/art/fibreart/)** · [`fibreart/`](fibreart/README.md): a shifting collage after the fibre art of Hanneke de Neve
-- **[The Ice-Cream Cone Coot](https://games.hoai.net/art/icecreamcone/)** · [`icecreamcone/`](icecreamcone/README.md): a field guide of rare birds, with a minigame for each
+- **[Fibre Art](https://games.hoai.net/art/fibreart/)** (in the [`art`](https://github.com/hoai2k/art) repository): a shifting collage after the fibre art of Hanneke de Neve
+- **[The Ice-Cream Cone Coot](https://games.hoai.net/art/icecreamcone/)** (in the [`art`](https://github.com/hoai2k/art) repository): a field guide of rare birds, with a minigame for each
 - **[One Monster After Another](https://hoai2k.github.io/mini/onemonster/)** · [`onemonster/`](onemonster/README.md) (not deployed)
 - **[Gliders](https://hoai2k.github.io/mini/gliders/)** · [`gliders/`](gliders/README.md): Superflight-style gliding for one to four players (not deployed)
 - **[Games Chat](https://hoai2k.github.io/mini/chat/)** · [`chat/`](chat/README.md): video chat with face effects and minigames
 - **[Tank Wars](https://hoai2k.github.io/mini/tankwars/)** · [`tankwars/`](tankwars/README.md)
 - **[Hopper the Grasshopper](https://hoai2k.github.io/mini/hopper/)** · [`hopper/`](hopper/README.md)
-- **[Kingdom of the Fairies](https://games.hoai.net/art/kingdomofthefairies/)** · [`kingdomofthefairies/`](kingdomofthefairies/README.md)
-- **[Bronze Drum](https://games.hoai.net/art/bronzedrum/)** · [`bronzedrum/`](bronzedrum/README.md)
+- **[Kingdom of the Fairies](https://games.hoai.net/art/kingdomofthefairies/)** (in the [`art`](https://github.com/hoai2k/art) repository)
+- **[Bronze Drum](https://games.hoai.net/art/bronzedrum/)** (in the [`art`](https://github.com/hoai2k/art) repository)
 
 ## Mods
 

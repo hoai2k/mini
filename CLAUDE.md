@@ -45,13 +45,9 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
 | Folder | What it is | Published at |
 | --- | --- | --- |
 | `hopper/` | Hopper the Grasshopper | https://hoai2k.github.io/mini/hopper/ |
-| `kingdomofthefairies/` | Kingdom of the Fairies (includes the preserved Widow's Bay edition); moved to the `art` repository (https://games.hoai.net/art/kingdomofthefairies/), so mini no longer deploys it (off in `deploy_config.json`) | — |
-| `bronzedrum/` | Bronze Drum; moved to the `art` repository (https://games.hoai.net/art/bronzedrum/), so mini no longer deploys it (off in `deploy_config.json`) | — |
 | `tankwars/` | Tank Wars | https://hoai2k.github.io/mini/tankwars/ |
 | `gliders/` | Gliders (Superflight-style gliding, 1–4 players split screen); not deployed (off in `deploy_config.json`), behind the invite gate | https://hoai2k.github.io/mini/gliders/ |
-| `icecreamcone/` | The Ice-Cream Cone Coot (a field guide of rare birds from Arnold Lobel's book, with a minigame for each); moved to the `art` repository (https://games.hoai.net/art/icecreamcone/), so mini no longer deploys it (off in `deploy_config.json`) | — |
 | `onemonster/` | One Monster After Another (after Mercer Mayer's book: play each monster as it snatches the letter from the last, as a side-scrolling Adventure or as minigames, alone or two players head to head); not deployed (off in `deploy_config.json`), behind the invite gate | https://hoai2k.github.io/mini/onemonster/ |
-| `fibreart/` | Fibre Art (a shifting collage after the fibre art, paintings and drawings of Hanneke de Neve: controllers move, stretch, swirl and dissolve the parts of her pictures); moved to the `art` repository (https://games.hoai.net/art/fibreart/), so mini no longer deploys it (off in `deploy_config.json`) | — |
 | `percyjackson/` | Half-Blood Quests (a Percy Jackson co-op dungeon crawler in the style of Minecraft Dungeons; style references in `reference/` are private) | https://hoai2k.github.io/mini/percyjackson/ |
 | `aiching/` | Ai-Ching (an I Ching reader styled like an AI prompt: a question seeds the cast and shapes the reading) | https://hoai2k.github.io/mini/aiching/ |
 | `eartrainer/` | Ear Trainer (hear a melody, play it back on a 1.5-octave piano; after the Chet app) | https://hoai2k.github.io/mini/eartrainer/ |
@@ -71,8 +67,16 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
 - **A game with a heavy workbench carries `<game>/deploy_config.json`**
   (`{"includeWorkbenches": true}`), read by its `publish.sh`: `false` leaves the
   workbench out of the deployed site (it still works locally), and a missing or
-  unreadable file means `true`. Bronze Drum's sound workbench (about 10 MB of
-  alternative takes) is the one today; the other workbenches are a few KB.
+  unreadable file means `true`. No game here needs one today (Bronze Drum,
+  which had one, moved to the `art` repository); the remaining workbenches are
+  a few KB.
+- **The art games live in the `art` repository.** The Ice-Cream Cone Coot,
+  Bronze Drum, Kingdom of the Fairies and Fibre Art moved there (published at
+  https://games.hoai.net/art/) and their folders were removed from mini: work
+  on them, their deploys and their deploy settings all happen in `art`. mini's
+  library still shows their cards, pointing at `../art/<game>/` (images
+  included), and the library filter, which matches `href="<game>/"`, leaves
+  them in.
   Micro Zoom's `micro/deploy_config.json` works the same way for its prototype
   browser (`includePrototypeBrowser`: the list at `/micro/prototypes/` and the
   split-screen demo); the game and the world pages it hosts always deploy.
@@ -86,8 +90,9 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
   playable build into `local/pages/<folder>/`. Add a step for it to
   `.github/workflows/pages.yml`, a link in the root `README.md`, a card at the
   front of the game library page (`index.html`): newest game first by when it
-  was made, so Tank Wars comes last; Fibre Art sits after Kingdom of the
-  Fairies at the owner's request, and a row in the table above.
+  was made, so Tank Wars comes last (the art games' cards keep their places,
+  with Fibre Art after Kingdom of the Fairies at the owner's request), and a
+  row in the table above.
 - **The root holds only what is shared.** `README.md` is a list of links to
   the games and sites and nothing more; each game's details belong in its own
   README. `index.html` is the game library published at
@@ -111,12 +116,6 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
   deploys every game. Bookzam, One Monster After Another and Gliders are
   off today (they were the Prototype archive, with Micro Zoom, which is back
   on), so their pages 404.
-  The Ice-Cream Cone Coot, Bronze Drum, Kingdom of the Fairies and Fibre Art
-  are off too: they moved to the `art` repository (published at
-  https://games.hoai.net/art/), which is where their work happens now; mini's
-  folders are the copies they were made from. mini's library still shows
-  their cards, pointing at `../art/<game>/` (images included), so the library
-  filter, which matches `href="<game>/"`, leaves them in.
   Turning one back on means setting it to `true` (or deleting its line) and
   adding a card for it to `index.html`, since the archive's links are gone.
   Those three, and Micro Zoom, still carry the shared invite gate opened with
@@ -194,7 +193,7 @@ and load the real file; stand-ins remain for tests.
 ## Intake
 
 Each game has its own drop box at `<game>/intake/` (`hopper/intake/`,
-`kingdomofthefairies/intake/`, `bronzedrum/intake/`, `chat/intake/`, `gliders/intake/`, `icecreamcone/intake/`, `onemonster/intake/`, `fibreart/intake/`, `percyjackson/intake/`, `aiching/intake/`, `eartrainer/intake/`, `musicpractice/intake/`, `bookzam/intake/`, `stocks/intake/`, `mp3player/intake/`, `imageannotator/intake/`, `meditation/intake/`, `micro/intake/`, `smoothcraft/intake/`). The user drops files there for
+`chat/intake/`, `gliders/intake/`, `onemonster/intake/`, `percyjackson/intake/`, `aiching/intake/`, `eartrainer/intake/`, `musicpractice/intake/`, `bookzam/intake/`, `stocks/intake/`, `mp3player/intake/`, `imageannotator/intake/`, `meditation/intake/`, `micro/intake/`, `smoothcraft/intake/`). The user drops files there for
 integration: artwork, audio, models, exported data, notes from another agent.
 A file belongs to the game whose intake it was dropped in. If it plainly
 belongs to a different game, move it there; if that is unclear, ask.
