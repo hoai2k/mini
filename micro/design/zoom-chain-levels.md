@@ -149,6 +149,29 @@ This spec instead uses the trap as the **transition from Level 3 to Level 4**
 
 ---
 
+## The story: down the chain, then back up with the super-gene
+
+The chain is played twice. **Down:** springtail → mite → tardigrade → amoeba
+→ *Paramecium* → bacterium → phage, each world reached through a portal marked
+by golden sparkle (`design/encounter-pattern.md`). **The turn:** the phage you
+play glows gold; when it gets its genome into a host and replicates, it becomes
+a super-gene virus, and its burst sends glowing virions across the cells.
+**Up:** the worlds again in reverse (bacterium, *Paramecium*, amoeba,
+tardigrade, mite, springtail). Each creature now carries the super-gene: it
+glows the same gold and is far stronger on its board, so enemies that were
+hard on the way down are dealt with handily. **The ending:** the glowing
+springtail jumps onto a person's fingertip, bites, and the glow passes into
+them. The super-gene is never explained in text; the gold glow and the power
+carry it. Plan and concept references: `design/super-gene-return.html`
+(future sequence, not built; today the phage world ends in "Work in progress").
+
+**Open questions (the owner's to settle):** how the super-gene climbs each
+step (each creature catching it from the one below — eaten, infected or
+touched — or simply starting each reversed board already glowing); whether
+the reversed boards are the same maps played back toward the start or new
+layouts; and whether the reversed worlds keep their bosses or swap in a
+bigger threat that only the glowing creature can beat.
+
 ## Level 0: The bog surface (water springtail)
 
 ### 0.1 Scale and optics

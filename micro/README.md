@@ -8,6 +8,17 @@ Video games where you play as microscopic creatures.
   reach a world's forward landmark or its backdoor. Published at
   https://hoai2k.github.io/mini/micro/, public (no invite gate).
 
+- **The story: the super-gene.** You zoom down the chain, world by world,
+  to the bottom: a phage that glows gold. When it gets its genome into a host
+  and replicates there, it becomes a super-gene virus, and the game then runs
+  back up the chain in reverse (bacterium, Paramecium, amoeba, tardigrade,
+  mite, springtail): each creature carries the super-gene, glows gold and is
+  far stronger on its board, until a glowing springtail jumps onto a person's
+  fingertip and passes the super-gene on. The glow is never explained, only
+  shown. The golden sparkle on every world's portal is the same gold, so it
+  foreshadows the ending. Plan and concept art:
+  [`design/super-gene-return.html`](design/super-gene-return.html) (not built
+  yet: today the phage world ends in a "Work in progress" screen).
 - [`research/`](research/) is a cited research atlas of four scale bands
   (mites, water-film animals, large protists, small cells), their habitats,
   visual styles and real biological "powers". Its pages are built by
