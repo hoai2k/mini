@@ -865,7 +865,8 @@ function startOutro(a) {
   if (!me.behind) portalLight.bloom(me.x, me.y, { scale: 0.7 });
   audio.play('shared/portal-chime', { volume: 0.9 });
   rumble(520, 0.55, 0.85);
-  if (embed.active) embed.cinematic(true, canvas);
+  // the chrome goes, the bloom stays (cinematic(false) restores both)
+  if (embed.active) { embed.cinematic(true, canvas); portalLight.canvas.style.visibility = 'visible'; }
   else toast(`${who(a)}The pool: the film meets open water`, 2400);
 }
 /** Advance the outro by dt (frame time); returns the time scale for the world. */

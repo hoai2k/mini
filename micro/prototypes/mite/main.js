@@ -1046,7 +1046,8 @@ function startOutro(P) {
   withRec(P, () => { if (rumbleOn) padOf().rumble(520, 0.55, 0.85); });
   hud.toast('', 1);
   banner.style.display = 'none'; gauge.style.display = 'none';
-  if (embed.active) embed.cinematic(true, canvas);
+  // the chrome goes, the bloom stays (cinematic(false) restores both)
+  if (embed.active) { embed.cinematic(true, canvas); portalLight.canvas.style.visibility = 'visible'; }
 }
 /** Advance the outro by dt (frame time); returns the time scale for the world. */
 function stepOutro(dt) {

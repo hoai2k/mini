@@ -29,19 +29,21 @@ export const T4 = {
 };
 export const T4_COLORS = {
   capsid: '#6f9be0', capsidDeep: '#4f78c4', vertex: '#7fc79a', dna: '#a77ae0', collar: '#58b7d8', whisker: '#8fd6cf',
-  sheath: '#b07a3c', sheath2: '#946428', tube: '#a7e0d6', plate: '#e98a3c', plate2: '#f0a649',
+  sheath: '#a87238', sheath2: '#8e5e2a', tube: '#a7e0d6', plate: '#e98a3c', plate2: '#f0a649',
   fibre: '#ec8a3a', knee: '#f3c04a', tip: '#d8662c', short: '#f2b25a',
 };
 
 // False light (the default look): the phage a translucent bronze and amber crystal, faceted, with a fine sheen
 // (shaded, not glowing: the owner's look target, design/reference/phage-look-target.webp).
+// Bronze glass (LOOK.md "Recipe"): amber-bronze #8c5422-#c48a48, a strong specular and Fresnel rim, softly self-lit
+// only a little (glow is a faint rim term), the packed DNA a dim warm shape inside.
 export const T4_FL = {
-  gold: { color: '#a46628', color2: '#c48842', keep: 0, glow: 0.08, glowColor: '#e09040', trans: 0.75, spec: 1.3, scale: 0.6 },
-  capsid: { color: '#9a5e26', color2: '#c08038', keep: 0, glow: 0.04, glowColor: '#e09a48', trans: 0.9, spec: 1.6, scale: 0.5 },
-  beads: { color: '#a46a30', color2: '#c89050', keep: 0, glow: 0.05, glowColor: '#e0a050', trans: 0.85, spec: 1.0, scale: 0.8 },
-  dna: { color: '#ffd88a', color2: '#ffb850', keep: 0, glow: 0.32, glowColor: '#ffb84a', trans: 0.5, spec: 0.4 },
-  sheath: { color: '#a46628', color2: '#c48842', keep: 0.75, glow: 0.1, glowColor: '#e09040', trans: 0.7, spec: 1.2, scale: 0.6 },
-  fibre: { color: '#a86a2c', color2: '#c89050', keep: 0, glow: 0.12, glowColor: '#e09a48', trans: 0.6, spec: 0.9, scale: 1.2 },
+  gold: { color: '#8f5a26', color2: '#b67c3e', keep: 0, glow: 0.04, glowColor: '#d89048', trans: 0.7, spec: 1.4, scale: 0.6 },
+  capsid: { color: '#8a5424', color2: '#b27a3c', keep: 0, glow: 0.03, glowColor: '#e0a058', trans: 1.0, spec: 2.0, scale: 0.5 },
+  beads: { color: '#a46a30', color2: '#c89050', keep: 0, glow: 0.03, glowColor: '#e0a050', trans: 0.85, spec: 1.0, scale: 0.8 },
+  dna: { color: '#5e3c1c', color2: '#7a5028', keep: 0, glow: 0.02, glowColor: '#d8a050', trans: 0.3, spec: 0.3 },
+  sheath: { color: '#8f5a26', color2: '#b67c3e', keep: 0.55, glow: 0.04, glowColor: '#d89048', trans: 0.7, spec: 1.5, scale: 0.6 },
+  fibre: { color: '#9a6430', color2: '#c08a4c', keep: 0, glow: 0.04, glowColor: '#d89a50', trans: 0.6, spec: 1.2, scale: 1.2 },
 };
 
 function mergeSimple(list) {
@@ -172,7 +174,7 @@ export function createT4({ clip = true } = {}) {
     }
   }
   const edgeGeo = mergeSimple(edgeParts);
-  const edgeMat = toonMaterial({ color: '#d8a056', clip, fl: { color: '#c88a3c', color2: '#f0c890', keep: 0, glow: 0.18, glowColor: '#e8a050', trans: 0.3, spec: 1.4 } });
+  const edgeMat = toonMaterial({ color: '#d8a056', clip, fl: { color: '#b88448', color2: '#e6c08c', keep: 0, glow: 0.07, glowColor: '#e8b070', trans: 0.4, spec: 1.8 } });
   const edges = new THREE.Mesh(edgeGeo, edgeMat);
   edges.visible = false;
   head.add(edges);
@@ -211,7 +213,7 @@ export function createT4({ clip = true } = {}) {
   headGroup.add(whiskers);
 
   // --- sheath ---
-  const ringGeo = new THREE.TorusGeometry(0.72, 0.4, 6, 12);
+  const ringGeo = new THREE.TorusGeometry(0.74, 0.36, 8, 20);
   ringGeo.rotateX(Math.PI / 2);
   const sheath = inkedInstanced(ringGeo, toonMaterial({ color: '#ffffff', mottle: 0.1, fl: T4_FL.sheath }), T4.RINGS, { width: 0.8 });
   for (let i = 0; i < T4.RINGS; i++) sheath.setColorAt(i, _c.set(i % 2 ? T4_COLORS.sheath : T4_COLORS.sheath2));
@@ -240,19 +242,26 @@ export function createT4({ clip = true } = {}) {
 
   // --- long tail fibres (world space) ---
   const NODES = T4.FIBRE_NODES, SEG = T4.FIBRE_LEN / (NODES - 1);
-  const BPS = 4; // beads per segment
-  const perFibre = (NODES - 1) * BPS + 1;
-  const beadGeo = new THREE.IcosahedronGeometry(1, 1);
-  const fibreMesh = inkedInstanced(beadGeo, toonMaterial({ color: '#ffffff', mottle: 0.1, fl: T4_FL.fibre }), 6 * perFibre, { width: 0.6 });
-  const beadR = [], beadC = [];
-  for (let f = 0; f < 6; f++) for (let i = 0; i < perFibre; i++) {
-    const seg = Math.floor(i / BPS), sub = i % BPS;
-    let r = seg < T4.KNEE ? 0.42 : 0.37, c = T4_COLORS.fibre;
-    if (sub === 0 && seg > 0) { r += 0.12; c = T4_COLORS.plate2; }
-    if (seg === T4.KNEE && sub === 0) { r = 0.66; c = T4_COLORS.knee; }
-    if (i === perFibre - 1) { r = 0.78; c = T4_COLORS.tip; }
-    beadR.push(r); beadC.push(c);
-    fibreMesh.setColorAt(f * perFibre + i, _c.set(c));
+  // Each long fibre is drawn as thin tubes between its simulated nodes (two per segment, along a smooth
+  // curve through them) with small joints, the knee and the tip a little larger: a jointed glassy rod, not a
+  // string of beads (the look target).
+  const SUB = 2;
+  const perFibre = (NODES - 1) * SUB;
+  const tubeGeo = new THREE.CylinderGeometry(1, 1, 1, 7, 1, true); tubeGeo.translate(0, 0.5, 0);
+  const jointGeo = new THREE.IcosahedronGeometry(1, 1);
+  const fibreMat = toonMaterial({ color: '#ffffff', mottle: 0.1, fl: T4_FL.fibre });
+  const fibreTubes = inkedInstanced(tubeGeo, fibreMat, 6 * perFibre, { width: 0.6 });
+  const fibreJoints = inkedInstanced(jointGeo, fibreMat, 6 * NODES, { width: 0.6 });
+  const fibreMesh = new THREE.Group();
+  fibreMesh.add(fibreTubes, fibreJoints);
+  const tubeR = [], jointR = [];
+  for (let f = 0; f < 6; f++) {
+    for (let i = 0; i < perFibre; i++) { const seg = Math.floor(i / SUB); tubeR.push(seg < T4.KNEE ? 0.3 : 0.24); fibreTubes.setColorAt(f * perFibre + i, _c.set(T4_COLORS.fibre)); }
+    for (let i = 0; i < NODES; i++) {
+      const r = i === 0 ? 0.42 : i === T4.KNEE ? 0.55 : i === NODES - 1 ? 0.5 : 0.36;
+      jointR.push(r);
+      fibreJoints.setColorAt(f * NODES + i, _c.set(i === T4.KNEE ? T4_COLORS.knee : i === NODES - 1 ? T4_COLORS.tip : T4_COLORS.plate2));
+    }
   }
   const fibres = [];
   for (let f = 0; f < 6; f++) {
@@ -334,7 +343,7 @@ export function createT4({ clip = true } = {}) {
     state.capsid = mode;
     const translucent = mode === 'translucent';
     for (const m of [headMat, capsMat]) {
-      m.uniforms.uOpacity.value = translucent ? 0.32 : 1;
+      m.uniforms.uOpacity.value = translucent ? 0.55 : 1;
       m.transparent = translucent; m.depthWrite = !translucent; m.needsUpdate = true;
     }
     head.ink.material.uniforms.uOpacity.value = translucent ? 0.35 : 1;
@@ -422,19 +431,32 @@ export function createT4({ clip = true } = {}) {
     }
   }
 
+  const _cr = new THREE.Vector3(), _ca = new THREE.Vector3();
+  /** A point on the Catmull-Rom curve through fibre nodes n at segment s, fraction u. */
+  function curveAt(n, s, u, out) {
+    const p0 = n[Math.max(0, s - 1)], p1 = n[s], p2 = n[s + 1], p3 = n[Math.min(n.length - 1, s + 2)];
+    const u2 = u * u, u3 = u2 * u;
+    return out.set(0, 0, 0)
+      .addScaledVector(p0, -0.5 * u3 + u2 - 0.5 * u).addScaledVector(p1, 1.5 * u3 - 2.5 * u2 + 1)
+      .addScaledVector(p2, -1.5 * u3 + 2 * u2 + 0.5 * u).addScaledVector(p3, 0.5 * u3 - 0.5 * u2);
+  }
   function draw() {
-    let k = 0;
+    let k = 0, j = 0;
     for (let f = 0; f < 6; f++) {
       const n = fibres[f].nodes;
-      for (let s = 0; s < NODES - 1; s++) for (let j = 0; j < BPS; j++) {
-        _p.lerpVectors(n[s], n[s + 1], j / BPS);
-        _m.compose(_p, _q.identity(), _s.setScalar(beadR[k % perFibre]));
-        fibreMesh.setMatrixAt(k++, _m);
+      for (let s = 0; s < NODES - 1; s++) for (let q = 0; q < SUB; q++) {
+        curveAt(n, s, q / SUB, _ca); curveAt(n, s, (q + 1) / SUB, _cr);
+        _v.subVectors(_cr, _ca);
+        const len = _v.length() || 1e-4;
+        _q.setFromUnitVectors(UP, _v.multiplyScalar(1 / len));
+        const r = tubeR[k % perFibre];
+        _m.compose(_ca, _q, _s.set(r, len, r));
+        fibreTubes.setMatrixAt(k++, _m);
       }
-      _m.compose(n[NODES - 1], _q.identity(), _s.setScalar(beadR[perFibre - 1]));
-      fibreMesh.setMatrixAt(k++, _m);
+      for (let i = 0; i < NODES; i++) { _m.compose(n[i], _q.identity(), _s.setScalar(jointR[j % NODES])); fibreJoints.setMatrixAt(j++, _m); }
     }
-    fibreMesh.instanceMatrix.needsUpdate = true;
+    fibreTubes.instanceMatrix.needsUpdate = true;
+    fibreJoints.instanceMatrix.needsUpdate = true;
   }
 
   const api = {
@@ -448,7 +470,7 @@ export function createT4({ clip = true } = {}) {
       for (let i = 0; i < T4.RINGS; i++) sheath.setColorAt(i, i % 2 ? b : a);
       sheath.instanceColor.needsUpdate = true;
     },
-    dispose(scene) { api.removeFrom(scene); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); fibreMesh.geometry.dispose(); },
+    dispose(scene) { api.removeFrom(scene); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); tubeGeo.dispose(); jointGeo.dispose(); },
     removeFrom(scene) { scene.remove(group); scene.remove(fibreMesh); },
     /** The look: false light shows the capsid's glowing facet edges instead of its capsomer beads. */
     setStyle(fl) { caps.visible = !fl; edges.visible = fl; edgeMat.clippingPlanes = headMat.clippingPlanes; edgeMat.needsUpdate = true; },

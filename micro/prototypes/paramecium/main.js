@@ -1681,9 +1681,11 @@ function frame(now) {
     : outro && outro.cam ? placePoseCamera(outro.cam, spir.pos, SPIRILLUM.L, spirHeading())
       : updateCameras(held ? 1e-4 : dt * ts, s, ls, group());
   if (portalGlow.group.visible) { portalGlow.setOpen(!guarded()); portalGlow.update(dt, t, cam); }
-  // the camera move: the glow fades out over the first ×4 of magnification, the spirillum's glint over ×8 (the shell's halo carries it on)
+  // the slow-down dims the glow so the spirillum's glint reads at the freeze (after the burst, as the mite's and
+  // the tardigrade's do); the camera move fades it out over the first ×4 of magnification, the glint over ×8 (the shell's halo carries it on)
   const dive = outro && outro.cam && outro.f0 ? Math.log(Math.max(1, outro.cam.f / outro.f0)) : 0;
-  if (glowUI) glowUI.value = GLOW_I * (1 - sm01(0, Math.log(4), dive));
+  const slowDim = outro ? 1 - 0.7 * sm01(OUTRO.beat + 0.2, OUTRO.beat + OUTRO.ease, outro.t) : 1;
+  if (glowUI) glowUI.value = GLOW_I * slowDim * (1 - sm01(0, Math.log(4), dive));
   spirGlint.intensity = 0.9 * (1 - sm01(Math.log(2), Math.log(8), dive));
   spirGlint.update(t);
   // the split screen (one view while together: the fast path, as before)

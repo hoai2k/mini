@@ -117,7 +117,25 @@ scene.add(progeny);
 const safeTexture = (id, o) => { try { return loadTexture(id, o); } catch (e) { console.warn(`[micro] ${e.message}`); return Promise.resolve(null); } };
 const art = { envelope: null, water: null, section: null, pano: null, envFL: null };
 // MP-V06, the panorama, is sampled by direction: no mipmaps, so the wrap seam (where atan jumps) leaves no line
-safeTexture('MP-V06', { repeat: false }).then((t) => { if (t) { t.generateMipmaps = false; t.minFilter = THREE.LinearFilter; t.wrapS = THREE.RepeatWrapping; art.pano = t; applyArt(); } });
+safeTexture('MP-V06', { repeat: false }).then((t) => { if (t) { t.generateMipmaps = false; t.minFilter = THREE.LinearFilter; t.wrapS = THREE.RepeatWrapping; art.pano = softPanorama(t); applyArt(); } });
+/**
+ * The look target's far water is soft and sparse, but MP-V06 paints a dense crowd: false light uses a small,
+ * heavily blurred copy of it, which keeps its colour and the soft shapes of its big cells and loses the crowd.
+ */
+function softPanorama(t) {
+  try {
+    // (three copies side by side, blurred together, the middle one kept: the blur wraps round the seam where atan jumps)
+    const w = document.createElement('canvas'); w.width = 768; w.height = 128;
+    for (const dx of [0, 256, 512]) w.getContext('2d').drawImage(t.image, dx, 0, 256, 128);
+    const c = document.createElement('canvas'); c.width = 256; c.height = 128;
+    const g = c.getContext('2d');
+    g.filter = 'blur(5px)';
+    g.drawImage(w, -256, 0);
+    const s = new THREE.CanvasTexture(c);
+    s.colorSpace = THREE.SRGBColorSpace; s.generateMipmaps = false; s.minFilter = s.magFilter = THREE.LinearFilter; s.wrapS = THREE.RepeatWrapping;
+    return s;
+  } catch { return t; }
+}
 // MP-V07, far molecule sprites (a 4 × 4 sheet), for the far layer beyond the baths
 safeTexture('MP-V07', { repeat: false }).then((t) => { if (t) world.setSprites(t); });
 safeTexture('MP-V05').then((t) => { if (t) { art.envFL = t; applyArt(); } });
@@ -149,7 +167,7 @@ function applyArt() {
     h.mat.uniforms.uColor.value.set(env ? (h.wrong ? '#bba680' : '#e4e0d8') : h.color);
   }
   post.setBackdrop(use ? art.water : null);
-  post.setPanorama(use ? art.pano : null);
+  post.setPanorama(use ? art.pano : null, 0.5);
   waterColor = use && art.water ? '#a7c2bc' : '#bcd3ea';
   // in false light the painted (Goodsell) envelope only lends its grain
   inside.setSection(use ? art.section : null);
@@ -1468,8 +1486,9 @@ function frame(now) {
     world.shafts.visible = !debug.iso; world.shafts.material.uniforms.uOn.value = opts.uv ? 1 : 0.35;
     // ambient occlusion and outlines (QuteMol-like): strong in false light and Goodsell, subtle in cryo-EM, none in fluorescence
     // (view.look: 0 false light, 1 Goodsell, 2 cryo-EM, 3 fluorescence)
-    post.uniforms.uAO.value = [0.45, 0.6, 0.4, 0.2][view.look];
-    post.uniforms.uEdge.value = [0.3, 0.6, 0.8, 0.25][view.look];
+    // (false light: no outlines, a light AO; the look target is shaded, not inked)
+    post.uniforms.uAO.value = [0.3, 0.6, 0.4, 0.2][view.look];
+    post.uniforms.uEdge.value = [0, 0.6, 0.8, 0.25][view.look];
     post.uniforms.uInk.value.set(view.look === 1 ? '#2b2236' : '#0c1c28');
     post.uniforms.uBgOff.value.set(view.target.x * 0.0006, view.target.y * 0.0006);
     if (held && intro && intro.cam) placePoseCamera(intro.cam);

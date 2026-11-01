@@ -110,9 +110,9 @@ void main(){
     vec3 L = normalize(vec3(-0.45, 0.75, 0.5));
     float wrapD = clamp((dot(n, L) + 0.55) / 1.55, 0.0, 1.0);
     float fres = pow(1.0 - ndv, 2.4);
-    col = albedo * (vec3(1.0, 0.93, 0.8) * wrapD * 0.95 + vec3(0.28, 0.52, 0.66) * (0.55 + 0.35 * n.y)) * ao;
-    col += fres * (albedo * 0.45 + vec3(0.25, 0.55, 0.65)) * 0.55 * ao;     // soft translucent rim
-    col += vec3(1.0, 0.95, 0.85) * pow(max(dot(n, normalize(L + v)), 0.0), 40.0) * 0.28 * ao; // wet glint
+    col = albedo * (vec3(1.0, 0.94, 0.84) * wrapD * 1.0 + vec3(0.22, 0.42, 0.54) * (0.45 + 0.3 * n.y)) * ao;
+    col += fres * (albedo * 0.35 + vec3(0.2, 0.42, 0.5)) * 0.4 * ao;      // soft translucent rim
+    col += vec3(1.0, 0.95, 0.85) * pow(max(dot(n, normalize(L + v)), 0.0), 48.0) * 0.22 * ao; // wet glint
     col += uGlowColor * uGlowAll * (0.4 + fres);
     float f = uDepthOn * smoothstep(uFogNear * 1.8, uFogFar + 80.0, depth) * 0.9; // (as the toon materials: crisp near and mid, the far gone into the water)
     col = mix(col, uHaze, f);
@@ -290,7 +290,7 @@ export function beadMesh(template, count, { material, dynamic = false } = {}) {
  * A bath of molecules round a centre (see beadMaterial's `bath`). specs: [{ kind, n, s: [min, max], pal?, seed? }],
  * opts: { half, jitter, spin, keepR, scale }. Returns { group, material, meshes, setCenter(v), setLevel(0..2) }.
  */
-export function createBath(specs, { half = 120, jitter = 0.8, spin = 0.35, keepR = 30, inner = 0, scale = 1, seed = 1, sat = 1, detail = 1, clump = 0, clumps = 12 } = {}) {
+export function createBath(specs, { half = 120, jitter = 0.8, spin = 0.35, keepR = 30, inner = 0, scale = 1, seed = 1, sat = 1, detail = 1, clump = 0, clumps = 12, flSat = sat } = {}) {
   const material = beadMaterial({ bath: true, sat });
   const u = material.uniforms;
   u.uHalf.value = half; u.uJit.value = jitter; u.uSpin.value = spin; u.uKeepR.value = keepR; u.uInner.value = inner;
@@ -315,15 +315,20 @@ export function createBath(specs, { half = 120, jitter = 0.8, spin = 0.35, keepR
       }
       m.commit();
       m.full = per;
+      m.share = { fl: sp.fl ?? 1, other: sp.gs ?? 1 }; // (the share of this species each look draws)
       group.add(m.mesh);
       meshes.push(m);
     }
   });
+  let level = 2, fl = false;
+  const apply = () => { const f = level >= 2 ? 1 : level === 1 ? 0.75 : 0.5; for (const m of meshes) m.setCount(Math.round(m.full * f * (fl ? m.share.fl : m.share.other))); };
   return {
     group, material, meshes, uniforms: u, jit0: jitter,
     setCenter(v) { u.uCenter.value.copy(v); },
     /** Quality: 2 all, 1 three quarters, 0 half of each species. */
-    setLevel(level) { const f = level >= 2 ? 1 : level === 1 ? 0.75 : 0.5; for (const m of meshes) m.setCount(Math.round(m.full * f)); },
+    setLevel(l) { level = l; apply(); },
+    /** The look: false light draws each species' `fl` share (and its own saturation), the others their `gs` share. */
+    setStyle(on) { fl = on; u.uSat.value = on ? flSat : sat; apply(); },
     get beads() { return meshes.reduce((a, m) => a + m.mesh.geometry.instanceCount * m.mesh.userData.beads, 0); },
   };
 }
@@ -375,11 +380,11 @@ void main(){
   float key = max(min(c.r, c.b) - c.g, max(min(c.g, c.b) - c.r, min(c.r, c.g) - c.b)); // magenta, cyan or yellow cast
   if (a < 0.6 || key > 0.35) discard;
   vec3 col = c.rgb * 0.8;
-  col = mix(col, uHaze, 0.35 + 0.5 * smoothstep(uFogNear, uFogFar * 1.8, vDepth));
+  col = mix(col, uHaze, 0.5 + 0.4 * smoothstep(uFogNear, uFogFar * 1.8, vDepth));
   gl_FragColor = vec4(col, 1.0);
 }`;
 /** The far sprite layer (MP-V07). Returns { mesh, setCenter(v) }. */
-export function createSprites(texture, { n = 1400, half = 700, inner = 330, size = [10, 22], seed = 5 } = {}) {
+export function createSprites(texture, { n = 1400, half = 700, inner = 330, size = [10, 22], seed = 5, fl = 1 } = {}) {
   const rnd = rng(seed);
   const g = new THREE.InstancedBufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(12), 3));
@@ -402,5 +407,7 @@ export function createSprites(texture, { n = 1400, half = 700, inner = 330, size
   });
   const mesh = new THREE.Mesh(g, material);
   mesh.frustumCulled = false;
-  return { mesh, material, setCenter(v) { material.uniforms.uCenter.value.copy(v); }, setLevel(level) { g.instanceCount = level >= 1 ? n : n >> 1; } };
+  let level = 2, style = true;
+  const apply = () => { g.instanceCount = Math.round((level >= 1 ? n : n >> 1) * (style ? fl : 1)); };
+  return { mesh, material, setCenter(v) { material.uniforms.uCenter.value.copy(v); }, setLevel(l) { level = l; apply(); }, setStyle(on) { style = on; apply(); } };
 }

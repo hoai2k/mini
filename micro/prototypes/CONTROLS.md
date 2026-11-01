@@ -31,8 +31,9 @@ Keyboard fallbacks are in `shared/pad.js`.
 | Bacterium | Sprint run (all flagella bundled; the whole flock sprints) | Beacon: kin it reaches answer and join your flock; also lyses prey in reach and strikes enemies the flock touches (Bdellovibrio: attach / bore). LS steers the flock, released it stops; Y fires the toxin | Tumble |
 | Phage | Current gust (A; on a surface, push off with the fibres) | Grab the aimed protein with the leading fibres (at an amoeba lobe, a fibre jab) | Fold the fibres and slip |
 
-**B is defend in every world** (the amoeba may differ). The mite jumps on A and
-scrambles on held RT.
+**B is defend in every world** except the mite and the amoeba: the mite jumps
+on A, scrambles on held B and closes up (its defence) on held Y; the amoeba's
+B lets go or stiffens.
 
 **The phage drifts in open 3D water with no up or down.** LS drifts across the
 view (its right and up, in 3D), RT drifts into the view and LT back toward
@@ -88,7 +89,8 @@ Up to four players share the screen (`shared/players.js`).
 - **Split screen** (`shared/splitscreen.js`): together, players share one
   view; as they separate the screen splits LEGO-style along a brass hairline
   that turns with their direction, and merges back seamlessly when they meet.
-- **Landmarks** (`shared/landmark.js`): near the edge of each view, a brass
-  chevron points to the next stage and a hollow ring to the way back.
+- **Landmarks** (`shared/landmark.js`): near the edge of each view, a hollow
+  ring points to the way back. The way on has no mark: its golden light
+  (`shared/portal.js`) is the only marker.
 
 `split-demo/` is the test bed for all of this.

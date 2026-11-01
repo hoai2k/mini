@@ -35,6 +35,27 @@ float n3(vec3 x){ vec3 i = floor(x); vec3 f = fract(x); f = f * f * (3.0 - 2.0 *
              mix(mix(h3(i + vec3(0,0,1)), h3(i + vec3(1,0,1)), f.x), mix(h3(i + vec3(0,1,1)), h3(i + vec3(1,1,1)), f.x), f.y), f.z); }
 `;
 
+// The membrane's large lumps (hosts in false light): a height field in object space, displacing the surface
+// along its normal, with the normal re-derived by finite differences so the lumps catch the light. The fur
+// shells (furShells) use the same field, so the fur sits on the lumps. (False light only: in the other looks
+// the ink hull must match the body, so uStyle switches it off.)
+const LUMP = /* glsl */`
+uniform float uLumpAmp; uniform float uLumpFreq;
+float lumpH(vec3 q){ vec3 s = q * uLumpFreq; return n3(s) * 0.6 + n3(s * 2.17 + 7.3) * 0.28 + n3(s * 4.6 - 3.1) * 0.12; }
+float lumpSurface(inout vec3 p, inout vec3 nrm, float on){
+  float h = lumpH(p);
+  if (on < 0.5 || uLumpAmp <= 0.0) return h;
+  vec3 t1 = normalize(cross(nrm, abs(nrm.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0)));
+  vec3 t2 = cross(nrm, t1);
+  float e = 0.18 / uLumpFreq;
+  float k = 2.0 * uLumpAmp / e;
+  float d1 = (lumpH(p + t1 * e) - h) * k, d2 = (lumpH(p + t2 * e) - h) * k;
+  p += nrm * (h - 0.5) * 2.0 * uLumpAmp;
+  nrm = normalize(nrm - t1 * d1 - t2 * d2);
+  return h;
+}
+`;
+
 /** Shared uniforms: every toon/ink material reads these (fog, light, time). */
 export const goodsellShared = {
   uFogColor: { value: new THREE.Color('#bcd3ea') },
@@ -59,15 +80,24 @@ const VERT = /* glsl */`
 #include <common>
 #include <clipping_planes_pars_vertex>
 ${NOISE}
-uniform float uTime; uniform float uWob; uniform float uWobFreq;
+uniform float uTime; uniform float uWob; uniform float uWobFreq; uniform float uStyle;
 attribute vec3 color;
 varying vec3 vN; varying vec3 vView; varying vec3 vWorld; varying vec3 vCol; varying vec2 vUv; varying float vDepth;
+#ifdef MEMBRANE
+${LUMP}
+varying vec3 vObj; varying float vLump;
+#endif
 void main(){
   mat4 im = mat4(1.0);
   #ifdef USE_INSTANCING
   im = instanceMatrix;
   #endif
   vec3 p = position;
+  vec3 nrm = normal;
+  #ifdef MEMBRANE
+  vObj = p;
+  vLump = lumpSurface(p, nrm, uStyle);
+  #endif
   #ifdef WOBBLE
   float w = n3(p * uWobFreq + vec3(uTime * 0.35, uTime * 0.27, -uTime * 0.31)) - 0.5;
   p += normal * w * uWob;
@@ -75,7 +105,7 @@ void main(){
   vec4 wp = modelMatrix * im * vec4(p, 1.0);
   vec4 mvPosition = viewMatrix * wp;
   vWorld = wp.xyz;
-  vN = normalize(normalMatrix * mat3(im) * normal);
+  vN = normalize(normalMatrix * mat3(im) * nrm);
   vView = -mvPosition.xyz;
   vDepth = -mvPosition.z;
   vCol = vec3(1.0);
@@ -101,6 +131,7 @@ uniform float uStyle; uniform vec3 uHaze;
 uniform vec3 uFLColor; uniform vec3 uFLColor2; uniform float uFLKeep; uniform float uFLGlow; uniform vec3 uFLGlowColor;
 uniform float uFLTrans; uniform float uFLBump; uniform float uFLSpec; uniform float uFLScale; uniform float uFLMap;
 varying vec3 vN; varying vec3 vView; varying vec3 vWorld; varying vec3 vCol; varying vec2 vUv; varying float vDepth;
+vec3 albedoGlow(){ return uColor * vCol * uEmissive * 0.6 + uFLGlowColor * uFLGlow * 0.3; }
 vec4 falseLight(vec3 n, vec3 v){
   vec3 src = uColor * vCol;
   float l = dot(src, vec3(0.299, 0.587, 0.114));
@@ -118,7 +149,10 @@ vec4 falseLight(vec3 n, vec3 v){
     vec3 r1 = cross(dpy, n), r2 = cross(n, dpx);
     float det = dot(dpx, r1);
     vec3 grad = sign(det) * (hx * r1 + hy * r2);
-    n = normalize(abs(det) * n - grad * uFLBump);
+    // (an edge-on triangle has det = 0 and grad = 0: normalize(0) is NaN, which the bloom's blur spread into
+    // black blocks; keep the unbumped normal there)
+    vec3 nb = abs(det) * n - grad * uFLBump;
+    n = dot(nb, nb) > 1e-12 ? normalize(nb) : n;
     cav = 0.62 + 0.75 * h;
     albedo = mix(albedo, albedo * vec3(1.25, 1.18, 0.82) + vec3(0.06, 0.07, 0.0), smoothstep(0.62, 0.8, h) * 0.6); // pale crests
   }
@@ -152,10 +186,58 @@ vec4 falseLight(vec3 n, vec3 v){
   if (uOpacity < 0.99) a = clamp(uOpacity * 0.55 + fres * 0.7 + glow * 0.1, 0.0, 1.0);
   return vec4(col, a);
 }
+#ifdef MEMBRANE
+// The host's envelope in false light (the owner's look target): a smooth, wet, lumpy membrane. Big lumps
+// come from the displaced geometry (vLump); finer relief from an object-space height field whose gradient
+// tilts the normal (so the pattern sticks to the cell as it drifts). Deep teal-blue in the hollows, a lighter
+// teal and pale crests on the raised parts, light scattered through thin edges (a subsurface-like wrap and
+// rim), a sharp wet glint and a broad sheen.
+uniform mat3 normalMatrix;
+varying vec3 vObj; varying float vLump;
+float relief(vec3 q){ return n3(q * 0.14) * 0.6 + n3(q * 0.38 + 3.7) * 0.28 + n3(q * 1.05 - 1.3) * 0.12; }
+vec4 membraneLight(vec3 n, vec3 v){
+  float e = 0.3;
+  float r0 = relief(vObj);
+  vec3 g = vec3(relief(vObj + vec3(e, 0.0, 0.0)) - r0, relief(vObj + vec3(0.0, e, 0.0)) - r0, relief(vObj + vec3(0.0, 0.0, e)) - r0) / e;
+  vec3 gv = normalMatrix * g;
+  gv -= n * dot(gv, n);
+  vec3 nb = n - gv * uFLBump;
+  nb = dot(nb, nb) > 1e-8 ? normalize(nb) : n;
+  float hh = vLump * 0.65 + r0 * 0.55;
+  float blotch = n3(vObj * 0.03 + 11.0);
+  vec3 alb = mix(uFLColor, uFLColor2, smoothstep(0.35, 0.8, hh));
+  alb = mix(alb, vec3(0.07, 0.17, 0.38), smoothstep(0.5, 0.8, blotch) * 0.45); // blue patches
+  float crest = smoothstep(0.7, 0.95, hh);
+  alb = mix(alb, vec3(0.42, 0.58, 0.52), crest * 0.35);                         // pale, slightly yellow crests
+  float cav = smoothstep(0.12, 0.5, r0) * 0.6 + smoothstep(0.15, 0.6, vLump) * 0.4;
+  vec3 L = normalize(vec3(-0.45, 0.75, 0.5));
+  float ndl = dot(nb, L);
+  float wrapD = clamp((ndl + 0.4) / 1.4, 0.0, 1.0);
+  float ndv = clamp(dot(n, v), 0.0, 1.0);
+  float fres = pow(1.0 - ndv, 3.0);
+  vec3 key = vec3(1.0, 0.94, 0.84), fill = vec3(0.16, 0.36, 0.46);
+  vec3 col = alb * (key * wrapD * 1.15 + fill * (0.45 + 0.3 * nb.y));
+  col += vec3(0.16, 0.42, 0.45) * (0.35 * crest * wrapD + fres * 0.9) * uFLTrans;       // light through thin parts
+  col *= mix(0.5, 1.0, cav);
+  vec3 H = normalize(L + v);
+  float ndh = max(dot(nb, H), 0.0);
+  col += key * (pow(ndh, 160.0) * 1.1 + pow(ndh, 30.0) * 0.06) * uFLSpec * cav;        // wet glint and sheen
+  vec3 R = reflect(-v, nb);
+  col += vec3(0.30, 0.50, 0.55) * fres * 0.4 * smoothstep(-0.2, 0.9, R.y);              // the bright water above, reflected
+  col += albedoGlow();
+  col = mix(col, uDarkColor * 0.35, uDark * 0.6);
+  float f = uDepthOn * smoothstep(uFogNear * 1.8, uFogFar + 80.0, vDepth) * 0.88;
+  col = mix(col, uHaze, f);
+  return vec4(col, uOpacity);
+}
+#endif
 void main(){
   #include <clipping_planes_fragment>
   vec3 n = normalize(vN); vec3 v = normalize(vView);
   if (!gl_FrontFacing) n = -n;
+  #ifdef MEMBRANE
+  if (uStyle > 0.5) { gl_FragColor = membraneLight(n, v); return; }
+  #endif
   if (uStyle > 0.5) { gl_FragColor = falseLight(n, v); return; }
   vec3 L = normalize(vec3(-0.35, 0.75, 0.55));
   float d = dot(n, L);
@@ -218,7 +300,8 @@ void main(){
  * A Goodsell toon material.
  * @param {{color?:THREE.ColorRepresentation, vertexColors?:boolean, opacity?:number,
  *   wobble?:number, wobbleFreq?:number, map?:THREE.Texture|null, mapRepeat?:[number,number],
- *   mottle?:number, side?:THREE.Side, clip?:boolean}} o
+ *   mottle?:number, side?:THREE.Side, clip?:boolean, lumps?:{amp:number, freq:number}}} o
+ * `lumps`: a host membrane (false light: a smooth, wet, lumpy surface, see membraneLight; furShells adds its fur).
  */
 export function toonMaterial(o = {}) {
   const mat = new THREE.ShaderMaterial({
@@ -239,10 +322,11 @@ export function toonMaterial(o = {}) {
       uFLColor: { value: new THREE.Color() }, uFLColor2: { value: new THREE.Color() }, uFLKeep: { value: 0 },
       uFLGlow: { value: 0 }, uFLGlowColor: { value: new THREE.Color() }, uFLTrans: { value: 0 }, uFLBump: { value: 0 },
       uFLSpec: { value: 0 }, uFLScale: { value: 0.12 }, uFLMap: { value: 0 },
+      uLumpAmp: { value: o.lumps ? o.lumps.amp : 0 }, uLumpFreq: { value: o.lumps ? o.lumps.freq : 0.08 },
     },
     vertexShader: VERT,
     fragmentShader: FRAG,
-    defines: { ...(o.vertexColors ? { USE_VCOL: '' } : {}), ...(o.wobble ? { WOBBLE: '' } : {}) },
+    defines: { ...(o.vertexColors ? { USE_VCOL: '' } : {}), ...(o.wobble ? { WOBBLE: '' } : {}), ...(o.lumps ? { MEMBRANE: '' } : {}) },
     transparent: (o.opacity ?? 1) < 1,
     depthWrite: (o.opacity ?? 1) >= 1,
     side: o.side ?? THREE.FrontSide,
@@ -322,6 +406,85 @@ export function inkedInstanced(geometry, mat, count, inkOpts = {}) {
   return mesh;
 }
 
+const FUR_VERT = /* glsl */`
+${NOISE}
+${LUMP}
+uniform float uStyle; uniform float uFurLen; uniform float uTime;
+attribute float layer;
+varying vec3 vBase; varying vec3 vBN; varying float vLayer; varying vec3 vN; varying vec3 vView; varying float vDepth;
+void main(){
+  vec3 p = position, nrm = normal;
+  lumpSurface(p, nrm, 1.0);
+  vBase = position; vBN = normal; vLayer = layer;
+  // each shell a step further out along the (lumped) normal, the outer ones swaying a little in the water
+  vec3 sway = vec3(sin(uTime * 0.7 + position.y * 0.05), cos(uTime * 0.6 + position.z * 0.05), sin(uTime * 0.5 + position.x * 0.04)) * 0.35 * layer * layer;
+  p += nrm * (0.2 + layer * uFurLen) + sway;
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  vN = normalize(normalMatrix * nrm); vView = -mv.xyz; vDepth = -mv.z;
+  gl_Position = projectionMatrix * mv;
+}`;
+const FUR_FRAG = /* glsl */`
+${NOISE}
+uniform float uFurDens; uniform float uFurCover; uniform float uFurAlpha; uniform vec3 uFurCol; uniform vec3 uFurTip;
+uniform vec3 uHaze; uniform float uFogNear; uniform float uFogFar; uniform float uDepthOn;
+varying vec3 vBase; varying vec3 vBN; varying float vLayer; varying vec3 vN; varying vec3 vView; varying float vDepth;
+void main(){
+  // one strand per cell of a 3D grid on the surface: a jittered centre, a random length, tapering out
+  vec3 q = vBase * uFurDens;
+  vec3 c = floor(q), f = fract(q) - 0.5;
+  vec3 d = f - (vec3(h3(c), h3(c + 17.0), h3(c + 31.0)) - 0.5) * 0.55;
+  vec3 bn = normalize(vBN);
+  d -= bn * dot(d, bn);
+  float len = 0.45 + 0.55 * h3(c + 9.0);
+  float there = step(h3(c + 5.0), uFurCover) * step(vLayer, len);
+  float rad = 0.36 * (1.0 - 0.7 * vLayer / len);
+  float sharp = there * smoothstep(rad, rad * 0.3, length(d));
+  // far off (a strand under a pixel) the strands average out into a soft fuzz instead of shimmering
+  float fw = length(fwidth(q));
+  float a = mix(sharp, uFurCover * 0.22 * (1.0 - vLayer), smoothstep(0.35, 1.1, fw));
+  vec3 n = normalize(vN), v = normalize(vView);
+  float ndv = abs(dot(n, v));
+  a *= mix(0.035, 1.0, pow(1.0 - ndv, 1.6)) * uFurAlpha;           // a fringe at the silhouette, a faint fuzz face-on
+  if (a < 0.015) discard;
+  vec3 L = normalize(vec3(-0.45, 0.75, 0.5));
+  float wrapD = clamp((dot(n, L) + 0.6) / 1.6, 0.0, 1.0);
+  vec3 col = mix(uFurCol, uFurTip, vLayer) * (0.3 + 0.8 * wrapD) * (0.55 + 0.45 * vLayer);
+  col += vec3(0.25, 0.45, 0.5) * pow(1.0 - ndv, 3.0) * 0.5;      // backlit at the rim
+  float fh = uDepthOn * smoothstep(uFogNear * 1.8, uFogFar + 80.0, vDepth) * 0.88;
+  col = mix(col, uHaze, fh);
+  gl_FragColor = vec4(col, a);
+}`;
+
+/**
+ * Fur for a lumped membrane (false light): `layers` shells of `geometry` (one instanced draw), each pushed out
+ * along the lumped normal of `body` (a toonMaterial with `lumps`, whose lump uniforms it shares), cut into
+ * fine tapering strands. Short and pale, it reads as a fringe at the silhouette and a faint fuzz face-on.
+ * Hidden in the other looks (the caller toggles .visible).
+ */
+export function furShells(geometry, body, { layers = 8, len = 3.5, density = 1.1, cover = 0.8, alpha = 1, color = '#7aa4b4', tip = '#dcecec' } = {}) {
+  const g = new THREE.InstancedBufferGeometry();
+  for (const k of ['position', 'normal']) g.setAttribute(k, geometry.attributes[k]);
+  g.setIndex(geometry.index);
+  const lay = new Float32Array(layers);
+  for (let i = 0; i < layers; i++) lay[i] = (i + 1) / layers;
+  g.setAttribute('layer', new THREE.InstancedBufferAttribute(lay, 1));
+  g.instanceCount = layers;
+  const mat = new THREE.ShaderMaterial({
+    uniforms: {
+      ...goodsellShared,
+      uLumpAmp: body.uniforms.uLumpAmp, uLumpFreq: body.uniforms.uLumpFreq,
+      uFurLen: { value: len }, uFurDens: { value: density }, uFurCover: { value: cover }, uFurAlpha: { value: alpha },
+      uFurCol: { value: new THREE.Color(color) }, uFurTip: { value: new THREE.Color(tip) },
+    },
+    vertexShader: FUR_VERT, fragmentShader: FUR_FRAG,
+    transparent: true, depthWrite: false,
+  });
+  const mesh = new THREE.Mesh(g, mat);
+  mesh.renderOrder = 1;
+  mesh.userData.flOnly = true;
+  return mesh;
+}
+
 /**
  * Merge a few spheres into one geometry with vertex colours: a "molecule"
  * in Goodsell's manner (a cluster of atoms or subunits).
@@ -394,7 +557,9 @@ float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float n2(vec2 x){ vec2 i = floor(x), f = fract(x); f = f*f*(3.0-2.0*f);
   return mix(mix(h2(i), h2(i+vec2(1,0)), f.x), mix(h2(i+vec2(0,1)), h2(i+vec2(1,1)), f.x), f.y); }
 float fbm(vec2 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++){ s += a * n2(p); p *= 2.03; a *= 0.5; } return s; }
-vec4 S(vec2 o){ return texture2D(tScene, vUv + o / uRes); }
+// (a NaN or infinity from any material would spread through the blurs into black blocks: never let one through)
+vec4 safe(vec4 c){ return (any(isnan(c)) || any(isinf(c))) ? vec4(0.0) : min(c, vec4(64.0)); }
+vec4 S(vec2 o){ return safe(texture2D(tScene, vUv + o / uRes)); }
 // the view ray through this pixel (view space, z = -1), and the world direction: the backdrop and the UV
 // are placed by direction and position, never by screen, so they hold whichever way the camera turns
 vec3 viewRay(vec2 uv){ vec4 p = uInvProj * vec4(uv * 2.0 - 1.0, 1.0, 1.0); p.xyz /= p.w; return p.xyz / -p.z; }
@@ -438,10 +603,12 @@ void main(){
     vec3 bg = mix(uBot, uTop, smoothstep(-1.0, 1.0, wdir.y * 0.8 + 0.15));
     float cloud = fbm3(wdir * 2.6 + vec3(uTime * 0.01, 0.0, 0.0));
     bg *= 0.75 + 0.5 * cloud;
-    float far1 = smoothstep(0.62, 0.8, n3(wdir * 22.0 + 4.0)), far2 = smoothstep(0.6, 0.78, n3(wdir * 41.0 - 9.0));
-    bg = mix(bg, bg * vec3(0.55, 0.7, 0.95) + uShaft * 0.06, far1 * 0.5 + far2 * 0.3);
-    // MP-V06, the panorama, by direction (dimmed so the near scene reads in front of it)
-    if (uUsePano > 0.5) bg = mix(bg, texture2D(tPano, vec2(atan(wdir.z, wdir.x) / 6.2832 + 0.5, asin(clamp(wdir.y, -1.0, 1.0)) / 3.14159 + 0.5)).rgb * 0.7, 0.85);
+    // (the look target's far water is soft and sparse: a faint mottle, no crowd of silhouettes)
+    float far1 = smoothstep(0.6, 0.85, n3(wdir * 9.0 + 4.0));
+    bg = mix(bg, bg * vec3(0.7, 0.85, 1.0), far1 * 0.35);
+    // MP-V06, the panorama, by direction: in false light the caller hands a heavily blurred copy, so it lends
+    // only soft colour and the shapes of a few far cells, not its crowd (uUsePano is its weight)
+    if (uUsePano > 0.0) bg = mix(bg, texture2D(tPano, vec2(atan(wdir.z, wdir.x) / 6.2832 + 0.5, asin(clamp(wdir.y, -1.0, 1.0)) / 3.14159 + 0.5)).rgb * 0.75, uUsePano);
     vec2 sd = normalize(vec2(0.55, -1.0));
     float across = dot(q0 - vec2(0.1, 1.1), vec2(-sd.y, sd.x));
     float shaft = fbm(vec2(across * 7.0 + uBgOff.x * 4.0, uTime * 0.03)) * smoothstep(1.4, 0.0, length(q0 - vec2(0.1 * asp, 1.0)));
@@ -451,6 +618,9 @@ void main(){
       // a large depth of field: near and mid crisp; only the far layers soften, gently
       float z = linDepth(vUv);
       float coc = smoothstep(uFocus * 2.6, uFocus * 7.0, z) * uDof;
+      // a partly transparent pixel (fur, the glassy capsid, a light shaft) over the far background has the
+      // background's depth: it is near and must stay crisp
+      coc *= 1.0 - smoothstep(0.01, 0.2, sc.a) * (1.0 - smoothstep(0.9, 0.995, sc.a));
       // soften toward a blurred quarter-resolution copy (smooth, no ring artefacts)
       sc = mix(sc, texture2D(tSoft, vUv), clamp(coc, 0.0, 1.0) * 0.6);
     }
@@ -464,7 +634,7 @@ void main(){
     col *= 1.6;
     col = (col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14);
     float lum = dot(col, vec3(0.299, 0.587, 0.114));
-    col = mix(col * vec3(0.86, 1.02, 1.08), col * vec3(1.06, 1.0, 0.9), smoothstep(0.35, 0.9, lum));
+    col = mix(col * vec3(0.88, 1.02, 1.06), col * vec3(1.02, 1.0, 0.96), smoothstep(0.35, 0.9, lum)); // (teal shadows; highlights barely warmed: bronze, not yellow)
     col += (h2(px + fract(uTime * 3.1) * 71.0) - 0.5) * 0.02;
     vec2 qq = vUv - 0.5;
     col *= 1.0 - dot(qq, qq) * 0.55;
@@ -551,6 +721,8 @@ void main(){
   c += texture2D(tSrc, vUv + uTexel * vec2(-1.0, -1.0)); c += texture2D(tSrc, vUv + uTexel * vec2(1.0, -1.0));
   c += texture2D(tSrc, vUv + uTexel * vec2(-1.0, 1.0)); c += texture2D(tSrc, vUv + uTexel * vec2(1.0, 1.0));
   c *= 0.25;
+  if (any(isnan(c)) || any(isinf(c))) c = vec4(0.0); // (NaN or infinity: dropped here, or the blurs spread it into black blocks)
+  c = min(c, vec4(64.0));
   float l = max(c.r, max(c.g, c.b));
   gl_FragColor = uThr > 0.0 ? vec4(c.rgb * smoothstep(uThr, uThr + 0.55, l), 1.0) : c; // (threshold 0: a plain downsample, alpha kept)
 }`;
@@ -628,8 +800,8 @@ export function createPost(renderer) {
       for (const t of bB) t.setSize(Math.max(1, w >> 3), Math.max(1, h >> 3));
     },
     setBackdrop(tex) { mat.uniforms.tBg.value = tex; mat.uniforms.uUseBg.value = tex ? 1 : 0; },
-    /** An equirectangular panorama for the false-light backdrop (by view direction), or null. */
-    setPanorama(tex) { mat.uniforms.tPano.value = tex; mat.uniforms.uUsePano.value = tex ? 1 : 0; },
+    /** An equirectangular panorama for the false-light backdrop (by view direction) mixed in at `weight`, or null. */
+    setPanorama(tex, weight = 0.85) { mat.uniforms.tPano.value = tex; mat.uniforms.uUsePano.value = tex ? weight : 0; },
     /**
      * Draw `sceneToDraw` with `camera` into the target, then the look to the screen.
      * `scissor(rt)`, if given, is called on each internal target before it is drawn

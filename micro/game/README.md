@@ -3,10 +3,11 @@
 The game built from the Micro prototypes: seven worlds at seven
 magnifications, from a water springtail on a bog pool's surface film down to a
 bacteriophage beyond the reach of light. Choose any world to start in (the
-springtail is the default). Each world has a **forward landmark** in the
-direction of play. Reach it and the microscope zooms into the next world. In
-the opposite direction is an optional **backdoor**: dwell on it and press Y to
-zoom back out to the world above.
+springtail is the default). In each world the way on is a **golden portal**,
+placed as you go after every other encounter (`../design/encounter-pattern.md`)
+and guarded by the world's boss: get past the boss, reach it, and the scene
+carries on into the next world. Behind the start is an optional **backdoor**:
+dwell on it and press Y to zoom back out to the world above.
 
 Published at https://hoai2k.github.io/mini/micro/, public: it has no invite
 gate (`../prototypes/shared/boot.js` starts the page directly). Visits are
@@ -90,10 +91,10 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   pair supports it and the microscope zoom elsewhere; Microscope zoom; or
   Specimen plates), fullscreen, and in
   play "World features" (the world's own feature panel, for development).
-- **Starting direction.** Every world starts with its forward landmark up and
-  to the right. Orbit views use a starting camera angle; the bacterium and
-  Phage fields start their creature below and left of the host. Camera and stage controls
-  continue to work, and the arrow follows the landmark's actual projection.
+- **Starting direction.** The way on is not fixed in advance: every
+  direction leads to a portal, placed out of sight once you have met every
+  other encounter, and there is no arrow (`shared/landmark.js` draws only the
+  backdoor's ring). Orbit views use a starting camera angle.
 - **Progression.** A forward landmark plays the transition in (every pair
   from the springtail to the phage: the continuous transition; the microscope
   zoom if a world cannot answer in time) and the next world
@@ -308,19 +309,11 @@ prototypes, and `bash micro/publish.sh local/pages/micro`.
 
 ## What each world still needs
 
-No world posts landmarks yet. For each world (in its own folder):
-
-- **Landmarks:** place the forward landmark and the backdoor (draw their edge
-  arrows with `shared/landmark.js`); call `embed.landmark('forward')` on
-  reaching the forward one, `embed.near('back', on)` while dwelling on the
-  backdoor and `embed.landmark('back')` on Y there. Mite: Y is its block, so
-  the backdoor needs its own rule.
-- **Embed polish:** skip the world's own start card (the springtail's "Press A
-  to start" panel, the phage's card) when `embed.active`, since the shell's
-  intro has already said it; anything timed with `setTimeout` should honour
-  `embed.on('pause')`.
-- **Players:** restore the shell's roster from `embed.players` (or the
-  `players` message) and report joins with `embed.join(index, color)`.
+Every world posts its landmarks (the portal and, below the springtail, the
+backdoor), skips its own start card inside the shell and restores the shell's
+roster. Back (the backdoor) still plays the microscope zoom rather than a
+continuous transition, and the phage's portal (the gold receptor), the end of
+the chain, leads to "Work in progress" for now.
 
 ## Known issues
 

@@ -445,7 +445,7 @@ function restartCell() {
 // --- features panel ----------------------------------------------------------
 const features = createFeatures({ key: 'amoeba', pad });
 const F = (o) => features.add(o);
-const audio = createAudio(['amoeba/amb-pool', 'amoeba/stretch', 'amoeba/boost', 'amoeba/engulf', 'amoeba/vacuole', 'amoeba/digest']);
+const audio = createAudio(['amoeba/amb-pool', 'amoeba/stretch', 'amoeba/boost', 'amoeba/engulf', 'amoeba/vacuole', 'amoeba/digest', 'shared/portal-chime']);
 audio.addToFeatures(features);
 audio.loop('amoeba/amb-pool', { volume: 0.6 });
 const snd = { t: 0, lastStretch: -9, pods: [], systole: 0 };
