@@ -47,13 +47,18 @@ a moment, fades out and you respawn (`shared/predation.js`: `createFight`,
 Read the controls through `shared/controls.js` (`createControls(pad)`), not raw
 buttons, and build the HUD list with `hudControls({...})` so every prototype
 lists the same buttons in the same order. `createDash()` gives a dash with a
-recharge and a HUD meter. The amoeba uses its own stick scheme, "lead and follow": the first
-stick pushed grows a pseudopod and owns it, the other stick moves the body
-after it (both held: the cell travels behind its lead pseudopod; body stick
-alone: the body flows in and absorbs it). Holding LT or RT turns the body
-stick into a second pseudopod beside the first, for encircling prey. LB/RB
-spread out / push harder. The classic two-pseudopod scheme is a Features
-choice. It still uses A to dash, X to eat and D-pad ←→ for the look.
+recharge and a HUD meter. The amoeba uses its own twin-stick scheme: LS moves the body and RS steers
+the selected pseudopod (marked R in the player's colour). With no pseudopod,
+RS grows one; pushed more than about 70° from the selected one, it starts a new
+pseudopod there (or takes one already reaching that way). RT selects the next
+pseudopod clockwise round the cell. Holding LT turns LS into a second
+pseudopod hand (marked L): the neighbour of the selected one towards
+screen-up, or towards screen-down if the selected one is the topmost, sprouting
+one if there is none; RT with LT held moves the pair round together. A surges,
+X closes the cup (and cuts or pinches), B lets go or stiffens, LB/RB spread out
+/ push harder. To pinch an arm of *Chaos*, hold LT, close the two pseudopods
+round it and press X. "Lead and follow" and the classic two-pseudopod scheme
+remain Features choices.
 
 ## Multiplayer
 

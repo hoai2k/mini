@@ -279,8 +279,9 @@ export class Nematode {
       const sCoil = this.coil * 1.05 * Math.sin(Math.min(1, s / 0.4) * Math.PI * 2) * (s < 0.4 ? 1 : Math.max(0, 1 - (s - 0.4) * 5));
       const off = wave + sCoil;
       L.toWorld(p.u - tv * off, p.v + tu * off, L.thick / 2 + R + 0.04 - this.sink, pts[i]);
-      L.dirWorld(tu, tv, fr[i]).normalize();
     }
+    // the rings follow the curve as drawn (the S-coil included), not the straight spine
+    for (let i = 0; i < K; i++) fr[i].subVectors(pts[Math.max(0, i - 1)], pts[Math.min(K - 1, i + 1)]).normalize();
     const side = _s, up = _u;
     for (const part of this.parts) {
       const pos = part.mesh.geometry.attributes.position.array;
