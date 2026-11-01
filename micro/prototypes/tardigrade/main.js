@@ -876,6 +876,7 @@ function stepOutro(dt) {
   o.scale = 1 - THREE.MathUtils.smoothstep(o.t, OUTRO.beat, OUTRO.beat + OUTRO.ease);
   // after the burst the sparkle dims, so the amoeba on the pool floor reads in the freeze frame
   glowU.uI.value = glowI0 * (1 - 0.8 * THREE.MathUtils.smoothstep(o.t, 0.5, 1.3));
+  places.swimOff(o.t / 1.2); // the P. bursaria in the pool swim off out of the amoeba's frame
   if (o.scale <= 0 && o.frozenAt === null) {
     o.frozenAt = o.t;
     // the freeze frame: the camera exactly where the outro's framing ends, and how it frames the amoeba
@@ -895,6 +896,7 @@ function stepOutro(dt) {
 }
 function endOutro() {
   outro = null;
+  places.swimOff(0);
   glowU.uI.value = glowI0;
   if (embed.active) embed.cinematic(false, canvas);
 }

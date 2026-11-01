@@ -1,15 +1,26 @@
 // The springtail's boss (micro/design/bosses.md): a pond wolf spider, Pirata,
 // a juvenile ~5 mm long (a labelled departure: adults are ~6-9 mm, scaled
-// down so the arena fits). It guards the portal raft (the way on), sitting on
-// its rim; it runs out over the water to hunt, and can be lured off: it follows
-// a springtail out to LEASH mm from its post, gives up a target it has lost
-// (farther than 40 mm), walks back slowly ('return'), and it goes to see a big
-// ripple (a charged landing, a raindrop) that comes within 50 mm of it
-// ('investigate'). While it is off its post the portal is open. Units: mm, s.
+// down so the arena fits). Every portal raft has one (main.js `spiders`). It
+// lives on the raft's rim (its post) and hunts over the water round it, its
+// hunting ground (`ground`, the bog pondweed patch): between rests on its post
+// it goes out on a round of the ground, a few dashes from spot to spot with
+// pauses to feel the film, and walks back to its post, so a player can follow
+// it home. It can be lured off: it follows a springtail out to LEASH mm from
+// its post, gives up a target it has lost (farther than 40 mm), walks back
+// slowly ('return'), and it goes to see a big ripple (a charged landing, a
+// raindrop) that comes within 50 mm of it ('investigate'). While it is off its
+// post the portal is open (once the way on is open at all: main.js `sealed`).
+// Units: mm, s.
 //
 // Readable states:
 //   dormant   on guard at its post, still (a leg twitches); wakes when a player
-//             comes within 30 mm of the post
+//             comes within 30 mm of the post; after a rest (5-9 s) it goes out
+//             on a round of its ground
+//   wander    out on its ground: dashes (WANDER_SPEED) to 2-4 spots in turn
+//             and pauses at each (crouched, feeling the film); then 'return'.
+//             It gives chase to a springtail within SENSE mm of it (or one
+//             landing within 20), and hurries home (11 mm/s) if one makes for
+//             its post
 //   return    walking back to its post (slower than a jumping springtail)
 //   investigate  going to look at a big ripple
 //   stalk     runs over the film toward its target, in bursts
@@ -35,10 +46,24 @@ const UP = new THREE.Vector3(0, 1, 0);
 
 /** How far (mm) it follows a lure from its post before it gives up and walks back. */
 export const LEASH = 90;
+/** Out on its ground: how near (mm) a springtail must come for it to give chase; its walking speed (mm/s, in dashes). */
+export const SENSE = 22, WANDER_SPEED = 9;
 
-export function createWolfSpider(scene, { post, home }) {
-  const group = new THREE.Group();
-  scene.add(group);
+function seeded(seed) {
+  let a = seed >>> 0 || 1;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// The materials and geometry are shared by every spider (each shader built once).
+let shared = null;
+function sharedParts() {
+  if (shared) return shared;
   // Colours and markings from the delivered reference sheet
   // (assets/reference-sheets/boss-wolf-spider.webp): a warm golden-brown
   // spider, finely hairy. Albedos are linear.
@@ -78,10 +103,6 @@ export function createWolfSpider(scene, { post, home }) {
     float hair = mNoise(vWorld.xz * 70.0 + vWorld.y * 50.0);
     s.albedo = mix(vec3(0.08, 0.022, 0.008), vec3(0.14, 0.045, 0.014), mNoise(vLocal.xy * 6.0)) * (0.85 + 0.3 * hair);
     s.rough = 0.5; s.f0 = 0.03; s.sheen = 0.25; s.sheenCol = vec3(0.5, 0.25, 0.12);` });
-  const ell = (mat, p, r) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 28, 18), mat); m.scale.set(...r); m.position.set(...p); m.frustumCulled = false; group.add(m); return m; };
-  // carapace: longer than wide, the eye region raised at the front
-  const ceph = ell(bodyMat, [0.85, 0, 0], [1.3, 0.52, 0.86]);
-  const headUp = ell(bodyMat, [1.55, 0.12, 0], [0.62, 0.42, 0.58]);
   const abdMat = litMaterial({ surface: `
     float n = mNoise(vLocal.xz * 7.0), hair = mNoise(vWorld.xz * 60.0 + vWorld.y * 40.0);
     vec3 c = mix(vec3(0.04, 0.018, 0.006), vec3(0.12, 0.058, 0.017), n * n * (3.0 - 2.0 * n));
@@ -99,6 +120,20 @@ export function createWolfSpider(scene, { post, home }) {
     c = mix(c, vec3(0.55, 0.45, 0.3), step(0.82, mNoise(vLocal.xz * 22.0)) * 0.5 * smoothstep(0.4, 0.8, abs(vLocal.z)));
     s.N = normalize(s.N + vec3(hair - 0.5, 0.0, mNoise(vWorld.zx * 60.0) - 0.5) * 0.45);
     s.albedo = c * (0.85 + 0.3 * hair); s.rough = 0.88; s.f0 = 0.015; s.sheen = 0.3; s.sheenCol = vec3(0.5, 0.36, 0.16);` });
+  shared = { bodyMat, eyeMat, legMat, chelMat, abdMat, sphere: new THREE.SphereGeometry(1, 28, 18), segGeo: new THREE.CylinderGeometry(0.75, 1, 1, 7, 1).translate(0, 0.5, 0) };
+  return shared;
+}
+
+/** A wolf spider on its post (post: { x, z, a }; home: where it retreats under the moss; ground: { x, z, r }, its hunting ground; seed: its own rounds). */
+export function createWolfSpider(scene, { post, home, ground = null, seed = 1 }) {
+  const group = new THREE.Group();
+  scene.add(group);
+  const { bodyMat, eyeMat, legMat, chelMat, abdMat, sphere, segGeo } = sharedParts();
+  const rand = seeded(seed * 7919 + 13);
+  const ell = (mat, p, r) => { const m = new THREE.Mesh(sphere, mat); m.scale.set(...r); m.position.set(...p); m.frustumCulled = false; group.add(m); return m; };
+  // carapace: longer than wide, the eye region raised at the front
+  const ceph = ell(bodyMat, [0.85, 0, 0], [1.3, 0.52, 0.86]);
+  const headUp = ell(bodyMat, [1.55, 0.12, 0], [0.62, 0.42, 0.58]);
   const abd = ell(abdMat, [-1.7, 0.08, 0], [1.6, 0.78, 1.0]);
   // eyes: AME row of four small (front), two large PME above, two PLE behind
   const eyes = [
@@ -109,7 +144,6 @@ export function createWolfSpider(scene, { post, home }) {
   const fangs = [-1, 1].map((s) => ell(chelMat, [2.1, -0.28, s * 0.22], [0.26, 0.48, 0.21]));
   const parts = [ceph, headUp, abd, ...eyes, ...fangs];
   // legs: 8 x 3 segments (femur, tibia+patella, metatarsus+tarsus), instanced
-  const segGeo = new THREE.CylinderGeometry(0.75, 1, 1, 7, 1).translate(0, 0.5, 0);
   const legs = new THREE.InstancedMesh(segGeo, legMat, 8 * 3 + 2 * 2);
   legs.frustumCulled = false;
   scene.add(legs);
@@ -132,10 +166,21 @@ export function createWolfSpider(scene, { post, home }) {
   const feetW = [];
 
   const st = { x: post.x, z: post.z, a: post.a, y: 1.3, v: 0, state: 'dormant', t: 0, crouch: 0, raise: 0, reach: 0, gait: 0,
-    aimX: 0, aimZ: 0, from: null, target: null, burst: 0, chew: 0, lastAggr: null, aggrT: 0, cool: 1.5, hop: 0 };
+    aimX: 0, aimZ: 0, from: null, target: null, burst: 0, chew: 0, lastAggr: null, aggrT: 0, cool: 1.5, hop: 0,
+    rest: 2 + rand() * 6, way: null, spots: 0, pause: 0, hurry: false, rounds: 0 };
+  /** A spot to go to on its ground: 35-92% of the way out, on open water (ctx.inPool). */
+  function pickSpot(ctx) {
+    const G = ground || { x: post.x, z: post.z, r: 60 };
+    for (let k = 0; k < 20; k++) {
+      const a = rand() * Math.PI * 2, d = G.r * (0.35 + rand() * 0.57);
+      const x = G.x + Math.cos(a) * d, z = G.z + Math.sin(a) * d;
+      if (!ctx.inPool || ctx.inPool(x, z)) return { x, z };
+    }
+    return { x: post.x, z: post.z };
+  }
   const fight = createFight({ biteHit: 0.09, facingRate: 0.012, regain: 0.01 });
   const fang = () => new THREE.Vector3(st.x + Math.cos(st.a) * 2.3, 0.4, st.z + Math.sin(st.a) * 2.3);
-  const go = (s) => { st.state = s; st.t = 0; };
+  const go = (s) => { st.state = s; st.t = 0; if (s === 'wander') st.homeward = true; else if (s !== 'return' && s !== 'dormant') st.homeward = false; };
 
   function pose() {
     group.position.set(st.x, st.y - 0.55 * st.crouch + st.hop, st.z);
@@ -220,7 +265,35 @@ export function createWolfSpider(scene, { post, home }) {
       case 'dormant': {
         targetA = post.a;
         if (ctx.awake && tgt && Math.hypot(tgt.x - post.x, tgt.z - post.z) < 30) { go('stalk'); ev.push({ type: 'wake' }); break; }
-        if (ctx.awake) lureCheck(ctx, ev);
+        if (ctx.awake && lureCheck(ctx, ev)) break;
+        // rested: out on a round of its hunting ground
+        st.rest -= dt;
+        if (ground && ctx.wander !== false && st.rest <= 0) { st.spots = 2 + Math.floor(rand() * 3); st.way = pickSpot(ctx); st.pause = 0; st.burst = 0; st.hurry = false; go('wander'); ev.push({ type: 'wander' }); }
+        break;
+      }
+      case 'wander': {
+        // a springtail close by, or landing near it: the hunt is on (within its leash)
+        const fromPost = Math.hypot(st.x - post.x, st.z - post.z);
+        if (ctx.awake && tgt && fromPost < LEASH) {
+          const landed = live.find((p) => p.landed && Math.hypot(p.x - st.x, p.z - st.z) < 20);
+          if (bd < SENSE || landed) { go('stalk'); ev.push({ type: 'wake' }); break; }
+          // one making for its post while it is out: it hurries home to guard it
+          if (Math.hypot(tgt.x - post.x, tgt.z - post.z) < 40 && Math.hypot(tgt.x - post.x, tgt.z - post.z) < fromPost) { st.hurry = true; go('return'); ev.push({ type: 'return', hurry: true }); break; }
+        }
+        if (ctx.awake && lureCheck(ctx, ev)) break;
+        const d = Math.hypot(st.way.x - st.x, st.way.z - st.z);
+        targetA = Math.atan2(st.way.z - st.z, st.way.x - st.x);
+        if (st.pause > 0) {
+          // paused on a spot, feeling the film: crouched a little, turning now and then
+          st.pause -= dt; targetV = 0; targetA = st.a + Math.sin(st.t * 1.3) * 0.4;
+          st.crouch = Math.max(st.crouch, 0.25);
+          if (st.pause <= 0) {
+            if (--st.spots <= 0) { st.rounds++; go('return'); ev.push({ type: 'return' }); break; }
+            st.way = pickSpot(ctx);
+          }
+        } else if (d < 2.5) st.pause = 1.2 + rand() * 1.4;
+        else { st.burst += dt; targetV = st.burst % 1.4 < 0.9 ? WANDER_SPEED : 1.5; }
+        if (st.t > 30) { go('return'); ev.push({ type: 'return' }); }
         break;
       }
       case 'return':
@@ -229,12 +302,12 @@ export function createWolfSpider(scene, { post, home }) {
         const goal = st.state === 'return' ? post : st.lure;
         const d = Math.hypot(goal.x - st.x, goal.z - st.z);
         targetA = Math.atan2(goal.z - st.z, goal.x - st.x);
-        targetV = st.state === 'return' ? (d > 2 ? 6 : 0) : st.t < 0.3 ? 0 : d > 2.5 ? 10 : 0;
-        if (st.state === 'return' && d < 2) { st.x = post.x; st.z = post.z; go('dormant'); ev.push({ type: 'guard' }); break; }
+        targetV = st.state === 'return' ? (d > 2 ? (st.hurry ? 11 : 6) : 0) : st.t < 0.3 ? 0 : d > 2.5 ? 10 : 0;
+        if (st.state === 'return' && d < 2) { st.x = post.x; st.z = post.z; st.hurry = false; st.rest = 5 + rand() * 4; go('dormant'); ev.push({ type: 'guard' }); break; }
         if (st.state === 'investigate' && (d < 2.5 || st.t > 7)) { st.lingerT = (st.lingerT || 0) + dt; if (st.lingerT > 1.5 || st.t > 9) { st.lingerT = 0; go('return'); ev.push({ type: 'return' }); } }
         // something close and alive: it hunts it
-        if (tgt && bd < 15 && Math.hypot(st.x - post.x, st.z - post.z) < LEASH) { go('stalk'); ev.push({ type: 'wake' }); break; }
-        if (st.state === 'return') lureCheck(ctx, ev);
+        if (ctx.awake && tgt && bd < 15 && Math.hypot(st.x - post.x, st.z - post.z) < LEASH) { go('stalk'); ev.push({ type: 'wake' }); break; }
+        if (st.state === 'return' && ctx.awake) lureCheck(ctx, ev);
         break;
       }
       case 'stalk': {
@@ -317,12 +390,12 @@ export function createWolfSpider(scene, { post, home }) {
       st.a += Math.max(-6 * dt, Math.min(6 * dt, wrap(targetA - st.a)));
       st.v += (targetV - st.v) * Math.min(1, dt * 6);
       const nx = st.x + Math.cos(st.a) * st.v * dt, nz = st.z + Math.sin(st.a) * st.v * dt;
-      if (st.state === 'retreat' || ctx.inPool(nx, nz) || Math.hypot(nx - post.x, nz - post.z) < 12) { st.x = nx; st.z = nz; } else { st.v *= 0.3; if (st.state === 'return' || st.state === 'investigate') st.a += 3 * dt; }
+      if (st.state === 'retreat' || ctx.inPool(nx, nz) || Math.hypot(nx - post.x, nz - post.z) < 12) { st.x = nx; st.z = nz; } else { st.v *= 0.3; if (st.state === 'return' || st.state === 'investigate' || st.state === 'wander') st.a += 3 * dt; }
       st.gait += (Math.abs(st.v) * dt) / 2.4;
     } else st.gait += dt * 3;
     // on the moss it stands higher
     st.y = 1.3 + (Math.hypot(st.x - post.x, st.z - post.z) < 5 ? 0.9 : 0);
-    if (!['dormant', 'gone', 'return', 'investigate'].includes(st.state)) {
+    if (!['dormant', 'gone', 'return', 'investigate', 'wander'].includes(st.state)) {
       const near = tgt && bd < 14;
       const f = fight.update(dt, { near, facing: near && tgt && Math.abs(wrap(Math.atan2(st.z - tgt.z, st.x - tgt.x) - tgt.heading)) < 0.95 });
       if (f.interest <= 0 && st.state !== 'retreat' && st.state !== 'flinch') { go('retreat'); ev.push({ type: 'retreat' }); }
@@ -338,7 +411,9 @@ export function createWolfSpider(scene, { post, home }) {
     /** 1 at full resolve, 0 when it gives up. */
     get resolve() { return fight.interest; },
     /** True from waking until it retreats or walks back (the gauge shows). */
-    get engaged() { return !['dormant', 'gone', 'retreat', 'return', 'investigate'].includes(st.state); },
+    get engaged() { return !['dormant', 'gone', 'retreat', 'return', 'investigate', 'wander'].includes(st.state); },
+    /** Out on its hunting ground, or walking home from it (not lured, not hunting). */
+    get roaming() { return st.state === 'wander' || (st.state === 'return' && !!st.homeward); },
     /** Move its post (and where it retreats to) and put it back on guard there. */
     setPost(p, h) { Object.assign(post, p); Object.assign(home, h); api.reset(); },
     get attacking() { return ['tell', 'lunge', 'pounce'].includes(st.state); },
@@ -400,7 +475,7 @@ export function createWolfSpider(scene, { post, home }) {
       return out;
     },
     /** After a meal (or a respawn): back on guard at its post. */
-    release() { Object.assign(st, { x: post.x, z: post.z, a: post.a, state: 'dormant', t: 0, crouch: 0, raise: 0, reach: 0, chew: 0, v: 0, hop: 0, cool: 3 }); fight.reset(); pose(); },
+    release() { Object.assign(st, { x: post.x, z: post.z, a: post.a, state: 'dormant', t: 0, crouch: 0, raise: 0, reach: 0, chew: 0, v: 0, hop: 0, cool: 3, rest: 4 + rand() * 5, hurry: false, way: null }); fight.reset(); pose(); },
     /** Restart: on guard again, full resolve. */
     reset() { api.release(); setVisible(true); },
     contacts() { return feetW.map((f) => [f.x, f.z, 0.18, 0.12]); },

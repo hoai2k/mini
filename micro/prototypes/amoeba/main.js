@@ -2039,6 +2039,9 @@ function drawGlow(target) {
 }
 
 // Warm up: a polypodial resting cell, prey scattered round it.
+// (The cell it leaves is the one the tardigrade world glimpses in its pool:
+// ../shared/amoeba-opening.js. Anything that changes it, regenerate that with
+// node micro/prototypes/amoeba/opening.mjs; --check says whether it still matches.)
 for (const P of PATCHES) for (const key of P.kinds) spawnIn(P, key, true);
 ambient = [makePrey('paramecium', -500, 300, 0.4, rand), makePrey('colpidium', 400, -200, 2.4, rand)];
 for (const a of ambient) a.layer = 'above';

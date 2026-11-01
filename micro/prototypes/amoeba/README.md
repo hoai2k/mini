@@ -684,7 +684,16 @@ Not borrowed:
 node micro/prototypes/amoeba/route.test.mjs   # the scenery on every side; the director: rushing in 16 directions, lingering, turning back
 node --test micro/prototypes/shared/director.test.mjs
 node micro/prototypes/check.mjs amoeba
+node micro/prototypes/amoeba/opening.mjs --check   # the tardigrade's glimpse is still this world's opening cell
 ```
+
+`opening.mjs` loads the page with no frames run, reads the cell its
+deterministic warm-up leaves (the outline, the nucleus, the contractile
+vacuole) and writes `../shared/amoeba-opening.js`, which the tardigrade
+world draws on its pool floor (`tardigrade/landmarks.js` `buildAmoeba`), so
+the Tardigrade → Amoeba crossfade turns that cell into this one. Run it
+without `--check` after any change to the warm-up, the soft body or the
+seeds.
 
 `route.test.mjs` checks that nothing is placed in view, every encounter comes
 in order (the portal last), and, in the lingering and turning-back runs and

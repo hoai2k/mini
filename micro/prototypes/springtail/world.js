@@ -1,4 +1,4 @@
-// The bog pool: a wide sheet of open water (1.5 x 0.9 m) ringed by a steep
+// The bog pool: a wide sheet of open water (1.9 x 1.24 m) ringed by a steep
 // Sphagnum bank, with moss islands standing in it, sundew rosettes on some
 // islands, floating debris (dead Sphagnum leaves, bark flakes, needles) and
 // food on the film. The water is the ground everywhere the springtail can
@@ -7,14 +7,18 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { litMaterial, macroShared, MACRO_GLSL } from '../shared/techniques/springtail-macro.js';
 
-export const POOL = { a: 760, b: 450 };
+// (1.5 x 0.9 m until the portals were fixed: the pool grew so that a portal's
+// pondweed is ~30-60 s of rushing from the start whichever way you head.)
+export const POOL = { a: 950, b: 620 };
 /**
- * Where a game starts: mid-pool. The scenery (islands, sundews, debris, food)
- * is laid out before play; the encounters (Stenus, the strider and its
- * Podura mass, the rain, the wolf spider and the portal raft) are placed as
- * you go by the director (shared/director.js; main.js `director`), in that
- * order, in water nobody has seen yet, a little ahead of whoever is furthest
- * along. Until placed, each one is hidden and parked (`ZONES[k].placed`).
+ * Where a game starts: mid-pool. The scenery (islands, sundews, debris, food,
+ * the bog pondweed) and the portal rafts with their wolf spiders are laid out
+ * before play, the same every game (`PORTALS`: seeded blue noise, not placed
+ * by the player's moves); the encounters (Stenus, the strider and its Podura
+ * mass, the rain) are placed as you go by the director (shared/director.js;
+ * main.js `director`), in that order, in water nobody has seen yet, a little
+ * ahead of whoever is furthest along. Until placed, each one is hidden and
+ * parked (`ZONES[k].placed`).
  */
 export const START = { x: -30, z: 12 };
 export const distFromStart = (x, z) => Math.hypot(x - START.x, z - START.z);
@@ -29,7 +33,7 @@ export const ISLANDS = [
  * Sundews are scenery, not encounters (the owner, 2026-11-01: things you can
  * jump over or walk round can be anywhere, safe areas too, "because you can
  * just avoid them"): 16 small clusters scattered over the pool at every
- * distance from the start (from ~50 mm out to the far shore), each a short
+ * distance from the start (from ~50 mm out to ~560 mm), each a short
  * band of three islands with a rosette on each, its glue-tipped leaves
  * reaching out over the gaps (`buildSundews`). Seeded, so every game has the
  * same pool.
@@ -42,7 +46,7 @@ export const SUNDEW_ISLANDS = [];
   const BAND = [[-4, -24, 4.5], [7, 0, 4], [-3, 24, 4.5]];
   for (let c = 0, tries = 0; c < SUNDEW_CLUSTERS && tries < 4000; tries++) {
     // spread over the distances: cluster c at about 50 + c/15 of the way to ~430 mm, in a golden-angle turn of bearings
-    const a = c * 2.39996 + 0.5 + (rnd() - 0.5) * 0.6, D = 52 + ((c * 7) % SUNDEW_CLUSTERS) / (SUNDEW_CLUSTERS - 1) * 380 + (rnd() - 0.5) * 30;
+    const a = c * 2.39996 + 0.5 + (rnd() - 0.5) * 0.6, D = 52 + ((c * 7) % SUNDEW_CLUSTERS) / (SUNDEW_CLUSTERS - 1) * 500 + (rnd() - 0.5) * 30;
     const t = a + Math.PI / 2 + (rnd() - 0.5) * 0.8; // along the band
     const isl = BAND.map(([dr, dt, r], k) => ({ x: Math.round((START.x + Math.cos(a) * (D + dr) + Math.cos(t) * dt) * 10) / 10, z: Math.round((START.z + Math.sin(a) * (D + dr) + Math.sin(t) * dt) * 10) / 10, r, sundew: true, cluster: c, t, k }));
     const clear = isl.every((I) => poolE(I.x, I.z) < 0.86 && [...ISLANDS, ...SUNDEW_ISLANDS].every((J) => Math.hypot(I.x - J.x, I.z - J.z) > I.r + J.r + 10));
@@ -99,18 +103,21 @@ export function roomAt(x, z, r, e = 0.95) { for (let k = 0; k < 8; k++) { const 
  * The director's settings and the encounters in order (main.js adds place
  * and met; route.test.mjs runs them without a browser). Distances in mm: a
  * full jump is 36, the 1x view 36 across; rushing with tap jumps is ~15 mm/s.
- *   size     clearance (its water and leash, or the raft's arena)
+ *   size     clearance (its water and leash)
  *   parts    what can be seen of it when placed (the beetle where it starts,
- *            the strider and its mass, the raft): unseen water, out of view.
+ *            the strider and its mass): unseen water, out of view.
  *            Stenus and the strider start at the spot itself (main.js); their
  *            water is invisible, and walking on out of it later is behaviour
  *   min/maxAhead  how far ahead of the leader it goes; min/maxNear when they linger
+ * The portals and their wolf spiders are not the director's: they are fixed
+ * (`PORTALS`, below), and a portal stays closed until the director is done
+ * (every encounter here met: main.js `sealed`).
  */
 export const DIRECTOR = {
   cell: 10, seenDist: 60, nearSeen: 6, seed: 17,
   bounds: { x0: -POOL.a, x1: POOL.a, z0: -POOL.b, z1: POOL.b },
   // the warm-up: ~5 s of moving (a few jumps); then a calm break of ~8-10 s of moving clear of the last encounter
-  // (rushing out with tap jumps, every encounter met and the portal reached in about a minute)
+  // (rushing out with tap jumps, every encounter is met within ~30 s, before a portal's pondweed)
   warmup: { sec: 5 }, calm: { sec: 9 }, linger: 6, moveSpeed: 2.5,
   // seen but not gone to: met once everyone is ~3 screens off, or after 10 s in sight nearby (it is never moved)
   watchSec: 10,
@@ -123,24 +130,48 @@ export const ENCOUNTERS = [
     fits: (x, z, b) => { const c = zoneAt('crowd', x, z, b); return openAt(x, z, 10) && roomAt(x, z, 40) && openAt(c.x, c.z, ZONES.crowd.r + 3) && roomAt(c.x, c.z, ZONES.crowd.r); } },
   // an event, not a thing in the water
   { id: 'rain', size: 0, minAhead: 0, maxAhead: 0, virtual: true, calm: { sec: 8 } },
-  // the boss and the way on: the raft (its golden beacon ~60 mm tall, out of every view) and the wolf spider
-  { id: 'portal', size: 34, visible: 16, top: 60, minAhead: 80, maxAhead: 120, minNear: 40, maxNear: 70, final: true, calm: { sec: 10 },
-    fits: (x, z) => openAt(x, z, PORTAL.r + 10, 0.93) && roomAt(x, z, 25, 0.97) },
 ];
-/** Encounters can go anywhere well inside the bank. */
-export const canPlace = (x, z) => poolE(x, z) < 0.93;
+/** Encounters can go anywhere well inside the bank, but not onto a portal raft and its spider's post. */
+export const canPlace = (x, z, r = 0) => poolE(x, z) < 0.93 && PORTALS.every((p) => Math.hypot(x - p.x, z - p.z) > PORTAL_R + 30 + Math.min(r, 30));
 
 /**
- * The portal (the way on, design §0.6): a floating raft of Sphagnum crowned
- * with big capitula and the Limnozetes mite (landmarks.js), placed by the
- * director (main.js) as the last encounter. mossTop honours it, so you
- * land and walk on it like an island. Not placed until then.
+ * The portals (the way on, design §0.6): floating rafts of Sphagnum crowned
+ * with big capitula and the Limnozetes mite (landmarks.js), each with its
+ * own pond wolf spider (boss.js) that hunts over the water round it, its
+ * hunting ground (`GROUND`), and goes back to the raft between hunts. The
+ * owner (2026-11-01): "place the portals ... in random noise generated
+ * locations with a certain average distribution (so it's still random, but
+ * not influenced by player behavior) and certain plants indicate that you're
+ * coming close to a portal" (bog pondweed, `PONDWEED`), "the spiders hunt
+ * within a certain radius and return to the portal, so you could follow the
+ * spiders to their portal".
+ *
+ * Laid out once, the same every game (`PORTAL_SEED`): blue noise (dart
+ * throwing, at least `PORTAL_SPACING` mm apart) over open water at least
+ * `PORTAL_MIN_D` from the start (so its pondweed is ~30 s of rushing away at
+ * the least) and inside poolE 0.88, then a coverage pass: a rusher heading
+ * out on each of 64 bearings (`rushToGround`: 15 mm/s, round islands, along
+ * the bank when it meets it) must reach some portal's ground within 60 s;
+ * where one would not, a raft is added on its way at ~48 s (pulled in off
+ * the bank) if it keeps 0.6 x the spacing. mossTop honours every raft, so
+ * you land and walk on them like islands.
  */
-export const PORTAL = { placed: false, x: 0, z: 0, a: 0, r: 8, reach: 11 };
-export function setPortal(x, z, a) { Object.assign(PORTAL, { placed: true, x, z, a }); }
-export function clearPortal() { PORTAL.placed = false; }
-/** Height (mm) of the raft's top at distance d from its centre (it floats: ~0.4 mm proud at the rim, 1.5 mm in the middle). */
-export const raftTop = (d) => 0.4 + 1.1 * sm(0, -PORTAL.r * 0.75, d - PORTAL.r);
+export const PORTAL_R = 8;
+/** A portal's hunting ground and pondweed zone: radius (mm) round the raft (~5 s of rushing). */
+export const GROUND = { r: 80 };
+export const PORTAL_SPACING = 340, PORTAL_MIN_D = 450 + GROUND.r, PORTAL_SEED = 44;
+export const PORTALS = [];
+/** The portal in focus (the one nearest the players: its raft's glow, its spider in the fight; main.js `focusPortal`). */
+export const PORTAL = { placed: true, i: 0, x: 0, z: 0, a: 0, r: PORTAL_R, reach: 11 };
+export function focusPortal(i) { Object.assign(PORTAL, PORTALS[i]); return PORTAL; }
+/** The nearest portal to (x, z): { p, d }. */
+export function nearestPortal(x, z) {
+  let p = null, d = Infinity;
+  for (const q of PORTALS) { const e = Math.hypot(x - q.x, z - q.z); if (e < d) { d = e; p = q; } }
+  return { p, d };
+}
+/** Height (mm) of a raft's top at distance d from its centre (it floats: ~0.4 mm proud at the rim, 1.5 mm in the middle). */
+export const raftTop = (d) => 0.4 + 1.1 * sm(0, -PORTAL_R * 0.75, d - PORTAL_R);
 
 /** Normalised pool radius: < 1 inside the pool (matches POOL_GLSL). */
 export function poolE(x, z) {
@@ -179,6 +210,143 @@ function islandCandidates(x, z) {
   return i >= 0 && j >= 0 && i < g.nx && j < g.nz ? g.cells[i + j * g.nx] : ISLANDS;
 }
 export const inPool = (x, z) => poolE(x, z) < 1 && islandEdge(x, z).d > 0;
+
+// ---------------------------------------------------------------- the portals and the pondweed (laid out once)
+function seeded(seed) {
+  let a = seed >>> 0 || 1;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+/**
+ * A rusher from the start along bearing b (15 mm/s, the speed of tap jumps):
+ * straight on, round islands, until it is within GROUND.r of a portal in
+ * `list` or meets the bank; then along the bank, toward the nearer portal
+ * (both ways are tried: `t` is the nearer, `far` the other). Returns
+ * { t, far, bank (time it met the bank, or null), path } with path its
+ * position every 0.1 s on the way out (and on along the bank the near way).
+ */
+export function rushToGround(list, b, limit = 120, speed = 15) {
+  const DT = 0.1, near = (x, z) => list.some((p) => Math.hypot(p.x - x, p.z - z) < GROUND.r);
+  const go = (x, z, a, t, turn, path) => {
+    for (; t < limit; t += DT) {
+      path.push([x, z]);
+      if (near(x, z)) return { t, x, z };
+      let moved = false;
+      for (let i = 0; i < 24 && !moved; i++) {
+        // out on the heading (rounding islands either way); along the bank, always turning the one way
+        // (along the bank: from the bank side round, so it hugs the bank at poolE 0.895)
+        const c = turn ? a - turn * 0.5 + turn * i * 0.12 : a + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.15;
+        const nx = x + Math.cos(c) * speed * DT, nz = z + Math.sin(c) * speed * DT;
+        if (poolE(nx, nz) < (turn ? 0.895 : 0.93) && islandEdge(nx, nz).d > 0.5) {
+          if (!turn && poolE(nx, nz) > 0.89) return { t, x, z, bank: true };
+          x = nx; z = nz; moved = true; if (turn) a = c;
+        }
+      }
+      if (!moved) a += turn || 0.5;
+    }
+    return { t: limit, x, z };
+  };
+  const path = [];
+  const out = go(START.x, START.z, b, 0, 0, path);
+  if (!out.bank) return { t: Math.min(out.t, limit), far: Math.min(out.t, limit), bank: null, path };
+  const runs = [1, -1].map((turn) => { const p = []; return { ...go(out.x, out.z, b + turn * Math.PI / 2, out.t, turn, p), p }; }).sort((u, v) => u.t - v.t);
+  return { t: Math.min(runs[0].t, limit), far: Math.min(runs[1].t, limit), bank: +out.t.toFixed(1), path: path.concat(runs[0].p) };
+}
+/** Can a raft go at (x, z): open water, away from the start, islands and the bank? */
+const raftFits = (x, z) => poolE(x, z) < 0.88 && distFromStart(x, z) > PORTAL_MIN_D && islandEdge(x, z).d > PORTAL_R + 14 && roomAt(x, z, PORTAL_R + 20, 0.93);
+/** Lay out the portals for a seed (blue noise, then the coverage pass). Exported for tests. */
+export function layPortals(seed = PORTAL_SEED, { spacing = PORTAL_SPACING, bearings = 64, within = 58 } = {}) {
+  const r = seeded(seed), list = [];
+  for (let k = 0; k < 9000; k++) {
+    const x = (r() * 2 - 1) * POOL.a, z = (r() * 2 - 1) * POOL.b;
+    if (raftFits(x, z) && list.every((p) => Math.hypot(p.x - x, p.z - z) > spacing)) list.push({ x, z, fill: false });
+  }
+  for (let pass = 0; pass < 6; pass++) {
+    let added = false;
+    for (let k = 0; k < bearings; k++) {
+      const run = rushToGround(list, (k / bearings) * Math.PI * 2, within + 1);
+      if (run.t <= within) continue;
+      for (const tt of [48, 44, 52, 40, 56, 36]) {
+        let [x, z] = run.path[Math.min(run.path.length - 1, Math.round(tt * 10))];
+        for (let q = 0; q < 40 && !raftFits(x, z); q++) { x = START.x + (x - START.x) * 0.985; z = START.z + (z - START.z) * 0.985; }
+        if (raftFits(x, z) && list.every((p) => Math.hypot(p.x - x, p.z - z) > spacing * 0.6)) { list.push({ x, z, fill: true }); added = true; break; }
+      }
+    }
+    if (!added) break;
+  }
+  // round to 0.1 mm; each raft turned so its mite's head faces the start
+  return list.map((p, i) => {
+    const x = Math.round(p.x * 10) / 10, z = Math.round(p.z * 10) / 10;
+    return { i, x, z, a: Math.atan2(z - START.z, x - START.x), r: PORTAL_R, reach: 11, fill: p.fill };
+  });
+}
+PORTALS.push(...layPortals());
+focusPortal(0);
+
+/**
+ * Bog pondweed (Potamogeton polygonifolius): floating leaves, thick round
+ * every portal raft (its spider's hunting ground: denser toward the raft,
+ * thinning out at the ground's edge, GROUND.r) and only a stray leaf here
+ * and there elsewhere, so a player learns "lots of these: a portal nearby".
+ * Each leaf is a leathery ellipse lying on the film (solid footing, like the
+ * debris: `pondweedAt`). Fixed, the same every game.
+ *   { x, z, a (long axis), L, W, top, portal (index, or -1 for a stray) }
+ */
+export const PONDWEED = [];
+{
+  const r = seeded(31);
+  const fits = (x, z, L) => poolE(x, z) < 0.93 && islandEdge(x, z).d > L * 0.55 + 1 && PORTALS.every((p) => Math.hypot(x - p.x, z - p.z) > PORTAL_R + L * 0.5 + 2.5) &&
+    PONDWEED.every((w) => Math.hypot(w.x - x, w.z - z) > (w.L + L) * 0.36) && distFromStart(x, z) > 60;
+  const add = (x, z, L, portal) => PONDWEED.push({ x: Math.round(x * 10) / 10, z: Math.round(z * 10) / 10, a: r() * Math.PI, L, W: L * (0.36 + r() * 0.06), top: 0.14, portal, i: PONDWEED.length });
+  for (const p of PORTALS) {
+    // density falls from the raft to the ground's edge (and a little past it)
+    for (let n = 0, k = 0; n < 34 && k < 900; k++) {
+      const d = PORTAL_R + 4 + r() * (GROUND.r + 14 - PORTAL_R - 4), keep = 1 - sm(PORTAL_R + 8, GROUND.r + 14, d) * 0.92;
+      if (r() > keep) continue;
+      const t = r() * Math.PI * 2, L = 15 + r() * 13;
+      const x = p.x + Math.cos(t) * d, z = p.z + Math.sin(t) * d;
+      if (fits(x, z, L)) { add(x, z, L, p.i); n++; }
+    }
+  }
+  // strays: single leaves well away from every portal's ground
+  for (let n = 0, k = 0; n < 26 && k < 4000; k++) {
+    const x = (r() * 2 - 1) * POOL.a, z = (r() * 2 - 1) * POOL.b, L = 14 + r() * 10;
+    if (PORTALS.some((p) => Math.hypot(x - p.x, z - p.z) < GROUND.r + 120)) continue;
+    if (fits(x, z, L)) { add(x, z, L, -1); n++; }
+  }
+}
+/** Local offset of (x, z) from a leaf, normalised: < 1 on it. */
+function onLeaf(w, x, z) {
+  const dx = x - w.x, dz = z - w.z, c = Math.cos(w.a), s = Math.sin(w.a);
+  return Math.hypot((dx * c + dz * s) / (w.L / 2), (-dx * s + dz * c) / (w.W / 2));
+}
+const LEAF_CELL = 40, leafGrid = new Map();
+for (const w of PONDWEED) {
+  const R = w.L / 2 + 1;
+  for (let i = Math.floor((w.x - R) / LEAF_CELL); i <= Math.floor((w.x + R) / LEAF_CELL); i++)
+    for (let k = Math.floor((w.z - R) / LEAF_CELL); k <= Math.floor((w.z + R) / LEAF_CELL); k++) {
+      const key = i * 4096 + k;
+      if (!leafGrid.has(key)) leafGrid.set(key, []);
+      leafGrid.get(key).push(w);
+    }
+}
+/** The pondweed leaf under (x, z), if any (a small margin so a landing on its rim holds). */
+export function pondweedAt(x, z) {
+  const list = leafGrid.get(Math.floor(x / LEAF_CELL) * 4096 + Math.floor(z / LEAF_CELL));
+  if (list) for (const w of list) if (onLeaf(w, x, z) < 1.04) return w;
+  return null;
+}
+/** How thick the pondweed is at (x, z): leaves per 1000 mm² within 30 mm (tests: it thickens toward a portal). */
+export function pondweedDensity(x, z, R = 30) {
+  let n = 0;
+  for (const w of PONDWEED) if (Math.hypot(w.x - x, w.z - z) < R) n++;
+  return (n / (Math.PI * R * R)) * 1000;
+}
 function sm(a, b, x) { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
 /** The bank is a steep wall of moss: the springtail cannot go past this. */
 export const BANK_E = 0.995;
@@ -189,7 +357,7 @@ export function mossTop(x, z) {
   if (e >= 1.0) h = 1.4 + 12 * sm(1.0, 1.08, e);
   const { d, island } = islandEdge(x, z);
   if (d <= 0.3) h = Math.max(h, 1.4 + 1.6 * sm(0, -island.r * 0.7, d));
-  if (PORTAL.placed) { const dr = Math.hypot(x - PORTAL.x, z - PORTAL.z); if (dr <= PORTAL.r + 0.3) h = Math.max(h, raftTop(dr)); }
+  for (const p of PORTALS) { const dr = Math.hypot(x - p.x, z - p.z); if (dr <= PORTAL_R + 0.3) h = Math.max(h, raftTop(dr)); }
   return h;
 }
 
@@ -327,7 +495,7 @@ function bankGeometry() {
   return g;
 }
 
-export function buildWorld({ mossTex = null, sundewTex = null } = {}) {
+export function buildWorld({ mossTex = null, sundewTex = null, leafTex = null } = {}) {
   const group = new THREE.Group();
   const mossTexU = { value: mossTex }, hasMossTexU = { value: mossTex ? 1 : 0 };
   let seed = 11;
@@ -390,7 +558,7 @@ export function buildWorld({ mossTex = null, sundewTex = null } = {}) {
   };
   // the bank: a rim of heads (the lighter variant: it is mostly seen from afar)
   const near = [];
-  for (let i = 0; i < 9000 && near.length < 300; i++) {
+  for (let i = 0; i < 12000 && near.length < 400; i++) {
     const a = rnd() * Math.PI * 2, e = 1.0 + rnd() * 0.1;
     const x = Math.cos(a) * POOL.a * e, z = Math.sin(a) * POOL.b * e;
     if (poolE(x, z) < 1.0) continue;
@@ -405,7 +573,7 @@ export function buildWorld({ mossTex = null, sundewTex = null } = {}) {
     }
   }
   // the lawn beyond the bank, far out of focus
-  for (let i = 0; i < 4000 && spots[2].length < 320; i++) {
+  for (let i = 0; i < 5000 && spots[2].length < 400; i++) {
     const a = rnd() * Math.PI * 2, e = 1.08 + rnd() * 0.6;
     const x = Math.cos(a) * POOL.a * e, z = Math.sin(a) * POOL.b * e;
     const ok = spots[2].every((p) => Math.hypot(p.x - x, p.z - z) > 22);
@@ -460,8 +628,9 @@ export function buildWorld({ mossTex = null, sundewTex = null } = {}) {
   const sundews = buildSundews(group, rnd, sundewTex);
   const food = buildFood(group, rnd);
   const debris = buildDebris(group, rnd);
+  const pondweed = buildPondweed(group, leafTex);
 
-  return { group, sundews, food, debris, mossMat, domeMat, sky, mossTiles: lods, setLodDistance: lodDistance, setMossTex(t) { mossMat.uniforms.uMossTex.value = t; mossMat.uniforms.uHasMossTex.value = t ? 1 : 0; } };
+  return { group, sundews, food, debris, pondweed, mossMat, domeMat, sky, mossTiles: lods, setLodDistance: lodDistance, setMossTex(t) { mossMat.uniforms.uMossTex.value = t; mossMat.uniforms.uHasMossTex.value = t ? 1 : 0; } };
 }
 
 // ---------------------------------------------------------------- sundews
@@ -617,6 +786,77 @@ function buildSundews(group, rnd, sundewTex) {
   };
 }
 
+// ---------------------------------------------------------------- bog pondweed
+/**
+ * The floating leaves of bog pondweed (PONDWEED): one instanced mesh per
+ * portal's patch (culled as one by the views that cannot see it) and one for
+ * the strays. A leaf is a leathery ellipse lying flat on the film, a little
+ * domed, olive green flushed wine red toward the rim, with a pale midrib and
+ * fine parallel veins converging on the tip; glossy (a waxy cuticle). MP-S06,
+ * when delivered, is laid over it from above.
+ */
+function buildPondweed(group, leafTex) {
+  const N = 30, pos = [0, 0.14, 0], idx = [];
+  for (const [k, y] of [[0.55, 0.11], [1, 0.02]]) for (let i = 0; i < N; i++) { const t = (i / N) * Math.PI * 2; pos.push(Math.cos(t) * k, y, Math.sin(t) * k); }
+  for (let i = 0; i < N; i++) {
+    const j = (i + 1) % N;
+    idx.push(0, 1 + j, 1 + i);
+    idx.push(1 + i, 1 + j, 1 + N + i, 1 + j, 1 + N + j, 1 + N + i);
+  }
+  // the rim turned down to the film
+  for (let i = 0; i < N; i++) { const t = (i / N) * Math.PI * 2; pos.push(Math.cos(t) * 1.02, -0.04, Math.sin(t) * 1.02); }
+  for (let i = 0; i < N; i++) { const j = (i + 1) % N; idx.push(1 + N + i, 1 + N + j, 1 + 2 * N + i, 1 + N + j, 1 + 2 * N + j, 1 + 2 * N + i); }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  const mat = litMaterial({
+    uniforms: { uLeafTex: { value: leafTex }, uHasLeafTex: { value: leafTex ? 1 : 0 } },
+    surface: `uniform sampler2D uLeafTex; uniform float uHasLeafTex;
+    void surface(inout Surf s) {
+      float ex = clamp(1.0 - vLocal.x * vLocal.x, 0.03, 1.0);
+      float u = vLocal.z / sqrt(ex);
+      float vein = smoothstep(0.8, 1.0, abs(sin(u * 10.0)));
+      float mid = 1.0 - smoothstep(0.025, 0.07, abs(vLocal.z) / sqrt(ex));
+      float rim = smoothstep(0.7, 1.0, length(vLocal.xz));
+      vec3 c = vColor * (0.82 + 0.3 * mNoise(vLocal.xz * 6.0 + vColor.r * 40.0));
+      c = mix(c, vec3(0.26, 0.045, 0.03), rim * 0.6);
+      c = mix(c, c * 1.6 + vec3(0.05, 0.05, 0.01), mid * 0.65);
+      c *= 1.0 - 0.2 * vein;
+      if (uHasLeafTex > 0.5) { vec4 t = texture2D(uLeafTex, vec2(0.5 + vLocal.x * 0.5, 0.5 - vLocal.z * 0.5)); c = mix(c, t.rgb, 0.85 * t.a); }
+      // wet and dark where it lies on the water
+      c *= mix(0.45, 1.0, smoothstep(-0.02, 0.06, vLocal.y));
+      s.N = normalize(s.N + vec3(0.0, 0.0, (vein - 0.5) * 0.06));
+      s.albedo = c; s.rough = 0.24; s.f0 = 0.045; s.wrap = 0.4; s.trans = 0.55; s.sheen = 0.12; s.sheenCol = vColor;
+    }`,
+  });
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), col = new THREE.Color(), e = new THREE.Euler();
+  const palette = [[0.12, 0.15, 0.025], [0.16, 0.13, 0.03], [0.2, 0.07, 0.03], [0.1, 0.13, 0.03], [0.18, 0.1, 0.03]];
+  let seed = 5150;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const patches = new Map();
+  for (const w of PONDWEED) { if (!patches.has(w.portal)) patches.set(w.portal, []); patches.get(w.portal).push(w); }
+  const meshes = [];
+  for (const [portal, list] of patches) {
+    const im = new THREE.InstancedMesh(geo, mat, list.length);
+    list.forEach((w, i) => {
+      q.setFromEuler(e.set((rnd() - 0.5) * 0.04, -w.a, (rnd() - 0.5) * 0.04));
+      m4.compose(new THREE.Vector3(w.x, 0, w.z), q, new THREE.Vector3(w.L / 2, 1, w.W / 2));
+      im.setMatrixAt(i, m4);
+      const p = palette[Math.floor(rnd() * palette.length)];
+      im.setColorAt(i, col.setRGB(p[0], p[1], p[2]).multiplyScalar(0.85 + rnd() * 0.3));
+    });
+    im.computeBoundingSphere();
+    im.userData.portal = portal;
+    group.add(im);
+    meshes.push(im);
+  }
+  return {
+    meshes, material: mat,
+    setTexture(t) { mat.uniforms.uLeafTex.value = t; mat.uniforms.uHasLeafTex.value = t ? 1 : 0; },
+  };
+}
+
 // ---------------------------------------------------------------- food on the film
 export const FOOD_TYPES = [
   { name: 'pine pollen', color: [0.85, 0.62, 0.16], grains: 22, r: 0.055, spread: 0.32, stretch: 1.3 },
@@ -636,9 +876,9 @@ function buildFood(group, rnd) {
   let gi = 0;
   const place = (c) => {
     for (let tries = 0; tries < 80; tries++) {
-      // half round the start, the rest out across the pool in every direction (to ~430 mm)
+      // half round the start, the rest out across the pool in every direction (to ~620 mm)
       const near = rnd() < 0.5;
-      const a = rnd() * Math.PI * 2, d = near ? 3 + Math.sqrt(rnd()) * 38 : 40 + rnd() * (430 - 40);
+      const a = rnd() * Math.PI * 2, d = near ? 3 + Math.sqrt(rnd()) * 38 : 40 + rnd() * (620 - 40);
       const x = START.x + Math.cos(a) * d, z = START.z + Math.sin(a) * d;
       if (poolE(x, z) < 0.9 && islandEdge(x, z).d > 1.5 && Math.hypot(x - START.x, z - START.z) > 2.5) { c.x = x; c.z = z; return; }
     }

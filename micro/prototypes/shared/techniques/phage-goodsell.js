@@ -41,7 +41,8 @@ float n3(vec3 x){ vec3 i = floor(x); vec3 f = fract(x); f = f * f * (3.0 - 2.0 *
 // the ink hull must match the body, so uStyle switches it off.)
 const LUMP = /* glsl */`
 uniform float uLumpAmp; uniform float uLumpFreq;
-float lumpH(vec3 q){ vec3 s = q * uLumpFreq; return n3(s) * 0.6 + n3(s * 2.17 + 7.3) * 0.28 + n3(s * 4.6 - 3.1) * 0.12; }
+const mat3 LROT = mat3(0.00, 0.80, 0.60, -0.80, 0.36, -0.48, -0.60, -0.48, 0.64);
+float lumpH(vec3 q){ vec3 s = q * uLumpFreq; return n3(s) * 0.6 + n3(LROT * s * 2.17 + 7.3) * 0.28 + n3(LROT * (LROT * s) * 4.6 - 3.1) * 0.12; }
 float lumpSurface(inout vec3 p, inout vec3 nrm, float on){
   float h = lumpH(p);
   if (on < 0.5 || uLumpAmp <= 0.0) return h;
@@ -195,8 +196,11 @@ vec4 falseLight(vec3 n, vec3 v){
 uniform mat3 normalMatrix;
 varying vec3 vObj; varying float vLump;
 // wet wrinkles: ridged noise (1 - |2n - 1|) folds into vein-like crests, over soft medium relief
-float ridge(vec3 q){ float r = 1.0 - abs(2.0 * n3(q) - 1.0); return r * r * (3.0 - 2.0 * r); }
-float relief(vec3 q){ return n3(q * 0.13) * 0.58 + ridge(q * 0.22 + 3.7) * 0.27 + n3(q * 0.75 - 1.3) * 0.15; }
+// (each octave in a rotated frame: value noise's lattice is axis-aligned, and its creases, folded by the ridge,
+// read as a waffle grid)
+const mat3 ROT = mat3(0.00, 0.80, 0.60, -0.80, 0.36, -0.48, -0.60, -0.48, 0.64);
+float ridge(vec3 q){ float r = 1.0 - abs(2.0 * n3(ROT * q) - 1.0); return r * r * (3.0 - 2.0 * r); }
+float relief(vec3 q){ return n3(q * 0.13) * 0.58 + ridge(q * 0.22 + 3.7) * 0.27 + n3(ROT * (ROT * q) * 0.75 - 1.3) * 0.15; }
 vec4 membraneLight(vec3 n, vec3 v){
   float e = 0.25;
   float r0 = relief(vObj);
@@ -209,12 +213,12 @@ vec4 membraneLight(vec3 n, vec3 v){
   float hh = vLump * 0.7 + n3(vObj * 0.13) * 0.35;
   float blotch = n3(vObj * 0.035 + 11.0);
   // deep navy in the hollows, teal on the lumps, a greener teal on their tops, blue patches, pale wet crests
-  vec3 alb = mix(uFLColor, uFLColor2, smoothstep(0.3, 0.75, hh));
+  vec3 alb = mix(uFLColor, uFLColor2, smoothstep(0.15, 0.9, hh));
   alb = mix(alb, uFLColor2 * vec3(1.0, 1.12, 1.02), smoothstep(0.7, 0.95, hh) * 0.4);
   alb = mix(alb, vec3(0.06, 0.15, 0.40), smoothstep(0.35, 0.95, blotch) * 0.35); // (broad, soft blue patches)
   float crest = smoothstep(0.6, 1.0, wr) * smoothstep(0.4, 0.75, hh);
   alb = mix(alb, vec3(0.46, 0.62, 0.56), crest * 0.22);
-  float cav = smoothstep(0.05, 0.6, r0) * 0.55 + smoothstep(0.0, 0.7, vLump) * 0.45;
+  float cav = smoothstep(0.05, 0.6, r0) * 0.7 + smoothstep(0.0, 0.8, vLump) * 0.3;
   vec3 L = normalize(vec3(-0.45, 0.75, 0.5));
   float ndl = dot(nb, L);
   float wrapD = clamp((ndl + 0.35) / 1.35, 0.0, 1.0);
@@ -223,7 +227,7 @@ vec4 membraneLight(vec3 n, vec3 v){
   vec3 key = vec3(1.0, 0.94, 0.84), fill = vec3(0.12, 0.30, 0.42);
   vec3 col = alb * (key * wrapD * 1.25 + fill * (0.34 + 0.3 * nb.y));
   col += vec3(0.14, 0.38, 0.42) * (0.4 * crest * wrapD + fres * 0.7) * uFLTrans;       // light through thin parts
-  col *= mix(0.55, 1.0, cav);
+  col *= mix(0.62, 1.0, cav);
   vec3 H = normalize(L + v);
   float ndh = max(dot(nb, H), 0.0);
   float glint = 0.3 + 0.7 * smoothstep(0.4, 0.85, wr);                                 // (on the wet crests: sparkles, not a blown patch)
@@ -435,6 +439,10 @@ uniform float uFurDens; uniform float uFurCover; uniform float uFurAlpha; unifor
 uniform vec3 uHaze; uniform float uFogNear; uniform float uFogFar; uniform float uDepthOn;
 varying vec3 vBase; varying vec3 vBN; varying float vLayer; varying vec3 vN; varying vec3 vView; varying float vDepth;
 void main(){
+  vec3 n = normalize(vN), v = normalize(vView);
+  float ndv = abs(dot(n, v));
+  float sil = mix(0.012, 1.0, pow(1.0 - ndv, 2.0)) * uFurAlpha;  // a fringe at the silhouette, a faint fuzz face-on
+  if (sil < 0.03) discard;
   // one strand per cell of a 3D grid on the surface: a jittered centre, a random length, tapering out
   vec3 q = vBase * uFurDens;
   vec3 c = floor(q), f = fract(q) - 0.5;
@@ -448,9 +456,7 @@ void main(){
   // far off (a strand under a pixel) the strands average out into a soft fuzz instead of shimmering
   float fw = length(fwidth(q));
   float a = mix(sharp, uFurCover * 0.22 * (1.0 - vLayer), smoothstep(0.35, 1.1, fw));
-  vec3 n = normalize(vN), v = normalize(vView);
-  float ndv = abs(dot(n, v));
-  a *= mix(0.012, 1.0, pow(1.0 - ndv, 2.0)) * uFurAlpha;           // a fringe at the silhouette, a faint fuzz face-on
+  a *= sil;
   if (a < 0.015) discard;
   vec3 L = normalize(vec3(-0.45, 0.75, 0.5));
   float wrapD = clamp((dot(n, L) + 0.6) / 1.6, 0.0, 1.0);
@@ -471,8 +477,11 @@ export function furShells(geometry, body, { layers = 8, len = 3.5, density = 1.1
   const g = new THREE.InstancedBufferGeometry();
   for (const k of ['position', 'normal']) g.setAttribute(k, geometry.attributes[k]);
   g.setIndex(geometry.index);
-  const lay = new Float32Array(layers);
-  for (let i = 0; i < layers; i++) lay[i] = (i + 1) / layers;
+  // (interleaved, odd shells first: drawing only the first half still spans the whole length; see setLevel)
+  const order = [];
+  for (let i = 0; i < layers; i += 2) order.push(i);
+  for (let i = 1; i < layers; i += 2) order.push(i);
+  const lay = new Float32Array(order.map((i) => (i + 1) / layers));
   g.setAttribute('layer', new THREE.InstancedBufferAttribute(lay, 1));
   g.instanceCount = layers;
   const mat = new THREE.ShaderMaterial({
@@ -488,6 +497,11 @@ export function furShells(geometry, body, { layers = 8, len = 3.5, density = 1.1
   const mesh = new THREE.Mesh(g, mat);
   mesh.renderOrder = 1;
   mesh.userData.flOnly = true;
+  /** Quality: 2 every shell, 1 two thirds, 0 every other one (each drawn shell then a little denser). */
+  mesh.setLevel = (level) => {
+    const n = level >= 2 ? layers : level === 1 ? Math.ceil((layers * 2) / 3) : Math.ceil(layers / 2);
+    g.instanceCount = n; mat.uniforms.uFurAlpha.value = alpha * Math.min(1.6, Math.sqrt(layers / n));
+  };
   return mesh;
 }
 
@@ -563,9 +577,9 @@ float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float n2(vec2 x){ vec2 i = floor(x), f = fract(x); f = f*f*(3.0-2.0*f);
   return mix(mix(h2(i), h2(i+vec2(1,0)), f.x), mix(h2(i+vec2(0,1)), h2(i+vec2(1,1)), f.x), f.y); }
 float fbm(vec2 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++){ s += a * n2(p); p *= 2.03; a *= 0.5; } return s; }
-// (a NaN or infinity from any material would spread through the blurs into black blocks: never let one through)
-vec4 safe(vec4 c){ return (any(isnan(c)) || any(isinf(c))) ? vec4(0.0) : min(c, vec4(64.0)); }
-vec4 S(vec2 o){ return safe(texture2D(tScene, vUv + o / uRes)); }
+// (a NaN or infinity from a material is dropped where the blurs read the scene, BRIGHT_FRAG: blurred, one
+// such texel became a ~100 px black block, and mix(sc, soft, 0) is NaN too, so it showed even unblurred)
+vec4 S(vec2 o){ return texture2D(tScene, vUv + o / uRes); }
 // the view ray through this pixel (view space, z = -1), and the world direction: the backdrop and the UV
 // are placed by direction and position, never by screen, so they hold whichever way the camera turns
 vec3 viewRay(vec2 uv){ vec4 p = uInvProj * vec4(uv * 2.0 - 1.0, 1.0, 1.0); p.xyz /= p.w; return p.xyz / -p.z; }
@@ -598,7 +612,7 @@ void main(){
   vec3 wpos = (uCamWorld * vec4(ray * zc, 1.0)).xyz;
   float shadeK = 1.0, inkK = 0.0;
   if (sc0.a > 0.01 && zc < uFar * 0.9) {
-    if (uAO > 0.0 && uAOTaps > 0) shadeK = 1.0 - uAO * ssao(zc, px);
+    if (uAO > 0.0 && uAOTaps > 0 && zc < uFocus * 3.5) shadeK = 1.0 - uAO * ssao(zc, px) * (1.0 - smoothstep(uFocus * 2.5, uFocus * 3.5, zc)); // (none on the far layers: their creases are lost in the haze)
     if (uEdge > 0.0) inkK = uEdge * outline(zc) * (1.0 - smoothstep(uFocus * 1.5, uFocus * 6.0, zc));
   }
   if (uLook == 3) {

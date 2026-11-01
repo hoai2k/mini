@@ -295,12 +295,15 @@ export function createWorld(scene) {
       lumps: { amp: def.wrong ? 1.4 : Math.max(3.0, def.r * 0.1), freq: (0.07 * 38) / def.r },
       fl: def.wrong ? { color: '#244a40', color2: '#5e7444', keep: 0, trans: 0.6, bump: 1.4, spec: 0.55 }
         : { color: tint[0], color2: tint[1], keep: 0, trans: 0.9, bump: 1.1, spec: 1.0 } });
-    const geo = new THREE.CapsuleGeometry(def.r, def.half * 2, 14, 56, Math.max(8, Math.round(def.half / 4)));
+    const geo = new THREE.CapsuleGeometry(def.r, def.half * 2, 10, 44, Math.max(6, Math.round(def.half / 6)));
     geo.rotateZ(Math.PI / 2);
+    // (the fur's shells on a coarser copy: the same lump field displaces both, so they still sit on the lumps)
+    const furGeo = new THREE.CapsuleGeometry(def.r, def.half * 2, 7, 30, Math.max(4, Math.round(def.half / 9)));
+    furGeo.rotateZ(Math.PI / 2);
     const body = inked(geo, mat, { width: 1.3 });
     g.add(body);
-    const fur = furShells(geo, mat, def.wrong ? { layers: 6, len: 2.2, density: 0.9, cover: 0.5, color: '#4e6a48', tip: '#a8b88a' }
-      : { layers: 9, len: 4.4 * Math.sqrt(def.r / 38), density: 1.1 });
+    const fur = furShells(furGeo, mat, def.wrong ? { layers: 5, len: 2.2, density: 0.9, cover: 0.5, color: '#4e6a48', tip: '#a8b88a' }
+      : { layers: 7, len: 4.4 * Math.sqrt(def.r / 38), density: 1.1 });
     g.add(fur); flOnly.push(fur);
     const host = { ...def, home0: def.home.slice(), group: g, body, mat, fur, pos: new THREE.Vector3(...def.home), vel: new THREE.Vector3(), ang: def.angle, angVel: 0, patchList: [], rings: [] };
     const pt = (u, phi, out) => out.set(u, Math.cos(phi) * def.r, Math.sin(phi) * def.r);
@@ -583,7 +586,7 @@ export function createWorld(scene) {
   // (false light, `fl`: the share of each species it draws. The look target's water is mostly clear: a few
   // soft blue, violet and gold molecules and fine motes; no green dimers, no yellow chains, no humic tangles)
   const NEAR = [
-    { kind: 'small', n: 260, s: [0.8, 1.4], variants: 3, fl: 0.3 },
+    { kind: 'small', n: 260, s: [0.8, 1.4], variants: 3, fl: 0.45 },
     { kind: 'globule', n: 90, s: [0.9, 2.0], pal: PALETTE.violet, fl: 0.2 },
     { kind: 'globule', n: 70, s: [0.7, 1.6], pal: PALETTE.teal, seed: 3, fl: 0.15 },
     { kind: 'dimer', n: 45, s: [0.8, 1.5], fl: 0 },
@@ -613,7 +616,7 @@ export function createWorld(scene) {
   world.setSprites = (tex) => { if (sprites) return; sprites = createSprites(tex, { n: 1400, fl: 0.18 }); scene.add(sprites.mesh); sprites.setLevel(world.level ?? 2); sprites.setStyle(world.fl ?? true); };
   /** The phages' wake spheres: [{ p, r }]. */
   world.setWake = (list) => { for (const b of baths) setPhages(b.material, list); };
-  world.setCrowdLevel = (level) => { world.level = level; for (const b of baths) b.setLevel(level); if (sprites) sprites.setLevel(level); };
+  world.setCrowdLevel = (level) => { world.level = level; for (const b of baths) b.setLevel(level); if (sprites) sprites.setLevel(level); for (const o of flOnly) if (o.setLevel) o.setLevel(level); };
   world.bathBeads = () => baths.reduce((a, b) => a + (b.group.visible ? b.beads : 0), 0);
 
   // --- humic flocs (after MP-R21): a shell of loose sticky tangles round the start, turning slowly (one
@@ -681,7 +684,7 @@ export function createWorld(scene) {
   // FAR_INNER (they dissolve into the haze before that), so whichever way you look a few hang out there; the
   // depth of field softens them. Scenery for the eye only: the solid cells to go to are the bystanders.
   const FAR = 60, FAR_HALF = 950, FAR_INNER = 420;
-  const farBase = new THREE.CapsuleGeometry(36, 120, 8, 24, 4); farBase.rotateZ(Math.PI / 2);
+  const farBase = new THREE.CapsuleGeometry(36, 120, 6, 18, 2); farBase.rotateZ(Math.PI / 2);
   const farGeo = new THREE.InstancedBufferGeometry();
   for (const k of ['position', 'normal']) farGeo.setAttribute(k, farBase.attributes[k]);
   farGeo.setIndex(farBase.index);
@@ -723,9 +726,10 @@ export function createWorld(scene) {
         float wrapD = clamp((dot(n, L) + 0.5) / 1.5, 0.0, 1.0);
         float m = fn3(vObj * 0.06), g = fn3(vObj * 0.35 + 5.0);
         vec3 alb = mix(vec3(0.07, 0.24, 0.30), vec3(0.10, 0.22, 0.38), m) * (0.8 + 0.35 * g);
-        vec3 col = alb * (0.5 + 0.75 * wrapD) + vec3(0.30, 0.52, 0.58) * fres * 0.55;   // a soft body, a pale fuzzy rim
+        float fuzz = 0.6 + 0.4 * fn3(vObj * 0.9);
+        vec3 col = alb * (0.5 + 0.75 * wrapD) + vec3(0.32, 0.55, 0.6) * pow(1.0 - ndv, 3.0) * 0.9 * fuzz;   // a soft body, a pale fuzzy rim
         float far = smoothstep(300.0, 1300.0, vDepth);
-        col = mix(col, uHaze, 0.55 + 0.33 * far);
+        col = mix(col, uHaze, 0.45 + 0.4 * far);
         gl_FragColor = vec4(col * vFade, vFade);
       }`,
     transparent: true,
@@ -734,7 +738,7 @@ export function createWorld(scene) {
   far.frustumCulled = false;
   far.renderOrder = -2;
   scene.add(far);
-  const MOTES = 420, moteBox = new THREE.Vector3(240, 180, 110);
+  const MOTES = 600, moteBox = new THREE.Vector3(240, 180, 110);
   const mp = new Float32Array(MOTES * 3), ms = new Float32Array(MOTES);
   for (let i = 0; i < MOTES; i++) { mp[i * 3] = rand(-1, 1) * moteBox.x; mp[i * 3 + 1] = rand(-1, 1) * moteBox.y; mp[i * 3 + 2] = rand(-1, 1) * moteBox.z; ms[i] = rand(0.4, 1); }
   const moteGeo = new THREE.BufferGeometry();

@@ -23,6 +23,7 @@ import { opticalMaterial, litMaterial } from './materials.js';
 import { LAYER_SUBSTRATE, LAYER_SPECIMEN } from './world.js';
 
 import { createPortalGlow } from '../shared/portal.js';
+import { OPENING } from '../shared/amoeba-opening.js';
 
 export const PORTAL_IN = 2.6; // the portal: this far back from the rim leaf's tip (on the portal ring)
 /**
@@ -93,6 +94,7 @@ export class Landmarks {
     this.forward = new THREE.Vector3();
     this.back = A.toWorld(0.9, 0, 0.1).add(D.toWorld(0.9, 0, 0.1)).multiplyScalar(0.5);
     this.t = 0;
+    this.leave = 0;
   }
 
   /** Put the portal at rim leaf S's tip: the pool beyond it, the sparkle over it. */
@@ -131,26 +133,97 @@ export class Landmarks {
     g.quaternion.setFromUnitVectors(_up.set(0, 1, 0), S.N);
     g.visible = true;
   }
-  /** The glimpsed amoeba: a lobed, flattened disc (radius ~AMOEBA_LEN / 2), with a nucleus and a vacuole. */
+  /**
+   * The glimpsed amoeba: the amoeba world's own cell as it opens
+   * (../shared/amoeba-opening.js, generated from that world's warm-up), so the
+   * transition crossfades one cell into the same cell: its outline with the
+   * long pseudopods, a flattened cell thickest in the middle and thin out
+   * along the arms, the darker granular cortex round its edge, the nucleus
+   * and the contractile vacuole where they are there. Local +x is its heading
+   * (the slide's y there, up the screen), +z the slide's x, +y off the leaf.
+   */
   buildAmoeba() {
     const group = new THREE.Group();
-    const R = AMOEBA_LEN / 2;
-    const g = new THREE.SphereGeometry(1, 48, 16);
-    const p = g.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-      const a = Math.atan2(z, x), rr = Math.hypot(x, z);
-      // three blunt pseudopods (the front one longest), a rounded uroid behind
-      const lobe = 0.26 * Math.pow(Math.max(0, Math.cos(a)), 6) + 0.18 * Math.pow(Math.max(0, Math.cos(a - 2.1)), 8) + 0.15 * Math.pow(Math.max(0, Math.cos(a + 2.0)), 8) + 0.04 * Math.sin(5 * a + 1);
-      const k = R * (0.9 + lobe);
-      p.setXYZ(i, (x / (rr || 1)) * rr * k, y * 0.32 * (0.6 + 0.4 * (1 - lobe)), (z / (rr || 1)) * rr * k);
+    const k = AMOEBA_LEN / (2 * Math.sqrt(OPENING.area / Math.PI)); // µm -> units (the pose's len is the starting disc's)
+    const ol = OPENING.outline, n = ol.length / 2;
+    const P = (i) => [ol[2 * (i % n) + 1] * k, ol[2 * (i % n)] * k]; // [local x, local z]
+    // how far a point is inside the membrane (units): the cell is thickest where it is broad
+    const inside = (x, z) => {
+      let d = Infinity;
+      for (let i = 0; i < n; i++) {
+        const [ax, az] = P(i), [bx, bz] = P(i + 1), ex = bx - ax, ez = bz - az;
+        const t = Math.max(0, Math.min(1, ((x - ax) * ex + (z - az) * ez) / (ex * ex + ez * ez)));
+        d = Math.min(d, Math.hypot(x - ax - ex * t, z - az - ez * t));
+      }
+      return d;
+    };
+    // a fan of rings out to the membrane, an upper and a lower face, from a
+    // point every bit of the membrane can be seen from (so no ring folds over:
+    // the optics take the thickness between front and back faces)
+    let F = null;
+    for (let cx = -60; cx <= 60; cx += 4) for (let cy = -60; cy <= 60; cy += 4) {
+      let mn = Infinity;
+      for (let i = 0; i < n; i++) {
+        const j = (i + 1) % n;
+        const d = Math.atan2(ol[2 * j + 1] - cy, ol[2 * j] - cx) - Math.atan2(ol[2 * i + 1] - cy, ol[2 * i] - cx);
+        mn = Math.min(mn, Math.atan2(Math.sin(d), Math.cos(d)));
+      }
+      if (!F || mn > F.mn) F = { mn, x: cy * k, z: cx * k };
     }
+    const RINGS = 14, H = 0.5, D = 1.1;
+    const pos = [], idx = [];
+    const rim = (t) => 1 - Math.pow(1 - t, 1.6);
+    for (const side of [1, -1]) {
+      const c0 = pos.length / 3;
+      pos.push(F.x, side * H * Math.sqrt(Math.min(1, inside(F.x, F.z) / D)) * (side > 0 ? 1 : 0.55), F.z);
+      for (let j = 1; j <= RINGS; j++) {
+        const t = rim(j / RINGS);
+        for (let i = 0; i < n; i++) {
+          const [x, z] = P(i), px = F.x + (x - F.x) * t, pz = F.z + (z - F.z) * t;
+          const h = j === RINGS ? 0 : H * Math.sqrt(Math.min(1, inside(px, pz) / D));
+          pos.push(px, side * h * (side > 0 ? 1 : 0.55), pz);
+        }
+      }
+      const at = (j, i) => (j === 0 ? c0 : c0 + 1 + (j - 1) * n + (i % n));
+      for (let j = 0; j < RINGS; j++) for (let i = 0; i < n; i++) {
+        const a = at(j, i), b = at(j, i + 1), c = at(j + 1, i), d = at(j + 1, i + 1);
+        const tri = (p, q, r) => (side > 0 ? idx.push(p, q, r) : idx.push(p, r, q)); // outward: the optics take the thickness between front and back faces
+        if (j === 0) tri(a, c, d); else { tri(a, c, d); tri(a, d, b); }
+      }
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setIndex(idx);
     g.computeVertexNormals();
-    group.add(optMesh(g, { dn: 0.028, absorb: [0.45, 0.5, 0.62] }, { color: 0xb9b49c, roughness: 0.55 }, LAYER_SPECIMEN));
-    const nuc = new THREE.SphereGeometry(1, 20, 10); nuc.scale(0.32, 0.16, 0.28); nuc.translate(-0.35, 0.02, 0.15);
+    // (in brightfield there the cell is an olive grey, its cortex darker with granules)
+    group.add(optMesh(g, { dn: 0.03, absorb: [0.48, 0.52, 0.78] }, { color: 0xa9a283, roughness: 0.55 }, LAYER_SPECIMEN));
+    // the granular cortex: a thin band just inside the membrane on the upper
+    // face, a lens across (closed: its two faces meet at both edges)
+    const band = [], bi = [], T0 = 0.86;
+    for (const up of [true, false]) {
+      const o = band.length / 3;
+      for (let j = 0; j <= 4; j++) {
+        const t = T0 + ((0.99 - T0) * j) / 4, lift = 0.01 + (up ? 0.05 * Math.sin((Math.PI * j) / 4) : 0);
+        for (let i = 0; i < n; i++) {
+          const [x, z] = P(i), px = F.x + (x - F.x) * t, pz = F.z + (z - F.z) * t;
+          band.push(px, lift + H * Math.sqrt(Math.min(1, inside(px, pz) / D)), pz);
+        }
+      }
+      for (let j = 0; j < 4; j++) for (let i = 0; i < n; i++) {
+        const a = o + j * n + i, b = o + j * n + ((i + 1) % n), c = a + n, d = b + n;
+        if (up) bi.push(a, c, d, a, d, b); else bi.push(a, d, c, a, b, d);
+      }
+    }
+    const bg = new THREE.BufferGeometry();
+    bg.setAttribute('position', new THREE.Float32BufferAttribute(band, 3));
+    bg.setIndex(bi);
+    bg.computeVertexNormals();
+    group.add(optMesh(bg, { dn: 0.01, absorb: [5, 5.3, 6.2] }, { color: 0x6f6a55, roughness: 0.6 }, LAYER_SPECIMEN));
+    const nu = OPENING.nucleus, cv = OPENING.vacuole;
+    const nuc = new THREE.SphereGeometry(1, 20, 10); nuc.scale(nu.r * k * 1.1, 0.16, nu.r * k); nuc.translate(nu.y * k, 0.05, nu.x * k);
     group.add(optMesh(nuc, { dn: 0.05, absorb: [0.7, 0.75, 0.85] }, { color: 0x9c977f, roughness: 0.5 }, LAYER_SPECIMEN));
-    const cv = new THREE.SphereGeometry(1, 16, 8); cv.scale(0.2, 0.12, 0.2); cv.translate(-1.05, 0.02, -0.2);
-    group.add(optMesh(cv, { dn: -0.02, absorb: [0.05, 0.05, 0.05] }, { color: 0xd8dccc, roughness: 0.2 }, LAYER_SPECIMEN));
+    const vac = new THREE.SphereGeometry(1, 16, 8); vac.scale(cv.r * k, 0.12, cv.r * k); vac.translate(cv.y * k, 0.06, cv.x * k);
+    group.add(optMesh(vac, { dn: -0.03, absorb: [0.02, 0.02, 0.02] }, { color: 0xe4e8d8, roughness: 0.2 }, LAYER_SPECIMEN));
     const am = { group, center: new THREE.Vector3(), heading: 0, len: AMOEBA_LEN, leaf: null };
     /** Turn it to heading h (atan2(z, x) of its front, in the leaf's plane). */
     am.setHeading = (h) => {
@@ -179,6 +252,9 @@ export class Landmarks {
     return [this.A, 1, AXIL_U - 0.7, 0.3, -1, 0];
   }
 
+  /** 0..1 through the portal's outro: the P. bursaria swim off out of the amoeba's frame (0: back in the pool). */
+  swimOff(k) { this.leave = Math.max(0, Math.min(1, k)); }
+
   /** dt; camera and open (the guard is off) for the sparkle. */
   update(dt, camera = null, open = false) {
     this.t += dt;
@@ -188,7 +264,12 @@ export class Landmarks {
     this.glow.update(dt, this.t, camera);
     for (const s of this.swimmers) {
       s.a += s.w * dt;
-      const u = s.c[0] + Math.cos(s.a) * s.r, v = s.c[1] + Math.sin(s.a) * s.r * 0.8;
+      let u = s.c[0] + Math.cos(s.a) * s.r, v = s.c[1] + Math.sin(s.a) * s.r * 0.8;
+      if (this.leave > 0) {
+        // through the portal: they swim off out of the view as it settles on the amoeba (the amoeba world opens with none round its cell)
+        const du = u - (S.len + AMOEBA_AT.du), dv = v - AMOEBA_AT.v, l = Math.hypot(du, dv) || 1, e = this.leave * this.leave * (3 - 2 * this.leave);
+        u += (du / l) * 11 * e; v += (dv / l) * 11 * e;
+      }
       S.toWorld(u, v, -0.05 + 0.04 * Math.sin(this.t * 0.7 + s.ph), s.m.position);
       // heading along the path, rolling slowly about the long axis
       const du = -Math.sin(s.a) * s.r * Math.sign(s.w), dv = Math.cos(s.a) * s.r * 0.8 * Math.sign(s.w);

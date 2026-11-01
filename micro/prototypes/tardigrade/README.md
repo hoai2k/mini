@@ -81,9 +81,18 @@ the shoot that reaches furthest that way (its exit), a chain of 4-6 leaves
 (lamina and Sphagnum in turn, ~12-19 units long, 2.3-4.2 half-width), each
 one's base tucked 15 µm under the last one's tip, so a body at the tip has
 its head over the next leaf and the claws reach across (the gait's
-transfers; the head's gap is 25 µm at the hand-overs, 47-61 µm on the two
-west spokes, which climb with leaf D and rely on the wet film to bridge it).
-The first leaf continues the exit leaf's slope and the chain levels out. The
+transfers; the head's gap is 25 µm at most hand-overs and never more than
+36 µm (`HANDOVER_GAP`), well inside the claws' 55 µm reach without the wet
+film's help). The first leaf continues the exit leaf's slope and the chain
+levels out; where it levels out of a climb (the two west spokes, rising with
+leaf D) the flatter leaf would open the gap towards the tip (47-61 µm before
+2026-11-01), so there its base sits nearer the last tip (as little as 0.4
+units of overlap) and, if that is not enough, it levels out a little less.
+A spoke's first leaf is lifted, dropped or rolled a little where it would cut
+through a shoot leaf or a neighbouring spoke's first leaf (spokes 7 and 8,
+which fan out from leaf D); two, spokes 3 and 10 against leaf E and spoke 9,
+find no such spot within reach of the exit and still cross at their bases,
+under the shoot. The
 last leaf on each spoke is a broad Sphagnum leaf (the rim) whose tip is on
 the portal ring. Every bearing is within 15° of a spoke; between spokes is
 the defocused moss below. 58 leaves in all (was 7). Walking off a spoke's
@@ -290,9 +299,14 @@ hidden (`embed.cinematic`). Then time eases from 1 to 0 over 1 s while the
 view keeps drawing (`stepOutro`, in frame time, so a slow machine plays it
 slower rather than skipping it), and the view settles on the *Amoeba
 proteus* crawling on the pool floor 340 µm past the tip (in view from the tip) (`landmarks.js`
-`buildAmoeba`: a flattened, granular cell with three blunt pseudopods, a
-nucleus and a contractile vacuole, 344 µm across: the amoeba world's own
-cell at its start): from straight above (pitch 1.55, the amoeba world's 2D
+`buildAmoeba`: the amoeba world's own cell as it opens, from
+`../shared/amoeba-opening.js`, which `../amoeba/opening.mjs` generates from
+that world's deterministic warm-up: its outline with the three long
+pseudopods, thickest in the middle and thin along the arms, a darker granular
+cortex, the nucleus and the contractile vacuole where they are there, 344 µm
+across the disc of its area, so the crossfade turns one cell into the same
+cell; the *P. bursaria* swim off out of its frame as the view settles,
+`swimOff`): from straight above (pitch 1.55, the amoeba world's 2D
 microscope), the focal plane on it, the amoeba turning the way that world's
 cell faces as it opens (`rel` π), framed 1.35× smaller than there
 (`NEXT_OPENING`), while the sparkle dims so the cell reads. Frozen, it posts
@@ -737,9 +751,9 @@ node --test micro/prototypes/tardigrade/legs.test.mjs
 ```
 
 The first must print `ok tardigrade` with no console errors. The second
-(Node, no browser, ~5 s) builds the world and checks the rings: 12 spokes,
-every hand-over leaf to leaf within the claws' reach (or bridged by wet
-film), each spoke on its bearing, every bearing within 15° of one, each rim
+(Node, no browser, ~25 s) builds the world and checks the rings: 12 spokes,
+every hand-over leaf to leaf within 40 µm (the claws reach 55 µm, so no
+hand-over leans on the wet film), each spoke on its bearing, every bearing within 15° of one, each rim
 leaf's tip on the portal ring with room to lure the boss, a meadow band and
 two or three dry patches (dry, with a wet way beside) at the same distances
 on every spoke with calm stretches between, and a wet, calm start; then the
@@ -747,7 +761,18 @@ director: rushing along every spoke meets Milnesium (within ~10 s, after a
 warm-up) and then the pool at that spoke's rim (reached in 45-62 s), nothing
 placed in view, on seen leaves or off the leaves, nothing moved once seen;
 lingering brings Milnesium round them and then the pool; turning back moves
-nothing that was seen. The third
+nothing that was seen. Then it walks: the real gait (`gait.js` Walker, with
+grip, slips, falls and hand-overs) steered out along each of the 12 spokes,
+aiming a little ahead on the leaf's centre line, must reach the rim leaf's tip
+within 90 s (42-56 s), never carried back a leaf, never falling or bridging;
+and just over each hand-over, pushing hard sideways into the new leaf's
+narrow base (round its margin, onto the underside, losing grip) must never
+carry the walker back to the leaf it left. (The pre-deploy audit saw a walker
+ping-pong for minutes between two leaves of the 210° spoke: round the new
+leaf's margin, a slip off the underside, the fall landing on the last leaf's
+tip, over again. A fall off a leaf's underside with nothing below now lands
+back on that leaf's upper face, and a walker no longer reaches back for the
+leaf it just left unless the stick turns back.) The third
 (headless Chromium, ~30 s) drives the animal at 60 Hz from the Sphagnum leaf
 onto leaf E, across the film gap from leaf A to leaf B, up onto the steep
 leaf C (then braced), round the margin of leaf D, through scrambles with
