@@ -430,7 +430,7 @@ function diveScene(k, st, t) {
 
 // The fight before it: the witch at the right of the ledge, her fire running
 // along the ground at him, the prince lunging at her with the sword. Each
-// of them on their person scale (the prince's standing figure 140 px).
+// at a stable scene scale: the prince 140 px, the intimidating witch 172 px.
 function duel(k, st, t) {
   const c = k.c, d = st.duel, w = st.w, H = 140;
   // her fire, rolling along the ground
@@ -447,21 +447,20 @@ function duel(k, st, t) {
   }
   // the witch: standing, winding up in a violet glow, reeling from a blow,
   // or shrinking into smoke as she hides in her barrel
-  const warn = d.state === 'warn' ? d.t / DUEL.warn : 0;
+  const warn = d.state === 'counter' ? 1 : d.state === 'warn' ? d.t / DUEL.warn : 0;
   const reel = d.state === 'reel' ? 1 - d.t / DUEL.reel : 0;
   const T2 = DUEL.trap, trap = d.state === 'trap', tt = trap ? d.t : 0;
   if (warn > 0) { c.save(); c.globalAlpha = 0.25 + 0.35 * warn + 0.1 * Math.sin(t * 20); c.fillStyle = k.col('#b06ad0'); k.circle(d.x, BARREL.y - 110, 70 + 20 * warn); c.restore(); }
-  const id = d.state === 'reel' && k.img('witch-recoil') ? 'witch-recoil' : d.state === 'warn' && k.img('witch-cast') ? 'witch-cast' : 'witch-hooded';
+  const id = d.state === 'reel' && k.img('witch-recoil') ? 'witch-recoil' : ['warn', 'counter'].includes(d.state) && k.img('witch-cast') ? 'witch-cast' : 'witch-hooded';
   // until Aurora's barrel lands over her (beaten, she cowers)
   if (!trap || tt < T2.land) {
     c.save(); c.translate(d.x, BARREL.y);
     c.rotate(0.25 * reel * (id === 'witch-hooded' ? 1 : 0) + (trap ? 0.12 * Math.sin(t * 30) : 0));
-    if (reel > 0.6) { c.save(); c.globalAlpha = 0.6; c.fillStyle = '#ffffff'; k.circle(0, -90, 50); c.restore(); }
-    if (!drawPerson(k, trap && k.img('witch-recoil') ? 'witch-recoil' : id, 0, 0, H, { t })) { c.fillStyle = k.col('#2f5a50'); c.fillRect(-26, -H, 52, H); }
+    if (!drawPerson(k, trap && k.img('witch-recoil') ? 'witch-recoil' : id, 0, 0, DUEL.witchHeight, { t })) { c.fillStyle = k.col('#2f5a50'); c.fillRect(-26, -H, 52, H); }
     c.restore();
   }
   if (trap) {
-    const bx = Math.min(d.x, BARREL.edge - 70);
+    const bx = Math.min(d.x, BARREL.edge - BARREL.hw);
     // Aurora's spell: a ribbon of gold from her hand to the air over the witch
     if (tt < T2.land + 0.2) {
       const g = clamp(tt / T2.drop, 0, 1), hx = AURORA.x + 64, hy = BARREL.y - 150, tx = bx, ty = BARREL.y - 330;
@@ -478,7 +477,7 @@ function duel(k, st, t) {
       if (tt < T2.land) {
         const y = BARREL.y - 330 + 330 * f * f;
         c.save(); c.globalAlpha = Math.min(1, (tt - T2.drop) / 0.12); c.translate(bx, y);
-        if (k.img('barrel-upturned')) k.asset('barrel-upturned', 0, 0, 108, 130);
+        if (k.img('barrel-upturned')) k.asset('barrel-upturned', 0, 0, 140, 168);
         else emptyBarrel(k);
         c.restore();
       } else {
@@ -486,7 +485,7 @@ function duel(k, st, t) {
         const r = tt - T2.land, rock = Math.sin(r * 22) * 0.08 * Math.max(0, 1 - r / 0.7);
         c.save(); c.translate(bx, BARREL.y); c.rotate(rock);
         if (r > 0.45) barrelWitch(k, t, w.x < bx);
-        else if (!k.asset('barrel-upturned', 0, 0, 108, 130)) emptyBarrel(k);
+        else if (!k.asset('barrel-upturned', 0, 0, 140, 168)) emptyBarrel(k);
         c.restore();
       }
     }
@@ -502,7 +501,7 @@ function duel(k, st, t) {
     }
   } else princeOnFoot(k, w, H);
   // her strength left, as three marks over her
-  if (!trap) for (let i = 0; i < DUEL.hp; i++) { c.fillStyle = k.col(i < d.hp ? '#b06ad0' : '#3a2a40'); k.circle(d.x - 24 + i * 24, BARREL.y - H - 40, 7); }
+  if (!trap) for (let i = 0; i < DUEL.hp; i++) { c.fillStyle = k.col(i < d.hp ? '#b06ad0' : '#3a2a40'); k.circle(d.x - 24 + i * 24, BARREL.y - DUEL.witchHeight - 40, 7); }
   // on touch the buttons are named Leap and Strike, so they need no line
   if (st.phaseT < 7 && !trap && k.inputMode !== 'touch') hint(k, '[A] leaps her fire · [X] strikes with the sword');
 }
@@ -520,7 +519,7 @@ function emptyBarrel(k) {
 // arms. Both poses keep the same woodwork and person size while she rants.
 function barrelWitch(k, t, princeOnLeft = true) {
   const id = 'witch-barrel-anger-' + (Math.floor(t / 0.6) % 2 ? 'b' : 'a');
-  if (drawPerson(k, id, 0, 0, 140, { face: princeOnLeft ? 1 : -1 })) return;
+  if (drawPerson(k, id, 0, 0, DUEL.witchHeight, { face: princeOnLeft ? 1 : -1 })) return;
   const c = k.c;
   c.save(); c.scale(princeOnLeft ? -1 : 1, 1);
   if (!k.asset('witch-barrel', 0, 0, 108, 130)) { c.fillStyle = k.col('#7a5a3a'); c.fillRect(-40, -110, 80, 110); }
@@ -579,7 +578,13 @@ function barrelScene(k, st, t) {
   c.restore();
   // the prince: shoulder to it when pushing, else on foot
   if (st.pushing && w.on && w.knockT <= 0 && k.img('prince-push')) {
-    c.save(); c.translate(w.x + 10, w.y); k.asset('prince-push', 0, 0, 140, 172); c.restore();
+    const image = k.img('prince-push'), iw = image.naturalWidth || image.width, ih = image.naturalHeight || image.height;
+    const scale = Math.min(172/ih, 140*1.6/iw) * (image.bodyScale || 1);
+    const palm = (iw/2-6)*scale;
+    // Register his palms against the near barrel wall, rather than placing
+    // the wide pushing canvas around his standing sprite's centre.
+    c.save(); c.translate(b.x-BARREL.hw+3-palm, w.y);
+    k.asset('prince-push', 0, 0, 140, 172); c.restore();
   } else princeOnFoot(k, w, 140);
   if (fallK > 0) { c.save(); c.globalAlpha = 0.5 * Math.sin(Math.PI * fallK); c.fillStyle = k.col('#eef3ea'); c.fillRect(0, 0, 1280, 720); c.restore(); }
   if (fallK === 0) hint(k, 'She still threatens you! Push her barrel over the edge');

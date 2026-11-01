@@ -75,23 +75,23 @@ BY_EYE = {
     'prince-court-stairs-b': 1.24645892,
     'prince-court-stairs-a-tinted': 1.24293785,
     'prince-court-stairs-b-tinted': 1.24293785,
-    # Face comparison in barrel-defiance/witch-heads.jpg; the arm gesture
-    # confuses the template. Both frames preserve exactly the same head.
-    'witch-barrel-anger-a': 1.16,
-    'witch-barrel-anger-b': 1.16,
-    'witch-barrel-anger-a-tinted': 1.2,
-    'witch-barrel-anger-b-tinted': 1.2,
+    # Match the full painted height of the recoil in the cliff duel. These
+    # broad gestures confound the template; checked in the duel size review.
+    'witch-barrel-anger-a': 0.95867769,
+    'witch-barrel-anger-b': 0.97796143,
+    'witch-barrel-anger-a-tinted': 0.88736264,
+    'witch-barrel-anger-b-tinted': 0.89010989,
 
     # Compact celebration pose: same painted crown-to-hem height as standing,
     # with face and palette checked on the v2 review sheet.
     'azurine-jump': 1.17895,
     'azurine-jump-tinted': 1.10526,
 
-    # F25, 31 Oct 2026: the raised staff/arm and slipped hood confuse the
-    # face template. Compared brow to chin in the prepared sprites and
-    # checked at one person height on the review sheet.
-    'witch-cast': 0.6, 'witch-cast-tinted': 0.72,
-    'witch-recoil': 0.9, 'witch-recoil-tinted': 0.9,
+    # Cliff duel: normalize the full cutout height, then draw every pose at
+    # the former recoil height (172 stage px), as requested. No sprite grows
+    # on impact; the standing/casting witch and barrel are equally imposing.
+    'witch-cast': 0.73278237, 'witch-cast-tinted': 0.83791209,
+    'witch-recoil': 1.10192837, 'witch-recoil-tinted': 1.09890110,
     # her swoon is painted larger than her standing figure: her face 26-30 px
     # eye to chin, tipped back, against 18-20 standing (the template, thrown
     # by the raised arm, read 0.42-0.48; 1.0 by a glance was wrong, seen in

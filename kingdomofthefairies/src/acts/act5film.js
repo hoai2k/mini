@@ -153,10 +153,10 @@ export function towerEscapeFire(st) {
   return Math.min(st.escapeFire ?? 1, clamp(1-(st.escapeT||0)/TOWER_ESCAPE.fireSeconds,0,1), height);
 }
 export const BARREL = {                                                  // cliff-whirlpool's ledge
-  y: 412, x0: 150, edge: 728, start: 230, at: 470, hw: 40, push: 150, knock: 320,
+  y: 412, x0: 150, edge: 728, start: 230, at: 470, hw: 48, push: 150, knock: 320,
 };
 export const AURORA = { x: 250, height: 200, shieldX: 308, smokeLife: 1.3 };
-export const auroraFacing = st => (st.w?.x ?? BARREL.start) >= AURORA.x ? 1 : -1;
+export const auroraFacing = () => 1; // always toward the witch and cliff edge
 // The witch's last stand on that ledge: she winds up (warn), then hurls a
 // bolt of fire along the ground (leap it, A), or blasts him back if he lingers
 // at her side; the sword (X) swings, and three blows that reach her beat her.
@@ -164,8 +164,8 @@ export const auroraFacing = st => (st.w?.x ?? BARREL.start) >= AURORA.x ? 1 : -1
 // over her (`trap`: Aurora casts until `drop`, it falls until `land`, rocks
 // until the end) and he pushes it over the cliff.
 export const DUEL = {
-  hp: 3, x: 610, back: 640, idle: [0.9, 1.4], warn: 0.65, reach: 115, near: 150,
-  bolt: 400, boltR: 26, boltH: 34, reel: 0.8, hw: 34, swing: 0.35,
+  hp: 3, x: BARREL.edge - BARREL.hw, idle: [0.9, 1.4], warn: 0.65, reach: 115, near: 150,
+  bolt: 400, boltR: 26, boltH: 34, reel: 0.8, counterPose: 0.4, witchHeight: 172, hw: 34, swing: 0.35,
   trap: { drop: 0.6, land: 1.05, end: 1.9 },
 };
 // (each walk starts with its figures in view, clear of the left curtain at ~x 170)
@@ -484,7 +484,7 @@ export const actBurning = {
     if (e.type === 'floorBreak') return 'The way you came is gone. A ladder drops at the right.';
     if (e.type === 'houseFall') return 'Out onto the clifftop. The tower is falling.';
     if (e.type === 'witchReturns') return 'The witch attacks one last time! Leap her fire with A, and strike her with the sword with X.';
-    if (e.type === 'witchStruck') return e.hp > 0 ? 'You strike the witch.' : 'The witch is beaten.';
+    if (e.type === 'witchStruck') return e.hp > 0 ? 'A hit! She pushes you back. Leap her next fire and approach again.' : 'The witch is beaten.';
     if (e.type === 'witchBlast') return 'She blasts you back.';
     if (e.type === 'witchBeaten') return 'The witch is beaten. Aurora shuts her in a barrel.';
     if (e.type === 'witchInBarrel') return 'Push the barrel over the cliff.';
@@ -560,43 +560,61 @@ function startBarrel(st) {
   st.barrel = null;
   st.smoke = [];
 }
+// Halfway back along the approach, safely beyond sword range. The shove
+// is a response to a successful strike and never costs a lantern itself.
+export const duelResetX = st => (BARREL.start + st.duel.x - DUEL.hw - PRINCE_HW) / 2;
 function stepDuel(st, dt, input) {
   const d = st.duel, w = st.w;
-  const dist = d.x - DUEL.hw - (w.x + PRINCE_HW);   // the gap between them
-  const reach = dist < DUEL.reach - DUEL.hw && d.state !== 'trap';
-  // A leaps; X swings the sword (wherever he is), and a swing that reaches
-  // her is a blow
-  walk(w, dt, d.state === 'trap' ? {} : input, { y: BARREL.y, x0: BARREL.x0, x1: d.x - DUEL.hw - PRINCE_HW, leap: true, events: st.events });
+  const locked = d.state === 'trap' || d.state === 'reel';
+  walk(w, dt, locked ? {} : input, { y: BARREL.y, x0: BARREL.x0,
+    x1: d.x - DUEL.hw - PRINCE_HW, leap: true, events: st.events });
   d.t += dt; w.strikeT = Math.max(0, (w.strikeT || 0) - dt);
-  if (input.x && w.strikeT <= 0 && w.knockT <= 0 && d.state !== 'trap') {
+  const dist = d.x - DUEL.hw - (w.x + PRINCE_HW);
+  if (input.x && w.strikeT <= 0 && w.knockT <= 0 && !locked) {
     w.strikeT = DUEL.swing; st.events.push({ type: 'swordSwing', x: w.x });
-    if (reach && d.state !== 'reel') {
+    if (duelReach(st)) {
       d.hp--; d.state = 'reel'; d.t = 0; d.bolts.length = 0;
       st.events.push({ type: 'witchStruck', x: d.x, hp: d.hp });
-      if (d.hp <= 0) { d.state = 'trap'; d.t = 0; st.score += 300; st.events.push({ type: 'witchBeaten', x: d.x }); }
+      if (d.hp <= 0) {
+        d.state = 'trap'; st.score += 300; st.events.push({ type: 'witchBeaten', x: d.x });
+      } else {
+        d.shoveFrom = w.x; d.shoveY = w.y; d.resetX = duelResetX(st);
+        w.knockT = DUEL.reel; w.buffer = 0;
+        st.events.push({ type: 'witchBlast', x: w.x, repel: true });
+      }
     }
   }
-  if (d.state === 'idle' && d.t >= d.next) { d.state = 'warn'; d.t = 0; st.events.push({ type: 'witchWinds', x: d.x }); }
-  else if (d.state === 'warn' && d.t >= DUEL.warn) {
+  if (d.state === 'idle' && d.t >= d.next) {
+    d.state = 'warn'; d.t = 0; st.events.push({ type: 'witchWinds', x: d.x });
+  } else if (d.state === 'warn' && d.t >= DUEL.warn) {
     d.state = 'idle'; d.t = 0; d.next = lerp(DUEL.idle[0], DUEL.idle[1], st.rand());
-    if (dist < DUEL.near - DUEL.hw) {   // too close: she blasts him back
+    if (dist < DUEL.near - DUEL.hw) {
       w.knockT = 0.6; w.vx = -BARREL.knock; w.vy = -320; w.on = false;
-      st.events.push({ type: 'witchBlast', x: w.x });
-      duelHit(st);
-    } else { d.bolts.push({ x: d.x - DUEL.hw - 10 }); st.events.push({ type: 'witchBolt', x: d.x }); }
+      st.events.push({ type: 'witchBlast', x: w.x }); duelHit(st);
+    } else {
+      d.bolts.push({ x: d.x - DUEL.hw - 10 }); st.events.push({ type: 'witchBolt', x: d.x });
+    }
   } else if (d.state === 'reel') {
-    d.x = lerp(d.x, DUEL.back, Math.min(1, dt * 6));   // driven back toward the edge
-    if (d.t >= DUEL.reel) { d.state = 'idle'; d.t = 0; d.next = DUEL.idle[0]; }
+    const f = clamp(d.t / DUEL.reel, 0, 1), ease = 1-(1-f)*(1-f);
+    const before = w.x;
+    w.x = lerp(d.shoveFrom, d.resetX, ease);
+    w.y = lerp(d.shoveY, BARREL.y, f) - Math.sin(Math.PI*f)*28;
+    w.vx = dt > 0 ? (w.x-before)/dt : 0; w.vy = 0; w.on = false;
+    if (f >= 1) {
+      w.x = d.resetX; w.y = BARREL.y; w.vx = w.vy = w.knockT = w.strikeT = 0; w.on = true; w.face = 1;
+      d.state = 'counter'; d.t = 0;
+      d.bolts.push({ x: d.x - DUEL.hw - 10, counter: true });
+      st.events.push({ type: 'witchBolt', x: d.x, counter: true });
+    }
+  } else if (d.state === 'counter' && d.t >= DUEL.counterPose) {
+    d.state = 'idle'; d.t = 0; d.next = DUEL.idle[1];
   } else if (d.state === 'trap') {
-    const T2 = DUEL.trap, was = d.t - dt, at = (q) => was < q && d.t >= q;
+    const T2 = DUEL.trap, was = d.t - dt, at = q => was < q && d.t >= q;
     if (at(0.05)) st.events.push({ type: 'auroraCasts', x: d.x });
     if (at(T2.land)) st.events.push({ type: 'barrelDrop', x: d.x, sound: 'barrelKnock' });
     if (d.t >= T2.end) {
-      // shut in Aurora's barrel where she stood
-      st.barrel = { x: Math.min(d.x, BARREL.edge - 70), state: 'still', t: 0, fallT: null, rot: 0 };
-      st.duel = null;
-      st.events.push({ type: 'witchInBarrel' });
-      return;
+      st.barrel = { x: Math.min(d.x, BARREL.edge-BARREL.hw), state: 'still', t: 0, fallT: null, rot: 0 };
+      st.duel = null; st.events.push({ type: 'witchInBarrel' }); return;
     }
   }
   // her bolts run along the ground at him: leap them
@@ -613,7 +631,7 @@ function stepDuel(st, dt, input) {
     return true;
   });
 }
-export const duelReach = (st) => !!st.duel && st.duel.x - DUEL.hw - (st.w.x + PRINCE_HW) < DUEL.reach - DUEL.hw && st.duel.state !== 'trap';
+export const duelReach = (st) => !!st.duel && st.duel.x - DUEL.hw - (st.w.x + PRINCE_HW) < DUEL.reach - DUEL.hw && !['trap', 'reel'].includes(st.duel.state);
 function duelHit(st) {
   if (hit(st, { cause: 'witch' }) && st.defeatT != null) {
     st.lostTitle = 'The Witch\nHolds the Cliff';

@@ -9,7 +9,7 @@ import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
 import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, NEAR_HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
 import act2, { FAIRY_AT, FILM_DIVE, RIDE } from '../src/acts/act2.js';
 import act3, { PASSAGE } from '../src/acts/act3.js';
-import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach, weddingGuests, guestHop, CELEBRATION, AURORA, auroraFacing, WEDDING, weddingFloor, SWIM as SEA, diveFloor, swimPosition, TOWER_ESCAPE, towerEscapeFire } from '../src/acts/act5film.js';
+import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach, weddingGuests, guestHop, CELEBRATION, AURORA, auroraFacing, WEDDING, weddingFloor, SWIM as SEA, diveFloor, swimPosition, TOWER_ESCAPE, towerEscapeFire, duelResetX } from '../src/acts/act5film.js';
 import { CLIMB, terrainAt } from '../src/acts/climb.js';
 import { CLIMB_MAPS } from '../src/acts/climb-map.js';
 import act4 from '../src/acts/act4.js';
@@ -492,10 +492,45 @@ test("Act VI: the witch's last stand: her fire costs a lantern, X strikes, three
   assert.ok(s2.phase === 'wedding' || s2.barrel?.fallT != null || s2.barrel.x > x0, 'he rolls it to the edge');
 });
 
-test('Act VI: Aurora faces the prince and turns incoming fire into harmless, temporary smoke', () => {
+test('Witch duel: each successful hit shoves him halfway back and immediately starts another attack',()=>{
+ const st=actBurning.create({from:{scene:3}});st.duel.next=99;
+ st.w.x=st.duel.x-DUEL.reach-18+3;
+ const lanterns=st.lanterns;actBurning.step(st,DT,{x:true});
+ assert.equal(st.duel.hp,2);assert.equal(st.duel.state,'reel');const reset=duelResetX(st);
+ run(actBurning,st,DUEL.reel+.1,()=>({x:true,moveX:1}),s=>s.duel.state==='counter');
+ assert.equal(st.duel.hp,2,'spam cannot chain the next hit during her recoil');
+ assert.equal(st.w.x,reset);assert.equal(st.w.on,true);assert.equal(st.lanterns,lanterns,'the successful-hit shove causes no damage');
+ assert.ok(st.duel.bolts.some(b=>b.counter));assert.equal(duelReach(st),false);
+ run(actBurning,st,.4,()=>({moveX:1}));assert.equal(st.lanterns,lanterns-1,'walking straight back into the counterattack gets hit');
+});
+
+test('Witch duel: a fresh jump on the next approach clears the counterattack',()=>{
+ const st=actBurning.create({from:{scene:3}});st.duel.next=99;st.w.x=st.duel.x-DUEL.reach-18+3;
+ actBurning.step(st,DT,{x:true});run(actBurning,st,1,()=>({}),s=>s.duel.state==='counter');
+ const lanterns=st.lanterns;actBurning.step(st,DT,{moveX:1,a:true,aHeld:true});
+ run(actBurning,st,.45,()=>({moveX:1,aHeld:true}));assert.equal(st.lanterns,lanterns);
+ assert.ok(st.w.y<BARREL.y-DUEL.boltH);assert.equal(st.duel.hp,2);
+});
+
+test('Witch duel: three jump approaches beat her at the edge, with two resets and a large barrel to push',()=>{
+ const st=actBurning.create({from:{scene:3}}),events=[];let last=false;
+ assert.equal(st.duel.x+BARREL.hw,BARREL.edge);
+ for(let t=0;t<30&&st.duel;t+=DT){
+  const fire=st.duel.bolts.some(b=>b.x>st.w.x&&b.x-st.w.x<100);
+  const strike=duelReach(st);actBurning.step(st,DT,{moveX:strike?0:1,a:fire&&st.w.on,aHeld:true,x:strike&&!last});last=strike;
+  events.push(...st.events);st.events.length=0;
+ }
+ assert.equal(st.duel,null);assert.ok(st.barrel);assert.equal(st.lanterns,3);
+ assert.equal(events.filter(e=>e.type==='witchStruck').length,3);
+ assert.equal(events.filter(e=>e.type==='witchBlast'&&e.repel).length,2);
+ assert.equal(events.filter(e=>e.type==='witchBolt'&&e.counter).length,2);
+ assert.equal(st.barrel.x+BARREL.hw,BARREL.edge,'the barrel rests at the very lip');
+});
+
+test('Act VI: Aurora always faces right and turns incoming fire into harmless, temporary smoke', () => {
   const st = actBurning.create({ from: { scene: 3 } });
   st.w.x = AURORA.x - 35;
-  assert.equal(auroraFacing(st), -1);
+  assert.equal(auroraFacing(st), 1);
   st.duel.next = 99;
   st.duel.bolts = [{ x: AURORA.shieldX + 2 }];
   const lanterns = st.lanterns;

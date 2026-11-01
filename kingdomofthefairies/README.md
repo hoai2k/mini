@@ -56,8 +56,8 @@ acts. The first four keep their stage machinery and rules, recast:
    sea, diving a little way under the surface from the witch's swoops, visibly reaching the far bank before the tower wall up to
    Azurine's window, where she watches for him all the climb.
 6. The Burning Tower: the burning floors, carrying Azurine down to the right-hand exit as that side’s fires fade, the witch's
-   last stand on the clifftop (leap her fire, strike her three times with the
-   sword), after which she hides in her barrel and he pushes it over, walking Azurine
+   last stand on the clifftop (leap her fire and approach again after each
+   sword blow), after which she hides in her barrel and he pushes it over, walking Azurine
    along the wedding street, jumping for joy with Azurine as the guests cheer in a ripple. Climb the painted stairs and walk through the doorway into the apotheosis; hold left at its exit for one second to come back out and dance with the guests. Jump into the light beneath Aurora to begin the credits. The witch’s disappearance holds for the opening of the victory flourish, then fades with its last chord into a gradual wedding entrance.
    Every scene is played: nothing is timed to the beat or shown as a still.
 

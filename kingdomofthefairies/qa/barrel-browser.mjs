@@ -42,9 +42,9 @@ try{
    createRenderer(canvas,window.__kingdomOfTheFairies.assets).render({act:mod.actBurning,state:st,t:2.2,curtain:1,film:'off',tinted:true});
    return {bolts:st.duel.bolts.length,smoke:st.smoke.length,lanterns:st.lanterns,before:lanterns,face:mod.auroraFacing(st)};
   },side);
-  assert.equal(smoke.bolts,0);assert.equal(smoke.smoke,1);assert.equal(smoke.lanterns,smoke.before);assert.equal(smoke.face,side==='left'?-1:1);
+  assert.equal(smoke.bolts,0);assert.equal(smoke.smoke,1);assert.equal(smoke.lanterns,smoke.before);assert.equal(smoke.face,1);
   await page.locator('#barrel-review').screenshot({path:`${out}/aurora-smoke-${side}.png`});evidence.push({side,...smoke});
  }
  assert.deepEqual(errors,[]);await writeFile(out+'/review.json',JSON.stringify(evidence,null,2)+'\n');
- console.log('Both barrel gestures and looks render; Aurora turns toward the prince and fire becomes harmless smoke');
+ console.log('Both barrel gestures and looks render; Aurora always faces right and fire becomes harmless smoke');
 }finally{await browser.close();await server.close();}
