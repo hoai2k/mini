@@ -11,6 +11,9 @@ const k = {
 const d = { x: 850, y: CEIL_Y, state: 'hang' };
 drawStalactite(k, d, 0);
 const [cap, spike] = crops.splice(0);
+assert.ok(cap[6] < 0, "painted ceiling root extends through the top of the scene");
+assert.ok(spike[7] >= 90, "stalactites have a substantial painted width");
+assert.equal(CEIL_Y + DROP.len, 210, "larger ceiling-hung art preserves the original resting tip and fall timing");
 assert.equal(cap[6] + cap[8], spike[6], 'hanging spike joins the painted ceiling without a gap');
 assert.equal(spike[6] + spike[8], CEIL_Y + DROP.len, 'painted tip matches the hazard tip');
 d.state = 'shake'; drawStalactite(k, d, 0.025);

@@ -12,7 +12,7 @@ export const CW = 4300;                 // the cavern is this wide (world units 
 export const EXIT_X = 4140;             // walking into the far opening ends it
 export const POOL_Y = 610;              // below this he has fallen into a pool
 export const WATER_Y = 562;             // the pools' surface, drawn
-export const CEIL_Y = 100;              // the stalactites hang from here
+export const CEIL_Y = -20;              // ceiling roots extend beyond the top of the stage
 export const PHYS = { g: 2000, jump: 820, cut: 2600, walk: 280, accG: 2400, accA: 1500, fall: 1100, coyote: 0.1, buffer: 0.13 };
 export const BODY = { hw: 16, h: 110 };
 export const LIGHT = { own: 360, lamp: 540 };   // how far he sees, stage px
@@ -20,7 +20,9 @@ export const GRACE = 1.6;
 // A stalactite shakes for `shake` s once he comes within `near` px of it
 // (from either side, ahead of him more), then falls; it strikes within
 // `hw` px of its tip.
-export const DROP = { near: 150, behind: 30, shake: 0.75, g: 1800, hw: 24, len: 110 };
+// Keep the hanging tips at y 210 while the larger painted roots reach the
+// top of the scene; the fall warning and time to ground stay the same.
+export const DROP = { near: 150, behind: 30, shake: 0.75, g: 1800, hw: 24, len: 230 };
 
 // Walkable rock: floors along the bottom (one-way ledges above the pools).
 export const FLOORS = [
