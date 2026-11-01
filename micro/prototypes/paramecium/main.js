@@ -72,13 +72,13 @@ const hud = mountHud({
     dash: 'Dash: ciliary sprint where the stick points',
     attack: 'Eat: a gulp draws prey into the oral groove (in the bloom: clears a cone of algae). At a hunter: ram it (and sting with a jab of trichocysts)',
     defend: 'Defend: trichocysts and back off. They drive Dileptus off and burst you out of the amoeba\'s cup or the trap\'s inflow; they cannot stop Didinium (keep away, dodge). Elsewhere: avoidance reaction',
-    special: 'Chase camera / microscope view. On the amoeba\'s floor: back to the amoeba',
+    special: 'Chase camera / microscope view. On the open biofilm: enter the portal. On the amoeba\'s floor: back to the amoeba',
     analog: 'LT slow feeding beat · RT optional forward swim (LS already drives)',
     secondary: 'Dive / rise',
     look: 'Microscope technique',
     zoom: 'Objective (chase camera: distance)',
   }),
-  note: `Goal: eat ${GOAL} prey (bacterial clumps and Chilomonas)${GREEN ? '; in the sunlit patch your Chlorella feed you and the dash recharges faster' : ''}. Head out in any direction: the challenges lie in rings round the start, the same whichever way you go. A little calm water first, then Dileptus (trichocysts, B, drive it off), a Chlamydomonas bloom to push and gulp through, two Didinium (trichocysts can't stop them: keep away, dodge), and about 8 cm out the way on (about a minute of rushing): a biofilm on a leaf under a golden light, guarded by a bladderwort trap. Make the trap fire and miss until it is spent, then swim down onto the leaf. Nothing runs down: stay in calm water as long as you like. The ring points to the floor where Amoeba proteus crawls (the way back). You glance off whatever you touch. Scale is honest (µm). Up to four players: press any button on another controller to join.`,
+  note: `Goal: eat ${GOAL} prey (bacterial clumps and Chilomonas)${GREEN ? '; in the sunlit patch your Chlorella feed you and the dash recharges faster' : ''}. Head out in any direction: the challenges lie in rings round the start, the same whichever way you go. A little calm water first, then Dileptus (trichocysts, B, drive it off), a Chlamydomonas bloom to push and gulp through, two Didinium (trichocysts can't stop them: keep away, dodge), and about 8 cm out the way on (about a minute of rushing): a biofilm on a leaf under a golden light, guarded by a bladderwort trap. Make the trap fire and miss until it is spent, then swim down onto the leaf and press Y to enter the portal. Nothing runs down: stay in calm water as long as you like. The ring points to the floor where Amoeba proteus crawls (the way back). You glance off whatever you touch. Scale is honest (µm). Up to four players: press any button on another controller to join.`,
 });
 hud.players(players.list);
 /** A button as the instructions should name it: the controller's, or the key while no controller is connected. */
@@ -1325,9 +1325,10 @@ function landmarkTick(dt) {
   for (const P of roster) {
     const s = P.swimmer.state;
     const ok = !P.waiting && (s.mode === 'swim' || s.mode === 'avoid') && !P.capture.active;
-    // forward: down on the biofilm (touch the leaf), once it is placed
+    // forward: down on the biofilm (over the leaf), once it is placed; open, Y there goes through
     const df = flatDist(s, FWD);
-    if (FWD.placed && ok && df < FWD.r && s.center.y < FWD.reachY) at = at || P;
+    P.atPortal = FWD.placed && !outro && ok && df < FWD.r && s.center.y < FWD.reachY;
+    if (P.atPortal) at = at || P;
     if (FWD.placed && df < FWD.r * 1.6 && s.center.y < FWD.reachY * 1.6) close = true;
     // backdoor: low over the floor where the amoeba crawls
     P.backT = ok && flatDist(s, BACK) < BACK.r && s.center.y < BACK.reachY ? P.backT + dt : 0;
@@ -1343,20 +1344,33 @@ function landmarkTick(dt) {
       sA.burst.addScaledVector(away, 3200);
       if (!portal.turned) { portal.turned = true; hud.toast('Turned back: the bladderwort trap still guards the biofilm. Make it fire and miss until it is spent, then come back', 4200); }
       lm.log.push({ kind: 'turnedBack', slot: at.slot, t: +t.toFixed(2) });
-    } else enterPortal(at);
-    lm.fired = true;
+      lm.fired = true;
+    }
   }
   if (!close) lm.fired = false;
+  // anyone down on the open biofilm: "Y Enter the portal"; their Y goes through (the input loop)
+  setPortalPrompt(!!at && !outro && !guarded());
   const dweller = roster.find((P) => P.backT > 0.5) || null;
   if (!!dweller !== lm.near) { lm.near = !!dweller; embed.near('back', lm.near); }
   promptEl.style.display = lm.near && !embed.active ? 'block' : 'none';
   if (lm.near) promptEl.textContent = `${glyph('Y')} · back to the amoeba`;
 }
+/** The portal's Y prompt: on while anyone is at the open portal (the shell, or standalone embed.js, shows it). */
+function setPortalPrompt(on) {
+  if (on === !!lm.portal) return;
+  lm.portal = on;
+  embed.near('portal', on);
+}
+/** Can player P go through now (down on the biofilm, its guard spent)? Then P's Y enters. */
+const atOpenPortal = (P) => !!P.atPortal && !outro && !guarded();
 /**
- * The way on: player P has reached the open portal (the biofilm, its guard
- * spent). The one place the zoom into the next world is triggered.
+ * The way on: player P is at the open portal (the biofilm, its guard spent)
+ * and pressed Y; it is never an automatic door (the owner, 2026-11-01). The
+ * one place the zoom into the next world is triggered.
  */
 function enterPortal(P) {
+  if (outro) return;
+  setPortalPrompt(false);
   portalGlow.burst();
   startOutro(P);
   lm.log.push({ kind: 'forward', slot: P.slot, t });
@@ -1706,9 +1720,11 @@ function frame(now) {
       features.set('look', MODE_NAMES[MODES[(view.mode + step + MODES.length) % MODES.length]]);
       hud.toast(MODE_NAMES[MODES[view.mode]]);
     }
-    // Y: on the amoeba's floor it takes everyone back to the amoeba; elsewhere (player 1) the camera
+    // Y: at the open portal it goes through; on the amoeba's floor it takes
+    // everyone back to the amoeba; elsewhere (player 1) the camera
     for (const P of roster) {
       if (P.waiting || !P.ctl.special.pressed()) continue;
+      if (atOpenPortal(P)) { enterPortal(P); break; }
       if (P.backT > 0.5) landmark('back', P);
       else if (P === P1) { features.set('view', view.kind === 'chase' ? VIEW_NAMES.scope : VIEW_NAMES.chase); hud.toast(view.kind === 'scope' ? `Microscope view, ${OBJECTIVES[view.obj].name} objective` : 'Chase camera (hypothetical)'); }
     }
@@ -2241,7 +2257,7 @@ window.__micro = {
   scene, renderer, cell, world, swimmer, encounters: enc, prey, amoeba, optics, view, debug, MODES, features, game, dash,
   get camera() { return view.kind === 'scope' ? scope : chase; },
   get t() { return t; },
-  /** Go through the portal now as player `slot` (what reaching it while open does). */
+  /** Go through the portal now as player `slot` (what Y at the open portal does). */
   enterPortal: (slot = 0) => enterPortal(slotP(slot)),
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam, u: outro.u ?? null, light: +diveLight.toFixed(3) } : null; },
@@ -2256,7 +2272,7 @@ window.__micro = {
   cellPose: () => embed.poseOf(chase, swimmer.state.center, { len: LENGTH, heading: cellHeading(swimmer.state), ...camAngles(chase) }),
   get look() { return lookName(); },
   // Micro Zoom: players, split screen and landmarks
-  players, split, landmarks: { forward: FWD.pos, back: BACK.pos, log: lm.log, get near() { return lm.near; } },
+  players, split, landmarks: { forward: FWD.pos, back: BACK.pos, log: lm.log, get near() { return lm.near; }, get prompt() { return !!lm.portal; } },
   get frames() { return frameCount; },
   /** Each hunter's fight: state, progress, interest, what it is doing. */
   boss: () => ({ awake: trap.awake, state: trap.fight.state, t: +(trap.fightT || 0).toFixed(2), interest: +trap.fight.interest.toFixed(2), phase2: trap.phase2, door: trap.door.toArray(), log: bossInfo.log }),

@@ -74,7 +74,7 @@ export const WORLDS = [
     goal: 'Head out in any direction: past Dileptus (trichocysts drive it off), a Chlamydomonas bloom you push and gulp through and two Didinium (keep away and dodge the lunge) to a biofilm under a golden light. A bladderwort trap guards it: make it fire and miss until it is spent, then slip past.',
     forward: 'A biofilm patch on a submerged leaf: rods and dots that read only as texture.',
     back: 'The amoeba’s floor, behind where you start: dwell there and press Y to rise to the pool floor.',
-    controls: [['LS', 'Swim forward · turn left/right'], ['RS', 'Camera · aim swimming'], ['A', 'Ciliary sprint'], ['X', 'Eat · in the bloom: gulp a way · at a hunter: ram'], ['B', 'Trichocysts: drive off Dileptus, burst free (not Didinium)'], ['Y', 'Microscope view'], ['D-pad ↑↓', 'Objective']],
+    controls: [['LS', 'Swim forward · turn left/right'], ['RS', 'Camera · aim swimming'], ['A', 'Ciliary sprint'], ['X', 'Eat · in the bloom: gulp a way · at a hunter: ram'], ['B', 'Trichocysts: drive off Dileptus, burst free (not Didinium)'], ['Y', 'Microscope view; in a portal: enter it'], ['D-pad ↑↓', 'Objective']],
     facts: [
       'Its cilia beat in waves that run across the cell like wind over wheat.',
       'P. bursaria carries hundreds of Chlorella algae that feed it in the light.',

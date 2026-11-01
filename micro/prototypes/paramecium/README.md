@@ -81,7 +81,12 @@ encounters, placed as you go*, what each does):
 - **Guarded:** while the trap is not spent, touching the biofilm turns you
   back (you are swept back off the leaf, with a toast once). Make it fire and
   miss until its resolve is gone: spent, it hangs slack for 24 s and the way
-  is open (`enterPortal` fires `embed.landmark('forward')`).
+  is open. Open, it is never an automatic door (the owner, 2026-11-01): down
+  on the biofilm the game shows "Y Enter the portal" (`embed.near('portal',
+  true)`; standalone, `shared/embed.js` shows it) and that player's **Y** (R)
+  goes through instead of switching the camera (`enterPortal` fires
+  `embed.landmark('forward')`); guarded there is no prompt and Y switches
+  the camera as usual.
 - **Through it, the dive** (in the game): the light turns to phase contrast
   and the camera dives on the spirillum's clump (`../shared/kin-clump.js`),
   a dark mass that resolves into the bacteria the bacterium world opens
@@ -176,8 +181,9 @@ either (the owner's call): the portal's golden glow is its only marker.
   under the shared golden glow, guarded by the trap. Its
   surface is coated in a biofilm: thousands of rods and dots in microcolonies
   under a faint slime sheen, which at 20× read only as texture. That texture
-  is the zoom target into the bacterium level (spec §3.6, §4.6). Swim down and
-  touch it (within 230 µm of its middle, below 120 µm): `embed.landmark('forward')`.
+  is the zoom target into the bacterium level (spec §3.6, §4.6). Swim down
+  onto it (within 230 µm of its middle, below 120 µm) and, once the trap is
+  spent, press Y: `embed.landmark('forward')`.
 - **Backdoor: the amoeba's floor.** The other way (−860, 0, −700 µm), the
   patch of slide where the *Amoeba proteus* crawls: its slime trail through the
   sediment and the food vacuoles it has egested. The amoeba keeps to this
@@ -535,7 +541,7 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | **A** | Space | **Dash**: a ciliary sprint toward the stick (a quick pivot, then up to 3.2 mm/s for 0.32 s), recharging in 1.8 s (slower in shade); rumble. While held: struggle |
 | **X** | E | **Eat**: an oral gulp pulls up to three prey within ≈70 µm of the front of the cell into the groove; each swells into a food vacuole at the cytostome, pinches off and rides the cyclosis round the cell while the cell bulges. **At a hunter you face (within ≈260 µm): fight back**: the cell rams it, thrashing, and stings it with a short jab of trichocysts from the patch facing it (no charge spent, 0.8 s cooldown). Held: struggle |
 | **B** | Shift | **Defend** (the shared defend button): with a hunter close, **fire trichocysts** at it (3 charges, one back every 9 s) while the cilia reverse and back you off, still facing it. Facing it as it strikes, this **blocks** the strike. Held: breaks you free. With no hunter near: the avoidance reaction (reverse, pivot, swim off) |
-| Y | R | Chase camera (default) / microscope view. On the amoeba's floor (the backdoor): back to the amoeba |
+| Y | R | Chase camera (default) / microscope view. On the open biofilm (the portal, "Y Enter the portal" showing): enter it. On the amoeba's floor (the backdoor): back to the amoeba |
 | LT / RT | Z / X | LT slow feeding beat (hover; draws bacteria into the groove) · RT optional forward swim. LS already drives; release movement and active propulsion stops (no gliding) |
 | LB / RB | Q / F | Dive / rise |
 | D-pad ←→ | 3 / 4 | Microscope technique (switches a borrowed look off) |

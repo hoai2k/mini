@@ -268,7 +268,7 @@ function placeNear(P, M) {
 const LMK = world.landmarks;
 const FWD = { x: LMK.forward.x, y: LMK.forward.y, z: 0 };
 const BACK = { x: LMK.back.x, y: LMK.back.y, z: 0 };
-const lm = { fired: false, near: false, log: [], turned: false, hinted: false };
+const lm = { fired: false, near: false, portal: false, log: [], turned: false, hinted: false };
 
 // --- pacing: a rhythm along the way, not a clock (world.js ROUTE, guards.js) ---
 // The owner: "a few seconds of moving, an obstacle, a short calm break, the
@@ -282,7 +282,7 @@ function resetPressure() {
   for (const p of world.phages) p.anim = false;
   for (const c of world.cells) if (c.kind === 'bdello' && c.prey && c.prey.isPlayer) { c.prey = null; c.cooldown = 6; c.L = 1.0; }
   stentor.awake = false; stentor.fight.reset(); bossInfo.log.length = 0;
-  clearPortal(); lm.fired = false; lm.blocked = false;
+  clearPortal(); lm.fired = false;
   resetEncounters();
   gateMsg.seen.clear();
 }
@@ -1005,18 +1005,20 @@ function landmarkTick(dt) {
   const F = LMK.forward;
   let at = null, close = false, dmin = Infinity;
   for (const P of roster) {
+    P.atPortal = false;
     if (!P.S.alive) { P.backT = 0; continue; }
     P.backT = Math.hypot(P.S.x - BACK.x, P.S.y - BACK.y) < LMK.back.r ? P.backT + dt : 0;
     if (!F.placed) continue;
     const [d] = segDist(P.S.x, P.S.y, F.x, F.y, F.a, F.L);
     dmin = Math.min(dmin, d);
-    if (d < F.r + P.S.sp.r + F.reach + 1.5) at = at || P;
+    if (d < F.r + P.S.sp.r + F.reach + 1.5) P.atPortal = true;
     if (d < 14) close = true;
     // or any member of the player's flock
     const C = coll.opts.on && coll.of(P);
     if (C && C.members.length && Math.abs(C.cx - F.x) < C.extent + 16 && Math.abs(C.cy - F.y) < C.extent + 16) {
-      for (const m of C.members) { const [e] = segDist(m.x, m.y, F.x, F.y, F.a, F.L); if (e < F.r + m.r + F.reach + 1.5) { at = at || P; close = true; break; } if (e < 14) close = true; }
+      for (const m of C.members) { const [e] = segDist(m.x, m.y, F.x, F.y, F.a, F.L); if (e < F.r + m.r + F.reach + 1.5) { P.atPortal = true; close = true; break; } if (e < 14) close = true; }
     }
+    if (P.atPortal) at = at || P;
   }
   if (F.placed) {
     if (!lm.hinted && dmin < 160) { lm.hinted = true; }
@@ -1025,28 +1027,40 @@ function landmarkTick(dt) {
     if (at && !lm.fired) {
       if (guarded()) {
         // Stentor guards it: its current turns you back (your cell, and your flock with it)
-        lm.fired = true; lm.blocked = true;
+        lm.fired = true;
         lm.log.push({ kind: 'turnedBack', slot: at.slot, t });
         if (!at.kickT || at.kickT <= 0) { at.kickT = 0.5; at.kickFrom = { x: F.x, y: F.y }; }
         if (!lm.turned || t - (lm.turnedAt ?? -9) > 4) { lm.turned = true; lm.turnedAt = t; hud.toast('Turned back: Stentor\'s current guards the host. Drive Stentor off with your army first', 3200); }
-      } else enterPortal(at);
+      }
     }
-    if (!close) { lm.fired = false; lm.blocked = false; }
-    if (lm.blocked && at && !guarded()) { lm.blocked = false; enterPortal(at); }
+    if (!close) lm.fired = false;
   }
+  // anyone (or their flock) at the open host: "Y Enter the portal"; their Y goes through (readInput)
+  setPortalPrompt(F.placed && !!at && !outro && !guarded());
   const dweller = roster.find((P) => P.backT > 0.5) || null;
   if (!!dweller !== lm.near) { lm.near = !!dweller; embed.near('back', lm.near); }
   // standalone the page shows its own quiet prompt (the shell draws one in the game)
   promptEl.style.display = lm.near && !embed.active ? 'block' : 'none';
   if (lm.near) promptEl.textContent = `${glyph('Y')} · back to the Paramecium's pool`;
 }
+/** The portal's Y prompt: on while anyone is at the open portal (the shell, or standalone embed.js, shows it). */
+function setPortalPrompt(on) {
+  if (on === lm.portal) return;
+  lm.portal = on;
+  embed.near('portal', on);
+}
+/** Can player P go through now (they or their flock at the host, Stentor beaten)? Then P's Y enters. */
+const atOpenPortal = (P) => !!P.atPortal && LMK.forward.placed && !outro && !guarded() && P.S.alive;
 /**
- * The way on: player P has reached the open portal. This is the one place the zoom into the
+ * The way on: player P is at the open portal and pressed Y (never an automatic
+ * door: the owner, 2026-11-01). This is the one place the zoom into the
  * next world is triggered (embed.landmark('forward'); standalone, embed.js shows a toast).
  */
 function enterPortal(P) {
   if (lm.entered && t - lm.entered < 3) return;
+  if (outro) return;
   lm.fired = true; lm.entered = t;
+  setPortalPrompt(false);
   portalGlow.burst();
   const L = split.layout;
   if (L && L.views && L.views.length) { const q = split.project(0, { x: FWD.x, y: FWD.y, z: 0 }); portalLight.bloom(q.x, q.y, { scale: 1.2 }); }
@@ -1355,10 +1369,12 @@ function readInput(P, dt) {
     inp.attack = c.attack.down();
     inp.attackPressed = c.attack.pressed();
   } else if (me && !multi() && !S.caught && S.overT > 1 && (c.dash.pressed() || c.attack.pressed())) setSpecies(S.species);
-  // Y: at the Paramecium it takes everyone back; with the toxin charged it fires; else (player 1) the overlay
+  // Y: at the open portal it goes through; at the Paramecium it takes everyone
+  // back; with the toxin charged it fires; else (player 1) the overlay
   const C = coll.of(P);
   if (c.special.pressed()) {
-    if (P.backT > 0.5) landmark('back', P);
+    if (atOpenPortal(P)) enterPortal(P);
+    else if (P.backT > 0.5) landmark('back', P);
     else if (C && C.charge >= 1 && S.alive) coll.burst(P);
     else if (me) features.set('overlay', !view.overlay);
   }
@@ -1704,7 +1720,7 @@ window.__micro = { forceCapture, capture,
     capture: capture.active && cat.kind ? { phase: cat.phase, by: CATCH[cat.kind].by } : null, mode: S.mode, alive: S.alive }),
   world, swimmer, game, view, debug, features, optics, shapes, get t() { return t; }, get dash() { return P1.dash; },
   // Micro Zoom: players, split screen and landmarks
-  players, split, landmarks: { forward: FWD, back: BACK, log: lm.log, get near() { return lm.near; } },
+  players, split, landmarks: { forward: FWD, back: BACK, log: lm.log, get near() { return lm.near; }, get prompt() { return lm.portal; } },
   get frames() { return frameCount; },
   /** The fights: each grazer's state, and each player's phage and Bdellovibrio stalker. */
   boss: () => ({ awake: stentor.awake, state: stentor.fight.state, t: +(stentor.fightT || 0).toFixed(2), interest: +stentor.fight.interest.toFixed(2), phase2: stentor.phase2, flowK: +stentor.flowK.toFixed(2), contract: +stentor.contract.toFixed(2), log: bossInfo.log }),
@@ -1740,6 +1756,7 @@ window.__micro = { forceCapture, capture,
   },
   /** Testing only: place encounter `id` (a gate id or 'portal') at (x, y), met along bearing b, out of order. */
   placeEncounter(id, x, y, b = 0) { return director.force(id, x, y, b); },
+  /** Go through the portal now as player `slot` (what Y at the open portal does). */
   enterPortal(slot = 0) { enterPortal(roster.find((Q) => Q.slot === slot) || P1); },
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
