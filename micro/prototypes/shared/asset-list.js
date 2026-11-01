@@ -147,35 +147,35 @@ export const ASSETS = {
   },
   "MP-V04": {
     "file": "assets/reference-sheets/phage-molecules.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-V05": {
     "file": "assets/phage/envelope-fl.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-V06": {
     "file": "assets/phage/water-panorama.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-V07": {
     "file": "assets/phage/molecule-sprites.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R21": {
     "file": "assets/reference-sheets/humic-floc.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-R22": {
     "file": "assets/reference-sheets/phage-host.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-U09": {
     "file": "assets/cards/phage.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G14": {
     "file": "assets/game/intro-phage.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-G01": {
     "file": "assets/game/logo.png",

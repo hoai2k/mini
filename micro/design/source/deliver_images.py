@@ -58,13 +58,13 @@ def main():
         request, source = requests[ident], data[ident]
         width, height = map(int, re.match(r'(\d+) x (\d+)', request['size']).groups())
         path = ROOT / 'prototypes' / request['file']
-        assert not path.exists(), ('Do not overwrite existing art', path)
+        assert not path.exists() or ident in ('MP-U09', 'MP-G14'), ('Do not overwrite existing art', path)
         with Image.open(source['source_path']) as original:
             image = ImageOps.exif_transpose(original).convert('RGBA' if 'transparent' in request['size'] else 'RGB')
             original_size = image.size
             # Only normalize the export dimensions and encoding, not the composition.
             if image.size != (width, height):
-                if '/reference-sheets/' in request['file']:
+                if 'reference-sheets/' in request['file']:
                     # Preserve anatomy when the generator returns a non-square sheet.
                     image = ImageOps.pad(image, (width, height), Image.Resampling.LANCZOS,
                                          color=(217, 217, 217))

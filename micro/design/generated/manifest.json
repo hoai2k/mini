@@ -1800,6 +1800,358 @@
     "mood_boards": []
   },
   {
+    "id": "MP-V04",
+    "name": "Molecule species sheet (look development)",
+    "file": "assets/reference-sheets/phage-molecules.webp",
+    "size": "2048 x 2048, opaque",
+    "used": "Look development for the revamped phage world: sets the shape, size and colour of each kind of molecule in the water and on the host (the bead-cluster templates and palette in shared/techniques/phage-beads.js). Not drawn in the game.",
+    "prompt": "Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. A look-development reference sheet on a plain dark teal background (#0E2F38): a 4 by 3 grid of single molecules, each centred in its cell, all at the same scale, each in its own colour: a large globular protein (about 10 nm, violet-blue), a small globular protein (about 4 nm, teal), a protein dimer (soft green), a ribosome-sized complex (about 20 nm, blue-violet with a darker cleft), a humic colloid (an irregular brown-olive tangle about 15 nm), a short polysaccharide chain (pale blue-white beads), a glucose cluster and single ions (tiny pale beads), a lipopolysaccharide chain standing upright (a gold-green core with a pale branching O-antigen), an OmpC porin trimer seen from above (three blue lobes round a dark triangular pore), a gold three-lobed receptor protein on a beaded stalk, and a violet two-lobed non-matching protein. Every molecule drawn as a cluster of small spheres with soft contact shadows. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "requested_prompt": "Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. A look-development reference sheet on a plain dark teal background (#0E2F38): a 4 by 3 grid of single molecules, each centred in its cell, all at the same scale, each in its own colour: a large globular protein (about 10 nm, violet-blue), a small globular protein (about 4 nm, teal), a protein dimer (soft green), a ribosome-sized complex (about 20 nm, blue-violet with a darker cleft), a humic colloid (an irregular brown-olive tangle about 15 nm), a short polysaccharide chain (pale blue-white beads), a glucose cluster and single ions (tiny pale beads), a lipopolysaccharide chain standing upright (a gold-green core with a pale branching O-antigen), an OmpC porin trimer seen from above (three blue lobes round a dark triangular pore), a gold three-lobed receptor protein on a beaded stalk, and a violet two-lobed non-matching protein. Every molecule drawn as a cluster of small spheres with soft contact shadows. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-1428ccb7-e1fd-4098-a1d5-bb182bb95650.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1448,
+      1086
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "03ac5466b5ccb7fab4f2497ab3aa4ffa531f9f5f1b92091b3425b62dea905249",
+    "export": "Aspect-preserving LANCZOS sizing with neutral outer padding when needed; WebP quality 92. No anatomy edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "boss-cascade",
+        "local": "assets/references/production/boss-cascade.jpg",
+        "author": "David Goodsell",
+        "license": "CC BY 3.0",
+        "license_url": "https://creativecommons.org/licenses/by/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:181-CascadeAndCRISPR_4un3.tiff"
+      },
+      {
+        "id": "boss-cas-proteins",
+        "local": "assets/references/production/boss-cas-proteins.jpg",
+        "author": "David Goodsell",
+        "license": "CC BY 3.0",
+        "license_url": "https://creativecommons.org/licenses/by/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:181-CascadeAndCRISPR_CasProteins.tiff"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-V05",
+    "name": "Host envelope surface (false light, tileable)",
+    "file": "assets/phage/envelope-fl.webp",
+    "size": "2048 x 2048, opaque, tileable",
+    "used": "The revamped hosts' wet outer membrane: its albedo and relief under the bead forest of LPS and proteins (replaces MP-V01's grain in the default look).",
+    "prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. The outer membrane of a Gram-negative bacterium seen from straight above at about 150 nm across: a wet, lumpy teal-blue lipid surface packed with the bases of lipopolysaccharide chains (small pale-blue bead tufts), the rounded triangular tops of OmpC porin trimers in deeper blue, and a few larger violet-blue membrane proteins, with soft ambient occlusion in the creases. Evenly lit, no single dominant feature, no cast shadows across the tile. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. The outer membrane of a Gram-negative bacterium seen from straight above at about 150 nm across: a wet, lumpy teal-blue lipid surface packed with the bases of lipopolysaccharide chains (small pale-blue bead tufts), the rounded triangular tops of OmpC porin trimers in deeper blue, and a few larger violet-blue membrane proteins, with soft ambient occlusion in the creases. Evenly lit, no single dominant feature, no cast shadows across the tile. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-d3ebe3ef-20df-45ce-9a50-40e47dc21f6c.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "f51704def43087cbdf4fa737922b4e29a581b93c16cde6c254f2aa87cba5c970",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "biofilm-fluorescence",
+        "local": "assets/references/production/biofilm-fluorescence.png",
+        "author": "Schwarz, Michael (ORCID: 0009-0002-1414-3291)",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-V06",
+    "name": "Deep water panorama (every direction)",
+    "file": "assets/phage/water-panorama.webp",
+    "size": "4096 x 2048, opaque, equirectangular, wraps left to right",
+    "used": "The far backdrop of the revamped phage world, sampled by view direction so the water is full wherever the camera turns (no up or down). Replaces MP-V02's flat plate in the default look.",
+    "prompt": "Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. An equirectangular 360-degree panorama (2:1, the left edge continuing seamlessly into the right edge, no visible seam, the top and bottom rows smoothly converging as at the poles of a sphere) of deep bog water seen from inside it at about 3 µm across: a dim teal-blue haze crowded with countless out-of-focus molecules as soft bead clusters, and a few far rod-shaped bacteria (about 1 µm long, translucent teal-blue, coated with a fuzz of surface proteins) hanging at different depths in every direction. No single light source in the frame, no surface, no ground, no up or down: it should look equally full whichever way you face. Soft, low contrast, so the near scene reads in front of it. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "requested_prompt": "Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. An equirectangular 360-degree panorama (2:1, the left edge continuing seamlessly into the right edge, no visible seam, the top and bottom rows smoothly converging as at the poles of a sphere) of deep bog water seen from inside it at about 3 µm across: a dim teal-blue haze crowded with countless out-of-focus molecules as soft bead clusters, and a few far rod-shaped bacteria (about 1 µm long, translucent teal-blue, coated with a fuzz of surface proteins) hanging at different depths in every direction. No single light source in the frame, no surface, no ground, no up or down: it should look equally full whichever way you face. Soft, low contrast, so the near scene reads in front of it. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-976f9f7a-d593-4929-adc4-e9f4dab39f26.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1774,
+      887
+    ],
+    "width": 4096,
+    "height": 2048,
+    "sha256": "204a94e8fdeebd4601c72955ad4b1de1f6052a9f72a2f9522d02c05fac06c7d0",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "biofilm-fluorescence",
+        "local": "assets/references/production/biofilm-fluorescence.png",
+        "author": "Schwarz, Michael (ORCID: 0009-0002-1414-3291)",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-V07",
+    "name": "Far molecule sprite sheet",
+    "file": "assets/phage/molecule-sprites.webp",
+    "size": "2048 x 2048, transparent (or #FF00FF background)",
+    "used": "Optional far layer: the most distant molecules of the phage world as soft camera-facing sprites (the near ones stay 3D bead clusters).",
+    "prompt": "Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. A 4 by 4 sprite sheet of single molecules, each centred in its square cell with clear space round it on a flat #FF00FF background: soft-focus, slightly blurred bead clusters of varied shape and size (globular proteins, dimers, small chains, irregular humic tangles, tiny ion clusters), in violet-blue, teal, soft green, pale blue-white and olive, each with soft self-shadowing and a faint dark rim, all lit from the upper left. No cell edges, no text. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "requested_prompt": "Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. A 4 by 4 sprite sheet of single molecules, each centred in its square cell with clear space round it on a flat #FF00FF background: soft-focus, slightly blurred bead clusters of varied shape and size (globular proteins, dimers, small chains, irregular humic tangles, tiny ion clusters), in violet-blue, teal, soft green, pale blue-white and olive, each with soft self-shadowing and a faint dark rim, all lit from the upper left. No cell edges, no text. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-59879791-b06e-4d54-8bcf-35ed1f98cdfd.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "0634b29e14ca70799491faa738339d12d24c9feff50785b6af34834283bd506c",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "boss-cascade",
+        "local": "assets/references/production/boss-cascade.jpg",
+        "author": "David Goodsell",
+        "license": "CC BY 3.0",
+        "license_url": "https://creativecommons.org/licenses/by/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:181-CascadeAndCRISPR_4un3.tiff"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-R21",
+    "name": "Humic floc (a new obstacle)",
+    "file": "assets/reference-sheets/humic-floc.webp",
+    "size": "2048 x 2048, opaque",
+    "used": "Modelling the humic flocs of the revamped phage world: drifting sticky tangles of humic matter that snag extended tail fibres (fold them with B to slip through).",
+    "prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. A humic aggregate (floc) from tea-brown bog water, about 0.3 µm across: a loose, irregular, sponge-like tangle of branching humic and fulvic chains (beaded strands a few nanometres thick, olive-brown to amber) knotted round a few denser clumps, with small molecules and a couple of bound mineral flakes caught in it; open gaps between the strands. Shown from four sides on a plain dark teal background (#0E2F38) instead of grey. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "requested_prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. A humic aggregate (floc) from tea-brown bog water, about 0.3 µm across: a loose, irregular, sponge-like tangle of branching humic and fulvic chains (beaded strands a few nanometres thick, olive-brown to amber) knotted round a few denser clumps, with small molecules and a couple of bound mineral flakes caught in it; open gaps between the strands. Shown from four sides on a plain dark teal background (#0E2F38) instead of grey. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-5a708e57-bb56-4f75-b52b-ae8ec91104fe.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "7366c91026c96beff5010718d09f237b3b26cd26f4a0914c7c111a77bf979acc",
+    "export": "Aspect-preserving LANCZOS sizing with neutral outer padding when needed; WebP quality 92. No anatomy edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "bog-pool",
+        "local": "assets/references/production/bog-pool.jpg",
+        "author": "JarroNevsbaru",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-R22",
+    "name": "Host bacterium in the new look",
+    "file": "assets/reference-sheets/phage-host.webp",
+    "size": "2048 x 2048, opaque",
+    "used": "Modelling and colouring the revamped host cells (Host A and B, Gram-negative rods) and, for contrast, the wrong host (a Gram-positive rod) of the phage world.",
+    "prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. A Gram-negative rod-shaped bacterium about 1.5 µm long and 0.7 µm wide, seen at the scale of its surface: a wet, lumpy, translucent teal-blue outer membrane densely coated with a short fuzz of lipopolysaccharide chains (pale blue bead tufts) and studded with blue OmpC porin trimers and a few gold three-lobed receptor proteins on beaded stalks, two or three of them in small patches. In the lower right corner of the sheet, smaller, the same views of a Gram-positive rod for contrast: a thicker, smoother, duller olive-green wall with no outer membrane and no porins. On a plain dark teal background (#0E2F38) instead of grey. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "requested_prompt": "Orthographic model reference sheet for building a 3D model: the same single individual shown four times on one sheet in a 2 by 2 grid: side view facing right, top view (head up), front view, and a three-quarter view from front-left and slightly above. All four views at exactly the same scale and aligned to one another, true orthographic projection for the first three (no perspective), even soft studio light from the front, plain flat light-grey background (#D9D9D9), no shadows on the background, no text, no labels, no arrows, no scale bar. Natural colours as the organism really looks (for cells, as in a stained or brightfield preparation, transparent parts drawn as pale translucent). Correct anatomy only; nothing invented. It serves as a measuring tape and a paint source. Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. A Gram-negative rod-shaped bacterium about 1.5 µm long and 0.7 µm wide, seen at the scale of its surface: a wet, lumpy, translucent teal-blue outer membrane densely coated with a short fuzz of lipopolysaccharide chains (pale blue bead tufts) and studded with blue OmpC porin trimers and a few gold three-lobed receptor proteins on beaded stalks, two or three of them in small patches. In the lower right corner of the sheet, smaller, the same views of a Gram-positive rod for contrast: a thicker, smoother, duller olive-green wall with no outer membrane and no porins. On a plain dark teal background (#0E2F38) instead of grey. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-98c30039-c4b5-4467-9c7a-2b827b61f51e.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "c26f36016504c2894e0588b3ccf2c8cc115f3f7dc59acd71023c7b738c465608",
+    "export": "Aspect-preserving LANCZOS sizing with neutral outer padding when needed; WebP quality 92. No anatomy edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      },
+      {
+        "id": "biofilm-fluorescence",
+        "local": "assets/references/production/biofilm-fluorescence.png",
+        "author": "Schwarz, Michael (ORCID: 0009-0002-1414-3291)",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-U09",
+    "name": "Phage card (the new look)",
+    "file": "assets/cards/phage.webp",
+    "size": "1200 x 800, opaque",
+    "used": "The Phage card in Micro Zoom's world select and on the prototypes page. Replaces MP-U07's file in place: until it is delivered, the card shows MP-U07 (the old watercolour card).",
+    "prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. A single T4-like bacteriophage glowing warm gold (a prolate faceted icosahedral head about 120 by 86 nm with a glassy capsid and the DNA spool glowing inside, a straight ridged contractile tail sheath, a hexagonal baseplate, six long thin kinked tail fibres reaching forward) drifting legs-first toward the curved, wet, teal-blue outer membrane of a rod-shaped bacterium, its surface densely furred with lipopolysaccharide chains and studded with blue porin trimers and a gold three-lobed receptor; the water around it packed with small molecules in violet-blue, teal and soft green, with tiny molecules filling every gap; further cells hanging in the teal haze. A small molecule visibly glancing off the phage's head. Large depth of field: the phage, the receptor and the nearby molecules all readable. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "requested_prompt": "Landscape key art for a scientific microscopy game prototype, 3:2. Leave the lower third calm and fairly even so a title can sit over it. Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. A single T4-like bacteriophage glowing warm gold (a prolate faceted icosahedral head about 120 by 86 nm with a glassy capsid and the DNA spool glowing inside, a straight ridged contractile tail sheath, a hexagonal baseplate, six long thin kinked tail fibres reaching forward) drifting legs-first toward the curved, wet, teal-blue outer membrane of a rod-shaped bacterium, its surface densely furred with lipopolysaccharide chains and studded with blue porin trimers and a gold three-lobed receptor; the water around it packed with small molecules in violet-blue, teal and soft green, with tiny molecules filling every gap; further cells hanging in the teal haze. A small molecule visibly glancing off the phage's head. Large depth of field: the phage, the receptor and the nearby molecules all readable. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-84aa8e48-92d1-40b3-8628-4120ccf34804.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1536,
+      1024
+    ],
+    "width": 1200,
+    "height": 800,
+    "sha256": "b5828f345e85525ad7e9d3a414cd173cd1288f3b28eaa7468592ca7c5d7c67e9",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      },
+      {
+        "id": "biofilm-fluorescence",
+        "local": "assets/references/production/biofilm-fluorescence.png",
+        "author": "Schwarz, Michael (ORCID: 0009-0002-1414-3291)",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:NFDI4BIOIMAGE_Calendar_March_2025_-_image_march.png"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
+    "id": "MP-G14",
+    "name": "World intro: Host surface (phage), the new look",
+    "file": "assets/game/intro-phage.webp",
+    "size": "2560 x 1440, opaque",
+    "used": "The phage world's intro screen, which the select card zooms into; text sits over the left third. Replaces MP-G13's file in place: until it is delivered, the intro shows MP-G13.",
+    "prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim). Inside the circle, the illustrative molecular look: Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. A glowing gold T4-like bacteriophage (faceted head, ridged sheath, six kinked tail fibres) drifting legs-first through water packed with molecules toward a gold three-lobed receptor on the furred, wet, teal-blue surface of a rod bacterium, more cells hanging in the teal haze behind. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+    "requested_prompt": "Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A wide intro plate framed as if seen through a brass microscope eyepiece at the right two thirds of the image (a soft round field stop with engraved brass rim). Inside the circle, the illustrative molecular look: Illustrative molecular look, as in modern molecular visualisation (mesoscale cellPACK-style scenes, PDB-101 art, ambient-occlusion molecular renderers): every molecule a lumpy cluster of small spheres at true relative size, packed densely with small molecules filling every gap, soft ambient occlusion darkening the creases between them, a thin dark silhouette edge, colour by molecule type (proteins in violet-blues, teals and soft greens, nucleic acid gold, membranes teal-blue, polysaccharide pale blue-white), lit by an invented warm key light from the upper left and a teal fill, with depth fading into a teal-blue haze. Organic and irregular, never smooth plastic or geometric primitives. A visual hypothesis: no microscope shows colour or light at this scale. A glowing gold T4-like bacteriophage (faceted head, ridged sheath, six kinked tail fibres) drifting legs-first through water packed with molecules toward a gold three-lobed receptor on the furred, wet, teal-blue surface of a rod bacterium, more cells hanging in the teal haze behind. The left third is calm dark ink-green paper texture for text. Scientifically grounded anatomy. Full-bleed 16:9, no text, no labels.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-1472cd52-aad4-453b-ab74-8459dba8ab3d.png",
+    "input_images": [],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1672,
+      941
+    ],
+    "width": 2560,
+    "height": 1440,
+    "sha256": "aa0cb5595a359c5509f518c4bd6dbf0040b4d1c9c4fdce31c7675337ef9b8211",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "phage-t4",
+        "local": "assets/references/production/phage-t4.jpg",
+        "author": "7USSR7",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:T4_phage_EM.jpg"
+      },
+      {
+        "id": "magnetotactic",
+        "local": "assets/references/production/magnetotactic.png",
+        "author": "Caulobacter subvibrioides (Diskussion)",
+        "license": "CC BY-SA 3.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/3.0",
+        "source": "https://commons.wikimedia.org/wiki/File:M._gryphiswaldense.png"
+      },
+      {
+        "id": "biofilm-sem",
+        "local": "assets/references/biofilm-sem.jpg",
+        "author": "Timo Kohn, Rast, P., Kallscheuer, N., Wiegand, S., Boedeker, C., Jetten, M.S., Jeske, O., Vollmers, J., Kaster, A.K., Rohde, M. and Jogler, M.",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Electron_microscopic_analysis_of_seagrass_biofilms.jpg"
+      }
+    ],
+    "mood_boards": []
+  },
+  {
     "id": "MP-G01",
     "name": "Micro Zoom logo",
     "file": "assets/game/logo.png",

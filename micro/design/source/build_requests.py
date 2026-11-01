@@ -489,7 +489,7 @@ GROUPS = [
                 "prompt": f"{MOLECULAR} A horizontal cross-section through a Gram-negative cell envelope about 400 nm wide: from top to bottom, water, the outer membrane with lipopolysaccharide chains and porins, the periplasm with a thin peptidoglycan mesh, the inner membrane with embedded proteins, and crowded cytoplasm with ribosomes and a DNA strand. Layers horizontal and continuous across the image. {SCIENCE}",
             },
             {
-                "id": "MP-V04", "status": "requested", "name": "Molecule species sheet (look development)",
+                "id": "MP-V04", "status": "delivered", "name": "Molecule species sheet (look development)",
                 "file": "assets/reference-sheets/phage-molecules.webp", "size": "2048 x 2048, opaque",
                 "used": "Look development for the revamped phage world: sets the shape, size and colour of each kind of molecule in the water and on the host (the bead-cluster templates and palette in shared/techniques/phage-beads.js). Not drawn in the game.",
                 "standin": "None needed: the templates and palette are built in code from the species list in phage/LOOK.md.",
@@ -497,7 +497,7 @@ GROUPS = [
                 "prompt": f"{MOLECULAR_FL} A look-development reference sheet on a plain dark teal background (#0E2F38): a 4 by 3 grid of single molecules, each centred in its cell, all at the same scale, each in its own colour: a large globular protein (about 10 nm, violet-blue), a small globular protein (about 4 nm, teal), a protein dimer (soft green), a ribosome-sized complex (about 20 nm, blue-violet with a darker cleft), a humic colloid (an irregular brown-olive tangle about 15 nm), a short polysaccharide chain (pale blue-white beads), a glucose cluster and single ions (tiny pale beads), a lipopolysaccharide chain standing upright (a gold-green core with a pale branching O-antigen), an OmpC porin trimer seen from above (three blue lobes round a dark triangular pore), a gold three-lobed receptor protein on a beaded stalk, and a violet two-lobed non-matching protein. Every molecule drawn as a cluster of small spheres with soft contact shadows. {SCIENCE}",
             },
             {
-                "id": "MP-V05", "status": "requested", "name": "Host envelope surface (false light, tileable)",
+                "id": "MP-V05", "status": "delivered", "name": "Host envelope surface (false light, tileable)",
                 "file": "assets/phage/envelope-fl.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The revamped hosts' wet outer membrane: its albedo and relief under the bead forest of LPS and proteins (replaces MP-V01's grain in the default look).",
                 "standin": "Procedural wet relief (world-space noise bump and cavity darkening) under a bead forest of LPS and proteins.",
@@ -505,7 +505,7 @@ GROUPS = [
                 "prompt": f"{TILE} {MOLECULAR_FL} The outer membrane of a Gram-negative bacterium seen from straight above at about 150 nm across: a wet, lumpy teal-blue lipid surface packed with the bases of lipopolysaccharide chains (small pale-blue bead tufts), the rounded triangular tops of OmpC porin trimers in deeper blue, and a few larger violet-blue membrane proteins, with soft ambient occlusion in the creases. Evenly lit, no single dominant feature, no cast shadows across the tile. {SCIENCE}",
             },
             {
-                "id": "MP-V06", "status": "requested", "name": "Deep water panorama (every direction)",
+                "id": "MP-V06", "status": "delivered", "name": "Deep water panorama (every direction)",
                 "file": "assets/phage/water-panorama.webp", "size": "4096 x 2048, opaque, equirectangular, wraps left to right",
                 "used": "The far backdrop of the revamped phage world, sampled by view direction so the water is full wherever the camera turns (no up or down). Replaces MP-V02's flat plate in the default look.",
                 "standin": "A procedural backdrop drawn by view direction in the final pass, behind a bath of thousands of molecules and a shell of far cells in every direction.",
@@ -513,7 +513,7 @@ GROUPS = [
                 "prompt": f"{MOLECULAR_FL} An equirectangular 360-degree panorama (2:1, the left edge continuing seamlessly into the right edge, no visible seam, the top and bottom rows smoothly converging as at the poles of a sphere) of deep bog water seen from inside it at about 3 µm across: a dim teal-blue haze crowded with countless out-of-focus molecules as soft bead clusters, and a few far rod-shaped bacteria (about 1 µm long, translucent teal-blue, coated with a fuzz of surface proteins) hanging at different depths in every direction. No single light source in the frame, no surface, no ground, no up or down: it should look equally full whichever way you face. Soft, low contrast, so the near scene reads in front of it. {SCIENCE}",
             },
             {
-                "id": "MP-V07", "status": "requested", "name": "Far molecule sprite sheet",
+                "id": "MP-V07", "status": "delivered", "name": "Far molecule sprite sheet",
                 "file": "assets/phage/molecule-sprites.webp", "size": "2048 x 2048, transparent (or #FF00FF background)",
                 "used": "Optional far layer: the most distant molecules of the phage world as soft camera-facing sprites (the near ones stay 3D bead clusters).",
                 "standin": "Procedural bead-cluster impostors drawn in the shader (the same shader the near molecules use).",
@@ -521,7 +521,7 @@ GROUPS = [
                 "prompt": f"{MOLECULAR_FL} A 4 by 4 sprite sheet of single molecules, each centred in its square cell with clear space round it on a flat #FF00FF background: soft-focus, slightly blurred bead clusters of varied shape and size (globular proteins, dimers, small chains, irregular humic tangles, tiny ion clusters), in violet-blue, teal, soft green, pale blue-white and olive, each with soft self-shadowing and a faint dark rim, all lit from the upper left. No cell edges, no text. {SCIENCE}",
             },
             {
-                "id": "MP-R21", "status": "requested", "name": "Humic floc (a new obstacle)",
+                "id": "MP-R21", "status": "delivered", "name": "Humic floc (a new obstacle)",
                 "file": "assets/reference-sheets/humic-floc.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the humic flocs of the revamped phage world: drifting sticky tangles of humic matter that snag extended tail fibres (fold them with B to slip through).",
                 "standin": "Procedural flocs: tangled bead chains with clumps, built in code.",
@@ -529,7 +529,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} {MOLECULAR_FL} A humic aggregate (floc) from tea-brown bog water, about 0.3 µm across: a loose, irregular, sponge-like tangle of branching humic and fulvic chains (beaded strands a few nanometres thick, olive-brown to amber) knotted round a few denser clumps, with small molecules and a couple of bound mineral flakes caught in it; open gaps between the strands. Shown from four sides on a plain dark teal background (#0E2F38) instead of grey. {SCIENCE}",
             },
             {
-                "id": "MP-R22", "status": "requested", "name": "Host bacterium in the new look",
+                "id": "MP-R22", "status": "delivered", "name": "Host bacterium in the new look",
                 "file": "assets/reference-sheets/phage-host.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling and colouring the revamped host cells (Host A and B, Gram-negative rods) and, for contrast, the wrong host (a Gram-positive rod) of the phage world.",
                 "standin": "None needed: the hosts are built in code (capsule body, wet relief, bead forest).",
@@ -537,7 +537,7 @@ GROUPS = [
                 "prompt": f"{TURNAROUND} {MOLECULAR_FL} A Gram-negative rod-shaped bacterium about 1.5 µm long and 0.7 µm wide, seen at the scale of its surface: a wet, lumpy, translucent teal-blue outer membrane densely coated with a short fuzz of lipopolysaccharide chains (pale blue bead tufts) and studded with blue OmpC porin trimers and a few gold three-lobed receptor proteins on beaded stalks, two or three of them in small patches. In the lower right corner of the sheet, smaller, the same views of a Gram-positive rod for contrast: a thicker, smoother, duller olive-green wall with no outer membrane and no porins. On a plain dark teal background (#0E2F38) instead of grey. {SCIENCE}",
             },
             {
-                "id": "MP-U09", "status": "requested", "name": "Phage card (the new look)",
+                "id": "MP-U09", "status": "delivered", "name": "Phage card (the new look)",
                 "file": "assets/cards/phage.webp", "size": "1200 x 800, opaque",
                 "used": "The Phage card in Micro Zoom's world select and on the prototypes page. Replaces MP-U07's file in place: until it is delivered, the card shows MP-U07 (the old watercolour card).",
                 "standin": "MP-U07, the current card.",
@@ -545,7 +545,7 @@ GROUPS = [
                 "prompt": f"{CARD} {MOLECULAR_FL} A single T4-like bacteriophage glowing warm gold (a prolate faceted icosahedral head about 120 by 86 nm with a glassy capsid and the DNA spool glowing inside, a straight ridged contractile tail sheath, a hexagonal baseplate, six long thin kinked tail fibres reaching forward) drifting legs-first toward the curved, wet, teal-blue outer membrane of a rod-shaped bacterium, its surface densely furred with lipopolysaccharide chains and studded with blue porin trimers and a gold three-lobed receptor; the water around it packed with small molecules in violet-blue, teal and soft green, with tiny molecules filling every gap; further cells hanging in the teal haze. A small molecule visibly glancing off the phage's head. Large depth of field: the phage, the receptor and the nearby molecules all readable. {SCIENCE}",
             },
             {
-                "id": "MP-G14", "status": "requested", "name": "World intro: Host surface (phage), the new look",
+                "id": "MP-G14", "status": "delivered", "name": "World intro: Host surface (phage), the new look",
                 "file": "assets/game/intro-phage.webp", "size": "2560 x 1440, opaque",
                 "used": "The phage world's intro screen, which the select card zooms into; text sits over the left third. Replaces MP-G13's file in place: until it is delivered, the intro shows MP-G13.",
                 "standin": "MP-G13, the current intro plate.",
