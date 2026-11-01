@@ -9,7 +9,8 @@ it follows this; where a world departs from it, the README says why.
 - **Rings round the start, the same in every direction.** A short warm-up of
   calm space (a few seconds of moving: two or three screen widths), then the
   first obstacle, a short calm break, the next obstacle, and so on, out to the
-  portal and its boss. Whichever way the player heads, they meet the same kinds
+  portal and its boss, the obstacles spaced roughly evenly along the way (no
+  rule that holds them back to the second half). Whichever way the player heads, they meet the same kinds
   of obstacle at about the same distances. No long stretches of pure travel.
 - **Rushing through takes about a minute; dealing with the obstacles makes it
   about three.** Obstacles come soon, but never immediately.
