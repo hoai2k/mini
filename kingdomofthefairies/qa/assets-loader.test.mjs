@@ -30,8 +30,13 @@ try {
     '/review-assets/sea-king-throne-tinted.webp',
   ].sort(), 'original and tinted sprites both use the supplied asset base URL');
   assert.equal(assets.images['prince-stand-tinted'].fitBox, true);
+  assert.deepEqual(assets.failed,[]);
   assert.equal(assets.images['sea-king-throne-tinted'].fitBox, undefined,
     'a tinted legacy sprite retains its original stretched fitting');
+  globalThis.Image = class { set src(url) { queueMicrotask(() => url.endsWith('prince-stand.webp') ? this.onerror() : this.onload()); } };
+  const failed = await loadAssets('/review-assets/'); await failed.all;
+  assert.deepEqual(failed.failed,['prince-stand']);
+  assert.equal(failed.images['prince-stand'],undefined,'failed artwork is reported instead of treated as loaded');
 } finally {
   globalThis.fetch = previousFetch;
   globalThis.Image = previousImage;

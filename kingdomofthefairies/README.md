@@ -53,7 +53,7 @@ acts. The first four keep their stage machinery and rules, recast:
 4. The Whale's Passage: through the whale to shore, where Aurora points the
    way through the cavern (a run through the dark, by Aurora's lamp).
 5. The Enchanted Tower: the cliff, a dive from its edge, a swim across the sea gap in its painted
-   sea, diving a little way under the surface from the witch's swoops, and the tower wall up to
+   sea, diving a little way under the surface from the witch's swoops, visibly reaching the far bank before the tower wall up to
    Azurine's window, where she watches for him all the climb.
 6. The Burning Tower: the burning floors, carrying Azurine out, the witch's
    last stand on the clifftop (leap her fire, strike her three times with the
@@ -190,3 +190,8 @@ kingdomofthefairies/publish.sh local/pages/kingdomofthefairies
 `?qa` exposes the shell as `window.__kingdomOfTheFairies` (and the compatible
 `window.__widowsBay` alias). GitHub Pages publishes the renamed directory;
 the repository game index and workflow point to it.
+
+The [coast and artwork audit](design/reviews/coast-cleanup/README.md) records the
+registered channel swim, natural rockfall particles and delivered-art checks.
+Failed scenery downloads keep the game on its loading card with a reload
+instruction instead of entering gameplay with substitute drawings.

@@ -5,8 +5,9 @@ import { CREDITS, finaleFrame } from '../finale.js';
 // the burning interior's floors, connectors and hazards, and the carry reuse
 // Act V's drawing (act5-art.js); the sea gap, the tower wall, the tower's
 // stone interior, the clifftop and the tableaux are new. Every requested
-// piece of art has a stand-in. Draw only from state and t.
-import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DUEL, DIVE, WEDDING, APOTH, weddingGuests, guestHop, AURORA, auroraFacing, weddingDoorAlpha } from './act5film.js';
+// piece of art is delivered; production waits for it before play. Draw only
+// from state and t. Compatibility fallbacks support older review harnesses.
+import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DUEL, DIVE, WEDDING, APOTH, weddingGuests, guestHop, AURORA, auroraFacing, weddingDoorAlpha, diveFloor, swimPosition } from './act5film.js';
 import { HOUSE, QUAY, T, climberPos } from './act5.js';
 import {
   onEvent as act5Event, cliffScene, holds, climbGuide, climber, rocksWorld, rockWarnings,
@@ -49,10 +50,10 @@ export function drawOverTower(k, st) {
 }
 
 export function onEventTower(k, e, st) {
-  if (e.type === 'diveLeap') { k.text('Dive!', st.w.x, DIVE.y - 200); return; }
-  if (e.type === 'diveSplash') { k.shake(0.3); k.burst(e.x, 600, '#eef3ea', 30, 'drop'); return; }
+  if (e.type === 'diveLeap') return;
+  if (e.type === 'diveSplash') { k.shake(0.3); k.burst(e.x, e.y ?? DIVE.water, '#eef3ea', 30, 'drop'); return; }
   if (st.phase === 'swim' || e.type === 'towerFoot') {
-    const px = 420, py = swimY(st);
+    const {x:px} = swimPosition(st.sw), py = swimY(st);
     if (e.type === 'dive') k.burst(px, py - 10, '#eef3ea', 12, 'drop');
     if (e.type === 'surface') k.burst(px, py - 10, '#eef3ea', 6, 'drop');
     if (e.type === 'witchMiss') { k.burst(swoopScreenX(st), 470, '#eef3ea', 18, 'drop'); k.text('Missed!', swoopScreenX(st), 380); }
@@ -65,37 +66,18 @@ export function onEventTower(k, e, st) {
 
 // ---------------------------------------------------------------- the sea gap
 // the waterline he swims along: in the painted swell of the coast-gap cloth
-const SURFACE = 548;
-const swimY = (st) => SURFACE + (st.sw?.dive > 0 ? 70 * Math.sin(Math.PI * clamp(1 - st.sw.dive / SWIM.dive, 0, 1)) + 20 : 0);
-const swoopScreenX = (st) => (st.sw?.swoop ? 420 + (st.sw.swoop.x - st.sw.x) : -999);
+const SURFACE = 550;
+const swimY = (st) => swimPosition(st.sw).y + (st.sw?.dive > 0 ? 70 * Math.sin(Math.PI * clamp(1 - st.sw.dive / SWIM.dive, 0, 1)) + 20 : 0);
+const swoopScreenX = st => st.sw?.swoop ? swimPosition({x:st.sw.swoop.x}).x : -999;
 
 function swimScene(k, st, t) {
   const c = k.c, sw = st.sw, f = sw.x / SWIM.len;
-  // the delivered cloth (the cliff at the left, the sea gap, the tower on its
-  // rock at the right), panned from the cliff toward the tower as he swims
-  const painted = k.img('coast-gap');
-  let cliffX = 260 - f * 520;
-  const cloth = () => k.asset('coast-gap', 832 - f * 384, 800, 1664, 936);
-  if (painted) {
-    cloth();
-    cliffX = 300 - f * 384;
-  } else {
-  const g = c.createLinearGradient(0, 0, 0, SURFACE);
-  g.addColorStop(0, k.col('#1c1630')); g.addColorStop(1, k.col('#3d3a5c'));
-  c.fillStyle = g; c.fillRect(0, 0, 1280, SURFACE + 10);
-  k.moon(980, 120, 38);
-  const rock = [[-400, 470], [-400, 96], [-60, 104], [10, 132], [40, 120], [70, 168], [96, 210], [88, 260], [120, 300], [130, 360], [158, 420], [170, 470]];
-  c.fillStyle = k.col('#241c2a'); c.beginPath(); for (const [dx, y] of rock) c.lineTo(cliffX + dx, y); c.closePath(); c.fill();
-  c.strokeStyle = k.col('#8c7f9a'); c.lineWidth = 2; c.globalAlpha = 0.6;  // moonlight on its edge
-  c.beginPath(); for (const [dx, y] of rock.slice(2, -1)) c.lineTo(cliffX + dx, y); c.stroke(); c.globalAlpha = 1;
-  c.fillStyle = k.col('#3f5a34'); c.fillRect(cliffX - 400, 92, 440, 8);  // the grass at its top
-  towerSilhouette(k, 1180 - f * 380, SURFACE, 0.55 + 0.75 * f, t);
-  }
-  // the sea: the cloth's own painted sea (without it, plain water and swell)
-  if (!painted) {
-    c.fillStyle = k.col('#1d3b44'); c.fillRect(0, SURFACE, 1280, 720 - SURFACE);
-    for (let r = 0; r < 3; r++) k.waves(r, sw.x * (0.6 + r * 0.25) + t * 30);
-  }
+  const position = swimPosition(sw), px = position.x;
+  // Keep the coast registered to the preceding dive; move through its open
+  // channel rather than panning a cliff across a screen-fixed swimmer.
+  const cloth = () => k.asset('coast-gap',640,720,1280,720);
+  cloth();
+  const cliffX = 300;
   // the witch's shadow on the water, then her swoop
   if (sw.swoop) {
     const x = swoopScreenX(st), k2 = clamp(sw.swoop.t / sw.swoop.lead, 0, 1);
@@ -117,24 +99,25 @@ function swimScene(k, st, t) {
     }
   }
   // the prince, swimming at the surface or diving under it: every stroke on
-  // the one scale (his standing figure 150 px; the audit evens the strokes)
+  // the one scale (his standing figure 124 px; the audit evens the strokes)
   const y = swimY(st);
   c.save();
   if (st.inv > 0 && Math.floor(st.inv * 10) % 2) c.globalAlpha = 0.45;
   const ab = Math.floor(sw.stroke * 4) % 2 ? 'a' : 'b';
   const id = (sw.dive > 0 ? 'prince-swim-under-' : 'prince-swim-') + ab;
-  if (!drawPose(k, id, 420, y + 40, 150) && !k.asset('sailor-swim-' + ab, 420, y + 40, 150, 100)) { c.fillStyle = k.col('#2b3550'); c.fillRect(380, y - 12, 80, 22); }
+  if (position.land > .65) drawPose(k, position.land < 1 ? 'prince-mantle-c' : 'prince-stand', px, y, 124);
+  else if (!drawPose(k, id, px, y + 35, 124) && !k.asset('sailor-swim-' + ab, px, y + 35, 124, 83)) { c.fillStyle = k.col('#2b3550'); c.fillRect(380, y - 12, 80, 22); }
   c.restore();
   // the sea over him below its rippling waterline: the painted water laid
   // back over his lower half at the surface, and over all of him when he
   // dives (no box: the cloth itself, clipped to the water)
   const under = sw.dive > 0 ? Math.sin(Math.PI * clamp(1 - sw.dive / SWIM.dive, 0, 1)) : 0;
   c.save();
-  c.beginPath(); c.moveTo(250, 720);
-  for (let x = 250; x <= 600; x += 10) c.lineTo(x, SURFACE - 2 + Math.sin(x * 0.05 + t * 3) * 4);   // at his chest
-  c.lineTo(600, 720); c.closePath(); c.clip();
+  c.beginPath(); c.moveTo(px-105, 720);
+  for (let x = px-105; x <= px+105; x += 10) c.lineTo(x, y - 2 + Math.sin(x * 0.05 + t * 3) * 4);   // at his chest
+  c.lineTo(px+105, 720); c.closePath(); c.clip();
   c.globalAlpha = 0.5 + 0.1 * under;   // under, he shows as a dim shape through it
-  if (!(painted && cloth())) { c.fillStyle = k.col('#1d3b44'); c.fillRect(250, SURFACE, 350, 720 - SURFACE); }
+  if (position.land <= .65) cloth();
   c.restore();
   // how far to the tower (fixed to the screen through the mobile camera)
   (k.flat || ((g) => g()))(() => {
@@ -426,16 +409,8 @@ function diveScene(k, st, t) {
     if (!k.asset('prince-leap', 0, 0, 110, 152)) { c.fillStyle = k.col('#6f9fc8'); c.fillRect(-14, -100, 28, 100); }
     c.restore();
   } else if (!d) princeOnFoot(k, w, 124);
-  if (d?.splash) { c.save(); c.globalAlpha = Math.max(0, 1 - d.t / FILM_T.splash); c.fillStyle = k.col('#eef3ea'); c.beginPath(); c.ellipse(w.x, 600, 40 + d.t * 80, 10, 0, 0, Math.PI * 2); c.fill(); c.restore(); }
-  // the edge to dive from: a glowing mark on the path
-  if (!d) {
-    const a = 0.45 + 0.3 * Math.sin(t * 5);
-    c.save(); c.globalAlpha = a; c.fillStyle = k.col('#fff2b0');
-    c.beginPath(); c.ellipse(DIVE.edge - 30, DIVE.y + 2, 46, 9, 0, 0, Math.PI * 2); c.fill();
-    c.beginPath(); c.moveTo(DIVE.edge - 42, DIVE.y - 150); c.lineTo(DIVE.edge - 18, DIVE.y - 150); c.lineTo(DIVE.edge - 30, DIVE.y - 130); c.closePath(); c.fill();
-    c.restore();
-  }
-  if (!d && st.phaseT < 7) hint(k, 'Walk to the cliff edge · [A] dives for the tower');
+  if (d?.splash) { c.save(); c.globalAlpha = Math.max(0, 1 - d.t / FILM_T.splash); c.fillStyle = k.col('#eef3ea'); c.beginPath(); c.ellipse(w.x, DIVE.water, 40 + d.t * 80, 10, 0, 0, Math.PI * 2); c.fill(); c.restore(); }
+
 }
 
 // The fight before it: the witch at the right of the ledge, her fire running

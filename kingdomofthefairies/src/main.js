@@ -149,7 +149,7 @@ loadAssets('assets/', { first: FIRST_ART, onImage: (id, im) => {
 } }).then((a) => {
   assets = a;
   artTotal = Object.values(a.slots).filter((sl) => sl.status === 'delivered' && sl.file).length;
-  a.all.then(() => { artAll = true; });
+  a.all.then(() => { artAll = a.failed.length === 0; });
   a.ready.then(() => { firstArt = true; });
   const song = a.audio?.song;
   if (song?.status === 'delivered' && song.file) audio.setTrack('assets/' + song.file, song.loopStart, song.loopEnd);
@@ -650,7 +650,13 @@ function update(dt, i) {
     // Hold the card until the song can play and the art has arrived,
     // showing their progress.
     if (!songSettled()) { S.card.loading = songStatus().progress; S.readyT = 0; if (i.pause) pause(); return; }
-    if (!artAll) { S.card.loading = artTotal ? Math.min(0.99, artLoaded / artTotal) : 0; S.readyT = 0; if (i.pause) pause(); return; }
+    if (!artAll) {
+      S.card.error = assets?.failed?.length ? 'The scenery could not load. Please reload.' : null;
+      S.card.loading = S.card.error ? null : artTotal ? Math.min(0.99, artLoaded / artTotal) : 0;
+      S.readyT = 0;
+      if (i.pause) pause();
+      return;
+    }
     if (S.card.loading != null) { S.card.loading = null; announce('Ready.'); }
     S.readyT = (S.readyT || 0) + dt;
     if ((go && S.readyT > 0.4) || S.readyT > (S.card.body ? 12 : 6)) {

@@ -9,7 +9,7 @@ import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
 import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, NEAR_HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
 import act2, { FAIRY_AT, FILM_DIVE, RIDE } from '../src/acts/act2.js';
 import act3, { PASSAGE } from '../src/acts/act3.js';
-import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach, weddingGuests, guestHop, CELEBRATION, AURORA, auroraFacing, WEDDING, weddingFloor } from '../src/acts/act5film.js';
+import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach, weddingGuests, guestHop, CELEBRATION, AURORA, auroraFacing, WEDDING, weddingFloor, SWIM as SEA, diveFloor, swimPosition } from '../src/acts/act5film.js';
 import { CLIMB, terrainAt } from '../src/acts/climb.js';
 import { CLIMB_MAPS } from '../src/acts/climb-map.js';
 import act4 from '../src/acts/act4.js';
@@ -304,7 +304,17 @@ test('Act V: the swim is won by diving under her swoops, then the tower wall beg
   }, (s) => s.phase === 'tower');
   assert.equal(st.phase, 'tower', `phase ${st.phase}, x ${st.sw?.x}`);
   assert.equal(st.lanterns, 3, 'no swoop landed');
-  assert.ok(st.sw.aurora != null && st.sw.swoops >= 2, `Aurora drove her off after ${st.sw.swoops} swoops`);
+  assert.ok(st.sw.aurora != null && st.sw.swoops >= 1, `Aurora drove her off after ${st.sw.swoops} swoops`);
+});
+
+test('Act V: faster channel traversal reaches the far bank before the tower cut',()=>{
+ const st=actTower.create({from:{scene:2}});
+ run(actTower,st,8,()=>({moveX:1,a:st.sw.dive<=0&&!!st.sw.swoop}),s=>s.sw.arrivalT!=null);
+ assert.equal(st.phase,'swim');assert.equal(st.sw.x,SEA.len);assert.equal(st.sw.arrivalT,0);
+ assert.ok(swimPosition(st.sw).x>=865);
+ run(actTower,st,.9);assert.equal(st.phase,'swim');assert.equal(swimPosition(st.sw).land,1);
+ run(actTower,st,.3);assert.equal(st.phase,'tower');
+ assert.ok(diveFloor(365)>diveFloor(210)+20,'feet follow the descending painted path');
 });
 
 test('Act V: a swimmer who never dives is caught', () => {

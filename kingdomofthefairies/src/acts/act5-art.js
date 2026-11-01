@@ -1,9 +1,10 @@
+import { rockfallDust, rockfallTrail } from '../rockfall-effects.js';
 import { LEGACY, BAY_TITLE, FILM } from '../theme.js';
 // Act V drawing: the cliff, the burning house, the quay, the three endings
 // and the pageant. Every piece of new art has a procedural stand-in until its
 // file is delivered (ids are in design/image-requests.md, Parts C1 and C6,
 // drawn at half the listed size). Draw only from state and t: no randomness.
-import { CLIFF, HOUSE, QUAY, T, PAGEANT, joinAt, climberPos, bootLift, holdY, climbOptions } from './act5.js';
+import { BEAT_S, CLIFF, HOUSE, QUAY, T, PAGEANT, joinAt, climberPos, bootLift, holdY, climbOptions } from './act5.js';
 import { richText } from '../art.js';   // headless-safe: art.js touches no DOM at load
 import { clamp, lerp, easeOut, easeInOut, beatPhase } from './shared.js';
 import { drawMovement, cliffPose, housePose } from './sailor-motion.js';
@@ -597,7 +598,8 @@ function wallThings(k, st, t) {
       return;
     }
     if (cr.gone) return;
-    for (const [dx, dy] of [[-18, 10], [14, -6], [0, -26], [-10, -44]]) ivyGrip(k, cr.x + dx + shake, -cr.y + dy, true, t + i + dx);
+    // Ivy is already painted on the cloth; its instability is loose grit.
+    if (cr.t > 0) rockfallDust(k,cr.x+shake,-cr.y-30,t,.45,i);
   });
   // the tiny guitarist plays on a knob in the cleft: under him, stones glance off
   if (st.shelter && st.shelter.y > cam - 140 && st.shelter.y < cam + 760) {
@@ -685,6 +687,7 @@ export function rocksWorld(k, st, t) {
   const c = k.c;
   for (const r of st.rocks) {
     if (r.y == null) continue;
+    rockfallTrail(k,r,t);
     c.save(); c.translate(r.x, -r.y); c.rotate(r.spin + t * 7);
     if (!k.asset('debris-stones', 0, 22, 60, 40)) {
       c.fillStyle = k.col('#8d8f91');
@@ -698,36 +701,15 @@ export function rocksWorld(k, st, t) {
 // Dust gathering at the top of the frame over a stone about to fall, and the
 // tea-leaf omen a beat earlier when the reading is complete.
 export function rockWarnings(k, st, t) {
-  const c = k.c, top = 124;
   for (const r of st.rocks) {
     if (r.y != null) continue;
-    if (r.omen) omenGlyph(k, r.x, top + 40, t);
-    if (r.wait > r.warn) continue;
-    const k2 = 1 - r.wait / r.warn;
-    c.save();
-    // a column of falling grit down the line the stone will take
-    const g = c.createLinearGradient(0, top, 0, 640);
-    g.addColorStop(0, k.P.mode === 'lum' ? 'rgba(250,240,220,0.55)' : 'rgba(233,164,106,0.5)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    c.globalAlpha = 0.35 + 0.5 * k2; c.fillStyle = g; c.fillRect(r.x - 22, top, 44, 520);
-    c.globalAlpha = 1;
-    c.fillStyle = k.col('#5e5446');
-    for (let i = 0; i < 9; i++) { const py = top + 10 + ((t * 260 + i * 47) % (40 + k2 * 420)); k.circle(r.x - 12 + (i * 7) % 24, py, 2.5 + (i % 2)); }
-    // the puff of dust at the lip
-    c.fillStyle = k.col('#f1e3c8'); c.globalAlpha = 0.85;
-    for (let i = 0; i < 4; i++) k.circle(r.x - 24 + i * 16, top + Math.sin(t * 9 + i) * 3, 9 + k2 * 9);
-    c.restore();
+    // The bonus still grants its earlier tell, now through the same natural
+    // dust emitter instead of a circled token laid over the scenery.
+    const lead = r.warn + (r.omen ? BEAT_S : 0);
+    if (r.wait > lead) continue;
+    const intensity = .25 + .75 * clamp(1-r.wait/lead,0,1);
+    rockfallDust(k,r.x,124,t,intensity,r.spin*100);
   }
-}
-
-function omenGlyph(k, x, y, t) {
-  const c = k.c;
-  c.save(); c.globalAlpha = 0.85 + 0.15 * Math.sin(t * 8);
-  if (k.omen) { k.omen(x, y, 1); c.restore(); return; }
-  c.fillStyle = k.col('#2a1424'); k.circle(x, y, 19);
-  c.strokeStyle = k.col('#d9b34a'); c.lineWidth = 2; c.beginPath(); c.arc(x, y, 19, 0, Math.PI * 2); c.stroke();
-  k.keepsake('leaf', x, y - 4, 0.75);
-  c.restore();
 }
 
 function stormFx(k, st, t) {
@@ -1001,7 +983,9 @@ export function hazards(k, st, t) {
     const fy = quay ? QUAY.y : HOUSE.floors[h.f];
     const ceil = quay ? 130 : Math.max(132, fy - HOUSE.storey + 14);
     if (h.wait > 0) {
-      if (h.omen) omenGlyph(k, h.x, ceil + 34, t);
+      const lead = h.warn + (h.omen ? BEAT_S : 0);
+      if (h.wait > lead) continue;
+      rockfallDust(k,h.x,ceil,t,.3+.7*clamp(1-h.wait/lead,0,1),h.x);
       if (h.wait > h.warn) continue;
       // shudder and dust
       const kk = 1 - h.wait / h.warn;

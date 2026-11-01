@@ -23,7 +23,7 @@ import * as art from './act5film-art.js';
 // World x along the sea gap, from the foot of the cliff (0) to the tower's
 // rock (len). The current pulls back toward the cliff; keep swimming.
 // Aurora drives the witch off after `swoops` swoops or `auroraAt` of the way across.
-export const SWIM = { len: 2400, speed: 240, current: 45, dive: 0.9, diveCD: 0.45, every: [1.8, 2.4], warn: 1.5, swoops: 3, auroraAt: 0.7, aurora: 2.0 };
+export const SWIM = { len: 2400, speed: 360, current: 30, dive: 0.9, diveCD: 0.45, every: [1.8, 2.4], warn: 1.5, swoops: 3, auroraAt: 0.7, aurora: 2.0, arrival: 1.1 };
 
 // ---------------------------------------------------------------- the tower
 // The tower wall: x on stage, y up from the rocks at its foot to her window.
@@ -136,7 +136,14 @@ export const FILM_T = { dive: 3.8, window: 3.6, iris: 1.6, barrelFall: 2.4, vict
 // clifftop he dives from, the cliff he rolls the witch's barrel over, the
 // wedding street and the apotheosis. Each was measured on its delivered set.
 export const WALK = { speed: 240, acc: 2000, g: 2000, jump: 720, cut: 2400, buffer: 0.13 };
-export const DIVE = { y: 372, x0: 170, edge: 360, start: 210 };          // coast-gap's cliff path
+export const DIVE = { y: 378, x0: 170, edge: 375, start: 210, water: 550 };
+export const diveFloor = x => x < 260 ? lerp(365,389,clamp((x-170)/90,0,1)) : lerp(389,412,clamp((x-260)/115,0,1));
+// One stage-space route shared by the swimmer, witch shadow and water mask.
+export function swimPosition(sw) {
+  const f = clamp(sw.x / SWIM.len,0,1);
+  const land = clamp((sw.arrivalT || 0) / .85,0,1);
+  return { x: lerp(495,865,f) + land*95, y: 550-land*54, land };
+}
 export const BARREL = {                                                  // cliff-whirlpool's ledge
   y: 412, x0: 150, edge: 728, start: 230, at: 470, hw: 40, push: 150, knock: 320,
 };
@@ -348,6 +355,11 @@ function lostText(st) {
 
 function stepSwim(st, dt, input) {
   const sw = st.sw;
+  if (sw.arrivalT != null) {
+    sw.arrivalT += dt;
+    if (sw.arrivalT >= SWIM.arrival) { st.score += 150; st.events.push({type:'towerFoot'}); startTower(st); }
+    return;
+  }
   const mx = input.moveX || (input.left ? -1 : 0) || (input.right ? 1 : 0);
   sw.x = clamp(sw.x + (mx * SWIM.speed - SWIM.current) * dt, 0, SWIM.len);
   if (Math.abs(mx) > 0.2) sw.stroke += dt;
@@ -378,7 +390,7 @@ function stepSwim(st, dt, input) {
   }
   if (sw.aurora == null && !sw.swoop && sw.x >= SWIM.len * SWIM.auroraAt) { sw.aurora = 0; st.events.push({ type: 'auroraLight' }); }
   if (sw.aurora != null) sw.aurora += dt;
-  if (sw.x >= SWIM.len) { st.score += 150; st.events.push({ type: 'towerFoot' }); startTower(st); }
+  if (sw.x >= SWIM.len) { sw.arrivalT = 0; sw.dive = 0; sw.swoop = null; }
 }
 
 // ================================================================= Act VI
@@ -501,7 +513,7 @@ function stepJump(w, dt, input, y, leap = true, events = null, jumpSpeed = CELEB
 // (A, or walking off the edge), arcing down into the sea.
 function startDive(st) {
   setPhase(st, 'dive');
-  st.w = walker(DIVE.start, DIVE.y);
+  st.w = walker(DIVE.start, diveFloor(DIVE.start));
   st.dv = null;
 }
 function stepDive(st, dt, input) {
@@ -510,13 +522,14 @@ function stepDive(st, dt, input) {
     const d = st.dv;
     d.t += dt;
     if (!d.splash) { d.vy += WALK.g * 0.8 * dt; w.x += d.vx * dt; w.y += d.vy * dt; d.rot += dt * 3.2;
-      if (w.y >= 600) { d.splash = true; d.t = 0; st.events.push({ type: 'diveSplash', x: w.x }); } }
+      if (w.y >= DIVE.water) { d.splash = true; d.t = 0; st.events.push({ type: 'diveSplash', x: w.x, y: DIVE.water }); } }
     else if (d.t >= FILM_T.splash) startSwim(st);
     return;
   }
-  walk(w, dt, input, { y: DIVE.y, x0: DIVE.x0, x1: DIVE.edge + 40 });
+  walk(w, dt, input, { y: diveFloor(w.x), x0: DIVE.x0, x1: DIVE.edge + 40 });
+  if (w.on) w.y = diveFloor(w.x);
   if ((input.a && w.x > DIVE.edge - 110) || w.x > DIVE.edge + 10) {
-    st.dv = { t: 0, vx: 260 + Math.max(0, w.vx) * 0.6, vy: -620, rot: 0, splash: false };
+    st.dv = { t: 0, vx: 170, vy: -260, rot: 0, splash: false };
     st.events.push({ type: 'diveLeap' });
   }
 }

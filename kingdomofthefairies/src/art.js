@@ -63,7 +63,7 @@ function testArt(id, s) {
 const TEST_ART = typeof location !== 'undefined' && /[?&]qa\b/.test(location.search) && /[?&]testart\b/.test(location.search);
 
 export async function loadAssets(base = 'assets/', { first = [], onImage } = {}) {
-  const out = { slots: {}, images: {}, anims: {}, audio: {}, sfx: {}, ready: Promise.resolve(), all: Promise.resolve() };
+  const out = { failed: [], slots: {}, images: {}, anims: {}, audio: {}, sfx: {}, ready: Promise.resolve(), all: Promise.resolve() };
   let animationSlots = {};
   try {
     const res = await fetch(base + 'manifest.json');
@@ -72,11 +72,11 @@ export async function loadAssets(base = 'assets/', { first = [], onImage } = {})
     out.audio = m.audio || {};
     out.sfx = m.sfx || {};
     animationSlots = m.anims || {};
-  } catch { return out; }
+  } catch { out.failed.push('manifest'); return out; }
   const load = (ids) => Promise.all(ids.map((id) => new Promise((done) => {
     const s = out.slots[id];
     if (TEST_ART && s?.status === 'requested') { out.images[id] = testArt(id, s); onImage?.(id, out.images[id]); return done(); }
-    if (!s || s.status !== 'delivered' || !s.file) return done();
+    if (!s || s.status !== 'delivered' || !s.file) { out.failed.push(id); return done(); }
     const img = new Image();
     // Film art keeps its proportions in its box (fitBox); a tinted alternate is
     // drawn the way its original is, so one of an older, stretched-to-box
@@ -84,7 +84,7 @@ export async function loadAssets(base = 'assets/', { first = [], onImage } = {})
     const originalSlot = id.endsWith('-tinted') ? out.slots[id.slice(0, -7)] : null;
     const fit = s.edition === 'film' && (!originalSlot || originalSlot.edition === 'film');
     img.onload = () => { if (fit) { img.fitBox = true; img.bodyScale = bodyScaleOf(id); } out.images[id] = img; onImage?.(id, img); done(); };
-    img.onerror = () => done();
+    img.onerror = () => { out.failed.push(id); done(); };
     img.src = base + s.file;
   })));
   const early = first.filter((id) => out.slots[id]);
@@ -1039,13 +1039,20 @@ export function createRenderer(canvas, assets = { slots: {}, images: {} }) {
     c.drawImage(src, iw - e, 0, e, ih, x + w - ew, y, ew, h);
     return true;
   }
-  // The omen token (Act III onward): the token with the tea leaf on it.
+  // Early underwater warnings are a short rising particle shimmer, never
+  // a token/disc/star laid over the scene. Cliff warnings have their own grit.
   function omen(c, x, y, s = 1) {
-    if (!drawArt(c, 'omen-token', x, y + 20 * s, 40 * s, 40 * s)) {
-      c.fillStyle = P.c(PAL.plum); circle(c, x, y, 20 * s);
-      c.strokeStyle = P.c(PAL.gold); c.lineWidth = 3 * s; c.beginPath(); c.arc(x, y, 19 * s, 0, Math.PI * 2); c.stroke();
+    c.save();
+    for (let i=0;i<14;i++) {
+      const seed = ((i*73)%101)/101;
+      const age = (kit.t*.65+seed)%1;
+      c.globalAlpha = Math.sin(age*Math.PI)*.55;
+      c.fillStyle = P.c(i%3 ? '#d9d9cd' : '#e6c68a');
+      const dx = Math.sin(i*4.1+age*3)*(8+age*12)*s;
+      const size = (1+i%2)*s;
+      c.fillRect(x+dx,y-age*30*s,size,size);
     }
-    c.save(); c.translate(x, y); c.scale(s * 0.5, s * 0.5); keepsakeIcon(c, 'leaf', kit.t); c.restore();
+    c.restore();
   }
   const drawArt = (c, id, cx, by, w, h, extra = '') => { const im = img(id); if (!im) return false; drawAsset(c, P, im, cx, by, w, h, extra); return true; };
 
@@ -1340,7 +1347,10 @@ export function drawCard(c, card, t) {
     c.font = '700 24px "Josefin Sans", sans-serif';
     card.sub.split('\n').forEach((l, i) => richText(c, l, 640, 500 + i * 34, { px: 24, mode: card.mode }));
   }
-  if (card.loading != null) {
+  if (card.error) {
+    c.font = '600 22px "Josefin Sans", sans-serif'; c.fillStyle = PAL.pink;
+    c.textAlign = 'center'; c.fillText(card.error,640,595);
+  } else if (card.loading != null) {
     // The song is still loading: a thin double-ruled bar where the prompt goes.
     c.globalAlpha = a;
     c.strokeStyle = card.bg === 'magenta' ? '#f7b9d6' : '#c79ab7'; c.lineWidth = 1.5;
