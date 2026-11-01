@@ -93,7 +93,10 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
 - **The root holds only what is shared.** `README.md` is a list of links to
   the games and sites and nothing more; each game's details belong in its own
   README. `index.html` is the game library published at
-  https://hoai2k.github.io/mini/, one card per game. Apps (tools such as Ear Trainer,
+  https://hoai2k.github.io/mini/, one card per game; a controller works it like
+  the art library's (any button selects a card, the d-pad or stick moves by
+  the cards' positions, A or Start opens one; the script at the end of the
+  page). Apps (tools such as Ear Trainer,
   Ai-Ching, Music Practice, Stocks, MP3 Player, Image Annotator and Meditation Timer) go on its mini apps shelf below the games, with Music
   Practice pinned first and Games Chat second, then the rest newest first. There is
   no Prototype archive any more: games that haven't turned out as hoped are
