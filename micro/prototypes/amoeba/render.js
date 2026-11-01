@@ -176,21 +176,29 @@ export class View {
    * program on every first pinch-off. The calls are only queued (compileAsync
    * where the renderer has it: a driver with KHR_parallel_shader_compile
    * builds them in the background), so they overlap the rest of the start-up.
-   * The stand-in materials stay alive, so a program is never released and
-   * rebuilt when the last real user of it (a fragment) is disposed.
+   * Once they are built, the ones the first frame does not draw are drawn
+   * once into 1-pixel targets of the right formats, off screen, because some
+   * drivers (ANGLE on Vulkan, SwiftShader) only build the pipeline at a
+   * program's first draw. The stand-in materials stay alive, so a program is
+   * never released and rebuilt when the last real user of it (a fragment) is
+   * disposed.
    */
   precompile() {
     const r = this.renderer;
     if (!this.warmScene) {
       this.warmScene = new THREE.Scene();
+      const tri = new THREE.BufferGeometry(); // a fragment's layout: positions only (zero area)
+      tri.setAttribute('position', new THREE.BufferAttribute(new Float32Array(9), 3));
       for (const fs of [PREY_FS, SPIRO_FS, DIATOM_FS, FLAKE_FS, TRAP_FS, LEAF_FS, PHOTO_FS, FRAG_FS]) {
-        const m = new THREE.Mesh(this.quadGeo, propertyMaterial({ vertexShader: QUAD_VS, fragmentShader: fs, uniforms: {} }));
+        const m = new THREE.Mesh(fs === FRAG_FS ? tri : this.quadGeo, propertyMaterial({ vertexShader: QUAD_VS, fragmentShader: fs, uniforms: {} }));
         m.frustumCulled = false;
         m.visible = false;
+        m.userData.draw = fs === FRAG_FS;
         this.warmScene.add(m);
       }
     }
-    const go = (scene, camera) => { if (r.compileAsync) r.compileAsync(scene, camera).catch(() => {}); else r.compile(scene, camera); };
+    const jobs = [];
+    const go = (scene, camera) => { if (r.compileAsync) jobs.push(r.compileAsync(scene, camera)); else r.compile(scene, camera); };
     const prev = r.getRenderTarget(), o = this.optics, mat0 = o.quad.material;
     try {
       r.setRenderTarget(this.maskRT);
@@ -207,6 +215,30 @@ export class View {
     } catch (e) { /* only a warm-up */ } finally {
       o.quad.material = mat0;
       r.setRenderTarget(prev);
+    }
+    Promise.all(jobs).catch(() => {}).then(() => this.warmDraws());
+  }
+
+  /** The first draws precompile() promises: off screen, into 1-pixel targets (nothing shown). */
+  warmDraws() {
+    const r = this.renderer, o = this.optics;
+    const prev = r.getRenderTarget(), mat0 = o.quad.material;
+    // the property buffers' format; a split view's target (shared/splitscreen.js target())
+    const rtP = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, format: THREE.RGBAFormat, depthBuffer: false });
+    const rtV = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: true, samples: 0 });
+    rtV.texture.colorSpace = THREE.SRGBColorSpace;
+    try {
+      for (const m of this.warmScene.children) m.visible = m.userData.draw;
+      r.setRenderTarget(rtP);
+      r.render(this.warmScene, this.camera);
+      o.quad.material = o.compMat;
+      r.setRenderTarget(rtV);
+      r.render(o.quadScene, o.quadCam);
+    } catch (e) { /* only a warm-up */ } finally {
+      for (const m of this.warmScene.children) m.visible = false;
+      o.quad.material = mat0;
+      r.setRenderTarget(prev);
+      rtP.dispose(); rtV.dispose();
     }
   }
 

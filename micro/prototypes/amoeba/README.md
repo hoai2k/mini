@@ -457,6 +457,16 @@ JS-only bench of 60 Hz steps (`advance`), since the frame harness is noisy here:
   in the join frame is the first use of the split-screen shader programs (six
   links, 100–400 ms in SwiftShader); prewarming them at load belongs in
   `../shared/splitscreen.js`.
+- **Shaders at load** (third pass): `view.precompile()` compiles every program
+  the view can use right after it is made (the composite into a split view's
+  target, pinched-off fragments, each prey and slide-object kind, Chaos and
+  the trap hyphae included), and `splitscreen.js` compiles its compose
+  programs when it is created; both use `compileAsync`, then draw each new
+  program once where nothing shows (1-pixel targets; a zero-area triangle via
+  `split.prewarm()`), since SwiftShader builds a pipeline only at its first
+  draw. Joining now links no program (6 before); the join frame's main-thread
+  time fell from 144–284 ms to 65–191 ms (SwiftShader, 640×360, a loaded
+  machine); load time and steady frame times are unchanged within noise.
 
 ## Features (Menu panel)
 

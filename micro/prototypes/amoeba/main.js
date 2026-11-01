@@ -1828,6 +1828,7 @@ function renderAll(dt) {
   if (!many) {
     if (splitT.scissored) { for (const t of internal) split.unscissor(t); splitT.scissored = false; }
     const o = L.views[0] ? L.views[0].offset : { x: 0, y: 0 };
+    split.prewarm(); // the split compose programs' first draw, unseen, once they are built
     view.setView(S.camX + o.x, S.camY + o.y, fieldW);
     view.render({ ...args, buffersOnly: !!borrow.id });
     if (borrow.id) renderBorrowed(dt);
