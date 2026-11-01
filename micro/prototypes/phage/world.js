@@ -78,9 +78,9 @@ export const progressAt = (p) => _u.subVectors(p, START).length();
 export const routeProgress = progressAt;
 
 // ---- the director (shared/director.js): its settings and the encounters in order ----
-// main.js adds place and met; route.test.mjs runs them without a browser. The haze only dims what is
-// far (to 28 % at fogFar x 1.8 from the camera, ~700 units past what the view frames), so a view counts
-// as seeing its frustum out to 700 units past its focus; a phage drifts at ~30 units/s.
+// main.js adds place and met; route.test.mjs runs them without a browser. The depth haze closes in
+// completely ~400 units past what the view frames (phage-goodsell.js), so a view counts as seeing its
+// frustum out to 450 units past its focus; a phage drifts at ~30 units/s.
 //   size     clearance; parts: what can be seen of it once placed (unseen water, out of every view)
 //   min/maxAhead  how far ahead of the leader it goes; min/maxNear when they linger
 // `side(dir)`: the host's long axis lies across `dir` (the way it is met); Host B's clay platelet and the
@@ -93,29 +93,34 @@ export function amoebaAt(pos, dir, out = new THREE.Vector3()) { return out.copy(
 /** Where Host B's clay platelet goes for Host B at `pos`, met along `dir` (world.placeHost). */
 export function clayAt(pos, dir, out = new THREE.Vector3()) { return out.copy(pos).addScaledVector(sideOf(dir, _u), HOST_GEO.B.half + 70); }
 export const DIRECTOR = {
-  mode: '3d', cell: 80, seenDist: 700, nearSeen: 60, seed: 29,
+  mode: '3d', cell: 45, seenDist: 380, nearSeen: 60, seed: 29,
   bounds: { x0: -FIELD_R, x1: FIELD_R, y0: -FIELD_R, y1: FIELD_R, z0: -FIELD_R, z1: FIELD_R },
-  // ~6 s of drifting to warm up; a calm break of ~6 s of drifting clear of each decoy
-  warmup: { sec: 6 }, calm: { sec: 6 }, linger: 6, moveSpeed: 6,
-  // seen but not gone to: met once everyone is ~900 units off, or after 10 s in sight nearby
-  passDist: 900, watchSec: 10, watchDist: 600,
+  // ~6 s of drifting to warm up; a calm break of ~5 s of drifting clear of each decoy
+  warmup: { sec: 6 }, calm: { sec: 5 }, linger: 6, moveSpeed: 6,
+  // seen but not gone to: met once everyone is ~700 units off, or after 10 s in sight nearby
+  passDist: 700, watchSec: 10, watchDist: 400,
 };
 /**
- * The encounters in order, for a leader whose position `lead` ({ x, y, z }) the caller keeps up to date
- * (each part is placed relative to the way it is met: from the leader to the spot).
+ * The encounters in order, for a leader whose position and heading `lead` ({ x, y, z, hx, hy, hz,
+ * moving }) the caller keeps up to date: each is laid out from the way it is met (from the leader to the
+ * spot), and while the leader is moving it goes within ~40° of their heading (in a 3D view, a spot off
+ * to the side stays off the screen however far they go: the director then puts it farther ahead, past
+ * what the view can make out).
  */
 export function encounterSpecs(lead) {
   const _p = new THREE.Vector3(), _d = new THREE.Vector3(), _a = new THREE.Vector3();
   const dirTo = (x, y, z) => { _d.set(x - lead.x, y - lead.y, z - lead.z); if (_d.lengthSq() < 1e-6) _d.set(1, 0, 0); return _d.normalize(); };
-  const inField = (x, y, z, m = 0) => Math.hypot(x, y, z) < FIELD_R - m;
+  const inField = (x, y, z, m = 0) => Math.hypot(x, y, z) < FIELD_R - m && ahead(x, y, z);
+  const ahead = (x, y, z) => { if (!lead.moving || Math.hypot(lead.x, lead.y, lead.z) > FIELD_R - 450) return true; // (near the field's edge: wherever there is room)
+    const dx = x - lead.x, dy = y - lead.y, dz = z - lead.z, l = Math.hypot(dx, dy, dz) || 1; return (dx * lead.hx + dy * lead.hy + dz * lead.hz) / l > 0.76; };
   // (the director's parts: [[x, z, r, y], ...])
   return [
-    { id: 'B', size: 170, minAhead: 260, maxAhead: 480, minNear: 230, maxNear: 400,
+    { id: 'B', size: 120, minAhead: 230, maxAhead: 700, minNear: 230, maxNear: 400,
       parts: (x, z, b, y) => { const c = clayAt(_p.set(x, y, z), dirTo(x, y, z), _a); return [[x, z, 105, y], [c.x, c.z, 52, c.y]]; },
       fits: (x, z, b, y) => inField(x, y, z, 120) },
-    { id: 'W', size: 130, visible: 85, minAhead: 240, maxAhead: 460, minNear: 210, maxNear: 380, fits: (x, z, b, y) => inField(x, y, z, 100) },
+    { id: 'W', size: 100, visible: 85, minAhead: 220, maxAhead: 680, minNear: 210, maxNear: 380, fits: (x, z, b, y) => inField(x, y, z, 100) },
     // the boss and the way on: Host A (its gold receptor, the glow's beacon) and the amoeba beside it
-    { id: 'portal', size: 220, minAhead: 300, maxAhead: 560, minNear: 260, maxNear: 460, final: true,
+    { id: 'portal', size: 220, minAhead: 300, maxAhead: 800, minNear: 260, maxNear: 460, final: true,
       parts: (x, z, b, y) => { const c = amoebaAt(_p.set(x, y, z), dirTo(x, y, z), _a); return [[x, z, 150, y], [c.x, c.z, AMOEBA_R + 20, c.y]]; },
       fits: (x, z, b, y) => inField(x, y, z, 140) },
   ];
@@ -580,7 +585,7 @@ export function createWorld(scene) {
       { name: `UV sunfleck shafts (${UV_SHAFTS.length}, scenery: everywhere else)`, d: Math.round(Math.min(...UV_SHAFTS.map((u) => u.c.length()))) },
       { name: 'decoy hosts, then the portal (Host A + the amoeba on guard): placed as you go (main.js director)' },
       ...world.hosts.filter((h) => !h.hidden).map((h) => row(h.name, h.pos)),
-      row('clay platelet (beside Host B)', clay.pos),
+      ...(clay.group.visible ? [row('clay platelet (beside Host B)', clay.pos)] : []),
       ...(amGroup.visible ? [row('amoeba (on guard)', amoeba.center)] : []),
     ];
   };

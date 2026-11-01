@@ -96,15 +96,24 @@ export const trapDist = (x, y) => Math.min(...TRAPS.map((t) => segDist(x, y, t))
  * The filaments in focus lie beyond SLIDE.far (buildWorld), out of the encounters' reach.
  */
 export const clearAt = (x, y, r) => Math.hypot(x, y) < SLIDE.far - 150 - r && leafDist(x, y) > LEAF.W / 2 + 120 + r && trapDist(x, y) > 90 + r;
-// Chaos and the portal: Chaos on its post CHAOS_IN µm short of the portal
-// (between it and whoever comes), its rest (when beaten) off to one side.
-export const CHAOS_IN = 240;
-export const portalParts = (x, y, b) => ({ chaos: [x - Math.cos(b) * CHAOS_IN, y - Math.sin(b) * CHAOS_IN] });
-/** Room for Chaos (radius 320) and the portal at (x, y), met coming along bearing b. */
-export function portalRoom(x, y, b) {
-  const [cx, cy] = portalParts(x, y, b).chaos;
-  return clearAt(x, y, 260) && clearAt(cx, cy, 320 + 220) && leafDist(x, y) > LEAF.W / 2 + 450 && leafDist(cx, cy) > LEAF.W / 2 + 700;
+// Chaos and the portal: Chaos on its post beside the portal, CHAOS_SIDE µm to
+// one side of it and CHAOS_IN toward whoever comes (it guards the portal within
+// 480 µm: main.js GUARD_R), on the first side with room; its rest (when beaten)
+// further off.
+export const CHAOS_SIDE = 330, CHAOS_IN = 90;
+const chaosOk = (cx, cy) => clearAt(cx, cy, 320 + 200) && leafDist(cx, cy) > LEAF.W / 2 + 700;
+/** Where Chaos's post is for a portal at (x, y) met coming along bearing b (null: no room on either side). */
+export function chaosPost(x, y, b) {
+  const ux = Math.cos(b), uy = Math.sin(b);
+  for (const k of [1, -1]) {
+    const cx = x - ux * CHAOS_IN - uy * CHAOS_SIDE * k, cy = y - uy * CHAOS_IN + ux * CHAOS_SIDE * k;
+    if (chaosOk(cx, cy)) return [cx, cy];
+  }
+  return null;
 }
+export const portalParts = (x, y, b) => ({ chaos: chaosPost(x, y, b) || [x - Math.cos(b) * CHAOS_IN, y - Math.sin(b) * CHAOS_IN] });
+/** Room for Chaos (radius 320) and the portal at (x, y), met coming along bearing b. */
+export const portalRoom = (x, y, b) => clearAt(x, y, 260) && leafDist(x, y) > LEAF.W / 2 + 450 && !!chaosPost(x, y, b);
 /**
  * The director's settings and the encounters in order (main.js adds place and
  * met; route.test.mjs runs them without a browser). µm; the cell crawls ~45
@@ -115,21 +124,21 @@ export function portalRoom(x, y, b) {
  *   min/maxAhead  how far ahead of the leader it goes; min/maxNear when they linger
  */
 export const DIRECTOR = {
-  cell: 100, seenDist: 1100, nearSeen: 200, seed: 5, moveSpeed: 12,
+  cell: 75, seenDist: 1100, nearSeen: 200, seed: 5, moveSpeed: 12,
   bounds: { x0: -SLIDE.field, x1: SLIDE.field, z0: -SLIDE.field, z1: SLIDE.field },
-  // the warm-up: ~5 s of crawling; then a calm break of ~3.5 s of crawling clear of the last encounter
-  warmup: { sec: 5 }, calm: { sec: 3.5 }, linger: 6,
+  // the warm-up: ~4.5 s of crawling; then a calm break of ~3 s of crawling clear of the last encounter
+  warmup: { sec: 4.5 }, calm: { sec: 3 }, linger: 6,
   // seen but not gone to: met once everyone is 1.3 mm off (off a 10× view), or after 8 s in sight nearby (it is never moved)
   passDist: 1300, watchSec: 8,
 };
 const patchFits = (x, y) => clearAt(x, y, PATCH.ciliates.r + 140);
 export const ENCOUNTERS = [
   // a patch of fleeing ciliates (Tetrahymena, Colpidium): surge to catch them
-  { id: 'ciliates', size: 300, visible: PATCH.ciliates.r + 110, minAhead: 850, maxAhead: 1250, minNear: 700, maxNear: 1050, fits: patchFits },
+  { id: 'ciliates', size: 300, visible: PATCH.ciliates.r + 90, minAhead: 760, maxAhead: 1150, minNear: 650, maxNear: 1000, fits: patchFits },
   // a patch with Paramecium caudatum among them (trichocysts)
-  { id: 'caudatum', size: 300, visible: PATCH.ciliates.r + 110, minAhead: 850, maxAhead: 1250, minNear: 700, maxNear: 1050, fits: patchFits },
-  // the boss and the way on: the portal (the P. bursaria in its glow) with Chaos on guard on its near side
-  { id: 'portal', size: 620, minAhead: 1200, maxAhead: 1700, minNear: 1000, maxNear: 1500, final: true, calm: { sec: 4 },
+  { id: 'caudatum', size: 300, visible: PATCH.ciliates.r + 90, minAhead: 760, maxAhead: 1150, minNear: 650, maxNear: 1000, fits: patchFits },
+  // the boss and the way on: the portal (the P. bursaria in its glow) with Chaos on guard beside it
+  { id: 'portal', size: 620, minAhead: 1000, maxAhead: 1500, minNear: 900, maxNear: 1400, final: true, calm: { sec: 3.5 },
     parts: (x, y, b) => { const [cx, cy] = portalParts(x, y, b).chaos; return [[x, y, 200], [cx, cy, 320 + 90]]; },
     fits: (x, y, b) => portalRoom(x, y, b) },
 ];

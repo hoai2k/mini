@@ -13,7 +13,7 @@ import { Cytoplasm } from './cytoplasm.js';
 import { SPECIES, makePrey, PREY_OPTS } from './prey.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, DIC_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
 import { squirmerFlow } from '../shared/techniques/paramecium-squirmer.js';
-import { buildWorld, worldColliders, nearColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules, SLIDE, distFromStart, bearingFromStart, ringPoint, PATCHES, PATCH, CILIATES, BACK_TIP, leafDist, LEAF, portalParts, CHAOS_IN, clearAt, DIRECTOR, ENCOUNTERS, canPlace } from './world.js';
+import { buildWorld, worldColliders, nearColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules, SLIDE, distFromStart, bearingFromStart, ringPoint, PATCHES, PATCH, CILIATES, BACK_TIP, leafDist, LEAF, portalParts, clearAt, DIRECTOR, ENCOUNTERS, canPlace } from './world.js';
 import { createDirector } from '../shared/director.js';
 import { View } from './render.js';
 import { Chaos, CHAOS_R, CHAOS_WAKE, CHAOS_LEASH } from './chaos.js';
@@ -1651,9 +1651,9 @@ function placePatch(id, x, y) {
 }
 const ENC = {
   ciliates: { place: (x, y) => placePatch('ciliates', x, y),
-    // in or beside the patch (the cell's edge within ~110 µm of it), or touching one of its prey
-    met: (P, [q]) => hyp(q.x - P.x, q.z - P.y) < P.r + q.req + 110 },
-  caudatum: { place: (x, y) => placePatch('caudatum', x, y), met: (P, [q]) => hyp(q.x - P.x, q.z - P.y) < P.r + q.req + 110 },
+    // in or beside the patch (the cell's edge within ~200 µm of it: its prey all round you)
+    met: (P, [q]) => hyp(q.x - P.x, q.z - P.y) < P.r + q.req + 200 },
+  caudatum: { place: (x, y) => placePatch('caudatum', x, y), met: (P, [q]) => hyp(q.x - P.x, q.z - P.y) < P.r + q.req + 200 },
   // the last: entering the open portal ends the level
   portal: { place: (x, y, b) => { placePortal(x, y, b); return PORTAL; }, met: () => false },
 };

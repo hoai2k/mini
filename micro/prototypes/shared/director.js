@@ -262,7 +262,10 @@ export function createDirector(o) {
     const idle = !L.moving;
     const lo = idle ? e.minNear ?? e.minAhead : e.minAhead, hi = idle ? e.maxNear ?? e.maxAhead : e.maxAhead;
     const dir = L.heading ? Math.atan2(L.hz, L.hx) : 0;
-    const elev = three ? [0, 0.35, -0.35] : [0];
+    // 3D: around the leader's own climb or dive (heading straight up or down meets things too), then above and below it
+    const el0 = three && L.heading ? Math.asin(Math.max(-1, Math.min(1, L.hy))) : 0;
+    const elev = three ? [el0, el0 + 0.35, el0 - 0.35] : [0];
+    if (three && Math.abs(el0) > 0.5) elev.push(0, -0.35 * Math.sign(el0)); // (and level, when climbing or diving steeply)
     const tryList = (list, how) => {
       for (const c of list) for (const el of elev) {
         const ce = Math.cos(el);

@@ -19,8 +19,9 @@ import { loadTexture } from '../shared/assets.js';
 import { createCapture, createFight } from '../shared/predation.js';
 import { createPost, goodsellShared, toonMaterial, inkedInstanced, setInkVisible } from '../shared/techniques/phage-goodsell.js';
 import { createT4, t4LiteGeometry, T4_FL } from '../shared/techniques/phage-model.js';
-import { createWorld, uvAt, progressAt, RINGS, PORTAL_R, FIELD_R, START, UV_SHAFTS } from './world.js';
-import { createPortalGlow } from '../shared/portal.js';
+import { createWorld, uvAt, progressAt, FIELD_R, START, UV_SHAFTS, DIRECTOR, encounterSpecs, canPlace } from './world.js';
+import { createDirector } from '../shared/director.js';
+import { createPortalGlow, createPortalLight } from '../shared/portal.js';
 import { createQuality } from '../shared/quality.js';
 import { createInside, GENOME_NODES } from './inside.js';
 import { attachmentForward, aimedProtein } from './binding.js';
@@ -371,7 +372,7 @@ function resetLevel() {
   for (const m of members()) placeAtStart(m);
   if (team[0]) use(team[0]);
   fight.reset(); fightState = 'stalk'; guard.gone = false; guard.turned = false; guard.hinted = false; portalGlow.group.visible = false;
-  ringLog.length = 0;
+  ringLog.length = 0; director.reset(); drift.idle = 0;
   inside.reset();
   resetStray();
   progeny.setCount(0);
@@ -877,13 +878,18 @@ function updateBurst(dt) {
   return 'outside';
 }
 
-// --- the rings and the way on (micro/design/encounter-pattern.md) ---
-// The decoy hosts are moved round their shell to meet whoever approaches it, unseen; the portal (Host A's
-// gold receptor under the shared golden glow) is placed once a game at the bearing of whoever first gets
-// far enough, out of view, with the amoeba beside it on guard.
-const ringLog = []; // what moved where, and when each ring was first reached (tests and tuning)
-const UNSEEN = 230; // nothing moves within this distance of any phage
+// --- the encounters, placed as you go (micro/design/encounter-pattern.md "Placed as you go") ---
+// The director (shared/director.js) places them one at a time, in order (world.js encounterSpecs): Host B
+// (its matching CRISPR spacer, the clay beside it), the wrong host, then the way on, Host A's gold receptor
+// under the shared golden glow with the amoeba on guard. Each goes in water nobody has seen (a 3D grid of
+// what every split view has framed), a little ahead of whoever leads, out of every view, after a calm
+// break; linger and they come round you all the same (a decoy then swims over to you). Nothing anyone
+// has seen is placed, moved or removed. The flocs and the UV shafts are scenery, there from the start.
+const ringLog = []; // the director's placements and what else happened on the way (tests and tuning)
 const portalGlow = createPortalGlow({ THREE, scene, size: 18, intensity: 1.9, beam: 110, beamWidth: 9 });
+// no arrow (the owner: keep moving and you find it): once placed, the way on's golden light spills in from the
+// edge of each view on its side (or haloes it in view); no text
+const portalLight = createPortalLight({ zIndex: 3 });
 portalGlow.group.visible = false;
 const guard = { gone: false, turned: false, hinted: false };
 const _gp = new THREE.Vector3(), _gn = new THREE.Vector3();
@@ -898,57 +904,71 @@ function guarded() {
   return am.reach > 2 && am.tip.distanceTo(portalPoint()) < 55;
 }
 const outsideMembers = () => members().filter((m) => !m.c.active && ['drift', 'walk', 'clay', 'grab'].includes(m.P.mode));
-const distOut = (m) => m.P.pos.distanceTo(START);
-const bearing = (m) => _v.subVectors(m.P.pos, START).normalize().clone();
-/** Far from every phage and outside the camera's view (with a margin for a host's size). */
-function unseenFromAll(p) {
-  if (!members().every((m) => m.P.pos.distanceTo(p) > UNSEEN)) return false;
-  _s.copy(p).project(camera);
-  return !(_s.z < 1 && Math.abs(_s.x) < 1.3 && Math.abs(_s.y) < 1.3 && camera.position.distanceTo(p) < 800);
+const hostById = (id) => world.hosts.find((h) => h.id === id);
+// The leader's position, kept up to date for the encounters' shapes (each is laid out from the way it is met).
+const leadPos = new THREE.Vector3();
+const _dir = new THREE.Vector3(), _sp = new THREE.Vector3();
+const metDecoy = (h) => (x, [p]) => {
+  const m = team.find((o) => o.slot === p.id);
+  return !!m && (m.P.host === h || m.P.coHost === h || world.sdHost(h, _sp.set(p.x, p.y, p.z)) < 70);
+};
+const placeDecoy = (h) => (x, z, b, info) => {
+  _sp.set(x, info.y, z); _dir.subVectors(_sp, leadPos); if (_dir.lengthSq() < 1e-6) _dir.set(1, 0, 0);
+  world.placeHost(h, _sp, _dir.normalize());
+  return h;
+};
+const ENC = {
+  B: { place: placeDecoy(hostById('B')), met: metDecoy(hostById('B')) },
+  W: { place: placeDecoy(hostById('W')), met: metDecoy(hostById('W')) },
+  portal: { place: (x, z, b, info) => { _sp.set(x, info.y, z); _dir.subVectors(_sp, leadPos); if (_dir.lengthSq() < 1e-6) _dir.set(1, 0, 0); return placePortal(_sp, _dir.normalize()); }, met: () => false },
+};
+const director = createDirector({ ...DIRECTOR, canPlace, entries: encounterSpecs(leadPos).map((e) => ({ ...e, ...ENC[e.id] })) });
+// What every view sees, for the director: each split view's frustum (its far plane brought in to 700 units
+// past what it frames: beyond that the haze leaves only a faint ghost) and its focus. Filled while drawing.
+const viewPool = [0, 1, 2, 3].map(() => ({ frustum: new THREE.Frustum(), focus: new THREE.Vector3() }));
+const _pm = new THREE.Matrix4(), _cf = new THREE.Vector3();
+let seenViews = [], seenN = 0;
+function noteView() {
+  if (seenN >= 4) return;
+  const v = viewPool[seenN++];
+  camera.updateMatrixWorld();
+  v.frustum.setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+  camera.getWorldDirection(_cf);
+  v.focus.copy(camera.position).addScaledVector(_cf, view.dist);
+  const far = view.dist + DIRECTOR.seenDist;
+  v.frustum.planes[4].normal.copy(_cf).negate(); v.frustum.planes[4].constant = _cf.dot(camera.position) + far;
+  seenViews = viewPool.slice(0, seenN);
 }
-function rotateBearing(dir, angle) {
-  const ax = new THREE.Vector3().crossVectors(dir, camUp(_w));
-  if (ax.lengthSq() < 1e-4) ax.crossVectors(dir, AX_X);
-  return dir.clone().applyAxisAngle(ax.normalize(), angle);
-}
-function moveRings() {
+/**
+ * A decoy placed beyond a lingering player's reach swims over to them (behaviour, not a placement: host
+ * bacteria swim; here a slow drift of DRIFT units/s after DRIFT_WAIT s of the leader staying put).
+ */
+const DRIFT = 12, DRIFT_WAIT = 4;
+const drift = { idle: 0 };
+function stepDirector(dt) {
   const out = outsideMembers();
-  if (!out.length) return;
-  // the decoys: Host B a little to one side of the approaching bearing, the wrong host to the other
-  const lead = out.map((m) => ({ m, d: distOut(m) })).filter((o) => o.d > RINGS.decoy - 240 && o.d < RINGS.decoy + 30).sort((a, b) => b.d - a.d)[0];
-  if (lead) {
-    const dir = bearing(lead.m);
-    for (const [id, off] of [['B', 0.3], ['W', -0.32]]) {
-      const h = world.hosts.find((x) => x.id === id);
-      if (h.burst || h.locked || members().some((o) => o.P.host === h || o.P.coHost === h)) continue;
-      const want = rotateBearing(dir, off);
-      const now = _w.subVectors(h.pos, START).normalize();
-      if (now.angleTo(want) < 0.45) continue; // already about there
-      const to = want.clone().multiplyScalar(RINGS.decoy).add(START);
-      if (!unseenFromAll(h.pos) || !unseenFromAll(to)) continue;
-      world.placeHost(h, want, RINGS.decoy);
-      ringLog.push({ kind: 'move', id, t: +t.toFixed(2), slot: lead.m.slot });
-    }
-  }
-  for (const m of out) for (const [k, r] of Object.entries(RINGS)) if (distOut(m) >= r - 40 && !ringLog.some((e) => e.kind === 'reach' && e.ring === k)) ringLog.push({ kind: 'reach', ring: k, t: +t.toFixed(2), slot: m.slot });
-  // the portal, once: when someone gets past the UV shell, on their bearing (turned aside if it would be in view)
-  if (!world.portal) {
-    const far = out.map((m) => ({ m, d: distOut(m) })).sort((a, b) => b.d - a.d)[0];
-    if (far && far.d >= RINGS.uv + 50) placePortal(bearing(far.m));
-  }
+  const ps = members().map((m) => ({ id: m.slot, x: m.P.pos.x, y: m.P.pos.y, z: m.P.pos.z, alive: out.includes(m) }));
+  const L = director.leader, lm = (L && team.find((o) => o.slot === L.id)) || out[0] || team[0];
+  if (lm) leadPos.copy(lm.P.pos);
+  const ev = director.update(dt, ps, seenViews.length ? seenViews : null);
+  seenN = 0;
+  for (const e of ev) ringLog.push({ kind: e.type, id: e.id, t: +t.toFixed(2), how: e.how, at: [e.x, e.z] });
+  // the lingering leader's decoy comes over
+  const L2 = director.leader;
+  drift.idle = L2 && !L2.moving ? drift.idle + dt : 0;
+  const s = director.state(), cur = s.entries[s.index];
+  if (!cur || cur.id === 'portal' || cur.state !== 'placed' || drift.idle < DRIFT_WAIT || s.t - cur.placedT < DRIFT_WAIT || !lm) return;
+  const h = hostById(cur.id);
+  if (h.burst || h.locked) return;
+  const d = world.sdHost(h, lm.P.pos);
+  if (d < 60) return;
+  _dir.subVectors(lm.P.pos, h.pos).setLength(Math.min(d - 59, DRIFT * dt));
+  world.shiftHost(h, _dir);
 }
-/** Place the way on at bearing dir (turned aside, out of every view, when it can be). */
-function placePortal(dir) {
-  let pick = dir;
-  for (const a of [0, 0.3, -0.3, 0.55, -0.55]) {
-    const d = a ? rotateBearing(dir, a) : dir;
-    const p = d.clone().multiplyScalar(PORTAL_R).add(START);
-    _v.copy(p).project(camera);
-    const inView = _v.z < 1 && Math.abs(_v.x) < 1.15 && Math.abs(_v.y) < 1.15 && camera.position.distanceTo(p) < 700;
-    if (!inView) { pick = d; break; }
-  }
-  const pt = world.placePortal(pick);
-  ringLog.push({ kind: 'portal', t: +t.toFixed(2), dir: pick.toArray().map((x) => +x.toFixed(2)) });
+/** Place the way on: Host A at `pos`, met along `dir`, the amoeba on guard (the director's last encounter). */
+function placePortal(pos, dir) {
+  const pt = world.placePortal(pos, dir);
+  ringLog.push({ kind: 'portal', t: +t.toFixed(2), at: pos.toArray().map((x) => +x.toFixed(0)), dir: dir.toArray().map((x) => +x.toFixed(2)) });
   const am = world.amoeba;
   const post = portalPoint().clone().addScaledVector(portalNormal(), 10);
   am.base.subVectors(post, am.center).normalize().multiplyScalar(am.r - 6).add(am.center);
@@ -1372,7 +1392,7 @@ function frame(now) {
 
   // the amoeba hunts the nearest phage; the crowd moves round the view
   if (where === 'outside' && !debug.iso) {
-    if (!debug.freeze) { moveRings(); updateGuard(dt); }
+    if (!debug.freeze) { stepDirector(dt); updateGuard(dt); }
     updatePortalGlow(dt);
     use(team[0]);
     world.update(dt, t, view.target, centreOf(new THREE.Vector3()), camera.position.z);
@@ -1416,6 +1436,7 @@ function frame(now) {
   if (watching && team[0].P.kind === 'amoeba') focusPts[0].lerp(world.amoeba.base, 0.35); // frame the amoeba as well as you
   use(lead);
   marks.begin();
+  portalLight.begin();
   if (where === 'outside') {
     const want = lead.P.mode === 'burst' ? lead.P.commitHost.pos : split.centroid(focusPts);
     view.target.lerp(_v.set(want.x, want.y, want.z), 1 - Math.exp(-dt * (lead.P.mode === 'burst' ? 1 : 2.5)));
@@ -1464,7 +1485,7 @@ function frame(now) {
   const uvDying = members().some((m) => m.c.active && m.P.kind === 'uv');
   if (!uvDying) post.uniforms.uFlash.value *= Math.exp(-dt * 4);
   post.uniforms.uFlashColor.value.set(uvDying ? '#efe4ff' : '#ffffff');
-  world.clay.group.visible = !debug.iso;
+  world.clay.group.visible = !debug.iso && !hostById('B').hidden;
   if (where === 'outside') {
     // LEGO split screen: one view while together, split as players drift apart
     const list = inPlay.length ? inPlay.map((m, i) => ({ slot: m.slot, position: focusPts[i] })) : [{ slot: 0, position: view.target }];
@@ -1475,6 +1496,7 @@ function frame(now) {
     use(lead);
     drawKicks(dt);
     split.render(camera, (v) => {
+      noteView(); // (what this view sees, for the director)
       // each view wraps the bath round its own centre: the water is full in every view, together or apart
       world.viewBath(_v.set(0, 0, -view.dist).applyQuaternion(camera.quaternion).add(camera.position));
       for (const m of members()) m.t4.setCutFrom(camera.position);
@@ -1485,6 +1507,10 @@ function frame(now) {
     if (!debug.iso && lead.P.mode !== 'burst' && split.layout.regions.every((r) => r.polygon && r.polygon.length >= 3)) {
       // no arrow to the way on (the owner: keep moving in any direction and you find it): its golden sparkle is the only marker
       marks.drawSplit(split, world.backdoor.pos, { kind: 'backdoor', label: 'Sediment', range: 600 });
+      if (world.portal) {
+        const pp = portalPoint(), d = Math.min(...members().map((m) => m.P.pos.distanceTo(pp)));
+        portalLight.drawSplit(split, pp, { strength: THREE.MathUtils.clamp(1.2 - d / 1200, 0.5, 1), open: portalGlow.open });
+      }
     }
   } else post.render(inside.scene, inside.camera);
 
@@ -1499,7 +1525,7 @@ function frame(now) {
   const modeName = { drift: 'drifting legs-first', grab: 'grabbing a surface protein', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', coinfect: `damaged genome waiting in ${P.coHost?.name} for a partner (B: give up)`, inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
   const am = !world.portal ? 'not found yet' : guard.gone ? 'driven off' : ({ guard: 'on guard', stalk: 'REACHING', windup: 'WINDING UP!', strike: 'STRIKING!', recover: 'recovering', repelled: 'repelled', retreat: 'retreating', off: 'off' }[fightState] || fightState) + (guarded() ? '' : ' · receptor OPEN') + ` · interest ${Math.round(fight.interest * 100)} %`;
   const others = isMulti() ? '\n' + members().filter((m) => m.slot).map((m) => `P${m.slot + 1} ${m.P.mode} ${n5(m.P.integrity)}`).join('  ') : '';
-  hud.stats(`${goalLine(where)}\n${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\n${P.damaged ? 'DAMAGED: one more UV shaft is fatal' : 'whole'}  ${dash.text()}\nguard (amoeba) ${am}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `${(P.pos.distanceTo(START) / 100).toFixed(1)} µm out (the way on is ${(PORTAL_R / 100).toFixed(1)} µm out, any direction)`}${others}`);
+  hud.stats(`${goalLine(where)}\n${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\n${P.damaged ? 'DAMAGED: one more UV shaft is fatal' : 'whole'}  ${dash.text()}\nguard (amoeba) ${am}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `${(P.pos.distanceTo(START) / 100).toFixed(1)} µm out · encounters ${director.index}/3 (${director.state().phase})`}${others}`);
 }
 
 /** The goal, one line, for the stage you are at (the HUD's first line). */
@@ -1507,7 +1533,7 @@ function goalLine(where) {
   if (where === 'inside') return 'GOAL: get the whole genome in · lead your end away from CRISPR-Cas';
   if (P.mode === 'commit' || P.mode === 'burst') return 'GOAL: injecting…';
   if (P.damaged) return 'GOAL: co-infect a host with a partner (the other damaged phage nearby, or a teammate)';
-  if (!world.portal) return `GOAL: explore outward, any direction · ${(P.pos.distanceTo(START) / 100).toFixed(1)} of ${(PORTAL_R / 100).toFixed(1)} µm out`;
+  if (!world.portal) return `GOAL: explore, any direction · ${(P.pos.distanceTo(START) / 100).toFixed(1)} µm out · encounters ${director.index} of 3`;
   const d = Math.max(0, portalPoint().distanceTo(centreOf(_v)) - 10);
   if (d < 70) return guarded() ? 'GOAL: the amoeba guards the gold receptor: lure it off, or fold (B) and jab (X)' : 'GOAL: the receptor is open: aim your fibres at it and press X';
   return `GOAL: the golden glow on Host A · ${(d / 100).toFixed(1)} µm`;
@@ -1582,12 +1608,34 @@ Object.assign(debug, {
   },
   beads: () => world.bathBeads(),
   /** Place the way on now at bearing [x, y, z] (default: player 1's bearing). */
-  placePortal(dir = null) { use(team[0]); const d = dir ? new THREE.Vector3(...dir).normalize() : _v.subVectors(P.pos, START).normalize().clone(); if (d.lengthSq() < 0.5) d.set(1, 0, 0); placePortal(d); return debug.portal(); },
+  /**
+   * Testing only (it breaks the order on purpose): the way on now, `d` units from player 1 along `dir`
+   * ([x, y, z]; default: away from the start). director.force marks every earlier encounter met.
+   */
+  placePortal(dir = null, d = 300) {
+    use(team[0]);
+    const u = dir ? new THREE.Vector3(...dir).normalize() : _v.subVectors(P.pos, START).normalize().clone();
+    if (!(u.lengthSq() > 0.5)) u.set(1, 0, 0);
+    const at = P.pos.clone().addScaledVector(u, d);
+    leadPos.copy(P.pos);
+    director.force('portal', at.x, at.z, Math.atan2(u.z, u.x));
+    // (force puts it at the director's ground height: lift it to where it was asked for)
+    if (Math.abs(at.y - world.portal.host.pos.y) > 1) placePortal(at, u);
+    return debug.portal();
+  },
+  /** The director (shared/director.js): its state, log, what is seen; placeNow ends the current break. */
+  encounters: () => director.state(),
+  encounterLog: () => director.log.slice(),
+  seenAt: (x, y, z) => director.seenAt(x, y, z),
+  placeNow: () => director.placeNow(),
+  director,
   /** The way on: where it is, guarded or open, the guard's state; and the ring log. */
   portal: () => (world.portal ? { at: portalPoint().toArray().map((x) => +x.toFixed(1)), normal: portalNormal().toArray().map((x) => +x.toFixed(2)), guarded: guarded(), gone: guard.gone, state: fightState, interest: +fight.interest.toFixed(2), tip: +world.amoeba.tip.distanceTo(portalPoint()).toFixed(1) } : null),
   rings: () => ringLog.slice(),
   shafts: () => UV_SHAFTS.map((sh) => sh.c.toArray()),
   hosts: () => world.hosts.map((h) => ({ id: h.id, hidden: !!h.hidden, pos: h.pos.toArray().map((x) => +x.toFixed(0)), d: +h.pos.distanceTo(START).toFixed(0) })),
+  /** The flocs (x, y, z, r): scenery. */
+  flocs: () => world.flocs.map((f) => [...f.home.toArray(), f.r]),
   /** Drive the guard off (as if worn down). */
   driveOff() { guard.gone = true; },
   overlay(on) { view.overlay = on; inside.setRadar(on); },
