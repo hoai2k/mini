@@ -157,7 +157,7 @@ const _bv = new THREE.Vector3(), _bw = new THREE.Vector3(), _by = new THREE.Vect
 // them through the field, ~500 units apart, so a view that sees ~450 units into the haze holds a few)
 const BY_TINTS = [['#082438', '#1a5e6c'], ['#08223e', '#1f527c'], ['#0a2a38', '#236266'], ['#0b2240', '#255282']];
 export const BYSTANDERS = (() => {
-  const out = [], dirs = shellDirs(160, 1.3);
+  const out = [], dirs = shellDirs(160, 2.0);
   const capD = (p, b) => { // distance from p to bystander b's capsule
     _bv.set(p.x - b.home[0], p.y - b.home[1], p.z - b.home[2]).applyAxisAngle(_bz, -b.angle);
     return Math.hypot(_bv.x - Math.max(-b.half, Math.min(b.half, _bv.x)), _bv.y, _bv.z) - b.r;

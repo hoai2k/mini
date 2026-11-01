@@ -7,11 +7,16 @@
 //   node --test micro/prototypes/tardigrade/route.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { World, RINGS, SPOKES, tipU } from './world.js';
+import * as THREE from '../shared/vendor/three.module.min.js';
+import { World, RINGS, SPOKES, tipU, HANDOVER_GAP } from './world.js';
+import { Walker } from './gait.js';
+import { Creature } from './creature.js';
 import { createDirector } from '../shared/director.js';
 import { DIRECTOR, encounters, canPlace, wayOut } from './encounters.js';
 
 const world = new World({ add() {} });
+// gait.js considerTransfer: the claws reach 0.55 across directly (1.2 over a wet film)
+const CLAW_REACH = 0.55, REACH_BUDGET = 0.4;
 const S = world.start;
 const deg = (a) => Math.round((a * 180) / Math.PI);
 
@@ -33,7 +38,8 @@ test('a spoke every 30°, each walkable leaf to leaf out to the portal ring', ()
     steps.forEach((h, j) => {
       const where = `spoke ${sp.k} (${deg(sp.a)}°) hand-over ${j}`;
       assert.ok(h.inside && h.above, `${where}: the head is over the next leaf's upper face`);
-      assert.ok(h.gap < 0.55 || (h.gap < 1.2 && h.film > 0.12 && h.filmHere > 0.12), `${where}: gap ${h.gap.toFixed(2)}`);
+      // within the claws' direct reach with room to spare (no leaning on the wet-film allowance)
+      assert.ok(h.gap <= REACH_BUDGET, `${where}: gap ${h.gap.toFixed(2)} (claws reach ${CLAW_REACH})`);
     });
     // it keeps to its bearing, and its rim leaf's tip is on the portal ring
     for (const L of sp.leaves) for (let u = 1; u < L.len; u += 2) {
@@ -204,4 +210,67 @@ test('the start is calm and the film never runs out by itself', () => {
   assert.equal(world.dry, world.dry0);
   // nothing in the shoot round the start is dry
   for (const L of world.shoot) for (let u = 1; u < L.len - 1; u += 0.5) assert.ok(L.dry.length === 0 && world.filmAt(L, u, 0) > 0.03, `${L.name} is wet at ${u}`);
+});
+
+// ---- walking it: the real gait (gait.js Walker, claws, grip and slips, leaf
+// to leaf hand-overs, falls) driven in Node by a player who steers out along
+// each spoke, aiming a little ahead on the leaf's centre line. (The pre-deploy
+// audit drove the page the same way; there a walker ping-ponged between two
+// leaves of the 210° spoke for minutes.)
+function walker() {
+  const creature = Object.create(Creature.prototype); // the pose only: nothing drawn
+  creature.pose = { phase: 0, sway: 0, bob: 0, surge: 0, tun: 0, stylet: 0, pump: 0, wrinkle: 0, breath: 0, gape: 0, feet: Array.from({ length: 8 }, () => new THREE.Vector3()), footN: Array.from({ length: 8 }, () => new THREE.Vector3()), clawOpen: Array(8).fill(0) };
+  const log = [];
+  const w = new Walker(world, creature, { catch() {}, slip() { log.push('slip'); }, fall(t) { log.push(t); }, transfer(t) { log.push(t); } });
+  return { w, log };
+}
+const input = (dir) => ({ dir, mag: 1, brace: false, frozen: false, film: 1, energy: 1, tun: false, dash: false });
+
+test('the spokes are built to the hand-over budget', () => {
+  assert.ok(HANDOVER_GAP <= REACH_BUDGET && REACH_BUDGET < CLAW_REACH);
+});
+
+test('steering out along every spoke, a walker reaches the rim leaf\'s tip in about a minute', () => {
+  const { w, log } = walker();
+  const times = [];
+  for (const sp of world.spokes) {
+    const rim = sp.leaves.at(-1), out = new THREE.Vector3(Math.cos(sp.a), 0, Math.sin(sp.a));
+    w.spawn(sp.leaves[0], 1, 1.5, 0, 1, 0);
+    log.length = 0;
+    let t = 0, back = 0, at = 0;
+    for (; t < 90 && !(w.leaf === rim && w.u > rim.len - 4); t += 1 / 30) {
+      const L = w.leaf;
+      const dir = sp.leaves.includes(L) && w.side > 0 ? L.toWorld(w.u + 3, 0, 0).sub(L.toWorld(w.u, w.v, 0)) : out.clone();
+      w.update(1 / 30, input(dir.normalize()));
+      const i = sp.leaves.indexOf(w.leaf);
+      if (i >= 0 && i < at) back++;
+      at = Math.max(at, i);
+    }
+    const tag = `spoke ${sp.k} (${deg(sp.a)}°)`;
+    assert.ok(w.leaf === rim && w.u > rim.len - 4, `${tag}: not at the rim after ${t.toFixed(0)} s (${w.leaf.name}, u ${w.u.toFixed(1)}): ${log.join(' | ')}`);
+    assert.equal(back, 0, `${tag}: carried back a leaf: ${log.join(' | ')}`);
+    assert.ok(!log.some((e) => /fell|water bridge/i.test(e)), `${tag}: ${log.join(' | ')}`);
+    times.push(t);
+  }
+  console.log(`walking out: the rim reached in ${Math.min(...times).toFixed(1)}-${Math.max(...times).toFixed(1)} s on 12 spokes`);
+});
+
+test('just over a hand-over, pushing into the new leaf\'s margin never carries a walker back to the leaf it left', () => {
+  const { w, log } = walker();
+  for (const sp of world.spokes) for (let j = 0; j + 1 < sp.leaves.length; j++) for (const sgn of [1, -1]) {
+    const A = sp.leaves[j], B = sp.leaves[j + 1];
+    w.spawn(A, 1, tipU(A) - 3, 0, 1, 0);
+    log.length = 0;
+    let over = false, back = false, tOver = 99;
+    for (let t = 0; t < 25 && !back && t < tOver + 10; t += 1 / 30) {
+      // out to the tip and over; then hard sideways (and a little on) into B's narrow base
+      const dir = over ? B.V.clone().multiplyScalar(sgn).addScaledVector(B.U, 0.3) : w.leaf.U.clone();
+      w.update(1 / 30, input(dir));
+      if (w.leaf === B && !over) { over = true; tOver = t; }
+      if (over && w.leaf === A) back = true;
+    }
+    const tag = `spoke ${sp.k} leaf ${j} -> ${j + 1}, pushed ${sgn > 0 ? 'left' : 'right'}`;
+    assert.ok(over, `${tag}: never got over: ${log.join(' | ')}`);
+    assert.ok(!back, `${tag}: carried back: ${log.join(' | ')}`);
+  }
 });

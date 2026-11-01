@@ -347,6 +347,33 @@ export function tipU(L) {
 }
 
 /**
+ * How far leaf M stays clear of leaf P where one lies over the other (their
+ * faces apart, units): negative where they pass through each other, Infinity
+ * where they do not overlap.
+ */
+function clearance(M, P) {
+  if (M.base.distanceTo(P.base) > M.len + P.len) return Infinity;
+  let c = Infinity;
+  const loc = {}, q = new THREE.Vector3();
+  for (let u = 0; u <= M.len; u += 0.25) for (let v = -M.hw0; v <= M.hw0; v += 0.25) {
+    if (!M.inside(u, v, 0)) continue;
+    P.toLocal(M.toWorld(u, v, 0, q), loc);
+    if (!P.inside(loc.u, loc.v, 0)) continue;
+    c = Math.min(c, Math.abs(loc.n) - (M.thick + P.thick) / 2);
+  }
+  return c;
+}
+/** The head's gap to leaf M from the shoot's exit, heading along bearing a (Infinity: not over M's upper face). */
+function exitGap(ex, a, M) {
+  const L = ex.L;
+  let hu = Math.cos(a) * L.U.x + Math.sin(a) * L.U.z, hv = Math.cos(a) * L.V.x + Math.sin(a) * L.V.z;
+  const l = Math.hypot(hu, hv); hu /= l; hv /= l;
+  const head = M.toLocal(L.toWorld(ex.u + 2 * hu, ex.v + 2 * hv, L.thick / 2), {});
+  const body = M.toLocal(L.toWorld(ex.u, ex.v, L.thick / 2 + 0.3), {});
+  return M.inside(head.u, head.v, 0.35) && body.n > 0 ? Math.abs(head.n) - M.thick / 2 : Infinity;
+}
+
+/**
  * The spokes: for each bearing (every 30°), the point of the shoot that
  * reaches furthest that way (its exit), then a chain of leaves out to the
  * portal ring. Each leaf's base lies 0.15 units (15 µm) under the last one's
@@ -405,6 +432,27 @@ function buildSpokes(world) {
       const hw = last ? 4.4 : Math.min(4.2, 2.3 + 0.5 * j);
       const make = (b, lead, nh) => new Leaf({ id: -1, name: last ? `Sphagnum leaf (spoke ${k + 1}, the rim)` : `${kind === 'sphagnum' ? 'Sphagnum leaf' : 'leaf'} (spoke ${k + 1}, ${j + 1})`, kind, base: b.toArray(), dir: lead.toArray(), normalHint: nh.toArray(), len: lenAt(b), hw, spoke: k, pool: last });
       let L = make(base, lead, nh);
+      // The first leaf, off the shoot: where it would pass through a shoot
+      // leaf or a neighbouring spoke's first leaf (they fan out from the same
+      // edge), lift or drop it a little (or roll it), as long as the claws
+      // still reach it from the exit. (Two near the shoot's middle, spokes 3
+      // and 10 against leaf E and spoke 9, find no such spot and still cut
+      // through at their bases, under the shoot.)
+      if (j === 0) {
+        const placed = [...world.shoot, ...out.flatMap((o) => o.leaves)];
+        const ok = (M) => !placed.some((P) => clearance(M, P) < 0.02) && exitGap(ex, a, M) <= HANDOVER_GAP;
+        if (!ok(L)) {
+          let best = null;
+          for (const roll of [0, 0.08, -0.08]) for (let i = 0; i <= 10; i++) {
+            const dn = (i % 2 ? 1 : -1) * 0.03 * Math.ceil(i / 2);
+            const cost = Math.abs(dn) + 0.5 * Math.abs(roll);
+            if ((best && best.cost <= cost) || cost === 0) continue;
+            const M = make(base.clone().addScaledVector(L.N, dn), lead, nh.clone().applyAxisAngle(lead, roll));
+            if (ok(M)) best = { M, cost };
+          }
+          if (best) L = best.M;
+        }
+      }
       // tuck it under the last leaf: clear of it everywhere they overlap
       // (0.08 units at least), the head's gap at the hand-over ~0.25. Where
       // the chain levels out of a climb the new leaf is flatter than the last
