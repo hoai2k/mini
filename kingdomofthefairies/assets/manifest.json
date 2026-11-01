@@ -5209,6 +5209,26 @@
       ],
       "anchor": "bottom centre (Azurine\u2019s feet)",
       "edition": "film"
+    },
+    "cavern-platform": {
+      "status": "requested",
+      "file": "cavern-platform.webp",
+      "size": [
+        720,
+        480
+      ],
+      "anchor": "top centre",
+      "edition": "film"
+    },
+    "cavern-platform-tinted": {
+      "status": "requested",
+      "file": "cavern-platform-tinted.webp",
+      "size": [
+        720,
+        480
+      ],
+      "anchor": "top centre",
+      "edition": "film"
     }
   },
   "audio": {
