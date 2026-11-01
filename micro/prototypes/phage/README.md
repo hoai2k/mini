@@ -315,7 +315,12 @@ medium and low quality, inside, Goodsell, cryo-EM, fluorescence and 4 players.
   every view has a copy the main crowd is not stepped, so 2 players apart cost
   2 crowds and 4 cost 4; together, nothing changes (seeded screenshots are
   identical to before). *Features → Crowd per split view* (or `?crowdsplit=0`)
-  turns it off. COSTLINE
+  turns it off. Cost (world.update, headless Chromium): ≈0.16–0.38 ms with
+  1 crowd, 0.35–0.5 ms with 2, 1.1–1.3 ms with 4, plus 36 KB of instance
+  upload per crowd per frame (perf harness, 2 players apart: 104 → 164 KB);
+  draws grow only because far views, which used to cull the crowd, now draw
+  their own (2 players: 95 → 101). `?spread=350` starts joining players apart
+  for such runs.
 - **`world.update`:** a crowd molecule tests a host's envelope only inside the
   host's bounding sphere. The update runs about 3× faster (≈1.3 → 0.45 ms
   here) and allocates 62 → 40 KB.

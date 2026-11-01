@@ -690,3 +690,22 @@ Findings that needed no change: the rotifer meadow (about 0.5 ms a frame), the
 bacterium collective (about 4% of a step at 40 members) and the R/L pseudopod
 marks (0.03 ms) are cheap. The remaining recommendations are listed in
 [open-recommendations.md](open-recommendations.md) under Performance.
+
+## Third pass (2026-11-01)
+
+The second pass's deferred items that were skipped only for the work they
+needed. Each left the picture unchanged unless noted. SwiftShader on a loaded
+4-core container, so times are rough.
+
+| World | Change | Before → after |
+| --- | --- | --- |
+| Shared, amoeba | `splitscreen.js` compiles its compose programs (both colour spaces) when the split screen is made; `split.prewarm()` for worlds that draw their own frames; the amoeba compiles every program at load (`view.precompile()`) | programs compiled at join: amoeba 6 → 0, bacterium 3 → 0, split-demo 3 → 0; amoeba join frame 144–284 → 65–191 ms; load and steady 2-player frame unchanged |
+| Mite | `sem.warm()` compiles the SEM programs at load; each mite's parts merged; moss, litter and grains as `BatchedMesh`, culled per object | first frame 2.3–2.7 → 1.0–2.0 s; draws per mite 9 → 5; 1p 70 → 44 draws, 267 → 182 k triangles; 4 views 380 → 244 draws, 1.20 → 0.91 M triangles; seeded screenshots byte-identical |
+| Springtail | Water dimples bucketed in a 16×16 grid in the shader | scene pass 6.06 → 2.08 s (bit-identical output) |
+| Springtail (option) | "Cheaper ripples (experimental)" in World features: 128 grid at 120 Hz | ripple step 2.2–2.9 → 0.35 ms; off by default because the ripples look and feel different |
+| Paramecium (fix) | The bloom places every cell at its height once even with nobody near | far view: a cloud 27–623 µm deep instead of a flat sheet on the slide |
+| Phage (feature) | The molecule crowd splits per view when a view would show more than 12 units of bare water beyond the merged screen; the copy is seeded from the main crowd, fades in over 0.6 s and out after 1.5 s back together; "Crowd per split view" in World features, `?spread=350` for perf runs | about 0.2–0.4 ms per extra crowd per frame while apart; merged play unchanged |
+
+There is no per-frame gain from compiling at load: it moves a one-time cost
+from the moment a player joins (a visible pause) to loading. Deferred: the
+phage's quarter-resolution noise (softens the look).
