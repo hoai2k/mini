@@ -115,7 +115,7 @@ scene.add(progeny);
 
 // delivered art (null until delivered); guard ids that may not be in the list yet
 const safeTexture = (id, o) => { try { return loadTexture(id, o); } catch (e) { console.warn(`[micro] ${e.message}`); return Promise.resolve(null); } };
-const art = { envelope: null, water: null, section: null, pano: null, envFL: null };
+const art = { envelope: null, water: null, section: null, pano: null };
 // MP-V06, the panorama, is sampled by direction: no mipmaps, so the wrap seam (where atan jumps) leaves no line
 safeTexture('MP-V06', { repeat: false }).then((t) => { if (t) { t.generateMipmaps = false; t.minFilter = THREE.LinearFilter; t.wrapS = THREE.RepeatWrapping; art.pano = softPanorama(t); applyArt(); } });
 /**
@@ -138,7 +138,6 @@ function softPanorama(t) {
 }
 // MP-V07, far molecule sprites (a 4 × 4 sheet), for the far layer beyond the baths
 safeTexture('MP-V07', { repeat: false }).then((t) => { if (t) world.setSprites(t); });
-safeTexture('MP-V05').then((t) => { if (t) { art.envFL = t; applyArt(); } });
 safeTexture('MP-V01').then((t) => { if (t) { art.envelope = t; applyArt(); } });
 safeTexture('MP-V02').then((t) => { if (t) { art.water = t; applyArt(); } });
 safeTexture('MP-V03', { repeat: false }).then((t) => { if (t) { art.section = t; applyArt(); } });
@@ -155,14 +154,12 @@ const opts = { drive: true, brownian: true, kicks: true, tumble: true, uv: true,
 
 function applyArt() {
   const use = view.art;
-  // (in false light the painted Goodsell envelope's grain streaked the wet relief: it waits for MP-V05)
-  const env = use && (isFL() ? art.envFL : art.envelope);
+  // (false light draws the hosts' membrane procedurally, LOOK.md "Recipe": MP-V05's bead mosaic was the busy,
+  // speckled surface the look target replaced, so it is no longer loaded; the Goodsell looks keep MP-V01)
+  const env = use && !isFL() ? art.envelope : null;
   for (const h of [...world.hosts, ...world.bystanders]) {
-    // MP-V05 (the false-light envelope, about 150 nm across a tile) carries its own colour: tiled at true scale,
-    // it takes over the albedo on Hosts A and B; the Gram-positive wrong host has no outer membrane, so not there
-    const flEnv = isFL() && env && !h.wrong;
-    h.mat.setMap(flEnv ? env : isFL() ? null : (env || h.mat.userData.std), flEnv ? [14, 9] : env ? [3, 1.5] : [6, 3]);
-    h.mat.uniforms.uFLMap.value = flEnv ? 0.4 : 0; // (the delivered envelope lends its relief and some colour; the deep teal shows through)
+    h.mat.setMap(isFL() ? null : (env || h.mat.userData.std), env ? [3, 1.5] : [6, 3]);
+    h.mat.uniforms.uFLMap.value = 0;
     // the painted envelope carries its own colour; the wrong host keeps a dull tint so it reads apart
     h.mat.uniforms.uColor.value.set(env ? (h.wrong ? '#bba680' : '#e4e0d8') : h.color);
   }

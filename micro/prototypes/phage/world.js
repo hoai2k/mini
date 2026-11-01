@@ -342,8 +342,10 @@ export function createWorld(scene) {
     // pili or flagella curving off into the water (one merged tube geometry)
     if (!def.wrong) {
       const nf = Math.round(area / (by ? 1500 : 1200));
-      for (let v = 0; v < FLOWERS.length; v++) {
-        const cnt = Math.round(nf / FLOWERS.length);
+      // (a scenery cell carries one kind, so it costs one draw; the hosts all three)
+      const kinds = by ? [world.bystanders.length % FLOWERS.length] : FLOWERS.map((_, v) => v);
+      for (const v of kinds) {
+        const cnt = Math.round(nf / kinds.length);
         const fm = beadMesh(FLOWERS[v], cnt, { material: flowerMat });
         for (let i = 0; i < cnt; i++) {
           surf(rand(-def.half - def.r * 0.8, def.half + def.r * 0.8), rand(-Math.PI, Math.PI), _p, n);

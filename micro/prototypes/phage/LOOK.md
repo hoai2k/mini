@@ -18,8 +18,8 @@ them lush, and what the game lacked:
 | Water packed with molecules in every direction, small ones filling the gaps | ~550 molecules in a thin slab round the target; empty past its edges | ~5,500 molecules (≈63,000 beads) plus 1,400 far sprites (MP-V07) and the panorama (MP-V06) in two nested GPU baths wrapped round every view |
 | Every molecule a lumpy cluster of small spheres | smooth icosahedral blobs | bead clusters (sphere impostors) |
 | Soft contact shadows in the creases | none | per-bead crease occlusion (baked) + screen-space AO in the outlined looks |
-| Hosts furred with LPS and studded with proteins | sparse LPS on the front half | a dense bead forest of LPS, porins and membrane proteins all round each cell |
-| Far cells hanging in haze all round | a band of far cells behind the slab | a shell of 48 far cells in every direction, and a backdrop drawn by view direction |
+| Hosts furred with LPS and studded with proteins | sparse LPS on the front half | a dense bead forest of LPS, porins and membrane proteins all round each cell (the Goodsell looks; false light now draws a lumpy membrane under shell fur, see below) |
+| Far cells hanging in haze all round | a band of far cells behind the slab | far cells wrapped round every view, and a backdrop drawn by view direction (see below) |
 | Colour by molecule type | a few palette pairs | one palette by type (`PALETTE` in `shared/techniques/phage-beads.js`) |
 
 ## Where the look comes from
@@ -91,11 +91,12 @@ them lush, and what the game lacked:
 
 ## Not done (see `micro/design/open-recommendations.md`)
 
-- A true membrane mesh for the hosts (MP-V05, delivered, now gives the
-  capsule its albedo under the bead forest).
+- (Done 2 Nov 2026: the hosts' membrane is now a displaced, lumpy, wet surface in
+  false light, without MP-V05; see "The look target".)
 - AO that spares the phage's glow (the pass darkens creases on it too).
-- Impostor beads for the phage itself (its capsid is the T4 model, which is
-  geometric because the real capsid is).
+- Finer wet detail on the membrane (the target's pale streaks and teal-green
+  variation) and a little more near-field particle life; the end caps of a
+  cell seen head-on can read as a dark hollow.
 
 [meso]: https://pmc.ncbi.nlm.nih.gov/articles/PMC7230070
 [cellpack]: https://ccsb.scripps.edu/cellpack/
@@ -115,35 +116,116 @@ feeling, smoother, more furry less blurry, not emissive, more shaded, with
 the gold color of the phage a little more bronze less yellow, more big
 objects to move around and toward as opposed to a uniform sea of particles."*
 
-- **Shaded, not emissive.** The false-light key is stronger and the fill
-  lower (`phage-goodsell.js` `falseLight`); the phage's glow is a thin rim
-  only (glow 0.04-0.12, was 0.12-0.46) and the bloom is under a third of
-  what it was: highlights, not glow.
-- **Bronze.** The phage's false-light colours are amber and bronze
-  (`#9a5e26`-`#c48842`, `phage-model.js` `T4_FL`; the sheath rings
-  `#946428`/`#b07a3c`), with more specular.
-- **Less blurry.** The depth of field softens only the far layers (from 2.6x
-  the focus distance, at most 60 %); nothing near is blurred. The haze leaves
-  near and mid things crisp and closes in on the far ones (to a 12 % ghost by
-  uFogFar + 80: the encounter director counts that as the limit of what a
-  view sees).
-- **Big things to move toward, fewer particles.** The bath is about a
-  quarter of what it was (near ~600 molecules, mid ~600), varied in size,
-  two thirds of it in loose clumps (`createBath` `clump`), so open water
-  shows between. Nine big bacteria of other kinds (`BYSTANDERS` in
-  `world.js`, some twice a host's size) hang all through the water as
-  scenery, solid, furred.
-- **Furrier hosts.** The envelope is a deep teal-blue, wetter and lumpier
-  (bump 2.4), the delivered false-light envelope (MP-V05) lending its relief
-  at 40 % instead of taking over; a pale blue LPS fur; protein "flowers" on
-  stalks standing out of it; thin pili and flagella curving off into the
-  water.
-- **The UV shafts** are soft volumetric light (README, "Threats").
+A first pass (shaded light, a third of the bloom, far-only depth of field,
+bronze, a quarter of the bath, nine big scenery cells) still left the near
+host a speckled mosaic of beads, the water cluttered with saturated bead
+chains, the phage yellow and beaded, and the far field a crowd. The second
+pass rebuilt the false-light look to the recipe below.
 
-Side by side with the target (same framing: the phage left of centre, a host
-at the lower right): closer in the lighting and the colour (shaded, a deep
-teal, the phage a bronze crystal, open water between fewer molecules); the
-target's huge host is a smooth wet membrane under a fine fur, where ours
-still reads busier and more speckled (bead fur at true scale); and the
-painted panorama behind (MP-V06) still carries a dense crowd of its own, so
-the far water reads fuller than the target's.
+### Recipe (read from the target)
+
+Colours sampled from the image (a 9 × 9 average round each point):
+
+| Where | Sample | Used for |
+| --- | --- | --- |
+| water, upper middle (lit) | `#6199b1` | `uTop` `#2f8494` before the tone curve |
+| water, middle | `#4c6c70` | haze `uHaze` `#185462` |
+| water, dark corners | `#0a2a35` | `uBot` `#07202c` |
+| host membrane, hollows | `#092d3d`, `#0c303f` | membrane deep colour `#082438` |
+| host membrane, lit lumps | `#1e4144` (teal) | membrane teal `#1a5e6c` |
+| host crests | `#6b9186` | pale crest `vec3(0.46, 0.62, 0.56)` |
+| host rim / fur | `#839ea5` | fur `#7aa4b4` → tips `#dcecec` |
+| surface proteins | `#5483c3`, `#4783c3` | flower lobes `#5c80d0`, `#7a78d4`, `#6aa0d8` |
+| phage head | `#ae8345`; edges `#e1d0ba` | bronze `#9a6028`-`#c48a48` (more bronze than the target, as asked); edges `#d09a58`-`#f0d0a0` |
+| phage sheath | `#b3853c` | `#8f5a26`-`#b67c3e`, rings `#a87238` / `#8e5e2a` |
+| far cells | `#214858`, `#205162`, rim `#295a75` | far body `(0.07, 0.24, 0.30)`-`(0.10, 0.22, 0.38)`, rim `(0.32, 0.55, 0.60)`, then 45-85 % haze |
+
+- **Lighting.** One soft key from the upper left (view space
+  `(-0.45, 0.75, 0.5)`, warm white `(1, 0.94, 0.84)`), wrapped for soft matter;
+  a cool teal fill from the water, stronger from above; a rim (Fresnel) where
+  light comes through thin edges; no emission but a faint rim on the phage.
+- **Membrane** (`membraneLight` in `phage-goodsell.js`, toonMaterial
+  `lumps`). Smooth, wet and lumpy: the capsule is displaced along its normal
+  by a three-octave height field in object space (amplitude ~10 % of the
+  radius, lumps ~1/3 of the radius across) and its normal re-derived by finite
+  differences, so the lumps catch the light; finer relief (three rotated
+  octaves of smooth noise) tilts the normal per pixel. Colour from height:
+  deep navy in the hollows, teal on the lumps, soft blue patches, pale crests;
+  light through thin parts and the rim (a subsurface-like wrap); a sharp wet
+  glint broken into sparkles and a broad faint sheen; the bright water above
+  reflected at grazing angles. MP-V05 is not used in false light: as albedo it
+  was the busy bead mosaic the owner objected to, and as relief it added
+  nothing the noise does not.
+- **Fur** (`furShells`). Seven shells of a coarser copy of the capsule (one
+  instanced draw), each pushed out along the same lumped normal, cut into fine
+  tapering strands (one per cell of a 3D grid on the base surface, jittered,
+  random length), pale blue-white, darker at the root, fading to nothing
+  face-on so it reads as a fringe at the silhouette. Far off, strands below a
+  pixel average into a soft fuzz instead of shimmering.
+- **Surface proteins.** Sparse: one "flower" per ~1,200 units² (about 45 on
+  a host, a dozen or two on a visible side), four or three lobes of beads on a
+  thin pale stalk, soft blue and violet (bead impostors at 80 % saturation).
+  The grab receptors (gold on Host A's patches) and the violet decoys stay as
+  they were.
+- **Water.** Clear teal with a gentle gradient (lighter toward the sunlit
+  surface), a faint mottle, and MP-V06 only as a heavily blurred 256 × 128
+  copy mixed in at 50 %, so it lends colour and the soft shapes of far cells
+  but not its crowd. The bath draws a share of each species in false light
+  (`fl` in `world.js` `NEAR` / `MID`): no green dimers, yellow chains or
+  humic tangles; a fifth to a third of the globular proteins, a few gold
+  ones; ~45 % of the small molecules; at 50 % saturation (45 % for the mid
+  bath). MP-V07's far sprites: 18 %, hazier. Fine motes: 600, dim.
+- **Far cells.** 60 big soft rods in one instanced draw, wrapped round each
+  view's centre on the GPU in a ±950-unit box and never nearer than 420 units
+  (they dissolve before that), so a few hang in the haze whichever way you
+  look; soft body, pale fuzzy rim, 45-85 % haze, softened by the depth of
+  field. Scenery for the eye only.
+- **Big things to move toward.** 36 big bacteria of other kinds (`BYSTANDERS`
+  in `world.js`, was 9), half to three times a host's size, evenly through
+  the field's volume (~500 units apart, so a view that sees ~450 units into
+  the haze holds a few), two composed for the opening view (a huge one at the
+  lower right, one farther off at the upper left). Same membrane and fur as
+  the hosts, sparse flowers, a few pili; solid. The director's hosts are
+  placed as before.
+- **Phage** (`phage-model.js`). Bronze glass: the faceted capsid at 72 %
+  opacity with a strong specular and Fresnel, thin bright facet edges, and the
+  packed genome as a dim faceted amber core seen through it (in place of the
+  spool's coils, which read as stripes in a lantern; the cutaway still shows
+  the spool); a ribbed sheath of finer rings; each long fibre drawn as thin
+  tubes along a smooth curve through its simulated nodes, with small joints
+  (the knee and tip a little larger), not as beads. Glow only a faint rim.
+- **Post.** No outlines in false light (the target is shaded, not inked), a
+  light AO (0.3) only within 3.5× the focus distance; depth of field on the
+  far layers only, plus a light softening of a molecule right at the lens; a
+  partly transparent pixel (fur, glass, light) over the far background keeps
+  its sharpness; highlights barely warmed (bronze, not yellow).
+
+### The black blocks (fixed)
+
+The rectangles of black with green speckles in the earlier screenshots were
+non-finite texels in the scene target spread by the blurs. One NaN or
+infinite texel, downsampled to the quarter-resolution soft copy (the depth of
+field) and blurred twice, became a ~100 px block of NaN; and since
+`mix(sc, soft, 0)` is still NaN, the block showed whether or not that pixel was
+blurred (the bloom's chain did the same at 1/4 and 1/8). The sources were the
+impostor ray-cast's infinities (fixed in the first revamp) and the
+procedural bump's `normalize(abs(det) * n - grad * bump)`, which is
+`normalize(0)` on an edge-on triangle (det = 0, grad = 0). The bump now keeps
+the unbumped normal there, and the quarter-resolution downsample that feeds
+every blur (`BRIGHT_FRAG`) drops any non-finite texel, so one can never spread
+again. (A guard on every scene read in the final pass cost a third of that
+pass in software GL, so the guard sits where the blurs start.) `debug.nanCount()`
+counts non-finite texels in the last scene target; it reads 0 in every view
+of the checks.
+
+### Side by side
+
+`compare-final.jpg` in the session's scratch folder (`phage-look2/final/`):
+the target, ours at the same framing (the phage left of centre, a big host at
+the lower right), the first pass at that framing, and a Host B angle.
+Close now: the phage a bronze crystal, a smooth wet teal-blue host with a
+pale fur fringe and sparse blue flowers on stalks, clear water with a few
+soft molecules, big cells near and soft rods far off. Still apart: the
+target's membrane carries more fine wet detail and colour (teal-green and
+pale streaks) than ours, its water a few more small soft molecules, and its
+mid-distance cells are crisper.

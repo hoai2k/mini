@@ -827,8 +827,8 @@ function buildPondweed(group, leafTex) {
       float mid = 1.0 - smoothstep(0.025, 0.07, abs(vLocal.z) / sqrt(ex));
       float rim = smoothstep(0.7, 1.0, length(vLocal.xz));
       vec3 c = vColor * (0.82 + 0.3 * mNoise(vLocal.xz * 6.0 + vColor.r * 40.0));
-      c = mix(c, vec3(0.26, 0.045, 0.03), rim * 0.6);
-      c = mix(c, c * 1.6 + vec3(0.05, 0.05, 0.01), mid * 0.65);
+      c = mix(c, vec3(0.085, 0.02, 0.012), rim * 0.55);
+      c = mix(c, c * 1.35 + vec3(0.015, 0.016, 0.004), mid * 0.6);
       c *= 1.0 - 0.2 * vein;
       if (uHasLeafTex > 0.5) { vec4 t = texture2D(uLeafTex, vec2(0.5 + vLocal.x * 0.5, 0.5 - vLocal.z * 0.5)); c = mix(c, t.rgb, 0.85 * t.a); }
       // wet and dark where it lies on the water
@@ -839,7 +839,7 @@ function buildPondweed(group, leafTex) {
   });
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), col = new THREE.Color(), e = new THREE.Euler();
   // olive to bronze and wine red (the floating leaves of bog pondweed are often flushed red in acid water)
-  const palette = [[0.055, 0.07, 0.012], [0.08, 0.06, 0.014], [0.1, 0.035, 0.014], [0.05, 0.065, 0.014], [0.09, 0.05, 0.012]];
+  const palette = [[0.04, 0.05, 0.009], [0.055, 0.042, 0.01], [0.07, 0.025, 0.01], [0.035, 0.046, 0.01], [0.062, 0.035, 0.009]];
   let seed = 5150;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   const patches = new Map();

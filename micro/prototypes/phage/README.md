@@ -170,8 +170,9 @@ changes. Until placed, the hosts are hidden and parked far off.
 
 **Scenery, everywhere** (pre-placed, the same every visit, all through the
 water but the start's calm water): 36 **humic flocs**, 26 **UV sunfleck
-shafts** and 9 big **bacteria of other kinds** (not hosts: no receptor for
-this phage; some huge, as things to move round and toward; solid). All are
+shafts** and 36 big **bacteria of other kinds** (not hosts: no receptor for
+this phage; some huge, as things to move round and toward, ~500 units apart so
+a few are always in sight, two composed for the opening view; solid). All are
 avoidable, so they can be anywhere; encounters are never placed in or
 against them. Heading straight up or down meets shafts and flocs like any
 other way (they are no longer a shell round the start).
@@ -303,7 +304,7 @@ turnarounds), `cam(yaw, pitch, dist)`, `fold`, `walkOn(hostId, u, phi)`,
 `hungry`, `overlay`, `look`, `zoom`, `reset`, `place(slot, x, y)`, plus
 `maxDt` and `pause`; `debug.spin()` (the view's turn rate and each phage's angular speed, rad/s),
 `debug.kicks()` (the last molecule strikes), `debug.encounters()` (the director's state), `debug.encounterLog()`, `debug.seenAt(x, y, z)`, `debug.placeNow()`, `debug.placePortal(dir, d)` (out of order: tests), `debug.flocs()`, `debug.coverage()` (the fraction of the frame the scene
-covers, read from the scene target's alpha) and `debug.beads()` (beads drawn in the baths); `debug.fight` (the amoeba's fight state and interest) and `debug.boss()` (the CRISPR-Cas state, match, distance). `window.__micro` also exposes `team`, `players`,
+covers, read from the scene target's alpha), `debug.nanCount()` (non-finite texels in the last scene target: the black-block hunt, LOOK.md) and `debug.beads()` (beads drawn in the baths); `debug.fight` (the amoeba's fight state and interest) and `debug.boss()` (the CRISPR-Cas state, match, distance). `window.__micro` also exposes `team`, `players`,
 `split`, `nearBack` and `where`.
 
 ## Known issues
@@ -347,6 +348,13 @@ reference sheet and `research/assets/references/production/phage-t4.jpg`:
   that grows toward the tip. Moving through the water they lag and trail;
   their tips can be pinned to a surface.
 - **Six short tail fibres** curl under the plate and swing down on commit.
+- **In false light** (the owner's look target, 2 November 2026; [`LOOK.md`](LOOK.md)):
+  bronze glass. The capsid is faceted amber glass (72 % opaque, a strong
+  specular and Fresnel) with thin bright edges, the packed genome a dim
+  faceted amber core inside it (the cutaway still shows the spool); the sheath
+  finer bronze rings; each long fibre thin glassy tubes along a smooth curve
+  through its nodes, jointed, the knee and tip a little larger. Only a faint
+  rim glows.
 
 ### Motion
 
@@ -395,19 +403,22 @@ reference sheet and `research/assets/references/production/phage-t4.jpg`:
   clearing a lens in front of the camera. Each split view wraps them round
   itself, so every view is full (this replaces the CPU crowd and its
   per-view copies).
-- **Hosts furred all round**: LPS chains every ~15 units² (≈3,700 on Host
-  A), porins, membrane proteins and globular proteins in the forest, porin
-  patches at the receptor sites, and the grab proteins as bead clusters (the
-  gold receptors glow a little: the thing to find). The capsule body wobbles
-  more under its wet relief.
+- **Hosts furred all round**: in false light (since 2 November 2026, the
+  owner's look target) a smooth, wet, lumpy membrane (the capsule displaced
+  by a height field, lit as a wet surface) under a fine pale fur of shells,
+  with sparse blue and violet protein flowers on stalks ([`LOOK.md`](LOOK.md),
+  "Recipe"); in the Goodsell looks the bead forest: LPS chains every ~15
+  units² (≈3,700 on Host A), porins, membrane proteins and globular proteins.
+  Both: porin patches at the receptor sites, and the grab proteins as bead
+  clusters (the gold receptors glow a very little: the thing to find).
 - **Light and shadow**: per-bead crease occlusion (the side of a bead facing
   into its cluster darkens), screen-space ambient occlusion and depth
   outlines in the final pass (QuteMol-like), per look: false light 0.45 / 0.3,
   Goodsell 0.6 / 0.6, cryo-EM 0.4 / 0.8, fluorescence 0.2 / 0.25.
-- **Every direction full**: 48 far cells on a shell round the field; the
-  backdrop and the UV wash are placed by view direction and world position,
-  not by screen (MP-V06, a panorama, replaces the procedural backdrop when it
-  arrives).
+- **Every direction full**: 60 soft far cells wrapped round each view on
+  the GPU (never nearer than 4.2 µm, hazed and softened); the backdrop and the
+  UV wash are placed by view direction and world position, not by screen
+  (MP-V06, a panorama, lends its colour as a blurred copy).
 - **Palette by type** (`PALETTE`): violet-blue and periwinkle proteins, teal
   and green ones, pale small molecules, olive humic matter, a gold-green LPS
   core with pale tips, blue porins, a blue-violet ribosome-sized complex;
@@ -494,6 +505,30 @@ pessimistic.)
   host's forest, one for the flocs, one for the shafts, one for the far
   sprites, five for the portal glow.
 
+### Performance (the look target, 2 November 2026)
+
+`micro/tools/perf/measure.mjs phage 1` and `phage 4`, 1280 × 720, headless
+SwiftShader with the GPU path (load average ~10 from other agents). Before =
+the first look-target pass; after = this one.
+
+| | fps | CPU ms/frame | SwiftShader ms/frame | draws | triangles | texture MB |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 player, before | 1.37 | 4.0 | 844 | 78 | 192 k | 136 |
+| 1 player, after | 1.01 | 6.0 | 1387 | 90 | 233 k | 81 |
+| 4 players (4 views), before | 1.62 | 9.1 | 701 | 385 | 1.06 M | 153 |
+| 4 players (4 views), after | 1.08 | 12.6 | 1120 | 464 | 1.05 M | 99 |
+
+- The cost is fill: the membrane's per-pixel relief and the fur's shells
+  (seven, on a coarser copy of each capsule, face-on fragments dropped
+  first) over big cells that now fill much of the frame. The quality
+  governor drops fur shells with the bath (all, two thirds, half), and the AO
+  now runs only within 3.5× the focus distance (the far cells cover the
+  background now, and AO there is lost in the haze).
+- Texture memory fell by ~55 MB: MP-V05 is no longer loaded and the
+  panorama is a 256 × 128 blurred copy.
+- More draws: 36 scenery cells (was 9), each a body, its fur, one flower
+  kind and its pili, culled with the cell.
+
 ### Performance (second pass)
 
 Measured on 1 November 2026 with `micro/tools/perf/measure.mjs` (`?q=high`, 1 and
@@ -573,17 +608,15 @@ The Menu panel lists everything with a switch where it makes sense:
   the crowded water and the envelope section.
 - **MP-R12** (T4 reference sheet, delivered) for the turnarounds.
 - **The revamp's art (requested and delivered 1 November 2026):**
-  - **MP-V05** (false-light envelope, tileable): on Hosts A and B in false
-    light, tiled at its true scale (about 150 nm a tile, 14 × 9 round the
-    capsule) and taking over 75 % of the albedo, under the bead forest; the
-    wrong host (no outer membrane) keeps its own wet relief. In the Goodsell
-    look the hosts keep MP-V01. Without it, false light shows the procedural
-    relief alone (MP-V01's grain streaked it, so it is no longer used there).
+  - **MP-V05** (false-light envelope, tileable): no longer drawn (2 November
+    2026). Its bead mosaic is the busy, speckled surface the owner's look
+    target replaced with a smooth wet membrane under fur (`LOOK.md`); the
+    membrane is procedural. In the Goodsell look the hosts keep MP-V01.
   - **MP-V06** (equirectangular panorama): the false-light backdrop, sampled
-    by view direction in the final pass (dimmed to 70 %, mixed 85 % over the
-    procedural haze), so the far water is the painting whichever way you
-    turn. Loaded without mipmaps so the wrap seam leaves no line.
-  - **MP-V07** (molecule sprite sheet, 4 × 4): the far layer, 1,400 sprites
+    by view direction in the final pass as a heavily blurred 256 × 128 copy
+    (made on load, blurred across the seam) mixed 50 % over the procedural
+    haze: its colour and the soft shapes of far cells, not its crowd.
+  - **MP-V07** (molecule sprite sheet, 4 × 4): the far layer, 1,400 sprites (18 % of them in false light, hazier)
     wrapped round the view between 3.3 and 7 µm (`createSprites` in
     `phage-beads.js`), false light only. The sheet's magenta key left coloured
     fringes, so the shader erodes the alpha (the minimum of five taps), drops
