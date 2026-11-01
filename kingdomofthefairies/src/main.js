@@ -405,7 +405,39 @@ function focusEl(el, mark = true) {
   if (el.closest('.scroll') && !el.classList.contains('scroll')) el.scrollIntoView({ block: 'nearest' });
   if (mark) (el.closest('.slider') || el).classList.add('nav-focus');
 }
-function navMove(delta) {
+// Scene cards form a responsive grid. Navigate their actual rectangles so
+// vertical presses stay in a column even when the number of columns changes.
+function sceneNav(direction) {
+  const list = focusables().filter(el => !el.disabled && el.getBoundingClientRect().width > 0);
+  const current = document.activeElement;
+  if (!list.includes(current)) { focusEl(list[0]); return; }
+  const box = current.getBoundingClientRect();
+  const cx = (box.left + box.right) / 2, cy = (box.top + box.bottom) / 2;
+  const vertical = direction === 'up' || direction === 'down';
+  const sign = direction === 'up' || direction === 'left' ? -1 : 1;
+  // Offscreen rows still belong to the scrolling grid. Keep the fixed
+  // close button from interrupting movement between those rows.
+  const inGrid = !!current.closest('.scene-grid');
+  const targets = inGrid ? list.filter(el => el.closest('.scene-grid')) : list;
+  const candidates = targets.filter(el => el !== current).map(el => {
+    const rect = el.getBoundingClientRect();
+    const dx = (rect.left + rect.right) / 2 - cx, dy = (rect.top + rect.bottom) / 2 - cy;
+    return { el, rect, forward: (vertical ? dy : dx) * sign, across: Math.abs(vertical ? dx : dy) };
+  }).filter(candidate => candidate.forward > 1 && (vertical ||
+    Math.min(box.bottom, candidate.rect.bottom) - Math.max(box.top, candidate.rect.top) > 1));
+  if (!candidates.length) {
+    if (inGrid && direction === 'up') focusEl(list.find(el => el.classList.contains('card-x')));
+    return;
+  }
+  const nearest = Math.min(...candidates.map(candidate => candidate.forward));
+  const row = candidates.filter(candidate => candidate.forward <= nearest + 2);
+  row.sort((a, b) => a.across - b.across);
+  focusEl(row[0].el);
+  audio.play('ui');
+}
+function navMove(delta, direction) {
+  if (dialogs[dialogs.length - 1]?.el.id === 'scenes') return sceneNav(direction);
+
   const list = focusables();
   if (!list.length) return;
   let i = list.indexOf(document.activeElement);
@@ -441,10 +473,10 @@ function menuInput(i) {
     showInsPage(+insTabs[(n + (i.left ? -1 : 1) + insTabs.length) % insTabs.length].dataset.page); audio.play('ui'); return;
   }
   if (el?.id === 'ins-scroll' && (i.up || i.down)) { el.scrollBy({ top: i.up ? -80 : 80 }); if (!(i.up && el.scrollTop <= 0) && !(i.down && el.scrollTop + el.clientHeight >= el.scrollHeight - 2)) return; }
-  if (i.up) navMove(-1);
-  if (i.down) navMove(1);
-  if (i.left && !navAdjust(-1)) navMove(-1);
-  if (i.right && !navAdjust(1)) navMove(1);
+  if (i.up) navMove(-1, 'up');
+  if (i.down) navMove(1, 'down');
+  if (i.left && !navAdjust(-1)) navMove(-1, 'left');
+  if (i.right && !navAdjust(1)) navMove(1, 'right');
   if (i.padA) navActivate();
   if (i.padB) closeDialog();
   else if (i.back && dialogs.length) closeDialog();
