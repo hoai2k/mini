@@ -19,19 +19,23 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { volumeMaterial, pointsMaterial } from './optics.js';
 import { rng } from './geom.js';
 
-// The rings round the start (µm from START, in the plane): a short calm
-// warm-up, then one challenge after another with a calm stretch between, the
-// same whichever way you head (micro/design/encounter-pattern.md).
-//   0–750      calm: prey, Vorticella, diatoms, Spirogyra, the sunlit patch
-//   750–1450   Dileptus's water (one Dileptus at 1000, moved round its ring to meet you)
-//   1600–2100  the Chlamydomonas bloom (one band at 1850, moved round its ring)
-//   2150–3050  two Didinium (at 2600, moved round their ring together)
-//   3150       the bladderwort trap's door (bladder at 3420), guarding
-//   3850       the portal: the biofilm on a leaf
-// At full speed (1.4 mm/s) the portal is a few seconds' swim; the challenges
-// are what take the time.
+// The rings round the start (µm from START, in the plane): a calm warm-up of
+// about five seconds' swimming, then one challenge after another with a short
+// calm stretch between (about 10 mm, seven seconds at full speed), the same
+// whichever way you head (micro/design/encounter-pattern.md). Rushing (full
+// speed and dashes, dodging every fight) reaches the portal in about a minute.
+// Each challenge is one instance moved round its rings (main.js moveRings),
+// serving an inner ring and, once you are past it, an outer one:
+//   0–8 mm       calm: prey, Vorticella, diatoms, Spirogyra, the sunlit patches
+//   11.5, 45 mm  Dileptus's water (±0.5 mm)
+//   22.5, 56 mm  the Chlamydomonas bloom (a band ±0.25 mm deep, 1.8 mm along the ring)
+//   34, 67 mm    two Didinium (±0.5 mm)
+//   77.3 mm      the bladderwort trap's door, guarding
+//   78 mm        the portal: the biofilm on a leaf
+// Measured (rush.mjs, enemies passive, full speed with a dash every 2.2 s):
+// the first obstacle after about 7 s, the portal after about 52 s.
 export const START = new THREE.Vector3(-150, 0, 60);
-export const RINGS = { warm: 750, dileptus: 1000, bloom: 1850, didinium: 2600, trap: 3420, portal: 3850 };
+export const RINGS = { warm: 8000, dileptus: [11500, 45000], bloom: [22500, 56000], didinium: [34000, 67000], trap: 77570, portal: 78000 };
 /** The direction everything starts in (up and to the right of the opening view), until moved. */
 export const DIR = new THREE.Vector3(0.553, 0, 0.833).normalize();
 export const SIDE = new THREE.Vector3(-DIR.z, 0, DIR.x); // to the right of DIR (as the opening view sees it)
@@ -54,8 +58,8 @@ export const lateral = (p) => (p.x - START.x) * SIDE.x + (p.z - START.z) * SIDE.
 export const LANDMARKS = {
   // the portal: placed on its ring once a game (main.js placePortal); `placed` until then false
   forward: { pos: ringPoint(RINGS.portal, A0), r: 230, reachY: 120, label: 'Biofilm', placed: false, bearing: A0 },
-  // the way back: the amoeba's floor, behind the start (a fixed place, between the Dileptus and bloom rings)
-  back: { pos: routePoint(-1500, -250), r: 240, reachY: 170, label: 'Amoeba' },
+  // the way back: the amoeba's floor, the other way from the first portal bearing, in the calm between the first two rings
+  back: { pos: ringPoint(17000, A0 + Math.PI), r: 240, reachY: 170, label: 'Amoeba' },
 };
 
 function quads(n, iPos, iP) {

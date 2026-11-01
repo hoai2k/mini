@@ -1034,7 +1034,7 @@ function stepPrey(dt, col) {
     // its patch: a loose tether (it comes back once it has fled), slack while a player is in or near the patch
     if (p.home && (p.fleeT || 0) <= 0 && !p.touch) {
       const H = p.home, dx = H.x - p.x, dy = H.y - p.y;
-      if (dx * dx + dy * dy > H.r * H.r && cells.every((c) => Math.hypot(c.body.cx - H.x, c.body.cy - H.y) > H.r + c.body.req + 350)) {
+      if (dx * dx + dy * dy > H.r * H.r && cells.every((c) => Math.hypot(c.body.cx - H.x, c.body.cy - H.y) > H.r + c.body.req + 120)) {
         let da = Math.atan2(dy, dx) - p.th; da = Math.atan2(Math.sin(da), Math.cos(da));
         p.th += clamp(da, -1, 1) * dt * 1.5;
       }
@@ -1333,6 +1333,7 @@ function simStep(dt, granules = true) {
   }
   S.pending = S.pending.filter((x) => x.t > -1e8);
   placeRings();
+  checkLandmarks();
   S.time += dt;
 }
 
@@ -1918,7 +1919,6 @@ function frame(now) {
     acc = steps === MAX_CATCHUP ? 0 : acc - steps / 60;
     stepWarmups();
   }
-  checkLandmarks();
   // Camera: follow the cell, gently, leading a little in the direction of travel
   // (with several players: their centroid; the split screen takes it from there).
   // once eaten, the view slides so the shrivelled cell sits above the Eaten card

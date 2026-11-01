@@ -122,9 +122,9 @@ export function createPortalGlow({ THREE, scene = null, size = 10, color = '#f0b
         float r = length(vP) * 5.0;                 // in pool radii
         float R = 0.3 + 4.2 * (1.0 - pow(1.0 - clamp(b / 1.3, 0.0, 1.0), 3.0));
         float w = 0.18 + 0.35 * b;
-        float a = exp(-pow((r - R) / w, 2.0)) * (1.0 - smoothstep(0.5, 1.5, b)) * 1.4
-          + exp(-r * r * 1.5) * (1.0 - smoothstep(0.0, 0.6, b)) * 1.2;  // the flash at the centre
-        gl_FragColor = vec4(mix(uColor, vec3(1.0, 0.96, 0.82), 0.4) * 3.0, a * uI * smoothstep(1.0, 0.95, length(vP)));
+        float a = exp(-pow((r - R) / w, 2.0)) * (1.0 - smoothstep(0.5, 1.5, b)) * 0.55
+          + exp(-r * r * 1.5) * (1.0 - smoothstep(0.0, 0.6, b)) * 0.45;  // the flash at the centre
+        gl_FragColor = vec4(mix(uColor, vec3(1.0, 0.96, 0.82), 0.3) * 1.5, a * uI * smoothstep(1.0, 0.95, length(vP)));
       }`,
   }));
   ring.position.y = 0.05;
@@ -443,7 +443,7 @@ export function createPortalLight({ parent = document.body, zIndex = 3, color = 
       const r = m * b.scale * (0.12 + 0.55 * (1 - Math.pow(1 - u, 3)));
       const a = Math.sin(Math.PI * Math.min(1, u * 1.6 + 0.08)) * (1 - u);
       const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, r);
-      g.addColorStop(0, pale(0.75 * a)); g.addColorStop(0.3, gold(0.45 * a)); g.addColorStop(1, gold(0));
+      g.addColorStop(0, pale(0.5 * a)); g.addColorStop(0.3, gold(0.3 * a)); g.addColorStop(1, gold(0));
       ctx.fillStyle = g; ctx.fillRect(b.x - r, b.y - r, 2 * r, 2 * r);
       // a ring of light going out
       ctx.strokeStyle = gold(0.5 * a); ctx.lineWidth = Math.max(1, m * 0.006 * (1 - u));

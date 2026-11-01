@@ -256,6 +256,7 @@ in multiplayer:
 
 ```bash
 node --test micro/prototypes/phage/binding.test.mjs micro/prototypes/phage/kicks.test.mjs
+node micro/prototypes/phage/play-check.mjs   # controls (no spin), coverage (no empty side), encounters
 node micro/prototypes/check.mjs phage
 node micro/game/check.mjs
 ```

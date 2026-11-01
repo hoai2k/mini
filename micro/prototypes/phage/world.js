@@ -425,8 +425,8 @@ export function createWorld(scene) {
       void main(){ float f = abs(dot(normalize(vN), normalize(vV))); float core = pow(f, 1.6);
         float ends = smoothstep(1.0, 0.75, abs(vY));
         float glint = smoothstep(0.93, 1.0, sin(vY * 40.0 - uTime * 3.0 + atan(vL.z, vL.x) * 5.0));
-        vec3 c = mix(vec3(0.45, 0.32, 1.0), vec3(0.85, 0.8, 1.0), core);
-        gl_FragColor = vec4(c * (0.22 + 0.35 * core + 0.5 * glint * core) * ends * uOn, 1.0); }`,
+        vec3 c = mix(vec3(0.42, 0.26, 1.0), vec3(0.68, 0.56, 1.0), core); // (violet, kept below the bloom's white)
+        gl_FragColor = vec4(c * (0.16 + 0.24 * core + 0.4 * glint * core) * ends * uOn, 1.0); }`,
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
   });
   const shaftGeo = new THREE.CylinderGeometry(1, 1, 2, 24, 8, true);

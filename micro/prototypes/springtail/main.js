@@ -255,7 +255,9 @@ function placeCamera(dt) {
   const mp = multi() && grp.length > 0;
   const gc = mp ? groupCentre(grp) : null;
   const base = 36 / ZOOMS[rig.zi];
-  const hfwWant = capOn ? CAP_VIEW[cap.kind].hfw * (capFollow ? 1.7 : 1) : mp ? base * (1 + Math.min(0.5, (gc.spread / base) * 0.6)) : base;
+  // stuck on a sundew leaf (alone): the lens closes in on the struggle
+  const stuckView = !mp && pl.mode === 'stuck';
+  const hfwWant = capOn ? CAP_VIEW[cap.kind].hfw * (capFollow ? 1.7 : 1) : mp ? base * (1 + Math.min(0.5, (gc.spread / base) * 0.6)) : stuckView ? Math.min(base, CAP_VIEW.sundew.hfw) : base;
   rig.hfw = rig.hfw === undefined || !dt ? hfwWant : rig.hfw + (hfwWant - rig.hfw) * (1 - Math.exp(-dt * 3));
   const L = (rig.lens = lens({ hfw: rig.hfw, N: APERTURES[rig.ai] }));
   const want = mp ? new THREE.Vector3(gc.x, gc.y + 0.25, gc.z) : new THREE.Vector3(pl.x, pl.y + 0.25, pl.z);
@@ -286,7 +288,8 @@ function placeCamera(dt) {
   const k = dt ? 1 - Math.exp(-dt * (glide ? 14 : pl.mode === 'air' && !mp ? 3.5 : 6)) : 1;
   rig.target.lerp(frameAt, k);
   rig.wantPitch = THREE.MathUtils.clamp(rig.wantPitch, PITCH_MIN, PITCH_MAX);
-  const pitchWant = capOn ? CAP_VIEW[cap.kind].pitch : rig.wantPitch;
+  // stuck: look down onto the leaf, so the body stays in sight as it is pulled in
+  const pitchWant = capOn ? CAP_VIEW[cap.kind].pitch : stuckView ? Math.max(rig.wantPitch, CAP_VIEW.sundew.pitch) : rig.wantPitch;
   rig.pitch += (pitchWant - rig.pitch) * (dt ? 1 - Math.exp(-dt * (capOn ? 2.5 : 5)) : 1);
   const cp = Math.cos(rig.pitch);
   camera.position.set(rig.target.x + Math.cos(rig.yaw) * cp * L.s, rig.target.y + Math.sin(rig.pitch) * L.s, rig.target.z + Math.sin(rig.yaw) * cp * L.s);
@@ -529,7 +532,7 @@ function respawnSafe(P, at = safeSpot(P)) {
 }
 /** Stuck on a sundew leaf: the struggle starts (sundew-struggle.js); the glue strands attach on the first step. */
 function stickToLeaf(P, leaf) {
-  P.air = null; P.mode = 'stuck'; P.leaf = leaf; P.y = leaf.y + 0.12; P.struggle = 0; P.pitch = 0; P.roll = 0; P.bend = 0;
+  P.air = null; P.mode = 'stuck'; P.leaf = leaf; P.y = leaf.y + 0.3; P.struggle = 0; P.pitch = 0; P.roll = 0; P.bend = 0;
   P.ax = P.x; P.az = P.z; P.tugX = undefined; P.tugZ = undefined; P.yank = 0; P.pauseSaid = false;
   P.stuckS = newStruggle(); P.glueOn = false;
   P.charging = false; P.charge = 0; P.queuedJump = null;
@@ -1170,8 +1173,9 @@ function stepPlayer(dt, inp) {
     P.pitch = th * 0.12 * Math.sin(simT * 7.7);
     const pull = 0.16 * P.yank * (1 - S.sink);
     P.x = P.ax + (P.tugX || 0) * pull; P.z = P.az + (P.tugZ || 0) * pull;
-    // pulled in: down among the tentacles, which fold over, and the blade starts to cup
-    P.y = leaf.y + 0.12 - 0.14 * S.sink;
+    // held up on the glue drops at first; pulled in, down among the tentacles,
+    // which fold over, and the blade starts to cup
+    P.y = leaf.y + 0.3 - 0.32 * S.sink;
     leaf.grip = 0.8 * S.sink; leaf.close = 0.3 * S.sink;
     leaf.shake = (0.03 * th + 0.03 * P.yank) * Math.sin(simT * 23);
     leaf.target.set(P.x, P.y + 0.2, P.z);
@@ -1872,7 +1876,7 @@ function updateText(L) {
   thr.textContent = capture.active ? '' : pl.mode === 'stuck' ? 'Sundew: wriggle and kick!' : stage === 'tell' ? 'Stenus: jump now!' : stage === 'stuck' ? 'Stuck: mash A!' : stage === 'lungeTell' || stage === 'lunge' ? 'Mandibles: jump or step aside!' : attacking ? 'Attacking! Face it + B, or jump' : hunting ? 'Hunted!' : isHungry(hs) || isHungry(hr) ? `${[isHungry(hs) && 'Stenus', isHungry(hr) && 'Strider'].filter(Boolean).join(' & ')} hungry` : 'Calm';
   thr.classList.toggle('hot', hunting || attacking);
   const prog = Math.max(0, Math.min(1, progressAt(pl.x, pl.z)));
-  if (!hunting && !attacking && !capture.active && !inZone('stenus', pl.x, pl.z) && !inZone('strider', pl.x, pl.z)) thr.textContent = 'Calm water';
+  if (!hunting && !attacking && !capture.active && pl.mode !== 'stuck' && !inZone('stenus', pl.x, pl.z) && !inZone('strider', pl.x, pl.z)) thr.textContent = 'Calm water';
   if (capture.active && cap.phase) { furcTxt.textContent = (cap.kind && CAP_TEXT[cap.kind].phases[cap.phase]) || 'Back again'; m.style.width = `${{ strike: 25, hold: 50, eat: 80, follow: 100, fadeOut: 100, fadeIn: 100 }[cap.phase] || 100}%`; m.style.background = '#e04f3a'; }
   else if (pl.mode === 'stuck') { const S = pl.stuckS; furcTxt.textContent = S && S.idle > 0.8 ? 'Pulled in: struggle!' : 'Struggle: LS + A'; m.style.width = `${pl.struggle * 100}%`; m.style.background = '#e07a5f'; }
   else if (pl.mode === 'reform') { furcTxt.textContent = 'Back again'; m.style.width = `${Math.min(1, pl.reformT / REFORM) * 100}%`; m.style.background = '#c9d6df'; }

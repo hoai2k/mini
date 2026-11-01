@@ -352,7 +352,7 @@ export function createWorld(scene) {
     return Object.assign(new THREE.Mesh(geo, pointsMaterial({ absorb: [0.01, 0.012, 0.02] })), { frustumCulled: false });
   };
   // on their ring, a little either side of the bearing they are moved to (main.js placeRing)
-  const HOMES = [ringPoint(RINGS.didinium, A0 - 0.12, DEPTH * 0.58), ringPoint(RINGS.didinium, A0 + 0.12, DEPTH * 0.5)];
+  const HOMES = [ringPoint(RINGS.didinium[0], A0 - 300 / RINGS.didinium[0], DEPTH * 0.58), ringPoint(RINGS.didinium[0], A0 + 300 / RINGS.didinium[0], DEPTH * 0.5)];
   for (let i = 0; i < 2; i++) {
     const g = new THREE.Group();
     g.add(Object.assign(new THREE.Mesh(dGeo, didMat), { frustumCulled: false }));
@@ -373,7 +373,7 @@ export function createWorld(scene) {
     const start = HOMES[i].clone();
     g.position.copy(start);
     didinia.push({ kind: 'didinium', label: 'Didinium', group: g, ring: rs, pos: start.clone(), dir: new THREE.Vector3(rand() - 0.5, 0, rand() - 0.5).normalize(), roll: 0, phase: 0,
-      state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3(), home: HOMES[i].clone(), homeR: 250, tipLen: 66, speedK: 1, radius: 60, ringR: RINGS.didinium, offset: i ? 0.12 : -0.12 });
+      state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3(), home: HOMES[i].clone(), homeR: 250, tipLen: 66, speedK: 1, radius: 60, rings: RINGS.didinium, offset: i ? 300 : -300 });
   }
   // Dileptus: a long, flask-shaped hunting ciliate (≈330 µm here) whose
   // trunk-like proboscis is lined with toxicysts. It slashes prey with the
@@ -407,10 +407,10 @@ export function createWorld(scene) {
     g.add(rs.mesh);
     g.add(granulesIn(420, 95, 30, -40));
     group.add(g);
-    const home = ringPoint(RINGS.dileptus, A0, DEPTH * 0.45);
+    const home = ringPoint(RINGS.dileptus[0], A0, DEPTH * 0.45);
     g.position.copy(home);
     didinia.push({ kind: 'dileptus', label: 'Dileptus', group: g, ring: rs, pos: home.clone(), dir: new THREE.Vector3(1, 0, 0), roll: 0, phase: 0,
-      state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3(), home: home.clone(), homeR: 250, tipLen: 160, speedK: 0.62, radius: 45, ringR: RINGS.dileptus, offset: 0 });
+      state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3(), home: home.clone(), homeR: 250, tipLen: 160, speedK: 0.62, radius: 45, rings: RINGS.dileptus, offset: 0 });
   }
 
   // --- the water's texture, repeated round every view ---
@@ -429,6 +429,7 @@ export function createWorld(scene) {
     bT[i] = rand() * 2;
   }
   const { geo: bGeo, posAttr: bAttr } = instancedQuads(NB, bPos, bP);
+  const nearV = [], vPool = [];
   const bacteria = new THREE.Mesh(bGeo, pointsMaterial({ rod: true }));
   bacteria.frustumCulled = false;
   group.add(bacteria);
@@ -452,18 +453,27 @@ export function createWorld(scene) {
    * deepest contact {n, depth, ob, p} or null (p: the contact point; ob.glass
    * for the slide, coverslip and meniscus).
    */
-  const cA = new THREE.Vector3(), cB = new THREE.Vector3();
+  const cA = new THREE.Vector3(), cB = new THREE.Vector3(), wc = new THREE.Vector3(), wa = new THREE.Vector3(), wb = new THREE.Vector3();
   const GLASS = { slide: { what: 'the slide', glass: true }, coverslip: { what: 'the coverslip', glass: true }, rim: { what: 'the edge of the drop', glass: true } };
   function collide(a, b, r) {
     let best = null;
+    const mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2;
     for (const ob of obstacles) {
       let d, n;
       if (ob.kind === 'sphere') {
-        closestOnSeg(ob.c, a, b, cA);
-        d = cA.distanceTo(ob.c) - ob.r - r;
-        if (d < 0) n = v1.subVectors(cA, ob.c).normalize();
+        // scenery repeats every TILE: meet the copy nearest the capsule
+        const c = ob.wrap ? wc.set(ob.c.x + wrapOff(ob.c.x, mx), ob.c.y, ob.c.z + wrapOff(ob.c.z, mz)) : ob.c;
+        if (Math.abs(c.x - mx) > ob.r + r + 200 || Math.abs(c.z - mz) > ob.r + r + 200) continue;
+        closestOnSeg(c, a, b, cA);
+        d = cA.distanceTo(c) - ob.r - r;
+        if (d < 0) n = v1.subVectors(cA, c).normalize();
       } else {
-        d = segSeg(a, b, ob.a, ob.b, cA, cB) - ob.r - r;
+        let oa = ob.a, obb = ob.b;
+        if (ob.wrap) {
+          const ox = wrapOff((ob.a.x + ob.b.x) / 2, mx), oz = wrapOff((ob.a.z + ob.b.z) / 2, mz);
+          oa = wa.set(ob.a.x + ox, ob.a.y, ob.a.z + oz); obb = wb.set(ob.b.x + ox, ob.b.y, ob.b.z + oz);
+        }
+        d = segSeg(a, b, oa, obb, cA, cB) - ob.r - r;
         if (d < 0) n = v1.subVectors(cA, cB).normalize();
       }
       if (d < 0 && (!best || d < -best.depth)) best = { n: n.clone(), depth: -d, ob, p: cA.clone().addScaledVector(n, -r) };
@@ -487,7 +497,7 @@ export function createWorld(scene) {
   function touchVorticella(v, t) {
     if (opts.vortContract && v.coil < 0.5) {
       v.coil = 1; v.hold = 0.5 + Math.random() * 0.4;
-      for (const o of vorticellas) if (o !== v && o.coil < 0.5 && o.anchor.distanceTo(v.anchor) < 90 && Math.random() < 0.5) {
+      for (const o of vorticellas) if (o !== v && o.colony === v.colony && o.coil < 0.5 && o.anchor.distanceTo(v.anchor) < 90 && Math.random() < 0.5) {
         o.pendingAt = t + 0.03 + Math.random() * 0.1;
       }
       return true;
@@ -496,7 +506,21 @@ export function createWorld(scene) {
   }
 
   const api = {
-    group, obstacles, opts, vorticellas, ambient, didinia, diatoms, bacteria, flowAt, collide, touchVorticella, DEPTH, DROP_R,
+    group, obstacles, opts, vorticellas, colonies, ambient, didinia, diatoms, bacteria, flowAt, collide, touchVorticella, DEPTH, DROP_R, TILE,
+    /**
+     * Show every set piece at its copy nearest (cx, cz), the point a view looks
+     * at; call before each view's culling and render. The flakes repeat in their
+     * material, round the same point.
+     */
+    viewAt(cx, cz) {
+      for (const it of items) {
+        it.obj.position.set(it.base.x + wrapOff(it.c.x, cx), it.base.y, it.base.z + wrapOff(it.c.z, cz));
+        it.obj.updateMatrixWorld(true);
+      }
+      flakeMat.uniforms.uWrapC.value.set(cx, cz);
+    },
+    /** Nearest copy of a world point in the scenery tile to (rx, rz), into out. */
+    nearestCopy(p, rx, rz, out = new THREE.Vector3()) { return out.set(p.x + wrapOff(p.x, rx), p.y, p.z + wrapOff(p.z, rz)); },
     bacteriaCount: NB,
     /**
      * @param {number} dt
@@ -515,8 +539,8 @@ export function createWorld(scene) {
       const eatenBy = list.map(() => 0);
       ambient.update(t);
       // Vorticella
-      const sp = stalks.attrs.iP.array;
-      vorticellas.forEach((v, i) => {
+      vorticellas.forEach((v) => {
+        const sp = colonies[v.colony].stalks.attrs.iP.array, i = v.idx;
         if (v.pendingAt && t >= v.pendingAt) { v.pendingAt = 0; v.coil = 1; v.hold = 0.4 + Math.random() * 0.4; }
         if (v.coil > 0) {
           if (v.hold > 0) v.hold -= dt;
@@ -526,7 +550,7 @@ export function createWorld(scene) {
         sp[i * 4 + 2] = c;
         const Lc = v.L * (1 - 0.78 * c);
         const sway = (1 - c) * 4 * Math.sin(t * 0.9 + v.anchor.x * 0.05);
-        const perp = v3.fromArray(stalkItems[i].dir);
+        const perp = v.perp;
         v.group.position.copy(v.anchor).addScaledVector(v.dir, Lc).addScaledVector(perp, sway);
         v.group.quaternion.setFromUnitVectors(v4.set(0, 1, 0), v.dir);
         const sq = 1 - 0.3 * c;
@@ -534,21 +558,28 @@ export function createWorld(scene) {
         v.ring.mat.uniforms.uPhase.value = t * 2.2 + v.phase;
         v.ring.mat.uniforms.uAmp.value = 1 - 0.8 * c;
         v.ring.mat.uniforms.uAlpha.value = 1 - 0.7 * c;
-        v.sphere.c.copy(v.group.position).addScaledVector(v.dir, 22 * sq);
+        v.sphere.c.copy(v.group.position).addScaledVector(v.dir, 22 * sq).add(colonies[v.colony].base); // in the first copy of the tile
       });
-      stalks.attrs.iP.needsUpdate = true;
+      for (const col of colonies) col.stalks.attrs.iP.needsUpdate = true;
 
       // Diatoms glide slowly back and forth along their raphe (a few µm/s).
       for (const d of diatoms) {
         if (!d.glide) continue;
         const s = Math.sin(t * 0.08 + d.phase) * 25;
-        d.mesh.position.set(d.home.x + Math.cos(d.rot) * s, d.home.y, d.home.z - Math.sin(d.rot) * s);
+        d.pos.set(d.home.x + Math.cos(d.rot) * s, d.home.y, d.home.z - Math.sin(d.rot) * s); // viewAt shows it
       }
 
       // Bacteria: ambient flow + their own swimming + the flow the Paramecium
       // makes (a neutral squirmer's dipole: carried ahead at the poles, swept
       // back along the sides) + the feeding current into the oral groove.
       const px = mx, pz = mz;
+      // the Vorticella near the bacteria's box (their copies nearest it), feeding
+      nearV.length = 0;
+      if (opts.feeding) for (const v of vorticellas) {
+        if (v.coil > 0.2) continue;
+        const c = api.nearestCopy(v.sphere.c, mx, mz, vPool[nearV.length] || (vPool[nearV.length] = new THREE.Vector3()));
+        if (Math.abs(c.x - mx) < BOX + 120 && Math.abs(c.z - mz) < BOX + 120) nearV.push(c);
+      }
       let eaten = 0;
       const arr = bAttr.array;
       const q = v1, f = v2;
@@ -576,9 +607,8 @@ export function createWorld(scene) {
           }
         }
         // Vorticella feeding currents
-        if (opts.feeding) for (const v of vorticellas) {
-          if (v.coil > 0.2) continue;
-          const vx = v.sphere.c.x - q.x, vy = v.sphere.c.y - q.y, vz = v.sphere.c.z - q.z;
+        if (opts.feeding) for (const vc of nearV) {
+          const vx = vc.x - q.x, vy = vc.y - q.y, vz = vc.z - q.z;
           const vd2 = vx * vx + vy * vy + vz * vz;
           if (vd2 < 110 * 110) { const vd = Math.sqrt(vd2); const s = 70 * (1 - vd / 110) ** 2 / Math.max(vd, 1); f.x += vx * s; f.y += vy * s; f.z += vz * s; if (vd < 18) arr[o + 1] = -1e4; }
         }

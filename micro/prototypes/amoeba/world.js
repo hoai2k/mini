@@ -101,13 +101,14 @@ export function buildWorld(seed = 7) {
       obstacles.push(o); i++;
     }
   };
-  // Spirogyra: ~40 µm wide filaments, cells about 2–3 widths long, lying
-  // roughly radially in focus (a corridor, never a wall across the way out).
+  // Spirogyra: ~40 µm wide filaments, cells about 2–3 widths long. In focus
+  // only beyond the portal ring (inside it a filament splits a crawling cell
+  // that meets it end on); the rings' stretch has them floating above.
   const spiro = (x, y, ang, L, D, layer) => ({
     type: 'spiro', x, y, ang, L, W: D, layer, seed: r(), cell: r.range(2.0, 3.0) * D, pitch: r.range(34, 46), strands: r() < 0.4 ? 2 : 3,
   });
-  for (let i = 0, tries = 0; i < 9 && tries < 400; tries++) {
-    const a = r() * TAU, inner = i < 5;
+  for (let i = 0, tries = 0; i < 4 && tries < 400; tries++) {
+    const a = r() * TAU, inner = false;
     const L = inner ? r.range(600, 800) : r.range(1100, 1700), d = inner ? r.range(860, 960) : r.range(RINGS.portal + 700, RINGS.field);
     const ang = a + r.range(-0.25, 0.25);
     const x = Math.cos(a) * d, y = Math.sin(a) * d;

@@ -468,9 +468,24 @@ function lookName() {
 
 
 // --- light: a sunlit patch of the drop that wanders slowly --------------------
-const light = { c: new THREE.Vector2(), r: 420 };
-function lightAt(t) { light.c.set(-260 + 260 * Math.sin(t * 0.021), 60 + 220 * Math.cos(t * 0.017)); return light; }
-const inLight = (p) => Math.hypot(p.x - light.c.x, p.z - light.c.y) < light.r;
+// Sunlit patches, slowly wandering, repeated with the scenery tile so there is
+// light to find in every direction (a bonus: the dash recharges faster there).
+// light.c is the patch nearest player 1 (the overlay draws it).
+const light = { c: new THREE.Vector2(), r: 520, t: 0 };
+const LIGHTS = [[-110, 0], [3000, 2300], [-2600, 2900], [2400, -2900], [-3000, -2100]];
+function lightAt(t) { light.t = t; return light; }
+function nearestLight(p, out = light.c) {
+  let bd = Infinity, bx = 0, bz = 0;
+  LIGHTS.forEach(([x, z], i) => {
+    const lx = START.x + x + 260 * Math.sin(light.t * 0.021 + i * 1.7), lz = START.z + z + 220 * Math.cos(light.t * 0.017 + i * 2.3);
+    const cx = lx + world.TILE * Math.round((p.x - lx) / world.TILE), cz = lz + world.TILE * Math.round((p.z - lz) / world.TILE);
+    const d = Math.hypot(p.x - cx, p.z - cz);
+    if (d < bd) { bd = d; bx = cx; bz = cz; }
+  });
+  return out.set(bx, bz);
+}
+const _lc = new THREE.Vector2();
+const inLight = (p) => nearestLight(p, _lc).distanceTo(new THREE.Vector2(p.x, p.z)) < light.r;
 
 // --- game state --------------------------------------------------------------
 const audio = createAudio(['paramecium/amb-pool', 'paramecium/swim', 'paramecium/dash', 'paramecium/gulp', 'paramecium/trichocysts', 'paramecium/reverse', 'paramecium/didinium', 'paramecium/held']);
@@ -887,10 +902,12 @@ function respawnPlayer(P) {
   const s = P.swimmer.state;
   if (mates.length) { placeNear(P, mates[0]); hud.toast(`${P.name} is back, beside ${mates[0].name}`); }
   else {
-    // a safe spot in the calm warm-up, on the bearing where you were (never
-    // further back than that): the candidate furthest from every hunter
+    // a safe spot near where you were, on your bearing: a little back, out of
+    // any challenge's ring (in the calm stretch before it): the candidate
+    // furthest from every hunter
     const at = P.cap.lastAt || s.center, a0 = bearingOf(at);
-    const u0 = Math.max(200, Math.min(HALF - 150, progress(at) - 300));
+    let u0 = Math.max(200, progress(at) - 600);
+    for (const R of [...RINGS.dileptus, ...RINGS.bloom, ...RINGS.didinium, RINGS.trap - 272]) if (Math.abs(u0 - R) < 1100) u0 = Math.max(200, R - 1700);
     let best = null, bd = -1;
     for (let i = 0; i < 16; i++) {
       const q = ringPoint(u0 - Math.random() * 250, a0 + (Math.random() - 0.5) * 0.5, 120 + Math.random() * (DEPTH - 240));
@@ -899,7 +916,7 @@ function respawnPlayer(P) {
     }
     s.axis.copy(best);
     if (P === P1) { view.camAxis.copy(best); view.focusY = best.y; }
-    hud.toast('A new Paramecium swims into view in the calm water, short of the hunters\' waters', 2600);
+    hud.toast('A new Paramecium swims into view in calm water, a little back from where you were', 2600);
   }
   s.safeT = 3;
 }
@@ -1101,7 +1118,7 @@ const flatDist = (s, L) => Math.hypot(s.center.x - L.pos.x, s.center.z - L.pos.z
 // than UNSEEN µm from every player. The portal (the biofilm, with the
 // bladderwort trap on guard) is placed once a game, on its ring at the bearing
 // of the first player to get far enough, out of sight.
-const UNSEEN = 750, LEAD = 450, PORTAL_SEEN = 1500;
+const UNSEEN = 750, LEAD = 2500, PORTAL_SEEN = 1500;
 const relocLog = [];
 const angDiff = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
 const livePos = () => liveRoster().filter((P) => P.swimmer.state.mode !== 'dead').map((P) => P.swimmer.state.center);
@@ -1109,33 +1126,41 @@ const unseen = (p, extra = 0) => livePos().every((c) => Math.hypot(c.x - p.x, c.
 const CALM_STATES = new Set(['wander', 'wandering', 'not hungry', 'sated', 'stunned', 'retreating']);
 const engagedHunter = (d) => !CALM_STATES.has(d.state) || roster.some((P) => P.swimmer.state.captor === d || (P.capture.active && P.cap.th === d))
   || livePos().some((c) => c.distanceTo(d.pos) < d.homeR + 400);
-/** The live player heading out through ring R (± zr), farthest out first, or null. */
-function approaching(R, zr) {
+/**
+ * Which of `rings` (radii, µm) to serve, and for whom: the live player heading
+ * out through one of them (from LEAD before it to its far edge, ± zr), the
+ * farthest out first. Returns { c, R } or null.
+ */
+function approaching(rings, zr, lead = LEAD) {
   let best = null, bd = -1;
-  for (const c of livePos()) { const d = distFromStart(c); if (d > R - zr - LEAD && d < R + zr && d > bd) { bd = d; best = c; } }
+  for (const c of livePos()) {
+    const d = distFromStart(c);
+    for (const R of rings) if (d > R - zr - lead && d < R + zr && d > bd) { bd = d; best = { c, R }; }
+  }
   return best;
 }
-function moveHunters(list, R, why) {
-  const c = approaching(R, list[0].homeR + 250);
-  if (!c || list.some(engagedHunter)) return;
-  const a = bearingOf(c);
-  if (angDiff(a, bearingOf(list[0].home) - list[0].offset) * R < 250) return; // already about there
-  const to = list.map((d) => ringPoint(R, a + d.offset, d.home.y));
+function moveHunters(list, rings, why) {
+  const w = approaching(rings, list[0].homeR + 250);
+  if (!w || list.some(engagedHunter)) return;
+  const a = bearingOf(w.c);
+  const to = list.map((d) => ringPoint(w.R, a + d.offset / w.R, d.home.y));
+  if (list.every((d, i) => d.home.distanceTo(to[i]) < 300)) return; // already about there
   // where it is must be well out of sight; where it goes, out of the view's reach (a scope field is 0.9 mm, and far water fades in the chase view)
   if (!list.every((d) => unseen(d.pos)) || !to.every((p) => unseen(p, -200))) return;
   list.forEach((d, i) => { d.home.copy(to[i]); d.pos.copy(to[i]); d.speed = 0; });
-  relocLog.push({ k: why, a: +a.toFixed(3), t: +t.toFixed(2) });
+  relocLog.push({ k: why, R: w.R, a: +a.toFixed(3), t: +t.toFixed(2) });
 }
 function moveRings() {
   const dil = world.didinia.filter((d) => d.kind === 'dileptus'), did = world.didinia.filter((d) => d.kind === 'didinium');
   if (dil.length) moveHunters(dil, RINGS.dileptus, 'dileptus');
   if (did.length) moveHunters(did, RINGS.didinium, 'didinium');
   // the bloom: a band 1.8 mm along its ring, moved while it is well out of sight
-  const c = approaching(BLOOM.centre, BLOOM.half + 650);
-  if (bloom.on && c && !livePos().some((q) => bloom.inside(q, 500))) {
-    const a = bearingOf(c);
-    if (angDiff(a, BLOOM.bearing) * BLOOM.centre > 450 && livePos().every((q) => bloom.distTo(q) > UNSEEN && bloom.distTo(q, a) > UNSEEN)) {
-      bloom.place(a); relocLog.push({ k: 'bloom', a: +a.toFixed(3), t: +t.toFixed(2) });
+  const w = approaching(RINGS.bloom, BLOOM.half);
+  if (bloom.on && w && !livePos().some((q) => bloom.inside(q, 500))) {
+    const a = bearingOf(w.c);
+    const moved = w.R !== BLOOM.centre || angDiff(a, BLOOM.bearing) * w.R > 450;
+    if (moved && livePos().every((q) => bloom.distTo(q) > UNSEEN && bloom.distTo(q, a, w.R) > UNSEEN)) {
+      bloom.place(a, w.R); relocLog.push({ k: 'bloom', R: w.R, a: +a.toFixed(3), t: +t.toFixed(2) });
     }
   }
   // the portal: once a game, at the bearing of the first player far enough out, out of sight
@@ -1145,7 +1170,7 @@ function moveRings() {
     if (lead && ld >= RINGS.portal - PORTAL_SEEN) {
       const a0 = bearingOf(lead);
       for (let i = 0; i < 15; i++) {
-        const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.08;
+        const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * (400 / RINGS.portal);
         if (unseen(ringPoint(RINGS.portal, a), 250) && unseen(ringPoint(RINGS.trap, a), 250)) { placePortal(a); break; }
       }
     }
@@ -1203,6 +1228,13 @@ function enterPortal(P) {
   portalGlow.burst();
   landmark('forward', P);
 }
+/** Where a view looks, in the plane (as ambient.js centres its tile): the scope's stage, or a little ahead of the chase camera. */
+const _vc = new THREE.Vector2(), _fw = new THREE.Vector3();
+function viewCentre(cam) {
+  if (cam.isOrthographicCamera) return _vc.set(cam.position.x, cam.position.z);
+  cam.getWorldDirection(_fw);
+  return _vc.set(cam.position.x + _fw.x * 350, cam.position.z + _fw.z * 350);
+}
 /** Draw the portal's glow over a view's finished image (its own scene: ordinary materials). */
 function renderGlow(cam, rect) {
   if (!portalGlow.group.visible) return;
@@ -1237,6 +1269,7 @@ function tick(dt, forced = false) {
   s.inspect = debug.inspect;
   const live = !blocked && !forced;
   lightAt(t);
+  nearestLight(swimmer.state.center);
   const evs = new Map();
   for (const P of roster) {
     const sP = P.swimmer.state;
@@ -1452,6 +1485,8 @@ function frame(now) {
       bfSoft: 1,
     };
     // per view: draw only what this view can see, and (split) only its own region
+    // the scenery tile: every set piece at its copy nearest where this view looks
+    { const c = viewCentre(cam); world.viewAt(c.x, c.y); }
     if (cullOn) {
       cullFor(cam, v); if (many) optP.rect = viewRect(v); bloom.lod(cam.position);
       // just before the scene pass: cull again to the part of the screen it writes (a split view's padded region), and the bloom cell by cell
@@ -1516,7 +1551,7 @@ const cullables = () => {
   L.push({ obj: drop.fwdGroup, c: FWD.pos, r: 340 });
   L.push({ obj: drop.backGroup, c: BACK.pos, r: 380 });
   for (const dm of world.diatoms) L.push({ obj: dm.mesh, c: dm.mesh.position, r: 70 }); // 20–41 k triangles each
-  for (const v of world.vorticellas) L.push({ obj: v.group, c: v.group.position, r: 60 });
+  for (const col of world.colonies) L.push({ obj: col.group, c: col.group.position, r: 330 });
   return L;
 };
 function cullFor(cam, v) {

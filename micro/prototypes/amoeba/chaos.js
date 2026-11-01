@@ -32,7 +32,7 @@ import { createFight } from '../shared/predation.js';
 
 const TAU = Math.PI * 2;
 export const CHAOS_R = 320;   // µm, radius of the rounded cell
-const WAKE = 820;             // a player's centre this close wakes it
+const WAKE = 700;             // a player's centre this close wakes it
 export const CHAOS_WAKE = WAKE;
 export const CHAOS_LEASH = 720; // it follows you no further than this from its post
 const ARM_W = 7;              // nodes either side of an arm's tip: its neck

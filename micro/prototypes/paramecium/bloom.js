@@ -28,7 +28,7 @@ import { ringPoint, RINGS, A0, START } from './landmarks.js';
 import { DEPTH } from './world.js';
 
 export const BLOOM = {
-  centre: RINGS.bloom, // µm out from the start
+  centre: RINGS.bloom[0], // µm out from the start (place() moves it between its rings)
   half: 250,     // half its thickness, outward
   across: 900,   // half its width along the ring
   bearing: A0,   // where it is on its ring (place())
@@ -38,8 +38,8 @@ export function createBloom(scene) {
   const group = new THREE.Group();
   group.name = 'bloom';
   /** Turn the band to bearing a on its ring (local +x outward). */
-  function setFrame(a) {
-    BLOOM.bearing = a;
+  function setFrame(a, R = BLOOM.centre) {
+    BLOOM.bearing = a; BLOOM.centre = R;
     group.position.copy(ringPoint(BLOOM.centre, a));
     group.rotation.y = -a; // local +x = outward at bearing a
     group.updateMatrixWorld(true);
@@ -135,13 +135,13 @@ export function createBloom(scene) {
     group, tiers, BLOOM, on: true,
     inside,
     /** Distance (µm, in the plane) from p to the band were it at bearing a (default: where it is). */
-    distTo(p, a = BLOOM.bearing) {
+    distTo(p, a = BLOOM.bearing, R = BLOOM.centre) {
       const ox = p.x - START.x, oz = p.z - START.z, c = Math.cos(a), sn = Math.sin(a);
-      const lx = ox * c + oz * sn - BLOOM.centre, lz = -ox * sn + oz * c;
+      const lx = ox * c + oz * sn - R, lz = -ox * sn + oz * c;
       return Math.hypot(Math.max(0, Math.abs(lx) - BLOOM.half), Math.max(0, Math.abs(lz) - BLOOM.across));
     },
     /** Move the band (unseen, by main.js) to bearing a on its ring. */
-    place(a) { setFrame(a); inv.copy(group.matrixWorld).invert(); placed = false; },
+    place(a, R = BLOOM.centre) { setFrame(a, R); inv.copy(group.matrixWorld).invert(); placed = false; },
     /** The bloom's current at p (µm/s, vertical only): down in a plume, gently up elsewhere. 0 outside. */
     currentAt(p) {
       if (!inside(p)) return 0;

@@ -5,7 +5,7 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { litMaterial } from '../shared/techniques/springtail-macro.js';
 
-const R0 = 0.022; // a fresh strand's radius at its ends (mm)
+const R0 = 0.03; // a fresh strand's radius at its ends (mm)
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _mid = new THREE.Vector3(), _d = new THREE.Vector3();
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0);
 
@@ -44,8 +44,8 @@ export function createGlue(scene, n = 6) {
         for (const t of leaf.tent) {
           if (used.has(t)) continue;
           const d = tipOf(t, _a).distanceTo(f);
-          // a strand you can see: from a tip a little way off, not one under the foot
-          const score = Math.abs(d - 0.55);
+          // a strand you can see: from a tip a little way off and up, not one under the foot
+          const score = Math.abs(d - 0.7) - 0.5 * Math.min(0.4, _a.y - f.y);
           if (score < bd) { bd = score; best = t; }
         }
         used.add(best);

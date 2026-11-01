@@ -1,11 +1,16 @@
-# Tardigrade · The Drying
+# Tardigrade · The Moss Film
 
 A ~350 µm eutardigrade climbing the cell walls of overlapping moss leaves with
-its claws, through one compressed day as the water film dries. Seen through a
-DIC (Nomarski) microscope with a real, shallow focal plane. A predatory
-*Milnesium* stalks it through the film. Published at
-https://hoai2k.github.io/mini/micro/prototypes/tardigrade/ (behind the invite
-gate).
+its claws, out from the shoot it starts on along spokes of leaves, through
+rings of encounters, to the pool at a leaf tip that is the way on. Seen
+through a DIC (Nomarski) microscope with a real, shallow focal plane.
+Published at https://hoai2k.github.io/mini/micro/prototypes/tardigrade/
+(behind the invite gate).
+
+It follows the encounter pattern (`../../design/encounter-pattern.md`):
+rings round the start, the same in every direction, obstacles spaced evenly
+from the warm-up to the boss, a portal the boss guards, and nothing that runs
+you down while you stay put (see The rings, and What was removed).
 
 ## Controls (Xbox; keyboard in brackets)
 
@@ -15,20 +20,19 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
 | --- | --- |
 | LS (WASD) | Crawl, relative to the view. The stick is analogue: a slight push creeps at ~30 µm/s, full tilt hurries at ~150 µm/s (a quadratic curve between, so the slow end is easy to hold). The keys walk at a middle pace (~90 µm/s); hold **G** to hurry (full tilt) or **T** to creep (keyboard only). Push into a leaf edge, or into a leaf rising across the way, to reach across to it, or round the margin onto the underside |
 | RS (arrows) | Turn and tilt the view. Up looks up (the camera swings down toward the leaf's edge-on view), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
-| **A (Space)** | **Scramble**: 0.9 s of fast wave gait (~280 µm/s, nearly twice the full-tilt walk), recharging over 2.6 s (the `dash` meter); costs ~3.5% water and 2% reserves. With no stick, straight ahead |
+| **A (Space)** | **Scramble**: 0.9 s of fast wave gait (~280 µm/s, nearly twice the full-tilt walk), recharging over 2.6 s (the `dash` meter); no other cost. With no stick, straight ahead |
 | **X (E)** | **Pierce** with the stylets: food in reach (algae, diatoms, detritus) or the living leaf cell under the mouth; at a Milnesium or Prionchulus, a jab with a head thrust that bites back |
 | B (Shift), hold | **Defend**: grip hard / brace (two legs swing at most, slower, much harder to slip). Facing a predator as it lunges, it blocks |
-| Y (R), hold | Curl into a tun. In a tun on a wet leaf, press again to wake. In the leaf axil (the backdoor) Y goes back up to the mite instead |
+| Y (R), hold | Curl into a tun (a predator struggles to get it into its mouth). In a tun, press again to wake (it always wakes). In the leaf axil (the backdoor) Y goes back up to the mite instead |
 | LT / RT (Z / X) | Fine focus down / up through the layers. Auto-focus keeps the focal plane on the animal: a manual setting holds while you stand still and eases back onto the animal once you walk on (Features → Optics → Auto-focus) |
-| LB / RB (Q / F) | Anatomy labels / rain (test) |
+| LB / RB (Q / F) | Anatomy labels / rain (test: the film floods for a moment, then settles back) |
 | D-pad ← → (3 / 4) | Optical look: DIC / brightfield / lit (hypothetical) |
 | D-pad ↑ ↓ (1 / 2) | Magnification 10× / 12.5× / 20× / 40× (12.5× is the 10× objective behind a 1.25× Optovar magnification changer). It starts at 12.5× (1.6× the 20× field) so the leaf, the film and the surroundings read while the animal, centred and in focus, stays the clearest thing in view |
 | LS click (C) | Refocus on the animal |
-| RS click (V) | New day (test) |
+| RS click (V) | Restart (test): back at the start, the rings as at the beginning |
 | Menu (Esc) | Features panel: what the prototype is doing, with switches |
 | View (Tab) | Hide the help panel |
 
-When dead (eaten or a tun that did not wake), A starts a new day.
 
 ## Fighting back, eating, being eaten
 
@@ -40,7 +44,7 @@ When dead (eaten or a tun that did not wake), A starts a new day.
   blocks the lunge: it staggers back and you shove its head away. A stylet
   jab (X) at its head bites back: it staggers. Facing it, blocks and jabs wear
   its interest down; at none left it turns and crawls off, then rests. An
-  unblocked lunge bites (−25% reserves); empty, you are caught.
+  unblocked lunge bites (−25% health); at none, you are caught.
 - **Your moves** (`fightPose` in `main.js`): the attack is a stylet jab with a
   head thrust (also how every bite starts); defending (B) crouches, head drawn
   in and down; a block butts its head away; a landed jab recoils a little.
@@ -53,55 +57,150 @@ When dead (eaten or a tun that did not wake), A starts a new day.
 - **Being eaten** (`createCapture`, no card): strike, hold, then the camera
   pulls back to watch Milnesium swallow you whole (you stay visible inside its
   transparent body) and follows it for a couple of seconds as it crawls off;
-  a fade, and you wake at whichever start spot is furthest from it (in
-  multiplayer, beside a teammate).
+  a fade, and you wake on your spoke at the last calm stretch behind you
+  (3.7, 5.05 or 6.8 mm out) that is well away from what caught you, else at
+  the start; in multiplayer, beside a teammate. Never further back than that.
 
-## The route: calm first, every challenge past halfway
+## The rings (`world.js` RINGS and buildSpokes, checked by `route.test.mjs`)
 
-The pool tip is ~3.5 mm from the start (it was ~1 mm), in the same direction
-(the view opens with it up and to the right). The way runs down onto the
-Sphagnum leaf, along it to its tip, which rests on the broad **leaf E**; at
-leaf E's far end is the **rotifer meadow**; its tip rests on the **pool leaf**
-(a second Sphagnum leaf), where **Prionchulus** guards the last stretch to
-the tip. The first half (leaf A, the Sphagnum leaf, the start of leaf E) is
-calm: exploring and feeding (50 food items across seven leaves).
+The owner's encounter pattern (2026-11-01): rings round the start, the same
+whichever way you go, a short warm-up, the obstacles spaced roughly evenly
+with short calm breaks, out to a portal guarded by the boss.
 
-| Challenge | Where (progress, start 0 .. pool tip 1) | Starts when |
-| --- | --- | --- |
-| *Milnesium* hunting | browses at 0.61 among the rotifers | it hunts only a player at progress ≥ 0.5 (0.45 once stalking) |
-| The rotifer meadow | leaf E u 12-17.4: 0.54 to 0.70 | first contact (measured 0.53) |
-| *Prionchulus* | post at 0.86, wakes within 650 µm | measured at 0.69 |
+**The layout.** The start is on leaf A of the shoot (six of the old patch's
+overlapping leaves, kept as they were: leaf A, B above, the steep C, the
+Sphagnum leaf below, D rising to the left, the broad E; the old pool leaf
+went). Out of the shoot run **12 spokes**, one every 30°: from the point of
+the shoot that reaches furthest that way (its exit), a chain of 4-6 leaves
+(lamina and Sphagnum in turn, ~12-19 units long, 2.3-4.2 half-width), each
+one's base tucked 15 µm under the last one's tip, so a body at the tip has
+its head over the next leaf and the claws reach across (the gait's
+transfers; the head's gap is 25 µm at the hand-overs, 47-61 µm on the two
+west spokes, which climb with leaf D and rely on the wet film to bridge it).
+The first leaf continues the exit leaf's slope and the chain levels out. The
+last leaf on each spoke is a broad Sphagnum leaf (the rim) whose tip is on
+the portal ring. Every bearing is within 15° of a spoke; between spokes is
+the defocused moss below. 58 leaves in all (was 7). Walking off a spoke's
+side goes round the margin onto the underside, as on any leaf.
 
-Measured with a scripted walk along the route (hunger "Always", no calm
-opening, so the earliest possible): *Milnesium* 0.51, meadow 0.53, the boss
-0.69. `__micro.route()` gives the static layout and `__micro.challenges`
-logs where each challenge first started. Eaten alone, you wake at the
-furthest checkpoint you had passed that is well away from what caught you
-(start, Sphagnum leaf ×2, leaf E ×2), not back at the start.
+By straight-line (horizontal) distance from the start (the default 12.5× view
+is 1.44 mm across):
 
-## The rotifer meadow (`meadow.js`, `../shared/crowd.js`)
+| From | Encounter |
+| --- | --- |
+| 0-1.5 mm | Calm: the shoot, food, the backdoor axil |
+| 1.5-2.9 mm (its water centred 2.2 mm out, it lets you go at 3.4) | *Milnesium* |
+| 3.4-4.0 mm | Calm |
+| 4.0-4.6 mm | A band of ~110 rotifers across every spoke's leaf (the meadows) |
+| 4.6-5.5 mm | Calm |
+| 5.5-6.2 mm | Dry patches: three on every spoke, staggered across the leaf |
+| 6.2-7.35 mm | Calm |
+| 7.35-8.4 mm | *Prionchulus* on guard (its post 420 µm inside the portal, waking within 650 µm) and the portal at 8.4 mm |
 
-~160 bdelloid rotifers (~150 µm extended, ~40 µm across) on leaf E's upper
-face, each anchored by its foot, the trunk telescoped up and leaning, the two
+The encounters start at 1.5, 4.0, 5.5 and 7.35 mm: spaced roughly evenly from
+the warm-up to the boss (the owner's clarification), none held back. The
+pattern suggests two or three screen widths of warm-up; here that would be
+3-4 mm, 20-30 s of walking, so the first obstacle comes at about one screen
+instead, to meet the 5-10 s target.
+
+**One Milnesium, met in every direction** (`placeZone` in `main.js`): its
+water is moved round its ring to the spoke of whoever is coming out (from
+0.9 mm out to its middle, the one farthest out first), only while it is not
+busy (browsing, nobody within its leash) and only when both where it is and
+where it goes are more than 1 mm from every player (the 10× field is 1.8 mm
+across), so nobody sees it move and it is never put on a player; a restart
+puts it back on the +x spoke. `__micro.relocLog` records each move. **The
+meadows** are static: a band on every spoke (`Meadows` in `meadow.js`); only
+the bands with someone on their leaf move, and each is culled per view.
+**The dry patches** are in the film-capacity field (`world.js`): bare cells
+with a sharp contact line round them (DIC draws it as a bright rim), slow
+going (claws on dry walls: 30% speed); a wet way winds between them.
+Milnesium, needing thicker film, barely moves in them.
+
+**Timing** (scripted rush at 30 Hz: full tilt with a scramble whenever it is
+ready, steering out along the spoke; Milnesium never hungry and Prionchulus
+off, the meadows and dry patches on, so the slow-downs count):
+
+| Spoke | First obstacle (Milnesium's water) | Meadow | Dry ring | Portal placed | Portal reached |
+| --- | --- | --- | --- | --- | --- |
+| 0° (+x, out of leaf B) | 8.3 s | 23 s | 30 s | 45 s | 51 s |
+| 90° (out of the Sphagnum leaf) | 10.1 s | 27 s | 34 s | 50 s | 56 s |
+| 180° (out of leaf D, climbing) | 13.0 s | 29 s | 38 s | 54 s | 60 s |
+| 270° (out of leaf B) | 10.5 s | 27 s | 34 s | 51 s | 57 s |
+
+Dealing with the encounters (a Milnesium fight, jabbing through a meadow,
+luring the boss) makes it a few minutes.
+
+**The portal and the boss.** The portal is placed once a game, on the spoke
+of the first player to come within 1.4 mm of the portal ring (on the nearest
+other spoke if that rim were in someone's sight): the pool appears beyond that
+rim leaf's tip (open water, its meniscus a bright DIC line, green *Paramecium
+bursaria* swimming in it, towards the amoeba's pool floor), the golden
+sparkle (`../shared/portal.js` `createPortalGlow`, drawn over the
+microscope's picture, not through the optics) hangs over the tip, dim and
+restless while guarded, bright once open, and *Prionchulus* goes on guard at
+its post 420 µm inside it. Until the portal has been found (someone within
+0.9 mm) there is no arrow, only its golden light (`createPortalLight`)
+spilling in from the edge of the view on its side; then the brass arrow points
+to it. Reaching the portal (the last ~430 µm before it and beyond, on the rim
+leaf, either face) while Prionchulus is on guard (its head within 350 µm of
+its post) turns you back (a toast, once). **The way in: lure it off.** It
+wakes when you come within 650 µm of its post and follows you up to 850 µm
+from it; then, or once it has lost you (1 mm from its head), it gives up and
+glides back at 30 µm/s, paying no one any mind (you walk 150 and scramble
+280): get round it to the tip. Or wear it down (the brass resolve gauge): it
+slides into a groove for good and the way is open. `enterPortal(a)` in
+`main.js` is the one place `embed.landmark('forward')` fires (once per
+visit); `__micro.portal()` reports it. Scripted: up
+the rim leaf with it on guard, turned back; backing off 2 mm (it gave up
+835 µm from its post), then straight for the tip: through, with it still
+380 µm off its post.
+
+`__micro.route()` gives the static layout per spoke, `__micro.challenges`
+when each encounter first started (`milnesiumWater`, `milnesium`, `meadow`,
+`dry`, `portal`, `boss`, `bossLured`), `__micro.where()` how far out player 1
+is, `placePortal(k)`, `placeZone(k)`, `enterPortal(slot)` and `restart()` for
+tests.
+
+## What was removed (the pattern: no hidden clocks)
+
+- **The drying day** (the film thinning hour by hour at 240×; the time
+  compression switch): the film now stays as it is. Thin and dry film are
+  places (the dry patches), not a time.
+- **The water meter** (desiccation on dry leaf, the forced hasty tun), and the
+  tun on a dry leaf skipping days to the next rain with its revival risk: the
+  tun is now a defensive move you wake from with Y, always.
+- **The reserves draining** with time and walking, and the scramble's water
+  and reserve costs ("too weak to scramble"): the reserves are now your
+  **health**, taken by bites and stabs and given back by food (140 items over
+  the leaves). Nothing drains while you stay in a safe spot.
+- Milnesium's 40 s calm opening and "only past halfway": it hunts in its own
+  water, 2 s after someone first comes in.
+
+## The rotifer meadows (`meadow.js`, `../shared/crowd.js`)
+
+A band of ~110 bdelloid rotifers (~150 µm extended, ~40 µm across) across
+every spoke's leaf on the meadow ring (4.0-4.6 mm out), each anchored by its
+foot, the trunk telescoped up and leaning, the two
 wheel discs of the corona spread on top with a wave running round each rim
-(the beating cilia), swaying as they feed. The shared crowd runs in the
+(the beating cilia), swaying as they feed. Each band's crowd runs in its
 leaf's own u-v plane: walking into them pushes their heads aside and they
 **bend** away from you from the foot (in the vertex shader) and spring back
 behind you. A **stylet jab (X)** into the meadow makes the rotifers in front
 contract onto their feet (bdelloids really withdraw the corona and contract
 when touched) and opens a lane; they re-extend ~14 s later, a little further
 off (they creep like leeches). They never harm you; a dense patch slows you
-by up to 25%. No timer. *Milnesium* shoves through them too. Scripted:
-walking alone crossed ~470 µm of meadow in 6 s; Features → Simulation →
-Rotifer meadow switches it off. Labelled departures: the density is a game
+by up to 25%. No timer. *Milnesium* shoves through them too. Only the bands
+with someone on their leaf step their crowd. Features → Simulation → Rotifer
+meadow switches them off. Labelled departures: the density is a game
 choice (rotifer densities in moss were not read), and the jab clearing them is
 a game rule.
 
 ## The boss: Prionchulus (`nematode.js`)
 
 A predatory nematode, *Prionchulus muscorum*, a real hunter of tardigrades in
-moss films (`../../design/bosses.md`), guarding the pool leaf on the last
-stretch to the pool tip. Drawn after the delivered sheet
+moss films (`../../design/bosses.md`), guarding the portal from its post
+420 µm inside it (placed with the portal; hidden until then). Drawn after the delivered sheet
 (`../assets/reference-sheets/boss-nematode.webp`): ~1.3 mm long and 52 µm
 wide (adults reach ~2 mm: scaled so the arena fits), a slim transparent worm
 with a blunt rounded head; at the nose the thick-walled, barrel-shaped buccal
@@ -110,38 +209,45 @@ the cylindrical pharynx in the front fifth ending at a small cardia; a dark,
 lumpy intestine; a long tail tapering to a fine point. It glides with a
 nematode's wave and coils into an S as its tell.
 
-- Dormant at its post until a player comes within ~650 µm after the calm
-  opening. Awake, a brass **resolve** gauge shows under the banner.
+- On guard (dormant) at its post until a player comes within ~650 µm. Awake,
+  a brass **resolve** gauge shows under the banner. It follows you up to
+  850 µm from its post; then, or once it has lost you, it glides back at
+  30 µm/s ignoring everyone (`return`), and lies on guard again. While its
+  head is more than 350 µm off its post the portal is open (see The rings).
 - Two attacks, alternating: **the whip** (the tell: the front coils into an
   S, tooth bared; then the head whips forward) and **the sweep** (the tell:
   the whole body ripples fast; then the head sweeps sideways across you).
 - Brace (B) facing it on the strike to block; jab its head (X) in its
   recovery; in thin film (< ~3.5 µm) it flounders and loses heart. A hit
-  stabs you (−35% reserves); empty, it pins you with its tooth and sucks you
+  stabs you (−35% health); at none, it pins you with its tooth and sucks you
   dry while the camera follows it dragging you off, then the fade and respawn.
 - Worn down (createFight with more interest), it slides off and down into a
-  deep groove between the cells, gone for the rest of the day. It targets the
-  nearest player. Features → Simulation → Prionchulus switches it off.
+  deep groove between the cells, gone for good (until a restart): the way is
+  open. It targets the nearest player. Caught by it, you wake on your spoke
+  and it is back on guard, its resolve restored. Features → Simulation →
+  Prionchulus switches it off (the portal is then open).
 
 ## Landmarks (the way on and the way back)
 
 Both are things in the moss patch (`landmarks.js`), drawn through the same
-optics as everything else; `../shared/landmark.js` adds a quiet mark near the
-edge of each view when they are off screen: a brass chevron labelled Pool
-towards the way on, a hollow ring labelled Moss towards the way back.
+optics as everything else (the portal's sparkle on top of them);
+`../shared/landmark.js` adds a quiet mark near the edge of each view when
+they are off screen: a brass arrow towards the portal once it has been found,
+a hollow ring labelled Moss towards the way back.
 
-- **Forward: the pool tip.** The tip of the far Sphagnum leaf (the pool
-  leaf, at the end of the route above) dips into the hollow pool, towards the amoeba's pool floor (design §2.6). Beyond it lies
-  open water: a slab whose bevelled shore is a bright meniscus line in DIC,
-  where the film meets open water, with three green *Paramecium bursaria*
-  swimming in it. The film is deep there (the leaf's last ~30% is wet:
-  `world.js`). Reaching the last ~250 µm of that leaf, on either face, posts
-  `embed.landmark('forward')` (once per visit); standalone, `embed.js` shows a
-  toast. From the start it lies right and down, ~3.5 mm off (see The route).
+- **Forward: the portal**, the pool at a rim leaf's tip, towards the amoeba's
+  pool floor (design §2.6): open water beyond the tip, a slab whose bevelled
+  shore is a bright meniscus line in DIC where the film meets open water,
+  three green *Paramecium bursaria* swimming in it, and the golden sparkle
+  over the tip. Placed once a game on the spoke of whoever first nears the
+  portal ring, 8.4 mm out, and guarded by Prionchulus (see The rings).
+  `enterPortal` posts `embed.landmark('forward')`; standalone, `embed.js`
+  shows a toast. `embed.near('forward')` is posted within ~1.4 mm of it, so
+  the shell can load the next world.
 - **Backdoor: the leaf axil.** The drier axil above, where leaf A and leaf D
   leave the stem (drawn as a chain of capsules, the overlaps reading as
-  nodes), back up to the mite (§1.6). It lies the other way, left along leaf A
-  (~0.5 mm, about 30 s). Within ~200 µm of either leaf's base a quiet "Y: Back
+  nodes), back up to the mite (§1.6). It lies left along leaf A from the start
+  (~0.5 mm), in the calm middle of the rings. Within ~200 µm of either leaf's base a quiet "Y: Back
   to the mite" prompt shows (the shell's, from `embed.near('back')`, or this
   page's own when standalone), and Y there posts `embed.landmark('back')`
   instead of curling into a tun.
@@ -154,13 +260,14 @@ any button on another controller (a "Player N joined" toast, and in the shell
 `embed.join`). Inside the Micro Zoom shell the roster from its menus is
 restored (`embed.players`, the `players` message).
 
-- **Each player is their own tardigrade** (its own Walker, Creature, water,
-  reserves, scramble and tun), with a faint tint of their colour in the
+- **Each player is their own tardigrade** (its own Walker, Creature, health,
+  scramble and tun), with a faint tint of their colour in the
   cuticle and a broken ring and name tag in that colour round it. A new
   player appears a body length behind a teammate on the same leaf.
-- **One day for everyone.** Player 1's Life keeps the clock, the drying and
-  the rain (`life.js`, `clock: false` for the others); another player's tun on
-  a dry leaf waits for rain instead of skipping days.
+- **One world for everyone.** Player 1's Life owns the shared state (the
+  rain test; `life.js`, `clock: false` for the others). Milnesium meets the
+  one farthest out on its ring; the portal goes on the spoke of the first to
+  near the portal ring.
 - **Split screen** (`../shared/splitscreen.js`): together, one shared view
   (straight to the screen, as before); apart, the LEGO-style split, each view
   composed by the DIC microscope into its own target (`tardigrade-dic.js`
@@ -172,9 +279,9 @@ restored (`embed.players`, the `players` message).
   off.
 - **Caught**: alone, the full catch and the Eaten card, as before. With
   others playing, the caught player sees the whole sequence (strike, hold,
-  swallowed), then wakes beside a teammate (no card); a tun that did not wake
-  comes back the same way on A.
-- **The landmarks** trigger for any player.
+  swallowed), then wakes beside a teammate (no card).
+- **The landmarks** trigger for any player; the others follow through the
+  transition in the game.
 
 Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A water-film ambience loop; claw footfalls (at most ~8 a second), the scramble (A), stylet bites (X), forming the tun (Y), rehydrating, rain, and the Milnesium stalking and lunging.
 
@@ -278,19 +385,18 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
 - **Scramble (A).** ~280 µm/s with a fast pick-up (0.2 s), nearly twice the
   full-tilt walk; strides are capped by reach, so the legs step faster
   (swings down to 60 ms, up to 45% of each cycle in swing), keeping the
-  back-to-front wave. It costs water and reserves; too weak (reserves under
-  4%) it refuses.
+  back-to-front wave. Its only cost is the 2.6 s recharge.
 - **Milnesium (`predator.js`).** A second Walker and Creature at 1.5× scale,
   with a wide buccal tube and no placoids (true of *Milnesium*), a browner
-  gut and a slightly denser cuticle. It starts far off, among the rotifers it
-  hunts at the far end of leaf E (~2.1 mm away), and hunts only a player who
-  has come at least halfway (see The route); for the first 40 s it only
-  browses in any case. Then it hunts: it heads for
+  gut and a slightly denser cuticle. It browses in its water on the first
+  ring (2.2 mm out, moved round the ring to meet you: see The rings) and
+  hunts only a player in its water (once stalking, until you are 500 µm past
+  it); its hunger starts 2 s after someone first comes in. Then it heads for
   you at under half speed, coming into view from the edge of the field, and
   within ~650 µm stalks at up to ~180 µm/s (faster than your full-tilt walk,
   slower than your scramble; it closes in from afar at ~75 µm/s). Its walker
   takes the stick linearly (`curve: false`, limit 1.8 units/s): it measured
-  175-180 µm/s stalking before and after the gait change. Its mouth on you is a bite: −20% reserves, and empty,
+  175-180 µm/s stalking before and after the gait change. Its mouth on you is a bite: −25% health, and at none,
   it swallows you (see Threats and pacing). After a bite it lets go, backs
   off for 2.2 s, keeps its distance and rests 45–75 s before it is hungry
   again (it no longer bites every
@@ -299,22 +405,17 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   you still can), by jabbing it with the stylets (X) so it backs off for
   2.4 s and then keeps off for 7 s, or by curling into a tun (Y): it cannot
   get a tun into its mouth quickly and gives up after three tries. It
-  ignores slope load (it never slips). Measured (scripted at 30 Hz from a
-  new day): idle, it starts hunting at 40 s, comes within the 10× field at
-  ~52 s, starts stalking at 58 s and first bites at 61 s; walking about the
-  leaves, 55 s in view and first bite at 63 s; walking straight at it, it is
-  in view from 18 s but still only hunts at 40 s (first bite 47 s). Bites
-  then come 21–28 s apart (was 1.3 s). (Those timings were measured with it
-  on leaf C, before the route was lengthened.)
-- **The Drying (`life.js`, `world.js`).** Each leaf has a film-capacity field
-  (wetter towards the stem, in hollows and where leaves nearly touch; margins
-  dry first); film = capacity − dryness, which rises through the day. Dry leaf
-  drains the water meter; empty, it forces a hasty tun. Food: algae, diatoms,
-  detritus in the film, or living leaf cells (Sphagnum hyaline cells are dead
-  and empty; the costa has nothing to suck). A tun on a dry leaf skips ahead to
-  the next rain (1–3 days), the patch is reshuffled, then it rehydrates
-  (7 s) and might not wake: the chance falls after a hasty tun, on low
-  reserves and after long droughts.
+  ignores slope load (it never slips). Wandered off its water, it heads back
+  while browsing. Scripted (hunger Always): walking into its water from the
+  warm-up, it bit within 6 s.
+- **The film (`world.js`).** Each leaf has a film-capacity field (wetter
+  towards the stem, in hollows and where leaves nearly touch; margins
+  thinner, the dry ring's patches bare); film = capacity − a fixed dryness
+  (no drying clock). A dry patch slows you to 30% and is a refuge from
+  Milnesium. Food (health, `life.js`): algae, diatoms, detritus in the film
+  (140 items over the leaves), or living leaf cells (Sphagnum hyaline cells
+  are dead and empty; the costa has nothing to suck). Going without never
+  hurts; a restart puts the food back.
 - **Delivered art.** MP-T01..T04 are used when delivered. `wallmap.js` reads
   the leaf micrographs: walls by gradient threshold, a chamfer distance
   transform for "distance to wall", flood-filled cells. So the claws hook the
@@ -411,24 +512,26 @@ back (shared machine: compare draws and triangles):
 
 *Milnesium* follows the shared pacing in `shared/predation.js`:
 
-- **A calm opening.** It starts far off on the tip of leaf C (~1.4 mm away)
-  and browses there for the first 40 s of each day.
+- **Its own water.** It browses in its water on the first ring and hunts
+  only a player in it; 2 s after someone first comes in, its hunger starts.
 - **Hunger comes and goes** (`createHunger`): then it is hungry for ~30–45 s
   at a time (once it is stalking you it sees the hunt through) and rests in between: 45–75 s after a bite, 15–30 s after a jab,
   after losing you or after giving up on a tun. Only a hungry *Milnesium*
   closes in, stalks and bites; resting, it browses or keeps off. A banner at
   the top says when it is closing in or stalking.
-- **Bites drain, the last one is the catch.** Each bite takes 20% of your
-  reserves and it lets go and backs off. A bite that empties them plays the
+- **Bites hurt, the last one is the catch.** Each bite takes 25% of your
+  health and it lets go and backs off. A bite that empties it plays the
   whole catch, framed closer (about the 20× field) on you and its head, with
   a red banner naming the phase: **strike**, its mouth tube and stylets lunge
   onto you; **hold**, it grips with the stylets out while you writhe and its
   pharynx starts to pump; **eat**, you are drawn head first in through the
   mouth and pharynx, swallowed whole (a real *Milnesium* habit: it swallows
   small prey whole or sucks them out), and lie curled in its gut, visible
-  through its cuticle; **eaten**, the card. A starts a new day.
+  through its cuticle; then it carries on, a fade, and you wake on your spoke
+  at the calm stretch behind you.
 
-Features → Simulation → **Calm opening** (40 s / 20 s / 90 s / off) and
+Features → Simulation → **Milnesium wakes** (2 s / 10 s / 30 s / off after
+someone first comes into its water) and
 **Milnesium hunger** (comes and goes / always / never) for testing.
 `window.__micro.forceCapture()` plays the catch; `__micro.pacing()` reports
 hunger and state; `__micro.paused` with `__micro.testStep(dt, stick)` steps
@@ -448,11 +551,10 @@ Body: SDF body from parts (fixed), internal anatomy visible, claw size
 Motion: soft-body sway and surge, leg coordination (measured back-to-front
 wave / front-to-back / pairs in step), claws need cell walls, slope load and
 slipping.
-Simulation: time compression (240× / 60× / 1440× / paused), desiccation,
-revival risk, film capacity field (fixed).
-Simulation also has Milnesium (the predator, on), the rotifer meadow (on),
-the calm opening (40 s /
-20 s / 90 s / off) and Milnesium hunger (comes and goes / always / never).
+Simulation: rings round the start (fixed, the layout), film capacity field
+(fixed), Milnesium (the predator, on), Prionchulus (on; off opens the
+portal), the rotifer meadows (on), Milnesium wakes (2 s / 10 s / 30 s / off)
+and Milnesium hunger (comes and goes / always / never).
 Motion also has the scramble (fixed) and smoothed trunk and camera (on; off
 is the old single lag).
 Controls: anatomy labels, rumble (claw catch, slips, scramble, bites),
@@ -492,10 +594,14 @@ Not borrowed:
 
 ## Departures (labelled)
 
-- **Time:** the day runs 240× by default (1 s = 4 min). Walking and feeding are
-  real time; tun formation (4 s) and rehydration (7 s) are minutes to hours in
-  life (Halberg et al. 2013 for tun formation as an active, muscle-driven
-  contraction).
+- **Time:** tun formation (2.2 s) and rehydration (2.4 s) are minutes to
+  hours in life (Halberg et al. 2013 for tun formation as an active,
+  muscle-driven contraction); here the tun is a defensive move.
+- **The moss:** spokes of leaves radiating from one shoot are a level layout
+  (the rings), not a moss cushion's real structure; a few leaves near the
+  shoot pass through each other (the spoke leaves nearest the shoot on the
+  60°, 210-240° and 270-300° bearings), harmless in the additive DIC picture.
+  The dry patches are bare spots of a film that does not otherwise change.
 - **Claws** are drawn about 1.6× longer and 3× thicker than true (~10 µm), the
   buccal tube and stylets about 2× thicker, so they survive the mesh and read
   on screen (switchable in Features).
@@ -512,9 +618,9 @@ Not borrowed:
   spans the slow end to the middle and the scramble is a stretch.
 - **Leg reach:** the 1.14× telescoping limit and the tucked, paddling foot
   are game choices for legibility, not measured.
-- **Milnesium's rules** are game rules: the calm start, hunting only past halfway, the slow approach,
+- **Milnesium's rules** are game rules: keeping to its water on a ring (and being moved round it unseen), the slow approach,
   backing off after a bite, hunger that comes and goes, the sensing range, its speed, the
-  −20% bites, the thin-film refuge threshold, backing off after a stylet jab
+  −25% bites, the thin-film refuge threshold, backing off after a stylet jab
   (tardigrades do not really fight back this way) and giving up on a tun
   after three tries (a tun's hardness against *Milnesium* is not measured).
   It is drawn as this prototype's animal at 1.5× with a wider buccal tube and
@@ -522,7 +628,6 @@ Not borrowed:
   different claws).
 - **Rotifers** are a crowd to push through (the meadow), not prey or
   competition; free-living nematodes other than the boss are not added.
-- **Revival** odds are invented to make the choice matter.
 
 ## Sources
 
@@ -541,10 +646,18 @@ Not borrowed:
 
 ```bash
 node micro/prototypes/check.mjs tardigrade
+node --test micro/prototypes/tardigrade/route.test.mjs
 node --test micro/prototypes/tardigrade/legs.test.mjs
 ```
 
 The first must print `ok tardigrade` with no console errors. The second
+(Node, no browser, ~5 s) builds the world and checks the rings: 12 spokes,
+every hand-over leaf to leaf within the claws' reach (or bridged by wet
+film), each spoke on its bearing, every bearing within 15° of one, each rim
+leaf's tip on the portal ring with room to lure the boss, Milnesium's water,
+a meadow band and two or three dry patches (dry, with a wet way beside) at
+the same distances on every spoke, the calm stretches between them and their
+even spacing, and a wet, calm start. The third
 (headless Chromium, ~30 s) drives the animal at 60 Hz from the Sphagnum leaf
 onto leaf E, across the film gap from leaf A to leaf B, up onto the steep
 leaf C (then braced), round the margin of leaf D, through scrambles with
