@@ -1,35 +1,31 @@
 // The water of the phage world, drawn in realistic false light by default (or as a Goodsell-style
 // molecular illustration). Units: 1 = 10 nm. There is no floor and no wall; y points to the sunlit
-// surface. The layout follows the encounter pattern (rings round the start; see below and README.md):
+// surface. The encounters are placed as you go (micro/design/encounter-pattern.md "Placed as you go";
+// shared/director.js; main.js `director`), in water nobody has seen, a little ahead of whoever leads:
 //
-//  - Three host rods: Host A (the receptor-rich host with the best odds) is the way on, placed on the
-//    portal shell at the bearing of whoever first gets far enough; Host B (a matching CRISPR spacer)
-//    and the wrong host (a Gram-positive) are decoys on their own shell. Each carries a bead forest of
-//    LPS, porins and membrane proteins (phage-beads.js).
-//  - A shell of humic flocs that snag extended fibres, and a clay platelet beside Host B.
-//  - A shell of UV sunfleck shafts: visible violet columns (touch one: damaged at once).
-//  - The amoeba, on guard beside Host A once the portal is placed; it reaches a lobe at whoever comes.
+//  - Three host rods: Host B (a matching CRISPR spacer, a clay platelet beside it) and the wrong host
+//    (a Gram-positive) are decoys, met one after the other; Host A (the receptor-rich host with the best
+//    odds) is the way on, placed last with the amoeba beside it on guard. Until placed each is hidden
+//    and parked far off. Each carries a bead forest of LPS, porins and membrane proteins (phage-beads.js).
+//  - Scenery, there from the start, everywhere (the start's calm water and the flagellum excepted): humic
+//    flocs that snag extended fibres, and UV sunfleck shafts (soft violet light: touch one and you are
+//    damaged at once). Both are avoidable, so they can be anywhere.
 //  - The bath of molecules (phage-beads.js), wrapped round each view, far cells all round.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { toonMaterial, inked, inkedInstanced, blobGeometry, goodsellShared } from '../shared/techniques/phage-goodsell.js';
 import { createBath, createSprites, beadMesh, beadMaterial, beadTemplate, setSolids, setPhages, PALETTE } from '../shared/techniques/phage-beads.js';
 
-// The encounter pattern (micro/design/encounter-pattern.md): rings round the start, the same in every
-// direction. The water has no up or down, so the rings are shells: a short calm warm-up, a shell of humic
-// flocs, a calm break, the decoy hosts (Host B with its matching CRISPR spacer, and the wrong host; main.js
-// moves each round its shell, unseen, to meet whoever approaches), a calm break, a shell of UV sunfleck
-// shafts (visible violet columns where sunlight gets through the floating peat mat: touch one and you are
-// damaged at once; no slow drain anywhere), a calm break, and at PORTAL_R the way on: Host A's gold
-// receptor under the shared golden glow, placed at the bearing of whoever first gets far enough, with the
-// amoeba's lobe on guard. Units: 1 = 10 nm. y is toward the sunlit surface (the shafts are vertical).
 export const START = new THREE.Vector3(0, 0, 0);
-export const RINGS = { warm: 220, floc: 300, decoy: 490, uv: 680, portal: 880 }; // (obstacles evenly spaced from the warm-up to the boss: ~1.9 µm apart)
-export const PORTAL_R = RINGS.portal;
 /** No walls or floor: beyond FIELD_R from the start a soft current carries you back (main.js). */
 export const FIELD_R = 1080;
 /** The old box, kept for callers that want one (the field's bounding box). */
 export const BOUNDS = { x0: -FIELD_R, x1: FIELD_R, y0: -FIELD_R, y1: FIELD_R, z0: -FIELD_R, z1: FIELD_R };
-/** Evenly spread directions on a sphere (a Fibonacci lattice), rotated by `twist` so shells do not line up. */
+/** Where hosts wait before the director places them: far off, hidden. */
+export const PARKED = [0, -9000, 0];
+/** The calm water round the start (no scenery hazard in it) and the backdoor flagellum's water. */
+export const CALM_R = 200;
+export const BACKDOOR = new THREE.Vector3(-150, 70, -60); // beside the start, in the calm warm-up water (not a challenge)
+/** Evenly spread directions on a sphere (a Fibonacci lattice), rotated by `twist` so sets do not line up. */
 export function shellDirs(n, twist = 0) {
   const out = [];
   for (let i = 0; i < n; i++) {
@@ -38,10 +34,25 @@ export function shellDirs(n, twist = 0) {
   }
   return out;
 }
-/** The humic flocs: a shell of 30 round the start (x, y, z, radius). */
-export const FLOCS = shellDirs(30, 0.7).map((d, i) => [...d.clone().multiplyScalar(RINGS.floc + ((i * 37) % 50) - 25).toArray(), 22 + ((i * 13) % 9)]);
-/** The UV sunfleck shafts: a shell of 22 short vertical columns (a, b, radius). */
-export const UV_SHAFTS = shellDirs(22, 2.1).map((d, i) => { const c = d.clone().multiplyScalar(RINGS.uv + ((i * 29) % 40) - 20); return { c, a: c.clone().add(new THREE.Vector3(0, -150, 0)), b: c.clone().add(new THREE.Vector3(0, 150, 0)), r: 30 + ((i * 7) % 10) }; });
+/**
+ * n points spread through the field's volume (radius r0..r1 round the start, uniform in volume, from a
+ * Fibonacci lattice and a low-discrepancy radius: the same every visit), each passing ok(p, i).
+ */
+function scatter(n, r0, r1, twist, ok) {
+  const out = [], dirs = shellDirs(n * 3, twist);
+  for (let i = 0; i < dirs.length && out.length < n; i++) {
+    const u = (i * 0.7548776662 + 0.31) % 1, r = Math.cbrt(r0 ** 3 + u * (r1 ** 3 - r0 ** 3));
+    const p = dirs[(i * 7) % dirs.length].clone().multiplyScalar(r);
+    if (ok(p, out.length)) out.push(p);
+  }
+  return out;
+}
+const flagD = (p) => { const d = p.clone().sub(BACKDOOR); return Math.hypot(d.y + d.x * 0.34, d.z); }; // from the flagellum's line (its helix along x, turned -0.35 about z)
+/** The humic flocs: scenery all through the water, away from the start (x, y, z, radius). */
+export const FLOCS = scatter(36, CALM_R + 40, 1020, 0.7, (p) => flagD(p) > 60).map((p, i) => [...p.toArray(), 22 + ((i * 13) % 9)]);
+/** The UV sunfleck shafts: vertical columns of light all through the water (a, b: their ends; radius). */
+export const UV_SHAFTS = scatter(26, CALM_R + 160, 1000, 2.1, (p, i) => flagD(p) > 120 && Math.hypot(p.x, p.z) > CALM_R + 50)
+  .map((c, i) => ({ c, a: c.clone().add(new THREE.Vector3(0, -150, 0)), b: c.clone().add(new THREE.Vector3(0, 150, 0)), r: 30 + ((i * 7) % 10) }));
 const _u = new THREE.Vector3();
 /** How deep p is in a UV shaft: 0 outside, 1 inside (a soft edge), and which shaft. */
 export function uvAt(p) {
@@ -54,24 +65,81 @@ export function uvAt(p) {
   }
   return { k: best, shaft: which };
 }
-/** How far out p is: its distance from the start over the portal shell (0 start .. 1 portal). */
-export const progressAt = (p) => _u.subVectors(p, START).length() / PORTAL_R;
-/** (Kept for the placement log: progress along the bearing.) */
+/** Distance from p to the nearest UV shaft's light (its axis segment, minus its radius). */
+export function uvClear(p) {
+  let best = 1e9;
+  for (const s of UV_SHAFTS) { const y = Math.max(s.a.y, Math.min(s.b.y, p.y)); best = Math.min(best, Math.hypot(p.x - s.c.x, y - p.y, p.z - s.c.z) - s.r); }
+  return best;
+}
+/** Distance from p to the nearest humic floc's edge. */
+export const flocClear = (p) => FLOCS.reduce((m, f) => Math.min(m, Math.hypot(p.x - f[0], p.y - f[1], p.z - f[2]) - f[3]), 1e9);
+/** How far out p is from the start, in units of 10 nm. */
+export const progressAt = (p) => _u.subVectors(p, START).length();
 export const routeProgress = progressAt;
+
+// ---- the director (shared/director.js): its settings and the encounters in order ----
+// main.js adds place and met; route.test.mjs runs them without a browser. The haze only dims what is
+// far (to 28 % at fogFar x 1.8 from the camera, ~700 units past what the view frames), so a view counts
+// as seeing its frustum out to 700 units past its focus; a phage drifts at ~30 units/s.
+//   size     clearance; parts: what can be seen of it once placed (unseen water, out of every view)
+//   min/maxAhead  how far ahead of the leader it goes; min/maxNear when they linger
+// `side(dir)`: the host's long axis lies across `dir` (the way it is met); Host B's clay platelet and the
+// amoeba sit to one side, along the xy-plane normal of dir (as placeHost and placePortal put them).
+export const HOST_GEO = { A: { half: 78, r: 38 }, B: { half: 58, r: 36 }, W: { half: 46, r: 30 } };
+export function sideOf(dir, out = new THREE.Vector3()) { out.set(-dir.y, dir.x, 0); if (out.lengthSq() < 1e-4) out.set(1, 0, 0); return out.normalize(); }
+export const AMOEBA_R = 372;
+/** Where the amoeba's centre goes for Host A at `pos`, met along `dir` (world.placePortal). */
+export function amoebaAt(pos, dir, out = new THREE.Vector3()) { return out.copy(pos).addScaledVector(sideOf(dir, _u), -(AMOEBA_R + HOST_GEO.A.half + 60)).addScaledVector(dir, 60); }
+/** Where Host B's clay platelet goes for Host B at `pos`, met along `dir` (world.placeHost). */
+export function clayAt(pos, dir, out = new THREE.Vector3()) { return out.copy(pos).addScaledVector(sideOf(dir, _u), HOST_GEO.B.half + 70); }
+export const DIRECTOR = {
+  mode: '3d', cell: 80, seenDist: 700, nearSeen: 60, seed: 29,
+  bounds: { x0: -FIELD_R, x1: FIELD_R, y0: -FIELD_R, y1: FIELD_R, z0: -FIELD_R, z1: FIELD_R },
+  // ~6 s of drifting to warm up; a calm break of ~6 s of drifting clear of each decoy
+  warmup: { sec: 6 }, calm: { sec: 6 }, linger: 6, moveSpeed: 6,
+  // seen but not gone to: met once everyone is ~900 units off, or after 10 s in sight nearby
+  passDist: 900, watchSec: 10, watchDist: 600,
+};
+/**
+ * The encounters in order, for a leader whose position `lead` ({ x, y, z }) the caller keeps up to date
+ * (each part is placed relative to the way it is met: from the leader to the spot).
+ */
+export function encounterSpecs(lead) {
+  const _p = new THREE.Vector3(), _d = new THREE.Vector3(), _a = new THREE.Vector3();
+  const dirTo = (x, y, z) => { _d.set(x - lead.x, y - lead.y, z - lead.z); if (_d.lengthSq() < 1e-6) _d.set(1, 0, 0); return _d.normalize(); };
+  const inField = (x, y, z, m = 0) => Math.hypot(x, y, z) < FIELD_R - m;
+  // (the director's parts: [[x, z, r, y], ...])
+  return [
+    { id: 'B', size: 170, minAhead: 260, maxAhead: 480, minNear: 230, maxNear: 400,
+      parts: (x, z, b, y) => { const c = clayAt(_p.set(x, y, z), dirTo(x, y, z), _a); return [[x, z, 105, y], [c.x, c.z, 52, c.y]]; },
+      fits: (x, z, b, y) => inField(x, y, z, 120) },
+    { id: 'W', size: 130, visible: 85, minAhead: 240, maxAhead: 460, minNear: 210, maxNear: 380, fits: (x, z, b, y) => inField(x, y, z, 100) },
+    // the boss and the way on: Host A (its gold receptor, the glow's beacon) and the amoeba beside it
+    { id: 'portal', size: 220, minAhead: 300, maxAhead: 560, minNear: 260, maxNear: 460, final: true,
+      parts: (x, z, b, y) => { const c = amoebaAt(_p.set(x, y, z), dirTo(x, y, z), _a); return [[x, z, 150, y], [c.x, c.z, AMOEBA_R + 20, c.y]]; },
+      fits: (x, z, b, y) => inField(x, y, z, 140) },
+  ];
+}
+/** Encounters keep clear of the scenery hazards (a host is never placed in a UV shaft or a floc), the start's calm water and the flagellum. */
+export function canPlace(x, z, r, { y }) {
+  const p = _u.set(x, y, z);
+  const h = Math.min(r, 140);
+  return uvClear(p) > h + 30 && flocClear(p) > h + 20 && p.distanceTo(BACKDOOR) > 200 + h;
+}
 const rand = (a, b) => a + Math.random() * (b - a);
 const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _v = new THREE.Vector3(), _c = new THREE.Color();
 const UP = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
 
-// Homes: Host A waits hidden until the portal is placed; Host B and the wrong host start on the decoy shell
-// at two bearings and are moved round it to meet whoever approaches (main.js, unseen).
+// Homes: every host waits hidden and parked (PARKED) until the director places it (main.js): Host B and the
+// wrong host as the decoys, Host A with the portal.
 const HOSTS = [
   { id: 'A', name: 'Host A', home: [0, -9000, 0], angle: 0.1, half: 78, r: 38, patches: [[-48, -0.25], [8, 0.35], [52, -0.1], [-48, Math.PI - 0.25]],
     receptors: 'OmpC + LPS', defence: 'Restriction enzyme; CRISPR with no matching spacer', odds: 0.6, crispr: false, color: '#eef3c4', lps: '#86c06a', hidden: true },
-  { id: 'B', name: 'Host B', home: [RINGS.decoy * 0.8, RINGS.decoy * 0.3, RINGS.decoy * 0.52], angle: -0.45, half: 58, r: 36, patches: [[-20, 0.2], [30, -0.3]],
-    receptors: 'OmpC + LPS', defence: 'Restriction enzyme; CRISPR carrying a matching spacer', odds: 0.15, crispr: true, color: '#f1efc0', lps: '#9cc36a' },
-  { id: 'W', name: 'Wrong host', home: [-RINGS.decoy * 0.7, -RINGS.decoy * 0.35, -RINGS.decoy * 0.62], angle: 0.85, half: 46, r: 30, patches: [],
-    receptors: 'none (a Gram-positive: thick wall, no outer membrane, no OmpC)', defence: '—', odds: 0, crispr: false, wrong: true, color: '#ead9b8', lps: '#c9ad78' },
+  { id: 'B', name: 'Host B', home: PARKED, angle: -0.45, half: 58, r: 36, patches: [[-20, 0.2], [30, -0.3]],
+    receptors: 'OmpC + LPS', defence: 'Restriction enzyme; CRISPR carrying a matching spacer', odds: 0.15, crispr: true, color: '#f1efc0', lps: '#9cc36a', hidden: true },
+  { id: 'W', name: 'Wrong host', home: PARKED, angle: 0.85, half: 46, r: 30, patches: [],
+    receptors: 'none (a Gram-positive: thick wall, no outer membrane, no OmpC)', defence: '—', odds: 0, crispr: false, wrong: true, color: '#ead9b8', lps: '#c9ad78', hidden: true },
 ];
 
 function proceduralEnvelope() {
@@ -258,7 +326,7 @@ export function createWorld(scene) {
   };
 
   // --- clay / peat platelet ---
-  const clay = { group: new THREE.Group(), pos: new THREE.Vector3(...HOSTS[1].home).add(new THREE.Vector3(0, 110, 0)), half: new THREE.Vector3(40, 5.5, 26), ang: 0.14 };
+  const clay = { group: new THREE.Group(), pos: new THREE.Vector3(...PARKED).add(new THREE.Vector3(0, 110, 0)), half: new THREE.Vector3(40, 5.5, 26), ang: 0.14 };
   const clayCols = ['#a98b6a', '#8f7556', '#b89b78'];
   for (let i = 0; i < 3; i++) {
     const g = new THREE.BoxGeometry(80 - i * 9, 3.4, 52 - i * 6, 8, 1, 6);
@@ -354,7 +422,6 @@ export function createWorld(scene) {
 
   // --- the backdoor: a flagellum of the Level 5 bacterium sweeping through open water above the hosts ---
   // (20 nm wide; a rotating helix reads as a wave travelling along it)
-  const BACKDOOR = new THREE.Vector3(-150, 70, -60); // beside the start, in the calm warm-up water (not a challenge)
   const flag = new THREE.Group();
   const fpts = [];
   for (let i = 0; i <= 160; i++) { const x = -260 + i * 3.4; const a = i * 0.21; fpts.push(new THREE.Vector3(x, Math.cos(a) * 9, Math.sin(a) * 9)); }
@@ -414,24 +481,46 @@ export function createWorld(scene) {
   world.sdFloc = (p) => { let best = 1e9, which = null; for (const f of world.flocs) { const d = p.distanceTo(f.pos) - f.r; if (d < best) { best = d; which = f; } } return { d: best, floc: which }; };
 
   // --- UV sunfleck shafts: where sunlight gets through gaps in the floating peat mat, a column of UV-B
-  // reaches down into the humic water [S104]. Drawn as violet light you can see from afar (additive,
-  // soft-edged, with rising glints), so the danger is always visible and you can keep out of it ---
+  // reaches down into the humic water [S104]. Drawn as soft volumetric light (god rays), not a solid:
+  // each column is a gaussian of glowing haze round its axis, integrated along the view ray in the
+  // fragment shader (one back face per pixel, additive), brighter toward the sunlit top, fading out
+  // above and below, with slow streaks round the axis and motes sinking through it, softened with
+  // distance like the haze. Violet, so the danger reads from afar and you can keep out of it ---
   const shaftMat = new THREE.ShaderMaterial({
-    uniforms: { uTime: goodsellShared.uTime, uOn: { value: 1 } },
-    vertexShader: `varying vec3 vN; varying vec3 vV; varying float vY; varying vec3 vL;
-      void main(){ vL = position; vY = position.y; vec4 w = modelMatrix * instanceMatrix * vec4(position, 1.0); vec4 mv = viewMatrix * w;
-        vN = normalize(normalMatrix * mat3(instanceMatrix) * normal); vV = -mv.xyz; gl_Position = projectionMatrix * mv; }`,
-    fragmentShader: `uniform float uTime; uniform float uOn; varying vec3 vN; varying vec3 vV; varying float vY; varying vec3 vL;
-      void main(){ float f = abs(dot(normalize(vN), normalize(vV))); float core = pow(f, 1.6);
-        float ends = smoothstep(1.0, 0.75, abs(vY));
-        float glint = smoothstep(0.93, 1.0, sin(vY * 40.0 - uTime * 3.0 + atan(vL.z, vL.x) * 5.0));
-        vec3 c = mix(vec3(0.42, 0.26, 1.0), vec3(0.68, 0.56, 1.0), core); // (violet, kept below the bloom's white)
-        gl_FragColor = vec4(c * (0.16 + 0.24 * core + 0.4 * glint * core) * ends * uOn, 1.0); }`,
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+    uniforms: { uTime: goodsellShared.uTime, uOn: { value: 1 }, uFogNear: goodsellShared.uFogNear, uFogFar: goodsellShared.uFogFar },
+    vertexShader: `varying vec3 vW; varying vec3 vC; varying vec2 vRH;
+      void main(){ vec4 w = modelMatrix * instanceMatrix * vec4(position, 1.0); vW = w.xyz;
+        vC = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+        vRH = vec2(length((instanceMatrix * vec4(1.0, 0.0, 0.0, 0.0)).xyz), length((instanceMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz));
+        gl_Position = projectionMatrix * viewMatrix * w; }`,
+    fragmentShader: `uniform float uTime; uniform float uOn; uniform float uFogNear; uniform float uFogFar;
+      varying vec3 vW; varying vec3 vC; varying vec2 vRH;
+      void main(){
+        vec3 ro = cameraPosition, rd = normalize(vW - cameraPosition);
+        // the view ray's closest approach to the column's vertical axis (in the horizontal plane)
+        vec2 o = ro.xz - vC.xz, d = rd.xz;
+        float k2 = max(dot(d, d), 1e-3);
+        float s0 = max(0.0, -dot(o, d) / k2);
+        vec2 q = o + d * s0;
+        float sig = vRH.x * 0.446, r2 = dot(q, q) / (sig * sig);
+        // a gaussian column integrated along the ray (sig sqrt(pi) / |d|), normalised: ~0.9 seen side-on
+        float dens = exp(-r2) * 0.886 / sqrt(k2);
+        dens = min(dens, 2.2);
+        float y = ro.y + rd.y * s0 - vC.y, h = y / vRH.y;
+        float ends = smoothstep(1.0, 0.45, abs(h)) * mix(0.6, 1.25, clamp(h * 0.5 + 0.5, 0.0, 1.0));
+        float ang = atan(q.y, q.x);
+        float rays = 0.72 + 0.28 * sin(ang * 7.0 + uTime * 0.35 + vC.x * 0.05) * sin(ang * 3.0 - uTime * 0.21 + vC.z * 0.03);
+        float motes = smoothstep(0.965, 1.0, sin(y * 0.23 + uTime * 1.4 + ang * 5.0) * sin(y * 0.071 - ang * 11.0 + vC.z));
+        float far = 1.0 - 0.5 * smoothstep(uFogNear, uFogFar * 2.0, distance(ro, vC));
+        vec3 c = mix(vec3(0.40, 0.32, 0.92), vec3(0.72, 0.68, 1.0), exp(-r2 * 3.0)); // (violet, kept below the bloom's white)
+        float a = dens * ends * (rays + 0.8 * motes * exp(-r2 * 0.6)) * far * uOn;
+        gl_FragColor = vec4(c * a * 0.5, 1.0); }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.BackSide,
   });
-  const shaftGeo = new THREE.CylinderGeometry(1, 1, 2, 24, 8, true);
+  const shaftGeo = new THREE.CylinderGeometry(1, 1, 2, 28, 1, false);
   const shafts = new THREE.InstancedMesh(shaftGeo, shaftMat, UV_SHAFTS.length);
-  UV_SHAFTS.forEach((sh, i) => { _m.compose(sh.c, _q.identity(), _s.set(sh.r, (sh.b.y - sh.a.y) / 2, sh.r)); shafts.setMatrixAt(i, _m); });
+  // the mesh reaches 1.9 radii out and 1.25 half-lengths up and down: the light fades to nothing inside it
+  UV_SHAFTS.forEach((sh, i) => { _m.compose(sh.c, _q.identity(), _s.set(sh.r * 1.9, ((sh.b.y - sh.a.y) / 2) * 1.25, sh.r * 1.9)); shafts.setMatrixAt(i, _m); });
   shafts.frustumCulled = false; shafts.renderOrder = 4;
   scene.add(shafts);
   world.shafts = shafts;
@@ -486,40 +575,51 @@ export function createWorld(scene) {
     const row = (name, p, r = 0) => ({ name, d: +p.distanceTo(START).toFixed(0), t: +progressAt(p).toFixed(2), r });
     return [
       row('start', START), row('backdoor flagellum (not a challenge)', BACKDOOR),
-      { name: 'warm-up (calm)', d: RINGS.warm }, { name: 'humic flocs (shell of 30)', d: RINGS.floc }, { name: 'decoy hosts (moved round their shell)', d: RINGS.decoy },
-      { name: 'UV sunfleck shafts (shell of 22)', d: RINGS.uv }, { name: 'portal: Host A + the amoeba on guard', d: PORTAL_R },
+      { name: 'calm water round the start (no scenery hazard)', d: CALM_R },
+      { name: `humic flocs (${FLOCS.length}, scenery: everywhere else)`, d: Math.round(Math.min(...world.flocs.map((f) => f.home.length()))) },
+      { name: `UV sunfleck shafts (${UV_SHAFTS.length}, scenery: everywhere else)`, d: Math.round(Math.min(...UV_SHAFTS.map((u) => u.c.length()))) },
+      { name: 'decoy hosts, then the portal (Host A + the amoeba on guard): placed as you go (main.js director)' },
       ...world.hosts.filter((h) => !h.hidden).map((h) => row(h.name, h.pos)),
       row('clay platelet (beside Host B)', clay.pos),
       ...(amGroup.visible ? [row('amoeba (on guard)', amoeba.center)] : []),
     ];
   };
-  /** Put host h at bearing `dir` (a unit vector from the start) on shell radius R, its long axis across the bearing. */
-  world.placeHost = (h, dir, R) => {
-    const p = dir.clone().multiplyScalar(R).add(START);
+  /**
+   * Put host h at `p` (shown), met coming along `dir` (a unit vector: from whoever it was placed for to
+   * p), its long axis across the way it is met; Host B's clay platelet beside it (clayAt).
+   */
+  world.placeHost = (h, p, dir) => {
     h.home = [p.x, p.y, p.z]; h.pos.copy(p); h.vel.set(0, 0, 0);
-    h.angle = h.ang = Math.atan2(dir.y, dir.x) + Math.PI / 2; h.angVel = 0; // (its local +y, where most receptors are, faces the start)
+    h.angle = h.ang = Math.atan2(dir.y, dir.x) + Math.PI / 2; h.angVel = 0; // (its local +y, where most receptors are, faces back the way it is met)
+    h.hidden = false; h.group.visible = true;
     h.group.position.copy(h.pos); h.group.rotation.z = h.ang; h.group.updateMatrixWorld(true);
-    if (h.id === 'B') { clay.pos.copy(p).addScaledVector(_v.set(-dir.y, dir.x, 0).normalize(), h.half + 70); clay.group.position.copy(clay.pos); }
+    if (h.id === 'B') { clayAt(p, dir, clay.pos); clay.group.position.copy(clay.pos); clay.group.visible = true; }
+  };
+  /** Park host h far off, hidden (a new game: not placed yet). */
+  world.parkHost = (h) => {
+    h.home = PARKED.slice(); h.pos.set(...PARKED); h.vel.set(0, 0, 0); h.hidden = true; h.group.visible = false; h.group.position.copy(h.pos);
+    if (h.id === 'B') { clay.pos.set(...PARKED).add(_v.set(0, 110, 0)); clay.group.position.copy(clay.pos); clay.group.visible = false; }
+  };
+  /** Move a placed host (and Host B's clay) by d: a lingering player's decoy swimming over to them (behaviour). */
+  world.shiftHost = (h, d) => {
+    h.home[0] += d.x; h.home[1] += d.y; h.home[2] += d.z; h.pos.add(d);
+    if (h.id === 'B') { clay.pos.add(d); clay.group.position.copy(clay.pos); }
   };
   /**
-   * The way on: Host A at bearing `dir` on the portal shell, shown, with the amoeba beside it on guard.
-   * Returns the portal: the gold receptor on Host A that faces the start most (its protein, point, normal).
+   * The way on: Host A at `pos`, met coming along `dir`, shown, with the amoeba beside it on guard
+   * (amoebaAt). Returns the portal: the gold receptor on Host A that faces back along dir most.
    */
-  world.placePortal = (dir) => {
+  world.placePortal = (pos, dir) => {
     const h = world.hosts.find((x) => x.id === 'A');
-    world.placeHost(h, dir, PORTAL_R);
-    h.hidden = false; h.group.visible = true;
+    world.placeHost(h, pos, dir);
     let best = null, bd = -2;
     for (const q of world.proteins) {
       if (q.host !== h || !q.compatible) continue;
       const n = world.dirToWorld(h, q.normal, new THREE.Vector3());
       if (-n.dot(dir) > bd) { bd = -n.dot(dir); best = q; }
     }
-    // the amoeba: to one side of Host A, a little farther out, its lobe reaching round to the receptor
-    const side = _v.set(-dir.y, dir.x, 0);
-    if (side.lengthSq() < 1e-4) side.set(1, 0, 0);
-    side.normalize();
-    amoeba.center.copy(h.pos).addScaledVector(side, -(amoeba.r + h.half + 60)).addScaledVector(dir, 60);
+    // the amoeba: to one side of Host A, a little farther on, its lobe reaching round to the receptor
+    amoebaAt(h.pos, dir, amoeba.center);
     amGroup.position.copy(amoeba.center); amGroup.visible = true;
     amoeba.reach = 0;
     world.portal = { host: h, protein: best, dir: dir.clone() };
@@ -586,11 +686,9 @@ export function createWorld(scene) {
 
   world.reset = () => {
     for (const h of world.hosts) {
-      h.home = h.home0.slice(); h.angle = h.ang = HOSTS.find((d) => d.id === h.id).angle;
-      h.pos.set(...h.home); h.vel.set(0, 0, 0); h.angVel = 0; h.burst = false; h.locked = false;
-      h.hidden = h.id === 'A'; h.group.visible = !h.hidden; h.group.scale.setScalar(1);
-      h.group.position.copy(h.pos); h.group.rotation.z = h.ang;
-      if (!h.hidden) world.placeHost(h, new THREE.Vector3(...h.home0).normalize(), RINGS.decoy);
+      h.angle = h.ang = HOSTS.find((d) => d.id === h.id).angle;
+      h.angVel = 0; h.burst = false; h.locked = false; h.group.scale.setScalar(1); h.group.rotation.z = h.ang;
+      world.parkHost(h);
     }
     amoeba.center.set(0, 9000, 0); amGroup.position.copy(amoeba.center); amGroup.visible = false;
     world.portal = null;

@@ -1158,76 +1158,108 @@ function landmark(kind, P) {
   embed.landmark(kind, { player: P ? P.slot : 0 });
 }
 const flatDist = (s, L) => Math.hypot(s.center.x - L.pos.x, s.center.z - L.pos.z);
-// --- the rings and the portal (micro/design/encounter-pattern.md) ---------------
-// One Dileptus, one bloom and a pair of Didinium, each on its ring round the
-// start (landmarks.js RINGS). Each is moved round its ring to meet whoever is
-// heading out there, out of everyone's sight: only while it is not engaged
-// with anyone, and only when both where it is and where it goes are farther
-// than UNSEEN µm from every player. The portal (the biofilm, with the
-// bladderwort trap on guard) is placed once a game, on its ring at the bearing
-// of the first player to get far enough, out of sight.
-const UNSEEN = 750, LEAD = 2500, PORTAL_SEEN = 1500;
-const relocLog = [];
-const angDiff = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+// --- the encounters, placed as you go (micro/design/encounter-pattern.md) --------
+// The director (shared/director.js) places the encounters one at a time, in
+// this order (route.js ENCOUNTERS), in water nobody has seen, a little ahead
+// of whoever is furthest along (or, if they linger, round them): the
+// Dileptus, the Chlamydomonas bloom across the way, the two Didinium, then
+// the biofilm (the portal) with the bladderwort trap on guard in front of it.
+// Each comes only after the one before was met and a calm break has passed;
+// nothing a player has seen is ever placed, moved or removed. The scenery is
+// laid out before play (world.js); until placed, each hunter is parked
+// (hidden, not stepped), the bloom and the trap hidden.
 const livePos = () => liveRoster().filter((P) => P.swimmer.state.mode !== 'dead').map((P) => P.swimmer.state.center);
-const unseen = (p, extra = 0) => livePos().every((c) => Math.hypot(c.x - p.x, c.z - p.z) > UNSEEN + extra);
-const CALM_STATES = new Set(['wander', 'wandering', 'not hungry', 'sated', 'stunned', 'retreating']);
-const engagedHunter = (d) => !CALM_STATES.has(d.state) || roster.some((P) => P.swimmer.state.captor === d || (P.capture.active && P.cap.th === d))
-  || livePos().some((c) => c.distanceTo(d.pos) < d.homeR + 400);
-/**
- * Which of `rings` (radii, µm) to serve, and for whom: the live player heading
- * out through one of them (from LEAD before it to its far edge, ± zr), the
- * farthest out first. Returns { c, R } or null.
- */
-function approaching(rings, zr, lead = LEAD) {
-  let best = null, bd = -1;
-  for (const c of livePos()) {
-    const d = distFromStart(c);
-    for (const R of rings) if (d > R - zr - lead && d < R + zr && d > bd) { bd = d; best = { c, R }; }
-  }
-  return best;
+const dileptus = world.didinia.find((d) => d.kind === 'dileptus'), didinia = world.didinia.filter((d) => d.kind === 'didinium');
+/** Put hunter d's home (and itself) at (x, z), at its own depth, hungry after a grace; shown and stepped from now on. */
+function placeHunter(d, x, z, i = 0) {
+  d.home.set(x, d.home.y, z); d.pos.copy(d.home); d.speed = 0; d.stun = 0; d.sated = 0;
+  d.parked = false; d.group.visible = enc.opts.didinium;
+  d.hunger.reset(pacing.grace + i * 5); d.fight.reset();
+  if (!pacing.reached) { pacing.reached = true; pacing.reachedAt = t - pacing.t0; }
 }
-function moveHunters(list, rings, why) {
-  const w = approaching(rings, list[0].homeR + 250);
-  if (!w || list.some(engagedHunter)) return;
-  const a = bearingOf(w.c);
-  const to = list.map((d) => ringPoint(w.R, a + d.offset / w.R, d.home.y));
-  if (list.every((d, i) => d.home.distanceTo(to[i]) < 300)) return; // already about there
-  // where it is must be well out of sight; where it goes, out of the view's reach (a scope field is 0.9 mm, and far water fades in the chase view)
-  if (!list.every((d) => unseen(d.pos)) || !to.every((p) => unseen(p, -200))) return;
-  list.forEach((d, i) => { d.home.copy(to[i]); d.pos.copy(to[i]); d.speed = 0; });
-  relocLog.push({ k: why, R: w.R, a: +a.toFixed(3), t: +t.toFixed(2) });
-}
-function moveRings() {
-  const dil = world.didinia.filter((d) => d.kind === 'dileptus'), did = world.didinia.filter((d) => d.kind === 'didinium');
-  if (dil.length) moveHunters(dil, RINGS.dileptus, 'dileptus');
-  if (did.length) moveHunters(did, RINGS.didinium, 'didinium');
-  // the bloom: a band 1.8 mm along its ring, moved while it is well out of sight
-  const w = approaching(RINGS.bloom, BLOOM.half);
-  if (bloom.on && w && !livePos().some((q) => bloom.inside(q, 500))) {
-    const a = bearingOf(w.c);
-    const moved = w.R !== BLOOM.centre || angDiff(a, BLOOM.bearing) * w.R > 450;
-    if (moved && livePos().every((q) => bloom.distTo(q) > UNSEEN && bloom.distTo(q, a, w.R) > UNSEEN)) {
-      bloom.place(a, w.R); relocLog.push({ k: 'bloom', R: w.R, a: +a.toFixed(3), t: +t.toFixed(2) });
-    }
-  }
-  // the portal: once a game, at the bearing of the first player far enough out, out of sight
-  if (!FWD.placed) {
-    let lead = null, ld = -1;
-    for (const q of livePos()) { const d = distFromStart(q); if (d > ld) { ld = d; lead = q; } }
-    if (lead && ld >= RINGS.portal - PORTAL_SEEN) {
-      const a0 = bearingOf(lead);
-      for (let i = 0; i < 15; i++) {
-        const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * (400 / RINGS.portal);
-        if (unseen(ringPoint(RINGS.portal, a), 250) && unseen(ringPoint(RINGS.trap, a), 250)) { placePortal(a); break; }
+const nearXZ = (h, p, r) => Math.hypot(p.x - h.x, p.z - h.z) < r;
+const ENC = {
+  dileptus: { place: (x, z) => { placeHunter(dileptus, x, z); return dileptus; },
+    // in its waters (its home and a margin), or close to it
+    met: (d, [p]) => nearXZ(d.home, p, d.homeR + 450) || nearXZ(d.pos, p, 550) },
+  bloom: { place: (x, z, b) => { bloom.place(x, z, b); bloom.group.visible = bloom.on; return bloom; },
+    met: (B, [p]) => bloom.distTo(p) < 300 },
+  didinium: { place: (x, z, b) => { didiniumHomes(x, z, b).forEach(([hx, hz], i) => placeHunter(didinia[i], hx, hz, i)); return didinia; },
+    met: (L, [p]) => L.some((d) => nearXZ(d.home, p, d.homeR + 450) || nearXZ(d.pos, p, 550)) },
+  // the last: entering the open portal ends the level
+  portal: { place: (x, z, b) => { placePortal(x, z, b); return FWD; }, met: () => false },
+};
+const director = createDirector({ ...DIRECTOR, canPlace, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id] })) });
+// What every view sees, for the director: each split view's frustum (the
+// camera offset for it), its far plane brought in to where the view fades out
+// (cullFor: VIEW_FAR), and its focus (what it frames). Updated each frame
+// after the cameras; debug.step updates the cameras too, so scripted runs see
+// what play would.
+const viewPool = [0, 1, 2, 3].map(() => ({ frustum: new THREE.Frustum(), focus: new THREE.Vector3() }));
+const _pm = new THREE.Matrix4(), _dfw = new THREE.Vector3();
+let seenViews = null;
+function directorViews(cam) {
+  const list = [];
+  const n = Math.max(1, split.views.length);
+  for (let i = 0; i < n && i < 4; i++) {
+    const v = viewPool[i];
+    split.withView(i, cam, () => {
+      cam.updateMatrixWorld();
+      v.frustum.setFromProjectionMatrix(_pm.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+      cam.getWorldDirection(_dfw);
+      v.focus.copy(cam.position).addScaledVector(_dfw, shared.uFocus.value);
+      if (cam.isPerspectiveCamera) {
+        // the far plane: where the view fades out (not the camera's 12 mm)
+        let fi = 0, fd = 2;
+        v.frustum.planes.forEach((pl, k) => { const dd = pl.normal.dot(_dfw); if (dd < fd) { fd = dd; fi = k; } });
+        v.frustum.planes[fi].normal.copy(_dfw).negate();
+        v.frustum.planes[fi].constant = _dfw.dot(cam.position) + VIEW_FAR;
       }
-    }
+    });
+    list.push(v);
+  }
+  seenViews = list;
+}
+function stepDirector(dt) {
+  if (outro) return;
+  const ps = roster.filter((P) => !P.waiting).map((P) => { const c = P.swimmer.state.center; return { id: P.slot, x: c.x, y: c.y, z: c.z, alive: P.swimmer.state.mode !== 'dead' && !P.capture.active }; });
+  const ev = director.update(dt, ps, seenViews);
+  for (const e of ev) lm.log.push({ kind: `${e.id} ${e.type}`, how: e.how, t: +t.toFixed(2) });
+  driftEncounter(dt);
+}
+/**
+ * The current encounter, placed beyond a lingering player's reach, comes over
+ * to them: a hunter's home (and so the hunter) drifts toward the leader at
+ * DRIFT µm/s, the bloom too, until they meet it. Behaviour, not a placement.
+ */
+const DRIFT = 350;
+function driftEncounter(dt) {
+  const e = ENCOUNTERS[director.index];
+  if (!e || e.final) return;
+  const S0 = director.entry(e.id);
+  if (!S0 || S0.state !== 'placed' || t - (S0.driftT0 ??= t) < 4) return;
+  const lead = director.leader, P = lead && roster.find((Q) => Q.slot === lead.id);
+  if (!P || lead.moving) return;
+  const c = P.swimmer.state.center;
+  if (e.id === 'bloom') {
+    const d = bloom.distTo(c);
+    if (d < 250) return;
+    const dx = c.x - BLOOM.x, dz = c.z - BLOOM.z, l = Math.hypot(dx, dz) || 1, k = Math.min(d, DRIFT * dt) / l;
+    bloom.shift(dx * k, dz * k);
+    return;
+  }
+  for (const d of e.id === 'dileptus' ? [dileptus] : didinia) {
+    const dx = c.x - d.home.x, dz = c.z - d.home.z, l = Math.hypot(dx, dz);
+    if (l < d.homeR + 300) continue;
+    const k = Math.min(l, DRIFT * dt) / l;
+    d.home.x += dx * k; d.home.z += dz * k;
   }
 }
-/** Put the biofilm on its ring at bearing a, with the bladderwort trap on guard in front of it (door toward the start). */
-function placePortal(a) {
-  drop.place(a);
-  trap.place(ringPoint(RINGS.trap, a), a + Math.PI);
+/** Put the biofilm at (x, z), met coming along bearing a, with the bladderwort trap on guard in front of it (door toward whoever comes). */
+function placePortal(x, z, a) {
+  drop.place(x, z, a);
+  const [tx, tz] = trapAt(x, z, a);
+  trap.place(new THREE.Vector3(tx, 0, tz), a + Math.PI);
   portalGlow.setPosition(FWD.pos.x, 24, FWD.pos.z);
   portalGlow.group.visible = true;
   spir.pos.set(FWD.pos.x, 28, FWD.pos.z); spir.group.visible = true;
@@ -1498,10 +1530,9 @@ function tick(dt, forced = false) {
   if (bloom.on) bloom.update(dt, roster.map((P) => ({ position: P.swimmer.state.center, slot: P.slot, alive: !P.waiting && P.swimmer.state.mode !== 'dead' })));
   soundTick(dt);
   // hunger: each hunter's own clock; only a hungry one hunts
-  // the ciliates' clocks start once someone leaves the warm-up (the amoeba's runs from the start)
-  if (!pacing.reached && liveRoster().some((P) => progress(P.swimmer.state.center) >= HALF)) { pacing.reached = true; pacing.reachedAt = t - pacing.t0; }
+  // each ciliate's clock starts when the director places it (the amoeba's runs from the start)
   for (const th of hunters()) {
-    if (th === amoeba || pacing.reached) th.hunger.update(dt);
+    if (th === amoeba || !th.parked) th.hunger.update(dt);
     th.hungry = isHungry(th.hunger);
   }
   if (pacing.firstHungry === null && hunters().some((th) => th.hungry)) pacing.firstHungry = t - pacing.t0;
@@ -1515,7 +1546,7 @@ function tick(dt, forced = false) {
   amoeba.target = aT.swimmer;
   for (const P of roster) if (P !== aT) P.swimmer.state.slow *= Math.exp(-dt * 4);
   amoeba.update(dt, t, aT.swimmer, evH, world.flowAt);
-  moveRings();
+  stepDirector(dt);
   if (pacing.firstThreat === null && s.mode === 'swim' && threats().some((th) => hunting(th) || (th === amoeba && amoeba.cup > 0))) pacing.firstThreat = t - pacing.t0;
   // a catch began: whoever is now held
   for (const P of roster) {
@@ -1658,6 +1689,7 @@ function frame(now) {
   // the split screen (one view while together: the fast path, as before)
   const list = liveRoster().map((P) => ({ slot: P.slot, position: P.swimmer.state.center }));
   const L = split.update(list.length ? list : [{ slot: 0, position: s.center }], { camera: cam }, dt);
+  directorViews(cam);
   quality.setSplitViews(L.views.length); // split views render at a lower resolution (the governor's split factor)
   // the amoeba re-meshes rarely while no one is near its floor
   amoeba.skipShape = !roster.some((P) => Math.hypot(P.swimmer.state.center.x - amoeba.pos.x, P.swimmer.state.center.z - amoeba.pos.z) < 2200);
@@ -1717,8 +1749,8 @@ function frame(now) {
     `prey ${game.eaten}/${GOAL} (round ${game.round}) · food vacuoles ${cell.foodCount} · bacteria ${game.bacteria}`,
     `${dash.text()} · trichocysts ${charges}${GREEN ? ` · ${inLight(s.center) ? 'in the sun (dash recharges faster)' : 'in shade'}` : ''}`,
     near ? `${near.label} ${Math.round(near.d)} µm away (${near.state})` : 'no hunter near',
-    `hunger: ${world.didinia.map((d, i) => `${d.label}${d.kind === 'didinium' ? ` ${i + 1}` : ''} ${enc.opts.didinium ? (pacing.reached ? hungerText(d.hunger) : 'in its waters') : 'off'}`).join(' · ')} · amoeba ${amoeba.opts.on ? hungerText(amoeba.hunger) : 'off'}`,
-    `${Math.round(progress(s.center))} µm out (${Math.round(Math.max(0, progress(s.center)) / ROUTE_LEN * 100)}% of the way to the portal ring${progress(s.center) < HALF ? ', calm waters' : ''}) · ${FWD.placed ? `biofilm ${Math.round(flatDist(s, FWD))} µm${guarded() ? ' (guarded)' : ' (open)'}` : 'portal not found yet'} · amoeba's floor ${Math.round(flatDist(s, BACK))} µm`,
+    `hunger: ${world.didinia.map((d, i) => `${d.label}${d.kind === 'didinium' ? ` ${i + 1}` : ''} ${enc.opts.didinium ? (d.parked ? 'not met yet' : hungerText(d.hunger)) : 'off'}`).join(' · ')} · amoeba ${amoeba.opts.on ? hungerText(amoeba.hunger) : 'off'}`,
+    `${Math.round(progress(s.center))} µm out${progress(s.center) < HALF ? ' (calm waters)' : ''} · encounters ${director.index}/${ENCOUNTERS.length} · ${FWD.placed ? `biofilm ${Math.round(flatDist(s, FWD))} µm${guarded() ? ' (guarded)' : ' (open)'}` : 'portal not found yet'} · amoeba's floor ${Math.round(flatDist(s, BACK))} µm`,
     multi() ? `players ${roster.length} · views ${L.views.length}${L.merged ? ' (together)' : ''}` : '',
     `${Math.round(renderFps)} fps · render scale ${quality.scale.toFixed(2)} × pixel ratio ${quality.pixelRatio.toFixed(2)} · effects ${['low', 'medium', 'high'][qLevel]}${quality.auto ? ' (auto)' : ''}`,
   ].filter((l) => l).join('\n'));
@@ -2048,6 +2080,14 @@ function renderBorrowed(cam, optP, dt) {
 }
 
 // --- debug hooks for screenshots and tests ------------------------------------
+/** After a step without drawing: the cameras and the split as a drawn frame would have them, so the director sees what they see. */
+function stepViews(dt) {
+  const s = swimmer.state;
+  const cam = updateCameras(dt, s, ls, group());
+  const list = liveRoster().map((P) => ({ slot: P.slot, position: P.swimmer.state.center }));
+  split.update(list.length ? list : [{ slot: 0, position: s.center }], { camera: cam }, dt);
+  directorViews(cam);
+}
 const slotP = (slot) => roster.find((P) => P.slot === slot) || P1;
 const debug = {
   freeze: false, inspect: false, clean: false, thrust: 0, steer: { x: 0, y: 0, m: 0 },
@@ -2071,12 +2111,19 @@ const debug = {
   },
   amoeba(dx, dz) { const s = swimmer.state; amoeba.pos.set(s.center.x + dx, 0, s.center.z + dz); amoeba.sated = 0; amoeba.stun = 0; },
   prey(dx, dz, i = 0) { const s = swimmer.state; const it = prey.items[i]; it.pos.set(s.center.x + dx, s.center.y, s.center.z + dz); it.alive = true; it.pull = 0; },
-  step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) tick(dt, true); },
+  /** Step the world n times without drawing; the cameras and the director's views follow, as a drawn frame would have them. */
+  step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) { tick(dt, true); stepViews(dt); } },
   /** Make every hunter hungry now (tests of the fights). */
   /** Wake the boss now, whatever the calm opening says. */
   wakeBoss() { bossInfo.force = true; },
-  /** Place the portal now at bearing a (default: player 1's), as if found. */
-  placePortal(a) { placePortal(a ?? bearingOf(swimmer.state.center)); },
+  /**
+   * Place the portal now, `d` µm from player 1 at bearing a (default: their
+   * bearing from the start), as the director would (every encounter before it
+   * counts as met).
+   */
+  placePortal(a, d = 3000) { const c = swimmer.state.center, b = a ?? (distFromStart(c) > 1 ? bearingOf(c) : 0); director.force('portal', c.x + Math.cos(b) * d, c.z + Math.sin(b) * d, b); },
+  /** Place encounter `id` now at (x, z), met coming along bearing b (every earlier one counts as met). */
+  placeEncounter(id, x, z, b = 0) { return director.force(id, x, z, b); },
   hungry() { for (const th of hunters()) { th.hunger.reset(0.01); th.sated = 0; th.stun = 0; } swimmer.state.safeT = 0; },
   /** Player 1's buttons for tests: 'B' defend, 'X' attack (eat or fight back). */
   press(b, slot = 0) { const P = slotP(slot); if (b === 'B') defend(P); else if (b === 'X') doAttack(P); },
@@ -2136,15 +2183,21 @@ window.__micro = {
   boss: () => ({ awake: trap.awake, state: trap.fight.state, t: +(trap.fightT || 0).toFixed(2), interest: +trap.fight.interest.toFixed(2), phase2: trap.phase2, door: trap.door.toArray(), log: bossInfo.log }),
   trap,
   bloom,
-  /** The rings and where each challenge begins (µm out from the start, the same in every direction; all beyond the warm-up). */
-  route: () => ({ len: ROUTE_LEN, half: HALF, rings: RINGS, reached: pacing.reached, reachedAt: pacing.reachedAt,
-    portal: { placed: FWD.placed, bearing: FWD.bearing, pos: FWD.pos.toArray().map(Math.round), guarded: guarded(), trap: trap.placed ? trap.centre.toArray().map(Math.round) : null }, relocations: relocLog,
+  /** The encounters (the director's state), the portal, and where each player is (µm out from the start). */
+  route: () => ({ warm: HALF, reached: pacing.reached, reachedAt: pacing.reachedAt, encounters: director.state(),
+    portal: { placed: FWD.placed, bearing: FWD.bearing, pos: FWD.pos.toArray().map(Math.round), guarded: guarded(), trap: trap.placed ? trap.centre.toArray().map(Math.round) : null },
     players: roster.map((P) => ({ slot: P.slot, u: Math.round(progress(P.swimmer.state.center)), side: Math.round(lateral(P.swimmer.state.center)) })) }),
+  /** The director (shared/director.js): state(), seenAt(x, z), placeNow(), log. */
+  director,
+  encounterState: () => director.state(),
+  seenAt: (x, z) => director.seenAt(x, z),
+  placeNow: () => director.placeNow(),
+  /** Each challenge: where it is (placed by the director) or null while it is not yet placed. */
   challenges: () => [
-    ...world.didinia.map((d, i) => ({ name: `${d.label}${d.kind === 'didinium' ? ` ${i + 1}` : ''}`, kind: d.kind, start: Math.round(Math.max(HALF, progress(d.home) - d.homeR - 250)), home: Math.round(progress(d.home)) })),
-    { name: 'Bladderwort trap', kind: 'boss', start: RINGS.trap - 272 - trap.wakeR, home: RINGS.trap },
-    { name: 'Chlamydomonas bloom', kind: 'crowd', start: BLOOM.centre - BLOOM.half, home: BLOOM.centre },
-  ].map((c) => ({ ...c, frac: +(c.start / ROUTE_LEN).toFixed(3) })),
+    ...world.didinia.map((d, i) => ({ name: `${d.label}${d.kind === 'didinium' ? ` ${i + 1}` : ''}`, kind: d.kind, at: d.parked ? null : [Math.round(d.home.x), Math.round(d.home.z)], u: d.parked ? null : Math.round(progress(d.home)) })),
+    { name: 'Bladderwort trap', kind: 'boss', at: trap.placed ? [Math.round(trap.centre.x), Math.round(trap.centre.z)] : null, u: trap.placed ? Math.round(progress(trap.centre)) : null },
+    { name: 'Chlamydomonas bloom', kind: 'crowd', at: bloom.placed ? [Math.round(BLOOM.x), Math.round(BLOOM.z)] : null, u: bloom.placed ? Math.round(Math.hypot(BLOOM.x - START.x, BLOOM.z - START.z)) : null },
+  ],
   trichoLog, hintLog, bloomLog: () => ({ enter: bloomLog.enter, gulps: bloomLog.gulps, wedges: bloomLog.wedges, alive: bloom.alive }),
   quality,
   fights: () => hunters().map((th) => ({ name: th.label, state: th.fightState, t: +(th.fightT || 0).toFixed(2), interest: +th.fight.interest.toFixed(2), doing: th === amoeba ? amoeba.state : th.state })),

@@ -591,8 +591,11 @@ export function buildWorld(tex) {
   };
   // The tile's copies: copy 0 holds the meshes, the other eight hold proxies
   // that share their geometry (setView places them round each view's target).
-  // (their matrices are set only when a copy moves: setView; the meshes in them never move)
-  const copies = Array.from({ length: 9 }, () => { const g = new THREE.Group(); g.matrixAutoUpdate = false; group.add(g); return g; });
+  // Their world matrices are set here only when a copy moves (setView), for the
+  // copy and every mesh in it (the meshes never move within it): three.js would
+  // otherwise multiply ~1900 matrices a frame for the nine copies.
+  const copies = Array.from({ length: 9 }, () => { const g = new THREE.Group(); g.matrixAutoUpdate = false; g.matrixWorldAutoUpdate = false; group.add(g); return g; });
+  group.matrixAutoUpdate = false; // (at the origin, unrotated)
   const base = copies[0];
   const proxies = []; // [original, [8 proxies]]
   const proxyOf = (m) => {
@@ -1062,7 +1065,12 @@ export function buildWorld(tex) {
   // the copies of every mesh (each layer's list holds its originals and proxies, so a switch hides both)
   for (const m of floorTiles) addCopies(m);
   for (const name of Object.keys(layers)) layers[name] = layers[name].flatMap((m) => [m, ...addCopies(m)]);
-  for (const g of copies) for (const m of g.children) { m.matrixAutoUpdate = false; m.updateMatrix(); }
+  for (const g of copies) for (const m of g.children) { m.matrixAutoUpdate = false; m.matrixWorldAutoUpdate = false; m.updateMatrix(); }
+  /** Move copy g to (ox, oz): its matrix and its meshes' (each at identity within it). */
+  const moveCopy = (g, ox, oz) => {
+    g.position.set(ox, 0, oz); g.updateMatrix(); g.matrixWorld.copy(g.matrix);
+    for (const m of g.children) m.matrixWorld.copy(g.matrix);
+  };
 
   const kinds = { grains: ['grain'], litter: ['litter'], moss: ['stem', 'blade'], hyphae: [], spores: [] };
   /** Show or hide a layer; hidden layers can't be walked on either. */
@@ -1096,7 +1104,7 @@ export function buildWorld(tex) {
       // copy 0 (the originals) takes the target's own tile
       const g = copies[i === 0 && j === 0 ? 0 : ++k];
       const ox = (ix + i) * TILE, oz = (iz + j) * TILE;
-      if (g.position.x !== ox || g.position.z !== oz) { g.position.set(ox, 0, oz); g.updateMatrix(); }
+      if (g.position.x !== ox || g.position.z !== oz || !g.userData.placed) { moveCopy(g, ox, oz); g.userData.placed = true; }
       box.min.set(ox - HT - 1600, -300, oz - HT - 1600); box.max.set(ox + HT + 1600, 3400, oz + HT + 1600);
       // (in view, and within reach of what is drawn round the target: the floor reaches DRAW_R + a floor tile)
       const bx = Math.max(box.min.x - x, 0, x - box.max.x), bz = Math.max(box.min.z - z, 0, z - box.max.z);

@@ -655,6 +655,32 @@ before or after. They use the programs the first frame already built, and
 `shared/splitscreen.js` warms its own compose shaders.
 
 
+### Performance (the scenery tile and the rings)
+
+The rings need moss 37.5 mm out in every direction; the tile's copies give it
+without building more. Measured against the bounded patch, back to back
+(headless SwiftShader, 1280×720, `?q=high`; `perf/measure.mjs` gets only
+13–25 frames a run on this shared machine, so its CPU figures swing by 2×
+between runs of the same code):
+
+| | before | after |
+| --- | --- | --- |
+| triangles at the start view (by layer: grains, litter, moss, hyphae, spores, floor) | 213 k (1, 3, 30, 24, 38, 11 k) | 207 k (1, 0, 9, 24, 52, 15 k) |
+| draws, 1 player / 4 players together (`measure.mjs`) | 39 / 64 | 47 / 69 |
+| primitives, 1 / 4 players (`measure.mjs`) | 178 k / 336 k | 197 k / 354 k |
+| main-thread JS over 8 s at the start (CDP profile, not idle) | 0.86 s | 0.69 s |
+| one simulation step / one frame's render CPU (median of 240 / 40) | 0.6–0.7 / 1.3–1.8 ms | 0.7–1.0 / 1.2–1.7 ms |
+
+The copies cost little because they share everything: nine groups whose
+world matrices are set only when a copy moves (three.js would otherwise
+multiply ~1900 matrices a frame), one-to-four copies drawn per view, and
+the grains, litter and moss drawn only within 8 mm of a view's target
+(`DRAW_R`, as far as the old patch reached; the SEM backdrop carries on to
+the horizon). The 67 thickets add ~270 objects (each frustum culled whole;
+their crowds and threads simulated only near someone). Casts cost about the
+same: the periodic broadphase visits the same cells; the periodic floor's
+lattice wrap makes `floorH` a little dearer.
+
 ## Textures (`textures.js`)
 
 The requested images MP-M01 (moss leaf), MP-M02 (litter and grains),
