@@ -7,10 +7,17 @@
 // (a hand and two fingers; the movable finger carries the venom tooth).
 // Units: µm, s. Drawn by the SEM with the other mites (gMaterial, CLS.NPC).
 //
+// It guards the portal (the wet leaf axil, placed once a game: setPost puts it
+// on its post there). It can be lured off: it follows a mite out to `leash`
+// from its post, gives up one that gets away (farther than `lose`), and walks
+// back slowly to guard again.
+//
 // Readable states:
-//   dormant  in the axil, pincers folded; wakes when a player comes within
-//            `wake` (the mite's layout: 0.9 mm) after the calm opening
+//   dormant  on its post before the axil, pincers folded; wakes when a player
+//            comes within `wake` of its post (layout.js: 0.9 mm)
 //   stalk    a slow, deliberate walk toward its target, pincers forward
+//   return   lured too far, or its target lost: it walks back to its post
+//            (slower than a walking mite), then guards it again
 //   tell     the pincers held open and dead still (0.9 s; 0.7 s for the sweep)
 //   snap     a fast pincer strike straight ahead (0.16 s)
 //   sweep    both pincers swing in from wide (a wider, shorter grab)
@@ -31,7 +38,7 @@ const ease = (x) => x * x * (3 - 2 * x);
 const UP = new THREE.Vector3(0, 1, 0);
 const REACH = 2500; // µm from its body centre to the pincer tips, at full stretch (~2.1 mm in the tell)
 
-export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
+export function createPseudoscorpion(scene, tex, { post, home, wake = 1250, leash = 2600, lose = 3600 }) {
   const group = new THREE.Group();
   scene.add(group);
   const shell = gMaterial({ cls: CLS.NPC, tex: tex.cuticle, map: 'tri', scale: 220, bump: 2.2 });
@@ -208,7 +215,8 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
         targetV = bd > REACH - 100 ? 240 : bd < 1900 ? -200 : 0;
         st.open += (0.25 - st.open) * Math.min(1, dt * 3);
         st.lower = Math.max(0, st.lower - dt * 2);
-        if (Math.hypot(st.x - post.x, st.z - post.z) > 1700) targetA = Math.atan2(post.z - st.z, post.x - st.x);
+        // lured too far from its post, or its target got away: it walks back to guard it
+        if (Math.hypot(st.x - post.x, st.z - post.z) > leash || bd > lose) { go('return'); ev.push({ type: 'return' }); break; }
         if (st.cool <= 0 && bd < REACH + 450 && bd > 1750) {
           st.pattern = bd > REACH - 50 ? 'step' : Math.random() < 0.4 ? 'sweep' : 'snap';
           st.extT = Math.max(0.1, Math.min(1, (bd - 1700) / 900));
@@ -254,6 +262,15 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
         }
         break;
       }
+      case 'return': {
+        const dp = Math.hypot(post.x - st.x, post.z - st.z);
+        targetA = Math.atan2(post.z - st.z, post.x - st.x); targetV = dp > 40 ? 260 : 0;
+        settle(Math.min(1, dt * 3)); st.lower = Math.max(0, st.lower - dt * 2);
+        if (dp < 60) { st.x = post.x; st.z = post.z; go('dormant'); ev.push({ type: 'guard' }); break; }
+        // someone close again while it is still near enough its post: it turns on them
+        if (tgt && bd < 1500 && dp < leash - 600 && st.t > 1) { go('stalk'); ev.push({ type: 'wake' }); }
+        break;
+      }
       case 'recover':
         // pincers lowered, slow: the joints are open
         st.lower = Math.min(1, st.t / 0.25) * (st.t < 1.0 ? 1 : Math.max(0, 1 - (st.t - 1.0) / 0.3));
@@ -281,7 +298,7 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
       st.gait += Math.abs(st.v) * dt / 500;
       if (st.state !== 'tell') st.crouch = Math.max(0, st.crouch - dt * 3);
     } else st.gait += dt * 0.5;
-    if (st.state !== 'dormant' && st.state !== 'gone' && st.state !== 'retreat') {
+    if (st.state !== 'dormant' && st.state !== 'gone' && st.state !== 'retreat' && st.state !== 'return') {
       const near = tgt && bd < 2600;
       const f = fight.update(dt, { near, facing: near && tgt.facing });
       if (f.interest <= 0 && st.state !== 'flinch') { go('retreat'); ev.push({ type: 'retreat' }); }
@@ -299,12 +316,14 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
     get name() { return 'Pseudoscorpion'; },
     get center() { return new THREE.Vector3(st.x, floorH(st.x, st.z) + 150, st.z); },
     get resolve() { return fight.interest; },
-    get engaged() { return !['dormant', 'gone', 'retreat'].includes(st.state); },
+    get engaged() { return !['dormant', 'gone', 'retreat', 'return'].includes(st.state); },
+    /** Put it on guard at a new post (the portal was placed): { x, z, a }, home { x, z }. */
+    setPost(p, h) { Object.assign(post, p); Object.assign(home, h); api.reset(); },
     get attacking() { return ['tell', 'snap', 'sweep', 'step'].includes(st.state); },
     /** In its recovery: the pincer joints are open to a bite. */
     get open() { return st.state === 'recover'; },
     /** Where a bite can land: the pincer joints (wrists) and the hands. */
-    bitePoints() { if (!group.visible || st.state === 'gone' || st.state === 'dormant') return []; return [joints[0].clone(), joints[1].clone(), hands[0].position.clone(), hands[1].position.clone()]; },
+    bitePoints() { if (!group.visible || st.state === 'gone' || st.state === 'dormant' || st.state === 'return') return []; return [joints[0].clone(), joints[1].clone(), hands[0].position.clone(), hands[1].position.clone()]; },
     /** A bite by player slot (power 1 a bite, 2 a pounce-bite; doubled on an open joint). True when it gives up. */
     bitten(power = 1, slot = 0) {
       if (['gone', 'retreat', 'capture'].includes(st.state)) return false;

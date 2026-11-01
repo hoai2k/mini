@@ -1,98 +1,106 @@
 // The mite's two landmarks, built into the moss as real things (drawn by the
 // SEM like everything else). Units: µm.
 //
-// Forward (design §1.6): a wet leaf axil. A moss stem rises from the floor,
-// its lowest leaf arches out and down, and in the angle between them water
-// has gathered in a smooth film; a tardigrade tun, a dry wrinkled barrel,
-// lies in it. It swells a little as a mite comes near (rehydration). Reach
-// the water and the microscope zooms in to the tardigrade's world.
+// Forward (design §1.6), the portal: a wet leaf axil. A moss stem rises from
+// the floor, its lowest leaf arches out and down, and in the angle between
+// them water has gathered in a smooth film; a tardigrade, the creature of the
+// next world, walks slowly about in it (the glimpse the transition pushes in
+// on). It is built where the portal is placed (place(): once a game, on the
+// portal ring at the bearing of whoever first gets far enough; layout.js
+// portalAt), with the shared golden glow over it (shared/portal.js; main.js
+// draws it after the SEM composite). Reach the water while the pseudoscorpion
+// is off guard and the microscope goes on into the tardigrade's world.
 //
 // Backdoor: a giant water springtail resting on the moss, the creature of the
 // stage above, ~1.5 mm long (four box mites). Dwell beside its head and press
 // Y to rise back to the bog surface. It is solid: mites can climb it.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { gMaterial, CLS } from '../shared/techniques/mite-sem.js';
+import { createPortalGlow } from '../shared/portal.js';
 import { floorH, mergeGeos } from './world.js';
-import { along, ROUTE } from './layout.js';
+import { portalAt } from './layout.js';
 
-/**
- * The opening camera places the forward landmark up and right, at the end of
- * the route (layout.js: ~7.3 mm off, past every challenge); the backdoor is
- * behind the start.
- */
-export const FORWARD = { ...along(ROUTE.length), reach: 330 };
-export const BACKDOOR = { x: 1450, z: -1000, dwell: 380 };
+/** The water's reach (µm from its centre: a player this close has reached it). */
+export const FORWARD = { reach: 360 };
+/** The giant springtail, behind the start view (its head toward the start). */
+export const BACKDOOR = { x: 1450, z: -1000, dwell: 380, clear: 1000 };
+/** The tardigrade in the water: its length (µm), the tardigrade world's creature's (350 µm; a pose's `len` in both). */
+export const TARDI_LEN = 350;
 
-export function createLandmarkProps(world, tex) {
+export function createLandmarkProps(world, tex, { glowScene }) {
   const group = new THREE.Group();
   const leafMat = gMaterial({ cls: CLS.LEAF, tex: tex.leaf, map: 'uv', scale: 1, bump: 2.5, cut: true, side: THREE.DoubleSide });
   const stemMat = gMaterial({ cls: CLS.STEM, tex: tex.leaf, map: 'uv', scale: 1, bump: 3, cut: true });
   const waterMat = gMaterial({ cls: CLS.SPORE, cut: true });
-  const tunMat = gMaterial({ cls: CLS.NPC, tex: tex.cuticle, map: 'tri', scale: 90, bump: 1.2 });
+  const tardiMat = gMaterial({ cls: CLS.NPC, tex: tex.cuticle, map: 'tri', scale: 90, bump: 1.2 });
   const tailMat = gMaterial({ cls: CLS.NPC, tex: tex.cuticle, map: 'tri', scale: 160, bump: 1.8, cut: true });
   const thinMat = gMaterial({ cls: CLS.NPC, thin: 1, cut: true });
 
-  // ---------------------------------------------------------- forward: the wet leaf axil
-  const F = FORWARD;
-  const toStart = new THREE.Vector2(-F.x, -F.z).normalize(); // the leaf reaches out toward where you come from
-  const side = new THREE.Vector2(-toStart.y, toStart.x);
-  const sx = F.x - toStart.x * 170, sz = F.z - toStart.y * 170; // the stem stands just behind the water
-  const fy = floorH(sx, sz);
-  {
-    // the stem: leaning back a little, 90 µm thick, 1.5 mm tall
-    const pts = [], n = 8;
-    for (let i = 0; i <= n; i++) {
-      const u = i / n;
-      pts.push(new THREE.Vector3(sx - toStart.x * 160 * u * u, fy - 20 + 1500 * u, sz - toStart.y * 160 * u * u));
+  // ---------------------------------------------------------- forward: the wet leaf axil (built by place())
+  const axil = new THREE.Group();
+  axil.visible = false;
+  group.add(axil);
+  const tardi = createTardigrade(tardiMat, thinMat);
+  axil.add(tardi.group);
+  // the golden sparkle over it: dim and restless while guarded, bright once open
+  const glow = createPortalGlow({ THREE, scene: glowScene, size: 620, count: 72, beam: 3200, beamWidth: 280, height: 900, intensity: 1.15 });
+  glow.group.visible = false;
+  const forward = { placed: false, a: 0, x: 0, z: 0, y: 0, ux: 0, uz: 0, at: new THREE.Vector3(), post: null, home: null };
+  const water = { x: 0, z: 0, y: 0, rx: 520, rz: 380, yaw: 0 };
+  function place(a) {
+    const P = portalAt(a);
+    for (const m of [...axil.children]) if (m !== tardi.group) { axil.remove(m); m.geometry.dispose(); }
+    const toStart = new THREE.Vector2(-P.ux, -P.uz); // the leaf reaches out toward where you come from
+    const wx = P.x, wz = P.z, wy = floorH(wx, wz);
+    const sx = wx - toStart.x * 230, sz = wz - toStart.y * 230; // the stem stands just behind the water
+    const fy = floorH(sx, sz);
+    {
+      // the stem: leaning back a little, 90 µm thick, 1.5 mm tall
+      const pts = [], n = 8;
+      for (let i = 0; i <= n; i++) {
+        const u = i / n;
+        pts.push(new THREE.Vector3(sx - toStart.x * 160 * u * u, fy - 20 + 1500 * u, sz - toStart.y * 160 * u * u));
+      }
+      axil.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, 46, 10, false), stemMat));
+      // its upper leaves: short lanceolate blades on a spiral, held up and out
+      const geos = [];
+      for (let i = 0; i < 7; i++) {
+        const u = 0.38 + i * 0.09, ang = i * 2.4;
+        const base = new THREE.Vector3(sx - toStart.x * 160 * u * u, fy + 1500 * u, sz - toStart.y * 160 * u * u);
+        geos.push(blade(base, new THREE.Vector3(Math.cos(ang), 0.9, Math.sin(ang)).normalize(), 420 - i * 25, 110, 0.0007));
+      }
+      // the lowest leaf: from the stem ~240 µm up, arching out and down to the
+      // floor beside the water (so the film lies open to view in the angle
+      // between leaf and stem: the axil)
+      const side = new THREE.Vector2(-toStart.y, toStart.x);
+      const b = new THREE.Vector3(sx, fy + 240, sz);
+      geos.push(blade(b, new THREE.Vector3(toStart.x * 0.35 + side.x * 0.94, 0.55, toStart.y * 0.35 + side.y * 0.94).normalize(), 950, 210, 0.0021));
+      axil.add(new THREE.Mesh(mergeGeos(geos), leafMat));
     }
-    const stem = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, 46, 10, false);
-    group.add(new THREE.Mesh(stem, stemMat));
-    // its upper leaves: short lanceolate blades on a spiral, held up and out
-    const geos = [];
-    for (let i = 0; i < 7; i++) {
-      const u = 0.38 + i * 0.09, a = i * 2.4;
-      const base = new THREE.Vector3(sx - toStart.x * 160 * u * u, fy + 1500 * u, sz - toStart.y * 160 * u * u);
-      geos.push(blade(base, new THREE.Vector3(Math.cos(a), 0.9, Math.sin(a)).normalize(), 420 - i * 25, 110, 0.0007));
+    // the water film in the axil: a flattened, smooth lens of water hugging the floor
+    const wgeo = new THREE.SphereGeometry(1, 40, 20);
+    {
+      const p = wgeo.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+        // a film: flat underneath, a very low dome (the tardigrade walks in it, its back out of it), longer across the way in
+        p.setXYZ(i, x * water.rx, y > 0 ? y * 20 : y * 20, z * water.rz);
+      }
+      wgeo.computeVertexNormals();
+      const yaw = Math.atan2(toStart.y, toStart.x) + Math.PI / 2;
+      wgeo.rotateY(-yaw);
+      wgeo.translate(wx, wy + 10, wz);
+      water.yaw = yaw;
     }
-    // the lowest leaf: from the stem ~240 µm up, arching out and down to the floor
-    // toward you; the axil is the angle between it and the stem
-    const b = new THREE.Vector3(sx, fy + 240, sz);
-    geos.push(blade(b, new THREE.Vector3(toStart.x, 0.55, toStart.y).normalize(), 900, 210, 0.0021));
-    group.add(new THREE.Mesh(mergeGeos(geos), leafMat));
+    axil.add(new THREE.Mesh(wgeo, waterMat));
+    Object.assign(water, { x: wx, z: wz, y: wy });
+    Object.assign(forward, { placed: true, a, x: wx, z: wz, y: wy + 60, ux: P.ux, uz: P.uz, post: P.post, home: P.home });
+    forward.at.set(wx, wy + 60, wz);
+    tardi.reset(wx, floorH(wx, wz) + 22, wz, Math.atan2(toStart.y, toStart.x) + 1.1);
+    axil.visible = true;
+    glow.setPosition(wx, wy + 20, wz);
+    glow.group.visible = true;
   }
-  // the water film in the axil: a flattened, smooth lens of water hugging the floor
-  const wx = F.x, wz = F.z, wy = floorH(wx, wz);
-  const water = new THREE.SphereGeometry(1, 40, 20);
-  {
-    const p = water.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-      // a sessile drop: flat underneath, a low dome, longer along the leaf
-      p.setXYZ(i, x * 330, y > 0 ? y * 120 : y * 30, z * 250);
-    }
-    water.computeVertexNormals();
-    const yaw = Math.atan2(toStart.y, toStart.x);
-    water.rotateY(-yaw);
-    water.translate(wx, wy + 10, wz);
-  }
-  group.add(new THREE.Mesh(water, waterMat));
-  // the tun: a dry tardigrade, legs drawn in, a wrinkled barrel ~210 µm long,
-  // lying half sunk in the film
-  const tunGeo = new THREE.SphereGeometry(1, 36, 18);
-  {
-    const p = tunGeo.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-      let x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-      const ring = 1 - 0.09 * Math.abs(Math.sin((x + 1) * Math.PI * 3.5)); // the segment furrows
-      const wr = 1 + 0.035 * Math.sin(Math.atan2(z, y) * 9 + x * 6); // and fine wrinkles
-      p.setXYZ(i, x * 105, y * 62 * ring * wr, z * 70 * ring * wr);
-    }
-    tunGeo.computeVertexNormals();
-  }
-  const tun = new THREE.Mesh(tunGeo, tunMat);
-  tun.position.set(wx + side.x * 30, wy + 112, wz + side.y * 30);
-  tun.rotation.set(0.08, -Math.atan2(side.y, side.x), 0.12);
-  group.add(tun);
 
   // ---------------------------------------------------------- backdoor: a giant springtail at rest
   const B = BACKDOOR;
@@ -166,17 +174,97 @@ export function createLandmarkProps(world, tex) {
   // where to dwell: beside its head (well clear of the start)
   const dwell = new THREE.Vector3(B.x + dir.x * 800 - dir.z * 430, 0, B.z + dir.z * 800 + dir.x * 430);
   dwell.y = floorH(dwell.x, dwell.z) + 120;
-  const fwd = new THREE.Vector3(wx, wy + 110, wz);
 
   return {
-    group, tun,
-    forward: fwd,
+    group, glow, tardi, water,
+    /** The portal (forward): { placed, a, x, z, y, at (Vector3), post, home }. */
+    forward,
+    place,
     back: dwell,
-    /** The tun swells (rehydrates) a little as the nearest mite comes close; d: that distance, µm. */
-    update(t, d) {
-      const k = Math.max(0, Math.min(1, 1 - (d - 250) / 900));
-      const s = 1 + 0.12 * k + 0.015 * k * Math.sin(t * 2.2);
-      tun.scale.set(s, 1 + 0.25 * k, 1 + 0.2 * k);
+    /** The tardigrade walks about in the film (its legs going); t: world time, dt: step. */
+    update(t, dt) { if (forward.placed) tardi.update(t, dt, water); },
+  };
+}
+
+/**
+ * A small tardigrade, 350 µm (the next world's creature, walking in the
+ * film): a plump, ringed barrel with a rounded head, four pairs of stubby
+ * lobopod legs, each with its claws. Drawn by the SEM (CLS.NPC). Walks slowly
+ * round inside the water lens, legs stepping in a wave.
+ */
+function createTardigrade(mat, thinMat) {
+  const group = new THREE.Group();
+  const L = TARDI_LEN;
+  const body = new THREE.SphereGeometry(1, 40, 20);
+  {
+    const p = body.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+      const ring = 1 - 0.07 * Math.pow(Math.abs(Math.sin((x + 1) * Math.PI * 2.5)), 3); // segment furrows
+      const head = x > 0.62 ? 1 - 0.35 * (x - 0.62) / 0.38 : 1; // a narrower rounded head
+      p.setXYZ(i, x * L * 0.5, y * L * 0.17 * ring * head, z * L * 0.2 * ring * head);
+    }
+    body.computeVertexNormals();
+  }
+  const bodyMesh = new THREE.Mesh(body, mat);
+  bodyMesh.position.y = L * 0.2;
+  group.add(bodyMesh);
+  // the mouth cone and the eye spots
+  const mouth = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8).scale(L * 0.05, L * 0.05, L * 0.06), mat);
+  mouth.position.set(L * 0.5, L * 0.17, 0); group.add(mouth);
+  for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6).scale(L * 0.025, L * 0.02, L * 0.02), mat); e.position.set(L * 0.38, L * 0.3, s * L * 0.08); group.add(e); }
+  // legs: a stubby lobopod (a tapered tube) with four claws at its foot
+  const legGeo = (() => {
+    const tube = new THREE.CylinderGeometry(L * 0.038, L * 0.055, L * 0.2, 10, 1);
+    tube.translate(0, -L * 0.1, 0);
+    const claws = [];
+    for (let c = 0; c < 4; c++) {
+      const g = new THREE.CylinderGeometry(L * 0.004, L * 0.009, L * 0.06, 4, 1);
+      g.translate(0, -L * 0.03, 0);
+      g.rotateZ(-0.6 + (c % 2) * 0.25); g.rotateY(-0.9 + c * 0.6);
+      g.translate(0, -L * 0.2, 0);
+      claws.push(g);
+    }
+    return { tube, claws: mergeGeos(claws.map((g) => g.toNonIndexed())) };
+  })();
+  const legs = [];
+  for (let k = 0; k < 4; k++) for (const s of [-1, 1]) {
+    const hip = new THREE.Group();
+    hip.position.set(L * (0.3 - k * 0.2), L * 0.14, s * L * 0.15);
+    const leg = new THREE.Mesh(legGeo.tube, mat);
+    const cl = new THREE.Mesh(legGeo.claws, thinMat);
+    hip.add(leg, cl);
+    hip.rotation.x = s * 0.35;
+    group.add(hip);
+    legs.push({ hip, k, s, ph: k * 0.25 + (s > 0 ? 0.5 : 0) });
+  }
+  const st = { x: 0, z: 0, y: 0, h: 0, walk: 0, turn: 0 };
+  return {
+    group,
+    get center() { return new THREE.Vector3(st.x, st.y + L * 0.2, st.z); },
+    get heading() { return st.h; },
+    /** Face heading h (the outro: it turns the way it faces in its own world). */
+    setHeading(h) { st.h = h; this.update(0, 0, null); },
+    reset(x, y, z, h) { Object.assign(st, { x, y, z, h, walk: 0, turn: 0 }); this.update(0, 0, null); },
+    update(t, dt, water) {
+      if (water && dt > 0) {
+        // slow, wandering steps, turning back in from the lens's edge
+        st.turn = 0.5 * Math.sin(t * 0.37) + 0.3 * Math.sin(t * 0.91 + 1);
+        const dx = st.x - water.x, dz = st.z - water.z, r = Math.hypot(dx, dz);
+        if (r > 140) { const back = Math.atan2(-dz, -dx); st.turn += 2.2 * Math.atan2(Math.sin(back - st.h), Math.cos(back - st.h)); }
+        st.h += st.turn * dt;
+        const v = 28;
+        st.x += Math.cos(st.h) * v * dt; st.z += Math.sin(st.h) * v * dt;
+        st.walk += v * dt / 40;
+      }
+      group.position.set(st.x, st.y + 4, st.z);
+      group.rotation.set(0, -st.h, 0);
+      for (const l of legs) {
+        const ph = (st.walk + l.ph) * Math.PI * 2;
+        l.hip.rotation.z = 0.45 * Math.sin(ph);
+        l.hip.rotation.x = l.s * (0.35 + 0.12 * Math.max(0, Math.cos(ph)));
+      }
+      bodyMesh.position.y = L * 0.2 + 2 * Math.sin(st.walk * Math.PI * 4);
     },
   };
 }

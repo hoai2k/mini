@@ -24,8 +24,8 @@ export const WORLDS = [
     mag: '≈ 80×', magNote: 'SEM, HFW 1.6 mm', field: '4.2–0.16 mm', fieldMm: 4.2, body: '0.35 mm', look: 'Scanning electron microscope',
     card: 'MP-U01', intro: 'MP-G08', tint: ['#8a8e92', '#1c1e20'], accent: '#c9cdd1',
     line: 'An armoured mite on eight jointed legs, through moss and fungal threads.',
-    goal: 'Graze through the calm moss, then push and bite your way through a hyphal thicket crowded with springtails, where the predatory mite lurks. Past it, a pseudoscorpion lies in wait before the wet leaf axil: stay out of its pincers, close up to survive a grab, and bite its pincer joints until it backs into the moss.',
-    forward: 'A wet leaf axil where water has gathered, with a dry tun lying in it.',
+    goal: 'Head out through the moss any way you like: a ring of hyphal thickets crowded with springtails (push and bite through), the predatory mite on its hunting ground, more thickets, the predatory mite again, and at last a golden glow over a wet leaf axil, guarded by a pseudoscorpion. Lure it off its post and get round it, or bite its pincer joints until it backs into the moss.',
+    forward: 'A wet leaf axil under a golden glow, where a tardigrade walks in the water.',
     back: 'A giant springtail resting on the moss: dwell beside it and press Y to rise to the bog surface.',
     controls: [['LS', 'Walk'], ['RS', 'Orbit'], ['A', 'Jump (X in the air: a pounce-bite)'], ['X', 'Bite: graze, or bite back'], ['B', 'Hold: dash (scramble)'], ['Y', 'Hold: defend (close up); at the backdoor, rise a world'], ['D-pad ↑↓', 'Magnification']],
     facts: [

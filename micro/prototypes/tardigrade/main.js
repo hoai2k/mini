@@ -212,6 +212,43 @@ const viewScale = () => (quality ? quality.scale / Q_MAX : SPLIT_SW[Math.min(4, 
 const view = { yaw: Math.atan2(1, 0) + Math.PI + Math.PI / 6, pitch: 1.18, obj: 1, manualFocusT: 99, focus: 0, mode: 0, labels: false, target: new THREE.Vector3(), claws: 1, internals: true, sway: true };
 view.target.copy(walker.dispPos);
 
+// ---------------------------------------------------------------- the intro (continuous transitions)
+// In the game this world is the far end of the continuous transition from the
+// mite (embed.js "Continuous transitions"; ../../game/README.md): the mite's
+// freeze frame holds a tardigrade walking in the water film of its leaf axil,
+// and this world fades in under the same framing, the animal where the glimpse
+// was. The two are the same size, so it is a hand-off: a short push and a
+// change of light, SEM to DIC. On `hold` it stays frozen at its start but
+// renders, reports how its opening view frames the animal (embed.opening),
+// and takes the shell's `camera` poses (placePoseCamera: a dolly, the field of
+// view kept; the view state follows so play carries on from it). On `begin`
+// its time eases back in over INTRO_EASE s.
+embed.provide('intro');
+const INTRO_EASE = 0.6;
+const TARDI_LEN = 3.5; // the animal's length in a pose (units of 100 µm: 350 µm, as the mite world's glimpse)
+let intro = null; // { cam } while held; { ease } while time comes back
+const headingOf = (w) => { const f = w.forward; return Math.atan2(f.z, f.x); };
+/** How the view frames player 1's animal (embed.poseOf). */
+const poseNow = () => embed.poseOf(camera, walker.dispPos, { len: TARDI_LEN, heading: headingOf(walker), pitch: view.pitch,
+  yaw: Math.atan2(camera.position.z - view.target.z, camera.position.x - view.target.x) });
+embed.on('hold', () => {
+  intro = { cam: null };
+  view.target.copy(walker.dispPos);
+  renderView(0);
+  embed.cinematic(true, canvas);
+  embed.opening(poseNow());
+});
+embed.on('camera', (d) => { if (intro && d.pose) intro.cam = d.pose; });
+embed.on('begin', () => { embed.cinematic(false, canvas); intro = { cam: null, ease: 0 }; });
+/** The camera for a pose from the shell: a dolly (the field of view kept); the view state follows, so play carries on from it. */
+function placePoseCamera(pose) {
+  const r = embed.poseCamera(camera, pose, walker.dispPos, { len: TARDI_LEN, heading: headingOf(walker) });
+  // this world's orbit: the camera at target + dist (cos p sin yaw, sin p, cos p cos yaw), so its yaw is pi/2 - the azimuth
+  view.yaw = Math.PI / 2 - r.yaw; view.pitch = r.pitch;
+  view.target.set(r.target.x, r.target.y, r.target.z);
+  view.dist = r.depth;
+}
+
 function applyMode(m) {
   view.mode = m;
   mic.mode = Math.min(m, 1);
@@ -858,13 +895,29 @@ const api = window.__micro = { cullViews: true, // per-view culling of the anima
   enterPortal(slot = 0) { lm.fired = false; enterPortal(animals.find((b) => b.slot === slot) || p1); },
   /** Testing: a restart (the RS button). */
   restart() { life.newDay(); },
+  /** How the view frames player 1's animal now (what embed.opening reports on hold), and the intro's state. */
+  pose: () => poseNow(),
+  get intro() { return intro ? { held: !('ease' in intro), cam: intro.cam } : null; },
 };
 
 function frame() {
   const now = performance.now();
   const rawDt = (now - last) / 1000;
   last = now;
-  const dt = Math.min(view.dtMax || 0.05, rawDt);
+  let dt = Math.min(view.dtMax || 0.05, rawDt);
+  // held in the intro (the transition from the mite): rendered, not stepped, no input
+  if (embed.held || (intro && !('ease' in intro))) {
+    renderView(0);
+    requestAnimationFrame(frame);
+    return;
+  }
+  if (intro) {
+    // after the transition: time eases back in
+    intro.ease += dt;
+    const k = THREE.MathUtils.smoothstep(intro.ease, 0, INTRO_EASE);
+    if (intro.ease >= INTRO_EASE) intro = null;
+    dt *= k;
+  }
   if (quality) { quality.setSplitViews(split.layout.views.length); quality.update(rawDt); followBuffer(); }
   players.poll();
   unlockOnPad();
@@ -1206,7 +1259,13 @@ const _ct = new THREE.Vector3(), _c2 = new THREE.Vector3();
 /** Where an animal is drawn (its walker, or Milnesium's mouth while it is being swallowed). */
 const shownAt = (a, out) => (captive === a && capture.active ? out.setFromMatrixPosition(a.creature.group.matrix) : out.copy(a.walker.dispPos));
 function renderView(dt) {
-  // Camera orbit on the animals (on you and Milnesium together during a solo catch).
+  if (intro && intro.cam) placePoseCamera(intro.cam);
+  else placeViewCamera(dt);
+  sun.target.position.copy(view.target);
+  drawViews(dt);
+}
+/** Camera orbit on the animals (on you and Milnesium together during a solo catch). */
+function placeViewCamera(dt) {
   const ob = OBJECTIVES[view.obj];
   const solo = animals.length === 1;
   // a catch is framed closer (about the 20× field): you and Milnesium's head
@@ -1236,8 +1295,9 @@ function renderView(dt) {
   }
   camera.lookAt(view.target);
   camera.updateMatrixWorld();
-  sun.target.position.copy(view.target);
-
+}
+function drawViews(dt) {
+  const solo = animals.length === 1;
   // Split screen (one view, straight to the screen, while together).
   const list = animals.map((a) => ({ slot: a.slot, position: shownAt(a, a.shown || (a.shown = new THREE.Vector3())) }));
   split.update(list, { camera }, dt);

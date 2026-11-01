@@ -88,7 +88,9 @@ export const shared = {
  * of the camera-to-target line at least `margin` in front of the target; a
  * faded group leader (see leader(id)) fades its whole group (a stem takes its
  * leaves). keep: ids never faded (what the specimen stands on), nor their
- * group's leader. Sets shared.uCutObj on.
+ * group's leader. Sets shared.uCutObj on. period (µm, optional): the objects
+ * repeat every `period` in x and z (a scenery tile drawn in copies); each copy
+ * near the line of sight counts.
  */
 export function createObjectCut(max = 2048) {
   const data = new Uint8Array(max * 4);
@@ -97,7 +99,7 @@ export function createObjectCut(max = 2048) {
   shared.uCutFade.value = tex; shared.uCutN.value = max; shared.uCutObj.value = 1;
   const objs = [null];
   const fade = new Float32Array(max), want = new Float32Array(max);
-  const d = new THREE.Vector3(), u = new THREE.Vector3(), w0 = new THREE.Vector3();
+  const d = new THREE.Vector3(), u = new THREE.Vector3(), w0 = new THREE.Vector3(), cs = new THREE.Vector3();
   // shortest distance between segment a-b and the ray segment c + d*t, t in [0, tMax]; returns [dist, t]
   function segRay(a, b, c, tMax) {
     u.subVectors(b, a); w0.subVectors(a, c);
@@ -116,13 +118,26 @@ export function createObjectCut(max = 2048) {
     // leader()), so the per-frame scan over ~2000 objects sees one shape;
     // several shapes made its reads megamorphic and boxed every number read
     register(points, group = 0) { objs.push({ points, group, leader: false, c: null, r: 0 }); return objs.length - 1; },
-    update(dt, cam, target, { radius = 360, margin = 250, keep = null } = {}) {
+    update(dt, cam, target, { radius = 360, margin = 250, keep = null, period = 0 } = {}) {
       d.subVectors(target, cam);
       const len = d.length(); d.divideScalar(len);
       const tMax = len - margin;
       want.fill(0);
       const groups = new Set(), keepG = new Set();
       if (keep) for (const i of keep) if (objs[i] && objs[i].group) keepG.add(objs[i].group);
+      // the line of sight's box in x and z (for a periodic set: which copies can be near it)
+      const bx0 = Math.min(cam.x, target.x) - radius, bx1 = Math.max(cam.x, target.x) + radius;
+      const bz0 = Math.min(cam.z, target.z) - radius, bz1 = Math.max(cam.z, target.z) + radius;
+      const inWay = (o, c) => {
+        w0.subVectors(o.c, c);
+        const tc = Math.max(0, Math.min(tMax, w0.dot(d)));
+        const ex = w0.x - d.x * tc, ey = w0.y - d.y * tc, ez = w0.z - d.z * tc;
+        const lim = radius + o.r;
+        if (ex * ex + ey * ey + ez * ez > lim * lim) return false;
+        const pts = typeof o.points === 'function' ? o.points() : o.points;
+        for (let k = 1; k < pts.length; k++) if (segRay(pts[k - 1], pts[k], c, tMax) < radius) return true;
+        return false;
+      };
       for (let i = 1; i < objs.length; i++) {
         if (keep && keep.has(i)) continue;
         const o = objs[i];
@@ -137,15 +152,15 @@ export function createObjectCut(max = 2048) {
           for (const p of p0) r = Math.max(r, p.distanceTo(o.c));
           o.r = r * (typeof o.points === 'function' ? 2.2 : 1) + 1;
         }
-        w0.subVectors(o.c, cam);
-        const tc = Math.max(0, Math.min(tMax, w0.dot(d)));
-        const ex = w0.x - d.x * tc, ey = w0.y - d.y * tc, ez = w0.z - d.z * tc;
-        const lim = radius + o.r;
-        if (ex * ex + ey * ey + ez * ez > lim * lim) continue;
-        const pts = typeof o.points === 'function' ? o.points() : o.points;
-        for (let k = 1; k < pts.length; k++) {
-          if (segRay(pts[k - 1], pts[k], cam, tMax) < radius) { want[i] = 1; if (o.group) groups.add(o.group); break; }
+        let hit = false;
+        if (!period) hit = inWay(o, cam);
+        else {
+          // each copy of it whose sphere meets the box: tested by moving the line of sight onto the stored one
+          const kx0 = Math.ceil((bx0 - o.c.x - o.r) / period), kx1 = Math.floor((bx1 - o.c.x + o.r) / period);
+          const kz0 = Math.ceil((bz0 - o.c.z - o.r) / period), kz1 = Math.floor((bz1 - o.c.z + o.r) / period);
+          for (let kx = kx0; kx <= kx1 && !hit; kx++) for (let kz = kz0; kz <= kz1 && !hit; kz++) hit = inWay(o, cs.set(cam.x - kx * period, cam.y, cam.z - kz * period));
         }
+        if (hit) { want[i] = 1; if (o.group) groups.add(o.group); }
       }
       // a group fades whole only when its stem (the object flagged group leader) is in the way
       for (let i = 1; i < objs.length; i++) if (objs[i].leader && groups.has(objs[i].group) && want[i] > 0) {

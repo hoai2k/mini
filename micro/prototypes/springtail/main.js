@@ -13,7 +13,8 @@ import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
 import { createMacro, lens, macroShared, applyLook, MACRO_LOOKS } from '../shared/techniques/springtail-macro.js';
 import { RippleField, Dimples, waterMaterial, waterGeometry, peatFloorTexture } from '../shared/techniques/springtail-surface.js';
-import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHORE_GLSL, BANK_E, START, ZONES, RINGS, PORTAL, PORTAL_R, progressAt, distFromStart, bearingFromStart, ringPoint, zoneAt, setZone, setPortal, clearPortal } from './world.js';
+import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHORE_GLSL, BANK_E, START, ZONES, PORTAL, distFromStart, setZoneAt, parkZone, setPortal, clearPortal, DIRECTOR, ENCOUNTERS, canPlace, inReach } from './world.js';
+import { createDirector } from '../shared/director.js';
 import { createQuality } from '../shared/quality.js';
 import { createCrowd } from '../shared/crowd.js';
 import { litMaterial } from '../shared/techniques/springtail-macro.js';
@@ -66,7 +67,7 @@ const tail0 = tail;
 const motes = createMotes(scene);
 const stenus = createStenus(scene);
 const strider = createStrider(scene);
-// each predator keeps to its own water on its ring (world.js ZONES; placeZone moves it round the ring)
+// each predator keeps to its own water (world.js ZONES), put where it meets you by the director
 stenus.st.zone = ZONES.stenus;
 strider.st.zone = ZONES.strider;
 const rain = createRain(scene);
@@ -77,8 +78,8 @@ scene.add(props.group);
 // unverified). Slate blue-black bodies a springtail long; you push through
 // them, and hidden in the mass (moving little) the strider's lock wanders to
 // the others, so it often rows at the wrong one.
-// It is simulated in its own frame (crowdG): moving the group round the ring
-// moves the region and every member with it.
+// It is simulated in its own frame (crowdG): placing the group moves the
+// region and every member with it.
 const crowdG = new THREE.Group();
 scene.add(crowdG);
 const crowd = createCrowd({
@@ -96,6 +97,8 @@ const crowdBodies = [];
 // raft (home) when worn down.
 const boss = createWolfSpider(scene, { post: { x: 0, z: 0, a: 0 }, home: { x: 0, z: 0 } });
 boss.setVisible(false);
+// hidden and parked until the director places them (placeEncounter)
+stenus.setVisible(false); strider.setVisible(false); crowd.mesh.visible = false;
 stenus.relocate(ZONES.stenus.x, ZONES.stenus.z);
 strider.relocate(ZONES.strider.x, ZONES.strider.z);
 
@@ -158,7 +161,7 @@ const hud = mountHud({
     zoom: 'Magnification 1x, 2x, 3x, 5x',
     extra: [['LS click', 'Autofocus on the springtail']],
   }),
-  note: `Goal: head out across the pool in any direction. The challenges come in rings round the start, the same whichever way you go: a few jumps of calm water, then Stenus's water, a calm stretch, the water strider and a mass of springtails (and the rain from there out), another, a ring of sundew patches, and about 0.4 m out the way on: a moss raft under a golden sparkle, guarded by a wolf spider. Lure the spider off the raft, then get round it. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
+  note: `Goal: head out across the pool in any direction. The challenges find you one after another, wherever you go, with a little calm water between: after a few jumps the rove beetle Stenus, then the water strider and a mass of springtails, then the rain, and last the way on: a moss raft under a golden sparkle, guarded by a wolf spider. Sundews grow on islands all over the pool. Lure the spider off the raft, then get round it. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
 });
 
 // ---------------------------------------------------------------- overlay DOM
@@ -188,7 +191,7 @@ status.className = 'st-status';
 status.innerHTML = '<span class="food"></span><span class="lives"></span><span class="furc">Furcula</span><span class="st-meter"><i></i></span><span class="threat"></span>';
 const card = document.createElement('div');
 card.className = 'st-card';
-card.innerHTML = '<div><img alt=""><h2>Level 0 · Bog surface</h2><p>You are a water springtail, 1.5 mm long, standing on the surface film of a bog pool.</p><p>Graze the pollen, spores and algae floating on the water (X). Spring away with your furcula (hold and release A). Hunker (B) when ripples come.</p><p>Head out in any direction: the way on is about 0.4 m from here whichever way you go. On the way, one after another with a little calm water between, wait the rove beetle <i>Stenus</i> and its harpoon, a water strider and the rain, a ring of sundews, and at the way on, a moss raft under a golden sparkle, a wolf spider on guard. Lure it off, then get round it.</p><p><b>Press A to start</b></p></div>';
+card.innerHTML = '<div><img alt=""><h2>Level 0 · Bog surface</h2><p>You are a water springtail, 1.5 mm long, standing on the surface film of a bog pool.</p><p>Graze the pollen, spores and algae floating on the water (X). Spring away with your furcula (hold and release A). Hunker (B) when ripples come.</p><p>Head out in any direction. One after another, with a little calm water between, the rove beetle <i>Stenus</i> and its harpoon, a water strider and the rain find you, and then the way on: a moss raft under a golden sparkle, a wolf spider on guard. Lure it off, then get round it. Mind the sundews.</p><p><b>Press A to start</b></p></div>';
 // the boss's resolve: a quiet brass gauge, shown while it is engaged
 const gauge = document.createElement('div');
 gauge.className = 'st-gauge';
@@ -385,93 +388,118 @@ const armed = { stenus: false, strider: false };
 const inZone = (k, x, z, pad = 0) => { const Z = ZONES[k]; return Math.hypot(x - Z.x, z - Z.z) < Z.r + Z.leash + pad; };
 /** Is (x, z) in predator `k`'s own water (where a hunt can start)? */
 const inCore = (k, x, z) => { const Z = ZONES[k]; return Math.hypot(x - Z.x, z - Z.z) < Z.r; };
-// When each challenge first became active (progress: distance from the start / the portal ring, 0..1), for tests and tuning.
+// When each challenge first became active (progress: how many encounters are met, of the director's order, 0..1), for tests and tuning.
 const challengeLog = {};
-function logChallenge(kind, P) { if (!challengeLog[kind] && P) challengeLog[kind] = { progress: +progressAt(P.x, P.z).toFixed(3), x: +P.x.toFixed(1), z: +P.z.toFixed(1), t: +simT.toFixed(2) }; }
-// ---------------------------------------------------------------- the rings: one of each, met in every direction
-// There is one Stenus, one strider (with its Podura mass) and one wolf spider.
-// Their water is moved round its ring (world.js setZone) to meet whoever is
-// approaching it, out of everyone's sight: only while the predator is not
-// engaged (hunting, striking, holding anyone, or anyone within its reach), only
-// when both where it is and where it goes are farther than UNSEEN mm from
-// every player, and never onto an island. The portal is placed once a game.
-const UNSEEN = 45, LEAD = 36;
-// The portal is placed (and its light shows) this far before its ring; the
-// spider's hint waits until someone is within PORTAL_HINT mm of the raft.
-const PORTAL_SEEN = 150, PORTAL_HINT = 70;
-const relocLog = [];
-/** Is predator k busy with someone (it then stays where it is)? */
-function engaged(k) {
-  const pr = PRED[k]();
-  const busy = k === 'stenus' ? !['patrol'].includes(pr.st.state) : pr.st.state === 'hunt' || pr.st.state === 'capture' || pr.st.st2 !== 'none';
-  return busy || recs().some((R) => R.mode === 'labium' || (alive(R) && inZone(k, R.x, R.z, 5)));
-}
-/** Free open water for zone k at bearing a (searching a little either side), or null. */
-function zoneSpot(k, a) {
-  for (let i = 0; i < 9; i++) {
-    const b = a + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.06;
-    const p = zoneAt(k, b);
-    if (poolE(p.x, p.z) < 0.92 && islandEdge(p.x, p.z).d > (k === 'strider' ? 10 : 6)) {
-      if (k === 'strider') { const c = zoneAt('crowd', b); if (islandEdge(c.x, c.z).d < ZONES.crowd.r + 3) continue; }
-      return { a: b, ...p };
-    }
-  }
-  return null;
-}
-/** Move predator k's water (and it, unseen) to bearing a on its ring. */
-function placeZone(k, a, why = 'init') {
-  setZone(k, a);
-  if (k === 'stenus') stenus.relocate(ZONES.stenus.x, ZONES.stenus.z);
-  else {
-    setZone('crowd', a);
-    strider.relocate(ZONES.strider.x, ZONES.strider.z);
+function logChallenge(kind, P) { if (!challengeLog[kind] && P) challengeLog[kind] = { progress: +encounterProgress().toFixed(3), d: +distFromStart(P.x, P.z).toFixed(1), x: +P.x.toFixed(1), z: +P.z.toFixed(1), t: +simT.toFixed(2) }; }
+// ---------------------------------------------------------------- the encounters, placed as you go
+// The director (shared/director.js; design/encounter-pattern.md "Placed as
+// you go") places the enemies and events one at a time, in this order, in
+// water nobody has seen, a little ahead of whoever is furthest along (or, if
+// they linger, round them): Stenus, the water strider with its Podura mass,
+// the rain, then the wolf spider on the portal raft. Each comes only after
+// the one before was met and a calm break has passed; nothing a player has
+// seen is ever placed, moved or removed. Sundews are scenery (world.js).
+// Until placed, each predator is hidden and parked (world.js parkZone).
+const placed = { stenus: false, strider: false, rain: false };
+const showPreds = () => {
+  stenus.setVisible(placed.stenus && stenus.st.enabled);
+  strider.setVisible(placed.strider && strider.st.enabled);
+  crowd.mesh.visible = placed.strider;
+};
+// what each encounter does when placed, and when it counts as met
+const ENC = {
+  stenus: { place: (x, z, b) => placeEncounter('stenus', x, z, b),
+    // in its reach (its water and its leash), or close to the beetle
+    met: (h, [P]) => inReach('stenus', P.x, P.z) || Math.hypot(stenus.st.x - P.x, stenus.st.z - P.z) < 30 },
+  strider: { place: (x, z, b) => placeEncounter('strider', x, z, b),
+    met: (h, [P]) => inReach('strider', P.x, P.z) || inReach('crowd', P.x, P.z) || Math.hypot(strider.st.x - P.x, strider.st.z - P.z) < 30 },
+  // from here on it rains round whoever leads
+  rain: { place: () => { placed.rain = true; return true; }, met: () => true },
+  // the last: entering the open portal ends the level
+  portal: { place: (x, z, b) => placeEncounter('portal', x, z, b), met: () => false },
+};
+const director = createDirector({ ...DIRECTOR, canPlace, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id] })) });
+/** How far through the encounters the game is: met / all (0..1). */
+const encounterProgress = () => director.index / ENCOUNTERS.length;
+/** The director puts encounter k at (x, z), met coming along bearing b (from the leader). */
+function placeEncounter(k, x, z, b) {
+  if (k === 'stenus') {
+    setZoneAt('stenus', x, z, b);
+    // the beetle starts at the spot the director chose (its patrol is about its water's centre)
+    const st0 = stenus.startFor(0, 0);
+    stenus.relocate(x - st0.x, z - st0.z);
+    hunger.stenus.reset(Infinity); armed.stenus = false;
+  } else if (k === 'strider') {
+    setZoneAt('strider', x, z, b);
+    setZoneAt('crowd', x, z, b);
+    strider.relocate(x, z);
     crowdG.position.set(ZONES.crowd.x, 0, ZONES.crowd.z);
     crowdG.updateMatrixWorld(true);
+    hunger.strider.reset(Infinity); armed.strider = false;
+  } else if (k === 'portal') {
+    placePortal(x, z, b);
+    logChallenge('portal', recs().find(alive) || pl);
   }
-  if (why !== 'init') relocLog.push({ k, a: +a.toFixed(3), t: +simT.toFixed(2), why });
+  if (k in placed) placed[k] = true;
+  showPreds();
+  return { k, x, z, b };
 }
-const unseen = (x, z) => recs().every((R) => Math.hypot(R.x - x, R.z - z) > UNSEEN);
-function moveRings() {
-  for (const k of ['stenus', 'strider']) {
-    const Z = ZONES[k];
-    // whoever is approaching its ring (from a screen before its water to its middle), farthest out first
-    const lo = Z.ring - Z.r - LEAD, hi = Z.ring + Z.r;
-    const who = recs().filter((R) => alive(R) && R.mode !== 'caught').map((R) => ({ R, d: distFromStart(R.x, R.z) })).filter((o) => o.d > lo && o.d < hi).sort((a, b) => b.d - a.d);
-    if (!who.length || engaged(k)) continue;
-    const { R } = who[0];
-    const a = bearingFromStart(R.x, R.z);
-    const here = zoneAt(k, a);
-    if (Math.hypot(here.x - Z.x, here.z - Z.z) < Z.r * 0.6) continue; // already about there
-    const pr = PRED[k]().st;
-    const to = zoneSpot(k, a);
-    if (!to) continue;
-    const start = k === 'stenus' ? stenus.startFor(to.x, to.z) : to;
-    if (!unseen(pr.x, pr.z) || !unseen(start.x, start.z)) continue;
-    if (k === 'strider' && (!unseen(ZONES.crowd.x, ZONES.crowd.z) || !unseen(zoneAt('crowd', to.a).x, zoneAt('crowd', to.a).z))) continue;
-    placeZone(k, to.a, `slot ${R.slot}`);
+// What every view sees, for the director: a frustum per split-screen view
+// (the shared camera offset for it) and its focus (where it frames).
+const viewPool = [0, 1, 2, 3].map(() => ({ frustum: new THREE.Frustum(), focus: new THREE.Vector3() }));
+const _pm = new THREE.Matrix4();
+let seenViews = null;
+function directorViews() {
+  const list = [];
+  const n = Math.max(1, split.views.length);
+  for (let i = 0; i < n && i < 4; i++) {
+    const v = viewPool[i];
+    split.withView(i, camera, () => {
+      v.frustum.setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+      const off = split.views[i] && split.views[i].offset && split.views[i].offset.isVector3 ? split.views[i].offset : null;
+      v.focus.copy(rig.target); if (off) v.focus.add(off);
+    });
+    list.push(v);
   }
-  // the portal: once a game, on the ring at the bearing of the first player to get within
-  // PORTAL_SEEN mm of it (out of sight; its light then draws them on across the sundew ring)
-  if (!PORTAL.placed && game.phase === 'play') {
-    const lead = recs().filter((R) => alive(R)).sort((a, b) => distFromStart(b.x, b.z) - distFromStart(a.x, a.z))[0];
-    if (lead && distFromStart(lead.x, lead.z) >= PORTAL_R - PORTAL_SEEN) {
-      const a0 = bearingFromStart(lead.x, lead.z);
-      for (let i = 0; i < 15; i++) {
-        const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.05;
-        const p = ringPoint(PORTAL_R, a);
-        if (poolE(p.x, p.z) < 0.95 && islandEdge(p.x, p.z).d > PORTAL.r + 10 && unseen(p.x, p.z)) { placePortal(a); logChallenge('portal', lead); break; }
-      }
-    }
+  seenViews = list;
+}
+function stepDirector(dt) {
+  if (game.phase !== 'play' || outro) return;
+  const ev = director.update(dt, recs().map((P) => ({ id: P.slot, x: P.x, z: P.z, alive: alive(P) })), seenViews);
+  seenViews = null;
+  for (const e of ev) if (e.type === 'met') logChallenge(`${e.id}Met`, pls[e.by && e.by[0]] || recs().find(alive) || pl);
+  driftStrider(dt);
+}
+/**
+ * A strider placed beyond a lingering player's reach rows over to them: its
+ * water (and so the strider, whose home keeps inside it) drifts toward the
+ * leader at STRIDER_DRIFT mm/s until they are in its reach. Behaviour, not a
+ * placement: the Podura mass stays where it was put. Near the start, among
+ * the hand-placed islands, there is rarely open water for the strider and its
+ * mass within reach of someone standing still.
+ */
+const STRIDER_DRIFT = 4;
+function driftStrider(dt) {
+  const S = director.entry('strider');
+  if (!S || S.state !== 'placed' || simT - (S.placedSimT ?? (S.placedSimT = simT)) < 5 || strider.st.state === 'hunt' || strider.st.state === 'capture' || strider.st.st2 !== 'none') return;
+  const lead = director.leader, P = lead && pls[lead.id];
+  if (!P || lead.moving || inReach('strider', P.x, P.z)) return;
+  const Z = ZONES.strider, a0 = Math.atan2(P.z - Z.z, P.x - Z.x), step = STRIDER_DRIFT * dt;
+  // round any island in the way
+  for (const da of [0, 0.6, -0.6, 1.2, -1.2]) {
+    const nx = Z.x + Math.cos(a0 + da) * step, nz = Z.z + Math.sin(a0 + da) * step;
+    if (islandEdge(nx, nz).d > 4) { Z.x = nx; Z.z = nz; return; }
   }
 }
-/** Put the portal raft on the ring at bearing a, with the wolf spider on guard at its rim. */
-function placePortal(a) {
-  const p = ringPoint(PORTAL_R, a);
-  setPortal(p.x, p.z, a);
+// The spider's hint waits until someone is within PORTAL_HINT mm of the raft.
+const PORTAL_HINT = 70;
+/** Put the portal raft at (x, z), met coming along bearing a, with the wolf spider on guard at its near rim. */
+function placePortal(x, z, a) {
+  setPortal(x, z, a);
   props.place();
   const ux = Math.cos(a), uz = Math.sin(a);
-  // its post: on the raft's inner rim, facing the way you come; it backs off over the raft when beaten
-  boss.setPost({ x: p.x - ux * (PORTAL.r - 3), z: p.z - uz * (PORTAL.r - 3), a: a + Math.PI }, { x: p.x + ux * 12, z: p.z + uz * 12 });
+  // its post: on the raft's near rim, facing the way you come; it backs off over the raft when beaten
+  boss.setPost({ x: x - ux * (PORTAL.r - 3), z: z - uz * (PORTAL.r - 3), a: a + Math.PI }, { x: x + ux * 12, z: z + uz * 12 });
   portal.hinted = false; portal.turned = false;
 }
 /** The portal's state: is the wolf spider on guard at it (on its post, not lured off or beaten)? */
@@ -767,14 +795,14 @@ F({ id: 'upose', group: 'Body', label: 'Mid-air U-pose righting', on: true,
   about: 'Right after take-off the body tumbles; within ~20 ms (here ~0.15 s) it curls head and tail up into a U, which aerodynamically turns the ventral tube downward. Off: it tumbles all the way and lands upright half the time.', onChange: (v) => (opt.uPose = v) });
 F({ id: 'sdf', group: 'Body', label: 'Anatomy from SDF parts', fixed: true,
   about: 'Head with eye patches and mouth cone, 4-segment antennae, pronotum, two thoracic and six abdominal rings, three pairs of short legs, the collophore on Abd I, the retinaculum on Abd III and the furcula on Abd IV (a separate mesh that swings down and back ~160 degrees). Meshed with surface nets (shared/sdf.js), 26-bone part rig in the vertex shader.' });
-F({ id: 'stenus', group: 'World', label: 'Rove beetle (Stenus)', on: true, onChange: (v) => { stenus.st.enabled = v; stenus.setVisible(v); } ,
+F({ id: 'stenus', group: 'World', label: 'Rove beetle (Stenus)', on: true, onChange: (v) => { stenus.st.enabled = v; stenus.setVisible(v && placed.stenus); } ,
   about: 'Patrols, stalks what moves, skims at you on its surfactant, lowers its head (the wind-up) and shoots its sticky labium ~2 mm.' });
-F({ id: 'strider', group: 'World', label: 'Water strider (Gerris)', on: true, onChange: (v) => { strider.st.enabled = v; strider.setVisible(v); },
+F({ id: 'strider', group: 'World', label: 'Water strider (Gerris)', on: true, onChange: (v) => { strider.st.enabled = v; strider.setVisible(v && placed.strider); },
   about: 'Hears ripples: landings, grazing and struggling bring it rowing over; its strokes send waves that flip an unbraced springtail; its forelegs grab.' });
 F({ id: 'rain', group: 'World', label: 'Rain', choices: ['Sometimes', 'Often', 'Off'], value: 'Sometimes',
   about: 'A drop ~3 mm across (twice your length) is telegraphed by its shadow, falls, craters the film and rings it.', onChange: (v) => { rain.enabled = v !== 'Off'; rain.every = v === 'Often' ? 3.5 : 7; } });
 F({ id: 'grace', group: 'World', label: 'Calm on arrival', choices: ['Off', '5 s', '15 s'], value: 'Off',
-  about: 'The pool is rings round the start, the same in every direction, paced as a rhythm: calm water for the first ~70 mm, Stenus\'s water from ~70 mm (centred 110 mm out), a calm stretch, the strider and the Podura mass from ~205 mm (centred 250 mm out; rain from here outward), another, a ring of sundew clusters at ~345 mm, and the portal raft with the wolf spider at 415 mm. There is one Stenus and one strider: each is moved round its ring, out of sight, to meet whoever approaches it (never while it is busy with someone). Each predator stays calm until someone first comes into its water, then waits this long before its hunger starts. shared/predation.js.',
+  about: 'The encounters are placed as you go (shared/director.js), in order, each in water nobody has seen yet a little ahead of whoever leads: after a few seconds of moving, Stenus and its water; a calm break; the strider and the Podura mass; the rain; then the wolf spider on the portal raft. Linger and they come to you all the same. Each predator stays calm until someone first comes into its water, then waits this long before its hunger starts. shared/predation.js.',
   onChange: (v) => { pace.grace = v === 'Off' ? 0 : parseFloat(v); resetHunger(); } });
 F({ id: 'hunger', group: 'World', label: 'Predator hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
   about: 'Comes and goes: once awake (a player came into its water) each predator is hungry for ~18-32 s, then rests (45-75 s after a meal, 15-30 s after a miss or when it loses you); only a hungry one stalks, skims, strikes, answers ripples or grabs. Always: hungry from the moment it wakes. Never: they patrol and never hunt (for exploring and testing).',
@@ -963,27 +991,31 @@ function respawn() {
   rain.clear();
   resetHunger();
 }
-/** Put the beetle and the strider back in their own water (where it is on its ring). */
+/** Put the beetle and the strider back in their own water (where the director placed it). */
 function placeThreatsAway() {
   stenus.relocate(ZONES.stenus.x, ZONES.stenus.z);
   strider.relocate(ZONES.strider.x, ZONES.strider.z);
 }
-/** A new game: the rings back to their first bearing (+x, up and to the right at the start), no portal yet. */
-function resetRings() {
-  placeZone('stenus', 0); placeZone('strider', 0);
+/** A new game: nothing placed yet (the director starts over; the predators hidden and parked), no portal. */
+function resetEncounters() {
+  director.reset();
+  for (const k of ['stenus', 'strider', 'crowd']) parkZone(k);
+  placed.stenus = placed.strider = placed.rain = false;
+  showPreds();
+  stenus.relocate(ZONES.stenus.x, ZONES.stenus.z); strider.relocate(ZONES.strider.x, ZONES.strider.z);
+  crowdG.position.set(ZONES.crowd.x, 0, ZONES.crowd.z);
   clearPortal(); props.place();
   boss.setVisible(false);
   portal.hinted = false; portal.turned = false; bossSaid.wake = false;
   lm.fired = false; lm.blocked = false;
   for (const k of Object.keys(challengeLog)) delete challengeLog[k];
-  relocLog.length = 0;
 }
 
 function newGame() {
   if (outro) endOutro();
   lm.fired = false; lm.nearing = false;
   pl.lives = 3; pl.food = 0;
-  resetRings();
+  resetEncounters();
   respawn();
   // everyone else starts beside player 1
   recs().forEach((P, i) => { if (P !== pl) { const at = spotNear(pl.x, pl.z, 2.5 + i); resetBody(P, at.x, at.z); P.food = 0; } });
@@ -1359,7 +1391,7 @@ function stepPlayer(dt, inp) {
   if (P.safeT > 1 && Math.hypot(stenus.st.x - P.x, stenus.st.z - P.z) > 15 && Math.hypot(strider.st.x - P.x, strider.st.z - P.z) > 18 && !world.sundews.leafAt(P.x, P.y + 0.1, P.z)) { P.safeT = 0; P.safe = { x: P.x, z: P.z }; }
   if (game.phase === 'play' && P.food >= GOAL && onMoss && !P.fedSaid) {
     P.fedSaid = true;
-    hud.toast(PORTAL.placed ? 'Fed and safe on the moss. The way on: the golden sparkle over the raft of red capitula' : 'Fed and safe on the moss. The way on lies out across the pool, about 0.4 m from where you started, in any direction', 3200);
+    hud.toast(PORTAL.placed ? 'Fed and safe on the moss. The way on: the golden sparkle over the raft of red capitula' : 'Fed and safe on the moss. Head out across the pool: the way on comes after the beetle, the strider and the rain', 3200);
   }
 }
 
@@ -1406,9 +1438,9 @@ function stepWorld(dt) {
     if (Q) { armed[k] = true; hunger[k].reset(pace.grace); hunger[k].update(0); logChallenge(k, Q); }
   }
   if (game.phase === 'play' && !capture.active) { hunger.stenus.update(dt); hunger.strider.update(dt); }
-  // rain only from the strider's water on (and none on you while both predators are still calm)
+  // rain once the director has brought it on (and none on you while both predators are still calm)
   rain.calm = hunger.stenus.state === 'grace' && hunger.strider.state === 'grace';
-  const rainOn = recs().some((R) => alive(R) && progressAt(R.x, R.z) >= ZONES.rain);
+  const rainOn = placed.rain;
   world.debris.update(dt, field, inPool);
   // the Podura mass: only simulated while someone is near it (in its own frame, crowdG)
   const nearMass = recs().filter((R) => alive(R) && Math.hypot(R.x - ZONES.crowd.x, R.z - ZONES.crowd.z) < ZONES.crowd.r + 60);
@@ -1484,8 +1516,9 @@ function stepWorld(dt) {
     else if (e.type === 'retreat') hud.toast('The wolf spider backs off under the moss: the way on is open', 2600);
   }
   ripples.length = 0;
-  // the rain falls round whoever is farthest along (from the strider's water on)
-  const rainP = recs().filter(alive).reduce((a, R) => (!a || progressAt(R.x, R.z) > progressAt(a.x, a.z) ? R : a), null) || P;
+  // the rain falls round whoever leads (the director's leader: furthest along the encounters)
+  const lead = director.leader;
+  const rainP = (lead && pls[lead.id] && alive(pls[lead.id]) ? pls[lead.id] : recs().find(alive)) || P;
   const drops = rain.update(dt, { field, inPool, mossAt: (x, z) => Math.max(0, mossTop(x, z)), player: rainP === preyS ? ctxS : ctxOf(rainP, null), allow: rainOn && game.phase === 'play' });
   if (drops.length) logChallenge('rain', rainP);
   for (const e of drops) {
@@ -1527,7 +1560,6 @@ function logNear() {
     if (!challengeLog.striderNear && strider.group.visible && Math.hypot(strider.st.x - R.x, strider.st.z - R.z) < 40) logChallenge('striderNear', R);
     if (!challengeLog.crowdNear && Math.hypot(ZONES.crowd.x - R.x, ZONES.crowd.z - R.z) < 40 + ZONES.crowd.r) logChallenge('crowdNear', R);
     if (!challengeLog.sundewNear && (({ d, island }) => d - island.r < 40)(world.sundews.nearest(R.x, R.z))) logChallenge('sundewNear', R);
-    if (!challengeLog.sundew && progressAt(R.x, R.z) >= ZONES.sundew.from) logChallenge('sundew', R);
     if (!challengeLog.portalNear && PORTAL.placed && Math.hypot(PORTAL.x - R.x, PORTAL.z - R.z) < 40) logChallenge('portalNear', R);
   }
 }
@@ -1877,7 +1909,7 @@ function updateText(L) {
   const stage = stenus.stage;
   thr.textContent = capture.active ? '' : pl.mode === 'stuck' ? 'Sundew: wriggle and kick!' : stage === 'tell' ? 'Stenus: jump now!' : stage === 'stuck' ? 'Stuck: mash A!' : stage === 'lungeTell' || stage === 'lunge' ? 'Mandibles: jump or step aside!' : attacking ? 'Attacking! Face it + B, or jump' : hunting ? 'Hunted!' : isHungry(hs) || isHungry(hr) ? `${[isHungry(hs) && 'Stenus', isHungry(hr) && 'Strider'].filter(Boolean).join(' & ')} hungry` : 'Calm';
   thr.classList.toggle('hot', hunting || attacking);
-  const prog = Math.max(0, Math.min(1, progressAt(pl.x, pl.z)));
+  const prog = encounterProgress();
   if (!hunting && !attacking && !capture.active && pl.mode !== 'stuck' && !inZone('stenus', pl.x, pl.z) && !inZone('strider', pl.x, pl.z)) thr.textContent = 'Calm water';
   if (capture.active && cap.phase) { furcTxt.textContent = (cap.kind && CAP_TEXT[cap.kind].phases[cap.phase]) || 'Back again'; m.style.width = `${{ strike: 25, hold: 50, eat: 80, follow: 100, fadeOut: 100, fadeIn: 100 }[cap.phase] || 100}%`; m.style.background = '#e04f3a'; }
   else if (pl.mode === 'stuck') { const S = pl.stuckS; furcTxt.textContent = S && S.idle > 0.8 ? 'Pulled in: struggle!' : 'Struggle: LS + A'; m.style.width = `${pl.struggle * 100}%`; m.style.background = '#e07a5f'; }
@@ -1886,7 +1918,7 @@ function updateText(L) {
   else if (pl.charging) { furcTxt.textContent = pl.charge > 0.98 ? 'Full jump' : 'Cocking'; m.style.width = `${pl.charge * 100}%`; m.style.background = '#f2cc8f'; }
   else { furcTxt.textContent = pl.cock < 1 ? 'Re-cocking' : 'Furcula'; m.style.width = `${Math.max(0, pl.cock) * 100}%`; m.style.background = pl.cock < 1 ? '#7a8a99' : '#9fd0ff'; }
   const info = renderer.info.render;
-  hud.stats(`${pl.mode}${pl.mode === 'film' ? ` ${Math.hypot(pl.vx, pl.vz).toFixed(1)} mm/s` : ''}  Stenus: ${stenus.st.state} (${hs.state} ${hs.left.toFixed(0)} s)  strider: ${strider.st.state} (${hr.state} ${hr.left.toFixed(0)} s)${capture.active ? `  capture: ${cap.kind} ${cap.phase}` : ''}  out ${(prog * 100).toFixed(0)}%${PORTAL.placed ? (guarded() ? ' portal guarded' : ' portal open') : ''}\n${MACRO_LOOKS[rig.look].name}  quality ${quality.level} (res ${(quality.scale * 100).toFixed(0)}%)\n${fps.toFixed(0)} fps  ${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
+  hud.stats(`${pl.mode}${pl.mode === 'film' ? ` ${Math.hypot(pl.vx, pl.vz).toFixed(1)} mm/s` : ''}  Stenus: ${stenus.st.state} (${hs.state} ${hs.left.toFixed(0)} s)  strider: ${strider.st.state} (${hr.state} ${hr.left.toFixed(0)} s)${capture.active ? `  capture: ${cap.kind} ${cap.phase}` : ''}  encounters ${director.index}/${ENCOUNTERS.length}${PORTAL.placed ? (guarded() ? ' portal guarded' : ' portal open') : ''}\n${MACRO_LOOKS[rig.look].name}  quality ${quality.level} (res ${(quality.scale * 100).toFixed(0)}%)\n${fps.toFixed(0)} fps  ${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
 }
 
 // ---------------------------------------------------------------- loop
@@ -1914,7 +1946,7 @@ function step(dt, inputs) {
   motes.update(dt);
   placeRings();
   props.update(simT, dt, camera, !guarded(), outro ? outro.t : undefined);
-  if (game.phase === 'play') { moveRings(); checkLandmark(); logNear(); }
+  if (game.phase === 'play') { stepDirector(dt); checkLandmark(); logNear(); }
   // only the food near a player or the view is drawn (world.js buildFood)
   foodNear.length = 0;
   for (const P of recs()) foodNear.push(P);
@@ -1939,6 +1971,7 @@ function render(dt) {
   if (outro) outro.L = L;
   field.upload();
   split.update(recs().map((P) => ({ slot: P.slot, position: posOf(P) })), { camera }, dt);
+  directorViews();
   quality.setSplitViews(split.views.length);
   const focus0 = macroShared.uFocus.value;
   const one = split.views.length === 1;
@@ -1975,6 +2008,12 @@ function render(dt) {
   return L;
 }
 
+/** Tests that step without drawing: the camera and the views as a rendered frame would have them, so the director sees what they see. */
+function stepViews(dt) {
+  placeCamera(dt);
+  split.update(recs().map((P) => ({ slot: P.slot, position: posOf(P) })), { camera }, dt);
+  directorViews();
+}
 const api = {
   scene, camera, renderer, macro, field, Box3: THREE.Box3, dimples, tail, stenus, strider, rain, world, pl, rig, game, features, paused: false,
   step(dt = 1 / 60, inp = IDLE) { step(dt, [inp]); },
@@ -1986,9 +2025,10 @@ const api = {
     if (game.phase !== 'play') newGame();
     const m = stick ? Math.min(1, Math.hypot(stick.x, stick.y)) : 0;
     step(dt, [{ move: { x: stick ? stick.x : 0, y: stick ? stick.y : 0, m }, dashDown: false, dashPressed: false, attackPressed: false, defend: false }]);
+    stepViews(dt);
   },
   // ---- multiplayer and landmarks (Playwright drives these)
-  players, split, marks, joins, landmarkLog: lm.log, props, crowd, crowdG, relocLog,
+  players, split, marks, joins, landmarkLog: lm.log, props, crowd, crowdG, director,
   /** The way on once placed: { x, z, r, reach, a } (null before). */
   get landmark() { return PORTAL.placed ? { x: PORTAL.x, z: PORTAL.z, r: PORTAL.r, reach: PORTAL.reach, a: PORTAL.a } : null; },
   /**
@@ -2000,10 +2040,18 @@ const api = {
     return { placed: PORTAL.placed, x: PORTAL.x, y: props.position.y, z: PORTAL.z, r: PORTAL.r, reach: PORTAL.reach, bearing: PORTAL.a,
       guarded: PORTAL.placed && guarded(), open: PORTAL.placed && !guarded(), spider: { state: boss.st.state, x: boss.st.x, z: boss.st.z, d: PORTAL.placed ? Math.hypot(boss.st.x - PORTAL.x, boss.st.z - PORTAL.z) : null }, glow: props.glow.open };
   },
-  /** Testing: place the portal now at bearing `a` (radians from the start; default player `slot`'s bearing). */
-  placePortal(a = null, slot = 0) { const P = pls[slot] || pl; if (game.phase !== 'play') newGame(); placePortal(a ?? bearingFromStart(P.x, P.z)); return api.portal(); },
-  /** Testing: put predator `k` ('stenus' | 'strider') on its ring at bearing `a`. */
-  placeZone(k, a) { placeZone(k, a, 'test'); return { ...ZONES[k] }; },
+  /**
+   * Testing only (it breaks the order on purpose): the portal now, `d` mm from
+   * player `slot` at bearing `a` (default: their heading). director.force marks
+   * every earlier encounter met ('forced').
+   */
+  placePortal(a = null, slot = 0, d = 60) { const P = pls[slot] || pl; if (game.phase !== 'play') newGame(); const b = a ?? P.heading; director.force('portal', P.x + Math.cos(b) * d, P.z + Math.sin(b) * d, b); return api.portal(); },
+  /** Testing only: place encounter `k` ('stenus' | 'strider' | 'rain' | 'portal') at (x, z), met along bearing b, out of order. */
+  placeEncounter(k, x, z, b = 0) { if (game.phase !== 'play') newGame(); return director.force(k, x, z, b); },
+  /** The director (shared/director.js): state(), seenAt(x, z), placeNow(), log. */
+  encounters() { return director.state(); },
+  seenAt(x, z) { return director.seenAt(x, z); },
+  placeNow() { return director.placeNow(); },
   /** Go through the portal now as player `slot` (what reaching it while open does). */
   enterPortal(slot = 0) { enterPortal(pls[slot] || pl); },
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
@@ -2098,7 +2146,7 @@ const api = {
     const P = pls[slot] || pl;
     if (game.phase !== 'play') newGame();
     pace.mode = 'Always'; pace.anywhere = true; hunger.stenus.reset(0); hunger.stenus.update(0.01);
-    if (!PORTAL.placed) placePortal(0);
+    if (!PORTAL.placed) api.placePortal(P.heading, slot, 40);
     const ux = Math.cos(PORTAL.a), uz = Math.sin(PORTAL.a);
     resetBody(P, boss.post.x - ux * 14, boss.post.z - uz * 14); P.heading = PORTAL.a; boss.reset(); rig.target.set(P.x, P.y, P.z);
   },
@@ -2124,14 +2172,19 @@ const api = {
   },
   /** Testing: calm the predators again (patrolling, grooming). */
   calm() { pace.mode = 'Never'; pace.anywhere = false; stenus.release(); strider.release(); },
-  /** The level: the start, the ring radii (mm), the portal ring, the challenge zones (live: they move round their rings). */
-  route: { start: START, rings: RINGS, portalR: PORTAL_R, length: PORTAL_R, zones: ZONES },
-  /** How far out player `slot` is: distance from the start / the portal ring, 0..1. */
-  progress(slot = 0) { const P = pls[slot] || pl; return Math.max(0, Math.min(1, progressAt(P.x, P.z))); },
-  /** When each challenge first became active: { stenus, stenusHunt, stenusNear, strider, striderHunt, striderNear, crowd, crowdNear, rain, sundew, sundewNear, sundewStuck, portal, portalNear, boss, bossLured, bossReturn } -> { progress, x, z, t }. */
+  /** The level: the start and the encounters' water (live: placed by the director; parked far off until then). */
+  route: { start: START, zones: ZONES },
+  /** How far through the encounters the game is (shared by every player): met / all, 0..1. */
+  progress() { return encounterProgress(); },
+  /** When each challenge first became active: { stenus, stenusHunt, stenusNear, stenusMet, strider, striderHunt, striderNear, striderMet, crowd, crowdNear, rain, rainMet, sundewNear, sundewStuck, portal, portalNear, boss, bossLured, bossReturn } -> { progress (encounters met / all), d (mm from the start), x, z, t }. */
   challengeLog,
   /** Testing: read the pads and step the simulation n times (no rendering): mock pads drive it fast. */
-  tick(n = 1, dt = 1 / 30) { for (let i = 0; i < n; i++) { const inp = readInput(dt); step(dt, inp); } },
+  tick(n = 1, dt = 1 / 30) {
+    for (let i = 0; i < n; i++) {
+      const inp = readInput(dt); step(dt, inp);
+      stepViews(dt);
+    }
+  },
   /** Testing: what Stenus is doing in its two-stage strike. */
   stenusStage() { return { state: stenus.st.state, stage: stenus.stage, t: +stenus.st.t.toFixed(2), wriggle: pl.wriggle, mode: pl.mode, cock: pl.cock }; },
   /** Testing: what player `slot` is doing (act: 'fight' | 'eat' | 'attack' | null). */

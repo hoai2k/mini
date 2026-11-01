@@ -20,7 +20,8 @@ same sequence dynamically and takes precedence where a world uses it.)
 - **One instance can serve a ring.** A predator (or other obstacle) may be
   moved round its ring to meet whoever is approaching, as long as nobody can see
   it move, it is not engaged with anyone, and it is never placed on top of a
-  player (springtail: `placeZone` in `springtail/main.js`). Static obstacles
+  player (the springtail did this with `placeZone` before it moved to the
+  director). Static obstacles
   (plants, traps, currents) are laid out as a ring of clusters close enough
   that every bearing meets one.
 - **The portal (the way on) appears at a set distance in whatever direction
@@ -43,25 +44,44 @@ same sequence dynamically and takes precedence where a world uses it.)
 
 The owner (2026-11-01): the world doesn't need to be laid out before play.
 Things can be placed dynamically, into areas the player hasn't reached yet,
-while every area a player has already seen stays as it was.
+while every area a player has already seen stays as it was. And: "for placed
+obstacles I mean more like events or enemies etc. Things you can jump over or
+walk around can be in safe areas too, because you can just avoid them."
 
+- **The director places enemies and events, not scenery.** Predators, a
+  boss, weather that starts (the rain), the portal: these come from the
+  director (`prototypes/shared/director.js`), one at a time, in the world's
+  order. Scenery, ambient life and avoidable static hazards (sundews, plants,
+  traps you can walk round or jump over) are pre-placed as before, anywhere,
+  early or late, safe areas included.
 - **Explored stays constant.** Whatever a player has seen (a coarse grid of
-  explored cells, marked from every view) is never changed behind their back:
-  nothing placed, moved or removed there.
+  cells over the ground, or a 3D grid in the volumetric worlds, marked from
+  every split-screen view each frame: inside its frustum and within a set
+  distance of what it frames) is never changed behind their back: nothing
+  placed, moved or removed there. A creature can still walk or swim on into
+  seen water; that is behaviour, not placement.
 - **The next encounter is placed ahead.** When a player has had their calm
-  break after one encounter, the next one in the world's order is placed in
-  unexplored space near them, in the direction they're moving, out of view,
-  a short way off (so it arrives soon, but not immediately).
-- **Nothing is skipped.** Encounters come in the world's order; the boss and
-  the portal are placed only after the player has met every earlier
-  encounter. A player who hangs about in a safe area still gets them: if they
-  linger, the next encounter is placed near them (in unexplored space), and in
-  the end the portal and its boss too.
-- **Rings are the fallback.** A world may still pre-place scenery and
-  ambient life everywhere; the encounters themselves come from the director
-  (`shared/director.js`). In multiplayer, each encounter is placed for the
-  player who is furthest along the order, and the others meet it or the next
-  one placed near them.
+  break after one encounter (a few seconds of moving clear of it; the first
+  after a short warm-up), the next one in the world's order is placed in
+  unexplored space near them, in the direction they're moving, out of every
+  view, a short way off (so it arrives soon, but not immediately). If there is
+  no room there it goes to the side, then farther out, then to the nearest
+  unseen spot anywhere. One placed but not yet seen may be moved again (unseen
+  to unseen) when the player heads elsewhere.
+- **Nothing is skipped.** Encounters come strictly in order; the boss and the
+  portal are placed only after the player has met every earlier encounter. A
+  player who hangs about in a safe area still gets them: if they linger, the
+  next encounter is placed near them (in unexplored space, out of view), and
+  in the end the portal and its boss too. An encounter someone has seen but
+  walked away from (or watched a long while without going to it) counts as
+  met; it is never moved, so it can't hold the game up.
+- **Multiplayer.** Progress through the order is shared. Each encounter is
+  placed for the player who is furthest along it; the others meet it where it
+  is, or the next one placed near the leader.
+- **Rings are the fallback.** A world that hasn't adopted the director yet
+  keeps its rings round the start (above). The springtail world is the first
+  to use the director (`prototypes/springtail/README.md`, "The way out");
+  how to adopt it is at the top of `shared/director.js`.
 
 ## Everything is action
 

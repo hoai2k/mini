@@ -1,5 +1,5 @@
-// The bog pool: a wide sheet of open water (1.5 x 0.9 m; the level is rings round the start) ringed by a steep
-// Sphagnum bank, with moss islands standing in it, sundew rosettes on the
+// The bog pool: a wide sheet of open water (1.5 x 0.9 m) ringed by a steep
+// Sphagnum bank, with moss islands standing in it, sundew rosettes on some
 // islands, floating debris (dead Sphagnum leaves, bark flakes, needles) and
 // food on the film. The water is the ground everywhere the springtail can
 // go; moss, leaves and debris are things on it. Units: mm; the water
@@ -9,34 +9,16 @@ import { litMaterial, macroShared, MACRO_GLSL } from '../shared/techniques/sprin
 
 export const POOL = { a: 760, b: 450 };
 /**
- * Where a game starts: mid-pool. The level is laid out in rings round the
- * start, the same in every direction (the owner, 2026-11-01: "the boss battle
- * at a certain distance from the starting point, regardless of which direction
- * they go in"). Distances from the start (mm; a full jump is 36 mm, the view
- * ~18-36 mm across):
- *   0-70     warm-up: calm water, a few jumps
- *   70-175   Stenus's water (one beetle, moved round its ring to meet you)
- *   ~175-208 calm
- *   208-312  the water strider and the Podura mass (rain from here on)
- *   ~312-330 calm
- *   ~330-362 a ring of sundew clusters
- *   415      the portal ring: a raft of moss, the way on, guarded by the wolf
- *            spider; it is placed on the ring at the bearing of whoever first
- *            gets within ~65 mm of it.
- * Rushing out takes about half a minute; the challenges stretch it to a few.
+ * Where a game starts: mid-pool. The scenery (islands, sundews, debris, food)
+ * is laid out before play; the encounters (Stenus, the strider and its
+ * Podura mass, the rain, the wolf spider and the portal raft) are placed as
+ * you go by the director (shared/director.js; main.js `director`), in that
+ * order, in water nobody has seen yet, a little ahead of whoever is furthest
+ * along. Until placed, each one is hidden and parked (`ZONES[k].placed`).
  */
 export const START = { x: -30, z: 12 };
-/** Ring radii (mm from START): each predator's water is centred on its ring. */
-export const RINGS = { warm: 70, stenus: 110, crowd: 222, strider: 250, sundew: 345, portal: 415 };
-/** How far out the portal lies (mm): progress is distance / PORTAL_R. */
-export const PORTAL_R = RINGS.portal;
-export const ROUTE_LEN = PORTAL_R;
-/** A point `d` mm from the start at bearing `a` (radians, atan2(z, x)). */
-export const ringPoint = (d, a) => ({ x: START.x + Math.cos(a) * d, z: START.z + Math.sin(a) * d });
 export const distFromStart = (x, z) => Math.hypot(x - START.x, z - START.z);
 export const bearingFromStart = (x, z) => Math.atan2(z - START.z, x - START.x);
-/** How far out (x, z) is, as a fraction of the way to the portal ring (0 at the start, 1 on the ring). */
-export const progressAt = (x, z) => distFromStart(x, z) / PORTAL_R;
 
 /** Moss islands standing in the pool: centre and radius (mm). Hand-placed round the start, then the sundew clusters, then a few scattered. */
 export const ISLANDS = [
@@ -44,71 +26,115 @@ export const ISLANDS = [
   [-18, -52, 6], [78, -30, 5], [-90, -8, 6.5], [44, -58, 5], [-60, -62, 5], [-50, 62, 5.5], [40, 78, 5], [128, 0, 5],
 ].map(([x, z, r]) => ({ x: x + START.x + 4, z: z + START.z - 2, r }));
 /**
- * The sundew ring: 16 small clusters round the start at RINGS.sundew, each a
- * short band of three islands across the way out, every island with a rosette
- * whose glue-tipped leaves reach out over the gaps (`buildSundews`). Sixteen
- * clusters ~55 mm wide put the nearest sundew island within ~45 mm of any
- * straight way out (about a screen to one side).
+ * Sundews are scenery, not encounters (the owner, 2026-11-01: things you can
+ * jump over or walk round can be anywhere, safe areas too, "because you can
+ * just avoid them"): 16 small clusters scattered over the pool at every
+ * distance from the start (from ~50 mm out to the far shore), each a short
+ * band of three islands with a rosette on each, its glue-tipped leaves
+ * reaching out over the gaps (`buildSundews`). Seeded, so every game has the
+ * same pool.
  */
 export const SUNDEW_CLUSTERS = 16;
 export const SUNDEW_ISLANDS = [];
-for (let c = 0; c < SUNDEW_CLUSTERS; c++) {
-  const a = ((c + 0.5) / SUNDEW_CLUSTERS) * Math.PI * 2;
-  const t = a + Math.PI / 2; // along the band (tangent to the ring)
-  [[-4, -24, 4.5], [7, 0, 4], [-3, 24, 4.5]].forEach(([dr, dt, r], k) => {
-    const d = RINGS.sundew + dr;
-    SUNDEW_ISLANDS.push({ x: Math.round((START.x + Math.cos(a) * d + Math.cos(t) * dt) * 10) / 10, z: Math.round((START.z + Math.sin(a) * d + Math.sin(t) * dt) * 10) / 10, r, sundew: true, cluster: c, t, k });
-  });
+{
+  let seed = 909;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const BAND = [[-4, -24, 4.5], [7, 0, 4], [-3, 24, 4.5]];
+  for (let c = 0, tries = 0; c < SUNDEW_CLUSTERS && tries < 4000; tries++) {
+    // spread over the distances: cluster c at about 50 + c/15 of the way to ~430 mm, in a golden-angle turn of bearings
+    const a = c * 2.39996 + 0.5 + (rnd() - 0.5) * 0.6, D = 52 + ((c * 7) % SUNDEW_CLUSTERS) / (SUNDEW_CLUSTERS - 1) * 380 + (rnd() - 0.5) * 30;
+    const t = a + Math.PI / 2 + (rnd() - 0.5) * 0.8; // along the band
+    const isl = BAND.map(([dr, dt, r], k) => ({ x: Math.round((START.x + Math.cos(a) * (D + dr) + Math.cos(t) * dt) * 10) / 10, z: Math.round((START.z + Math.sin(a) * (D + dr) + Math.sin(t) * dt) * 10) / 10, r, sundew: true, cluster: c, t, k }));
+    const clear = isl.every((I) => poolE(I.x, I.z) < 0.86 && [...ISLANDS, ...SUNDEW_ISLANDS].every((J) => Math.hypot(I.x - J.x, I.z - J.z) > I.r + J.r + 10));
+    if (!clear || distFromStart(isl[1].x, isl[1].z) < 45) continue;
+    SUNDEW_ISLANDS.push(...isl);
+    c++;
+  }
 }
 ISLANDS.push(...SUNDEW_ISLANDS);
-/** Bands (distance from the start) kept clear of scattered islands: the predators' and the portal's open water. */
-const CLEAR = [[RINGS.stenus - 14, RINGS.stenus + 14], [RINGS.crowd - 28, RINGS.strider + 16], [RINGS.sundew - 30, RINGS.sundew + 30], [RINGS.portal - 32, RINGS.portal + 32]];
 {
   let seed = 4242;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   for (let k = 0; k < 12000 && ISLANDS.length < 72; k++) {
     const a = rnd() * Math.PI * 2, e = 0.24 + rnd() * 0.68;
     const x = Math.cos(a) * POOL.a * e, z = Math.sin(a) * POOL.b * e, r = 4 + rnd() * 4;
-    const d = distFromStart(x, z);
-    if (d < 135 || CLEAR.some(([lo, hi]) => d > lo - r && d < hi + r)) continue;
+    if (distFromStart(x, z) < 135) continue;
     if (ISLANDS.every((I) => Math.hypot(I.x - x, I.z - z) > I.r + r + 40)) ISLANDS.push({ x: Math.round(x), z: Math.round(z), r: Math.round(r * 2) / 2 });
   }
 }
 export const ISLAND = ISLANDS[0];
 
 /**
- * The challenges, ring by ring. Each predator keeps to its own water (radius
- * r round x, z) and gives up a chase `leash` mm beyond it; there is one of
- * each, and main.js moves its water round its ring (`placeZone`) to meet
- * whoever approaches, out of sight. `from` values are progress (distance /
- * PORTAL_R) where a challenge starts; rain falls from `rain` outward.
+ * The encounters' water. Each predator keeps to its own water (radius r
+ * round x, z) and gives up a chase `leash` mm beyond it; there is one of
+ * each. The director (main.js) puts it where it meets the player
+ * (`setZoneAt`); until then it is parked far off (`placed: false`) and the
+ * predator hidden.
  */
+const PARK = 1e5;
 export const ZONES = {
-  stenus: { x: 0, z: 0, a: 0, ring: RINGS.stenus, r: 40, leash: 25 },
-  strider: { x: 0, z: 0, a: 0, ring: RINGS.strider, r: 42, leash: 20 },
-  // a mass of Podura (NPC springtails, shared/crowd.js) at the inner edge of the strider's water, a little to one side
-  crowd: { x: 0, z: 0, a: 0, ring: RINGS.crowd, side: 20, r: 20 },
-  sundew: { ring: RINGS.sundew, from: (RINGS.sundew - 30) / PORTAL_R },
-  boss: { from: (PORTAL_R - 35) / PORTAL_R },
-  rain: 0,
+  stenus: { x: PARK, z: PARK, a: 0, r: 40, leash: 25, placed: false },
+  strider: { x: PARK, z: PARK, a: 0, r: 42, leash: 20, placed: false },
+  // a mass of Podura (NPC springtails, shared/crowd.js) at the near edge of the strider's water, a little to one side
+  crowd: { x: PARK, z: PARK, a: 0, back: 28, side: 20, r: 20, placed: false },
 };
-ZONES.rain = (RINGS.strider - ZONES.strider.r) / PORTAL_R;
-ZONES.crowd.from = (RINGS.crowd - ZONES.crowd.r - 20) / PORTAL_R;
-/** Put a zone's water on its ring at bearing `a` (the crowd sits beside the strider's). */
-export function zoneAt(k, a) {
-  const Z = ZONES[k];
-  const p = ringPoint(Z.ring, a);
-  if (k === 'crowd') { p.x += Math.cos(a + Math.PI / 2) * Z.side; p.z += Math.sin(a + Math.PI / 2) * Z.side; }
-  return p;
+/** Where zone k goes when its centre is (x, z) and it is met coming along bearing a (the crowd sits beside the strider's water, toward you). */
+export function zoneAt(k, x, z, a) {
+  if (k !== 'crowd') return { x, z };
+  const Z = ZONES.crowd;
+  return { x: x - Math.cos(a) * Z.back + Math.cos(a + Math.PI / 2) * Z.side, z: z - Math.sin(a) * Z.back + Math.sin(a + Math.PI / 2) * Z.side };
 }
-export function setZone(k, a) { const p = zoneAt(k, a); Object.assign(ZONES[k], { x: p.x, z: p.z, a }); return ZONES[k]; }
-setZone('stenus', 0); setZone('strider', 0); setZone('crowd', 0);
+/** Is (x, z) within zone k's reach (a predator's water and leash; the Podura mass and 30 mm round it: a screen from its edge)? */
+export function inReach(k, x, z) { const Z = ZONES[k]; return Z.placed && Math.hypot(x - Z.x, z - Z.z) < Z.r + (k === 'crowd' ? 30 : Z.leash); }
+/** Put zone k's centre at (x, z), met coming along bearing a (the crowd from the strider's centre). */
+export function setZoneAt(k, x, z, a) { const p = zoneAt(k, x, z, a); Object.assign(ZONES[k], { x: p.x, z: p.z, a, placed: true }); return ZONES[k]; }
+/** Park zone k far off (a new game: nothing placed yet). */
+export function parkZone(k) { Object.assign(ZONES[k], { x: PARK, z: PARK, a: 0, placed: false }); }
+
+/** Is (x, z) open pool water at least `m` mm from any island, inside poolE `e`? */
+export const openAt = (x, z, m, e = 0.9) => poolE(x, z) < e && islandEdge(x, z).d > m;
+/** Are eight points `r` mm round (x, z) all in the pool (room for an arena)? */
+export function roomAt(x, z, r, e = 0.95) { for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; if (!(poolE(x + Math.cos(t) * r, z + Math.sin(t) * r) < e)) return false; } return true; }
+/**
+ * The director's settings and the encounters in order (main.js adds place
+ * and met; route.test.mjs runs them without a browser). Distances in mm: a
+ * full jump is 36, the 1x view 36 across; rushing with tap jumps is ~15 mm/s.
+ *   size     clearance (its water and leash, or the raft's arena)
+ *   parts    what can be seen of it when placed (the beetle where it starts,
+ *            the strider and its mass, the raft): unseen water, out of view.
+ *            Stenus and the strider start at the spot itself (main.js); their
+ *            water is invisible, and walking on out of it later is behaviour
+ *   min/maxAhead  how far ahead of the leader it goes; min/maxNear when they linger
+ */
+export const DIRECTOR = {
+  cell: 10, seenDist: 60, nearSeen: 6, seed: 17,
+  bounds: { x0: -POOL.a, x1: POOL.a, z0: -POOL.b, z1: POOL.b },
+  // the warm-up: ~5 s of moving (a few jumps); then a calm break of ~8-10 s of moving clear of the last encounter
+  // (rushing out with tap jumps, every encounter met and the portal reached in about a minute)
+  warmup: { sec: 5 }, calm: { sec: 9 }, linger: 6, moveSpeed: 2.5,
+  // seen but not gone to: met once everyone is ~3 screens off, or after 10 s in sight nearby (it is never moved)
+  watchSec: 10,
+};
+export const ENCOUNTERS = [
+  { id: 'stenus', size: 40, visible: 8, minAhead: 55, maxAhead: 95, minNear: 40, maxNear: 62,
+    fits: (x, z) => openAt(x, z, 6) && roomAt(x, z, 30) },
+  { id: 'strider', size: 62, minAhead: 72, maxAhead: 112, minNear: 50, maxNear: 80,
+    parts: (x, z, b) => { const c = zoneAt('crowd', x, z, b); return [[x, z, 14], [c.x, c.z, ZONES.crowd.r + 2]]; },
+    fits: (x, z, b) => { const c = zoneAt('crowd', x, z, b); return openAt(x, z, 10) && roomAt(x, z, 40) && openAt(c.x, c.z, ZONES.crowd.r + 3) && roomAt(c.x, c.z, ZONES.crowd.r); } },
+  // an event, not a thing in the water
+  { id: 'rain', size: 0, minAhead: 0, maxAhead: 0, virtual: true, calm: { sec: 8 } },
+  // the boss and the way on: the raft (its golden beacon ~60 mm tall, out of every view) and the wolf spider
+  { id: 'portal', size: 34, visible: 16, top: 60, minAhead: 80, maxAhead: 120, minNear: 40, maxNear: 70, final: true, calm: { sec: 10 },
+    fits: (x, z) => openAt(x, z, PORTAL.r + 10, 0.93) && roomAt(x, z, 25, 0.97) },
+];
+/** Encounters can go anywhere well inside the bank. */
+export const canPlace = (x, z) => poolE(x, z) < 0.93;
 
 /**
  * The portal (the way on, design §0.6): a floating raft of Sphagnum crowned
- * with big capitula and the Limnozetes mite (landmarks.js), placed on the
- * portal ring by main.js once someone nears it. mossTop honours it, so you
- * land and walk on it like an island. null until placed.
+ * with big capitula and the Limnozetes mite (landmarks.js), placed by the
+ * director (main.js) as the last encounter. mossTop honours it, so you
+ * land and walk on it like an island. Not placed until then.
  */
 export const PORTAL = { placed: false, x: 0, z: 0, a: 0, r: 8, reach: 11 };
 export function setPortal(x, z, a) { Object.assign(PORTAL, { placed: true, x, z, a }); }
@@ -451,7 +477,7 @@ const GLUE_SURFACE = /* glsl */ `
  * ~90 red glandular tentacles (longer at the rim) tipped with glue drops.
  */
 function buildSundews(group, rnd, sundewTex) {
-  // the sundew ring: a rosette on each island of every cluster, its leaves held
+  // the sundew clusters: a rosette on each island of every cluster, its leaves held
   // out along the band, over the gaps between the islands
   const rosettes = SUNDEW_ISLANDS.map((I) => ({ x: I.x, z: I.z, n: 4 + (I.k % 2), R: I.r, a0: I.t + (I.k % 2 ? 0 : Math.PI), cluster: I.cluster }));
   const leafMat = litMaterial({
@@ -610,9 +636,9 @@ function buildFood(group, rnd) {
   let gi = 0;
   const place = (c) => {
     for (let tries = 0; tries < 80; tries++) {
-      // half round the start, the rest out through the rings in every direction
+      // half round the start, the rest out across the pool in every direction (to ~430 mm)
       const near = rnd() < 0.5;
-      const a = rnd() * Math.PI * 2, d = near ? 3 + Math.sqrt(rnd()) * 38 : 40 + rnd() * (PORTAL_R + 15 - 40);
+      const a = rnd() * Math.PI * 2, d = near ? 3 + Math.sqrt(rnd()) * 38 : 40 + rnd() * (430 - 40);
       const x = START.x + Math.cos(a) * d, z = START.z + Math.sin(a) * d;
       if (poolE(x, z) < 0.9 && islandEdge(x, z).d > 1.5 && Math.hypot(x - START.x, z - START.z) > 2.5) { c.x = x; c.z = z; return; }
     }

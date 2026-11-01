@@ -5,18 +5,18 @@ import { embed } from '../shared/embed.js';
 import { createPlayers, PLAYER_COLORS } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks } from '../shared/landmark.js';
-import { createLandmarkProps, FORWARD, BACKDOOR } from './landmarks.js';
+import { createLandmarkProps, FORWARD, BACKDOOR, TARDI_LEN } from './landmarks.js';
 import { createPseudoscorpion } from './boss.js';
-import { createThicket } from './thicket.js';
+import { createThickets } from './thicket.js';
+import { createPortalLight } from '../shared/portal.js';
 import { createControls, createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createPredatorAI } from './predator.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { mountHud } from '../shared/hud.js';
 import { createSem, shared, MODES, CLS, gMaterial } from './sem.js';
 import { semTextures } from './textures.js';
-import { buildWorld, floorH } from './world.js';
-import { ROUTE, along, progress, PRED_ZONE, PRED_START as PRED_AT, THICKET, BOSS } from './layout.js';
-import { createCrowd } from '../shared/crowd.js';
+import { buildWorld, floorH, TILE } from './world.js';
+import { RINGS, PORTAL_R, PORTAL_PLACE, PORTAL_CLEAR, CLUSTER, CLUSTERS, PRED_GROUND, BOSS, OPENING, NPC_HOME, predZoneAt, portalAt, ringPoint, distFromStart, bearingFromStart, progressAt } from './layout.js';
 import { createQuality } from '../shared/quality.js';
 import { createMite, CFG, PRED, JUMP } from './mite.js';
 import { createFeatures } from '../shared/features.js';
@@ -47,24 +47,29 @@ const swapTex = (key, t) => {
 tex = semTextures((k, t) => swapTex(k, t));
 
 const sem = createSem(renderer, tex.backdrop);
-// (beside the way in, so its long abdomen lies alongside the water, not over it)
-// (layout.js: the last of the challenges, ~0.6 mm before the water; it wakes at ~0.9 mm)
-const BOSS_POST = (() => { const ux = -ROUTE.ux, uz = -ROUTE.uz, p = along(BOSS.s, BOSS.side); return { ...p, a: Math.atan2(uz, ux), ux, uz }; })();
-// its arena: a patch of bare litter round its post, so it stands on open ground;
-// the hyphal thicket (the crowd) lies before it
-const world = buildWorld(tex, { clear: [{ x: BOSS_POST.x + BOSS_POST.ux * 150, z: BOSS_POST.z + BOSS_POST.uz * 150, r: 800 }], thicket: THICKET });
+// The moss: one scenery tile repeated in every direction (world.js), the rings
+// of the encounter pattern laid over it (layout.js).
+const world = buildWorld(tex);
 scene.add(world.group);
+// the moss shoots stand aside where the thickets and the giant springtail are (and, once placed, the portal's arena)
+world.exclude.set('thickets', CLUSTERS.map((c) => ({ x: c.x, z: c.z, r: c.r + 100 })));
+world.exclude.set('back', [{ x: BACKDOOR.x, z: BACKDOOR.z, r: BACKDOOR.clear }]);
+// the portal's golden glow is drawn after the SEM composite (additive, over the micrograph)
+const glowScene = new THREE.Scene();
 // Shaders are built while the page loads, not on the first frame: each
 // sem.warm() links the new programs and draws one object of each kind into a
 // G-buffer pixel, and the software renderer builds them in the GPU process
 // while the rest of the world is made here (mite-sem.js warm(); no visible change).
 sem.warm(scene, camera);
-const props = createLandmarkProps(world, tex);
+const props = createLandmarkProps(world, tex, { glowScene });
 scene.add(props.group);
-// The crowd: a hyphal thicket full of springtails (thicket.js), past halfway, before the boss
-const thicket = createThicket({ scene, world, tex, region: THICKET });
-// The boss: a pseudoscorpion lying in wait before the leaf axil (boss.js); worn down, it backs into the moss to the side.
-const boss = createPseudoscorpion(scene, tex, { post: BOSS_POST, wake: BOSS.wake, home: { x: BOSS_POST.x + BOSS_POST.uz * 1300, z: BOSS_POST.z - BOSS_POST.ux * 1300 } });
+// The crowd: two rings of hyphal thickets full of springtails (thicket.js, layout.js CLUSTERS)
+const thicket = createThickets({ scene, tex, clusters: CLUSTERS.map((c) => ({ ...c, posts: CLUSTER.posts })) });
+// The boss: a pseudoscorpion on guard before the leaf axil (boss.js); it is put
+// on its post when the portal is placed (placePortal), and worn down it backs
+// into the moss to the side.
+const boss = createPseudoscorpion(scene, tex, { post: { x: 0, z: 0, a: 0 }, home: { x: 0, z: 0 }, wake: BOSS.wake, leash: BOSS.leash, lose: BOSS.lose });
+boss.setVisible(false);
 sem.warm(scene, camera);
 
 // The box mite is drawn at about 0.6 mm (mite.js) and placed at 0.58 of that:
@@ -75,12 +80,16 @@ let mite = createMite(scene, world.colliders, { cls: CLS.CUTICLE, tex, scale: MI
 mite.place(0, 0, 0.3);
 sem.warm(scene, camera);
 const npc = createMite(scene, world.colliders, { cls: CLS.NPC, tex, scale: MITE_SCALE });
-const NPC_PLACE = along(1300, 250);
-npc.place(NPC_PLACE.x, NPC_PLACE.z, 2.2);
+npc.place(NPC_HOME.x, NPC_HOME.z, 2.2);
 // The predator: a parasitid (Mesostigmata), pale, long-legged, hunting by touch.
 const pred = createMite(scene, world.colliders, { cls: CLS.NPC, tex, anat: PRED });
-// It lurks in its hunting ground past halfway, at the edge of and inside the thicket (layout.js PRED_ZONE)
-const predAI = createPredatorAI(pred, PRED_ZONE);
+// It hunts on its own ground, on one of its two rings (layout.js RINGS.pred), and
+// is moved round them to meet whoever is heading out (moveRings: unseen,
+// unengaged, never onto a player). A new game puts it ahead of the start view.
+const A0 = Math.atan2(OPENING.uz, OPENING.ux);
+const predZone = predZoneAt(0, A0);
+const predAI = createPredatorAI(pred, predZone);
+const PRED_AT = { x: predZone.x, z: predZone.z };
 predAI.reset(PRED_AT.x, PRED_AT.z);
 sem.warm(scene, camera);
 
@@ -188,7 +197,7 @@ function placePoseCamera(pose) {
   // the cutaway clears the line of sight to the mite itself (the target may be off it)
   shared.uCutP.value.copy(mite.center).applyMatrix4(camera.matrixWorldInverse);
   shared.uCutR.value = 380 + rig.viewHfw * 0.06;
-  world.cut.update(1 / 30, camera.position, mite.center, { radius: 340, margin: 110, keep: cutKeep });
+  world.cut.update(1 / 30, camera.position, mite.center, { radius: 340, margin: 110, keep: cutKeep, period: TILE });
   return d;
 }
 
@@ -201,12 +210,24 @@ function placeCamera(dt) {
   let want = mp ? rig.hfw * (1 + Math.min(0.6, (gc.spread / rig.hfw) * 0.7)) : rig.hfw;
   // a boss fight: the lens widens to keep the pseudoscorpion and its pincers in frame
   const bd = boss.engaged ? boss.center.distanceTo(mp ? gc.c : mite.center) : Infinity;
-  if (bd < 3400 && !capture.active) want = Math.min(4200, Math.max(want, bd * 1.3 + 2600));
-  rig.viewHfw = rig.viewHfw === undefined || !dt ? want : rig.viewHfw + (want - rig.viewHfw) * (1 - Math.exp(-dt / 0.4));
+  if (bd < 3400 && !capture.active && !outro) want = Math.min(4200, Math.max(want, bd * 1.3 + 2600));
+  if (!outro) rig.viewHfw = rig.viewHfw === undefined || !dt ? want : rig.viewHfw + (want - rig.viewHfw) * (1 - Math.exp(-dt / 0.4));
   const d = rig.viewHfw / (2 * tanH);
   const k = dt ? 1 - Math.exp(-dt / 0.25) : 1;
   // a catch is framed whole: you and the predator (alone; with company the camera keeps the group)
-  if (bd < 3400 && !capture.active) {
+  if (outro) {
+    // through the portal (a hand-off: the tardigrade is the mite's size): the
+    // view settles on the tardigrade walking in the water, from the side and
+    // height the tardigrade world opens on (NEXT_OPENING), a little wider than
+    // it, as the tardigrade turns the way it faces there; the shell's move is
+    // then a short push in while the light changes, SEM to DIC. Driven by the
+    // outro's own clock (not by frames drawn), so the freeze lands exactly there.
+    const f = outro.from, b = THREE.MathUtils.smootherstep(outro.t, 0, OUTRO.beat + OUTRO.ease);
+    rig.target.lerpVectors(f.target, props.tardi.center, b);
+    rig.hfw = rig.viewHfw = f.hfw + (OUTRO_HFW - f.hfw) * b;
+    rig.pitch = f.pitch + (NEXT_OPENING.pitch - f.pitch) * b;
+    props.tardi.setHeading(f.h + Math.atan2(Math.sin(rig.yaw - NEXT_OPENING.rel - f.h), Math.cos(rig.yaw - NEXT_OPENING.rel - f.h)) * b);
+  } else if (bd < 3400 && !capture.active) {
     // a boss fight: hold both in one shot, from a little higher so the moss does not hide it
     rig.target.lerp(_ct.copy(mp ? gc.c : mite.center).lerp(boss.center, 0.4), k);
     if (rig.pitch < 0.8) rig.pitch += (0.8 - rig.pitch) * k * 0.5;
@@ -239,7 +260,7 @@ function placeCamera(dt) {
   // between the camera and the mite, whole, never what it stands on.
   cutKeep.clear();
   for (const P of recs()) { const g = P.mite.ground && P.mite.ground.entry; if (g && g.cutId) cutKeep.add(g.cutId); }
-  world.cut.update(dt, camera.position, rig.target, { radius: 340, margin: 110, keep: cutKeep });
+  world.cut.update(dt, camera.position, rig.target, { radius: 340, margin: 110, keep: cutKeep, period: TILE });
   return d;
 }
 
@@ -262,12 +283,11 @@ function niceScale(hfw) {
 
 // NPC: wanders, and shuts when the player comes close
 const ai = { ang: 2.2, t: 0, scared: 0, pause: 0 };
-const NPC_HOME = along(1300, 200);
 function npcInput(dt) {
   ai.t += dt;
   ai.ang += (Math.sin(ai.t * 0.37) + Math.sin(ai.t * 0.83 + 1)) * 0.5 * dt;
   const c = npc.center;
-  if (Math.hypot(c.x - NPC_HOME.x, c.z - NPC_HOME.z) > 1400) ai.ang = Math.atan2(NPC_HOME.z - c.z, NPC_HOME.x - c.x); // it stays in the calm first half
+  if (Math.hypot(c.x - NPC_HOME.x, c.z - NPC_HOME.z) > 1400) ai.ang = Math.atan2(NPC_HOME.z - c.z, NPC_HOME.x - c.x); // it stays in the warm-up
   let dist = Infinity;
   for (const P of recs()) dist = Math.min(dist, c.distanceTo(P.mite.center));
   if (dist < 300 && ai.scared <= 0 && npc.mode === 'walk') ai.scared = 3 + Math.random() * 2;
@@ -279,13 +299,13 @@ function npcInput(dt) {
 }
 
 // ---------- threats: pacing and being eaten (shared/predation.js) ----------
-// A calm opening, then hunger that comes and goes; only a hungry predator
-// hunts. Its third grab holds on: strike (it seizes a leg), hold (it pulls you
+// Calm until someone first walks onto its ground (no clock), then hunger that
+// comes and goes (the banner says so); only a hungry predator hunts. Its third grab holds on: strike (it seizes a leg), hold (it pulls you
 // in; close up, Y, and the grip slips off), eat (its chelicerae work at the
 // soft body by the legs, which go limp and fold), then the Eaten card.
 const PRED_START = [PRED_AT.x, PRED_AT.z];
 const npcIn = { dir: new THREE.Vector3(), mag: 0, maxSpeed: 180 * MITE_SCALE, hold: false };
-const pace = { grace: 45, mode: 'Comes and goes' };
+const pace = { grace: Infinity, mode: 'Comes and goes' };
 const hunger = createHunger({ grace: pace.grace });
 const isHungry = () => (pace.mode === 'Never' ? false : pace.mode === 'Always' ? hunger.state !== 'grace' : hunger.hungry);
 // A catch: strike, hold, eat (pulled in by the chelicerae and swallowed), then
@@ -302,7 +322,9 @@ function afterCatch() {
   fight.reset();
   if (multi()) respawnNear(P);
   else {
-    const s = P.safe && P.safe.distanceTo(pred.center) > 900 ? P.safe : new THREE.Vector3();
+    // the last safe spot, or (none yet clear of the predator) a little back toward the start on the same bearing
+    const c = P.mite.center, d = distFromStart(c.x, c.z), back = Math.max(0, d - 1500) / Math.max(1, d);
+    const s = P.safe && P.safe.distanceTo(pred.center) > 900 ? P.safe : new THREE.Vector3(c.x * back, 0, c.z * back);
     P.mite.place(s.x, s.z, rig.yaw + Math.PI);
     P.play.hurt = 0; P.play.stun = 0; P.play.heal = 0;
   }
@@ -335,8 +357,9 @@ function resetLevel() {
   cap.phase = null;
   mite.place(0, 0, 0.3);
   recs().forEach((P, i) => { if (P.mite !== mite) { P.mite.place(Math.cos(i * 2.1) * 260, Math.sin(i * 2.1) * 260, 0.3); P.play.hurt = 0; P.play.stun = 0; } });
+  Object.assign(predZone, predZoneAt(0, A0));
   predAI.reset(...PRED_START);
-  boss.reset();
+  if (PORTAL.placed) boss.reset();
   pred.st.chel = 0;
   play.hurt = 0; play.stun = 0;
   hunger.reset(pace.grace);
@@ -437,7 +460,7 @@ function animateCapture(c, dt) {
 
 // ---------- features panel ----------
 const features = createFeatures({ key: 'mite', pad });
-const audio = createAudio(['mite/amb-moss', 'mite/step', 'mite/dash', 'mite/close', 'mite/open', 'mite/bite', 'mite/blade', 'mite/predator']);
+const audio = createAudio(['mite/amb-moss', 'mite/step', 'mite/dash', 'mite/close', 'mite/open', 'mite/bite', 'mite/blade', 'mite/predator', 'shared/portal-chime']);
 audio.addToFeatures(features);
 audio.loop('mite/amb-moss', { volume: 0.6 });
 const LOOKS = ['SE', 'BSE', 'False colour'];
@@ -534,17 +557,17 @@ F({ id: 'jump', group: 'Simulation', label: 'Jump (A), borrowed from jumping ori
 F({ id: 'pounce', group: 'Simulation', label: 'Pounce-bite (X in the air; a game stretch)', fixed: true,
   about: 'In a jump, X dives at the nearest enemy point ahead (the predator, or the pseudoscorpion\'s pincer arm): a strong bite on impact (two bites\' worth, a hit-pause and a rumble), then a hop back; a mistimed dive is a clear miss. Box mites neither jump nor pounce: a game stretch on the borrowed Zetorchestes jump.' });
 F({ id: 'boss', group: 'Simulation', label: 'Boss: pseudoscorpion (Neobisium-like)', fixed: true,
-  about: '~2.5 mm, a real hunter of mites in moss, lying in wait before the wet leaf axil, the last challenge on the way (layout.js). Dormant until you come within 0.9 mm of its post. Its tell: pincers held open and dead still, then a snap, a two-pincer sweep, or a step-in and snap. Stay out of reach, close up (Y) to survive a grab (the venom tooth cannot get through), scramble (B) out of a grab in its strike window, and bite its pincer joints (X) while it recovers. About three good rounds and it backs into the moss. Its resolve is the brass gauge.' });
+  about: '~2.5 mm, a real hunter of mites in moss, on guard before the wet leaf axil (the portal, ~31 mm out wherever you head: layout.js). Dormant until you come within 0.9 mm of its post; reaching the water while it guards turns you back. Lure it off (it follows you up to 2.6 mm from its post, then walks back slowly) and get round it, or wear it down. Its tell: pincers held open and dead still, then a snap, a two-pincer sweep, or a step-in and snap. Stay out of reach, close up (Y) to survive a grab (the venom tooth cannot get through), scramble (B) out of a grab in its strike window, and bite its pincer joints (X) while it recovers. About three good rounds and it backs into the moss. Its resolve is the brass gauge.' });
 F({ id: 'bite', group: 'Simulation', label: 'Bite and graze (X)', fixed: true,
   about: 'The rostrum dips and the chelicerae work. In reach of the mouth: fungal spores (eaten) and hyphal branch tips (nibbled; they regrow), the box mite\'s real food. At the predator: a nip that makes it back off for 1.5 s (a game rule).' });
 F({ id: 'predator', group: 'Simulation', label: 'Predatory mite (Parasitidae)', on: true,
-  about: 'A pale, flattened gamasid ~0.8 mm long with long legs, leg I held up as a feeler. More than twice your length. After a calm opening it is hungry only some of the time (see Threats); hungry, it searches toward you, and when it touches you or feels you scramble close by it runs you down at ~0.6 mm/s (faster than your walk, slower than your scramble; all game speeds). Resting, it wanders and ignores you. It strikes at legs: on the third grab it holds on, pulls you in and eats you (the whole catch is shown); close up (Y) while it holds you and its grip slips off. Each strike is telegraphed: it rears, leg I and the palps up, the chelicerae open (0.8 s). Closed up (Y), you are a smooth capsule its strike slides off; blocks, nips (X) and facing it wear its interest down until it runs off (adult ptychoid mites are nearly immune: Peschel et al. 2006).',
+  about: 'A pale, flattened gamasid ~0.8 mm long with long legs, leg I held up as a feeler. More than twice your length. It hunts on its own ground on two rings (~11.5 and ~24.5 mm out), moved round them unseen to meet you. Calm until you first walk onto its ground, then hungry only some of the time (see Threats); hungry, it searches toward you, and when it touches you or feels you scramble close by it runs you down at ~0.6 mm/s (faster than your walk, slower than your scramble; all game speeds). Resting, it wanders and ignores you. It strikes at legs: on the third grab it holds on, pulls you in and eats you (the whole catch is shown); close up (Y) while it holds you and its grip slips off. Each strike is telegraphed: it rears, leg I and the palps up, the chelicerae open (0.8 s). Closed up (Y), you are a smooth capsule its strike slides off; blocks, nips (X) and facing it wear its interest down until it runs off (adult ptychoid mites are nearly immune: Peschel et al. 2006).',
   onChange: (v) => { predOn = v; pred.setVisible(v); } });
-F({ id: 'grace', group: 'Simulation', label: 'Calm opening', choices: ['45 s', '20 s', '90 s', 'Off'], value: '45 s',
-  about: 'How long after a start (and after each restart) before the predatory mite gets hungry. It lurks in its hunting ground past halfway (layout.js) and wanders meanwhile, ignoring you; entering its ground ends the calm at once. shared/predation.js.',
-  onChange: (v) => { pace.grace = v === 'Off' ? 0 : parseFloat(v); hunger.reset(pace.grace); } });
+F({ id: 'grace', group: 'Simulation', label: 'Calm opening', choices: ['Until its ground', '20 s', 'Off'], value: 'Until its ground',
+  about: 'Until its ground (default): the predatory mite stays calm until someone first walks onto its hunting ground (no clock). 20 s / Off: a test calm on a timer, or none. shared/predation.js.',
+  onChange: (v) => { pace.grace = v === 'Off' ? 0 : v === '20 s' ? 20 : Infinity; hunger.reset(pace.grace); } });
 F({ id: 'hunger', group: 'Simulation', label: 'Predator hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
-  about: 'Comes and goes: after the calm opening it is hungry for ~18-32 s at a time, then rests (45-75 s after eating you, 15-30 s after you slip free, lose it or it gives up on your capsule); only a hungry predator searches toward you and hunts. Always: hungry from the end of the calm opening on. Never: it never hunts (for exploring and testing).',
+  about: 'Comes and goes: once it is awake it is hungry for ~18-32 s at a time, then rests (45-75 s after eating you, 15-30 s after you slip free, lose it or it gives up on your capsule); only a hungry predator searches toward you and hunts. Always: hungry from the end of the calm opening on. Never: it never hunts (for exploring and testing).',
   onChange: (v) => (pace.mode = v) });
 F({ id: 'camwalk', group: 'Controls', label: 'Camera-relative walking', fixed: true,
   about: 'LS walks relative to the view; the mite turns toward the stick at a limited rate and walks forward (it does not strafe).' });
@@ -616,16 +639,25 @@ function biteNow() {
     Object.assign(play, { act: 'clear', actT: 0, actDur: 0.32, snapped: false });
     return;
   }
-  let best = null, bd = 130;
+  // food: the tile's (spores and hyphal tips, in tile coordinates: the copy
+  // nearest the mouth) and the thickets' spore heads (where they stand)
+  let best = null, bd = 130, bsx = 0, bsz = 0;
   for (const f of world.food) {
     if (f.left <= 0) continue;
-    const p = f.kind === 'hypha' ? world.foliage.offsetAt(f.rod, f.u, _fp).add(f.p) : f.p;
-    const d = p.distanceTo(m);
-    if (d < bd) { bd = d; best = f; }
+    const p = f.kind === 'hypha' ? world.foliage.offsetAt(f.rod, f.u, _fp).add(f.p) : _fp.copy(f.p);
+    const sx = TILE * Math.round((m.x - p.x) / TILE), sz = TILE * Math.round((m.z - p.z) / TILE);
+    const d = Math.hypot(p.x + sx - m.x, p.y - m.y, p.z + sz - m.z);
+    if (d < bd) { bd = d; best = f; bsx = sx; bsz = sz; }
+  }
+  for (const f of thicket.food) {
+    if (f.left <= 0) continue;
+    const d = f.p.distanceTo(m);
+    if (d < bd) { bd = d; best = f; bsx = 0; bsz = 0; }
   }
   if (best) {
     const p0 = best.kind === 'hypha' ? world.foliage.offsetAt(best.rod, best.u, _fp).add(best.p).clone() : best.p.clone();
-    Object.assign(play, { act: 'eat', actT: 0, actDur: 0.9, food: best, food0: p0 });
+    p0.x += bsx; p0.z += bsz;
+    Object.assign(play, { act: 'eat', actT: 0, actDur: 0.9, food: best, food0: p0, foodSx: bsx, foodSz: bsz });
     audio.play('mite/bite', { volume: 0.8, rate: 0.95 + Math.random() * 0.12 });
     return;
   }
@@ -633,7 +665,7 @@ function biteNow() {
   mite.bite();
   audio.play('mite/bite', { volume: 0.6, rate: 1.2 });
 }
-const _sm = new THREE.Matrix4(), _sp = new THREE.Vector3(), _sq = new THREE.Quaternion(), _ss = new THREE.Vector3();
+const _sm = new THREE.Matrix4(), _sp = new THREE.Vector3(), _sq = new THREE.Quaternion(), _ss = new THREE.Vector3(), _sp2 = new THREE.Vector3();
 /** Move and shrink a spore instance (s: 1 whole, 0 gone). */
 function placeSpore(f, at, s) {
   if (!f.s0) { f.im.getMatrixAt(f.i, _sm); _sm.decompose(_sp, _sq, _ss); f.s0 = _ss.clone(); f.q0 = _sq.clone(); }
@@ -644,8 +676,8 @@ function placeSpore(f, at, s) {
 /** Advance the current player's act and pose it (mite.act). */
 function stepAct(dt) {
   if (!play.act || mite.mode !== 'walk') {
-    if (play.act === 'eat' && play.food && play.food.kind === 'spore') placeSpore(play.food, play.food0, 1);
-    if (play.act === 'eat' && play.food && play.food.kind === 'head' && play.food.left > 0) world.shrinkHead(play.food, 1);
+    if (play.act === 'eat' && play.food && play.food.kind === 'spore') placeSpore(play.food, _sp2.set(play.food0.x - play.foodSx, play.food0.y, play.food0.z - play.foodSz), 1);
+    if (play.act === 'eat' && play.food && play.food.kind === 'head' && play.food.left > 0) thicket.shrinkHead(play.food, 1);
     play.act = null; mite.act({}); return;
   }
   play.actT += dt;
@@ -682,12 +714,13 @@ function stepAct(dt) {
     const at = play.food0.clone().lerp(m.clone().add(new THREE.Vector3(0, -8, 0)), Math.min(1, u / 0.35));
     mite.act({ hold: at, holdK: reach, rear: 0.15 * reach });
     if (Math.floor(play.actT / 0.22) !== Math.floor((play.actT - dt) / 0.22)) mite.bite();
-    if (f.kind === 'spore') placeSpore(f, at, 1 - Math.max(0, (u - 0.3) / 0.7));
-    if (f.kind === 'head') world.shrinkHead(f, 1 - Math.max(0, (u - 0.3) / 0.7));
+    // (the spore is drawn in its tile copy: back into tile coordinates)
+    if (f.kind === 'spore') placeSpore(f, _sp2.set(at.x - play.foodSx, at.y, at.z - play.foodSz), 1 - Math.max(0, (u - 0.3) / 0.7));
+    if (f.kind === 'head') thicket.shrinkHead(f, 1 - Math.max(0, (u - 0.3) / 0.7));
     if (u >= 1) {
       play.grazed++;
       if (f.kind === 'spore') { f.left = 0; world.eatSpore(f); hud.toast(`Ate a fungal spore (${play.grazed} grazed)`); }
-      else if (f.kind === 'head') { f.left = 0; f.t = 30; world.shrinkHead(f, 0); hud.toast(`Grazed a conidiophore's spore head (${play.grazed} grazed)`); }
+      else if (f.kind === 'head') { f.left = 0; f.t = 30; thicket.shrinkHead(f, 0); hud.toast(`Grazed a conidiophore's spore head (${play.grazed} grazed)`); }
       else { f.left = 0; f.t = 25; hud.toast(`Nibbled a hyphal tip (${play.grazed} grazed)`); }
       if (rumbleOn) padOf().rumble(60, 0.25, 0.1);
     }
@@ -716,7 +749,8 @@ function bodyOf(m) {
   return { center: _bc.set(nc[0], nc[1], nc[2]).multiplyScalar(m.scale).applyQuaternion(m.quat).add(m.center).clone(), quat: m.quat,
     radii: [mr[0] * 1.2 + 30, mr[1] * 1.15 + 30, mr[2] * 1.45 + 30], // legs splay; + half a blade width
     load: rod, weight: m.anat.kind === 'pred' ? 13000 : 16000 * m.scale ** 3,
-    loadU: rod ? Math.min(1, Math.max(0, _bc2.copy(g.point).sub(rod.base).dot(rod.axis) / rod.len)) : 0.7 };
+    // (a tile blade: the contact point taken into its copy)
+    loadU: rod ? Math.min(1, Math.max(0, _bc2.set(g.point.x - TILE * Math.round((g.point.x - rod.mid.x) / TILE), g.point.y, g.point.z - TILE * Math.round((g.point.z - rod.mid.z) / TILE)).sub(rod.base).dot(rod.axis) / rod.len)) : 0.7 };
 }
 const _bc2 = new THREE.Vector3();
 // ---------- sound ----------
@@ -745,7 +779,7 @@ function soundTick(dt, ev) {
       if (bend < 0.05) { snd.bladeNear.delete(rod); continue; }
       if (bend > 0.12 && !snd.bladeNear.has(rod)) {
         snd.bladeNear.add(rod);
-        const d = rod.mid.distanceTo(mite.center);
+        const d = Math.hypot((rod.mid.x - mite.center.x) - TILE * Math.round((rod.mid.x - mite.center.x) / TILE), rod.mid.y - mite.center.y, (rod.mid.z - mite.center.z) - TILE * Math.round((rod.mid.z - mite.center.z) / TILE));
         if (d < 700) {
           snd.lastBlade = snd.t;
           audio.play('mite/blade', { volume: Math.min(0.8, 0.3 + bend * 2) * (1 - d / 900), rate: 0.9 + Math.random() * 0.2 });
@@ -803,12 +837,16 @@ function respawnNear(P) {
   P.play.hurt = 0; P.play.stun = 0; P.play.heal = 0;
 }
 
-// ---------- landmarks ----------
-// Forward (FORWARD, landmarks.js): any player reaching the water in the leaf
-// axil zooms into the tardigrade's world; in the game the others follow
-// through the transition. Backdoor (BACKDOOR): dwell beside the giant
-// springtail's head and Y (here, instead of closing up) rises to the bog surface.
-const lm = { fired: false, near: false, log: [] };
+// ---------- landmarks: the portal (forward) and the backdoor ----------
+// Forward, the portal: the wet leaf axil (landmarks.js), placed once a game on
+// the portal ring at the bearing of whoever first gets PORTAL_PLACE out (out
+// of everyone's view), guarded by the pseudoscorpion. Reaching its water while
+// the pseudoscorpion is on guard turns you back (a toast, once a visit); lured
+// off or driven off, the water lets you through (enterPortal: the one place
+// the zoom into the tardigrade's world starts). Backdoor (BACKDOOR): dwell
+// beside the giant springtail's head and Y (here, instead of closing up)
+// rises to the bog surface.
+const lm = { fired: false, near: false, nearing: false, log: [], blocked: false };
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const atBack = (P) => !held(P) && flat(P.mite.center, props.back) < BACKDOOR.dwell;
 const backPrompt = document.createElement('div');
@@ -818,25 +856,45 @@ function goBack(P) {
   lm.log.push({ kind: 'back', slot: P.slot, t: +simTime.toFixed(2) });
   embed.landmark('back', { player: P.slot });
 }
+const PORTAL = props.forward; // { placed, a, x, z, ... }
+const portalState = { hinted: false, turned: false };
+/** Is the pseudoscorpion on guard at the water (not lured more than 1.3 mm off it, not driven off)? */
+function guarded() {
+  if (!PORTAL.placed) return true;
+  if (!boss.group.visible || ['gone', 'retreat'].includes(boss.st.state)) return false;
+  return Math.hypot(boss.st.x - PORTAL.x, boss.st.z - PORTAL.z) < 1300;
+}
 function checkLandmarks() {
-  let at = null, nearF = false, nearB = false, dmin = Infinity;
+  let at = null, nearB = false, dmin = Infinity;
   for (const P of recs()) {
     if (held(P)) continue;
     const c = P.mite.center;
-    const d = flat(c, FORWARD);
-    dmin = Math.min(dmin, d);
-    if (d < FORWARD.reach && Math.abs(c.y - props.forward.y) < 450) at = P;
-    if (d < FORWARD.reach + 250) nearF = true;
+    if (PORTAL.placed) {
+      const d = flat(c, PORTAL);
+      dmin = Math.min(dmin, d);
+      if (d < FORWARD.reach && Math.abs(c.y - PORTAL.y) < 450) at = P;
+    }
     if (atBack(P)) nearB = true;
   }
-  props.update(simTime, dmin);
-  if (at && !lm.fired) {
-    lm.fired = true;
-    lm.log.push({ kind: 'forward', slot: at.slot, t: +simTime.toFixed(2) });
-    withRec(at, () => { if (rumbleOn) padOf().rumble(200, 0.3, 0.3); });
-    embed.landmark('forward', { player: at.slot });
+  if (PORTAL.placed && !outro) {
+    // the boss's hint (brief, once): only when someone is close enough to meet it
+    if (!portalState.hinted && dmin < 3200) { portalState.hinted = true; hud.toast('A pseudoscorpion guards the water. Lure it away from its post and get round it, or bite its pincer joints until it backs off', 3600); }
+    // nearing the way on (a screen or two): the shell starts loading the next world (no prompt is shown)
+    const nearing = dmin < 3000;
+    if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
+    if (at && !lm.fired) {
+      if (guarded()) {
+        if (!portalState.turned) { portalState.turned = true; hud.toast('Turned back: the pseudoscorpion is on guard. Lead it away from the water first, then get round it', 3600); }
+        lm.log.push({ kind: 'turnedBack', slot: at.slot, t: +simTime.toFixed(2) });
+        lm.fired = true; // once a visit (again after everyone has left)
+        lm.blocked = true;
+        withRec(at, () => { if (rumbleOn) padOf().rumble(160, 0.4, 0.2); });
+      } else enterPortal(at);
+    }
+    if (dmin > FORWARD.reach + 250) { lm.fired = false; lm.blocked = false; }
+    // turned back earlier but now open while still at the water: go through
+    if (lm.blocked && at && !guarded()) { lm.blocked = false; lm.fired = false; enterPortal(at); }
   }
-  if (!nearF) lm.fired = false;
   if (nearB !== lm.near) {
     lm.near = nearB;
     embed.near('back', nearB, 'Rise to the bog surface');
@@ -846,6 +904,171 @@ function checkLandmarks() {
       backPrompt.textContent = `${hud.glyphs === 'keyboard' ? 'R' : 'Y'}: back to the bog surface`;
     }
   }
+}
+/**
+ * The way on: player P has reached the open portal. This is the one place the
+ * zoom into the next world is triggered (embed.landmark('forward'); the shell
+ * runs the continuous transition; standalone, embed.js shows a toast).
+ */
+function enterPortal(P) {
+  if (outro) return;
+  lm.fired = true;
+  lm.log.push({ kind: 'forward', slot: P.slot, t: +simTime.toFixed(2) });
+  logChallenge('enter', P);
+  startOutro(P);
+  embed.landmark('forward', { player: P.slot, outro: embed.active });
+}
+
+// ---------- the rings: one predator and one portal, met in every direction ----------
+// The views' frustums from the last frame drawn: a thing can move only where no view sees it.
+const viewFrusta = [];
+const _vs = new THREE.Sphere(), _vp = new THREE.Vector3();
+/** Can no view see a disc of radius r (µm) at (x, z), and is it clear of every player by `clear`? */
+function unseen(x, z, r, clear = 1500) {
+  _vs.center.set(x, floorH(x, z) + 300, z); _vs.radius = r + 400;
+  for (const f of viewFrusta) if (f.intersectsSphere(_vs)) return false;
+  for (const P of recs()) if (Math.hypot(P.mite.center.x - x, P.mite.center.z - z) < r + clear) return false;
+  return true;
+}
+const relocLog = [];
+/** Is the predator busy with anyone (hunting, striking, holding, or anyone within its reach)? */
+const predEngaged = () => (capture.active && !cap.byBoss) || ['hunt', 'windup', 'strike', 'recover', 'recoil'].includes(predAI.state) || recs().some((P) => P.mite.center.distanceTo(pred.center) < 1800);
+/** Put the predator's ground on its ring k at bearing a (and the predator in it). */
+function placeZone(k, a, why = 'test') {
+  Object.assign(predZone, predZoneAt(k, a));
+  predZone.k = k; predZone.a = a;
+  // it starts a little to one side of the bearing, inside its ground
+  const s = predZoneAt(k, a + 0.25 * (PRED_GROUND.r / RINGS.pred[k]));
+  predAI.reset(s.x, s.z);
+  pred.st.chel = 0;
+  relocLog.push({ k, a: +a.toFixed(3), t: +simTime.toFixed(2), why });
+}
+predZone.k = 0; predZone.a = A0;
+const LEAD = 5000; // µm: how far before its ground a player's approach moves it (it must still be out of view there)
+function moveRings() {
+  // the predator: to whoever is approaching one of its rings (farthest out first), when nobody sees it go
+  if (predOn && !predEngaged()) {
+    const who = [];
+    for (const P of recs()) {
+      if (held(P)) continue;
+      const d = distFromStart(P.mite.center.x, P.mite.center.z);
+      for (let k = 0; k < RINGS.pred.length; k++) if (d > RINGS.pred[k] - PRED_GROUND.r - LEAD && d < RINGS.pred[k] + PRED_GROUND.r) who.push({ P, d, k });
+    }
+    who.sort((a, b) => b.d - a.d);
+    if (who.length) {
+      const { P, k } = who[0];
+      const a = bearingFromStart(P.mite.center.x, P.mite.center.z);
+      const to = predZoneAt(k, a);
+      const there = predZone.k === k && Math.hypot(to.x - predZone.x, to.z - predZone.z) < PRED_GROUND.r * 0.6;
+      if (!there && unseen(pred.center.x, pred.center.z, 600) && unseen(to.x, to.z, PRED_GROUND.r)) placeZone(k, a, `slot ${P.slot}`);
+    }
+  }
+  // the portal: once a game, on its ring at the bearing of the first player to get
+  // PORTAL_PLACE out (or the nearest bearing within ±60° where no view sees it)
+  if (!PORTAL.placed) {
+    let lead = null, ld = 0;
+    for (const P of recs()) { const d = distFromStart(P.mite.center.x, P.mite.center.z); if (!held(P) && d > ld) { ld = d; lead = P; } }
+    if (lead && ld >= PORTAL_PLACE) {
+      const a0 = bearingFromStart(lead.mite.center.x, lead.mite.center.z);
+      for (let i = 0; i < 41; i++) {
+        const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.05;
+        const q = portalAt(a);
+        if (unseen(q.x, q.z, PORTAL_CLEAR + 1200, 3000) && unseen(q.post.x, q.post.z, 1500, 3000)) { placePortal(a); logChallenge('portal', lead); break; }
+      }
+    }
+  }
+}
+/** Put the portal (the wet leaf axil) on its ring at bearing a, with the pseudoscorpion on guard before it. */
+function placePortal(a) {
+  props.place(a);
+  boss.setPost(PORTAL.post, PORTAL.home);
+  boss.setVisible(true);
+  world.exclude.set('portal', [{ x: PORTAL.x, z: PORTAL.z, r: PORTAL_CLEAR }, { x: PORTAL.post.x, z: PORTAL.post.z, r: 1100 }]);
+  portalState.hinted = false; portalState.turned = false;
+  relocLog.push({ k: 'portal', a: +a.toFixed(3), t: +simTime.toFixed(2) });
+}
+
+// ---------- the outro: success, slow-down, freeze (embed.js "Continuous transitions") ----------
+// Going through the portal: a golden burst from the water, a bloom on the
+// screen, a chime and a rumble; then time eases to a stop over ~1 s while
+// rendering carries on (the freeze frame), the view settling on the water.
+// Frozen, it reports how the tardigrade walking in the film is framed
+// (embed.frozen) and follows the shell's `camera` poses: a short push in on the
+// tardigrade while the tardigrade's world fades in under the same framing (the
+// same body size: a change of light, SEM to DIC, more than of scale). In frame
+// time (dt is clamped), so a slow machine plays it slower rather than skipping
+// it. Standalone the freeze holds a moment and time comes back.
+const OUTRO = { beat: 0.3, ease: 1.0, hold: 1.4, back: 0.6, giveUp: 8, rate: 1 }; // rate: tests slow it down
+// The tardigrade world's opening view of its animal (a pose: embed.js; measured
+// with its __micro.pose() at the start), and the field the freeze holds: the
+// glimpse at ~0.18 of the view's width, so the move pushes in ~1.35x to it.
+const NEXT_OPENING = { f: 0.243, pitch: 1.18, rel: 2.598 };
+const OUTRO_HFW = TARDI_LEN / (NEXT_OPENING.f / 1.35);
+let outro = null;
+let fxT = 0; // the success effects' clock (frame time, so a slow machine or a test sees all of them)
+const portalLight = createPortalLight({ zIndex: 3, clock: () => fxT });
+function startOutro(P) {
+  outro = { t: 0, scale: 1, frozenAt: null, cam: null, P, heard: false, d: 0,
+    from: { target: rig.target.clone(), pitch: rig.pitch, hfw: rig.viewHfw ?? rig.hfw, h: props.tardi.heading } };
+  props.glow.burst();
+  const pr = split.project(0, _vp.set(PORTAL.x, PORTAL.y, PORTAL.z));
+  if (!pr.behind) portalLight.bloom(pr.x, pr.y, { scale: 1.2 });
+  const me = split.project(0, P.mite.center);
+  if (!me.behind) portalLight.bloom(me.x, me.y, { scale: 0.7 });
+  audio.play('shared/portal-chime', { volume: 0.9 });
+  withRec(P, () => { if (rumbleOn) padOf().rumble(520, 0.55, 0.85); });
+  hud.toast('', 1);
+  banner.style.display = 'none'; gauge.style.display = 'none';
+  if (embed.active) embed.cinematic(true, canvas);
+}
+/** Advance the outro by dt (frame time); returns the time scale for the world. */
+function stepOutro(dt) {
+  const o = outro;
+  o.t += dt * OUTRO.rate;
+  fxT += dt * OUTRO.rate;
+  o.scale = 1 - THREE.MathUtils.smoothstep(o.t, OUTRO.beat, OUTRO.beat + OUTRO.ease);
+  if (o.scale <= 0 && o.frozenAt === null) {
+    o.frozenAt = o.t;
+    // the freeze frame: the camera exactly where the outro's framing ends, and how it frames the tardigrade
+    o.d = placeCamera(1e-4);
+    if (embed.active) embed.frozen(tardiPose());
+  }
+  if (o.frozenAt !== null) {
+    const heldT = o.t - o.frozenAt;
+    // standalone (or a shell that never answered): time comes back
+    const back = !embed.active ? heldT - OUTRO.hold : !o.heard && heldT > OUTRO.giveUp ? heldT - OUTRO.giveUp : -1;
+    if (back >= 0) {
+      o.scale = THREE.MathUtils.smoothstep(back, 0, OUTRO.back);
+      if (back >= OUTRO.back) endOutro();
+    }
+  }
+  return outro ? outro.scale : 1;
+}
+function endOutro() {
+  outro = null;
+  if (embed.active) embed.cinematic(false, canvas);
+}
+/** How the frozen view frames the tardigrade in the water (embed.poseOf). */
+const tardiPose = () => embed.poseOf(camera, props.tardi.center, { len: TARDI_LEN, heading: props.tardi.heading, pitch: rig.pitch, yaw: rig.yaw });
+// the shell drives the camera from the freeze frame into the tardigrade's world
+embed.on('camera', (d) => { if (outro && d.pose) { outro.cam = d.pose; outro.heard = true; } });
+embed.on('pause', () => { if (outro) outro.heard = true; });
+/** The camera for a pose from the shell during the outro: a dolly onto the tardigrade (the scan's field of view kept). */
+function placeOutroCamera(pose) {
+  const c = props.tardi.center;
+  const r = embed.poseCamera(camera, pose, c, { len: TARDI_LEN, heading: props.tardi.heading });
+  rig.yaw = r.yaw; rig.pitch = r.pitch;
+  rig.target.set(r.target.x, r.target.y, r.target.z);
+  rig.viewHfw = 2 * r.halfW;
+  const d = r.depth;
+  camera.near = Math.max(20, d * 0.08);
+  camera.far = d + 9000;
+  camera.updateProjectionMatrix();
+  camera.updateMatrixWorld();
+  shared.uCutP.value.copy(c).applyMatrix4(camera.matrixWorldInverse);
+  shared.uCutR.value = 380 + rig.viewHfw * 0.06;
+  world.cut.update(1 / 30, camera.position, c, { radius: 340, margin: 110, keep: cutKeep, period: TILE });
+  return d;
 }
 
 // ---------- the scramble's stamina, its dust, the pounce-bite ----------
@@ -903,30 +1126,35 @@ function startDive() {
   if (mite.dive(at)) { play.dive = { target: best, at }; if (rumbleOn) padOf().rumble(80, 0.2, 0.2); }
 }
 let hitPause = 0;
-// ---------- where the challenges start (layout.js: all at or past halfway) ----------
+// ---------- where the challenges start (layout.js RINGS) ----------
 const thickLog = { biteTip: false };
 const thickBodies = [], bodyRefs = [];
 const bodyRef = (slot, p, radius) => { const b = bodyRefs[slot] || (bodyRefs[slot] = { position: new THREE.Vector3(), radius, slot }); b.position.copy(p); b.radius = radius; return b; };
-/** First start of each challenge: { kind, slot, s (µm along the route), frac (of the way), t }. */
+/** First start of each challenge: { kind, slot, d (µm from the start), frac (of the portal ring), t }. */
 const challengeLog = [];
 function logChallenge(kind, P) {
   if (challengeLog.some((c) => c.kind === kind)) return;
-  const c = P.mite.center, sAlong = progress(c.x, c.z);
-  challengeLog.push({ kind, slot: P.slot, s: Math.round(sAlong), frac: +(sAlong / ROUTE.length).toFixed(3), t: +simTime.toFixed(2) });
+  const c = P.mite.center, d = distFromStart(c.x, c.z);
+  challengeLog.push({ kind, slot: P.slot, d: Math.round(d), frac: +(d / PORTAL_R).toFixed(3), t: +simTime.toFixed(2) });
 }
 function challenges() {
   for (const P of recs()) {
     if (held(P)) continue;
     const c = P.mite.center;
-    if (predAI.onGround(c)) {
-      // entering its ground ends the calm opening: it is hungry and lurking
-      if (!challengeLog.some((x) => x.kind === 'predator ground')) { if (hunger.state === 'grace') { hunger.reset(0); hunger.update(0.01); } hud.toast('The predatory mite\'s hunting ground: it lurks at the thicket\'s edge', 2600); }
-      logChallenge('predator ground', P);
+    if (predOn && predAI.onGround(c)) {
+      // walking onto its ground ends its calm: it is awake (hungry now and then) and lurking
+      if (!challengeLog.some((x) => x.kind.startsWith('predator ground'))) { if (hunger.state === 'grace') { hunger.reset(0); hunger.update(0.01); } hud.toast('The predatory mite\'s hunting ground: watch for it rearing to strike', 2600); }
+      logChallenge(`predator ground ${predZone.k + 1}`, P);
     }
-    if (thicket.inside(c)) {
-      if (!challengeLog.some((x) => x.kind === 'crowd')) hud.toast('A hyphal thicket full of springtails: push through (LS), bite the threads away (X), scramble (B)', 3200);
-      logChallenge('crowd', P);
+    const cl = thicket.inside(c);
+    if (cl) {
+      if (!challengeLog.some((x) => x.kind.startsWith('thicket'))) hud.toast('A hyphal thicket full of springtails: push through (LS), bite the threads away (X), scramble (B)', 3200);
+      logChallenge(`thicket ${cl.ring + 1}`, P);
     }
+    // near each challenge (within 400 µm of it): the times a scripted rush meets them
+    if (thicket.inside(c, 400)) logChallenge(`thicketNear ${thicket.inside(c, 400).ring + 1}`, P);
+    if (predOn && Math.hypot(c.x - predZone.x, c.z - predZone.z) < predZone.r + 400) logChallenge(`predatorNear ${predZone.k + 1}`, P);
+    if (PORTAL.placed && flat(c, PORTAL) < 3000) logChallenge('portalNear', P);
   }
 }
 /** The dive lands: a strong bite if the target is still there, a squash, a rebound; or a clear miss. */
@@ -994,10 +1222,15 @@ function tick(dt, inputs) {
     if (pl.scr) { pl.stam = Math.max(0, pl.stam - dt / 1.6); if (Math.random() < dt * 30) kickDust(P.mite, 1); }
     else pl.stam = Math.min(1, pl.stam + dt / 2.8);
   }
+  // grazed hyphal tips and spore heads grow back (spores do not: there are plenty)
   for (const f of world.food) {
-    if (f.left > 0 || (f.kind !== 'hypha' && f.kind !== 'head') || (f.t -= dt) > 0) continue;
+    if (f.left > 0 || f.kind !== 'hypha' || (f.t -= dt) > 0) continue;
     f.left = 1;
-    if (f.kind === 'head') world.shrinkHead(f, 1);
+  }
+  for (const f of thicket.food) {
+    if (f.left > 0 || (f.t -= dt) > 0) continue;
+    f.left = 1;
+    thicket.shrinkHead(f, 1);
   }
   // the catch: the victim's own pad restarts (alone) or closes up
   const who = capture.active && cap.who ? cap.who : P1;
@@ -1016,7 +1249,10 @@ function tick(dt, inputs) {
   else if (predOn) hunger.update(dt);
   // Blades and hyphae move first (pushed and loaded by where the mites were),
   // so each mite then settles on, and clears, the surfaces as they are now.
-  world.foliage.update(dt, [...recs().map((P) => P.mite), ...(npcOn ? [npc] : []), ...(predOn ? [pred] : [])].map(bodyOf));
+  // (the tile's blades and hyphae see each body's copies in tile coordinates; the thickets' threads stand where they are)
+  const fbodies = [...recs().map((P) => P.mite), ...(npcOn ? [npc] : []), ...(predOn ? [pred] : [])].map(bodyOf);
+  world.foliage.update(dt, world.tileBodies(fbodies));
+  thicket.updateFoliage(dt, fbodies);
   const evs = [];
   for (const P of recs()) withRec(P, () => {
     dash.update(dt);
@@ -1099,8 +1335,8 @@ function tick(dt, inputs) {
   // each player's act (bite, eat, fight), and the last safe spot
   for (const P of recs()) withRec(P, () => { stepAct(dt); if (!held(P) && pred.center.distanceTo(mite.center) > 1200 && mite.mode === 'walk' && (P.safeT = (P.safeT || 0) + dt) > 1) { P.safeT = 0; P.safe = mite.center.clone(); } });
   for (const P of recs()) P.play.nip = false;
-  // the boss (boss.js): dormant before the axil until someone comes near after the calm opening
-  if (!(capture.active && cap.byBoss)) {
+  // the boss (boss.js): on guard before the axil once the portal is placed, dormant until someone comes near
+  if (PORTAL.placed && !(capture.active && cap.byBoss)) {
     // placement paces it (layout.js): it wakes whenever someone comes near its post
     const bctx = { awake: true, players: recs().map((P) => {
       const c = P.mite.center, f = new THREE.Vector3(1, 0, 0).applyQuaternion(P.mite.quat).setY(0).normalize();
@@ -1112,8 +1348,9 @@ function tick(dt, inputs) {
       if (e.type === 'wake') {
         let nearest = P1, nd = Infinity;
         for (const Q of recs()) { const d = Math.hypot(Q.mite.center.x - boss.post.x, Q.mite.center.z - boss.post.z); if (d < nd) { nd = d; nearest = Q; } }
+        const first = !challengeLog.some((x) => x.kind === 'boss');
         logChallenge('boss', nearest);
-        hud.toast('A pseudoscorpion lies in wait before the water! Watch for its pincers held open and still', 3000);
+        if (first) hud.toast('The pseudoscorpion wakes! Watch for its pincers held open and still', 3000);
       }
       else if (e.type === 'tell') { for (const Q of recs()) if (Q.mite.center.distanceTo(boss.center) < 2600) withRec(Q, () => { if (rumbleOn) padOf().rumble(200, 0.12, 0); }); }
       else if (['snap', 'sweep', 'step'].includes(e.type)) audio.play('mite/predator', { volume: 0.8, rate: 0.7 });
@@ -1121,8 +1358,11 @@ function tick(dt, inputs) {
       else if (e.type === 'survived') hud.toast('Closed up: the pincer closes on a smooth capsule', 1600);
       else if (e.type === 'miss') hud.toast('It missed: bite its pincer joints (X) while it recovers', 1500);
       else if (e.type === 'retreat') hud.toast('The pseudoscorpion backs into the moss: the way is open', 2600);
+      else if (e.type === 'return') hud.toast('The pseudoscorpion turns back to guard the water', 1800);
     }
   }
+  props.update(simTime, dt);
+  moveRings();
   checkLandmarks();
   return evs;
 }
@@ -1229,15 +1469,37 @@ let frames = 0, statT = 0;
 // resolution (the quality governor's split factor): the composite costs per pixel.
 const split = createSplitScreen(renderer, { capture: true });
 const marks = createLandmarks();
-const _vc = new THREE.Vector3();
+const _vc = new THREE.Vector3(), _vd = new THREE.Vector3(), _pm = new THREE.Matrix4();
+/** Where a view looks: its line of sight met with the floor's mean level (or 5 mm out, looking up). */
+function viewTarget(cam, out) {
+  cam.getWorldDirection(_vd);
+  const t = _vd.y < -0.05 ? cam.position.y / -_vd.y : 5000;
+  return out.copy(cam.position).addScaledVector(_vd, Math.min(t, 12000));
+}
+let glowT = 0;
+const glowU = props.glow.group.children[0].material.uniforms; // (its shared uniforms: uI is its brightness)
 function drawFrame(dt) {
+  glowT += dt;
+  if (PORTAL.placed) {
+    props.glow.setOpen(!guarded());
+    props.glow.update(dt, glowT, camera, outro ? outro.t : undefined);
+    // after the burst the sparkle dims, so the tardigrade in the water reads in the freeze frame
+    glowU.uI.value = outro ? 1.15 - 0.8 * THREE.MathUtils.smoothstep(outro.t, 0.5, 1.3) : 1.15;
+  }
   // a caught player's view follows the predator with its meal
   const eating = capture.active && ['eat', 'follow', 'fadeOut'].includes(capture.phase);
   split.update(recs().map((P) => ({ slot: P.slot, position: (eating && cap.who === P ? (cap.byBoss ? boss.center : pred.center) : P.mite.center).clone() })), { camera }, dt);
   quality.setSplitViews(split.views.length);
   const one = split.views.length === 1;
   const cut0 = shared.uCutP.value.clone();
+  let fi = 0;
   split.render(camera, (view) => {
+    // the scenery tile's copies round this view's target, and this view's frustum (what it can see: moveRings)
+    viewTarget(camera, _vc);
+    world.setView(camera, _vc.x, _vc.z);
+    const f = viewFrusta[fi] || (viewFrusta[fi] = new THREE.Frustum());
+    f.setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    fi++;
     if (!one) {
       // the cutaway clears the way to this view's own players
       _vc.set(0, 0, 0);
@@ -1248,12 +1510,23 @@ function drawFrame(dt) {
     // the screen pass is scissored to this view's region by the split; the G-buffer too
     if (!one) split.scissor(view, sem.target);
     renderView(dt);
+    // the portal's golden glow, over the micrograph (additive; it reads through the moss)
+    if (PORTAL.placed) { renderer.clearDepth(); renderer.render(glowScene, camera); }
   });
+  viewFrusta.length = fi;
   split.unscissor(sem.target);
   shared.uCutP.value.copy(cut0);
   marks.begin();
+  portalLight.begin();
   if (intro && !('ease' in intro)) return; // held in the intro: no marks
-  marks.drawSplit(split, props.forward, { kind: 'forward', label: 'Water', range: 4000 });
+  // no arrow (the owner: keep moving and you find it): once placed, the portal's golden
+  // light spills in from the edge of the view on its side, or haloes it in view; no text
+  if (PORTAL.placed && !outro) {
+    let d = Infinity;
+    for (const P of recs()) d = Math.min(d, flat(P.mite.center, PORTAL));
+    portalLight.drawSplit(split, PORTAL.at, { strength: THREE.MathUtils.clamp(1.2 - d / 9000, 0.4, 1), open: props.glow.open });
+  }
+  if (outro) return;
   marks.drawSplit(split, props.back, { kind: 'backdoor', label: 'Up', range: 4000 });
   // players' colours: a faint ring round each mite (with company only)
   if (multi()) {
@@ -1286,9 +1559,10 @@ function updateText(d) {
   const mag = 127000 / rig.hfw; // relative to a 127 mm (Polaroid 4x5) reference image width
   const st = mite.mode === 'air' ? 'jumping' : mite.mode === 'crouch' ? 'crouching to jump' : mite.mode === 'walk' ? (play.scr ? `SCRAMBLE ${mite.speed.toFixed(0)} µm/s` : mite.st.climbing > 0.2 ? `climbing ${mite.speed.toFixed(0)} µm/s` : mite.speed > 5 ? `walking ${mite.speed.toFixed(0)} µm/s` : 'standing') : mite.mode === 'closed' ? 'closed (ptychoid)' : mite.mode;
   const fol = world.foliage.stats;
-  const pst = predOn ? `predator ${capture.active ? `CAPTURE ${capture.phase}` : predAI.state === 'hunt' ? 'HUNTING' : predAI.state === 'recoil' ? 'recoiling' : 'wandering'} ${predAI.dist.toFixed(0)} µm · ${hunger.state} ${hunger.left.toFixed(0)} s` : '';
+  const pst = predOn ? `predator ${capture.active ? `CAPTURE ${capture.phase}` : predAI.state === 'hunt' ? 'HUNTING' : predAI.state === 'recoil' ? 'recoiling' : 'wandering'} ${predAI.dist.toFixed(0)} µm · ${hunger.state === 'grace' ? 'calm until its ground' : `${hunger.state} ${hunger.left.toFixed(0)} s`}` : '';
   const info = renderer.info.render;
-  hud.stats(`${MODES[sem.mode]}${qScale < 1 ? `  (res ${(qScale * 100).toFixed(0)}%)` : ''}\nHFW ${rig.hfw.toFixed(0)} µm   mag ${mag.toFixed(0)}x\n${st}\n${stamText(play)}   legs grabbed ${play.hurt}/3   grazed ${play.grazed}\n${pst}\nblades bending ${fol.moving}   pen ${mite.st.pen.toFixed(0)} µm\n${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
+  const out = distFromStart(mite.center.x, mite.center.z);
+  hud.stats(`${MODES[sem.mode]}${qScale < 1 ? `  (res ${(qScale * 100).toFixed(0)}%)` : ''}\n${(out / 1000).toFixed(1)} mm out${PORTAL.placed ? (guarded() ? ' · portal guarded' : ' · portal open') : ''}\nHFW ${rig.hfw.toFixed(0)} µm   mag ${mag.toFixed(0)}x\n${st}\n${stamText(play)}   legs grabbed ${play.hurt}/3   grazed ${play.grazed}\n${pst}\nblades bending ${fol.moving}   pen ${mite.st.pen.toFixed(0)} µm\n${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
   if (observer) {
     const sb = niceScale(rig.hfw);
     const px = (sb / rig.hfw) * innerWidth;
@@ -1310,7 +1584,7 @@ const api = {
     tick(dt, [{ dir: new THREE.Vector3(stick ? stick.x : 0, 0, stick ? stick.y : 0).normalize(), mag: m, maxSpeed: WALK, hold, accel: 0.18 }]);
   },
   // ---- multiplayer and landmarks (Playwright drives these)
-  players, split, marks, joins, landmarks: { forward: FORWARD, back: BACKDOOR, forwardAt: props.forward, backAt: props.back }, landmarkLog: lm.log, props,
+  players, split, marks, joins, landmarks: { forward: FORWARD, back: BACKDOOR, forwardAt: props.forward.at, backAt: props.back }, landmarkLog: lm.log, props,
   get frames() { return frames; },
   get layout() { return split.layout; },
   recs: () => recs().map((P) => ({ slot: P.slot, x: Math.round(P.mite.center.x), z: Math.round(P.mite.center.z), mode: P.mite.mode, hurt: P.play.hurt })),
@@ -1323,11 +1597,45 @@ const api = {
     return true;
   },
   fight, fightLog, boss, thicket, quality,
-  /** Where each challenge first started: [{ kind, slot, s (µm along the route), frac, t }]. */
+  /** Where each challenge first started: [{ kind, slot, d (µm from the start), frac (of the portal ring), t }]. */
   challenges: challengeLog,
-  plan: { route: ROUTE, along, progress, predZone: PRED_ZONE, thicket: THICKET, boss: BOSS_POST, forward: FORWARD },
-  /** Testing: player `slot` near the boss's post, the calm over: it wakes. */
-  bossFight(slot = 0) { const P = pls[slot] || P1; pace.mode = 'Always'; hunger.reset(0); hunger.update(0.01); boss.reset(); predAI.reset(...PRED_START); pace.mode = 'Never'; const b = boss.post; P.mite.place(b.x + b.ux * 1150, b.z + b.uz * 1150, Math.atan2(b.uz, -b.ux)); rig.target.copy(P.mite.center); hunger.reset(0); hunger.update(0.01); },
+  plan: { rings: RINGS, portalR: PORTAL_R, place: PORTAL_PLACE, clusters: CLUSTERS, predZone, tile: TILE },
+  /** The rings now: where the predator is, the portal (placed, bearing, guarded), the relocations. */
+  route() {
+    return { rings: RINGS, portalR: PORTAL_R, pred: { k: predZone.k, a: +predZone.a.toFixed(3), x: Math.round(predZone.x), z: Math.round(predZone.z), state: predAI.state },
+      portal: api.portal(), reloc: relocLog.slice() };
+  },
+  relocLog,
+  /** Testing: could no view see a disc of radius r at (x, z) (and is it clear of the players)? */
+  unseen: (x, z, r = 600, clear = 1500) => unseen(x, z, r, clear),
+  get viewCount() { return viewFrusta.length; },
+  /** How far out player `slot` is (0 at the start .. 1 on the portal ring). */
+  progress(slot = 0) { const P = pls[slot] || P1; return progressAt(P.mite.center.x, P.mite.center.z); },
+  /** The portal: placed, where, guarded or open, the boss's state and how far it is from the water. */
+  portal() {
+    return { placed: PORTAL.placed, a: +PORTAL.a.toFixed(3), x: Math.round(PORTAL.x), z: Math.round(PORTAL.z), guarded: PORTAL.placed && guarded(), open: PORTAL.placed && !guarded(),
+      boss: { state: boss.st.state, x: Math.round(boss.st.x), z: Math.round(boss.st.z), fromWater: PORTAL.placed ? Math.round(Math.hypot(boss.st.x - PORTAL.x, boss.st.z - PORTAL.z)) : null, fromPost: PORTAL.placed ? Math.round(Math.hypot(boss.st.x - boss.post.x, boss.st.z - boss.post.z)) : null },
+      glow: +props.glow.open.toFixed(2), tardigrade: PORTAL.placed ? props.tardi.center.toArray().map(Math.round) : null };
+  },
+  /** Testing: place the portal now at bearing a (default: player `slot`'s bearing). */
+  placePortal(a = null, slot = 0) { const P = pls[slot] || P1; placePortal(a ?? bearingFromStart(P.mite.center.x, P.mite.center.z)); return api.portal(); },
+  /** Testing: put the predator's ground on ring k at bearing a. */
+  placeZone(k, a) { placeZone(k, a); return { k: predZone.k, x: Math.round(predZone.x), z: Math.round(predZone.z) }; },
+  /** Go through the portal now as player `slot` (what reaching it while open does). */
+  enterPortal(slot = 0) { lm.fired = false; enterPortal(pls[slot] || P1); },
+  /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
+  outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
+  /** The outro's timings (seconds); `rate` slows it (tests). */
+  OUTRO,
+  /** Testing: advance the outro by n frames of dt, rendering each (deterministic stills). */
+  outroStep(n = 1, dt = 1 / 30) {
+    for (let i = 0; i < n && outro; i++) { const k = stepOutro(dt); simTime += dt * k; if (k > 0) tick(dt * k, []); const d = outro && outro.scale <= 0 ? (outro.d || placeCamera(1e-4)) : placeCamera(outro ? dt * Math.max(outro.scale, 0.15) : dt); if (outro) outro.d = d; drawFrame(dt); }
+    return api.outro();
+  },
+  /** How the frozen view frames the tardigrade (what embed.frozen reports). */
+  tardiPose: () => tardiPose(),
+  /** Testing: player `slot` near the boss's post (the portal placed on their bearing if it is not yet), the calm over: it wakes. */
+  bossFight(slot = 0) { const P = pls[slot] || P1; if (!PORTAL.placed) placePortal(bearingFromStart(P.mite.center.x, P.mite.center.z) || A0); pace.mode = 'Always'; hunger.reset(0); hunger.update(0.01); boss.reset(); predAI.reset(...PRED_START); pace.mode = 'Never'; const b = boss.post; P.mite.place(b.x + b.ux * 1150, b.z + b.uz * 1150, Math.atan2(b.uz, -b.ux)); rig.target.copy(P.mite.center); hunger.reset(0); hunger.update(0.01); },
   /** Testing: face the boss's nearest pincer joint, within bite reach. */
   bossBite(slot = 0) { const P = pls[slot] || P1; const j = boss.bitePoints()[0]; if (!j) return; const c = P.mite.center; const v = new THREE.Vector3(c.x - j.x, 0, c.z - j.z).normalize(); P.mite.place(j.x + v.x * 330, j.z + v.z * 330, Math.atan2(v.z, -v.x)); },
   impact(slot = 0) { const P = pls[slot] || P1; return { last: P.play.lastImpact || null, pounces: P.play.pounces || 0, mode: P.mite.mode, dive: !!P.play.dive, stam: P.play.stam, scr: !!P.play.scr }; },
@@ -1389,6 +1697,8 @@ const api = {
     startCapture();
   },
   render(dt = 1 / 60) { const d = placeCamera(0); drawFrame(dt); updateText(d); },
+  /** Testing: n steps of the simulation (players' pads as they are), no rendering; returns the frames stepped. */
+  steps(n = 1, dt = 1 / 30, inputs = []) { for (let i = 0; i < n; i++) { simTime += dt; tick(dt, inputs); } return n; },
   isolate(on) { world.group.visible = !on; npc.setVisible(!on); pred.setVisible(!on && predOn); },
   setMode(m) { sem.setMode(m); sem.skipScan(); },
 };
@@ -1420,7 +1730,8 @@ function frame() {
   if (api.paused) return;
   frames++;
   const held = embed.held || (intro && !('ease' in intro));
-  let k = 1;
+  // through the portal: time eases to a freeze (stepOutro), no input
+  let k = outro ? stepOutro(dt) : 1;
   if (intro && 'ease' in intro) {
     // after the transition: time eases back in
     intro.ease += dt;
@@ -1428,15 +1739,19 @@ function frame() {
     if (intro.ease >= INTRO_EASE) intro = null;
   }
   if (!held) {
-    const input = readInput(dt);
+    const input = outro ? [] : readInput(dt);
+    if (outro) players.poll();
     simTime += dt * k;
-    react(tick(dt * k, input));
+    if (k > 0) react(tick(dt * k, input));
   }
   if (gpuBusy()) return;
   const raw = now - lastSubmit;
   lastSubmit = now;
   if (!PR && !held) quality.update(raw / 1000);
-  const d = held && intro && intro.cam ? placePoseCamera(intro.cam) : placeCamera(held ? 1e-4 : dt);
+  const d = held && intro && intro.cam ? placePoseCamera(intro.cam)
+    : outro && outro.cam ? placeOutroCamera(outro.cam)
+      : outro && outro.scale <= 0 ? (outro.d || placeCamera(1e-4)) : placeCamera(held ? 1e-4 : outro ? dt * Math.max(outro.scale, 0.15) : dt);
+  if (outro) outro.d = d;
   drawFrame(dt);
   fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
   gl.flush();
