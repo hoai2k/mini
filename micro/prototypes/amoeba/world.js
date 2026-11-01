@@ -126,10 +126,10 @@ export const portalRoom = (x, y, b) => clearAt(x, y, 260) && leafDist(x, y) > LE
 export const DIRECTOR = {
   cell: 75, seenDist: 1100, nearSeen: 200, seed: 5, moveSpeed: 12,
   bounds: { x0: -SLIDE.field, x1: SLIDE.field, z0: -SLIDE.field, z1: SLIDE.field },
-  // the warm-up: ~4.5 s of crawling; then a calm break of ~3 s of crawling clear of the last encounter
-  warmup: { sec: 4.5 }, calm: { sec: 3 }, linger: 6,
-  // seen but not gone to: met once everyone is 1.3 mm off (off a 10× view), or after 8 s in sight nearby (it is never moved)
-  passDist: 1300, watchSec: 8,
+  // the warm-up: ~5 s of crawling; then a calm break of ~3.5 s of crawling clear of the last encounter
+  warmup: { sec: 5 }, calm: { sec: 3.5 }, linger: 6,
+  // seen but not gone to: met once everyone is 1.3 mm off (off a 10× view), or after 6 s in sight nearby (it is never moved)
+  passDist: 1300, watchSec: 6,
 };
 const patchFits = (x, y) => clearAt(x, y, PATCH.ciliates.r + 140);
 export const ENCOUNTERS = [

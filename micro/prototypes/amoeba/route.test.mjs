@@ -87,8 +87,8 @@ function game({ seconds, move, check = false }) {
     return (handles[id] = { id, x, y: z, b });
   };
   const met = {
-    ciliates: (h, [p]) => Math.hypot(p.x - h.x, p.z - h.y) < PATCH.ciliates.r + CELL_R + 200,
-    caudatum: (h, [p]) => Math.hypot(p.x - h.x, p.z - h.y) < PATCH.ciliates.r + CELL_R + 200,
+    ciliates: (h, [p]) => Math.hypot(p.x - h.x, p.z - h.y) < PATCH.ciliates.r + CELL_R + 120,
+    caudatum: (h, [p]) => Math.hypot(p.x - h.x, p.z - h.y) < PATCH.ciliates.r + CELL_R + 120,
     portal: (h, [p]) => Math.hypot(p.x - h.x, p.z - h.y) < 120,
   };
   D = createDirector({ ...DIRECTOR, canPlace, entries: ENCOUNTERS.map((e) => ({ ...e, place: place(e.id), met: met[e.id] })) });
@@ -150,7 +150,7 @@ for (let k = 0; k < 16; k++) {
   assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ['ciliates', 'caudatum', 'portal'], `${tag}: every encounter, in order`);
   for (const e of r.ev.filter((x) => x.type === 'placed' || x.type === 'moved')) assert.ok(spec(e.id).fits(e.x, e.z, e.b), `${tag}: ${e.id} on clear glass`);
   const T = { ciliatesPlaced: at(r.ev, 'placed', 'ciliates').t, ciliates: at(r.ev, 'met', 'ciliates').t, caudatum: at(r.ev, 'met', 'caudatum').t, portalPlaced: at(r.ev, 'placed', 'portal').t, portal: at(r.ev, 'met', 'portal').t, how: r.ev.filter((e) => e.type === 'met').map((e) => e.how).join('/') };
-  assert.ok(T.ciliatesPlaced >= 4, `${tag}: a warm-up first (${T.ciliatesPlaced} s)`);
+  assert.ok(T.ciliatesPlaced >= 4.5, `${tag}: a warm-up first (${T.ciliatesPlaced} s)`);
   assert.ok(T.ciliates <= 25, `${tag}: the ciliates within ~20 s (${T.ciliates} s)`);
   assert.ok(T.caudatum - T.ciliates >= 4, `${tag}: a calm break before P. caudatum`);
   assert.ok(T.portal <= 70, `${tag}: the portal reached within ~a minute (${T.portal} s)`);

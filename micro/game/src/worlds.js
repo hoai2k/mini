@@ -54,8 +54,8 @@ export const WORLDS = [
     mag: '10–20×', magNote: 'objective, brightfield', field: '1.8–0.9 mm', fieldMm: 1.4, body: '0.45 mm', look: 'Brightfield',
     card: 'MP-U03', intro: 'MP-G10', tint: ['#efe6cf', '#a99f84'], accent: '#e8d9a8',
     line: 'Push out pseudopods, each drawing body from elsewhere, and cup a food vacuole round prey.',
-    goal: 'Crawl out any way you like: easy prey, then fleeing ciliates (surge to catch them), then fungal traps (stiffen with B, cut tips with X), each a short crawl apart. About 2.8 mm out the way on glows gold, guarded by the giant amoeba Chaos: lure it off, or pinch its arms (hold LT, close two pseudopods round one, X) until it gives up.',
-    forward: 'A green Paramecium bursaria in a golden glow, at the opening toward open water, in whichever direction you first head out.',
+    goal: 'Crawl out any way you like, eating easy prey and steering round fungal traps (stiffen with B, cut tips with X): ahead of you come fleeing ciliates (surge to catch them), then a patch with Paramecium caudatum, each a short crawl apart. Then the way on glows gold, guarded by the giant amoeba Chaos: lure it off, or pinch its arms (hold LT, close two pseudopods round one, X) until it gives up.',
+    forward: 'A green Paramecium bursaria in a golden glow, at the opening toward open water, ahead of wherever you head.',
     back: 'A Sphagnum leaf tip dipping into the pool, to the left: dwell there and press Y to rise to the water film.',
     controls: [['LS', 'Move the body · LT: steer the L pseudopod'], ['RS', 'Steer the selected (R) pseudopod · grow one'], ['A', 'Surge'], ['X', 'Close the cup / cut / pinch'], ['B', 'Let go / stiffen'], ['LT', 'Hold: LS takes the neighbouring pseudopod'], ['RT', 'Next pseudopod clockwise'], ['LB/RB', 'Spread / push'], ['D-pad ↑↓', 'Objective']],
     facts: [

@@ -5,10 +5,10 @@ does: it pushes out pseudopods, cups them round a ciliate or flagellate
 without needing to touch it, and closes the cup into a food vacuole. The cell
 keeps its volume, so every arm takes body from somewhere else. Ciliates flee
 the approaching membrane, so the surge (A) matters, and the trap hyphae of a
-predatory fungus wait on the slide. Crawl out in any direction: the same
-encounters come in rings round the start, out to the way on (a green
-*Paramecium bursaria* in a golden glow, ~2.8 mm out) guarded by the giant
-amoeba *Chaos* (see *The slide*). Built in three.js (`../shared/vendor`, no
+predatory fungus wait on the slide. Crawl out in any direction: the
+encounters are placed as you go, ahead of you in glass you have not seen yet,
+one after another, out to the way on (a green *Paramecium bursaria* in a
+golden glow) guarded by the giant amoeba *Chaos* (see *The slide*). Built in three.js (`../shared/vendor`, no
 addons); world units are µm.
 
 Open `micro/prototypes/amoeba/` (the invite gate is off on localhost).
@@ -135,8 +135,9 @@ food granules; an extra olive density and coarser granularity in the body
 shader, `uLook`).
 
 - **On guard**: it is off the slide until the portal is placed, then sits on
-  its post 240 µm inside the portal (2.56 mm out), dormant, until a player's
-  centre comes within 700 µm (`CHAOS_WAKE`, just past the trap ring); a brass
+  its post beside the portal (330 µm to one side of it and 90 µm toward the
+  way you came: `world.js` `chaosPost`, the first side with room), dormant,
+  until a player's centre comes within 700 µm (`CHAOS_WAKE`); a brass
   **resolve** gauge shows while it is awake.
 - **The tell**: it raises and spreads its pseudopods, every arm out at once.
   **The cup**: two arms reach to your flanks, then curl round behind you; if
@@ -157,67 +158,85 @@ shader, `uLook`).
   Sated, it stays asleep for 40 s and flows back to its post.
 - It targets the nearest player; the amoebae push against its membrane.
 
-## The slide: rings round the start, the same in every direction
+## The slide: scenery anywhere, encounters placed as you go
 
-The owner's encounter pattern (`../../design/encounter-pattern.md`): a series
-of encounters and exploration, not a race. `world.js` `RINGS` lays them out by
-distance from the start (the cell's centre at the origin), with calm glass
-between, spaced about evenly from the warm-up to the boss, whichever way you
-crawl:
+The owner's encounter pattern (`../../design/encounter-pattern.md`, *Placed
+as you go*): a series of encounters and exploration, not a race. The slide's
+scenery is laid out before play, anywhere; the encounters are placed by the
+shared director (`../shared/director.js`) one at a time, in order, in glass
+nobody has seen yet, a little ahead of whoever leads. Glass a player has seen
+is never changed. Distances are µm from the start (the cell's centre at the
+origin).
 
-| µm from the start | What is there |
+**Scenery** (`world.js`, the same every game):
+
+| What | Where |
 | --- | --- |
-| 0–520 | **Warm-up**: clear glass (no slide objects in focus), a patch of four easy prey round you (`PATCHES`, `start`) |
-| 530–770 | **Easy-prey patches**: 8 round the ring (650), three slow flagellates each (*Chilomonas*, *Chlamydomonas*: they do not flee) |
-| 1000–1300 | **Ciliate patches**: 10 round the ring (1150), *Tetrahymena* and *Colpidium* (they flee: surge to catch them), a *Paramecium caudatum* (trichocysts) in every other one |
-| 1500–1890 | **Fungal traps**: 12 clusters of two hyphae round the ring (1675), the inner one leaning one way and the outer the other, so every way out passes within ~190 µm of one (the cell is ~350 µm wide), with a squeeze of ≥ 140 µm between clusters |
-| 2240–2800 | **Chaos** on guard, and the **portal** at 2.8 mm |
-| to 4.3 mm | The slide (diatoms, flakes, filaments above the focal plane; filaments in focus only beyond the portal ring) in every direction, a share of the flakes in every 30° sector of every band, so there is no empty edge |
+| Clear glass | the first 520 µm round the start (`SLIDE.warm`): no slide objects in focus |
+| Easy prey (*Chilomonas*, *Chlamydomonas*: they do not flee) | a patch of four round the start, and 12 patches of three scattered over the slide (`PATCHES`: one per 30° sector, alternately 0.65-1.7 and 1.9-3.6 mm out), so food is always about |
+| The fungal traps | 14 clusters of two hyphae (`TRAP_CENTRES`), scattered from ~1.4 to ~3.5 mm out on every side, at least ~400 µm apart (room to crawl between), clear of the leaf and the easy patches: static hazards you see and crawl round, in calm stretches too |
+| The slide's objects | diatoms, flakes and filaments above the focal plane out to 5 mm (`SLIDE.field`) in every direction, a share of the flakes in every 30° sector of every band; filaments in focus only beyond 4.1 mm (`SLIDE.far`), where no encounter goes |
 
+**The encounters** (`world.js` `ENCOUNTERS`, `DIRECTOR`; `main.js` *the
+encounters, placed as you go*), in this order:
+
+1. **A patch of fleeing ciliates** (*Tetrahymena*, *Colpidium*: surge to
+   catch them), after a warm-up of ~5 s of crawling.
+2. **A patch with *Paramecium caudatum*** (trichocysts) among them, after a
+   calm break of ~3.5 s of crawling clear of the first.
+3. **Chaos on guard beside the portal**, after another calm break.
+
+- **Placement:** each goes 0.76-1.15 mm ahead of the leader (the portal
+  1-1.5 mm), fanning out to the sides, then all round them, then farther out,
+  only where every disc that could be seen of it (a patch and its prey; the
+  portal's glow and Chaos) lies on glass nobody has seen and outside every
+  view (the screen's rectangle round each split view and, while the camera
+  lags a cell, round that cell: `directorViews`). Clear of the leaf, the trap
+  hyphae and the far filaments (`clearAt`). One placed but not yet seen may be
+  moved again, unseen to unseen, when the leader heads elsewhere (its prey go
+  with it; Chaos goes back on its post by the portal).
+- **Met:** a patch is met when a player's cell edge comes within ~120 µm of
+  it. One seen but walked past counts as met once everyone is 1.3 mm off
+  it, or after 6 s in sight nearby (it is never moved). The portal waits
+  where it is.
+- **Lingering** still brings them: after the warm-up (or a break) and 6 s
+  more standing still, the next one is placed 0.65-1 mm round the player,
+  out of view, and a patch placed beyond a lingering player's reach swims
+  over to them (its centre drifts at 30 µm/s, `driftPatch`: behaviour, not a
+  placement). In the end the portal is placed near them too.
 - **The patches**: each prey keeps to its patch (a loose tether, slack while
   a player is in or beside the patch, so fleeing ciliates scatter and drift
   back), and an eaten one comes back to its patch about 8 s after it is
   digested, swimming in from out of everyone's view. So the start (and every
   patch) always has food: you can stay as long as you like. Prey far from
   every player only swim (no contact or collision checks).
-- **The fungal traps** lie grown on their ring from the start; whether they
-  bite shows on the hyphae (their knobs: large, dark and sticky while the
-  fungus is hungry; small and pale while it rests). Only hyphae near a player
-  fight.
-- **The portal** (the way on) is placed once a game, when the first player's
-  centre gets 1 mm out (`RINGS.place`, in the ciliate ring), on the portal
-  ring at that player's bearing (or the nearest within ±60° where it and
-  Chaos are clear of the leaf), only where nobody's view (at the widest
-  objective, the pull-back included) could see it or Chaos; Chaos is moved
-  onto its post there, unseen. It is never moved again. There is no arrow
-  or edge pointer to it: keep crawling out and you find it; the golden
-  sparkle is its only marker.
+- **The fungal traps** lie grown from the start; whether they bite shows on
+  the hyphae (their knobs: large, dark and sticky while the fungus is hungry;
+  small and pale while it rests). Only hyphae near a player fight.
+- **The portal** (the way on) is the director's last entry, so it comes only
+  after both patches were met. There is no arrow or edge pointer to it: keep
+  crawling and you find it; the golden sparkle is its only marker.
 - **Snags**: a cell whose rear hooks round a flake or a diatom stretches out
   behind its pseudopod; stretched past ~900 µm it flows over the small debris
   (flakes and diatoms; not filaments or the leaf) until it has gathered itself
   up (`nearCol` in `main.js`).
 
-Measured with a scripted straight run from the start (both sticks held toward
-the bearing, then toward the portal once placed; traps and Chaos passive and
-Chaos removed once placed), seconds from
-the start:
+Timings. `route.test.mjs` runs the director with these settings against a
+cell crawling straight out at 50 µm/s (the surge used whenever it is ready),
+the 20× view round it: in 16 directions the ciliates are placed at 5.2 s and
+met by 11.5-17.1 s, *P. caudatum* by 22-41 s, and the portal is reached at
+44-62 s; standing still at the start, each comes in turn (the ciliates placed
+at 11 s, met at 29 s; *P. caudatum* 38/56 s; the portal placed at 66 s, near
+them) and the cell then goes to it. Scripted runs in the browser (both sticks
+held toward the bearing, the surge whenever ready, steering off a snag after
+3 s stuck; traps and Chaos passive, Chaos stood down once the portal is
+placed) are in the *Checks* below; there the cell's snags on prey and debris
+make the times vary more.
 
-| Bearing | Easy prey | Ciliates | Traps | Portal |
-| --- | --- | --- | --- | --- |
-| 0° | 10.0 | 17.2 | 34.2 | 67.7 |
-| 90° | 5.5 | 21.2 | 28.0 | 67.8 |
-| 180° (the leaf: the portal at 162°) | 7.0 | 19.2 | 34.7 | 81.4 |
-| 270° | 5.3 | 22.0 | 27.5 | 58.3 |
-
-With the surge (A) used whenever it is ready: 0° easy prey 7.5, ciliates
-12.5, traps 25.0, portal 50.7 s; 270° 3.3, 14.7, 19.5, 45.1 s. Chaos wakes
-about 45 s in at a steady crawl. With the encounters dealt with (hunting, the traps'
-fights, luring or pinching Chaos) the way on takes about three minutes.
-
-**Being caught** brings a single player back on calm glass on the same
-bearing, in the calm break nearest inside where it happened (0, 0.9, 1.4 or
-2.06 mm out), clear of every hypha, Chaos and the leaf (`safeSpot`); never
-further back than the start. With others playing, beside a teammate.
+**Being caught** brings a single player back on calm glass a little back
+from where it happened, toward the start (never further back than it), clear
+of every hypha, Chaos, the leaf and the encounters' patches (`safeSpot`).
+With others playing, beside a teammate.
 
 ## Landmarks (the way on and the way back)
 
@@ -235,8 +254,8 @@ everything else.
   (`GLOW_S` µm), with `pixelHeight` sizing the glints for that camera
   (`drawGlow` in `main.js`; compiled and drawn once off screen at load, so no
   program links in play). It is dimmer and restless while Chaos is on guard
-  and opens (brighter, calmer) when it is not. Placed and guarded as *The
-  slide* above says.
+  and opens (brighter, calmer) when it is not. Placed (by the director) and
+  guarded as *The slide* above says.
 - **Reaching it**: when any player's membrane comes within ~45 µm of the
   *P. bursaria*: on guard (Chaos within 480 µm of the portal, not beaten or
   leaving), you are turned back (a brief toast, the first time) and Chaos
@@ -253,7 +272,7 @@ everything else.
   left (`LEAF_FS`: one cell thick, large clear hyaline cells with fibril bands
   and pores in a net of narrow green chlorophyllose cells, and the water
   film's edge as a soft meniscus round it), its blade running on out beyond
-  the trap ring (`world.js` `LEAF`). The amoeba flows round it (capsule
+  the slide's middle (`world.js` `LEAF`). The amoeba flows round it (capsule
   colliders down its axis). Near the tip a quiet "Y: Back to the tardigrade"
   prompt shows (the shell's, from `embed.near('back')`, or this page's own
   when standalone), and Y there posts `embed.landmark('back')` instead of
@@ -407,7 +426,8 @@ Inside the Micro Zoom shell the roster from its menus is restored.
 
 ## Threats and pacing
 
-The threats are the fungus and *Chaos*, on their rings (see *The slide*);
+The threats are the fungus (scattered traps) and *Chaos* (placed by the
+director at the portal; see *The slide*);
 their pacing and catches use the shared `shared/predation.js`
 (`createHunger`, `createCapture`, `createFight`), as in the other prototypes.
 
@@ -415,7 +435,7 @@ their pacing and catches use the shared `shared/predation.js`
   oxygen, no time limit, and going without food never harms the cell (eating
   grows it a little). The calm opening on a clock (the hyphae absent for the
   first 45 s, then growing in) is gone: the calm is the warm-up glass round
-  the start, and the hyphae lie grown on their ring from the first frame.
+  the start, and the hyphae lie grown from the first frame.
   There is no current on the slide.
 - **Hunger comes and goes** (the fungus's, and it shows): the fungus is hungry for 30–50 s:
   its adhesive knobs are large, dark and sticky. Then it rests, 50–80 s
@@ -639,9 +659,27 @@ Not borrowed:
 ## Checks
 
 ```bash
-node micro/prototypes/amoeba/route.test.mjs   # the rings: spacing, every bearing, the portal's room, no empty edges
+node micro/prototypes/amoeba/route.test.mjs   # the scenery on every side; the director: rushing in 16 directions, lingering, turning back
+node --test micro/prototypes/shared/director.test.mjs
 node micro/prototypes/check.mjs amoeba
 ```
+
+`route.test.mjs` checks that nothing is placed in view, every encounter comes
+in order (the portal last), and, in the lingering and turning-back runs and
+every fourth rush, that what the director put in a grid cell never changes
+once a view has seen that cell. Scripted runs in the
+browser (2026-11-01; `advance()` in 0.25 s steps, both sticks toward the
+bearing, the surge whenever ready, steering 70° off for 2 s after 3 s stuck,
+traps and Chaos passive, Chaos stood down once the portal is placed): nothing
+was ever placed inside the screen's rectangle, and every run met the
+ciliates, then *P. caudatum*, then reached the portal. Portal reached at
+0° 100 s, 180° 85 s, 270° 82 s (8-11 snags each, the cell catching prey in a
+fork or hooking round debris and hyphae); turning back at 16 s (45°) 50 s;
+standing still at the start, the patches came to the cell and the portal was
+placed at 46 s and reached at 65 s. At 90° the cell wedged itself across a
+trap hypha (stretched out, the sticks flailing) and never got there in 240 s.
+The scripted push snags far more than a player steering would; the director's
+own timings are the node runs above.
 
 `window.__micro` exposes `{ renderer, camera, scene, scenes, view, body,
 cyto, prey, world, state, features }` plus test hooks: `input` (override
@@ -650,10 +688,15 @@ the sticks), `press(name)`, `setMode(i)`, `pause()`, `renderOnce()`,
 `clearPrey()`, `resetBody()`, `close()`, `surge` (the dash), `ctl`,
 `readInput()`, `roles` (`{ pod, body, branch, latch, sel, adj }`), `rolesText()`,
 `pods(slot)` (select and steer: `{ sel, adj, list }`, each pseudopod's angle
-round the outline), `route()` (the rings, the trap hyphae's distances, the
-patches and their prey, and `met`: when and how far out each encounter was
-first met), `portal()` (placed, found, guarded or open, where it is, Chaos's
-state and distance), `placePortal(a)`, `enterPortal(slot)`, `passive(on)`
+round the outline), `route()` (the slide, the trap hyphae's distances, the
+patches (scenery and the encounters') and their prey, `met`: when and how far
+out each encounter was placed and met, and the director's state),
+`encounters()` (the director's state: the current entry, its phase, each
+entry's place and times), `director`, `seenAt(x, y)`, `placeNow()` (end the
+current break), `placeEncounter(id, x, y, b)`, `portal()` (placed, found,
+guarded or open, where it is, Chaos's state and distance), `placePortal(a,
+slot, d)` (the portal `d` µm from that player at bearing `a`, as the director
+would: every encounter before it counts as met), `enterPortal(slot)`, `passive(on)`
 (traps never arm, Chaos never wakes: scripted runs), `log` (the encounter log),
 `scheme('select' | 'lead' | 'classic')`, `pinch(i, j)` (cut the ring as a hypha would)
 and `fragments`; for multiplayer and the landmarks: `players`, `cells`,

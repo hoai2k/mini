@@ -3,113 +3,105 @@
 A playable prototype: swim as *Paramecium bursaria*, the Level 3
 protagonist of the Zoom Chain spec, through a pond drop seen through a
 microscope. Eat prey, bask in the light, and head out in any direction: the
-challenges lie in rings round the start (*Dileptus*, which your trichocysts
-drive off, a *Chlamydomonas* bloom to push and gulp through, two *Didinium*,
-which they cannot stop), and out on the last ring the way on, a biofilm under
-a golden light, guarded by a bladderwort trap. *Amoeba proteus*, a slow giant
+challenges are placed as you go, ahead of you in water you have not seen yet,
+one after another (*Dileptus*, which your trichocysts drive off, a
+*Chlamydomonas* bloom to push and gulp through, two *Didinium*, which they
+cannot stop), and last the way on, a biofilm under a golden light, guarded
+by a bladderwort trap. *Amoeba proteus*, a slow giant
 that cups you in its pseudopods, keeps to the way back.
 
-## The rings: the same in every direction (encounter pattern)
+## Placed as you go (encounter pattern)
 
-The owner (2026-11-01, `micro/design/encounter-pattern.md`): "make the
-distances shorter and more concise to encounter obstacle soon (but not
-immediate), and to be able to move in any direction far enough to reach a
-portal + boss … everything action based … the user should be able to hang
-around a safe area forever"; and the obstacles spaced roughly evenly from
-the warm-up to the boss. So the long route up and to the right (4.6 mm, calm
-first half) became rings round the start (`landmarks.js` `RINGS`, µm out from
-`START`, in the plane), met at about the same distances whichever way you head:
+The owner (2026-11-01, `micro/design/encounter-pattern.md`, *Placed as you
+go*): "feel free to place things in the world dynamically … keep the areas
+they've explored constant … don't skip obstacles, ensure the user encounters
+each thing in the game before giving them the boss and portal." The rings
+round the start (one instance of each challenge moved round its ring) are
+gone: the shared director (`../shared/director.js`) places each challenge
+once, in order, in water nobody has seen, a little ahead of whoever is
+furthest along (`route.js` holds the order and the settings; `main.js`, *the
+encounters, placed as you go*, what each does):
 
-The distances are set by the cell's measured speeds (`rush.mjs` in the
-session scratchpad, straight swims with no current): cruise (half stick)
-700 µm/s, full 1400 µm/s, a dash peaking at 2650 µm/s, and rushing (full
-stick with a dash every 2.2 s) 1510 µm/s on average.
+1. **Dileptus**, after a warm-up of ~6 s of swimming;
+2. **the *Chlamydomonas* bloom**, a band 0.5 mm deep and 1.8 mm wide lying
+   across the way, after a calm break of ~5 s of swimming clear of the last;
+3. **the two *Didinium***, side by side 0.6 mm apart across the way;
+4. **the biofilm (the portal) with the bladderwort trap** on guard in front
+   of it, its door toward whoever comes.
 
-| mm out | what |
-| --- | --- |
-| 0–8 | the calm warm-up (≥ 5 s of full-speed swimming): prey, Vorticella, diatoms, Spirogyra, sunlit patches |
-| 11.5, 45 | *Dileptus*'s water (± 0.5 mm) |
-| 22.5, 56 | the *Chlamydomonas* bloom (a band 0.5 mm deep, 1.8 mm along the ring) |
-| 34, 67 | two *Didinium* (± 0.5 mm, 0.6 mm apart) |
-| 77.3 | the bladderwort trap's door (bladder at 77.6), on guard |
-| 78 | the portal: the biofilm on a leaf under the golden glow |
-
-Between one challenge and the next is about 10 mm, about seven seconds at
-full speed. Each challenge is one instance serving two rings: it waits on the
-inner one and moves out to the outer one once a player heads out there.
-Rushing out in four directions (A0, A0 + 90°, + 180°, + 270°) with the hunters
-passive and the trap spent on arrival:
-
-| direction | first obstacle | portal |
-| --- | --- | --- |
-| A0 | 7.1 s | 51.7 s |
-| A0 + 90° | 7.3 s | 52.6 s |
-| A0 + 180° | 7.3 s | 52.7 s |
-| A0 + 270° | 7.2 s | 51.8 s |
-
-Every challenge moved to the bearing ahead of the player about a second
-before they reached it (on the first direction the inner ring was already
-there). Dealing with the hunters and the trap makes it a few minutes.
-
-The dish is about 17 cm across (`world.js` `DROP_R` = the portal ring + 6 mm;
-a labelled departure). The set pieces (five Spirogyra, 70 flakes, six
-Vorticella colonies with 35 Vorticella, 24 diatoms, five sunlit patches) are
-laid out in a 7 mm scenery tile that repeats in every direction: each view
-shows every piece at its copy nearest where it looks (`world.viewAt`, before
-each view's culling), and collisions meet the copy nearest the cell. The
-pond water (`ambient.js`) repeats in its own 1.5 mm tile, coverslip dust
-included. So the field is equally full 50 mm out as at the start.
-
-- **One of each, moved to meet you** (`moveRings` in `main.js`, like
-  springtail's `placeZone`): the Dileptus, the Didinium pair and the bloom are
-  each moved round their ring to the bearing of whoever is heading out
-  through it, but only while not engaged with anyone, and only when where it
-  is lies over 750 µm and where it goes over 550 µm from every player (the
-  bloom: its whole band). It moves from 2.5 mm before its ring.
-  `route().relocations` logs each move.
-- **The portal** is placed once a game: when the first player gets 1.5 mm
-  short of its ring, on the ring at their bearing, out of sight (`placePortal`:
-  the leaf, the trap in front of it with its door toward the start, and the
-  golden glow, `shared/portal.js`). Until then there is no forward arrow;
-  then the brass chevron points to it and its light spills in from the edge.
+- **Planar:** the drop is 650 µm deep and the challenges millimetres apart,
+  so the director runs in 2D (`mode: '2d'`): 1 mm cells over the plane, each
+  covering the whole depth.
+- **What counts as seen:** every split view's frustum, its far plane brought
+  in to 7.5 mm from the camera (`route.js` `VIEW_FAR`: beyond it the set
+  pieces are culled and the rest fades below ~5 %; `main.js`
+  `directorViews`), within 7.5 mm of what it frames, and 0.8 mm round each
+  cell. Water seen is never changed: nothing placed, moved or removed there.
+- **Placement:** 9-12.5 mm ahead of the leader (the portal 9.5-13 mm),
+  fanning out to the sides, then all round them, then farther out; every
+  disc that could be seen of it (the Dileptus and its waters; five discs
+  along the bloom's band; each Didinium's waters; the leaf and the trap)
+  on unseen water and out of every view. Anywhere in the dish well inside
+  the meniscus and away from the way back (`canPlace`). One placed but not
+  yet seen may be moved again (unseen to unseen) when the leader heads
+  elsewhere.
+- **Met:** in a hunter's waters (its home and 450 µm round it) or within
+  550 µm of it; within 300 µm of the bloom's band. One seen but passed counts
+  as met once everyone is 9 mm off, or after 10 s in sight nearby.
+- **Lingering** still brings them: after the warm-up (or a break) and 6 s
+  more without swimming, the next one is placed 3-5.5 mm round the player,
+  out of view (the chase camera sees ahead, so it usually comes from behind
+  or the side), and then comes over to them: a hunter's home (and so the
+  hunter) or the bloom drifts toward the leader at 350 µm/s
+  (`driftEncounter`: behaviour, not a placement) until they meet it. In the
+  end the portal is placed near them too.
+- **Until placed** each hunter is parked far off, hidden and not stepped
+  (`world.js`, `encounters.js` `parked`), the bloom and the trap hidden. A
+  hunter's hunger clock starts when it is placed (6 s grace, the second
+  Didinium 5 s later); it hunts only a player in its waters.
+- **Timings** (`route.test.mjs`: the director with these settings against a
+  cell rushing at 1.5 mm/s, the chase view round it): in 16 directions the
+  Dileptus is placed at 6.1 s and met by 11.9-17.2 s, the bloom by 23.7-27.9
+  s, the Didinium by 35.6-44.4 s, and the portal is reached at 48.3-55.6 s;
+  standing still at the start, each comes in turn and the portal is placed
+  near them at 79 s. Scripted runs in the browser are in *Checks*.
+- **Explored stays constant** is checked in `route.test.mjs`: in the
+  lingering and turning-back runs and every fourth rush, what the director
+  put in each grid cell never changes once a view has seen it.
+- **The way back** stays a fixed place: the amoeba's floor 17 mm from the
+  start the other way from the opening view, where the amoeba keeps to its
+  patch and hunts only round it, after its own 45 s calm opening.
+- **Nothing runs down.** The sunlit patches are a bonus (the dash recharges 1.4×
+  faster there); shade costs nothing. There is no light meter, oxygen or
+  hunger of your own: stay in the calm water as long as you like (the
+  challenges come to you all the same).
+- **Dangers you can see:** the trap's inflow is drawn as streaks rushing into
+  its door, faint over its reach while the door quivers (the pulse to come),
+  strong while it pulses; the bloom's sinking plumes are its cells themselves.
 - **Guarded:** while the trap is not spent, touching the biofilm turns you
   back (you are swept back off the leaf, with a toast once). Make it fire and
   miss until its resolve is gone: spent, it hangs slack for 24 s and the way
   is open (`enterPortal` fires `embed.landmark('forward')`).
-- The ciliates hunt only a player out of the warm-up and near their home;
-  their hunger clocks start when someone first leaves the warm-up (6 s grace,
-  then each 5 s after the last). A player who is eaten comes back alone a
-  little back from where they were, on the same bearing and out of any
-  challenge's ring (with others: beside a teammate).
-- **The way back** stays a fixed place: the amoeba's floor 17 mm from the
-  start the other way from the first portal bearing (in the calm between the
-  first Dileptus and bloom rings), where the amoeba keeps
-  to its patch and hunts only round it, after its own 45 s calm opening.
-- **Nothing runs down.** The sunlit patches are a bonus (the dash recharges 1.4×
-  faster there); shade costs nothing. There is no light meter, oxygen or
-  hunger of your own: stay in the calm water as long as you like.
-- **Dangers you can see:** the trap's inflow is drawn as streaks rushing into
-  its door, faint over its reach while the door quivers (the pulse to come),
-  strong while it pulses; the bloom's sinking plumes are its cells themselves.
-- `window.__micro.route()` gives the rings, the portal (placed,
-  bearing, guarded) and the relocations; `challenges()` where each begins;
-  `debug.placePortal(a)` places it now.
-- Checked with a scripted swim out on two bearings away from the first one
-  (A0 + 2.0 and A0 − 1.3 rad): the Dileptus, bloom and Didinium each moved to
-  that bearing before the player reached them, the portal appeared on it, the
-  guarded leaf turned the player back, and once the trap was spent the
-  biofilm let them through (`rings.mjs` in the session scratchpad); the
-  Dileptus also moved out to its outer ring.
-- **No forward arrow at the start:** the brass arrow at the right edge in the
-  earlier screenshots was the forward arrow, drawn before the portal existed;
-  it is now drawn only once the portal is placed (checked in a start
-  screenshot).
+- A player who is eaten comes back alone a little back from where they were
+  (toward the start), at the spot furthest from every hunter, the trap and
+  the bloom (with others: beside a teammate).
+- **No arrow:** there is no edge pointer to the portal (`shared/landmark.js`
+  draws no forward mark); its golden glow is its only marker.
+
+The dish is about 17 cm across (`route.js` `DROP_R`; a labelled departure).
+The set pieces (five Spirogyra, 70 flakes, six Vorticella colonies with 35
+Vorticella, 24 diatoms, five sunlit patches) are laid out in a 7 mm scenery
+tile that repeats in every direction: each view shows every piece at its copy
+nearest where it looks (`world.viewAt`, before each view's culling), and
+collisions meet the copy nearest the cell. The pond water (`ambient.js`)
+repeats in its own 1.5 mm tile, coverslip dust included. So the field is
+equally full 50 mm out as at the start.
 
 ## The crowd: a *Chlamydomonas* bloom
 
 `bloom.js`, on `shared/crowd.js`: a band of green flagellates 1.8 mm along
-its ring (moved round it to meet you) (combat-ideas.md, the crowd set
-piece). The owner wanted crowds "you can fight through by moving and
+the way (placed by the director, lying across the way you are heading)
+(combat-ideas.md, the crowd set piece). The owner wanted crowds "you can fight through by moving and
 attacking" without too much difficulty and with no time limits, so:
 
 - **Swim** and the cells part round you (you are slowed to 0.82 of full
@@ -171,13 +163,12 @@ node --test micro/prototypes/shared/swim-control.test.mjs
 
 World 5 of the game (`micro/game/`), between the amoeba and the bacterium.
 Both landmarks are things in the drop, drawn with the microscope's own
-materials (`landmarks.js`), and a quiet edge arrow (`shared/landmark.js`)
-shows where each is when it is off screen: a brass chevron for the way on, a
-hollow ring for the way back.
+materials (`landmarks.js`). `shared/landmark.js` draws no edge arrow to
+either (the owner's call): the portal's golden glow is its only marker.
 
 - **Forward: the biofilm on a leaf** (the portal). A fragment of dead leaf
-  lies on the slide 78 mm out, at the bearing where it was found (see *The
-  rings*), under the shared golden glow, guarded by the trap. Its
+  lies on the slide where the director placed it (see *Placed as you go*),
+  under the shared golden glow, guarded by the trap. Its
   surface is coated in a biofilm: thousands of rods and dots in microcolonies
   under a faint slime sheen, which at 20× read only as texture. That texture
   is the zoom target into the bacterium level (spec §3.6, §4.6). Swim down and
@@ -199,7 +190,7 @@ hollow ring for the way back.
 `createFight`, with more resolve). A *Utricularia* bladder about half a millimetre
 long hangs on its stalk just above the slide in front of the biofilm (the
 portal), placed with it, its door facing the way you come: it guards the way
-on (see *The rings*). Shaped after the delivered sheet
+on (see *Placed as you go*). Shaped after the delivered sheet
 (`assets/reference-sheets/boss-bladderwort.webp`): a rounded, slightly pear-
 shaped translucent green sac with a mottled wall of cells, its upper front
 drawn out into a collar that holds an oval door with a thick threshold; two
@@ -469,9 +460,9 @@ circle indicators round your creature; the previous feel was good." So:
 Hunters use the shared `shared/predation.js` (`createHunger`,
 `createCapture`), so they feel the same as in the other prototypes.
 
-- **Placed, not timed** (see *The rings*): the ciliates' hunger clocks
-  start only once someone leaves the warm-up, after a 6 s grace (each 5 s after
-  the last), and they hunt only in their own waters. The amoeba by the way
+- **Placed, not timed** (see *Placed as you go*): each ciliate's hunger
+  clock starts when the director places it, after a 6 s grace (the second
+  Didinium 5 s later), and they hunt only in their own waters. The amoeba by the way
   back has a 45 s calm opening. A restart sends every hunter home.
 - **Hunger comes and goes.** Each hunter has its own clock: hungry for
   18–32 s (the amoeba 25–40 s), then resting, 45–75 s after a meal and
@@ -554,10 +545,22 @@ prey, food vacuoles and bacteria eaten, the meters, and the nearest hunter.
 ## Checks
 
 ```bash
+node micro/prototypes/paramecium/route.test.mjs   # the director: rushing in 16 directions, lingering, turning back
+node --test micro/prototypes/shared/director.test.mjs
 node micro/prototypes/check.mjs paramecium
 node micro/game/check.mjs
 node micro/tools/perf/measure.mjs paramecium 1   # and 4
 ```
+
+Scripted runs in the browser (2026-11-01; `debug.step` at 1/30 s, full
+speed with a dash every 2.2 s, hunters never hungry, the trap spent on
+arrival): nothing was placed inside the chase view (projected on screen and
+nearer than the fade-out), and every run met the Dileptus, the bloom and the
+Didinium in order before the portal. The portal was reached at 48.3 s (0°),
+48.5 s (90°), 49.1 s (180°), 48.9 s (270°) and 49.2 s turning back at 12 s
+(45°); standing still, each challenge was placed near the cell and came to it
+(Dileptus placed 12 s, met 22 s; bloom 33/45 s; Didinium 56/67 s) and the
+portal was placed at 78 s and reached at 83 s.
 
 The roll check (a straight swim at full speed, the centre's lateral wobble
 against the local chord, the centre to the followed axis, the long axis to the
@@ -571,8 +574,14 @@ with `setMode`, `setView`, `setOrbit`, `avoid`, `dash`, `attack`, `burst`,
 `teleport`, `didinium(dx, dz)`, `amoeba(dx, dz)`, `prey(dx, dz, i)`,
 `freeze`, `step`, `inspect`, `clean` (no overlay), `hungry`, `wakeBoss`,
 `press('B' | 'X')`) for screenshot scripts: freeze, set a scene up,
-`step(n)`, wait for a render, capture. Also `route()`, `challenges()`,
-`bloom`, `bloomLog()`, `trichoLog`, `hintLog`, `quality`.
+`step(n)`, wait for a render, capture (`step` moves the cameras and the
+director's views too, as a drawn frame would), `placePortal(a, d)` (the
+portal `d` µm from player 1 at bearing `a`, as the director would: every
+encounter before it counts as met) and `placeEncounter(id, x, z, b)`. Also
+`route()` (the director's state, the portal, where each player is),
+`director`, `encounterState()`, `seenAt(x, z)`, `placeNow()` (end the current
+break), `challenges()` (where each is, null until placed), `bloom`,
+`bloomLog()`, `trichoLog`, `hintLog`, `quality`.
 
 ## The cell
 

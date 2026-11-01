@@ -86,7 +86,10 @@ walk around can be in safe areas too, because you can just avoid them."
 - **Rings are the fallback.** A world that hasn't adopted the director yet
   keeps its rings round the start (above). The springtail world is the first
   to use the director (`prototypes/springtail/README.md`, "The way out");
-  how to adopt it is at the top of `shared/director.js`.
+  the amoeba (`prototypes/amoeba/README.md`, "The slide") and the paramecium
+  (`prototypes/paramecium/README.md`, "Placed as you go", the director in 2D
+  over a shallow drop) followed; how to adopt it is at the top of
+  `shared/director.js`.
 
 ## Everything is action
 

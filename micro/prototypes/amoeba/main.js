@@ -1351,7 +1351,9 @@ function simStep(dt, granules = true) {
     pe.t = -1e9;
   }
   S.pending = S.pending.filter((x) => x.t > -1e8);
-  stepDirector(dt);
+  // the director once a frame (on its last step, with the frame's time): its views are the frame's
+  dirDt += dt;
+  if (granules) { stepDirector(dirDt); dirDt = 0; }
   checkLandmarks();
   S.time += dt;
 }
@@ -1651,9 +1653,9 @@ function placePatch(id, x, y) {
 }
 const ENC = {
   ciliates: { place: (x, y) => placePatch('ciliates', x, y),
-    // in or beside the patch (the cell's edge within ~200 µm of it: its prey all round you)
-    met: (P, [q]) => hyp(q.x - P.x, q.z - P.y) < P.r + q.req + 200 },
-  caudatum: { place: (x, y) => placePatch('caudatum', x, y), met: (P, [q]) => hyp(q.x - P.x, q.z - P.y) < P.r + q.req + 200 },
+    // in or beside the patch (the cell's edge within ~120 µm of it: its prey all round you)
+    met: (P, [q]) => hyp(q.x - P.x, q.z - P.y) < P.r + q.req + 120 },
+  caudatum: { place: (x, y) => placePatch('caudatum', x, y), met: (P, [q]) => hyp(q.x - P.x, q.z - P.y) < P.r + q.req + 120 },
   // the last: entering the open portal ends the level
   portal: { place: (x, y, b) => { placePortal(x, y, b); return PORTAL; }, met: () => false },
 };
@@ -1682,7 +1684,7 @@ function directorViews() {
 }
 /** The director's players: each live cell's centre (director x, z = slide x, y) and its radius. */
 const dirPlayers = () => cells.filter((c) => !c.p.waiting).map((c) => ({ id: c.slot, x: c.body.cx, z: c.body.cy, req: c.body.req, alive: !c.caught.active }));
-let directorOn = false;
+let directorOn = false, dirDt = 0;
 function stepDirector(dt) {
   if (!directorOn || outro) return;
   const ev = director.update(dt, dirPlayers(), directorViews());
