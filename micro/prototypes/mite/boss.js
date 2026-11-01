@@ -39,7 +39,7 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
   const thin = gMaterial({ cls: CLS.NPC, thin: 1 });
   // heavily sclerotised: the chelae, palps and legs carry a stronger SEM edge glow (thin-feature flag)
   const hard = gMaterial({ cls: CLS.NPC, tex: tex.cuticle, map: 'tri', scale: 120, bump: 1.6, thin: 0.6 });
-  const ell = (mat, p, r, seg = 26) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, seg, Math.round(seg * 0.6)), mat); m.scale.set(...r); m.position.set(...p); m.frustumCulled = false; group.add(m); return m; };
+  const ell = (mat, p, r, seg = 26) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, seg, Math.round(seg * 0.6)), mat); m.scale.set(...r); m.position.set(...p); group.add(m); return m; };
   // body along +x, centre at the origin, ~140 µm off the floor
   // Shapes from the delivered sheet (assets/reference-sheets/boss-pseudoscorpion.webp):
   // a narrow carapace tapering to the chelicerae; behind it a much broader,
@@ -52,7 +52,7 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
     const p = g.attributes.position;
     for (let i = 0; i < p.count; i++) { const v = f(p.getX(i), p.getY(i), p.getZ(i)); p.setXYZ(i, v[0], v[1], v[2]); }
     g.computeVertexNormals();
-    const m = new THREE.Mesh(g, mat); m.frustumCulled = false; group.add(m); return m;
+    const m = new THREE.Mesh(g, mat); group.add(m); return m;
   };
   // carapace: ~700 µm, narrowing forward (front at +x), flat-topped
   shaped(shell, 30, (x, y, z) => [520 + x * 360, 30 + (y > 0 ? y * 120 : y * 85), z * 235 * (0.62 + 0.38 * (1 - x) / 2)]);
@@ -70,7 +70,8 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
   // legs and pedipalp segments: instanced rods; chelae: hand and fingers
   const rodGeo = new THREE.CylinderGeometry(0.8, 1, 1, 9, 1).translate(0, 0.5, 0);
   const rods = new THREE.InstancedMesh(rodGeo, hard, 8 * 3 + 2 * 3);
-  rods.frustumCulled = false; scene.add(rods);
+  // culled by bounds recomputed from the instances each pose (exact: a view that cannot see the boss skips it)
+  scene.add(rods);
   // a chela finger: a long tapered hook, unit length along +y, curving toward +x at the tip
   const fingerGeo = (() => {
     const pts = [];
@@ -89,10 +90,10 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
   })();
   const FINGER = 460; // µm
   const fingers = new THREE.InstancedMesh(fingerGeo, hard, 4);
-  fingers.frustumCulled = false; scene.add(fingers);
-  const hands = [-1, 1].map(() => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 22, 14), hard); m.frustumCulled = false; scene.add(m); return m; });
+  scene.add(fingers);
+  const hands = [-1, 1].map(() => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 22, 14), hard); scene.add(m); return m; });
   const setae = new THREE.InstancedMesh(new THREE.CylinderGeometry(3, 6, 1, 4, 1).translate(0, 0.5, 0), thin, 24);
-  setae.frustumCulled = false; scene.add(setae);
+  scene.add(setae);
   const tmpM = new THREE.Matrix4(), tmpQ = new THREE.Quaternion(), tmpV = new THREE.Vector3(), tmpS = new THREE.Vector3();
   const rod = (im, i, a, b, r) => {
     tmpV.subVectors(b, a);
@@ -162,6 +163,7 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
     }
     rods.count = ri; rods.instanceMatrix.needsUpdate = true;
     fingers.instanceMatrix.needsUpdate = true;
+    rods.computeBoundingSphere(); fingers.computeBoundingSphere();
     // long tactile setae on the chelae (they glow in the SEM)
     let si = 0;
     for (const s of [0, 1]) for (let k = 0; k < 6; k++) {
@@ -170,6 +172,7 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
       tmpQ.setFromUnitVectors(UP, d); tmpM.compose(h.clone().addScaledVector(d, 110), tmpQ, tmpS.set(1, 220, 1)); setae.setMatrixAt(si++, tmpM);
     }
     setae.count = si; setae.instanceMatrix.needsUpdate = true;
+    setae.computeBoundingSphere();
   }
   pose();
 

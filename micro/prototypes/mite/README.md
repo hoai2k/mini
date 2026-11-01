@@ -398,9 +398,10 @@ A deferred two-pass SEM model. The beam comes from the camera, so the
   three or more views); at its cheapest effects level the detector-shadow
   march is skipped. `?q=high|medium|low` fixes it; `?f=-quality` turns it off.
 
-Budget at the default view (1 player): about 88 draw calls and 335k
-triangles (more, smaller draws now: the world is merged per 1.5 mm chunk so
-each view culls what it cannot see). In split screen the G-buffer and the
+Budget at the default view (1 player): about 73 draw calls and 290k
+triangles since the second pass below (more, smaller draws than before
+chunking: the world is merged per 1.5 mm chunk so each view culls what it
+cannot see). In split screen the G-buffer and the
 composite are both scissored to each view's region (`split.scissor`).
 
 Measured (headless SwiftShader, 640×360, `perf/measure.mjs`, `?q=high`;
@@ -419,6 +420,67 @@ In 4 views the composite pass fell from ~71 to ~22 ms of SwiftShader time
 per view (scissor). Per-frame garbage is about half what it was alone but
 still ~0.9-1.8 MB (most of what is left is boxed numbers in the foliage,
 floor and cutaway loops, and three.js itself).
+
+### Performance (second pass)
+
+Nothing visible or playable changed. Screenshots of the original and the
+new code, rendered from the same seeded state, are byte-identical (1 player
+and 4 views). A Node replay of 900 steps (walking, jumps, closing up, a
+scaled mite, the predator, bending blades) gives bit-identical bodies,
+legs and blade vertices.
+
+Garbage came mostly from V8 boxing numbers, not from `new`:
+
+- **Object shapes.** Collider entries, foliage rods and cutaway objects
+  gained fields after they were created (`cutId`, `rod`, `tmark`, `prev`,
+  `c`, `r` ...), so the hot loops saw many shapes. Their reads went
+  megamorphic, and every number read then allocated. Each now declares all
+  its fields up front. A ray cast went from 1.3 KB to 0.2 KB of garbage and
+  became 2.5× faster.
+- **The floor.** `hash(...n)` built a rest array 12 times per `floorH`. The
+  three octaves now run in one loop with the hash written out in place
+  (bit-identical over 300k points). The broadphase key now fits a small
+  integer, and `castGrid` uses typed scratch arrays.
+- **The legs.** Array destructuring in the setae loop left iterator garbage.
+  `pose()` was too long for V8 to inline its vector calls, so each leg and
+  its setae are now posed in their own functions (same arithmetic, same
+  order).
+- **Culling.** The mite body, its static setae, its instanced legs and the
+  boss had `frustumCulled = false`, so every split view drew every mite.
+  They now cull by exact bounds: the instanced ones recompute
+  `computeBoundingSphere()` from their instances each pose. An object
+  outside a view draws no pixels, so the image is unchanged.
+
+Steady state, back to back against the original (headless SwiftShader,
+`?q=high`, 600 frames each; a "drawn" frame also renders, the others only
+simulate; medians; draws counted per drawn frame, all views):
+
+| run | heap KB/drawn frame | heap KB/sim frame | CPU ms drawn / sim | draws | tris |
+| --- | --- | --- | --- | --- | --- |
+| 1p before | 463 | 376 | 7.1 / 2.7 | 88 | 347 k |
+| 1p after | 144 | 76 | 3.9 / 1.2 | 64–73 | 287 k |
+| 4 views before | 1150 | 667 | 40 / 6.3 | 494–581 | 2.28 M |
+| 4 views after | 580–940 | 143 | 16 / 2.0 | 317–439 | 1.97 M |
+
+`perf/measure.mjs` gets only 5–8 frames per run on this shared container, so
+most of its code runs unoptimized and its heap figure is inflated (1p
+874 → 554 KB/frame). Its draws and primitives match the table.
+
+At 4 views most of the remaining garbage is outside this folder:
+`shared/landmark.js` (`inPoly` and `insetInside` destructure a point per
+polygon edge, about 275 KB per frame), three.js render lists (~55 KB) and
+`shared/splitscreen.js` (~40 KB).
+
+Not done (they change the trade-off or the look):
+
+- 3 mm chunks: 4 views −98 draws but +360 k triangles; 1p −9 draws, +130 k.
+  That trades CPU for GPU and undoes the per-view culling of the 1.5 mm
+  chunks. Per-instance culling (`BatchedMesh`) would get both.
+- Fewer draws per mite (about 10 now) by merging the body, aspis and setae,
+  and the leg instances. They use different materials (thin edge glow), so
+  this needs a shader change and a look check.
+- A lower-poly springtail for the far members of the thicket crowd (968 tris
+  × 120, ~116 k per view that sees the thicket).
 
 ## Textures (`textures.js`)
 

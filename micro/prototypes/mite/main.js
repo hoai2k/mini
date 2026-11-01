@@ -665,11 +665,14 @@ function stepAct(dt) {
   if (u >= 1) { play.act = null; mite.act({}); }
 }
 function bodyOf(m) {
-  return { center: _bc.set(...m.anat.noto.c).multiplyScalar(m.scale).applyQuaternion(m.quat).add(m.center).clone(), quat: m.quat,
-    radii: [m.radii[0] * 1.2 + 30, m.radii[1] * 1.15 + 30, m.radii[2] * 1.45 + 30], // legs splay; + half a blade width
-    load: m.ground && m.ground.entry && m.ground.entry.rod, weight: m.anat.kind === 'pred' ? 13000 : 16000 * m.scale ** 3,
-    loadU: m.ground && m.ground.entry && m.ground.entry.rod ? Math.min(1, Math.max(0, m.ground.point.clone().sub(m.ground.entry.rod.base).dot(m.ground.entry.rod.axis) / m.ground.entry.rod.len)) : 0.7 };
+  // the radii and ground getters build their answers, so each is read once
+  const nc = m.anat.noto.c, mr = m.radii, g = m.ground, rod = g && g.entry && g.entry.rod;
+  return { center: _bc.set(nc[0], nc[1], nc[2]).multiplyScalar(m.scale).applyQuaternion(m.quat).add(m.center).clone(), quat: m.quat,
+    radii: [mr[0] * 1.2 + 30, mr[1] * 1.15 + 30, mr[2] * 1.45 + 30], // legs splay; + half a blade width
+    load: rod, weight: m.anat.kind === 'pred' ? 13000 : 16000 * m.scale ** 3,
+    loadU: rod ? Math.min(1, Math.max(0, _bc2.copy(g.point).sub(rod.base).dot(rod.axis) / rod.len)) : 0.7 };
 }
+const _bc2 = new THREE.Vector3();
 // ---------- sound ----------
 let snd = { t: 0, lastStep: -1, side: 1, lastBlade: -1, mode: 'walk', bladeNear: new Set() };
 function soundTick(dt, ev) {
@@ -714,9 +717,10 @@ const multi = () => recs().length > 1;
 let cur = P1;
 /** Run fn with `mite`, `play`, `dash`, `snd` pointing at player record P. */
 function withRec(P, fn) {
-  const saved = [cur, mite, play, dash, snd];
+  // saved in locals, not an array (this runs dozens of times a frame)
+  const c0 = cur, m0 = mite, p0 = play, d0 = dash, s0 = snd;
   cur = P; mite = P.mite; play = P.play; dash = P.dash; snd = P.snd;
-  try { return fn(); } finally { [cur, mite, play, dash, snd] = saved; }
+  try { return fn(); } finally { cur = c0; mite = m0; play = p0; dash = d0; snd = s0; }
 }
 /** The pad of the player being stepped (rumble goes to their controller). */
 const padOf = () => players.pad(cur.slot);

@@ -343,7 +343,9 @@ function staticSetae(geo, list, mat) {
   const im = new THREE.InstancedMesh(geo, mat, list.length);
   list.forEach((s, i) => setInst(im, i, s.p, s.d, V3(0, 1, 0), s.rad, s.len));
   im.instanceMatrix.needsUpdate = true;
-  im.frustumCulled = false;
+  // exact bounds of the instances (fixed on the body), so a view that cannot
+  // see the mite skips it; culled objects draw no pixels, so nothing changes
+  im.computeBoundingSphere();
   return im;
 }
 
@@ -414,7 +416,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
   body.add(aspis);
   body.add(setaeMeshes[2]);
   root.add(body);
-  noto.frustumCulled = false;
+  // noto is culled by its own (exact) geometry bounds, like the aspis
 
   // legs: instanced in world space, 4 segments + tarsus + claw + setae per leg
   const segIM = new THREE.InstancedMesh(G.seg, legMat, 32);
@@ -423,7 +425,11 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
   // leg setae: [segment index (1 fe, 2 ge, 3 ti, 4 ta), position along, azimuth, length]
   const LS = [[1, 0.35, 0.5, 30], [1, 0.7, 2.6, 26], [2, 0.6, 1.4, 24], [3, 0.4, 0.3, 30], [3, 0.75, 2.9, 28], [4, 0.2, 0.8, 26], [4, 0.45, 2.2, 30], [4, 0.7, 1.2, 34], [4, 0.85, 3.6, 22]];
   const setIM = new THREE.InstancedMesh(G.seta, thinMat, 8 * LS.length + 1);
-  for (const im of [segIM, tarIM, clawIM, setIM]) { im.frustumCulled = false; root.add(im); }
+  // The legs are instanced in the mite's own frame. Their bounds are
+  // recomputed from the instances each pose (legBounds), so a split view
+  // that cannot see this mite skips its legs instead of drawing them.
+  for (const im of [segIM, tarIM, clawIM, setIM]) root.add(im);
+  const legBounds = () => { segIM.computeBoundingSphere(); tarIM.computeBoundingSphere(); clawIM.computeBoundingSphere(); setIM.computeBoundingSphere(); };
 
   const legs = [];
   for (let k = 0; k < 4; k++) for (const side of [-1, 1]) {
@@ -872,6 +878,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       setIM.count = cfg.setae ? si : 0;
       segIM.instanceMatrix.needsUpdate = tarIM.instanceMatrix.needsUpdate = clawIM.instanceMatrix.needsUpdate = setIM.instanceMatrix.needsUpdate = true;
     }
+    legBounds();
   }
 
   // pose() is long enough that V8 stops inlining the small vector calls in
