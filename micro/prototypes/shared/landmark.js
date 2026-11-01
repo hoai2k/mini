@@ -87,7 +87,8 @@ for (let a = 0; a < 8; a++) { DIR_X.push(Math.cos((a * Math.PI) / 4)); DIR_Y.pus
 function inPoly(poly, x, y) {
   let c = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    const pi = poly[i], pj = poly[j];
+    const xi = pi[0], yi = pi[1], xj = pj[0], yj = pj[1];
     if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
   }
   return c;
@@ -164,7 +165,7 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
     if (region && (!region.length || !region[0] || !region[0].length)) return null;
     const polys = (!region ? [[[0, 0], [W, 0], [W, H], [0, H]]] : (Array.isArray(region[0][0]) ? region : [region])).filter((p) => p && p.length >= 3);
     if (!polys.length) return null;
-    const inside = (x, y) => polys.some((p) => inPoly(p, x, y));
+    const inside = (x, y) => { for (let k = 0; k < polys.length; k++) if (inPoly(polys[k], x, y)) return true; return false; };
     const insetInside = (x, y, m) => {
       if (!inside(x, y)) return false;
       for (let a = 0; a < 8; a++) {
