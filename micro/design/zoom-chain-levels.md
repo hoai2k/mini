@@ -165,12 +165,35 @@ them. The super-gene is never explained in text; the gold glow and the power
 carry it. Plan and concept references: `design/super-gene-return.html`
 (future sequence, not built; today the phage world ends in "Work in progress").
 
-**Open questions (the owner's to settle):** how the super-gene climbs each
-step (each creature catching it from the one below — eaten, infected or
-touched — or simply starting each reversed board already glowing); whether
-the reversed boards are the same maps played back toward the start or new
-layouts; and whether the reversed worlds keep their bosses or swap in a
-bigger threat that only the glowing creature can beat.
+**The way back up (the owner's answers, 2026-11-01; design further once the
+downward worlds are settled):**
+
+- **Start:** each reversed world opens with the creature already glowing gold,
+  sitting in the portal it went through on the way down, which glows gold too.
+- **Maps:** the same maps or new ones; it doesn't matter. What matters is that
+  the creature can now fight its world's boss and beat it handily (a boss you
+  could only avoid on the way down, you can now best), then move on. The
+  reversed worlds are a little more fantastical: more bosses and other
+  creatures to fight.
+- **The climb, step by step:** each reversed world's big threat is the
+  creature from one level up. The glowing bacterium's boss is a *Paramecium*;
+  at the end of the fight the bacterium bites it, they merge, the *Paramecium*
+  turns gold, the view zooms out smoothly (the same continuous transition as
+  the way down, played outward), and you play the glowing *Paramecium*. Then
+  the *Paramecium* meets an amoeba, and so on up the chain to the springtail
+  and the fingertip.
+
+  | Reversed world | You play (glowing) | Its boss: the next creature up |
+  | --- | --- | --- |
+  | Bacterium | Bacterium | *Paramecium* |
+  | *Paramecium* | *Paramecium* | Amoeba |
+  | Amoeba | Amoeba | Tardigrade |
+  | Tardigrade | Tardigrade | Mite |
+  | Mite | Mite | Springtail |
+  | Springtail | Springtail | The fingertip (the ending) |
+
+  (The phage's own turn, its burst inside the host, comes before the first
+  row. The bigger threats are not designed yet.)
 
 ## Level 0: The bog surface (water springtail)
 

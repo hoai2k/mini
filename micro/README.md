@@ -15,7 +15,10 @@ Video games where you play as microscopic creatures.
   mite, springtail): each creature carries the super-gene, glows gold and is
   far stronger on its board, until a glowing springtail jumps onto a person's
   fingertip and passes the super-gene on. The glow is never explained, only
-  shown. The golden sparkle on every world's portal is the same gold, so it
+  shown. On the way up, each world opens with the creature already glowing in
+  its golden portal; its boss is the creature from one level up, which it
+  beats, bites and merges with, turning it gold, and the view zooms out to play
+  that creature next. The golden sparkle on every world's portal is the same gold, so it
   foreshadows the ending. Plan and concept art:
   [`design/super-gene-return.html`](design/super-gene-return.html) (not built
   yet: today the phage world ends in a "Work in progress" screen).
