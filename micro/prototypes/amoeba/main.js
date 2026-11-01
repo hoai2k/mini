@@ -2235,7 +2235,7 @@ window.__micro = {
     if (kind === 'forward') {
       if (!PORTAL.placed) placePortal(bearingFromStart(c.body.cx, c.body.cy) || 0);
       lm.fwdLatch = false;
-      const [x, y] = ringPoint(distFromStart(beacon.x, beacon.y) - 230, PORTAL.a);
+      const [x, y] = ringPoint(distFromStart(PORTAL.x, PORTAL.y) + 240, PORTAL.a); // just beyond it (Chaos guards the inner side)
       window.__micro.place(slot, x, y);
     }
     else window.__micro.place(slot, BACK_TIP.x + 230, BACK_TIP.y + 40);

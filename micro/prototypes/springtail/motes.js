@@ -35,7 +35,7 @@ export function createMotes(scene, max = 700) {
     mesh: im,
     get count() { return list.length; },
     /** A mote shed from `at` (world), drifting up and out from `centre` and shrinking away over `life` s. */
-    shed(at, centre, { size = 0.035, life = 1.4, speed = 0.45 } = {}) {
+    shed(at, centre, { size = 0.035, life = 1.8, speed = 0.8 } = {}) {
       if (list.length >= max) return;
       const v = new THREE.Vector3().subVectors(at, centre).setY(0);
       if (v.lengthSq() < 1e-6) v.set(Math.random() - 0.5, 0, Math.random() - 0.5);

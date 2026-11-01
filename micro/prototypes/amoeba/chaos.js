@@ -136,7 +136,8 @@ export class Chaos {
       this.state = 'return'; this.fight.reset(); ev.push({ e: 'leash', p: tgt });
     } else if (this.state === 'fight') {
       const gap = tgt ? td - b.req - tgt.req : Infinity;
-      const f = this.fight.update(dt, { near: gap < 900, inReach: gap < 140, facing: true, blocking: false });
+      // drawn well off its post it only follows (no new attack): the lure is a chase, not a trap
+      const f = this.fight.update(dt, { near: gap < 900, inReach: gap < 140 && home < CHAOS_LEASH * 0.5, facing: true, blocking: false });
       if (f.state !== this.fs) {
         if (f.state === 'windup') { this.attack++; ev.push({ e: this.attack % 3 === 0 ? 'windupLunge' : 'windupCup', p: tgt }); this.aim = tgt ? { x: tgt.x, y: tgt.y } : null; }
         if (f.state === 'strike') ev.push({ e: 'strike', p: tgt });
