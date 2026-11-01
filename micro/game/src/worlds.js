@@ -42,7 +42,7 @@ export const WORLDS = [
     goal: 'Explore and feed while the film dries; past halfway push and jab (X) through a meadow of rotifers, face Milnesium and brace (B) or jab (X), then get past Prionchulus, the predatory nematode guarding the last Sphagnum leaf.',
     forward: 'The tip of the far Sphagnum leaf, down the shoot past the rotifer meadow, dipping into the pool where the film meets open water.',
     back: 'The leaf axil to the left, where leaves meet the stem: dwell there and press Y to rise to the moss.',
-    controls: [['LS', 'Crawl'], ['RS', 'Turn and tilt'], ['A', 'Scramble'], ['X', 'Pierce: feed, or jab back'], ['B', 'Brace: block facing a predator'], ['Y', 'Curl into a tun'], ['LT/RT', 'Fine focus'], ['D-pad ↑↓', 'Magnification']],
+    controls: [['LS', 'Crawl: a slight push creeps, full tilt hurries'], ['RS', 'Turn and tilt'], ['A', 'Scramble'], ['X', 'Pierce: feed, or jab back'], ['B', 'Brace: block facing a predator'], ['Y', 'Curl into a tun'], ['LT/RT', 'Fine focus'], ['D-pad ↑↓', 'Magnification']],
     facts: [
       'Dried into a tun, a tardigrade can wait out years without water.',
       'The mite and the tardigrade are the same size: this step changes the light, not the scale.',

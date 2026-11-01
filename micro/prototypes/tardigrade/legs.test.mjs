@@ -119,7 +119,6 @@ test('no tardigrade leg is drawn longer than 1.15x its rest length', { timeout: 
         out.speed = Math.round(w.speed * 100);
         out.end = `${w.leaf.name} side ${w.side} u ${w.u.toFixed(2)} v ${w.v.toFixed(2)} heading ${w.hu.toFixed(2)},${w.hv.toFixed(2)} film ${life.filmHere().toFixed(2)}`;
         out.stats = { ...w.stats };
-        delete out.stats.why;
         return out;
       }, { leaf, side, u, v, plan, render: !!process.env.SHOTS });
       if (process.env.SHOTS) {

@@ -25,7 +25,7 @@ Keyboard fallbacks are in `shared/pad.js`.
 | --- | --- | --- | --- |
 | Springtail | Furcula jump | Graze spores and algae | Hunker in the meniscus |
 | Mite | **Jump** (A; borrowed from jumping oribatids such as *Zetorchestes*); scramble on held B | Bite with the chelicerae (graze hyphae and spores; nip back) | Ptychoidy (close up, held Y: mite exception) |
-| Tardigrade | Scramble (costs water and energy) | Pierce with the stylets | Brace (grip hard) |
+| Tardigrade | Scramble, ~280 µm/s, nearly twice the full-tilt walk (costs water and energy). LS is analogue: a slight push creeps (~30 µm/s), full tilt hurries (~150 µm/s); the keys walk mid-pace, hold G to hurry, T to creep | Pierce with the stylets | Brace (grip hard) |
 | Amoeba | Surge (A): pseudopods shoot out and the cell flows after them | Close the food cup (X) | Let go or egest (B) |
 | Paramecium | Ciliary sprint | Feed (oral gulp); at a hunter, ram and sting | Trichocyst burst and back off (blocks a strike when facing it) |
 | Bacterium | Sprint run (all flagella bundled) | Attach / bore (Bdellovibrio) or bind | Tumble |

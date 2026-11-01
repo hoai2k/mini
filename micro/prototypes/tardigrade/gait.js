@@ -219,7 +219,8 @@ export class Walker {
     });
   }
 
-  letGo(f, why = '') { (this.stats.why ||= []).push(why + ':' + f.state + ':' + this.feet.indexOf(f)); f.state = 'reach'; f.grip = 0; f.retry = 0; this.stats.letGo++; }
+  /** The foot lets go: nothing to hold in reach (it is drawn in to its tuck). */
+  letGo(f) { f.state = 'reach'; f.grip = 0; f.retry = 0; this.stats.letGo++; }
 
   /** Start a swing of foot f to hold h. */
   swing(f, h, dur) {
@@ -357,7 +358,7 @@ export class Walker {
       if (!h.ok) {
         // Nothing in reach on the face under the body yet: keep the hold it
         // has while the leg reaches it, let go once it cannot.
-        if (need || (onOld && r > R_PLANT)) this.letGo(f, 'need');
+        if (need || (onOld && r > R_PLANT)) this.letGo(f);
         continue;
       }
       this.swing(f, h, dur);
@@ -380,7 +381,7 @@ export class Walker {
       f.world.lerpVectors(f.from, f.to, e).addScaledVector(f.n, 0.13 * S * Math.sin(Math.PI * tt));
       if (f.t >= 1) {
         f.world.copy(f.to);
-        if (this.ratio(i, f.to) > R_STEP) { this.letGo(f, 'land'); return; } // nothing to land on in reach
+        if (this.ratio(i, f.to) > R_STEP) { this.letGo(f); return; } // nothing to land on in reach
         f.state = 'stance'; f.grip = f.toGrip;
         if (f.grip > 0.5) ev.catch(f.grip);
       }
@@ -457,7 +458,7 @@ export class Walker {
     const k = 1 - Math.exp(-dt / 0.07);
     this.feet.forEach((f, i) => {
       if (f.state === 'reach') f.world.lerp(this.tuckPoint(i, _w), k);
-      else if ((f.state === 'stance' || f.state === 'drag') && this.ratio(i, f.world) > R_CAP) this.letGo(f, 'cap');
+      else if ((f.state === 'stance' || f.state === 'drag') && this.ratio(i, f.world) > R_CAP) this.letGo(f);
       if (this.capFoot(i, f.world) && f.state !== 'reach') this.stats.capped++;
     });
   }
