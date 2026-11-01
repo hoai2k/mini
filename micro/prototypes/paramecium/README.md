@@ -517,6 +517,42 @@ Kept sparse so your cell is the clearest thing in the field.
 - The far-off amoeba re-meshes every 8th step; the overlay's font is set
   once per resize.
 
+### Performance (second pass)
+
+Measured with `tools/perf/measure.mjs` at `q=high`, players placed in the
+*Chlamydomonas* bloom (route 3700–4300 µm), before and after back to back on
+a shared machine (compare draws, triangles and uploads; SwiftShader times only
+roughly).
+
+- **The bloom is culled cell by cell** (`bloom.cullView`): each view draws a
+  copy of each tier holding only the cells inside the part of the screen its
+  scene pass writes; the kept cells stay in order, so the additive buffers sum
+  the same values in the same order. A view keeps 15–60 % of the 1660 cells.
+- **Split views cull to their region**: the optics' new `onScene(box)` hook
+  hands over the scene pass's padded scissor box, and `cullRegion` hides
+  cells, hunters and set pieces outside it (`sceneFrustum` in
+  `paramecium-microscope.js` builds the frustum; borrowers are unaffected).
+- `plume()` skips the square root for cells outside every plume.
+- Checked pixel-identical (frozen frame, A/B with `__micro.debug.fineCull`):
+  1 player chase and microscope views, 4 players split.
+
+| in the bloom | 1 player before | after | 4 players (3 views) before | after |
+| --- | --- | --- | --- | --- |
+| triangles per frame | 667 k | 529 k | 2.56 M | 2.09 M |
+| draws per frame | 88 | 85 | 335 | 320 |
+| buffer upload per frame | 152 KB | 80 KB | 169 KB | 167 KB |
+
+The bloom's own triangles fall by 60–85 % per view (166 k drawn in every
+view before); the rest of the 4-player figure moves with where the hunters
+and prey happen to be.
+
+The bloom's CPU cost is small (the crowd step ≈ 1 ms a frame for 1660 cells,
+run once whatever the player count); its remaining cost is the fill of the
+visible cells. Not done (they change what is seen): thinning far cells inside
+the bloom, and freezing cells far from every player (needs `shared/crowd.js`).
+Found: until a player comes within 1400 µm the cells have never been given
+their heights, so from afar the bloom lies flat on the slide.
+
 ## Rendering: forming a microscope image
 
 Nothing in the scene is lit. Every object writes what a transmitted-light

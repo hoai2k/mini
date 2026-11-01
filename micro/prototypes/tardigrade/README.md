@@ -336,6 +336,31 @@ CPU and uploads, and SwiftShader times only roughly):
 The 1-player raster number rose only because the machine was busier: the
 unchanged full-screen composite pass alone went from 65 to 162 ms.
 
+### Performance (second pass)
+
+- **Per-view culling of the animals** (`cullAnimals` in `main.js`): every
+  player and *Milnesium* (≈170 k triangles each, deformed on the GPU, so
+  three.js could not cull them) is tested against each view's frustum, then
+  against the scissored part of the optical buffer the view writes, and
+  hidden for that view only. The bound is 1.5× the rest pose's reach plus a
+  margin (the deformed pose measured ≤ 0.99× of it). Checked pixel-identical
+  (frozen frame, A/B with `__micro.cullViews`) with 4 players spread and in
+  the meadow.
+- **The rotifer meadow is not a cost worth cutting**: with 4 players in it
+  its crowd step measured about 0.5 ms a frame here (two substeps at the
+  headless frame rate; one at 60 fps) and its upload 13 KB; it draws
+  160 × 1064 = 170 k triangles per view, and at the default objective the
+  whole meadow is on screen, so culling saves nothing there. Fewer
+  triangles per rotifer would change the look.
+
+Measured with `tools/perf/measure.mjs` at `q=high`, before and after back to
+back (shared machine: compare draws and triangles):
+
+| 4 players | in the meadow, before | after | spread over leaves, before | after |
+| --- | --- | --- | --- | --- |
+| triangles per frame | 4.16 M | 4.16 M | 3.66 M | 2.13 M |
+| draws per frame | 522 | 520 | 572 | 405 |
+
 ## Threats and pacing
 
 *Milnesium* follows the shared pacing in `shared/predation.js`:
