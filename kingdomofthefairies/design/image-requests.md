@@ -94,7 +94,7 @@ and the production art for the film edition (F1–F4) after them.
 
 Requested 11 October 2026: 412 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 410 of 412 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 412 of 412 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -3203,8 +3203,8 @@ Painted irregular cavern rock supports replace the rectangular procedural platfo
 
 | Id | Size | Anchor | Replaces | Delivery |
 | --- | --- | --- | --- | --- |
-| `cavern-platform` | 720 × 480 | top centre | new | requested |
-| `cavern-platform-tinted` | 720 × 480 | top centre | new | requested |
+| `cavern-platform` | 720 × 480 | top centre | new | [delivered](../assets/cavern-platform.webp) |
+| `cavern-platform-tinted` | 720 × 480 | top centre | new | [delivered](../assets/cavern-platform-tinted.webp) |
 
 #### `cavern-platform` — Cavern platform rock face
 

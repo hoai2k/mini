@@ -5211,7 +5211,7 @@
       "edition": "film"
     },
     "cavern-platform": {
-      "status": "requested",
+      "status": "delivered",
       "file": "cavern-platform.webp",
       "size": [
         720,
@@ -5221,7 +5221,7 @@
       "edition": "film"
     },
     "cavern-platform-tinted": {
-      "status": "requested",
+      "status": "delivered",
       "file": "cavern-platform-tinted.webp",
       "size": [
         720,

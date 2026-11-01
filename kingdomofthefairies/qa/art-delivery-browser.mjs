@@ -96,6 +96,7 @@ try {
           assert.ok(Math.abs(empty.height - occupied.height) <= 2, 'barrel rim keeps its height');
           assert.ok(Math.abs(empty.width / occupied.width - 1) < 0.08, 'empty and occupied barrel bodies keep their width');
         } else if (['hang', 'shake', 'fall', 'broken'].includes(phase)) {
+          assert.ok(result.draws.includes('cavern-platform'), 'painted rock supports replace the floor rectangles');
           assert.ok(result.crops.length >= 2, `${look}/${film}/${phase}: painted ceiling cap`);
           assert.ok(result.crops[0][5] < 0, "ceiling cap starts beyond the top of the scene");
           assert.ok(result.crops[0][6] > 90, "painted stalactite is enlarged");
