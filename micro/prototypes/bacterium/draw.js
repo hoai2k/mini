@@ -46,17 +46,27 @@ export function createDrawer(world) {
     }
   }
 
-  function spirillum(S, x, y, a, L, rr, amp, wl, phase, z, flPh, o = {}) {
-    const mat = cell(o.fl ?? 1);
-    S.strand(x, y, a, L, rr, amp, wl, { ...mat, centred: true, phase, z });
+  // Scratch materials for the spirillum and the collective's kin (up to 160 cells a frame with four
+  // players): the shape renderer copies every field when a shape is pushed, so one reused object per
+  // kind of part draws exactly what fresh ones did, without ~15 allocations per cell per frame.
+  const spBody = { dn: 0.05, scat: 0.12, fl: [0, 0, 0], memb: 0.85, ab: [0.002, 0.002, 0.003], centred: true, phase: 0, z: 0 };
+  const spChain = { dn: 1.0, scat: 2, fl: [0, 0, 0], ab: [2.5, 2.5, 2.5], z: 0, hk: 0.2 };
+  const spFlag = { dn: 0.13, scat: 90, fl: [0, 0, 0], hk: 0.3, phase: 0, z: 0 };
+  const NO_OPTS = {};
+  function spirillum(S, x, y, a, L, rr, amp, wl, phase, z, flPh, o = NO_OPTS) {
+    // body: cell(o.fl ?? 1), centred, with this phase and height
+    spBody.fl[0] = MEMB * chan.memb * (o.fl ?? 1); spBody.phase = phase; spBody.z = z;
+    S.strand(x, y, a, L, rr, amp, wl, spBody);
     // a magnetosome chain along the axis: ~15 magnetite crystals of ~45 nm
-    if (o.chain !== false) S.chain(x, y, a, L * 0.48, 0.024, 15, { dn: 1.0, scat: 2, fl: [0, 0, MAG * chan.mag], ab: [2.5, 2.5, 2.5], z, hk: 0.2 });
+    if (o.chain !== false) { spChain.fl[2] = MAG * chan.mag; spChain.z = z; S.chain(x, y, a, L * 0.48, 0.024, 15, spChain); }
     if (opts.flagella) {
-      // one flagellum at each pole
-      for (const sgn of [1, -1]) {
+      // one flagellum at each pole (flag())
+      spFlag.fl[1] = FLAG * chan.flag; spFlag.z = z;
+      for (let sgn = 1; sgn >= -1; sgn -= 2) {
         const px = x + Math.cos(a) * L * 0.5 * sgn, py = y + Math.sin(a) * L * 0.5 * sgn;
         const bend = o.tumbling ? sgn * 0.9 : 0;
-        S.strand(px, py, a + (sgn > 0 ? 0 : Math.PI) + bend, 3.2, 0.011, 0.24, 1.25, { ...flag(), phase: flPh * sgn, z });
+        spFlag.phase = flPh * sgn;
+        S.strand(px, py, a + (sgn > 0 ? 0 : Math.PI) + bend, 3.2, 0.011, 0.24, 1.25, spFlag);
       }
     }
   }
@@ -246,6 +256,9 @@ export function createDrawer(world) {
   }
 
   // --- the collective (collective.js): kin cells, free or members, the slime, the toxin ---
+  const KIN_MEMBER = { tumbling: false, fl: 1 }, KIN_FREE = { tumbling: false, fl: 0.8 };
+  const kinTox = { dn: 0.004, scat: 0.05, ab: [0, 0, 0], z: 0 };
+  const kinSlime = { dn: 0.003, scat: 0.02, fl: [0, 0.01, 0.03], z: 0.05 };
   function kin(S, t, coll) {
     const fl = opts.slowBeat ? 1 : 5;
     for (const k of coll.kin) {
@@ -259,10 +272,10 @@ export function createDrawer(world) {
       }
       // a charged collective holds the toxin: a faint purple (violacein-like) absorbance
       const charge = C ? C.charge : 0;
-      spirillum(S, k.x, k.y, k.a, k.L, k.r, k.amp, k.wl, k.bodyPhase, C ? 0 : k.z, k.flPhase * fl, { tumbling: false, fl: C ? 1 : 0.8 });
-      if (charge > 0.2) S.disc(k.x, k.y, 0.5, { dn: 0.004, scat: 0.05, ab: [0.03 * charge, 0.09 * charge, 0.02 * charge], z: 0 });
+      spirillum(S, k.x, k.y, k.a, k.L, k.r, k.amp, k.wl, k.bodyPhase, C ? 0 : k.z, k.flPhase * fl, C ? KIN_MEMBER : KIN_FREE);
+      if (charge > 0.2) { const ab = kinTox.ab; ab[0] = 0.03 * charge; ab[1] = 0.09 * charge; ab[2] = 0.02 * charge; S.disc(k.x, k.y, 0.5, kinTox); }
       // the slime shield: EPS round every member (thin, faint in phase, a haze in fluorescence)
-      if (C && C.level >= 1) S.disc(k.x, k.y, 2.1, { dn: 0.003, scat: 0.02, fl: [0.03 * chan.memb, 0.01, 0.03], z: 0.05 });
+      if (C && C.level >= 1) { kinSlime.fl[0] = 0.03 * chan.memb; S.disc(k.x, k.y, 2.1, kinSlime); }
     }
     // the toxin burst: a ring of purple granules racing outward
     for (const C of coll.list) {

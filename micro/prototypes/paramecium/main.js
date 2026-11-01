@@ -13,7 +13,7 @@ import { mountHud, keyFor } from '../shared/hud.js';
 import { createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createContactFx } from './fx.js';
 import { loadTexture } from '../shared/assets.js';
-import { createOptics, MODES, MODE_NAMES, shared, standInPlate } from './optics.js';
+import { createOptics, MODES, MODE_NAMES, shared, standInPlate, sceneFrustum } from './optics.js';
 import { createCell, LENGTH, WIDTH, SPECIES, SPECIES_ID, FEATURE_KEY } from './cell.js';
 import { createWorld, DEPTH } from './world.js';
 import { createSwimmer, VMAX, DASH_V, DASH_T, BODY_R } from './swim.js';
@@ -1326,10 +1326,14 @@ function frame(now) {
       bfSoft: 1,
     };
     // per view: draw only what this view can see, and (split) only its own region
-    if (cullOn) { cullFor(cam, v); if (many) optP.rect = viewRect(v); bloom.lod(cam.position); }
+    if (cullOn) {
+      cullFor(cam, v); if (many) optP.rect = viewRect(v); bloom.lod(cam.position);
+      // just before the scene pass: cull again to the part of the screen it writes (a split view's padded region), and the bloom cell by cell
+      if (!borrow.id && debug.fineCull) optP.onScene = (box) => { if (many) cullRegion(cam, box); bloom.cullView(cam, box, v.index); };
+    }
     if (borrow.id) renderBorrowed(cam, optP, dt);
     else optics.render(scene, cam, optP);
-    if (cullOn) uncull();
+    if (cullOn) { uncull(); bloom.uncull(); }
   });
   fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
   // the edge arrows: the brass chevron to the biofilm, the ring to the amoeba's floor
@@ -1394,6 +1398,21 @@ function cullFor(cam, v) {
     if (!frustum.intersectsSphere(cullS) || d > far) { it.obj.visible = false; culled.push(it.obj); continue; }
     // lowest effects step: another player's cell far off keeps its body but not its cilia
     if (it.cell && qLevel === 0 && !v.slots.includes(it.cell.slot) && d > 600 && it.cell.cell.cilia.mesh.visible) { it.cell.cell.cilia.mesh.visible = false; culled.push(it.cell.cell.cilia.mesh); }
+  }
+}
+/**
+ * A split view renders the whole camera but keeps only its region (the scene
+ * pass is scissored to it, padded for the blur): what lies outside that padded
+ * region is hidden too. `box` is the scene pass's box in normalised device
+ * coordinates (the optics' onScene). Same bounds as cullFor.
+ */
+const regionF = new THREE.Frustum();
+function cullRegion(cam, box) {
+  sceneFrustum(regionF, cam, box);
+  for (const it of cullables()) {
+    if (!it.obj.visible) continue;
+    cullS.center.copy(it.c); cullS.radius = it.r;
+    if (!regionF.intersectsSphere(cullS)) { it.obj.visible = false; culled.push(it.obj); }
   }
 }
 function uncull() { for (const o of culled) o.visible = true; culled.length = 0; }
@@ -1642,6 +1661,7 @@ function renderBorrowed(cam, optP, dt) {
 const slotP = (slot) => roster.find((P) => P.slot === slot) || P1;
 const debug = {
   freeze: false, inspect: false, clean: false, thrust: 0, steer: { x: 0, y: 0, m: 0 },
+  fineCull: true, // the region and bloom-cell culling (cullRegion, bloom.cullView); false for A/B checks
   setMode(i) { features.set('look', MODE_NAMES[MODES[((i % MODES.length) + MODES.length) % MODES.length]]); },
   setView(k) { features.set('view', VIEW_NAMES[k]); },
   setOrbit(yaw, pitch, dist) { view.orbitYaw = yaw; view.orbitPitch = pitch; if (dist) view.dist = dist; },

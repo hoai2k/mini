@@ -23,7 +23,7 @@
 // here takes them in. Their two flagella are not drawn.]
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { createCrowd } from '../shared/crowd.js';
-import { volumeMaterial } from './optics.js';
+import { volumeMaterial, sceneFrustum } from './optics.js';
 import { DIR, routePoint, progress, lateral } from './landmarks.js';
 import { DEPTH } from './world.js';
 
@@ -58,16 +58,25 @@ export function createBloom(scene) {
     // each member's own height in the tier (it sits lower in a plume)
     const off = new Float32Array(count);
     for (let i = 0; i < count; i++) off[i] = Math.random();
-    return { y0, y1, count, crowd, mesh, off, local: [] };
+    // per-view copies (culling): each view draws only the cells inside its own
+    // part of the screen, from its own buffer (see cullView)
+    return { y0, y1, count, crowd, mesh, off, local: [], views: [] };
   });
+  const MEMBER_R = 16; // a member's reach from its centre, stretched and wobbling (≤ 13.1 µm), with a margin
 
   // plume columns (local x, z): sinking cells, between broad upwellings
   const PLUMES = [[-120, -760], [150, -330], [-60, 80], [110, 520], [-140, 900]];
   const plumeR = 130;
   /** 0..1: how deep inside a plume a local point is. */
+  const PX = PLUMES.map((q) => q[0]), PZ = PLUMES.map((q) => q[1]), plumeR2 = plumeR * plumeR;
   function plume(lx, lz) {
     let m = 0;
-    for (const [px, pz] of PLUMES) { const d = Math.hypot(lx - px, lz - pz); if (d < plumeR) m = Math.max(m, 1 - d / plumeR); }
+    for (let k = 0; k < PX.length; k++) {
+      const dx = lx - PX[k], dz = lz - PZ[k];
+      if (dx * dx + dz * dz >= plumeR2) continue; // most cells are in no plume: no square root
+      const d = Math.hypot(dx, dz);
+      if (d < plumeR) m = Math.max(m, 1 - d / plumeR);
+    }
     return m;
   }
   const inv = new THREE.Matrix4().copy(group.matrixWorld).invert();
@@ -80,6 +89,27 @@ export function createBloom(scene) {
     return Math.abs(progress(p) - BLOOM.centre) < BLOOM.half + margin && Math.abs(lateral(p)) < BLOOM.across + margin;
   }
   const tierHas = (T, y) => y > T.y0 - 60 && y < T.y1 + 60;
+
+  // --- per-view culling: a view's own copy of each tier, holding only the cells
+  // inside the part of the screen it draws (its frustum, or a split view's
+  // padded region). The kept cells stay in their order, so the additive
+  // buffers sum the same values in the same order: the image is unchanged.
+  const frustum = new THREE.Frustum(), cs = new THREE.Sphere(new THREE.Vector3(), MEMBER_R);
+  let viewing = false;
+  function viewMesh(T, key) {
+    let m = T.views[key];
+    if (!m) {
+      m = T.views[key] = new THREE.InstancedMesh(T.mesh.geometry, T.mesh.material, T.count);
+      m.name = `${T.mesh.name} (view ${key})`;
+      m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      m.boundingSphere = T.mesh.boundingSphere; // the same sort depth as the whole tier
+      m.computeBoundingSphere = () => {};
+      m.frustumCulled = false; // culled here, cell by cell
+      m.visible = false;
+      group.add(m);
+    }
+    return m;
+  }
 
   let time = 0;
   const api = {
@@ -153,6 +183,49 @@ export function createBloom(scene) {
       const k = d < 700 ? 1 : d < 1500 ? 0.5 : d < 2500 ? 0.25 : 0.1;
       for (const T of tiers) T.mesh.count = Math.max(1, Math.round(T.count * k));
       return k;
+    },
+    /**
+     * Per-view culling: for one view's render (call after lod), draw from a
+     * copy of each tier that holds only the cells inside `box` ([x0, y0, x1,
+     * y1], normalised device coordinates; null: the whole screen) as seen by
+     * `camera`. `key` names the view (each keeps its own buffers). uncull()
+     * after the render puts the whole tiers back. Returns the cells kept.
+     */
+    cullView(camera, box = null, key = 0) {
+      if (!api.on || !group.visible) return 0;
+      sceneFrustum(frustum, camera, box, group.matrixWorld);
+      let kept = 0;
+      for (const T of tiers) {
+        const src = T.mesh.instanceMatrix.array, n = T.mesh.count, life = T.crowd.members.life;
+        const m = viewMesh(T, key), dst = m.instanceMatrix.array;
+        let k = 0;
+        for (let i = 0; i < n; i++) {
+          if (life[i] <= 0) continue; // gone: drawn at zero size
+          const o = i * 16;
+          cs.center.set(src[o + 12], src[o + 13], src[o + 14]);
+          if (!frustum.intersectsSphere(cs)) continue;
+          const d = k * 16;
+          for (let j = 0; j < 16; j++) dst[d + j] = src[o + j];
+          k++;
+        }
+        kept += k;
+        m.count = k;
+        if (k) {
+          m.instanceMatrix.clearUpdateRanges();
+          m.instanceMatrix.addUpdateRange(0, k * 16);
+          m.instanceMatrix.needsUpdate = true;
+        }
+        m.visible = k > 0;
+        T.mesh.visible = false;
+      }
+      viewing = true;
+      return kept;
+    },
+    /** After a view's render: the whole tiers again (for any other render of the scene). */
+    uncull() {
+      if (!viewing) return;
+      viewing = false;
+      for (const T of tiers) { T.mesh.visible = true; for (const m of T.views) if (m) m.visible = false; }
     },
     get alive() { return tiers.reduce((s, T) => s + T.crowd.alive, 0); },
   };

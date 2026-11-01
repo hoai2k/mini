@@ -245,8 +245,9 @@ export function createWorld() {
     },
     opts, hunt, grains, specks, eps, film, cells, phages, patches, grazers, amoeba, slab, surfaceY,
     oxygen, food, eat, insideAmoeba, pushOutOfGrains, grazerPose,
-    flowAt(x, y) {
-      const f = grazerFlow(x, y, { x: 0, y: 0 });
+    /** The current at (x, y), µm/s. `out`, if given, is filled and returned instead of a new object. */
+    flowAt(x, y, out = { x: 0, y: 0 }) {
+      const f = grazerFlow(x, y, out);
       // the boss's vortex (main.js sets world.stentor)
       if (world.stentor) { const v = world.stentor.flow(x, y, tmpS); f.x += v.x; f.y += v.y; }
       return f;

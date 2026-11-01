@@ -128,8 +128,9 @@ void main() {
     rim = smoothstep(0.35 * r, r, d);
   } else if (type == 3) {
     // a blob: sphere or flattened grain with a wobbly outline; p1 wobble, p2 seed, L cap on thickness
-    float a = atan(p.y, p.x);
-    float R = r * (1.0 + p1 * (vnoise(vec2(a * 2.2 + p2, p2)) - 0.5) * 2.0);
+    // (a round blob, p1 = 0, skips the outline noise: R = r either way)
+    float R = r;
+    if (p1 != 0.0) R = r * (1.0 + p1 * (vnoise(vec2(atan(p.y, p.x) * 2.2 + p2, p2)) - 0.5) * 2.0);
     float d = length(p);
     float rr = max(R, 0.6 * uPx), rb = rr + vBlur;
     t = 2.0 * sqrt(max(rb * rb - d * d, 0.0)) * pow(R / rb, 3.0);

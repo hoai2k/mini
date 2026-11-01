@@ -172,6 +172,13 @@ export function createWorld(scene) {
       mesh.frustumCulled = false;
       g.add(mesh);
     }
+    // The host's instanced meshes (LPS forest, OmpC patches, grab proteins) never move in the host's
+    // frame, so each gets a bounding sphere once (padded for the ink hull's push-out) and is culled
+    // with the host when it is wholly off screen, in every split view, as the capsule body already is.
+    for (const o of g.children) {
+      if (!o.isInstancedMesh) continue;
+      for (const m of o.ink ? [o, o.ink] : [o]) { m.computeBoundingSphere(); m.boundingSphere.radius += 8; m.frustumCulled = true; }
+    }
     g.position.copy(host.pos); g.rotation.z = host.ang;
     scene.add(g);
     world.hosts.push(host);
@@ -339,6 +346,12 @@ export function createWorld(scene) {
     const mesh = inkedInstanced(T.geo, toonMaterial({ vertexColors: true, mottle: 0.12, fl: T.fl }), T.n, { width: 0.6 });
     mesh.userData.crowd = true; // its ink is the first to go at low quality
     T.geoGoodsell = T.geo; T.geoFL = lumpyGeometry(T.geo.userData.parts, T.n > 150 ? 3 : 6);
+    // culling: world.update fits a sphere round the molecules each frame (a split view far from the
+    // crowd skips its draw; the crowd wraps round view.target, so it is often wholly off screen there)
+    T.reach = 0;
+    for (const gg of [T.geoGoodsell, T.geoFL]) { gg.computeBoundingSphere(); T.reach = Math.max(T.reach, gg.boundingSphere.center.length() + gg.boundingSphere.radius); }
+    mesh.boundingSphere = mesh.ink.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
+    mesh.frustumCulled = mesh.ink.frustumCulled = true;
     scene.add(mesh);
     T.mesh = mesh;
     T.items = Array.from({ length: T.n }, () => ({
@@ -444,6 +457,7 @@ export function createWorld(scene) {
       mesh.visible = world.opts.crowd;
       if (!world.opts.crowd) continue;
       const decay = Math.exp(-dt * 2.2);
+      let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity, sMax = 0;
       for (let i = 0; i < T.items.length; i++) {
         const it = T.items[i];
         it.v.multiplyScalar(decay);
@@ -462,6 +476,9 @@ export function createWorld(scene) {
         // keep them out of solid things
         for (const h of world.hosts) {
           if (h.burst) continue;
+          // beyond the host's bounding sphere the envelope is more than 5 away (sdHost >= |p - pos| - half - r): skip the exact test
+          const ex = it.p.x - h.pos.x, ey = it.p.y - h.pos.y, ez = it.p.z - h.pos.z, er = h.half + h.r + 5;
+          if (ex * ex + ey * ey + ez * ez >= er * er) continue;
           const sd = world.sdHost(h, it.p, _v);
           if (sd < 5) it.p.addScaledVector(_v, 5 - sd);
         }
@@ -476,8 +493,17 @@ export function createWorld(scene) {
         it.q.multiply(_q);
         _m.compose(it.p, it.q, _s.setScalar(it.s * world.crowdScale));
         mesh.setMatrixAt(i, _m);
+        const P = it.p;
+        if (P.x < x0) x0 = P.x; if (P.x > x1) x1 = P.x; if (P.y < y0) y0 = P.y; if (P.y > y1) y1 = P.y; if (P.z < z0) z0 = P.z; if (P.z > z1) z1 = P.z;
+        if (it.s > sMax) sMax = it.s;
       }
       mesh.instanceMatrix.needsUpdate = true;
+      // the bounding sphere of every molecule (the box's, plus the largest molecule and the ink's push-out)
+      if (T.items.length) {
+        const B = mesh.boundingSphere;
+        B.center.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+        B.radius = Math.hypot(x1 - x0, y1 - y0, z1 - z0) / 2 + T.reach * sMax * world.crowdScale + 8;
+      }
     }
   };
 

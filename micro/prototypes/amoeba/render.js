@@ -18,39 +18,65 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { PropertyOptics, propertyMaterial } from '../shared/techniques/amoeba-optics.js';
 import { N } from '../shared/techniques/amoeba-softbody.js';
 import { QUAD_VS, FRAG_FS, BODY_FS, GRAN_VS, GRAN_FS, PREY_FS, SPIRO_FS, DIATOM_FS, FLAKE_FS, PHOTO_FS, TRAP_FS, LEAF_FS } from './shaders.js';
+import { hyp } from './util.js';
 
 const SUB = 3; // Catmull-Rom subdivisions per membrane segment for the mask
 const CHANNELS = [new THREE.Vector4(1, 0, 0, 0), new THREE.Vector4(0, 1, 0, 0), new THREE.Vector4(0, 0, 1, 0), new THREE.Vector4(0, 0, 0, 1)];
 
 /** Does the closed contour (Vector2s) cross itself? A grid hash over its segments. */
+// The hash lives in reused typed arrays (counts, then the segments per cell in
+// index order), so a check allocates nothing.
+const CC = { start: new Int32Array(64), items: new Int32Array(256), fill: new Int32Array(64), box: new Int32Array(256) };
 function contourCrosses(ct) {
   const n = ct.length;
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  for (const v of ct) { if (v.x < x0) x0 = v.x; if (v.x > x1) x1 = v.x; if (v.y < y0) y0 = v.y; if (v.y > y1) y1 = v.y; }
+  for (let i = 0; i < n; i++) { const v = ct[i]; if (v.x < x0) x0 = v.x; if (v.x > x1) x1 = v.x; if (v.y < y0) y0 = v.y; if (v.y > y1) y1 = v.y; }
   const cs = Math.max(12, Math.max(x1 - x0, y1 - y0) / 48);
-  const W = Math.ceil((x1 - x0) / cs) + 1;
-  const cells = new Map();
-  const o = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+  const W = Math.ceil((x1 - x0) / cs) + 1, H = Math.floor((y1 - y0) / cs) + 1;
+  if (!(W > 0 && H > 0 && W * H < 1e6)) return false; // empty or not finite
+  if (CC.start.length < W * H + 1) { CC.start = new Int32Array(W * H + 1); CC.fill = new Int32Array(W * H + 1); }
+  if (CC.box.length < n * 4) CC.box = new Int32Array(n * 4);
+  const start = CC.start, box = CC.box;
+  start.fill(0, 0, W * H + 1);
+  let total = 0;
   for (let i = 0; i < n; i++) {
     const a = ct[i], b = ct[(i + 1) % n];
     const ca = Math.floor((Math.min(a.x, b.x) - x0) / cs), cb = Math.floor((Math.max(a.x, b.x) - x0) / cs);
     const ra = Math.floor((Math.min(a.y, b.y) - y0) / cs), rb = Math.floor((Math.max(a.y, b.y) - y0) / cs);
-    for (let r = ra; r <= rb; r++) {
-      for (let c = ca; c <= cb; c++) {
+    box[i * 4] = ca; box[i * 4 + 1] = cb; box[i * 4 + 2] = ra; box[i * 4 + 3] = rb;
+    for (let r = ra; r <= rb; r++) for (let c = ca; c <= cb; c++) { start[r * W + c + 1]++; total++; }
+  }
+  for (let k = 0; k < W * H; k++) start[k + 1] += start[k];
+  if (CC.items.length < total) CC.items = new Int32Array(total * 2);
+  const items = CC.items, fill = CC.fill;
+  fill.set(start.subarray(0, W * H));
+  for (let i = 0; i < n; i++) {
+    for (let r = box[i * 4 + 2]; r <= box[i * 4 + 3]; r++) for (let c = box[i * 4]; c <= box[i * 4 + 1]; c++) items[fill[r * W + c]++] = i;
+  }
+  const o = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+  // Each segment against the earlier segments sharing a cell with it.
+  for (let i = 0; i < n; i++) {
+    const a = ct[i], b = ct[(i + 1) % n];
+    for (let r = box[i * 4 + 2]; r <= box[i * 4 + 3]; r++) {
+      for (let c = box[i * 4]; c <= box[i * 4 + 1]; c++) {
         const k = r * W + c;
-        let list = cells.get(k);
-        if (!list) cells.set(k, (list = []));
-        for (const j of list) {
+        for (let q = start[k]; q < start[k + 1]; q++) {
+          const j = items[q];
+          if (j >= i) break;
           if (j === i - 1 || (i === n - 1 && j === 0)) continue;
-          const p = ct[j], q = ct[(j + 1) % n];
-          const d1 = o(a, b, p), d2 = o(a, b, q), d3 = o(p, q, a), d4 = o(p, q, b);
+          const p = ct[j], qq = ct[(j + 1) % n];
+          const d1 = o(a, b, p), d2 = o(a, b, qq), d3 = o(p, qq, a), d4 = o(p, qq, b);
           if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) return true;
         }
-        list.push(i);
       }
     }
   }
   return false;
+}
+
+/** One Catmull-Rom coordinate (module level, so the contour loop makes no closures). */
+function catmull(p0, p1, p2, p3, t, t2, t3) {
+  return 0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
 }
 
 export class View {
@@ -276,15 +302,14 @@ export class View {
         const t = s / SUB, t2 = t * t, t3 = t2 * t;
         let px, py;
         if (smooth) {
-          const cr = (p0, p1, p2, p3) => 0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
-          px = cr(x[i0], x[i], x[i2], x[i3]);
-          py = cr(y[i0], y[i], y[i2], y[i3]);
+          px = catmull(x[i0], x[i], x[i2], x[i3], t, t2, t3);
+          py = catmull(y[i0], y[i], y[i2], y[i3], t, t2, t3);
         } else {
           px = x[i] + (x[i2] - x[i]) * t; py = y[i] + (y[i2] - y[i]) * t;
         }
         if (smooth && this.flags.wrinkle) {
           // The uroid is crumpled: small folds near the rear.
-          const du = Math.hypot(px - b.ux, py - b.uy);
+          const du = hyp(px - b.ux, py - b.uy);
           const w = Math.max(0, 1 - du / 70);
           if (w > 0) {
             const a = b.nx[i], c = b.ny[i];
@@ -402,8 +427,11 @@ export class View {
   render({ time, prey, mode, focus, flags, granuleCount, buffersOnly = false, fragments = [], target = null, update = true }) {
     const r = this.renderer;
     // update: false re-renders the same frame from another view (split screen).
+    // A cell's outline, uniforms and granules are brought up to date the first
+    // time a view this frame draws it (below), so a cell no view shows (Chaos
+    // far off, a player out of every split view) costs nothing.
     if (update) {
-      for (const c of this.cells) this.updateCell(c, time, granuleCount);
+      this.frameId = (this.frameId || 0) + 1;
       for (const fr of fragments) this.updateFragment(fr);
     }
     for (const c of this.cells) c.granMat.uniforms.uPx.value = this.px;
@@ -454,6 +482,7 @@ export class View {
       const g = c.body.grid;
       return g.ox < vl + vw + pad && g.ox + g.size > vl - pad && g.oy < vb + vh + pad && g.oy + g.size > vb - pad;
     });
+    for (const c of seen) if (c.frameId !== this.frameId) { c.frameId = this.frameId; this.updateCell(c, time, granuleCount); }
     this.maskPasses = 0;
     for (let i = 0; i < seen.length; i += 4) {
       const batch = seen.slice(i, i + 4);

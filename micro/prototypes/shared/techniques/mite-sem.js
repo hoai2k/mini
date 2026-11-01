@@ -111,7 +111,10 @@ export function createObjectCut(max = 2048) {
   }
   return {
     tex, fade,
-    register(points, group = 0) { objs.push({ points, group }); return objs.length - 1; },
+    // every field declared up front (c and r are filled in lazily, leader by
+    // leader()), so the per-frame scan over ~2000 objects sees one shape;
+    // several shapes made its reads megamorphic and boxed every number read
+    register(points, group = 0) { objs.push({ points, group, leader: false, c: null, r: 0 }); return objs.length - 1; },
     update(dt, cam, target, { radius = 360, margin = 250, keep = null } = {}) {
       d.subVectors(target, cam);
       const len = d.length(); d.divideScalar(len);

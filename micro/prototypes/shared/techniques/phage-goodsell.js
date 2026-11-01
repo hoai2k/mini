@@ -534,6 +534,7 @@ export function createPost(renderer) {
   target.depthTexture = new THREE.DepthTexture(2, 2);
   const mk = () => new THREE.WebGLRenderTarget(2, 2, { samples: 0, type, depthBuffer: false });
   const bA = [mk(), mk()], bB = [mk(), mk()], dA = [mk(), mk()]; // bloom at 1/4 and 1/8, the DOF's soft copy at 1/4 (ping-pong pairs)
+  const all = [target, ...bA, ...bB, ...dA];
   const mat = new THREE.ShaderMaterial({
     uniforms: {
       tScene: { value: target.texture }, tBg: { value: null }, uUseBg: { value: 0 }, uBgOff: { value: new THREE.Vector2() },
@@ -583,7 +584,7 @@ export function createPost(renderer) {
      * (split screen: split.scissor(view, rt) limits every pass to the view's region).
      */
     render(sceneToDraw, camera, scissor = null) {
-      if (scissor) for (const t of [target, ...bA, ...bB, ...dA]) scissor(t);
+      if (scissor) for (const t of all) scissor(t);
       renderer.setRenderTarget(target);
       renderer.setClearColor(0x000000, 0);
       renderer.clear(true, true, true);
@@ -599,11 +600,16 @@ export function createPost(renderer) {
           const thr = bright.uniforms.uThr.value; bright.uniforms.uThr.value = 0;
           bright.uniforms.tSrc.value = target.texture; bright.uniforms.uTexel.value.set(1 / target.width, 1 / target.height);
           pass(bright, dA[0]); bright.uniforms.uThr.value = thr;
+          // the bloom's bright pass thresholds the same 4-tap quarter-resolution average, so it reads
+          // that copy (before its blur) texel for texel instead of the full-resolution scene again
+          bright.uniforms.tSrc.value = dA[0].texture; bright.uniforms.uTexel.value.set(0, 0);
+          pass(bright, bA[0]);
           blurPair(dA); blurPair(dA);
+        } else {
+          bright.uniforms.tSrc.value = target.texture; bright.uniforms.uTexel.value.set(1 / target.width, 1 / target.height);
+          pass(bright, bB[0]);
         }
         const first = q > 0 ? bA : bB;
-        bright.uniforms.tSrc.value = target.texture; bright.uniforms.uTexel.value.set(1 / target.width, 1 / target.height);
-        pass(bright, first[0]);
         blurPair(first);
         if (q > 1) {
           bright.uniforms.tSrc.value = bA[0].texture; bright.uniforms.uTexel.value.set(0.5 / bA[0].width, 0.5 / bA[0].height);

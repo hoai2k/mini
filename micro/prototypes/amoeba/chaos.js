@@ -23,6 +23,7 @@
 //   resolve gauge), it flows away and rests.
 import { Body, N } from '../shared/techniques/amoeba-softbody.js';
 import { Cytoplasm } from './cytoplasm.js';
+import { hyp } from './util.js';
 import { createFight } from '../shared/predation.js';
 
 const TAU = Math.PI * 2;
@@ -187,7 +188,7 @@ export class Chaos {
     for (const pod of b.pods) {
       if (pod.s < 0.25 || pod.tip == null) continue;
       const i = (pod.tip - ARM_W + N) % N, j = (pod.tip + ARM_W) % N;
-      const w = Math.hypot(b.x[i] - b.x[j], b.y[i] - b.y[j]);
+      const w = hyp(b.x[i] - b.x[j], b.y[i] - b.y[j]);
       if (w > 240) continue; // too broad to pinch: that is its body, not an arm
       const di = pb.nearest(b.x[i], b.y[i]).d, dj = pb.nearest(b.x[j], b.y[j]).d;
       if (di < reach && dj < reach && (!best || di + dj < best.d)) best = { i, j, d: di + dj, w };

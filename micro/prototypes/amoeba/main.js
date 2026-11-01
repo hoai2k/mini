@@ -16,7 +16,7 @@ import { squirmerFlow } from '../shared/techniques/paramecium-squirmer.js';
 import { buildWorld, worldColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules, ROUTE, along, progressOf, CHAOS_AT } from './world.js';
 import { View } from './render.js';
 import { Chaos, CHAOS_R, CHAOS_WAKE } from './chaos.js';
-import { rng, TAU, clamp } from './util.js';
+import { rng, TAU, clamp, hyp, Scratch } from './util.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createPlayers } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
@@ -234,7 +234,7 @@ function nearestToTrap(o) {
     const b = c.body;
     for (let i = 0; i < N; i += 2) {
       const t = clamp(((b.x[i] - ax) * ex + (b.y[i] - ay) * ey) / l2, 0, 1);
-      const d = Math.hypot(b.x[i] - ax - ex * t, b.y[i] - ay - ey * t) - o.W / 2;
+      const d = hyp(b.x[i] - ax - ex * t, b.y[i] - ay - ey * t) - o.W / 2;
       if (!best || d < best.d) best = { d, cell: c, x: ax + ex * t, y: ay + ey * t };
     }
   }
@@ -976,7 +976,7 @@ function preyFlow(dt) {
   free.forEach((p, i) => { p.x += moves[i][0] * dt; p.y += moves[i][1] * dt; });
 }
 
-const tmp = {};
+const tmp = new Scratch();
 /** The membrane nearest a point over every player's cell: { d, i, cell }. */
 function nearestCell(x, y) {
   let best = null;
@@ -1011,11 +1011,11 @@ function stepPrey(dt, col) {
         const ex = cap.bx - cap.ax, ey = cap.by - cap.ay, l2 = ex * ex + ey * ey || 1;
         const t = clamp(((c.x - cap.ax) * ex + (c.y - cap.ay) * ey) / l2, 0, 1);
         const qx = c.x - cap.ax - ex * t, qy = c.y - cap.ay - ey * t;
-        const d = Math.hypot(qx, qy), r = cap.r + c.r;
+        const d = hyp(qx, qy), r = cap.r + c.r;
         if (d < r && d > 1e-3) { p.x += (qx / d) * (r - d); p.y += (qy / d) * (r - d); p.avoid(0.7); }
       }
       for (const o of col.circles) {
-        const qx = c.x - o.x, qy = c.y - o.y, d = Math.hypot(qx, qy), r = o.r + c.r;
+        const qx = c.x - o.x, qy = c.y - o.y, d = hyp(qx, qy), r = o.r + c.r;
         if (d < r && d > 1e-3) { p.x += (qx / d) * (r - d); p.y += (qy / d) * (r - d); p.avoid(0.7); }
       }
       for (const cl of cells) {
@@ -1164,7 +1164,7 @@ function stickToTraps(dt, traps) {
     for (const c of traps) {
       const ex = c.bx - c.ax, ey = c.by - c.ay, l2 = ex * ex + ey * ey;
       const t = clamp(((x - c.ax) * ex + (y - c.ay) * ey) / l2, 0, 1);
-      if (Math.hypot(x - c.ax - ex * t, y - c.ay - ey * t) < c.r) {
+      if (hyp(x - c.ax - ex * t, y - c.ay - ey * t) < c.r) {
         n++; stuckIdx.push(i);
         const keep = C.defend > 0.5 ? 0.55 : 0.08; // stiffened, it peels away
         if (!free) { body.x[i] = trapX[i] + (x - trapX[i]) * keep; body.y[i] = trapY[i] + (y - trapY[i]) * keep; }
@@ -1187,15 +1187,22 @@ function stickToTraps(dt, traps) {
 function othersAsCircles(col, c) {
   const withChaos = typeof chaos !== 'undefined' && chaos.on && !(c.caught.active && c.FC.by === 'chaos') && Math.hypot(chaos.body.cx - c.body.cx, chaos.body.cy - c.body.cy) < chaos.body.req * 2.2 + c.body.req + 300;
   if (cells.length < 2 && !withChaos) return col;
-  const circles = col.circles.slice();
-  if (withChaos) { const b = chaos.body; for (let i = 0; i < N; i++) circles.push({ x: b.x[i], y: b.y[i], r: 11 }); }
+  // The same circles as before, in the same order, in objects reused every step.
+  const P = (c.circPool ||= { list: [], col: { capsules: null, circles: [] } });
+  const circles = P.col.circles;
+  circles.length = 0;
+  let n = 0;
+  const put = (x, y, r) => { const o = P.list[n] || (P.list[n] = { x: 0, y: 0, r: 0 }); o.x = x; o.y = y; o.r = r; n++; circles.push(o); };
+  for (const o of col.circles) circles.push(o);
+  if (withChaos) { const b = chaos.body; for (let i = 0; i < N; i++) put(b.x[i], b.y[i], 11); }
   for (const o of cells) {
     if (o === c) continue;
     const b = o.body;
     if (Math.hypot(b.cx - c.body.cx, b.cy - c.body.cy) > c.body.req + b.req + 500) continue;
-    for (let i = 0; i < N; i += 2) circles.push({ x: b.x[i], y: b.y[i], r: 7 });
+    for (let i = 0; i < N; i += 2) put(b.x[i], b.y[i], 7);
   }
-  return { capsules: col.capsules, circles };
+  P.col.capsules = col.capsules;
+  return P.col;
 }
 
 /**
@@ -1275,14 +1282,19 @@ function simStep(dt, granules = true) {
 }
 
 // --- the boss ---------------------------------------------------------------------
+const CHAOS_CIRC = { circles: [], pool: [] };
 function stepChaos(dt, adt, col, granules = true) {
   if (!chaos.on) return;
-  const circles = col.circles.slice();
+  // the colliders plus every near player's membrane nodes (objects reused every step)
+  const circles = CHAOS_CIRC.circles, pool = CHAOS_CIRC.pool;
+  circles.length = 0;
+  let n = 0;
+  for (const o of col.circles) circles.push(o);
   for (const c of cells) {
     if (c.caught.active && c.FC.by === 'chaos') continue;
     const b = c.body;
     if (Math.hypot(b.cx - chaos.body.cx, b.cy - chaos.body.cy) > chaos.body.req * 2.2 + b.req + 300) continue;
-    for (let i = 0; i < N; i++) circles.push({ x: b.x[i], y: b.y[i], r: 11 });
+    for (let i = 0; i < N; i++) { const o = pool[n] || (pool[n] = { x: 0, y: 0, r: 0 }); o.x = b.x[i]; o.y = b.y[i]; o.r = 11; n++; circles.push(o); }
   }
   const ps = cells.map((c) => ({ cell: c, x: c.body.cx, y: c.body.cy, req: c.body.req, active: !c.caught.active && !c.p.waiting }));
   const ev = chaos.update(dt, adt, ps, { capsules: col.capsules, circles }, { calm: fungus.state === 'grace' || chaos.resting, granules });
@@ -1763,7 +1775,7 @@ function frame(now) {
   if (S.statT <= 0) {
     S.statT = 0.25;
     let L = 0;
-    for (let i = 0; i < N; i += 4) for (let j = i + 8; j < N; j += 4) L = Math.max(L, Math.hypot(body.x[i] - body.x[j], body.y[i] - body.y[j]));
+    for (let i = 0; i < N; i += 4) for (let j = i + 8; j < N; j += 4) L = Math.max(L, hyp(body.x[i] - body.x[j], body.y[i] - body.y[j]));
     const ob = OBJECTIVES[S.objective];
     const amoebaX = Math.round(10 * S.amoebaK);
     const swimX = (0.1 * S.swimK).toFixed(1).replace(/\.0$/, '');

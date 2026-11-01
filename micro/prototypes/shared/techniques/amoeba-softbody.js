@@ -44,6 +44,8 @@
 import { SdfGrid } from './amoeba-sdfgrid.js';
 
 const TAU = Math.PI * 2;
+// sqrt(a² + b²) without Math.hypot's boxed result (it allocates a number per call)
+const hyp = (a, b) => Math.sqrt(a * a + b * b);
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 function wrapAngle(a) { while (a > Math.PI) a -= TAU; while (a < -Math.PI) a += TAU; return a; }
@@ -72,6 +74,14 @@ function segsCross(ax, ay, bx, by, cx, cy, dx, dy) {
   const d1 = cross3(ax, ay, bx, by, cx, cy), d2 = cross3(ax, ay, bx, by, dx, dy);
   if ((d1 > 0 && d2 > 0) || (d1 < 0 && d2 < 0) || d1 === d2) return false;
   const d3 = cross3(cx, cy, dx, dy, ax, ay), d4 = cross3(cx, cy, dx, dy, bx, by);
+  return !((d3 > 0 && d4 > 0) || (d3 < 0 && d4 < 0) || d3 === d4);
+}
+/** segsCross for ring segments (a, a2) and (b, b2) of xs/ys (indices: no boxed arguments). */
+function ringSegsCross(x, y, a, a2, b, b2) {
+  const ax = x[a], ay = y[a], bx = x[a2], by = y[a2], cx = x[b], cy = y[b], dx = x[b2], dy = y[b2];
+  const d1 = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax), d2 = (bx - ax) * (dy - ay) - (by - ay) * (dx - ax);
+  if ((d1 > 0 && d2 > 0) || (d1 < 0 && d2 < 0) || d1 === d2) return false;
+  const d3 = (dx - cx) * (ay - cy) - (dy - cy) * (ax - cx), d4 = (dx - cx) * (by - cy) - (dy - cy) * (bx - cx);
   return !((d3 > 0 && d4 > 0) || (d3 < 0 && d4 < 0) || d3 === d4);
 }
 function segSegDist(ax, ay, bx, by, cx, cy, dx, dy) {
@@ -166,9 +176,9 @@ export class Body {
     for (let i = 0; i < N; i++) {
       const a = (i + N - 1) % N, b = (i + 1) % N;
       const tx = x[b] - x[a], ty = y[b] - y[a];
-      const m = Math.hypot(tx, ty) || 1;
+      const m = hyp(tx, ty) || 1;
       this.nx[i] = ty / m; this.ny[i] = -tx / m; // outward for a counter-clockwise ring
-      this.len[i] = 0.5 * (Math.hypot(x[i] - x[a], y[i] - y[a]) + Math.hypot(x[b] - x[i], y[b] - y[i]));
+      this.len[i] = 0.5 * (hyp(x[i] - x[a], y[i] - y[a]) + hyp(x[b] - x[i], y[b] - y[i]));
     }
   }
 
@@ -195,7 +205,7 @@ export class Body {
     this.time += dt;
     if (this.opts.untangle) {
       // Remember this ring as the fallback if it is clean (it is, after untangle()).
-      this.snapOK = this.crossings().length === 0;
+      this.snapOK = this.crossings(this._pairs0 || (this._pairs0 = [])).length === 0;
       if (this.snapOK) { this.sx.set(this.x); this.sy.set(this.y); }
     }
     this.centroid();
@@ -299,7 +309,7 @@ export class Body {
           const g = f * face;
           if (g <= 0) continue;
           const dxj = pod.dx + 0.12 * nx[j], dyj = pod.dy + 0.12 * ny[j];
-          const m = Math.hypot(dxj, dyj) || 1;
+          const m = hyp(dxj, dyj) || 1;
           ddx[j] += (dxj / m) * v * g * dt;
           ddy[j] += (dyj / m) * v * g * dt;
           G[j] += pod.s * g;
@@ -315,7 +325,7 @@ export class Body {
           const j = (pod.tip + r + N) % N;
           const g = Math.exp(-((r / (P.sigma * 1.3)) ** 2));
           const ex = this.cx - x[j], ey = this.cy - y[j];
-          const m = Math.hypot(ex, ey) || 1;
+          const m = hyp(ex, ey) || 1;
           ddx[j] += (ex / m) * v * g * dt;
           ddy[j] += (ey / m) * v * g * dt;
         }
@@ -345,7 +355,7 @@ export class Body {
       this.drive.x = ux; this.drive.y = uy; this.drive.m = bd.m * boost;
     }
 
-    const fm = Math.hypot(fx, fy);
+    const fm = hyp(fx, fy);
     if (fm > 0.05) {
       this.fx += (fx / fm - this.fx) * Math.min(1, dt * 1.5);
       this.fy += (fy / fm - this.fy) * Math.min(1, dt * 1.5);
@@ -372,7 +382,7 @@ export class Body {
           const j = (end + r + N) % N;
           const g = Math.exp(-(r / 5) * (r / 5));
           const ex = c.mx - x[j], ey = c.my - y[j];
-          const m = Math.hypot(ex, ey);
+          const m = hyp(ex, ey);
           if (m < 0.5) continue;
           const v = Math.min(P.vClose, m * 6);
           ddx[j] += (ex / m) * v * g * dt;
@@ -403,7 +413,7 @@ export class Body {
 
     // -- obstacles and self-contact -------------------------------------------
     this.contact = 0;
-    const o = {};
+    const o = this._seg || (this._seg = { t: 0, x: 0, y: 0 });
     for (const cap of world.capsules) {
       const r = cap.r + 2;
       for (let i = 0; i < N; i++) {
@@ -416,14 +426,26 @@ export class Body {
         }
       }
     }
+    // Circles (prey, other cells' membranes): one clear of the ring's bounding
+    // box cannot touch a node, so it is skipped (the box grows with every push).
+    let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+    if (world.circles.length) {
+      for (let i = 0; i < N; i++) {
+        if (x[i] < bx0) bx0 = x[i]; if (x[i] > bx1) bx1 = x[i];
+        if (y[i] < by0) by0 = y[i]; if (y[i] > by1) by1 = y[i];
+      }
+    }
     for (const c of world.circles) {
       const r = c.r + 2;
+      if (c.x + r < bx0 || c.x - r > bx1 || c.y + r < by0 || c.y - r > by1) continue;
       for (let i = 0; i < N; i++) {
         const ex = x[i] - c.x, ey = y[i] - c.y;
         const d2 = ex * ex + ey * ey;
         if (d2 < r * r) {
           const d = Math.sqrt(d2) || 1e-3;
           x[i] = c.x + (ex / d) * r; y[i] = c.y + (ey / d) * r;
+          if (x[i] < bx0) bx0 = x[i]; if (x[i] > bx1) bx1 = x[i];
+          if (y[i] < by0) by0 = y[i]; if (y[i] > by1) by1 = y[i];
           this.contact++;
         }
       }
@@ -433,7 +455,7 @@ export class Body {
     // -- area (volume) projection ------------------------------------------------
     this.normals();
     let rx = 0, ry = 0;
-    if (Math.hypot(this.fx, this.fy) > 0.1) { rx = this.fx; ry = this.fy; }
+    if (hyp(this.fx, this.fy) > 0.1) { rx = this.fx; ry = this.fy; }
     const target = this.A0 / this.flat;
     for (let it = 0; it < (this.opts.area ? 2 : 0); it++) {
       const dA = target - polygonArea(x, y, N);
@@ -596,7 +618,7 @@ export class Body {
             const b = items[q];
             if (b <= a + 1 || (b + 1) % N === a) continue;
             const b2 = (b + 1) % N;
-            if (!segsCross(x[a], y[a], x[a2], y[a2], x[b], y[b], x[b2], y[b2])) continue;
+            if (!ringSegsCross(x, y, a, a2, b, b2)) continue;
             let dup = false;
             for (const p of out) if (p[0] === a && p[1] === b) { dup = true; break; }
             if (!dup) out.push([a, b]);
@@ -664,7 +686,7 @@ export class Body {
         const k = items[q];
         if (k <= i || ringDist(i, k) < 8) continue;
         const ex = x[k] - x[i], ey = y[k] - y[i];
-        const d = Math.hypot(ex, ey);
+        const d = hyp(ex, ey);
         if (d >= bd) continue;
         if (ex * nx[i] + ey * ny[i] >= 0 || -ex * nx[k] - ey * ny[k] >= 0) continue;
         for (const c of capsules) {
@@ -756,7 +778,7 @@ export class Body {
     const step = n > 90 ? 2 : 1;
     for (let a = 0; a < n; a += step) {
       for (let b = a + 4; b < n; b += step) {
-        const gap = Math.hypot(x[lin[b]] - x[lin[a]], y[lin[b]] - y[lin[a]]);
+        const gap = hyp(x[lin[b]] - x[lin[a]], y[lin[b]] - y[lin[a]]);
         const sc = Math.abs(W[b] - W[a]) - (0.8 * gap) / reach;
         if (sc > bs) { bs = sc; ba = a; bb = b; }
       }
@@ -765,7 +787,7 @@ export class Body {
     const i0 = sub[0], i1 = sub[sub.length - 1];
     return {
       wrap: Math.abs(W[bb] - W[ba]), run: sub, i0, i1,
-      gap: Math.hypot(x[i1] - x[i0], y[i1] - y[i0]),
+      gap: hyp(x[i1] - x[i0], y[i1] - y[i0]),
       mx: 0.5 * (x[i0] + x[i1]), my: 0.5 * (y[i0] + y[i1]),
     };
   }
@@ -824,7 +846,7 @@ export class Body {
     const cum = new Float64Array(n + 1);
     for (let i = 0; i < n; i++) {
       const j = (i + 1) % n;
-      cum[i + 1] = cum[i] + Math.hypot(ox[j] - ox[i], oy[j] - oy[i]);
+      cum[i + 1] = cum[i] + hyp(ox[j] - ox[i], oy[j] - oy[i]);
     }
     const L = cum[n];
     let seg = 0;
@@ -869,7 +891,7 @@ export class Body {
     let best = -1, bv = -Infinity;
     for (let i = 0; i < N; i++) {
       if (ringDist(i, pod.tip) < 10) continue;
-      const ex = x[i] - cx, ey = y[i] - cy, r = Math.hypot(ex, ey) || 1;
+      const ex = x[i] - cx, ey = y[i] - cy, r = hyp(ex, ey) || 1;
       const c = (ex * ux + ey * uy) / r;
       if (c < Math.cos(0.2)) continue; // within ≈ 11° of the wanted angle
       const v = r * c;
@@ -912,7 +934,7 @@ export class Body {
   blast(cx, cy, radius, amount) {
     for (let i = 0; i < N; i++) {
       const ex = this.x[i] - cx, ey = this.y[i] - cy;
-      const d = Math.hypot(ex, ey);
+      const d = hyp(ex, ey);
       if (d < radius && d > 1e-3) {
         const f = amount * (1 - d / radius);
         this.x[i] += (ex / d) * f; this.y[i] += (ey / d) * f;

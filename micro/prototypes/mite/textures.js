@@ -9,7 +9,17 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { loadTexture } from '../shared/assets.js';
 
 /** Deterministic 32-bit hash -> [0, 1). */
-export function hash(...n) {
+export function hash(a, b, c) {
+  // Every caller passes three integers: mix them without a rest array (the
+  // floor's height runs this 12 times per query, thousands of times a frame).
+  if (arguments.length !== 3) return hashN(...arguments);
+  let h = 2166136261 >>> 0;
+  h = Math.imul(h ^ (a | 0), 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+  h = Math.imul(h ^ (b | 0), 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+  h = Math.imul(h ^ (c | 0), 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+  return (h >>> 0) / 4294967296;
+}
+function hashN(...n) {
   let h = 2166136261 >>> 0;
   for (const v of n) { h = Math.imul(h ^ (v | 0), 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15; }
   return (h >>> 0) / 4294967296;

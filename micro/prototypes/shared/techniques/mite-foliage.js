@@ -58,10 +58,20 @@ export function createFoliage(opts = {}) {
      *   follow: move rigidly with another rod's offset at u (side branches).
      */
     add(r) {
+      // Every field a rod ever gets, in one fixed order, so all rods share one
+      // shape: update() reads len, stiff, mid ... of every rod each frame, and
+      // rods shaped by whichever options were passed made those reads
+      // megamorphic (a boxed number per read). Options are applied as before
+      // (r's own fields win over the defaults; d, vel, awake and id are always new).
       const rod = {
-        kind: 'cantilever', stiff: 1, ...r,
-        d: new THREE.Vector3(), vel: new THREE.Vector3(), awake: false, id: rods.length,
+        kind: 'cantilever', stiff: 1, geo: null, start: 0, count: 0, base: null, tip: null, mass: 0,
+        samples: null, col: null, follow: null,
+        d: null, vel: null, awake: false, id: 0, wrote: false, prev: null,
+        axis: null, len: 1, mid: null, su: null, rest: null, restN: null, vu: null, colRest: null, colU: null,
       };
+      Object.assign(rod, r);
+      rod.d = new THREE.Vector3(); rod.vel = new THREE.Vector3(); rod.awake = false; rod.id = rods.length;
+      rod.wrote = false; rod.prev = new THREE.Vector3();
       rod.axis = new THREE.Vector3().subVectors(r.tip, r.base);
       rod.len = rod.axis.length() || 1;
       rod.axis.divideScalar(rod.len);
@@ -115,7 +125,7 @@ export function createFoliage(opts = {}) {
         if (!near && !rod.awake) { rod.wrote = false; continue; }
         if (!Number.isFinite(rod.d.x + rod.d.y + rod.d.z)) { rod.d.set(0, 0, 0); rod.vel.set(0, 0, 0); }
         stats.active++;
-        rod.prev = (rod.prev || new THREE.Vector3()).copy(rod.d);
+        rod.prev.copy(rod.d);
         // Spring back to rest (stiffer rods spring faster), damped, plus load.
         const k = cfg.stiffK * rod.stiff, c = cfg.damp * Math.sqrt(rod.stiff);
         _a.copy(rod.d).multiplyScalar(-k).addScaledVector(rod.vel, -c);
@@ -142,7 +152,7 @@ export function createFoliage(opts = {}) {
             if (e >= 1 || e < 1e-4) continue;
             // Push along the ellipsoid gradient to its surface.
             _w.set(ex / b.radii[0], ey / b.radii[1], ez / b.radii[2]).normalize();
-            const depth = (1 - e) * Math.min(...b.radii) * 1.02;
+            const depth = (1 - e) * Math.min(b.radii[0], b.radii[1], b.radii[2]) * 1.02; // radii: [x, y, z] (no spread: it allocated)
             _w.applyQuaternion(b.quat).multiplyScalar(depth / pf);
             rod.d.add(_w);
           }

@@ -313,11 +313,21 @@ function predGeometry() {
 // ---------- helpers ----------
 
 const _x = new THREE.Vector3(), _y = new THREE.Vector3(), _z = new THREE.Vector3(), _m = new THREE.Matrix4();
+const _xr = new THREE.Vector3(1, 0, 0), _zr = new THREE.Vector3(0, 0, 1);
 /** Instance matrix: local +y along dir (length len), radius rad, local +z toward ref. */
 function setInst(im, i, p, dir, ref, rad, len) {
+  _RL[0] = rad; _RL[1] = len;
+  setInstRL(im, i, p, dir, ref);
+}
+// rad and len for setInstRL: the legs pose ~120 instances per mite per frame,
+// and double arguments to a call that is not inlined are boxed (garbage)
+const _RL = new Float64Array(2);
+/** setInst with rad = _RL[0], len = _RL[1]. */
+function setInstRL(im, i, p, dir, ref) {
+  const rad = _RL[0], len = _RL[1];
   _y.copy(dir).normalize();
   _x.crossVectors(_y, ref);
-  if (_x.lengthSq() < 1e-6) _x.crossVectors(_y, Math.abs(_y.x) < 0.9 ? V3(1, 0, 0) : V3(0, 0, 1));
+  if (_x.lengthSq() < 1e-6) _x.crossVectors(_y, Math.abs(_y.x) < 0.9 ? _xr : _zr);
   _x.normalize();
   _z.crossVectors(_x, _y).normalize();
   _m.set(
@@ -788,7 +798,9 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
   const _tf = new THREE.Vector3(), _T = new THREE.Vector3(), _K = new THREE.Vector3(), _Fe = new THREE.Vector3(), _u1 = new THREE.Vector3(), _b = new THREE.Vector3();
   const _Fm = new THREE.Vector3(), _w2 = new THREE.Vector3(), _bend = new THREE.Vector3(), _tib = new THREE.Vector3(), _J = new THREE.Vector3(), _ta = new THREE.Vector3();
   const _kd = new THREE.Vector3(), _X = new THREE.Vector3(), _Z = new THREE.Vector3(), _seg = [0, 0, 0, 0, 0], _rad = [0, 0, 0, 0, 0];
-  const _frames = [null, [null, null, 0, 0], [null, null, 0, 0], [null, null, 0, 0], [null, null, 0, 0]];
+  // per leg segment: [point, direction] and, apart, its length and radius
+  // (doubles stored in a mixed array were boxed every frame)
+  const _frames = [null, [null, null], [null, null], [null, null], [null, null]], _frL = new Float64Array(5), _frR = new Float64Array(5);
   const _pq = new THREE.Quaternion(), _pq2 = new THREE.Quaternion(), _pc = new THREE.Vector3(), _ax = new THREE.Vector3();
   // place every part for the current state
   function pose(dt) {
@@ -823,7 +835,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       for (const L of legs) {
         if (isFeeler(L)) continue;
         const back = L.k === 3 ? -90 * kick : 0;
-        L.foot.copy(toWorld(_al.set(L.rest.x * 0.85 + back, -AN.stand * (0.62 + 0.25 * (1 - kick)), L.rest.z * 0.9), center, q));
+        toWorld(_al.set(L.rest.x * 0.85 + back, -AN.stand * (0.62 + 0.25 * (1 - kick)), L.rest.z * 0.9), center, q, L.foot);
       }
     } else { q = st.q; center = st.center; }
 
@@ -841,7 +853,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     if (st.mode === 'held') {
       for (const L of legs) {
         const fl = st.flail, ph = st.time * 15 + L.k * 1.9 + L.side * 0.8;
-        L.foot.copy(toWorld(_al.set(L.rest.x * 0.85 + 60 * fl * Math.sin(ph), -AN.stand * 0.7 + 80 * fl * Math.sin(ph * 1.3 + 1), L.rest.z * (0.9 + 0.15 * fl * Math.sin(ph * 0.7))), center, q));
+        toWorld(_al.set(L.rest.x * 0.85 + 60 * fl * Math.sin(ph), -AN.stand * 0.7 + 80 * fl * Math.sin(ph * 1.3 + 1), L.rest.z * (0.9 + 0.15 * fl * Math.sin(ph * 0.7))), center, q, L.foot);
       }
       if (st.seizeLeg >= 0) legs[st.seizeLeg].foot.copy(st.seize);
       st.retract = 0.82 * st.limp;
@@ -855,71 +867,91 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       const U = _U.set(0, 1, 0).applyQuaternion(q);
       const shrink = 1 - 0.72 * rc;
       let si = 0;
-      for (let i = 0; i < legs.length; i++) {
-        const L = legs[i];
-        const H = toWorld(_t1.copy(L.hip).add(_t2.set(-24 * rc, 46 * rc, -L.side * 18 * rc)), center, q, _H);
-        let F = L.foot;
-        // leg I holds food to the mouth (or reaches up in a rear)
-        if (L.k === 0 && st.holdK > 0 && !isFeeler(L)) F = _F.copy(L.foot).lerp(_t1.copy(st.hold).addScaledVector(_t2.set(0, 0, 1).applyQuaternion(q), L.side * 28), st.holdK);
-        else if (L.k === 0 && st.rear > 0 && !isFeeler(L)) F = _F.copy(L.foot).lerp(toWorld(_t1.set(L.rest.x + 60, 70, L.rest.z * 0.8), center, q, _t2), st.rear);
-        if (isFeeler(L)) {
-          // leg I as a feeler: held up and forward, tapping ahead
-          const s = L.side, t = st.time;
-          F = toWorld(_t1.set(L.rest.x + 40 * Math.sin(t * 6.1 + s) - 60 * (1 - Math.min(1, st.speed / 200)) + 80 * st.rear, L.rest.y + 40 * Math.sin(t * 4.3 + 2 * s) - 90 + 170 * st.rear, L.rest.z + 30 * Math.sin(t * 5.2 + s) + s * 70 * st.rear), center, q, _F);
-        }
-        if (rc > 0 && i !== (st.mode === 'held' ? st.seizeLeg : -1)) F = _F2.copy(L.foot).lerp(toWorld(_t1.set(L.hip.x - 30, L.hip.y + 20, L.hip.z * 0.4), center, q, _t2), sstep(0, 1, rc));
-        const seg = _seg, rad = _rad;
-        for (let j = 0; j < 5; j++) { seg[j] = L.seg[j] * shrink; rad[j] = L.rad[j] * (1 - 0.3 * rc); }
-        const L1 = seg[1] + seg[2], L2 = seg[3] + seg[4];
-        // trochanter: out from the hip, toward the foot, tilted up
-        const tf = _tf.copy(F).sub(H); tf.addScaledVector(U, -tf.dot(U));
-        if (tf.lengthSq() < 1) tf.copy(L.rest).applyQuaternion(q);
-        const dirT = tf.normalize().addScaledVector(U, 0.55).normalize();
-        const T = _T.copy(H).addScaledVector(dirT, seg[0]);
-        // two-bone IK, the knee (femur-genu) bent upward
-        const K = _K, Fe = _Fe;
-        twoBoneIK(T, F, L1, L2, U, K, Fe, !cfg.ik);
-        const u1 = _u1.copy(K).sub(T).normalize();
-        const b = _b.copy(U).addScaledVector(u1, -u1.dot(U)).normalize();
-        const Fm = _Fm.copy(T).addScaledVector(u1, seg[1]);
-        // tibia a little above the straight line, tarsus angled down to the foot
-        const w2 = _w2.copy(Fe).sub(K).normalize();
-        const bend = _bend.copy(b).addScaledVector(w2, -w2.dot(b)).normalize();
-        const tb = cfg.ik ? 0.2 : 0;
-        const tib = bend.lengthSq() > 0.5 ? _tib.copy(w2).multiplyScalar(Math.cos(tb)).addScaledVector(bend, Math.sin(tb)).normalize() : _tib.copy(w2);
-        const J = _J.copy(K).addScaledVector(tib, seg[3]);
-        const ta = _ta.copy(Fe).sub(J);
-        const taLen = ta.length();
-        const kneeDir = _kd.copy(K).sub(Fm).normalize();
-        setInst(segIM, i * 4, H, dirT, U, rad[0], seg[0] + rad[0] * 0.4);
-        setInst(segIM, i * 4 + 1, T, u1, U, rad[1], seg[1] + rad[1] * 0.4);
-        setInst(segIM, i * 4 + 2, Fm, kneeDir, U, rad[2], seg[2] + rad[2] * 0.4);
-        setInst(segIM, i * 4 + 3, K, tib, U, rad[3], seg[3] + rad[3] * 0.4);
-        const taDir = ta.divideScalar(taLen || 1);
-        setInst(tarIM, i, J, taDir, U, rad[4], taLen);
-        setInst(clawIM, i, _t1.copy(Fe).addScaledVector(taDir, -4 * shrink), taDir, U, 24 * shrink, 24 * shrink);
-        // leg setae
-        if (cfg.setae) {
-          const FR = _frames;
-          FR[1][0] = T; FR[1][1] = u1; FR[1][2] = seg[1]; FR[1][3] = rad[1];
-          FR[2][0] = Fm; FR[2][1] = kneeDir; FR[2][2] = seg[2]; FR[2][3] = rad[2];
-          FR[3][0] = K; FR[3][1] = tib; FR[3][2] = seg[3]; FR[3][3] = rad[3];
-          FR[4][0] = J; FR[4][1] = taDir; FR[4][2] = taLen; FR[4][3] = rad[4];
-          for (const [sg, at, az, len] of LS) {
-            const [p, dir, l, r] = FR[sg];
-            const X = _X.crossVectors(dir, U).normalize();
-            const Z = _Z.crossVectors(X, dir).normalize();
-            const radial = X.multiplyScalar(Math.cos(az + L.side)).addScaledVector(Z, Math.sin(az + L.side));
-            const base = _t1.copy(p).addScaledVector(dir, at * l).addScaledVector(radial, r * 0.8);
-            const sdir = _t2.copy(dir).multiplyScalar(0.8).addScaledVector(radial, 0.6).normalize();
-            const long = L.k === 0 && sg === 3 && at < 0.5; // the long tactile seta on tibia I
-            setInst(setIM, si++, base, sdir, U, 2.6 * shrink, (long ? 72 : len) * shrink);
-          }
-        }
-      }
+      _pk[0] = rc; _pk[1] = shrink;
+      for (let i = 0; i < legs.length; i++) si = poseLeg(i, center, q, U, si);
       setIM.count = cfg.setae ? si : 0;
-      for (const im of [segIM, tarIM, clawIM, setIM]) im.instanceMatrix.needsUpdate = true;
+      segIM.instanceMatrix.needsUpdate = tarIM.instanceMatrix.needsUpdate = clawIM.instanceMatrix.needsUpdate = setIM.instanceMatrix.needsUpdate = true;
     }
+  }
+
+  // pose() is long enough that V8 stops inlining the small vector calls in
+  // it, and every one of them that returns a number then boxes it (~9 KB of
+  // garbage per mite per frame). Each leg, and its setae, are posed in
+  // functions of their own, with the same arithmetic in the same order.
+  // rc and shrink travel in _pk (doubles passed as arguments are boxed).
+  const _pk = new Float64Array(2);
+  /** Pose leg i (segments, tarsus, claw, setae from instance si); returns the next seta index. */
+  function poseLeg(i, center, q, U, si) {
+    const rc = _pk[0], shrink = _pk[1];
+    const L = legs[i];
+    const H = toWorld(_t1.copy(L.hip).add(_t2.set(-24 * rc, 46 * rc, -L.side * 18 * rc)), center, q, _H);
+    let F = L.foot;
+    // leg I holds food to the mouth (or reaches up in a rear)
+    if (L.k === 0 && st.holdK > 0 && !isFeeler(L)) F = _F.copy(L.foot).lerp(_t1.copy(st.hold).addScaledVector(_t2.set(0, 0, 1).applyQuaternion(q), L.side * 28), st.holdK);
+    else if (L.k === 0 && st.rear > 0 && !isFeeler(L)) F = _F.copy(L.foot).lerp(toWorld(_t1.set(L.rest.x + 60, 70, L.rest.z * 0.8), center, q, _t2), st.rear);
+    if (isFeeler(L)) {
+      // leg I as a feeler: held up and forward, tapping ahead
+      const s = L.side, t = st.time;
+      F = toWorld(_t1.set(L.rest.x + 40 * Math.sin(t * 6.1 + s) - 60 * (1 - Math.min(1, st.speed / 200)) + 80 * st.rear, L.rest.y + 40 * Math.sin(t * 4.3 + 2 * s) - 90 + 170 * st.rear, L.rest.z + 30 * Math.sin(t * 5.2 + s) + s * 70 * st.rear), center, q, _F);
+    }
+    if (rc > 0 && i !== (st.mode === 'held' ? st.seizeLeg : -1)) F = _F2.copy(L.foot).lerp(toWorld(_t1.set(L.hip.x - 30, L.hip.y + 20, L.hip.z * 0.4), center, q, _t2), sstep(0, 1, rc));
+    const seg = _seg, rad = _rad;
+    for (let j = 0; j < 5; j++) { seg[j] = L.seg[j] * shrink; rad[j] = L.rad[j] * (1 - 0.3 * rc); }
+    const L1 = seg[1] + seg[2], L2 = seg[3] + seg[4];
+    // trochanter: out from the hip, toward the foot, tilted up
+    const tf = _tf.copy(F).sub(H); tf.addScaledVector(U, -tf.dot(U));
+    if (tf.lengthSq() < 1) tf.copy(L.rest).applyQuaternion(q);
+    const dirT = tf.normalize().addScaledVector(U, 0.55).normalize();
+    const T = _T.copy(H).addScaledVector(dirT, seg[0]);
+    // two-bone IK, the knee (femur-genu) bent upward
+    const K = _K, Fe = _Fe;
+    twoBoneIK(T, F, L1, L2, U, K, Fe, !cfg.ik);
+    const u1 = _u1.copy(K).sub(T).normalize();
+    const b = _b.copy(U).addScaledVector(u1, -u1.dot(U)).normalize();
+    const Fm = _Fm.copy(T).addScaledVector(u1, seg[1]);
+    // tibia a little above the straight line, tarsus angled down to the foot
+    const w2 = _w2.copy(Fe).sub(K).normalize();
+    const bend = _bend.copy(b).addScaledVector(w2, -w2.dot(b)).normalize();
+    const tb = cfg.ik ? 0.2 : 0;
+    const tib = bend.lengthSq() > 0.5 ? _tib.copy(w2).multiplyScalar(Math.cos(tb)).addScaledVector(bend, Math.sin(tb)).normalize() : _tib.copy(w2);
+    const J = _J.copy(K).addScaledVector(tib, seg[3]);
+    const ta = _ta.copy(Fe).sub(J);
+    const taLen = ta.length();
+    const kneeDir = _kd.copy(K).sub(Fm).normalize();
+    _RL[0] = rad[0]; _RL[1] = seg[0] + rad[0] * 0.4; setInstRL(segIM, i * 4, H, dirT, U);
+    _RL[0] = rad[1]; _RL[1] = seg[1] + rad[1] * 0.4; setInstRL(segIM, i * 4 + 1, T, u1, U);
+    _RL[0] = rad[2]; _RL[1] = seg[2] + rad[2] * 0.4; setInstRL(segIM, i * 4 + 2, Fm, kneeDir, U);
+    _RL[0] = rad[3]; _RL[1] = seg[3] + rad[3] * 0.4; setInstRL(segIM, i * 4 + 3, K, tib, U);
+    const taDir = ta.divideScalar(taLen || 1);
+    _RL[0] = rad[4]; _RL[1] = taLen; setInstRL(tarIM, i, J, taDir, U);
+    _RL[0] = 24 * shrink; _RL[1] = 24 * shrink; setInstRL(clawIM, i, _t1.copy(Fe).addScaledVector(taDir, -4 * shrink), taDir, U);
+    if (cfg.setae) {
+      const FR = _frames;
+      FR[1][0] = T; FR[1][1] = u1; _frL[1] = seg[1]; _frR[1] = rad[1];
+      FR[2][0] = Fm; FR[2][1] = kneeDir; _frL[2] = seg[2]; _frR[2] = rad[2];
+      FR[3][0] = K; FR[3][1] = tib; _frL[3] = seg[3]; _frR[3] = rad[3];
+      FR[4][0] = J; FR[4][1] = taDir; _frL[4] = taLen; _frR[4] = rad[4];
+      si = legSetae(L, U, si);
+    }
+    return si;
+  }
+  /** The leg's setae on the frames _frames/_frL/_frR (just written by poseLeg). */
+  function legSetae(L, U, si) {
+    const shrink = _pk[1];
+    const FR = _frames;
+    for (let li = 0; li < LS.length; li++) {
+      // indexed, not destructured: array destructuring left iterator garbage here every frame
+      const ls = LS[li], sg = ls[0], at = ls[1], az = ls[2], len = ls[3];
+      const fr = FR[sg], p = fr[0], dir = fr[1], l = _frL[sg], r = _frR[sg];
+      const X = _X.crossVectors(dir, U).normalize();
+      const Z = _Z.crossVectors(X, dir).normalize();
+      const radial = X.multiplyScalar(Math.cos(az + L.side)).addScaledVector(Z, Math.sin(az + L.side));
+      const base = _t1.copy(p).addScaledVector(dir, at * l).addScaledVector(radial, r * 0.8);
+      const sdir = _t2.copy(dir).multiplyScalar(0.8).addScaledVector(radial, 0.6).normalize();
+      const long = L.k === 0 && sg === 3 && at < 0.5; // the long tactile seta on tibia I
+      _RL[0] = 2.6 * shrink; _RL[1] = (long ? 72 : len) * shrink; setInstRL(setIM, si++, base, sdir, U);
+    }
+    return si;
   }
 
   function update(dt, input) {

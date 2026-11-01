@@ -26,7 +26,12 @@
 //     defocus and edge terms so thick bodies shade rather than clip to black.
 //     Optional: rect [x0, y0, x1, y1] (fractions of the screen, top-left
 //     origin) renders only that box (a split-screen view's region): every pass
-//     is scissored to it, padded where a blur reads its neighbours. pointsMaterial({ loop: [a, b, zSpread] }) sizes the
+//     is scissored to it, padded where a blur reads its neighbours.
+//     Optional: onScene(box) is called just before the scene pass with the
+//     part of the screen it will write, in normalised device coordinates
+//     [x0, y0, x1, y1] (-1..1, the rect's scissor with its padding; the whole
+//     screen without a rect), so a caller can cull what lies outside it
+//     (sceneFrustum below builds the matching frustum). pointsMaterial({ loop: [a, b, zSpread] }) sizes the
 //     cyclosis loop (default the 230 µm P. caudatum: [72, 15, 30]);
 //     volumeMaterial's uLen uniform sets the pellicle's cell length (230).
 //
@@ -543,7 +548,7 @@ export function createOptics(renderer) {
     /** 0/1 switches: halo (phase ring leakage), tie (brightfield defocus), plate, chroma, soft, grain. */
     toggles: { halo: formMat.uniforms.uHalo, tie: formMat.uniforms.uTie, plate: formMat.uniforms.uPlateOn, chroma: postMat.uniforms.uChroma, soft: postMat.uniforms.uSoft, grain: postMat.uniforms.uGrain },
     /** Render the scene with `camera` and form the image in `mode` (index into MODES). */
-    render(scene, camera, { mode, stop, plate, plateOff, blurScale = 1, upTo = 9, fill = null, plateMix = 1, plateBlur = 0, plateRot = 0, bfSoft = 0, rect = null }) {
+    render(scene, camera, { mode, stop, plate, plateOff, blurScale = 1, upTo = 9, fill = null, plateMix = 1, plateBlur = 0, plateRot = 0, bfSoft = 0, rect = null, onScene = null }) {
       // the blur reaches ≈ 7 taps × 1.5 × blurScale × uWide quarter-res texels: pad the
       // earlier passes by that so the region's edge reads freshly drawn neighbours
       const reach = Math.ceil(7 * 1.5 * blurScale * Math.max(1, 1.4 * blurScale)) + 2;
@@ -552,7 +557,13 @@ export function createOptics(renderer) {
       renderer.setClearColor(0x000000, 0);
       renderer.clear();
       if (fill) fill(main);
-      else renderer.render(scene, camera);
+      else {
+        if (onScene) {
+          const sc = main.scissor, w = main.width, h = main.height;
+          onScene(main.scissorTest ? [sc.x / w * 2 - 1, sc.y / h * 2 - 1, (sc.x + sc.z) / w * 2 - 1, (sc.y + sc.w) / h * 2 - 1] : [-1, -1, 1, 1]);
+        }
+        renderer.render(scene, camera);
+      }
 
       downMat.uniforms.tS0.value = main.textures[0];
       downMat.uniforms.tB0.value = main.textures[2];
@@ -594,6 +605,29 @@ export function createOptics(renderer) {
       if (rect) renderer.setScissorTest(false);
     },
   };
+}
+
+/**
+ * The frustum of the part of the screen `box` covers ([x0, y0, x1, y1] in
+ * normalised device coordinates, as onScene passes it), for `camera` and an
+ * optional object `matrixWorld` (the planes are then in that object's own
+ * space; it must not scale). Writes into and returns `out` (a THREE.Frustum).
+ */
+const _sfM = new THREE.Matrix4();
+export function sceneFrustum(out, camera, box = null, matrixWorld = null) {
+  _sfM.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  if (matrixWorld) _sfM.multiply(matrixWorld);
+  out.setFromProjectionMatrix(_sfM);
+  if (box && (box[0] > -1 || box[1] > -1 || box[2] < 1 || box[3] < 1)) {
+    const e = _sfM.elements;
+    // clip-space rows: x = r0 · p, y = r1 · p, w = r3 · p; inside the box: x0 w <= x <= x1 w, y0 w <= y <= y1 w
+    const P = out.planes;
+    P[0].setComponents(box[2] * e[3] - e[0], box[2] * e[7] - e[4], box[2] * e[11] - e[8], box[2] * e[15] - e[12]).normalize();
+    P[1].setComponents(e[0] - box[0] * e[3], e[4] - box[0] * e[7], e[8] - box[0] * e[11], e[12] - box[0] * e[15]).normalize();
+    P[2].setComponents(e[1] - box[1] * e[3], e[5] - box[1] * e[7], e[9] - box[1] * e[11], e[13] - box[1] * e[15]).normalize();
+    P[3].setComponents(box[3] * e[3] - e[1], box[3] * e[7] - e[5], box[3] * e[11] - e[9], box[3] * e[15] - e[13]).normalize();
+  }
+  return out;
 }
 
 /** Procedural stand-ins for the habitat plates (MP-P01 darkfield, MP-P02 phase). */

@@ -55,3 +55,15 @@ export function polygonArea(xs, ys, n) {
   for (let i = 0, j = n - 1; i < n; j = i++) a += xs[j] * ys[i] - xs[i] * ys[j];
   return a * 0.5;
 }
+
+/** sqrt(a² + b²) for hot loops: Math.hypot returns a boxed number (an allocation per call). */
+export const hyp = (a, b) => Math.sqrt(a * a + b * b);
+
+/**
+ * A scratch out-parameter ({ x, y, t, hits }) with its own numeric shape: an
+ * empty {} shares its hidden class with every other {} in the page, and one
+ * non-number stored in x somewhere makes every double written there allocate.
+ */
+export class Scratch {
+  constructor() { this.x = 0; this.y = 0; this.t = 0; this.hits = 0; }
+}

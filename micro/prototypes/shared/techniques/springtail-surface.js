@@ -218,6 +218,7 @@ export class RippleField {
   }
   upload() {
     const { h, s } = this;
+    const out = this.rg || this.half, n = this.n;
     if (this.rg) {
       const rg = this.rg;
       for (let k = 0, m = h.length; k < m; k++) { rg[2 * k] = h[k]; rg[2 * k + 1] = s[k]; }
@@ -225,6 +226,12 @@ export class RippleField {
       const half = this.half, toHalf = THREE.DataUtils.toHalfFloat;
       for (let k = 0, m = h.length; k < m; k++) { half[2 * k] = toHalf(h[k]); half[2 * k + 1] = toHalf(s[k]); }
     }
+    // The rim cells lie outside the water mask and the wave step never
+    // updates them; a recenter can leave a sponge-damped trace there, which
+    // clamp-to-edge would smear to the horizon. Upload them as calm water, so
+    // the shader can skip its texture taps outside the window (rippleH).
+    out.fill(0, 0, 2 * n); out.fill(0, 2 * n * (n - 1));
+    for (let j = 1; j < n - 1; j++) { const r = 2 * j * n; out[r] = out[r + 1] = out[r + 2 * n - 2] = out[r + 2 * n - 1] = 0; }
     this.texture.needsUpdate = true;
   }
   clear() { this.h.fill(0); this.p.fill(0); this.s.fill(0); }
@@ -235,16 +242,23 @@ export class Dimples {
   constructor(max = 64) {
     this.max = max;
     this.list = Array.from({ length: max }, () => new THREE.Vector4());
-    this.uniforms = { uDimples: { value: this.list }, uDimpleN: { value: 0 } };
+    // uDimpleBox: (min x, min z, max x, max z) round every dimple's reach (6
+    // radii), so the shader skips its loop where no dimple can reach: the
+    // loop would add nothing there, so the result is the same.
+    this.box = new THREE.Vector4(1e9, 1e9, -1e9, -1e9);
+    this.uniforms = { uDimples: { value: this.list }, uDimpleN: { value: 0 }, uDimpleBox: { value: this.box } };
     this.n = 0;
     this.scale = 1;
   }
-  clear() { this.n = 0; this.uniforms.uDimpleN.value = 0; }
+  clear() { this.n = 0; this.uniforms.uDimpleN.value = 0; this.box.set(1e9, 1e9, -1e9, -1e9); }
   /** depth > 0 presses the film down; depth < 0 is a meniscus climbing a wetted object. */
   add(x, z, r, depth) {
     if (this.n >= this.max || !depth) return;
     this.list[this.n++].set(x, z, r, depth * this.scale);
     this.uniforms.uDimpleN.value = this.n;
+    // reach 6|r| (R2 = 36 r^2 in the shader), padded against float rounding
+    const R = Math.abs(r) * 6 * 1.01 + 1e-3, b = this.box;
+    b.set(Math.min(b.x, x - R), Math.min(b.y, z - R), Math.max(b.z, x + R), Math.max(b.w, z + R));
   }
   /** CPU copy of the GLSL profile (mm, negative down), for placing things on the film. */
   height(x, z) {
@@ -265,9 +279,12 @@ export class Dimples {
 export const DIMPLE_GLSL = /* glsl */ `
 uniform vec4 uDimples[MAXD];
 uniform int uDimpleN;
+uniform vec4 uDimpleBox;
 // height (mm) and gradient of all menisci at p
 float dimpleField(vec2 p, out vec2 grad) {
   float h = 0.0; grad = vec2(0.0);
+  // beyond every dimple's reach the loop below adds nothing: skip it
+  if (p.x < uDimpleBox.x || p.y < uDimpleBox.y || p.x > uDimpleBox.z || p.y > uDimpleBox.w) return h;
   for (int i = 0; i < MAXD; i++) {
     if (i >= uDimpleN) break;
     vec4 d = uDimples[i];
@@ -311,7 +328,11 @@ varying vec3 vWorld;
 POOL_DEPTH
 SHORE_DIST
 vec2 fieldUv(vec2 p) { return (p - uFieldOrigin) / uFieldSize + 0.5; }
-float rippleH(vec2 p) { return texture2D(uField, fieldUv(p)).r * uRippleK; }
+// Outside the window's rim texel centres a bilinear tap reads only rim texels,
+// which upload() keeps at zero: skip the tap there (same result, no fetch).
+bool inField(vec2 uv) { float m = 0.49 * uFieldTexel / uFieldSize; return uv.x > m && uv.y > m && uv.x < 1.0 - m && uv.y < 1.0 - m; }
+vec2 fieldAt(vec2 p) { vec2 uv = fieldUv(p); return inField(uv) ? texture2D(uField, uv).rg : vec2(0.0); }
+float rippleH(vec2 p) { return fieldAt(p).r * uRippleK; }
 // the meniscus climbing a wetted shore: water rises ~uMeniscus mm at the edge
 float shoreH(vec2 p) { float d = shoreDist(p); return d > 3.0 ? 0.0 : uMeniscus * exp(-max(d, 0.0) / 0.32); }
 float totalH(vec2 p) { return rippleH(p) + dimpleH(p); }
@@ -325,8 +346,14 @@ void main() {
   float e = uFieldTexel;
   vec2 rg = vec2(rippleH(p + vec2(e, 0.0)) - rippleH(p - vec2(e, 0.0)), rippleH(p + vec2(0.0, e)) - rippleH(p - vec2(0.0, e))) / (2.0 * e);
   vec2 dg; float dh = dimpleField(p, dg);
-  float m0 = shoreH(p);
-  vec2 mg = vec2(shoreH(p + vec2(0.05, 0.0)) - shoreH(p - vec2(0.05, 0.0)), shoreH(p + vec2(0.0, 0.05)) - shoreH(p - vec2(0.0, 0.05))) / 0.1;
+  // the shore meniscus is zero beyond 3 mm of open water: skip its five taps
+  // there (shoreDist is a distance, so the taps 0.05 mm away are still past 3)
+  float sd = shoreDist(p);
+  float m0 = 0.0; vec2 mg = vec2(0.0);
+  if (sd < 3.5) {
+    m0 = shoreH(p);
+    mg = vec2(shoreH(p + vec2(0.05, 0.0)) - shoreH(p - vec2(0.05, 0.0)), shoreH(p + vec2(0.0, 0.05)) - shoreH(p - vec2(0.0, 0.05))) / 0.1;
+  }
   dh += m0;
   vec2 g = rg + dg + mg;
   // micro-ripples: a faint capillary roughness that keeps the sheen alive on calm water
@@ -336,7 +363,7 @@ void main() {
   vec3 N = normalize(vec3(-g.x, 1.0, -g.y));
   vec3 P = vec3(p.x, vWorld.y + dh, p.y);
   vec3 V = normalize(cameraPosition - P);
-  float surf = texture2D(uField, fieldUv(p)).g;
+  float surf = fieldAt(p).g;
   float nv = max(dot(N, V), 0.0);
   float F = 0.02 + 0.98 * pow(1.0 - nv, 5.0);
   // legibility: a boosted sky sheen so the film reads as a surface, not as the floor
@@ -371,7 +398,6 @@ void main() {
   vec3 col = mix(refr, refl, F);
   if (uRing > 0.0) col += uRing * 0.05 * pow(nv, 40.0);
   // the shore meniscus catches the sky as a bright line, then a wet dark band
-  float sd = shoreDist(p);
   col += mix(uSkyHor, uSkyTop, 0.4) * 0.35 * uSheen * exp(-abs(sd) / 0.12);
   // dust and pollen specks floating on the film: sharp in the focal plane, so
   // the film shows as a plane receding in perspective (fade where sub-pixel)

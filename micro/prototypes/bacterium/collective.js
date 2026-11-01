@@ -89,6 +89,8 @@ export function createCollectives(world, hooks = {}) {
   function remove(P) { drop(P); }
 
   const liveCells = (C) => C.players.filter((P) => P.S.alive).map((P) => P.S);
+  const recruiters = [];            // post(): [collective, its live cells, ...] for this step
+  const flow = { x: 0, y: 0 };      // post(): the current at a cell (world.flowAt writes it)
 
   // --- before the swimmers step: blend the inputs of a shared collective; mill when released ---
   function pre(dt, t, roster, inputs) {
@@ -188,7 +190,7 @@ export function createCollectives(world, hooks = {}) {
         }
         for (const S of cells) { const ex = m.x - S.x, ey = m.y - S.y, e = Math.hypot(ex, ey) || 0.01; if (e < COLL.sep + 0.6) { const p = (COLL.sep + 0.6 - e) / COLL.sep * 30; vx += (ex / e) * p; vy += (ey / e) * p; } }
         // currents: a raft is dragged at a third of their strength
-        const f = world.flowAt(m.x, m.y);
+        const f = world.flowAt(m.x, m.y, flow);
         const fk = raft ? 0.35 : 1;
         vx += f.x * fk; vy += f.y * fk;
         m.vx = vx; m.vy = vy;
@@ -220,7 +222,7 @@ export function createCollectives(world, hooks = {}) {
         const d = Math.hypot(dx, dy) || 1;
         if (d < sig) { vx += (dx / d) * 14; vy += (dy / d) * 14; k.a += Math.sin(Math.atan2(dy, dx) - k.a) * dt * 3; }
       }
-      const f = world.flowAt(k.x, k.y);
+      const f = world.flowAt(k.x, k.y, flow);
       k.vx = vx + f.x; k.vy = vy + f.y;
       k.x += k.vx * dt + 0.7 * sq * gauss(r);
       k.y += k.vy * dt + 0.7 * sq * gauss(r);
@@ -230,13 +232,17 @@ export function createCollectives(world, hooks = {}) {
 
     // recruiting: a free kin cell touched by any cell of a collective joins it
     const t2 = COLL.touch * COLL.touch;
+    // which collectives can recruit, and their live cells: fixed for this step, so found once, not per kin cell
+    recruiters.length = 0;
+    for (const C of list) if (C.players.some((P) => P.S.alive && P.S.species === 'mtb')) recruiters.push(C, liveCells(C));
     for (const k of kin) {
       if (k.coll || k.dying) continue;
-      for (const C of list) {
-        if (!C.players.some((P) => P.S.alive && P.S.species === 'mtb') || C.members.length >= COLL.max) continue;
+      for (let ci = 0; ci < recruiters.length; ci += 2) {
+        const C = recruiters[ci];
+        if (C.members.length >= COLL.max) continue;
         if (Math.abs(k.x - C.cx) > C.R + 4 + COLL.touch || Math.abs(k.y - C.cy) > C.R + 4 + COLL.touch) continue;
         let hit = false;
-        for (const S of liveCells(C)) if ((S.x - k.x) ** 2 + (S.y - k.y) ** 2 < t2) { hit = true; break; }
+        for (const S of recruiters[ci + 1]) if ((S.x - k.x) ** 2 + (S.y - k.y) ** 2 < t2) { hit = true; break; }
         if (!hit) for (const m of C.members) if ((m.x - k.x) ** 2 + (m.y - k.y) ** 2 < t2) { hit = true; break; }
         if (hit) { k.coll = C; C.members.push(k); hooks.onRecruit?.(C, k); break; }
       }

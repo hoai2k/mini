@@ -25,9 +25,38 @@ function vnoise(x, z, seed) {
   return a + (b - a) * fx + (c - a) * fz + (a - b - c + d) * fx * fz;
 }
 
+// The floor's height runs thousands of times a frame (every ray's floor
+// march), so its three value-noise octaves are computed in one loop with the
+// corner hashes written out in place (textures.js hash(x, z, seed)'s
+// arithmetic): no call returns a boxed number. Bit-identical to summing
+// 70 * (vnoise(x / 700, z / 700, 3) - 0.5) + 22 * (... / 260, 4) + 6 * (... / 90, 5).
+const OCT_DIV = [700, 260, 90], OCT_AMP = [70, 22, 6], OCT_SEED = [3, 4, 5];
 /** Floor height (µm) at x, z: a gently rolling humus surface. */
 export function floorH(x, z) {
-  return 70 * (vnoise(x / 700, z / 700, 3) - 0.5) + 22 * (vnoise(x / 260, z / 260, 4) - 0.5) + 6 * (vnoise(x / 90, z / 90, 5) - 0.5);
+  let sum = 0;
+  for (let o = 0; o < 3; o++) {
+    const px = x / OCT_DIV[o], pz = z / OCT_DIV[o], sd = OCT_SEED[o];
+    const xi = Math.floor(px), zi = Math.floor(pz);
+    const fx = smooth(px - xi), fz = smooth(pz - zi);
+    const x0 = xi | 0, x1 = (xi + 1) | 0, z0 = zi | 0, z1 = (zi + 1) | 0;
+    let h, ha, hb;
+    h = Math.imul(2166136261 ^ x0, 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15; ha = h;
+    h = Math.imul(2166136261 ^ x1, 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15; hb = h;
+    h = Math.imul(ha ^ z0, 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+    h = Math.imul(h ^ sd, 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+    const a = (h >>> 0) / 4294967296;
+    h = Math.imul(hb ^ z0, 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+    h = Math.imul(h ^ sd, 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+    const b = (h >>> 0) / 4294967296;
+    h = Math.imul(ha ^ z1, 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+    h = Math.imul(h ^ sd, 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+    const c = (h >>> 0) / 4294967296;
+    h = Math.imul(hb ^ z1, 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+    h = Math.imul(h ^ sd, 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15;
+    const d = (h >>> 0) / 4294967296;
+    sum += OCT_AMP[o] * (a + (b - a) * fx + (c - a) * fz + (a - b - c + d) * fx * fz - 0.5);
+  }
+  return sum;
 }
 export function floorN(x, z, out = new THREE.Vector3()) {
   const e = 4;
@@ -166,7 +195,10 @@ class Colliders {
     this.stats = { casts: 0, tris: 0 };
     this._mesh = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
   }
-  _key(ix, iz) { return (ix + 32768) * 65536 + (iz + 32768); }
+  // A small-integer key (cells within ±4 m, far beyond the world): a key past
+  // 2^30 is a boxed number on every lookup. Outside that range keys may share a
+  // bucket, which only adds candidates to test, never loses one.
+  _key(ix, iz) { return ((ix + 8192) & 16383) * 16384 + ((iz + 8192) & 16383); }
   _bin(e) {
     // by the rest footprint (xz box); a moving blade's grown by how far it can bend (mite-foliage maxBend 0.55 x length)
     const P = e.pos;
@@ -187,9 +219,13 @@ class Colliders {
     const pos = geo.attributes.position.array;
     const idx = geo.index ? geo.index.array : null;
     const ntri = (idx ? idx.length : pos.length / 3) / 3;
-    const e = { geo, c: geo.boundingSphere.center.clone(), r: geo.boundingSphere.radius, kind, pos, idx, ntri, grid: null, mark: 0, seen: 0 };
-    // keep a mesh handle for code that reads entry.mesh.geometry
-    e.mesh = { geometry: geo };
+    // Every field an entry ever gets is declared here (cutId and a blade's rod
+    // are set by the world builder, tmark by castGrid), so all entries share one shape: the
+    // broadphase reads e.r, e.c and e.seen of dozens of entries per ray, and
+    // with several shapes those reads went megamorphic and boxed a number
+    // each time (~1.3 KB of garbage per cast, 2.5x slower).
+    // mesh: a handle for code that reads entry.mesh.geometry
+    const e = { geo, c: geo.boundingSphere.center.clone(), r: geo.boundingSphere.radius, kind, pos, idx, ntri, grid: null, mark: 0, seen: 0, tmark: null, cutId: 0, rod: null, mesh: { geometry: geo } };
     if (kind !== 'blade' && ntri >= GRID_MIN_TRIS) e.grid = buildTriGrid(pos, idx, ntri);
     this.list.push(e);
     this._bin(e);
@@ -342,13 +378,16 @@ function buildTriGrid(P, I, ntri) {
   return { min, max, n, cell, start: count, tris };
 }
 
+// castGrid's per-ray state: module scratch (casts never nest), Float64 like JS numbers
+const _go = new Float64Array(3), _gd = new Float64Array(3), _gc = new Float64Array(3), _gs = new Float64Array(3), _gm = new Float64Array(3), _gt = new Float64Array(3);
 /** Walk the ray through the mesh's grid (Amanatides-Woo), testing each cell's triangles. */
 function castGrid(e, ox, oy, oz, dx, dy, dz, best, stats) {
   const g = e.grid;
   if (!e.tmark) e.tmark = new Uint32Array(e.ntri);
   e.mark = (e.mark + 1) >>> 0;
   if (e.mark === 0) { e.tmark.fill(0); e.mark = 1; }
-  const o = [ox, oy, oz], d = [dx, dy, dz];
+  const o = _go, d = _gd;
+  o[0] = ox; o[1] = oy; o[2] = oz; d[0] = dx; d[1] = dy; d[2] = dz;
   // clip to the grid's box
   let t0 = 0, t1 = best.t;
   for (let a = 0; a < 3; a++) {
@@ -359,7 +398,7 @@ function castGrid(e, ox, oy, oz, dx, dy, dz, best, stats) {
     if (tb < t1) t1 = tb;
     if (t0 > t1) return;
   }
-  const c = [0, 0, 0], step = [0, 0, 0], tMax = [0, 0, 0], tDelta = [0, 0, 0];
+  const c = _gc, step = _gs, tMax = _gm, tDelta = _gt;
   for (let a = 0; a < 3; a++) {
     const p = o[a] + d[a] * t0;
     c[a] = Math.max(0, Math.min(g.n[a] - 1, Math.floor((p - g.min[a]) / g.cell[a])));

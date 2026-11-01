@@ -5,7 +5,7 @@
 // towards each advancing pseudopod, faster than the tip advances; the
 // ectoplasm (gel) near the membrane does not stream, and a clear hyaline cap
 // sits at each advancing tip. Granules never enter the outer few µm.
-import { TAU, clamp, smoothstep, segDist2 } from './util.js';
+import { TAU, clamp, smoothstep, segDist2, Scratch } from './util.js';
 
 // Granule kinds, used by the renderer too.
 export const G = { DARK: 0, FINE: 1, CRYSTAL: 2, LIPID: 3, ALGA: 4, MAROON: 5 };
@@ -41,8 +41,10 @@ export class Cytoplasm {
     // The crowding gradient on the same grid (computed once per update).
     this.gdx = new Float32Array(40 * 40);
     this.gdy = new Float32Array(40 * 40);
-    this.tmp = {};
-    this.fl = {}; this.gr = {};
+    this.tmp = new Scratch();
+    this.q = new Float64Array(3);
+    this.fl = new Scratch(); this.gr = new Scratch();
+    this.cfl = new Scratch(); this.cgr = new Scratch();
     this.orgs = [];
     this.tipCaps = [];
     this.cvExtra = 0; // water from shrinking food vacuoles speeds the contractile vacuole
@@ -50,6 +52,17 @@ export class Cytoplasm {
 
   /** Streaming velocity of the endoplasm at a point with distance d from the membrane. */
   flowAt(body, x, y, d, out) {
+    const q = this.q;
+    q[0] = x; q[1] = y; q[2] = d;
+    return this.flowQ(body, out);
+  }
+
+  /**
+   * flowAt for the point in this.q ([x, y, d]): the granule loop calls this, so
+   * its three numbers are not boxed on every call (flowAt is too big to inline).
+   */
+  flowQ(body, out) {
+    const q = this.q, x = q[0], y = q[1], d = q[2];
     let vx = 0, vy = 0;
     const core = smoothstep(3, 24, d);
     const o = this.tmp;
@@ -58,7 +71,7 @@ export class Cytoplasm {
       const d2 = segDist2(x, y, body.cx, body.cy, pod.x, pod.y, o);
       const w = Math.exp(-d2 / (2 * 48 * 48));
       const ex = pod.x - x, ey = pod.y - y;
-      const m = Math.hypot(ex, ey) || 1;
+      const m = Math.sqrt(ex * ex + ey * ey) || 1;
       // Streaming runs about twice as fast as the front advances.
       const v = 52 * pod.s * w * core * smoothstep(0, 30, m) * (body.flowK || 1);
       vx += (ex / m) * v; vy += (ey / m) * v;
@@ -78,14 +91,14 @@ export class Cytoplasm {
       // the cup, so the rims fill and thicken as they meet over the prey.
       const c = body.closing;
       const ex = c.mx - x, ey = c.my - y;
-      const m = Math.hypot(ex, ey) || 1;
+      const m = Math.sqrt(ex * ex + ey * ey) || 1;
       const w = Math.exp(-(m * m) / (2 * 130 * 130));
       const v = 70 * w * core * smoothstep(0, 25, m);
       vx += (ex / m) * v; vy += (ey / m) * v;
     }
     if (body.spread > 0.02) {
       const ex = x - body.cx, ey = y - body.cy;
-      const m = Math.hypot(ex, ey) || 1;
+      const m = Math.sqrt(ex * ex + ey * ey) || 1;
       vx += (ex / m) * 12 * body.spread * core; vy += (ey / m) * 12 * body.spread * core;
     }
     out.x = vx; out.y = vy;
@@ -128,16 +141,27 @@ export class Cytoplasm {
     tipCaps.length = 0;
     if (this.caps !== false) for (const p of body.pods) if (p.s > 0.1) tipCaps.push(p);
     const r = this.rand;
+    // grid.sample, written out below (a call here would box its numbers)
+    const sR = grid.res, sox = grid.ox, soy = grid.oy, scell = grid.cell, sd = grid.d;
+    const sample = (x, y) => {
+      const gx = (x - sox) / scell - 0.5, gy = (y - soy) / scell - 0.5;
+      if (gx < 0 || gy < 0 || gx >= sR - 1 || gy >= sR - 1) return -999;
+      const ix = gx | 0, iy = gy | 0, fx = gx - ix, fy = gy - iy;
+      const k = iy * sR + ix;
+      return (sd[k] * (1 - fx) + sd[k + 1] * fx) * (1 - fy) + (sd[k + sR] * (1 - fx) + sd[k + sR + 1] * fx) * fy;
+    };
     for (let i = 0; i < n; i++) {
       let x = px[i], y = py[i];
-      let d = grid.sample(x, y);
+      let d = sample(x, y);
       if (d < -40) {
         // Lost (a seal or a resample moved the membrane past it): put it back near the centre.
         const a = r() * TAU, rr = r() * 60;
         px[i] = body.cx + Math.cos(a) * rr; py[i] = body.cy + Math.sin(a) * rr;
         continue;
       }
-      this.flowAt(body, x, y, d, fl);
+      const q = this.q;
+      q[0] = x; q[1] = y; q[2] = d;
+      this.flowQ(body, fl);
       let vx = fl.x, vy = fl.y;
       // Granules spread out from crowded places (crowding, not real pressure physics).
       {
@@ -155,22 +179,22 @@ export class Cytoplasm {
       // Hyaline cap: the advancing tip is clear of granules.
       for (const pod of tipCaps) {
         const ex = x - pod.x, ey = y - pod.y;
-        const dd = Math.hypot(ex, ey);
+        const dd = Math.sqrt(ex * ex + ey * ey);
         const cap = 20 + 18 * Math.min(1, pod.s);
         if (dd < cap) {
           const bx = body.cx - pod.x, by = body.cy - pod.y;
-          const bm = Math.hypot(bx, by) || 1;
+          const bm = Math.sqrt(bx * bx + by * by) || 1;
           x += (bx / bm) * (cap - dd) * 0.5; y += (by / bm) * (cap - dd) * 0.5;
         }
       }
       // Organelles push granules aside.
       for (const o of orgs) {
         const ex = (x - o.x), ey = (y - o.y);
-        const dd = Math.hypot(ex, ey);
+        const dd = Math.sqrt(ex * ex + ey * ey);
         if (dd < o.r && dd > 1e-3) { x = o.x + (ex / dd) * o.r; y = o.y + (ey / dd) * o.r; }
       }
       // The ectoplasm rim: keep granules a few µm inside the membrane.
-      d = grid.sample(x, y);
+      d = sample(x, y);
       const margin = 7 + this.size[i];
       if (d < margin) {
         grid.grad(x, y, gr);
@@ -198,7 +222,7 @@ export class Cytoplasm {
 
   /** Move an organelle with the streaming, at a fraction of the flow, keeping it inside. */
   carry(o, dt, body, rate, margin, pull) {
-    const grid = body.grid, fl = {}, gr = {};
+    const grid = body.grid, fl = this.cfl, gr = this.cgr;
     let d = grid.sample(o.x, o.y);
     this.flowAt(body, o.x, o.y, Math.max(d, 24), fl);
     o.x += fl.x * rate * dt; o.y += fl.y * rate * dt;
@@ -235,7 +259,7 @@ export class Cytoplasm {
     cv.pulse = Math.max(0, cv.pulse - dt);
     // It sits towards the rear, near the uroid.
     const ux = body.ux - cv.x, uy = body.uy - cv.y;
-    const um = Math.hypot(ux, uy) || 1;
+    const um = Math.sqrt(ux * ux + uy * uy) || 1;
     const pull = um > 90 ? { x: (ux / um) * 6, y: (uy / um) * 6 } : null;
     this.carry(cv, dt, body, 0.35, cv.r + 10, pull);
 
@@ -268,13 +292,13 @@ export class Cytoplasm {
       let pull = null;
       if (v.egest) {
         const ex = body.ux - v.x, ey = body.uy - v.y;
-        const m = Math.hypot(ex, ey) || 1;
+        const m = Math.sqrt(ex * ex + ey * ey) || 1;
         pull = { x: (ex / m) * 26, y: (ey / m) * 26 };
       }
       this.carry(v, dt, body, 0.5, (v.egest ? 2 : 8) + Math.max(v.rx, v.ry), pull);
       if (v.egest) {
         const ex = body.ux - v.x, ey = body.uy - v.y;
-        if (Math.hypot(ex, ey) < Math.max(v.rx, v.ry) + 16) {
+        if (Math.sqrt(ex * ex + ey * ey) < Math.max(v.rx, v.ry) + 16) {
           this.vacuoles.splice(k, 1);
           body.A0 -= Math.PI * v.rx * v.ry;
           v.done = true;
@@ -289,7 +313,7 @@ export class Cytoplasm {
       for (let b = a + 1; b < orgs.length; b++) {
         const A = orgs[a], B = orgs[b];
         const ex = B.x - A.x, ey = B.y - A.y;
-        const d = Math.hypot(ex, ey) || 1e-3;
+        const d = Math.sqrt(ex * ex + ey * ey) || 1e-3;
         const min = rad(A) + rad(B) + 3;
         if (d < min) {
           const k = (min - d) * 0.5 * Math.min(1, dt * 6);
