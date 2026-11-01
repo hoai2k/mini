@@ -141,15 +141,18 @@ export class Predator {
 
   /**
    * prey: { walker, life, mouth (Vector3, the player's mouth) }
+   * allowed: false keeps it browsing (the player has not come halfway yet).
    * Returns events: 'hunt', 'stalk', 'bite', 'tunBite', 'givesUp', 'recoil', 'lost'.
    */
-  update(dt, prey, jab) {
+  update(dt, prey, jab, { allowed = true } = {}) {
     const ev = [];
     const w = this.walker;
     if (!this.on) return ev;
     this.t += dt;
     this.hunger.update(dt);
-    const hungry = this.hungry;
+    // allowed: the player has come at least halfway (main.js); before that it only browses
+    const hungry = allowed && this.hungry;
+    this.allowed = allowed;
     this.creature.pose.pump = Math.max(0, this.creature.pose.pump - dt);
     this.cool = Math.max(0, this.cool - dt);
     const me = w.dispPos, them = prey.walker.dispPos;
@@ -206,7 +209,7 @@ export class Predator {
       case 'stalk': {
         dir.subVectors(them, me).normalize();
         mag = 1;
-        if (prey.life.state !== 'active') { this.state = 'wander'; this.bored = 6; ev.push('lost'); break; }
+        if (prey.life.state !== 'active' || !allowed) { this.state = 'wander'; this.bored = 6; ev.push('lost'); break; }
         // once stalking within reach of your scent it sees the hunt through
         if (d > LOSE) { this.state = 'approach'; ev.push('lost'); break; }
         // it stops a little short and winds up: the lunge closes the gap

@@ -23,6 +23,7 @@ import { wireAssets } from './textures.js';
 import { LEAF_FX, opticalMaterial, litMaterial } from './materials.js';
 import { Landmarks } from './landmarks.js';
 import { Nematode } from './nematode.js';
+import { Meadow, MEADOW } from './meadow.js';
 
 const MODES = ['DIC (Nomarski)', 'Brightfield', 'Lit (hypothetical)'];
 // The second entry is the 10× objective behind a 1.25× intermediate
@@ -146,7 +147,7 @@ const walker = new Walker(world, creature, walkerEvents(p1));
 const lifeEvents = (a) => ({
   toast: (t, ms) => toast(who(a) + t, ms),
   rumble: (ms, w, s) => { if (rumbleOn) a.pad.rumble(ms, w, s); },
-  newDay: () => { predator.reset(); boss.reset(); endCapture(); for (const b of animals) if (b !== a) { b.life.respawn(0.5); spawnNear(b, a); } },
+  newDay: () => { predator.reset(); boss.reset(); meadow.reset(); endCapture(); for (const b of animals) if (b !== a) { b.life.respawn(0.5); spawnNear(b, a); } },
   // Local multiplayer: a dead animal (a tun that did not wake) comes back beside a teammate.
   restart: (life) => { if (players.count > 1) respawnNear(a); else life.newDay(); },
   // The food is drawn in through the buccal tube and stays visible inside, fading into the gut.
@@ -160,6 +161,24 @@ animals.push(p1);
 const places = new Landmarks(scene, world);
 // The boss: Prionchulus, a predatory nematode guarding the Sphagnum leaf on the way to the pool.
 const boss = new Nematode(scene, world);
+// The rotifer meadow: a crowd to push and bite through, past halfway (meadow.js, shared/crowd.js).
+const meadow = new Meadow(scene, world);
+meadow.on = true;
+
+// ---------------------------------------------------------------- the route
+// Progress from the start to the pool tip (0 .. 1, along the straight line).
+// Every challenge waits until a player is at least halfway: Milnesium hunts
+// only a player past HALF, the meadow and Prionchulus lie beyond it.
+const START = walker.dispPos.clone();
+const HALF = 0.5;
+const _pg = new THREE.Vector3(), _pq = new THREE.Vector3();
+function progress(p) { const d = _pg.subVectors(places.forward, START); return _pq.subVectors(p, START).dot(d) / d.lengthSq(); }
+const challenges = []; // the first time each challenge starts: { kind, progress, um }
+function logChallenge(kind, a) {
+  if (challenges.some((c) => c.kind === kind)) return;
+  const p = a.walker.dispPos;
+  challenges.push({ kind, slot: a.slot, progress: +progress(p).toFixed(3), um: Math.round(p.distanceTo(START) * 100), totalUm: Math.round(places.forward.distanceTo(START) * 100), time: +time.toFixed(1) });
+}
 // The optical buffers are allocated once at the governor's best scale and
 // each view uses a fraction of them (render({ viewScale })): no reallocation
 // when the screen splits or the governor steps. Half float: half the
@@ -264,6 +283,9 @@ F({ id: 'milnesium', group: 'Simulation', label: 'Milnesium (predator)', on: tru
 F({ id: 'boss', group: 'Simulation', label: 'Prionchulus (the boss)', on: true,
   about: 'A predatory nematode (~1.3 mm here; adults reach ~2 mm) guarding the Sphagnum leaf on the way to the pool. Dormant until you come near its post after the calm opening. Its tells: coiling into an S (then a forward whip) or rippling fast (then a sideways sweep), tooth bared. Brace (B) facing it to block, jab its head (X) as it recovers, lure it into thin film where it flounders. Worn down (the brass resolve gauge), it slides away into a deep groove for the rest of the day.',
   onChange: (v) => { boss.on = v; if (!v) boss.group.visible = false; } });
+F({ id: 'meadow', group: 'Simulation', label: 'Rotifer meadow (a crowd)', on: true,
+  about: 'Past halfway, at the far end of leaf E: ~200 bdelloid rotifers anchored by the foot, swaying, their wheel-like coronae beating. Walk into them and they bend aside; a stylet jab (X) makes those in front contract onto their foot and opens a lane (they re-extend later, a little further off). They never hurt you; a dense patch slows you a little. No timer. shared/crowd.js.',
+  onChange: (v) => { meadow.on = v; meadow.mesh.visible = v; } });
 F({ id: 'grace', group: 'Simulation', label: 'Calm opening', choices: ['40 s', '20 s', '90 s', 'Off'], value: '40 s',
   about: 'How long after a start (and after each new day) Milnesium browses far off on leaf C before it first gets hungry. shared/predation.js.',
   onChange: (v) => { predator.pace.grace = v === 'Off' ? 0 : parseFloat(v); predator.hunger.reset(predator.pace.grace); } });
@@ -464,15 +486,22 @@ function captureRespawn() {
   else { Object.assign(predator, { state: 'wander', bored: 15, lunge: 0, rear: 0, sated: false }); predator.fight.reset(); }
   if (animals.length === 1) { view.target.copy(a.walker.dispPos); view.dist = undefined; }
 }
-/** Alone: wake on whichever start spot is furthest from Milnesium. */
+/**
+ * Alone: wake at the furthest checkpoint along the way that you had passed
+ * and that is well away from whatever caught you (the long route is not
+ * walked twice), else at the start.
+ */
+const SAFE = [[0, 6.5, 0.6], [3, 6, 0], [3, 11, 0], [5, 4.5, 0], [5, 8.5, 0.6]];
 function respawnSafe(a) {
+  const reached = progress(a.walker.dispPos) + 0.02;
   a.life.respawn();
   a.dash = createDash({ duration: 0.9, cooldown: 2.6 });
-  const SAFE = [[0, 6.5, 0.6], [3, 6, 0], [1, 7, 0], [4, 6, 0]];
-  let best = SAFE[0], bd = -1;
+  const danger = captor === 'boss' ? boss.headW || boss.pointWorld(0) : predator.walker.dispPos;
+  let best = SAFE[0], bp = -1;
   for (const sp of SAFE) {
-    const d = world.leaves[sp[0]].toWorld(sp[1], sp[2], 0).distanceTo(predator.walker.dispPos);
-    if (d > bd) { bd = d; best = sp; }
+    const p = world.leaves[sp[0]].toWorld(sp[1], sp[2], 0);
+    const pr = progress(p);
+    if (pr <= reached && pr > bp && p.distanceTo(danger) > 6) { bp = pr; best = sp; }
   }
   a.walker.spawn(world.leaves[best[0]], 1, best[1], best[2], 1, 0);
 }
@@ -646,6 +675,15 @@ const api = window.__micro = { SOFTWARE, scene, camera, renderer, world, walker,
   /** Testing: place player `slot` at (u, v) on a leaf index. */
   place(slot, leaf, u, v, side = 1) { const a = animals.find((b) => b.slot === slot); if (a) a.walker.spawn(world.leaves[leaf], side, u, v, 1, 0); },
   get layout() { return split.layout; },
+  meadow, challenges, progress: (slot = 0) => progress((animals.find((b) => b.slot === slot) || p1).walker.dispPos),
+  /** Where each challenge sits on the route (progress 0 start .. 1 the pool tip) before anyone moves. */
+  route() {
+    const M = world.meadow, P = world.pool;
+    const at = (v) => ({ progress: +progress(v).toFixed(3), um: Math.round(v.distanceTo(START) * 100) });
+    return { totalUm: Math.round(places.forward.distanceTo(START) * 100),
+      meadowStart: at(M.toWorld(MEADOW.u0, 0, 0)), meadowEnd: at(M.toWorld(MEADOW.u1, 0, 0)),
+      milnesiumSpawn: at(predator.walker.dispPos), bossPost: at(boss.pointWorld(0)), bossWakeRadiusUm: 650, pool: at(places.forward) };
+  },
 };
 
 function frame() {
@@ -741,7 +779,8 @@ function step(dt, G) {
     upS.setFromMatrixColumn(camera.matrixWorld, 1);
     dirV.set(0, 0, 0).addScaledVector(right, ls.x).addScaledVector(upS, -ls.y);
     const film = L.filmHere();
-    const filmF = film < 0.03 ? 0.3 : (0.4 + 0.6 * THREE.MathUtils.smoothstep(film, 0.03, 0.3)) * (film > 1.1 ? 0.7 : 1);
+    // a dense patch of rotifers slows you a little (never stops you)
+    const filmF = (film < 0.03 ? 0.3 : (0.4 + 0.6 * THREE.MathUtils.smoothstep(film, 0.03, 0.3)) * (film > 1.1 ? 0.7 : 1)) * (1 - 0.25 * (a.crowd || 0));
     const dashing = a.dash.active && !L.frozen;
     if (dashing && ls.m < 0.2) dirV.copy(w.forward); // no stick: scramble straight ahead
     w.update(dt, { dir: dirV, mag: dashing ? Math.max(ls.m, 1) : ls.m, brace: g.D(BTN_B), frozen: L.frozen, film: filmF, energy: L.energy, tun: L.tun > 0.02, dash: dashing });
@@ -755,9 +794,16 @@ function step(dt, G) {
   if (lm.fwdLatch && !animals.some((a) => places.atForward(a.walker))) lm.fwdLatch = false;
   setNear(backNear);
 
-  // Milnesium hunts one of you.
+  // The rotifer meadow: pushed aside by every animal in it.
+  if (meadow.on) {
+    const crowd = meadow.update(dt, animals.map((a) => a.walker), predator.on ? [{ walker: predator.walker, radius: 1.7 }] : []);
+    animals.forEach((a, i) => { a.crowd = crowd[i]; if (crowd[i] > 0 && a.life.state === 'active') logChallenge('meadow', a); });
+  }
+
+  // Milnesium hunts one of you, once you have come at least halfway.
   const target = held ? null : chooseTarget();
-  const tg = target ? inputs.get(target) : IDLE;
+  const allowed = !!target && progress(target.walker.dispPos) >= (predator.target === target.slot && predator.state === 'stalk' ? HALF - 0.05 : HALF);
+  const tg = target && allowed ? inputs.get(target) : IDLE;
   const xT = tg.P(BTN_X);
   let facing = false;
   if (target) {
@@ -765,7 +811,8 @@ function step(dt, G) {
     facing = _fd.subVectors(predator.walker.dispPos, tw.dispPos).normalize().dot(tw.forward) > 0.5;
   }
   const blocking = !!target && tg.D(BTN_B) && target.life.state === 'active';
-  const pev = !target ? [] : predator.update(dt, { walker: target.walker, life: target.life, mouth: target.mouth, facing, blocking }, xT && target.life.state === 'active' && !target.life.feeding);
+  const pev = !target ? [] : predator.update(dt, { walker: target.walker, life: target.life, mouth: target.mouth, facing, blocking }, xT && target.life.state === 'active' && !target.life.feeding, { allowed });
+  if (target && (pev.includes('hunt') || pev.includes('stalk'))) logChallenge('milnesium', target);
   if (target) { target.facingPredator = facing && predator.state === 'stalk'; }
 
   // The boss (Prionchulus) fights whoever is nearest.
@@ -777,7 +824,7 @@ function step(dt, G) {
   for (const { e, a: pr } of bev) {
     const a = pr ? pr.a : null;
     const rb = (ms, w, s2) => { if (a && rumbleOn) a.pad.rumble(ms, w, s2); };
-    if (e === 'wake') toast('A predatory nematode, Prionchulus, uncoils across the Sphagnum leaf', 2800);
+    if (e === 'wake') { toast('A predatory nematode, Prionchulus, uncoils across the Sphagnum leaf', 2800); logChallenge('boss', pr ? pr.a : p1); }
     else if (e === 'windupWhip') { toast(`${a ? who(a) : ''}Prionchulus coils into an S, tooth bared: face it and brace (B)!`, 1800); rb(140, 0.3, 0); }
     else if (e === 'windupThrash') { toast(`${a ? who(a) : ''}Prionchulus thrashes: face it and brace (B)!`, 1800); rb(140, 0.3, 0); }
     else if (e === 'strike') audio.play('tardigrade/dash', { volume: 0.8, rate: 0.7 });
@@ -798,9 +845,15 @@ function step(dt, G) {
   for (const a of animals) {
     const g = inputs.get(a), L = a.life;
     // In the backdoor zone Y means "go back", not "curl into a tun".
+    // X into the rotifer meadow: those in front contract and a lane opens
+    a.meadowJab = false;
+    if (meadow.on && g.P(BTN_X) && L.state === 'active' && !L.feeding && !a.bossJab && !(a === target && jabbed)) {
+      const n = meadow.jab(a.walker);
+      if (n) { a.meadowJab = true; (a.anim ||= {}).jab = 0.34; if (!a.toldMeadow) { a.toldMeadow = true; toast(`${who(a)}Touched, the rotifers snap their coronae shut and contract onto their feet`, 2600); } }
+    }
     const yBack = a.atBack && g.P(BTN_Y);
     if (yBack) { fireLandmark('back', a); toast(`${who(a)}Back up to the moss canopy`); }
-    L.update(dt, { yDown: !a.atBack && g.D(BTN_Y), yPressed: !a.atBack && g.P(BTN_Y), bitePressed: g.P(BTN_X) && !(a === target && jabbed) && !a.bossJab, aPressed: g.P(BTN_A), moving: a.walker.speed });
+    L.update(dt, { yDown: !a.atBack && g.D(BTN_Y), yPressed: !a.atBack && g.P(BTN_Y), bitePressed: g.P(BTN_X) && !(a === target && jabbed) && !a.bossJab && !a.meadowJab, aPressed: g.P(BTN_A), moving: a.walker.speed });
     // life-state transitions: the tun, the revival, a stylet bite
     if (L.state !== a.state) {
       if (L.state === 'tun') audio.play('tardigrade/tun');

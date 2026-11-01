@@ -54,7 +54,7 @@ export function createCollectives(world, hooks = {}) {
 
   function newKin(x, y) {
     return { x, y, a: r() * 6.283, vx: 0, vy: 0, L: 2.6 + r() * 0.6, r: 0.27, amp: 0.3, wl: 1.6, z: (r() - 0.5) * 0.5,
-      flPhase: r() * 6, bodyPhase: r() * 6, coll: null, growth: r() * 0.5, dying: null, wob: r() * 6.283, still: 0 };
+      flPhase: r() * 6, bodyPhase: r() * 6, coll: null, growth: r() * 0.3, dying: null, wob: r() * 6.283, still: 0 };
   }
   /** A free kin cell somewhere in the first half (plentiful early, so the collective forms while exploring). */
   function placeFree(k, early = true) {
@@ -65,7 +65,7 @@ export function createCollectives(world, hooks = {}) {
       k.y = world.bandY(0.8 + r() * 3.5) + (r() - 0.5) * 6;
       if (Math.hypot(k.x - S0.x, k.y - S0.y) > 8 && !world.pushOutOfGrains({ x: k.x, y: k.y }, 0.5)) break;
     }
-    k.coll = null; k.dying = null; k.growth = r() * 0.4; k.vx = k.vy = 0;
+    k.coll = null; k.dying = null; k.growth = r() * 0.3; k.vx = k.vy = 0;
   }
 
   function reset(roster) {
@@ -354,7 +354,7 @@ export function createCollectives(world, hooks = {}) {
       for (const m of C.members) {
         const O = oxygen(m.y);
         const band = O >= 0.5 && O <= 5;
-        let rate = band ? 1 / 40 : 1 / 160;
+        let rate = band ? 1 / 70 : 1 / 240;
         if (C.patch) rate *= 3;
         if (world.food(m.x, m.y) > 0.15) rate *= 1.6;
         m.growth += rate * dt;

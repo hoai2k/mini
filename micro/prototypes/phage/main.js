@@ -42,7 +42,9 @@ const camera = new THREE.PerspectiveCamera(35, 1, 2, 3000);
 const post = createPost(renderer);
 const gl = renderer.getContext();
 const soft = /SwiftShader|llvmpipe|Software/i.test(String(gl.getParameter(gl.RENDERER)) + (gl.getExtension('WEBGL_debug_renderer_info') ? gl.getParameter(0x9246) : ''));
-const renderScale = soft ? 0.6 : 1;
+// ?pr=1 renders at full resolution on software WebGL too (for judging screenshots)
+const prParam = parseFloat(new URLSearchParams(location.search).get('pr'));
+const renderScale = prParam > 0 ? Math.min(1, prParam) : soft ? 0.6 : 1;
 const inside = createInside();
 // The quality governor (shared/quality.js) owns the pixel ratio (1.0 while split)
 // and gives a render scale (lower per split view) for the post target, and an
@@ -144,6 +146,7 @@ const newP = () => ({
   anchors: Array(6).fill(null), stepping: -1, stepT: 0, bound: 0, canCommit: false, commitT: 0, commitHost: null,
   clayT: 0, msgT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1,
   stuckTip: Array(6).fill(null), lastHost: null, inBack: false, grab: null, grabCooldown: 0, moveHeading: 2.95 - Math.PI / 2,
+  damaged: false, wreck: 0, coHost: null, coT: 0,
 });
 const hunger = createHunger({ grace: 45 });
 
@@ -180,7 +183,9 @@ function syncTeam() {
     if (team[p.slot]) continue;
     const m = makeMember(p.slot, p.color);
     if (p.slot > 0 && team[0]) respawn(m); else placeAtStart(m);
+    syncTeam.joined = true;
   }
+  if (syncTeam.joined) { syncTeam.joined = false; for (const m of members()) m.t4.setStyle(isFL()); applyInk(); }
   const multi = isMulti();
   if (multi !== syncTeam.multi || members().length !== syncTeam.n) { for (const m of members()) m.t4.setTint(multi ? m.color : null); syncTeam.multi = multi; syncTeam.n = members().length; }
   if (team[0]) use(team[0]);
@@ -233,6 +238,9 @@ function applyStyle() {
   const fl = isFL();
   goodsellShared.uStyle.value = fl ? 1 : 0;
   world.setStyle(fl);
+  inside.setStyle(fl);
+  for (const m of members()) m.t4.setStyle(fl);
+  try { stray.t4.setStyle(fl); } catch { /* (during set-up, before the stray exists) */ }
   applyInk();
 }
 /** Ink hulls only where they draw something: Goodsell-style looks with Ink on; at the lowest quality not on the crowds. */
@@ -263,6 +271,8 @@ function placeAtStart(m, at = null) {
   P.pos.copy(at || START).add(at ? _v.set(0, 0, 0) : _v.set(m.slot * 26, (m.slot % 2) * 14, 0));
   P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0); P.angVel.set(0, 0, 0);
   P.q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.95);
+  Object.assign(P, { damaged: false, wreck: 0, coHost: null, coT: 0 });
+  if (stray.paired === m) stray.paired = null;
   Object.assign(P, { mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, canCommit: false, bound: 0, commitT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1, grab: null, grabCooldown: 0, moveHeading: 2.95 - Math.PI / 2, lift: 4 });
   releaseAnchors();
   P.stuckTip.fill(null);
@@ -302,6 +312,7 @@ function resetLevel() {
   hunger.reset();
   fight.reset(); fightState = 'stalk';
   inside.reset();
+  resetStray();
   progeny.setCount(0);
   card.classList.remove('show');
   P.burstSent = false;
@@ -600,6 +611,108 @@ function leaveSurface(push) {
   P.angVel.set(gauss(), gauss(), gauss()).multiplyScalar(0.3);
 }
 
+// --- multiplicity reactivation (micro/design/combat-ideas.md, phage idea 1) ---
+// UV does not kill outright: at zero integrity a phage is DAMAGED (its DNA
+// broken: it dims, cracks, its glow fades). A damaged phage still binds and
+// injects, but its genome cannot work alone: it waits on the host (mode
+// 'coinfect'). If a teammate co-infects that host, the two genomes recombine
+// into a working one (real for T-even phages: Luria 1947 [C26]) and the
+// damaged player is whole again. Solo, a stray UV-damaged phage drifts below
+// the clay: drift up to it while damaged and it pairs with you, co-infecting
+// whichever host you inject. A second dose of UV while damaged is fatal.
+const COINFECT_WAIT = { solo: 5, multi: 45 };
+const stray = { t4: createT4({ clip: false }), pos: STRAY_HOME.clone(), vel: new THREE.Vector3(), q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.6),
+  paired: null, used: false, contract: 0, host: null, local: new THREE.Vector3(), log: [] };
+stray.t4.addTo(scene);
+stray.t4.set({ capsid: 'translucent', dark: 0.75, crack: 0.45, dna: 0.85 });
+function resetStray() {
+  stray.pos.copy(STRAY_HOME); stray.vel.set(0, 0, 0); stray.paired = null; stray.used = false; stray.contract = 0; stray.host = null;
+  stray.t4.group.visible = stray.t4.fibreMesh.visible = true; stray.t4.set({ contract: 0, star: 0, shortOut: 0 });
+  stray.t4.group.position.copy(stray.pos); stray.t4.group.quaternion.copy(stray.q); stray.t4.resetFibres(t);
+}
+function damage() {
+  P.damaged = true; P.wreck = 0; P.integrity = 0; P.crack = Math.max(P.crack, 0.35);
+  curPad().rumble(300, 0.5, 0.6); audio.play('bacterium/eat', { volume: 0.6, rate: 1.3 });
+  say(isMulti() ? 'UV broke your DNA: you are DAMAGED. Alone your injection fails; inject into the same host as a teammate and your genomes recombine (multiplicity reactivation). More UV is fatal.'
+    : 'UV broke your DNA: you are DAMAGED. Alone your injection fails. A stray damaged phage drifts below the clay: pair with it and co-infect a host together. More UV is fatal.', 5200, true);
+  stray.log.push(`P${cur.slot + 1} damaged at t=${t.toFixed(1)}`);
+}
+function updateStray(dt) {
+  const s = stray;
+  if (s.used) return;
+  const m = s.paired;
+  if (m && !team[m.slot]) s.paired = null;
+  if (!s.paired) {
+    // a damaged phage that comes close pairs with it
+    for (const o of members()) if (o.P.damaged && o.P.mode === 'drift' && o.P.pos.distanceTo(s.pos) < 70) {
+      s.paired = o; s.log.push(`stray paired with P${o.slot + 1} at t=${t.toFixed(1)}`);
+      if (o === team[0] || isMulti()) say('The stray damaged phage drifts along with you: co-infect a host together and your broken genomes can recombine.', 3600, true);
+      break;
+    }
+  }
+  if (s.host) {
+    // co-infecting beside its partner: down onto the host, then the sheath snaps
+    const at = world.toWorld(s.host, s.local, _w);
+    s.pos.lerp(at, 1 - Math.exp(-dt * 4));
+    const n = world.dirToWorld(s.host, _n.copy(s.local).setX(0).normalize(), new THREE.Vector3());
+    s.q.slerp(_q.setFromUnitVectors(UP, n), 1 - Math.exp(-dt * 4));
+    s.contract = Math.min(1, s.contract + dt * 0.8);
+  } else if (s.paired) {
+    const o = s.paired.P;
+    _v.copy(o.pos).add(_w.set(Math.sin(t * 0.7) * 10 - 22, 18 + Math.cos(t * 0.5) * 6, 0)).sub(s.pos);
+    s.vel.lerp(_v.multiplyScalar(1.6), 1 - Math.exp(-dt * 2));
+    s.pos.addScaledVector(s.vel, dt);
+    if (o.mode === 'commit' && o.commitHost) {
+      // its partner commits: it lands beside it on the same host
+      const h = o.commitHost;
+      s.host = h;
+      s.local.copy(world.toLocal(h, world.projectToHost(h, _v.copy(o.pos).add(_w.set(-18, 6, 6)), 4)));
+    }
+    if (!['drift', 'grab', 'walk', 'commit', 'coinfect', 'clay'].includes(o.mode)) s.paired = null;
+  } else {
+    // drifting near home, sheltering below the clay
+    s.vel.multiplyScalar(Math.exp(-dt * 1.5));
+    s.vel.x += gauss() * 6 * Math.sqrt(dt) + (STRAY_HOME.x - s.pos.x) * 0.2 * dt;
+    s.vel.y += gauss() * 6 * Math.sqrt(dt) + (STRAY_HOME.y - s.pos.y) * 0.2 * dt;
+    s.pos.addScaledVector(s.vel, dt);
+    _q.setFromAxisAngle(_v.set(0.3, 0.2, 1).normalize(), Math.sin(t * 0.3) * 0.002); s.q.premultiply(_q);
+  }
+  const k = s.contract;
+  s.t4.set({ contract: k, star: k, shortOut: k, fold: 0 });
+  s.t4.group.position.copy(s.pos); s.t4.group.quaternion.copy(s.q);
+  s.t4.state.sway = s.host ? 0.4 : 1;
+  s.t4.update(dt, t);
+}
+/** A member whose damaged genome is waiting in host h, other than `not`. */
+const waitingOn = (h, not) => members().filter((o) => o !== not && o.P.mode === 'coinfect' && o.P.coHost === h);
+/** Recombination: make member o whole again (beside its host, drifting), keeping `cur`. */
+function reviveBeside(o, h) {
+  const was = cur;
+  const at = world.toWorld(h, o.P.walkLocal, new THREE.Vector3());
+  const n = world.dirToWorld(h, _n.copy(o.P.walkLocal).setX(0).normalize(), new THREE.Vector3());
+  at.addScaledVector(n, 34);
+  respawning = true;
+  try { placeAtStart(o, at); } finally { respawning = false; }
+  o.P.fade = 0;
+  stray.log.push(`P${o.slot + 1} revived (whole) by multiplicity reactivation at t=${t.toFixed(1)}`);
+  use(was);
+}
+function updateCoinfect(dt) {
+  // the empty, contracted shell stays on the host; its damaged genome waits inside for a partner
+  P.coT += dt;
+  const h = P.coHost;
+  const base = world.toWorld(h, P.walkLocal, new THREE.Vector3());
+  world.projectToHost(h, base, P.lift, base, _n);
+  P.pos.copy(base);
+  for (let f = 0; f < 6; f++) if (P.anchors[f]) world.toWorld(h, P.anchors[f], t4.fibres[f].anchor || (t4.fibres[f].anchor = new THREE.Vector3()));
+  P.fade = 0;
+  const limit = isMulti() ? COINFECT_WAIT.multi : COINFECT_WAIT.solo;
+  if (P.coT > limit) {
+    P.coHost = null; h.locked = false;
+    startCapture('dud', 'Alone, your UV-damaged genome', 'could not replicate, and the host broke it down');
+  } else if (P.msgT <= 0 && isMulti()) { say(`P${cur.slot + 1}'s damaged genome waits in ${h.name} (${Math.ceil(limit - P.coT)} s): a teammate injecting there revives it.`, 2200); P.msgT = 6; }
+}
+
 const COMMIT_T = 3.6;
 function updateCommit(dt) {
   P.commitT += dt;
@@ -619,7 +732,25 @@ function updateCommit(dt) {
   for (let f = 0; f < 6; f++) if (P.anchors[f]) world.toWorld(h, P.anchors[f], t4.fibres[f].anchor || (t4.fibres[f].anchor = new THREE.Vector3()));
   if (c > 2.4) P.fade = ramp(c, 2.6, COMMIT_T);
   if (c >= COMMIT_T) {
-    P.mode = 'inside'; P.snapped = false;
+    P.snapped = false;
+    const partners = waitingOn(h, cur);
+    const strayJoins = stray.paired === cur && stray.host === h && !stray.used;
+    if (P.damaged && !partners.length && !strayJoins) {
+      // a damaged genome alone cannot work: wait in the host for a partner
+      P.mode = 'coinfect'; P.coHost = h; P.coT = 0; P.fade = 0; h.locked = false;
+      stray.log.push(`P${cur.slot + 1} damaged and alone in ${h.name}: waiting (t=${t.toFixed(1)})`);
+      say(isMulti() ? 'Your damaged genome is in, but cannot work alone. A teammate who injects into this host will recombine with it.'
+        : 'Your damaged genome is in, but cannot work alone, and no second phage came with you…', 4000, true);
+      return;
+    }
+    if (strayJoins) { stray.used = true; stray.t4.group.visible = stray.t4.fibreMesh.visible = false; }
+    for (const o of partners) reviveBeside(o, h);
+    if (P.damaged) {
+      P.damaged = false; P.integrity = 1; P.dark = 0; P.crack = 0; P.wreck = 0;
+      stray.log.push(`P${cur.slot + 1} revived inside ${h.name} by multiplicity reactivation with ${strayJoins ? 'the stray' : 'P' + (partners[0].slot + 1)} (t=${t.toFixed(1)})`);
+    }
+    if (partners.length || strayJoins) say(`Multiplicity reactivation: two damaged genomes recombined into one that works${partners.length ? `: P${partners.map((o) => o.slot + 1).join(', P')} is whole again` : ''}.`, 3600, true);
+    P.mode = 'inside';
     inside.start(h);
     inside.setRadar(view.overlay);
     say(h.crispr ? 'Inside Host B. Its CRISPR complexes carry a spacer matching you: they hunt hard. Lead the DNA end away (LS).' : 'Inside the host. Lead the DNA\'s end (LS) away from the restriction enzyme and CRISPR complex until the genome is in.', 4200, true);
@@ -696,7 +827,8 @@ function updateAmoeba(dt) {
   hunger.update(dt);
   const c = centreOf(_v).clone();
   const retreating = fightState === 'retreat';
-  const reachable = opts.amoeba && hunger.hungry && !retreating && outsideModes.includes(P.mode) && world.sdAmoeba(c) < 260;
+  // (placement: the amoeba only reaches for phages at or past halfway along the route)
+  const reachable = opts.amoeba && hunger.hungry && !retreating && outsideModes.includes(P.mode) && world.sdAmoeba(c) < 260 && routeProgress(c) >= 0.5;
   if (reachable) {
     if (am.reach < 2) { am.base.subVectors(c, am.center).normalize().multiplyScalar(am.r - 6).add(am.center); am.tip.copy(am.base); fight.reset(); }
     const toward = _w.subVectors(c, am.tip);
@@ -771,9 +903,9 @@ function updateOverlay(where) {
       placeLabel(h.id, _w.copy(h.pos).add(new THREE.Vector3(0, h.r + 16, 0)),
         `<b>${h.name}</b><br>receptors: ${h.receptors}<br>defences: ${h.defence}<br>odds of a burst if you commit: <b>${Math.round(h.odds * 100)} %</b>`, camera);
     }
-    placeLabel('uv', new THREE.Vector3(view.target.x, UV.y0 + 6, 0), `UV-B starts here · at the top ~${Math.round(uvAt(UV.y1) * 100)} % dose rate · bound to clay: shielded`, camera);
+    placeLabel('uv', new THREE.Vector3(view.target.x, UV.y0 + 6, 0), uvSun(view.target.x) > 0.05 ? `UV-B starts here (a gap in the floating peat mat) · at the top ~${Math.round(uvAt(view.target.x, UV.y1) * 100)} % dose rate · bound to clay: shielded` : 'shaded by the floating peat mat: no UV here', camera);
     const am = world.amoeba;
-    placeLabel('am', new THREE.Vector3(BOUNDS.x0 + 30, view.target.y + 40, 0), `amoeba: <b>${hunger.state}</b>${hunger.state !== 'hungry' ? ` (${Math.ceil(hunger.left)} s)` : ''}<br>reach ~2.6 µm when hungry`, camera);
+    placeLabel('am', world.amoeba.center.clone().add(new THREE.Vector3(-world.amoeba.r * 0.5, world.amoeba.r * 0.9, 40)), `amoeba: <b>${hunger.state}</b>${hunger.state !== 'hungry' ? ` (${Math.ceil(hunger.left)} s)` : ''}<br>reach ~2.6 µm when hungry`, camera);
     // encounter odds (illustrative): diffusion-limited k = 4πRD, here for this field
     const d = world.nearestHost(P.pos);
     placeLabel('enc', _w.copy(P.pos).add(new THREE.Vector3(0, -12, 0)), `nearest host ${(Math.max(0, d.d) / 100).toFixed(2)} µm · diffusing, ~${Math.max(0.01, (Math.max(0, d.d) / 100) ** 2 / (6 * 4)).toFixed(2)} s real to reach`, camera);
@@ -787,7 +919,7 @@ function updateOverlay(where) {
 const debug = { freeze: false, iso: false, camOverride: null };
 const split = createSplitScreen(renderer, { capture: true, up: null });
 const marks = createLandmarks();
-const bestPatch = () => { const h = world.hosts.find((x) => x.id === 'A'); return world.toWorld(h, h.patchList[1].local); };
+const bestPatch = () => { const h = world.hosts.find((x) => x.id === 'A'); return world.toWorld(h, h.patchList[3].local); }; // the start-facing receptor
 let last = performance.now();
 let blocked = false;
 let nearBack = false;
@@ -812,7 +944,7 @@ function stepMember(m, dt, insideOwner, where) {
   const live = !idle && !c.active && !debug.freeze && !frozen;
   if (!idle) {
     const lstep = ctl.lookStep();
-    if (lstep) { const d = lstep; features.set('look', LOOKS[(view.look + d + LOOKS.length) % LOOKS.length]); say(`Look: ${LOOKS[view.look]}${view.look ? ' (an illustration, labelled)' : ''}`, 1800, true); }
+    if (lstep) { const d = lstep; features.set('lookFL', LOOKS[(view.look + d + LOOKS.length) % LOOKS.length]); say(`Look: ${LOOKS[view.look]} (an illustration, labelled)`, 1800, true); }
     const zs = ctl.zoomStep();
     if (zs) view.zoom = clamp(view.zoom - zs, 0, ZOOMS.length - 1);
     if (ctl.special.pressed()) {
@@ -821,7 +953,8 @@ function stepMember(m, dt, insideOwner, where) {
     }
   }
   if (live) {
-    if (ctl.defend.pressed() && outsideModes.includes(P.mode)) {
+    if (ctl.defend.pressed() && P.mode === 'coinfect') { P.coT = 1e6; }
+    else if (ctl.defend.pressed() && outsideModes.includes(P.mode)) {
       P.foldTarget = P.foldTarget > 0.5 ? 0 : 1;
       audio.play('bacterium/tumble', { volume: 0.5, rate: P.foldTarget ? 0.9 : 1.15 });
       say(P.foldTarget ? 'Fibres folded back against the sheath: you slip past clay and cells.' : 'Fibres out: a wider net to catch receptors (and clay).', 1800, true);
@@ -851,6 +984,7 @@ function stepMember(m, dt, insideOwner, where) {
     else if (P.mode === 'walk') updateWalk(dt, live ? inp : still);
     else if (P.mode === 'clay') updateClay(dt, live ? inp : still);
     else if (P.mode === 'commit') updateCommit(dt);
+    else if (P.mode === 'coinfect') updateCoinfect(dt);
     else if (P.mode === 'burst') updateBurst(dt);
   }
   if (P.mode === 'inside' || (P.mode === 'burst' && P.burstT < 2.6)) {
@@ -872,11 +1006,15 @@ function stepMember(m, dt, insideOwner, where) {
   }
   // UV, per phage, outside
   if (where === 'outside' && !debug.iso && !c.active && !debug.freeze && opts.uv && outsideModes.includes(P.mode)) {
-    const uv = uvAt(centreOf(_v).y);
-    P.integrity -= uv * 0.11 * dt * (P.mode === 'clay' ? 0.12 : 1);
-    if (uv > 0.15 && P.msgT <= 0) { say(P.mode === 'clay' ? 'UV-bright water, but the clay shields you.' : 'UV-bright water near the surface: it is damaging your DNA. Go deeper.', 2400, true); P.msgT = 5; }
+    const cc = centreOf(_v); const uv = uvAt(cc.x, cc.y);
+    const shield = P.mode === 'clay' ? 0.12 : 1;
+    if (!P.damaged) {
+      P.integrity -= uv * 0.11 * dt * shield;
+      if (P.integrity <= 0) damage();
+    } else P.wreck += uv * 0.09 * dt * shield; // a second dose while damaged is fatal
+    if (uv > 0.15 && P.msgT <= 0) { say(P.mode === 'clay' ? 'UV-bright water, but the clay shields you.' : P.damaged ? 'Still in the UV, already damaged: get out or it destroys you.' : 'UV-bright water near the surface: it is damaging your DNA. Go deeper.', 2400, true); P.msgT = 5; }
     P.dark = Math.max(P.dark, (1 - P.integrity) * 0.6);
-    if (P.integrity <= 0) { P.integrity = 0; startCapture('uv', 'UV-B from the sunlit surface', 'darkened and cracked your capsid and broke your DNA'); }
+    if (P.wreck >= 1) startCapture('uv', 'UV-B from the sunlit surface', 'darkened and cracked your capsid and broke your DNA past repair');
   }
   // the backdoor: open water at the flagellum, above the hosts
   P.inBack = where === 'outside' && P.mode === 'drift' && centreOf(_v).distanceTo(world.backdoor.pos) < world.backdoor.radius;
@@ -895,10 +1033,12 @@ function stepMember(m, dt, insideOwner, where) {
 
 function frame(now) {
   requestAnimationFrame(frame);
-  const dt = debug.pause ? 0 : Math.min(debug.maxDt || 0.05, (now - last) / 1000);
+  const realDt = (now - last) / 1000;
+  const dt = debug.pause ? 0 : Math.min(debug.maxDt || 0.05, realDt);
   last = now;
   t += dt;
   goodsellShared.uTime.value = t;
+  quality.update(realDt);
   players.poll();
   syncTeam();
   unlockOnPad();
@@ -924,6 +1064,7 @@ function frame(now) {
     else if (!debug.freeze) hunger.update(dt);
     use(team[0]);
     world.update(dt, t, view.target, centreOf(new THREE.Vector3()), camera.position.z);
+    if (!debug.freeze) updateStray(dt);
   }
   use(lead);
   if (lead.P.mode === 'inside' || lead.P.mode === 'burst') {
@@ -984,19 +1125,26 @@ function frame(now) {
     post.uniforms.uWater.value.set(waterColor);
     post.uniforms.uUseBg.value = view.art && art.water ? 1 : 0;
     goodsellShared.uFogColor.value.set(waterColor);
-    post.uniforms.uUv.value = opts.uv && !debug.iso ? 0.9 : 0;
+    goodsellShared.uHaze.value.set('#1d5e6e');
+    post.uniforms.uTop.value.set('#2a8090'); post.uniforms.uBot.value.set('#071e2c'); post.uniforms.uShaft.value.set('#8ad8da');
+    post.uniforms.uFocus.value = dist;
+    // the UV wash only where the sun gets through the peat mat
+    post.uniforms.uUv.value = opts.uv && !debug.iso ? 0.9 * uvSun(view.target.x) : 0;
     post.uniforms.uBgOff.value.set(view.target.x * 0.0006, view.target.y * 0.0006);
   } else {
     const cutting = insideOwner && insideOwner.c.active && insideOwner.P.kind === 'cut';
     const chewing = cutting && ['eat', 'follow', 'fadeOut'].includes(insideOwner.c.phase);
     inside.frame(dt, look, chewing ? 140 : cutting ? 85 : ZOOMS[view.zoom] * 1.05 + 40, chewing ? insideOwner.P.camFocus : null);
-    goodsellShared.uFogNear.value = 150; goodsellShared.uFogFar.value = 360;
+    goodsellShared.uFogNear.value = 150; goodsellShared.uFogFar.value = isFL() ? 300 : 360;
     post.uniforms.uWater.value.set('#efc4a0');
     post.uniforms.uUseBg.value = 0; // the cytoplasm, not the water plate
     goodsellShared.uFogColor.value.set('#efc4a0');
+    goodsellShared.uHaze.value.set('#1d3f6e');
+    post.uniforms.uTop.value.set('#3a74b0'); post.uniforms.uBot.value.set('#081a34'); post.uniforms.uShaft.value.set('#a6dcf4');
+    post.uniforms.uFocus.value = inside.camera.position.distanceTo(inside.tip());
     post.uniforms.uUv.value = 0;
   }
-  post.uniforms.uLook.value = view.look;
+  post.uniforms.uLook.value = POST_LOOK[view.look];
   post.uniforms.uTime.value = t;
   post.uniforms.uFade.value = lead.P.fade;
   const uvDying = members().some((m) => m.c.active && m.P.kind === 'uv');
@@ -1007,6 +1155,7 @@ function frame(now) {
     // LEGO split screen: one view while together, split as players drift apart
     const list = inPlay.length ? inPlay.map((m, i) => ({ slot: m.slot, position: focusPts[i] })) : [{ slot: 0, position: view.target }];
     split.update(list, { camera }, dt);
+    quality.setSplitViews(split.views.length);
     split.render(camera, () => {
       for (const m of members()) m.t4.setCutFrom(camera.position);
       _v.set(camera.position.x, UV.y0 + 40, 0).project(camera);
@@ -1028,10 +1177,10 @@ function frame(now) {
   scaleEl.innerHTML = `<i style="width:${(10 * pxPerUnit).toFixed(0)}px"></i>${where === 'outside' ? '100 nm' : '10 nm'}`;
   label.textContent = `${LOOKS[view.look]} · an illustration, not a microscope image · time slowed ~20×${opts.drive ? ' · LS drift and gusts are departures' : ''}`;
   const n5 = (x) => { const k = Math.round(clamp(x, 0, 1) * 5); return '■'.repeat(k) + '□'.repeat(5 - k); };
-  const modeName = { drift: 'drifting legs-first', grab: 'grabbing a surface protein', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
+  const modeName = { drift: 'drifting legs-first', grab: 'grabbing a surface protein', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', coinfect: `damaged genome waiting in ${P.coHost?.name} for a partner (B: give up)`, inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
   const am = hunger.state === 'grace' ? `calm (${Math.ceil(hunger.left)} s)` : hunger.state === 'hungry' ? ({ stalk: 'HUNGRY: reaching', windup: 'WINDING UP!', strike: 'STRIKING!', recover: 'recovering', repelled: 'repelled', retreat: 'retreating' }[fightState] || 'HUNGRY') + ` · interest ${Math.round(fight.interest * 100)} %` : fightState === 'retreat' ? 'retreating' : 'resting';
   const others = isMulti() ? '\n' + members().filter((m) => m.slot).map((m) => `P${m.slot + 1} ${m.P.mode} ${n5(m.P.integrity)}`).join('  ') : '';
-  hud.stats(`${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\nintegrity ${n5(P.integrity)}  ${dash.text()}\nUV ${Math.round(uvAt(centreOf(_v).y) * 100)} %  amoeba ${am}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `x ${(P.pos.x / 100).toFixed(2)} µm  depth below UV ${Math.max(0, (UV.y0 - centreOf(_v).y) / 100).toFixed(2)} µm`}${others}`);
+  hud.stats(`${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\n${P.damaged ? `DAMAGED · UV ${n5(1 - P.wreck)}` : `integrity ${n5(P.integrity)}`}  ${dash.text()}\nUV ${Math.round(uvAt(centreOf(_v).x, _v.y) * 100)} %  amoeba ${am}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `x ${(P.pos.x / 100).toFixed(2)} µm  depth below UV ${Math.max(0, (UV.y0 - centreOf(_v).y) / 100).toFixed(2)} µm`}${others}`);
 }
 
 function showWinCard() {
@@ -1069,9 +1218,13 @@ Object.assign(debug, {
   }),
   /** Move player `slot` to x, y. */
   place: (slot, x, y) => { const m = team[slot]; if (!m) return; use(m); P.pos.set(x, y, 0); P.vel.set(0, 0, 0); t4.group.position.copy(P.pos); t4.resetFibres(t); use(team[0]); },
+  /** UV-damage player `slot` (the revive test). */
+  damage: (slot = 0) => { const was = cur; use(team[slot]); damage(); use(was); },
+  stray: () => ({ pos: stray.pos.toArray().map((x) => +x.toFixed(0)), paired: stray.paired ? stray.paired.slot : null, used: stray.used, log: stray.log.slice() }),
+  placements: () => world.placements(),
   hungry() { hunger.update(1e6); while (!hunger.hungry) hunger.update(1e6); },
   overlay(on) { view.overlay = on; inside.setRadar(on); },
-  look(i) { features.set('look', LOOKS[i]); },
+  look(i) { features.set('lookFL', LOOKS[i]); },
   zoom(i) { view.zoom = i; view.dist = ZOOMS[i]; },
   reset: resetLevel,
   boss() { const b = inside.bossLock(); return b ? { state: b.state, match: +b.match.toFixed(2), d: +b.pos.distanceTo(inside.tip()).toFixed(1) } : null; },
@@ -1087,5 +1240,6 @@ if (embed.players) players.fromJSON(embed.players);
 embed.on('players', (r) => { players.fromJSON(r); syncTeam(); hud.players(players.list); });
 syncTeam();
 hud.players(players.list);
+applyStyle();
 resetLevel();
 requestAnimationFrame((n) => { last = n; frame(n); });

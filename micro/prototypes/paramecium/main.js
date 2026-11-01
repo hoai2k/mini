@@ -64,15 +64,15 @@ const hud = mountHud({
     move: 'Swim: LS forward drives, left/right turns relative to the camera; release to stop',
     camera: 'Orbit and aim your swim; released, the camera follows your heading (microscope: move the stage)',
     dash: 'Dash: ciliary sprint where the stick points',
-    attack: 'Eat: a gulp draws prey into the oral groove. At a hunter: fight back (ram it and sting with a jab of trichocysts)',
-    defend: 'Defend: fire trichocysts at a hunter and back off (facing it, this blocks a strike); held: break free. Elsewhere: avoidance reaction',
+    attack: 'Eat: a gulp draws prey into the oral groove (in the bloom: clears a cone of algae). At a hunter: ram it (and sting with a jab of trichocysts)',
+    defend: 'Defend: trichocysts and back off. They drive Dileptus off and burst you out of the amoeba\'s cup or the trap\'s inflow; they cannot stop Didinium (keep away, dodge). Elsewhere: avoidance reaction',
     special: 'Chase camera / microscope view. On the amoeba\'s floor: back to the amoeba',
     analog: 'LT slow feeding beat · RT optional forward swim (LS already drives)',
     secondary: 'Dive / rise',
     look: 'Microscope technique',
     zoom: 'Objective (chase camera: distance)',
   }),
-  note: `Goal: eat ${GOAL} prey (bacterial clumps and Chilomonas)${GREEN ? ', keep in the light so your Chlorella feed you' : ''}. Hunters: Didinium (fast, harpoons you on contact; a red arrow at the edge when one closes in from out of view) and Amoeba proteus (slow giant on the slide, cups you if you swim low). You glance off whatever you touch. Scale is honest (µm). The brass chevron points to the biofilm on a leaf (the way on: swim down and touch it); the ring to the floor where the amoeba crawls (the way back). Up to four players: press any button on another controller to join.`,
+  note: `Goal: eat ${GOAL} prey (bacterial clumps and Chilomonas)${GREEN ? ', keep in the light so your Chlorella feed you' : ''}. The brass chevron points to the biofilm on a leaf, far off up and to the right (the way on: swim there and down to touch it). The first half of the way is calm: feed and explore. Beyond halfway: Dileptus (trichocysts, B, drive it off), two Didinium (trichocysts can't stop them: keep away, dodge), a bladderwort trap across the way, and a Chlamydomonas bloom to push and gulp through. The ring points to the floor where Amoeba proteus crawls (the way back). You glance off whatever you touch. Scale is honest (µm). Up to four players: press any button on another controller to join.`,
 });
 hud.players(players.list);
 /** A button as the instructions should name it: the controller's, or the key while no controller is connected. */
@@ -105,6 +105,7 @@ const trap = createBladderwort(scene, world);
 const bloom = createBloom(scene);
 // the Amoeba proteus keeps to its patch of slide (the backdoor) when it is not hunting
 amoeba.home = LANDMARKS.back.pos.clone(); amoeba.homeR = 220;
+amoeba.pos.set(LANDMARKS.back.pos.x, 0, LANDMARKS.back.pos.z);
 
 // --- pacing: placed, not timed (the owner: challenges only from halfway on) ---
 // The first half of the route is calm swimming and feeding. The ciliate
@@ -385,7 +386,7 @@ features.add({ id: 'glance', group: 'Motion', label: 'Glance off obstacles', fix
   about: 'Touching anything (a filament, a flake, the slide, the coverslip, the meniscus at the rim of the drop) turns your heading along its surface so you slide past instead of stopping. The contact shows as a puff of specks at the point, a bump of the cell and a rumble; in the microscope view focus jumps to what you touched.' });
 features.add({ id: 'avoidOnContact', group: 'Motion', label: 'Avoidance reaction on hard contact', on: false,
   about: 'What a real Paramecium does when its front end hits something (S08): back up and turn. Off by default because it takes control away; on, it fires on a hard head-on hit with a filament, flake or cell (never the glass).', onChange: (on) => { swimmer.opts.avoidOnContact = on; } });
-features.add({ id: 'burst', group: 'Motion', label: 'Trichocyst defence (X on contact)', fixed: true, about: 'When a hunter touches or holds you, X fires the trichocysts from the patch facing it: threads shoot out and throw the cell about 100 µm clear, and the hunter recoils (S09). Three charges, one back every 9 s (invented).' });
+features.add({ id: 'burst', group: 'Motion', label: 'Trichocyst defence (B): right for Dileptus, useless against Didinium', fixed: true, about: 'B fires the trichocysts from the patch facing the threat: threads shoot out and throw the cell about 100 µm clear (S09). Against Dileptus that is the real defence: mutants without trichocysts were eaten 9–45× faster (C14), so fired while its trunk is at you (or holding you) it drives it off. Against Didinium it does nothing: wild type and mutants were equally vulnerable (C15), its pexicysts hold on; keep away and dodge its lunge. Three charges, one back every 9 s (invented; real re-docking takes hours).' });
 // Simulation
 features.add({ id: 'squirmer', group: 'Simulation', label: 'Flow round the swimming cell', on: true,
   about: 'Bacteria feel a neutral squirmer\'s dipole field: carried ahead at the poles, swept back along the sides, decaying as 1/r³.', onChange: (on) => { world.opts.squirmer = on; } });
@@ -399,10 +400,13 @@ features.add({ id: 'didinium', group: 'World', label: 'Didinium hunters', on: tr
 features.add({ id: 'homing', group: 'World', label: 'Didinium homing', on: true, about: 'Within ≈480 µm a Didinium turns on you and swims nearly straight at about 1 mm/s; a sideways dash makes it overshoot. Real Didinium finds prey by collision; this makes the encounter readable.', onChange: (on) => { enc.opts.homing = on; } });
 features.add({ id: 'proteus', group: 'World', label: 'Amoeba proteus', on: true,
   about: 'A slow giant (≈300 µm, up to 600 with pseudopods) creeping on the slide (S29). Swim low near it and two pseudopods flank you into a food cup (S05); stay between them and it closes. Dash out, or fire trichocysts. It creeps ≈10× and reaches ≈5× faster than life.', onChange: (on) => { amoeba.opts.on = on; if (!on && swimmer.state.captor === amoeba) swimmer.release(); } });
-const GRACES = ['45 s', '20 s', '0 s (hunters from the start)'];
-features.add({ id: 'grace', group: 'World', label: 'Calm opening before the hunters get hungry', choices: GRACES, value: GRACES[0],
-  about: 'For the first 45 s of a round (and after every restart) no hunter is hungry: Didinium wanders, Amoeba proteus creeps and neither comes for you, so you can explore first. The second Didinium wakes 12 s after the first and the amoeba 6 s after. Shorter openings are for testing.',
+const GRACES = ['6 s', '20 s', '0 s'];
+features.add({ id: 'grace', group: 'World', label: 'Grace once you reach the hunters\' waters', choices: GRACES, value: GRACES[0],
+  about: 'The challenges are placed, not timed: the first half of the route to the biofilm is calm (prey, Vorticella, the light), and the Dileptus, the two Didinium, the bladderwort trap and the Chlamydomonas bloom all lie beyond halfway. The ciliates keep to their own waters there. Their hunger clocks start when someone first reaches halfway, after this grace (each one 5 s after the last). The amoeba by the way back keeps a 45 s calm opening.',
   onChange: (v) => { pacing.grace = parseFloat(v); resetHunger(); } });
+features.add({ id: 'bloom', group: 'World', label: 'Chlamydomonas bloom', on: true,
+  about: 'A dense band of green flagellates across the route before the biofilm (shared/crowd.js, three tiers through the depth). Swimming shoves them aside; X gulps a cone of them out of your way (algae as food is [Unverified]); a dash (A) flings them aside in a lane. Bioconvection: more cells toward the coverslip, sinking plumes with a mild down-current, gentle upwelling between. No clock of any kind.',
+  onChange: (on) => { bloom.on = on; bloom.group.visible = on; } });
 features.add({ id: 'hunger', group: 'World', label: 'Hunger comes and goes', on: true,
   about: 'After the calm opening each hunter is hungry for 18–32 s (the amoeba 25–40 s), then rests: 45–75 s after a meal, 15–30 s after a miss (trichocysts drive it off, or it gives up). Only a hungry hunter hunts; the HUD shows each one\'s state. Off: once the opening is over they hunt all the time (the old pacing).',
   onChange: (on) => { pacing.cycles = on; } });
@@ -488,14 +492,16 @@ function soundTick(dt) {
 const game = { eaten: 0, round: 1, sun: 1, gulpT: 0, gulpCool: 0, dashFx: 0, deaths: 0, bacteria: 0, contacts: 0 };
 const threats = () => [...(enc.opts.didinium ? world.didinia : []), ...(amoeba.opts.on ? [amoeba] : [])];
 const GULP_REACH = Math.max(70, LENGTH * 0.6);
+const bloomLog = { enter: [], entered: new Set(), gulps: [], wedges: [] };
 const gulpCentre = new THREE.Vector3();
 function updateGulpCentre(s) { return gulpCentre.copy(s.center).addScaledVector(s.T, HL * 0.35); }
 
 // --- the players: one cell each ------------------------------------------------
 const CATCH = {
-  didinium: { by: 'Didinium', how: 'swallowed you whole', strike: 'Didinium\'s proboscis strikes: toxicysts fire into you!', hold: () => `HELD by Didinium: ${glyph('B')} trichocysts · ${glyph('A')} / ${glyph('X')} struggle`, eat: 'Didinium\'s mouth gapes wide: it swallows you whole', follow: 'Swallowed whole: the Didinium swims off with you inside', fadeOut: '', fadeIn: '' },
+  didinium: { by: 'Didinium', how: 'swallowed you whole', strike: 'Didinium\'s proboscis strikes: toxicysts fire into you!', hold: () => `HELD by Didinium: its pexicysts hold, trichocysts can't free you · ${glyph('A')} / ${glyph('X')} struggle`, eat: 'Didinium\'s mouth gapes wide: it swallows you whole', follow: 'Swallowed whole: the Didinium swims off with you inside', fadeOut: '', fadeIn: '' },
   amoeba: { by: 'Amoeba proteus', how: 'closed you into a food vacuole', strike: 'The food cup closes round you!', hold: () => `ENGULFED by the amoeba: ${glyph('B')} trichocysts · ${glyph('A')} / ${glyph('X')} struggle`, eat: 'A food vacuole forms round you and darkens: digestion begins', follow: 'Inside the amoeba: it creeps on, digesting', fadeOut: '', fadeIn: '' },
 };
+CATCH.dileptus = { by: 'Dileptus', how: 'slashed you with its trunk and engulfed you', strike: 'Dileptus\'s trunk slashes: toxicysts fire into you!', hold: () => `HELD by Dileptus: ${glyph('B')} trichocysts drive it off · ${glyph('A')} / ${glyph('X')} struggle`, eat: 'Dileptus engulfs you at the base of its trunk', follow: 'Engulfed: the Dileptus glides off with you inside', fadeOut: '', fadeIn: '' };
 CATCH.bladder = { by: 'A bladderwort trap', how: 'sucked you in, and its door shut behind you', strike: 'SUCKED toward the trap door!', hold: () => `Pulled through the door: ${glyph('B')} trichocysts to burst free`, eat: 'The door shuts: you are inside the bladder', follow: 'Inside the bladder: its glands begin to digest you', fadeOut: '', fadeIn: '' };
 const catchText = (k, phase) => { const v = CATCH[k][phase]; return typeof v === 'function' ? v() : v; };
 const roster = [];
@@ -577,7 +583,7 @@ function touchingThreat(s) {
   let best = null, bd = Infinity;
   for (const d of world.didinia) {
     if (!enc.opts.didinium || !d.tip) continue;
-    const dd = Math.min(d.tip.distanceTo(s.center) - HL * 0.6, d.pos.distanceTo(s.center) - 70 - BODY_R);
+    const dd = Math.min(d.tip.distanceTo(s.center) - HL * 0.6, d.pos.distanceTo(s.center) - (d.radius || 60) - 10 - BODY_R);
     if (dd < 55 && dd < bd) { bd = dd; best = d; }
   }
   if (amoeba.opts.on && (amoeba.cup > 0.02 || amoeba.edgeDist(s.center) < 40) && amoeba.edgeDist(s.center) < 90) best = best || amoeba;
@@ -586,22 +592,49 @@ function touchingThreat(s) {
 
 const who = (P) => (multi() ? `${P.name}: ` : '');
 /**
- * B, the defence: trichocysts fired at the hunter (the real defence against
- * Didinium) and a ciliary reversal that backs you off it while you keep facing
- * it. Facing a hunter at its strike, this blocks it. Held: breaks you free.
+ * B, the defence: the trichocysts fire from the patch facing the hunter and a
+ * ciliary reversal backs you off it. What that does depends on the hunter, as
+ * in life (combat-ideas.md, C14, C15):
+ *  - Dileptus: the threads drive it off. Fired while its trunk is at you (its
+ *    wind-up or strike, or once it holds you) it recoils and gives up; you
+ *    need not face it, the discharge goes off where you are touched.
+ *  - Didinium: the threads do not stop it (its pexicysts hold on). The jump
+ *    and the reversal still move you, which helps only before it touches you;
+ *    held, the threads change nothing. Keep away and dodge its lunge.
+ *  - the amoeba's cup and the bladderwort's inflow: the burst throws you out.
+ * With no hunter about, B is the avoidance reaction.
  */
 function defend(P) {
   const s = P.swimmer.state;
   if (s.mode === 'dead') return;
   P.blockT = 0.6;
-  const threat = s.mode === 'captured' ? s.captor : trap.awake && s.center.distanceTo(trap.door) < trap.pullR * 1.3 ? trap : nearHunter(P, 320);
+  // the most pressing threat: what holds you, a hunter at you, else the trap's inflow, else any hunter near
+  const h = nearHunter(P, 320);
+  const trapNear = trap.awake && s.center.distanceTo(trap.door) < trap.pullR * 1.3;
+  const threat = s.mode === 'captured' ? s.captor : h && (attacking(h) || !trapNear) ? h : trapNear ? trap : h;
   if (!threat) { if (P.swimmer.startAvoid(null, null)) audio.play('paramecium/reverse', { volume: 0.8 }); return; }
   fireTrichocysts(P, threat);
 }
+const isDidinium = (th) => th && th.kind === 'didinium';
+const isDileptus = (th) => th && th.kind === 'dileptus';
+/** What trichocysts did, for the tests: { t, slot, at, outcome }. */
+const trichoLog = [];
 function fireTrichocysts(P, threat) {
   const s = P.swimmer.state;
   const at = threat === amoeba ? new THREE.Vector3(amoeba.pos.x, s.center.y - 40, amoeba.pos.z) : threat === trap ? trap.door : threat ? threat.pos : null;
   const held = s.mode === 'captured';
+  if (held && isDidinium(threat)) {
+    // held by Didinium: the threads fire, and it holds on all the same
+    if (s.charges < 1) { hud.toast(`${who(P)}No trichocysts left: struggle with ${glyph('A')} or ${glyph('X')}!`); return; }
+    s.charges--; s.recharge = 0;
+    const away = new THREE.Vector3().subVectors(s.center, at).normalize();
+    const n = enc.discharge(s, away.clone().negate(), t, world.flowAt(s.center, t));
+    audio.play('paramecium/trichocysts', { volume: 1 });
+    P.pad.rumble(160, 0.5, 0.4);
+    trichoLog.push({ t, slot: P.slot, at: 'didinium', outcome: 'held on' });
+    hud.toast(`${who(P)}Trichocysts fired (${n} threads), but Didinium holds on: its pexicysts stick fast. Trichocysts can't stop Didinium: keep away from it next time`, 3600);
+    return;
+  }
   s.reverse = -1; // the ciliary reversal: you back off, still facing it
   const away = P.swimmer.burst(at);
   if (away) audio.play('paramecium/trichocysts', { volume: 1 });
@@ -612,9 +645,31 @@ function fireTrichocysts(P, threat) {
   }
   if (threat === trap) P.trapBurstAt = t; // a burst out of the trap's inflow: its pulse is wasted (a block)
   const n = enc.discharge(s, away.clone().negate(), t, world.flowAt(s.center, t));
-  if (held) { if (threat === amoeba) amoeba.recoil(); else if (threat) threat.stun = 3; if (threat && threat.hunger && threat.hunger.hungry) threat.hunger.missed(); }
   P.pad.rumble(240, 0.9, 1.0);
-  hud.toast(`${who(P)}Trichocysts fired (${n} threads)${held ? (threat === amoeba ? ': the amoeba recoils' : ': Didinium lets go and backs off') : ''}`);
+  if (isDileptus(threat)) {
+    // the threads hit its trunk: it recoils and gives up (held or not, if it was at you)
+    const close = held || threat.tip.distanceTo(s.center) < HL + 140 || threat.fightState === 'windup' || threat.fightState === 'strike';
+    if (close) {
+      threat.stun = 2.5;
+      threat.fight.bitten(); const gone = threat.fight.bitten();
+      if (threat.hunger.hungry) threat.hunger.missed();
+      trichoLog.push({ t, slot: P.slot, at: 'dileptus', outcome: 'repelled' });
+      hud.toast(`${who(P)}Trichocysts (${n} threads) hit Dileptus's trunk: it recoils${gone ? ' and gives up' : ''}`, 2400);
+    } else {
+      trichoLog.push({ t, slot: P.slot, at: 'dileptus', outcome: 'too far' });
+      hud.toast(`${who(P)}Trichocysts fired (${n} threads): too early, Dileptus's trunk isn't at you yet`, 2000);
+    }
+    return;
+  }
+  if (isDidinium(threat)) {
+    // before it touches you: the jump moves you, but it comes on regardless
+    trichoLog.push({ t, slot: P.slot, at: 'didinium', outcome: 'unmoved' });
+    hud.toast(`${who(P)}Trichocysts fired (${n} threads): Didinium comes on regardless. Dodge sideways (${glyph('A')})!`, 2400);
+    return;
+  }
+  if (held) { if (threat === amoeba) amoeba.recoil(); else if (threat) threat.stun = 3; if (threat && threat.hunger && threat.hunger.hungry) threat.hunger.missed(); }
+  trichoLog.push({ t, slot: P.slot, at: threat === amoeba ? 'amoeba' : threat === trap ? 'trap' : 'other', outcome: held ? 'freed' : 'fired' });
+  hud.toast(`${who(P)}Trichocysts fired (${n} threads)${held ? (threat === amoeba ? ': the amoeba recoils' : ': it lets go') : ''}`);
 }
 /** The hunter close to a player (for B and X), or null. */
 function nearHunter(P, within) {
@@ -639,11 +694,17 @@ function fightBack(P, th) {
   const at = hunterPoint(th, s);
   const to = new THREE.Vector3().subVectors(at, s.center).normalize();
   P.swimmer.dash(Math.atan2(-to.z, to.x));
-  enc.discharge(s, to, t, world.flowAt(s.center, t), 0.35);
+  if (!isDidinium(th)) enc.discharge(s, to, t, world.flowAt(s.center, t), 0.35);
   contactFx.puff(new THREE.Vector3().addVectors(s.center, at).multiplyScalar(0.5), to.clone().negate(), 0.8);
   audio.play('paramecium/trichocysts', { volume: 0.7, rate: 1.3 });
   P.pad.rumble(160, 0.7, 0.6);
-  const reach = th === amoeba ? amoeba.edgeDist(s.center) < 120 : at.distanceTo(s.center) < 260;
+  const reach = th === amoeba ? amoeba.edgeDist(s.center) < 120 : at.distanceTo(s.center) < (th.tipLen || 66) + 200;
+  if (reach && isDidinium(th)) {
+    // a ram staggers a Didinium for a moment, no more: it is avoided, not fought
+    th.stun = Math.max(th.stun || 0, 0.35);
+    hud.toast(`${who(P)}You ram Didinium: it barely notices. Keep away from it, dodge its lunge`, 1800);
+    return true;
+  }
   if (reach && th.fight) {
     const gone = th.fight.bitten();
     if (th === amoeba) amoeba.stun = Math.max(amoeba.stun, 0.8);
@@ -664,6 +725,9 @@ function doAttack(P) {
   const got = prey.near(updateGulpCentre(s), GULP_REACH).slice(0, 3);
   for (const it of got) prey.gulp(it, P.feedRef);
   P.pad.rumble(90, 0.35, 0.1);
+  // in the bloom: the gulp swallows a cone of Chlamydomonas ahead, clearing your way
+  const algae = bloom.on ? bloom.bite(gulpCentre, s.F, GULP_REACH * 1.6, { eat: true, angle: 0.95 }) : 0;
+  if (algae) { bloomLog.gulps.push({ t, slot: P.slot, n: algae }); P.cell.ingest(1, 8); if (!taught.has('bloomGulp')) { taught.add('bloomGulp'); hud.toast(`${who(P)}Gulped ${algae} Chlamydomonas: the way ahead clears. Push through, gulp (${glyph('X')}) or dash (${glyph('A')}) to open a lane`, 3200); } return; }
   if (!got.length) hud.toast(`${who(P)}Gulp! Nothing in reach: swim up to prey (green rings), level with it`);
 }
 
@@ -673,7 +737,11 @@ function doDash(P, ls) {
   if (!P.dash.ready) { if (P === P1) hud.toast('Dash recharging', 700); return; }
   let yaw = null;
   if (ls.m > 0.3) yaw = view.kind === 'scope' ? P.swimmer.stickYaw(ls, view.scopeYaw) : swimIntent(ls, view.camYaw + view.orbitYaw).yaw;
-  if (P.swimmer.dash(yaw)) { audio.play('paramecium/dash', { volume: 0.9 }); P.dash.trigger(); P.dashFx = 0.45; P.pad.rumble(180, 0.6, 0.9); }
+  if (P.swimmer.dash(yaw)) {
+    audio.play('paramecium/dash', { volume: 0.9 }); P.dash.trigger(); P.dashFx = 0.45; P.pad.rumble(180, 0.6, 0.9);
+    // in the bloom: the sprint wedges a lane open, flinging the cells ahead aside
+    if (bloom.on) { const f = new THREE.Vector3(Math.cos(s.yaw), 0, -Math.sin(s.yaw)); const n = bloom.bite(s.center, f, 150, { eat: false, angle: 0.7 }); if (n) bloomLog.wedges.push({ t, slot: P.slot, n }); }
+  }
 }
 
 /** A contact: show where it happened and what it was; never a silent stop. */
@@ -695,11 +763,11 @@ function onContact(P, c) {
 // The camera pulls back to watch the hunter swallow you whole, follows it as
 // it swims (or creeps) off with you inside, then fades; you respawn at a safe
 // spot (alone) or beside a teammate (together), and it fades back in.
-const catchKind = (th) => (th === amoeba ? 'amoeba' : th === trap ? 'bladder' : 'didinium');
+const catchKind = (th) => (th === amoeba ? 'amoeba' : th === trap ? 'bladder' : th.kind === 'dileptus' ? 'dileptus' : 'didinium');
 function startCapture(P, th) {
   if (!th || P.capture.active) return;
   const k = catchKind(th), C = P.cap;
-  C.th = th; C.credit = 0; C.phase = 'strike'; C.anim = null;
+  C.th = th; C.credit = 0; C.phase = 'strike'; C.anim = null; C.lastAt = P.swimmer.state.center.clone();
   P.eatenFor = 0;
   P.capture.start({ by: CATCH[k].by, how: CATCH[k].how });
   const s = P.swimmer.state;
@@ -773,6 +841,14 @@ function stepCapture(P, dt) {
       C.anim.quat.copy(C.fromQ);
       const k2 = 1 - 0.12 * sstep(0.5, 1, e);
       C.anim.scale.set(k2, k2, k2);
+    } else if (k === 'dileptus') {
+      // engulfed at the base of the trunk, then carried inside as it glides off
+      C.anim = C.anim || { pos: new THREE.Vector3(), quat: new THREE.Quaternion(), scale: new THREE.Vector3() };
+      const mouth = th.pos.clone().addScaledVector(th.dir, 20), inside = th.pos.clone().addScaledVector(th.dir, -50);
+      C.anim.pos.copy(C.from).lerp(mouth, sstep(0, 0.45, e)).lerp(inside, sstep(0.45, 1, e));
+      C.anim.quat.copy(C.fromQ);
+      const k2 = 1 - 0.3 * sstep(0.3, 1, e);
+      C.anim.scale.set(k2, k2 * 0.8, k2 * 0.8);
     } else C.anim = k === 'didinium' ? catchFx.eatDidinium(th, e, C.from, C.fromQ) : catchFx.eatAmoeba(e, C.from, C.fromQ);
     s.axis.copy(C.anim.pos); // the camera follows you (and so the hunter)
     return C.anim;
@@ -792,17 +868,18 @@ function respawnPlayer(P) {
   const s = P.swimmer.state;
   if (mates.length) { placeNear(P, mates[0]); hud.toast(`${P.name} is back, beside ${mates[0].name}`); }
   else {
-    // a safe spot: the candidate furthest from every hunter
+    // a safe spot on the route, a little behind where you were and never past
+    // halfway (the calm part): the candidate furthest from every hunter
+    const u0 = Math.max(200, Math.min(HALF - 250, progress(P.cap.lastAt || s.center) - 500));
     let best = null, bd = -1;
     for (let i = 0; i < 16; i++) {
-      const a = Math.random() * Math.PI * 2, r = 200 + Math.random() * 900;
-      const q = new THREE.Vector3(Math.cos(a) * r, 120 + Math.random() * (DEPTH - 240), Math.sin(a) * r);
+      const q = routePoint(u0 - Math.random() * 300, (Math.random() - 0.5) * 500, 120 + Math.random() * (DEPTH - 240));
       const d = Math.min(...world.didinia.map((h) => h.pos.distanceTo(q)), Math.hypot(q.x - amoeba.pos.x, q.z - amoeba.pos.z) - amoeba.R, q.distanceTo(trap.door) - trap.pullR * 1.5);
       if (d > bd) { bd = d; best = q; }
     }
     s.axis.copy(best);
     if (P === P1) { view.camAxis.copy(best); view.focusY = best.y; }
-    hud.toast('A new Paramecium swims into view, well away from the hunters', 2600);
+    hud.toast('A new Paramecium swims into view on the way to the biofilm, short of the hunters\' waters', 2600);
   }
   s.safeT = 3;
 }
@@ -816,17 +893,10 @@ function restartRound() {
   catchFx.reset();
   for (const P of roster) { P.cell.group.scale.set(1, 1, 1); if (P !== P1) { P.swimmer.respawn(); placeNear(P, P1); } }
   game.eaten = 0;
-  // the hunters start well away from you
-  const out = new THREE.Vector3(s.axis.x, 0, s.axis.z);
-  if (out.lengthSq() < 1) out.set(1, 0, 0);
-  out.normalize();
-  world.didinia.forEach((d, i) => {
-    const a = Math.atan2(out.z, out.x) + Math.PI + (i ? 0.9 : -0.9);
-    const r = Math.min(1250, Math.hypot(s.axis.x, s.axis.z) + 1000);
-    d.pos.set(Math.cos(a) * Math.min(r, 1300), d.pos.y, Math.sin(a) * Math.min(r, 1300));
-    d.stun = 0; d.sated = 0; d.speed = 0;
-  });
-  if (Math.hypot(amoeba.pos.x - s.axis.x, amoeba.pos.z - s.axis.z) < 800) amoeba.pos.set(-out.x * 900, 0, -out.z * 900);
+  // the hunters go back to their own waters (beyond halfway), the amoeba to its floor
+  world.didinia.forEach((d) => { d.pos.copy(d.home); d.stun = 0; d.sated = 0; d.speed = 0; d.fight.reset(); });
+  amoeba.pos.set(LANDMARKS.back.pos.x, 0, LANDMARKS.back.pos.z);
+  void s;
   amoeba.cup = 0; amoeba.sated = 0; amoeba.stun = 0; amoeba.wrap = 0;
   resetHunger();
   hud.toast('A new Paramecium swims into view. The hunters are calm for now', 2600);
@@ -839,7 +909,9 @@ function restartRound() {
 // two arms round you), then strikes. Facing it and pressing B at the strike
 // blocks it; X fights back; facing it wears it down too. Out of interest, it
 // swims (or creeps) off. An unblocked strike that reaches you is a catch.
-for (const d of world.didinia) d.fight = createFight({ windup: 0.95, strike: 0.32, recoverT: 1.0, repelT: 1.2, retreatT: 6 });
+for (const d of world.didinia) d.fight = d.kind === 'dileptus'
+  ? createFight({ windup: 1.1, strike: 0.36, recoverT: 1.2, repelT: 1.4, retreatT: 10 }) // a slow, sweeping slash
+  : createFight({ windup: 0.95, strike: 0.32, recoverT: 1.0, repelT: 1.2, retreatT: 6 });
 amoeba.fight = createFight({ windup: 1.4, strike: 0.5, recoverT: 1.6, repelT: 1.6, retreatT: 8, facingRate: 0.04 });
 amoeba.fightMode = true;
 enc.opts.fight = true;
@@ -850,30 +922,50 @@ function runFights(dt) {
     const isA = th === amoeba;
     if (isA ? !amoeba.opts.on : !enc.opts.didinium) { th.fightState = 'stalk'; continue; }
     const T = targetOf(th), s = T.swimmer.state;
-    const on = th.hungry && th.stun <= 0 && th.sated <= 0 && fightOn(T);
+    // placed, not timed: a ciliate hunts only in its own waters (beyond halfway), the amoeba only round its floor
+    const zone = isA ? nearAmoebaFloor(s) : inWaters(th, s);
+    const on = th.hungry && th.stun <= 0 && th.sated <= 0 && fightOn(T) && zone;
     const at = hunterPoint(th, s);
     const dist = isA ? Math.hypot(s.center.x - amoeba.pos.x, s.center.z - amoeba.pos.z) : th.pos.distanceTo(s.center);
     const low = isA ? s.center.y < amoeba.H * 2 + 150 : true;
     const near = on && (isA ? dist < 650 : dist < 480);
-    const inReach = on && (isA ? dist < amoeba.R + 330 && low : dist < 250);
-    const facing = facingOf(s, at) > 0.45;
-    const f = th.fight.update(dt, { near, inReach, facing, blocking: T.blockT > 0 });
+    const inReach = on && (isA ? dist < amoeba.R + 330 && low : dist < (th.tipLen || 66) + 184);
+    // facing it matters for a block, except against Dileptus: trichocysts fire where you are touched
+    const facing = isDileptus(th) ? T.blockT > 0 || facingOf(s, at) > 0.45 : facingOf(s, at) > 0.45;
+    // trichocysts never block Didinium (C15): only distance saves you from it
+    const blocking = !isDidinium(th) && T.blockT > 0;
+    if (near && !isA) hint(th, T);
+    const f = th.fight.update(dt, { near, inReach, facing, blocking });
     th.fightState = f.state; th.fightT = f.t;
     if (f.hit && on) {
       const hit = isA ? dist < amoeba.R + 290 && low : th.tip && segDist(th.tip, s) < 85;
       if (hit) {
         if (isA) amoeba.tip.set(amoeba.pos.x, amoeba.H, amoeba.pos.z);
         if (T.swimmer.capture(th)) startCapture(T, th);
-      } else if (T === P1 || multi()) hud.toast(`${who(T)}${th.label} strikes and misses`, 1200);
+      } else if (T === P1 || multi()) hud.toast(`${who(T)}${th.label} strikes and misses${isDidinium(th) ? ': you dodged it' : ''}`, 1200);
     }
     if (f.blocked) {
       contactFx.puff(isA ? s.center : th.tip || th.pos, new THREE.Vector3().subVectors(s.center, at).normalize(), 1);
-      if (isA) amoeba.recoil(); else th.stun = Math.max(th.stun || 0, 0.6);
+      if (isA) amoeba.recoil(); else th.stun = Math.max(th.stun || 0, isDileptus(th) ? 2.5 : 0.6);
       T.pad.rumble(220, 0.8, 0.7);
-      hud.toast(`${who(T)}Blocked! ${th.label} recoils`, 1600);
+      hud.toast(`${who(T)}${isDileptus(th) ? 'Trichocysts! Dileptus recoils from the threads' : `Blocked! ${th.label} recoils`}`, 1600);
     }
     if (f.retreated) { th.hunger.missed(); hud.toast(`${th.label} loses interest and ${isA ? 'creeps' : 'swims'} away`, 2200); }
   }
+}
+
+// --- one-time hints: the right defence for each hunter (combat-ideas.md idea 1) ---
+const HINTS = {
+  dileptus: () => `Dileptus: a long hunter that slashes with its trunk. Trichocysts drive it off: press ${glyph('B')} as its trunk swings at you`,
+  didinium: () => `Didinium: trichocysts can't stop it (its pexicysts hold on). Keep away: back off early with ${glyph('B')}, dodge its lunge sideways with ${glyph('A')}`,
+};
+const hinted = new Set();
+const hintLog = [];
+function hint(th, P) {
+  if (hinted.has(th.kind) || !HINTS[th.kind]) return;
+  hinted.add(th.kind);
+  hintLog.push({ kind: th.kind, t, slot: P.slot });
+  hud.toast(`${who(P)}${HINTS[th.kind]()}`, 6000);
 }
 
 // --- the boss: the bladderwort trap guarding the biofilm ---------------------------
@@ -894,7 +986,8 @@ gaugeEl.innerHTML = '<div class="nm"></div><div style="margin:3px auto 0;width:1
 document.body.appendChild(gaugeEl);
 const bossInfo = { log: [] };
 function runBoss(dt) {
-  const after = pacing.now - pacing.t0 > pacing.grace;
+  // placed, not timed: its door is beyond halfway, so whoever comes near it is there
+  const after = true;
   let nd = Infinity;
   for (const P of liveRoster()) { const s = P.swimmer.state; if (s.mode === 'dead') continue; nd = Math.min(nd, s.center.distanceTo(trap.door)); }
   if (!trap.awake && (after || bossInfo.force) && nd < trap.wakeR) {
@@ -946,7 +1039,7 @@ function runBoss(dt) {
   trap.fightT = f.t;
   trap.update(dt, trap.fight.state, f.t, t);
   // the resolve gauge: quiet, brass, only while someone is near
-  const show = nd < trap.wakeR * 1.3;
+  const show = trap.awake && nd < trap.wakeR * 1.3;
   gaugeEl.style.display = show ? 'block' : 'none';
   if (show) {
     gaugeEl.querySelector('.nm').textContent = trap.spent ? 'Bladderwort trap · spent' : `Bladderwort trap${trap.phase2 ? ' · straining' : ''}`;
@@ -964,7 +1057,8 @@ function targetOf(th) {
   for (const P of liveRoster()) {
     const s = P.swimmer.state;
     if (s.mode === 'dead' || s.mode === 'captured' || P.capture.active) continue;
-    const d = th === amoeba ? Math.hypot(s.center.x - at.x, s.center.z - at.z) : s.center.distanceTo(at);
+    let d = th === amoeba ? Math.hypot(s.center.x - at.x, s.center.z - at.z) : s.center.distanceTo(at);
+    if (th !== amoeba && !inWaters(th, s)) d += 1e6; // a player outside its waters is never its first choice
     if (d < bd) { bd = d; best = P; }
   }
   return best || P1;
@@ -1034,7 +1128,8 @@ function tick(dt, forced = false) {
       thrust: isP1 && debug.inspect ? 0.5 : live && !P.waiting ? Math.max(Math.min(1, Math.hypot(lsP.x, lsP.y)), I.rt, isP1 ? debug.thrust : 0) : isP1 ? debug.thrust : 0,
       hover: Math.max(live ? I.lt : 0, P.gulpT > 0 ? 1 : 0), steer: live ? lsP : isP1 ? debug.steer : NO_INPUT.ls, rise: live ? I.rise : 0,
       view: view.kind, camYaw: view.kind === 'scope' ? view.scopeYaw : view.camYaw + view.orbitYaw,
-      camPitch: swimLookPitch(view.orbitPitch), vmaxK: 1, // shade slows the dash recharge only, never your swimming
+      camPitch: swimLookPitch(view.orbitPitch), // shade slows the dash recharge only, never your swimming
+      vmaxK: bloom.on && bloom.inside(sP.center) ? 0.82 : 1, // pushing through the bloom costs a little speed, never more
       avoid: false, struggle: live && I.dashP && sP.mode === 'captured', // B is handled by defend()
     };
     const ev = {};
@@ -1044,14 +1139,27 @@ function tick(dt, forced = false) {
     P.blockT = Math.max(0, P.blockT - dt); P.fightFx = Math.max(0, P.fightFx - dt); P.fightCool = Math.max(0, P.fightCool - dt); P.eatFx = Math.max(0, P.eatFx - dt);
     if (live && (!locked || sP.mode === 'captured') && I.defendP) defend(P);
     P.swimmer.step(dt, t, inp, ev);
+    // the bloom's bioconvection: a mild sinking current in its plumes, gentle upwelling between
+    if (bloom.on && sP.mode !== 'dead' && sP.mode !== 'captured') {
+      const vy = bloom.currentAt(sP.center);
+      if (vy) {
+        sP.axis.y = Math.max(40, Math.min(DEPTH - 40, sP.axis.y + vy * dt));
+        // jostled by the cells you push: the heading wanders a little (the real cell reverses at every bump, S08; softened)
+        if (inp.thrust > 0.2 && sP.mode === 'swim') sP.yaw += Math.sin(t * 2.3 + P.slot * 1.7) * 0.18 * dt;
+        if (!bloomLog.entered.has(P.slot)) { bloomLog.entered.add(P.slot); bloomLog.enter.push({ t, slot: P.slot, u: Math.round(progress(sP.center)) }); if (!taught.has('bloom')) { taught.add('bloom'); hud.toast(`${who(P)}A Chlamydomonas bloom: swim to shove through, ${glyph('X')} to gulp a way, ${glyph('A')} to wedge a lane. Its plumes carry you down a little`, 4200); } }
+      }
+    }
     if (live && (!locked || sP.mode === 'captured') && I.attackP) doAttack(P);
     evs.set(P, ev);
   }
   game.sun = P1.sun; game.gulpT = P1.gulpT; game.dashFx = P1.dashFx;
+  if (bloom.on) bloom.update(dt, roster.map((P) => ({ position: P.swimmer.state.center, slot: P.slot, alive: !P.waiting && P.swimmer.state.mode !== 'dead' })));
   soundTick(dt);
   // hunger: each hunter's own clock; only a hungry one hunts
+  // the ciliates' clocks start once someone reaches halfway (the amoeba's runs from the start)
+  if (!pacing.reached && liveRoster().some((P) => progress(P.swimmer.state.center) >= HALF)) { pacing.reached = true; pacing.reachedAt = t - pacing.t0; }
   for (const th of hunters()) {
-    th.hunger.update(dt);
+    if (th === amoeba || pacing.reached) th.hunger.update(dt);
     th.hungry = isHungry(th.hunger);
   }
   if (pacing.firstHungry === null && hunters().some((th) => th.hungry)) pacing.firstHungry = t - pacing.t0;
@@ -1238,8 +1346,8 @@ function frame(now) {
     `prey ${game.eaten}/${GOAL} (round ${game.round}) · food vacuoles ${cell.foodCount} · bacteria ${game.bacteria}`,
     `${dash.text()} · trichocysts ${charges}${GREEN ? ` · light ${Math.round(P1.sun * 100)}% (${inLight(s.center) ? 'in the sun' : 'in shade'})` : ''}`,
     near ? `${near.label} ${Math.round(near.d)} µm away (${near.state})` : 'no hunter near',
-    `hunger: ${world.didinia.map((d, i) => `Didinium ${i + 1} ${enc.opts.didinium ? hungerText(d.hunger) : 'off'}`).join(' · ')} · amoeba ${amoeba.opts.on ? hungerText(amoeba.hunger) : 'off'}`,
-    `biofilm ${Math.round(flatDist(s, FWD))} µm · amoeba's floor ${Math.round(flatDist(s, BACK))} µm`,
+    `hunger: ${world.didinia.map((d, i) => `${d.label}${d.kind === 'didinium' ? ` ${i + 1}` : ''} ${enc.opts.didinium ? (pacing.reached ? hungerText(d.hunger) : 'in its waters') : 'off'}`).join(' · ')} · amoeba ${amoeba.opts.on ? hungerText(amoeba.hunger) : 'off'}`,
+    `biofilm ${Math.round(flatDist(s, FWD))} µm (${Math.round(Math.max(0, progress(s.center)) / ROUTE_LEN * 100)}% of the way${progress(s.center) < HALF ? ', calm waters' : ''}) · amoeba's floor ${Math.round(flatDist(s, BACK))} µm`,
     multi() ? `players ${roster.length} · views ${L.views.length}${L.merged ? ' (together)' : ''}` : '',
     `${Math.round(renderFps)} fps · render scale ${quality.scale.toFixed(2)} × pixel ratio ${quality.pixelRatio.toFixed(2)} · effects ${['low', 'medium', 'high'][qLevel]}${quality.auto ? ' (auto)' : ''}`,
   ].filter((l) => l).join('\n'));
@@ -1341,12 +1449,16 @@ function updateGoal(s) {
     let w = '';
     if (P.capture.active && C.th && C.phase !== 'eaten') w = catchText(catchKind(C.th), C.phase);
     else if (P.capture.active) w = '';
-    else if (sP.mode === 'captured') w = sP.captor === amoeba ? `ENGULFED: ${glyph('X')} trichocysts · ${glyph('A')} struggle` : `HELD by Didinium: ${glyph('X')} trichocysts · ${glyph('A')} struggle`;
+    else if (sP.mode === 'captured') w = sP.captor === amoeba ? `ENGULFED: ${glyph('B')} trichocysts · ${glyph('A')} struggle` : isDileptus(sP.captor) ? `HELD by Dileptus: ${glyph('B')} trichocysts drive it off` : `HELD by Didinium: trichocysts can't free you · ${glyph('A')} struggle`;
     else {
       const a = threats().find((th) => attacking(th) && (th === amoeba ? amoeba.target === P.swimmer : th.target === P.swimmer));
       const h = threats().find((th) => hunting(th) && th !== amoeba && th.target === P.swimmer);
       if (a === amoeba) w = `The amoeba's arms rise round you: face it and ${glyph('B')} to block, ${glyph('X')} to fight back, or dash out (${glyph('A')})`;
+      else if (a && isDidinium(a)) w = `Didinium is ${a.fightState === 'strike' ? 'LUNGING' : 'winding up'}: trichocysts won't stop it, dodge sideways (${glyph('A')})!`;
+      else if (a && isDileptus(a)) w = `Dileptus's trunk ${a.fightState === 'strike' ? 'SLASHES' : 'swings at you'}: ${glyph('B')} fires trichocysts, which drive it off`;
       else if (a) w = `${a.label} is ${a.fightState === 'strike' ? 'STRIKING' : 'winding up to strike'}: face it and ${glyph('B')} to block · ${glyph('X')} to fight back`;
+      else if (h && isDidinium(h)) w = `Didinium is hunting you: keep away, back off (${glyph('B')}) early, dash sideways (${glyph('A')}) as it lunges`;
+      else if (h && isDileptus(h)) w = `Dileptus is hunting you: wait for its trunk, then ${glyph('B')} (trichocysts drive it off)`;
       else if (h) w = `${h.label} is hunting you: face it (${glyph('X')} fights back) or dash sideways (${glyph('A')})`;
       else { const r = threats().find((th) => th.fightState === 'retreat' && th.target === P.swimmer); if (r) w = ''; }
     }
@@ -1593,6 +1705,17 @@ window.__micro = {
   /** Each hunter's fight: state, progress, interest, what it is doing. */
   boss: () => ({ awake: trap.awake, state: trap.fight.state, t: +(trap.fightT || 0).toFixed(2), interest: +trap.fight.interest.toFixed(2), phase2: trap.phase2, door: trap.door.toArray(), log: bossInfo.log }),
   trap,
+  bloom,
+  /** The route and where each challenge begins (µm along it from the start; all at or beyond halfway). */
+  route: () => ({ len: ROUTE_LEN, half: HALF, reached: pacing.reached, reachedAt: pacing.reachedAt,
+    players: roster.map((P) => ({ slot: P.slot, u: Math.round(progress(P.swimmer.state.center)), side: Math.round(lateral(P.swimmer.state.center)) })) }),
+  challenges: () => [
+    ...world.didinia.map((d, i) => ({ name: `${d.label}${d.kind === 'didinium' ? ` ${i + 1}` : ''}`, kind: d.kind, start: Math.round(Math.max(HALF, progress(d.home) - d.homeR - 520)), home: Math.round(progress(d.home)) })),
+    { name: 'Bladderwort trap', kind: 'boss', start: Math.round(progress(trap.door) - trap.wakeR), home: Math.round(progress(trap.centre)) },
+    { name: 'Chlamydomonas bloom', kind: 'crowd', start: BLOOM.centre - BLOOM.half, home: BLOOM.centre },
+  ].map((c) => ({ ...c, frac: +(c.start / ROUTE_LEN).toFixed(3) })),
+  trichoLog, hintLog, bloomLog: () => ({ enter: bloomLog.enter, gulps: bloomLog.gulps, wedges: bloomLog.wedges, alive: bloom.alive }),
+  quality,
   fights: () => hunters().map((th) => ({ name: th.label, state: th.fightState, t: +(th.fightT || 0).toFixed(2), interest: +th.fight.interest.toFixed(2), doing: th === amoeba ? amoeba.state : th.state })),
   roster: () => roster.map((P) => { const s = P.swimmer.state; return { slot: P.slot, x: s.center.x, y: s.center.y, z: s.center.z, mode: s.mode, capture: P.capture.active ? P.cap.phase : null, waiting: P.waiting }; }),
 };

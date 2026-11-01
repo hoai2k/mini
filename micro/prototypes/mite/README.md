@@ -11,11 +11,30 @@ back.
 
 Open `micro/prototypes/mite/` (the invite gate is off on localhost).
 
-The walkable patch is a bounded 4 × 4 mm square (`world.js`, `HALF = 2000`),
-with the body kept slightly inside its edges by the walker. The rendered
-floor extends to 8.4 × 8.4 mm to fill the camera view, so it looks like open
-ground beyond the movement limit. Walking up from the initial view reaches
-that invisible boundary within several seconds; it is not a terrain collider.
+The walkable patch is a bounded 9 × 9 mm square round the route
+(`layout.js` `BOUNDS`), with the body kept slightly inside its edges by the
+walker. The rendered floor extends 2.2 mm beyond it on every side to fill the
+camera view, so it looks like open ground beyond the movement limit; the
+limit is not a terrain collider.
+
+## The way on (`layout.js`)
+
+One route runs from the start (the origin) to the wet leaf axil, up and to
+the right in the opening view, 7.3 mm long (~17 s of straight walking). The
+first half is calm exploration and food; every challenge lies at or beyond
+halfway, in sequence (distance along the route):
+
+| s (mm) | What |
+| --- | --- |
+| 0–3.65 | Open moss: grazing (extra spores and hyphal tips in this half), the second box mite, no threats |
+| 3.97 | The predatory mite's hunting ground begins (it lurks at the thicket's edge and inside it) |
+| 4.25–5.85 | The hyphal thicket full of springtails (the crowd) |
+| ~5.95 | The pseudoscorpion wakes (its post at 6.7 mm, beside the way in) |
+| 7.3 | The water film in the leaf axil |
+
+A scripted walk along the route logs where each starts (`__micro.challenges`):
+predator ground 3978 µm (54.5 %), crowd 4260 µm (58.4 %), the predator's
+first hunt 4650 µm (63.7 %), the boss waking 5965 µm (81.7 %).
 
 ## Controls (Xbox controller; keyboard in brackets)
 
@@ -50,7 +69,7 @@ Both are built into the moss (`landmarks.js`) and drawn by the SEM like
 everything else.
 
 - **Forward: the wet leaf axil** (design §1.6), up and right in the start
-  view, ~1.8 mm off (`FORWARD`, toward −x, +z). A moss stem 1.5 mm tall with
+  view, 7.3 mm off at the end of the route (`FORWARD`, toward −x, +z). A moss stem 1.5 mm tall with
   its lowest leaf arching out and down to the floor; in the angle between them
   a smooth lens of water, and lying in it a tardigrade tun, a wrinkled barrel
   ~0.2 mm long that swells a little as a mite comes near (rehydration). Any
@@ -66,7 +85,8 @@ everything else.
   closes up, and a mite held by the predator can still close up there.
 - **Landmark sun** (`shared/landmark.js`): a brass sun shows the water's
   bearing near the edge of each view. Orbiting changes its screen direction.
-- The predatory mite now starts to the side of the way on (`PRED_START`).
+- The predatory mite starts in its hunting ground, to the side of the way on
+  (`PRED_START` in `layout.js`).
 
 ## Multiplayer
 
@@ -119,12 +139,19 @@ Shared fight rules (`shared/predation.js`, `createFight`); the mite uses Y for d
 ## The boss: a pseudoscorpion
 
 `boss.js`; `micro/design/bosses.md`. *Neobisium*-like, ~2.5 mm (seven box
-mites), lying in wait before the wet leaf axil (between the start and the
-water), **dormant** until a player comes within 1.25 mm after the calm
-opening. Built from anatomy (MP-R15 is requested, not delivered): carapace
-with eye spots, a flattened ringed abdomen (no tail), eight legs, long
-pedipalps with chelae (hand, fixed finger, movable finger with the venom
-tooth), long tactile setae.
+mites), lying in wait before the wet leaf axil, the last challenge on the
+route, **dormant** until a player comes within 0.9 mm of its post (placement
+paces it: no timer). Built from anatomy and compared side by side with the
+delivered sheet (`../assets/reference-sheets/boss-pseudoscorpion.webp`): a
+narrow carapace tapering to the chelicerae, with eye spots; behind it a much
+broader smooth ovoid abdomen (widest two-thirds back, rounded at the end)
+ringed by eleven tergite furrows (one shaped mesh, not stacked plates); long
+pedipalps with a clubbed patella and big swollen chela hands; long fingers
+that curve in toward each other (the fixed one and the movable one with the
+venom tooth); slender walking legs; long tactile setae. The SEM readability
+fixes are kept: the chelae, palps and legs carry the stronger edge glow, and
+the tell lifts the open chelae high. The sheet's colours (a dark abdomen,
+red-brown chelae) have no SEM equivalent: the SEM shows shape only.
 
 - **Tell:** the pincers held **open and dead still** (0.9 s; 0.7 s before a
   sweep). Then one of three attacks: a **snap** straight ahead, a **sweep**
@@ -260,9 +287,13 @@ The predator stays at ~0.8 mm, more than twice your length; the springtail
 
 The predatory mite follows the shared pacing in `shared/predation.js`:
 
-- **A calm opening.** It starts ~1.3 mm away and for the first 45 s (and
-  again after every restart) it only wanders: even bumping into you, it
-  ignores you.
+- **Its hunting ground.** It lurks at the thicket's edge and inside it
+  (`PRED_ZONE`, past halfway: 3.97–5.15 mm along the route), notices and hunts
+  prey only there (plus a short chase out of it) and goes back after a
+  retreat. While it is not after you it feeds on the springtails (S38: gamasids
+  favour springtails).
+- **A calm opening.** For the first 45 s (and again after every restart) it
+  only wanders; entering its ground ends the calm at once.
 - **Hunger comes and goes.** Then it is hungry for ~18–32 s at a time and
   rests in between: 45–75 s after eating you, 15–30 s after you slip free,
   lose it, or it gives up on your closed capsule. Hungry, it wanders toward
@@ -360,8 +391,12 @@ A deferred two-pass SEM model. The beam comes from the camera, so the
   working distance is never reached). Hyphae and spores are no longer cut
   (too thin to hide anything). The cylinder remains for geometry without
   ids.
-- **Dynamic resolution** and GPU fence pacing: frames are never queued while
-  the GPU is behind, and resolution drops while frames are slow.
+- **The quality governor** (`../shared/quality.js`) and GPU fence pacing:
+  frames are never queued while the GPU is behind; the governor steps the
+  render scale down when frames run long and back up with headroom (pixel
+  ratio min(DPR, 1.25) alone, 1.0 when split, times 0.7 / 0.55 for two /
+  three or more views); at its cheapest effects level the detector-shadow
+  march is skipped. `?q=high|medium|low` fixes it; `?f=-quality` turns it off.
 
 Budget at the default view: about 27 draw calls and 330k triangles. Pixel
 ratio is capped at 1.5.
@@ -379,22 +414,60 @@ pits) works through the same path.
 
 ## World (`world.js`)
 
-The world is a 4 × 4 mm walkable square of humus floor (an analytic height
+The world is a 9 × 9 mm walkable square of humus floor (an analytic height
 field, so feet and probes query it exactly), holding:
 
-- about 150 angular mineral grains, 20–300 µm;
+- about 500 angular mineral grains, 20–300 µm;
 - curled litter flakes;
-- ten moss shoots with lanceolate leaves on a 137.5° spiral, each leaf with a
+- 24 moss shoots with lanceolate leaves on a 137.5° spiral, each leaf with a
   costa, a channelled blade, a serrate apex, real thickness (12 µm) and
-  cell relief;
+  cell relief (the ten old ones round the start, the rest scattered);
 - 3–5 µm fungal hyphae strung between surfaces, with branches (their tips
-  are food);
-- fungal conidia, echinate (aster-type) pollen and bisaccate conifer pollen.
+  are food; more of them, and more spores, in the calm first half);
+- fungal conidia, echinate (aster-type) pollen and bisaccate conifer pollen;
+- the hyphal thicket (`THICKET`): fifty conidiophores (upright fungal stalks,
+  120–270 µm, a spore head on top, food) with ~70 threads strung between
+  them at a mite's body height.
 
-Walking queries go to low-poly colliders, prefiltered by bounding spheres.
+Render geometry is merged per material and per 1.5 mm chunk (the floor in
+8 × 8 tiles), so a view draws only the chunks it sees.
+
+Walking queries go to low-poly colliders. A broadphase hash (0.5 mm cells by
+each collider's footprint) finds the colliders near a ray, and every big
+static mesh (the giant springtail, stems, flakes, large grains) has a uniform
+grid of its triangles walked cell by cell along the ray; moving blades are
+small and tested whole. The analytic floor is marched in steps as long as
+its slopes allow. Hits come from a ring of reused objects (no allocation per
+cast). 3000 random rays matched three.js's raycaster exactly.
 Floor, grains, flakes and stems are rigid; every moss leaf is a `blade`
 collider that bends with its leaf (the lowest leaves, which rest on the floor
 as ramps, are 3× stiffer and give little).
+
+## The crowd: the hyphal thicket (`thicket.js`)
+
+The set piece of `micro/design/combat-ideas.md`: pushing and biting through a
+crowd. The owner: moving and attacking clear the way without much
+difficulty, and nothing is timed.
+
+- **Springtails** (`../shared/crowd.js`): 120 small soil springtails
+  (~190 µm, Isotomidae-like: a ringed body, head, four-segment antennae, six
+  legs, the folded furcula; one SEM-drawn instanced mesh) drift and jostle in
+  the thicket. They part round a mite walking into them; they never attack.
+  Closed up (Y), they flow round the capsule.
+- **Threads**: every thread across your body drags (with the springtails
+  pressing on you, at worst half speed; the scramble halves the drag).
+- **Bite (X)** in the thicket grazes away up to three threads in front (real
+  oribatid feeding; they regrow after ~40 s once nobody is near) and shoves
+  the springtails in front aside (a box mite does not eat springtails). The
+  conidiophores' spore heads are food too.
+- **The predator lurks here** (its hunting ground overlaps the thicket's
+  near half) and eats a springtail in front of its chelicerae every few
+  seconds while it is not after you.
+- A scripted push measured 0.69 of walking speed among 4 threads and 3
+  springtails, back to full after two bites, and ~270 µm/s average through
+  1.4 mm of thicket walking and biting (~400 µm/s with a lane already bitten).
+- Test hooks: `bite(slot)`, `drag(slot)`, `thicket` (its `log`: threads
+  cleared, springtails shoved, eaten by the predator), `challenges`, `plan`.
 
 ## Features
 
@@ -413,7 +486,7 @@ live and persist per browser.
 | Rendering | Shot noise | on |
 | Rendering | Scan-line jitter | on |
 | Rendering | Observer mode | off (LS click) |
-| Rendering | Dynamic resolution | on |
+| Rendering | Quality governor (auto), Manual quality (`shared/quality.js`) | on |
 | Optics | Infinite depth of field | always |
 | Optics | Narrow scan field, true magnification | always |
 | Optics | Cutaway in front of the mite | on |

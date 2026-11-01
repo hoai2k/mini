@@ -43,6 +43,7 @@ uniform vec4 uOrgA[12]; uniform vec4 uOrgB[12]; uniform int uOrgN;
 uniform vec4 uTips[5];
 uniform vec3 uUroid; uniform float uFlat, uTime, uDrain;
 uniform vec4 uTint; // local multiplayer: the player's colour as a faint optical density (rgb), strength (a)
+uniform vec4 uLook; // x: extra olive endoplasm (Chaos), y: clear rim width scale, z: granular texture contrast
 varying vec2 vW;
 void main() {
   float m = dot(texture2D(uMask, gl_FragCoord.xy / uRes), uChan);
@@ -53,7 +54,7 @@ void main() {
   float h = sqrt(clamp(d / 46., 0., 1.));
   h = max(h, 0.11) * uFlat;
   // Ectoplasm: a clear gel rim; the hyaline cap at each advancing tip.
-  float endo = smoothstep(3., 15., d);
+  float endo = smoothstep(3. * uLook.y, 15. * uLook.y, d);
   for (int i = 0; i < 5; i++) {
     vec4 t = uTips[i];
     float cap = t.z * (1. - smoothstep(8., 36., distance(vW, t.xy)));
@@ -93,8 +94,10 @@ void main() {
   vec3 cod = -log(clamp(c / uCytoMean, 0.08, 4.));
   // Drained by a fungus: the cytoplasm darkens and turns brown as it is sucked out.
   float e2 = endo * clear;
-  od += e2 * (vec3(0.1, 0.1, 0.15) + h * vec3(0.5, 0.5, 0.66) + cod * 0.4);
-  phase += e2 * (0.08 + dot(cod, vec3(0.08)));
+  od += e2 * (vec3(0.1, 0.1, 0.15) + h * vec3(0.5, 0.5, 0.66) + cod * 0.4 * uLook.z);
+  phase += e2 * (0.08 + dot(cod, vec3(0.08)) * uLook.z);
+  // Chaos: denser, olive-golden endoplasm (absorbs blue most), mottled.
+  od += uLook.x * e2 * vec3(0.07, 0.1, 0.3) * (0.75 + 0.5 * fbm(vW * 0.035));
   // The uroid: the crumpled rear, denser and darker.
   float u = 1. - smoothstep(0., uUroid.z, distance(vW, uUroid.xy));
   od += u * endo * vec3(0.11, 0.12, 0.16) * (0.6 + 0.8 * fbm(vW * 0.08));

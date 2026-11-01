@@ -19,7 +19,7 @@
 // sits at or beyond halfway; the CRISPR boss is inside the host. world.placements()
 // lists each one's fraction of the route.
 import * as THREE from '../shared/vendor/three.module.min.js';
-import { toonMaterial, inked, inkedInstanced, blobGeometry } from '../shared/techniques/phage-goodsell.js';
+import { toonMaterial, inked, inkedInstanced, blobGeometry, lumpyGeometry } from '../shared/techniques/phage-goodsell.js';
 
 export const BOUNDS = { x0: -420, x1: 1120, y0: -330, y1: 680, z0: -34, z1: 34 };
 /** The start (clear water, lower left) and the destination (Host A's home, upper right). */
@@ -95,7 +95,7 @@ export function createWorld(scene) {
     // false light: a teal-blue, translucent, wet and lumpy envelope; the Gram-positive decoy duller and greener
     const mat = toonMaterial({ color: def.color, wobble: 1.2, wobbleFreq: 0.05, map: envTex, mapRepeat: [6, 3], mottle: 0.2,
       fl: def.wrong ? { color: '#3f6f62', color2: '#7a8a52', keep: 0, trans: 0.7, bump: 1.2, spec: 0.5, scale: 0.05 }
-        : { color: '#1d7187', color2: '#2a4d9a', keep: 0, trans: 0.95, bump: 1.7, spec: 0.9, scale: 0.045 } });
+        : { color: '#24889a', color2: '#2f5aa8', keep: 0, trans: 0.95, bump: 1.7, spec: 0.9, scale: 0.045 } });
     const geo = new THREE.CapsuleGeometry(def.r, def.half * 2, 10, 32);
     geo.rotateZ(Math.PI / 2);
     const body = inked(geo, mat, { width: 1.3 });
@@ -338,6 +338,7 @@ export function createWorld(scene) {
   for (const T of TYPES) {
     const mesh = inkedInstanced(T.geo, toonMaterial({ vertexColors: true, mottle: 0.12, fl: T.fl }), T.n, { width: 0.6 });
     mesh.userData.crowd = true; // its ink is the first to go at low quality
+    T.geoGoodsell = T.geo; T.geoFL = lumpyGeometry(T.geo.userData.parts, T.n > 150 ? 3 : 6);
     scene.add(mesh);
     T.mesh = mesh;
     T.items = Array.from({ length: T.n }, () => ({
@@ -350,13 +351,14 @@ export function createWorld(scene) {
 
   // --- false light only: far cells in the haze (one instanced draw) and fine suspended motes (one draw) ---
   const farGeo = new THREE.CapsuleGeometry(36, 110, 6, 18); farGeo.rotateZ(Math.PI / 2);
-  const farMat = toonMaterial({ color: '#ffffff', fl: { color: '#1d6a82', color2: '#2d4f98', keep: 0, trans: 1, spec: 0.5, scale: 0.03 } });
+  // ghostly translucent shells far back in the haze (and softened by the DOF)
+  const farMat = toonMaterial({ color: '#ffffff', opacity: 0.5, fl: { color: '#2a8296', color2: '#3a64aa', keep: 0, trans: 1, spec: 0.3, scale: 0.03 } });
   const FAR = 16;
   const far = new THREE.InstancedMesh(farGeo, farMat, FAR);
   for (let i = 0; i < FAR; i++) {
     const x = BOUNDS.x0 - 200 + (i / (FAR - 1)) * (BOUNDS.x1 - BOUNDS.x0 + 400) + rand(-60, 60);
     const y = rand(BOUNDS.y0 - 150, BOUNDS.y1 + 50) * 0.7 + (x - START.x) * 0.25;
-    _m.compose(_p.set(x, y, rand(-650, -260)), _q.setFromAxisAngle(Z, rand(-1.2, 1.2)).multiply(new THREE.Quaternion().setFromAxisAngle(UP, rand(-0.6, 0.6))), _s.setScalar(rand(0.8, 1.4)));
+    _m.compose(_p.set(x, y, rand(-900, -480)), _q.setFromAxisAngle(Z, rand(-1.2, 1.2)).multiply(new THREE.Quaternion().setFromAxisAngle(UP, rand(-0.6, 0.6))), _s.setScalar(rand(0.8, 1.4)));
     far.setMatrixAt(i, _m);
   }
   far.frustumCulled = false;
@@ -385,7 +387,11 @@ export function createWorld(scene) {
   scene.add(motes);
   world.far = far; world.motes = motes;
   /** Switch the world's false-light extras on or off (with the look). */
-  world.setStyle = (falseLight) => { far.visible = motes.visible = falseLight; };
+  world.setStyle = (falseLight) => {
+    far.visible = motes.visible = falseLight; world.crowdScale = falseLight ? 0.62 : 1;
+    for (const T of TYPES) T.mesh.geometry = falseLight ? T.geoFL : T.geoGoodsell; // bead-flowers in false light
+  };
+  world.crowdScale = 1;
   /** Where each challenge sits along the route (0 start .. 1 Host A), for the placement log. */
   world.placements = () => {
     const row = (name, p, r = 0) => ({ name, t: +routeProgress(p).toFixed(2), off: +routeOffset(p).toFixed(0), r });
@@ -468,7 +474,7 @@ export function createWorld(scene) {
         if (it.p.z > zTop) it.p.z = Z0 + 2; else if (it.p.z < Z0) it.p.z = zTop - 2;
         _q.setFromAxisAngle(_s.copy(it.w).normalize(), it.w.length() * dt);
         it.q.multiply(_q);
-        _m.compose(it.p, it.q, _s.setScalar(it.s));
+        _m.compose(it.p, it.q, _s.setScalar(it.s * world.crowdScale));
         mesh.setMatrixAt(i, _m);
       }
       mesh.instanceMatrix.needsUpdate = true;

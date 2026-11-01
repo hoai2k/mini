@@ -4,7 +4,7 @@
 // end; the strand behind it follows like a rope in a crowded room.
 // Units here: 1 = 1 nm (ten times closer than outside).
 import * as THREE from '../shared/vendor/three.module.min.js';
-import { toonMaterial, inked, inkedInstanced, blobGeometry, goodsellShared } from '../shared/techniques/phage-goodsell.js';
+import { toonMaterial, inked, inkedInstanced, blobGeometry, lumpyGeometry, goodsellShared } from '../shared/techniques/phage-goodsell.js';
 import { createFight } from '../shared/predation.js';
 
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -97,6 +97,7 @@ export function createInside() {
   for (const T of types) {
     T.mesh = inkedInstanced(T.geo, toonMaterial({ vertexColors: true, fl: T.fl }), T.n, { width: 0.6 });
     T.mesh.userData.crowd = true;
+    T.geoGoodsell = T.geo; T.geoFL = lumpyGeometry(T.geo.userData.parts, T.s[0] > 6 ? 9 : 6);
     scene.add(T.mesh);
     T.items = Array.from({ length: T.n }, () => ({ p: new THREE.Vector3(rand(AREA.x0 - 60, AREA.x1 + 60), rand(AREA.y0 - 20, AREA.y1), T.s[0] > 6 ? rand(-75, -24) : rand(-60, 4)), v: new THREE.Vector3(), q: new THREE.Quaternion().random(), s: rand(...T.s) }));
   }
@@ -237,6 +238,8 @@ export function createInside() {
 
   const api = {
     scene, camera, S, enzymes, bossLock,
+    /** The look: lumpy bead-flower molecules and a softer membrane plate in false light. */
+    setStyle(fl) { for (const T of types) T.mesh.geometry = fl ? T.geoFL : T.geoGoodsell; },
     /** The envelope section art (MP-V03), or null for the procedural stand-in. */
     setSection(tex) {
       // the delivered plate runs from water through the envelope into cytoplasm: show its envelope rows (12-70 % down)

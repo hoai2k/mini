@@ -127,13 +127,14 @@ export function createDrawer(world) {
     // the biofilm and sediment surface
     // centred on x = 0 (its wavy top edge is in local x, matching world.js surfaceY), wide enough for the whole level
     S.slab(0, WORLD.slabY, 2 * Math.max(-WORLD.x0, WORLD.x1) + 40, 70, W.slab.amp, W.slab.seed, { dn: 0.014, scat: 0.04, fl: [0.06 * chan.memb, 0, 0.0], ab: [0.012, 0.015, 0.024], z: -0.2, hk: 3 });
-    for (const e of W.eps) S.strand(e.x, e.y, e.a, e.L, 0.14, e.amp, e.wl, { dn: 0.012, scat: 0.15, centred: true, fl: [0.35 * chan.memb, 0, 0.04], z: e.z, phase: e.ph });
+    for (const e of W.eps) if (S.inView(e.x, e.y, e.L + e.amp + 3)) S.strand(e.x, e.y, e.a, e.L, 0.14, e.amp, e.wl, { dn: 0.012, scat: 0.15, centred: true, fl: [0.35 * chan.memb, 0, 0.04], z: e.z, phase: e.ph });
     for (const c of W.film) {
+      if (!S.inView(c.x, c.y, 5)) continue;
       if (c.kind === 'coccus') S.disc(c.x, c.y, c.r, { ...cell(), z: c.z });
       else rodCell(S, c, t);
     }
     for (const g of W.grains) S.disc(g.x, g.y, g.r, { wobble: g.wob, seed: g.seed, cap: g.cap, ang: g.ang, dn: 0.2, scat: 0.35, fl: [0.006, 0.01, 0.0], ab: [0.05, 0.065, 0.09], z: g.z });
-    for (const p of W.specks) S.disc(p.x, p.y, p.r, { wobble: 0.2, seed: p.seed, dn: 0.2, scat: 0.5, fl: [0.01, 0.015, 0], ab: [0.06, 0.08, 0.11], z: p.z });
+    for (const p of W.specks) if (S.inView(p.x, p.y, 3.5)) S.disc(p.x, p.y, p.r, { wobble: 0.2, seed: p.seed, dn: 0.2, scat: 0.5, fl: [0.01, 0.015, 0], ab: [0.06, 0.08, 0.11], z: p.z });
     for (const p of W.patches) {
       // a flake of decaying detritus at the patch's heart (the dissolved food itself is invisible)
       S.disc(p.x, p.y, p.flake.r * (0.6 + 0.4 * Math.min(1, p.amt)), { wobble: 0.35, seed: p.flake.seed, ang: p.flake.a, cap: 1.2, dn: 0.05, scat: 0.3, fl: [0.12, 0.14, 0.02], ab: [0.12, 0.16, 0.24], z: 0.3 });
@@ -141,7 +142,7 @@ export function createDrawer(world) {
     if (W.opts.grazers) for (const g of W.grazers) grazer(S, g, t);
     if (W.opts.amoeba) amoeba(S, W.amoeba, t);
     for (const c of W.cells) {
-      if (c.hidden > 0) continue;
+      if (c.hidden > 0 || !S.inView(c.x, c.y, 12)) continue;
       if (c.kind === 'rod') { rodCell(S, c, t); peritrichous(S, c, t); }
       else if (c.kind === 'coccus') S.disc(c.x, c.y, c.r, { ...cell(), z: c.z });
       else if (c.kind === 'chain') {
@@ -159,12 +160,13 @@ export function createDrawer(world) {
         if (c.windup > 0) S.disc(c.x + Math.cos(c.a) * c.L * 0.5, c.y + Math.sin(c.a) * c.L * 0.5, 0.12 + 0.12 * c.windup, { dn: 0.12, scat: 2.5, fl: [0.4 * chan.memb, 20 * chan.flag * c.windup, 0], z: c.z, hk: 0.5 });
       }
     }
-    if (W.opts.phages) for (const p of W.phages) if (!p.anim && !p.homing) S.disc(p.x, p.y, 0.03, { dn: 0.15, scat: 18, fl: [0, PHAGE * chan.phage, 0], z: p.stuck ? 0 : p.z, hk: 1 });
+    if (W.opts.phages) for (const p of W.phages) if (!p.anim && !p.homing && S.inView(p.x, p.y, 3.1)) S.disc(p.x, p.y, 0.03, { dn: 0.15, scat: 18, fl: [0, PHAGE * chan.phage, 0], z: p.stuck ? 0 : p.z, hk: 1 });
     // a phage homing in on a player (main.js): drawn 3× and denser so it reads in every look (a labelled
     // stretch, as in the catch); its long tail fibres splay as they catch the wall (the wind-up)
     if (W.opts.phages) for (const p of W.phages) if (p.homing) homingPhage(S, p, t);
     if (W.landmarks) landmarks(S, t, W.landmarks);
     if (W.stentor) stentor(S, t, W.stentor);
+    if (W.coll && W.coll.opts.on) kin(S, t, W.coll);
     // one player or a list of them (local multiplayer: every cell is drawn alike; main.js marks each in its colour)
     for (const p of Array.isArray(player) ? player : [player]) drawPlayer(S, t, p);
   }
@@ -186,34 +188,51 @@ export function createDrawer(world) {
   // Partly off-frame: the rim of its oral disc with the membranelle band
   // beating round it, the vortex of specks drawn into the mouth (brighter in
   // the tell), the striped blue body tapering down to its foot on the biofilm.
+  // After the delivered sheet (assets/reference-sheets/boss-stentor.webp): a trumpet flaring
+  // from a narrow foot with a little flared holdfast to a wide oral disc, its rim ringed all
+  // round by the membranelle band, spiral grooves on the disc running into the oral pouch,
+  // longitudinal blue-green pigment stripes, the macronucleus a chain of beads down the body,
+  // and green food vacuoles (zoochlorellae) inside. Here it stands as in the sheet's first
+  // view: foot on the biofilm at the lower left, disc tilted to the upper right.
   const stR = rng(707);
   const vortex = Array.from({ length: 90 }, () => ({ a: stR() * 6.283, r: stR(), v: 0.4 + stR() * 0.8, sz: 0.25 + stR() * 0.5 }));
-  const stripes = Array.from({ length: 220 }, () => ({ u: stR(), v: stR() * 2 - 1 }));
+  const beads = Array.from({ length: 11 }, (_, i) => ({ u: 0.22 + i * 0.055, off: 0.18 + 0.05 * Math.sin(i * 1.7), r: 0.55 + 0.25 * stR() }));
+  const vac = Array.from({ length: 16 }, () => ({ u: 0.45 + stR() * 0.5, v: (stR() - 0.5) * 1.4, r: 2.2 + stR() * 3, green: stR() < 0.55 }));
   function stentor(S, t, B) {
     const M = B.mouth, c = B.contract;
-    const R = B.discR * (1 - 0.45 * c); // contracted: the disc pulls in
-    const blue = { dn: 0.03, scat: 0.12, fl: [0.06 * chan.memb, 0, 0], memb: 1, ab: [0.014, 0.006, 0.002], z: 0.2 };
-    // the oral disc's rim: a giant-cell edge facing the field (left)
-    S.edge(M.x - R, M.y, Math.PI / 2, R * 2.1, 140, 2.5, 6.1, blue);
-    // the body: from below the disc down to the foot on the biofilm
-    const fx = B.foot.x, fy = B.foot.y, bx = M.x - R * 0.4, by = M.y - R * 0.85;
-    const bodyA = Math.atan2(fy - by, fx - bx), bodyL = Math.hypot(fx - bx, fy - by);
-    S.edge((fx + bx) / 2 - Math.sin(bodyA) * 6, (fy + by) / 2 + Math.cos(bodyA) * 6, bodyA + Math.PI, bodyL * (1 - 0.3 * c), 60, 2, 2.2, blue);
-    // stentorin stripes: rows of blue granules along the body
-    for (const g of stripes) {
-      const x = bx + (fx - bx) * g.u * (1 - 0.3 * c) + Math.sin(bodyA) * (g.v * 18 + 10) * (1 - 0.4 * g.u), y = by + (fy - by) * g.u * (1 - 0.3 * c) - Math.cos(bodyA) * (g.v * 18 + 10) * (1 - 0.4 * g.u);
-      S.disc(x, y, 0.45, { dn: 0.05, scat: 0.4, ab: [0.05, 0.02, 0.004], z: 0.1 });
+    const R = B.discR * (1 - 0.4 * c); // contracted: the disc pulls in
+    const fx = B.foot.x, fy = B.foot.y;
+    const ang = Math.atan2(M.y - fy, M.x - fx), L0 = Math.hypot(M.x - fx, M.y - fy);
+    const L = L0 * (1 - 0.45 * c); // contracted: it shortens in a flash toward its foot
+    const ca = Math.cos(ang), sa = Math.sin(ang);
+    const at = (u, v) => [fx + ca * u - sa * v, fy + sa * u + ca * v];
+    const blue = { dn: 0.03, scat: 0.12, fl: [0.06 * chan.memb, 0, 0], memb: 1, ab: [0.014, 0.006, 0.002], z: 0.2, phase: B.phase * 0.15 };
+    if (S.inView(fx + ca * L * 0.5, fy + sa * L * 0.5, L + R * 1.5)) S.trumpet(fx, fy, ang, L, R, 2.6, 6.1, blue);
+    // the macronucleus: a chain of beads down the body (moniliform)
+    for (const b of beads) {
+      const u = b.u * L, w = 2.6 + (0.56 * R - 2.6) * Math.pow(b.u, 2.3);
+      const [x, y] = at(u, w * b.off - w * 0.1);
+      if (S.inView(x, y, 8)) S.disc(x, y, Math.max(1.4, w * 0.16 * b.r), { cap: 2.2, dn: 0.03, scat: 0.25, ab: [0.016, 0.014, 0.011], fl: [0.05, 0, 0], z: 0.1 });
     }
-    // the foot: a holdfast of fine threads on the biofilm
-    for (let i = 0; i < 7; i++) S.strand(fx, fy, -Math.PI / 2 + (i - 3) * 0.3, 5 + (i % 3), 0.15, 0.4, 3, { dn: 0.04, scat: 0.6, fl: [0.3 * chan.memb, 0, 0], memb: 1, z: 0 });
-    // the membranelle band round the disc: long compound cilia beating in a wave (faster in the tell)
-    const n = 40;
+    // food vacuoles and green zoochlorellae in the wide part
+    for (const g of vac) {
+      const u = g.u * L, w = 2.6 + (0.56 * R - 2.6) * Math.pow(g.u, 2.3);
+      const [x, y] = at(u, g.v * w * 0.6);
+      if (S.inView(x, y, 10)) S.disc(x, y, g.r * (1 - 0.3 * c), g.green ? { cap: 2.5, dn: 0.02, scat: 0.3, ab: [0.07, 0.016, 0.07], fl: [0.02, 0.04, 0], z: 0.1 } : { cap: 2.5, dn: 0.015, scat: 0.3, ab: [0.02, 0.024, 0.034], z: 0.1 });
+    }
+    // the foot: a few holdfast threads into the biofilm
+    for (let i = 0; i < 5; i++) S.strand(fx - ca * 1.5, fy - sa * 1.5, -Math.PI / 2 + (i - 2) * 0.35, 4 + (i % 3), 0.15, 0.4, 3, { dn: 0.04, scat: 0.6, fl: [0.3 * chan.memb, 0, 0], memb: 1, z: 0 });
+    // the membranelle band: long compound cilia right round the disc's rim, beating in a wave (faster in the tell)
+    const n = 72, ex = 0.42 * R;
+    const [dx, dy] = at(L, 0);
     for (let i = 0; i < n; i++) {
-      const a = Math.PI * (0.55 + 0.9 * (i / (n - 1)));
-      const x = M.x + Math.cos(a) * R, y = M.y + Math.sin(a) * R;
-      const beat = Math.sin(B.phase * 2 - i * 0.5);
-      const ang = a + Math.PI * 0.5 + 0.55 * beat * (1 - c);
-      S.strand(x, y, ang, (16 + 3 * beat) * (1 - 0.7 * c), 0.35, 0.6, 14, { dn: 0.05, scat: 1.4 + 2.5 * B.glow, fl: [0.6 * chan.memb, 0, 0], memb: 1, z: 0.1, phase: B.phase + i });
+      const q = (i / n) * Math.PI * 2;
+      const lu = Math.cos(q) * ex, lv = Math.sin(q) * R; // on the rim ellipse, local to the disc centre
+      const x = dx + ca * lu - sa * lv, y = dy + sa * lu + ca * lv;
+      if (!S.inView(x, y, 22)) continue;
+      const nrm = Math.atan2(Math.sin(q) / R, Math.cos(q) / ex) + ang; // outward normal
+      const beat = Math.sin(B.phase * 2 - i * 0.45);
+      S.strand(x, y, nrm + 0.5 * beat * (1 - c), (15 + 3 * beat) * (1 - 0.7 * c), 0.35, 0.6, 14, { dn: 0.05, scat: 1.4 + 2.5 * B.glow, fl: [0.6 * chan.memb, 0, 0], memb: 1, z: 0.1, phase: B.phase + i });
     }
     // the vortex: specks spiralling into the mouth, brighter and faster as it winds up
     if (B.flowK > 0.05) for (const p of vortex) {
@@ -223,6 +242,38 @@ export function createDrawer(world) {
       const rr = B.catchR * 0.4 + p.r * (B.pullR - B.catchR * 0.4);
       const x = M.x + Math.cos(p.a) * rr, y = M.y + Math.sin(p.a) * rr;
       S.disc(x, y, p.sz, { dn: 0.06, scat: 0.6 + 4 * B.glow, fl: [0.02, 0.05 + 0.3 * B.glow, 0.02], ab: [0.01, 0.01, 0.012], z: 0 });
+    }
+  }
+
+  // --- the collective (collective.js): kin cells, free or members, the slime, the toxin ---
+  function kin(S, t, coll) {
+    const fl = opts.slowBeat ? 1 : 5;
+    for (const k of coll.kin) {
+      if (!S.inView(k.x, k.y, 6)) continue;
+      const C = k.coll;
+      if (k.dying) {
+        // a member taken in your place: it rounds up, darkens and fades
+        const e = Math.min(1, k.dying.t / 1.2);
+        S.rod(k.x, k.y, k.a, k.L * (1 - 0.8 * e), k.r * (1 + e), { dn: 0.05 * (1 - 0.6 * e), scat: 0.12, fl: [MEMB * chan.memb * (1 - 0.8 * e), 0, 0], memb: 0.85, ab: [0.002 + 0.05 * e, 0.002 + 0.045 * e, 0.003 + 0.03 * e], z: k.z });
+        continue;
+      }
+      // a charged collective holds the toxin: a faint purple (violacein-like) absorbance
+      const charge = C ? C.charge : 0;
+      spirillum(S, k.x, k.y, k.a, k.L, k.r, k.amp, k.wl, k.bodyPhase, C ? 0 : k.z, k.flPhase * fl, { tumbling: false, fl: C ? 1 : 0.8 });
+      if (charge > 0.2) S.disc(k.x, k.y, 0.5, { dn: 0.004, scat: 0.05, ab: [0.03 * charge, 0.09 * charge, 0.02 * charge], z: 0 });
+      // the slime shield: EPS round every member (thin, faint in phase, a haze in fluorescence)
+      if (C && C.level >= 1) S.disc(k.x, k.y, 2.1, { dn: 0.006, scat: 0.025, fl: [0.03 * chan.memb, 0.01, 0.03], z: 0.05 });
+    }
+    // the toxin burst: a ring of purple granules racing outward
+    for (const C of coll.list) {
+      const b = C.burst;
+      if (!b) continue;
+      const e = Math.min(1, b.t / 0.6), R = 3 + e * b.R, fade = 1 - Math.max(0, (b.t - 0.6) / 0.6);
+      for (let i = 0; i < 64; i++) {
+        const a = (i / 64) * 6.283 + i * 0.07;
+        const x = b.x + Math.cos(a) * R, y = b.y + Math.sin(a) * R;
+        if (S.inView(x, y, 2)) S.disc(x, y, 0.35 + 0.3 * (1 - e), { dn: 0.05 * fade, scat: 1.2 * fade, ab: [0.05 * fade, 0.18 * fade, 0.04 * fade], fl: [0.2 * fade, 0, 0.25 * fade], z: 0 });
+      }
     }
   }
 

@@ -206,10 +206,12 @@ a catch; `__micro.pacing()` reports hunger and states.
   within ~17 mm in front of it, it stalks; from farther than ~4.5 mm it
   **skims** at you (55 mm/s here) on a surfactant it releases from its
   abdomen tip: the Marangoni wake is simulated, calms the ripples under it and
-  shoves floating food (and you) aside. In reach, it lowers its head for
-  0.45 s (the wind-up, your cue to jump), then shoots its sticky labium ~2 mm.
-  It then needs 1.6 s to recover and 3.5 s before it can skim again. All of
-  this only while it is hungry (see Threats and pacing).
+  shoves floating food (and you) aside. In reach, it lowers its head and
+  freezes for 0.8 s (the tell, your cue to jump), then shoots its sticky
+  labium ~2 mm. If that misses, or you wriggle free, the mandible lunge
+  follows (see Fighting back). It then needs 1.6 s to recover and 3.5 s
+  before it can skim again. All of this only while it is hungry and you are
+  in its water (see Threats and pacing).
 - **Sundews** (*Drosera rotundifolia*): rosettes on seven of the islands
   near the start, their round leaves held out over the water on one side, each with ~90 red
   glandular tentacles tipped with glue. Land on a leaf and you stick; the

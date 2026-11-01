@@ -168,10 +168,13 @@ class Colliders {
   }
   _key(ix, iz) { return (ix + 32768) * 65536 + (iz + 32768); }
   _bin(e) {
-    // moving blades: bin by their rest sphere grown by how far they can bend
-    const r = e.r * (e.kind === 'blade' ? 2.2 : 1) + 2;
-    const x0 = Math.floor((e.c.x - r) / BROAD), x1 = Math.floor((e.c.x + r) / BROAD);
-    const z0 = Math.floor((e.c.z - r) / BROAD), z1 = Math.floor((e.c.z + r) / BROAD);
+    // by the rest footprint (xz box); a moving blade's grown by how far it can bend (mite-foliage maxBend 0.55 x length)
+    const P = e.pos;
+    let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+    for (let i = 0; i < P.length; i += 3) { if (P[i] < x0) x0 = P[i]; if (P[i] > x1) x1 = P[i]; if (P[i + 2] < z0) z0 = P[i + 2]; if (P[i + 2] > z1) z1 = P[i + 2]; }
+    const m = (e.kind === 'blade' ? 1.2 * e.r : 0) + 2;
+    x0 = Math.floor((x0 - m) / BROAD); x1 = Math.floor((x1 + m) / BROAD);
+    z0 = Math.floor((z0 - m) / BROAD); z1 = Math.floor((z1 + m) / BROAD);
     for (let ix = x0; ix <= x1; ix++) for (let iz = z0; iz <= z1; iz++) {
       const k = this._key(ix, iz);
       let a = this.cells.get(k);
@@ -209,21 +212,23 @@ class Colliders {
     const x0 = Math.floor(Math.min(ox, ex) / BROAD), x1 = Math.floor(Math.max(ox, ex) / BROAD);
     const z0 = Math.floor(Math.min(oz, ez) / BROAD), z1 = Math.floor(Math.max(oz, ez) / BROAD);
     const long = (x1 - x0 + 1) * (z1 - z0 + 1) > 64;
-    const visit = (e) => {
-      if (e.seen === stamp) return;
-      e.seen = stamp;
-      if (this.off.has(e.kind) || (skip && skip.has(e.kind))) return;
-      const vx = e.c.x - ox, vy = e.c.y - oy, vz = e.c.z - oz;
-      const t = Math.max(0, Math.min(best.t, vx * dx + vy * dy + vz * dz));
-      const px = vx - dx * t, py = vy - dy * t, pz = vz - dz * t;
-      if (px * px + py * py + pz * pz > e.r * e.r) return;
-      if (e.grid) castGrid(e, ox, oy, oz, dx, dy, dz, best, this.stats);
-      else castTris(e, 0, e.ntri, null, ox, oy, oz, dx, dy, dz, best, this.stats);
-    };
-    if (long) for (const e of this.list) visit(e);
-    else for (let ix = x0; ix <= x1; ix++) for (let iz = z0; iz <= z1; iz++) {
-      const a = this.cells.get(this._key(ix, iz));
-      if (a) for (let i = 0; i < a.length; i++) visit(a[i]);
+    const off = this.off.size ? this.off : null;
+    for (let ix = long ? 0 : x0; ix <= (long ? 0 : x1); ix++) for (let iz = long ? 0 : z0; iz <= (long ? 0 : z1); iz++) {
+      const a = long ? this.list : this.cells.get(this._key(ix, iz));
+      if (!a) continue;
+      for (let i = 0; i < a.length; i++) {
+        const e = a[i];
+        if (e.seen === stamp) continue;
+        e.seen = stamp;
+        if ((off && off.has(e.kind)) || (skip && skip.has(e.kind))) continue;
+        const c = e.c, vx = c.x - ox, vy = c.y - oy, vz = c.z - oz;
+        let t = vx * dx + vy * dy + vz * dz;
+        t = t < 0 ? 0 : t > best.t ? best.t : t;
+        const px = vx - dx * t, py = vy - dy * t, pz = vz - dz * t;
+        if (px * px + py * py + pz * pz > e.r * e.r) continue;
+        if (e.grid) castGrid(e, ox, oy, oz, dx, dy, dz, best, this.stats);
+        else castTris(e, 0, e.ntri, null, ox, oy, oz, dx, dy, dz, best, this.stats);
+      }
     }
     let out = null;
     if (best.e) {
@@ -242,15 +247,16 @@ class Colliders {
         const d = oy - floorH(ox, oz);
         if (d > 0 && dy < 0 && d <= lim) tf = d;
       } else {
-        // march the analytic floor
-        const step = 8;
-        let prev = oy - floorH(ox, oz);
-        for (let t = step; t <= lim + step; t += step) {
+        // march the analytic floor: steps as long as the gap allows (its slopes
+        // stay under ~0.7), down to 6 µm, then bisect the crossing
+        const close = Math.max(0, -dy) + 0.7 * Math.hypot(dx, dz) + 1e-3;
+        let prev = oy - floorH(ox, oz), tp = 0;
+        for (let t = Math.max(6, prev / close); tp < lim; t = tp + Math.max(6, prev / close)) {
           const tt = Math.min(t, lim);
           const d = oy + dy * tt - floorH(ox + dx * tt, oz + dz * tt);
           if (d <= 0 && prev > 0) {
-            let a = tt - step, b = tt;
-            for (let k = 0; k < 10; k++) {
+            let a = tp, b = tt;
+            for (let k = 0; k < 12; k++) {
               const m = (a + b) / 2;
               const dd = oy + dy * m - floorH(ox + dx * m, oz + dz * m);
               if (dd > 0) a = m; else b = m;
@@ -258,8 +264,7 @@ class Colliders {
             tf = b;
             break;
           }
-          prev = d;
-          if (tt >= lim) break;
+          prev = d; tp = tt;
         }
       }
       if (tf >= 0) {
@@ -709,10 +714,10 @@ export function buildWorld(tex, { clear = [], thicket = null } = {}) {
   if (thicket) {
     const TR = rng(4242);
     const posts = [];
-    for (let i = 0; i < 70; i++) {
+    for (let i = 0; i < 50; i++) {
       const a = TR() * Math.PI * 2, d = Math.sqrt(TR()) * thicket.r;
       const x = thicket.x + Math.cos(a) * d, z = thicket.z + Math.sin(a) * d;
-      const h = 150 + TR() * 170;
+      const h = 120 + TR() * 150;
       const p = new THREE.Vector3(x, floorH(x, z), z);
       p.h = h;
       posts.push(p);
@@ -729,7 +734,7 @@ export function buildWorld(tex, { clear = [], thicket = null } = {}) {
     // threads: between pairs of nearby stalks, at 40-95% of their height, sagging
     const pairs = [];
     for (let i = 0; i < posts.length; i++) {
-      const near = posts.map((q, j) => [j, q.distanceTo(posts[i])]).filter(([j, d]) => j !== i && d > 120 && d < 520).sort((a, b) => a[1] - b[1]).slice(0, 4);
+      const near = posts.map((q, j) => [j, q.distanceTo(posts[i])]).filter(([j, d]) => j !== i && d > 140 && d < 560).sort((a, b) => a[1] - b[1]).slice(0, 3);
       for (const [j] of near) if (i < j || !near.some(([k]) => k === j)) pairs.push([i, j]);
     }
     const seen = new Set();

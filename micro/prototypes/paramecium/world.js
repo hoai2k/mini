@@ -332,7 +332,7 @@ export function createWorld(scene) {
     const { geo } = instancedQuads(n, iPos, iP);
     return Object.assign(new THREE.Mesh(geo, pointsMaterial({ absorb: [0.01, 0.012, 0.02] })), { frustumCulled: false });
   };
-  const HOMES = [routePoint(2950, -320, DEPTH * 0.58), routePoint(4000, 300, DEPTH * 0.5)];
+  const HOMES = [routePoint(2850, -560, DEPTH * 0.58), routePoint(4000, 300, DEPTH * 0.5)];
   for (let i = 0; i < 2; i++) {
     const g = new THREE.Group();
     g.add(Object.assign(new THREE.Mesh(dGeo, didMat), { frustumCulled: false }));

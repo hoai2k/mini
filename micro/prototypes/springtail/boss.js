@@ -30,30 +30,75 @@ const UP = new THREE.Vector3(0, 1, 0);
 export function createWolfSpider(scene, { post, home }) {
   const group = new THREE.Group();
   scene.add(group);
+  // Colours and markings from the delivered reference sheet
+  // (assets/reference-sheets/boss-wolf-spider.webp): a warm golden-brown
+  // spider, finely hairy. Albedos are linear.
+  //  - carapace: dark brown with fine radiating striae, a pale tan median band
+  //    and bright cream submarginal bands down each side;
+  //  - abdomen: brown, mottled, a pale lanceolate median band at the front
+  //    and paired cream spots in rows behind it;
+  //  - legs: golden tan, ringed dark at each joint and mid-segment;
+  //  - chelicerae: reddish brown; eight black eyes (a row of four small
+  //    anterior eyes, two large posterior medians above them, two posterior
+  //    laterals behind).
   const bodyMat = litMaterial({ surface: `
-    // Pirata: dark olive-brown, matte and finely hairy (short setae break up the highlight);
-    // pale bands along the sides of the carapace
     float n = mNoise(vLocal.xz * 9.0), hair = mNoise(vWorld.xz * 60.0 + vWorld.y * 40.0);
-    vec3 c = mix(vec3(0.045, 0.04, 0.02), vec3(0.1, 0.085, 0.04), n);
-    float band = smoothstep(0.62, 0.72, abs(vLocal.z)) * step(0.0, vLocal.x);
-    c = mix(c, vec3(0.3, 0.27, 0.17), band * 0.75);
+    float ang = atan(vLocal.z, vLocal.x - 0.35);
+    float striae = smoothstep(0.55, 0.95, sin(ang * 14.0) * 0.5 + 0.5) * smoothstep(0.15, 0.6, length(vLocal.xz));
+    vec3 c = mix(vec3(0.10, 0.045, 0.012), vec3(0.17, 0.08, 0.022), n);
+    c *= 1.0 - 0.35 * striae;
+    float top = smoothstep(-0.1, 0.25, vLocal.y);
+    // pale median band, widening a little toward the eyes
+    float med = (1.0 - smoothstep(0.07, 0.13, abs(vLocal.z) - 0.05 * smoothstep(-0.2, 0.8, vLocal.x))) * top;
+    c = mix(c, vec3(0.42, 0.26, 0.09), med * 0.85);
+    // cream submarginal bands down each side
+    float side = smoothstep(0.76, 0.81, abs(vLocal.z)) * (1.0 - smoothstep(0.9, 0.95, abs(vLocal.z))) * smoothstep(-0.45, -0.1, vLocal.y) * (1.0 - smoothstep(0.25, 0.4, vLocal.y));
+    c = mix(c, vec3(0.66, 0.55, 0.34), side * 0.85);
     s.N = normalize(s.N + vec3(hair - 0.5, 0.0, mNoise(vWorld.zx * 60.0) - 0.5) * 0.45);
-    s.albedo = c * (0.85 + 0.3 * hair); s.rough = 0.9; s.f0 = 0.015; s.sheen = 0.22; s.sheenCol = vec3(0.32, 0.29, 0.17);` });
-  const eyeMat = litMaterial({ surface: 's.albedo = vec3(0.005); s.rough = 0.08; s.f0 = 0.06;' });
-  const legMat = litMaterial({ surface: 's.albedo = vec3(0.12, 0.08, 0.045) * (0.8 + 0.4 * mNoise(vWorld.xz * 12.0)); s.rough = 0.5; s.sheen = 0.15; s.sheenCol = vec3(0.45, 0.38, 0.3);' });
+    s.albedo = c * (0.85 + 0.3 * hair); s.rough = 0.85; s.f0 = 0.02; s.sheen = 0.3; s.sheenCol = vec3(0.5, 0.36, 0.16);` });
+  const eyeMat = litMaterial({ surface: 's.albedo = vec3(0.004); s.rough = 0.06; s.f0 = 0.07;' });
+  const legMat = litMaterial({ surface: `
+    // golden tan, ringed dark: a band at each segment's far joint and one mid-segment
+    float d = min(abs(vLocal.y - 0.45), abs(vLocal.y - 0.94));
+    float ring = 1.0 - smoothstep(0.05, 0.1, d);
+    float hair = mNoise(vWorld.xz * 50.0 + vWorld.y * 30.0);
+    vec3 c = mix(vec3(0.25, 0.125, 0.035), vec3(0.05, 0.022, 0.008), ring * 0.9) * (0.8 + 0.4 * mNoise(vWorld.xz * 12.0));
+    s.N = normalize(s.N + vec3(hair - 0.5, 0.0, mNoise(vWorld.zx * 50.0) - 0.5) * 0.35);
+    s.albedo = c * (0.85 + 0.3 * hair); s.rough = 0.6; s.sheen = 0.35; s.sheenCol = vec3(0.6, 0.42, 0.2);` });
+  const chelMat = litMaterial({ surface: `
+    float hair = mNoise(vWorld.xz * 70.0 + vWorld.y * 50.0);
+    s.albedo = mix(vec3(0.08, 0.022, 0.008), vec3(0.14, 0.045, 0.014), mNoise(vLocal.xy * 6.0)) * (0.85 + 0.3 * hair);
+    s.rough = 0.5; s.f0 = 0.03; s.sheen = 0.25; s.sheenCol = vec3(0.5, 0.25, 0.12);` });
   const ell = (mat, p, r) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 28, 18), mat); m.scale.set(...r); m.position.set(...p); m.frustumCulled = false; group.add(m); return m; };
-  const ceph = ell(bodyMat, [0.9, 0, 0], [1.25, 0.55, 0.92]);
-  // the abdomen: the same olive-brown, no pale bands (those run along the carapace only)
+  // carapace: longer than wide, the eye region raised at the front
+  const ceph = ell(bodyMat, [0.85, 0, 0], [1.3, 0.52, 0.86]);
+  const headUp = ell(bodyMat, [1.55, 0.12, 0], [0.62, 0.42, 0.58]);
   const abdMat = litMaterial({ surface: `
     float n = mNoise(vLocal.xz * 7.0), hair = mNoise(vWorld.xz * 60.0 + vWorld.y * 40.0);
-    vec3 c = mix(vec3(0.04, 0.036, 0.018), vec3(0.085, 0.072, 0.035), n);
-    c *= 1.0 - 0.35 * smoothstep(0.35, 0.0, abs(vLocal.z)) * step(0.3, vLocal.y); // a darker median mark
+    vec3 c = mix(vec3(0.04, 0.018, 0.006), vec3(0.12, 0.058, 0.017), n * n * (3.0 - 2.0 * n));
+    c *= 0.8 + 0.4 * mNoise(vLocal.xz * 16.0);
+    float top = smoothstep(0.0, 0.45, vLocal.y);
+    // pale lanceolate median band over the front half (the heart mark)
+    float lance = (1.0 - smoothstep(0.14, 0.2, abs(vLocal.z) / max(0.15, 1.0 - abs(vLocal.x - 0.35) * 1.3))) * smoothstep(-0.35, 0.0, vLocal.x) * top;
+    c = mix(c, vec3(0.3, 0.17, 0.055), lance * 0.75);
+    // paired cream spots in rows
+    vec2 q = vec2(vLocal.x * 3.2 + 0.5, abs(vLocal.z) * 3.2);
+    vec2 cell = vec2(fract(q.x) - 0.5, q.y - 1.25);
+    float spot = (1.0 - smoothstep(0.12, 0.2, length(cell))) * step(-0.95, vLocal.x) * step(vLocal.x, 0.5) * top;
+    c = mix(c, vec3(0.66, 0.56, 0.38), spot * 0.85);
+    // a few pale flecks round the sides
+    c = mix(c, vec3(0.55, 0.45, 0.3), step(0.82, mNoise(vLocal.xz * 22.0)) * 0.5 * smoothstep(0.4, 0.8, abs(vLocal.z)));
     s.N = normalize(s.N + vec3(hair - 0.5, 0.0, mNoise(vWorld.zx * 60.0) - 0.5) * 0.45);
-    s.albedo = c * (0.85 + 0.3 * hair); s.rough = 0.92; s.f0 = 0.012; s.sheen = 0.18; s.sheenCol = vec3(0.28, 0.26, 0.15);` });
-  const abd = ell(abdMat, [-1.65, 0.05, 0], [1.55, 0.72, 1.02]);
-  const eyes = [[2.0, 0.35, 0.18], [2.0, 0.35, -0.18], [1.85, 0.5, 0.32], [1.85, 0.5, -0.32], [1.6, 0.6, 0.22], [1.6, 0.6, -0.22]].map((p, i) => ell(eyeMat, p, i < 2 ? [0.1, 0.1, 0.1] : [0.13, 0.13, 0.13]));
-  const fangs = [-1, 1].map((s) => ell(bodyMat, [2.1, -0.25, s * 0.25], [0.28, 0.42, 0.2]));
-  const parts = [ceph, abd, ...eyes, ...fangs];
+    s.albedo = c * (0.85 + 0.3 * hair); s.rough = 0.88; s.f0 = 0.015; s.sheen = 0.3; s.sheenCol = vec3(0.5, 0.36, 0.16);` });
+  const abd = ell(abdMat, [-1.7, 0.08, 0], [1.6, 0.78, 1.0]);
+  // eyes: AME row of four small (front), two large PME above, two PLE behind
+  const eyes = [
+    [2.12, 0.08, 0.1, 0.07], [2.12, 0.08, -0.1, 0.07], [2.06, 0.06, 0.27, 0.07], [2.06, 0.06, -0.27, 0.07],
+    [1.98, 0.36, 0.19, 0.15], [1.98, 0.36, -0.19, 0.15],
+    [1.62, 0.5, 0.36, 0.12], [1.62, 0.5, -0.36, 0.12],
+  ].map(([x, y, z, r]) => ell(eyeMat, [x, y, z], [r, r, r]));
+  const fangs = [-1, 1].map((s) => ell(chelMat, [2.1, -0.28, s * 0.22], [0.26, 0.48, 0.21]));
+  const parts = [ceph, headUp, abd, ...eyes, ...fangs];
   // legs: 8 x 3 segments (femur, tibia+patella, metatarsus+tarsus), instanced
   const segGeo = new THREE.CylinderGeometry(0.75, 1, 1, 7, 1).translate(0, 0.5, 0);
   const legs = new THREE.InstancedMesh(segGeo, legMat, 8 * 3 + 2 * 2);
@@ -73,7 +118,7 @@ export function createWolfSpider(scene, { post, home }) {
     k, s,
     hip: new THREE.Vector3(1.5 - k * 0.42, 0, s * 0.62),
     foot: new THREE.Vector3([5.2, 2.2, -1.6, -4.6][k], 0, s * [3.2, 4.6, 4.6, 3.4][k]),
-    w: [0.17, 0.16, 0.15, 0.16][k],
+    w: [0.22, 0.21, 0.2, 0.21][k],
   })));
   const feetW = [];
 
@@ -106,7 +151,7 @@ export function createWolfSpider(scene, { post, home }) {
       if (st.state === 'dormant' || st.state === 'gone' || st.state === 'retreat') footW.y = Math.max(footW.y, st.y - 1.3);
       // knee: high above the line, spider-like
       const knee = hipW.clone().lerp(footW, 0.42);
-      knee.y = Math.max(hipW.y, footW.y) + 1.6 - 0.6 * st.crouch;
+      knee.y = Math.max(hipW.y, footW.y) + 1.15 - 0.5 * st.crouch;
       const ankle = knee.clone().lerp(footW, 0.6);
       ankle.y = (knee.y + footW.y) * 0.5 + 0.2;
       seg(hipW, knee, L.w);
@@ -119,7 +164,7 @@ export function createWolfSpider(scene, { post, home }) {
       const a = new THREE.Vector3(1.9, -0.1, s * 0.4).applyMatrix4(group.matrixWorld);
       const b = new THREE.Vector3(2.7 + 0.3 * st.raise, 0.1 - 0.3 * st.crouch, s * 0.6).applyMatrix4(group.matrixWorld);
       const c = new THREE.Vector3(3.2 + 0.4 * st.raise, -0.3 + 0.6 * st.raise, s * 0.5).applyMatrix4(group.matrixWorld);
-      seg(a, b, 0.11); seg(b, c, 0.09);
+      seg(a, b, 0.13); seg(b, c, 0.11);
     }
     legs.count = li;
     legs.instanceMatrix.needsUpdate = true;

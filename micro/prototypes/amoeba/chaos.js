@@ -28,6 +28,7 @@ import { createFight } from '../shared/predation.js';
 const TAU = Math.PI * 2;
 export const CHAOS_R = 320;   // µm, radius of the rounded cell
 const WAKE = 950;             // a player's centre this close wakes it
+export const CHAOS_WAKE = WAKE;
 const ARM_W = 7;              // nodes either side of an arm's tip: its neck
 
 export class Chaos {
@@ -38,9 +39,22 @@ export class Chaos {
     for (let i = 0; i < N; i++) { const a = (i / N) * TAU; b.x[i] = x + CHAOS_R * Math.cos(a); b.y[i] = y + CHAOS_R * Math.sin(a); }
     b.A0 = b.Abase = Math.PI * CHAOS_R * CHAOS_R;
     b.opts.speed = 0.75;
+    // Broad, blunt, finger-like arms (the reference sheet, boss-chaos.webp): its
+    // idle arms and its two cup arms are about 1.7x the player's in width.
+    b.opts.podScale = 1.7;
+    b.pods[0].rad = b.pods[1].rad = 50;
     b.grid.build(b.x, b.y, N);
     b.centroid();
-    this.cyto = new Cytoplasm(rand, b, 2600);
+    // Densely granular to the tips: more granules, most of them round refractile
+    // ones (lipid droplets, food granules), so it reads granular olive, not clear.
+    this.cyto = new Cytoplasm(rand, b, 4200);
+    const cy = this.cyto;
+    for (let i = 0; i < cy.n; i++) {
+      const u = rand();
+      if (u < 0.3) { cy.kind[i] = 3; cy.size[i] = rand.range(2.5, 5.5); }   // lipid / refractile spheres
+      else if (u < 0.42) { cy.kind[i] = 4; cy.size[i] = rand.range(3, 6); }  // olive food granules
+      else if (u < 0.5) { cy.kind[i] = 2; cy.size[i] = rand.range(3, 5); }   // crystals
+    }
     // many nuclei, scattered through the endoplasm
     this.nuclei = Array.from({ length: 9 }, (_, k) => {
       const a = k * 2.4 + 0.5, r = (0.18 + 0.32 * ((k * 0.37) % 1)) * CHAOS_R;
@@ -49,6 +63,8 @@ export class Chaos {
     this.cyto.nucleus.r = 18;
     this.cyto.extraNuclei = this.nuclei;
     this.layer = view.addCell(b, this.cyto);
+    // its look in the body shader: olive endoplasm, a thin clear rim, coarser granularity
+    view.setLook(this.layer, { olive: 1, rim: 0.7, grain: 1.6 });
     this.fight = createFight({ windup: 1.6, strike: 6.5, recoverT: 2.6, repelT: 2.2, retreatT: 18, facingRate: 0, blockHit: 0.1, biteHit: 0.2, regain: 0.01 });
     this.on = true;
     this.reset();
@@ -127,7 +143,8 @@ export class Chaos {
     } else if (this.state === 'leaving') {
       // it flows away from you and rests
       this.leaveT += dt;
-      const ax = this.post.x - b.cx + 300, ay = this.post.y + 1600 - b.cy, l = Math.hypot(ax, ay) || 1;
+      const rest = this.restAt || { x: this.post.x + 300, y: this.post.y + 1600 };
+      const ax = rest.x - b.cx, ay = rest.y - b.cy, l = Math.hypot(ax, ay) || 1;
       if (this.leaveT < 22) input.body = { m: 0.8, dx: ax / l, dy: ay / l };
       else { this.state = 'dormant'; this.fight.reset(); this.restUntil = this.t + 60; }
     }

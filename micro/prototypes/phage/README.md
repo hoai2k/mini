@@ -3,10 +3,15 @@
 Level 6 (optional) of the Zoom Chain, as a playable prototype: be a **T4-like
 tailed bacteriophage** in bog water beside its host bacteria. No light
 microscope can see a phage (a head of ~0.1 µm against a ~0.2 µm resolution
-limit [S17]), so the level is drawn as a **molecular illustration** in the
-manner of David Goodsell's watercolours, grounded in shapes from cryo-electron
-tomography [S99]. A cryo-EM greyscale look and a fluorescence pseudo-colour
-look are on the D-pad. Published in the prototype archive at
+limit [S17]), so the level is an illustration. Its default look is
+**realistic microscopic false light** (`micro/design/phage-visual-style.html`,
+references in `micro/design/generated/phage-false-light/`): realistic
+biological surfaces and translucent materials lit by an invented light, the
+phage glowing gold against teal-blue translucent cells covered in surface
+proteins, in a crowded, softly lit molecular water with a large depth of
+field. The shapes come from cryo-electron tomography [S99]. David Goodsell's
+watercolour manner (the previous default), cryo-EM greyscale and
+fluorescence pseudo-colour remain on the D-pad. Published in the prototype archive at
 `micro/prototypes/phage/`.
 
 **LS drives the phage; let go and the water has it.** A real phage has no
@@ -35,7 +40,7 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | **X** | E | **Grab protein**: aim the leading attachment fibres at a protruding protein and press X. The large gold three-lobed receptors fit; violet paired proteins do not. Both can be grabbed: the fibres converge for 0.45 s, then a mismatch slips off with a small recoil and a 0.25 s retry delay. A match latches and automatically starts the existing irreversible attachment: short fibres bind, baseplate opens, sheath contracts and DNA enters (camera close-up and shake on the snap). No automatic cell-contact attachment or hidden three-foot requirement. **At an amoeba's lobe: a fibre jab** (a departure, below) |
 | B | Shift | **Defend: fold the fibres** back against the sheath and slip: an amoeba's lobe gets no purchase, clay and wrong hosts slide past; also lets go of a host. Press again to extend them (ready to grab receptors with X; clay still catches them) |
 | Y | R | **At the flagellum (the backdoor)**: back to the sediment (Level 5). Elsewhere: the odds and receptor overlay: receptor patches ringed, each host's receptors, defences and odds of a burst, the UV line, the amoeba's hunger, your distance to the nearest host; inside, each enzyme's sensing range. Marked on screen as data, not optics |
-| D-pad ←→ | 3 / 4 | Look: Goodsell watercolour, cryo-EM greyscale, fluorescence (pseudo-colour) |
+| D-pad ←→ | 3 / 4 | Look: realistic false light (default), Goodsell watercolour, cryo-EM greyscale, fluorescence (pseudo-colour) |
 | D-pad ↑↓ | 1 / 2 | Zoom in / out |
 | Menu | Esc | Features panel |
 | View | Tab | Hide or show the controls |
@@ -82,9 +87,18 @@ hunt hard, a near dead end). The third cell is the wrong host.
 
 ## Threats and pacing
 
-- **A calm opening.** The amoeba waits at least 45 s (`createHunger`) and the
-  UV is only near the top, so you can drift and explore first. The phage
-  starts in clear water well below the UV line.
+- **Placement: explore first, challenges from halfway.** The destination,
+  Host A (four receptor patches, the best odds), lies far up and to the right
+  of the start (about 12.5 µm on the straight line, `START` and `DEST` in
+  `world.js`), so the first half of the route is calm open water to explore.
+  Every challenge sits at or beyond halfway along it: the wrong-host decoy,
+  Host B with its matching spacer, the amoeba's edge (it also never reaches
+  for a phage short of halfway), the UV (only where a gap in a floating peat
+  mat lets the sun in, from halfway on, and only near the surface), the clay
+  shelter and the stray damaged phage beside it. The CRISPR boss is inside
+  the host. `__micro.debug.placements()` lists each one's fraction of the
+  route; the backdoor flagellum sits beside the start, off the route.
+- **A calm opening.** The amoeba also waits at least 45 s (`createHunger`).
 - **The amoeba's edge** (left), fought with the shared `createFight`: when
   hungry it reaches a pseudopod lobe toward you (stalk), then **rears and
   curls it** (the wind-up, 1.1 s: the lobe swells and flushes rose, its lips
@@ -95,15 +109,31 @@ hunt hard, a near dead end). The third cell is the wrong host.
   toward it) slowly wears its interest down. Interest at zero: it draws the
   lobe back and leaves (retreat), and rests. *Amoebae grazing viruses is
   [Unverified] in the spec.*
-- **UV** (top): your integrity erodes in the UV-bright water; bound to the
-  clay platelet you are shielded [S103, S104].
+- **UV** (top, in the sun gap): your integrity erodes in the UV-bright water;
+  bound to the clay platelet you are shielded [S103, S104]. At zero you are
+  not dead but **damaged** (dimmed, cracked, your glow fading); a second dose
+  while damaged is fatal.
+- **The co-op revive: multiplicity reactivation** (`micro/design/combat-ideas.md`,
+  phage idea 1; real for T-even phages, Luria 1947 [C26]). A damaged phage
+  still grabs and injects, but its broken genome cannot work alone: its empty
+  shell stays on the host (mode `coinfect`) while it waits, 45 s in co-op
+  (B gives up). A teammate who injects into the **same host** recombines with
+  it: the teammate goes on inside and the damaged player is whole again,
+  beside the host. Two damaged players revive each other the same way. Solo, a
+  **stray UV-damaged phage** drifts below the clay: come close while damaged
+  and it pairs with you, landing beside you to co-infect whichever host you
+  inject, so you go inside whole. A damaged phage alone in a host fails after
+  5 s (solo) and drifts back in at the start.
 - **Clay / peat platelet**: extended fibres stick to it [S103]. A trap, but
   a shelter from UV. Fold the fibres (B) to slip free.
 - **The wrong host**: a Gram-positive with no outer membrane and no OmpC. The
   fibres slide off; fold them to pass cleanly.
-- **Inside: the boss, a CRISPR-Cas complex** (type I: Cascade, the blue Cas7
-  backbone on its red crRNA guide, with Cas3, the amber nuclease-helicase, at
-  one end; `micro/design/bosses.md` [S101]). It **slides along the host DNA
+- **Inside: the boss, a CRISPR-Cas complex** (type I, shaped after the delivered
+  sheet `assets/reference-sheets/boss-cas.webp`: Cascade, a bulky blue body
+  of Cas7 subunits curled round a yellow groove carrying the red crRNA guide,
+  a red Cas6 cap, and Cas3, the sky-cyan nuclease-helicase with orange
+  active-site patches, docked beside it; every subunit a lumpy cluster of
+  small spheres; `micro/design/bosses.md` [S101]). It **slides along the host DNA
   scanning**; while your DNA's free end is within its range its match builds,
   and **its guide RNA glows** brighter (the tell; the brass gauge's lower bar).
   At a full match it leaves the host DNA and closes in. Reaching your end, it
@@ -210,7 +240,27 @@ reference sheet and `research/assets/references/production/phage-t4.jpg`:
 
 ### The look (`shared/techniques/phage-goodsell.js`)
 
-Every object uses one toon material: flat watercolour colour with a soft
+**False light (the default).** The same materials carry a second branch
+(`goodsellShared.uStyle = 1`), each with its own false-light parameters
+(`fl` in `toonMaterial`, `FL_DEFAULTS`): a variegated palette pair in world
+space, a warm key from the upper left wrapped for soft matter plus a teal
+fill, a thickness-based translucency (thick centres absorb toward deep blue,
+thin edges let the light through: the cheap stand-in for transmission), a
+Fresnel rim, a wet specular, a procedural bump from world noise and screen
+derivatives with cavity darkening on the host envelopes, and an emissive glow
+(the phage's gold, the entering genome, the guide RNA's tell). The pass (look
+3) composites that over teal water with soft light shafts and a drifting
+haze, softens only far layers (and the very near) by depth from the depth
+buffer (a large depth of field), adds a threshold/blur bloom at 1/4 and 1/8
+resolution (half-float when the GPU renders to it), applies a filmic curve and
+a teal grade with golden highlights. In false light the capsid is glassy with
+glowing facet edges, the molecules swap to lumpy bead-flower geometry, far
+cells hang in the haze (one instanced draw) and fine motes drift (one
+points draw). Ink hulls are hidden, not just discarded. Inside, the cytoplasm
+takes the reference's violet-blue ribosomes and green, orange and teal
+proteins under a blue membrane, with the genome as a glowing gold strand.
+
+**Goodsell (a look option).** Every object uses one toon material: flat watercolour colour with a soft
 two-tone light, slight darkening at the silhouette, world-space mottling, and
 **depth by desaturation** (far things fade toward the water colour). An
 inverted-hull **ink outline** fades with depth. The scene is drawn over a
@@ -227,12 +277,27 @@ inside is a crowded cytoplasm of ribosomes and proteins under an envelope
 section (outer membrane, periplasm, inner membrane), with the host's DNA
 wandering through it.
 
+### Performance
+
+- The shared quality governor (`shared/quality.js`) owns the pixel ratio and
+  scales the post target (lower per split view: 0.7 at two views, 0.55 at
+  three or four); its effects level trims the pass (2: DOF and two bloom
+  levels, 1: one bloom level, 0: no DOF and, in Goodsell, no ink on the
+  crowds). Features → Quality governor.
+- No empty draws: hidden ink hulls (false light, or Ink off), crack tubes
+  only once cracked, instanced meshes hidden at count 0, and each host's grab
+  proteins as two instanced meshes rather than a dozen meshes each.
+- `?pr=1` renders at full resolution on software WebGL (for judging
+  screenshots); otherwise software WebGL renders at 0.6.
+
 ## Features
 
 The Menu panel lists everything with a switch where it makes sense:
 
-- **Rendering**: Look (Goodsell / cryo-EM / fluorescence); Capsid (Cutaway /
-  Translucent / Solid); Ink outlines; Depth by desaturation; Delivered art.
+- **Rendering**: Look (false light / Goodsell / cryo-EM / fluorescence);
+  Capsid (Translucent by default / Cutaway / Solid); Ink outlines; Depth by
+  desaturation (the haze in false light); Delivered art (in false light the
+  painted envelope lends only its grain); Quality governor and Manual quality.
 - **Body**: T4 from its anatomy (always).
 - **Motion**: LS drift (Drift / Honest); Brownian motion; Slow tumbling.
 - **Simulation**: UV near the surface; Amoeba edge.

@@ -41,18 +41,53 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
   const hard = gMaterial({ cls: CLS.NPC, tex: tex.cuticle, map: 'tri', scale: 120, bump: 1.6, thin: 0.6 });
   const ell = (mat, p, r, seg = 26) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, seg, Math.round(seg * 0.6)), mat); m.scale.set(...r); m.position.set(...p); m.frustumCulled = false; group.add(m); return m; };
   // body along +x, centre at the origin, ~140 µm off the floor
-  ell(shell, [520, 40, 0], [360, 150, 330]);                       // carapace
-  ell(smooth, [760, 150, 120], [40, 30, 40], 10); ell(smooth, [760, 150, -120], [40, 30, 40], 10); // eye spots
-  for (let i = 0; i < 9; i++) {                                     // abdomen: flattened rings, widest in the middle
-    const x = 120 - i * 150, w = 520 * Math.sin(Math.PI * (0.25 + 0.75 * (i + 0.5) / 9));
-    ell(shell, [x, 10 - i * 4, 0], [95, 130 - i * 6, Math.max(160, w)]);
-  }
-  ell(smooth, [870, -20, 0], [90, 60, 110], 14);                    // chelicerae
+  // Shapes from the delivered sheet (assets/reference-sheets/boss-pseudoscorpion.webp):
+  // a narrow carapace tapering to the chelicerae; behind it a much broader,
+  // smooth ovoid abdomen (widest two-thirds back, rounded at the end) ringed by
+  // eleven tergite furrows; big swollen chela hands on long clubbed pedipalps
+  // with long curved fingers; slender walking legs.
+  const shaped = (mat, seg, f) => {
+    const g = new THREE.SphereGeometry(1, Math.round(seg * 0.55), seg);
+    g.rotateZ(Math.PI / 2); // poles at the ends of the body (x), so the back stays smooth
+    const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) { const v = f(p.getX(i), p.getY(i), p.getZ(i)); p.setXYZ(i, v[0], v[1], v[2]); }
+    g.computeVertexNormals();
+    const m = new THREE.Mesh(g, mat); m.frustumCulled = false; group.add(m); return m;
+  };
+  // carapace: ~700 µm, narrowing forward (front at +x), flat-topped
+  shaped(shell, 30, (x, y, z) => [520 + x * 360, 30 + (y > 0 ? y * 120 : y * 85), z * 235 * (0.62 + 0.38 * (1 - x) / 2)]);
+  ell(smooth, [790, 115, 108], [36, 26, 32], 10); ell(smooth, [790, 115, -108], [36, 26, 32], 10); // eye spots
+  // abdomen: one ovoid ~1.3 mm long, 0.95 mm wide, with 11 tergite furrows
+  shaped(shell, 120, (x, y, z) => {
+    const t = (1 - x) / 2; // 0 front (joins the carapace) .. 1 rear
+    const r = Math.sqrt(Math.max(0, 1 - x * x));
+    const w = 470 * Math.pow(r, 0.55) * (1 - 0.3 * Math.max(0, x) * Math.max(0, x)) * (0.92 + 0.08 * Math.sin(Math.PI * t));
+    const f = (t * 11) % 1, groove = Math.exp(-((f / 0.11) ** 2)) + Math.exp(-(((1 - f) / 0.11) ** 2));
+    const k = 1 - 0.085 * groove * (y > -0.5 ? 1 : 0.3);
+    return [-440 + x * 650, 20 + (y > 0 ? y * 210 : y * 120) * Math.pow(r, 0.4) * k, z * w * k];
+  });
+  ell(smooth, [880, -10, 0], [90, 55, 95], 14);                     // chelicerae
   // legs and pedipalp segments: instanced rods; chelae: hand and fingers
   const rodGeo = new THREE.CylinderGeometry(0.8, 1, 1, 9, 1).translate(0, 0.5, 0);
   const rods = new THREE.InstancedMesh(rodGeo, hard, 8 * 3 + 2 * 3);
   rods.frustumCulled = false; scene.add(rods);
-  const fingerGeo = new THREE.ConeGeometry(1, 1, 10, 1).translate(0, 0.5, 0);
+  // a chela finger: a long tapered hook, unit length along +y, curving toward +x at the tip
+  const fingerGeo = (() => {
+    const pts = [];
+    for (let k = 0; k <= 8; k++) { const t = k / 8; pts.push(new THREE.Vector3(0.16 * t * t, t, 0)); }
+    const g = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 1, 8, false);
+    // taper each ring of the tube round its own centre: thick at the base, a fine hooked point
+    const P = g.attributes.position, per = 9, c = new THREE.Vector3();
+    for (let j = 0; j <= 16; j++) {
+      c.set(0, 0, 0);
+      for (let k = 0; k < per; k++) c.x += P.getX(j * per + k) / per, c.y += P.getY(j * per + k) / per, c.z += P.getZ(j * per + k) / per;
+      const r = 0.085 * (1 - 0.88 * (j / 16));
+      for (let k = 0; k < per; k++) { const i = j * per + k; P.setXYZ(i, c.x + (P.getX(i) - c.x) * r, c.y + (P.getY(i) - c.y) * r, c.z + (P.getZ(i) - c.z) * r); }
+    }
+    g.computeVertexNormals();
+    return g;
+  })();
+  const FINGER = 460; // µm
   const fingers = new THREE.InstancedMesh(fingerGeo, hard, 4);
   fingers.frustumCulled = false; scene.add(fingers);
   const hands = [-1, 1].map(() => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 22, 14), hard); m.frustumCulled = false; scene.add(m); return m; });
@@ -92,7 +127,7 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
       foot.y = floorH(foot.x, foot.z) + (sw ? Math.sin(ph * 2 * Math.PI) * 70 * stride : 0);
       const knee = hip.clone().lerp(foot, 0.45); knee.y = Math.max(hip.y, foot.y) + 260 - 80 * st.crouch;
       const ank = knee.clone().lerp(foot, 0.55); ank.y = (knee.y + foot.y) / 2 + 30;
-      rod(rods, ri++, hip, knee, 48); rod(rods, ri++, knee, ank, 40); rod(rods, ri++, ank, foot, 28);
+      rod(rods, ri++, hip, knee, 30); rod(rods, ri++, knee, ank, 24); rod(rods, ri++, ank, foot, 15); // slender, as on the sheet
     }
     // pedipalps: folded at rest; forward and open in the tell; stretched in the snap; wide in the sweep
     let fi = 0;
@@ -102,13 +137,13 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
       const L = st.lift * 1;
       const elbow = W(1000 + 120 * st.ext - 260 * (1 - Math.max(st.open, st.ext)) - 120 * st.lower, 220 - 120 * st.lower + 260 * L, s * (560 + 450 * sp - 160 * (1 - Math.max(st.open, st.ext))));
       const wrist = W(1350 + 480 * st.ext - 380 * (1 - Math.max(st.open, st.ext)) - 200 * st.lower, 160 - 140 * st.lower + 420 * L, s * (380 + 600 * sp - 120 * st.ext));
-      rod(rods, ri++, base, elbow, 70); rod(rods, ri++, elbow, wrist, 62);
+      rod(rods, ri++, base, elbow, 64); rod(rods, ri++, elbow, wrist, 76); // the femur, then the clubbed patella
       const handC = W(1500 + 520 * st.ext - 380 * (1 - Math.max(st.open, st.ext)) - 220 * st.lower, 150 - 140 * st.lower + 470 * L, s * (330 + 560 * sp - 140 * st.ext));
-      rod(rods, ri++, wrist, handC, 70);
+      rod(rods, ri++, wrist, handC, 58);
       const h = hands[s < 0 ? 0 : 1];
       h.position.copy(handC);
       h.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), handC.clone().sub(wrist).normalize());
-      h.scale.set(220, 120, 130);
+      h.scale.set(300, 165, 175); // the swollen hand of the chela
       joints[s < 0 ? 0 : 1].copy(wrist);
       // fingers: the fixed one and the movable one (venom tooth), opening by `open`
       const dir = handC.clone().sub(wrist).normalize();
@@ -116,11 +151,13 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250 }) {
       for (const f of [-1, 1]) {
         const ang = f * (0.08 + 0.55 * st.open);
         const fd = dir.clone().applyAxisAngle(UP, ang * s).normalize();
-        const root = handC.clone().addScaledVector(dir, 180).addScaledVector(side, f * 30);
-        tmpQ.setFromUnitVectors(UP, fd);
-        tmpM.compose(root, tmpQ, tmpS.set(f > 0 ? 34 : 40, 420, f > 0 ? 34 : 40));
+        const root = handC.clone().addScaledVector(dir, 250).addScaledVector(side, f * 40);
+        // the finger curves in toward its partner (the hooked tips meet when closed)
+        const inward = side.clone().multiplyScalar(-f).addScaledVector(fd, f * side.dot(fd)).normalize();
+        const zAx = new THREE.Vector3().crossVectors(inward, fd).normalize();
+        tmpM.makeBasis(inward.clone().multiplyScalar(FINGER), fd.clone().multiplyScalar(FINGER), zAx.multiplyScalar(FINGER)).setPosition(root);
         fingers.setMatrixAt(fi++, tmpM);
-        if (f > 0) tips[s < 0 ? 0 : 1].copy(root).addScaledVector(fd, 400);
+        if (f > 0) tips[s < 0 ? 0 : 1].copy(root).addScaledVector(fd, FINGER * 0.95).addScaledVector(inward, FINGER * 0.15);
       }
     }
     rods.count = ri; rods.instanceMatrix.needsUpdate = true;

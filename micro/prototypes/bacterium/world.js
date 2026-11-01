@@ -274,7 +274,7 @@ export function createWorld() {
         } else {
           amoeba.x += Math.sin(t * 0.05) * 0.3 * dt;
         }
-        amoeba.x = Math.max(HALF_X + 50, Math.min(W.x1 - 10, amoeba.x)); // it never creeps back into the first half
+        amoeba.x = Math.max(HALF_X + 60, Math.min(W.x1 - 10, amoeba.x)); // it never creeps back into the first half
         amoeba.y = Math.max(W.slabY - 10, Math.min(W.y1 - 40, amoeba.y));
       }
       const sq = Math.sqrt(dt);

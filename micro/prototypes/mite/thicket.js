@@ -12,7 +12,7 @@
 //   in front aside (a box mite does not eat springtails: it scatters them).
 //   Members never attack. Closed up (Y), the crowd flows round the capsule.
 // - The owner: moving and attacking clear the way without much difficulty,
-//   and nothing here is timed. The drag never stops you (at worst ~half
+//   and nothing here is timed. The drag never stops you (at worst half
 //   speed), the scramble (B) halves it, and two or three bites open a lane.
 // - The gamasid hunts springtails here (it is busy: S38 in the atlas); now and
 //   then it eats one that is in front of its chelicerae.
@@ -60,7 +60,7 @@ export function springtailGeometry() {
   // antennae: forward and up, four segments
   for (const s of [-1, 1]) {
     let a = [96, 14, s * 10];
-    for (const [dx, dy, dz, r] of [[18, 10, 9, 5], [20, 6, 8, 4.2], [20, 2, 7, 3.6], [18, -2, 6, 3]]) {
+    for (const [dx, dy, dz, r] of [[22, 14, 10, 8], [24, 8, 10, 7], [24, 2, 8, 6], [22, -4, 6, 5]]) {
       const b = [a[0] + dx, a[1] + dy, a[2] + s * dz];
       rod(a, b, r);
       a = b;
@@ -69,10 +69,10 @@ export function springtailGeometry() {
   // three pairs of short legs, splayed to the ground (~-56 below the centre)
   for (const [x, k] of [[48, 0], [24, 1], [0, 2]]) for (const s of [-1, 1]) {
     const hip = [x, -14, s * 22], knee = [x + 6 - 8 * k, -30, s * 46], foot = [x + 10 - 14 * k, -54, s * 52];
-    rod(hip, knee, 6, 5); rod(knee, foot, 5, 2.6);
+    rod(hip, knee, 9, 8); rod(knee, foot, 8, 4);
   }
   // the furcula (springing organ), folded forward under the abdomen
-  for (const s of [-1, 1]) rod([-70, -22, s * 6], [-24, -30, s * 7], 5, 3);
+  for (const s of [-1, 1]) rod([-70, -22, s * 7], [-20, -32, s * 9], 7, 4.5);
   // the ventral tube (collophore)
   const vt = new THREE.CylinderGeometry(6, 8, 14, 6, 1); vt.translate(14, -32, 0); parts.push(vt);
   for (const g of parts) if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
@@ -85,7 +85,7 @@ export function springtailGeometry() {
  * world: from buildWorld (its thicket threads, thicketCut, thicketRegrow, foliage).
  * region: { x, z, r } (layout.js THICKET).
  */
-export function createThicket({ scene, world, tex, region, count = 170 }) {
+export function createThicket({ scene, world, tex, region, count = 120 }) {
   const R = 70; // a member's radius (µm): ~190 µm springtails
   const mat = gMaterial({ cls: CLS.NPC, tex: tex.cuticle, map: 'tri', scale: 70, bump: 1.2 });
   const mesh = new THREE.InstancedMesh(springtailGeometry(), mat, count);
@@ -123,8 +123,8 @@ export function createThicket({ scene, world, tex, region, count = 170 }) {
      * mites and the predator (all of them shove springtails aside); pred: the
      * predator (createMite) and whether it is free to feed (not hunting you).
      */
-    update(dt, bodies, { pred = null, predFree = false } = {}) {
-      if (!bodies.some((b) => near(b.position, 2800))) return; // nobody near: the crowd waits
+    update(dt, bodies, { pred = null, predFree = false, predBody = null } = {}) {
+      if (!bodies.some((b) => b !== predBody && near(b.position, 2800))) return; // no player near: the crowd waits
       crowd.update(dt, bodies);
       // the gamasid feeds on springtails in front of its chelicerae every few seconds
       if (pred && predFree && near(pred.center, 100) && (predT -= dt) <= 0) {
@@ -137,7 +137,7 @@ export function createThicket({ scene, world, tex, region, count = 170 }) {
       world.thicketRegrow(dt, bodies.map((b) => b.position));
     },
     /**
-     * How much the thicket slows a mite at `center` (1 free .. ~0.45): the
+     * How much the thicket slows a mite at `center` (1 free .. 0.5): the
      * threads across its body and the springtails pressing on it. `threads`
      * and `press` are returned too, for the HUD and the checks.
      */
@@ -146,15 +146,15 @@ export function createThicket({ scene, world, tex, region, count = 170 }) {
       if (!near(center, 300)) return out;
       for (const st of strands) {
         if (st.cut || st.mid.distanceTo(center) > st.half + 200) continue;
-        if (strandDist(st, center) < 150) out.threads++;
+        if (strandDist(st, center) < 120) out.threads++;
       }
       const M = crowd.members;
       for (let i = 0; i < M.count; i++) {
         if (!M.alive(i)) continue;
         const dx = M.x[i] - center.x, dz = M.z[i] - center.z;
-        if (dx * dx + dz * dz < 300 * 300) out.press++;
+        if (dx * dx + dz * dz < 330 * 330) out.press++; // in contact (the crowd keeps them ~260 out)
       }
-      out.k = Math.max(0.45, 1 / (1 + 0.16 * out.threads + 0.04 * out.press));
+      out.k = Math.max(0.5, 1 / (1 + 0.09 * out.threads + 0.03 * out.press));
       return out;
     },
     /** Something to clear in front of the mouth (threads or springtails)? */

@@ -118,6 +118,7 @@ export class View {
         uTips: { value: Array.from({ length: 5 }, () => new THREE.Vector4()) },
         uUroid: { value: new THREE.Vector3() }, uFlat: { value: 1 }, uTime: { value: 0 }, uDrain: { value: 0 },
         uTint: { value: new THREE.Vector4(0, 0, 0, 0) },
+        uLook: { value: new THREE.Vector4(0, 1, 1, 0) },
       },
     });
     c.bodyQuad = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), c.bodyMat);
@@ -158,6 +159,11 @@ export class View {
     if (i <= 0) return;
     this.cells.splice(i, 1);
     for (const o of [c.maskGeo, c.maskMat, c.granGeo, c.bodyQuad.geometry, c.bodyMat, c.granMat, c.sdfTex]) o.dispose();
+  }
+
+  /** A cell's own look: olive (extra olive endoplasm, 0 = A. proteus), rim (clear rim width scale), grain (granular texture contrast). */
+  setLook(c, { olive = 0, rim = 1, grain = 1 } = {}) {
+    c.bodyMat.uniforms.uLook.value.set(olive, rim, grain, 0);
   }
 
   /** A player's colour as a faint tint of the cell (strength 0: none). */

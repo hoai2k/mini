@@ -13,9 +13,9 @@ import { Cytoplasm } from './cytoplasm.js';
 import { SPECIES, makePrey, PREY_OPTS } from './prey.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, DIC_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
 import { squirmerFlow } from '../shared/techniques/paramecium-squirmer.js';
-import { buildWorld, worldColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules } from './world.js';
+import { buildWorld, worldColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules, ROUTE, along, progressOf, CHAOS_AT } from './world.js';
 import { View } from './render.js';
-import { Chaos } from './chaos.js';
+import { Chaos, CHAOS_R, CHAOS_WAKE } from './chaos.js';
 import { rng, TAU, clamp } from './util.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createPlayers } from '../shared/players.js';
@@ -106,7 +106,7 @@ const CONTROLS = {
     note: 'Release a stick to let that pseudopod flow back. Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
   },
 };
-const WAY_NOTE = ' Crawl right to the green Paramecium bursaria swimming low over the slide (the brass chevron) to zoom in to the pool; the Sphagnum leaf tip to the left (the ring) is the way back up: Y there. Other controllers join with any button.';
+const WAY_NOTE = ' Crawl up and to the right to the green Paramecium bursaria swimming low over the slide (the brass chevron) to zoom in to the pool; the Sphagnum leaf tip to the left (the ring) is the way back up: Y there. Other controllers join with any button.';
 const hud = mountHud({
   title: 'Amoeba',
   sub: 'Amoeba proteus (~450 µm) on a wet-mount slide. Push out pseudopods, chase down ciliates, cup round them and fill in. Mind the fungal traps.',
@@ -394,13 +394,14 @@ function captureRespawn(c) {
   if (byChaos) { chaos.state = 'dormant'; chaos.fight.reset(); chaos.restUntil = chaos.t + 40; } // sated
   if (cells.length > 1) respawnCell(c);
   else {
-    // the start spot furthest from every trap hypha
-    const spots = [[0, 0], [900, -520], [-760, 640], [320, 980], [-300, -900]];
-    let best = spots[0], bd = -1;
-    for (const [x, y] of spots) {
-      const d = Math.min(...trapList().map((o) => Math.hypot(o.x - x, o.y - y)));
-      if (d > bd) { bd = d; best = [x, y]; }
-    }
+    // The spot on the way furthest along, but not past where it was caught,
+    // that is well clear of every trap hypha and of Chaos.
+    const at = progressOf(c.body.cx, c.body.cy);
+    const spots = [[0, 0], [1300, -200], [2200, 150]].map(([s, l]) => along(s, l));
+    const safe = ([x, y]) => trapList().every((o) => Math.hypot(o.x - x, o.y - y) > o.L / 2 + 600)
+      && Math.hypot(chaos.body.cx - x, chaos.body.cy - y) > CHAOS_R + 900;
+    let best = spots[0];
+    for (const p of spots) if (progressOf(p[0], p[1]) <= at + 0.05 && safe(p)) best = p;
     c.s = Object.assign(newCellState(), { eaten: c.s.eaten });
     Object.assign(c.R, newRoles());
     makeBody(c, best[0], best[1]);
@@ -573,6 +574,12 @@ F({ id: 'preyFlow', group: 'Borrowed', label: 'Prey: squirmer flow round swimmer
 // --- prey ------------------------------------------------------------------
 const MIX = ['chilomonas', 'chilomonas', 'chilomonas', 'chilomonas', 'chilomonas', 'chlamydomonas', 'chlamydomonas', 'chlamydomonas',
   'tetrahymena', 'tetrahymena', 'tetrahymena', 'colpidium', 'colpidium', 'paramecium'];
+// The first part of the way is calm: only the slow flagellates (easy prey);
+// the fleeing ciliates and the Paramecium turn up from EASY_UNTIL of the way on.
+const EASY = ['chilomonas', 'chilomonas', 'chilomonas', 'chlamydomonas', 'chlamydomonas'];
+const EASY_UNTIL = 0.4;
+const preyFor = (progress) => (progress < EASY_UNTIL ? rand.pick(EASY) : rand.pick(MIX));
+const isEasy = (key) => EASY.includes(key);
 
 function freeSpot(rMin, rMax) {
   for (let k = 0; k < 40; k++) {
@@ -692,8 +699,10 @@ function podExists(b, k) {
 function podList(b) {
   const out = [];
   b.pods.forEach((pod, k) => { if (podExists(b, k)) out.push({ k, a: angOf(b, pod), y: b.y[pod.tip], idle: pod.idle }); });
-  // an idle pseudopod right beside a steered one is the same lobe
-  return out.filter((c) => !c.idle || !out.some((o) => !o.idle && ringGap(b.pods[o.k].tip, b.pods[c.k].tip) < 12));
+  // Two tips on the same lobe are one pseudopod: keep the steered one, or the stronger.
+  const same = (c, o) => ringGap(b.pods[o.k].tip, b.pods[c.k].tip) < 12;
+  const better = (o, c) => (o.idle !== c.idle ? !o.idle : b.pods[o.k].s > b.pods[c.k].s || (b.pods[o.k].s === b.pods[c.k].s && o.k < c.k));
+  return out.filter((c) => !out.some((o) => o !== c && same(c, o) && better(o, c)));
 }
 /** A steered slot for a new pseudopod (free, or a new one, or the one with least left). */
 function steeredSlot(b, avoid) {
@@ -710,9 +719,13 @@ function steeredSlot(b, avoid) {
 const held = () => [R.sel, R.adj].filter((v) => v != null);
 /** Start a pseudopod towards (dx, dy) (from membrane node `tip` if given). Returns its index. */
 function newPod(b, dx, dy, tip = null) {
+  // Where the membrane stands out furthest that way is often a pseudopod already: take that one.
+  const t = tip != null && tip >= 0 ? tip : b.pickTip(dx, dy);
+  const there = podList(b).find((c) => c.k !== R.sel && c.k !== R.adj && ringGap(b.pods[c.k].tip, t) < 12);
+  if (there) return adopt(b, there.k);
   const k = steeredSlot(b, held());
   const p = b.pods[k];
-  Object.assign(p, { tip: tip != null && tip >= 0 ? tip : b.pickTip(dx, dy), dx, dy, s: 0, target: 0, ret: 0, active: false, rad: undefined, cut: undefined });
+  Object.assign(p, { tip: t, dx, dy, s: 0, target: 0, ret: 0, active: false, rad: undefined, cut: undefined });
   return k;
 }
 /** Selecting an idle pseudopod moves it into a steered slot (same tip, same reach). */
@@ -1032,10 +1045,16 @@ function stepPrey(dt, col) {
       }
     }
     if (S.respawn && Math.hypot(p.x - nb.cx, p.y - nb.cy) > 1500) {
+      // Lost far behind: it turns up again round a player, as what lives there.
       const k = cur;
       use(cells[(rand() * cells.length) | 0]);
-      const [x, y] = freeSpot(700, 950);
-      p.x = x; p.y = y; p.th = Math.atan2(body.cy - y, body.cx - x) + rand.range(-0.8, 0.8);
+      const key = Object.keys(SPECIES).find((n) => SPECIES[n] === p.sp);
+      const want = progressOf(body.cx, body.cy) < EASY_UNTIL ? (isEasy(key) ? key : preyFor(0)) : key;
+      if (want !== key) { despawn(p); const q = spawn(want, 700, 950); q.th = Math.atan2(body.cy - q.y, body.cx - q.x) + rand.range(-0.8, 0.8); }
+      else {
+        const [x, y] = freeSpot(700, 950);
+        p.x = x; p.y = y; p.th = Math.atan2(body.cy - y, body.cx - x) + rand.range(-0.8, 0.8);
+      }
       use(k);
     }
   }
@@ -1247,7 +1266,8 @@ function simStep(dt, granules = true) {
   for (const pe of S.pending.filter((x) => x.t <= 0)) {
     // respawned prey turn up round any player
     use(cells[(rand() * cells.length) | 0]);
-    spawn(pe.key, 750, 1000);
+    const early = progressOf(body.cx, body.cy) < EASY_UNTIL;
+    spawn(early && !isEasy(pe.key) ? preyFor(0) : !early && isEasy(pe.key) && rand() < 0.5 ? preyFor(1) : pe.key, 750, 1000);
     use(cells[0]);
   }
   S.pending = S.pending.filter((x) => x.t > 0);
@@ -1456,12 +1476,13 @@ function syncCells() {
 
 // --- landmarks ----------------------------------------------------------------------
 // Forward: a green Paramecium bursaria (Chlorella symbionts) swimming low over
-// the slide, ~2.6 mm to the right of the start: reaching it with the membrane
+// the slide, ~4.9 mm up and to the right of the start (world.js ROUTE: room for
+// a calm first half and the hazards beyond halfway): reaching it with the membrane
 // zooms in to the pool (the camera follows it out, §2.6/§3 of the design).
 // Backdoor: a Sphagnum leaf tip dipping into the pool, ~2.3 mm to the left,
 // with the water film's edge round it: dwelling there, Y goes back up to the
-// tardigrade. About a minute of steady crawling each way; longer while hunting.
-const FWD_HOME = { x: 2600, y: 350 };
+// tardigrade. About two minutes of steady crawling to the way on, one back.
+const FWD_HOME = (([x, y]) => ({ x, y }))(along(ROUTE.length));
 const BACK_TIP = { x: -2300, y: -260 };
 const BACK_LABEL = 'Back to the tardigrade';
 const beacon = makePrey('bursaria', FWD_HOME.x, FWD_HOME.y, 0.6, rng(29));
@@ -1629,11 +1650,12 @@ resize();
 cells.push(firstCell(players.get(0)));
 use(cells[0]);
 // The boss: the giant amoeba Chaos, between the start and the P. bursaria.
-const chaos = new Chaos(rng(41), view, 1750, 300);
+const chaos = new Chaos(rng(41), view, ...along(CHAOS_AT.s, CHAOS_AT.l));
+chaos.restAt = (([x, y]) => ({ x, y }))(along(CHAOS_AT.s - 250, CHAOS_AT.l + 1500)); // it flows off to the side to rest
 const CH = { gauge: null };
 
 // Warm up: a polypodial resting cell, prey scattered round it.
-for (const k of MIX) spawn(k);
+for (let i = 0; i < 10; i++) spawn(preyFor(0));
 ambient = [makePrey('paramecium', -500, 300, 0.4, rand), makePrey('colpidium', 400, -200, 2.4, rand)];
 for (const a of ambient) a.layer = 'above';
 for (let i = 0; i < 600; i++) {
@@ -1822,9 +1844,53 @@ function renderAll(dt) {
   warnEl.style.display = warnEl.textContent ? 'block' : 'none';
   updateOverlay();
   marks.begin();
-  marks.drawSplit(split, { x: beacon.x, y: beacon.y, z: 0 }, { kind: 'forward', label: 'Pool', range: 4500 });
+  marks.drawSplit(split, { x: beacon.x, y: beacon.y, z: 0 }, { kind: 'forward', label: 'Pool', range: 7000 });
   marks.drawSplit(split, { x: BACK_TIP.x, y: BACK_TIP.y, z: 0 }, { kind: 'backdoor', label: 'Leaf', range: 4500 });
   if (cells.length > 1) drawRings(L, innerWidth / fieldW);
+  drawPodMarks(L);
+}
+
+/**
+ * Select and steer: a subtle mark on each player's selected pseudopod (R) and,
+ * with LT held, the neighbouring one (L): a thin line along the membrane round
+ * its tip, a short tick and the stick's letter, in the player's colour.
+ */
+function drawPodMarks(L) {
+  if (S.scheme !== 'select') return;
+  const cv = marks.canvas, g = cv.getContext('2d');
+  const k = cv.width / (cv.clientWidth || innerWidth);
+  g.save();
+  g.setTransform(k, 0, 0, k, 0, 0);
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  g.font = '700 11px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  for (const c of cells) {
+    if (c.caught.active || c.p.waiting) continue;
+    const b = c.body, reg = L.regions.find((r) => r.slot === c.slot);
+    g.save();
+    if (L.views.length > 1 && reg) { g.beginPath(); reg.polygon.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip(); }
+    for (const [key, letter] of [['sel', 'R'], ['adj', 'L']]) {
+      const pk = c.R[key];
+      if (pk == null || !podExists(b, pk)) continue;
+      const tip = b.pods[pk].tip;
+      // along the membrane, 8 µm outside it, either side of the tip
+      g.beginPath();
+      for (let r = -8; r <= 8; r++) {
+        const i = (tip + r + N) % N;
+        const [sx, sy] = toScreen(b.x[i] + b.nx[i] * 8, b.y[i] + b.ny[i] * 8, c.slot);
+        if (r === -8) g.moveTo(sx, sy); else g.lineTo(sx, sy);
+      }
+      g.strokeStyle = c.p.color; g.globalAlpha = letter === 'R' ? 0.7 : 0.6; g.lineWidth = 2;
+      g.stroke();
+      const [ax, ay] = toScreen(b.x[tip] + b.nx[tip] * 12, b.y[tip] + b.ny[tip] * 12, c.slot);
+      const [bx, by] = toScreen(b.x[tip] + b.nx[tip] * 13, b.y[tip] + b.ny[tip] * 13, c.slot);
+      const dx = bx - ax, dy = by - ay, dl = Math.hypot(dx, dy) || 1, ux = dx / dl, uy = dy / dl;
+      g.beginPath(); g.moveTo(ax, ay); g.lineTo(ax + ux * 7, ay + uy * 7); g.lineWidth = 1.5; g.stroke();
+      g.globalAlpha = 0.9; g.fillStyle = c.p.color;
+      g.fillText(letter, ax + ux * 15, ay + uy * 15);
+    }
+    g.restore();
+  }
+  g.restore();
 }
 
 /** With more than one player: a faint broken ring in each player's colour round their amoeba, and a name tag. */
@@ -1936,6 +2002,20 @@ window.__micro = {
     body.grid.build(body.x, body.y, N);
   },
   traps: trapList, chaos,
+  /** Where the challenges start, measured from the start along the way (µm). */
+  route() {
+    const half = ROUTE.length / 2;
+    const traps = trapList().map((o) => {
+      const c = Math.cos(o.ang), s = Math.sin(o.ang), h = o.L / 2;
+      let near = Infinity, nearS = Infinity;
+      for (let t = -h; t <= h; t += 5) { const x = o.x + c * t, y = o.y + s * t; near = Math.min(near, Math.hypot(x, y)); nearS = Math.min(nearS, progressOf(x, y) * ROUTE.length); }
+      return { nearest: Math.round(near), along: Math.round(nearS) };
+    });
+    const cd = Math.hypot(chaos.post.x, chaos.post.y);
+    return { length: ROUTE.length, half, forward: Math.round(Math.hypot(beacon.x, beacon.y)), forwardDeg: Math.round(Math.atan2(FWD_HOME.y, FWD_HOME.x) * 180 / Math.PI),
+      traps, chaos: { centre: Math.round(cd), membrane: Math.round(cd - CHAOS_R), wakes: Math.round(cd - CHAOS_WAKE) },
+      preyStart: prey.filter((p) => !p.captured).map((p) => p.sp.name) };
+  },
   /** Test hook: player `slot` presses X round one of Chaos's arms (reach: how close each side must be). */
   /** Test hook: Chaos engulfs player `slot` now. */
   engulf: (slot = 0) => startEngulf(cellOf(slot)),

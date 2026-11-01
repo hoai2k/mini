@@ -25,9 +25,7 @@ import { createBorrowedLooks, borrowedSwitches, AMOEBA_MODES, DIC_MODES, PARAMEC
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
-const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
 const PR = Number(new URLSearchParams(location.search).get('pr')) || 0; // testing override: a fixed pixel ratio, no dynamic resolution
-renderer.setPixelRatio(DPR);
 renderer.autoClear = false;
 
 const scene = new THREE.Scene();
@@ -124,10 +122,21 @@ let observer = false;
 const rig = { yaw: -0.6 - Math.PI / 6, pitch: 0.62, hfw: 1600, target: mite.center.clone() };
 const camFwd = new THREE.Vector3(), camRight = new THREE.Vector3();
 
-let renderScale = 1, dynRes = !PR, slowEma = 16, scaleT = 0, splitK = 1;
+// The quality governor (shared/quality.js) owns the resolution: min(DPR, 1.25)
+// alone, 1.0 when split, times its render scale (its step, and 0.7 / 0.55 for
+// two / three or more views). The SEM's G-buffer and composite both run at the
+// drawing-buffer size, so the scale goes into the pixel ratio. At its cheapest
+// effects level the detector-shadow march is skipped.
+let qScale = 1, qRatio = 1, qLevel = 2, shadowOn = true;
+const quality = createQuality({ renderer: null, key: 'mite', min: 0.35,
+  onChange: ({ scale, level, pixelRatio }) => {
+    qScale = scale; qRatio = pixelRatio; qLevel = level;
+    sem.toggles.shadow = shadowOn && level > 0;
+    resize();
+  } });
 function resize() {
   const w = innerWidth, h = innerHeight;
-  renderer.setPixelRatio(PR || DPR * renderScale * splitK);
+  renderer.setPixelRatio(PR || Math.max(0.2, qRatio * qScale));
   renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
@@ -401,7 +410,7 @@ F({ id: 'edge', group: 'Rendering', label: 'Edge effect', on: true,
   onChange: (v) => (sem.toggles.edge = v) });
 F({ id: 'shadow', group: 'Rendering', label: 'Detector shadowing (ETD)', on: true,
   about: 'The Everhart-Thornley detector sits off to the upper left: faces toward it are brighter, and a short screen-space march toward it darkens points with something in the way. Soft, never black.',
-  onChange: (v) => (sem.toggles.shadow = v) });
+  onChange: (v) => { shadowOn = v; sem.toggles.shadow = v && qLevel > 0; } });
 F({ id: 'ao', group: 'Rendering', label: 'Dark crevices (SSAO)', on: true,
   about: 'Electrons emitted in a crevice are reabsorbed by its walls. Normal-oriented screen-space ambient occlusion over a ~34 µm radius.',
   onChange: (v) => (sem.toggles.ao = v) });
@@ -415,9 +424,7 @@ F({ id: 'lines', group: 'Rendering', label: 'Scan-line jitter', on: true,
 if (!embed.active) F({ id: 'observer', group: 'Rendering', label: 'Observer mode (LS click)', on: false,
   about: 'A real micrograph data bar (HV, WD, mag, HFW, detector, true scale bar) and visible raster lines.',
   onChange: (v) => { observer = v; bar.style.display = v ? 'flex' : 'none'; sem.setRaster(v); } });
-F({ id: 'dynres', group: 'Rendering', label: 'Dynamic resolution', on: true,
-  about: 'Renders at a lower resolution while frames take longer than ~40 ms and climbs back when they are fast, so a slow GPU stays responsive.',
-  onChange: (v) => { dynRes = v && !PR; if (!v && renderScale !== 1) { renderScale = 1; resize(); } } });
+quality.addToFeatures(features);
 F({ id: 'dof', group: 'Optics', label: 'Infinite depth of field', fixed: true,
   about: 'An SEM beam converges at milliradians, so everything is sharp from front to back; no blur is applied anywhere.' });
 F({ id: 'field', group: 'Optics', label: 'Narrow scan field, true magnification', fixed: true,
@@ -481,14 +488,14 @@ F({ id: 'jump', group: 'Simulation', label: 'Jump (A), borrowed from jumping ori
 F({ id: 'pounce', group: 'Simulation', label: 'Pounce-bite (X in the air; a game stretch)', fixed: true,
   about: 'In a jump, X dives at the nearest enemy point ahead (the predator, or the pseudoscorpion\'s pincer arm): a strong bite on impact (two bites\' worth, a hit-pause and a rumble), then a hop back; a mistimed dive is a clear miss. Box mites neither jump nor pounce: a game stretch on the borrowed Zetorchestes jump.' });
 F({ id: 'boss', group: 'Simulation', label: 'Boss: pseudoscorpion (Neobisium-like)', fixed: true,
-  about: '~2.5 mm, a real hunter of mites in moss, lying in wait before the wet leaf axil. Dormant until you come within 1.25 mm after the calm opening. Its tell: pincers held open and dead still, then a snap, a two-pincer sweep, or a step-in and snap. Stay out of reach, close up (Y) to survive a grab (the venom tooth cannot get through), scramble (B) out of a grab in its strike window, and bite its pincer joints (X) while it recovers. About three good rounds and it backs into the moss. Its resolve is the brass gauge.' });
+  about: '~2.5 mm, a real hunter of mites in moss, lying in wait before the wet leaf axil, the last challenge on the way (layout.js). Dormant until you come within 0.9 mm of its post. Its tell: pincers held open and dead still, then a snap, a two-pincer sweep, or a step-in and snap. Stay out of reach, close up (Y) to survive a grab (the venom tooth cannot get through), scramble (B) out of a grab in its strike window, and bite its pincer joints (X) while it recovers. About three good rounds and it backs into the moss. Its resolve is the brass gauge.' });
 F({ id: 'bite', group: 'Simulation', label: 'Bite and graze (X)', fixed: true,
   about: 'The rostrum dips and the chelicerae work. In reach of the mouth: fungal spores (eaten) and hyphal branch tips (nibbled; they regrow), the box mite\'s real food. At the predator: a nip that makes it back off for 1.5 s (a game rule).' });
 F({ id: 'predator', group: 'Simulation', label: 'Predatory mite (Parasitidae)', on: true,
   about: 'A pale, flattened gamasid ~0.8 mm long with long legs, leg I held up as a feeler. More than twice your length. After a calm opening it is hungry only some of the time (see Threats); hungry, it searches toward you, and when it touches you or feels you scramble close by it runs you down at ~0.6 mm/s (faster than your walk, slower than your scramble; all game speeds). Resting, it wanders and ignores you. It strikes at legs: on the third grab it holds on, pulls you in and eats you (the whole catch is shown); close up (Y) while it holds you and its grip slips off. Each strike is telegraphed: it rears, leg I and the palps up, the chelicerae open (0.8 s). Closed up (Y), you are a smooth capsule its strike slides off; blocks, nips (X) and facing it wear its interest down until it runs off (adult ptychoid mites are nearly immune: Peschel et al. 2006).',
   onChange: (v) => { predOn = v; pred.setVisible(v); } });
 F({ id: 'grace', group: 'Simulation', label: 'Calm opening', choices: ['45 s', '20 s', '90 s', 'Off'], value: '45 s',
-  about: 'How long after a start (and after each restart) before the predatory mite gets hungry. It starts ~1.3 mm away and wanders meanwhile, ignoring you even if it bumps into you. shared/predation.js.',
+  about: 'How long after a start (and after each restart) before the predatory mite gets hungry. It lurks in its hunting ground past halfway (layout.js) and wanders meanwhile, ignoring you; entering its ground ends the calm at once. shared/predation.js.',
   onChange: (v) => { pace.grace = v === 'Off' ? 0 : parseFloat(v); hunger.reset(pace.grace); } });
 F({ id: 'hunger', group: 'Simulation', label: 'Predator hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
   about: 'Comes and goes: after the calm opening it is hungry for ~18-32 s at a time, then rests (45-75 s after eating you, 15-30 s after you slip free, lose it or it gives up on your capsule); only a hungry predator searches toward you and hunts. Always: hungry from the end of the calm opening on. Never: it never hunts (for exploring and testing).',
@@ -988,8 +995,9 @@ function tick(dt, inputs) {
   // the crowd: every mite shoves springtails aside; the gamasid feeds on them when it is not after you
   thickBodies.length = 0;
   for (const P of recs()) if (!held(P)) thickBodies.push(bodyRef(P.slot, P.mite.center, 175));
-  if (predOn) thickBodies.push(bodyRef(9, pred.center, 330));
-  thicket.update(dt, thickBodies, { pred: predOn ? pred : null, predFree: predOn && !capture.active && ['wander'].includes(predAI.state) });
+  const predBody = predOn ? bodyRef(9, pred.center, 330) : null;
+  if (predBody) thickBodies.push(predBody);
+  thicket.update(dt, thickBodies, { pred: predOn ? pred : null, predBody, predFree: predOn && !capture.active && ['wander'].includes(predAI.state) });
   challenges(dt);
   const nip = recs().some((P) => P.play.nip);
   if (predOn && capture.active && cap.who && !cap.byBoss) {
@@ -1168,7 +1176,7 @@ let frames = 0, statT = 0;
 // ---------- split screen and the edge arrows ----------
 // The SEM composite (and a borrowed look) ends on the screen, so the split
 // copies each view from it (capture). Split views render at a lower
-// resolution (splitK), the composite costs per pixel.
+// resolution (the quality governor's split factor): the composite costs per pixel.
 const split = createSplitScreen(renderer, { capture: true });
 const marks = createLandmarks();
 const _vc = new THREE.Vector3();
@@ -1176,8 +1184,7 @@ function drawFrame(dt) {
   // a caught player's view follows the predator with its meal
   const eating = capture.active && ['eat', 'follow', 'fadeOut'].includes(capture.phase);
   split.update(recs().map((P) => ({ slot: P.slot, position: (eating && cap.who === P ? (cap.byBoss ? boss.center : pred.center) : P.mite.center).clone() })), { camera }, dt);
-  const k = split.views.length > 2 ? 0.55 : split.views.length > 1 ? 0.7 : 1;
-  if (k !== splitK) { splitK = k; resize(); }
+  quality.setSplitViews(split.views.length);
   const one = split.views.length === 1;
   const cut0 = shared.uCutP.value.clone();
   split.render(camera, (view) => {
@@ -1188,8 +1195,11 @@ function drawFrame(dt) {
       for (const s of view.slots) if (pls[s]) { _vc.add(pls[s].mite.center); n++; }
       if (n) shared.uCutP.value.copy(_vc.divideScalar(n)).applyMatrix4(camera.matrixWorldInverse);
     }
+    // the screen pass is scissored to this view's region by the split; the G-buffer too
+    if (!one) split.scissor(view, sem.target);
     renderView(dt);
   });
+  split.unscissor(sem.target);
   shared.uCutP.value.copy(cut0);
   marks.begin();
   marks.drawSplit(split, props.forward, { kind: 'forward', label: 'Water', range: 4000 });
@@ -1227,7 +1237,7 @@ function updateText(d) {
   const fol = world.foliage.stats;
   const pst = predOn ? `predator ${capture.active ? `CAPTURE ${capture.phase}` : predAI.state === 'hunt' ? 'HUNTING' : predAI.state === 'recoil' ? 'recoiling' : 'wandering'} ${predAI.dist.toFixed(0)} µm · ${hunger.state} ${hunger.left.toFixed(0)} s` : '';
   const info = renderer.info.render;
-  hud.stats(`${MODES[sem.mode]}${renderScale < 1 ? `  (res ${(renderScale * 100).toFixed(0)}%)` : ''}\nHFW ${rig.hfw.toFixed(0)} µm   mag ${mag.toFixed(0)}x\n${st}\n${stamText(play)}   legs grabbed ${play.hurt}/3   grazed ${play.grazed}\n${pst}\nblades bending ${fol.moving}   pen ${mite.st.pen.toFixed(0)} µm\n${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
+  hud.stats(`${MODES[sem.mode]}${qScale < 1 ? `  (res ${(qScale * 100).toFixed(0)}%)` : ''}\nHFW ${rig.hfw.toFixed(0)} µm   mag ${mag.toFixed(0)}x\n${st}\n${stamText(play)}   legs grabbed ${play.hurt}/3   grazed ${play.grazed}\n${pst}\nblades bending ${fol.moving}   pen ${mite.st.pen.toFixed(0)} µm\n${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
   if (observer) {
     const sb = niceScale(rig.hfw);
     const px = (sb / rig.hfw) * innerWidth;
@@ -1261,7 +1271,10 @@ const api = {
     if (!multi()) rig.target.copy(P.mite.center);
     return true;
   },
-  fight, fightLog, boss,
+  fight, fightLog, boss, thicket, quality,
+  /** Where each challenge first started: [{ kind, slot, s (µm along the route), frac, t }]. */
+  challenges: challengeLog,
+  plan: { route: ROUTE, along, progress, predZone: PRED_ZONE, thicket: THICKET, boss: BOSS_POST, forward: FORWARD },
   /** Testing: player `slot` near the boss's post, the calm over: it wakes. */
   bossFight(slot = 0) { const P = pls[slot] || P1; pace.mode = 'Always'; hunger.reset(0); hunger.update(0.01); boss.reset(); predAI.reset(...PRED_START); pace.mode = 'Never'; const b = boss.post; P.mite.place(b.x + b.ux * 1150, b.z + b.uz * 1150, Math.atan2(b.uz, -b.ux)); rig.target.copy(P.mite.center); hunger.reset(0); hunger.update(0.01); },
   /** Testing: face the boss's nearest pincer joint, within bite reach. */
@@ -1285,6 +1298,10 @@ const api = {
   },
   /** Testing: calm the predator again (wandering, grooming). */
   calm() { pace.mode = 'Never'; predAI.reset(...PRED_START); predAI.rear = 0; },
+  /** Testing: player `slot` presses X (bite / graze / clear, by what is in front). */
+  bite(slot = 0) { const P = pls[slot] || P1; withRec(P, biteNow); return P.play.act || null; },
+  /** Testing: the thicket's drag on player `slot` now ({ k, threads, press }). */
+  drag(slot = 0) { const P = pls[slot] || P1; return { ...thicket.drag(P.mite.center) }; },
   /** Testing: what player `slot` is doing. */
   me(slot = 0) { const P = pls[slot] || P1; return { act: P.play.act || null, nips: P.play.nips || 0, grazed: P.play.grazed, mode: P.mite.mode, hurt: P.play.hurt }; },
   /** Testing: put a spore right in front of player `slot`'s mouth. */
@@ -1357,13 +1374,7 @@ function frame() {
   if (gpuBusy()) return;
   const raw = now - lastSubmit;
   lastSubmit = now;
-  slowEma += (raw - slowEma) * 0.25;
-  scaleT += raw;
-  if (dynRes && scaleT > 300) {
-    if (raw > 120 && renderScale > 0.26) { renderScale = Math.max(0.25, renderScale * 0.6); resize(); scaleT = 0; }
-    else if (slowEma > 40 && scaleT > 800 && renderScale > 0.26) { renderScale = Math.max(0.25, renderScale * 0.8); resize(); scaleT = 0; }
-    else if (slowEma < 20 && renderScale < 1 && scaleT > 2500) { renderScale = Math.min(1, renderScale * 1.15); resize(); scaleT = 0; }
-  }
+  if (!PR) quality.update(raw / 1000);
   const d = placeCamera(dt);
   drawFrame(dt);
   fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);

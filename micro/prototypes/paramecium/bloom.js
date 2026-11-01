@@ -44,7 +44,7 @@ export function createBloom(scene) {
   const R = 7; // member radius (µm)
   const geo = new THREE.SphereGeometry(1, 12, 8);
   geo.scale(R * 1.15, R * 0.95, R * 0.95); // a little egg, long axis along its heading (+x)
-  const mat = volumeMaterial({ dn: 0.03, scatter: 1.1, absorb: [0.012, 0.0028, 0.014], centred: true, rimPow: 2 });
+  const mat = volumeMaterial({ dn: 0.03, scatter: 1.1, absorb: [0.022, 0.0048, 0.026], centred: true, rimPow: 2 });
   // tiers: [y0, y1, count]; more cells toward the surface (the coverslip)
   const TIERS = [[20, 220, 380], [220, 430, 520], [430, DEPTH - 15, 760]];
   const tiers = TIERS.map(([y0, y1, count], k) => {
@@ -83,7 +83,7 @@ export function createBloom(scene) {
 
   let time = 0;
   const api = {
-    group, tiers, BLOOM,
+    group, tiers, BLOOM, on: true,
     inside,
     /** The bloom's current at p (µm/s, vertical only): down in a plume, gently up elsewhere. 0 outside. */
     currentAt(p) {

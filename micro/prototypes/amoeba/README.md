@@ -12,10 +12,41 @@ Open `micro/prototypes/amoeba/` (the invite gate is off on localhost).
 
 ## Controls (Xbox controller; keyboard in brackets)
 
-Two schemes, chosen in Features → Controls. **Lead and follow** is the default;
-**Two pseudopods (classic)** behaves exactly as before.
+Three schemes, chosen in Features → Controls. **Select and steer** is the
+default (the owner's design); **Lead and follow** and **Two pseudopods
+(classic)** behave exactly as before.
 
-### Lead and follow (default)
+### Select and steer (default)
+
+RS always steers the **selected** pseudopod and LS moves the body
+(twin-stick), unless LT is held. The selected pseudopod carries a subtle mark
+in the player's colour: a thin line along the membrane round its tip, a tick
+and the letter **R**; while LT is held its neighbour carries an **L**. The
+corner says what each stick holds (`RS: pseudopod R (3 out) · LS: body`).
+
+| Button | Action |
+| --- | --- |
+| RS (arrows) | Steers the selected pseudopod (area conserved). With none selected, grows one in its direction and selects it. Pushed more than ~70° from the selected one's base (on a fresh push, or held there for 0.15 s), starts a new pseudopod there and selects it (or selects the one already standing out that way) |
+| LS (WASD) | Moves the bulk of the cell that way (the rear contracts, the endoplasm streams forward). With RS held as well, the cell travels behind its pseudopod |
+| LT (Z), held | LS steers the **adjacent** pseudopod instead: the neighbour round the outline towards the top of the screen (anticlockwise on the right half of the cell, clockwise on the left), or towards the bottom if the selected one is the topmost. With no neighbour there, one sprouts 55° round (above, unless the selected one already points within 40° of straight up) and buds a little so you see it. Let go: LS moves the body again and that pseudopod flows slowly back |
+| RT (X) | Selects the next pseudopod **clockwise** round the outline (idle pseudopods count: selecting one takes it over). With LT held the pair moves together: the new selection's neighbour becomes the L one. With RS held through the press, the new one leans towards the stick (at most 60° off its base) until the stick comes round |
+| LB (Q) | Spread out / relax |
+| RB (F) | Push harder |
+| LS click / RS click (C / V) | Fine focus down / up |
+
+A centred RS lets the selected pseudopod flow slowly back; it stays selected
+while it still stands out. After eating, the cup's pseudopods dissolve into
+the vacuole, nothing is selected, and an RS still held must be let go before
+it grows another. **Pinching Chaos**: hold LT and close RS and LS round one of
+its arms from both sides (a pincer), then X.
+
+In code (`main.js`, `selectInput`, `cyclePods`, `pickAdjacent`): the soft body
+steers as many pseudopods as it is given (`Body.addPod`, up to 8 per cell), so
+a pseudopod let go keeps flowing back on its own while another is steered.
+The R/L marks are drawn on the landmarks overlay (`drawPodMarks`), clipped to
+each player's region when the screen is split.
+
+### Lead and follow
 
 At any moment one stick is the **pseudopod stick** and the other the **body
 stick**. With no pseudopod out, the first stick pushed grows one in its
@@ -46,11 +77,11 @@ still held keeps moving the body.
 | LT (Z) | Spread out / relax: the cell flattens (its footprint grows, since the volume is fixed), rounds up and its pseudopods relax |
 | LB / RB (Q / F) | Fine focus down / up: changes the sign and size of the defocus contrast and how blurred the layer above is |
 
-### Both schemes
+### All schemes
 
 | Button | Action |
 | --- | --- |
-| **A (Space)** | **Surge**: for 0.9 s every active pseudopod extends up to 2.5× faster and may run a little further ahead, the rear contracts harder and streaming surges to the tips, so the whole cell lunges; recharges over 2.4 s (the `dash` meter). With no stick held it surges along the cell's heading (in lead and follow, the body flows on that way). Tears the membrane free of a fungal trap |
+| **A (Space)** | **Surge**: for 0.9 s every active pseudopod extends up to 2.5× faster and may run a little further ahead, the rear contracts harder and streaming surges to the tips, so the whole cell lunges; recharges over 2.4 s (the `dash` meter). With no stick held it surges along the cell's heading (in select and steer and lead and follow, the body flows on that way). Tears the membrane free of a fungal trap |
 | **X (E)** | **Close the food cup** round the prey it wraps (needs ≥ 190° of membrane round it): the rims advance and endoplasm floods in to fill round the prey until they meet. At a trap hypha: a pseudopod jab that cuts its tip. With your membrane round an arm of Chaos: pinch it off |
 | B (Shift) | Let go while closing; otherwise egest the oldest food vacuole at the uroid (a live, barely digested prey swims away). Near a threatening trap hypha (or stuck on one), hold to **stiffen** (defend) |
 | Y (R) | Labels (nucleus, contractile vacuole, uroid, hyaline caps, ectoplasm, endoplasm, prey with real sizes, trap hyphae). At the leaf tip (the backdoor) Y goes back up to the tardigrade instead |
@@ -91,9 +122,14 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
 
 The giant amoeba *Chaos*, multinucleate, an eater of smaller amoebae
 (`../../design/bosses.md`; *Chaos* eating *A. proteus* is plausible but not
-well documented), between the start and the green *P. bursaria*. The same soft
-body as yours at ~1.9× the width (~0.65 mm; real *Chaos* reaches 1–5 mm), with
-nine nuclei, slower.
+well documented), between the start and the green *P. bursaria*, beyond
+halfway. The same soft body as yours at ~1.9× the width (~0.65 mm; real
+*Chaos* reaches 1–5 mm), with nine nuclei, slower. Its look follows the
+delivered sheet (`../assets/reference-sheets/boss-chaos.webp`): broad, blunt,
+finger-like arms (its pseudopods are ~1.7× the player's in width), a thin
+clear rim, and olive-golden endoplasm packed with round refractile granules
+to the tips (4200 granules, mostly lipid-like spheres and food granules; an
+extra olive density and coarser granularity in the body shader, `uLook`).
 
 - Dormant until a player comes within ~950 µm after the calm opening; a brass
   **resolve** gauge shows while it is awake.
@@ -110,6 +146,27 @@ nine nuclei, slower.
   while the camera follows it carrying you off; then the fade and respawn.
 - It targets the nearest player; the amoebae push against its membrane.
 
+## The way on: a calm first half, the challenges beyond halfway
+
+The route (`world.js` `ROUTE`) runs from the start up and to the right to the
+green *P. bursaria*, 4.9 mm away (about 2 minutes of steady crawling). The
+first half is for learning to crawl: only easy prey (the slow flagellates
+*Chilomonas* and *Chlamydomonas*, which do not flee) live there, and nothing
+hunts. The fleeing ciliates and the *Paramecium* turn up from 40% of the way
+on (prey that respawn, or that are left far behind, come back as what lives
+where the player is). The hazards lie only beyond halfway (2.45 mm):
+
+- **The fungal traps**: three hyphae across the way, staggered so there is a
+  path through; their nearest points are 2.87–3.29 mm from the start.
+- ***Chaos***: centred 3.95 mm out; it wakes when a player comes within
+  950 µm, so not before 3.0 mm, and rests off to the side when beaten.
+- The landmark lies 0.95 mm past its centre, so you slip round it to reach it.
+
+Being caught brings a single player back at the furthest of three spots on
+the way (the start, 1.3 mm, 2.2 mm) that is not past where it happened and is
+well clear of the traps and Chaos. `window.__micro.route()` reports these
+distances.
+
 ## Landmarks (the way on and the way back)
 
 Both are things on the slide, drawn into the same optical property buffer as
@@ -118,7 +175,8 @@ each view while they are off screen: a brass chevron labelled Pool towards the
 way on, a hollow ring labelled Leaf towards the way back.
 
 - **Forward: a green *Paramecium bursaria*** swimming low over the slide,
-  about 2.6 mm to the right of the start: its Chlorella symbionts fill it with
+  about 4.9 mm up and to the right of the start (30° above the horizontal, so
+  the brass chevron points up and right from the first frame): its Chlorella symbionts fill it with
   green (`prey.js` `bursaria`, kind 5 in `PREY_FS`). It wanders in a loose
   circle round its spot and is not prey here. When any player's membrane comes
   within ~45 µm of it, `embed.landmark('forward')` is posted (once per visit):
@@ -133,8 +191,8 @@ way on, a hollow ring labelled Leaf towards the way back.
   when standalone), and Y there posts `embed.landmark('back')` instead of
   toggling the labels.
 - Steady crawling (both sticks held) covers ~35-40 µm/s on the ×10 clock, so
-  each is about a minute away in a straight line; a couple of minutes with
-  hunting and the traps.
+  the way on is about 2 minutes in a straight line (more with hunting, the
+  traps and Chaos) and the way back about a minute.
 
 ## Multiplayer (local, up to four)
 
@@ -154,12 +212,16 @@ Inside the Micro Zoom shell the roster from its menus is restored.
   `BODY_FS`, mostly in the clear ectoplasm rim), and a broken ring and name
   tag round each amoeba; each player's cup reticle is labelled.
 - **Rendering**: each amoeba is a cell layer in `render.js` (`addCell`): its
-  own membrane mask, body quad and granules, drawn one after another into the
-  same property buffer. The split screen (`../shared/splitscreen.js`, 2D mode:
+  own membrane mask, body quad and granules. Per view, the cells it can see
+  (Chaos too) go four at a time into one RGBA mask target, a channel each
+  (one clear, one pass, one MSAA resolve), then their bodies into the
+  property buffer. The split screen (`../shared/splitscreen.js`, 2D mode:
   a field drawn round a centre) composes each view into its own target
-  (`render({ target })`, render scale 0.75), and while split the property
-  buffers are drawn at 0.7 of the screen (`View.setScale`), so a split frame
-  costs well under N full frames. Extra amoebae carry 1300 granules.
+  (`render({ target })`, render scale 0.75), and while split the quality
+  governor draws the property buffers at 0.7 (2 views) or 0.55 (3–4) of its
+  scale, so a split frame costs well under N full frames. A joining amoeba
+  starts from a settled teammate's shape (turned), so a join costs no long
+  frame. Extra amoebae carry 1300 granules.
 - **The fungal traps** catch whoever touches them. Alone, the full catch and
   the Eaten card, as before; with others playing the drained player sees the
   whole sequence, then a fresh amoeba appears beside a teammate (no card).
@@ -276,9 +338,9 @@ Inside the Micro Zoom shell the roster from its menus is restored.
 
 ## Threats and pacing
 
-The only threat is the fungus; its pacing and its catch use the shared
-`shared/predation.js` (`createHunger`, `createCapture`), as in the other
-prototypes. The lead-and-follow controls are unchanged.
+The threats are the fungus and *Chaos*, both beyond halfway (see *The way
+on*); their pacing and catches use the shared `shared/predation.js`
+(`createHunger`, `createCapture`, `createFight`), as in the other prototypes.
 
 - **A calm opening.** For the first 45 s (and after every restart) there are
   no trap hyphae on the slide. Then they grow in from one end over 25 s (the
@@ -343,6 +405,32 @@ granules: fine texture inside the endoplasm, carried with the cell), MP-A03
 space, drawn in the blurred layer above; the procedural filaments and flakes
 above are hidden when it is present).
 
+## Performance
+
+Audited in `../../design/performance.md` (amoeba section, fixes A1–A6), all
+applied:
+
+- **Fixed steps**: 60 Hz, **at most 2 catch-up steps a frame** (the owner's
+  trade-off: on a slow machine the world slows rather than stutters). Every
+  step runs the soft bodies and distance grids; the granules (`Cytoplasm`)
+  run once a frame, on the last step, integrating the time skipped.
+- **Granules**: the crowding gradient is computed once per update on the
+  40×40 grid and sampled once per granule (it was four bilinear density
+  samples); the organelle list and tip caps are reused, not reallocated.
+- **Masks**: one mask pass per view instead of one per cell, cells outside a
+  view skipped.
+- **Halo blur**: only phase contrast and darkfield read it, so brightfield
+  and the immersive view skip its two passes (`amoeba-optics.js`).
+- **Join**: a new amoeba copies a settled teammate's shape; alone (a
+  respawn), its 90 warm-up steps are spread over the next frames.
+- **Quality governor** (`../shared/quality.js`, Features → Rendering): steps
+  the property buffers' scale down when frames run long (and up again), then
+  the effects level (granules drawn 2600 → 1800 → 1100, then no chromatic
+  fringes), and owns the pixel ratio (1.25 cap; 1.0 while split). `?q=high`
+  fixes it for measurements.
+- **Software GL** (SwiftShader, headless checks): the buffers at 0.5 of the
+  screen or less, like the other worlds' fallbacks. Players never see it.
+
 ## Features (Menu panel)
 
 | Group | Feature | Default |
@@ -356,6 +444,7 @@ above are hidden when it is present).
 | Rendering | Optical property buffer | always |
 | Rendering | Thickness dome from a distance grid | always |
 | Rendering | MSAA membrane mask | always |
+| Rendering | Quality governor (auto); Manual quality | on; High |
 | Rendering | Vignette, Sensor grain | on |
 | Body | Crumpled uroid, Hyaline caps | on |
 | Body | Volume conservation (area pressure) | on |
@@ -378,7 +467,7 @@ above are hidden when it is present).
 | World | Traps come and go (fungal hunger) | on |
 | Body | Membrane never crosses itself | always |
 | Body | Pinch-off (rare) | on |
-| Controls | Controls: Lead and follow (new), Two pseudopods (classic) | Lead and follow |
+| Controls | Controls: Select and steer, Lead and follow, Two pseudopods (classic) | Select and steer |
 | Controls | Rumble | on; Stick-driven pseudopods: always |
 
 Technique modules others can reuse (each documents its interface in its
@@ -452,8 +541,10 @@ cyto, prey, world, state, features }` plus test hooks: `input` (override
 the sticks), `press(name)`, `setMode(i)`, `pause()`, `renderOnce()`,
 `advance(seconds)` (simulate without rendering), `spawnPrey(kind, x, y)`,
 `clearPrey()`, `resetBody()`, `close()`, `surge` (the dash), `ctl`,
-`readInput()`, `roles` (`{ pod, body, branch, latch }`), `rolesText()`,
-`scheme('lead' | 'classic')`, `pinch(i, j)` (cut the ring as a hypha would)
+`readInput()`, `roles` (`{ pod, body, branch, latch, sel, adj }`), `rolesText()`,
+`pods(slot)` (select and steer: `{ sel, adj, list }`, each pseudopod's angle
+round the outline), `route()` (the challenges' distances from the start),
+`scheme('select' | 'lead' | 'classic')`, `pinch(i, j)` (cut the ring as a hypha would)
 and `fragments`; for multiplayer and the landmarks: `players`, `cells`,
 `split`, `layout`, `beacon` (the P. bursaria), `leaf`, `landmarks.log`
 (every landmark and near posted), `place(slot, x, y)`, `teleport('forward' |
@@ -465,9 +556,12 @@ following) and both catches were checked in Playwright; the scripted pinch
 test uses a relaxed reach (120 µm) because it does not drive the sticks. `body`, `cyto`, `capture` and `surge`
 are player 1's. Multiplayer was checked with mocked gamepads in Playwright:
 joins during play, 2 and 4 players splitting and merging, a catch in
-multiplayer, both landmarks standalone and in the shell. Headless (SwiftShader)
-this page drops to a few frames a second once the delivered images load, with
-or without these changes, so scripted presses there are held for over a second.
+multiplayer, both landmarks standalone and in the shell. Select and steer was
+checked with mocked pads: RS grows a pseudopod, RS >70° away starts and
+selects a new one, RT goes round clockwise and wraps, LT gives LS the
+adjacent pseudopod (or sprouts one above a lone right-side one), RT with LT
+moves the pair, LS without LT moves the body, two players steer
+independently, and LT + RS + LS round an arm of Chaos then X pinches it off.
 
 ## Sources
 
