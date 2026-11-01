@@ -45,13 +45,13 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
 | Folder | What it is | Published at |
 | --- | --- | --- |
 | `hopper/` | Hopper the Grasshopper | https://hoai2k.github.io/mini/hopper/ |
-| `kingdomofthefairies/` | Kingdom of the Fairies (includes the preserved Widow's Bay edition) | https://hoai2k.github.io/mini/kingdomofthefairies/ |
-| `bronzedrum/` | Bronze Drum | https://hoai2k.github.io/mini/bronzedrum/ |
+| `kingdomofthefairies/` | Kingdom of the Fairies (includes the preserved Widow's Bay edition); moved to the `art` repository (https://games.hoai.net/art/kingdomofthefairies/), so mini no longer deploys it (off in `deploy_config.json`) | — |
+| `bronzedrum/` | Bronze Drum; moved to the `art` repository (https://games.hoai.net/art/bronzedrum/), so mini no longer deploys it (off in `deploy_config.json`) | — |
 | `tankwars/` | Tank Wars | https://hoai2k.github.io/mini/tankwars/ |
 | `gliders/` | Gliders (Superflight-style gliding, 1–4 players split screen); not deployed (off in `deploy_config.json`), behind the invite gate | https://hoai2k.github.io/mini/gliders/ |
-| `icecreamcone/` | The Ice-Cream Cone Coot (a field guide of rare birds from Arnold Lobel's book, with a minigame for each) | https://hoai2k.github.io/mini/icecreamcone/ |
+| `icecreamcone/` | The Ice-Cream Cone Coot (a field guide of rare birds from Arnold Lobel's book, with a minigame for each); moved to the `art` repository (https://games.hoai.net/art/icecreamcone/), so mini no longer deploys it (off in `deploy_config.json`) | — |
 | `onemonster/` | One Monster After Another (after Mercer Mayer's book: play each monster as it snatches the letter from the last, as a side-scrolling Adventure or as minigames, alone or two players head to head); not deployed (off in `deploy_config.json`), behind the invite gate | https://hoai2k.github.io/mini/onemonster/ |
-| `fibreart/` | Fibre Art (a shifting collage after the fibre art, paintings and drawings of Hanneke de Neve: controllers move, stretch, swirl and dissolve the parts of her pictures) | https://hoai2k.github.io/mini/fibreart/ |
+| `fibreart/` | Fibre Art (a shifting collage after the fibre art, paintings and drawings of Hanneke de Neve: controllers move, stretch, swirl and dissolve the parts of her pictures); moved to the `art` repository (https://games.hoai.net/art/fibreart/), so mini no longer deploys it (off in `deploy_config.json`) | — |
 | `percyjackson/` | Half-Blood Quests (a Percy Jackson co-op dungeon crawler in the style of Minecraft Dungeons; style references in `reference/` are private) | https://hoai2k.github.io/mini/percyjackson/ |
 | `aiching/` | Ai-Ching (an I Ching reader styled like an AI prompt: a question seeds the cast and shapes the reading) | https://hoai2k.github.io/mini/aiching/ |
 | `eartrainer/` | Ear Trainer (hear a melody, play it back on a 1.5-octave piano; after the Chet app) | https://hoai2k.github.io/mini/eartrainer/ |
@@ -106,6 +106,12 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
   root files" step); games not listed deploy, and a missing or unreadable file
   deploys every game. Micro Zoom, Bookzam, One Monster After Another and
   Gliders are off today (they were the Prototype archive), so their pages 404.
+  The Ice-Cream Cone Coot, Bronze Drum, Kingdom of the Fairies and Fibre Art
+  are off too: they moved to the `art` repository (published at
+  https://games.hoai.net/art/), which is where their work happens now; mini's
+  folders are the copies they were made from. mini's library still shows
+  their cards, pointing at `../art/<game>/` (images included), so the library
+  filter, which matches `href="<game>/"`, leaves them in.
   Turning one back on means setting it to `true` (or deleting its line) and
   adding a card for it to `index.html`, since the archive's links are gone.
   Those four still carry the shared invite gate opened with
