@@ -68,6 +68,12 @@ try {
   await shot('1-title');
   step('title');
 
+  // A click away from Press Start starts the title music and stays on the title.
+  await tab.mouse.click(40, 360);
+  await until((s) => s.music.wanted === 'chamber' && s.music.playing.includes('chamber'), 8000, 'Clockwork Chamber Music after a click on the title');
+  if ((await state()).screen !== 'title') throw new Error('a click away from Press Start must stay on the title');
+  step('title music on a click, still on the title');
+
   await tab.keyboard.press('Enter');
   await until((s) => s.screen === 'menu', 5000, 'menu');
   await tab.waitForTimeout(900);

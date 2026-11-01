@@ -48,8 +48,10 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   The Phage uses the updated realistic false-light environment without glow.
   All images decode before the first scene appears; reduced motion holds a
   composed frame. [Plates and loop design](../design/title-zoom.html).
-  "Press Start" pulses. Any controller button, Enter, Space or a
-  click goes to the menu, asks for fullscreen and turns the sound on. Moving
+  "Press Start" pulses. A or Start on a controller, Enter, Space, P or a
+  click on Press Start goes to the menu, asks for fullscreen and turns the
+  sound on. Any other controller button or key, and a click anywhere else on
+  the title, only starts the title music (and the sound switch still applies). Moving
   the left stick enters the corner buttons (Instructions, Settings, Sound,
   Fullscreen).
 - **World select.** One card per world (MP-U01–U07 in the MP-G04 brass
@@ -192,10 +194,9 @@ No world posts landmarks yet. For each world (in its own folder):
   ambience. Songs crossfade on a screen change, loop, keep their place when
   left and resumed, and play through the master switch and volume at about
   -24 LUFS. A song that fails to load falls back to the old synthesised drone.
-  Browsers allow no sound before the first press, and the first press on the
-  title opens world select, so on a fresh visit the title is silent and its
-  song is heard on returning to the title (Back from world select, or Title
-  from the pause menu).
+  The title tries its song on load (some browsers allow that for a site the
+  visitor knows); otherwise any press that doesn't start the game, a stick
+  move, or a click away from Press Start starts it.
 - Fullscreen and sound need a user gesture: a controller button on the title
   is not one for the browser, so with a controller alone fullscreen may be
   refused (play carries on in the window and the Fullscreen button stays).
