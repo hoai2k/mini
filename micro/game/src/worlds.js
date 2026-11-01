@@ -58,7 +58,7 @@ export const WORLDS = [
     goal: 'Crawl out any way you like, eating easy prey and steering round fungal traps (stiffen with B, cut tips with X): ahead of you come fleeing ciliates (surge to catch them), then a patch with Paramecium caudatum, each a short crawl apart. Then the way on glows gold, guarded by the giant amoeba Chaos: lure it off, or pinch its arms (hold LT, close two pseudopods round one, X) until it gives up.',
     forward: 'A green Paramecium bursaria in a golden glow, at the opening toward open water, ahead of wherever you head.',
     back: 'A Sphagnum leaf tip dipping into the pool, to the left: dwell there and press Y to rise to the water film.',
-    controls: [['LS', 'Move the body · LT: steer the L pseudopod'], ['RS', 'Steer the selected (R) pseudopod · grow one'], ['A', 'Surge'], ['X', 'Close the cup / cut / pinch'], ['B', 'Let go / stiffen'], ['LT', 'Hold: LS takes the neighbouring pseudopod'], ['RT', 'Next pseudopod clockwise'], ['LB/RB', 'Spread / push'], ['D-pad ↑↓', 'Objective']],
+    controls: [['LS', 'Move the body · LT: steer the L pseudopod'], ['RS', 'Steer the selected (R) pseudopod · grow one'], ['A', 'Surge'], ['X', 'Close the cup / cut / pinch'], ['B', 'Let go / stiffen'], ['LT', 'Hold: LS takes the neighbouring pseudopod'], ['RT', 'Next pseudopod clockwise'], ['LB/RB', 'Spread / push'], ['Y', 'In a portal: enter it'], ['D-pad ↑↓', 'Objective']],
     facts: [
       'An amoeba keeps its volume: every arm it grows takes body from somewhere else.',
       'It cups prey without touching it, then closes the cup into a food vacuole.',

@@ -87,14 +87,14 @@ const hud = mountHud({
     camera: 'Turn the view round you (no up or down; it stays where you leave it)',
     analog: 'Drift into the view (RT) / back toward you (LT)',
     dash: 'Current gust (departure) · on a surface: push off with the fibres',
-    attack: 'Grab a protein with the leading fibres: gold three-lobed receptors bind and inject; violet pairs slip off · at an amoeba lobe: fibre jab',
+    attack: 'Grab a protein with the leading fibres: gold three-lobed receptors bind and inject (Host A\'s, the way on: Y); violet pairs slip off · at an amoeba lobe: fibre jab',
     defend: 'Defend: fold the fibres and slip (the amoeba gets no purchase; past clay and wrong hosts) / extend (grab receptors with X)',
-    special: 'Odds and receptor overlay (data, not optics)',
+    special: 'At Host A\'s gold receptor (the way on): enter it · elsewhere: odds and receptor overlay (data, not optics)',
     look: 'Look: realistic false light, Goodsell watercolour, cryo-EM greyscale, fluorescence',
     zoom: 'Zoom in / out',
     extra: [['Y', 'At the flagellum (backdoor): back to the sediment']],
   }),
-  note: 'Time is slowed about 20× (a phage crosses a host cell in ~0.04 s). Molecules strike you now and then: each knock is Brownian motion you can see. Head out any way you like: two decoy hosts come your way one after the other, then the way on: a golden glow on Host A\'s gold receptor, guarded by an amoeba\'s lobe (its light spills in from the edge of the view once placed). All through the water: humic flocs (fold your fibres, B, to slip through), big bacteria of other kinds, and violet UV shafts (touch one and you are damaged at once: keep out of the light). Lure it off, or fold and jab it (X) until it gives up, then grab the receptor (X) and get the whole genome in past the host\'s defences. Nothing runs down while you explore. Up to four players: press any button on another controller to join.',
+  note: 'Time is slowed about 20× (a phage crosses a host cell in ~0.04 s). Molecules strike you now and then: each knock is Brownian motion you can see. Head out any way you like: two decoy hosts come your way one after the other, then the way on: a golden glow on Host A\'s gold receptor, guarded by an amoeba\'s lobe (its light spills in from the edge of the view once placed). All through the water: humic flocs (fold your fibres, B, to slip through), big bacteria of other kinds, and violet UV shafts (touch one and you are damaged at once: keep out of the light). Lure it off, or fold and jab it (X) until it gives up, then press Y at the receptor to enter and get the whole genome in past the host\'s defences. Nothing runs down while you explore. Up to four players: press any button on another controller to join.',
 });
 const tag = Object.assign(document.createElement('div'), { className: 'ph-tag', textContent: 'DATA OVERLAY · receptors, defences and odds: data, not optics' });
 const label = Object.assign(document.createElement('div'), { className: 'ph-label' });
@@ -475,6 +475,8 @@ function tryGrab() {
     ringLog.push({ kind: 'turnedBack', t: +t.toFixed(2), slot: cur.slot });
     return;
   }
+  // the way on is entered on purpose, with Y (the owner, 1 Nov 2026: "Press Y to enter portal", never an automatic door)
+  if (aimed && aimed.compatible && world.portal && aimed.host === world.portal.host) { say('The way on: press Y to enter Host A.', 2000, true); P.grabCooldown = 0.25; return; }
   const protein = aimedProtein(P.pos, attachmentForward(P.q), world.proteins,
     (target) => world.toWorld(target.host, target.local));
   if (!protein) { cur.jab = 0.45; P.grabCooldown = 0.25; say('No protein in reach: aim the leading fibres closer to a protruding protein, then X to grab.', 1800, true); return; }
@@ -517,6 +519,51 @@ function updateGrab(dt) {
     say('The fibres close, but this protein does not fit: you slip off. Try a gold three-lobed receptor.', 2300, true);
     audio.play('bacterium/tumble', { volume: 0.65, rate: 0.8 }); curPad().rumble(100, 0.15, 0.25);
   }
+}
+
+// --- the portal (Host A's gold receptors): its area, the Y prompt and entering on purpose ---
+const PORTAL_REACH = 40;
+/** The nearest of Host A's gold receptors within reach of player m's phage (centre), or null; only once the way on is placed. */
+function portalReceptorNear(m) {
+  if (!world.portal || !outsideModes.includes(m.P.mode) || m.P.mode === 'clay' || m.c.active) return null;
+  const c = _pc.copy(UP).applyQuaternion(m.P.q).multiplyScalar(10 * m.P.scale).add(m.P.pos);
+  let best = null, bd = PORTAL_REACH;
+  for (const q of world.proteins) {
+    if (q.host !== world.portal.host || !q.compatible) continue;
+    const d = world.toWorld(q.host, q.local, _pq).distanceTo(c);
+    if (d < bd) { bd = d; best = q; }
+  }
+  return best;
+}
+const _pc = new THREE.Vector3(), _pq = new THREE.Vector3();
+/** Y in the portal's area: the fibres latch on the receptor and the injection starts; on guard, turned back. */
+function tryEnter() {
+  const protein = portalReceptorNear(cur);
+  if (!protein) return false;
+  if (guarded()) {
+    const n = world.dirToWorld(protein.host, protein.normal, new THREE.Vector3());
+    P.gust.addScaledVector(n, 60).addScaledVector(_v.subVectors(P.pos, world.amoeba.center).normalize(), 25);
+    curPad().rumble(160, 0.4, 0.5); audio.play('bacterium/tumble', { volume: 0.6, rate: 0.8 });
+    say('Turned back: the amoeba\'s lobe guards this receptor. Lure it away, or fold (B) and jab (X) until it gives up.', 3200, true);
+    ringLog.push({ kind: 'turnedBack', t: +t.toFixed(2), slot: cur.slot });
+    return true;
+  }
+  if (members().some((m) => m !== cur && ['grab', 'commit', 'inside', 'burst'].includes(m.P.mode) && (m.P.mode !== 'grab' || m.P.grab?.protein.compatible))) {
+    say('A teammate is already attaching or injecting: wait for them.', 1800, true); return true;
+  }
+  P.foldTarget = 0; P.fold = Math.min(P.fold, 0.5);
+  releaseAnchors(); P.host = null; P.canCommit = false;
+  P.grab = { protein, time: 0, from: P.pos.clone(), q: P.q.clone() };
+  P.mode = 'grab'; P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0);
+  ringLog.push({ kind: 'enter', t: +t.toFixed(2), slot: cur.slot });
+  audio.play('bacterium/tumble', { volume: 0.35, rate: 1.4 });
+  return true;
+}
+let nearPortal = false;
+/** The shell's "Y Enter the portal" prompt: on while any player is in the area and the guard is away. */
+function updatePortalPrompt(where) {
+  const on = where === 'outside' && !!world.portal && !guarded() && members().some((m) => portalReceptorNear(m));
+  if (on !== nearPortal) { nearPortal = on; embed.near('portal', on, 'Enter Host A (Y)'); }
 }
 
 // --- per-mode updates ---
@@ -1221,8 +1268,9 @@ function stepMember(m, dt, insideOwner, where) {
     const zs = ctl.zoomStep();
     if (zs) view.zoom = clamp(view.zoom - zs, 0, ZOOMS.length - 1);
     if (ctl.special.pressed()) {
+      // (the backdoor and the portal are far apart; whichever this player is in wins, else the overlay)
       if (where === 'outside' && P.inBack && outsideModes.includes(P.mode)) embed.landmark('back', { player: m.slot });
-      else { view.overlay = !view.overlay; inside.setRadar(view.overlay); }
+      else if (!(where === 'outside' && live && tryEnter())) { view.overlay = !view.overlay; inside.setRadar(view.overlay); }
     }
   }
   if (live) {
@@ -1437,6 +1485,7 @@ function frame(now) {
     enterPortal(lead);
   }
   if (card.classList.contains('show') && !blocked) for (const m of members()) { const c2 = players.controls(m.slot); if ((c2.dash.pressed() || c2.attack.pressed()) && lead.P.burstT > 4.6) { resetLevel(); break; } }
+  updatePortalPrompt(where);
   // backdoor prompt
   const backNow = where === 'outside' && members().some((m) => m.P.inBack);
   if (backNow !== nearBack) {
@@ -1559,7 +1608,7 @@ function goalLine(where) {
   if (P.damaged) return 'GOAL: co-infect a host with a partner (the other damaged phage nearby, or a teammate)';
   if (!world.portal) return `GOAL: explore, any direction · ${(P.pos.distanceTo(START) / 100).toFixed(1)} µm out · encounters ${director.index} of 3`;
   const d = Math.max(0, portalPoint().distanceTo(centreOf(_v)) - 10);
-  if (d < 70) return guarded() ? 'GOAL: the amoeba guards the gold receptor: lure it off, or fold (B) and jab (X)' : 'GOAL: the receptor is open: aim your fibres at it and press X';
+  if (d < 70) return guarded() ? 'GOAL: the amoeba guards the gold receptor: lure it off, or fold (B) and jab (X)' : 'GOAL: the receptor is open: press Y to enter Host A';
   return `GOAL: the golden glow on Host A · ${(d / 100).toFixed(1)} µm`;
 }
 
@@ -1599,6 +1648,8 @@ Object.assign(debug, {
     enterWalk(h);
   }),
   grab: p1(tryGrab),
+  /** Y in the portal's area (enter Host A on purpose). */
+  enter: p1(() => tryEnter()),
   commit: p1(() => { if (P.mode === 'walk') beginCommit(); }),
   inside: p1((id = 'A') => { if (id === 'A' && !world.portal) { debug.placePortal(); use(team[0]); } const h = world.hosts.find((x) => x.id === id); P.commitHost = h; P.mode = 'inside'; inside.start(h); inside.setRadar(view.overlay); P.fade = 0; }),
   win: p1(() => { if (P.mode === 'inside') { inside.S.nodes.length = 0; P.mode = 'burst'; P.burstT = 0; P.burstStarted = false; for (let i = 0; i < GENOME_NODES; i++) inside.S.nodes.push(new THREE.Vector3(Math.sin(i * 0.2) * 40, 52 - i * 1.0, 0)); inside.S.prev = inside.S.nodes.map((n) => n.clone()); } }),
@@ -1678,6 +1729,7 @@ Object.assign(debug, {
   reset: resetLevel,
   boss() { const b = inside.bossLock(); return b ? { state: b.state, match: +b.match.toFixed(2), d: +b.pos.distanceTo(inside.tip()).toFixed(1) } : null; },
 });
+Object.defineProperty(debug, 'nearPortal', { get: () => nearPortal }); // (is the Y prompt on)
 Object.defineProperty(debug, 'fight', { get: () => ({ state: fightState, interest: fight.interest }) });
 window.__micro = {
   get P() { return team[0].P; }, get t4() { return team[0].t4; }, get capture() { return team[0].capture; },

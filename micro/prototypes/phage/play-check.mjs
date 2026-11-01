@@ -10,7 +10,7 @@
 // fall below half the median (no empty side).
 // encounter: nothing happens while you hang about at the start; the director places the first decoy
 // ahead of a player drifting out, out of view (route.test.mjs runs the whole order headless); the guard
-// on the (forced) portal turns you back; driven off, the receptor lets you in; a UV shaft damages at
+// on the (forced) portal turns you back; driven off, X there only says to press Y, and Y lets you in; a UV shaft damages at
 // once and a second one destroys.
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
@@ -155,9 +155,15 @@ if (log.portal) {
   await D('driveOff'); await waitSim(2);
   await goNear();
   log.open = !(await D('portal')).guarded;
-  await D('grab'); await waitSim(1);
+  // (the way on is entered on purpose: X on it only says so; Y in its area shows the prompt and enters)
+  await D('grab'); await waitSim(0.3);
+  log.grabOnly = await ev(() => window.__micro.P.mode);
+  log.prompt = await ev(() => window.__micro.debug.nearPortal);
+  await D('enter'); await waitSim(1);
   log.after = await ev(() => window.__micro.P.mode);
-  if (!log.open || !['grab', 'commit', 'inside', 'walk'].includes(log.after)) fails.push(`open portal did not let the player in (open ${log.open}, mode ${log.after})`);
+  if (!log.open || !['grab', 'commit', 'inside', 'walk'].includes(log.after)) fails.push(`open portal did not let the player in with Y (open ${log.open}, mode ${log.after})`);
+  if (log.grabOnly !== 'drift') fails.push(`X on the open portal entered by itself (mode ${log.grabOnly}): it must wait for Y`);
+  if (!log.prompt) fails.push('no "Y Enter" prompt in the open portal\'s area');
 }
 // 5. a UV shaft damages at once (no drain), a second one destroys
 await D('reset'); await waitSim(0.5);

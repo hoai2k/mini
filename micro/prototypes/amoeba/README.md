@@ -87,7 +87,7 @@ still held keeps moving the body.
 | **A (Space)** | **Surge**: for 0.9 s every active pseudopod extends up to 2.5× faster and may run a little further ahead, the rear contracts harder and streaming surges to the tips, so the whole cell lunges; recharges over 2.4 s (the `dash` meter). With no stick held it surges along the cell's heading (in select and steer and lead and follow, the body flows on that way). Tears the membrane free of a fungal trap |
 | **X (E)** | **Close the food cup** round the prey it wraps (needs ≥ 190° of membrane round it): the rims advance and endoplasm floods in to fill round the prey until they meet. At a trap hypha: a pseudopod jab that cuts its tip. With your membrane round an arm of Chaos: pinch it off |
 | B (Shift) | Let go while closing; otherwise egest the oldest food vacuole at the uroid (a live, barely digested prey swims away). Near a threatening trap hypha (or stuck on one), hold to **stiffen** (defend) |
-| Y (R) | Labels (nucleus, contractile vacuole, uroid, hyaline caps, ectoplasm, endoplasm, prey with real sizes, trap hyphae). At the leaf tip (the backdoor) Y goes back up to the tardigrade instead |
+| Y (R) | Labels (nucleus, contractile vacuole, uroid, hyaline caps, ectoplasm, endoplasm, prey with real sizes, trap hyphae). At the leaf tip (the backdoor) Y goes back up to the tardigrade instead, and at the open portal (the game shows "Y Enter the portal") Y goes through it |
 | D-pad ← → (3 / 4) | Optics: brightfield, phase contrast, darkfield, hypothetical immersive lit view |
 | D-pad ↑ ↓ (1 / 2) | 20× objective (0.9 mm field) / 10× objective (1.8 mm field) |
 | Menu (Esc) | Features panel: what the prototype does, with switches |
@@ -259,12 +259,16 @@ everything else.
 - **Reaching it**: when any player's membrane comes within ~45 µm of the
   *P. bursaria*: on guard (Chaos within 480 µm of the portal, not beaten or
   leaving), you are turned back (a brief toast, the first time) and Chaos
-  turns on you; open, `enterPortal(cell)` runs, the one place the way on is
+  turns on you, and Y does what it does elsewhere. Open, it is never an
+  automatic door (the owner, 2026-11-01): while anyone is at it the game
+  shows "Y Enter the portal" (`embed.near('portal', true)`; standalone,
+  `shared/embed.js` shows it), and that player's **Y** (R) runs
+  `enterPortal(cell)` (instead of the labels), the one place the way on is
   triggered: the glow's burst, a golden bloom on the screen
   (`createPortalLight`), the portal chime and a rumble, then
   `embed.landmark('forward', { player })` (the shell runs the transition;
   standalone, `embed.js` shows a toast). Turned back and still at it when
-  Chaos leaves: you go through. `embed.near('forward')` is posted while
+  Chaos leaves: the prompt comes up. `embed.near('forward')` is posted while
   someone is within 1.2 mm of the placed portal, so the shell can load the
   next world. No arrow or edge pointer points to it (the owner's call): the
   sparkle on the slide is the only marker.

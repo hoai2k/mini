@@ -70,7 +70,7 @@ const COMMON_CONTROLS = {
   dash: 'Surge: pseudopods shoot out 2.5× faster and the cell flows after them',
   attack: 'Close the food cup round prey; at a trap hypha, a pseudopod jab cuts its tip; round an arm of Chaos, pinch it off',
   defend: 'Let go / egest; near a trap hypha, hold to stiffen (it slides off)',
-  special: 'Labels',
+  special: 'Labels. At the open portal: enter it',
   look: 'Optics: brightfield, phase, darkfield, immersive',
   zoom: 'Objective 10× / 20×',
 };
@@ -1572,7 +1572,9 @@ function syncCells() {
 // ahead of whoever leads; Chaos goes on guard on its near side. Reaching it
 // while Chaos is on guard turns you back; lure Chaos off it (it follows you no
 // further than CHAOS_LEASH from its post) or pinch its arms until it gives up,
-// then reach it: enterPortal (the one place the zoom on is triggered).
+// then reach it. It is never an automatic door (the owner, 2026-11-01): at
+// the open portal the game shows "Y Enter the portal" (embed.near('portal')),
+// and Y (R) goes through: enterPortal (the one place the zoom on is triggered).
 // Backdoor: a Sphagnum leaf tip dipping into the pool, ~2.3 mm to the left
 // (world.js LEAF), with the water film's edge round it: dwelling there, Y goes
 // back up to the tardigrade.
@@ -1582,7 +1584,7 @@ const PORTAL = { placed: false, found: false, x: 0, y: 0, a: 0, reach: 45 };
 const GUARD_R = 480;
 const beacon = makePrey('bursaria', 0, -1e6, 0.6, rng(29));
 const leaf = world.leaf;
-const lm = { fwdLatch: false, near: false, nearFwd: false, log: [], turned: false, hinted: false };
+const lm = { fwdLatch: false, near: false, nearFwd: false, portal: false, log: [], turned: false, hinted: false };
 // When each encounter was first met (for tests and tuning): t is seconds since the start, d µm from it.
 const challengeLog = {};
 function logChallenge(kind, c) {
@@ -1741,21 +1743,30 @@ function checkLandmarks() {
       // turned back: Chaos is on guard (it turns on you)
       lm.log.push({ type: 'turnedBack', slot: fwd.slot, t: +S.time.toFixed(2) });
       if (!lm.turned) { lm.turned = true; hud.toast(`${who(fwd)}Turned back: Chaos is on guard. Lead it away from the glow first, then get round it`, 3600); }
-      lm.blocked = fwd;
-    } else enterPortal(fwd);
+    }
   }
-  // turned back earlier but now open while still on it: go through
-  if (lm.blocked && fwd && !guarded()) { lm.blocked = null; enterPortal(fwd); }
-  if (!cells.some((c) => c.atFwd || (PORTAL.placed && Math.hypot(c.body.cx - PORTAL.x, c.body.cy - PORTAL.y) < c.body.req + 250))) { lm.fwdLatch = false; lm.blocked = null; }
+  if (!cells.some((c) => c.atFwd || (PORTAL.placed && Math.hypot(c.body.cx - PORTAL.x, c.body.cy - PORTAL.y) < c.body.req + 250))) lm.fwdLatch = false;
+  // anyone at the open portal: "Y Enter the portal"; their Y goes through (the input loop: atOpenPortal)
+  setPortalPrompt(!!fwd && !outro && !guarded());
   setNear(near);
 }
+/** Can cell c go through now (at the open portal)? Then its Y enters. */
+const atOpenPortal = (c) => PORTAL.placed && !outro && c.atFwd && !c.caught.active && !guarded();
+/** The portal's Y prompt: on while anyone is at the open portal (the shell, or standalone embed.js, shows it). */
+function setPortalPrompt(on) {
+  if (on === lm.portal) return;
+  lm.portal = on;
+  embed.near('portal', on);
+}
 /**
- * The way on: player c has reached the open portal. This is the one place the
+ * The way on: player c is at the open portal and pressed Y. This is the one place the
  * zoom into the next world is triggered (embed.landmark('forward'); the shell
  * runs the transition; standalone, embed.js shows a toast).
  */
 function enterPortal(c) {
+  if (outro) return;
   lm.fwdLatch = true;
+  setPortalPrompt(false);
   lm.entered = true;
   lm.log.push({ type: 'landmark', kind: 'forward', slot: c.slot, t: +S.time.toFixed(2) });
   logChallenge('portal', c);
@@ -2108,9 +2119,11 @@ function frame(now) {
       }
       if (!pad.down(BTN.B)) C.defendMode = false;
       C.defendHeld = C.defendMode && pad.down(BTN.B);
-      // Y: on the backdoor (the leaf tip), go back up; elsewhere player 1's labels.
+      // Y: on the backdoor (the leaf tip), go back up; at the open portal, go
+      // through; elsewhere player 1's labels.
       if (pressed(BTN.Y)) {
-        if (c.atBack && !caught.active) { lm.log.push({ type: 'landmark', kind: 'back', slot: c.slot }); hud.toast(`${who()}Back up to the water film`); embed.landmark('back', { player: c.slot }); }
+        if (atOpenPortal(c)) enterPortal(c);
+        else if (c.atBack && !caught.active) { lm.log.push({ type: 'landmark', kind: 'back', slot: c.slot }); hud.toast(`${who()}Back up to the water film`); embed.landmark('back', { player: c.slot }); }
         else if (c.slot === 0) S.labels = !S.labels;
       }
       if (c.slot !== 0) continue;
@@ -2434,7 +2447,7 @@ window.__micro = {
   /** The portal for the level transition (the shell reads it): where it is (µm), whether it is placed, found, guarded or open, and Chaos. */
   portal() {
     return { placed: PORTAL.placed, found: PORTAL.found, x: PORTAL.x, y: PORTAL.y, bearing: PORTAL.a, reach: PORTAL.reach, beacon: { x: beacon.x, y: beacon.y },
-      guarded: PORTAL.placed && guarded(), open: PORTAL.placed && !guarded(), glow: +glow.open.toFixed(2),
+      guarded: PORTAL.placed && guarded(), open: PORTAL.placed && !guarded(), glow: +glow.open.toFixed(2), prompt: lm.portal,
       chaos: { on: chaos.on, state: chaos.state, beaten: chaos.beaten, x: chaos.body.cx, y: chaos.body.cy, d: PORTAL.placed ? Math.round(Math.hypot(chaos.body.cx - PORTAL.x, chaos.body.cy - PORTAL.y)) : null } };
   },
   /** Testing: place the portal now, `d` µm from player `slot` at bearing `a` (default: their bearing from the start); every encounter before it counts as met. */
@@ -2443,7 +2456,7 @@ window.__micro = {
     director.force('portal', c.body.cx + Math.cos(b) * d, c.body.cy + Math.sin(b) * d, b);
     return window.__micro.portal();
   },
-  /** Go through the portal now as player `slot` (what reaching it while open does). */
+  /** Go through the portal now as player `slot` (what Y at the open portal does). */
   enterPortal(slot = 0) { enterPortal(cellOf(slot)); },
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },

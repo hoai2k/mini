@@ -87,9 +87,9 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | LT / RT | Z / X | **Drift back toward you / into the view** (analog), so every direction in the water is a stick away |
 | RS | Arrows | **Turn the view** about its own axes (a quaternion: no up or down, no poles, no flips). It stays where you leave it |
 | **A** | Space | **Dash**: a passing *current gust* in open water, or a *push-off* with the fibres from a surface (both departures; recharging, HUD `dash` meter) |
-| **X** | E | **Grab protein**: aim the leading attachment fibres at a protruding protein and press X. The large gold three-lobed receptors fit; violet paired proteins do not. Both can be grabbed: the fibres converge for 0.45 s, then a mismatch slips off with a small recoil and a 0.25 s retry delay. A match latches and automatically starts the existing irreversible attachment: short fibres bind, baseplate opens, sheath contracts and DNA enters (camera close-up and shake on the snap). No automatic cell-contact attachment or hidden three-foot requirement. **At an amoeba's lobe: a fibre jab** (a departure, below) |
+| **X** | E | **Grab protein**: aim the leading attachment fibres at a protruding protein and press X. The large gold three-lobed receptors fit; violet paired proteins do not. Both can be grabbed: the fibres converge for 0.45 s, then a mismatch slips off with a small recoil and a 0.25 s retry delay. A match latches and automatically starts the existing irreversible attachment: short fibres bind, baseplate opens, sheath contracts and DNA enters (camera close-up and shake on the snap). No automatic cell-contact attachment or hidden three-foot requirement. **Not on Host A, the way on**: there X only says to press Y (portals are entered on purpose). **At an amoeba's lobe: a fibre jab** (a departure, below) |
 | B | Shift | **Defend: fold the fibres** back against the sheath and slip: an amoeba's lobe gets no purchase, clay and wrong hosts slide past; also lets go of a host. Press again to extend them (ready to grab receptors with X; clay still catches them) |
-| Y | R | **At the flagellum (the backdoor)**: back to the sediment (Level 5). Elsewhere: the odds and receptor overlay: receptor patches ringed, each host's receptors, defences and odds of a burst, the UV line, the amoeba's hunger, your distance to the nearest host; inside, each enzyme's sensing range. Marked on screen as data, not optics |
+| Y | R | **At Host A's gold receptors (the way on), within ~0.4 µm and with the amoeba off guard: enter** (the shell shows "Y Enter the portal"; the fibres latch on the nearest receptor and the injection starts; on guard: turned back). **At the flagellum (the backdoor)**: back to the sediment (Level 5); the two are far apart. Elsewhere: the odds and receptor overlay: receptor patches ringed, each host's receptors, defences and odds of a burst, the UV line, the amoeba's hunger, your distance to the nearest host; inside, each enzyme's sensing range. Marked on screen as data, not optics |
 | D-pad ←→ | 3 / 4 | Look: realistic false light (default), Goodsell watercolour, cryo-EM greyscale, fluorescence (pseudo-colour) |
 | D-pad ↑↓ | 1 / 2 | Zoom in / out |
 | Menu | Esc | Features panel |
@@ -101,7 +101,7 @@ strand pulled in faster; a departure).
 **Goal flow.** The HUD's first line always says what to do now: explore
 outward (with how far out you are of the 8.8 µm to the way on), then, once
 the way on has appeared, drift to the golden glow (no arrow: at the owner's
-request its sparkle and beacon are the only marker), deal with its guard, aim at the gold receptor and press X; inside, get
+request its sparkle and beacon are the only marker), deal with its guard, then at the gold receptor press Y to enter; inside, get
 the genome in; damaged, find a partner to co-infect with.
 
 **Goal.** Drift legs-first, grab a gold three-lobed receptor to attach, and get
@@ -123,8 +123,15 @@ hunt hard, a near dead end). The third cell is the wrong host.
   the world posts `landmark {kind: 'forward', won: true, burst: 40, host}`;
   standalone it shows its own Burst card instead. `enterPortal(m)` in
   `main.js` is the one function that fires it. The portal itself (Host A's
-  open receptor under the golden glow) leads inside the host; the burst at the
-  end of the inside phase is what finishes the chain.
+  open receptor under the golden glow) leads inside the host, entered on
+  purpose (`micro/game/README.md`, "Entering a portal (Y)"): while any player
+  is within ~0.4 µm of one of Host A's gold receptors and the amoeba is off
+  guard, the world posts `near {kind: 'portal', on: true}` (the shell's "Y
+  Enter the portal"; off when they leave or the guard returns), and that
+  player's Y latches the fibres on the receptor and starts the injection
+  (`tryEnter`; on guard, Y and X turn you back; X on an open Host A receptor
+  only says to press Y). The burst at the end of the inside phase is what
+  finishes the chain.
 - **Back: the flagellum.** In the calm water beside the start, a flagellum of the
   Level 5 bacterium sweeps past (a turning helix). Drifting within ~0.55 µm
   of it posts `near {kind: 'back', label: 'Y: back to Sediment'}`, and Y
