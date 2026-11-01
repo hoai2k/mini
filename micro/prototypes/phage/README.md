@@ -303,6 +303,19 @@ medium and low quality, inside, Goodsell, cryo-EM, fluorescence and 4 players.
   `view.target`, so a split view far from it no longer draws the crowd. Outside,
   1 player: 52 → 42 draws, 0.58 M → 0.36 M triangles. 4 players (4 views):
   247 → 191 draws, 2.54 M → 1.38 M triangles. Inside is unchanged.
+- **A crowd per split view, only when needed:** one crowd wraps round the
+  group (`view.target`). Each frame `main.js` unprojects each split view's
+  screen region onto the crowd's top and bottom planes; a view that would show
+  more than 12 units (120 nm) of bare water beyond what the merged screen shows
+  gets its own copy (`world.coverCrowd`), seeded from the main crowd and wrapped
+  round that view, drawn only there (`world.crowdView`), with the same gusts
+  and wake. It dissolves in over 0.6 s at constant density (copy instance i is
+  main n−1−i, so the main crowd draws its first n−c and the copy its first c),
+  and out again once the overflow has stayed under 2 units for 1.5 s. While
+  every view has a copy the main crowd is not stepped, so 2 players apart cost
+  2 crowds and 4 cost 4; together, nothing changes (seeded screenshots are
+  identical to before). *Features → Crowd per split view* (or `?crowdsplit=0`)
+  turns it off. COSTLINE
 - **`world.update`:** a crowd molecule tests a host's envelope only inside the
   host's bounding sphere. The update runs about 3× faster (≈1.3 → 0.45 ms
   here) and allocates 62 → 40 KB.
@@ -317,8 +330,6 @@ medium and low quality, inside, Goodsell, cryo-EM, fluorescence and 4 players.
     but the finest octave would soften.
   - A non-boxing random generator for the crowd's jostle (40 KB a frame).
     It changes the random stream, so it can't be checked pixel for pixel.
-  - The crowd follows the split centroid, so far split views show none. That
-    is a look question for the owner.
 
 ## Features
 

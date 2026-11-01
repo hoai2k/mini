@@ -398,10 +398,10 @@ A deferred two-pass SEM model. The beam comes from the camera, so the
   three or more views); at its cheapest effects level the detector-shadow
   march is skipped. `?q=high|medium|low` fixes it; `?f=-quality` turns it off.
 
-Budget at the default view (1 player): about 73 draw calls and 290k
-triangles since the second pass below (more, smaller draws than before
-chunking: the world is merged per 1.5 mm chunk so each view culls what it
-cannot see). In split screen the G-buffer and the
+Budget at the default view (1 player): about 44 draw calls and 213k
+triangles since the third pass below (the grains, litter, stems and leaves
+are one `BatchedMesh` each, culled object by object; each mite is 5 draws).
+In split screen the G-buffer and the
 composite are both scissored to each view's region (`split.scissor`).
 
 Measured (headless SwiftShader, 640×360, `perf/measure.mjs`, `?q=high`;
@@ -473,14 +473,56 @@ polygon edge, about 275 KB per frame), three.js render lists (~55 KB) and
 
 Not done (they change the trade-off or the look):
 
-- 3 mm chunks: 4 views −98 draws but +360 k triangles; 1p −9 draws, +130 k.
-  That trades CPU for GPU and undoes the per-view culling of the 1.5 mm
-  chunks. Per-instance culling (`BatchedMesh`) would get both.
-- Fewer draws per mite (about 10 now) by merging the body, aspis and setae,
-  and the leg instances. They use different materials (thin edge glow), so
-  this needs a shader change and a look check.
+- 3 mm chunks: superseded by the third pass (`BatchedMesh`, below).
 - A lower-poly springtail for the far members of the thicket crowd (968 tris
   × 120, ~116 k per view that sees the thicket).
+
+### Performance (third pass)
+
+Again nothing visible or playable changed. Seeded, fixed-step screenshots of
+the original and the new code are byte-identical in ten scenes (the start,
+walking through bending blades, closed up, mid-jump, the predator's ground,
+the thicket, the boss, a capture, and two frames of 4 views), landmark
+overlay included, and a 450-step simulation replay (bodies, feet, blade
+offsets and vertices) is bit-identical.
+
+- **Fewer draws per mite: 9 → 5** (4 for the predator). Parts that share a
+  material are drawn together: the notogaster and aspis as one mesh, the 32
+  leg segments and 8 tarsi as one instanced mesh (the tarsus lathe has the
+  segment's topology, so it rides along as a second set of positions), and
+  the body, prodorsal and leg setae as one instanced mesh. The claws and the
+  sensilli keep their own draws (other shapes). `gMaterial({ frames: true })`
+  (`../shared/techniques/mite-sem.js`) places each part by vertex or
+  instance id with the very matrices three.js would have uploaded for its
+  old mesh (`frameUniforms` in `mite.js`), so the arithmetic is unchanged.
+  Bounds are recomputed per pose and stay conservative.
+- **The moss, litter and grains as `BatchedMesh`es** (`batched()` in
+  `world.js`): one multi-draw per material and view, and only the objects
+  (a leaf, a stem, a flake, a grain) whose bounds meet the view, instead of
+  every 1.5 mm chunk that does. Each object keeps its vertices and an
+  identity matrix. A bent blade's bounds are measured again after the
+  foliage moves it (`createFoliage({ onWrite })`), so the cull stays
+  conservative (checked: 2894 visible objects over 240 steps of bending
+  blades and moving cameras, none left out). three.js's own per-object cull
+  reads each matrix back from its texture (0.67 ms per view); the one here
+  tests cached spheres (0.03 ms). The hyphae stay chunked: their threads
+  are rewritten by the thicket. three r186 has `BatchedMesh` and
+  `WEBGL_multi_draw`; without the extension it falls back to one draw per
+  object, still culled.
+- **Shaders built while loading** (`sem.warm()`, called from `main.js` as
+  the world, the boss, the mites and the dust are made): it links each new
+  program (three.js enables `KHR_parallel_shader_compile`), fetches their
+  uniforms and uploads the textures, then draws one object of each kind
+  (program, side, vertex layout) into one G-buffer pixel and the composite
+  into one screen pixel, which it clears back to black. SwiftShader builds
+  its shaders on a program's first draw, so that work moves off the first
+  frame into the GPU process while the page goes on building. The image is
+  unchanged (the G-buffer is cleared before every frame). It covers the
+  eight programs the mite uses (G-buffer front, double-sided, instanced,
+  batched ×2, frames ×2, composite); the split views use the same ones.
+  `renderer.compileAsync` is not used: the page is built in one synchronous
+  module, so its promise would only resolve after the first frame.
+
 
 ## Textures (`textures.js`)
 

@@ -228,6 +228,9 @@ features.add({ id: 'amoeba', group: 'Simulation', label: 'Amoeba edge', on: true
 features.add({ id: 'crowd', group: 'World', label: 'Crowded water', on: true,
   about: 'Humic colloids, proteins, sugars and solutes jostling, pushed by gusts and by your passage. Small solutes are drawn several times too large so they read (departure).',
   onChange: (on) => { world.opts.crowd = on; } });
+features.add({ id: 'crowdSplit', group: 'World', label: 'Crowd per split view', on: new URL(location.href).searchParams.get('crowdsplit') !== '0',
+  about: 'The crowd wraps round the group. When a split view drifts far enough that it would show bare water, it gets its own copy of the crowd (fading in, then out again once the views come back together). Off: one crowd only, and far views show empty water.',
+  onChange: (on) => { world.opts.crowdSplit = on; } });
 addInvertY(features);
 quality.addToFeatures(features);
 
@@ -1154,7 +1157,9 @@ function frame(now) {
     const list = inPlay.length ? inPlay.map((m, i) => ({ slot: m.slot, position: focusPts[i] })) : [{ slot: 0, position: view.target }];
     split.update(list, { camera }, dt);
     quality.setSplitViews(split.views.length);
+    if (!debug.iso) coverCrowd(dt);
     split.render(camera, (v) => {
+      world.crowdView(crowdKey(v));
       for (const m of members()) m.t4.setCutFrom(camera.position);
       _v.set(camera.position.x, UV.y0 + 40, 0).project(camera);
       post.uniforms.uUvLine.value = _v.y * 0.5 + 0.5;
@@ -1179,7 +1184,22 @@ function frame(now) {
   const modeName = { drift: 'drifting legs-first', grab: 'grabbing a surface protein', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', coinfect: `damaged genome waiting in ${P.coHost?.name} for a partner (B: give up)`, inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
   const am = hunger.state === 'grace' ? `calm (${Math.ceil(hunger.left)} s)` : hunger.state === 'hungry' ? ({ stalk: 'HUNGRY: reaching', windup: 'WINDING UP!', strike: 'STRIKING!', recover: 'recovering', repelled: 'repelled', retreat: 'retreating' }[fightState] || 'HUNGRY') + ` · interest ${Math.round(fight.interest * 100)} %` : fightState === 'retreat' ? 'retreating' : 'resting';
   const others = isMulti() ? '\n' + members().filter((m) => m.slot).map((m) => `P${m.slot + 1} ${m.P.mode} ${n5(m.P.integrity)}`).join('  ') : '';
-  hud.stats(`${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\n${P.damaged ? `DAMAGED · UV ${n5(1 - P.wreck)}` : `integrity ${n5(P.integrity)}`}  ${dash.text()}\nUV ${Math.round(uvAt(centreOf(_v).x, _v.y) * 100)} %  amoeba ${am}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `x ${(P.pos.x / 100).toFixed(2)} µm  depth below UV ${Math.max(0, (UV.y0 - centreOf(_v).y) / 100).toFixed(2)} µm`}${others}`);
+  hud.stats(`${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\n${P.damaged ? `DAMAGED · UV ${n5(1 - P.wreck)}` : `integrity ${n5(P.integrity)}`}  ${dash.text()}\nUV ${Math.round(uvAt(centreOf(_v).x, _v.y) * 100)} %  amoeba ${am}${world.crowdCopies().length ? `  crowd copies ${world.crowdCopies().length}` : ''}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `x ${(P.pos.x / 100).toFixed(2)} µm  depth below UV ${Math.max(0, (UV.y0 - centreOf(_v).y) / 100).toFixed(2)} µm`}${others}`);
+}
+
+// The crowd follows the group; a split view that drifts off it gets its own copy (world.coverCrowd).
+const crowdKey = (v) => (v && v.slots ? v.slots.join(',') : '');
+const FULL_NDC = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+const crowdRef = { x0: 0, y0: 0, x1: 0, y1: 0 };
+function coverCrowd(dt) {
+  const L = split.layout, W = L.width, H = L.height;
+  world.crowdFootprint(camera, FULL_NDC, crowdRef); // what the merged screen shows today
+  const views = split.views.map((v) => {
+    const pts = [];
+    for (const r of L.regions) if (r.view === v.index && r.polygon && r.polygon.length >= 3) for (const [x, y] of r.polygon) pts.push([(x / W) * 2 - 1, 1 - (y / H) * 2]);
+    return { key: crowdKey(v), box: split.withView(v.index, camera, () => world.crowdFootprint(camera, pts.length ? pts : FULL_NDC)) };
+  });
+  world.coverCrowd(world.opts.crowdSplit === false ? [] : views, crowdRef, dt);
 }
 
 function showWinCard() {

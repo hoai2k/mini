@@ -175,9 +175,10 @@ const gVert = /* glsl */ `
   void main() {
     vCutId = cutId;
     vec3 p = position; vec3 n = normal;
-    #ifdef USE_BATCHING
-      // a BatchedMesh (one draw for many objects, culled one by one); an
-      // identity matrix leaves p and n exactly as they are
+    #if defined( USE_BATCHING ) && ! defined( BATCH_IDENTITY )
+      // a BatchedMesh (one draw for many objects, culled one by one); with
+      // BATCH_IDENTITY (every object's matrix is identity) nothing is looked
+      // up, so its matrix and draw-index textures are never bound or uploaded
       mat4 bmat = getBatchingMatrix(getIndirectIndex(gl_DrawID));
       mat3 bm3 = mat3(bmat);
       vec3 b2 = vec3(dot(bm3[0], bm3[0]), dot(bm3[1], bm3[1]), dot(bm3[2], bm3[2]));
@@ -469,6 +470,7 @@ export function createSem(renderer, backTex) {
   const clear = new THREE.Color(0, 0, 0);
   let mode = 0, scan = 1;
   const warmed = new Set(); let compWarm = false; // warm(): kinds already warmed
+  const warmStats = { kinds: 0, ms: 0 };
   const u = mat.uniforms;
   // live switches for each term of the image model (1 on, 0 off)
   const toggles = {
@@ -508,6 +510,7 @@ export function createSem(renderer, backTex) {
      * scene or object(s) to look through.
      */
     warm(objects, camera) {
+      const t0 = performance.now();
       const reps = [];
       const visit = (o) => {
         if (!(o.isMesh && o.material && o.material.isShaderMaterial) || o === quad) return;
@@ -527,6 +530,19 @@ export function createSem(renderer, backTex) {
         renderer.setRenderTarget(target);
         for (const o of reps) renderer.compile(o, camera);
         if (!compWarm) renderer.setRenderTarget(null), renderer.compile(scene, cam);
+        // Everything that waits on the GPU process comes before the first
+        // draw: each program's link status and uniform list (three.js asks on
+        // first use), and the texture uploads. The GPU process handles calls
+        // in order, so a query made after a warm draw would wait for that
+        // draw's shader build, and the page would stall instead of loading on.
+        const textures = new Set();
+        for (const m of [...reps.map((o) => o.material), compWarm ? null : mat]) {
+          if (!m) continue;
+          const p = renderer.properties.get(m).currentProgram;
+          if (p && p.getUniforms) { p.getUniforms(); p.getAttributes(); }
+          for (const k in m.uniforms) { const v = m.uniforms[k].value; if (v && v.isTexture) textures.add(v); }
+        }
+        for (const t of textures) renderer.initTexture(t);
         // then one draw of each: a pixel of the G-buffer
         renderer.setRenderTarget(target);
         const sc = target.scissor.clone(), st = target.scissorTest;
@@ -558,8 +574,11 @@ export function createSem(renderer, backTex) {
       }
       // hand the work to the GPU process now, not at the next frame
       renderer.getContext().flush();
+      warmStats.kinds += reps.length; warmStats.ms += performance.now() - t0;
       return reps.length;
     },
+    /** What warm() did: kinds of object drawn, main-thread ms spent. */
+    warmStats,
     /** Step 1: the scene (gMaterials only) into the G-buffer. */
     renderGBuffer(scene3d, camera) {
       renderer.setRenderTarget(target);

@@ -54,12 +54,18 @@ const BOSS_POST = (() => { const ux = -ROUTE.ux, uz = -ROUTE.uz, p = along(BOSS.
 // the hyphal thicket (the crowd) lies before it
 const world = buildWorld(tex, { clear: [{ x: BOSS_POST.x + BOSS_POST.ux * 150, z: BOSS_POST.z + BOSS_POST.uz * 150, r: 800 }], thicket: THICKET });
 scene.add(world.group);
+// Shaders are built while the page loads, not on the first frame: each
+// sem.warm() links the new programs and draws one object of each kind into a
+// G-buffer pixel, and the software renderer builds them in the GPU process
+// while the rest of the world is made here (mite-sem.js warm(); no visible change).
+sem.warm(scene, camera);
 const props = createLandmarkProps(world, tex);
 scene.add(props.group);
 // The crowd: a hyphal thicket full of springtails (thicket.js), past halfway, before the boss
 const thicket = createThicket({ scene, world, tex, region: THICKET });
 // The boss: a pseudoscorpion lying in wait before the leaf axil (boss.js); worn down, it backs into the moss to the side.
 const boss = createPseudoscorpion(scene, tex, { post: BOSS_POST, wake: BOSS.wake, home: { x: BOSS_POST.x + BOSS_POST.uz * 1300, z: BOSS_POST.z - BOSS_POST.ux * 1300 } });
+sem.warm(scene, camera);
 
 // The box mite is drawn at about 0.6 mm (mite.js) and placed at 0.58 of that:
 // ~0.35 mm long, the size of a small phthiracarid (the Level 1 spec asks for
@@ -67,6 +73,7 @@ const boss = createPseudoscorpion(scene, tex, { post: BOSS_POST, wake: BOSS.wake
 const MITE_SCALE = 0.58;
 let mite = createMite(scene, world.colliders, { cls: CLS.CUTICLE, tex, scale: MITE_SCALE });
 mite.place(0, 0, 0.3);
+sem.warm(scene, camera);
 const npc = createMite(scene, world.colliders, { cls: CLS.NPC, tex, scale: MITE_SCALE });
 const NPC_PLACE = along(1300, 250);
 npc.place(NPC_PLACE.x, NPC_PLACE.z, 2.2);
@@ -75,6 +82,7 @@ const pred = createMite(scene, world.colliders, { cls: CLS.NPC, tex, anat: PRED 
 // It lurks in its hunting ground past halfway, at the edge of and inside the thicket (layout.js PRED_ZONE)
 const predAI = createPredatorAI(pred, PRED_ZONE);
 predAI.reset(PRED_AT.x, PRED_AT.z);
+sem.warm(scene, camera);
 
 // Local multiplayer (shared/players.js): each player is a box mite of their
 // own, with their own dash, wounds and sounds (a record, see makeRec).
@@ -1386,4 +1394,5 @@ function frame() {
   statT += dt;
   if (statT > 0.25) { updateText(d); statT = 0; }
 }
+sem.warm(scene, camera); // the last kinds (the dust)
 frame();

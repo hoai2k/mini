@@ -2,10 +2,12 @@
 // grains (20-300 µm), flakes of leaf litter, moss shoots with spiralling
 // lanceolate leaves (the lowest ones arch down to the floor and work as
 // ramps), fungal hyphae strung between surfaces, scattered spores and pollen,
-// and a hyphal thicket (the crowd's terrain, layout.js THICKET). Render
-// geometry is merged per material and per spatial chunk (CHUNK µm), so each
-// view draws only the chunks it sees; walking queries go to a separate set of
-// low-poly colliders plus an analytic floor.
+// and a hyphal thicket (the crowd's terrain, layout.js THICKET). The grains,
+// litter, stems and leaves are one BatchedMesh per material (batched()): one
+// draw per view, culled object by object. The hyphae are merged per material
+// and per spatial chunk (CHUNK µm), so each view draws only the chunks it
+// sees. Walking queries go to a separate set of low-poly colliders plus an
+// analytic floor.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { gMaterial, CLS, createObjectCut } from './sem.js';
 import { rng, hash } from './textures.js';
@@ -501,6 +503,8 @@ export function buildWorld(tex, { clear = [], thicket = null } = {}) {
       return o;
     });
     const nv = norm.reduce((s, g) => s + g.attributes.position.count, 0), ni = norm.reduce((s, g) => s + g.index.count, 0);
+    // every object keeps an identity matrix, so the shader looks none up (BATCH_IDENTITY, mite-sem.js)
+    mat.defines = { ...(mat.defines || {}), BATCH_IDENTITY: '' };
     const bm = new THREE.BatchedMesh(norm.length, nv, ni, mat);
     bm.sortObjects = false; // draw in the order given (sorting buys nothing for an opaque G-buffer)
     bm.frustumCulled = false; // its objects are culled one by one (perObjectFrustumCulled)
@@ -512,9 +516,43 @@ export function buildWorld(tex, { clear = [], thicket = null } = {}) {
       where.push({ geo: bm.geometry, start: range.vertexStart, id });
     }
     group.add(bm);
-    // three r186 caches each object's bounds (BatchedMesh._geometryInfo); clearing
-    // them makes the next cull measure the bent object afresh
-    const dirty = (id) => { const gi = bm._geometryInfo[id]; gi.boundingBox = null; gi.boundingSphere = null; };
+    // The per-view cull. three.js's own (BatchedMesh.onBeforeRender in r186)
+    // reads every object's matrix back from its texture; these are all
+    // identity, so this one tests cached bounding spheres against the view
+    // (the same sphere-against-planes test) and writes the same draw list:
+    // about 0.6 ms less per view for the ~1200 objects. Uses r186's fields.
+    const N = norm.length, sph = new Float32Array(N * 4), stale = new Uint8Array(N).fill(1);
+    const info = bm._geometryInfo, bpe = bm.geometry.index.array.BYTES_PER_ELEMENT;
+    const ids = bm._indirectTexture.image.data;
+    const fm = new THREE.Matrix4(), fr = new THREE.Frustum(), s = new THREE.Sphere();
+    bm.onBeforeRender = function (renderer, scene, camera) {
+      const starts = bm._multiDrawStarts, counts = bm._multiDrawCounts;
+      const cull = bm.perObjectFrustumCulled;
+      if (cull) {
+        fm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse).multiply(bm.matrixWorld);
+        fr.setFromProjectionMatrix(fm, camera.coordinateSystem, camera.reversedDepth);
+      }
+      const P = fr.planes;
+      let m = 0;
+      for (let i = 0; i < N; i++) {
+        if (cull) {
+          const o = i * 4;
+          if (stale[i]) { bm.getBoundingSphereAt(i, s); sph[o] = s.center.x; sph[o + 1] = s.center.y; sph[o + 2] = s.center.z; sph[o + 3] = s.radius; stale[i] = 0; }
+          const x = sph[o], y = sph[o + 1], z = sph[o + 2], nr = -sph[o + 3];
+          let out = false;
+          for (let k = 0; k < 6; k++) { const n = P[k].normal; if (n.x * x + n.y * y + n.z * z + P[k].constant < nr) { out = true; break; } }
+          if (out) continue;
+        }
+        const g = info[i];
+        starts[m] = g.start * bpe; counts[m] = g.count; ids[m] = i; m++;
+      }
+      // (ids: the draw-to-object list three.js keeps; with BATCH_IDENTITY no
+      // shader reads it, so it is not uploaded: a texture upload per view cost ~0.4 ms)
+      bm._multiDrawCount = m;
+      bm._multiDrawBytesPerElement = bpe;
+    };
+    // a bent object: its bounds (three caches them in _geometryInfo, and so do we) are measured again
+    const dirty = (id) => { const gi = info[id]; gi.boundingBox = null; gi.boundingSphere = null; stale[id] = 1; };
     return { meshes: [bm], where, dirty };
   };
   // The cutaway works per object (a flake, a stem, a leaf), never slicing one:

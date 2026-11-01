@@ -386,7 +386,7 @@ function concatGeo(a, b) {
   return g;
 }
 /** The notogaster and aspis as one geometry (aspis vertices from `split` on, in the aspis frame). */
-function bodyGeometry(G, AN) {
+function bodyGeometry(G) {
   if (G.body) return G.body;
   for (const g of [G.noto, G.aspis]) if (!g.boundingSphere) g.computeBoundingSphere();
   const geo = concatGeo(G.noto, G.aspis);
@@ -503,7 +503,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
   const body = new THREE.Group();
   // the notogaster and the aspis: one mesh; the aspis vertices are placed by
   // aspisFrame, an empty object where the aspis mesh used to be
-  const BG = bodyGeometry(G, AN);
+  const BG = bodyGeometry(G);
   const noto = new THREE.Mesh(sharedGeo(BG.geo), cut);
   cut.uniforms.uRange1.value.set(BG.split, BG.total);
   body.add(noto);
@@ -520,7 +520,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
   body.add(aspis);
   body.add(bodyFrame);
   root.add(body);
-  // noto (with the aspis) is culled by bounds that hold every pose of the aspis
+  // noto (with the aspis) is culled by bounds measured each pose (legBounds)
 
   // legs: instanced in world space, 4 segments + tarsus + claw + setae per leg;
   // the 32 segments and 8 tarsi are one instanced mesh (tarsi from instance 32: positionB)

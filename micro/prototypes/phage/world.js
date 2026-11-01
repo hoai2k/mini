@@ -451,61 +451,180 @@ export function createWorld(scene) {
     // the crowd: Ornstein-Uhlenbeck jostling, the ambient flow, gusts and the phage's wake, wrapped round the camera
     for (const g of world.gusts) g.t -= dt;
     world.gusts = world.gusts.filter((g) => g.t > 0);
-    const flow = new THREE.Vector3();
+    world.crowdCenter.copy(center); world.crowdZTop = zTop;
+    // (while every view has a copy of its own, nobody sees the main crowd: it waits, unstepped)
+    const mainIdle = copies.length > 0 && copies.length >= viewCount && copies.every((c) => c.fade === 1 && !c.dying);
     for (const T of TYPES) {
-      const mesh = T.mesh;
-      mesh.visible = world.opts.crowd;
-      if (!world.opts.crowd) continue;
-      const decay = Math.exp(-dt * 2.2);
-      let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity, sMax = 0;
-      for (let i = 0; i < T.items.length; i++) {
-        const it = T.items[i];
-        it.v.multiplyScalar(decay);
-        it.v.x += gauss() * T.sig * Math.sqrt(dt) * 1.4; it.v.y += gauss() * T.sig * Math.sqrt(dt) * 1.4; it.v.z += gauss() * T.sig * Math.sqrt(dt) * 0.8;
-        world.flowAt(it.p, t, flow);
-        for (const g of world.gusts) {
-          const d = it.p.distanceTo(g.p);
-          if (d < 70) it.v.addScaledVector(g.dir, (1 - d / 70) * 90 * dt * (g.t / 0.6));
-        }
-        if (phage) {
-          _v.subVectors(it.p, phage);
-          const d = _v.length();
-          if (d < 14) it.v.addScaledVector(_v, ((14 - d) / Math.max(d, 1)) * 12 * dt);
-        }
-        it.p.addScaledVector(it.v, dt).addScaledVector(flow, dt);
-        // keep them out of solid things
-        for (const h of world.hosts) {
-          if (h.burst) continue;
-          // beyond the host's bounding sphere the envelope is more than 5 away (sdHost >= |p - pos| - half - r): skip the exact test
-          const ex = it.p.x - h.pos.x, ey = it.p.y - h.pos.y, ez = it.p.z - h.pos.z, er = h.half + h.r + 5;
-          if (ex * ex + ey * ey + ez * ez >= er * er) continue;
-          const sd = world.sdHost(h, it.p, _v);
-          if (sd < 5) it.p.addScaledVector(_v, 5 - sd);
-        }
-        const sa = world.sdAmoeba(it.p);
-        if (sa < 0) it.p.addScaledVector(_v.subVectors(it.p, amoeba.center).normalize(), -sa);
-        // wrap around the camera
-        const dx = it.p.x - center.x, dy = it.p.y - center.y;
-        if (dx > HALF.x) it.p.x -= 2 * HALF.x; else if (dx < -HALF.x) it.p.x += 2 * HALF.x;
-        if (dy > HALF.y) it.p.y -= 2 * HALF.y; else if (dy < -HALF.y) it.p.y += 2 * HALF.y;
-        if (it.p.z > zTop) it.p.z = Z0 + 2; else if (it.p.z < Z0) it.p.z = zTop - 2;
-        _q.setFromAxisAngle(_s.copy(it.w).normalize(), it.w.length() * dt);
-        it.q.multiply(_q);
-        _m.compose(it.p, it.q, _s.setScalar(it.s * world.crowdScale));
-        mesh.setMatrixAt(i, _m);
-        const P = it.p;
-        if (P.x < x0) x0 = P.x; if (P.x > x1) x1 = P.x; if (P.y < y0) y0 = P.y; if (P.y > y1) y1 = P.y; if (P.z < z0) z0 = P.z; if (P.z > z1) z1 = P.z;
-        if (it.s > sMax) sMax = it.s;
+      T.mesh.visible = world.opts.crowd;
+      if (!world.opts.crowd || mainIdle) continue;
+      stepCrowd(T, T.items, T.mesh, center.x, center.y, dt, t, phage, zTop);
+    }
+    // split copies (only while a view has drifted off the crowd): the same forces, wrapped round their own view
+    if (world.opts.crowd) for (const c of copies) TYPES.forEach((T, k) => stepCrowd(T, c.types[k].items, c.types[k].mesh, c.cx, c.cy, dt, t, phage, zTop));
+  };
+
+  const flow = new THREE.Vector3();
+  /** One frame of one crowd of type T: move its molecules, wrap them round (cx, cy), write the instances and the culling sphere. */
+  function stepCrowd(T, items, mesh, cx, cy, dt, t, phage, zTop) {
+    const decay = Math.exp(-dt * 2.2);
+    let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity, sMax = 0;
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      it.v.multiplyScalar(decay);
+      it.v.x += gauss() * T.sig * Math.sqrt(dt) * 1.4; it.v.y += gauss() * T.sig * Math.sqrt(dt) * 1.4; it.v.z += gauss() * T.sig * Math.sqrt(dt) * 0.8;
+      world.flowAt(it.p, t, flow);
+      for (const g of world.gusts) {
+        const d = it.p.distanceTo(g.p);
+        if (d < 70) it.v.addScaledVector(g.dir, (1 - d / 70) * 90 * dt * (g.t / 0.6));
       }
-      mesh.instanceMatrix.needsUpdate = true;
-      // the bounding sphere of every molecule (the box's, plus the largest molecule and the ink's push-out)
-      if (T.items.length) {
-        const B = mesh.boundingSphere;
-        B.center.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
-        B.radius = Math.hypot(x1 - x0, y1 - y0, z1 - z0) / 2 + T.reach * sMax * world.crowdScale + 8;
+      if (phage) {
+        _v.subVectors(it.p, phage);
+        const d = _v.length();
+        if (d < 14) it.v.addScaledVector(_v, ((14 - d) / Math.max(d, 1)) * 12 * dt);
+      }
+      it.p.addScaledVector(it.v, dt).addScaledVector(flow, dt);
+      // keep them out of solid things
+      for (const h of world.hosts) {
+        if (h.burst) continue;
+        // beyond the host's bounding sphere the envelope is more than 5 away (sdHost >= |p - pos| - half - r): skip the exact test
+        const ex = it.p.x - h.pos.x, ey = it.p.y - h.pos.y, ez = it.p.z - h.pos.z, er = h.half + h.r + 5;
+        if (ex * ex + ey * ey + ez * ez >= er * er) continue;
+        const sd = world.sdHost(h, it.p, _v);
+        if (sd < 5) it.p.addScaledVector(_v, 5 - sd);
+      }
+      const sa = world.sdAmoeba(it.p);
+      if (sa < 0) it.p.addScaledVector(_v.subVectors(it.p, amoeba.center).normalize(), -sa);
+      // wrap around the camera
+      const dx = it.p.x - cx, dy = it.p.y - cy;
+      if (dx > HALF.x) it.p.x -= 2 * HALF.x; else if (dx < -HALF.x) it.p.x += 2 * HALF.x;
+      if (dy > HALF.y) it.p.y -= 2 * HALF.y; else if (dy < -HALF.y) it.p.y += 2 * HALF.y;
+      if (it.p.z > zTop) it.p.z = Z0 + 2; else if (it.p.z < Z0) it.p.z = zTop - 2;
+      _q.setFromAxisAngle(_s.copy(it.w).normalize(), it.w.length() * dt);
+      it.q.multiply(_q);
+      _m.compose(it.p, it.q, _s.setScalar(it.s * world.crowdScale));
+      mesh.setMatrixAt(i, _m);
+      const P = it.p;
+      if (P.x < x0) x0 = P.x; if (P.x > x1) x1 = P.x; if (P.y < y0) y0 = P.y; if (P.y > y1) y1 = P.y; if (P.z < z0) z0 = P.z; if (P.z > z1) z1 = P.z;
+      if (it.s > sMax) sMax = it.s;
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    // the bounding sphere of every molecule (the box's, plus the largest molecule and the ink's push-out)
+    if (items.length) {
+      const B = mesh.boundingSphere;
+      B.center.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+      B.radius = Math.hypot(x1 - x0, y1 - y0, z1 - z0) / 2 + T.reach * sMax * world.crowdScale + 8;
+    }
+  }
+
+  // --- split crowds: one crowd while every view is covered, a copy for a view that drifts off it ---
+  // The crowd wraps round the group's centre (view.target), in a box of 2·HALF. A split view whose
+  // visible slab (its region of the screen, unprojected onto the crowd's top and bottom planes)
+  // reaches past what the merged screen already shows of that box gets its own copy, wrapped round
+  // the view: seeded from the main crowd (so the overlap is the same molecules) and drawn only in
+  // that view, where it takes over the main crowd instance by instance (copy i is main n-1-i, the
+  // main crowd draws its first n-c, the copy its first c: a dissolve at constant density).
+  // Hysteresis: a copy starts when the view would show more than SPLIT_IN world units (10 nm each) of
+  // bare water beyond that, and fades out only once the overflow has stayed under SPLIT_OUT for
+  // SPLIT_HOLD seconds. (A half-screen view still meets the screen's edges, so "covered" is ~0, not < 0.)
+  const SPLIT_IN = 12, SPLIT_OUT = 2, SPLIT_HOLD = 1.5, SPLIT_FADE = 0.6;
+  const copies = [], pool = [];
+  let viewCount = 1;
+  world.crowdCenter = new THREE.Vector3(); world.crowdZTop = Z1;
+  const wrapTo = (x, c, h) => c + ((((x - c + h) % (2 * h)) + 2 * h) % (2 * h)) - h;
+  function makeCopy(key, cx, cy) {
+    const c = pool.pop() || { types: TYPES.map((T) => {
+      const mesh = inkedInstanced(T.mesh.geometry, T.mesh.material, T.n, { width: 0.6 });
+      mesh.ink.geometry = T.mesh.ink.geometry;
+      mesh.userData.crowd = true; mesh.visible = false;
+      mesh.boundingSphere = mesh.ink.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
+      mesh.frustumCulled = mesh.ink.frustumCulled = true;
+      scene.add(mesh);
+      return { mesh, items: T.items.map(() => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), q: new THREE.Quaternion(), w: new THREE.Vector3(), s: 1 })) };
+    }) };
+    Object.assign(c, { key, cx, cy, fade: 0, dying: false, hold: SPLIT_HOLD });
+    TYPES.forEach((T, k) => {
+      const { items, mesh } = c.types[k];
+      for (let i = 0; i < T.n; i++) {
+        const src = T.items[T.n - 1 - i], it = items[i];
+        it.p.set(wrapTo(src.p.x, cx, HALF.x), wrapTo(src.p.y, cy, HALF.y), src.p.z);
+        it.v.copy(src.v); it.q.copy(src.q); it.w.copy(src.w); it.s = src.s;
+      }
+      stepCrowd(T, items, mesh, cx, cy, 0, world.t || 0, null, world.crowdZTop); // (dt 0: just the instances and the sphere)
+    });
+    copies.push(c);
+    return c;
+  }
+  function dropCopy(c) {
+    copies.splice(copies.indexOf(c), 1);
+    for (const { mesh } of c.types) mesh.visible = false;
+    pool.push(c);
+  }
+  /** The crowd's slab seen by `camera` through the NDC points `pts` (a view's region): its x, y bounds. */
+  world.crowdFootprint = (camera, pts, out = { x0: 0, y0: 0, x1: 0, y1: 0 }) => {
+    out.x0 = out.y0 = Infinity; out.x1 = out.y1 = -Infinity;
+    const o = camera.position;
+    for (const [nx, ny] of pts) {
+      const d = _p.set(nx, ny, 0.5).unproject(camera).sub(o).normalize();
+      for (const zp of [Z0, world.crowdZTop]) {
+        // a ray that never reaches the plane (an orbit near the horizon) counts as far as 2000
+        const s = o.z > zp && d.z < -1e-3 ? Math.min(2000, (zp - o.z) / d.z) : 2000;
+        const x = o.x + d.x * s, y = o.y + d.y * s;
+        if (x < out.x0) out.x0 = x; if (x > out.x1) out.x1 = x; if (y < out.y0) out.y0 = y; if (y > out.y1) out.y1 = y;
       }
     }
+    return out;
   };
+  /**
+   * Decide the split copies for this frame. `views`: [{ key, box }] each view's footprint; `ref`: the
+   * merged (unshifted, full-screen) footprint, which the single crowd already shows today.
+   */
+  world.coverCrowd = (views, ref, dt) => {
+    const c0 = world.crowdCenter;
+    viewCount = views.length;
+    const ax0 = Math.min(c0.x - HALF.x, ref.x0), ax1 = Math.max(c0.x + HALF.x, ref.x1);
+    const ay0 = Math.min(c0.y - HALF.y, ref.y0), ay1 = Math.max(c0.y + HALF.y, ref.y1);
+    // a copy whose view is gone (views merged or split up) passes to a view sharing a player, else goes
+    for (let i = copies.length - 1; i >= 0; i--) {
+      const c = copies[i];
+      if (views.some((v) => v.key === c.key)) continue;
+      const mine = c.key.split(',');
+      const heir = views.find((v) => !copies.some((q) => q.key === v.key) && v.key.split(',').some((s) => mine.includes(s)));
+      if (heir) c.key = heir.key; else dropCopy(c);
+    }
+    for (const { key, box } of views) {
+      const over = Math.max(ax0 - box.x0, box.x1 - ax1, ay0 - box.y0, box.y1 - ay1);
+      const cx = (box.x0 + box.x1) / 2, cy = (box.y0 + box.y1) / 2;
+      let c = copies.find((q) => q.key === key);
+      if (!c) { if (over > SPLIT_IN && world.opts.crowd) c = makeCopy(key, cx, cy); else continue; }
+      c.cx = cx; c.cy = cy; c.over = over;
+      if (over > SPLIT_OUT) { c.hold = SPLIT_HOLD; if (over > SPLIT_IN) c.dying = false; } else { c.hold -= dt; if (c.hold <= 0) c.dying = true; }
+    }
+    for (let i = copies.length - 1; i >= 0; i--) {
+      const c = copies[i];
+      c.fade = Math.min(1, Math.max(0, c.fade + (c.dying ? -dt : dt) / SPLIT_FADE));
+      if (c.dying && c.fade === 0) dropCopy(c);
+    }
+  };
+  /** Before drawing a view: its copy (if any) takes over from the main crowd by its fade; other copies hide. */
+  world.crowdView = (key) => {
+    const c = copies.length ? copies.find((q) => q.key === key) : null;
+    const on = world.opts.crowd;
+    TYPES.forEach((T, k) => {
+      const nc = c ? Math.round(T.n * c.fade) : 0;
+      T.mesh.count = T.mesh.ink.count = T.n - nc;
+      T.mesh.visible = on && T.n - nc > 0;
+      for (const q of copies) {
+        const m = q.types[k].mesh;
+        m.visible = on && q === c && nc > 0;
+        if (q !== c) continue;
+        m.count = m.ink.count = nc;
+        m.geometry = T.mesh.geometry; m.ink.geometry = T.mesh.ink.geometry; // (the look's bead-flowers or Goodsell blobs)
+        m.ink.visible = T.mesh.ink.visible; // (the ink switch and the governor's lowest level)
+      }
+    });
+  };
+  /** The live copies (for tests and the HUD). */
+  world.crowdCopies = () => copies.map((c) => ({ key: c.key, fade: c.fade, dying: c.dying, cx: c.cx, cy: c.cy, over: c.over }));
 
   world.reset = () => {
     for (const h of world.hosts) {
