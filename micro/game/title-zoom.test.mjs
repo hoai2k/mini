@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { titleZoomLayout, TITLE_ZOOM } from './src/title-zoom.js';
+import { TITLE_ZOOM_START } from './src/title-art.js';
 
 test('the full cycle reuses the exact opening layout', () => {
   for (const [width, height] of [[1280, 720], [390, 844], [2560, 1080]]) {
@@ -30,4 +31,16 @@ test('images stay in sequence and the first plate is nested again before the loo
   assert.equal(view.layers[0].index, 7); assert.equal(view.layers[1].index, 0);
   assert.ok(view.layers.every((p, i, all) => !i || p.radius < all[i - 1].radius));
   assert.deepEqual(titleZoomLayout(0, 0, 1280, 720).layers, []);
+});
+
+test('the title opens on the tardigrade, and the mite comes only after the loop', () => {
+  assert.equal(TITLE_ZOOM_START, 2);
+  const start = TITLE_ZOOM_START * TITLE_ZOOM.seconds;
+  assert.equal(titleZoomLayout(start, 8, 1280, 720).layers[0].index, 2);
+  // The mite (plate 1) is the outer layer only once the cycle has come round.
+  let firstMite = Infinity;
+  for (let t = start; t < start + 80; t += 0.5) {
+    if (titleZoomLayout(t, 8, 1280, 720).layers[0].index === 1) { firstMite = t - start; break; }
+  }
+  assert.equal(firstMite, 70);
 });
