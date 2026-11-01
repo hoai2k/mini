@@ -317,6 +317,11 @@ function inPoly(poly, x, y) {
   return c;
 }
 
+// The owner (2026-11-01): no hint at the screen edge toward an off-screen
+// portal ("I can't see a glow really at all, so let's remove it"). The halo
+// on a portal in view and the outro blooms stay. Set true to bring it back.
+const SHOW_EDGE_SPILL = false;
+
 export function createPortalLight({ parent = document.body, zIndex = 3, color = '#f0b44a', clock = () => performance.now() / 1000 } = {}) {
   const canvas = document.createElement('canvas');
   canvas.className = 'portal-light';
@@ -379,6 +384,7 @@ export function createPortalLight({ parent = document.body, zIndex = 3, color = 
     const t = time();
     const k = Math.max(0, Math.min(1, strength)) * (0.8 + 0.2 * open);
     if (k <= 0.01) return;
+    if (!onScreen && !SHOW_EDGE_SPILL) return;
     dirty = true;
     ctx.save();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
