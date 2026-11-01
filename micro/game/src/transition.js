@@ -216,11 +216,16 @@ export function createTransitions({ layer, sound, protoBase, reduced }) {
           const mp = await getModulePlayer();
           if (mp) {
             mp.box.hidden = false;
-            let tick = 0;
+            let tick = 0, shownField = null, shownMag = null;
             const read = () => {
               try {
                 const r = mp.player.readout?.();
-                if (r) { fieldEl.innerHTML = `Field ${unitSafe(String(r.field ?? ''))}`; magEl.textContent = String(r.mag ?? ''); }
+                if (r) {
+                  // Written only when the text changes (it holds still for many frames at a time).
+                  const field = `Field ${unitSafe(String(r.field ?? ''))}`, mag = String(r.mag ?? '');
+                  if (field !== shownField) { shownField = field; fieldEl.innerHTML = field; }
+                  if (mag !== shownMag) { shownMag = mag; magEl.textContent = mag; }
+                }
               } catch { /* readout is optional */ }
               tick = requestAnimationFrame(read);
             };

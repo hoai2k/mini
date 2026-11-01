@@ -118,7 +118,8 @@ export function createCapture({ onRestart, onRespawn, restartButton = 0, card: u
       if (name === 'fadeOut') fade = k;
       else if (name === 'fadeIn') fade = 1 - k;
       if (name === 'fadeOut' && k > 0.5) caption.style.opacity = '0';
-      veil.style.opacity = String(useFade ? fade : 0);
+      const veilOpacity = String(useFade ? fade : 0);
+      if (veil.style.opacity !== veilOpacity) veil.style.opacity = veilOpacity; // unchanged through strike/hold/eat
       if (name === 'eaten') {
         if (card.style.display === 'none') {
           card.innerHTML = `<div style="font-size:18px;font-weight:650;margin-bottom:4px">Eaten</div>`

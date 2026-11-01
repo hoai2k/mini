@@ -125,9 +125,19 @@ function announceJoin(p) {
 roster.onJoin(announceJoin);
 const rosterLive = () => S.screen !== 'play' || S.paused;
 
+// Artwork only the menu and intro show (seven cards, the menu background and
+// the first intro plate, about 3.6 MB) starts loading once the title's own
+// plates and logo have settled, or as soon as the title is left, whichever
+// comes first, so on a slow connection the title art isn't sharing the line
+// with pictures nobody can see yet. Nothing else about loading changes.
+let openMenuArt = () => {};
+const menuArtGate = new Promise((resolve) => { openMenuArt = resolve; });
+const afterTitleArt = (fn) => menuArtGate.then(fn);
+
 // ---------------------------------------------------------------- screens
 function show(screen) {
   S.screen = screen;
+  if (screen !== 'title') openMenuArt();
   host.inert = screen !== 'play';
   host.setAttribute('aria-hidden', String(screen !== 'play'));
   for (const id of ['title', 'menu', 'intro', 'play']) $(`#${id}`).hidden = id !== screen;
@@ -218,13 +228,14 @@ const titleBg = createTitleBg($('#title-bg'), { images: [], reduced: reduced() }
     $('#logo-text').classList.remove('visually-hidden'); $('.vernier').hidden = false; return true;
   });
   Promise.all([background, logoReady]).then((ok) => {
+    openMenuArt();
     const loader = $('#title-art-loading');
     loader.classList.remove('art-loading');
     loader.hidden = ok.every(Boolean);
     if (!loader.hidden) { loader.classList.add('art-error'); loader.setAttribute('aria-label', 'Artwork unavailable'); }
   });
   const menuBg = delivered('MP-G03');
-  if (menuBg) { const el = $('.menu-bg'); showArtwork(el, menuBg); el.classList.add('art'); }
+  if (menuBg) { const el = $('.menu-bg'); el.classList.add('art'); afterTitleArt(() => showArtwork(el, menuBg)); }
   const paper = delivered('MP-G05');
   if (paper) loadImage(paper).then((img) => img && document.documentElement.style.setProperty('--paper', `url(${paper})`));
 }
@@ -262,7 +273,8 @@ function buildCards() {
       ${frame ? `<div class="frame" style="border-image-source:url('${frame}')"></div>` : ''}
     </div></div>`).join('');
   for (const c of $$('.wcard', cardsEl)) {
-    showArtwork($('.art', c), cardArt(WORLDS[+c.dataset.i]));
+    const art = $('.art', c), src = cardArt(WORLDS[+c.dataset.i]);
+    afterTitleArt(() => { if (!art.dataset.artSrc) showArtwork(art, src); });
     c.addEventListener('click', () => {
       const i = +c.dataset.i;
       if (i === S.sel) openIntro(); else selectCard(i);
@@ -961,7 +973,7 @@ document.addEventListener('fullscreenchange', () => { if (S.modals.includes('set
 
 // ---------------------------------------------------------------- start
 buildCards();
-loadImage(introArt(WORLDS[S.sel]));
+afterTitleArt(() => loadImage(introArt(WORLDS[S.sel])));
 show('title');
 renderPlayers();
 requestAnimationFrame(loop);

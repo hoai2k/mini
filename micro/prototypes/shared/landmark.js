@@ -47,6 +47,43 @@ const STYLE = {
 
 const SHOW_BACKDOOR = false;
 
+// The outline of a mark (pointing along +x round the origin) into a 2D
+// context (a fresh path) or a Path2D. Exactly the calls the marks always made.
+function shapeOutline(p, kind, size) {
+  if (p.beginPath) p.beginPath();
+  if (kind === 'backdoor') {
+    const r = size * 0.55;
+    p.arc(0, 0, r, 0, Math.PI * 2);
+    p.moveTo(r + 2.5, -2.6); p.lineTo(r + 5.5, 0); p.lineTo(r + 2.5, 2.6);
+    return;
+  }
+  const r = size * 0.26;
+  p.arc(0, 0, r, 0, Math.PI * 2);
+  for (let i = 0; i < 8; i++) {
+    const a = i * Math.PI / 4;
+    p.moveTo(Math.cos(a) * r * 1.55, Math.sin(a) * r * 1.55);
+    p.lineTo(Math.cos(a) * size * 0.65, Math.sin(a) * size * 0.65);
+  }
+}
+
+// Path2D outlines by kind and size, built on first use (null where Path2D is missing).
+const pathCache = new Map();
+function shapePath(kind, size) {
+  const key = `${kind === 'backdoor' ? 'b' : 'f'}${size}`;
+  let p = pathCache.get(key);
+  if (p === undefined) {
+    p = typeof Path2D === 'function' ? new Path2D() : null;
+    if (p) shapeOutline(p, kind, size);
+    if (pathCache.size > 32) pathCache.clear();
+    pathCache.set(key, p);
+  }
+  return p;
+}
+
+// The eight probe directions of the inset test (the same values the loop computed each call).
+const DIR_X = [], DIR_Y = [];
+for (let a = 0; a < 8; a++) { DIR_X.push(Math.cos((a * Math.PI) / 4)); DIR_Y.push(Math.sin((a * Math.PI) / 4)); }
+
 function inPoly(poly, x, y) {
   let c = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
@@ -82,31 +119,25 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
   }
 
   function shapes(kind, color, shadow, alpha, size) {
-    // Drawn pointing along +x around the origin.
+    // Drawn pointing along +x around the origin. The outline is the same for
+    // every frame of a given kind and size, so it is built once as a Path2D
+    // (cached at module level) and only stroked here: the same pixels, without
+    // re-issuing the arc and the sixteen ray segments twice per mark per frame.
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    const stroke = (w, c, a) => { ctx.globalAlpha = a; ctx.lineWidth = w; ctx.strokeStyle = c; ctx.stroke(); };
+    const path = shapePath(kind, size);
+    const stroke = (w, c, a) => { ctx.globalAlpha = a; ctx.lineWidth = w; ctx.strokeStyle = c; if (path) ctx.stroke(path); else ctx.stroke(); };
     if (kind === 'backdoor') {
-      const r = size * 0.55;
-      const path = () => {
-        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2);
-        ctx.moveTo(r + 2.5, -2.6); ctx.lineTo(r + 5.5, 0); ctx.lineTo(r + 2.5, 2.6);
-      };
-      path(); stroke(3.6, shadow, alpha * 0.8);
-      path(); stroke(1.5, color, alpha);
+      if (!path) shapeOutline(ctx, kind, size);
+      stroke(3.6, shadow, alpha * 0.8);
+      if (!path) shapeOutline(ctx, kind, size);
+      stroke(1.5, color, alpha);
       return;
     }
-    const r = size * 0.26;
-    const sun = () => {
-      ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2);
-      for (let i = 0; i < 8; i++) {
-        const a = i * Math.PI / 4;
-        ctx.moveTo(Math.cos(a) * r * 1.55, Math.sin(a) * r * 1.55);
-        ctx.lineTo(Math.cos(a) * size * 0.65, Math.sin(a) * size * 0.65);
-      }
-    };
-    sun(); stroke(5, shadow, alpha);
-    sun(); stroke(2.4, color, alpha);
+    if (!path) shapeOutline(ctx, kind, size);
+    stroke(5, shadow, alpha);
+    if (!path) shapeOutline(ctx, kind, size);
+    stroke(2.4, color, alpha);
   }
 
   function marker(kind, x, y, color, shadow, alpha) {
@@ -137,7 +168,7 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
     const insetInside = (x, y, m) => {
       if (!inside(x, y)) return false;
       for (let a = 0; a < 8; a++) {
-        const px = x + Math.cos((a * Math.PI) / 4) * m, py = y + Math.sin((a * Math.PI) / 4) * m;
+        const px = x + DIR_X[a] * m, py = y + DIR_Y[a] * m;
         if (px < 0 || py < 0 || px > W || py > H || !inside(px, py)) return false;
       }
       return true;

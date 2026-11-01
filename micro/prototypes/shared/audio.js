@@ -126,7 +126,10 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
      */
     loop(id, { volume = 1, rate = 1 } = {}) {
       const isAmb = id.split('/')[1]?.startsWith('amb');
-      const state = { volume, rate, src: null, gain: null, stopped: false };
+      // sentV / sentR: the last target set() sent, so a world calling set() every
+      // frame with the same values doesn't stack identical automation events
+      // (re-sending the same target and time constant traces the same curve).
+      const state = { volume, rate, src: null, gain: null, stopped: false, sentV: null, sentR: null };
       const handle = {
         _start() {
           if (!ctx || state.src || state.stopped) return;
@@ -139,16 +142,19 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
             src.connect(g).connect(isAmb ? ambBus : sfxBus);
             src.start();
             state.src = src; state.gain = g;
+            state.sentV = null; state.sentR = null; // the fade-in above is a different curve
           });
         },
         set({ volume: v, rate: r } = {}) {
           if (v !== undefined) state.volume = v;
           if (r !== undefined) state.rate = r;
-          if (state.gain) state.gain.gain.setTargetAtTime((SOUNDS[id]?.volume ?? 1) * state.volume, ctx.currentTime, 0.08);
-          if (state.src) state.src.playbackRate.setTargetAtTime(state.rate, ctx.currentTime, 0.08);
+          const tv = (SOUNDS[id]?.volume ?? 1) * state.volume;
+          if (state.gain && tv !== state.sentV) { state.gain.gain.setTargetAtTime(tv, ctx.currentTime, 0.08); state.sentV = tv; }
+          if (state.src && state.rate !== state.sentR) { state.src.playbackRate.setTargetAtTime(state.rate, ctx.currentTime, 0.08); state.sentR = state.rate; }
         },
         stop() {
           state.stopped = true; loops.delete(handle);
+          state.sentV = null; state.sentR = null;
           if (state.gain) state.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.2);
           if (state.src) state.src.stop(ctx.currentTime + 1);
         },

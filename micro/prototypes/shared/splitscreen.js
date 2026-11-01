@@ -350,8 +350,9 @@ export function createSplitScreen(renderer, opts = {}) {
     return { x: fx + (px - fx) / t, y: fy + (py - fy) / t, z: zMin, ppuX: (e[0] / zMin) * W / 2, ppuY: (e[5] / zMin) * H / 2, behind: z < 1e-4, approx: true };
   }
 
+  const cssSize = new THREE.Vector2();
   function sizes() {
-    const s = renderer.getSize(new THREE.Vector2());
+    const s = renderer.getSize(cssSize);
     W = Math.max(1, s.x); H = Math.max(1, s.y);
     renderer.getDrawingBufferSize(bufSize);
   }
@@ -810,11 +811,15 @@ export function createSplitScreen(renderer, opts = {}) {
       const attr = mesh.geometry.attributes.position, a = attr.array;
       const P = r.polygon;
       const tris = Math.min(P.length - 2, REGION_V / 3);
-      let o = 0;
+      // Uploaded only when a corner moved (a still split re-sent every fan each frame).
+      let o = 0, moved = false;
+      const put = (v) => { v = Math.fround(v); if (a[o] !== v) { a[o] = v; moved = true; } o++; };
       for (let t = 1; t <= tris; t++) {
-        for (const p of [P[0], P[t], P[t + 1]]) { a[o++] = p[0] * sx - 1; a[o++] = 1 - p[1] * sy; a[o++] = 0; }
+        put(P[0][0] * sx - 1); put(1 - P[0][1] * sy); put(0);
+        put(P[t][0] * sx - 1); put(1 - P[t][1] * sy); put(0);
+        put(P[t + 1][0] * sx - 1); put(1 - P[t + 1][1] * sy); put(0);
       }
-      attr.needsUpdate = true;
+      if (moved) attr.needsUpdate = true;
       mesh.geometry.setDrawRange(0, tris * 3);
       mesh.material = src.raw ? mesh.userData.mats.raw : mesh.userData.mats.linear;
       mesh.material.uniforms.tex.value = src.texture;
@@ -825,7 +830,9 @@ export function createSplitScreen(renderer, opts = {}) {
     // Dividers: a soft dark shadow under an antialiased brass hairline. Each
     // is a strip across the line, its alpha given at offsets (CSS px) from it.
     const pos = linePos.array, col = lineCol.array;
-    let nv = 0;
+    let nv = 0, lineMoved = false;
+    const setP = (i, v) => { v = Math.fround(v); if (pos[i] !== v) { pos[i] = v; lineMoved = true; } };
+    const setC = (i, v) => { v = Math.fround(v); if (col[i] !== v) { col[i] = v; lineMoved = true; } };
     const strip = (a, b, profile, rgb, alpha) => {
       const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
       const nx = -dy / l, ny = dx / l;
@@ -836,15 +843,15 @@ export function createSplitScreen(renderer, opts = {}) {
         qx[2] = b[0] + nx * o1; qy[2] = b[1] + ny * o1; qx[3] = a[0] + nx * o1; qy[3] = a[1] + ny * o1;
         qa[0] = qa[1] = a0; qa[2] = qa[3] = a1;
         for (const ix of QUAD) {
-          pos[nv * 3] = qx[ix] * sx - 1; pos[nv * 3 + 1] = 1 - qy[ix] * sy; pos[nv * 3 + 2] = 0;
-          col[nv * 4] = rgb[0]; col[nv * 4 + 1] = rgb[1]; col[nv * 4 + 2] = rgb[2]; col[nv * 4 + 3] = qa[ix] * alpha;
+          setP(nv * 3, qx[ix] * sx - 1); setP(nv * 3 + 1, 1 - qy[ix] * sy); setP(nv * 3 + 2, 0);
+          setC(nv * 4, rgb[0]); setC(nv * 4 + 1, rgb[1]); setC(nv * 4 + 2, rgb[2]); setC(nv * 4 + 3, qa[ix] * alpha);
           nv++;
         }
       }
     };
     for (const e of layout.edges) strip(e.a, e.b, shadowProfile, shadowColor, shadowColor[3] * e.alpha);
     for (const e of layout.edges) strip(e.a, e.b, lineProfile, dividerColor, dividerColor[3] * e.alpha);
-    if (nv) { linePos.needsUpdate = true; lineCol.needsUpdate = true; }
+    if (nv && lineMoved) { linePos.needsUpdate = true; lineCol.needsUpdate = true; }
     lineGeo.setDrawRange(0, nv);
     lineMesh.visible = nv > 0;
     const ac = renderer.autoClear;

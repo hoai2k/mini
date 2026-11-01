@@ -81,7 +81,7 @@ export function mountHud({ title, sub, controls, note }) {
   document.body.appendChild(el);
   addKeyStyle();
   const dev = el.querySelector('.dev');
-  let playersEl = null;
+  let playersEl = null, playersHtml = null;
   let mode = '';
   // Controller glyphs whenever any controller is connected, keys otherwise; live.
   function setMode(m) {
@@ -112,6 +112,7 @@ export function mountHud({ title, sub, controls, note }) {
   const stats = document.createElement('div');
   stats.className = 'hud-stats';
   stats.hidden = true;
+  let statsText = '';
   document.body.appendChild(stats);
   const toastEl = document.createElement('div');
   toastEl.className = 'hud-toast';
@@ -133,15 +134,20 @@ export function mountHud({ title, sub, controls, note }) {
      */
     players(list) {
       if (!playersEl) { playersEl = document.createElement('span'); playersEl.className = 'players'; dev.before(playersEl); }
-      const show = list && list.length > 1;
-      playersEl.hidden = !show;
-      if (show) playersEl.innerHTML = list.map((p) => `<i class="${p.waiting ? 'waiting' : ''}" style="--pc:${p.color}">${p.name || 'P' + (p.slot + 1)}</i>`).join('');
+      const show = !!(list && list.length > 1);
+      if (playersEl.hidden !== !show) playersEl.hidden = !show;
+      if (!show) return;
+      // Rebuilt only when the roster's markup changes (worlds call this from onChange and per frame alike).
+      const html = list.map((p) => `<i class="${p.waiting ? 'waiting' : ''}" style="--pc:${p.color}">${p.name || 'P' + (p.slot + 1)}</i>`).join('');
+      if (html !== playersHtml) { playersHtml = html; playersEl.innerHTML = html; }
     },
     /** Prototype-only diagnostic readout (scale, speed, state). Pass '' to hide. */
     stats(text) {
+      // Written only when it changes: worlds call this every frame, often with the same text.
       const shown = !embed.active && !!text;
-      stats.hidden = !shown;
-      stats.textContent = shown ? text : '';
+      if (stats.hidden !== !shown) stats.hidden = !shown;
+      const t = shown ? String(text) : '';
+      if (t !== statsText) { statsText = t; stats.textContent = t; }
     },
     toast(text, ms = 1800) {
       toastEl.textContent = text;

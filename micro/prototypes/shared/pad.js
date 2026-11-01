@@ -28,6 +28,8 @@ const KEYS = {
 };
 
 const DEAD = 0.14;
+// The key table as [button, codes] pairs, built once (poll ran Object.entries every frame).
+const KEY_LIST = Object.entries(KEYS);
 
 // Radial deadzone, rescaled so the stick still reaches 1, clamped to the unit circle.
 function stick(x, y) {
@@ -63,9 +65,10 @@ export function createPad(opts) {
   let any = false;
 
   let gp = null;
+  // Two button buffers swapped each poll (no new arrays per frame).
   let now = new Array(17).fill(0);
   let prev = now.slice();
-  let axes = [0, 0, 0, 0];
+  const axes = [0, 0, 0, 0];
   let kind = useKeys ? 'keyboard' : 'controller';
 
   const key = (codes) => codes.some((c) => keys.has(c));
@@ -93,23 +96,26 @@ export function createPad(opts) {
         any = true;
         if (perDevice ? g.index === index : !gp) gp = g;
       }
+      const spare = prev;
       prev = now;
-      now = new Array(17).fill(0);
-      axes = [0, 0, 0, 0];
+      now = spare;
+      now.fill(0);
+      axes[0] = axes[1] = axes[2] = axes[3] = 0;
       // A preloaded world renders its first frames while held. Ignore even
       // connected controllers until the shell actually starts the world.
       if (embed.active && embed.paused) return;
       if (gp) {
         gp.buttons.forEach((b, i) => { if (i < 17) now[i] = b.pressed ? Math.max(b.value, 0.5) : b.value; });
-        axes = [gp.axes[0] || 0, gp.axes[1] || 0, gp.axes[2] || 0, gp.axes[3] || 0];
+        axes[0] = gp.axes[0] || 0; axes[1] = gp.axes[1] || 0; axes[2] = gp.axes[2] || 0; axes[3] = gp.axes[3] || 0;
         if (now.some((v) => v > 0.5) || axes.some((a) => Math.abs(a) > 0.4)) kind = 'controller';
       }
       if (!useKeys) return;
-      for (const [b, codes] of Object.entries(KEYS)) if (key(codes)) { now[b] = 1; kind = 'keyboard'; }
-      const kl = [kAxis('KeyA', 'KeyD'), kAxis('KeyW', 'KeyS')];
-      const kr = [kAxis('ArrowLeft', 'ArrowRight'), kAxis('ArrowUp', 'ArrowDown')];
-      if (kl[0] || kl[1]) { axes[0] = kl[0]; axes[1] = kl[1]; kind = 'keyboard'; }
-      if (kr[0] || kr[1]) { axes[2] = kr[0]; axes[3] = kr[1]; kind = 'keyboard'; }
+      if (!keys.size) return; // nothing held: every key test below would be false
+      for (const [b, codes] of KEY_LIST) if (key(codes)) { now[b] = 1; kind = 'keyboard'; }
+      const kl0 = kAxis('KeyA', 'KeyD'), kl1 = kAxis('KeyW', 'KeyS');
+      const kr0 = kAxis('ArrowLeft', 'ArrowRight'), kr1 = kAxis('ArrowUp', 'ArrowDown');
+      if (kl0 || kl1) { axes[0] = kl0; axes[1] = kl1; kind = 'keyboard'; }
+      if (kr0 || kr1) { axes[2] = kr0; axes[3] = kr1; kind = 'keyboard'; }
     },
     /** Left stick, deadzoned; y is +1 when pushed down (towards the player). */
     ls() { return stick(axes[0], axes[1]); },

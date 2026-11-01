@@ -173,12 +173,22 @@ function statusText() {
   return `${S.dir < 0 ? 'Reverse · ' : ''}${T.title} · ${strat}${rec} · ${seg} · ${what} ${(st.zoom * 100).toFixed(0)}% · look ${(st.look * 100).toFixed(0)}%`;
 }
 let fps = 60;
+// The readout's elements, looked up once, and each written only when its text changes.
+const hudEls = new Map();
+const hudEl = (root, sel) => {
+  let m = hudEls.get(root);
+  if (!m) hudEls.set(root, (m = {}));
+  return m[sel] || (m[sel] = root.querySelector(sel));
+};
+const setText = (el, v) => { if (el.textContent !== v) el.textContent = v; };
+let shownBarW = null;
 function updateHud() {
   const r = eng.readout(innerWidth);
-  scaleEl.querySelector('.bar').style.width = `${r.bar.px.toFixed(1)}px`;
-  scaleEl.querySelector('.big').textContent = r.bar.label;
-  scaleEl.querySelector('.mag').textContent = `field ${r.field} · ${r.mag} (10× eyepiece equiv.)`;
-  scaleEl.querySelector('.look').textContent = `${r.look} · ${r.instrument}`;
+  const barW = `${r.bar.px.toFixed(1)}px`;
+  if (barW !== shownBarW) { shownBarW = barW; hudEl(scaleEl, '.bar').style.width = barW; }
+  setText(hudEl(scaleEl, '.big'), r.bar.label);
+  setText(hudEl(scaleEl, '.mag'), `field ${r.field} · ${r.mag} (10× eyepiece equiv.)`);
+  setText(hudEl(scaleEl, '.look'), `${r.look} · ${r.instrument}`);
   if (EMBED) return;
   const pi = playingIndex();
   const key = `${sel}|${pi}|${S.k}|${S.phase}|${S.tl?.end}|${S.phase === 'trans' ? Math.round(S.tau * 20) : 0}`;
@@ -187,7 +197,7 @@ function updateHud() {
     menu.querySelector('.bar').innerHTML = timelineBar();
     menuKey = key;
   }
-  menu.querySelector('.status').textContent = statusText();
+  setText(hudEl(menu, '.status'), statusText());
   hud.stats(`${WORLDS[eng.world].short} · ${S.phase}${S.phase === 'trans' ? ` τ ${S.tau.toFixed(2)}/${S.tl.end.toFixed(1)}` : ''}
 field ${r.field} · ${(S.w / eng.zo.field.width).toPrecision(3)} µm/px · ${fps.toFixed(0)} fps`);
 }

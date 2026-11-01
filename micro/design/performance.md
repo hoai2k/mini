@@ -556,3 +556,113 @@ container is shared, so ±30 % noise is normal. CPU numbers are comparable
 between runs, but not as absolute laptop times. On a real machine, the
 worlds' own HUD stats (draws, tris, fps) and Chrome's Performance panel with
 GPU timing are the final check: 4 players, 1080p, 60 fps.
+
+## Second pass (2026-11-01)
+
+Scope: the shared modules (`prototypes/shared/*.js`), the game shell
+(`game/`), the zoom player and page (`prototypes/zoom/`) and `split-demo`.
+The worlds' own folders were out of scope; other sessions were editing them.
+
+`measure.mjs tardigrade 4 --url=q=high` ran before and after, back to back.
+The container was saturated (0.4 fps, about 5 s of SwiftShader per frame), so
+that profile can't separate the shared modules (each shows up at 0.1 ms/s).
+Back to back, it gave a CPU median of 32.3 → 25.7 ms with the same 572
+draws. That is only 4–7 frames per run, though, and the heap figures swing
+with GC timing (17.8 → 305 KB per frame), so those runs prove nothing either
+way. The numbers below come from focused benchmarks instead: the module
+alone in Chromium or Node, original against new, on the same inputs.
+
+### Findings
+
+- **`landmark.js`** (4 views plus one on-screen marker, 1280×720, CPU
+  profile): `shapes()` took 0.034–0.039 ms a frame and `draw()` 0.11–0.14 ms.
+  Most of `shapes()` was rebuilding the same arc and 16 ray segments twice per
+  mark. Most of the march was `Math.cos`/`sin` in `insetInside`, about 200
+  calls a mark.
+- **`crowd.js`** (400 members, 4 players): a closure per member per substep
+  in the separation pass. That was 572 minor GCs per 3000 frames with a 1 MB
+  young generation.
+- **Per-frame DOM and GPU writes:** `hud.stats()` (every world, every frame)
+  rewrote `hidden` and `textContent` even when nothing had changed, and
+  `hud.players()` rebuilt `innerHTML` on every call. In a still split,
+  `splitscreen.compose()` re-uploaded the region fans and dividers every frame
+  (about 11 KB at 4 views). The capture veil's opacity was written every frame
+  of a catch. The zoom page ran 4 `querySelector` lookups and 5 DOM writes a
+  frame. The shell's transition readout wrote `innerHTML` every frame.
+- **`pad.js`:** two new 17-element arrays, an axes array and
+  `Object.entries(KEYS)` on every poll, for each pad.
+- **`audio.js`:** worlds call `loop.set()` every frame (phage, bacterium,
+  paramecium, and the zoom engine with 7 ambiences). Each call queued a new
+  `setTargetAtTime`, even with the same target.
+- **Shell during play:** one rAF loop runs `input.poll` and `glyphMode`
+  (2–3 `getGamepads` calls and a few small arrays). `roster.poll` runs only
+  while paused. The title background is stopped with `cancelAnimationFrame`
+  off the title, and nothing renders behind the iframe. The shell does poll
+  pads alongside the world, but it needs that for Start and for disconnects,
+  and it costs well under 0.05 ms.
+- **Zoom player:** the first `play()` imports three.js and the engine
+  (221 ms) and links 3 programs (592 ms under SwiftShader). A transition draws
+  about 3 times a frame. The loop stops when it arrives: 0 draws in the
+  following 3 s. Its WebGL context stays alive between transitions.
+- **Load** (local server, SwiftShader):
+  - The title made 41 requests, 7.5 MB in all. 4.3 MB of that is the title's
+    own art (plates, logo, paper). The other 3.6 MB is for the menu and intro
+    (7 cards, `menu.webp`, the first intro plate) and loaded in parallel.
+  - Preload-to-ready in the shell:
+
+    | World | Ready after | Fetched |
+    | --- | --- | --- |
+    | Springtail | 5.7 s | 9.3 MB |
+    | Mite | 35 s | 5.6 MB |
+    | Tardigrade | 5.9 s | 5.1 MB |
+    | Amoeba | 30 s | 3.8 MB |
+    | Paramecium | 3.3 s | 3.7 MB |
+    | Bacterium | 0.9 s | 3.6 MB |
+    | Phage | 3.3 s | 4.6 MB |
+
+  - Mite and amoeba are dominated by shader compiles.
+  - The largest files are PNGs: `springtail/sundew-leaf.png` 3.1 MB,
+    `springtail/ripples.png` 2.2 MB, `tardigrade/particles.png` 875 KB,
+    `game/logo.png` 689 KB, `game/card-frame.png` 507 KB.
+  - Audio isn't fetched until a gesture unlocks sound.
+
+### Implemented (non-destructive)
+
+| Change | Before → after |
+| --- | --- |
+| `landmark.js`: mark outlines cached as `Path2D`; the 8 probe directions precomputed | `shapes()` 0.034–0.039 → 0.005–0.007 ms/frame; `insetInside` 0.043–0.047 → 0.014–0.016; `draw()` 0.11–0.14 → 0.047–0.069. Overlay pixel hashes identical at 6 states |
+| `crowd.js`: separation query inlined, same cell and member order | GCs 572 → 289 per 3000 frames; instance matrices bit-identical |
+| `pad.js`: two button buffers swapped, key table built once, key scan skipped when no key is held | no arrays allocated per poll |
+| `hud.js`: `stats`, `players` and `hidden` written only on change | 2 DOM writes/frame → 0 while the text holds |
+| `splitscreen.js`: size vector reused; compose fills without temporary arrays and uploads fans and dividers only when a value changes (compared as float32) | about 11 KB/frame → 0 in a still 4-way split |
+| `predation.js`: veil opacity written on change | |
+| `audio.js`: `loop.set()` skips a target identical to the last one sent. Re-sending the same target and time constant traces the same curve; the memo resets after the fade-in and on `stop()` | 60 automation events/s per loop → 0 while steady |
+| Shell: menu-only art waits until the title art settles, or until the title is left | first menu-only request moved from in parallel to after the title art (requested by 0.9 s); all 7 cards ready on the menu |
+| Shell: transition readout written on change | |
+| `zoom/main.js`: HUD elements cached, written on change | |
+
+Verified with a deterministic A/B: virtual clock, seeded `Math.random`,
+frames stepped by hand, mock pads, and the original files served for "before".
+`split-demo` at 1 and 4 players (a 4-way split with landmarks) and the zoom
+page at 45 %: every canvas is byte-identical and the page text is identical.
+`node prototypes/check.mjs index zoom split-demo` passes,
+`node game/check.mjs` passes, the Node tests pass 6/6, and `node --check`
+passes on every touched file.
+
+### Recommendations (not implemented)
+
+| Recommendation | Reason not done | Expected gain | Effort |
+| --- | --- | --- | --- |
+| Pre-rasterise the landmark marks to a sprite and `drawImage` it rotated | Resampling softens the edges, so it is not pixel-identical | The remaining stroke raster cost, large on a software canvas | Small |
+| Skip redrawing the landmark overlay when the marks haven't changed | Amoeba and mite paint player rings onto `marks.canvas` after `drawSplit`, so the module can't tell what is on the canvas. It needs a `marks.end()` the worlds adopt | About 0.05 ms/frame while still | Medium |
+| Re-encode PNG art as lossless WebP | The assets are outside these folders and need `asset-list.js` updates | Typically 30–50 % smaller; about 2–3 MB off the springtail | Small |
+| Pre-compile shaders off the critical path (`renderer.compileAsync` / `KHR_parallel_shader_compile`) in mite and amoeba | World folders | Most of 35 s / 30 s to ready under SwiftShader; seconds on weak GPUs | Medium |
+| Import the zoom player module during the intro | Parsing three.js on the shared main thread could hitch Begin or a playing world | About 200 ms off the first transition's start | Small |
+| One `getGamepads` snapshot per frame shared by every pad (up to 6 calls a frame at 4 players) | Changes when each pad samples (sub-millisecond) | Tiny | Small |
+| Free the zoom player's GL context between transitions | The next transition would re-link its programs (about 0.6 s here) | One WebGL context of memory during play | Small |
+
+**Known issue found:** the landmark overlay is cleared only when the module
+itself drew a mark (`dirty`). If a world paints rings on `marks.canvas` in a
+frame where no mark is drawn (the forward mark suppressed, or `onScreen:
+'none'`), those rings are never cleared and smear. Today the mite and amoeba
+always draw a mark, so it doesn't show.

@@ -263,15 +263,22 @@ export function createCrowd(opts = {}) {
     for (let i = 0; i < N; i++) {
       if (state[i] === 2) continue;
       const ui = pu[i], vi = pv[i];
-      query(ui, vi, minGap, (j) => {
-        if (j <= i || state[j] === 2) return;
-        const du = pu[j] - ui, dv = pv[j] - vi, d2 = du * du + dv * dv;
-        if (d2 >= reach2 || d2 < 1e-12) return;
-        const d = Math.sqrt(d2), push = (minGap - d) * 0.35 / d;
-        pu[i] -= du * push; pv[i] -= dv * push; pu[j] += du * push; pv[j] += dv * push;
-        const k = push * 2;
-        vu[i] -= du * k; vv[i] -= dv * k; vu[j] += du * k; vv[j] += dv * k;
-      });
+      // query(ui, vi, minGap, ...) inlined, in the same cell and member order:
+      // a closure per member per step was most of the crowd's garbage.
+      const x0 = cx(ui - minGap), x1 = cx(ui + minGap), y0 = cy(vi - minGap), y1 = cy(vi + minGap);
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+        const c = y * gw + x;
+        for (let kk = cellStart[c], e = cellStart[c] + cellCount[c]; kk < e; kk++) {
+          const j = sorted[kk];
+          if (j <= i || state[j] === 2) continue;
+          const du = pu[j] - ui, dv = pv[j] - vi, d2 = du * du + dv * dv;
+          if (d2 >= reach2 || d2 < 1e-12) continue;
+          const d = Math.sqrt(d2), push = (minGap - d) * 0.35 / d;
+          pu[i] -= du * push; pv[i] -= dv * push; pu[j] += du * push; pv[j] += dv * push;
+          const k = push * 2;
+          vu[i] -= du * k; vv[i] -= dv * k; vu[j] += du * k; vv[j] += dv * k;
+        }
+      }
     }
 
     // Players shove through: members inside a player's body are put outside it
