@@ -2,9 +2,11 @@
 // the view before it becomes the root, so dropping its parent cannot make a cut.
 import { TITLE_ZOOM, titleZoomLayout } from './title-zoom.js';
 
-export function createTitleBg(canvas, { images = [], reduced = false } = {}) {
+export function createTitleBg(canvas, { images = [], reduced = false, startPlate = 0 } = {}) {
+  // The clock starts on plate `startPlate` (each plate holds the screen for TITLE_ZOOM.seconds).
+  const startTime = Math.max(0, startPlate) * TITLE_ZOOM.seconds;
   const g = canvas.getContext('2d');
-  let w = 0, h = 0, dpr = 1, running = false, t = 0, last = 0, raf = 0;
+  let w = 0, h = 0, dpr = 1, running = false, t = startTime, last = 0, raf = 0;
   let plates = [];
   const prepared = new WeakMap();
 
@@ -69,7 +71,7 @@ export function createTitleBg(canvas, { images = [], reduced = false } = {}) {
     setImages(imgs) {
       const firstLoad = !plates.length;
       plates = imgs.map(prepare);
-      if (firstLoad) t = 0;
+      if (firstLoad) t = startTime;
       last = performance.now();
       if (running) draw();
     },
