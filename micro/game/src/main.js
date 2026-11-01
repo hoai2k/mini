@@ -567,7 +567,8 @@ function onWorldMessage(m, f) {
     case 'frozen': S.onFrozen?.(m.pose, m.move); break;
     case 'near':
       // no prompt for the way on: the portal itself says "go there" (the backdoor keeps its Y prompt)
-      showPrompt(m.on && m.kind === 'back' ? m : null);
+      // the backdoor and a portal you are in (unguarded) get a Y prompt; nearing the way on only preloads
+      showPrompt(m.on && (m.kind === 'back' || m.kind === 'portal') ? m : null);
       // nearing the way on (or back): start loading that world already
       if (m.on && !S.transitioning) { const n = S.world + (m.kind === 'back' ? -1 : 1); if (n >= 0 && n < WORLDS.length) preloadWorld(n); }
       break;
@@ -739,7 +740,8 @@ function showPrompt(m) {
   const el = $('#prompt');
   if (!m || S.paused) { el.hidden = true; return; }
   const i = S.world;
-  if (m.kind !== 'back') { el.hidden = true; return; } // the way on has no text (the portal shows it)
+  if (m.kind === 'portal') { el.innerHTML = `${glyph('Y')} ${m.label || 'Enter the portal'}`; el.hidden = false; return; }
+  if (m.kind !== 'back') { el.hidden = true; return; } // nearing the way on has no text (the portal shows it)
   const label = m.label || (m.kind === 'back'
     ? (i > 0 ? `Rise to the ${WORLDS[i - 1].name}` : 'The top of the chain')
     : (i < WORLDS.length - 1 ? `Zoom in to the ${WORLDS[i + 1].name}` : 'Work in progress'));

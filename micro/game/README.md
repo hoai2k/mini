@@ -273,7 +273,18 @@ the zoom out for now.
 - No shell changes are needed: it takes the continuous path whenever A sends
   `outro: true` and B provides `'intro'`.
 
-### The zoom
+#### Entering a portal (Y)
+
+A portal is never an automatic door (the owner, 2026-11-01). While a player
+is in a portal's area and its boss isn't guarding it, the world sends
+`embed.near('portal', true)` (and `false` when they leave or the boss returns);
+the shell shows "Y Enter the portal". Pressing Y there calls the world's
+`enterPortal(P)`, which starts the outro. A world opened on its own shows the
+same prompt itself (`shared/embed.js`). `near('forward')` stays a quiet
+"nearing the way on" signal that only preloads the next world.
+
+
+## The zoom
 
 `playTransition(from, to, dir)` in `src/transition.js` tries, in order:
 

@@ -141,6 +141,22 @@ function emit(type, data) {
   }
 }
 
+// A portal prompt for a world opened on its own (no shell): "Y (R) Enter the portal".
+let promptEl = null;
+function standalonePrompt(text) {
+  if (typeof document === 'undefined') return;
+  if (!text) { if (promptEl) promptEl.hidden = true; return; }
+  if (!promptEl) {
+    promptEl = document.createElement('div');
+    Object.assign(promptEl.style, { position: 'fixed', left: '50%', bottom: '64px', transform: 'translateX(-50%)', zIndex: '25', pointerEvents: 'none',
+      background: 'rgba(14,12,8,.72)', color: '#f3dfae', border: '1px solid rgba(216,178,104,.6)', borderRadius: '999px', padding: '6px 14px',
+      font: '600 14px/1.3 system-ui, -apple-system, "Segoe UI", sans-serif' });
+    document.body.appendChild(promptEl);
+  }
+  promptEl.textContent = `Y (R) ${text}`;
+  promptEl.hidden = false;
+}
+
 function post(type, data = {}) {
   if (!active) return;
   try { window.parent.postMessage({ ...data, [TAG]: 1, type }, origin); } catch { /* shell gone */ }
@@ -266,7 +282,9 @@ export const embed = {
   },
   /** The player is at (on) or has left (off) a landmark; the shell shows a prompt. */
   near(kind, on, label) {
-    if (active) post('near', { kind, on: !!on, label });
+    if (active) { post('near', { kind, on: !!on, label }); return; }
+    // standalone page: show the portal's Y prompt ourselves (in the game the shell shows it)
+    if (kind === 'portal') standalonePrompt(on ? (label || 'Enter the portal') : null);
   },
   /** Menu/Start pressed: the shell pauses (features.js calls this in embed mode). */
   menu() { post('menu'); },
