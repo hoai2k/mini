@@ -83,11 +83,40 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      # A plain full checkout, smoothcraft/ included. Leaving it out was tried
-      # (a blobless partial clone with a sparse checkout, October 2026): it
-      # saves only the mod's ~8% of the data, and fetching the rest blob by
-      # blob during checkout was slower than one ordinary fetch of everything.
-      - uses: actions/checkout@v4
+      # A sparse checkout that leaves out the folders no build reads: the
+      # big design/reference/research folders and smoothcraft/, about 3 GB of
+      # the 5.6 GB tree. Measured on 1 November 2026 against the full checkout
+      # on the same commit: checkout 77 s against 162 s, build job 104 s
+      # against 185 s, and the published site identical (5,379 files, one
+      # hash). An earlier try that left out only smoothcraft/ (~8 % of the
+      # data) was slower than a full fetch; this one skips enough to win.
+      # hopper/ stays whole because hopper/3d/publish.sh reads its design/.
+      # A publish.sh that starts reading one of these folders must take it
+      # off this list. The full test run reads the design folders (their
+      # generators' --check), so it keeps the full checkout.
+      - name: Checkout (full, for the full test run)
+        if: github.event_name == 'workflow_dispatch' && inputs.tests == 'full'
+        uses: actions/checkout@v4
+      - name: Checkout (sparse)
+        if: "!(github.event_name == 'workflow_dispatch' && inputs.tests == 'full')"
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !/kingdomofthefairies/design/
+            !/percyjackson/design/
+            !/percyjackson/reference/
+            !/smoothcraft/
+            !/bronzedrum/design/
+            !/musicpractice/design/
+            !/musicpractice/mobile/
+            !/micro/design/
+            !/micro/research/
+            !/onemonster/reference/
+            !/fibreart/reference/
+            !/imageannotator/design/
+            !/icecreamcone/design/
       - uses: pnpm/action-setup@v4
         with:
           version: 10
