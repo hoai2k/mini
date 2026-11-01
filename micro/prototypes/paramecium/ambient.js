@@ -87,7 +87,7 @@ export function createAmbient(parent, { tile = 1500, depth = 650 } = {}) {
   // 15–60 µm across, at every depth. In darkfield they are the glittering
   // clumps of the delivered card art; in brightfield soft brown smudges.
   {
-    const N = 300, PER = 11;
+    const N = 230, PER = 10;
     const iPos = new Float32Array(N * PER * 4), iP = new Float32Array(N * PER * 4);
     let k = 0;
     for (let f = 0; f < N; f++) {
@@ -104,7 +104,7 @@ export function createAmbient(parent, { tile = 1500, depth = 650 } = {}) {
   }
   // Fine specks drifting everywhere (dead bacteria, clay, mucus).
   {
-    const N = 2600;
+    const N = 1800;
     const iPos = new Float32Array(N * 4), iP = new Float32Array(N * 4);
     for (let i = 0; i < N; i++) {
       iPos.set([(rand() - 0.5) * tile, 4 + rand() * (depth - 8), (rand() - 0.5) * tile, 0], i * 4);
@@ -115,7 +115,7 @@ export function createAmbient(parent, { tile = 1500, depth = 650 } = {}) {
   // Sediment carpet on the slide (fixed: no drift).
   const still = { value: new THREE.Vector2() };
   {
-    const N = 2400;
+    const N = 1800;
     const iPos = new Float32Array(N * 4), iP = new Float32Array(N * 4);
     for (let i = 0; i < N; i++) {
       // clumped: most grains gather in drifts, as sediment does
@@ -132,7 +132,7 @@ export function createAmbient(parent, { tile = 1500, depth = 650 } = {}) {
   {
     const geos = [0, 1, 2].map((i) => smallFlake(i * 5.1 + 2));
     const lists = geos.map(() => []);
-    for (let i = 0; i < 150; i++) {
+    for (let i = 0; i < 120; i++) {
       const size = 8 + rand() ** 1.5 * 20;
       const floor = rand() < 0.6;
       const y = floor ? size * 0.12 + 2 : 25 + rand() * (depth - 50);

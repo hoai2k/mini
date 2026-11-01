@@ -2,22 +2,31 @@
 
 Level 5 of the Zoom Chain, as a playable prototype: be a **magnetotactic
 bacterium** (a *Magnetospirillum*-like spirillum, 3 µm long) in bog-pond
-sediment at 1000×, at the limit of the light microscope. Or switch, in
-Features, to the predator ***Bdellovibrio bacteriovorus*** (1 µm), which rams
-a prey cell, bores into its periplasm and eats it from inside. Published in
-the prototype archive at `micro/prototypes/bacterium/`.
+sediment at 1000×, at the limit of the light microscope, and **gather an army
+of your kin and fight your way to the host cell**. Or switch, in Features, to
+the predator ***Bdellovibrio bacteriovorus*** (1 µm), which rams a prey cell,
+bores into its periplasm and eats it from inside. Published in the prototype
+archive at `micro/prototypes/bacterium/`.
 
-**You steer with LS; let go and the water has you.** A real bacterium cannot
-steer: it runs straight, rotational Brownian motion slowly bends its course,
-and it tumbles into a new random direction, so chemotaxis is only a choice of
-*when* to tumble. Steering is therefore a labelled game assist (the owner's
-call: the player leads, the world pushes back). While the stick is held, the
-cell turns toward it, fast but not instantly, and swims at a speed set by the
-tilt; Brownian jitter is reduced but still shows, and the magnetic torque
-still pulls gently toward the field line. Release the stick and the cell keeps
-running at cruise speed wherever rotational and translational Brownian
-motion, the ambient flow, the grazers' feeding currents and the field turn
-it. Honest run and tumble (no steering) is a Features choice.
+The owner's brief (1 November 2026): no circle round the group; move, slow
+down and stop as you like, spinning faster as you move; the group a flock
+whose cells each follow it in their own way, not clones; X sends a beacon
+that kin touching the group answer as they join (no automatic joining), and
+X also eats prey; no oxygen meter; the challenge is to gather an army and
+fight your way to your destination, paced as a rhythm of moving, an
+obstacle, a calm break, the next, to a boss at the end. No time limits.
+
+**You steer with LS, as fast as you tilt; let go and you stop.** A real
+bacterium cannot steer: it runs straight, rotational Brownian motion slowly
+bends its course, and it tumbles into a new random direction, so chemotaxis
+is only a choice of *when* to tumble. Steering is therefore a labelled game
+assist. While the stick is held the cell turns toward it, fast but not
+instantly, and swims at a speed set by the tilt, from a slow drift (a third
+of the way: about 13 µm/s) to a full run (45 µm/s). Release it and the
+motors stop: at low Reynolds number the cell stops dead, and only Brownian
+motion, the flow and the magnetic torque move it. Its flagella and body turn
+with its speed: fast in a run, slower as it slows, still when it stops.
+Honest run and tumble (no steering) is a Features choice.
 
 ## Landmarks (the Micro Zoom chain)
 
@@ -27,36 +36,36 @@ everything else (`draw.js`, `landmarks`), and a quiet edge arrow
 (`shared/landmark.js`) shows where each is when it is off screen: a brass
 chevron for the way on, a hollow ring for the way back.
 
-- **Forward: a host cell with phages landing on it**, far to the upper
-  right in the oxygen band (560, 24 µm; about 580 µm from the start at
-  (−20, −20)). The way is long on purpose: the first half is a calm
-  exploration where kin are plentiful and the collective forms; every
-  challenge waits at or beyond halfway (see **Placement**). It is swollen,
-  its contents crowded with new phage heads, phages are docked all over its
-  surface and more diffuse in to land. Phages are 60 nm: phase contrast shows
-  only the swollen host, while fluorescence (SYBR) and darkfield show the
-  phages as spots, which is the honest way to find them. Touch the host:
-  `embed.landmark('forward')`, the zoom into the phage level.
+- **Forward: a host cell with phages landing on it**, far to the right (660,
+  24 µm; about 680 µm from the start at (−20, −20)), at the end of the way
+  (see **The way**), beside Stentor. It is swollen, its contents crowded with
+  new phage heads, phages are docked all over its surface and more diffuse in
+  to land. Phages are 60 nm: phase contrast shows only the swollen host,
+  while fluorescence (SYBR) and darkfield show the phages as spots. It lies
+  in Stentor's feeding current: **only once Stentor is beaten** does touching
+  it (your cell or any cell of your army) call
+  `embed.landmark('forward')`, the zoom into the phage level; before that a
+  toast says to beat Stentor first (a game rule).
 - **Backdoor: the looming Paramecium** at the top left, in the open water
   above the biofilm: the edge of a cell forty times your length, its pellicle
   with the trichocyst seam, green *Chlorella* inside and a row of cilia
   beating along its edge. Stay within 38 µm of it for half a second: a quiet
   prompt "Y · back to the Paramecium's pool" shows (in the game the shell
   draws it, `embed.near('back')`), and Y rises to the pool
-  (`embed.landmark('back')`). There Y means "go back" instead of the data
-  overlay. It is near the air, so the oxygen warning comes on while you wait.
+  (`embed.landmark('back')`). There Y means "go back".
 - Standalone, the page behaves the same and `embed.js` shows a small toast
   in place of the zoom. The stats corner gives both distances.
 
 ## The boss: Stentor coeruleus
 
-`stentor.js` (state and vortex), drawn in `draw.js`, run by `runBoss` in
-`main.js` (`shared/predation.js` `createFight`, with more resolve). The giant
-blue trumpet ciliate (1–2 mm) is anchored by its foot to the biofilm beside
-the host cell: at 1000× it is enormous, so only the rim of its oral disc
-with the band of membranelles beating round it looms in from the right edge
-of the field, its striped blue body tapering down to the foot. Its vortex of
-specks spirals into the oral pouch off-frame.
+`stentor.js` (state, vortex, the oral disc), drawn in `draw.js`, run by
+`runBoss` in `main.js` (`shared/predation.js` `createFight` as its state
+machine) and fought as the last gate (`guards.js`). The giant blue trumpet
+ciliate (1–2 mm) is anchored by its foot to the biofilm beside the host
+cell: at 1000× it is enormous, so only the rim of its oral disc with the
+band of membranelles beating round it looms in from the right edge of the
+field, its striped blue body tapering down to the foot. Its vortex of specks
+spirals into the oral pouch off-frame.
 
 - **Its look** follows the delivered reference sheet
   (`assets/reference-sheets/boss-stentor.webp`): a trumpet flaring from a
@@ -64,126 +73,175 @@ specks spirals into the oral pouch off-frame.
   obliquely, its rim ringed all round by the membranelle band, spiral
   grooves on the disc running into the oral pouch, fine longitudinal
   pigment stripes, the macronucleus as a chain of beads, and green
-  zoochlorellae and food vacuoles inside. It stands as in the sheet's first
-  view: foot on the biofilm at the lower left (beside the host), disc tilted
-  up and to the right (`SHAPE.TRUMPET` in `bacterium-shapes.js`).
-- **Dormant** until a player comes within ≈230 µm of its mouth after the calm
-  opening; then a quiet brass **resolve gauge** shows while anyone is near.
-  Even dormant, a gentle feeding current flows.
-- **The steady vortex:** within ≈175 µm of the mouth a swirling current
-  (≈10–25 µm/s near the host) you can swim against.
+  zoochlorellae and food vacuoles inside (`SHAPE.TRUMPET` in
+  `bacterium-shapes.js`).
+- **Wakes** when a player comes within 200 µm of its mouth; a brass gauge
+  shows its health (the enemy gauge at the top, shared by every gate).
+- **The steady vortex:** within 175 µm of the mouth a swirling current you
+  can swim against. **Inside the rim of its oral disc** (the ellipse the
+  membranelles ring, `stentor.disc()`) a cell is swept in: in about 3 s in
+  the steady vortex, in about half a second during a pull.
 - **Its tell:** the membranelles beat faster and the vortex brightens
-  (1.4 s). **The pull** (0.9 s): a strong draw into the mouth, faster than
-  you sprint near the disc. **Below half resolve** the pull is harder.
-  Drawn within ≈96 µm of the mouth, you are swept in.
-- **Your play:** ride the edge of the vortex; **tumble (B) at the pull** to
-  break free (it kicks you out of the vortex); **sprint across** while the
-  vortex slackens after a pull (2.4 s); **bump its foot** on the biofilm and
-  it contracts in a flash and pauses (3.5 s). Each wasted pull, each tumble
-  free and each bump costs it resolve; worn out, it contracts and stays shut
-  for 22 s: the host is yours.
+  (1.4 s). **The pull** (0.9 s): a strong draw toward the mouth. **Below half
+  health** the pull is harder.
+- **Your play:** bring an army. Every cell of it among the membranelles (up
+  to 20 µm outside the rim) wears it down; every member it sweeps in poisons
+  it (more in a bigger army); X adds volleys; Y's toxin burst a big hit. A
+  tumble (B) at the pull breaks your own cell free (and costs it health), as
+  does bumping its foot (it contracts in a flash and pauses) and every pull
+  that comes up empty. Beaten, it contracts and stays shut: the host is yours.
+- **Measured** (`flock.test.mjs`-style scripted runs that push the army
+  straight at its rim and press X): an army of 12 or 20 is swept in before it
+  wins; 28 wins in about 6.5 s with half of it lost; 40 in about 6 s losing a
+  few.
 - **Swept in:** the follow-and-respawn catch: round the vortex, into the
   oral pouch, packed into a food vacuole carried down into its body, the
-  camera pulled back to the 90 µm field; then the fade and a respawn away
-  from it (together: beside a teammate).
-- **A raft holds:** a collective at raft size (quorum 8) is dragged by the
-  vortex at a third of its strength (measured: idle 140 µm from the mouth for
-  1 s, a lone cell is pulled 68 µm in, a raft drifts 2 µm out), and when the
-  vortex does reach you a member is swept in instead of you.
-- **Departures:** the vortex's reach and strength are game values, and the
-  pulls are a rhythm for play (a real Stentor feeds steadily).
+  camera pulled back to the 90 µm field; then the fade and a respawn in the
+  calm break behind (together: beside a teammate).
+- **Departures:** the vortex's reach and strength are game values, the pulls
+  are a rhythm for play (a real Stentor feeds steadily), and the host only
+  letting you in once it is beaten is a game rule.
 - Test hooks: `__micro.boss()` (awake, state, resolve, vortex strength,
   contraction, a log), `__micro.stentor`, `debug.wakeBoss()`.
 
-## The collective
+## The army (a flock of kin)
 
-The owner's design: "the bacteria swarm (though when you join there's no
-leader, you just become a collective; and you can join and leave another
-player; if you branch off far enough you split the crowd evenly)".
 `collective.js`, drawn in `draw.js` (`kin`), run from `main.js`.
 
-- **Joining:** kin cells (your own species, dim, wandering slowly in the
-  band) are plentiful in the first half of the way (67 of 70 start there, a
-  few right beside you). Touch one with your cell, or with any cell of your
-  collective, and it joins: you are a collective. Its quorum signal reaches
-  further as it grows, so nearby kin drift in by themselves. A faint brass
-  ring marks each free kin cell near you (a game marker: Features → Mark your
-  cell).
-- **No leader:** the whole group moves together under the stick as one flock
-  (cohesion to the group's middle, separation, alignment; the members steer
-  by the input itself, not toward you). Your own cell is one member, pulled
-  to the middle like the others (in tests it swims anywhere in the flock,
-  often at the back). Release the stick and the collective **mills in
-  place**, circling its middle: that is how it holds still. A sprint (A)
-  sprints the whole collective.
-- **Health:** members are your health. A predator that would take you (a
-  grazer's funnel, the amoeba, Stentor's mouth, a Bdellovibrio's ram) takes
-  the member on its side instead, and you are knocked clear. Members are
-  also lost to grazers' mouths and the amoeba on their own. They **regrow by
-  division** in the band (about one division per member per 70 s; faster on
-  food, three times as fast on a taken patch), up to 40; your own division
-  adds your daughter to the collective.
-- **Quorum** is how many cells are close together (within 7 µm of the
-  middle), not the head count: a tight dozen beats a loose twenty. It is
-  shown in the HUD's quiet brass: a thin ring round the collective fills
-  toward 12, with ticks at 5 and 8, an inner purple arc for the toxin
-  charge, and a small label ("23 · quorum 20 · quorum · toxin ready (Y)").
-  The stats corner repeats it. Abilities by quorum:
+- **The beacon (X).** X sends a pulse from the middle of your flock out to
+  its reach: its edge plus 7 µm (alone: 9 µm, three body lengths; at most
+  44 µm). It is drawn on the medium as a ring of soft spots spreading and
+  fading. Free kin cells (your own species, the dim spirilla wandering in the
+  meadow by the start and in each calm break) that the ring passes answer
+  with their own small pulse, one after another (0.08 s plus 0.09 s per
+  answer before them), and join. **Kin never join by themselves.** One
+  beacon every 0.3 s, so you can press X everywhere.
+- **X also eats.** Every prey rod (the E. coli-like rods) within 1.7 µm of a
+  member's middle, beyond its half length, is lysed: it rounds up, swells and
+  bursts into a fading puff, and the member that took it grows a third of
+  the way to dividing. Members divide into the flock (up to 48), so eating
+  grows the army as well as calling kin does. X also strikes: every member
+  touching an enemy adds a volley (`guards.js`). Holding X still takes up
+  dissolved food in a patch for your own cell.
+- **You steer the flock, not a cell.** The stick sets the flock's intent: a
+  heading and a speed. Your own cell reacts at once; every member follows by
+  its own rules (`FLOCK` and each cell's personality):
+  - the intent **as it has perceived it so far**: its own reaction lag
+    (0.05–0.35 s) plus 0.04 s for every µm it is behind the flock's leading
+    edge, so the front moves first and the rest follow bit by bit;
+  - **cohesion** toward the middle beyond a comfortable radius
+    (1.05 √n + 1.2 µm), and with the stick released a gentle pull so the
+    flock settles; **separation** (cells keep 2.3 µm apart: a physical push
+    and a steer); **alignment** with the neighbours within 6 µm (each to its
+    own degree, 0.2–0.6); a slow **wander** of its own;
+  - its own **top speed** (0.82–1.18 × 45 µm/s), **turn rate**
+    (4–8 rad/s), **speed ramp** (0.12–0.32 s) and a slight variety of
+    **length and helix**. It swims along its body, so to change direction
+    it must turn round, slowing while it faces away: the laggards overshoot
+    and loop back. Release the stick and the leaders stop first, the rest
+    coast in, turn back and settle; a stopped cell needs a little more push
+    to start again, so a resting flock rests. Each cell's flagella and body
+    spin with its own speed.
+  - Measured (`flock.test.mjs`, 40 members): 0.15 s after pressing forward
+    under a fifth of the flock is moving, after 0.4 s nearly all; cruising,
+    their speeds differ by ±2.5–3.5 µm/s and their headings by ±0.08 rad;
+    after a reversal the first turns round at about 0.45 s and the last at
+    about 1.2 s; released, the flock is still within about 4 s.
+  - The camera and "where the flock is" (the split screen, the edge arrows'
+    origin, the gates) use the flock's middle, smoothed; alone, your cell.
+    Your own cell's corner brackets show only while you are alone (or, in
+    multiplayer, in your colour).
+- **Members are your health.** A predator that would take you (a grazer's
+  funnel, the amoeba, Stentor, a Bdellovibrio's ram, a phage) takes the
+  member on its side instead. Members it eats poison it (`guards.js`).
+- **Army size** (members plus the players' cells) gates three abilities,
+  shown in a quiet line at the bottom of the screen ("Army 23 · slime shield
+  · raft · toxin 60 %"; alone: "press X near kin to call them"), never a ring:
   - **5, slime shield:** EPS round every member (a haze in fluorescence).
-    Phages stick in the slime and can't reach your wall; a Bdellovibrio's
-    ram glances off.
-  - **8, raft:** members line up; currents (Stentor's vortex, a grazer's
-    draw) drag the collective at a third of their strength.
-  - **12, quorum:** the **toxin burst** charges over 4 s while the
-    collective holds still (released stick: it mills), and holds while you
-    move. **Y** (or LS click) fires it: a purple ring 32 µm across; grazers
-    in reach recoil and give up, Bdellovibrio flee, phages are destroyed,
-    Stentor flinches (resolve), the amoeba's edge is pushed back. The cells
-    of a charged collective show a faint purple (violacein-like)
-    absorbance. **Patch takeover:** sit at quorum on a food patch for 1.5 s
-    and it is yours: rivals are pushed off and members divide three times
-    as fast.
-- **Bdellovibrio is drawn to dense collectives** (a dense prey colony suits
-  it): a free one within 110 µm of a collective at quorum 5 or more turns
-  toward it, harder the denser it is, and takes a member on contact; one
-  stalking you looks for you from further off the denser you are.
-- **Together:** touch another player's collective (your cell against any of
-  its cells) and you join it: one collective, your inputs blended (each
-  player's cell steers half by its own stick and half by the blend; the
-  members follow the blend). **Leaving is by moving away** (no button):
-  branch off 20 µm from the other players and the collective **splits
+    Phages stick in the slime; a Bdellovibrio's ram glances off half the time.
+  - **8, raft:** currents (the grazers', Stentor's vortex) drag the flock less
+    the bigger it is: 1 / (1 + army / 6), a third at 12, an eighth at 40.
+  - **12, toxin:** the toxin burst charges over 6 s and holds; **Y** (or LS
+    click) fires it: a purple ring 32 µm across, a big hit on every enemy in
+    reach, grazers recoil, Bdellovibrio die, phages are destroyed. The cells
+    of a charged flock show a faint purple (violacein-like) absorbance.
+- **Together:** touch another player's flock (your cell against any of its
+  cells) and you join it: one flock, the sticks blended into one intent (each
+  player's own cell steers half by its own stick). **Leaving is by moving
+  away:** branch off 20 µm from the other players and the army **splits
   evenly**, each player taking an equal share, the members on their side.
-  The same players can't re-merge for 2.5 s. Tested: 49 members split
-  26 / 30 (with divisions meanwhile) between two players.
-- **Real basis:** quorum sensing is a density switch that turns on group
-  behaviour such as toxin production (C19); quorum-sensing microcolonies
-  resist grazers and mature biofilms poison them (C28); swarms move as
-  rafts of aligned cells (C29); multicellular magnetotactic prokaryotes swim
-  as one ball (C20); Bdellovibrio readily attacks biofilms (S93). **[Departure]:**
-  a player steering a group, members dying in your place, and the toxin on a
-  magnetotactic cell (violacein is made by other genera).
-- Features → Body → *The collective* (on by default). Test hooks:
-  `__micro.coll()`, `__micro.collective`, `debug.recruit(n, slot)`,
-  `debug.charge(slot)`, `debug.burst(slot)`.
+  Tested with four players of 20–40 each: two merged into one flock of 60 and
+  split 30 / 30 by steering apart.
+- **Real basis:** quorum sensing is a density switch read from diffusing
+  autoinducers (C19, C28); swarms move as rafts of aligned cells (C29);
+  multicellular magnetotactic prokaryotes swim as one (C20); contact killing
+  by type VI secretion (Pukatzki et al. 2006). **[Departure]:** a player
+  steering a group, the visible beacon (autoinducers are invisible small
+  molecules), kin answering one by one, members dying in your place, a
+  magnetotactic spirillum lysing prey (myxobacteria hunt in packs;
+  *Magnetospirillum* does not), and the numbers.
+- Features → Body → *Your army* (on by default). Test hooks:
+  `__micro.coll()`, `__micro.collective`, `__micro.members(slot)`,
+  `debug.x(slot)` (X), `debug.fill(n, slot)`, `debug.recruit(n, slot)` (kin
+  beside you, for a beacon), `debug.charge(slot)`, `debug.burst(slot)`;
+  `?flock=n` keeps every player's army at n.
 
-## Placement
+## The way: a rhythm of gates
 
-The owner: challenges "don't appear near the beginning but only once you're
-halfway at least to the destination". Progress is measured along the line
-from the start (−20, −20) to the host (560, 24) (`world.progress`).
-Logged by the test (`__micro.challenges()`), all at or beyond halfway:
+The owner: "a few seconds of moving, an obstacle, a short calm break, the
+next, and so on to a boss at the destination". `world.js` `ROUTE` and
+`guards.js`. The level runs left to right along the straight way from the
+start (−20, −20) to the host (660, 24); `__micro.challenges()` lists it:
 
-| Challenge | Where it starts | Progress |
-| --- | --- | --- |
-| Phage clouds and phage homing | only for a player past halfway | ≥ 0.50 |
-| Bdellovibrio | live beyond x = 282 (turn back there) | ≥ 0.52 |
-| Grazer 1 | its current's reach (mouth at 355, −9) | 0.52 (mouth 0.64) |
-| Amoeba's edge | its leading corner; it never creeps back past x ≈ 283 | 0.52–0.69 |
-| Grazer 2 | its current's reach (mouth at 458, −11) | 0.70 (mouth 0.82) |
-| Stentor | wakes within 230 µm of its mouth; vortex edge | 0.82; 0.91 |
+| | Where (x, µm) | Progress | Army that beats it (scripted runs) |
+| --- | --- | --- | --- |
+| The meadow: most of the 80 kin and plenty of prey | −15 … 115 | 0–0.2 | — |
+| Gate 1: a peritrich (Vorticella-like) | mouth 170 | 0.28 | 6 is swept in; 12 wins in ~5 s |
+| break: six kin, prey | 215 | 0.35 | |
+| Gate 2: a Bdellovibrio pack (four) | 265 | 0.42 | 4 wins slowly (eating to grow); 8–12 in ~9 s |
+| break | 312 | 0.49 | |
+| Gate 3: a phage cloud (80 phages) | 360 | 0.56 | 5 (the slime shield) |
+| break | 405 | 0.62 | |
+| Gate 4: an amoeba's edge, a wall 170 µm long across the way | 455 | 0.70 | 8 is engulfed; 12 wins in ~4 s |
+| break | 505 | 0.77 | |
+| Gate 5: a bigger peritrich | mouth 548 | 0.84 | 8 is swept in; 14 wins in ~6 s |
+| break | 590 | 0.90 | |
+| The boss: Stentor, with the host in its current | mouth 782 (off the field), host 660 | 1 | ~25–28 |
 
-The calm opening (45 s) still applies on top. Respawns after a catch put you
-back a little behind where you were, not at the start.
+At the flock's cruise (about 38 µm/s) each break is 1–2 s of calm travel.
+Every gate is on until your army beats it, and **stays beaten**. Nothing is
+timed. How each is fought:
+
+- **Fighting is by contact** (`guards.js`): every cell of your army touching
+  an enemy wears it down (1.2 health per second each) while it recovers by
+  its own rate (3–6 a second), so a small flock gets nowhere and a big one
+  wins, losing members on the way. **A member an enemy eats poisons it**
+  (1.5, plus 1 for each ability the army has). X adds a volley (0.3 per
+  member in contact), Y's toxin burst 15. The enemy gauge at the top shows
+  the nearest enemy your flock is fighting ("Peritrich · 9 fighting").
+- **The peritrichs:** their feeding current sweeps cells into the funnel
+  (members within 3 µm of the mouth are eaten). Fight them at the bell's
+  side or their stalk, below the funnel, where the current is weakest.
+  Beaten, they coil back on their stalks for good.
+- **The Bdellovibrio pack** keeps to its gate and goes for the nearest
+  member: each one **latches on to a member's pole** for 1.5 s, trembling,
+  then bores in (the member is lost and it hides in the bdelloplast for
+  1.5 s). The members round it can kill it while it clings (3 health each, a
+  little regrowth); kill all four.
+- **The phage cloud** hangs across the way (drawn 3× so it reads in phase
+  contrast; spots in fluorescence and darkfield). A phage touching an
+  unshielded member infects it (lost); at army 5 the slime catches them
+  within 1.5 µm of every member, so the flock sweeps the cloud up. Swept
+  under half, the rest drift apart.
+- **The amoeba's edge** stands across the way, its body to the right: cells
+  inside it are slowed to a third and engulfed after 1.2 s. Push on its edge
+  with your army (every cell within 2.5 µm of it fights). Beaten, it
+  withdraws down into the sediment and engulfs nothing more.
+- **A lone cell** still has its own fights with the predators that come for
+  it (`runFights`: a grazer's surge, a phage homing in, a pack Bdellovibrio's
+  ram), each with a wind-up and B to evade; it cannot beat a gate.
+- **Respawn:** a catch puts you back in the calm break behind where you
+  were (or the meadow), where kin live to call again.
 
 ## Multiplayer
 
@@ -192,57 +250,35 @@ the keyboard and the first controller; anyone else joins at any time by
 pressing a button on another controller ("Player 2 joined"; in the game the
 shell's roster comes in with `embed.players`).
 
-- **Each player is their own cell** (the same species; the Features choice
-  applies to all), with its own dash, oxygen damage, energy, growth and
-  catch. The corner brackets that mark your cell are drawn in each player's
+- **Each player is their own cell and their own flock** (the same species;
+  the Features choice applies to all), with its own dash, growth and catch. The corner brackets that mark your cell are drawn in each player's
   colour with a "P2" tag (alone: the gold brackets as before).
-- **One shared field, then a split.** The stage follows the group's middle;
+- **One shared field, then a split.** The stage follows the players' flocks' middle;
   as players separate the screen splits LEGO-style (`shared/splitscreen.js`,
   its 2D mode: each view is the field drawn round its own centre, captured,
   at 70 % resolution while split, without the field stop). Player 1 has the
   view controls (look, field, focus, stage, Y for the data overlay).
-- **Hunters pick a player:** the amoeba's edge creeps toward the nearest
-  living cell; a phage cloud bursts beside one of you; grazers, phages and
-  Bdellovibrio catch whoever they touch. The warning line names the player.
-- **Caught or spent together:** a catch plays out as alone (strike, hold,
-  eat, follow; only the full-screen fade is left out), and an oxygen or
-  starvation death fades out with its cause on screen; then the player
-  rejoins beside a teammate. Alone a catch respawns you at a safe spot, and
-  an oxygen death shows the Run over card.
+- **Hunters pick a player:** the amoeba's edge slides toward the nearest
+  living cell; grazers, phages and Bdellovibrio catch whoever they touch. The
+  warning line names the player. The gates are fought by every flock at once.
+- **Caught together:** a catch plays out as alone (strike, hold, eat,
+  follow; only the full-screen fade is left out); then the player rejoins
+  beside a teammate. Alone a catch respawns you in the calm break behind.
 - **Landmarks** fire for any player.
-- **Collectives:** see **The collective** (join by touch, leave by moving
-  away, an even split).
+- **Flocks:** see **The army** (join by touch, leave by moving away, an
+  even split).
 
 Test hooks: `__micro.players`, `__micro.split`, `__micro.roster()`,
 `__micro.landmarks` (positions, the log, `near`),
 `debug.teleport(x, y, a, slot)`, `forceCapture(kind, slot)`.
 
-## Oxygen and starvation (softened)
+## No oxygen meter
 
-A play test found idle and moving cells dying of oxygen or starvation within
-about a minute, with nothing on screen to say why: an idle magnetotactic cell
-runs north, down the field lines, into the anoxic sediment, where it starved
-in 50 s; near the air the damage rate (o₂ − 8) / 60 per second killed in
-seconds. Now (`game.js`, `RATE`):
-
-- **Slower:** damage builds at (o₂ − 8) / 300 per second, capped at 0.04
-  (at least 25 s even at the meniscus) and heals at 0.05 per second below
-  8 %; anoxic starvation drains energy at 0.004 per second (about four
-  minutes from full), and energy recovers wherever there is oxygen.
-  Bdellovibrio: 0.0025 per second in good water, 0.008 in too little.
-- **Said on screen, early:** the warning line at the top says the cause, what
-  to do and how bad it is: "Too much oxygen: head down the field lines" with
-  a damage meter (and "LB/RB reverses" when you are swimming up), "No oxygen
-  down here: you are starving. Head up toward the air" with an energy meter,
-  "Out of the oxygen: the damage is healing". Keyboard keys replace the
-  button names while no controller is connected.
-- **A readable death:** the motors stop, the cell swells, darkens and fades,
-  while the line reads "Run over: too much oxygen" (or "starved"); then the
-  Run over card (alone) or a rejoin (together).
-
-A scripted test: an idle cell with the predators off survives 3 minutes
-(it settles in the sediment with the starvation warning, energy ≈ 0.3 left);
-parked at 67 % oxygen it lasts about 25 s, with the warning from the start.
+At the owner's request (1 November 2026: "let's have no oxygen meter thing")
+the oxygen damage, starvation, their warnings and meters, the Run over cards
+for them and the Features switch are gone. The oxygen gradient is still in
+the scene (the magnetotactic cells' field lines and senses run on it), but
+nothing on screen measures it and nothing dies of it.
 
 ## Controls
 
@@ -250,12 +286,12 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 
 | Xbox | Keyboard | Action |
 | --- | --- | --- |
-| LS | WASD | **Steer** (a labelled assist): the body turns toward the stick (up to ~5.5 rad/s) and swims at 35–100 % of cruise speed by the tilt. Released: you keep running at 70 % and drift with Brownian motion, flow and the field. Tumbles (B) also lean toward the stick. Features → LS steering → *Tumble bias only* or *Honest: no steering* |
-| RS | Arrows | Move the stage (the view drifts back to your cell) |
-| **A** | Space | **Sprint run**: every flagellum at full motor speed (spirillum 95 µm/s, Bdellovibrio 160 µm/s), 0.6 s, recharging (HUD `dash` meter). It also shakes off loosely bound phages and an attaching Bdellovibrio, and sprinting out of a grazer's current wears it down |
-| **X** | E | **Feed / attack**. Magnetotactic: hold to take up food in a patch (the dissolved food glows as it is drawn into the cell). Bdellovibrio: press while touching a Gram-negative rod to attach and bore in (it spins on its pole and a pore opens in the prey's wall) |
+| LS | WASD | **Steer your flock** (a labelled assist): it heads where you point, as fast as you tilt (0–45 µm/s); your own cell turns toward the stick (up to ~5.5 rad/s), every member follows in its own way (see **The army**). Released: the motors stop and the flock settles; only Brownian motion, flow and the field move you. Tumbles (B) also lean toward the stick. Features → LS steering → *Tumble bias only* or *Honest: no steering* |
+| RS | Arrows | Move the stage (the view drifts back to your flock) |
+| **A** | Space | **Sprint run**: every flagellum at full motor speed (spirillum 95 µm/s, Bdellovibrio 160 µm/s), 0.6 s, recharging (HUD `dash` meter); the whole flock sprints. It also shakes off loosely bound phages and an attaching Bdellovibrio, and sprinting out of a grazer's current wears it down |
+| **X** | E | **Beacon, eat, strike** (magnetotactic, one press every 0.3 s): a pulse from your flock's middle that kin in reach answer as they join; every prey rod in reach of a member lysed; a volley from every member touching an enemy. Held, your cell also takes up food in a patch. Bdellovibrio: press while touching a Gram-negative rod to attach and bore in (it spins on its pole and a pore opens in the prey's wall) |
 | **B** | Shift | **Defend: tumble** (the shared defend button, an evasive move): stop, turn to a random new heading (E. coli's distribution, mean 68°), run on. For Bdellovibrio it is a reverse plus a flick. While you hold LS, the stick turns you back afterwards. **At the moment a predator strikes** (a grazer's surge, a phage committing, a Bdellovibrio's ram) it evades it |
-| Y | R | **Toxin burst** when your collective's toxin is charged (also LS click). Otherwise: data overlay (oxygen, food, field lines and feeding currents, marked on screen as data, not optics). At the Paramecium (the backdoor): back to the pool |
+| Y | R | **Toxin burst** when your army's toxin is charged (army 12; also LS click). Otherwise: data overlay (food, field lines and feeding currents, marked on screen as data, not optics). At the Paramecium (the backdoor): back to the pool |
 | LT / RT | Z / X | Fine focus down / up (it drifts back to your cell's plane unless switched off) |
 | LB / RB | Q / F | **Reverse the run**: the other pole leads. For the magnetotactic cell, this is how it swims back the other way along the field line |
 | D-pad ←→ | 3 / 4 | Look: phase contrast, fluorescence, darkfield, SEM (borrowed), DIC (borrowed) |
@@ -264,70 +300,57 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | View | Tab | Hide or show the controls |
 
 The stats corner shows the real speed in µm/s and body lengths per second,
-oxygen at your position, what your sensors feel (getting better or worse,
-compared over the last ~1.5 s, as the chemotaxis network does), growth or prey,
-the dash meter, phages on you and the magnetic alignment (mB/kT).
+growth or prey, the dash meter, phages on you, the magnetic alignment
+(mB/kT), each gate's health, and your army (size, abilities, toxin, drag,
+the flock's speed and spread). The army line at the bottom and the enemy
+gauge at the top are the only HUD in play.
 
-**Goals.** Magnetotactic: find the microaerobic band (0.5–5 % of air
-saturation), feed in a patch, grow and divide (then keep going). Bdellovibrio:
-take three prey; the last bdelloplast bursts with five new cells.
+**Goals.** Magnetotactic: gather an army (X near kin, X on prey) and fight
+your way through the five gates to Stentor, beat it, and touch the host.
+Bdellovibrio: take three prey; the last bdelloplast bursts with five new
+cells.
 
-**Ways to lose the run:** too much oxygen (the magnetotactic cell is a
-microaerophile) or too little energy; swept into a grazer's oral funnel; the
-amoeba's edge closing over you; a phage binding irreversibly and injecting;
-(magnetotactic) a Bdellovibrio boring in. Each is played out on screen
-before its card (see **Threats and pacing**).
+**Ways to lose your cell** (members die in your place while you have them):
+swept into a grazer's oral funnel or Stentor's oral pouch; the amoeba's edge
+closing over you; a phage binding irreversibly and injecting;
+(magnetotactic) a Bdellovibrio boring in. Each is played out on screen, then
+you respawn in the calm break behind (see **Threats**).
 
-## Threats and pacing
+## Threats
 
-The predators use the shared `shared/predation.js` (`createHunger`,
-`createCapture`), as in the other prototypes.
+The pacing is the way's rhythm of gates (see **The way**), not a clock: the
+calm opening and the predators' on/off spells are gone. Every gate's enemy
+is on until your army beats it. The predators' wind-ups and catches use the
+shared `shared/predation.js` (`createFight`, `createCapture`), as in the
+other prototypes.
 
-- **A calm opening.** For the first 45 s of a run (and after every restart)
-  the grazers' feeding currents are off (their oral cilia lie still, folded
-  half in), no phage cloud comes, the Bdellovibrio leave you alone and the
-  amoeba's edge does not creep toward you. They wake one after another: grazer
-  1 at 45 s, phages at 50 s, grazer 2 at 55 s, Bdellovibrio at 57 s, the
-  amoeba at 60 s.
-- **Pressure comes and goes.** Each predator is on for a while, then rests
-  (longer after a catch, shorter after a miss):
-  - *Grazers:* the feeding current (and the beating wreath) is on for
-    20–35 s, then off.
-  - *Phages:* each phage spell starts with a nearby infected cell bursting
-    24–34 µm from you, releasing a cloud of about 35 phages (a toast says
-    so); for 20–30 s phages that touch you adsorb, then the cloud thins and
-    they no longer stick.
-  - *Bdellovibrio* hunt you (ram on contact) for 18–32 s at a time; shaking
-    one off makes them rest a while.
-  - *The amoeba's edge* creeps toward you only while hungry (30–50 s).
-  The stats corner lists each (`calm`, `on`, `off`, with the seconds left).
-- **Wind-ups and fighting back** (`shared/predation.js` `createFight`,
-  `runFights` in `main.js`). A calm predator looks calm; an attacking one
-  winds up visibly (a pulsing red ring marks it too), then strikes. B (the
-  tumble) at the strike evades it; each evasion and each sprint out costs it
-  interest, and out of interest it leaves you alone for a while.
+- **Wind-ups and fighting back for your own cell** (`runFights` in
+  `main.js`). A calm predator looks calm; one attacking your cell winds up
+  visibly (a pulsing red ring marks it too), then strikes. B (the tumble) at
+  the strike evades it; each evasion and each sprint out costs it interest,
+  and out of interest it leaves you alone for a while.
   - *Grazer:* within ≈45 µm of its funnel it stalks; within ≈24 µm it winds
     up (1.1 s): its oral cilia beat harder and faster, the funnel tips
     toward you and the feeding current intensifies (×2.5), then surges
     (×3.4, 0.5 s). Within 8 µm of the mouth at the end of the surge, you are
-    swept in. Sprinting (A) out of its current wears it down; out of
-    interest it coils back on its stalk and its current stops. (Lingering in
-    the mouth for 2.2 s still gets you swept in.)
-  - *Phage* (in a phage cloud): one homes in on you (a game stretch: phages
+    swept in (a member is, if you have one). Sprinting (A) out of its current
+    wears it down; out of interest it coils back on its stalk for a while.
+  - *Phage* (at the phage cloud): one homes in on you (a game stretch: phages
     only diffuse; drawn 3× so it reads), its long tail fibres catch your
     wall and splay while its baseplate settles (0.75 s), then it commits and
     binds. A tumble then shakes it off; once bound, it is reversible for
-    3 s as before.
-  - *Bdellovibrio* (hunting the magnetotactic cell): it stalks you, lines up
-    4 µm off, trembling, its leading pole brightening (0.85 s), then rams
-    (0.3 s). Rammed, you have 2.2 s to sprint or tumble it off.
-- **Every run-ending catch plays a sequence** (strike, hold, eat, then the
+    3 s.
+  - *Bdellovibrio* (at the pack): it stalks you, lines up 4 µm off,
+    trembling, its leading pole brightening (0.85 s), then rams (0.3 s).
+    Rammed, you have 2.2 s to sprint or tumble it off.
+- **Every catch of your cell plays a sequence** (strike, hold, eat, then the
   camera pulls back to the 90 µm field and follows the predator for 2 s:
   the grazer's bell jerks back on its stalk carrying your vacuole, the
   amoeba's edge creeps on with you inside, the new phages drift off; a
-  caption says what ate you; then a fade and you respawn at a safe spot in
-  the band, away from the funnels and the amoeba). Control stops only for it, and a red
-  line at the top says what is happening:
+  caption says what ate you; then a fade and you respawn in the calm break
+  behind). Your members go free where they are, so you can call them again.
+  Control stops only for it, and a red line at the top says what is
+  happening:
   - *Grazer:* drawn into the oral funnel, spinning; swept down it by the
     oral cilia (beating hard); packed into a food vacuole that drifts into
     the bell and darkens (`bacterium/graze`, then `eat` at a low pitch).
@@ -339,16 +362,13 @@ The predators use the shared `shared/predation.js` (`createHunger`,
     30 new phages into the water (`bacterium/phage`).
   - *Bdellovibrio:* it rams your pole, bores through into the periplasm and
     you round into a bdelloplast with it curled inside.
-  - Oxygen damage and starvation are not predators: the cell is seen to stop,
-    swell a little, darken and fade before the Run over card.
-- **Testing:** Features → World → *Calm opening* (45 s, 20 s, 0 s) and
-  *Predators come and go* (off: on all the time once the opening ends).
-  `window.__micro.pacing()` reports the run time, the first time a predator
-  was on, the first time one threatened you and the first catch, and each
-  predator's state; `window.__micro.forceCapture('grazer' | 'amoeba' |
-  'phage' | 'bdellovibrio')` starts that catch.
+- **Testing:** `window.__micro.pacing()` reports the run time, the first
+  threat and catch, each gate's health and a log of gates reached and
+  beaten; `__micro.gates()`, `__micro.guards`;
+  `window.__micro.forceCapture('grazer' | 'amoeba' | 'phage' |
+  'bdellovibrio')` starts that catch.
 
-Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A sediment ambience loop and a flagellar-motor run loop whose rate follows your speed; the sprint (A), uptake and finished prey (X), tumbles (B), a phage latching on, and the grazer's feeding current catching you.
+Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A sediment ambience loop and a flagellar-motor run loop whose rate follows your speed; the sprint (A), the beacon and each answer, lysed prey and uptake (X), tumbles (B), a phage latching on, the grazer's feeding current catching you, and a gate beaten.
 
 ## Performance
 
@@ -409,13 +429,22 @@ the pixel (phase, fluorescence, darkfield, 4 players).
 ## Checks
 
 ```bash
+node micro/prototypes/bacterium/flock.test.mjs
 node micro/prototypes/check.mjs bacterium
 ```
 
-The smoke check opens the page in headless Chromium, drives the keyboard and
-fails on any console error. `window.__micro.debug` has hooks for scripted
-screenshots (`teleport`, `look`, `zoom`, `tumble`, `dash`, `reverse`,
-`overlay`, `species`, `phageOnMe`, `nearGrazer`).
+`flock.test.mjs` runs the world, your swimmer, the flock and the gates
+headless (no page, no GPU, about 5 s): a lone cell's speed follows the tilt,
+stops on release and spins with its speed; kin never join by touch, X calls
+exactly those in reach, one after another; a flock of 40 starts front first,
+cruises with its own speeds and headings, turns round bit by bit and settles
+when released; X lyses prey in reach only; a lone cell cannot wear the first
+peritrich down and an army of 12 beats it. The smoke check opens the page in
+headless Chromium, drives the keyboard and fails on any console error.
+`window.__micro.debug` has hooks for scripted runs and screenshots
+(`teleport` (your flock comes along), `step(n, dt, input | { slots })`, `x`,
+`fill`, `look`, `zoom`, `tumble`, `dash`, `reverse`, `overlay`, `species`,
+`phageOnMe`, `nearGrazer`).
 
 ## Approach
 
@@ -428,8 +457,8 @@ the edge of a coverslip, with the gradient along the slide. **[Departure]** the
 sediment surface sits in the same focal plane as the water.
 
 - **Oxygen** falls about exponentially from the meniscus (100 %) and is used up
-  by the biofilm, reaching 0 just above it. The microaerobic band is
-  20–50 µm wide.
+  by the biofilm, reaching 0 just above it (scenery and the cells' senses
+  only: nothing measures it on screen and nothing dies of it).
 - **Food**: dissolved organic matter in patches round decaying detritus
   flakes or lysed cells (with a cloud of phages from the lysis). The dissolved
   food is invisible in every optical look; only the flake shows. Patches are
@@ -470,11 +499,13 @@ sediment surface sits in the same focal plane as the water.
   direction. The field can be set to a bar magnet (200 µT) or cancelled.
 - **Steering (LS, the assist)**: the heading turns toward the stick at
   min(7·Δθ, 5.5) rad/s, so a U-turn takes about half a second; speed is
-  35–100 % of the run speed by the tilt (A still sprints). While steering,
-  rotational diffusion is cut to 35 % of its σ, translational to 55 %, and
-  the magnetic torque to 60 % (in the Earth's field it bends a held course by
-  a few degrees; a bar magnet fights back hard). Released: run at 70 % with
-  full Brownian motion, flow and torque.
+  0–100 % of the run speed by the tilt (up to 120 % when the flock asks your
+  cell to catch up; A still sprints). While steering, rotational diffusion is
+  cut to 35 % of its σ, translational to 55 %, and the magnetic torque to 60 %
+  (in the Earth's field it bends a held course by a few degrees; a bar magnet
+  fights back hard). Released: the motors stop, with full Brownian motion,
+  flow and torque. Flagella and body turn at a rate set by the motor
+  (`swim.js`), so a slow cell spins slowly and a stopped one is still.
 - **Tumbles**: angle from E. coli's distribution (mean 68°, Berg & Brown
   1972), 0.1–0.3 s. The **assist** draws eight angles from that distribution
   and keeps the nearest to the stick: still random, but leaning.
@@ -538,11 +569,9 @@ mixed:
   no steering); spontaneous tumbles (off / real
   motor clock); rotational and translational Brownian motion; low Reynolds
   number; flagellar rotation speed shown.
-- **Simulation**: magnetic field (Earth 20 µT / bar magnet / cancelled); oxygen
-  stress.
+- **Simulation**: magnetic field (Earth 20 µT / bar magnet / cancelled).
 - **World**: grazers, amoeba, phages, Bdellovibrio hunters, other bacteria
-  swimming; scenery (fixed); calm opening before the predators (45 s
-  default, 20 s, 0 s); predators come and go (on/off).
+  swimming; scenery (fixed); the way: gates in a rhythm (fixed, explained).
 - **Borrowed** (default off, also on the D-pad look cycle): **SEM** from the
   mite (the height buffer through the adapters' `fieldFromBuffers` and
   `semFromField`, with its detector choice) and **DIC** from the tardigrade
@@ -575,15 +604,24 @@ page runs before the request list has them), with procedural stand-ins:
 
 ## Departures, labelled
 
-- **The collective** (see above): a player steering a group of cells, and
-  members dying in a player's place.
-- **Predator pacing and the catch sequences** are game values: the calm
-  opening, the on/off spells, the phage clouds arriving with a nearby lysis,
-  and catches lasting a few seconds (a lytic cycle takes tens of minutes, a
+- **The army** (see above): a player steering a flock of cells, the visible
+  beacon and kin answering it one by one, members dying in a player's place,
+  a magnetotactic spirillum lysing prey and growing on it, flock rules and
+  personalities (game values), and members changing speed over 0.1–0.3 s
+  (real cells change speed in milliseconds).
+- **The gates** (see **The way**): contact killing and members poisoning
+  what eats them are real kinds of defence (type VI secretion, violacein)
+  but not of *Magnetospirillum*; the health numbers, an enemy staying beaten,
+  the phage cloud hanging together, the amoeba withdrawing, the pack keeping
+  to its gate, and the host letting you in only once Stentor is beaten are
+  game rules. The cloud's phages are drawn 3× so they read in phase
+  contrast.
+- **The catch sequences** are game values: catches lasting a few seconds (a lytic cycle takes tens of minutes, a
   bdelloplast hours). During a phage catch the phage is drawn 3× its 60 nm
   size and visible in every look.
 - **Steering with the stick** (the default): a bacterium cannot choose its
-  heading; it can only choose when to tumble or reverse. Features → LS
+  heading or slow down at will; it can only choose when to tumble or
+  reverse. Features → LS
   steering → Honest restores that.
 - **Time compression**: attachment to entry takes minutes in life, 2.5 s here;
   growth inside the bdelloplast takes 3–4 h, 4 s here. Phage binding is
@@ -609,8 +647,6 @@ page runs before the request list has them), with procedural stand-ins:
 - **Grazer flow** is a 2D sink with a forward bias, not a solved Stokes flow.
 - **The amoeba homes** on you slowly; real amoebae find prey by contact and
   chemical cues.
-- **Energy and stress meters** are game abstractions of respiration and
-  oxidative damage.
 
 ## Sources
 

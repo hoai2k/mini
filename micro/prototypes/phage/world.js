@@ -21,7 +21,7 @@
 // lists each one's fraction of the route.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { toonMaterial, inked, inkedInstanced, blobGeometry } from '../shared/techniques/phage-goodsell.js';
-import { createBath, beadMesh, beadMaterial, beadTemplate, setSolids, setPhages, PALETTE } from '../shared/techniques/phage-beads.js';
+import { createBath, createSprites, beadMesh, beadMaterial, beadTemplate, setSolids, setPhages, PALETTE } from '../shared/techniques/phage-beads.js';
 
 // The water has no floor or walls: z (depth) is as free as x and y, with a soft current back toward
 // the field beyond these bounds (main.js). y is still toward the sunlit surface, where the UV is.
@@ -88,7 +88,8 @@ export function createWorld(scene) {
   // beaded stalk; non-matching proteins two violet lobes (shape tells them apart in greyscale too).
   const proteinBeads = (lobes, c, c2) => {
     const out = [], col = (h) => new THREE.Color(h);
-    for (const [y, r] of [[1.0, 1.15], [2.9, 1.0], [4.7, 0.95]]) out.push({ p: [0, y, 0], r, c: col(c), g: col(c2) });
+    // (after MP-V04: a pale beige beaded stalk under the coloured lobes)
+    for (const [y, r] of [[1.0, 1.15], [2.9, 1.0], [4.7, 0.95]]) out.push({ p: [0, y, 0], r, c: col('#b2a58a'), g: col('#c8b89a') });
     for (let k = 0; k < lobes; k++) {
       const a = (k * Math.PI * 2) / lobes, x = Math.cos(a) * 2.3, z = Math.sin(a) * 2.3;
       for (let j = 0; j < 7; j++) {
@@ -99,7 +100,7 @@ export function createWorld(scene) {
     }
     return out;
   };
-  const goodProtein = proteinBeads(3, '#ffc84e', '#ffd264'), badProtein = proteinBeads(2, '#9a6ccc', '#aa84cc');
+  const goodProtein = proteinBeads(3, '#f2b03c', '#ffd264'), badProtein = proteinBeads(2, '#9a6ccc', '#aa84cc');
   const forestMat = beadMaterial({ sat: 0.95 });
   const receptorMat = beadMaterial({ glow: 0.22, glowColor: '#ffb43a' }); // the gold receptors glow a little: the thing to find
   for (const def of HOSTS) {
@@ -138,7 +139,7 @@ export function createWorld(scene) {
       m.commit(); m.fitBounds(); g.add(m.mesh);
       return m;
     };
-    const lc = def.wrong ? new THREE.Color('#b8b07a') : null;
+    const lc = def.wrong ? new THREE.Color('#7f9a4a') : null; // (MP-R22: the Gram-positive's duller olive fuzz)
     const nL = Math.round(area / (def.wrong ? 34 : 15));
     forest(beadTemplate('lps', 1), Math.ceil(nL / 2), def.wrong ? [0.6, 0.8] : [0.55, 0.8], lc);
     forest(beadTemplate('lps', 2), Math.floor(nL / 2), def.wrong ? [0.6, 0.8] : [0.55, 0.8], lc);
@@ -379,10 +380,13 @@ export function createWorld(scene) {
   for (const b of baths) scene.add(b.group);
   world.baths = baths;
   /** Before drawing a view: wrap the baths round that view's centre (and the camera, for the lens clearing). */
-  world.viewBath = (center) => { for (const b of baths) b.setCenter(center); moteMat.uniforms.uCenter.value.copy(center); };
+  world.viewBath = (center) => { for (const b of baths) b.setCenter(center); if (sprites) sprites.setCenter(center); moteMat.uniforms.uCenter.value.copy(center); };
+  // MP-V07 (delivered): the far layer of molecule sprites beyond the baths, in false light
+  let sprites = null;
+  world.setSprites = (tex) => { if (sprites) return; sprites = createSprites(tex); scene.add(sprites.mesh); sprites.setLevel(world.level ?? 2); };
   /** The phages' wake spheres: [{ p, r }]. */
   world.setWake = (list) => { for (const b of baths) setPhages(b.material, list); };
-  world.setCrowdLevel = (level) => { for (const b of baths) b.setLevel(level); };
+  world.setCrowdLevel = (level) => { world.level = level; for (const b of baths) b.setLevel(level); if (sprites) sprites.setLevel(level); };
   world.bathBeads = () => baths.reduce((a, b) => a + (b.group.visible ? b.beads : 0), 0);
 
   // --- humic flocs (MP-R21 stand-in): loose sticky tangles drifting past halfway; extended fibres snag in them ---
@@ -507,6 +511,7 @@ export function createWorld(scene) {
     }
     if (amoeba.mesh.visible) solids.push({ a: amoeba.center, b: amoeba.center, r: amoeba.r + 4 });
     solids.push({ a: clay.pos, b: clay.pos, r: 30 });
+    if (sprites) sprites.mesh.visible = world.opts.crowd;
     for (const b of baths) {
       setSolids(b.material, solids);
       b.group.visible = world.opts.crowd;

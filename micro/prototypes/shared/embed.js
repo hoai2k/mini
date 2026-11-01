@@ -37,6 +37,12 @@
 //   leave     {index}  a player's controller went away (optional).
 //   captured / died / progress {...}  optional, for statistics.
 //   done      {...}  the zoom player finished a transition (see below).
+//   frozen    {pose}  after a `landmark {kind: 'forward', outro: true}`: the
+//             world has played its success and slowed to a freeze frame;
+//             `pose` frames the next world's creature as it is now on screen
+//             (see "Continuous transitions" below). Sent by embed.frozen().
+//   opening   {pose}  in reply to `hold`: how the world's opening view frames
+//             its own creature. Sent by embed.opening().
 //
 // Shell → world
 //   pause                    stop the simulation and the sound.
@@ -49,6 +55,45 @@
 //   players   {roster}       the joined players, shared/players.js toJSON(),
 //             sent before `resume`; the world restores it with fromJSON() and
 //             keeps polling for joins itself (see embed.players).
+////   hold                     run frames but keep the world's time stopped (a
+//             world that provides 'intro'): it draws its opening scene with
+//             the camera the shell sends, and replies `opening {pose}`.
+//   camera    {pose}         put the camera where `pose` frames the creature
+//             (the old world's next creature, or the new world's own).
+//   begin                    the transition is over: time runs again (the
+//             world eases it in) and the camera is the world's own. Implies
+//             `resume`.
+//
+// ---------------------------------------------------------------------------
+// Continuous transitions (springtail → mite first; design: the owner,
+// 2026-11-01: "an indication of success and then a slowdown to freeze frame,
+// and a direct transition from the existing world scene into the beginning
+// scene of the next world. It should feel continuous").
+//
+//   1. The old world (provides 'outro') reaches its portal: it posts
+//      `landmark {kind: 'forward', outro: true}` and keeps running: a golden
+//      burst, a chime, a rumble, then its time scale eases to 0 while it keeps
+//      rendering. Frozen, it posts `frozen {pose}` (embed.frozen).
+//   2. The shell has the next world preloaded (it started on `near`, at the
+//      latest on the landmark). Once it is ready and provides 'intro', the
+//      shell sends it `hold` (still frozen at its start, now rendering) and it
+//      answers `opening {pose}` (embed.opening).
+//   3. The shell eases one pose from the old world's to the new world's and
+//      sends it as `camera {pose}` to both every frame: the old world pushes
+//      in on the next creature (the mite speck on its capitulum), and the new
+//      world, stacked above it, fades in under exactly the same framing, so
+//      its creature is where the speck was, at the same size and growing at
+//      the same rate. Then the old frame goes and the new world gets `begin`.
+//
+//   A pose frames a creature in a view, the same way in every world:
+//     f      the creature's length over the view's width at its depth
+//     x, y   its centre on screen, normalised device coordinates (-1..1, y up)
+//     pitch  the camera's elevation above the horizon (radians)
+//     rel    the camera's azimuth round the creature minus the creature's
+//            heading (radians; azimuths as atan2(z, x) in the xz plane)
+//   Every world dollies (its field of view fixed) so the creature lands at
+//   (x, y) with apparent size f: embed.poseCamera() does the arithmetic for a
+//   three.js camera.
 //
 // ---------------------------------------------------------------------------
 // Pausing. In embed mode the page starts held: its first two animation frames
@@ -78,6 +123,7 @@ const active = params.get('embed') === '1' && framed && !!origin;
 const listeners = new Map(); // type -> Set<fn>
 const provides = new Set();
 let paused = active;
+let held = false;
 let readySent = false;
 let soundOn = true;
 let volume = 1;
@@ -134,6 +180,19 @@ if (active) {
     switch (d.type) {
       case 'pause': if (!paused) { paused = true; emit('pause', d); } return;
       case 'resume': if (paused) { paused = false; release(); emit('resume', d); } return;
+      case 'hold':
+        held = true;
+        if (paused) { paused = false; release(); }
+        emit('hold', d);
+        return;
+      case 'begin': {
+        const was = held || paused;
+        held = false;
+        if (paused) { paused = false; release(); }
+        emit('begin', d);
+        if (was) emit('resume', d);
+        return;
+      }
       case 'sound':
         if (typeof d.on === 'boolean') soundOn = d.on;
         if (typeof d.volume === 'number') volume = Math.max(0, Math.min(1, d.volume));
@@ -175,6 +234,8 @@ export const embed = {
   params,
   /** True while the shell has the game paused (always false standalone). */
   get paused() { return paused; },
+  /** True while the shell holds the world in a transition: draw, but keep time stopped. */
+  get held() { return held; },
   /** The shell's master sound switch and volume. */
   get soundOn() { return soundOn; },
   get volume() { return volume; },
@@ -211,6 +272,64 @@ export const embed = {
   captured(info = {}) { post('captured', info); },
   died(info = {}) { post('died', info); },
   progress(info = {}) { post('progress', info); },
+  /** Old world, after landmark('forward', { outro: true }): frozen; `pose` frames the next creature. */
+  frozen(pose) { post('frozen', { pose }); },
+  /** New world, on `hold`: how its opening view frames its creature. */
+  opening(pose) { post('opening', { pose }); },
+  /**
+   * Hide the page's chrome (HUD, toasts, overlays) for a cinematic moment,
+   * leaving `keep` (the world's WebGL canvas) on screen; on = false brings it back.
+   */
+  cinematic(on, keep) {
+    for (const el of document.body.children) {
+      if (el === keep || el.contains?.(keep) || el.tagName === 'SCRIPT') continue;
+      if (on) { if (!('microCine' in el.dataset)) { el.dataset.microCine = el.style.visibility || ''; el.style.visibility = 'hidden'; } }
+      else if ('microCine' in el.dataset) { el.style.visibility = el.dataset.microCine; delete el.dataset.microCine; }
+    }
+  },
+  /**
+   * The pose (see "Continuous transitions") of a creature at world point `c`
+   * with heading `heading` (atan2(z, x) of its forward) and length `len`, in
+   * a three.js perspective camera's current view; `pitch` and `yaw` are the
+   * camera's elevation and azimuth round its target.
+   */
+  poseOf(camera, c, { len, heading, pitch, yaw }) {
+    camera.updateMatrixWorld();
+    const e = camera.matrixWorldInverse.elements;
+    // the point in camera space
+    const vx = e[0] * c.x + e[4] * c.y + e[8] * c.z + e[12];
+    const vy = e[1] * c.x + e[5] * c.y + e[9] * c.z + e[13];
+    const vz = e[2] * c.x + e[6] * c.y + e[10] * c.z + e[14];
+    const depth = Math.max(1e-6, -vz);
+    const tanV = Math.tan((camera.fov * Math.PI) / 360), tanH = tanV * camera.aspect;
+    return { f: len / (2 * depth * tanH), x: vx / (depth * tanH), y: vy / (depth * tanV), pitch, rel: wrapAngle(yaw - heading) };
+  },
+  /**
+   * Place a three.js perspective camera (its fov and aspect kept) so the
+   * creature at `c` (heading, len) is framed as `pose` says. Returns
+   * { yaw, pitch, depth, target, halfW } (target: the point the camera looks at, at
+   * the creature's depth).
+   */
+  poseCamera(camera, pose, c, { len, heading }) {
+    const tanV = Math.tan((camera.fov * Math.PI) / 360), tanH = tanV * camera.aspect;
+    const halfW = len / (2 * Math.max(1e-6, pose.f));
+    const depth = halfW / tanH, halfH = depth * tanV;
+    const yaw = heading + pose.rel, pitch = pose.pitch;
+    const cp = Math.cos(pitch);
+    // back: from the target toward the camera; right and up of the view
+    const bx = Math.cos(yaw) * cp, by = Math.sin(pitch), bz = Math.sin(yaw) * cp;
+    let rx = bz, rz = -bx; const rl = Math.hypot(rx, rz) || 1; rx /= rl; rz /= rl; // right: up (0,1,0) × back, normalised
+    const ux = by * rz, uy = bz * rx - bx * rz, uz = -by * rx;                    // up: back × right
+    const ox = pose.x * halfW, oy = pose.y * halfH;
+    const tx = c.x - rx * ox - ux * oy, ty = c.y - uy * oy, tz = c.z - rz * ox - uz * oy;
+    camera.position.set(tx + bx * depth, ty + by * depth, tz + bz * depth);
+    camera.up.set(0, 1, 0);
+    camera.lookAt(tx, ty, tz);
+    camera.updateMatrixWorld();
+    return { yaw, pitch, depth, halfW, target: { x: tx, y: ty, z: tz } };
+  },
   /** Zoom player: the transition has arrived. */
   done(info = {}) { if (active) post('done', info); else devToast('Transition done'); },
 };
+
+function wrapAngle(a) { return Math.atan2(Math.sin(a), Math.cos(a)); }

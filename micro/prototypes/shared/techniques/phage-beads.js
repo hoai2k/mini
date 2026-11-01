@@ -153,8 +153,9 @@ const C = (hex) => new THREE.Color(hex);
 /** Palette by molecule type (false light, Goodsell). */
 export const PALETTE = {
   violet: ['#5a62c8', '#e9a0b4'], periwinkle: ['#8693e4', '#f0b9c8'], teal: ['#3aa3ae', '#9fd29a'],
-  green: ['#86bd78', '#c2dd8a'], pale: ['#a8c4dc', '#ffffff'], olive: ['#9a8a4c', '#c79b6a'],
-  blue: ['#4a63c8', '#7d9de0'], gold: ['#e8b54a', '#f2d36a'], lpsCore: ['#8fb8a0', '#b6d48a'], lpsTip: ['#bcd6f0', '#e6f0c0'],
+  green: ['#86bd78', '#c2dd8a'], pale: ['#a8c4dc', '#ffffff'], olive: ['#a8873e', '#c79b6a'],
+  blue: ['#4a63c8', '#7d9de0'], gold: ['#e8b54a', '#f2d36a'], lpsCore: ['#b3a845', '#c8c070'], lpsTip: ['#b4cde8', '#e6f0c0'],
+  humicDark: ['#6e5428', '#a77d52'], stalk: ['#b2a58a', '#c8b89a'],
   pink: ['#b07fd0', '#ec8fae'], porin: ['#3f58c0', '#f08a4b'], ribo: ['#5a4fb8', '#d9708a'],
 };
 let DETAIL = 1; // (beadTemplate's detail: more, smaller beads at the same size)
@@ -189,21 +190,29 @@ export function beadTemplate(kind, seed = 1, pal = null, detail = 1) {
   const out = [];
   const P = (k) => pal || PALETTE[k];
   if (kind === 'globule') ball(out, 0, 0, 0, 1.2, 9 + Math.floor(rnd() * 6), 0.8, P('violet'), rnd);
-  else if (kind === 'small') ball(out, 0, 0, 0, 0.45, 2 + Math.floor(rnd() * 2), 0.42, P('pale'), rnd);
+  else if (kind === 'small') {
+    // a sugar or water cluster, or (one in three, as in MP-V04) a lone ion in its own colour
+    if (!pal && rnd() < 0.34) { const ion = ['#8a5ad8', '#5ab85a', '#e0a030', '#d8e4ee'][Math.floor(rnd() * 4)]; out.push({ p: [0, 0, 0], r: 0.5, c: C(ion), g: C(ion) }); }
+    else ball(out, 0, 0, 0, 0.45, 2 + Math.floor(rnd() * 2), 0.42, P('pale'), rnd);
+  }
   else if (kind === 'dimer') { ball(out, -0.9, 0, 0, 0.9, 7, 0.72, P('green'), rnd); ball(out, 0.9, 0.2, 0.1, 0.9, 7, 0.72, P('green'), rnd); }
   else if (kind === 'chain') walk(out, 0, -2, 0, 6 + Math.floor(rnd() * 4), 0.75, 0.45, P('pale'), rnd);
   else if (kind === 'complex') { ball(out, 0, -0.8, 0, 2.2, 22, 0.95, P('ribo'), rnd, 0.05); ball(out, 0.5, 1.6, 0.2, 1.5, 12, 0.85, P('ribo'), rnd, 0.05); }
-  else if (kind === 'humic') { walk(out, 0, 0, 0, 10, 0.8, 0.55, P('olive'), rnd); ball(out, 0, 0, 0, 0.9, 5, 0.7, P('olive'), rnd); }
+  else if (kind === 'humic') { walk(out, 0, 0, 0, 12, 0.7, 0.45, P('olive'), rnd); walk(out, 0, 0, 0, 8, 0.7, 0.45, P('olive'), rnd); ball(out, 0, 0, 0, 0.9, 5, 0.6, pal || PALETTE.humicDark, rnd); }
   else if (kind === 'lps') {
     walk(out, 0, 0.5, 0, 4, 0.85, 0.5, P('lpsCore'), rnd, [0, 1, 0]);
+    out[out.length - 1 - Math.floor(rnd() * 3)].c = C('#c8503a'); // a red phosphate dot in the core (MP-V04)
     const top = out[out.length - 1].p;
     for (let k = 0; k < 3; k++) walk(out, top[0], top[1] + 0.6, top[2], 2 + Math.floor(rnd() * 2), 0.6, 0.38, P('lpsTip'), rnd, [Math.cos(k * 2.1) * 0.7, 0.8, Math.sin(k * 2.1) * 0.7]);
   } else if (kind === 'porin') {
-    for (let k = 0; k < 3; k++) { const a = (k * Math.PI * 2) / 3; ball(out, Math.cos(a) * 1.05, 0.9, Math.sin(a) * 1.05, 0.75, 5, 0.66, P('porin'), rnd, 0.04); }
+    // a rounded triangle round a dark pore (MP-V04, MP-V05): beads at the corners and along the edges
+    for (let k = 0; k < 6; k++) { const a = (k * Math.PI * 2) / 6 + Math.PI / 6, rr = k % 2 ? 1.0 : 1.35; ball(out, Math.cos(a) * rr, 0.9, Math.sin(a) * rr, 0.55, 4, 0.5, P('porin'), rnd, 0.04); }
   } else if (kind === 'mprot') { ball(out, 0, 1.2, 0, 1.1, 8, 0.78, P('periwinkle'), rnd); ball(out, 0, 2.6, 0, 0.9, 6, 0.7, P('periwinkle'), rnd); }
   else if (kind === 'floc') {
-    for (let k = 0; k < 7; k++) walk(out, (rnd() - 0.5) * 6, (rnd() - 0.5) * 6, (rnd() - 0.5) * 6, 26, 1.3, 0.75, P('olive'), rnd);
-    for (let k = 0; k < 6; k++) ball(out, (rnd() - 0.5) * 14, (rnd() - 0.5) * 14, (rnd() - 0.5) * 14, 2.4, 14, 1.0, k % 2 ? P('olive') : ['#7d6a3c', '#a77d52'], rnd);
+    // after MP-R21: looping golden-brown beaded strands round a dense dark core, a few grey mineral flakes
+    for (let k = 0; k < 12; k++) walk(out, (rnd() - 0.5) * 4, (rnd() - 0.5) * 4, (rnd() - 0.5) * 4, 34, 1.1, 0.6, k % 3 ? P('olive') : ['#c8963c', '#e0b060'], rnd);
+    for (let k = 0; k < 8; k++) ball(out, (rnd() - 0.5) * 8, (rnd() - 0.5) * 8, (rnd() - 0.5) * 8, 2.6, 18, 0.9, k % 2 ? PALETTE.humicDark : P('olive'), rnd);
+    for (let k = 0; k < 3; k++) ball(out, (rnd() - 0.5) * 7, (rnd() - 0.5) * 7, (rnd() - 0.5) * 3, 1.6, 8, 0.8, ['#8a8a82', '#a0a098'], rnd, 0.02);
   } else throw new Error(`unknown bead kind ${kind}`);
   DETAIL = 1;
   return out;
@@ -327,4 +336,64 @@ export function setSolids(material, list) {
 export function setPhages(material, list) {
   const P = material.uniforms.uPhage.value;
   for (let i = 0; i < MAX_PHAGES; i++) { const s = list[i]; if (s) P[i].set(s.p.x, s.p.y, s.p.z, s.r); else P[i].set(0, 0, 0, 0); }
+}
+
+// --- the far layer: MP-V07's molecule sprites (a 4 × 4 sheet), camera-facing, wrapped round the view
+// beyond the baths. The sheet was keyed from #FF00FF and left coloured fringes, so the shader erodes the
+// alpha (the minimum of five taps) and rejects any magenta-, cyan- or yellow-cast edge pixel.
+const SPRITE_VERT = /* glsl */`
+attribute vec2 corner; attribute vec4 iPos; attribute vec2 iCell;
+uniform vec3 uCenter; uniform float uHalf; uniform float uInner; uniform float uTime;
+varying vec2 vUv; varying float vDepth;
+void main(){
+  vec3 d = mod(iPos.xyz + vec3(sin(uTime * 0.05 + iPos.w), cos(uTime * 0.04 + iPos.w), 0.0) * 6.0 - uCenter + uHalf, 2.0 * uHalf) - uHalf;
+  float s = iPos.w;
+  s *= smoothstep(uHalf, uHalf * 0.85, max(abs(d.x), max(abs(d.y), abs(d.z))));
+  s *= smoothstep(uInner * 0.85, uInner, length(d));
+  vec4 mv = modelViewMatrix * vec4(uCenter + d, 1.0);
+  mv.xy += corner * s;
+  vUv = (iCell + (corner * 0.5 + 0.5)) / 4.0;
+  vDepth = -mv.z;
+  gl_Position = projectionMatrix * mv;
+  if (s < 0.05) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+}`;
+const SPRITE_FRAG = /* glsl */`
+uniform sampler2D uMap; uniform vec3 uHaze; uniform float uFogNear; uniform float uFogFar; uniform float uStyle;
+varying vec2 vUv; varying float vDepth;
+void main(){
+  if (uStyle < 0.5) discard; // (false light only)
+  vec2 cell = floor(vUv * 4.0), local = fract(vUv * 4.0);
+  if (min(local.x, local.y) < 0.03 || max(local.x, local.y) > 0.97) discard; // never the neighbouring cell
+  vec4 c = texture2D(uMap, vUv);
+  float e = 1.5 / 2048.0;
+  float a = min(c.a, min(min(texture2D(uMap, vUv + vec2(e, 0.0)).a, texture2D(uMap, vUv - vec2(e, 0.0)).a), min(texture2D(uMap, vUv + vec2(0.0, e)).a, texture2D(uMap, vUv - vec2(0.0, e)).a)));
+  float key = max(min(c.r, c.b) - c.g, max(min(c.g, c.b) - c.r, min(c.r, c.g) - c.b)); // magenta, cyan or yellow cast
+  if (a < 0.6 || key > 0.35) discard;
+  vec3 col = c.rgb * 0.8;
+  col = mix(col, uHaze, 0.35 + 0.5 * smoothstep(uFogNear, uFogFar * 1.8, vDepth));
+  gl_FragColor = vec4(col, 1.0);
+}`;
+/** The far sprite layer (MP-V07). Returns { mesh, setCenter(v) }. */
+export function createSprites(texture, { n = 1400, half = 700, inner = 330, size = [10, 22], seed = 5 } = {}) {
+  const rnd = rng(seed);
+  const g = new THREE.InstancedBufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(12), 3));
+  g.setAttribute('corner', new THREE.BufferAttribute(new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1]), 2));
+  g.setIndex([0, 1, 2, 0, 2, 3]);
+  const pos = new Float32Array(n * 4), cell = new Float32Array(n * 2);
+  for (let i = 0; i < n; i++) {
+    pos.set([(rnd() * 2 - 1) * half, (rnd() * 2 - 1) * half, (rnd() * 2 - 1) * half, size[0] + rnd() * (size[1] - size[0])], i * 4);
+    const k = Math.floor(rnd() * 16);
+    cell.set([k % 4, 3 - Math.floor(k / 4)], i * 2);
+  }
+  g.setAttribute('iPos', new THREE.InstancedBufferAttribute(pos, 4));
+  g.setAttribute('iCell', new THREE.InstancedBufferAttribute(cell, 2));
+  g.instanceCount = n;
+  const material = new THREE.ShaderMaterial({
+    uniforms: { ...goodsellShared, uMap: { value: texture }, uCenter: { value: new THREE.Vector3() }, uHalf: { value: half }, uInner: { value: inner } },
+    vertexShader: SPRITE_VERT, fragmentShader: SPRITE_FRAG,
+  });
+  const mesh = new THREE.Mesh(g, material);
+  mesh.frustumCulled = false;
+  return { mesh, material, setCenter(v) { material.uniforms.uCenter.value.copy(v); }, setLevel(level) { g.instanceCount = level >= 1 ? n : n >> 1; } };
 }

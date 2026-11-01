@@ -28,7 +28,7 @@ Keyboard fallbacks are in `shared/pad.js`.
 | Tardigrade | Scramble, ~280 µm/s, nearly twice the full-tilt walk (costs water and energy). LS is analogue: a slight push creeps (~30 µm/s), full tilt hurries (~150 µm/s); the keys walk mid-pace, hold G to hurry, T to creep | Pierce with the stylets | Brace (grip hard) |
 | Amoeba | Surge (A): pseudopods shoot out and the cell flows after them | Close the food cup (X) | Let go or egest (B) |
 | Paramecium | Ciliary sprint | Feed (oral gulp); at a hunter, ram and sting | Trichocyst burst and back off (blocks a strike when facing it) |
-| Bacterium | Sprint run (all flagella bundled) | Attach / bore (Bdellovibrio) or bind | Tumble |
+| Bacterium | Sprint run (all flagella bundled; the whole flock sprints) | Beacon: kin it reaches answer and join your flock; also lyses prey in reach and strikes enemies the flock touches (Bdellovibrio: attach / bore). LS steers the flock, released it stops; Y fires the toxin | Tumble |
 | Phage | Current gust (A; on a surface, push off with the fibres) | Grab the aimed protein with the leading fibres (at an amoeba lobe, a fibre jab) | Fold the fibres and slip |
 
 **B is defend in every world** (the amoeba may differ). The mite jumps on A and

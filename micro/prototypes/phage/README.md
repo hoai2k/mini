@@ -479,6 +479,32 @@ The Menu panel lists everything with a switch where it makes sense:
 - **MP-E04** (concept, delivered) set the mood: the palette, the LPS forest,
   the crowded water and the envelope section.
 - **MP-R12** (T4 reference sheet, delivered) for the turnarounds.
+- **The revamp's art (requested and delivered 1 November 2026):**
+  - **MP-V05** (false-light envelope, tileable): on Hosts A and B in false
+    light, tiled at its true scale (about 150 nm a tile, 14 × 9 round the
+    capsule) and taking over 75 % of the albedo, under the bead forest; the
+    wrong host (no outer membrane) keeps its own wet relief. In the Goodsell
+    look the hosts keep MP-V01. Without it, false light shows the procedural
+    relief alone (MP-V01's grain streaked it, so it is no longer used there).
+  - **MP-V06** (equirectangular panorama): the false-light backdrop, sampled
+    by view direction in the final pass (dimmed to 70 %, mixed 85 % over the
+    procedural haze), so the far water is the painting whichever way you
+    turn. Loaded without mipmaps so the wrap seam leaves no line.
+  - **MP-V07** (molecule sprite sheet, 4 × 4): the far layer, 1,400 sprites
+    wrapped round the view between 3.3 and 7 µm (`createSprites` in
+    `phage-beads.js`), false light only. The sheet's magenta key left coloured
+    fringes, so the shader erodes the alpha (the minimum of five taps), drops
+    magenta-, cyan- and yellow-cast pixels and never samples the cell's outer
+    3 %.
+  - **MP-V04** (molecule species sheet), **MP-R21** (humic floc) and
+    **MP-R22** (host in the new look) are references: the bead templates and
+    `PALETTE` follow them (porins as rounded triangles round a dark pore, the
+    receptor's gold lobes on a pale beige stalk, LPS with a gold-olive core,
+    red phosphate dots and pale branching tips, lone ions in their own
+    colours, flocs as looping golden-brown strands round a dark core with grey
+    mineral flakes, the Gram-positive decoy's duller olive fuzz).
+  - **MP-U09** (card) and **MP-G14** (intro plate) replace MP-U07 and MP-G13
+    in place; the shell and the prototypes page use the new ids.
 
 Sound reuses the bacterium's foley: the sediment ambience, the run loop
 (faint, pitched to drift speed), `sprint` (gust, surge), `tumble` (fibres,

@@ -493,7 +493,7 @@ function runFights(dt) {
       c.windup = f.state === 'windup' ? f.t : f.state === 'strike' ? 1 : 0;
       if (f.hit && d < 1.4 && P.game.opts.shielded) {
         c.stalking = null; c.cooldown = 6; c.windup = 0; P.bdello = null;
-        hud.toast(`${who(P)}The ram glances off the slime round your collective`, 1600);
+        hud.toast(`${who(P)}The ram glances off the slime round your army`, 1600);
       } else if (f.hit && d < 1.4 && absorbHit(P, 'bdello', c)) {
         c.stalking = null; c.cooldown = 8; c.windup = 0; P.bdello = null;
       } else if (f.hit && d < 1.4) {
@@ -674,7 +674,7 @@ features.add({ id: 'overlay', group: 'Optics', label: 'Data overlay (Y)', on: fa
   onChange: (on) => { view.overlay = on; tag.classList.toggle('show', on); } });
 features.add({ id: 'mark', group: 'Optics', label: 'Mark your cell', on: true, about: 'Corner brackets round your cell (a game marker, not optics): at 1000× you are one small grey rod among many.', onChange: (on) => { view.mark = on; } });
 features.add({ id: 'collective', group: 'Body', label: 'Your army: a flock of kin (X calls them)', on: true,
-  about: 'X sends a beacon from the middle of your flock (an autoinducer pulse, drawn so it shows: a departure, they are invisible small molecules). Kin it reaches (your own species, wandering in the meadow by the start and in the breaks between the gates) answer with their own small pulse, one after another, and join. They never join by themselves. X also lyses prey rods in reach of any member, and each one feeds a member toward dividing, so the army grows. The flock: you steer it (the stick sets its heading and speed); every member follows by its own rules, with its own top speed, turn rate, reaction lag and wander, so the front moves first and the rest catch up, overshoot and turn back. Members are your health (a predator takes one in your place). Army size gates the slime shield (5: phages stick in it), the raft (8: currents drag you at a third) and the toxin (12: it charges; Y or LS click fires it). Together: touch another player\'s flock to join it (sticks blend); move away to leave: past 20 µm the army splits evenly. Real basis: quorum sensing, swarming rafts, multicellular magnetotactic prokaryotes, contact killing. Departures: a player steers the group, kin answering one by one, members die in your place.',
+  about: 'X sends a beacon from the middle of your flock (an autoinducer pulse, drawn so it shows: a departure, they are invisible small molecules). Kin it reaches (your own species, wandering in the meadow by the start and in the breaks between the gates) answer with their own small pulse, one after another, and join. They never join by themselves. X also lyses prey rods in reach of any member, and each one feeds a member toward dividing, so the army grows. The flock: you steer it (the stick sets its heading and speed); every member follows by its own rules, with its own top speed, turn rate, reaction lag and wander, so the front moves first and the rest catch up, overshoot and turn back. Members are your health (a predator takes one in your place). Army size gates the slime shield (5: phages stick in it), the raft (8: currents drag you less, the bigger it is) and the toxin (12: it charges; Y or LS click fires it). Together: touch another player\'s flock to join it (sticks blend); move away to leave: past 20 µm the army splits evenly. Real basis: quorum sensing, swarming rafts, multicellular magnetotactic prokaryotes, contact killing. Departures: a player steers the group, kin answering one by one, members die in your place.',
   onChange: (on) => { collFeature.on = on; coll.opts.on = on && S.species === 'mtb'; coll.reset(roster); } });
 features.add({ id: 'shapes', group: 'Rendering', label: 'Instanced 2D distance-field specimen', fixed: true,
   about: 'Every cell, filament, phage, grain and giant-cell edge is a quad whose fragment shader computes its true cross-section chord (2√(r²−d²)) and adds optical path, scatter, stain and absorbance into float buffers. Sub-pixel parts are widened with their total kept.' });
@@ -705,7 +705,7 @@ features.add({ id: 'phages', group: 'World', label: 'Phages', on: true, about: '
 features.add({ id: 'hunters', group: 'World', label: 'Bdellovibrio hunters', on: true, about: 'Three predators hunting Gram-negative prey, making bdelloplasts. One may hit you: dash or tumble at once to shake it off before it bores in.', onChange: (on) => { world.opts.hunters = on; } });
 features.add({ id: 'gates', group: 'World', label: 'The way: gates in a rhythm', fixed: true,
   about: 'The meadow by the start, full of kin and prey, then a gate every ~95 µm with a calm break between (a few kin and prey to top up the army): a peritrich, a Bdellovibrio pack, a phage cloud, an amoeba\'s edge, a bigger peritrich, and Stentor at the host. Each is fought by contact: every cell of your army touching it wears it down while it recovers, so a lone cell gets nowhere and an army wins. Beaten, it stays beaten. No timers.' });
-features.add({ id: 'npc', group: 'World', label: 'Other bacteria swim', on: true, about: 'E. coli-like rods run and tumble at 18–28 µm/s; other magnetotactic cells swim along the field and reverse by the oxygen sense. Off: everything sits still (Brownian only).', onChange: (on) => { world.opts.npcRun = on; } });
+features.add({ id: 'npc', group: 'World', label: 'Other bacteria swim', on: true, about: 'E. coli-like rods (your prey) run and tumble at 18–28 µm/s; Bdellovibrio hunt them. Off: everything sits still (Brownian only).', onChange: (on) => { world.opts.npcRun = on; } });
 features.add({ id: 'scenery', group: 'World', label: 'Biofilm, EPS, clay, detritus', fixed: true, about: 'An EPS-rich biofilm of attached rods and cocci over clay and silt grains larger than you; matrix strands; decaying detritus flakes at the heart of each food patch.' });
 features.add({ id: 'pad', group: 'Controls', label: 'Shared control scheme', fixed: true, about: 'LS steer the flock (released: it slows and stops), RS stage, A sprint, X beacon + eat + strike (Bdellovibrio: attach), B tumble, Y toxin burst (or data), LT/RT focus, LB/RB reverse, D-pad ←→ look, ↑↓ field, Menu features, View panel.' });
 // Borrowed (default off), also reachable from the look cycle.
@@ -969,7 +969,7 @@ function events(P, ev) {
   if (ev.emerged) hud.toast(`${who}Prey ${S.prey} of ${GOAL_PREY} eaten. (In life the predator divides inside and the progeny burst out hours later.)`, 3400);
   if (ev.gramPos) hud.toast('Gram-positive: no periplasm, so Bdellovibrio cannot get in');
   if (ev.divide) hud.toast(`${who}Growing to divide: each daughter will get half the magnetosome chain`, 2400);
-  if (ev.divided) { P.pad.rumble(300, 0.5, 0.5); hud.toast(`${who}Divided! (${S.divisions}) Two cells now swim the band. Keep feeding.`, 3000); }
+  if (ev.divided) { P.pad.rumble(300, 0.5, 0.5); hud.toast(`${who}Divided! (${S.divisions}) Your daughter cell joins your army.`, 3000); }
   if (ev.contracted) hud.toast('The peritrich jerked back on its coiling stalk: its current stops for a moment');
   if (ev.bump && Math.random() < 0.02) hud.toast('A clay grain, bigger than you');
 }
@@ -1033,8 +1033,8 @@ function frame(now) {
   if (!blocked) hud.update(pad);
   const inputs = {};
   if (!blocked) for (const P of roster) if (!P.waiting) inputs[P.slot] = readInput(P, dt);
-  // ?flock=n (tests and perf): every player starts with an army of n
-  if (FLOCK_N) for (const P of roster) if (P.S.alive && P.S.species === 'mtb' && coll.opts.on) { const C = coll.of(P); if (C && C.members.length < FLOCK_N && !P.flockFilled) { debug.fill(FLOCK_N, P.slot); P.flockFilled = true; } }
+  // ?flock=n (tests and perf): every player's army is kept at n (losses are replaced)
+  if (FLOCK_N) for (const P of roster) if (P.S.alive && P.S.species === 'mtb' && coll.opts.on) { const C = coll.of(P); if (C && C.members.length < FLOCK_N * C.players.length) debug.fill(FLOCK_N * C.players.length, P.slot); }
   if (!debug.freeze) tick(dt, inputs);
   else for (const P of roster) P.S.dashOn = P.dash.active;
   for (const P of roster) {
@@ -1268,7 +1268,7 @@ function stats() {
     S.species === 'mtb' ? `field ${world.opts.field} µT, mB/kT ≈ ${(S.mB || 0).toFixed(1)} (gentle pull: steer against it) · running ${S.sense > 0 ? 'north (down the field)' : 'south (up the field)'}` : `run ${sp.v} µm/s, sprint ${sp.dash} µm/s`,
     `gates: ${guards.list.map((q) => `${q.id} ${q.beaten ? 'beaten' : `${Math.round((100 * Math.max(0, q.hp)) / q.max)} %${q.contact ? ` (${q.contact} fighting)` : ''}`}`).join(' · ')}`,
     capture.active && cat.kind ? `CAUGHT by ${CATCH[cat.kind].by.toLowerCase()}: ${cat.phase}` : '',
-    (() => { const C = coll.of(P1); return C && C.members.length ? `army: ${C.army} cells (${C.players.length > 1 ? C.players.length + ' players' : 'you'})${LEVEL_NAMES[C.level] ? ' · ' + LEVEL_NAMES[C.level] : ''} · toxin ${Math.round(C.charge * 100)} % · flock ${C.speed.toFixed(0)} µm/s, ${C.extent.toFixed(0)} µm across` : coll.opts.on ? `army: none yet (press ${glyph('X')} near kin)` : ''; })(),
+    (() => { const C = coll.of(P1); return C && C.members.length ? `army: ${C.army} cells (${C.players.length > 1 ? C.players.length + ' players' : 'you'}) · ${LEVEL_NAMES.slice(1, C.level + 1).join(', ') || 'no abilities yet'} · toxin ${Math.round(C.charge * 100)} % · drag ×${C.drag.toFixed(2)} · flock ${C.speed.toFixed(0)} µm/s, ${C.extent.toFixed(0)} µm across` : coll.opts.on ? `army: none yet (press ${glyph('X')} near kin)` : ''; })(),
     `way on ${Math.round(Math.max(0, Math.min(1, progress(S.x, S.y))) * 100)} % · host cell ${Math.round(Math.hypot(S.x - FWD.x, S.y - FWD.y))} µm · Paramecium ${Math.round(Math.hypot(S.x - BACK.x, S.y - BACK.y))} µm`,
     multi() ? `players ${roster.length} · views ${split.views.length}${split.merged ? ' (together)' : ''}` : '',
     `${Math.round(fps)} fps · ${shapes.count} shapes · render ${Math.round(quality.scale * 100)} %${optics.stats.down > 1 ? ` · PSF at 1/${optics.stats.down}` : ''}`,

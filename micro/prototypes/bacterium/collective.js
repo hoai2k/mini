@@ -506,7 +506,7 @@ export function createCollectives(world, hooks = {}) {
       }
     }
     // free kin can be eaten too (they come back elsewhere)
-    for (const k of kin) if (!k.coll && !k.dying && world.grazerMouthAt && world.grazerMouthAt(k.x, k.y, 9)) { k.dying = { kind: 'grazer', t: 0 }; k.answer = null; }
+    for (const k of kin) if (!k.coll && !k.dying && world.grazerMouthAt && world.grazerMouthAt(k.x, k.y, 9)) { if (k.answer && !k.answer.joined) k.answer.C.answered = Math.max(0, k.answer.C.answered - 1); k.dying = { kind: 'grazer', t: 0 }; k.answer = null; }
   }
 
   /** A predator would catch player P: a member is taken in your place (the slime stops phages, and half the rams). */

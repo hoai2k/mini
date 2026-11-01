@@ -100,7 +100,8 @@ function spirogyra(group, curve, rand, obstacles) {
   group.add(Object.assign(new THREE.Mesh(mk(wPos, wRef, wN, wE, wIdx), sheetMaterial({ dn: 0.03, thick: 1.0, scatter: 0.9 })), { frustumCulled: false }));
   group.add(Object.assign(new THREE.Mesh(mk(cPos, cRef, cN, cE, cIdx), sheetMaterial({ dn: 0.045, thick: 2.2, scatter: 0.9, absorb: [0.085, 0.018, 0.1] })), { frustumCulled: false }));
   const sph = new THREE.SphereGeometry(1, 10, 8);
-  const pm = new THREE.InstancedMesh(sph, volumeMaterial({ dn: 0.05, scatter: 1.4, absorb: [0.03, 0.006, 0.03], centred: true }), pyr.length);
+  // pyrenoids are 2–3 µm specks, a few pixels at most: a coarse sphere is enough (≈5000 of them in five filaments)
+  const pm = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 6, 4), volumeMaterial({ dn: 0.05, scatter: 1.4, absorb: [0.03, 0.006, 0.03], centred: true }), pyr.length);
   pyr.forEach((p, i) => pm.setMatrixAt(i, new THREE.Matrix4().makeScale(2.3, 2.3, 2.3).setPosition(p)));
   pm.frustumCulled = false;
   group.add(pm);

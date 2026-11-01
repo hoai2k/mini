@@ -99,7 +99,7 @@ uniform float uOpacity; uniform float uDark; uniform vec3 uDarkColor; uniform fl
 uniform sampler2D uMap; uniform float uUseMap; uniform vec2 uMapRepeat; uniform vec2 uMapOffset;
 uniform float uStyle; uniform vec3 uHaze;
 uniform vec3 uFLColor; uniform vec3 uFLColor2; uniform float uFLKeep; uniform float uFLGlow; uniform vec3 uFLGlowColor;
-uniform float uFLTrans; uniform float uFLBump; uniform float uFLSpec; uniform float uFLScale;
+uniform float uFLTrans; uniform float uFLBump; uniform float uFLSpec; uniform float uFLScale; uniform float uFLMap;
 varying vec3 vN; varying vec3 vView; varying vec3 vWorld; varying vec3 vCol; varying vec2 vUv; varying float vDepth;
 vec4 falseLight(vec3 n, vec3 v){
   vec3 src = uColor * vCol;
@@ -108,7 +108,7 @@ vec4 falseLight(vec3 n, vec3 v){
   float m = n3(vWorld * uFLScale) * 0.6 + n3(vWorld * uFLScale * 3.7) * 0.4;
   vec3 pal = mix(uFLColor, uFLColor2, smoothstep(0.28, 0.72, m));
   vec3 albedo = mix(pal * (0.62 + 0.55 * l), src, uFLKeep);
-  if (uUseMap > 0.5) { vec3 tx = texture2D(uMap, vUv * uMapRepeat + uMapOffset).rgb; albedo *= mix(1.0, dot(tx, vec3(0.333)) * 1.45, 0.55); }
+  if (uUseMap > 0.5) { vec3 tx = texture2D(uMap, vUv * uMapRepeat + uMapOffset).rgb; albedo *= mix(1.0, dot(tx, vec3(0.333)) * 1.45, 0.55 * (1.0 - uFLMap)); albedo = mix(albedo, tx * 1.15, uFLMap); }
   float cav = 1.0;
   if (uFLBump > 0.0) {
     // procedural bump (height from world noise, normal from screen derivatives): a wet, lumpy membrane
@@ -236,7 +236,7 @@ export function toonMaterial(o = {}) {
       uMapOffset: { value: new THREE.Vector2(...(o.mapOffset || [0, 0])) },
       uFLColor: { value: new THREE.Color() }, uFLColor2: { value: new THREE.Color() }, uFLKeep: { value: 0 },
       uFLGlow: { value: 0 }, uFLGlowColor: { value: new THREE.Color() }, uFLTrans: { value: 0 }, uFLBump: { value: 0 },
-      uFLSpec: { value: 0 }, uFLScale: { value: 0.12 },
+      uFLSpec: { value: 0 }, uFLScale: { value: 0.12 }, uFLMap: { value: 0 },
     },
     vertexShader: VERT,
     fragmentShader: FRAG,
@@ -438,7 +438,8 @@ void main(){
     bg *= 0.75 + 0.5 * cloud;
     float far1 = smoothstep(0.62, 0.8, n3(wdir * 22.0 + 4.0)), far2 = smoothstep(0.6, 0.78, n3(wdir * 41.0 - 9.0));
     bg = mix(bg, bg * vec3(0.55, 0.7, 0.95) + uShaft * 0.06, far1 * 0.5 + far2 * 0.3);
-    if (uUsePano > 0.5) bg = mix(bg, texture2D(tPano, vec2(atan(wdir.z, wdir.x) / 6.2832 + 0.5, asin(clamp(wdir.y, -1.0, 1.0)) / 3.14159 + 0.5)).rgb, 0.85);
+    // MP-V06, the panorama, by direction (dimmed so the near scene reads in front of it)
+    if (uUsePano > 0.5) bg = mix(bg, texture2D(tPano, vec2(atan(wdir.z, wdir.x) / 6.2832 + 0.5, asin(clamp(wdir.y, -1.0, 1.0)) / 3.14159 + 0.5)).rgb * 0.7, 0.85);
     vec2 sd = normalize(vec2(0.55, -1.0));
     float across = dot(q0 - vec2(0.1, 1.1), vec2(-sd.y, sd.x));
     float shaft = fbm(vec2(across * 7.0 + uBgOff.x * 4.0, uTime * 0.03)) * smoothstep(1.4, 0.0, length(q0 - vec2(0.1 * asp, 1.0)));
