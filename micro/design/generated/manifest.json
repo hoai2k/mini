@@ -1068,6 +1068,138 @@
     ]
   },
   {
+    "id": "MP-P04",
+    "name": "Pond habitat tile (darkfield, seamless)",
+    "file": "assets/paramecium/darkfield-tile.webp",
+    "size": "2048 x 2048, opaque, tileable",
+    "used": "The far background in darkfield mode (the default look again), repeated as the view moves. MP-P01 is not seamless, so its edges show as straight dark seams across the screen as you swim.",
+    "prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Darkfield microscope look: near-black background, objects visible only as bright scattering edges and internal granules in cool white and pale gold, faint coloured chloroplasts, small particles as sparkling points, shallow depth of field. Pond water at about 2 mm across, out of focus, seen through the water rather than onto a surface: Spirogyra filaments crossing at different angles and depths (each continuing across the edges), loose golden flocs of detritus, scattered pennate diatoms and two or three small clusters of stalked Vorticella, spread evenly so no one corner draws the eye. Mostly dark background between them. No Paramecium. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Darkfield microscope look: near-black background, objects visible only as bright scattering edges and internal granules in cool white and pale gold, faint coloured chloroplasts, small particles as sparkling points, shallow depth of field. Pond water at about 2 mm across, out of focus, seen through the water rather than onto a surface: Spirogyra filaments crossing at different angles and depths (each continuing across the edges), loose golden flocs of detritus, scattered pennate diatoms and two or three small clusters of stalked Vorticella, spread evenly so no one corner draws the eye. Mostly dark background between them. No Paramecium. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-e4f1efd9-0c7f-4454-8404-75715bb451ff.png",
+    "input_images": [
+      "research/assets/references/spirogyra.jpg",
+      "research/assets/references/vorticella.jpg",
+      "research/assets/references/diatoms.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "7ae5be0b4f25ac2648eae139c7b4aa70dcd57ac4fde558ddfec796621de27ea2",
+    "export": "LANCZOS sizing; opposing-edge strips quilted with the approved conventional seam-correction workflow; WebP quality 92.",
+    "references": [
+      {
+        "id": "spirogyra",
+        "local": "assets/references/spirogyra.jpg",
+        "author": "Wiedehopf20",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg"
+      },
+      {
+        "id": "vorticella",
+        "local": "assets/references/vorticella.jpg",
+        "author": "Bwiltz",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg"
+      },
+      {
+        "id": "diatoms",
+        "local": "assets/references/diatoms.jpg",
+        "author": "Prof. Gordon T. Taylor, Stony Brook University",
+        "license": "Public domain",
+        "license_url": "",
+        "source": "https://commons.wikimedia.org/wiki/File:Diatoms_through_the_microscope.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ],
+    "seam_metrics_before": {
+      "horizontal_join": 32.85,
+      "vertical_join": 31.3,
+      "interior_horizontal": 7.507,
+      "interior_vertical": 6.995
+    },
+    "seam_metrics_after": {
+      "horizontal_join": 7.347,
+      "vertical_join": 5.364,
+      "interior_horizontal": 6.221,
+      "interior_vertical": 5.659
+    }
+  },
+  {
+    "id": "MP-P05",
+    "name": "Pond habitat tile (phase contrast, seamless)",
+    "file": "assets/paramecium/phase-tile.webp",
+    "size": "2048 x 2048, opaque, tileable",
+    "used": "The far background in phase-contrast mode, repeated as the view moves (MP-P02 is not seamless).",
+    "prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Phase-contrast microscope look: mid-grey background, transparent structures dark with bright halos at their edges, colourless. The same pond water at about 2 mm across, out of focus: Spirogyra filaments continuing across the edges, detritus flocs, diatoms and a few small clusters of stalked Vorticella, spread evenly. No Paramecium. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "requested_prompt": "Seamlessly tileable square texture: the left edge continues into the right edge and the top into the bottom, evenly lit with no vignette, no single dominant feature, no perspective; viewed straight down onto the surface. Phase-contrast microscope look: mid-grey background, transparent structures dark with bright halos at their edges, colourless. The same pond water at about 2 mm across, out of focus: Spirogyra filaments continuing across the edges, detritus flocs, diatoms and a few small clusters of stalked Vorticella, spread evenly. No Paramecium. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-3b550bc2-9449-471b-81d0-73bf1a19cde0.png",
+    "input_images": [
+      "research/assets/references/spirogyra.jpg",
+      "research/assets/references/vorticella.jpg",
+      "research/assets/references/diatoms.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1254,
+      1254
+    ],
+    "width": 2048,
+    "height": 2048,
+    "sha256": "6acbcecc6f19df7cef18567a0e1db90ad808eef19cfcfc01ae22cf50c5d20795",
+    "export": "LANCZOS sizing; opposing-edge strips quilted with the approved conventional seam-correction workflow; WebP quality 92.",
+    "references": [
+      {
+        "id": "spirogyra",
+        "local": "assets/references/spirogyra.jpg",
+        "author": "Wiedehopf20",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:The_freshwater_alga_Spirogyra.jpg"
+      },
+      {
+        "id": "vorticella",
+        "local": "assets/references/vorticella.jpg",
+        "author": "Bwiltz",
+        "license": "CC BY-SA 4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Vorticella_1.jpg"
+      },
+      {
+        "id": "paramecium",
+        "local": "assets/references/paramecium.jpg",
+        "author": "MTadey",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Param%C3%A9cium_caud%C3%A1tum.jpg"
+      }
+    ],
+    "mood_boards": [
+      "03-protist-garden.webp"
+    ],
+    "seam_metrics_before": {
+      "horizontal_join": 19.306,
+      "vertical_join": 19.813,
+      "interior_horizontal": 8.965,
+      "interior_vertical": 8.633
+    },
+    "seam_metrics_after": {
+      "horizontal_join": 7.231,
+      "vertical_join": 8.928,
+      "interior_horizontal": 7.426,
+      "interior_vertical": 7.041
+    }
+  },
+  {
     "id": "MP-S01",
     "name": "Bog pool water surface",
     "file": "assets/springtail/water-surface.webp",

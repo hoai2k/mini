@@ -135,8 +135,8 @@ const isHungry = (h) => (pacing.cycles ? h.hungry : h.state !== 'grace');
 const hungerText = (h) => (h.state === 'grace' ? `calm ${Math.ceil(h.left)} s` : !pacing.cycles ? 'hungry' : h.state === 'hungry' ? `hungry ${Math.ceil(h.left)} s` : `resting ${Math.ceil(h.left)} s`);
 // Delivered art, with procedural stand-ins until it arrives.
 const plates = { darkfield: standInPlate('darkfield'), phase: standInPlate('phase') };
-loadTexture('MP-P01', { srgb: false }).then((t) => { if (t) plates.darkfield = t; });
-loadTexture('MP-P02', { srgb: false }).then((t) => { if (t) plates.phase = t; });
+loadTexture('MP-P04', { srgb: false }).then((t) => { if (t) plates.darkfield = t; });
+loadTexture('MP-P05', { srgb: false }).then((t) => { if (t) plates.phase = t; });
 const pellicleTex = { tex: null };
 loadTexture('MP-P03', { srgb: false }).then((t) => {
   if (!t) return;
@@ -323,7 +323,7 @@ features.add({ id: 'dof', group: 'Optics', label: 'Depth of field (microscope)',
   about: 'Each fragment is split between a sharp and a defocused layer by its distance from the focal plane. Mild (default): about 35 µm sharp at 20×, so whatever you can bump into is visible; touching something pulls focus to it. Strong: only the layer you swim in is crisp (16 µm, fully blurred by 75 µm) and far layers fade. Off: everything sharp.',
   onChange: (v) => { view.dof = Object.keys(DOFS).find((k) => DOFS[k] === v) || 'mild'; shared.uDofOn.value = view.dof === 'off' ? 0 : 1; } });
 features.add({ id: 'plate', group: 'Optics', label: 'Background habitat plate', choices: Object.values(PLATES), value: PLATES.dim,
-  about: 'The pond photograph behind the scene in darkfield and phase (MP-P01, MP-P02). Dimmed and blurred (default) keeps it from competing with your cell; Full is the plate as delivered.',
+  about: 'The pond photograph behind the scene in darkfield and phase (MP-P04, MP-P05). Dimmed and blurred (default) keeps it from competing with your cell; Full is the plate as delivered.',
   onChange: (v) => { view.plate = Object.keys(PLATES).find((k) => PLATES[k] === v) || 'dim'; T.plate.value = view.plate === 'off' ? 0 : 1; } });
 features.add({ id: 'halo', group: 'Optics', label: 'Phase halo and shade-off', on: true,
   about: 'A real phase ring leaks low spatial frequencies back into the image: φ − 0.82·blur(φ). That gives the bright halo round dark objects and the lighter centres of large ones. Off: an ideal phase plate.', onChange: sw(T.halo) });
