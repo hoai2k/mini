@@ -100,8 +100,8 @@ strand pulled in faster; a departure).
 
 **Goal flow.** The HUD's first line always says what to do now: explore
 outward (with how far out you are of the 8.8 µm to the way on), then, once
-the way on has appeared, drift to the golden glow (the brass chevron points
-to it), deal with its guard, aim at the gold receptor and press X; inside, get
+the way on has appeared, drift to the golden glow (no arrow: at the owner's
+request its sparkle and beacon are the only marker), deal with its guard, aim at the gold receptor and press X; inside, get
 the genome in; damaged, find a partner to co-infect with.
 
 **Goal.** Drift legs-first, grab a gold three-lobed receptor to attach, and get
@@ -129,10 +129,10 @@ hunt hard, a near dead end). The third cell is the wrong host.
   Level 5 bacterium sweeps past (a turning helix). Drifting within ~0.55 µm
   of it posts `near {kind: 'back', label: 'Y: back to Sediment'}`, and Y
   there posts `landmark('back')`; anywhere else Y is the overlay.
-- **Edge marks** (`shared/landmark.js`): no chevron until the way on has
-  been placed; then a brass chevron toward the golden receptor (and its light
-  spilling in from that edge, `createPortalLight`), and a ring toward the
-  flagellum, per view.
+- **Edge marks** (`shared/landmark.js`): only the ring toward the flagellum
+  (the way back), per view. There is no arrow to the way on (the owner: keep
+  moving in any direction and you find it); its golden sparkle is the only
+  marker.
 - **Up to four local players** (`shared/players.js`): the roster comes from
   the shell (`embed.players`) or starts as P1 alone; anyone joins during play
   by pressing a button on another controller (posted as `join`). Each player
@@ -174,9 +174,8 @@ first half" placement is gone.
   you like.
 - **The way on and its guard (the boss outside).** The portal is Host A's
   gold three-lobed receptor that faces the start, marked by the shared golden
-  sparkle and beacon (`shared/portal.js`, `createPortalGlow`) and, from the
-  edge of the view, its light (`createPortalLight`); the brass chevron
-  appears only once it has been placed. An amoeba grazes beside Host A, its
+  sparkle and beacon (`shared/portal.js`, `createPortalGlow`), its only
+  marker (no arrow). An amoeba grazes beside Host A, its
   lobe hovering over the receptor. Come within ~1.7 µm and it reaches for you
   (stalk), **rears and curls the lobe** (the wind-up, 1.1 s: it swells and
   flushes rose, its lips spread wide and quiver), then lunges. **Fold your

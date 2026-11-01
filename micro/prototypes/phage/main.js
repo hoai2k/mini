@@ -20,7 +20,7 @@ import { createCapture, createFight } from '../shared/predation.js';
 import { createPost, goodsellShared, toonMaterial, inkedInstanced, setInkVisible } from '../shared/techniques/phage-goodsell.js';
 import { createT4, t4LiteGeometry, T4_FL } from '../shared/techniques/phage-model.js';
 import { createWorld, uvAt, progressAt, RINGS, PORTAL_R, FIELD_R, START, UV_SHAFTS } from './world.js';
-import { createPortalGlow, createPortalLight } from '../shared/portal.js';
+import { createPortalGlow } from '../shared/portal.js';
 import { createQuality } from '../shared/quality.js';
 import { createInside, GENOME_NODES } from './inside.js';
 import { attachmentForward, aimedProtein } from './binding.js';
@@ -51,8 +51,12 @@ const inside = createInside();
 // effects level: 2 = DOF and two bloom levels, 1 = one bloom level, 0 = no DOF,
 // the cheapest bloom, and (Goodsell) no ink on the crowds.
 let qScale = 1, qLevel = 2;
+// Software WebGL (SwiftShader, llvmpipe; the headless checks) gets the lightest bath and no AO taps, unless
+// ?pr= asks for a full render (screenshots for judging the look).
+const SOFT_GL = (() => { try { const gl = renderer.getContext(); const ext = gl.getExtension('WEBGL_debug_renderer_info'); return /swiftshader|llvmpipe|software/i.test(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : ''); } catch { return false; } })() && !(prParam > 0);
+post.noAO = SOFT_GL;
 const quality = createQuality({ renderer, key: 'phage', min: 0.5, max: 1,
-  onChange: ({ scale, level }) => { qScale = scale; qLevel = level; post.quality = level; resize(); applyInk(); try { world.setCrowdLevel(level); } catch { /* (before the world exists) */ } } });
+  onChange: ({ scale, level }) => { qScale = scale; qLevel = level; post.quality = level; resize(); applyInk(); try { world.setCrowdLevel(SOFT_GL ? 0 : level); } catch { /* (before the world exists) */ } } });
 function resize() {
   // Keep split-screen projections in CSS pixels, independently of render resolution.
   const w = innerWidth, h = innerHeight;
@@ -101,7 +105,7 @@ document.body.append(tag, label, scaleEl, card, prog, labels);
 
 // --- the world and the phage ---
 const world = createWorld(scene);
-world.setCrowdLevel(qLevel);
+world.setCrowdLevel(SOFT_GL ? 0 : qLevel);
 let t4 = null; // the current member's model (see use())
 const progenyGeo = t4LiteGeometry();
 const progeny = inkedInstanced(progenyGeo, toonMaterial({ vertexColors: true, fl: T4_FL.gold }), 40, { width: 0.8 });
@@ -881,7 +885,6 @@ const ringLog = []; // what moved where, and when each ring was first reached (t
 const UNSEEN = 230; // nothing moves within this distance of any phage
 const portalGlow = createPortalGlow({ THREE, scene, size: 18, intensity: 1.9, beam: 110, beamWidth: 9 });
 portalGlow.group.visible = false;
-const portalLight = createPortalLight();
 const guard = { gone: false, turned: false, hinted: false };
 const _gp = new THREE.Vector3(), _gn = new THREE.Vector3();
 /** The way on: the gold receptor's tip on Host A (and its outward normal), world. */
@@ -1430,14 +1433,9 @@ function frame(now) {
     });
     // (shared/landmark.js trips on an empty split region, which splitscreen.js can emit for a frame as players leave)
     if (!debug.iso && lead.P.mode !== 'burst' && split.layout.regions.every((r) => r.polygon && r.polygon.length >= 3)) {
-      // no arrow until the way on has been found (placed); then it points to it, and its light spills in from the edge
-      portalLight.begin();
-      if (world.portal) {
-        const fm = marks.drawSplit(split, portalPoint(new THREE.Vector3()), { kind: 'forward', range: 900 });
-        try { portalLight.drawSplit(split, fm, { strength: 0.8, open: guarded() ? 0.3 : 1 }); } catch { /* (no marks this frame) */ }
-      }
+      // no arrow to the way on (the owner: keep moving in any direction and you find it): its golden sparkle is the only marker
       marks.drawSplit(split, world.backdoor.pos, { kind: 'backdoor', label: 'Sediment', range: 600 });
-    } else portalLight.begin();
+    }
   } else post.render(inside.scene, inside.camera);
 
   use(team[0]);
@@ -1462,7 +1460,7 @@ function goalLine(where) {
   if (!world.portal) return `GOAL: explore outward, any direction · ${(P.pos.distanceTo(START) / 100).toFixed(1)} of ${(PORTAL_R / 100).toFixed(1)} µm out`;
   const d = Math.max(0, portalPoint().distanceTo(centreOf(_v)) - 10);
   if (d < 70) return guarded() ? 'GOAL: the amoeba guards the gold receptor: lure it off, or fold (B) and jab (X)' : 'GOAL: the receptor is open: aim your fibres at it and press X';
-  return `GOAL: the golden glow on Host A (brass chevron) · ${(d / 100).toFixed(1)} µm`;
+  return `GOAL: the golden glow on Host A · ${(d / 100).toFixed(1)} µm`;
 }
 
 /**

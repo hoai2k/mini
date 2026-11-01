@@ -43,7 +43,7 @@ let failed = 0;
 if (which === 'all' || which === 'controls') {
   const { base, page, errors, close } = await open(480, 270);
   const q = 'high';
-  await page.goto(base + 'phage/?q=' + q, { waitUntil: 'load' });
+  await page.goto(base + 'phage/?q=' + q + '&pr=1', { waitUntil: 'load' }); // (pr=1: the full bath, as on a GPU)
 // Drives every input direction and the camera orbit, then checks nothing keeps turning on its own,
 // and that the view is never mostly empty after orbiting fully round both axes.
 await page.waitForTimeout(3000);

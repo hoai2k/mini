@@ -645,7 +645,7 @@ export function createPost(renderer) {
       u.uNear.value = camera.near; u.uFar.value = camera.far;
       u.uInvProj.value.copy(camera.projectionMatrixInverse); u.uCamWorld.value.copy(camera.matrixWorld);
       if (camera.isPerspectiveCamera) u.uProjScale.value = target.height / (2 * Math.tan((camera.fov * Math.PI) / 360) * (camera.zoom || 1)) * (camera.view && camera.view.enabled ? camera.view.fullHeight / camera.view.height : 1);
-      u.uAOTaps.value = q > 1 ? 10 : q > 0 ? 6 : 0;
+      u.uAOTaps.value = api.noAO ? 0 : q > 1 ? 10 : q > 0 ? 6 : 0;
       if (fl) {
         mat.uniforms.uNear.value = camera.near; mat.uniforms.uFar.value = camera.far;
         mat.uniforms.uDof.value = q > 0 ? 1 : 0;
