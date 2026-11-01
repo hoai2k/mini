@@ -4,7 +4,7 @@
 // end; the strand behind it follows like a rope in a crowded room.
 // Units here: 1 = 1 nm (ten times closer than outside).
 import * as THREE from '../shared/vendor/three.module.min.js';
-import { toonMaterial, inked, inkedInstanced, blobGeometry, lumpyGeometry, goodsellShared } from '../shared/techniques/phage-goodsell.js';
+import { toonMaterial, inked, inkedInstanced, blobGeometry, lumpyGeometry, goodsellShared, setInkVisible } from '../shared/techniques/phage-goodsell.js';
 import { createFight } from '../shared/predation.js';
 
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -155,7 +155,7 @@ export function createInside() {
     for (let i = 0; i < 6; i++) lumps(parts, i * 1.25 - 3.6, 1.0 + Math.sin(i * 0.9) * 0.35, 1.1, 0.85, i % 2 ? '#f2c24a' : '#e8b23c', 5);
     // Cas6, the red cap that holds the crRNA's end
     lumps(parts, -4.4, 2.9, 0.3, 1.3, '#e8483f'); lumps(parts, -3.3, 3.6, -0.2, 1.0, '#ef5a4c', 5);
-    const body = inked(blobGeometry(parts, 0), toonMaterial({ vertexColors: true, fl: CASFL }), { width: 0.6 });
+    const body = inked(blobGeometry(parts, 1), toonMaterial({ vertexColors: true, fl: CASFL }), { width: 0.6 });
     g.add(body);
     const rnaMat = toonMaterial({ vertexColors: true, fl: { keep: 1, glow: 0, glowColor: '#ff4a5a', trans: 0.6 } });
     const rna = inked(blobGeometry(Array.from({ length: 16 }, (_, i) => ({ p: [i * 0.62 - 4.4, 1.55 + Math.sin(i * 0.8) * 0.35, 1.75], r: 0.36, c: '#e8303f' })), 0), rnaMat, { width: 0.5 });
@@ -167,7 +167,7 @@ export function createInside() {
     const c3 = [];
     for (const [x, y, z, r] of [[0.4, 0, 0, 1.5], [1.9, 1.0, 0.2, 1.3], [1.7, -1.2, -0.1, 1.35], [3.0, 0.1, 0.4, 1.15], [1.0, 0.3, -1.2, 1.2]]) lumps(c3, x, y, z, r, '#5fd0f0', 6);
     for (const [x, y, z] of [[1.6, 0.4, 1.3], [2.5, -0.6, 1.0], [1.0, -0.7, 1.2]]) lumps(c3, x, y, z, 0.42, '#f7a87a', 4); // the active-site patches
-    cas3.add(inked(blobGeometry(c3, 0), toonMaterial({ vertexColors: true, fl: CASFL }), { width: 0.6 }));
+    cas3.add(inked(blobGeometry(c3, 1), toonMaterial({ vertexColors: true, fl: CASFL }), { width: 0.6 }));
     cas3.position.set(6.2, -0.3, 0.2);
     g.add(cas3);
     const jaws = [new THREE.Group(), new THREE.Group()];
@@ -175,8 +175,10 @@ export function createInside() {
     return { g, jaws, body, rnaMat, halo, cas3 };
   }
   const enzymes = [];
+  let inkOn = true;
   function addEnzyme(kind, opts) {
     const e = kind === 're' ? clampEnzyme('#5fb88a', '#8fdcae', 3.2) : cascade();
+    setInkVisible(e.g, inkOn); // (built on each start: follow the current ink setting)
     scene.add(e.g);
     const strand = hostDna[enzymes.length % hostDna.length];
     const en = { kind, ...e, pos: new THREE.Vector3(), vel: new THREE.Vector3(), s: Math.random(), dir: Math.random() < 0.5 ? -1 : 1, strand, hunt: 0, cool: 0, ...opts };
@@ -240,6 +242,8 @@ export function createInside() {
     scene, camera, S, enzymes, bossLock,
     /** The look: lumpy bead-flower molecules and a softer membrane plate in false light. */
     setStyle(fl) { for (const T of types) T.mesh.geometry = fl ? T.geoFL : T.geoGoodsell; },
+    /** Ink hulls on or off (the enzymes made later follow it). */
+    setInk(on) { inkOn = on; setInkVisible(scene, on); },
     /** The envelope section art (MP-V03), or null for the procedural stand-in. */
     setSection(tex) {
       // the delivered plate runs from water through the envelope into cytoplasm: show its envelope rows (12-70 % down)

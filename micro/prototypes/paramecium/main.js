@@ -1364,8 +1364,14 @@ function frame(now) {
 // hidden for that view's render only.
 const frustum = new THREE.Frustum(), projM = new THREE.Matrix4(), cullS = new THREE.Sphere();
 const culled = [];
+let cullList = null, cullFor_n = -1;
 const cullables = () => {
-  const L = [];
+  // built once per roster change (no garbage per view)
+  let key = roster.length;
+  for (const P of roster) key = key * 5 + P.slot + 1;
+  if (cullList && cullFor_n === key) return cullList;
+  cullFor_n = key;
+  const L = cullList = [];
   for (const P of roster) L.push({ obj: P.cell.group, c: P.cell.group.position, r: HL * 1.5, cell: P });
   for (const d of world.didinia) L.push({ obj: d.group, c: d.pos, r: (d.tipLen || 66) + 80 });
   L.push({ obj: amoeba.group, c: amoeba.group.position, r: amoeba.R + 420 });

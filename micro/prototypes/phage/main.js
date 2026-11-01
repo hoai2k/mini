@@ -246,7 +246,7 @@ function applyInk() {
   if (!world) return;
   const on = view.ink && !isFL();
   setInkVisible(scene, on);
-  setInkVisible(inside.scene, on);
+  inside.setInk(on);
   if (on && qLevel === 0) for (const root of [scene, inside.scene]) root.traverse((o) => { if (o.userData.crowd && o.ink) o.ink.visible = false; });
 }
 
@@ -1124,7 +1124,7 @@ function frame(now) {
     post.uniforms.uUseBg.value = view.art && art.water ? 1 : 0;
     goodsellShared.uFogColor.value.set(waterColor);
     goodsellShared.uHaze.value.set('#1d5e6e');
-    post.uniforms.uTop.value.set('#2a8090'); post.uniforms.uBot.value.set('#071e2c'); post.uniforms.uShaft.value.set('#8ad8da');
+    post.uniforms.uTop.value.set('#2a8090'); post.uniforms.uBot.value.set('#0b2a3a'); post.uniforms.uShaft.value.set('#8ad8da');
     post.uniforms.uFocus.value = dist;
     // the UV wash only where the sun gets through the peat mat
     post.uniforms.uUv.value = opts.uv && !debug.iso ? 0.9 * uvSun(view.target.x) : 0;

@@ -150,7 +150,7 @@ export function createBloom(scene) {
       toLocal(camPos, lp);
       const dx = Math.max(0, Math.abs(lp.x) - BLOOM.half), dz = Math.max(0, Math.abs(lp.z) - BLOOM.across);
       const d = Math.hypot(dx, dz);
-      const k = d < 900 ? 1 : d < 2000 ? 0.5 : 0.25;
+      const k = d < 700 ? 1 : d < 1500 ? 0.5 : d < 2500 ? 0.25 : 0.1;
       for (const T of tiers) T.mesh.count = Math.max(1, Math.round(T.count * k));
       return k;
     },

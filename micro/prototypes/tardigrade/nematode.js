@@ -280,6 +280,12 @@ export class Nematode {
       const off = wave + sCoil;
       L.toWorld(p.u - tv * off, p.v + tu * off, L.thick / 2 + R + 0.04 - this.sink, pts[i]);
     }
+    // round off the corners the follow-the-leader spine makes when the head turns hard
+    const tmp = (this._tmp ||= Array.from({ length: K }, () => new THREE.Vector3()));
+    for (let pass = 0; pass < 3; pass++) {
+      for (let i = 1; i < K - 1; i++) tmp[i].copy(pts[i]).multiplyScalar(0.5).addScaledVector(pts[i - 1], 0.25).addScaledVector(pts[i + 1], 0.25);
+      for (let i = 1; i < K - 1; i++) pts[i].copy(tmp[i]);
+    }
     // the rings follow the curve as drawn (the S-coil included), not the straight spine
     for (let i = 0; i < K; i++) fr[i].subVectors(pts[Math.max(0, i - 1)], pts[Math.min(K - 1, i + 1)]).normalize();
     const side = _s, up = _u;

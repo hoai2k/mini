@@ -35,12 +35,12 @@ export const T4_COLORS = {
 
 // False light (the default look): the phage glows gold, translucent and faceted, against the teal water.
 export const T4_FL = {
-  gold: { color: '#e9a83a', color2: '#ffd98a', keep: 0, glow: 0.42, glowColor: '#ffb23a', trans: 0.85, spec: 0.9, scale: 0.6 },
+  gold: { color: '#df9a30', color2: '#f8cc78', keep: 0, glow: 0.32, glowColor: '#ffb23a', trans: 0.85, spec: 0.9, scale: 0.6 },
   capsid: { color: '#c98a2a', color2: '#e8b860', keep: 0, glow: 0.12, glowColor: '#ffb43a', trans: 0.9, spec: 1.2, scale: 0.5 },
   beads: { color: '#e8a640', color2: '#f8cf78', keep: 0, glow: 0.18, glowColor: '#ffb840', trans: 0.9, spec: 0.6, scale: 0.8 },
   dna: { color: '#ffd88a', color2: '#ffb850', keep: 0, glow: 0.32, glowColor: '#ffb84a', trans: 0.5, spec: 0.4 },
-  sheath: { color: '#e9a83a', color2: '#ffd98a', keep: 0.75, glow: 0.48, glowColor: '#ffb23a', trans: 0.8, spec: 0.9, scale: 0.6 },
-  fibre: { color: '#f0b04a', color2: '#ffe2a0', keep: 0, glow: 0.62, glowColor: '#ffbb44', trans: 0.7, spec: 0.6, scale: 1.2 },
+  sheath: { color: '#df9a30', color2: '#f8cc78', keep: 0.75, glow: 0.36, glowColor: '#ffb23a', trans: 0.8, spec: 0.9, scale: 0.6 },
+  fibre: { color: '#e8a440', color2: '#ffd890', keep: 0, glow: 0.46, glowColor: '#ffbb44', trans: 0.7, spec: 0.6, scale: 1.2 },
 };
 
 function mergeSimple(list) {

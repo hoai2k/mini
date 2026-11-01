@@ -639,7 +639,7 @@ function inputOf(a, inMenu) {
 }
 
 const api = window.__micro = { SOFTWARE, scene, camera, renderer, world, walker, creature, life, mic, view, features, applyMode, pad, predator, dash, capture, paused: false,
-  players, animals, split, marks, places, landmarks: lm, boss, get captor() { return captor; },
+  players, animals, split, marks, places, landmarks: lm, boss, quality, get captor() { return captor; },
   get time() { return time; },
   /** Testing: one fixed step with the left stick at (x, y) on screen (null: hands off). */
   testStep(dt = 1 / 30, stick = null, buttons = {}) {
