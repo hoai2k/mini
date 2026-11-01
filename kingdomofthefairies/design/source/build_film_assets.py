@@ -577,6 +577,12 @@ GROUPS.append(("The tower's fractured stone floors", "Painted breaches replace f
 ]))
 
 
+GROUPS.append(("The tower's right-hand escape", "An open painted stone arch marks the clear right-side route after Azurine is rescued. Match the tower masonry and conceal the wall behind the opaque dark passage.", [
+    ('tower-escape-door', 'Open right-side tower door', 160, 250, 'bottom centre', SPRITE,
+     'Transparent cutout of a tall open stone arch matching tower-interior.webp: warm grey-pink limestone, worn voussoirs and narrow jambs, a dark opaque passage and stone threshold. No shut panel, bars, fire, smoke, torch, star, circular ornament, arrow, text or glow. Full arch and threshold in frame, transparent outside the stone frame.', None)
+]))
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 

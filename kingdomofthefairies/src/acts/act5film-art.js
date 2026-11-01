@@ -7,7 +7,7 @@ import { CREDITS, finaleFrame } from '../finale.js';
 // stone interior, the clifftop and the tableaux are new. Every requested
 // piece of art is delivered; production waits for it before play. Draw only
 // from state and t. Compatibility fallbacks support older review harnesses.
-import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DUEL, DIVE, WEDDING, APOTH, weddingGuests, guestHop, AURORA, auroraFacing, weddingDoorAlpha, diveFloor, swimPosition } from './act5film.js';
+import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DUEL, DIVE, WEDDING, APOTH, weddingGuests, guestHop, AURORA, auroraFacing, weddingDoorAlpha, diveFloor, swimPosition, TOWER_ESCAPE, towerEscapeFire } from './act5film.js';
 import { HOUSE, QUAY, T, climberPos } from './act5.js';
 import {
   onEvent as act5Event, cliffScene, holds, climbGuide, climber, rocksWorld, rockWarnings,
@@ -252,7 +252,7 @@ export function onEventBurning(k, e, st) {
 // wallL/wallR.
 const TOWER_ART = [640, 683, 487, 627];
 function towerInterior(k, st, t) {
-  const c = k.c, H = HOUSE;
+  const c = k.c, H = HOUSE, rightFire = towerEscapeFire(st);
   // the night outside the cut-away tower: the sea gap behind, darkened, and
   // the fire's glow rising from its foot, so no bare stage shows either side
   if (k.img('tower-interior')) {
@@ -308,15 +308,22 @@ function towerInterior(k, st, t) {
   // the demons who set it alight, dancing with their torches at the foot
   for (const [x, id, ph0] of [[318, 'demon-red', 0], [962, 'demon-teal', 1.7]]) {
     const hop = Math.abs(Math.sin(t * 4 + ph0)) * 8;
-    if (!k.asset(id, x, H.floors[0] - hop, 70, 115)) { c.fillStyle = k.col(id === 'demon-red' ? '#c8321e' : '#5f8c88'); c.fillRect(x - 10, H.floors[0] - 80 - hop, 20, 80); }
+    const clearing = id === 'demon-teal' ? rightFire : 1;
+    if (clearing <= 0) continue;
+    c.save(); c.globalAlpha *= clearing;
+    const retreat = id === 'demon-teal' ? (1-clearing)*180 : 0;
+    k.asset(id, x+retreat, H.floors[0] - hop, 70, 115);
+    c.restore();
   }
+  // A real painted opening replaces the former left-side exit marker.
+  k.asset('tower-escape-door', TOWER_ESCAPE.x+2, H.floors[0]+2, 98, 152);
   hazards(k, st, t);
   player(k, st, t);
-  flames(k, st, t, 1);
+  flames(k, st, t, 1, { right: rightFire });
   // Azurine in front of the smoke, so she can always be seen
   if (!st.p.carry) beloved(k, H.beloved, H.floors[2], 0.6, -1, Math.sin(t * 5) > 0.3 ? 'reach' : 'down');
   // where he is going: to her at the top, then out of the door with her
-  const [gx, gy, label] = st.p.carry ? [H.door + 10, H.floors[0], 'Out of the door'] : [H.beloved, H.floors[2], 'To her'];
+  const [gx, gy, label] = st.p.carry ? [TOWER_ESCAPE.x, H.floors[0], 'Out to the right'] : [H.beloved, H.floors[2], 'To her'];
   const bob = Math.sin(t * 4) * 6, ty = gy - (st.p.carry ? 170 : 150) + bob;
   c.save(); c.globalAlpha = 0.85; c.fillStyle = k.col('#fff2b0');
   c.beginPath(); c.moveTo(gx - 14, ty); c.lineTo(gx + 14, ty); c.lineTo(gx, ty + 18); c.closePath(); c.fill();

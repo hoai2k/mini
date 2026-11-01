@@ -943,7 +943,7 @@ function flameFlat(k, x, by, s, phase) {
 const kT = (k) => k.t || 0;
 
 // Flame flats rolling across the front, and smoke flats over the top.
-export function flames(k, st, t, amt = 1) {
+export function flames(k, st, t, amt = 1, { right = 1 } = {}) {
   const c = k.c;
   c.save(); c.globalAlpha = Math.min(1, amt);
   for (let i = 0; i < 2; i++) {
@@ -961,7 +961,11 @@ export function flames(k, st, t, amt = 1) {
   const rise = 1 - easeOut(amt);
   for (let i = 0; i < 6; i++) {
     const x = [190, 290, 1000, 1100, 250, 1050][i] + Math.sin(t * 0.8 + i) * 22;
-    flameFlat(k, x, 672 + rise * 160 + (i > 3 ? 20 : 0), i > 3 ? 0.9 : 0.7, t + i);
+    const clearing = x > 900 ? clamp(right,0,1) : 1;
+    if (clearing <= 0) continue;
+    c.globalAlpha = Math.min(1, amt) * clearing;
+    flameFlat(k, x, 672 + rise * 160 + (i > 3 ? 20 : 0),
+      (i > 3 ? 0.9 : 0.7) * (.25 + .75 * clearing), t + i);
   }
   c.restore();
 }

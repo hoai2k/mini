@@ -12,7 +12,7 @@
 //
 // Headless: drawing is in act5film-art.js.
 import act5, {
-  BEAT_S, GRACE, LANTERNS, CLIFF, HOLDS, QUAY,
+  BEAT_S, GRACE, LANTERNS, CLIFF, HOLDS, HOUSE, QUAY,
   stepCliff, stepHouse, stepQuay, hit, checkpoint, setPhase, climberPos, stepRocks, reachTop,
 } from './act5.js';
 import { createWall, stepWall, jolt } from './climb.js';
@@ -143,6 +143,14 @@ export function swimPosition(sw) {
   const f = clamp(sw.x / SWIM.len,0,1);
   const land = clamp((sw.arrivalT || 0) / .85,0,1);
   return { x: lerp(495,865,f) + land*95, y: 550-land*54, land };
+}
+// The rescue opens a clear route on the right. Time and descent both
+// extinguish it, so waiting works and reaching the ground always clears it.
+export const TOWER_ESCAPE = { x: HOUSE.wallR, fireSeconds: 8 };
+export function towerEscapeFire(st) {
+  if (!st.p?.carry) return 1;
+  const height = clamp((HOUSE.floors[0]-st.p.y)/(HOUSE.floors[0]-HOUSE.floors[2]),0,1);
+  return Math.min(st.escapeFire ?? 1, clamp(1-(st.escapeT||0)/TOWER_ESCAPE.fireSeconds,0,1), height);
 }
 export const BARREL = {                                                  // cliff-whirlpool's ledge
   y: 412, x0: 150, edge: 728, start: 230, at: 470, hw: 40, push: 150, knock: 320,
@@ -420,6 +428,9 @@ export const actBurning = {
     const lk = LEGACY_SCENE[Math.min(k, 2)];
     const st = act5.create({ seed, carry, from: { ...(from || {}), scene: lk } });
     st.part = 'burning';
+    st.houseExit = { side: 'right', x: TOWER_ESCAPE.x };
+    st.escapeT = st.p.carry ? Math.max(0, from?.escapeT || 0) : null;
+    st.escapeFire = st.p.carry ? (from?.escapeFire ?? 1) : 1;
     st.carry = { ...CARRY_DEFAULT, ...carry };
     st.score = from?.score ?? 0; st.pearls = from?.pearls ?? 0;
     st.sleepersShown = Math.min(12, Math.max(0, carry.sleepers || 0));
@@ -435,7 +446,13 @@ export const actBurning = {
     if (st.smoke) st.smoke = st.smoke.filter(puff => (puff.t += dt) < AURORA.smokeLife);
     if (st.creditsT != null) st.creditsT += dt;
     const cpBefore = st.checkpoint;
-    if (st.phase === 'house') stepHouse(st, dt, input);
+    if (st.phase === 'house') {
+      const carrying = st.p.carry;
+      if (carrying) { st.escapeT = (st.escapeT || 0) + dt; st.escapeFire = towerEscapeFire(st); }
+      stepHouse(st, dt, input);
+      if (!carrying && st.p.carry) { st.escapeT = 0; st.escapeFire = 1; }
+      if (st.phase === 'house' && st.p.carry) st.escapeFire = towerEscapeFire(st);
+    }
     else if (st.phase === 'quay') stepQuay(st, dt, input);
     else if (st.phase === 'barrel') { if (!st.barrel && !st.duel) startBarrel(st); stepBarrel(st, dt, input); }
     else if (st.phase === 'victory' && st.phaseT >= FILM_T.victory + FILM_T.victoryFade) startWedding(st);
@@ -463,7 +480,7 @@ export const actBurning = {
     if (e.type === 'beamWarn') return 'The ceiling shudders.';
     if (e.type === 'shutterLocked') return 'The shutter is barred fast.';
     if (e.type === 'shutterSmash') return "Aurora's lamp opens the shutter. Climb the ivy.";
-    if (e.type === 'liftHer') return 'You lift Azurine. Carry her down: no leaping now.';
+    if (e.type === 'liftHer') return 'You lift Azurine. Carry her down and escape through the right-hand door as the fires die away.';
     if (e.type === 'floorBreak') return 'The way you came is gone. A ladder drops at the right.';
     if (e.type === 'houseFall') return 'Out onto the clifftop. The tower is falling.';
     if (e.type === 'witchReturns') return 'The witch attacks one last time! Leap her fire with A, and strike her with the sword with X.';

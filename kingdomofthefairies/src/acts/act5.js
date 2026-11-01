@@ -279,6 +279,7 @@ export function houseSnap(st) {
     spans: st.spans.map((f) => f.map((r) => [...r])),
     conns: st.conns.map((c) => ({ id: c.id, on: c.on })),
     stoneThrown: st.stoneThrown, shutter: st.shutter, shortcut: st.shortcut,
+    escapeT: st.escapeT, escapeFire: st.escapeFire,
     broke: st.broke, ladderDropT: st.ladderDropT == null ? null : Math.min(1, st.ladderDropT),
   };
 }
@@ -650,7 +651,9 @@ export function stepHouse(st, dt, input) {
     checkpoint(st, 3, houseSnap(st));
   }
   // Out of the door with her.
-  if (p.carry && p.f === 0 && p.x <= H.door + 4) {
+  const exitRight = st.houseExit?.side === 'right';
+  const exitX = st.houseExit?.x ?? H.door;
+  if (p.carry && p.f === 0 && (exitRight ? p.x >= exitX - 4 : p.x <= exitX + 4)) {
     setPhase(st, 'quay');
     st.p = { ...p, x: QUAY.x0, y: QUAY.y, f: 0, conn: null, face: 1 };
     st.haz = []; st.nextHaz = 1.2;

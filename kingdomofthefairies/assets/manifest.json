@@ -5179,6 +5179,16 @@
       ],
       "anchor": "centre",
       "edition": "film"
+    },
+    "tower-escape-door": {
+      "status": "delivered",
+      "file": "tower-escape-door.webp",
+      "size": [
+        160,
+        250
+      ],
+      "anchor": "bottom centre",
+      "edition": "film"
     }
   },
   "audio": {

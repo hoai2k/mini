@@ -9,11 +9,12 @@ import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
 import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, NEAR_HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
 import act2, { FAIRY_AT, FILM_DIVE, RIDE } from '../src/acts/act2.js';
 import act3, { PASSAGE } from '../src/acts/act3.js';
-import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach, weddingGuests, guestHop, CELEBRATION, AURORA, auroraFacing, WEDDING, weddingFloor, SWIM as SEA, diveFloor, swimPosition } from '../src/acts/act5film.js';
+import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach, weddingGuests, guestHop, CELEBRATION, AURORA, auroraFacing, WEDDING, weddingFloor, SWIM as SEA, diveFloor, swimPosition, TOWER_ESCAPE, towerEscapeFire } from '../src/acts/act5film.js';
 import { CLIMB, terrainAt } from '../src/acts/climb.js';
 import { CLIMB_MAPS } from '../src/acts/climb-map.js';
 import act4 from '../src/acts/act4.js';
 import { createCavern, stepCavern, surfaces, EXIT_X } from '../src/acts/act4cavern.js';
+import { HOUSE } from '../src/acts/act5.js';
 import { FINALE_END } from '../src/finale.js';
 import { HOOKS } from '../src/acts/act4.js';
 
@@ -401,6 +402,33 @@ test('Act V: reaching the window plays the window shot and wins', () => {
   assert.ok(['window', 'iris'].includes(st.phase) || st.status === 'won', st.phase);
   run(actTower, st, FILM_T.window + FILM_T.iris + 1);
   assert.equal(st.status, 'won');
+});
+
+test('Tower rescue: right-hand fires fade from pickup, clear by the ground, and the escape is on the right',()=>{
+ const st=actBurning.create({from:{scene:0}});st.haz=[];st.nextHaz=999;
+ st.p.x=HOUSE.beloved;st.p.f=2;st.p.y=HOUSE.floors[2];
+ assert.equal(towerEscapeFire(st),1);actBurning.step(st,DT,{});
+ assert.equal(st.p.carry,true);assert.equal(st.escapeT,0);assert.equal(towerEscapeFire(st),1);
+ run(actBurning,st,2);assert.ok(towerEscapeFire(st)>0&&towerEscapeFire(st)<1);
+ run(actBurning,st,20,s=>{
+  if(s.p.conn)return{moveY:1};
+  const target=s.p.f===2?720:800;
+  return Math.abs(s.p.x-target)<15?{moveY:1}:{moveX:Math.sign(target-s.p.x)};
+ },s=>s.p.f===0);
+ assert.equal(st.phase,'house');assert.equal(st.p.f,0);assert.equal(towerEscapeFire(st),0,'the ground-floor route is completely clear');
+ st.p.x=HOUSE.door;actBurning.step(st,DT,{});assert.equal(st.phase,'house','the old left-hand doorway cannot finish the rescue');
+ run(actBurning,st,6,()=>({moveX:1}),s=>s.phase!=='house');assert.equal(st.phase,'quay');
+ assert.equal(st.checkpoint.scene,2);assert.equal(st.p.face,1);
+});
+
+test('Tower escape: waiting also extinguishes the right fires, and checkpoints retain the fade',()=>{
+ const st=actBurning.create({from:{scene:1,escapeT:3,escapeFire:.6}});st.haz=[];st.nextHaz=999;
+ assert.equal(towerEscapeFire(st),.6);
+ st.p.x=720;st.p.f=1;st.p.y=HOUSE.floors[1];actBurning.step(st,DT,{});assert.equal(towerEscapeFire(st),.5);
+ st.p.x=HOUSE.beloved;st.p.f=2;st.p.y=HOUSE.floors[2];actBurning.step(st,DT,{});assert.equal(towerEscapeFire(st),.5,'climbing back up cannot restore a higher flame level');
+ run(actBurning,st,TOWER_ESCAPE.fireSeconds+1);
+ assert.equal(st.p.f,2);assert.equal(towerEscapeFire(st),0);
+ st.p.y=HOUSE.floors[2];actBurning.step(st,DT,{});assert.equal(towerEscapeFire(st),0,'moving upward cannot rekindle extinguished fires');
 });
 
 test('Act VI: out on the cliff, push the barrel over, walk the wedding street and into the light', () => {

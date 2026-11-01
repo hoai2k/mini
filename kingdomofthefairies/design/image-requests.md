@@ -92,9 +92,9 @@ and the production art for the film edition (F1–F4) after them.
 
 ## Production art for the film edition
 
-Requested 11 October 2026: 407 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
+Requested 11 October 2026: 408 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 407 of 407 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 408 of 408 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -3161,6 +3161,20 @@ Painted breaches replace flat pit rectangles and glowing ellipses. A dark opaque
 600 × 95 px, anchor centre.
 
 > Wide shallow transparent theatrical cutout matching tower-interior.webp: broken warm grey-pink limestone ledge at both sides, chipped stone fascia and a few charred beam ends, with a deep irregular opaque painted shadow across the central opening. No geometric outline, circular rim, glow, fire, text, characters or scenery. Preserve the existing tower palette and painted texture. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### F32. The tower's right-hand escape
+
+An open painted stone arch marks the clear right-side route after Azurine is rescued. Match the tower masonry and conceal the wall behind the opaque dark passage.
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `tower-escape-door` | 160 × 250 | bottom centre | new | [delivered](../assets/tower-escape-door.webp) |
+
+#### `tower-escape-door` — Open right-side tower door
+
+160 × 250 px, anchor bottom centre.
+
+> Transparent cutout of a tall open stone arch matching tower-interior.webp: warm grey-pink limestone, worn voussoirs and narrow jambs, a dark opaque passage and stone threshold. No shut panel, bars, fire, smoke, torch, star, circular ornament, arrow, text or glow. Full arch and threshold in frame, transparent outside the stone frame. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 <!-- FILM ASSETS END -->
 
