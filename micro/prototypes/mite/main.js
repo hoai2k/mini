@@ -124,7 +124,7 @@ const hud = mountHud({
     dash: 'Jump: a crouch and a hop (borrowed from jumping oribatids); X in the air: a pounce-bite',
     attack: 'Bite: graze spores and hyphal tips (leg I holds them); at the predator, rear up and nip it',
     defend: 'Hold: dash (scramble), ~2x the walk; also breaks a grab in its strike window',
-    special: 'Hold: close up (ptychoidy, defend): blocks the predator\'s strike. At the giant springtail: back up a world',
+    special: 'Hold: close up (ptychoidy, defend): blocks the predator\'s strike. At the open portal: enter it. At the giant springtail: back up a world',
 
     secondary: 'Walk slowly / hurry',
     look: 'Imaging mode: SE, BSE, false colour',
@@ -846,11 +846,13 @@ function respawnNear(P) {
 // as the last encounter (out of everyone's view, in moss nobody has seen, a
 // short way ahead of whoever leads), guarded by the pseudoscorpion. Reaching its water while
 // the pseudoscorpion is on guard turns you back (a toast, once a visit); lured
-// off or driven off, the water lets you through (enterPortal: the one place
-// the zoom into the tardigrade's world starts). Backdoor (BACKDOOR): dwell
+// off or driven off, the water is a portal you choose to take, never an
+// automatic door: at it, "Y Enter the portal" shows (embed.near('portal')),
+// and Y (keyboard R, here instead of closing up) goes through (enterPortal:
+// the one place the zoom into the tardigrade's world starts). Backdoor (BACKDOOR): dwell
 // beside the giant springtail's head and Y (here, instead of closing up)
 // rises to the bog surface.
-const lm = { fired: false, near: false, nearing: false, log: [], blocked: false };
+const lm = { fired: false, near: false, nearing: false, portal: false, log: [] };
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const atBack = (P) => !held(P) && flat(P.mite.center, props.back) < BACKDOOR.dwell;
 const backPrompt = document.createElement('div');
@@ -868,6 +870,10 @@ function guarded() {
   if (!boss.group.visible || ['gone', 'retreat'].includes(boss.st.state)) return false;
   return Math.hypot(boss.st.x - PORTAL.x, boss.st.z - PORTAL.z) < 1300;
 }
+/** Is player P at the portal's water (its reach)? */
+const atPortal = (P) => PORTAL.placed && !held(P) && flat(P.mite.center, PORTAL) < FORWARD.reach && Math.abs(P.mite.center.y - PORTAL.y) < 450;
+/** Can P go through now (at the water, the pseudoscorpion off guard)? Then Y enters. */
+const atOpenPortal = (P) => !outro && atPortal(P) && !guarded();
 function checkLandmarks() {
   let at = null, nearB = false, dmin = Infinity;
   for (const P of recs()) {
@@ -876,7 +882,7 @@ function checkLandmarks() {
     if (PORTAL.placed) {
       const d = flat(c, PORTAL);
       dmin = Math.min(dmin, d);
-      if (d < FORWARD.reach && Math.abs(c.y - PORTAL.y) < 450) at = P;
+      if (atPortal(P)) at = P;
     }
     if (atBack(P)) nearB = true;
   }
@@ -891,14 +897,13 @@ function checkLandmarks() {
         if (!portalState.turned) { portalState.turned = true; hud.toast('Turned back: the pseudoscorpion is on guard. Lead it away from the water first, then get round it', 3600); }
         lm.log.push({ kind: 'turnedBack', slot: at.slot, t: +simTime.toFixed(2) });
         lm.fired = true; // once a visit (again after everyone has left)
-        lm.blocked = true;
         withRec(at, () => { if (rumbleOn) padOf().rumble(160, 0.4, 0.2); });
-      } else enterPortal(at);
+      }
     }
-    if (dmin > FORWARD.reach + 250) { lm.fired = false; lm.blocked = false; }
-    // turned back earlier but now open while still at the water: go through
-    if (lm.blocked && at && !guarded()) { lm.blocked = false; lm.fired = false; enterPortal(at); }
+    if (dmin > FORWARD.reach + 250) lm.fired = false;
   }
+  // at the open portal (anyone): "Y Enter the portal"; Y goes through (inputFor)
+  setPortalPrompt(PORTAL.placed && !outro && !!at && !guarded());
   if (nearB !== lm.near) {
     lm.near = nearB;
     embed.near('back', nearB, 'Rise to the bog surface');
@@ -909,14 +914,21 @@ function checkLandmarks() {
     }
   }
 }
+/** The portal's Y prompt: on while anyone is at the open portal (the shell, or standalone embed.js, shows it). */
+function setPortalPrompt(on) {
+  if (on === lm.portal) return;
+  lm.portal = on;
+  embed.near('portal', on);
+}
 /**
- * The way on: player P has reached the open portal. This is the one place the
+ * The way on: player P is at the open portal and pressed Y. This is the one place the
  * zoom into the next world is triggered (embed.landmark('forward'); the shell
  * runs the continuous transition; standalone, embed.js shows a toast).
  */
 function enterPortal(P) {
   if (outro) return;
   lm.fired = true;
+  setPortalPrompt(false);
   lm.log.push({ kind: 'forward', slot: P.slot, t: +simTime.toFixed(2) });
   logChallenge('enter', P);
   startOutro(P);
@@ -1440,7 +1452,8 @@ function inputFor(c) {
   const ls = c.move();
   const dir = camFwd.clone().multiplyScalar(-ls.y).addScaledVector(camRight, ls.x);
   // Mite exception to shared actions: A jumps, B scrambles, Y closes up.
-  // Shared c.defend reads B and c.special reads Y; at the backdoor Y goes back.
+  // Shared c.defend reads B and c.special reads Y; at the backdoor Y goes back,
+  // and at the open portal Y goes through (instead of closing up).
   if (c.dash.pressed() && play.stun <= 0 && mite.jump()) { if (rumbleOn) padOf().rumble(90, 0.25, 0.4); }
   // the scramble: held B, on a stamina meter (empties in ~1.6 s, refills in ~2.8 s)
   if (play.stam === undefined) play.stam = 1;
@@ -1449,7 +1462,9 @@ function inputFor(c) {
   if (!want || play.stam <= 0) play.scr = false;
   // X in the air: the pounce-bite
   if (c.attack.pressed() && mite.airborne) startDive();
-  const hold = c.special.down();
+  const toPortal = atOpenPortal(cur);
+  if (toPortal && c.special.pressed()) enterPortal(cur);
+  const hold = c.special.down() && !(toPortal && c.special.pressed());
   if (atBack(cur) && mite.mode === 'walk' && c.special.pressed()) goBack(cur);
   const dashing = play.scr && mite.mode === 'walk';
   if (dashing && ls.m < 0.2) dir.set(1, 0, 0).applyQuaternion(mite.quat).setY(0); // no stick: straight ahead
@@ -1664,7 +1679,7 @@ const api = {
   portal() {
     return { placed: PORTAL.placed, a: +PORTAL.a.toFixed(3), x: Math.round(PORTAL.x), z: Math.round(PORTAL.z), guarded: PORTAL.placed && guarded(), open: PORTAL.placed && !guarded(),
       boss: { state: boss.st.state, x: Math.round(boss.st.x), z: Math.round(boss.st.z), fromWater: PORTAL.placed ? Math.round(Math.hypot(boss.st.x - PORTAL.x, boss.st.z - PORTAL.z)) : null, fromPost: PORTAL.placed ? Math.round(Math.hypot(boss.st.x - boss.post.x, boss.st.z - boss.post.z)) : null },
-      glow: +props.glow.open.toFixed(2), tardigrade: PORTAL.placed ? props.tardi.center.toArray().map(Math.round) : null };
+      glow: +props.glow.open.toFixed(2), prompt: lm.portal, tardigrade: PORTAL.placed ? props.tardi.center.toArray().map(Math.round) : null };
   },
   /**
    * Testing only (it breaks the order on purpose): the portal now, `d` µm from
@@ -1674,7 +1689,7 @@ const api = {
   placePortal(a = null, slot = 0, d = 3000) { const P = pls[slot] || P1, c = P.mite.center, b = a ?? Math.atan2(P.mite.st.fwd.z, P.mite.st.fwd.x); director.force('portal', c.x + Math.cos(b) * d, c.z + Math.sin(b) * d, b); return api.portal(); },
   /** Testing only: place encounter `k` ('pred' | 'pred2' | 'portal') at (x, z), met along bearing b, out of order. */
   placeEncounter(k, x, z, b = 0) { return director.force(k, x, z, b); },
-  /** Go through the portal now as player `slot` (what reaching it while open does). */
+  /** Go through the portal now as player `slot` (what Y at the open portal does). */
   enterPortal(slot = 0) { lm.fired = false; enterPortal(pls[slot] || P1); },
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },

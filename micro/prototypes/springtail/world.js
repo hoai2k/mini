@@ -796,8 +796,8 @@ function buildSundews(group, rnd, sundewTex) {
 // ---------------------------------------------------------------- bog pondweed
 /**
  * The floating leaves of bog pondweed (PONDWEED): one instanced mesh per
- * portal's patch (culled as one by the views that cannot see it) and one for
- * the strays. A leaf is a leathery ellipse lying flat on the film, a little
+ * portal's patch (culled as one by the views that cannot see it), and the
+ * strays in 300 mm tiles. A leaf is a leathery ellipse lying flat on the film, a little
  * domed, olive green flushed wine red toward the rim, with a pale midrib and
  * fine parallel veins converging on the tip; glossy (a waxy cuticle). MP-S06,
  * when delivered, is laid over it from above.
@@ -843,7 +843,8 @@ function buildPondweed(group, leafTex) {
   let seed = 5150;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   const patches = new Map();
-  for (const w of PONDWEED) { if (!patches.has(w.portal)) patches.set(w.portal, []); patches.get(w.portal).push(w); }
+  // a patch per portal; the strays in 300 mm tiles (so the views cull them too)
+  for (const w of PONDWEED) { const key = w.portal >= 0 ? w.portal : `s${Math.floor(w.x / 300)},${Math.floor(w.z / 300)}`; if (!patches.has(key)) patches.set(key, []); patches.get(key).push(w); }
   const meshes = [];
   for (const [portal, list] of patches) {
     const im = new THREE.InstancedMesh(geo, mat, list.length);
@@ -855,7 +856,7 @@ function buildPondweed(group, leafTex) {
       im.setColorAt(i, col.setRGB(p[0], p[1], p[2]).multiplyScalar(0.85 + rnd() * 0.3));
     });
     im.computeBoundingSphere();
-    im.userData.portal = portal;
+    im.userData.portal = typeof portal === 'number' ? portal : -1;
     group.add(im);
     meshes.push(im);
   }

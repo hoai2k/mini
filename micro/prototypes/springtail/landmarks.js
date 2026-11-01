@@ -169,7 +169,7 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
      */
     update(t, dt = 0, camera = null, open = () => false, burstT = undefined, near = null) {
       for (const r of rafts) {
-        const show = r === cur || !near || near.some((p) => Math.abs(p.x - r.position.x) < RAFT_SHOW && Math.abs(p.z - r.position.z) < RAFT_SHOW);
+        const show = !near || near.some((p) => Math.abs(p.x - r.position.x) < RAFT_SHOW && Math.abs(p.z - r.position.z) < RAFT_SHOW);
         if (show !== r.shown) { r.raft.visible = show; r.shown = show; }
         if (show) stepRaft(r, t, dt, camera, typeof open === 'function' ? open(r.i) : open, r === cur ? burstT : undefined);
       }

@@ -28,7 +28,7 @@ export const WORLDS = [
     goal: 'Head out through the moss any way you like: a ring of hyphal thickets crowded with springtails (push and bite through), the predatory mite on its hunting ground, more thickets, the predatory mite again, and at last a golden glow over a wet leaf axil, guarded by a pseudoscorpion. Lure it off its post and get round it, or bite its pincer joints until it backs into the moss.',
     forward: 'A wet leaf axil under a golden glow, where a tardigrade walks in the water.',
     back: 'A giant springtail resting on the moss: dwell beside it and press Y to rise to the bog surface.',
-    controls: [['LS', 'Walk'], ['RS', 'Orbit'], ['A', 'Jump (X in the air: a pounce-bite)'], ['X', 'Bite: graze, or bite back'], ['B', 'Hold: dash (scramble)'], ['Y', 'Hold: defend (close up); at the backdoor, rise a world'], ['D-pad ↑↓', 'Magnification']],
+    controls: [['LS', 'Walk'], ['RS', 'Orbit'], ['A', 'Jump (X in the air: a pounce-bite)'], ['X', 'Bite: graze, or bite back'], ['B', 'Hold: dash (scramble)'], ['Y', 'Hold: defend (close up); in a portal: enter it; at the backdoor, rise a world'], ['D-pad ↑↓', 'Magnification']],
     facts: [
       'Box mites fold their legs inside and close the shell like a lid: ptychoidy.',
       'An electron microscope sees no colour; every grey is the tilt of a surface to the beam.',
@@ -43,7 +43,7 @@ export const WORLDS = [
     goal: 'Head out along the leaves any way you like: get past Milnesium (brace B or jab X), push and jab (X) through a band of rotifers, walk round the dry patches, then lure Prionchulus, the predatory nematode, off its post and get round it to the golden pool.',
     forward: 'About 8 mm out, whichever way you go: the tip of a broad Sphagnum leaf dipping into the pool under a golden sparkle, guarded by Prionchulus.',
     back: 'The leaf axil to the left, where leaves meet the stem: dwell there and press Y to rise to the moss.',
-    controls: [['LS', 'Crawl: a slight push creeps, full tilt hurries'], ['RS', 'Turn and tilt'], ['A', 'Scramble'], ['X', 'Pierce: feed, or jab back'], ['B', 'Brace: block facing a predator'], ['Y', 'Curl into a tun (again: wake)'], ['LT/RT', 'Fine focus'], ['D-pad ↑↓', 'Magnification']],
+    controls: [['LS', 'Crawl: a slight push creeps, full tilt hurries'], ['RS', 'Turn and tilt'], ['A', 'Scramble'], ['X', 'Pierce: feed, or jab back'], ['B', 'Brace: block facing a predator'], ['Y', 'Curl into a tun (again: wake); in a portal: enter it'], ['LT/RT', 'Fine focus'], ['D-pad ↑↓', 'Magnification']],
     facts: [
       'Dried into a tun, a tardigrade can wait out years without water.',
       'The mite and the tardigrade are the same size: this step changes the light, not the scale.',

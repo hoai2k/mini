@@ -12,36 +12,111 @@ Open `micro/prototypes/springtail/` (the invite gate is off on localhost).
 
 **Goal:** head out across the pool in any direction. The encounters find
 you wherever you go, one after another with calm water between them: the rove
-beetle *Stenus*, the water strider and its mass of *Podura*, the rain, and
-last the way on: a floating raft of Sphagnum under a golden sparkle, guarded
-by a wolf spider. Lure the spider off the raft, get round it and reach the
-raft, and in the Micro Zoom game the microscope zooms in to the mite's world.
-On the way, graze: 8 clumps of food (three bites each) is the side goal. A
-catch costs no lives: you re-form at your last safe spot.
+beetle *Stenus*, the water strider and its mass of *Podura*, then the rain.
+Then the way on is open: floating rafts of Sphagnum under a golden sparkle,
+out across the pool where bog pondweed grows thick and a wolf spider hunts.
+Spot a spider and its raft is near (follow it home); lure it off the raft, get
+round it, stand on the raft and press Y, and in the Micro Zoom game the
+microscope zooms in to the mite's world. On the way, graze: 8 clumps of food
+(three bites each) is the side goal. A catch costs no lives: you re-form at
+your last safe spot.
 
-**The way out: placed as you go** (`shared/director.js`; the settings and the
-order are `DIRECTOR` and `ENCOUNTERS` in `world.js`, the placing and meeting
-in `main.js`; `design/encounter-pattern.md`, "Placed as you go"). The owner,
-2026-11-01: place things "into areas the player hasn't reached yet, though we
-should keep the areas they've explored constant ... place the next obstacles
-near them and even the final portal if they hang out long enough ... ensure
-the user encounters each thing in the game before giving them the boss and
-portal"; and the placed things are "events or enemies", while things you can
-jump over or walk round (the sundews) can be anywhere. So:
+**The way out: fixed portals, encounters placed as you go.** The owner,
+2026-11-01: "place the portals in the Springtail game in random noise
+generated locations with a certain average distribution (so it's still
+random, but not influenced by player behavior) and certain plants indicate
+that you're coming close to a portal. And also the spiders hunt within a
+certain radius and return to the portal, so you could follow the spiders to
+their portal ... I like the idea of wandering spiders. Then also if you see
+one you know you're near a portal ... a few seconds away a certain plant could
+appear common, and that might also be the spider's hunting grounds." Earlier:
+"ensure the user encounters each thing in the game before giving them the
+boss and portal"; obstacles soon but not immediately; rushing to a portal
+about a minute. So the portals, their spiders and the plants are laid out
+before play, the same every game, and the other encounters are still placed
+as you go (`design/encounter-pattern.md`, "Per-world placement").
+
+- **The portals** (`PORTALS` in `world.js`, `layPortals`): 16 rafts, seeded
+  blue noise (`PORTAL_SEED` 44): dart throwing over open water inside poolE
+  0.88, at least `PORTAL_SPACING` 340 mm apart and at least `PORTAL_MIN_D`
+  530 mm from the start (450 mm of rushing, ~30 s, plus a ground's radius),
+  clear of islands; then a coverage pass that walks a rusher out on 64
+  bearings (`rushToGround`: 15 mm/s, round islands, along the bank toward the
+  nearer raft once it meets it) and adds a raft on the way of any bearing
+  that would go more than 58 s without reaching a ground (8 of the 16), kept
+  at least 0.6 x the spacing from the others. Result: nearest neighbours
+  214–486 mm apart (mean 259), 531–819 mm from the start. Each raft is turned
+  so its mite faces the start. `route.test.mjs` checks every one of 64
+  bearings with its own rusher: a ground after 30.2–52.7 s (mean 41; 27
+  bearings meet the bank first, and the far way along the bank is never more
+  than 69 s).
+- **The pool grew** from 1.5 x 0.9 m to 1.9 x 1.24 m (`POOL`) for this: in
+  the old pool the bank was ~29 s from the start along the short axis, so a
+  raft's ground could not be both ~30 s out and before the bank. The sundew
+  clusters now spread out to ~550 mm, food to ~620 mm, and the bank carries
+  400 capitula.
+- **The hunting grounds and the pondweed** (`GROUND.r` 80 mm, ~5 s of
+  rushing): each raft's spider hunts within its ground, and bog pondweed
+  (`PONDWEED`, below) grows thick there: 34 leaves a raft, denser toward it
+  (about 3x per cm² inside 45 mm as outside), and only 26 stray leaves on all
+  the rest of the pool (~30x thinner), so "lots of these leaves: a portal
+  nearby". Grounds never overlap.
+- **The spiders** (`boss.js`; one per raft, made the first time someone comes
+  near: main.js `spiderFor`). Each rests on its raft's near rim (5–9 s), then
+  goes out on a round of its ground (2–4 spots, 35–92% of the way out, dashing
+  at 9 mm/s and pausing 1.2–2.6 s at each, crouched, feeling the film) and
+  walks back to its post, and so on: out on its ground nearly half the time,
+  so a spider seen moving about means a raft within a few seconds, and one
+  walking home leads you to it (followed at ~30 mm, five rafts tried in the
+  browser: 18–46 mm from the raft when it is back on its post). Out on its
+  ground it comes for a springtail within 22 mm (`SENSE`) or one landing within
+  20 mm, and if one makes for its post while it is out it hurries home
+  (11 mm/s) to guard it. Its fight, lure and guard are as before (below).
+  Spiders far from everyone are parked (`stepSpiders`): hidden and not
+  stepped unless someone is within 330 mm of the raft, beyond any view of
+  the ground (a spider never goes more than its 90 mm leash from its post).
+  The spider in focus (`boss`: the nearest raft's, switched only while it is
+  not busy with anyone) is the one that hunts, fights and catches; the
+  others nearby wander but ignore players (with two players at two rafts at
+  once, only the nearer raft's spider hunts: a limitation).
+- **Don't skip** (`sealed` in main.js). The portals are fixed, so a player can
+  reach one early. Until the director is done (*Stenus*, the strider and its
+  mass, and the rain all met) every raft is sealed: its sparkle stays dim
+  and standing on it gives no prompt (a toast once: "Not yet: the way on opens
+  once you have met what else the pool holds"), whatever its spider is
+  doing; and while anyone is in a hunting ground with encounters left, the
+  director ends the current calm break at once (`placeNow`), so the rest are
+  placed round them promptly. In practice the seal rarely bites: rushing
+  out, every encounter is met by ~28–41 s, before a ground; a sprinter (30
+  mm/s, charged jumps) beelining for the nearest raft reaches its ground at
+  15 s with the strider and the rain still to come, and they are placed and
+  met within half a second (`route.test.mjs`).
+- **The encounters, placed as you go** (`shared/director.js`; the settings
+  and the order are `DIRECTOR` and `ENCOUNTERS` in `world.js`, the placing
+  and meeting in `main.js`). Things you can jump over or walk round (the
+  sundews, the pondweed) are scenery and can be anywhere:
 
 | Order | Encounter | Placed | Met (calm break starts once you are clear of it) |
 | --- | --- | --- | --- |
 | warm-up | Calm water | — | ~5 s of moving (a few jumps) |
 | 1 | *Stenus*: its water (40 mm, chase leash 25 mm) with the beetle at the spot | 55–95 mm ahead (lingering: 40–62 mm round you) | in its reach, or within 30 mm of the beetle |
 | 2 | The water strider (its water 42 mm, leash 20) and the *Podura* mass (220 NPC springtails, `shared/crowd.js`) at its near edge, a little to one side | 72–112 mm ahead (lingering: 50–80 mm) | in the strider's reach, or within 30 mm of the mass's edge |
-| 3 | The rain, from now on, round whoever leads | at once (an event) | at once |
-| 4 | The portal raft and the pond wolf spider guarding it | 80–120 mm ahead (lingering: 40–70 mm) | going through it ends the level |
+| 3 | The rain, from now on, round whoever leads; then the portals open | at once (an event) | at once |
 
 Between them, calm breaks of ~8–10 s of moving (counted only once you are
-outside the last encounter). Rushing straight out with tap jumps (enemies
-passive) meets *Stenus* after ~5–6 s and reaches the raft after ~45–60 s
-(`route.test.mjs`, 16 directions: 41–56 s; in the browser, 4 directions:
-see Checks); dealing with the encounters stretches that to a few minutes.
+outside the last encounter). The director's old last entry (the portal and
+its spider, placed ahead) is gone. Encounters are never placed on a raft and
+its spider's post (`canPlace`: 38–68 mm clear of every raft).
+
+**Timings** (sim seconds, enemies passive). `route.test.mjs`, 16 directions,
+15 mm/s, into the nearest ground and on to its raft: *Stenus* met 5.2–6.1 s,
+the strider 18.9–35.5 s, the rain 27.9–40.6 s, a ground 30.1–48.8 s, a raft
+34.7–53.4 s. In the browser (tap jumps of ~8 mm, along the bank toward the
+nearest raft, four directions: +x, +z, −x, −z): the first pondweed leaf of a
+ground 37–47 s (strays earlier), the ground 26–49 s, a spider within 45 mm
+30–51 s (on three of the four), the raft 31–52 s. The browser rusher makes
+~17 mm/s, a little faster than the model, so the nearest ground (bearing −z)
+came at 26 s, with the rain placed at once on arrival (the don't-skip rule).
 
 - **Explored stays constant.** A 10 mm grid over the pool records what every
   view has seen (each frame, the cells inside the view's frustum within
@@ -50,43 +125,66 @@ see Checks); dealing with the encounters stretches that to a few minutes.
   view. The low macro view sees the film from ~37 mm before the springtail to
   ~55 mm beyond, so "ahead" is usually just past the edge of the picture or
   off to its side. Seen sundews, islands, placed encounters: all stay as they
-  were (`__micro.seenAt(x, z)`).
+  were (`__micro.seenAt(x, z)`); the rafts, spiders' posts and pondweed never
+  move at all. Checked in the browser: out 25 s and back 25 s, every placed
+  encounter where it was (no moves), the portals unchanged.
 - **Ahead, in order, never skipped.** The next encounter comes only after the
   last was met and the break has passed, in water nobody has seen, a little
   ahead of whoever is furthest along, out of view, clear of islands
   (`fits` in `ENCOUNTERS`). One placed but not yet seen follows you if you
   turn away (moved, unseen to unseen). One seen and walked away from counts
-  as met (it is never moved). The portal comes last, after every other.
+  as met (it is never moved).
 - **Lingering.** Stay put and, after the break, each encounter is placed
   round you all the same, out of view: *Stenus* with you in its water, the
   strider (with no open water for it and its mass near the start's islands
   it is placed a little farther off and then rows over to you, 4 mm/s:
-  `driftStrider`), the rain, and in the end the raft ~55 mm away.
+  `driftStrider`), then the rain. The portals stay where they are: you go to
+  them.
 - **Before placing**, each predator is hidden and parked far off
-  (`parkZone`); a new game parks them again and starts the director over.
+  (`parkZone`); a new game parks them again, starts the director over, seals
+  the portals and puts every spider back on its post.
 - **Sundews are scenery:** 16 clusters scattered over the pool at every
-  distance from the start (~70 to ~430 mm out), each a band of three islands
+  distance from the start (~70 to ~550 mm out), each a band of three islands
   with a rosette on each; you can go round them or jump over.
 
-**The portal and the boss.** The raft is placed by the director as the last
-encounter, out of everyone's sight (its 60 mm golden beacon included), so
-its golden light then draws you on. A brief hint comes once someone is
-within 70 mm of it: "The wolf spider guards the way on. Lure it off the moss,
-then get round it". The spider sits on the raft's near rim, facing the way
-you come. A
-player who reaches the raft while it is on guard (within 15 mm of the raft's
-centre) is turned back (a toast, once; the spider attacks as its fight does).
-While it is lured off, or beaten, the raft lets you through (`enterPortal`:
-`embed.landmark('forward')`). Luring: it wakes when you come within 30 mm of
-its post and follows you out up to 90 mm from it; then, or when it has lost
-you (farther than 40 mm), it walks back at 6 mm/s (a jumping springtail does
-13–17). A big ripple within 50 mm of it and away from the raft (a charged
-landing, a raindrop) draws it off to look. The golden sparkle over the raft
-(`shared/portal.js`) is dim and restless while it is guarded, bright once it
-is open. No arrow points the way (the owner: keep moving and you find it):
-once the raft is placed its golden light leads you (see Landmarks).
+**The portal and the boss.** A raft lets you through only once the way on is
+unsealed and its spider is off guard. A brief hint comes once someone is
+within 70 mm of a raft: "The wolf spider guards the way on. Lure it off the
+moss, then get round it". The spider rests on the raft's near rim, facing the
+start. A player who reaches a raft while it is on guard (within 15 mm of the
+raft's centre) is turned back (a toast, once; the spider attacks as its fight
+does). While it is lured off, out on its ground, or beaten, standing on the
+raft (within 11 mm of its centre) puts up the prompt "Y Enter the portal"
+(`embed.near('portal')`; the owner: never an automatic door), and Y goes
+through (`enterPortal`: `embed.landmark('forward')`); off the raft, Y is the
+camera's top-down toggle as before. Luring: it wakes when you come within
+30 mm of its post and follows you out up to 90 mm from it; then, or when it
+has lost you (farther than 40 mm), it walks back at 6 mm/s (a jumping
+springtail does 13–17). A big ripple within 50 mm of it and away from the
+raft (a charged landing, a raindrop) draws it off to look. The golden
+sparkle over each raft (`shared/portal.js`) is dim and restless while it is
+guarded or sealed, bright once it is open. No arrow points the way (the
+owner: keep moving and you find it).
 
-**The water is the ground.** The pool is a 1.5 x 0.9 m sheet of open water
+**Bog pondweed** (`PONDWEED`, `buildPondweed` in `world.js`). *Potamogeton
+polygonifolius*, the pondweed of acid, nutrient-poor water: bog pools, peaty
+runnels and ditches, where it grows in clonal patches of floating leaves on
+long stalks from rhizomes in the peat. Chosen over duckweed (*Lemna minor*,
+a plant of nutrient-rich water, rare in Sphagnum bog pools) and cotton-grass
+fluff (*Eriophorum* grows on the bog, but its seed hairs blow everywhere, so
+they would not mark a place). Its leathery elliptic floating leaves, olive
+flushed wine red, are giant rafts at springtail scale, unmistakable in the
+narrow macro view, and wolf spiders really do hunt from floating leaves.
+Departures, labelled: the leaves are 14–28 mm long (in life floating leaves
+are mostly 20–60 mm or more), lie flat and still (no stalks shown, no drift),
+and grow thick only round the rafts (the patches stand for the clones a
+raft's peat holds). Each leaf is solid footing like the debris (`pondweedAt`;
+walking on it is slow, jumping from it is not), drawn as one instanced mesh
+per patch (culled as one) and the strays in 300 mm tiles; a pale midrib, fine
+parallel veins converging on the tip, glossy. Image request MP-S06 (a leaf
+plate) is open; until it arrives the procedural leaf stands in.
+
+**The water is the ground.** The pool is a 1.9 x 1.24 m sheet of open water
 with 72 moss islands standing in it (a hand-placed cluster round the start,
 the 48 of the sundew clusters, a few scattered), and floating debris and food on the
 film. A steep Sphagnum bank rings it: jump at it and you bounce off and drop
@@ -125,20 +223,21 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
 
 ## Landmarks
 
-- **Forward: the portal raft** (design §0.6): a floating mat of moss
-  (`PORTAL` in `world.js`, radius 8 mm; `mossTop` honours it, so you land and
-  walk on it like an island) crowned with big red and green capitula
+- **Forward: the portal rafts** (design §0.6): 16 floating mats of moss
+  (`PORTALS` in `world.js`, radius 8 mm, fixed; `mossTop` honours them, so you
+  land and walk on them like islands), each crowned with big red and green capitula
   (`landmarks.js`). On the tallest one a speck moves: a *Limnozetes* mite,
   0.36 mm, walking about on its capitulum. Over it the super-gene's golden
   light (`shared/portal.js` `createPortalGlow`: a glow pool, a fine spray of
   rising sparks with star glints, a 60 mm beacon with motes rising up it;
   five draws). The low macro view has the raft out of frame until you are
-  about on it, so its light also spills in from the edge of the view on its
-  side (`createPortalLight`: a warm glow, an anamorphic streak, gold bokeh
-  discs, stronger as you near it), and in view a halo marks it; within 26 mm
-  the focus deepens so the raft is sharp beside you. No text.
-  Any player who comes within 11 mm of its centre while it is open reaches it:
-  `enterPortal(P)` calls `embed.landmark('forward', { outro })` and plays the
+  about on it; in view a halo marks the nearest raft (`createPortalLight`;
+  the edge spill is off); within 26 mm the focus deepens so the raft is sharp
+  beside you. Rafts farther than 420 mm from every player are hidden and not
+  updated (`RAFT_SHOW`, `landmarks.js`); the nearest is in focus (its glow and
+  mite are the outro's). Any player standing within 11 mm of an open raft's
+  centre gets the prompt "Y Enter the portal" (`embed.near('portal')`); Y
+  there calls `enterPortal(P)`, which calls `embed.landmark('forward', { outro })` and plays the
   outro: a golden burst (a ring over the film, a fountain of sparks), a
   bloom, a chime (`shared/portal-chime`), a rumble, the HUD hidden; then time
   eases to a freeze over 1 s (`OUTRO`, in frame time) while rendering goes
@@ -181,13 +280,18 @@ shell (`embed.players`).
   likewise); alone, at their last safe spot. There is no Eaten card and
   there are no lives.
 - Test hooks on `window.__micro`: `players`, `split`, `layout`, `recs()`,
-  `teleport(slot, x, z)`, `settle(n)`, `landmark` (the portal once placed),
-  `landmarkLog` (`forward`, `turnedBack`), `portal()` (its position, `guarded`,
-  `open`, the spider's state and distance), `enterPortal(slot)`, `joins`,
+  `teleport(slot, x, z)`, `settle(n)`, `landmark` (the portal in focus),
+  `landmarkLog` (`ready`, `forward`, `turnedBack`, `sealed`), `portal()` (the
+  nearest raft: its position, `sealed`, `guarded`, `open`, its spider),
+  `portals()` (every raft and its spider: state, distance, parked),
+  `pondweed`, `spiders`, `boss` (the spider in focus), `portalReady()` (who
+  has the Y prompt), `pressY(slot)`, `enterPortal(slot)`,
+  `nearPortal(i, d, b, slot)`, `sealed(open?)`, `joins`,
   `forceCapture(kind, slot)`; the director: `encounters()` (its state),
   `seenAt(x, z)`, `placeNow()` (end the current break), `director` (and its
-  `log`); for tests only, out of order on purpose: `placePortal(a, slot, d)`
-  (the raft `d` mm from the player at bearing `a`) and
+  `log`); for tests only, out of order on purpose: `placePortal(a, slot, d, i)`
+  (take the player `d` mm short of the nearest raft, or raft `i`, on its
+  start side, and unseal the way on) and
   `placeEncounter(k, x, z, b)`.
 - With several players the director places each encounter for the one
   furthest along the order (ties: the one who has travelled farthest); the
@@ -240,8 +344,10 @@ back wear its interest down until it retreats (and rests: `hunger.missed()`).
 
 `boss.js`; `micro/design/bosses.md`. *Pirata*, a juvenile ~5 mm (adults are
 6–9 mm: scaled down, labelled), a real bog-pool hunter that runs on the
-water. It sits on guard on the rim of the portal raft, **dormant** until a
-player comes within 30 mm of its post. Lured off (see "The portal and the
+water. One lives at every portal raft: it rests on guard on the raft's rim,
+**dormant** until a player comes within 30 mm of its post, and between rests
+goes out on rounds of its hunting ground (**wander**) and walks back (see "The
+way out" above). Lured off (see "The portal and the
 boss" above), it follows up to 90 mm, then walks back slowly; big ripples draw
 it off to look (wolf spiders feel the film's vibrations).
 
@@ -464,7 +570,7 @@ or overcast.
 - **Food**: 110 floating clumps of pine pollen (yellow), fungal spores (brown)
   and green algae (elongated cells), each a few dozen grains with its own
   little meniscus, drifting on the flow; half round the start, the rest out
-  across the pool in every direction (to ~430 mm). Three bites each; an eaten clump reappears elsewhere 6 s later.
+  across the pool in every direction (to ~620 mm). Three bites each; an eaten clump reappears elsewhere 6 s later.
   Only clumps within 80 mm of a player or the view are drawn (packed into the
   first instances): farther out a grain is under a pixel.
 
@@ -646,12 +752,14 @@ may not be in `shared/asset-list.js` yet) and has a procedural stand-in:
   HUD and features.
 - `springtail.js`: the springtail model, rig and cuticle shader.
 - `world.js`: pool shape and bank, the encounters' settings and order
-  (`DIRECTOR`, `ENCOUNTERS`), their water (`ZONES`) and the portal
-  (`PORTAL`), moss islands, Sphagnum, sundews, food, floating debris.
+  (`DIRECTOR`, `ENCOUNTERS`), their water (`ZONES`), the fixed portals
+  (`PORTALS`, `layPortals`, `rushToGround`), their hunting grounds (`GROUND`)
+  and the bog pondweed (`PONDWEED`, `pondweedAt`), moss islands, Sphagnum,
+  sundews, food, floating debris.
 - `../shared/director.js`: the encounter director (shared by every world).
-- `boss.js`: the pond wolf spider boss.
-- `landmarks.js`: the portal raft, its capitula, the moving mite and its
-  golden sparkle (`../shared/portal.js`); the players' colour rings.
+- `boss.js`: the pond wolf spider boss (one per raft; its rounds of its hunting ground).
+- `landmarks.js`: the portal rafts, their capitula, the moving mites and
+  their golden sparkles (`../shared/portal.js`); the players' colour rings.
 - `enemies.js`: *Stenus*, the water strider, raindrops.
 - `../shared/techniques/springtail-macro.js`: macro lens, lighting, bokeh
   post chain (reusable).
@@ -715,7 +823,7 @@ in `islandDist` (slower under SwiftShader).
 
 ```bash
 node micro/prototypes/check.mjs springtail
-node micro/prototypes/springtail/route.test.mjs       # the director with this world's settings: rushing out on 16 bearings and lingering, every encounter in order, out of view, on open water; sundews scattered
+node micro/prototypes/springtail/route.test.mjs       # the fixed portals (64 bearings: a ground in 30-60 s), the pondweed (thick round each raft, rare elsewhere), a spider's rounds (out and home; follow it home), and the director with this world's settings: rushing out on 16 bearings, beelining and sprinting for a raft (don't skip), lingering: every encounter in order, out of view, on open water; sundews scattered
 node micro/prototypes/shared/director.test.mjs         # the director itself
 node micro/prototypes/springtail/jump-input.test.mjs
 node micro/prototypes/springtail/sundew-struggle.test.mjs   # the struggle's balance: both inputs ~2 s, A alone slow, LS alone or idle engulfed

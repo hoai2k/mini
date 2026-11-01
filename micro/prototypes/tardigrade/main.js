@@ -91,7 +91,7 @@ const hud = mountHud({
     dash: 'Scramble: a burst of fast wave gait (recharges in a few seconds)',
     attack: 'Pierce with the stylets: feed, or jab a Milnesium (bite back)',
     defend: 'Hold: brace. Facing a Milnesium, it blocks the lunge',
-    special: 'Hold: curl into a tun (again: wake)',
+    special: 'Hold: curl into a tun (again: wake). At the open portal: enter it',
     analog: 'Fine focus down / up',
     secondary: 'Anatomy labels / rain (test)',
     look: 'Optical look: DIC / brightfield / lit',
@@ -652,13 +652,14 @@ function animateCapture(c, dt) {
 }
 
 // ---------------------------------------------------------------- landmarks
-// The portal (the pool at a rim leaf's tip) is the way on: enterPortal. In the
+// The portal (the pool at a rim leaf's tip) is the way on: at it, open, the
+// game shows "Y Enter the portal" and Y goes through (enterPortal). In the
 // leaf axil a quiet "Y: back to the mite" prompt shows (the shell's, or this
 // page's own when standalone) and Y there posts the back landmark.
 const promptEl = document.createElement('div');
 promptEl.style.cssText = 'position:fixed;left:50%;bottom:9vh;transform:translateX(-50%);z-index:7;padding:6px 14px;border-radius:999px;background:rgba(18,16,10,.62);color:#efe3c2;border:1px solid rgba(201,163,90,.55);font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;pointer-events:none;white-space:nowrap;display:none';
 document.body.appendChild(promptEl);
-const lm = { fired: false, near: false, nearing: false, log: [] };
+const lm = { fired: false, near: false, nearing: false, portal: false, log: [] };
 function setNear(on) {
   if (on === lm.near) return;
   lm.near = on;
@@ -787,18 +788,27 @@ function restartRings() {
 parkMilnesium();
 
 // ---------------------------------------------------------------- the portal (the way on)
-// Reaching the portal (the rim leaf's tip, either face) zooms into the next
-// world, but only while Prionchulus is off guard: lured more than GUARD from
-// its post, or beaten. On guard, it turns you back (a toast, once). Any player
-// counts; in the game the others follow through the transition.
+// The portal (the rim leaf's tip, either face) is never an automatic door (the
+// owner, 2026-11-01): while a player is at it and Prionchulus is off guard
+// (lured more than GUARD from its post, or beaten), the game shows "Y Enter the
+// portal" (embed.near('portal')) and that player's Y (R) zooms into the next
+// world (instead of curling into a tun). On guard, it turns you back (a toast,
+// once) and Y curls up as usual. Any player counts; in the game the others
+// follow through the transition.
+function setPortalPrompt(on) {
+  if (on === lm.portal) return;
+  lm.portal = on;
+  embed.near('portal', on);
+}
 function checkPortal() {
-  if (!portal.placed) return;
+  for (const a of animals) a.atPortal = false;
+  if (!portal.placed || outro) { setPortalPrompt(false); return; }
   let at = null, dmin = Infinity;
   for (const a of animals) {
     if (!alive(a) || a.life.state !== 'active') continue;
     const d = a.walker.dispPos.distanceTo(places.forward);
     dmin = Math.min(dmin, d);
-    if (places.atForward(a.walker)) at = a;
+    if (places.atForward(a.walker)) { at = a; a.atPortal = true; }
   }
   if (dmin < FOUND) portal.found = true;
   if (!portal.hinted && dmin < HINT && guarded()) { portal.hinted = true; toast('Prionchulus guards the way on. Lure it off its post, then get round it', 3600); }
@@ -812,19 +822,22 @@ function checkPortal() {
         lm.log.push({ type: 'turnedBack', slot: at.slot, t: +time.toFixed(2) });
         lm.blocked = true;
       }
-    } else enterPortal(at); // (turned back earlier but open now, still on it: through)
+    }
   }
   if (!at) lm.blocked = false;
   if (dmin > 6) lm.fired = false; // once per visit
+  // anyone at the open portal: the prompt; their Y goes through (step's input loop)
+  setPortalPrompt(!!at && !guarded());
 }
 /**
- * The way on: player `a` has reached the open portal. This is the one place
+ * The way on: player `a` is at the open portal and pressed Y. This is the one place
  * the zoom into the next world is triggered (embed.landmark('forward'); the
  * shell runs the transition; standalone, embed.js shows a toast).
  */
 function enterPortal(a) {
   if (lm.fired || outro) return;
   lm.fired = true;
+  setPortalPrompt(false);
   startOutro(a);
   lm.log.push({ type: 'landmark', kind: 'forward', slot: a.slot, t: +time.toFixed(2) });
   embed.landmark('forward', { player: a.slot, outro: embed.active });
@@ -1023,7 +1036,7 @@ const api = window.__micro = { cullViews: true, // per-view culling of the anima
   portal() {
     const f = places.forward;
     return { placed: portal.placed, spoke: portal.k, x: f.x, y: f.y, z: f.z, found: portal.found, guarded: portal.placed && guarded(), open: portal.placed && !guarded(),
-      boss: { state: boss.state, fromPost: portal.placed ? +boss.fromPost.toFixed(2) : null, interest: +boss.interest.toFixed(2) }, glow: +places.glow.open.toFixed(2), t: portal.t };
+      boss: { state: boss.state, fromPost: portal.placed ? +boss.fromPost.toFixed(2) : null, interest: +boss.interest.toFixed(2) }, glow: +places.glow.open.toFixed(2), prompt: lm.portal, t: portal.t };
   },
   /**
    * Testing only (it breaks the order on purpose): the portal now on spoke `k`
@@ -1033,7 +1046,7 @@ const api = window.__micro = { cullViews: true, // per-view culling of the anima
   placePortal(k = null, slot = 0) { const a = animals.find((b) => b.slot === slot) || p1; const R = E.rims[k ?? world.spokeOf(a.walker.leaf, a.walker.dispPos)]; api.placeEncounter('portal', R.spot.x, R.spot.z); return api.portal(); },
   /** Testing only: place encounter `k` ('milnesium' | 'portal') at (x, z), snapped to a leaf (a rim for the portal), out of order. */
   placeEncounter(k, x, z, b = 0) { const pr = E.prefer; E.prefer = null; try { return director.force(k, x, z, b); } finally { E.prefer = pr; } },
-  /** Go through the portal now as player `slot` (what reaching it while open does). */
+  /** Go through the portal now as player `slot` (what Y at the open portal does). */
   enterPortal(slot = 0) { lm.fired = false; enterPortal(animals.find((b) => b.slot === slot) || p1); },
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
@@ -1231,7 +1244,8 @@ function step(dt, G) {
 
   for (const a of animals) {
     const g = inputs.get(a), L = a.life;
-    // In the backdoor zone Y means "go back", not "curl into a tun".
+    // In the backdoor zone Y means "go back", and at the open portal "go
+    // through" (checkPortal: a.atPortal), not "curl into a tun".
     // X into the rotifer meadow: those in front contract and a lane opens
     a.meadowJab = false;
     if (meadow.on && g.P(BTN_X) && L.state === 'active' && !L.feeding && !a.bossJab && !(a === target && jabbed)) {
@@ -1240,7 +1254,10 @@ function step(dt, G) {
     }
     const yBack = a.atBack && g.P(BTN_Y);
     if (yBack) { fireLandmark('back', a); toast(`${who(a)}Back up to the moss canopy`); }
-    L.update(dt, { yDown: !a.atBack && g.D(BTN_Y), yPressed: !a.atBack && g.P(BTN_Y), bitePressed: g.P(BTN_X) && !(a === target && jabbed) && !a.bossJab && !a.meadowJab, aPressed: g.P(BTN_A), moving: a.walker.speed });
+    const yPortal = !a.atBack && a.atPortal && L.state === 'active' && portal.placed && !guarded() && g.P(BTN_Y);
+    if (yPortal) enterPortal(a);
+    const yOwn = !a.atBack && !yPortal;
+    L.update(dt, { yDown: yOwn && g.D(BTN_Y), yPressed: yOwn && g.P(BTN_Y), bitePressed: g.P(BTN_X) && !(a === target && jabbed) && !a.bossJab && !a.meadowJab, aPressed: g.P(BTN_A), moving: a.walker.speed });
     // life-state transitions: the tun, the revival, a stylet bite
     if (L.state !== a.state) {
       if (L.state === 'tun') audio.play('tardigrade/tun');

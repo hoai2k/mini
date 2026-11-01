@@ -93,8 +93,14 @@ water. Lure it away from its post and get round it, or bite its pincer
 joints until it backs off". A player who reaches the water (within 360 µm of
 its centre) while the pseudoscorpion is on guard (not driven off, and within
 1.3 mm of the water) is turned back: a toast, once a visit, and its pincers.
-Lured off or driven off, the water lets you through (`enterPortal`, the one
-place `embed.landmark('forward')` fires). Luring: it follows its target out
+Lured off or driven off, the water is open, but it is never an automatic
+door (the owner, 2026-11-01): while any player is at it, the game shows
+"Y Enter the portal" (`embed.near('portal', true)`; standalone,
+`shared/embed.js` shows it), and that player's **Y** (R) goes through
+(`enterPortal`, the one place `embed.landmark('forward')` fires) instead of
+closing up; a Y already held (closed up) as you arrive keeps you closed.
+While the pseudoscorpion guards it there is no prompt and Y closes up as
+usual. Luring: it follows its target out
 to 2.6 mm from its post (`BOSS.leash`), gives up one that gets 3.6 mm away
 (`BOSS.lose`), and then walks back at 260 µm/s (a walking mite does ~420, a
 scramble ~880) and guards again; someone close by on its way back turns it
@@ -119,6 +125,7 @@ up.
 | **X (E)** | Three moves, by what is in reach: **eat** (a spore or hyphal tip: leg I reaches out and holds it to the mouth while the chelicerae work and it shrinks away, 0.9 s); **fight** (the predator or the pseudoscorpion's pincer: rear up with leg I raised, then lunge and snap); **attack** (nothing in reach: a lunge with the chelicerae) |
 | **Y (R)**, hold | **Defend: ptychoidy.** Close into a sealed capsule (the predator's strike slides off; a held mite closing up drops out of the grip); release to reopen |
 | **B (Shift)**, hold | **Scramble**: a punchy burst to ~2.1x the walk (~0.88 mm/s), nose down, tight turns, the gait racing (feet still planted) and crumbs kicked up behind; on a stamina meter (`scramble ■■■■■` in the corner: empties in ~1.6 s, refills in ~2.8 s). In a grab's strike window, a scramble breaks out |
+| Y (R) at the open portal | Enter the portal (the zoom on to the tardigrade) instead of defending; the game shows "Y Enter the portal" while you are there |
 | Y (R) at the backdoor | Go back up to the bog surface instead of defending |
 | LS click (C), standalone prototype only | Observer mode: simulated SEM instrument data (voltage, working distance, detector, magnification and scale) and raster lines. This viewing aid and its feature switch are omitted from the embedded game |
 | LB / RB (Q / F) | Walk slowly (~210 µm/s) / hurry (~590 µm/s) |
@@ -147,7 +154,7 @@ over the springtail's push onto the speck, the mite where the speck was. On
 
 ## The outro (to the tardigrade)
 
-Reaching the open portal (`enterPortal`) plays the outgoing side of the
+Going through the open portal (Y there: `enterPortal`) plays the outgoing side of the
 continuous transition (`../../game/README.md`, "The continuous transition";
 the springtail's is the reference): a golden burst from the water (a ring
 over the floor, a fountain of sparks), blooms on the screen, a chime
@@ -185,8 +192,8 @@ everything else.
   a 620 µm pool, sparks and glints, a 3.2 mm beacon), drawn after the SEM
   composite (additive, so it reads through the moss), and its light at the
   edge of the view on its side (`createPortalLight`). Any player within
-  360 µm of the water's centre reaches it (see The encounters: turned back while
-  guarded).
+  360 µm of the water's centre reaches it and, open, can press Y to enter
+  (see The encounters: turned back while guarded).
 - **Backdoor: a giant springtail at rest**, the creature of the stage above
   (~1.5 mm long, four box mites; `BACKDOOR`, behind the start view,
   ~1.8 mm off). It is solid: mites climb onto it. Dwell beside its head

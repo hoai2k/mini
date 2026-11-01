@@ -25,7 +25,7 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
 | **A (Space)** | **Scramble**: 0.9 s of fast wave gait (~280 µm/s, nearly twice the full-tilt walk), recharging over 2.6 s (the `dash` meter); no other cost. With no stick, straight ahead |
 | **X (E)** | **Pierce** with the stylets: food in reach (algae, diatoms, detritus) or the living leaf cell under the mouth; at a Milnesium or Prionchulus, a jab with a head thrust that bites back |
 | B (Shift), hold | **Defend**: grip hard / brace (two legs swing at most, slower, much harder to slip). Facing a predator as it lunges, it blocks |
-| Y (R), hold | Curl into a tun (a predator struggles to get it into its mouth). In a tun, press again to wake (it always wakes). In the leaf axil (the backdoor) Y goes back up to the mite instead |
+| Y (R), hold | Curl into a tun (a predator struggles to get it into its mouth). In a tun, press again to wake (it always wakes). In the leaf axil (the backdoor) Y goes back up to the mite instead, and at the open portal (the game shows "Y Enter the portal") Y goes through it |
 | LT / RT (Z / X) | Fine focus down / up through the layers. Auto-focus keeps the focal plane on the animal: a manual setting holds while you stand still and eases back onto the animal once you walk on (Features → Optics → Auto-focus) |
 | LB / RB (Q / F) | Anatomy labels / rain (test: the film floods for a moment, then settles back) |
 | D-pad ← → (3 / 4) | Optical look: DIC / brightfield / lit (hypothetical) |
@@ -187,12 +187,16 @@ wakes when you come within 650 µm of its post and follows you up to 850 µm
 from it; then, or once it has lost you (1 mm from its head), it gives up and
 glides back at 30 µm/s, paying no one any mind (you walk 150 and scramble
 280): get round it to the tip. Or wear it down (the brass resolve gauge): it
-slides into a groove for good and the way is open. `enterPortal(a)` in
-`main.js` is the one place `embed.landmark('forward')` fires (once per
-visit); `__micro.portal()` reports it. Scripted: up
-the rim leaf with it on guard, turned back; backing off 2 mm (it gave up
-835 µm from its post), then straight for the tip: through, with it still
-380 µm off its post.
+slides into a groove for good and the way is open. The open portal is never
+an automatic door (the owner, 2026-11-01): while any player is on it, the
+game shows "Y Enter the portal" (`embed.near('portal', true)`; standalone,
+`shared/embed.js` shows it) and that player's **Y** (R) goes through instead
+of curling into a tun; on guard there is no prompt and Y curls up as usual.
+`enterPortal(a)` in `main.js` is the one place `embed.landmark('forward')`
+fires (once per visit); `__micro.portal()` reports it (`prompt`: the Y
+prompt is up). Scripted: up the rim leaf with it on guard, turned back;
+backing off 2 mm (it gave up 835 µm from its post), then straight for the
+tip: through, with it still 380 µm off its post.
 
 `__micro.route()` gives the static layout per spoke and where Milnesium is,
 `encounters()` the director's state (`director`, `seenAt(x, y, z)`,
@@ -291,7 +295,7 @@ now), `__micro.intro`.
 
 ## The outro (to the amoeba)
 
-Through the portal (the open pool, `enterPortal`): the world posts
+Through the portal (Y at the open pool, `enterPortal`): the world posts
 `embed.landmark('forward', { outro: true })` in the game and keeps running
 (the mite's outro is the reference): a golden burst from the tip, a bloom on
 the screen over the tip and over you, the portal chime and a rumble, the HUD
@@ -341,8 +345,8 @@ ring labelled Moss towards the way back.
   three green *Paramecium bursaria* swimming in it, and the golden sparkle
   over the tip. Placed once a game on the spoke of whoever first nears the
   portal ring, 8.4 mm out, and guarded by Prionchulus (see The rings).
-  `enterPortal` posts `embed.landmark('forward')`; standalone, `embed.js`
-  shows a toast. `embed.near('forward')` is posted within ~1.4 mm of it, so
+  At it, open, Y (R) enters: `enterPortal` posts `embed.landmark('forward')`;
+  standalone, `embed.js` shows a toast. `embed.near('forward')` is posted within ~1.4 mm of it, so
   the shell can load the next world.
 - **Backdoor: the leaf axil.** The drier axil above, where leaf A and leaf D
   leave the stem (drawn as a chain of capsules, the overlaps reading as

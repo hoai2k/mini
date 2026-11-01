@@ -84,8 +84,9 @@ walk around can be in safe areas too, because you can just avoid them."
   placed for the player who is furthest along it; the others meet it where it
   is, or the next one placed near the leader.
 - **Rings are the fallback.** A world that hasn't adopted the director yet
-  keeps its rings round the start (above). The springtail world is the first
-  to use the director (`prototypes/springtail/README.md`, "The way out");
+  keeps its rings round the start (above). The springtail world was the first
+  to use the director (`prototypes/springtail/README.md`, "The way out"; its
+  portals are now fixed: "Per-world placement", below);
   the amoeba (`prototypes/amoeba/README.md`, "The slide") and the paramecium
   (`prototypes/paramecium/README.md`, "Placed as you go", the director in 2D
   over a shallow drop) followed; how to adopt it is at the top of
@@ -95,6 +96,34 @@ walk around can be in safe areas too, because you can just avoid them."
   kin and prey kept near every player) and the phage
   (`prototypes/phage/README.md`, "Threats and pacing": a 3D grid, the decoys
   then the portal, flocs, UV shafts and big cells as scenery) use it too.
+
+## Per-world placement
+
+The owner (2026-11-01): "For other worlds I will play them first before
+seeing what we might want in terms of distribution, but we can have the
+dynamic distribution the default if we haven't specified any other."
+
+- **The dynamic director is the default.** A world places its enemies,
+  events, boss and portal as you go (above) unless its README says
+  otherwise.
+- **Springtail: fixed portals with resident spiders and indicator plants**, at
+  the owner's request ("place the portals ... in random noise generated
+  locations with a certain average distribution (so it's still random, but
+  not influenced by player behavior) and certain plants indicate that you're
+  coming close to a portal ... the spiders hunt within a certain radius and
+  return to the portal, so you could follow the spiders to their portal").
+  Sixteen portal rafts are laid out before play by seeded blue noise with a
+  coverage check (every bearing from the start reaches a portal's
+  surroundings in ~30–60 s of rushing), each with its own wolf spider that
+  goes out on rounds of its hunting ground and back to its raft, and bog
+  pondweed growing thick in that ground and rare elsewhere. The director
+  still places Stenus, the strider and the rain as you go, in order; the
+  portals stay sealed until those are met, and anyone who reaches a hunting
+  ground early has the rest placed round them at once
+  (`prototypes/springtail/README.md`, "The way out").
+- **Entering a portal is deliberate** in every world: standing in its area
+  while it is open shows "Y Enter the portal", and Y goes through
+  (`game/README.md`, "Entering a portal (Y)").
 
 ## Everything is action
 

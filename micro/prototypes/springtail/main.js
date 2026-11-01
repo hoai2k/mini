@@ -1046,6 +1046,8 @@ function resetEncounters() {
 function newGame() {
   if (outro) endOutro();
   lm.fired = false; lm.nearing = false;
+  if (lm.readyOn) { lm.readyOn = false; embed.near('portal', false); }
+  lm.ready.length = 0;
   pl.lives = 3; pl.food = 0;
   resetEncounters();
   respawn();
@@ -1729,7 +1731,8 @@ function readInput(dt) {
   const look = ctl.look();
   rig.wantPitch = THREE.MathUtils.clamp(rig.wantPitch - look.pitch * 1.1 * dt, PITCH_MIN, PITCH_MAX);
   if (rig.mode === 'low') rig.pitchLow = rig.wantPitch;
-  if (ctl.special.pressed()) {
+  // Y: on an open portal, enter it (the camera toggle waits until you are off it)
+  if (!portalY() && ctl.special.pressed()) {
     if (rig.mode === 'top') { rig.wantPitch = Math.min(rig.pitchLow, 0.9); hud.toast('Low macro'); }
     else { rig.pitchLow = rig.wantPitch; rig.wantPitch = PITCH_TOP; hud.toast('Top-down (RS or Y to come back down)'); }
   }
@@ -1832,12 +1835,15 @@ function stepSpiders(dt, ctx) {
 }
 
 // ---------------------------------------------------------------- the portal (the way on)
-// Reaching the portal raft (PORTAL, world.js) zooms into the next world, but
-// only while the wolf spider is off guard: lured more than 15 mm off it, or
-// beaten. On guard, it turns you back (it strikes as its fight does). Any
-// player counts; in the game the others follow through the transition. No
-// backdoor: this is the top of the chain.
-const lm = { fired: false, log: [] };
+// Standing on a portal raft (PORTALS, world.js) while it is open puts up the
+// prompt (embed.near('portal'): "Y Enter the portal"), and Y goes through into
+// the next world (never an automatic door: the owner). Open means the way on
+// is unsealed (every encounter met) and its wolf spider is off guard: lured
+// more than 15 mm off it, out on its ground, or beaten. On guard, it turns you
+// back (it strikes as its fight does). Any player counts; in the game the
+// others follow through the transition. No backdoor: this is the top of the
+// chain.
+const lm = { fired: false, log: [], ready: [], readyOn: false };
 /** The portal player P is at (on the raft or at its edge): its index, or -1. */
 const atPortal = (P) => { const n = nearestPortal(P.x, P.z); return n.d < n.p.reach ? n.p.i : -1; };
 function checkLandmark() {
@@ -1857,6 +1863,11 @@ function checkLandmark() {
   const nearing = dmin < 120;
   if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
   const shut = (i) => sealed() || guardedAt(i);
+  // on an open portal: the prompt (Y enters: the owner, never an automatic door; game/README.md "Entering a portal (Y)")
+  lm.ready.length = 0;
+  for (const P of recs()) { if (!alive(P)) continue; const i = atPortal(P); if (i >= 0 && !shut(i)) lm.ready.push(P); }
+  const ready = lm.ready.length > 0;
+  if (ready !== lm.readyOn) { lm.readyOn = ready; embed.near('portal', ready); if (ready) lm.log.push({ kind: 'ready', slot: lm.ready[0].slot, portal: atPortal(lm.ready[0]), t: +simT.toFixed(2) }); }
   if (at && !lm.fired) {
     if (shut(atI)) {
       if (sealed()) {
@@ -1869,11 +1880,17 @@ function checkLandmark() {
       lm.blockedT = simT;
       lm.fired = true; // once per visit (it can fire again after everyone has left)
       lm.blocked = true;
-    } else enterPortal(at, atI);
+    }
   }
   if (!near) { lm.fired = false; lm.blocked = false; }
-  // turned back earlier but now open while still on it: go through
-  if (lm.blocked && at && !shut(atI)) { lm.blocked = false; enterPortal(at, atI); }
+}
+/** Y on an open portal (lm.ready): that player goes through. Returns true when it took the press (so Y's camera toggle does not). */
+function portalY() {
+  if (outro || !lm.ready.length) return false;
+  const P = lm.ready.find((Q) => (Q.slot === 0 ? ctl : players.controls(Q.slot)).special.pressed());
+  if (!P) return lm.ready.some((Q) => Q.slot === 0);
+  enterPortal(P);
+  return true;
 }
 /**
  * The way on: player P has reached the open portal. This is the one place the
@@ -1886,6 +1903,7 @@ function enterPortal(P, i = atPortal(P) >= 0 ? atPortal(P) : nearestPortal(P.x, 
   focusPortal(i); props.setFocus(i);
   if (!(boss.engaged || cap.kind === 'boss')) boss = spiderFor(i);
   lm.fired = true;
+  if (lm.readyOn) { lm.readyOn = false; embed.near('portal', false); }
   lm.log.push({ kind: 'forward', slot: P.slot, portal: i, t: +simT.toFixed(2) });
   startOutro(P);
   embed.landmark('forward', { player: P.slot, outro: embed.active });
@@ -2167,7 +2185,11 @@ const api = {
   encounters() { return director.state(); },
   seenAt(x, z) { return director.seenAt(x, z); },
   placeNow() { return director.placeNow(); },
-  /** Go through the portal now as player `slot` (what reaching it while open does). */
+  /** Which players stand on an open portal (the "Y Enter the portal" prompt is up): their slots. */
+  portalReady() { return lm.ready.map((P) => P.slot); },
+  /** Testing: player `slot` presses Y on an open portal (what portalY does); false if they are not on one. */
+  pressY(slot = 0) { const P = lm.ready.find((Q) => Q.slot === slot); if (!P || outro) return false; enterPortal(P); return true; },
+  /** Go through the portal now as player `slot` (what Y on an open portal does). */
   enterPortal(slot = 0) { enterPortal(pls[slot] || pl); },
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
