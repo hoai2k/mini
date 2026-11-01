@@ -89,7 +89,7 @@ export const WORLDS = [
     goal: 'Press X near kin: they answer your beacon and join your flock. X also eats prey, so the army grows. Head out any way you like: a grazer, a Bdellovibrio pack, a phage cloud, an amoeba and a bigger grazer come your way one at a time, with calm water between, and last Stentor guards the glowing host. Beat it with your army to go through.',
     forward: 'A host cell that swells as something invisible clings to it.',
     back: 'The Paramecium’s beating cilia sweeping the field’s edge: dwell there and press Y to rise to the pool.',
-    controls: [['LS', 'Steer the flock (let go: it stops)'], ['RS', 'Move the stage'], ['A', 'Sprint run'], ['X', 'Beacon: call kin · eat prey · strike · Bdellovibrio: bore in'], ['B', 'Defend: tumble (evades a strike)'], ['Y', 'Toxin burst (army of 12)'], ['LB/RB', 'Reverse the run'], ['D-pad ↑↓', 'Field']],
+    controls: [['LS', 'Steer the flock (let go: it stops)'], ['RS', 'Move the stage'], ['A', 'Sprint run'], ['X', 'Beacon: call kin · eat prey · strike · Bdellovibrio: bore in'], ['B', 'Defend: tumble (evades a strike)'], ['Y', 'Toxin burst (army of 12); in a portal: enter it'], ['LB/RB', 'Reverse the run'], ['D-pad ↑↓', 'Field']],
     facts: [
       'A bacterium cannot steer: it chooses only when to tumble into a new direction.',
       'Its magnetosomes, a chain of magnetite crystals, line it up with the Earth’s field.',

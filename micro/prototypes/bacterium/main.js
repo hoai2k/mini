@@ -59,7 +59,7 @@ const hud = mountHud({
     dash: 'Sprint run: every flagellum at full motor speed (recharges); the whole flock sprints',
     attack: 'Beacon: a pulse from the flock; kin it reaches answer and join. It also eats prey (rods) in reach and strikes any enemy your flock touches · Bdellovibrio: attach and bore in',
     defend: 'Defend: tumble, a quick random turn that leans toward the stick. At the moment a predator strikes your cell (a grazer\'s surge, a phage landing, a Bdellovibrio\'s ram) it evades',
-    special: 'Toxin burst when charged (army of 12). Otherwise the data overlay. At the Paramecium: back to the pool',
+    special: 'Toxin burst when charged (army of 12). Otherwise the data overlay. At the open host (the portal): enter it. At the Paramecium: back to the pool',
     analog: 'Fine focus down / up',
     secondary: 'Reverse the run: the other pole leads (back along the field)',
     look: 'Look: phase, fluorescence, darkfield, SEM, DIC',
@@ -798,7 +798,7 @@ features.add({ id: 'gates', group: 'World', label: 'The way: gates in a rhythm',
   about: 'The meadow by the start, full of kin and prey, then a gate every ~95 µm with a calm break between (a few kin and prey to top up the army): a peritrich, a Bdellovibrio pack, a phage cloud, an amoeba\'s edge, a bigger peritrich, and Stentor at the host. Each is fought by contact: every cell of your army touching it wears it down while it recovers, so a lone cell gets nowhere and an army wins. Beaten, it stays beaten. No timers.' });
 features.add({ id: 'npc', group: 'World', label: 'Other bacteria swim', on: true, about: 'E. coli-like rods (your prey) run and tumble at 18–28 µm/s; Bdellovibrio hunt them. Off: everything sits still (Brownian only).', onChange: (on) => { world.opts.npcRun = on; } });
 features.add({ id: 'scenery', group: 'World', label: 'Biofilm, EPS, clay, detritus', fixed: true, about: 'An EPS-rich biofilm of attached rods and cocci over clay and silt grains larger than you; matrix strands; decaying detritus flakes at the heart of each food patch.' });
-features.add({ id: 'pad', group: 'Controls', label: 'Shared control scheme', fixed: true, about: 'LS steer the flock (released: it slows and stops), RS stage, A sprint, X beacon + eat + strike (Bdellovibrio: attach), B tumble, Y toxin burst (or data), LT/RT focus, LB/RB reverse, D-pad ←→ look, ↑↓ field, Menu features, View panel.' });
+features.add({ id: 'pad', group: 'Controls', label: 'Shared control scheme', fixed: true, about: 'LS steer the flock (released: it slows and stops), RS stage, A sprint, X beacon + eat + strike (Bdellovibrio: attach), B tumble, Y toxin burst (or data; at the open host: enter the portal), LT/RT focus, LB/RB reverse, D-pad ←→ look, ↑↓ field, Menu features, View panel.' });
 // Borrowed (default off), also reachable from the look cycle.
 const borrow = borrowedSwitches(features);
 const bmode = { dic: 0 };

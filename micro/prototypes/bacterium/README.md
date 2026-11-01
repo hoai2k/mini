@@ -49,9 +49,14 @@ off screen; there is no arrow to the way on.
   guarded) and its light spilling in from the screen's edge
   (`createPortalLight`) mark it, with no text. Stentor guards it: touching it
   (your cell or any cell of your army) while Stentor is on guard turns you
-  back; once your army has beaten Stentor, touching it calls `enterPortal(P)`,
+  back; once your army has beaten Stentor it is open, but never an automatic
+  door (the owner, 2026-11-01): while you (or your army) touch it, the game
+  shows "Y Enter the portal" (`embed.near('portal', true)`; standalone,
+  `shared/embed.js` shows it), and your **Y** (R) calls `enterPortal(P)`
+  instead of the toxin burst or the overlay (LS click still fires the toxin),
   the one place that fires `embed.landmark('forward')` (a golden burst, a
-  bloom and the portal chime). It is swollen, its contents crowded with new
+  bloom and the portal chime). While Stentor guards it there is no prompt
+  and Y does what it does elsewhere. It is swollen, its contents crowded with new
   phage heads, phages are docked all over its surface; phase contrast shows
   only the swollen host, fluorescence (SYBR) and darkfield the phages.
 - **Backdoor: the looming Paramecium** at the top left, in the open water
@@ -357,7 +362,7 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | **A** | Space | **Sprint run**: every flagellum at full motor speed (spirillum 95 µm/s, Bdellovibrio 160 µm/s), 0.6 s, recharging (HUD `dash` meter); the whole flock sprints. It also shakes off loosely bound phages and an attaching Bdellovibrio, and sprinting out of a grazer's current wears it down |
 | **X** | E | **Beacon, eat, strike** (magnetotactic, one press every 0.3 s): a pulse from your flock's middle that kin in reach answer as they join; every prey rod in reach of a member lysed; a volley from every member touching an enemy. Held, your cell also takes up food in a patch. Bdellovibrio: press while touching a Gram-negative rod to attach and bore in (it spins on its pole and a pore opens in the prey's wall) |
 | **B** | Shift | **Defend: tumble** (the shared defend button, an evasive move): stop, turn to a random new heading (E. coli's distribution, mean 68°), run on. For Bdellovibrio it is a reverse plus a flick. While you hold LS, the stick turns you back afterwards. **At the moment a predator strikes** (a grazer's surge, a phage committing, a Bdellovibrio's ram) it evades it |
-| Y | R | **Toxin burst** when your army's toxin is charged (army 12; also LS click). Otherwise: data overlay (food, field lines and feeding currents, marked on screen as data, not optics). At the Paramecium (the backdoor): back to the pool |
+| Y | R | **Toxin burst** when your army's toxin is charged (army 12; also LS click). Otherwise: data overlay (food, field lines and feeding currents, marked on screen as data, not optics). At the open host (the portal, "Y Enter the portal" showing): enter it. At the Paramecium (the backdoor): back to the pool |
 | LT / RT | Z / X | Fine focus down / up (it drifts back to your cell's plane unless switched off) |
 | LB / RB | Q / F | **Reverse the run**: the other pole leads. For the magnetotactic cell, this is how it swims back the other way along the field line |
 | D-pad ←→ | 3 / 4 | Look: phase contrast, fluorescence, darkfield, SEM (borrowed), DIC (borrowed) |
@@ -372,7 +377,8 @@ the flock's speed and spread). The army line at the bottom and the enemy
 gauge at the top are the only HUD in play.
 
 **Goals.** Magnetotactic: gather an army (X near kin, X on prey) and fight
-your way through the five gates to Stentor, beat it, and touch the host.
+your way through the five gates to Stentor, beat it, touch the host and
+press Y to enter it.
 Bdellovibrio: take three prey; the last bdelloplast bursts with five new
 cells.
 
