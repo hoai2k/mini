@@ -78,7 +78,7 @@ try {
             }
             view.act = q.act4; view.state = st;
           } else {
-            const st = q.actBurning.create({ from: { scene: 3 } });
+            const st = q.actBurning.create({ from: { scene: 3, introDone: true } });
             st.w.x = 485; st.duel.x = 690;
             st.duel.state = ['land', 'occupied'].includes(phase) ? 'trap' : phase;
             st.duel.t = phase === 'trap' ? (q.DUEL.trap.drop + q.DUEL.trap.land) / 2 : phase === 'land' ? q.DUEL.trap.land + 0.1 : phase === 'occupied' ? q.DUEL.trap.land + 0.6 : 0.2;

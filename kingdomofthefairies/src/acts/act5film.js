@@ -168,6 +168,19 @@ export const DUEL = {
   bolt: 400, boltR: 26, boltH: 34, reel: 0.8, counterPose: 0.4, witchHeight: 172, hw: 34, swing: 0.35,
   trap: { drop: 0.6, land: 1.05, end: 1.9 },
 };
+// A short stage entrance identifies the tall fairy and the rescued princess
+// before handing the combat controls back. Retry checkpoints skip this once.
+export const BATTLE_INTRO = { faceoff: 2.2, arrival: 2.8, setdown: 1.1, rise: .45, forward: 1, settle: .35,
+  witchFrom: 480, heroFrom: -100, handoff: 230, shelter: 180, ready: 350, height: 140 };
+export const BATTLE_INTRO_END = ['faceoff','arrival','setdown','rise','forward','settle'].reduce((sum,key)=>sum+BATTLE_INTRO[key],0);
+export function battleIntroFrame(st) {
+  let t = st.battleIntro?.t || 0;
+  for (const stage of ['faceoff','arrival','setdown','rise','forward','settle']) {
+    if (t < BATTLE_INTRO[stage]) return { stage, u: clamp(t/BATTLE_INTRO[stage],0,1) };
+    t -= BATTLE_INTRO[stage];
+  }
+  return { stage: 'settle', u: 1 };
+}
 // (each walk starts with its figures in view, clear of the left curtain at ~x 170)
 export const WEDDING = { y: 652, x0: 60, gate: 1235, start: 330, follow: 96, petals: 14, stairs: 760, door: 1190, returnAt: 1110 };
 // Feet follow the painted approach, stair flight, landing and dark doorway.
@@ -415,7 +428,7 @@ export const actBurning = {
   action: 'A: leap',
   scenes: BURNING_SCENES,
   mood: (st) => (['wedding', 'apotheosis', 'finale', 'iris'].includes(st.phase) ? 'wedding' : 'storm'),
-  touchLive: (st) => ['house', 'quay', 'apotheosis', 'finale'].includes(st.phase) || (st.phase === 'wedding' && (st.weddingIntro === false || st.phaseT >= FILM_T.weddingLead)) || (st.phase === 'barrel' && st.barrel?.fallT == null),
+  touchLive: (st) => !st.battleIntro && (['house', 'quay', 'apotheosis', 'finale'].includes(st.phase) || (st.phase === 'wedding' && (st.weddingIntro === false || st.phaseT >= FILM_T.weddingLead)) || (st.phase === 'barrel' && st.barrel?.fallT == null)),
   // the second button swings the sword in the witch's last stand
   touchVerbB: (st) => (st.phase === 'barrel' && st.duel && st.duel.state !== 'trap' ? 'Strike' : ''),
   touchVerb: (st) => (st.phase === 'barrel' && st.duel ? 'Leap' : st.phase === 'barrel' ? '' : st.phase === 'house' && st.carry?.stone && !st.stoneThrown ? 'Action' : 'Leap'),
@@ -434,7 +447,7 @@ export const actBurning = {
     st.carry = { ...CARRY_DEFAULT, ...carry };
     st.score = from?.score ?? 0; st.pearls = from?.pearls ?? 0;
     st.sleepersShown = Math.min(12, Math.max(0, carry.sleepers || 0));
-    if (k === 3) { startBarrel(st); st.haz = []; }
+    if (k === 3) { startBarrel(st, !!from?.introDone); st.haz = []; }
     if (k === 4) { startWedding(st); st.haz = []; }
     st.events.length = 0;
     st.checkpoint = k > 0 ? { ...(from || {}), scene: k } : null;
@@ -469,6 +482,7 @@ export const actBurning = {
   },
 
   hud(st) {
+    if (st.battleIntro) return null;
     if (!['house', 'quay', 'barrel'].includes(st.phase)) return null;
     const prog = st.phase === 'house' ? (st.p.carry ? 0.45 : 0.15) : st.phase === 'quay' ? 0.7 + 0.2 * clamp((st.p.x - QUAY.x0) / (QUAY.x1 - QUAY.x0), 0, 1)
       : st.duel ? 0.9 + 0.05 * (1 - st.duel.hp / DUEL.hp) : 0.95 + 0.05 * clamp(((st.barrel?.x ?? BARREL.at) - BARREL.at) / (BARREL.edge - BARREL.at), 0, 1);
@@ -483,7 +497,10 @@ export const actBurning = {
     if (e.type === 'liftHer') return 'You lift Azurine. Carry her down and escape through the right-hand door as the fires die away.';
     if (e.type === 'floorBreak') return 'The way you came is gone. A ladder drops at the right.';
     if (e.type === 'houseFall') return 'Out onto the clifftop. The tower is falling.';
-    if (e.type === 'witchReturns') return 'The witch attacks one last time! Leap her fire with A, and strike her with the sword with X.';
+    if (e.type === 'witchReturns' || e.type === 'battleFaceoff') return 'Aurora holds the witch at bay.';
+    if (e.type === 'battleArrival') return 'You arrive with Azurine in your arms.';
+    if (e.type === 'azurineSheltered') return 'Azurine is safe behind Aurora.';
+    if (e.type === 'battleReady') return 'Face the witch. Leap her fire with A and strike with X; Azurine remains sheltered behind Aurora.';
     if (e.type === 'witchStruck') return e.hp > 0 ? 'A hit! She pushes you back. Leap her next fire and approach again.' : 'The witch is beaten.';
     if (e.type === 'witchBlast') return 'She blasts you back.';
     if (e.type === 'witchBeaten') return 'The witch is beaten. Aurora shuts her in a barrel.';
@@ -553,12 +570,47 @@ function stepDive(st, dt, input) {
 
 // Act VI: the witch's last attack. She stands on the clifftop and fights; once
 // he has beaten her she hides in her barrel, and he pushes it over the edge.
-function startBarrel(st) {
+function startBarrel(st, ready = false) {
   setPhase(st, 'barrel');
-  st.w = walker(BARREL.start, BARREL.y);
-  st.duel = { x: DUEL.x, hp: DUEL.hp, state: 'idle', t: 0, next: DUEL.idle[1], bolts: [], strikeT: 0 };
+  st.w = walker(ready ? BATTLE_INTRO.ready : BATTLE_INTRO.heroFrom, BARREL.y);
+  st.battleIntro = ready ? null : { t: 0, stage: null };
+  st.shelteredAz = ready ? walker(BATTLE_INTRO.shelter, BARREL.y) : null;
+  if (ready && st.p) st.p.carry = false;
+  st.duel = { x: ready ? DUEL.x : BATTLE_INTRO.witchFrom, hp: DUEL.hp, state: 'idle', t: 0, next: DUEL.idle[1], bolts: [], strikeT: 0 };
   st.barrel = null;
   st.smoke = [];
+}
+function stepBattleIntro(st, dt) {
+  const intro = st.battleIntro, w = st.w, d = st.duel, before = w.x;
+  intro.t += dt;
+  const frame = battleIntroFrame(st), smooth = frame.u*frame.u*(3-2*frame.u);
+  if (frame.stage !== intro.stage) {
+    intro.stage = frame.stage;
+    if (frame.stage === 'faceoff') st.events.push({type:'battleFaceoff'});
+    if (frame.stage === 'arrival') st.events.push({type:'battleArrival'});
+    if (frame.stage === 'rise') {
+      st.shelteredAz = walker(BATTLE_INTRO.shelter, BARREL.y);
+      if (st.p) st.p.carry = false;
+      st.events.push({type:'azurineSheltered'});
+    }
+  }
+  d.x = frame.stage === 'faceoff' ? lerp(BATTLE_INTRO.witchFrom,DUEL.x,smooth) : DUEL.x;
+  d.state = frame.stage === 'faceoff' ? (frame.u < .22 ? 'warn' : 'reel') : 'idle';
+  d.t = d.state === 'warn' ? frame.u*DUEL.warn : .4;
+  if (frame.stage === 'faceoff') w.x = BATTLE_INTRO.heroFrom;
+  else if (frame.stage === 'arrival') w.x = lerp(BATTLE_INTRO.heroFrom,BATTLE_INTRO.handoff,frame.u);
+  else if (frame.stage === 'forward') w.x = lerp(BATTLE_INTRO.handoff,BATTLE_INTRO.ready,frame.u);
+  else w.x = frame.stage === 'settle' ? BATTLE_INTRO.ready : BATTLE_INTRO.handoff;
+  w.vx = dt > 0 ? (w.x-before)/dt : 0; w.walk += Math.abs(w.x-before); w.face = 1;
+  if (intro.t >= BATTLE_INTRO_END) {
+    st.battleIntro = null; st.phaseT = 0;
+    st.w = walker(BATTLE_INTRO.ready,BARREL.y);
+    st.shelteredAz ||= walker(BATTLE_INTRO.shelter,BARREL.y);
+    if (st.p) st.p.carry = false;
+    d.x = DUEL.x; d.state = 'idle'; d.t = 0; d.next = DUEL.idle[1]; d.bolts.length = 0;
+    st.checkpoint = {scene:3,film:true,introDone:true,score:st.score,pearls:st.pearls};
+    st.events.push({type:'battleReady'});
+  }
 }
 // Halfway back along the approach, safely beyond sword range. The shove
 // is a response to a successful strike and never costs a lantern itself.
@@ -639,6 +691,7 @@ function duelHit(st) {
   }
 }
 function stepBarrel(st, dt, input) {
+  if (st.battleIntro) return stepBattleIntro(st,dt);
   if (st.duel) return stepDuel(st, dt, input);
   const b = st.barrel, w = st.w;
   if (b.fallT != null) {
@@ -665,6 +718,7 @@ function stepBarrel(st, dt, input) {
 // wedding street past the crew, the fairies and the king and queen, to the
 // castle gate, catching the petals that fall on the way.
 function startWedding(st) {
+  st.shelteredAz = null;
   setPhase(st, 'wedding');
   st.weddingIntro = true;
   st.weddingMusicStarted = false; // the shell starts the reveal clock when the recording actually plays

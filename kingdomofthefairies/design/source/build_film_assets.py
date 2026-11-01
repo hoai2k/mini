@@ -583,6 +583,13 @@ GROUPS.append(("The tower's right-hand escape", "An open painted stone arch mark
 ]))
 
 
+GROUPS.append(("Azurine is set down safely", "The arriving prince kneels to set Azurine behind Aurora before the final fight. Preserve both characters and the same standing person height; the paired cutout is anchored on Azurine's feet.", [
+    (f'prince-set-down{look}', f'Prince setting Azurine down{look}', 600, 440, 'bottom centre (Azurine’s feet)', TINTED if look else SPRITE,
+     f'The exact prince and Azurine from prince-carry{look}.webp, prince-stand{look}.webp and azurine-stand{look}.webp. Azurine on the LEFT stands upright facing RIGHT with both shoes on the ground; the prince on the RIGHT kneels on one knee facing LEFT, gently supporting her forearm and upper back after putting her down. Same adult standing height, faces, proportions, costume and restrained palette. Full figures, genuine transparent alpha, no floor, glow, scenery, shadow or text.', None)
+    for look in ('','-tinted')
+]))
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 

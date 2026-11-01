@@ -20,7 +20,7 @@ try{
  for(const look of ['original','tinted'])for(const pose of ['a','b']){
   const sample=await page.evaluate(({look,pose})=>{
    const {mod,canvas,createRenderer}=window.barrelReview;
-   const st=mod.actBurning.create({from:{scene:3}});st.duel=null;st.phaseT=10;
+   const st=mod.actBurning.create({from:{scene:3, introDone: true}});st.duel=null;st.phaseT=10;
    st.barrel={x:610,rot:0,fallT:null};st.w.x=530;
    const r=createRenderer(canvas,window.__kingdomOfTheFairies.assets),ids=[];
    const asset=r.kit.asset;r.kit.asset=(id,...args)=>{ids.push(id);return asset(id,...args);};
@@ -33,7 +33,7 @@ try{
  for(const side of ['left','right']){
   const smoke=await page.evaluate(side=>{
    const {mod,canvas,createRenderer}=window.barrelReview;
-   const st=mod.actBurning.create({from:{scene:3}});st.duel.next=99;
+   const st=mod.actBurning.create({from:{scene:3, introDone: true}});st.duel.next=99;
    st.w.x=side==='left'?mod.AURORA.x-60:mod.AURORA.shieldX+95;
    // The fire is at Aurora, after the prince has jumped over it.
    const lanterns=st.lanterns;st.duel.bolts=[{x:mod.AURORA.shieldX+1}];
