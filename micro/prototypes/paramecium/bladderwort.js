@@ -1,7 +1,7 @@
 // The boss of the pool: a bladderwort trap (Utricularia) guarding the biofilm
 // (the portal). It is built once and placed with the portal (main.js
-// placePortal → trap.place), on the start side of the leaf, door toward the
-// start; until then it is hidden and out of the way.
+// placePortal → trap.place), on the near side of the leaf (toward whoever comes), door toward
+// them; until then it is hidden and out of the way.
 // A rounded bladder about half a millimetre long on its stalk, just off the
 // slide, its door (in a raised collar, with two branched antennae of long
 // beaded bristles and short trigger hairs) facing the way you come. Shaped
@@ -32,11 +32,11 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { buildSdfMesh, sd } from '../shared/sdf.js';
 import { volumeMaterial, pointsMaterial } from './optics.js';
 import { closedTube, rng } from './geom.js';
-import { DIR, routePoint, RINGS } from './landmarks.js';
+import { DIR, routePoint } from './landmarks.js';
 
 // Built on its first spot (moved by place()), door toward the start.
 const TOWARD = DIR.clone().negate();
-const CENTRE = routePoint(RINGS.trap, 0, 190);
+const CENTRE = routePoint(77570, 0, 190); // (hidden there until placed)
 export const TRAP = {
   centre: CENTRE,
   half: new THREE.Vector3(250, 215, 215), // the bladder: along the door axis, up, across

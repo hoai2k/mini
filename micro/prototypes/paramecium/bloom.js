@@ -1,6 +1,7 @@
-// The Chlamydomonas bloom: a dense band of green flagellates on its ring round
-// the start (landmarks.js RINGS.bloom; main.js moves it round the ring, unseen,
-// to meet whoever heads out; combat-ideas.md, the crowd set piece). You push through it (moving shoves the cells aside), gulp your way
+// The Chlamydomonas bloom: a dense band of green flagellates lying across the
+// way, placed by the director (main.js, route.js) in water nobody has seen,
+// ahead of whoever leads (combat-ideas.md, the crowd set piece); hidden and
+// parked until then. You push through it (moving shoves the cells aside), gulp your way
 // through it (X clears a cone ahead), or wedge a lane open with a dash (A).
 // There is no clock: no oxygen meter, nothing times you (the owner: "don't
 // implement any time limits").
@@ -13,7 +14,7 @@
 //
 // Built on shared/crowd.js. The crowd lives in x-z; the bloom is a volume, so
 // it is three crowds stacked as tiers through the depth, each run in a frame
-// turned to the ring (local +x outward, +z along the ring): a player
+// turned to the way it was met (local +x along it, +z across): a player
 // pushes only the tier at their depth. Each member's height inside its tier is
 // set here after the crowd writes its matrices.
 //
@@ -24,27 +25,29 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { createCrowd } from '../shared/crowd.js';
 import { volumeMaterial, sceneFrustum } from './optics.js';
-import { ringPoint, RINGS, A0, START } from './landmarks.js';
+import { START } from './landmarks.js';
+import { BLOOM_BAND } from './route.js';
 import { DEPTH } from './world.js';
 
 export const BLOOM = {
-  centre: RINGS.bloom[0], // µm out from the start (place() moves it between its rings)
-  half: 250,     // half its thickness, outward
-  across: 900,   // half its width along the ring
-  bearing: A0,   // where it is on its ring (place())
+  half: BLOOM_BAND.half,     // half its thickness, along the way it was met
+  across: BLOOM_BAND.across, // half its width, across it
+  bearing: 0,    // the way it was met (place())
+  x: START.x, z: START.z + 1e7, // its middle (parked far off until placed)
 };
 
 export function createBloom(scene) {
   const group = new THREE.Group();
   group.name = 'bloom';
-  /** Turn the band to bearing a on its ring (local +x outward). */
-  function setFrame(a, R = BLOOM.centre) {
-    BLOOM.bearing = a; BLOOM.centre = R;
-    group.position.copy(ringPoint(BLOOM.centre, a));
-    group.rotation.y = -a; // local +x = outward at bearing a
+  /** Put the band's middle at (x, z), lying across bearing a (local +x along a). */
+  function setFrame(x, z, a) {
+    Object.assign(BLOOM, { x, z, bearing: a });
+    group.position.set(x, 0, z);
+    group.rotation.y = -a; // local +x = along bearing a
     group.updateMatrixWorld(true);
   }
-  setFrame(A0);
+  setFrame(BLOOM.x, BLOOM.z, 0);
+  group.visible = false;
   scene.add(group);
 
   const R = 7; // member radius (µm)
@@ -134,14 +137,17 @@ export function createBloom(scene) {
   const api = {
     group, tiers, BLOOM, on: true,
     inside,
-    /** Distance (µm, in the plane) from p to the band were it at bearing a (default: where it is). */
-    distTo(p, a = BLOOM.bearing, R = BLOOM.centre) {
-      const ox = p.x - START.x, oz = p.z - START.z, c = Math.cos(a), sn = Math.sin(a);
-      const lx = ox * c + oz * sn - R, lz = -ox * sn + oz * c;
+    /** Distance (µm, in the plane) from p to the band. */
+    distTo(p) {
+      const ox = p.x - BLOOM.x, oz = p.z - BLOOM.z, c = Math.cos(BLOOM.bearing), sn = Math.sin(BLOOM.bearing);
+      const lx = ox * c + oz * sn, lz = -ox * sn + oz * c;
       return Math.hypot(Math.max(0, Math.abs(lx) - BLOOM.half), Math.max(0, Math.abs(lz) - BLOOM.across));
     },
-    /** Move the band (unseen, by main.js) to bearing a on its ring. */
-    place(a, R = BLOOM.centre) { setFrame(a, R); inv.copy(group.matrixWorld).invert(); placed = false; },
+    /** Put the band (unseen, by main.js's director) at (x, z), across bearing a, and show it. */
+    place(x, z, a) { setFrame(x, z, a); inv.copy(group.matrixWorld).invert(); placed = false; group.visible = true; api.placed = true; },
+    /** Drift the band by (dx, dz) (it swims over to a lingering player: behaviour, not a placement). */
+    shift(dx, dz) { setFrame(BLOOM.x + dx, BLOOM.z + dz, BLOOM.bearing); inv.copy(group.matrixWorld).invert(); },
+    placed: false,
     /** The bloom's current at p (µm/s, vertical only): down in a plume, gently up elsewhere. 0 outside. */
     currentAt(p) {
       if (!inside(p)) return 0;

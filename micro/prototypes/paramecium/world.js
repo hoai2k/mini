@@ -1,7 +1,7 @@
 // The pond: a shallow dish of pond water 0.65 mm deep (slide at y = 0,
-// coverslip at y = DEPTH), all lengths in µm, wide enough for the rings of
-// encounters round the start (landmarks.js RINGS: about a minute of rushing
-// out to the portal). The boundaries are drawn: sediment on the slide, dust on
+// coverslip at y = DEPTH), all lengths in µm, wide enough for a minute or so
+// of rushing out in any direction (the encounters are placed as you go:
+// route.js). The boundaries are drawn: sediment on the slide, dust on
 // the underside of the coverslip (ambient.js, everywhere) and the meniscus at
 // the far rim. The set pieces (Spirogyra filaments, detritus flakes, Vorticella
 // colonies on their flakes, diatoms) are laid out in a 7 mm scenery tile that
@@ -15,18 +15,18 @@ import { volumeMaterial, sheetMaterial, pointsMaterial } from './optics.js';
 import { createStrands, KIND } from './strands.js';
 import { rng, closedTube, axisRef, yAxisRef, segSeg, closestOnSeg, noise3 } from './geom.js';
 import { squirmerFlow, sink } from '../shared/techniques/paramecium-squirmer.js';
-import { ringPoint, RINGS, A0, START } from './landmarks.js';
+import { START } from './landmarks.js';
+import { DROP_R as DROP_R_, DEPTH as DEPTH_ } from './route.js';
 import { createAmbient, wrappedVolume } from './ambient.js';
 
-// A dish of pond water about 14 cm across: room for the rings (the portal is
-// RINGS.portal out from the start) with a margin to the meniscus. [Departure:
-// a wet mount under a coverslip is a few mm across; the scale of everything in
-// it is honest, the extent is a game value.]
-export const DROP_R = RINGS.portal + 6000;
+// A dish of pond water about 17 cm across (route.js), with a margin to the
+// meniscus. [Departure: a wet mount under a coverslip is a few mm across; the
+// scale of everything in it is honest, the extent is a game value.]
+export const DROP_R = DROP_R_;
 /** The scenery tile (µm): Spirogyra, flakes, Vorticella and diatoms repeat this far apart. */
 export const TILE = 7000;
 const wrapOff = (x, ref) => TILE * Math.round((ref - x) / TILE);
-export const DEPTH = 650; // the pre-rework depth: room to swim in 3D (the 300 µm drop kept the cell on the glass)
+export const DEPTH = DEPTH_; // 650 µm, the pre-rework depth: room to swim in 3D (the 300 µm drop kept the cell on the glass)
 const YS = DEPTH / 650; // the layout was drawn for a 650 µm drop
 
 const v1 = new THREE.Vector3(), v2 = new THREE.Vector3(), v3 = new THREE.Vector3(), v4 = new THREE.Vector3();
@@ -332,9 +332,9 @@ export function createWorld(scene) {
   }
 
   // --- the ciliate hunters: two Didinium and a Dileptus ---
-  // Each keeps to its own waters beyond the halfway point of the route
-  // (`home`, `homeR`; main.js and encounters.js hold it there), so the first
-  // half of the drop is calm. `tipLen`: how far ahead of its centre the
+  // Each keeps to its own waters (`home`, `homeR`; main.js and encounters.js
+  // hold it there). Until the director places it (main.js) it is parked far
+  // off (`parked`), hidden and not stepped. `tipLen`: how far ahead of its centre the
   // toxicyst tip is (the Didinium's short proboscis, the Dileptus's long trunk).
   const dGeo = didiniumGeometry();
   const didMat = volumeMaterial({ dn: 0.03, scatter: 1.1, absorb: [0.0022, 0.003, 0.0048] });
@@ -351,8 +351,9 @@ export function createWorld(scene) {
     const { geo } = instancedQuads(n, iPos, iP);
     return Object.assign(new THREE.Mesh(geo, pointsMaterial({ absorb: [0.01, 0.012, 0.02] })), { frustumCulled: false });
   };
-  // on their ring, a little either side of the bearing they are moved to (main.js placeRing)
-  const HOMES = [ringPoint(RINGS.didinium[0], A0 - 300 / RINGS.didinium[0], DEPTH * 0.58), ringPoint(RINGS.didinium[0], A0 + 300 / RINGS.didinium[0], DEPTH * 0.5)];
+  // parked until placed (main.js puts each home either side of the spot, across the way)
+  const PARKED = (y) => new THREE.Vector3(START.x, y, START.z + 1e7);
+  const HOMES = [PARKED(DEPTH * 0.58), PARKED(DEPTH * 0.5)];
   for (let i = 0; i < 2; i++) {
     const g = new THREE.Group();
     g.add(Object.assign(new THREE.Mesh(dGeo, didMat), { frustumCulled: false }));
@@ -373,7 +374,7 @@ export function createWorld(scene) {
     const start = HOMES[i].clone();
     g.position.copy(start);
     didinia.push({ kind: 'didinium', label: 'Didinium', group: g, ring: rs, pos: start.clone(), dir: new THREE.Vector3(rand() - 0.5, 0, rand() - 0.5).normalize(), roll: 0, phase: 0,
-      state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3(), home: HOMES[i].clone(), homeR: 250, tipLen: 66, speedK: 1, radius: 60, rings: RINGS.didinium, offset: i ? 300 : -300 });
+      state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3(), home: HOMES[i].clone(), homeR: 250, tipLen: 66, speedK: 1, radius: 60, parked: true });
   }
   // Dileptus: a long, flask-shaped hunting ciliate (≈330 µm here) whose
   // trunk-like proboscis is lined with toxicysts. It slashes prey with the
@@ -407,10 +408,10 @@ export function createWorld(scene) {
     g.add(rs.mesh);
     g.add(granulesIn(420, 95, 30, -40));
     group.add(g);
-    const home = ringPoint(RINGS.dileptus[0], A0, DEPTH * 0.45);
+    const home = PARKED(DEPTH * 0.45);
     g.position.copy(home);
     didinia.push({ kind: 'dileptus', label: 'Dileptus', group: g, ring: rs, pos: home.clone(), dir: new THREE.Vector3(1, 0, 0), roll: 0, phase: 0,
-      state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3(), home: home.clone(), homeR: 250, tipLen: 160, speedK: 0.62, radius: 45, rings: RINGS.dileptus, offset: 0 });
+      state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3(), home: home.clone(), homeR: 250, tipLen: 160, speedK: 0.62, radius: 45, parked: true });
   }
 
   // --- the water's texture, repeated round every view ---

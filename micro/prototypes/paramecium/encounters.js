@@ -7,14 +7,14 @@
 // with a long trunk lined with toxicysts and engulfs at the trunk's base.
 // Here both home on the player within a few body lengths [Departure:
 // chemosensing is not established; it makes the encounter readable], and
-// each keeps to its own waters beyond the halfway point of the route.
+// each keeps to its own waters, where the director placed it (main.js); until
+// then it is parked (`parked`): hidden and not stepped.
 // Trichocysts drive Dileptus off (C14, S09); against Didinium they do not
 // help (C15): main.js plays both outcomes as they are.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { createStrands, KIND } from './strands.js';
 import { DROP_R, DEPTH } from './world.js';
 import { volumeMaterial } from './optics.js';
-import { progress, HALF, START } from './landmarks.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), X = new THREE.Vector3(1, 0, 0);
 const qa = new THREE.Quaternion(), qb = new THREE.Quaternion();
@@ -82,6 +82,7 @@ export function createEncounters(scene, world, cell) {
   const opts = { didinium: true, homing: true, fight: true };
   const tipGeo = new THREE.SphereGeometry(1, 14, 10);
   for (const d of world.didinia) {
+    d.group.visible = !d.parked;
     // the toxicyst battery at the proboscis tip: dense, scattering, reddish; shown in the wind-up
     const tipM = new THREE.Mesh(tipGeo, volumeMaterial({ dn: 0.07, scatter: 3.6, absorb: [0.0004, 0.022, 0.03], centred: true, rimPow: 1.3 }));
     tipM.position.set((d.tipLen || 66) - 2, 0, 0); tipM.visible = false; tipM.frustumCulled = false;
@@ -93,6 +94,7 @@ export function createEncounters(scene, world, cell) {
   // that picks the player each Didinium goes for (main.js: the one it holds, else the nearest).
   function updateDidinia(dt, t, who, ev) {
     for (const d of world.didinia) {
+      if (d.parked) { d.group.visible = false; continue; }
       const swimmer = typeof who === 'function' ? who(d) : who;
       const s = swimmer.state;
       d.group.visible = opts.didinium;
@@ -158,9 +160,6 @@ export function createEncounters(scene, world, cell) {
       d.pos.addScaledVector(d.dir, d.speed * dt).addScaledVector(world.flowAt(d.pos, t), dt);
       d.pos.y = Math.max(45, Math.min(DEPTH - 45, d.pos.y));
       { const rr = Math.hypot(d.pos.x, d.pos.z); if (rr > DROP_R - 60) { d.pos.x *= (DROP_R - 60) / rr; d.pos.z *= (DROP_R - 60) / rr; } }
-      // never into the calm first half of the route (unless it is carrying you off)
-      // never into the calm warm-up round the start
-      if (d.home && s.captor !== d) { const pr = progress(d.pos); if (pr < HALF + 60) { const k = (HALF + 60) / Math.max(1, pr); d.pos.set(START.x + (d.pos.x - START.x) * k, d.pos.y, START.z + (d.pos.z - START.z) * k); } }
       // obstacles push it round
       const a = tmp2.copy(d.pos).addScaledVector(d.dir, -25);
       const b = new THREE.Vector3().copy(d.pos).addScaledVector(d.dir, 30);
@@ -212,7 +211,7 @@ export function createEncounters(scene, world, cell) {
     update(dt, t, swimmer, ev) { updateDidinia(dt, t, swimmer, ev); },
     nearestThreat(p, within = 420) {
       let best = null, bd = within;
-      for (const d of world.didinia) { if (!opts.didinium) break; const dd = d.pos.distanceTo(p); if (dd < bd) { bd = dd; best = d; } }
+      for (const d of world.didinia) { if (!opts.didinium) break; if (d.parked) continue; const dd = d.pos.distanceTo(p); if (dd < bd) { bd = dd; best = d; } }
       return best;
     },
   };

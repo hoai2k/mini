@@ -11,54 +11,39 @@
 //    its slime trail, egested food vacuoles and the sediment it has swept. Swim
 //    down to it and press Y.
 //
-// Positions in µm (slide at y = 0). The challenges lie on rings round the
-// start, the same in every direction (micro/design/encounter-pattern.md); the
-// biofilm (the portal) is placed once a game on its ring, in the direction the
-// first player heads far enough (main.js), and starts hidden.
+// Positions in µm (slide at y = 0). The biofilm (the portal) is the director's
+// last entry (route.js, main.js): placed in water nobody has seen, ahead of
+// whoever leads, once every encounter before it is met; it starts hidden.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { volumeMaterial, pointsMaterial } from './optics.js';
 import { rng } from './geom.js';
+import { WARM, A0 as A0_ } from './route.js';
 
-// The rings round the start (µm from START, in the plane): a calm warm-up of
-// about five seconds' swimming, then one challenge after another with a short
-// calm stretch between (about 10 mm, seven seconds at full speed), the same
-// whichever way you head (micro/design/encounter-pattern.md). Rushing (full
-// speed and dashes, dodging every fight) reaches the portal in about a minute.
-// Each challenge is one instance moved round its rings (main.js moveRings),
-// serving an inner ring and, once you are past it, an outer one:
-//   0–8 mm       calm: prey, Vorticella, diatoms, Spirogyra, the sunlit patches
-//   11.5, 45 mm  Dileptus's water (±0.5 mm)
-//   22.5, 56 mm  the Chlamydomonas bloom (a band ±0.25 mm deep, 1.8 mm along the ring)
-//   34, 67 mm    two Didinium (±0.5 mm)
-//   77.3 mm      the bladderwort trap's door, guarding
-//   78 mm        the portal: the biofilm on a leaf
-// Measured (rush.mjs, enemies passive, full speed with a dash every 2.2 s):
-// the first obstacle after about 7 s, the portal after about 52 s.
+// The start, and the direction the opening view looks: the scenery is laid
+// out along it (world.js). The encounters are placed as you go (route.js).
 export const START = new THREE.Vector3(-150, 0, 60);
-export const RINGS = { warm: 8000, dileptus: [11500, 45000], bloom: [22500, 56000], didinium: [34000, 67000], trap: 77570, portal: 78000 };
-/** The direction everything starts in (up and to the right of the opening view), until moved. */
+/** The direction the opening view looks (up and to the right). */
 export const DIR = new THREE.Vector3(0.553, 0, 0.833).normalize();
 export const SIDE = new THREE.Vector3(-DIR.z, 0, DIR.x); // to the right of DIR (as the opening view sees it)
-export const A0 = Math.atan2(DIR.z, DIR.x); // its bearing
-export const ROUTE_LEN = RINGS.portal; // start to portal
-export const HALF = RINGS.warm; // where the calm warm-up ends and the first challenge's water begins
+export const A0 = A0_; // its bearing
+export const HALF = WARM; // the calm warm-up round the start (a label: "calm waters")
 /** A point `u` µm out from the start along DIR, `side` µm to its right, at height y (scenery). */
 export const routePoint = (u, side = 0, y = 0, out = new THREE.Vector3()) => out.copy(START).addScaledVector(DIR, u).addScaledVector(SIDE, side).setY(y);
-/** A point on the ring of radius r at bearing a (radians, from +x toward +z), height y. */
+/** A point r µm from the start at bearing a (radians, from +x toward +z), height y. */
 export const ringPoint = (r, a, y = 0, out = new THREE.Vector3()) => out.set(START.x + Math.cos(a) * r, y, START.z + Math.sin(a) * r);
 /** Distance from the start in the plane (µm): how far out a point is. */
 export const distFromStart = (p) => Math.hypot(p.x - START.x, p.z - START.z);
 /** Bearing of a point from the start (radians). */
 export const bearingOf = (p) => Math.atan2(p.z - START.z, p.x - START.x);
-/** How far out a point is (µm from the start; the rings are the same in every direction). */
+/** How far out a point is (µm from the start). */
 export const progress = distFromStart;
 /** Lateral offset from the DIR line (µm, + to the right); scenery only. */
 export const lateral = (p) => (p.x - START.x) * SIDE.x + (p.z - START.z) * SIDE.z;
 
 export const LANDMARKS = {
-  // the portal: placed on its ring once a game (main.js placePortal); `placed` until then false
-  forward: { pos: ringPoint(RINGS.portal, A0), r: 230, reachY: 120, label: 'Biofilm', placed: false, bearing: A0 },
-  // the way back: the amoeba's floor, the other way from the first portal bearing, in the calm between the first two rings
+  // the portal: placed by the director (main.js placePortal); `placed` until then false. Built at this spot, moved when placed.
+  forward: { pos: ringPoint(78000, A0), r: 230, reachY: 120, label: 'Biofilm', placed: false, bearing: A0 },
+  // the way back: the amoeba's floor, 17 mm from the start the other way from the opening view (route.js BACK)
   back: { pos: ringPoint(17000, A0 + Math.PI), r: 240, reachY: 170, label: 'Amoeba' },
 };
 
@@ -173,19 +158,18 @@ export function createLandmarks(scene) {
     backGroup.add(remains);
   }
 
-  // The biofilm is built at its first spot; placing it rotates the group about
-  // the start and moves it out to its ring at the new bearing.
+  // The biofilm is built at its first spot; placing it turns the group and
+  // moves it to where the director put it.
   const F0 = F.pos.clone();
   fwdGroup.visible = false;
   return {
     group, fwdGroup, backGroup, forward: F, back: B,
-    /** Put the biofilm on its ring at bearing a and show it. */
-    place(a) {
+    /** Put the biofilm at (x, z), met coming along bearing a, and show it. */
+    place(x, z, a) {
       const d = a - A0;
       fwdGroup.rotation.y = -d; // three.js yaw: +y rotation turns +x toward −z
       const c = Math.cos(d), s = Math.sin(d);
-      const rx = F0.x - START.x, rz = F0.z - START.z;
-      F.pos.set(START.x + rx * c - rz * s, F0.y, START.z + rx * s + rz * c);
+      F.pos.set(x, F0.y, z);
       // the group's origin is the world origin: rotate about it, then shift so F0 lands on F.pos
       const ox = F0.x * c - F0.z * s, oz = F0.x * s + F0.z * c;
       fwdGroup.position.set(F.pos.x - ox, 0, F.pos.z - oz);

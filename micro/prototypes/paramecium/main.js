@@ -22,7 +22,9 @@ import { createEncounters } from './encounters.js';
 import { createPrey } from './prey.js';
 import { createProteus } from './proteus.js';
 import { createCatchFx, sstep } from './catch.js';
-import { createLandmarks as createDropLandmarks, LANDMARKS, progress, lateral, HALF, ROUTE_LEN, RINGS, ringPoint, bearingOf, distFromStart, START } from './landmarks.js';
+import { createLandmarks as createDropLandmarks, LANDMARKS, progress, lateral, HALF, ringPoint, bearingOf, distFromStart, START } from './landmarks.js';
+import { DIRECTOR, ENCOUNTERS, canPlace, didiniumHomes, trapAt, VIEW_FAR } from './route.js';
+import { createDirector } from '../shared/director.js';
 import { createPortalGlow, createPortalLight, createGlint } from '../shared/portal.js';
 import { createBloom, BLOOM } from './bloom.js';
 import { createQuality } from '../shared/quality.js';
@@ -149,11 +151,11 @@ amoeba.home = LANDMARKS.back.pos.clone(); amoeba.homeR = 220;
 amoeba.pos.set(LANDMARKS.back.pos.x, 0, LANDMARKS.back.pos.z);
 
 // --- pacing: placed, not timed (micro/design/encounter-pattern.md) ---
-// The warm-up round the start (RINGS.warm) is calm swimming and feeding. The
-// ciliate hunters keep to their own waters on their rings (world.js homes,
-// moved round the ring by moveRings) and hunt only a player who is there;
-// their hunger clocks start when someone first leaves the warm-up, after a
-// short grace. Then hunger comes and goes: only a
+// The ciliate hunters come from the director (below: placed as you go, in
+// water nobody has seen, ahead of whoever leads) and keep to their own waters
+// there (world.js homes), hunting only a player who is there; each one's
+// hunger clock starts when it is placed, after a short grace. Then hunger
+// comes and goes: only a
 // hungry hunter hunts; a resting one wanders and leaves you be. The amoeba
 // guards the way back (behind the start, the other way) with its own calm
 // opening. A restart gives fresh calm.
@@ -168,8 +170,8 @@ function resetHunger() {
   amoeba.hunger.reset(pacing.amoebaGrace);
   pacing.t0 = pacing.now; pacing.firstHungry = null; pacing.firstThreat = null; pacing.reached = false; pacing.reachedAt = null;
 }
-/** A player is in a ciliate hunter's waters: out of the warm-up and near its home. */
-const inWaters = (d, s) => progress(s.center) >= HALF && Math.hypot(s.center.x - d.home.x, s.center.z - d.home.z) < d.homeR + 250;
+/** A player is in a ciliate hunter's waters: near its home (once the director has placed it). */
+const inWaters = (d, s) => !d.parked && Math.hypot(s.center.x - d.home.x, s.center.z - d.home.z) < d.homeR + 250;
 for (const d of world.didinia) d.allowed = (s) => inWaters(d, s);
 /** The amoeba hunts only round its own floor (the way back). */
 const nearAmoebaFloor = (s) => Math.hypot(s.center.x - LANDMARKS.back.pos.x, s.center.z - LANDMARKS.back.pos.z) < 900;
@@ -473,7 +475,7 @@ features.add({ id: 'grace', group: 'World', label: 'Grace once you reach the hun
   onChange: (v) => { pacing.grace = parseFloat(v); resetHunger(); } });
 features.add({ id: 'bloom', group: 'World', label: 'Chlamydomonas bloom', on: true,
   about: 'A dense band of green flagellates across the route before the biofilm (shared/crowd.js, three tiers through the depth). Swimming shoves them aside; X gulps a cone of them out of your way (algae as food is [Unverified]); a dash (A) flings them aside in a lane. Bioconvection: more cells toward the coverslip, sinking plumes with a mild down-current, gentle upwelling between. No clock of any kind.',
-  onChange: (on) => { bloom.on = on; bloom.group.visible = on; } });
+  onChange: (on) => { bloom.on = on; bloom.group.visible = on && bloom.placed; } });
 features.add({ id: 'hunger', group: 'World', label: 'Hunger comes and goes', on: true,
   about: 'After the calm opening each hunter is hungry for 18–32 s (the amoeba 25–40 s), then rests: 45–75 s after a meal, 15–30 s after a miss (trichocysts drive it off, or it gives up). Only a hungry hunter hunts; the HUD shows each one\'s state. Off: once the opening is over they hunt all the time (the old pacing).',
   onChange: (on) => { pacing.cycles = on; } });
@@ -950,16 +952,14 @@ function respawnPlayer(P) {
   const s = P.swimmer.state;
   if (mates.length) { placeNear(P, mates[0]); hud.toast(`${P.name} is back, beside ${mates[0].name}`); }
   else {
-    // a safe spot near where you were, on your bearing: a little back, out of
-    // any challenge's ring (in the calm stretch before it): the candidate
-    // furthest from every hunter
+    // a safe spot near where you were, a little back toward the start: the
+    // candidate furthest from every hunter, the trap and the bloom
     const at = P.cap.lastAt || s.center, a0 = bearingOf(at);
-    let u0 = Math.max(200, progress(at) - 600);
-    for (const R of [...RINGS.dileptus, ...RINGS.bloom, ...RINGS.didinium, RINGS.trap - 272]) if (Math.abs(u0 - R) < 1100) u0 = Math.max(200, R - 1700);
+    const u0 = Math.max(200, progress(at) - 1500);
     let best = null, bd = -1;
     for (let i = 0; i < 16; i++) {
-      const q = ringPoint(u0 - Math.random() * 250, a0 + (Math.random() - 0.5) * 0.5, 120 + Math.random() * (DEPTH - 240));
-      const d = Math.min(...world.didinia.map((h) => h.pos.distanceTo(q)), Math.hypot(q.x - amoeba.pos.x, q.z - amoeba.pos.z) - amoeba.R, q.distanceTo(trap.door) - trap.pullR * 1.5);
+      const q = ringPoint(u0 - Math.random() * 600, a0 + (Math.random() - 0.5) * Math.min(1.2, 1500 / Math.max(1, u0)), 120 + Math.random() * (DEPTH - 240));
+      const d = Math.min(...world.didinia.filter((h) => !h.parked).map((h) => h.pos.distanceTo(q)), Math.hypot(q.x - amoeba.pos.x, q.z - amoeba.pos.z) - amoeba.R, q.distanceTo(trap.door) - trap.pullR * 1.5, bloom.distTo(q) - 300);
       if (d > bd) { bd = d; best = q; }
     }
     s.axis.copy(best);
