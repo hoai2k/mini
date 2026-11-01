@@ -16,7 +16,7 @@ rings round the start, the same whichever way you go; about 0.4 m out
 sparkle, guarded by a wolf spider. Lure the spider off the raft, get round it
 and reach the raft, and in the Micro Zoom game the microscope zooms in to the
 mite's world. On the way, graze: 8 clumps of food (three bites each) is the
-side goal. You have three lives.
+side goal. A catch costs no lives: you re-form at your last safe spot.
 
 **The way out, as a rhythm** (`RINGS` and `ZONES` in `world.js`, checked by
 `route.test.mjs`; the owner, 2026-11-01: obstacles "a few jumps away from the
@@ -83,7 +83,7 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | --- | --- |
 | LS (WASD) | Walk on the film, relative to the view. Slow and a bit slippery: you coast |
 | RS (arrows) | Orbit the camera. Up looks up (the camera swings down toward the horizon), down looks down, in either view; Features → Invert camera Y flips it (shared by every prototype) |
-| **A** (Space) | **Furcula jump.** Tap to hop; hold and release for distance (~0.7 s for a full jump). Aim with LS (no stick: straight ahead). Tap again during a jump to hop immediately on landing, or hold in the air to prepare a charged jump. The furcula re-cocks in 0.08 s, including during flight, so normal landings have no extra cooldown. Released at an enemy in range, the jump becomes a pounce-bite. When stuck in sundew glue, mash A to tear free; on your back (lying in the film, legs kicking), tap A to flip over at once, or wait ~1.2 s and it rights itself |
+| **A** (Space) | **Furcula jump.** Tap to hop; hold and release for distance (~0.7 s for a full jump). Aim with LS (no stick: straight ahead). Tap again during a jump to hop immediately on landing, or hold in the air to prepare a charged jump. The furcula re-cocks in 0.08 s, including during flight, so normal landings have no extra cooldown. Released at an enemy in range, the jump becomes a pounce-bite. When stuck in sundew glue, struggle: tug with LS (each new push or change of direction counts; WASD changes on a keyboard) and kick with A, both together, to tear free; on your back (lying in the film, legs kicking), tap A to flip over at once, or wait ~1.2 s and it rights itself |
 | **X** (E) | Three moves, by what is in front of your head: **eat** (food: the head goes down on a grain, the mouthparts work and the grain shrinks away, 0.7 s a bite); **fight** (a predator's leg in reach: rear up, then snap: a nip that staggers it); **attack** (nothing in reach: a lunge-nip). **In the air: the pounce-bite** (see Fighting back) |
 | **B** (Shift) | Hold: **hunker, the defend button.** Pressed flat with the collophore: facing a predator, it blocks its strike; waves cannot flip you, and a still, hunkered springtail makes no ripples for the strider to feel. You cannot move |
 | Y (R) | Camera: top-down, and back to the low view you had (RS also brings it down) |
@@ -101,7 +101,7 @@ nearby raindrops and being caught.
 
 The HUD has a scale bar that is true at the focal plane, the magnification,
 the f-number (and effective aperture), the depth of field, the food count,
-lives, and a furcula meter (cocking, full jump, re-cocking, struggle).
+and a furcula meter (cocking, full jump, re-cocking, struggle, back again).
 
 Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A bog ambience loop; the furcula jump (A), landings on the water film and the sticky sundew landing, grazing (X), raindrops (quieter and panned by distance), and the Stenus skim and harpoon strike.
 
@@ -160,9 +160,9 @@ shell (`embed.players`).
   (`split.scissor`, padded 64 px for the bokeh's reach).
 - **Threats:** *Stenus* and the strider each go for the nearest free player;
   raindrops hit whoever is under them. A caught player plays the whole catch;
-  with company there is no Eaten card and no lives are lost: they come back
-  beside a teammate when it ends (a swamped one likewise). Alone, the Eaten
-  card and lives work as before.
+  with company they re-form beside a teammate when it ends (a swamped one
+  likewise); alone, at their last safe spot. There is no Eaten card and
+  there are no lives.
 - Test hooks on `window.__micro`: `players`, `split`, `layout`, `recs()`,
   `teleport(slot, x, z)`, `settle(n)`, `landmark` (the portal once placed),
   `landmarkLog` (`forward`, `turnedBack`), `portal()` (its position, `guarded`,
@@ -275,16 +275,45 @@ Predators follow the shared pacing in `shared/predation.js`:
   - The strider: **strike**, the raptorial forelegs snap shut on you;
     **hold**, it lifts you, kicking, to its rostrum; **eat**, the rostrum
     pierces and sucks you dry (you shrivel and go still); **eaten**.
-  - A sundew is a trap, not a predator: stuck, its tentacles curl over you
-    while you mash A. If they close first, **strike**: every tentacle folds
-    over you; **hold**: wrapped in glue, struggling weaker; **eat**: the leaf
-    blade cups round you while the body smoothly turns white and dissolves.
-    The empty leaf remains in view for a second, then the view fades out and
-    fades back in at respawn. Mashing A before the tentacles close still
-    tears you free.
+  - A sundew is a trap, not a predator. Landing on a leaf you are held up
+    on its glue drops, a glue strand from a tentacle tip to each of your six
+    legs, and the lens closes in from above. **Struggle**
+    (`sundew-struggle.js`): tug with LS (each new push or change of
+    direction is a tug; WASD changes on a keyboard; at most ~8 a second
+    count) and kick with A (at most ~12 a second). Each effort makes the
+    body thrash (big bends and rolls, legs and antennae flailing, a lunge
+    against the strands toward the stick, the furcula slapping the leaf,
+    the blade shaking) and moves you toward free: 0.07 per tug or kick
+    while you do both within 0.7 s of each other, 0.03 with one alone. The
+    strands (`sundew-glue.js`) stretch and thin and snap one by one, the
+    last at free (the HUD meter shows the same progress). **Pause** for
+    0.8 s and the hold wins: progress slips back 0.25/s, a snapped strand
+    sticks again, and you sink (0.35/s) down among the tentacles as they
+    fold over and the blade begins to cup; one kind of effort alone still
+    sinks you slowly (0.12/s), both together win depth back. Fully sunk
+    is engulfed. In practice: LS and A together free you in ~1.5–2.5 s;
+    A alone needs ~6 presses a second for ~5.5 s (at 4 a second the leaf
+    wins); LS alone loses; doing nothing, engulfed after ~3.4 s
+    (`sundew-struggle.test.mjs` pins these). Engulfed: **strike**, every
+    tentacle folds over you; **hold**, wrapped in glue; **eat**, the blade
+    cups (part-way, so you stay in sight) while the body turns white and
+    breaks up into whitish motes shed from its surface that drift up and
+    away (`motes.js`); a beat on the leaf (0.3 s), then the respawn.
 
-  After a capture, a life is lost and the view fades back in at respawn
-  (the predators back in their own water), or a new game starts after the last life.
+  **The respawn** (every catch, and a swamping): the camera glides from the
+  catch to where you come back (0.6 s), and you **re-form** there (1 s):
+  motes gather out of the air onto the body, which fills in white, then
+  colours, and settles with a ring on the film. From the last mote of a
+  sundew digestion to control is ~1.9 s. Alone you come back at your last
+  safe spot (the predators back in their own water); a spot more than
+  70 mm away dips through black instead of whipping the camera across the
+  pool. With company you re-form beside a teammate (no full-screen fade).
+  There are no lives. Nothing in a catch or a respawn is skippable (the
+  owner, 2026-11-01: only a sequence of 5 s or more might ever be), and A
+  held or mashed from the struggle does nothing until it is let go: no
+  jump fires on arrival. Until then the old respawn was only a 0.6 s fade
+  in from black onto a springtail already standing there, which read as a
+  cut.
 - Raindrops stay hazards: a direct hit swamps you (now only within ~0.95 of
   the drop's radius, with a 2 s shadow warning, and only about half the drops
   aim near you); near misses throw you out of the crater.
@@ -297,7 +326,10 @@ and first came within 40 mm of a player (`stenusNear`, `striderNear`,
 `crowdNear`, `sundewNear`, `portalNear`), with its `progress` (distance from
 the start / 415 mm); `__micro.progress()` is how far out you are (0..1), and `__micro.tick(n)` steps the game from the pads without
 rendering (for walking the route in a test). `window.__micro.forceCapture('stenus' | 'strider' | 'sundew')` plays
-a catch; `__micro.pacing()` reports hunger and states.
+a catch; `__micro.pacing()` reports hunger and states;
+`__micro.stickOnLeaf(i, slot)` lands a player on sundew leaf `i` and
+`__micro.struggle(slot)` reports the struggle (progress, sink, idle,
+strands snapped), the motes in flight and a respawn's re-forming.
 
 ## Hazards
 
@@ -315,8 +347,8 @@ a catch; `__micro.pacing()` reports hunger and states.
 - **Sundews** (*Drosera rotundifolia*): the sundew ring ~345 mm out, 16
   clusters of three small islands, each with a rosette whose round
   leaves reach out over the gaps between them, each leaf with ~90 red
-  glandular tentacles tipped with glue. Land on a leaf and you stick; the
-  tentacles curl over you. Mash A before they close.
+  glandular tentacles tipped with glue. Land on a leaf and you stick, and
+  must struggle free (see the sundew catch under Threats and pacing).
 - **A water strider** (*Gerris*, ~9 mm, legs spanning ~23 mm) stands on six
   dimples. It feels ripples: landings, grazing and struggling bring it rowing
   over, and its strokes send waves that flip an unbraced springtail. Its
@@ -544,7 +576,8 @@ may not be in `shared/asset-list.js` yet) and has a procedural stand-in:
   shoots out in 0.06 s here, a few milliseconds in life. The ~2 mm reach is
   a game value; the sources consulted describe the labium's "large range"
   without a figure.
-- **Sundew** tentacles curl in a few seconds here; in life, minutes.
+- **Sundew** tentacles curl in a few seconds here; in life, minutes; and
+  digestion takes days, not two seconds.
 - **The strider** rows ~4x slower than a real *Gerris* (which can sprint at
   ~1 m/s).
 - **The drop shadow, the shore highlight, the boosted water sheen and the
@@ -657,6 +690,7 @@ in `islandDist` (slower under SwiftShader).
 node micro/prototypes/check.mjs springtail
 node micro/prototypes/springtail/route.test.mjs       # the rings: open water on 16 bearings, warm-up, order, calm gaps, sundews in every direction, the portal ring
 node micro/prototypes/springtail/jump-input.test.mjs
+node micro/prototypes/springtail/sundew-struggle.test.mjs   # the struggle's balance: both inputs ~2 s, A alone slow, LS alone or idle engulfed
 ```
 
 The camera's pitch was once stuck overhead: top-down was a separate mode in

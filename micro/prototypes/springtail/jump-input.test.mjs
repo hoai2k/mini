@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { updateJumpInput, takeQueuedJump, RECOCK_TIME } from './jump-input.js';
-import { digestion, SUNDEW_PHASES } from './sundew-digestion.js';
+import { digestion, reform, SUNDEW_PHASES, CATCH_PHASES, REFORM } from './sundew-digestion.js';
 import { createCapture } from '../shared/predation.js';
 const player = () => ({ mode: 'film', cock: 1, hunker: 0, charging: false, charge: 0, queuedJump: null });
 const input = (p, down, dt = 1 / 60, aim = { x: 1, z: 0 }) => updateJumpInput(p, { dashDown: down, defend: false }, dt, aim);
@@ -33,7 +33,7 @@ test('traps and captures clear pending jumps without affecting another player', 
   a.mode = 'film'; input(a, true); a.mode = 'caught'; input(a, false);
   assert.equal(a.charging, false); assert.equal(a.queuedJump, null);
 });
-test('whitening and dissolution flow smoothly into an empty one-second pause', () => {
+test('whitening and dissolution flow smoothly into a short beat on the closed leaf', () => {
   let previous = { white: 0, dissolve: 0 };
   for (let i = 0; i <= 100; i++) {
     const next = digestion('eat', i / 100);
@@ -44,7 +44,22 @@ test('whitening and dissolution flow smoothly into an empty one-second pause', (
   assert.deepEqual(previous, { white: 1, dissolve: 1 });
   assert.deepEqual(digestion('follow', 0), previous); assert.deepEqual(digestion('fadeOut', 0), previous);
   assert.deepEqual(digestion('fadeIn', 0), { white: 0, dissolve: 0 });
-  assert.equal(SUNDEW_PHASES.find(([p]) => p === 'follow')[1], 1);
+  assert.equal(SUNDEW_PHASES.find(([p]) => p === 'follow')[1], 0.3);
+});
+
+test('re-forming: the body fills in smoothly, then colours, ending whole', () => {
+  let previous = reform(0);
+  assert.deepEqual(previous, { dissolve: 1, white: 1 });
+  for (let i = 1; i <= 100; i++) {
+    const next = reform(i / 100);
+    assert.ok(next.dissolve <= previous.dissolve && next.white <= previous.white);
+    assert.ok(previous.dissolve - next.dissolve < 0.05 && previous.white - next.white < 0.05);
+    previous = next;
+  }
+  assert.deepEqual(previous, { dissolve: 0, white: 0 });
+  // from the last mote to control: the beat, the glide, the hand-over and the re-forming, about 2 s
+  const after = ['follow', 'fadeOut', 'fadeIn'].reduce((t, k) => t + SUNDEW_PHASES.find(([p]) => p === k)[1], 0) + REFORM;
+  assert.ok(after > 1.5 && after <= 2.1, `${after} s`);
 });
 
 test('sundew pause timings do not change subsequent predator captures', () => {
@@ -58,12 +73,16 @@ test('sundew pause timings do not change subsequent predator captures', () => {
       assert.equal(capture.phase, 'follow');
     };
     capture.start({ phases: SUNDEW_PHASES }); reachFollow();
-    for (let i = 0; i < 30; i++) capture.update(1 / 60);
+    for (let i = 0; i < 12; i++) capture.update(1 / 60);
     assert.equal(capture.phase, 'follow');
-    for (let i = 0; i < 150 && capture.active; i++) capture.update(1 / 60);
+    // a pad mashing A never cuts it short (nothing in a catch is skippable)
+    const mash = { pressed: () => true, value: () => 1 };
+    let n = 0;
+    for (; n < 150 && capture.active; n++) capture.update(1 / 60, mash);
     assert.equal(capture.active, false); assert.equal(respawns, 1);
-    capture.start({ by: 'Stenus' }); reachFollow();
-    for (let i = 0; i < 90; i++) capture.update(1 / 60);
+    assert.ok(n >= 44, `the sundew's glide ended after only ${n} frames`);
+    capture.start({ by: 'Stenus', phases: CATCH_PHASES }); reachFollow();
+    for (let i = 0; i < 60; i++) capture.update(1 / 60, mash);
     assert.equal(capture.phase, 'follow', 'ordinary predators retain their longer follow phase');
   } finally { globalThis.document = originalDocument; }
 });
