@@ -68,6 +68,11 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
 | `sites/` | A collection of websites (band, label and other pages), not a game | https://hoai2k.github.io/mini/sites/<name>/ |
 | `local/` | Ignored by Git: dependencies, caches and build output | — |
 
+- **A game with a heavy workbench carries `<game>/deploy_config.json`**
+  (`{"includeWorkbenches": true}`), read by its `publish.sh`: `false` leaves the
+  workbench out of the deployed site (it still works locally), and a missing or
+  unreadable file means `true`. Bronze Drum's sound workbench (about 10 MB of
+  alternative takes) is the one today; the other workbenches are a few KB.
 - **Keep each game inside its own folder.** Its code, design documents, asset
   requests, art, audio, tests, publish script and intake drop box all live
   there. Never put one game's files in another game's folder. In particular,

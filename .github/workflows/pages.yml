@@ -90,7 +90,11 @@ jobs:
       # against 185 s, and the published site identical (5,379 files, one
       # hash). An earlier try that left out only smoothcraft/ (~8 % of the
       # data) was slower than a full fetch; this one skips enough to win.
-      # hopper/ stays whole because hopper/3d/publish.sh reads its design/.
+      # Hopper's build reads only three JSON files from hopper/3d/design and
+      # hopper/3d/models (the 3D edition's code is bundled; its models,
+      # textures and design files were never published), so the rest of those
+      # folders, hopper/design and hopper/models stay out too: checkout 69 s,
+      # same site hash.
       # A publish.sh that starts reading one of these folders must take it
       # off this list. The full test run reads the design folders (their
       # generators' --check), so it keeps the full checkout.
@@ -117,6 +121,14 @@ jobs:
             !/fibreart/reference/
             !/imageannotator/design/
             !/icecreamcone/design/
+            !/hopper/design/
+            !/hopper/models/
+            !/hopper/3d/textures/
+            !/hopper/3d/design/*
+            /hopper/3d/design/standin-manifest.json
+            !/hopper/3d/models/*
+            /hopper/3d/models/manifest.json
+            /hopper/3d/models/collision.json
       - uses: pnpm/action-setup@v4
         with:
           version: 10

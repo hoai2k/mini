@@ -44,7 +44,8 @@ the strokes played, without suggesting an unrelated continuation.
 - [`design/screens/`](design/screens/): screenshots of the game with the
   delivered art.
 - [`game/`](game/): the game itself, static ES modules with no build step.
-- [`workbench/`](workbench/): the sound workbench, published at
+- [`workbench/`](workbench/): the sound workbench (published only while
+  `deploy_config.json` says `"includeWorkbenches": true`), published at
   https://hoai2k.github.io/mini/bronzedrum/workbench/. It plays each chapter's
   ambience next to its alternate takes (level-matched, with an optional drum
   over them), every effect take and the music, and lets you mark each one and
