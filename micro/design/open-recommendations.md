@@ -1,6 +1,6 @@
 # Micro Zoom: open recommendations
 
-Written on 2026-11-01, after the first big pass on performance, crowds, bosses and world mechanics.
+Written on 2026-11-01, after the first big pass on performance, crowds, bosses and world mechanics. Last updated 2026-11-01 (pre-deploy audit: resolved and rings-era items removed, the audit's open items added under "From the pre-deploy audit").
 
 This file lists every recommendation for the game that is **not built yet**. It reads the design notes, the world READMEs and the notes from that pass. Built things are left out. The built list is in the world READMEs.
 
@@ -37,7 +37,7 @@ Source for most lines: [`performance.md`](performance.md), "Fixes, ranked".
 
 Each of these was left out because it changes the picture or feel, or needs more work than a safe pass. Source: [performance.md](performance.md) (Second pass).
 
-- [Small] Shared: cache landmark arrows as sprites (not pixel-identical, so needs a look).
+- [Small] Shared: cache the landmark marks (now only the backdoor's ring) as sprites (not pixel-identical, so needs a look).
 - [Medium] Shared: skip redrawing an unchanged landmark overlay; the mite and amoeba draw on its canvas, so it needs a small API.
 - [Small] Shared: rings a world draws on the landmark canvas can smear on a frame with no landmark (latent; nothing shows it today).
 - [Small] Springtail: re-save the big PNG textures as lossless WebP (about 2–3 MB less to load).
@@ -55,6 +55,20 @@ Each of these was left out because it changes the picture or feel, or needs more
 - [Small] Phage: background noise at quarter resolution (about 40% of the final pass; slightly softer). Deferred in the third pass because it changes the look.
 - [Small] Perf harness: runs get only 5–8 frames on a loaded machine and its 4-player spread never splits the screen; widen the spread and lengthen runs.
 
+## From the pre-deploy audit (2026-11-01)
+
+What the audit found and did not fix (fixed items are in the commit log; the run notes are in the audit report).
+
+- [Small] Shell: the continuous transition waits 25 s for the next world to be ready. Under software rendering the amoeba (about 30 s to ready) and the mite (about 35 s) can miss that, and the move falls back to the microscope zoom (seen once, tardigrade → amoeba, a player put straight onto the portal). Start the preload a little earlier, or keep waiting while the load is visibly progressing. Source: `game/src/main.js` (`continuousForward`).
+- [Medium] Amoeba: a scripted cell steering at the portal from the 90° bearing (Chaos stood down) crawled 90–140° off its command for about 20 s once it was ~200 µm from the portal and did not reach it in 240 s; from 0°, 45° and 270° it reached it in 81–158 s with no snag, and no run wedged for more than ~15 s. The cause is not isolated (not Chaos, not a trap catch); playtest the approach with a controller. Source: `prototypes/amoeba/README.md` (Checks).
+- [Small] Tardigrade: the 180° and 210° spokes' hand-over gaps (0.47–0.57) sit at the claws' reach (0.55, 1.2 across a wet film). A scripted walker steering along each leaf ping-ponged between two overlapping leaves of the 210° spoke (leaves 2 and 3, about 5.1 mm out) for over two minutes. Playtest those spokes; consider moving their leaves a little closer. A few spoke leaves also cut through each other near the shoot (looks only). Source: `prototypes/tardigrade/world.js`.
+- [Small] Tardigrade → amoeba: the glimpsed *Amoeba proteus* is rounder than the amoeba world's opening cell and holds green inclusions that vanish in the crossfade. Match the glimpse to the opening cell. Source: `prototypes/tardigrade/landmarks.js`.
+- [Small] Paramecium → bacterium: the spirillum's glint is still small at the freeze (the portal's glow now dims through the slow-down); a larger glint at the freeze would make the target clearer. Source: `prototypes/paramecium/main.js` (`stepSpirillum`, `spirGlint`).
+- [Small] `publish.sh` copies the test scripts (`*.test.mjs`, `phage/play-check.mjs`) into the deployed site. Harmless, but they are not needed there.
+- [Small] Shell: at a short window (960×540) the intro card's text runs past the bottom (the forward-landmark line is cut off).
+- [Small] Phage: a player who joins during play is not carried on (its `embed.join` sends no roster, unlike the other six worlds); it matters only once the phage leads somewhere (the return journey, or Back). Source: `prototypes/phage/main.js` (`onJoin`).
+- [Small] Stale comments from the rings era: `prototypes/tardigrade/predator.js` ("halfway"), `prototypes/springtail/main.js` ("the rings round the start", `ZONES`), `prototypes/bacterium/main.js` ("oxygen and starvation"). Comments only; the behaviour is the director's.
+
 ## Springtail
 
 - [Medium] Dunked, not dead: a strider grab or a raindrop pushes you under, and the air layer pops you back up. It turns a death into a scare. Source: [combat-ideas.md](combat-ideas.md) (springtail idea 4).
@@ -67,23 +81,20 @@ Each of these was left out because it changes the picture or feel, or needs more
 
 ## Mite
 
-- [Small] Seal timing: B takes about 0.3 s to close fully. A strike on a sealed box goes "clank" and costs the predator a lot of interest. A strike during closing is only partly blocked. It makes the defence a skill. Source: [combat-ideas.md](combat-ideas.md) (mite idea 1).
+- [Small] Seal timing: closing up (held Y) takes about 0.3 s. A strike on a sealed box goes "clank" and costs the predator a lot of interest. A strike during closing is only partly blocked. It makes the defence a skill. Source: [combat-ideas.md](combat-ideas.md) (mite idea 1).
 - [Medium] Armour gauge: a pseudoscorpion grip drains it, and teammates bite its pincer joints to help. It makes "close up and wait" honest. Source: [combat-ideas.md](combat-ideas.md) (mite idea 2).
 - [Medium] Shepherd the juvenile (co-op): a soft juvenile follows you and gamasids want it. Adults shield it. Source: [combat-ideas.md](combat-ideas.md) (mite idea 3), [zoom-chain-levels.md](zoom-chain-levels.md) (1.7).
 - [Medium] Oil cloud (Y) for a cousin character: a repellent puff, one charge, refilled slowly. Give it to a cousin only, because the box mite has lost its oil. Source: [combat-ideas.md](combat-ideas.md) (mite idea 4).
 - [Medium] Pseudoscorpion ambush: the tell is a pincer tip in a crevice, and it chases once you pass. Phase two brings in a bolder nymph. Source: [combat-ideas.md](combat-ideas.md) (mite boss note).
-- [Medium] "Find the wet axil": cross a drying capitulum before humidity runs out, choosing a fast exposed path or slow sheltered gaps. Source: [zoom-chain-levels.md](zoom-chain-levels.md) (1.7).
 - [Medium] Rove beetle set piece: only legs and jaws cross the screen, and you wedge into a gap narrower than its head. Source: [zoom-chain-levels.md](zoom-chain-levels.md) (1.7).
 - [Small] Seal and drop: a closed box falls off the leaf and rolls away. Low fidelity (no study measures it), so it is optional. Source: [combat-ideas.md](combat-ideas.md) (mite idea 5).
 
 ## Tardigrade
 
 - [Large] Scent trails: you leave a fading trail that *Milnesium* follows. Doubling back or crossing water muddles it. It turns the level into stealth and route finding. Source: [combat-ideas.md](combat-ideas.md) (tardigrade idea 1).
-- [Medium] Huddle tun (co-op): players who curl up touching each other survive drying, and a lone tun may not revive. Source: [combat-ideas.md](combat-ideas.md) (tardigrade idea 2).
 - [Medium] Too big to swallow: piercing algae grows you, and small hatchlings then give up on you. Source: [combat-ideas.md](combat-ideas.md) (tardigrade idea 3).
 - [Small] Brace as an anchor: a full brace holds you against the whip, and without it you are knocked into thicker film. Check how much of this the boss already does. Source: [combat-ideas.md](combat-ideas.md) (tardigrade idea 4).
 - [Medium] Nematode latch: if the whip lands, the tooth latches on. Brace to slow the pull while a teammate jabs the head; alone, mash a wriggle. Source: [combat-ideas.md](combat-ideas.md) (tardigrade boss note).
-- [Medium] "Reach the green cells": feed on live leaf cells while the film shrinks, then reach a refuge before it breaks. Source: [zoom-chain-levels.md](zoom-chain-levels.md) (2.7).
 - [Large] Rotifer chapter, "Dry up and blow away": play the rotifer, find a dry leaf and enter dormancy. Source: [zoom-chain-levels.md](zoom-chain-levels.md) (2.7).
 - [Medium] Focal-plane puzzle: a hidden gun cell shows in one focal slice only, so you scrub focus to find it. Source: [zoom-chain-levels.md](zoom-chain-levels.md) (2.7).
 - [Small] Rotifer meadow: check the performance at four players. Tonight's pass left this in progress. Source: [tardigrade README](../prototypes/tardigrade/README.md).
@@ -95,7 +106,6 @@ Each of these was left out because it changes the picture or feel, or needs more
 - [Medium] Multi-nucleus twist for *Chaos*: an arm cut off with a nucleus inside crawls off as a small *Chaos*. Nuclei streaming into an arm is the tell. Source: [combat-ideas.md](combat-ideas.md) (amoeba idea 3).
 - [Small] Joint food cup (co-op): two players wrap prey too big for one. It is a departure, since amoebae do not cooperate. Source: [combat-ideas.md](combat-ideas.md) (amoeba idea 4).
 - [Medium] Heliozoan in darkfield: switching to darkfield reveals axopods, at the cost of a short pause. Source: [zoom-chain-levels.md](zoom-chain-levels.md) (3.7).
-- [Small] Update the amoeba paragraph in the controls note for the RT/LT scheme. Source: tonight's notes, [CONTROLS.md](../prototypes/CONTROLS.md).
 
 ## Paramecium
 
@@ -114,7 +124,6 @@ Each of these was left out because it changes the picture or feel, or needs more
 - [Small] Last-moment reverse: a pause on contact before the pili grab, which a reverse (B) beats. The pause is unverified, so label it. Source: [combat-ideas.md](combat-ideas.md) (bacterium idea 5).
 - [Small] *Stentor* habituation: each later bump at its foot works less well, and re-extension is long and safe. Today a bump pauses it for 3.5 s every time. Source: [combat-ideas.md](combat-ideas.md) (bacterium boss note).
 - [Medium] Play as *Bdellovibrio*: sprint, collide, attach, enter, grow and burst. Source: [zoom-chain-levels.md](zoom-chain-levels.md) (5.9).
-- [Medium] Find and hold the oxygen band by timing reversals and tumbles. Source: [zoom-chain-levels.md](zoom-chain-levels.md) (5.9).
 - [Small] Check *Stentor* in modes other than phase contrast. Source: tonight's notes.
 - [Small] Add a button or clearer cue for leaving the collective. Today you leave by moving 20 µm away. Source: tonight's notes.
 
@@ -132,13 +141,12 @@ Each of these was left out because it changes the picture or feel, or needs more
 - [Small] Phage: a kick sound of its own (a soft click per strike, pitched by the molecule's size); the strikes are silent except for proteins, which reuse the bacterium's tumble. Source: [phage README](../prototypes/phage/README.md).
 - [Medium] Phage: impostor beads for the far bath at quarter resolution, or MP-V07's sprites, if the bath's fill is too much on weak GPUs (software WebGL halves the frame rate against the old slab). Source: [phage README](../prototypes/phage/README.md) (performance, revamp).
 - [Small] Phage: the UV shafts are vertical columns (sunlight comes from the surface), so a phage heading straight up or straight down meets none of that shell; the flocs, decoys and the portal do meet every bearing. Source: [phage README](../prototypes/phage/README.md) (threats and pacing).
-- [Medium] Phage: adopt the encounter director (`shared/director.js`, [encounter-pattern.md](encounter-pattern.md)): the phage world uses the rings (shells round the start, decoys moved unseen, the portal at the bearing of whoever first passes the UV shell). The director would place flocs, decoys and shafts ahead of you in unexplored water instead. Source: [phage README](../prototypes/phage/README.md) (threats and pacing).
 - [Medium] Phage: a second guard behaviour for co-op (the lobe splits its attention between two phages, so one lures while the other slips in). Source: [encounter pattern](encounter-pattern.md).
 - [Small] Phage, owner's call: an optional chase camera that turns slowly behind the travel direction (the revamp keeps the view where you leave it, which fixes the spin). Source: [phage README](../prototypes/phage/README.md).
 
 ## Game shell
 
-- [Large] Apply the continuous transition and the portal look to the other pairs (mite → tardigrade → … → phage, and the backdoors going up): each world's portal with `shared/portal.js` (glow, beacon, screen light, burst, chime), an outro to a freeze reporting its next creature's pose, and an `'intro'` opening in the next world. Springtail → mite is built; the recipe is "Wiring another pair". Source: [game README](../game/README.md) (The continuous transition).
+- [Large] The continuous transition going up (the backdoors): every forward pair from the springtail to the phage is continuous; Back still plays the microscope zoom out. Source: [game README](../game/README.md) (The continuous transition).
 - [Small] Give the springtail's mite speck a finer model for the push-in (today a glossy ellipsoid with stick legs; it reads well only as a speck, so the crossfade runs while it is still small). Source: [game README](../game/README.md) (The continuous transition).
 - [Large] The glowing return journey: after a Phage clear, go back up through every world with a glowing creature and end at the fingertip. Not built; the Phage ending is "Work in progress". Source: [super-gene-return.html](super-gene-return.html), [game README](../game/README.md).
 - [Medium] Wire the real worlds into the zoom prototype in place of its look-alike stand-ins. Source: [zoom README](../prototypes/zoom/README.md) (known issues).

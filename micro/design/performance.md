@@ -709,3 +709,24 @@ needed. Each left the picture unchanged unless noted. SwiftShader on a loaded
 There is no per-frame gain from compiling at load: it moves a one-time cost
 from the moment a player joins (a visible pause) to loading. Deferred: the
 phage's quarter-resolution noise (softens the look).
+
+## Current state (pre-deploy audit, 2026-11-01)
+
+`tools/perf/measure.mjs <world> 1|4 8 --url=q=high`, run back to back on a
+4-core container with a load average of 15–26 (other sessions were
+rendering), so the CPU and SwiftShader times are only a sanity check (4–10
+frames per run); the draws and triangles are exact.
+
+| World | 1 player: draws / triangles | 4 players: draws / triangles (views) | Compared with the last numbers |
+| --- | --- | --- | --- |
+| Springtail | 22 / 481 k | 70 / 1.30 M (2) | no recent baseline; far below the first pass (25 / 1.94 M per view) |
+| Mite | 47 / 197 k | 69 / 354 k (1) | identical to the director pass (47 / 197 k, 69 / 354 k) |
+| Tardigrade | 55 / 185 k | 329 / 1.60 M (4) | identical (55 / 185 k, 327 / 1.6 M) |
+| Amoeba | 17 / 3 k | 108 / 9 k (4) | fewer draws than the first pass (61 and 321) |
+| Paramecium | 102 / 526 k | 448 / 2.57 M (4) | within the rings-and-portal pass (99 / 619 k, 423 / 2.71 M) |
+| Bacterium | 7 / 0 k | 33 / 3 k (4) | identical to the first pass (7, 33) |
+| Phage | 95 / 591 k | 442 / 1.98 M (4) | **+64 % / +44 % triangles** on the second pass (0.36 M, 1.38 M): the look revamp (bead baths, hosts furred all round) and the in-progress look work; for the phage's own pass to confirm |
+
+No regression in the other six worlds' rendering work. CPU medians (9–37 ms)
+are two to three times the earlier passes' on the same worlds, in line with
+the load; nothing in them points at one module. No page errors in any run.
