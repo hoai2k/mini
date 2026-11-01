@@ -108,7 +108,7 @@ export class Walker {
   }
 
   spawn(leaf, side, u, v, hu, hv) {
-    Object.assign(this, { leaf, side, u, v, hu, hv, speed: 0, phase: 0, slipping: false, slipT: 0, deficitT: 0, slipVel: [0, 0], pushT: 0, grace: 1, tau: SMOOTH_TAU, blend: null, atEdge: false, wrapCandidate: null, handoffT: 0, hold: 1 });
+    Object.assign(this, { leaf, side, u, v, hu, hv, cameFrom: null, speed: 0, phase: 0, slipping: false, slipT: 0, deficitT: 0, slipVel: [0, 0], pushT: 0, grace: 1, tau: SMOOTH_TAU, blend: null, atEdge: false, wrapCandidate: null, handoffT: 0, hold: 1 });
     this.targetFrame();
     this.dispPos.copy(this.tPos);
     this.dispQuat.copy(this.tQuat);
@@ -508,8 +508,16 @@ export class Walker {
     this.headPos = head;
     const fwd = this.forward;
     let best = null;
+    // Hysteresis: the leaf just left is not reached for again (the head is
+    // often still under its tip after a hand-over, and a nudge against the new
+    // leaf's narrow base used to carry the animal straight back, and forth)
+    // unless the stick turns back the way the animal came.
+    const back = this.cameFrom;
+    const dl = input.dir ? input.dir.length() : 0;
+    const turnedBack = !!back && dl > 1e-6 && input.dir.dot(back.dir) / dl < -0.3;
     for (const M of this.world.leaves) {
       if (M === L) continue;
+      if (back && M === back.leaf && !turnedBack) continue;
       const loc = M.toLocal(head, {});
       if (!M.inside(loc.u, loc.v, 0.35)) continue;
       const dist = Math.abs(loc.n) - M.thick / 2;
@@ -549,6 +557,7 @@ export class Walker {
     const lim = Math.max(0, M.hwAt(u) - 0.65);
     v = THREE.MathUtils.clamp(v, -lim, lim);
     const snap = this.snapshot();
+    this.cameFrom = { leaf: this.leaf, dir: fwd.clone() };
     Object.assign(this, { leaf: M, side, u, v, hu, hv, grace: 1.4, speed: 0 });
     this.targetFrame();
     this.startBlend(snap, 0.7);
@@ -563,7 +572,7 @@ export class Walker {
     if (this.u > L.len - 1.2) this.hu = -this.hu; else this.hv = -this.hv;
     const lim = Math.max(0, L.hwAt(this.u) - 0.7);
     this.v = THREE.MathUtils.clamp(this.v, -lim, lim);
-    Object.assign(this, { grace: 1.4, speed: 0 });
+    Object.assign(this, { grace: 1.4, speed: 0, cameFrom: null });
     this.targetFrame();
     this.startBlend(snap, 0.8);
     this.handoffT = 0;
@@ -587,9 +596,13 @@ export class Walker {
       if (!best || t < best.t) best = { M, loc, t };
     }
     if (!best) {
-      // Nothing straight below: the cushion is dense, so land on the nearest leaf.
+      // Nothing straight below: the cushion is dense, so land on the nearest
+      // leaf. Hanging under a leaf, that is the same leaf's upper face (it
+      // scrambles back over the margin): dropping onto the leaf it came from
+      // instead carried a walker back a leaf every time, and on round again.
+      const under = this.side * this.leaf.N.y < 0;
       for (const M of this.world.leaves) {
-        if (M === this.leaf) continue;
+        if (M === this.leaf && !under) continue;
         const loc = M.toLocal(p, {});
         const u = THREE.MathUtils.clamp(loc.u, 1, M.len - 1);
         const lim = Math.max(0, M.hwAt(u) - 0.8);
@@ -606,7 +619,7 @@ export class Walker {
       let hu = fwd.dot(M.U), hv = fwd.dot(M.V);
       const hl = Math.hypot(hu, hv) || 1;
       const snap = this.snapshot();
-      Object.assign(this, { leaf: M, side, u: best.loc.u, v: best.loc.v, hu: hu / hl, hv: hv / hl, grace: 1.5, speed: 0 });
+      Object.assign(this, { leaf: M, side, u: best.loc.u, v: best.loc.v, hu: hu / hl, hv: hv / hl, grace: 1.5, speed: 0, cameFrom: null });
       this.targetFrame();
       this.startBlend(snap, 0.45);
       // Falling, the legs let go and paddle; they catch as the body lands.

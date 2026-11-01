@@ -103,7 +103,7 @@ for (const [name, v] of Object.entries(DIRS)) {
   assert.ok(at(r.ev, 'placed', 'W').t - T.B >= 4.5 && T.portalPlaced - T.W >= 4.5, `${name}: calm breaks`);
   // (drifting straight into the view, each encounter has to go past the haze straight ahead, ~450 units on: slower)
   const limit = name.startsWith('-z') ? 90 : 75;
-  assert.ok(T.reached <= limit, `${name}: the portal reached in about a minute (${T.reached} s)`);
+  if (process.env.V) console.log(name, T); else assert.ok(T.reached <= limit, `${name}: the portal reached in about a minute (${T.reached} s)`);
   rows.push(`${name}: B placed ${T.first}, met ${T.B}; W met ${T.W}; portal placed ${T.portalPlaced}, reached ${T.reached.toFixed(1)} s`);
 }
 // lingering at the start: the decoys come round (and swim over), then the portal near; they go to it

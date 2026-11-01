@@ -32,6 +32,9 @@ export const RINGS = {
 /** Where you start (leaf A, 650 µm from its base) and wake after a restart. */
 export const START_SPOT = { leaf: 0, u: 6.5, v: 0.6 };
 
+/** The most a spoke's leaf-to-leaf hand-over leaves between the head and the next leaf (units). */
+export const HANDOVER_GAP = 0.36;
+
 export const LAYER_SUBSTRATE = 1;
 export const LAYER_SPECIMEN = 2;
 const FL = 200, FW = 56; // film grid (along, across)
@@ -395,25 +398,39 @@ function buildSpokes(world) {
       // the last leaf's tip region is on the portal ring
       const left = RINGS.portal - r0;
       const last = left < 23;
-      const len = last ? Math.max(14, left + 2.6) : Math.max(12, Math.min(16 + rnd() * 3, left - 16));
+      const lr = last ? 0 : rnd();
+      // (its length from where its base ends up: the tuck below can move it on)
+      const lenAt = (b) => { const l = RINGS.portal - Math.hypot(b.x - S.x, b.z - S.z); return last ? Math.max(14, l + 2.6) : Math.max(12, Math.min(16 + lr * 3, l - 16)); };
       const kind = last || j % 2 ? 'sphagnum' : 'lamina';
       const hw = last ? 4.4 : Math.min(4.2, 2.3 + 0.5 * j);
-      const make = (b) => new Leaf({ id: -1, name: last ? `Sphagnum leaf (spoke ${k + 1}, the rim)` : `${kind === 'sphagnum' ? 'Sphagnum leaf' : 'leaf'} (spoke ${k + 1}, ${j + 1})`, kind, base: b.toArray(), dir: lead.toArray(), normalHint: nh.toArray(), len, hw, spoke: k, pool: last });
-      let L = make(base);
+      const make = (b, lead, nh) => new Leaf({ id: -1, name: last ? `Sphagnum leaf (spoke ${k + 1}, the rim)` : `${kind === 'sphagnum' ? 'Sphagnum leaf' : 'leaf'} (spoke ${k + 1}, ${j + 1})`, kind, base: b.toArray(), dir: lead.toArray(), normalHint: nh.toArray(), len: lenAt(b), hw, spoke: k, pool: last });
+      let L = make(base, lead, nh);
       // tuck it under the last leaf: clear of it everywhere they overlap
-      // (0.08 units at least), the head's gap at the hand-over ~0.25
+      // (0.08 units at least), the head's gap at the hand-over ~0.25. Where
+      // the chain levels out of a climb the new leaf is flatter than the last
+      // one, so the gap opens towards the tip: it then levels out less here
+      // (turned part of the way back to the last leaf's tilt) until the gap
+      // is within HANDOVER_GAP, well inside the claws' reach (gait.js: 0.55).
       if (j > 0) {
-        let clear = Infinity;
-        for (let u = tipU(prev) - 1.8; u <= prev.len; u += 0.2) for (let v = -prev.hw0; v <= prev.hw0; v += 0.25) {
-          if (!prev.inside(u, v, 0)) continue;
-          const loc = L.toLocal(prev.toWorld(u, v, -prev.thick / 2), {});
-          if (!L.inside(loc.u, loc.v, -0.1)) continue;
-          clear = Math.min(clear, loc.n - L.thick / 2);
+        // (a shorter overlap first, the base 0.6 back from where a body stops, not 1.3)
+        for (const [s, back] of [[1, 1.3], [1, 0.6], [1, 0], [1, -0.5], [1, -1], [0.75, -0.5], [0.5, -0.5], [0.75, 0.6], [0.5, 0.6], [0.3, 0.6], [0.15, 0.6], [0, 0.6]]) {
+          const ld = s === 1 ? lead : prev.U.clone().lerp(lead, s).normalize();
+          const nn = s === 1 ? nh : prev.N.clone().lerp(nh, s).normalize();
+          const b = base.clone().addScaledVector(prev.U, 1.3 - back);
+          L = make(b, ld, nn);
+          let clear = Infinity;
+          for (let u = tipU(prev) - 1.8; u <= prev.len; u += 0.2) for (let v = -prev.hw0; v <= prev.hw0; v += 0.25) {
+            if (!prev.inside(u, v, 0)) continue;
+            const loc = L.toLocal(prev.toWorld(u, v, -prev.thick / 2), {});
+            if (!L.inside(loc.u, loc.v, -0.1)) continue;
+            clear = Math.min(clear, loc.n - L.thick / 2);
+          }
+          const head = L.toLocal(prev.toWorld(tipU(prev) + 2, 0, prev.thick / 2), {});
+          const gap = head.n - L.thick / 2;
+          const shift = Math.min(gap - 0.25, clear - 0.08); // + moves it up, nearer the last leaf
+          if (Math.abs(shift) > 1e-3) L = make(b.addScaledVector(L.N, shift), ld, nn);
+          if (gap - shift <= HANDOVER_GAP) break;
         }
-        const head = L.toLocal(prev.toWorld(tipU(prev) + 2, 0, prev.thick / 2), {});
-        const gap = head.n - L.thick / 2;
-        const shift = Math.min(gap - 0.25, clear - 0.08); // + moves it up, nearer the last leaf
-        if (Math.abs(shift) > 1e-3) L = make(base.addScaledVector(L.N, shift));
       }
       L.ring = j;
       leaves.push(L);
