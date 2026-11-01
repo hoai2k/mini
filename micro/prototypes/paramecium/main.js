@@ -73,7 +73,7 @@ const hud = mountHud({
     look: 'Microscope technique',
     zoom: 'Objective (chase camera: distance)',
   }),
-  note: `Goal: eat ${GOAL} prey (bacterial clumps and Chilomonas)${GREEN ? '; in the sunlit patch your Chlorella feed you and the dash recharges faster' : ''}. Head out in any direction: the challenges lie in rings round the start, the same whichever way you go. A little calm water first, then Dileptus (trichocysts, B, drive it off), a Chlamydomonas bloom to push and gulp through, two Didinium (trichocysts can't stop them: keep away, dodge), and about 4 mm out the way on: a biofilm on a leaf under a golden light, guarded by a bladderwort trap. Make the trap fire and miss until it is spent, then swim down onto the leaf. Nothing runs down: stay in calm water as long as you like. The ring points to the floor where Amoeba proteus crawls (the way back). You glance off whatever you touch. Scale is honest (µm). Up to four players: press any button on another controller to join.`,
+  note: `Goal: eat ${GOAL} prey (bacterial clumps and Chilomonas)${GREEN ? '; in the sunlit patch your Chlorella feed you and the dash recharges faster' : ''}. Head out in any direction: the challenges lie in rings round the start, the same whichever way you go. A little calm water first, then Dileptus (trichocysts, B, drive it off), a Chlamydomonas bloom to push and gulp through, two Didinium (trichocysts can't stop them: keep away, dodge), and about 8 cm out the way on (about a minute of rushing): a biofilm on a leaf under a golden light, guarded by a bladderwort trap. Make the trap fire and miss until it is spent, then swim down onto the leaf. Nothing runs down: stay in calm water as long as you like. The ring points to the floor where Amoeba proteus crawls (the way back). You glance off whatever you touch. Scale is honest (µm). Up to four players: press any button on another controller to join.`,
 });
 hud.players(players.list);
 /** A button as the instructions should name it: the controller's, or the key while no controller is connected. */
@@ -150,15 +150,14 @@ const tiled = { darkfield: false, phase: false };
 loadTexture('MP-P01', { srgb: false }).then((t) => { if (t && !tiled.darkfield) plates.darkfield = t; });
 loadTexture('MP-P02', { srgb: false }).then((t) => { if (t && !tiled.phase) plates.phase = t; });
 // The optics map a plate across the screen as 16:9; a square tile is laid twice
-// side by side (2:1, the second mirrored) so it is not stretched much (≈11 %) and still wraps seamlessly.
+// side by side (2:1) so it is not stretched much (≈11 %) and still wraps seamlessly.
 function wideTile(t) {
   const img = t.image, w = img.width, h = img.height;
   const c = document.createElement('canvas');
   c.width = Math.min(4096, w * 2); c.height = Math.round(c.width / 2);
   const g = c.getContext('2d');
   g.drawImage(img, 0, 0, c.width / 2, c.height);
-  // the second copy mirrored: still seamless (each join meets its own mirror image) and less obviously repeated
-  g.save(); g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(img, 0, 0, c.width / 2, c.height); g.restore();
+  g.drawImage(img, c.width / 2, 0, c.width / 2, c.height); // (a mirrored copy read as a kaleidoscope: plain repeat)
   const ct = new THREE.CanvasTexture(c);
   ct.wrapS = ct.wrapT = THREE.RepeatWrapping;
   ct.colorSpace = t.colorSpace;

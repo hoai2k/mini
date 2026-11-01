@@ -20,21 +20,53 @@ the warm-up to the boss. So the long route up and to the right (4.6 mm, calm
 first half) became rings round the start (`landmarks.js` `RINGS`, µm out from
 `START`, in the plane), met at about the same distances whichever way you head:
 
-| µm out | what |
+The distances are set by the cell's measured speeds (`rush.mjs` in the
+session scratchpad, straight swims with no current): cruise (half stick)
+700 µm/s, full 1400 µm/s, a dash peaking at 2650 µm/s, and rushing (full
+stick with a dash every 2.2 s) 1510 µm/s on average.
+
+| mm out | what |
 | --- | --- |
-| 0–750 | the calm warm-up: prey, Vorticella, diatoms, Spirogyra, the sunlit patch |
-| 750–1450 | *Dileptus*'s water (home on the 1000 µm ring) |
-| 1600–2100 | the *Chlamydomonas* bloom (a band 1.8 mm along the 1850 µm ring) |
-| 2150–3050 | two *Didinium* (homes on the 2600 µm ring, ≈300 µm either side) |
-| ≈3150 | the bladderwort trap's door (bladder at 3420), on guard |
-| 3850 | the portal: the biofilm on a leaf under the golden glow |
+| 0–8 | the calm warm-up (≥ 5 s of full-speed swimming): prey, Vorticella, diatoms, Spirogyra, sunlit patches |
+| 11.5, 45 | *Dileptus*'s water (± 0.5 mm) |
+| 22.5, 56 | the *Chlamydomonas* bloom (a band 0.5 mm deep, 1.8 mm along the ring) |
+| 34, 67 | two *Didinium* (± 0.5 mm, 0.6 mm apart) |
+| 77.3 | the bladderwort trap's door (bladder at 77.6), on guard |
+| 78 | the portal: the biofilm on a leaf under the golden glow |
+
+Between one challenge and the next is about 10 mm, about seven seconds at
+full speed. Each challenge is one instance serving two rings: it waits on the
+inner one and moves out to the outer one once a player heads out there.
+Rushing out in four directions (A0, A0 + 90°, + 180°, + 270°) with the hunters
+passive and the trap spent on arrival:
+
+| direction | first obstacle | portal |
+| --- | --- | --- |
+| A0 | 7.1 s | 51.7 s |
+| A0 + 90° | 7.3 s | 52.6 s |
+| A0 + 180° | 7.3 s | 52.7 s |
+| A0 + 270° | 7.2 s | 51.8 s |
+
+Every challenge moved to the bearing ahead of the player about a second
+before they reached it (on the first direction the inner ring was already
+there). Dealing with the hunters and the trap makes it a few minutes.
+
+The dish is about 17 cm across (`world.js` `DROP_R` = the portal ring + 6 mm;
+a labelled departure). The set pieces (five Spirogyra, 70 flakes, six
+Vorticella colonies with 35 Vorticella, 24 diatoms, five sunlit patches) are
+laid out in a 7 mm scenery tile that repeats in every direction: each view
+shows every piece at its copy nearest where it looks (`world.viewAt`, before
+each view's culling), and collisions meet the copy nearest the cell. The
+pond water (`ambient.js`) repeats in its own 1.5 mm tile, coverslip dust
+included. So the field is equally full 50 mm out as at the start.
 
 - **One of each, moved to meet you** (`moveRings` in `main.js`, like
   springtail's `placeZone`): the Dileptus, the Didinium pair and the bloom are
   each moved round their ring to the bearing of whoever is heading out
   through it, but only while not engaged with anyone, and only when where it
   is lies over 750 µm and where it goes over 550 µm from every player (the
-  bloom: its whole band). `route().relocations` logs each move.
+  bloom: its whole band). It moves from 2.5 mm before its ring.
+  `route().relocations` logs each move.
 - **The portal** is placed once a game: when the first player gets 1.5 mm
   short of its ring, on the ring at their bearing, out of sight (`placePortal`:
   the leaf, the trap in front of it with its door toward the start, and the
@@ -46,26 +78,32 @@ first half) became rings round the start (`landmarks.js` `RINGS`, µm out from
   is open (`enterPortal` fires `embed.landmark('forward')`).
 - The ciliates hunt only a player out of the warm-up and near their home;
   their hunger clocks start when someone first leaves the warm-up (6 s grace,
-  then each 5 s after the last). A player who is eaten comes back alone in the
-  calm warm-up on the bearing where they were (with others: beside a teammate).
-- **The way back** stays a fixed place: the amoeba's floor 1.5 mm behind the
-  start (between the Dileptus and bloom rings that way), where the amoeba keeps
+  then each 5 s after the last). A player who is eaten comes back alone a
+  little back from where they were, on the same bearing and out of any
+  challenge's ring (with others: beside a teammate).
+- **The way back** stays a fixed place: the amoeba's floor 17 mm from the
+  start the other way from the first portal bearing (in the calm between the
+  first Dileptus and bloom rings), where the amoeba keeps
   to its patch and hunts only round it, after its own 45 s calm opening.
-- **Nothing runs down.** The sunlit patch is a bonus (the dash recharges 1.4×
+- **Nothing runs down.** The sunlit patches are a bonus (the dash recharges 1.4×
   faster there); shade costs nothing. There is no light meter, oxygen or
   hunger of your own: stay in the calm water as long as you like.
 - **Dangers you can see:** the trap's inflow is drawn as streaks rushing into
   its door, faint over its reach while the door quivers (the pulse to come),
   strong while it pulses; the bloom's sinking plumes are its cells themselves.
-- At full speed the portal ring is about three seconds away; the time goes on
-  the encounters. `window.__micro.route()` gives the rings, the portal (placed,
+- `window.__micro.route()` gives the rings, the portal (placed,
   bearing, guarded) and the relocations; `challenges()` where each begins;
   `debug.placePortal(a)` places it now.
 - Checked with a scripted swim out on two bearings away from the first one
   (A0 + 2.0 and A0 − 1.3 rad): the Dileptus, bloom and Didinium each moved to
   that bearing before the player reached them, the portal appeared on it, the
   guarded leaf turned the player back, and once the trap was spent the
-  biofilm let them through (`rings.mjs` in the session scratchpad).
+  biofilm let them through (`rings.mjs` in the session scratchpad); the
+  Dileptus also moved out to its outer ring.
+- **No forward arrow at the start:** the brass arrow at the right edge in the
+  earlier screenshots was the forward arrow, drawn before the portal existed;
+  it is now drawn only once the portal is placed (checked in a start
+  screenshot).
 
 ## The crowd: a *Chlamydomonas* bloom
 
@@ -138,7 +176,7 @@ shows where each is when it is off screen: a brass chevron for the way on, a
 hollow ring for the way back.
 
 - **Forward: the biofilm on a leaf** (the portal). A fragment of dead leaf
-  lies on the slide 3.85 mm out, at the bearing where it was found (see *The
+  lies on the slide 78 mm out, at the bearing where it was found (see *The
   rings*), under the shared golden glow, guarded by the trap. Its
   surface is coated in a biofilm: thousands of rods and dots in microcolonies
   under a faint slime sheen, which at 20× read only as texture. That texture
@@ -272,8 +310,13 @@ with today's from the same viewpoints):
   the start flake, five more on a second flake at 1250 µm), two more Spirogyra
   crossing the route at about 1500 and 2050 µm, and fourteen more diatoms along
   the way.
-- The plates' edges are not seamless and show as straight seams; seamless
-  tiles are requested (MP-P04, MP-P05) and replace them when delivered.
+- The plates' edges are not seamless and showed as straight seams. The
+  seamless tiles MP-P04 and MP-P05 are delivered and replace them; the optics
+  map a plate across the screen as 16:9, so each square tile is laid twice
+  side by side (2:1, about 11 % stretch) and still wraps seamlessly (checked:
+  the tiles' opposite edges differ no more than neighbouring columns, and
+  darkfield and phase screenshots 30 mm out show no seam; a mirrored second
+  copy was tried and read as a kaleidoscope).
 
 **Why it spun round an off-centre axis.** The swimmer put the body on a
 left-handed helix (`helixPose`): its centre sat 15 µm (the 29 µm caudatum
@@ -842,9 +885,8 @@ Not borrowed:
 Procedural stand-ins are used until the images in
 `micro/image-requests.md` are delivered; `shared/assets.js` switches
 automatically: MP-P01 (darkfield plate), MP-P02 (phase plate), MP-P03
-(pellicle, sampled as the kinety pattern). MP-P04 and MP-P05 (requested):
-seamless darkfield and phase tiles that replace the plates, whose edges show
-as seams.
+(pellicle, sampled as the kinety pattern). MP-P04 and MP-P05 (delivered):
+seamless darkfield and phase tiles that replace the plates.
 
 ## Departures, labelled
 
@@ -866,8 +908,10 @@ as seams.
 - **Roll:** about 0.45 turns a second at full speed, against roughly one per
   helix turn (1–2.5 a second) in life, and the body is not carried round the
   helix unless the corkscrew is switched on: the real motion read as spinning.
-- **Pond water texture** repeats every 1.5 mm (`ambient.js`), and its flocs
-  and small flakes are not solid.
+- **Pond water texture** repeats every 1.5 mm (`ambient.js`) and the set
+  pieces every 7 mm (`world.js` TILE); the flocs and small flakes are not solid.
+- **The dish** is about 17 cm across so the rings fit a minute of rushing; a
+  wet mount is a few mm. Everything in it keeps its true size.
 - **Cyclosis** runs about five times faster than life; the contractile
   vacuole period (6 s) is within the real range.
 - **Trichocyst recharge** (3 charges, one every 9 s) is invented: re-docking
