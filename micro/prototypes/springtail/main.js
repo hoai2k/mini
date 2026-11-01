@@ -1971,7 +1971,7 @@ function render(dt) {
     const res = marks.drawSplit(split, props.position, { kind: 'forward', range: 600 });
     let d = Infinity;
     for (const P of recs()) d = Math.min(d, Math.hypot(P.x - PORTAL.x, P.z - PORTAL.z));
-    portalLight.drawSplit(split, res, { strength: THREE.MathUtils.clamp(1.2 - d / 300, 0.5, 1), open: props.glow.open });
+    portalLight.drawSplit(split, res, { strength: THREE.MathUtils.clamp(1.2 - d / 300, 0.65, 1), open: props.glow.open });
   }
   return L;
 }

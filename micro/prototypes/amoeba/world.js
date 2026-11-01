@@ -52,7 +52,7 @@ export const TRAP_HYPHAE = [
 export function trapLayout() {
   const out = [];
   for (let k = 0; k < TRAP_CLUSTERS; k++) {
-    const a = ((k + 0.25) / TRAP_CLUSTERS) * TAU + 0.03 * Math.sin(k * 2.7);
+    const a = ((k + 0.25) / TRAP_CLUSTERS) * TAU;
     const ca = Math.cos(a), sa = Math.sin(a);
     for (const h of TRAP_HYPHAE) {
       const r = RINGS.traps + h.dr;
@@ -122,8 +122,16 @@ export function buildWorld(seed = 7) {
   // Pennate diatoms (Navicula / Pinnularia type), some seen in girdle view.
   const diatom = (x, y) => { const L = r.range(55, 125); return { type: 'diatom', x, y, ang: r() * TAU, L, W: L * r.range(0.16, 0.24), layer: 'focus', seed: r(), girdle: r() < 0.25 ? 1 : 0, glide: r.range(-2, 2) }; };
   disc(50, 300, RINGS.field, diatom);
-  // Detritus flakes on the slide.
-  disc(105, 300, RINGS.field, (x, y) => { const sz = r.range(18, 80); return { type: 'flake', x, y, ang: r() * TAU, L: sz, W: sz * r.range(0.6, 1), layer: 'focus', seed: r() }; });
+  // Detritus flakes on the slide: some in every 30° sector of every band (no
+  // empty stretch in any direction), the rest anywhere.
+  const flake = (x, y) => { const sz = r.range(18, 80); return { type: 'flake', x, y, ang: r() * TAU, L: sz, W: sz * r.range(0.6, 1), layer: 'focus', seed: r() }; };
+  for (let k = 0; k < 12; k++) for (const [r0, r1] of [[RINGS.warm + 60, 1500], [1500, 2600], [2600, 3500], [3500, RINGS.field]]) {
+    for (let tries = 0; tries < 40; tries++) {
+      const a = ((k + r()) / 12) * TAU, d = r.range(r0, r1), x = Math.cos(a) * d, y = Math.sin(a) * d, o = flake(x, y);
+      if (clear(x, y, Math.max(o.L, o.W) / 2, false)) { obstacles.push(o); break; }
+    }
+  }
+  disc(57, 300, RINGS.field, flake);
   // Floating above the focal plane: blurred.
   for (let i = 0; i < 7; i++) {
     const a = (i / 7) * TAU + r.range(-0.3, 0.3), d = i === 0 ? 150 : r.range(600, RINGS.field - 800);

@@ -377,7 +377,7 @@ export function createPortalLight({ parent = document.body, zIndex = 3, color = 
   function draw({ x, y, angle = 0, onScreen = false, strength = 1, open = 1, region = null } = {}) {
     if (x == null || !isFinite(x) || !isFinite(y)) return;
     const t = time();
-    const k = Math.max(0, Math.min(1, strength)) * (0.55 + 0.45 * open);
+    const k = Math.max(0, Math.min(1, strength)) * (0.8 + 0.2 * open);
     if (k <= 0.01) return;
     dirty = true;
     ctx.save();
@@ -403,9 +403,9 @@ export function createPortalLight({ parent = document.body, zIndex = 3, color = 
     // off screen: the light spills in from the edge on its side
     const ux = Math.cos(angle), uy = Math.sin(angle);
     const R = m * (0.26 + 0.24 * k);
-    const cx = x + ux * R * 0.35, cy = y + uy * R * 0.35;
+    const cx = x + ux * R * 0.12, cy = y + uy * R * 0.12;
     const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
-    g.addColorStop(0, pale(0.7 * k * breathe)); g.addColorStop(0.18, gold(0.6 * k * breathe)); g.addColorStop(0.5, gold(0.22 * k * breathe)); g.addColorStop(1, gold(0));
+    g.addColorStop(0, pale(0.95 * k * breathe)); g.addColorStop(0.15, pale(0.6 * k * breathe)); g.addColorStop(0.4, gold(0.35 * k * breathe)); g.addColorStop(1, gold(0));
     ctx.fillStyle = g; ctx.fillRect(cx - R, cy - R, 2 * R, 2 * R);
     streak(cx, cy, R * 1.7 * (0.85 + 0.15 * Math.sin(t * 0.7)), 0.95 * k * breathe);
     // bokeh discs drifting in from the light, spread along the edge

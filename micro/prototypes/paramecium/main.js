@@ -149,8 +149,25 @@ const plates = { darkfield: standInPlate('darkfield'), phase: standInPlate('phas
 const tiled = { darkfield: false, phase: false };
 loadTexture('MP-P01', { srgb: false }).then((t) => { if (t && !tiled.darkfield) plates.darkfield = t; });
 loadTexture('MP-P02', { srgb: false }).then((t) => { if (t && !tiled.phase) plates.phase = t; });
-loadTexture('MP-P04', { srgb: false }).then((t) => { if (t) { tiled.darkfield = true; plates.darkfield = t; } });
-loadTexture('MP-P05', { srgb: false }).then((t) => { if (t) { tiled.phase = true; plates.phase = t; } });
+// The optics map a plate across the screen as 16:9; a square tile is laid twice
+// side by side (2:1, the second mirrored) so it is not stretched much (≈11 %) and still wraps seamlessly.
+function wideTile(t) {
+  const img = t.image, w = img.width, h = img.height;
+  const c = document.createElement('canvas');
+  c.width = Math.min(4096, w * 2); c.height = Math.round(c.width / 2);
+  const g = c.getContext('2d');
+  g.drawImage(img, 0, 0, c.width / 2, c.height);
+  // the second copy mirrored: still seamless (each join meets its own mirror image) and less obviously repeated
+  g.save(); g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(img, 0, 0, c.width / 2, c.height); g.restore();
+  const ct = new THREE.CanvasTexture(c);
+  ct.wrapS = ct.wrapT = THREE.RepeatWrapping;
+  ct.colorSpace = t.colorSpace;
+  ct.anisotropy = 4;
+  t.dispose();
+  return ct;
+}
+loadTexture('MP-P04', { srgb: false }).then((t) => { if (t) { tiled.darkfield = true; plates.darkfield = Math.abs(t.image.width - t.image.height) < 4 ? wideTile(t) : t; } });
+loadTexture('MP-P05', { srgb: false }).then((t) => { if (t) { tiled.phase = true; plates.phase = Math.abs(t.image.width - t.image.height) < 4 ? wideTile(t) : t; } });
 const pellicleTex = { tex: null };
 loadTexture('MP-P03', { srgb: false }).then((t) => {
   if (!t) return;
