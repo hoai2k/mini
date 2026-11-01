@@ -74,6 +74,11 @@ export class RippleField {
     this.surfDecay = 0.25; // per second
     this.surfDiffuse = 0.18;
     this.enabled = true;
+    // calm: every array is still all zero (nothing has disturbed the film
+    // since the start). A calm field stays zero through the wave and
+    // surfactant steps, so step() and upload() skip their loops.
+    this.calm = true;
+    this.calmUploaded = false;
   }
   /** Recompute the water mask for rows/columns in the window (all by default). */
   buildMask() {
@@ -173,6 +178,7 @@ export class RippleField {
         if (!this.mask[k]) continue;
         const d2 = ((i - ci) ** 2 + (j - cj) ** 2) * this.dx * this.dx;
         this.h[k] += amount * Math.exp(-d2 / (r * r));
+        this.calm = false;
       }
     }
   }
@@ -187,6 +193,7 @@ export class RippleField {
         if (!this.mask[k]) continue;
         const d2 = ((i - ci) ** 2 + (j - cj) ** 2) * this.dx * this.dx;
         this.s[k] = Math.min(1, this.s[k] + amount * Math.exp(-d2 / (radius * radius)));
+        this.calm = false;
       }
     }
   }
@@ -195,9 +202,9 @@ export class RippleField {
     this.acc += dt;
     const sub = 1 / this.rate;
     let steps = 0;
-    while (this.acc >= sub && steps < 8) { this.waveStep(); this.acc -= sub; steps++; }
+    while (this.acc >= sub && steps < 8) { if (!this.calm) this.waveStep(); this.acc -= sub; steps++; }
     if (this.acc > sub) this.acc = 0;
-    this.surfStep(dt);
+    if (!this.calm) this.surfStep(dt);
   }
   waveStep() {
     const { n, h, p, s, mask, c2, sponge } = this;
@@ -245,6 +252,9 @@ export class RippleField {
     return true;
   }
   upload() {
+    // a calm field is all zeros, already on the GPU after one upload
+    if (this.calm && this.calmUploaded) return;
+    this.calmUploaded = this.calm;
     const { h, s } = this;
     const out = this.rg || this.half, n = this.n;
     if (this.rg) {
