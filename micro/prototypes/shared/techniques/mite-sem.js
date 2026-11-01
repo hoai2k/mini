@@ -7,6 +7,7 @@
 //   sem.resize(drawingBufferWidth, drawingBufferHeight); // on resize, in device pixels
 //   mesh.material = gMaterial({ cls: CLS.GRAIN, tex, map: 'tri', scale: 160, bump: 2.5 });
 //   each frame: sem.render(scene, camera, dt, yaw, pitch)  // renders to the screen
+//   while loading (optional): sem.warm(scene, camera)  // shaders built before the first frame
 //   or in two steps: sem.renderGBuffer(scene, camera); (adjust sem.target here);
 //     sem.composite(camera, dt, yaw, pitch, { tan })
 //     tan: [x, y] half-field tangents, for an orthographic or virtual camera
@@ -467,6 +468,7 @@ export function createSem(renderer, backTex) {
   const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   const clear = new THREE.Color(0, 0, 0);
   let mode = 0, scan = 1;
+  const warmed = new Set(); let compWarm = false; // warm(): kinds already warmed
   const u = mat.uniforms;
   // live switches for each term of the image model (1 on, 0 off)
   const toggles = {
@@ -490,6 +492,73 @@ export function createSem(renderer, backTex) {
       renderer.info.reset();
       this.renderGBuffer(scene3d, camera);
       this.composite(camera, dt, yaw, pitch);
+    },
+    /**
+     * Compile and warm every shader the scene needs, ahead of the first frame.
+     * A software renderer (SwiftShader) builds a shader for each program and
+     * vertex layout on its first draw, which made the first frame seconds
+     * long. This links the programs (in parallel where the driver offers
+     * KHR_parallel_shader_compile) and draws one object of each kind into a
+     * single pixel of the G-buffer, and the composite into one screen pixel,
+     * which it clears again; the GPU process then builds them while the page
+     * goes on loading. Nothing shows: the G-buffer is cleared before every
+     * frame, and the screen pixel is left black, as an undrawn canvas is.
+     * Call it while the page loads (before the first frame), as often as new
+     * kinds of objects appear; kinds already warmed are skipped. objects: a
+     * scene or object(s) to look through.
+     */
+    warm(objects, camera) {
+      const reps = [];
+      const visit = (o) => {
+        if (!(o.isMesh && o.material && o.material.isShaderMaterial) || o === quad) return;
+        const g = o.geometry, m = o.material;
+        const attrs = Object.keys(g.attributes).sort().map((k) => { const a = g.attributes[k]; return `${k}${a.itemSize}${a.array.constructor.name}${a.normalized ? 'n' : ''}`; }).join();
+        const key = `${o.isInstancedMesh ? 'I' : o.isBatchedMesh ? 'B' : 'M'}|${m.vertexShader.length}|${m.fragmentShader.length}|${m.side}|${JSON.stringify(m.defines || {})}|${g.index ? g.index.array.constructor.name : '-'}|${attrs}`;
+        if (warmed.has(key)) return;
+        warmed.add(key);
+        reps.push(o);
+      };
+      for (const r of [].concat(objects)) r.traverse(visit);
+      const prevTarget = renderer.getRenderTarget();
+      const prevAuto = renderer.autoClear;
+      renderer.autoClear = false;
+      try {
+        // link every new program first (three.js checks each only when first used)
+        renderer.setRenderTarget(target);
+        for (const o of reps) renderer.compile(o, camera);
+        if (!compWarm) renderer.setRenderTarget(null), renderer.compile(scene, cam);
+        // then one draw of each: a pixel of the G-buffer
+        renderer.setRenderTarget(target);
+        const sc = target.scissor.clone(), st = target.scissorTest;
+        target.scissor.set(0, 0, 1, 1); target.scissorTest = true;
+        for (const o of reps) {
+          const fc = o.frustumCulled, pc = o.perObjectFrustumCulled;
+          o.frustumCulled = false;
+          if (o.isBatchedMesh) o.perObjectFrustumCulled = false;
+          renderer.render(o, camera);
+          o.frustumCulled = fc;
+          if (o.isBatchedMesh) o.perObjectFrustumCulled = pc;
+        }
+        target.scissor.copy(sc); target.scissorTest = st;
+        // and the composite, into one screen pixel, cleared back to black
+        if (!compWarm) {
+          compWarm = true;
+          renderer.setRenderTarget(null);
+          const s4 = renderer.getScissor(new THREE.Vector4()), sTest = renderer.getScissorTest();
+          const cc = renderer.getClearColor(new THREE.Color()), ca = renderer.getClearAlpha();
+          renderer.setScissor(0, 0, 1, 1); renderer.setScissorTest(true);
+          renderer.render(scene, cam);
+          renderer.setClearColor(clear, 0); renderer.clear();
+          renderer.setClearColor(cc, ca);
+          renderer.setScissor(s4); renderer.setScissorTest(sTest);
+        }
+      } finally {
+        renderer.setRenderTarget(prevTarget);
+        renderer.autoClear = prevAuto;
+      }
+      // hand the work to the GPU process now, not at the next frame
+      renderer.getContext().flush();
+      return reps.length;
     },
     /** Step 1: the scene (gMaterials only) into the G-buffer. */
     renderGBuffer(scene3d, camera) {

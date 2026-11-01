@@ -132,6 +132,9 @@
 //                                    count: 1, 0.7 (2 views), 0.55 (3-4); for worlds that
 //                                    scale their own buffers (shared/quality.js includes it)
 //   split.compose()                  draw the regions and dividers to the screen
+//   split.prewarm()                  worlds that draw their own frames (not through
+//                                    split.render) call it in a frame that draws to the
+//                                    screen: the compose programs' first draw, unseen
 //   split.project(i, position)       -> { x, y, behind } in CSS px, as view i shows it
 //   split.centroid(positions)        -> { x, y, z } for aiming the shared camera
 //   split.spread(positions)          -> largest distance from the centroid
@@ -661,30 +664,58 @@ export function createSplitScreen(renderer, opts = {}) {
   // Both output colour spaces are compiled: the renderer's own and linear (the
   // worlds that compose display-ready images set linear around compose()).
   // compileAsync lets a driver with KHR_parallel_shader_compile build them in
-  // the background; without it the calls are still only queued here, never
-  // waited on. The first update() warms again if the world changed its output
-  // colour space or tone mapping after creating the split (a cache hit otherwise).
-  let warmCs = null, warmTm = null;
-  function warm() {
-    warmCs = renderer.outputColorSpace; warmTm = renderer.toneMapping;
+  // the background; without it the calls are only queued here, never waited
+  // on. Once they are ready, the next split.render() (or split.prewarm(), for
+  // worlds that draw their own frames) draws each of them once as a zero-area
+  // triangle, which changes no pixel, because some drivers (ANGLE on Vulkan,
+  // SwiftShader) only build the pipeline at a program's first draw. It has to
+  // be a frame that draws to the screen anyway: a draw in a frame the world
+  // skips would present a cleared canvas. update() warms again if the world
+  // changes its output colour space or tone mapping later (a cache hit for
+  // programs already built).
+  let warmCs = null, warmTm = null, warmReady = false, warmDrawn = false, composed = false;
+  function warmVariants(fn) {
     const m = regionMesh(0);
-    const prev = renderer.getRenderTarget(), mat0 = m.material;
+    const prev = renderer.getRenderTarget(), mat0 = m.material, cs0 = renderer.outputColorSpace;
     const spaces = warmCs === THREE.LinearSRGBColorSpace ? [warmCs] : [warmCs, THREE.LinearSRGBColorSpace];
     try {
       renderer.setRenderTarget(null);
       for (const cs of spaces) {
         renderer.outputColorSpace = cs;
-        for (const mat of [m.userData.mats.linear, m.userData.mats.raw]) {
-          m.material = mat;
-          if (renderer.compileAsync) renderer.compileAsync(scene, cam).catch(() => {});
-          else renderer.compile(scene, cam);
-        }
+        for (const mat of [m.userData.mats.linear, m.userData.mats.raw]) { m.material = mat; fn(); }
       }
     } catch (e) { /* only a warm-up */ } finally {
-      renderer.outputColorSpace = warmCs;
+      renderer.outputColorSpace = cs0;
       m.material = mat0;
       renderer.setRenderTarget(prev);
     }
+  }
+  function warm() {
+    warmCs = renderer.outputColorSpace; warmTm = renderer.toneMapping;
+    warmReady = false; warmDrawn = false;
+    const jobs = [];
+    warmVariants(() => {
+      if (renderer.compileAsync) jobs.push(renderer.compileAsync(scene, cam));
+      else renderer.compile(scene, cam);
+    });
+    Promise.all(jobs).catch(() => {}).then(() => { warmReady = true; });
+  }
+  /** The zero-area draws, once the programs are ready (in a frame that draws to the screen). */
+  function warmDraw() {
+    if (!warmReady || warmDrawn) return;
+    warmDrawn = true;
+    if (composed) return; // the region and divider geometry is no longer all zeros
+    const m = regionMesh(0), info = renderer.info.render;
+    const keep = [info.frame, info.calls, info.triangles, info.points, info.lines];
+    const ac = renderer.autoClear, vis = [m.visible, lineMesh.visible];
+    renderer.autoClear = false;
+    m.visible = lineMesh.visible = true;
+    m.geometry.setDrawRange(0, 3); lineGeo.setDrawRange(0, 3);
+    warmVariants(() => renderer.render(scene, cam));
+    m.geometry.setDrawRange(0, 0); lineGeo.setDrawRange(0, 0);
+    [m.visible, lineMesh.visible] = vis;
+    renderer.autoClear = ac;
+    [info.frame, info.calls, info.triangles, info.points, info.lines] = keep;
   }
   warm();
 
@@ -820,6 +851,7 @@ export function createSplitScreen(renderer, opts = {}) {
   const qx = [0, 0, 0, 0], qy = [0, 0, 0, 0], qa = [0, 0, 0, 0];
   function compose() {
     sizes();
+    composed = true;
     unscissor(null);
     const sx = 2 / W, sy = 2 / H;
     let used = 0;
@@ -884,6 +916,7 @@ export function createSplitScreen(renderer, opts = {}) {
     const L = layout;
     if (L.views.length <= 1) {
       // Fast path: straight to the screen (offset applied if the one view has one).
+      warmDraw();
       withView(0, camera, () => drawView(L.views[0] || { index: 0, slots: [], shift: { x: 0, y: 0 }, offset: zeroOffset() }, null));
       return;
     }
@@ -915,6 +948,8 @@ export function createSplitScreen(renderer, opts = {}) {
     target,
     /** Copy the screen into view i's texture (for pipelines that draw to the screen). */
     capture(i) { setSource(i, grab(i), true); },
+    /** For worlds that draw their own frames (not through split.render): call in a frame that draws to the screen. */
+    prewarm() { warmDraw(); },
     /** Draw the regions (from target(i) or capture(i)) and the dividers. */
     compose() {
       for (const v of layout.views) if (!hasSource(v.index) && targets[v.index]) setSource(v.index, targets[v.index].texture, false);
