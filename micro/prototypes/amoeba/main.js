@@ -147,6 +147,9 @@ for (const t of [textures.bg, textures.cyto]) { t.wrapS = t.wrapT = THREE.Repeat
 textures.bgMean = meanColor(textures.bg.image);
 textures.cytoMean = meanColor(textures.cyto.image);
 const view = new View(renderer, { body, cyto, world, textures });
+// Every shader program, compiled now (in the background where the driver can),
+// not on the first frame, the first split or the first pinch-off.
+view.precompile();
 
 // Delivered art replaces the stand-ins when it arrives.
 loadTexture('MP-A01', { srgb: false }).then((t) => { if (t) { textures.bg = t; textures.bgMean = meanColor(t.image); } });

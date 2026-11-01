@@ -166,6 +166,50 @@ export class View {
     return c;
   }
 
+  /**
+   * Compile every shader program the view can use, at load: the cells' masks,
+   * bodies and granules (Chaos is a cell too), each kind of prey and slide
+   * object (the fungus's trap hyphae among them), the photo layer, pinched-off
+   * fragments, the blurs, and the optics composite both to the screen and into
+   * a render target (a split-screen view). Without it the composite's split
+   * variant compiled on the frame a second player joined, and a fragment's
+   * program on every first pinch-off. The calls are only queued (compileAsync
+   * where the renderer has it: a driver with KHR_parallel_shader_compile
+   * builds them in the background), so they overlap the rest of the start-up.
+   * The stand-in materials stay alive, so a program is never released and
+   * rebuilt when the last real user of it (a fragment) is disposed.
+   */
+  precompile() {
+    const r = this.renderer;
+    if (!this.warmScene) {
+      this.warmScene = new THREE.Scene();
+      for (const fs of [PREY_FS, SPIRO_FS, DIATOM_FS, FLAKE_FS, TRAP_FS, LEAF_FS, PHOTO_FS, FRAG_FS]) {
+        const m = new THREE.Mesh(this.quadGeo, propertyMaterial({ vertexShader: QUAD_VS, fragmentShader: fs, uniforms: {} }));
+        m.frustumCulled = false;
+        m.visible = false;
+        this.warmScene.add(m);
+      }
+    }
+    const go = (scene, camera) => { if (r.compileAsync) r.compileAsync(scene, camera).catch(() => {}); else r.compile(scene, camera); };
+    const prev = r.getRenderTarget(), o = this.optics, mat0 = o.quad.material;
+    try {
+      r.setRenderTarget(this.maskRT);
+      for (const c of this.cells) go(c.maskScene, this.camera);
+      r.setRenderTarget(o.focusRT);
+      for (const c of this.cells) go(c.scene, this.camera);
+      for (const sc of [this.focusScene, this.aboveScene, this.warmScene]) go(sc, this.camera);
+      o.quad.material = o.blurMat;
+      go(o.quadScene, o.quadCam);
+      o.quad.material = o.compMat;
+      go(o.quadScene, o.quadCam); // into a render target: a split-screen view
+      r.setRenderTarget(null);
+      go(o.quadScene, o.quadCam); // to the screen
+    } catch (e) { /* only a warm-up */ } finally {
+      o.quad.material = mat0;
+      r.setRenderTarget(prev);
+    }
+  }
+
   /** The same layer, a new body and cytoplasm (a player's amoeba starting over). */
   rebindCell(c, body, cyto) {
     c.body = body;

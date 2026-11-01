@@ -349,6 +349,99 @@ function staticSetae(geo, list, mat) {
   return im;
 }
 
+// ---------- fewer draws per mite ----------
+// Parts that share a material are drawn together (5 draws a mite, 4 for the
+// predator, instead of 9): the notogaster and the aspis are one mesh, the leg
+// segments and tarsi one instanced mesh, and the body, prodorsal and leg
+// setae another. gMaterial({ frames: true }) places each part with the
+// matrices three.js would have used for its old mesh (set per draw by
+// frameUniforms), so the image is bit-identical. Bounds stay conservative.
+
+/** Grow sphere `s` to contain the sphere (c, r). */
+function unionSphere(s, c, r) {
+  if (s.isEmpty()) { s.center.copy(c); s.radius = r; return s; }
+  const d = s.center.distanceTo(c);
+  if (d + r <= s.radius) return s;
+  if (d + s.radius <= r) { s.center.copy(c); s.radius = r; return s; }
+  const R = (d + s.radius + r) / 2;
+  s.center.lerp(c, (R - s.radius) / d);
+  s.radius = R + 1e-3 * R + 0.01; // round-off margin: never too small
+  return s;
+}
+/** Concatenate a and b (position, normal, uv, index) into one geometry; b's vertices follow a's. */
+function concatGeo(a, b) {
+  const nA = a.attributes.position.count, nB = b.attributes.position.count;
+  const g = new THREE.BufferGeometry();
+  for (const k of ['position', 'normal', 'uv']) {
+    const A = a.attributes[k], B = b.attributes[k];
+    const arr = new Float32Array((nA + nB) * A.itemSize);
+    arr.set(A.array, 0); arr.set(B.array, nA * A.itemSize);
+    g.setAttribute(k, new THREE.BufferAttribute(arr, A.itemSize));
+  }
+  const iA = a.index.array, iB = b.index.array;
+  const idx = nA + nB > 65535 ? new Uint32Array(iA.length + iB.length) : new Uint16Array(iA.length + iB.length);
+  idx.set(iA, 0);
+  for (let i = 0; i < iB.length; i++) idx[iA.length + i] = iB[i] + nA;
+  g.setIndex(new THREE.BufferAttribute(idx, 1));
+  return g;
+}
+/** The notogaster and aspis as one geometry (aspis vertices from `split` on, in the aspis frame). */
+function bodyGeometry(G, AN) {
+  if (G.body) return G.body;
+  for (const g of [G.noto, G.aspis]) if (!g.boundingSphere) g.computeBoundingSphere();
+  const geo = concatGeo(G.noto, G.aspis);
+  G.body = { geo, split: G.noto.attributes.position.count, total: geo.attributes.position.count };
+  return G.body;
+}
+/** A geometry of its own (for its own bounds) on the same buffers. */
+function sharedGeo(g) {
+  const o = new THREE.BufferGeometry();
+  for (const k in g.attributes) o.setAttribute(k, g.attributes[k]);
+  o.setIndex(g.index);
+  return o;
+}
+const _is = new THREE.Sphere(), _im4 = new THREE.Matrix4();
+/** Bounds of instances [from, to) of an InstancedMesh, in its own frame (as computeBoundingSphere does), into out. */
+function instSphere(im, from, to, out) {
+  const gs = im.geometry.boundingSphere || (im.geometry.computeBoundingSphere(), im.geometry.boundingSphere);
+  out.makeEmpty();
+  for (let i = from; i < to; i++) { im.getMatrixAt(i, _im4); unionSphere(out, _is.copy(gs).applyMatrix4(_im4).center, _is.radius); }
+  return out;
+}
+/** Leg segment and tarsus lathes (same topology) as one geometry: the tarsus in positionB, normalB, uvB. */
+function legGeometry(G) {
+  if (G.legGeo) return G.legGeo;
+  const s = G.seg, t = G.tars;
+  const same = s.index.count === t.index.count && s.index.array.every((v, i) => v === t.index.array[i]) && s.attributes.position.count === t.attributes.position.count;
+  if (!same) throw new Error('mite: segment and tarsus lathes differ in topology');
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', s.attributes.position);
+  geo.setAttribute('normal', s.attributes.normal);
+  geo.setAttribute('uv', s.attributes.uv);
+  geo.setAttribute('positionB', t.attributes.position);
+  geo.setAttribute('normalB', t.attributes.normal);
+  geo.setAttribute('uvB', t.attributes.uv);
+  geo.setIndex(s.index);
+  for (const g of [s, t]) if (!g.boundingSphere) g.computeBoundingSphere();
+  // instance bounds come from this sphere, so it holds both lathes
+  geo.boundingSphere = unionSphere(s.boundingSphere.clone(), t.boundingSphere.center, t.boundingSphere.radius);
+  G.legGeo = geo;
+  return geo;
+}
+const _fmv = new THREE.Matrix4();
+/**
+ * Frame i (1 or 2) of a frames material: the matrices three.js computes for
+ * an object at obj (its matrixWorld, and the normal matrix of its model-view
+ * matrix for this camera), as it would have for the old separate mesh.
+ */
+function frameUniforms(mat, i, obj, camera) {
+  const u = mat.uniforms;
+  u[i === 1 ? 'uFrame1' : 'uFrame2'].value.copy(obj.matrixWorld);
+  _fmv.multiplyMatrices(camera.matrixWorldInverse, obj.matrixWorld);
+  u[i === 1 ? 'uNormal1' : 'uNormal2'].value.getNormalMatrix(_fmv);
+  mat.uniformsNeedUpdate = true;
+}
+
 /** Lowest point of an ellipsoid (centre c, radii r) along local direction d. */
 function support(c, r, d, out) {
   const mx = r[0] * r[0] * d.x, my = r[1] * r[1] * d.y, mz = r[2] * r[2] * d.z;
@@ -401,35 +494,73 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
   // the walkable square (world.js BOUNDS), kept 150 µm inside, in this mite's units
   const BX0 = (BOUNDS.x0 + 150) / k, BX1 = (BOUNDS.x1 - 150) / k, BZ0 = (BOUNDS.z0 + 150) / k, BZ1 = (BOUNDS.z1 - 150) / k;
   const G = AN.kind === 'pred' ? predGeometry() : geometry();
-  const cut = gMaterial({ cls, tex: tex.cuticle, map: 'tri', scale: 150, bump: 1.6, objSpace: true });
-  const legMat = gMaterial({ cls });
+  // frames materials: one draw for parts posed in different frames (see "fewer draws per mite")
+  const cut = gMaterial({ cls, tex: tex.cuticle, map: 'tri', scale: 150, bump: 1.6, objSpace: true, frames: true });
+  const legMat = gMaterial({ cls, frames: true });
   const thinMat = gMaterial({ cls, thin: 1 });
+  const setaMat = gMaterial({ cls, thin: 1, frames: true });
 
   const body = new THREE.Group();
-  const noto = new THREE.Mesh(G.noto, cut);
+  // the notogaster and the aspis: one mesh; the aspis vertices are placed by
+  // aspisFrame, an empty object where the aspis mesh used to be
+  const BG = bodyGeometry(G, AN);
+  const noto = new THREE.Mesh(sharedGeo(BG.geo), cut);
+  cut.uniforms.uRange1.value.set(BG.split, BG.total);
   body.add(noto);
   const aspis = new THREE.Group();
   aspis.position.set(...AN.hinge);
-  aspis.add(new THREE.Mesh(G.aspis, cut));
-  const setaeMeshes = [staticSetae(G.seta, G.aspSetae, thinMat), staticSetae(G.sensillus, G.sens, thinMat), staticSetae(G.seta, G.bodySetae, thinMat)];
-  aspis.add(setaeMeshes[0], setaeMeshes[1]);
+  const aspisFrame = new THREE.Object3D();
+  aspis.add(aspisFrame);
+  // where the body setae used to hang (their frame)
+  const bodyFrame = new THREE.Object3D();
+  noto.onBeforeRender = (r, s, camera) => frameUniforms(cut, 1, aspisFrame, camera);
+  // sensilli: their own lathe, on the aspis (the predator has none)
+  const setaeMeshes = G.sens.length ? [staticSetae(G.sensillus, G.sens, thinMat)] : [];
+  if (setaeMeshes.length) aspis.add(...setaeMeshes);
   body.add(aspis);
-  body.add(setaeMeshes[2]);
+  body.add(bodyFrame);
   root.add(body);
-  // noto is culled by its own (exact) geometry bounds, like the aspis
+  // noto (with the aspis) is culled by bounds that hold every pose of the aspis
 
-  // legs: instanced in world space, 4 segments + tarsus + claw + setae per leg
-  const segIM = new THREE.InstancedMesh(G.seg, legMat, 32);
-  const tarIM = new THREE.InstancedMesh(G.tars, legMat, 8);
+  // legs: instanced in world space, 4 segments + tarsus + claw + setae per leg;
+  // the 32 segments and 8 tarsi are one instanced mesh (tarsi from instance 32: positionB)
+  const legIM = new THREE.InstancedMesh(legGeometry(G), legMat, 40);
+  legMat.uniforms.uRangeB.value.set(32, 40);
   const clawIM = new THREE.InstancedMesh(G.claw, thinMat, 8);
   // leg setae: [segment index (1 fe, 2 ge, 3 ti, 4 ta), position along, azimuth, length]
   const LS = [[1, 0.35, 0.5, 30], [1, 0.7, 2.6, 26], [2, 0.6, 1.4, 24], [3, 0.4, 0.3, 30], [3, 0.75, 2.9, 28], [4, 0.2, 0.8, 26], [4, 0.45, 2.2, 30], [4, 0.7, 1.2, 34], [4, 0.85, 3.6, 22]];
-  const setIM = new THREE.InstancedMesh(G.seta, thinMat, 8 * LS.length + 1);
+  // every seta in one instanced mesh: the body setae (body frame), the
+  // prodorsal setae (aspis frame), then the leg setae (the mite's own frame)
+  const nBody = G.bodySetae.length, nAsp = G.aspSetae.length, LEG0 = nBody + nAsp;
+  const setIM = new THREE.InstancedMesh(G.seta, setaMat, LEG0 + 8 * LS.length + 1);
+  G.bodySetae.forEach((s, i) => setInst(setIM, i, s.p, s.d, V3(0, 1, 0), s.rad, s.len));
+  G.aspSetae.forEach((s, i) => setInst(setIM, nBody + i, s.p, s.d, V3(0, 1, 0), s.rad, s.len));
+  setaMat.uniforms.uRange1.value.set(0, nBody);
+  setaMat.uniforms.uRange2.value.set(nBody, LEG0);
+  setIM.onBeforeRender = (r, s, camera) => { frameUniforms(setaMat, 1, bodyFrame, camera); frameUniforms(setaMat, 2, aspisFrame, camera); };
+  // bounds of the body setae (body frame) and the prodorsal setae (aspis frame)
+  const bodySetaeS = instSphere(setIM, 0, nBody, new THREE.Sphere()), aspSetaeS = instSphere(setIM, nBody, LEG0, new THREE.Sphere());
+  for (const g of [G.noto, G.aspis]) if (!g.boundingSphere) g.computeBoundingSphere();
+  const _bs = new THREE.Sphere(), _bm4 = new THREE.Matrix4();
   // The legs are instanced in the mite's own frame. Their bounds are
   // recomputed from the instances each pose (legBounds), so a split view
   // that cannot see this mite skips its legs instead of drawing them.
-  for (const im of [segIM, tarIM, clawIM, setIM]) root.add(im);
-  const legBounds = () => { segIM.computeBoundingSphere(); tarIM.computeBoundingSphere(); clawIM.computeBoundingSphere(); setIM.computeBoundingSphere(); };
+  for (const im of [legIM, clawIM, setIM]) root.add(im);
+  // Bounds for this pose (pose() is the only place the body and aspis move):
+  // the merged body in the body frame, the setae in the mite's own frame.
+  const legBounds = () => {
+    legIM.computeBoundingSphere(); clawIM.computeBoundingSphere();
+    body.updateMatrix(); aspis.updateMatrix();
+    const bs = noto.geometry.boundingSphere || (noto.geometry.boundingSphere = new THREE.Sphere());
+    bs.copy(G.noto.boundingSphere);
+    unionSphere(bs, _bs.copy(G.aspis.boundingSphere).applyMatrix4(aspis.matrix).center, _bs.radius);
+    const ss = setIM.boundingSphere || (setIM.boundingSphere = new THREE.Sphere());
+    instSphere(setIM, LEG0, setIM.count, ss);
+    if (setIM.count > 0) {
+      if (nBody) unionSphere(ss, _bs.copy(bodySetaeS).applyMatrix4(body.matrix).center, _bs.radius);
+      if (nAsp) unionSphere(ss, _bs.copy(aspSetaeS).applyMatrix4(_bm4.multiplyMatrices(body.matrix, aspis.matrix)).center, _bs.radius);
+    }
+  };
 
   const legs = [];
   for (let k = 0; k < 4; k++) for (const side of [-1, 1]) {
@@ -868,15 +999,16 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     const rc = st.retract;
     const hide = rc > 0.97;
     for (const m of setaeMeshes) m.visible = cfg.setae;
-    segIM.count = hide ? 0 : 32; tarIM.count = clawIM.count = hide ? 0 : 8; setIM.count = hide ? 0 : setIM.instanceMatrix.count;
+    // the body and prodorsal setae (instances 0..LEG0) show whenever setae are on
+    legIM.count = hide ? 0 : 40; clawIM.count = hide ? 0 : 8; setIM.count = cfg.setae ? LEG0 : 0;
     if (!hide) {
       const U = _U.set(0, 1, 0).applyQuaternion(q);
       const shrink = 1 - 0.72 * rc;
-      let si = 0;
+      let si = LEG0;
       _pk[0] = rc; _pk[1] = shrink;
       for (let i = 0; i < legs.length; i++) si = poseLeg(i, center, q, U, si);
       setIM.count = cfg.setae ? si : 0;
-      segIM.instanceMatrix.needsUpdate = tarIM.instanceMatrix.needsUpdate = clawIM.instanceMatrix.needsUpdate = setIM.instanceMatrix.needsUpdate = true;
+      legIM.instanceMatrix.needsUpdate = clawIM.instanceMatrix.needsUpdate = setIM.instanceMatrix.needsUpdate = true;
     }
     legBounds();
   }
@@ -925,12 +1057,12 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     const ta = _ta.copy(Fe).sub(J);
     const taLen = ta.length();
     const kneeDir = _kd.copy(K).sub(Fm).normalize();
-    _RL[0] = rad[0]; _RL[1] = seg[0] + rad[0] * 0.4; setInstRL(segIM, i * 4, H, dirT, U);
-    _RL[0] = rad[1]; _RL[1] = seg[1] + rad[1] * 0.4; setInstRL(segIM, i * 4 + 1, T, u1, U);
-    _RL[0] = rad[2]; _RL[1] = seg[2] + rad[2] * 0.4; setInstRL(segIM, i * 4 + 2, Fm, kneeDir, U);
-    _RL[0] = rad[3]; _RL[1] = seg[3] + rad[3] * 0.4; setInstRL(segIM, i * 4 + 3, K, tib, U);
+    _RL[0] = rad[0]; _RL[1] = seg[0] + rad[0] * 0.4; setInstRL(legIM, i * 4, H, dirT, U);
+    _RL[0] = rad[1]; _RL[1] = seg[1] + rad[1] * 0.4; setInstRL(legIM, i * 4 + 1, T, u1, U);
+    _RL[0] = rad[2]; _RL[1] = seg[2] + rad[2] * 0.4; setInstRL(legIM, i * 4 + 2, Fm, kneeDir, U);
+    _RL[0] = rad[3]; _RL[1] = seg[3] + rad[3] * 0.4; setInstRL(legIM, i * 4 + 3, K, tib, U);
     const taDir = ta.divideScalar(taLen || 1);
-    _RL[0] = rad[4]; _RL[1] = taLen; setInstRL(tarIM, i, J, taDir, U);
+    _RL[0] = rad[4]; _RL[1] = taLen; setInstRL(legIM, 32 + i, J, taDir, U);
     _RL[0] = 24 * shrink; _RL[1] = 24 * shrink; setInstRL(clawIM, i, _t1.copy(Fe).addScaledVector(taDir, -4 * shrink), taDir, U);
     if (cfg.setae) {
       const FR = _frames;
@@ -1111,7 +1243,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     get mode() { return st.mode; },
     /** Speed, world µm/s. */
     get speed() { return st.speed * k; },
-    meshes: [body, segIM, tarIM, clawIM, setIM],
-    setVisible(v) { for (const m of [body, segIM, tarIM, clawIM, setIM]) m.visible = v; },
+    meshes: [body, legIM, clawIM, setIM],
+    setVisible(v) { for (const m of [body, legIM, clawIM, setIM]) m.visible = v; },
   };
 }

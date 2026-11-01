@@ -16,7 +16,7 @@
 // INPUTS
 // - Every visible mesh must use a gMaterial (a G-buffer writer); other
 //   materials would write colours that the composite misreads. Works with
-//   Mesh and InstancedMesh (non-uniform instance scale handled).
+//   Mesh, InstancedMesh (non-uniform instance scale handled) and BatchedMesh.
 // - A PerspectiveCamera (fov and aspect are read to rebuild view positions).
 // - Units: the AO radius, shadow march and edge thresholds are in scene units
 //   and tuned for µm at fields of 0.3-4 mm. shared.uDepthScale (µm per scene
@@ -170,9 +170,19 @@ const gVert = /* glsl */ `
   varying vec3 vN; varying vec3 vView; varying vec3 vTri; varying vec3 vTriN; varying vec2 vUv;
   attribute float cutId; varying float vCutId;
   uniform float uObjSpace;
+  #include <batching_pars_vertex>
   void main() {
     vCutId = cutId;
     vec3 p = position; vec3 n = normal;
+    #ifdef USE_BATCHING
+      // a BatchedMesh (one draw for many objects, culled one by one); an
+      // identity matrix leaves p and n exactly as they are
+      mat4 bmat = getBatchingMatrix(getIndirectIndex(gl_DrawID));
+      mat3 bm3 = mat3(bmat);
+      vec3 b2 = vec3(dot(bm3[0], bm3[0]), dot(bm3[1], bm3[1]), dot(bm3[2], bm3[2]));
+      n = bm3 * (n / max(b2, vec3(1e-8)));
+      p = (bmat * vec4(p, 1.0)).xyz;
+    #endif
     #ifdef USE_INSTANCING
       mat3 im = mat3(instanceMatrix);
       vec3 s2 = vec3(dot(im[0], im[0]), dot(im[1], im[1]), dot(im[2], im[2]));
@@ -186,6 +196,51 @@ const gVert = /* glsl */ `
     vec4 mv = viewMatrix * wp;
     vView = mv.xyz;
     vUv = uv;
+    gl_Position = projectionMatrix * mv;
+  }`;
+
+// The same G-buffer vertex stage for a draw that merges parts posed in
+// different frames (gMaterial({ frames: true })), so several meshes that
+// share a material become one draw. Instances (InstancedMesh) or vertices
+// (Mesh; gl_VertexID, the index value) whose id lies in [uRange1.x, uRange1.y)
+// are placed with uFrame1 / uNormal1 instead of modelMatrix / normalMatrix,
+// those in uRange2 with uFrame2 / uNormal2; ids in uRangeB take positionB,
+// normalB and uvB instead of position, normal and uv (a second geometry of the
+// same topology). The arithmetic is gVert's, on the matrices three.js would
+// have uploaded for the separate meshes, so the image is bit-identical. The
+// caller sets the frame uniforms per draw (see frameUniforms in mite.js).
+const gVertFrames = /* glsl */ `
+  varying vec3 vN; varying vec3 vView; varying vec3 vTri; varying vec3 vTriN; varying vec2 vUv;
+  attribute float cutId; varying float vCutId;
+  attribute vec3 positionB; attribute vec3 normalB; attribute vec2 uvB;
+  uniform float uObjSpace;
+  uniform mat4 uFrame1, uFrame2; uniform mat3 uNormal1, uNormal2;
+  uniform vec2 uRange1, uRange2, uRangeB;
+  void main() {
+    vCutId = cutId;
+    #ifdef USE_INSTANCING
+      float id = float(gl_InstanceID);
+    #else
+      float id = float(gl_VertexID);
+    #endif
+    bool alt = id >= uRangeB.x && id < uRangeB.y;
+    vec3 p = alt ? positionB : position; vec3 n = alt ? normalB : normal;
+    mat4 M = modelMatrix; mat3 NM = normalMatrix;
+    if (id >= uRange1.x && id < uRange1.y) { M = uFrame1; NM = uNormal1; }
+    else if (id >= uRange2.x && id < uRange2.y) { M = uFrame2; NM = uNormal2; }
+    #ifdef USE_INSTANCING
+      mat3 im = mat3(instanceMatrix);
+      vec3 s2 = vec3(dot(im[0], im[0]), dot(im[1], im[1]), dot(im[2], im[2]));
+      n = im * (n / max(s2, vec3(1e-8)));
+      p = (instanceMatrix * vec4(p, 1.0)).xyz;
+    #endif
+    vec4 wp = M * vec4(p, 1.0);
+    vTri = mix(wp.xyz, p, uObjSpace);
+    vTriN = mix(mat3(M) * n, n, uObjSpace);
+    vN = normalize(NM * n);
+    vec4 mv = viewMatrix * wp;
+    vView = mv.xyz;
+    vUv = alt ? uvB : uv;
     gl_Position = projectionMatrix * mv;
   }`;
 
@@ -234,13 +289,15 @@ const gFrag = /* glsl */ `
 /**
  * A G-buffer material.
  * @param {{cls:number, thin?:number, tex?:THREE.Texture, map?:'uv'|'tri'|'none',
- *   scale?:number, bump?:number, objSpace?:boolean, cut?:boolean, side?:number}} o
+ *   scale?:number, bump?:number, objSpace?:boolean, cut?:boolean, side?:number, frames?:boolean}} o
  *   scale: UV repeat ('uv') or µm per tile ('tri'); bump: relief depth in µm.
+ *   frames: parts posed in other frames and a second geometry, chosen by
+ *   instance or vertex id (see gVertFrames); its uniforms start inactive.
  */
 export function gMaterial(o) {
   const mode = o.map === 'uv' ? 1 : o.map === 'tri' ? 2 : 0;
   const m = new THREE.ShaderMaterial({
-    vertexShader: gVert,
+    vertexShader: o.frames ? gVertFrames : gVert,
     fragmentShader: gFrag,
     side: o.side ?? THREE.FrontSide,
     uniforms: {
@@ -250,6 +307,11 @@ export function gMaterial(o) {
       uObjSpace: { value: o.objSpace ? 1 : 0 }, uCut: { value: o.cut ? 1 : 0 },
       uCutP: shared.uCutP, uCutR: shared.uCutR, uBumpOn: shared.uBumpOn, uCutOn: shared.uCutOn, uDepthScale: shared.uDepthScale,
       uCutFade: shared.uCutFade, uCutN: shared.uCutN, uCutObj: shared.uCutObj,
+      ...(o.frames ? {
+        uFrame1: { value: new THREE.Matrix4() }, uFrame2: { value: new THREE.Matrix4() },
+        uNormal1: { value: new THREE.Matrix3() }, uNormal2: { value: new THREE.Matrix3() },
+        uRange1: { value: new THREE.Vector2(-1, -1) }, uRange2: { value: new THREE.Vector2(-1, -1) }, uRangeB: { value: new THREE.Vector2(-1, -1) },
+      } : {}),
     },
   });
   m.defaultAttributeValues.cutId = [0]; // geometry without cutIds: the cylinder

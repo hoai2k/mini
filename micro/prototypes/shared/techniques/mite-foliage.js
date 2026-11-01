@@ -21,6 +21,8 @@
 //   ... each frame:
 //   fol.update(dt, [{ center, quat, radii: [rx, ry, rz], load: rodOrNull, weight }]);
 //   fol.stats -> { active, moving, maxBend }
+//   createFoliage({ onWrite(rod) {} }): called after a rod's vertices are
+//   rewritten (e.g. to refresh the bounds of a BatchedMesh object).
 //
 // Units are whatever the scene uses (the mite uses µm). No three.js scene
 // objects are created; pass three's BufferGeometry objects in.
@@ -216,6 +218,7 @@ export function createFoliage(opts = {}) {
         if (rod.geo.attributes.normal) rod.geo.attributes.normal.addUpdateRange(rod.start * 3, rod.count * 3);
       }
       dirtyGeos.add(rod.geo);
+      if (cfg.onWrite) cfg.onWrite(rod);
       if (rod.col) {
         const cp = rod.col.geo.attributes.position.array;
         for (let i = 0; i < rod.colU.length; i++) {

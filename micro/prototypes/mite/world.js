@@ -478,6 +478,45 @@ export function buildWorld(tex, { clear = [], thicket = null } = {}) {
     }
     return { meshes, where };
   };
+  /**
+   * One BatchedMesh for all of a layer's objects: one draw per view (a
+   * multi-draw), and only the objects whose bounds meet that view are drawn
+   * (the chunks above cull 1.5 mm at a time). Each object keeps the vertices
+   * mergeGeos would give it (position, normal, uv or zeros, cutId) and an
+   * identity matrix, so the image is unchanged. Returns the mesh and, per
+   * input, its geometry, first vertex and geometry id. dirty(id): the object's
+   * vertices moved (a bent blade); its bounds are recomputed before the next cull.
+   */
+  const batched = (geos, mat) => {
+    const norm = geos.map((g) => {
+      const n = g.attributes.position.count;
+      const o = new THREE.BufferGeometry();
+      o.setAttribute('position', new THREE.BufferAttribute(new Float32Array(g.attributes.position.array), 3));
+      o.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(g.attributes.normal.array), 3));
+      o.setAttribute('uv', new THREE.BufferAttribute(g.attributes.uv ? new Float32Array(g.attributes.uv.array) : new Float32Array(n * 2), 2));
+      if (geos.every((q) => q.attributes.cutId)) o.setAttribute('cutId', new THREE.BufferAttribute(new Float32Array(g.attributes.cutId.array), 1));
+      const idx = new Uint32Array(g.index ? g.index.count : n);
+      if (g.index) idx.set(g.index.array); else for (let i = 0; i < n; i++) idx[i] = i;
+      o.setIndex(new THREE.BufferAttribute(idx, 1));
+      return o;
+    });
+    const nv = norm.reduce((s, g) => s + g.attributes.position.count, 0), ni = norm.reduce((s, g) => s + g.index.count, 0);
+    const bm = new THREE.BatchedMesh(norm.length, nv, ni, mat);
+    bm.sortObjects = false; // draw in the order given (sorting buys nothing for an opaque G-buffer)
+    bm.frustumCulled = false; // its objects are culled one by one (perObjectFrustumCulled)
+    const where = [], range = {};
+    for (const g of norm) {
+      const id = bm.addGeometry(g);
+      bm.addInstance(id);
+      bm.getGeometryRangeAt(id, range);
+      where.push({ geo: bm.geometry, start: range.vertexStart, id });
+    }
+    group.add(bm);
+    // three r186 caches each object's bounds (BatchedMesh._geometryInfo); clearing
+    // them makes the next cull measure the bent object afresh
+    const dirty = (id) => { const gi = bm._geometryInfo[id]; gi.boundingBox = null; gi.boundingSphere = null; };
+    return { meshes: [bm], where, dirty };
+  };
   // The cutaway works per object (a flake, a stem, a leaf), never slicing one:
   // cut.update() in the camera code dissolves only what is in front of the mite.
   const cut = createObjectCut(2048);
@@ -524,7 +563,7 @@ export function buildWorld(tex, { clear = [], thicket = null } = {}) {
     if (r > 22) col.add(g, 'grain');
   }
   const layers = {};
-  layers.grains = chunked(gGeos, mats.grain).meshes;
+  layers.grains = batched(gGeos, mats.grain).meshes;
 
   // Litter flakes: decayed leaf fragments, curled, some propped on grains
   const lGeos = [];
@@ -558,7 +597,7 @@ export function buildWorld(tex, { clear = [], thicket = null } = {}) {
     lGeos.push(tagCut(sh.geo, cid));
     col.add(sh.col, 'litter').cutId = cid;
   }
-  layers.litter = chunked(lGeos, mats.litter).meshes;
+  layers.litter = batched(lGeos, mats.litter).meshes;
 
   // Moss shoots: stems with leaves on a 2/5 spiral (137.5 deg divergence).
   // The first ten stand where they always have round the start (two short
@@ -669,9 +708,11 @@ export function buildWorld(tex, { clear = [], thicket = null } = {}) {
       bladeInfo.push({ geoIndex: leafGeos.length - 1, base: start.clone(), tip: tip.clone(), samples, entry: e, L, stiff: lowest ? 3.2 : clamp01((560 / L) ** 2 * 1.1), info });
     }
   }
-  const stemCh = chunked(stemGeos, mats.stem), leafCh = chunked(leafGeos, mats.leaf);
+  const stemCh = batched(stemGeos, mats.stem), leafCh = batched(leafGeos, mats.leaf);
   layers.moss = [...stemCh.meshes, ...leafCh.meshes];
-  const foliage = createFoliage({ near: 650 });
+  // a bent blade's bounds are measured again before the next cull (see batched)
+  const bladeId = new Map();
+  const foliage = createFoliage({ near: 650, onWrite: (rod) => { const id = bladeId.get(rod); if (id !== undefined) leafCh.dirty(id); } });
   for (const b of bladeInfo) {
     const w = leafCh.where[b.geoIndex];
     const rod = foliage.add({ geo: w.geo, start: w.start, count: leafGeos[b.geoIndex].attributes.position.count,
@@ -679,6 +720,7 @@ export function buildWorld(tex, { clear = [], thicket = null } = {}) {
       col: { geo: b.entry.mesh.geometry, onMove: (c, r) => { b.entry.c.copy(c); b.entry.r = r; } } });
     b.entry.rod = rod;
     b.info.rod = rod;
+    bladeId.set(rod, w.id);
   }
 
   // Ground probe from above, for placing things on the topmost surface

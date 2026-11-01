@@ -50,22 +50,14 @@ export class RippleField {
    *   side; c2: Courant number squared (<0.5); rate: wave steps per second.
    */
   constructor({ size = 80, n = 256, inside = () => true, c2 = 0.3, rate = 240 } = {}) {
-    this.size = size; this.n = n; this.dx = size / n; this.c2 = c2; this.rate = rate;
-    this.h = new Float32Array(n * n); this.p = new Float32Array(n * n);
-    this.s = new Float32Array(n * n); this.s2 = new Float32Array(n * n);
-    this.mask = new Uint8Array(n * n);
+    this.size = size; this.c2 = c2; this.rate = rate;
+    // the grid and rate it was made with: setResolution() scales the
+    // per-step damping and the surfactant's diffusion from these
+    this.rate0 = rate; this.dx0 = size / n;
     this.inside = inside;
     this.ox = 0; this.oz = 0; // window centre (world mm)
     this.origin = { value: new THREE.Vector2(0, 0) };
-    // sponge: extra damping in a rim of cells so ripples die before the edge
-    this.sponge = new Float32Array(n * n);
-    const W = Math.max(4, Math.round(n / 14));
-    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
-      const m = Math.min(i, j, n - 1 - i, n - 1 - j);
-      this.sponge[i + j * n] = m < W ? 0.12 * ((W - m) / W) ** 2 : 0;
-    }
-    this.buildMask(0, 0, n);
-    this.half = new Uint16Array(n * n * 2);
+    this.alloc(n);
     this.texture = new THREE.DataTexture(this.half, n, n, THREE.RGFormat, THREE.HalfFloatType);
     this.texture.minFilter = this.texture.magFilter = THREE.LinearFilter;
     this.texture.wrapS = this.texture.wrapT = THREE.ClampToEdgeWrapping;
@@ -80,6 +72,46 @@ export class RippleField {
     // surfactant steps, so step() and upload() skip their loops.
     this.calm = true;
     this.calmUploaded = false;
+  }
+  /** (Re)allocate the arrays for n cells a side (at this.rate); the film starts calm. */
+  alloc(n) {
+    this.n = n; this.dx = this.size / n;
+    this.stepK = this.rate0 / this.rate; // per-step damping x this, so damping per second stays put
+    this.diffK = (this.dx0 / this.dx) ** 2; // surfactant diffusion is in cells: the same mm^2/s
+    this.h = new Float32Array(n * n); this.p = new Float32Array(n * n);
+    this.s = new Float32Array(n * n); this.s2 = new Float32Array(n * n);
+    this.mask = new Uint8Array(n * n);
+    this.spare = null; this.maskSpare = null;
+    // sponge: extra damping in a rim of cells so ripples die before the edge
+    this.sponge = new Float32Array(n * n);
+    const W = Math.max(4, Math.round(n / 14));
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+      const m = Math.min(i, j, n - 1 - i, n - 1 - j);
+      this.sponge[i + j * n] = m < W ? 0.12 * ((W - m) / W) ** 2 * this.stepK : 0;
+    }
+    this.buildMask(0, 0, n);
+    this.half = new Uint16Array(n * n * 2);
+    if (this.rg) this.rg = new Float32Array(n * n * 2);
+  }
+  /**
+   * Change the grid (cells per side) and the wave step rate at run time. Half
+   * the cells at half the rate (128 at 120 Hz for the default 256 at 240 Hz)
+   * keeps the wave speed in mm/s, the damping per second and the surfactant's
+   * spread, with coarser ripple fronts, for about 1/8 of the stepping and 1/4
+   * of the upload. The film is cleared: ripples and surfactant are lost. The
+   * texture keeps its object but changes size; a shader's texel size
+   * (uFieldTexel) must follow this.dx. Returns whether anything changed.
+   */
+  setResolution(n, rate = this.rate) {
+    if (n === this.n && rate === this.rate) return false;
+    this.rate = rate;
+    this.alloc(n);
+    this.acc = 0;
+    this.calm = true; this.calmUploaded = false;
+    this.texture.dispose();
+    this.texture.image = { data: this.rg || this.half, width: n, height: n };
+    this.texture.needsUpdate = true;
+    return true;
   }
   /** Recompute the water mask for rows/columns in the window (all by default). */
   buildMask() {
@@ -171,6 +203,9 @@ export class RippleField {
   /** Gaussian push on the surface: negative amount = a depression that rings outward. */
   drop(x, z, radius, amount) {
     const n = this.n, r = Math.max(radius, this.dx);
+    // on a coarser grid than the field was made with, a push narrower than a
+    // cell is widened to one: lower it so it moves as much water as before
+    const vk = this.dx > this.dx0 && radius < r ? Math.max(radius, this.dx0) ** 2 / (r * r) : 1;
     const ci = (x - this.ox + this.size / 2) / this.dx - 0.5, cj = (z - this.oz + this.size / 2) / this.dx - 0.5;
     const R = Math.ceil((r * 2.2) / this.dx);
     for (let j = Math.max(1, Math.floor(cj - R)); j <= Math.min(n - 2, Math.ceil(cj + R)); j++) {
@@ -178,7 +213,11 @@ export class RippleField {
         const k = i + j * n;
         if (!this.mask[k]) continue;
         const d2 = ((i - ci) ** 2 + (j - cj) ** 2) * this.dx * this.dx;
-        this.h[k] += amount * Math.exp(-d2 / (r * r));
+        const a = amount * vk * Math.exp(-d2 / (r * r));
+        this.h[k] += a;
+        // a push is also a kick of a per step; at another step rate keep the
+        // kick per second (and so the ring's height) by moving p as well
+        if (this.stepK !== 1) this.p[k] -= a * (this.stepK - 1);
         this.calm = false;
       }
     }
@@ -209,12 +248,14 @@ export class RippleField {
   }
   waveStep() {
     const { n, h, p, s, mask, c2, sponge } = this;
+    // per-step damping (x stepK: 1 at the rate the field was made with)
+    const dm = this.damping * this.stepK, sm = 0.06 * this.stepK;
     for (let j = 1; j < n - 1; j++) {
       let k = j * n + 1;
       for (let i = 1; i < n - 1; i++, k++) {
         if (!mask[k]) { p[k] = 0; continue; }
         const lap = h[k - 1] + h[k + 1] + h[k - n] + h[k + n] - 4 * h[k];
-        const damp = 1 - (this.damping + s[k] * 0.06 + sponge[k]);
+        const damp = 1 - (dm + s[k] * sm + sponge[k]);
         p[k] = (2 * h[k] - p[k] + c2 * lap) * damp;
       }
     }
@@ -224,7 +265,7 @@ export class RippleField {
   surfStep(dt) {
     const { n, mask } = this;
     const a = this.s, b = this.s2;
-    const D = Math.min(0.24, this.surfDiffuse * dt * 60 * 0.25), decay = Math.exp(-this.surfDecay * dt);
+    const D = Math.min(0.24, this.surfDiffuse * dt * 60 * 0.25 * this.diffK), decay = Math.exp(-this.surfDecay * dt);
     for (let j = 1; j < n - 1; j++) {
       let k = j * n + 1;
       for (let i = 1; i < n - 1; i++, k++) {
@@ -276,28 +317,112 @@ export class RippleField {
   clear() { this.h.fill(0); this.p.fill(0); this.s.fill(0); }
 }
 
-/** Contacts on the film, uploaded as a uniform array of (x, z, radius, depth). */
+/**
+ * Contacts on the film, uploaded as a uniform array of (x, z, radius, depth).
+ *
+ * The shader would test every dimple at every pixel. So the dimples are also
+ * bucketed by position: a grid of `grid` x `grid` cells of `cell` mm,
+ * centred on the median dimple, lists for each cell, in the order they were
+ * added, every dimple that can reach into the cell (its reach plus `margin`);
+ * one more list holds those that can reach outside the grid. A pixel loops
+ * over its own cell's list only. A dimple left out of a list adds nothing
+ * there, and the rest are summed in the same order, so the result is
+ * identical. The lists are packed into a small float texture (uDimpleGrid)
+ * when the shader's uniforms are read, so callers just clear() and add().
+ */
 export class Dimples {
-  constructor(max = 64) {
+  constructor(max = 64, { grid = 16, cell = 4, margin = 0.75 } = {}) {
     this.max = max;
     this.list = Array.from({ length: max }, () => new THREE.Vector4());
     // uDimpleBox: (min x, min z, max x, max z) round every dimple's reach (6
     // radii), so the shader skips its loop where no dimple can reach: the
     // loop would add nothing there, so the result is the same.
     this.box = new THREE.Vector4(1e9, 1e9, -1e9, -1e9);
-    this.uniforms = { uDimples: { value: this.list }, uDimpleN: { value: 0 }, uDimpleBox: { value: this.box } };
+    // the grid: margin (mm) must cover the caustic taps' offset (the field's
+    // texel); the shader falls back to every dimple where it does not
+    this.grid = grid; this.cell = cell; this.margin = margin;
+    this.texW = 64;
+    this.tableRows = Math.ceil((grid * grid + 1) / this.texW);
+    this.gridBox = new THREE.Vector4(0, 0, 1 / cell, 0); // (x0, z0, 1 / cell, margin); margin 0 = off
+    this.counts = new Int32Array(grid * grid + 1);
+    this.cells = new Int32Array(max * 4); // per dimple: first and last cell column, row
+    this.gridTex = null;
+    this.makeGridTex(8);
+    this.dirty = true;
+    const self = this;
+    const packed = (get) => ({ get value() { self.pack(); return get(); }, set value(v) { /* derived from the dimples */ } });
+    this.uniforms = {
+      uDimples: { value: this.list }, uDimpleN: { value: 0 }, uDimpleBox: { value: this.box },
+      uDimpleGrid: packed(() => this.gridTex), uDimpleGridBox: packed(() => this.gridBox),
+    };
     this.n = 0;
     this.scale = 1;
   }
-  clear() { this.n = 0; this.uniforms.uDimpleN.value = 0; this.box.set(1e9, 1e9, -1e9, -1e9); }
+  /** The grid texture: the cell table, then `rows` rows of dimples. */
+  makeGridTex(rows) {
+    const W = this.texW, H = this.tableRows + rows;
+    this.entryCap = rows * W;
+    this.gridData = new Float32Array(W * H * 4);
+    if (!this.gridTex) {
+      this.gridTex = new THREE.DataTexture(this.gridData, W, H, THREE.RGBAFormat, THREE.FloatType);
+      this.gridTex.minFilter = this.gridTex.magFilter = THREE.NearestFilter;
+      this.gridTex.generateMipmaps = false;
+    } else {
+      this.gridTex.dispose();
+      this.gridTex.image = { data: this.gridData, width: W, height: H };
+    }
+    this.gridTex.needsUpdate = true;
+  }
+  clear() { this.n = 0; this.uniforms.uDimpleN.value = 0; this.box.set(1e9, 1e9, -1e9, -1e9); this.dirty = true; }
   /** depth > 0 presses the film down; depth < 0 is a meniscus climbing a wetted object. */
   add(x, z, r, depth) {
     if (this.n >= this.max || !depth) return;
     this.list[this.n++].set(x, z, r, depth * this.scale);
     this.uniforms.uDimpleN.value = this.n;
+    this.dirty = true;
     // reach 6|r| (R2 = 36 r^2 in the shader), padded against float rounding
     const R = Math.abs(r) * 6 * 1.01 + 1e-3, b = this.box;
     b.set(Math.min(b.x, x - R), Math.min(b.y, z - R), Math.max(b.z, x + R), Math.max(b.w, z + R));
+  }
+  /** Bucket the dimples into the grid texture (once per change; the uniforms call it). */
+  pack() {
+    if (!this.dirty) return;
+    this.dirty = false;
+    const { n, list, grid: G, cell, margin, counts, cells } = this, gb = this.gridBox;
+    gb.w = 0;
+    if (n < 8) return; // a few dimples: the plain loop is as cheap
+    // centre the grid on the median dimple (the crowd round the camera)
+    const xs = (this.xs ||= new Float64Array(this.max)), zs = (this.zs ||= new Float64Array(this.max));
+    for (let i = 0; i < n; i++) { xs[i] = list[i].x; zs[i] = list[i].y; }
+    const med = (a) => a.subarray(0, n).sort()[n >> 1];
+    const S = G * cell, x0 = med(xs) - S / 2, z0 = med(zs) - S / 2, OUT = G * G;
+    counts.fill(0);
+    let total = 0;
+    for (let i = 0; i < n; i++) {
+      const d = list[i], R = Math.abs(d.z) * 6 * 1.01 + 1e-3 + margin;
+      const ax = d.x - R, bx = d.x + R, az = d.y - R, bz = d.y + R;
+      let c0 = Math.floor((ax - x0) / cell), c1 = Math.floor((bx - x0) / cell);
+      let r0 = Math.floor((az - z0) / cell), r1 = Math.floor((bz - z0) / cell);
+      // reaches past the grid: on the outside list too
+      if (ax < x0 || az < z0 || bx >= x0 + S || bz >= z0 + S) { counts[OUT]++; total++; }
+      c0 = Math.max(c0, 0); r0 = Math.max(r0, 0); c1 = Math.min(c1, G - 1); r1 = Math.min(r1, G - 1);
+      cells[4 * i] = c0; cells[4 * i + 1] = c1; cells[4 * i + 2] = r0; cells[4 * i + 3] = r1;
+      for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) { counts[c + r * G]++; total++; }
+    }
+    if (total > this.entryCap) this.makeGridTex(Math.ceil(total / this.texW / 8) * 8);
+    // the table: each cell's run [start, end) of entries (texel = cell index)
+    const data = this.gridData, E = this.tableRows * this.texW;
+    let at = 0;
+    for (let k = 0; k <= OUT; k++) { data[4 * k] = at; at += counts[k]; data[4 * k + 1] = at; counts[k] = data[4 * k]; }
+    // the entries, in the order the dimples were added within each run
+    const put = (k, d) => { const o = 4 * (E + counts[k]++); data[o] = d.x; data[o + 1] = d.y; data[o + 2] = d.z; data[o + 3] = d.w; };
+    for (let i = 0; i < n; i++) {
+      const d = list[i], R = Math.abs(d.z) * 6 * 1.01 + 1e-3 + margin;
+      if (d.x - R < x0 || d.y - R < z0 || d.x + R >= x0 + S || d.y + R >= z0 + S) put(OUT, d);
+      for (let r = cells[4 * i + 2]; r <= cells[4 * i + 3]; r++) for (let c = cells[4 * i]; c <= cells[4 * i + 1]; c++) put(c + r * G, d);
+    }
+    gb.set(x0, z0, 1 / cell, margin);
+    this.gridTex.needsUpdate = true;
   }
   /** CPU copy of the GLSL profile (mm, negative down), for placing things on the film. */
   height(x, z) {
@@ -314,19 +439,44 @@ export class Dimples {
   }
 }
 
-/** GLSL for the dimple field (needs uniforms uDimples[MAXD], uDimpleN). */
+/** GLSL for the dimple field (needs MAXD, DGRID, DGRIDW, DGRIDE and the Dimples uniforms). */
 export const DIMPLE_GLSL = /* glsl */ `
 uniform vec4 uDimples[MAXD];
 uniform int uDimpleN;
 uniform vec4 uDimpleBox;
+uniform sampler2D uDimpleGrid;
+uniform vec4 uDimpleGridBox;
+// The run of grid entries [start, end) that holds every dimple reaching
+// within m of p, or (-1, -1) when the grid is off or m exceeds its margin.
+ivec2 dimpleRun(vec2 p, float m) {
+  if (uDimpleGridBox.w <= m) return ivec2(-1);
+  vec2 g = floor((p - uDimpleGridBox.xy) * uDimpleGridBox.z);
+  int c = g.x < 0.0 || g.y < 0.0 || g.x >= float(DGRID) || g.y >= float(DGRID) ? DGRID * DGRID : int(g.x) + int(g.y) * DGRID;
+  vec2 se = texelFetch(uDimpleGrid, ivec2(c % DGRIDW, c / DGRIDW), 0).xy;
+  return ivec2(se + 0.5);
+}
+// the i-th dimple to sum: from the grid run, else from the whole array (vec4(0) past the end)
+bool dimpleNext(ivec2 run, int i, out vec4 d) {
+  if (run.x >= 0) {
+    int j = run.x + i;
+    if (j >= run.y) return false;
+    j += DGRIDE;
+    d = texelFetch(uDimpleGrid, ivec2(j % DGRIDW, j / DGRIDW), 0);
+    return true;
+  }
+  if (i >= uDimpleN) return false;
+  d = uDimples[i];
+  return true;
+}
 // height (mm) and gradient of all menisci at p
 float dimpleField(vec2 p, out vec2 grad) {
   float h = 0.0; grad = vec2(0.0);
   // beyond every dimple's reach the loop below adds nothing: skip it
   if (p.x < uDimpleBox.x || p.y < uDimpleBox.y || p.x > uDimpleBox.z || p.y > uDimpleBox.w) return h;
+  ivec2 run = dimpleRun(p, 0.0);
   for (int i = 0; i < MAXD; i++) {
-    if (i >= uDimpleN) break;
-    vec4 d = uDimples[i];
+    vec4 d;
+    if (!dimpleNext(run, i, d)) break;
     vec2 q = p - d.xy;
     float r2 = dot(q, q), a2 = d.z * d.z, R2 = a2 * 36.0;
     if (r2 >= R2) continue;
@@ -358,9 +508,10 @@ float dimpleTerm(vec4 d, vec2 p) {
 void dimpleTaps(vec2 c, float e, out float h0, out float hxp, out float hxm, out float hzp, out float hzm) {
   h0 = 0.0; hxp = 0.0; hxm = 0.0; hzp = 0.0; hzm = 0.0;
   if (c.x < uDimpleBox.x - e || c.y < uDimpleBox.y - e || c.x > uDimpleBox.z + e || c.y > uDimpleBox.w + e) return;
+  ivec2 run = dimpleRun(c, e);
   for (int i = 0; i < MAXD; i++) {
-    if (i >= uDimpleN) break;
-    vec4 d = uDimples[i];
+    vec4 d;
+    if (!dimpleNext(run, i, d)) break;
     vec2 q = c - d.xy;
     float reach = 6.0 * abs(d.z) + e;
     if (dot(q, q) >= reach * reach * 1.0001 + 1e-6) continue;
@@ -370,6 +521,11 @@ void dimpleTaps(vec2 c, float e, out float h0, out float hxp, out float hxm, out
   }
 }
 `;
+
+/** The defines DIMPLE_GLSL needs for these dimples. */
+export function dimpleDefines(dimples) {
+  return { MAXD: dimples.max, DGRID: dimples.grid, DGRIDW: dimples.texW, DGRIDE: dimples.tableRows * dimples.texW };
+}
 
 const WATER_VS = /* glsl */ `
 uniform sampler2D uField; uniform float uFieldSize, uRippleK; uniform vec2 uFieldOrigin;
@@ -524,7 +680,7 @@ export function waterMaterial({ field, dimples, depthGlsl, shoreGlsl = 'float sh
   };
   return new THREE.ShaderMaterial({
     uniforms,
-    defines: { MAXD: dimples.max },
+    defines: dimpleDefines(dimples),
     vertexShader: WATER_VS,
     fragmentShader: WATER_FS.replace('POOL_DEPTH', depthGlsl).replace('SHORE_DIST', shoreGlsl),
   });

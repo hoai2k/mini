@@ -90,7 +90,8 @@
 // that cuts the fill to about 35-45%. Merged, nothing is scissored. Render
 // targets are pooled by size (no reallocation on split/merge or when the
 // scale toggles), the compose geometry is preallocated, and the compose
-// shaders are compiled before the first split.
+// shaders are compiled when the split screen is created (in the background
+// where the driver can), so the first split costs no shader compile.
 // While merged there is one view and it renders straight to the screen, with
 // no extra pass at all (the fast path); one player is always the fast path.
 // `renderScale` (0.4-1, also settable live as split.renderScale) sizes each
@@ -593,7 +594,7 @@ export function createSplitScreen(renderer, opts = {}) {
     const merged = !st.split;
     layout = { merged, width: W, height: H, views, regions, edges, players, amount: amt, spread: E, angle: n === 2 ? st.angle : null };
     setRects(layout);
-    if (!warmed) warm();
+    if (renderer.outputColorSpace !== warmCs || renderer.toneMapping !== warmTm) warm();
     return layout;
   }
 
@@ -655,19 +656,37 @@ export function createSplitScreen(renderer, opts = {}) {
     renderer.setScissorTest(scissorPrevTest);
   }
 
-  // Compile the compose shaders before the first split (no hitch when it splits).
-  let warmed = false;
+  // Compile the compose shaders at creation, not at the first split (that
+  // was a 100-400 ms hitch in software GL the moment a second player joined).
+  // Both output colour spaces are compiled: the renderer's own and linear (the
+  // worlds that compose display-ready images set linear around compose()).
+  // compileAsync lets a driver with KHR_parallel_shader_compile build them in
+  // the background; without it the calls are still only queued here, never
+  // waited on. The first update() warms again if the world changed its output
+  // colour space or tone mapping after creating the split (a cache hit otherwise).
+  let warmCs = null, warmTm = null;
   function warm() {
-    if (layout.views.length < 1 || layout.players.length < 2) return;
-    warmed = true;
+    warmCs = renderer.outputColorSpace; warmTm = renderer.toneMapping;
+    const m = regionMesh(0);
+    const prev = renderer.getRenderTarget(), mat0 = m.material;
+    const spaces = warmCs === THREE.LinearSRGBColorSpace ? [warmCs] : [warmCs, THREE.LinearSRGBColorSpace];
     try {
-      const m = regionMesh(0);
-      const prev = renderer.getRenderTarget();
       renderer.setRenderTarget(null);
-      for (const mat of [m.userData.mats.linear, m.userData.mats.raw]) { m.material = mat; renderer.compile(scene, cam); }
+      for (const cs of spaces) {
+        renderer.outputColorSpace = cs;
+        for (const mat of [m.userData.mats.linear, m.userData.mats.raw]) {
+          m.material = mat;
+          if (renderer.compileAsync) renderer.compileAsync(scene, cam).catch(() => {});
+          else renderer.compile(scene, cam);
+        }
+      }
+    } catch (e) { /* only a warm-up */ } finally {
+      renderer.outputColorSpace = warmCs;
+      m.material = mat0;
       renderer.setRenderTarget(prev);
-    } catch (e) { /* only a warm-up */ }
+    }
   }
+  warm();
 
   function zeroOffset() { return mode && mode.camera ? new THREE.Vector3() : { x: 0, y: 0 }; }
   const oAdd = (a, b, k) => { if (a.isVector3) a.addScaledVector(b, k); else { a.x += b.x * k; a.y += b.y * k; } return a; };
