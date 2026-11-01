@@ -398,8 +398,27 @@ A deferred two-pass SEM model. The beam comes from the camera, so the
   three or more views); at its cheapest effects level the detector-shadow
   march is skipped. `?q=high|medium|low` fixes it; `?f=-quality` turns it off.
 
-Budget at the default view: about 27 draw calls and 330k triangles. Pixel
-ratio is capped at 1.5.
+Budget at the default view (1 player): about 88 draw calls and 335k
+triangles (more, smaller draws now: the world is merged per 1.5 mm chunk so
+each view culls what it cannot see). In split screen the G-buffer and the
+composite are both scissored to each view's region (`split.scissor`).
+
+Measured (headless SwiftShader, 640×360, `perf/measure.mjs`, `?q=high`;
+CPU numbers compare between runs, not as laptop times):
+
+| run | CPU ms/frame | raycasts (profile) | draws | prims | heap KB/frame |
+| --- | --- | --- | --- | --- | --- |
+| 1p before | 14.8 | 2.1 ms/s | 56 | 383 k | 1121 |
+| 1p after | 5.7 | 1.8 ms/s | 88 | 335 k | 933 |
+| 4p together, before | 31–45 | 29–33 ms/s | 84 | 535 k | 1830–1925 |
+| 4p together, after | 6.4 | 0.7 ms/s | 134 | 529 k | 939 |
+| 4p in 4 views, before | 34.3 | 3.2 ms/s | 332 | 2.01 M | 1834 |
+| 4p in 4 views, after | 20.0 | 2.2 ms/s | 527 | 2.28 M | 1798 |
+
+In 4 views the composite pass fell from ~71 to ~22 ms of SwiftShader time
+per view (scissor). Per-frame garbage is about half what it was alone but
+still ~0.9-1.8 MB (most of what is left is boxed numbers in the foliage,
+floor and cutaway loops, and three.js itself).
 
 ## Textures (`textures.js`)
 

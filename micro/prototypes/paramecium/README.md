@@ -2,9 +2,84 @@
 
 A playable prototype: swim as *Paramecium bursaria*, the Level 3
 protagonist of the Zoom Chain spec, through a pond drop seen through a
-microscope. Eat prey, keep your symbiotic algae in the light, and outswim
-the hunters: *Didinium*, which harpoons you on contact, and *Amoeba
-proteus*, a slow giant on the slide that cups you in its pseudopods.
+microscope. Eat prey, keep your symbiotic algae in the light, and make your
+way to the biofilm far up and to the right. The first half of the way is
+calm; beyond halfway come the hunters (*Dileptus*, which your trichocysts
+drive off, and two *Didinium*, which they cannot stop), a bladderwort trap
+across the way and a *Chlamydomonas* bloom to push and gulp through. *Amoeba
+proteus*, a slow giant that cups you in its pseudopods, guards the way back.
+
+## The route: calm first, challenges from halfway
+
+The owner: challenges "don't appear near the beginning but only once you're
+halfway at least to the destination", and the destination should be "far
+enough away to contain all the challenges along with the initial movement
+exploration phase". So the drop is now about 10 mm across (`world.js`
+`DROP_R` 5000 µm) and everything is placed along one route (`landmarks.js`:
+`START`, `DIR`, `ROUTE_LEN` 4600 µm, `progress(p)`), still starting toward
+the upper right:
+
+| µm along the route | what |
+| --- | --- |
+| 0–2300 | calm: prey, the Vorticella, diatoms, Spirogyra, the sunlit patch |
+| 2300 (halfway) | the hunters' clocks start (6 s grace, then each 5 s after the last) |
+| from 2300 | *Dileptus* (home 2720, right of the route) |
+| from 2300 | *Didinium* 1 (home 2850, left of the route) |
+| from 2500 | the bladderwort trap wakes (door at ≈3150, wake radius 650 µm) |
+| from 3100 | *Didinium* 2, inside the bloom (home 4000) |
+| 3700–4300 | the *Chlamydomonas* bloom, 2.2 mm wide across the route |
+| 4600 | the biofilm (the forward landmark) |
+
+Each ciliate hunter keeps to its own waters (`home`, `homeR` in `world.js`):
+it drifts back when it strays, is never pushed into the first half, and hunts
+only a player who is beyond halfway and near its home. The amoeba keeps to
+its floor 1.5 mm behind the start (the way back, the other way from every
+challenge) and hunts only round it, after its own 45 s calm opening. A player
+who is eaten comes back on the route a little behind where they were, never
+past halfway. `window.__micro.challenges()` lists where each challenge begins
+(geometry) and `route()` each player's progress.
+
+## The crowd: a *Chlamydomonas* bloom
+
+`bloom.js`, on `shared/crowd.js`: a band of green flagellates across the
+route between the trap and the biofilm (combat-ideas.md, the crowd set
+piece). The owner wanted crowds "you can fight through by moving and
+attacking" without too much difficulty and with no time limits, so:
+
+- **Swim** and the cells part round you (you are slowed to 0.82 of full
+  speed inside, no more). **X** gulps a cone of them ahead, clearing the way
+  (and feeding you); **A** wedges a lane open, flinging them aside. B is the
+  avoidance reaction, a deliberate reverse out of a jam.
+- **Bioconvection** (C34): more cells toward the coverslip than the slide,
+  five plume columns where the cells sit lower, and a mild current: down
+  ≈70 µm/s in a plume, up ≈25 µm/s between. Pushing through, your heading
+  wanders a little (the real cell reverses at every bump, S08: softened).
+- **No clock:** the design's oxygen meter is left out on purpose.
+- Three crowds stacked through the depth (a crowd lives in x-z), each in a
+  frame turned to the route; a player shoves only the tier at their depth.
+  1660 cells in all; eaten ones come back after 8 s, away from every player.
+- Departures: cells drawn 14 µm long (really ≈10 µm), wandering slower than
+  their ≈100 µm/s; flagella not drawn; algae as food is [Unverified].
+
+## The right defence for each hunter
+
+combat-ideas.md idea 1 (C14, C15): B fires the trichocysts, and what that
+does depends on the hunter, shown as it is:
+
+- ***Dileptus*** (new, `world.js`: a ≈330 µm flask with a long toxicyst
+  trunk, a bead-chain macronucleus): its trunk swings at you in a 1.1 s
+  wind-up, then slashes. B while the trunk is at you (wind-up, strike, or
+  holding you) drives it off: it recoils, is stunned and gives up. You need
+  not face it; the threads fire where you are touched. Fired too early, the
+  toast says so.
+- ***Didinium***: trichocysts do not stop it (wild type and mutants equally
+  vulnerable; its pexicysts hold on). B never blocks its strike; held, B
+  spends a charge and it holds on ("Trichocysts can't stop Didinium"). The
+  right play is to keep away: back off early and dash sideways as it lunges,
+  and it misses. A ram (X) staggers it for a moment, no more.
+- A **one-time hint** for each, the first time one closes in, and the
+  warning line under the goal strip names the right move for whichever is
+  at you. `window.__micro.trichoLog` records each discharge's outcome.
 Published in the prototype archive at `micro/prototypes/paramecium/`.
 
 ## Movement and camera
@@ -55,10 +130,16 @@ hollow ring for the way back.
 ## The boss: a bladderwort trap
 
 `bladderwort.js`, run by `runBoss` in `main.js` (`shared/predation.js`
-`createFight`, with more resolve). A *Utricularia* bladder about 0.56 mm long
-hangs off its stem just above the slide, between you and the biofilm, its
-door facing the way you come: trigger hairs and two branched antennae round
-the door, quadrifid glands lining the inside, a few earlier catches in it.
+`createFight`, with more resolve). A *Utricularia* bladder about half a millimetre
+long hangs on its stalk just above the slide, three quarters of the way to the
+biofilm, its door facing the way you come. Shaped after the delivered sheet
+(`assets/reference-sheets/boss-bladderwort.webp`): a rounded, slightly pear-
+shaped translucent green sac with a mottled wall of cells, its upper front
+drawn out into a collar that holds an oval door with a thick threshold; two
+branched antennae fan long bristles with dark beads along them up and
+forward from above the door, short trigger hairs below it; quadrifid glands
+dot the inside, with a brown mass of digested catches and a round prey still
+whole; the stalk joins at the back and runs to the stem.
 You glance off its wall.
 
 - **Dormant** until a player comes within ≈0.9 mm of its door after the calm
@@ -221,12 +302,10 @@ circle indicators round your creature; the previous feel was good." So:
 Hunters use the shared `shared/predation.js` (`createHunger`,
 `createCapture`), so they feel the same as in the other prototypes.
 
-- **A calm opening.** For the first 45 s of a round no hunter is hungry: the
-  Didinia wander and the amoeba creeps, and none comes for you. The second
-  Didinium wakes 12 s after the first and the amoeba 6 s after. Both Didinia
-  start 1.1–1.3 mm away, and after a restart they are put back about 1 mm
-  away, on the far side of the drop. The opening repeats after every
-  restart.
+- **Placed, not timed** (see *The route*): the ciliates' hunger clocks
+  start only once someone reaches halfway, after a 6 s grace (each 5 s after
+  the last), and they hunt only in their own waters. The amoeba by the way
+  back has a 45 s calm opening. A restart sends every hunter home.
 - **Hunger comes and goes.** Each hunter has its own clock: hungry for
   18–32 s (the amoeba 25–40 s), then resting, 45–75 s after a meal and
   15–30 s after a miss (driven off by trichocysts, or it gave up). Only a
@@ -273,7 +352,7 @@ Hunters use the shared `shared/predation.js` (`createHunger`,
     vacuole. A caption says what ate you. Then a fade, and you respawn: alone
     at a safe spot (the furthest from every hunter), together beside a
     teammate (the fade is skipped so it does not black out the others).
-- **Testing:** Features → World → *Calm opening* (45 s, 20 s or 0 s) and
+- **Testing:** Features → World → *Grace once you reach the hunters' waters* (6 s, 20 s or 0 s) and
   *Hunger comes and goes* (off: once the opening is over they hunt all the
   time, the old pacing). `window.__micro.pacing()` reports the round time,
   the first time any hunter was hungry and the first time one hunted you,
@@ -316,8 +395,10 @@ It must pass with no console errors. The page exposes `window.__micro`
 `prey`, `amoeba`, `optics`, `features`, `game`, `dash`, `look`, and `debug`
 with `setMode`, `setView`, `setOrbit`, `avoid`, `dash`, `attack`, `burst`,
 `teleport`, `didinium(dx, dz)`, `amoeba(dx, dz)`, `prey(dx, dz, i)`,
-`freeze`, `step`, `inspect`, `clean` (no overlay)) for screenshot scripts:
-freeze, set a scene up, `step(n)`, wait for a render, capture.
+`freeze`, `step`, `inspect`, `clean` (no overlay), `hungry`, `wakeBoss`,
+`press('B' | 'X')`) for screenshot scripts: freeze, set a scene up,
+`step(n)`, wait for a render, capture. Also `route()`, `challenges()`,
+`bloom`, `bloomLog()`, `trichoLog`, `hintLog`, `quality`.
 
 ## The cell
 
@@ -414,6 +495,28 @@ Kept sparse so your cell is the clearest thing in the field.
   within ≈150 µm of the slide and close by, two arms flank you into a food
   cup and close.
 
+## Performance
+
+- **Quality governor** (`shared/quality.js`): it steps the microscope's own
+  buffers (scene pass, blurs, image formation) between 1.0 and 0.5 of the
+  screen with the time between real renders (a skipped frame counts), and
+  owns the pixel ratio (1.25 alone, 1.0 split). Split views render at 0.7
+  (two) or 0.55 (three or four) of that. `?q=high|medium|low` fixes it.
+- **Per-view culling** (`cullFor` in `main.js`): every cell, hunter, the
+  amoeba, the trap and each landmark is tested against each view's own
+  frustum and the depth of field's fade, and hidden for that view only.
+  The bloom's crowds carry their own bounds. At the lowest effects step a
+  far teammate's cell keeps its body but not its cilia.
+- **Each split view renders only its region**: the optics take a `rect`
+  and scissor every pass to it, padded by the blur's reach.
+- **A lighter scene pass**: a fragment whose depth-of-field fade leaves it
+  under 0.4 % (far past the focus, or at the chase camera) is discarded
+  instead of blending four float attachments (`emit()` in
+  `paramecium-microscope.js`; the buffer layout is unchanged, so borrowers
+  are unaffected).
+- The far-off amoeba re-meshes every 8th step; the overlay's font is set
+  once per resize.
+
 ## Rendering: forming a microscope image
 
 Nothing in the scene is lit. Every object writes what a transmitted-light
@@ -493,7 +596,7 @@ it (for example `?f=-dof,look:DIC (Nomarski)`).
 | Optics | Lateral chromatic softness, objective point spread, camera noise | on/off each |
 | Optics | Eyepiece field stop | on/off |
 | Rendering | Optical-path buffers; front/back-face chord trick; sub-pixel widening | always |
-| Rendering | Adaptive resolution and frame skip | on/off |
+| Rendering | Frame skip while the GPU is behind; Quality governor (auto) + Manual quality (`shared/quality.js`); Per-view culling | on/off, choice |
 | Body | Species: *P. bursaria* (default) or *P. caudatum* (reloads) | choice |
 | Body | SDF body with carved oral groove | always |
 | Body | Chlorella symbionts (*P. bursaria*) | on/off |
@@ -506,7 +609,7 @@ it (for example `?f=-dof,look:DIC (Nomarski)`).
 | Controls | Invert camera Y (shared by every prototype) | on/off |
 | Simulation | Flow round the swimming cell; feeding currents; ambient drift; bacterial run-and-tumble | on/off each |
 | World | Didinium hunters; Didinium homing; Amoeba proteus; Vorticella stalk contraction | on/off each |
-| World | Calm opening before the hunters get hungry: 45 s (default), 20 s, 0 s | choice |
+| World | Grace once you reach the hunters' waters: 6 s (default), 20 s, 0 s; Chlamydomonas bloom | choice, on/off |
 | World | Hunger comes and goes (off: they hunt all the time once the opening ends) | on/off |
 | World | Spirogyra, detritus, diatoms, prey | always |
 | Borrowed | SEM (mite), tardigrade DIC, amoeba optics, each with its mode | on/off, default off |
@@ -593,10 +696,11 @@ automatically: MP-P01 (darkfield plate), MP-P02 (phase plate), MP-P03
   from its *Chlorella* (S27), but the drain rate and its effect on the
   dash are invented. The sunlit patch is drawn over the image, not rendered
   by the optics.
-- **Didinium homing** within ≈480 µm and its patrol back toward you are
-  invented; Didinium finds prey by collision. Its 1–1.25 mm/s is a game
-  value. Whether trichocysts free a Paramecium from Didinium (as they do from
-  *Dileptus*, S09) is unverified. Struggling with A to buy time is invented.
+- **Didinium and Dileptus homing** within ≈480 µm is invented; Didinium
+  finds prey by collision. Its 1–1.25 mm/s is a game value (Dileptus at 0.62
+  of it). Each keeping to its own waters is a placement rule, not biology.
+  Struggling with A to buy time is invented. Dileptus's wind-up and slash
+  timings are game values.
 - **Hunger and the catch timing** (the calm opening, hungry and resting
   spells, a 0.45 s strike, the hold and a 1.8 s swallow) are game values.
   Didinium's swallow takes minutes in life; the gape is drawn as a lip ring

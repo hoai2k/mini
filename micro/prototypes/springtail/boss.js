@@ -5,7 +5,7 @@
 //
 // Readable states:
 //   dormant   on the moss, still (a leg twitches); wakes when a player comes
-//             within 30 mm after the calm opening
+//             within 30 mm
 //   stalk     runs over the film toward its target, in bursts
 //   tell      it crouches and raises its first two pairs of legs (0.8 s before
 //             a lunge, 0.55 s before a pounce)
@@ -175,7 +175,7 @@ export function createWolfSpider(scene, { post, home }) {
 
   /**
    * ctx: { players: [{ slot, x, z, y, airborne, alive, landed (just landed on the film), heading }],
-   *   awake (the calm opening is over), field, inPool }.
+   *   awake (may it wake at all), field, inPool }.
    * Events: { type: 'wake' | 'tell' | 'lunge' | 'pounce' | 'caught' | 'dodged' | 'retreat' | 'gone', slot? }
    */
   function update(dt, ctx) {

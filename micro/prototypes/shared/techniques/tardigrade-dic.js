@@ -48,6 +48,9 @@
 //     viewScale  optional (default 1): use only this fraction (each axis) of the
 //                optical buffers, e.g. 0.55 for a quarter-screen split view. The
 //                buffers are not reallocated, so changing it every frame is free.
+//     region     optional: (w, h) => { x, y, w, h } | null, the part of a w x h buffer
+//                this view shows (bottom-left origin, padded for the blur), e.g.
+//                (w, h) => split.rectFor(view, w, h): every pass is scissored to it.
 //   Options (live): mic.mode 0 DIC / 1 brightfield; mic.opts = { dof, grain, vignette, fringes,
 //     backdrop, shear (nm), bias (nm), angle (shear direction, radians) }.
 //   Performance: mic.setQuality(0..3), or mic.autoQuality(dt) every frame; or drive it from
@@ -308,8 +311,11 @@ export class DicMicroscope {
     const vs = Math.max(0.05, Math.min(1, p.viewScale || 1));
     const uw = Math.max(4, Math.round(this.size.x * vs)), uh = Math.max(4, Math.round(this.size.y * vs));
     const full = uw === this.size.x && uh === this.size.y;
+    const reg = p.region ? p.region(uw, uh) : null;
     const sub = (rt) => {
-      rt.viewport.set(0, 0, uw, uh); rt.scissor.set(0, 0, uw, uh); rt.scissorTest = !full;
+      rt.viewport.set(0, 0, uw, uh);
+      if (reg) { rt.scissor.set(reg.x, reg.y, reg.w, reg.h); rt.scissorTest = true; }
+      else { rt.scissor.set(0, 0, uw, uh); rt.scissorTest = !full; }
       return rt;
     };
     for (const k in this.rt) sub(this.rt[k]);

@@ -15,6 +15,8 @@ import { createMacro, lens, macroShared, applyLook, MACRO_LOOKS } from '../share
 import { RippleField, Dimples, waterMaterial, waterGeometry, peatFloorTexture } from '../shared/techniques/springtail-surface.js';
 import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHORE_GLSL, BANK_E, LANDMARK, START, ZONES, progressAt, ROUTE_LEN } from './world.js';
 import { createQuality } from '../shared/quality.js';
+import { createCrowd } from '../shared/crowd.js';
+import { litMaterial } from '../shared/techniques/springtail-macro.js';
 import { createLandmarkProps } from './landmarks.js';
 import { createWolfSpider } from './boss.js';
 import { createSpringtail } from './springtail.js';
@@ -63,6 +65,20 @@ strider.st.zone = ZONES.strider;
 const rain = createRain(scene);
 const props = createLandmarkProps(world);
 scene.add(props.group);
+// A mass of Podura on still water at the edge of the strider's water
+// (combat-ideas.md §0 idea 5, a labelled departure: their protection is
+// unverified). Slate blue-black bodies a springtail long; you push through
+// them, and hidden in the mass (moving little) the strider's lock wanders to
+// the others, so it often rows at the wrong one.
+const crowd = createCrowd({
+  scene, THREE, count: 220, region: ZONES.crowd, radius: 0.42, speed: 0.25, playerRadius: 0.8, respawn: Infinity, sit: 0.45,
+  height: (x, z) => field.height(x, z),
+  geometry: new THREE.SphereGeometry(1, 12, 8).scale(1.7, 0.75, 0.9),
+  material: litMaterial({ surface: 'float n = mNoise(vLocal.xz * 6.0); s.albedo = mix(vec3(0.03, 0.035, 0.05), vec3(0.06, 0.065, 0.09), n); s.rough = 0.55; s.sheen = 0.5; s.sheenCol = vec3(0.35, 0.4, 0.5);' }),
+});
+crowd.mesh.frustumCulled = true;
+crowd.mesh.boundingSphere = new THREE.Sphere(new THREE.Vector3(ZONES.crowd.x, 0, ZONES.crowd.z), ZONES.crowd.r + 6);
+const crowdBodies = [];
 // The boss: a pond wolf spider on guard on the moss tongue (boss.js); it goes back under the bank (home) when worn down.
 const boss = createWolfSpider(scene, { post: { x: LANDMARK.x - 5, z: 3, a: Math.PI }, home: { x: LANDMARK.x + 16, z: 5 } });
 
@@ -316,7 +332,7 @@ addEventListener('resize', resize);
 resize();
 
 // ---------------------------------------------------------------- threats: pacing and being eaten
-// shared/predation.js: a calm opening, then hunger that comes and goes. Only a
+// shared/predation.js: calm until a player reaches its water, then hunger that comes and goes. Only a
 // hungry Stenus stalks and strikes, only a hungry strider answers ripples and
 // grabs; a resting one patrols or rows about. Every catch plays out on screen
 // (strike, hold, eat, then the Eaten card).
@@ -564,7 +580,7 @@ F({ id: 'slow', group: 'Simulation', label: 'Jump time', choices: ['Slowed ~6x (
 F({ id: 'pounce', group: 'Simulation', label: 'Pounce-bite (a departure)', fixed: true,
   about: 'X in the air, or a jump released at an enemy in range: the springtail tucks into a dive onto the nearest leg or body under its arc (aim assist), nips on impact (worth two nips: a stagger, a splash, a rumble, a brief hit-pause), then rebounds off it; a mistimed dive is a clear miss. Landing on food takes a whole bite. A labelled departure: Podura grazes, and its furcula jump is an escape (a few springtails such as Friesea prey on tiny animals, never by leaping).' });
 F({ id: 'boss', group: 'World', label: 'Boss: pond wolf spider (Pirata)', fixed: true,
-  about: 'A juvenile, ~5 mm (scaled down from adults so the arena fits), on guard on the moss tongue at the way on. Dormant until you come within 30 mm after the calm opening. Its tells: it crouches and raises its first two pairs of legs before a lunge, and turns to pounce on your landing ripples. Jump clear (a dodge wears it down), then nip or pounce on an overreached tarsus (double). About three good rounds and it backs off under the moss, leaving the bank open. Its resolve is the brass gauge. Catches follow the follow-and-respawn sequence.' });
+  about: 'A juvenile, ~5 mm (scaled down from adults so the arena fits), on guard on the moss tongue at the way on. Dormant until you come within 30 mm (at the end of the way). Its tells: it crouches and raises its first two pairs of legs before a lunge, and turns to pounce on your landing ripples. Jump clear (a dodge wears it down), then nip or pounce on an overreached tarsus (double). About three good rounds and it backs off under the moss, leaving the bank open. Its resolve is the brass gauge. Catches follow the follow-and-respawn sequence.' });
 F({ id: 'upose', group: 'Body', label: 'Mid-air U-pose righting', on: true,
   about: 'Right after take-off the body tumbles; within ~20 ms (here ~0.15 s) it curls head and tail up into a U, which aerodynamically turns the ventral tube downward. Off: it tumbles all the way and lands upright half the time.', onChange: (v) => (opt.uPose = v) });
 F({ id: 'sdf', group: 'Body', label: 'Anatomy from SDF parts', fixed: true,
@@ -579,7 +595,7 @@ F({ id: 'grace', group: 'World', label: 'Calm on arrival', choices: ['Off', '5 s
   about: 'The first half of the way is calm water and food: Stenus and the strider keep to their own water farther on (Stenus from ~55% of the way, the strider from ~70%), the sundew patch is at ~84%, the wolf spider at the landmark, and rain falls only from halfway. Each predator stays calm until someone first comes into its water, then waits this long before its hunger starts. shared/predation.js.',
   onChange: (v) => { pace.grace = v === 'Off' ? 0 : parseFloat(v); resetHunger(); } });
 F({ id: 'hunger', group: 'World', label: 'Predator hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
-  about: 'Comes and goes: after the calm opening each predator is hungry for ~18-32 s, then rests (45-75 s after a meal, 15-30 s after a miss or when it loses you); only a hungry one stalks, skims, strikes, answers ripples or grabs. Always: hungry from the end of the calm opening on. Never: they patrol and never hunt (for exploring and testing).',
+  about: 'Comes and goes: once awake (a player came into its water) each predator is hungry for ~18-32 s, then rests (45-75 s after a meal, 15-30 s after a miss or when it loses you); only a hungry one stalks, skims, strikes, answers ripples or grabs. Always: hungry from the moment it wakes. Never: they patrol and never hunt (for exploring and testing).',
   onChange: (v) => (pace.mode = v) });
 addInvertY(features);
 F({ id: 'camrel', group: 'Controls', label: 'Camera-relative walking and aiming', fixed: true, about: 'LS walks and aims relative to the view, in both camera modes.' });
@@ -1117,6 +1133,23 @@ function stepWorld(dt) {
   rain.calm = hunger.stenus.state === 'grace' && hunger.strider.state === 'grace';
   const rainOn = recs().some((R) => alive(R) && progressAt(R.x, R.z) >= ZONES.rain);
   world.debris.update(dt, field, inPool);
+  // the Podura mass: only simulated while someone is near it
+  const nearMass = recs().filter((R) => alive(R) && Math.hypot(R.x - ZONES.crowd.x, R.z - ZONES.crowd.z) < ZONES.crowd.r + 60);
+  if (nearMass.length) {
+    crowdBodies.length = 0;
+    for (const R of nearMass) crowdBodies.push({ position: { x: R.x, y: R.y, z: R.z }, radius: 0.8, velocity: { x: R.vx, y: 0, z: R.vz }, slot: R.slot });
+    crowd.update(dt, crowdBodies);
+    if (nearMass.some((R) => Math.hypot(R.x - ZONES.crowd.x, R.z - ZONES.crowd.z) < ZONES.crowd.r + 20)) logChallenge('crowd', nearMass[0]);
+  }
+  // hidden in it (and moving little), its prey is lost among the others: the strider's lock wanders
+  if (strider.st.state === 'hunt' && Math.hypot(preyR.x - ZONES.crowd.x, preyR.z - ZONES.crowd.z) < ZONES.crowd.r && !(preyR.mode === 'air') && Math.hypot(preyR.vx, preyR.vz) < 3) {
+    strider.st.confuseT = (strider.st.confuseT || 0) - dt;
+    if (strider.st.confuseT <= 0 && crowd.alive > 0) {
+      strider.st.confuseT = 1.2 + Math.random() * 0.8;
+      const M = crowd.members;
+      for (let k = 0; k < 8; k++) { const i = Math.floor(Math.random() * M.count); if (M.alive(i)) { strider.st.target = { x: M.x[i], z: M.z[i] }; strider.st.decoyed = true; break; } }
+    }
+  } else strider.st.decoyed = false;
   // a predator only hunts a player in its own water (a stuck one stays its prey)
   const sHeld = recs().find((R) => R.mode === 'labium');
   const huntS = isHungry(hunger.stenus) && (pace.anywhere || inZone('stenus', preyS.x, preyS.z) || !!sHeld);
@@ -1150,7 +1183,7 @@ function stepWorld(dt) {
     if (e === 'heard' && ctxR.alive) logChallenge('striderHunt', preyR);
     if (e === 'heard' && ctxR.alive && !(strider.st.heardUntil > simT)) { strider.st.heardUntil = simT + 6; hud.toast('A water strider felt your ripples: keep still and hunker (B)', 1800); }
   }
-  // the boss (boss.js): dormant on the moss tongue until someone comes near after the calm opening
+  // the boss (boss.js): dormant on the moss tongue until someone comes near
   // (it stands at the very end of the way, so it may wake whenever someone comes near)
   const bossCtx = { awake: true, field, inPool,
     players: recs().map((Q) => ({ slot: Q.slot, x: Q.x, z: Q.z, y: Q.y, heading: Q.heading, airborne: Q.mode === 'air', alive: alive(Q) && game.phase === 'play', landed: Q.landT !== undefined && simT - Q.landT < 0.2 && Q.mode !== 'air' })) };
@@ -1498,7 +1531,8 @@ function render(dt) {
     }
     // moss tiles beyond the focal plane (plus a tile's reach) switch to the coarse heads
     world.setLodDistance(macroShared.uFocus.value + MOSS_LOD_BEYOND);
-    macro.render(scene, camera, { lens: L, look: lookDef, dofK });
+    // split: each internal pass fills only this view's region (padded for the bokeh's reach)
+    macro.render(scene, camera, { lens: L, look: lookDef, dofK, scissor: (rt) => split.scissor(view, rt, 64) });
   });
   if (!one) { macroShared.uFocus.value = focus0; setDrop(pl); }
   marks.begin();

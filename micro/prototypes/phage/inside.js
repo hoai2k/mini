@@ -97,7 +97,7 @@ export function createInside() {
   for (const T of types) {
     T.mesh = inkedInstanced(T.geo, toonMaterial({ vertexColors: true, fl: T.fl }), T.n, { width: 0.6 });
     T.mesh.userData.crowd = true;
-    T.geoGoodsell = T.geo; T.geoFL = lumpyGeometry(T.geo.userData.parts, T.s[0] > 6 ? 9 : 6);
+    T.geoGoodsell = T.geo; T.geoFL = lumpyGeometry(T.geo.userData.parts, T.s[0] > 6 ? 9 : 6, 1);
     scene.add(T.mesh);
     T.items = Array.from({ length: T.n }, () => ({ p: new THREE.Vector3(rand(AREA.x0 - 60, AREA.x1 + 60), rand(AREA.y0 - 20, AREA.y1), T.s[0] > 6 ? rand(-75, -24) : rand(-60, 4)), v: new THREE.Vector3(), q: new THREE.Quaternion().random(), s: rand(...T.s) }));
   }
@@ -107,7 +107,7 @@ export function createInside() {
   // the entering genome: in false light a glowing gold-white strand (its own colour kept toward the tip)
   const dnaBeads = inkedInstanced(new THREE.IcosahedronGeometry(1, 1), toonMaterial({ color: '#ffffff', fl: { color: '#ffcf70', color2: '#fff2c8', keep: 0, glow: 0.95, glowColor: '#ffc85a', trans: 0.5, spec: 0.6, scale: 0.3 } }), MAXB, { width: 0.6 });
   scene.add(dnaBeads);
-  const tipGlow = new THREE.Mesh(new THREE.SphereGeometry(4.2, 16, 12), toonMaterial({ color: '#ffd85a', opacity: 0.55, fl: { color: '#ffd27a', keep: 0, glow: 1.4, glowColor: '#ffd070', trans: 0.3 } }));
+  const tipGlow = new THREE.Mesh(new THREE.SphereGeometry(4.2, 16, 12), toonMaterial({ color: '#ffd85a', opacity: 0.55, fl: { color: '#ffd27a', keep: 0, glow: 0.5, glowColor: '#ffd070', trans: 0.3 } }));
   scene.add(tipGlow);
 
   // enzymes
@@ -400,7 +400,8 @@ export function createInside() {
     /** Camera: follow the leading end, with RS orbit and a zoom distance. */
     frame(dt, look, dist, focus = null) {
       const tip = S.nodes[S.nodes.length - 1] || PORE;
-      const target = focus ? _p.copy(focus) : _p.copy(tip).lerp(PORE, 0.25);
+      // (biased toward the pore so the membrane and the entering tail tube stay in frame, as in the reference)
+      const target = focus ? _p.copy(focus) : _p.copy(tip).lerp(PORE, 0.4);
       const yaw = look.yaw * 0.5, pitch = look.pitch * 0.4;
       _v.set(Math.sin(yaw) * Math.cos(pitch), -Math.sin(pitch) + 0.05, Math.cos(yaw) * Math.cos(pitch)).multiplyScalar(dist).add(target);
       camera.position.lerp(_v, 1 - Math.exp(-dt * 3));

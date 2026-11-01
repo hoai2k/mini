@@ -10,15 +10,30 @@ surface is y = 0.
 
 Open `micro/prototypes/springtail/` (the invite gate is off on localhost).
 
-**Goal:** the way on is straight ahead of where you start (+x, about 0.56 m
-off: a minute or so of full jumps): a tongue of Sphagnum where the bank reaches
-into the pool. Reach it and, in the Micro Zoom game, the microscope zooms in to
-the mite's world. On the way, graze: 8 clumps of food (three bites each) is
-the side goal. You have three lives.
+**Goal:** the way on is straight ahead of where you start, up and to the
+right in the starting view (+x, 1.27 m off by the west shore: about 35 full
+jumps, a minute of jumping flat out): a tongue of Sphagnum where the east bank
+reaches into the pool. Reach it and, in the Micro Zoom game, the microscope
+zooms in to the mite's world. On the way, graze: 8 clumps of food (three bites
+each) is the side goal. You have three lives.
 
-**The water is the ground.** The pool is a 1.2 x 0.9 m sheet of open water
-(some 17 full jumps from the middle to the edge) with 64 moss islands
-standing in it, sundews on some of them, and floating debris and food on the
+**The way, in two halves** (`ZONES` in `world.js`, checked by
+`route.test.mjs`). The first half is calm water: islands, debris and food,
+nothing that hunts, no rain, to learn to walk, jump and graze. The challenges
+come one after another in the second half, by how far along the way you are:
+
+| From | Challenge |
+| --- | --- |
+| 50% | Rain |
+| 53% (its water: 60% ± 58 mm) | *Stenus*, the rove beetle, and its two-stage strike |
+| 68% (its water: 75% ± 52 mm) | The water strider |
+| 68% | A mass of *Podura* (220 NPC springtails, `shared/crowd.js`) at the edge of the strider's water: you push through them; hidden in the mass and moving little, the strider's lock wanders to the others (a labelled departure: `combat-ideas.md` §0 idea 5) |
+| 84% | The sundew patch: a band of seven small islands across the way, their glue-tipped leaves held out over the gaps |
+| 97% (30 mm from its post) | The pond wolf spider, the boss, at the landmark |
+
+**The water is the ground.** The pool is a 1.5 x 0.9 m sheet of open water
+with 72 moss islands standing in it (a hand-placed cluster round the start,
+the sundew band, the rest scattered), and floating debris and food on the
 film. A steep Sphagnum bank rings it: jump at it and you bounce off and drop
 back onto the water at its foot. The water reaches the horizon wherever you
 are; there is no edge to fall off.
@@ -68,8 +83,9 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
 - **No backdoor:** this is the top of the Zoom Chain.
 - **Landmark sun** (`shared/landmark.js`): a bright brass sun near the edge of
   each view indicates the capitulum's bearing without text; on screen, the
-  same sun marks it. The starting camera places the bank up and to the right;
-  orbiting the camera changes its apparent direction.
+  same sun marks it. The starting camera places the bank up and to the right
+  (LS up and to the right walks and aims straight at it); orbiting the camera
+  changes its apparent direction.
 
 ## Multiplayer
 
@@ -89,7 +105,10 @@ shell (`embed.players`).
   field deepened until everyone is sharp); apart, the view splits and each
   view focuses on its own players. The macro chain ends on the screen, so the
   split copies each view (`capture`), and split views render at 70%
-  resolution (55% when split three or four ways).
+  resolution (55% when split three or four ways): the quality governor's
+  split factor (`setSplitViews`). Every pass of the macro chain (scene,
+  prefilter, tiles, gather) is scissored to the view's region
+  (`split.scissor`, padded 64 px for the bokeh's reach).
 - **Threats:** *Stenus* and the strider each go for the nearest free player;
   raindrops hit whoever is under them. A caught player plays the whole catch;
   with company there is no Eaten card and no lives are lost: they come back
@@ -107,9 +126,20 @@ back wear its interest down until it retreats (and rests: `hunger.missed()`).
 
 - **Calm vs attacking.** A calm *Stenus* patrols at an easy pace and stops to
   groom (forelegs over the antennae, head bobbing); hunting, it goes low and
-  fast, locked on you. Its **wind-up** (0.8 s): it rears its forebody, lowers
-  its head, the mandibles gape and the labium cocks; then the harpoon. The
-  strider rows in, stops a body length off and **raises its raptorial
+  fast, locked on you. Then **the two-stage strike** (`combat-ideas.md` §0,
+  idea 1):
+  1. **The tell** (0.8 s): it lowers its head and freezes, the labium cocks
+     under it ("Stenus: jump now!", a faint buzz). Already in the air when the
+     labium shoots: a **clean escape**, played in slow motion for a moment.
+     Still on the film: the sticky pads **hold you** and it starts reeling
+     you in (1.5 s). **Mash A** to wriggle loose (the real slip-off from the
+     labium's tip), which costs your jump: the furcula takes ~1 s to re-cock.
+     Not loose in time: reeled into the mouth (the catch).
+  2. **The follow-up**, free or escaped: a second, slower tell (1.1 s: it
+     rears its forebody high and sways back, mandibles wide open), then a
+     ~3.5 mm **mandible lunge**. Jump or step aside: a dodge.
+  Every miss (a clean escape, a wriggle free, a dodged lunge) wears its
+  interest down like a nip; three and it skims away. The strider rows in, stops a body length off and **raises its raptorial
   forelegs high** (0.7 s), then lunges and snaps them shut. The status bar
   says *Attacking!* and a toast says what to do.
 - **Block:** face it and hunker (B) as the strike lands: it glances off, the
@@ -136,7 +166,7 @@ back wear its interest down until it retreats (and rests: `hunger.missed()`).
 `boss.js`; `micro/design/bosses.md`. *Pirata*, a juvenile ~5 mm (adults are
 6–9 mm: scaled down, labelled), a real bog-pool hunter that runs on the
 water. It sits on guard on the moss tongue at the way on, **dormant** until a
-player comes within 30 mm after the calm opening.
+player comes within 30 mm (97% of the way).
 
 - **Tells:** it **crouches and raises its first two pairs of legs** (0.8 s)
   before a 7 mm lunge; it feels landing ripples and turns to **pounce** on a
@@ -148,8 +178,16 @@ player comes within 30 mm after the calm opening.
 - Its resolve is a quiet brass gauge at the top while it is engaged. In
   multiplayer it goes for the nearest player, or whoever bit it last.
 - A catch follows the follow-and-respawn sequence; it carries you off under
-  the moss. Reference sheet MP-R14 is requested, not delivered: built from
-  anatomy (eight long legs, a striped carapace, eye rows, fangs, palps).
+  the moss.
+- **Checked against the reference sheet** (`assets/reference-sheets/
+  boss-wolf-spider.webp`, delivered; side, top, front and three-quarter
+  views): warm golden brown rather than olive; a carapace longer than wide
+  with the eye region raised, dark brown with fine radiating striae, a pale
+  median band and cream submarginal bands down the sides; an oval brown
+  abdomen with a pale lanceolate heart mark and paired cream spots in rows;
+  thicker golden-tan legs ringed dark at each joint and mid-segment, knees
+  lower; reddish-brown chelicerae; eight eyes (a row of four small anterior
+  eyes, two large posterior medians above, two posterior laterals behind).
 - Test hooks: `bossFight(slot)`, `boss`, `jumpAt(slot, x, z, power)`,
   `impact(slot)`; and for the fights `setFoe`, `nudgeFoe`, `calm`, `me`,
   `feed`, `fightLog`.
@@ -158,17 +196,19 @@ player comes within 30 mm after the calm opening.
 
 Predators follow the shared pacing in `shared/predation.js`:
 
-- **A calm opening.** For the first 45 s of a game, and again after each
-  lost life, nothing hunts: *Stenus* patrols, the strider rows about its own
-  water, and raindrops land around you (9–19 mm off) rather than on you. Both
-  predators start well away (the beetle's patrol is placed ≥30 mm off, the
-  strider ~40 mm off, on open water). The strider's calm runs 15 s longer.
-- **Hunger comes and goes.** After the calm each predator is hungry for
+- **A calm first half.** Each predator keeps to its own water in the second
+  half of the way (*Stenus* round 60% of the way, the strider round 75%) and
+  never follows you more than a short leash out of it; rain starts at
+  halfway. A predator stays calm until a player first comes into its water;
+  then (after Features → World → Calm on arrival, off by default) its hunger
+  comes and goes. While both are still calm, raindrops land around you
+  (9–19 mm off) rather than on you.
+- **Hunger comes and goes.** Once awake each predator is hungry for
   ~18–32 s, then rests: 45–75 s after a meal, 15–30 s after a miss (a
   *Stenus* strike that finds nothing, a strider that loses your ripples).
   Only a hungry *Stenus* notices, stalks, skims and strikes; only a hungry
-  strider answers ripples and grabs. A hungry predator also drifts its patrol
-  toward your part of the pool, so it does find you sometimes. The status bar
+  strider answers ripples (from its own water) and grabs. A hungry predator
+  also drifts its patrol toward you, within its water. The status bar
   says *Calm*, *Stenus hungry* / *Strider hungry*, or *Hunted!*.
 - **Every catch is shown.** When a predator gets you, control stops and the
   whole catch plays, the lens swinging side-on and widening to frame you and
@@ -189,14 +229,17 @@ Predators follow the shared pacing in `shared/predation.js`:
     tears you free.
 
   After a capture, a life is lost and the view fades back in at respawn
-  (with the calm opening), or a new game starts after the last life.
+  (the predators back in their own water), or a new game starts after the last life.
 - Raindrops stay hazards: a direct hit swamps you (now only within ~0.95 of
   the drop's radius, with a 2 s shadow warning, and only about half the drops
   aim near you); near misses throw you out of the crater.
 
-Features → World → **Calm opening** (45 s / 20 s / 90 s / off) and
+Features → World → **Calm on arrival** (off / 5 s / 15 s) and
 **Predator hunger** (comes and goes / always / never) change this for
-testing. `window.__micro.forceCapture('stenus' | 'strider' | 'sundew')` plays
+testing. `__micro.challengeLog` records where each challenge first became
+active (its `progress` along the way), `__micro.progress()` how far along
+you are, and `__micro.tick(n)` steps the game from the pads without
+rendering (for walking the route in a test). `window.__micro.forceCapture('stenus' | 'strider' | 'sundew')` plays
 a catch; `__micro.pacing()` reports hunger and states.
 
 ## Hazards
@@ -212,8 +255,9 @@ a catch; `__micro.pacing()` reports hunger and states.
   follows (see Fighting back). It then needs 1.6 s to recover and 3.5 s
   before it can skim again. All of this only while it is hungry and you are
   in its water (see Threats and pacing).
-- **Sundews** (*Drosera rotundifolia*): rosettes on seven of the islands
-  near the start, their round leaves held out over the water on one side, each with ~90 red
+- **Sundews** (*Drosera rotundifolia*): the sundew patch at 84% of the way,
+  a band of seven small islands across it, each with a rosette whose round
+  leaves reach out over the gaps between them, each leaf with ~90 red
   glandular tentacles tipped with glue. Land on a leaf and you stick; the
   tentacles curl over you. Mash A before they close.
 - **A water strider** (*Gerris*, ~9 mm, legs spanning ~23 mm) stands on six
@@ -284,8 +328,9 @@ or overcast.
   drifts).
 - **Water surface** (`shared/techniques/springtail-surface.js`):
   - A 256 x 256 damped wave equation over an 84 mm window (0.33 mm cells),
-    stepped 240 times a second on the CPU and uploaded as an RG half-float
-    texture each frame. The window **follows the springtail**
+    stepped 240 times a second on the CPU and uploaded as an RG 32-bit float
+    texture each frame (one interleaving copy; half-float, converted per
+    texel, only where float textures cannot be filtered linearly). The window **follows the springtail**
     (`field.recenter`, whole-cell shifts once you stray ~10 mm), and a sponge
     rim soaks ripples up before the window's edge. Islands and the bank are
     the boundary. The water mesh is one wide grid (0.4 mm cells in the
@@ -302,10 +347,12 @@ or overcast.
 - **Floating debris**: ~100 rafts of dead Sphagnum leaves, birch bark flakes,
   pine needles and heather twigs, drifting on the flow; you can land and stand
   on them.
-- **Food**: 90 floating clumps of pine pollen (yellow), fungal spores (brown)
+- **Food**: 110 floating clumps of pine pollen (yellow), fungal spores (brown)
   and green algae (elongated cells), each a few dozen grains with its own
-  little meniscus, drifting on the flow. Three bites each; an eaten clump
-  reappears elsewhere 6 s later.
+  little meniscus, drifting on the flow; half round the start, the rest along
+  the way. Three bites each; an eaten clump reappears elsewhere 6 s later.
+  Only clumps within 80 mm of a player or the view are drawn (packed into the
+  first instances): farther out a grain is under a pixel.
 
 ## Rendering (`shared/techniques/springtail-macro.js`)
 
@@ -368,6 +415,10 @@ The **macro photography** look is new to the set:
   curved tapered branch tubes: a tight terminal bud and spreading branches,
   green, ochre and red, translucent when backlit, packed on the islands and
   along the bank (the bank and the lawn beyond it use the lighter variant).
+  They are chunked into 64 mm tiles, so each view culls whole tiles outside
+  its narrow macro frustum, and each tile is an LOD: beyond 90 mm past the
+  focal plane it draws a coarse head (14 branches of 2 segments and 3 sides,
+  ~170 triangles instead of 640–1440), deep in the bokeh there.
 - **Looks** (D-pad ←→): macro in low sun, macro overcast (no glints, soft),
   stereo microscope (ring light, round field stop, ~4x the depth of field).
 
@@ -381,7 +432,7 @@ The **macro photography** look is new to the set:
 | Rendering | Water film shading | always |
 | Rendering | Velvety cuticle | always |
 | Rendering | Sensor grain | on |
-| Rendering | Dynamic resolution | on |
+| Rendering | Quality governor (auto), Manual quality (`shared/quality.js`): render scale x split factor, and the bokeh gather's taps (64 / 40 / 24) by its effects level | auto |
 | Optics | Look (D-pad) | Macro, low sun |
 | Optics | Thin-lens macro camera | always |
 | Optics | Autofocus on the springtail | on |
@@ -397,7 +448,7 @@ The **macro photography** look is new to the set:
 | Body | Mid-air U-pose righting | on |
 | Body | Anatomy from SDF parts | always |
 | World | Rove beetle, water strider | on |
-| World | Calm opening: 45 s / 20 s / 90 s / off | 45 s |
+| World | Calm on arrival: off / 5 s / 15 s (after first entering a predator's water) | off |
 | World | Predator hunger: comes and goes / always / never | comes and goes |
 | World | Rain: sometimes / often / off | sometimes |
 | Controls | Invert camera Y (shared by every prototype) | off |
@@ -494,6 +545,8 @@ may not be in `shared/asset-list.js` yet) and has a procedural stand-in:
 
 ```bash
 node micro/prototypes/check.mjs springtail
+node micro/prototypes/springtail/route.test.mjs       # the way: calm first half, challenges in order from halfway
+node micro/prototypes/springtail/jump-input.test.mjs
 ```
 
 The camera's pitch was once stuck overhead: top-down was a separate mode in
@@ -504,11 +557,9 @@ top-down and back.
 
 ## Known issues
 
-- Software WebGL (the headless check) renders a frame in about a second; the
-  64-tap gather and the water's dimple loops are the costliest passes. Dynamic
-  resolution keeps a slow GPU responsive.
-- The beetle and the strider are moved (out of sight) to water near you when
-  you travel far from them, so the whole pool stays inhabited.
+- Software WebGL (the headless check) renders a frame in several seconds; the
+  64-tap gather and the water's dimple loops are the costliest passes. The
+  quality governor keeps a slow GPU responsive.
 - On moss the springtail walks over the capitula tops rather than climbing
   through the branches, and can be hidden among them at low angles.
 - Sun shadows are soft round blobs, not true shadow maps.

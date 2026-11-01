@@ -186,7 +186,7 @@ function gpuBusy() {
 let adaptive = true; // the frame skip
 let cullOn = true; // per-view culling and the split views' scissor
 let qLevel = 2;
-const quality = createQuality({ renderer: null, key: 'paramecium', min: softGpu ? 0.4 : 0.5, max: softGpu ? 0.4 : 1,
+const quality = createQuality({ renderer, key: 'paramecium', min: softGpu ? 0.4 : 0.5, max: softGpu ? 0.4 : 1, scalePixelRatio: softGpu,
   onChange: () => resize() });
 function countRender(now, dt) {
   renderClock += dt; rendered++;
@@ -208,13 +208,15 @@ let cssW = 1, cssH = 1, dpr = 1;
 
 function resize() {
   qLevel = quality.level;
-  const pr = quality.pixelRatio * quality.scale;
-  // CSS size with a pixel ratio, so the split screen and the edge arrows work in CSS px
-  renderer.setPixelRatio(pr);
+  // the governor owns the pixel ratio; the microscope's own buffers (the scene
+  // pass, blurs and image formation) run at its render scale, and the last pass
+  // draws them up to the screen. (A software renderer scales the pixel ratio
+  // instead, so headless checks also skip the full-size screen passes.)
   renderer.setSize(innerWidth, innerHeight, false);
   const b = renderer.getDrawingBufferSize(new THREE.Vector2());
-  const w = Math.max(2, b.x), h = Math.max(2, b.y);
-  optics.resize(w, h);
+  const k = softGpu ? 1 : quality.scale;
+  const w = Math.max(2, Math.round(b.x * k)), h = Math.max(2, Math.round(b.y * k));
+  if (w !== optics.size[0] || h !== optics.size[1]) optics.resize(w, h);
   chase.aspect = innerWidth / innerHeight;
   chase.updateProjectionMatrix();
   cssW = innerWidth; cssH = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2);

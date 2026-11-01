@@ -1800,21 +1800,26 @@ function renderAll(dt) {
   const many = L.views.length > 1;
   splitT.on = many ? splitT.on + dt : 0;
   splitT.off = many ? 0 : splitT.off + dt;
-  // The governor scales the property buffers (and by 0.7 / 0.55 while split).
-  if (splitT.on > 0.4 || (many && L.views.length !== splitT.n)) splitT.n = L.views.length;
-  if (splitT.off > 1) splitT.n = 1;
-  quality.setSplitViews(splitT.n);
+  // The governor scales the property buffers (and by 0.7 / 0.55 while split;
+  // it holds a moment after a split or merge itself).
+  quality.setSplitViews(L.views.length);
   // Its effects level: fewer granules drawn, then no chromatic fringes.
   const lvl = quality.level;
   const flags = lvl > 0 ? S.flags : { ...S.flags, chroma: false };
   const args = { time: S.time, prey: [...prey, ...ambient, beacon], mode: S.mode, focus: S.focus, flags, granuleCount: Math.min(S.granules, [1100, 1800, 2600][lvl]), fragments };
+  // While split, each view's own passes (mask, property buffers, blurs) are
+  // scissored to the part of the screen it shows (split.scissor).
+  const o0 = view.optics, internal = [view.maskRT, o0.focusRT, o0.defRT, o0.tmpRT, o0.defBlurRT, o0.haloRT, o0.haloTmp];
   if (!many) {
+    if (splitT.scissored) { for (const t of internal) split.unscissor(t); splitT.scissored = false; }
     const o = L.views[0] ? L.views[0].offset : { x: 0, y: 0 };
     view.setView(S.camX + o.x, S.camY + o.y, fieldW);
     view.render({ ...args, buffersOnly: !!borrow.id });
     if (borrow.id) renderBorrowed(dt);
   } else {
     L.views.forEach((v, k) => {
+      for (const t of internal) split.scissor(v, t);
+      splitT.scissored = true;
       view.setView(S.camX + v.offset.x, S.camY + v.offset.y, fieldW);
       view.render({ ...args, target: split.target(v.index), update: k === 0 });
     });

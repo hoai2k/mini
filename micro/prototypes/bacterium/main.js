@@ -573,6 +573,11 @@ function runBoss(dt) {
 
 // --- rendering ---
 const optics = createLightOptics(renderer);
+// A/B switches for measurements (README "Performance"): ?psfdown=0 keeps the PSF at full
+// resolution; ?rects=0 renders each split view over the whole screen as before
+const devQ = new URLSearchParams(location.search);
+if (devQ.get('psfdown') === '0') optics.toggles.down = false;
+const useRects = devQ.get('rects') !== '0';
 const shapes = createShapes(6000);
 const overlay = createOverlay();
 const looks = createBorrowedLooks(renderer);
@@ -1096,7 +1101,7 @@ function render(dt) {
     const o = L.views[0] ? L.views[0].offset : { x: 0, y: 0 };
     drawField(cx + o.x, cy + o.y, true);
   } else {
-    for (const v of L.views) { drawField(cx + v.offset.x, cy + v.offset.y, false, viewRect(L, v.index)); split.capture(v.index); }
+    for (const v of L.views) { drawField(cx + v.offset.x, cy + v.offset.y, false, useRects ? viewRect(L, v.index) : null); split.capture(v.index); }
     split.compose();
   }
   // the edge arrows: the brass chevron to the host cell, the ring to the Paramecium
@@ -1120,6 +1125,10 @@ function render(dt) {
 
 /** A split view's region as a rectangle (fractions of the screen, origin bottom left), for the optics' scissor. */
 function viewRect(L, i) {
+  // shared/splitscreen.js gives each view its padded rect (drawing-buffer px, bottom left); the optics
+  // scissor every one of their passes (specimen, PSF, low-pass, composite) to it plus their blur reach
+  const v = L.views.find((q) => q.index === i);
+  if (v && v.rect && v.rect.w > 0) { const b = renderer.getDrawingBufferSize(_b); return { x: v.rect.x / b.x, y: v.rect.y / b.y, w: v.rect.w / b.x, h: v.rect.h / b.y }; }
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const r of L.regions) if (r.view === i && r.polygon.length > 2) for (const [x, y] of r.polygon) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
   if (!(x1 > x0)) return null;

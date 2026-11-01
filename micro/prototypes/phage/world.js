@@ -95,7 +95,7 @@ export function createWorld(scene) {
     // false light: a teal-blue, translucent, wet and lumpy envelope; the Gram-positive decoy duller and greener
     const mat = toonMaterial({ color: def.color, wobble: 1.2, wobbleFreq: 0.05, map: envTex, mapRepeat: [6, 3], mottle: 0.2,
       fl: def.wrong ? { color: '#3f6f62', color2: '#7a8a52', keep: 0, trans: 0.7, bump: 1.2, spec: 0.5, scale: 0.05 }
-        : { color: '#24889a', color2: '#2f5aa8', keep: 0, trans: 0.95, bump: 1.7, spec: 0.9, scale: 0.045 } });
+        : { color: '#2fa2ac', color2: '#3a6cba', keep: 0, trans: 0.95, bump: 1.7, spec: 0.9, scale: 0.045 } });
     const geo = new THREE.CapsuleGeometry(def.r, def.half * 2, 10, 32);
     geo.rotateZ(Math.PI / 2);
     const body = inked(geo, mat, { width: 1.3 });
@@ -388,7 +388,7 @@ export function createWorld(scene) {
   world.far = far; world.motes = motes;
   /** Switch the world's false-light extras on or off (with the look). */
   world.setStyle = (falseLight) => {
-    far.visible = motes.visible = falseLight; world.crowdScale = falseLight ? 0.62 : 1;
+    far.visible = motes.visible = falseLight; world.crowdScale = falseLight ? 0.8 : 1;
     for (const T of TYPES) T.mesh.geometry = falseLight ? T.geoFL : T.geoGoodsell; // bead-flowers in false light
   };
   world.crowdScale = 1;

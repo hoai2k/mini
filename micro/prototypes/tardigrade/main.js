@@ -93,7 +93,7 @@ const hud = mountHud({
     zoom: 'Magnification 10× / 12.5× / 20× / 40×',
     extra: [['LS click', 'Refocus on the animal'], ['RS click', 'New day (test)']],
   }),
-  note: 'Head right and down to the tip of the Sphagnum leaf, where the film meets the pool (the brass chevron), to zoom in to the pool floor; the leaf axil at the stem, left (the ring), is the way back up: Y there. Other controllers join with any button. 1 s = 4 min of the day (240×; change it in Features). Walking and feeding are real time: up to ~225 µm/s, at the fast end of the measured range; the scramble (~400 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
+  note: 'Head for the brass chevron: down onto the Sphagnum leaf, across the broad leaf below (a meadow of rotifers to push and jab through, a Milnesium hunting there) and past Prionchulus to the far Sphagnum leaf\'s tip, where the film meets the pool, to zoom in to the pool floor. The first half is yours to explore and feed in; the leaf axil at the stem, left (the ring), is the way back up: Y there. Other controllers join with any button. 1 s = 4 min of the day (240×; change it in Features). Walking and feeding are real time: up to ~225 µm/s, at the fast end of the measured range; the scramble (~400 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
 });
 
 const toast = (t, ms) => hud.toast(t, ms);
@@ -278,16 +278,16 @@ F({ id: 'smooth', group: 'Motion', label: 'Smoothed trunk and camera', on: true,
   about: 'The trunk follows its target through three lags in series, and a change of face (a transfer, the leaf margin, a fall) blends the old pose out over a smootherstep, so position, velocity and acceleration stay continuous. Slipping uses grip hysteresis (slide below 85% of the load for 0.6 s, catch at 75%). Off: the old single lag.',
   onChange: (v) => (walker.opts.smooth = v) });
 F({ id: 'milnesium', group: 'Simulation', label: 'Milnesium (predator)', on: true,
-  about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It starts far off on leaf C and browses through the calm opening (40 s); after that it is hungry only some of the time (see Threats), and only hungry does it close in slowly (you see it coming), stalk you within ~650 µm and bite (reserves drain; empty, it grips you and swallows you whole, all of it shown). After a bite it lets go, backs off and rests 45-75 s. Escape: scramble (A), retreat into film too thin for its body (it barely moves below ~3.5 µm of water), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
+  about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It browses among the rotifers at the far end of the meadow leaf and hunts only a player who has come at least halfway; after the calm opening (40 s) it is hungry only some of the time (see Threats), and only hungry does it close in slowly (you see it coming), stalk you within ~650 µm and bite (reserves drain; empty, it grips you and swallows you whole, all of it shown). After a bite it lets go, backs off and rests 45-75 s. Escape: scramble (A), retreat into film too thin for its body (it barely moves below ~3.5 µm of water), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
   onChange: (v) => { predator.on = v; predator.setVisible(v); } });
 F({ id: 'boss', group: 'Simulation', label: 'Prionchulus (the boss)', on: true,
-  about: 'A predatory nematode (~1.3 mm here; adults reach ~2 mm) guarding the Sphagnum leaf on the way to the pool. Dormant until you come near its post after the calm opening. Its tells: coiling into an S (then a forward whip) or rippling fast (then a sideways sweep), tooth bared. Brace (B) facing it to block, jab its head (X) as it recovers, lure it into thin film where it flounders. Worn down (the brass resolve gauge), it slides away into a deep groove for the rest of the day.',
+  about: 'A predatory nematode (~1.3 mm here; adults reach ~2 mm) guarding the far Sphagnum leaf on the way to the pool, past the meadow (about 85% of the way). Dormant until you come near its post after the calm opening. Its tells: coiling into an S (then a forward whip) or rippling fast (then a sideways sweep), tooth bared. Brace (B) facing it to block, jab its head (X) as it recovers, lure it into thin film where it flounders. Worn down (the brass resolve gauge), it slides away into a deep groove for the rest of the day.',
   onChange: (v) => { boss.on = v; if (!v) boss.group.visible = false; } });
 F({ id: 'meadow', group: 'Simulation', label: 'Rotifer meadow (a crowd)', on: true,
   about: 'Past halfway, at the far end of leaf E: ~200 bdelloid rotifers anchored by the foot, swaying, their wheel-like coronae beating. Walk into them and they bend aside; a stylet jab (X) makes those in front contract onto their foot and opens a lane (they re-extend later, a little further off). They never hurt you; a dense patch slows you a little. No timer. shared/crowd.js.',
   onChange: (v) => { meadow.on = v; meadow.mesh.visible = v; } });
 F({ id: 'grace', group: 'Simulation', label: 'Calm opening', choices: ['40 s', '20 s', '90 s', 'Off'], value: '40 s',
-  about: 'How long after a start (and after each new day) Milnesium browses far off on leaf C before it first gets hungry. shared/predation.js.',
+  about: 'How long after a start (and after each new day) Milnesium browses before it first gets hungry. Either way it hunts only a player past halfway. shared/predation.js.',
   onChange: (v) => { predator.pace.grace = v === 'Off' ? 0 : parseFloat(v); predator.hunger.reset(predator.pace.grace); } });
 F({ id: 'hunger', group: 'Simulation', label: 'Milnesium hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
   about: 'Comes and goes: after the calm opening it is hungry for ~30-45 s at a time (once stalking it sees the hunt through), then rests (45-75 s after a bite or eating you, 15-30 s after a jab, losing you or giving up on a tun); only a hungry Milnesium closes in, stalks and bites. Always: hungry from the end of the calm opening on. Never: it only browses (for exploring and testing).',
@@ -1134,7 +1134,9 @@ function drawView(v, target, dt) {
   const ref = camera.position.distanceTo(at);
   const pxPerUnit = H / (2 * ref * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
   for (const m of [particles.optMat, ...animals.filter((a) => a.particles).map((a) => a.particles.optMat)]) m.uniforms.uPx.value = H / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
-  const micP = { ref, focus: view.focus, cocPerUnit: ob.coc, dof: ob.dof, pxPerUnit, time, backOff: _bo.set(view.yaw * 0.15, view.pitch * 0.1, 1), target, viewScale: viewScale() };
+  const micP = { ref, focus: view.focus, cocPerUnit: ob.coc, dof: ob.dof, pxPerUnit, time, backOff: _bo.set(view.yaw * 0.15, view.pitch * 0.1, 1), target, viewScale: viewScale(),
+    // split: only this view's region of each optical pass (shared/splitscreen.js)
+    region: target && v ? (w, h) => split.rectFor(v, w, h) : null };
   if (borrow.id && !target) {
     if (borrow.id === 'semMite') {
       looks.semScene(scene, camera, { dt, umPerUnit: 100, cls: (o) => (bodyMeshes.has(o) ? CLS.CUTICLE : leafMeshes.has(o) ? CLS.LEAF : CLS.LITTER) });

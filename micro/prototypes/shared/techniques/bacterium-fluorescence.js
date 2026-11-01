@@ -46,7 +46,7 @@
 //
 // PERFORMANCE (render() only; diffract() keeps its in-place full-resolution
 // behaviour for callers that read optics.field afterwards)
-// - Downsample, then blur: when the PSF is wide on screen (σ ≥ 2.2 px, i.e.
+// - Downsample, then blur: when the PSF is wide on screen (σ ≥ 2 px, i.e.
 //   zoomed in), there is no detail finer than σ to keep, so the horizontal
 //   pass reads the full-resolution field and writes a target 2× (σ ≥ 4.5 px:
 //   4×) narrower, the vertical pass writes one as much shorter, and the
@@ -267,7 +267,8 @@ void main() { vec2 uv = vUv * uFieldK; o = vec4(texture(t0, uv).r, texture(t1, u
   };
 
   const api = {
-    toggles: { psf: true, halo: true, noise: true, plate: true },
+    // down: the downsampled PSF in render() (off: always full resolution, for A/B measurements)
+    toggles: { psf: true, halo: true, noise: true, plate: true, down: true },
     /** The specimen target: render the scene into it (three attachments, additive). */
     get field() { return cur && cur.field; },
     get size() { return [W, H]; },
@@ -306,7 +307,7 @@ void main() { vec2 uv = vUv * uFieldK; o = vec4(texture(t0, uv).r, texture(t1, u
     /** The PSF for render(): downsampled when it is wide. Returns { tex, k: [field uv scale] }. */
     blurred(umPerPx, lambda, na, margin) {
       const s = api.toggles.psf ? psfSigmaUm(lambda, na) / umPerPx : 0;
-      const d = s >= 4.5 ? 4 : s >= 2.2 ? 2 : 1;
+      const d = !api.toggles.down ? 1 : s >= 4.5 ? 4 : s >= 2.0 ? 2 : 1;
       api.stats.down = d; api.stats.sigma = s;
       if (d === 1) { api.diffract(umPerPx, lambda, na); return { tex: cur.field.textures, kx: 1, ky: 1 }; }
       const D = down(d), u = blur3.uniforms;

@@ -13,13 +13,13 @@ assert.ok(Math.abs(progressAt(LANDMARK.x, LANDMARK.z) - 1) < 1e-9);
 
 // every challenge starts at or beyond halfway, in order
 const reach = (Z) => progressAt(Z.x - Z.r - Z.leash, Z.z);
-const order = [['rain', ZONES.rain], ['stenus', reach(ZONES.stenus)], ['strider', reach(ZONES.strider)], ['sundew', ZONES.sundew.from], ['boss', ZONES.boss.from]];
+const order = [['rain', ZONES.rain], ['stenus', reach(ZONES.stenus)], ['strider', reach(ZONES.strider)], ['crowd', ZONES.crowd.from], ['sundew', ZONES.sundew.from], ['boss', ZONES.boss.from]];
 for (const [k, u] of order) assert.ok(u >= 0.5, `${k} begins at ${u.toFixed(3)} of the way (>= 0.5)`);
 for (let i = 1; i < order.length; i++) assert.ok(order[i][1] > order[i - 1][1], `${order[i][0]} comes after ${order[i - 1][0]}`);
 for (const I of SUNDEW_ISLANDS) assert.ok(progressAt(I.x - I.r - 8, I.z) >= 0.5, 'sundews only in the second half');
 
 // the first half is calm: no sundew island there, and the predators' water is beyond it
 assert.ok(ISLANDS.filter((I) => I.sundew).every((I) => progressAt(I.x, I.z) > 0.8));
-for (const k of ['stenus', 'strider']) assert.ok(inPool(ZONES[k].x, ZONES[k].z), `${k}'s water is open water`);
+for (const k of ['stenus', 'strider', 'crowd']) assert.ok(inPool(ZONES[k].x, ZONES[k].z), `${k}'s water is open water`);
 
 console.log(`ok: way ${ROUTE_LEN.toFixed(0)} mm; ${order.map(([k, u]) => `${k} ${(u * 100).toFixed(0)}%`).join(', ')}`);

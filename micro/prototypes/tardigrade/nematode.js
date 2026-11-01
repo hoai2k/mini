@@ -3,11 +3,13 @@
 // (../../design/bosses.md). It guards the Sphagnum leaf on the way to the pool
 // tip (the forward landmark).
 //
-// Body: a smooth, unsegmented, transparent worm drawn ~1.3 mm long and ~60 µm
-// wide (adults reach ~2 mm: a labelled departure so the arena fits), its
-// muscular pharynx a denser tube in the front third, a darker granular
-// intestine behind, and the large dorsal tooth in the buccal cavity at the
-// head. It glides with the undulating wave of a nematode, its body following
+// Body (after the delivered sheet, assets/reference-sheets/boss-nematode.webp):
+// a slim, smooth, unsegmented, transparent worm drawn ~1.3 mm long and ~52 µm
+// wide (adults reach ~2 mm: a labelled departure so the arena fits), with a
+// blunt rounded head; at the front the thick-walled, barrel-shaped buccal
+// cavity holding the one large dorsal tooth; the cylindrical muscular pharynx
+// in the front fifth, ending at a small cardia; a dark, lumpy (granular)
+// intestine; and a long tail tapering to a fine point. It glides with the undulating wave of a nematode, its body following
 // its head (follow-the-leader on the leaf).
 //
 // Fight (shared/predation.js createFight, with more interest and two attacks):
@@ -29,7 +31,7 @@ import { createFight } from '../shared/predation.js';
 const K = 56;            // spine points
 const LEN = 13;          // units (100 µm): 1.3 mm
 const SEG = LEN / (K - 1);
-const R = 0.3;           // body radius: 60 µm across
+const R = 0.26;          // body radius: 52 µm across (slim: ~25x longer than wide)
 const M = 12;            // ring vertices
 const POST = [9.2, -0.4];// on the Sphagnum leaf (u, v)
 const WAKE = 6.5;        // a player this close to the post wakes it
@@ -37,10 +39,19 @@ const REACH = 1.35;      // head to the player's body at the end of a strike
 const THIN = 0.16;       // film index below which it flounders
 
 const radius = (s) => {  // s 0 (head) .. 1 (tail)
-  const head = Math.sqrt(Math.min(1, s / 0.035));
-  const tail = s > 0.8 ? Math.pow(Math.max(0, (1 - s) / 0.2), 0.8) : 1;
-  return R * head * tail * (0.9 + 0.1 * Math.sin(Math.PI * s));
+  const head = 0.55 + 0.45 * Math.sqrt(Math.min(1, s / 0.03)); // blunt, rounded
+  const tail = s > 0.78 ? Math.pow(Math.max(0, (1 - s) / 0.22), 1.25) : 1; // long, filiform
+  return R * head * Math.max(0.04, tail) * (0.92 + 0.08 * Math.sin(Math.PI * s));
 };
+const PHAR = 13;         // spine index of the cardia (the pharynx is the front ~22%)
+
+/** The buccal cavity: a thick-walled barrel (a closed shell of revolution) along +x. */
+function cavityGeometry() {
+  const prof = [[0.12, 0], [0.15, 0.1], [0.145, 0.22], [0.115, 0.29], [0.085, 0.27], [0.095, 0.15], [0.075, 0.03], [0.12, 0]];
+  const g = new THREE.LatheGeometry(prof.map(([r, y]) => new THREE.Vector2(r, y)), 14);
+  g.rotateZ(-Math.PI / 2); // axis y -> x
+  return g;
+}
 
 function tubeGeometry(n0, n1) {
   const g = new THREE.BufferGeometry();
@@ -74,15 +85,24 @@ export class Nematode {
     scene.add(this.group);
     this.parts = [
       { mesh: mk(tubeGeometry(0, K), { dn: 0.018, absorb: [0.35, 0.42, 0.65] }, { color: 0xe6dcc0, opacity: 0.6 }), from: 0, to: K, k: 1 },
-      { mesh: mk(tubeGeometry(1, 18), { dn: 0.03, absorb: [0.9, 1.05, 1.6] }, { color: 0xc8b48a }), from: 1, to: 18, k: 0.42 },
-      { mesh: mk(tubeGeometry(19, K - 6), { dn: 0.025, absorb: [1.7, 1.7, 1.5] }, { color: 0x8a6a40 }), from: 19, to: K - 6, k: 0.5 },
+      // the pharynx: a denser, even cylinder
+      { mesh: mk(tubeGeometry(2, PHAR), { dn: 0.03, absorb: [0.8, 0.95, 1.45] }, { color: 0xc8b48a }), from: 2, to: PHAR, k: 0.5 },
+      // the intestine: dark and granular (lumpy rings)
+      { mesh: mk(tubeGeometry(PHAR + 1, K - 9), { dn: 0.026, absorb: [2.0, 2.0, 1.7] }, { color: 0x7a5e3a }), from: PHAR + 1, to: K - 9, k: 0.6, lumpy: true },
     ];
     for (const p of this.parts) this.group.add(p.mesh);
-    const tg = new THREE.ConeGeometry(0.06, 0.2, 10);
+    // the cardia: a small valve bulb where the pharynx meets the intestine
+    const cg = new THREE.SphereGeometry(0.1, 12, 8);
+    cg.scale(1.3, 1, 1);
+    this.cardia = mk(cg, { dn: 0.035, absorb: [0.9, 1.0, 1.4] }, { color: 0xc8b48a });
+    this.cavity = mk(cavityGeometry(), { dn: 0.09, absorb: [0.9, 1.2, 1.9] }, { color: 0x9a7a40 });
+    // the large dorsal tooth inside the cavity, pointing forward
+    const tg = new THREE.ConeGeometry(0.045, 0.22, 10);
     tg.rotateZ(-Math.PI / 2);
-    this.tooth = mk(tg, { dn: 0.14, absorb: [1.2, 1.5, 2.2] }, { color: 0x8a6a30 });
-    this.group.add(this.tooth);
-    for (const m of [...this.parts.map((q) => q.mesh), this.tooth]) { const u = m.userData.opt.uniforms; m.userData.dn0 = u.uDn.value; m.userData.abs0 = u.uAbs.value.clone(); }
+    this.tooth = mk(tg, { dn: 0.14, absorb: [1.4, 1.7, 2.4] }, { color: 0x8a6a30 });
+    this.extras = [this.cardia, this.cavity, this.tooth];
+    for (const m of this.extras) this.group.add(m);
+    for (const m of [...this.parts.map((q) => q.mesh), ...this.extras]) { const u = m.userData.opt.uniforms; m.userData.dn0 = u.uDn.value; m.userData.abs0 = u.uAbs.value.clone(); }
     this.fight = createFight({ windup: 1.1, strike: 0.42, recoverT: 1.7, repelT: 1.3, retreatT: 9, facingRate: 0.012, blockHit: 0.15, biteHit: 0.17, regain: 0.02 });
     this.spine = Array.from({ length: K }, () => ({ u: 0, v: 0 }));
     this.on = true;
@@ -141,7 +161,7 @@ export class Nematode {
 
   setFade(f) {
     this.fade = f;
-    for (const m of [...this.parts.map((q) => q.mesh), this.tooth]) {
+    for (const m of [...this.parts.map((q) => q.mesh), ...this.extras]) {
       const u = m.userData.opt.uniforms;
       if (m.userData.dn0 === undefined) continue;
       u.uDn.value = m.userData.dn0 * f;
@@ -247,7 +267,8 @@ export class Nematode {
   pose(dt) {
     this.phase = (this.phase || 0) + dt * (2 + 3 * this.ripple);
     const L = this.L, N0 = L.N;
-    const pts = [], fr = [];
+    const pts = (this._pts ||= Array.from({ length: K }, () => new THREE.Vector3()));
+    const fr = (this._fr ||= Array.from({ length: K }, () => new THREE.Vector3()));
     for (let i = 0; i < K; i++) {
       const s = i / (K - 1);
       const p = this.spine[Math.min(i, K - 1)];
@@ -257,16 +278,17 @@ export class Nematode {
       const wave = 0.16 * Math.min(1, this.ripple) * Math.sin(s * 9 - this.phase) * (0.4 + s);
       const sCoil = this.coil * 1.05 * Math.sin(Math.min(1, s / 0.4) * Math.PI * 2) * (s < 0.4 ? 1 : Math.max(0, 1 - (s - 0.4) * 5));
       const off = wave + sCoil;
-      const P = L.toWorld(p.u - tv * off, p.v + tu * off, L.thick / 2 + R + 0.04 - this.sink, new THREE.Vector3());
-      const T = L.dirWorld(tu, tv).normalize();
-      pts.push(P); fr.push(T);
+      L.toWorld(p.u - tv * off, p.v + tu * off, L.thick / 2 + R + 0.04 - this.sink, pts[i]);
+      L.dirWorld(tu, tv, fr[i]).normalize();
     }
-    const side = new THREE.Vector3(), up = new THREE.Vector3();
+    const side = _s, up = _u;
     for (const part of this.parts) {
       const pos = part.mesh.geometry.attributes.position.array;
       let w = 0;
       for (let i = part.from; i < part.to; i++) {
-        const s = i / (K - 1), r = radius(s) * part.k * (part.k < 1 ? (i === part.from || i === part.to - 1 ? 0.05 : 1) : 1);
+        const s = i / (K - 1);
+        let r = radius(s) * part.k * (part.k < 1 ? (i === part.from || i === part.to - 1 ? 0.05 : 1) : 1);
+        if (part.lumpy) r *= 0.9 + 0.2 * Math.abs(Math.sin(i * 2.7) * Math.cos(i * 1.3));
         side.crossVectors(fr[i], N0).normalize(); up.copy(N0);
         for (let j = 0; j < M; j++) {
           const a = (j / M) * Math.PI * 2;
@@ -278,11 +300,16 @@ export class Nematode {
       }
       part.mesh.geometry.attributes.position.needsUpdate = true;
     }
-    // the tooth: in the buccal cavity, bared forward in the attack
-    this.tooth.position.copy(pts[0]).addScaledVector(fr[0], -0.05 + 0.16 * this.bare);
-    this.tooth.quaternion.setFromUnitVectors(_x.set(1, 0, 0), fr[0]);
+    // the buccal cavity at the nose, the tooth dorsal inside it (bared forward in the attack), the cardia
+    _q.setFromUnitVectors(_x.set(1, 0, 0), fr[0]);
+    this.cavity.position.copy(pts[0]).addScaledVector(fr[0], -0.3);
+    this.cavity.quaternion.copy(_q);
+    this.tooth.position.copy(pts[0]).addScaledVector(fr[0], -0.16 + 0.12 * this.bare).addScaledVector(N0, 0.035);
+    this.tooth.quaternion.copy(_q);
+    this.cardia.position.copy(pts[PHAR]);
+    this.cardia.quaternion.copy(_q.setFromUnitVectors(_x.set(1, 0, 0), fr[PHAR]));
     this.headW = pts[0]; this.headDir = fr[0];
     if (this.parts[0].mesh.material === this.parts[0].mesh.userData.lit) for (const p of this.parts) p.mesh.geometry.computeVertexNormals();
   }
 }
-const _h = new THREE.Vector3(), _p = new THREE.Vector3(), _f = new THREE.Vector3(), _x = new THREE.Vector3();
+const _h = new THREE.Vector3(), _p = new THREE.Vector3(), _f = new THREE.Vector3(), _x = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _u = new THREE.Vector3();

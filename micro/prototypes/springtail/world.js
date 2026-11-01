@@ -75,7 +75,12 @@ export const ZONES = {
   strider: { x: along(0.745), z: -8, r: 52, leash: 26 },
   sundew: { x: SUNDEW_X, z: 0, from: progressAt(SUNDEW_X - 30, 0) },
   boss: { from: progressAt(LANDMARK.x - 35, 0) },
+  // a mass of Podura (NPC springtails, shared/crowd.js) at the edge of the strider's water
+  crowd: { x: along(0.715), z: 24, r: 20 },
 };
+ZONES.crowd.from = progressAt(ZONES.crowd.x - ZONES.crowd.r - 20, 0);
+// keep the mass on open water
+for (let i = ISLANDS.length - 1; i >= HAND; i--) if (!ISLANDS[i].landmark && Math.hypot(ISLANDS[i].x - ZONES.crowd.x, ISLANDS[i].z - ZONES.crowd.z) < ISLANDS[i].r + ZONES.crowd.r + 4) ISLANDS.splice(i, 1);
 
 /** Normalised pool radius: < 1 inside the pool (matches POOL_GLSL). */
 export function poolE(x, z) {

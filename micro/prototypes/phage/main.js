@@ -40,11 +40,9 @@ renderer.autoClear = false;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(35, 1, 2, 3000);
 const post = createPost(renderer);
-const gl = renderer.getContext();
-const soft = /SwiftShader|llvmpipe|Software/i.test(String(gl.getParameter(gl.RENDERER)) + (gl.getExtension('WEBGL_debug_renderer_info') ? gl.getParameter(0x9246) : ''));
-// ?pr=1 renders at full resolution on software WebGL too (for judging screenshots)
+// The quality governor owns the resolution; ?pr=0.5 (for example) scales it further by hand.
 const prParam = parseFloat(new URLSearchParams(location.search).get('pr'));
-const renderScale = prParam > 0 ? Math.min(1, prParam) : soft ? 0.6 : 1;
+const renderScale = prParam > 0 ? Math.min(1, prParam) : 1;
 const inside = createInside();
 // The quality governor (shared/quality.js) owns the pixel ratio (1.0 while split)
 // and gives a render scale (lower per split view) for the post target, and an
@@ -1156,11 +1154,12 @@ function frame(now) {
     const list = inPlay.length ? inPlay.map((m, i) => ({ slot: m.slot, position: focusPts[i] })) : [{ slot: 0, position: view.target }];
     split.update(list, { camera }, dt);
     quality.setSplitViews(split.views.length);
-    split.render(camera, () => {
+    split.render(camera, (v) => {
       for (const m of members()) m.t4.setCutFrom(camera.position);
       _v.set(camera.position.x, UV.y0 + 40, 0).project(camera);
       post.uniforms.uUvLine.value = _v.y * 0.5 + 0.5;
-      post.render(scene, camera);
+      // every internal pass (scene, DOF copy, bloom) scissored to this view's region when split
+      post.render(scene, camera, (rt) => split.scissor(v, rt));
     });
     // (shared/landmark.js trips on an empty split region, which splitscreen.js can emit for a frame as players leave)
     if (!debug.iso && lead.P.mode !== 'burst' && split.layout.regions.every((r) => r.polygon && r.polygon.length >= 3)) {

@@ -111,6 +111,10 @@ void emit(float opd, float scat, vec3 absb, float refDepth) {
   float b = smoothstep(uDof.x, uDof.y, dz) * uDofOn;
   float x = max(dz - uDof.y, 0.0) / uFade;
   float fade = smoothstep(uNear.x, uNear.y, refDepth) / (1.0 + x * x);
+  // a fragment that adds next to nothing (far past the focus, or right at the
+  // camera) writes nothing: four blended float attachments per fragment are
+  // this pass's whole cost
+  if (fade < 0.004) discard;
   vec4 a = vec4(opd, scat, 0.0, 0.0) * fade;
   vec4 c = vec4(absb, 0.0) * fade;
   oS0 = a * (1.0 - b); oS1 = c * (1.0 - b);

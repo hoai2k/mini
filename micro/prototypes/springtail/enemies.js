@@ -569,7 +569,7 @@ export function createStrider(scene) {
     if (st.state === 'hunt') {
       // keep homing on the source while it keeps rippling; follow the player when close
       // it feels the prey's ripples: a moving springtail is tracked, a still one is not
-      if (Math.hypot(P.x - st.x, P.z - st.z) < 10 && P.alive && P.moving && !P.hunker) st.target = { x: P.x, z: P.z };
+      if (Math.hypot(P.x - st.x, P.z - st.z) < 10 && P.alive && P.moving && !P.hunker && !st.decoyed) st.target = { x: P.x, z: P.z };
       goal = st.target;
       if (Math.hypot(goal.x - st.x - Math.cos(st.a) * 4, goal.z - st.z - Math.sin(st.a) * 4) < 1.5) { st.state = 'idle'; st.target = null; goal = null; }
     } else if (st.state === 'idle' && st.t % 9 < dt) goal = { x: st.hx + (Math.random() - 0.5) * 40, z: st.hz + (Math.random() - 0.5) * 30 }, st.target = goal;

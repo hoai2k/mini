@@ -80,7 +80,7 @@ export function createBladderwort(scene, world) {
   body.rotation.y = Math.atan2(-TRAP.dir.z, TRAP.dir.x);
   root.add(body);
   // translucent green: a thin wall of cells (the mottled, reticulate pattern), chlorophyll green
-  const wall = new THREE.Mesh(bladderGeometry(), volumeMaterial({ dn: 0.011, scatter: 1.35, absorb: [0.0052, 0.0011, 0.0066], centred: true, pattern: 3, rimPow: 3.2 }));
+  const wall = new THREE.Mesh(bladderGeometry(), volumeMaterial({ dn: 0.011, scatter: 1.35, absorb: [0.0034, 0.0007, 0.0044], centred: true, pattern: 3, rimPow: 3.2 }));
   wall.frustumCulled = false;
   body.add(wall);
   // the quadrifid glands lining the inside (they pump the water out): fine dots all over

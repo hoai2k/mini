@@ -359,7 +359,7 @@ export function blobGeometry(parts, detail = 1) {
  * reference molecules read as bead-flowers with bumpy silhouettes. Swap it in
  * with mesh.geometry = lumpyGeometry(geo.userData.parts).
  */
-export function lumpyGeometry(parts, k = 6) {
+export function lumpyGeometry(parts, k = 6, detail = 0) {
   const out = [];
   let seed = 1;
   const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
@@ -371,7 +371,7 @@ export function lumpyGeometry(parts, k = 6) {
       out.push({ p: [x + q * Math.cos(a) * r * 0.58, y + u * r * 0.58, z + q * Math.sin(a) * r * 0.58], r: r * (0.34 + rnd() * 0.14), c: part.c });
     }
   }
-  return blobGeometry(out, 0);
+  return blobGeometry(out, detail);
 }
 
 const POST_FRAG = /* glsl */`
@@ -577,8 +577,13 @@ export function createPost(renderer) {
       for (const t of bB) t.setSize(Math.max(1, w >> 3), Math.max(1, h >> 3));
     },
     setBackdrop(tex) { mat.uniforms.tBg.value = tex; mat.uniforms.uUseBg.value = tex ? 1 : 0; },
-    /** Draw `sceneToDraw` with `camera` into the target, then the look to the screen. */
-    render(sceneToDraw, camera) {
+    /**
+     * Draw `sceneToDraw` with `camera` into the target, then the look to the screen.
+     * `scissor(rt)`, if given, is called on each internal target before it is drawn
+     * (split screen: split.scissor(view, rt) limits every pass to the view's region).
+     */
+    render(sceneToDraw, camera, scissor = null) {
+      if (scissor) for (const t of [target, ...bA, ...bB, ...dA]) scissor(t);
       renderer.setRenderTarget(target);
       renderer.setClearColor(0x000000, 0);
       renderer.clear(true, true, true);

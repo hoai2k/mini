@@ -398,7 +398,12 @@ export function createMacro(renderer) {
     },
     /** Blur-disc diameter in full-res px for a world point at distance d. */
     cocAt(L, d, dofK = 1) { return (L.cocK(W) * dofK * Math.abs(d - macroShared.uFocus.value)) / d; },
-    render(scene, camera, { lens: L, look = MACRO_LOOKS[0], dofK = 1 }) {
+    /**
+     * scissor(rt): optional, called on each internal target before its pass
+     * (a split screen's split.scissor(view, rt, margin), so each view fills
+     * only its own region; it must also turn the scissor off when merged).
+     */
+    render(scene, camera, { lens: L, look = MACRO_LOOKS[0], dofK = 1, scissor = null }) {
       const k = (L.cocK(W) / Math.max(dofK * look.dofK, 1e-3));
       const o = api.options;
       pre.uniforms.uCocK.value = k; comp.uniforms.uCocK.value = k;
@@ -406,6 +411,7 @@ export function createMacro(renderer) {
       gather.uniforms.uMaxCoc.value = o.maxCoc / 2; gather.uniforms.uRim.value = o.rim; gather.uniforms.uTaps.value = Math.max(8, Math.min(64, o.taps));
       comp.uniforms.uExposure.value = look.exposure; comp.uniforms.uWarm.value = look.warm;
       comp.uniforms.uCircle.value = look.circle; comp.uniforms.uDof.value = o.dof ? 1 : 0; comp.uniforms.uGrain.value = o.grain;
+      if (scissor) for (const rt of [sceneRT, preRT, tileRT, blurRT]) scissor(rt);
       renderer.setRenderTarget(sceneRT);
       renderer.setClearColor(0x000000, 0);
       renderer.clear();

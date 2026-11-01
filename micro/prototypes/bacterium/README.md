@@ -27,8 +27,11 @@ everything else (`draw.js`, `landmarks`), and a quiet edge arrow
 (`shared/landmark.js`) shows where each is when it is off screen: a brass
 chevron for the way on, a hollow ring for the way back.
 
-- **Forward: a host cell with phages landing on it**, on the far right in
-  the oxygen band (170, 20 µm; about 190 µm from the start). It is swollen,
+- **Forward: a host cell with phages landing on it**, far to the upper
+  right in the oxygen band (560, 24 µm; about 580 µm from the start at
+  (−20, −20)). The way is long on purpose: the first half is a calm
+  exploration where kin are plentiful and the collective forms; every
+  challenge waits at or beyond halfway (see **Placement**). It is swollen,
   its contents crowded with new phage heads, phages are docked all over its
   surface and more diffuse in to land. Phages are 60 nm: phase contrast shows
   only the swollen host, while fluorescence (SYBR) and darkfield show the
@@ -55,6 +58,15 @@ with the band of membranelles beating round it looms in from the right edge
 of the field, its striped blue body tapering down to the foot. Its vortex of
 specks spirals into the oral pouch off-frame.
 
+- **Its look** follows the delivered reference sheet
+  (`assets/reference-sheets/boss-stentor.webp`): a trumpet flaring from a
+  narrow foot with a little flared holdfast to a wide oral disc seen
+  obliquely, its rim ringed all round by the membranelle band, spiral
+  grooves on the disc running into the oral pouch, fine longitudinal
+  pigment stripes, the macronucleus as a chain of beads, and green
+  zoochlorellae and food vacuoles inside. It stands as in the sheet's first
+  view: foot on the biofilm at the lower left (beside the host), disc tilted
+  up and to the right (`SHAPE.TRUMPET` in `bacterium-shapes.js`).
 - **Dormant** until a player comes within ≈230 µm of its mouth after the calm
   opening; then a quiet brass **resolve gauge** shows while anyone is near.
   Even dormant, a gentle feeding current flows.
@@ -74,12 +86,104 @@ specks spirals into the oral pouch off-frame.
   oral pouch, packed into a food vacuole carried down into its body, the
   camera pulled back to the 90 µm field; then the fade and a respawn away
   from it (together: beside a teammate).
+- **A raft holds:** a collective at raft size (quorum 8) is dragged by the
+  vortex at a third of its strength (measured: idle 140 µm from the mouth for
+  1 s, a lone cell is pulled 68 µm in, a raft drifts 2 µm out), and when the
+  vortex does reach you a member is swept in instead of you.
 - **Departures:** the vortex's reach and strength are game values, and the
-  pulls are a rhythm for play (a real Stentor feeds steadily). Reference
-  sheet MP-R19 is requested, not yet delivered (`shared/asset-list.js`); it
-  is built from anatomy until then.
+  pulls are a rhythm for play (a real Stentor feeds steadily).
 - Test hooks: `__micro.boss()` (awake, state, resolve, vortex strength,
   contraction, a log), `__micro.stentor`, `debug.wakeBoss()`.
+
+## The collective
+
+The owner's design: "the bacteria swarm (though when you join there's no
+leader, you just become a collective; and you can join and leave another
+player; if you branch off far enough you split the crowd evenly)".
+`collective.js`, drawn in `draw.js` (`kin`), run from `main.js`.
+
+- **Joining:** kin cells (your own species, dim, wandering slowly in the
+  band) are plentiful in the first half of the way (67 of 70 start there, a
+  few right beside you). Touch one with your cell, or with any cell of your
+  collective, and it joins: you are a collective. Its quorum signal reaches
+  further as it grows, so nearby kin drift in by themselves. A faint brass
+  ring marks each free kin cell near you (a game marker: Features → Mark your
+  cell).
+- **No leader:** the whole group moves together under the stick as one flock
+  (cohesion to the group's middle, separation, alignment; the members steer
+  by the input itself, not toward you). Your own cell is one member, pulled
+  to the middle like the others (in tests it swims anywhere in the flock,
+  often at the back). Release the stick and the collective **mills in
+  place**, circling its middle: that is how it holds still. A sprint (A)
+  sprints the whole collective.
+- **Health:** members are your health. A predator that would take you (a
+  grazer's funnel, the amoeba, Stentor's mouth, a Bdellovibrio's ram) takes
+  the member on its side instead, and you are knocked clear. Members are
+  also lost to grazers' mouths and the amoeba on their own. They **regrow by
+  division** in the band (about one division per member per 70 s; faster on
+  food, three times as fast on a taken patch), up to 40; your own division
+  adds your daughter to the collective.
+- **Quorum** is how many cells are close together (within 7 µm of the
+  middle), not the head count: a tight dozen beats a loose twenty. It is
+  shown in the HUD's quiet brass: a thin ring round the collective fills
+  toward 12, with ticks at 5 and 8, an inner purple arc for the toxin
+  charge, and a small label ("23 · quorum 20 · quorum · toxin ready (Y)").
+  The stats corner repeats it. Abilities by quorum:
+  - **5, slime shield:** EPS round every member (a haze in fluorescence).
+    Phages stick in the slime and can't reach your wall; a Bdellovibrio's
+    ram glances off.
+  - **8, raft:** members line up; currents (Stentor's vortex, a grazer's
+    draw) drag the collective at a third of their strength.
+  - **12, quorum:** the **toxin burst** charges over 4 s while the
+    collective holds still (released stick: it mills), and holds while you
+    move. **Y** (or LS click) fires it: a purple ring 32 µm across; grazers
+    in reach recoil and give up, Bdellovibrio flee, phages are destroyed,
+    Stentor flinches (resolve), the amoeba's edge is pushed back. The cells
+    of a charged collective show a faint purple (violacein-like)
+    absorbance. **Patch takeover:** sit at quorum on a food patch for 1.5 s
+    and it is yours: rivals are pushed off and members divide three times
+    as fast.
+- **Bdellovibrio is drawn to dense collectives** (a dense prey colony suits
+  it): a free one within 110 µm of a collective at quorum 5 or more turns
+  toward it, harder the denser it is, and takes a member on contact; one
+  stalking you looks for you from further off the denser you are.
+- **Together:** touch another player's collective (your cell against any of
+  its cells) and you join it: one collective, your inputs blended (each
+  player's cell steers half by its own stick and half by the blend; the
+  members follow the blend). **Leaving is by moving away** (no button):
+  branch off 20 µm from the other players and the collective **splits
+  evenly**, each player taking an equal share, the members on their side.
+  The same players can't re-merge for 2.5 s. Tested: 49 members split
+  26 / 30 (with divisions meanwhile) between two players.
+- **Real basis:** quorum sensing is a density switch that turns on group
+  behaviour such as toxin production (C19); quorum-sensing microcolonies
+  resist grazers and mature biofilms poison them (C28); swarms move as
+  rafts of aligned cells (C29); multicellular magnetotactic prokaryotes swim
+  as one ball (C20); Bdellovibrio readily attacks biofilms (S93). **[Departure]:**
+  a player steering a group, members dying in your place, and the toxin on a
+  magnetotactic cell (violacein is made by other genera).
+- Features → Body → *The collective* (on by default). Test hooks:
+  `__micro.coll()`, `__micro.collective`, `debug.recruit(n, slot)`,
+  `debug.charge(slot)`, `debug.burst(slot)`.
+
+## Placement
+
+The owner: challenges "don't appear near the beginning but only once you're
+halfway at least to the destination". Progress is measured along the line
+from the start (−20, −20) to the host (560, 24) (`world.progress`).
+Logged by the test (`__micro.challenges()`), all at or beyond halfway:
+
+| Challenge | Where it starts | Progress |
+| --- | --- | --- |
+| Phage clouds and phage homing | only for a player past halfway | ≥ 0.50 |
+| Bdellovibrio | live beyond x = 282 (turn back there) | ≥ 0.52 |
+| Grazer 1 | its current's reach (mouth at 355, −9) | 0.52 (mouth 0.64) |
+| Amoeba's edge | its leading corner; it never creeps back past x ≈ 283 | 0.52–0.69 |
+| Grazer 2 | its current's reach (mouth at 458, −11) | 0.70 (mouth 0.82) |
+| Stentor | wakes within 230 µm of its mouth; vortex edge | 0.82; 0.91 |
+
+The calm opening (45 s) still applies on top. Respawns after a catch put you
+back a little behind where you were, not at the start.
 
 ## Multiplayer
 
@@ -106,6 +210,8 @@ shell's roster comes in with `embed.players`).
   rejoins beside a teammate. Alone a catch respawns you at a safe spot, and
   an oxygen death shows the Run over card.
 - **Landmarks** fire for any player.
+- **Collectives:** see **The collective** (join by touch, leave by moving
+  away, an even split).
 
 Test hooks: `__micro.players`, `__micro.split`, `__micro.roster()`,
 `__micro.landmarks` (positions, the log, `near`),
@@ -149,7 +255,7 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | **A** | Space | **Sprint run**: every flagellum at full motor speed (spirillum 95 µm/s, Bdellovibrio 160 µm/s), 0.6 s, recharging (HUD `dash` meter). It also shakes off loosely bound phages and an attaching Bdellovibrio, and sprinting out of a grazer's current wears it down |
 | **X** | E | **Feed / attack**. Magnetotactic: hold to take up food in a patch (the dissolved food glows as it is drawn into the cell). Bdellovibrio: press while touching a Gram-negative rod to attach and bore in (it spins on its pole and a pore opens in the prey's wall) |
 | **B** | Shift | **Defend: tumble** (the shared defend button, an evasive move): stop, turn to a random new heading (E. coli's distribution, mean 68°), run on. For Bdellovibrio it is a reverse plus a flick. While you hold LS, the stick turns you back afterwards. **At the moment a predator strikes** (a grazer's surge, a phage committing, a Bdellovibrio's ram) it evades it |
-| Y | R | Data overlay: oxygen, food, field lines and feeding currents, marked on screen as data, not optics. At the Paramecium (the backdoor): back to the pool |
+| Y | R | **Toxin burst** when your collective's toxin is charged (also LS click). Otherwise: data overlay (oxygen, food, field lines and feeding currents, marked on screen as data, not optics). At the Paramecium (the backdoor): back to the pool |
 | LT / RT | Z / X | Fine focus down / up (it drifts back to your cell's plane unless switched off) |
 | LB / RB | Q / F | **Reverse the run**: the other pole leads. For the magnetotactic cell, this is how it swims back the other way along the field line |
 | D-pad ←→ | 3 / 4 | Look: phase contrast, fluorescence, darkfield, SEM (borrowed), DIC (borrowed) |
@@ -243,6 +349,38 @@ The predators use the shared `shared/predation.js` (`createHunger`,
   'phage' | 'bdellovibrio')` starts that catch.
 
 Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A sediment ambience loop and a flagellar-motor run loop whose rate follows your speed; the sprint (A), uptake and finished prey (X), tumbles (B), a phage latching on, and the grazer's feeding current catching you.
+
+## Performance
+
+Measured with the session's perf scripts (`measure.mjs`, SwiftShader, so
+relative numbers only); the bacterium section of `../../design/performance.md`
+lists the bottlenecks.
+
+- **Downsample, then blur** (`bacterium-fluorescence.js` `render`): when the
+  PSF is 2 px or wider on screen, its horizontal pass writes a target 2×
+  narrower (4× from 4.5 px), the vertical one 2× shorter, and the composite
+  reads it back bilinearly with that filter's width taken out of σ. About
+  0.38× (or 0.16×) of the full-resolution cost, and nothing visible (no
+  detail finer than σ exists to lose). `diffract()` keeps its old in-place
+  behaviour for the borrowed DIC look.
+- **Split screen:** each view's passes (specimen, PSF, low-pass, composite)
+  are scissored to its region (`split`'s view rect) plus the blurs' reach,
+  and the shared governor drops the render scale to 0.7 (2 views) or 0.55
+  (3–4), so 4 views cost about what one did.
+- **Quality governor** (`shared/quality.js`): the optics' buffers render at
+  its scale and the composite draws them to the full canvas; it owns the
+  pixel ratio (×0.5 more under a software renderer, as before). Features →
+  Rendering; `?q=high|medium|low` fixes it.
+- **The optics keep their last two sizes' targets**, so a split or merge
+  doesn't reallocate them.
+- **`eatenByGrazer` and the feeding currents** read a list of feeding grazers
+  made once per step, so specks, phages and cells skip resting grazers.
+- **One cull box for every view:** the shapes were culled against the last
+  view drawn (the previous frame's), so a split view could miss shapes; now
+  the union of the views' fields, and `draw.js` skips off-view objects before
+  building their materials.
+- A/B switches: `?psfdown=0` (full-resolution PSF), `?rects=0` (no
+  per-view scissor).
 
 ## Checks
 
@@ -413,6 +551,8 @@ page runs before the request list has them), with procedural stand-ins:
 
 ## Departures, labelled
 
+- **The collective** (see above): a player steering a group of cells, and
+  members dying in a player's place.
 - **Predator pacing and the catch sequences** are game values: the calm
   opening, the on/off spells, the phage clouds arriving with a nearby lysis,
   and catches lasting a few seconds (a lytic cycle takes tens of minutes, a
