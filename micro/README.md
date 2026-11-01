@@ -6,8 +6,7 @@ Video games where you play as microscopic creatures.
   world-select tray and an intro for each world, then the worlds themselves
   (the prototypes below, hosted in a frame), with a zoom transition when you
   reach a world's forward landmark or its backdoor. Published at
-  https://hoai2k.github.io/mini/micro/ in the prototype archive, behind the
-  invite gate.
+  https://hoai2k.github.io/mini/micro/, public (no invite gate).
 
 - [`research/`](research/) is a cited research atlas of four scale bands
   (mites, water-film animals, large protists, small cells), their habitats,
@@ -30,7 +29,7 @@ Video games where you play as microscopic creatures.
   says `includePrototypeBrowser: true` (false leaves the list page and the
   split-screen demo out of the deploy; the game and the worlds it hosts still
   deploy),
-  behind the invite gate: springtail (macro photo), mite (SEM), tardigrade
+  springtail (macro photo), mite (SEM), tardigrade
   (DIC), amoeba (brightfield), Paramecium (microscope view), bacterium (phase
   and fluorescence) and zoom transitions between them. They share one control
   scheme ([`prototypes/CONTROLS.md`](prototypes/CONTROLS.md): A dash, X

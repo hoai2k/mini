@@ -20,7 +20,7 @@ mkdir -p "$out/prototypes" "$out/game"
 done
 cp -R "$here/game/src" "$out/game/src"
 cp -R "$here/game/icons" "$out/icons"
-cp "$here/game/manifest.webmanifest" "$here/game/public-access.json" "$out/"
+cp "$here/game/manifest.webmanifest" "$out/"
 sed 's#"src/#"game/src/#g' "$here/game/index.html" > "$out/index.html"
 grep -q '"game/src/boot.js"' "$out/index.html" || { echo "publish: index.html did not reference src/boot.js" >&2; exit 1; }
 # The prototype browser (the list page and the split-screen demo) is published

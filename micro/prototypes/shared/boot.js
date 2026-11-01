@@ -1,16 +1,7 @@
-// Every prototype page starts here: the shared invite door first (the
-// prototypes are in the prototype archive, so the public-access switch does
-// not open them unless public-access.json beside the page says
-// { "followPublicAccess": true }), then the prototype's own main module.
-// The door is off on localhost.
-import { openGate } from './gate/gate.js';
-
+// Every prototype page and the Micro Zoom game start here, then run their own
+// main module. Micro Zoom is public, so there is no invite door any more; the
+// start still runs on a later microtask, as it did after the door, so a page
+// sees the same order of events.
 export function boot(start) {
-  void openGate({
-    title: 'Micro prototypes',
-    game: 'micro',
-    blurb: 'These prototypes are for friends of Hoai Nguyen. Use your invite link, or enter your code below.',
-    ignorePublicAccess: true,
-    accessFile: 'public-access.json',
-  }).then(start);
+  void Promise.resolve().then(start);
 }
