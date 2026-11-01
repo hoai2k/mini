@@ -103,7 +103,7 @@ export function createWorld() {
   }
   // small clay specks and colloids: Brownian
   const specks = [];
-  for (let i = 0; i < 900; i++) specks.push({ x: W.x0 + r() * (W.x1 - W.x0), y: W.slabY + 4 + r() * (W.y1 - W.slabY - 4), r: 0.12 + r() * 0.3, z: (r() - 0.5) * 2.5, seed: r() * 9 });
+  for (let i = 0; i < 640; i++) specks.push({ x: W.x0 + r() * (W.x1 - W.x0), y: W.slabY + 4 + r() * (W.y1 - W.slabY - 4), r: 0.12 + r() * 0.3, z: (r() - 0.5) * 2.5, seed: r() * 9 });
 
   // --- matrix (EPS) strands in and above the biofilm ---
   const eps = [];

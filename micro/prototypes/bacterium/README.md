@@ -468,13 +468,14 @@ arrays), no allocations per member. Measured with a flock of 40 per player
 
 | | 1 player | 4 players |
 | --- | --- | --- |
-| one simulation step (`debug.step`, median of 5 × 120) | 1.14 → 1.28 ms | 1.76 → 1.17 ms |
+| one simulation step (`debug.step`, median of 5 × 120) | 1.14 → 1.28 ms (in the rings layout, repeated: 1.6 / 2.5 → 1.7 / 1.9 ms) | 1.76 → 1.17 ms |
 | `measure.mjs` CPU per frame (median) | 8.9 → 9.9 ms | 20.6 → 11.2 ms |
 | heap allocated per frame | 460 → 399 KB | 442 → 227 KB |
 | `collective.js` in the CPU profile | 0.6 → 0.4 ms/s | 0.2 → 0.1 ms/s |
 | draw calls | 7 → 7 | 33 → 33 |
 
-SwiftShader dominates every frame here, so the per-frame numbers are noisy;
+SwiftShader dominates every frame here and the container was shared (load
+average 15–28), so the numbers are noisy;
 the flock itself stays a few per cent of a step. The beacon and answer
 pulses are a ring of discs in the existing shape batch (no new draw calls).
 
