@@ -19,17 +19,18 @@ import { loadTexture } from '../shared/assets.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createPost, goodsellShared, toonMaterial, inkedInstanced, setInkVisible } from '../shared/techniques/phage-goodsell.js';
 import { createT4, t4LiteGeometry, T4_FL } from '../shared/techniques/phage-model.js';
-import { createWorld, uvAt, uvSun, routeProgress, BOUNDS, UV, START, STRAY_HOME } from './world.js';
+import { createWorld, uvAt, uvSun, routeProgress, BOUNDS, UV, START, DEST, STRAY_HOME } from './world.js';
 import { createQuality } from '../shared/quality.js';
 import { createInside, GENOME_NODES } from './inside.js';
 import { attachmentForward, aimedProtein } from './binding.js';
-import { followYaw } from '../shared/swim-control.js';
+import { createKicks } from './kicks.js';
+import { beadMesh, beadMaterial, beadTemplate, PALETTE } from '../shared/techniques/phage-beads.js';
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const ramp = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
-const UP = new THREE.Vector3(0, 1, 0);
+const UP = new THREE.Vector3(0, 1, 0), AX_X = new THREE.Vector3(1, 0, 0), AX_Z = new THREE.Vector3(0, 0, 1);
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _n = new THREE.Vector3(), _q = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3();
 
 // --- renderer, scenes, cameras ---
@@ -76,8 +77,9 @@ const hud = mountHud({
   title: 'Phage',
   sub: 'A T4-like phage, 0.2 µm long, in bog water beside its host bacteria: a molecular illustration, not a microscope image. Drift with LS; let go and Brownian motion has you.',
   controls: hudControls({
-    move: 'Drift with the attachment fibres leading (a labelled departure: phages have no motor)',
-    camera: 'Orbit the view; released, it follows your swimming heading',
+    move: 'Drift across the view, fibres leading (a labelled departure: phages have no motor)',
+    camera: 'Turn the view round you (no up or down; it stays where you leave it)',
+    analog: 'Drift into the view (RT) / back toward you (LT)',
     dash: 'Current gust (departure) · on a surface: push off with the fibres',
     attack: 'Grab a protein with the leading fibres: gold three-lobed receptors bind and inject; violet pairs slip off · at an amoeba lobe: fibre jab',
     defend: 'Defend: fold the fibres and slip (the amoeba gets no purchase; past clay and wrong hosts) / extend (grab receptors with X)',
@@ -86,7 +88,7 @@ const hud = mountHud({
     zoom: 'Zoom in / out',
     extra: [['Y', 'At the flagellum (backdoor): back to the sediment']],
   }),
-  note: 'Time is slowed about 20× (a phage crosses a host cell in ~0.04 s). Goal: aim the fibres at a gold three-lobed protein and grab with X; violet pairs slip off. Get the whole genome in past the host’s defences. Keep below the UV-bright water near the surface. Up to four players: press any button on another controller to join.',
+  note: 'Time is slowed about 20× (a phage crosses a host cell in ~0.04 s). Molecules strike you now and then: each knock is Brownian motion you can see. Goal: follow the brass chevron to Host A, aim the fibres at a glowing gold three-lobed protein and grab with X; violet pairs slip off. Get the whole genome in past the host’s defences. Keep out of the UV-bright water near the surface. Up to four players: press any button on another controller to join.',
 });
 const tag = Object.assign(document.createElement('div'), { className: 'ph-tag', textContent: 'DATA OVERLAY · receptors, defences and odds: data, not optics' });
 const label = Object.assign(document.createElement('div'), { className: 'ph-label' });
@@ -106,7 +108,8 @@ scene.add(progeny);
 
 // delivered art (null until delivered); guard ids that may not be in the list yet
 const safeTexture = (id, o) => { try { return loadTexture(id, o); } catch (e) { console.warn(`[micro] ${e.message}`); return Promise.resolve(null); } };
-const art = { envelope: null, water: null, section: null };
+const art = { envelope: null, water: null, section: null, pano: null, envFL: null };
+safeTexture('MP-V06').then((t) => { if (t) { art.pano = t; applyArt(); } });
 safeTexture('MP-V01').then((t) => { if (t) { art.envelope = t; applyArt(); } });
 safeTexture('MP-V02').then((t) => { if (t) { art.water = t; applyArt(); } });
 safeTexture('MP-V03', { repeat: false }).then((t) => { if (t) { art.section = t; applyArt(); } });
@@ -115,8 +118,11 @@ const LOOKS = ['Realistic false light', 'Goodsell watercolour', 'Cryo-EM greysca
 const POST_LOOK = [3, 0, 1, 2]; // createPost's look index for each
 const isFL = () => view.look === 0;
 const ZOOMS = [60, 110, 180, 290];
-const view = { look: 0, zoom: 1, yaw: 0, pitch: 0, overlay: false, ink: true, art: true, target: new THREE.Vector3(), dist: 180, iso: null, followHeading: 2.95 - Math.PI / 2, lookHold: 0 };
-const opts = { drive: true, brownian: true, tumble: true, uv: true, amoeba: true };
+// The camera's orientation is a quaternion turned about its own axes by RS (no yaw/pitch angles, no
+// lookAt and no up vector, so there is no pole to flip at); nothing turns it unless a stick is held,
+// apart from an optional, gentle roll that keeps the sunlit surface toward the top of the screen.
+const view = { look: 0, zoom: 1, q: new THREE.Quaternion(), overlay: false, ink: true, art: true, target: new THREE.Vector3(), dist: 180, iso: null, lookHold: 0, level: true, turnRate: 0 };
+const opts = { drive: true, brownian: true, kicks: true, tumble: true, uv: true, amoeba: true };
 
 function applyArt() {
   const use = view.art;
@@ -127,6 +133,7 @@ function applyArt() {
     h.mat.uniforms.uColor.value.set(env ? (h.wrong ? '#bba680' : '#e4e0d8') : h.color);
   }
   post.setBackdrop(use ? art.water : null);
+  post.setPanorama(use ? art.pano : null);
   waterColor = use && art.water ? '#a7c2bc' : '#bcd3ea';
   // in false light the painted (Goodsell) envelope only lends its grain
   inside.setSection(use ? art.section : null);
@@ -138,12 +145,12 @@ let waterColor = '#bcd3ea';
 // Clear water below and left of Host A; keep the surface/UV direction upright.
 // START comes from world.js: clear water at the lower left, far from Host A (upper right).
 const newP = () => ({
-  pos: START.clone(), vel: new THREE.Vector3(), bvel: new THREE.Vector3(), gust: new THREE.Vector3(),
+  pos: START.clone(), vel: new THREE.Vector3(), bvel: new THREE.Vector3(), kv: new THREE.Vector3(), gust: new THREE.Vector3(),
   q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.95), angVel: new THREE.Vector3(),
   mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, walkLocal: new THREE.Vector3(), lift: 4,
   anchors: Array(6).fill(null), stepping: -1, stepT: 0, bound: 0, canCommit: false, commitT: 0, commitHost: null,
   clayT: 0, msgT: 0, kind: null, cutBy: null, burstT: 0, fade: 0, contract: 0, star: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, scale: 1,
-  stuckTip: Array(6).fill(null), lastHost: null, inBack: false, grab: null, grabCooldown: 0, moveHeading: 2.95 - Math.PI / 2,
+  stuckTip: Array(6).fill(null), lastHost: null, inBack: false, grab: null, grabCooldown: 0, snag: null, snagT: 0,
   damaged: false, wreck: 0, coHost: null, coT: 0,
 });
 const hunger = createHunger({ grace: 45 });
@@ -159,7 +166,7 @@ const members = () => team.filter(Boolean);
 const isMulti = () => members().length > 1;
 function makeMember(slot, color) {
   const m = { slot, color, P: newP(), t4: createT4({ clip: true }), dash: createDash({ duration: 0.5, cooldown: 2.4 }),
-    capture: null, c: { active: false, phase: null, t: 0 }, jab: 0 };
+    capture: null, c: { active: false, phase: null, t: 0 }, jab: 0, kicks: createKicks({ rate: 1.7 }) };
   // caught: strike, hold, eat (the camera pulls back), follow the predator, fade, respawn, fade in
   m.capture = createCapture({ onRespawn: () => afterCatch(m) });
   m.t4.addTo(scene);

@@ -382,23 +382,63 @@ uniform float uUvLine; uniform float uUv; uniform float uFlash; uniform vec3 uFl
 uniform float uFade;
 uniform sampler2D tDepth; uniform float uNear; uniform float uFar; uniform float uFocus; uniform float uDof;
 uniform sampler2D tBloomA; uniform sampler2D tBloomB; uniform float uBloom; uniform sampler2D tSoft; uniform vec3 uTop; uniform vec3 uBot; uniform vec3 uShaft;
+uniform mat4 uInvProj; uniform mat4 uCamWorld; uniform float uProjScale;
+uniform float uAO; uniform float uAOR; uniform int uAOTaps; uniform float uEdge; uniform vec3 uInk;
+uniform sampler2D tPano; uniform float uUsePano; uniform vec2 uUvY; uniform vec2 uUvX; uniform float uUvWorld;
 varying vec2 vUv;
+${NOISE}
 float linDepth(vec2 uv){ float z = texture2D(tDepth, uv).r * 2.0 - 1.0; return 2.0 * uNear * uFar / (uFar + uNear - z * (uFar - uNear)); }
 float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float n2(vec2 x){ vec2 i = floor(x), f = fract(x); f = f*f*(3.0-2.0*f);
   return mix(mix(h2(i), h2(i+vec2(1,0)), f.x), mix(h2(i+vec2(0,1)), h2(i+vec2(1,1)), f.x), f.y); }
 float fbm(vec2 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 5; i++){ s += a * n2(p); p *= 2.03; a *= 0.5; } return s; }
 vec4 S(vec2 o){ return texture2D(tScene, vUv + o / uRes); }
+// the view ray through this pixel (view space, z = -1), and the world direction: the backdrop and the UV
+// are placed by direction and position, never by screen, so they hold whichever way the camera turns
+vec3 viewRay(vec2 uv){ vec4 p = uInvProj * vec4(uv * 2.0 - 1.0, 1.0, 1.0); p.xyz /= p.w; return p.xyz / -p.z; }
+float fbm3(vec3 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 3; i++){ s += a * n3(p); p *= 2.07; a *= 0.5; } return s; }
+// screen-space ambient occlusion (QuteMol-like crease darkening between packed molecules) and depth outlines
+float ssao(float zc, vec2 px){
+  float rad = clamp(uAOR * uProjScale / zc, 2.0, 48.0);
+  float occ = 0.0, rot = h2(px) * 6.2832;
+  for (int i = 0; i < 12; i++) {
+    if (i >= uAOTaps) break;
+    float a = float(i) * 2.39996 + rot, rr = rad * (0.3 + 0.7 * fract(float(i) * 0.618 + 0.17));
+    float zs = linDepth(vUv + vec2(cos(a), sin(a)) * rr / uRes);
+    float dz = zc - zs;
+    occ += smoothstep(0.0, uAOR * 0.3, dz) * (1.0 - smoothstep(uAOR * 0.8, uAOR * 2.5, dz));
+  }
+  return occ / float(uAOTaps);
+}
+float outline(float zc){
+  vec2 e = vec2(1.0, 0.0) / uRes * max(1.0, uRes.y / 720.0);
+  float zm = max(max(linDepth(vUv + e.xy), linDepth(vUv - e.xy)), max(linDepth(vUv + e.yx), linDepth(vUv - e.yx)));
+  return smoothstep(0.035, 0.12, (zm - zc) / zc);
+}
 void main(){
   vec2 px = vUv * uRes;
   vec3 col;
+  vec3 ray = viewRay(vUv);
+  vec3 wdir = normalize(mat3(uCamWorld) * ray);
+  vec4 sc0 = S(vec2(0.0));
+  float zc = sc0.a > 0.01 ? linDepth(vUv) : 900.0;
+  vec3 wpos = (uCamWorld * vec4(ray * zc, 1.0)).xyz;
+  float shadeK = 1.0, inkK = 0.0;
+  if (sc0.a > 0.01 && zc < uFar * 0.9) {
+    if (uAO > 0.0 && uAOTaps > 0) shadeK = 1.0 - uAO * ssao(zc, px);
+    if (uEdge > 0.0) inkK = uEdge * outline(zc) * (1.0 - smoothstep(uFocus * 1.5, uFocus * 6.0, zc));
+  }
   if (uLook == 3) {
     // realistic false light: teal water, soft shafts from the upper left, a gentle DOF, bloom, a filmic grade
     float asp = uRes.x / uRes.y;
     vec2 q0 = vUv * vec2(asp, 1.0);
-    vec3 bg = mix(uBot, uTop, smoothstep(-0.15, 1.15, vUv.y * 0.8 + (1.0 - vUv.x) * 0.25));
-    float cloud = fbm(q0 * 2.2 + uBgOff * 3.0 + vec2(uTime * 0.01, 0.0));
-    bg *= 0.8 + 0.4 * cloud;
+    // the backdrop by direction: lighter toward the sunlit surface (+y), clouds and far molecules all round
+    vec3 bg = mix(uBot, uTop, smoothstep(-1.0, 1.0, wdir.y * 0.8 + 0.15));
+    float cloud = fbm3(wdir * 2.6 + vec3(uTime * 0.01, 0.0, 0.0));
+    bg *= 0.75 + 0.5 * cloud;
+    float far1 = smoothstep(0.62, 0.8, n3(wdir * 22.0 + 4.0)), far2 = smoothstep(0.6, 0.78, n3(wdir * 41.0 - 9.0));
+    bg = mix(bg, bg * vec3(0.55, 0.7, 0.95) + uShaft * 0.06, far1 * 0.5 + far2 * 0.3);
+    if (uUsePano > 0.5) bg = mix(bg, texture2D(tPano, vec2(atan(wdir.z, wdir.x) / 6.2832 + 0.5, asin(clamp(wdir.y, -1.0, 1.0)) / 3.14159 + 0.5)).rgb, 0.85);
     vec2 sd = normalize(vec2(0.55, -1.0));
     float across = dot(q0 - vec2(0.1, 1.1), vec2(-sd.y, sd.x));
     float shaft = fbm(vec2(across * 7.0 + uBgOff.x * 4.0, uTime * 0.03)) * smoothstep(1.4, 0.0, length(q0 - vec2(0.1 * asp, 1.0)));
@@ -411,6 +451,8 @@ void main(){
       // soften toward a blurred quarter-resolution copy (smooth, no ring artefacts)
       sc = mix(sc, texture2D(tSoft, vUv), clamp(coc, 0.0, 1.0) * 0.85);
     }
+    sc.rgb *= shadeK;
+    sc.rgb = mix(sc.rgb, uInk * sc.a * 0.35, inkK * 0.75);
     col = bg * (1.0 - sc.a) + sc.rgb;
     // haze lifted by the light near the key's corner
     col += uShaft * 0.06 * smoothstep(1.3, 0.0, length(q0 - vec2(0.15 * asp, 1.0)));
@@ -424,7 +466,7 @@ void main(){
     vec2 qq = vUv - 0.5;
     col *= 1.0 - dot(qq, qq) * 0.55;
     if (uUv > 0.0) {
-      float above = smoothstep(uUvLine - 0.25, uUvLine + 0.35, vUv.y);
+      float above = uUvWorld > 0.5 ? smoothstep(uUvY.x - 60.0, uUvY.y, wpos.y) * smoothstep(uUvX.x, uUvX.y, wpos.x) : smoothstep(uUvLine - 0.25, uUvLine + 0.35, vUv.y);
       float shafts = 0.6 + 0.4 * sin(vUv.x * 23.0 + vUv.y * 6.0 + uTime * 0.4) * sin(vUv.x * 9.0 - uTime * 0.23);
       col = mix(col, vec3(0.62, 0.5, 1.0), above * uUv * (0.18 + 0.14 * shafts));
     }
@@ -434,6 +476,8 @@ void main(){
     return;
   }
   vec4 sc = S(vec2(0.0));
+  sc.rgb *= shadeK;
+  sc.rgb = mix(sc.rgb, uInk * sc.a * 0.6, inkK);
   // the target holds premultiplied colour (translucent things blend over a clear, black background)
   vec3 un = sc.rgb / max(sc.a, 0.004);
   // alpha around this pixel: edges (wet edges, defocus fringes, glow)
@@ -483,7 +527,7 @@ void main(){
   }
   // UV from the sunlit film above: a violet wash with soft shafts, above the line
   if (uUv > 0.0) {
-    float above = smoothstep(uUvLine - 0.25, uUvLine + 0.35, vUv.y);
+    float above = uUvWorld > 0.5 ? smoothstep(uUvY.x - 60.0, uUvY.y, wpos.y) * smoothstep(uUvX.x, uUvX.y, wpos.x) : smoothstep(uUvLine - 0.25, uUvLine + 0.35, vUv.y);
     float shafts = 0.6 + 0.4 * sin(vUv.x * 23.0 + vUv.y * 6.0 + uTime * 0.4) * sin(vUv.x * 9.0 - uTime * 0.23);
     vec3 uvc = uLook == 1 ? vec3(0.95) : (uLook == 2 ? vec3(0.55, 0.35, 1.0) : vec3(0.93, 0.86, 1.0));
     col = mix(col, uvc, above * uUv * (0.22 + 0.16 * shafts));
@@ -544,6 +588,9 @@ export function createPost(renderer) {
       tDepth: { value: target.depthTexture }, uNear: { value: 2 }, uFar: { value: 3000 }, uFocus: { value: 110 }, uDof: { value: 1 },
       tBloomA: { value: bA[0].texture }, tBloomB: { value: bB[0].texture }, uBloom: { value: 1 }, tSoft: { value: dA[0].texture },
       uTop: { value: new THREE.Color('#2a7f8e') }, uBot: { value: new THREE.Color('#071e2c') }, uShaft: { value: new THREE.Color('#7fd0d4') },
+      uInvProj: { value: new THREE.Matrix4() }, uCamWorld: { value: new THREE.Matrix4() }, uProjScale: { value: 500 },
+      uAO: { value: 0 }, uAOR: { value: 6 }, uAOTaps: { value: 8 }, uEdge: { value: 0 }, uInk: { value: new THREE.Color('#10202c') },
+      tPano: { value: null }, uUsePano: { value: 0 }, uUvY: { value: new THREE.Vector2(1e9, 1e9) }, uUvX: { value: new THREE.Vector2(0, 1) }, uUvWorld: { value: 0 },
     },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
     fragmentShader: POST_FRAG,
@@ -578,6 +625,8 @@ export function createPost(renderer) {
       for (const t of bB) t.setSize(Math.max(1, w >> 3), Math.max(1, h >> 3));
     },
     setBackdrop(tex) { mat.uniforms.tBg.value = tex; mat.uniforms.uUseBg.value = tex ? 1 : 0; },
+    /** An equirectangular panorama for the false-light backdrop (by view direction), or null. */
+    setPanorama(tex) { mat.uniforms.tPano.value = tex; mat.uniforms.uUsePano.value = tex ? 1 : 0; },
     /**
      * Draw `sceneToDraw` with `camera` into the target, then the look to the screen.
      * `scissor(rt)`, if given, is called on each internal target before it is drawn
@@ -591,6 +640,11 @@ export function createPost(renderer) {
       renderer.render(sceneToDraw, camera);
       const fl = mat.uniforms.uLook.value === 3;
       const q = api.quality;
+      const u = mat.uniforms;
+      u.uNear.value = camera.near; u.uFar.value = camera.far;
+      u.uInvProj.value.copy(camera.projectionMatrixInverse); u.uCamWorld.value.copy(camera.matrixWorld);
+      if (camera.isPerspectiveCamera) u.uProjScale.value = target.height / (2 * Math.tan((camera.fov * Math.PI) / 360) * (camera.zoom || 1)) * (camera.view && camera.view.enabled ? camera.view.fullHeight / camera.view.height : 1);
+      u.uAOTaps.value = q > 1 ? 10 : q > 0 ? 6 : 0;
       if (fl) {
         mat.uniforms.uNear.value = camera.near; mat.uniforms.uFar.value = camera.far;
         mat.uniforms.uDof.value = q > 0 ? 1 : 0;
