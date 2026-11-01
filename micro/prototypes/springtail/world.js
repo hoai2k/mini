@@ -232,30 +232,37 @@ function seeded(seed) {
  */
 export function rushToGround(list, b, limit = 120, speed = 15) {
   const DT = 0.1, near = (x, z) => list.some((p) => Math.hypot(p.x - x, p.z - z) < GROUND.r);
-  const go = (x, z, a, t, turn, path) => {
-    for (; t < limit; t += DT) {
-      path.push([x, z]);
-      if (near(x, z)) return { t, x, z };
-      let moved = false;
-      for (let i = 0; i < 24 && !moved; i++) {
-        // out on the heading (rounding islands either way); along the bank, always turning the one way
-        // (along the bank: from the bank side round, so it hugs the bank at poolE 0.895)
-        const c = turn ? a - turn * 0.5 + turn * i * 0.12 : a + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.15;
-        const nx = x + Math.cos(c) * speed * DT, nz = z + Math.sin(c) * speed * DT;
-        if (poolE(nx, nz) < (turn ? 0.895 : 0.93) && islandEdge(nx, nz).d > 0.5) {
-          if (!turn && poolE(nx, nz) > 0.89) return { t, x, z, bank: true };
-          x = nx; z = nz; moved = true; if (turn) a = c;
-        }
-      }
-      if (!moved) a += turn || 0.5;
-    }
-    return { t: limit, x, z };
-  };
   const path = [];
-  const out = go(START.x, START.z, b, 0, 0, path);
-  if (!out.bank) return { t: Math.min(out.t, limit), far: Math.min(out.t, limit), bank: null, path };
-  const runs = [1, -1].map((turn) => { const p = []; return { ...go(out.x, out.z, b + turn * Math.PI / 2, out.t, turn, p), p }; }).sort((u, v) => u.t - v.t);
-  return { t: Math.min(runs[0].t, limit), far: Math.min(runs[1].t, limit), bank: +out.t.toFixed(1), path: path.concat(runs[0].p) };
+  // out: straight on, round islands, until a ground or the bank
+  let x = START.x, z = START.z, t = 0, bank = false;
+  for (; t < limit && !bank; t += DT) {
+    path.push([x, z]);
+    if (near(x, z)) return { t, far: t, bank: null, path };
+    for (let i = 0; i < 24; i++) {
+      const c = b + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.15;
+      const nx = x + Math.cos(c) * speed * DT, nz = z + Math.sin(c) * speed * DT;
+      if (poolE(nx, nz) < 0.93 && islandEdge(nx, nz).d > 0.5) { if (poolE(nx, nz) > 0.89) bank = true; else { x = nx; z = nz; } break; }
+    }
+  }
+  if (!bank) return { t: limit, far: limit, bank: null, path };
+  // along the bank one way (turn 1: anticlockwise), held at poolE ~0.885 (rounding islands on the way)
+  const along = (turn, p) => {
+    let px = x, pz = z, u = t;
+    for (; u < limit; u += DT) {
+      p.push([px, pz]);
+      if (near(px, pz)) return u;
+      const e = poolE(px, pz), gx = (poolE(px + 0.5, pz) - e) / 0.5, gz = (poolE(px, pz + 0.5) - e) / 0.5, g = Math.hypot(gx, gz) || 1;
+      const nx0 = gx / g, nz0 = gz / g, h0 = Math.atan2(turn * nx0, -turn * nz0) + (e - 0.885) * 30 * turn;
+      for (let i = 0; i < 16; i++) {
+        const c = h0 + turn * i * 0.2;
+        const nx = px + Math.cos(c) * speed * DT, nz = pz + Math.sin(c) * speed * DT;
+        if (poolE(nx, nz) < 0.93 && islandEdge(nx, nz).d > 0.5) { px = nx; pz = nz; break; }
+      }
+    }
+    return limit;
+  };
+  const runs = [1, -1].map((turn) => { const p = []; return { t: along(turn, p), p }; }).sort((u, v) => u.t - v.t);
+  return { t: Math.min(runs[0].t, limit), far: Math.min(runs[1].t, limit), bank: +t.toFixed(1), path: path.concat(runs[0].p) };
 }
 /** Can a raft go at (x, z): open water, away from the start, islands and the bank? */
 const raftFits = (x, z) => poolE(x, z) < 0.88 && distFromStart(x, z) > PORTAL_MIN_D && islandEdge(x, z).d > PORTAL_R + 14 && roomAt(x, z, PORTAL_R + 20, 0.93);

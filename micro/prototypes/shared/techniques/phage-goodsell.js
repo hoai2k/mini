@@ -195,12 +195,13 @@ vec4 falseLight(vec3 n, vec3 v){
 // rim), a sharp wet glint and a broad sheen.
 uniform mat3 normalMatrix;
 varying vec3 vObj; varying float vLump;
-// wet wrinkles: ridged noise (1 - |2n - 1|) folds into vein-like crests, over soft medium relief
+// soft wet relief: broad and medium noise, fine ridged crinkles on top (ridged noise at the medium scale read as
+// leopard spots: cells with pale rims)
 // (each octave in a rotated frame: value noise's lattice is axis-aligned, and its creases, folded by the ridge,
 // read as a waffle grid)
 const mat3 ROT = mat3(0.00, 0.80, 0.60, -0.80, 0.36, -0.48, -0.60, -0.48, 0.64);
 float ridge(vec3 q){ float r = 1.0 - abs(2.0 * n3(ROT * q) - 1.0); return r * r * (3.0 - 2.0 * r); }
-float relief(vec3 q){ return n3(q * 0.13) * 0.58 + ridge(q * 0.22 + 3.7) * 0.27 + n3(ROT * (ROT * q) * 0.75 - 1.3) * 0.15; }
+float relief(vec3 q){ return n3(q * 0.13) * 0.55 + n3(ROT * q * 0.32 + 3.7) * 0.3 + ridge(ROT * q * 0.85 - 1.3) * 0.15; }
 vec4 membraneLight(vec3 n, vec3 v){
   float e = 0.25;
   float r0 = relief(vObj);
@@ -209,7 +210,7 @@ vec4 membraneLight(vec3 n, vec3 v){
   gv -= n * dot(gv, n);
   vec3 nb = n - gv * uFLBump;
   nb = dot(nb, nb) > 1e-8 ? normalize(nb) : n;
-  float wr = ridge(vObj * 0.22 + 3.7);
+  float wr = n3(ROT * vObj * 0.32 + 3.7);
   float hh = vLump * 0.45 + n3(vObj * 0.13) * 0.25 + r0 * 0.4; // (big lumps, softer medium relief and the fine wrinkles all colour it: no leopard spots)
   float blotch = n3(vObj * 0.035 + 11.0);
   // deep navy in the hollows, teal on the lumps, a greener teal on their tops, blue patches, pale wet crests
