@@ -262,7 +262,7 @@ export function createDrawer(world) {
       spirillum(S, k.x, k.y, k.a, k.L, k.r, k.amp, k.wl, k.bodyPhase, C ? 0 : k.z, k.flPhase * fl, { tumbling: false, fl: C ? 1 : 0.8 });
       if (charge > 0.2) S.disc(k.x, k.y, 0.5, { dn: 0.004, scat: 0.05, ab: [0.03 * charge, 0.09 * charge, 0.02 * charge], z: 0 });
       // the slime shield: EPS round every member (thin, faint in phase, a haze in fluorescence)
-      if (C && C.level >= 1) S.disc(k.x, k.y, 2.1, { dn: 0.006, scat: 0.025, fl: [0.03 * chan.memb, 0.01, 0.03], z: 0.05 });
+      if (C && C.level >= 1) S.disc(k.x, k.y, 2.1, { dn: 0.003, scat: 0.02, fl: [0.03 * chan.memb, 0.01, 0.03], z: 0.05 });
     }
     // the toxin burst: a ring of purple granules racing outward
     for (const C of coll.list) {
