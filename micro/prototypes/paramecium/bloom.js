@@ -111,7 +111,18 @@ export function createBloom(scene) {
     return m;
   }
 
-  let time = 0;
+  let time = 0, placed = false;
+  // heights: a member's place in its tier, lower in a plume, bobbing a little
+  function placeHeights(T) {
+    const a = T.mesh.instanceMatrix.array, M = T.crowd.members;
+    const h = T.y1 - T.y0;
+    for (let i = 0; i < T.count; i++) {
+      const k = plume(M.x[i], M.z[i]);
+      const y = T.y0 + h * (0.08 + 0.84 * T.off[i]) * (1 - 0.45 * k) + 6 * Math.sin(time * 0.9 + i * 1.7);
+      a[i * 16 + 13] = y;
+    }
+    T.mesh.instanceMatrix.needsUpdate = true;
+  }
   const api = {
     group, tiers, BLOOM, on: true,
     inside,
@@ -129,7 +140,11 @@ export function createBloom(scene) {
     update(dt, players) {
       time += dt;
       // nobody near: the cells hold still (nothing there to see move), and the CPU is spared
-      if (!players.some((p) => p.alive && inside(p.position, 1400))) return;
+      if (!players.some((p) => p.alive && inside(p.position, 1400))) {
+        // but place every cell at its height once, so the bloom reads as a cloud from afar (not a flat sheet)
+        if (!placed) { for (const T of tiers) placeHeights(T); placed = true; }
+        return;
+      }
       for (const T of tiers) {
         T.local.length = 0;
         for (const p of players) {
@@ -137,15 +152,7 @@ export function createBloom(scene) {
           T.local.push({ position: toLocal(p.position, new THREE.Vector3()), slot: p.slot, radius: 40 });
         }
         T.crowd.update(dt, T.local);
-        // heights: a member's place in its tier, lower in a plume, bobbing a little
-        const a = T.mesh.instanceMatrix.array, M = T.crowd.members;
-        const h = T.y1 - T.y0;
-        for (let i = 0; i < T.count; i++) {
-          const k = plume(M.x[i], M.z[i]);
-          const y = T.y0 + h * (0.08 + 0.84 * T.off[i]) * (1 - 0.45 * k) + 6 * Math.sin(time * 0.9 + i * 1.7);
-          a[i * 16 + 13] = y;
-        }
-        T.mesh.instanceMatrix.needsUpdate = true;
+        placeHeights(T);
       }
     },
     /**
