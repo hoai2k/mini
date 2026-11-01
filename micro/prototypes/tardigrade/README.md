@@ -157,6 +157,11 @@ turned) counted as watched at 17.8 s, the pool placed at the 180° rim at
 38.1 s and reached at 82.7 s. Dealing with the encounters (a Milnesium fight,
 jabbing through a meadow, luring the boss) makes it a few minutes.
 
+**Cost** (`tools/perf/measure.mjs`, headless): the director, its 3D seen
+grid included, takes 0.1 ms a frame with one view and 0.44 ms with four;
+the draws and triangles are as before (55 and 185 k; 327 and 1.6 M split four
+ways).
+
 **The portal and the boss.** The portal is the last encounter, at the rim
 of the spoke whoever leads is heading out along: the pool appears beyond that
 rim leaf's tip (open water, its meniscus a bright DIC line, green *Paramecium

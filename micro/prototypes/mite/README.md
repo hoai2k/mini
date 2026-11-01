@@ -79,6 +79,11 @@ thickets: there is no room for its arena nearer) at 61 s and reached at
 and met at 23.7 s, the portal reached at 64.6 s. Dealing with the predator
 twice and the pseudoscorpion makes it a few minutes.
 
+**Cost.** Placing and the seen grid cost less than the profiler reports
+(under 0.1 ms a frame in `tools/perf/measure.mjs`, one view and four); the
+draws and triangles are as before (47 and 197 k with one view, 69 and 354 k
+split four ways).
+
 **The portal and the boss.** The portal is the last encounter
 (`placePortal`: the water where the director put it, the pseudoscorpion's
 post 0.6 mm before it toward the way you came); the moss shoots stand aside
