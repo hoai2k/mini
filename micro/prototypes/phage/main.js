@@ -174,6 +174,8 @@ function dropMember(slot) {
   team[slot] = null;
 }
 /** Make the team match the roster (joins and leaves, a roster from the shell). */
+// ?spread=300: a joining player starts that far from player 1 (perf runs of a split crowd)
+const SPREAD = Number(new URL(location.href).searchParams.get('spread')) || 0;
 function syncTeam() {
   const want = new Set(players.list.map((p) => p.slot));
   for (const m of members()) if (!want.has(m.slot)) dropMember(m.slot);
@@ -181,6 +183,7 @@ function syncTeam() {
     if (team[p.slot]) continue;
     const m = makeMember(p.slot, p.color);
     if (p.slot > 0 && team[0]) respawn(m); else placeAtStart(m);
+    if (SPREAD && p.slot > 0 && team[0] && team[p.slot] === m) { const a = p.slot * 2.1; debug.place(p.slot, team[0].P.pos.x + Math.cos(a) * SPREAD, team[0].P.pos.y + Math.sin(a) * SPREAD * 0.6); }
     syncTeam.joined = true;
   }
   if (syncTeam.joined) { syncTeam.joined = false; for (const m of members()) m.t4.setStyle(isFL()); applyInk(); }
