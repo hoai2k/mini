@@ -5169,6 +5169,16 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "tower-floor-breach": {
+      "status": "delivered",
+      "file": "tower-floor-breach.webp",
+      "size": [
+        600,
+        95
+      ],
+      "anchor": "centre",
+      "edition": "film"
     }
   },
   "audio": {

@@ -571,6 +571,12 @@ GROUPS.append(("The couple climb the wedding stairs", "Two restrained alternatin
 ]))
 
 
+GROUPS.append(("The tower's fractured stone floors", "Painted breaches replace flat pit rectangles and glowing ellipses. A dark opaque void covers the intact cloth, framed by broken limestone and charred supports.", [
+    ('tower-floor-breach', 'Fractured tower floor', 600, 95, 'centre', SPRITE,
+     'Wide shallow transparent theatrical cutout matching tower-interior.webp: broken warm grey-pink limestone ledge at both sides, chipped stone fascia and a few charred beam ends, with a deep irregular opaque painted shadow across the central opening. No geometric outline, circular rim, glow, fire, text, characters or scenery. Preserve the existing tower palette and painted texture.', None)
+]))
+
+
 def ids():
     return [a for _, _, items in GROUPS for a in items]
 

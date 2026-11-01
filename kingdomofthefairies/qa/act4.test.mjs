@@ -329,26 +329,27 @@ test('every fixed ledge stays above the high water', () => {
 
 // A stand-in kit: a canvas context that accepts anything, art never delivered.
 function mockKit() {
-  const calls = { asset: 0, keepsake: 0, wash: 0, iris: 0 };
+  const calls = { asset: 0, keepsake: 0, omen: 0, wash: 0, iris: 0 };
   const grad = { addColorStop() {} };
   const c = new Proxy({}, { get: (o, k) => (k in o ? o[k] : k.startsWith('create') ? () => grad : () => {}), set: (o, k, v) => { o[k] = v; return true; } });
   const kit = {
     c, P: { mode: 'tint' }, t: 0, img: () => undefined, col: (h) => h,
     asset: () => { calls.asset++; return false; }, assetCrop: () => false,
-    circle() {}, star() {}, wire() {}, cloud() {}, keepsake: (id) => { if (id === 'leaf') calls.keepsake++; },
+    omen: () => calls.omen++, circle() {}, star() {}, wire() {}, cloud() {}, keepsake: (id) => { if (id === 'leaf') calls.keepsake++; },
     wash: () => calls.wash++, iris: () => calls.iris++, burst() {}, text() {}, flash() {}, shake() {},
   };
   return { kit, calls };
 }
 
-test('draws every phase without error, with the omen glyphs when the reading is complete', () => {
+test('draws every phase without error, with early particle warnings when the reading is complete', () => {
   for (const tea of [0, 3]) {
     const { kit, calls } = mockKit();
     const r = play(MAIN, { tea, sleepers: 12 }, 9, 300);
     // replay a short climb and draw along the way
     const st = act.create({ carry: { tea, sleepers: 12 } });
     for (let i = 0; i < 200; i++) { act.step(st, DT, { beat: 8 + i * DT / BEAT_S, moveX: 0 }); act.draw(kit, st, i * DT); act.drawOver(kit, st, i * DT); }
-    if (tea >= 3) assert.ok(calls.keepsake > 0, 'omen glyphs drawn'); else assert.equal(calls.keepsake, 0);
+    if (tea >= 3) assert.ok(calls.omen > 0, 'early particle warnings requested'); else assert.equal(calls.omen, 0);
+    assert.equal(calls.keepsake, 0, 'warnings never draw keepsake badges');
     for (const e of r.events) act.onEvent(kit, e, r.st);
     act.draw(kit, r.st, 1); act.drawOver(kit, r.st, 1);
     assert.equal(r.st.status, 'won'); assert.ok(calls.iris > 0 && calls.wash > 0);

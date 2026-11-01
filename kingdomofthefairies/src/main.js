@@ -127,7 +127,7 @@ function touchArt(a) {
 }
 
 // Act I and the title load first; the other acts' art follows in the background.
-const FIRST_ART = ['logo', 'playbill', 'playbill-film', 'omen-token', 'rotate-card', 'touch-stick-base', 'touch-stick-knob', 'touch-button', 'touch-pause', 'proscenium', 'curtain-panel', 'footlight', 'sky-backdrop', 'moon-face', 'cloud', 'waves-back', 'waves-mid', 'waves-front',
+const FIRST_ART = ['logo', 'playbill', 'playbill-film', 'rotate-card', 'touch-stick-base', 'touch-stick-knob', 'touch-button', 'touch-pause', 'proscenium', 'curtain-panel', 'footlight', 'sky-backdrop', 'moon-face', 'cloud', 'waves-back', 'waves-mid', 'waves-front',
   'ship', 'witch-moonboat', 'rock', 'pearl', 'tea-leaf', 'keepsake-tea', 'lighthouse', 'lighthouse-lit', 'band-trio',
   'deck-set', 'reveller-yellow', 'reveller-shaggy', 'reveller-jester', 'reveller-lady', 'lantern-string', 'sea-spirit',
   'ship-wreck-bow', 'ship-wreck-stern', 'guitar-sinking', 'waterspout'];

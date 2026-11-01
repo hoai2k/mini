@@ -820,8 +820,6 @@ function houseInterior(k, st, t) {
       // art: the gap + 24 wide, its top 12 above the floor line (planks and embers are painted in)
       const holeArt = k.asset('floor-hole', (gx0 + gx1) / 2, fy - 12 + 60, gx1 - gx0 + 24, 60);
       if (painted && !holeArt) { c.fillStyle = k.col('#1a0c08'); c.fillRect(gx0, fy - 12, gx1 - gx0, 36); } // the painted floor burnt through
-      c.fillStyle = k.col('#e9a46a'); c.globalAlpha = (painted ? 0.7 : 0.45) + 0.25 * Math.sin(t * 7 + f);
-      c.beginPath(); c.ellipse((gx0 + gx1) / 2, fy + 8, (gx1 - gx0) / 2 + 6, 12, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
       c.fillStyle = k.col('#3a2112');
       if (!holeArt) for (const [ex, dir] of [[gx0, 1], [gx1, -1]]) { c.save(); c.translate(ex, fy + 4); c.rotate(dir * 1.1); c.fillRect(dir > 0 ? 0 : -34, -4, 34, 8); c.restore(); }
     }

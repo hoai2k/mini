@@ -443,12 +443,11 @@ function water(k, st, t, L, R) {
 }
 const img = (k, id) => !!k.img(id);
 
-// A tea-leaf omen glyph on a pale disc, so it reads against anything.
+// Early warnings remain particles even in alternate renderer kits.
 function omen(k, x, y, alpha) {
-  const c = k.c;
-  if (typeof k.omen === 'function') { c.save(); c.globalAlpha = alpha; k.omen(x, y, 1); c.restore(); return; }
-  c.save(); c.globalAlpha = alpha * 0.55; c.fillStyle = k.col('#f6ead0'); k.circle(x, y, 17); c.restore();
-  c.save(); c.globalAlpha = alpha; k.keepsake('leaf', x, y - 4, 0.75); c.restore();
+  k.c.save(); k.c.globalAlpha = alpha;
+  k.omen?.(x, y, 1);
+  k.c.restore();
 }
 
 // The tea-leaf omen over the floor, a beat before the low tide bares it.

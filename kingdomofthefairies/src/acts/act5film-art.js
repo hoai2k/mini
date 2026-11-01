@@ -292,9 +292,17 @@ function towerInterior(k, st, t) {
     // the burnt gaps, cut through the painted floors too
     if (f > 0) for (let gi = 0; gi < st.spans[f].length - 1; gi++) {
       const gx0 = st.spans[f][gi][1], gx1 = st.spans[f][gi + 1][0];
-      if (painted) { c.fillStyle = k.col('#140a0c'); c.fillRect(gx0, fy - 2, gx1 - gx0, 18); }
-      c.fillStyle = k.col('#e9a46a'); c.globalAlpha = 0.5 + 0.25 * Math.sin(t * 7 + f);
-      c.beginPath(); c.ellipse((gx0 + gx1) / 2, fy + 8, (gx1 - gx0) / 2 + 6, 12, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+      // The opaque painted void covers the intact cloth; fractured stone
+      // and charred beam ends make the gameplay gap part of the set.
+      const image = k.img('tower-floor-breach');
+      if (image) {
+        const iw = image.naturalWidth || image.width, ih = image.naturalHeight || image.height;
+        // The central shadow occupies 42% of this cutout; align that void
+        // with the collision gap while keeping the fractured edges in scale.
+        const width = (gx1 - gx0) / .42;
+        k.assetCrop('tower-floor-breach', 0, 0, iw, ih,
+          (gx0 + gx1 - width) / 2, fy - 8, width, width * ih / iw);
+      }
     }
   });
   // the demons who set it alight, dancing with their torches at the foot

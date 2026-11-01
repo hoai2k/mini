@@ -624,12 +624,9 @@ function dragon(k, x, y, face, t) {
   c.restore();
 }
 
-// The tea-leaf omen: a small glyph one beat ahead of the hazard's tell.
+// Early warnings use the renderer's particle shimmer, with no badge fallback.
 function omen(k, x, y, t) {
-  const c = k.c;
-  if (typeof k.omen === 'function') return k.omen(x, y + Math.sin(t * 6) * 3, 1);
-  c.save(); c.globalAlpha = 0.85; c.fillStyle = k.col('#f1e3c8'); k.circle(x, y + Math.sin(t * 6) * 3, 16); c.restore();
-  k.keepsake('leaf', x, y + Math.sin(t * 6) * 3 - 4, 0.6);
+  k.omen?.(x, y + Math.sin(t * 6) * 3, 1);
 }
 
 // ---------------------------------------------------------------- the sailor

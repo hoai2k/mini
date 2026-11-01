@@ -749,13 +749,9 @@ function telegraph(k, st, t) {
 }
 
 function omens(k, st, t) {
-  for (const o0 of st.omens) {
-    const o = { ...o0, x: o0.x - st.cam }, y = o.y + Math.sin(t * 6) * 3;
+  for (const o of st.omens) {
     k.c.save(); k.c.globalAlpha = 0.85;
-    if (typeof k.omen === 'function') { k.omen(o.x, y, 1); k.c.restore(); continue; }
-    k.c.fillStyle = k.col('#2a1424'); k.circle(o.x, y, 17);
-    k.c.strokeStyle = k.col('#d9b34a'); k.c.lineWidth = 2; k.c.beginPath(); k.c.arc(o.x, y, 17, 0, Math.PI * 2); k.c.stroke();
-    k.keepsake('leaf', o.x, y, 0.55);
+    k.omen?.(o.x - st.cam, o.y + Math.sin(t * 6) * 3, 1);
     k.c.restore();
   }
 }
