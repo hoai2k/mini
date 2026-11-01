@@ -1,8 +1,9 @@
 // Smoke check for the Micro Zoom shell: serves micro/ locally (the game at
 // /game/, the worlds at /prototypes/), opens the game in headless Chromium
 // (software WebGL) and walks title → menu → intro → play (springtail) →
-// controls card → pause → settings → resume → a forward landmark (the zoom
-// into the mite) → a back landmark (back to the springtail). Fails on any
+// controls card → pause → settings → resume → the springtail's portal (the
+// continuous transition into the mite) → a back landmark (the zoom back out
+// to the springtail). Fails on any
 // console or page error; saves a screenshot of each screen to $SHOTS (default:
 // the system temp folder).
 //
@@ -131,14 +132,19 @@ try {
   await tab.evaluate(() => window.__game.hideTransition());
   step('transition stills');
 
-  await tab.evaluate(() => { window.__game.forceLandmark('forward'); });
+  // Through the springtail's own portal: its outro (success, slow-down,
+  // freeze) and the continuous transition into the mite (embed.js).
+  await tab.evaluate(() => { const m = window.__game.frame().contentWindow.__micro; m.placePortal(); m.enterPortal(0); });
   await until((s) => s.transitioning, 5000, 'transition to start');
+  await until((s) => s.cont && s.cont.phase === 'move', 120000, 'the continuous camera move (the mite preloaded and held)');
   await until((s) => s.world === 'mite' && !s.loading && !s.transitioning, 120000, 'mite');
+  // read at once: the card hides itself after 8 s, and a screenshot under
+  // software rendering can take longer than that (the old failure here)
+  const st = await state();
+  if (!(st.controlsShown || st.cardBoard === st.board)) throw new Error('the controls card should show at the start of the second board');
   await tab.waitForTimeout(1500);
   await shot('8-mite-controls');
-  const st = await state();
-  if (!st.controlsShown) throw new Error('the controls card should show at the start of the second board');
-  step('forward landmark → mite (controls card shown)');
+  step('forward portal → continuous transition → mite (controls card shown)');
 
   await tab.evaluate(() => { window.__game.forceLandmark('back'); });
   await until((s) => s.transitioning, 5000, 'back transition to start');

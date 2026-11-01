@@ -105,6 +105,18 @@ export function createDrawer(world) {
       const wx = P.ox + Math.cos(P.ang) * lx - Math.sin(P.ang) * ly, wy = P.oy + Math.sin(P.ang) * lx + Math.cos(P.ang) * ly;
       S.disc(wx, wy, i < 6 ? 1.6 + rr() : 0.4 + rr() * 0.4, { dn: i < 6 ? 0.02 : 0.07, scat: 0.3, ab: i < 6 ? [0.02, 0.025, 0.04] : [0.01, 0.01, 0.01], z: (rr() - 0.5) * 3 });
     }
+    // its feeding current, made visible (the encounter pattern: every danger shows): specks streaming
+    // into the funnel along the front, faster and brighter as it pulls harder
+    if (g.feeding !== false && g.contract <= 0 && !g.beaten) {
+      const cur = g.cur || (g.cur = Array.from({ length: 46 }, () => ({ d: 6 + r() * 58, a: (r() - 0.5) * 2.4, sz: 0.2 + r() * 0.35 })));
+      const pull = g.pull || 1, ua = Math.atan2(P.up.y, P.up.x);
+      for (const q of cur) {
+        q.d -= (60 * (16 / Math.max(q.d, 4)) ** 2 * pull * (0.25 + 0.75 * Math.cos(q.a) ** 2)) * (1 / 60) * 0.35 + 2 * (1 / 60);
+        if (q.d < 3) { q.d = 40 + r() * 28; q.a = (r() - 0.5) * 2.4; }
+        const x = P.mouth.x + Math.cos(ua + q.a) * q.d, y = P.mouth.y + Math.sin(ua + q.a) * q.d;
+        if (S.inView(x, y, 2)) S.disc(x, y, q.sz, { dn: 0.05, scat: 0.5 + 0.6 * Math.min(2, pull - 1), fl: [0.02, 0.04 + 0.1 * Math.min(2, pull - 1), 0.02], ab: [0.01, 0.01, 0.012], z: 0 });
+      }
+    }
     if (g.contract > 0 && ext < 0.6) return; // cilia folded in while contracted
     // resting (not feeding): the oral cilia lie still, folded half in, and no current flows
     const feeding = g.feeding !== false;
@@ -192,7 +204,7 @@ export function createDrawer(world) {
     // stretch, as in the catch); its long tail fibres splay as they catch the wall (the wind-up)
     if (W.opts.phages) for (const p of W.phages) if (p.homing) homingPhage(S, p, t);
     if (W.landmarks) landmarks(S, t, W.landmarks);
-    if (W.stentor) stentor(S, t, W.stentor);
+    if (W.stentor && W.stentor.placed) stentor(S, t, W.stentor);
     if (W.coll && W.coll.opts.on) kin(S, t, W.coll);
     // one player or a list of them (local multiplayer: every cell is drawn alike; main.js marks each in its colour)
     for (const p of Array.isArray(player) ? player : [player]) drawPlayer(S, t, p);
@@ -339,6 +351,10 @@ export function createDrawer(world) {
     // spots in fluorescence (SYBR) and darkfield, nothing in phase contrast, where only the host's
     // rounded, swollen body and darker contents show that something is wrong with it.
     const F = L.forward, ca = Math.cos(F.a), sa = Math.sin(F.a);
+    if (F.placed) forwardHost(S, F, ca, sa);
+    backdoor(S, t, L);
+  }
+  function forwardHost(S, F, ca, sa) {
     S.rod(F.x, F.y, F.a, F.L, F.r, { dn: 0.055, scat: 0.18, fl: [MEMB * chan.memb * 1.3, 0, 0], memb: 0.9, ab: [0.012, 0.011, 0.014], z: 0 });
     // nucleoid and new phage heads crowding inside (the lytic cycle under way)
     for (let i = 0; i < 9; i++) {
@@ -351,6 +367,8 @@ export function createDrawer(world) {
       S.disc(bx, by, 0.035, { dn: 0.3, scat: 22, fl: [0, PHAGE * chan.phage, 0], z: 0, hk: 1 });
     }
     for (const q of F.incoming) S.disc(F.x + Math.cos(q.ang) * (F.r + q.d), F.y + Math.sin(q.ang) * (F.r + q.d), 0.03, { dn: 0.15, scat: 18, fl: [0, PHAGE * chan.phage, 0], z: (q.d - 3) * 0.1, hk: 1 });
+  }
+  function backdoor(S, t, L) {
 
     // Backdoor: the edge of a Paramecium looming in the open water (it is 120 µm long, forty times
     // you): the pellicle with its trichocyst seam, green Chlorella inside, and the cilia beating.

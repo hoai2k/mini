@@ -1,7 +1,8 @@
 // The boss of the pool floor: the giant amoeba Chaos (C. carolinensis type),
 // many nuclei, a real eater of smaller amoebae and ciliates
-// (../../design/bosses.md). It lies between the start and the green
-// Paramecium bursaria (the forward landmark).
+// (../../design/bosses.md). It guards the way on: main.js puts it on its
+// post just before the portal (the green Paramecium bursaria in the golden
+// glow, RINGS.portal) once the portal is placed, out of everyone's view.
 //
 // It is the same soft body as the player (shared/techniques/amoeba-softbody.js)
 // at about 1.9x the player's width (~0.65 mm across here; real Chaos reaches
@@ -9,8 +10,7 @@
 // nuclei and denser cytoplasm.
 //
 // Fight (shared/predation.js createFight: lots of interest, two attacks):
-//   dormant: rounded and polypodial at its post until a player comes near
-//     after the calm opening;
+//   dormant: rounded and polypodial at its post until a player comes near;
 //   the tell: it raises and spreads its pseudopods (every arm out at once);
 //   the cup: two arms reach out round you, first to your flanks, then
 //     curling behind you; if they wrap you (a food cup) you are engulfed;
@@ -20,7 +20,11 @@
 //   X when your membrane is on both sides of an arm's neck cuts it (the
 //   piece rounds up and dies) and staggers it. Cut the encircling arms
 //   before the cup closes, then slip round its edge. Worn down (the brass
-//   resolve gauge), it flows away and rests.
+//   resolve gauge), it flows away off the portal and rests there for good
+//   (beaten).
+//   The lure: it follows its target only up to LEASH µm from its post, then
+//   gives up and flows back (return); it is slower than you, so lead it off
+//   and get round it.
 import { Body, N } from '../shared/techniques/amoeba-softbody.js';
 import { Cytoplasm } from './cytoplasm.js';
 import { hyp } from './util.js';
@@ -28,8 +32,9 @@ import { createFight } from '../shared/predation.js';
 
 const TAU = Math.PI * 2;
 export const CHAOS_R = 320;   // µm, radius of the rounded cell
-const WAKE = 950;             // a player's centre this close wakes it
+const WAKE = 820;             // a player's centre this close wakes it
 export const CHAOS_WAKE = WAKE;
+export const CHAOS_LEASH = 720; // it follows you no further than this from its post
 const ARM_W = 7;              // nodes either side of an arm's tip: its neck
 
 export class Chaos {
@@ -73,8 +78,28 @@ export class Chaos {
   }
 
   reset() {
-    Object.assign(this, { state: 'dormant', t: 0, fs: 'stalk', ft: 0, attack: 0, target: null, cuts: 0, leaveT: 0 });
+    Object.assign(this, { state: 'dormant', t: 0, fs: 'stalk', ft: 0, attack: 0, target: null, cuts: 0, leaveT: 0, beaten: false, restUntil: 0 });
     this.fight.reset();
+  }
+
+  /** Move the whole cell (membrane, granules, nuclei) by (dx, dy), e.g. onto its post. */
+  translate(dx, dy) {
+    const b = this.body, y = this.cyto;
+    for (let i = 0; i < N; i++) { b.x[i] += dx; b.y[i] += dy; b.sx[i] += dx; b.sy[i] += dy; }
+    b.centroid(); b.ux += dx; b.uy += dy;
+    for (let i = 0; i < y.n; i++) { y.px[i] += dx; y.py[i] += dy; }
+    y.nucleus.x += dx; y.nucleus.y += dy; y.cv.x += dx; y.cv.y += dy;
+    for (const v of y.vacuoles) { v.x += dx; v.y += dy; }
+    for (const n of this.nuclei) { n.x += dx; n.y += dy; }
+    b.grid.build(b.x, b.y, N);
+  }
+
+  /** On guard at (x, y): moved there (unseen), dormant, fresh. rest: where it goes when beaten. */
+  setPost(x, y, rest) {
+    this.translate(x - this.body.cx, y - this.body.cy);
+    this.post = { x, y };
+    this.restAt = rest;
+    this.reset();
   }
 
   get awake() { return this.state === 'fight' || this.state === 'leaving'; }
@@ -83,7 +108,7 @@ export class Chaos {
 
   /**
    * players: [{ cell, x, y, req, active }] (centroids, µm). Returns events [{ e, p }].
-   * calm: still in the calm opening. col: colliders for the body (obstacles and the players' membranes).
+   * calm: it stays asleep (sated after a meal, or passive for tests). col: colliders for the body (obstacles and the players' membranes).
    */
   update(dt, adt, players, col, { calm = false, granules = true } = {}) {
     const ev = [];
@@ -95,8 +120,20 @@ export class Chaos {
     this.target = tgt;
     b.opts.boost = 1;
     b.opts.speed = 0.75;
+    const home = Math.hypot(b.cx - this.post.x, b.cy - this.post.y);
     if (this.state === 'dormant') {
-      if (!calm && tgt && td < WAKE) { this.state = 'fight'; this.fight.reset(); ev.push({ e: 'wake', p: tgt }); }
+      if (!calm && !this.beaten && tgt && td < WAKE) { this.state = 'fight'; this.fight.reset(); ev.push({ e: 'wake', p: tgt }); }
+      // pushed or carried off its post (not beaten): it goes back
+      else if (!this.beaten && home > 140) this.state = 'return';
+    } else if (this.state === 'return') {
+      // back to its post; it ignores you on the way unless you are right on it
+      const ax = this.post.x - b.cx, ay = this.post.y - b.cy, l = Math.hypot(ax, ay) || 1;
+      input.body = { m: 0.8, dx: ax / l, dy: ay / l };
+      if (home < 60) { this.state = 'dormant'; this.fight.reset(); ev.push({ e: 'home', p: tgt }); }
+      else if (!calm && tgt && td - b.req - tgt.req < 40 && home < CHAOS_LEASH * 0.5) { this.state = 'fight'; this.fight.reset(); }
+    } else if (this.state === 'fight' && home > CHAOS_LEASH && !this.attacking) {
+      // lured too far off its post: it gives up and flows back
+      this.state = 'return'; this.fight.reset(); ev.push({ e: 'leash', p: tgt });
     } else if (this.state === 'fight') {
       const gap = tgt ? td - b.req - tgt.req : Infinity;
       const f = this.fight.update(dt, { near: gap < 900, inReach: gap < 140, facing: true, blocking: false });
@@ -141,16 +178,15 @@ export class Chaos {
         const cup = b.cupAround(tgt.x, tgt.y, tgt.req + 120);
         if (cup && cup.wrap > 3.3) ev.push({ e: 'engulf', p: tgt });
       }
-      if (f.retreated || this.fight.state === 'retreat') { this.state = 'leaving'; this.leaveT = 0; ev.push({ e: 'retreat', p: tgt }); }
+      if (f.retreated || this.fight.state === 'retreat') { this.state = 'leaving'; this.beaten = true; this.leaveT = 0; ev.push({ e: 'retreat', p: tgt }); }
     } else if (this.state === 'leaving') {
       // it flows away from you and rests
       this.leaveT += dt;
       const rest = this.restAt || { x: this.post.x + 300, y: this.post.y + 1600 };
       const ax = rest.x - b.cx, ay = rest.y - b.cy, l = Math.hypot(ax, ay) || 1;
       if (this.leaveT < 22) input.body = { m: 0.8, dx: ax / l, dy: ay / l };
-      else { this.state = 'dormant'; this.fight.reset(); this.restUntil = this.t + 60; }
+      else { this.state = 'dormant'; this.fight.reset(); }
     }
-    if (this.state === 'dormant' && this.restUntil && this.t < this.restUntil) { /* resting after a defeat */ }
     // asleep and nobody near: it does not move (and costs nothing)
     if (this.state === 'dormant' && td > WAKE * 1.3) { this.placeNuclei(); return ev; }
     b.step(adt, input, col);
@@ -163,7 +199,7 @@ export class Chaos {
     return ev;
   }
 
-  /** Dormant after a defeat: it will not wake for a while. */
+  /** Sated after engulfing someone: it will not wake for a while. */
   get resting() { return this.restUntil && this.t < this.restUntil; }
 
   placeNuclei() {

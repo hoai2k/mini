@@ -1,4 +1,6 @@
-// The gates on the way to the host (world.js ROUTE), fought by your army.
+// The gates on the rings round the start (world.js ROUTE), fought by your army.
+// One instance of each serves its ring: main.js moves it (setGate), unseen,
+// to the bearing of whoever is approaching, while it is not engaged.
 // The owner (1 Nov 2026): "let's have the challenge be just to gather an army
 // and fight your way to your destination". Each gate is an enemy that a lone
 // cell cannot beat and a big enough flock can push through:
@@ -42,7 +44,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
   const G = (o) => ({ hp: o.max, beaten: false, contact: 0, engaged: false, ...o });
   const list = [
     G({ id: 'grazer1', name: 'Peritrich', kind: 'grazer', g: g1, max: 40, regen: 4, zone: 55 }),
-    G({ id: 'bdello', name: 'Bdellovibrio pack', kind: 'bdello', max: pack.length * FIGHT.bdelloHp, regen: 0, zone: 75 }),
+    G({ id: 'bdello', name: 'Bdellovibrio pack', kind: 'bdello', max: pack.length * FIGHT.bdelloHp, regen: 0, zone: 55 }),
     G({ id: 'phage', name: 'Phage cloud', kind: 'phage', max: cloudN0, regen: 0, zone: cloud.r + 32 }),
     G({ id: 'amoeba', name: 'Amoeba', kind: 'amoeba', A: world.amoeba, max: 75, regen: 5, zone: 70 }),
     G({ id: 'grazer2', name: 'Peritrich', kind: 'grazer', g: g2, max: 55, regen: 6, zone: 55 }),
@@ -51,6 +53,24 @@ export function createGuards(world, coll, stentor, hooks = {}) {
   const byId = Object.fromEntries(list.map((q) => [q.id, q]));
   for (const c of pack) c.hp = FIGHT.bdelloHp;
 
+  for (const q of list) { const R = world.route.gates.find((g) => g.id === q.id); q.ring = R ? R.ring : world.route.portal; q.bearing = 0; }
+  /** Move gate q round its ring to bearing a (main.js calls this only where nobody can see). */
+  function setGate(q, a) {
+    q.bearing = a;
+    const p = world.ringPoint(q.ring, a);
+    if (q.kind === 'grazer') world.placeGrazer(q.g, a);
+    else if (q.kind === 'amoeba') world.placeAmoeba(a);
+    else if (q.kind === 'bdello') {
+      for (const c of pack) {
+        c.home.x = p.x; c.home.y = p.y;
+        if (!c.dead && !c.latch) { c.x = p.x + (Math.random() - 0.5) * 30; c.y = p.y + (Math.random() - 0.5) * 30; c.hidden = 0; c.prey = null; c.stalking = null; }
+      }
+    } else if (q.kind === 'phage') {
+      const dx = p.x - cloud.x, dy = p.y - cloud.y;
+      for (const ph of world.phages) if (ph.cloud === cloud) { ph.x += dx; ph.y += dy; }
+      cloud.x = p.x; cloud.y = p.y;
+    }
+  }
   /** Where an enemy is (its gauge and its zone are centred here). */
   function centre(q, out) {
     if (q.kind === 'grazer') { const P = q.g.pose; out.x = P.ox - P.up.x * q.g.R * 0.95; out.y = P.oy - P.up.y * q.g.R * 0.95; }
@@ -126,6 +146,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
 
   function update(dt, t, roster) {
     for (const q of list) {
+      if (q.kind === 'stentor' && !q.B.placed) { q.engaged = false; continue; } // no boss until the portal is found
       q.engaged = !q.beaten && engagedBy(q, roster);
       if (q.beaten) continue;
       if (q.kind === 'bdello') {
@@ -266,6 +287,6 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     for (let i = 0; i < cloudN0; i++) { const p = world.newPhage(cloud.x + (Math.random() - 0.5) * cloud.r * 1.4, cloud.y + (Math.random() - 0.5) * cloud.r * 1.6); p.z = (Math.random() - 0.5) * 0.6; p.cloud = cloud; P.push(p); }
   }
 
-  return { list, byId, FIGHT, update, volley, burstHit, nearest, reset, hurt, poison, centre: (q) => centre(q, { x: 0, y: 0 }), touching,
+  return { list, byId, FIGHT, setGate, update, volley, burstHit, nearest, reset, hurt, poison, centre: (q) => centre(q, { x: 0, y: 0 }), touching,
     report: () => list.map((q) => ({ id: q.id, hp: +q.hp.toFixed(1), max: q.max, beaten: q.beaten, engaged: q.engaged, contact: q.contact })) };
 }

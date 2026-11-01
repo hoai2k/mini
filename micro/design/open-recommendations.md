@@ -132,10 +132,14 @@ Each of these was left out because it changes the picture or feel, or needs more
 - [Small] Phage: keep the bath's molecules out of the flocs and the stray phage too (only hosts, the amoeba and the clay are solids in the shader now). Source: [phage README](../prototypes/phage/README.md) (known issues).
 - [Small] Phage: a kick sound of its own (a soft click per strike, pitched by the molecule's size); the strikes are silent except for proteins, which reuse the bacterium's tumble. Source: [phage README](../prototypes/phage/README.md).
 - [Medium] Phage: impostor beads for the far bath at quarter resolution, or MP-V07's sprites, if the bath's fill is too much on weak GPUs (software WebGL halves the frame rate against the old slab). Source: [phage README](../prototypes/phage/README.md) (performance, revamp).
+- [Small] Phage: the UV shafts are vertical columns (sunlight comes from the surface), so a phage heading straight up or straight down meets none of that shell; the flocs, decoys and the portal do meet every bearing. Source: [phage README](../prototypes/phage/README.md) (threats and pacing).
+- [Medium] Phage: a second guard behaviour for co-op (the lobe splits its attention between two phages, so one lures while the other slips in). Source: [encounter pattern](encounter-pattern.md).
 - [Small] Phage, owner's call: an optional chase camera that turns slowly behind the travel direction (the revamp keeps the view where you leave it, which fixes the spin). Source: [phage README](../prototypes/phage/README.md).
 
 ## Game shell
 
+- [Large] Apply the continuous transition and the portal look to the other pairs (mite → tardigrade → … → phage, and the backdoors going up): each world's portal with `shared/portal.js` (glow, beacon, screen light, burst, chime), an outro to a freeze reporting its next creature's pose, and an `'intro'` opening in the next world. Springtail → mite is built; the recipe is "Wiring another pair". Source: [game README](../game/README.md) (The continuous transition).
+- [Small] Give the springtail's mite speck a finer model for the push-in (today a glossy ellipsoid with stick legs; it reads well only as a speck, so the crossfade runs while it is still small). Source: [game README](../game/README.md) (The continuous transition).
 - [Large] The glowing return journey: after a Phage clear, go back up through every world with a glowing creature and end at the fingertip. Not built; the Phage ending is "Work in progress". Source: [super-gene-return.html](super-gene-return.html), [game README](../game/README.md).
 - [Medium] Wire the real worlds into the zoom prototype in place of its look-alike stand-ins. Source: [zoom README](../prototypes/zoom/README.md) (known issues).
 - [Small] Show the time stretch or squeeze on screen for each level (slow motion in strikes, fast-forward in drying, compressed rearming). Check which levels do. Source: [movement.md](movement.md) (time scale table).

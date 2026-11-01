@@ -176,7 +176,7 @@ export function createPortalGlow({ THREE, scene = null, size = 10, color = '#f0b
         // a soft round body and a four-point star: a glint, not a dot
         float star = exp(-r * r * 9.0) + 0.55 * exp(-abs(q.x) * 18.0) * exp(-abs(q.y) * 2.6) + 0.55 * exp(-abs(q.y) * 18.0) * exp(-abs(q.x) * 2.6);
         float a = star * smoothstep(1.0, 0.6, r) * vA * (0.35 + 0.65 * vTw) * mix(0.55, 1.0, uOpen) * uI;
-        gl_FragColor = vec4(mix(uColor, vec3(1.0, 0.95, 0.8), 0.25 + 0.45 * vTw * exp(-r * r * 6.0)) * 6.0, a);
+        gl_FragColor = vec4(mix(uColor, vec3(1.0, 0.95, 0.8), 0.15 + 0.5 * vTw * exp(-r * r * 8.0)) * 2.6, min(1.0, a * 1.6));
       }`;
   const pts = new THREE.Points(geo, new THREE.ShaderMaterial({
     uniforms, ...blend,
@@ -345,7 +345,7 @@ export function createPortalLight({ parent = document.body, zIndex = 3, color = 
       // in view: a halo the depth of field can't swallow, and a slow glint
       const r = m * (0.07 + 0.05 * k);
       const g = ctx.createRadialGradient(x, y, 0, x, y, r * 2.2);
-      g.addColorStop(0, gold(0.32 * k * breathe)); g.addColorStop(0.4, gold(0.12 * k)); g.addColorStop(1, gold(0));
+      g.addColorStop(0, pale(0.45 * k * breathe)); g.addColorStop(0.3, gold(0.28 * k)); g.addColorStop(1, gold(0));
       ctx.fillStyle = g; ctx.fillRect(x - r * 2.2, y - r * 2.2, r * 4.4, r * 4.4);
       streak(x, y - r * 0.2, r * 3.2 * (0.8 + 0.2 * Math.sin(t * 0.9)), 0.4 * k * breathe);
       for (let i = 0; i < 4; i++) {
@@ -360,16 +360,16 @@ export function createPortalLight({ parent = document.body, zIndex = 3, color = 
     const R = m * (0.26 + 0.24 * k);
     const cx = x + ux * R * 0.35, cy = y + uy * R * 0.35;
     const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
-    g.addColorStop(0, gold(0.42 * k * breathe)); g.addColorStop(0.35, gold(0.16 * k * breathe)); g.addColorStop(1, gold(0));
+    g.addColorStop(0, pale(0.7 * k * breathe)); g.addColorStop(0.18, gold(0.6 * k * breathe)); g.addColorStop(0.5, gold(0.22 * k * breathe)); g.addColorStop(1, gold(0));
     ctx.fillStyle = g; ctx.fillRect(cx - R, cy - R, 2 * R, 2 * R);
-    streak(cx, cy, R * 1.5 * (0.85 + 0.15 * Math.sin(t * 0.7)), 0.5 * k * breathe);
+    streak(cx, cy, R * 1.7 * (0.85 + 0.15 * Math.sin(t * 0.7)), 0.95 * k * breathe);
     // bokeh discs drifting in from the light, spread along the edge
     const px = -uy, py = ux;
     for (const d of DISCS) {
       const ph = (d.ph + t * d.sp) % 1;
       const dist = R * (0.1 + 0.75 * ph), lat = d.lat * R * 0.7;
-      const a = 0.55 * k * Math.sin(Math.PI * ph) * (0.55 + 0.45 * Math.sin(t * 2.4 + d.tw));
-      disc(cx - ux * dist + px * lat, cy - uy * dist + py * lat, m * (0.012 + 0.02 * d.r * k), a);
+      const a = 0.95 * k * Math.sin(Math.PI * ph) * (0.6 + 0.4 * Math.sin(t * 2.4 + d.tw));
+      disc(cx - ux * dist + px * lat, cy - uy * dist + py * lat, m * (0.016 + 0.026 * d.r * k), a);
     }
     ctx.restore();
   }

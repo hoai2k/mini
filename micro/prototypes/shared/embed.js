@@ -123,7 +123,7 @@ const active = params.get('embed') === '1' && framed && !!origin;
 const listeners = new Map(); // type -> Set<fn>
 const provides = new Set();
 let paused = active;
-let held = false;
+let holding = false; // `hold`: frames run, the world's time stays stopped
 let readySent = false;
 let soundOn = true;
 let volume = 1;
@@ -181,13 +181,13 @@ if (active) {
       case 'pause': if (!paused) { paused = true; emit('pause', d); } return;
       case 'resume': if (paused) { paused = false; release(); emit('resume', d); } return;
       case 'hold':
-        held = true;
+        holding = true;
         if (paused) { paused = false; release(); }
         emit('hold', d);
         return;
       case 'begin': {
-        const was = held || paused;
-        held = false;
+        const was = holding || paused;
+        holding = false;
         if (paused) { paused = false; release(); }
         emit('begin', d);
         if (was) emit('resume', d);
@@ -235,7 +235,7 @@ export const embed = {
   /** True while the shell has the game paused (always false standalone). */
   get paused() { return paused; },
   /** True while the shell holds the world in a transition: draw, but keep time stopped. */
-  get held() { return held; },
+  get held() { return holding; },
   /** The shell's master sound switch and volume. */
   get soundOn() { return soundOn; },
   get volume() { return volume; },

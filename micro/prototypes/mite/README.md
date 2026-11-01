@@ -63,6 +63,19 @@ on each scramble and jump, a jolt when the predator grabs a leg.
 
 Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A moss ambience loop; footfalls (at most ~8 a second), the scramble (B), the jump and its landing (A), closing and opening (Y), the bite (X), moss blades brushing as they bend, and the predator closing in or grabbing a leg.
 
+## The intro (from the springtail)
+
+In the game the mite's world is the far end of the continuous transition
+from the springtail (`../../game/README.md`, "The continuous transition"):
+it preloads hidden while the springtail nears its portal, declares
+`embed.provide('intro')`, and on `hold` stays frozen at its start but
+renders, with the HUD and arrows hidden, reporting how its opening view
+(HFW 1.6 mm, the mite at the centre) frames the mite (`embed.opening`). It
+then takes the shell's `camera` poses (`placePoseCamera`: a dolly, the scan's
+12° field kept, the rig following so play carries on from it) as it fades in
+over the springtail's push onto the speck, the mite where the speck was. On
+`begin` its time eases back in over 0.6 s.
+
 ## Landmarks
 
 Both are built into the moss (`landmarks.js`) and drawn by the SEM like

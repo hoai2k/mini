@@ -50,7 +50,7 @@ void main() {
     if (s.w <= 0.0) continue;
     vec2 d = w - s.xy;
     float r = length(d);
-    if (r > 70.0) continue;
+    if (r > 45.0) continue;
     float a = atan(d.y, d.x);
     float streak = smoothstep(0.75, 1.0, sin(a * 28.0)) * smoothstep(0.6, 0.95, fract(r / 8.0 + uTime * 1.2 * 16.0 / max(r, 4.0)));
     float strength = clamp(60.0 * pow(16.0 / max(r, 4.0), 2.0) / 120.0, 0.0, 1.0) * s.w;

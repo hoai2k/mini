@@ -27,10 +27,11 @@ import { createPlayers } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
-import { gauss, progress, START } from './world.js';
+import { gauss } from './world.js';
 import { createCollectives, COLL, LEVEL_NAMES } from './collective.js';
 import { createGuards } from './guards.js';
 import { createQuality } from '../shared/quality.js';
+import { createPortalGlow, createPortalLight } from '../shared/portal.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
@@ -91,6 +92,9 @@ const drawer = createDrawer(world);
 // the boss: Stentor coeruleus, anchored by the host cell (stentor.js; runBoss below)
 const stentor = createStentor();
 world.stentor = stentor;
+// the clay grain Stentor's foot holds on to (placed with the portal)
+const stentorGrain = { x: 1e6, y: 0, r: 14, wob: 0.3, seed: 31, cap: 8, ang: 0, z: -0.4 };
+world.grains.push(stentorGrain);
 const dashFor = (sp) => (sp === 'mtb' ? createDash({ duration: 0.6, cooldown: 3 }) : createDash({ duration: 0.45, cooldown: 2.5 }));
 /** Every player's cell: its own swimmer, rules (game), dash, catch and HUD state. */
 const roster = [];
@@ -178,7 +182,7 @@ function toxinBurst(C, b) {
     c.stalking = null; c.cooldown = 14; c.windup = 0; const a = Math.atan2(c.y - b.y, c.x - b.x); c.x += Math.cos(a) * 18; c.y += Math.sin(a) * 18; c.a = a; hit.push('Bdellovibrio');
   }
   for (const P of roster) if (P.bdello && Math.hypot(P.bdello.c.x - b.x, P.bdello.c.y - b.y) < R + 20) { P.bdello.c.stalking = null; P.bdello = null; }
-  for (const p of world.phages) if (!p.stuck && Math.hypot(p.x - b.x, p.y - b.y) < R) { p.x = START.x - 150 - Math.random() * 40; p.y = -60 + Math.random() * 150; p.homing = false; p.cloud = null; hit.push('phage'); }
+  for (const p of world.phages) if (!p.stuck && Math.hypot(p.x - b.x, p.y - b.y) < R) { p.x = b.x + (Math.random() < 0.5 ? -1 : 1) * (200 + Math.random() * 100); p.y = b.y + (Math.random() - 0.5) * 300; p.homing = false; p.cloud = null; hit.push('phage'); }
   for (const P of roster) if (P.phage && Math.hypot(P.phage.p.x - b.x, P.phage.p.y - b.y) < R) P.phage = null;
   if (Math.hypot(stentor.mouth.x - b.x, stentor.mouth.y - b.y) < R + stentor.catchR && stentor.awake && !stentor.beaten) stentor.fight.bitten();
   collInfo.bursts.push({ t, x: b.x, y: b.y, hit: [...new Set(hit)] });
@@ -222,6 +226,12 @@ function placeNear(P, M) {
   world.pushOutOfGrains(P.S, P.S.sp.r + 0.2);
 }
 
+// --- the landmarks: the way on (the host, the portal) and the backdoor (the Paramecium) ---
+const LMK = world.landmarks;
+const FWD = { x: LMK.forward.x, y: LMK.forward.y, z: 0 };
+const BACK = { x: LMK.back.x, y: LMK.back.y, z: 0 };
+const lm = { fired: false, near: false, log: [], turned: false, hinted: false };
+
 // --- pacing: a rhythm along the way, not a clock (world.js ROUTE, guards.js) ---
 // The owner: "a few seconds of moving, an obstacle, a short calm break, the
 // next, and so on to a boss at the destination". Every gate is on until your
@@ -234,6 +244,8 @@ function resetPressure() {
   for (const p of world.phages) p.anim = false;
   for (const c of world.cells) if (c.kind === 'bdello' && c.prey && c.prey.isPlayer) { c.prey = null; c.cooldown = 6; c.L = 1.0; }
   stentor.awake = false; stentor.fight.reset(); bossInfo.log.length = 0;
+  clearPortal(); lm.fired = false; lm.blocked = false;
+  for (const q of guards.list) if (q.kind !== 'stentor') guards.setGate(q, 0);
   gateMsg.seen.clear();
 }
 function updatePressure() {
@@ -356,11 +368,11 @@ function respawnPlayer(P) {
   P.eatenFor = 0; P.phage = null; P.bdello = null;
   const mates = alive().filter((Q) => Q !== P && !Q.capture.active);
   if (mates.length) { placeNear(P, mates[0]); hud.toast(`${P.name} is back, beside ${mates[0].name}`); return; }
-  // a safe spot: the calm break behind where you were (or the meadow), where kin live to call again
-  const R = world.route;
-  let bx = (R.meadow.x0 + R.meadow.x1) / 2;
-  for (const x of R.breaks) if (x < P.S.x - 5 && x > bx) bx = x;
-  const best = { x: bx + (Math.random() - 0.5) * 10, y: world.wayY(bx) + (Math.random() - 0.5) * 10 };
+  // a safe spot: the calm break just inside where you were (or the meadow), on your bearing, where kin live
+  const d0 = world.distFromStart(P.S.x, P.S.y), a0 = world.bearingFromStart(P.S.x, P.S.y);
+  let rb = 0;
+  for (const b of world.route.breaks) if (b < d0 - 5) rb = b;
+  const best = world.ringPoint(rb + (rb ? (Math.random() - 0.5) * 10 : Math.random() * 8), a0 + (Math.random() - 0.5) * 0.2);
   P.S.x = best.x; P.S.y = best.y;
   world.pushOutOfGrains(P.S, P.S.sp.r + 0.2);
   if (P === P1) { view.cx = P.S.x; view.cy = P.S.y; }
@@ -529,6 +541,7 @@ function runBoss(dt) {
   const dist = (P) => Math.hypot(P.S.x - M.x, P.S.y - M.y);
   let nd = Infinity;
   for (const P of roster) if (fightable(P)) nd = Math.min(nd, dist(P));
+  if (!B.placed) return;
   if (B.beaten) { B.update(dt, 'retreat', 1); return; }
   if (!B.awake && (nd < B.wakeR || bossInfo.force)) { B.awake = true; bossInfo.log.push({ ev: 'wake', t }); }
   if (!B.awake) { B.update(dt, 'stalk', 0); return; }
@@ -590,6 +603,18 @@ if (devQ.get('psfdown') === '0') optics.toggles.down = false;
 const useRects = devQ.get('rects') !== '0';
 const FLOCK_N = Math.max(0, Math.min(COLL.max, +(devQ.get('flock') || 0)));
 const shapes = createShapes(6000);
+// the portal's golden glow (shared/portal.js), drawn over each view after the optics: its ground
+// plane turned to face the microscope, so the pool is a disc of light round the host and the glints
+// twinkle toward you; and its light spilling in from the screen's edge while it is out of view
+const glowScene = new THREE.Scene();
+const glowCam = new THREE.OrthographicCamera(-1, 1, 1, -1, -200, 200);
+glowCam.position.set(0, 0, 100);
+const glow = createPortalGlow({ THREE, scene: glowScene, size: 9, count: 56, intensity: 1.1, beam: 0, pixelHeight: () => renderer.getDrawingBufferSize(_b).y });
+glow.group.rotation.x = Math.PI / 2;
+glow.setOpen(false);
+const portalGlow = { x: 1e6, y: 1e6, place(x, y) { this.x = x; this.y = y; glow.setPosition(x, y, 0); }, burst: () => glow.burst(), get open() { return glow.open; } };
+portalGlow.place(1e6, 1e6);
+const portalLight = createPortalLight({ zIndex: 3 });
 const overlay = createOverlay();
 const looks = createBorrowedLooks(renderer);
 // split screen: in a 2D field the view is drawn around a centre; each view is
@@ -636,7 +661,7 @@ resize();
 // --- features ---
 const features = createFeatures({ key: 'bacterium', pad });
 quality.addToFeatures(features);
-const audio = createAudio(['bacterium/amb-sediment', 'bacterium/run', 'bacterium/tumble', 'bacterium/sprint', 'bacterium/eat', 'bacterium/phage', 'bacterium/graze']);
+const audio = createAudio(['bacterium/amb-sediment', 'bacterium/run', 'bacterium/tumble', 'bacterium/sprint', 'bacterium/eat', 'bacterium/phage', 'bacterium/graze', 'shared/portal-chime']);
 audio.addToFeatures(features);
 audio.loop('bacterium/amb-sediment', { volume: 0.6 });
 const runLoop = audio.loop('bacterium/run', { volume: 0 });
@@ -744,43 +769,127 @@ function setSpecies(sp) {
   view.zoom = ZOOMS.indexOf(SPECIES[sp].view);
   view.cx = S.x; view.cy = S.y;
   card.classList.remove('show');
-  hud.toast(sp === 'mtb' ? `Gather an army: press ${glyph('X')} near kin (the spirilla like you) and they answer and join. Then fight your way right to the host` : `Bdellovibrio: ram and bore into ${GOAL_PREY} Gram-negative prey (${glyph('X')} when touching)`, 3600);
+  hud.toast(sp === 'mtb' ? `Gather an army: press ${glyph('X')} near kin (the spirilla like you) and they answer and join. Then head out, any way you like` : `Bdellovibrio: ram and bore into ${GOAL_PREY} Gram-negative prey (${glyph('X')} when touching)`, 3600);
 }
 
-// --- the landmarks: forward (the host with phages) and the backdoor (the Paramecium) ---
-const LMK = world.landmarks;
-const FWD = { x: LMK.forward.x, y: LMK.forward.y, z: 0 };
-const BACK = { x: LMK.back.x, y: LMK.back.y, z: 0 };
-const lm = { fired: false, near: false, log: [] };
+// --- the landmarks: forward (the host with phages: the portal) and the backdoor (the Paramecium) ---
 function landmark(kind, P) {
   lm.log.push({ kind, slot: P ? P.slot : 0, t });
   embed.landmark(kind, { player: P ? P.slot : 0 });
 }
+
+// --- the rings (design/encounter-pattern.md): one instance of each gate serves its ring ---
+// A gate that is not beaten and not engaged is moved round its ring to the bearing of
+// whoever is approaching it, only where nobody can see (where it is and where it goes are
+// both farther than UNSEEN from every player and their flock). The portal (the host, guarded
+// by Stentor) is placed once a run, on the portal ring at the bearing of the first player to
+// get within PORTAL_SEEN of it, out of view; until then there is no arrow to it.
+const LEAD = 70, PORTAL_SEEN = 150;
+/** How far a move must be from every player to go unseen: the field's half-diagonal at the current zoom, plus a margin. */
+const unseenR = () => { const h = ZOOMS[view.zoom] / 2, w = h * innerWidth / innerHeight; return Math.hypot(w, h) + 20; };
+const ringInfo = { log: [] };
+const watchers = () => { const out = []; for (const P of roster) { if (P.waiting) continue; out.push(P.S); const f = coll.focus(P); if (f) out.push(f); } return out; };
+const unseen = (x, y) => { const R = unseenR(); return watchers().every((q) => Math.hypot(q.x - x, q.y - y) > R); };
+function moveRings() {
+  const live = roster.filter((P) => P.S.alive && !P.waiting);
+  for (const q of guards.list) {
+    if (q.kind === 'stentor' || q.beaten || q.engaged) continue;
+    const who = live.map((P) => { const f = focusOf(P); return { P, d: world.distFromStart(f.x, f.y), a: world.bearingFromStart(f.x, f.y) }; })
+      .filter((o) => o.d > Math.max(12, q.ring - 45 - LEAD) && o.d < q.ring + 30).sort((a, b) => b.d - a.d);
+    if (!who.length) continue;
+    const a = who[0].a;
+    if (Math.abs(Math.atan2(Math.sin(a - q.bearing), Math.cos(a - q.bearing))) * q.ring < 25) continue; // already about there
+    const from = guards.centre(q), to = world.ringPoint(q.ring, a);
+    if (!unseen(from.x, from.y) || !unseen(to.x, to.y)) continue;
+    guards.setGate(q, a);
+    ringInfo.log.push({ id: q.id, a: +a.toFixed(2), t: +t.toFixed(2), slot: who[0].P.slot });
+  }
+  // kin of each calm break gather where a player is coming through it; so do its prey rods
+  coll.relocate(live, unseen);
+  if (!world.landmarks.forward.placed) {
+    const lead = live.map((P) => ({ P, f: focusOf(P) })).sort((a, b) => world.distFromStart(b.f.x, b.f.y) - world.distFromStart(a.f.x, a.f.y))[0];
+    if (lead && world.distFromStart(lead.f.x, lead.f.y) >= world.route.portal - PORTAL_SEEN) {
+      const a0 = world.bearingFromStart(lead.f.x, lead.f.y);
+      for (let i = 0; i < 15; i++) {
+        const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.06;
+        const p = world.ringPoint(world.route.portal, a);
+        if (unseen(p.x, p.y)) { placePortal(a); ringInfo.log.push({ id: 'portal', a: +a.toFixed(2), t: +t.toFixed(2), slot: lead.P.slot }); break; }
+      }
+    }
+  }
+}
+/** Put the host cell (the portal) on the portal ring at bearing a, with Stentor guarding it. */
+function placePortal(a) {
+  const p = world.ringPoint(world.route.portal, a);
+  world.setPortal(p.x, p.y, a);
+  // clear the host's water: any clay grain within 30 µm of it is moved off (unseen: the portal is placed out of view)
+  for (const g of world.grains) { const dx = g.x - p.x, dy = g.y - p.y, d = Math.hypot(dx, dy); if (d < 30 + g.r && g !== stentorGrain) { const k = (36 + g.r) / (d || 1); g.x = p.x + (dx || 1) * k; g.y = p.y + dy * k; } }
+  for (const c of world.film) { const dx = c.x - p.x, dy = c.y - p.y, d = Math.hypot(dx, dy); if (d < 48) { const k = (d + 40) / (d || 1); c.x = p.x + (dx || 1) * k; c.y = p.y + dy * k; } }
+  FWD.x = p.x; FWD.y = p.y;
+  stentor.place(p.x, p.y, a);
+  { const fx = stentor.foot.x - stentor.mouth.x, fy = stentor.foot.y - stentor.mouth.y, fl = Math.hypot(fx, fy); stentorGrain.x = stentor.foot.x + (fx / fl) * 10; stentorGrain.y = stentor.foot.y + (fy / fl) * 10; }
+  portalGlow.place(p.x, p.y);
+  lm.turned = false; lm.hinted = false;
+}
+function clearPortal() {
+  world.landmarks.forward.placed = false;
+  stentor.placed = false; stentorGrain.x = 1e6;
+  portalGlow.place(1e6, 1e6);
+}
+/** Is the portal guarded? Stentor guards it until your army beats it. */
+const guarded = () => !stentor.beaten;
 function landmarkTick(dt) {
   const F = LMK.forward;
-  let at = null, close = false;
+  let at = null, close = false, dmin = Infinity;
   for (const P of roster) {
     if (!P.S.alive) { P.backT = 0; continue; }
+    P.backT = Math.hypot(P.S.x - BACK.x, P.S.y - BACK.y) < LMK.back.r ? P.backT + dt : 0;
+    if (!F.placed) continue;
     const [d] = segDist(P.S.x, P.S.y, F.x, F.y, F.a, F.L);
-    if (d < F.r + P.S.sp.r + F.reach) at = at || P;
+    dmin = Math.min(dmin, d);
+    if (d < F.r + P.S.sp.r + F.reach + 1.5) at = at || P;
     if (d < 14) close = true;
     // or any member of the player's flock
     const C = coll.opts.on && coll.of(P);
     if (C && C.members.length && Math.abs(C.cx - F.x) < C.extent + 16 && Math.abs(C.cy - F.y) < C.extent + 16) {
-      for (const m of C.members) { const [e] = segDist(m.x, m.y, F.x, F.y, F.a, F.L); if (e < F.r + m.r + F.reach) { at = at || P; close = true; break; } if (e < 14) close = true; }
+      for (const m of C.members) { const [e] = segDist(m.x, m.y, F.x, F.y, F.a, F.L); if (e < F.r + m.r + F.reach + 1.5) { at = at || P; close = true; break; } if (e < 14) close = true; }
     }
-    P.backT = Math.hypot(P.S.x - BACK.x, P.S.y - BACK.y) < LMK.back.r ? P.backT + dt : 0;
   }
-  // reaching the host: any player touching it zooms everyone in (once, until all have left it)
-  // the host lies in Stentor's feeding current: it lets you in only once Stentor is beaten (a game rule)
-  if (at && !lm.fired && !stentor.beaten && t - (lm.deniedAt ?? -9) > 3) { lm.deniedAt = t; hud.toast('Stentor\'s current tears you away from the host: beat Stentor first', 2600); }
-  if (at && !lm.fired && stentor.beaten) { lm.fired = true; landmark('forward', at); }
-  if (!close) lm.fired = false;
+  if (F.placed) {
+    if (!lm.hinted && dmin < 160) { lm.hinted = true; }
+    const nearing = dmin < 120;
+    if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
+    if (at && !lm.fired) {
+      if (guarded()) {
+        // Stentor guards it: its current turns you back (your cell, and your flock with it)
+        lm.fired = true; lm.blocked = true;
+        lm.log.push({ kind: 'turnedBack', slot: at.slot, t });
+        if (!at.kickT || at.kickT <= 0) { at.kickT = 0.5; at.kickFrom = { x: F.x, y: F.y }; }
+        if (!lm.turned || t - (lm.turnedAt ?? -9) > 4) { lm.turned = true; lm.turnedAt = t; hud.toast('Turned back: Stentor\'s current guards the host. Drive Stentor off with your army first', 3200); }
+      } else enterPortal(at);
+    }
+    if (!close) { lm.fired = false; lm.blocked = false; }
+    if (lm.blocked && at && !guarded()) { lm.blocked = false; enterPortal(at); }
+  }
   const dweller = roster.find((P) => P.backT > 0.5) || null;
   if (!!dweller !== lm.near) { lm.near = !!dweller; embed.near('back', lm.near); }
   // standalone the page shows its own quiet prompt (the shell draws one in the game)
   promptEl.style.display = lm.near && !embed.active ? 'block' : 'none';
   if (lm.near) promptEl.textContent = `${glyph('Y')} · back to the Paramecium's pool`;
+}
+/**
+ * The way on: player P has reached the open portal. This is the one place the zoom into the
+ * next world is triggered (embed.landmark('forward'); standalone, embed.js shows a toast).
+ */
+function enterPortal(P) {
+  if (lm.entered && t - lm.entered < 3) return;
+  lm.fired = true; lm.entered = t;
+  portalGlow.burst();
+  const L = split.layout;
+  if (L && L.views && L.views.length) { const q = split.project(0, { x: FWD.x, y: FWD.y, z: 0 }); portalLight.bloom(q.x, q.y, { scale: 1.2 }); }
+  audio.play('shared/portal-chime', { volume: 0.9 });
+  P.pad.rumble(520, 0.55, 0.85);
+  landmark('forward', P);
 }
 
 // --- loop ---
@@ -884,9 +993,9 @@ function tick(dt, inputs) {
     P.dash.update(dt);
     inp.dashActive = P.dash.active;
     // which gate a player is at: phages and the pack's rams take hold only there
-    const f = focusOf(P), cl = world.cloud, home = world.route.gates[1];
+    const f = focusOf(P), cl = world.cloud, home = guards.centre(guards.byId.bdello);
     P.nearCloud = Math.hypot(f.x - cl.x, f.y - cl.y) < cl.r + 22;
-    P.nearPack = Math.hypot(f.x - home.x, f.y - world.wayY(home.x)) < home.r + 40;
+    P.nearPack = Math.hypot(f.x - home.x, f.y - home.y) < 45;
     P.safeT = Math.max(0, (P.safeT || 0) - dt);
     if (inp.attackPressed && P.S.species === 'mtb') pressX(P);
   }
@@ -914,6 +1023,7 @@ function tick(dt, inputs) {
   for (const P of roster) if (P.kickT > 0 && P.S.alive) { P.kickT -= dt; const F = P.kickFrom || stentor.mouth; const a = Math.atan2(P.S.y - F.y, P.S.x - F.x); P.S.x += Math.cos(a) * 130 * dt; P.S.y += Math.sin(a) * 130 * dt; }
   coll.post(dt, t, active);
   guards.update(dt, t, active);
+  moveRings();
   for (const P of roster) {
     const ev = evs.get(P), inp = inputs[P.slot], S = P.S;
     const C = coll.of(P);
@@ -1130,11 +1240,20 @@ function drawField(cx, cy, stopOk, rect = null) {
     optics.render({ look, umPerPx, center: [cx, cy], time: t, stopR, plate: look === 'phase' ? plates.phase : null, noiseRes: [renderer.domElement.width, renderer.domElement.height] });
   }
   if (view.overlay) overlay.render(renderer, { center: [cx, cy], size: [fieldW, fieldH], res: [W, H], time: t, band: S.sp.o2, world, flTex: optics.field.textures[1] });
+  // the portal's glow, when it is in this view
+  if (world.landmarks.forward.placed && Math.abs(portalGlow.x - cx) < fieldW / 2 + 15 && Math.abs(portalGlow.y - cy) < fieldH / 2 + 15) {
+    glowCam.left = cx - fieldW / 2; glowCam.right = cx + fieldW / 2; glowCam.top = cy + fieldH / 2; glowCam.bottom = cy - fieldH / 2;
+    glowCam.updateProjectionMatrix();
+    renderer.setRenderTarget(null);
+    renderer.render(glowScene, glowCam);
+  }
 }
 
 const posOf = (P) => { const p = focusOf(P); return { x: p.x, y: p.y, z: 0 }; };
 const cellPos = (P) => { const p = P.S.inside || P.S; return { x: p.x, y: p.y, z: 0 }; };
 function render(dt) {
+  glow.setOpen(!guarded());
+  glow.update(dt, t, glowCam);
   const fieldH = ZOOMS[zoomIdx()];
   const cx = view.cx + view.stage.x, cy = view.cy + view.stage.y;
   const list = roster.filter((P) => !P.waiting).map((P) => ({ slot: P.slot, position: posOf(P) }));
@@ -1161,7 +1280,14 @@ function render(dt) {
   }
   // the edge arrows: the brass chevron to the host cell, the ring to the Paramecium
   marks.begin();
-  marks.drawSplit(arrowSplit(), FWD, { kind: 'forward', label: 'Host', range: 420, onScreen: 'none' });
+  portalLight.begin();
+  // no arrow to the way on until the portal is found; then it points there and its golden light spills in
+  if (world.landmarks.forward.placed) {
+    const res = marks.drawSplit(arrowSplit(), FWD, { kind: 'forward', label: 'Host', range: 420, onScreen: 'none' });
+    let d = Infinity;
+    for (const P of roster) { const f = focusOf(P); d = Math.min(d, Math.hypot(f.x - FWD.x, f.y - FWD.y)); }
+    portalLight.drawSplit(arrowSplit(), res, { strength: Math.max(0.3, Math.min(1, 1.15 - d / 260)), open: portalGlow.open });
+  }
   marks.drawSplit(arrowSplit(), BACK, { kind: 'backdoor', label: 'Pool', range: 420, onScreen: 'none' });
   drawMarks(L, fieldH);
   // scale bar
@@ -1269,7 +1395,7 @@ function stats() {
     `gates: ${guards.list.map((q) => `${q.id} ${q.beaten ? 'beaten' : `${Math.round((100 * Math.max(0, q.hp)) / q.max)} %${q.contact ? ` (${q.contact} fighting)` : ''}`}`).join(' · ')}`,
     capture.active && cat.kind ? `CAUGHT by ${CATCH[cat.kind].by.toLowerCase()}: ${cat.phase}` : '',
     (() => { const C = coll.of(P1); return C && C.members.length ? `army: ${C.army} cells (${C.players.length > 1 ? C.players.length + ' players' : 'you'}) · ${LEVEL_NAMES.slice(1, C.level + 1).join(', ') || 'no abilities yet'} · toxin ${Math.round(C.charge * 100)} % · drag ×${C.drag.toFixed(2)} · flock ${C.speed.toFixed(0)} µm/s, ${C.extent.toFixed(0)} µm across` : coll.opts.on ? `army: none yet (press ${glyph('X')} near kin)` : ''; })(),
-    `way on ${Math.round(Math.max(0, Math.min(1, progress(S.x, S.y))) * 100)} % · host cell ${Math.round(Math.hypot(S.x - FWD.x, S.y - FWD.y))} µm · Paramecium ${Math.round(Math.hypot(S.x - BACK.x, S.y - BACK.y))} µm`,
+    `out from the start ${Math.round(world.distFromStart(S.x, S.y))} µm (portal ring ${world.route.portal})${world.landmarks.forward.placed ? ` · host ${Math.round(Math.hypot(S.x - FWD.x, S.y - FWD.y))} µm${guarded() ? ', guarded' : ', open'}` : ''} · Paramecium ${Math.round(Math.hypot(S.x - BACK.x, S.y - BACK.y))} µm`,
     multi() ? `players ${roster.length} · views ${split.views.length}${split.merged ? ' (together)' : ''}` : '',
     `${Math.round(fps)} fps · ${shapes.count} shapes · render ${Math.round(quality.scale * 100)} %${optics.stats.down > 1 ? ` · PSF at 1/${optics.stats.down}` : ''}`,
   ];
@@ -1322,13 +1448,16 @@ window.__micro = { forceCapture, capture,
   /** Where each challenge starts, and how far along the way (0 start .. 1 host) that is. */
   /** The way on: each gate (world.js ROUTE, guards.js) and the breaks, with how far along (0 start .. 1 host). */
   challenges: () => {
-    const at = (name, x, y) => ({ name, x: +x.toFixed(1), y: +y.toFixed(1), progress: +progress(x, y).toFixed(3) });
-    const out = [at('meadow (kin and prey)', (world.route.meadow.x0 + world.route.meadow.x1) / 2, world.wayY(50))];
-    for (const q of guards.list) { const c = guards.centre(q); out.push(at(`gate ${q.id}`, c.x, c.y)); }
-    for (const x of world.route.breaks) out.push(at('break', x, world.wayY(x)));
-    out.push(at('host cell (the way on)', FWD.x, FWD.y));
-    return out.sort((a, b) => a.progress - b.progress);
+    const out = [{ name: 'meadow (kin and prey)', r: world.route.meadow }];
+    for (const q of guards.list) { const c = guards.centre(q); out.push({ name: `gate ${q.id}`, ring: q.ring, bearing: +q.bearing.toFixed(2), x: +c.x.toFixed(1), y: +c.y.toFixed(1), beaten: q.beaten }); }
+    for (const b of world.route.breaks) out.push({ name: 'break', r: b });
+    out.push({ name: 'portal (host, Stentor)', ring: world.route.portal, placed: !!world.landmarks.forward.placed, x: +FWD.x.toFixed(1), y: +FWD.y.toFixed(1) });
+    return out;
   },
+  rings: () => ({ log: ringInfo.log, portal: world.landmarks.forward.placed ? { x: FWD.x, y: FWD.y, guarded: guarded() } : null, turned: lm.log.filter((e) => e.kind === 'turnedBack').length }),
+  /** Testing: place the portal now at bearing a (default: player slot's bearing). */
+  placePortal(a = null, slot = 0) { const P = roster.find((Q) => Q.slot === slot) || P1; placePortal(a ?? world.bearingFromStart(P.S.x, P.S.y)); return { x: FWD.x, y: FWD.y }; },
+  enterPortal(slot = 0) { enterPortal(roster.find((Q) => Q.slot === slot) || P1); },
   gates: () => guards.report(), guards,
   /** Every flock member (tests): position, velocity, speed, heading, spin. */
   members: (slot = 0) => { const C = coll.of(roster.find((Q) => Q.slot === slot) || P1); return C ? C.members.map((m) => ({ x: m.x, y: m.y, vx: m.vx, vy: m.vy, sp: m.sp, a: m.a, body: m.bodyPhase, fl: m.flPhase, lag: m.lag, vmax: m.vmax })) : []; },

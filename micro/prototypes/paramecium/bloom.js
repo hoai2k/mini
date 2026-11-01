@@ -1,6 +1,6 @@
-// The Chlamydomonas bloom: a dense band of green flagellates across the route
-// between the bladderwort trap and the biofilm (combat-ideas.md, the crowd set
-// piece). You push through it (moving shoves the cells aside), gulp your way
+// The Chlamydomonas bloom: a dense band of green flagellates on its ring round
+// the start (landmarks.js RINGS.bloom; main.js moves it round the ring, unseen,
+// to meet whoever heads out; combat-ideas.md, the crowd set piece). You push through it (moving shoves the cells aside), gulp your way
 // through it (X clears a cone ahead), or wedge a lane open with a dash (A).
 // There is no clock: no oxygen meter, nothing times you (the owner: "don't
 // implement any time limits").
@@ -13,7 +13,7 @@
 //
 // Built on shared/crowd.js. The crowd lives in x-z; the bloom is a volume, so
 // it is three crowds stacked as tiers through the depth, each run in a frame
-// turned to the route (local +x along the route, +z across it): a player
+// turned to the ring (local +x outward, +z along the ring): a player
 // pushes only the tier at their depth. Each member's height inside its tier is
 // set here after the crowd writes its matrices.
 //
@@ -24,22 +24,28 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { createCrowd } from '../shared/crowd.js';
 import { volumeMaterial, sceneFrustum } from './optics.js';
-import { DIR, routePoint, progress, lateral } from './landmarks.js';
+import { ringPoint, RINGS, A0, START } from './landmarks.js';
 import { DEPTH } from './world.js';
 
 export const BLOOM = {
-  centre: 4000,  // µm along the route
-  half: 300,     // half its thickness along the route
-  across: 1100,  // half its width across the route
+  centre: RINGS.bloom, // µm out from the start
+  half: 250,     // half its thickness, outward
+  across: 900,   // half its width along the ring
+  bearing: A0,   // where it is on its ring (place())
 };
 
 export function createBloom(scene) {
   const group = new THREE.Group();
   group.name = 'bloom';
-  group.position.copy(routePoint(BLOOM.centre));
-  group.rotation.y = Math.atan2(-DIR.z, DIR.x); // local +x = DIR
+  /** Turn the band to bearing a on its ring (local +x outward). */
+  function setFrame(a) {
+    BLOOM.bearing = a;
+    group.position.copy(ringPoint(BLOOM.centre, a));
+    group.rotation.y = -a; // local +x = outward at bearing a
+    group.updateMatrixWorld(true);
+  }
+  setFrame(A0);
   scene.add(group);
-  group.updateMatrixWorld();
 
   const R = 7; // member radius (µm)
   const geo = new THREE.SphereGeometry(1, 10, 6); // ≈100 triangles: 14 µm cells
@@ -65,7 +71,7 @@ export function createBloom(scene) {
   const MEMBER_R = 16; // a member's reach from its centre, stretched and wobbling (≤ 13.1 µm), with a margin
 
   // plume columns (local x, z): sinking cells, between broad upwellings
-  const PLUMES = [[-120, -760], [150, -330], [-60, 80], [110, 520], [-140, 900]];
+  const PLUMES = [[-90, -640], [110, -260], [-50, 80], [90, 420], [-100, 720]];
   const plumeR = 130;
   /** 0..1: how deep inside a plume a local point is. */
   const PX = PLUMES.map((q) => q[0]), PZ = PLUMES.map((q) => q[1]), plumeR2 = plumeR * plumeR;
@@ -80,13 +86,15 @@ export function createBloom(scene) {
     return m;
   }
   const inv = new THREE.Matrix4().copy(group.matrixWorld).invert();
+  const lq = new THREE.Vector3();
   const lp = new THREE.Vector3(), ld = new THREE.Vector3();
   const toLocal = (p, out) => out.copy(p).applyMatrix4(inv);
   const dirLocal = (d, out) => out.set(d.x, 0, d.z).transformDirection(inv);
 
   /** Is a world point inside the bloom's band (with a margin)? */
   function inside(p, margin = 0) {
-    return Math.abs(progress(p) - BLOOM.centre) < BLOOM.half + margin && Math.abs(lateral(p)) < BLOOM.across + margin;
+    toLocal(p, lq);
+    return Math.abs(lq.x) < BLOOM.half + margin && Math.abs(lq.z) < BLOOM.across + margin;
   }
   const tierHas = (T, y) => y > T.y0 - 60 && y < T.y1 + 60;
 
@@ -126,6 +134,14 @@ export function createBloom(scene) {
   const api = {
     group, tiers, BLOOM, on: true,
     inside,
+    /** Distance (µm, in the plane) from p to the band were it at bearing a (default: where it is). */
+    distTo(p, a = BLOOM.bearing) {
+      const ox = p.x - START.x, oz = p.z - START.z, c = Math.cos(a), sn = Math.sin(a);
+      const lx = ox * c + oz * sn - BLOOM.centre, lz = -ox * sn + oz * c;
+      return Math.hypot(Math.max(0, Math.abs(lx) - BLOOM.half), Math.max(0, Math.abs(lz) - BLOOM.across));
+    },
+    /** Move the band (unseen, by main.js) to bearing a on its ring. */
+    place(a) { setFrame(a); inv.copy(group.matrixWorld).invert(); placed = false; },
     /** The bloom's current at p (µm/s, vertical only): down in a plume, gently up elsewhere. 0 outside. */
     currentAt(p) {
       if (!inside(p)) return 0;

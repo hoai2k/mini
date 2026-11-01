@@ -4,6 +4,12 @@ Generated with ElevenLabs sound effects (`eleven_text_to_sound_v2`) by [`source/
 
 Nothing makes a sound we could hear at these scales, so this is nature-documentary foley, as a wildlife film of these scenes would score them: each sound is what the action would feel like if you could hear it, scaled to the creature. The deeper the zoom, the more abstract it gets: bog and moss sounds for the springtail and mite, wet and viscous sounds for the water film and the pool, fizzing and rotary motor sounds for the bacterium.
 
+## Shared (every world)
+
+| Id | Kind | Length | Files | Used for |
+| --- | --- | --- | --- | --- |
+| `shared/portal-chime` | oneshot | 2.5 s | 1 | Going through a portal (the way on): the success chime before the freeze and the zoom into the next world. |
+
 ## Springtail (bog surface)
 
 | Id | Kind | Length | Files | Used for |
@@ -80,6 +86,12 @@ Nothing makes a sound we could hear at these scales, so this is nature-documenta
 | `bacterium/graze` | oneshot | 2.0 s | 1 | A grazer's feeding current pulling at you. |
 
 ## Prompts
+
+### shared/portal-chime
+
+```text
+Sound design for a nature documentary about the microscopic world, like a BBC wildlife film: rich, organic, hyper-real cinematic foley, natural and warm, never electronic or mechanical. A warm magical golden shimmer: a soft glassy chime, a rising sparkle of tiny high bell tones and an airy swell that rings out and fades, wondrous and rewarding. No music, no narration, no voices, no speech.
+```
 
 ### springtail/amb-bog
 

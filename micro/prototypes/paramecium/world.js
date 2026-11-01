@@ -13,7 +13,7 @@ import { volumeMaterial, sheetMaterial, pointsMaterial } from './optics.js';
 import { createStrands, KIND } from './strands.js';
 import { rng, closedTube, axisRef, yAxisRef, segSeg, closestOnSeg, noise3 } from './geom.js';
 import { squirmerFlow, sink } from '../shared/techniques/paramecium-squirmer.js';
-import { routePoint } from './landmarks.js';
+import { routePoint, ringPoint, RINGS, A0 } from './landmarks.js';
 import { createAmbient } from './ambient.js';
 
 // A broad wet mount (about 10 mm across under a 22 mm coverslip), so the route
@@ -225,7 +225,7 @@ export function createWorld(scene) {
   const vFlake = new THREE.Matrix4().compose(new THREE.Vector3(560, 30, 330), new THREE.Quaternion().setFromEuler(new THREE.Euler(0.1, 0.4, -0.05)), new THREE.Vector3(150, 150, 150));
   flakeLists[0].push(vFlake);
   flakes.push({ m: vFlake, size: 150 });
-  const v2Pos = routePoint(1250, -260, 30);
+  const v2Pos = ringPoint(560, A0 + 2.4, 30); // a second colony in the calm warm-up, another way from the first
   const vFlake2 = new THREE.Matrix4().compose(v2Pos, new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.08, 1.9, 0.06)), new THREE.Vector3(130, 130, 130));
   flakeLists[1].push(vFlake2);
   flakes.push({ m: vFlake2, size: 130 });
@@ -279,8 +279,8 @@ export function createWorld(scene) {
   const dMat = volumeMaterial({ dn: 0.034, scatter: 1.7, absorb: [0.0035, 0.0075, 0.02], pattern: 2, rimPow: 2.2 });
   const pinGeo = pinnulariaGeometry(), fraGeo = fragilariaGeometry();
   const diatomSpots = [[-220, 7, 260, 0.6, pinGeo], [140, 7, -340, 2.0, pinGeo], [-560, 7, -120, -0.4, pinGeo], [-90, 9, -60, 1.1, fraGeo], [560, 9, -380, 0.3, fraGeo]];
-  for (let k = 0; k < 14; k++) {
-    const p = routePoint(300 + k * 300 + rand() * 150, (rand() - 0.5) * 900, 0);
+  for (let k = 0; k < 14; k++) { // round the start in every direction, near and far
+    const p = ringPoint(250 + rand() * 3200, A0 + (k / 14) * Math.PI * 2 + rand() * 0.3, 0);
     diatomSpots.push([p.x, rand() < 0.5 ? 7 : 9, p.z, rand() * 6.28, rand() < 0.65 ? pinGeo : fraGeo]);
   }
   for (const [x, y, z, rot, g] of diatomSpots) {
@@ -350,7 +350,8 @@ export function createWorld(scene) {
     const { geo } = instancedQuads(n, iPos, iP);
     return Object.assign(new THREE.Mesh(geo, pointsMaterial({ absorb: [0.01, 0.012, 0.02] })), { frustumCulled: false });
   };
-  const HOMES = [routePoint(2850, -560, DEPTH * 0.58), routePoint(4000, 300, DEPTH * 0.5)];
+  // on their ring, a little either side of the bearing they are moved to (main.js placeRing)
+  const HOMES = [ringPoint(RINGS.didinium, A0 - 0.12, DEPTH * 0.58), ringPoint(RINGS.didinium, A0 + 0.12, DEPTH * 0.5)];
   for (let i = 0; i < 2; i++) {
     const g = new THREE.Group();
     g.add(Object.assign(new THREE.Mesh(dGeo, didMat), { frustumCulled: false }));
@@ -371,7 +372,7 @@ export function createWorld(scene) {
     const start = HOMES[i].clone();
     g.position.copy(start);
     didinia.push({ kind: 'didinium', label: 'Didinium', group: g, ring: rs, pos: start.clone(), dir: new THREE.Vector3(rand() - 0.5, 0, rand() - 0.5).normalize(), roll: 0, phase: 0,
-      state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3(), home: HOMES[i].clone(), homeR: 380, tipLen: 66, speedK: 1, radius: 60 });
+      state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3(), home: HOMES[i].clone(), homeR: 250, tipLen: 66, speedK: 1, radius: 60, ringR: RINGS.didinium, offset: i ? 0.12 : -0.12 });
   }
   // Dileptus: a long, flask-shaped hunting ciliate (≈330 µm here) whose
   // trunk-like proboscis is lined with toxicysts. It slashes prey with the
@@ -405,10 +406,10 @@ export function createWorld(scene) {
     g.add(rs.mesh);
     g.add(granulesIn(420, 95, 30, -40));
     group.add(g);
-    const home = routePoint(2720, 280, DEPTH * 0.45);
+    const home = ringPoint(RINGS.dileptus, A0, DEPTH * 0.45);
     g.position.copy(home);
     didinia.push({ kind: 'dileptus', label: 'Dileptus', group: g, ring: rs, pos: home.clone(), dir: new THREE.Vector3(1, 0, 0), roll: 0, phase: 0,
-      state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3(), home: home.clone(), homeR: 380, tipLen: 160, speedK: 0.62, radius: 45 });
+      state: 'wander', stun: 0, turnT: 0, speed: 0, vel: new THREE.Vector3(), home: home.clone(), homeR: 250, tipLen: 160, speedK: 0.62, radius: 45, ringR: RINGS.dileptus, offset: 0 });
   }
 
   // --- the water's texture, repeated round every view ---

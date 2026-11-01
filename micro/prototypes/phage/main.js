@@ -16,10 +16,11 @@ import { createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
-import { createHunger, createCapture, createFight } from '../shared/predation.js';
+import { createCapture, createFight } from '../shared/predation.js';
 import { createPost, goodsellShared, toonMaterial, inkedInstanced, setInkVisible } from '../shared/techniques/phage-goodsell.js';
 import { createT4, t4LiteGeometry, T4_FL } from '../shared/techniques/phage-model.js';
-import { createWorld, uvAt, uvSun, routeProgress, BOUNDS, UV, START, DEST, STRAY_HOME } from './world.js';
+import { createWorld, uvAt, progressAt, RINGS, PORTAL_R, FIELD_R, START, UV_SHAFTS } from './world.js';
+import { createPortalGlow, createPortalLight } from '../shared/portal.js';
 import { createQuality } from '../shared/quality.js';
 import { createInside, GENOME_NODES } from './inside.js';
 import { attachmentForward, aimedProtein } from './binding.js';
@@ -88,7 +89,7 @@ const hud = mountHud({
     zoom: 'Zoom in / out',
     extra: [['Y', 'At the flagellum (backdoor): back to the sediment']],
   }),
-  note: 'Time is slowed about 20× (a phage crosses a host cell in ~0.04 s). Molecules strike you now and then: each knock is Brownian motion you can see. Goal: follow the brass chevron to Host A, aim the fibres at a glowing gold three-lobed protein and grab with X; violet pairs slip off. Get the whole genome in past the host’s defences. Keep out of the UV-bright water near the surface. Up to four players: press any button on another controller to join.',
+  note: 'Time is slowed about 20× (a phage crosses a host cell in ~0.04 s). Molecules strike you now and then: each knock is Brownian motion you can see. Head out any way you like: the same things wait in every direction, in rings: a shell of humic flocs (fold your fibres, B, to slip through), two decoy hosts, violet UV shafts (touch one and you are damaged at once: keep out of the light), and about 9 µm out, the way on: a golden glow on Host A\'s gold receptor, guarded by an amoeba\'s lobe. Lure it off, or fold and jab it (X) until it gives up, then grab the receptor (X) and get the whole genome in past the host\'s defences. Nothing runs down while you explore. Up to four players: press any button on another controller to join.',
 });
 const tag = Object.assign(document.createElement('div'), { className: 'ph-tag', textContent: 'DATA OVERLAY · receptors, defences and odds: data, not optics' });
 const label = Object.assign(document.createElement('div'), { className: 'ph-label' });
@@ -163,7 +164,6 @@ const newP = () => ({
   stuckTip: Array(6).fill(null), lastHost: null, inBack: false, grab: null, grabCooldown: 0, snag: null, snagT: 0,
   damaged: false, wreck: 0, coHost: null, coT: 0,
 });
-const hunger = createHunger({ grace: 45 });
 
 // --- the team: one phage per player. The update functions below act on the
 // "current" member through P, t4, dash, capture and ctl; use(m) switches them.
@@ -239,11 +239,11 @@ features.add({ id: 'brown', group: 'Motion', label: 'Brownian motion', on: true,
 features.add({ id: 'tumble', group: 'Motion', label: 'Slow tumbling', on: true,
   about: 'A 0.1 µm particle forgets its orientation within about a millisecond (rotational diffusion ~1.3 × 10³ rad²/s). Here it turns slowly instead, so you can see the phage (a labelled departure).',
   onChange: (on) => { opts.tumble = on; } });
-features.add({ id: 'uv', group: 'Simulation', label: 'UV near the surface', on: true,
-  about: 'Sunlight UV-B damages phage DNA. In humic bog water it is absorbed within centimetres (10 % left at 1.5 cm in the most humic lake [S104]), so only the top of the field is dangerous: your integrity erodes there. Bound to the clay platelet you are shielded [S103].',
+features.add({ id: 'uv', group: 'Simulation', label: 'UV sunfleck shafts', on: true,
+  about: 'Sunlight UV-B damages phage DNA. In humic bog water it is absorbed within centimetres (10 % left at 1.5 cm in the most humic lake [S104]); where a gap in the floating peat mat lets the sun through, a shaft of it reaches down. Here the shafts are visible violet columns on a shell round the start: touch one and your DNA is damaged at once (a second touch while damaged destroys you). No slow drain: away from the shafts you are safe for as long as you like. Off: the shafts are harmless light.',
   onChange: (on) => { opts.uv = on; } });
-features.add({ id: 'amoeba', group: 'Simulation', label: 'Amoeba edge', on: true,
-  about: 'A grazing amoeba at the left edge. After a calm opening (45 s) it gets hungry now and then and reaches a pseudopod toward you; drift away or ride a gust. Amoebae grazing on viruses is [Unverified] in the spec.',
+features.add({ id: 'amoeba', group: 'Simulation', label: 'Amoeba on guard', on: true,
+  about: 'The way on (Host A\'s gold receptor) is guarded by an amoeba grazing beside it: its lobe hovers over the receptor. Come near and it reaches for you (and rears before it strikes); it follows you only so far and is slower than you. Lure it off and slip round, or fold your fibres (B) so its strike slides off and jab it (X) until it gives up and draws its lobe back for good. Grabbing the receptor while it is on guard turns you back. Off: no guard. Amoebae grazing on viruses is [Unverified] in the spec.',
   onChange: (on) => { opts.amoeba = on; } });
 features.add({ id: 'crowd', group: 'World', label: 'Crowded water', on: true,
   about: 'Thousands of molecules (proteins, humic colloids, sugars, ions) as bead clusters, jostling and tumbling, pushed by gusts and by your passage, filling the water in every direction and round every split view (they wrap round each view on the GPU). Small solutes are drawn several times too large so they read, and the water is far more crowded than a real bog (departures).',
@@ -328,19 +328,33 @@ function placeAtStart(m, at = null) {
 /** Multiplayer: a caught player comes back beside a teammate who is still in play. */
 function respawn(m) {
   const mate = members().find((o) => o !== m && (o.P.mode === 'drift' || o.P.mode === 'walk' || o.P.mode === 'clay'));
-  const at = mate ? mate.P.pos.clone().add(new THREE.Vector3(rand(-24, 24), 26, 0)) : null;
-  if (at) at.y = Math.min(at.y, UV.y0 - 20);
+  // never further back than a safe spot near where you were lost (encounter pattern): a little back toward
+  // the start, clear of the shafts and flocs; beside a teammate who is still in play, if any
+  const at = mate ? mate.P.pos.clone().add(new THREE.Vector3(rand(-24, 24), 26, 0)) : safeSpot(m.P.lostAt);
   placeAtStart(m, at);
   if (m.P === P) say(`${players.get(m.slot)?.name || 'P' + (m.slot + 1)} drifts back in${mate ? ' beside a teammate' : ''}.`, 2000, true);
 }
 let respawning = false;
+/** A calm spot about 1.6 µm back toward the start from p (null: the start itself). */
+function safeSpot(p) {
+  if (!p) return null;
+  const at = p.clone().sub(START);
+  const d = at.length();
+  if (d < 200) return null;
+  at.setLength(Math.max(0, d - 160)).add(START);
+  for (let i = 0; i < 12; i++) {
+    if (uvAt(at).k === 0 && world.sdFloc(at).d > 30 && world.nearestHost(at).d > 40) return at;
+    at.sub(START).multiplyScalar(0.93).add(START);
+  }
+  return at;
+}
 /** The end of a catch (the screen is black): solo or not, the phage drifts back in, beside a teammate if any. */
 function afterCatch(m) {
   const wasInside = m.P.mode === 'inside' || m.P.kind === 'cut';
   const am = world.amoeba;
   if (m.P.kind === 'amoeba') { am.vacuole.visible = false; am.see(1); am.posture(0); }
   if (wasInside) { inside.reset(); m.P.fade = 0; for (const h of world.hosts) h.locked = false; }
-  fight.reset();
+  fight.reset(); if (fightState !== 'gone') fightState = 'guard';
   const was = cur;
   respawning = true;
   try { respawn(m); } finally { respawning = false; }
@@ -352,8 +366,8 @@ function resetLevel() {
   world.reset();
   for (const m of members()) placeAtStart(m);
   if (team[0]) use(team[0]);
-  hunger.reset();
-  fight.reset(); fightState = 'stalk';
+  fight.reset(); fightState = 'stalk'; guard.gone = false; guard.turned = false; guard.hinted = false; portalGlow.group.visible = false;
+  ringLog.length = 0;
   inside.reset();
   resetStray();
   progeny.setCount(0);
@@ -361,7 +375,7 @@ function resetLevel() {
   P.burstSent = false;
   view.target.copy(P.pos); view.q.identity(); view.lookHold = 0;
   // in the game shell its intro has already said this
-  if (!embed.active || started) say('You are a T4-like phage in bog water. Drift with LS (RT/LT: into or out of the view), turn the view with RS. Follow the brass chevron to Host A and grab a glowing gold receptor (X). It is calm for now.', 4800, true);
+  if (!embed.active || started) say('You are a T4-like phage in bog water. Drift with LS (RT/LT: into or out of the view), turn the view with RS. Head out any way you like: what waits is the same in every direction, a little way out. Far out, a golden glow marks the way on.', 4800, true);
   started = true;
 }
 
@@ -369,6 +383,7 @@ function resetLevel() {
 function startCapture(kind, by, how) {
   if (capture.active) return;
   P.kind = kind;
+  P.lostAt = kind === 'cut' || kind === 'dud' ? (P.commitHost || P.coHost || { pos: P.pos }).pos.clone() : P.pos.clone();
   P.mode = kind === 'cut' ? 'inside' : 'dead';
   capture.start({ by, how });
   curPad().rumble(400, 0.6, 0.9);
@@ -430,6 +445,16 @@ function tryGrab() {
   if (P.foldTarget > 0.5 || P.fold > 0.5) { say('Extend the fibres (B) before grabbing a protein.', 1800, true); return; }
   if (P.mode === 'clay') { say('Fold the fibres (B) to slip free of the clay first.', 1800, true); return; }
   // A second player may try a wrong protein, but cannot enter an occupied host phase.
+  const aimed = aimedProtein(P.pos, attachmentForward(P.q), world.proteins, (target) => world.toWorld(target.host, target.local));
+  if (aimed && world.portal && aimed.host === world.portal.host && guarded()) {
+    // the way on, on guard: turned back (the lobe shoves you off the receptor)
+    const n = world.dirToWorld(aimed.host, aimed.normal, new THREE.Vector3());
+    P.gust.addScaledVector(n, 60).addScaledVector(_v.subVectors(P.pos, world.amoeba.center).normalize(), 25);
+    P.grabCooldown = 0.6; curPad().rumble(160, 0.4, 0.5); audio.play('bacterium/tumble', { volume: 0.6, rate: 0.8 });
+    say('Turned back: the amoeba\'s lobe guards this receptor. Lure it away, or fold (B) and jab (X) until it gives up.', 3200, true);
+    ringLog.push({ kind: 'turnedBack', t: +t.toFixed(2), slot: cur.slot });
+    return;
+  }
   const protein = aimedProtein(P.pos, attachmentForward(P.q), world.proteins,
     (target) => world.toWorld(target.host, target.local));
   if (!protein) { cur.jab = 0.45; P.grabCooldown = 0.25; say('No protein in reach: aim the leading fibres closer to a protruding protein, then X to grab.', 1800, true); return; }
@@ -536,11 +561,9 @@ function updateDrift(dt, inp) {
 
 /** No walls or floor: beyond the field's bounds a current carries you gently back. */
 function softBounds(dt) {
-  const k = 1.2 * dt;
-  const push = (v, lo, hi) => (v < lo ? (lo - v) * k : v > hi ? (hi - v) * k : 0);
-  P.pos.x += push(P.pos.x, BOUNDS.x0, BOUNDS.x1); P.pos.y += push(P.pos.y, BOUNDS.y0, BOUNDS.y1); P.pos.z += push(P.pos.z, BOUNDS.z0, BOUNDS.z1);
-  // and never far beyond them
-  P.pos.x = clamp(P.pos.x, BOUNDS.x0 - 150, BOUNDS.x1 + 150); P.pos.y = clamp(P.pos.y, BOUNDS.y0 - 150, BOUNDS.y1 + 60); P.pos.z = clamp(P.pos.z, BOUNDS.z0 - 150, BOUNDS.z1 + 150);
+  const d = _w.subVectors(P.pos, START), r = d.length();
+  if (r > FIELD_R) P.pos.addScaledVector(d, -((r - FIELD_R) / r) * 1.2 * dt);
+  if (r > FIELD_R + 150) P.pos.copy(START).addScaledVector(d, (FIELD_R + 150) / r); // and never far beyond
 }
 
 function integrateRotation(dt) {
@@ -564,7 +587,7 @@ function enterClay() {
   for (let f = 0; f < 6; f++) { const tip = t4.tip(f); if (world.sdClay(tip) < 4) { P.stuckTip[f] = tip.clone(); t4.fibres[f].anchor = P.stuckTip[f]; } }
   P.vel.set(0, 0, 0); P.gust.set(0, 0, 0);
   audio.play('bacterium/tumble', { volume: 0.5, rate: 0.8 });
-  say('Fibres stuck to a clay platelet: a trap, but a shelter from UV. Fold them (B) to slip free.', 3000, true);
+  say('Fibres stuck to a clay platelet. Fold them (B) to slip free.', 3000, true);
 }
 
 function updateClay(dt, inp) {
@@ -658,29 +681,38 @@ function leaveSurface(push) {
 }
 
 // --- multiplicity reactivation (micro/design/combat-ideas.md, phage idea 1) ---
-// UV does not kill outright: at zero integrity a phage is DAMAGED (its DNA
-// broken: it dims, cracks, its glow fades). A damaged phage still binds and
+// UV does not kill outright: touching a UV shaft leaves a phage DAMAGED at once
+// (its DNA broken: it dims, cracks, its glow fades; no slow drain). A damaged phage still binds and
 // injects, but its genome cannot work alone: it waits on the host (mode
 // 'coinfect'). If a teammate co-infects that host, the two genomes recombine
 // into a working one (real for T-even phages: Luria 1947 [C26]) and the
-// damaged player is whole again. Solo, a stray UV-damaged phage drifts below
-// the clay: drift up to it while damaged and it pairs with you, co-infecting
-// whichever host you inject. A second dose of UV while damaged is fatal.
+// damaged player is whole again. Solo, a stray UV-damaged phage drifts in near
+// you once you are damaged (out of view, ~1.7 µm off): drift up to it and it
+// pairs with you, co-infecting whichever host you inject. A second shaft while
+// damaged is fatal.
 const COINFECT_WAIT = { solo: 5, multi: 45 };
-const stray = { t4: createT4({ clip: false }), pos: STRAY_HOME.clone(), vel: new THREE.Vector3(), q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.6),
+const stray = { t4: createT4({ clip: false }), pos: new THREE.Vector3(), home: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.6),
   paired: null, used: false, contract: 0, host: null, local: new THREE.Vector3(), log: [] };
 stray.t4.addTo(scene);
 stray.t4.set({ capsid: 'translucent', dark: 0.75, crack: 0.45, dna: 0.85 });
 function resetStray() {
-  stray.pos.copy(STRAY_HOME); stray.vel.set(0, 0, 0); stray.paired = null; stray.used = false; stray.contract = 0; stray.host = null;
-  stray.t4.group.visible = stray.t4.fibreMesh.visible = true; stray.t4.set({ contract: 0, star: 0, shortOut: 0 });
+  stray.pos.set(0, -9000, 0); stray.home.copy(stray.pos); stray.vel.set(0, 0, 0); stray.paired = null; stray.used = false; stray.contract = 0; stray.host = null; stray.shown = false;
+  stray.t4.group.visible = stray.t4.fibreMesh.visible = false; stray.t4.set({ contract: 0, star: 0, shortOut: 0 });
   stray.t4.group.position.copy(stray.pos); stray.t4.group.quaternion.copy(stray.q); stray.t4.resetFibres(t);
 }
 function damage() {
   P.damaged = true; P.wreck = 0; P.integrity = 0; P.crack = Math.max(P.crack, 0.35);
+  // the stray drifts in (once): beside you but out of view, across the view from the camera
+  if (!stray.shown && !stray.used) {
+    stray.shown = true;
+    stray.home.copy(P.pos).addScaledVector(camRight(_v), -170).addScaledVector(camUp(_w), 30);
+    if (uvAt(stray.home).k > 0) stray.home.addScaledVector(camRight(_v), 340);
+    stray.pos.copy(stray.home); stray.t4.group.visible = stray.t4.fibreMesh.visible = true;
+    stray.t4.group.position.copy(stray.pos); stray.t4.resetFibres(t);
+  }
   curPad().rumble(300, 0.5, 0.6); audio.play('bacterium/eat', { volume: 0.6, rate: 1.3 });
   say(isMulti() ? 'UV broke your DNA: you are DAMAGED. Alone your injection fails; inject into the same host as a teammate and your genomes recombine (multiplicity reactivation). More UV is fatal.'
-    : 'UV broke your DNA: you are DAMAGED. Alone your injection fails. A stray damaged phage drifts below the clay: pair with it and co-infect a host together. More UV is fatal.', 5200, true);
+    : 'UV broke your DNA: you are DAMAGED. Alone your injection fails. Another damaged phage is drifting nearby: find it, pair with it and co-infect a host together. Another shaft is fatal.', 5200, true);
   stray.log.push(`P${cur.slot + 1} damaged at t=${t.toFixed(1)}`);
 }
 function updateStray(dt) {
@@ -716,10 +748,12 @@ function updateStray(dt) {
     }
     if (!['drift', 'grab', 'walk', 'commit', 'coinfect', 'clay'].includes(o.mode)) s.paired = null;
   } else {
-    // drifting near home, sheltering below the clay
+    // drifting near where it appeared
     s.vel.multiplyScalar(Math.exp(-dt * 1.5));
-    s.vel.x += gauss() * 6 * Math.sqrt(dt) + (STRAY_HOME.x - s.pos.x) * 0.2 * dt;
-    s.vel.y += gauss() * 6 * Math.sqrt(dt) + (STRAY_HOME.y - s.pos.y) * 0.2 * dt;
+    if (!s.shown) return;
+    s.vel.x += gauss() * 6 * Math.sqrt(dt) + (s.home.x - s.pos.x) * 0.2 * dt;
+    s.vel.y += gauss() * 6 * Math.sqrt(dt) + (s.home.y - s.pos.y) * 0.2 * dt;
+    s.vel.z += gauss() * 6 * Math.sqrt(dt) + (s.home.z - s.pos.z) * 0.2 * dt;
     s.pos.addScaledVector(s.vel, dt);
     _q.setFromAxisAngle(_v.set(0.3, 0.2, 1).normalize(), Math.sin(t * 0.3) * 0.002); s.q.premultiply(_q);
   }
@@ -839,19 +873,110 @@ function updateBurst(dt) {
   return 'outside';
 }
 
-// --- the amoeba ---
-let podGiveUp = 0;
-// The amoeba's fight (shared createFight): it stalks with a lobe, rears and curls it
-// (the wind-up: swollen, flushed, lips spread wide), then lunges. Folded fibres
-// (B) make the strike slip; a fibre jab (X) makes the lobe recoil; facing it with
-// the fibres wears its interest down. At zero it draws the lobe back and leaves.
+// --- the rings and the way on (micro/design/encounter-pattern.md) ---
+// The decoy hosts are moved round their shell to meet whoever approaches it, unseen; the portal (Host A's
+// gold receptor under the shared golden glow) is placed once a game at the bearing of whoever first gets
+// far enough, out of view, with the amoeba beside it on guard.
+const ringLog = []; // what moved where, and when each ring was first reached (tests and tuning)
+const UNSEEN = 230; // nothing moves within this distance of any phage
+const portalGlow = createPortalGlow({ THREE, scene, size: 13, intensity: 1.4, beam: 70, beamWidth: 7 });
+portalGlow.group.visible = false;
+const portalLight = createPortalLight();
+const guard = { gone: false, turned: false, hinted: false };
+const _gp = new THREE.Vector3(), _gn = new THREE.Vector3();
+/** The way on: the gold receptor's tip on Host A (and its outward normal), world. */
+function portalPoint(out = _gp) { const pt = world.portal; return world.toWorld(pt.host, pt.protein.local, out); }
+function portalNormal(out = _gn) { const pt = world.portal; return world.dirToWorld(pt.host, pt.protein.normal, out); }
+/** Is the amoeba on guard (its lobe over the receptor, not driven off)? Before the portal exists: yes. */
+function guarded() {
+  if (!world.portal) return true;
+  if (guard.gone || !opts.amoeba) return false;
+  const am = world.amoeba;
+  return am.reach > 2 && am.tip.distanceTo(portalPoint()) < 55;
+}
+const outsideMembers = () => members().filter((m) => !m.c.active && ['drift', 'walk', 'clay', 'grab'].includes(m.P.mode));
+const distOut = (m) => m.P.pos.distanceTo(START);
+const bearing = (m) => _v.subVectors(m.P.pos, START).normalize().clone();
+/** Far from every phage and outside the camera's view (with a margin for a host's size). */
+function unseenFromAll(p) {
+  if (!members().every((m) => m.P.pos.distanceTo(p) > UNSEEN)) return false;
+  _s.copy(p).project(camera);
+  return !(_s.z < 1 && Math.abs(_s.x) < 1.3 && Math.abs(_s.y) < 1.3 && camera.position.distanceTo(p) < 800);
+}
+function rotateBearing(dir, angle) {
+  const ax = new THREE.Vector3().crossVectors(dir, camUp(_w));
+  if (ax.lengthSq() < 1e-4) ax.crossVectors(dir, AX_X);
+  return dir.clone().applyAxisAngle(ax.normalize(), angle);
+}
+function moveRings() {
+  const out = outsideMembers();
+  if (!out.length) return;
+  // the decoys: Host B a little to one side of the approaching bearing, the wrong host to the other
+  const lead = out.map((m) => ({ m, d: distOut(m) })).filter((o) => o.d > RINGS.decoy - 240 && o.d < RINGS.decoy + 30).sort((a, b) => b.d - a.d)[0];
+  if (lead) {
+    const dir = bearing(lead.m);
+    for (const [id, off] of [['B', 0.3], ['W', -0.32]]) {
+      const h = world.hosts.find((x) => x.id === id);
+      if (h.burst || h.locked || members().some((o) => o.P.host === h || o.P.coHost === h)) continue;
+      const want = rotateBearing(dir, off);
+      const now = _w.subVectors(h.pos, START).normalize();
+      if (now.angleTo(want) < 0.45) continue; // already about there
+      const to = want.clone().multiplyScalar(RINGS.decoy).add(START);
+      if (!unseenFromAll(h.pos) || !unseenFromAll(to)) continue;
+      world.placeHost(h, want, RINGS.decoy);
+      ringLog.push({ kind: 'move', id, t: +t.toFixed(2), slot: lead.m.slot });
+    }
+  }
+  for (const m of out) for (const [k, r] of Object.entries(RINGS)) if (distOut(m) >= r - 40 && !ringLog.some((e) => e.kind === 'reach' && e.ring === k)) ringLog.push({ kind: 'reach', ring: k, t: +t.toFixed(2), slot: m.slot });
+  // the portal, once: when someone gets past the UV shell, on their bearing (turned aside if it would be in view)
+  if (!world.portal) {
+    const far = out.map((m) => ({ m, d: distOut(m) })).sort((a, b) => b.d - a.d)[0];
+    if (far && far.d >= RINGS.uv + 50) placePortal(bearing(far.m));
+  }
+}
+/** Place the way on at bearing dir (turned aside, out of every view, when it can be). */
+function placePortal(dir) {
+  let pick = dir;
+  for (const a of [0, 0.3, -0.3, 0.55, -0.55]) {
+    const d = a ? rotateBearing(dir, a) : dir;
+    const p = d.clone().multiplyScalar(PORTAL_R).add(START);
+    _v.copy(p).project(camera);
+    const inView = _v.z < 1 && Math.abs(_v.x) < 1.15 && Math.abs(_v.y) < 1.15 && camera.position.distanceTo(p) < 700;
+    if (!inView) { pick = d; break; }
+  }
+  const pt = world.placePortal(pick);
+  ringLog.push({ kind: 'portal', t: +t.toFixed(2), dir: pick.toArray().map((x) => +x.toFixed(2)) });
+  const am = world.amoeba;
+  const post = portalPoint().clone().addScaledVector(portalNormal(), 10);
+  am.base.subVectors(post, am.center).normalize().multiplyScalar(am.r - 6).add(am.center);
+  am.tip.copy(post); am.reach = am.tip.distanceTo(am.base);
+  guard.gone = false; guard.turned = false;
+  portalGlow.group.visible = true;
+  return pt;
+}
+/** Each frame: the glow sits on the receptor, facing out, open when the guard is off it. */
+function updatePortalGlow(dt) {
+  if (!world.portal) return;
+  const p = portalPoint(), n = portalNormal();
+  portalGlow.setPosition(p.x, p.y, p.z);
+  portalGlow.group.quaternion.setFromUnitVectors(UP, n);
+  portalGlow.setOpen(!guarded());
+  portalGlow.update(dt, t, camera);
+}
+
+// --- the boss outside: the amoeba on guard (shared createFight) ---
+// Its lobe hovers over the receptor. Whoever comes within WAKE of it, it reaches for (stalk), rears and
+// curls the lobe (the wind-up, 1.1 s: swollen, flushed rose, lips wide), then lunges (strike). Fold your
+// fibres (B) and the strike slips (blocked); a fibre jab (X) makes it recoil; facing it wears its interest
+// down. Interest at zero: it draws the lobe back for good and the way is open. It follows only out to
+// LEASH from its post and is slower than a drifting phage, so you can also lure it out and slip round.
 const fight = createFight({ windup: 1.1, strike: 0.4, recoverT: 1.0, repelT: 1.2, retreatT: 6 });
-let fightState = 'stalk';
-const REACH = 34;
+let fightState = 'guard';
+const REACH = 34, WAKE = 170, LEASH = 260;
 /** The lobe's tip and whether `m` can jab it now. */
 function lobeNear(m) {
   const am = world.amoeba;
-  if (!(am.reach > 2) || !opts.amoeba) return false;
+  if (!(am.reach > 2) || !opts.amoeba || !world.portal) return false;
   const c = m.t4.headWorld(new THREE.Vector3()).lerp(m.P.pos, 0.6);
   return c.distanceTo(am.tip) < REACH + 14;
 }
@@ -868,60 +993,65 @@ function tryJab(m) {
   say(gone ? 'Jabbed again: the amoeba gives up and draws its lobe back.' : 'Fibre jab: the lobe flinches back (a departure: a phage has no weapon).', 2000, true);
   return true;
 }
-function updateAmoeba(dt) {
+function updateGuard(dt) {
   const am = world.amoeba;
-  hunger.update(dt);
-  const c = centreOf(_v).clone();
-  const retreating = fightState === 'retreat';
-  // (placement: the amoeba only reaches for phages at or past halfway along the route)
-  const reachable = opts.amoeba && hunger.hungry && !retreating && outsideModes.includes(P.mode) && world.sdAmoeba(c) < 260 && routeProgress(c) >= 0.5;
-  if (reachable) {
-    if (am.reach < 2) { am.base.subVectors(c, am.center).normalize().multiplyScalar(am.r - 6).add(am.center); am.tip.copy(am.base); fight.reset(); }
-    const toward = _w.subVectors(c, am.tip);
-    const d = toward.length();
-    toward.normalize();
-    // facing it: your fibres (the baseplate end) point at the lobe, or you push the stick toward it
-    const dirTo = new THREE.Vector3().subVectors(am.tip, P.pos).normalize();
-    const base = axisOf(new THREE.Vector3()).negate();
-    const facing = base.dot(dirTo) > 0.35 || (P.lastStickT > 0 && P.lastStick && P.lastStick.dot(dirTo) > 0.5);
-    const blocking = P.foldTarget > 0.5;
-    const f = fight.update(dt, { near: d < 140, inReach: d < REACH, facing: facing || (blocking && d < REACH), blocking });
-    fightState = f.state;
-    let open = 0.4, posture = 0, standoff = 26, sp = 15 + Math.sin(t * 2.1) * 4;
-    if (f.state === 'stalk') { standoff = 22; }
-    else if (f.state === 'windup') {
-      // rear and curl: hold off, swell, flush, lips wide, the tip lifting sideways
-      standoff = 30; sp = 6; open = 1 + 0.6 * f.t + Math.sin(t * 18) * 0.08; posture = Math.min(1, f.t * 1.5);
-      const side = new THREE.Vector3(-toward.y, toward.x, 0);
-      am.tip.addScaledVector(side, Math.sin(f.t * Math.PI) * 10 * dt);
-    } else if (f.state === 'strike') { standoff = 0; sp = 160; open = 1.6 - f.t * 1.6; posture = 1; }
-    else if (f.state === 'recover') { standoff = 46; sp = 25; open = 0.3; }
-    else if (f.state === 'repelled') { standoff = 80; sp = 70; open = 0; posture = 0; }
-    if (f.blocked) { P.gust.addScaledVector(toward, 40); curPad().rumble(160, 0.4, 0.6); audio.play('bacterium/tumble', { volume: 0.6, rate: 0.8 }); say('Folded and slippery: the lobe slides off you.', 1800, true); }
-    if (f.retreated) { say('The amoeba loses interest and draws its lobe back.', 2200, true); }
-    const goal = d - standoff;
-    am.tip.addScaledVector(toward, Math.sign(goal) * Math.min(Math.abs(goal), sp * dt));
+  if (!world.portal) return;
+  const post = portalPoint(new THREE.Vector3()).addScaledVector(portalNormal(), 10);
+  am.base.subVectors(post, am.center).normalize().multiplyScalar(am.r - 6).add(am.center);
+  if (guard.gone || !opts.amoeba) {
+    // driven off (or switched off): the lobe draws back in
+    am.reach = Math.max(0, am.reach - 40 * dt);
+    if (am.reach > 0) am.tip.copy(am.base).addScaledVector(_w.subVectors(am.tip, am.base).normalize(), am.reach);
+    am.posture(0); world.drawPod(am.reach, am.base, am.tip, 0.2, am.reach > 1);
+    fightState = guard.gone ? 'gone' : 'off';
+    return;
+  }
+  // the nearest phage to its post, within its leash
+  const prey = outsideMembers().filter((m) => m.P.mode !== 'grab').map((m) => { use(m); return { m, c: centreOf(new THREE.Vector3()) }; })
+    .map((o) => ({ ...o, d: o.c.distanceTo(post) })).filter((o) => o.d < (fightState === 'guard' ? WAKE : LEASH)).sort((a, b) => a.d - b.d)[0];
+  if (!prey) {
+    // back to its post, slower than you drift
+    if (fightState !== 'guard') { fight.reset(); fightState = 'guard'; }
+    const back = _w.subVectors(post, am.tip); const d = back.length();
+    if (d > 0.5) am.tip.addScaledVector(back.normalize(), Math.min(d, 18 * dt));
     am.tip.x += Math.sin(t * 1.7) * 0.15; am.tip.y += Math.cos(t * 1.3) * 0.15;
     am.reach = am.tip.distanceTo(am.base);
-    if (am.reach > 300) { am.tip.sub(am.base).setLength(300).add(am.base); am.reach = 300; podGiveUp += dt; }
-    if (d > 140) podGiveUp += dt * 0.5;
-    if (podGiveUp > 8) { hunger.missed(); podGiveUp = 0; say('The amoeba gives up for now.', 1800); }
-    am.posture(posture);
-    world.drawPod(am.reach, am.base, am.tip, open);
-    if (f.hit) {
-      hunger.fed(); podGiveUp = 0;
-      startCapture('amoeba', 'The amoeba', 'closed its lobe round you into a food vacuole');
-    }
-    if (f.state === 'windup' && f.t < 0.15 && P.msgT <= 0) { say('The lobe rears and curls to strike: fold your fibres (B) to slip, or jab it (X)!', 2400, true); P.msgT = 3; }
-    else if (f.state === 'stalk' && d < 90 && P.msgT <= 0) { say('A pseudopod is reaching for you: face it, drift away or ride a gust (A).', 2200, true); P.msgT = 4; }
-  } else if (am.reach > 0) {
-    // retreat, or not hungry: draw the lobe back in
-    am.reach = Math.max(0, am.reach - 30 * dt);
-    if (am.reach > 0) am.tip.copy(am.base).addScaledVector(_w.subVectors(am.tip, am.base).normalize(), am.reach);
-    am.posture(0);
-    world.drawPod(am.reach, am.base, am.tip, 0.2, am.reach > 1);
-    if (retreating) { fightState = fight.update(dt, {}).state; if (fightState !== 'retreat') { hunger.missed(); fight.reset(); fightState = 'stalk'; } }
-  } else if (retreating) { fightState = fight.update(dt, {}).state; if (fightState !== 'retreat') { hunger.missed(); fight.reset(); fightState = 'stalk'; } }
+    am.posture(0); world.drawPod(am.reach, am.base, am.tip, 0.4);
+    return;
+  }
+  use(prey.m);
+  const c = prey.c;
+  if (fightState === 'guard') { fightState = 'stalk'; if (P.msgT <= 0) { say('The amoeba beside Host A reaches its lobe for you: it guards the gold receptor. Lure it off and slip round, or fold (B) and jab (X) until it gives up.', 3600, true); P.msgT = 4; } }
+  const toward = _w.subVectors(c, am.tip);
+  const d = toward.length();
+  toward.normalize();
+  const dirTo = new THREE.Vector3().subVectors(am.tip, P.pos).normalize();
+  const base = axisOf(new THREE.Vector3()).negate();
+  const facing = base.dot(dirTo) > 0.35 || (P.lastStickT > 0 && P.lastStick && P.lastStick.dot(dirTo) > 0.5);
+  const blocking = P.foldTarget > 0.5;
+  const f = fight.update(dt, { near: d < 140, inReach: d < REACH, facing: facing || (blocking && d < REACH), blocking });
+  fightState = f.state;
+  let open = 0.4, posture = 0, standoff = 26, sp = 15 + Math.sin(t * 2.1) * 4;
+  if (f.state === 'stalk') { standoff = 22; }
+  else if (f.state === 'windup') {
+    standoff = 30; sp = 6; open = 1 + 0.6 * f.t + Math.sin(t * 18) * 0.08; posture = Math.min(1, f.t * 1.5);
+    const side = new THREE.Vector3().crossVectors(toward, camFwd(_s)).normalize();
+    am.tip.addScaledVector(side, Math.sin(f.t * Math.PI) * 10 * dt);
+  } else if (f.state === 'strike') { standoff = 0; sp = 160; open = 1.6 - f.t * 1.6; posture = 1; }
+  else if (f.state === 'recover') { standoff = 46; sp = 25; open = 0.3; }
+  else if (f.state === 'repelled') { standoff = 80; sp = 70; open = 0; posture = 0; }
+  if (f.blocked) { P.gust.addScaledVector(toward, 40); curPad().rumble(160, 0.4, 0.6); audio.play('bacterium/tumble', { volume: 0.6, rate: 0.8 }); say('Folded and slippery: the lobe slides off you.', 1800, true); }
+  if (f.retreated) { guard.gone = true; say('The amoeba gives up and draws its lobe back for good: the gold receptor is open.', 3200, true); ringLog.push({ kind: 'guardGone', t: +t.toFixed(2) }); }
+  const goal = d - standoff;
+  am.tip.addScaledVector(toward, Math.sign(goal) * Math.min(Math.abs(goal), sp * dt));
+  // never further than its leash from its post
+  const off = _w.subVectors(am.tip, post);
+  if (off.length() > LEASH * 0.8) am.tip.copy(post).addScaledVector(off.normalize(), LEASH * 0.8);
+  am.reach = am.tip.distanceTo(am.base);
+  am.posture(posture);
+  world.drawPod(am.reach, am.base, am.tip, open);
+  if (f.hit) startCapture('amoeba', 'The amoeba', 'closed its lobe round you into a food vacuole');
+  if (f.state === 'windup' && f.t < 0.15 && P.msgT <= 0) { say('The lobe rears and curls to strike: fold your fibres (B) to slip, or jab it (X)!', 2400, true); P.msgT = 3; }
 }
 
 // --- overlay labels ---
@@ -945,13 +1075,13 @@ function updateOverlay(where) {
   hideLabels();
   if (where === 'outside') {
     for (const h of world.hosts) {
-      if (h.burst) continue;
+      if (h.burst || h.hidden) { const el = labelEls.get(h.id); if (el) el.style.display = 'none'; continue; }
       placeLabel(h.id, _w.copy(h.pos).add(new THREE.Vector3(0, h.r + 16, 0)),
         `<b>${h.name}</b><br>receptors: ${h.receptors}<br>defences: ${h.defence}<br>odds of a burst if you commit: <b>${Math.round(h.odds * 100)} %</b>`, camera);
     }
-    placeLabel('uv', new THREE.Vector3(view.target.x, UV.y0 + 6, 0), uvSun(view.target.x) > 0.05 ? `UV-B starts here (a gap in the floating peat mat) · at the top ~${Math.round(uvAt(view.target.x, UV.y1) * 100)} % dose rate · bound to clay: shielded` : 'shaded by the floating peat mat: no UV here', camera);
-    const am = world.amoeba;
-    placeLabel('am', world.amoeba.center.clone().add(new THREE.Vector3(-world.amoeba.r * 0.5, world.amoeba.r * 0.9, 40)), `amoeba: <b>${hunger.state}</b>${hunger.state !== 'hungry' ? ` (${Math.ceil(hunger.left)} s)` : ''}<br>reach ~2.6 µm when hungry`, camera);
+    { const near = UV_SHAFTS.reduce((a2, sh) => (sh.c.distanceTo(view.target) < a2.c.distanceTo(view.target) ? sh : a2));
+      placeLabel('uv', near.b, 'UV-B sunfleck: sunlight through a gap in the floating peat mat · touch it: damaged at once', camera); }
+    if (world.portal) placeLabel('am', world.amoeba.center.clone().addScaledVector(camUp(_s), world.amoeba.r * 0.7), `amoeba: <b>${guard.gone ? 'driven off' : guarded() ? 'on guard' : 'lured off its post'}</b><br>its lobe follows you ~${(LEASH / 100).toFixed(1)} µm from the receptor`, camera);
     // encounter odds (illustrative): diffusion-limited k = 4πRD, here for this field
     const d = world.nearestHost(P.pos);
     placeLabel('enc', _w.copy(P.pos).add(new THREE.Vector3(0, -12, 0)), `nearest host ${(Math.max(0, d.d) / 100).toFixed(2)} µm · diffusing, ~${Math.max(0.01, (Math.max(0, d.d) / 100) ** 2 / (6 * 4)).toFixed(2)} s real to reach`, camera);
@@ -965,7 +1095,6 @@ function updateOverlay(where) {
 const debug = { freeze: false, iso: false, camOverride: null };
 const split = createSplitScreen(renderer, { capture: true, up: null });
 const marks = createLandmarks();
-const bestPatch = () => { const h = world.hosts.find((x) => x.id === 'A'); return world.toWorld(h, h.patchList[3].local); }; // the start-facing receptor
 let last = performance.now();
 let blocked = false;
 let nearBack = false;
@@ -1103,18 +1232,23 @@ function stepMember(m, dt, insideOwner, where) {
     }
     if (ev.won && P.mode === 'inside') { P.mode = 'burst'; P.burstT = 0; P.burstStarted = false; say('The whole genome is in. Phage genes switch on; the host\'s DNA is broken down…', 3000, true); audio.play('bacterium/eat', { volume: 0.8 }); }
   }
-  // UV, per phage, outside
-  if (where === 'outside' && !debug.iso && !c.active && !debug.freeze && opts.uv && outsideModes.includes(P.mode)) {
-    const cc = centreOf(_v); const uv = uvAt(cc.x, cc.y);
-    const shield = P.mode === 'clay' ? 0.12 : 1;
-    if (!P.damaged) {
-      P.integrity -= uv * 0.11 * dt * shield;
-      if (P.integrity <= 0) damage();
-    } else P.wreck += uv * 0.09 * dt * shield; // a second dose while damaged is fatal
-    if (uv > 0.15 && P.msgT <= 0) { say(P.mode === 'clay' ? 'UV-bright water, but the clay shields you.' : P.damaged ? 'Still in the UV, already damaged: get out or it destroys you.' : 'UV-bright water near the surface: it is damaging your DNA. Go deeper.', 2400, true); P.msgT = 5; }
-    P.dark = Math.max(P.dark, (1 - P.integrity) * 0.6);
-    if (P.wreck >= 1) startCapture('uv', 'UV-B from the sunlit surface', 'darkened and cracked your capsid and broke your DNA past repair');
+  // UV: a visible shaft, touched, damages you at once (no drain); a moment's grace to get out of it
+  P.uvSafe = Math.max(0, (P.uvSafe || 0) - dt);
+  if (where === 'outside' && !debug.iso && !c.active && !debug.freeze && opts.uv && outsideModes.includes(P.mode) && P.uvSafe <= 0) {
+    const hit = uvAt(centreOf(_v));
+    if (hit.k > 0.5) {
+      P.uvSafe = 2.5;
+      post.uniforms.uFlash.value = 0.35; post.uniforms.uFlashColor.value.set('#e6dcff');
+      // knocked out of the light, sideways from the shaft's axis
+      const out = _w.set(P.pos.x - hit.shaft.c.x, 0, P.pos.z - hit.shaft.c.z);
+      if (out.lengthSq() < 1e-4) out.set(1, 0, 0);
+      P.gust.addScaledVector(out.normalize(), 55);
+      if (!P.damaged) damage();
+      else startCapture('uv', 'A second UV-B shaft', 'darkened and cracked your capsid and broke your DNA past repair');
+      ringLog.push({ kind: 'uvHit', t: +t.toFixed(2), slot: cur.slot, damaged: P.damaged });
+    }
   }
+  if (P.damaged) P.dark = Math.max(P.dark, 0.6);
   // the backdoor: open water at the flagellum, above the hosts
   P.inBack = where === 'outside' && P.mode === 'drift' && centreOf(_v).distanceTo(world.backdoor.pos) < world.backdoor.radius;
   if (c.active) captureAnim(c.phase, c.t, dt);
@@ -1186,10 +1320,8 @@ function frame(now) {
 
   // the amoeba hunts the nearest phage; the crowd moves round the view
   if (where === 'outside' && !debug.iso) {
-    const prey = members().filter((m) => !m.c.active && outsideModes.includes(m.P.mode))
-      .sort((a, b) => world.sdAmoeba(a.P.pos) - world.sdAmoeba(b.P.pos))[0];
-    if (prey && !debug.freeze) { use(prey); updateAmoeba(dt); }
-    else if (!debug.freeze) hunger.update(dt);
+    if (!debug.freeze) { moveRings(); updateGuard(dt); }
+    updatePortalGlow(dt);
     use(team[0]);
     world.update(dt, t, view.target, centreOf(new THREE.Vector3()), camera.position.z);
     if (!debug.freeze) updateStray(dt);
@@ -1207,8 +1339,7 @@ function frame(now) {
   // the win: the last world has no next stage, so the burst is the ending
   if (lead.P.mode === 'burst' && lead.P.burstT > 4 && !lead.P.burstSent) {
     lead.P.burstSent = true;
-    if (embed.active) embed.landmark('forward', { won: true, burst: 40, host: lead.P.commitHost.id });
-    else showWinCard();
+    enterPortal(lead);
   }
   if (card.classList.contains('show') && !blocked) for (const m of members()) { const c2 = players.controls(m.slot); if ((c2.dash.pressed() || c2.attack.pressed()) && lead.P.burstT > 4.6) { resetLevel(); break; } }
   // backdoor prompt
@@ -1251,9 +1382,9 @@ function frame(now) {
     goodsellShared.uHaze.value.set('#1d5e6e');
     post.uniforms.uTop.value.set('#2a8090'); post.uniforms.uBot.value.set('#0b2a3a'); post.uniforms.uShaft.value.set('#8ad8da');
     post.uniforms.uFocus.value = dist;
-    // the UV wash, placed in the world (from the depth buffer): above UV.y0, where the sun gets through the peat mat
-    post.uniforms.uUv.value = opts.uv && !debug.iso ? 0.9 : 0;
-    post.uniforms.uUvWorld.value = 1; post.uniforms.uUvY.value.set(UV.y0, UV.y1); post.uniforms.uUvX.value.set(UV.x0, UV.x1);
+    // (the UV is drawn as its shafts, world geometry; the old screen wash over the sunlit layer is off)
+    post.uniforms.uUv.value = 0;
+    world.shafts.visible = !debug.iso; world.shafts.material.uniforms.uOn.value = opts.uv ? 1 : 0.35;
     // ambient occlusion and outlines (QuteMol-like): strong in false light and Goodsell, subtle in cryo-EM, none in fluorescence
     // (view.look: 0 false light, 1 Goodsell, 2 cryo-EM, 3 fluorescence)
     post.uniforms.uAO.value = [0.45, 0.6, 0.4, 0.2][view.look];
@@ -1299,9 +1430,14 @@ function frame(now) {
     });
     // (shared/landmark.js trips on an empty split region, which splitscreen.js can emit for a frame as players leave)
     if (!debug.iso && lead.P.mode !== 'burst' && split.layout.regions.every((r) => r.polygon && r.polygon.length >= 3)) {
-      marks.drawSplit(split, bestPatch(), { kind: 'forward', label: 'OmpC', range: 600 });
+      // no arrow until the way on has been found (placed); then it points to it, and its light spills in from the edge
+      portalLight.begin();
+      if (world.portal) {
+        const fm = marks.drawSplit(split, portalPoint(new THREE.Vector3()), { kind: 'forward', range: 900 });
+        try { portalLight.drawSplit(split, fm, { strength: 0.8, open: guarded() ? 0.3 : 1 }); } catch { /* (no marks this frame) */ }
+      }
       marks.drawSplit(split, world.backdoor.pos, { kind: 'backdoor', label: 'Sediment', range: 600 });
-    }
+    } else portalLight.begin();
   } else post.render(inside.scene, inside.camera);
 
   use(team[0]);
@@ -1313,20 +1449,31 @@ function frame(now) {
   label.textContent = `${LOOKS[view.look]} · an illustration, not a microscope image · time slowed ~20×${opts.drive ? ' · LS drift and gusts are departures' : ''}`;
   const n5 = (x) => { const k = Math.round(clamp(x, 0, 1) * 5); return '■'.repeat(k) + '□'.repeat(5 - k); };
   const modeName = { drift: 'drifting legs-first', grab: 'grabbing a surface protein', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', coinfect: `damaged genome waiting in ${P.coHost?.name} for a partner (B: give up)`, inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
-  const am = hunger.state === 'grace' ? `calm (${Math.ceil(hunger.left)} s)` : hunger.state === 'hungry' ? ({ stalk: 'HUNGRY: reaching', windup: 'WINDING UP!', strike: 'STRIKING!', recover: 'recovering', repelled: 'repelled', retreat: 'retreating' }[fightState] || 'HUNGRY') + ` · interest ${Math.round(fight.interest * 100)} %` : fightState === 'retreat' ? 'retreating' : 'resting';
+  const am = !world.portal ? 'not found yet' : guard.gone ? 'driven off' : ({ guard: 'on guard', stalk: 'REACHING', windup: 'WINDING UP!', strike: 'STRIKING!', recover: 'recovering', repelled: 'repelled', retreat: 'retreating', off: 'off' }[fightState] || fightState) + (guarded() ? '' : ' · receptor OPEN') + ` · interest ${Math.round(fight.interest * 100)} %`;
   const others = isMulti() ? '\n' + members().filter((m) => m.slot).map((m) => `P${m.slot + 1} ${m.P.mode} ${n5(m.P.integrity)}`).join('  ') : '';
-  hud.stats(`${goalLine(where)}\n${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\n${P.damaged ? `DAMAGED · UV ${n5(1 - P.wreck)}` : `integrity ${n5(P.integrity)}`}  ${dash.text()}\nUV ${Math.round(uvAt(centreOf(_v).x, _v.y) * 100)} %  amoeba ${am}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `x ${(P.pos.x / 100).toFixed(2)} µm  depth below UV ${Math.max(0, (UV.y0 - centreOf(_v).y) / 100).toFixed(2)} µm`}${others}`);
+  hud.stats(`${goalLine(where)}\n${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\n${P.damaged ? 'DAMAGED: one more UV shaft is fatal' : 'whole'}  ${dash.text()}\nguard (amoeba) ${am}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `${(P.pos.distanceTo(START) / 100).toFixed(1)} µm out (the way on is ${(PORTAL_R / 100).toFixed(1)} µm out, any direction)`}${others}`);
 }
 
 /** The goal, one line, for the stage you are at (the HUD's first line). */
 function goalLine(where) {
   if (where === 'inside') return 'GOAL: get the whole genome in · lead your end away from CRISPR-Cas';
   if (P.mode === 'commit' || P.mode === 'burst') return 'GOAL: injecting…';
-  if (P.damaged) return 'GOAL: co-infect a host with a partner (stray phage below the clay, or a teammate)';
-  const hA = world.hosts.find((h) => h.id === 'A');
-  const d = Math.max(0, world.sdHost(hA, centreOf(_v)));
-  if (d < 60) return 'GOAL: aim the fibres at a glowing gold receptor and press X';
-  return `GOAL: drift to Host A (brass chevron) · ${(d / 100).toFixed(1)} µm`;
+  if (P.damaged) return 'GOAL: co-infect a host with a partner (the other damaged phage nearby, or a teammate)';
+  if (!world.portal) return `GOAL: explore outward, any direction · ${(P.pos.distanceTo(START) / 100).toFixed(1)} of ${(PORTAL_R / 100).toFixed(1)} µm out`;
+  const d = Math.max(0, portalPoint().distanceTo(centreOf(_v)) - 10);
+  if (d < 70) return guarded() ? 'GOAL: the amoeba guards the gold receptor: lure it off, or fold (B) and jab (X)' : 'GOAL: the receptor is open: aim your fibres at it and press X';
+  return `GOAL: the golden glow on Host A (brass chevron) · ${(d / 100).toFixed(1)} µm`;
+}
+
+/**
+ * The end of the chain: the host has burst. This is the one place the phage world fires
+ * embed.landmark('forward') (the phage is the last world: the shell treats it as the ending);
+ * standalone it shows the Burst card. (The portal itself, Host A's open receptor, leads inside.)
+ */
+function enterPortal(m) {
+  ringLog.push({ kind: 'forward', t: +t.toFixed(2), slot: m.slot });
+  if (embed.active) embed.landmark('forward', { won: true, burst: 40, host: m.P.commitHost.id, player: m.slot });
+  else showWinCard();
 }
 
 function showWinCard() {
@@ -1344,6 +1491,8 @@ Object.assign(debug, {
   cam(yaw, pitch, dist) { debug.camOverride = yaw == null ? null : { yaw, pitch, dist }; },
   fold: p1((v) => { P.foldTarget = v; }),
   walkOn: p1((id, u = 0, phi = 0) => {
+    if (id === 'A' && !world.portal) debug.placePortal();
+    use(team[0]);
     const h = world.hosts.find((x) => x.id === id);
     const local = new THREE.Vector3(u, Math.cos(phi) * (h.r + 6), Math.sin(phi) * (h.r + 6));
     P.pos.copy(world.toWorld(h, local)); P.foldTarget = 0; P.fold = 0;
@@ -1353,10 +1502,11 @@ Object.assign(debug, {
   }),
   grab: p1(tryGrab),
   commit: p1(() => { if (P.mode === 'walk') beginCommit(); }),
-  inside: p1((id = 'A') => { const h = world.hosts.find((x) => x.id === id); P.commitHost = h; P.mode = 'inside'; inside.start(h); inside.setRadar(view.overlay); P.fade = 0; }),
+  inside: p1((id = 'A') => { if (id === 'A' && !world.portal) { debug.placePortal(); use(team[0]); } const h = world.hosts.find((x) => x.id === id); P.commitHost = h; P.mode = 'inside'; inside.start(h); inside.setRadar(view.overlay); P.fade = 0; }),
   win: p1(() => { if (P.mode === 'inside') { inside.S.nodes.length = 0; P.mode = 'burst'; P.burstT = 0; P.burstStarted = false; for (let i = 0; i < GENOME_NODES; i++) inside.S.nodes.push(new THREE.Vector3(Math.sin(i * 0.2) * 40, 52 - i * 1.0, 0)); inside.S.prev = inside.S.nodes.map((n) => n.clone()); } }),
   capture: p1((kind, slot = 0) => {
     use(team[slot]);
+    if (kind === 'amoeba' && !world.portal) { debug.placePortal(); use(team[slot]); }
     if (kind === 'amoeba') { const am = world.amoeba; const c = centreOf(new THREE.Vector3()); am.base.subVectors(c, am.center).normalize().multiplyScalar(am.r - 6).add(am.center); am.tip.copy(c).lerp(am.base, 0.3); am.reach = am.tip.distanceTo(am.base); startCapture('amoeba', 'The amoeba', 'closed a pseudopod round you into a food vacuole'); }
     if (kind === 'uv') startCapture('uv', 'UV-B from the sunlit surface', 'darkened and cracked your capsid and broke your DNA');
     if (kind === 'cut') { if (P.mode !== 'inside') debug.inside('A'); const e = inside.enzymes[0]; e.pos.copy(inside.tip()).add(new THREE.Vector3(14, -6, 0)); P.cutBy = e; startCapture('cut', 'The host\'s restriction enzyme', 'found a recognition site and cut your DNA'); }
@@ -1383,7 +1533,15 @@ Object.assign(debug, {
     return c / n;
   },
   beads: () => world.bathBeads(),
-  hungry() { hunger.update(1e6); while (!hunger.hungry) hunger.update(1e6); },
+  /** Place the way on now at bearing [x, y, z] (default: player 1's bearing). */
+  placePortal(dir = null) { use(team[0]); const d = dir ? new THREE.Vector3(...dir).normalize() : _v.subVectors(P.pos, START).normalize().clone(); if (d.lengthSq() < 0.5) d.set(1, 0, 0); placePortal(d); return debug.portal(); },
+  /** The way on: where it is, guarded or open, the guard's state; and the ring log. */
+  portal: () => (world.portal ? { at: portalPoint().toArray().map((x) => +x.toFixed(1)), normal: portalNormal().toArray().map((x) => +x.toFixed(2)), guarded: guarded(), gone: guard.gone, state: fightState, interest: +fight.interest.toFixed(2), tip: +world.amoeba.tip.distanceTo(portalPoint()).toFixed(1) } : null),
+  rings: () => ringLog.slice(),
+  shafts: () => UV_SHAFTS.map((sh) => sh.c.toArray()),
+  hosts: () => world.hosts.map((h) => ({ id: h.id, hidden: !!h.hidden, pos: h.pos.toArray().map((x) => +x.toFixed(0)), d: +h.pos.distanceTo(START).toFixed(0) })),
+  /** Drive the guard off (as if worn down). */
+  driveOff() { guard.gone = true; },
   overlay(on) { view.overlay = on; inside.setRadar(on); },
   look(i) { features.set('lookFL', LOOKS[i]); },
   zoom(i) { view.zoom = i; view.dist = ZOOMS[i]; },
@@ -1393,7 +1551,7 @@ Object.assign(debug, {
 Object.defineProperty(debug, 'fight', { get: () => ({ state: fightState, interest: fight.interest }) });
 window.__micro = {
   get P() { return team[0].P; }, get t4() { return team[0].t4; }, get capture() { return team[0].capture; },
-  team, players, split, world, inside, camera, view, debug, features, hunger, post, get t() { return t; },
+  team, players, split, world, inside, camera, view, debug, features, guard, post, get t() { return t; },
   get nearBack() { return nearBack; }, get where() { return members().some((m) => m.P.mode === 'inside') ? 'inside' : 'outside'; },
 };
 // the roster: from the shell (embed), or P1 alone; joins keep coming during play

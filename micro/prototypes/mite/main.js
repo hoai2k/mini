@@ -154,6 +154,43 @@ function resize() {
 addEventListener('resize', resize);
 resize();
 
+// ---------------------------------------------------------------- the intro (continuous transitions)
+// In the game the springtail's freeze frame pushes in on the mite speck on its
+// capitulum while this world fades in under the same framing (embed.js
+// "Continuous transitions"). The shell sends `hold`: this world stays frozen
+// at its start but renders, reports how its opening view frames the mite
+// (embed.opening) and takes the shell's `camera` poses, ending exactly on that
+// opening view; on `begin` time eases back in over INTRO_EASE s.
+embed.provide('intro');
+const INTRO_EASE = 0.6;
+let intro = null; // { cam } while held; { ease } while time comes back
+const miteLen = () => 2 * Math.max(...mite.radii);
+const miteHeading = () => Math.atan2(mite.st.fwd.z, mite.st.fwd.x);
+embed.on('hold', () => {
+  intro = { cam: null };
+  placeCamera(0);
+  embed.cinematic(true, canvas);
+  embed.opening(embed.poseOf(camera, mite.center, { len: miteLen(), heading: miteHeading(), pitch: rig.pitch, yaw: rig.yaw }));
+});
+embed.on('camera', (d) => { if (intro && d.pose) intro.cam = d.pose; });
+embed.on('begin', () => { embed.cinematic(false, canvas); intro = { cam: null, ease: 0 }; });
+/** The camera for a pose from the shell: a dolly (the scan's field of view kept); the rig follows, so play carries on from it. */
+function placePoseCamera(pose) {
+  const r = embed.poseCamera(camera, pose, mite.center, { len: miteLen(), heading: miteHeading() });
+  rig.yaw = r.yaw; rig.pitch = r.pitch;
+  rig.target.set(r.target.x, r.target.y, r.target.z);
+  rig.viewHfw = 2 * r.halfW;
+  const d = r.depth;
+  camera.near = Math.max(20, d * 0.08);
+  camera.far = d + 9000;
+  camera.updateProjectionMatrix();
+  camera.updateMatrixWorld();
+  shared.uCutP.value.copy(rig.target).applyMatrix4(camera.matrixWorldInverse);
+  shared.uCutR.value = 380 + rig.hfw * 0.06;
+  world.cut.update(1 / 30, camera.position, rig.target, { radius: 340, margin: 110, keep: cutKeep });
+  return d;
+}
+
 const cutKeep = new Set();
 function placeCamera(dt) {
   const tanH = Math.tan(THREE.MathUtils.degToRad(VFOV) / 2) * camera.aspect;
@@ -1214,6 +1251,7 @@ function drawFrame(dt) {
   split.unscissor(sem.target);
   shared.uCutP.value.copy(cut0);
   marks.begin();
+  if (intro && !('ease' in intro)) return; // held in the intro: no marks
   marks.drawSplit(split, props.forward, { kind: 'forward', label: 'Water', range: 4000 });
   marks.drawSplit(split, props.back, { kind: 'backdoor', label: 'Up', range: 4000 });
   // players' colours: a faint ring round each mite (with company only)
@@ -1380,14 +1418,24 @@ function frame() {
   last = now;
   if (api.paused) return;
   frames++;
-  const input = readInput(dt);
-  simTime += dt;
-  react(tick(dt, input));
+  const held = embed.held || (intro && !('ease' in intro));
+  let k = 1;
+  if (intro && 'ease' in intro) {
+    // after the transition: time eases back in
+    intro.ease += dt;
+    k = THREE.MathUtils.smoothstep(intro.ease, 0, INTRO_EASE);
+    if (intro.ease >= INTRO_EASE) intro = null;
+  }
+  if (!held) {
+    const input = readInput(dt);
+    simTime += dt * k;
+    react(tick(dt * k, input));
+  }
   if (gpuBusy()) return;
   const raw = now - lastSubmit;
   lastSubmit = now;
-  if (!PR) quality.update(raw / 1000);
-  const d = placeCamera(dt);
+  if (!PR && !held) quality.update(raw / 1000);
+  const d = held && intro && intro.cam ? placePoseCamera(intro.cam) : placeCamera(held ? 1e-4 : dt);
   drawFrame(dt);
   fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
   gl.flush();

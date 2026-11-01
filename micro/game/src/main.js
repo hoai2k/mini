@@ -10,6 +10,7 @@ import { createSound } from './sound.js';
 import { createTitleBg } from './title-bg.js';
 import { TITLE_ZOOM_PLATES } from './title-art.js';
 import { createTransitions, fmtField, fmtMag, unitSafe } from './transition.js';
+import { playContinuous, validPose } from './continuous.js';
 import { loadRoster } from './players.js';
 import { listen, send } from './bus.js';
 import { glyph, glyphMode, refreshGlyphs, controlRows } from './glyphs.js';
@@ -50,6 +51,10 @@ const S = {
   controlsShown: false,
   near: null,
   resumedAt: 0,
+  cardBoard: -1,       // the board whose start-of-board controls card last showed
+  cont: null,          // the continuous transition in progress: { phase, u, alpha }
+  trSpeed: 1,          // the continuous transition's time multiplier (tests slow it down)
+  trSeek: null,        // tests: hold the camera move at this progress (0..1)
   lastToggle: { menu: 0, view: 0 },
   confirmFn: null,
 };
@@ -457,14 +462,18 @@ function preloadWorld(i) {
   if (preloaded?.i === i) return;
   clearPreload();
   const frame = makeWorldFrame(WORLDS[i]);
-  const p = preloaded = { i, frame, ready: false, hud: null };
+  // loading behind the world in play (or the intro): drawn, but not seen
+  Object.assign(frame.style, { opacity: '0', zIndex: '0', pointerEvents: 'none' });
+  const p = preloaded = { i, frame, ready: false, hud: null, provides: [], opening: null, onOpening: null };
   p.unlisten = listen(frame.contentWindow, (m) => {
     if (preloaded !== p) return;
     if (m.type === 'hud') p.hud = m;
     if (m.type === 'ready') {
       p.ready = true;
+      p.provides = Array.isArray(m.provides) ? m.provides : [];
       send(frame, 'sound', { on: false, volume: 0 });
     }
+    if (m.type === 'opening') { p.opening = m.pose; p.onOpening?.(m.pose); }
   });
   // embed=1 runs its first two frames, then holds until Begin sends resume.
   // The host stays viewport-sized behind the intro, so WebGL can initialise.
@@ -494,6 +503,7 @@ function loadWorld(i, { first }) {
     warm.unlisten();
     preloaded = null;
     f = warm.frame; // Keep the browsing context; moving/recreating it would reload the world.
+    for (const k of ['opacity', 'zIndex', 'pointerEvents', 'transition', 'visibility']) f.style[k] = '';
   } else { clearPreload(); f = makeWorldFrame(w); }
   S.frame = f;
   unlisten = listen(f.contentWindow, (m) => onWorldMessage(m, f));
@@ -525,7 +535,7 @@ async function worldReady(f) {
   S.onReady?.();
   S.onReady = null;
   // (loaded behind a transition: the card waits until the transition ends)
-  if (S.pendingCard && !S.transitioning) { showControlsCard(8); S.pendingCard = false; }
+  if (S.pendingCard && !S.transitioning) { showControlsCard(8); S.pendingCard = false; S.cardBoard = S.board; }
   if (!S.paused && !S.transitioning && S.modals.length === 0) await resumeFrame();
 }
 
@@ -553,9 +563,11 @@ function onWorldMessage(m, f) {
       if (dedupe('menu')) pause();
       break;
     case 'view': if (dedupe('view')) toggleControls(); break;
-    case 'landmark': landmark(m.kind); break;
+    case 'landmark': landmark(m.kind, m); break;
+    case 'frozen': S.onFrozen?.(m.pose); break;
     case 'near':
-      showPrompt(m.on ? m : null);
+      // no prompt for the way on: the portal itself says "go there" (the backdoor keeps its Y prompt)
+      showPrompt(m.on && m.kind === 'back' ? m : null);
       // nearing the way on (or back): start loading that world already
       if (m.on && !S.transitioning) { const n = S.world + (m.kind === 'back' ? -1 : 1); if (n >= 0 && n < WORLDS.length) preloadWorld(n); }
       break;
@@ -629,7 +641,7 @@ function leavePlay(to) {
   else { S.sel = S.world; goMenu(); }
 }
 
-async function landmark(kind) {
+async function landmark(kind, info = {}) {
   if (S.screen !== 'play' || S.transitioning || S.loading) return;
   const i = S.world;
   if (kind === 'back' && i === 0) { toast('Nothing above the bog surface: this is the top of the chain.'); return; }
@@ -645,22 +657,79 @@ async function landmark(kind) {
   // until Begin/resume), so it is ready when the animation ends.
   preloadWorld(next);
   S.transitioning = true;
-  send(S.frame, 'pause');
   closeAllModals();
   hideControlsCard();
   showPrompt(null);
   try {
-    await transitions.playTransition(WORLDS[i], WORLDS[next], kind === 'forward' ? 'in' : 'out', { style: settings.transition });
-    S.board++;
-    const ready = loadWorld(next, { first: false });
-    await Promise.race([ready, sleep(12000)]);
+    // the continuous transition (embed.js), when the old world plays its outro and the setting allows it
+    const continuous = kind === 'forward' && info.outro && settings.transition === 'microscope' && await continuousForward(next);
+    if (!continuous) {
+      send(S.frame, 'pause');
+      const style = settings.transition === 'card' ? 'card' : 'microscope';
+      await transitions.playTransition(WORLDS[i], WORLDS[next], kind === 'forward' ? 'in' : 'out', { style });
+      S.board++;
+      const ready = loadWorld(next, { first: false });
+      await Promise.race([ready, sleep(12000)]);
+    }
   } finally {
+    S.cont = null;
     S.transitioning = false;
-    if (S.pendingCard && !S.loading) { showControlsCard(8); S.pendingCard = false; }
+    if (S.pendingCard && !S.loading) { showControlsCard(8); S.pendingCard = false; S.cardBoard = S.board; }
     $('#transition').animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, fill: 'forwards' }).finished
       .then(() => { transitions.hide(); $('#transition').getAnimations().forEach((a) => a.cancel()); });
     if (!S.loading && !S.paused) resumeFrame();
   }
+}
+
+/** Wait for fn() to be truthy (polled), up to ms; resolves to its value or null. */
+async function waitFor(fn, ms) {
+  const t0 = performance.now();
+  for (;;) { const v = fn(); if (v) return v; if (performance.now() - t0 > ms) return null; await sleep(60); }
+}
+
+/**
+ * The continuous transition into world `next` (embed.js "Continuous
+ * transitions"). The old world has posted `landmark {outro: true}` and is
+ * playing its success and slow-down; this waits for its freeze (`frozen`),
+ * for the preloaded next world to be ready and to provide 'intro', holds it
+ * (`hold` → `opening`), then plays the camera move and crossfade
+ * (continuous.js) and hands over (`begin`). Returns false, having changed
+ * nothing on screen, if any of that does not come (the caller plays the
+ * microscope zoom instead).
+ */
+async function continuousForward(next) {
+  const old = S.frame;
+  S.cont = { phase: 'outro', u: 0, alpha: 0 };
+  const frozen = await new Promise((resolve) => {
+    // (the outro runs in the world's frame time: on a slow machine it takes longer)
+    const timer = setTimeout(() => resolve(null), 20000);
+    S.onFrozen = (pose) => { clearTimeout(timer); resolve(pose); };
+  });
+  S.onFrozen = null;
+  if (!validPose(frozen) || S.frame !== old) return false;
+  // the freeze holds while the next world finishes loading (it began when the player neared the portal)
+  S.cont.phase = 'loading';
+  const p = await waitFor(() => (preloaded?.i === next && preloaded.ready ? preloaded : null), 25000);
+  if (!p || !p.provides.includes('intro') || S.frame !== old) return false;
+  S.cont.phase = 'hold';
+  p.opening = null;
+  const opening = await new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), 5000);
+    p.onOpening = (pose) => { clearTimeout(timer); resolve(pose); };
+    send(p.frame, 'hold');
+  });
+  p.onOpening = null;
+  if (!validPose(opening) || preloaded !== p) { send(p.frame, 'pause'); return false; }
+  S.cont.phase = 'move';
+  sound.zoom('in', 3.4 / Math.max(0.05, S.trSpeed));
+  await playContinuous({ oldFrame: old, newFrame: p.frame, from: frozen, to: opening, send, speed: () => S.trSpeed, seek: () => S.trSeek,
+    onFrame: ({ u, alpha }) => { S.cont.u = u; S.cont.alpha = alpha; } });
+  S.cont.phase = 'begin';
+  S.board++;
+  const ready = loadWorld(next, { first: false }); // the warm frame: the old one goes, this one stays as it is
+  await Promise.race([ready, sleep(4000)]);
+  send(S.frame, 'begin');
+  return true;
 }
 
 function showPrompt(m) {
@@ -668,6 +737,7 @@ function showPrompt(m) {
   const el = $('#prompt');
   if (!m || S.paused) { el.hidden = true; return; }
   const i = S.world;
+  if (m.kind !== 'back') { el.hidden = true; return; } // the way on has no text (the portal shows it)
   const label = m.label || (m.kind === 'back'
     ? (i > 0 ? `Rise to the ${WORLDS[i - 1].name}` : 'The top of the chain')
     : (i < WORLDS.length - 1 ? `Zoom in to the ${WORLDS[i + 1].name}` : 'Work in progress'));
@@ -715,7 +785,9 @@ function hideControlsCard() {
 const toggleControls = () => (S.controlsShown ? hideControlsCard() : showControlsCard());
 
 // ---------------------------------------------------------------- settings
-const TRANSITIONS = { microscope: 'Microscope zoom', card: 'Specimen plates' };
+// 'microscope' (the default): the continuous transition where both worlds
+// support it (springtail → mite so far), the microscope zoom between the rest.
+const TRANSITIONS = { microscope: 'Continuous', zoom: 'Microscope zoom', card: 'Specimen plates' };
 function settingItems() {
   const items = [
     { id: 'sound', label: 'Sound', about: 'Every world’s sound and the shell’s own.', get: () => sound.on, toggle: () => setSound(!sound.on) },
@@ -726,7 +798,7 @@ function settingItems() {
       send(S.frame, 'settings', { invertY });
     } },
     { id: 'controls', label: 'Controls card at the start of each world', about: 'Every world after the first shows its controls for 8 seconds; View brings them back.', get: () => settings.controlsAtStart, toggle: () => { settings.controlsAtStart = !settings.controlsAtStart; saveSettings(); } },
-    { id: 'transition', label: 'Transition between worlds', about: 'Microscope zoom: the zoom-transitions prototype, falling back to the specimen plates until it can play embedded.', choices: Object.keys(TRANSITIONS), get: () => settings.transition,
+    { id: 'transition', label: 'Transition between worlds', about: 'Continuous: from the portal the scene slows to a freeze and the camera moves straight into the next world (springtail → mite so far; the microscope zoom between the others). Microscope zoom: the zoom-transitions prototype everywhere. Specimen plates: the shell’s own plate zoom.', choices: Object.keys(TRANSITIONS), get: () => settings.transition,
       step: (d) => { const k = Object.keys(TRANSITIONS); settings.transition = k[(k.indexOf(settings.transition) + d + k.length) % k.length]; saveSettings(); } },
     { id: 'fullscreen', label: 'Fullscreen', get: () => !!fsEl(), toggle: () => { toggleFullscreen(); setTimeout(renderSettings, 250); } },
   ];
@@ -1016,7 +1088,7 @@ requestAnimationFrame(loop);
 window.__game = {
   state: () => ({ screen: S.screen, modals: [...S.modals], sel: S.sel, world: WORLDS[S.world].id, paused: S.paused, loading: S.loading,
     preloading: preloaded ? WORLDS[preloaded.i].id : null, preloadReady: !!preloaded?.ready,
-    transitioning: S.transitioning, controlsShown: S.controlsShown, board: S.board, sound: sound.on, players: roster.list.length, stubRoster: !!roster.stub,
+    transitioning: S.transitioning, controlsShown: S.controlsShown, cardBoard: S.cardBoard, board: S.board, cont: S.cont && { ...S.cont }, sound: sound.on, players: roster.list.length, stubRoster: !!roster.stub,
     progress: { ...progress }, transitionProgress: $('#transition').dataset.progress }),
   pressStart,
   titleZoom: titleBg,
@@ -1030,6 +1102,13 @@ window.__game = {
   forceLandmark: (kind) => landmark(kind),
   previewTransition: (a, b, dir, p) => transitions.preview(WORLDS.find((w) => w.id === a), WORLDS.find((w) => w.id === b), dir, p),
   hideTransition: () => transitions.hide(),
+  /** Slow the continuous transition's camera move (tests capture it frame by frame); 1 is real time. */
+  setTransitionSpeed: (k) => { S.trSpeed = Math.max(0.01, +k || 1); },
+  /** Tests: hold the continuous transition's camera move at progress u (0..1); null lets it run. */
+  seekTransition: (u) => { S.trSeek = u == null ? null : +u; },
+  /** The world frame in play (tests reach into it), and the one preloading. */
+  frame: () => S.frame,
+  preloadFrame: () => preloaded?.frame || null,
   near: (kind, on = true) => showPrompt(on ? { kind } : null),
   toggleControls,
   fmt: { fmtField, fmtMag },

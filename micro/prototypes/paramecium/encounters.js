@@ -14,7 +14,7 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { createStrands, KIND } from './strands.js';
 import { DROP_R, DEPTH } from './world.js';
 import { volumeMaterial } from './optics.js';
-import { progress, HALF, DIR } from './landmarks.js';
+import { progress, HALF, START } from './landmarks.js';
 
 const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), X = new THREE.Vector3(1, 0, 0);
 const qa = new THREE.Quaternion(), qb = new THREE.Quaternion();
@@ -102,7 +102,7 @@ export function createEncounters(scene, world, cell) {
       const toP = tmp.subVectors(s.center, d.pos);
       const dist = toP.length();
       // only a hungry Didinium hunts (main.js runs its hunger: shared/predation.js)
-      // ...and only a player in its waters: beyond halfway and near its home (main.js d.allowed)
+      // ...and only a player in its waters: out of the warm-up and near its home (main.js d.allowed)
       const canHunt = s.mode !== 'dead' && d.stun <= 0 && d.sated <= 0 && s.safeT <= 0 && d.hungry !== false && (!d.allowed || d.allowed(s));
       const K = d.speedK || 1, TL = d.tipLen || 66;
       let desired = null, speed = 450;
@@ -159,7 +159,8 @@ export function createEncounters(scene, world, cell) {
       d.pos.y = Math.max(45, Math.min(DEPTH - 45, d.pos.y));
       { const rr = Math.hypot(d.pos.x, d.pos.z); if (rr > DROP_R - 60) { d.pos.x *= (DROP_R - 60) / rr; d.pos.z *= (DROP_R - 60) / rr; } }
       // never into the calm first half of the route (unless it is carrying you off)
-      if (d.home && s.captor !== d) { const pr = progress(d.pos); if (pr < HALF + 60) d.pos.addScaledVector(DIR, HALF + 60 - pr); }
+      // never into the calm warm-up round the start
+      if (d.home && s.captor !== d) { const pr = progress(d.pos); if (pr < HALF + 60) { const k = (HALF + 60) / Math.max(1, pr); d.pos.set(START.x + (d.pos.x - START.x) * k, d.pos.y, START.z + (d.pos.z - START.z) * k); } }
       // obstacles push it round
       const a = tmp2.copy(d.pos).addScaledVector(d.dir, -25);
       const b = new THREE.Vector3().copy(d.pos).addScaledVector(d.dir, 30);

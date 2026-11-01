@@ -1,5 +1,7 @@
-// The boss of the pool: a bladderwort trap (Utricularia) across the way to the
-// biofilm (the forward landmark), three quarters of the way along the route.
+// The boss of the pool: a bladderwort trap (Utricularia) guarding the biofilm
+// (the portal). It is built once and placed with the portal (main.js
+// placePortal → trap.place), on the start side of the leaf, door toward the
+// start; until then it is hidden and out of the way.
 // A rounded bladder about half a millimetre long on its stalk, just off the
 // slide, its door (in a raised collar, with two branched antennae of long
 // beaded bristles and short trigger hairs) facing the way you come. Shaped
@@ -14,7 +16,7 @@
 //
 // The game (main.js runs it with shared/predation.js createFight, as a boss:
 // more resolve, several patterns):
-//   dormant  until a player comes near its door (always beyond halfway)
+//   dormant  until a player comes near its door
 //   stalk    set and waiting: walls drawn in, door still
 //   windup   the tell: the door quivers and the walls draw in further
 //   strike   the suction pulse: walls spring out, the door swings in, and
@@ -30,11 +32,11 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { buildSdfMesh, sd } from '../shared/sdf.js';
 import { volumeMaterial, pointsMaterial } from './optics.js';
 import { closedTube, rng } from './geom.js';
-import { DIR, SIDE, routePoint } from './landmarks.js';
+import { DIR, routePoint, RINGS } from './landmarks.js';
 
-// On the route, well beyond halfway (landmarks.js), door toward the start.
+// Built on its first spot (moved by place()), door toward the start.
 const TOWARD = DIR.clone().negate();
-const CENTRE = routePoint(3420, 0, 190);
+const CENTRE = routePoint(RINGS.trap, 0, 190);
 export const TRAP = {
   centre: CENTRE,
   half: new THREE.Vector3(250, 215, 215), // the bladder: along the door axis, up, across
@@ -180,14 +182,36 @@ export function createBladderwort(scene, world) {
     const { geo } = closedTube(curve, 70, 30, 16);
     root.add(Object.assign(new THREE.Mesh(geo, stemMat), { frustumCulled: false, name: 'bladderwort stem' }));
   }
-  void SIDE;
   // solid: you glance off the bladder
-  world.obstacles.push({ kind: 'sphere', c: TRAP.centre.clone(), r: TRAP.half.z * 0.95, what: 'the bladderwort trap' });
+  const solid = { kind: 'sphere', c: TRAP.centre.clone(), r: TRAP.half.z * 0.95, what: 'the bladderwort trap' };
+  world.obstacles.push(solid);
+  // Where it was built, to move it from: the whole trap turns about the world's
+  // vertical axis and shifts, so the bladder, its stalk and stem keep their shape.
+  const C0 = TRAP.centre.clone(), YAW0 = Math.atan2(TRAP.dir.z, TRAP.dir.x), D0 = TRAP.doorAt.clone();
+  const AWAY = new THREE.Vector3(0, -1e6, 0);
 
   const trap = {
     kind: 'bladder', label: 'Bladderwort trap', group: root, pos: TRAP.centre, tip: TRAP.door, reach: 0, holdFor: 1.4,
     door: TRAP.door, dir: TRAP.dir, pullR: TRAP.pullR, wakeR: TRAP.wakeR, centre: TRAP.centre, half: TRAP.half,
-    awake: false, state: 'dormant', set: 1, open: 0, quiver: 0, stun: 0, sated: 0, hungry: true, phase2: false,
+    awake: false, state: 'dormant', set: 1, open: 0, quiver: 0, stun: 0, sated: 0, hungry: true, phase2: false, placed: false,
+    /**
+     * Put the trap with its bladder centre at `centre` (y is kept), door facing
+     * bearing `yaw` (radians, from +x toward +z), and show it.
+     */
+    place(centre, yaw) {
+      const d = yaw - YAW0, c = Math.cos(d), sn = Math.sin(d);
+      root.rotation.y = -d;
+      const ox = C0.x * c - C0.z * sn, oz = C0.x * sn + C0.z * c;
+      root.position.set(centre.x - ox, 0, centre.z - oz);
+      root.updateMatrixWorld(true);
+      TRAP.centre.set(centre.x, C0.y, centre.z);
+      TRAP.dir.set(Math.cos(yaw), 0, Math.sin(yaw));
+      TRAP.door.copy(TRAP.centre).addScaledVector(TRAP.dir, D0.x).setY(C0.y + D0.y);
+      solid.c.copy(TRAP.centre);
+      root.visible = true; trap.placed = true;
+    },
+    /** Hidden and out of the way (before the portal is placed). */
+    hide() { root.visible = false; trap.placed = false; solid.c.copy(AWAY); TRAP.door.copy(AWAY); TRAP.centre.copy(AWAY); },
     /** Show the state: `fs` the fight state, `k` 0..1 within it. */
     update(dt, fs, k, t) {
       const st = !trap.awake ? 'dormant' : fs;

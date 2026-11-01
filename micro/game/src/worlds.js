@@ -101,7 +101,7 @@ export const WORLDS = [
     mag: 'Beyond light', magNote: 'realistic false light', field: '≈ 1 µm', fieldMm: 0.0012, body: '0.2 µm', look: 'False light',
     card: 'MP-U09', intro: 'MP-G14', tint: ['#1f6f80', '#f0b44a'], accent: '#f0c070',
     line: 'A virus with no engine, knocked about by molecules: drift legs-first and grab the matching protein.',
-    goal: 'Follow the brass chevron through the crowded water to Host A, then aim your fibres at a glowing gold three-lobed protein and press X to inject. Fold your fibres (B) to slip through humic flocs. UV leaves you damaged: co-infect one host with a teammate (or the stray damaged phage) to recombine. Inside, outrun the CRISPR complex.',
+    goal: 'Head out any way you like: humic flocs (fold your fibres with B to slip through), decoy hosts and violet UV shafts (touch one and you are damaged) wait in rings, the same in every direction. Far out a golden glow marks the way on, a gold receptor on Host A, guarded by an amoeba: lure it off, or fold and jab it until it gives up, then grab the receptor (X) and outrun the CRISPR complex inside. Damaged? Co-infect a host with a teammate (or the other damaged phage) to recombine.',
     forward: null,
     back: 'The bacterium’s flagellum sweeping past: dwell beside it and press Y to rise to the sediment.',
     controls: [['LS', 'Drift across the view, legs first'], ['LT/RT', 'Drift back toward you / into the view'], ['RS', 'Turn the view (no up or down)'], ['A', 'Current gust · push off'], ['X', 'Grab protein · matching receptor injects · fibre jab at amoeba'], ['B', 'Defend: fold the fibres and slip'], ['Y', 'Odds overlay · at the flagellum: back'], ['D-pad ↑↓', 'Zoom']],

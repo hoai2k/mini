@@ -22,7 +22,8 @@ import { createEncounters } from './encounters.js';
 import { createPrey } from './prey.js';
 import { createProteus } from './proteus.js';
 import { createCatchFx, sstep } from './catch.js';
-import { createLandmarks as createDropLandmarks, LANDMARKS, progress, lateral, routePoint, HALF, ROUTE_LEN, DIR } from './landmarks.js';
+import { createLandmarks as createDropLandmarks, LANDMARKS, progress, lateral, HALF, ROUTE_LEN, RINGS, ringPoint, bearingOf, distFromStart, START } from './landmarks.js';
+import { createPortalGlow, createPortalLight } from '../shared/portal.js';
 import { createBloom, BLOOM } from './bloom.js';
 import { createQuality } from '../shared/quality.js';
 import { createBladderwort } from './bladderwort.js';
@@ -72,7 +73,7 @@ const hud = mountHud({
     look: 'Microscope technique',
     zoom: 'Objective (chase camera: distance)',
   }),
-  note: `Goal: eat ${GOAL} prey (bacterial clumps and Chilomonas)${GREEN ? ', keep in the light so your Chlorella feed you' : ''}. The brass chevron points to the biofilm on a leaf, far off up and to the right (the way on: swim there and down to touch it). The first half of the way is calm: feed and explore. Beyond halfway: Dileptus (trichocysts, B, drive it off), two Didinium (trichocysts can't stop them: keep away, dodge), a bladderwort trap across the way, and a Chlamydomonas bloom to push and gulp through. The ring points to the floor where Amoeba proteus crawls (the way back). You glance off whatever you touch. Scale is honest (µm). Up to four players: press any button on another controller to join.`,
+  note: `Goal: eat ${GOAL} prey (bacterial clumps and Chilomonas)${GREEN ? '; in the sunlit patch your Chlorella feed you and the dash recharges faster' : ''}. Head out in any direction: the challenges lie in rings round the start, the same whichever way you go. A little calm water first, then Dileptus (trichocysts, B, drive it off), a Chlamydomonas bloom to push and gulp through, two Didinium (trichocysts can't stop them: keep away, dodge), and about 4 mm out the way on: a biofilm on a leaf under a golden light, guarded by a bladderwort trap. Make the trap fire and miss until it is spent, then swim down onto the leaf. Nothing runs down: stay in calm water as long as you like. The ring points to the floor where Amoeba proteus crawls (the way back). You glance off whatever you touch. Scale is honest (µm). Up to four players: press any button on another controller to join.`,
 });
 hud.players(players.list);
 /** A button as the instructions should name it: the controller's, or the key while no controller is connected. */
@@ -101,17 +102,26 @@ const catchFx = createCatchFx(scene, world, amoeba);
 const drop = createDropLandmarks(scene);
 // the boss: a bladderwort trap guarding the biofilm (bladderwort.js; runBoss below)
 const trap = createBladderwort(scene, world);
+trap.hide(); // placed with the portal (placePortal)
+// the portal's golden glow: ordinary three.js materials, so it lives in its own
+// scene drawn over each view's finished microscope image (renderGlow)
+const glowScene = new THREE.Scene();
+const portalGlow = createPortalGlow({ THREE, scene: glowScene, size: 250, height: 110, intensity: 1.3, beam: 560, beamWidth: 70, count: 110,
+  pixelHeight: () => renderer.getDrawingBufferSize(new THREE.Vector2()).y });
+portalGlow.group.visible = false;
+const portalLight = createPortalLight({ zIndex: 3 });
 // the crowd: a Chlamydomonas bloom across the route before the biofilm (bloom.js, shared/crowd.js)
 const bloom = createBloom(scene);
 // the Amoeba proteus keeps to its patch of slide (the backdoor) when it is not hunting
 amoeba.home = LANDMARKS.back.pos.clone(); amoeba.homeR = 220;
 amoeba.pos.set(LANDMARKS.back.pos.x, 0, LANDMARKS.back.pos.z);
 
-// --- pacing: placed, not timed (the owner: challenges only from halfway on) ---
-// The first half of the route is calm swimming and feeding. The ciliate
-// hunters keep to their own waters beyond halfway (world.js homes) and hunt
-// only a player who is there; their hunger clocks start when someone first
-// reaches halfway, after a short grace. Then hunger comes and goes: only a
+// --- pacing: placed, not timed (micro/design/encounter-pattern.md) ---
+// The warm-up round the start (RINGS.warm) is calm swimming and feeding. The
+// ciliate hunters keep to their own waters on their rings (world.js homes,
+// moved round the ring by moveRings) and hunt only a player who is there;
+// their hunger clocks start when someone first leaves the warm-up, after a
+// short grace. Then hunger comes and goes: only a
 // hungry hunter hunts; a resting one wanders and leaves you be. The amoeba
 // guards the way back (behind the start, the other way) with its own calm
 // opening. A restart gives fresh calm.
@@ -126,8 +136,8 @@ function resetHunger() {
   amoeba.hunger.reset(pacing.amoebaGrace);
   pacing.t0 = pacing.now; pacing.firstHungry = null; pacing.firstThreat = null; pacing.reached = false; pacing.reachedAt = null;
 }
-/** A player is in a ciliate hunter's waters: beyond halfway and near its home. */
-const inWaters = (d, s) => progress(s.center) >= HALF && Math.hypot(s.center.x - d.home.x, s.center.z - d.home.z) < d.homeR + 520;
+/** A player is in a ciliate hunter's waters: out of the warm-up and near its home. */
+const inWaters = (d, s) => progress(s.center) >= HALF && Math.hypot(s.center.x - d.home.x, s.center.z - d.home.z) < d.homeR + 250;
 for (const d of world.didinia) d.allowed = (s) => inWaters(d, s);
 /** The amoeba hunts only round its own floor (the way back). */
 const nearAmoebaFloor = (s) => Math.hypot(s.center.x - LANDMARKS.back.pos.x, s.center.z - LANDMARKS.back.pos.z) < 900;
@@ -411,7 +421,7 @@ features.add({ id: 'proteus', group: 'World', label: 'Amoeba proteus', on: true,
   about: 'A slow giant (≈300 µm, up to 600 with pseudopods) creeping on the slide (S29). Swim low near it and two pseudopods flank you into a food cup (S05); stay between them and it closes. Dash out, or fire trichocysts. It creeps ≈10× and reaches ≈5× faster than life.', onChange: (on) => { amoeba.opts.on = on; if (!on && swimmer.state.captor === amoeba) swimmer.release(); } });
 const GRACES = ['6 s', '20 s', '0 s'];
 features.add({ id: 'grace', group: 'World', label: 'Grace once you reach the hunters\' waters', choices: GRACES, value: GRACES[0],
-  about: 'The challenges are placed, not timed: the first half of the route to the biofilm is calm (prey, Vorticella, the light), and the Dileptus, the two Didinium, the bladderwort trap and the Chlamydomonas bloom all lie beyond halfway. The ciliates keep to their own waters there. Their hunger clocks start when someone first reaches halfway, after this grace (each one 5 s after the last). The amoeba by the way back keeps a 45 s calm opening.',
+  about: 'The challenges are placed, not timed: the water round the start is calm (prey, Vorticella, the light), and the Dileptus, the Chlamydomonas bloom, the two Didinium and the bladderwort trap lie on rings beyond it, the same in every direction. The ciliates keep to their own waters there. Their hunger clocks start when someone first leaves the calm water, after this grace (each one 5 s after the last). The amoeba by the way back keeps a 45 s calm opening.',
   onChange: (v) => { pacing.grace = parseFloat(v); resetHunger(); } });
 features.add({ id: 'bloom', group: 'World', label: 'Chlamydomonas bloom', on: true,
   about: 'A dense band of green flagellates across the route before the biofilm (shared/crowd.js, three tiers through the depth). Swimming shoves them aside; X gulps a cone of them out of your way (algae as food is [Unverified]); a dash (A) flings them aside in a lane. Bioconvection: more cells toward the coverslip, sinking plumes with a mild down-current, gentle upwelling between. No clock of any kind.',
@@ -877,18 +887,19 @@ function respawnPlayer(P) {
   const s = P.swimmer.state;
   if (mates.length) { placeNear(P, mates[0]); hud.toast(`${P.name} is back, beside ${mates[0].name}`); }
   else {
-    // a safe spot on the route, a little behind where you were and never past
-    // halfway (the calm part): the candidate furthest from every hunter
-    const u0 = Math.max(200, Math.min(HALF - 250, progress(P.cap.lastAt || s.center) - 500));
+    // a safe spot in the calm warm-up, on the bearing where you were (never
+    // further back than that): the candidate furthest from every hunter
+    const at = P.cap.lastAt || s.center, a0 = bearingOf(at);
+    const u0 = Math.max(200, Math.min(HALF - 150, progress(at) - 300));
     let best = null, bd = -1;
     for (let i = 0; i < 16; i++) {
-      const q = routePoint(u0 - Math.random() * 300, (Math.random() - 0.5) * 500, 120 + Math.random() * (DEPTH - 240));
+      const q = ringPoint(u0 - Math.random() * 250, a0 + (Math.random() - 0.5) * 0.5, 120 + Math.random() * (DEPTH - 240));
       const d = Math.min(...world.didinia.map((h) => h.pos.distanceTo(q)), Math.hypot(q.x - amoeba.pos.x, q.z - amoeba.pos.z) - amoeba.R, q.distanceTo(trap.door) - trap.pullR * 1.5);
       if (d > bd) { bd = d; best = q; }
     }
     s.axis.copy(best);
     if (P === P1) { view.camAxis.copy(best); view.focusY = best.y; }
-    hud.toast('A new Paramecium swims into view on the way to the biofilm, short of the hunters\' waters', 2600);
+    hud.toast('A new Paramecium swims into view in the calm water, short of the hunters\' waters', 2600);
   }
   s.safeT = 3;
 }
@@ -902,7 +913,7 @@ function restartRound() {
   catchFx.reset();
   for (const P of roster) { P.cell.group.scale.set(1, 1, 1); if (P !== P1) { P.swimmer.respawn(); placeNear(P, P1); } }
   game.eaten = 0;
-  // the hunters go back to their own waters (beyond halfway), the amoeba to its floor
+  // the hunters go back to their own waters (on their rings), the amoeba to its floor
   world.didinia.forEach((d) => { d.pos.copy(d.home); d.stun = 0; d.sated = 0; d.speed = 0; d.fight.reset(); });
   amoeba.pos.set(LANDMARKS.back.pos.x, 0, LANDMARKS.back.pos.z);
   void s;
@@ -931,7 +942,7 @@ function runFights(dt) {
     const isA = th === amoeba;
     if (isA ? !amoeba.opts.on : !enc.opts.didinium) { th.fightState = 'stalk'; continue; }
     const T = targetOf(th), s = T.swimmer.state;
-    // placed, not timed: a ciliate hunts only in its own waters (beyond halfway), the amoeba only round its floor
+    // placed, not timed: a ciliate hunts only in its own waters (on its ring), the amoeba only round its floor
     const zone = isA ? nearAmoebaFloor(s) : inWaters(th, s);
     const on = th.hungry && th.stun <= 0 && th.sated <= 0 && fightOn(T) && zone;
     const at = hunterPoint(th, s);
@@ -995,13 +1006,14 @@ gaugeEl.innerHTML = '<div class="nm"></div><div style="margin:3px auto 0;width:1
 document.body.appendChild(gaugeEl);
 const bossInfo = { log: [] };
 function runBoss(dt) {
-  // placed, not timed: its door is beyond halfway, so whoever comes near it is there
+  // placed with the portal: until then it is hidden and out of the way
+  if (!trap.placed) { gaugeEl.style.display = 'none'; return; }
   const after = true;
   let nd = Infinity;
   for (const P of liveRoster()) { const s = P.swimmer.state; if (s.mode === 'dead') continue; nd = Math.min(nd, s.center.distanceTo(trap.door)); }
   if (!trap.awake && (after || bossInfo.force) && nd < trap.wakeR) {
     trap.awake = true; bossInfo.log.push({ ev: 'wake', t });
-    hud.toast('A bladderwort trap guards the biofilm. Watch its door: when it quivers, get clear; dash past while it resets', 3600);
+    hud.toast('A bladderwort trap guards the biofilm. Make it fire and miss until it is spent (the gauge), then slip past to the golden light', 4200);
   }
   if (!trap.awake) { trap.update(dt, 'stalk', 0, t); gaugeEl.style.display = 'none'; return; }
   const pullR = trap.pullR * (trap.phase2 ? 1.3 : 1);
@@ -1075,30 +1087,135 @@ function targetOf(th) {
 
 // --- the landmarks ---------------------------------------------------------------
 const FWD = LANDMARKS.forward, BACK = LANDMARKS.back;
-const lm = { fired: false, near: false, log: [] };
+const lm = { fired: false, near: false, nearing: false, log: [] };
 function landmark(kind, P) {
   lm.log.push({ kind, slot: P ? P.slot : 0, t });
   embed.landmark(kind, { player: P ? P.slot : 0 });
 }
 const flatDist = (s, L) => Math.hypot(s.center.x - L.pos.x, s.center.z - L.pos.z);
+// --- the rings and the portal (micro/design/encounter-pattern.md) ---------------
+// One Dileptus, one bloom and a pair of Didinium, each on its ring round the
+// start (landmarks.js RINGS). Each is moved round its ring to meet whoever is
+// heading out there, out of everyone's sight: only while it is not engaged
+// with anyone, and only when both where it is and where it goes are farther
+// than UNSEEN µm from every player. The portal (the biofilm, with the
+// bladderwort trap on guard) is placed once a game, on its ring at the bearing
+// of the first player to get far enough, out of sight.
+const UNSEEN = 750, LEAD = 450, PORTAL_SEEN = 1500;
+const relocLog = [];
+const angDiff = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+const livePos = () => liveRoster().filter((P) => P.swimmer.state.mode !== 'dead').map((P) => P.swimmer.state.center);
+const unseen = (p, extra = 0) => livePos().every((c) => Math.hypot(c.x - p.x, c.z - p.z) > UNSEEN + extra);
+const CALM_STATES = new Set(['wander', 'wandering', 'not hungry', 'sated', 'stunned', 'retreating']);
+const engagedHunter = (d) => !CALM_STATES.has(d.state) || roster.some((P) => P.swimmer.state.captor === d || (P.capture.active && P.cap.th === d))
+  || livePos().some((c) => c.distanceTo(d.pos) < d.homeR + 400);
+/** The live player heading out through ring R (± zr), farthest out first, or null. */
+function approaching(R, zr) {
+  let best = null, bd = -1;
+  for (const c of livePos()) { const d = distFromStart(c); if (d > R - zr - LEAD && d < R + zr && d > bd) { bd = d; best = c; } }
+  return best;
+}
+function moveHunters(list, R, why) {
+  const c = approaching(R, list[0].homeR + 250);
+  if (!c || list.some(engagedHunter)) return;
+  const a = bearingOf(c);
+  if (angDiff(a, bearingOf(list[0].home) - list[0].offset) * R < 250) return; // already about there
+  const to = list.map((d) => ringPoint(R, a + d.offset, d.home.y));
+  // where it is must be well out of sight; where it goes, out of the view's reach (a scope field is 0.9 mm, and far water fades in the chase view)
+  if (!list.every((d) => unseen(d.pos)) || !to.every((p) => unseen(p, -200))) return;
+  list.forEach((d, i) => { d.home.copy(to[i]); d.pos.copy(to[i]); d.speed = 0; });
+  relocLog.push({ k: why, a: +a.toFixed(3), t: +t.toFixed(2) });
+}
+function moveRings() {
+  const dil = world.didinia.filter((d) => d.kind === 'dileptus'), did = world.didinia.filter((d) => d.kind === 'didinium');
+  if (dil.length) moveHunters(dil, RINGS.dileptus, 'dileptus');
+  if (did.length) moveHunters(did, RINGS.didinium, 'didinium');
+  // the bloom: a band 1.8 mm along its ring, moved while it is well out of sight
+  const c = approaching(BLOOM.centre, BLOOM.half + 650);
+  if (bloom.on && c && !livePos().some((q) => bloom.inside(q, 500))) {
+    const a = bearingOf(c);
+    if (angDiff(a, BLOOM.bearing) * BLOOM.centre > 450 && livePos().every((q) => bloom.distTo(q) > UNSEEN && bloom.distTo(q, a) > UNSEEN)) {
+      bloom.place(a); relocLog.push({ k: 'bloom', a: +a.toFixed(3), t: +t.toFixed(2) });
+    }
+  }
+  // the portal: once a game, at the bearing of the first player far enough out, out of sight
+  if (!FWD.placed) {
+    let lead = null, ld = -1;
+    for (const q of livePos()) { const d = distFromStart(q); if (d > ld) { ld = d; lead = q; } }
+    if (lead && ld >= RINGS.portal - PORTAL_SEEN) {
+      const a0 = bearingOf(lead);
+      for (let i = 0; i < 15; i++) {
+        const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.08;
+        if (unseen(ringPoint(RINGS.portal, a), 250) && unseen(ringPoint(RINGS.trap, a), 250)) { placePortal(a); break; }
+      }
+    }
+  }
+}
+/** Put the biofilm on its ring at bearing a, with the bladderwort trap on guard in front of it (door toward the start). */
+function placePortal(a) {
+  drop.place(a);
+  trap.place(ringPoint(RINGS.trap, a), a + Math.PI);
+  portalGlow.setPosition(FWD.pos.x, 24, FWD.pos.z);
+  portalGlow.group.visible = true;
+  portal.turned = false;
+  lm.log.push({ kind: 'portalPlaced', a: +a.toFixed(3), t: +t.toFixed(2) });
+}
+/** The portal's state: guarded while the trap is on guard (not spent). */
+const portal = { turned: false };
+const guarded = () => FWD.placed && !trap.spent;
 function landmarkTick(dt) {
   let at = null, close = false;
   for (const P of roster) {
     const s = P.swimmer.state;
     const ok = !P.waiting && (s.mode === 'swim' || s.mode === 'avoid') && !P.capture.active;
-    // forward: down on the biofilm (touch the leaf)
+    // forward: down on the biofilm (touch the leaf), once it is placed
     const df = flatDist(s, FWD);
-    if (ok && df < FWD.r && s.center.y < FWD.reachY) at = at || P;
-    if (df < FWD.r * 1.6 && s.center.y < FWD.reachY * 1.6) close = true;
+    if (FWD.placed && ok && df < FWD.r && s.center.y < FWD.reachY) at = at || P;
+    if (FWD.placed && df < FWD.r * 1.6 && s.center.y < FWD.reachY * 1.6) close = true;
     // backdoor: low over the floor where the amoeba crawls
     P.backT = ok && flatDist(s, BACK) < BACK.r && s.center.y < BACK.reachY ? P.backT + dt : 0;
   }
-  if (at && !lm.fired) { lm.fired = true; landmark('forward', at); }
+  // nearing the way on: the shell can start loading the next world
+  const nearing = FWD.placed && livePos().some((c) => Math.hypot(c.x - FWD.pos.x, c.z - FWD.pos.z) < 900);
+  if (nearing !== !!lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
+  if (at && !lm.fired) {
+    if (guarded()) {
+      // turned back: the trap's inflow sweeps the water off the leaf toward its door
+      const sA = at.swimmer.state;
+      const away = new THREE.Vector3(START.x - sA.center.x, 0, START.z - sA.center.z).normalize();
+      sA.burst.addScaledVector(away, 3200);
+      if (!portal.turned) { portal.turned = true; hud.toast('Turned back: the bladderwort trap still guards the biofilm. Make it fire and miss until it is spent, then come back', 4200); }
+      lm.log.push({ kind: 'turnedBack', slot: at.slot, t: +t.toFixed(2) });
+    } else enterPortal(at);
+    lm.fired = true;
+  }
   if (!close) lm.fired = false;
   const dweller = roster.find((P) => P.backT > 0.5) || null;
   if (!!dweller !== lm.near) { lm.near = !!dweller; embed.near('back', lm.near); }
   promptEl.style.display = lm.near && !embed.active ? 'block' : 'none';
   if (lm.near) promptEl.textContent = `${glyph('Y')} · back to the amoeba`;
+}
+/**
+ * The way on: player P has reached the open portal (the biofilm, its guard
+ * spent). The one place the zoom into the next world is triggered.
+ */
+function enterPortal(P) {
+  portalGlow.burst();
+  landmark('forward', P);
+}
+/** Draw the portal's glow over a view's finished image (its own scene: ordinary materials). */
+function renderGlow(cam, rect) {
+  if (!portalGlow.group.visible) return;
+  renderer.setRenderTarget(null);
+  if (rect) {
+    const c = renderer.domElement, pr = renderer.getPixelRatio();
+    const W0 = c.width / pr, H0 = c.height / pr;
+    renderer.setScissor(rect[0] * W0, (1 - rect[3]) * H0, (rect[2] - rect[0]) * W0, (rect[3] - rect[1]) * H0);
+    renderer.setScissorTest(true);
+  }
+  renderer.clearDepth();
+  renderer.render(glowScene, cam);
+  if (rect) renderer.setScissorTest(false);
 }
 
 // --- loop --------------------------------------------------------------------
@@ -1126,18 +1243,18 @@ function tick(dt, forced = false) {
     const I = live && P.in && !P.waiting ? P.in : NO_INPUT;
     const lsP = I.ls;
     if (P === P1) ls = live ? lsP : { x: 0, y: 0, m: 0 };
-    // symbionts: in the light the Chlorella feed you; in shade the store runs down
-    const sunny = inLight(sP.center);
-    if (GREEN && marks.light) P.sun = Math.max(0, Math.min(1, P.sun + dt * (sunny ? 0.16 : -0.03)));
-    else P.sun = 1;
-    P.dash.update(dt * (0.45 + 0.55 * P.sun));
+    // symbionts: in the light the Chlorella feed you, so the dash recharges faster
+    // there (a bonus, never a drain: nothing runs down in shade)
+    const sunny = GREEN && marks.light && inLight(sP.center);
+    P.sun = sunny ? 1 : 0;
+    P.dash.update(dt * (sunny ? 1.4 : 1));
     P.gulpT = Math.max(0, P.gulpT - dt); P.gulpCool = Math.max(0, P.gulpCool - dt); P.dashFx = Math.max(0, P.dashFx - dt);
     const isP1 = P === P1;
     const inp = {
       thrust: isP1 && debug.inspect ? 0.5 : live && !P.waiting ? Math.max(Math.min(1, Math.hypot(lsP.x, lsP.y)), I.rt, isP1 ? debug.thrust : 0) : isP1 ? debug.thrust : 0,
       hover: Math.max(live ? I.lt : 0, P.gulpT > 0 ? 1 : 0), steer: live ? lsP : isP1 ? debug.steer : NO_INPUT.ls, rise: live ? I.rise : 0,
       view: view.kind, camYaw: view.kind === 'scope' ? view.scopeYaw : view.camYaw + view.orbitYaw,
-      camPitch: swimLookPitch(view.orbitPitch), // shade slows the dash recharge only, never your swimming
+      camPitch: swimLookPitch(view.orbitPitch),
       vmaxK: bloom.on && bloom.inside(sP.center) ? 0.82 : 1, // pushing through the bloom costs a little speed, never more
       avoid: false, struggle: live && I.dashP && sP.mode === 'captured', // B is handled by defend()
     };
@@ -1165,7 +1282,7 @@ function tick(dt, forced = false) {
   if (bloom.on) bloom.update(dt, roster.map((P) => ({ position: P.swimmer.state.center, slot: P.slot, alive: !P.waiting && P.swimmer.state.mode !== 'dead' })));
   soundTick(dt);
   // hunger: each hunter's own clock; only a hungry one hunts
-  // the ciliates' clocks start once someone reaches halfway (the amoeba's runs from the start)
+  // the ciliates' clocks start once someone leaves the warm-up (the amoeba's runs from the start)
   if (!pacing.reached && liveRoster().some((P) => progress(P.swimmer.state.center) >= HALF)) { pacing.reached = true; pacing.reachedAt = t - pacing.t0; }
   for (const th of hunters()) {
     if (th === amoeba || pacing.reached) th.hunger.update(dt);
@@ -1182,6 +1299,7 @@ function tick(dt, forced = false) {
   amoeba.target = aT.swimmer;
   for (const P of roster) if (P !== aT) P.swimmer.state.slow *= Math.exp(-dt * 4);
   amoeba.update(dt, t, aT.swimmer, evH, world.flowAt);
+  moveRings();
   if (pacing.firstThreat === null && s.mode === 'swim' && threats().some((th) => hunting(th) || (th === amoeba && amoeba.cup > 0))) pacing.firstThreat = t - pacing.t0;
   // a catch began: whoever is now held
   for (const P of roster) {
@@ -1307,6 +1425,7 @@ function frame(now) {
 
   const s = swimmer.state;
   const cam = updateCameras(dt, s, ls, group());
+  if (portalGlow.group.visible) { portalGlow.setOpen(!guarded()); portalGlow.update(dt, t, cam); }
   // the split screen (one view while together: the fast path, as before)
   const list = liveRoster().map((P) => ({ slot: P.slot, position: P.swimmer.state.center }));
   const L = split.update(list.length ? list : [{ slot: 0, position: s.center }], { camera: cam }, dt);
@@ -1340,12 +1459,19 @@ function frame(now) {
     }
     if (borrow.id) renderBorrowed(cam, optP, dt);
     else optics.render(scene, cam, optP);
+    renderGlow(cam, optP.rect || null);
     if (cullOn) { uncull(); bloom.uncull(); }
   });
   fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
   // the edge arrows: the brass chevron to the biofilm, the ring to the amoeba's floor
   edgeMarks.begin();
-  edgeMarks.drawSplit(arrowSplit(), FWD.pos, { kind: 'forward', label: FWD.label, range: 3000 });
+  // no arrow to the way on until the portal has been found (placed); then it points there and its light spills in
+  portalLight.begin();
+  if (FWD.placed) {
+    const res = edgeMarks.drawSplit(arrowSplit(), FWD.pos, { kind: 'forward', label: '', range: 3000 });
+    const dmin = Math.min(...livePos().map((c) => Math.hypot(c.x - FWD.pos.x, c.z - FWD.pos.z)), 1e9);
+    portalLight.drawSplit(arrowSplit(), res, { strength: THREE.MathUtils.clamp(1.2 - dmin / 3000, 0.4, 1), open: portalGlow.open });
+  }
   edgeMarks.drawSplit(arrowSplit(), BACK.pos, { kind: 'backdoor', label: BACK.label, range: 3000 });
 
   const bl = s.netSpeed / LENGTH;
@@ -1357,10 +1483,10 @@ function frame(now) {
     `${SP.latin} ${LENGTH} µm · ${Math.round(s.netSpeed).toString().padStart(4)} µm/s · ${bl.toFixed(1)} body lengths/s (max ${VMAX})`,
     `depth ${Math.round(s.center.y)} of ${DEPTH} µm · ${stateText(s)}`,
     `prey ${game.eaten}/${GOAL} (round ${game.round}) · food vacuoles ${cell.foodCount} · bacteria ${game.bacteria}`,
-    `${dash.text()} · trichocysts ${charges}${GREEN ? ` · light ${Math.round(P1.sun * 100)}% (${inLight(s.center) ? 'in the sun' : 'in shade'})` : ''}`,
+    `${dash.text()} · trichocysts ${charges}${GREEN ? ` · ${inLight(s.center) ? 'in the sun (dash recharges faster)' : 'in shade'}` : ''}`,
     near ? `${near.label} ${Math.round(near.d)} µm away (${near.state})` : 'no hunter near',
     `hunger: ${world.didinia.map((d, i) => `${d.label}${d.kind === 'didinium' ? ` ${i + 1}` : ''} ${enc.opts.didinium ? (pacing.reached ? hungerText(d.hunger) : 'in its waters') : 'off'}`).join(' · ')} · amoeba ${amoeba.opts.on ? hungerText(amoeba.hunger) : 'off'}`,
-    `biofilm ${Math.round(flatDist(s, FWD))} µm (${Math.round(Math.max(0, progress(s.center)) / ROUTE_LEN * 100)}% of the way${progress(s.center) < HALF ? ', calm waters' : ''}) · amoeba's floor ${Math.round(flatDist(s, BACK))} µm`,
+    `${Math.round(progress(s.center))} µm out (${Math.round(Math.max(0, progress(s.center)) / ROUTE_LEN * 100)}% of the way to the portal ring${progress(s.center) < HALF ? ', calm waters' : ''}) · ${FWD.placed ? `biofilm ${Math.round(flatDist(s, FWD))} µm${guarded() ? ' (guarded)' : ' (open)'}` : 'portal not found yet'} · amoeba's floor ${Math.round(flatDist(s, BACK))} µm`,
     multi() ? `players ${roster.length} · views ${L.views.length}${L.merged ? ' (together)' : ''}` : '',
     `${Math.round(renderFps)} fps · render scale ${quality.scale.toFixed(2)} × pixel ratio ${quality.pixelRatio.toFixed(2)} · effects ${['low', 'medium', 'high'][qLevel]}${quality.auto ? ' (auto)' : ''}`,
   ].filter((l) => l).join('\n'));
@@ -1469,7 +1595,7 @@ function updateGoal(s) {
   const dots = '●'.repeat(game.eaten) + '○'.repeat(GOAL - game.eaten);
   const n = Math.round(dash.charge * 5);
   const parts = [`Eat ${GOAL} prey ${dots}`];
-  if (GREEN) parts.push(`${inLight(s.center) ? '☀' : '☁'} light ${'▮'.repeat(Math.round(P1.sun * 5))}${'▯'.repeat(5 - Math.round(P1.sun * 5))}`);
+  if (GREEN && inLight(s.center)) parts.push('☀ in the sun');
   parts.push(`${glyph('A')} dash ${'■'.repeat(n)}${'□'.repeat(5 - n)}`, `${glyph('X')} trichocysts ${'●'.repeat(s.charges)}${'○'.repeat(3 - s.charges)}`);
   // the most urgent thing happening to anyone (named in multiplayer)
   let warn = '';
@@ -1591,6 +1717,31 @@ function drawViewOverlay(cam, s, proj, anchor, many) {
     const q = proj(trap.door);
     if (visible(q)) { g.globalAlpha = 0.35 + 0.5 * (0.5 + 0.5 * Math.sin(t * 18)); g.strokeStyle = '#ff5a46'; g.lineWidth = 2.2; g.beginPath(); g.arc(q.x, q.y, Math.max(16, trap.doorR * 1.3 * pxPerUm), 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1; }
   }
+  // the trap's inflow, visible (a current you can see and avoid): streaks of
+  // water rushing into the door, faint over its reach while it quivers (the
+  // pulse to come), strong while it pulses
+  if (trap.placed && trap.awake && (trap.fight.state === 'windup' || trap.fight.state === 'strike')) {
+    const strong = trap.fight.state === 'strike';
+    const R = trap.pullR * (trap.phase2 ? 1.3 : 1);
+    const side = new THREE.Vector3().crossVectors(trap.dir, new THREE.Vector3(0, 1, 0)).normalize();
+    const p0 = new THREE.Vector3(), p1 = new THREE.Vector3();
+    g.strokeStyle = strong ? 'rgba(255,215,170,0.85)' : 'rgba(255,200,160,0.45)';
+    g.lineWidth = strong ? 1.6 : 1.1;
+    g.beginPath();
+    for (let i = 0; i < 70; i++) {
+      const h1 = (i * 0.6180339) % 1, h2 = (i * 0.7548776) % 1, h3 = (i * 0.5698403) % 1;
+      const f = (h1 + t * (strong ? 2.2 : 0.35)) % 1; // 1 at the edge of the reach → 0 at the door
+      const r = R * (1 - f) + 20;
+      const th = (h2 - 0.5) * 2.6, ph = (h3 - 0.5) * 1.6; // a broad cone in front of the door
+      const dirv = new THREE.Vector3().copy(trap.dir).multiplyScalar(Math.cos(th) * Math.cos(ph)).addScaledVector(side, Math.sin(th) * Math.cos(ph)).addScaledVector(new THREE.Vector3(0, 1, 0), Math.sin(ph));
+      p0.copy(trap.door).addScaledVector(dirv, r);
+      p1.copy(trap.door).addScaledVector(dirv, Math.max(0, r - (strong ? 45 : 22)));
+      const q0 = proj(p0), q1 = proj(p1);
+      if (!q0.ok || !q1.ok) continue;
+      g.moveTo(q0.x, q0.y); g.lineTo(q1.x, q1.y);
+    }
+    g.stroke();
+  }
   // an attack: a pulsing red ring on the toxicyst tip (or round the amoeba's rising arms) while it winds up and strikes
   if (marks.threats) for (const th of threats()) {
     if (!attacking(th)) continue;
@@ -1692,6 +1843,8 @@ const debug = {
   /** Make every hunter hungry now (tests of the fights). */
   /** Wake the boss now, whatever the calm opening says. */
   wakeBoss() { bossInfo.force = true; },
+  /** Place the portal now at bearing a (default: player 1's), as if found. */
+  placePortal(a) { placePortal(a ?? bearingOf(swimmer.state.center)); },
   hungry() { for (const th of hunters()) { th.hunger.reset(0.01); th.sated = 0; th.stun = 0; } swimmer.state.safeT = 0; },
   /** Player 1's buttons for tests: 'B' defend, 'X' attack (eat or fight back). */
   press(b, slot = 0) { const P = slotP(slot); if (b === 'B') defend(P); else if (b === 'X') doAttack(P); },
@@ -1743,12 +1896,13 @@ window.__micro = {
   boss: () => ({ awake: trap.awake, state: trap.fight.state, t: +(trap.fightT || 0).toFixed(2), interest: +trap.fight.interest.toFixed(2), phase2: trap.phase2, door: trap.door.toArray(), log: bossInfo.log }),
   trap,
   bloom,
-  /** The route and where each challenge begins (µm along it from the start; all at or beyond halfway). */
-  route: () => ({ len: ROUTE_LEN, half: HALF, reached: pacing.reached, reachedAt: pacing.reachedAt,
+  /** The rings and where each challenge begins (µm out from the start, the same in every direction; all beyond the warm-up). */
+  route: () => ({ len: ROUTE_LEN, half: HALF, rings: RINGS, reached: pacing.reached, reachedAt: pacing.reachedAt,
+    portal: { placed: FWD.placed, bearing: FWD.bearing, pos: FWD.pos.toArray().map(Math.round), guarded: guarded(), trap: trap.placed ? trap.centre.toArray().map(Math.round) : null }, relocations: relocLog,
     players: roster.map((P) => ({ slot: P.slot, u: Math.round(progress(P.swimmer.state.center)), side: Math.round(lateral(P.swimmer.state.center)) })) }),
   challenges: () => [
-    ...world.didinia.map((d, i) => ({ name: `${d.label}${d.kind === 'didinium' ? ` ${i + 1}` : ''}`, kind: d.kind, start: Math.round(Math.max(HALF, progress(d.home) - d.homeR - 520)), home: Math.round(progress(d.home)) })),
-    { name: 'Bladderwort trap', kind: 'boss', start: Math.round(progress(trap.door) - trap.wakeR), home: Math.round(progress(trap.centre)) },
+    ...world.didinia.map((d, i) => ({ name: `${d.label}${d.kind === 'didinium' ? ` ${i + 1}` : ''}`, kind: d.kind, start: Math.round(Math.max(HALF, progress(d.home) - d.homeR - 250)), home: Math.round(progress(d.home)) })),
+    { name: 'Bladderwort trap', kind: 'boss', start: RINGS.trap - 272 - trap.wakeR, home: RINGS.trap },
     { name: 'Chlamydomonas bloom', kind: 'crowd', start: BLOOM.centre - BLOOM.half, home: BLOOM.centre },
   ].map((c) => ({ ...c, frac: +(c.start / ROUTE_LEN).toFixed(3) })),
   trichoLog, hintLog, bloomLog: () => ({ enter: bloomLog.enter, gulps: bloomLog.gulps, wedges: bloomLog.wedges, alive: bloom.alive }),

@@ -50,9 +50,11 @@ decides; an engaged predator stays put. A new game puts them back on the +x
 bearing (up and to the right in the starting view).
 
 **The portal and the boss.** The raft is placed once a game, on the portal
-ring at the bearing of the first player to come within ~65 mm of it (out of
-everyone's sight), with a hint: "The wolf spider guards the way on. Lure it
-off the moss, then get round it". The spider sits on the raft's inner rim. A
+ring at the bearing of the first player to come within 150 mm of it
+(`PORTAL_SEEN`, out of everyone's sight), so its golden light draws you on
+across the sundew ring. A brief hint comes once someone is within 70 mm of
+it: "The wolf spider guards the way on. Lure it off the moss, then get round
+it". The spider sits on the raft's inner rim. A
 player who reaches the raft while it is on guard (within 15 mm of the raft's
 centre) is turned back (a toast, once; the spider attacks as its fight does).
 While it is lured off, or beaten, the raft lets you through (`enterPortal`:
@@ -109,12 +111,26 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   (`PORTAL` in `world.js`, radius 8 mm; `mossTop` honours it, so you land and
   walk on it like an island) crowned with big red and green capitula
   (`landmarks.js`). On the tallest one a speck moves: a *Limnozetes* mite,
-  0.35 mm, walking about on its capitulum. Over it a golden sparkle
-  (`shared/portal.js`: drifting glints and a soft glow pool, two draws).
+  0.36 mm, walking about on its capitulum. Over it the super-gene's golden
+  light (`shared/portal.js` `createPortalGlow`: a glow pool, a fine spray of
+  rising sparks with star glints, a 60 mm beacon with motes rising up it;
+  five draws). The low macro view has the raft out of frame until you are
+  about on it, so its light also spills in from the edge of the view on its
+  side (`createPortalLight`: a warm glow, an anamorphic streak, gold bokeh
+  discs, stronger as you near it), and in view a halo marks it; within 26 mm
+  the focus deepens so the raft is sharp beside you. No text.
   Any player who comes within 11 mm of its centre while it is open reaches it:
-  `enterPortal(P)` calls `embed.landmark('forward')`. It fires once, and again
-  only after everyone has left it. Standalone, `embed.js` shows its toast
-  instead of a transition.
+  `enterPortal(P)` calls `embed.landmark('forward', { outro })` and plays the
+  outro: a golden burst (a ring over the film, a fountain of sparks), a
+  bloom, a chime (`shared/portal-chime`), a rumble, the HUD hidden; then time
+  eases to a freeze over 1 s (`OUTRO`, in frame time) while rendering goes
+  on. Frozen, it reports the speck's framing (`embed.frozen`) and follows the
+  shell's `camera` poses, pushing in on the speck while the mite's world fades
+  in under it (`../../game/README.md`, "The continuous transition"). It fires
+  once, and again only after everyone has left it. Within 120 mm it posts
+  `near('forward')` so the shell preloads the mite (no prompt is shown).
+  Standalone, the freeze holds 1.4 s, time comes back and `embed.js` shows its
+  toast. Test hooks: `outro()`, `outroStep(n, dt)`.
 - **No backdoor:** this is the top of the Zoom Chain.
 - **Landmark arrow** (`shared/landmark.js`): none until the raft is placed;
   then a brass arrow near the edge of each view indicates its bearing without

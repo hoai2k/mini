@@ -21,6 +21,7 @@ counted for games.hoai.net/stats/ (the GoatCounter script in `index.html`).
 | `src/main.js` | The shell: screens, focus and controller navigation, the play frame and its messages, pause, settings, progression, test hooks (`window.__game`) |
 | `src/worlds.js` | The seven worlds: card data (magnification, field, body, look), goal, landmarks, controls, field notes |
 | `src/transition.js` | `playTransition(from, to, dir) → Promise`: the zoom between worlds (see below) |
+| `src/continuous.js` | `playContinuous(…)`: the continuous transition's camera move and crossfade between two live worlds (see below) |
 | `src/bus.js` | Messages to and from the world frames |
 | `src/input.js` | Menu input: every controller (any joined player drives the menus), keyboard, repeat timing, held-button locking |
 | `src/players.js` | The local players (up to four), through `../prototypes/shared/players.js`; a stub with the same surface stands in if it is missing |
@@ -72,8 +73,11 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   Prototype diagnostic stats stay hidden in the game; standalone prototypes
   keep their readouts.
   It shows for 8 s at the start of every world after the first (a setting),
-  and View or the button toggles it. A prompt shows when the world reports the
-  player at a landmark (`near`).
+  and View or the button toggles it. At the backdoor a prompt shows when the
+  world reports the player there (`near`, "Y · Rise to …"). The way on has no
+  prompt or text: the portal itself (its golden light, `shared/portal.js`)
+  says "go there"; a world's `near {kind: 'forward'}` only starts the next
+  world loading.
 - **Pause.** Menu/Start (on any controller), the world's `menu` message, the
   window losing focus, the tab hiding, or a controller disconnecting. The
   world stops (its frames and its sound). The pause menu (Resume,
@@ -82,14 +86,17 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   restarting asks first.
 - **Settings.** Sound on/off and volume, Invert camera Y (the shared
   `micro.invertY`), the controls card at the start of each world, the
-  transition style (microscope zoom or specimen plates), fullscreen, and in
+  transition style (Continuous, the default: the continuous transition where a
+  pair supports it and the microscope zoom elsewhere; Microscope zoom; or
+  Specimen plates), fullscreen, and in
   play "World features" (the world's own feature panel, for development).
 - **Starting direction.** Every world starts with its forward landmark up and
   to the right. Orbit views use a starting camera angle; the bacterium and
   Phage fields start their creature below and left of the host. Camera and stage controls
   continue to work, and the arrow follows the landmark's actual projection.
-- **Progression.** A forward landmark plays the zoom in and loads the next
-  world; a back landmark plays the zoom out to the previous one. The furthest
+- **Progression.** A forward landmark plays the transition in (springtail →
+  mite: the continuous transition; the others: the zoom) and the next world
+  takes over; a back landmark plays the zoom out to the previous one. The furthest
   world reached and the worlds visited are kept in localStorage.
 
 ## The embed protocol
@@ -98,12 +105,13 @@ Documented in full in `../prototypes/shared/embed.js`. In short:
 
 - World → shell: `ready` (sent by embed.js after the first frames), `hud`
   (the controls rows, sent by `shared/hud.js`), `landmark {kind:
-  'forward'|'back'}`, `near {kind, on, label?}`, `menu` (sent by
+  'forward'|'back', outro?}`, `frozen {pose}`, `opening {pose}`, `near {kind, on, label?}`, `menu` (sent by
   `shared/features.js` on Menu), `view` (sent by `shared/hud.js` on View),
   `join {index, color}`, `features {open}`, optional `captured`, `died`,
   `progress`; the zoom player's `done`.
 - Shell → world: `pause`, `resume`, `sound {on, volume}`, `controls {show,
-  autoHide}`, `settings {invertY}`, `features {open}`, `players {roster}`.
+  autoHide}`, `settings {invertY}`, `features {open}`, `players {roster}`,
+  `hold`, `camera {pose}`, `begin` (the continuous transition, below).
 
 A world loaded with `?embed=1` inside the shell starts held after its first
 two frames and runs when the shell sends `resume`. embed.js holds its
@@ -117,6 +125,90 @@ the A that began a world, or the Menu that resumed it, never reaches it. A
 press both sides see (Menu, View) is counted once.
 
 ## Transitions
+
+### The continuous transition (springtail → mite; the pattern for every pair)
+
+The owner (2026-11-01): a landmark "you see and intentionally go into, and
+then an indication of success and then a slowdown to freeze frame, and a
+direct transition from the existing world scene into the beginning scene of
+the next world. It should feel continuous", with the portal "tempting to go
+to … maybe it can sparkle or glint … but we shouldn't have text about it",
+in the gold of the phage's super-gene, and the same in every world. As it
+plays for springtail → mite:
+
+1. **The portal** draws you (`shared/portal.js`, the super-gene gold of
+   `../design/super-gene-return.html`): over the raft a glow pool, a fine
+   spray of rising sparks with star glints and a 60 mm beacon of light;
+   since the narrow macro view has the raft out of frame until you are on
+   it, its light also spills in from the edge of the view on its side (a
+   warm glow, an anamorphic streak and gold bokeh discs, stronger as you come
+   closer; `createPortalLight`), beside the brass arrow. In view, a halo
+   marks it through the depth of field, and the raft is brought into focus as
+   you reach it. No text.
+2. **Success.** Reaching it, the world posts `landmark {kind: 'forward',
+   outro: true}` and keeps running: a golden burst from the raft (a ring
+   racing out over the film and a fountain of sparks), a bloom on screen, a
+   chime (`shared/portal-chime`), a rumble; the HUD hides
+   (`embed.cinematic`).
+3. **Slow-down to a freeze frame.** The world's time scale eases from 1 to 0
+   over 1 s while it keeps rendering; frozen, it posts `frozen {pose}`: how
+   the next world's creature (the mite speck walking on its capitulum) is
+   framed on screen.
+4. **The camera move.** The next world has been loading since the player came
+   within 120 mm of the raft (`near`), hidden behind the world in play, and at
+   the latest from the landmark; the freeze holds until it is ready. The shell
+   sends it `hold` (frozen at its start, rendering, HUD hidden); it answers
+   `opening {pose}`: how its opening view frames its own creature. Then
+   (`src/continuous.js`, 3.4 s) one pose eases from the old to the new and is
+   sent to both worlds every frame as `camera {pose}`: the springtail's camera
+   pushes in on the speck, and the mite world, stacked above it, crossfades in
+   (40–68 % of the move) under exactly the same framing, so the mite is where
+   the speck was, at the same size and growing at the same rate (size on a log
+   scale; position, pitch and azimuth relative to the creature eased
+   together). The move ends exactly on the mite world's opening view.
+5. **Begin.** The old frame goes, the new world gets `begin` (its time eases
+   back in over 0.6 s; the camera is its own again, from where the move left
+   it), then its sound and the controls card.
+
+A **pose** frames a creature in a view the same way in every world: `f` (its
+length over the view's width at its depth), `x, y` (its centre in normalised
+device coordinates), `pitch` (the camera's elevation) and `rel` (the camera's
+azimuth round the creature minus the creature's heading). `embed.poseOf()`
+measures one from a three.js camera, `embed.poseCamera()` places a camera for
+one (a dolly: the field of view is kept).
+
+If anything does not come in time (no `frozen` in 20 s, the next world not
+ready in 25 s or not providing `'intro'`, no `opening` in 5 s) the shell
+pauses the old world and plays the microscope zoom as before. The settings'
+"Microscope zoom" and "Specimen plates" always do. Back (the backdoor) keeps
+the zoom out for now.
+
+**Wiring another pair** (world A, the next world B):
+
+- A, at its portal: use `createPortalGlow` and `createPortalLight` from
+  `shared/portal.js` (tune size, beacon, intensity; the gold stays); on
+  reaching it call `embed.landmark('forward', { outro: embed.active })`,
+  burst, bloom, chime (`audio.play('shared/portal-chime')`), rumble,
+  `embed.cinematic(true, canvas)`, ease its time to 0 while rendering, then
+  `embed.frozen(embed.poseOf(camera, nextCreature.centre, { len, heading,
+  pitch, yaw }))`. Then follow `embed.on('camera')`: place the camera with
+  `embed.poseCamera(camera, pose, centre, { len, heading })` and render. Post
+  `embed.near('forward', on)` from ~a screen or two away so B preloads. The
+  springtail's `startOutro` / `stepOutro` / `placePoseCamera` in
+  `../prototypes/springtail/main.js` are the reference.
+- B: `embed.provide('intro')` before its first frame; on `hold` place its
+  opening camera, `embed.cinematic(true, canvas)` and reply
+  `embed.opening(embed.poseOf(...))`; while `embed.held`, render without
+  stepping, with `embed.poseCamera` for each `camera` pose (and set its rig
+  from the result so play carries on from it); on `begin`, cinematic off and
+  ease time back in. The mite's `placePoseCamera` and frame loop in
+  `../prototypes/mite/main.js` are the reference.
+- The creature lengths must be the same creature's: A's speck and B's body
+  (the speck 0.36 mm, the mite `2 × max(mite.radii)` µm).
+- No shell changes are needed: it takes the continuous path whenever A sends
+  `outro: true` and B provides `'intro'`.
+
+### The zoom
 
 `playTransition(from, to, dir)` in `src/transition.js` tries, in order:
 

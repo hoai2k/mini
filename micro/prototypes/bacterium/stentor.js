@@ -20,15 +20,15 @@
 //   retreat  worn out by your army (guards.js): it contracts and stays shut (the host is yours)
 // Departure (labelled in the README): the vortex's reach and speed are game
 // values, and its pulses are a rhythm for play (a real Stentor feeds steadily).
-import { WORLD, LANDMARK } from './world.js';
+import { LANDMARK } from './world.js';
 
 export const STENTOR = {
   // placed relative to the host cell (the forward landmark, far to the upper right of the start)
   mouth: { x: LANDMARK.x + 122, y: LANDMARK.y + 20 }, // off the right edge of the field: the oral pouch
   discR: 112, // the oral disc's radius: its rim (and the membranelles) reaches into the field
-  pullR: 175, // the vortex reaches this far from the mouth
+  pullR: 150, // the vortex reaches this far from the mouth
   catchR: 96, // the vortex's shape (and a catch's path into the mouth); cells inside the oral disc's rim are swept in (disc())
-  foot: { x: LANDMARK.x + 34, y: WORLD.slabY + 6 }, // the holdfast on the biofilm
+  foot: { x: LANDMARK.x + 34, y: LANDMARK.y - 90 }, // the holdfast on a clay grain
   wakeR: 200,
 };
 
@@ -36,7 +36,7 @@ const DISC = { rho: 0, out: 0 };
 export function createStentor() {
   const st = {
     kind: 'stentor', label: 'Stentor', ...STENTOR,
-    awake: false, state: 'dormant', beat: 0, glow: 0, contract: 0, flowK: 0.4, phase: 0,
+    placed: false, awake: false, state: 'dormant', beat: 0, glow: 0, contract: 0, flowK: 0.4, phase: 0,
     /** Show the state: `fs` the fight state, `k` 0..1 within it. */
     update(dt, fs, k) {
       const s = !st.awake ? 'dormant' : fs;
@@ -66,9 +66,20 @@ export function createStentor() {
       o.out = o.rho > 1e-6 ? Math.hypot(dx, dy) * (1 - 1 / o.rho) : -R;
       return o;
     },
+    /**
+     * Stand it guarding the host at (hx, hy), the host at bearing a from the start: its mouth and
+     * oral disc beyond the host (outward), its foot on a grain to one side (as the sheet's first view).
+     */
+    place(hx, hy, a) {
+      const ux = Math.cos(a), uy = Math.sin(a), px = -uy, py = ux;
+      st.mouth = { x: hx + ux * 122 + px * 20, y: hy + uy * 122 + py * 20 };
+      st.foot = { x: hx + ux * 34 - px * 90, y: hy + uy * 34 - py * 90 };
+      st.placed = true;
+    },
     /** The vortex's flow at (x, y) in µm/s, into `out`. */
     flow(x, y, out) {
       out.x = 0; out.y = 0;
+      if (!st.placed) return out;
       const dx = st.mouth.x - x, dy = st.mouth.y - y, d = Math.hypot(dx, dy) || 1;
       if (d > st.pullR || st.flowK <= 0.01) return out;
       const k = (1 - (d - st.catchR * 0.6) / (st.pullR - st.catchR * 0.6));

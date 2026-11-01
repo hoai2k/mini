@@ -2,6 +2,13 @@
 // Sounds listed with no files are not generated yet; the game synthesises
 // nothing (or its own stand-in) for them. Paths are relative to micro/prototypes/.
 export const SOUNDS = {
+  "shared/portal-chime": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/shared/portal-chime.mp3"
+    ],
+    "volume": 1
+  },
   "springtail/amb-bog": {
     "kind": "loop",
     "files": [

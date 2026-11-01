@@ -56,7 +56,8 @@ export const COLL = {
   leaveD: 20,      // branching off this far from the other players splits the flock
   max: 48,         // members per flock
   joinCool: 2.5,   // s after a split before those players can merge again
-  free: 80,        // free kin cells in the world at the start
+  free: 100,       // free kin cells in the world at the start
+  perBreak: 12,    // of them in each calm break
   burstR: 32, chargeT: 6,
   beaconGap: 0.3,  // s between two beacons
   beaconPad: 7,    // a beacon reaches this far beyond the flock's edge, µm
@@ -105,16 +106,17 @@ export function createCollectives(world, hooks = {}) {
     k.align = 0.2 + r() * 0.4;    // how strongly it matches its neighbours
     return k;
   }
-  /** The places free kin live: the meadow by the start, and each calm break between the gates. */
-  const zones = () => [{ x0: world.route.meadow.x0, x1: world.route.meadow.x1 }, ...world.route.breaks.map((x) => ({ x0: x - 16, x1: x + 16 }))];
-  function placeFree(k, zone) {
-    const S0 = world.start;
+  /** The places free kin live (world.zones): the meadow round the start (0), and each calm break (1..). */
+  const zones = () => world.zones;
+  /** Put free kin cell k in zone z (an index), at bearing a (default: anywhere round it). */
+  function placeFree(k, z, a = null) {
+    const Z = zones()[z];
     for (let i = 0; i < 6; i++) {
-      k.x = zone.x0 + r() * (zone.x1 - zone.x0);
-      k.y = world.wayY(k.x) + (r() - 0.5) * 34;
-      if (Math.hypot(k.x - S0.x, k.y - S0.y) > 8 && !world.pushOutOfGrains({ x: k.x, y: k.y }, 0.5)) break;
+      const q = world.ringPoint(Z.r0 + r() * (Z.r1 - Z.r0), a === null ? r() * 6.283 : a + (r() - 0.5) * 0.5);
+      k.x = q.x; k.y = q.y;
+      if (!world.pushOutOfGrains({ x: k.x, y: k.y }, 0.5)) break;
     }
-    k.hx = k.x; k.hy = k.y;
+    k.hx = k.x; k.hy = k.y; k.zone = z;
     k.coll = null; k.dying = null; k.answer = null; k.growth = r() * 0.3; k.vx = k.vy = 0; k.sp = 0;
   }
 
@@ -123,8 +125,8 @@ export function createCollectives(world, hooks = {}) {
     const Z = zones();
     for (let i = 0; i < COLL.free; i++) {
       const k = newKin(0, 0);
-      // most in the meadow, six in each break (to top the army up between the gates)
-      placeFree(k, i < COLL.free - 6 * (Z.length - 1) ? Z[0] : Z[1 + (i % (Z.length - 1))]);
+      // most in the meadow, COLL.perBreak in each break (moved round it to meet you: relocate())
+      placeFree(k, i < COLL.free - COLL.perBreak * (Z.length - 1) ? 0 : 1 + (i % (Z.length - 1)));
       kin.push(k);
     }
     // a handful start right beside you, so the first beacon has someone to answer
@@ -245,15 +247,42 @@ export function createCollectives(world, hooks = {}) {
     bdelloPack(dt);
     // the dying: shown for a moment (rounding, darkening), then back into the world as a free cell
     // (in the meadow or the calm break nearest behind the players, so the army can be topped up)
-    let far = world.start.x;
-    for (const P of roster) if (P.S.alive) far = Math.max(far, P.S.x);
-    for (const k of kin) if (k.dying) { k.dying.t += dt; if (k.dying.t > 1.6) placeFree(k, zoneBehind(far)); }
+    let far = 0, fa = 0;
+    for (const P of roster) if (P.S.alive) { const d = world.distFromStart(P.S.x, P.S.y); if (d > far) { far = d; fa = world.bearingFromStart(P.S.x, P.S.y); } }
+    for (const k of kin) if (k.dying) { k.dying.t += dt; if (k.dying.t > 1.6) placeFree(k, zoneBehind(far), fa); }
   }
-  function zoneBehind(x) {
+  /** The calm zone just inside distance d from the start (the meadow if none). */
+  function zoneBehind(d) {
     const Z = zones();
-    let best = Z[0];
-    for (const z of Z) if (z.x1 < x - 10 && z.x0 > best.x0) best = z;
+    let best = 0;
+    for (let i = 1; i < Z.length; i++) if (Z[i].r1 < d - 10) best = i;
     return best;
+  }
+  /**
+   * The kin of each calm break gather where a player is coming through it: free kin of that break
+   * that nobody can see are moved round its ring to the player's bearing (as the gates are, main.js).
+   */
+  function relocate(roster, unseen) {
+    const Z = zones();
+    for (let z = 1; z < Z.length; z++) {
+      const B = Z[z];
+      let a = null;
+      for (const P of roster) {
+        if (!P.S.alive) continue;
+        const d = world.distFromStart(P.S.x, P.S.y);
+        if (d > B.r0 - 60 && d < B.r1) { a = world.bearingFromStart(P.S.x, P.S.y); break; }
+      }
+      if (a === null) continue;
+      for (const k of kin) {
+        if (k.coll || k.dying || k.answer || k.zone !== z) continue;
+        const ka = world.bearingFromStart(k.x, k.y);
+        if (Math.abs(Math.atan2(Math.sin(ka - a), Math.cos(ka - a))) < 0.6) continue;
+        if (!unseen(k.x, k.y)) continue;
+        const q = world.ringPoint(B.r0 + r() * (B.r1 - B.r0), a + (r() - 0.5) * 0.9);
+        if (!unseen(q.x, q.y)) continue;
+        k.x = k.hx = q.x; k.y = k.hy = q.y;
+      }
+    }
   }
 
   /** One flock step: every member by its own rules (FLOCK and its personality). */
@@ -575,7 +604,7 @@ export function createCollectives(world, hooks = {}) {
       let best = null, bd = 40;
       for (const C of list) {
         if (!C.members.length || !C.players.length) continue;
-        if (Math.hypot(C.cx - c.home.x, C.cy - c.home.y) > c.home.r + 45) continue;
+        if (Math.hypot(C.cx - c.home.x, C.cy - c.home.y) > c.home.r + 22) continue;
         for (const m of C.members) { const d = Math.abs(m.x - c.x) + Math.abs(m.y - c.y); if (d < bd && !m.latched) { bd = d; best = m; } }
       }
       if (!best) continue;
@@ -610,7 +639,7 @@ export function createCollectives(world, hooks = {}) {
   }
 
   return {
-    COLL, FLOCK, kin, list, opts, of, dragK, ensure, remove, reset, pre, post, absorb, burst, adopt, beacon, eat, focus, lose,
+    COLL, FLOCK, kin, list, opts, of, dragK, ensure, relocate, remove, reset, pre, post, absorb, burst, adopt, beacon, eat, focus, lose,
     /** For tests and the HUD: each flock's players, members, size, level, charge and middle. */
     report: () => list.map((C) => ({ id: C.id, players: C.players.map((P) => P.slot), members: C.members.length, army: C.army, level: C.level, charge: +C.charge.toFixed(2), x: +C.cx.toFixed(1), y: +C.cy.toFixed(1), fx: +(C.fx || 0).toFixed(1), fy: +(C.fy || 0).toFixed(1), speed: +C.speed.toFixed(1), extent: +C.extent.toFixed(1), beacons: C.beacons.length })),
   };

@@ -13,9 +13,9 @@ import { Cytoplasm } from './cytoplasm.js';
 import { SPECIES, makePrey, PREY_OPTS } from './prey.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, DIC_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
 import { squirmerFlow } from '../shared/techniques/paramecium-squirmer.js';
-import { buildWorld, worldColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules, ROUTE, along, progressOf, CHAOS_AT } from './world.js';
+import { buildWorld, worldColliders, nearColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules, RINGS, PORTAL_R, distFromStart, bearingFromStart, ringPoint, PATCHES, BACK_TIP, leafDist, LEAF, portalRoom } from './world.js';
 import { View } from './render.js';
-import { Chaos, CHAOS_R, CHAOS_WAKE } from './chaos.js';
+import { Chaos, CHAOS_R, CHAOS_WAKE, CHAOS_LEASH } from './chaos.js';
 import { rng, TAU, clamp, hyp, Scratch } from './util.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createPlayers } from '../shared/players.js';
@@ -23,6 +23,7 @@ import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
 import { createQuality } from '../shared/quality.js';
+import { createPortalGlow, createPortalLight } from '../shared/portal.js';
 
 const MODES = ['Brightfield', 'Phase contrast', 'Darkfield', 'Immersive (hypothetical)'];
 const OBJECTIVES = [{ name: '10×', field: 1800 }, { name: '20×', field: 900 }];
@@ -106,10 +107,10 @@ const CONTROLS = {
     note: 'Release a stick to let that pseudopod flow back. Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
   },
 };
-const WAY_NOTE = ' Crawl up and to the right to the green Paramecium bursaria swimming low over the slide (the brass chevron) to zoom in to the pool; the Sphagnum leaf tip to the left (the ring) is the way back up: Y there. Other controllers join with any button.';
+const WAY_NOTE = ' Crawl out in any direction: the same encounters come in rings round the start (easy prey, fleeing ciliates, fungal traps), and about 2.8 mm out the way on: a green Paramecium bursaria in a golden glow, guarded by the giant amoeba Chaos. Lure Chaos off it or pinch its arms until it gives up. The Sphagnum leaf tip to the left (the ring) is the way back up: Y there. Other controllers join with any button.';
 const hud = mountHud({
   title: 'Amoeba',
-  sub: 'Amoeba proteus (~450 µm) on a wet-mount slide. Push out pseudopods, chase down ciliates, cup round them and fill in. Mind the fungal traps.',
+  sub: 'Amoeba proteus (~450 µm) on a wet-mount slide. Push out pseudopods, chase down ciliates, cup round them and fill in. Mind the fungal traps; the way on is guarded.',
   controls: CONTROLS.select.rows,
   note: CONTROLS.select.note + WAY_NOTE,
 });
@@ -166,7 +167,7 @@ const S = {
   flags: { tie: true, refraction: true, chroma: true, dof: true, bgRefraction: true, vignette: true, grain: true, obstacles: true, above: true },
   streaming: true, brownian: true, cv: true, respawn: true,
   fps: 60, statT: 0, pending: [],
-  flee: true, traps: true,
+  flee: true, traps: true, passive: false,
   scheme: 'select', pinches: 0, pinch: true,
 };
 // Lead and follow: which stick grows the pseudopod (body.pods[0]) and which
@@ -181,13 +182,13 @@ let C = newCellState();
 const fragments = [];
 
 // --- the fungal traps' pacing (shared/predation.js) ----------------------------
-// A calm opening: the trap hyphae are absent at first. When the opening ends
-// they grow in from one end over GROW_S seconds. After that the fungus's
-// "hunger" comes and goes: while hungry the adhesive knobs are sticky, while
-// resting they are dormant (small, pale, not sticky). A restart gives a fresh
-// opening and the hyphae grow again.
+// The trap hyphae lie grown on their ring from the start (no calm opening on
+// a clock: the calm is the warm-up space round the start). The fungus's
+// "hunger" comes and goes, and shows: while hungry the adhesive knobs are
+// large, dark and sticky; while resting they are small, pale and do not stick.
+// A hypha driven off withdraws and grows back over GROW_S seconds.
 const GROW_S = 25;
-const pacing = { grace: 45, cycles: true, t0: 0, firstHungry: null, firstThreat: null, firstCatch: null };
+const pacing = { grace: 0, cycles: true, t0: 0, firstHungry: null, firstThreat: null, firstCatch: null };
 const fungus = createHunger({ grace: pacing.grace, hungry: [30, 50], restFed: [50, 80], restMissed: [20, 35] });
 const trapList = () => world.obstacles.filter((o) => o.type === 'trap' && !o.haustorium);
 // Each trap hypha fights readably (shared/predation.js createFight): while the
@@ -197,7 +198,7 @@ const trapList = () => world.obstacles.filter((o) => o.type === 'trap' && !o.hau
 // (a block); a pseudopod jab (X) engulfs and cuts its tip (bite back). Enough
 // and the hypha withdraws for a while (retreat).
 for (const o of trapList()) {
-  o.grow = 0; o.active = 0; o.grip = 0; o.wind = 0;
+  o.grow = 1; o.active = 0; o.grip = 0; o.wind = 0;
   o.fight = createFight({ windup: 1.1, strike: 0.3, recoverT: 2.4, repelT: 2.0, retreatT: 16, facingRate: 0, blockHit: 0.35, biteHit: 0.4 });
 }
 // Haustoria: the fungus's feeding hyphae, grown into the cell when it catches you.
@@ -217,7 +218,10 @@ function updateFungus(dt) {
     if (st === 'retreat') o.grow = Math.max(0.3, o.grow - dt / 4); // withdrawn
     else if (awake) o.grow = Math.min(1, o.grow + dt / GROW_S);
     o.active = clamp(o.active + (sticky ? 1 : -1) * dt / 2, 0, 1);
-    trapFight(o, dt, sticky && S.traps && !o.hidden && o.grow > 0.05);
+    // only the hyphae someone is near fight (the rest of the ring waits, and costs nothing)
+    const near = cells.some((c) => hyp(c.body.cx - o.x, c.body.cy - o.y) < o.L / 2 + c.body.req + 520);
+    trapFight(o, dt, sticky && S.traps && !o.hidden && o.grow > 0.05 && near && !S.passive);
+    if (near && !challengeLog.traps && S.traps) { const n = o.near && o.fight.state !== 'idle' ? o.near : nearestToTrap(o); if (n && n.d < 220) logChallenge('traps', n.cell); }
   }
   const t = S.time - pacing.t0;
   if (pacing.firstHungry === null && S.traps && sticky && trapList().some((o) => o.grow > 0.02)) pacing.firstHungry = t;
@@ -250,6 +254,7 @@ function trapFight(o, dt, armed) {
   o.near = n;
   const blocking = !!n && n.cell.s.defend > 0.5;
   const f = o.fight.update(dt, { near: !!n && n.d < 220, inReach: !!n && n.d < 40, facing: true, blocking });
+  if (n && n.d < 220) logChallenge('traps', n.cell);
   o.wind = f.state === 'windup' ? f.t : f.state === 'strike' ? 1 : Math.max(0, o.wind - dt * 2);
   if (f.state === 'windup' && f.t < 0.05 && n) { const k = cur; use(n.cell); hud.toast(`${who()}A trap hypha curls, its knobs swelling: stiffen (hold B) or cut it (X)`, 2200); rumble(120, 0.25, 0); use(k); }
   if (f.hit && n) { o.grip = 7; const k = cur; use(n.cell); hud.toast(`${who()}The hypha snaps shut on the membrane`); rumble(250, 0.4, 0.6); use(k); }
@@ -286,7 +291,7 @@ function threatTrap(c) {
 }
 function resetFungus() {
   fungus.reset(pacing.grace);
-  for (const o of trapList()) { o.grow = 0; o.active = 0; o.grip = 0; o.wind = 0; o.fight.reset(); }
+  for (const o of trapList()) { o.grow = 1; o.active = 0; o.grip = 0; o.wind = 0; o.fight.reset(); }
   for (const c of cells) for (const h of c.haustoria) { h.hidden = true; h.grow = 0; }
   pacing.t0 = S.time; pacing.firstHungry = null; pacing.firstThreat = null; pacing.firstCatch = null;
 }
@@ -394,27 +399,35 @@ function captureRespawn(c) {
   FC.phase = null; FC.by = null; C.drain = 0;
   for (const h of haustoria) { h.hidden = true; h.grow = 0; }
   for (const o of trapList()) { o.grip = 0; o.fight.reset(); }
-  if (byChaos) { chaos.state = 'dormant'; chaos.fight.reset(); chaos.restUntil = chaos.t + 40; } // sated
+  if (byChaos) { chaos.state = 'dormant'; chaos.fight.reset(); chaos.restUntil = chaos.t + 40; } // sated (it flows back to its post)
   if (cells.length > 1) respawnCell(c);
   else {
-    // The spot on the way furthest along, but not past where it was caught,
-    // that is well clear of every trap hypha and of Chaos.
-    const at = progressOf(c.body.cx, c.body.cy);
-    const spots = [[0, 0], [1300, -200], [2200, 150]].map(([s, l]) => along(s, l));
-    const safe = ([x, y]) => trapList().every((o) => Math.hypot(o.x - x, o.y - y) > o.L / 2 + 600)
-      && Math.hypot(chaos.body.cx - x, chaos.body.cy - y) > CHAOS_R + 900;
-    let best = spots[0];
-    for (const p of spots) if (progressOf(p[0], p[1]) <= at + 0.05 && safe(p)) best = p;
+    const best = safeSpot(c.body.cx, c.body.cy);
     c.s = Object.assign(newCellState(), { eaten: c.s.eaten });
     Object.assign(c.R, newRoles());
     makeBody(c, best[0], best[1]);
     S.camX = best[0]; S.camY = best[1];
-    resetFungus();
-    hud.toast('A fresh amoeba, away from the traps. The fungus will grow back', 3000);
+    hud.toast('A fresh amoeba, on calm glass near where you were', 3000);
   }
   use(k === c ? c : k || cells[0]);
 }
-/** After the Eaten card (card mode only): a fresh cell where the old one was; the fungus starts over. */
+/**
+ * Where a fresh amoeba starts after a catch: on the same bearing from the
+ * start, in the calm break nearest inside where it was caught (never further
+ * back than the start), clear of every trap hypha, of Chaos and of the leaf.
+ */
+const CALM = [0, 900, 1400, 2060];
+function safeSpot(x, y) {
+  const d = distFromStart(x, y), a = bearingFromStart(x, y);
+  const safe = ([px, py]) => trapList().every((o) => hyp(o.x - px, o.y - py) > o.L / 2 + 330)
+    && (!chaos.on || hyp(chaos.body.cx - px, chaos.body.cy - py) > CHAOS_R + 800) && leafDist(px, py) > LEAF.W / 2 + 300;
+  for (let k = CALM.length - 1; k > 0; k--) {
+    if (CALM[k] > d + 50) continue;
+    for (const da of [0, 0.08, -0.08, 0.16, -0.16]) { const p = ringPoint(CALM[k], a + da); if (safe(p)) return p; }
+  }
+  return [0, 0];
+}
+/** After the Eaten card (card mode only): a fresh cell where the old one was. */
 function restartCell() {
   FC.phase = null;
   body.A0 = C.A0init; C.drain = 0; C.bitten = 0; C.stuckT = 0; C.stuckN = 0; C.eaten = 0;
@@ -423,8 +436,7 @@ function restartCell() {
   for (let i = 0; i < N; i++) { const a = (i / N) * TAU; body.x[i] = body.cx + Rr * Math.cos(a); body.y[i] = body.cy + Rr * Math.sin(a); }
   for (const p of body.pods) { p.s = 0; p.target = 0; p.active = false; p.ret = 0; }
   body.grid.build(body.x, body.y, N);
-  resetFungus();
-  hud.toast('A fresh amoeba. The fungus is gone for now, but its hyphae will grow back', 3000);
+  hud.toast('A fresh amoeba', 3000);
 }
 
 // --- features panel ----------------------------------------------------------
@@ -515,12 +527,8 @@ F({ id: 'flee', group: 'Simulation', label: 'Ciliates flee the membrane', on: tr
 F({ id: 'traps', group: 'World', label: 'Fungal trap hyphae (hazard)', on: true,
   about: 'Zoopagalean fungi (Stylopage, Zoopage) catch amoebae on adhesive hyphae, then grow haustoria into them. Membrane touching a sticky trap hypha sticks (it moves at 8% of its pace); a surge (A) tears it free. Stuck for 8 s, haustoria pierce the cell: surge in the next 1.5 s to tear free with a bite (−7% of the cell), or it is drained, darkening and shrivelling, and eaten. Real predators of amoebae; the timing, the bite and the drain are game rules.',
   onChange: (v) => { S.traps = v; for (const o of world.obstacles) if (o.type === 'trap' && !o.haustorium) o.hidden = !v; } });
-const GRACES = ['45 s', '20 s', '0 s (traps from the start)'];
-F({ id: 'grace', group: 'World', label: 'Calm opening before the traps', choices: GRACES, value: GRACES[0],
-  about: 'The trap hyphae are absent for the first 45 s (and after every restart), so you can explore first. Then they grow in from one end over 25 s, and the HUD says so. Shorter openings are for testing.',
-  onChange: (v) => { pacing.grace = parseFloat(v); resetFungus(); } });
 F({ id: 'hunger', group: 'World', label: 'Traps come and go (fungal hunger)', on: true,
-  about: 'Once grown, the fungus is "hungry" for 30–50 s: its adhesive knobs are sticky (large and dark). Then it rests, 50–80 s after a catch and 20–35 s after you tear free: the knobs are dormant (small and pale) and do not stick. Off: once grown they stay sticky (the old pacing).',
+  about: 'The fungus is "hungry" for 30–50 s: its adhesive knobs are sticky (large and dark, you can see it). Then it rests, 50–80 s after a catch and 20–35 s after you tear free: the knobs are dormant (small and pale) and do not stick. Off: they stay sticky.',
   onChange: (on) => { pacing.cycles = on; } });
 F({ id: 'infill', group: 'Simulation', label: 'Filling in (X)', on: true,
   about: 'While the cup closes, endoplasm floods toward the cup mouth so the rims visibly fill and thicken as they meet over the prey.',
@@ -575,14 +583,14 @@ F({ id: 'preyFlow', group: 'Borrowed', label: 'Prey: squirmer flow round swimmer
   onChange: (v) => (preyFlowOn = v) });
 
 // --- prey ------------------------------------------------------------------
-const MIX = ['chilomonas', 'chilomonas', 'chilomonas', 'chilomonas', 'chilomonas', 'chlamydomonas', 'chlamydomonas', 'chlamydomonas',
-  'tetrahymena', 'tetrahymena', 'tetrahymena', 'colpidium', 'colpidium', 'paramecium'];
-// The first part of the way is calm: only the slow flagellates (easy prey);
-// the fleeing ciliates and the Paramecium turn up from EASY_UNTIL of the way on.
-const EASY = ['chilomonas', 'chilomonas', 'chilomonas', 'chlamydomonas', 'chlamydomonas'];
-const EASY_UNTIL = 0.4;
-const preyFor = (progress) => (progress < EASY_UNTIL ? rand.pick(EASY) : rand.pick(MIX));
-const isEasy = (key) => EASY.includes(key);
+// Prey live in patches (world.js PATCHES): a few easy flagellates round the
+// start, a ring of easy-prey patches, then a ring of ciliate patches (they
+// flee). Each prey keeps to its patch (a loose tether), and an eaten one comes
+// back to it after a while, swimming in from out of everyone's view, so there
+// is always food, and a player can stay in a safe spot as long as they like.
+// Prey far from every player only swim (no collisions or contact checks).
+const PREY_AWAKE = 1300;
+const keyOf = (p) => Object.keys(SPECIES).find((k) => SPECIES[k] === p.sp);
 
 function freeSpot(rMin, rMax) {
   for (let k = 0; k < 40; k++) {
@@ -603,6 +611,26 @@ function freeSpot(rMin, rMax) {
 function spawn(key, rMin = 260, rMax = 850) {
   const [x, y] = freeSpot(rMin, rMax);
   const p = makePrey(key, x, y, rand() * TAU, rand);
+  prey.push(p);
+  return p;
+}
+/** Is (x, y) farther than `rad` µm outside every player's view? */
+function unseen(x, y, rad = 0) {
+  // the widest each view can be (the drained pull-back included), no side effects
+  const w = OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6) * 1.45 / 2, h = w * (innerHeight / Math.max(1, innerWidth));
+  return cells.every((c) => Math.abs(x - c.body.cx) > w + rad + 60 || Math.abs(y - c.body.cy) > h + rad + 60);
+}
+/** A prey of `key` in patch P: inside it (`inside`), or swimming in from just outside everyone's view. */
+function spawnIn(P, key, inside) {
+  let x = P.x, y = P.y, th = rand() * TAU;
+  for (let k = 0; k < 30; k++) {
+    const a = rand() * TAU, d = inside ? P.r * Math.sqrt(rand()) : P.r + rand.range(150, 450);
+    x = P.x + Math.cos(a) * d; y = P.y + Math.sin(a) * d;
+    if (cells.every((c) => c.body.grid.sample(x, y) < -40) && (inside || unseen(x, y, 40))) { th = inside ? th : a + Math.PI; break; }
+    if (!inside && k === 29) return null; // everywhere round it is in view: try again later
+  }
+  const p = makePrey(key, x, y, th, rand);
+  p.home = P;
   prey.push(p);
   return p;
 }
@@ -948,7 +976,7 @@ function onEgest(c, v) {
     if (p) despawn(p);
     const fx = body.ux + (body.ux - body.cx) * 0.08, fy = body.uy + (body.uy - body.cy) * 0.08;
     addResidue(world, fx, fy, Math.max(14, Math.max(v.rx, v.ry) * 1.6), rand());
-    if (p && S.respawn) S.pending.push({ key: Object.keys(SPECIES).find((k) => SPECIES[k] === p.sp), t: 6 });
+    if (p && S.respawn) S.pending.push({ key: keyOf(p), home: p.home, t: 6 });
     hud.toast(who() + 'Food vacuole egested at the uroid');
   }
   use(k);
@@ -999,10 +1027,22 @@ function stepPrey(dt, col) {
         despawn(p);
         p.captured.prey = null;
         p.captured.residue = true;
-        if (S.respawn) S.pending.push({ key: Object.keys(SPECIES).find((k) => SPECIES[k] === p.sp), t: 8 });
+        if (S.respawn) S.pending.push({ key: keyOf(p), home: p.home, t: 8 });
       }
       continue;
     }
+    // its patch: a loose tether (not while it flees; a fleeing ciliate comes back)
+    if (p.home && (p.fleeT || 0) <= 0) {
+      const H = p.home, dx = H.x - p.x, dy = H.y - p.y;
+      if (dx * dx + dy * dy > H.r * H.r) {
+        let da = Math.atan2(dy, dx) - p.th; da = Math.atan2(Math.sin(da), Math.cos(da));
+        p.th += clamp(da, -1, 1) * dt * 1.5;
+      }
+    }
+    // far from every player: it only swims (no contact or collisions)
+    let awake = false;
+    for (const c of cells) if (Math.abs(p.x - c.body.cx) < PREY_AWAKE && Math.abs(p.y - c.body.cy) < PREY_AWAKE) { awake = true; break; }
+    if (!awake) { p.update(dt * swim); p.touch = 0; continue; }
     for (let s = 0; s < subs; s++) p.update((dt * swim) / subs);
     p.updateCircles();
     // The membrane yields to the prey it is closing round, so it is not squeezed out.
@@ -1036,7 +1076,7 @@ function stepPrey(dt, col) {
     }
     p.fleeT = (p.fleeT || 0) - dt;
     if (near.d - p.sp.W / 2 < p.sp.sense || touched) {
-      if (!p.touch) { const k = cur; use(near.cell); rumble(60, 0.15, 0); use(k); }
+      if (!p.touch) { const k = cur; use(near.cell); rumble(60, 0.15, 0); use(k); if (p.home && p.home.ring !== 'start') logChallenge(p.home.ring, near.cell); }
       p.touch = 1;
       p.avoid();
     } else p.touch = 0;
@@ -1047,17 +1087,12 @@ function stepPrey(dt, col) {
         p.x -= tmp.x * (d + p.sp.W / 2); p.y -= tmp.y * (d + p.sp.W / 2);
       }
     }
-    if (S.respawn && Math.hypot(p.x - nb.cx, p.y - nb.cy) > 1500) {
-      // Lost far behind: it turns up again round a player, as what lives there.
+    if (S.respawn && !p.home && Math.hypot(p.x - nb.cx, p.y - nb.cy) > 1500) {
+      // A stray (spawned by a test) lost far behind: it turns up again round a player.
       const k = cur;
       use(cells[(rand() * cells.length) | 0]);
-      const key = Object.keys(SPECIES).find((n) => SPECIES[n] === p.sp);
-      const want = progressOf(body.cx, body.cy) < EASY_UNTIL ? (isEasy(key) ? key : preyFor(0)) : key;
-      if (want !== key) { despawn(p); const q = spawn(want, 700, 950); q.th = Math.atan2(body.cy - q.y, body.cx - q.x) + rand.range(-0.8, 0.8); }
-      else {
-        const [x, y] = freeSpot(700, 950);
-        p.x = x; p.y = y; p.th = Math.atan2(body.cy - y, body.cx - x) + rand.range(-0.8, 0.8);
-      }
+      const [x, y] = freeSpot(700, 950);
+      p.x = x; p.y = y; p.th = Math.atan2(body.cy - y, body.cx - x) + rand.range(-0.8, 0.8);
       use(k);
     }
   }
@@ -1186,6 +1221,22 @@ function stickToTraps(dt, traps) {
   }
 }
 
+/**
+ * The slide's colliders near cell c (within its grid box and a margin), so a
+ * body's step tests only the few it could touch, not every one on the slide.
+ */
+const CHAOS_COL = { capsules: [], circles: [] }, PREY_COL = { capsules: [], circles: [] };
+function nearCol(c) {
+  const g = c.body.grid, out = (c.nearCol ||= { capsules: [], circles: [] });
+  return nearColliders(lastCol, g.ox, g.oy, g.ox + g.size, g.oy + g.size, 160, out);
+}
+/** The colliders round every player (the prey that are awake are all there). */
+function preyCol(col) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const c of cells) { x0 = Math.min(x0, c.body.cx); y0 = Math.min(y0, c.body.cy); x1 = Math.max(x1, c.body.cx); y1 = Math.max(y1, c.body.cy); }
+  return nearColliders(col, x0, y0, x1, y1, PREY_AWAKE + 200, PREY_COL);
+}
+let lastCol = { capsules: [], circles: [] };
 /** Other players' membranes as circles, so amoebae push against one another instead of overlapping. */
 function othersAsCircles(col, c) {
   const withChaos = typeof chaos !== 'undefined' && chaos.on && !(c.caught.active && c.FC.by === 'chaos') && Math.hypot(chaos.body.cx - c.body.cx, chaos.body.cy - c.body.cy) < chaos.body.req * 2.2 + c.body.req + 300;
@@ -1215,6 +1266,7 @@ function othersAsCircles(col, c) {
  */
 function simStep(dt, granules = true) {
   const col = S.flags.obstacles ? worldColliders(world, dt) : { capsules: [], circles: [] };
+  lastCol = col;
   const adt = dt * S.amoebaK;
   updateFungus(dt);
   const traps = S.traps ? trapCapsules(world) : [];
@@ -1237,14 +1289,14 @@ function simStep(dt, granules = true) {
     body.opts.boost = sk; C.surgeK = sk;
     stepCatch(dt);
     if (traps.length) { trapX.set(body.x); trapY.set(body.y); }
-    body.step(adt, input, othersAsCircles(col, c));
+    body.step(adt, input, othersAsCircles(nearCol(c), c));
     if (traps.length) stickToTraps(dt, traps);
     body.grid.build(body.x, body.y, N);
     updateCup(adt);
   }
   use(cells[0]);
-  stepChaos(dt, adt, col, granules);
-  stepPrey(dt, col);
+  stepChaos(dt, adt, chaos.on ? nearColliders(col, chaos.body.cx, chaos.body.cy, chaos.body.cx, chaos.body.cy, 900, CHAOS_COL) : col, granules);
+  stepPrey(dt, preyCol(col));
   for (const c of cells) {
     use(c);
     // Traps and prey moved membrane nodes too: keep the ring simple.
@@ -1274,13 +1326,13 @@ function simStep(dt, granules = true) {
   stepBeacon(dt);
   for (const pe of S.pending) pe.t -= dt;
   for (const pe of S.pending.filter((x) => x.t <= 0)) {
-    // respawned prey turn up round any player
-    use(cells[(rand() * cells.length) | 0]);
-    const early = progressOf(body.cx, body.cy) < EASY_UNTIL;
-    spawn(early && !isEasy(pe.key) ? preyFor(0) : !early && isEasy(pe.key) && rand() < 0.5 ? preyFor(1) : pe.key, 750, 1000);
-    use(cells[0]);
+    // an eaten prey comes back to its patch, swimming in from out of view (or round a player, with no patch)
+    if (pe.home) { if (!spawnIn(pe.home, pe.key, false)) { pe.t = 2; continue; } }
+    else { use(cells[(rand() * cells.length) | 0]); spawn(pe.key, 750, 1000); use(cells[0]); }
+    pe.t = -1e9;
   }
-  S.pending = S.pending.filter((x) => x.t > 0);
+  S.pending = S.pending.filter((x) => x.t > -1e8);
+  placeRings();
   S.time += dt;
 }
 
@@ -1300,15 +1352,16 @@ function stepChaos(dt, adt, col, granules = true) {
     for (let i = 0; i < N; i++) { const o = pool[n] || (pool[n] = { x: 0, y: 0, r: 0 }); o.x = b.x[i]; o.y = b.y[i]; o.r = 11; n++; circles.push(o); }
   }
   const ps = cells.map((c) => ({ cell: c, x: c.body.cx, y: c.body.cy, req: c.body.req, active: !c.caught.active && !c.p.waiting }));
-  const ev = chaos.update(dt, adt, ps, { capsules: col.capsules, circles }, { calm: fungus.state === 'grace' || chaos.resting, granules });
+  const ev = chaos.update(dt, adt, ps, { capsules: col.capsules, circles }, { calm: chaos.resting || S.passive, granules });
   for (const { e, p: pl } of ev) {
     const c = pl ? pl.cell : null, k = cur;
     if (c) use(c);
-    if (e === 'wake') hud.toast('A giant amoeba, Chaos, stirs: it has noticed you', 2800);
+    if (e === 'wake') { hud.toast('A giant amoeba, Chaos, stirs: it has noticed you', 2800); logChallenge('chaos', c); }
     else if (e === 'windupCup') { hud.toast(`${who()}Chaos raises and spreads its pseudopods: it is going to cup you! Pinch its arms off (X with your membrane round them)`, 3000); rumble(150, 0.3, 0); }
     else if (e === 'windupLunge') { hud.toast(`${who()}Chaos gathers itself to lunge: get out of the way (A)`, 2400); rumble(150, 0.3, 0); }
     else if (e === 'engulf' && c) startEngulf(c);
-    else if (e === 'retreat') hud.toast('Chaos has had enough: it flows away to rest. The way is open', 3000);
+    else if (e === 'retreat') hud.toast('Chaos has had enough: it flows away off the glow to rest. The way on is open', 3000);
+    else if (e === 'leash') hud.toast('Chaos gives up the chase and flows back to its post: get round it first!', 2800);
     use(k);
   }
   // engulfed: carried along inside it
@@ -1489,66 +1542,128 @@ function syncCells() {
   retint();
 }
 
-// --- landmarks ----------------------------------------------------------------------
-// Forward: a green Paramecium bursaria (Chlorella symbionts) swimming low over
-// the slide, ~4.9 mm up and to the right of the start (world.js ROUTE: room for
-// a calm first half and the hazards beyond halfway): reaching it with the membrane
-// zooms in to the pool (the camera follows it out, §2.6/§3 of the design).
-// Backdoor: a Sphagnum leaf tip dipping into the pool, ~2.3 mm to the left,
-// with the water film's edge round it: dwelling there, Y goes back up to the
-// tardigrade. About two minutes of steady crawling to the way on, one back.
-const FWD_HOME = (([x, y]) => ({ x, y }))(along(ROUTE.length));
-const BACK_TIP = { x: -2300, y: -260 };
+// --- landmarks: the portal (the way on) and the backdoor ----------------------------
+// The portal: a green Paramecium bursaria (Chlorella symbionts) swimming low
+// over the slide at the opening toward open water, in the shared golden glow
+// (shared/portal.js, no text). It is placed once a game on the portal ring
+// (RINGS.portal, ~2.8 mm out), at the bearing of whoever first gets RINGS.place
+// out, where nobody can see it; Chaos goes on guard just inside it. Reaching it
+// while Chaos is on guard turns you back; lure Chaos off it (it follows you no
+// further than CHAOS_LEASH from its post) or pinch its arms until it gives up,
+// then reach it: enterPortal (the one place the zoom on is triggered).
+// Backdoor: a Sphagnum leaf tip dipping into the pool, ~2.3 mm to the left
+// (world.js LEAF), with the water film's edge round it: dwelling there, Y goes
+// back up to the tardigrade.
 const BACK_LABEL = 'Back to the tardigrade';
-const beacon = makePrey('bursaria', FWD_HOME.x, FWD_HOME.y, 0.6, rng(29));
-const leaf = (() => {
-  const L = 2600, W = 560, ang = 0.22;
-  const cx = BACK_TIP.x - Math.cos(ang) * L / 2, cy = BACK_TIP.y - Math.sin(ang) * L / 2;
-  const o = { type: 'leaf', x: cx, y: cy, ang, L, W, layer: 'focus', seed: 0.37 };
-  // Colliders: capsules down the leaf's axis, as wide as the blade.
-  const hw = (d) => (W / 2) * Math.pow(Math.min(1, d / L), 0.55);
-  const ds = [30, 120, 300, 600, 1000, 1600, 2500];
-  const at = (d) => [BACK_TIP.x - Math.cos(ang) * d, BACK_TIP.y - Math.sin(ang) * d];
-  const capsules = [];
-  for (let k = 0; k < ds.length - 1; k++) {
-    const [ax, ay] = at(ds[k]), [bx, by] = at(ds[k + 1]);
-    capsules.push({ ax, ay, bx, by, r: Math.max(8, hw((ds[k] + ds[k + 1]) / 2) * 0.92) });
-  }
-  o.collide = { capsules, circles: [] };
-  world.obstacles.push(o);
-  return o;
-})();
-const lm = { fwdLatch: false, near: false, log: [] };
+const PORTAL = { placed: false, found: false, x: 0, y: 0, a: 0, reach: 45 };
+/** Chaos counts as on guard while it is this close to the portal (and not beaten or leaving). */
+const GUARD_R = 480;
+const beacon = makePrey('bursaria', 0, -1e6, 0.6, rng(29));
+const leaf = world.leaf;
+const lm = { fwdLatch: false, near: false, nearFwd: false, log: [], turned: false, hinted: false };
+// When each encounter was first met (for tests and tuning): t is seconds since the start, d µm from it.
+const challengeLog = {};
+function logChallenge(kind, c) {
+  if (challengeLog[kind] || !c) return;
+  challengeLog[kind] = { t: +(S.time - pacing.t0).toFixed(2), d: Math.round(distFromStart(c.body.cx, c.body.cy)), slot: c.slot };
+}
 function stepBeacon(dt) {
   const b = beacon;
-  // it wanders in a loose circle round its spot, low over the slide
-  const dx = FWD_HOME.x - b.x, dy = FWD_HOME.y - b.y;
-  if (Math.hypot(dx, dy) > 170) {
+  if (!PORTAL.placed) return;
+  // it wanders in a small loose circle round the portal, low over the slide
+  const dx = PORTAL.x - b.x, dy = PORTAL.y - b.y;
+  if (Math.hypot(dx, dy) > 70) {
     const want = Math.atan2(dy, dx);
     let da = want - b.th; da = Math.atan2(Math.sin(da), Math.cos(da));
-    b.th += clamp(da, -1, 1) * dt * 1.2;
+    b.th += clamp(da, -1, 1) * dt * 1.6;
   }
   b.state = 'swim';
-  b.update(dt * Math.min(S.swimK, 1) * 0.6);
+  b.update(dt * Math.min(S.swimK, 1) * 0.45);
+}
+/** Is Chaos on guard at the portal (on or near its post, not beaten, not leaving)? */
+function guarded() {
+  if (!PORTAL.placed) return true;
+  if (!chaos.on || chaos.beaten || chaos.state === 'leaving') return false;
+  return Math.hypot(chaos.body.cx - PORTAL.x, chaos.body.cy - PORTAL.y) < GUARD_R;
+}
+/** Put the portal on its ring at bearing a, with Chaos on guard just inside it. */
+function placePortal(a) {
+  const [x, y] = ringPoint(RINGS.portal, a);
+  Object.assign(PORTAL, { placed: true, found: false, x, y, a });
+  beacon.x = x + 40; beacon.y = y; beacon.th = a + Math.PI / 2;
+  glow.setPosition(x, y, 0);
+  glow.group.visible = true;
+  // its rest when beaten: off to one side of the portal, along the ring and a little out
+  const side = [0.5, -0.5].map((da) => ringPoint(RINGS.portal + 250, a + da)).find(([rx, ry]) => leafDist(rx, ry) > LEAF.W / 2 + 500) || ringPoint(RINGS.portal + 900, a);
+  chaos.on = true;
+  chaos.setPost(...ringPoint(RINGS.chaos, a), { x: side[0], y: side[1] });
+  lm.turned = false; lm.hinted = false;
+}
+/** Once a game: the portal at the bearing of the first player RINGS.place out, out of everyone's view. */
+function placeRings() {
+  if (PORTAL.placed) return;
+  let lead = null;
+  for (const c of cells) if (!c.caught.active && !c.p.waiting && (!lead || distFromStart(c.body.cx, c.body.cy) > distFromStart(lead.body.cx, lead.body.cy))) lead = c;
+  if (!lead || distFromStart(lead.body.cx, lead.body.cy) < RINGS.place) return;
+  const a0 = bearingFromStart(lead.body.cx, lead.body.cy);
+  for (let i = 0; i < 25; i++) {
+    const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.05;
+    const [px, py] = ringPoint(RINGS.portal, a), [cx, cy] = ringPoint(RINGS.chaos, a);
+    if (portalRoom(a) && unseen(px, py, 200) && unseen(cx, cy, CHAOS_R + 260)) { placePortal(a); logChallenge('portalPlaced', lead); return; }
+  }
 }
 /** Where each player stands with respect to the landmarks; posts them. */
 function checkLandmarks() {
-  let near = false;
+  let near = false, nearFwd = false, dmin = Infinity;
   for (const c of cells) {
     const b = c.body;
     c.atBack = !c.caught.active && (Math.hypot(b.cx - BACK_TIP.x, b.cy - BACK_TIP.y) < b.req + 260 || b.nearest(BACK_TIP.x, BACK_TIP.y).d < 90);
     if (c.atBack) near = true;
-    c.atFwd = !c.caught.active && b.nearest(beacon.x, beacon.y).d < beacon.sp.W / 2 + 45;
+    c.atFwd = false;
+    if (!PORTAL.placed || c.caught.active) continue;
+    const d = Math.hypot(b.cx - PORTAL.x, b.cy - PORTAL.y);
+    dmin = Math.min(dmin, d);
+    c.atFwd = d < b.req + 300 && b.nearest(beacon.x, beacon.y).d < beacon.sp.W / 2 + PORTAL.reach;
+    if (!PORTAL.found && !unseen(PORTAL.x, PORTAL.y, -60)) { PORTAL.found = true; lm.log.push({ type: 'found', slot: c.slot }); logChallenge('portalFound', c); }
+  }
+  if (PORTAL.placed) {
+    // nearing the way on: the shell starts loading the next world (no prompt is shown)
+    nearFwd = dmin < 1200;
+    if (nearFwd !== lm.nearFwd) { lm.nearFwd = nearFwd; embed.near('forward', nearFwd); }
+    if (!lm.hinted && dmin < 1000 && chaos.on && !chaos.beaten) { lm.hinted = true; hud.toast('Chaos guards the way on. Lure it off, or pinch its arms until it gives up', 3600); }
   }
   const fwd = cells.find((c) => c.atFwd);
   if (fwd && !lm.fwdLatch) {
     lm.fwdLatch = true;
-    lm.log.push({ type: 'landmark', kind: 'forward', slot: fwd.slot });
-    hud.toast(`${who(fwd)}A green Paramecium bursaria: follow it out into the pool`, 2600);
-    embed.landmark('forward', { player: fwd.slot });
+    if (guarded()) {
+      // turned back: Chaos is on guard (it turns on you)
+      lm.log.push({ type: 'turnedBack', slot: fwd.slot, t: +S.time.toFixed(2) });
+      if (!lm.turned) { lm.turned = true; hud.toast(`${who(fwd)}Turned back: Chaos is on guard. Lead it away from the glow first, then get round it`, 3600); }
+      lm.blocked = fwd;
+    } else enterPortal(fwd);
   }
-  if (!cells.some((c) => c.atFwd || Math.hypot(c.body.cx - beacon.x, c.body.cy - beacon.y) < c.body.req + 250)) lm.fwdLatch = false;
+  // turned back earlier but now open while still on it: go through
+  if (lm.blocked && fwd && !guarded()) { lm.blocked = null; enterPortal(fwd); }
+  if (!cells.some((c) => c.atFwd || (PORTAL.placed && Math.hypot(c.body.cx - PORTAL.x, c.body.cy - PORTAL.y) < c.body.req + 250))) { lm.fwdLatch = false; lm.blocked = null; }
   setNear(near);
+}
+/**
+ * The way on: player c has reached the open portal. This is the one place the
+ * zoom into the next world is triggered (embed.landmark('forward'); the shell
+ * runs the transition; standalone, embed.js shows a toast).
+ */
+function enterPortal(c) {
+  lm.fwdLatch = true;
+  lm.entered = true;
+  lm.log.push({ type: 'landmark', kind: 'forward', slot: c.slot, t: +S.time.toFixed(2) });
+  logChallenge('portal', c);
+  glow.burst();
+  const [sx, sy] = toScreen(PORTAL.x, PORTAL.y, c.slot);
+  portalLight.bloom(sx, sy, { scale: 1.1 });
+  audio.play('shared/portal-chime', { volume: 0.9 });
+  const k = cur; use(c); rumble(520, 0.55, 0.85); use(k);
+  hud.toast(`${who(c)}A green Paramecium bursaria: follow it out into the pool`, 2600);
+  embed.landmark('forward', { player: c.slot });
 }
 const promptEl = document.createElement('div');
 promptEl.style.cssText = 'position:fixed;left:50%;bottom:9vh;transform:translateX(-50%);z-index:21;padding:6px 14px;border-radius:999px;background:rgba(18,16,10,.62);color:#efe3c2;border:1px solid rgba(201,163,90,.55);font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;pointer-events:none;white-space:nowrap;display:none';
@@ -1664,13 +1779,56 @@ resize();
 
 cells.push(firstCell(players.get(0)));
 use(cells[0]);
-// The boss: the giant amoeba Chaos, between the start and the P. bursaria.
-const chaos = new Chaos(rng(41), view, ...along(CHAOS_AT.s, CHAOS_AT.l));
-chaos.restAt = (([x, y]) => ({ x, y }))(along(CHAOS_AT.s - 250, CHAOS_AT.l + 1500)); // it flows off to the side to rest
+// The boss: the giant amoeba Chaos, on guard at the portal. Off the slide
+// (far away, not stepped) until the portal is placed (placePortal).
+const chaos = new Chaos(rng(41), view, 0, -2e5);
+chaos.on = false;
 const CH = { gauge: null };
+// The portal's golden glow (shared/portal.js), drawn over the microscope image
+// (after the optics) with a camera looking down on the slide: the group is
+// turned so its "up" points at the viewer, and built at unit size and scaled in
+// the slide's plane only, so the glints' rise stays tiny against the camera's
+// distance and pixelHeight sizes them for the orthographic view. No beam (it
+// would point straight at the viewer).
+const GLOW_S = 100, GLOW_D = 10; // µm per unit (the pool is 1.35 units across); camera height
+const glowScene = new THREE.Scene();
+const glowCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+glowCam.position.z = GLOW_D;
+const glow = createPortalGlow({ THREE, scene: glowScene, size: 1, height: 0.9, beam: 0, count: 96, intensity: 1.7, pixelHeight: () => (view.bh || innerHeight) * GLOW_S * GLOW_D });
+glow.group.rotation.x = Math.PI / 2;
+glow.group.scale.set(GLOW_S, 1, GLOW_S);
+const portalLight = createPortalLight({ zIndex: 3 });
+{
+  // compiled now with the rest (and drawn once, off screen, for drivers that build at the first draw)
+  glow.group.traverse((o) => { o.visible = true; });
+  const done = () => {
+    const rt = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: false }), prev = renderer.getRenderTarget(), ac = renderer.autoClear;
+    try { renderer.setRenderTarget(rt); renderer.autoClear = true; renderer.render(glowScene, glowCam); } catch (e) { /* only a warm-up */ } finally {
+      renderer.setRenderTarget(prev); renderer.autoClear = ac; rt.dispose();
+      glow.group.visible = PORTAL.placed; glow.update(0, 0, glowCam);
+    }
+  };
+  if (renderer.compileAsync) renderer.compileAsync(glowScene, glowCam).catch(() => {}).then(done); else { renderer.compile(glowScene, glowCam); done(); }
+}
+/** The glow over the view just drawn (to the screen, or a split view's target). */
+function drawGlow(target) {
+  if (!PORTAL.placed || !glow.group.visible) return;
+  const [l, b, w, h] = view.view, m = GLOW_S * 6;
+  if (PORTAL.x < l - m || PORTAL.x > l + w + m || PORTAL.y < b - m || PORTAL.y > b + h + m) return;
+  const c = view.camera;
+  glowCam.left = c.left; glowCam.right = c.right; glowCam.top = c.top; glowCam.bottom = c.bottom;
+  glowCam.position.x = 0; glowCam.position.y = 0;
+  glowCam.updateProjectionMatrix();
+  const prev = renderer.getRenderTarget(), ac = renderer.autoClear;
+  renderer.setRenderTarget(target);
+  renderer.autoClear = false;
+  renderer.render(glowScene, glowCam);
+  renderer.autoClear = ac;
+  renderer.setRenderTarget(prev);
+}
 
 // Warm up: a polypodial resting cell, prey scattered round it.
-for (let i = 0; i < 10; i++) spawn(preyFor(0));
+for (const P of PATCHES) for (const key of P.kinds) spawnIn(P, key, true);
 ambient = [makePrey('paramecium', -500, 300, 0.4, rand), makePrey('colpidium', 400, -200, 2.4, rand)];
 for (const a of ambient) a.layer = 'above';
 for (let i = 0; i < 600; i++) {
@@ -1681,7 +1839,7 @@ for (let i = 0; i < 600; i++) {
 }
 S.camX = body.cx; S.camY = body.cy;
 C.A0init = body.A0;
-resetFungus(); // the warm-up does not use up the calm opening
+resetFungus(); // the clock for the encounter log starts after the warm-up
 
 let last = performance.now();
 let acc = 0;
@@ -1787,7 +1945,7 @@ function frame(now) {
       `${MODES[S.mode]} · ${ob.name} objective, field ${(ob.field / 1000).toFixed(1)} mm · focus ${S.focus >= 0 ? '+' : ''}${S.focus.toFixed(2)}`,
       `Time: amoeba ×${amoebaX} (pseudopods ×${Math.round(amoebaX * (body.opts.speed || 1))}) · swimmers ×${swimX} of real speed`,
       `${surge.active ? `SURGE ×${C.surgeK.toFixed(1)}` : surge.text()}${C.stuckN ? ` · STUCK on a trap ${C.stuckT.toFixed(1)} s` : ''}${C.bitten ? ` · bitten ${C.bitten}` : ''}`,
-      `Fungal traps: ${fungusText()}${caught.active ? ` · CAUGHT: ${FC.phase}` : ''}`,
+      `Fungal traps: ${fungusText()}${caught.active ? ` · CAUGHT: ${FC.phase}` : ''} · out ${Math.round(distFromStart(body.cx, body.cy))} µm${PORTAL.placed ? (guarded() ? ' · portal guarded' : ' · portal open') : ''}${chaos.on ? ` · Chaos ${chaos.state}` : ''}`,
       `Cell ${Math.round(L)} µm long · ${Math.round(body.A0 / 1000)}×10³ µm² · eaten ${C.eaten}${S.pinches ? ` · pinched off ${S.pinches}` : ''}`,
       `${C.cand ? `Cup: ${Math.round((C.cand.cup.wrap * 180) / Math.PI)}° round ${C.cand.prey.sp.name}` : 'Cup: none'}${C.closing ? ' · closing' : ''}`,
       cells.length > 1 ? `Players: ${cells.map((c) => `${c.p.name} eaten ${c.s.eaten}${c.caught.active ? ' (caught)' : c.p.waiting ? ' (waiting)' : ''}`).join(' · ')} · views ${split.layout.views.length}` : '',
@@ -1821,7 +1979,9 @@ function renderAll(dt) {
   // Its effects level: fewer granules drawn, then no chromatic fringes.
   const lvl = quality.level;
   const flags = lvl > 0 ? S.flags : { ...S.flags, chroma: false };
-  const args = { time: S.time, prey: [...prey, ...ambient, beacon], mode: S.mode, focus: S.focus, flags, granuleCount: Math.min(S.granules, [1100, 1800, 2600][lvl]), fragments };
+  glow.setOpen(!guarded());
+  glow.update(dt, S.time, glowCam);
+  const args = { time: S.time, prey: PORTAL.placed ? [...prey, ...ambient, beacon] : [...prey, ...ambient], mode: S.mode, focus: S.focus, flags, granuleCount: Math.min(S.granules, [1100, 1800, 2600][lvl]), fragments };
   // While split, each view's own passes (mask, property buffers, blurs) are
   // scissored to the part of the screen it shows (split.scissor).
   const o0 = view.optics, internal = [view.maskRT, o0.focusRT, o0.defRT, o0.tmpRT, o0.defBlurRT, o0.haloRT, o0.haloTmp];
@@ -1832,12 +1992,14 @@ function renderAll(dt) {
     view.setView(S.camX + o.x, S.camY + o.y, fieldW);
     view.render({ ...args, buffersOnly: !!borrow.id });
     if (borrow.id) renderBorrowed(dt);
+    drawGlow(null);
   } else {
     L.views.forEach((v, k) => {
       for (const t of internal) split.scissor(v, t);
       splitT.scissored = true;
       view.setView(S.camX + v.offset.x, S.camY + v.offset.y, fieldW);
       view.render({ ...args, target: split.target(v.index), update: k === 0 });
+      drawGlow(split.target(v.index));
     });
     // The optics composite is display-ready: no second encoding when the regions are drawn.
     const cs = renderer.outputColorSpace;
@@ -1865,7 +2027,15 @@ function renderAll(dt) {
   warnEl.style.display = warnEl.textContent ? 'block' : 'none';
   updateOverlay();
   marks.begin();
-  marks.drawSplit(split, { x: beacon.x, y: beacon.y, z: 0 }, { kind: 'forward', label: 'Pool', range: 7000 });
+  portalLight.begin();
+  // no arrow until the portal has been seen; then it points the way back to it,
+  // and the portal's golden light spills in from that edge (or haloes it in view): no text
+  if (PORTAL.found && !(embed.active && lm.entered)) {
+    const res = marks.drawSplit(split, { x: PORTAL.x, y: PORTAL.y, z: 0 }, { kind: 'forward', range: 7000 });
+    let d = Infinity;
+    for (const c of cells) d = Math.min(d, Math.hypot(c.body.cx - PORTAL.x, c.body.cy - PORTAL.y));
+    portalLight.drawSplit(split, res, { strength: clamp(1.15 - d / 2400, 0.3, 1), open: glow.open });
+  }
   marks.drawSplit(split, { x: BACK_TIP.x, y: BACK_TIP.y, z: 0 }, { kind: 'backdoor', label: 'Leaf', range: 4500 });
   if (cells.length > 1) drawRings(L, innerWidth / fieldW);
   drawPodMarks(L);
@@ -1943,7 +2113,6 @@ function drawRings(L, ppu) {
 function fungusText() {
   if (!S.traps) return 'off';
   const g = trapList()[0]?.grow ?? 0;
-  if (fungus.state === 'grace') return `absent (calm, ${Math.ceil(fungus.left)} s)`;
   const growing = g < 1 ? `growing ${Math.round(g * 100)}% · ` : '';
   return `${growing}${fungusOn() ? `sticky${pacing.cycles ? ` ${Math.ceil(fungus.left)} s` : ''}` : `dormant ${Math.ceil(fungus.left)} s`}`;
 }
@@ -2025,20 +2194,31 @@ window.__micro = {
     body.grid.build(body.x, body.y, N);
   },
   traps: trapList, chaos,
-  /** Where the challenges start, measured from the start along the way (µm). */
+  /** The rings (µm from the start), the trap hyphae's nearest points, and when each encounter was first met. */
   route() {
-    const half = ROUTE.length / 2;
     const traps = trapList().map((o) => {
       const c = Math.cos(o.ang), s = Math.sin(o.ang), h = o.L / 2;
-      let near = Infinity, nearS = Infinity;
-      for (let t = -h; t <= h; t += 5) { const x = o.x + c * t, y = o.y + s * t; near = Math.min(near, Math.hypot(x, y)); nearS = Math.min(nearS, progressOf(x, y) * ROUTE.length); }
-      return { nearest: Math.round(near), along: Math.round(nearS) };
+      let near = Infinity, far = 0;
+      for (let t = -h; t <= h; t += 5) { const d = Math.hypot(o.x + c * t, o.y + s * t); near = Math.min(near, d); far = Math.max(far, d); }
+      return { cluster: o.cluster, nearest: Math.round(near), farthest: Math.round(far) };
     });
-    const cd = Math.hypot(chaos.post.x, chaos.post.y);
-    return { length: ROUTE.length, half, forward: Math.round(Math.hypot(beacon.x, beacon.y)), forwardDeg: Math.round(Math.atan2(FWD_HOME.y, FWD_HOME.x) * 180 / Math.PI),
-      traps, chaos: { centre: Math.round(cd), membrane: Math.round(cd - CHAOS_R), wakes: Math.round(cd - CHAOS_WAKE) },
-      preyStart: prey.filter((p) => !p.captured).map((p) => p.sp.name) };
+    return { rings: { ...RINGS }, portalR: PORTAL_R, traps, patches: PATCHES.map((P) => ({ ring: P.ring, d: Math.round(Math.hypot(P.x, P.y)), r: P.r, n: prey.filter((p) => p.home === P && !p.captured).length })),
+      chaos: chaos.on ? { post: Math.round(Math.hypot(chaos.post.x, chaos.post.y)), wakes: CHAOS_WAKE, leash: CHAOS_LEASH, state: chaos.state } : null,
+      met: { ...challengeLog }, prey: prey.length };
   },
+  /** The portal for the level transition (the shell reads it): where it is (µm), whether it is placed, found, guarded or open, and Chaos. */
+  portal() {
+    return { placed: PORTAL.placed, found: PORTAL.found, x: PORTAL.x, y: PORTAL.y, bearing: PORTAL.a, reach: PORTAL.reach, beacon: { x: beacon.x, y: beacon.y },
+      guarded: PORTAL.placed && guarded(), open: PORTAL.placed && !guarded(), glow: +glow.open.toFixed(2),
+      chaos: { on: chaos.on, state: chaos.state, beaten: chaos.beaten, x: chaos.body.cx, y: chaos.body.cy, d: PORTAL.placed ? Math.round(Math.hypot(chaos.body.cx - PORTAL.x, chaos.body.cy - PORTAL.y)) : null } };
+  },
+  /** Testing: place the portal now at bearing `a` (radians from the start; default player `slot`'s bearing). */
+  placePortal(a = null, slot = 0) { const c = cellOf(slot); placePortal(a ?? bearingFromStart(c.body.cx, c.body.cy)); return window.__micro.portal(); },
+  /** Go through the portal now as player `slot` (what reaching it while open does). */
+  enterPortal(slot = 0) { enterPortal(cellOf(slot)); },
+  /** Testing: traps never arm and Chaos never wakes (scripted runs). */
+  passive(on = true) { S.passive = on; },
+  log: challengeLog,
   /** Test hook: player `slot` presses X round one of Chaos's arms (reach: how close each side must be). */
   /** Test hook: Chaos engulfs player `slot` now. */
   engulf: (slot = 0) => startEngulf(cellOf(slot)),
@@ -2052,7 +2232,12 @@ window.__micro = {
   /** Test hook: put player `slot` at the forward landmark (the P. bursaria) or the backdoor (the leaf tip). */
   teleport(kind, slot = 0) {
     const c = cellOf(slot);
-    if (kind === 'forward') { lm.fwdLatch = false; window.__micro.place(slot, beacon.x - 90, beacon.y); }
+    if (kind === 'forward') {
+      if (!PORTAL.placed) placePortal(bearingFromStart(c.body.cx, c.body.cy) || 0);
+      lm.fwdLatch = false;
+      const [x, y] = ringPoint(distFromStart(beacon.x, beacon.y) - 230, PORTAL.a);
+      window.__micro.place(slot, x, y);
+    }
     else window.__micro.place(slot, BACK_TIP.x + 230, BACK_TIP.y + 40);
     return c.slot;
   },

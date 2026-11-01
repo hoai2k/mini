@@ -1,6 +1,7 @@
-// The rotifer meadow: a crowd you push and bite through (design/combat-ideas.md,
-// "A set piece: pushing and biting through a crowd"), at the far end of leaf E
-// past halfway, before Prionchulus.
+// The rotifer meadows: crowds you push and bite through (design/combat-ideas.md,
+// "A set piece: pushing and biting through a crowd"), a band across every
+// spoke on the meadow ring (world.js RINGS.meadow), so whichever way you go out
+// you walk through one.
 //
 // The members are bdelloid rotifers (~150 µm extended here, ~40 µm across),
 // each attached to the leaf by its foot (the toes and spurs), body telescoped
@@ -24,7 +25,7 @@ import { OPT, OPTICAL_BLEND, OPTICAL_FRAG_HEAD } from '../shared/techniques/tard
 import { litMaterial } from './materials.js';
 import { LAYER_SPECIMEN } from './world.js';
 
-export const MEADOW = { u0: 12.0, u1: 17.4, count: 160, radius: 0.27 };
+export const MEADOW = { count: 110, radius: 0.27 };
 const H = 1.45;         // extended height (units of 100 µm)
 const BODY_R = 0.2;     // trunk radius
 
@@ -121,14 +122,16 @@ void main() {
 }
 
 export class Meadow {
-  constructor(scene, world) {
-    const L = (this.L = world.meadow);
+  /** One band of rotifers across `leaf` from u0 to u1 (leaf units). */
+  constructor(scene, world, { leaf, u0, u1, count = MEADOW.count, seed = 4242 }) {
+    const L = (this.L = leaf);
+    Object.assign(this, { u0, u1 });
     this.group = new THREE.Group();
     this.group.matrixAutoUpdate = false;
     this.group.matrix.copy(L.matrix);
     scene.add(this.group);
     const geo = rotiferGeometry();
-    const N = MEADOW.count;
+    const N = count;
     this.bend = new THREE.InstancedBufferAttribute(new Float32Array(N * 4), 4);
     this.bend.setUsage(THREE.DynamicDrawUsage);
     geo.setAttribute('aBend', this.bend);
@@ -140,10 +143,10 @@ export class Meadow {
     mesh.name = 'rotifer meadow';
     this.group.add(mesh);
     // u-v of the leaf as the crowd's 2D x-y; z is the leaf's upper surface.
-    const hw = L.hwAt((MEADOW.u0 + MEADOW.u1) / 2) * 1.2;
+    const hw = L.hwAt((u0 + u1) / 2) * 1.2;
     this.crowd = createCrowd({ scene: null, THREE, mesh, count: N, mode: '2d', z: L.thick / 2,
-      bounds: { minX: MEADOW.u0, maxX: MEADOW.u1, minY: -hw, maxY: hw },
-      radius: MEADOW.radius, speed: 0.05, playerRadius: 1.15, respawn: 14, seed: 4242 });
+      bounds: { minX: u0, maxX: u1, minY: -hw, maxY: hw },
+      radius: MEADOW.radius, speed: 0.05, playerRadius: 1.15, respawn: 14, seed });
     // generous bounds: the bend reaches ~2 units sideways
     mesh.boundingSphere.radius += 2.5;
     this.mesh = mesh;
@@ -171,7 +174,7 @@ export class Meadow {
   }
 
   /** Is a walker in the meadow (on the leaf's upper face, within its stretch)? */
-  inside(w, pad = 0) { return w.leaf === this.L && w.side > 0 && w.u > MEADOW.u0 - pad && w.u < MEADOW.u1 + pad; }
+  inside(w, pad = 0) { return w.leaf === this.L && w.side > 0 && w.u > this.u0 - pad && w.u < this.u1 + pad; }
 
   /**
    * walkers: the players' walkers. Returns, per walker, how crowded it is
@@ -246,4 +249,34 @@ export class Meadow {
 
   /** Testing: how many are extended now. */
   get extended() { return this.crowd.alive; }
+}
+
+/**
+ * Every band on the meadow ring, run as one: only the bands with someone in
+ * (or about to be) step their crowd; each band's mesh is culled per view.
+ */
+export class Meadows {
+  constructor(scene, world, bands) {
+    this.list = bands.map((b, i) => new Meadow(scene, world, { ...b, seed: 4242 + 97 * i }));
+    this.on = true;
+  }
+  get mesh() { return this; } // the Features switch sets mesh.visible
+  set visible(v) { for (const m of this.list) m.mesh.visible = v; }
+  /** Per walker, how crowded it is (0..1). Bands nobody is near rest (no work). */
+  update(dt, walkers, others = []) {
+    const out = walkers.map(() => 0);
+    for (const m of this.list) {
+      const near = walkers.some((w) => w.leaf === m.L) || others.some((o) => o.walker.leaf === m.L);
+      if (!near && m.idle) continue;
+      const c = m.update(dt, walkers, others);
+      m.idle = !near;
+      c.forEach((x, i) => (out[i] = Math.max(out[i], x)));
+    }
+    return out;
+  }
+  jab(w) { let n = 0; for (const m of this.list) n += m.jab(w); return n; }
+  reset() { for (const m of this.list) m.reset(); }
+  /** The band a walker is in (or null). */
+  at(w, pad = 0) { return this.list.find((m) => m.inside(w, pad)) || null; }
+  get extended() { return this.list.reduce((a, m) => a + m.extended, 0); }
 }

@@ -11,31 +11,50 @@
 //    its slime trail, egested food vacuoles and the sediment it has swept. Swim
 //    down to it and press Y.
 //
-// Positions in µm (slide at y = 0), placed along the route below.
+// Positions in µm (slide at y = 0). The challenges lie on rings round the
+// start, the same in every direction (micro/design/encounter-pattern.md); the
+// biofilm (the portal) is placed once a game on its ring, in the direction the
+// first player heads far enough (main.js), and starts hidden.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { volumeMaterial, pointsMaterial } from './optics.js';
 import { rng } from './geom.js';
 
-// The route: from the start (swim.js puts the cell here) straight to the
-// biofilm, up and to the right of the opening view. Everything along it is
-// placed by its progress (µm along DIR from START): the first half is calm
-// swimming and feeding (prey, Vorticella, diatoms, the light); the hunters,
-// the bloom and the bladderwort trap all come at or beyond halfway.
+// The rings round the start (µm from START, in the plane): a short calm
+// warm-up, then one challenge after another with a calm stretch between, the
+// same whichever way you head (micro/design/encounter-pattern.md).
+//   0–750      calm: prey, Vorticella, diatoms, Spirogyra, the sunlit patch
+//   750–1450   Dileptus's water (one Dileptus at 1000, moved round its ring to meet you)
+//   1600–2100  the Chlamydomonas bloom (one band at 1850, moved round its ring)
+//   2150–3050  two Didinium (at 2600, moved round their ring together)
+//   3150       the bladderwort trap's door (bladder at 3420), guarding
+//   3850       the portal: the biofilm on a leaf
+// At full speed (1.4 mm/s) the portal is a few seconds' swim; the challenges
+// are what take the time.
 export const START = new THREE.Vector3(-150, 0, 60);
-export const DIR = new THREE.Vector3(0.553, 0, 0.833).normalize(); // toward the biofilm
+export const RINGS = { warm: 750, dileptus: 1000, bloom: 1850, didinium: 2600, trap: 3420, portal: 3850 };
+/** The direction everything starts in (up and to the right of the opening view), until moved. */
+export const DIR = new THREE.Vector3(0.553, 0, 0.833).normalize();
 export const SIDE = new THREE.Vector3(-DIR.z, 0, DIR.x); // to the right of DIR (as the opening view sees it)
-export const ROUTE_LEN = 4600; // µm, start to biofilm: ≈3.3 s flat out, a minute or two of play
-export const HALF = ROUTE_LEN / 2;
-/** A point on the route: `u` µm along it, `side` µm to its right, at height y. */
+export const A0 = Math.atan2(DIR.z, DIR.x); // its bearing
+export const ROUTE_LEN = RINGS.portal; // start to portal
+export const HALF = RINGS.warm; // where the calm warm-up ends and the first challenge's water begins
+/** A point `u` µm out from the start along DIR, `side` µm to its right, at height y (scenery). */
 export const routePoint = (u, side = 0, y = 0, out = new THREE.Vector3()) => out.copy(START).addScaledVector(DIR, u).addScaledVector(SIDE, side).setY(y);
-/** Progress along the route (µm from the start toward the biofilm) of a world point. */
-export const progress = (p) => (p.x - START.x) * DIR.x + (p.z - START.z) * DIR.z;
-/** Lateral offset from the route line (µm, + to the right). */
+/** A point on the ring of radius r at bearing a (radians, from +x toward +z), height y. */
+export const ringPoint = (r, a, y = 0, out = new THREE.Vector3()) => out.set(START.x + Math.cos(a) * r, y, START.z + Math.sin(a) * r);
+/** Distance from the start in the plane (µm): how far out a point is. */
+export const distFromStart = (p) => Math.hypot(p.x - START.x, p.z - START.z);
+/** Bearing of a point from the start (radians). */
+export const bearingOf = (p) => Math.atan2(p.z - START.z, p.x - START.x);
+/** How far out a point is (µm from the start; the rings are the same in every direction). */
+export const progress = distFromStart;
+/** Lateral offset from the DIR line (µm, + to the right); scenery only. */
 export const lateral = (p) => (p.x - START.x) * SIDE.x + (p.z - START.z) * SIDE.z;
 
 export const LANDMARKS = {
-  forward: { pos: routePoint(ROUTE_LEN), r: 230, reachY: 120, label: 'Biofilm' },
-  // the way back: behind the start, the other way from every challenge
+  // the portal: placed on its ring once a game (main.js placePortal); `placed` until then false
+  forward: { pos: ringPoint(RINGS.portal, A0), r: 230, reachY: 120, label: 'Biofilm', placed: false, bearing: A0 },
+  // the way back: the amoeba's floor, behind the start (a fixed place, between the Dileptus and bloom rings)
   back: { pos: routePoint(-1500, -250), r: 240, reachY: 170, label: 'Amoeba' },
 };
 
@@ -150,5 +169,26 @@ export function createLandmarks(scene) {
     backGroup.add(remains);
   }
 
-  return { group, fwdGroup, backGroup, forward: F, back: B };
+  // The biofilm is built at its first spot; placing it rotates the group about
+  // the start and moves it out to its ring at the new bearing.
+  const F0 = F.pos.clone();
+  fwdGroup.visible = false;
+  return {
+    group, fwdGroup, backGroup, forward: F, back: B,
+    /** Put the biofilm on its ring at bearing a and show it. */
+    place(a) {
+      const d = a - A0;
+      fwdGroup.rotation.y = -d; // three.js yaw: +y rotation turns +x toward −z
+      const c = Math.cos(d), s = Math.sin(d);
+      const rx = F0.x - START.x, rz = F0.z - START.z;
+      F.pos.set(START.x + rx * c - rz * s, F0.y, START.z + rx * s + rz * c);
+      // the group's origin is the world origin: rotate about it, then shift so F0 lands on F.pos
+      const ox = F0.x * c - F0.z * s, oz = F0.x * s + F0.z * c;
+      fwdGroup.position.set(F.pos.x - ox, 0, F.pos.z - oz);
+      fwdGroup.updateMatrixWorld(true);
+      F.placed = true; F.bearing = a;
+      fwdGroup.visible = true;
+    },
+    unplace() { F.placed = false; fwdGroup.visible = false; },
+  };
 }

@@ -59,8 +59,8 @@ GROUPS = [
 SOUNDS = [
     # Shared: the portal (the way on to the next world), the same in every world.
     S("shared/portal-chime", "oneshot", 2.5, "Going through a portal (the way on): the success chime before the freeze and the zoom into the next world.",
-      "A warm magical golden shimmer: a soft bright glassy chime with a rising sparkle of tiny high bell tones and a gentle "
-      "airy swell that rings out and fades, wondrous and rewarding, like light glinting. Not electronic, no synth pads. " + CLEAN, 0.5),
+      "A warm magical golden shimmer: a soft glassy chime, a rising sparkle of tiny high bell tones and an airy swell that "
+      "rings out and fades, wondrous and rewarding. " + CLEAN, 0.5),
     # Springtail: the bog surface, the only level with real outdoor air.
     S("springtail/amb-bog", "loop", 12, "Ambience: the bog pool surface at springtail height.",
       "Calm outdoor ambience at the edge of a still bog pool on a mild day: a soft breeze over moss, faint water lapping, "

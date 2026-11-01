@@ -1639,7 +1639,7 @@ function enterPortal(P) {
 // world fades in under the same framing. All in frame time (dt is clamped),
 // so a slow machine plays it slower rather than skipping it. Standalone the
 // freeze holds a moment and time comes back.
-const OUTRO = { beat: 0.3, ease: 1.0, hold: 1.4, back: 0.6, giveUp: 8 };
+const OUTRO = { beat: 0.3, ease: 1.0, hold: 1.4, back: 0.6, giveUp: 8, rate: 1 }; // rate: tests slow it down
 let outro = null;
 const portalLight = createPortalLight({ zIndex: 3 });
 function startOutro(P) {
@@ -1656,7 +1656,7 @@ function startOutro(P) {
 /** Advance the outro by dt (frame time); returns the time scale for the world. */
 function stepOutro(dt) {
   const o = outro;
-  o.t += dt;
+  o.t += dt * OUTRO.rate;
   const k = THREE.MathUtils.smoothstep(o.t, OUTRO.beat, OUTRO.beat + OUTRO.ease);
   o.scale = 1 - k;
   if (o.scale <= 0 && o.frozenAt === null) {
@@ -1695,7 +1695,7 @@ function placePoseCamera(pose) {
   // the lens at that magnification (for the blur), focused on the speck
   const L = lens({ hfw: Math.max(0.2, 2 * r.halfW), N: APERTURES[rig.ai] });
   macroShared.uFocus.value = camera.position.distanceTo(m.c);
-  rig.dofK = 2.5;
+  rig.dofK = 8;
   return L;
 }
 
@@ -1823,7 +1823,7 @@ function render(dt) {
     const res = marks.drawSplit(split, props.position, { kind: 'forward', range: 600 });
     let d = Infinity;
     for (const P of recs()) d = Math.min(d, Math.hypot(P.x - PORTAL.x, P.z - PORTAL.z));
-    portalLight.drawSplit(split, res, { strength: THREE.MathUtils.clamp(1.15 - d / 260, 0.3, 1), open: props.glow.open });
+    portalLight.drawSplit(split, res, { strength: THREE.MathUtils.clamp(1.2 - d / 300, 0.5, 1), open: props.glow.open });
   }
   return L;
 }
@@ -1861,6 +1861,8 @@ const api = {
   enterPortal(slot = 0) { enterPortal(pls[slot] || pl); },
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
+  /** The outro's timings (seconds); `rate` slows it (tests). */
+  OUTRO,
   /** Testing: advance the outro by n frames of dt, rendering each (deterministic stills). */
   outroStep(n = 1, dt = 1 / 30) { for (let i = 0; i < n && outro; i++) { const ts = stepOutro(dt); if (ts > 0) step(dt * ts, null); render(dt); } return api.outro(); },
   get frames() { return frames; },

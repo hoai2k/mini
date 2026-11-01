@@ -98,10 +98,11 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 Inside the host, LS steers the DNA's leading end and A is a short *surge* (the
 strand pulled in faster; a departure).
 
-**Goal flow.** The HUD's first line always says what to do now: drift to Host
-A (with its distance; the brass chevron at the screen's edge points the way),
-then aim at a glowing gold receptor and press X, then (inside) get the genome
-in, or, damaged, find a partner to co-infect with.
+**Goal flow.** The HUD's first line always says what to do now: explore
+outward (with how far out you are of the 8.8 µm to the way on), then, once
+the way on has appeared, drift to the golden glow (the brass chevron points
+to it), deal with its guard, aim at the gold receptor and press X; inside, get
+the genome in; damaged, find a partner to co-infect with.
 
 **Goal.** Drift legs-first, grab a gold three-lobed receptor to attach, and get
 the whole genome (169 kbp, shown as a progress bar) into the cell past its
@@ -120,21 +121,26 @@ hunt hard, a near dead end). The third cell is the wrong host.
   stage; the shell's README treats `landmark('forward')` from the last world
   as the ending (its "The end of the light" screen). After the burst plays,
   the world posts `landmark {kind: 'forward', won: true, burst: 40, host}`;
-  standalone it shows its own Burst card instead.
-- **Back: the flagellum.** In open water above Host B, a flagellum of the
+  standalone it shows its own Burst card instead. `enterPortal(m)` in
+  `main.js` is the one function that fires it. The portal itself (Host A's
+  open receptor under the golden glow) leads inside the host; the burst at the
+  end of the inside phase is what finishes the chain.
+- **Back: the flagellum.** In the calm water beside the start, a flagellum of the
   Level 5 bacterium sweeps past (a turning helix). Drifting within ~0.55 µm
   of it posts `near {kind: 'back', label: 'Y: back to Sediment'}`, and Y
   there posts `landmark('back')`; anywhere else Y is the overlay.
-- **Edge marks** (`shared/landmark.js`): a brass chevron toward Host A's
-  front OmpC patch (the best odds) and a ring toward the flagellum, per view.
+- **Edge marks** (`shared/landmark.js`): no chevron until the way on has
+  been placed; then a brass chevron toward the golden receptor (and its light
+  spilling in from that edge, `createPortalLight`), and a ring toward the
+  flagellum, per view.
 - **Up to four local players** (`shared/players.js`): the roster comes from
   the shell (`embed.players`) or starts as P1 alone; anyone joins during play
   by pressing a button on another controller (posted as `join`). Each player
   has their own phage, its sheath in their colour. The view is the LEGO split
   (`shared/splitscreen.js`, image-plane offsets for this free-floating 3D
   world, with `capture` since the Goodsell pass draws to the screen): one view
-  together, split as phages drift apart. The amoeba hunts the nearest phage;
-  UV acts on each. A caught player plays the whole sequence, then drifts back
+  together, split as phages drift apart. The amoeba on guard reaches for the
+  phage nearest its post; the UV shafts act on each. A caught player plays the whole sequence, then drifts back
   in beside a teammate (no card; `captured` is posted); solo keeps the card.
   One player at a time can commit: the inside phase is a single shared view
   steered by the player who injected, while the others wait outside. Any
@@ -142,32 +148,51 @@ hunt hard, a near dead end). The third cell is the wrong host.
 
 ## Threats and pacing
 
-- **Placement: explore first, challenges from halfway.** The destination,
-  Host A (four receptor patches, the best odds), lies far up and to the right
-  of the start (about 12.5 µm on the straight line, `START` and `DEST` in
-  `world.js`), so the first half of the route is calm open water to explore.
-  Every challenge sits at or beyond halfway along it: the wrong-host decoy,
-  Host B with its matching spacer, the amoeba's edge (it also never reaches
-  for a phage short of halfway), the UV (only where a gap in a floating peat
-  mat lets the sun in, from halfway on, and only near the surface), the clay
-  shelter and the stray damaged phage beside it. The CRISPR boss is inside
-  the host. `__micro.debug.placements()` lists each one's fraction of the
-  route; the backdoor flagellum sits beside the start, off the route.
-- **A calm opening.** The amoeba also waits at least 45 s (`createHunger`).
-- **The amoeba's edge** (left), fought with the shared `createFight`: when
-  hungry it reaches a pseudopod lobe toward you (stalk), then **rears and
-  curls it** (the wind-up, 1.1 s: the lobe swells and flushes rose, its lips
-  spread wide and quiver, the tip lifts sideways, and the stats say WINDING
-  UP), then lunges (strike). **Fold your fibres (B)** and the strike slips off
-  you (blocked: it staggers back); a **fibre jab (X)** near the lobe makes it
-  recoil and pushes you off; **facing it** (your baseplate end, or the stick,
-  toward it) slowly wears its interest down. Interest at zero: it draws the
-  lobe back and leaves (retreat), and rests. *Amoebae grazing viruses is
-  [Unverified] in the spec.*
-- **UV** (top, in the sun gap): your integrity erodes in the UV-bright water;
-  bound to the clay platelet you are shielded [S103, S104]. At zero you are
-  not dead but **damaged** (dimmed, cracked, your glow fading); a second dose
-  while damaged is fatal.
+The world follows the encounter pattern every Micro Zoom world shares
+([`micro/design/encounter-pattern.md`](../../design/encounter-pattern.md)):
+a series of encounters and exploration, not a race, with nothing that runs
+down while you explore. The water has no up or down, so the rings round the
+start are **shells**, the same in every direction (`RINGS` in `world.js`;
+`__micro.debug.placements()` lists them and `debug.rings()` logs when each was
+reached and what moved):
+
+| From the start | What | How it meets you |
+| --- | --- | --- |
+| 0–2.2 µm | Calm warm-up (the backdoor flagellum sits here, off to one side) | — |
+| ~3 µm | **Humic flocs** | a shell of 30 static tangles, close enough that every bearing meets one |
+| ~4.8 µm | **Decoy hosts**: Host B (a matching CRISPR spacer) and the wrong host | each is moved round its shell to meet whoever approaches, only out of everyone's view and away from every phage (`moveRings`) |
+| ~6.5 µm | **UV sunfleck shafts** (a shell of 22) | static, visible from afar |
+| 8.8 µm | **The way on**: Host A's gold receptor under the golden glow, the amoeba on guard | placed once a game, out of view, at the bearing of whoever first gets past the UV shell |
+
+Drifting straight out takes about 30–40 s; dealing with what is on the way,
+two to three minutes. The calm breaks between shells are each a few seconds of
+drifting.
+
+- **No clocks.** The amoeba's old hunger timer, the UV's slow integrity drain
+  and its meter are gone. Hang about anywhere outside a shaft for as long as
+  you like.
+- **The way on and its guard (the boss outside).** The portal is Host A's
+  gold three-lobed receptor that faces the start, marked by the shared golden
+  sparkle and beacon (`shared/portal.js`, `createPortalGlow`) and, from the
+  edge of the view, its light (`createPortalLight`); the brass chevron
+  appears only once it has been placed. An amoeba grazes beside Host A, its
+  lobe hovering over the receptor. Come within ~1.7 µm and it reaches for you
+  (stalk), **rears and curls the lobe** (the wind-up, 1.1 s: it swells and
+  flushes rose, its lips spread wide and quiver), then lunges. **Fold your
+  fibres (B)** and the strike slips off (blocked); a **fibre jab (X)** makes
+  it recoil; **facing it** wears its interest down. Interest at zero: it draws
+  the lobe back **for good** and the receptor is open. Or **lure it**: it
+  follows you only out to ~2.6 µm from its post and returns slower than you
+  drift, so lead it out and slip round. **Grabbing the receptor while it is on
+  guard turns you back** (its lobe shoves you off). With the guard off, grab
+  the receptor (X): the fibres latch and the injection starts. *Amoebae
+  grazing viruses is [Unverified] in the spec.*
+- **UV sunfleck shafts.** Where gaps in the floating peat mat let the sun
+  through, a column of UV-B reaches down into the humic water [S104]: drawn
+  as violet light with rising glints, visible from afar. **Touch one and you
+  are damaged at once** (a violet flash; knocked out of the light; 2.5 s to
+  get clear); touch one again while damaged and you are destroyed. Damaged:
+  dimmed, cracked, the glow fading.
 - **The co-op revive: multiplicity reactivation** (`micro/design/combat-ideas.md`,
   phage idea 1; real for T-even phages, Luria 1947 [C26]). A damaged phage
   still grabs and injects, but its broken genome cannot work alone: its empty
@@ -175,20 +200,23 @@ hunt hard, a near dead end). The third cell is the wrong host.
   (B gives up). A teammate who injects into the **same host** recombines with
   it: the teammate goes on inside and the damaged player is whole again,
   beside the host. Two damaged players revive each other the same way. Solo, a
-  **stray UV-damaged phage** drifts below the clay: come close while damaged
-  and it pairs with you, landing beside you to co-infect whichever host you
-  inject, so you go inside whole. A damaged phage alone in a host fails after
-  5 s (solo) and drifts back in at the start.
-- **Clay / peat platelet**: extended fibres stick to it [S103]. A trap, but
-  a shelter from UV. Fold the fibres (B) to slip free.
+  **stray UV-damaged phage** drifts in nearby (out of view, ~1.7 µm off) the
+  first time you are damaged: come close and it pairs with you, landing beside
+  you to co-infect whichever host you inject, so you go inside whole. A
+  damaged phage alone in a host fails after 5 s (solo, said on screen) and
+  drifts back in at a safe spot.
+- **Lost a life?** You drift back in at a safe spot about 1.6 µm back toward
+  the start from where you were lost (clear of the shafts and flocs), or
+  beside a teammate; never further back than that.
+- **Clay / peat platelet** (beside Host B, moving with it): extended fibres
+  stick to it [S103]. Fold the fibres (B) to slip free.
 - **The wrong host**: a Gram-positive with no outer membrane and no OmpC. The
   fibres slide off; fold them to pass cleanly.
-- **Humic flocs** (new; MP-R21 is the reference request): four loose,
-  slowly turning tangles of humic matter drifting past halfway (`FLOCS` in
-  `world.js`, listed by `debug.placements()`'s route rule). Extended fibres
-  snag in one: it drags you in and slows you to a crawl; fold them (B) and
-  you slip through. Bog water is rich in humic matter **[Unverified for the
-  size and stickiness drawn]**.
+- **Humic flocs** (new; after MP-R21): a shell of 30 loose, slowly turning
+  tangles of humic matter (`FLOCS` in `world.js`). Extended fibres snag in
+  one: it drags you in and slows you to a crawl; fold them (B) and you slip
+  through. Bog water is rich in humic matter **[Unverified for the size and
+  stickiness drawn]**.
 - **Inside: the boss, a CRISPR-Cas complex** (type I, shaped after the delivered
   sheet `assets/reference-sheets/boss-cas.webp`: Cascade, a bulky blue body
   of Cas7 subunits curled round a yellow groove carrying the red crRNA guide,
