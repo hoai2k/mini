@@ -52,7 +52,7 @@ renderer.autoClear = false;
 // --- players: P1 on the keyboard and the first controller; 2-4 join with any button on another ---
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { hud.toast(`Player ${p.slot + 1} joined`); embed.join(p.slot, p.color, p.name); },
+  onJoin: (p) => { hud.toast(`Player ${p.slot + 1} joined`); embed.join(p.slot, p.color, p.name, players.toJSON()); }, // the roster rides along, so the shell carries this player into the next world
   onLeave: (p) => { hud.toast(`Player ${p.slot + 1} left`); embed.leave(p.slot); },
   onChange: (list) => { if (hud) hud.players(list); },
 });

@@ -139,7 +139,7 @@ const opt = { righting: true, slow: true, uPose: true, menisci: 1, rumble: true,
 const joins = [];
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { joins.push({ slot: p.slot, padIndex: p.padIndex }); syncPlayers(); hud.toast(`Player ${p.slot + 1} joined`); embed.join(p.slot, p.color, p.name); },
+  onJoin: (p) => { joins.push({ slot: p.slot, padIndex: p.padIndex }); syncPlayers(); hud.toast(`Player ${p.slot + 1} joined`); embed.join(p.slot, p.color, p.name, players.toJSON()); }, // the roster rides along, so the shell carries this player into the next world
   onLeave: (p) => { syncPlayers(); hud.toast(`Player ${p.slot + 1} left`); embed.leave(p.slot); },
   onChange: (list) => hud && hud.players(list),
 });

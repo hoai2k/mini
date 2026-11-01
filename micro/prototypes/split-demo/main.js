@@ -148,7 +148,7 @@ makeBody(players.get(0), new THREE.Vector3(0, 0, 0));
 
 const hud = mountHud({
   title: 'Split screen',
-  sub: 'Up to four players. Walk apart and the view splits like the LEGO games; come back together and it merges. The brass chevron points to the next stage, the ring to the way back.',
+  sub: 'Up to four players. Walk apart and the view splits like the LEGO games; come back together and it merges. (The edge marks, a chevron to the next stage and a ring to the way back, are switched off in shared/landmark.js: the game has no arrow.)',
   controls: hudControls({
     move: 'Walk (relative to the view)',
     camera: 'Turn the shared camera (any player)',
