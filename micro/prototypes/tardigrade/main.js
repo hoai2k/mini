@@ -638,7 +638,8 @@ function inputOf(a, inMenu) {
   return { P: (b) => a.pad.pressed(b), D: (b) => a.pad.down(b), dashPressed: a.ctl.dash.pressed(), ls: a.ctl.move() };
 }
 
-const api = window.__micro = { SOFTWARE, scene, camera, renderer, world, walker, creature, life, mic, view, features, applyMode, pad, predator, dash, capture, paused: false,
+const api = window.__micro = { cullViews: true, // per-view culling of the animals (false for A/B checks)
+  SOFTWARE, scene, camera, renderer, world, walker, creature, life, mic, view, features, applyMode, pad, predator, dash, capture, paused: false,
   players, animals, split, marks, places, landmarks: lm, boss, quality, get captor() { return captor; },
   get time() { return time; },
   /** Testing: one fixed step with the left stick at (x, y) on screen (null: hands off). */
@@ -1123,7 +1124,54 @@ function drawRings(L) {
   g.restore();
 }
 
+// --- per-view culling of the animals ---------------------------------------
+// Every animal's meshes are deformed on the GPU (frustumCulled = false), so
+// three.js would draw every player and Milnesium (≈170 k triangles each) in
+// every view. Here each animal is tested against the view's own frustum, or,
+// once the microscope knows it, the scissored part of its buffer the view
+// writes, and hidden for that view only. The bound is 1.5× the rest pose's
+// reach (the deformed pose stays within it: measured ≤ 0.99×) plus a margin,
+// so nothing that could touch a written pixel is dropped: the image is the same.
+const cullF = new THREE.Frustum(), cullM = new THREE.Matrix4(), cullS = new THREE.Sphere(), cullHid = [];
+const restReach = new Map();
+function reachOf(c) {
+  let r = restReach.get(c);
+  if (r === undefined) {
+    r = 0;
+    c.group.traverse((x) => { if (x.isMesh) { const g = x.geometry; if (!g.boundingSphere) g.computeBoundingSphere(); r = Math.max(r, g.boundingSphere.center.length() + g.boundingSphere.radius); } });
+    restReach.set(c, r);
+  }
+  const e = c.group.matrixWorld.elements;
+  return (r * 1.5 + 0.2) * Math.max(Math.hypot(e[0], e[1], e[2]), Math.hypot(e[4], e[5], e[6]), Math.hypot(e[8], e[9], e[10]));
+}
+/** Hide the animals outside `box` ([x0, y0, x1, y1], normalised device coordinates; null: the whole view) for this view's render. */
+function cullAnimals(cam, box = null) {
+  if (!api.cullViews) return;
+  cullM.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
+  cullF.setFromProjectionMatrix(cullM);
+  if (box) {
+    const e = cullM.elements, P = cullF.planes; // clip-space rows: inside x0 w <= x <= x1 w, y0 w <= y <= y1 w
+    P[0].setComponents(box[2] * e[3] - e[0], box[2] * e[7] - e[4], box[2] * e[11] - e[8], box[2] * e[15] - e[12]).normalize();
+    P[1].setComponents(e[0] - box[0] * e[3], e[4] - box[0] * e[7], e[8] - box[0] * e[11], e[12] - box[0] * e[15]).normalize();
+    P[2].setComponents(e[1] - box[1] * e[3], e[5] - box[1] * e[7], e[9] - box[1] * e[11], e[13] - box[1] * e[15]).normalize();
+    P[3].setComponents(box[3] * e[3] - e[1], box[3] * e[7] - e[5], box[3] * e[11] - e[9], box[3] * e[15] - e[13]).normalize();
+  }
+  for (let i = 0; i <= animals.length; i++) {
+    const c = i < animals.length ? animals[i].creature : predator.creature;
+    if (!c || !c.group.visible) continue;
+    cullS.center.setFromMatrixPosition(c.group.matrixWorld);
+    cullS.radius = reachOf(c);
+    if (!cullF.intersectsSphere(cullS)) { c.group.visible = false; cullHid.push(c.group); }
+  }
+}
+function uncullAnimals() { for (const g of cullHid) g.visible = true; cullHid.length = 0; }
+
 function drawView(v, target, dt) {
+  cullAnimals(camera);
+  try { drawViewCulled(v, target, dt); } finally { uncullAnimals(); }
+}
+
+function drawViewCulled(v, target, dt) {
   const members = v && v.slots && v.slots.length ? animals.filter((a) => v.slots.includes(a.slot)) : [p1];
   const at = _at.set(0, 0, 0);
   for (const a of members) at.add(a.shown || a.walker.dispPos);
@@ -1136,7 +1184,8 @@ function drawView(v, target, dt) {
   for (const m of [particles.optMat, ...animals.filter((a) => a.particles).map((a) => a.particles.optMat)]) m.uniforms.uPx.value = H / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
   const micP = { ref, focus: view.focus, cocPerUnit: ob.coc, dof: ob.dof, pxPerUnit, time, backOff: _bo.set(view.yaw * 0.15, view.pitch * 0.1, 1), target, viewScale: viewScale(),
     // split: only this view's region of each optical pass (shared/splitscreen.js)
-    region: target && v ? (w, h) => split.rectFor(v, w, h) : null };
+    // (and, knowing the rect, hide the animals outside it too: the passes write nothing there)
+    region: target && v ? (w, h) => { const r = split.rectFor(v, w, h); if (r && w > 0 && h > 0) cullAnimals(camera, [r.x / w * 2 - 1, r.y / h * 2 - 1, (r.x + r.w) / w * 2 - 1, (r.y + r.h) / h * 2 - 1]); return r; } : null };
   if (borrow.id && !target) {
     if (borrow.id === 'semMite') {
       looks.semScene(scene, camera, { dt, umPerUnit: 100, cls: (o) => (bodyMeshes.has(o) ? CLS.CUTICLE : leafMeshes.has(o) ? CLS.LEAF : CLS.LITTER) });

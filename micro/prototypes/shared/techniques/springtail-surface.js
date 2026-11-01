@@ -86,26 +86,54 @@ export class RippleField {
   /**
    * Keep the window centred near (x, z): when the point strays more than
    * `slack` of the window from the centre, shift the fields by whole cells.
-   * Ripples that scroll out are lost; new water comes in calm.
+   * Ripples that scroll out are lost; new water comes in calm. The water mask
+   * of cells still in the window is shifted with them; only the strips that
+   * come in are tested with inside() (after changing what inside() means for
+   * water already in the window, call buildMask()).
    */
   recenter(x, z, slack = 0.12) {
     const { n, dx } = this;
     const di = Math.round((x - this.ox) / dx), dj = Math.round((z - this.oz) / dx);
     if (Math.abs(di) < n * slack && Math.abs(dj) < n * slack) return false;
+    // shift h, p and s into zeroed buffers, rotating one spare (no allocation)
+    const i0 = Math.max(0, -di), i1 = Math.min(n, n - di); // destination columns with a source
+    let spare = this.spare || new Float32Array(n * n);
     for (const name of ['h', 'p', 's']) {
-      const a = this[name], b = new Float32Array(n * n);
-      for (let j = 0; j < n; j++) {
+      const a = this[name], b = spare;
+      b.fill(0);
+      if (i1 > i0) for (let j = 0; j < n; j++) {
         const sj = j + dj;
         if (sj < 0 || sj >= n) continue;
-        for (let i = 0; i < n; i++) { const si = i + di; if (si >= 0 && si < n) b[i + j * n] = a[si + sj * n]; }
+        b.set(a.subarray(i0 + di + sj * n, i1 + di + sj * n), i0 + j * n);
       }
       this[name] = b;
+      spare = a;
     }
-    this.s2 = new Float32Array(n * n);
+    this.spare = spare;
+    this.s2.fill(0);
     this.ox += di * dx; this.oz += dj * dx;
     this.origin.value.set(this.ox, this.oz);
-    this.buildMask();
+    this.shiftMask(di, dj);
     return true;
+  }
+  /** The mask after a shift by (di, dj) cells: reuse what is still in the window, test the rest. */
+  shiftMask(di, dj) {
+    const { n, size } = this, old = this.mask;
+    const m = this.maskSpare && this.maskSpare.length === n * n ? this.maskSpare : new Uint8Array(n * n);
+    for (let j = 0; j < n; j++) {
+      const sj = j + dj, z = (j + 0.5) * this.dx - size / 2 + this.oz;
+      for (let i = 0; i < n; i++) {
+        const k = i + j * n;
+        if (i === 0 || j === 0 || i === n - 1 || j === n - 1) { m[k] = 0; continue; }
+        const si = i + di;
+        // an inner cell of the old window: its mask is its inside() (the rim was forced dry)
+        if (si > 0 && sj > 0 && si < n - 1 && sj < n - 1) { m[k] = old[si + sj * n]; continue; }
+        const x = (i + 0.5) * this.dx - size / 2 + this.ox;
+        m[k] = this.inside(x, z) ? 1 : 0;
+      }
+    }
+    this.maskSpare = old;
+    this.mask = m;
   }
   idx(x, z) {
     const i = Math.floor((x - this.ox + this.size / 2) / this.dx), j = Math.floor((z - this.oz + this.size / 2) / this.dx);
@@ -303,6 +331,33 @@ float dimpleField(vec2 p, out vec2 grad) {
   return h;
 }
 float dimpleH(vec2 p) { vec2 g; return dimpleField(p, g); }
+// one meniscus's height term at p (0 beyond its reach): what dimpleField adds up
+float dimpleTerm(vec4 d, vec2 p) {
+  vec2 q = p - d.xy;
+  float r2 = dot(q, q), a2 = d.z * d.z, R2 = a2 * 36.0;
+  if (r2 >= R2) return 0.0;
+  float D = log((R2 + a2) / a2);
+  float g = log((R2 + a2) / (r2 + a2)) / D;
+  float w = 1.0 - r2 / R2;
+  return d.w * g * (w * w);
+}
+// dimpleH at c and at c +- e along x and z (the caustic taps) in one pass
+// over the dimples: a dimple that cannot reach within e of c is tested once,
+// not five times. Each tap sums the same terms in the same order as dimpleH.
+void dimpleTaps(vec2 c, float e, out float h0, out float hxp, out float hxm, out float hzp, out float hzm) {
+  h0 = 0.0; hxp = 0.0; hxm = 0.0; hzp = 0.0; hzm = 0.0;
+  if (c.x < uDimpleBox.x - e || c.y < uDimpleBox.y - e || c.x > uDimpleBox.z + e || c.y > uDimpleBox.w + e) return;
+  for (int i = 0; i < MAXD; i++) {
+    if (i >= uDimpleN) break;
+    vec4 d = uDimples[i];
+    vec2 q = c - d.xy;
+    float reach = 6.0 * abs(d.z) + e;
+    if (dot(q, q) >= reach * reach * 1.0001 + 1e-6) continue;
+    h0 -= dimpleTerm(d, c);
+    hxp -= dimpleTerm(d, c + vec2(e, 0.0)); hxm -= dimpleTerm(d, c - vec2(e, 0.0));
+    hzp -= dimpleTerm(d, c + vec2(0.0, e)); hzm -= dimpleTerm(d, c - vec2(0.0, e));
+  }
+}
 `;
 
 const WATER_VS = /* glsl */ `
@@ -385,7 +440,10 @@ void main() {
   vec2 sp = fp - Ls.xz / Ls.y * depth;
   float c = 1.0;
   if (uCaustics > 0.5) {
-    float s0 = totalH(sp), sx = totalH(sp + vec2(e, 0.0)) + totalH(sp - vec2(e, 0.0)), sz = totalH(sp + vec2(0.0, e)) + totalH(sp - vec2(0.0, e));
+    // totalH at sp and its four neighbours (the dimples summed in one pass)
+    float d0, dxp, dxm, dzp, dzm;
+    dimpleTaps(sp, e, d0, dxp, dxm, dzp, dzm);
+    float s0 = rippleH(sp) + d0, sx = (rippleH(sp + vec2(e, 0.0)) + dxp) + (rippleH(sp - vec2(e, 0.0)) + dxm), sz = (rippleH(sp + vec2(0.0, e)) + dzp) + (rippleH(sp - vec2(0.0, e)) + dzm);
     float lap = (sx + sz - 4.0 * s0) / (e * e);
     c = clamp(1.0 / max(1.0 + lap * depth * 0.25, 0.12), 0.15, 5.0);
   }
