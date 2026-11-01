@@ -56,13 +56,59 @@ When dead (eaten or a tun that did not wake), A starts a new day.
   a fade, and you wake at whichever start spot is furthest from it (in
   multiplayer, beside a teammate).
 
+## The route: calm first, every challenge past halfway
+
+The pool tip is ~3.5 mm from the start (it was ~1 mm), in the same direction
+(the view opens with it up and to the right). The way runs down onto the
+Sphagnum leaf, along it to its tip, which rests on the broad **leaf E**; at
+leaf E's far end is the **rotifer meadow**; its tip rests on the **pool leaf**
+(a second Sphagnum leaf), where **Prionchulus** guards the last stretch to
+the tip. The first half (leaf A, the Sphagnum leaf, the start of leaf E) is
+calm: exploring and feeding (50 food items across seven leaves).
+
+| Challenge | Where (progress, start 0 .. pool tip 1) | Starts when |
+| --- | --- | --- |
+| *Milnesium* hunting | browses at 0.61 among the rotifers | it hunts only a player at progress ≥ 0.5 (0.45 once stalking) |
+| The rotifer meadow | leaf E u 12-17.4: 0.54 to 0.70 | first contact (measured 0.50) |
+| *Prionchulus* | post at 0.86, wakes within 650 µm | measured at 0.69 |
+
+Measured with a scripted walk along the route (hunger "Always", no calm
+opening, so the earliest possible): *Milnesium* 0.51, meadow 0.50, the boss
+0.69. `__micro.route()` gives the static layout and `__micro.challenges`
+logs where each challenge first started. Eaten alone, you wake at the
+furthest checkpoint you had passed that is well away from what caught you
+(start, Sphagnum leaf ×2, leaf E ×2), not back at the start.
+
+## The rotifer meadow (`meadow.js`, `../shared/crowd.js`)
+
+~200 bdelloid rotifers (~190 µm extended, ~45 µm across) on leaf E's upper
+face, each anchored by its foot, the trunk telescoped up and leaning, the two
+wheel discs of the corona spread on top with a wave running round each rim
+(the beating cilia), swaying as they feed. The shared crowd runs in the
+leaf's own u-v plane: walking into them pushes their heads aside and they
+**bend** away from you from the foot (in the vertex shader) and spring back
+behind you. A **stylet jab (X)** into the meadow makes the rotifers in front
+contract onto their feet (bdelloids really withdraw the corona and contract
+when touched) and opens a lane; they re-extend ~14 s later, a little further
+off (they creep like leeches). They never harm you; a dense patch slows you
+by up to 25%. No timer. *Milnesium* shoves through them too. Scripted:
+walking alone crossed ~470 µm of meadow in 6 s; Features → Simulation →
+Rotifer meadow switches it off. Labelled departures: the density is a game
+choice (rotifer densities in moss were not read), and the jab clearing them is
+a game rule.
+
 ## The boss: Prionchulus (`nematode.js`)
 
 A predatory nematode, *Prionchulus muscorum*, a real hunter of tardigrades in
-moss films (`../../design/bosses.md`), guarding the Sphagnum leaf on the way
-to the pool tip. Drawn ~1.3 mm long and 60 µm wide (adults reach ~2 mm: scaled
-so the arena fits), a transparent tube with a denser pharynx, a darker
-intestine and the large tooth at the head, gliding with a nematode's wave.
+moss films (`../../design/bosses.md`), guarding the pool leaf on the last
+stretch to the pool tip. Drawn after the delivered sheet
+(`../assets/reference-sheets/boss-nematode.webp`): ~1.3 mm long and 52 µm
+wide (adults reach ~2 mm: scaled so the arena fits), a slim transparent worm
+with a blunt rounded head; at the nose the thick-walled, barrel-shaped buccal
+cavity with the one large dorsal tooth inside (it slides forward when bared);
+the cylindrical pharynx in the front fifth ending at a small cardia; a dark,
+lumpy intestine; a long tail tapering to a fine point. It glides with a
+nematode's wave and coils into an S as its tell.
 
 - Dormant at its post until a player comes within ~650 µm after the calm
   opening. Awake, a brass **resolve** gauge shows under the banner.
@@ -84,16 +130,14 @@ optics as everything else; `../shared/landmark.js` adds a quiet mark near the
 edge of each view when they are off screen: a brass chevron labelled Pool
 towards the way on, a hollow ring labelled Moss towards the way back.
 
-- **Forward: the pool tip.** The tip of the Sphagnum leaf below dips into the
-  hollow pool, towards the amoeba's pool floor (design §2.6). Beyond it lies
+- **Forward: the pool tip.** The tip of the far Sphagnum leaf (the pool
+  leaf, at the end of the route above) dips into the hollow pool, towards the amoeba's pool floor (design §2.6). Beyond it lies
   open water: a slab whose bevelled shore is a bright meniscus line in DIC,
   where the film meets open water, with three green *Paramecium bursaria*
   swimming in it. The film is deep there (the leaf's last ~30% is wet:
   `world.js`). Reaching the last ~250 µm of that leaf, on either face, posts
   `embed.landmark('forward')` (once per visit); standalone, `embed.js` shows a
-  toast. From the start it lies right and down: along leaf A, then onto the
-  leaf below (a scripted straight walk got there in about 15 s; with feeding,
-  the Milnesium and the drying, a few minutes).
+  toast. From the start it lies right and down, ~3.5 mm off (see The route).
 - **Backdoor: the leaf axil.** The drier axil above, where leaf A and leaf D
   leave the stem (drawn as a chain of capsules, the overlaps reading as
   nodes), back up to the mite (§1.6). It lies the other way, left along leaf A
@@ -143,7 +187,7 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   common base, outer claw larger, Hypsibius-like). Inside, as separate meshes:
   buccal tube, two stylets with supports, pharyngeal bulb with placoids, two
   eyespots, a lobed midgut whose colour follows what was eaten, the gonad, and
-  ~80 free storage cells. Rigged by part on the CPU (`creature.js`): legs
+  ~80 free storage cells. Rigged by part (`creature.js`; the same rig on the GPU in the optical looks): legs
   stretch and turn from hip to foot, the trunk carries a lateral wave, bob and
   surge, and the tun contraction.
 - **Climbing (`gait.js`).** Discrete footholds: each stepping foot searches for
@@ -194,10 +238,10 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   4%) it refuses.
 - **Milnesium (`predator.js`).** A second Walker and Creature at 1.5× scale,
   with a wide buccal tube and no placoids (true of *Milnesium*), a browner
-  gut and a slightly denser cuticle. It starts far off, near the tip of the
-  steep leaf C (~1.4 mm away, out of the 10× and 12.5× fields and above the focal
-  plane, so at most a defocused shape), and for the first 40 s it only
-  browses there, so there is time to explore. Then it hunts: it heads for
+  gut and a slightly denser cuticle. It starts far off, among the rotifers it
+  hunts at the far end of leaf E (~2.1 mm away), and hunts only a player who
+  has come at least halfway (see The route); for the first 40 s it only
+  browses in any case. Then it hunts: it heads for
   you at under half speed, coming into view from the edge of the field, and
   within ~650 µm stalks at up to ~270 µm/s (faster than your walk, slower
   than your scramble). Its mouth on you is a bite: −20% reserves, and empty,
@@ -214,7 +258,8 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   ~52 s, starts stalking at 58 s and first bites at 61 s; walking about the
   leaves, 55 s in view and first bite at 63 s; walking straight at it, it is
   in view from 18 s but still only hunts at 40 s (first bite 47 s). Bites
-  then come 21–28 s apart (was 1.3 s).
+  then come 21–28 s apart (was 1.3 s). (Those timings were measured with it
+  on leaf C, before the route was lengthened.)
 - **The Drying (`life.js`, `world.js`).** Each leaf has a film-capacity field
   (wetter towards the stem, in hollows and where leaves nearly touch; margins
   dry first); film = capacity − dryness, which rises through the day. Dry leaf
@@ -250,7 +295,35 @@ DIC is the main look, implemented as the reusable technique
    times exp(−absorbance), with soft saturation for steep steps, grain and a
    vignette. Brightfield and a lit "hypothetical immersive" view are there to
    compare. On software GL (SwiftShader in headless checks) the page drops to
-   a low-resolution path; on real GPUs quality adapts to the frame rate.
+   a low-resolution path; on real GPUs the shared governor
+   (`../shared/quality.js`) adapts the quality to the frame rate.
+
+### Performance
+
+- **The part rig runs on the GPU** (`creature.js`): the body and every
+  internal organ keep their rest positions and the vertex shader applies the
+  trunk deformation and the eight leg frames (uniforms), so no 48k-triangle
+  mesh is rewritten and uploaded per animal per frame. The lit look and the
+  borrowed SEM switch the animal back to the CPU rig (they draw the geometry
+  with their own materials). Checked identical: max 1/255 between the two.
+- **Half-float optical buffers** (RGBA16F, `precision: 'half'`): half the
+  bandwidth of the heaviest passes. Compared against RGBA32F on the same
+  frame at 10×, 20× and 40×: mean difference 0.1/255, max 17/255, 0.002% of
+  pixels over 8/255. `?prec=float` restores float32, `?rig=cpu` the CPU rig.
+- **The quality governor** (`../shared/quality.js`, Features → Rendering):
+  the optical buffers are allocated once at 0.85 of the drawing buffer and
+  each view uses `quality.scale / 0.85` of them (`render({ viewScale })`,
+  split factor included), so neither a split nor a governor step reallocates;
+  the effects level sets the blur taps (10 / 16 / 26). `?q=high|medium|low`
+  fixes it. Split views scissor every optical pass to their region
+  (`split.rectFor`).
+- Claw scaling, the catches and the views reuse their matrices (no per-frame
+  `new Matrix4`).
+
+Measured with `scratchpad/perf/measure.mjs` (SwiftShader, 1280×720, GPU
+spoofed; before: the old auto quality at its lowest step, after: `?q=low`, the
+same 0.4 scale and 10 taps): see the table in the final report of this pass
+and `../../design/performance.md`.
 
 ## Threats and pacing
 
@@ -282,20 +355,21 @@ the simulation by hand.
 ## Features (Menu panel)
 
 Rendering: optical look (DIC / brightfield / lit), optical-path buffers
-(fixed), camera grain, vignette, out-of-focus backdrop (MP-T03).
+(fixed), quality governor (auto) and manual quality, camera grain, vignette, out-of-focus backdrop (MP-T03).
 Optics: shallow depth of field, three-wavelength interference, shear × bias
 strength, shear direction.
 World: cell walls as optical path, chloroplasts, water film, contact-line
 steepening, footholds read from delivered micrographs (fixed), drifting
 particles (MP-T04).
 Body: SDF body from parts (fixed), internal anatomy visible, claw size
-(enhanced / true), part rig (fixed).
+(enhanced / true), part rig (fixed; on the GPU in the optical looks).
 Motion: soft-body sway and surge, leg coordination (measured back-to-front
 wave / front-to-back / pairs in step), claws need cell walls, slope load and
 slipping.
 Simulation: time compression (240× / 60× / 1440× / paused), desiccation,
 revival risk, film capacity field (fixed).
-Simulation also has Milnesium (the predator, on), the calm opening (40 s /
+Simulation also has Milnesium (the predator, on), the rotifer meadow (on),
+the calm opening (40 s /
 20 s / 90 s / off) and Milnesium hunger (comes and goes / always / never).
 Motion also has the scramble (fixed) and smoothed trunk and camera (on; off
 is the old single lag).
@@ -354,7 +428,7 @@ Not borrowed:
 - **Speed:** up to 225 µm/s walking (~0.65 body lengths/s) and ~400 µm/s
   scrambling; Nirody et al. measured 79–263 µm/s, so the walk is at the
   fast end and the scramble is a stretch.
-- **Milnesium's rules** are game rules: the calm start, the slow approach,
+- **Milnesium's rules** are game rules: the calm start, hunting only past halfway, the slow approach,
   backing off after a bite, hunger that comes and goes, the sensing range, its speed, the
   −20% bites, the thin-film refuge threshold, backing off after a stylet jab
   (tardigrades do not really fight back this way) and giving up on a tun
@@ -362,7 +436,8 @@ Not borrowed:
   It is drawn as this prototype's animal at 1.5× with a wider buccal tube and
   no placoids, not as a separate *Milnesium* model (no peribuccal papillae,
   different claws).
-- **Not added yet:** rotifers or nematodes as moving prey or competition.
+- **Rotifers** are a crowd to push through (the meadow), not prey or
+  competition; free-living nematodes other than the boss are not added.
 - **Revival** odds are invented to make the choice matter.
 
 ## Sources

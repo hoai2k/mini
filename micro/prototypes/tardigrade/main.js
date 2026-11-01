@@ -254,8 +254,8 @@ F({ id: 'sdf', group: 'Body', label: 'SDF body from anatomical parts', fixed: tr
 F({ id: 'internals', group: 'Body', label: 'Internal anatomy visible', on: true, about: 'Show the organs through the translucent cuticle.', onChange: (v) => { view.internals = v; for (const a of animals) for (const r of a.creature.internals) r.mesh.visible = v; } });
 F({ id: 'claws', group: 'Body', label: 'Claw size', choices: ['Enhanced (1.6× long, ~3× thick)', 'True size'], value: 'Enhanced (1.6× long, ~3× thick)',
   about: 'Real claws are ~10 µm: barely a few pixels at 20×. Enhanced so the grip reads.', onChange: (v) => (view.claws = v.startsWith('True') ? 0.62 : 1) });
-F({ id: 'rig', group: 'Body', label: 'Part rig on the CPU', fixed: true,
-  about: 'Each vertex knows its part: legs stretch and turn from hip to foot (telescoping lobopods), the trunk carries a travelling lateral wave and the tun contraction, blended where parts meet.' });
+F({ id: 'rig', group: 'Body', label: 'Part rig (on the GPU)', fixed: true,
+  about: 'Runs in the vertex shader in the optical looks (the lit look and the borrowed SEM use the same rig on the CPU). Each vertex knows its part: legs stretch and turn from hip to foot (telescoping lobopods), the trunk carries a travelling lateral wave and the tun contraction, blended where parts meet.' });
 F({ id: 'sway', group: 'Motion', label: 'Soft-body sway and surge', on: true, about: 'The trunk bends side to side with the gait and surges with each wave of legs.', onChange: (v) => (view.sway = v) });
 let miteGait = false;
 F({ id: 'gait', group: 'Motion', label: 'Leg coordination', choices: Object.keys(GAITS), value: Object.keys(GAITS)[0],
