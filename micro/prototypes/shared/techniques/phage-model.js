@@ -36,12 +36,24 @@ export const T4_COLORS = {
 // False light (the default look): the phage glows gold, translucent and faceted, against the teal water.
 export const T4_FL = {
   gold: { color: '#e9a83a', color2: '#ffd98a', keep: 0, glow: 0.42, glowColor: '#ffb23a', trans: 0.85, spec: 0.9, scale: 0.6 },
-  capsid: { color: '#f4bc54', color2: '#ffe4a0', keep: 0, glow: 0.3, glowColor: '#ffbe4a', trans: 1, spec: 1.2, scale: 0.5 },
-  beads: { color: '#ffc964', color2: '#fff0c2', keep: 0, glow: 0.55, glowColor: '#ffc04a', trans: 0.7, spec: 0.8, scale: 0.8 },
-  dna: { color: '#fff1c4', color2: '#ffd27a', keep: 0, glow: 1.0, glowColor: '#ffcf6a', trans: 0.4, spec: 0.4 },
+  capsid: { color: '#c98a2a', color2: '#e8b860', keep: 0, glow: 0.12, glowColor: '#ffb43a', trans: 0.9, spec: 1.2, scale: 0.5 },
+  beads: { color: '#e8a640', color2: '#f8cf78', keep: 0, glow: 0.18, glowColor: '#ffb840', trans: 0.9, spec: 0.6, scale: 0.8 },
+  dna: { color: '#ffd88a', color2: '#ffb850', keep: 0, glow: 0.32, glowColor: '#ffb84a', trans: 0.5, spec: 0.4 },
   sheath: { color: '#e9a83a', color2: '#ffd98a', keep: 0.75, glow: 0.48, glowColor: '#ffb23a', trans: 0.8, spec: 0.9, scale: 0.6 },
   fibre: { color: '#f0b04a', color2: '#ffe2a0', keep: 0, glow: 0.62, glowColor: '#ffbb44', trans: 0.7, spec: 0.6, scale: 1.2 },
 };
+
+function mergeSimple(list) {
+  let n = 0; for (const g of list) n += g.attributes.position.count;
+  const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3);
+  let o = 0;
+  for (const g of list) { pos.set(g.attributes.position.array, o * 3); nor.set(g.attributes.normal.array, o * 3); o += g.attributes.position.count; }
+  const m = new THREE.BufferGeometry();
+  m.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  m.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  m.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(n * 2), 2));
+  return m;
+}
 
 const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
@@ -143,6 +155,26 @@ export function createT4({ clip = true } = {}) {
   });
   caps.instanceMatrix.needsUpdate = true;
   head.add(caps);
+  // false light: the faceted capsid's edges as thin glowing gold struts (in place of the capsomer beads)
+  const edgeParts = [];
+  {
+    const seen = new Set();
+    for (const f of icos.faces) for (let e = 0; e < 3; e++) {
+      const a = f[e], b = f[(e + 1) % 3], key = Math.min(a, b) + ':' + Math.max(a, b);
+      if (seen.has(key)) continue; seen.add(key);
+      const A = V[a], B = V[b], len = A.distanceTo(B);
+      const c = new THREE.CylinderGeometry(0.11, 0.11, len, 4, 1, true);
+      c.translate(0, len / 2, 0);
+      c.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(UP, B.clone().sub(A).normalize())));
+      c.translate(A.x, A.y, A.z);
+      edgeParts.push(c.toNonIndexed());
+    }
+  }
+  const edgeGeo = mergeSimple(edgeParts);
+  const edgeMat = toonMaterial({ color: '#ffd27a', clip, fl: { color: '#ffd27a', color2: '#fff0c8', keep: 0, glow: 0.7, glowColor: '#ffc65a', trans: 0.3, spec: 0.5 } });
+  const edges = new THREE.Mesh(edgeGeo, edgeMat);
+  edges.visible = false;
+  head.add(edges);
   // DNA spool
   const dnaGeo = new THREE.TubeGeometry(dnaSpoolCurve(), 1100, 0.33, 5, false);
   const dnaMat = toonMaterial({ color: T4_COLORS.dna, mottle: 0.08, fl: T4_FL.dna });
@@ -309,7 +341,7 @@ export function createT4({ clip = true } = {}) {
     caps.ink.userData.inkOff = translucent; caps.ink.visible = !translucent && caps.ink.userData.inkOn !== false;
     dna.visible = mode !== 'solid';
     const planes = mode === 'cutaway' ? clipPlanes : [];
-    for (const m of [headMat, capsMat, head.ink.material, caps.ink.material, crackMat]) { m.clippingPlanes = planes; m.needsUpdate = true; }
+    for (const m of [headMat, capsMat, head.ink.material, caps.ink.material, crackMat, edgeMat]) { m.clippingPlanes = planes; m.needsUpdate = true; }
   }
   setCapsid('cutaway');
 
@@ -417,6 +449,8 @@ export function createT4({ clip = true } = {}) {
     },
     dispose(scene) { api.removeFrom(scene); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); fibreMesh.geometry.dispose(); },
     removeFrom(scene) { scene.remove(group); scene.remove(fibreMesh); },
+    /** The look: false light shows the capsid's glowing facet edges instead of its capsomer beads. */
+    setStyle(fl) { caps.visible = !fl; edges.visible = fl; edgeMat.clippingPlanes = headMat.clippingPlanes; edgeMat.needsUpdate = true; },
     set(o) { Object.assign(state, o); if (o.capsid && o.capsid !== api._capsid) { api._capsid = o.capsid; setCapsid(o.capsid); } },
     /** Clip the camera-facing half of the capsid (cutaway): pass the camera position. */
     setCutFrom(camPos) {

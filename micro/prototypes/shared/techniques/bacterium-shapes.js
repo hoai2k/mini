@@ -25,12 +25,14 @@
 // - Anything thinner than a pixel is widened to 0.6 px with its integrated
 //   amount kept (scaled by (r/r')² for strands, (r/r')³ for blobs), so a
 //   20 nm flagellum carries its true, tiny total into the point spread.
+// - shapes.inView(x, y, reach): false when a shape that size can't reach the
+//   current view (callers can skip building its material).
 // - Defocus: each shape has a height z; the further from the focal plane
 //   (beyond half the depth of field) the wider and fainter it is drawn,
 //   again with the amount kept.
 import * as THREE from '../vendor/three.module.min.js';
 
-export const SHAPE = { ROD: 0, STRAND: 1, CSTRAND: 2, DISC: 3, EDGE: 4, BELL: 5, CHAIN: 6, SLAB: 7 };
+export const SHAPE = { ROD: 0, STRAND: 1, CSTRAND: 2, DISC: 3, EDGE: 4, BELL: 5, CHAIN: 6, SLAB: 7, TRUMPET: 8 };
 
 const VS = /* glsl */ `
 precision highp float;
@@ -59,6 +61,7 @@ void main() {
   else if (type == 4) { lo = vec2(-L * 0.5, -r); hi = vec2(L * 0.5, abs(p1) + m + 2.0); }
   else if (type == 5) { lo = vec2(-L - m, -2.0 * L - m); hi = vec2(L + m, L * 0.35 + m); }
   else if (type == 6) { lo = vec2(-L * 0.5 - m, -m); hi = vec2(L * 0.5 + m, m); }
+  else if (type == 8) { lo = vec2(-abs(p1) * 3.0 - m, -r - m); hi = vec2(L + 0.5 * r + m, r + m); }
   else { lo = vec2(-L * 0.5, -r); hi = vec2(L * 0.5, abs(p1) + m + 1.0); }
   vec2 q = mix(lo, hi, position.xy * 0.5 + 0.5);
   vLocal = q;
@@ -165,6 +168,37 @@ void main() {
     float d = length(vec2(p.x - cx, p.y));
     t = chord(d, r, 3.0);
     if (uHasMag > 0.5) tex = 0.4 + 1.2 * texture(tMag, vec2((p.x / L) + 0.5, p.y / (8.0 * r) + 0.5)).r;
+  } else if (type == 8) {
+    // a trumpet ciliate (Stentor): foot at the origin, axis along +x, length L; the body flares
+    // from the foot's radius p1 to the oral disc of radius r at x = L, seen obliquely as an
+    // ellipse (0.42 r along the axis); longitudinal pigment stripes on the body; spiral grooves
+    // on the disc converging on the oral pouch; the holdfast a little flared disc at the foot.
+    float u = clamp(p.x / L, 0.0, 1.0);
+    float fr = abs(p1);
+    float w = fr + (0.56 * r - fr) * pow(u, 2.3);
+    float dB = abs(p.y) - w;
+    float tb = p.x < 0.0 ? 0.0 : clamp(2.0 * sqrt(max(w * w - p.y * p.y, 0.0)) * 0.05, 0.0, 3.2);
+    // the body runs in under the disc and fades out behind it (no seam where they meet)
+    tb *= smoothstep(-vBlur - uPx, 0.0, -dB) * (1.0 - smoothstep(L - 0.32 * r, L - 0.05 * r, p.x));
+    // the holdfast: a flared little disc round the foot
+    vec2 hf = vec2(p.x + fr * 0.6, p.y) / vec2(fr * 1.1, fr * 2.4);
+    float th = clamp((1.0 - length(hf)) * 2.5, 0.0, 1.6);
+    // the oral disc
+    vec2 e = vec2((p.x - L) / (0.42 * r), p.y / r);
+    float de = length(e);
+    vec2 mo = vec2(0.08, -0.12); // the oral pouch, a little off centre
+    vec2 q = e - mo;
+    float rho = length(q), th2 = atan(q.y, q.x);
+    float groove = 0.82 + 0.18 * sin(18.0 * th2 + 9.0 * log(rho + 0.05) - vC.x);
+    float td = clamp((1.0 - de) * 30.0, 0.0, 1.0) * mix(1.0, 3.2, smoothstep(0.05, 0.9, rho)) * groove;
+    td *= smoothstep(0.03, 0.16, rho); // the pouch opens into the body: a dark well
+    float rimD = abs(de - 1.0) * r;
+    td += 3.0 * (1.0 - smoothstep(0.0, 2.5 + vBlur, rimD)); // the thickened rim (the membranelle band)
+    // fine longitudinal pigment stripes (stentorin), following the flare
+    float stripes = 0.94 + 0.12 * smoothstep(0.7, 0.98, abs(sin(3.14159 * 14.0 * p.y / max(w, 1.0))));
+    t = max(max(tb * stripes, th), td) + 0.35 * min(tb, td);
+    rim = max(1.0 - smoothstep(0.0, 2.0, -dB), 1.0 - smoothstep(0.0, 2.5, rimD));
+    tex = 0.85 + 0.3 * fbm(p * 0.35 + p2);
   } else {
     // slab: the biofilm and sediment surface, top edge wavy at y = 0, thickness r
     float edge = p1 * (0.6 * sin(0.04 * p.x + p2) + 0.4 * sin(0.11 * p.x + 2.0 * p2));
@@ -233,6 +267,9 @@ export function createShapes(max = 4000) {
   return {
     scene, camera, uniforms, SHAPE,
     get count() { return n; },
+    /** The culling box for the next shapes (µm): set it to cover every view before drawing a split frame. */
+    cull(x0, y0, x1, y1) { view = { x0, x1, y0, y1 }; },
+    inView(x, y, reach) { return !(x + reach < view.x0 || x - reach > view.x1 || y + reach < view.y0 || y - reach > view.y1); },
     begin() { n = 0; },
     end() {
       geo.instanceCount = n;
@@ -255,6 +292,8 @@ export function createShapes(max = 4000) {
     edge(x, y, ang, L, depth, amp, seed, o = {}) { push(4, x, y, ang, L, depth, amp, seed, o, L + depth); },
     /** Peritrich bell: radius R, thickness cap, oral funnel half-width w. */
     bell(x, y, ang, R, cap, w, seed, o = {}) { push(5, x, y, ang, R, cap, w, seed, o, 3 * R); },
+    /** Trumpet ciliate (Stentor): foot at (x, y), axis `ang`, length L to the oral disc of radius R; foot radius footR; o.phase turns the disc's spiral grooves. */
+    trumpet(x, y, ang, L, R, footR, seed, o = {}) { push(8, x, y, ang, L, R, footR, seed, o, L + R * 1.5); },
     /** Flat surface layer: width L, depth below the wavy top edge, edge wobble amp. */
     slab(x, y, L, depth, amp, seed, o = {}) { push(7, x, y, 0, L, depth, amp, seed, o, L + depth); },
     setTextures({ cil, bio, mag }) {

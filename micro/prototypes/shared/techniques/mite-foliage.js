@@ -29,6 +29,9 @@ import * as THREE from '../vendor/three.module.min.js';
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _q = new THREE.Quaternion(), _qi = new THREE.Quaternion();
 const _a = new THREE.Vector3(), _b = new THREE.Vector3();
 const BINS = 6;
+const _qs = Array.from({ length: BINS + 1 }, () => new THREE.Quaternion());
+const _fol = new THREE.Vector3();
+const _rmax = [], _bqi = [];
 
 function profile(kind, u) { return kind === 'string' ? Math.sin(Math.PI * u) : u * u; }
 
@@ -98,10 +101,17 @@ export function createFoliage(opts = {}) {
       stats.active = 0; stats.moving = 0; stats.maxBend = 0;
       if (!cfg.on || !(dt > 0)) return;
       dt = Math.min(dt, 1 / 30);
+      // per body, once: its largest radius and inverse rotation
+      for (let i = 0; i < bodies.length; i++) {
+        const b = bodies[i];
+        _rmax[i] = Math.max(b.radii[0], b.radii[1], b.radii[2]);
+        (_bqi[i] || (_bqi[i] = new THREE.Quaternion())).copy(b.quat).invert();
+      }
       for (const rod of rods) {
         if (rod.follow) continue;
         let near = false;
-        for (const b of bodies) if (b.center.distanceTo(rod.mid) < rod.len * 0.5 + cfg.near) { near = true; break; }
+        const reach = rod.len * 0.5 + cfg.near;
+        for (const b of bodies) if (b.center.distanceToSquared(rod.mid) < reach * reach) { near = true; break; }
         if (!near && !rod.awake) { rod.wrote = false; continue; }
         if (!Number.isFinite(rod.d.x + rod.d.y + rod.d.z)) { rod.d.set(0, 0, 0); rod.vel.set(0, 0, 0); }
         stats.active++;
@@ -119,9 +129,10 @@ export function createFoliage(opts = {}) {
         rod.vel.addScaledVector(_a, dt);
         rod.d.addScaledVector(rod.vel, dt);
         // Bodies push the sample points out (position-based: a hard constraint).
-        for (const b of bodies) {
-          if (b.center.distanceTo(rod.mid) > rod.len * 0.5 + Math.max(...b.radii) * 1.2) continue;
-          _qi.copy(b.quat).invert();
+        for (let bi = 0; bi < bodies.length; bi++) {
+          const b = bodies[bi];
+          if (b.center.distanceTo(rod.mid) > rod.len * 0.5 + _rmax[bi] * 1.2) continue;
+          _qi.copy(_bqi[bi]);
           for (let s = 0; s < rod.samples.length; s++) {
             const u = rod.su[s], pf = profile(rod.kind, u);
             if (pf < 0.02) continue;
@@ -163,15 +174,15 @@ export function createFoliage(opts = {}) {
       const src = rod.follow ? rod.follow.rod : rod;
       const P = rod.geo.attributes.position.array, N = rod.geo.attributes.normal ? rod.geo.attributes.normal.array : null;
       // Turn normals with the bend: one rotation per u bin.
-      const qs = [];
+      const qs = _qs;
       for (let k = 0; k <= BINS; k++) {
         const u = k / BINS;
         // tangent of the bent centre line at u
         const dp = src.kind === 'string' ? Math.PI * Math.cos(Math.PI * u) : 2 * u;
         _b.copy(rod.axis).multiplyScalar(rod.len).addScaledVector(src.d, rod.follow ? 0 : dp).normalize();
-        qs.push(new THREE.Quaternion().setFromUnitVectors(rod.axis, _b));
+        qs[k].setFromUnitVectors(rod.axis, _b);
       }
-      const fol = rod.follow ? api.offsetAt(rod, 0, new THREE.Vector3()) : null;
+      const fol = rod.follow ? api.offsetAt(rod, 0, _fol) : null;
       for (let i = 0; i < rod.count; i++) {
         const u = rod.vu[i];
         const o = 3 * (rod.start + i), r = 3 * i;

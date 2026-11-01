@@ -20,7 +20,8 @@
 //   body.cupAround(px, py, reach) / cupContains / seal(cup): food-cup detection and closure,
 //   body.collideCircle(cx, cy, r, share, out), body.blast(x, y, radius, amount).
 //   body.opts: { area, rearWeight, selfContact, idlePods, adhesion, untangle, neck } switches
-//   (all true by default), plus speed (1: pseudopod extension rate multiplier) and boost
+//   (all true by default), plus podScale (1: the idle pseudopods' width; a bigger cell
+//   sets more, for broad blunt arms), speed (1: pseudopod extension rate multiplier) and boost
 //   (1: a transient extra multiplier, e.g. a dash, that also drives the rear contraction harder).
 //   body.flowK: speed × boost, for anything that streams with the pseudopods.
 // Optional, all backward compatible (leave them out for the original behaviour):
@@ -237,7 +238,7 @@ export class Body {
         pod.tip = this.pickTip(pod.dx, pod.dy);
         pod.life = this.rand.range(8, 16);
         pod.base = this.rand.range(0.45, 0.9);
-        pod.rad = this.rand.range(22, 34);
+        pod.rad = this.rand.range(22, 34) * (this.opts.podScale || 1);
         pod.active = true;
       }
       // A resting Amoeba proteus is polypodial: a few pseudopods probe at once.

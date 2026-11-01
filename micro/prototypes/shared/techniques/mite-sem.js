@@ -123,6 +123,21 @@ export function createObjectCut(max = 2048) {
         if (keep && keep.has(i)) continue;
         const o = objs[i];
         if (o.leader && keepG.has(o.group)) continue; // the stem of the leaf underfoot stays
+        // a bounding sphere first (bendable objects, given as a function, get room to bend)
+        if (!o.r) {
+          const p0 = typeof o.points === 'function' ? o.points() : o.points;
+          o.c = new THREE.Vector3();
+          for (const p of p0) o.c.add(p);
+          o.c.divideScalar(p0.length);
+          let r = 0;
+          for (const p of p0) r = Math.max(r, p.distanceTo(o.c));
+          o.r = r * (typeof o.points === 'function' ? 2.2 : 1) + 1;
+        }
+        w0.subVectors(o.c, cam);
+        const tc = Math.max(0, Math.min(tMax, w0.dot(d)));
+        const ex = w0.x - d.x * tc, ey = w0.y - d.y * tc, ez = w0.z - d.z * tc;
+        const lim = radius + o.r;
+        if (ex * ex + ey * ey + ez * ez > lim * lim) continue;
         const pts = typeof o.points === 'function' ? o.points() : o.points;
         for (let k = 1; k < pts.length; k++) {
           if (segRay(pts[k - 1], pts[k], cam, tMax) < radius) { want[i] = 1; if (o.group) groups.add(o.group); break; }

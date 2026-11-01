@@ -112,7 +112,7 @@ vec4 falseLight(vec3 n, vec3 v){
   float cav = 1.0;
   if (uFLBump > 0.0) {
     // procedural bump (height from world noise, normal from screen derivatives): a wet, lumpy membrane
-    float h = n3(vWorld * 0.33) * 0.55 + n3(vWorld * 1.05) * 0.3 + n3(vWorld * 2.9) * 0.15;
+    float h = n3(vWorld * 0.3) * 0.62 + n3(vWorld * 0.95) * 0.38;
     vec3 pv = -vView; vec3 dpx = dFdx(pv), dpy = dFdy(pv);
     float hx = dFdx(h), hy = dFdy(h);
     vec3 r1 = cross(dpy, n), r2 = cross(n, dpx);
@@ -129,7 +129,7 @@ vec4 falseLight(vec3 n, vec3 v){
   float ndv = clamp(dot(n, v), 0.0, 1.0);
   float fres = pow(1.0 - ndv, 2.6);
   vec3 key = vec3(1.0, 0.93, 0.8);
-  vec3 fill = vec3(0.24, 0.5, 0.62);
+  vec3 fill = vec3(0.3, 0.58, 0.7);
   vec3 col = albedo * (key * wrapD * 0.9 + fill * (0.6 + 0.4 * n.y));
   // translucency: thick centres absorb toward deep blue, thin edges let the light through
   col = mix(col, albedo * vec3(0.28, 0.5, 0.78), uFLTrans * ndv * ndv * 0.5);
@@ -349,7 +349,29 @@ export function blobGeometry(parts, detail = 1) {
   geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   geo.setAttribute('uv', new THREE.Float32BufferAttribute(new Array((pos.length / 3) * 2).fill(0), 2));
   geo.setIndex(idx);
+  geo.userData.parts = parts;
   return geo;
+}
+
+/**
+ * The same molecule as a lumpy cluster of clusters (each sphere becomes a core
+ * and `k` smaller beads round it, detail 0), for the false-light look, whose
+ * reference molecules read as bead-flowers with bumpy silhouettes. Swap it in
+ * with mesh.geometry = lumpyGeometry(geo.userData.parts).
+ */
+export function lumpyGeometry(parts, k = 6) {
+  const out = [];
+  let seed = 1;
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  for (const part of parts) {
+    const [x, y, z] = part.p, r = part.r;
+    out.push({ p: [x, y, z], r: r * 0.66, c: part.c });
+    for (let i = 0; i < k; i++) {
+      const u = rnd() * 2 - 1, a = rnd() * Math.PI * 2, q = Math.sqrt(1 - u * u);
+      out.push({ p: [x + q * Math.cos(a) * r * 0.58, y + u * r * 0.58, z + q * Math.sin(a) * r * 0.58], r: r * (0.34 + rnd() * 0.14), c: part.c });
+    }
+  }
+  return blobGeometry(out, 0);
 }
 
 const POST_FRAG = /* glsl */`
@@ -359,7 +381,7 @@ uniform vec2 uRes; uniform float uTime; uniform int uLook; uniform vec3 uWater;
 uniform float uUvLine; uniform float uUv; uniform float uFlash; uniform vec3 uFlashColor; uniform float uPaper;
 uniform float uFade;
 uniform sampler2D tDepth; uniform float uNear; uniform float uFar; uniform float uFocus; uniform float uDof;
-uniform sampler2D tBloomA; uniform sampler2D tBloomB; uniform float uBloom; uniform vec3 uTop; uniform vec3 uBot; uniform vec3 uShaft;
+uniform sampler2D tBloomA; uniform sampler2D tBloomB; uniform float uBloom; uniform sampler2D tSoft; uniform vec3 uTop; uniform vec3 uBot; uniform vec3 uShaft;
 varying vec2 vUv;
 float linDepth(vec2 uv){ float z = texture2D(tDepth, uv).r * 2.0 - 1.0; return 2.0 * uNear * uFar / (uFar + uNear - z * (uFar - uNear)); }
 float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -385,19 +407,16 @@ void main(){
     if (uDof > 0.0) {
       // a large depth of field: only far layers soften, gently (and the very near)
       float z = linDepth(vUv);
-      float coc = (smoothstep(uFocus * 1.5, uFocus * 4.5, z) + (1.0 - smoothstep(uFocus * 0.25, uFocus * 0.55, z))) * uDof;
-      if (sc.a < 0.01) coc = uDof * 0.6; // the edges of things against the water
-      if (coc > 0.05) {
-        vec4 acc = sc;
-        for (int i = 0; i < 8; i++){ float an = float(i) * 0.7853982 + 0.3; acc += S(vec2(cos(an), sin(an)) * coc * 3.2); }
-        sc = acc / 9.0;
-      }
+      float coc = (smoothstep(uFocus * 1.6, uFocus * 6.0, z) + (1.0 - smoothstep(uFocus * 0.25, uFocus * 0.55, z))) * uDof;
+      // soften toward a blurred quarter-resolution copy (smooth, no ring artefacts)
+      sc = mix(sc, texture2D(tSoft, vUv), clamp(coc, 0.0, 1.0) * 0.85);
     }
     col = bg * (1.0 - sc.a) + sc.rgb;
     // haze lifted by the light near the key's corner
     col += uShaft * 0.06 * smoothstep(1.3, 0.0, length(q0 - vec2(0.15 * asp, 1.0)));
-    if (uBloom > 0.0) col += (texture2D(tBloomA, vUv).rgb * 0.75 + texture2D(tBloomB, vUv).rgb * 0.9) * uBloom;
-    // filmic tone curve, then a teal grade with golden highlights
+    if (uBloom > 0.0) col += (texture2D(tBloomA, vUv).rgb * 0.9 + texture2D(tBloomB, vUv).rgb * 1.2) * uBloom;
+    // exposure, a filmic tone curve, then a teal grade with golden highlights
+    col *= 1.6;
     col = (col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14);
     float lum = dot(col, vec3(0.299, 0.587, 0.114));
     col = mix(col * vec3(0.86, 1.02, 1.08), col * vec3(1.06, 1.0, 0.9), smoothstep(0.35, 0.9, lum));
@@ -481,12 +500,12 @@ precision highp float;
 uniform sampler2D tSrc; uniform vec2 uTexel; uniform float uThr;
 varying vec2 vUv;
 void main(){
-  vec3 c = vec3(0.0);
-  c += texture2D(tSrc, vUv + uTexel * vec2(-1.0, -1.0)).rgb; c += texture2D(tSrc, vUv + uTexel * vec2(1.0, -1.0)).rgb;
-  c += texture2D(tSrc, vUv + uTexel * vec2(-1.0, 1.0)).rgb; c += texture2D(tSrc, vUv + uTexel * vec2(1.0, 1.0)).rgb;
+  vec4 c = vec4(0.0);
+  c += texture2D(tSrc, vUv + uTexel * vec2(-1.0, -1.0)); c += texture2D(tSrc, vUv + uTexel * vec2(1.0, -1.0));
+  c += texture2D(tSrc, vUv + uTexel * vec2(-1.0, 1.0)); c += texture2D(tSrc, vUv + uTexel * vec2(1.0, 1.0));
   c *= 0.25;
   float l = max(c.r, max(c.g, c.b));
-  gl_FragColor = vec4(c * smoothstep(uThr, uThr + 0.55, l), 1.0);
+  gl_FragColor = uThr > 0.0 ? vec4(c.rgb * smoothstep(uThr, uThr + 0.55, l), 1.0) : c; // (threshold 0: a plain downsample, alpha kept)
 }`;
 const BLUR_FRAG = /* glsl */`
 precision highp float;
@@ -494,10 +513,10 @@ uniform sampler2D tSrc; uniform vec2 uDir;
 varying vec2 vUv;
 void main(){
   // 9-tap gaussian in 5 linear fetches
-  vec3 c = texture2D(tSrc, vUv).rgb * 0.227027;
-  c += texture2D(tSrc, vUv + uDir * 1.384615).rgb * 0.316216; c += texture2D(tSrc, vUv - uDir * 1.384615).rgb * 0.316216;
-  c += texture2D(tSrc, vUv + uDir * 3.230769).rgb * 0.070270; c += texture2D(tSrc, vUv - uDir * 3.230769).rgb * 0.070270;
-  gl_FragColor = vec4(c, 1.0);
+  vec4 c = texture2D(tSrc, vUv) * 0.227027;
+  c += texture2D(tSrc, vUv + uDir * 1.384615) * 0.316216; c += texture2D(tSrc, vUv - uDir * 1.384615) * 0.316216;
+  c += texture2D(tSrc, vUv + uDir * 3.230769) * 0.070270; c += texture2D(tSrc, vUv - uDir * 3.230769) * 0.070270;
+  gl_FragColor = c;
 }`;
 
 /**
@@ -514,7 +533,7 @@ export function createPost(renderer) {
   const target = new THREE.WebGLRenderTarget(2, 2, { samples: 0, type });
   target.depthTexture = new THREE.DepthTexture(2, 2);
   const mk = () => new THREE.WebGLRenderTarget(2, 2, { samples: 0, type, depthBuffer: false });
-  const bA = [mk(), mk()], bB = [mk(), mk()]; // 1/4 and 1/8, ping-pong
+  const bA = [mk(), mk()], bB = [mk(), mk()], dA = [mk(), mk()]; // bloom at 1/4 and 1/8, the DOF's soft copy at 1/4 (ping-pong pairs)
   const mat = new THREE.ShaderMaterial({
     uniforms: {
       tScene: { value: target.texture }, tBg: { value: null }, uUseBg: { value: 0 }, uBgOff: { value: new THREE.Vector2() },
@@ -522,15 +541,15 @@ export function createPost(renderer) {
       uWater: { value: new THREE.Color('#bcd3ea') }, uUvLine: { value: 2 }, uUv: { value: 0 },
       uFlash: { value: 0 }, uFlashColor: { value: new THREE.Color('#ffffff') }, uPaper: { value: 1 }, uFade: { value: 0 },
       tDepth: { value: target.depthTexture }, uNear: { value: 2 }, uFar: { value: 3000 }, uFocus: { value: 110 }, uDof: { value: 1 },
-      tBloomA: { value: bA[0].texture }, tBloomB: { value: bB[0].texture }, uBloom: { value: 1 },
-      uTop: { value: new THREE.Color('#1d5c6a') }, uBot: { value: new THREE.Color('#04121c') }, uShaft: { value: new THREE.Color('#7fd0d4') },
+      tBloomA: { value: bA[0].texture }, tBloomB: { value: bB[0].texture }, uBloom: { value: 1 }, tSoft: { value: dA[0].texture },
+      uTop: { value: new THREE.Color('#2a7f8e') }, uBot: { value: new THREE.Color('#071e2c') }, uShaft: { value: new THREE.Color('#7fd0d4') },
     },
     vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
     fragmentShader: POST_FRAG,
     depthTest: false, depthWrite: false,
   });
   const vs = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
-  const bright = new THREE.ShaderMaterial({ uniforms: { tSrc: { value: null }, uTexel: { value: new THREE.Vector2() }, uThr: { value: hdr ? 1.0 : 0.72 } }, vertexShader: vs, fragmentShader: BRIGHT_FRAG, depthTest: false, depthWrite: false });
+  const bright = new THREE.ShaderMaterial({ uniforms: { tSrc: { value: null }, uTexel: { value: new THREE.Vector2() }, uThr: { value: hdr ? 0.8 : 0.66 } }, vertexShader: vs, fragmentShader: BRIGHT_FRAG, depthTest: false, depthWrite: false });
   const blur = new THREE.ShaderMaterial({ uniforms: { tSrc: { value: null }, uDir: { value: new THREE.Vector2() } }, vertexShader: vs, fragmentShader: BLUR_FRAG, depthTest: false, depthWrite: false });
   const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat);
   quad.frustumCulled = false;
@@ -554,7 +573,7 @@ export function createPost(renderer) {
       w = Math.max(2, Math.round(w)); h = Math.max(2, Math.round(h));
       if (target.width === w && target.height === h) return;
       target.setSize(w, h); mat.uniforms.uRes.value.set(w, h);
-      for (const t of bA) t.setSize(Math.max(1, w >> 2), Math.max(1, h >> 2));
+      for (const t of [...bA, ...dA]) t.setSize(Math.max(1, w >> 2), Math.max(1, h >> 2));
       for (const t of bB) t.setSize(Math.max(1, w >> 3), Math.max(1, h >> 3));
     },
     setBackdrop(tex) { mat.uniforms.tBg.value = tex; mat.uniforms.uUseBg.value = tex ? 1 : 0; },
@@ -570,6 +589,13 @@ export function createPost(renderer) {
         mat.uniforms.uNear.value = camera.near; mat.uniforms.uFar.value = camera.far;
         mat.uniforms.uDof.value = q > 0 ? 1 : 0;
         // bloom: bright pass to 1/4, blur; then (q 2) down to 1/8 and blur again for the wide glow
+        if (q > 0) {
+          // the DOF's soft copy: a quarter-resolution downsample, blurred twice
+          const thr = bright.uniforms.uThr.value; bright.uniforms.uThr.value = 0;
+          bright.uniforms.tSrc.value = target.texture; bright.uniforms.uTexel.value.set(1 / target.width, 1 / target.height);
+          pass(bright, dA[0]); bright.uniforms.uThr.value = thr;
+          blurPair(dA); blurPair(dA);
+        }
         const first = q > 0 ? bA : bB;
         bright.uniforms.tSrc.value = target.texture; bright.uniforms.uTexel.value.set(1 / target.width, 1 / target.height);
         pass(bright, first[0]);
