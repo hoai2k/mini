@@ -16,12 +16,16 @@
 //     onFrame(info)  { u, alpha, pose } each frame (tests, readouts)
 //     seek()     tests: a fixed progress 0..1 to hold at (null: run on the clock)
 //     duration   the move in seconds (MOVE_S); fade: the crossfade [from, to] (FADE)
+//     halo       when the golden halo comes in, [from, to] fractions of the move
+//                (default [0, 0.25]: at once; the Paramecium's dive brings it in
+//                late, on the one cell, once the clump has resolved)
 //   Each `camera` message also carries the move's progress `u` and the new
 //   world's opacity `alpha`, so the old world can stage things along the move
 //   (the Paramecium turns its light to phase contrast before the crossfade).
 
 export const MOVE_S = 3.4;           // the camera move, seconds
 export const FADE = [0.4, 0.68];     // the crossfade, as fractions of the move
+export const HALO = [0, 0.25];       // the golden halo comes in over this part of the move
 
 const smooth = (x) => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
 // slow out of the freeze, slow into the opening view
@@ -43,15 +47,16 @@ export function lerpPose(a, b, e, o = e) {
 /** The move a `frozen` message asks for ({duration, fade}), within sane bounds, else the default. */
 export function moveOf(m) {
   const duration = m && Number.isFinite(m.duration) ? Math.min(8, Math.max(1.5, m.duration)) : MOVE_S;
-  const f = m && Array.isArray(m.fade) && m.fade.every(Number.isFinite) ? m.fade : null;
-  const fade = f && f[0] >= 0.05 && f[1] > f[0] + 0.05 && f[1] <= 0.95 ? [f[0], f[1]] : FADE;
-  return { duration, fade };
+  const pair = (v, lo, hi) => (Array.isArray(v) && v.length === 2 && v.every(Number.isFinite) && v[0] >= lo && v[1] > v[0] + 0.05 && v[1] <= hi ? [v[0], v[1]] : null);
+  const fade = (m && pair(m.fade, 0.05, 0.95)) || FADE;
+  const h = m && pair(m.halo, 0, fade[1]);
+  return { duration, fade, halo: h || HALO };
 }
 
 /** A pose is usable when every number is finite and the size is positive. */
 export const validPose = (p) => !!p && ['f', 'x', 'y', 'pitch', 'rel'].every((k) => Number.isFinite(p[k])) && p.f > 0;
 
-export function playContinuous({ oldFrame, newFrame, from, to, send, speed = () => 1, onFrame = () => {}, duration = MOVE_S, fade = FADE, seek = () => null }) {
+export function playContinuous({ oldFrame, newFrame, from, to, send, speed = () => 1, onFrame = () => {}, duration = MOVE_S, fade = FADE, halo: haloIn = HALO, seek = () => null }) {
   // (no clamping: the first pose must be exactly the freeze frame's, even
   // with the creature off screen; it then slides in as the camera turns)
   const a = { ...from };
@@ -70,7 +75,7 @@ export function playContinuous({ oldFrame, newFrame, from, to, send, speed = () 
     const W = halo.clientWidth || innerWidth, H = halo.clientHeight || innerHeight;
     if (halo.width !== W || halo.height !== H) { halo.width = W; halo.height = H; }
     g.clearRect(0, 0, W, H);
-    const k = smooth(u / 0.25) * (1 - smooth((u - fade[1]) / (0.95 - fade[1])));
+    const k = smooth((u - haloIn[0]) / (haloIn[1] - haloIn[0])) * (1 - smooth((u - fade[1]) / (0.95 - fade[1])));
     if (k <= 0.01) return;
     const x = (pose.x * 0.5 + 0.5) * W, y = (0.5 - pose.y * 0.5) * H;
     const r = Math.max(42, pose.f * W * 1.2);

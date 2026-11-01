@@ -722,9 +722,9 @@ async function continuousForward(next) {
   p.onOpening = null;
   if (!validPose(opening) || preloaded !== p) { send(p.frame, 'pause'); return false; }
   S.cont.phase = 'move';
-  const { duration, fade } = moveOf(move);
+  const { duration, fade, halo } = moveOf(move);
   sound.zoom('in', duration / Math.max(0.05, S.trSpeed));
-  await playContinuous({ oldFrame: old, newFrame: p.frame, from: frozen, to: opening, send, speed: () => S.trSpeed, seek: () => S.trSeek, duration, fade,
+  await playContinuous({ oldFrame: old, newFrame: p.frame, from: frozen, to: opening, send, speed: () => S.trSpeed, seek: () => S.trSeek, duration, fade, halo,
     onFrame: ({ u, alpha }) => { S.cont.u = u; S.cont.alpha = alpha; } });
   S.cont.phase = 'begin';
   S.board++;

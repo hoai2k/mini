@@ -203,7 +203,11 @@ spirals into the oral pouch off-frame.
 "Placed as you go"). The world is open water 1120 µm across round the
 start, clay grains with microcolonies on them scattered everywhere, the
 biofilm along its bottom edge: that scenery is there from the start and never
-moves. The gates are not: the director places each one, in this order, in
+moves. You start among your kin: a clump laid out by `../shared/kin-clump.js`
+(28 kin, 44 prey rods from the meadow, 76 attached cocci and rods moved in
+from microcolonies far off) round your cell, the same layout the Paramecium
+draws round its spirillum, so the continuous transition's dive resolves its
+dark mass into exactly these cells. The gates are not: the director places each one, in this order, in
 water nobody has seen (a 20 µm grid of what every split view has framed),
 a little ahead of whoever leads, out of every view, after a calm break;
 until then it is parked far off, invisible and inert.

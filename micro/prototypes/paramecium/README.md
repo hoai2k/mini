@@ -82,6 +82,11 @@ encounters, placed as you go*, what each does):
   back (you are swept back off the leaf, with a toast once). Make it fire and
   miss until its resolve is gone: spent, it hangs slack for 24 s and the way
   is open (`enterPortal` fires `embed.landmark('forward')`).
+- **Through it, the dive** (in the game): the light turns to phase contrast
+  and the camera dives on the spirillum's clump (`../shared/kin-clump.js`),
+  a dark mass that resolves into the bacteria the bacterium world opens
+  among (`DIVE`, `clump` in `main.js`; `../../game/README.md`, "The
+  continuous transition").
 - A player who is eaten comes back alone a little back from where they were
   (toward the start), at the spot furthest from every hunter, the trap and
   the bloom (with others: beside a teammate).

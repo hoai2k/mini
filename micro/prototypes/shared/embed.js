@@ -41,8 +41,9 @@
 //             the world has played its success and slowed to a freeze frame;
 //             `pose` frames the next world's creature as it is now on screen
 //             (see "Continuous transitions" below). Sent by embed.frozen().
-//             `move` {duration, fade: [from, to]} optionally asks for a
-//             longer camera move or a later crossfade (the Paramecium's dive).
+//             `move` {duration, fade: [from, to], halo: [from, to]}
+//             optionally asks for a longer camera move, a later crossfade or
+//             a later golden halo (the Paramecium's dive).
 //   opening   {pose}  in reply to `hold`: how the world's opening view frames
 //             its own creature. Sent by embed.opening().
 //
@@ -278,7 +279,7 @@ export const embed = {
   progress(info = {}) { post('progress', info); },
   /**
    * Old world, after landmark('forward', { outro: true }): frozen; `pose` frames the next creature.
-   * `move` (optional) asks for a different camera move: { duration (s), fade: [from, to] (fractions) }.
+   * `move` (optional) asks for a different camera move: { duration (s), fade: [from, to], halo: [from, to] (fractions of the move) }.
    */
   frozen(pose, move) { post('frozen', move ? { pose, move } : { pose }); },
   /** New world, on `hold`: how its opening view frames its creature. */

@@ -107,13 +107,13 @@ Documented in full in `../prototypes/shared/embed.js`. In short:
 
 - World → shell: `ready` (sent by embed.js after the first frames), `hud`
   (the controls rows, sent by `shared/hud.js`), `landmark {kind:
-  'forward'|'back', outro?}`, `frozen {pose}`, `opening {pose}`, `near {kind, on, label?}`, `menu` (sent by
+  'forward'|'back', outro?}`, `frozen {pose, move?}`, `opening {pose}`, `near {kind, on, label?}`, `menu` (sent by
   `shared/features.js` on Menu), `view` (sent by `shared/hud.js` on View),
   `join {index, color}`, `features {open}`, optional `captured`, `died`,
   `progress`; the zoom player's `done`.
 - Shell → world: `pause`, `resume`, `sound {on, volume}`, `controls {show,
   autoHide}`, `settings {invertY}`, `features {open}`, `players {roster}`,
-  `hold`, `camera {pose}`, `begin` (the continuous transition, below).
+  `hold`, `camera {pose, u, alpha}`, `begin` (the continuous transition, below).
 
 A world loaded with `?embed=1` inside the shell starts held after its first
 two frames and runs when the shell sends `resume`. embed.js holds its
@@ -167,7 +167,11 @@ plays for springtail → mite:
    (40–68 % of the move) under exactly the same framing, so the mite is where
    the speck was, at the same size and growing at the same rate (size on a log
    scale; position, pitch and azimuth relative to the creature eased
-   together). The move ends exactly on the mite world's opening view.
+   together). The move ends exactly on the mite world's opening view. Each
+   `camera` message also carries the move's progress `u` and the new world's
+   opacity `alpha`; an old world may ask for a longer move, a later
+   crossfade or a later halo with `frozen {pose, move: {duration, fade, halo}}`
+   (`continuous.js` `moveOf`; the Paramecium's dive does).
 5. **Begin.** The old frame goes, the new world gets `begin` (its time eases
    back in over 0.6 s; the camera is its own again, from where the move left
    it), then its sound and the controls card.
@@ -196,12 +200,26 @@ The other wired pairs follow the same steps; what each pushes in on:
   slows (the paramecium's chase camera sees it from behind), and the amoeba's
   view (2D) narrows and re-centres on it while the darkfield paramecium
   world fades in over the brightfield.
-- **Paramecium → bacterium:** a magnetotactic spirillum (3 µm, with a small
-  gold glint) swims over the biofilm and comes up to just ahead of whoever
-  is down on the leaf. The chase camera dives in on it and turns to look down
-  on the film, as the bacterium's microscope does; the portal's glow fades
-  over the first ×4 of the dive so its glints do not blow up into the frame.
-  The bacterium's phase contrast comes in under the crossfade.
+- **Paramecium → bacterium (the dive):** a magnetotactic spirillum (3 µm,
+  with a small gold glint) swims over the biofilm and comes up to just ahead
+  of whoever is down on the leaf; at the freeze it is a speck you need not
+  see. The owner (2026-11-01): "if the light changes first then you see a
+  dark mass and as you zoom in it becomes apparent that it's a bunch of
+  bacteria and you zoom in to that one". The Paramecium asks for a longer
+  move (`frozen {move}`: 5.2 s, the crossfade at 50–78 %, the gold halo only
+  from 50 %) and stages it from each `camera` message's `u`: (1) as the
+  chase camera starts its push and turns to look down on the film, the light
+  turns from darkfield to the bacterium's phase contrast (3–30 % of the
+  move; the portal's sparks and the leaf's lawn of rods fade with it);
+  (2) the spirillum's own clump (`shared/kin-clump.js`, which came in under
+  the slow-down: ~150 kin spirilla, rods and cocci in absorbing slime,
+  about 40 µm across) shows as a dark mass; (3) the push resolves it into
+  separate bacteria as the slime thins (36–60 %), and the bacterium world
+  crossfades in, its opening field laid out round your cell from the same
+  layout (its own meadow kin, prey rods and attached biofilm cells, moved, not
+  added), so every cell lands where it was (measured: the kin within 0.002
+  of each other on screen through the crossfade); (4) the halo comes in on
+  the one cell, yours, and the move settles on the opening view.
 - **Bacterium → phage:** one of the phages landed on the host (0.23 µm, a
   gold glint on the host's wall); the field closes in on it (empty
   magnification below the eyepiece field) and the phage's false-light world

@@ -179,9 +179,9 @@ const clump = (() => {
   mk(new THREE.SphereGeometry(1, 10, 8), volumeMaterial({ dn: 0.16, scatter: 2.2, absorb: [1.6, 1.55, 1.45], rimPow: 1.6, centred: true }),
     L.filter((c) => c.kind === 'coccus'), (c) => new THREE.Vector3(c.r, c.r, c.r));
   // the slime the cells sit in: soft lumpy lenses, dark in phase contrast (they absorb), all but invisible in darkfield
-  const slimeMat = volumeMaterial({ dn: 0.01, scatter: 0.12, absorb: [0.95, 0.92, 0.86], centred: true, rimPow: 3 });
+  const slimeMat = volumeMaterial({ dn: 0.01, scatter: 0.12, absorb: [1.5, 1.45, 1.35], centred: true, rimPow: 3 });
   const lens = new THREE.SphereGeometry(1, 40, 10);
-  for (const [u, v, r, h] of [[0, 0, 13, 1.8], [7, 6, 8, 1.2], [-6, 8, 7, 1.1], [-8, -6, 8, 1.2], [6, -8, 6.5, 1.0]]) {
+  for (const [u, v, r, h] of [[0, 0, 16, 1.9], [9, 7, 10, 1.3], [-7, 10, 9, 1.2], [-10, -7, 10, 1.3], [7, -10, 8, 1.1], [-14, 2, 6, 0.9], [14, -1, 6, 0.9]]) {
     const m = new THREE.Mesh(lens, slimeMat);
     m.scale.set(r, h, r * 0.85);
     m.position.set(u, 0, -v);
@@ -1416,7 +1416,7 @@ const OUTRO = { beat: 0.3, ease: 1.0, hold: 1.4, back: 0.6, giveUp: 8, rate: 1 }
 // move), the clump shows as a dark mass, the push resolves it into cells as the
 // slime thins (SLIME), and the bacterium world takes over under the same
 // framing and settles on your cell. LIGHT_BG: the bacterium's phase field.
-const DIVE = { duration: 5.2, fade: [0.5, 0.78] };
+const DIVE = { duration: 5.2, fade: [0.5, 0.78], halo: [0.5, 0.68] }; // halo: the shell's gold on your cell, only once the clump has resolved
 const LIGHT = [0.03, 0.3], SLIME = [0.36, 0.6], LIGHT_BG = [0.6, 0.655, 0.615];
 let outro = null;
 let fxT = 0;
