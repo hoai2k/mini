@@ -155,7 +155,7 @@ const _bv = new THREE.Vector3(), _bw = new THREE.Vector3(), _by = new THREE.Vect
  */
 // (the look target, 2 Nov 2026: big cells always in sight, one or two near wherever you are: about 36 of
 // them through the field, ~500 units apart, so a view that sees ~450 units into the haze holds a few)
-const BY_TINTS = [['#0a2c40', '#1f6a74'], ['#0b2a46', '#245e86'], ['#0c3240', '#2a6e70'], ['#0e2a48', '#2c5c8c']];
+const BY_TINTS = [['#082438', '#1a5e6c'], ['#08223e', '#1f527c'], ['#0a2a38', '#236266'], ['#0b2240', '#255282']];
 export const BYSTANDERS = (() => {
   const out = [], dirs = shellDirs(160, 1.3);
   const capD = (p, b) => { // distance from p to bystander b's capsule
@@ -164,7 +164,7 @@ export const BYSTANDERS = (() => {
   };
   // two composed for the opening view (it looks down -z from the start): a huge one at the lower right, a
   // smaller one farther off at the upper left; the rest evenly through the field's volume
-  const fixed = [[200, -125, -200, 0.45, 190, 66], [-300, 140, -380, 2.4, 110, 44]];
+  const fixed = [[120, -60, -180, 0.3, 150, 60], [-300, 140, -380, 2.4, 110, 44]];
   for (let i = 0; i < dirs.length + fixed.length && out.length < 36; i++) {
     const u = (i * 0.618034 + 0.2) % 1, R = Math.cbrt(300 ** 3 + u * (1030 ** 3 - 300 ** 3));
     const fx = fixed[i];
@@ -290,17 +290,17 @@ export function createWorld(scene) {
     const by = !!def.bystander;
     // false light (the look target): a smooth, wet, lumpy membrane, deep teal-blue with pale crests, under a fine
     // pale fur (phage-goodsell.js membraneLight, furShells); the Gram-positive decoy duller and greener
-    const tint = def.tint || ['#0a2c40', '#1f6a74'];
+    const tint = def.tint || ['#082438', '#1a5e6c'];
     const mat = toonMaterial({ color: def.color, wobble: 1.0, wobbleFreq: 0.045, map: envTex, mapRepeat: [6, 3], mottle: 0.2,
-      lumps: { amp: def.wrong ? 1.4 : Math.max(2.6, def.r * 0.08), freq: (0.07 * 38) / def.r },
+      lumps: { amp: def.wrong ? 1.4 : Math.max(3.0, def.r * 0.1), freq: (0.07 * 38) / def.r },
       fl: def.wrong ? { color: '#244a40', color2: '#5e7444', keep: 0, trans: 0.6, bump: 1.4, spec: 0.55 }
-        : { color: tint[0], color2: tint[1], keep: 0, trans: 0.9, bump: 1.4, spec: 1.0 } });
+        : { color: tint[0], color2: tint[1], keep: 0, trans: 0.9, bump: 1.1, spec: 1.0 } });
     const geo = new THREE.CapsuleGeometry(def.r, def.half * 2, 14, 56, Math.max(8, Math.round(def.half / 4)));
     geo.rotateZ(Math.PI / 2);
     const body = inked(geo, mat, { width: 1.3 });
     g.add(body);
     const fur = furShells(geo, mat, def.wrong ? { layers: 6, len: 2.2, density: 0.9, cover: 0.5, color: '#4e6a48', tip: '#a8b88a' }
-      : { layers: 8, len: 3.6 * Math.sqrt(def.r / 38), density: 1.1 });
+      : { layers: 9, len: 4.4 * Math.sqrt(def.r / 38), density: 1.1 });
     g.add(fur); flOnly.push(fur);
     const host = { ...def, home0: def.home.slice(), group: g, body, mat, fur, pos: new THREE.Vector3(...def.home), vel: new THREE.Vector3(), ang: def.angle, angVel: 0, patchList: [], rings: [] };
     const pt = (u, phi, out) => out.set(u, Math.cos(phi) * def.r, Math.sin(phi) * def.r);
@@ -383,7 +383,7 @@ export function createWorld(scene) {
           const a = Math.random() * Math.PI * 2, rr = Math.sqrt(Math.random()) * 9;
           surf(u0 + Math.cos(a) * rr, phi0 + (Math.sin(a) * rr) / def.r, _p, n);
           _q.setFromUnitVectors(UP, n);
-          omp.set(k++, _p, _q, rand(1.0, 1.3), _c.set(i % 3 ? '#8aa4ff' : '#b0c4ff'));
+          omp.set(k++, _p, _q, rand(1.0, 1.3), _c.set(i % 3 ? '#a8b8e8' : '#c0cce8'));
         }
         // data overlay ring
         const ring = new THREE.Mesh(new THREE.TorusGeometry(12, 0.55, 6, 32), new THREE.MeshBasicMaterial({ color: '#ffe14a', depthTest: false, transparent: true, opacity: 0.9 }));
@@ -472,7 +472,7 @@ export function createWorld(scene) {
   const clayCols = ['#a98b6a', '#8f7556', '#b89b78'];
   for (let i = 0; i < 3; i++) {
     const g = new THREE.BoxGeometry(80 - i * 9, 3.4, 52 - i * 6, 8, 1, 6);
-    const b = inked(g, toonMaterial({ color: clayCols[i], wobble: 0.7, wobbleFreq: 0.08, mottle: 0.35, fl: { color: '#5f6a5c', color2: '#a08e66', keep: 0.2, trans: 0.35, bump: 1.0, spec: 0.4, scale: 0.08 } }), { width: 1.1 });
+    const b = inked(g, toonMaterial({ color: clayCols[i], wobble: 0.7, wobbleFreq: 0.08, mottle: 0.35, fl: { color: '#3c4440', color2: '#6a6050', keep: 0, trans: 0.3, bump: 1.2, spec: 0.3, scale: 0.08 } }), { width: 1.1 });
     b.position.set(i * 3 - 3, (i - 1) * 3.6, i * 2);
     b.rotation.y = (i - 1) * 0.05;
     clay.group.add(b);
@@ -584,13 +584,13 @@ export function createWorld(scene) {
   // soft blue, violet and gold molecules and fine motes; no green dimers, no yellow chains, no humic tangles)
   const NEAR = [
     { kind: 'small', n: 260, s: [0.8, 1.4], variants: 3, fl: 0.3 },
-    { kind: 'globule', n: 90, s: [0.9, 2.0], pal: PALETTE.violet, fl: 0.3 },
-    { kind: 'globule', n: 70, s: [0.7, 1.6], pal: PALETTE.teal, seed: 3, fl: 0.2 },
+    { kind: 'globule', n: 90, s: [0.9, 2.0], pal: PALETTE.violet, fl: 0.2 },
+    { kind: 'globule', n: 70, s: [0.7, 1.6], pal: PALETTE.teal, seed: 3, fl: 0.15 },
     { kind: 'dimer', n: 45, s: [0.8, 1.5], fl: 0 },
     { kind: 'chain', n: 50, s: [0.9, 1.4], fl: 0 },
-    { kind: 'globule', n: 40, s: [0.8, 1.8], pal: PALETTE.periwinkle, seed: 5, fl: 0.4 },
+    { kind: 'globule', n: 40, s: [0.8, 1.8], pal: PALETTE.periwinkle, seed: 5, fl: 0.3 },
     { kind: 'humic', n: 24, s: [0.9, 1.6], fl: 0 },
-    { kind: 'complex', n: 14, s: [1.0, 1.8], fl: 0.4 },
+    { kind: 'complex', n: 14, s: [1.0, 1.8], fl: 0.15 },
     { kind: 'globule', n: 14, s: [0.9, 1.5], pal: PALETTE.gold, seed: 11, fl: 1, gs: 0 },
   ];
   const MID = [
@@ -680,7 +680,7 @@ export function createWorld(scene) {
   // cells wrap round each view's centre on the GPU, as the baths do, in a box of ±FAR_HALF, never nearer than
   // FAR_INNER (they dissolve into the haze before that), so whichever way you look a few hang out there; the
   // depth of field softens them. Scenery for the eye only: the solid cells to go to are the bystanders.
-  const FAR = 40, FAR_HALF = 950, FAR_INNER = 360;
+  const FAR = 44, FAR_HALF = 950, FAR_INNER = 420;
   const farBase = new THREE.CapsuleGeometry(36, 120, 8, 24, 4); farBase.rotateZ(Math.PI / 2);
   const farGeo = new THREE.InstancedBufferGeometry();
   for (const k of ['position', 'normal']) farGeo.setAttribute(k, farBase.attributes[k]);
@@ -689,7 +689,7 @@ export function createWorld(scene) {
   {
     let sd = 977; const r = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
     for (let i = 0; i < FAR; i++) {
-      fp.set([(r() * 2 - 1) * FAR_HALF, (r() * 2 - 1) * FAR_HALF, (r() * 2 - 1) * FAR_HALF, 1.2 + r() * 1.3], i * 4);
+      fp.set([(r() * 2 - 1) * FAR_HALF, (r() * 2 - 1) * FAR_HALF, (r() * 2 - 1) * FAR_HALF, 0.9 + r() * 0.9], i * 4);
       _q.setFromEuler(new THREE.Euler(r() * 6.3, r() * 6.3, r() * 6.3));
       fq.set([_q.x, _q.y, _q.z, _q.w], i * 4);
     }
@@ -725,7 +725,7 @@ export function createWorld(scene) {
         vec3 alb = mix(vec3(0.07, 0.24, 0.30), vec3(0.10, 0.22, 0.38), m) * (0.8 + 0.35 * g);
         vec3 col = alb * (0.5 + 0.75 * wrapD) + vec3(0.30, 0.52, 0.58) * fres * 0.55;   // a soft body, a pale fuzzy rim
         float far = smoothstep(300.0, 1300.0, vDepth);
-        col = mix(col, uHaze, 0.42 + 0.4 * far);
+        col = mix(col, uHaze, 0.55 + 0.33 * far);
         gl_FragColor = vec4(col * vFade, vFade);
       }`,
     transparent: true,

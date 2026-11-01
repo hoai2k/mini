@@ -1478,8 +1478,8 @@ function frame(now) {
     post.uniforms.uWater.value.set(waterColor);
     post.uniforms.uUseBg.value = view.art && art.water ? 1 : 0;
     goodsellShared.uFogColor.value.set(waterColor);
-    goodsellShared.uHaze.value.set('#1d5e6e');
-    post.uniforms.uTop.value.set('#2a8090'); post.uniforms.uBot.value.set('#0b2a3a'); post.uniforms.uShaft.value.set('#8ad8da');
+    goodsellShared.uHaze.value.set('#185462');
+    post.uniforms.uTop.value.set('#2f8494'); post.uniforms.uBot.value.set('#07202c'); post.uniforms.uShaft.value.set('#8ad8da');
     post.uniforms.uFocus.value = dist;
     // (the UV is drawn as its shafts, world geometry; the old screen wash over the sunlit layer is off)
     post.uniforms.uUv.value = 0;
@@ -1632,6 +1632,16 @@ Object.assign(debug, {
     let n = 0, c = 0;
     for (let y = 0; y < h; y += 4) for (let x = 0; x < w; x += 4) { n++; if (alpha((y * w + x) * 4 + 3) > 0.5) c++; }
     return c / n;
+  },
+  /** NaN or infinite texels in the last frame's scene target (they would bloom into black blocks; the pass now drops them). */
+  nanCount() {
+    const rt = post.target, w = rt.width, h = rt.height;
+    if (rt.texture.type !== THREE.HalfFloatType) return 0;
+    const buf = new Uint16Array(w * h * 4);
+    renderer.readRenderTargetPixels(rt, 0, 0, w, h, buf);
+    let n = 0;
+    for (let i = 0; i < buf.length; i++) if (((buf[i] >> 10) & 31) === 31) n++;
+    return n;
   },
   beads: () => world.bathBeads(),
   /** Place the way on now at bearing [x, y, z] (default: player 1's bearing). */

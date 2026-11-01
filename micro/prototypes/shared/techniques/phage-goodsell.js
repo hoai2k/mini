@@ -194,34 +194,40 @@ vec4 falseLight(vec3 n, vec3 v){
 // rim), a sharp wet glint and a broad sheen.
 uniform mat3 normalMatrix;
 varying vec3 vObj; varying float vLump;
-float relief(vec3 q){ return n3(q * 0.14) * 0.6 + n3(q * 0.38 + 3.7) * 0.28 + n3(q * 1.05 - 1.3) * 0.12; }
+// wet wrinkles: ridged noise (1 - |2n - 1|) folds into vein-like crests, over soft medium relief
+float ridge(vec3 q){ float r = 1.0 - abs(2.0 * n3(q) - 1.0); return r * r * (3.0 - 2.0 * r); }
+float relief(vec3 q){ return n3(q * 0.13) * 0.58 + ridge(q * 0.22 + 3.7) * 0.27 + n3(q * 0.75 - 1.3) * 0.15; }
 vec4 membraneLight(vec3 n, vec3 v){
-  float e = 0.3;
+  float e = 0.25;
   float r0 = relief(vObj);
   vec3 g = vec3(relief(vObj + vec3(e, 0.0, 0.0)) - r0, relief(vObj + vec3(0.0, e, 0.0)) - r0, relief(vObj + vec3(0.0, 0.0, e)) - r0) / e;
   vec3 gv = normalMatrix * g;
   gv -= n * dot(gv, n);
   vec3 nb = n - gv * uFLBump;
   nb = dot(nb, nb) > 1e-8 ? normalize(nb) : n;
-  float hh = vLump * 0.65 + r0 * 0.55;
-  float blotch = n3(vObj * 0.03 + 11.0);
-  vec3 alb = mix(uFLColor, uFLColor2, smoothstep(0.35, 0.8, hh));
-  alb = mix(alb, vec3(0.07, 0.17, 0.38), smoothstep(0.5, 0.8, blotch) * 0.45); // blue patches
-  float crest = smoothstep(0.7, 0.95, hh);
-  alb = mix(alb, vec3(0.42, 0.58, 0.52), crest * 0.35);                         // pale, slightly yellow crests
-  float cav = smoothstep(0.12, 0.5, r0) * 0.6 + smoothstep(0.15, 0.6, vLump) * 0.4;
+  float wr = ridge(vObj * 0.22 + 3.7);
+  float hh = vLump * 0.7 + n3(vObj * 0.13) * 0.35;
+  float blotch = n3(vObj * 0.035 + 11.0);
+  // deep navy in the hollows, teal on the lumps, a greener teal on their tops, blue patches, pale wet crests
+  vec3 alb = mix(uFLColor, uFLColor2, smoothstep(0.3, 0.75, hh));
+  alb = mix(alb, uFLColor2 * vec3(1.0, 1.12, 1.02), smoothstep(0.7, 0.95, hh) * 0.4);
+  alb = mix(alb, vec3(0.06, 0.15, 0.40), smoothstep(0.55, 0.85, blotch) * 0.4);
+  float crest = smoothstep(0.6, 1.0, wr) * smoothstep(0.4, 0.75, hh);
+  alb = mix(alb, vec3(0.46, 0.62, 0.56), crest * 0.22);
+  float cav = smoothstep(0.1, 0.55, r0) * 0.55 + smoothstep(0.1, 0.6, vLump) * 0.45;
   vec3 L = normalize(vec3(-0.45, 0.75, 0.5));
   float ndl = dot(nb, L);
-  float wrapD = clamp((ndl + 0.4) / 1.4, 0.0, 1.0);
+  float wrapD = clamp((ndl + 0.35) / 1.35, 0.0, 1.0);
   float ndv = clamp(dot(n, v), 0.0, 1.0);
   float fres = pow(1.0 - ndv, 3.0);
-  vec3 key = vec3(1.0, 0.94, 0.84), fill = vec3(0.16, 0.36, 0.46);
-  vec3 col = alb * (key * wrapD * 1.15 + fill * (0.45 + 0.3 * nb.y));
-  col += vec3(0.16, 0.42, 0.45) * (0.35 * crest * wrapD + fres * 0.9) * uFLTrans;       // light through thin parts
-  col *= mix(0.5, 1.0, cav);
+  vec3 key = vec3(1.0, 0.94, 0.84), fill = vec3(0.12, 0.30, 0.42);
+  vec3 col = alb * (key * wrapD * 1.25 + fill * (0.34 + 0.3 * nb.y));
+  col += vec3(0.14, 0.38, 0.42) * (0.4 * crest * wrapD + fres * 0.7) * uFLTrans;       // light through thin parts
+  col *= mix(0.42, 1.0, cav);
   vec3 H = normalize(L + v);
   float ndh = max(dot(nb, H), 0.0);
-  col += key * (pow(ndh, 160.0) * 1.1 + pow(ndh, 30.0) * 0.06) * uFLSpec * cav;        // wet glint and sheen
+  float glint = 0.3 + 0.7 * smoothstep(0.4, 0.85, wr);                                 // (on the wet crests: sparkles, not a blown patch)
+  col += key * (pow(ndh, 160.0) * 0.6 * glint + pow(ndh, 26.0) * 0.06) * uFLSpec * cav * smoothstep(0.15, 0.6, wrapD); // wet glint and sheen, on the lit side
   vec3 R = reflect(-v, nb);
   col += vec3(0.30, 0.50, 0.55) * fres * 0.4 * smoothstep(-0.2, 0.9, R.y);              // the bright water above, reflected
   col += albedoGlow();
@@ -444,7 +450,7 @@ void main(){
   float a = mix(sharp, uFurCover * 0.22 * (1.0 - vLayer), smoothstep(0.35, 1.1, fw));
   vec3 n = normalize(vN), v = normalize(vView);
   float ndv = abs(dot(n, v));
-  a *= mix(0.035, 1.0, pow(1.0 - ndv, 1.6)) * uFurAlpha;           // a fringe at the silhouette, a faint fuzz face-on
+  a *= mix(0.012, 1.0, pow(1.0 - ndv, 2.0)) * uFurAlpha;           // a fringe at the silhouette, a faint fuzz face-on
   if (a < 0.015) discard;
   vec3 L = normalize(vec3(-0.45, 0.75, 0.5));
   float wrapD = clamp((dot(n, L) + 0.6) / 1.6, 0.0, 1.0);
@@ -621,6 +627,8 @@ void main(){
       // a partly transparent pixel (fur, the glassy capsid, a light shaft) over the far background has the
       // background's depth: it is near and must stay crisp
       coc *= 1.0 - smoothstep(0.01, 0.2, sc.a) * (1.0 - smoothstep(0.9, 0.995, sc.a));
+      // and a molecule drifting right past the lens softens a little, as in the look target's foreground
+      coc = max(coc, smoothstep(uFocus * 0.5, uFocus * 0.28, z) * 0.75 * uDof * step(0.5, sc.a));
       // soften toward a blurred quarter-resolution copy (smooth, no ring artefacts)
       sc = mix(sc, texture2D(tSoft, vUv), clamp(coc, 0.0, 1.0) * 0.6);
     }

@@ -39,7 +39,7 @@ export const T4_COLORS = {
 // only a little (glow is a faint rim term), the packed DNA a dim warm shape inside.
 export const T4_FL = {
   gold: { color: '#8f5a26', color2: '#b67c3e', keep: 0, glow: 0.04, glowColor: '#d89048', trans: 0.7, spec: 1.4, scale: 0.6 },
-  capsid: { color: '#8a5424', color2: '#b27a3c', keep: 0, glow: 0.03, glowColor: '#e0a058', trans: 1.0, spec: 2.0, scale: 0.5 },
+  capsid: { color: '#9a6028', color2: '#c48a48', keep: 0, glow: 0.03, glowColor: '#e0a058', trans: 0.8, spec: 2.4, scale: 0.5 },
   beads: { color: '#a46a30', color2: '#c89050', keep: 0, glow: 0.03, glowColor: '#e0a050', trans: 0.85, spec: 1.0, scale: 0.8 },
   dna: { color: '#5e3c1c', color2: '#7a5028', keep: 0, glow: 0.02, glowColor: '#d8a050', trans: 0.3, spec: 0.3 },
   sheath: { color: '#8f5a26', color2: '#b67c3e', keep: 0.55, glow: 0.04, glowColor: '#d89048', trans: 0.7, spec: 1.5, scale: 0.6 },
@@ -174,7 +174,7 @@ export function createT4({ clip = true } = {}) {
     }
   }
   const edgeGeo = mergeSimple(edgeParts);
-  const edgeMat = toonMaterial({ color: '#d8a056', clip, fl: { color: '#b88448', color2: '#e6c08c', keep: 0, glow: 0.07, glowColor: '#e8b070', trans: 0.4, spec: 1.8 } });
+  const edgeMat = toonMaterial({ color: '#d8a056', clip, fl: { color: '#d09a58', color2: '#f0d0a0', keep: 0, glow: 0.12, glowColor: '#f0c080', trans: 0.4, spec: 2.0 } });
   const edges = new THREE.Mesh(edgeGeo, edgeMat);
   edges.visible = false;
   head.add(edges);
@@ -184,6 +184,14 @@ export function createT4({ clip = true } = {}) {
   const dna = inked(dnaGeo, dnaMat, { width: 0.5 });
   const dnaIndexCount = dnaGeo.index.count;
   head.add(dna);
+  // false light, translucent capsid: the packed genome as a dim faceted amber core seen through the glass (the
+  // look target), in place of the spool's coils, which read as stripes in a lantern; it shrinks as the DNA leaves
+  const coreMat = toonMaterial({ color: T4_COLORS.dna, opacity: 0.7, side: THREE.DoubleSide, fl: { color: '#6a4218', color2: '#9a6430', keep: 0, glow: 0.03, glowColor: '#d89a50', trans: 0.8, spec: 1.2, scale: 0.7 } });
+  const core = new THREE.Mesh(polyGeometry(prolateIcosahedron(3.4, 0.85)), coreMat);
+  core.rotation.y = 0.4;
+  core.renderOrder = -1;
+  core.visible = false;
+  head.add(core);
   // cracks (UV damage)
   const crackMat = toonMaterial({ color: '#ffd9a8', clip, fl: { color: '#2a1408', keep: 0, glow: 0, trans: 0 } });
   const cracks = [];
@@ -276,7 +284,7 @@ export function createT4({ clip = true } = {}) {
     });
   }
 
-  const state = { contract: 0, star: 0, fold: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, capsid: 'cutaway', sway: 1, reachDir: new THREE.Vector3() };
+  const state = { contract: 0, star: 0, fold: 0, shortOut: 0, dna: 1, dark: 0, crack: 0, capsid: 'cutaway', sway: 1, reachDir: new THREE.Vector3(), fl: false };
   const geom = { L: T4.TAIL_EXT, R: T4.SHEATH_R_EXT, headBottom: 0, headCenter: 0, plateR: 1.75 };
 
   function layout() {
@@ -334,6 +342,9 @@ export function createT4({ clip = true } = {}) {
     whiskers.instanceMatrix.needsUpdate = true;
     // DNA spool drains as the genome leaves; the head darkens and cracks under UV
     dnaGeo.setDrawRange(0, Math.floor((dnaIndexCount * clamp01(state.dna)) / 3) * 3);
+    core.scale.setScalar(0.35 + 0.65 * clamp01(state.dna));
+    core.visible = state.fl && state.capsid === 'translucent' && state.dna > 0.02;
+    dna.visible = state.capsid !== 'solid' && !core.visible;
     headMat.uniforms.uDark.value = state.dark * 0.85;
     capsMat.uniforms.uDark.value = state.dark * 0.85;
     for (const m of cracks) { m.geometry.setDrawRange(0, Math.floor((m.userData.count * clamp01(state.crack)) / 3) * 3); m.visible = state.crack > 0.001; } // no empty draws
@@ -343,13 +354,13 @@ export function createT4({ clip = true } = {}) {
     state.capsid = mode;
     const translucent = mode === 'translucent';
     for (const m of [headMat, capsMat]) {
-      m.uniforms.uOpacity.value = translucent ? 0.55 : 1;
+      m.uniforms.uOpacity.value = translucent ? 0.72 : 1;
       m.transparent = translucent; m.depthWrite = !translucent; m.needsUpdate = true;
     }
     head.ink.material.uniforms.uOpacity.value = translucent ? 0.35 : 1;
     head.ink.material.transparent = translucent; head.ink.material.needsUpdate = true;
     caps.ink.userData.inkOff = translucent; caps.ink.visible = !translucent && caps.ink.userData.inkOn !== false;
-    dna.visible = mode !== 'solid';
+    dna.visible = mode !== 'solid' && !(state.fl && translucent);
     const planes = mode === 'cutaway' ? clipPlanes : [];
     for (const m of [headMat, capsMat, head.ink.material, caps.ink.material, crackMat, edgeMat]) { m.clippingPlanes = planes; m.needsUpdate = true; }
   }
@@ -473,7 +484,7 @@ export function createT4({ clip = true } = {}) {
     dispose(scene) { api.removeFrom(scene); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); tubeGeo.dispose(); jointGeo.dispose(); },
     removeFrom(scene) { scene.remove(group); scene.remove(fibreMesh); },
     /** The look: false light shows the capsid's glowing facet edges instead of its capsomer beads. */
-    setStyle(fl) { caps.visible = !fl; edges.visible = fl; edgeMat.clippingPlanes = headMat.clippingPlanes; edgeMat.needsUpdate = true; },
+    setStyle(fl) { state.fl = fl; caps.visible = !fl; edges.visible = fl; edgeMat.clippingPlanes = headMat.clippingPlanes; edgeMat.needsUpdate = true; layout(); },
     set(o) { Object.assign(state, o); if (o.capsid && o.capsid !== api._capsid) { api._capsid = o.capsid; setCapsid(o.capsid); } },
     /** Clip the camera-facing half of the capsid (cutaway): pass the camera position. */
     setCutFrom(camPos) {
