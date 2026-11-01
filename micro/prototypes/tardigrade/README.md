@@ -69,11 +69,11 @@ calm: exploring and feeding (50 food items across seven leaves).
 | Challenge | Where (progress, start 0 .. pool tip 1) | Starts when |
 | --- | --- | --- |
 | *Milnesium* hunting | browses at 0.61 among the rotifers | it hunts only a player at progress ≥ 0.5 (0.45 once stalking) |
-| The rotifer meadow | leaf E u 12-17.4: 0.54 to 0.70 | first contact (measured 0.50) |
+| The rotifer meadow | leaf E u 12-17.4: 0.54 to 0.70 | first contact (measured 0.53) |
 | *Prionchulus* | post at 0.86, wakes within 650 µm | measured at 0.69 |
 
 Measured with a scripted walk along the route (hunger "Always", no calm
-opening, so the earliest possible): *Milnesium* 0.51, meadow 0.50, the boss
+opening, so the earliest possible): *Milnesium* 0.51, meadow 0.53, the boss
 0.69. `__micro.route()` gives the static layout and `__micro.challenges`
 logs where each challenge first started. Eaten alone, you wake at the
 furthest checkpoint you had passed that is well away from what caught you
@@ -320,10 +320,21 @@ DIC is the main look, implemented as the reusable technique
 - Claw scaling, the catches and the views reuse their matrices (no per-frame
   `new Matrix4`).
 
-Measured with `scratchpad/perf/measure.mjs` (SwiftShader, 1280×720, GPU
-spoofed; before: the old auto quality at its lowest step, after: `?q=low`, the
-same 0.4 scale and 10 taps): see the table in the final report of this pass
-and `../../design/performance.md`.
+Measured with the performance audit's `measure.mjs` (SwiftShader, 1280×720,
+GPU name spoofed, 8 s; before: the old auto quality at its lowest step, after:
+`?q=low`, the same 0.4 scale and 10 taps; the machine was shared, so compare
+CPU and uploads, and SwiftShader times only roughly):
+
+| | 1 player before | after | 4 players before | after |
+| --- | --- | --- | --- | --- |
+| CPU (JS) per frame, median | 22.1 ms | 5.2 ms | 45.4 ms | 13.4 ms |
+| buffer upload per frame | 1 079 KB | 20 KB | 2 713 KB | 53 KB |
+| heap allocated per frame | 2.1 MB | 0.37 MB | 3.0 MB | 0.76 MB |
+| optical buffers used per view | 512×288 | 512×288 | 512×288 ×4 | 282×158 ×4, scissored |
+| SwiftShader raster per frame | 429 ms | 612 ms (load) | 3 829 ms | 1 055 ms |
+
+The 1-player raster number rose only because the machine was busier: the
+unchanged full-screen composite pass alone went from 65 to 162 ms.
 
 ## Threats and pacing
 
