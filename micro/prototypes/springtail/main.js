@@ -681,7 +681,7 @@ F({ id: 'menisci', group: 'Simulation', label: 'Meniscus depth', choices: ['Exag
   about: 'Analytic dimples where claws, the ventral tube, floating grains and the strider\'s legs press the film: a logarithmic profile, like the K0 meniscus of a small load, fading to flat a few contact radii out.',
   onChange: (v) => (dimples.scale = v.startsWith('Ex') ? 1 : 0.35) });
 F({ id: 'righting', group: 'Simulation', label: 'Landing odds', choices: ['Real (85% upright)', 'Always upright'], value: 'Real (85% upright)',
-  about: 'Semiaquatic springtails land on their ventral side 85% of the time (Ortega-Jimenez et al. 2022); otherwise you land on your back and must right yourself (tap A).', onChange: (v) => (opt.righting = v.startsWith('Real')) });
+  about: 'Semiaquatic springtails land on their ventral side 85% of the time (Ortega-Jimenez et al. 2022); otherwise you land on your back, lying in the film with the legs and furcula kicking, and flip over: at once with A (a little hop), or by yourself after ~1.2 s.', onChange: (v) => (opt.righting = v.startsWith('Real')) });
 F({ id: 'slow', group: 'Simulation', label: 'Jump time', choices: ['Slowed ~6x (playable)', 'Real time'], value: 'Slowed ~6x (playable)',
   about: 'A real full jump off water lasts ~0.1-0.2 s at ~0.7 m/s take-off. Slowed, a full jump takes 0.85 s, so you can see the tumble, the U-pose and the landing.', onChange: (v) => (opt.slow = v.startsWith('Slow')) });
 F({ id: 'pounce', group: 'Simulation', label: 'Pounce-bite (a departure)', fixed: true,
@@ -848,7 +848,7 @@ function die(cause) {
 function resetBody(P, x, z) {
   P.x = x; P.z = z; P.vx = P.vz = 0; P.mode = 'film'; P.air = null; P.cock = 1; P.roll = 0; P.pitch = 0; P.charging = false; P.charge = 0; P.queuedJump = null;
   P.bend = 0; P.furc = 0; P.leaf = null; P.struggle = 0; P.scale = 1; P.sy = 1; P.flailK = 0; P.heading = Math.PI / 2; P.hunker = 0; P.eatT = 0; P.deadT = 0;
-  P.digestWhite = 0; P.dissolve = 0;
+  P.digestWhite = 0; P.dissolve = 0; P.rightT = undefined; P.flipHop = 0;
   P.act = null; P.actT = 0; P.eatFood = null;
   const g = groundAt(x, z);
   P.y = g.y; P.mode = modeFor(g.kind);
@@ -919,7 +919,7 @@ function landAt(g) {
   pl.landT = simT;
   const leaf = world.sundews.leafAt(pl.x, pl.y, pl.z);
   if (leaf && g.kind !== 'moss') return;
-  if (!a.upright) { pl.mode = 'flipped'; pl.flipT = 0; pl.roll = Math.PI; rumble(160, 0.4, 0.3); hud.toast('Landed on your back: tap A to flick upright', 1600); }
+  if (!a.upright) { pl.mode = 'flipped'; pl.flipT = 0; pl.rightT = undefined; pl.flipHop = 0; pl.roll = Math.PI; rumble(160, 0.4, 0.3); hud.toast('On your back! Tap A to flip over', 1100); }
   else pl.mode = modeFor(g.kind);
   if (g.kind === 'film') {
     audio.play('springtail/land-water', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
@@ -931,6 +931,8 @@ function landAt(g) {
   rumble(60, 0.2, 0.05);
 }
 
+/** On its back: it rights itself by itself after FLIP_SELF s (A does it at once); the flip takes FLIP_TIME s. */
+const FLIP_SELF = 1.2, FLIP_TIME = 0.28;
 function stepPlayer(dt, inp) {
   const P = pl;
   P.furc += ((P.mode === 'air' ? (P.air && P.air.t / P.air.T > 0.55 ? 0.6 : 1) : P.cock < 1 ? 1 - P.cock : 0) - P.furc) * Math.min(1, dt * (P.mode === 'air' ? 30 : 6));
@@ -1058,17 +1060,34 @@ function stepPlayer(dt, inp) {
   }
 
   if (P.mode === 'flipped') {
+    // On its back in the film (the 15% of landings that are not upright, or a
+    // wave): legs and furcula kick, the film dimples and ripples round it, and
+    // it rights itself with a little flip on A, or by itself after FLIP_SELF s.
     P.flipT += dt;
-    P.roll = Math.PI;
-    if (inp.dashPressed || P.flipT > 3.0) {
-      // a flick of the furcula from the back rights it
-      P.roll = 0; P.pitch = 0;
-      if (inp.dashPressed && P.cock > 0.3) { P.mode = modeFor(groundAt(P.x, P.z).kind); jump(Math.cos(P.heading), Math.sin(P.heading), 0.12); }
-      else P.mode = modeFor(groundAt(P.x, P.z).kind);
-    }
     const fl = inPool(P.x, P.z) ? field.flow(P.x, P.z) : [0, 0];
     P.x += fl[0] * dt; P.z += fl[1] * dt;
     P.y = groundAt(P.x, P.z).y;
+    if (P.rightT !== undefined) {
+      // the flip: a roll back over (pi -> 2 pi) with a small hop
+      P.rightT += dt;
+      const u = Math.min(1, P.rightT / FLIP_TIME);
+      P.roll = Math.PI * (1 + u * u * (3 - 2 * u));
+      P.flipHop = Math.sin(u * Math.PI) * 0.35;
+      if (u >= 1) { P.roll = 0; P.pitch = 0; P.flipHop = 0; P.rightT = undefined; P.mode = modeFor(groundAt(P.x, P.z).kind); }
+      return;
+    }
+    P.roll = Math.PI + Math.sin(P.flipT * 23) * 0.12; // rocking as the legs kick
+    // the kicking legs ripple the film
+    if (inPool(P.x, P.z) && Math.floor(P.flipT / 0.14) !== Math.floor((P.flipT - dt) / 0.14)) {
+      const a = P.heading + (Math.random() - 0.5) * 2.4;
+      field.drop(P.x + Math.cos(a) * 0.5, P.z + Math.sin(a) * 0.5, 0.25, -0.025);
+    }
+    if (inp.dashPressed && P.cock > 0.3 && P.flipT > 0.08) {
+      // a flick of the furcula from the back: flip over into a little hop
+      P.roll = 0; P.pitch = 0; P.mode = modeFor(groundAt(P.x, P.z).kind);
+      jump(Math.cos(P.heading), Math.sin(P.heading), 0.12);
+      if (P.air) P.air.upright = true;
+    } else if (inp.dashPressed || P.flipT > FLIP_SELF) { P.rightT = 0; field.drop(P.x, P.z, 0.4, -0.05); ripples.push({ x: P.x, z: P.z, strength: 0.4 }); }
     return;
   }
 
@@ -1090,7 +1109,7 @@ function stepPlayer(dt, inp) {
     fx = fl[0] * (1 - P.hunker * 0.8) - sl[0] * 30 * (1 - P.hunker); fz = fl[1] * (1 - P.hunker * 0.8) - sl[1] * 30 * (1 - P.hunker);
     // waves flip an unbraced springtail
     const s = Math.hypot(sl[0], sl[1]);
-    if (s > 0.2 && P.hunker < 0.5) { P.mode = 'flipped'; P.flipT = 0; P.heading += (Math.random() - 0.5) * 2; rumble(200, 0.5, 0.3); hud.toast('Flipped by a wave! Tap A, or hunker (B) next time', 1700); return; }
+    if (s > 0.2 && P.hunker < 0.5) { P.mode = 'flipped'; P.flipT = 0; P.rightT = undefined; P.flipHop = 0; P.heading += (Math.random() - 0.5) * 2; rumble(200, 0.5, 0.3); hud.toast('Flipped by a wave! Tap A to flip over; hunker (B) next time', 1500); return; }
   }
   const nx = P.x + (P.vx + fx) * dt, nz = P.z + (P.vz + fz) * dt;
   if (poolE(nx, nz) < BANK_E) { P.x = nx; P.z = nz; } else { P.vx *= 0.3; P.vz *= 0.3; }
@@ -1409,7 +1428,9 @@ function poseTail(t) {
   const g = tail.group;
   let y = P.y;
   if (P.mode === 'film') y = field.height(P.x, P.z) - 0.01 - P.hunker * 0.02;
-  if (P.mode === 'flipped') y = P.y + 0.42;
+  // on its back the roll about the body's middle (0.25 mm up) puts the dorsum
+  // at the bottom: it lies in the film, sunk a little into its dimple
+  if (P.mode === 'flipped') y = P.y - 0.03 + (P.flipHop || 0);
   if (P.mode === 'dead') y = P.y - Math.min(1, P.deadT) * 0.2;
   g.position.set(P.x, y, P.z);
   // in the air the body spins about its centre (pitch about the lateral axis)
@@ -1704,7 +1725,7 @@ function render(dt) {
 }
 
 const api = {
-  scene, camera, renderer, macro, field, dimples, tail, stenus, strider, rain, world, pl, rig, game, features, paused: false,
+  scene, camera, renderer, macro, field, Box3: THREE.Box3, dimples, tail, stenus, strider, rain, world, pl, rig, game, features, paused: false,
   step(dt = 1 / 60, inp = IDLE) { step(dt, [inp]); },
   render(dt = 0) { const L = render(dt); updateText(L); },
   jump, newGame, respawn, inPool, groundAt, hunger, capture, cap, pace,
