@@ -7,7 +7,7 @@ import { CREDITS, finaleFrame } from '../finale.js';
 // stone interior, the clifftop and the tableaux are new. Every requested
 // piece of art is delivered; production waits for it before play. Draw only
 // from state and t. Compatibility fallbacks support older review harnesses.
-import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DUEL, DIVE, WEDDING, APOTH, weddingGuests, guestHop, AURORA, auroraFacing, weddingDoorAlpha, diveFloor, swimPosition, TOWER_ESCAPE, towerEscapeFire } from './act5film.js';
+import { SWIM, TOWER_TOP, TOWER_WINDOW, FILM_T, BARREL, DUEL, DIVE, WEDDING, APOTH, weddingGuests, guestHop, AURORA, auroraFacing, weddingDoorAlpha, diveFloor, swimPosition, TOWER_ESCAPE, towerEscapeFire, BATTLE_INTRO, battleIntroFrame } from './act5film.js';
 import { HOUSE, QUAY, T, climberPos } from './act5.js';
 import {
   onEvent as act5Event, cliffScene, holds, climbGuide, climber, rocksWorld, rockWarnings,
@@ -41,7 +41,14 @@ export function focusTower(st) {
   if (st.phase === 'dive') return st.w && !st.dv ? { x: st.w.x, y: st.w.y - 70 } : null;
   return null;
 }
-export const focusBurning = (st) => (st.p ? { x: st.p.x, y: st.p.y - 75 } : null);
+export const focusBurning = st => {
+  if (st.phase === 'barrel' || st.phase === 'victory') {
+    if (st.battleIntro || st.phase === 'victory' || st.barrel?.fallT != null) return null;
+    // Keep the sheltered princess, Aurora and witch in the phone framing.
+    return { x: 460, y: BARREL.y-80 };
+  }
+  return st.p ? { x: st.p.x, y: st.p.y-75 } : null;
+};
 
 export function drawOverTower(k, st) {
   if (st.defeatT != null) k.wash('#2a1424', 0.55 * clamp(st.defeatT / FILM_T.defeat, 0, 1));
@@ -431,7 +438,7 @@ function diveScene(k, st, t) {
 // The fight before it: the witch at the right of the ledge, her fire running
 // along the ground at him, the prince lunging at her with the sword. Each
 // at a stable scene scale: the prince 140 px, the intimidating witch 172 px.
-function duel(k, st, t) {
+function duel(k, st, t, entrance = false) {
   const c = k.c, d = st.duel, w = st.w, H = 140;
   // her fire, rolling along the ground
   for (const bo of d.bolts) {
@@ -490,6 +497,8 @@ function duel(k, st, t) {
       }
     }
   }
+  // The stage entrance draws the arriving couple separately.
+  if (entrance) return;
   // the prince: lunging as he swings the sword, else on foot
   if (w.strikeT > 0) {
     const f = w.strikeT / DUEL.swing;
@@ -544,7 +553,7 @@ function auroraBlessing(k, st, t) {
   }
   if (w) {
     const hx = AURORA.x + face * 64, hy = BARREL.y - 150;
-    const tx = w.x, ty = w.y - 80;
+    const tx = st.battleIntro ? st.duel.x-20 : w.x, ty = st.battleIntro ? BARREL.y-110 : w.y-80;
     c.strokeStyle = k.col('#fff2b0'); c.lineWidth = 2; c.globalAlpha = 0.15;
     c.beginPath(); c.moveTo(hx, hy); c.quadraticCurveTo((hx + tx) / 2, Math.min(hy, ty) - 30, tx, ty); c.stroke();
     c.shadowColor = '#fff2b0'; c.shadowBlur = 6;
@@ -554,8 +563,10 @@ function auroraBlessing(k, st, t) {
       c.globalAlpha = Math.sin(f * Math.PI) * (0.4 + 0.25 * Math.sin(t * 7 + i));
       c.fillStyle = k.col(i % 4 ? '#fff2b0' : '#ffffff'); k.star(x, y, 3 + i % 3);
     }
-    c.globalAlpha = 0.22; c.strokeStyle = k.col('#fff2b0');
-    c.beginPath(); c.ellipse(w.x, w.y - 70, 36, 76, 0, 0, Math.PI * 2); c.stroke();
+    if (!st.battleIntro) {
+      c.globalAlpha = 0.22; c.strokeStyle = k.col('#fff2b0');
+      c.beginPath(); c.ellipse(w.x, w.y-70, 36, 76, 0, 0, Math.PI*2); c.stroke();
+    }
   }
   c.restore();
 }
@@ -566,7 +577,9 @@ function barrelScene(k, st, t) {
   if (!k.asset('cliff-whirlpool', 640, 720, 1280, 720)) { c.fillStyle = k.col('#1c1630'); c.fillRect(0, 0, 1280, 720); c.fillStyle = k.col('#7a6a5a'); c.fillRect(BARREL.x0, BARREL.y, BARREL.edge - BARREL.x0, 300); }
   // the cloth paints its own whirlpool (centre ~ x 1000, y 610); the cut-out only without it
   if (!k.img('cliff-whirlpool')) { c.save(); c.translate(1040, 640); c.scale(1 + 0.03 * Math.sin(t * 2), 1); k.asset('whirlpool', 0, 60, 420, 136); c.restore(); }
+  if (st.shelteredAz) drawPerson(k,'azurine-stand',st.shelteredAz.x,BARREL.y,BATTLE_INTRO.height,{face:-1});
   auroraBlessing(k, st, t);
+  if (st.battleIntro) { duel(k,st,t,true); battleEntrance(k,st,t); return; }
   if (st.duel && w) return duel(k, st, t);
   if (!b || !w) return;
   const fallK = b.fallT == null ? 0 : clamp(b.fallT / FILM_T.barrelFall, 0, 1);
@@ -588,6 +601,37 @@ function barrelScene(k, st, t) {
   } else princeOnFoot(k, w, 140);
   if (fallK > 0) { c.save(); c.globalAlpha = 0.5 * Math.sin(Math.PI * fallK); c.fillStyle = k.col('#eef3ea'); c.fillRect(0, 0, 1280, 720); c.restore(); }
   if (fallK === 0) hint(k, 'She still threatens you! Push her barrel over the edge');
+}
+
+// The prince arrives carrying Azurine, kneels to set her down, then steps
+// forward while she stays sheltered behind the taller fairy.
+function battleEntrance(k,st,t) {
+  const frame = battleIntroFrame(st), w = st.w, c = k.c;
+  if (frame.stage === 'arrival') {
+    drawPose(k,walkFrame('prince-carry',w.walk,36),w.x,BARREL.y,BATTLE_INTRO.height);
+  } else if (frame.stage === 'setdown') {
+    const reveal = clamp(frame.u/.22,0,1);
+    if (reveal < 1) {
+      c.save();c.globalAlpha=1-reveal;drawPose(k,'prince-carry',w.x,BARREL.y,BATTLE_INTRO.height);c.restore();
+    }
+    c.save();c.globalAlpha=reveal;
+    // This paired cutout is anchored on Azurine's feet, at her shelter.
+    drawPerson(k,'prince-set-down',BATTLE_INTRO.shelter,BARREL.y,BATTLE_INTRO.height);
+    c.restore();
+  } else if (frame.stage === 'rise') {
+    drawPose(k,'prince-kneel-rise',w.x,BARREL.y,BATTLE_INTRO.height);
+  } else if (frame.stage === 'forward' || frame.stage === 'settle') {
+    princeOnFoot(k,w,BATTLE_INTRO.height);
+  }
+  const captions = {
+    faceoff: 'Aurora holds the witch at bay',
+    arrival: 'You bring Azurine to Aurora’s protection',
+    setdown: 'You set Azurine gently down behind Aurora',
+    rise: 'Azurine is safe behind Aurora',
+    forward: 'Azurine is safe behind Aurora',
+    settle: 'Face the witch',
+  };
+  hint(k,captions[frame.stage]);
 }
 
 // The wedding street: the court lines the way; he walks Azurine to the gate.

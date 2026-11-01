@@ -87,24 +87,22 @@ function pools(k, cx, t) {
   c.globalAlpha = 1;
 }
 
-function floor(k, f) {
-  const c = k.c;
-  const g = c.createLinearGradient(0, f.y, 0, 720);
-  g.addColorStop(0, k.col('#6a4a58')); g.addColorStop(0.35, k.col(ROCK)); g.addColorStop(1, k.col('#1c1218'));
-  c.fillStyle = g;
-  c.beginPath(); c.moveTo(f.x0, f.y);
-  for (let x = f.x0; x <= f.x1; x += 40) c.lineTo(x, f.y + 2 * Math.sin(x * 0.2));
-  c.lineTo(f.x1, f.y); c.lineTo(f.x1 - 14, 730); c.lineTo(f.x0 + 14, 730); c.closePath(); c.fill();
-  // the rock's lit edges either side, so each gap reads as a drop
-  c.fillStyle = k.col('#8a6474'); c.fillRect(f.x0 + 2, f.y + 6, 5, 720 - f.y); c.fillRect(f.x1 - 7, f.y + 6, 5, 720 - f.y);
-  // the delivered ledge rock, tiled along the top as its walkable edge
-  if (k.img('cavern-ledge')) {
-    const n = Math.max(1, Math.round((f.x1 - f.x0) / 150)), w = (f.x1 - f.x0) / n;
-    for (let i = 0; i < n; i++) k.asset('cavern-ledge', f.x0 + w * (i + 0.5), f.y + w / 3.2, w + 6, w / 3.2);
-    return;
+// Painted rock supports reach below the stage; the old gradient slabs and
+// straight vertical edge strips are gone. Overlap broad rock sections on long
+// floors so their texture keeps its scale instead of stretching across a scene.
+export function floor(k, f) {
+  const width = f.x1-f.x0, im = k.img('cavern-platform');
+  if (im) {
+    const n = Math.max(1,Math.ceil(width/600)), w = width/n;
+    const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
+    for (let i=0;i<n;i++) {
+      const overlap = i ? 12 : 0;
+      k.assetCrop('cavern-platform',0,0,iw,ih,f.x0+i*w-overlap,f.y,w+overlap,740-f.y);
+    }
   }
-  c.fillStyle = k.col(ROCK_LIT); c.fillRect(f.x0, f.y, f.x1 - f.x0, 10);
-  c.fillStyle = k.col(EDGE); c.fillRect(f.x0, f.y, f.x1 - f.x0, 3);
+  // The familiar painted rim keeps the exact walkable top and conceals joins.
+  const n = Math.max(1, Math.round(width/150)), w = width/n;
+  for (let i=0;i<n;i++) k.asset('cavern-ledge',f.x0+w*(i+.5),f.y+w/3.2,w+6,w/3.2);
 }
 
 // The delivered cavern ledge: its walkable top is the art's top edge.

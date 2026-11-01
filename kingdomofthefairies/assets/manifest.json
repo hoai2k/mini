@@ -5189,6 +5189,46 @@
       ],
       "anchor": "bottom centre",
       "edition": "film"
+    },
+    "prince-set-down": {
+      "status": "delivered",
+      "file": "prince-set-down.webp",
+      "size": [
+        600,
+        440
+      ],
+      "anchor": "bottom centre (Azurine\u2019s feet)",
+      "edition": "film"
+    },
+    "prince-set-down-tinted": {
+      "status": "delivered",
+      "file": "prince-set-down-tinted.webp",
+      "size": [
+        600,
+        440
+      ],
+      "anchor": "bottom centre (Azurine\u2019s feet)",
+      "edition": "film"
+    },
+    "cavern-platform": {
+      "status": "delivered",
+      "file": "cavern-platform.webp",
+      "size": [
+        720,
+        480
+      ],
+      "anchor": "top centre",
+      "edition": "film"
+    },
+    "cavern-platform-tinted": {
+      "status": "delivered",
+      "file": "cavern-platform-tinted.webp",
+      "size": [
+        720,
+        480
+      ],
+      "anchor": "top centre",
+      "edition": "film"
     }
   },
   "audio": {

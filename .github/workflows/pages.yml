@@ -21,13 +21,31 @@ name: Deploy games to GitHub Pages
 on:
   push:
     branches: [deploy]
-    # Smoothcraft is a Minecraft mod, not part of the site: a push that only
-    # changes it has nothing to deploy. A push that also changes anything
-    # else still deploys as usual.
+    # Skipped when a push changes only these: the Smoothcraft mod, Markdown,
+    # and design, research, reference, intake, qa, tools and test folders,
+    # the iOS/Android apps and the Workers, none of which the publish.sh
+    # scripts or Hopper's build read. A push that also changes anything else
+    # still deploys as usual.
     paths-ignore:
       - 'smoothcraft/**'
       - '**.md'
       - '.claude/**'
+      - '*/design/**'
+      - '*/intake/**'
+      - '*/research/**'
+      - '*/reference/**'
+      - '*/qa/**'
+      - '*/tools/**'
+      - '*/app/test/**'
+      - '*/game/test/**'
+      - 'chat/test/**'
+      - 'hopper/game/qa/**'
+      - 'chat/ios/**'
+      - 'musicpractice/mobile/**'
+      - 'multiplayer/server/**'
+      - 'stocks/server/**'
+      - 'delete-merged-branches*.sh'
+      - '.gitignore'
   workflow_dispatch:
     inputs:
       tests:

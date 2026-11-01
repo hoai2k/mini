@@ -9,7 +9,7 @@ import { FILM, LEGACY, FILM_CAST } from '../src/theme.js';
 import prologue, { GIFTS, FAIRIES, AZURINE_X, RAMPART, ARMS, HAND, NEAR_HAND, LANTERNS, T as PRO_T } from '../src/acts/prologue.js';
 import act2, { FAIRY_AT, FILM_DIVE, RIDE } from '../src/acts/act2.js';
 import act3, { PASSAGE } from '../src/acts/act3.js';
-import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach, weddingGuests, guestHop, CELEBRATION, AURORA, auroraFacing, WEDDING, weddingFloor, SWIM as SEA, diveFloor, swimPosition, TOWER_ESCAPE, towerEscapeFire, duelResetX } from '../src/acts/act5film.js';
+import { actTower, actBurning, SWIM, TOWER_HOLDS, TOWER_TOP, FILM_T, BARREL, DUEL, DIVE, APOTH, FILM_CLIFF, TOWER_WINDOW, duelReach, weddingGuests, guestHop, CELEBRATION, AURORA, auroraFacing, WEDDING, weddingFloor, SWIM as SEA, diveFloor, swimPosition, TOWER_ESCAPE, towerEscapeFire, duelResetX, BATTLE_INTRO, BATTLE_INTRO_END, battleIntroFrame } from '../src/acts/act5film.js';
 import { CLIMB, terrainAt } from '../src/acts/climb.js';
 import { CLIMB_MAPS } from '../src/acts/climb-map.js';
 import act4 from '../src/acts/act4.js';
@@ -463,7 +463,7 @@ test('Act VI: out on the cliff, push the barrel over, walk the wedding street an
 });
 
 test("Act VI: the witch's last stand: her fire costs a lantern, X strikes, three blows beat her, Aurora's barrel traps her and rolls without a fight", () => {
-  const st = actBurning.create({ seed: 4, carry: {}, from: { scene: 3 } });
+  const st = actBurning.create({ seed: 4, carry: {}, from: { scene: 3, introDone: true } });
   assert.ok(st.duel && !st.barrel, 'she fights before she hides');
   st.w.x = AURORA.shieldX + 80; // ahead of Aurora's protection, in the line of fire
   const lanterns = st.lanterns;
@@ -471,11 +471,11 @@ test("Act VI: the witch's last stand: her fire costs a lantern, X strikes, three
   assert.equal(st.lanterns, lanterns - 1, 'standing still, her fire reaches him');
   // A leaps; X swings the sword, a blow only when it reaches her; walking
   // into her does nothing
-  const s2 = actBurning.create({ seed: 4, carry: {}, from: { scene: 3 } });
+  const s2 = actBurning.create({ seed: 4, carry: {}, from: { scene: 3, introDone: true } });
   actBurning.step(s2, 1 / 60, { a: true });
   assert.equal(s2.duel.hp, DUEL.hp);
   assert.ok(!s2.w.on, 'a leap');
-  const s3 = actBurning.create({ seed: 4, carry: {}, from: { scene: 3 } });
+  const s3 = actBurning.create({ seed: 4, carry: {}, from: { scene: 3, introDone: true } });
   actBurning.step(s3, 1 / 60, { x: true });
   assert.equal(s3.duel.hp, DUEL.hp, 'a swing out of reach misses');
   s3.duel.next = 99;
@@ -492,8 +492,42 @@ test("Act VI: the witch's last stand: her fire costs a lantern, X strikes, three
   assert.ok(s2.phase === 'wedding' || s2.barrel?.fallT != null || s2.barrel.x > x0, 'he rolls it to the edge');
 });
 
+test('Battle entrance: Aurora drives the witch back before the prince arrives, with combat input locked',()=>{
+ const st=actBurning.create({from:{scene:3}});const lanterns=st.lanterns;
+ assert.ok(st.battleIntro);assert.equal(st.w.x,BATTLE_INTRO.heroFrom);assert.equal(st.duel.x,BATTLE_INTRO.witchFrom);
+ assert.equal(actBurning.touchLive(st),false);assert.equal(actBurning.hud(st),null);assert.equal(actBurning.focus(st),null);
+ run(actBurning,st,1,()=>({moveX:1,a:true,x:true}));
+ assert.equal(st.w.x,BATTLE_INTRO.heroFrom);assert.ok(st.duel.x>BATTLE_INTRO.witchFrom&&st.duel.x<DUEL.x);
+ assert.equal(st.duel.hp,3);assert.equal(st.lanterns,lanterns);assert.deepEqual(st.duel.bolts,[]);
+ run(actBurning,st,BATTLE_INTRO.faceoff+.2,()=>({moveX:-1,x:true}),s=>battleIntroFrame(s).stage==='arrival');
+ assert.equal(st.duel.x,DUEL.x);run(actBurning,st,1);
+ assert.ok(st.w.x>BATTLE_INTRO.heroFrom&&st.w.x<BATTLE_INTRO.handoff);
+ assert.equal(st.shelteredAz,null);assert.equal(st.duel.hp,3);
+});
+
+test('Battle entrance: set Azurine behind Aurora, step forward, and save a ready-to-fight retry',()=>{
+ const st=actBurning.create({from:{scene:3}});
+ run(actBurning,st,BATTLE_INTRO_END+1,()=>({a:true,x:true,moveX:1}),s=>battleIntroFrame(s).stage==='rise');
+ assert.ok(st.shelteredAz);assert.equal(st.shelteredAz.x,BATTLE_INTRO.shelter);assert.ok(st.shelteredAz.x<AURORA.x);
+ assert.equal(st.p.carry,false);assert.equal(actBurning.touchLive(st),false);
+ run(actBurning,st,BATTLE_INTRO_END,()=>({}),s=>!s.battleIntro);
+ assert.equal(st.battleIntro,null);assert.equal(st.w.x,BATTLE_INTRO.ready);assert.ok(st.w.x>AURORA.x);
+ assert.equal(st.phaseT,0);assert.equal(st.duel.hp,3);assert.equal(st.duel.t,0);assert.equal(actBurning.touchLive(st),true);
+ assert.equal(st.checkpoint.introDone,true);assert.equal(st.checkpoint.scene,3);
+ const retry=actBurning.create({from:st.checkpoint});assert.equal(retry.battleIntro,null);assert.equal(retry.w.x,BATTLE_INTRO.ready);
+ assert.equal(retry.shelteredAz.x,BATTLE_INTRO.shelter);assert.equal(retry.p.carry,false);
+});
+
+test('Battle entrance: Azurine remains safely sheltered through the fight and barrel push',()=>{
+ const st=actBurning.create({from:{scene:3,introDone:true}}),az=JSON.stringify(st.shelteredAz);
+ st.w.x=AURORA.x-30;run(actBurning,st,8);
+ assert.equal(JSON.stringify(st.shelteredAz),az);assert.equal(st.lanterns,3);
+ st.duel=null;st.barrel={x:DUEL.x,rot:0,fallT:null};run(actBurning,st,2,()=>({moveX:1}));
+ assert.equal(JSON.stringify(st.shelteredAz),az);
+});
+
 test('Witch duel: each successful hit shoves him halfway back and immediately starts another attack',()=>{
- const st=actBurning.create({from:{scene:3}});st.duel.next=99;
+ const st=actBurning.create({from:{scene:3, introDone: true}});st.duel.next=99;
  st.w.x=st.duel.x-DUEL.reach-18+3;
  const lanterns=st.lanterns;actBurning.step(st,DT,{x:true});
  assert.equal(st.duel.hp,2);assert.equal(st.duel.state,'reel');const reset=duelResetX(st);
@@ -505,7 +539,7 @@ test('Witch duel: each successful hit shoves him halfway back and immediately st
 });
 
 test('Witch duel: a fresh jump on the next approach clears the counterattack',()=>{
- const st=actBurning.create({from:{scene:3}});st.duel.next=99;st.w.x=st.duel.x-DUEL.reach-18+3;
+ const st=actBurning.create({from:{scene:3, introDone: true}});st.duel.next=99;st.w.x=st.duel.x-DUEL.reach-18+3;
  actBurning.step(st,DT,{x:true});run(actBurning,st,1,()=>({}),s=>s.duel.state==='counter');
  const lanterns=st.lanterns;actBurning.step(st,DT,{moveX:1,a:true,aHeld:true});
  run(actBurning,st,.45,()=>({moveX:1,aHeld:true}));assert.equal(st.lanterns,lanterns);
@@ -513,7 +547,7 @@ test('Witch duel: a fresh jump on the next approach clears the counterattack',()
 });
 
 test('Witch duel: three jump approaches beat her at the edge, with two resets and a large barrel to push',()=>{
- const st=actBurning.create({from:{scene:3}}),events=[];let last=false;
+ const st=actBurning.create({from:{scene:3, introDone: true}}),events=[];let last=false;
  assert.equal(st.duel.x+BARREL.hw,BARREL.edge);
  for(let t=0;t<30&&st.duel;t+=DT){
   const fire=st.duel.bolts.some(b=>b.x>st.w.x&&b.x-st.w.x<100);
@@ -528,7 +562,7 @@ test('Witch duel: three jump approaches beat her at the edge, with two resets an
 });
 
 test('Act VI: Aurora always faces right and turns incoming fire into harmless, temporary smoke', () => {
-  const st = actBurning.create({ from: { scene: 3 } });
+  const st = actBurning.create({ from: { scene: 3, introDone: true } });
   st.w.x = AURORA.x - 35;
   assert.equal(auroraFacing(st), 1);
   st.duel.next = 99;
@@ -550,7 +584,7 @@ test('Act VI: Aurora always faces right and turns incoming fire into harmless, t
 });
 
 test('Act VI: victory sounds once after the witch disappears, never during defeat, trapping or falling', () => {
-  const st = actBurning.create({ seed: 4, carry: {}, from: { scene: 3 } });
+  const st = actBurning.create({ seed: 4, carry: {}, from: { scene: 3, introDone: true } });
   const seen = [];
   let last = false;
   for (let t = 0; t < 60 && ['barrel', 'victory'].includes(st.phase); t += DT) {
@@ -581,7 +615,7 @@ test('Act VI: victory sounds once after the witch disappears, never during defea
 });
 
 test('Act VI: the empty cliff fades with the last chord, then the wedding fades in gradually', () => {
-  const st = actBurning.create({ from: { scene: 3 } });
+  const st = actBurning.create({ from: { scene: 3, introDone: true } });
   st.duel = null;
   st.barrel = { x: BARREL.edge, fallT: FILM_T.barrelFall - DT / 2, rot: 0 };
   actBurning.step(st, DT);

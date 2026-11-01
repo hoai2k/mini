@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { drawStalactite } from '../src/acts/act4cavern-art.js';
+import { drawStalactite, floor } from '../src/acts/act4cavern-art.js';
 import { CEIL_Y, DROP, createCavern, stepCavern } from '../src/acts/act4cavern.js';
 
 const crops = [], rubble = [];
@@ -8,9 +8,18 @@ const k = {
   assetCrop: (...args) => { crops.push(args); return true; },
   asset: (...args) => { rubble.push(args); return true; },
 };
+// Painted supports begin at the walkable surface and continue below the stage.
+floor(k,{x0:1900,x1:2300,y:490});
+assert.ok(crops.length > 0);
+assert.ok(crops.every(c=>c[0]==='cavern-platform' && c[6]===490 && c[6]+c[8]>720));
+assert.ok(rubble.every(c=>c[0]==='cavern-ledge'));
+crops.length=0;rubble.length=0;
 const d = { x: 850, y: CEIL_Y, state: 'hang' };
 drawStalactite(k, d, 0);
 const [cap, spike] = crops.splice(0);
+assert.ok(cap[6] < 0, "painted ceiling root extends through the top of the scene");
+assert.ok(spike[7] >= 90, "stalactites have a substantial painted width");
+assert.equal(CEIL_Y + DROP.len, 210, "larger ceiling-hung art preserves the original resting tip and fall timing");
 assert.equal(cap[6] + cap[8], spike[6], 'hanging spike joins the painted ceiling without a gap');
 assert.equal(spike[6] + spike[8], CEIL_Y + DROP.len, 'painted tip matches the hazard tip');
 d.state = 'shake'; drawStalactite(k, d, 0.025);

@@ -35,7 +35,7 @@ try {
  await page.evaluate(async()=>{
   const q=window.__kingdomOfTheFairies;await q.assets.all;
   const mod=await import('/src/acts/act5film.js');window.celebration=mod;
-  const st=mod.actBurning.create({from:{scene:3}});st.duel=null;
+  const st=mod.actBurning.create({from:{scene:3, introDone: true}});st.duel=null;
   st.barrel={x:mod.BARREL.edge,rot:0,fallT:mod.FILM_T.barrelFall-0.001};
   Object.assign(q.S,{act:mod.actBurning,state:st,mode:'play',card:null,curtain:1,curtainTarget:1,paused:false});
  });

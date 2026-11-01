@@ -65,8 +65,8 @@ try {
               }
             };
           } else if (['hang', 'shake', 'fall', 'broken'].includes(phase)) {
-            const st = q.act4.create({ from: { scene: 5, x: 730, stone: true } });
-            st.cv.t = 8; st.grace = 0; st.cv.drops = [st.cv.drops[0]];
+            const st = q.act4.create({ from: { scene: 5, x: 1980, stone: true } });
+            st.cv.t = 8; st.grace = 0; st.cv.drops = [st.cv.drops[3]];
             const d = st.cv.drops[0], events = [];
             // Exercise the real proximity trigger, shake timer and gravity.
             q.cavern.stepCavern(st.cv, 1 / 60, {}, { hit() {}, pearl() {}, events, graceLeft: () => 1 });
@@ -78,7 +78,7 @@ try {
             }
             view.act = q.act4; view.state = st;
           } else {
-            const st = q.actBurning.create({ from: { scene: 3 } });
+            const st = q.actBurning.create({ from: { scene: 3, introDone: true } });
             st.w.x = 485; st.duel.x = 690;
             st.duel.state = ['land', 'occupied'].includes(phase) ? 'trap' : phase;
             st.duel.t = phase === 'trap' ? (q.DUEL.trap.drop + q.DUEL.trap.land) / 2 : phase === 'land' ? q.DUEL.trap.land + 0.1 : phase === 'occupied' ? q.DUEL.trap.land + 0.6 : 0.2;
@@ -96,11 +96,14 @@ try {
           assert.ok(Math.abs(empty.height - occupied.height) <= 2, 'barrel rim keeps its height');
           assert.ok(Math.abs(empty.width / occupied.width - 1) < 0.08, 'empty and occupied barrel bodies keep their width');
         } else if (['hang', 'shake', 'fall', 'broken'].includes(phase)) {
+          assert.ok(result.draws.includes('cavern-platform'), 'painted rock supports replace the floor rectangles');
           assert.ok(result.crops.length >= 2, `${look}/${film}/${phase}: painted ceiling cap`);
+          assert.ok(result.crops[0][5] < 0, "ceiling cap starts beyond the top of the scene");
+          assert.ok(result.crops[0][6] > 90, "painted stalactite is enlarged");
           if (phase === 'broken') assert.ok(result.draws.includes('cavern-stalactite-broken'));
           else assert.ok(result.crops.length >= 4, `${phase}: cap and spike in both print passes`);
         } else {
-          for (const id of phase === 'warn' ? ['prince-strike', 'witch-cast'] : phase === 'reel' ? ['prince-strike', 'witch-recoil'] : ['trap', 'land'].includes(phase) ? ['barrel-upturned'] : phase === 'occupied' ? ['witch-barrel'] : ['witch-hooded']) {
+          for (const id of phase === 'warn' ? ['prince-strike', 'witch-cast'] : phase === 'reel' ? ['prince-strike', 'witch-recoil'] : ['trap', 'land'].includes(phase) ? ['barrel-upturned'] : phase === 'occupied' ? ['witch-barrel-anger-b'] : ['witch-hooded']) {
             assert.ok(result.draws.includes(id), `${look}/${film}/${phase}: ${id}`);
           }
         }

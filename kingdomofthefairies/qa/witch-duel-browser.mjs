@@ -26,7 +26,7 @@ try{
  const samples=[];
  for(const tinted of [false,true])for(const pose of ['idle','warn','reel','barrel-a','barrel-b','push','aurora-left']){
   const sample=await page.evaluate(({tinted,pose})=>{
-   const r=window.duelReview,mod=r.mod,st=mod.actBurning.create({from:{scene:3}});st.phaseT=10;
+   const r=window.duelReview,mod=r.mod,st=mod.actBurning.create({from:{scene:3, introDone: true}});st.phaseT=10;
    st.w.x=pose==='aurora-left'?180:525;
    if(['idle','warn','reel'].includes(pose)){st.duel.state=pose;st.duel.t=pose==='warn'?.4:.3;st.duel.hp=2;}
    if(pose.startsWith('barrel')||pose==='push'){

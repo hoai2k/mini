@@ -92,9 +92,9 @@ and the production art for the film edition (F1–F4) after them.
 
 ## Production art for the film edition
 
-Requested 11 October 2026: 408 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
+Requested 11 October 2026: 412 game assets for following the film (see [the adaptation plan](film-adaptation.md)). Each prompt is complete; paste it as it stands and attach the references it names (the character sheets and scene concepts are in [references/film-planning/](references/film-planning/index.html)). Sizes are 2× game units, as for the existing art, and match the sprite each one replaces so it drops into place. Name each file by its id and drop it in [`../intake/`](../intake/README.md). The ids are listed as `requested` in `assets/manifest.json`; until each arrives the game draws an interim cut-out or stand-in.
 
-Delivery: 408 of 408 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
+Delivery: 412 of 412 assets generated and prepared. [Delivery notes](generated/film-production/README.md) retain native originals and generation records.
 
 ### F1. Prince Bel-Azor
 
@@ -3175,6 +3175,48 @@ An open painted stone arch marks the clear right-side route after Azurine is res
 160 × 250 px, anchor bottom centre.
 
 > Transparent cutout of a tall open stone arch matching tower-interior.webp: warm grey-pink limestone, worn voussoirs and narrow jambs, a dark opaque passage and stone threshold. No shut panel, bars, fire, smoke, torch, star, circular ornament, arrow, text or glow. Full arch and threshold in frame, transparent outside the stone frame. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### F33. Azurine is set down safely
+
+The arriving prince kneels to set Azurine behind Aurora before the final fight. Preserve both characters and the same standing person height; the paired cutout is anchored on Azurine's feet.
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `prince-set-down` | 600 × 440 | bottom centre (Azurine’s feet) | new | [delivered](../assets/prince-set-down.webp) |
+| `prince-set-down-tinted` | 600 × 440 | bottom centre (Azurine’s feet) | new | [delivered](../assets/prince-set-down-tinted.webp) |
+
+#### `prince-set-down` — Prince setting Azurine down
+
+600 × 440 px, anchor bottom centre (Azurine’s feet).
+
+> The exact prince and Azurine from prince-carry.webp, prince-stand.webp and azurine-stand.webp. Azurine on the LEFT stands upright facing RIGHT with both shoes on the ground; the prince on the RIGHT kneels on one knee facing LEFT, gently supporting her forearm and upper back after putting her down. Same adult standing height, faces, proportions, costume and restrained palette. Full figures, genuine transparent alpha, no floor, glow, scenery, shadow or text. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `prince-set-down-tinted` — Prince setting Azurine down-tinted
+
+600 × 440 px, anchor bottom centre (Azurine’s feet).
+
+> The exact prince and Azurine from prince-carry-tinted.webp, prince-stand-tinted.webp and azurine-stand-tinted.webp. Azurine on the LEFT stands upright facing RIGHT with both shoes on the ground; the prince on the RIGHT kneels on one knee facing LEFT, gently supporting her forearm and upper back after putting her down. Same adult standing height, faces, proportions, costume and restrained palette. Full figures, genuine transparent alpha, no floor, glow, scenery, shadow or text. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+### F34. Rock faces beneath the cavern platforms
+
+Painted irregular cavern rock supports replace the rectangular procedural platform bodies, matching the cave cloth and preserving each walkable top.
+
+| Id | Size | Anchor | Replaces | Delivery |
+| --- | --- | --- | --- | --- |
+| `cavern-platform` | 720 × 480 | top centre | new | [delivered](../assets/cavern-platform.webp) |
+| `cavern-platform-tinted` | 720 × 480 | top centre | new | [delivered](../assets/cavern-platform-tinted.webp) |
+
+#### `cavern-platform` — Cavern platform rock face
+
+720 × 480 px, anchor top centre.
+
+> A single broad solid cavern rock support beneath a flat walkable ledge, matching cavern.webp and cavern-ledge.webp. Level narrow pale stone top spans the full width; layered jagged pink, plum, slate teal and warm grey rock descends into deep dark crevices, irregular tapering sides and a broken rocky foot. No hollow central gap, straight rectangular sides, water, background, characters, lights, text or symbols. Genuine transparent alpha around the silhouette. Top edge aligned to canvas top, full rock in frame. Flat painted toy-theatre cut-out seen square-on, gouache on card with a faint pale cut edge, in the manner of Georges Méliès' 1903 film Le Royaume des fées: early-1900s stencil-tinted colour (sepia-grey line and tone with translucent washes of plum #2a1424, rose pink #f3c6dc, magenta #e0127a, moon gold #d9b34a, coral red #c8321e, grotto teal #5f8c88 and azure #6f9fc8 laid slightly out of register); no lettering; no cast shadow; isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
+
+#### `cavern-platform-tinted` — Cavern platform rock face-tinted
+
+720 × 480 px, anchor top centre.
+
+> A single broad solid cavern rock support beneath a flat walkable ledge, matching cavern.webp and cavern-ledge.webp. Level narrow pale stone top spans the full width; layered jagged pink, plum, slate teal and warm grey rock descends into deep dark crevices, irregular tapering sides and a broken rocky foot. No hollow central gap, straight rectangular sides, water, background, characters, lights, text or symbols. Genuine transparent alpha around the silhouette. Top edge aligned to canvas top, full rock in frame. Render it like a frame of a hand stencil-coloured 1903 Méliès print, not an illustration: a soft-focus black-and-white photograph of a real stage performer in costume (silvery greys, deep blacks, gentle film grain and a little halation), with only a few flat, translucent aniline dye washes laid over by stencil (sea-green teal, orange-yellow, rose and coral red, pale sky blue, magenta), each bleeding slightly past its edges and a little out of register, and large areas left untinted grey; a simple theatre costume of cloth, tights, wig and painted card props with little fine detail and no gold filigree; flat frontal stage lighting; no ink outlines and no glossy finish. Isolated on a transparent background (or flat pure magenta #FF00FF if transparency is unavailable).
 
 <!-- FILM ASSETS END -->
 
