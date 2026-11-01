@@ -2,14 +2,16 @@
 // way back (backdoor) are, drawn near the edge of each player's view when the
 // landmark is off screen.
 //
-//   forward   a brass sun showing the landmark's bearing, without text
+//   forward   a brass arrow pointing at the landmark, without text (the
+//             owner's earlier brass sun is kept: FORWARD_SHAPE = 'sun')
 //   backdoor  a hollow ring with a tiny tick on the side it lies
 //
 // Off screen: the mark sits just inside the view's region, on the line from
 // the player (the region's anchor) towards the landmark, turned to point at
 // it, and fades with distance (opacity from `nearAlpha` at distance 0 to
 // `farAlpha` at `range`). Forward marks are always icon-only. On screen:
-// a gentle marker by default (`onScreen: 'marker'`: a sun for forward, a ring
+// a gentle marker by default (`onScreen: 'marker'`: an arrow pointing down at
+// it for forward, a ring
 // for backdoor), or nothing (`onScreen: 'none'`) when the world draws the
 // landmark itself.
 //
@@ -47,6 +49,10 @@ const STYLE = {
 
 const SHOW_BACKDOOR = false;
 
+// The forward mark's shape: 'arrow' (the owner's choice, 2026-11-01) or the
+// earlier 'sun'.
+const FORWARD_SHAPE = 'arrow';
+
 // The outline of a mark (pointing along +x round the origin) into a 2D
 // context (a fresh path) or a Path2D. Exactly the calls the marks always made.
 function shapeOutline(p, kind, size) {
@@ -55,6 +61,13 @@ function shapeOutline(p, kind, size) {
     const r = size * 0.55;
     p.arc(0, 0, r, 0, Math.PI * 2);
     p.moveTo(r + 2.5, -2.6); p.lineTo(r + 5.5, 0); p.lineTo(r + 2.5, 2.6);
+    return;
+  }
+  if (FORWARD_SHAPE === 'arrow') {
+    // a shaft and an open head, tip at +x
+    const tip = size * 0.75, back = -size * 0.7, hx = size * 0.18, hy = size * 0.5;
+    p.moveTo(back, 0); p.lineTo(tip, 0);
+    p.moveTo(hx, -hy); p.lineTo(tip, 0); p.lineTo(hx, hy);
     return;
   }
   const r = size * 0.26;
@@ -150,6 +163,11 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
       ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2);
       ctx.globalAlpha = alpha * 0.6; ctx.lineWidth = 3; ctx.strokeStyle = shadow; ctx.stroke();
       ctx.globalAlpha = alpha; ctx.lineWidth = 1.2; ctx.strokeStyle = color; ctx.stroke();
+    } else if (FORWARD_SHAPE === 'arrow') {
+      // pointing down, its tip just above the landmark, bobbing a little
+      ctx.translate(0, -16 - 3 * Math.sin(performance.now() / 260));
+      ctx.rotate(Math.PI / 2);
+      shapes(kind, color, shadow, alpha, 20);
     } else {
       shapes(kind, color, shadow, alpha, 20);
     }

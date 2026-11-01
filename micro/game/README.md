@@ -87,7 +87,7 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
 - **Starting direction.** Every world starts with its forward landmark up and
   to the right. Orbit views use a starting camera angle; the bacterium and
   Phage fields start their creature below and left of the host. Camera and stage controls
-  continue to work, and the sun follows the landmark's actual projection.
+  continue to work, and the arrow follows the landmark's actual projection.
 - **Progression.** A forward landmark plays the zoom in and loads the next
   world; a back landmark plays the zoom out to the previous one. The furthest
   world reached and the worlds visited are kept in localStorage.

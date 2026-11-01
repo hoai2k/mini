@@ -1,4 +1,4 @@
-// The bog pool: a wide sheet of open water (1.5 x 0.9 m: some 35 full jumps from the start to the far bank) ringed by a steep
+// The bog pool: a wide sheet of open water (1.5 x 0.9 m; the way across it is 0.74 m) ringed by a steep
 // Sphagnum bank, with moss islands standing in it, sundew rosettes on the
 // islands, floating debris (dead Sphagnum leaves, bark flakes, needles) and
 // food on the film. The water is the ground everywhere the springtail can
@@ -8,13 +8,19 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { litMaterial, macroShared, MACRO_GLSL } from '../shared/techniques/springtail-macro.js';
 
 export const POOL = { a: 760, b: 450 };
+/** How far the way runs from the start to the landmark (mm). */
+const WAY = 740;
+/** The landmark's x (the east bank on the pool's axis; see LANDMARK). */
+const LANDMARK_X = Math.round((0.982 * POOL.a) / (1 + 0.05 * Math.sin(0.5) + 0.035 * Math.sin(1.3)));
 /**
- * Where a game starts: near the pool's west (-x) shore, so the forward
- * landmark on the east bank lies ~1.27 m ahead (+x, up and to the right in the
- * starting view). The first half of the way is calm water, islands and food;
- * the challenges come one after another in the second half (`ZONES`).
+ * Where a game starts: mid-pool, so the forward landmark on the east bank lies
+ * 0.74 m ahead (+x, up and to the right in the starting view). The way is
+ * paced as a rhythm (the owner, 2026-11-01): ~10 s of moving to get the feel,
+ * then a challenge, a short calm stretch, the next challenge, and so on to the
+ * boss at the bank (`ZONES`). Rushing with jumps crosses in about a minute;
+ * the challenges are meant to stretch that to about three.
  */
-export const START = { x: -560, z: 2 };
+export const START = { x: LANDMARK_X - WAY, z: 2 };
 /** Moss islands standing in the pool: centre and radius (mm). Hand-placed round the start, scattered farther out. */
 export const ISLANDS = [
   [15, -9, 4], [-24, 16, 5], [34, 20, 5.5], [-38, -20, 5], [62, -6, 7], [-66, 22, 6], [8, 44, 5], [86, 36, 6],
@@ -24,7 +30,7 @@ export const ISLANDS = [
  * The sundew patch: a band of small islands across the way, each with a
  * rosette whose glue-tipped leaves reach out over the gaps (`buildSundews`).
  */
-const SUNDEW_X = 530;
+const SUNDEW_X = START.x + 625;
 export const SUNDEW_ISLANDS = [[-4, -58, 4.5], [10, -38, 4], [-6, -19, 4.5], [12, 0, 4], [-5, 19, 4.5], [11, 38, 4], [-3, 57, 4.5]]
   .map(([x, z, r]) => ({ x: SUNDEW_X + x, z, r, sundew: true }));
 ISLANDS.push(...SUNDEW_ISLANDS);
@@ -45,15 +51,13 @@ export const ISLAND = ISLANDS[0];
 /**
  * The forward landmark (the Zoom Chain's way on, design §0.6): a tongue of
  * Sphagnum where the east bank reaches into the pool, straight ahead of the
- * start (+x, ~1.27 m off). Its capitula overhang the water low enough to land
+ * start (+x, 0.74 m off). Its capitula overhang the water low enough to land
  * on, and on the tallest one a speck moves: the Limnozetes mite of Level 1.
  * It is an island joined to the bank, so the shoreline, the water mask and
  * landing on moss all treat it like one.
  */
 export const LANDMARK = (() => {
-  const a = 0, e = 0.982;
-  const f = 1 + 0.05 * Math.sin(3 * a + 0.5) + 0.035 * Math.sin(5 * a + 1.3);
-  const x = Math.round((e * POOL.a) / f), z = 0, r = 10;
+  const x = LANDMARK_X, z = 0, r = 10;
   for (let i = ISLANDS.length - 1; i >= HAND; i--) if (Math.hypot(ISLANDS[i].x - x, ISLANDS[i].z - z) < ISLANDS[i].r + r + 30) ISLANDS.splice(i, 1);
   const island = { x, z, r, landmark: true };
   ISLANDS.push(island);
@@ -63,22 +67,27 @@ export const LANDMARK = (() => {
 /** The way from the start to the landmark (mm) and how far along it a point is (0 at the start, 1 at the landmark). */
 export const ROUTE_LEN = Math.hypot(LANDMARK.x - START.x, LANDMARK.z - START.z);
 export const progressAt = (x, z) => ((x - START.x) * (LANDMARK.x - START.x) + (z - START.z) * (LANDMARK.z - START.z)) / (ROUTE_LEN * ROUTE_LEN);
-const along = (u) => START.x + (LANDMARK.x - START.x) * u;
+const at = (d) => START.x + d; // d mm along the way
 /**
- * The challenges, in the order you meet them, all in the second half of the
- * way (progress >= 0.5). Each predator keeps to its own water (radius r, and
- * gives up a chase `leash` mm beyond it); rain starts at `rain`.
+ * The challenges, in the order you meet them, with a short calm stretch
+ * between each (route.test.mjs checks the spacing). Distances from the start:
+ * Stenus's reach from ~110 mm (about 10 s of moving), out of its chase by
+ * ~290; the strider and the springtail mass from ~365 to ~525, with the rain
+ * from there on; the sundew band from ~595; the wolf spider from ~705, at the
+ * bank. Each predator keeps to its own water (radius r, and gives up a chase
+ * `leash` mm beyond it); rain starts at progress `rain`.
  */
 export const ZONES = {
-  rain: 0.5,
-  stenus: { x: along(0.6), z: 6, r: 58, leash: 30 },
-  strider: { x: along(0.745), z: -8, r: 52, leash: 26 },
+  stenus: { x: at(200), z: 6, r: 58, leash: 30 },
+  strider: { x: at(445), z: -8, r: 52, leash: 26 },
   sundew: { x: SUNDEW_X, z: 0, from: progressAt(SUNDEW_X - 30, 0) },
   boss: { from: progressAt(LANDMARK.x - 35, 0) },
   // a mass of Podura (NPC springtails, shared/crowd.js) at the edge of the strider's water
-  crowd: { x: along(0.715), z: 24, r: 20 },
+  crowd: { x: at(412), z: 24, r: 20 },
 };
 ZONES.crowd.from = progressAt(ZONES.crowd.x - ZONES.crowd.r - 20, 0);
+// the rain starts with the strider's water (the first challenge has it alone)
+ZONES.rain = progressAt(ZONES.strider.x - ZONES.strider.r - ZONES.strider.leash, 0);
 // keep the mass on open water
 for (let i = ISLANDS.length - 1; i >= HAND; i--) if (!ISLANDS[i].landmark && Math.hypot(ISLANDS[i].x - ZONES.crowd.x, ISLANDS[i].z - ZONES.crowd.z) < ISLANDS[i].r + ZONES.crowd.r + 4) ISLANDS.splice(i, 1);
 

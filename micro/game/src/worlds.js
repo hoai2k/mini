@@ -9,7 +9,7 @@ export const WORLDS = [
     mag: '1–5×', magNote: 'macro lens', field: '36–7 mm', fieldMm: 18, body: '1.5 mm', look: 'Macro photography',
     card: 'MP-U05', intro: 'MP-G07', tint: ['#6f8f6a', '#1d2a1c'], accent: '#9fbf6a',
     line: 'Walk on the surface film of a bog pool and fling yourself into the air with your tail.',
-    goal: 'Cross the pool to the moss tongue on the far bank, up and to the right. The first half is calm water and food. Then come Stenus (jump on its tell, mash A if the labium sticks, then dodge the mandible lunge), a water strider and a mass of springtails to hide in, a sundew patch, and the pond wolf spider guarding the bank.',
+    goal: 'Cross the pool to the moss tongue on the far bank, up and to the right, meeting one challenge after another with a little calm water between: Stenus (jump on its tell, mash A if the labium sticks, then dodge the mandible lunge), a water strider and a mass of springtails to hide in, a sundew patch, and the pond wolf spider guarding the bank.',
     forward: 'The moss bank at the pool edge: land on a Sphagnum capitulum, where a speck is moving.',
     back: null,
     controls: [['LS', 'Walk on the water'], ['RS', 'Camera'], ['A', 'Jump with the furcula (released at an enemy: a pounce-bite; mash A to wriggle free)'], ['X', 'Graze; nip a predator; in the air, pounce-bite'], ['B', 'Defend: hunker (facing a predator, blocks its strike)'], ['LT/RT', 'Focus'], ['D-pad ↑↓', 'Magnification']],

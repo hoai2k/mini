@@ -89,7 +89,7 @@ art('MP-S04', { repeat: false }).then((t) => t && world.sundews.setTexture(t));
 art('MP-S05', { repeat: false }).then((t) => t && rain.setSprite(t));
 
 // ---------------------------------------------------------------- player
-// START (world.js): by the west shore; the landmark is ~1.27 m ahead (+x)
+// START (world.js): mid-pool; the landmark is 0.74 m ahead (+x)
 let pl = {
   x: START.x, z: START.z, y: 0, vx: 0, vz: 0, heading: Math.PI / 2, mode: 'film',
   charge: 0, charging: false, queuedJump: null, cock: 1, hunker: 0, eatT: 0, flipT: 0, roll: 0, pitch: 0, bend: 0, furc: 0,
@@ -141,7 +141,7 @@ const hud = mountHud({
     zoom: 'Magnification 1x, 2x, 3x, 5x',
     extra: [['LS click', 'Autofocus on the springtail']],
   }),
-  note: `Goal: cross the pool to the moss tongue on the far bank (up and to the right at the start: the brass sun), grazing on the way. The first half is calm; then Stenus's water, the strider's, a sundew patch, and the wolf spider at the bank. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
+  note: `Goal: cross the pool to the moss tongue on the far bank (up and to the right at the start: the brass arrow), grazing on the way. A few seconds of calm water, then Stenus's water, a calm stretch, the strider's (and the rain), another, a sundew patch, another, and the wolf spider at the bank. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
 });
 
 // ---------------------------------------------------------------- overlay DOM
@@ -171,7 +171,7 @@ status.className = 'st-status';
 status.innerHTML = '<span class="food"></span><span class="lives"></span><span class="furc">Furcula</span><span class="st-meter"><i></i></span><span class="threat"></span>';
 const card = document.createElement('div');
 card.className = 'st-card';
-card.innerHTML = '<div><img alt=""><h2>Level 0 · Bog surface</h2><p>You are a water springtail, 1.5 mm long, standing on the surface film of a bog pool.</p><p>Graze the pollen, spores and algae floating on the water (X). Spring away with your furcula (hold and release A). Hunker (B) when ripples come.</p><p>The way on is the moss bank far ahead, up and to the right. The first half of the pool is calm; past it wait the rove beetle <i>Stenus</i> and its harpoon, a water strider, a patch of sundews, the rain, and a wolf spider at the bank.</p><p><b>Press A to start</b></p></div>';
+card.innerHTML = '<div><img alt=""><h2>Level 0 · Bog surface</h2><p>You are a water springtail, 1.5 mm long, standing on the surface film of a bog pool.</p><p>Graze the pollen, spores and algae floating on the water (X). Spring away with your furcula (hold and release A). Hunker (B) when ripples come.</p><p>The way on is the moss bank ahead, up and to the right. On the way, one after another with a little calm water between, wait the rove beetle <i>Stenus</i> and its harpoon, a water strider and the rain, a patch of sundews, and a wolf spider at the bank.</p><p><b>Press A to start</b></p></div>';
 // the boss's resolve: a quiet brass gauge, shown while it is engaged
 const gauge = document.createElement('div');
 gauge.className = 'st-gauge';
@@ -339,7 +339,7 @@ resize();
 // The challenges wait in the second half of the way (world.js ZONES): each
 // predator stays calm ('grace') until a player first comes into its water,
 // then, after `pace.grace` seconds, its hunger comes and goes as before. So
-// the first half is calm exploration and food whatever the clock says.
+// the calm stretches between them stay calm whatever the clock says.
 const pace = { grace: 0, mode: 'Comes and goes', anywhere: false };
 const hunger = { stenus: createHunger({ grace: Infinity }), strider: createHunger({ grace: Infinity }) };
 const isHungry = (h) => (pace.mode === 'Never' ? false : pace.mode === 'Always' ? h.state !== 'grace' : h.hungry);
@@ -595,7 +595,7 @@ F({ id: 'strider', group: 'World', label: 'Water strider (Gerris)', on: true, on
 F({ id: 'rain', group: 'World', label: 'Rain', choices: ['Sometimes', 'Often', 'Off'], value: 'Sometimes',
   about: 'A drop ~3 mm across (twice your length) is telegraphed by its shadow, falls, craters the film and rings it.', onChange: (v) => { rain.enabled = v !== 'Off'; rain.every = v === 'Often' ? 3.5 : 7; } });
 F({ id: 'grace', group: 'World', label: 'Calm on arrival', choices: ['Off', '5 s', '15 s'], value: 'Off',
-  about: 'The first half of the way is calm water and food: Stenus and the strider keep to their own water farther on (Stenus from ~55% of the way, the strider from ~70%), the sundew patch is at ~84%, the wolf spider at the landmark, and rain falls only from halfway. Each predator stays calm until someone first comes into its water, then waits this long before its hunger starts. shared/predation.js.',
+  about: 'The way is a rhythm: ~10 s of calm water, then each challenge with a short calm stretch between. Stenus and the strider keep to their own water (Stenus from ~110 mm of the 740 mm way, the strider from ~365 mm), the sundew patch is from ~595 mm, the wolf spider at the landmark, and rain falls from the strider\'s water on. Each predator stays calm until someone first comes into its water, then waits this long before its hunger starts. shared/predation.js.',
   onChange: (v) => { pace.grace = v === 'Off' ? 0 : parseFloat(v); resetHunger(); } });
 F({ id: 'hunger', group: 'World', label: 'Predator hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
   about: 'Comes and goes: once awake (a player came into its water) each predator is hungry for ~18-32 s, then rests (45-75 s after a meal, 15-30 s after a miss or when it loses you); only a hungry one stalks, skims, strikes, answers ripples or grabs. Always: hungry from the moment it wakes. Never: they patrol and never hunt (for exploring and testing).',
@@ -1132,7 +1132,7 @@ function stepWorld(dt) {
     if (Q) { armed[k] = true; hunger[k].reset(pace.grace); hunger[k].update(0); logChallenge(k, Q); }
   }
   if (game.phase === 'play' && !capture.active) { hunger.stenus.update(dt); hunger.strider.update(dt); }
-  // rain only from halfway on (and none on you while both predators are still calm)
+  // rain only from the strider's water on (and none on you while both predators are still calm)
   rain.calm = hunger.stenus.state === 'grace' && hunger.strider.state === 'grace';
   const rainOn = recs().some((R) => alive(R) && progressAt(R.x, R.z) >= ZONES.rain);
   world.debris.update(dt, field, inPool);
@@ -1201,7 +1201,7 @@ function stepWorld(dt) {
     else if (e.type === 'retreat') hud.toast('The wolf spider backs off under the moss: the bank is open', 2600);
   }
   ripples.length = 0;
-  // the rain falls round whoever is farthest along (from halfway on)
+  // the rain falls round whoever is farthest along (from the strider's water on)
   const rainP = recs().filter(alive).reduce((a, R) => (!a || progressAt(R.x, R.z) > progressAt(a.x, a.z) ? R : a), null) || P;
   const drops = rain.update(dt, { field, inPool, mossAt: (x, z) => Math.max(0, mossTop(x, z)), player: rainP === preyS ? ctxS : ctxOf(rainP, null), allow: rainOn && game.phase === 'play' });
   if (drops.length) logChallenge('rain', rainP);

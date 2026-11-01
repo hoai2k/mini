@@ -83,7 +83,7 @@ everything else.
   when no controller is connected). There **Y goes back**
   (`embed.landmark('back')`) instead of closing up; anywhere else Y still
   closes up, and a mite held by the predator can still close up there.
-- **Landmark sun** (`shared/landmark.js`): a brass sun shows the water's
+- **Landmark arrow** (`shared/landmark.js`): a brass arrow shows the water's
   bearing near the edge of each view. Orbiting changes its screen direction.
 - The predatory mite starts in its hunting ground, to the side of the way on
   (`PRED_START` in `layout.js`).

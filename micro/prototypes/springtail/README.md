@@ -11,25 +11,29 @@ surface is y = 0.
 Open `micro/prototypes/springtail/` (the invite gate is off on localhost).
 
 **Goal:** the way on is straight ahead of where you start, up and to the
-right in the starting view (+x, 1.27 m off by the west shore: about 35 full
-jumps, a minute of jumping flat out): a tongue of Sphagnum where the east bank
-reaches into the pool. Reach it and, in the Micro Zoom game, the microscope
-zooms in to the mite's world. On the way, graze: 8 clumps of food (three bites
-each) is the side goal. You have three lives.
+right in the starting view (+x, 0.74 m off, from mid-pool: about a minute of
+jumping flat out, more like three with the challenges): a tongue of Sphagnum
+where the east bank reaches into the pool. Reach it and, in the Micro Zoom
+game, the microscope zooms in to the mite's world. On the way, graze: 8 clumps
+of food (three bites each) is the side goal. You have three lives.
 
-**The way, in two halves** (`ZONES` in `world.js`, checked by
-`route.test.mjs`). The first half is calm water: islands, debris and food,
-nothing that hunts, no rain, to learn to walk, jump and graze. The challenges
-come one after another in the second half, by how far along the way you are:
+**The way, as a rhythm** (`ZONES` in `world.js`, checked by
+`route.test.mjs`; the owner, 2026-11-01). A few seconds of calm water to get
+the feel of walking and jumping, then a challenge, a short calm stretch
+(45–130 mm, a few jumps), the next challenge, and so on to the boss. By
+distance along the way (740 mm):
 
 | From | Challenge |
 | --- | --- |
-| 50% | Rain |
-| 53% (its water: 60% ± 58 mm) | *Stenus*, the rove beetle, and its two-stage strike |
-| 68% (its water: 75% ± 52 mm) | The water strider |
-| 68% | A mass of *Podura* (220 NPC springtails, `shared/crowd.js`) at the edge of the strider's water: you push through them; hidden in the mass and moving little, the strider's lock wanders to the others (a labelled departure: `combat-ideas.md` §0 idea 5) |
-| 84% | The sundew patch: a band of seven small islands across the way, their glue-tipped leaves held out over the gaps |
-| 97% (30 mm from its post) | The pond wolf spider, the boss, at the landmark |
+| 112 mm (its water: 200 ± 58 mm, chase leash 30 mm) | *Stenus*, the rove beetle, and its two-stage strike |
+| 367 mm | Rain, from here on |
+| 367 mm (its water: 445 ± 52 mm) | The water strider |
+| 372 mm | A mass of *Podura* (220 NPC springtails, `shared/crowd.js`) at the edge of the strider's water: you push through them; hidden in the mass and moving little, the strider's lock wanders to the others (a labelled departure: `combat-ideas.md` §0 idea 5) |
+| 595 mm | The sundew patch: a band of seven small islands across the way, their glue-tipped leaves held out over the gaps |
+| 705 mm (35 mm from the landmark) | The pond wolf spider, the boss, at the landmark |
+
+Behind the start, the pool's west half is open water to explore, with
+nothing that hunts.
 
 **The water is the ground.** The pool is a 1.5 x 0.9 m sheet of open water
 with 72 moss islands standing in it (a hand-placed cluster round the start,
@@ -81,9 +85,9 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   fires once, and again only after everyone has left it. Standalone,
   `embed.js` shows its toast instead of a transition.
 - **No backdoor:** this is the top of the Zoom Chain.
-- **Landmark sun** (`shared/landmark.js`): a bright brass sun near the edge of
+- **Landmark arrow** (`shared/landmark.js`): a bright brass arrow near the edge of
   each view indicates the capitulum's bearing without text; on screen, the
-  same sun marks it. The starting camera places the bank up and to the right
+  same arrow points down at it. The starting camera places the bank up and to the right
   (LS up and to the right walks and aims straight at it); orbiting the camera
   changes its apparent direction.
 
@@ -196,12 +200,12 @@ player comes within 30 mm (97% of the way).
 
 Predators follow the shared pacing in `shared/predation.js`:
 
-- **A calm first half.** Each predator keeps to its own water in the second
-  half of the way (*Stenus* round 60% of the way, the strider round 75%) and
-  never follows you more than a short leash out of it; rain starts at
-  halfway. A predator stays calm until a player first comes into its water;
-  then (after Features → World → Calm on arrival, off by default) its hunger
-  comes and goes. While both are still calm, raindrops land around you
+- **Calm stretches between challenges.** Each predator keeps to its own
+  water (*Stenus* from 112 mm along the way, the strider from 367 mm) and
+  never follows you more than a short leash out of it; rain starts with the
+  strider's water. A predator stays calm until a player first comes into its
+  water; then (after Features → World → Calm on arrival, off by default) its
+  hunger comes and goes. While both are still calm, raindrops land around you
   (9–19 mm off) rather than on you.
 - **Hunger comes and goes.** Once awake each predator is hungry for
   ~18–32 s, then rests: 45–75 s after a meal, 15–30 s after a miss (a
@@ -598,7 +602,7 @@ in `islandDist` (slower under SwiftShader).
 
 ```bash
 node micro/prototypes/check.mjs springtail
-node micro/prototypes/springtail/route.test.mjs       # the way: calm first half, challenges in order from halfway
+node micro/prototypes/springtail/route.test.mjs       # the way: warm-up, challenges in order with calm stretches between
 node micro/prototypes/springtail/jump-input.test.mjs
 ```
 
