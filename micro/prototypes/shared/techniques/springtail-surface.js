@@ -16,7 +16,10 @@
 //    ventral tube, floating grains). Each contact is (x, z, contact radius,
 //    depth); the profile falls off logarithmically, like the K0 meniscus of a
 //    small load, to zero a few radii out. Not simulated, so they cost nothing
-//    and stay smooth at any zoom.
+//    and stay smooth at any zoom. Bucketed by position into a grid texture,
+//    so each pixel sums only the dimples that can reach it (same result).
+//  - RippleField.setResolution(n, rate): a coarser, cheaper field at run time
+//    (128 cells at 120 Hz: same wave speed and damping, softer fronts).
 //  - waterMaterial(): shades the film: Fresnel reflection of the sky, sun
 //    glints, refraction down to the pool floor (bog-tea absorption on the way),
 //    caustics from the surface curvature (dimples throw dark spots with bright

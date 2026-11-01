@@ -566,6 +566,30 @@ most 1–2 levels, as much as two runs of the old code differ.
 - **`islandEdge`** (behind `inPool` and `mossTop`) looks in a 40 mm grid of
   candidate islands: about 10× faster, same island and distance.
 
+Third pass (same method, `q=high`, before and after back to back):
+
+- **Dimples bucketed by position** (`Dimples.pack`, texture `uDimpleGrid`):
+  a 16 × 16 grid of 4 mm cells centred on the median dimple lists, in the
+  order they were added, every dimple that can reach each cell (plus a list
+  for those reaching outside the grid); each pixel loops over its own cell's
+  list instead of all 96. The game fills all 96 slots (food, debris and both
+  predators, wherever they are), so every pixel used to test 96. Output is
+  bit-identical: the water drawn to a float target from five views and three
+  dimple sets (the game's own, a dense one, a scattered one) matched the old
+  shader float for float, as did `Dimples.height` and the ripple arrays.
+  Water draw alone 2.2–5 s → 0.8–1.3 s (the floor with no dimples is
+  0.5–1 s); scene pass 6.06 → 2.08 s at one player, frame 5.7 → 2.5 s, the
+  CPU packing 0.013 ms and a 13 KB upload a frame.
+- **Cheaper ripples (experimental)**, Features → Simulation, off by default
+  (in the game: Settings → World features). The ripple field on 128 × 128
+  cells at 120 Hz instead of 256 × 256 at 240 (`RippleField.setResolution`):
+  per-step damping and the surfactant's diffusion are rescaled and a push's
+  kick is kept per second, so rings travel as fast and rise as high, with
+  coarser fronts (small rings wider, about half the slope). Chosen over T4's
+  plain 120 Hz, which halves the ripple speed for half the saving. Measured
+  in the browser with ripples running at 60 fps: step 2.2–2.9 → 0.33–0.37 ms,
+  upload 0.11–0.16 → 0.03 ms a frame.
+
 Tried and dropped: drawing the scene once into the tiny targets before the
 SDF meshing, to compile pipelines in parallel (no gain); grouping the islands
 in `islandDist` (slower under SwiftShader).
