@@ -1798,8 +1798,8 @@ function placeRings() {
 }
 
 // ---------------------------------------------------------------- the spiders, kept where someone is
-/** A spider is stepped and shown only while someone is within this (mm) of its raft: past every view's reach of its ground (it keeps within LEASH of its post). */
-const SPIDER_ACTIVE = 330;
+/** A spider is stepped and shown only while someone is within this (mm) of its raft: it keeps within its 90 mm leash of its post, so it is then 130 mm or more from them, a blur at most at the far edge of a low view. */
+const SPIDER_ACTIVE = 220;
 const idleCtx = { awake: false, field, inPool, ripples: [], players: [] };
 /** Which portal is in focus: the nearest to any player (20 mm of hysteresis), never while its spider is busy with someone. */
 function chooseFocus() {

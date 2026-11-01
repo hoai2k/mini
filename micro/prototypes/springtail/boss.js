@@ -130,7 +130,8 @@ export function createWolfSpider(scene, { post, home, ground = null, seed = 1 })
   scene.add(group);
   const { bodyMat, eyeMat, legMat, chelMat, abdMat, sphere, segGeo } = sharedParts();
   const rand = seeded(seed * 7919 + 13);
-  const ell = (mat, p, r) => { const m = new THREE.Mesh(sphere, mat); m.scale.set(...r); m.position.set(...p); m.frustumCulled = false; group.add(m); return m; };
+  // (culled per view like anything else: with a spider at every raft, a split view need not draw the others')
+  const ell = (mat, p, r) => { const m = new THREE.Mesh(sphere, mat); m.scale.set(...r); m.position.set(...p); group.add(m); return m; };
   // carapace: longer than wide, the eye region raised at the front
   const ceph = ell(bodyMat, [0.85, 0, 0], [1.3, 0.52, 0.86]);
   const headUp = ell(bodyMat, [1.55, 0.12, 0], [0.62, 0.42, 0.58]);

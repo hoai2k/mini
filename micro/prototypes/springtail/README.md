@@ -58,7 +58,7 @@ as you go (`design/encounter-pattern.md`, "Per-world placement").
 - **The hunting grounds and the pondweed** (`GROUND.r` 80 mm, ~5 s of
   rushing): each raft's spider hunts within its ground, and bog pondweed
   (`PONDWEED`, below) grows thick there: 34 leaves a raft, denser toward it
-  (about 3x per cm² inside 45 mm as outside), and only 26 stray leaves on all
+  (about 2-2.7x as many per cm² within 45 mm as beyond), and only 26 stray leaves on all
   the rest of the pool (~30x thinner), so "lots of these leaves: a portal
   nearby". Grounds never overlap.
 - **The spiders** (`boss.js`; one per raft, made the first time someone comes
@@ -73,8 +73,9 @@ as you go (`design/encounter-pattern.md`, "Per-world placement").
   20 mm, and if one makes for its post while it is out it hurries home
   (11 mm/s) to guard it. Its fight, lure and guard are as before (below).
   Spiders far from everyone are parked (`stepSpiders`): hidden and not
-  stepped unless someone is within 330 mm of the raft, beyond any view of
-  the ground (a spider never goes more than its 90 mm leash from its post).
+  stepped unless someone is within 220 mm of the raft (a spider never goes
+  more than its 90 mm leash from its post, so it is then 130 mm or more
+  away, a blur at most at the far edge of a low view).
   The spider in focus (`boss`: the nearest raft's, switched only while it is
   not busy with anyone) is the one that hunts, fights and catches; the
   others nearby wander but ignore players (with two players at two rafts at
@@ -233,8 +234,9 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   five draws). The low macro view has the raft out of frame until you are
   about on it; in view a halo marks the nearest raft (`createPortalLight`;
   the edge spill is off); within 26 mm the focus deepens so the raft is sharp
-  beside you. Rafts farther than 420 mm from every player are hidden and not
-  updated (`RAFT_SHOW`, `landmarks.js`); the nearest is in focus (its glow and
+  beside you. Rafts farther than 260 mm from every player are hidden and not
+  updated (`RAFT_SHOW`, `landmarks.js`), and a raft's mite (nine small
+  meshes) is drawn only within 120 mm (`MITE_SHOW`); the nearest is in focus (its glow and
   mite are the outro's). Any player standing within 11 mm of an open raft's
   centre gets the prompt "Y Enter the portal" (`embed.near('portal')`); Y
   there calls `enterPortal(P)`, which calls `embed.landmark('forward', { outro })` and plays the

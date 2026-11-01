@@ -16,7 +16,9 @@ import { createPortalGlow, createGlint } from '../shared/portal.js';
 import { capitulumGeometry, PORTALS, PORTAL_R, raftTop } from './world.js';
 
 /** Rafts farther than this (mm) from every player are hidden and not updated. */
-export const RAFT_SHOW = 420;
+export const RAFT_SHOW = 260;
+/** The mite (and its glint) are drawn only within this (mm) of a player: a 0.36 mm speck is under a pixel farther out. */
+export const MITE_SHOW = 120;
 
 export function createLandmarkProps(world, { pixelHeight } = {}) {
   const group = new THREE.Group();
@@ -169,8 +171,12 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
      */
     update(t, dt = 0, camera = null, open = () => false, burstT = undefined, near = null) {
       for (const r of rafts) {
-        const show = !near || near.some((p) => Math.abs(p.x - r.position.x) < RAFT_SHOW && Math.abs(p.z - r.position.z) < RAFT_SHOW);
+        let d = Infinity;
+        if (near) for (const p of near) d = Math.min(d, Math.hypot(p.x - r.position.x, p.z - r.position.z));
+        const show = !near || d < RAFT_SHOW || (r === cur && burstT !== undefined);
         if (show !== r.shown) { r.raft.visible = show; r.shown = show; }
+        const mite = show && (!near || d < MITE_SHOW || r === cur && burstT !== undefined);
+        if (mite !== r.mite.visible) { r.mite.visible = mite; r.glint.points.visible = mite; }
         if (show) stepRaft(r, t, dt, camera, typeof open === 'function' ? open(r.i) : open, r === cur ? burstT : undefined);
       }
     },
