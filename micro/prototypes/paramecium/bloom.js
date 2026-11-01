@@ -98,6 +98,8 @@ export function createBloom(scene) {
      */
     update(dt, players) {
       time += dt;
+      // nobody near: the cells hold still (nothing there to see move), and the CPU is spared
+      if (!players.some((p) => p.alive && inside(p.position, 1400))) return;
       for (const T of tiers) {
         T.local.length = 0;
         for (const p of players) {
