@@ -24,7 +24,7 @@ uniform vec2 uShift;
 vec2 wrapXZ(vec2 p) { p += uShift; return uWrapC + mod(p - uWrapC + 0.5 * uTile, uTile) - 0.5 * uTile; }
 `;
 
-function wrapUniforms(tile, shift) {
+export function wrapUniforms(tile, shift) {
   return { uWrapC: { value: new THREE.Vector2() }, uTile: { value: tile }, uShift: shift };
 }
 
@@ -39,7 +39,7 @@ function wrappedPoints(absorb, tile, shift) {
 }
 
 /** Instanced closed bodies (volumeMaterial, centred) repeated round the view. */
-function wrappedVolume(opts, tile, shift) {
+export function wrappedVolume(opts, tile, shift) {
   const m = volumeMaterial({ ...opts, centred: true });
   Object.assign(m.uniforms, wrapUniforms(tile, shift));
   const before = m.vertexShader;
@@ -126,6 +126,16 @@ export function createAmbient(parent, { tile = 1500, depth = 650 } = {}) {
       iP.set([1 + rand() ** 3 * 5.5, 0.05, 2.6 + 4 * rand(), rand()], i * 4);
     }
     add(new THREE.Mesh(quads(iPos, iP), wrappedPoints([0.012, 0.019, 0.034], tile, still)));
+  }
+  // Dust and smears on the underside of the coverslip, so the ceiling is visible everywhere.
+  {
+    const N = 900;
+    const iPos = new Float32Array(N * 4), iP = new Float32Array(N * 4);
+    for (let i = 0; i < N; i++) {
+      iPos.set([(rand() - 0.5) * tile, depth - 1 - rand() * 2, (rand() - 0.5) * tile, 0], i * 4);
+      iP.set([1.2 + rand() ** 3 * 4, 0.04, 2.5 + 3 * rand(), rand()], i * 4);
+    }
+    add(new THREE.Mesh(quads(iPos, iP), wrappedPoints([0.008, 0.009, 0.012], tile, still)));
   }
   // Small flakes (8–28 µm, under the 30 µm that ever blocks the cell): most
   // settled on the slide, some suspended.

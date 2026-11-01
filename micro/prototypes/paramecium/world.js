@@ -1,24 +1,31 @@
-// The pond drop: a wet mount about 3 mm across and 0.65 mm deep (slide at
-// y = 0, coverslip at y = DEPTH), all lengths in µm. The boundaries are drawn:
-// sediment on the slide, dust on the underside of the coverslip, and the
-// meniscus at the rim, so nothing stops the cell without a visible reason. Spirogyra filaments cross
-// it, detritus flakes float and settle, three Vorticella feed on a flake,
-// diatoms sit on the bottom and bacteria drift in a gentle flow. The water
-// itself is full again, as in the first prototype (ambient.js: flocs, specks,
-// small flakes and sediment repeated round each view), and the set pieces are
-// spread along the route so the long swim never crosses empty water.
+// The pond: a shallow dish of pond water 0.65 mm deep (slide at y = 0,
+// coverslip at y = DEPTH), all lengths in µm, wide enough for the rings of
+// encounters round the start (landmarks.js RINGS: about a minute of rushing
+// out to the portal). The boundaries are drawn: sediment on the slide, dust on
+// the underside of the coverslip (ambient.js, everywhere) and the meniscus at
+// the far rim. The set pieces (Spirogyra filaments, detritus flakes, Vorticella
+// colonies on their flakes, diatoms) are laid out in a 7 mm scenery tile that
+// repeats in every direction: each view shows every piece at its copy nearest
+// to where it looks (viewAt), and collisions meet the copy nearest the cell.
+// The water itself is full (ambient.js: flocs, specks, small flakes and
+// sediment repeated round each view) and bacteria drift in a gentle flow.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { buildSdfMesh, sd } from '../shared/sdf.js';
 import { volumeMaterial, sheetMaterial, pointsMaterial } from './optics.js';
 import { createStrands, KIND } from './strands.js';
 import { rng, closedTube, axisRef, yAxisRef, segSeg, closestOnSeg, noise3 } from './geom.js';
 import { squirmerFlow, sink } from '../shared/techniques/paramecium-squirmer.js';
-import { routePoint, ringPoint, RINGS, A0 } from './landmarks.js';
-import { createAmbient } from './ambient.js';
+import { ringPoint, RINGS, A0, START } from './landmarks.js';
+import { createAmbient, wrappedVolume } from './ambient.js';
 
-// A broad wet mount (about 10 mm across under a 22 mm coverslip), so the route
-// from the start to the biofilm (landmarks.js ROUTE_LEN) fits with room round it.
-export const DROP_R = 5000;
+// A dish of pond water about 14 cm across: room for the rings (the portal is
+// RINGS.portal out from the start) with a margin to the meniscus. [Departure:
+// a wet mount under a coverslip is a few mm across; the scale of everything in
+// it is honest, the extent is a game value.]
+export const DROP_R = RINGS.portal + 6000;
+/** The scenery tile (µm): Spirogyra, flakes, Vorticella and diatoms repeat this far apart. */
+export const TILE = 7000;
+const wrapOff = (x, ref) => TILE * Math.round((ref - x) / TILE);
 export const DEPTH = 650; // the pre-rework depth: room to swim in 3D (the 300 µm drop kept the cell on the glass)
 const YS = DEPTH / 650; // the layout was drawn for a 650 µm drop
 
@@ -39,6 +46,9 @@ function instancedQuads(n, iPos, iP) {
 // Spirogyra: a filament of cylindrical cells, each with a helical, serrated
 // ribbon chloroplast studded with pyrenoids, a central nucleus, and cross walls.
 function spirogyra(group, curve, rand, obstacles) {
+  const parent = group;
+  group = new THREE.Group();
+  parent.add(group);
   const R = 21, CELL = 88, len = curve.getLength();
   const segs = Math.ceil(len / 20);
   const { geo, frames } = closedTube(curve, segs, R, 20);
@@ -111,7 +121,8 @@ function spirogyra(group, curve, rand, obstacles) {
   group.add(nm);
   // collision: a chain of capsules
   const n = 30;
-  for (let i = 0; i < n; i++) obstacles.push({ kind: 'capsule', a: curve.getPointAt(i / n), b: curve.getPointAt((i + 1) / n), r: R, what: 'Spirogyra' });
+  for (let i = 0; i < n; i++) obstacles.push({ kind: 'capsule', a: curve.getPointAt(i / n), b: curve.getPointAt((i + 1) / n), r: R, what: 'Spirogyra', wrap: true });
+  return { group, c: curve.getPointAt(0.5) };
 }
 
 // ---------------------------------------------------------------------------
@@ -193,67 +204,51 @@ export function createWorld(scene) {
   scene.add(group);
   const obstacles = [];
 
-  // --- Spirogyra filaments ---
-  const filaments = [
-    [[-1900, 300, -560], [-600, 330, -470], [600, 290, -360], [1900, 260, -240]],
-    [[-1800, 470, 800], [-400, 500, 660], [700, 460, 500], [1900, 430, 580]],
-    [[1100, 90, -1900], [900, 110, -500], [1020, 120, 600], [800, 100, 1900]],
-  ];
-  // two more crossing the route further on (the long drop's calm half was bare)
-  for (const [u, y0, y1] of [[1500, 380, 210], [2050, 140, 540]]) {
-    filaments.push([-1500, -500, 500, 1500].map((sd, k) => { const p = routePoint(u + (k - 1.5) * 90, sd, 0); return [p.x, k < 2 ? y0 : y1, p.z]; }));
-  }
-  for (const pts of filaments) spirogyra(group, new THREE.CatmullRomCurve3(pts.map(([x, y, z]) => new THREE.Vector3(x, y * YS, z))), rand, obstacles);
+  // ---- the scenery tile: each piece shows at its copy nearest the view (viewAt)
+  // `items`: { obj, base (its position in the first copy), c (its centre there) }
+  const items = [];
+  const T2 = TILE / 2;
+  const inTile = (x, z) => [START.x + x, START.z + z];
 
-  // --- Detritus ---
+  // --- Spirogyra filaments: five in each tile, at different depths, each ≈2.4 mm long ---
+  const FIL = [
+    [[-1900, 300, -560], [-1100, 330, -470], [-300, 290, -400], [500, 260, -300]],
+    [[-1200, 470, 800], [-400, 500, 660], [400, 460, 520], [1200, 430, 580]],
+    [[1100, 90, -1700], [900, 110, -900], [1020, 120, -100], [800, 100, 700]],
+    [[1600, 380, 1500], [2100, 360, 2200], [2600, 400, 2700], [3000, 380, 3300]],
+    [[-2900, 160, -1000], [-2600, 200, -1900], [-2200, 260, -2700], [-1700, 300, -3300]],
+  ];
+  for (const pts of FIL) {
+    const f = spirogyra(group, new THREE.CatmullRomCurve3(pts.map(([x, y, z]) => new THREE.Vector3(START.x + x, y * YS, START.z + z))), rand, obstacles);
+    items.push({ obj: f.group, base: new THREE.Vector3(), c: f.c });
+  }
+
+  // --- Detritus flakes (repeated by their material, round each view) ---
   const flakeGeos = [0, 1, 2, 3, 4].map((i) => flakeGeometry(i * 3.7 + 1));
-  const flakeMat = volumeMaterial({ dn: 0.024, scatter: 1.2, absorb: [0.004, 0.0065, 0.012], centred: true, pattern: 3 });
+  const flakeOpts = { dn: 0.024, scatter: 1.2, absorb: [0.004, 0.0065, 0.012], pattern: 3 };
+  const flakeMat = wrappedVolume(flakeOpts, TILE, { value: new THREE.Vector2() });
   const flakeLists = flakeGeos.map(() => []);
-  const flakes = [];
-  for (let i = 0; i < 90; i++) {
+  for (let i = 0; i < 70; i++) {
     const size = 15 + rand() ** 2 * 90;
-    const a = rand() * Math.PI * 2, r = Math.sqrt(rand()) * (DROP_R - 120);
+    const [x, z] = inTile((rand() - 0.5) * (TILE - 200), (rand() - 0.5) * (TILE - 200));
     const onFloor = rand() < 0.55;
     const y = onFloor ? size * 0.15 + 2 : 30 + rand() * (DEPTH - 60);
-    const m = new THREE.Matrix4().compose(new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r),
+    const m = new THREE.Matrix4().compose(new THREE.Vector3(x, y, z),
       new THREE.Quaternion().setFromEuler(new THREE.Euler(onFloor ? (rand() - 0.5) * 0.3 : rand() * 3, rand() * 6.3, onFloor ? (rand() - 0.5) * 0.3 : rand() * 3)),
       new THREE.Vector3(size, size, size));
     flakeLists[i % 5].push(m);
-    flakes.push({ m, size });
+    if (size >= 30) obstacles.push({ kind: 'sphere', c: new THREE.Vector3(x, y, z), r: size * 0.42, what: 'detritus', wrap: true });
   }
-  // the Vorticella flake, near the start
-  const vFlake = new THREE.Matrix4().compose(new THREE.Vector3(560, 30, 330), new THREE.Quaternion().setFromEuler(new THREE.Euler(0.1, 0.4, -0.05)), new THREE.Vector3(150, 150, 150));
-  flakeLists[0].push(vFlake);
-  flakes.push({ m: vFlake, size: 150 });
-  const v2Pos = ringPoint(560, A0 + 2.4, 30); // a second colony in the calm warm-up, another way from the first
-  const vFlake2 = new THREE.Matrix4().compose(v2Pos, new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.08, 1.9, 0.06)), new THREE.Vector3(130, 130, 130));
-  flakeLists[1].push(vFlake2);
-  flakes.push({ m: vFlake2, size: 130 });
-  flakeLists.forEach((list, k) => {
+  const flakeMeshes = flakeLists.map((list, k) => {
     const im = new THREE.InstancedMesh(flakeGeos[k], flakeMat, list.length);
     list.forEach((m, i) => im.setMatrixAt(i, m));
     im.frustumCulled = false;
     group.add(im);
+    return im;
   });
-  for (const f of flakes) {
-    if (f.size < 30) continue;
-    const c = new THREE.Vector3().setFromMatrixPosition(f.m);
-    obstacles.push({ kind: 'sphere', c, r: f.size * 0.42, what: 'detritus' });
-  }
-  // dust and smears on the underside of the coverslip, so the ceiling is visible
+  // the meniscus: the air-water edge of the dish, a bright refractile wall far out
   {
-    const n = 2400, iPos = new Float32Array(n * 4), iP = new Float32Array(n * 4);
-    for (let i = 0; i < n; i++) {
-      const a = rand() * Math.PI * 2, r = Math.sqrt(rand()) * DROP_R;
-      iPos.set([Math.cos(a) * r, DEPTH - 1 - rand() * 2, Math.sin(a) * r, 0], i * 4);
-      iP.set([1.2 + rand() ** 3 * 4, 0.04, 2.5 + 3 * rand(), rand()], i * 4);
-    }
-    const { geo } = instancedQuads(n, iPos, iP);
-    group.add(Object.assign(new THREE.Mesh(geo, pointsMaterial({ absorb: [0.008, 0.009, 0.012] })), { frustumCulled: false }));
-  }
-  // the meniscus: the air-water edge of the drop, a bright refractile wall
-  {
-    const g = new THREE.CylinderGeometry(DROP_R, DROP_R, DEPTH, 320, 6, true);
+    const g = new THREE.CylinderGeometry(DROP_R, DROP_R, DEPTH, 720, 6, true);
     g.translate(0, DEPTH / 2, 0);
     const pos = g.attributes.position;
     g.setAttribute('aRef', new THREE.BufferAttribute(pos.array.slice(), 3));
@@ -262,73 +257,79 @@ export function createWorld(scene) {
     g.setAttribute('aEdge', new THREE.BufferAttribute(e, 1));
     group.add(Object.assign(new THREE.Mesh(g, sheetMaterial({ dn: 0.33, thick: 0.6, scatter: 2.2, absorb: [0.004, 0.004, 0.005] })), { frustumCulled: false }));
   }
-  // sediment on the slide
-  {
-    const n = 3200, iPos = new Float32Array(n * 4), iP = new Float32Array(n * 4);
-    for (let i = 0; i < n; i++) {
-      const a = rand() * Math.PI * 2, r = Math.sqrt(rand()) * DROP_R;
-      iPos.set([Math.cos(a) * r, 1 + rand() * 3, Math.sin(a) * r, 0], i * 4);
-      iP.set([1 + rand() ** 3 * 5, 0.05, 3 + 4 * rand(), rand()], i * 4);
-    }
-    const { geo } = instancedQuads(n, iPos, iP);
-    group.add(Object.assign(new THREE.Mesh(geo, pointsMaterial({ absorb: [0.01, 0.016, 0.03] })), { frustumCulled: false }));
-  }
 
-  // --- Diatoms ---
+  // --- Diatoms: 24 in each tile, near and far in every direction ---
   const diatoms = [];
   const dMat = volumeMaterial({ dn: 0.034, scatter: 1.7, absorb: [0.0035, 0.0075, 0.02], pattern: 2, rimPow: 2.2 });
   const pinGeo = pinnulariaGeometry(), fraGeo = fragilariaGeometry();
-  const diatomSpots = [[-220, 7, 260, 0.6, pinGeo], [140, 7, -340, 2.0, pinGeo], [-560, 7, -120, -0.4, pinGeo], [-90, 9, -60, 1.1, fraGeo], [560, 9, -380, 0.3, fraGeo]];
-  for (let k = 0; k < 14; k++) { // round the start in every direction, near and far
-    const p = ringPoint(250 + rand() * 3200, A0 + (k / 14) * Math.PI * 2 + rand() * 0.3, 0);
-    diatomSpots.push([p.x, rand() < 0.5 ? 7 : 9, p.z, rand() * 6.28, rand() < 0.65 ? pinGeo : fraGeo]);
-  }
+  const diatomSpots = [[-220, 7, 260, 0.6, pinGeo], [140, 7, -340, 2.0, pinGeo], [-560, 7, -120, -0.4, pinGeo], [-90, 9, -60, 1.1, fraGeo], [560, 9, -380, 0.3, fraGeo]]
+    .map(([x, y, z, r, g]) => [x + 150, y, z - 60, r, g]); // (laid out round the start)
+  for (let k = 0; k < 19; k++) diatomSpots.push([(rand() - 0.5) * (TILE - 400), rand() < 0.5 ? 7 : 9, (rand() - 0.5) * (TILE - 400), rand() * 6.28, rand() < 0.65 ? pinGeo : fraGeo]);
   for (const [x, y, z, rot, g] of diatomSpots) {
     const m = new THREE.Mesh(g, dMat);
-    m.position.set(x, y, z);
     m.rotation.y = rot;
     m.frustumCulled = false;
     group.add(m);
-    diatoms.push({ mesh: m, home: m.position.clone(), rot, glide: g === pinGeo, phase: rand() * 6 });
-    obstacles.push({ kind: 'sphere', c: m.position, r: 30, what: 'diatom' });
+    const home = new THREE.Vector3(START.x + x, y, START.z + z);
+    const d = { mesh: m, home, pos: home.clone(), rot, glide: g === pinGeo, phase: rand() * 6 };
+    m.position.copy(d.pos);
+    diatoms.push(d);
+    items.push({ obj: m, base: d.pos, c: d.pos });
+    obstacles.push({ kind: 'sphere', c: d.pos, r: 30, what: 'diatom', wrap: true });
   }
 
-  // --- Vorticella cluster ---
+  // --- Vorticella colonies, each on its own flake: eight by the start, more round the tile ---
   const vGeo = vorticellaGeometry();
   const vMat = volumeMaterial({ dn: 0.024, scatter: 1.05, absorb: [0.0015, 0.002, 0.0028] });
   const vMacroGeo = new THREE.TorusGeometry(11, 2.6, 8, 24, 4.4);
   const vMacroMat = volumeMaterial({ dn: 0.018, scatter: 0.5, centred: true });
-  const vorticellas = [];
-  const stalkItems = [];
-  const colonies = [[new THREE.Vector3(560, 30 + 22, 330), 8], [v2Pos.clone().setY(30 + 19), 5]];
-  for (let i = 0; i < 13; i++) {
-    const [anchorC, nc] = i < 8 ? colonies[0] : colonies[1];
-    const ii = i < 8 ? i : i - 8;
-    const a = (ii / nc) * Math.PI * 2 + rand() * 0.5;
-    const anchor = anchorC.clone().add(new THREE.Vector3(Math.cos(a) * (20 + rand() * 40), 0, Math.sin(a) * (20 + rand() * 40)));
-    const dir = new THREE.Vector3(Math.cos(a) * 0.55, 1, Math.sin(a) * 0.55).add(new THREE.Vector3(rand() - 0.5, 0, rand() - 0.5).multiplyScalar(0.5)).normalize();
-    const perp = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0.3, 0.1, 1).normalize()).normalize();
-    const L = 90 + rand() * 50;
-    stalkItems.push({ base: anchor.toArray(), normal: dir.toArray(), dir: perp.toArray(), length: L, width: 2.4, phase: 0, kind: KIND.STALK });
-    const g = new THREE.Group();
-    const body = new THREE.Mesh(vGeo, vMat); body.frustumCulled = false; g.add(body);
-    const mac = new THREE.Mesh(vMacroGeo, vMacroMat); mac.position.set(0, 26, 0); mac.rotation.set(0.2, 0.3, 1.4); g.add(mac);
-    const ring = [];
-    for (let k = 0; k < 64; k++) {
-      const t = (k / 64) * Math.PI * 2;
-      const n = [Math.cos(t) * 0.6, 0.8, Math.sin(t) * 0.6];
-      ring.push({ base: [Math.cos(t) * 19.5, 45, Math.sin(t) * 19.5], normal: n, dir: [-Math.sin(t), 0, Math.cos(t)], length: 11, width: 0.8, phase: k / 64 * 3, kind: KIND.CILIUM });
+  const cFlakeMat = volumeMaterial({ ...flakeOpts, centred: true });
+  const vorticellas = [], colonies = [];
+  const COLONIES = [[710, 270, 8, 150], [-410, -470, 5, 130], [2600, -1800, 6, 140], [-2300, 1900, 6, 140], [-500, 2900, 5, 130], [2900, 900, 5, 130]];
+  for (const [cx, cz, nv, fsize] of COLONIES) {
+    const cg = new THREE.Group();
+    const base = new THREE.Vector3(START.x + cx, 0, START.z + cz);
+    cg.position.copy(base);
+    group.add(cg);
+    const flake = new THREE.Mesh(flakeGeos[colonies.length % 5], cFlakeMat);
+    flake.position.set(0, 30, 0); flake.scale.setScalar(fsize); flake.rotation.set(0.1, 0.4 + colonies.length, -0.05);
+    flake.frustumCulled = false;
+    cg.add(flake);
+    obstacles.push({ kind: 'sphere', c: base.clone().setY(30), r: fsize * 0.42, what: 'detritus', wrap: true });
+    const stalkItems = [], list = [];
+    const anchorC = new THREE.Vector3(0, 30 + 22 * fsize / 150, 0);
+    for (let i = 0; i < nv; i++) {
+      const a = (i / nv) * Math.PI * 2 + rand() * 0.5;
+      const anchor = anchorC.clone().add(new THREE.Vector3(Math.cos(a) * (20 + rand() * 40), 0, Math.sin(a) * (20 + rand() * 40)));
+      const dir = new THREE.Vector3(Math.cos(a) * 0.55, 1, Math.sin(a) * 0.55).add(new THREE.Vector3(rand() - 0.5, 0, rand() - 0.5).multiplyScalar(0.5)).normalize();
+      const perp = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0.3, 0.1, 1).normalize()).normalize();
+      const L = 90 + rand() * 50;
+      stalkItems.push({ base: anchor.toArray(), normal: dir.toArray(), dir: perp.toArray(), length: L, width: 2.4, phase: 0, kind: KIND.STALK });
+      const g = new THREE.Group();
+      const body = new THREE.Mesh(vGeo, vMat); body.frustumCulled = false; g.add(body);
+      const mac = new THREE.Mesh(vMacroGeo, vMacroMat); mac.position.set(0, 26, 0); mac.rotation.set(0.2, 0.3, 1.4); g.add(mac);
+      const ring = [];
+      for (let k = 0; k < 64; k++) {
+        const t = (k / 64) * Math.PI * 2;
+        const n = [Math.cos(t) * 0.6, 0.8, Math.sin(t) * 0.6];
+        ring.push({ base: [Math.cos(t) * 19.5, 45, Math.sin(t) * 19.5], normal: n, dir: [-Math.sin(t), 0, Math.cos(t)], length: 11, width: 0.8, phase: k / 64 * 3, kind: KIND.CILIUM });
+      }
+      const rs = createStrands(ring, { segs: 5, dn: 0.07, scatter: 0.8 });
+      g.add(rs.mesh);
+      cg.add(g);
+      // anchor: local to the colony; sphere.c: in the first copy of the tile (collisions wrap it)
+      const v = { group: g, anchor, dir, L, coil: 0, hold: 0, ring: rs, phase: rand() * 10, colony: colonies.length, idx: i, perp,
+        sphere: { kind: 'sphere', c: new THREE.Vector3(), r: 27, what: 'Vorticella', wrap: true } };
+      v.sphere.ref = v;
+      obstacles.push(v.sphere);
+      vorticellas.push(v); list.push(v);
     }
-    const rs = createStrands(ring, { segs: 5, dn: 0.07, scatter: 0.8 });
-    g.add(rs.mesh);
-    group.add(g);
-    const v = { group: g, anchor, dir, L, coil: 0, hold: 0, ring: rs, phase: rand() * 10, sphere: { kind: 'sphere', c: new THREE.Vector3(), r: 27, what: 'Vorticella' } };
-    v.sphere.ref = v;
-    obstacles.push(v.sphere);
-    vorticellas.push(v);
+    const stalks = createStrands(stalkItems, { segs: 72, dn: 0.05, scatter: 1.0 });
+    cg.add(stalks.mesh);
+    const col = { group: cg, base, stalks, list };
+    colonies.push(col);
+    items.push({ obj: cg, base, c: base });
   }
-  const stalks = createStrands(stalkItems, { segs: 72, dn: 0.05, scatter: 1.0 });
-  group.add(stalks.mesh);
 
   // --- the ciliate hunters: two Didinium and a Dileptus ---
   // Each keeps to its own waters beyond the halfway point of the route
