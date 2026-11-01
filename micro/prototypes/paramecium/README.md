@@ -298,6 +298,19 @@ recorded here):
 | long axis off the heading (max) | 12.0° | 0° |
 | roll | 2.53 turns/s | 0.45 turns/s |
 
+**Cost** (`tools/perf/measure.mjs paramecium 1` and `4`, q=high, SwiftShader
+on a shared machine, so times are rough; before = the commit before this work,
+after = with the rings and portal too):
+
+| | 1 player before | after | 4 players before | after |
+| --- | --- | --- | --- | --- |
+| triangles per frame | 596 k | 619 k | 2.86 M (3 views) | 2.71 M (4 views) |
+| draws per frame | 106 | 99 | 487 | 423 |
+| scene pass (SwiftShader ms) | 1313 | 1196 | | |
+
+The pond-water tile is GPU-only (no per-frame CPU); the extra Spirogyra's
+pyrenoids were made coarser (2–3 µm specks) to pay for the new filaments.
+
 **One creature, not green beads.** The 520 *Chlorella* rode a cyclosis loop
 sized like a box (loop half-widths 22 µm up and 23 µm across against a body
 22 µm deep and tapering to the poles), so many sat outside the body near the
