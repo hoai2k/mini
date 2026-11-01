@@ -89,9 +89,34 @@ export function poolE(x, z) {
 }
 /** Distance (mm) from the nearest island's edge: negative on the island. */
 export function islandEdge(x, z) {
+  const list = islandCandidates(x, z);
   let d = Infinity, best = null;
-  for (const I of ISLANDS) { const v = Math.hypot(x - I.x, z - I.z) - I.r; if (v < d) { d = v; best = I; } }
+  for (const I of list) { const v = Math.hypot(x - I.x, z - I.z) - I.r; if (v < d) { d = v; best = I; } }
   return { d, island: best };
+}
+// A grid over the pool: each cell keeps (in ISLANDS order) only the islands
+// that can be the nearest edge to some point in it, i.e. those whose nearest
+// possible edge distance is not beyond the cell's best farthest-point
+// distance. The rest are strictly farther, so islandEdge finds the same
+// distance and the same island as a loop over all of them. Built on first use
+// (ISLANDS is final once this module has loaded).
+const EDGE_CELL = 40;
+let edgeGrid = null;
+function islandCandidates(x, z) {
+  if (!edgeGrid) {
+    const x0 = -POOL.a * 1.2, z0 = -POOL.b * 1.2, nx = Math.ceil((POOL.a * 2.4) / EDGE_CELL), nz = Math.ceil((POOL.b * 2.4) / EDGE_CELL);
+    const cells = [];
+    for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+      const ax = x0 + i * EDGE_CELL, az = z0 + j * EDGE_CELL, bx = ax + EDGE_CELL, bz = az + EDGE_CELL;
+      const near = (I) => Math.hypot(Math.max(ax - I.x, 0, I.x - bx), Math.max(az - I.z, 0, I.z - bz)) - I.r;
+      const far = (I) => Math.hypot(Math.max(I.x - ax, bx - I.x), Math.max(I.z - az, bz - I.z)) - I.r;
+      const lim = Math.min(...ISLANDS.map(far)) + 1e-6;
+      cells.push(ISLANDS.filter((I) => near(I) <= lim));
+    }
+    edgeGrid = { x0, z0, nx, nz, cells };
+  }
+  const g = edgeGrid, i = Math.floor((x - g.x0) / EDGE_CELL), j = Math.floor((z - g.z0) / EDGE_CELL);
+  return i >= 0 && j >= 0 && i < g.nx && j < g.nz ? g.cells[i + j * g.nx] : ISLANDS;
 }
 export const inPool = (x, z) => poolE(x, z) < 1 && islandEdge(x, z).d > 0;
 const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };

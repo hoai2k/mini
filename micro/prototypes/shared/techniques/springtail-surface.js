@@ -4,7 +4,8 @@
 //  - RippleField: a CPU height field (damped 2D wave equation) for ripples
 //    from raindrops, landings and skimming insects, plus a surfactant field
 //    that spreads, decays, damps capillary waves where it lies and pushes
-//    floating things away from it (Marangoni flow). Uploaded each frame as an
+//    floating things away from it (Marangoni flow). Uploaded each frame (but
+//    not while the film is still untouched) as an
 //    RG texture (r = height mm, g = surfactant 0..1): 32-bit float after
 //    useFloat(renderer) where float textures can be filtered linearly (one
 //    interleaving copy), else half-float (a per-texel conversion). The field is

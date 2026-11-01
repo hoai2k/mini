@@ -541,6 +541,35 @@ may not be in `shared/asset-list.js` yet) and has a procedural stand-in:
 - `../shared/techniques/springtail-surface.js`: ripple and surfactant field,
   analytic menisci, water film material, peat floor (reusable).
 
+## Performance (second pass)
+
+Measured in headless SwiftShader (`micro/tools/perf/measure.mjs`, `q=high`),
+before and after back to back. Every change gives the same picture and the
+same simulation: the water shader's output was compared float for float, the
+ripple field's arrays byte for byte, and full-page screenshots differ by at
+most 1–2 levels, as much as two runs of the old code differ.
+
+- **Water shader** (`springtail-surface.js`): the five caustic taps sum the
+  dimples in one pass (a dimple out of reach costs one test, not five); every
+  dimple loop is skipped outside the box the dimples can reach
+  (`Dimples.box`, uniform `uDimpleBox`); the shore meniscus's five
+  `shoreDist` taps (70 islands each) run only within 3.5 mm of a shore; the
+  ripple taps are skipped outside the ripple window (`upload()` keeps the rim
+  texels at zero, which also stops a recentred rim smearing to the horizon).
+  Scene pass 2.78 → 2.14 s at one player, 1.66 → 1.16 s per view at four.
+- **Time to first frame** 7.4 → 6.1 s (GPU process 16.0 → 12.8 s of CPU);
+  the first frame is mostly that water draw. `check.mjs springtail` 21 s.
+- **Ripple field**: a field nothing has touched yet skips its steps and its
+  upload (512 KB → 0 a frame until the first ripple). `recenter()` shifts the
+  water mask and reuses its buffers instead of testing all 65 k cells and
+  allocating 1 MB: about 4× faster.
+- **`islandEdge`** (behind `inPool` and `mossTop`) looks in a 40 mm grid of
+  candidate islands: about 10× faster, same island and distance.
+
+Tried and dropped: drawing the scene once into the tiny targets before the
+SDF meshing, to compile pipelines in parallel (no gain); grouping the islands
+in `islandDist` (slower under SwiftShader).
+
 ## Checks
 
 ```bash
