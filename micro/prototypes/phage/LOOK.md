@@ -15,7 +15,7 @@ them lush, and what the game lacked:
 
 | In the references | In the game before | Now |
 | --- | --- | --- |
-| Water packed with molecules in every direction, small ones filling the gaps | ~550 molecules in a thin slab round the target; empty past its edges | ~5,500 molecules (BEADS beads) in two nested GPU baths wrapped round every view |
+| Water packed with molecules in every direction, small ones filling the gaps | ~550 molecules in a thin slab round the target; empty past its edges | ~5,500 molecules (≈63,000 beads) plus 1,400 far sprites (MP-V07) and the panorama (MP-V06) in two nested GPU baths wrapped round every view |
 | Every molecule a lumpy cluster of small spheres | smooth icosahedral blobs | bead clusters (sphere impostors) |
 | Soft contact shadows in the creases | none | per-bead crease occlusion (baked) + screen-space AO in the outlined looks |
 | Hosts furred with LPS and studded with proteins | sparse LPS on the front half | a dense bead forest of LPS, porins and membrane proteins all round each cell |
@@ -82,8 +82,8 @@ them lush, and what the game lacked:
   Goodsell: flat colour, a soft two-tone light and depth by desaturation.
 - **The backdrop by direction**, not by screen: the final pass rebuilds each
   pixel's view ray from the inverse projection and camera matrix, and draws a
-  3D-noise haze with far molecule silhouettes (MP-V06, an equirectangular
-  panorama, replaces it when delivered). The UV wash is placed in the world
+  3D-noise haze with far molecule silhouettes (MP-V06, the delivered equirectangular
+  panorama, is mixed over it). The UV wash is placed in the world
   the same way (from the depth buffer), so it stays at the surface in any
   orientation.
 - **Organic hosts.** The capsule body wobbles more (vertex noise) under its
@@ -91,8 +91,8 @@ them lush, and what the game lacked:
 
 ## Not done (see `micro/design/open-recommendations.md`)
 
-- A true membrane mesh with a lipid-headgroup texture for the hosts (MP-V05
-  will give its albedo; the bead forest stands in).
+- A true membrane mesh for the hosts (MP-V05, delivered, now gives the
+  capsule its albedo under the bead forest).
 - AO that spares the phage's glow (the pass darkens creases on it too).
 - Impostor beads for the phage itself (its capsid is the T4 model, which is
   geometric because the real capsid is).

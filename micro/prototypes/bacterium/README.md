@@ -426,6 +426,25 @@ the pixel (phase, fluorescence, darkfield, 4 players).
   build option objects, about 200 KB a frame. World cells come in five shapes,
   so the reads in `stepCell` are megamorphic and box, about 100 KB a step.
 
+### Performance (the flock, 1 November 2026)
+
+The flock replaced the old collective with the same budget: one pair loop per
+flock (separation and alignment, behind an axis test, into scratch typed
+arrays), no allocations per member. Measured with a flock of 40 per player
+(`?flock=40`, `?q=high`), before and after, in this container:
+
+| | 1 player | 4 players |
+| --- | --- | --- |
+| one simulation step (`debug.step`, median of 5 × 120) | 1.14 → 1.28 ms | 1.76 → 1.17 ms |
+| `measure.mjs` CPU per frame (median) | 8.9 → 9.9 ms | 20.6 → 11.2 ms |
+| heap allocated per frame | 460 → 399 KB | 442 → 227 KB |
+| `collective.js` in the CPU profile | 0.6 → 0.4 ms/s | 0.2 → 0.1 ms/s |
+| draw calls | 7 → 7 | 33 → 33 |
+
+SwiftShader dominates every frame here, so the per-frame numbers are noisy;
+the flock itself stays a few per cent of a step. The beacon and answer
+pulses are a ring of discs in the existing shape batch (no new draw calls).
+
 ## Checks
 
 ```bash

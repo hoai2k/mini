@@ -18,6 +18,7 @@ import { createQuality } from '../shared/quality.js';
 import { createCrowd } from '../shared/crowd.js';
 import { litMaterial } from '../shared/techniques/springtail-macro.js';
 import { createLandmarkProps } from './landmarks.js';
+import { createPortalLight } from '../shared/portal.js';
 import { createWolfSpider, LEASH as BOSS_LEASH } from './boss.js';
 import { createSpringtail } from './springtail.js';
 import { updateJumpInput, takeQueuedJump } from './jump-input.js';
@@ -306,6 +307,15 @@ function placeCamera(dt) {
     focusD = (focusD + dT) / 2;
     wantK = THREE.MathUtils.clamp((Math.abs(dT - camera.position.distanceTo(want)) + 0.6) / L.dof, 1, 14);
   }
+  // near the portal raft and with it in front: deepen the focus (in effect) so the raft is sharp too
+  if (PORTAL.placed && !capOn && !mp) {
+    const dR = Math.hypot(pl.x - PORTAL.x, pl.z - PORTAL.z);
+    if (dR < 26) {
+      _v.set(PORTAL.x, props.position.y, PORTAL.z);
+      const dT = camera.position.distanceTo(_v), dS = camera.position.distanceTo(want);
+      if (dT < dS + 14) wantK = Math.max(wantK, THREE.MathUtils.clamp((Math.abs(dT - dS) + 1.5) / L.dof, 1, 14));
+    }
+  }
   rig.dofK += (wantK - rig.dofK) * (dt ? 1 - Math.exp(-dt * 6) : 1);
   rig.focusD = rig.focusD === undefined || !dt ? focusD : rig.focusD + (focusD - rig.focusD) * (1 - Math.exp(-dt * 8));
   macroShared.uFocus.value = rig.focusD + rig.focusOff;
@@ -372,6 +382,9 @@ function logChallenge(kind, P) { if (!challengeLog[kind] && P) challengeLog[kind
 // when both where it is and where it goes are farther than UNSEEN mm from
 // every player, and never onto an island. The portal is placed once a game.
 const UNSEEN = 45, LEAD = 36;
+// The portal is placed (and its light shows) this far before its ring; the
+// spider's hint waits until someone is within PORTAL_HINT mm of the raft.
+const PORTAL_SEEN = 150, PORTAL_HINT = 70;
 const relocLog = [];
 /** Is predator k busy with someone (it then stays where it is)? */
 function engaged(k) {
@@ -423,10 +436,11 @@ function moveRings() {
     if (k === 'strider' && (!unseen(ZONES.crowd.x, ZONES.crowd.z) || !unseen(zoneAt('crowd', to.a).x, zoneAt('crowd', to.a).z))) continue;
     placeZone(k, to.a, `slot ${R.slot}`);
   }
-  // the portal: once a game, on the ring at the bearing of the first player to get within ~65 mm of it
+  // the portal: once a game, on the ring at the bearing of the first player to get within
+  // PORTAL_SEEN mm of it (out of sight; its light then draws them on across the sundew ring)
   if (!PORTAL.placed && game.phase === 'play') {
     const lead = recs().filter((R) => alive(R)).sort((a, b) => distFromStart(b.x, b.z) - distFromStart(a.x, a.z))[0];
-    if (lead && distFromStart(lead.x, lead.z) >= PORTAL_R - 65) {
+    if (lead && distFromStart(lead.x, lead.z) >= PORTAL_R - PORTAL_SEEN) {
       const a0 = bearingFromStart(lead.x, lead.z);
       for (let i = 0; i < 15; i++) {
         const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.05;
@@ -445,7 +459,6 @@ function placePortal(a) {
   // its post: on the raft's inner rim, facing the way you come; it backs off over the raft when beaten
   boss.setPost({ x: p.x - ux * (PORTAL.r - 3), z: p.z - uz * (PORTAL.r - 3), a: a + Math.PI }, { x: p.x + ux * 12, z: p.z + uz * 12 });
   portal.hinted = false; portal.turned = false;
-  if (game.phase === 'play' && !portal.hinted) { portal.hinted = true; hud.toast('The wolf spider guards the way on. Lure it off the moss, then get round it', 4200); }
 }
 /** The portal's state: is the wolf spider on guard at it (on its post, not lured off or beaten)? */
 const portal = { hinted: false, turned: false };
@@ -625,7 +638,7 @@ function sundewStep(phase, u, dt) {
 // ---------------------------------------------------------------- features
 const features = createFeatures({ key: 'springtail', pad });
 const F = (o) => features.add(o);
-const audio = createAudio(['springtail/amb-bog', 'springtail/jump', 'springtail/land-water', 'springtail/land-sticky', 'springtail/eat', 'springtail/raindrop', 'springtail/stenus-skim', 'springtail/stenus-strike']);
+const audio = createAudio(['springtail/amb-bog', 'springtail/jump', 'springtail/land-water', 'springtail/land-sticky', 'springtail/eat', 'springtail/raindrop', 'springtail/stenus-skim', 'springtail/stenus-strike', 'shared/portal-chime']);
 audio.addToFeatures(features);
 audio.loop('springtail/amb-bog', { volume: 0.6 });
 /** Gamepads fire no DOM events: unlock sound on any pad button. */
@@ -901,6 +914,8 @@ function resetRings() {
 }
 
 function newGame() {
+  if (outro) endOutro();
+  lm.fired = false; lm.nearing = false;
   pl.lives = 3; pl.food = 0;
   resetRings();
   respawn();
@@ -1575,13 +1590,20 @@ const lm = { fired: false, log: [] };
 const atPortal = (P) => PORTAL.placed && Math.hypot(P.x - PORTAL.x, P.z - PORTAL.z) < PORTAL.reach;
 function checkLandmark() {
   if (game.phase !== 'play' || !PORTAL.placed) return;
-  let at = null, near = false;
+  if (outro) return;
+  let at = null, near = false, dmin = Infinity;
   for (const P of recs()) {
     if (!alive(P)) continue;
     const d = Math.hypot(P.x - PORTAL.x, P.z - PORTAL.z);
+    dmin = Math.min(dmin, d);
     if (d < PORTAL.reach) at = P;
     if (d < PORTAL.reach + 12) near = true;
   }
+  // the boss's hint (brief): only once someone is close enough to meet it
+  if (!portal.hinted && dmin < PORTAL_HINT) { portal.hinted = true; hud.toast('The wolf spider guards the way on. Lure it off the moss, then get round it', 3600); }
+  // nearing the way on: the shell starts loading the next world (no prompt is shown)
+  const nearing = dmin < 120;
+  if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
   if (at && !lm.fired) {
     if (guarded()) {
       if (!portal.turned) { portal.turned = true; hud.toast('Turned back: the wolf spider is on guard. Lead it away from the raft first, then get round it', 3600); }
@@ -1601,10 +1623,80 @@ function checkLandmark() {
  * runs the transition; standalone, embed.js shows a toast).
  */
 function enterPortal(P) {
+  if (outro) return;
   lm.fired = true;
   lm.log.push({ kind: 'forward', slot: P.slot, t: +simT.toFixed(2) });
-  rumbleFor(P, 200, 0.3, 0.3);
-  embed.landmark('forward', { player: P.slot });
+  startOutro(P);
+  embed.landmark('forward', { player: P.slot, outro: embed.active });
+}
+
+// ---------------------------------------------------------------- the outro (success, slow-down, freeze)
+// Going through the portal (embed.js "Continuous transitions"): a golden burst
+// from the raft, a bloom on the screen, a chime and a rumble; then time eases
+// to a stop over ~1 s while rendering carries on (the freeze frame). Frozen,
+// the world reports where the mite speck is on screen (embed.frozen) and the
+// shell takes the camera (`camera` poses) to push in on it while the mite's
+// world fades in under the same framing. All in frame time (dt is clamped),
+// so a slow machine plays it slower rather than skipping it. Standalone the
+// freeze holds a moment and time comes back.
+const OUTRO = { beat: 0.3, ease: 1.0, hold: 1.4, back: 0.6, giveUp: 8 };
+let outro = null;
+const portalLight = createPortalLight({ zIndex: 3 });
+function startOutro(P) {
+  outro = { t: 0, scale: 1, frozenAt: null, cam: null, P, L: null, heard: false };
+  props.glow.burst();
+  const pr = split.project(0, _v.set(PORTAL.x, props.position.y, PORTAL.z));
+  if (!pr.behind) portalLight.bloom(pr.x, pr.y, { scale: 1.2 });
+  const me = split.project(0, _v.set(P.x, P.y + 0.25, P.z));
+  if (!me.behind) portalLight.bloom(me.x, me.y, { scale: 0.7 });
+  audio.play('shared/portal-chime', { volume: 0.9 });
+  rumbleFor(P, 520, 0.55, 0.85);
+  if (embed.active) embed.cinematic(true, canvas);
+}
+/** Advance the outro by dt (frame time); returns the time scale for the world. */
+function stepOutro(dt) {
+  const o = outro;
+  o.t += dt;
+  const k = THREE.MathUtils.smoothstep(o.t, OUTRO.beat, OUTRO.beat + OUTRO.ease);
+  o.scale = 1 - k;
+  if (o.scale <= 0 && o.frozenAt === null) {
+    o.frozenAt = o.t;
+    if (embed.active) {
+      const m = props.mite();
+      embed.frozen(embed.poseOf(camera, m.c, { len: m.len, heading: m.heading, pitch: rig.pitch, yaw: rig.yaw }));
+    }
+  }
+  if (o.frozenAt !== null) {
+    const held = o.t - o.frozenAt;
+    // standalone (or a shell that never answered): time comes back
+    const back = !embed.active ? held - OUTRO.hold : !o.heard && held > OUTRO.giveUp ? held - OUTRO.giveUp : -1;
+    if (back >= 0) {
+      o.scale = THREE.MathUtils.smoothstep(back, 0, OUTRO.back);
+      if (back >= OUTRO.back) endOutro();
+    }
+  }
+  return outro ? outro.scale : 1;
+}
+function endOutro() {
+  outro = null;
+  if (embed.active) embed.cinematic(false, canvas);
+}
+// the shell drives the camera from the freeze frame into the mite's world
+embed.on('camera', (d) => { if (outro && d.pose) { outro.cam = d.pose; outro.heard = true; } });
+embed.on('pause', () => { if (outro) outro.heard = true; });
+/** The camera for a pose from the shell: a dolly toward the mite speck, the field of view kept. */
+function placePoseCamera(pose) {
+  const m = props.mite();
+  const r = embed.poseCamera(camera, pose, m.c, m);
+  camera.near = Math.max(0.02, r.depth * 0.15);
+  camera.updateProjectionMatrix();
+  camera.updateMatrixWorld();
+  world.sky.position.copy(camera.position);
+  // the lens at that magnification (for the blur), focused on the speck
+  const L = lens({ hfw: Math.max(0.2, 2 * r.halfW), N: APERTURES[rig.ai] });
+  macroShared.uFocus.value = camera.position.distanceTo(m.c);
+  rig.dofK = 2.5;
+  return L;
 }
 
 // ---------------------------------------------------------------- HUD text
@@ -1691,7 +1783,12 @@ const posOf = (P) => {
 };
 const MOSS_LOD_BEYOND = 90; // mm past the focus distance (a 64 mm tile reaches ~45 mm from its centre)
 function render(dt) {
-  const L = placeCamera(dt);
+  // the outro: the camera slows with time, holds on the freeze, then follows the shell's poses
+  let L;
+  if (outro && outro.cam) L = placePoseCamera(outro.cam);
+  else if (outro && outro.scale <= 0 && outro.L) L = outro.L;
+  else L = placeCamera(outro ? dt * Math.max(outro.scale, 1e-3) : dt);
+  if (outro) outro.L = L;
   field.upload();
   split.update(recs().map((P) => ({ slot: P.slot, position: posOf(P) })), { camera }, dt);
   quality.setSplitViews(split.views.length);
@@ -1719,8 +1816,15 @@ function render(dt) {
   });
   if (!one) { macroShared.uFocus.value = focus0; setDrop(pl); }
   marks.begin();
-  // no arrow until the portal is found; then it points the way back to it (after luring the spider off)
-  if (game.phase === 'play' && PORTAL.placed) marks.drawSplit(split, props.position, { kind: 'forward', range: 600 });
+  portalLight.begin();
+  // no arrow until the portal is found; then it points the way back to it (after luring the spider off),
+  // and the portal's golden light spills in from that edge (or haloes it in view): no text
+  if (game.phase === 'play' && PORTAL.placed && !outro) {
+    const res = marks.drawSplit(split, props.position, { kind: 'forward', range: 600 });
+    let d = Infinity;
+    for (const P of recs()) d = Math.min(d, Math.hypot(P.x - PORTAL.x, P.z - PORTAL.z));
+    portalLight.drawSplit(split, res, { strength: THREE.MathUtils.clamp(1.15 - d / 260, 0.3, 1), open: props.glow.open });
+  }
   return L;
 }
 
@@ -1755,6 +1859,10 @@ const api = {
   placeZone(k, a) { placeZone(k, a, 'test'); return { ...ZONES[k] }; },
   /** Go through the portal now as player `slot` (what reaching it while open does). */
   enterPortal(slot = 0) { enterPortal(pls[slot] || pl); },
+  /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
+  outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
+  /** Testing: advance the outro by n frames of dt, rendering each (deterministic stills). */
+  outroStep(n = 1, dt = 1 / 30) { for (let i = 0; i < n && outro; i++) { const ts = stepOutro(dt); if (ts > 0) step(dt * ts, null); render(dt); } return api.outro(); },
   get frames() { return frames; },
   get layout() { return split.layout; },
   recs: () => recs().map((P) => ({ slot: P.slot, x: +P.x.toFixed(2), z: +P.z.toFixed(2), mode: P.mode, color: P.color })),
@@ -1892,9 +2000,10 @@ function frame() {
   last = now;
   if (api.paused) return;
   frames++;
-  const inp = readInput(dt);
-  game.t += dt;
-  step(dt, inp);
+  // held by the shell in a transition (this world is never the new one yet), or in the outro: no input
+  const ts = outro ? stepOutro(dt) : 1;
+  const inp = outro || embed.held ? null : readInput(dt);
+  if (ts > 0 && !embed.held) { game.t += dt * ts; step(dt * ts, inp); }
   if (gpuBusy()) return;
   const raw = now - lastSubmit;
   lastSubmit = now;

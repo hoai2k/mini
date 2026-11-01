@@ -55,7 +55,10 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
   const top = heads[0];
   const topY = top.y + top.s * 1.42;
   // the sparkle: the way on looks like somewhere to go
-  const glow = createPortalGlow({ THREE, size: L.r + 3, height: 9, intensity: 1.4, pixelHeight });
+  // (a tall soft beacon, 60 mm, with motes rising up it: seen whenever the
+  // camera looks out over the film; the screen light, createPortalLight in
+  // main.js, carries it when the narrow macro view has it out of frame)
+  const glow = createPortalGlow({ THREE, size: L.r + 3, height: 9, intensity: 1.6, beam: 60, beamWidth: 3.2, count: 110, pixelHeight });
   raft.add(glow.group);
 
   // the speck: a Limnozetes mite, ~0.35 mm, glossy red-brown, eight legs
@@ -95,8 +98,20 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
   }
 
   const position = new THREE.Vector3(0, topY, 0);
+  const _fw = new THREE.Vector3();
   return {
     group, raft, glow, position, speck, ring, rings,
+    /**
+     * The mite speck for a continuous transition (embed.js "Continuous
+     * transitions"): its centre in world space, its heading (atan2(z, x) of
+     * its local +x) and its length (mm).
+     */
+    mite() {
+      mite.updateMatrixWorld(true);
+      const c = body.getWorldPosition(new THREE.Vector3());
+      _fw.set(1, 0, 0).transformDirection(mite.matrixWorld);
+      return { c, heading: Math.atan2(_fw.z, _fw.x), len: 0.36 };
+    },
     /** Show the raft at the portal (world.js PORTAL), turned so the mite's head faces the start. */
     place() {
       raft.visible = L.placed;

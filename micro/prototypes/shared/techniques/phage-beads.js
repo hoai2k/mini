@@ -383,7 +383,9 @@ export function createSprites(texture, { n = 1400, half = 700, inner = 330, size
   const pos = new Float32Array(n * 4), cell = new Float32Array(n * 2);
   for (let i = 0; i < n; i++) {
     pos.set([(rnd() * 2 - 1) * half, (rnd() * 2 - 1) * half, (rnd() * 2 - 1) * half, size[0] + rnd() * (size[1] - size[0])], i * 4);
-    const k = Math.floor(rnd() * 16);
+    // (not the DNA helix, the membrane slab or the atom cluster: those do not float free in the water)
+    const FREE = [0, 1, 2, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15];
+    const k = FREE[Math.floor(rnd() * FREE.length)];
     cell.set([k % 4, 3 - Math.floor(k / 4)], i * 2);
   }
   g.setAttribute('iPos', new THREE.InstancedBufferAttribute(pos, 4));
