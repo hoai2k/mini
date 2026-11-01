@@ -1484,7 +1484,7 @@ function drawFrame(dt) {
     props.glow.setOpen(!guarded());
     props.glow.update(dt, glowT, camera, outro ? outro.t : undefined);
     // after the burst the sparkle dims, so the tardigrade in the water reads in the freeze frame
-    glowU.uI.value = outro ? 1.15 - 0.8 * THREE.MathUtils.smoothstep(outro.t, 0.5, 1.3) : 1.15;
+    glowU.uI.value = outro ? 1.15 - 0.9 * THREE.MathUtils.smoothstep(outro.t, 0.5, 1.3) : 1.15;
   }
   // a caught player's view follows the predator with its meal
   const eating = capture.active && ['eat', 'follow', 'fadeOut'].includes(capture.phase);

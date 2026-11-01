@@ -116,14 +116,16 @@ const UP = { x: 0, y: 1, m: 1 };
 // --- a gate: a lone cell cannot wear the first peritrich down; an army of 12 can ---
 {
   const { coll, guards, P, step, fill, move } = setup();
-  const G = guards.byId.grazer1, at = guards.centre(G), g = G.g;
+  const G = guards.byId.grazer1; guards.placeGate(G, 110, 0, 0); // (where the director would put it: here 110 µm out, met heading +x)
+  const at = guards.centre(G), g = G.g;
   move(at.x - g.R * 1.05, at.y);
   for (let i = 0; i < 6 && P.S.alive; i++) step(30, { x: 1, y: 0, m: 0.2 });
   assert.ok(G.hp > G.max * 0.5, `a lone cell gets nowhere (${G.hp.toFixed(0)} of ${G.max})`);
 }
 {
   const { coll, guards, P, step, fill, move } = setup();
-  const G = guards.byId.grazer1, at = guards.centre(G), g = G.g;
+  const G = guards.byId.grazer1; guards.placeGate(G, 110, 0, 0); // (where the director would put it: here 110 µm out, met heading +x)
+  const at = guards.centre(G), g = G.g;
   move(at.x - 45, at.y - 12); fill(11); step(60);
   const C = coll.of(P);
   let t = 0;

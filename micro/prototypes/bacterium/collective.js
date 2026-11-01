@@ -57,7 +57,7 @@ export const COLL = {
   max: 48,         // members per flock
   joinCool: 2.5,   // s after a split before those players can merge again
   free: 100,       // free kin cells in the world at the start
-  perBreak: 12,    // of them in each calm break
+  meadow: 40,      // of them in the meadow round the start; the rest ambient, kept near the players (main.js keepAmbient)
   burstR: 32, chargeT: 6,
   beaconGap: 0.3,  // s between two beacons
   beaconPad: 7,    // a beacon reaches this far beyond the flock's edge, µm
@@ -106,27 +106,36 @@ export function createCollectives(world, hooks = {}) {
     k.align = 0.2 + r() * 0.4;    // how strongly it matches its neighbours
     return k;
   }
-  /** The places free kin live (world.zones): the meadow round the start (0), and each calm break (1..). */
-  const zones = () => world.zones;
-  /** Put free kin cell k in zone z (an index), at bearing a (default: anywhere round it). */
-  function placeFree(k, z, a = null) {
-    const Z = zones()[z];
-    for (let i = 0; i < 6; i++) {
-      const q = world.ringPoint(Z.r0 + r() * (Z.r1 - Z.r0), a === null ? r() * 6.283 : a + (r() - 0.5) * 0.5);
-      k.x = q.x; k.y = q.y;
-      if (!world.pushOutOfGrains({ x: k.x, y: k.y }, 0.5)) break;
-    }
-    k.hx = k.x; k.hy = k.y; k.zone = z;
+  /** Put free kin cell k at (x, y) (its home: it wanders round it), free and well. */
+  function putFree(k, x, y) {
+    k.x = k.hx = x; k.y = k.hy = y; k.parked = false;
     k.coll = null; k.dying = null; k.answer = null; k.growth = r() * 0.3; k.vx = k.vy = 0; k.sp = 0;
   }
+  /** Put free kin cell k in the meadow round the start. */
+  function placeFree(k) {
+    const Z = world.zones[0];
+    for (let i = 0; i < 6; i++) {
+      const q = world.ringPoint(Z.r0 + r() * (Z.r1 - Z.r0), r() * 6.283);
+      putFree(k, q.x, q.y);
+      if (!world.pushOutOfGrains({ x: k.x, y: k.y }, 0.5)) break;
+    }
+    k.zone = 0;
+  }
+  /** Take kin cell k off the field until it is wanted (main.js keepAmbient brings it in where nobody has looked). */
+  function park(k) { putFree(k, world.PARK.x, world.PARK.y); k.parked = true; k.zone = 1; }
 
   function reset(roster) {
     list.length = 0; byPlayer.clear(); kin.length = 0;
-    const Z = zones();
     for (let i = 0; i < COLL.free; i++) {
       const k = newKin(0, 0);
-      // most in the meadow, COLL.perBreak in each break (moved round it to meet you: relocate())
-      placeFree(k, i < COLL.free - COLL.perBreak * (Z.length - 1) ? 0 : 1 + (i % (Z.length - 1)));
+      // COLL.meadow in the meadow; the rest ambient: scattered over the water away from the start,
+      // and kept near the players (main.js keepAmbient moves the ones nobody has seen)
+      if (i < COLL.meadow) placeFree(k);
+      else {
+        let q = world.anywhere();
+        for (let j = 0; j < 8 && world.distFromStart(q.x, q.y) < 150; j++) q = world.anywhere();
+        putFree(k, q.x, q.y); k.zone = 1;
+      }
       kin.push(k);
     }
     // a handful start right beside you, so the first beacon has someone to answer
@@ -245,45 +254,12 @@ export function createCollectives(world, hooks = {}) {
     losses(dt, t, ctx);
     divide(dt);
     bdelloPack(dt);
-    // the dying: shown for a moment (rounding, darkening), then back into the world as a free cell
-    // (in the meadow or the calm break nearest behind the players, so the army can be topped up)
-    let far = 0, fa = 0;
-    for (const P of roster) if (P.S.alive) { const d = world.distFromStart(P.S.x, P.S.y); if (d > far) { far = d; fa = world.bearingFromStart(P.S.x, P.S.y); } }
-    for (const k of kin) if (k.dying) { k.dying.t += dt; if (k.dying.t > 1.6) placeFree(k, zoneBehind(far), fa); }
+    // the dying: shown for a moment (rounding, darkening), then parked: main.js keepAmbient brings it
+    // back as a free cell near whoever needs kin, in water nobody has seen (the army can be topped up)
+    for (const k of kin) if (k.dying) { k.dying.t += dt; if (k.dying.t > 1.6) park(k); }
   }
-  /** The calm zone just inside distance d from the start (the meadow if none). */
-  function zoneBehind(d) {
-    const Z = zones();
-    let best = 0;
-    for (let i = 1; i < Z.length; i++) if (Z[i].r1 < d - 10) best = i;
-    return best;
-  }
-  /**
-   * The kin of each calm break gather where a player is coming through it: free kin of that break
-   * that nobody can see are moved round its ring to the player's bearing (as the gates are, main.js).
-   */
-  function relocate(roster, unseen) {
-    const Z = zones();
-    for (let z = 1; z < Z.length; z++) {
-      const B = Z[z];
-      let a = null;
-      for (const P of roster) {
-        if (!P.S.alive) continue;
-        const d = world.distFromStart(P.S.x, P.S.y);
-        if (d > B.r0 - 60 && d < B.r1) { a = world.bearingFromStart(P.S.x, P.S.y); break; }
-      }
-      if (a === null) continue;
-      for (const k of kin) {
-        if (k.coll || k.dying || k.answer || k.zone !== z) continue;
-        const ka = world.bearingFromStart(k.x, k.y);
-        if (Math.abs(Math.atan2(Math.sin(ka - a), Math.cos(ka - a))) < 0.6) continue;
-        if (!unseen(k.x, k.y)) continue;
-        const q = world.ringPoint(B.r0 + r() * (B.r1 - B.r0), a + (r() - 0.5) * 0.9);
-        if (!unseen(q.x, q.y)) continue;
-        k.x = k.hx = q.x; k.y = k.hy = q.y;
-      }
-    }
-  }
+  /** Free kin (not parked, not joining): the ones keepAmbient counts and may move. */
+  const isFree = (k) => !k.coll && !k.dying && !k.answer && !k.parked;
 
   /** One flock step: every member by its own rules (FLOCK and its personality). */
   function stepFlock(C, dt, sq) {
@@ -371,7 +347,7 @@ export function createCollectives(world, hooks = {}) {
   // free kin: slow wanderers that keep near where they live (they never join by themselves)
   function stepFree(dt, sq) {
     for (const k of kin) {
-      if (k.coll || k.dying) continue;
+      if (k.coll || k.dying || k.parked) continue;
       if (k.answer) k.answer.t += dt;
       k.a += 0.9 * sq * gauss(r);
       const dx = k.hx - k.x, dy = k.hy - k.y;
@@ -587,7 +563,7 @@ export function createCollectives(world, hooks = {}) {
   function bdelloPack(dt) {
     if (!world.opts.hunters) return;
     for (const c of world.cells) {
-      if (c.kind !== 'bdello' || !c.home || c.dead) continue;
+      if (c.kind !== 'bdello' || !c.home || c.dead || c.parked) continue;
       const L = c.latch;
       if (L) {
         // latched: glued to the member's pole, trembling
@@ -639,7 +615,7 @@ export function createCollectives(world, hooks = {}) {
   }
 
   return {
-    COLL, FLOCK, kin, list, opts, of, dragK, ensure, relocate, remove, reset, pre, post, absorb, burst, adopt, beacon, eat, focus, lose,
+    COLL, FLOCK, kin, list, opts, of, dragK, ensure, putFree, park, isFree, remove, reset, pre, post, absorb, burst, adopt, beacon, eat, focus, lose,
     /** For tests and the HUD: each flock's players, members, size, level, charge and middle. */
     report: () => list.map((C) => ({ id: C.id, players: C.players.map((P) => P.slot), members: C.members.length, army: C.army, level: C.level, charge: +C.charge.toFixed(2), x: +C.cx.toFixed(1), y: +C.cy.toFixed(1), fx: +(C.fx || 0).toFixed(1), fy: +(C.fy || 0).toFixed(1), speed: +C.speed.toFixed(1), extent: +C.extent.toFixed(1), beacons: C.beacons.length })),
   };

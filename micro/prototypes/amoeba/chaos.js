@@ -2,7 +2,7 @@
 // many nuclei, a real eater of smaller amoebae and ciliates
 // (../../design/bosses.md). It guards the way on: main.js puts it on its
 // post just before the portal (the green Paramecium bursaria in the golden
-// glow, RINGS.portal) once the portal is placed, out of everyone's view.
+// glow) when the director places the portal, out of everyone's view.
 //
 // It is the same soft body as the player (shared/techniques/amoeba-softbody.js)
 // at about 1.9x the player's width (~0.65 mm across here; real Chaos reaches

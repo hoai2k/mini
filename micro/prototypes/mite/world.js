@@ -39,7 +39,12 @@ export const wrapD = (d) => d - TILE * Math.round(d / TILE);
 export function nearImage(p, ref, out = new THREE.Vector3()) {
   return out.set(p.x + TILE * Math.round((ref.x - p.x) / TILE), p.y, p.z + TILE * Math.round((ref.z - p.z) / TILE));
 }
-const CHUNK = 1600; // µm: render chunks (frustum culled one by one): six to a tile
+const CHUNK = 1600; // µm: render chunks (frustum culled one by one): six to a tile's side
+// How far from a view's target the grains, litter and moss are drawn (µm): as
+// far as the old bounded patch reached at the start; past it the SEM backdrop
+// (silhouetted shoots) and the floor carry on to the horizon.
+const DRAW_R = 8000;
+const view = { x: 0, z: 0 }; // the current view's target (setView)
 const chunkKey = (x, z) => `${Math.floor(x / CHUNK)},${Math.floor(z / CHUNK)}`;
 
 const smooth = (t) => t * t * (3 - 2 * t);
@@ -427,11 +432,14 @@ function createExclusion() {
     for (let i = 0; i < a.length; i++) { const d = a[i], dx = x - d.x, dz = z - d.z; if (dx * dx + dz * dz < d.r2) return true; }
     return false;
   };
+  let count = 0;
   return {
     test,
     /** Replace the named set of discs ([{ x, z, r }]). */
-    set(name, discs) { sets.set(name, discs.map((d) => ({ x: d.x, z: d.z, r: d.r }))); rebuild(); },
+    set(name, discs) { sets.set(name, discs.map((d) => ({ x: d.x, z: d.z, r: d.r }))); count = 0; for (const v of sets.values()) count += v.length; rebuild(); },
     get discs() { return [...sets.values()].flat(); },
+    /** How many discs there are (no allocation). */
+    get count() { return count; },
   };
 }
 
@@ -583,7 +591,8 @@ export function buildWorld(tex) {
   };
   // The tile's copies: copy 0 holds the meshes, the other eight hold proxies
   // that share their geometry (setView places them round each view's target).
-  const copies = Array.from({ length: 9 }, () => { const g = new THREE.Group(); group.add(g); return g; });
+  // (their matrices are set only when a copy moves: setView; the meshes in them never move)
+  const copies = Array.from({ length: 9 }, () => { const g = new THREE.Group(); g.matrixAutoUpdate = false; group.add(g); return g; });
   const base = copies[0];
   const proxies = []; // [original, [8 proxies]]
   const proxyOf = (m) => {
@@ -678,13 +687,16 @@ export function buildWorld(tex) {
       }
       const P = fr.planes;
       const W = obj.matrixWorld.elements, tx = W[12], tz = W[14];
-      const ex = AX && exclude.discs.length ? exclude.test : null;
+      const ex = AX && exclude.count ? exclude.test : null;
+      const vx = view.x - tx, vz = view.z - tz; // the view's target in this copy's frame
       let m = 0;
       for (let i = 0; i < N; i++) {
         if (doCull) {
           const o = i * 4;
           if (stale[i]) { bm.getBoundingSphereAt(i, s); sph[o] = s.center.x; sph[o + 1] = s.center.y; sph[o + 2] = s.center.z; sph[o + 3] = s.radius; stale[i] = 0; }
           const x = sph[o], y = sph[o + 1], z = sph[o + 2], nr = -sph[o + 3];
+          const dx = x - vx, dz = z - vz, rr = DRAW_R - nr;
+          if (dx * dx + dz * dz > rr * rr) continue;
           let out = false;
           for (let k = 0; k < 6; k++) { const n = P[k].normal; if (n.x * x + n.y * y + n.z * z + P[k].constant < nr) { out = true; break; } }
           if (out) continue;
@@ -728,7 +740,8 @@ export function buildWorld(tex) {
   const pd = (ax, az, bx, bz) => Math.hypot(wrapD(ax - bx), wrapD(az - bz));
 
   // Floor: tiles over exactly one scenery tile, so a view draws only the ones
-  // it sees; its copies meet the next tile's seamlessly (floorH is periodic)
+  // it sees; its copies meet the next tile's seamlessly (floorH is periodic).
+  // 2.4 mm tiles of 46 µm cells (as fine as before; four to a side, for few objects)
   const TILES = 8, NT = 26;
   const T = TILE / TILES;
   const tmpN = new THREE.Vector3();
@@ -1049,6 +1062,7 @@ export function buildWorld(tex) {
   // the copies of every mesh (each layer's list holds its originals and proxies, so a switch hides both)
   for (const m of floorTiles) addCopies(m);
   for (const name of Object.keys(layers)) layers[name] = layers[name].flatMap((m) => [m, ...addCopies(m)]);
+  for (const g of copies) for (const m of g.children) { m.matrixAutoUpdate = false; m.updateMatrix(); }
 
   const kinds = { grains: ['grain'], litter: ['litter'], moss: ['stem', 'blade'], hyphae: [], spores: [] };
   /** Show or hide a layer; hidden layers can't be walked on either. */
@@ -1073,6 +1087,7 @@ export function buildWorld(tex) {
   /** Place the copies for a view looking at (x, z) (call before rendering each view). */
   function setView(camera, x, z) {
     const ix = tileOf(x), iz = tileOf(z);
+    view.x = x; view.z = z;
     camera.updateMatrixWorld();
     pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     fr.setFromProjectionMatrix(pm, camera.coordinateSystem, camera.reversedDepth);
@@ -1081,10 +1096,11 @@ export function buildWorld(tex) {
       // copy 0 (the originals) takes the target's own tile
       const g = copies[i === 0 && j === 0 ? 0 : ++k];
       const ox = (ix + i) * TILE, oz = (iz + j) * TILE;
-      g.position.set(ox, 0, oz);
-      g.updateMatrixWorld(true);
+      if (g.position.x !== ox || g.position.z !== oz) { g.position.set(ox, 0, oz); g.updateMatrix(); }
       box.min.set(ox - HT - 1600, -300, oz - HT - 1600); box.max.set(ox + HT + 1600, 3400, oz + HT + 1600);
-      g.visible = fr.intersectsBox(box);
+      // (in view, and within reach of what is drawn round the target: the floor reaches DRAW_R + a floor tile)
+      const bx = Math.max(box.min.x - x, 0, x - box.max.x), bz = Math.max(box.min.z - z, 0, z - box.max.z);
+      g.visible = fr.intersectsBox(box) && bx * bx + bz * bz < (DRAW_R + 2000) ** 2;
       if (g.visible) seenN++;
     }
     lastView.ix = ix; lastView.iz = iz; lastView.seen = seenN;

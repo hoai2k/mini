@@ -37,7 +37,18 @@ direction and we will eventually find a portal"). By distance from the start:
 | 27.5–30.4 | **The predatory mite again**, on the 28.6 mm ring |
 | 36–37.5 | **The pseudoscorpion** on guard (it wakes 0.9 mm from its post, 0.6 mm before the water and 0.5 mm to the side), and **the portal** at 37.5 mm |
 
-Between them, calm stretches of 4.9–6.0 mm (7–8 s of rushing). RUSH_SUMMARY
+Between them, calm stretches of 4.9–6.0 mm (7–8 s of rushing). Rushing
+straight out (a script hurrying with RB and scrambling whenever the stamina
+allows, the predator and the boss passive, steering round whatever blocks
+it) from the opening bearing and at +90°, +180° and +270°: the first thicket
+came within 0.4 mm at 5.5, 4.6, 10.1 and 15.1 s (the last two after the
+script had bumped about the start's moss shoots and the giant springtail for
+~4 and ~10 s), and the water was reached at 50.4, 55.3, 61.3 and 65.7 s
+(2–10 s of such stalls included). In every run the predator was moved out
+of sight to meet the script on both its rings, and the portal was placed on
+its bearing, out of view, about 10 s before it got there. Over open moss rushing
+averages ~735 µm/s; hurrying alone, ~585 (about 65 s out). Dealing with the
+thickets, the predator twice and the pseudoscorpion makes it a few minutes.
 
 **One predator, met in every direction.** There is one predatory mite. When
 a player comes within 5 mm of its ground's ring (`LEAD`), at a bearing away
@@ -686,8 +697,11 @@ the other eight hold proxies that share their geometry: a `Mesh` or
 `InstancedMesh` on the same buffers, and for each `BatchedMesh` (grains,
 litter, stems, leaves) a BatchedMesh that draws the original's geometry,
 info and textures with its own draw list. Their per-object cull (cached
-spheres against the view) runs per copy. The floor is 8 × 8 tiles over one
-scenery tile; the hyphae and spores are merged per 1.6 mm chunk.
+spheres against the view) runs per copy. The floor is 4 × 4 tiles (46 µm
+cells) over one scenery tile, and the hyphae and spores are merged per
+3.2 mm chunk: few, large objects, since all nine copies are in the scene
+graph (about 60 objects a copy). The copies' matrices are set only when a
+copy moves.
 
 **Exclusion discs** (`exclude.set`) take moss shoots (the stem and its
 leaves, by the stem's foot) out where something else stands, in world space:

@@ -1,6 +1,7 @@
-// The gates on the rings round the start (world.js ROUTE), fought by your army.
-// One instance of each serves its ring: main.js moves it (setGate), unseen,
-// to the bearing of whoever is approaching, while it is not engaged.
+// The gates on the way (world.js ROUTE), fought by your army. Each is placed
+// once by the encounter director (main.js, shared/director.js) in water
+// nobody has seen, a little ahead of whoever leads (placeGate); until then it
+// is parked far off (park).
 // The owner (1 Nov 2026): "let's have the challenge be just to gather an army
 // and fight your way to your destination". Each gate is an enemy that a lone
 // cell cannot beat and a big enough flock can push through:
@@ -53,23 +54,41 @@ export function createGuards(world, coll, stentor, hooks = {}) {
   const byId = Object.fromEntries(list.map((q) => [q.id, q]));
   for (const c of pack) c.hp = FIGHT.bdelloHp;
 
-  for (const q of list) { const R = world.route.gates.find((g) => g.id === q.id); q.ring = R ? R.ring : world.route.portal; q.bearing = 0; }
-  /** Move gate q round its ring to bearing a (main.js calls this only where nobody can see). */
-  function setGate(q, a) {
-    q.bearing = a;
-    const p = world.ringPoint(q.ring, a);
-    if (q.kind === 'grazer') world.placeGrazer(q.g, a);
-    else if (q.kind === 'amoeba') world.placeAmoeba(a);
+  for (const q of list) { q.bearing = 0; q.placed = false; }
+  /**
+   * Put gate q at (x, y), met coming along bearing b (main.js: the director calls this only in water
+   * nobody has seen, out of every view). Called again it moves the gate (still unseen); `shift`
+   * moves it by (dx, dy) as it is (a lingering player's gate coming over to them: behaviour).
+   */
+  function placeGate(q, x, y, b) {
+    q.bearing = b; q.placed = true;
+    if (q.kind === 'grazer') world.placeGrazer(q.g, x, y, b);
+    else if (q.kind === 'amoeba') world.placeAmoeba(x, y, b);
     else if (q.kind === 'bdello') {
       for (const c of pack) {
-        c.home.x = p.x; c.home.y = p.y;
-        if (!c.dead && !c.latch) { c.x = p.x + (Math.random() - 0.5) * 30; c.y = p.y + (Math.random() - 0.5) * 30; c.hidden = 0; c.prey = null; c.stalking = null; }
+        c.home.x = x; c.home.y = y; c.parked = false;
+        if (!c.dead && !c.latch) { c.x = x + (Math.random() - 0.5) * 30; c.y = y + (Math.random() - 0.5) * 30; c.hidden = 0; c.prey = null; c.stalking = null; }
       }
     } else if (q.kind === 'phage') {
-      const dx = p.x - cloud.x, dy = p.y - cloud.y;
+      const dx = x - cloud.x, dy = y - cloud.y;
       for (const ph of world.phages) if (ph.cloud === cloud) { ph.x += dx; ph.y += dy; }
-      cloud.x = p.x; cloud.y = p.y;
+      cloud.x = x; cloud.y = y;
     }
+  }
+  function shift(q, dx, dy) {
+    if (q.kind === 'grazer') { const g = q.g; g.x += dx; g.base += dy; g.anchor.x += dx; g.anchor.y += dy; g.pose = world.grazerPose(g); }
+    else if (q.kind === 'amoeba') { const A = q.A; A.x += dx; A.y += dy; A.home.x += dx; A.home.y += dy; }
+    else if (q.kind === 'bdello') for (const c of pack) { c.home.x += dx; c.home.y += dy; }
+    else if (q.kind === 'phage') { cloud.x += dx; cloud.y += dy; for (const ph of world.phages) if (ph.cloud === cloud) { ph.x += dx; ph.y += dy; } }
+  }
+  /** Park gate q far off, unplaced (a new game). */
+  function park(q) {
+    q.placed = false;
+    const P = world.PARK;
+    if (q.kind === 'grazer') world.parkGrazer(q.g);
+    else if (q.kind === 'amoeba') world.placeAmoeba(P.x, P.y, 0);
+    else if (q.kind === 'bdello') for (const c of pack) { c.home.x = P.x; c.home.y = P.y; c.x = P.x; c.y = P.y; c.parked = true; c.latch = null; c.prey = null; c.stalking = null; }
+    else if (q.kind === 'phage') placeGate(q, P.x, P.y, 0), (q.placed = false);
   }
   /** Where an enemy is (its gauge and its zone are centred here). */
   function centre(q, out) {
@@ -146,7 +165,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
 
   function update(dt, t, roster) {
     for (const q of list) {
-      if (q.kind === 'stentor' && !q.B.placed) { q.engaged = false; continue; } // no boss until the portal is found
+      if (q.kind === 'stentor' ? !q.B.placed : !q.placed) { q.engaged = false; continue; } // nothing until the director places it
       q.engaged = !q.beaten && engagedBy(q, roster);
       if (q.beaten) continue;
       if (q.kind === 'bdello') {
@@ -280,13 +299,13 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     for (const g of world.grazers) { g.beaten = false; g.contract = 0; g.ext = 1; }
     const A = world.amoeba; A.beaten = false; A.x = A.home.x; A.y = A.home.y;
     stentor.beaten = false;
-    for (const c of pack) { c.dead = 0; c.hp = FIGHT.bdelloHp; c.hidden = 0; c.x = c.home.x + (Math.random() - 0.5) * 30; c.y = c.home.y + (Math.random() - 0.5) * 30; }
+    for (const c of pack) { c.dead = 0; c.hp = FIGHT.bdelloHp; c.hidden = 0; c.latch = null; c.x = c.home.x + (Math.random() - 0.5) * 30; c.y = c.home.y + (Math.random() - 0.5) * 30; }
     // a fresh cloud
     const P = world.phages;
     for (let i = P.length - 1; i >= 0; i--) if (P[i].cloud) P.splice(i, 1);
     for (let i = 0; i < cloudN0; i++) { const p = world.newPhage(cloud.x + (Math.random() - 0.5) * cloud.r * 1.4, cloud.y + (Math.random() - 0.5) * cloud.r * 1.6); p.z = (Math.random() - 0.5) * 0.6; p.cloud = cloud; P.push(p); }
   }
 
-  return { list, byId, FIGHT, setGate, update, volley, burstHit, nearest, reset, hurt, poison, centre: (q) => centre(q, { x: 0, y: 0 }), touching,
+  return { list, byId, FIGHT, placeGate, shift, park, update, volley, burstHit, nearest, reset, hurt, poison, centre: (q) => centre(q, { x: 0, y: 0 }), touching,
     report: () => list.map((q) => ({ id: q.id, hp: +q.hp.toFixed(1), max: q.max, beaten: q.beaten, engaged: q.engaged, contact: q.contact })) };
 }

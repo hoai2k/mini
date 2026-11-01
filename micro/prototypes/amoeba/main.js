@@ -13,7 +13,8 @@ import { Cytoplasm } from './cytoplasm.js';
 import { SPECIES, makePrey, PREY_OPTS } from './prey.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, DIC_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
 import { squirmerFlow } from '../shared/techniques/paramecium-squirmer.js';
-import { buildWorld, worldColliders, nearColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules, RINGS, PORTAL_R, distFromStart, bearingFromStart, ringPoint, PATCHES, BACK_TIP, leafDist, LEAF, portalRoom } from './world.js';
+import { buildWorld, worldColliders, nearColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules, SLIDE, distFromStart, bearingFromStart, ringPoint, PATCHES, PATCH, CILIATES, BACK_TIP, leafDist, LEAF, portalParts, CHAOS_IN, clearAt, DIRECTOR, ENCOUNTERS, canPlace } from './world.js';
+import { createDirector } from '../shared/director.js';
 import { View } from './render.js';
 import { Chaos, CHAOS_R, CHAOS_WAKE, CHAOS_LEASH } from './chaos.js';
 import { rng, TAU, clamp, hyp, Scratch } from './util.js';
@@ -413,18 +414,19 @@ function captureRespawn(c) {
   use(k === c ? c : k || cells[0]);
 }
 /**
- * Where a fresh amoeba starts after a catch: on the same bearing from the
- * start, in the calm break nearest inside where it was caught (never further
- * back than the start), clear of every trap hypha, of Chaos and of the leaf.
+ * Where a fresh amoeba starts after a catch: on calm glass a little back from
+ * where it was caught (toward the start, never further back than it), clear of
+ * every trap hypha, of Chaos, of the leaf and of the encounters' patches.
  */
-const CALM = [0, 900, 1400, 2060];
 function safeSpot(x, y) {
   const d = distFromStart(x, y), a = bearingFromStart(x, y);
   const safe = ([px, py]) => trapList().every((o) => hyp(o.x - px, o.y - py) > o.L / 2 + 330)
-    && (!chaos.on || hyp(chaos.body.cx - px, chaos.body.cy - py) > CHAOS_R + 800) && leafDist(px, py) > LEAF.W / 2 + 300;
-  for (let k = CALM.length - 1; k > 0; k--) {
-    if (CALM[k] > d + 50) continue;
-    for (const da of [0, 0.08, -0.08, 0.16, -0.16]) { const p = ringPoint(CALM[k], a + da); if (safe(p)) return p; }
+    && (!chaos.on || hyp(chaos.body.cx - px, chaos.body.cy - py) > CHAOS_R + 800) && leafDist(px, py) > LEAF.W / 2 + 300
+    && encPatches.every((P) => hyp(P.x - px, P.y - py) > P.r + 350);
+  for (const back of [450, 650, 900, 1200, 1600, 2100]) {
+    const r = Math.max(0, d - back);
+    for (const da of [0, 0.12, -0.12, 0.25, -0.25, 0.4, -0.4]) { const p = ringPoint(r, a + da); if (safe(p)) return p; }
+    if (r === 0) break;
   }
   return [0, 0];
 }
@@ -584,9 +586,10 @@ F({ id: 'preyFlow', group: 'Borrowed', label: 'Prey: squirmer flow round swimmer
   onChange: (v) => (preyFlowOn = v) });
 
 // --- prey ------------------------------------------------------------------
-// Prey live in patches (world.js PATCHES): a few easy flagellates round the
-// start, a ring of easy-prey patches, then a ring of ciliate patches (they
-// flee). Each prey keeps to its patch (a loose tether), and an eaten one comes
+// Prey live in patches: a few easy flagellates round the start and patches of
+// them scattered over the slide (world.js PATCHES: ambient food), and the
+// encounters' patches of ciliates (they flee), placed by the director
+// (encPatches). Each prey keeps to its patch (a loose tether), and an eaten one comes
 // back to it after a while, swimming in from out of everyone's view, so there
 // is always food, and a player can stay in a safe spot as long as they like.
 // Prey far from every player only swim (no collisions or contact checks).
@@ -1348,7 +1351,7 @@ function simStep(dt, granules = true) {
     pe.t = -1e9;
   }
   S.pending = S.pending.filter((x) => x.t > -1e8);
-  placeRings();
+  stepDirector(dt);
   checkLandmarks();
   S.time += dt;
 }
@@ -1562,9 +1565,9 @@ function syncCells() {
 // --- landmarks: the portal (the way on) and the backdoor ----------------------------
 // The portal: a green Paramecium bursaria (Chlorella symbionts) swimming low
 // over the slide at the opening toward open water, in the shared golden glow
-// (shared/portal.js, no text). It is placed once a game on the portal ring
-// (RINGS.portal, ~2.8 mm out), at the bearing of whoever first gets RINGS.place
-// out, where nobody can see it; Chaos goes on guard just inside it. Reaching it
+// (shared/portal.js, no text). It is the director's last entry (below): placed
+// once every encounter before it is met, in glass nobody has seen, a short way
+// ahead of whoever leads; Chaos goes on guard on its near side. Reaching it
 // while Chaos is on guard turns you back; lure Chaos off it (it follows you no
 // further than CHAOS_LEASH from its post) or pinch its arms until it gives up,
 // then reach it: enterPortal (the one place the zoom on is triggered).
@@ -1607,31 +1610,107 @@ function guarded() {
   if (!chaos.on || chaos.beaten || chaos.state === 'leaving') return false;
   return Math.hypot(chaos.body.cx - PORTAL.x, chaos.body.cy - PORTAL.y) < GUARD_R;
 }
-/** Put the portal on its ring at bearing a, with Chaos on guard just inside it. */
-function placePortal(a) {
-  const [x, y] = ringPoint(RINGS.portal, a);
+/** Put the portal at (x, y), met coming along bearing a (from whoever leads), with Chaos on guard on its near side. */
+function placePortal(x, y, a) {
   Object.assign(PORTAL, { placed: true, found: false, x, y, a });
   beacon.x = x + 40; beacon.y = y; beacon.th = a + Math.PI / 2;
   glow.setPosition(x, y, 0);
   glow.group.visible = true;
-  // its rest when beaten: off to one side of the portal, along the ring and a little out
-  const side = [0.5, -0.5].map((da) => ringPoint(RINGS.portal + 250, a + da)).find(([rx, ry]) => leafDist(rx, ry) > LEAF.W / 2 + 500) || ringPoint(RINGS.portal + 900, a);
+  // its rest when beaten: off to one side of the portal and a little beyond it, clear of the leaf and the traps
+  const ux = Math.cos(a), uy = Math.sin(a);
+  const side = [900, -900, 1400, -1400].map((k) => [x + ux * 250 - uy * k, y + uy * 250 + ux * k]).find(([rx, ry]) => leafDist(rx, ry) > LEAF.W / 2 + 500 && clearAt(rx, ry, 200)) || [x + ux * 900, y + uy * 900];
   chaos.on = true;
-  chaos.setPost(...ringPoint(RINGS.chaos, a), { x: side[0], y: side[1] });
+  chaos.setPost(...portalParts(x, y, a).chaos, { x: side[0], y: side[1] });
   lm.turned = false; lm.hinted = false;
 }
-/** Once a game: the portal at the bearing of the first player RINGS.place out, out of everyone's view. */
-function placeRings() {
-  if (PORTAL.placed) return;
-  let lead = null;
-  for (const c of cells) if (!c.caught.active && !c.p.waiting && (!lead || distFromStart(c.body.cx, c.body.cy) > distFromStart(lead.body.cx, lead.body.cy))) lead = c;
-  if (!lead || distFromStart(lead.body.cx, lead.body.cy) < RINGS.place) return;
-  const a0 = bearingFromStart(lead.body.cx, lead.body.cy);
-  for (let i = 0; i < 25; i++) {
-    const a = a0 + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.05;
-    const [px, py] = ringPoint(RINGS.portal, a), [cx, cy] = ringPoint(RINGS.chaos, a);
-    if (portalRoom(a) && unseen(px, py, 200) && unseen(cx, cy, CHAOS_R + 260)) { placePortal(a); logChallenge('portalPlaced', lead); return; }
+
+// ---------------------------------------------------------------- the encounters, placed as you go
+// The director (shared/director.js; design/encounter-pattern.md "Placed as
+// you go") places the encounters one at a time, in this order (world.js
+// ENCOUNTERS), in glass nobody has seen, a little ahead of whoever is furthest
+// along (or, if they linger, round them): a patch of fleeing ciliates, a patch
+// with Paramecium caudatum, then Chaos on guard at the portal. Each comes only
+// after the one before was met and a calm break has passed; nothing a player
+// has seen is ever placed, moved or removed. Easy prey and the fungal traps
+// are scenery (world.js), anywhere.
+const encPatches = [];
+/** The encounter patch for entry `id` at (x, y): prey of its kinds, inside it (it is out of everyone's view). */
+function placePatch(id, x, y) {
+  let P = encPatches.find((q) => q.ring === id);
+  const kinds = id === 'caudatum' ? ['paramecium', 'paramecium', ...CILIATES] : [...CILIATES, ...CILIATES, 'tetrahymena'];
+  if (P) {
+    // moved (still unseen): its prey go with it
+    for (const p of prey) if (p.home === P && !p.captured) { p.x += x - P.x; p.y += y - P.y; }
+    Object.assign(P, { x, y });
+    return P;
   }
+  P = { ring: id, x, y, r: PATCH.ciliates.r, kinds, placedT: S.time };
+  encPatches.push(P);
+  for (const key of kinds) spawnIn(P, key, true);
+  return P;
+}
+const ENC = {
+  ciliates: { place: (x, y) => placePatch('ciliates', x, y),
+    // in or beside the patch (the cell's edge within ~110 µm of it), or touching one of its prey
+    met: (P, [q]) => hyp(q.x - P.x, q.z - P.y) < P.r + q.req + 110 },
+  caudatum: { place: (x, y) => placePatch('caudatum', x, y), met: (P, [q]) => hyp(q.x - P.x, q.z - P.y) < P.r + q.req + 110 },
+  // the last: entering the open portal ends the level
+  portal: { place: (x, y, b) => { placePortal(x, y, b); return PORTAL; }, met: () => false },
+};
+const director = createDirector({ ...DIRECTOR, canPlace, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id] })) });
+// What every view sees: the screen's rectangle round each split view's centre
+// (the whole screen: conservative for a split view), at the objective and
+// pull-back in use; and, when the camera lags a cell (advance() steps without
+// moving it), the rectangle round that cell too.
+const dirViews = Array.from({ length: 8 }, () => ({ frustum: [[1, 0, 0, 0], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, -1, 0]], focus: { x: 0, y: 0, z: 0 } }));
+function rectView(v, cx, cy, hw, hh) {
+  v.frustum[0][3] = -(cx - hw); v.frustum[1][3] = cx + hw; v.frustum[2][3] = -(cy - hh); v.frustum[3][3] = cy + hh;
+  v.focus.x = cx; v.focus.z = cy;
+  return v;
+}
+function directorViews() {
+  const hw = (OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6) * Math.max(1, pull.k)) / 2, hh = hw * (innerHeight / Math.max(1, innerWidth));
+  const list = [];
+  const L = split.layout, views = L && L.views.length ? L.views : [{ offset: { x: 0, y: 0 } }];
+  for (const v of views) { const o = v.offset || { x: 0, y: 0 }; if (list.length < 4) list.push(rectView(dirViews[list.length], S.camX + (o.x || 0), S.camY + (o.y || 0), hw, hh)); }
+  for (const c of cells) {
+    if (list.length >= dirViews.length) break;
+    if (list.some((v) => Math.abs(c.body.cx - v.focus.x) < hw * 0.6 && Math.abs(c.body.cy - v.focus.z) < hh * 0.6)) continue;
+    list.push(rectView(dirViews[list.length], c.body.cx, c.body.cy, hw, hh));
+  }
+  return list;
+}
+/** The director's players: each live cell's centre (director x, z = slide x, y) and its radius. */
+const dirPlayers = () => cells.filter((c) => !c.p.waiting).map((c) => ({ id: c.slot, x: c.body.cx, z: c.body.cy, req: c.body.req, alive: !c.caught.active }));
+let directorOn = false;
+function stepDirector(dt) {
+  if (!directorOn || outro) return;
+  const ev = director.update(dt, dirPlayers(), directorViews());
+  for (const e of ev) {
+    const c = cells.find((q) => q.slot === (e.by && e.by[0])) || cells[0];
+    if (e.type === 'placed') logChallenge(`${e.id}Placed`, c);
+    if (e.type === 'met') logChallenge(`${e.id}Met`, c);
+  }
+  driftPatch(dt);
+}
+/**
+ * A patch placed beyond a lingering player's reach swims over to them: its
+ * centre (and so its prey, tethered to it) drifts toward the leader at
+ * PATCH_DRIFT µm/s until they meet it. Behaviour, not a placement.
+ */
+const PATCH_DRIFT = 30;
+function driftPatch(dt) {
+  const i = director.index, e = ENCOUNTERS[i];
+  if (!e || e.final) return;
+  const S0 = director.entry(e.id);
+  if (!S0 || S0.state !== 'placed' || !S0.handle) return;
+  const lead = director.leader, c = lead && cells.find((q) => q.slot === lead.id);
+  const P = S0.handle;
+  if (!c || lead.moving || S.time - P.placedT < 5) return;
+  const dx = c.body.cx - P.x, dy = c.body.cy - P.y, d = hyp(dx, dy);
+  if (d < P.r + c.body.req + 60) return;
+  const k = Math.min(d, PATCH_DRIFT * dt) / d;
+  P.x += dx * k; P.y += dy * k;
 }
 /** Where each player stands with respect to the landmarks; posts them. */
 function checkLandmarks() {
@@ -1924,6 +2003,7 @@ for (let i = 0; i < 600; i++) {
 S.camX = body.cx; S.camY = body.cy;
 C.A0init = body.A0;
 resetFungus(); // the clock for the encounter log starts after the warm-up
+directorOn = true; // and the director's (the warm-up above is the cell settling, not play)
 
 let last = performance.now();
 let acc = 0;
@@ -2277,7 +2357,7 @@ window.__micro = {
     body.grid.build(body.x, body.y, N);
   },
   traps: trapList, chaos,
-  /** The rings (µm from the start), the trap hyphae's nearest points, and when each encounter was first met. */
+  /** The slide: the trap hyphae's distances, the patches (scenery and the encounters'), Chaos, and when each encounter was placed and met. */
   route() {
     const traps = trapList().map((o) => {
       const c = Math.cos(o.ang), s = Math.sin(o.ang), h = o.L / 2;
@@ -2285,18 +2365,29 @@ window.__micro = {
       for (let t = -h; t <= h; t += 5) { const d = Math.hypot(o.x + c * t, o.y + s * t); near = Math.min(near, d); far = Math.max(far, d); }
       return { cluster: o.cluster, nearest: Math.round(near), farthest: Math.round(far) };
     });
-    return { rings: { ...RINGS }, portalR: PORTAL_R, traps, patches: PATCHES.map((P) => ({ ring: P.ring, d: Math.round(Math.hypot(P.x, P.y)), r: P.r, n: prey.filter((p) => p.home === P && !p.captured).length })),
+    return { slide: { ...SLIDE }, traps, patches: [...PATCHES, ...encPatches].map((P) => ({ ring: P.ring, x: Math.round(P.x), y: Math.round(P.y), d: Math.round(Math.hypot(P.x, P.y)), r: P.r, n: prey.filter((p) => p.home === P && !p.captured).length })),
       chaos: chaos.on ? { post: Math.round(Math.hypot(chaos.post.x, chaos.post.y)), wakes: CHAOS_WAKE, leash: CHAOS_LEASH, state: chaos.state } : null,
-      met: { ...challengeLog }, prey: prey.length };
+      met: { ...challengeLog }, prey: prey.length, encounters: director.state() };
   },
+  /** The director (shared/director.js): state(), seenAt(x, y), placeNow(), log. */
+  director,
+  encounters() { return director.state(); },
+  seenAt(x, y) { return director.seenAt(x, y); },
+  placeNow() { return director.placeNow(); },
+  /** Testing: place encounter `id` now at (x, y), met coming along bearing b (every earlier one counts as met). */
+  placeEncounter(id, x, y, b = 0) { return director.force(id, x, y, b); },
   /** The portal for the level transition (the shell reads it): where it is (µm), whether it is placed, found, guarded or open, and Chaos. */
   portal() {
     return { placed: PORTAL.placed, found: PORTAL.found, x: PORTAL.x, y: PORTAL.y, bearing: PORTAL.a, reach: PORTAL.reach, beacon: { x: beacon.x, y: beacon.y },
       guarded: PORTAL.placed && guarded(), open: PORTAL.placed && !guarded(), glow: +glow.open.toFixed(2),
       chaos: { on: chaos.on, state: chaos.state, beaten: chaos.beaten, x: chaos.body.cx, y: chaos.body.cy, d: PORTAL.placed ? Math.round(Math.hypot(chaos.body.cx - PORTAL.x, chaos.body.cy - PORTAL.y)) : null } };
   },
-  /** Testing: place the portal now at bearing `a` (radians from the start; default player `slot`'s bearing). */
-  placePortal(a = null, slot = 0) { const c = cellOf(slot); placePortal(a ?? bearingFromStart(c.body.cx, c.body.cy)); return window.__micro.portal(); },
+  /** Testing: place the portal now, `d` µm from player `slot` at bearing `a` (default: their bearing from the start); every encounter before it counts as met. */
+  placePortal(a = null, slot = 0, d = 1400) {
+    const c = cellOf(slot), b = a ?? (distFromStart(c.body.cx, c.body.cy) > 1 ? bearingFromStart(c.body.cx, c.body.cy) : 0);
+    director.force('portal', c.body.cx + Math.cos(b) * d, c.body.cy + Math.sin(b) * d, b);
+    return window.__micro.portal();
+  },
   /** Go through the portal now as player `slot` (what reaching it while open does). */
   enterPortal(slot = 0) { enterPortal(cellOf(slot)); },
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
@@ -2322,9 +2413,9 @@ window.__micro = {
   teleport(kind, slot = 0) {
     const c = cellOf(slot);
     if (kind === 'forward') {
-      if (!PORTAL.placed) placePortal(bearingFromStart(c.body.cx, c.body.cy) || 0);
+      if (!PORTAL.placed) window.__micro.placePortal(null, slot);
       lm.fwdLatch = false;
-      const [x, y] = ringPoint(distFromStart(PORTAL.x, PORTAL.y) + 240, PORTAL.a); // just beyond it (Chaos guards the inner side)
+      const x = PORTAL.x + Math.cos(PORTAL.a) * 240, y = PORTAL.y + Math.sin(PORTAL.a) * 240; // just beyond it (Chaos guards the near side)
       window.__micro.place(slot, x, y);
     }
     else window.__micro.place(slot, BACK_TIP.x + 230, BACK_TIP.y + 40);

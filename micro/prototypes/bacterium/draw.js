@@ -168,8 +168,8 @@ export function createDrawer(world) {
       // a flake of decaying detritus at the patch's heart (the dissolved food itself is invisible)
       S.disc(p.x, p.y, p.flake.r * (0.6 + 0.4 * Math.min(1, p.amt)), { wobble: 0.35, seed: p.flake.seed, ang: p.flake.a, cap: 1.2, dn: 0.05, scat: 0.3, fl: [0.12, 0.14, 0.02], ab: [0.12, 0.16, 0.24], z: 0.3 });
     }
-    if (W.opts.grazers) for (const g of W.grazers) grazer(S, g, t);
-    if (W.opts.amoeba) amoeba(S, W.amoeba, t);
+    if (W.opts.grazers) for (const g of W.grazers) if (!g.parked) grazer(S, g, t);
+    if (W.opts.amoeba && !W.amoeba.parked) amoeba(S, W.amoeba, t);
     for (const c of W.cells) {
       if (c.dead) {
         // killed by your army: it rounds, darkens and fades

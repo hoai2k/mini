@@ -4,63 +4,23 @@
 // the requested images (MP-A01 wet mount, MP-A02 cytoplasm granules).
 import { TAU, rng } from './util.js';
 
-// The slide as rings round the start (the owner, 2026-11-01;
-// ../../design/encounter-pattern.md): the same encounters whichever way you
-// crawl. Distances are µm from the start (the cell's centre at the origin):
-//   0-520      the warm-up: calm glass, a few easy prey round you (food at a
-//              safe spot, for as long as you like)
-//   650        a ring of easy-prey patches (slow flagellates that do not flee)
-//   1150       a ring of ciliate patches (they flee: surge to catch them; a
-//              Paramecium caudatum in every other patch)
-//   1675       a ring of fungal-trap clusters (two hyphae each, staggered)
-//   2560/2800  the giant amoeba Chaos on guard before the portal (the way on:
-//              a green Paramecium bursaria in a golden glow), placed in the
-//              direction of whoever first gets RINGS.place out (main.js)
-// with calm glass between each ring. The slide's objects (filaments, diatoms,
-// flakes) run on to RINGS.field in every direction.
-export const RINGS = { warm: 520, easy: 650, ciliates: 1150, traps: 1675, chaos: 2560, portal: 2800, place: 1000, field: 4300 };
-export const PORTAL_R = RINGS.portal;
+// The slide (the owner, 2026-11-01; ../../design/encounter-pattern.md,
+// "Placed as you go"). Distances are µm from the start (the cell's centre at
+// the origin). Pre-placed, anywhere (calm stretches included), as scenery:
+//   - the slide's objects (filaments, diatoms, flakes) out to SLIDE.field in
+//     every direction, with clear glass round the start (SLIDE.warm);
+//   - easy prey (slow flagellates that do not flee) in patches scattered over
+//     the slide, and a patch round the start: food is always about;
+//   - the fungal traps (two hyphae a cluster), scattered: static hazards you
+//     can see and crawl round.
+// The encounters (ENCOUNTERS: a patch of fleeing ciliates, a patch of
+// Paramecium caudatum, then Chaos on guard at the portal) are placed by the
+// director (../shared/director.js, main.js) in order, in glass nobody has
+// seen, a short way ahead of whoever leads.
+export const SLIDE = { warm: 520, far: 4100, field: 5000 };
 export const distFromStart = (x, y) => Math.hypot(x, y);
 export const bearingFromStart = (x, y) => Math.atan2(y, x);
 export const ringPoint = (r, a) => [Math.cos(a) * r, Math.sin(a) * r];
-/** How far out a point is, as a fraction of the way to the portal ring (0 at the start, 1 on it). */
-export const progressOf = (x, y) => Math.hypot(x, y) / PORTAL_R;
-// The patches of prey: each prey keeps to its patch (main.js tethers it there)
-// and an eaten one comes back to it, swimming in from out of view.
-export const EASY = ['chilomonas', 'chilomonas', 'chlamydomonas'];
-export const CILIATES = ['tetrahymena', 'colpidium'];
-export const PATCH = { easy: { n: 8, r: 120 }, ciliates: { n: 10, r: 150 } };
-export const PATCHES = [
-  { ring: 'start', x: 0, y: 0, r: 430, kinds: ['chilomonas', 'chlamydomonas', 'chilomonas', 'chlamydomonas'] },
-  ...Array.from({ length: PATCH.easy.n }, (_, i) => {
-    const [x, y] = ringPoint(RINGS.easy, ((i + 0.5) / PATCH.easy.n) * TAU);
-    return { ring: 'easy', x, y, r: PATCH.easy.r, kinds: EASY };
-  }),
-  ...Array.from({ length: PATCH.ciliates.n }, (_, i) => {
-    const [x, y] = ringPoint(RINGS.ciliates, (i / PATCH.ciliates.n) * TAU);
-    return { ring: 'ciliates', x, y, r: PATCH.ciliates.r, kinds: i % 2 ? CILIATES : [...CILIATES, 'paramecium'] };
-  }),
-];
-// The fungal traps: TRAP_CLUSTERS clusters of two hyphae round RINGS.traps, the
-// inner one leaning one way and the outer one the other, so a way out on any
-// bearing passes close to one; between clusters a cell can squeeze through.
-export const TRAP_CLUSTERS = 12;
-export const TRAP_HYPHAE = [
-  { dr: -85, dt: -120, rel: 0.45, L: 420 },
-  { dr: 90, dt: 150, rel: -0.5, L: 400 },
-];
-export function trapLayout() {
-  const out = [];
-  for (let k = 0; k < TRAP_CLUSTERS; k++) {
-    const a = ((k + 0.25) / TRAP_CLUSTERS) * TAU;
-    const ca = Math.cos(a), sa = Math.sin(a);
-    for (const h of TRAP_HYPHAE) {
-      const r = RINGS.traps + h.dr;
-      out.push({ cluster: k, x: ca * r - sa * h.dt, y: sa * r + ca * h.dt, ang: a + Math.PI / 2 + h.rel, L: h.L });
-    }
-  }
-  return out;
-}
 // The backdoor: a Sphagnum leaf tip dipping into the pool, ~2.3 mm to the left
 // of the start, its blade running on out of the pool (beyond the trap ring).
 export const BACK_TIP = { x: -2300, y: -260 };
@@ -71,11 +31,110 @@ export function leafDist(x, y) {
   const t = Math.max(0, Math.min(LEAF.L, -((x - BACK_TIP.x) * c + (y - BACK_TIP.y) * s)));
   return Math.hypot(x - BACK_TIP.x + c * t, y - BACK_TIP.y + s * t);
 }
-/** Room for Chaos and the portal at bearing a (clear of the leaf by a cell's width). */
-export const portalRoom = (a) => {
-  const [px, py] = ringPoint(RINGS.portal, a), [cx, cy] = ringPoint(RINGS.chaos, a);
-  return leafDist(px, py) > LEAF.W / 2 + 450 && leafDist(cx, cy) > LEAF.W / 2 + 700;
+// The patches of prey: each prey keeps to its patch (main.js tethers it there)
+// and an eaten one comes back to it, swimming in from out of view.
+export const EASY = ['chilomonas', 'chilomonas', 'chlamydomonas'];
+export const CILIATES = ['tetrahymena', 'colpidium'];
+export const PATCH = { easy: { n: 12, r: 120 }, ciliates: { r: 150 } };
+// Easy patches: one per 30° sector, alternately nearer (0.65-1.7 mm) and
+// farther (1.9-3.6 mm), jittered, clear of the leaf.
+export const PATCHES = (() => {
+  const r = rng(11), out = [{ ring: 'start', x: 0, y: 0, r: 430, kinds: ['chilomonas', 'chlamydomonas', 'chilomonas', 'chlamydomonas'] }];
+  for (let i = 0; i < PATCH.easy.n; i++) {
+    for (let k = 0; k < 40; k++) {
+      const a = ((i + 0.2 + r() * 0.6) / PATCH.easy.n) * TAU, d = i % 2 ? r.range(1900, 3600) : r.range(650, 1700);
+      const [x, y] = ringPoint(d, a);
+      if (leafDist(x, y) < LEAF.W / 2 + 250) continue;
+      out.push({ ring: 'easy', x, y, r: PATCH.easy.r, kinds: EASY });
+      break;
+    }
+  }
+  return out;
+})();
+// The fungal traps: clusters of two hyphae (the inner one leaning one way and
+// the outer the other), scattered over the slide from 0.8 mm out: one per
+// sector of each of two bands, jittered, clear of the leaf, the easy patches
+// and each other (room to crawl between).
+export const TRAP_CLUSTERS = 14;
+export const TRAP_HYPHAE = [
+  { dr: -85, dt: -120, rel: 0.45, L: 420 },
+  { dr: 90, dt: 150, rel: -0.5, L: 400 },
+];
+export const TRAP_CENTRES = (() => {
+  const r = rng(23), out = [], half = TRAP_CLUSTERS / 2;
+  for (let i = 0; i < TRAP_CLUSTERS; i++) {
+    const inner = i < half, k = inner ? i : i - half;
+    for (let tries = 0; tries < 80; tries++) {
+      const a = ((k + (inner ? 0.15 : 0.65) + r() * 0.35) / half) * TAU, d = inner ? r.range(850, 1900) : r.range(2050, 3500);
+      const [x, y] = ringPoint(d, a);
+      if (leafDist(x, y) < LEAF.W / 2 + 450) continue;
+      if (PATCHES.some((P) => Math.hypot(P.x - x, P.y - y) < P.r + 450)) continue;
+      if (out.some((c) => Math.hypot(c.x - x, c.y - y) < 900)) continue;
+      out.push({ x, y, a });
+      break;
+    }
+  }
+  return out;
+})();
+export function trapLayout() {
+  const out = [];
+  TRAP_CENTRES.forEach((C, k) => {
+    const ca = Math.cos(C.a), sa = Math.sin(C.a), d = Math.hypot(C.x, C.y);
+    for (const h of TRAP_HYPHAE) {
+      const r = d + h.dr;
+      out.push({ cluster: k, x: ca * r - sa * h.dt, y: sa * r + ca * h.dt, ang: C.a + Math.PI / 2 + h.rel, L: h.L });
+    }
+  });
+  return out;
+}
+const TRAPS = trapLayout();
+/** Distance from (x, y) to the nearest trap hypha. */
+export const trapDist = (x, y) => Math.min(...TRAPS.map((t) => segDist(x, y, t)));
+/**
+ * Is a disc of radius r round (x, y) clear for an encounter: on the slide
+ * (well inside SLIDE.field), clear of the leaf, the trap hyphae and the start?
+ * The filaments in focus lie beyond SLIDE.far (buildWorld), out of the encounters' reach.
+ */
+export const clearAt = (x, y, r) => Math.hypot(x, y) < SLIDE.far - 150 - r && leafDist(x, y) > LEAF.W / 2 + 120 + r && trapDist(x, y) > 90 + r;
+// Chaos and the portal: Chaos on its post CHAOS_IN µm short of the portal
+// (between it and whoever comes), its rest (when beaten) off to one side.
+export const CHAOS_IN = 240;
+export const portalParts = (x, y, b) => ({ chaos: [x - Math.cos(b) * CHAOS_IN, y - Math.sin(b) * CHAOS_IN] });
+/** Room for Chaos (radius 320) and the portal at (x, y), met coming along bearing b. */
+export function portalRoom(x, y, b) {
+  const [cx, cy] = portalParts(x, y, b).chaos;
+  return clearAt(x, y, 260) && clearAt(cx, cy, 320 + 220) && leafDist(x, y) > LEAF.W / 2 + 450 && leafDist(cx, cy) > LEAF.W / 2 + 700;
+}
+/**
+ * The director's settings and the encounters in order (main.js adds place and
+ * met; route.test.mjs runs them without a browser). µm; the cell crawls ~45
+ * µm/s (~65 with the surge), and the 20× view is 900 µm across (10×: 1.8 mm).
+ *   size     clearance (between entries, and from scenery: clearAt)
+ *   visible  what can be seen of it when placed: unseen glass, out of view
+ *   parts    the portal and Chaos on its post (two discs)
+ *   min/maxAhead  how far ahead of the leader it goes; min/maxNear when they linger
+ */
+export const DIRECTOR = {
+  cell: 100, seenDist: 1100, nearSeen: 200, seed: 5, moveSpeed: 12,
+  bounds: { x0: -SLIDE.field, x1: SLIDE.field, z0: -SLIDE.field, z1: SLIDE.field },
+  // the warm-up: ~5 s of crawling; then a calm break of ~3.5 s of crawling clear of the last encounter
+  warmup: { sec: 5 }, calm: { sec: 3.5 }, linger: 6,
+  // seen but not gone to: met once everyone is 1.3 mm off (off a 10× view), or after 8 s in sight nearby (it is never moved)
+  passDist: 1300, watchSec: 8,
 };
+const patchFits = (x, y) => clearAt(x, y, PATCH.ciliates.r + 140);
+export const ENCOUNTERS = [
+  // a patch of fleeing ciliates (Tetrahymena, Colpidium): surge to catch them
+  { id: 'ciliates', size: 300, visible: PATCH.ciliates.r + 110, minAhead: 850, maxAhead: 1250, minNear: 700, maxNear: 1050, fits: patchFits },
+  // a patch with Paramecium caudatum among them (trichocysts)
+  { id: 'caudatum', size: 300, visible: PATCH.ciliates.r + 110, minAhead: 850, maxAhead: 1250, minNear: 700, maxNear: 1050, fits: patchFits },
+  // the boss and the way on: the portal (the P. bursaria in its glow) with Chaos on guard on its near side
+  { id: 'portal', size: 620, minAhead: 1200, maxAhead: 1700, minNear: 1000, maxNear: 1500, final: true, calm: { sec: 4 },
+    parts: (x, y, b) => { const [cx, cy] = portalParts(x, y, b).chaos; return [[x, y, 200], [cx, cy, 320 + 90]]; },
+    fits: (x, y, b) => portalRoom(x, y, b) },
+];
+/** Encounters can go anywhere on the slide clear of the leaf and the traps. */
+export const canPlace = (x, y, r) => clearAt(x, y, Math.min(r, 160));
 
 export function buildWorld(seed = 7) {
   const r = rng(seed);
@@ -83,13 +142,14 @@ export function buildWorld(seed = 7) {
   const traps = trapLayout();
   const segOf = (o) => ({ x: o.x, y: o.y, ang: o.ang, L: o.L });
   // Kept clear of the slide's larger objects: the start, the leaf, the trap
-  // hyphae (room to pass them), and the band where Chaos and the portal go.
+  // hyphae (room to pass them); filaments in focus only beyond SLIDE.far
+  // (where no encounter goes).
   const clear = (x, y, rad, big) => {
     const d = Math.hypot(x, y);
-    if (d < (big ? 560 : RINGS.warm) + rad) return false; // the warm-up: clear glass
+    if (d < (big ? 560 : SLIDE.warm) + rad) return false; // the warm-up: clear glass
     if (leafDist(x, y) < LEAF.W / 2 + 80 + rad) return false;
     if (traps.some((t) => segDist(x, y, segOf(t)) < 150 + rad)) return false;
-    if (big && d > RINGS.chaos - 600 - rad && d < RINGS.portal + 400 + rad) return false;
+    if (big && d < SLIDE.far + rad) return false;
     return obstacles.every((o) => o.layer !== 'focus' || (o.type === 'spiro' ? segDist(x, y, o) - o.W / 2 : Math.hypot(o.x - x, o.y - y) - Math.max(o.L, o.W) / 2) > rad + 25);
   };
   const disc = (count, r0, r1, make, big = false) => {
@@ -102,14 +162,14 @@ export function buildWorld(seed = 7) {
     }
   };
   // Spirogyra: ~40 µm wide filaments, cells about 2–3 widths long. In focus
-  // only beyond the portal ring (inside it a filament splits a crawling cell
-  // that meets it end on); the rings' stretch has them floating above.
+  // only beyond SLIDE.far (nearer, a filament would split a crawling cell
+  // that meets it end on); nearer in they float above.
   const spiro = (x, y, ang, L, D, layer) => ({
     type: 'spiro', x, y, ang, L, W: D, layer, seed: r(), cell: r.range(2.0, 3.0) * D, pitch: r.range(34, 46), strands: r() < 0.4 ? 2 : 3,
   });
   for (let i = 0, tries = 0; i < 4 && tries < 400; tries++) {
     const a = r() * TAU, inner = false;
-    const L = inner ? r.range(600, 800) : r.range(1100, 1700), d = inner ? r.range(860, 960) : r.range(RINGS.portal + 700, RINGS.field);
+    const L = inner ? r.range(600, 800) : r.range(1100, 1700), d = inner ? r.range(860, 960) : r.range(SLIDE.far + 200, SLIDE.field);
     const ang = a + r.range(-0.25, 0.25);
     const x = Math.cos(a) * d, y = Math.sin(a) * d;
     // its whole length must be clear
@@ -121,30 +181,30 @@ export function buildWorld(seed = 7) {
   }
   // Pennate diatoms (Navicula / Pinnularia type), some seen in girdle view.
   const diatom = (x, y) => { const L = r.range(55, 125); return { type: 'diatom', x, y, ang: r() * TAU, L, W: L * r.range(0.16, 0.24), layer: 'focus', seed: r(), girdle: r() < 0.25 ? 1 : 0, glide: r.range(-2, 2) }; };
-  disc(50, 300, RINGS.field, diatom);
+  disc(68, 300, SLIDE.field, diatom);
   // Detritus flakes on the slide: some in every 30° sector of every band (no
   // empty stretch in any direction), the rest anywhere.
   const flake = (x, y) => { const sz = r.range(18, 80); return { type: 'flake', x, y, ang: r() * TAU, L: sz, W: sz * r.range(0.6, 1), layer: 'focus', seed: r() }; };
-  for (let k = 0; k < 12; k++) for (const [r0, r1] of [[RINGS.warm + 60, 1500], [1500, 2600], [2600, 3500], [3500, RINGS.field]]) {
+  for (let k = 0; k < 12; k++) for (const [r0, r1] of [[SLIDE.warm + 60, 1500], [1500, 2600], [2600, 3600], [3600, SLIDE.field]]) {
     for (let tries = 0; tries < 40; tries++) {
       const a = ((k + r()) / 12) * TAU, d = r.range(r0, r1), x = Math.cos(a) * d, y = Math.sin(a) * d, o = flake(x, y);
       if (clear(x, y, Math.max(o.L, o.W) / 2, false)) { obstacles.push(o); break; }
     }
   }
-  disc(57, 300, RINGS.field, flake);
+  disc(77, 300, SLIDE.field, flake);
   // Floating above the focal plane: blurred.
-  for (let i = 0; i < 7; i++) {
-    const a = (i / 7) * TAU + r.range(-0.3, 0.3), d = i === 0 ? 150 : r.range(600, RINGS.field - 800);
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * TAU + r.range(-0.3, 0.3), d = i === 0 ? 150 : r.range(600, SLIDE.field - 800);
     obstacles.push(spiro(Math.cos(a) * d, Math.sin(a) * d, r() * Math.PI, r.range(2000, 2800), r.range(40, 46), 'above'));
   }
-  for (let i = 0; i < 48; i++) {
-    const a = r() * TAU, d = Math.sqrt(r()) * RINGS.field;
+  for (let i = 0; i < 65; i++) {
+    const a = r() * TAU, d = Math.sqrt(r()) * SLIDE.field;
     const s = r.range(30, 120);
     obstacles.push({ type: 'flake', x: Math.cos(a) * d, y: Math.sin(a) * d, ang: r() * TAU, L: s, W: s * r.range(0.5, 1), layer: 'above', seed: r() });
   }
   // Trap hyphae of a zoopagalean fungus (Stylopage / Zoopage type), which
-  // catch amoebae on adhesive knobs: the hazard (see README), in clusters round
-  // RINGS.traps.
+  // catch amoebae on adhesive knobs: the hazard (see README), in clusters
+  // scattered over the slide (TRAP_CENTRES).
   for (const t of traps) obstacles.push({ type: 'trap', x: t.x, y: t.y, ang: t.ang, L: t.L, W: 6, layer: 'focus', seed: r(), trap: true, cluster: t.cluster });
   // The backdoor: the Sphagnum leaf tip (its colliders: capsules down its axis, as wide as the blade).
   const leaf = (() => {

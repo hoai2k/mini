@@ -4,40 +4,109 @@
 // drift; other bacteria run and tumble or sit in the biofilm.
 // Units: µm and seconds. +y is toward the air (the meniscus), −y into the sediment.
 
-// The level is rings round the start, the same in every direction
-// (design/encounter-pattern.md): a short warm-up (the meadow, where kin and
-// prey are plentiful), then a gate (an enemy your army must push through), a
-// short calm break with a few kin and prey, the next gate, and so on out to
-// the portal ring, where the host cell (the way on) appears in whatever
-// direction a player first gets far enough, guarded by Stentor. One instance
-// of each gate serves its ring: main.js moves it, unseen, to meet whoever is
-// approaching (setGate). The biofilm and sediment lie at the bottom edge of
-// the world; clay grains with microcolonies on them are scattered everywhere.
+// The level is placed as you go (design/encounter-pattern.md, "Placed as you
+// go"; shared/director.js; main.js `director`): a short warm-up in the meadow
+// round the start, where kin and prey are plentiful, then the gates in order
+// (an enemy your army must push through: the peritrich, the Bdellovibrio pack,
+// the phage cloud, the amoeba's edge, the bigger peritrich), each put by the
+// director in water nobody has seen, a little ahead of whoever is furthest
+// along, with a calm break between; last the host cell (the way on) guarded by
+// Stentor. Until placed, every gate is parked far off (PARK) and invisible.
+// What a player has seen never changes. Scenery stays where it is: the
+// biofilm and sediment along the bottom edge of the world, clay grains with
+// microcolonies on them scattered everywhere. Kin and prey are ambient: some
+// in the meadow, the rest kept near every player in water they haven't seen
+// (collective.js keep, main.js keepAmbient).
 export const WORLD = { x0: -560, x1: 560, y0: -560, y1: 560, slabY: -548 };
 export const START = { x: 0, y: 0 };
-/** Ring radii from the start, µm: the meadow's edge, each gate's ring, the calm breaks, the portal. */
+/** Where a gate waits before the director places it: far off the field (drawn nowhere, acting on nothing). */
+export const PARK = { x: 1e6, y: 0 };
+/** The meadow round the start (where kin and prey begin), and the gates in the director's order. */
 export const ROUTE = {
   meadow: 60,
   gates: [
-    { id: 'grazer1', name: 'Peritrich', ring: 110 },
-    { id: 'bdello', name: 'Bdellovibrio pack', ring: 190, r: 20 },
-    { id: 'phage', name: 'Phage cloud', ring: 270, r: 16 },
-    { id: 'amoeba', name: 'Amoeba', ring: 350 },
-    { id: 'grazer2', name: 'Peritrich', ring: 430 },
+    { id: 'grazer1', name: 'Peritrich' },
+    { id: 'bdello', name: 'Bdellovibrio pack', r: 20 },
+    { id: 'phage', name: 'Phage cloud', r: 16 },
+    { id: 'amoeba', name: 'Amoeba' },
+    { id: 'grazer2', name: 'Peritrich' },
   ],
-  breaks: [150, 230, 310, 390, 470],
-  portal: 510,
 };
-export const PORTAL_R = ROUTE.portal;
-/** The host (the way on) before it is placed: on the portal ring to the right; moved by setPortal. */
-export const LANDMARK = { x: START.x + PORTAL_R, y: START.y };
+/** The host (the way on) before it is placed: parked; moved by setPortal. */
+export const LANDMARK = { x: PARK.x, y: PARK.y };
 export const distFromStart = (x, y) => Math.hypot(x - START.x, y - START.y);
 export const bearingFromStart = (x, y) => Math.atan2(y - START.y, x - START.x);
 export const ringPoint = (r, a) => ({ x: START.x + Math.cos(a) * r, y: START.y + Math.sin(a) * r });
-/** How far out from the start toward the portal ring (0 at the start, 1 on the ring). */
-export function progress(x, y) { return distFromStart(x, y) / PORTAL_R; }
-/** (Kept for old callers: the radius of the middle ring.) */
-export const HALF_X = PORTAL_R / 2;
+/** The Paramecium (the backdoor, the way back) and the water round it, kept clear of encounters. */
+export const BACKDOOR = { x: -166, y: 116, r: 38 };
+
+// ---- the director (shared/director.js): its settings and the encounters in order ----
+// main.js adds place and met; route.test.mjs runs them without a browser. Units µm; the
+// director's ground plane is the field (its z is our y). The default field is 45 µm tall
+// (about 80 across), the eyepiece field 180 (320 across); the flock cruises at ~45 µm/s.
+//   size     clearance (the gate's zone, where the army fights it)
+//   parts    what can be seen of it when placed: unseen water, out of every view
+//   min/maxAhead  how far ahead of the leader it goes; min/maxNear when they linger
+//   need     the army that beats it (README "The way"): while the leader's army is
+//            smaller, the calm break before it lasts longer (main.js) and kin are kept
+//            closer round them (collective.js keep)
+export const GRAZER_FOOT = 64; // the stalk's foot (and its clay grain) is this far beyond the bell
+const u2 = (b) => [Math.cos(b), Math.sin(b), -Math.sin(b), Math.cos(b)]; // (ux, uy) along b, (px, py) across
+/** Stentor and the host, as the director sees them: the host at (x, y), met along bearing b (stentor.js place). */
+export function portalParts(x, y, b) {
+  const [ux, uy, px, py] = u2(b);
+  return [
+    [x, y, 95], // the host and the water cleared round it (main.js placePortal moves grains and film off)
+    [x + ux * 122 + px * 20, y + uy * 122 + py * 20, 128], // Stentor's oral disc and membranelles
+    [x + ux * 78 - px * 35, y + uy * 78 - py * 35, 45], // its body
+    [x + ux * 34 - px * 100, y + uy * 34 - py * 100, 26], // its foot on a clay grain
+  ];
+}
+export function grazerParts(x, y, b) {
+  const [ux, uy] = u2(b);
+  // the bell and its current (specks pour into the funnel from ~45 µm), the stalk, the foot's grain
+  return [[x, y, 46], [x + ux * GRAZER_FOOT * 0.55, y + uy * GRAZER_FOOT * 0.55, 12], [x + ux * GRAZER_FOOT, y + uy * GRAZER_FOOT, 14]];
+}
+export const AMOEBA = { width: 190, depth: 46 };
+export function amoebaParts(x, y, b) {
+  // its edge runs across the way (along b + π/2), its body beyond it
+  const [ux, uy, px, py] = u2(b), out = [];
+  for (let k = -2; k <= 2; k++) out.push([x + px * k * 42 + ux * 22, y + py * k * 42 + uy * 22, 44]);
+  return out;
+}
+/** Is (x, y) in open water inside the world, `m` µm clear of its edges and the backdoor? */
+export function inWater(x, y, m = 0) {
+  return x > WORLD.x0 + 20 + m && x < WORLD.x1 - 20 - m && y > WORLD.slabY + 30 + m && y < WORLD.y1 - 15 - m;
+}
+const allIn = (parts, m = 0) => parts.every(([x, y]) => inWater(x, y, m));
+export const DIRECTOR = {
+  cell: 20, seenDist: 200, nearSeen: 14, seed: 23,
+  bounds: { x0: WORLD.x0, x1: WORLD.x1, z0: WORLD.slabY, z1: WORLD.y1 },
+  // ~5 s of moving to warm up (the meadow: call your first kin); a calm break of ~5 s of moving clear of
+  // each gate (longer while the army is short of the next gate's need: main.js armyHold)
+  warmup: { sec: 5 }, calm: { sec: 5 }, linger: 6, moveSpeed: 6,
+  // seen but not gone to: met once everyone is ~200 µm off for 1.5 s, or after 10 s in sight nearby
+  passDist: 200, watchSec: 10,
+};
+export const ENCOUNTERS = [
+  { id: 'grazer1', need: 12, size: 70, minAhead: 100, maxAhead: 170, minNear: 75, maxNear: 130,
+    parts: (x, y, b) => grazerParts(x, y, b), fits: (x, y, b) => allIn(grazerParts(x, y, b)) },
+  { id: 'bdello', need: 8, size: 60, visible: 44, minAhead: 95, maxAhead: 165, minNear: 70, maxNear: 125, fits: (x, y) => inWater(x, y, 30) },
+  { id: 'phage', need: 6, size: 50, visible: 40, minAhead: 95, maxAhead: 165, minNear: 70, maxNear: 125, fits: (x, y) => inWater(x, y, 25) },
+  { id: 'amoeba', need: 16, size: 110, minAhead: 130, maxAhead: 210, minNear: 95, maxNear: 160,
+    parts: (x, y, b) => amoebaParts(x, y, b), fits: (x, y, b) => allIn(amoebaParts(x, y, b)) },
+  { id: 'grazer2', need: 14, size: 70, minAhead: 100, maxAhead: 170, minNear: 75, maxNear: 130,
+    parts: (x, y, b) => grazerParts(x, y, b), fits: (x, y, b) => allIn(grazerParts(x, y, b)) },
+  // the boss and the way on: the host cell and Stentor beyond it (its oral disc ~250 µm across)
+  { id: 'portal', need: 24, size: 140, minAhead: 150, maxAhead: 260, minNear: 110, maxNear: 220, final: true,
+    parts: (x, y, b) => portalParts(x, y, b), fits: (x, y, b) => inWater(x, y, 20) && allIn(portalParts(x, y, b).slice(1), -10) },
+];
+/** Encounters go in open water, clear of the backdoor (the Paramecium and the water round it). */
+export const canPlace = (x, y, r) => inWater(x, y) && Math.hypot(x - BACKDOOR.x, y - BACKDOOR.y) > BACKDOOR.r + 90 + r * 0.5;
+/** How far out from the start (kept for the stats line). */
+export function progress(x, y) { return distFromStart(x, y) / 500; }
+/** (Kept for old callers.) */
+export const HALF_X = 250;
 
 // Oxygen in % of air saturation: falls roughly exponentially from the
 // meniscus and is used up by the biofilm, reaching zero just above it.
@@ -123,11 +192,10 @@ export function createWorld() {
     film.push({ kind: coccus ? 'coccus' : 'rod', x, y, a: r() * 6.28, L: coccus ? 0 : 1.4 + r() * 1.6, r: coccus ? 0.45 + r() * 0.15 : 0.32 + r() * 0.1, z: (r() - 0.5) * 1.6, gramNeg: !coccus, bdelloplast: 0, ghost: false, prey: !coccus });
   }
 
-  /** A spot in the meadow or a calm break (where prey and kin live). */
-  function preySpot(zone = null) {
-    const z = zone ?? (r() < 0.3 ? 0 : 1 + Math.floor(r() * ROUTE.breaks.length));
-    const p = ringPoint(z === 0 ? 14 + Math.sqrt(r()) * (ROUTE.meadow - 14) : ROUTE.breaks[z - 1] + (r() - 0.5) * 18, r() * 6.283);
-    p.zone = z;
+  /** A spot in the meadow round the start (where prey and kin begin). */
+  function preySpot() {
+    const p = ringPoint(14 + Math.sqrt(r()) * (ROUTE.meadow - 14), r() * 6.283);
+    p.zone = 0;
     return p;
   }
   // --- free bacteria in the water ---
@@ -146,11 +214,15 @@ export function createWorld() {
   for (let i = 0; i < 160; i++) { const q = anywhere(); addCell('rod', q.x, q.y); }
   for (let i = 0; i < 120; i++) { const q = anywhere(); addCell('coccus', q.x, q.y); }
   for (let i = 0; i < 45; i++) { const q = anywhere(); addCell('chain', q.x, q.y); }
-  // prey for the army (X lyses rods in reach): plentiful in the meadow and in every calm break
-  for (let i = 0; i < 200; i++) { const q = preySpot(); addCell('rod', q.x, q.y).zone = q.zone; }
-  // the Bdellovibrio pack: four predators that keep to their gate (guards.js; moved round its ring by setGate)
-  const pack = ROUTE.gates[1], ph = ringPoint(pack.ring, 0);
-  for (let i = 0; i < 4; i++) { const c = addCell('bdello', ph.x + (r() - 0.5) * 30, ph.y + (r() - 0.5) * 30); c.home = { x: ph.x, y: ph.y, r: pack.r }; c.hp = 1; }
+  // prey for the army (X lyses rods in reach): plentiful in the meadow; the rest are ambient, kept near
+  // every player in water they haven't seen (main.js keepAmbient). Lysed, a rod is parked until wanted.
+  for (let i = 0; i < 200; i++) {
+    if (i < 60) { const q = preySpot(); addCell('rod', q.x, q.y).zone = 0; continue; }
+    const c = addCell('rod', PARK.x, PARK.y); c.zone = 1; c.parked = true;
+  }
+  // the Bdellovibrio pack: four predators that keep to their gate (guards.js; parked until the director places it)
+  const pack = ROUTE.gates[1];
+  for (let i = 0; i < 4; i++) { const c = addCell('bdello', PARK.x, PARK.y); c.home = { x: PARK.x, y: PARK.y, r: pack.r }; c.hp = 1; c.parked = true; }
 
   // --- food patches: dissolved organic matter round decaying detritus or a lysed cell ---
   const patches = [];
@@ -165,19 +237,18 @@ export function createWorld() {
   const phages = [];
   function newPhage(x, y) { return { x, y, z: (r() - 0.5) * 1.6, stuck: null }; }
   for (let i = 0; i < 300; i++) { const q = anywhere(); phages.push(newPhage(q.x, q.y)); }
-  // the phage cloud gate: a lysed host's progeny hanging on its ring (guards.js; moved by setGate)
-  const c0 = ringPoint(ROUTE.gates[2].ring, 0);
-  const cloud = { x: c0.x, y: c0.y, r: ROUTE.gates[2].r };
+  // the phage cloud gate: a lysed host's progeny hanging together (guards.js; parked until placed)
+  const cloud = { x: PARK.x, y: PARK.y, r: ROUTE.gates[2].r };
   for (let i = 0; i < 80; i++) { const p = newPhage(cloud.x + gauss(r) * cloud.r * 0.6, cloud.y + gauss(r) * cloud.r * 0.8); p.z = (r() - 0.5) * 0.6; p.cloud = cloud; phages.push(p); }
 
-  for (let i = 0; i < 12; i++) { const q = ringPoint(30 + r() * 340, r() * 6.283); addPatch(q.x, q.y, i % 3 === 1); }
+  for (let i = 0; i < 12; i++) { const q = i < 3 ? ringPoint(20 + r() * 40, r() * 6.283) : anywhere(); addPatch(q.x, q.y, i % 3 === 1); }
 
   // --- grazers: two peritrichs (Vorticella-like) on stalks from the biofilm ---
   const grazers = [
-    // gates 1 and 5 (ROUTE): each on a stalk from a clay grain (its anchor) further out, the bell
-    // toward the start and its funnel turned along the ring, so you meet it side-on and see its current
-    { x: 0, base: 0, dir: Math.PI, ang: 1.1, R: 17, ext: 1, contract: 0, next: 18 + r() * 10, seed: 3.1, ring: ROUTE.gates[0].ring },
-    { x: 0, base: 0, dir: Math.PI, ang: -1.1, R: 15, ext: 1, contract: 0, next: 26 + r() * 10, seed: 7.7, ring: ROUTE.gates[4].ring },
+    // gates 1 and 5 (ROUTE): each on a stalk from a clay grain (its anchor) beyond it, the bell
+    // toward whoever comes and its funnel turned aside, so you meet it side-on and see its current
+    { x: 0, base: 0, dir: Math.PI, ang: 1.1, R: 17, ext: 1, contract: 0, next: 18 + r() * 10, seed: 3.1 },
+    { x: 0, base: 0, dir: Math.PI, ang: -1.1, R: 15, ext: 1, contract: 0, next: 26 + r() * 10, seed: 7.7 },
   ];
   const STALK = 46;
   for (const g of grazers) { g.stalk = STALK; g.anchor = { x: 0, y: 0, r: 9, wob: 0.25, seed: g.seed * 7, cap: 6, ang: 0, z: -0.3 }; grains.push(g.anchor); }
@@ -197,23 +268,25 @@ export function createWorld() {
     const mouth = { x: o.x - up.x * g.R * 0.6, y: o.y - up.y * g.R * 0.6 };
     return { ox: o.x, oy: o.y, up, top, mouth, ang: ang + th, R: g.R };
   }
-  /** Stand grazer g at bearing a on its ring: its mouth on the ring, the stalk from a grain further out. */
-  function placeGrazer(g, a) {
-    const foot = ringPoint(g.ring + 64, a);
-    g.x = foot.x; g.base = foot.y; g.dir = a + Math.PI; g.bearing = a;
-    g.anchor.x = foot.x - Math.cos(a + Math.PI) * 4; g.anchor.y = foot.y - Math.sin(a + Math.PI) * 4;
+  /** Stand grazer g with its bell at (x, y), met along bearing b: the stalk from a grain GRAZER_FOOT beyond. */
+  function placeGrazer(g, x, y, b) {
+    const fx = x + Math.cos(b) * GRAZER_FOOT, fy = y + Math.sin(b) * GRAZER_FOOT;
+    g.x = fx; g.base = fy; g.dir = b + Math.PI; g.bearing = b; g.parked = false;
+    g.anchor.x = fx + Math.cos(b) * 4; g.anchor.y = fy + Math.sin(b) * 4;
     g.pose = grazerPose(g);
   }
-  for (const g of grazers) placeGrazer(g, 0);
+  /** Park grazer g far off (a new game: not placed yet). */
+  function parkGrazer(g) { placeGrazer(g, PARK.x, PARK.y, 0); g.parked = true; }
+  for (const g of grazers) parkGrazer(g);
 
-  // --- the amoeba's edge: gate 4, a wall across the ring (its body outward; guards.js) ---
-  // ang: the edge runs along (cos, sin); its outward normal (−sin, cos) faces the start
-  const amoeba = { x: 0, y: 0, ang: 0, width: 190, depth: 46, amp: 5, seed: 2.2, speed: 1.4, home: { x: 0, y: 0 }, beaten: false, bearing: 0 };
-  function placeAmoeba(a) {
-    const p = ringPoint(ROUTE.gates[3].ring, a);
-    amoeba.x = amoeba.home.x = p.x; amoeba.y = amoeba.home.y = p.y; amoeba.ang = a + Math.PI / 2; amoeba.bearing = a;
+  // --- the amoeba's edge: gate 4, a wall across the way (its body beyond; guards.js) ---
+  // ang: the edge runs along (cos, sin); its normal (−sin, cos) faces whoever comes
+  const amoeba = { x: 0, y: 0, ang: 0, width: AMOEBA.width, depth: AMOEBA.depth, amp: 5, seed: 2.2, speed: 1.4, home: { x: 0, y: 0 }, beaten: false, bearing: 0 };
+  /** Stand the amoeba's edge at (x, y) across bearing b (met coming along b). */
+  function placeAmoeba(x, y, b) {
+    amoeba.x = amoeba.home.x = x; amoeba.y = amoeba.home.y = y; amoeba.ang = b + Math.PI / 2; amoeba.bearing = b; amoeba.parked = x === PARK.x;
   }
-  placeAmoeba(0);
+  placeAmoeba(PARK.x, PARK.y, 0);
 
   // The grazers whose feeding current is on, listed once per step (perf B1):
   // the sink and the "eaten" test then skip resting grazers and far points cheaply.
@@ -295,11 +368,19 @@ export function createWorld() {
   }
 
   const world = {
-    landmarks, start: START, halfX: HALF_X, progress, route: ROUTE, cloud, ringPoint, distFromStart, bearingFromStart, placeGrazer, placeAmoeba, preySpot,
+    landmarks, start: START, halfX: HALF_X, progress, route: ROUTE, cloud, ringPoint, distFromStart, bearingFromStart, placeGrazer, parkGrazer, placeAmoeba, preySpot, anywhere, inWater,
     /** Put the host cell (the way on) at (x, y): main.js placePortal. */
     setPortal(x, y, a) { const F = landmarks.forward; F.x = x; F.y = y; F.a = a + 0.5; F.placed = true; },
-    /** The calm zones where kin and prey live: the meadow (a disc round the start) and each break (an annulus). */
-    zones: [{ r0: 12, r1: ROUTE.meadow }, ...ROUTE.breaks.map((b) => ({ r0: b - 9, r1: b + 9 }))],
+    /**
+     * Clear the host's water at (x, y): clay grains within 30 µm of it and biofilm cells within 48 are moved
+     * off (to ~90 µm at most). The director places the host only where all of that is unseen (portalParts).
+     */
+    clearHostWater(x, y, keep = null) {
+      for (const g of grains) { const dx = g.x - x, dy = g.y - y, d = Math.hypot(dx, dy); if (d < 30 + g.r && g !== keep) { const k = (36 + g.r) / (d || 1); g.x = x + (dx || 1) * k; g.y = y + dy * k; } }
+      for (const c of film) { const dx = c.x - x, dy = c.y - y, d = Math.hypot(dx, dy); if (d < 48) { const k = (d + 40) / (d || 1); c.x = x + (dx || 1) * k; c.y = y + dy * k; } }
+    },
+    /** Where kin begin: the meadow (a disc round the start); the rest are ambient (collective.js keep). */
+    zones: [{ r0: 12, r1: ROUTE.meadow }],
     /** The y of a given oxygen level (% air saturation). */
     bandY: oxygenY,
     /** Is (x, y) within √r2 µm of a feeding grazer's mouth? (members and kin are eaten there) */
@@ -307,7 +388,7 @@ export function createWorld() {
       for (let i = 0; i < feedingNow.length; i++) { const M = feedingNow[i].pose.mouth; if ((x - M.x) ** 2 + (y - M.y) ** 2 < r2) return true; }
       return false;
     },
-    opts, hunt, grains, specks, eps, film, cells, phages, patches, grazers, amoeba, slab, surfaceY,
+    PARK, opts, hunt, grains, specks, eps, film, cells, phages, patches, grazers, amoeba, slab, surfaceY,
     oxygen, food, eat, insideAmoeba, pushOutOfGrains, grazerPose,
     /** The current at (x, y), µm/s. `out`, if given, is filled and returned instead of a new object. */
     flowAt(x, y, out = { x: 0, y: 0 }) {
@@ -332,7 +413,7 @@ export function createWorld() {
       }
       // the amoeba's edge holds its gate: it slides a little toward the nearest player (≈1.4 µm/s,
       // leashed to its place); beaten (guards.js), it withdraws down into the sediment and stays there
-      if (opts.amoeba) {
+      if (opts.amoeba && !amoeba.parked) {
         const H = amoeba.home;
         if (amoeba.beaten) {
           const tx = H.x + Math.cos(amoeba.bearing) * 90, ty = H.y + Math.sin(amoeba.bearing) * 90, dx = tx - amoeba.x, dy = ty - amoeba.y, d = Math.hypot(dx, dy);
@@ -370,8 +451,8 @@ export function createWorld() {
       for (let i = patches.length - 1; i >= 0; i--) {
         if (patches[i].amt < 0.06) {
           patches.splice(i, 1);
-          let q = ringPoint(30 + r() * 340, r() * 6.283);
-          for (let k = 0; k < 6 && Math.hypot(q.x - player.x, q.y - player.y) < 60; k++) q = ringPoint(30 + r() * 340, r() * 6.283);
+          let q = anywhere();
+          for (let k = 0; k < 6 && Math.hypot(q.x - player.x, q.y - player.y) < 120; k++) q = anywhere();
           addPatch(q.x, q.y, r() < 0.4);
         }
       }
@@ -400,14 +481,13 @@ export function createWorld() {
   }
 
   function stepCell(c, dt, t, sq, br, player) {
+    if (c.parked) return; // (waiting off the field: main.js keepAmbient brings it in where nobody has looked)
     c.flPhase += dt * 30;
-    // lysed by the army (collective.js eat): rounds up and bursts, then a new rod swims in elsewhere
+    // lysed by the army (collective.js eat): rounds up and bursts; then it is parked, and a rod comes in
+    // again in water nobody has seen (main.js keepAmbient)
     if (c.lysed) {
       c.lysed += dt / 0.8;
-      if (c.lysed >= 1) {
-        c.lysed = 0; c.ghost = false;
-        for (let k = 0; k < 6; k++) { const q = preySpot(c.zone ?? null); c.x = q.x; c.y = q.y; if (Math.hypot(c.x - player.x, c.y - player.y) > 60) break; }
-      }
+      if (c.lysed >= 1) { c.lysed = 0; c.ghost = false; c.parked = true; c.x = PARK.x; c.y = PARK.y; }
       return;
     }
     if (c.dead) { c.dead += dt; return; } // a Bdellovibrio killed by the army: it rounds and fades (draw.js)
