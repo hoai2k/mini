@@ -476,7 +476,7 @@ export const actBurning = {
     if (e.type === 'apotheosis') return 'Jump into the light beneath Aurora when you are ready.';
     if (e.type === 'ascend') return 'The Kingdom of the Fairies.';
     if (e.type === 'floatDown') return 'Float gently down. Keep celebrating, or hold left at the exit for one second to return to the wedding guests.';
-    if (e.type === 'finale') return 'The end. Move to float down and keep celebrating. Credits: principal game designer Hoai Nguyen; after Le Royaume des fées by Georges Méliès; wedding theme, Procession Royale. Thank you for playing.';
+    if (e.type === 'finale') return 'The end. Move to float down and keep celebrating. Credits: principal game designer Hoai Nguyen; after Le Royaume des fées by Georges Méliès. Thank you for playing.';
     return null;
   },
 
