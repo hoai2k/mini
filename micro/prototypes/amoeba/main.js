@@ -219,7 +219,8 @@ function updateFungus(dt) {
     else if (awake) o.grow = Math.min(1, o.grow + dt / GROW_S);
     o.active = clamp(o.active + (sticky ? 1 : -1) * dt / 2, 0, 1);
     // only the hyphae someone is near fight (the rest of the ring waits, and costs nothing)
-    const near = cells.some((c) => hyp(c.body.cx - o.x, c.body.cy - o.y) < o.L / 2 + c.body.req + 520);
+    let near = false;
+    for (const c of cells) if (hyp(c.body.cx - o.x, c.body.cy - o.y) < o.L / 2 + c.body.req + 520) near = true;
     trapFight(o, dt, sticky && S.traps && !o.hidden && o.grow > 0.05 && near && !S.passive);
     if (near && !challengeLog.traps && S.traps) { const n = o.near && o.fight.state !== 'idle' ? o.near : nearestToTrap(o); if (n && n.d < 220) logChallenge('traps', n.cell); }
   }
@@ -1034,7 +1035,9 @@ function stepPrey(dt, col) {
     // its patch: a loose tether (it comes back once it has fled), slack while a player is in or near the patch
     if (p.home && (p.fleeT || 0) <= 0 && !p.touch) {
       const H = p.home, dx = H.x - p.x, dy = H.y - p.y;
-      if (dx * dx + dy * dy > H.r * H.r && cells.every((c) => Math.hypot(c.body.cx - H.x, c.body.cy - H.y) > H.r + c.body.req + 120)) {
+      let slack = false;
+      for (const c of cells) if (hyp(c.body.cx - H.x, c.body.cy - H.y) < H.r + c.body.req + 120) slack = true;
+      if (dx * dx + dy * dy > H.r * H.r && !slack) {
         let da = Math.atan2(dy, dx) - p.th; da = Math.atan2(Math.sin(da), Math.cos(da));
         p.th += clamp(da, -1, 1) * dt * 1.5;
       }
@@ -2040,15 +2043,9 @@ function renderAll(dt) {
   warnEl.style.display = warnEl.textContent ? 'block' : 'none';
   updateOverlay();
   marks.begin();
+  // no arrow and no edge pointer to the portal (the owner): the golden sparkle
+  // on the slide is its only marker; this canvas only shows the bloom on entering
   portalLight.begin();
-  // no arrow until the portal has been seen; then it points the way back to it,
-  // and the portal's golden light spills in from that edge (or haloes it in view): no text
-  if (PORTAL.found && !(embed.active && lm.entered)) {
-    const res = marks.drawSplit(split, { x: PORTAL.x, y: PORTAL.y, z: 0 }, { kind: 'forward', range: 7000 });
-    let d = Infinity;
-    for (const c of cells) d = Math.min(d, Math.hypot(c.body.cx - PORTAL.x, c.body.cy - PORTAL.y));
-    portalLight.drawSplit(split, res, { strength: clamp(1.15 - d / 2400, 0.3, 1), open: glow.open });
-  }
   marks.drawSplit(split, { x: BACK_TIP.x, y: BACK_TIP.y, z: 0 }, { kind: 'backdoor', label: 'Leaf', range: 4500 });
   if (cells.length > 1) drawRings(L, innerWidth / fieldW);
   drawPodMarks(L);

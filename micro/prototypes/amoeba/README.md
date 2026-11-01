@@ -189,10 +189,9 @@ crawl:
   ring at that player's bearing (or the nearest within ±60° where it and
   Chaos are clear of the leaf), only where nobody's view (at the widest
   objective, the pull-back included) could see it or Chaos; Chaos is moved
-  onto its post there, unseen. It is never moved again. The arrow
-  (`shared/landmark.js`) and the portal's light at the edge of the view
-  (`shared/portal.js` `createPortalLight`) appear only once someone has seen
-  it.
+  onto its post there, unseen. It is never moved again. There is no arrow
+  or edge pointer to it: keep crawling out and you find it; the golden
+  sparkle is its only marker.
 - **Snags**: a cell whose rear hooks round a flake or a diatom stretches out
   behind its pseudopod; stretched past ~900 µm it flows over the small debris
   (flakes and diatoms; not filaments or the leaf) until it has gathered itself
@@ -248,8 +247,8 @@ everything else.
   standalone, `embed.js` shows a toast). Turned back and still at it when
   Chaos leaves: you go through. `embed.near('forward')` is posted while
   someone is within 1.2 mm of the placed portal, so the shell can load the
-  next world. No arrow until the portal has been seen; then the brass chevron
-  points to it, with its golden light spilling in from that edge.
+  next world. No arrow or edge pointer points to it (the owner's call): the
+  sparkle on the slide is the only marker.
 - **Backdoor: a Sphagnum leaf tip** dipping into the pool, about 2.3 mm to the
   left (`LEAF_FS`: one cell thick, large clear hyaline cells with fibril bands
   and pores in a net of narrow green chlorophyllose cells, and the water
