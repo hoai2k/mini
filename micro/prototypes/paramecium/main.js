@@ -27,6 +27,8 @@ import { createPortalGlow, createPortalLight } from '../shared/portal.js';
 import { createBloom, BLOOM } from './bloom.js';
 import { createQuality } from '../shared/quality.js';
 import { createBladderwort } from './bladderwort.js';
+import { closedTube } from './geom.js';
+import { volumeMaterial } from './optics.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
@@ -112,6 +114,29 @@ portalGlow.group.visible = false;
 const portalLight = createPortalLight({ zIndex: 3 });
 // the crowd: a Chlamydomonas bloom across the route before the biofilm (bloom.js, shared/crowd.js)
 const bloom = createBloom(scene);
+// The next world's creature, glimpsed at the portal: a magnetotactic
+// spirillum (the bacterium level's own cell, ~3 µm, two helical turns) swimming
+// over the biofilm, a little more refractile than the lawn of rods it crosses,
+// so it glints in darkfield. It keeps near the middle of the film; when someone
+// comes down onto the film it swims up to just ahead of them (it is what the
+// continuous transition pushes in on: embed.frozen / the `camera` poses).
+const SPIRILLUM = { L: 3.0, r: 0.27, amp: 0.32, turns: 1.9 }; // bacterium/swim.js SPECIES.mtb
+const spir = (() => {
+  class Helix extends THREE.Curve {
+    getPoint(u, out = new THREE.Vector3()) {
+      const a = u * SPIRILLUM.turns * Math.PI * 2, taper = Math.sin(Math.PI * Math.min(1, Math.max(0, u * 1.05 - 0.025))) ** 0.3;
+      return out.set((u - 0.5) * SPIRILLUM.L, Math.cos(a) * SPIRILLUM.amp * taper, Math.sin(a) * SPIRILLUM.amp * taper);
+    }
+  }
+  const mesh = new THREE.Mesh(closedTube(new Helix(), 48, SPIRILLUM.r, 10), volumeMaterial({ dn: 0.06, scatter: 2.6, absorb: [0.02, 0.022, 0.03], rimPow: 1.6 }));
+  mesh.frustumCulled = false;
+  const group = new THREE.Group();
+  group.add(mesh);
+  group.visible = false;
+  scene.add(group);
+  return { group, mesh, pos: new THREE.Vector3(0, 28, 0), heading: 0, roll: 0, home: 0 };
+})();
+const spirHeading = () => spir.heading;
 // the Amoeba proteus keeps to its patch of slide (the backdoor) when it is not hunting
 amoeba.home = LANDMARKS.back.pos.clone(); amoeba.homeR = 220;
 amoeba.pos.set(LANDMARKS.back.pos.x, 0, LANDMARKS.back.pos.z);
@@ -504,7 +529,7 @@ const _lc = new THREE.Vector2();
 const inLight = (p) => nearestLight(p, _lc).distanceTo(new THREE.Vector2(p.x, p.z)) < light.r;
 
 // --- game state --------------------------------------------------------------
-const audio = createAudio(['paramecium/amb-pool', 'paramecium/swim', 'paramecium/dash', 'paramecium/gulp', 'paramecium/trichocysts', 'paramecium/reverse', 'paramecium/didinium', 'paramecium/held']);
+const audio = createAudio(['paramecium/amb-pool', 'paramecium/swim', 'paramecium/dash', 'paramecium/gulp', 'paramecium/trichocysts', 'paramecium/reverse', 'paramecium/didinium', 'paramecium/held', 'shared/portal-chime']);
 audio.addToFeatures(features);
 audio.loop('paramecium/amb-pool', { volume: 0.6 });
 const swimLoop = audio.loop('paramecium/swim', { volume: 0 });
@@ -1198,6 +1223,7 @@ function placePortal(a) {
   trap.place(ringPoint(RINGS.trap, a), a + Math.PI);
   portalGlow.setPosition(FWD.pos.x, 24, FWD.pos.z);
   portalGlow.group.visible = true;
+  spir.pos.set(FWD.pos.x, 28, FWD.pos.z); spir.group.visible = true;
   portal.turned = false;
   lm.log.push({ kind: 'portalPlaced', a: +a.toFixed(3), t: +t.toFixed(2) });
 }
@@ -1242,8 +1268,139 @@ function landmarkTick(dt) {
  */
 function enterPortal(P) {
   portalGlow.burst();
-  landmark('forward', P);
+  startOutro(P);
+  lm.log.push({ kind: 'forward', slot: P.slot, t });
+  embed.landmark('forward', { player: P.slot, outro: embed.active });
 }
+/** The spirillum's swim: round the film's middle, or up to just ahead of whoever is down on the film. */
+function stepSpirillum(dt, snap = false) {
+  if (!spir.group.visible) return;
+  let best = null, bd = Infinity;
+  for (const P of liveRoster()) {
+    const sc = P.swimmer.state.center, d = Math.hypot(sc.x - FWD.pos.x, sc.z - FWD.pos.z);
+    if (d < FWD.r * 1.6 && sc.y < FWD.reachY * 1.8 && d < bd) { bd = d; best = P; }
+  }
+  const want = new THREE.Vector3();
+  if (best) {
+    const s = best.swimmer.state, f = fwdOf(s.yaw);
+    want.copy(s.center).addScaledVector(f, HL + 18).setY(26);
+  } else {
+    spir.home += dt * 0.25;
+    want.set(FWD.pos.x + Math.cos(spir.home) * 40, 27, FWD.pos.z + Math.sin(spir.home) * 40);
+  }
+  const d = want.distanceTo(spir.pos);
+  if (snap && d > 30) spir.pos.copy(want);
+  else if (d > 0.5) {
+    const want_h = Math.atan2(want.z - spir.pos.z, want.x - spir.pos.x);
+    let dh = want_h - spir.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh));
+    spir.heading += Math.max(-1, Math.min(1, dh)) * dt * 4;
+    const v = Math.min(d, 60 * dt);
+    spir.pos.x += Math.cos(spir.heading) * v; spir.pos.z += Math.sin(spir.heading) * v;
+    spir.pos.y += (want.y - spir.pos.y) * Math.min(1, dt * 2);
+  } else spir.heading += dt * 0.6; // idling: a slow turn
+  spir.roll += dt * 9; // it spins on its axis as it swims
+  spir.group.position.copy(spir.pos);
+  // heading as atan2(z, x): three.js yaw turns +x toward -z, so the rotation is its negative
+  spir.group.rotation.set(0, -spir.heading, 0);
+  spir.mesh.rotation.x = spir.roll;
+}
+
+// ---------------------------------------------------------------- the continuous transition
+// Out (embed.js "Continuous transitions"): through the portal a golden burst
+// (the glow's), a bloom on screen, the shared chime and a rumble; then time
+// eases to a stop over ~1 s while the view keeps drawing (the freeze frame).
+// Frozen, it reports how the spirillum is framed (embed.frozen) and follows
+// the shell's `camera` poses: the chase camera dollies in on it (and turns to
+// look down on the film, as the bacterium's microscope does) while the
+// bacterium's world fades in under the same framing. Standalone (or a shell
+// that never answers) the freeze holds a moment and time comes back.
+// In: provides 'intro'. Held at its start, it draws its opening view, reports
+// how that frames your cell (embed.opening) and takes the shell's poses,
+// ending exactly on that view; on `begin` time eases back in.
+const OUTRO = { beat: 0.3, ease: 1.0, hold: 1.4, back: 0.6, giveUp: 8, rate: 1 }; // rate: tests slow it down
+let outro = null;
+let fxT = 0;
+const portalBloom = createPortalLight({ zIndex: 4, clock: () => fxT });
+const sm01 = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
+/** The camera's elevation and azimuth (embed.js poses): the direction from what it looks at back to it. */
+function camAngles(cam) {
+  const d = cam.getWorldDirection(new THREE.Vector3());
+  return { yaw: Math.atan2(-d.z, -d.x), pitch: Math.asin(Math.max(-1, Math.min(1, -d.y))) };
+}
+const cellHeading = (s) => Math.atan2(-Math.sin(s.yaw), Math.cos(s.yaw)); // fwdOf(yaw) as atan2(z, x)
+function startOutro(P) {
+  outro = { t: 0, scale: 1, frozenAt: null, cam: null, heard: false, P };
+  stepSpirillum(0, true);
+  const v = FWD.pos.clone().setY(24).project(chase);
+  if (v.z < 1) portalBloom.bloom((v.x * 0.5 + 0.5) * innerWidth, (0.5 - v.y * 0.5) * innerHeight, { scale: 1.2 });
+  const c = P.swimmer.state.center.clone().project(chase);
+  if (c.z < 1) portalBloom.bloom((c.x * 0.5 + 0.5) * innerWidth, (0.5 - c.y * 0.5) * innerHeight, { scale: 0.7 });
+  audio.play('shared/portal-chime', { volume: 0.9 });
+  P.pad.rumble(520, 0.55, 0.85);
+  // the chrome goes, the bloom stays (cinematic(false) restores both)
+  if (embed.active) { embed.cinematic(true, canvas); portalBloom.canvas.style.visibility = 'visible'; }
+}
+/** Advance the outro by dt (frame time); returns the time scale for the world. */
+function stepOutro(dt) {
+  const o = outro;
+  o.t += dt * OUTRO.rate;
+  fxT += dt * OUTRO.rate;
+  o.scale = 1 - sm01(OUTRO.beat, OUTRO.beat + OUTRO.ease, o.t);
+  if (o.scale <= 0 && o.frozenAt === null) {
+    o.frozenAt = o.t;
+    if (embed.active) embed.frozen(spirPose());
+  }
+  if (o.frozenAt !== null) {
+    const held = o.t - o.frozenAt;
+    const back = !embed.active ? held - OUTRO.hold : !o.heard && held > OUTRO.giveUp ? held - OUTRO.giveUp : -1;
+    if (back >= 0) {
+      o.scale = sm01(0, OUTRO.back, back);
+      if (back >= OUTRO.back) endOutro();
+    }
+  }
+  return outro ? outro.scale : 1;
+}
+function endOutro() {
+  outro = null;
+  if (embed.active) embed.cinematic(false, canvas);
+}
+/** The spirillum as a pose in the chase view just drawn. */
+function spirPose() {
+  return embed.poseOf(chase, spir.pos, { len: SPIRILLUM.L, heading: spirHeading(), ...camAngles(chase) });
+}
+/** Point the chase camera as `pose` frames `c` (length len, heading), focused there. */
+function placePoseCamera(pose, c, len, heading) {
+  const [, H] = optics.size;
+  const r = embed.poseCamera(chase, pose, c, { len, heading });
+  chase.near = Math.max(0.2, r.depth * 0.05);
+  chase.updateProjectionMatrix();
+  chase.updateMatrixWorld();
+  shared.uFocus.value = chase.position.distanceTo(c);
+  const k = Math.min(1, shared.uFocus.value / 400); // the depth of field narrows as the camera closes in
+  shared.uDof.value.set(view.dof === 'off' ? 1e5 : Math.max(4, 70 * k), view.dof === 'off' ? 2e5 : Math.max(30, 460 * k));
+  shared.uFade.value = 1400;
+  shared.uNear.value.set(Math.min(40, r.depth * 0.25), Math.min(60, r.depth * 0.5));
+  shared.uPxPersp.value = (2 * Math.tan((chase.fov * Math.PI) / 360)) / H;
+  return chase;
+}
+embed.on('camera', (d) => {
+  if (!d.pose) return;
+  if (outro) { outro.cam = d.pose; outro.heard = true; }
+  if (intro && !('ease' in intro)) intro.cam = d.pose;
+});
+embed.on('pause', () => { if (outro) outro.heard = true; });
+embed.provide('intro');
+const INTRO_EASE = 0.6;
+let intro = null; // { cam } while held; { ease } while time comes back
+embed.on('hold', () => {
+  intro = { cam: null };
+  if (view.kind !== 'chase') features.set('view', VIEW_NAMES.chase);
+  const s = swimmer.state;
+  updateCameras(1e-4, s, { x: 0, y: 0, m: 0 }, group());
+  embed.cinematic(true, canvas);
+  embed.opening(embed.poseOf(chase, s.center, { len: LENGTH, heading: cellHeading(s), ...camAngles(chase) }));
+});
+embed.on('begin', () => { embed.cinematic(false, canvas); intro = { cam: null, ease: 0 }; });
 /** Where a view looks, in the plane (as ambient.js centres its tile): the scope's stage, or a little ahead of the chase camera. */
 const _vc = new THREE.Vector2(), _fw = new THREE.Vector3();
 function viewCentre(cam) {
@@ -1433,8 +1590,14 @@ function frame(now) {
   unlockOnPad();
   blocked = features.update(); // the panel is open: no game input this frame
   if (!blocked) hud.update(pad);
-  for (const P of roster) P.in = blocked || P.waiting ? null : readInput(P);
-  if (!blocked) {
+  // the continuous transition: held at the start (in) or in the outro (out): no input, time eased
+  const held = embed.held || (intro && !('ease' in intro));
+  let ts = 1;
+  if (outro) ts = stepOutro(dt);
+  else if (intro && 'ease' in intro) { intro.ease += dt; ts = sm01(0, INTRO_EASE, intro.ease); if (intro.ease >= INTRO_EASE) intro = null; }
+  const still = held || !!outro;
+  for (const P of roster) P.in = blocked || P.waiting || still ? null : readInput(P);
+  if (!blocked && !still) {
     const step = ctl.lookStep();
     if (step) {
       if (borrow.id) features.set(borrow.id, false);
@@ -1453,8 +1616,8 @@ function frame(now) {
       else view.dist = Math.max(160, Math.min(1600, view.dist * (z > 0 ? 0.8 : 1.25)));
     }
   }
-  const rs = blocked ? { x: 0, y: 0, m: 0 } : ctl.camera();
-  if (view.kind === 'chase') {
+  const rs = blocked || still ? { x: 0, y: 0, m: 0 } : ctl.camera();
+  if (still) { /* the camera is the transition's */ } else if (view.kind === 'chase') {
     // orbit: look() pitch +1 means look up (the camera swings lower), Invert Y honoured
     const lk = blocked ? { yaw: 0, pitch: 0, m: 0 } : ctl.look();
     if (lk.m > 0.01) { view.lookHold = 0.45; view.camYaw -= lk.yaw * 2.2 * dt; }
@@ -1470,10 +1633,12 @@ function frame(now) {
     if (rs.m === 0) view.stage.multiplyScalar(Math.exp(-dt * 0.8));
   }
 
-  tick(dt);
+  if (!held && ts > 0) { tick(dt * ts); stepSpirillum(dt * ts); }
 
   const s = swimmer.state;
-  const cam = updateCameras(dt, s, ls, group());
+  const cam = held && intro && intro.cam ? placePoseCamera(intro.cam, s.center, LENGTH, cellHeading(s))
+    : outro && outro.cam ? placePoseCamera(outro.cam, spir.pos, SPIRILLUM.L, spirHeading())
+      : updateCameras(held ? 1e-4 : dt * ts, s, ls, group());
   if (portalGlow.group.visible) { portalGlow.setOpen(!guarded()); portalGlow.update(dt, t, cam); }
   // the split screen (one view while together: the fast path, as before)
   const list = liveRoster().map((P) => ({ slot: P.slot, position: P.swimmer.state.center }));
@@ -1518,7 +1683,8 @@ function frame(now) {
   edgeMarks.begin();
   // no arrow to the way on until the portal has been found (placed); then it points there and its light spills in
   portalLight.begin();
-  if (FWD.placed) {
+  portalBloom.begin();
+  if (FWD.placed && !outro) {
     const res = edgeMarks.drawSplit(arrowSplit(), FWD.pos, { kind: 'forward', label: '', range: 3000 });
     const dmin = Math.min(...livePos().map((c) => Math.hypot(c.x - FWD.pos.x, c.z - FWD.pos.z)), 1e9);
     portalLight.drawSplit(arrowSplit(), res, { strength: THREE.MathUtils.clamp(1.2 - dmin / 3000, 0.4, 1), open: portalGlow.open });
@@ -1896,6 +2062,8 @@ const debug = {
   wakeBoss() { bossInfo.force = true; },
   /** Place the portal now at bearing a (default: player 1's), as if found. */
   placePortal(a) { placePortal(a ?? bearingOf(swimmer.state.center)); },
+  /** Go through the portal now as player `slot` (what reaching it while open does). */
+  enterPortal(slot = 0) { enterPortal(slotP(slot)); },
   hungry() { for (const th of hunters()) { th.hunger.reset(0.01); th.sated = 0; th.stun = 0; } swimmer.state.safeT = 0; },
   /** Player 1's buttons for tests: 'B' defend, 'X' attack (eat or fight back). */
   press(b, slot = 0) { const P = slotP(slot); if (b === 'B') defend(P); else if (b === 'X') doAttack(P); },
@@ -1939,6 +2107,12 @@ window.__micro = {
   scene, renderer, cell, world, swimmer, encounters: enc, prey, amoeba, optics, view, debug, MODES, features, game, dash,
   get camera() { return view.kind === 'scope' ? scope : chase; },
   get t() { return t; },
+  /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
+  outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
+  OUTRO,
+  /** The glimpsed spirillum (the next world's creature) and its pose in the chase view now; your cell's pose. */
+  spirillum: () => ({ pos: spir.pos.toArray(), heading: spir.heading, visible: spir.group.visible, pose: spirPose() }),
+  cellPose: () => embed.poseOf(chase, swimmer.state.center, { len: LENGTH, heading: cellHeading(swimmer.state), ...camAngles(chase) }),
   get look() { return lookName(); },
   // Micro Zoom: players, split screen and landmarks
   players, split, landmarks: { forward: FWD.pos, back: BACK.pos, log: lm.log, get near() { return lm.near; } },

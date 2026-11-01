@@ -1275,6 +1275,46 @@ function stepMember(m, dt, insideOwner, where) {
  * from it (zero looking straight up or down) and rate-limited, so it can never spin the view.
  */
 const _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _prevQ = new THREE.Quaternion();
+// --- the continuous transition in (embed.js "Continuous transitions") ---
+// In the game the bacterium's freeze frame closes in on a phage glimpsed on its
+// host (a gold glint) while this world fades in under the same framing: the
+// shell sends `hold`; this world stays frozen at its start but renders, reports
+// how its opening view frames your phage (embed.opening) and takes the shell's
+// `camera` poses (a dolly, the field of view kept), ending exactly on that
+// opening view; on `begin` time eases back in over INTRO_EASE s.
+// The phage's length for the pose: baseplate to the head's top, ~23 units of
+// 10 nm (shared/techniques/phage-model.js T4), the same 0.23 µm the bacterium
+// world gives its glimpse. Its "heading" is a fixed reference (0): a pose
+// only needs the same one for the opening and the move.
+embed.provide('intro');
+const INTRO_EASE = 0.6, PHAGE_LEN = 23;
+let intro = null; // { cam } while held; { ease } while time comes back
+/** The camera's elevation and azimuth (embed.js poses): from what it looks at back to it. */
+function camAngles(cam) {
+  const d = cam.getWorldDirection(new THREE.Vector3());
+  return { yaw: Math.atan2(-d.z, -d.x), pitch: Math.asin(clamp(-d.y, -1, 1)) };
+}
+function phageCentre() { const was = cur; use(team[0]); const c = centreOf(new THREE.Vector3()); if (was) use(was); return c; }
+const openingPose = () => embed.poseOf(camera, phageCentre(), { len: PHAGE_LEN, heading: 0, ...camAngles(camera) });
+embed.on('hold', () => {
+  intro = { cam: null };
+  embed.cinematic(true, canvas);
+  embed.opening(openingPose());
+});
+embed.on('camera', (d) => { if (intro && !('ease' in intro) && d.pose) intro.cam = d.pose; });
+embed.on('begin', () => { embed.cinematic(false, canvas); intro = { cam: null, ease: 0 }; });
+/** The camera for a pose from the shell, with the haze and focus at its distance. */
+function placePoseCamera(pose) {
+  const c = phageCentre();
+  const r = embed.poseCamera(camera, pose, c, { len: PHAGE_LEN, heading: 0 });
+  const d = r.depth;
+  camera.far = Math.max(3000, d + 1500);
+  camera.updateProjectionMatrix();
+  camera.updateMatrixWorld();
+  goodsellShared.uFogNear.value = d * 0.8; goodsellShared.uFogFar.value = d + 300;
+  post.uniforms.uFocus.value = d;
+}
+
 function turnView(look, dt) {
   _prevQ.copy(view.q);
   if (look.m > 0.01) {
@@ -1299,7 +1339,11 @@ function turnView(look, dt) {
 function frame(now) {
   requestAnimationFrame(frame);
   const realDt = (now - last) / 1000;
-  const dt = debug.pause ? 0 : Math.min(debug.maxDt || 0.05, realDt);
+  // held by the shell in the continuous transition: nothing moves (dt 0); after it, time eases back in
+  const held = embed.held || (intro && !('ease' in intro));
+  let ts = 1;
+  if (intro && 'ease' in intro) { intro.ease += Math.min(0.05, realDt); ts = THREE.MathUtils.smoothstep(intro.ease, 0, INTRO_EASE); if (intro.ease >= INTRO_EASE) intro = null; }
+  const dt = debug.pause || held ? 0 : Math.min(debug.maxDt || 0.05, realDt) * ts;
   last = now;
   t += dt;
   goodsellShared.uTime.value = t;
@@ -1315,8 +1359,8 @@ function frame(now) {
   const where = insideOwner ? 'inside' : 'outside';
   // the camera stick: any player
   const look = { yaw: 0, pitch: 0, m: 0 };
-  if (!blocked) for (const m of members()) { const l = players.controls(m.slot).look(); if (l.m > look.m) Object.assign(look, l); }
-  for (const m of members()) stepMember(m, dt, insideOwner, where);
+  if (!blocked && !held) for (const m of members()) { const l = players.controls(m.slot).look(); if (l.m > look.m) Object.assign(look, l); }
+  if (!held) for (const m of members()) stepMember(m, dt, insideOwner, where);
   insideOwner = owner();
   const lead = members().find((m) => m.P.mode === 'burst') || insideOwner || team[0];
   const solo = !isMulti();
@@ -1394,6 +1438,7 @@ function frame(now) {
     post.uniforms.uEdge.value = [0.3, 0.6, 0.8, 0.25][view.look];
     post.uniforms.uInk.value.set(view.look === 1 ? '#2b2236' : '#0c1c28');
     post.uniforms.uBgOff.value.set(view.target.x * 0.0006, view.target.y * 0.0006);
+    if (held && intro && intro.cam) placePoseCamera(intro.cam);
   } else {
     const cutting = insideOwner && insideOwner.c.active && insideOwner.P.kind === 'cut';
     const chewing = cutting && ['eat', 'follow', 'fadeOut'].includes(insideOwner.c.phase);
@@ -1550,7 +1595,9 @@ Object.defineProperty(debug, 'fight', { get: () => ({ state: fightState, interes
 window.__micro = {
   get P() { return team[0].P; }, get t4() { return team[0].t4; }, get capture() { return team[0].capture; },
   team, players, split, world, inside, camera, view, debug, features, guard, post, get t() { return t; },
-  get nearBack() { return nearBack; }, get where() { return members().some((m) => m.P.mode === 'inside') ? 'inside' : 'outside'; },
+  get nearBack() { return nearBack; },
+  /** Your phage as a pose (embed.js) in the view now. */
+  cellPose: () => embed.poseOf(camera, phageCentre(), { len: PHAGE_LEN, heading: 0, ...camAngles(camera) }), get where() { return members().some((m) => m.P.mode === 'inside') ? 'inside' : 'outside'; },
 };
 // the roster: from the shell (embed), or P1 alone; joins keep coming during play
 if (embed.players) players.fromJSON(embed.players);

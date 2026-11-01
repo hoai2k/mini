@@ -31,7 +31,7 @@ import { gauss } from './world.js';
 import { createCollectives, COLL, LEVEL_NAMES } from './collective.js';
 import { createGuards } from './guards.js';
 import { createQuality } from '../shared/quality.js';
-import { createPortalGlow, createPortalLight } from '../shared/portal.js';
+import { createPortalGlow, createPortalLight, createGlint } from '../shared/portal.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
@@ -615,6 +615,19 @@ glow.setOpen(false);
 const portalGlow = { x: 1e6, y: 1e6, place(x, y) { this.x = x; this.y = y; glow.setPosition(x, y, 0); }, burst: () => glow.burst(), get open() { return glow.open; } };
 portalGlow.place(1e6, 1e6);
 const portalLight = createPortalLight({ zIndex: 3 });
+// The next world's creature, glimpsed at the portal: one of the phages landed on
+// the host (world.js F.phages[0], true size, 0.23 µm), marked by a small gold
+// star glint (the super-gene gold the phage carries in its own world), so the
+// eye and the continuous transition's camera have something to go to.
+const PHAGE_LEN = 0.23; // µm: a T4-like phage, head and tail (phage/main.js: ~23 units of 10 nm)
+const glimpse = createGlint({ THREE, size: 70, intensity: 1.1, pixelHeight: () => renderer.getDrawingBufferSize(_b).y });
+glowScene.add(glimpse.points);
+/** The glimpsed phage: its centre on the host's wall and its heading (outward). */
+function glimpsePhage() {
+  const F = world.landmarks.forward, q = F.phages[0], ca = Math.cos(F.a), sa = Math.sin(F.a);
+  const nx = -sa * q.side, ny = ca * q.side, off = F.r + 0.12 + PHAGE_LEN * 0.4;
+  return { x: F.x + ca * q.u + nx * off, y: F.y + sa * q.u + ny * off, a: Math.atan2(ny, nx) };
+}
 const overlay = createOverlay();
 const looks = createBorrowedLooks(renderer);
 // split screen: in a 2D field the view is drawn around a centre; each view is
@@ -889,8 +902,93 @@ function enterPortal(P) {
   if (L && L.views && L.views.length) { const q = split.project(0, { x: FWD.x, y: FWD.y, z: 0 }); portalLight.bloom(q.x, q.y, { scale: 1.2 }); }
   audio.play('shared/portal-chime', { volume: 0.9 });
   P.pad.rumble(520, 0.55, 0.85);
-  landmark('forward', P);
+  startOutro(P);
+  lm.log.push({ kind: 'forward', slot: P.slot, t });
+  embed.landmark('forward', { player: P.slot, outro: embed.active });
 }
+
+// --- the continuous transition (embed.js "Continuous transitions") ---
+// Out: through the portal (the burst, bloom, chime and rumble above), time eases
+// to a stop over ~1 s while the field keeps drawing (the freeze frame). Frozen,
+// it reports how the glimpsed phage is framed (embed.frozen) and follows the
+// shell's `camera` poses: the stage centres and the field narrows on it while
+// the phage's world fades in under the same framing. Standalone (or a shell that
+// never answers) the freeze holds a moment and time comes back.
+// In: provides 'intro'. Held at its start, it draws its opening field, reports
+// how that frames your cell (embed.opening) and takes the shell's poses (from
+// the Paramecium's spirillum glimpse), ending exactly on that field; on `begin`
+// time eases back in.
+// A 2D field as a pose: looking straight down (pitch just short of vertical),
+// the screen's up the field's +y; `rel` in embed.js's three.js convention
+// (azimuth atan2(z, x), the field's +y as -z), so a 3D world turning to this
+// pose shows the creature at the same angle on screen.
+const TOP_PITCH = 1.55;
+const OUTRO = { beat: 0.3, ease: 1.0, hold: 1.4, back: 0.6, giveUp: 8, rate: 1 }; // rate: tests slow it down
+const INTRO_EASE = 0.6;
+let outro = null, intro = null; // intro: { cam } while held; { ease } while time comes back
+const sm01 = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
+const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+/** The field's width over its height (the optics' buffers). */
+const aspect = () => { const [W, H] = optics.size; return W / H; };
+/** A creature at (x, y), heading a, length len, as a pose in the field centred (cx, cy), fieldH tall. */
+function pose2D(x, y, a, len, cx, cy, fieldH) {
+  const w = fieldH * aspect();
+  return { f: len / w, x: (x - cx) / (w / 2), y: (y - cy) / (fieldH / 2), pitch: TOP_PITCH, rel: wrapA(a + Math.PI / 2) };
+}
+/** The field (centre, height) that frames a creature at (x, y), length len, as `pose` says. */
+function poseField(pose, x, y, len) {
+  const w = len / Math.max(1e-6, pose.f), h = w / aspect();
+  return { cx: x - pose.x * (w / 2), cy: y - pose.y * (h / 2), fieldH: h };
+}
+/** The field the transition sets (or null: the world's own). */
+function camOverride() {
+  if (outro && outro.cam) { const g = glimpsePhage(); return poseField(outro.cam, g.x, g.y, PHAGE_LEN); }
+  if (intro && intro.cam && !('ease' in intro)) return poseField(intro.cam, P1.S.x, P1.S.y, P1.S.sp.L);
+  return null;
+}
+function startOutro() {
+  outro = { t: 0, scale: 1, frozenAt: null, cam: null, heard: false };
+  if (embed.active) { embed.cinematic(true, canvas); portalLight.canvas.style.visibility = 'visible'; }
+}
+/** The glimpsed phage as a pose in the field drawn now. */
+function glimpsePose() {
+  const g = glimpsePhage();
+  return pose2D(g.x, g.y, g.a, PHAGE_LEN, view.cx + view.stage.x, view.cy + view.stage.y, ZOOMS[zoomIdx()]);
+}
+/** Advance the outro by dt (frame time); returns the world's time scale. */
+function stepOutro(dt) {
+  const o = outro;
+  o.t += dt * OUTRO.rate;
+  o.scale = 1 - sm01(OUTRO.beat, OUTRO.beat + OUTRO.ease, o.t);
+  if (o.scale <= 0 && o.frozenAt === null) {
+    o.frozenAt = o.t;
+    if (embed.active) embed.frozen(glimpsePose());
+  }
+  if (o.frozenAt !== null) {
+    const held = o.t - o.frozenAt;
+    const back = !embed.active ? held - OUTRO.hold : !o.heard && held > OUTRO.giveUp ? held - OUTRO.giveUp : -1;
+    if (back >= 0) {
+      o.scale = sm01(0, OUTRO.back, back);
+      if (back >= OUTRO.back) { outro = null; if (embed.active) embed.cinematic(false, canvas); }
+    }
+  }
+  return outro ? outro.scale : 1;
+}
+/** Your cell as a pose in the field drawn now. */
+const cellPose = () => pose2D(P1.S.x, P1.S.y, P1.S.a, P1.S.sp.L, view.cx + view.stage.x, view.cy + view.stage.y, ZOOMS[zoomIdx()]);
+embed.provide('intro');
+embed.on('hold', () => {
+  intro = { cam: null };
+  embed.cinematic(true, canvas);
+  embed.opening(cellPose());
+});
+embed.on('camera', (d) => {
+  if (!d.pose) return;
+  if (outro) { outro.cam = d.pose; outro.heard = true; }
+  if (intro && !('ease' in intro)) intro.cam = d.pose;
+});
+embed.on('begin', () => { embed.cinematic(false, canvas); intro = { cam: null, ease: 0 }; });
+embed.on('pause', () => { if (outro) outro.heard = true; });
 
 // --- loop ---
 let t = 0, last = performance.now(), blocked = false, fps = 60, fpsT = 0, frames = 0, frameCount = 0;
@@ -1141,11 +1239,16 @@ function frame(now) {
   unlockOnPad();
   blocked = features.update();
   if (!blocked) hud.update(pad);
+  // the continuous transition: held at the start (in) or in the outro (out): no input, time eased
+  const held = embed.held || (intro && !('ease' in intro));
+  let ts = 1;
+  if (outro) ts = stepOutro(dt);
+  else if (intro && 'ease' in intro) { intro.ease += dt; ts = sm01(0, INTRO_EASE, intro.ease); if (intro.ease >= INTRO_EASE) intro = null; }
   const inputs = {};
-  if (!blocked) for (const P of roster) if (!P.waiting) inputs[P.slot] = readInput(P, dt);
+  if (!blocked && !held && !outro) for (const P of roster) if (!P.waiting) inputs[P.slot] = readInput(P, dt);
   // ?flock=n (tests and perf): every player's army is kept at n (losses are replaced)
   if (FLOCK_N) for (const P of roster) if (P.S.alive && P.S.species === 'mtb' && coll.opts.on) { const C = coll.of(P); if (C && C.members.length < FLOCK_N * C.players.length) debug.fill(FLOCK_N * C.players.length, P.slot); }
-  if (!debug.freeze) tick(dt, inputs);
+  if (!debug.freeze && !held && ts > 0) tick(dt * ts, inputs);
   else for (const P of roster) P.S.dashOn = P.dash.active;
   for (const P of roster) {
     const S = P.S;
@@ -1209,9 +1312,10 @@ function showEnd(S) {
 }
 
 /** Draw the specimen around (cx, cy) to the screen: one view. */
+let fieldNow = ZOOMS[2]; // the field height being drawn (render sets it: the zoom's, or the transition's)
 function drawField(cx, cy, stopOk, rect = null) {
   const [W, H] = optics.size;
-  const fieldH = ZOOMS[zoomIdx()];
+  const fieldH = fieldNow;
   const umPerPx = fieldH / H;
   const fieldW = W * umPerPx;
   shapes.setView(cx, cy, fieldW, fieldH, umPerPx, view.focus, t);
@@ -1224,7 +1328,7 @@ function drawField(cx, cy, stopOk, rect = null) {
   renderer.clear();
   renderer.render(shapes.scene, shapes.camera);
   const look = currentLookKey();
-  const stopR = stopOk && view.stop && zoomIdx() === 0 ? 90 / umPerPx : 0;
+  const stopR = stopOk && view.stop && fieldH === ZOOMS[0] ? 90 / umPerPx : 0;
   if (look === 'sem') {
     const f = optics.field.textures;
     looks.fieldFromBuffers(W, H, { a: { opd: f[0], abs: f[2], opdW: [0, 0, 1, 0], scatW: [0, 1, 0, 0] }, opdK: 1, absK: 1, heightK: 1 });
@@ -1254,8 +1358,11 @@ const cellPos = (P) => { const p = P.S.inside || P.S; return { x: p.x, y: p.y, z
 function render(dt) {
   glow.setOpen(!guarded());
   glow.update(dt, t, glowCam);
-  const fieldH = ZOOMS[zoomIdx()];
-  const cx = view.cx + view.stage.x, cy = view.cy + view.stage.y;
+  const ov = camOverride();
+  const fieldH = fieldNow = ov ? ov.fieldH : ZOOMS[zoomIdx()];
+  const cx = ov ? ov.cx : view.cx + view.stage.x, cy = ov ? ov.cy : view.cy + view.stage.y;
+  if (world.landmarks.forward.placed) { const g = glimpsePhage(); glimpse.setPosition(g.x, g.y, 0); } else glimpse.setPosition(1e6, 1e6, 0);
+  glimpse.update(t);
   const list = roster.filter((P) => !P.waiting).map((P) => ({ slot: P.slot, position: posOf(P) }));
   const L = split.update(list.length ? list : [{ slot: 0, position: posOf(P1) }], { center: { x: cx, y: cy }, pxPerUnit: innerHeight / fieldH, yUp: true }, dt);
   // split frames render every view: the governor drops each one's resolution (0.7 at 2 views, 0.55 at 3-4)
@@ -1271,8 +1378,8 @@ function render(dt) {
   shapes.begin();
   drawer.draw(shapes, t, roster.map((P) => P.S), view);
   shapes.end();
-  if (L.views.length <= 1) {
-    const o = L.views[0] ? L.views[0].offset : { x: 0, y: 0 };
+  if (ov || L.views.length <= 1) {
+    const o = L.views[0] && !ov ? L.views[0].offset : { x: 0, y: 0 };
     drawField(cx + o.x, cy + o.y, true);
   } else {
     for (const v of L.views) { drawField(cx + v.offset.x, cy + v.offset.y, false, useRects ? viewRect(L, v.index) : null); split.capture(v.index); }
@@ -1458,6 +1565,12 @@ window.__micro = { forceCapture, capture,
   /** Testing: place the portal now at bearing a (default: player slot's bearing). */
   placePortal(a = null, slot = 0) { const P = roster.find((Q) => Q.slot === slot) || P1; placePortal(a ?? world.bearingFromStart(P.S.x, P.S.y)); return { x: FWD.x, y: FWD.y }; },
   enterPortal(slot = 0) { enterPortal(roster.find((Q) => Q.slot === slot) || P1); },
+  /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
+  outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
+  OUTRO,
+  /** The continuous transition, as poses in the field drawn now: your cell, and the glimpsed phage on the host. */
+  cellPose: () => { const ov = camOverride(); return ov ? pose2D(P1.S.x, P1.S.y, P1.S.a, P1.S.sp.L, ov.cx, ov.cy, ov.fieldH) : cellPose(); },
+  glimpsePose: () => { const ov = camOverride(); if (!ov) return glimpsePose(); const g = glimpsePhage(); return pose2D(g.x, g.y, g.a, PHAGE_LEN, ov.cx, ov.cy, ov.fieldH); },
   gates: () => guards.report(), guards,
   /** Every flock member (tests): position, velocity, speed, heading, spin. */
   members: (slot = 0) => { const C = coll.of(roster.find((Q) => Q.slot === slot) || P1); return C ? C.members.map((m) => ({ x: m.x, y: m.y, vx: m.vx, vy: m.vy, sp: m.sp, a: m.a, body: m.bodyPhase, fl: m.flPhase, lag: m.lag, vmax: m.vmax })) : []; },
