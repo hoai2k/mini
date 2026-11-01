@@ -37,10 +37,12 @@
 //   leave     {index}  a player's controller went away (optional).
 //   captured / died / progress {...}  optional, for statistics.
 //   done      {...}  the zoom player finished a transition (see below).
-//   frozen    {pose}  after a `landmark {kind: 'forward', outro: true}`: the
-//             world has played its success and slowed to a freeze frame;
+//   frozen    {pose, move?}  after a `landmark {kind: 'forward', outro: true}`:
+//             the world has played its success and slowed to a freeze frame;
 //             `pose` frames the next world's creature as it is now on screen
 //             (see "Continuous transitions" below). Sent by embed.frozen().
+//             `move` {duration, fade: [from, to]} optionally asks for a
+//             longer camera move or a later crossfade (the Paramecium's dive).
 //   opening   {pose}  in reply to `hold`: how the world's opening view frames
 //             its own creature. Sent by embed.opening().
 //
@@ -58,8 +60,10 @@
 ////   hold                     run frames but keep the world's time stopped (a
 //             world that provides 'intro'): it draws its opening scene with
 //             the camera the shell sends, and replies `opening {pose}`.
-//   camera    {pose}         put the camera where `pose` frames the creature
-//             (the old world's next creature, or the new world's own).
+//   camera    {pose, u, alpha}  put the camera where `pose` frames the
+//             creature (the old world's next creature, or the new world's
+//             own); `u` is the move's progress (0..1) and `alpha` the new
+//             world's opacity, for worlds that stage something along the move.
 //   begin                    the transition is over: time runs again (the
 //             world eases it in) and the camera is the world's own. Implies
 //             `resume`.
@@ -272,8 +276,11 @@ export const embed = {
   captured(info = {}) { post('captured', info); },
   died(info = {}) { post('died', info); },
   progress(info = {}) { post('progress', info); },
-  /** Old world, after landmark('forward', { outro: true }): frozen; `pose` frames the next creature. */
-  frozen(pose) { post('frozen', { pose }); },
+  /**
+   * Old world, after landmark('forward', { outro: true }): frozen; `pose` frames the next creature.
+   * `move` (optional) asks for a different camera move: { duration (s), fade: [from, to] (fractions) }.
+   */
+  frozen(pose, move) { post('frozen', move ? { pose, move } : { pose }); },
   /** New world, on `hold`: how its opening view frames its creature. */
   opening(pose) { post('opening', { pose }); },
   /**

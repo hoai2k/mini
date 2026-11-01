@@ -164,6 +164,8 @@ export function createLandmarks(scene) {
   fwdGroup.visible = false;
   return {
     group, fwdGroup, backGroup, forward: F, back: B,
+    /** The biofilm's lawn of rods (main.js thins it as the dive into the bacterium world turns the light). */
+    lawn: film,
     /** Put the biofilm at (x, z), met coming along bearing a, and show it. */
     place(x, z, a) {
       const d = a - A0;

@@ -10,7 +10,7 @@ import { createSound } from './sound.js';
 import { createTitleBg } from './title-bg.js';
 import { TITLE_ZOOM_PLATES, TITLE_ZOOM_START } from './title-art.js';
 import { createTransitions, fmtField, fmtMag, unitSafe } from './transition.js';
-import { playContinuous, validPose } from './continuous.js';
+import { playContinuous, validPose, moveOf } from './continuous.js';
 import { loadRoster } from './players.js';
 import { listen, send } from './bus.js';
 import { glyph, glyphMode, refreshGlyphs, controlRows } from './glyphs.js';
@@ -564,7 +564,7 @@ function onWorldMessage(m, f) {
       break;
     case 'view': if (dedupe('view')) toggleControls(); break;
     case 'landmark': landmark(m.kind, m); break;
-    case 'frozen': S.onFrozen?.(m.pose); break;
+    case 'frozen': S.onFrozen?.(m.pose, m.move); break;
     case 'near':
       // no prompt for the way on: the portal itself says "go there" (the backdoor keeps its Y prompt)
       showPrompt(m.on && m.kind === 'back' ? m : null);
@@ -700,10 +700,11 @@ async function waitFor(fn, ms) {
 async function continuousForward(next) {
   const old = S.frame;
   S.cont = { phase: 'outro', u: 0, alpha: 0 };
+  let move = null; // the old world may ask for a longer move or a later crossfade (embed.js `frozen`)
   const frozen = await new Promise((resolve) => {
     // (the outro runs in the world's frame time: on a slow machine it takes longer)
     const timer = setTimeout(() => resolve(null), 20000);
-    S.onFrozen = (pose) => { clearTimeout(timer); resolve(pose); };
+    S.onFrozen = (pose, mv) => { clearTimeout(timer); move = mv || null; resolve(pose); };
   });
   S.onFrozen = null;
   if (!validPose(frozen) || S.frame !== old) return false;
@@ -721,8 +722,9 @@ async function continuousForward(next) {
   p.onOpening = null;
   if (!validPose(opening) || preloaded !== p) { send(p.frame, 'pause'); return false; }
   S.cont.phase = 'move';
-  sound.zoom('in', 3.4 / Math.max(0.05, S.trSpeed));
-  await playContinuous({ oldFrame: old, newFrame: p.frame, from: frozen, to: opening, send, speed: () => S.trSpeed, seek: () => S.trSeek,
+  const { duration, fade } = moveOf(move);
+  sound.zoom('in', duration / Math.max(0.05, S.trSpeed));
+  await playContinuous({ oldFrame: old, newFrame: p.frame, from: frozen, to: opening, send, speed: () => S.trSpeed, seek: () => S.trSeek, duration, fade,
     onFrame: ({ u, alpha }) => { S.cont.u = u; S.cont.alpha = alpha; } });
   S.cont.phase = 'begin';
   S.board++;

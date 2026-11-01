@@ -33,6 +33,7 @@ import { createCollectives, COLL, LEVEL_NAMES } from './collective.js';
 import { createGuards } from './guards.js';
 import { createQuality } from '../shared/quality.js';
 import { createPortalGlow, createPortalLight, createGlint } from '../shared/portal.js';
+import { clumpLayout, placeInFrame } from '../shared/kin-clump.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
@@ -831,10 +832,47 @@ function setSpecies(sp) {
   resetPressure();
   coll.opts.on = sp === 'mtb' && collFeature.on;
   coll.reset(roster);
+  if (sp === 'mtb') arrangeClump();
   view.zoom = ZOOMS.indexOf(SPECIES[sp].view);
   view.cx = S.x; view.cy = S.y;
   card.classList.remove('show');
   hud.toast(sp === 'mtb' ? `Gather an army: press ${glyph('X')} near kin (the spirilla like you) and they answer and join. Then head out, any way you like` : `Bdellovibrio: ram and bore into ${GOAL_PREY} Gram-negative prey (${glyph('X')} when touching)`, 3600);
+}
+
+/**
+ * The start among your kin (shared/kin-clump.js): the clump the Paramecium's dive
+ * resolves, laid out round your cell exactly as it draws it there, so the two
+ * line up through the crossfade. Its own cells are moved, none added: free kin
+ * from the meadow, prey rods from the meadow, and attached biofilm cocci and
+ * rods (static). After the start they wander off as ever (the cocci and attached
+ * rods stay: the microcolony you came from).
+ */
+function arrangeClump() {
+  const clumpPicks = arrangeClump; // (a property of the function: setSpecies runs before this point of the module)
+  const L = clumpLayout(), x = P1.S.x, y = P1.S.y, a = P1.S.a;
+  const kin = coll.kin.filter((k) => !k.coll && !k.parked && !k.dying);
+  const rods = world.cells.filter((c) => c.kind === 'rod' && c.zone === 0 && !c.parked && !c.lysed);
+  // the attached cells: picked once (the same ones every start), from microcolonies away from the start
+  if (!clumpPicks.film) {
+    const far = world.film.map((c, i) => [c, i]).filter(([c]) => world.distFromStart(c.x, c.y) > 120);
+    clumpPicks.film = {
+      coccus: far.filter(([c]) => c.kind === 'coccus').map(([c]) => c),
+      film: far.filter(([c]) => c.kind === 'rod').map(([c]) => c),
+    };
+  }
+  const n = { kin: 0, rod: 0, coccus: 0, film: 0 };
+  for (const c of L) {
+    const q = placeInFrame(c, x, y, a);
+    if (c.kind === 'kin') { const k = kin[n.kin++]; if (!k) continue; coll.putFree(k, q.x, q.y); k.a = q.a; k.L = c.L; k.zone = 0; }
+    else if (c.kind === 'rod') { const r = rods[n.rod++]; if (!r) continue; Object.assign(r, { x: q.x, y: q.y, a: q.a, L: c.L, run: 0.6, tumble: 0, stopped: 0 }); }
+    else { const f = clumpPicks.film[c.kind][n[c.kind]++]; if (!f) continue; Object.assign(f, { x: q.x, y: q.y, a: q.a, z: (n[c.kind] % 5 - 2) * 0.2 }); if (c.kind === 'film') f.L = c.L; else f.r = c.r; }
+  }
+}
+/** The kin clump's first n cells as poses' screen points in the field drawn now (normalised device coordinates; tests). */
+function clumpScreen(n = 8) {
+  const ov = camOverride(), fieldH = ov ? ov.fieldH : ZOOMS[zoomIdx()];
+  const cx = ov ? ov.cx : view.cx + view.stage.x, cy = ov ? ov.cy : view.cy + view.stage.y, w = fieldH * aspect();
+  return clumpLayout().slice(0, n).map((c) => { const q = placeInFrame(c, P1.S.x, P1.S.y, P1.S.a); return { kind: c.kind, x: +((q.x - cx) / (w / 2)).toFixed(4), y: +((q.y - cy) / (fieldH / 2)).toFixed(4) }; });
 }
 
 // --- the landmarks: forward (the host with phages: the portal) and the backdoor (the Paramecium) ---
@@ -1091,6 +1129,7 @@ const cellPose = () => pose2D(P1.S.x, P1.S.y, P1.S.a, P1.S.sp.L, view.cx + view.
 embed.provide('intro');
 embed.on('hold', () => {
   intro = { cam: null };
+  if (P1.S.species === 'mtb') arrangeClump(); // (where it began: nothing has moved while it loaded, but be sure)
   embed.cinematic(true, canvas);
   embed.opening(cellPose());
 });
@@ -1706,6 +1745,7 @@ window.__micro = { forceCapture, capture,
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
   OUTRO,
   /** The continuous transition, as poses in the field drawn now: your cell, and the glimpsed phage on the host. */
+  clumpScreen,
   cellPose: () => { const ov = camOverride(); return ov ? pose2D(P1.S.x, P1.S.y, P1.S.a, P1.S.sp.L, ov.cx, ov.cy, ov.fieldH) : cellPose(); },
   glimpsePose: () => { const ov = camOverride(); if (!ov) return glimpsePose(); const g = glimpsePhage(); return pose2D(g.x, g.y, g.a, PHAGE_LEN, ov.cx, ov.cy, ov.fieldH); },
   gates: () => guards.report(), guards,

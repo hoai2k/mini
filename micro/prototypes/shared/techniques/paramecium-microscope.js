@@ -24,6 +24,9 @@
 //     plateRot (radians, for a view that turns) keep a plate from competing
 //     with the subject; bfSoft (0..1, default 0) soft-limits brightfield's
 //     defocus and edge terms so thick bodies shade rather than clip to black.
+//     Optional: lightMix (0..1, darkfield only) turns the light toward phase
+//     contrast on a plain field of lightBg [r, g, b] (the Paramecium's dive
+//     into the bacterium world, a continuous transition).
 //     Optional: rect [x0, y0, x1, y1] (fractions of the screen, top-left
 //     origin) renders only that box (a split-screen view's region): every pass
 //     is scissored to it, padded where a blur reads its neighbours.
@@ -287,7 +290,7 @@ export function sheetMaterial({ dn = 0.04, thick = 2, scatter = 0.6, absorb = [0
  */
 export function pointsMaterial({ cyclosis = false, absorb = [0, 0, 0], rod = false, loop = [72, 15, 30] } = {}) {
   return opticMaterial({
-    uniforms: { uAbsorb: { value: new THREE.Vector3(...absorb) }, uCyclosis: { value: 0 }, uHalfLen: { value: 115 }, uLoop: { value: new THREE.Vector3(...loop) } },
+    uniforms: { uAbsorb: { value: new THREE.Vector3(...absorb) }, uCyclosis: { value: 0 }, uHalfLen: { value: 115 }, uLoop: { value: new THREE.Vector3(...loop) }, uAlpha: { value: 1 } },
     defines: { CYCLOSIS: cyclosis ? 1 : 0, ROD: rod ? 1 : 0 },
     vertexShader: /* glsl */ `
       ${GLSL_VERT_COMMON}
@@ -329,15 +332,16 @@ export function pointsMaterial({ cyclosis = false, absorb = [0, 0, 0], rod = fal
       }`,
     fragmentShader: /* glsl */ `
       ${GLSL_FRAG_COMMON}
-      uniform vec3 uAbsorb;
+      uniform vec3 uAbsorb; uniform float uAlpha;
       varying vec2 vQ; varying float vK; varying float vRef; varying vec4 vP;
       void main() {
+        if (uAlpha < 0.004) discard;
         float d2 = dot(vQ, vQ);
         if (d2 > 2.56) discard;
         float prof = max(1.0 - d2, 0.0);         // chord of a sphere, squared-ish
         float ring = exp(-pow((sqrt(d2) - 0.9) * 3.5, 2.0)); // the bright rim of a refractile speck
         float t = sqrt(prof) * 2.0 * vP.x * vK;
-        emit(vP.y * t, vP.z * vK * (ring * 0.7 + prof * 0.6), uAbsorb * t, vRef);
+        emit(vP.y * t * uAlpha, vP.z * vK * (ring * 0.7 + prof * 0.6) * uAlpha, uAbsorb * t * uAlpha, vRef);
       }`,
   });
 }
@@ -409,11 +413,13 @@ export function createOptics(renderer) {
       uTexel: { value: new THREE.Vector2() }, uMode: { value: 0 }, uPlate: { value: null }, uHasPlate: { value: 0 },
       uPlateOff: { value: new THREE.Vector2() }, uAspect: { value: 1 }, uTime: shared.uTime,
       uHalo: { value: 1 }, uTie: { value: 1 }, uPlateOn: { value: 1 }, uPlateMix: { value: 1 }, uPlateBlur: { value: 0 }, uPlateRot: { value: 0 }, uBfSoft: { value: 0 },
+      uLightMix: { value: 0 }, uLightBg: { value: new THREE.Vector3(0.47, 0.475, 0.47) },
     },
     fragmentShader: /* glsl */ `
       layout(location = 0) out highp vec4 oC;
       uniform sampler2D tS0, tS1, tB0, tB1, tL, uPlate;
       uniform vec2 uTexel, uPlateOff; uniform float uMode, uHasPlate, uAspect, uTime, uHalo, uTie, uPlateOn, uPlateMix, uPlateBlur, uPlateRot, uBfSoft;
+      uniform float uLightMix; uniform vec3 uLightBg;
       varying vec2 vUv;
       float phi(vec2 uv) { return texture(tS0, uv).r + texture(tB0, uv).r; }
       void main() {
@@ -442,6 +448,14 @@ export function createOptics(renderer) {
           vec3 tint = exp(-A * 0.55);
           col = bg + I * vec3(0.86, 0.92, 1.0) * mix(vec3(1.0), tint, 0.85);
           col += 0.004 * max(sc - 4.0, 0.0) * vec3(1.0, 0.9, 0.7);
+          if (uLightMix > 0.0) {
+            // the light changing (a continuous transition): toward positive phase
+            // contrast on a plain field of uLightBg (the next world's own light)
+            float v = p - 0.82 * uHalo * L.r;
+            float Ip = mix(exp(-0.8 * v), 1.0 - 0.65 * tanh(0.65 * v), 0.5);
+            vec3 ph = uLightBg * Ip * exp(-A * 0.3) * (1.0 - 0.12 * min(sc, 3.0));
+            col = mix(col, ph, uLightMix);
+          }
         } else if (m == 1) {
           // Positive phase contrast: φ shifted a quarter wave against the
           // direct light; the finite phase ring lets the low-pass leak back,
@@ -548,7 +562,7 @@ export function createOptics(renderer) {
     /** 0/1 switches: halo (phase ring leakage), tie (brightfield defocus), plate, chroma, soft, grain. */
     toggles: { halo: formMat.uniforms.uHalo, tie: formMat.uniforms.uTie, plate: formMat.uniforms.uPlateOn, chroma: postMat.uniforms.uChroma, soft: postMat.uniforms.uSoft, grain: postMat.uniforms.uGrain },
     /** Render the scene with `camera` and form the image in `mode` (index into MODES). */
-    render(scene, camera, { mode, stop, plate, plateOff, blurScale = 1, upTo = 9, fill = null, plateMix = 1, plateBlur = 0, plateRot = 0, bfSoft = 0, rect = null, onScene = null }) {
+    render(scene, camera, { mode, stop, plate, plateOff, blurScale = 1, upTo = 9, fill = null, plateMix = 1, plateBlur = 0, plateRot = 0, bfSoft = 0, rect = null, onScene = null, lightMix = 0, lightBg = null }) {
       // the blur reaches ≈ 7 taps × 1.5 × blurScale × uWide quarter-res texels: pad the
       // earlier passes by that so the region's edge reads freshly drawn neighbours
       const reach = Math.ceil(7 * 1.5 * blurScale * Math.max(1, 1.4 * blurScale)) + 2;
@@ -588,6 +602,7 @@ export function createOptics(renderer) {
       f.uPlate.value = plate || null; f.uHasPlate.value = plate ? 1 : 0;
       if (plateOff) f.uPlateOff.value.copy(plateOff);
       f.uPlateMix.value = plateMix; f.uPlateBlur.value = plateBlur; f.uPlateRot.value = plateRot; f.uBfSoft.value = bfSoft;
+      f.uLightMix.value = mode === 0 ? lightMix : 0; if (lightBg) f.uLightBg.value.set(lightBg[0], lightBg[1], lightBg[2]);
       draw(formMat, img);
       if (upTo < 4) return;
 

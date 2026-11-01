@@ -38,6 +38,7 @@ import { createPlayers } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
+import { clumpLayout } from '../shared/kin-clump.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, AMOEBA_MODES, DIC_MODES } from '../shared/techniques/adapters.js';
 
 const SP = SPECIES[SPECIES_ID];
@@ -139,6 +140,56 @@ const spir = (() => {
   return { group, mesh, pos: new THREE.Vector3(0, 28, 0), heading: 0, roll: 0, home: 0 };
 })();
 const spirHeading = () => spir.heading;
+// The kin clump (shared/kin-clump.js): the spirillum's own microcolony on the
+// film, cells packed in slime, laid out exactly as the bacterium world opens
+// round your cell. It comes in with the slow-down; in darkfield it is a faint
+// glitter, but as the dive turns the light to phase contrast it reads as a
+// dark mass (the slime and the packed cells absorb), which the push-in
+// resolves into separate bacteria, the slime thinning, before the bacterium's
+// own field takes over under the same framing. It rides with the spirillum
+// (at its depth, turned with its heading): u ahead, v to its left on screen
+// (local −z), each cell's heading turned by −da (counter-clockwise on screen).
+const clump = (() => {
+  const L = clumpLayout();
+  const group = new THREE.Group();
+  group.visible = false;
+  scene.add(group);
+  const mats = [];
+  const mk = (geo, mat, list, scaleOf) => {
+    mats.push(mat);
+    const m = new THREE.InstancedMesh(geo, mat, list.length);
+    const o = new THREE.Object3D();
+    list.forEach((c, i) => {
+      o.position.set(c.u, ((i * 37) % 11 - 5) * 0.05, -c.v);
+      o.rotation.set(0, c.da, 0);
+      o.scale.copy(scaleOf(c));
+      o.updateMatrix();
+      m.setMatrixAt(i, o.matrix);
+    });
+    m.frustumCulled = false;
+    group.add(m);
+    return m;
+  };
+  class Line extends THREE.Curve { getPoint(u, out = new THREE.Vector3()) { return out.set(u - 0.5, 0, 0); } }
+  const rodGeo = closedTube(new Line(), 4, 1, 8).geo; // unit length and radius: scaled per cell
+  const cellMat = () => volumeMaterial({ dn: 0.16, scatter: 2.2, absorb: [1.6, 1.55, 1.45], rimPow: 1.6 });
+  const rods = L.filter((c) => c.kind === 'rod' || c.kind === 'film');
+  mk(rodGeo, cellMat(), rods, (c) => new THREE.Vector3(c.L, c.r, c.r));
+  mk(spir.mesh.geometry, cellMat(), L.filter((c) => c.kind === 'kin'), (c) => new THREE.Vector3(c.L / SPIRILLUM.L, 1, 1));
+  mk(new THREE.SphereGeometry(1, 10, 8), volumeMaterial({ dn: 0.16, scatter: 2.2, absorb: [1.6, 1.55, 1.45], rimPow: 1.6, centred: true }),
+    L.filter((c) => c.kind === 'coccus'), (c) => new THREE.Vector3(c.r, c.r, c.r));
+  // the slime the cells sit in: soft lumpy lenses, dark in phase contrast (they absorb), all but invisible in darkfield
+  const slimeMat = volumeMaterial({ dn: 0.01, scatter: 0.12, absorb: [0.95, 0.92, 0.86], centred: true, rimPow: 3 });
+  const lens = new THREE.SphereGeometry(1, 40, 10);
+  for (const [u, v, r, h] of [[0, 0, 13, 1.8], [7, 6, 8, 1.2], [-6, 8, 7, 1.1], [-8, -6, 8, 1.2], [6, -8, 6.5, 1.0]]) {
+    const m = new THREE.Mesh(lens, slimeMat);
+    m.scale.set(r, h, r * 0.85);
+    m.position.set(u, 0, -v);
+    m.frustumCulled = false;
+    group.add(m);
+  }
+  return { group, layout: L, set(k, slimeK) { for (const m of mats) m.uniforms.uAlpha.value = k; slimeMat.uniforms.uAlpha.value = k * slimeK; group.visible = k > 0.002; } };
+})();
 // its gold glint (as the springtail's mite speck has), drawn with the portal's glow
 const spirGlint = createGlint({ THREE, size: 5, intensity: 0.9, pixelHeight: () => renderer.getDrawingBufferSize(new THREE.Vector2()).y });
 spirGlint.points.visible = false;
@@ -1359,8 +1410,18 @@ function stepSpirillum(dt, snap = false) {
 // how that frames your cell (embed.opening) and takes the shell's poses,
 // ending exactly on that view; on `begin` time eases back in.
 const OUTRO = { beat: 0.3, ease: 1.0, hold: 1.4, back: 0.6, giveUp: 8, rate: 1 }; // rate: tests slow it down
+// The dive (the shell's camera move, asked for in embed.frozen): longer than the
+// default and with a later crossfade, so it can tell the story in order: the
+// light turns to phase contrast as the push begins (LIGHT, fractions of the
+// move), the clump shows as a dark mass, the push resolves it into cells as the
+// slime thins (SLIME), and the bacterium world takes over under the same
+// framing and settles on your cell. LIGHT_BG: the bacterium's phase field.
+const DIVE = { duration: 5.2, fade: [0.5, 0.78] };
+const LIGHT = [0.03, 0.3], SLIME = [0.36, 0.6], LIGHT_BG = [0.6, 0.655, 0.615];
 let outro = null;
 let fxT = 0;
+let diveLight = 0; // how far the dive has turned the light to phase contrast (0..1)
+const _clumpAbs = new THREE.Vector3(1.6, 1.55, 1.45);
 const portalBloom = createPortalLight({ zIndex: 4, clock: () => fxT });
 const sm01 = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
 /** The camera's elevation and azimuth (embed.js poses): the direction from what it looks at back to it. */
@@ -1390,7 +1451,7 @@ function stepOutro(dt) {
   if (o.scale <= 0 && o.frozenAt === null) {
     o.frozenAt = o.t;
     o.f0 = spirPose().f;
-    if (embed.active) embed.frozen(spirPose());
+    if (embed.active) embed.frozen(spirPose(), DIVE);
   }
   if (o.frozenAt !== null) {
     const held = o.t - o.frozenAt;
@@ -1427,7 +1488,7 @@ function placePoseCamera(pose, c, len, heading) {
 }
 embed.on('camera', (d) => {
   if (!d.pose) return;
-  if (outro) { outro.cam = d.pose; outro.heard = true; }
+  if (outro) { outro.cam = d.pose; outro.heard = true; if (Number.isFinite(d.u)) outro.u = d.u; }
   if (intro && !('ease' in intro)) intro.cam = d.pose;
 });
 embed.on('pause', () => { if (outro) outro.heard = true; });
@@ -1685,8 +1746,19 @@ function frame(now) {
   // the tardigrade's do); the camera move fades it out over the first ×4 of magnification, the glint over ×8 (the shell's halo carries it on)
   const dive = outro && outro.cam && outro.f0 ? Math.log(Math.max(1, outro.cam.f / outro.f0)) : 0;
   const slowDim = outro ? 1 - 0.7 * sm01(OUTRO.beat + 0.2, OUTRO.beat + OUTRO.ease, outro.t) : 1;
-  if (glowUI) glowUI.value = GLOW_I * slowDim * (1 - sm01(0, Math.log(4), dive));
+  // the dive's light and the kin clump (DIVE): in with the slow-down, out again if time comes back (standalone)
+  const mu = outro && outro.u != null ? outro.u : 0;
+  // (the glow's sparks are darkfield's: they go with it as the light turns)
+  if (glowUI) glowUI.value = GLOW_I * slowDim * (1 - sm01(0, Math.log(4), dive)) * (1 - 0.8 * sm01(LIGHT[0], LIGHT[1], mu));
   spirGlint.intensity = 0.9 * (1 - sm01(Math.log(2), Math.log(8), dive));
+  const clumpK = outro ? sm01(0, OUTRO.beat + OUTRO.ease, outro.t) * (outro.frozenAt !== null ? 1 - outro.scale : 1) : 0;
+  diveLight = outro ? sm01(LIGHT[0], LIGHT[1], mu) : 0;
+  clump.set(clumpK, 1 - sm01(SLIME[0], SLIME[1], mu));
+  // the leaf's lawn of rods thins as the light turns, so the clump stands out as a mass (and the bacterium's field, not the lawn, takes over)
+  drop.lawn.material.uniforms.uAlpha.value = outro ? 1 - 0.75 * diveLight - 0.25 * sm01(SLIME[0], DIVE.fade[0], mu) : 1;
+  if (clumpK > 0) { clump.group.position.copy(spir.pos); clump.group.rotation.set(0, -spir.heading, 0); }
+  // your spirillum takes the clump's look as the light turns (it glints in darkfield; in phase it is one of them)
+  spir.mesh.material.uniforms.uAbsorb.value.set(0.02, 0.022, 0.03).lerp(_clumpAbs, diveLight);
   spirGlint.update(t);
   // the split screen (one view while together: the fast path, as before)
   const list = liveRoster().map((P) => ({ slot: P.slot, position: P.swimmer.state.center }));
@@ -1713,6 +1785,7 @@ function frame(now) {
       plateMix: PLATE_MIX[view.plate][0], plateBlur: PLATE_MIX[view.plate][1],
       plateRot: view.kind === 'scope' ? view.scopeYaw - Math.PI / 2 : 0,
       bfSoft: 1,
+      lightMix: diveLight, lightBg: LIGHT_BG,
     };
     // per view: draw only what this view can see, and (split) only its own region
     // the scenery tile: every set piece at its copy nearest where this view looks
@@ -2171,8 +2244,13 @@ window.__micro = {
   /** Go through the portal now as player `slot` (what reaching it while open does). */
   enterPortal: (slot = 0) => enterPortal(slotP(slot)),
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
-  outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
-  OUTRO,
+  outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam, u: outro.u ?? null, light: +diveLight.toFixed(3) } : null; },
+  OUTRO, DIVE,
+  /** The kin clump's cells (shared/kin-clump.js) on screen now, in normalised device coordinates (the shell-path checks compare them with the bacterium's). */
+  clumpScreen(n = 8) {
+    const v = new THREE.Vector3(), h = spir.heading;
+    return clump.layout.slice(0, n).map((c) => { v.set(spir.pos.x + c.u * Math.cos(h) + c.v * Math.sin(h), spir.pos.y, spir.pos.z + c.u * Math.sin(h) - c.v * Math.cos(h)).project(chase); return { kind: c.kind, x: +v.x.toFixed(4), y: +v.y.toFixed(4) }; });
+  },
   /** The glimpsed spirillum (the next world's creature) and its pose in the chase view now; your cell's pose. */
   spirillum: () => ({ pos: spir.pos.toArray(), heading: spir.heading, visible: spir.group.visible, pose: spirPose() }),
   cellPose: () => embed.poseOf(chase, swimmer.state.center, { len: LENGTH, heading: cellHeading(swimmer.state), ...camAngles(chase) }),

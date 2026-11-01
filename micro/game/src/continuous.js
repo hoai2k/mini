@@ -15,6 +15,10 @@
 //     speed()    time multiplier (tests slow it down); default 1
 //     onFrame(info)  { u, alpha, pose } each frame (tests, readouts)
 //     seek()     tests: a fixed progress 0..1 to hold at (null: run on the clock)
+//     duration   the move in seconds (MOVE_S); fade: the crossfade [from, to] (FADE)
+//   Each `camera` message also carries the move's progress `u` and the new
+//   world's opacity `alpha`, so the old world can stage things along the move
+//   (the Paramecium turns its light to phase contrast before the crossfade).
 
 export const MOVE_S = 3.4;           // the camera move, seconds
 export const FADE = [0.4, 0.68];     // the crossfade, as fractions of the move
@@ -36,10 +40,18 @@ export function lerpPose(a, b, e, o = e) {
   return { f, x: a.x + (b.x - a.x) * e, y: a.y + (b.y - a.y) * e, pitch: a.pitch + (b.pitch - a.pitch) * o, rel: a.rel + wrap(b.rel - a.rel) * o };
 }
 
+/** The move a `frozen` message asks for ({duration, fade}), within sane bounds, else the default. */
+export function moveOf(m) {
+  const duration = m && Number.isFinite(m.duration) ? Math.min(8, Math.max(1.5, m.duration)) : MOVE_S;
+  const f = m && Array.isArray(m.fade) && m.fade.every(Number.isFinite) ? m.fade : null;
+  const fade = f && f[0] >= 0.05 && f[1] > f[0] + 0.05 && f[1] <= 0.95 ? [f[0], f[1]] : FADE;
+  return { duration, fade };
+}
+
 /** A pose is usable when every number is finite and the size is positive. */
 export const validPose = (p) => !!p && ['f', 'x', 'y', 'pitch', 'rel'].every((k) => Number.isFinite(p[k])) && p.f > 0;
 
-export function playContinuous({ oldFrame, newFrame, from, to, send, speed = () => 1, onFrame = () => {}, duration = MOVE_S, seek = () => null }) {
+export function playContinuous({ oldFrame, newFrame, from, to, send, speed = () => 1, onFrame = () => {}, duration = MOVE_S, fade = FADE, seek = () => null }) {
   // (no clamping: the first pose must be exactly the freeze frame's, even
   // with the creature off screen; it then slides in as the camera turns)
   const a = { ...from };
@@ -58,7 +70,7 @@ export function playContinuous({ oldFrame, newFrame, from, to, send, speed = () 
     const W = halo.clientWidth || innerWidth, H = halo.clientHeight || innerHeight;
     if (halo.width !== W || halo.height !== H) { halo.width = W; halo.height = H; }
     g.clearRect(0, 0, W, H);
-    const k = smooth(u / 0.25) * (1 - smooth((u - FADE[1]) / (0.95 - FADE[1])));
+    const k = smooth(u / 0.25) * (1 - smooth((u - fade[1]) / (0.95 - fade[1])));
     if (k <= 0.01) return;
     const x = (pose.x * 0.5 + 0.5) * W, y = (0.5 - pose.y * 0.5) * H;
     const r = Math.max(42, pose.f * W * 1.2);
@@ -77,11 +89,11 @@ export function playContinuous({ oldFrame, newFrame, from, to, send, speed = () 
       if (fixed != null) t = Math.max(0, Math.min(1, fixed)) * duration;
       const u = Math.min(1, t / duration);
       const e = ease(u);
-      const pose = lerpPose(a, to, e, ease(Math.min(1, u / FADE[0])));
+      const pose = lerpPose(a, to, e, ease(Math.min(1, u / fade[0])));
       drawHalo(pose, u);
-      const alpha = smooth((u - FADE[0]) / (FADE[1] - FADE[0]));
-      if (alpha < 1) send(oldFrame, 'camera', { pose });
-      send(newFrame, 'camera', { pose });
+      const alpha = smooth((u - fade[0]) / (fade[1] - fade[0]));
+      if (alpha < 1) send(oldFrame, 'camera', { pose, u, alpha });
+      send(newFrame, 'camera', { pose, u, alpha });
       newFrame.style.opacity = alpha.toFixed(3);
       oldFrame.style.opacity = alpha >= 1 ? '0' : '1';
       onFrame({ u, alpha, pose });

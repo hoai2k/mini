@@ -211,10 +211,10 @@ vec4 membraneLight(vec3 n, vec3 v){
   // deep navy in the hollows, teal on the lumps, a greener teal on their tops, blue patches, pale wet crests
   vec3 alb = mix(uFLColor, uFLColor2, smoothstep(0.3, 0.75, hh));
   alb = mix(alb, uFLColor2 * vec3(1.0, 1.12, 1.02), smoothstep(0.7, 0.95, hh) * 0.4);
-  alb = mix(alb, vec3(0.06, 0.15, 0.40), smoothstep(0.55, 0.85, blotch) * 0.4);
+  alb = mix(alb, vec3(0.06, 0.15, 0.40), smoothstep(0.35, 0.95, blotch) * 0.35); // (broad, soft blue patches)
   float crest = smoothstep(0.6, 1.0, wr) * smoothstep(0.4, 0.75, hh);
   alb = mix(alb, vec3(0.46, 0.62, 0.56), crest * 0.22);
-  float cav = smoothstep(0.1, 0.55, r0) * 0.55 + smoothstep(0.1, 0.6, vLump) * 0.45;
+  float cav = smoothstep(0.05, 0.6, r0) * 0.55 + smoothstep(0.0, 0.7, vLump) * 0.45;
   vec3 L = normalize(vec3(-0.45, 0.75, 0.5));
   float ndl = dot(nb, L);
   float wrapD = clamp((ndl + 0.35) / 1.35, 0.0, 1.0);
@@ -223,7 +223,7 @@ vec4 membraneLight(vec3 n, vec3 v){
   vec3 key = vec3(1.0, 0.94, 0.84), fill = vec3(0.12, 0.30, 0.42);
   vec3 col = alb * (key * wrapD * 1.25 + fill * (0.34 + 0.3 * nb.y));
   col += vec3(0.14, 0.38, 0.42) * (0.4 * crest * wrapD + fres * 0.7) * uFLTrans;       // light through thin parts
-  col *= mix(0.42, 1.0, cav);
+  col *= mix(0.55, 1.0, cav);
   vec3 H = normalize(L + v);
   float ndh = max(dot(nb, H), 0.0);
   float glint = 0.3 + 0.7 * smoothstep(0.4, 0.85, wr);                                 // (on the wet crests: sparkles, not a blown patch)

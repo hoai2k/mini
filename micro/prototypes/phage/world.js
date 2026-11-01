@@ -472,7 +472,7 @@ export function createWorld(scene) {
   const clayCols = ['#a98b6a', '#8f7556', '#b89b78'];
   for (let i = 0; i < 3; i++) {
     const g = new THREE.BoxGeometry(80 - i * 9, 3.4, 52 - i * 6, 8, 1, 6);
-    const b = inked(g, toonMaterial({ color: clayCols[i], wobble: 0.7, wobbleFreq: 0.08, mottle: 0.35, fl: { color: '#3c4440', color2: '#6a6050', keep: 0, trans: 0.3, bump: 1.2, spec: 0.3, scale: 0.08 } }), { width: 1.1 });
+    const b = inked(g, toonMaterial({ color: clayCols[i], wobble: 0.7, wobbleFreq: 0.08, mottle: 0.35, fl: { color: '#26302e', color2: '#423f36', keep: 0, trans: 0.3, bump: 1.2, spec: 0.25, scale: 0.08 } }), { width: 1.1 });
     b.position.set(i * 3 - 3, (i - 1) * 3.6, i * 2);
     b.rotation.y = (i - 1) * 0.05;
     clay.group.add(b);
@@ -680,7 +680,7 @@ export function createWorld(scene) {
   // cells wrap round each view's centre on the GPU, as the baths do, in a box of ±FAR_HALF, never nearer than
   // FAR_INNER (they dissolve into the haze before that), so whichever way you look a few hang out there; the
   // depth of field softens them. Scenery for the eye only: the solid cells to go to are the bystanders.
-  const FAR = 44, FAR_HALF = 950, FAR_INNER = 420;
+  const FAR = 60, FAR_HALF = 950, FAR_INNER = 420;
   const farBase = new THREE.CapsuleGeometry(36, 120, 8, 24, 4); farBase.rotateZ(Math.PI / 2);
   const farGeo = new THREE.InstancedBufferGeometry();
   for (const k of ['position', 'normal']) farGeo.setAttribute(k, farBase.attributes[k]);
@@ -689,7 +689,7 @@ export function createWorld(scene) {
   {
     let sd = 977; const r = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
     for (let i = 0; i < FAR; i++) {
-      fp.set([(r() * 2 - 1) * FAR_HALF, (r() * 2 - 1) * FAR_HALF, (r() * 2 - 1) * FAR_HALF, 0.9 + r() * 0.9], i * 4);
+      fp.set([(r() * 2 - 1) * FAR_HALF, (r() * 2 - 1) * FAR_HALF, (r() * 2 - 1) * FAR_HALF, 1.0 + r() * 1.0], i * 4);
       _q.setFromEuler(new THREE.Euler(r() * 6.3, r() * 6.3, r() * 6.3));
       fq.set([_q.x, _q.y, _q.z, _q.w], i * 4);
     }
