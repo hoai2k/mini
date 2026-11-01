@@ -1491,10 +1491,9 @@ function drawViews(dt) {
   // no arrow (the owner: keep moving and you find it): once placed, the portal's golden
   // light spills in from the edge of the view on its side (or haloes it in view); no text
   if (portal.placed && !(capture.active && solo) && !outro) {
-    const res = marks.drawSplit(split, places.forward, { kind: 'forward', range: 30, nearAlpha: 0, farAlpha: 0 });
     let d = Infinity;
     for (const a of animals) d = Math.min(d, a.walker.dispPos.distanceTo(places.forward));
-    portalLight.drawSplit(split, res, { strength: THREE.MathUtils.clamp(1.15 - d / 30, 0.3, 1), open: places.glow.open });
+    portalLight.drawSplit(split, places.forward, { strength: THREE.MathUtils.clamp(1.15 - d / 30, 0.3, 1), open: places.glow.open });
   }
   if (outro) return;
   marks.drawSplit(split, places.back, { kind: 'backdoor', label: 'Moss', range: 30 });

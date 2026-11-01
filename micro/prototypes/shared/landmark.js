@@ -39,7 +39,7 @@
 //       [[[x,y],...], ...] (default the whole screen); anchor: [x,y] (default the region's
 //       centre). Returns { x, y, angle, onScreen } or null.
 //   marks.drawSplit(split, position, opts)  draw for every view of split.layout
-//   marks.canvas                           the overlay canvas
+//   marks.canvas                           the overlay canvas (taking it to paint on marks it for clearing)
 //   marks.dispose()
 
 const STYLE = {
@@ -298,5 +298,9 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
     return out;
   }
 
-  return { begin, draw, drawSplit, canvas, dispose() { canvas.remove(); } };
+  // A world that paints on the overlay itself (player rings, the amoeba's pseudopod
+  // marks) takes it through `canvas`: that counts as painting, so the next begin()
+  // clears it. (With both edge marks switched off nothing else would, and the
+  // world's marks smeared into trails.)
+  return { begin, draw, drawSplit, get canvas() { dirty = true; return canvas; }, dispose() { canvas.remove(); } };
 }

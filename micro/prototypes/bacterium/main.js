@@ -525,7 +525,9 @@ function runFights(dt) {
       }
     }
     // --- Bdellovibrio lining up to ram the magnetotactic cell ---
-    if (P.bdello && (!fightable(P) || S.species !== 'mtb' || !world.opts.hunters || !world.hunt.bdello || S.attacker)) { P.bdello.c.stalking = null; P.bdello.c.cooldown = 6; P.bdello = null; }
+    // (also let go of one that is no longer there to attack: killed by the army, gone out of sight after
+    // taking a member, or attached to other prey; its wind-up ring would otherwise pulse with nothing behind it)
+    if (P.bdello && (!fightable(P) || S.species !== 'mtb' || !world.opts.hunters || !world.hunt.bdello || S.attacker || P.bdello.c.dead || P.bdello.c.hidden > 0 || P.bdello.c.prey || P.bdello.c.latch)) { P.bdello.c.stalking = null; P.bdello.c.cooldown = Math.max(P.bdello.c.cooldown || 0, 6); P.bdello = null; }
     if (!P.bdello && fightable(P) && P.nearPack && S.species === 'mtb' && world.opts.hunters && world.hunt.bdello && !S.attacker) {
       P.bdelloCool = (P.bdelloCool ?? 2) - dt;
       if (P.bdelloCool <= 0) {

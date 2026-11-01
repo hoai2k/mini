@@ -1734,9 +1734,8 @@ function frame(now) {
   portalLight.begin();
   portalBloom.begin();
   if (FWD.placed && !outro) {
-    const res = edgeMarks.drawSplit(arrowSplit(), FWD.pos, { kind: 'forward', label: '', range: 3000 });
     const dmin = Math.min(...livePos().map((c) => Math.hypot(c.x - FWD.pos.x, c.z - FWD.pos.z)), 1e9);
-    portalLight.drawSplit(arrowSplit(), res, { strength: THREE.MathUtils.clamp(1.2 - dmin / 3000, 0.4, 1), open: portalGlow.open });
+    portalLight.drawSplit(arrowSplit(), FWD.pos, { strength: THREE.MathUtils.clamp(1.2 - dmin / 3000, 0.4, 1), open: portalGlow.open });
   }
   edgeMarks.drawSplit(arrowSplit(), BACK.pos, { kind: 'backdoor', label: BACK.label, range: 3000 });
 
