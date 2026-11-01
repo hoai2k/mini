@@ -73,10 +73,9 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
 - **The art games live in the `art` repository.** The Ice-Cream Cone Coot,
   Bronze Drum, Kingdom of the Fairies and Fibre Art moved there (published at
   https://games.hoai.net/art/) and their folders were removed from mini: work
-  on them, their deploys and their deploy settings all happen in `art`. mini's
-  library still shows their cards, pointing at `../art/<game>/` (images
-  included), and the library filter, which matches `href="<game>/"`, leaves
-  them in.
+  on them, their deploys and their deploy settings all happen in `art`, and
+  mini's library no longer lists them (the art library at
+  https://games.hoai.net/art/ and the games.hoai.net library do).
   Micro Zoom's `micro/deploy_config.json` works the same way for its prototype
   browser (`includePrototypeBrowser`: the list at `/micro/prototypes/` and the
   split-screen demo); the game and the world pages it hosts always deploy.
@@ -90,9 +89,7 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
   playable build into `local/pages/<folder>/`. Add a step for it to
   `.github/workflows/pages.yml`, a link in the root `README.md`, a card at the
   front of the game library page (`index.html`): newest game first by when it
-  was made, so Tank Wars comes last (the art games' cards keep their places,
-  with Fibre Art after Kingdom of the Fairies at the owner's request), and a
-  row in the table above.
+  was made, so Tank Wars comes last, and a row in the table above.
 - **The root holds only what is shared.** `README.md` is a list of links to
   the games and sites and nothing more; each game's details belong in its own
   README. `index.html` is the game library published at
@@ -106,8 +103,9 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
   `/swingers/...` on the same site). Their gates ignore the public-access
   switch, so their cards sit in `<template data-invite>` blocks that the
   library reveals only to visitors holding an invite pass;
-  they keep the shelf's newest-first order, except that Swingers sits just
-  after Half-Blood Quests at the owner's request. `GAME_GUIDELINES.md` applies to every game.
+  at the owner's request mini's recent games come first (Micro Zoom, then
+  Half-Blood Quests), then the Swingers-repo games (Spider Swingers, Wobblers,
+  Wobbly Battles, Swingers), then the older mini games (Hopper, Tank Wars). `GAME_GUIDELINES.md` applies to every game.
 - **Which games deploy is the root `deploy_config.json`.** A folder set to
   `false` under `"games"` is not built or published (`build-game.sh` skips it
   without restoring a live copy) and its card is left out of the published
