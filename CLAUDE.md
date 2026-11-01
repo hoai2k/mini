@@ -61,7 +61,7 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
 | `mp3player/` | MP3 Player (the music files on the device, played like a streaming app: songs, albums, artists, shuffle, repeat, a queue and a custom order; songs are copied into the browser's storage, never changed on the device) | https://hoai2k.github.io/mini/mp3player/ |
 | `imageannotator/` | Image Annotator (open a picture, point things out with arrows, circles and free drawing, each with an optional title that is placed clear of the others; save, then export as the original format, JPEG or JPEG for web) | https://hoai2k.github.io/mini/imageannotator/ |
 | `meditation/` | Meditation Timer (a sitting timer: a preroll to settle, 5 seconds by default, then a starting chime, the time, and an ending chime; singing bowls, rin, tingsha, Koshi chimes or a temple bell, recorded or synthesized) | https://hoai2k.github.io/mini/meditation/ |
-| `micro/` | Micro Zoom (play as microscopic creatures: the game shell in `micro/game/` hosts the worlds in `micro/prototypes/` (springtail, mite, tardigrade, amoeba, Paramecium, bacterium, phage, each in a different microscope look) and zooms between them; a cited research atlas in `micro/research/` and the Zoom Chain level spec in `micro/design/`); not deployed (off in `deploy_config.json`), behind the invite gate | https://hoai2k.github.io/mini/micro/ (prototypes at `/micro/prototypes/`) |
+| `micro/` | Micro Zoom (play as microscopic creatures: the game shell in `micro/game/` hosts the worlds in `micro/prototypes/` (springtail, mite, tardigrade, amoeba, Paramecium, bacterium, phage, each in a different microscope look) and zooms between them; a cited research atlas in `micro/research/` and the Zoom Chain level spec in `micro/design/`); behind the invite gate, its library card shown only to invite holders | https://hoai2k.github.io/mini/micro/ (prototypes at `/micro/prototypes/`) |
 | `smoothcraft/` | Smoothcraft (a Minecraft Java Edition mod for Fabric: smooth terrain, rounded mobs, physically based materials and lighting, high-resolution textures from its image requests); a Gradle project in `smoothcraft/mod/`, not a browser game, so it has no `publish.sh`, Pages step or library card; `pages.yml` skips pushes that only change `smoothcraft/` | — |
 | `chat/` | Games Chat (video chat with face effects and minigames); its iPhone/iPad app, calls server and TestFlight guide are in `chat/ios/` | https://hoai2k.github.io/mini/chat/ |
 | `multiplayer/` | Shared online-multiplayer relay (Cloudflare Worker) and its browser client, used by any game; see `MULTIPLAYER.md` | https://mini-rooms.hoai2k.workers.dev |
@@ -73,6 +73,9 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
   workbench out of the deployed site (it still works locally), and a missing or
   unreadable file means `true`. Bronze Drum's sound workbench (about 10 MB of
   alternative takes) is the one today; the other workbenches are a few KB.
+  Micro Zoom's `micro/deploy_config.json` works the same way for its prototype
+  browser (`includePrototypeBrowser`: the list at `/micro/prototypes/` and the
+  split-screen demo); the game and the world pages it hosts always deploy.
 - **Keep each game inside its own folder.** Its code, design documents, asset
   requests, art, audio, tests, publish script and intake drop box all live
   there. Never put one game's files in another game's folder. In particular,
@@ -104,8 +107,9 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
   without restoring a live copy) and its card is left out of the published
   library (`.github/scripts/deploy-config.py library`, run by the "Shared
   root files" step); games not listed deploy, and a missing or unreadable file
-  deploys every game. Micro Zoom, Bookzam, One Monster After Another and
-  Gliders are off today (they were the Prototype archive), so their pages 404.
+  deploys every game. Bookzam, One Monster After Another and Gliders are
+  off today (they were the Prototype archive, with Micro Zoom, which is back
+  on), so their pages 404.
   The Ice-Cream Cone Coot, Bronze Drum, Kingdom of the Fairies and Fibre Art
   are off too: they moved to the `art` repository (published at
   https://games.hoai.net/art/), which is where their work happens now; mini's
@@ -114,7 +118,7 @@ from `sites/`, `multiplayer/` and `local/` (`smoothcraft/` is a Minecraft mod ra
   filter, which matches `href="<game>/"`, leaves them in.
   Turning one back on means setting it to `true` (or deleting its line) and
   adding a card for it to `index.html`, since the archive's links are gone.
-  Those four still carry the shared invite gate opened with
+  Those three, and Micro Zoom, still carry the shared invite gate opened with
   `ignorePublicAccess: true` (copy `onemonster/game/src/gate/gate.js` byte for
   byte, opened from a `boot.js`), so the owner's public-access switch
   (`/public-access.json` in `hoai2k.github.io`) never opens them; dropping

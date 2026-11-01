@@ -1,0 +1,4 @@
+{
+  "_comment": "Read by micro/publish.sh at deploy. includePrototypeBrowser: true publishes the prototype browser (the list at /micro/prototypes/ and the split-screen demo); false leaves them out, while the game at /micro/ and the world pages it hosts still deploy. A missing or unreadable file counts as true.",
+  "includePrototypeBrowser": true
+}

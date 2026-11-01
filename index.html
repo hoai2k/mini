@@ -126,6 +126,8 @@
   .wobblers .cover { background: #6cc4f0 url("../swingers/wobblers/assets/posters/painting_island.png") center / cover; }
   .battles .cover { background: #7fc44a url("../swingers/battles/assets/ui/map-grass.jpg") center / cover; }
   .swingers .cover { background: #141a3a url("../swingers/assets/web/keyart.jpg") center / cover; }
+  .micro .cover { background: radial-gradient(circle at 50% 45%, #1f3a2c, #0c1a12 70%); }
+  .micro .cover img { width: auto; height: auto; max-width: 70%; max-height: 86%; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .6)); }
   .percyjackson .cover { background: #10233d url("percyjackson/assets/title-bg.jpg") center / cover; }
   .percyjackson .cover img { width: 80%; height: auto; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .6)); }
   .tankwars .cover {
@@ -212,6 +214,23 @@
       <div class="info">
         <h2>Wobbly Battles</h2>
         <p>Wobbly ragdoll armies in the style of Totally Accurate Battle Simulator: both players build at once in split screen, then watch the battle together.</p>
+        <span class="pad-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 6h10a5 5 0 0 1 4.9 6l-1 4.6a2.6 2.6 0 0 1-4.5 1.2L14.6 16H9.4l-1.8 1.8a2.6 2.6 0 0 1-4.5-1.2l-1-4.6A5 5 0 0 1 7 6zm0 3v1.5H5.5v1.5H7v1.5h1.5V12H10v-1.5H8.5V9H7zm9.5.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>Controller recommended</span>
+        <span class="play">Play →</span>
+      </div>
+    </a>
+    </template>
+
+    <!-- Micro Zoom keeps the shared invite gate (ignorePublicAccess: true), so
+         its card too appears only to visitors holding an invite pass. -->
+    <template data-invite>
+    <a class="game micro" href="micro/">
+      <div class="cover">
+        <span class="tag">4 players</span>
+        <img src="micro/icons/icon-512.png" alt="Micro Zoom" loading="lazy">
+      </div>
+      <div class="info">
+        <h2>Micro Zoom</h2>
+        <p>Play as microscopic creatures and zoom down a chain of seven worlds, from a springtail on a pond to a virus inside a bacterium, each in a different microscope's look. Split screen for up to four.</p>
         <span class="pad-note"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 6h10a5 5 0 0 1 4.9 6l-1 4.6a2.6 2.6 0 0 1-4.5 1.2L14.6 16H9.4l-1.8 1.8a2.6 2.6 0 0 1-4.5-1.2l-1-4.6A5 5 0 0 1 7 6zm0 3v1.5H5.5v1.5H7v1.5h1.5V12H10v-1.5H8.5V9H7zm9.5.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>Controller recommended</span>
         <span class="play">Play →</span>
       </div>
