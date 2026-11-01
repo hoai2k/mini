@@ -2,47 +2,75 @@
 
 A playable prototype: swim as *Paramecium bursaria*, the Level 3
 protagonist of the Zoom Chain spec, through a pond drop seen through a
-microscope. Eat prey, keep your symbiotic algae in the light, and make your
-way to the biofilm far up and to the right. The first half of the way is
-calm; beyond halfway come the hunters (*Dileptus*, which your trichocysts
-drive off, and two *Didinium*, which they cannot stop), a bladderwort trap
-across the way and a *Chlamydomonas* bloom to push and gulp through. *Amoeba
-proteus*, a slow giant that cups you in its pseudopods, guards the way back.
+microscope. Eat prey, bask in the light, and head out in any direction: the
+challenges lie in rings round the start (*Dileptus*, which your trichocysts
+drive off, a *Chlamydomonas* bloom to push and gulp through, two *Didinium*,
+which they cannot stop), and out on the last ring the way on, a biofilm under
+a golden light, guarded by a bladderwort trap. *Amoeba proteus*, a slow giant
+that cups you in its pseudopods, keeps to the way back.
 
-## The route: calm first, challenges from halfway
+## The rings: the same in every direction (encounter pattern)
 
-The owner: challenges "don't appear near the beginning but only once you're
-halfway at least to the destination", and the destination should be "far
-enough away to contain all the challenges along with the initial movement
-exploration phase". So the drop is now about 10 mm across (`world.js`
-`DROP_R` 5000 µm) and everything is placed along one route (`landmarks.js`:
-`START`, `DIR`, `ROUTE_LEN` 4600 µm, `progress(p)`), still starting toward
-the upper right:
+The owner (2026-11-01, `micro/design/encounter-pattern.md`): "make the
+distances shorter and more concise to encounter obstacle soon (but not
+immediate), and to be able to move in any direction far enough to reach a
+portal + boss … everything action based … the user should be able to hang
+around a safe area forever"; and the obstacles spaced roughly evenly from
+the warm-up to the boss. So the long route up and to the right (4.6 mm, calm
+first half) became rings round the start (`landmarks.js` `RINGS`, µm out from
+`START`, in the plane), met at about the same distances whichever way you head:
 
-| µm along the route | what |
+| µm out | what |
 | --- | --- |
-| 0–2300 | calm: prey, the Vorticella, diatoms, Spirogyra, the sunlit patch |
-| 2300 (halfway) | the hunters' clocks start (6 s grace, then each 5 s after the last) |
-| from 2300 | *Dileptus* (home 2720, right of the route) |
-| from 2300 | *Didinium* 1 (home 2850, left of the route) |
-| from 2500 | the bladderwort trap wakes (door at ≈3150, wake radius 650 µm) |
-| from 3100 | *Didinium* 2, inside the bloom (home 4000) |
-| 3700–4300 | the *Chlamydomonas* bloom, 2.2 mm wide across the route |
-| 4600 | the biofilm (the forward landmark) |
+| 0–750 | the calm warm-up: prey, Vorticella, diatoms, Spirogyra, the sunlit patch |
+| 750–1450 | *Dileptus*'s water (home on the 1000 µm ring) |
+| 1600–2100 | the *Chlamydomonas* bloom (a band 1.8 mm along the 1850 µm ring) |
+| 2150–3050 | two *Didinium* (homes on the 2600 µm ring, ≈300 µm either side) |
+| ≈3150 | the bladderwort trap's door (bladder at 3420), on guard |
+| 3850 | the portal: the biofilm on a leaf under the golden glow |
 
-Each ciliate hunter keeps to its own waters (`home`, `homeR` in `world.js`):
-it drifts back when it strays, is never pushed into the first half, and hunts
-only a player who is beyond halfway and near its home. The amoeba keeps to
-its floor 1.5 mm behind the start (the way back, the other way from every
-challenge) and hunts only round it, after its own 45 s calm opening. A player
-who is eaten comes back on the route a little behind where they were, never
-past halfway. `window.__micro.challenges()` lists where each challenge begins
-(geometry) and `route()` each player's progress.
+- **One of each, moved to meet you** (`moveRings` in `main.js`, like
+  springtail's `placeZone`): the Dileptus, the Didinium pair and the bloom are
+  each moved round their ring to the bearing of whoever is heading out
+  through it, but only while not engaged with anyone, and only when where it
+  is lies over 750 µm and where it goes over 550 µm from every player (the
+  bloom: its whole band). `route().relocations` logs each move.
+- **The portal** is placed once a game: when the first player gets 1.5 mm
+  short of its ring, on the ring at their bearing, out of sight (`placePortal`:
+  the leaf, the trap in front of it with its door toward the start, and the
+  golden glow, `shared/portal.js`). Until then there is no forward arrow;
+  then the brass chevron points to it and its light spills in from the edge.
+- **Guarded:** while the trap is not spent, touching the biofilm turns you
+  back (you are swept back off the leaf, with a toast once). Make it fire and
+  miss until its resolve is gone: spent, it hangs slack for 24 s and the way
+  is open (`enterPortal` fires `embed.landmark('forward')`).
+- The ciliates hunt only a player out of the warm-up and near their home;
+  their hunger clocks start when someone first leaves the warm-up (6 s grace,
+  then each 5 s after the last). A player who is eaten comes back alone in the
+  calm warm-up on the bearing where they were (with others: beside a teammate).
+- **The way back** stays a fixed place: the amoeba's floor 1.5 mm behind the
+  start (between the Dileptus and bloom rings that way), where the amoeba keeps
+  to its patch and hunts only round it, after its own 45 s calm opening.
+- **Nothing runs down.** The sunlit patch is a bonus (the dash recharges 1.4×
+  faster there); shade costs nothing. There is no light meter, oxygen or
+  hunger of your own: stay in the calm water as long as you like.
+- **Dangers you can see:** the trap's inflow is drawn as streaks rushing into
+  its door, faint over its reach while the door quivers (the pulse to come),
+  strong while it pulses; the bloom's sinking plumes are its cells themselves.
+- At full speed the portal ring is about three seconds away; the time goes on
+  the encounters. `window.__micro.route()` gives the rings, the portal (placed,
+  bearing, guarded) and the relocations; `challenges()` where each begins;
+  `debug.placePortal(a)` places it now.
+- Checked with a scripted swim out on two bearings away from the first one
+  (A0 + 2.0 and A0 − 1.3 rad): the Dileptus, bloom and Didinium each moved to
+  that bearing before the player reached them, the portal appeared on it, the
+  guarded leaf turned the player back, and once the trap was spent the
+  biofilm let them through (`rings.mjs` in the session scratchpad).
 
 ## The crowd: a *Chlamydomonas* bloom
 
-`bloom.js`, on `shared/crowd.js`: a band of green flagellates across the
-route between the trap and the biofilm (combat-ideas.md, the crowd set
+`bloom.js`, on `shared/crowd.js`: a band of green flagellates 1.8 mm along
+its ring (moved round it to meet you) (combat-ideas.md, the crowd set
 piece). The owner wanted crowds "you can fight through by moving and
 attacking" without too much difficulty and with no time limits, so:
 
@@ -109,9 +137,9 @@ materials (`landmarks.js`), and a quiet edge arrow (`shared/landmark.js`)
 shows where each is when it is off screen: a brass chevron for the way on, a
 hollow ring for the way back.
 
-- **Forward: the biofilm on a leaf.** A fragment of dead leaf lies on the
-  slide at the far side of the drop (560, 0, 1130 µm; about 1.3 mm from the
-  start, a few seconds at full speed, longer with the hunters about). Its
+- **Forward: the biofilm on a leaf** (the portal). A fragment of dead leaf
+  lies on the slide 3.85 mm out, at the bearing where it was found (see *The
+  rings*), under the shared golden glow, guarded by the trap. Its
   surface is coated in a biofilm: thousands of rods and dots in microcolonies
   under a faint slime sheen, which at 20× read only as texture. That texture
   is the zoom target into the bacterium level (spec §3.6, §4.6). Swim down and
@@ -131,8 +159,9 @@ hollow ring for the way back.
 
 `bladderwort.js`, run by `runBoss` in `main.js` (`shared/predation.js`
 `createFight`, with more resolve). A *Utricularia* bladder about half a millimetre
-long hangs on its stalk just above the slide, three quarters of the way to the
-biofilm, its door facing the way you come. Shaped after the delivered sheet
+long hangs on its stalk just above the slide in front of the biofilm (the
+portal), placed with it, its door facing the way you come: it guards the way
+on (see *The rings*). Shaped after the delivered sheet
 (`assets/reference-sheets/boss-bladderwort.webp`): a rounded, slightly pear-
 shaped translucent green sac with a mottled wall of cells, its upper front
 drawn out into a collar that holds an oval door with a thick threshold; two
@@ -142,8 +171,8 @@ dot the inside, with a brown mass of digested catches and a round prey still
 whole; the stalk joins at the back and runs to the stem.
 You glance off its wall.
 
-- **Dormant** until a player comes within ≈0.9 mm of its door after the calm
-  opening (it is a choice to engage). Then a quiet brass **resolve gauge**
+- **Hidden** until the portal is placed, then **dormant** until a player
+  comes within 650 µm of its door (it is a choice to engage). Then a quiet brass **resolve gauge**
   shows under the goal strip while anyone is near.
 - **Its tell:** after each reset the walls are drawn in (set); before a
   pulse the door quivers, the trigger hairs twitch and the walls draw in
@@ -182,7 +211,7 @@ pressing a button on another controller ("Player 2 joined"; in the game the
 shell's roster comes in with `embed.players`).
 
 - **Each player is their own Paramecium** with its own dash, trichocysts,
-  light meter and catch. Alone, nothing is drawn round your cell; together,
+  sunlight bonus and catch. Alone, nothing is drawn round your cell; together,
   each cell has a faint broken ring and a "P2" tag in its player's colour.
   The prey count is shared.
 - **One shared camera, then a split.** Player 1's controls set the view (Y
@@ -357,17 +386,16 @@ circle indicators round your creature; the previous feel was good." So:
   touch (filaments, flakes, the slide, the coverslip, the meniscus at the
   rim). A puff of specks marks the contact, the cell recoils a little and
   the controller rumbles.
-- **The goal strip** (top centre) shows the round: eat 6 prey, your light
-  meter, the dash meter and trichocyst charges, and a red warning line when
+- **The goal strip** (top centre) shows the round: eat 6 prey, ☀ when you
+  are in the sun, the dash meter and trichocyst charges, and a red warning line when
   something is hunting you.
 - **Prey** (a small soft green ring when in reach of a gulp, a faint arrow
   at the edge when none is in view):
   bacterial clumps that drift, and *Chilomonas*, a flagellate that jumps
   away with its ejectisomes when you get close, so it has to be chased.
 - **Light:** sunlight falls on a slowly wandering patch of the drop; the
-  rest is shaded (darker). In shade your *Chlorella* stop feeding you: the
-  light meter runs down (≈30 s), and with it the dash recharge (to 45 %);
-  your swimming speed is never reduced. A yellow arrow points back to the light.
+  rest is shaded (darker). In the sun your *Chlorella* feed you and the dash
+  recharges 1.4× faster; shade costs nothing. A yellow arrow points to the light.
 - **Hunters** (shown by the image itself; a faint red arrow at the edge only
   when one is closing in from out of view): a hungry *Didinium* turns on you
   within ≈480 µm and swims nearly straight at about 1 mm/s; a dash sideways
@@ -385,8 +413,8 @@ circle indicators round your creature; the previous feel was good." So:
 Hunters use the shared `shared/predation.js` (`createHunger`,
 `createCapture`), so they feel the same as in the other prototypes.
 
-- **Placed, not timed** (see *The route*): the ciliates' hunger clocks
-  start only once someone reaches halfway, after a 6 s grace (each 5 s after
+- **Placed, not timed** (see *The rings*): the ciliates' hunger clocks
+  start only once someone leaves the warm-up, after a 6 s grace (each 5 s after
   the last), and they hunt only in their own waters. The amoeba by the way
   back has a 45 s calm opening. A restart sends every hunter home.
 - **Hunger comes and goes.** Each hunter has its own clock: hungry for
@@ -495,7 +523,7 @@ with `setMode`, `setView`, `setOrbit`, `avoid`, `dash`, `attack`, `burst`,
 All lengths are micrometres, and the scale is honest. *P. bursaria* is 120 µm
 long and 56 µm wide (S27: 85–150 µm); in the 0.9 mm field at 20× it is about
 an eighth of the field. *P. caudatum* (230 µm, S07) is a Features choice
-(Body → Species; the page reloads), colourless and without the light meter.
+(Body → Species; the page reloads), colourless and without the sunlight bonus.
 
 - **Body:** a signed-distance slipper meshed with the shared surface-nets
   mesher (`shared/sdf.js`): two superellipse halves joined near the middle.
@@ -835,9 +863,9 @@ as seams.
   the 3.2 mm/s peak, the 80° pivot and the 1.8 s recharge are game values.
   The *P. bursaria* top speed (1.4 mm/s) is a stretch at the top of the
   measured Paramecium speeds.
-- **Light meter:** *P. bursaria* does gather on the lit side and gets sugars
-  from its *Chlorella* (S27), but the drain rate and its effect on the
-  dash are invented. The sunlit patch is drawn over the image, not rendered
+- **Sunlight bonus:** *P. bursaria* does gather on the lit side and gets sugars
+  from its *Chlorella* (S27), but the 1.4× faster dash recharge in the sun is
+  invented (a bonus only: nothing runs down in shade). The sunlit patch is drawn over the image, not rendered
   by the optics.
 - **Didinium and Dileptus homing** within ≈480 µm is invented; Didinium
   finds prey by collision. Its 1–1.25 mm/s is a game value (Dileptus at 0.62
@@ -864,8 +892,12 @@ as seams.
 - **Species:** *P. bursaria*, as the Zoom Chain spec recommends for Level 3;
   its shape is drawn from descriptions (S27) rather than measured outlines.
   *P. caudatum* remains as a choice. Dileptus is not in the scene yet.
-- **Overlays** (prey and hunter cues, shade) and the contact puffs are game
-  aids, not microscopy.
+- **Overlays** (prey and hunter cues, shade, the trap's inflow streaks) and the
+  contact puffs are game aids, not microscopy. The golden portal glow is the
+  game's shared sign for the way on, drawn over the image.
+- **Rings:** one Dileptus, one bloom and one pair of Didinium are moved round
+  their rings, unseen, to meet whoever heads out; the layout is a game
+  structure, not a pond.
 - **Scene composition:** Spirogyra, Vorticella, diatoms, Didinium and
   Amoeba proteus together in one drop is plausible pond water, not a recorded sample.
 

@@ -61,10 +61,10 @@ export function playContinuous({ oldFrame, newFrame, from, to, send, speed = () 
     const k = smooth(u / 0.25) * (1 - smooth((u - FADE[1]) / (0.95 - FADE[1])));
     if (k <= 0.01) return;
     const x = (pose.x * 0.5 + 0.5) * W, y = (0.5 - pose.y * 0.5) * H;
-    const r = Math.max(18, pose.f * W * 1.1);
+    const r = Math.max(42, pose.f * W * 1.2);
     const gr = g.createRadialGradient(x, y, 0, x, y, r);
-    gr.addColorStop(0, `rgba(255,240,205,${(0.55 * k).toFixed(3)})`);
-    gr.addColorStop(0.35, `rgba(240,180,74,${(0.32 * k).toFixed(3)})`);
+    gr.addColorStop(0, `rgba(255,240,205,${(0.75 * k).toFixed(3)})`);
+    gr.addColorStop(0.3, `rgba(240,180,74,${(0.45 * k).toFixed(3)})`);
     gr.addColorStop(1, 'rgba(240,180,74,0)');
     g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r);
   }

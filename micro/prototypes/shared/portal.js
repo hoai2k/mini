@@ -176,7 +176,7 @@ export function createPortalGlow({ THREE, scene = null, size = 10, color = '#f0b
         // a soft round body and a four-point star: a glint, not a dot
         float star = exp(-r * r * 9.0) + 0.55 * exp(-abs(q.x) * 18.0) * exp(-abs(q.y) * 2.6) + 0.55 * exp(-abs(q.y) * 18.0) * exp(-abs(q.x) * 2.6);
         float a = star * smoothstep(1.0, 0.6, r) * vA * (0.35 + 0.65 * vTw) * mix(0.55, 1.0, uOpen) * uI;
-        gl_FragColor = vec4(mix(uColor, vec3(1.0, 0.95, 0.8), 0.15 + 0.5 * vTw * exp(-r * r * 8.0)) * 2.6, min(1.0, a * 1.6));
+        gl_FragColor = vec4(mix(uColor, vec3(1.0, 0.95, 0.8), 0.6 * vTw * exp(-r * r * 12.0)) * 1.7, min(1.0, a * 1.3));
       }`;
   const pts = new THREE.Points(geo, new THREE.ShaderMaterial({
     uniforms, ...blend,

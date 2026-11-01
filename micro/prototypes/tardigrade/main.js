@@ -715,6 +715,7 @@ function restartRings() {
   meadow.reset();
   lm.fired = false;
 }
+placeZone(0);
 
 // ---------------------------------------------------------------- the portal (the way on)
 // Reaching the portal (the rim leaf's tip, either face) zooms into the next
@@ -1270,7 +1271,7 @@ function renderView(dt) {
   // no arrow until the portal is found; then it points the way back to it.
   // Its golden light spills in from that edge once it is placed (or haloes it in view): no text
   if (portal.placed && !(capture.active && solo)) {
-    const res = portal.found ? marks.drawSplit(split, places.forward, { kind: 'forward', range: 30 }) : marks.drawSplit(split, places.forward, { kind: 'forward', range: 30, dry: true });
+    const res = portal.found ? marks.drawSplit(split, places.forward, { kind: 'forward', range: 30 }) : marks.drawSplit(split, places.forward, { kind: 'forward', range: 30, nearAlpha: 0, farAlpha: 0 });
     let d = Infinity;
     for (const a of animals) d = Math.min(d, a.walker.dispPos.distanceTo(places.forward));
     portalLight.drawSplit(split, res, { strength: THREE.MathUtils.clamp(1.15 - d / 30, 0.3, 1), open: places.glow.open });
@@ -1382,6 +1383,15 @@ function drawViewCulled(v, target, dt) {
     renderer.render(scene, camera);
     renderer.setRenderTarget(null);
   } else mic.render(micP);
+  // the portal's golden sparkle, over the picture (not through the optics)
+  if (places.glow.group.visible) {
+    const ac = renderer.autoClear;
+    renderer.autoClear = false;
+    renderer.setRenderTarget(target);
+    renderer.render(places.overlay, camera);
+    renderer.setRenderTarget(null);
+    renderer.autoClear = ac;
+  }
 }
 
 const _at = new THREE.Vector3(), _bo = new THREE.Vector3();

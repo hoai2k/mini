@@ -14,7 +14,11 @@ whose cells each follow it in their own way, not clones; X sends a beacon
 that kin touching the group answer as they join (no automatic joining), and
 X also eats prey; no oxygen meter; the challenge is to gather an army and
 fight your way to your destination, paced as a rhythm of moving, an
-obstacle, a calm break, the next, to a boss at the end. No time limits.
+obstacle, a calm break, the next, to a boss at the end. No time limits. And
+(the same day, for every world: `../../design/encounter-pattern.md`) rings of
+obstacles round the start, the same in every direction, a portal at a set
+distance in whatever direction you first get far enough, guarded by the
+boss, every danger visible, and a safe area you can stay in forever.
 
 **You steer with LS, as fast as you tilt; let go and you stop.** A real
 bacterium cannot steer: it runs straight, rotational Brownian motion slowly
@@ -36,16 +40,20 @@ everything else (`draw.js`, `landmarks`), and a quiet edge arrow
 (`shared/landmark.js`) shows where each is when it is off screen: a brass
 chevron for the way on, a hollow ring for the way back.
 
-- **Forward: a host cell with phages landing on it**, far to the right (660,
-  24 µm; about 680 µm from the start at (−20, −20)), at the end of the way
-  (see **The way**), beside Stentor. It is swollen, its contents crowded with
-  new phage heads, phages are docked all over its surface and more diffuse in
-  to land. Phages are 60 nm: phase contrast shows only the swollen host,
-  while fluorescence (SYBR) and darkfield show the phages as spots. It lies
-  in Stentor's feeding current: **only once Stentor is beaten** does touching
-  it (your cell or any cell of your army) call
-  `embed.landmark('forward')`, the zoom into the phage level; before that a
-  toast says to beat Stentor first (a game rule).
+- **Forward (the portal): a host cell with phages landing on it**, on the
+  portal ring 510 µm from the start, **in whatever direction a player first
+  gets within 150 µm of that ring**, placed out of view (`placePortal` in
+  `main.js`); until then there is no arrow to it. The shared golden glow
+  (`shared/portal.js` `createPortalGlow`, its ground plane turned to face the
+  microscope, drawn over the optics with an orthographic camera; dimmer while
+  guarded) and its light spilling in from the screen's edge
+  (`createPortalLight`) mark it, with no text. Stentor guards it: touching it
+  (your cell or any cell of your army) while Stentor is on guard turns you
+  back; once your army has beaten Stentor, touching it calls `enterPortal(P)`,
+  the one place that fires `embed.landmark('forward')` (a golden burst, a
+  bloom and the portal chime). It is swollen, its contents crowded with new
+  phage heads, phages are docked all over its surface; phase contrast shows
+  only the swollen host, fluorescence (SYBR) and darkfield the phages.
 - **Backdoor: the looming Paramecium** at the top left, in the open water
   above the biofilm: the edge of a cell forty times your length, its pellicle
   with the trichocyst seam, green *Chlorella* inside and a row of cilia
@@ -75,9 +83,11 @@ spirals into the oral pouch off-frame.
   pigment stripes, the macronucleus as a chain of beads, and green
   zoochlorellae and food vacuoles inside (`SHAPE.TRUMPET` in
   `bacterium-shapes.js`).
-- **Wakes** when a player comes within 200 µm of its mouth; a brass gauge
+- **Placed with the portal** (`stentor.place`): its mouth 122 µm beyond the
+  host, its foot on a clay grain to one side. **Wakes** when a player comes
+  within 200 µm of its mouth; a brass gauge
   shows its health (the enemy gauge at the top, shared by every gate).
-- **The steady vortex:** within 175 µm of the mouth a swirling current you
+- **The steady vortex:** within 150 µm of the mouth a swirling current you
   can swim against. **Inside the rim of its oral disc** (the ellipse the
   membranelles ring, `stentor.disc()`) a cell is swept in: in about 3 s in
   the steady vortex, in about half a second during a pull.
@@ -97,7 +107,7 @@ spirals into the oral pouch off-frame.
 - **Swept in:** the follow-and-respawn catch: round the vortex, into the
   oral pouch, packed into a food vacuole carried down into its body, the
   camera pulled back to the 90 µm field; then the fade and a respawn in the
-  calm break behind (together: beside a teammate).
+  calm break just inside (together: beside a teammate).
 - **Departures:** the vortex's reach and strength are game values, the pulls
   are a rhythm for play (a real Stentor feeds steadily), and the host only
   letting you in once it is beaten is a game rule.
@@ -186,31 +196,51 @@ spirals into the oral pouch off-frame.
   beside you, for a beacon), `debug.charge(slot)`, `debug.burst(slot)`;
   `?flock=n` keeps every player's army at n.
 
-## The way: a rhythm of gates
+## The way: rings round the start
 
-The owner: "a few seconds of moving, an obstacle, a short calm break, the
-next, and so on to a boss at the destination". `world.js` `ROUTE` and
-`guards.js`. The level runs left to right along the straight way from the
-start (−20, −20) to the host (660, 24); `__micro.challenges()` lists it:
+`world.js` `ROUTE`, `guards.js`, `moveRings` in `main.js`
+(`../../design/encounter-pattern.md`). The world is open water 1120 µm
+across round the start, clay grains with microcolonies on them scattered
+everywhere, the biofilm along its bottom edge. Whichever way you head you meet
+the same things at the same distances, spaced evenly from the warm-up to the
+boss:
 
-| | Where (x, µm) | Progress | Army that beats it (scripted runs) |
-| --- | --- | --- | --- |
-| The meadow: most of the 80 kin and plenty of prey | −15 … 115 | 0–0.2 | — |
-| Gate 1: a peritrich (Vorticella-like) | mouth 170 | 0.28 | 6 is swept in; 12 wins in ~5 s |
-| break: six kin, prey | 215 | 0.35 | |
-| Gate 2: a Bdellovibrio pack (four) | 265 | 0.42 | 4 wins slowly (eating to grow); 8–12 in ~9 s |
-| break | 312 | 0.49 | |
-| Gate 3: a phage cloud (80 phages) | 360 | 0.56 | 5 (the slime shield) |
-| break | 405 | 0.62 | |
-| Gate 4: an amoeba's edge, a wall 170 µm long across the way | 455 | 0.70 | 8 is engulfed; 12 wins in ~4 s |
-| break | 505 | 0.77 | |
-| Gate 5: a bigger peritrich | mouth 548 | 0.84 | 8 is swept in; 14 wins in ~6 s |
-| break | 590 | 0.90 | |
-| The boss: Stentor, with the host in its current | mouth 782 (off the field), host 660 | 1 | ~25–28 |
+| Ring (distance from the start, µm) | What | Army that beats it (scripted runs) |
+| --- | --- | --- |
+| 0–60: the meadow | most of the 100 kin and plenty of prey; safe for ever | — |
+| 110 | a peritrich (Vorticella-like), its funnel turned along the ring | 6 is swept in; 12 wins in ~7 s |
+| 150 | calm break: twelve kin, prey | |
+| 190 | a Bdellovibrio pack (four) | 4 loses; 8 wins in ~15 s, 12 in ~9 s |
+| 230 | calm break | |
+| 270 | a phage cloud (80 phages) | 3 loses members; 6 (the slime shield) sweeps it in ~2 s |
+| 310 | calm break | |
+| 350 | an amoeba's edge, a wall 170 µm long across the ring | 8 and 12 are engulfed; 16 wins in ~3 s |
+| 390 | calm break | |
+| 430 | a bigger peritrich | 10 loses; 14 wins in ~8 s |
+| 470 | calm break | |
+| 510 | the portal (the host), guarded by Stentor | ~24 (16 is swept in) |
 
-At the flock's cruise (about 38 µm/s) each break is 1–2 s of calm travel.
-Every gate is on until your army beats it, and **stays beaten**. Nothing is
-timed. How each is fought:
+- **One instance serves each ring.** A gate that is not beaten and not busy
+  is moved round its ring to the bearing of whoever is heading out toward it,
+  only where nobody can see: where it is and where it goes must both be
+  farther from every player and their flock than the field's half-diagonal
+  at the current zoom plus 20 µm. Measured on two bearings (1.0 and −2.2 rad)
+  with an army of 24 driving straight out: each gate met them on their
+  bearing, at 56–72, 88–146, 174–233, 204–287 and 299–389 µm out, the
+  portal placed at 256 µm out, then turned back at the host while Stentor
+  was on guard, and through once it was beaten. Rushing straight out takes
+  about 13 s of swimming; the fights make it a few minutes.
+- **The calm breaks** keep their kin and prey round them: free kin of a break
+  that nobody can see gather toward the bearing of a player coming through.
+- **Safe for ever:** the meadow has no enemy in reach. The peritrichs'
+  currents reach 45 µm, in a cone in front of the funnel (to the sides and
+  behind only within 20 µm of the bell), the pack keeps within about 40 µm of
+  its post, so the breaks are calm too. Nothing runs down: no oxygen, no
+  starvation, no timers.
+- **Every danger shows:** a peritrich's current is a stream of specks
+  pouring into its funnel (faster and brighter as it pulls), Stentor's
+  vortex a swirl of specks, the phage cloud is drawn so it reads in every
+  look, the amoeba's edge is a wall.
 
 - **Fighting is by contact** (`guards.js`): every cell of your army touching
   an enemy wears it down (1.2 health per second each) while it recovers by
@@ -220,8 +250,8 @@ timed. How each is fought:
   member in contact), Y's toxin burst 15. The enemy gauge at the top shows
   the nearest enemy your flock is fighting ("Peritrich · 9 fighting").
 - **The peritrichs:** their feeding current sweeps cells into the funnel
-  (members within 3 µm of the mouth are eaten). Fight them at the bell's
-  side or their stalk, below the funnel, where the current is weakest.
+  (members within 3 µm of the mouth are eaten). Fight them at the back of
+  the bell or along their stalk, out of the funnel's cone.
   Beaten, they coil back on their stalks for good.
 - **The Bdellovibrio pack** keeps to its gate and goes for the nearest
   member: each one **latches on to a member's pole** for 1.5 s, trembling,
@@ -240,8 +270,8 @@ timed. How each is fought:
 - **A lone cell** still has its own fights with the predators that come for
   it (`runFights`: a grazer's surge, a phage homing in, a pack Bdellovibrio's
   ram), each with a wind-up and B to evade; it cannot beat a gate.
-- **Respawn:** a catch puts you back in the calm break behind where you
-  were (or the meadow), where kin live to call again.
+- **Respawn:** a catch puts you back in the calm break just inside where you
+  were, on your bearing (or the meadow), where kin live to call again.
 
 ## Multiplayer
 
@@ -362,7 +392,10 @@ other prototypes.
     30 new phages into the water (`bacterium/phage`).
   - *Bdellovibrio:* it rams your pole, bores through into the periplasm and
     you round into a bdelloplast with it curled inside.
-- **Testing:** `window.__micro.pacing()` reports the run time, the first
+- **Testing:** `__micro.rings()` (the relocation log, the portal, how often
+  someone was turned back), `__micro.placePortal(a)`, `__micro.enterPortal()`,
+  `__micro.challenges()` (every ring and where each gate stands now);
+  `window.__micro.pacing()` reports the run time, the first
   threat and catch, each gate's health and a log of gates reached and
   beaten; `__micro.gates()`, `__micro.guards`;
   `window.__micro.forceCapture('grazer' | 'amoeba' | 'phage' |

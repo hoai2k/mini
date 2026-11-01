@@ -213,7 +213,7 @@ export class World {
     // short of the first spoke leaf: on the shoot, along the way out
     const ex = sp.exit;
     if (r < this.radius(ex.p)) {
-      const L = ex.leaf;
+      const L = ex.L;
       let b2 = null;
       for (let u = 0.9; u < L.len - 0.9; u += 0.2) for (let v = -L.hwAt(u) + 0.9; v < L.hwAt(u) - 0.9; v += 0.2) {
         const p = L.toWorld(u, v, 0);

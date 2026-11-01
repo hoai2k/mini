@@ -83,7 +83,7 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
   const speck = new THREE.Vector3(top.x, topY, top.z);
   // a golden glint on the speck: the creature the portal leads to (and the
   // point the camera pushes into when you go through)
-  const glint = createGlint({ THREE, size: 0.9, intensity: 0.9, pixelHeight });
+  const glint = createGlint({ THREE, size: 1.8, intensity: 1.3, pixelHeight });
   raft.add(glint.points);
 
   // player rings: a faint loop of light on the film, one per player

@@ -1031,10 +1031,10 @@ function stepPrey(dt, col) {
       }
       continue;
     }
-    // its patch: a loose tether (not while it flees; a fleeing ciliate comes back)
-    if (p.home && (p.fleeT || 0) <= 0) {
+    // its patch: a loose tether (it comes back once it has fled), slack while a player is in or near the patch
+    if (p.home && (p.fleeT || 0) <= 0 && !p.touch) {
       const H = p.home, dx = H.x - p.x, dy = H.y - p.y;
-      if (dx * dx + dy * dy > H.r * H.r) {
+      if (dx * dx + dy * dy > H.r * H.r && cells.every((c) => Math.hypot(c.body.cx - H.x, c.body.cy - H.y) > H.r + c.body.req + 350)) {
         let da = Math.atan2(dy, dx) - p.th; da = Math.atan2(Math.sin(da), Math.cos(da));
         p.th += clamp(da, -1, 1) * dt * 1.5;
       }

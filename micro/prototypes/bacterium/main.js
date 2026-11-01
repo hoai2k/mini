@@ -417,7 +417,7 @@ function runFights(dt) {
   for (const g of world.grazers) {
     const live = world.opts.grazers && g.contract <= 0 && g.feeding !== false;
     let T = null, d = Infinity;
-    if (live) for (const P of roster) { if (!fightable(P)) continue; const q = Math.hypot(P.S.x - g.pose.mouth.x, P.S.y - g.pose.mouth.y); if (q < d) { d = q; T = P; } }
+    if (live) for (const P of roster) { if (!fightable(P)) continue; const q = Math.hypot(P.S.x - g.pose.mouth.x, P.S.y - g.pose.mouth.y); if (q < d && q < 60) { d = q; T = P; } }
     const f = g.fight.update(dt, { near: !!T && d < 45, inReach: !!T && d < 24, facing: !!T && T.blockT > 0, blocking: !!T && T.blockT > 0 });
     g.fightState = live ? f.state : 'stalk'; g.fightT = f.t; g.target = T;
     const want = !live ? 1 : f.state === 'windup' ? 1 + 1.5 * f.t : f.state === 'strike' ? 3.4 : f.state === 'repelled' ? 0.2 : f.state === 'retreat' ? 0.1 : 1;
@@ -1369,7 +1369,7 @@ function drawMarks(L, fieldH) {
     }
     // an attack under way: a pulsing red ring on the predator (a game marker, not optics)
     const ring = (x, y, r) => { const q = split.project(v.index, { x, y, z: 0 }); markG.globalAlpha = 0.35 + 0.45 * (0.5 + 0.5 * Math.sin(t * 18)); markG.strokeStyle = '#ff5a46'; markG.lineWidth = 2; markG.beginPath(); markG.arc(q.x, q.y, r, 0, Math.PI * 2); markG.stroke(); };
-    for (const g of world.grazers) if (g.fightState === 'windup' || g.fightState === 'strike') ring(g.pose.mouth.x, g.pose.mouth.y, Math.max(16, 7 * cssPerUm));
+    for (const g of world.grazers) if (g.target && (g.fightState === 'windup' || g.fightState === 'strike')) ring(g.pose.mouth.x, g.pose.mouth.y, Math.max(16, 7 * cssPerUm));
     for (const P of roster) {
       if (P.bdello && /windup|strike/.test(P.bdello.fight.state)) ring(P.bdello.c.x, P.bdello.c.y, Math.max(12, 1.6 * cssPerUm));
       if (P.phage && /windup|strike/.test(P.phage.fight.state)) ring(P.phage.p.x, P.phage.p.y, Math.max(9, 0.9 * cssPerUm));
