@@ -195,13 +195,11 @@ vec4 falseLight(vec3 n, vec3 v){
 // rim), a sharp wet glint and a broad sheen.
 uniform mat3 normalMatrix;
 varying vec3 vObj; varying float vLump;
-// soft wet relief: broad and medium noise, fine ridged crinkles on top (ridged noise at the medium scale read as
-// leopard spots: cells with pale rims)
-// (each octave in a rotated frame: value noise's lattice is axis-aligned, and its creases, folded by the ridge,
-// read as a waffle grid)
+// soft wet relief: three octaves of smooth noise, each in a rotated frame (value noise's lattice is axis-aligned
+// and showed as a waffle grid). (Ridged noise was tried: at the medium scale it read as leopard spots, cells
+// with pale rims; at the fine scale as a maze of squiggles close up.)
 const mat3 ROT = mat3(0.00, 0.80, 0.60, -0.80, 0.36, -0.48, -0.60, -0.48, 0.64);
-float ridge(vec3 q){ float r = 1.0 - abs(2.0 * n3(ROT * q) - 1.0); return r * r * (3.0 - 2.0 * r); }
-float relief(vec3 q){ return n3(q * 0.13) * 0.55 + n3(ROT * q * 0.32 + 3.7) * 0.3 + ridge(ROT * q * 0.85 - 1.3) * 0.15; }
+float relief(vec3 q){ return n3(q * 0.13) * 0.58 + n3(ROT * q * 0.32 + 3.7) * 0.3 + n3(ROT * (ROT * q) * 0.8 - 1.3) * 0.12; }
 vec4 membraneLight(vec3 n, vec3 v){
   float e = 0.25;
   float r0 = relief(vObj);

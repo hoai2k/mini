@@ -64,18 +64,19 @@ function rush(b, limit = 150) {
     if (t < 0) { t = -t; break; }
   }
   const bank = t;
-  // along the bank both ways (hugging it), the nearer first
+  // along the bank both ways: along its tangent, steered back to poolE ~0.885, the nearer first
   const along = (turn) => {
-    let px = x, pz = z, h = b + turn * Math.PI / 2, u = bank;
+    let px = x, pz = z, u = bank;
     for (; u < limit; u += DT) {
       if (inGround(px, pz)) return u;
-      let moved = false;
-      for (let i = 0; i < 16 && !moved; i++) {
-        const c = h - turn * 0.5 + turn * i * 0.12;
+      const e = poolE(px, pz), gx = poolE(px + 0.5, pz) - e, gz = poolE(px, pz + 0.5) - e, g = Math.hypot(gx, gz) || 1;
+      // the tangent (the normal turned a quarter turn), turned in when out past 0.885 and out when in
+      const h = Math.atan2(turn * gx / g, -turn * gz / g) + turn * (e - 0.885) * 30;
+      for (let i = 0; i < 16; i++) {
+        const c = h + turn * i * 0.2;
         const nx = px + Math.cos(c) * V * DT, nz = pz + Math.sin(c) * V * DT;
-        if (poolE(nx, nz) < 0.895 && islandEdge(nx, nz).d > 0.5) { px = nx; pz = nz; h = c; moved = true; }
+        if (poolE(nx, nz) < 0.93 && islandEdge(nx, nz).d > 0.5) { px = nx; pz = nz; break; }
       }
-      if (!moved) h += turn * 0.5;
     }
     return limit;
   };
@@ -100,9 +101,11 @@ for (const p of PORTALS) {
 }
 for (const w of strays) assert.ok(nearestPortal(w.x, w.z).d > GROUND.r + 100, 'strays well away from the grounds');
 const ground = PORTALS.reduce((a, p) => a + PONDWEED.filter((w) => w.portal === p.i).length, 0) / (PORTALS.length * Math.PI * (GROUND.r + 14) ** 2);
-const poolArea = Math.PI * POOL.a * POOL.b * 0.85 - PORTALS.length * Math.PI * (GROUND.r + 100) ** 2;
+// the open water where strays may be (inside the bank, well away from every ground), counted on a 10 mm grid
+let poolArea = 0;
+for (let x = -POOL.a; x < POOL.a; x += 10) for (let z = -POOL.b; z < POOL.b; z += 10) if (poolE(x, z) < 0.93 && nearestPortal(x, z).d > GROUND.r + 100) poolArea += 100;
 const elsewhere = strays.length / poolArea;
-assert.ok(ground > elsewhere * 40, `pondweed ${(ground / elsewhere).toFixed(0)}x as thick in a ground as elsewhere`);
+assert.ok(ground > elsewhere * 20, `pondweed ${(ground / elsewhere).toFixed(0)}x as thick in a ground as elsewhere`);
 for (const w of PONDWEED) {
   assert.ok(poolE(w.x, w.z) < 0.93 && islandEdge(w.x, w.z).d > w.L * 0.5, 'leaves on open water');
   assert.ok(pondweedAt(w.x, w.z) === w || pondweedAt(w.x, w.z), 'a leaf is footing');
@@ -202,17 +205,29 @@ function game({ seconds, move }) {
   return { ev, bad, D, raft, doneT, groundT };
 }
 const at = (ev, type, id) => ev.find((e) => e.type === type && e.id === id);
-/** Rush along bearing a with tap jumps (~15 mm/s), round islands, off the bank; once in a ground, make for its raft. */
+/**
+ * Rush along bearing a with tap jumps (~15 mm/s), round islands; at the bank,
+ * along it toward the nearest portal; once in a ground, make for its raft.
+ */
 const rusher = (a0) => {
-  let a = a0, target = null;
+  let a = a0, target = null, turn = 0;
   return (t, p) => {
     const np = nearestPortal(p.x, p.z);
     if (np.d < GROUND.r) target = np.p;
     if (target) a = Math.atan2(target.z - p.z, target.x - p.x);
+    else if (turn) {
+      const e = poolE(p.x, p.z), gx = poolE(p.x + 0.5, p.z) - e, gz = poolE(p.x, p.z + 0.5) - e, g = Math.hypot(gx, gz) || 1;
+      a = Math.atan2(turn * gx / g, -turn * gz / g) + turn * (e - 0.885) * 30;
+    }
     for (let i = 0; i < 12; i++) {
-      const b = a + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.5;
+      const b = a + (turn && !target ? turn * i * 0.2 : (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.5);
       const nx = p.x + Math.cos(b) * 15 * DT, nz = p.z + Math.sin(b) * 15 * DT;
-      if (!target && poolE(nx, nz) > 0.9) { a += Math.PI / 2; return; }
+      if (!target && !turn && poolE(nx, nz) > 0.89) {
+        // the bank: along it, the way toward the nearest portal
+        const e = poolE(p.x, p.z), gx = poolE(p.x + 0.5, p.z) - e, gz = poolE(p.x, p.z + 0.5) - e;
+        turn = (-gz) * (np.p.x - p.x) + gx * (np.p.z - p.z) > 0 ? 1 : -1;
+        return;
+      }
       if (target && Math.hypot(nx - target.x, nz - target.z) < 2) return;
       if (poolE(nx, nz) < 0.97 && (islandEdge(nx, nz).d > 0.5 || (target && Math.hypot(target.x - nx, target.z - nz) < PORTAL_R))) { p.x = nx; p.z = nz; return; }
     }
@@ -239,18 +254,28 @@ for (let k = 0; k < 16; k++) {
 const span = (k) => `${Math.min(...times.map((t) => t[k])).toFixed(1)}-${Math.max(...times.map((t) => t[k])).toFixed(1)} s`;
 
 // ---- don't skip: a beeline for the nearest portal gets there sealed or not, but every encounter is met first
-const bee = game({ seconds: 200, move: (t, p) => {
+const beeline = (speed) => (t, p) => {
   const { p: L } = nearestPortal(START.x, START.z);
-  const d = Math.hypot(L.x - p.x, L.z - p.z);
-  if (d < 3) return;
+  if (Math.hypot(L.x - p.x, L.z - p.z) < 3) return;
   const a = Math.atan2(L.z - p.z, L.x - p.x);
   for (const da of [0, 0.5, -0.5, 1, -1]) {
-    const nx = p.x + Math.cos(a + da) * 15 * DT, nz = p.z + Math.sin(a + da) * 15 * DT;
+    const nx = p.x + Math.cos(a + da) * speed * DT, nz = p.z + Math.sin(a + da) * speed * DT;
     if (islandEdge(nx, nz).d > 0.5 || Math.hypot(L.x - nx, L.z - nz) < PORTAL_R) { p.x = nx; p.z = nz; return; }
   }
-} });
+};
+const bee = game({ seconds: 200, move: (t, p) => beeline(15)(t, p) });
 assert.deepEqual(bee.ev.filter((e) => e.type === 'met').map((e) => e.id), ['stenus', 'strider', 'rain'], 'beeline: every encounter in order');
 assert.ok(bee.raft && bee.doneT !== null, 'beeline: reached the raft and met everything');
+// a sprinter (charged jumps, ~30 mm/s) beelines for the nearest raft and waits there: it is sealed when they
+// arrive, and the encounters left come to them promptly (stepDirector's placeNow in a ground)
+const sprint = game({ seconds: 200, move: beeline(30) });
+assert.deepEqual(sprint.bad, []);
+// (in its ground before the strider was met: the strider at once, then the rain)
+const early = sprint.ev.filter((e) => e.type === 'placed' && e.t >= sprint.groundT);
+assert.ok(early.length && early[0].t - sprint.groundT < 1, `sprinting: in a ground at ${sprint.groundT.toFixed(1)} s with encounters left, the next placed at once (${early.map((e) => `${e.id} ${e.t} s`).join(', ')})`);
+assert.ok(sprint.raft && (sprint.raft.sealed || sprint.doneT <= sprint.raft.t), 'sprinting: the raft opens only once everything is met');
+assert.deepEqual(sprint.ev.filter((e) => e.type === 'met').map((e) => e.id), ['stenus', 'strider', 'rain'], 'sprinting: every encounter in order all the same');
+assert.ok(sprint.doneT - sprint.groundT < 30, `sprinting: the rest come to them soon after reaching the ground (${(sprint.doneT - sprint.groundT).toFixed(1)} s)`);
 
 // ---- lingering at the start: the encounters still come, one by one, round them (the portals stay where they are)
 const r1 = game({ seconds: 300, move: () => {} });
@@ -263,4 +288,4 @@ console.log(`ok: ${ISLANDS.length} islands, ${SUNDEW_CLUSTERS} sundew clusters $
   `${BEARINGS} bearings: a ground after ${Math.min(...rt).toFixed(1)}-${Math.max(...rt).toFixed(1)} s (mean ${(rt.reduce((a, b) => a + b) / rt.length).toFixed(1)}; ${bankRuns.length} meet the bank first, the far way along it ≤ ${Math.max(...bankRuns.map((r) => r.far)).toFixed(0)} s); ` +
   `pondweed ${PONDWEED.length} leaves (${strays.length} strays), ${(ground / elsewhere).toFixed(0)}x as thick in a ground; ` +
   `rushing in 16 directions: Stenus placed ${span('stenusPlaced')}, met ${span('stenus')}, strider ${span('strider')}, rain ${span('rain')}, ground ${span('ground')}, raft ${span('raft')}; ` +
-  `beeline to the nearest raft: there at ${bee.raft.t.toFixed(1)} s (${bee.raft.sealed ? 'sealed' : 'open'}), all met at ${bee.doneT.toFixed(1)} s; lingering: ${r1.ev.filter((e) => e.type === 'placed' || e.type === 'met').map((e) => `${e.id} ${e.type} ${e.t} s${e.how && e.type === 'placed' ? ` (${e.how})` : ''}`).join(', ')}`);
+  `beeline to the nearest raft: there at ${bee.raft.t.toFixed(1)} s (${bee.raft.sealed ? 'sealed' : 'open'}), all met at ${bee.doneT.toFixed(1)} s; sprinting there (30 mm/s): in its ground at ${sprint.groundT.toFixed(1)} s, at the raft ${sprint.raft.t.toFixed(1)} s (${sprint.raft.sealed ? 'sealed' : 'open'}), all met at ${sprint.doneT.toFixed(1)} s (${sprint.ev.filter((e) => e.type === 'placed').map((e) => `${e.id} ${e.how} ${e.t} s`).join(', ')}); lingering: ${r1.ev.filter((e) => e.type === 'placed' || e.type === 'met').map((e) => `${e.id} ${e.type} ${e.t} s${e.how && e.type === 'placed' ? ` (${e.how})` : ''}`).join(', ')}`);

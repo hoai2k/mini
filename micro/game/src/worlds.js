@@ -9,14 +9,15 @@ export const WORLDS = [
     mag: '1–5×', magNote: 'macro lens', field: '36–7 mm', fieldMm: 18, body: '1.5 mm', look: 'Macro photography',
     card: 'MP-U05', intro: 'MP-G07', tint: ['#6f8f6a', '#1d2a1c'], accent: '#9fbf6a',
     line: 'Walk on the surface film of a bog pool and fling yourself into the air with your tail.',
-    goal: 'Head out across the pool in any direction: the challenges find you one at a time, with a little calm water between: Stenus (jump on its tell, mash A if the labium sticks, then dodge the mandible lunge), a water strider and a mass of springtails to hide in, the rain, and last a moss raft under a golden sparkle, the way on, guarded by a pond wolf spider: lure it off, then get round it. Sundews dot the pool: go round or jump over them.',
-    forward: 'A floating raft of Sphagnum under a golden sparkle: lure the wolf spider off it, then land on it, where a speck is moving on a capitulum.',
+    goal: 'Head out across the pool in any direction: the challenges find you one at a time, with a little calm water between: Stenus (jump on its tell, mash A if the labium sticks, then dodge the mandible lunge), a water strider and a mass of springtails to hide in, then the rain. Then the way on opens: moss rafts under a golden sparkle, each where floating pondweed grows thick and a pond wolf spider hunts. Spot a spider and its raft is near: follow it home, lure it off, then get round it. Sundews dot the pool: go round or jump over them.',
+    forward: 'A floating raft of Sphagnum under a golden sparkle, amid thick pondweed: lure its wolf spider off it, then land on it, where a speck is moving on a capitulum.',
     back: null,
     controls: [['LS', 'Walk on the water'], ['RS', 'Camera'], ['A', 'Jump with the furcula (released at an enemy: a pounce-bite; mash A to wriggle free)'], ['X', 'Graze; nip a predator; in the air, pounce-bite'], ['B', 'Defend: hunker (facing a predator, blocks its strike)'], ['LT/RT', 'Focus'], ['D-pad ↑↓', 'Magnification']],
     facts: [
       'A springtail spends its whole life on the surface film: to it, water is a floor.',
       'Its furcula, a forked tail folded under the body, snaps down and throws it many body lengths.',
       'Sundews on the moss catch more springtails than any other prey.',
+      'Pond wolf spiders hunt across the water from floating leaves, feeling for ripples, and run back to cover.',
     ],
   },
   {

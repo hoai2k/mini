@@ -177,7 +177,7 @@ const hud = mountHud({
     zoom: 'Magnification 1x, 2x, 3x, 5x',
     extra: [['LS click', 'Autofocus on the springtail']],
   }),
-  note: `Goal: head out across the pool in any direction. The challenges find you one after another, wherever you go, with a little calm water between: after a few jumps the rove beetle Stenus, then the water strider and a mass of springtails, then the rain, and last the way on: a moss raft under a golden sparkle, guarded by a wolf spider. Sundews grow on islands all over the pool. Lure the spider off the raft, then get round it. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
+  note: `Goal: head out across the pool in any direction. The challenges find you one after another, wherever you go, with a little calm water between: after a few jumps the rove beetle Stenus, then the water strider and a mass of springtails, then the rain. Then the way on opens: moss rafts under a golden sparkle out across the pool, each where floating pondweed grows thick and a wolf spider hunts, going back to its raft between hunts (follow one home). Sundews grow on islands all over the pool. Lure the spider off its raft, then get round it. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
 });
 
 // ---------------------------------------------------------------- overlay DOM
@@ -1420,7 +1420,9 @@ function stepPlayer(dt, inp) {
   }
   // last safe spot (for respawning alone): on the film or moss, no predator near
   P.safeT = (P.safeT || 0) + dt;
-  if (P.safeT > 1 && Math.hypot(stenus.st.x - P.x, stenus.st.z - P.z) > 15 && Math.hypot(strider.st.x - P.x, strider.st.z - P.z) > 18 && !world.sundews.leafAt(P.x, P.y + 0.1, P.z)) { P.safeT = 0; P.safe = { x: P.x, z: P.z }; }
+  // (and not by a raft, where a spider rests, nor near the spider: a respawn there would wake it at once)
+  if (P.safeT > 1 && Math.hypot(stenus.st.x - P.x, stenus.st.z - P.z) > 15 && Math.hypot(strider.st.x - P.x, strider.st.z - P.z) > 18 && !world.sundews.leafAt(P.x, P.y + 0.1, P.z) &&
+    nearestPortal(P.x, P.z).d > 45 && !(boss.group.visible && Math.hypot(boss.st.x - P.x, boss.st.z - P.z) < 40)) { P.safeT = 0; P.safe = { x: P.x, z: P.z }; }
   if (game.phase === 'play' && P.food >= GOAL && onMoss && !P.fedSaid) {
     P.fedSaid = true;
     hud.toast(!sealed() ? 'Fed and safe on the moss. The way on: the golden sparkle over a raft of red capitula, where the pondweed grows thick' : 'Fed and safe on the moss. Head out across the pool: the way on opens after the beetle, the strider and the rain', 3200);
@@ -2253,7 +2255,9 @@ const api = {
     if (mode === 'top') rig.wantPitch = PITCH_TOP; else if (mode === 'low') rig.wantPitch = rig.pitchLow;
   },
   landingPoint,
-  fights, fightLog, boss,
+  fights, fightLog,
+  /** The wolf spider in focus (the nearest portal's). */
+  get boss() { return boss; },
   /** Testing: the boss (the nearest portal's spider) wakes and comes for player `slot` (put beside its post; the way on opened). */
   bossFight(slot = 0) {
     const P = pls[slot] || pl;

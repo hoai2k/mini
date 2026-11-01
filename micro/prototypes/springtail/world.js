@@ -313,7 +313,7 @@ export const PONDWEED = [];
   for (const p of PORTALS) {
     // density falls from the raft to the ground's edge (and a little past it)
     for (let n = 0, k = 0; n < 34 && k < 900; k++) {
-      const d = PORTAL_R + 4 + r() * (GROUND.r + 14 - PORTAL_R - 4), keep = 1 - sm(PORTAL_R + 8, GROUND.r + 14, d) * 0.92;
+      const d = PORTAL_R + 4 + Math.pow(r(), 1.7) * (GROUND.r + 14 - PORTAL_R - 4), keep = 1 - sm(PORTAL_R + 8, GROUND.r + 14, d) * 0.8;
       if (r() > keep) continue;
       const t = r() * Math.PI * 2, L = 15 + r() * 13;
       const x = p.x + Math.cos(t) * d, z = p.z + Math.sin(t) * d;
