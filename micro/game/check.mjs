@@ -79,7 +79,8 @@ try {
   await tab.waitForTimeout(700);
   const sel = (await state()).sel;
   if (sel !== 0) throw new Error(`springtail should be focused, got ${sel}`);
-  step('menu (springtail focused)');
+  await until((s) => s.music.wanted === 'lullaby' && s.music.playing.includes('lullaby'), 8000, 'Clockwork Lullaby on world select');
+  step('menu (springtail focused, Clockwork Lullaby playing)');
 
   await tab.keyboard.press('Enter');
   await until((s) => s.screen === 'intro', 5000, 'intro');
@@ -87,10 +88,12 @@ try {
   await shot('3-intro');
   await until((s) => s.preloading === 'springtail' && s.preloadReady, 120000, 'world to preload during intro');
   await tab.evaluate(() => { window.__introFrame = document.querySelector('#frame-host iframe'); });
+  if ((await state()).music.wanted !== 'lullaby') throw new Error('the intro should keep Clockwork Lullaby');
   step('intro');
 
   await tab.keyboard.press('Enter');
   await until((s) => s.screen === 'play' && !s.loading, 120000, 'springtail to load');
+  await until((s) => s.music.wanted === null && s.music.playing.length === 0, 6000, 'menu music to stop in the world');
   const reused = await tab.evaluate(() => document.querySelector('#frame-host iframe') === window.__introFrame && document.querySelector('#veil').hidden);
   if (!reused) throw new Error('Begin must reuse the prepared world without a loading veil');
   await tab.waitForTimeout(2500);

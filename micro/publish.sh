@@ -19,6 +19,7 @@ mkdir -p "$out/prototypes" "$out/game"
   cp "$here/prototypes/$f" "$out/prototypes/$f"
 done
 cp -R "$here/game/src" "$out/game/src"
+cp -R "$here/game/music" "$out/game/music"
 cp -R "$here/game/icons" "$out/icons"
 cp "$here/game/manifest.webmanifest" "$out/"
 sed 's#"src/#"game/src/#g' "$here/game/index.html" > "$out/index.html"

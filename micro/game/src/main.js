@@ -141,7 +141,7 @@ function show(screen) {
   host.inert = screen !== 'play';
   host.setAttribute('aria-hidden', String(screen !== 'play'));
   for (const id of ['title', 'menu', 'intro', 'play']) $(`#${id}`).hidden = id !== screen;
-  if (screen === 'title' || screen === 'menu') sound.drone(true); else sound.drone(false);
+  sound.music(screen === 'title' ? 'chamber' : screen === 'menu' || screen === 'intro' ? 'lullaby' : null);
   if (screen === 'title') titleBg.start(); else titleBg.stop();
   input.lockHeld();
   clearFocus();
@@ -982,7 +982,7 @@ requestAnimationFrame(loop);
 window.__game = {
   state: () => ({ screen: S.screen, modals: [...S.modals], sel: S.sel, world: WORLDS[S.world].id, paused: S.paused, loading: S.loading,
     preloading: preloaded ? WORLDS[preloaded.i].id : null, preloadReady: !!preloaded?.ready,
-    transitioning: S.transitioning, controlsShown: S.controlsShown, board: S.board, sound: sound.on, players: roster.list.length, stubRoster: !!roster.stub,
+    transitioning: S.transitioning, controlsShown: S.controlsShown, board: S.board, sound: sound.on, music: sound.nowPlaying, players: roster.list.length, stubRoster: !!roster.stub,
     progress: { ...progress }, transitionProgress: $('#transition').dataset.progress }),
   pressStart,
   titleZoom: titleBg,
