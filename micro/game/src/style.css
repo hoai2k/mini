@@ -214,8 +214,9 @@ button { font: inherit; color: inherit; }
 .text-btn:hover, .text-btn.focus, .text-btn:focus-visible { background: rgba(125, 95, 38, .14); outline: none; }
 
 /* The card-to-intro zoom. */
-.zoomer { position: fixed; z-index: 30; background-size: cover; background-position: center; border-radius: 10px; pointer-events: none;
-  box-shadow: 0 0 0 3px var(--brass), 0 30px 80px rgba(0,0,0,.6); transform-origin: 0 0; }
+.zoomer { position: fixed; inset: 0; z-index: 30; pointer-events: none; overflow: hidden; }
+.zoomer-plate { position: absolute; inset: 0; background-size: cover; background-position: center; transform: scale(1.04); }
+.zoomer-face { position: absolute; background-size: cover; background-position: center; }
 
 /* ------------------------------------------------------------------ play */
 #play { background: transparent; pointer-events: none; }

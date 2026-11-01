@@ -96,6 +96,13 @@ export function createFeatures({ key, pad }) {
     render();
     if (was !== open) embed.post('features', { open });
   }
+  // A click outside the open panel closes it, as B or Menu would (a drag, e.g. orbiting, does not).
+  let downAt = null;
+  addEventListener('pointerdown', (e) => { downAt = open && !panel.contains(e.target) && e.target !== tab ? [e.clientX, e.clientY] : null; }, true);
+  addEventListener('pointerup', (e) => {
+    if (downAt && open && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) < 6 && !panel.contains(e.target)) setOpen(false);
+    downAt = null;
+  }, true);
   if (embed.active) {
     embed.on('features', (d) => setOpen(!!d.open));
     embed.on('settings', (d) => {

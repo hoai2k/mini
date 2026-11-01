@@ -395,19 +395,36 @@ async function openIntro() {
   preloadWorld(S.sel);
   const card = $(`.wcard[data-i="${S.sel}"] .art`);
   if (card && readyImage(introArt(w)) && !reduced()) {
+    // The card grows into the full-screen plate without stretching: a
+    // full-screen layer of the intro plate (framed exactly as the intro shows
+    // it) is clipped to the card's rectangle and the clip opens to the screen,
+    // while the card's own art grows with it (always cropped, never squashed)
+    // and fades into the plate.
     const r = card.getBoundingClientRect();
+    const W = innerWidth, H = innerHeight;
     const z = document.createElement('div');
     z.className = 'zoomer';
-    z.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;background-image:url('${introArt(w)}')`;
+    const plate = document.createElement('div');
+    plate.className = 'zoomer-plate';
+    plate.style.backgroundImage = `url('${introArt(w)}')`;
+    const face = document.createElement('div');
+    face.className = 'zoomer-face';
+    face.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;background-image:url('${cardArt(w)}')`;
+    z.append(plate, face);
     document.body.appendChild(z);
-    const sx = innerWidth / r.width, sy = innerHeight / r.height;
-    const anim = z.animate([
-      { transform: 'translate(0,0) scale(1,1)', borderRadius: '10px' },
-      { transform: `translate(${-r.left}px, ${-r.top}px) scale(${sx}, ${sy})`, borderRadius: '0px' },
-    ], { duration: 650, easing: 'cubic-bezier(.6,.05,.2,1)', fill: 'forwards' });
+    const clip = (t, rad) => `inset(${t.top}px ${W - t.right}px ${H - t.bottom}px ${t.left}px round ${rad}px)`;
+    const opts = { duration: 650, easing: 'cubic-bezier(.6,.05,.2,1)', fill: 'forwards' };
+    const anim = z.animate([{ clipPath: clip(r, 10) }, { clipPath: clip({ top: 0, left: 0, right: W, bottom: H }, 0) }], opts);
+    face.animate([
+      { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px`, opacity: 1 },
+      { opacity: 1, offset: 0.25 },
+      { left: '0px', top: '0px', width: `${W}px`, height: `${H}px`, opacity: 0 },
+    ], opts);
     S.zooming = true;
     await anim.finished.catch(() => {});
     show('intro');
+    // the paper panel slides in over the plate rather than appearing at once
+    $('#intro .intro-panel')?.animate([{ opacity: 0, transform: 'translateX(-18px)' }, { opacity: 1, transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.2,.7,.2,1)' });
     S.zooming = false;
     z.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 350, fill: 'forwards' }).finished.then(() => z.remove(), () => z.remove());
   } else show('intro');
@@ -507,8 +524,8 @@ async function worldReady(f) {
   }
   S.onReady?.();
   S.onReady = null;
-  if (S.pendingCard) showControlsCard(8);
-  S.pendingCard = false;
+  // (loaded behind a transition: the card waits until the transition ends)
+  if (S.pendingCard && !S.transitioning) { showControlsCard(8); S.pendingCard = false; }
   if (!S.paused && !S.transitioning && S.modals.length === 0) await resumeFrame();
 }
 
@@ -537,7 +554,11 @@ function onWorldMessage(m, f) {
       break;
     case 'view': if (dedupe('view')) toggleControls(); break;
     case 'landmark': landmark(m.kind); break;
-    case 'near': showPrompt(m.on ? m : null); break;
+    case 'near':
+      showPrompt(m.on ? m : null);
+      // nearing the way on (or back): start loading that world already
+      if (m.on && !S.transitioning) { const n = S.world + (m.kind === 'back' ? -1 : 1); if (n >= 0 && n < WORLDS.length) preloadWorld(n); }
+      break;
     case 'join': announceJoin({ index: m.index ?? roster.list.length, color: m.color || '#d8a440', name: m.name }); if (m.roster) roster.fromJSON(m.roster); break;
     case 'features':
       if (!m.open && S.devPanel) { S.devPanel = false; pause('Back from the world’s feature panel.'); }
@@ -620,6 +641,9 @@ async function landmark(kind) {
     return;
   }
   const next = kind === 'forward' ? i + 1 : i - 1;
+  // Load the next world behind the transition (it holds on its first frames
+  // until Begin/resume), so it is ready when the animation ends.
+  preloadWorld(next);
   S.transitioning = true;
   send(S.frame, 'pause');
   closeAllModals();
@@ -632,6 +656,7 @@ async function landmark(kind) {
     await Promise.race([ready, sleep(12000)]);
   } finally {
     S.transitioning = false;
+    if (S.pendingCard && !S.loading) { showControlsCard(8); S.pendingCard = false; }
     $('#transition').animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, fill: 'forwards' }).finished
       .then(() => { transitions.hide(); $('#transition').getAnimations().forEach((a) => a.cancel()); });
     if (!S.loading && !S.paused) resumeFrame();
@@ -872,6 +897,15 @@ document.addEventListener('click', (e) => {
   sound.unlock();
   activate(el);
 });
+// A click on the dimmed backdrop round a popup closes it like its own button:
+// Resume, Done, Close; a confirmation takes its safe choice (Stay / Cancel).
+for (const m of $$('.modal')) {
+  m.addEventListener('click', (e) => {
+    if (e.target !== m || m.hidden) return;
+    const b = $('[data-action="resume"], [data-action="close"], [data-action="cancel"]', m);
+    if (b) { sound.unlock(); activate(b); }
+  });
+}
 $('#title').addEventListener('click', (e) => { if (!e.target.closest('button') && !S.modals.length) pressStart(); });
 for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => sound.unlock(), { capture: true });
 
