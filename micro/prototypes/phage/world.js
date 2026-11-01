@@ -7,7 +7,8 @@
 //    membrane and, on the right hosts, patches of OmpC trimers (the receptor).
 //  - A clay/peat platelet near the top: grabs extended fibres, shields from UV.
 //  - The edge of an amoeba at the left, which can reach out a pseudopod.
-//  - A crowd of jostling molecules and colloids that wraps around the camera.
+//  - A bath of jostling molecules (bead-cluster impostors, phage-beads.js) wrapped round each view,
+//    so the water is full whichever way the camera turns; humic flocs past halfway; far cells all round.
 //  - UV from the surface: uvAt(x, y), only where a gap in the floating peat
 //    mat lets the sun in (the far half of the route).
 //
@@ -19,9 +20,14 @@
 // sits at or beyond halfway; the CRISPR boss is inside the host. world.placements()
 // lists each one's fraction of the route.
 import * as THREE from '../shared/vendor/three.module.min.js';
-import { toonMaterial, inked, inkedInstanced, blobGeometry, lumpyGeometry } from '../shared/techniques/phage-goodsell.js';
+import { toonMaterial, inked, inkedInstanced, blobGeometry } from '../shared/techniques/phage-goodsell.js';
+import { createBath, beadMesh, beadMaterial, beadTemplate, setSolids, setPhages, PALETTE } from '../shared/techniques/phage-beads.js';
 
-export const BOUNDS = { x0: -420, x1: 1120, y0: -330, y1: 680, z0: -34, z1: 34 };
+// The water has no floor or walls: z (depth) is as free as x and y, with a soft current back toward
+// the field beyond these bounds (main.js). y is still toward the sunlit surface, where the UV is.
+export const BOUNDS = { x0: -420, x1: 1120, y0: -330, y1: 680, z0: -260, z1: 260 };
+/** Humic flocs (x, y, z, radius): past halfway, off the straight line, as the owner's placement rule asks. */
+export const FLOCS = [[420, 300, 40, 26], [640, 330, -50, 30], [560, 470, 70, 24], [800, 260, 90, 28]];
 /** The start (clear water, lower left) and the destination (Host A's home, upper right). */
 export const START = new THREE.Vector3(-200, -200, 0);
 export const DEST = new THREE.Vector3(880, 420, 0);
@@ -78,32 +84,34 @@ export function createWorld(scene) {
   const world = { hosts: [], proteins: [], molecules: [], t: 0, opts: { hostBrownian: true, crowd: true } };
 
   // --- hosts ---
-  const lpsGeo = blobGeometry([{ p: [0, 0.6, 0], r: 0.7, c: '#ffffff' }, { p: [0, 1.7, 0], r: 0.65, c: '#ffffff' }, { p: [0.2, 2.8, 0], r: 0.6, c: '#ffffff' }, { p: [0, 3.8, 0.2], r: 0.7, c: '#e8f0c0' }], 0);
-  // The grab targets: matching receptors have three gold lobes with dark sockets on a beaded stalk;
-  // non-matching proteins two violet lobes (shape tells them apart in greyscale too).
-  const proteinGeo = (lobes, c) => blobGeometry([
-    { p: [0, 1.0, 0], r: 1.15, c }, { p: [0, 2.9, 0], r: 1.0, c }, { p: [0, 4.7, 0], r: 0.95, c },
-    ...Array.from({ length: lobes }, (_, k) => { const a = k * Math.PI * 2 / lobes; return { p: [Math.cos(a) * 2.2, 7, Math.sin(a) * 2.2], r: 2.5, c }; }),
-    ...Array.from({ length: lobes }, (_, k) => { const a = k * Math.PI * 2 / lobes; return { p: [Math.cos(a) * 2.2, 8.9, Math.sin(a) * 2.2], r: 0.8, c: '#4b4055' }; }),
-  ], 1);
-  const goodProteinGeo = proteinGeo(3, '#ffd264'), badProteinGeo = proteinGeo(2, '#aa84cc');
-  const goodProteinMat = toonMaterial({ vertexColors: true, fl: { color: '#ffd264', keep: 1, glow: 0.22, glowColor: '#ffc24a', trans: 0.7, spec: 0.7 } });
-  const badProteinMat = toonMaterial({ vertexColors: true, fl: { color: '#aa84cc', keep: 0.85, trans: 0.8, spec: 0.6 } });
-  const ompGeo = blobGeometry([{ p: [0.9, 1, 0], r: 1.1, c: '#ffffff' }, { p: [-0.45, 1, 0.8], r: 1.1, c: '#ffffff' }, { p: [-0.45, 1, -0.8], r: 1.1, c: '#ffffff' }, { p: [0, 2.2, 0], r: 0.7, c: '#ffe0b0' }], 1);
+  // The grab targets, as bead clusters: matching receptors have three gold lobes with dark sockets on a
+  // beaded stalk; non-matching proteins two violet lobes (shape tells them apart in greyscale too).
+  const proteinBeads = (lobes, c, c2) => {
+    const out = [], col = (h) => new THREE.Color(h);
+    for (const [y, r] of [[1.0, 1.15], [2.9, 1.0], [4.7, 0.95]]) out.push({ p: [0, y, 0], r, c: col(c), g: col(c2) });
+    for (let k = 0; k < lobes; k++) {
+      const a = (k * Math.PI * 2) / lobes, x = Math.cos(a) * 2.3, z = Math.sin(a) * 2.3;
+      for (let j = 0; j < 7; j++) {
+        const u = Math.sin(j * 2.4 + k) * 1.3, v = Math.cos(j * 1.7 + k) * 1.3, w = Math.sin(j * 3.1) * 1.1;
+        out.push({ p: [x + u, 7 + w, z + v], r: 1.25 - (j % 3) * 0.15, c: col(c).offsetHSL(0, 0, (j % 3) * 0.04), g: col(c2) });
+      }
+      out.push({ p: [x * 1.05, 9.1, z * 1.05], r: 0.8, c: col('#3a3048'), g: col('#4b4055') });
+    }
+    return out;
+  };
+  const goodProtein = proteinBeads(3, '#ffc84e', '#ffd264'), badProtein = proteinBeads(2, '#9a6ccc', '#aa84cc');
+  const forestMat = beadMaterial({ sat: 0.95 });
+  const receptorMat = beadMaterial({ glow: 0.22, glowColor: '#ffb43a' }); // the gold receptors glow a little: the thing to find
   for (const def of HOSTS) {
     const g = new THREE.Group();
     // false light: a teal-blue, translucent, wet and lumpy envelope; the Gram-positive decoy duller and greener
-    const mat = toonMaterial({ color: def.color, wobble: 1.2, wobbleFreq: 0.05, map: envTex, mapRepeat: [6, 3], mottle: 0.2,
+    const mat = toonMaterial({ color: def.color, wobble: 2.6, wobbleFreq: 0.045, map: envTex, mapRepeat: [6, 3], mottle: 0.2,
       fl: def.wrong ? { color: '#3f6f62', color2: '#7a8a52', keep: 0, trans: 0.7, bump: 1.2, spec: 0.5, scale: 0.05 }
         : { color: '#2fa2ac', color2: '#3a6cba', keep: 0, trans: 0.95, bump: 1.7, spec: 0.9, scale: 0.045 } });
     const geo = new THREE.CapsuleGeometry(def.r, def.half * 2, 10, 32);
     geo.rotateZ(Math.PI / 2);
     const body = inked(geo, mat, { width: 1.3 });
     g.add(body);
-    // LPS forest
-    const nL = Math.round(def.half * def.r * 0.34);
-    const lps = inkedInstanced(lpsGeo, toonMaterial({ color: '#ffffff', mottle: 0.1, fl: { color: '#8ea4dc', color2: '#cfe0f4', keep: 0, trans: 0.8, spec: 0.5, scale: 0.3 } }), nL, { width: 0.5 });
-    const lc = new THREE.Color(def.lps);
     const host = { ...def, group: g, body, mat, pos: new THREE.Vector3(...def.home), vel: new THREE.Vector3(), ang: def.angle, angVel: 0, patchList: [], rings: [] };
     const pt = (u, phi, out) => out.set(u, Math.cos(phi) * def.r, Math.sin(phi) * def.r);
     const surf = (u, phi, out, n) => {
@@ -114,19 +122,35 @@ export function createWorld(scene) {
       return out.set(s * def.half, 0, 0).addScaledVector(n, def.r);
     };
     const n = new THREE.Vector3();
-    for (let i = 0; i < nL; i++) {
-      const u = rand(-def.half - def.r * 0.9, def.half + def.r * 0.9), phi = rand(-Math.PI * 0.75, Math.PI * 0.75);
-      surf(u, phi, _p, n);
-      _q.setFromUnitVectors(UP, n).multiply(new THREE.Quaternion().setFromAxisAngle(UP, Math.random() * 6));
-      _m.compose(_p, _q, _s.setScalar(def.wrong ? rand(0.7, 1.0) : rand(0.5, 0.72)));
-      lps.setMatrixAt(i, _m);
-      lps.setColorAt(i, _c.copy(lc).offsetHSL(rand(-0.04, 0.04), 0, rand(-0.08, 0.08)));
-    }
-    g.add(lps);
+    // The surface forest (phage-beads.js impostors, static in the host's frame): a dense lawn of LPS
+    // chains all round the cell, membrane proteins and porins scattered through it. The Gram-positive
+    // decoy has no outer membrane: a duller, sparser fuzz of wall polymers instead.
+    const area = 2 * Math.PI * def.r * 2 * def.half + 4 * Math.PI * def.r * def.r;
+    const forest = (template, count, scale, tint, upright = true) => {
+      const m = beadMesh(template, count, { material: forestMat });
+      for (let i = 0; i < count; i++) {
+        const u = rand(-def.half - def.r * 0.95, def.half + def.r * 0.95), phi = rand(-Math.PI, Math.PI);
+        surf(u, phi, _p, n);
+        _q.setFromUnitVectors(UP, n).multiply(new THREE.Quaternion().setFromAxisAngle(UP, Math.random() * 6));
+        if (!upright) _q.multiply(new THREE.Quaternion().setFromAxisAngle(Z, rand(-0.5, 0.5)));
+        m.set(i, _p.addScaledVector(n, -0.6), _q, rand(...scale), tint ? _c.copy(tint).offsetHSL(rand(-0.03, 0.03), 0, rand(-0.06, 0.06)) : null);
+      }
+      m.commit(); m.fitBounds(); g.add(m.mesh);
+      return m;
+    };
+    const lc = def.wrong ? new THREE.Color('#b8b07a') : null;
+    const nL = Math.round(area / (def.wrong ? 34 : 15));
+    forest(beadTemplate('lps', 1), Math.ceil(nL / 2), def.wrong ? [0.6, 0.8] : [0.55, 0.8], lc);
+    forest(beadTemplate('lps', 2), Math.floor(nL / 2), def.wrong ? [0.6, 0.8] : [0.55, 0.8], lc);
+    if (!def.wrong) {
+      forest(beadTemplate('mprot', 3), Math.round(area / 260), [0.9, 1.3], null, false);
+      forest(beadTemplate('porin', 4), Math.round(area / 200), [0.9, 1.15], null);
+      forest(beadTemplate('globule', 5, PALETTE.teal), Math.round(area / 420), [0.9, 1.3], null, false);
+    } else forest(beadTemplate('globule', 6, PALETTE.olive), Math.round(area / 300), [0.9, 1.3], null, false);
     // OmpC receptor patches
     if (def.patches.length) {
-      const per = 16;
-      const omp = inkedInstanced(ompGeo, toonMaterial({ color: '#ffffff', fl: { color: '#4560c8', color2: '#86a6f2', keep: 0, trans: 0.75, spec: 0.7, scale: 0.35 } }), def.patches.length * per, { width: 0.6 });
+      const per = 22;
+      const omp = beadMesh(beadTemplate('porin', 7), def.patches.length * per, { material: forestMat });
       let k = 0;
       for (const [u0, phi0] of def.patches) {
         surf(u0, phi0, _p, n);
@@ -135,9 +159,7 @@ export function createWorld(scene) {
           const a = Math.random() * Math.PI * 2, rr = Math.sqrt(Math.random()) * 9;
           surf(u0 + Math.cos(a) * rr, phi0 + (Math.sin(a) * rr) / def.r, _p, n);
           _q.setFromUnitVectors(UP, n);
-          _m.compose(_p, _q, _s.setScalar(rand(0.85, 1.15)));
-          omp.setMatrixAt(k, _m);
-          omp.setColorAt(k++, _c.set(i % 3 ? '#f08a4b' : '#e8574a'));
+          omp.set(k++, _p, _q, rand(1.0, 1.3), _c.set(i % 3 ? '#8aa4ff' : '#b0c4ff'));
         }
         // data overlay ring
         const ring = new THREE.Mesh(new THREE.TorusGeometry(12, 0.55, 6, 32), new THREE.MeshBasicMaterial({ color: '#ffe14a', depthTest: false, transparent: true, opacity: 0.9 }));
@@ -147,7 +169,7 @@ export function createWorld(scene) {
         ring.renderOrder = 10; ring.visible = false;
         g.add(ring); host.rings.push(ring);
       }
-      g.add(omp);
+      omp.commit(); omp.fitBounds(); g.add(omp.mesh);
     }
     // Prominent binding targets remain visible without the observer overlay.
     // Matching trimers have three gold lobes; non-matching proteins have two violet lobes.
@@ -159,18 +181,15 @@ export function createWorld(scene) {
     // One instanced mesh per kind and host (two draws, not a dozen meshes per protein).
     for (const compatible of [true, false]) {
       const list = sites.filter((x) => x.compatible === compatible);
-      const mesh = inkedInstanced(compatible ? goodProteinGeo : badProteinGeo, compatible ? goodProteinMat : badProteinMat, list.length, { width: 0.45 });
-      mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+      const mesh = beadMesh(compatible ? goodProtein : badProtein, list.length, { material: compatible ? receptorMat : forestMat });
       list.forEach((site, k) => {
         surf(site.u, site.phi, _p, n);
         const protein = { id: `${def.id}-${world.proteins.filter((q) => q.host === host).length}`, host, compatible,
           surface: _p.clone(), normal: n.clone(), local: _p.clone().addScaledVector(n, 7) };
-        _m.compose(_p, _q.setFromUnitVectors(UP, n), _s.setScalar(1));
-        mesh.setMatrixAt(k, _m);
+        mesh.set(k, _p, _q.setFromUnitVectors(UP, n), 1);
         world.proteins.push(protein);
       });
-      mesh.frustumCulled = false;
-      g.add(mesh);
+      mesh.commit(); mesh.fitBounds(); g.add(mesh.mesh);
     }
     // The host's instanced meshes (LPS forest, OmpC patches, grab proteins) never move in the host's
     // frame, so each gets a bounding sphere once (padded for the ink hull's push-out) and is culled
@@ -331,47 +350,68 @@ export function createWorld(scene) {
   scene.add(spin);
   world.backdoor = { pos: BACKDOOR, radius: 55, group: spin, flag };
 
-  // --- the crowd of molecules ---
-  const TYPES = [
-    { fl: { color: '#4a5fa6', color2: '#8d9fd8', keep: 0.2, trans: 0.7 }, n: 110, s: [1.6, 2.8], sig: 6, geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#b58a52' }, { p: [1, 0.4, 0.2], r: 0.8, c: '#c49a5c' }, { p: [-0.7, 0.8, 0], r: 0.7, c: '#a97f4a' }, { p: [0.2, -0.8, 0.5], r: 0.6, c: '#c8a066' }, { p: [-0.9, -0.4, -0.4], r: 0.6, c: '#b88d55' }], 1) },
-    { fl: { color: '#7a74d4', color2: '#b6a8f0', keep: 0.2, trans: 0.7 }, n: 80, s: [1.2, 2.0], sig: 8, geo: blobGeometry([{ p: [0, 0, 0], r: 0.9, c: '#ec8fae' }, { p: [0.9, 0.3, 0], r: 0.75, c: '#f1a0bd' }, { p: [-0.5, 0.8, 0.3], r: 0.7, c: '#e07a9c' }, { p: [0.1, -0.7, -0.4], r: 0.7, c: '#f3b0c6' }], 1) },
-    { fl: { color: '#5aa6c4', color2: '#9fd6e4', keep: 0.25, trans: 0.7 }, n: 100, s: [0.9, 1.4], sig: 11, geo: blobGeometry([{ p: [-1, 0, 0], r: 0.55, c: '#8fcf6c' }, { p: [0, 0.3, 0], r: 0.55, c: '#a6dc7a' }, { p: [1, 0, 0.2], r: 0.55, c: '#8fcf6c' }], 0) },
-    { fl: { color: '#cfe6f4', color2: '#ffffff', keep: 0, trans: 0.4, glow: 0.35, glowColor: '#bfe6ff' }, n: 190, s: [0.5, 0.8], sig: 16, geo: blobGeometry([{ p: [0, 0, 0], r: 0.8, c: '#e2483d' }, { p: [0.75, 0.5, 0], r: 0.45, c: '#ffffff' }, { p: [-0.75, 0.5, 0], r: 0.45, c: '#ffffff' }], 0) },
-    { fl: { color: '#3a62c4', color2: '#7a9cf0', keep: 0.45, trans: 0.75, spec: 0.6 }, n: 36, s: [2.6, 3.6], sig: 4, geo: blobGeometry([{ p: [0, 0, 0], r: 1, c: '#6d8fd6' }, { p: [1.3, 0.2, 0], r: 0.9, c: '#7d9de0' }, { p: [-1.2, 0.3, 0.3], r: 0.9, c: '#5f80c8' }, { p: [0.2, 1.2, 0], r: 0.8, c: '#8aa8e6' }, { p: [0.1, -1.1, 0.3], r: 0.85, c: '#6d8fd6' }, { p: [0.3, 0.1, 1.1], r: 0.8, c: '#5d7ec6' }, { p: [-0.3, 0.2, -1.1], r: 0.8, c: '#7d9de0' }], 1) },
-    { fl: { color: '#d6b45c', color2: '#f2dc96', keep: 0.4, trans: 0.6, glow: 0.12 }, n: 40, s: [1.4, 2.0], sig: 5, geo: blobGeometry(Array.from({ length: 7 }, (_, i) => ({ p: [i * 0.9 - 2.7, Math.sin(i * 1.3) * 0.5, Math.cos(i) * 0.3], r: 0.5, c: i % 2 ? '#d8d36a' : '#c2cc5e' })), 1) },
+  // --- the bath of molecules (phage-beads.js): thousands of bead-cluster impostors that never touch
+  // the CPU. Each bath wraps round a centre in its own box, so the water is full in every direction
+  // the camera can turn, and round every split view (world.viewBath sets the centre per view). The
+  // near bath is dense and detailed; the mid bath fills out to the haze with fewer, larger molecules.
+  const NEAR = [
+    { kind: 'small', n: 900, s: [1.0, 1.5], variants: 4 },
+    { kind: 'globule', n: 300, s: [1.1, 1.9], pal: PALETTE.violet },
+    { kind: 'globule', n: 240, s: [0.8, 1.3], pal: PALETTE.teal, seed: 3 },
+    { kind: 'dimer', n: 150, s: [0.9, 1.4] },
+    { kind: 'chain', n: 180, s: [1.0, 1.5] },
+    { kind: 'globule', n: 120, s: [1.0, 1.6], pal: PALETTE.periwinkle, seed: 5 },
+    { kind: 'humic', n: 70, s: [1.0, 1.6] },
+    { kind: 'complex', n: 30, s: [1.0, 1.5] },
   ];
-  const HALF = new THREE.Vector3(175, 120, 0);
-  const Z0 = -80, Z1 = 38;
-  for (const T of TYPES) {
-    const mesh = inkedInstanced(T.geo, toonMaterial({ vertexColors: true, mottle: 0.12, fl: T.fl }), T.n, { width: 0.6 });
-    mesh.userData.crowd = true; // its ink is the first to go at low quality
-    T.geoGoodsell = T.geo; T.geoFL = lumpyGeometry(T.geo.userData.parts, T.n > 150 ? 3 : 6);
-    // culling: world.update fits a sphere round the molecules each frame (a split view far from the
-    // crowd skips its draw; the crowd wraps round view.target, so it is often wholly off screen there)
-    T.reach = 0;
-    for (const gg of [T.geoGoodsell, T.geoFL]) { gg.computeBoundingSphere(); T.reach = Math.max(T.reach, gg.boundingSphere.center.length() + gg.boundingSphere.radius); }
-    mesh.boundingSphere = mesh.ink.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    mesh.frustumCulled = mesh.ink.frustumCulled = true;
-    scene.add(mesh);
-    T.mesh = mesh;
-    T.items = Array.from({ length: T.n }, () => ({
-      p: new THREE.Vector3(rand(-HALF.x, HALF.x), rand(-HALF.y, HALF.y), rand(Z0, Z1)),
-      v: new THREE.Vector3(), q: new THREE.Quaternion().random(), w: new THREE.Vector3(gauss(), gauss(), gauss()).multiplyScalar(0.6),
-      s: rand(...T.s),
-    }));
-  }
-  world.types = TYPES;
+  const MID = [
+    { kind: 'globule', n: 900, s: [2.0, 3.2], pal: PALETTE.violet, seed: 7 },
+    { kind: 'globule', n: 700, s: [1.8, 2.8], pal: PALETTE.teal, seed: 9 },
+    { kind: 'dimer', n: 400, s: [2.0, 3.0], seed: 4 },
+    { kind: 'small', n: 900, s: [2.2, 3.0], seed: 6 },
+    { kind: 'humic', n: 200, s: [2.0, 3.0], seed: 8 },
+    { kind: 'complex', n: 80, s: [1.8, 2.6], seed: 2 },
+  ];
+  const nearBath = createBath(NEAR, { half: 115, jitter: 0.9, spin: 0.4, keepR: 26, seed: 1 });
+  const midBath = createBath(MID, { half: 330, jitter: 1.4, spin: 0.25, keepR: 70, seed: 2, sat: 0.85 });
+  const baths = [nearBath, midBath];
+  for (const b of baths) scene.add(b.group);
+  world.baths = baths;
+  /** Before drawing a view: wrap the baths round that view's centre (and the camera, for the lens clearing). */
+  world.viewBath = (center) => { for (const b of baths) b.setCenter(center); moteMat.uniforms.uCenter.value.copy(center); };
+  /** The phages' wake spheres: [{ p, r }]. */
+  world.setWake = (list) => { for (const b of baths) setPhages(b.material, list); };
+  world.setCrowdLevel = (level) => { for (const b of baths) b.setLevel(level); };
+  world.bathBeads = () => baths.reduce((a, b) => a + (b.group.visible ? b.beads : 0), 0);
 
+  // --- humic flocs (MP-R21 stand-in): loose sticky tangles drifting past halfway; extended fibres snag in them ---
+  const flocMat = beadMaterial({ sat: 0.9 });
+  world.flocs = FLOCS.map(([x, y, z, r], i) => {
+    const m = beadMesh(beadTemplate('floc', 11 + i), 1, { material: flocMat });
+    const g = new THREE.Group();
+    m.set(0, _p.set(0, 0, 0), _q.identity(), r / 11);
+    m.commit();
+    g.add(m.mesh);
+    const home = new THREE.Vector3(x, y, z);
+    g.position.copy(home);
+    scene.add(g);
+    return { group: g, home, pos: home.clone(), r, spin: new THREE.Vector3(gauss(), gauss(), gauss()).multiplyScalar(0.05) };
+  });
+  world.sdFloc = (p) => { let best = 1e9, which = null; for (const f of world.flocs) { const d = p.distanceTo(f.pos) - f.r; if (d < best) { best = d; which = f; } } return { d: best, floc: which }; };
+
+  // --- far cells in every direction (one instanced draw), hanging in the haze round the play volume ---
   // --- false light only: far cells in the haze (one instanced draw) and fine suspended motes (one draw) ---
   const farGeo = new THREE.CapsuleGeometry(36, 110, 6, 18); farGeo.rotateZ(Math.PI / 2);
-  // ghostly translucent shells far back in the haze (and softened by the DOF)
-  const farMat = toonMaterial({ color: '#ffffff', opacity: 0.5, fl: { color: '#2a8296', color2: '#3a64aa', keep: 0, trans: 1, spec: 0.3, scale: 0.03 } });
-  const FAR = 16;
+  // ghostly translucent shells far off in the haze (and softened by the DOF), on a shell round the field
+  const farMat = toonMaterial({ color: '#ffffff', opacity: 0.55, wobble: 3, wobbleFreq: 0.03, fl: { color: '#2a8296', color2: '#3a64aa', keep: 0, trans: 1, bump: 0.8, spec: 0.3, scale: 0.03 } });
+  const FAR = 48;
   const far = new THREE.InstancedMesh(farGeo, farMat, FAR);
+  const mid = new THREE.Vector3((BOUNDS.x0 + BOUNDS.x1) / 2, (BOUNDS.y0 + BOUNDS.y1) / 2, 0);
   for (let i = 0; i < FAR; i++) {
-    const x = BOUNDS.x0 - 200 + (i / (FAR - 1)) * (BOUNDS.x1 - BOUNDS.x0 + 400) + rand(-60, 60);
-    const y = rand(BOUNDS.y0 - 150, BOUNDS.y1 + 50) * 0.7 + (x - START.x) * 0.25;
-    _m.compose(_p.set(x, y, rand(-900, -480)), _q.setFromAxisAngle(Z, rand(-1.2, 1.2)).multiply(new THREE.Quaternion().setFromAxisAngle(UP, rand(-0.6, 0.6))), _s.setScalar(rand(0.8, 1.4)));
+    // a Fibonacci sphere: evenly in every direction
+    const y = 1 - (2 * (i + 0.5)) / FAR, rr = Math.sqrt(1 - y * y), th = i * 2.39996;
+    _p.set(Math.cos(th) * rr, y, Math.sin(th) * rr).multiplyScalar(rand(1050, 1500)).add(mid);
+    _m.compose(_p, _q.setFromEuler(new THREE.Euler(rand(0, 6.3), rand(0, 6.3), rand(0, 6.3))), _s.setScalar(rand(1.1, 1.9)));
     far.setMatrixAt(i, _m);
   }
   far.frustumCulled = false;
@@ -401,10 +441,8 @@ export function createWorld(scene) {
   world.far = far; world.motes = motes;
   /** Switch the world's false-light extras on or off (with the look). */
   world.setStyle = (falseLight) => {
-    far.visible = motes.visible = falseLight; world.crowdScale = falseLight ? 0.8 : 1;
-    for (const T of TYPES) T.mesh.geometry = falseLight ? T.geoFL : T.geoGoodsell; // bead-flowers in false light
+    far.visible = motes.visible = falseLight;
   };
-  world.crowdScale = 1;
   /** Where each challenge sits along the route (0 start .. 1 Host A), for the placement log. */
   world.placements = () => {
     const row = (name, p, r = 0) => ({ name, t: +routeProgress(p).toFixed(2), off: +routeOffset(p).toFixed(0), r });
@@ -428,8 +466,9 @@ export function createWorld(scene) {
 
   world.flowAt = (p, t, out = new THREE.Vector3()) => out.set(5 * Math.sin(p.y * 0.011 + t * 0.09), 3 * Math.sin(p.x * 0.013 - t * 0.07), 0);
 
-  world.update = (dt, t, center, phage, camZ = 1e9) => {
-    const zTop = Math.min(Z1, camZ - 70);
+  const _a = new THREE.Vector3(), _b = new THREE.Vector3();
+  /** Per frame: hosts drift, flocs turn, the baths learn where the solids, gusts and the clock are. */
+  world.update = (dt, t, center) => {
     world.t = t;
     for (const m of [amoebaMat, amBody.ink.material, podMat]) m.uniforms.uTime.value = t;
     world.backdoor.flag.rotation.x = -t * 2.2; // the motor turns the helix
@@ -448,183 +487,32 @@ export function createWorld(scene) {
       h.group.position.copy(h.pos); h.group.rotation.z = h.ang;
       h.mat.uniforms.uTime.value = t;
     }
-    // the crowd: Ornstein-Uhlenbeck jostling, the ambient flow, gusts and the phage's wake, wrapped round the camera
+    // flocs: a slow turn and a drift round home
+    for (const f of world.flocs) {
+      f.group.rotation.x += f.spin.x * dt; f.group.rotation.y += f.spin.y * dt; f.group.rotation.z += f.spin.z * dt;
+      f.pos.set(f.home.x + Math.sin(t * 0.11 + f.r) * 10, f.home.y + Math.cos(t * 0.09 + f.r) * 8, f.home.z + Math.sin(t * 0.07) * 6);
+      f.group.position.copy(f.pos);
+    }
+    // the gusts (A): one at a time shoves the bath
     for (const g of world.gusts) g.t -= dt;
     world.gusts = world.gusts.filter((g) => g.t > 0);
-    world.crowdCenter.copy(center); world.crowdZTop = zTop;
-    // (while every view has a copy of its own, nobody sees the main crowd: it waits, unstepped)
-    const mainIdle = copies.length > 0 && copies.length >= viewCount && copies.every((c) => c.fade === 1 && !c.dying);
-    for (const T of TYPES) {
-      T.mesh.visible = world.opts.crowd;
-      if (!world.opts.crowd || mainIdle) continue;
-      stepCrowd(T, T.items, T.mesh, center.x, center.y, dt, t, phage, zTop);
+    const g = world.gusts[world.gusts.length - 1];
+    // solids the baths keep out of: the hosts (capsules), the amoeba (a sphere), the clay, the flocs
+    const solids = [];
+    for (const h of world.hosts) {
+      if (h.burst || !h.group.visible) continue;
+      world.toWorld(h, _a.set(-h.half, 0, 0)); world.toWorld(h, _b.set(h.half, 0, 0));
+      solids.push({ a: _a.clone(), b: _b.clone(), r: h.r + 2 });
     }
-    // split copies (only while a view has drifted off the crowd): the same forces, wrapped round their own view
-    if (world.opts.crowd) for (const c of copies) TYPES.forEach((T, k) => stepCrowd(T, c.types[k].items, c.types[k].mesh, c.cx, c.cy, dt, t, phage, zTop));
-  };
-
-  const flow = new THREE.Vector3();
-  /** One frame of one crowd of type T: move its molecules, wrap them round (cx, cy), write the instances and the culling sphere. */
-  function stepCrowd(T, items, mesh, cx, cy, dt, t, phage, zTop) {
-    const decay = Math.exp(-dt * 2.2);
-    let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity, sMax = 0;
-    for (let i = 0; i < items.length; i++) {
-      const it = items[i];
-      it.v.multiplyScalar(decay);
-      it.v.x += gauss() * T.sig * Math.sqrt(dt) * 1.4; it.v.y += gauss() * T.sig * Math.sqrt(dt) * 1.4; it.v.z += gauss() * T.sig * Math.sqrt(dt) * 0.8;
-      world.flowAt(it.p, t, flow);
-      for (const g of world.gusts) {
-        const d = it.p.distanceTo(g.p);
-        if (d < 70) it.v.addScaledVector(g.dir, (1 - d / 70) * 90 * dt * (g.t / 0.6));
-      }
-      if (phage) {
-        _v.subVectors(it.p, phage);
-        const d = _v.length();
-        if (d < 14) it.v.addScaledVector(_v, ((14 - d) / Math.max(d, 1)) * 12 * dt);
-      }
-      it.p.addScaledVector(it.v, dt).addScaledVector(flow, dt);
-      // keep them out of solid things
-      for (const h of world.hosts) {
-        if (h.burst) continue;
-        // beyond the host's bounding sphere the envelope is more than 5 away (sdHost >= |p - pos| - half - r): skip the exact test
-        const ex = it.p.x - h.pos.x, ey = it.p.y - h.pos.y, ez = it.p.z - h.pos.z, er = h.half + h.r + 5;
-        if (ex * ex + ey * ey + ez * ez >= er * er) continue;
-        const sd = world.sdHost(h, it.p, _v);
-        if (sd < 5) it.p.addScaledVector(_v, 5 - sd);
-      }
-      const sa = world.sdAmoeba(it.p);
-      if (sa < 0) it.p.addScaledVector(_v.subVectors(it.p, amoeba.center).normalize(), -sa);
-      // wrap around the camera
-      const dx = it.p.x - cx, dy = it.p.y - cy;
-      if (dx > HALF.x) it.p.x -= 2 * HALF.x; else if (dx < -HALF.x) it.p.x += 2 * HALF.x;
-      if (dy > HALF.y) it.p.y -= 2 * HALF.y; else if (dy < -HALF.y) it.p.y += 2 * HALF.y;
-      if (it.p.z > zTop) it.p.z = Z0 + 2; else if (it.p.z < Z0) it.p.z = zTop - 2;
-      _q.setFromAxisAngle(_s.copy(it.w).normalize(), it.w.length() * dt);
-      it.q.multiply(_q);
-      _m.compose(it.p, it.q, _s.setScalar(it.s * world.crowdScale));
-      mesh.setMatrixAt(i, _m);
-      const P = it.p;
-      if (P.x < x0) x0 = P.x; if (P.x > x1) x1 = P.x; if (P.y < y0) y0 = P.y; if (P.y > y1) y1 = P.y; if (P.z < z0) z0 = P.z; if (P.z > z1) z1 = P.z;
-      if (it.s > sMax) sMax = it.s;
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-    // the bounding sphere of every molecule (the box's, plus the largest molecule and the ink's push-out)
-    if (items.length) {
-      const B = mesh.boundingSphere;
-      B.center.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
-      B.radius = Math.hypot(x1 - x0, y1 - y0, z1 - z0) / 2 + T.reach * sMax * world.crowdScale + 8;
-    }
-  }
-
-  // --- split crowds: one crowd while every view is covered, a copy for a view that drifts off it ---
-  // The crowd wraps round the group's centre (view.target), in a box of 2·HALF. A split view whose
-  // visible slab (its region of the screen, unprojected onto the crowd's top and bottom planes)
-  // reaches past what the merged screen already shows of that box gets its own copy, wrapped round
-  // the view: seeded from the main crowd (so the overlap is the same molecules) and drawn only in
-  // that view, where it takes over the main crowd instance by instance (copy i is main n-1-i, the
-  // main crowd draws its first n-c, the copy its first c: a dissolve at constant density).
-  // Hysteresis: a copy starts when the view would show more than SPLIT_IN world units (10 nm each) of
-  // bare water beyond that, and fades out only once the overflow has stayed under SPLIT_OUT for
-  // SPLIT_HOLD seconds. (A half-screen view still meets the screen's edges, so "covered" is ~0, not < 0.)
-  const SPLIT_IN = 12, SPLIT_OUT = 2, SPLIT_HOLD = 1.5, SPLIT_FADE = 0.6;
-  const copies = [], pool = [];
-  let viewCount = 1;
-  world.crowdCenter = new THREE.Vector3(); world.crowdZTop = Z1;
-  const wrapTo = (x, c, h) => c + ((((x - c + h) % (2 * h)) + 2 * h) % (2 * h)) - h;
-  function makeCopy(key, cx, cy) {
-    const c = pool.pop() || { types: TYPES.map((T) => {
-      const mesh = inkedInstanced(T.mesh.geometry, T.mesh.material, T.n, { width: 0.6 });
-      mesh.ink.geometry = T.mesh.ink.geometry;
-      mesh.userData.crowd = true; mesh.visible = false;
-      mesh.boundingSphere = mesh.ink.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-      mesh.frustumCulled = mesh.ink.frustumCulled = true;
-      scene.add(mesh);
-      return { mesh, items: T.items.map(() => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), q: new THREE.Quaternion(), w: new THREE.Vector3(), s: 1 })) };
-    }) };
-    Object.assign(c, { key, cx, cy, fade: 0, dying: false, hold: SPLIT_HOLD });
-    TYPES.forEach((T, k) => {
-      const { items, mesh } = c.types[k];
-      for (let i = 0; i < T.n; i++) {
-        const src = T.items[T.n - 1 - i], it = items[i];
-        it.p.set(wrapTo(src.p.x, cx, HALF.x), wrapTo(src.p.y, cy, HALF.y), src.p.z);
-        it.v.copy(src.v); it.q.copy(src.q); it.w.copy(src.w); it.s = src.s;
-      }
-      stepCrowd(T, items, mesh, cx, cy, 0, world.t || 0, null, world.crowdZTop); // (dt 0: just the instances and the sphere)
-    });
-    copies.push(c);
-    return c;
-  }
-  function dropCopy(c) {
-    copies.splice(copies.indexOf(c), 1);
-    for (const { mesh } of c.types) mesh.visible = false;
-    pool.push(c);
-  }
-  /** The crowd's slab seen by `camera` through the NDC points `pts` (a view's region): its x, y bounds. */
-  world.crowdFootprint = (camera, pts, out = { x0: 0, y0: 0, x1: 0, y1: 0 }) => {
-    out.x0 = out.y0 = Infinity; out.x1 = out.y1 = -Infinity;
-    const o = camera.position;
-    for (const [nx, ny] of pts) {
-      const d = _p.set(nx, ny, 0.5).unproject(camera).sub(o).normalize();
-      for (const zp of [Z0, world.crowdZTop]) {
-        // a ray that never reaches the plane (an orbit near the horizon) counts as far as 2000
-        const s = o.z > zp && d.z < -1e-3 ? Math.min(2000, (zp - o.z) / d.z) : 2000;
-        const x = o.x + d.x * s, y = o.y + d.y * s;
-        if (x < out.x0) out.x0 = x; if (x > out.x1) out.x1 = x; if (y < out.y0) out.y0 = y; if (y > out.y1) out.y1 = y;
-      }
-    }
-    return out;
-  };
-  /**
-   * Decide the split copies for this frame. `views`: [{ key, box }] each view's footprint; `ref`: the
-   * merged (unshifted, full-screen) footprint, which the single crowd already shows today.
-   */
-  world.coverCrowd = (views, ref, dt) => {
-    const c0 = world.crowdCenter;
-    viewCount = views.length;
-    const ax0 = Math.min(c0.x - HALF.x, ref.x0), ax1 = Math.max(c0.x + HALF.x, ref.x1);
-    const ay0 = Math.min(c0.y - HALF.y, ref.y0), ay1 = Math.max(c0.y + HALF.y, ref.y1);
-    // a copy whose view is gone (views merged or split up) passes to a view sharing a player, else goes
-    for (let i = copies.length - 1; i >= 0; i--) {
-      const c = copies[i];
-      if (views.some((v) => v.key === c.key)) continue;
-      const mine = c.key.split(',');
-      const heir = views.find((v) => !copies.some((q) => q.key === v.key) && v.key.split(',').some((s) => mine.includes(s)));
-      if (heir) c.key = heir.key; else dropCopy(c);
-    }
-    for (const { key, box } of views) {
-      const over = Math.max(ax0 - box.x0, box.x1 - ax1, ay0 - box.y0, box.y1 - ay1);
-      const cx = (box.x0 + box.x1) / 2, cy = (box.y0 + box.y1) / 2;
-      let c = copies.find((q) => q.key === key);
-      if (!c) { if (over > SPLIT_IN && world.opts.crowd) c = makeCopy(key, cx, cy); else continue; }
-      c.cx = cx; c.cy = cy; c.over = over;
-      if (over > SPLIT_OUT) { c.hold = SPLIT_HOLD; if (over > SPLIT_IN) c.dying = false; } else { c.hold -= dt; if (c.hold <= 0) c.dying = true; }
-    }
-    for (let i = copies.length - 1; i >= 0; i--) {
-      const c = copies[i];
-      c.fade = Math.min(1, Math.max(0, c.fade + (c.dying ? -dt : dt) / SPLIT_FADE));
-      if (c.dying && c.fade === 0) dropCopy(c);
+    if (amoeba.mesh.visible) solids.push({ a: amoeba.center, b: amoeba.center, r: amoeba.r + 4 });
+    solids.push({ a: clay.pos, b: clay.pos, r: 30 });
+    for (const b of baths) {
+      setSolids(b.material, solids);
+      b.group.visible = world.opts.crowd;
+      const u = b.material.uniforms;
+      if (g) { const k = g.t / 0.6; u.uGust.value.set(g.p.x, g.p.y, g.p.z, 26 * Math.sin(k * Math.PI)); u.uGustDir.value.copy(g.dir); } else u.uGust.value.w = 0;
     }
   };
-  /** Before drawing a view: its copy (if any) takes over from the main crowd by its fade; other copies hide. */
-  world.crowdView = (key) => {
-    const c = copies.length ? copies.find((q) => q.key === key) : null;
-    const on = world.opts.crowd;
-    TYPES.forEach((T, k) => {
-      const nc = c ? Math.round(T.n * c.fade) : 0;
-      T.mesh.count = T.mesh.ink.count = T.n - nc;
-      T.mesh.visible = on && T.n - nc > 0;
-      for (const q of copies) {
-        const m = q.types[k].mesh;
-        m.visible = on && q === c && nc > 0;
-        if (q !== c) continue;
-        m.count = m.ink.count = nc;
-        m.geometry = T.mesh.geometry; m.ink.geometry = T.mesh.ink.geometry; // (the look's bead-flowers or Goodsell blobs)
-        m.ink.visible = T.mesh.ink.visible; // (the ink switch and the governor's lowest level)
-      }
-    });
-  };
-  /** The live copies (for tests and the HUD). */
-  world.crowdCopies = () => copies.map((c) => ({ key: c.key, fade: c.fade, dying: c.dying, cx: c.cx, cy: c.cy, over: c.over }));
 
   world.reset = () => {
     for (const h of world.hosts) {

@@ -1,42 +1,62 @@
-// The springtail's forward landmark, drawn in the world: a tongue of Sphagnum
-// where the bank reaches into the pool (LANDMARK in world.js), crowned with
-// big red and green capitula, and on the tallest one a speck that moves: the
-// Limnozetes mite of the next stage (design §0.6). Also the players' colour
-// rings, a faint loop on the film under each springtail when more than one
-// plays. Units: mm.
+// The springtail's portal (the way on), drawn in the world: a floating raft
+// of Sphagnum (PORTAL in world.js; mossTop honours it, so you land and walk on
+// it) crowned with big red and green capitula, and on the tallest one a speck
+// that moves: the Limnozetes mite of the next stage (design §0.6). A golden
+// sparkle hangs over it (shared/portal.js), dim while the wolf spider guards
+// it and bright once it is lured off. Built at the origin and moved where the
+// portal is placed (`place`). Also the players' colour rings, a faint loop on
+// the film under each springtail when more than one plays. Units: mm.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { litMaterial } from '../shared/techniques/springtail-macro.js';
-import { capitulumGeometry, mossTop, LANDMARK } from './world.js';
+import { createPortalGlow } from '../shared/portal.js';
+import { capitulumGeometry, PORTAL, raftTop } from './world.js';
 
-export function createLandmarkProps(world) {
+export function createLandmarkProps(world, { pixelHeight } = {}) {
   const group = new THREE.Group();
+  const raft = new THREE.Group();
+  raft.visible = false;
+  group.add(raft);
   let seed = 977;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  const L = LANDMARK;
-  // capitula packed over the tongue: larger than the rim's, lit red and green
+  const L = PORTAL;
+  // the raft: a low floating mat of moss, wet and dark at the waterline
+  {
+    const dome = new THREE.SphereGeometry(1, 40, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+    const dp = dome.attributes.position;
+    for (let i = 0; i < dp.count; i++) {
+      const x = dp.getX(i) * (L.r + 0.4), z = dp.getZ(i) * (L.r + 0.4), d = Math.hypot(x, z);
+      dp.setXYZ(i, x, d > L.r ? -0.3 : raftTop(d) - 0.6, z);
+    }
+    dome.computeVertexNormals();
+    raft.add(new THREE.Mesh(dome, world.domeMat));
+  }
+  // capitula packed over the raft: larger than the rim's, lit red and green
   const geo = capitulumGeometry(rnd, { spreading: 20, bud: 14, sides: 5 });
   const heads = [];
   const n = 11;
   for (let i = 0; i < n; i++) {
-    const u = Math.sqrt((i + 0.5) / n) * (L.r - 1.2), a = i * 2.39996;
-    heads.push({ x: L.x + Math.cos(a) * u, z: L.z + Math.sin(a) * u, s: 1.25 + rnd() * 0.35 });
+    const u = Math.sqrt((i + 0.5) / n) * (L.r - 1.4), a = i * 2.39996;
+    heads.push({ x: Math.cos(a) * u, z: Math.sin(a) * u, s: 1.2 + rnd() * 0.3 });
   }
-  // the tallest head, at the tongue's tip toward the open water: the mite's
-  heads.unshift({ x: L.x - L.r * 0.45, z: L.z + 1.2, s: 1.85 });
+  // the tallest head, a little off centre: the mite's
+  heads.unshift({ x: L.r * 0.25, z: 0.8, s: 1.7 });
   const palette = [[0.24, 0.035, 0.03], [0.11, 0.19, 0.025], [0.2, 0.05, 0.03], [0.16, 0.17, 0.03]];
   const im = new THREE.InstancedMesh(geo, world.mossMat, heads.length);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), col = new THREE.Color();
   heads.forEach((h, i) => {
-    h.y = mossTop(h.x, h.z) - 1.15 * h.s;
+    h.y = raftTop(Math.hypot(h.x, h.z)) - 1.15 * h.s;
     q.setFromEuler(new THREE.Euler((rnd() - 0.5) * 0.2, rnd() * 6.28, (rnd() - 0.5) * 0.2));
     m4.compose(new THREE.Vector3(h.x, h.y, h.z), q, new THREE.Vector3(h.s, h.s, h.s));
     im.setMatrixAt(i, m4);
     im.setColorAt(i, col.setRGB(...palette[i === 0 ? 0 : i % palette.length]));
   });
-  im.frustumCulled = false;
-  group.add(im);
+  im.computeBoundingSphere();
+  raft.add(im);
   const top = heads[0];
   const topY = top.y + top.s * 1.42;
+  // the sparkle: the way on looks like somewhere to go
+  const glow = createPortalGlow({ THREE, size: L.r + 3, height: 9, intensity: 1.4, pixelHeight });
+  raft.add(glow.group);
 
   // the speck: a Limnozetes mite, ~0.35 mm, glossy red-brown, eight legs
   const mite = new THREE.Group();
@@ -56,7 +76,7 @@ export function createLandmarkProps(world) {
     mite.add(leg);
     legs.push(leg);
   }
-  group.add(mite);
+  raft.add(mite);
   const speck = new THREE.Vector3(top.x, topY, top.z);
 
   // player rings: a faint loop of light on the film, one per player
@@ -74,10 +94,22 @@ export function createLandmarkProps(world) {
     return m;
   }
 
+  const position = new THREE.Vector3(0, topY, 0);
   return {
-    group, position: new THREE.Vector3(L.x, topY, L.z), speck, ring, rings,
-    /** Walk the speck about on its capitulum. */
-    update(t) {
+    group, raft, glow, position, speck, ring, rings,
+    /** Show the raft at the portal (world.js PORTAL), turned so the mite's head faces the start. */
+    place() {
+      raft.visible = L.placed;
+      raft.position.set(L.x, 0, L.z);
+      raft.rotation.y = -L.a;
+      raft.updateMatrixWorld(true);
+      position.set(L.x, topY, L.z);
+    },
+    /** Walk the speck about on its capitulum; the sparkle twinkles (open: brighter). */
+    update(t, dt = 0, camera = null, open = false) {
+      if (!raft.visible) return;
+      glow.setOpen(open);
+      glow.update(dt, t, camera);
       const a = t * 0.45 + Math.sin(t * 0.31) * 1.3;
       const r = 0.55 + 0.25 * Math.sin(t * 0.23);
       speck.set(top.x + Math.cos(a) * r, topY + 0.05 * Math.sin(t * 1.7), top.z + Math.sin(a) * r);

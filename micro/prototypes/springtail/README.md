@@ -10,34 +10,65 @@ surface is y = 0.
 
 Open `micro/prototypes/springtail/` (the invite gate is off on localhost).
 
-**Goal:** the way on is straight ahead of where you start, up and to the
-right in the starting view (+x, 0.74 m off, from mid-pool: about a minute of
-jumping flat out, more like three with the challenges): a tongue of Sphagnum
-where the east bank reaches into the pool. Reach it and, in the Micro Zoom
-game, the microscope zooms in to the mite's world. On the way, graze: 8 clumps
-of food (three bites each) is the side goal. You have three lives.
+**Goal:** head out across the pool in any direction. The level is a set of
+rings round the start, the same whichever way you go; about 0.4 m out
+(`PORTAL_R`, 415 mm) is the way on: a floating raft of Sphagnum under a golden
+sparkle, guarded by a wolf spider. Lure the spider off the raft, get round it
+and reach the raft, and in the Micro Zoom game the microscope zooms in to the
+mite's world. On the way, graze: 8 clumps of food (three bites each) is the
+side goal. You have three lives.
 
-**The way, as a rhythm** (`ZONES` in `world.js`, checked by
-`route.test.mjs`; the owner, 2026-11-01). A few seconds of calm water to get
-the feel of walking and jumping, then a challenge, a short calm stretch
-(45–130 mm, a few jumps), the next challenge, and so on to the boss. By
-distance along the way (740 mm):
+**The way out, as a rhythm** (`RINGS` and `ZONES` in `world.js`, checked by
+`route.test.mjs`; the owner, 2026-11-01: obstacles "a few jumps away from the
+starting point", the boss "at a certain distance from the starting point,
+regardless of which direction they go in", "obstacles of the same type in all
+directions"). By distance from the start:
 
 | From | Challenge |
 | --- | --- |
-| 112 mm (its water: 200 ± 58 mm, chase leash 30 mm) | *Stenus*, the rove beetle, and its two-stage strike |
-| 367 mm | Rain, from here on |
-| 367 mm (its water: 445 ± 52 mm) | The water strider |
-| 372 mm | A mass of *Podura* (220 NPC springtails, `shared/crowd.js`) at the edge of the strider's water: you push through them; hidden in the mass and moving little, the strider's lock wanders to the others (a labelled departure: `combat-ideas.md` §0 idea 5) |
-| 595 mm | The sundew patch: a band of seven small islands across the way, their glue-tipped leaves held out over the gaps |
-| 705 mm (35 mm from the landmark) | The pond wolf spider, the boss, at the landmark |
+| 0–70 mm | Calm water: a few jumps to get the feel |
+| 70 mm (its water: 110 ± 40 mm, chase leash 25 mm) | *Stenus*, the rove beetle, and its two-stage strike |
+| ~205 mm | Rain, from here outward |
+| ~205 mm (its water: 250 ± 42 mm, leash 20 mm) | The water strider |
+| ~200 mm | A mass of *Podura* (220 NPC springtails, `shared/crowd.js`, centred 222 mm out, a little to one side of the strider's water): you push through them; hidden in the mass and moving little, the strider's lock wanders to the others (a labelled departure: `combat-ideas.md` §0 idea 5) |
+| ~330–360 mm | The sundew ring: 16 small clusters round the start, each a band of three islands across the way out with glue-tipped leaves held out over the gaps; a straight way out in any direction passes within ~45 mm of one |
+| 380–415 mm | The portal raft on the ring at 415 mm and the pond wolf spider guarding it |
 
-Behind the start, the pool's west half is open water to explore, with
-nothing that hunts.
+Between them, calm stretches of ~20–35 mm (a jump or two). Rushing straight
+out with tap jumps reaches the portal ring in about 28 s (Stenus within 40 mm
+after ~5 s); the challenges stretch that to a few minutes.
+
+**One of each, met in every direction.** There is one *Stenus*, one strider
+(with its mass) and one spider. When a player approaches a predator's ring
+(from about a screen before its water) at a bearing away from where its water
+is, its water, the predator and (for the strider) the mass are moved round the
+ring to that bearing (`placeZone` in `main.js`): only while it is not busy
+with anyone (hunting, striking, holding, or anyone within its reach), and only
+when both where it is and where it goes are more than 45 mm from every player,
+so nothing visibly jumps. In multiplayer the one farthest out on the approach
+decides; an engaged predator stays put. A new game puts them back on the +x
+bearing (up and to the right in the starting view).
+
+**The portal and the boss.** The raft is placed once a game, on the portal
+ring at the bearing of the first player to come within ~65 mm of it (out of
+everyone's sight), with a hint: "The wolf spider guards the way on. Lure it
+off the moss, then get round it". The spider sits on the raft's inner rim. A
+player who reaches the raft while it is on guard (within 15 mm of the raft's
+centre) is turned back (a toast, once; the spider attacks as its fight does).
+While it is lured off, or beaten, the raft lets you through (`enterPortal`:
+`embed.landmark('forward')`). Luring: it wakes when you come within 30 mm of
+its post and follows you out up to 90 mm from it; then, or when it has lost
+you (farther than 40 mm), it walks back at 6 mm/s (a jumping springtail does
+13–17). A big ripple within 50 mm of it and away from the raft (a charged
+landing, a raindrop) draws it off to look. The golden sparkle over the raft
+(`shared/portal.js`) is dim and restless while it is guarded, bright once it
+is open. No arrow points the way until the raft has been found; after that the
+brass arrow at the edge of each view points back to it.
 
 **The water is the ground.** The pool is a 1.5 x 0.9 m sheet of open water
 with 72 moss islands standing in it (a hand-placed cluster round the start,
-the sundew band, the rest scattered), and floating debris and food on the
+the 48 of the sundew ring, a few scattered clear of the predators' and the
+portal's rings), and floating debris and food on the
 film. A steep Sphagnum bank rings it: jump at it and you bounce off and drop
 back onto the water at its foot. The water reaches the horizon wherever you
 are; there is no edge to fall off.
@@ -74,22 +105,20 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
 
 ## Landmarks
 
-- **Forward: the moss bank's capitulum** (design §0.6). A tongue of moss
-  (`LANDMARK` in `world.js`: an island of radius 10 mm joined to the bank on
-  the +x axis, so the shoreline, the water mask and landing on moss treat it
-  like any island) crowned with big red and green capitula
-  (`landmarks.js`). On the tallest one, at the tip toward the open water, a
-  speck moves: a *Limnozetes* mite, 0.35 mm, walking about on its
-  capitulum. Any player who comes within 13 mm of the tongue's centre (on it,
-  at its foot, or landing on it) reaches it: `embed.landmark('forward')`. It
-  fires once, and again only after everyone has left it. Standalone,
-  `embed.js` shows its toast instead of a transition.
+- **Forward: the portal raft** (design §0.6): a floating mat of moss
+  (`PORTAL` in `world.js`, radius 8 mm; `mossTop` honours it, so you land and
+  walk on it like an island) crowned with big red and green capitula
+  (`landmarks.js`). On the tallest one a speck moves: a *Limnozetes* mite,
+  0.35 mm, walking about on its capitulum. Over it a golden sparkle
+  (`shared/portal.js`: drifting glints and a soft glow pool, two draws).
+  Any player who comes within 11 mm of its centre while it is open reaches it:
+  `enterPortal(P)` calls `embed.landmark('forward')`. It fires once, and again
+  only after everyone has left it. Standalone, `embed.js` shows its toast
+  instead of a transition.
 - **No backdoor:** this is the top of the Zoom Chain.
-- **Landmark arrow** (`shared/landmark.js`): a bright brass arrow near the edge of
-  each view indicates the capitulum's bearing without text; on screen, the
-  same arrow points down at it. The starting camera places the bank up and to the right
-  (LS up and to the right walks and aims straight at it); orbiting the camera
-  changes its apparent direction.
+- **Landmark arrow** (`shared/landmark.js`): none until the raft is placed;
+  then a brass arrow near the edge of each view indicates its bearing without
+  text; on screen, the same arrow points down at it.
 
 ## Multiplayer
 
@@ -119,7 +148,10 @@ shell (`embed.players`).
   beside a teammate when it ends (a swamped one likewise). Alone, the Eaten
   card and lives work as before.
 - Test hooks on `window.__micro`: `players`, `split`, `layout`, `recs()`,
-  `teleport(slot, x, z)`, `settle(n)`, `landmark`, `landmarkLog`, `joins`,
+  `teleport(slot, x, z)`, `settle(n)`, `landmark` (the portal once placed),
+  `landmarkLog` (`forward`, `turnedBack`), `portal()` (its position, `guarded`,
+  `open`, the spider's state and distance), `placePortal(a)`,
+  `placeZone(k, a)`, `relocLog`, `enterPortal(slot)`, `joins`,
   `forceCapture(kind, slot)`.
 
 ## Fighting back
@@ -169,8 +201,10 @@ back wear its interest down until it retreats (and rests: `hunger.missed()`).
 
 `boss.js`; `micro/design/bosses.md`. *Pirata*, a juvenile ~5 mm (adults are
 6–9 mm: scaled down, labelled), a real bog-pool hunter that runs on the
-water. It sits on guard on the moss tongue at the way on, **dormant** until a
-player comes within 30 mm (97% of the way).
+water. It sits on guard on the rim of the portal raft, **dormant** until a
+player comes within 30 mm of its post. Lured off (see "The portal and the
+boss" above), it follows up to 90 mm, then walks back slowly; big ripples draw
+it off to look (wolf spiders feel the film's vibrations).
 
 - **Tells:** it **crouches and raises its first two pairs of legs** (0.8 s)
   before a 7 mm lunge; it feels landing ripples and turns to **pounce** on a
@@ -178,7 +212,8 @@ player comes within 30 mm (97% of the way).
 - **Counters:** jump clear (a dodged lunge wears it down a little); after
   each attack it has **overreached**, its front legs splayed out on the film:
   nip a tarsus (X, double) or pounce-bite it (double again, capped). About
-  three good rounds and it **backs off under the moss**, and the bank is open.
+  three good rounds and it **backs off under the moss** for good, and the way
+  on is open.
 - Its resolve is a quiet brass gauge at the top while it is engaged. In
   multiplayer it goes for the nearest player, or whoever bit it last.
 - A catch follows the follow-and-respawn sequence; it carries you off under
@@ -201,12 +236,12 @@ player comes within 30 mm (97% of the way).
 Predators follow the shared pacing in `shared/predation.js`:
 
 - **Calm stretches between challenges.** Each predator keeps to its own
-  water (*Stenus* from 112 mm along the way, the strider from 367 mm) and
-  never follows you more than a short leash out of it; rain starts with the
-  strider's water. A predator stays calm until a player first comes into its
-  water; then (after Features → World → Calm on arrival, off by default) its
-  hunger comes and goes. While both are still calm, raindrops land around you
-  (9–19 mm off) rather than on you.
+  water (*Stenus* from 70 mm out, the strider from ~205 mm) and never follows
+  you more than a short leash out of it; a hunt starts only in its own water.
+  Rain starts with the strider's ring. A predator stays calm until a player
+  first comes into its water; then (after Features → World → Calm on arrival,
+  off by default) its hunger comes and goes. While both are still calm,
+  raindrops land around you (9–19 mm off) rather than on you.
 - **Hunger comes and goes.** Once awake each predator is hungry for
   ~18–32 s, then rests: 45–75 s after a meal, 15–30 s after a miss (a
   *Stenus* strike that finds nothing, a strider that loses your ripples).
@@ -240,9 +275,11 @@ Predators follow the shared pacing in `shared/predation.js`:
 
 Features → World → **Calm on arrival** (off / 5 s / 15 s) and
 **Predator hunger** (comes and goes / always / never) change this for
-testing. `__micro.challengeLog` records where each challenge first became
-active (its `progress` along the way), `__micro.progress()` how far along
-you are, and `__micro.tick(n)` steps the game from the pads without
+testing. `__micro.challengeLog` records where and when each challenge first
+became active (`stenus`, `strider`, `rain`, `sundew`, `portal`, `boss`, ...)
+and first came within 40 mm of a player (`stenusNear`, `striderNear`,
+`crowdNear`, `sundewNear`, `portalNear`), with its `progress` (distance from
+the start / 415 mm); `__micro.progress()` is how far out you are (0..1), and `__micro.tick(n)` steps the game from the pads without
 rendering (for walking the route in a test). `window.__micro.forceCapture('stenus' | 'strider' | 'sundew')` plays
 a catch; `__micro.pacing()` reports hunger and states.
 
@@ -259,8 +296,8 @@ a catch; `__micro.pacing()` reports hunger and states.
   follows (see Fighting back). It then needs 1.6 s to recover and 3.5 s
   before it can skim again. All of this only while it is hungry and you are
   in its water (see Threats and pacing).
-- **Sundews** (*Drosera rotundifolia*): the sundew patch at 84% of the way,
-  a band of seven small islands across it, each with a rosette whose round
+- **Sundews** (*Drosera rotundifolia*): the sundew ring ~345 mm out, 16
+  clusters of three small islands, each with a rosette whose round
   leaves reach out over the gaps between them, each leaf with ~90 red
   glandular tentacles tipped with glue. Land on a leaf and you stick; the
   tentacles curl over you. Mash A before they close.
@@ -353,8 +390,8 @@ or overcast.
   on them.
 - **Food**: 110 floating clumps of pine pollen (yellow), fungal spores (brown)
   and green algae (elongated cells), each a few dozen grains with its own
-  little meniscus, drifting on the flow; half round the start, the rest along
-  the way. Three bites each; an eaten clump reappears elsewhere 6 s later.
+  little meniscus, drifting on the flow; half round the start, the rest out
+  through the rings in every direction. Three bites each; an eaten clump reappears elsewhere 6 s later.
   Only clumps within 80 mm of a player or the view are drawn (packed into the
   first instances): farther out a grain is under a pixel.
 
@@ -534,11 +571,11 @@ may not be in `shared/asset-list.js` yet) and has a procedural stand-in:
 - `index.html`, `main.js`: the page, the game loop, the camera and optics,
   HUD and features.
 - `springtail.js`: the springtail model, rig and cuticle shader.
-- `world.js`: pool shape and bank, moss islands (and the landmark's tongue),
-  Sphagnum, sundews, food, floating debris.
+- `world.js`: pool shape and bank, the rings (`RINGS`, `ZONES`, `PORTAL`),
+  moss islands, Sphagnum, sundews, food, floating debris.
 - `boss.js`: the pond wolf spider boss.
-- `landmarks.js`: the forward landmark's capitula and the moving mite; the
-  players' colour rings.
+- `landmarks.js`: the portal raft, its capitula, the moving mite and its
+  golden sparkle (`../shared/portal.js`); the players' colour rings.
 - `enemies.js`: *Stenus*, the water strider, raindrops.
 - `../shared/techniques/springtail-macro.js`: macro lens, lighting, bokeh
   post chain (reusable).
@@ -602,7 +639,7 @@ in `islandDist` (slower under SwiftShader).
 
 ```bash
 node micro/prototypes/check.mjs springtail
-node micro/prototypes/springtail/route.test.mjs       # the way: warm-up, challenges in order with calm stretches between
+node micro/prototypes/springtail/route.test.mjs       # the rings: open water on 16 bearings, warm-up, order, calm gaps, sundews in every direction, the portal ring
 node micro/prototypes/springtail/jump-input.test.mjs
 ```
 

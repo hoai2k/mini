@@ -1,4 +1,4 @@
-// The bog pool: a wide sheet of open water (1.5 x 0.9 m; the way across it is 0.74 m) ringed by a steep
+// The bog pool: a wide sheet of open water (1.5 x 0.9 m; the level is rings round the start) ringed by a steep
 // Sphagnum bank, with moss islands standing in it, sundew rosettes on the
 // islands, floating debris (dead Sphagnum leaves, bark flakes, needles) and
 // food on the film. The water is the ground everywhere the springtail can
@@ -8,88 +8,113 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { litMaterial, macroShared, MACRO_GLSL } from '../shared/techniques/springtail-macro.js';
 
 export const POOL = { a: 760, b: 450 };
-/** How far the way runs from the start to the landmark (mm). */
-const WAY = 740;
-/** The landmark's x (the east bank on the pool's axis; see LANDMARK). */
-const LANDMARK_X = Math.round((0.982 * POOL.a) / (1 + 0.05 * Math.sin(0.5) + 0.035 * Math.sin(1.3)));
 /**
- * Where a game starts: mid-pool, so the forward landmark on the east bank lies
- * 0.74 m ahead (+x, up and to the right in the starting view). The way is
- * paced as a rhythm (the owner, 2026-11-01): ~10 s of moving to get the feel,
- * then a challenge, a short calm stretch, the next challenge, and so on to the
- * boss at the bank (`ZONES`). Rushing with jumps crosses in about a minute;
- * the challenges are meant to stretch that to about three.
+ * Where a game starts: mid-pool. The level is laid out in rings round the
+ * start, the same in every direction (the owner, 2026-11-01: "the boss battle
+ * at a certain distance from the starting point, regardless of which direction
+ * they go in"). Distances from the start (mm; a full jump is 36 mm, the view
+ * ~18-36 mm across):
+ *   0-70     warm-up: calm water, a few jumps
+ *   70-175   Stenus's water (one beetle, moved round its ring to meet you)
+ *   ~175-208 calm
+ *   208-312  the water strider and the Podura mass (rain from here on)
+ *   ~312-330 calm
+ *   ~330-362 a ring of sundew clusters
+ *   415      the portal ring: a raft of moss, the way on, guarded by the wolf
+ *            spider; it is placed on the ring at the bearing of whoever first
+ *            gets within ~65 mm of it.
+ * Rushing out takes about half a minute; the challenges stretch it to a few.
  */
-export const START = { x: LANDMARK_X - WAY, z: 2 };
-/** Moss islands standing in the pool: centre and radius (mm). Hand-placed round the start, scattered farther out. */
+export const START = { x: -30, z: 12 };
+/** Ring radii (mm from START): each predator's water is centred on its ring. */
+export const RINGS = { warm: 70, stenus: 110, crowd: 222, strider: 250, sundew: 345, portal: 415 };
+/** How far out the portal lies (mm): progress is distance / PORTAL_R. */
+export const PORTAL_R = RINGS.portal;
+export const ROUTE_LEN = PORTAL_R;
+/** A point `d` mm from the start at bearing `a` (radians, atan2(z, x)). */
+export const ringPoint = (d, a) => ({ x: START.x + Math.cos(a) * d, z: START.z + Math.sin(a) * d });
+export const distFromStart = (x, z) => Math.hypot(x - START.x, z - START.z);
+export const bearingFromStart = (x, z) => Math.atan2(z - START.z, x - START.x);
+/** How far out (x, z) is, as a fraction of the way to the portal ring (0 at the start, 1 on the ring). */
+export const progressAt = (x, z) => distFromStart(x, z) / PORTAL_R;
+
+/** Moss islands standing in the pool: centre and radius (mm). Hand-placed round the start, then the sundew clusters, then a few scattered. */
 export const ISLANDS = [
   [15, -9, 4], [-24, 16, 5], [34, 20, 5.5], [-38, -20, 5], [62, -6, 7], [-66, 22, 6], [8, 44, 5], [86, 36, 6],
-  [-18, -52, 6], [96, -46, 5], [-104, -8, 6.5], [44, -58, 5], [-60, -62, 5], [-50, 62, 5.5], [40, 78, 5], [120, 0, 5],
-].map(([x, z, r]) => ({ x: x + START.x + 8, z, r }));
+  [-18, -52, 6], [78, -30, 5], [-90, -8, 6.5], [44, -58, 5], [-60, -62, 5], [-50, 62, 5.5], [40, 78, 5], [128, 0, 5],
+].map(([x, z, r]) => ({ x: x + START.x + 4, z: z + START.z - 2, r }));
 /**
- * The sundew patch: a band of small islands across the way, each with a
- * rosette whose glue-tipped leaves reach out over the gaps (`buildSundews`).
+ * The sundew ring: 16 small clusters round the start at RINGS.sundew, each a
+ * short band of three islands across the way out, every island with a rosette
+ * whose glue-tipped leaves reach out over the gaps (`buildSundews`). Sixteen
+ * clusters ~55 mm wide put the nearest sundew island within ~45 mm of any
+ * straight way out (about a screen to one side).
  */
-const SUNDEW_X = START.x + 625;
-export const SUNDEW_ISLANDS = [[-4, -58, 4.5], [10, -38, 4], [-6, -19, 4.5], [12, 0, 4], [-5, 19, 4.5], [11, 38, 4], [-3, 57, 4.5]]
-  .map(([x, z, r]) => ({ x: SUNDEW_X + x, z, r, sundew: true }));
+export const SUNDEW_CLUSTERS = 16;
+export const SUNDEW_ISLANDS = [];
+for (let c = 0; c < SUNDEW_CLUSTERS; c++) {
+  const a = ((c + 0.5) / SUNDEW_CLUSTERS) * Math.PI * 2;
+  const t = a + Math.PI / 2; // along the band (tangent to the ring)
+  [[-4, -24, 4.5], [7, 0, 4], [-3, 24, 4.5]].forEach(([dr, dt, r], k) => {
+    const d = RINGS.sundew + dr;
+    SUNDEW_ISLANDS.push({ x: Math.round((START.x + Math.cos(a) * d + Math.cos(t) * dt) * 10) / 10, z: Math.round((START.z + Math.sin(a) * d + Math.sin(t) * dt) * 10) / 10, r, sundew: true, cluster: c, t, k });
+  });
+}
 ISLANDS.push(...SUNDEW_ISLANDS);
-const HAND = ISLANDS.length;
+/** Bands (distance from the start) kept clear of scattered islands: the predators' and the portal's open water. */
+const CLEAR = [[RINGS.stenus - 14, RINGS.stenus + 14], [RINGS.crowd - 28, RINGS.strider + 16], [RINGS.sundew - 30, RINGS.sundew + 30], [RINGS.portal - 32, RINGS.portal + 32]];
 {
   let seed = 4242;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   for (let k = 0; k < 12000 && ISLANDS.length < 72; k++) {
     const a = rnd() * Math.PI * 2, e = 0.24 + rnd() * 0.68;
     const x = Math.cos(a) * POOL.a * e, z = Math.sin(a) * POOL.b * e, r = 4 + rnd() * 4;
-    // keep the sundew band's gaps open (only its own islands stand in it)
-    if (Math.abs(x - SUNDEW_X) < 40 && Math.abs(z) < 90) continue;
+    const d = distFromStart(x, z);
+    if (d < 135 || CLEAR.some(([lo, hi]) => d > lo - r && d < hi + r)) continue;
     if (ISLANDS.every((I) => Math.hypot(I.x - x, I.z - z) > I.r + r + 40)) ISLANDS.push({ x: Math.round(x), z: Math.round(z), r: Math.round(r * 2) / 2 });
   }
 }
 export const ISLAND = ISLANDS[0];
 
 /**
- * The forward landmark (the Zoom Chain's way on, design §0.6): a tongue of
- * Sphagnum where the east bank reaches into the pool, straight ahead of the
- * start (+x, 0.74 m off). Its capitula overhang the water low enough to land
- * on, and on the tallest one a speck moves: the Limnozetes mite of Level 1.
- * It is an island joined to the bank, so the shoreline, the water mask and
- * landing on moss all treat it like one.
- */
-export const LANDMARK = (() => {
-  const x = LANDMARK_X, z = 0, r = 10;
-  for (let i = ISLANDS.length - 1; i >= HAND; i--) if (Math.hypot(ISLANDS[i].x - x, ISLANDS[i].z - z) < ISLANDS[i].r + r + 30) ISLANDS.splice(i, 1);
-  const island = { x, z, r, landmark: true };
-  ISLANDS.push(island);
-  return { x, z, r, island, reach: r + 3 };
-})();
-
-/** The way from the start to the landmark (mm) and how far along it a point is (0 at the start, 1 at the landmark). */
-export const ROUTE_LEN = Math.hypot(LANDMARK.x - START.x, LANDMARK.z - START.z);
-export const progressAt = (x, z) => ((x - START.x) * (LANDMARK.x - START.x) + (z - START.z) * (LANDMARK.z - START.z)) / (ROUTE_LEN * ROUTE_LEN);
-const at = (d) => START.x + d; // d mm along the way
-/**
- * The challenges, in the order you meet them, with a short calm stretch
- * between each (route.test.mjs checks the spacing). Distances from the start:
- * Stenus's reach from ~110 mm (about 10 s of moving), out of its chase by
- * ~290; the strider and the springtail mass from ~365 to ~525, with the rain
- * from there on; the sundew band from ~595; the wolf spider from ~705, at the
- * bank. Each predator keeps to its own water (radius r, and gives up a chase
- * `leash` mm beyond it); rain starts at progress `rain`.
+ * The challenges, ring by ring. Each predator keeps to its own water (radius
+ * r round x, z) and gives up a chase `leash` mm beyond it; there is one of
+ * each, and main.js moves its water round its ring (`placeZone`) to meet
+ * whoever approaches, out of sight. `from` values are progress (distance /
+ * PORTAL_R) where a challenge starts; rain falls from `rain` outward.
  */
 export const ZONES = {
-  stenus: { x: at(200), z: 6, r: 58, leash: 30 },
-  strider: { x: at(445), z: -8, r: 52, leash: 26 },
-  sundew: { x: SUNDEW_X, z: 0, from: progressAt(SUNDEW_X - 30, 0) },
-  boss: { from: progressAt(LANDMARK.x - 35, 0) },
-  // a mass of Podura (NPC springtails, shared/crowd.js) at the edge of the strider's water
-  crowd: { x: at(412), z: 24, r: 20 },
+  stenus: { x: 0, z: 0, a: 0, ring: RINGS.stenus, r: 40, leash: 25 },
+  strider: { x: 0, z: 0, a: 0, ring: RINGS.strider, r: 42, leash: 20 },
+  // a mass of Podura (NPC springtails, shared/crowd.js) at the inner edge of the strider's water, a little to one side
+  crowd: { x: 0, z: 0, a: 0, ring: RINGS.crowd, side: 20, r: 20 },
+  sundew: { ring: RINGS.sundew, from: (RINGS.sundew - 30) / PORTAL_R },
+  boss: { from: (PORTAL_R - 35) / PORTAL_R },
+  rain: 0,
 };
-ZONES.crowd.from = progressAt(ZONES.crowd.x - ZONES.crowd.r - 20, 0);
-// the rain starts with the strider's water (the first challenge has it alone)
-ZONES.rain = progressAt(ZONES.strider.x - ZONES.strider.r - ZONES.strider.leash, 0);
-// keep the mass on open water
-for (let i = ISLANDS.length - 1; i >= HAND; i--) if (!ISLANDS[i].landmark && Math.hypot(ISLANDS[i].x - ZONES.crowd.x, ISLANDS[i].z - ZONES.crowd.z) < ISLANDS[i].r + ZONES.crowd.r + 4) ISLANDS.splice(i, 1);
+ZONES.rain = (RINGS.strider - ZONES.strider.r) / PORTAL_R;
+ZONES.crowd.from = (RINGS.crowd - ZONES.crowd.r - 20) / PORTAL_R;
+/** Put a zone's water on its ring at bearing `a` (the crowd sits beside the strider's). */
+export function zoneAt(k, a) {
+  const Z = ZONES[k];
+  const p = ringPoint(Z.ring, a);
+  if (k === 'crowd') { p.x += Math.cos(a + Math.PI / 2) * Z.side; p.z += Math.sin(a + Math.PI / 2) * Z.side; }
+  return p;
+}
+export function setZone(k, a) { const p = zoneAt(k, a); Object.assign(ZONES[k], { x: p.x, z: p.z, a }); return ZONES[k]; }
+setZone('stenus', 0); setZone('strider', 0); setZone('crowd', 0);
+
+/**
+ * The portal (the way on, design §0.6): a floating raft of Sphagnum crowned
+ * with big capitula and the Limnozetes mite (landmarks.js), placed on the
+ * portal ring by main.js once someone nears it. mossTop honours it, so you
+ * land and walk on it like an island. null until placed.
+ */
+export const PORTAL = { placed: false, x: 0, z: 0, a: 0, r: 8, reach: 11 };
+export function setPortal(x, z, a) { Object.assign(PORTAL, { placed: true, x, z, a }); }
+export function clearPortal() { PORTAL.placed = false; }
+/** Height (mm) of the raft's top at distance d from its centre (it floats: ~0.4 mm proud at the rim, 1.5 mm in the middle). */
+export const raftTop = (d) => 0.4 + 1.1 * sm(0, -PORTAL.r * 0.75, d - PORTAL.r);
 
 /** Normalised pool radius: < 1 inside the pool (matches POOL_GLSL). */
 export function poolE(x, z) {
@@ -128,7 +153,7 @@ function islandCandidates(x, z) {
   return i >= 0 && j >= 0 && i < g.nx && j < g.nz ? g.cells[i + j * g.nx] : ISLANDS;
 }
 export const inPool = (x, z) => poolE(x, z) < 1 && islandEdge(x, z).d > 0;
-const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+function sm(a, b, x) { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
 /** The bank is a steep wall of moss: the springtail cannot go past this. */
 export const BANK_E = 0.995;
 /** Height (mm) of the top of the moss (a bank or an island), or -Infinity over open water. */
@@ -138,6 +163,7 @@ export function mossTop(x, z) {
   if (e >= 1.0) h = 1.4 + 12 * sm(1.0, 1.08, e);
   const { d, island } = islandEdge(x, z);
   if (d <= 0.3) h = Math.max(h, 1.4 + 1.6 * sm(0, -island.r * 0.7, d));
+  if (PORTAL.placed) { const dr = Math.hypot(x - PORTAL.x, z - PORTAL.z); if (dr <= PORTAL.r + 0.3) h = Math.max(h, raftTop(dr)); }
   return h;
 }
 
@@ -409,7 +435,7 @@ export function buildWorld({ mossTex = null, sundewTex = null } = {}) {
   const food = buildFood(group, rnd);
   const debris = buildDebris(group, rnd);
 
-  return { group, sundews, food, debris, mossMat, sky, mossTiles: lods, setLodDistance: lodDistance, setMossTex(t) { mossMat.uniforms.uMossTex.value = t; mossMat.uniforms.uHasMossTex.value = t ? 1 : 0; } };
+  return { group, sundews, food, debris, mossMat, domeMat, sky, mossTiles: lods, setLodDistance: lodDistance, setMossTex(t) { mossMat.uniforms.uMossTex.value = t; mossMat.uniforms.uHasMossTex.value = t ? 1 : 0; } };
 }
 
 // ---------------------------------------------------------------- sundews
@@ -425,9 +451,9 @@ const GLUE_SURFACE = /* glsl */ `
  * ~90 red glandular tentacles (longer at the rim) tipped with glue drops.
  */
 function buildSundews(group, rnd, sundewTex) {
-  // the sundew patch: a rosette on each island of the band across the way,
-  // its leaves held out over the gaps between the islands (north and south)
-  const rosettes = SUNDEW_ISLANDS.map((I, k) => ({ x: I.x, z: I.z, n: 4 + (k % 2), R: I.r, a0: k % 2 ? Math.PI / 2 : -Math.PI / 2 }));
+  // the sundew ring: a rosette on each island of every cluster, its leaves held
+  // out along the band, over the gaps between the islands
+  const rosettes = SUNDEW_ISLANDS.map((I) => ({ x: I.x, z: I.z, n: 4 + (I.k % 2), R: I.r, a0: I.t + (I.k % 2 ? 0 : Math.PI), cluster: I.cluster }));
   const leafMat = litMaterial({
     uniforms: { uLeafTex: { value: sundewTex }, uHasLeafTex: { value: sundewTex ? 1 : 0 } },
     surface: `uniform sampler2D uLeafTex; uniform float uHasLeafTex;
@@ -447,13 +473,16 @@ function buildSundews(group, rnd, sundewTex) {
   const bladeGeo = new THREE.SphereGeometry(1, 20, 8);
   { const p = bladeGeo.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i); p.setY(i, y > 0 ? y * 0.12 : y * 0.1); } bladeGeo.computeVertexNormals(); }
   const leaves = [];
-  const tents = [];
+  // one patch per cluster: its petioles merged into one mesh, its tentacles and
+  // glue drops instanced, so each view draws (and culls) only the clusters it sees
+  const patches = [];
   for (const ro of rosettes) {
+    let P = patches[ro.cluster];
+    if (!P) P = patches[ro.cluster] = { leaves: [], tents: [], stalks: { pos: [], nrm: [], idx: [] } };
     const baseY = Math.max(mossTop(ro.x, ro.z), 0.6);
-    // leaves on one side of the island, so its moss stays in view
     const a0 = ro.a0 ?? rnd() * Math.PI * 2;
     for (let i = 0; i < ro.n; i++) {
-      // alternate leaves to either side of the band, fanned along it
+      // alternate leaves to either side along the band, fanned
       const a = a0 + (i % 2 ? Math.PI : 0) + (Math.floor(i / 2) / Math.max(1, Math.ceil(ro.n / 2) - 1) - 0.5) * 1.6 + (rnd() - 0.5) * 0.25;
       const L = ro.R + 1.8 + rnd() * 2.2, R = 2.0 + rnd() * 0.6;
       const cx = ro.x + Math.cos(a) * L, cz = ro.z + Math.sin(a) * L;
@@ -466,15 +495,13 @@ function buildSundews(group, rnd, sundewTex) {
         pts.push(new THREE.Vector3(ro.x + Math.cos(a) * (L - R) * u, baseY + (cy - baseY) * u + Math.sin(u * Math.PI) * 0.5, ro.z + Math.sin(a) * (L - R) * u));
         rad.push(0.22 - u * 0.08);
       }
-      const out = { pos: [], nrm: [], idx: [] };
-      tube(pts, rad, 6, out);
-      group.add(new THREE.Mesh(toGeo(out), stalkMat));
+      tube(pts, rad, 6, P.stalks);
       const blade = new THREE.Mesh(bladeGeo, leafMat);
       blade.position.set(cx, cy, cz);
       blade.scale.set(R, R, R);
       blade.rotation.set(0, -a, (rnd() - 0.5) * 0.15);
       group.add(blade);
-      const leaf = { x: cx, y: cy + 0.12 * R, z: cz, r: R, a, curl: 0, target: null, tent: [], blade, grip: 0, close: 0, closeW: 0 };
+      const leaf = { x: cx, y: cy + 0.12 * R, z: cz, r: R, a, curl: 0, target: null, tent: [], blade, grip: 0, close: 0, closeW: 0, patch: P, i0: P.tents.length };
       // tentacles: rim ones long and splayed outward, inner ones short and upright
       const n = 90;
       for (let k = 0; k < n; k++) {
@@ -487,26 +514,31 @@ function buildSundews(group, rnd, sundewTex) {
         const len = 0.3 + u * u * 1.4 + rnd() * 0.15;
         const t = { base, dir0: dir, dir: dir.clone(), len, drop: 0.07 + rnd() * 0.04 + u * 0.03 };
         leaf.tent.push(t);
-        tents.push(t);
+        P.tents.push(t);
       }
+      P.leaves.push(leaf);
       leaves.push(leaf);
     }
   }
-  const tentIM = new THREE.InstancedMesh(tentGeo, tentMat, tents.length);
-  const dropIM = new THREE.InstancedMesh(dropGeo, glueMat, tents.length);
-  group.add(tentIM, dropIM);
-  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), Y = new THREE.Vector3(0, 1, 0), tip = new THREE.Vector3();
-  const write = (t, i) => {
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), Y = new THREE.Vector3(0, 1, 0), tip = new THREE.Vector3(), one = new THREE.Vector3();
+  const write = (P, t, i) => {
     q.setFromUnitVectors(Y, t.dir);
-    m4.compose(t.base, q, new THREE.Vector3(1, t.len, 1));
-    tentIM.setMatrixAt(i, m4);
+    m4.compose(t.base, q, one.set(1, t.len, 1));
+    P.tentIM.setMatrixAt(i, m4);
     tip.copy(t.dir).multiplyScalar(t.len).add(t.base);
-    m4.compose(tip, q, new THREE.Vector3(t.drop, t.drop, t.drop));
-    dropIM.setMatrixAt(i, m4);
+    m4.compose(tip, q, one.set(t.drop, t.drop, t.drop));
+    P.dropIM.setMatrixAt(i, m4);
   };
-  tents.forEach(write);
-  // culled as one patch: the bounds of every tentacle, padded for the curl
-  for (const im of [tentIM, dropIM]) { im.computeBoundingSphere(); im.boundingSphere.radius += 4; }
+  for (const P of patches) {
+    if (!P) continue;
+    group.add(new THREE.Mesh(toGeo(P.stalks), stalkMat));
+    P.tentIM = new THREE.InstancedMesh(tentGeo, tentMat, P.tents.length);
+    P.dropIM = new THREE.InstancedMesh(dropGeo, glueMat, P.tents.length);
+    group.add(P.tentIM, P.dropIM);
+    P.tents.forEach((t, i) => write(P, t, i));
+    // culled as one patch: the bounds of every tentacle, padded for the curl
+    for (const im of [P.tentIM, P.dropIM]) { im.computeBoundingSphere(); im.boundingSphere.radius += 4; }
+  }
   const want = new THREE.Vector3();
   return {
     leaves,
@@ -515,14 +547,18 @@ function buildSundews(group, rnd, sundewTex) {
       for (const l of leaves) if (Math.hypot(x - l.x, z - l.z) < l.r + 0.25 && y < l.y + 0.9 && y > l.y - 0.6) return l;
       return null;
     },
+    /** The nearest sundew island's centre to (x, z) and its distance (mm). */
+    nearest(x, z) {
+      let best = null, bd = Infinity;
+      for (const I of SUNDEW_ISLANDS) { const d = Math.hypot(I.x - x, I.z - z); if (d < bd) { bd = d; best = I; } }
+      return { island: best, d: bd };
+    },
     /**
      * Curl the tentacles of a leaf toward a target (real: minutes; here seconds).
      * A leaf's `grip` (0..1, set during a capture) folds every tentacle over the
      * target, and `close` (0..1) cups the blade round it.
      */
     update(dt) {
-      let i = 0;
-      let dirty = false;
       for (const l of leaves) {
         const goal = l.target ? 1 : 0;
         const before = l.curl;
@@ -533,23 +569,21 @@ function buildSundews(group, rnd, sundewTex) {
           l.blade.scale.set(l.r * (1 - 0.35 * c), l.r * (1 + 1.3 * c), l.r * (1 - 0.35 * c));
           l.closeW = c;
         }
+        if (!active) continue;
+        let i = l.i0;
         for (const t of l.tent) {
-          if (active) {
-            if (l.target) {
-              want.subVectors(l.target, t.base);
-              const d = want.length();
-              want.normalize();
-              let w = Math.min(1, l.curl * 1.4) * Math.max(0, 1 - d / (l.r * 2.3));
-              if (l.grip > 0) w = Math.max(w, l.grip * Math.max(0.45, 1 - d / (l.r * 2.8)));
-              t.dir.copy(t.dir0).lerp(want, w).normalize();
-            } else t.dir.copy(t.dir0).lerp(t.dir, l.curl).normalize();
-            write(t, i);
-            dirty = true;
-          }
-          i++;
+          if (l.target) {
+            want.subVectors(l.target, t.base);
+            const d = want.length();
+            want.normalize();
+            let w = Math.min(1, l.curl * 1.4) * Math.max(0, 1 - d / (l.r * 2.3));
+            if (l.grip > 0) w = Math.max(w, l.grip * Math.max(0.45, 1 - d / (l.r * 2.8)));
+            t.dir.copy(t.dir0).lerp(want, w).normalize();
+          } else t.dir.copy(t.dir0).lerp(t.dir, l.curl).normalize();
+          write(l.patch, t, i++);
         }
+        l.patch.tentIM.instanceMatrix.needsUpdate = true; l.patch.dropIM.instanceMatrix.needsUpdate = true;
       }
-      if (dirty) { tentIM.instanceMatrix.needsUpdate = true; dropIM.instanceMatrix.needsUpdate = true; }
     },
     setTexture(t) { leafMat.uniforms.uLeafTex.value = t; leafMat.uniforms.uHasLeafTex.value = t ? 1 : 0; },
   };
@@ -574,9 +608,10 @@ function buildFood(group, rnd) {
   let gi = 0;
   const place = (c) => {
     for (let tries = 0; tries < 80; tries++) {
+      // half round the start, the rest out through the rings in every direction
       const near = rnd() < 0.5;
-      // half round the start, half anywhere along the way
-      const x = near ? START.x + (rnd() - 0.5) * 70 : START.x + rnd() * ROUTE_LEN * 1.05, z = near ? START.z + (rnd() - 0.5) * 55 : (rnd() - 0.5) * 2 * POOL.b * 0.6;
+      const a = rnd() * Math.PI * 2, d = near ? 3 + Math.sqrt(rnd()) * 38 : 40 + rnd() * (PORTAL_R + 15 - 40);
+      const x = START.x + Math.cos(a) * d, z = START.z + Math.sin(a) * d;
       if (poolE(x, z) < 0.9 && islandEdge(x, z).d > 1.5 && Math.hypot(x - START.x, z - START.z) > 2.5) { c.x = x; c.z = z; return; }
     }
   };

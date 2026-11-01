@@ -1,11 +1,17 @@
 // The springtail's boss (micro/design/bosses.md): a pond wolf spider, Pirata,
 // a juvenile ~5 mm long (a labelled departure: adults are ~6-9 mm, scaled
-// down so the arena fits). It guards the moss tongue at the forward landmark,
-// sitting on the moss; it runs out over the water to hunt. Units: mm, s.
+// down so the arena fits). It guards the portal raft (the way on), sitting on
+// its rim; it runs out over the water to hunt, and can be lured off: it follows
+// a springtail out to LEASH mm from its post, gives up a target it has lost
+// (farther than 40 mm), walks back slowly ('return'), and it goes to see a big
+// ripple (a charged landing, a raindrop) that comes within 50 mm of it
+// ('investigate'). While it is off its post the portal is open. Units: mm, s.
 //
 // Readable states:
-//   dormant   on the moss, still (a leg twitches); wakes when a player comes
-//             within 30 mm
+//   dormant   on guard at its post, still (a leg twitches); wakes when a player
+//             comes within 30 mm of the post
+//   return    walking back to its post (slower than a jumping springtail)
+//   investigate  going to look at a big ripple
 //   stalk     runs over the film toward its target, in bursts
 //   tell      it crouches and raises its first two pairs of legs (0.8 s before
 //             a lunge, 0.55 s before a pounce)
@@ -26,6 +32,9 @@ import { createFight } from '../shared/predation.js';
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const ease = (x) => x * x * (3 - 2 * x);
 const UP = new THREE.Vector3(0, 1, 0);
+
+/** How far (mm) it follows a lure from its post before it gives up and walks back. */
+export const LEASH = 90;
 
 export function createWolfSpider(scene, { post, home }) {
   const group = new THREE.Group();
@@ -173,8 +182,24 @@ export function createWolfSpider(scene, { post, home }) {
 
   function setVisible(v) { group.visible = v; legs.visible = v; }
 
+  /** A big ripple (ctx.ripples: charged landings, raindrops) within 50 mm and away from the post draws it toward the ripple. */
+  function lureCheck(ctx, ev) {
+    for (const r of ctx.ripples || []) {
+      if (Math.hypot(r.x - st.x, r.z - st.z) < 50 && Math.hypot(r.x - post.x, r.z - post.z) > 15) {
+        // it goes most of the way, to the near side of the ripple
+        const k = 0.8;
+        st.lure = { x: st.x + (r.x - st.x) * k, z: st.z + (r.z - st.z) * k };
+        st.lingerT = 0;
+        go('investigate'); ev.push({ type: 'investigate' });
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * ctx: { players: [{ slot, x, z, y, airborne, alive, landed (just landed on the film), heading }],
+   *   ripples ([{ x, z }]: big ripples it can feel: charged landings, raindrops),
    *   awake (may it wake at all), field, inPool }.
    * Events: { type: 'wake' | 'tell' | 'lunge' | 'pounce' | 'caught' | 'dodged' | 'retreat' | 'gone', slot? }
    */
@@ -192,10 +217,26 @@ export function createWolfSpider(scene, { post, home }) {
     let targetV = 0, targetA = st.a;
     const toT = tgt ? Math.atan2(tgt.z - st.z, tgt.x - st.x) : st.a;
     switch (st.state) {
-      case 'dormant':
+      case 'dormant': {
         targetA = post.a;
-        if (ctx.awake && tgt && Math.hypot(tgt.x - post.x, tgt.z - post.z) < 30) { go('stalk'); ev.push({ type: 'wake' }); }
+        if (ctx.awake && tgt && Math.hypot(tgt.x - post.x, tgt.z - post.z) < 30) { go('stalk'); ev.push({ type: 'wake' }); break; }
+        if (ctx.awake) lureCheck(ctx, ev);
         break;
+      }
+      case 'return':
+      case 'investigate': {
+        // back to its post at a walk, or off to see a big ripple
+        const goal = st.state === 'return' ? post : st.lure;
+        const d = Math.hypot(goal.x - st.x, goal.z - st.z);
+        targetA = Math.atan2(goal.z - st.z, goal.x - st.x);
+        targetV = st.state === 'return' ? (d > 2 ? 6 : 0) : st.t < 0.3 ? 0 : d > 2.5 ? 10 : 0;
+        if (st.state === 'return' && d < 2) { st.x = post.x; st.z = post.z; go('dormant'); ev.push({ type: 'guard' }); break; }
+        if (st.state === 'investigate' && (d < 2.5 || st.t > 7)) { st.lingerT = (st.lingerT || 0) + dt; if (st.lingerT > 1.5 || st.t > 9) { st.lingerT = 0; go('return'); ev.push({ type: 'return' }); } }
+        // something close and alive: it hunts it
+        if (tgt && bd < 15 && Math.hypot(st.x - post.x, st.z - post.z) < LEASH) { go('stalk'); ev.push({ type: 'wake' }); break; }
+        if (st.state === 'return') lureCheck(ctx, ev);
+        break;
+      }
       case 'stalk': {
         if (!tgt) break;
         targetA = toT;
@@ -206,8 +247,8 @@ export function createWolfSpider(scene, { post, home }) {
         st.burst += dt;
         targetV = st.burst % 1.6 < 1.0 ? 12 : 0;
         if (bd < 7.5 && st.cool <= 0 && !tgt.airborne) { st.target = { x: tgt.x, z: tgt.z, slot: tgt.slot }; st.pattern = 'lunge'; go('tell'); ev.push({ type: 'tell', pattern: 'lunge' }); }
-        // too far from its post: it goes back to guard it
-        if (Math.hypot(st.x - post.x, st.z - post.z) > 60) targetA = Math.atan2(post.z - st.z, post.x - st.x);
+        // lured too far from its post, or its target got away: it walks back to guard it
+        if (Math.hypot(st.x - post.x, st.z - post.z) > LEASH || (bd > 40 && Math.hypot(st.x - post.x, st.z - post.z) > 6)) { go('return'); ev.push({ type: 'return' }); }
         break;
       }
       case 'tell': {
@@ -276,12 +317,12 @@ export function createWolfSpider(scene, { post, home }) {
       st.a += Math.max(-6 * dt, Math.min(6 * dt, wrap(targetA - st.a)));
       st.v += (targetV - st.v) * Math.min(1, dt * 6);
       const nx = st.x + Math.cos(st.a) * st.v * dt, nz = st.z + Math.sin(st.a) * st.v * dt;
-      if (st.state === 'retreat' || ctx.inPool(nx, nz) || Math.hypot(nx - post.x, nz - post.z) < 12) { st.x = nx; st.z = nz; } else st.v *= 0.3;
+      if (st.state === 'retreat' || ctx.inPool(nx, nz) || Math.hypot(nx - post.x, nz - post.z) < 12) { st.x = nx; st.z = nz; } else { st.v *= 0.3; if (st.state === 'return' || st.state === 'investigate') st.a += 3 * dt; }
       st.gait += (Math.abs(st.v) * dt) / 2.4;
     } else st.gait += dt * 3;
     // on the moss it stands higher
-    st.y = 1.3 + (Math.hypot(st.x - post.x, st.z - post.z) < 8 ? 1.4 : 0);
-    if (st.state !== 'dormant' && st.state !== 'gone') {
+    st.y = 1.3 + (Math.hypot(st.x - post.x, st.z - post.z) < 5 ? 0.9 : 0);
+    if (!['dormant', 'gone', 'return', 'investigate'].includes(st.state)) {
       const near = tgt && bd < 14;
       const f = fight.update(dt, { near, facing: near && tgt && Math.abs(wrap(Math.atan2(st.z - tgt.z, st.x - tgt.x) - tgt.heading)) < 0.95 });
       if (f.interest <= 0 && st.state !== 'retreat' && st.state !== 'flinch') { go('retreat'); ev.push({ type: 'retreat' }); }
@@ -296,8 +337,10 @@ export function createWolfSpider(scene, { post, home }) {
     get name() { return 'Pond wolf spider'; },
     /** 1 at full resolve, 0 when it gives up. */
     get resolve() { return fight.interest; },
-    /** True from waking until it retreats (the gauge shows). */
-    get engaged() { return !['dormant', 'gone', 'retreat'].includes(st.state); },
+    /** True from waking until it retreats or walks back (the gauge shows). */
+    get engaged() { return !['dormant', 'gone', 'retreat', 'return', 'investigate'].includes(st.state); },
+    /** Move its post (and where it retreats to) and put it back on guard there. */
+    setPost(p, h) { Object.assign(post, p); Object.assign(home, h); api.reset(); },
     get attacking() { return ['tell', 'lunge', 'pounce'].includes(st.state); },
     /** Overreached after a lunge or pounce: its tarsi are out on the film. */
     get open() { return st.state === 'recover'; },
