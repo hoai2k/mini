@@ -793,6 +793,8 @@ const toggleControls = () => (S.controlsShown ? hideControlsCard() : showControl
 // support it (springtail → mite → tardigrade → amoeba → paramecium → bacterium → phage), the
 // microscope zoom between the rest.
 const TRANSITIONS = { microscope: 'Continuous', zoom: 'Microscope zoom', card: 'Specimen plates' };
+// Read by every world (same origin) through shared/landmark.js.
+const portalArrow = () => { try { return localStorage.getItem('micro.portalArrow') === '1'; } catch { return false; } };
 function settingItems() {
   const items = [
     { id: 'sound', label: 'Sound', about: 'Every world’s sound and the shell’s own.', get: () => sound.on, toggle: () => setSound(!sound.on) },
@@ -801,6 +803,10 @@ function settingItems() {
       invertY = !invertY;
       try { localStorage.setItem('micro.invertY', invertY ? '1' : '0'); } catch { /* private mode */ }
       send(S.frame, 'settings', { invertY });
+    } },
+    { id: 'portalArrow', label: 'Portal arrow', about: 'Off (default): find the portals by exploring. On: an arrow at the edge of the view points to the nearest portal, with its distance. Shared by every world.', get: () => portalArrow(), toggle: () => {
+      const on = !portalArrow();
+      try { localStorage.setItem('micro.portalArrow', on ? '1' : '0'); } catch { /* private mode */ }
     } },
     { id: 'controls', label: 'Controls card at the start of each world', about: 'Every world after the first shows its controls for 8 seconds; View brings them back.', get: () => settings.controlsAtStart, toggle: () => { settings.controlsAtStart = !settings.controlsAtStart; saveSettings(); } },
     { id: 'transition', label: 'Transition between worlds', about: 'Continuous: from the portal the scene slows to a freeze and the camera moves straight into the next world (every pair from the springtail down to the phage: springtail → mite → tardigrade → amoeba → paramecium → bacterium → phage; the microscope zoom where a world cannot). Microscope zoom: the zoom-transitions prototype everywhere. Specimen plates: the shell’s own plate zoom.', choices: Object.keys(TRANSITIONS), get: () => settings.transition,

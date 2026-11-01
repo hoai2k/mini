@@ -32,7 +32,7 @@
 //   createLandmarks({ parent = document.body, zIndex = 4, margin = 26 }) -> marks
 //   marks.begin()                         clear (and resize) the overlay; once per frame
 //                                         (an overlay with nothing drawn since is left alone)
-//   marks.draw({ position, project, kind = 'forward', region = null, anchor = null,
+//   marks.draw({ position, project, kind = 'forward', portal = false, region = null, anchor = null,
 //     label = '', icon = null, distance = null, range = Infinity, onScreen = 'marker',
 //     color, nearAlpha = 0.95, farAlpha = 0.7 })
 //       project(position) -> { x, y, behind } CSS px; region: polygon(s) [[x,y],...] or
@@ -52,6 +52,20 @@ const SHOW_BACKDOOR = false;
 // to a portal, and its golden sparkle is the only marker. Set true to bring the
 // forward arrow back.
 const SHOW_FORWARD = false;
+// The "Portal arrow" setting (the game's Settings, default off; or ?arrow=1 on a
+// world's own page): when on, a forward mark drawn with { portal: true } shows an
+// arrow toward the portal, with its label (the world passes the distance).
+let arrowPref = null;
+export function portalArrowOn() {
+  if (arrowPref === null) {
+    try {
+      const q = new URL(location.href).searchParams.get('arrow');
+      arrowPref = q !== null ? q !== '0' : localStorage.getItem('micro.portalArrow') === '1';
+      addEventListener('storage', (e) => { if (e.key === 'micro.portalArrow') arrowPref = e.newValue === '1'; });
+    } catch { arrowPref = false; }
+  }
+  return arrowPref;
+}
 
 // The forward mark's shape: 'arrow' (the owner's choice, 2026-11-01) or the
 // earlier 'sun'.
@@ -178,13 +192,13 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
     ctx.restore();
   }
 
-  function draw({ position, project, kind = 'forward', region = null, anchor = null, label = '', icon = null,
+  function draw({ position, project, kind = 'forward', portal = false, region = null, anchor = null, label = '', icon = null,
     distance = null, range = Infinity, onScreen = 'marker', color, nearAlpha = 0.95, farAlpha = 0.7, size = 20 }) {
     // Owner's call: only the way forward gets an edge icon. The backdoor is a
     // quiet optional landmark found by exploring (its "Y: back" prompt still
     // shows when a player dwells on it). Set SHOW_BACKDOOR to bring it back.
     if (kind === 'backdoor' && !SHOW_BACKDOOR) return null;
-    if (kind !== 'backdoor' && !SHOW_FORWARD) return null;
+    if (kind !== 'backdoor' && !SHOW_FORWARD && !(portal && portalArrowOn())) return null;
     if (region && (!region.length || !region[0] || !region[0].length)) return null;
     const polys = (!region ? [[[0, 0], [W, 0], [W, H], [0, H]]] : (Array.isArray(region[0][0]) ? region : [region])).filter((p) => p && p.length >= 3);
     if (!polys.length) return null;
@@ -258,7 +272,7 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
     ctx.rotate(angle);
     shapes(kind, col, st.shadow, alpha, size);
     ctx.restore();
-    if (kind !== 'forward' && (label || icon)) {
+    if ((kind !== 'forward' || portal) && (label || icon)) {
       // Beside the mark, on the side towards the middle of the view.
       const lx = x - dx * (size + 4), ly = y - dy * (size + 4);
       ctx.globalAlpha = alpha * 0.9;
