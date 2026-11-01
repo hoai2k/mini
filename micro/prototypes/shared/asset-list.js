@@ -91,11 +91,11 @@ export const ASSETS = {
   },
   "MP-P04": {
     "file": "assets/paramecium/darkfield-tile.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-P05": {
     "file": "assets/paramecium/phase-tile.webp",
-    "status": "requested"
+    "status": "delivered"
   },
   "MP-S01": {
     "file": "assets/springtail/water-surface.webp",

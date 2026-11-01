@@ -359,7 +359,7 @@ GROUPS = [
                 "prompt": f"{TILE} The pellicle of Paramecium at about 40 µm across as seen in silver-stained or SEM preparations: a regular lattice of hexagonal to rhomboid alveolar units in long parallel rows (kineties) running vertically, a cilium base at the centre of each unit, faint grey on light grey. {SCIENCE}",
             },
             {
-                "id": "MP-P04", "status": "requested", "name": "Pond habitat tile (darkfield, seamless)",
+                "id": "MP-P04", "status": "delivered", "name": "Pond habitat tile (darkfield, seamless)",
                 "file": "assets/paramecium/darkfield-tile.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The far background in darkfield mode (the default look again), repeated as the view moves. MP-P01 is not seamless, so its edges show as straight dark seams across the screen as you swim.",
                 "standin": "MP-P01, with its seams.",
@@ -367,7 +367,7 @@ GROUPS = [
                 "prompt": f"{TILE} {DARKFIELD} Pond water at about 2 mm across, out of focus, seen through the water rather than onto a surface: Spirogyra filaments crossing at different angles and depths (each continuing across the edges), loose golden flocs of detritus, scattered pennate diatoms and two or three small clusters of stalked Vorticella, spread evenly so no one corner draws the eye. Mostly dark background between them. No Paramecium. {SCIENCE}",
             },
             {
-                "id": "MP-P05", "status": "requested", "name": "Pond habitat tile (phase contrast, seamless)",
+                "id": "MP-P05", "status": "delivered", "name": "Pond habitat tile (phase contrast, seamless)",
                 "file": "assets/paramecium/phase-tile.webp", "size": "2048 x 2048, opaque, tileable",
                 "used": "The far background in phase-contrast mode, repeated as the view moves (MP-P02 is not seamless).",
                 "standin": "MP-P02, with its seams.",

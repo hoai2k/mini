@@ -8,7 +8,7 @@ import { PROTO, cardArt, introArt, delivered, loadImage, readyImage, showArtwork
 import { createInput } from './input.js';
 import { createSound } from './sound.js';
 import { createTitleBg } from './title-bg.js';
-import { TITLE_ZOOM_PLATES } from './title-art.js';
+import { TITLE_ZOOM_PLATES, TITLE_ZOOM_START } from './title-art.js';
 import { createTransitions, fmtField, fmtMag, unitSafe } from './transition.js';
 import { playContinuous, validPose } from './continuous.js';
 import { loadRoster } from './players.js';
@@ -218,7 +218,7 @@ function moveFocus(dir) {
 }
 
 // ---------------------------------------------------------------- title
-const titleBg = createTitleBg($('#title-bg'), { images: [], reduced: reduced() });
+const titleBg = createTitleBg($('#title-bg'), { images: [], reduced: reduced(), startPlate: TITLE_ZOOM_START });
 {
   const logo = delivered('MP-G01');
   const background = Promise.all(TITLE_ZOOM_PLATES.map(loadImage)).then((imgs) => {
