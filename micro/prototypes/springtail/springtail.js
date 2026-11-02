@@ -82,8 +82,26 @@ function furculaParts() {
   return P;
 }
 
+/**
+ * Body colours by player slot (linear RGB, as the shader uses them). Slot 0 is
+ * the Podura of old, blue-black with a blue-grey sheen, exactly as it always
+ * was. The others are other natural springtail colourings tied to the player
+ * colour (PLAYER_COLORS in shared/players.js): slate-teal with a green sheen
+ * (teal), plum with a rosy sheen (rose), steel-blue with a bright blue sheen
+ * (blue). Fields: dorsum, venter, legs, claw ends, furcula, antenna tips,
+ * sheen, frosty specks. The white of a digested body keeps a faint cast of
+ * the sheen (none for slot 0), so a player stays recognisable as it dissolves.
+ */
+export const BODY_COLORS = [
+  { slate: [0.03, 0.037, 0.06], venter: [0.06, 0.028, 0.022], limb: [0.05, 0.022, 0.018], foot: [0.16, 0.05, 0.032], furc: [0.09, 0.04, 0.03], tip: [0.17, 0.05, 0.035], sheen: [0.2, 0.24, 0.36], speck: [0.07, 0.08, 0.11] },
+  { slate: [0.02, 0.058, 0.056], venter: [0.045, 0.04, 0.022], limb: [0.03, 0.045, 0.03], foot: [0.1, 0.1, 0.045], furc: [0.05, 0.075, 0.05], tip: [0.1, 0.13, 0.05], sheen: [0.16, 0.42, 0.3], speck: [0.06, 0.12, 0.1] },
+  { slate: [0.07, 0.026, 0.06], venter: [0.07, 0.03, 0.03], limb: [0.06, 0.025, 0.03], foot: [0.2, 0.07, 0.07], furc: [0.1, 0.04, 0.05], tip: [0.22, 0.08, 0.08], sheen: [0.45, 0.2, 0.32], speck: [0.13, 0.07, 0.1] },
+  { slate: [0.05, 0.085, 0.17], venter: [0.06, 0.05, 0.05], limb: [0.045, 0.045, 0.07], foot: [0.12, 0.09, 0.07], furc: [0.07, 0.07, 0.1], tip: [0.14, 0.1, 0.08], sheen: [0.28, 0.45, 0.85], speck: [0.09, 0.12, 0.2] },
+];
+
 const SURFACE = /* glsl */ `
 uniform float uDigestWhite, uDigestDissolve;
+uniform vec3 uWhite, uSlate, uVenter, uLimb, uFoot, uFurc, uTip, uSheen, uSpeck;
 void surface(inout Surf s) {
   // Coverage fade: scene alpha stores optical depth, so ordinary material
   // transparency cannot be used here. Fine screen-door coverage dissolves
@@ -93,14 +111,14 @@ void surface(inout Surf s) {
   int pid = int(vPart + 0.5);
   vec3 lp = vLocal;
   float dorsal = smoothstep(0.09, 0.25, lp.y);
-  vec3 slate = vec3(0.03, 0.037, 0.06);
-  vec3 venter = vec3(0.06, 0.028, 0.022);
+  vec3 slate = uSlate;
+  vec3 venter = uVenter;
   vec3 col = mix(venter, slate, dorsal);
   bool limb = (pid >= 12 && pid <= 25);
-  if (limb) col = vec3(0.05, 0.022, 0.018);
-  if (pid >= 19 && pid <= 24) col = mix(col, vec3(0.16, 0.05, 0.032), smoothstep(0.09, 0.0, lp.y));
-  if (pid == 25) col = vec3(0.09, 0.04, 0.03);
-  if (pid == 1 || pid == 2) col = mix(slate * 1.3, vec3(0.17, 0.05, 0.035), smoothstep(0.8, 0.9, lp.x));
+  if (limb) col = uLimb;
+  if (pid >= 19 && pid <= 24) col = mix(col, uFoot, smoothstep(0.09, 0.0, lp.y));
+  if (pid == 25) col = uFurc;
+  if (pid == 1 || pid == 2) col = mix(slate * 1.3, uTip, smoothstep(0.8, 0.9, lp.x));
   // granular, velvety cuticle (Podura has no scales: fine secondary granules)
   float g1 = mNoise(lp.xy * 170.0 + lp.z * 37.0), g2 = mNoise(lp.zy * 170.0 + lp.x * 41.0 + 5.0);
   vec3 bump = vec3(g1 - 0.5, 0.0, g2 - 0.5) * 0.5;
@@ -108,10 +126,10 @@ void surface(inout Surf s) {
   if (!limb && pid != 1 && pid != 2) bump.y += sin(lp.x * 210.0 + g1 * 2.0) * 0.12 * dorsal;
   s.N = normalize(s.N + bump);
   s.rough = 0.62; s.f0 = 0.03;
-  s.sheen = limb ? 0.25 : 0.6; s.sheenCol = vec3(0.2, 0.24, 0.36);
+  s.sheen = limb ? 0.25 : 0.6; s.sheenCol = uSheen;
   // frosty specks: granule tips catch the light
   float speck = smoothstep(0.82, 0.92, mNoise(lp.xz * 260.0 + lp.y * 90.0));
-  col += vec3(0.07, 0.08, 0.11) * speck * dorsal;
+  col += uSpeck * speck * dorsal;
   // dark furrows between segments: where two parts meet
   if (pid <= 11 && pid != 1 && pid != 2) {
     float f = smoothstep(0.5, 0.78, vPartW);
@@ -125,17 +143,21 @@ void surface(inout Surf s) {
     float e = dot(q, q);
     if (e < 1.0) { col = vec3(0.004, 0.004, 0.006); s.rough = 0.18; s.f0 = 0.05; s.sheen = 0.1; }
   }
-  s.albedo = mix(col, vec3(0.92), uDigestWhite);
+  s.albedo = mix(col, uWhite, uDigestWhite);
   s.emit += vec3(0.25) * uDigestWhite;
 }`;
 
 /**
  * share: another springtail to take the meshed geometry from (a second
  * player's springtail costs no new SDF meshing; each has its own bones).
+ * slot: the player's slot, picking the body colouring (BODY_COLORS).
  */
-export function createSpringtail({ share = null } = {}) {
+export function createSpringtail({ share = null, slot = 0 } = {}) {
+  const bc = BODY_COLORS[((slot % 4) + 4) % 4];
+  const m = Math.max(...bc.sheen), cu = { uWhite: { value: new THREE.Vector3(...(slot % 4 ? bc.sheen.map((c) => 0.92 * (0.8 + 0.2 * c / m)) : [0.92, 0.92, 0.92])) } };
+  for (const [k, u] of [['slate', 'uSlate'], ['venter', 'uVenter'], ['limb', 'uLimb'], ['foot', 'uFoot'], ['furc', 'uFurc'], ['tip', 'uTip'], ['sheen', 'uSheen'], ['speck', 'uSpeck']]) cu[u] = { value: new THREE.Vector3(...bc[k]) };
   const group = new THREE.Group();
-  const mat = litMaterial({ surface: SURFACE, skin: BONES, uniforms: { uDigestWhite: { value: 0 }, uDigestDissolve: { value: 0 } } });
+  const mat = litMaterial({ surface: SURFACE, skin: BONES, uniforms: { uDigestWhite: { value: 0 }, uDigestDissolve: { value: 0 }, ...cu } });
   // the field's own casterShadow would shadow the animal by itself; skip casters on it
   const body = new THREE.Mesh(share ? share.body.geometry : buildSdfMesh(bodyParts(), { min: [-0.86, -0.06, -0.42], max: [0.98, 0.5, 0.42], cell: 0.0125 }), mat);
   const furc = new THREE.Mesh(share ? share.furc.geometry : buildSdfMesh(furculaParts(), { min: [-0.58, -0.03, -0.12], max: [0.14, 0.12, 0.12], cell: 0.0105 }), mat);

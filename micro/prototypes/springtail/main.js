@@ -1840,7 +1840,7 @@ function readInput(dt) {
 // ---------------------------------------------------------------- players
 /** Make a springtail for a player who joined (or came in with the shell's roster), beside the others. */
 function makeRec(p) {
-  const t = createSpringtail({ share: tail0 });
+  const t = createSpringtail({ share: tail0, slot: p.slot });
   scene.add(t.group);
   const P = { ...PL_INIT, slot: p.slot, color: p.color, tail: t, ring: props.ring(p.color), lives: 3, food: 0 };
   const near = recs().filter((q) => alive(q));

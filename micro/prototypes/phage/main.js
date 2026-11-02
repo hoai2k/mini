@@ -202,9 +202,9 @@ const isMulti = () => members().length > 1;
  */
 const HEADS = [
   null,
-  { fl: { color: '#3c7a60', color2: '#7cc09c', glowColor: '#a8e4c4' }, capsid: '#6cc4a2', capsidDeep: '#4a9a7e' },
+  { fl: { color: '#2c6a3c', color2: '#5cb86a', glowColor: '#9ee0a0' }, capsid: '#6cc48a', capsidDeep: '#4a9a64' },
   { fl: { color: '#963e2a', color2: '#dc8062', glowColor: '#f6a68c' }, capsid: '#e49274', capsidDeep: '#c2684a' },
-  { fl: { color: '#7c8296', color2: '#d4dae6', glowColor: '#f0f4ff' }, capsid: '#c4ccdc', capsidDeep: '#9aa4bc' },
+  { fl: { color: '#8e8a8c', color2: '#ece6e2', glowColor: '#fff8f0' }, capsid: '#d0ccd0', capsidDeep: '#a8a2a8' },
 ];
 function makeMember(slot, color) {
   const m = { slot, color, P: newP(), t4: createT4({ clip: true }), dash: createDash({ duration: 0.5, cooldown: 2.4 }),
