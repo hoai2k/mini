@@ -35,6 +35,16 @@ Keyboard fallbacks are in `shared/pad.js`.
 on A, scrambles on held B and closes up (its defence) on held Y; the amoeba's
 B lets go or stiffens.
 
+**The springtail looks far on RT.** Its LT / RT are not a gradual zoom or
+focus pull: held RT eases (~0.4 s) to a wider lens aimed out ahead over the
+water along the view, with the focus out there and the depth of field
+deepened, so what lies blurred beyond the springtail (a spider, the pondweed,
+a portal's column of light) comes into focus; RS still looks round, and
+letting go eases back to the close framing. Held LT is a close look (a
+narrower field, focus on the springtail, shallow). Each player's own: with
+company, each split view takes its players' look. Keyboard: X (RT), Z (LT).
+Magnification stays on the D-pad (1 / 2).
+
 **The phage drifts in open 3D water with no up or down.** LS drifts across the
 view (its right and up, in 3D), RT drifts into the view and LT back toward
 you; the baseplate and fibres turn to lead. RS turns the view about its own

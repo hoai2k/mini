@@ -138,16 +138,16 @@ const dripFits = (x, z) => clearOfThickets(x, z, 600, 100) && Math.hypot(x - BAC
 // to your goal"): harmless company, the predator, a drop, the predator hungrier and faster, a shower, the
 // predator at its hungriest and fastest, then the pseudoscorpion at the water.
 export const ENCOUNTERS = [
-  // a family of box mites grazing (company: they close up as you come)
+  // a family of box mites grazing (company: they close up as you come; placed round a lingering player, they wander over)
   { id: 'mites', size: FAMILY.r + 400, visible: FAMILY.r + 300, minAhead: 3000, maxAhead: 4600, minNear: 2400, maxNear: 3600, fits: (x, z) => clearOfThickets(x, z, FAMILY.r, 150) && Math.hypot(x - NPC_HOME.x, z - NPC_HOME.z) > 1600 && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 2200 },
   // the predatory mite on its hunting ground (it starts at the spot itself; the ground is invisible)
   { id: 'pred', ...PRED },
-  // a drop of water falls into the moss ahead (rain drips through a moss cushion)
-  { id: 'drip', size: DRIP.splash + 500, visible: DRIP.splash, top: DRIP.height, minAhead: 2600, maxAhead: 3800, minNear: 1800, maxNear: 2800, fits: dripFits },
+  // a drop of water falls into the moss ahead (rain drips through a moss cushion); nothing shows until it falls (visible: its spot)
+  { id: 'drip', calm: { sec: 3 }, size: DRIP.splash + 500, visible: 150, minAhead: 2600, maxAhead: 3800, minNear: 1000, maxNear: 1450, fits: dripFits },
   // and again, a way on (the same one: it has gone on through the moss, out of sight), hungrier
   { id: 'pred2', ...PRED },
   // a shower: three drops round the spot
-  { id: 'drips', size: DRIP.splash + DRIP.spread + 500, visible: DRIP.splash + DRIP.spread, top: DRIP.height, minAhead: 3000, maxAhead: 4400, minNear: 2200, maxNear: 3200, fits: dripFits },
+  { id: 'drips', calm: { sec: 3 }, size: DRIP.splash + DRIP.spread + 500, visible: 150, minAhead: 3000, maxAhead: 4400, minNear: 1000, maxNear: 1450, fits: dripFits },
   // the third time, in the wetter moss toward the water: at its hungriest
   { id: 'pred3', ...PRED },
   // the boss and the way on: the wet leaf axil (its stem 1.5 mm tall, the glow over it) and the pseudoscorpion on its post

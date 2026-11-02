@@ -126,7 +126,7 @@ export function createBeads({ scene, wetness, max = 900 }) {
   function decide(i, j) {
     const cx = (i + 0.5) * CELL, cz = (j + 0.5) * CELL;
     const w = wetness(cx, cz); // 0 dry .. ~1.5 by the water
-    const n = Math.floor(clamp(0.25 + 3.2 * w, 0, 7) * hash2(i, j, 21) + (w > 0.6 ? 1 : 0));
+    const n = Math.floor(clamp(0.25 + 3.2 * w, 0, 7) * hash2(i, j, 21) + 0.35 + (w > 0.6 ? 1 : 0));
     const out = new Float32Array(n * 4);
     for (let q = 0; q < n; q++) {
       const x = (i + hash2(i, j, 30 + q)) * CELL, z = (j + hash2(i, j, 50 + q)) * CELL;

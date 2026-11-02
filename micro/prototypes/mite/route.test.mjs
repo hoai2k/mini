@@ -1,21 +1,24 @@
 // The mite's moss and its encounters, without a browser: the scenery (the
 // periodic moss tile, the two rings of hyphal thickets: every way out meets
 // them, and you can walk round them), and the director placing the enemies
-// and events (layout.js ENCOUNTERS: the predatory mite, again, then the
-// pseudoscorpion on guard at the wet leaf axil) as a player rushes out in 16
+// and events (layout.js ENCOUNTERS: a box-mite family, the predatory mite, a
+// falling drop, the predator again, a shower, the predator a third time, then
+// the pseudoscorpion on guard at the wet leaf axil) as a player rushes out in 16
 // directions, stands still, or turns back. The view is the SEM's own camera
 // (main.js placeCamera: 12° vertical field, 16:9, 1.6 mm across at the mite,
 // from rig.yaw at pitch 0.62) as a six-plane frustum.
 //   node micro/prototypes/mite/route.test.mjs
 import assert from 'node:assert/strict';
 import { createDirector } from '../shared/director.js';
-import { RINGS, CLUSTERS, clusterRing, CLUSTER, PRED_GROUND, BOSS, BOUNDS, NPC_HOME, PORTAL_CLEAR, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, portalAt, predZoneAt, clearOfThickets, distFromStart } from './layout.js';
+import { RINGS, CLUSTERS, clusterRing, CLUSTER, PRED_GROUND, BOSS, BOUNDS, NPC_HOME, PORTAL_CLEAR, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, portalAt, predZoneAt, clearOfThickets, distFromStart, DRIP, FAMILY } from './layout.js';
 import { floorH, TILE, wrapD, tileOf } from './world.js';
 
-// Rushing speeds (µm/s, measured with rush scripts on the page, enemies passive):
-// hurrying (RB) with every scramble the stamina allows ~730 over open moss; in a thicket the drag
+// Rushing speeds (µm/s, measured with rush scripts on the page, enemies passive; 2026-11-02 speeds):
+// full tilt with every scramble the stamina allows ~1100 over open moss; in a thicket the drag
 // (the scramble halves it) costs about a third.
-const RUSH = 730, THICK = 0.65;
+const RUSH = 1100, THICK = 0.65;
+const ORDER = ['mites', 'pred', 'drip', 'pred2', 'drips', 'pred3', 'portal'];
+const PREDS = ['pred', 'pred2', 'pred3'];
 
 // --- the scenery tile repeats seamlessly (the floor is periodic)
 for (const [x, z] of [[0, 0], [123, -4567], [4799, 4800], [-12345, 6789]]) {
@@ -44,7 +47,8 @@ for (const c of CLUSTERS) {
   assert.ok(distFromStart(c.x, c.z) - c.r >= RINGS.warm - 1, 'no thicket in the open moss round the start');
   assert.ok(Math.hypot(c.x - NPC_HOME.x, c.z - NPC_HOME.z) > c.r + 1400, 'the second box mite wanders clear of the thickets');
 }
-assert.deepEqual(ENCOUNTERS.map((e) => e.id), ['pred', 'pred2', 'portal'], 'the order');
+assert.deepEqual(ENCOUNTERS.map((e) => e.id), ORDER, 'the order (rising in threat)');
+assert.ok(BOUNDS.half >= 400000, 'the walkable square is far beyond play (no wall in reach)');
 assert.ok(ENCOUNTERS.at(-1).final);
 
 // --- the SEM view as a frustum (main.js placeCamera)
@@ -87,13 +91,18 @@ function game({ seconds, move, players = 1, path = false }) {
     if (e.fits && !e.fits(x, z, b)) bad.push(`${id} does not fit`);
     if (at[id] && at[id].seen) bad.push(`${id} moved after it was seen`);
     for (const [k, h] of Object.entries(at)) if (path && k !== id && h.seen && D.entry(k).state !== 'met' && D.entry(k).def?.handle === h && D.entry(k).def.state !== 'placed') bad.push(`${k} dropped after it was seen`);
-    at[id] = { x, z, b, t: 0, seen: false, ...(id === 'portal' ? portalAt(b, x, z) : predZoneAt(x, z)) };
+    at[id] = { x, z, b, t: 0, seen: false, ...(id === 'portal' ? portalAt(b, x, z) : PREDS.includes(id) ? predZoneAt(x, z) : {}) };
     return at[id];
   };
   const reach = (h, p) => Math.hypot(p.x - h.x, p.z - h.z);
+  // as main.js: the family within its range, a drop once someone comes within its trigger (it falls), a predator on its ground
   const met = {
+    mites: (h, [p]) => reach(h, p) < FAMILY.r + 500,
     pred: (h, [p]) => reach(h, p) < PRED_GROUND.r + 400,
+    drip: (h, [p]) => reach(h, p) < DRIP.trigger,
     pred2: (h, [p]) => reach(h, p) < PRED_GROUND.r + 400,
+    drips: (h, [p]) => reach(h, p) < DRIP.trigger,
+    pred3: (h, [p]) => reach(h, p) < PRED_GROUND.r + 400,
     portal: (h, [p]) => reach(h, p) < 360,
   };
   D = createDirector({ ...DIRECTOR, canPlace, ...(path ? { defaultPath: DEFAULT_PATH } : {}), entries: ENCOUNTERS.map((e) => ({ ...e, place: place(e.id), met: met[e.id], ...(path ? { single: true } : {}) })) });
@@ -105,17 +114,17 @@ function game({ seconds, move, players = 1, path = false }) {
     const views = ps.map((p) => view(p.x, p.z));
     ev.push(...D.update(DT, ps, views));
     // what has been seen is frozen (the check above); a placed predator out of a lingering player's reach wanders over
-    for (const id of ['pred', 'pred2']) {
+    for (const id of ORDER) {
       const S = D.entry(id), h = at[id];
       if (!h || S.state !== 'placed') continue;
       if (S.seenT !== null) h.seen = true;
+      if (!PREDS.includes(id) && id !== 'mites') continue; // (main.js driftPred, stepFamily)
       h.t += DT;
       const L = D.leader && ps[D.leader.id];
-      if (h.t > 5 && L && !D.leader.moving && reach(h, L) > PRED_GROUND.r + 300) { const d = reach(h, L); h.x += ((L.x - h.x) / d) * LEAD_DRIFT * DT; h.z += ((L.z - h.z) / d) * LEAD_DRIFT * DT; }
+      if (h.t > 5 && L && !D.leader.moving && reach(h, L) > (id === 'mites' ? FAMILY.r + 300 : PRED_GROUND.r + 300)) { const d = reach(h, L); h.x += ((L.x - h.x) / d) * LEAD_DRIFT * DT; h.z += ((L.z - h.z) / d) * LEAD_DRIFT * DT; }
     }
-    if (at.portal && D.entry('portal').seenT !== null) at.portal.seen = true;
     // (a default-path instance seen: never moved after)
-    if (path) for (const id of ['pred', 'pred2', 'portal']) { const S = D.entry(id); if (S.def && S.def.seenT !== null && at[id] === S.def.handle) at[id].seen = true; }
+    if (path) for (const id of ORDER) { const S = D.entry(id); if (S.def && S.def.seenT !== null && at[id] === S.def.handle) at[id].seen = true; }
   }
   return { ev, bad, D, at, t };
 }
@@ -133,16 +142,21 @@ for (let k = 0; k < 16; k++) {
   } });
   const tag = `bearing ${(k * 22.5).toFixed(1)}`;
   assert.deepEqual(r.bad, [], tag);
-  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ['pred', 'pred2', 'portal'], `${tag}: every encounter, in order`);
-  const T = { predPlaced: first(r.ev, 'placed', 'pred').t, pred: first(r.ev, 'met', 'pred').t, pred2Placed: first(r.ev, 'placed', 'pred2').t, pred2: first(r.ev, 'met', 'pred2').t, portalPlaced: first(r.ev, 'placed', 'portal').t, portal: first(r.ev, 'met', 'portal').t };
-  assert.ok(T.predPlaced >= 4.5, `${tag}: a warm-up first (${T.predPlaced} s)`);
-  assert.ok(T.pred <= 12, `${tag}: the predator within ~10 s (${T.pred} s)`);
-  assert.ok(T.pred2Placed - T.pred >= 8, `${tag}: a calm break before it comes again (${(T.pred2Placed - T.pred).toFixed(1)} s)`);
-  assert.ok(T.portal >= 42 && T.portal <= 62, `${tag}: the portal reached in about a minute (${T.portal} s)`);
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, `${tag}: every encounter, in order`);
+  const T = {};
+  for (const id of ORDER) { T[`${id}Placed`] = first(r.ev, 'placed', id).t; T[id] = first(r.ev, 'met', id).t; }
+  assert.ok(T.mitesPlaced >= 3.5, `${tag}: a warm-up first (${T.mitesPlaced} s)`);
+  assert.ok(T.mites <= 10, `${tag}: the first encounter within ~10 s (${T.mites} s)`);
+  for (let q = 1; q < ORDER.length; q++) {
+    assert.ok(T[`${ORDER[q]}Placed`] - T[ORDER[q - 1]] >= 4, `${tag}: a calm break before ${ORDER[q]} (${(T[`${ORDER[q]}Placed`] - T[ORDER[q - 1]]).toFixed(1)} s)`);
+    assert.ok(T[ORDER[q]] - T[ORDER[q - 1]] <= 16, `${tag}: ${ORDER[q]} met within 16 s of ${ORDER[q - 1]} (${(T[ORDER[q]] - T[ORDER[q - 1]]).toFixed(1)} s): nothing long and empty`);
+  }
+  assert.ok(T.portal >= 45 && T.portal <= 95, `${tag}: the portal reached in about a minute and a quarter (${T.portal} s)`);
   for (const e of r.ev.filter((x) => x.type === 'placed')) assert.ok(['ahead', 'around'].includes(e.how), `${tag}: ${e.id} placed ${e.how}`);
   times.push(T);
 }
 const span = (k) => `${Math.min(...times.map((t) => t[k])).toFixed(1)}-${Math.max(...times.map((t) => t[k])).toFixed(1)} s`;
+const gapMax = Math.max(...times.map((T) => Math.max(T.mites, ...ORDER.slice(1).map((id, q) => T[id] - T[ORDER[q]]))));
 
 // --- lingering at the start: they come all the same, one by one, and the portal near them (then they go to it)
 const r1 = game({ seconds: 300, move: (t, p, D, at) => {
@@ -150,21 +164,21 @@ const r1 = game({ seconds: 300, move: (t, p, D, at) => {
   if (S.state === 'placed') { S.goT ??= t; if (t - S.goT > 2) { const a = Math.atan2(at.portal.z - p.z, at.portal.x - p.x); p.x += Math.cos(a) * RUSH * 0.5 * DT; p.z += Math.sin(a) * RUSH * 0.5 * DT; } }
 } });
 assert.deepEqual(r1.bad, []);
-assert.deepEqual(r1.ev.filter((e) => e.type === 'met').map((e) => e.id), ['pred', 'pred2', 'portal'], 'lingering: every encounter in order');
+assert.deepEqual(r1.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, 'lingering: every encounter in order');
 const lp = first(r1.ev, 'placed', 'portal');
 assert.ok(Math.hypot(lp.x, lp.z) < 10000, `lingering: the portal comes to them, just past the inner thickets (${Math.hypot(lp.x, lp.z).toFixed(0)} µm)`);
 for (const e of r1.ev.filter((x) => x.type === 'placed')) assert.ok(['near', 'wider'].includes(e.how), `lingering: ${e.id} placed round them (${e.how})`);
 
 // --- turning back: out 6 s, back the other way before the predator is in sight; it follows unseen, nothing seen changes
 const r2 = game({ seconds: 150, move: (t, p, D, at) => {
-  let a = t < 6.2 ? 0.4 : 0.4 + Math.PI;
+  let a = t < 4.2 ? 0.4 : 0.4 + Math.PI;
   if (at.portal) a = Math.atan2(at.portal.z - p.z, at.portal.x - p.x);
   else if (Math.max(Math.abs(p.x), Math.abs(p.z)) > BOUNDS.half - 4000) a = Math.atan2(-p.z, -p.x) + 0.6;
   p.x += Math.cos(a) * RUSH * DT; p.z += Math.sin(a) * RUSH * DT;
 } });
 assert.deepEqual(r2.bad, [], 'turning back: nothing placed or moved where it was seen');
-assert.ok(r2.ev.some((e) => e.type === 'moved' && e.id === 'pred'), 'turning back: the unseen predator follows the turn');
-assert.deepEqual(r2.ev.filter((e) => e.type === 'met').map((e) => e.id), ['pred', 'pred2', 'portal'], 'turning back: every encounter in order');
+assert.ok(r2.ev.some((e) => e.type === 'moved'), 'turning back: an unseen encounter follows the turn');
+assert.deepEqual(r2.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, 'turning back: every encounter in order');
 
 // --- two players heading apart: the leader meets them; nothing is placed in either view
 const r3 = game({ seconds: 150, players: 2, move: (t, p, D, at) => {
@@ -173,7 +187,7 @@ const r3 = game({ seconds: 150, players: 2, move: (t, p, D, at) => {
   p.x += Math.cos(a) * RUSH * (p.id ? 0.4 : 1) * DT; p.z += Math.sin(a) * RUSH * (p.id ? 0.4 : 1) * DT;
 } });
 assert.deepEqual(r3.bad, []);
-assert.deepEqual(r3.ev.filter((e) => e.type === 'met').map((e) => e.id), ['pred', 'pred2', 'portal'], 'two players: every encounter in order');
+assert.deepEqual(r3.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, 'two players: every encounter in order');
 
 // --- the default path (main.js passes layout.js DEFAULT_PATH; each encounter one object: `single`):
 // the whole order laid out along one bearing on the first frame, the portal among it
@@ -189,11 +203,11 @@ const pathRows = [];
   } });
   assert.deepEqual(r.bad, [], 'default path: nothing placed in view or on seen moss');
   const placed = r.ev.filter((e) => e.type === 'placed');
-  assert.deepEqual(placed.map((e) => `${e.id} ${e.how}`), ['pred default', 'pred2 default', 'portal default'], 'default path: all three pre-placed, nothing generated');
+  assert.deepEqual(placed.map((e) => `${e.id} ${e.how}`), ORDER.map((id) => `${id} default`), 'default path: all pre-placed, nothing generated');
   assert.ok(placed.every((e) => e.t < 0.1), 'default path: from the first frame');
-  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.instance}`), ['pred default', 'pred2 default', 'portal default'], 'default path: met in order on it');
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.instance}`), ORDER.map((id) => `${id} default`), 'default path: met in order on it');
   const pm = first(r.ev, 'met', 'portal');
-  assert.ok(pm.t >= 35 && pm.t <= 62, `default path: the portal reached in about a minute (${pm.t} s)`);
+  assert.ok(pm.t >= 35 && pm.t <= 95, `default path: the portal reached in about a minute and a quarter (${pm.t} s)`);
   pathRows.push(`followed: ${placed.map((e) => `${e.id} at ${(Math.hypot(e.x, e.z) / 1000).toFixed(1)} mm`).join(', ')}; met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t} s`).join(', ')}`);
 }
 for (const off of [Math.PI, Math.PI / 2, -Math.PI / 2]) {
@@ -207,8 +221,8 @@ for (const off of [Math.PI, Math.PI / 2, -Math.PI / 2]) {
     p.x += Math.cos(a) * sp * DT; p.z += Math.sin(a) * sp * DT;
   } });
   assert.deepEqual(r.bad, [], `${tag}: nothing placed in view or on seen moss, nothing seen moved`);
-  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ['pred', 'pred2', 'portal'], `${tag}: every encounter, in order`);
-  for (const id of ['pred', 'pred2', 'portal']) {
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, `${tag}: every encounter, in order`);
+  for (const id of ORDER) {
     const e = r.ev.find((x) => x.type === 'placed' && x.id === id && x.how !== 'default');
     assert.ok(e && e.from === 'default' && ['ahead', 'around'].includes(e.how), `${tag}: ${id} taken off the path and placed as you go (${e && e.how})`);
   }
@@ -223,4 +237,4 @@ assert.ok((q.post.x - q.x) * q.ux + (q.post.z - q.z) * q.uz < 0, 'the boss waits
 assert.ok(PORTAL_CLEAR >= 1200, 'an arena round the water');
 
 console.log(`default path: ${pathRows.join('; ')}`);
-console.log(`ok: tile ${TILE} µm; ${CLUSTERS.length} thickets (${t1.length} + ${t2.length}, scenery, ${CLUSTER.r * 2 / 1000} mm across); rushing in 16 directions: predator placed ${span('predPlaced')}, met ${span('pred')}, again placed ${span('pred2Placed')}, met ${span('pred2')}, portal placed ${span('portalPlaced')}, reached ${span('portal')}; lingering: ${r1.ev.filter((e) => e.type === 'placed' || e.type === 'met').map((e) => `${e.id} ${e.type} ${e.t} s${e.how && e.type === 'placed' ? ` (${e.how})` : ''}`).join(', ')}; turning back: ${r2.ev.filter((e) => e.type !== 'met').map((e) => `${e.id} ${e.type} ${e.t} s (${e.how})`).join(', ')}`);
+console.log(`ok: tile ${TILE} µm; ${CLUSTERS.length} thickets (${t1.length} + ${t2.length}, scenery, ${CLUSTER.r * 2 / 1000} mm across); rushing in 16 directions: ${ORDER.map((id) => `${id} met ${span(id)}`).join(', ')}; longest wait between encounters ${gapMax.toFixed(1)} s; lingering: ${r1.ev.filter((e) => e.type === 'placed' || e.type === 'met').map((e) => `${e.id} ${e.type} ${e.t} s${e.how && e.type === 'placed' ? ` (${e.how})` : ''}`).join(', ')}; turning back: ${r2.ev.filter((e) => e.type !== 'met').map((e) => `${e.id} ${e.type} ${e.t} s (${e.how})`).join(', ')}`);

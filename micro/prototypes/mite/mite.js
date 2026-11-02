@@ -864,6 +864,11 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
         if (vn < 0) st.vel.addScaledVector(n, -vn * 1.25);
         st.angVel.crossVectors(n, st.vel).multiplyScalar(1 / 170);
         st.vel.multiplyScalar(0.4);
+      } else {
+        // never through the floor: a capsule that closed with its lowest point already under it (knocked
+        // shut on a blade that sprang away, say) found no ground below and fell for ever
+        const fl = floorH(c2.x, c2.z);
+        if (c2.y < fl) { st.center.y += fl - c2.y; if (st.vel.y < 0) st.vel.y *= -0.3; st.vel.x *= 0.4; st.vel.z *= 0.4; }
       }
     } else {
       st.airborne = false;

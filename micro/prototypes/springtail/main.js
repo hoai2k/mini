@@ -176,7 +176,7 @@ const hud = mountHud({
     zoom: 'Magnification 1x, 2x, 3x, 5x',
     extra: [['RT', 'Hold: look far (a wider view, focus out across the water; RS looks round); let go to come back'], ['LT', 'Hold: a close look (nearer, shallow focus on you)']],
   }),
-  note: `Goal: head out across the pool in any direction. The challenges find you one after another, wherever you go, with a little calm water between: after a few jumps the rove beetle Stenus, then the water strider and a mass of springtails, then the rain. Then the way on opens: moss rafts under a golden sparkle out across the pool, each where floating pondweed grows thick and a wolf spider hunts, going back to its raft between hunts (follow one home). Sundews grow on islands all over the pool. Lure the spider off its raft, then get round it. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
+  note: `Goal: head out across the pool in any direction. The challenges find you one after another, wherever you go, with a little calm water between: after a few jumps the rove beetle Stenus, then the water strider and a mass of springtails, then the rain. Then the way on opens: moss rafts under a golden sparkle and a column of light from the sky out across the pool (its gold lies on the water toward it; hold RT to look far and see it), each where floating pondweed (harmless) grows thick and a wolf spider hunts, going back to its raft between hunts (follow one home). Sundews grow on islands all over the pool. Lure the spider off its raft, then get round it. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
 });
 
 // ---------------------------------------------------------------- overlay DOM
@@ -206,7 +206,7 @@ status.className = 'st-status';
 status.innerHTML = '<span class="food"></span><span class="lives"></span><span class="furc">Furcula</span><span class="st-meter"><i></i></span><span class="threat"></span>';
 const card = document.createElement('div');
 card.className = 'st-card';
-card.innerHTML = '<div><img alt=""><h2>Level 0 · Bog surface</h2><p>You are a water springtail, 1.5 mm long, standing on the surface film of a bog pool.</p><p>Graze the pollen, spores and algae floating on the water (X). Spring away with your furcula (hold and release A). Hunker (B) when ripples come.</p><p>Head out in any direction. One after another, with a little calm water between, the rove beetle <i>Stenus</i> and its harpoon, a water strider and the rain find you. Then the way on opens: moss rafts under a golden sparkle, out where the pondweed grows thick and a wolf spider hunts (follow one home). Lure it off, then get round it. Mind the sundews.</p><p><b>Press A to start</b></p></div>';
+card.innerHTML = '<div><img alt=""><h2>Level 0 · Bog surface</h2><p>You are a water springtail, 1.5 mm long, standing on the surface film of a bog pool.</p><p>Graze the pollen, spores and algae floating on the water (X). Spring away with your furcula (hold and release A). Hunker (B) when ripples come.</p><p>Head out in any direction. One after another, with a little calm water between, the rove beetle <i>Stenus</i> and its harpoon, a water strider and the rain find you. Then the way on opens: moss rafts under a golden sparkle, each in a column of light from the sky, out where the pondweed grows thick and a wolf spider hunts (follow one home). Hold RT to look far across the water. Lure it off, then get round it. Mind the sundews.</p><p><b>Press A to start</b></p></div>';
 // the boss's resolve: a quiet brass gauge, shown while it is engaged
 const gauge = document.createElement('div');
 gauge.className = 'st-gauge';
@@ -2198,7 +2198,7 @@ function render(dt) {
       camera.updateProjectionMatrix(); camera.updateMatrixWorld(); world.sky.position.copy(saved.sky);
     }
   });
-  if (!one || multi()) { macroShared.uFocus.value = focus0; setDrop(pl); }
+  if (!one) { macroShared.uFocus.value = focus0; setDrop(pl); } else macroShared.uFocus.value = focus0;
   marks.begin();
   portalLight.begin();
   // no arrow (the owner: keep moving and you find it): the nearest portal's golden

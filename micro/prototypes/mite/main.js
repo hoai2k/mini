@@ -137,19 +137,19 @@ const hud = mountHud({
   title: 'Mite · SEM',
   sub: 'A box mite (Phthiracaridae), about 0.35 mm long, in a moss cushion, imaged like a scanning electron micrograph. A predatory mite hunts here.',
   controls: hudControls({
-    move: 'Walk (relative to the view); climbs grains, stems and flakes, pushes through blades',
+    move: 'Walk (relative to the view): a slight push walks, full tilt hurries (keys: a middle pace). Climbs grains, stems and flakes, pushes through blades',
     camera: 'Orbit the specimen (up looks up)',
-    dash: 'Jump: a crouch and a hop (borrowed from jumping oribatids); X in the air: a pounce-bite',
+    dash: 'Jump: tap to spring ~3 body lengths, hold to crouch deeper and release for ~6 (aim with the stick); X in the air: a pounce-bite',
     attack: 'Bite: graze spores and hyphal tips (leg I holds them); at the predator, rear up and nip it',
-    defend: 'Hold: dash (scramble), ~2x the walk; also breaks a grab in its strike window',
+    defend: 'Hold: dash (scramble), ~1.7x full tilt, on a stamina meter; also breaks a grab in its strike window',
     special: 'Hold: close up (ptychoidy, defend): blocks the predator\'s strike. At the open portal: enter it. At the giant springtail: back up a world',
 
-    secondary: 'Walk slowly / hurry',
+    secondary: 'Hold: walk slowly (the slow end) / hurry (full tilt)',
     look: 'Imaging mode: SE, BSE, false colour',
     zoom: 'Magnification steps',
     extra: embed.active ? [] : [['LS click', 'Observer: SEM data bar and scan lines']],
   }),
-  note: 'A live mite walking in an SEM is a deliberate fiction: real specimens are dried and gold-coated in a vacuum. The mag and scale bar are true to the field of view. Speeds are a game stretch: the walk (~0.42 mm/s) is a few times a real oribatid\'s, and box mites do not jump (zetorchestid oribatids do).',
+  note: 'A live mite walking in an SEM is a deliberate fiction: real specimens are dried and gold-coated in a vacuum. The mag and scale bar are true to the field of view. Speeds are a game stretch: the walk (0.42-0.87 mm/s) is a few times a real oribatid\'s, and box mites do not jump (zetorchestid oribatids do; the feel here is a flea\'s).',
 });
 
 // SEM data bar (observer mode)
@@ -322,6 +322,36 @@ function npcInput(dt) {
   return npcIn;
 }
 
+/** The family: each grazes about its home, and closes up (ptychoidy) while a player is close. */
+function stepFamily(dt) {
+  if (!family.home) return;
+  // placed round a lingering player, they wander over (like the predator's ground: driftPred)
+  const S = director.entry('mites'), lead = director.leader, LP = lead && pls[lead.id];
+  if (S && S.state === 'placed' && (family.driftT = (family.driftT || 0) + dt) > 5 && LP && !lead.moving) {
+    const dx = LP.mite.center.x - family.home.x, dz = LP.mite.center.z - family.home.z, d = Math.hypot(dx, dz);
+    if (d > FAMILY.r + 300) { family.home.x += (dx / d) * PRED_DRIFT * dt; family.home.z += (dz / d) * PRED_DRIFT * dt; }
+  }
+  for (const f of family.mites) {
+    const { ai, m, input } = f;
+    ai.t += dt;
+    ai.ang += (Math.sin(ai.t * 0.41) + Math.sin(ai.t * 0.9 + 2)) * 0.6 * dt;
+    const c = m.center;
+    if (Math.hypot(c.x - family.home.x, c.z - family.home.z) > FAMILY.r) ai.ang = Math.atan2(family.home.z - c.z, family.home.x - c.x);
+    let dist = Infinity;
+    for (const P of recs()) dist = Math.min(dist, c.distanceTo(P.mite.center));
+    if (dist < 420 && ai.scared <= 0 && m.mode === 'walk') ai.scared = 2.5 + Math.random() * 2;
+    ai.scared -= dt;
+    ai.pause = (ai.pause + dt) % 11;
+    input.dir.set(Math.cos(ai.ang), 0, Math.sin(ai.ang)); input.mag = ai.pause < 7 ? 0.7 : 0; input.hold = ai.scared > 0;
+    m.update(dt, input);
+  }
+}
+function placeFamily(x, z) {
+  family.home = { x, z }; family.driftT = 0;
+  family.mites.forEach((f, i) => { const a = (i / FAMILY.n) * Math.PI * 2 + 0.4; f.m.place(x + Math.cos(a) * 260, z + Math.sin(a) * 260, -a); f.m.setVisible(true); f.ai.scared = 0; });
+}
+function parkFamily() { family.home = null; for (const f of family.mites) { f.m.place(PRED_PARK.x - 900, PRED_PARK.z - 900, 0); f.m.setVisible(false); } }
+
 // ---------- threats: pacing and being eaten (shared/predation.js) ----------
 // Calm until someone first walks onto its ground (no clock), then hunger that
 // comes and goes (the banner says so); only a hungry predator hunts. Its third grab holds on: strike (it seizes a leg), hold (it pulls you
@@ -331,7 +361,7 @@ const PRED_START = [PRED_AT.x, PRED_AT.z];
 const npcIn = { dir: new THREE.Vector3(), mag: 0, maxSpeed: 180 * MITE_SCALE, hold: false };
 const pace = { grace: Infinity, mode: 'Comes and goes' };
 const hunger = createHunger({ grace: pace.grace });
-const isHungry = () => (pace.mode === 'Never' ? false : pace.mode === 'Always' ? hunger.state !== 'grace' : hunger.hungry);
+const isHungry = () => (pace.mode === 'Never' ? false : pace.mode === 'Always' || predK === 3 ? hunger.state !== 'grace' : hunger.hungry); // the third time it is always hungry
 // A catch: strike, hold, eat (pulled in by the chelicerae and swallowed), then
 // the camera pulls back and follows the predator for a couple of seconds, a
 // fade, and you are back: beside a teammate, or (alone) at your last safe spot.
@@ -571,11 +601,11 @@ F({ id: 'foliage', group: 'Simulation', label: 'Bending blades and hyphae', on: 
   about: 'Every thin moss leaf is a bendable blade (one tip offset with a spring back to rest, offset = d·u²) and every hypha a slack thread fixed at both ends (d·sin πu). Bodies push their centre lines out of the way, a mite standing on a blade bends it down, and they spring back. Only rods near a mite are simulated; their vertices and colliders are rewritten on the CPU (shared/techniques/mite-foliage.js).',
   onChange: (v) => { world.foliage.cfg.on = v; if (!v) world.foliage.reset(); } });
 F({ id: 'speed', group: 'Simulation', label: 'Game walking speed', fixed: true,
-  about: `Walking is ~${WALK} µm/s (LB slow ~${WALK / 2}, RB hurry ~${Math.round(WALK * 1.4)}), scaled with the 0.35 mm body: about 1.2 body lengths a second. Real oribatids walk a few hundred µm/s at most; this is a game stretch. Strides lengthen up to 1.5x with speed and the gait phase runs on distance, so the feet stay planted.` });
+  about: `The stick is analogue: a slight push walks at ~${WALK_MIN} µm/s, full tilt ~${WALK_MAX} µm/s (a quadratic curve between, so the slow end is easy to hold); the keys walk at ~${Math.round(walkSpeed(KEY_WALK))}, LB (Q) holds the slow end and RB (F) full tilt. Scaled with the 0.35 mm body: 1.2-2.5 body lengths a second. Real oribatids walk a few hundred µm/s at most; this is a game stretch. Strides lengthen up to ~2.2x with speed and the gait phase runs on distance, so the feet stay planted.` });
 F({ id: 'scramble', group: 'Simulation', label: 'Scramble (hold B)', fixed: true,
-  about: `0.6 s at up to ~${DASH} µm/s, recharging over 2.2 s. The gait phase runs on distance, so the legs speed up with it and the feet stay planted. A stretch: box mites are slow, steady walkers.` });
+  about: `Held: up to ~${DASH} µm/s (~1.7x full tilt), on a stamina meter (empties in ~1.6 s, refills in ~2.8 s). The gait phase runs on distance, so the legs speed up with it and the feet stay planted. A stretch: box mites are slow, steady walkers.` });
 F({ id: 'jump', group: 'Simulation', label: 'Jump (A), borrowed from jumping oribatids', fixed: true,
-  about: `A ${Math.round(JUMP.crouch * 1000)} ms crouch, then a ballistic hop (~${Math.round(MITE_SCALE * JUMP.vy ** 2 / 5200)} µm high, ~0.3 mm long; more from a run; scaled with the body), landing on the floor, a grain, a flake or a blade (which takes the landing and bends); ${JUMP.cool} s before the next. Box mites do not jump, but some oribatids do: Zetorchestes with enlarged hind legs and a catch mechanism (Krisper 1990), and the ptychoid Indotritia, a box-mite relative, jumps backwards with its forelegs (Wauthy et al. 1998). Borrowed here as a forward hop.` });
+  about: `A ${Math.round(JUMP.crouch * 1000)} ms crouch, then an explosive launch on a high arc (tap: ~1.1 mm, three body lengths, ~0.33 mm high; hold A up to ${JUMP.charge} s more to crouch deeper and release for ~2.1 mm, six body lengths, ~0.65 mm high; a run-up adds to it). Aim with the stick while crouched, and lean the arc a little in the air. The legs tuck in the air and splay for the landing, which squashes the body and kicks up crumbs; it lands on the floor, a grain, a flake or a blade (which takes the landing and bends); ${JUMP.cool} s before the next. Box mites do not jump, but some oribatids do: Zetorchestes with enlarged hind legs and a catch mechanism (Krisper 1990), and the ptychoid Indotritia, a box-mite relative, jumps backwards with its forelegs (Wauthy et al. 1998). Borrowed here as a forward leap, with the feel of a flea or a jumping spider.` });
 F({ id: 'pounce', group: 'Simulation', label: 'Pounce-bite (X in the air; a game stretch)', fixed: true,
   about: 'In a jump, X dives at the nearest enemy point ahead (the predator, or the pseudoscorpion\'s pincer arm): a strong bite on impact (two bites\' worth, a hit-pause and a rumble), then a hop back; a mistimed dive is a clear miss. Box mites neither jump nor pounce: a game stretch on the borrowed Zetorchestes jump.' });
 F({ id: 'boss', group: 'Simulation', label: 'Boss: pseudoscorpion (Neobisium-like)', fixed: true,
@@ -583,7 +613,7 @@ F({ id: 'boss', group: 'Simulation', label: 'Boss: pseudoscorpion (Neobisium-lik
 F({ id: 'bite', group: 'Simulation', label: 'Bite and graze (X)', fixed: true,
   about: 'The rostrum dips and the chelicerae work. In reach of the mouth: fungal spores (eaten) and hyphal branch tips (nibbled; they regrow), the box mite\'s real food. At the predator: a nip that makes it back off for 1.5 s (a game rule).' });
 F({ id: 'predator', group: 'Simulation', label: 'Predatory mite (Parasitidae)', on: true,
-  about: 'A pale, flattened gamasid ~0.8 mm long with long legs, leg I held up as a feeler. More than twice your length. It hunts on its own ground, placed as you go (the first encounter after a few seconds of open moss, and again later), in moss nobody has seen yet a short way ahead of you. Calm until you first walk onto its ground, then hungry only some of the time (see Threats); hungry, it searches toward you, and when it touches you or feels you scramble close by it runs you down at ~0.6 mm/s (faster than your walk, slower than your scramble; all game speeds). Resting, it wanders and ignores you. It strikes at legs: on the third grab it holds on, pulls you in and eats you (the whole catch is shown); close up (Y) while it holds you and its grip slips off. Each strike is telegraphed: it rears, leg I and the palps up, the chelicerae open (0.8 s). Closed up (Y), you are a smooth capsule its strike slides off; blocks, nips (X) and facing it wear its interest down until it runs off (adult ptychoid mites are nearly immune: Peschel et al. 2006).',
+  about: 'A pale, flattened gamasid ~0.8 mm long with long legs, leg I held up as a feeler. More than twice your length. It hunts on its own ground, placed as you go (the second encounter, after a few seconds of open moss, and twice again later, hungrier and faster each time), in moss nobody has seen yet a short way ahead of you. Calm until you first walk onto its ground, then hungry only some of the time (see Threats); hungry, it searches toward you, and when it touches you or feels you hurry close by it runs you down: ~0.76 mm/s the first time (full tilt outwalks it), ~0.9 the second (scramble or jump), ~1.0 the third, always hungry then (it outruns full tilt; the scramble ~1.5 and jumps still get away; all game speeds); walking past half tilt is felt from ~1-1.35 mm, creeping only by touch. Resting, it wanders and ignores you. It strikes at legs: on the third grab it holds on, pulls you in and eats you (the whole catch is shown); close up (Y) while it holds you and its grip slips off. Each strike is telegraphed: it rears, leg I and the palps up, the chelicerae open (0.8 s). Closed up (Y), you are a smooth capsule its strike slides off; blocks, nips (X) and facing it wear its interest down until it runs off (adult ptychoid mites are nearly immune: Peschel et al. 2006).',
   onChange: (v) => { predOn = v; pred.setVisible(v && predPlaced); } });
 F({ id: 'grace', group: 'Simulation', label: 'Calm opening', choices: ['Until its ground', '20 s', 'Off'], value: 'Until its ground',
   about: 'Until its ground (default): the predatory mite stays calm until someone first walks onto its hunting ground (no clock). 20 s / Off: a test calm on a timer, or none. shared/predation.js.',
@@ -977,12 +1007,21 @@ let seenViews = null;
 const inSight = (x, z, r) => { _vs.center.set(x, floorH(x, z) + 300, z); _vs.radius = r + 400; return viewFrusta.some((f) => f.intersectsSphere(_vs)); };
 /** Is the predator busy with anyone (hunting, striking, holding, or anyone within its reach)? */
 const predEngaged = () => (capture.active && !cap.byBoss) || ['hunt', 'windup', 'strike', 'recover', 'recoil'].includes(predAI.state) || recs().some((P) => P.mite.center.distanceTo(pred.center) < 1800);
-/** Which of the predator's encounters it is on now (1 or 2; 0 before it is placed). */
+/** Which of the predator's encounters it is on now (1, 2 or 3; 0 before it is placed). */
 let predK = 0;
+/**
+ * Each time it is met again it is hungrier and faster (the owner, 2026-11-02: more danger nearer the
+ * goal): hunting speed µm/s (the walk now runs 418 at a slight push to 870 at full tilt, the scramble
+ * ~1480) and how far a fast-moving prey is felt (µm). The first can be outwalked at full tilt; the
+ * second matches full tilt (scramble or jump to get away); the third outruns full tilt.
+ */
+const PRED_LEVEL = [null, { chase: 760, vibration: 950 }, { chase: 900, vibration: 1150 }, { chase: 1020, vibration: 1350 }];
+const PRED_IDS = ['pred', 'pred2', 'pred3'];
 /** Put the predator's ground at (x, z), and the predator at its centre. */
 function placePred(x, z, k) {
   Object.assign(predZone, predZoneAt(x, z));
   predAI.reset(x, z);
+  Object.assign(predAI, PRED_LEVEL[k]);
   pred.st.chel = 0;
   predPlaced = true; predK = k;
   pred.setVisible(predOn);
@@ -996,17 +1035,37 @@ function parkPred() {
 }
 const reachPred = (P) => Math.hypot(P.mite.center.x - predZone.x, P.mite.center.z - predZone.z) < predZone.r + 400 || P.mite.center.distanceTo(pred.center) < 1500;
 // what each encounter does when placed, and when it counts as met
-// (one predator for both: on the default path its second ground is only a spot until the first is met,
-// then the predator goes there once nobody sees it: movePredOn)
-let pred2Spot = null;
+// (one predator for all three: on the default path its later grounds are only spots until the one before is
+// met, then the predator goes on there once nobody sees it: movePredOn)
+const encIndex = (id) => ENCOUNTERS.findIndex((e) => e.id === id);
+const predSpots = [null, null, null, null];
+function predEnc(k) {
+  const id = PRED_IDS[k - 1], prevI = k > 1 ? encIndex(PRED_IDS[k - 2]) : -1, e = ENCOUNTERS[encIndex(id)];
+  return {
+    place: (x, z, b, info) => {
+      if (k > 1 && info.instance === 'default' && predK !== k) { predSpots[k] = { k, x, z }; return predSpots[k]; }
+      predSpots[k] = null; placePred(x, z, k); return { k };
+    },
+    met: (h, [p]) => predK === k && reachPred(pls[p.id] || P1),
+    // a later time: only once the predator is out of every view and busy with nobody (it walks off, unseen)
+    fits: (x, z, b) => e.fits(x, z, b) && (k === 1 || predK === k || director.index <= prevI || (!predEngaged() && !inSight(pred.center.x, pred.center.z, 600))),
+  };
+}
+const nearAny = (x, z, r) => recs().some((P) => !held(P) && Math.hypot(P.mite.center.x - x, P.mite.center.z - z) < r);
+/** The falling drops: one, then (a pool of its own, so the first can finish soaking away) a shower of three. */
+const drip1 = createDrops({ scene, n: 1 }), drip3 = createDrops({ scene, n: DRIP.shower });
+const dripEnc = (D, n) => ({
+  place: (x, z, b) => {
+    const spots = [{ x, z, delay: 0 }];
+    for (let i = 1; i < n; i++) { const a = b + (i === 1 ? 1.9 : -1.9); spots.push({ x: x + Math.cos(a) * DRIP.spread, z: z + Math.sin(a) * DRIP.spread, delay: 0.55 * i }); }
+    D.arm(spots); return { x, z };
+  },
+  met: (h) => (D.spot && D.spot.x === h.x && D.state !== 'armed') || nearAny(h.x, h.z, 900),
+});
 const ENC = {
-  pred: { place: (x, z) => { placePred(x, z, 1); return { k: 1 }; }, met: (h, [p]) => predK === 1 && reachPred(pls[p.id] || P1) },
-  // the second time: only once the predator is out of every view and busy with nobody (it walks off, unseen)
-  pred2: { place: (x, z, b, info) => {
-    if (info.instance === 'default' && predK !== 2) { pred2Spot = { k: 2, x, z }; return pred2Spot; }
-    pred2Spot = null; placePred(x, z, 2); return { k: 2 };
-  }, met: (h, [p]) => predK === 2 && reachPred(pls[p.id] || P1),
-    fits: (x, z, b) => ENCOUNTERS[1].fits(x, z, b) && (predK === 2 || director.index < 1 || (!predEngaged() && !inSight(pred.center.x, pred.center.z, 600))) },
+  mites: { place: (x, z) => { placeFamily(x, z); return family.home; }, met: (h) => nearAny(h.x, h.z, FAMILY.r + 500) },
+  pred: predEnc(1), pred2: predEnc(2), pred3: predEnc(3),
+  drip: dripEnc(drip1, 1), drips: dripEnc(drip3, DRIP.shower),
   // the last: entering the open portal ends the level
   portal: { place: (x, z, b) => { placePortal(b, x, z); return { k: 'portal' }; }, met: () => false },
 };
@@ -1014,20 +1073,36 @@ const ENC = {
 // way on exists from the start (sealed until the predator is met twice: portalSealed); head off another way
 // and each, while nobody has seen it, leaves the path and is placed ahead of you as before (one object each: single).
 const director = createDirector({ ...DIRECTOR, canPlace, defaultPath: DEFAULT_PATH, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id], single: true })) });
+// Life everywhere (life.js): springtail groups on a lattice over the whole square, and water beads that
+// grow commoner as the game goes on and thickest round the water (the way on: the moss gets wetter).
+const ambient = createAmbient({ scene, tex, blocked: (x, z) => (PORTAL.placed && Math.hypot(x - PORTAL.x, z - PORTAL.z) < PORTAL_CLEAR) || Math.hypot(x - BACKDOOR.x, z - BACKDOOR.z) < BACKDOOR.clear + 300 });
+/** How wet the moss is at (x, z) now: rising with the encounters met, and toward the water (within 8 mm of it). */
+const WET_R = 8000;
+function wetness(x, z) {
+  const p = director.index / ENCOUNTERS.length;
+  let w = 0.06 + 0.7 * p ** 1.4;
+  if (PORTAL.placed) w += 1.5 * Math.max(0, 1 - Math.hypot(x - PORTAL.x, z - PORTAL.z) / WET_R) ** 1.5;
+  return w;
+}
+const beads = createBeads({ scene, wetness });
+sem.warm(scene, camera);
 const PORTAL_INDEX = ENCOUNTERS.findIndex((e) => e.final);
 /** The way on exists from the start but stays shut until every earlier encounter is met (the director's order). */
 function portalSealed() { return director.index < PORTAL_INDEX; }
 /**
- * The predator's second ground on the default path: once its first is met, the predator goes on through
- * the moss to it, unseen (out of every view, busy with nobody, the spot itself out of view).
+ * The predator's later grounds on the default path: once the one before is met, the predator goes on
+ * through the moss to the next, unseen (out of every view, busy with nobody, the spot itself out of view).
  */
 function movePredOn() {
-  if (!pred2Spot || predK !== 1 || director.index < 1) return;
-  const D = director.entry('pred2').def;
-  if (!D || D.handle !== pred2Spot || D.state !== 'placed') { pred2Spot = null; return; }
-  if (predEngaged() || inSight(pred.center.x, pred.center.z, 600) || inSight(pred2Spot.x, pred2Spot.z, 650)) return;
-  placePred(pred2Spot.x, pred2Spot.z, 2);
-  pred2Spot = null;
+  for (let k = 2; k <= 3; k++) {
+    const spot = predSpots[k];
+    if (!spot || predK !== k - 1 || director.index <= encIndex(PRED_IDS[k - 2])) continue;
+    const D = director.entry(PRED_IDS[k - 1]).def;
+    if (!D || D.handle !== spot || D.state !== 'placed') { predSpots[k] = null; continue; }
+    if (predEngaged() || inSight(pred.center.x, pred.center.z, 600) || inSight(spot.x, spot.z, 650)) continue;
+    placePred(spot.x, spot.z, k);
+    predSpots[k] = null;
+  }
 }
 /** How far through the encounters the game is: met / all (0..1). */
 const encounterProgress = () => director.index / ENCOUNTERS.length;
@@ -1047,7 +1122,7 @@ function stepDirector(dt) {
 const PRED_DRIFT = 200;
 let predDriftT = 0;
 function driftPred(dt) {
-  const S = director.entry(predK === 2 ? 'pred2' : 'pred');
+  const S = director.entry(PRED_IDS[Math.max(0, predK - 1)]);
   if (!predPlaced || !S || S.state !== 'placed') { predDriftT = 0; return; }
   predDriftT += dt;
   const lead = director.leader, P = lead && pls[lead.id];
@@ -1056,14 +1131,50 @@ function driftPred(dt) {
   predZone.x += (dx / d) * PRED_DRIFT * dt; predZone.z += (dz / d) * PRED_DRIFT * dt;
 }
 /** A new game: the director starts over, the predator hidden and parked, no portal. */
+/** The drops, their splashes, the springtail groups and the beads, each step. */
+const lifeT = { t: 0, wetToast: false, edgeToast: 0 };
+function stepLife(dt) {
+  lifeT.t += dt;
+  const ps = recs().filter((P) => !held(P)).map((P) => ({ x: P.mite.center.x, z: P.mite.center.z }));
+  for (const D of [drip1, drip3]) for (const e of D.update(dt, ps)) {
+    if (e.type === 'fall') { hud.toast('A drop of water is falling into the moss: get clear, or close up (Y)', 2400); audio.play('mite/dash', { volume: 0.5, rate: 0.5 }); }
+    if (e.type === 'splash') {
+      puffDust(new THREE.Vector3(e.x, floorH(e.x, e.z) + 30, e.z), 22, 1.6);
+      audio.play('mite/close', { volume: 1, rate: 0.6 });
+      for (const P of recs()) {
+        const c = P.mite.center, d = Math.hypot(c.x - e.x, c.z - e.z);
+        if (d > DRIP.splash || held(P)) continue;
+        // knocked shut and tumbled (main hold: mite.st.drop closes it; it rolls on whatever is below)
+        P.mite.st.drop = 0.7;
+        if (P.mite.mode === 'walk') P.mite.st.fwd.set(c.x - e.x, 0, c.z - e.z).normalize();
+        P.play.stun = Math.max(P.play.stun, 0.4);
+        logChallenge('drip hit', P);
+        if (rumbleOn) players.pad(P.slot).rumble(220, 0.6, 0.7);
+      }
+      // the predator, caught by it too, staggers
+      if (predHere() && Math.hypot(pred.center.x - e.x, pred.center.z - e.z) < DRIP.splash + 200) predAI.repel();
+    }
+  }
+  const foci = recs().map((P) => P.mite.center);
+  const bodies = [...foci, ...(predHere() ? [pred.center] : []), ...(family.home ? family.mites.map((f) => f.m.center) : [])];
+  ambient.update(lifeT.t, bodies, foci);
+  beads.update(foci);
+  // the moss gets wetter: said once, as the water nears
+  if (!lifeT.wetToast && PORTAL.placed && !portalSealed() && foci.some((c) => Math.hypot(c.x - PORTAL.x, c.z - PORTAL.z) < WET_R * 0.75)) { lifeT.wetToast = true; hud.toast('The moss is wetter here, beaded with water: the water is near', 2600); }
+  // the walkable square's edge (half a metre out): said, never a silent wall
+  lifeT.edgeToast = Math.max(0, lifeT.edgeToast - dt);
+  if (!lifeT.edgeToast && foci.some((c) => Math.max(Math.abs(c.x), Math.abs(c.z)) > BOUNDS.half - 600)) { lifeT.edgeToast = 6; hud.toast('The edge of the specimen stub: the scan ends here. Turn back toward the water', 3000); }
+}
 function newEncounters() {
   director.reset();
-  pred2Spot = null;
+  predSpots.fill(null);
   parkPred();
+  parkFamily(); drip1.reset(); drip3.reset(); beads.reset();
   props.unplace();
   boss.setVisible(false);
   world.exclude.set('portal', []);
   portalState.hinted = false; portalState.turned = false;
+  lifeT.wetToast = false;
   challengeLog.length = 0;
 }
 /** Put the portal (the wet leaf axil) at (x, z), met along bearing a, with the pseudoscorpion on guard before it. */
@@ -1171,7 +1282,7 @@ const dustP = Array.from({ length: DUST }, () => ({ p: new THREE.Vector3(), v: n
 let dustI = 0;
 /** A puff of humus crumbs in a ring round the feet (a jump's push-off or its landing; k scales it). */
 function puffDust(m, n = 10, k = 1) {
-  const c = m.center, y = c.y - 80;
+  const c = m.center || m, y = m.center ? c.y - 80 : c.y;
   for (let i = 0; i < n; i++) {
     const d = dustP[dustI++ % DUST], a = (i / n) * Math.PI * 2 + Math.random() * 0.5;
     d.p.set(c.x + Math.cos(a) * 90, y, c.z + Math.sin(a) * 90);
@@ -1349,7 +1460,7 @@ function tick(dt, inputs) {
   // Blades and hyphae move first (pushed and loaded by where the mites were),
   // so each mite then settles on, and clears, the surfaces as they are now.
   // (the tile's blades and hyphae see each body's copies in tile coordinates; the thickets' threads stand where they are)
-  const fbodies = [...recs().map((P) => P.mite), ...(npcOn ? [npc] : []), ...(predHere() ? [pred] : [])].map(bodyOf);
+  const fbodies = [...recs().map((P) => P.mite), ...(npcOn ? [npc] : []), ...(predHere() ? [pred] : []), ...(family.home ? family.mites.map((f) => f.m) : [])].map(bodyOf);
   world.foliage.update(dt, world.tileBodies(fbodies));
   thicket.updateFoliage(dt, fbodies);
   const evs = [];
@@ -1379,6 +1490,8 @@ function tick(dt, inputs) {
     evs[P.slot] = ev;
   });
   if (npcOn) npc.update(dt, npcInput(dt));
+  stepFamily(dt);
+  stepLife(dt);
   // the crowd: every mite shoves springtails aside; the gamasid feeds on them when it is not after you
   thickBodies.length = 0;
   for (const P of recs()) if (!held(P)) thickBodies.push(bodyRef(P.slot, P.mite.center, 175));
@@ -1681,8 +1794,18 @@ function drawPortalArrow() {
     return { position: pp, label: `${(d / 1000).toFixed(1)} mm`, distance: d };
   }, { kind: 'forward', portal: true, range: 30000 }).map((r) => r && { x: r.x, y: r.y, angle: r.angle, onScreen: r.onScreen, d: Math.round(r.picked.distance), label: r.picked.label, at: [Math.round(pp.x), Math.round(pp.y), Math.round(pp.z)] });
 }
+// The way on: a quiet row of marks, one per encounter, filled as each is met (the owner, 2026-11-02:
+// "I never really felt like I was getting closer to the portal"); the moss's wetness says it too.
+const wayOn = document.createElement('div');
+wayOn.style.cssText = 'position:fixed;left:50%;bottom:14px;transform:translateX(-50%);color:#e9d9a8;font:600 11px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 1px 2px #000c;pointer-events:none;z-index:6;opacity:.85';
+document.body.appendChild(wayOn);
+function updateWayOn() {
+  const n = ENCOUNTERS.length, k = Math.min(n, director.index);
+  wayOn.textContent = outro || embed.held || intro ? '' : `the way on  ${'●'.repeat(k)}${'○'.repeat(n - k)}${k >= n - 1 ? '  the water is near' : ''}`;
+}
 function updateText(d) {
   updateBanner();
+  updateWayOn();
   const mag = 127000 / rig.hfw; // relative to a 127 mm (Polaroid 4x5) reference image width
   const st = mite.mode === 'air' ? 'jumping' : mite.mode === 'crouch' ? 'crouching to jump' : mite.mode === 'walk' ? (play.scr ? `SCRAMBLE ${mite.speed.toFixed(0)} µm/s` : mite.st.climbing > 0.2 ? `climbing ${mite.speed.toFixed(0)} µm/s` : mite.speed > 5 ? `walking ${mite.speed.toFixed(0)} µm/s` : 'standing') : mite.mode === 'closed' ? 'closed (ptychoid)' : mite.mode;
   const fol = world.foliage.stats;
@@ -1858,6 +1981,8 @@ const api = {
   render(dt = 1 / 60) { const d = placeCamera(0); drawFrame(dt); updateText(d); },
   /** Testing: n steps of the simulation (players' pads as they are), no rendering; returns the frames stepped. */
   steps(n = 1, dt = 1 / 30, inputs = []) { for (let i = 0; i < n; i++) { simTime += dt; tick(dt, inputs); } return n; },
+  /** Life and weather (life.js) and the box-mite family, for checks; inSight(x, z, r): can a view (last drawn or stepped) see that disc? */
+  life: { ambient, beads, drip1, drip3, family, wetness }, inSight: (x, z, r) => inSight(x, z, r),
   /** Testing: n steps through the real input path (the pads and keyboard as they are read each frame), no rendering; returns each step's events for player 1. Pause the page first (`paused = true`). */
   inputSteps(n = 1, dt = 1 / 30) { const ev = []; for (let i = 0; i < n; i++) { simTime += dt; const r = tick(dt, readInput(dt)); ev.push(...((r && r[0]) || [])); stepViews(dt); } return ev; },
   isolate(on) { world.group.visible = !on; npc.setVisible(!on); pred.setVisible(!on && predHere()); },

@@ -14,7 +14,10 @@ Open `micro/prototypes/springtail/` (the invite gate is off on localhost).
 you wherever you go, one after another with calm water between them: the rove
 beetle *Stenus*, the water strider and its mass of *Podura*, then the rain.
 Then the way on is open: floating rafts of Sphagnum under a golden sparkle,
-out across the pool where bog pondweed grows thick and a wolf spider hunts.
+each in a column of golden light from the sky, out across the pool where bog
+pondweed grows thick and a wolf spider hunts. Hold RT to look far: the view
+widens and the focus goes out across the water, so a column, a spider or the
+pondweed beyond you comes into focus.
 Spot a spider and its raft is near (follow it home); lure it off the raft, get
 round it, stand on the raft and press Y, and in the Micro Zoom game the
 microscope zooms in to the mite's world. On the way, graze: 8 clumps of food
@@ -164,8 +167,9 @@ has lost you (farther than 40 mm), it walks back at 6 mm/s (a jumping
 springtail does 13–17). A big ripple within 50 mm of it and away from the
 raft (a charged landing, a raindrop) draws it off to look. The golden
 sparkle over each raft (`shared/portal.js`) is dim and restless while it is
-guarded or sealed, bright once it is open. No arrow points the way (the
-owner: keep moving and you find it).
+guarded or sealed, bright once it is open, and so is its column of light
+(below, Landmarks). No arrow points the way (the owner: keep moving and you
+find it).
 
 **Bog pondweed** (`PONDWEED`, `buildPondweed` in `world.js`). *Potamogeton
 polygonifolius*, the pondweed of acid, nutrient-poor water: bog pools, peaty
@@ -173,17 +177,25 @@ runnels and ditches, where it grows in clonal patches of floating leaves on
 long stalks from rhizomes in the peat. Chosen over duckweed (*Lemna minor*,
 a plant of nutrient-rich water, rare in Sphagnum bog pools) and cotton-grass
 fluff (*Eriophorum* grows on the bog, but its seed hairs blow everywhere, so
-they would not mark a place). Its leathery elliptic floating leaves, olive
-flushed wine red, are giant rafts at springtail scale, unmistakable in the
-narrow macro view, and wolf spiders really do hunt from floating leaves.
+they would not mark a place). Its leathery elliptic floating leaves are giant rafts at springtail scale,
+unmistakable in the narrow macro view, and wolf spiders really do hunt from
+floating leaves. **Drawn to read as harmless** (the owner, 2026-11-02: "I
+wasn't sure when I saw it if it was a dangerous plant or not"), nothing like
+a sundew side by side: smooth, glossy, broad ovals lying flat on the film,
+fresh green with a soft yellow-green margin, pale parallel veins and midrib;
+about one leaf in four faintly flushed red toward its base (as the species is
+in acid water); no hairs, tentacles, droplets or red rim. Round each raft up
+to five flower spikes stand out of the water (a slender green stalk and a
+dense cylindrical spike of tiny green-brown flowers, ~18 mm tall), one more
+instanced mesh per raft's patch.
 Departures, labelled: the leaves are 14–28 mm long (in life floating leaves
 are mostly 20–60 mm or more), lie flat and still (no stalks shown, no drift),
 and grow thick only round the rafts (the patches stand for the clones a
 raft's peat holds). Each leaf is solid footing like the debris (`pondweedAt`;
 walking on it is slow, jumping from it is not), drawn as one instanced mesh
-per patch (culled as one) and the strays in 300 mm tiles; a pale midrib, fine
-parallel veins converging on the tip, glossy. Image request MP-S06 (a leaf
-plate) is open; until it arrives the procedural leaf stands in.
+per patch (culled as one) and the strays in 300 mm tiles. Image request
+MP-S06 (a leaf plate, its prompt now asking for the same harmless fresh-green
+leaf, no droplets) is open; until it arrives the procedural leaf stands in.
 
 **The water is the ground.** The pool is a 1.9 x 1.24 m sheet of open water
 with 72 moss islands standing in it (a hand-placed cluster round the start,
@@ -204,11 +216,11 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | **X** (E) | Three moves, by what is in front of your head: **eat** (food: the head goes down on a grain, the mouthparts work and the grain shrinks away, 0.7 s a bite); **fight** (a predator's leg in reach: rear up, then snap: a nip that staggers it); **attack** (nothing in reach: a lunge-nip). **In the air: the pounce-bite** (see Fighting back) |
 | **B** (Shift) | Hold: **hunker, the defend button.** Pressed flat with the collophore: facing a predator, it blocks its strike; waves cannot flip you, and a still, hunkered springtail makes no ripples for the strider to feel. You cannot move |
 | Y (R) | Camera: top-down, and back to the low view you had (RS also brings it down) |
-| LT / RT (Z / X) | Focus pull nearer / farther (an offset from autofocus) |
+| RT (X) | Hold: **look far.** Over ~0.4 s the lens widens (to a 38 mm focal length, about 6x the field) and aims out ahead over the film along the view, the focus goes out there and the depth of field deepens, so what was blur beyond you (pondweed, a spider, a portal's column of light) comes into focus; RS still turns and tilts it. You can still walk, but it is for looking. Let go and it eases back to the normal framing and focus |
+| LT (Z) | Hold: **a close look.** The field narrows to 0.6x (more magnification), focus on you, the lens's own shallow depth of field. Let go and it eases back |
 | LB / RB (Q / F) | Aperture wider / narrower (f/2.8 to f/22) |
 | D-pad ←→ (3 / 4) | Look: macro in low sun, macro overcast, stereo microscope |
 | D-pad ↑↓ (1 / 2) | Magnification 1x, 2x, 3x, 5x (field 36, 18, 12, 7.2 mm) |
-| LS click (C) | Autofocus again (clears the focus offset) |
 | Menu (Esc) | Features panel |
 | View (Tab) | Hide the help panel |
 
@@ -231,8 +243,25 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   0.36 mm, walking about on its capitulum. Over it the super-gene's golden
   light (`shared/portal.js` `createPortalGlow`: a glow pool, a fine spray of
   rising sparks with star glints, a 60 mm beacon with motes rising up it;
-  five draws). The low macro view has the raft out of frame until you are
-  about on it; in view a halo marks the nearest raft (`createPortalLight`;
+  five draws). **A column of light from the sky** comes down onto every raft
+  (the owner, 2026-11-02: "a vertical column of light from the sky to the
+  portal to make it a little more clear that it's not just another plant"):
+  `createPortalColumn` (`shared/portal.js`, also an option of
+  `createPortalGlow`), a soft-edged shaft of the portal's gold 700 mm tall
+  and 7 mm in radius at the foot (`COLUMN` in `landmarks.js`), facing the
+  camera about the vertical, brightest at the raft and fading upward, with
+  slow streaks, rising motes and a slow pulse; dim while the way on is
+  sealed or the raft guarded, bright once open; thinner when a player
+  stands at its foot (the raft and the mite stay clear) and gone in the
+  outro. One draw each, frustum culled; columns within 900 mm of a player
+  are drawn (`COLUMN_SHOW`), and always the four nearest (`COLUMN_KEEP`).
+  The low macro camera looks down at ~24 degrees through a ~4 degree field,
+  so the horizon (and a column rising from it) is out of frame: instead the
+  nearest four columns are **reflected in the film** (`uCol` in
+  `springtail-surface.js`), which lays a long golden path across the water
+  toward a portal you face, at any distance, as a low sun does; held RT
+  (look far) shows the columns themselves standing over the pool. The low
+  macro view has the raft out of frame until you are about on it; in view a halo marks the nearest raft (`createPortalLight`;
   the edge spill is off); within 26 mm the focus deepens so the raft is sharp
   beside you. Rafts farther than 260 mm from every player are hidden and not
   updated (`RAFT_SHOW`, `landmarks.js`), and a raft's mite (nine small
@@ -240,7 +269,7 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   mite are the outro's). Any player standing within 11 mm of an open raft's
   centre gets the prompt "Y Enter the portal" (`embed.near('portal')`); Y
   there calls `enterPortal(P)`, which calls `embed.landmark('forward', { outro })` and plays the
-  outro: a golden burst (a ring over the film, a fountain of sparks), a
+  outro (the column fades out): a golden burst (a ring over the film, a fountain of sparks), a
   bloom, a chime (`shared/portal-chime`), a rumble, the HUD hidden; then time
   eases to a freeze over 1 s (`OUTRO`, in frame time) while rendering goes
   on. Frozen, it reports the speck's framing (`embed.frozen`) and follows the
@@ -270,8 +299,11 @@ shell (`embed.players`).
 - Each player is a springtail of their own (a second springtail shares the
   first one's meshed geometry), marked by a faint ring of their colour on the
   film. Everyone uses the shared controls; RS from any player turns the
-  shared camera, and player 1 also has the optics (Y, zoom, look, aperture,
-  focus).
+  shared camera, and player 1 also has the optics (Y, zoom, look, aperture).
+  Looking far or close (RT / LT held) is each player's own: alone it moves
+  the camera; with company each view takes its own players' look (drawn from
+  that view's camera and put back after; the portal halo is left out while
+  anyone looks).
 - **Split screen** (`shared/splitscreen.js`, LEGO-style): together, one view
   that frames the group (a little wider as it spreads, with the depth of
   field deepened until everyone is sharp); apart, the view splits and each
@@ -291,7 +323,10 @@ shell (`embed.players`).
   `landmarkLog` (`ready`, `forward`, `turnedBack`, `sealed`), `portal()` (the
   nearest raft: its position, `sealed`, `guarded`, `open`, its spider),
   `portals()` (every raft and its spider: state, distance, parked),
-  `pondweed`, `spiders`, `boss` (the spider in focus), `portalReady()` (who
+  `pondweed`, `spiders`, `boss` (the spider in focus), `lookHold(v, slot)`
+  (hold RT: 1, LT: -1, let go: 0, back to the pad: null), `lookState()`
+  (each player's eased look, the lens, focus, field of view and the light
+  columns drawn), `portalReady()` (who
   has the Y prompt), `pressY(slot)`, `enterPortal(slot)`,
   `nearPortal(i, d, b, slot)`, `sealed(open?)`, `joins`,
   `forceCapture(kind, slot)`; the director: `encounters()` (its state),
@@ -618,7 +653,8 @@ The **macro photography** look is new to the set:
     shallows by the shores) under a boosted Fresnel sky sheen and a broad sun
     lobe, faint moving micro-ripples, and fine dust and pollen specks floating
     on the film that are sharp only in the focal plane, so the film shows as
-    a plane receding in perspective.
+    a plane receding in perspective. The portals' columns of light are
+    reflected in it (a golden path toward a portal you face; Landmarks).
   - **Shores**: a raised meniscus where the water meets an island or the
     bank, which catches the sky as a bright line, then a wet dark band.
   - **Moss heads**: a bright backlit rim on every branch and wet dark bases
@@ -664,6 +700,7 @@ The **macro photography** look is new to the set:
 | Optics | Thin-lens macro camera | always |
 | Optics | Autofocus on the springtail | on |
 | Optics | Focus follows the jump | on |
+| Optics | Look far / close (RT / LT held) | always |
 | Rendering | Drop shadow under the springtail | on |
 | Rendering | Legible water film (sheen, shore menisci, specks) | on |
 | Simulation | Ripple height field | on |
