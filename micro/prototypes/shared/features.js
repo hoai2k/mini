@@ -29,6 +29,17 @@
 // shared Invert Y switch if the prototype registered one (addInvertY).
 import { BTN } from './pad.js';
 import { embed } from './embed.js';
+import { t, tx, has } from './text.js';
+
+// A feature's label, about text and choice names come from text_config.js:
+// `<key>.features.<id>` (the world's own), else `shared.features.<id>` (the
+// shared modules' switches). A label or about passed to add() is used only
+// when the text file has none (e.g. one built at run time). Group headings
+// are `shared.featureGroups.<group>`.
+function textFor(key, id) {
+  for (const base of [`${key}.features.${id}`, `shared.features.${id}`]) if (has(base)) return base;
+  return null;
+}
 
 const GROUP_ORDER = ['Rendering', 'Optics', 'Body', 'Motion', 'Simulation', 'World', 'Controls', 'Borrowed'];
 
@@ -78,7 +89,7 @@ export function createFeatures({ key, pad }) {
   panel.className = 'mf';
   const tab = document.createElement('button');
   tab.className = 'mf-tab';
-  tab.textContent = 'Features (Menu)';
+  tab.textContent = t('shared.featuresPanel.tab');
   tab.onclick = () => setOpen(true);
   document.body.append(panel, tab);
 
@@ -111,9 +122,9 @@ export function createFeatures({ key, pad }) {
   }
 
   function valueText(it) {
-    if (it.fixed) return 'always';
-    if (it.choices) return it.value;
-    return it.on ? 'ON' : 'OFF';
+    if (it.fixed) return t('shared.featuresPanel.always');
+    if (it.choices) return it.choiceText?.[it.value] ?? it.value;
+    return it.on ? t('shared.featuresPanel.on') : t('shared.featuresPanel.off');
   }
 
   function render() {
@@ -123,10 +134,10 @@ export function createFeatures({ key, pad }) {
       return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
     });
     const sw = switchable();
-    panel.innerHTML = '<h2>What this prototype is doing</h2><p class="hint">Menu/Esc closes · up/down move · A toggles · LB/RB cycle · B back</p>';
+    panel.innerHTML = `<h2>${t('shared.featuresPanel.heading')}</h2><p class="hint">${t('shared.featuresPanel.hint')}</p>`;
     for (const g of groups) {
       const h = document.createElement('h3');
-      h.textContent = g;
+      h.textContent = has(`shared.featureGroups.${g}`) ? t(`shared.featureGroups.${g}`) : g;
       panel.appendChild(h);
       for (const it of items.filter((x) => x.group === g)) {
         const row = document.createElement('div');
@@ -137,7 +148,7 @@ export function createFeatures({ key, pad }) {
         if (it.from) {
           const f = document.createElement('span');
           f.className = 'from';
-          f.textContent = `from ${it.from}`;
+          f.textContent = t('shared.featuresPanel.from', { world: it.from });
           row.querySelector('.lab').appendChild(f);
         }
         row.querySelector('.val').textContent = valueText(it);
@@ -176,6 +187,12 @@ export function createFeatures({ key, pad }) {
      */
     add(f) {
       const it = { on: true, ...f };
+      const base = textFor(key, it.id);
+      if (base) {
+        if (has(`${base}.label`)) it.label = t(`${base}.label`);
+        if (has(`${base}.about`)) it.about = t(`${base}.about`);
+        if (has(`${base}.choices`)) it.choiceText = tx(`${base}.choices`);
+      }
       if (it.fixed) it.on = true;
       else if (it.choices) {
         it.value = it.value ?? it.choices[0];

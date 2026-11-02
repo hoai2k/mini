@@ -20,6 +20,7 @@
 // push. Going back up plays the same zoom in reverse.
 import { listen, send } from './bus.js';
 import { cardArt, loadImage } from './art.js';
+import { t } from '../../prototypes/shared/text.js';
 
 const HANDOFF = new Set(['mite>tardigrade', 'tardigrade>amoeba']);
 const smooth = (x) => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
@@ -140,8 +141,8 @@ export function createTransitions({ layer, sound, protoBase, reduced }) {
     const B = zoomIn ? to : from;
     const [outer, inner] = await Promise.all([loadImage(cardArt(A)), loadImage(cardArt(B))]);
     const handoff = HANDOFF.has(`${A.id}>${B.id}`);
-    dirEl.textContent = handoff ? 'Changing the light' : zoomIn ? 'Zooming in' : 'Zooming out';
-    titleEl.textContent = `${from.name} → ${to.name}`;
+    dirEl.textContent = handoff ? t('shell.transition.changingLight') : zoomIn ? t('shell.transition.zoomingIn') : t('shell.transition.zoomingOut');
+    titleEl.textContent = t('shell.transition.title', { from: from.name, to: to.name });
     const dur = reduced() ? 1.1 : handoff ? 2.4 : 2.9;
     sound.zoom(dir, dur);
     let view = size();
@@ -155,7 +156,7 @@ export function createTransitions({ layer, sound, protoBase, reduced }) {
         const p = zoomIn ? e : 1 - e;
         render(outer, inner, A, B, p, handoff, view);
         const f = A.fieldMm * Math.pow(B.fieldMm / A.fieldMm, handoff ? p : p);
-        fieldEl.innerHTML = `Field ${unitSafe(fmtField(f))}`;
+        fieldEl.innerHTML = t('shell.transition.field', { field: unitSafe(fmtField(f)) });
         magEl.textContent = `${fmtMag(f)}`;
         layer.dataset.progress = u.toFixed(2);
         if (u < 1) requestAnimationFrame(step); else resolve();
@@ -169,7 +170,7 @@ export function createTransitions({ layer, sound, protoBase, reduced }) {
   function microscope(from, to, dir) {
     return new Promise((resolve) => {
       const f = document.createElement('iframe');
-      f.title = 'Zoom transition';
+      f.title = t('shell.transition.frameTitle');
       f.allow = 'autoplay; gamepad';
       f.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;transition:opacity .4s;z-index:1';
       f.src = new URL(`zoom/?embed=1&from=${from.id}&to=${to.id}&dir=${dir}`, protoBase).href;
@@ -199,12 +200,12 @@ export function createTransitions({ layer, sound, protoBase, reduced }) {
       const [outer, inner] = await Promise.all([loadImage(cardArt(A)), loadImage(cardArt(B))]);
       layer.hidden = false;
       const handoff = HANDOFF.has(`${A.id}>${B.id}`);
-      dirEl.textContent = handoff ? 'Changing the light' : zoomIn ? 'Zooming in' : 'Zooming out';
-      titleEl.textContent = `${from.name} → ${to.name}`;
+      dirEl.textContent = handoff ? t('shell.transition.changingLight') : zoomIn ? t('shell.transition.zoomingIn') : t('shell.transition.zoomingOut');
+      titleEl.textContent = t('shell.transition.title', { from: from.name, to: to.name });
       const q = zoomIn ? p : 1 - p;
       render(outer, inner, A, B, q, handoff, size());
       const f = A.fieldMm * Math.pow(B.fieldMm / A.fieldMm, q);
-      fieldEl.innerHTML = `Field ${unitSafe(fmtField(f))}`;
+      fieldEl.innerHTML = t('shell.transition.field', { field: unitSafe(fmtField(f)) });
       magEl.textContent = fmtMag(f);
     },
     /** Play the transition from one world to another; dir 'in' (forward) or 'out' (back). */
@@ -222,15 +223,15 @@ export function createTransitions({ layer, sound, protoBase, reduced }) {
                 const r = mp.player.readout?.();
                 if (r) {
                   // Written only when the text changes (it holds still for many frames at a time).
-                  const field = `Field ${unitSafe(String(r.field ?? ''))}`, mag = String(r.mag ?? '');
+                  const field = t('shell.transition.field', { field: unitSafe(String(r.field ?? '')) }), mag = String(r.mag ?? '');
                   if (field !== shownField) { shownField = field; fieldEl.innerHTML = field; }
                   if (mag !== shownMag) { shownMag = mag; magEl.textContent = mag; }
                 }
               } catch { /* readout is optional */ }
               tick = requestAnimationFrame(read);
             };
-            dirEl.textContent = dir === 'in' ? 'Zooming in' : 'Zooming out';
-            titleEl.textContent = `${from.name} → ${to.name}`;
+            dirEl.textContent = dir === 'in' ? t('shell.transition.zoomingIn') : t('shell.transition.zoomingOut');
+            titleEl.textContent = t('shell.transition.title', { from: from.name, to: to.name });
             read();
             const guard = setTimeout(() => mp.player.skip?.(), 25000);
             try { await mp.player.play(from.id, to.id, { dir }); return; } catch (e) { console.error('[micro zoom] zoom player failed; using the specimen zoom', e); } finally { clearTimeout(guard); cancelAnimationFrame(tick); mp.box.hidden = true; }

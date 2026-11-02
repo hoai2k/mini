@@ -165,12 +165,8 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
     },
     /** Register Sound and Ambience switches in the feature panel. */
     addToFeatures(features) {
-      features.add({ id: 'sound', group: 'Controls', label: 'Sound effects',
-        about: 'Nature-documentary foley generated with ElevenLabs (micro/design/sound-effects.md). Nothing is audible at these scales; these are what a wildlife film would put on the scene.',
-        on: true, onChange: (v) => { enabled = v; if (master) master.gain.setTargetAtTime(level(), ctx.currentTime, 0.05); } });
-      features.add({ id: 'ambience', group: 'Controls', label: 'Ambience',
-        about: 'The looping background bed of the habitat.',
-        on: true, onChange: (v) => { ambience = v; if (ambBus) ambBus.gain.setTargetAtTime(v ? 1 : 0, ctx.currentTime, 0.2); } });
+      features.add({ id: 'sound', group: 'Controls', on: true, onChange: (v) => { enabled = v; if (master) master.gain.setTargetAtTime(level(), ctx.currentTime, 0.05); } });
+      features.add({ id: 'ambience', group: 'Controls', on: true, onChange: (v) => { ambience = v; if (ambBus) ambBus.gain.setTargetAtTime(v ? 1 : 0, ctx.currentTime, 0.2); } });
     },
   };
   if (embed.active) {

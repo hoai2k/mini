@@ -411,4 +411,417 @@ export const TEXT = {
       ],
     },
   },
+
+  // --------------------------------------------------------------------
+  // Text shared by every world (micro/prototypes/shared): the help panel, the features panel, players, portals, being eaten.
+  shared: {
+    featuresPanel: {
+      tab: 'Features (Menu)',
+      heading: 'What this prototype is doing',
+      hint: 'Menu/Esc closes · up/down move · A toggles · LB/RB cycle · B back',
+      always: 'always',
+      on: 'ON',
+      off: 'OFF',
+      from: 'from {world}',
+    },
+    featureGroups: {
+      Rendering: 'Rendering',
+      Optics: 'Optics',
+      Body: 'Body',
+      Motion: 'Motion',
+      Simulation: 'Simulation',
+      World: 'World',
+      Controls: 'Controls',
+      Borrowed: 'Borrowed',
+    },
+    features: {
+      quality: {
+        label: 'Quality governor (auto)',
+        about: 'Watches the frame time and lowers the render resolution (then effects) when frames run long, raising it again when there is headroom. Off: the manual quality below.',
+      },
+      qualityLevel: {
+        label: 'Manual quality',
+        about: 'Used while the governor is off: High = full resolution and effects, Low = the cheapest step.',
+        choices: {
+          High: 'High',
+          Medium: 'Medium',
+          Low: 'Low',
+        },
+      },
+      sound: {
+        label: 'Sound effects',
+        about: 'Nature-documentary foley generated with ElevenLabs (micro/design/sound-effects.md). Nothing is audible at these scales; these are what a wildlife film would put on the scene.',
+      },
+      ambience: {
+        label: 'Ambience',
+        about: 'The looping background bed of the habitat.',
+      },
+      invertY: {
+        label: 'Invert camera Y',
+        about: 'Off: right stick up looks up (the camera swings down). On: right stick up looks down. Shared by every prototype.',
+      },
+    },
+    hud: {
+      pageTitle: '{title} · Micro prototypes',
+      chipController: 'Controller: {button}',
+      chipKeyboard: 'Keyboard: {key}',
+      allPrototypes: '← All prototypes',
+      keyboardHover: 'Keyboard (hover a button for its key)',
+      controllerConnected: 'Controller connected',
+      keyboardHoverController: 'Keyboard (hover a button for its controller button)',
+      playerShort: 'P{n}',
+      menuRow: 'Features: what this does, switches',
+      viewRow: 'Hide this panel',
+    },
+    embed: {
+      enterPortal: 'Enter the portal',
+      landmarkForward: 'Landmark reached: in the game this zooms in to the next world',
+      landmarkBack: 'Backdoor: in the game this zooms out to the previous world',
+      transitionDone: 'Transition done',
+    },
+    eaten: {
+      title: 'Eaten',
+      caption: '{by} {how}',
+      byHow: '{by} {how}.',
+      by: '{by}.',
+      tryAgain: 'Press A to try again',
+    },
+    players: {
+      joined: 'Player {n} joined',
+      left: 'Player {n} left',
+      youComeBack: '. You will come back beside a teammate',
+      playerComesBack: '. Player {n} will come back beside a teammate',
+      prefixed: 'Player {n}: {text}',
+    },
+  },
+
+  // --------------------------------------------------------------------
+  // World 1, the springtail (micro/prototypes/springtail).
+  springtail: {
+    hud: {
+      title: 'Springtail · macro',
+      sub: 'Level 0, a bog pool: the water springtail Podura aquatica, 1.5 mm long, lives on the surface film. Eat, dodge, and spring away with the furcula.',
+      controls: {
+        move: 'Move',
+        camera: 'Camera',
+        dash: 'Jump (hold for distance)',
+        attack: 'Attack / eat',
+        defend: 'Block (hold)',
+        special: 'Top view / enter portal',
+        secondary: 'Background blur',
+        look: 'Change the look',
+        zoom: 'Zoom',
+        focusAhead: 'Focus ahead',
+        focusNear: 'Focus near',
+      },
+      note: 'Reach the glowing portal, and avoid getting eaten by Stenus the rove beetle, the water strider and the wolf spider. Up to four players: press any button on another controller to join.',
+    },
+    capture: {
+      boss: {
+        by: 'The pond wolf spider',
+        how: 'ran you down, sank its fangs in and ate you',
+        phases: {
+          strike: 'The wolf spider has you!',
+          hold: 'Held in its fangs…',
+          eat: 'The spider is eating you',
+          follow: 'Eaten',
+          fadeOut: 'Eaten',
+          fadeIn: 'Back again',
+        },
+      },
+      stenus: {
+        by: 'Stenus',
+        how: 'harpooned you with its sticky labium, reeled you in and ate you',
+        phases: {
+          strike: 'Harpooned by Stenus!',
+          hold: 'Reeled in…',
+          eat: 'Stenus is eating you',
+          follow: 'Eaten',
+          fadeOut: 'Eaten',
+          fadeIn: 'Back again',
+        },
+      },
+      strider: {
+        by: 'The water strider',
+        how: 'seized you in its forelegs and sucked you dry',
+        phases: {
+          strike: 'Grabbed by a strider!',
+          hold: 'Lifted to its beak…',
+          eat: 'Being sucked dry',
+          follow: 'Eaten',
+          fadeOut: 'Eaten',
+          fadeIn: 'Back again',
+        },
+      },
+      sundew: {
+        by: 'The sundew',
+        how: 'wrapped you in its tentacles and closed its leaf over you',
+        phases: {
+          strike: 'The tentacles close!',
+          hold: 'Wrapped in glue…',
+          eat: 'Dissolving…',
+          follow: 'Digested',
+          fadeOut: 'Digested',
+          fadeIn: 'Back again',
+        },
+      },
+    },
+    toasts: {
+      stuckInGlue: 'Stuck in sundew glue! Wriggle (LS) and kick (A) together to tear free',
+      spiderGone: 'The wolf spider has had enough: it backs off under the moss',
+      stuckOnLabium: 'Stuck on the labium! Mash A to wriggle free',
+      pouncedOn: 'Pounced on {name} ({food}/{goal})',
+      missed: 'Missed!',
+      onYourBack: 'On your back! Tap A to flip over',
+      wriggledFree: 'Wriggled free! No jump for a moment: step aside from the mandibles',
+      leafPulling: 'The leaf is pulling you in: keep struggling!',
+      free: 'Free!',
+      flipped: 'Flipped by a wave! Tap A to flip over; hunker (B) next time',
+      fedOpen: 'Fed and safe on the moss. The way on: the golden sparkle over a raft of red capitula, where the pondweed grows thick',
+      fedSealed: 'Fed and safe on the moss. Head out across the pool: the way on opens after the beetle, the strider and the rain',
+      cleanEscape: 'Clean escape! Its labium snaps shut on nothing. Now the mandibles: dodge the lunge',
+      stenusRears: 'Stenus rears, mandibles wide: jump or step aside!',
+      dodgedMandibles: 'Dodged the mandibles!',
+      stenusSkimming: 'Stenus is skimming at you!',
+      stenusFreezes: 'Stenus lowers its head and freezes: jump now!',
+      striderForelegs: 'The strider raises its forelegs: face it and hunker (B), or jump',
+      striderFelt: 'A water strider felt your ripples: keep still and hunker (B)',
+      spiderWakes: 'The wolf spider comes for you! Lead it away from the raft: it follows you out, then walks back slowly. Jump clear when it crouches and raises its front legs',
+      spiderDodged: 'Dodged! It overreached: nip its tarsus (X) or pounce (X in the air)',
+      spiderRetreats: 'The wolf spider backs off under the moss: the way on is open',
+      swamped: 'Swamped by a raindrop',
+      cameraLow: 'Low macro',
+      cameraTop: 'Top-down (RS or Y to come back down)',
+      zoom: '{zoom}x · field {field} mm',
+      spiderHint: 'The wolf spider guards the way on. Lure it off the moss, then get round it',
+      sealed: 'Not yet: the way on opens once you have met what else the pool holds',
+      turnedBack: 'Turned back: the wolf spider is on guard. Lead it away from the raft first, then get round it',
+      spiderPounce: 'Pounce-bite! The spider flinches',
+      spiderPounceTarsus: 'Pounce-bite an overreached tarsus! The spider flinches',
+      spiderNip: 'Nipped! The spider flinches',
+      spiderNipTarsus: 'Nipped an overreached tarsus! The spider flinches',
+      ate: 'Ate {name} ({food}/{goal})',
+      ateLast: 'Ate {name} ({food}/{goal}): now reach the moss edge!',
+    },
+    features: {
+      dof: {
+        label: 'Depth of field (bokeh gather)',
+        about: 'Every surface writes its distance from the focal plane into the alpha of a half-float target. A half-res pass turns that into a signed blur-disc size (thin-lens CoC), 8x8 tiles record the largest foreground blur, and a 64-tap golden-spiral gather spreads each tap only as far as its own disc reaches (taps behind the centre are clamped to its blur, so sharp edges never smear backward). shared/techniques/springtail-macro.js.',
+      },
+      rim: {
+        label: 'Bright-rimmed bokeh discs',
+        about: 'Taps near the edge of a blur disc are weighted up, like the onion-ring bokeh of real macro lenses with aspherical elements. Sun glints on the water bloom into discs.',
+      },
+      caustics: {
+        label: 'Caustics and dimple shadows on the pool floor',
+        about: 'The floor under the refracted view ray is lit through the surface above it (offset toward the sun); its brightness is 1 / (1 + depth x curvature / 4), so ripples focus light into bright bands and each dimple throws a dark spot with a bright rim, like a water strider\'s famous shadows.',
+      },
+      refraction: {
+        label: 'Water film shading',
+        about: 'Fresnel mix of a reflected sky-and-bog environment and the refracted pool floor (Snell, n = 1.333) through tea-coloured, humic bog water (Beer-Lambert absorption, red passes, blue is lost); a tiny sun disc gives the specular glints. The refracted floor writes its apparent depth so the lens blurs it as a camera would.',
+      },
+      velvet: {
+        label: 'Velvety cuticle',
+        about: 'Slate blue-black dorsum, reddish-brown venter and legs, fine granules as noise bump with frosty specks, a blue-grey sheen at grazing angles, dark furrows where two body rings meet (from the sdf.js part weights), glossy black eye patches. Checked against photographs of Podura.',
+      },
+      grain: {
+        label: 'Sensor grain',
+        about: 'A faint per-frame noise, like a high-ISO macro shot.',
+      },
+      look: {
+        label: 'Look (D-pad left/right)',
+        about: 'Low sun: daylight with glints and backlit moss. Overcast: soft sky light, no glints. Stereo microscope: a ring light round the objective, a round field stop, and ~4x the depth of field (stereo microscopes work at low aperture).',
+        choices: {
+          'Macro, low sun': 'Macro, low sun',
+          'Macro, overcast': 'Macro, overcast',
+          'Stereo microscope (ring light)': 'Stereo microscope (ring light)',
+        },
+      },
+      thinlens: {
+        label: 'Thin-lens macro camera',
+        about: 'A 100 mm macro lens on a 36 mm sensor: magnification m = 36 / field width, subject distance f(1 + 1/m), field of view from the field width, effective aperture N(1 + m), total depth of field 2Nc(1 + m)/m^2 (c = 0.03 mm). At 2x and f/11 that is about 0.5 mm: the springtail is barely in focus end to end.',
+      },
+      autofocus: {
+        label: 'Autofocus on the springtail',
+        about: 'The focal plane follows the springtail (held RT moves it out to the water ahead; held LT, in close). Off: focus stays at the lens\'s set distance from the orbit centre.',
+      },
+      jumpFocus: {
+        label: 'Focus follows the jump',
+        about: 'While you cock a jump and while you are in the air, the lens racks focus to between you and where you will land, deepens the depth of field until both are acceptably sharp, and the framing leans toward the landing. No marker: the landing spot comes into focus.',
+      },
+      dropShadow: {
+        label: 'Drop shadow under the springtail',
+        about: 'A soft shadow straight below you on whatever is there (water film, moss, a sundew leaf, debris): a contact shadow when you stand, and in a leap it shows your height and the spot you will land on. Not optics but a game cue, alongside the true sun-cast shadow on the pool floor.',
+      },
+      sheen: {
+        label: 'Legible water film',
+        about: 'A boosted Fresnel sky sheen and a broad sun lobe so the film reads as a glossy sheet over the darker tea-coloured depths, a raised meniscus with a bright line and a wet dark band where the water meets an island or the bank, and a rising meniscus round each floating piece of debris.',
+      },
+      ripples: {
+        label: 'Ripple height field',
+        about: 'A 256 x 256 damped wave equation over 84 mm (0.33 mm cells), stepped 240 times a second on the CPU. Raindrops, landings, striders\' strokes and walking beetles push it. Ripples run at ~43 mm/s, ~5x slower than real millimetre capillary waves (~0.23 m/s minimum), so you can see and dodge them. shared/techniques/springtail-surface.js.',
+      },
+      cheapRipples: {
+        label: 'Cheaper ripples (experimental)',
+        about: 'Runs the ripple field on a 128 x 128 grid (0.66 mm cells) stepped 120 times a second instead of 256 x 256 at 240: an eighth of the work, about 2 ms a frame less on a laptop CPU (the step 2.2-2.9 ms down to ~0.35, the texture upload 0.1-0.15 down to 0.03). Ripples still travel as fast, rise as high and die away as quickly, but their fronts are coarser and softer: rings from small pushes (a footstep, a nip, a skimming beetle) come out wider and lower, with about half the slope, and the finest wavelets are gone, so small ripples rock you less. Large rings (raindrops, the spider) look much the same. Switching clears the film.',
+      },
+      marangoni: {
+        label: 'Marangoni surfactant',
+        about: 'A second field: Stenus\'s secretion spreads (diffusion), decays, damps capillary waves under it and drives a surface flow down its gradient, which shoves floating food (and you) away from the beetle\'s wake.',
+      },
+      showSurf: {
+        label: 'Show the surfactant',
+        about: 'Tints the film yellow where the surfactant lies (it is invisible in life: you would only see the calmed water).',
+      },
+      menisci: {
+        label: 'Meniscus depth',
+        about: 'Analytic dimples where claws, the ventral tube, floating grains and the strider\'s legs press the film: a logarithmic profile, like the K0 meniscus of a small load, fading to flat a few contact radii out.',
+        choices: {
+          'Exaggerated ~3x (game)': 'Exaggerated ~3x (game)',
+          'Life-like': 'Life-like',
+        },
+      },
+      righting: {
+        label: 'Landing odds',
+        about: 'Semiaquatic springtails land on their ventral side 85% of the time (Ortega-Jimenez et al. 2022); otherwise you land on your back, lying in the film with the legs and furcula kicking, and flip over: at once with A (a little hop), or by yourself after ~1.2 s.',
+        choices: {
+          'Real (85% upright)': 'Real (85% upright)',
+          'Always upright': 'Always upright',
+        },
+      },
+      slow: {
+        label: 'Jump time',
+        about: 'A real full jump off water lasts ~0.1-0.2 s at ~0.7 m/s take-off. Slowed, a full jump takes 0.85 s, so you can see the tumble, the U-pose and the landing.',
+        choices: {
+          'Slowed ~6x (playable)': 'Slowed ~6x (playable)',
+          'Real time': 'Real time',
+        },
+      },
+      pounce: {
+        label: 'Pounce-bite (a departure)',
+        about: 'X in the air, or a jump released at an enemy in range: the springtail tucks into a dive onto the nearest leg or body under its arc (aim assist), nips on impact (worth two nips: a stagger, a splash, a rumble, a brief hit-pause), then rebounds off it; a mistimed dive is a clear miss. Landing on food takes a whole bite. A labelled departure: Podura grazes, and its furcula jump is an escape (a few springtails such as Friesea prey on tiny animals, never by leaping).',
+      },
+      boss: {
+        label: 'Boss: pond wolf spider (Pirata)',
+        about: 'A juvenile, ~5 mm (scaled down from adults so the arena fits). One lives at every portal raft (the ways on, fixed across the pool where the bog pondweed grows thick). It rests on the raft\'s rim, goes out on rounds of its hunting ground (the pondweed, 80 mm round the raft) and walks back, so you can follow it home. Out on its ground it comes for a springtail within 22 mm (or one landing within 20), and hurries home if one makes for the raft; on its post it wakes when you come within 30 mm, follows you up to 90 mm out, then gives up and walks back (slower than you jump); a big ripple (a charged landing, a raindrop) within 50 mm draws it off to look. While it is more than 15 mm off its post, the raft lets you through (once the beetle, the strider and the rain have all been met). Its tells: it crouches and raises its first two pairs of legs before a lunge, and turns to pounce on your landing ripples. Jump clear (a dodge wears it down), then nip or pounce on an overreached tarsus (double). About three good rounds and it backs off under the moss for good, leaving the way open. Its resolve is the brass gauge. Catches follow the follow-and-respawn sequence.',
+      },
+      sundewGlue: {
+        label: 'Sundews: struggle, digestion, re-forming',
+        about: 'Land on a sundew leaf and you are held on its glue drops, a glue strand from a tentacle tip to each leg. Tear free by struggling: tug with LS (each new push or change of direction; WASD on a keyboard) and kick with A, both together (about 2 s; A alone takes ~5-6 s of hard mashing and is barely faster than the leaf, LS alone loses). The body thrashes with every effort and the strands thin and snap one by one as you win. Stop for 0.8 s and the hold wins: you slip back, sink among the tentacles as they fold over and the blade cups; about 2.5 s more and you are engulfed: the body turns white and breaks up into motes that drift away (digestion; real sundews take days). After any catch the camera glides to where you come back (a dip to black if that is far) and you re-form there from gathering motes, with a ring on the film: ~2 s, not skippable, and A held through it does nothing until let go. sundew-struggle.js, sundew-glue.js, motes.js.',
+      },
+      upose: {
+        label: 'Mid-air U-pose righting',
+        about: 'Right after take-off the body tumbles; within ~20 ms (here ~0.15 s) it curls head and tail up into a U, which aerodynamically turns the ventral tube downward. Off: it tumbles all the way and lands upright half the time.',
+      },
+      sdf: {
+        label: 'Anatomy from SDF parts',
+        about: 'Head with eye patches and mouth cone, 4-segment antennae, pronotum, two thoracic and six abdominal rings, three pairs of short legs, the collophore on Abd I, the retinaculum on Abd III and the furcula on Abd IV (a separate mesh that swings down and back ~160 degrees). Meshed with surface nets (shared/sdf.js), 26-bone part rig in the vertex shader.',
+      },
+      stenus: {
+        label: 'Rove beetle (Stenus)',
+        about: 'Patrols, stalks what moves, skims at you on its surfactant, lowers its head (the wind-up) and shoots its sticky labium ~2 mm.',
+      },
+      strider: {
+        label: 'Water strider (Gerris)',
+        about: 'Hears ripples: landings, grazing and struggling bring it rowing over; its strokes send waves that flip an unbraced springtail; its forelegs grab.',
+      },
+      rain: {
+        label: 'Rain',
+        about: 'A drop ~3 mm across (twice your length) is telegraphed by its shadow, falls, craters the film and rings it.',
+        choices: {
+          Sometimes: 'Sometimes',
+          Often: 'Often',
+          Off: 'Off',
+        },
+      },
+      grace: {
+        label: 'Calm on arrival',
+        about: 'The encounters are placed as you go (shared/director.js), in order, each in water nobody has seen yet a little ahead of whoever leads: after a few seconds of moving, Stenus and its water; a calm break; the strider and the Podura mass; the rain; then the way on opens: the portal rafts (fixed, each with its wolf spider and its pondweed). Linger and they come to you all the same; reach a portal first and the rest are placed round you at once. Each predator stays calm until someone first comes into its water, then waits this long before its hunger starts. shared/predation.js.',
+        choices: {
+          Off: 'Off',
+          '5 s': '5 s',
+          '15 s': '15 s',
+        },
+      },
+      hunger: {
+        label: 'Predator hunger',
+        about: 'Comes and goes: once awake (a player came into its water) each predator is hungry for ~18-32 s, then rests (45-75 s after a meal, 15-30 s after a miss or when it loses you); only a hungry one stalks, skims, strikes, answers ripples or grabs. Always: hungry from the moment it wakes. Never: they patrol and never hunt (for exploring and testing).',
+        choices: {
+          'Comes and goes': 'Comes and goes',
+          Always: 'Always',
+          Never: 'Never',
+        },
+      },
+      camrel: {
+        label: 'Camera-relative walking and aiming',
+        about: 'LS walks and aims relative to the view, in both camera modes.',
+      },
+      rumble: {
+        label: 'Rumble',
+        about: 'A kick when the furcula fires, a tap on landing, a thump for raindrops and being caught.',
+      },
+    },
+    status: {
+      focusAhead: ' · focus ahead ({mm} mm)',
+      focusNear: ' · focus near',
+      food: 'Food {food}/{goal}',
+      sundew: 'Sundew: wriggle and kick!',
+      stenusJump: 'Stenus: jump now!',
+      stuck: 'Stuck: mash A!',
+      mandibles: 'Mandibles: jump or step aside!',
+      attacking: 'Attacking! Face it + B, or jump',
+      hunted: 'Hunted!',
+      calm: 'Calm',
+      calmWater: 'Calm water',
+      backAgain: 'Back again',
+      pulledIn: 'Pulled in: struggle!',
+      struggle: 'Struggle: LS + A',
+      wriggle: 'Wriggle (mash A)',
+      fullJump: 'Full jump',
+      cocking: 'Cocking',
+      reCocking: 'Re-cocking',
+      furcula: 'Furcula',
+      stenusHungry: 'Stenus hungry',
+      striderHungry: 'Strider hungry',
+      bothHungry: 'Stenus & Strider hungry',
+    },
+    card: {
+      title: 'Level 0 · Bog surface',
+      paragraphs: [
+        'You are a water springtail, 1.5 mm long, standing on the surface film of a bog pool.',
+        'Graze the pollen, spores and algae floating on the water (X). Spring away with your furcula (hold and release A). Hunker (B) when ripples come.',
+        'Head out in any direction. One after another, with a little calm water between, the rove beetle <i>Stenus</i> and its harpoon, a water strider and the rain find you. Then the way on opens: moss rafts under a golden sparkle, each in a column of light from the sky, out where the pondweed grows thick and a wolf spider hunts (follow one home). Hold RT to focus on what lies ahead. Lure it off, then get round it. Mind the sundews.',
+      ],
+      start: 'Press A to start',
+    },
+    spider: {
+      name: 'Pond wolf spider',
+    },
+    predators: {
+      boss: {
+        pounceOn: 'Pounce-bite on the wolf spider!',
+      },
+      stenus: {
+        gone: 'Stenus has had enough: it skims away',
+        nipped: 'Nipped its tarsus! Stenus staggers back',
+        blocked: 'Blocked! Stenus\'s strike glances off',
+        missedTooOften: 'Stenus has missed too often: it skims away',
+        givesUp: 'Stenus gives up on you',
+        pounceOn: 'Pounce-bite on Stenus!',
+      },
+      strider: {
+        gone: 'The strider has had enough: it rows away',
+        nipped: 'Nipped a foreleg! The strider staggers back',
+        blocked: 'Blocked! The strider\'s strike glances off',
+        missedTooOften: 'The strider has missed too often: it rows away',
+        givesUp: 'The strider gives up on you',
+        pounceOn: 'Pounce-bite on the strider!',
+      },
+    },
+    food: {
+      pollen: 'pine pollen',
+      spores: 'fungal spores',
+      algae: 'green algae',
+    },
+  },
 };

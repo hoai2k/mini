@@ -123,6 +123,8 @@
 // embed.provide('transition') before its first frame, plays the one
 // transition when it receives `resume`, and posts `done` when it arrives.
 
+import { t } from './text.js';
+
 const TAG = 'micro-embed';
 const params = new URLSearchParams(location.search);
 const framed = (() => { try { return window.parent !== window; } catch { return true; } })();
@@ -309,13 +311,13 @@ export const embed = {
   landmark(kind, info = {}) {
     if (kind !== 'forward' && kind !== 'back') throw new Error(`embed.landmark: unknown kind ${kind}`);
     if (active) post('landmark', { ...info, kind });
-    else devToast(kind === 'forward' ? 'Landmark reached: in the game this zooms in to the next world' : 'Backdoor: in the game this zooms out to the previous world');
+    else devToast(kind === 'forward' ? t('shared.embed.landmarkForward') : t('shared.embed.landmarkBack'));
   },
   /** The player is at (on) or has left (off) a landmark; the shell shows a prompt. */
   near(kind, on, label) {
     if (active) { post('near', { kind, on: !!on, label }); return; }
     // standalone page: show the portal's Y prompt ourselves (in the game the shell shows it)
-    if (kind === 'portal') standalonePrompt(on ? (label || 'Enter the portal') : null);
+    if (kind === 'portal') standalonePrompt(on ? (label || t('shared.embed.enterPortal')) : null);
   },
   /** Menu/Start pressed: the shell pauses (features.js calls this in embed mode). */
   menu() { post('menu'); },
@@ -386,7 +388,7 @@ export const embed = {
     return { yaw, pitch, depth, halfW, target: { x: tx, y: ty, z: tz } };
   },
   /** Zoom player: the transition has arrived. */
-  done(info = {}) { if (active) post('done', info); else devToast('Transition done'); },
+  done(info = {}) { if (active) post('done', info); else devToast(t('shared.embed.transitionDone')); },
 };
 
 function wrapAngle(a) { return Math.atan2(Math.sin(a), Math.cos(a)); }
