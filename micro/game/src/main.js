@@ -397,25 +397,37 @@ function renderIntroControls() {
   const rows = [...w.controls, ...(w.back ? [['Y', 'At the backdoor: rise a world']] : []), ['Menu', 'Pause'], ['View', 'Controls card']];
   $('#intro-controls').innerHTML = controlRows(rows);
 }
+// The screen being left stays on screen, untouchable, while the new one
+// animates over or away from it; the returned function hides it again.
+function ghost(id) {
+  const el = $(`#${id}`);
+  el.hidden = false;
+  el.classList.add('ghost');
+  return () => { el.classList.remove('ghost'); el.hidden = S.screen !== id; };
+}
+const SLIDE = { duration: 540, easing: 'cubic-bezier(.22,.72,.2,1)', fill: 'both' };
+const settle = (anims) => Promise.all(anims.map((a) => a.finished.catch(() => {})));
 async function openIntro() {
+  if (S.zooming) return;
   const w = WORLDS[S.sel];
   sound.select();
   fillIntro(w);
   preloadWorld(S.sel);
   const card = $(`.wcard[data-i="${S.sel}"] .art`);
-  if (card && readyImage(introArt(w)) && !reduced()) {
-    // The card grows into the full-screen plate without stretching: a
-    // full-screen layer of the intro plate (framed exactly as the intro shows
-    // it) is clipped to the card's rectangle and the clip opens to the screen,
-    // while the card's own art grows with it (always cropped, never squashed)
-    // and fades into the plate.
+  const src = introArt(w);
+  if (card && readyImage(src) && cardArt(w) === src && !reduced()) {
+    // The card and the intro share one image, so the card grows into the
+    // full-screen plate without stretching: a full-screen layer of the plate
+    // (framed exactly as the intro shows it) is clipped to the card's
+    // rectangle and the clip opens to the screen, while the card's own art
+    // grows with it (always cropped, never squashed) and fades into the plate.
     const r = card.getBoundingClientRect();
     const W = innerWidth, H = innerHeight;
     const z = document.createElement('div');
     z.className = 'zoomer';
     const plate = document.createElement('div');
     plate.className = 'zoomer-plate';
-    plate.style.backgroundImage = `url('${introArt(w)}')`;
+    plate.style.backgroundImage = `url('${src}')`;
     const face = document.createElement('div');
     face.className = 'zoomer-face';
     face.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;background-image:url('${cardArt(w)}')`;
@@ -436,8 +448,70 @@ async function openIntro() {
     $('#intro .intro-panel')?.animate([{ opacity: 0, transform: 'translateX(-18px)' }, { opacity: 1, transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.2,.7,.2,1)' });
     S.zooming = false;
     z.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 350, fill: 'forwards' }).finished.then(() => z.remove(), () => z.remove());
-  } else show('intro');
+    setFocus($('#intro [data-action="begin"]'));
+    return;
+  }
+  // The card's art differs from the intro's plate (the usual case), so
+  // nothing grows out of the card: it would turn into another picture on the
+  // way. The paper panel slides in from the left and the plate from the right
+  // while the tray fades out underneath. A plate not decoded yet keeps its
+  // spinner and slides in when it arrives.
+  show('intro');
   setFocus($('#intro [data-action="begin"]'));
+  const intro = $('#intro'), menu = $('#menu');
+  const art = $('.intro-art', intro), shade = $('.intro-shade', intro), panel = $('.intro-panel', intro);
+  const unghost = ghost('menu');
+  intro.classList.add('tx');
+  S.zooming = true;
+  let anims;
+  if (reduced()) {
+    anims = [intro.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'ease-out', fill: 'both' })];
+  } else {
+    const plateIn = () => art.animate([{ opacity: 0, translate: '38% 0' }, { opacity: 1, offset: 0.55 }, { opacity: 1, translate: '0 0' }], SLIDE);
+    anims = [
+      menu.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: 'ease-out', fill: 'both' }),
+      shade.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 420, easing: 'ease-out', fill: 'both' }),
+      panel.animate([{ opacity: 0, translate: 'calc(-100% - 48px) 0' }, { opacity: 1, offset: 0.4 }, { opacity: 1, translate: '0 0' }], SLIDE),
+    ];
+    if (readyImage(src)) anims.push(plateIn());
+    else {
+      loadImage(src).then((img) => {
+        if (img && S.screen === 'intro' && art.dataset.artSrc === src) { const a = plateIn(); a.finished.then(() => a.cancel(), () => {}); }
+      });
+    }
+  }
+  await settle(anims);
+  for (const a of anims) a.cancel();
+  unghost();
+  intro.classList.remove('tx');
+  S.zooming = false;
+}
+/** Back from the intro to the tray, selection kept: the panel leaves to the left, the plate to the right, then the tray fades in. */
+async function closeIntro() {
+  if (S.zooming) return;
+  sound.back();
+  goMenu();
+  const intro = $('#intro'), menu = $('#menu');
+  const art = $('.intro-art', intro), shade = $('.intro-shade', intro), panel = $('.intro-panel', intro);
+  for (const a of art.getAnimations()) if (!(a instanceof CSSAnimation)) a.cancel(); // a late plate still sliding in
+  const unghost = ghost('intro');
+  intro.classList.add('tx');
+  S.zooming = true;
+  const out = { duration: 440, easing: 'cubic-bezier(.5,0,.75,.3)', fill: 'both' };
+  const anims = reduced()
+    ? [intro.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: 'both' }),
+      menu.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, delay: 120, easing: 'ease-out', fill: 'both' })]
+    : [
+      panel.animate([{ opacity: 1, translate: '0 0' }, { opacity: 1, offset: 0.6 }, { opacity: 0, translate: 'calc(-100% - 48px) 0' }], out),
+      art.animate([{ opacity: 1, translate: '0 0' }, { opacity: 1, offset: 0.45 }, { opacity: 0, translate: '38% 0' }], out),
+      shade.animate([{ opacity: 1 }, { opacity: 0 }], { ...out, easing: 'ease-in' }),
+      menu.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380, delay: 260, easing: 'ease-out', fill: 'both' }),
+    ];
+  await settle(anims);
+  for (const a of anims) a.cancel();
+  unghost();
+  intro.classList.remove('tx');
+  S.zooming = false;
 }
 
 // ---------------------------------------------------------------- play
@@ -936,7 +1010,7 @@ function renderInstructions() {
 
 // ---------------------------------------------------------------- actions
 function activate(el) {
-  if (!el) return;
+  if (!el || S.zooming) return;
   const open = el.dataset.open;
   if (open) { sound.select(); openModal(open); return; }
   const a = el.dataset.action;
@@ -970,7 +1044,7 @@ function back() {
   if (top === 'pause') { resume(); return; }
   if (top === 'confirm') { cancelConfirm(); return; }
   if (top) { sound.back(); closeModal(); return; }
-  if (S.screen === 'intro') { sound.back(); goMenu(); return; }
+  if (S.screen === 'intro') { closeIntro(); return; }
   if (S.screen === 'menu') {
     if (S.menuFocus === 'corner') { focusCards(); return; }
     sound.back(); show('title'); S.titleNav = false; $('.title-hint').classList.remove('gone'); return;

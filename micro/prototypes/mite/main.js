@@ -1827,6 +1827,8 @@ const api = {
   render(dt = 1 / 60) { const d = placeCamera(0); drawFrame(dt); updateText(d); },
   /** Testing: n steps of the simulation (players' pads as they are), no rendering; returns the frames stepped. */
   steps(n = 1, dt = 1 / 30, inputs = []) { for (let i = 0; i < n; i++) { simTime += dt; tick(dt, inputs); } return n; },
+  /** Testing: n steps through the real input path (the pads and keyboard as they are read each frame), no rendering; returns each step's events for player 1. Pause the page first (`paused = true`). */
+  inputSteps(n = 1, dt = 1 / 30) { const ev = []; for (let i = 0; i < n; i++) { simTime += dt; const r = tick(dt, readInput(dt)); ev.push(...((r && r[0]) || [])); stepViews(dt); } return ev; },
   isolate(on) { world.group.visible = !on; npc.setVisible(!on); pred.setVisible(!on && predHere()); },
   setMode(m) { sem.setMode(m); sem.skipScan(); },
 };

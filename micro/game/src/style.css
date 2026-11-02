@@ -187,8 +187,7 @@ button { font: inherit; color: inherit; }
 .paper { background: var(--paper); background-color: var(--ivory); color: var(--paper-ink);
   box-shadow: 0 0 0 1px #6e5222, 0 0 0 3px var(--brass), 0 0 0 4px #4f3a14, 0 30px 80px rgba(0, 0, 0, .55); border-radius: 6px; }
 .intro-panel { position: absolute; left: var(--gutter); top: max(16px, env(safe-area-inset-top)); bottom: max(16px, env(safe-area-inset-bottom)); width: min(620px, calc(100vw - 32px));
-  padding: 26px 30px 22px; overflow: auto; scrollbar-width: thin; animation: panelIn .7s cubic-bezier(.2, .75, .2, 1) both .25s; }
-@keyframes panelIn { from { opacity: 0; transform: translateX(-30px); } }
+  padding: 26px 30px 22px; overflow: auto; scrollbar-width: thin; }
 .intro-panel h2 { margin: 2px 0 0; font: 600 clamp(2.2rem, 4.6vw, 3.4rem)/1 var(--serif); color: var(--green); }
 .intro-panel .latin { margin: 4px 0 14px; font: 500 1.15rem/1.2 var(--serif); color: var(--muted); }
 .intro-panel .plate { grid-template-columns: repeat(4, 1fr); margin-bottom: 14px; }
@@ -213,7 +212,12 @@ button { font: inherit; color: inherit; }
 .paper .text-btn { color: var(--paper-ink); }
 .text-btn:hover, .text-btn.focus, .text-btn:focus-visible { background: rgba(125, 95, 38, .14); outline: none; }
 
-/* The card-to-intro zoom. */
+/* Tray <-> intro: the screen being left stays drawn underneath (a ghost)
+   while the panel and the plate slide (openIntro, closeIntro in main.js). */
+.ghost { pointer-events: none; }
+#intro.tx { background: transparent; }
+
+/* The card-to-intro zoom (only when the card and the intro share an image). */
 .zoomer { position: fixed; inset: 0; z-index: 30; pointer-events: none; overflow: hidden; }
 .zoomer-plate { position: absolute; inset: 0; background-size: cover; background-position: center; transform: scale(1.04); }
 .zoomer-face { position: absolute; background-size: cover; background-position: center; }
@@ -240,9 +244,17 @@ button { font: inherit; color: inherit; }
 .controls-card .foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(125, 95, 38, .3); font-size: .74rem; color: var(--muted); }
 .controls-card .timer { height: 2px; background: var(--brass); transform-origin: 0 0; margin-top: 8px; }
 .controls-card .players-row { justify-content: flex-start; margin: 8px 0 0; min-height: 0; }
-.landmark-prompt { position: absolute; left: 50%; bottom: max(28px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 6; display: flex; align-items: center; gap: 10px;
-  padding: 10px 18px; border-radius: 999px; background: rgba(12, 22, 16, .85); border: 1px solid var(--brass-hi); color: var(--ivory); font: 600 1.05rem/1 var(--serif); letter-spacing: .03em;
-  box-shadow: 0 0 30px rgba(240, 210, 140, .25); animation: pulse 2s ease-in-out infinite; white-space: nowrap; max-width: calc(100vw - 32px); }
+.landmark-prompt { position: absolute; left: 50%; top: max(22px, calc(env(safe-area-inset-top) + 10px)); translate: -50% 0; z-index: 6; display: flex; align-items: center; gap: 14px;
+  padding: 12px 26px 12px 14px; border-radius: 999px; background: rgba(12, 22, 16, .88); border: 2px solid var(--brass-hi); color: var(--ivory); font: 600 clamp(1.25rem, 2.4vw, 1.6rem)/1 var(--serif); letter-spacing: .03em;
+  box-shadow: inset 0 0 0 1px rgba(12, 22, 16, .9), 0 0 0 1px rgba(79, 58, 20, .9), 0 6px 22px rgba(0, 0, 0, .5), 0 0 26px rgba(240, 210, 140, .3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .7); white-space: nowrap; max-width: calc(100vw - 32px); pointer-events: none;
+  animation: promptIn .55s cubic-bezier(.2, .9, .3, 1.25) both, promptGlow 2.4s ease-in-out .55s infinite; }
+.landmark-prompt .g { min-width: 34px; height: 34px; border-radius: 17px; font-size: .95rem; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .25), 0 0 0 2px rgba(240, 210, 140, .55); }
+.landmark-prompt .g.kb { border-radius: 6px; }
+@keyframes promptIn { from { opacity: 0; transform: translateY(-14px) scale(.9); } 60% { opacity: 1; } }
+@keyframes promptGlow { 50% { border-color: #fff0c4; box-shadow: inset 0 0 0 1px rgba(12, 22, 16, .9), 0 0 0 1px rgba(79, 58, 20, .9), 0 6px 22px rgba(0, 0, 0, .5), 0 0 40px 4px rgba(240, 210, 140, .5); } }
+/* A toast arriving while the prompt is up drops below it. */
+body:has(#prompt:not([hidden])) .toasts { top: calc(max(22px, calc(env(safe-area-inset-top) + 10px)) + 74px); }
 .veil { position: absolute; inset: 0; z-index: 7; display: grid; place-content: center; justify-items: center; gap: 18px; background: radial-gradient(ellipse at 50% 50%, #18291f, #070d09); transition: opacity .5s; }
 .veil p { margin: 0; font: italic 500 1.3rem/1 var(--serif); color: rgba(243, 234, 211, .8); }
 .veil.fade { opacity: 0; pointer-events: none; }
