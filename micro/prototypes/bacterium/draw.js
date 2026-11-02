@@ -20,7 +20,7 @@ const MEMB = 1.0, FLAG = 260, MAG = 140, PHAGE = 650;
  * The label channels: fl's blue for CFP, lab's two (bacterium-shapes.js).
  */
 const FP_AMT = 2.4; // label per µm of chord
-const tintAb = (hex, k = 0.16) => {
+const tintAb = (hex, k = 0.45) => {
   const n = parseInt(hex.slice(1), 16), c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => -Math.log(Math.max(0.05, v / 255)));
   const lo = Math.min(...c);
   return c.map((v) => (v - lo) * k);

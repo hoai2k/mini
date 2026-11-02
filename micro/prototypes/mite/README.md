@@ -132,8 +132,17 @@ wait from one encounter to the next is 13.5 s. On the default path the water
 is reached at ~58 s. Lingering at the start, each comes round them in turn
 (the portal at 130 s). On the page (`life` and `inputSteps` test hooks; a
 script at full tilt scrambling whenever the stamina is full, steering round
-whatever blocks it, the predator passive), see the measurements under
-Movement.
+whatever blocks it, the predator passive and its catches off, the drops and
+the boss live; it makes for the water once it is open and within 9 mm), in 8
+directions from the default bearing round: the family met at 5.4–12.5 s,
+the predator at 13.0–23.7 s, the drop at 22.2–31.1 s, the predator again at
+30.2–40.2 s, the shower at 39.1–63.4 s, the predator a third time at
+47.5–63.4 s, and within 5 mm of the open water at 57.8–72.6 s; the longest
+stretch with nothing new coming into view (a springtail group, a thicket, an
+encounter) was 2.6–9.8 s per run, against long empty stretches before.
+Rushing straight out for 3 minutes, ignoring the water, went 140 and 159 mm
+with nothing new for at most 8.1 s, and never near the square's edge
+(480 mm out).
 
 **Cost.** Placing and the seen grid cost less than the profiler reports
 (under 0.1 ms a frame in `tools/perf/measure.mjs`, one view and four); the
