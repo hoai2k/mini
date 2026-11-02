@@ -15,9 +15,9 @@ you wherever you go, one after another with calm water between them: the rove
 beetle *Stenus*, the water strider and its mass of *Podura*, then the rain.
 Then the way on is open: floating rafts of Sphagnum under a golden sparkle,
 each in a column of golden light from the sky, out across the pool where bog
-pondweed grows thick and a wolf spider hunts. Hold RT to look far: the view
-widens and the focus goes out across the water, so a column, a spider or the
-pondweed beyond you comes into focus.
+pondweed grows thick and a wolf spider hunts. Hold RT to focus ahead: the camera stays put, the focus moves out to the
+water in front of you and the depth of field deepens, so the pondweed or a
+spider ahead comes sharp.
 Spot a spider and its raft is near (follow it home); lure it off the raft, get
 round it, stand on the raft and press Y, and in the Micro Zoom game the
 microscope zooms in to the mite's world. On the way, graze: 8 clumps of food
@@ -216,8 +216,8 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | **X** (E) | Three moves, by what is in front of your head: **eat** (food: the head goes down on a grain, the mouthparts work and the grain shrinks away, 0.7 s a bite); **fight** (a predator's leg in reach: rear up, then snap: a nip that staggers it); **attack** (nothing in reach: a lunge-nip). **In the air: the pounce-bite** (see Fighting back) |
 | **B** (Shift) | Hold: **hunker, the defend button.** Pressed flat with the collophore: facing a predator, it blocks its strike; waves cannot flip you, and a still, hunkered springtail makes no ripples for the strider to feel. You cannot move |
 | Y (R) | Camera: top-down, and back to the low view you had (RS also brings it down) |
-| RT (X) | Hold: **look far.** Over ~0.4 s the lens widens (to a 38 mm focal length, about 6x the field) and aims out ahead over the film along the view, the focus goes out there and the depth of field deepens, so what was blur beyond you (pondweed, a spider, a portal's column of light) comes into focus; RS still turns and tilts it. You can still walk, but it is for looking. Let go and it eases back to the normal framing and focus |
-| LT (Z) | Hold: **a close look.** The field narrows to 0.6x (more magnification), focus on you, the lens's own shallow depth of field. Let go and it eases back |
+| RT (X) | Hold: **focus ahead.** Over ~0.4 s the focal plane moves out to the water in the upper part of the frame, ahead of you, and the depth of field deepens, so the plants and creatures in front of you come sharp. The lens, the camera's place and its angle don't change (the owner, 2026-11-02): lower the view (RS) and hold RT to read what lies ahead. Let go and it eases back onto the springtail |
+| LT (Z) | Hold: **focus near.** The focal plane comes in to the water in the lower part of the frame, with the lens's own shallow depth of field; the camera doesn't move. Let go and it eases back |
 | LB / RB (Q / F) | Aperture wider / narrower (f/2.8 to f/22) |
 | D-pad ←→ (3 / 4) | Look: macro in low sun, macro overcast, stereo microscope |
 | D-pad ↑↓ (1 / 2) | Magnification 1x, 2x, 3x, 5x (field 36, 18, 12, 7.2 mm) |
@@ -300,10 +300,9 @@ shell (`embed.players`).
   first one's meshed geometry), marked by a faint ring of their colour on the
   film. Everyone uses the shared controls; RS from any player turns the
   shared camera, and player 1 also has the optics (Y, zoom, look, aperture).
-  Looking far or close (RT / LT held) is each player's own: alone it moves
-  the camera; with company each view takes its own players' look (drawn from
-  that view's camera and put back after; the portal halo is left out while
-  anyone looks).
+  Focusing ahead or near (RT / LT held) is each player's own: alone it
+  focuses the shared camera; with company each view takes its own players'
+  focus (the portal halo is left out while anyone looks).
 - **Split screen** (`shared/splitscreen.js`, LEGO-style): together, one view
   that frames the group, with the depth of field deepened until everyone is
   sharp. It prefers to stay one view: as the group spreads it zooms out (the

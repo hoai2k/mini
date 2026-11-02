@@ -174,9 +174,9 @@ const hud = mountHud({
     secondary: 'Aperture wider / narrower',
     look: 'Look: low sun, overcast, stereo microscope',
     zoom: 'Magnification 1x, 2x, 3x, 5x',
-    extra: [['RT', 'Hold: look far (a wider view, focus out across the water; RS looks round); let go to come back'], ['LT', 'Hold: a close look (nearer, shallow focus on you)']],
+    extra: [['RT', 'Hold: focus ahead (the water in front of you comes sharp; the camera stays put)'], ['LT', 'Hold: focus near (shallow)']],
   }),
-  note: `Goal: head out across the pool in any direction. The challenges find you one after another, wherever you go, with a little calm water between: after a few jumps the rove beetle Stenus, then the water strider and a mass of springtails, then the rain. Then the way on opens: moss rafts under a golden sparkle and a column of light from the sky out across the pool (its gold lies on the water toward it; hold RT to look far and see it), each where floating pondweed (harmless) grows thick and a wolf spider hunts, going back to its raft between hunts (follow one home). Sundews grow on islands all over the pool. Lure the spider off its raft, then get round it. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
+  note: `Goal: head out across the pool in any direction. The challenges find you one after another, wherever you go, with a little calm water between: after a few jumps the rove beetle Stenus, then the water strider and a mass of springtails, then the rain. Then the way on opens: moss rafts under a golden sparkle and a column of light from the sky out across the pool (its gold lies on the water toward it), each where floating pondweed (harmless) grows thick and a wolf spider hunts, going back to its raft between hunts (follow one home). Sundews grow on islands all over the pool. Lure the spider off its raft, then get round it. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
 });
 
 // ---------------------------------------------------------------- overlay DOM
@@ -206,7 +206,7 @@ status.className = 'st-status';
 status.innerHTML = '<span class="food"></span><span class="lives"></span><span class="furc">Furcula</span><span class="st-meter"><i></i></span><span class="threat"></span>';
 const card = document.createElement('div');
 card.className = 'st-card';
-card.innerHTML = '<div><img alt=""><h2>Level 0 · Bog surface</h2><p>You are a water springtail, 1.5 mm long, standing on the surface film of a bog pool.</p><p>Graze the pollen, spores and algae floating on the water (X). Spring away with your furcula (hold and release A). Hunker (B) when ripples come.</p><p>Head out in any direction. One after another, with a little calm water between, the rove beetle <i>Stenus</i> and its harpoon, a water strider and the rain find you. Then the way on opens: moss rafts under a golden sparkle, each in a column of light from the sky, out where the pondweed grows thick and a wolf spider hunts (follow one home). Hold RT to look far across the water. Lure it off, then get round it. Mind the sundews.</p><p><b>Press A to start</b></p></div>';
+card.innerHTML = '<div><img alt=""><h2>Level 0 · Bog surface</h2><p>You are a water springtail, 1.5 mm long, standing on the surface film of a bog pool.</p><p>Graze the pollen, spores and algae floating on the water (X). Spring away with your furcula (hold and release A). Hunker (B) when ripples come.</p><p>Head out in any direction. One after another, with a little calm water between, the rove beetle <i>Stenus</i> and its harpoon, a water strider and the rain find you. Then the way on opens: moss rafts under a golden sparkle, each in a column of light from the sky, out where the pondweed grows thick and a wolf spider hunts (follow one home). Hold RT to focus on what lies ahead. Lure it off, then get round it. Mind the sundews.</p><p><b>Press A to start</b></p></div>';
 // the boss's resolve: a quiet brass gauge, shown while it is engaged
 const gauge = document.createElement('div');
 gauge.className = 'st-gauge';
@@ -368,17 +368,17 @@ function placeCamera(dt) {
 }
 
 // ---------------------------------------------------------------- looking far and close (RT / LT held)
-// The owner (2026-11-02): "holding RT focuses in the distance (a larger FOV,
-// but away from the character) ... then LT and focus closer". Held RT eases
-// (LOOK.ease s) to a wider lens (focal length down to LOOK.f mm, the camera a
-// little farther back on the same orbit) aimed out ahead over the film along
-// the view (LOOK.ahead x the camera distance), with the focal plane out there
-// and the depth of field deepened, so the plants, spiders and portal light
-// beyond you come into focus; RS still turns and tilts it. Let go and it eases
-// back. Held LT: a close look (the field narrowed to LOOK.close, focus on you,
-// the lens's own shallow depth). Each player's own: alone it moves the shared
-// camera; with company each view takes its players' look (render).
-const LOOK = { ease: 0.4, f: 38, back: 1.15, ahead: 1.6, close: 0.6 };
+// The owner (2026-11-02, revised): RT and LT change only the focus and the
+// depth of field, never the lens, the camera's place or its angle. Held RT
+// eases (LOOK.ease s) the focal plane out to the film seen in the upper part
+// of the frame (the ray through LOOK.farY of the screen height above the
+// centre), ahead of the springtail, and deepens the depth of field so the
+// plants and spiders in front of you come sharp; held LT pulls the focal plane
+// to the film in the lower part of the frame (LOOK.nearY) with the lens's own
+// shallow depth. Let go and it eases back onto the springtail. Each player's
+// own: alone it focuses the shared camera; with company each view takes its
+// players' look (render).
+const LOOK = { ease: 0.4, farY: 0.75, nearY: -0.7, deep: 6 };
 const looks = [], lookForce = [];
 /** Player `slot`'s look: want (-1 close, 0, 1 far: the triggers) and u (eased, -1..1). */
 function lookOf(slot) { return looks[slot] || (looks[slot] = { want: 0, u: 0 }); }
@@ -398,50 +398,34 @@ function viewLook(slots) {
   for (const s of slots) { const l = looks[s]; if (l && Math.abs(l.u) > Math.abs(u)) u = l.u; }
   return u;
 }
-const _ld = new THREE.Vector3(), _la = new THREE.Vector3(), _dbw = new THREE.Vector2();
+const _ld = new THREE.Vector3(), _la = new THREE.Vector3();
+/** Distance from the camera to the film (y = 0) along the ray through screen height ndcY (-1..1) at the centre line; null if it misses. */
+function filmDistAt(ndcY) {
+  _la.set(0, ndcY, 0.5).unproject(camera).sub(camera.position).normalize();
+  if (_la.y > -1e-3) return null;
+  const t = -camera.position.y / _la.y;
+  return t > 0 ? t : null;
+}
 /**
- * Re-aim `camera` (placed on its orbit round `pivot`, lens L) for look u: far
- * (u > 0) or close (u < 0). Returns { L, focus, dofK, u } (null at u = 0).
+ * The look u (far > 0, close < 0) for `camera` as it stands (lens L): only the
+ * focal plane and the depth of field change. Returns { L, focus, dofK, u }
+ * (null at u = 0).
  */
 function lookCamera(u, L, pivot, focus0, dofK0) {
   if (Math.abs(u) < 1e-3) return null;
   const e = THREE.MathUtils.smoothstep(Math.abs(u), 0, 1);
-  _ld.copy(camera.position).sub(pivot);
-  const s0 = _ld.length() || L.s;
-  _ld.divideScalar(s0);
-  let L2, s;
-  if (u > 0) {
-    const f = 100 + (LOOK.f - 100) * e;
-    s = s0 * (1 + (LOOK.back - 1) * e);
-    L2 = lens({ hfw: 36 * (s / f - 1), f, N: L.N });
-    // out ahead over the film, along the view
-    let fx = -_ld.x, fz = -_ld.z;
-    const n = Math.hypot(fx, fz);
-    if (n < 1e-3) { fx = -Math.cos(rig.yaw); fz = -Math.sin(rig.yaw); } else { fx /= n; fz /= n; }
-    const R = s * LOOK.ahead * e;
-    _la.set(pivot.x + fx * R, pivot.y * (1 - e), pivot.z + fz * R);
-  } else {
-    L2 = lens({ hfw: L.hfw * (1 - (1 - LOOK.close) * e), N: L.N });
-    s = s0 * (L2.s / L.s);
-    _la.copy(pivot);
-  }
-  camera.position.copy(pivot).addScaledVector(_ld, s);
-  camera.lookAt(_la);
-  camera.fov = L2.vfov(camera.aspect);
-  camera.near = Math.max(2, s - 35);
-  camera.updateProjectionMatrix();
   camera.updateMatrixWorld();
   let focus, dofK;
   if (u > 0) {
-    focus = focus0 + (camera.position.distanceTo(_la) - focus0) * e;
-    // deepen (in effect: stop down) until the film from ~0.6x to ~2x the focus distance is near sharp
-    const kFar = THREE.MathUtils.clamp((L2.cocK(renderer.getDrawingBufferSize(_dbw).x) * 0.67) / 4, 1, 24);
-    dofK = dofK0 + (kFar - dofK0) * e;
+    const d = filmDistAt(LOOK.farY) ?? focus0 * 3;
+    focus = focus0 + (Math.max(focus0, d) - focus0) * e;
+    dofK = dofK0 + (Math.max(dofK0, LOOK.deep) - dofK0) * e; // deeper (stopped down), so the near-ahead stays readable too
   } else {
-    focus = focus0 - (s0 - s);
-    dofK = dofK0 + (1 - dofK0) * e;
+    const d = filmDistAt(LOOK.nearY) ?? focus0 * 0.85;
+    focus = focus0 + (Math.min(focus0, d) - focus0) * e;
+    dofK = dofK0 + (1 - dofK0) * e; // the lens's own shallow depth
   }
-  return { L: L2, focus, dofK, u };
+  return { L, focus, dofK, u };
 }
 
 const _v = new THREE.Vector3();
@@ -876,7 +860,7 @@ F({ id: 'look', group: 'Optics', label: 'Look (D-pad left/right)', choices: MACR
 F({ id: 'thinlens', group: 'Optics', label: 'Thin-lens macro camera', fixed: true,
   about: 'A 100 mm macro lens on a 36 mm sensor: magnification m = 36 / field width, subject distance f(1 + 1/m), field of view from the field width, effective aperture N(1 + m), total depth of field 2Nc(1 + m)/m^2 (c = 0.03 mm). At 2x and f/11 that is about 0.5 mm: the springtail is barely in focus end to end.' });
 F({ id: 'autofocus', group: 'Optics', label: 'Autofocus on the springtail', on: true,
-  about: 'The focal plane follows the springtail (held RT pulls it out across the water to look far; held LT, a close look). Off: focus stays at the lens\'s set distance from the orbit centre.', onChange: (v) => (opt.autofocus = v) });
+  about: 'The focal plane follows the springtail (held RT moves it out to the water ahead; held LT, in close). Off: focus stays at the lens\'s set distance from the orbit centre.', onChange: (v) => (opt.autofocus = v) });
 F({ id: 'jumpFocus', group: 'Optics', label: 'Focus follows the jump', on: true,
   about: 'While you cock a jump and while you are in the air, the lens racks focus to between you and where you will land, deepens the depth of field until both are acceptably sharp, and the framing leans toward the landing. No marker: the landing spot comes into focus.',
   onChange: (v) => (opt.jumpFocus = v) });
@@ -2087,7 +2071,7 @@ function updateText(L) {
   bar.querySelector('.lab').textContent = len >= 1 ? `${len} mm` : `${(len * 1000).toFixed(0)} µm`;
   const N = APERTURES[rig.ai];
   const dof = L.dof * MACRO_LOOKS[rig.look].dofK * rig.dofK;
-  const lk = rig.lookFx ? (rig.lookFx.u > 0 ? ` · looking far (${L.f.toFixed(0)} mm lens, focus ${macroShared.uFocus.value.toFixed(0)} mm)` : ' · close look') : '';
+  const lk = rig.lookFx ? (rig.lookFx.u > 0 ? ` · focus ahead (${macroShared.uFocus.value.toFixed(0)} mm)` : ' · focus near') : '';
   bar.querySelector('.opt').textContent = `${L.m.toFixed(1)}x · f/${N} (eff. f/${L.Neff.toFixed(0)}) · DOF ${(rig.lookFx ? L.dof * rig.lookFx.dofK : dof).toFixed(2)} mm${lk}`;
   status.querySelector('.food').textContent = `Food ${pl.food}/${GOAL}`;
   status.querySelector('.lives').textContent = '';

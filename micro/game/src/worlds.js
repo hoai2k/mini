@@ -12,7 +12,7 @@ export const WORLDS = [
     goal: 'Head out across the pool in any direction: the challenges find you one at a time, with a little calm water between: Stenus (jump on its tell, mash A if the labium sticks, then dodge the mandible lunge), a water strider and a mass of springtails to hide in, then the rain. Then the way on opens: moss rafts under a golden sparkle, each where floating pondweed grows thick and a pond wolf spider hunts. Spot a spider and its raft is near: follow it home, lure it off, then get round it. Sundews dot the pool: go round or jump over them.',
     forward: 'A floating raft of Sphagnum under a golden sparkle, amid thick pondweed: lure its wolf spider off it, then land on it, where a speck is moving on a capitulum.',
     back: null,
-    controls: [['LS', 'Walk on the water'], ['RS', 'Camera'], ['A', 'Jump with the furcula (released at an enemy: a pounce-bite; mash A to wriggle free)'], ['X', 'Graze; nip a predator; in the air, pounce-bite'], ['B', 'Defend: hunker (facing a predator, blocks its strike)'], ['RT', 'Hold: look far (focus out across the water)'], ['LT', 'Hold: a close look'], ['D-pad ↑↓', 'Magnification']],
+    controls: [['LS', 'Walk on the water'], ['RS', 'Camera'], ['A', 'Jump with the furcula (released at an enemy: a pounce-bite; mash A to wriggle free)'], ['X', 'Graze; nip a predator; in the air, pounce-bite'], ['B', 'Defend: hunker (facing a predator, blocks its strike)'], ['RT', 'Hold: focus ahead (the camera stays put)'], ['LT', 'Hold: focus near'], ['D-pad ↑↓', 'Magnification']],
     facts: [
       'A springtail spends its whole life on the surface film: to it, water is a floor.',
       'Its furcula, a forked tail folded under the body, snaps down and throws it many body lengths.',

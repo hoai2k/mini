@@ -35,13 +35,11 @@ Keyboard fallbacks are in `shared/pad.js`.
 on A, scrambles on held B and closes up (its defence) on held Y; the amoeba's
 B lets go or stiffens.
 
-**The springtail looks far on RT.** Its LT / RT are not a gradual zoom or
-focus pull: held RT eases (~0.4 s) to a wider lens aimed out ahead over the
-water along the view, with the focus out there and the depth of field
-deepened, so what lies blurred beyond the springtail (a spider, the pondweed,
-a portal's column of light) comes into focus; RS still looks round, and
-letting go eases back to the close framing. Held LT is a close look (a
-narrower field, focus on the springtail, shallow). Each player's own: with
+**The springtail focuses with the triggers.** Its LT / RT change only the
+focus and the depth of field, never the lens or the camera: held RT eases
+(~0.4 s) the focus out to the water ahead (the upper part of the frame) with a
+deeper depth of field, so what lies in front of the springtail comes sharp;
+held LT brings it in to the water just below it, shallow. Each player's own: with
 company, each split view takes its players' look. Keyboard: X (RT), Z (LT).
 Magnification stays on the D-pad (1 / 2).
 
