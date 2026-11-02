@@ -26,7 +26,9 @@ const store = {
 };
 
 // ---------------------------------------------------------------- state
-const settings = { controlsAtStart: true, transition: 'microscope', ...store.get('micro.game.settings', {}) };
+// The controls card always shows and transitions are always continuous ('microscope' is the
+// continuous path, falling back to the zoom where a world can't): the owner removed both settings.
+const settings = { ...store.get('micro.game.settings', {}), controlsAtStart: true, transition: 'microscope' };
 const saveSettings = () => store.set('micro.game.settings', settings);
 let invertY = false;
 try { invertY = localStorage.getItem('micro.invertY') === '1'; } catch { /* private mode */ }
@@ -930,20 +932,17 @@ const TRANSITIONS = { microscope: 'Continuous', zoom: 'Microscope zoom', card: '
 const portalArrow = () => { try { return localStorage.getItem('micro.portalArrow') === '1'; } catch { return false; } };
 function settingItems() {
   const items = [
-    { id: 'sound', label: 'Sound', about: 'Every world’s sound and the shell’s own.', get: () => sound.on, toggle: () => setSound(!sound.on) },
+    { id: 'sound', label: 'Sound', get: () => sound.on, toggle: () => setSound(!sound.on) },
     { id: 'volume', label: 'Volume', slider: true, get: () => sound.volume, step: (d) => { sound.setVolume(Math.round((sound.volume + d * 0.1) * 10) / 10); pushSound(); sound.tick(); } },
-    { id: 'invertY', label: 'Invert camera Y', about: 'Off: right stick up looks up. On: right stick up looks down. Shared by every world.', get: () => invertY, toggle: () => {
+    { id: 'invertY', label: 'Invert camera Y', get: () => invertY, toggle: () => {
       invertY = !invertY;
       try { localStorage.setItem('micro.invertY', invertY ? '1' : '0'); } catch { /* private mode */ }
       send(S.frame, 'settings', { invertY });
     } },
-    { id: 'portalArrow', label: 'Portal arrow', about: 'Off (default): find the portals by exploring. On: an arrow at the edge of the view points to the nearest portal, with its distance. Shared by every world.', get: () => portalArrow(), toggle: () => {
+    { id: 'portalArrow', label: 'Portal arrow', about: 'Off: find the portals by exploring. On: an arrow at the edge of the view points to the nearest portal.', get: () => portalArrow(), toggle: () => {
       const on = !portalArrow();
       try { localStorage.setItem('micro.portalArrow', on ? '1' : '0'); } catch { /* private mode */ }
     } },
-    { id: 'controls', label: 'Controls card at the start of each world', about: 'Every world after the first shows its controls for 8 seconds; View brings them back.', get: () => settings.controlsAtStart, toggle: () => { settings.controlsAtStart = !settings.controlsAtStart; saveSettings(); } },
-    { id: 'transition', label: 'Transition between worlds', about: 'Continuous: from the portal the scene slows to a freeze and the camera moves straight into the next world (every pair from the springtail down to the phage: springtail → mite → tardigrade → amoeba → paramecium → bacterium → phage; the microscope zoom where a world cannot). Microscope zoom: the zoom-transitions prototype everywhere. Specimen plates: the shell’s own plate zoom.', choices: Object.keys(TRANSITIONS), get: () => settings.transition,
-      step: (d) => { const k = Object.keys(TRANSITIONS); settings.transition = k[(k.indexOf(settings.transition) + d + k.length) % k.length]; saveSettings(); } },
     { id: 'fullscreen', label: 'Fullscreen', get: () => !!fsEl(), toggle: () => { toggleFullscreen(); setTimeout(renderSettings, 250); } },
   ];
   if (S.screen === 'play' && S.frame && !S.loading) {

@@ -109,11 +109,11 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   stays sharp and readable beside the menu; a dialog opened from the menu
   (settings, instructions) still covers it.
 - **Settings.** Sound on/off and volume, Invert camera Y (the shared
-  `micro.invertY`), the controls card at the start of each world, the
-  transition style (Continuous, the default: the continuous transition where a
-  pair supports it and the microscope zoom elsewhere; Microscope zoom; or
-  Specimen plates), fullscreen, and in
-  play "World features" (the world's own feature panel, for development).
+  `micro.invertY`), Portal arrow, fullscreen, and in play "World features"
+  (the world's own feature panel, for development). The controls card always
+  shows at the start of each world and transitions are always continuous (the
+  owner removed those two settings; the microscope zoom remains only as the
+  fallback when a pair can't do the continuous move).
 - **Starting direction.** The way on is not fixed in advance: every
   direction leads to a portal, placed out of sight once you have met every
   other encounter, and there is no arrow (`shared/landmark.js` draws only the
@@ -267,8 +267,7 @@ one (a dolly: the field of view is kept).
 
 If anything does not come in time (no `frozen` in 20 s, the next world not
 ready in 25 s or not providing `'intro'`, no `opening` in 5 s) the shell
-pauses the old world and plays the microscope zoom as before. The settings'
-"Microscope zoom" and "Specimen plates" always do. Back (the backdoor) keeps
+pauses the old world and plays the microscope zoom as before. Back (the backdoor) keeps
 the zoom out for now.
 
 **Wiring another pair** (world A, the next world B):
