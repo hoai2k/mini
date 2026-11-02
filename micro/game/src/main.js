@@ -1026,8 +1026,6 @@ function renderCredits() {
     <ul class="credits-list">${rows(tx('shell.credits.roles'))}</ul>
     <h3>${t('shell.credits.thanksTitle')}</h3>
     <ul class="credits-list">${rows(tx('shell.credits.thanks'))}</ul>
-    <h3>${t('shell.credits.madeWithTitle')}</h3>
-    <p>${t('shell.credits.madeWith')}</p>
     <p class="credits-copy">${t('shell.credits.copyright')}</p>`;
 }
 function renderInstructions() {

@@ -199,8 +199,6 @@ export const TEXT = {
         ['Stephen Jay Gould', 'inspiration'],
         ['Opus 5.5', ''],
       ],
-      madeWithTitle: 'Made with',
-      madeWith: 'three.js · Cormorant Garamond and DM Sans',
       copyright: '© 2026 Hoai Nguyen',
     },
   },
