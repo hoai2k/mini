@@ -45,14 +45,14 @@ export function drawScenery(G, W, rect, t, opts = {}) {
 function drawGlitter(G, [x0, y0, x1, y1], t, k) {
   const C = 80;
   for (let i = Math.floor(x0 / C); i <= Math.floor(x1 / C); i++) for (let j = Math.floor(y0 / C); j <= Math.floor(y1 / C); j++) {
-    const n = 7 + Math.floor(hash(i, j, 9) * 6);
+    const n = 4 + Math.floor(hash(i, j, 9) * 5);
     for (let s = 0; s < n; s++) {
       const h1 = hash(i, j, s * 4 + 1), h2 = hash(i, j, s * 4 + 2), h3 = hash(i, j, s * 4 + 3), h4 = hash(i, j, s * 4 + 4);
       const x = (i + h1) * C, y = (j + h2) * C, z = DEPTH.min + h3 * (DEPTH.max - DEPTH.min);
       const tw = Math.max(0, Math.sin(t * (0.7 + h4 * 2.2) + h1 * 40));
       const c = h4 < 0.45 ? COL.gold : h4 < 0.8 ? COL.white : COL.blue;
       const I = (0.18 + 0.9 * tw ** 6) * k * (h3 > 0.5 ? 1 : 0.8);
-      G.disc(x, y, 0.5 + h2 * 0.9, z, c, I, 0.2, 0.5 + tw * 0.6, 2.2);
+      G.disc(x, y, 0.5 + h2 * 0.8, z, c, I, 0.15, 0.25 + tw * 0.5, 1.6);
     }
   }
 }
@@ -72,12 +72,12 @@ function drawSpirogyra(G, f, ox, oy, rect, t) {
     const ue = Math.min(u1, u + STEP), z = zAt((u + ue) / 2);
     const [a1, a2] = P(u, 0), [b1, b2] = P(ue, 0);
     G.line(a1, a2, b1, b2, r * 0.9, z, COL.leaf, 0.055 * f.shade, 4);
-    for (const s of [-1, 1]) { const [c1, c2] = P(u, s * r), [d1, d2] = P(ue, s * r); G.line(c1, c2, d1, d2, 0.8, z, COL.wall, 0.7, 0, 0.3, 4); }
+    for (const s of [-1, 1]) { const [c1, c2] = P(u, s * r), [d1, d2] = P(ue, s * r); G.line(c1, c2, d1, d2, 0.85, z, COL.wall, 0.9, 0, 0.3, 4); }
   }
   // the cross walls between cells
   for (let k = Math.ceil(u0 / f.cell); k * f.cell <= u1; k++) {
     const u = k * f.cell, [a1, a2] = P(u, -r), [b1, b2] = P(u, r);
-    G.line(a1, a2, b1, b2, 0.7, zAt(u), COL.wall, 0.55, 0, 0.2, 3);
+    G.line(a1, a2, b1, b2, 0.75, zAt(u), COL.wall, 0.75, 0, 0.25, 3);
   }
   // the chloroplast ribbon: a helix seen from above, brighter on the near side (it runs through the depth)
   const step = 4.5;
@@ -91,8 +91,8 @@ function drawSpirogyra(G, f, ox, oy, rect, t) {
       const [x, y] = P(u, v);
       const z = zAt(u) + front * r * 0.7;
       if (prev && inCell > 0.04 && inCell < 0.96) {
-        const I = (0.42 + 0.48 * Math.max(0, front)) * f.shade;
-        G.line(prev[0], prev[1], x, y, 2.1 + 0.6 * front, z, COL.green, I, 0.4, 0.2, 3);
+        const I = (0.5 + 0.32 * front) * f.shade;
+        G.line(prev[0], prev[1], x, y, 2.3 + 0.7 * front, z, COL.green, I, 0.4, 0.16, 3);
         // pyrenoids: bright beads on the ribbon
         if (front > 0.6 && (Math.floor(u / (f.pitch * 0.5)) !== Math.floor((u - step) / (f.pitch * 0.5)))) G.disc(x, y, 2.4, z, [0.8, 1.0, 0.45], 0.8, 0.3, 0.6, 3);
       }

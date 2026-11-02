@@ -1,1540 +1,486 @@
-// Paramecium prototype: Paramecium bursaria (green with symbiotic Chlorella)
-// in a pond drop, followed by a chase camera (Y: through the microscope). Eat prey, keep your symbionts in
-// the light, and escape Didinium and a giant Amoeba proteus. See README.md
-// for controls, approach and sources.
+// Paramecium: Paramecium bursaria (green with symbiotic Chlorella) on a 2D
+// microscope slide, darkfield by default, styled after the world's card
+// (the owner, 2026-11-02: "make it visually look like the image I see on the
+// selection card ... more like a 2D slide where the paramecium is quick and
+// you battle other protists ... including trying to avoid a giant amoeba";
+// then "2.5D": a shallow continuous depth you swim through, the focus
+// following you, creatures interacting across it). See README.md.
 //
-// Micro Zoom: the forward landmark (a biofilm on a leaf fragment, far side of
-// the drop) zooms into the bacterium level; the backdoor (the slide floor where
-// the Amoeba proteus crawls, the other way) rises to the amoeba level. Up to four
-// local players (shared/players.js), each their own cell, with the LEGO-style
-// split screen (shared/splitscreen.js) and the edge arrows (shared/landmark.js).
+// Micro Zoom: the forward landmark (a biofilm on a leaf, guarded by a
+// bladderwort trap) dives into the bacterium level; the backdoor (the
+// amoeba's patch of slide) rises to the amoeba level. Up to four local
+// players (shared/players.js), each their own cell, with the shared zoom-out
+// and the LEGO-style split screen (shared/splitscreen.js, 2D).
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { mountHud, keyFor } from '../shared/hud.js';
-import { createDash, hudControls, addInvertY } from '../shared/controls.js';
-import { createContactFx } from './fx.js';
+import { hudControls } from '../shared/controls.js';
 import { loadTexture } from '../shared/assets.js';
-import { createOptics, MODES, MODE_NAMES, shared, standInPlate, sceneFrustum } from './optics.js';
-import { createCell, LENGTH, WIDTH, SPECIES, SPECIES_ID, FEATURE_KEY } from './cell.js';
-import { createWorld, DEPTH } from './world.js';
-import { createSwimmer, VMAX, DASH_V, DASH_T, BODY_R } from './swim.js';
-import { swimIntent, swimLookPitch, followYaw } from '../shared/swim-control.js';
-import { createEncounters } from './encounters.js';
-import { createPrey } from './prey.js';
-import { createProteus } from './proteus.js';
-import { createCatchFx, sstep } from './catch.js';
-import { createLandmarks as createDropLandmarks, LANDMARKS, progress, lateral, HALF, ringPoint, bearingOf, distFromStart, START } from './landmarks.js';
-import { DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, didiniumHomes, trapAt, VIEW_FAR } from './route.js';
-import { createDirector } from '../shared/director.js';
-import { createPortalGlow, createPortalLight, createGlint } from '../shared/portal.js';
-import { createBloom, BLOOM } from './bloom.js';
-import { createQuality } from '../shared/quality.js';
-import { createBladderwort } from './bladderwort.js';
-import { closedTube } from './geom.js';
-import { volumeMaterial } from './optics.js';
-import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
 import { createPlayers } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
-import { clumpLayout } from '../shared/kin-clump.js';
-import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, AMOEBA_MODES, DIC_MODES } from '../shared/techniques/adapters.js';
+import { createQuality } from '../shared/quality.js';
+import { createPortalGlow, createPortalLight } from '../shared/portal.js';
+import { createDirector } from '../shared/director.js';
+import { createShapes } from './shapes.js';
+import { createWorld, TILE } from './world.js';
+import { createSwimState, stepSwim, dash as startDash, backOff, LENGTH, ZMIN, ZMAX } from './swim.js';
+import { drawCell, VARIETIES, beatRate } from './cell.js';
+import { drawScenery, drawDileptus, drawDidinium, drawGiant, drawTrap, drawBloom, drawPrey, drawLeaf, makeLeaf, drawBack, drawSpirillum, drawKinClump, SPIRILLUM } from './draw.js';
+import { createDileptus, stepDileptus, burstDileptus, createDidinium, stepDidinium, DIDINIUM, createGiant, stepGiant, burstGiant, GIANT, createTrap, stepTrap, burstTrap, trapObstacles, trapGuarding, trapDoor, TRAP } from './foes.js';
+import { createBloom, placeBloom, stepBloom, gulpBloom, flingBloom, BLOOM } from './bloom.js';
+import { createPrey, stepPrey, gulpPrey } from './prey.js';
+import { START, DEPTH, FIELDS, BACK, DIRECTOR, ENCOUNTERS, DEFAULT_PATH, MET, canPlace, didiniumHomes, trapAt, bandDist } from './route.js';
+import { clumpLayout, placeInFrame } from '../shared/kin-clump.js';
 
-const SP = SPECIES[SPECIES_ID];
-const GREEN = SPECIES_ID === 'bursaria';
-const GOAL = 6; // prey to eat in a round
-const HL = LENGTH / 2;
-void sstep;
+const GOAL = 6; // prey to eat to divide
+const TAU = Math.PI * 2;
+const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const hyp = Math.hypot;
+const sm01 = (a, b, x) => { const k = clamp((x - a) / (b - a), 0, 1); return k * k * (3 - 2 * k); };
+const lerp = (a, b, k) => a + (b - a) * k;
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
+renderer.outputColorSpace = THREE.LinearSRGBColorSpace; // the shapes write display values; nothing is converted
 renderer.autoClear = false;
+renderer.setSize(innerWidth, innerHeight, false);
+
 // --- players: P1 on the keyboard and the first controller; 2-4 join with any button on another ---
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { hud.toast(`Player ${p.slot + 1} joined`); embed.join(p.slot, p.color, p.name, players.toJSON()); }, // the roster rides along, so the shell carries this player into the next world
-  onLeave: (p) => { hud.toast(`Player ${p.slot + 1} left`); embed.leave(p.slot); },
+  onJoin: (p) => { hud.toast(`Player ${p.slot + 1} joined`); embed.join(p.slot, p.color, p.name, players.toJSON()); syncCells(); },
+  onLeave: (p) => { hud.toast(`Player ${p.slot + 1} left`); embed.leave(p.slot); syncCells(); },
   onChange: (list) => { if (hud) hud.players(list); },
 });
 if (embed.players) players.fromJSON(embed.players);
-embed.on('players', (r) => players.fromJSON(r));
+embed.on('players', (r) => { players.fromJSON(r); syncCells(); });
 const pad = players.pad(0);
-const ctl = players.controls(0);
+
+const CONTROLS = {
+  move: 'Swim',
+  camera: 'Depth · far sides: turn view',
+  dash: 'Dash',
+  attack: 'Attack / eat',
+  defend: 'Burst / back off',
+  special: 'Enter portal',
+  secondary: 'Deeper / shallower',
+  look: 'Change the look',
+  zoom: 'Zoom',
+};
 const hud = mountHud({
   title: 'Paramecium',
-  sub: GREEN
-    ? `${SP.latin}, ${LENGTH} µm, green with symbiotic Chlorella, in a pond drop under the microscope. Eat, stay in the light, outswim the hunters.`
-    : `${SP.latin}, ${LENGTH} µm, in a pond drop under the microscope. Eat and outswim the hunters.`,
-  controls: hudControls({
-    move: 'Swim',
-    camera: 'Camera',
-    dash: 'Dash',
-    attack: 'Attack / eat',
-    defend: 'Block / drive off',
-    special: 'Camera view / enter portal',
-    analog: 'Hover / swim forward',
-    secondary: 'Dive / rise',
-    look: 'Change the look',
-    zoom: 'Zoom',
-  }),
-  note: `Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium and the bladderwort. Eat ${GOAL} prey to divide. Up to four players: press any button on another controller to join.`,
+  sub: 'Paramecium bursaria, 120 µm, green with symbiotic Chlorella, on a slide under the microscope (darkfield). Quick and light: eat, dodge, and battle your way through the pond drop.',
+  controls: hudControls(CONTROLS),
+  note: `Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium, the giant amoeba and the bladderwort. Eat ${GOAL} prey to divide. Swim deeper or shallower (RS) to slip over and under things. Up to four players: press any button on another controller to join.`,
 });
 hud.players(players.list);
-/** A button as the instructions should name it: the controller's, or the key while no controller is connected. */
 const glyph = (b) => (hud.glyphs === 'keyboard' ? keyFor(b) || b : b);
 
-// the goal strip: what you are doing, at a glance
+// the goal strip and the depth gauge: what you are doing, at a glance (no hidden meters)
 const goalEl = document.createElement('div');
-goalEl.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);background:rgba(10,12,16,.62);color:#eef1f4;border-radius:999px;padding:6px 14px;font:600 13px/1.3 system-ui,sans-serif;pointer-events:none;white-space:nowrap;z-index:3';
+goalEl.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);background:rgba(8,10,14,.66);color:#eef1f4;border-radius:12px;padding:6px 14px;font:600 13px/1.4 system-ui,sans-serif;pointer-events:none;white-space:nowrap;z-index:3;text-align:center';
 document.body.appendChild(goalEl);
-// the backdoor prompt (standalone: in the game the shell draws its own)
-const promptEl = document.createElement('div');
-promptEl.style.cssText = 'position:fixed;left:50%;bottom:14vh;transform:translateX(-50%);background:rgba(18,16,10,.72);color:#efe4c4;border:1px solid rgba(201,163,90,.7);border-radius:999px;padding:5px 14px;font:600 13px system-ui,sans-serif;pointer-events:none;z-index:6;display:none';
-document.body.appendChild(promptEl);
+const gaugeEl = document.createElement('div');
+gaugeEl.style.cssText = 'position:fixed;right:18px;top:50%;transform:translateY(-50%);width:34px;height:150px;pointer-events:none;z-index:3;font:600 10px system-ui,sans-serif;color:#cfd8e0;text-align:center';
+gaugeEl.innerHTML = '<div style="opacity:.75">glass</div><div style="position:relative;margin:4px auto;width:4px;height:118px;border-radius:2px;background:linear-gradient(#9fc3e6,#2b3a4a 50%,#7a5a2a)"></div><div style="opacity:.75">slide</div>';
+document.body.appendChild(gaugeEl);
+const gaugeBar = gaugeEl.children[1];
+const gaugeDots = [];
 
-const scene = new THREE.Scene();
-const cell = createCell();
-scene.add(cell.group);
-const world = createWorld(scene);
-const swimmer = createSwimmer(cell, world);
-const enc = createEncounters(scene, world, cell);
-const prey = createPrey(scene);
-const amoeba = createProteus(scene);
-const optics = createOptics(renderer);
-const contactFx = createContactFx(scene);
-const catchFx = createCatchFx(scene, world, amoeba);
-const drop = createDropLandmarks(scene);
-// the boss: a bladderwort trap guarding the biofilm (bladderwort.js; runBoss below)
-const trap = createBladderwort(scene, world);
-trap.hide(); // placed with the portal (placePortal)
-// the portal's golden glow: ordinary three.js materials, so it lives in its own
-// scene drawn over each view's finished microscope image (renderGlow)
-const glowScene = new THREE.Scene();
-const portalGlow = createPortalGlow({ THREE, scene: glowScene, size: 250, height: 110, intensity: 1.3, beam: 560, beamWidth: 70, count: 110,
-  pixelHeight: () => renderer.getDrawingBufferSize(new THREE.Vector2()).y });
-portalGlow.group.visible = false;
-const portalLight = createPortalLight({ zIndex: 3 });
-// the crowd: a Chlamydomonas bloom across the route before the biofilm (bloom.js, shared/crowd.js)
-const bloom = createBloom(scene);
-// The next world's creature, glimpsed at the portal: a magnetotactic
-// spirillum (the bacterium level's own cell, ~3 µm, two helical turns) swimming
-// over the biofilm, a little more refractile than the lawn of rods it crosses,
-// so it glints in darkfield. It keeps near the middle of the film; when someone
-// comes down onto the film it swims up to just ahead of them (it is what the
-// continuous transition pushes in on: embed.frozen / the `camera` poses).
-const SPIRILLUM = { L: 3.0, r: 0.27, amp: 0.32, turns: 1.9 }; // bacterium/swim.js SPECIES.mtb
-const spir = (() => {
-  class Helix extends THREE.Curve {
-    getPoint(u, out = new THREE.Vector3()) {
-      const a = u * SPIRILLUM.turns * Math.PI * 2, taper = Math.sin(Math.PI * Math.min(1, Math.max(0, u * 1.05 - 0.025))) ** 0.3;
-      return out.set((u - 0.5) * SPIRILLUM.L, Math.cos(a) * SPIRILLUM.amp * taper, Math.sin(a) * SPIRILLUM.amp * taper);
-    }
-  }
-  const mesh = new THREE.Mesh(closedTube(new Helix(), 48, SPIRILLUM.r, 10).geo, volumeMaterial({ dn: 0.06, scatter: 2.6, absorb: [0.02, 0.022, 0.03], rimPow: 1.6 }));
-  mesh.frustumCulled = false;
-  const group = new THREE.Group();
-  group.add(mesh);
-  group.visible = false;
-  scene.add(group);
-  return { group, mesh, pos: new THREE.Vector3(0, 28, 0), heading: 0, roll: 0, home: 0 };
-})();
-const spirHeading = () => spir.heading;
-// The kin clump (shared/kin-clump.js): the spirillum's own microcolony on the
-// film, cells packed in slime, laid out exactly as the bacterium world opens
-// round your cell. It comes in with the slow-down; in darkfield it is a faint
-// glitter, but as the dive turns the light to phase contrast it reads as a
-// dark mass (the slime and the packed cells absorb), which the push-in
-// resolves into separate bacteria, the slime thinning, before the bacterium's
-// own field takes over under the same framing. It rides with the spirillum
-// (at its depth, turned with its heading): u ahead, v to its left on screen
-// (local −z), each cell's heading turned by −da (counter-clockwise on screen).
-const clump = (() => {
-  const L = clumpLayout();
-  const group = new THREE.Group();
-  group.visible = false;
-  scene.add(group);
-  const mats = [];
-  const mk = (geo, mat, list, scaleOf) => {
-    mats.push(mat);
-    const m = new THREE.InstancedMesh(geo, mat, list.length);
-    const o = new THREE.Object3D();
-    list.forEach((c, i) => {
-      o.position.set(c.u, ((i * 37) % 11 - 5) * 0.05, -c.v);
-      o.rotation.set(0, c.da, 0);
-      o.scale.copy(scaleOf(c));
-      o.updateMatrix();
-      m.setMatrixAt(i, o.matrix);
-    });
-    m.frustumCulled = false;
-    group.add(m);
-    return m;
-  };
-  class Line extends THREE.Curve { getPoint(u, out = new THREE.Vector3()) { return out.set(u - 0.5, 0, 0); } }
-  const rodGeo = closedTube(new Line(), 4, 1, 8).geo; // unit length and radius: scaled per cell
-  const cellMat = () => volumeMaterial({ dn: 0.16, scatter: 2.2, absorb: [1.6, 1.55, 1.45], rimPow: 1.6 });
-  const rods = L.filter((c) => c.kind === 'rod' || c.kind === 'film');
-  mk(rodGeo, cellMat(), rods, (c) => new THREE.Vector3(c.L, c.r, c.r));
-  mk(spir.mesh.geometry, cellMat(), L.filter((c) => c.kind === 'kin'), (c) => new THREE.Vector3(c.L / SPIRILLUM.L, 1, 1));
-  mk(new THREE.SphereGeometry(1, 10, 8), volumeMaterial({ dn: 0.16, scatter: 2.2, absorb: [1.6, 1.55, 1.45], rimPow: 1.6, centred: true }),
-    L.filter((c) => c.kind === 'coccus'), (c) => new THREE.Vector3(c.r, c.r, c.r));
-  // the slime the cells sit in: soft lumpy lenses, dark in phase contrast (they absorb), all but invisible in darkfield
-  const slimeMat = volumeMaterial({ dn: 0.01, scatter: 0.12, absorb: [1.5, 1.45, 1.35], centred: true, rimPow: 3 });
-  const lens = new THREE.SphereGeometry(1, 40, 10);
-  for (const [u, v, r, h] of [[0, 0, 16, 1.9], [9, 7, 10, 1.3], [-7, 10, 9, 1.2], [-10, -7, 10, 1.3], [7, -10, 8, 1.1], [-14, 2, 6, 0.9], [14, -1, 6, 0.9]]) {
-    const m = new THREE.Mesh(lens, slimeMat);
-    m.scale.set(r, h, r * 0.85);
-    m.position.set(u, 0, -v);
-    m.frustumCulled = false;
-    group.add(m);
-  }
-  return { group, layout: L, set(k, slimeK) { for (const m of mats) m.uniforms.uAlpha.value = k; slimeMat.uniforms.uAlpha.value = k * slimeK; group.visible = k > 0.002; } };
-})();
-// its gold glint (as the springtail's mite speck has), drawn with the portal's glow
-const spirGlint = createGlint({ THREE, size: 5, intensity: 0.9, pixelHeight: () => renderer.getDrawingBufferSize(new THREE.Vector2()).y });
-spirGlint.points.visible = false;
-glowScene.add(spirGlint.points);
-// the glow's brightness (one uniform shared by its parts): it fades as the camera dives in, so its glints do not blow up into the frame
-const glowUI = (() => { let u = null; portalGlow.group.traverse((o) => { if (!u && o.material && o.material.uniforms && o.material.uniforms.uI) u = o.material.uniforms.uI; }); return u; })();
-const GLOW_I = glowUI ? glowUI.value : 1;
-// the Amoeba proteus keeps to its patch of slide (the backdoor) when it is not hunting
-amoeba.home = LANDMARKS.back.pos.clone(); amoeba.homeR = 220;
-amoeba.pos.set(LANDMARKS.back.pos.x, 0, LANDMARKS.back.pos.z);
+// --- the world ---
+const shapes = createShapes(renderer);
+const world = createWorld(11);
+const dileptus = createDileptus();
+const didinia = [createDidinium(0), createDidinium(1)];
+const giant = createGiant();
+const trap = createTrap();
+const bloom = createBloom();
+const prey = createPrey();
+let leaf = { placed: false };
+const game = { eaten: 0, divided: 0, t: 0 };
 
-// --- pacing: placed, not timed (micro/design/encounter-pattern.md) ---
-// The ciliate hunters come from the director (below: placed as you go, in
-// water nobody has seen, ahead of whoever leads) and keep to their own waters
-// there (world.js homes), hunting only a player who is there; each one's
-// hunger clock starts when it is placed, after a short grace. Then hunger
-// comes and goes: only a
-// hungry hunter hunts; a resting one wanders and leaves you be. The amoeba
-// guards the way back (behind the start, the other way) with its own calm
-// opening. A restart gives fresh calm.
-const pacing = { grace: 6, amoebaGrace: 45, cycles: true, now: 0, t0: 0, firstHungry: null, firstThreat: null, reached: false, reachedAt: null };
-world.didinia.forEach((d, i) => { d.hunger = createHunger({ grace: pacing.grace + i * 5 }); });
-amoeba.hunger = createHunger({ grace: pacing.amoebaGrace, hungry: [25, 40] });
-const hunters = () => [...world.didinia, amoeba];
-const ciliates = () => world.didinia; // Didinium ×2 and Dileptus (world.js)
-function resetHunger() {
-  const g = pacing.grace;
-  world.didinia.forEach((d, i) => d.hunger.reset(g + (g ? i * 5 : 0)));
-  amoeba.hunger.reset(pacing.amoebaGrace);
-  pacing.t0 = pacing.now; pacing.firstHungry = null; pacing.firstThreat = null; pacing.reached = false; pacing.reachedAt = null;
-}
-/** A player is in a ciliate hunter's waters: near its home (once the director has placed it). */
-const inWaters = (d, s) => !d.parked && Math.hypot(s.center.x - d.home.x, s.center.z - d.home.z) < d.homeR + 250;
-for (const d of world.didinia) d.allowed = (s) => inWaters(d, s);
-/** The amoeba hunts only round its own floor (the way back). */
-const nearAmoebaFloor = (s) => Math.hypot(s.center.x - LANDMARKS.back.pos.x, s.center.z - LANDMARKS.back.pos.z) < 900;
-const isHungry = (h) => (pacing.cycles ? h.hungry : h.state !== 'grace');
-const hungerText = (h) => (h.state === 'grace' ? `calm ${Math.ceil(h.left)} s` : !pacing.cycles ? 'hungry' : h.state === 'hungry' ? `hungry ${Math.ceil(h.left)} s` : `resting ${Math.ceil(h.left)} s`);
-// Delivered art, with procedural stand-ins until it arrives.
-const plates = { darkfield: standInPlate('darkfield'), phase: standInPlate('phase') };
-// The seamless tiles (MP-P04, MP-P05, requested) replace the plates when delivered: the plates' edges show as seams.
-const tiled = { darkfield: false, phase: false };
-loadTexture('MP-P01', { srgb: false }).then((t) => { if (t && !tiled.darkfield) plates.darkfield = t; });
-loadTexture('MP-P02', { srgb: false }).then((t) => { if (t && !tiled.phase) plates.phase = t; });
-// The optics map a plate across the screen as 16:9; a square tile is laid twice
-// side by side (2:1) so it is not stretched much (≈11 %) and still wraps seamlessly.
-function wideTile(t) {
-  const img = t.image, w = img.width, h = img.height;
-  const c = document.createElement('canvas');
-  c.width = Math.min(4096, w * 2); c.height = Math.round(c.width / 2);
-  const g = c.getContext('2d');
-  g.drawImage(img, 0, 0, c.width / 2, c.height);
-  g.drawImage(img, c.width / 2, 0, c.width / 2, c.height); // (a mirrored copy read as a kaleidoscope: plain repeat)
-  const ct = new THREE.CanvasTexture(c);
-  ct.wrapS = ct.wrapT = THREE.RepeatWrapping;
-  ct.colorSpace = t.colorSpace;
-  ct.anisotropy = 4;
-  t.dispose();
-  return ct;
-}
-loadTexture('MP-P04', { srgb: false }).then((t) => { if (t) { tiled.darkfield = true; plates.darkfield = Math.abs(t.image.width - t.image.height) < 4 ? wideTile(t) : t; } });
-loadTexture('MP-P05', { srgb: false }).then((t) => { if (t) { tiled.phase = true; plates.phase = Math.abs(t.image.width - t.image.height) < 4 ? wideTile(t) : t; } });
-const pellicleTex = { tex: null };
-loadTexture('MP-P03', { srgb: false }).then((t) => {
-  if (!t) return;
-  pellicleTex.tex = t;
-  for (const P of roster) { P.cell.body.material.uniforms.uPellicle.value = t; P.cell.body.material.uniforms.uHasPellicle.value = 1; }
-});
-
-// --- cameras ---------------------------------------------------------------
-const chase = new THREE.PerspectiveCamera(50, 1, 1, 12000);
-const scope = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 6000);
-const OBJECTIVES = [ // field of view (FN 18) and a labelled, exaggerated depth of field
-  { name: '10×', field: 1800, dof: [30, 120] },
-  { name: '20×', field: 900, dof: [16, 75] },
-  { name: '40×', field: 450, dof: [9, 45] },
-];
-const DOFS = { strong: 'Strong (only your layer sharp)', mild: 'Mild', off: 'Off' };
-const PLATES = { rich: 'Rich (softened)', dim: 'Dimmed and blurred', full: 'Full', off: 'Off' };
-const PLATE_MIX = { rich: [0.8, 1.2], dim: [0.3, 3.5], full: [1, 0], off: [0, 0] }; // [mix, mip blur]
-const START_ORBIT = { yaw: 0, pitch: -0.5 }; // from behind and above, so the slipper reads in outline (not end-on); still behind the heading
-const view = {
-  fieldStop: true, smoothHelix: true, mode: 0, kind: 'chase', obj: 1, dist: 120 + 310 * (LENGTH / 230), orbitYaw: START_ORBIT.yaw, orbitPitch: START_ORBIT.pitch,
-  stage: new THREE.Vector2(), camAxis: new THREE.Vector3().copy(swimmer.state.axis), camYaw: swimmer.state.yaw, camPitch: 0,
-  focusY: swimmer.state.axis.y, scopeYaw: swimmer.state.yaw, turnView: true, lead: new THREE.Vector3(), dof: 'mild', plate: 'rich',
-  focusPull: 0, focusPullY: 0, // a contact pulls fine focus to what you touched, briefly
-  lookHold: 0, // hold manual RS framing briefly before following the body
-  pull: 0, // being eaten: 0..1, the camera pulls back to frame the hunter
-  groupDist: 0, // multiplayer: how far the chase camera backs off for the split screen's zoom-out (view.zoom)
-  zoom: 1,
+// --- features ---
+const features = createFeatures({ key: 'paramecium.v5', pad });
+const LOOK_NAMES = ['Darkfield', 'Phase contrast', 'Brightfield'];
+const LOOKS = {
+  Darkfield: { bg: [0.004, 0.007, 0.014], add: 1, sub: 0, tile: 'dark', tileK: 0.2 },
+  'Phase contrast': { bg: [0.3, 0.33, 0.31], add: 0.32, sub: 0.85, tile: 'phase', tileK: 0.55, subTint: [1, 1, 1] },
+  Brightfield: { bg: [0.86, 0.84, 0.76], add: 0, sub: 0.7, tile: null, tileK: 0, subTint: [1.0, 0.95, 0.9] },
 };
-const fwdOf = (yaw, out = new THREE.Vector3()) => out.set(Math.cos(yaw), 0, -Math.sin(yaw));
-const angleWrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+const PHASE_BG = [0.6, 0.655, 0.615]; // the bacterium's phase field (the dive turns the light to it)
+const view = { look: 'Darkfield', parallax: true, tile: true, glitter: 1, field: 1, rot: 0, cx: START.x, cy: START.y, focus: 0, vx: 0, vy: 0 };
+features.add({ id: 'look', group: 'Optics', label: 'Microscope look', choices: LOOK_NAMES, value: 'Darkfield',
+  about: 'Darkfield (the default, as the card shows it): structures glow where they scatter light, on black. Phase contrast: dark structures with bright halos on grey (the dive into the bacterium turns to it). Brightfield: dark on a lit field. D-pad left/right cycles.',
+  onChange: (v) => { view.look = v; } });
+features.add({ id: 'depthcues', group: 'Optics', label: 'Depth cues (focus, parallax)', on: true,
+  about: 'The focus follows your depth: what lies above or below is drawn softer and dimmer, and a little larger (nearer the objective) or smaller (nearer the slide), sliding at its own pace as the view moves.',
+  onChange: (v) => { view.parallax = v; } });
+features.add({ id: 'tile', group: 'Optics', label: 'Habitat backdrop (MP-P04, MP-P05)', on: true, about: 'The delivered seamless habitat tiles, far below the drop, blurred and dim.', onChange: (v) => { view.tile = v; } });
+features.add({ id: 'scenery', group: 'World', label: 'Spirogyra, detritus, Vorticella, diatoms, glitter', fixed: true, about: 'Laid out in a 4.8 mm tile repeated in every direction (world.js). Filaments run through the depth; the cell winds over or under them on its own.' });
+const tiles = { dark: null, phase: null };
+loadTexture('MP-P04').then((t) => { if (t) { t.colorSpace = THREE.NoColorSpace; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.needsUpdate = true; tiles.dark = t; } });
+loadTexture('MP-P05').then((t) => { if (t) { t.colorSpace = THREE.NoColorSpace; t.needsUpdate = true; tiles.phase = t; } });
 
-// Resolution: the shared quality governor (shared/quality.js) steps the render
-// scale (and an effects level) with the frame time, caps the pixel ratio
-// (1.25 alone, 1.0 split) and lowers each split view's resolution (0.7 at two
-// views, 0.55 at three or four). A GPU fence per frame skips a render while the
-// GPU is still busy with the last one (the simulation keeps running); the
-// governor is fed the time between real renders, so skipped frames count.
-const gl = renderer.getContext();
-// a software renderer (headless checks, blocklisted GPUs) runs small
-const softGpu = /SwiftShader|llvmpipe|Software/i.test(gl.getParameter(gl.RENDERER) + (gl.getExtension('WEBGL_debug_renderer_info') ? gl.getParameter(0x9246) : ''));
-let fence = null, rendered = 0, renderClock = 0, renderFps = 60, lastRender = 0;
-function gpuBusy() {
-  if (!fence) return false;
-  if (gl.getSyncParameter(fence, gl.SYNC_STATUS) !== gl.SIGNALED) return true;
-  gl.deleteSync(fence); fence = null;
-  return false;
-}
-let adaptive = true; // the frame skip
-let cullOn = true; // per-view culling and the split views' scissor
-let qLevel = 2;
-const quality = createQuality({ renderer, key: 'paramecium', min: softGpu ? 0.4 : 0.5, max: softGpu ? 0.4 : 1, scalePixelRatio: softGpu,
-  onChange: () => resize() });
-function countRender(now, dt) {
-  renderClock += dt; rendered++;
-  if (renderClock >= 1) { renderFps = rendered / renderClock; rendered = 0; renderClock = 0; }
-  if (lastRender) quality.update((now - lastRender) / 1000);
-  lastRender = now;
-}
-
-// overlays: a shade layer (multiplied over the image) and the markers
-const mkOverlay = (blend, z) => {
-  const c = document.createElement('canvas');
-  c.style.cssText = `position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:${z};${blend ? `mix-blend-mode:${blend};` : ''}`;
-  document.body.insertBefore(c, canvas.nextSibling);
-  return c;
-};
-const shadeCv = mkOverlay('multiply', 1), markCv = mkOverlay('', 2);
-const shadeG = shadeCv.getContext('2d'), markG = markCv.getContext('2d');
-let cssW = 1, cssH = 1, dpr = 1;
-
-function resize() {
-  qLevel = quality.level;
-  // the governor owns the pixel ratio; the microscope's own buffers (the scene
-  // pass, blurs and image formation) run at its render scale, and the last pass
-  // draws them up to the screen. (A software renderer scales the pixel ratio
-  // instead, so headless checks also skip the full-size screen passes.)
-  renderer.setSize(innerWidth, innerHeight, false);
-  const b = renderer.getDrawingBufferSize(new THREE.Vector2());
-  const k = softGpu ? 1 : quality.scale;
-  const w = Math.max(2, Math.round(b.x * k)), h = Math.max(2, Math.round(b.y * k));
-  if (w !== optics.size[0] || h !== optics.size[1]) optics.resize(w, h);
-  chase.aspect = innerWidth / innerHeight;
-  chase.updateProjectionMatrix();
-  cssW = innerWidth; cssH = innerHeight; dpr = Math.min(devicePixelRatio || 1, 2);
-  for (const c of [shadeCv, markCv]) { c.width = Math.round(cssW * dpr); c.height = Math.round(cssH * dpr); }
-  // the overlay font is set once here (a canvas resize resets it), not per label
-  for (const g of [markG, shadeG]) { g.setTransform(dpr, 0, 0, dpr, 0, 0); g.font = '600 12px system-ui, sans-serif'; g.textAlign = 'center'; }
-}
-addEventListener('resize', resize);
-resize();
-
-/**
- * Place the shared camera. `s` is player 1 (the heading the views follow);
- * `grp` the group: { multi, axis (the middle of the players' helix axes),
- * center, spread }.
- */
-// Two to four players share one view, zoomed out up to this far (the chase
-// camera 2x as far back, or the microscope's field 2x as wide) before the
-// screen splits; split views settle at 0.75 of it.
-const SPLIT_ZOOM_MAX = 2;
-let groupZoom = 1;
-function updateCameras(dt, s, steer, grp) {
-  const [W, H] = optics.size;
-  const k = 1 - Math.exp(-dt * 6);
-  view.camAxis.lerp(grp.multi ? grp.axis : view.smoothHelix ? s.axis : s.center, k);
-  const centre = grp.multi ? grp.center : s.center;
-  // being eaten: the camera pulls back to watch the hunter swallow you and follows it
-  view.pull += ((capture.active && EATING.has(cap.phase) ? 1 : 0) - view.pull) * (1 - Math.exp(-dt * 2.2));
-  // several players in one view: the split screen's zoom-out (the chase
-  // camera pulled back along its view, the microscope's field widened) keeps
-  // them all in frame; the screen splits only once it is at its widest
-  view.zoom = grp.multi ? groupZoom : 1;
-  view.groupDist = view.dist * (view.zoom - 1);
-  if (view.kind === 'chase') {
-    // follow the helix axis and the travel heading, not the rolling body
-    const heading = !view.smoothHelix && !grp.multi ? Math.atan2(-s.T.z, s.T.x) : s.yaw;
-    const headingPitch = !view.smoothHelix && !grp.multi ? Math.asin(Math.max(-1, Math.min(1, s.T.y))) : s.pitch;
-    view.camYaw = followYaw(view.camYaw, heading, dt, view.lookHold);
-    view.camPitch += (headingPitch - view.camPitch) * (1 - Math.exp(-dt * 3));
-    const yaw = view.camYaw + view.orbitYaw, pitch = Math.max(-1.3, Math.min(1.3, view.camPitch * 0.35 + view.orbitPitch));
-    const back = new THREE.Vector3(Math.cos(pitch) * Math.cos(yaw), Math.sin(pitch), -Math.cos(pitch) * Math.sin(yaw));
-    const target = debug.inspect ? s.center : view.camAxis;
-    const dist = (view.dist + view.groupDist) * (1 + 1.6 * view.pull);
-    chase.position.copy(target).addScaledVector(back, -dist).addScaledVector(new THREE.Vector3(0, 1, 0), dist * 0.18);
-    chase.position.y = Math.max(8, Math.min(DEPTH + 300, chase.position.y));
-    chase.lookAt(target.x + back.x * 40, target.y + back.y * 40, target.z + back.z * 40);
-    chase.updateMatrixWorld();
-    shared.uFocus.value = chase.position.distanceTo(centre);
-    shared.uDof.value.set(view.dof === 'off' ? 1e5 : 70, view.dof === 'off' ? 2e5 : 460);
-    shared.uFade.value = 1400 + view.groupDist;
-    shared.uNear.value.set(40, Math.max(60, shared.uFocus.value * 0.55));
-    shared.uPxPersp.value = (2 * Math.tan((chase.fov * Math.PI) / 360)) / H;
-    return chase;
-  }
-  const o = OBJECTIVES[view.obj];
-  const half = (o.field / 2 / 0.95) * (1 + 0.9 * view.pull) * view.zoom;
-  scope.top = half; scope.bottom = -half; scope.left = -half * (W / H); scope.right = half * (W / H);
-  scope.updateProjectionMatrix();
-  // The view turns with the heading (never the roll), slowly, and holds still
-  // while the stick points sideways so steering is never fought by the camera.
-  if (view.turnView) {
-    const off = steer.m > 0.25 ? Math.abs(angleWrap(Math.atan2(steer.x, -steer.y))) : 0;
-    const follow = s.mode === 'swim' && off < 0.6 && Math.abs(s.speed) > 60 ? 1 : 0;
-    const d = angleWrap(s.yaw - view.scopeYaw);
-    view.scopeYaw += Math.max(-1.1 * dt, Math.min(1.1 * dt, d * (1 - Math.exp(-dt * 1.4)) * follow));
-  } else view.scopeYaw = Math.PI / 2;
-  // lead a little ahead of the cell so you see what you swim into (alone: the group has no one heading)
-  const want = grp.multi ? new THREE.Vector3() : fwdOf(s.yaw).multiplyScalar(Math.min(o.field * 0.14, Math.max(0, s.speed) * 0.12));
-  view.lead.lerp(want, 1 - Math.exp(-dt * 1.5));
-  // the stage follows the helix axis (the wobble stays on the cell, not the view); fine focus tracks its depth
-  view.focusPull = Math.max(0, view.focusPull - dt);
-  const fy = view.focusPull > 0 ? view.focusPullY : centre.y;
-  view.focusY += (fy - view.focusY) * (1 - Math.exp(-dt * (view.focusPull > 0 ? 14 : 3)));
-  const up = fwdOf(view.scopeYaw);
-  const right = new THREE.Vector3(Math.sin(view.scopeYaw), 0, Math.cos(view.scopeYaw));
-  scope.position.set(view.camAxis.x + view.lead.x, 2000, view.camAxis.z + view.lead.z)
-    .addScaledVector(right, view.stage.x).addScaledVector(up, -view.stage.y);
-  scope.up.copy(up);
-  scope.lookAt(scope.position.x, 0, scope.position.z);
-  scope.updateMatrixWorld();
-  shared.uFocus.value = 2000 - view.focusY;
-  const dofK = view.dof === 'mild' ? 2.2 : 1;
-  shared.uDof.value.set(view.dof === 'off' ? 1e5 : o.dof[0] * dofK, view.dof === 'off' ? 2e5 : o.dof[1] * dofK);
-  shared.uFade.value = view.dof === 'strong' ? 160 : 500;
-  shared.uNear.value.set(-2, -1);
-  shared.uPxOrtho.value = (2 * half) / H;
-  return scope;
-}
-
-// --- the feature panel (Menu / Esc) ---------------------------------------------
-const VIEW_NAMES = { chase: 'Chase camera', scope: 'Microscope (top-down)' };
-const features = createFeatures({ key: FEATURE_KEY, pad });
-const T = optics.toggles;
-const sw = (u) => (on) => { u.value = on ? 1 : 0; };
-const marks = { threats: true, rings: false, prey: true, light: true };
-// Species
-features.add({ id: 'species', group: 'Body', label: 'Species (reloads)', choices: Object.values(SPECIES).map((x) => x.name), value: SP.name,
-  about: 'P. bursaria (85–150 µm, S27), the Level 3 protagonist: plump, green with several hundred symbiotic Chlorella 5–6 µm across, gathers on the lit side. P. caudatum (200–260 µm, S07): larger and colourless, no symbionts and no light meter.',
-  onChange: (v) => { if (v !== SP.name) setTimeout(() => location.reload(), 60); } });
-// Optics
-features.add({ id: 'look', group: 'Optics', label: 'Microscope technique (D-pad ←→)', choices: MODES.map((m) => MODE_NAMES[m]), value: MODE_NAMES.darkfield,
-  about: 'How the image is formed from the optical-path, scatter and absorption buffers: darkfield (zero order removed: the default again, as in the first prototype, with the habitat plate behind the glittering pond water), positive phase contrast (dark where the path is long), brightfield (absorption plus a defocus term: the green Chlorella make P. bursaria stand out on the pale field), DIC (shear derivative of the path) or a hypothetical lit view.',
-  onChange: (v) => { view.mode = MODES.findIndex((m) => MODE_NAMES[m] === v); } });
-features.add({ id: 'view', group: 'Optics', label: 'Camera (Y)', choices: [VIEW_NAMES.chase, VIEW_NAMES.scope], value: VIEW_NAMES.chase,
-  about: 'Chase (default, as before the readability rework): a hypothetical camera in the water that follows the helix axis. LS drives and turns relative to the view; RS orbits and aims swimming, then the camera eases behind you when released. Microscope: orthographic and top-down; the stage keeps your cell centred, a little behind the direction you swim, fine focus tracks your depth and jumps to anything you touch.',
-  onChange: (v) => { view.kind = v === VIEW_NAMES.chase ? 'chase' : 'scope'; view.stage.set(0, 0); } });
-features.add({ id: 'turnView', group: 'Optics', label: 'Microscope view turns with your heading', on: true,
-  about: 'The view slowly turns so you swim up the screen, following the helix axis and the heading, never the roll; it holds still while you steer sideways. Off: north stays up (like a real stage).',
-  onChange: (on) => { view.turnView = on; } });
-features.add({ id: 'objective', group: 'Optics', label: 'Objective (D-pad ↑↓)', choices: OBJECTIVES.map((o) => o.name), value: '20×',
-  about: 'Field of view for an FN 18 eyepiece: 10× 1.8 mm, 20× 0.9 mm (the Level 3 field), 40× 0.45 mm.',
-  onChange: (v) => { view.obj = Math.max(0, OBJECTIVES.findIndex((o) => o.name === v)); } });
-features.add({ id: 'dof', group: 'Optics', label: 'Depth of field (microscope)', choices: Object.values(DOFS), value: DOFS.mild,
-  about: 'Each fragment is split between a sharp and a defocused layer by its distance from the focal plane. Mild (default): about 35 µm sharp at 20×, so whatever you can bump into is visible; touching something pulls focus to it. Strong: only the layer you swim in is crisp (16 µm, fully blurred by 75 µm) and far layers fade. Off: everything sharp.',
-  onChange: (v) => { view.dof = Object.keys(DOFS).find((k) => DOFS[k] === v) || 'mild'; shared.uDofOn.value = view.dof === 'off' ? 0 : 1; } });
-features.add({ id: 'plate', group: 'Optics', label: 'Background habitat plate', choices: Object.values(PLATES), value: PLATES.rich,
-  about: 'The pond photograph behind the scene in darkfield and phase (MP-P01, MP-P02). Rich (default): most of the plate, slightly softened, as the first prototype showed it (it used the plate in full); Dimmed and blurred keeps it well back; Full is the plate as delivered.',
-  onChange: (v) => { view.plate = Object.keys(PLATES).find((k) => PLATES[k] === v) || 'rich'; T.plate.value = view.plate === 'off' ? 0 : 1; } });
-features.add({ id: 'halo', group: 'Optics', label: 'Phase halo and shade-off', on: true,
-  about: 'A real phase ring leaks low spatial frequencies back into the image: φ − 0.82·blur(φ). That gives the bright halo round dark objects and the lighter centres of large ones. Off: an ideal phase plate.', onChange: sw(T.halo) });
-features.add({ id: 'tie', group: 'Optics', label: 'Brightfield defocus contrast', on: true,
-  about: 'Transparent cells are nearly invisible in focus; a little defocus shows them through the transport-of-intensity effect, I ≈ 1 − k∇²φ (here a high-pass of φ).', onChange: sw(T.tie) });
-features.add({ id: 'chroma', group: 'Optics', label: 'Lateral chromatic softness', on: true, about: 'Red and blue sampled slightly apart, more toward the edge of the field, as an achromat objective does.', onChange: sw(T.chroma) });
-features.add({ id: 'soft', group: 'Optics', label: 'Objective point spread', on: true, about: 'A small blur of every pixel with its neighbours: a light microscope never resolves a hard pixel edge.', onChange: sw(T.soft) });
-features.add({ id: 'grain', group: 'Optics', label: 'Camera noise', on: true, about: 'Per-frame sensor noise, slightly stronger on bright backgrounds.', onChange: sw(T.grain) });
-features.add({ id: 'stop', group: 'Optics', label: 'Eyepiece field stop', on: true, about: 'The round field of view with a black surround in the microscope view.', onChange: (on) => { view.fieldStop = on; } });
-// Game aids (drawn over the image, not part of it). Nothing is drawn round your own cell.
-features.add({ id: 'threatMarks', group: 'Optics', label: 'Hunter arrow', on: true,
-  about: 'A faint red arrow at the edge of the view, only for a hunter that is closing in on you from out of view. Hunters in view are left to the image.', onChange: (on) => { marks.threats = on; } });
-features.add({ id: 'threatRings', group: 'Optics', label: 'Hunter rings', on: false,
-  about: 'Dashed rings and labels round hunters in view (the rework\'s markers; off by default so the view stays immersive).', onChange: (on) => { marks.rings = on; } });
-features.add({ id: 'preyMarks', group: 'Optics', label: 'Prey cues', on: true,
-  about: 'A small soft ring on prey only when it is in reach of a gulp, and a faint arrow to the nearest prey when none is in view.', onChange: (on) => { marks.prey = on; } });
-features.add({ id: 'lightPool', group: 'Optics', label: 'Light and shade', on: true,
-  about: 'Sunlight falls on part of the drop; the rest is shaded (darker, drawn over the image). P. bursaria needs the light for its Chlorella.', onChange: (on) => { marks.light = on; } });
-// Rendering
-features.add({ id: 'buffers', group: 'Rendering', label: 'Optical-path buffers (MRT, additive)', fixed: true,
-  about: 'No lights: every object adds its optical path difference (Δn × thickness), scatter and colour absorption into four float targets, sharp and defocused, with no depth test. Transmitted light really does sum along the axis.' });
-features.add({ id: 'chord', group: 'Rendering', label: 'Front/back-face chord trick', fixed: true,
-  about: 'A closed body adds −depth on front faces and +depth on back faces (relative to its own axis, for precision), so each pixel receives the chord through it. Thin parts (cilia, threads, stalks, bacteria) add a fixed path instead.' });
-features.add({ id: 'minpx', group: 'Rendering', label: 'Sub-pixel widening with energy kept', fixed: true,
-  about: 'Ribbons and specks thinner than a pixel are drawn one pixel wide with their path scaled down, so distant cilia aggregate into a faint fringe instead of shimmering.' });
-features.add({ id: 'adaptive', group: 'Rendering', label: 'Frame skip while the GPU is behind', on: true,
-  about: 'A GPU fence per frame: if the previous frame is unfinished the render is skipped (the simulation keeps running). The quality governor below sets the resolution.', onChange: (on) => { adaptive = on; } });
-quality.addToFeatures(features);
-features.add({ id: 'cull', group: 'Rendering', label: 'Per-view culling', on: true,
-  about: 'Each view (one per split region) draws only the cells, hunters and set pieces inside its own frustum and within reach of its depth of field, and each split view renders only its own region (a scissor round it). Off: every view draws everything over the whole screen.', onChange: (on) => { cullOn = on; } });
-// Body
-features.add({ id: 'sdf', group: 'Body', label: 'SDF body with carved oral groove', fixed: true,
-  about: 'Slipper outline from two superellipse halves (P. bursaria: short, plump, rounded at both ends; P. caudatum: blunt anterior, conical posterior), meshed with surface nets; the oral groove is carved by a chain of tapered capsules ending in a buccal pocket.' });
-if (cell.chlorella) features.add({ id: 'chlorella', group: 'Body', label: `Chlorella symbionts (${SP.chlorella})`, on: true,
-  about: 'Green algae 5–6 µm across filling the cytoplasm and riding the cyclosis (S27); chlorophyll absorbs red and blue, so the cell is green in brightfield.', onChange: (on) => { cell.chlorella.visible = on; } });
-features.add({ id: 'cilia', group: 'Body', label: 'Cilia in kineties', on: true,
-  about: 'Rows of 10 µm cilia as instanced ribbons beating in the vertex shader: a straight power stroke toward the posterior-right, a bent recovery with the tip lagging. Oral cilia line the groove; a stiffer caudal tuft trails behind.', onChange: (on) => { cell.cilia.mesh.visible = on; } });
-features.add({ id: 'wave', group: 'Body', label: 'Metachronal waves', on: true,
-  about: 'Each cilium\'s beat is offset in phase along a diagonal of the surface, so waves sweep over the cell. Off: all cilia beat in step.', onChange: (on) => { cell.cilia.mat.uniforms.uWave.value = on ? 1 : 0; } });
-features.add({ id: 'pellicle', group: 'Body', label: 'Pellicle kinety pattern', on: true,
-  about: 'Rows of alveolar units scatter faintly (procedural, or the MP-P03 texture when delivered).', onChange: (on) => { cell.body.material.uniforms.uPelOn.value = on ? 1 : 0; } });
-features.add({ id: 'tricho', group: 'Body', label: 'Docked trichocysts', on: true,
-  about: 'Spindles 4 µm long just under the pellicle: the dense granular seam along the margin in micrographs.', onChange: (on) => { cell.trichocysts.mesh.visible = on; } });
-features.add({ id: 'cyclosis', group: 'Body', label: 'Cyclosis (streaming)', on: true,
-  about: 'Granules, Chlorella and food vacuoles ride the endoplasm loop: back along the ventral side, forward dorsally; vacuoles are egested at the cytoproct. Sped up about five times.', onChange: (on) => { cell.opts.cyclosis = on; } });
-features.add({ id: 'cv', group: 'Body', label: 'Contractile vacuole cycle', on: true,
-  about: 'Two vacuoles with eight radiating canals each: canals swell, empty into the vacuole, which then empties through its pore. Period 6 s, the two half a cycle apart.', onChange: (on) => { cell.opts.cv = on; } });
-features.add({ id: 'nuclei', group: 'Body', label: 'Macronucleus and micronucleus', on: true, about: 'Ellipsoidal macronucleus mid-body with the small micronucleus beside it; low contrast, as in life.', onChange: (on) => { cell.macro.visible = on; cell.micro.visible = on; } });
-// Motion
-features.add({ id: 'lowre', group: 'Motion', label: 'Low Reynolds number (no coasting)', on: true,
-  about: 'Speed follows the ciliary beat with a 35 ms lag, so the cell stops when the movement stick is released. Off: a 1.4 s glide, like a fish; physically wrong at this scale, here for comparison.', onChange: (on) => { swimmer.opts.lowRe = on; } });
-features.add({ id: 'helix', group: 'Motion', label: 'Roll about the long axis', on: true,
-  about: 'The oblique ciliary stroke rolls the cell to the left about its own long axis, through the centre of the body: here a gentle 0.45 turns a second at full speed (real cells roll about once per helix turn, faster), and none at rest. Off: no roll.', onChange: (on) => { swimmer.opts.helix = on; } });
-features.add({ id: 'corkscrew', group: 'Motion', label: 'Corkscrew path (the real helix)', on: false,
-  about: 'The real left-handed helix: radius and pitch scaled from the 29 µm and 850 µm measured in P. caudatum, one roll per turn, the long axis tilted along the path. The body then orbits an axis beside it, which read as spinning round an off-centre axis, so it is off by default.', onChange: (on) => { swimmer.opts.corkscrew = on; } });
-features.add({ id: 'smooth', group: 'Motion', label: 'Camera follows the helix axis (corkscrew)', on: true,
-  about: 'With the corkscrew on, both cameras track the helix axis and travel heading rather than the wobbling body. Without it the axis is the body\'s centre. Off: they follow the body itself.', onChange: (on) => { view.smoothHelix = on; } });
-features.add({ id: 'beat', group: 'Motion', label: 'Ciliary beat rate', choices: ['Slowed (readable)', 'Real (15–35 Hz)'], value: 'Slowed (readable)',
-  about: 'Real cilia beat 15–35 Hz, faster than a 60 Hz display can show without aliasing; the slowed rate lets the strokes and waves be followed.', onChange: (v) => { swimmer.opts.beatScale = v.startsWith('Real') ? 4.5 : 1; } });
-features.add({ id: 'dash', group: 'Motion', label: 'Dash (A): ciliary sprint', fixed: true,
-  about: `All cilia beat hard for ${DASH_T} s: up to ${(DASH_V / 1000).toFixed(1)} mm/s toward the stick, after a quick pivot. Escape swimming in Paramecium reaches several mm/s for a moment [the peak and the 1.8 s recharge are game values].` });
-features.add({ id: 'avoid', group: 'Motion', label: 'Avoidance reaction (B)', fixed: true, about: 'Ciliary reversal for 0.3 s (backing up), a pivot about the posterior end, then forward on a new heading (S08).' });
-features.add({ id: 'glance', group: 'Motion', label: 'Glance off obstacles', fixed: true,
-  about: 'Touching anything (a filament, a flake, the slide, the coverslip, the meniscus at the rim of the drop) turns your heading along its surface so you slide past instead of stopping. The contact shows as a puff of specks at the point, a bump of the cell and a rumble; in the microscope view focus jumps to what you touched.' });
-features.add({ id: 'avoidOnContact', group: 'Motion', label: 'Avoidance reaction on hard contact', on: false,
-  about: 'What a real Paramecium does when its front end hits something (S08): back up and turn. Off by default because it takes control away; on, it fires on a hard head-on hit with a filament, flake or cell (never the glass).', onChange: (on) => { swimmer.opts.avoidOnContact = on; } });
-features.add({ id: 'burst', group: 'Motion', label: 'Trichocyst defence (B): right for Dileptus, useless against Didinium', fixed: true, about: 'B fires the trichocysts from the patch facing the threat: threads shoot out and throw the cell about 100 µm clear (S09). Against Dileptus that is the real defence: mutants without trichocysts were eaten 9–45× faster (C14), so fired while its trunk is at you (or holding you) it drives it off. Against Didinium it does nothing: wild type and mutants were equally vulnerable (C15), its pexicysts hold on; keep away and dodge its lunge. Three charges, one back every 9 s (invented; real re-docking takes hours).' });
-// Simulation
-features.add({ id: 'squirmer', group: 'Simulation', label: 'Flow round the swimming cell', on: true,
-  about: 'Bacteria feel a neutral squirmer\'s dipole field: carried ahead at the poles, swept back along the sides, decaying as 1/r³.', onChange: (on) => { world.opts.squirmer = on; } });
-features.add({ id: 'feeding', group: 'Simulation', label: 'Feeding currents', on: true,
-  about: 'Oral cilia draw water into the groove (stronger with LT, strongest in a gulp); bacteria reaching the cytostome are eaten. Vorticella peristomes feed the same way.', onChange: (on) => { world.opts.feeding = on; } });
-features.add({ id: 'ambient', group: 'Simulation', label: 'Ambient drift', on: true, about: 'A slow drift (≈20 µm/s) with gentle eddies carries everything, the Paramecium included.', onChange: (on) => { world.opts.ambient = on; } });
-features.add({ id: 'tumble', group: 'Simulation', label: 'Bacterial run-and-tumble', on: true, about: 'Half the bacteria swim 8–28 µm/s and pick a new direction every 0.6–2.4 s.', onChange: (on) => { world.opts.tumble = on; } });
-// World
-features.add({ id: 'didinium', group: 'World', label: 'Didinium hunters', on: true,
-  about: 'Two barrel-shaped predators with two girdles of cilia and a proboscis that fires toxicysts on contact and reels the prey in (S28, S56). Held: X fires trichocysts to break free, A struggles; otherwise you are swallowed whole.', onChange: (on) => { enc.opts.didinium = on; } });
-features.add({ id: 'homing', group: 'World', label: 'Didinium homing', on: true, about: 'Within ≈480 µm a Didinium turns on you and swims nearly straight at about 1 mm/s; a sideways dash makes it overshoot. Real Didinium finds prey by collision; this makes the encounter readable.', onChange: (on) => { enc.opts.homing = on; } });
-features.add({ id: 'proteus', group: 'World', label: 'Amoeba proteus', on: true,
-  about: 'A slow giant (≈300 µm, up to 600 with pseudopods) creeping on the slide (S29). Swim low near it and two pseudopods flank you into a food cup (S05); stay between them and it closes. Dash out, or fire trichocysts. It creeps ≈10× and reaches ≈5× faster than life.', onChange: (on) => { amoeba.opts.on = on; if (!on && swimmer.state.captor === amoeba) swimmer.release(); } });
-const GRACES = ['6 s', '20 s', '0 s'];
-features.add({ id: 'grace', group: 'World', label: 'Grace once you reach the hunters\' waters', choices: GRACES, value: GRACES[0],
-  about: 'The challenges are placed, not timed: the water round the start is calm (prey, Vorticella, the light), and the Dileptus, the Chlamydomonas bloom, the two Didinium and the bladderwort trap lie on rings beyond it, the same in every direction. The ciliates keep to their own waters there. Their hunger clocks start when someone first leaves the calm water, after this grace (each one 5 s after the last). The amoeba by the way back keeps a 45 s calm opening.',
-  onChange: (v) => { pacing.grace = parseFloat(v); resetHunger(); } });
-features.add({ id: 'bloom', group: 'World', label: 'Chlamydomonas bloom', on: true,
-  about: 'A dense band of green flagellates across the route before the biofilm (shared/crowd.js, three tiers through the depth). Swimming shoves them aside; X gulps a cone of them out of your way (algae as food is [Unverified]); a dash (A) flings them aside in a lane. Bioconvection: more cells toward the coverslip, sinking plumes with a mild down-current, gentle upwelling between. No clock of any kind.',
-  onChange: (on) => { bloom.on = on; bloom.group.visible = on && bloom.placed; } });
-features.add({ id: 'hunger', group: 'World', label: 'Hunger comes and goes', on: true,
-  about: 'After the calm opening each hunter is hungry for 18–32 s (the amoeba 25–40 s), then rests: 45–75 s after a meal, 15–30 s after a miss (trichocysts drive it off, or it gives up). Only a hungry hunter hunts; the HUD shows each one\'s state. Off: once the opening is over they hunt all the time (the old pacing).',
-  onChange: (on) => { pacing.cycles = on; } });
-features.add({ id: 'vort', group: 'World', label: 'Vorticella stalk contraction', on: true, about: 'Touch a Vorticella and its stalk coils in one frame (really milliseconds), then re-extends over about 3 s (S10, S11).', onChange: (on) => { world.opts.vortContract = on; } });
-features.add({ id: 'scenery', group: 'World', label: 'Spirogyra, detritus, diatoms, prey', fixed: true, about: 'Five Spirogyra filaments, flakes, suspended flocs, specks and sediment everywhere (ambient.js, repeated round each view), Pinnularia and Fragilaria along the route, thirteen Vorticella in two colonies, bacterial clumps and Chilomonas (which jumps away with its ejectisomes when you come close).' });
-// Borrowed (default off).
-const looks = createBorrowedLooks(renderer);
-const borrow = borrowedSwitches(features);
-const bmode = { dic: 0, amoeba: 0, sem: 0 };
-const BORROW = { semMite: ['SEM', 'mite'], dicTardigrade: ['Tardigrade DIC', 'tardigrade'], opticsAmoeba: ['Amoeba optics', 'amoeba'] };
-borrow.add({ id: 'semMite', label: 'SEM (scanning electron microscope)', from: 'mite',
-  about: 'The real geometry (body with its oral groove, Didinium, Vorticella, Spirogyra, nuclei) drawn into the mite\'s G-buffer and shaded by its secondary-electron composite. Cilia, trichocysts, bacteria and granules are shaped in their own vertex shaders, so they are left out: a bald Paramecium. Physically odd: a swimming cell in an SEM.' });
-features.add({ id: 'semMiteMode', group: 'Borrowed', label: 'SEM detector', from: 'mite', choices: SEM_LOOKS, value: SEM_LOOKS[0],
-  about: 'SE (topography), BSE (composition) or false colour.', onChange: (v) => { bmode.sem = SEM_LOOKS.indexOf(v); looks.semMode(bmode.sem); } });
-const FIELD = 'The optical-path, scatter and absorption buffers (sharp plus the blurred defocused layer) handed to another prototype\'s image formation.';
-borrow.add({ id: 'dicTardigrade', label: 'Tardigrade DIC (Nomarski)', from: 'tardigrade',
-  about: `The tardigrade's interference model: sin²(π(bias + shear·∂OPD)/λ) at three wavelengths, so relief comes with warm and cool fringes. ${FIELD}` });
-features.add({ id: 'dicTardigradeMode', group: 'Borrowed', label: 'Tardigrade look', from: 'tardigrade', choices: DIC_MODES, value: DIC_MODES[0],
-  about: 'Which of the tardigrade images the switch above uses: DIC or its brightfield.', onChange: (v) => (bmode.dic = DIC_MODES.indexOf(v)) });
-borrow.add({ id: 'opticsAmoeba', label: 'Amoeba property optics', from: 'amoeba',
-  about: `The amoeba's versions: brightfield with Beer–Lambert absorption, transport-of-intensity defocus and chromatic fringes, phase contrast, darkfield, or its immersive lit view with caustics. ${FIELD}` });
-features.add({ id: 'opticsAmoebaMode', group: 'Borrowed', label: 'Amoeba method', from: 'amoeba', choices: AMOEBA_MODES, value: AMOEBA_MODES[0],
-  about: 'Which optical method the amoeba switch above uses.', onChange: (v) => (bmode.amoeba = AMOEBA_MODES.indexOf(v)) });
-const cellMeshes = new Set();
-cell.group.traverse((o) => cellMeshes.add(o));
-
-addInvertY(features);
-features.add({ id: 'pad', group: 'Controls', label: 'Shared control scheme (CONTROLS.md)', fixed: true,
-  about: 'LS swim and turn, RS orbit/aim swim (released: follow heading) or move stage, A dash, X eat (trichocysts on contact), B avoidance reaction, Y chase/microscope, LT feed, RT optional forward swim, LB/RB dive/rise, D-pad ←→ technique, D-pad ↑↓ objective, View panel, Menu features. Keyboard fallbacks in shared/pad.js.' });
-
-/** The look on screen, including a borrowed one. */
-function lookName() {
-  if (borrow.id) {
-    const [name, from] = BORROW[borrow.id];
-    const sub = borrow.id === 'semMite' ? SEM_LOOKS[bmode.sem] : borrow.id === 'dicTardigrade' ? DIC_MODES[bmode.dic] : AMOEBA_MODES[bmode.amoeba];
-    return `${name}: ${sub} (borrowed from ${from})`;
-  }
-  return MODE_NAMES[MODES[view.mode]];
-}
-
-
-// --- light: a sunlit patch of the drop that wanders slowly --------------------
-// Sunlit patches, slowly wandering, repeated with the scenery tile so there is
-// light to find in every direction (a bonus: the dash recharges faster there).
-// light.c is the patch nearest player 1 (the overlay draws it).
-const light = { c: new THREE.Vector2(), r: 520, t: 0 };
-const LIGHTS = [[-110, 0], [3000, 2300], [-2600, 2900], [2400, -2900], [-3000, -2100]];
-function lightAt(t) { light.t = t; return light; }
-function nearestLight(p, out = light.c) {
-  let bd = Infinity, bx = 0, bz = 0;
-  LIGHTS.forEach(([x, z], i) => {
-    const lx = START.x + x + 260 * Math.sin(light.t * 0.021 + i * 1.7), lz = START.z + z + 220 * Math.cos(light.t * 0.017 + i * 2.3);
-    const cx = lx + world.TILE * Math.round((p.x - lx) / world.TILE), cz = lz + world.TILE * Math.round((p.z - lz) / world.TILE);
-    const d = Math.hypot(p.x - cx, p.z - cz);
-    if (d < bd) { bd = d; bx = cx; bz = cz; }
-  });
-  return out.set(bx, bz);
-}
-const _lc = new THREE.Vector2();
-const inLight = (p) => nearestLight(p, _lc).distanceTo(new THREE.Vector2(p.x, p.z)) < light.r;
-
-// --- game state --------------------------------------------------------------
 const audio = createAudio(['paramecium/amb-pool', 'paramecium/swim', 'paramecium/dash', 'paramecium/gulp', 'paramecium/trichocysts', 'paramecium/reverse', 'paramecium/didinium', 'paramecium/held', 'shared/portal-chime']);
 audio.addToFeatures(features);
 audio.loop('paramecium/amb-pool', { volume: 0.6 });
 const swimLoop = audio.loop('paramecium/swim', { volume: 0 });
-const snd = { mode: 'swim', hunting: new WeakMap(), lastHunt: -9, t: 0 };
-/** Gamepads fire no DOM events: unlock sound on any pad button. */
-function unlockOnPad() {
-  for (const P of roster) {
-    if (P.pad.kind !== 'controller') continue;
-    for (let b = 0; b < 16; b++) if (P.pad.value(b) > 0.5) { audio.unlock(); return; }
-  }
-}
-function soundTick(dt) {
-  snd.t += dt;
-  const s = swimmer.state;
-  const k = Math.max(...roster.map((P) => (P.swimmer.state.mode === 'dead' ? 0 : Math.min(1, Math.abs(P.swimmer.state.speed) / VMAX))));
-  swimLoop.set({ volume: 0.15 + 0.7 * k, rate: 0.8 + 0.5 * k + (s.dashT > 0 ? 0.2 : 0) });
-  for (const P of roster) {
-    const m = P.swimmer.state.mode;
-    if (m !== P.sndMode) { if (m === 'avoid') audio.play('paramecium/reverse', { volume: 0.8 }); P.sndMode = m; }
-  }
-  // Didinium closing in: once per hunt, quieter the further it is
-  if (enc.opts.didinium && s.mode !== 'dead' && s.mode !== 'captured') {
-    for (const d of world.didinia) {
-      const on = d.state === 'hunting' || d.state === 'striking';
-      if (on && !snd.hunting.get(d) && snd.t - snd.lastHunt > 1.5) {
-        snd.lastHunt = snd.t;
-        const T = (d.target || swimmer).state;
-        const dist = d.pos.distanceTo(T.center);
-        audio.play('paramecium/didinium', { volume: Math.max(0.25, Math.min(1, 700 / (dist + 200))), pan: Math.max(-1, Math.min(1, (d.pos.x - T.center.x) / 800)) });
-      }
-      snd.hunting.set(d, on);
-    }
-  }
-}
-const game = { eaten: 0, round: 1, sun: 1, gulpT: 0, gulpCool: 0, dashFx: 0, deaths: 0, bacteria: 0, contacts: 0 };
-const threats = () => [...(enc.opts.didinium ? world.didinia : []), ...(amoeba.opts.on ? [amoeba] : [])];
-const GULP_REACH = Math.max(70, LENGTH * 0.6);
-const bloomLog = { enter: [], entered: new Set(), gulps: [], wedges: [] };
-const gulpCentre = new THREE.Vector3();
-function updateGulpCentre(s) { return gulpCentre.copy(s.center).addScaledVector(s.T, HL * 0.35); }
+const quality = createQuality({ renderer, key: 'paramecium', scalePixelRatio: true });
+quality.addToFeatures(features);
 
-// --- the players: one cell each ------------------------------------------------
-const CATCH = {
-  didinium: { by: 'Didinium', how: 'swallowed you whole', strike: 'Didinium\'s proboscis strikes: toxicysts fire into you!', hold: () => `HELD by Didinium: its pexicysts hold, trichocysts can't free you · ${glyph('A')} / ${glyph('X')} struggle`, eat: 'Didinium\'s mouth gapes wide: it swallows you whole', follow: 'Swallowed whole: the Didinium swims off with you inside', fadeOut: '', fadeIn: '' },
-  amoeba: { by: 'Amoeba proteus', how: 'closed you into a food vacuole', strike: 'The food cup closes round you!', hold: () => `ENGULFED by the amoeba: ${glyph('B')} trichocysts · ${glyph('A')} / ${glyph('X')} struggle`, eat: 'A food vacuole forms round you and darkens: digestion begins', follow: 'Inside the amoeba: it creeps on, digesting', fadeOut: '', fadeIn: '' },
-};
-CATCH.dileptus = { by: 'Dileptus', how: 'slashed you with its trunk and engulfed you', strike: 'Dileptus\'s trunk slashes: toxicysts fire into you!', hold: () => `HELD by Dileptus: ${glyph('B')} trichocysts drive it off · ${glyph('A')} / ${glyph('X')} struggle`, eat: 'Dileptus engulfs you at the base of its trunk', follow: 'Engulfed: the Dileptus glides off with you inside', fadeOut: '', fadeIn: '' };
-CATCH.bladder = { by: 'A bladderwort trap', how: 'sucked you in, and its door shut behind you', strike: 'SUCKED toward the trap door!', hold: () => `Pulled through the door: ${glyph('B')} trichocysts to burst free`, eat: 'The door shuts: you are inside the bladder', follow: 'Inside the bladder: its glands begin to digest you', fadeOut: '', fadeIn: '' };
-const catchText = (k, phase) => { const v = CATCH[k][phase]; return typeof v === 'function' ? v() : v; };
-const roster = [];
-/**
- * Telling players apart: each player's P. bursaria carries its own shade of
- * Chlorella (absorbance per µm of red, green, blue; the cytoplasm's faint cast
- * follows). Player 1 is today's green; then blue-green, olive and yellow-green,
- * keyed to the player colours (teal, rose, blue). Symbiont strains do differ
- * in shade, but colour-coding them by player is a labelled departure.
- * P. caudatum has no symbionts: its players are told apart by their rings.
- */
-const VARIETIES = [null, [0.068, 0.01, 0.034], [0.046, 0.03, 0.088], [0.022, 0.005, 0.072]];
-function makePlayer(p, c = null, sw = null) {
-  const cellP = c || createCell();
-  cellP.setVariety(VARIETIES[p.slot % VARIETIES.length]);
-  if (!c) {
-    scene.add(cellP.group);
-    if (pellicleTex.tex) { cellP.body.material.uniforms.uPellicle.value = pellicleTex.tex; cellP.body.material.uniforms.uHasPellicle.value = 1; }
-  }
-  const P = {
-    slot: p.slot, color: p.color, name: `Player ${p.slot + 1}`, cell: cellP, swimmer: sw || createSwimmer(cellP, world),
-    pad: players.pad(p.slot), ctl: players.controls(p.slot),
-    dash: createDash({ duration: DASH_T, cooldown: 1.8 }), sun: 1, gulpT: 0, gulpCool: 0, dashFx: 0,
-    capture: createCapture({ onRespawn: () => respawnPlayer(P) }),
-    cap: { th: null, credit: 0, phase: null, from: new THREE.Vector3(), fromQ: new THREE.Quaternion(), anim: null },
-    in: null, backT: 0, eatenFor: 0, waiting: false, sndMode: 'swim', blockT: 0, fightFx: 0, fightCool: 0, eatFx: 0,
+// --- the cells (one per player) ---
+const cells = []; // P: { slot, color, S, live, dead, spawn, ... }
+function makeCell(slot, x, y, a = Math.PI / 2, z = 0) {
+  return {
+    slot, color: players.list.find((p) => p.slot === slot)?.color || '#d2a24c', S: createSwimState(x, y, a, z), live: true, dead: null, spawn: 1, invuln: 0,
+    burst: -1, jab: -1, jabCd: 0, charges: 3, chargeT: 0, beat: 0, bend: 0, squash: 0, vacuoles: [], engulfed: null, held: false,
+    variety: VARIETIES[slot % VARIETIES.length], hint: {}, back: 0, atPortal: false, lastA: a,
   };
-  // the capture's card, then its veil (the fade) and caption: in multiplayer one
-  // player's fade must not black out everyone's screen, so the veil is hidden there
-  P.card = P.capture.card;
-  P.veil = P.card.nextElementSibling;
-  return P;
 }
-const P1 = makePlayer(players.get(0), cell, swimmer);
-roster.push(P1);
-const dash = P1.dash, capture = P1.capture, cap = P1.cap;
-const multi = () => roster.length > 1;
-const liveRoster = () => roster.filter((P) => !P.waiting);
-
-/** Keep one cell per joined player (a join during play, or the shell's roster). */
-function syncRoster() {
+const P1 = makeCell(0, START.x, START.y);
+cells.push(P1);
+function syncCells() {
   for (const p of players.list) {
-    if (roster.some((P) => P.slot === p.slot)) continue;
-    const P = makePlayer(p);
-    roster.push(P);
-    roster.sort((a, b) => a.slot - b.slot);
-    placeNear(P, P1);
-    P.swimmer.state.safeT = 3;
+    if (cells.some((c) => c.slot === p.slot)) continue;
+    const near = cells.find((c) => c.live) || P1;
+    const C = makeCell(p.slot, near.S.x + 150 * Math.cos(p.slot * 2), near.S.y + 150 * Math.sin(p.slot * 2), near.S.a, near.S.z);
+    C.spawn = 0; C.invuln = 2;
+    cells.push(C);
   }
-  for (let i = roster.length - 1; i >= 0; i--) {
-    const P = roster[i];
-    if (P === P1 || players.get(P.slot)) continue;
-    if (P.swimmer.state.captor) { P.swimmer.release(); }
-    P.capture.reset(false);
-    P.card.remove(); if (P.veil) { P.veil.nextElementSibling && P.veil.nextElementSibling.remove(); P.veil.remove(); }
-    scene.remove(P.cell.group);
-    roster.splice(i, 1);
-  }
-  for (const P of roster) {
-    const p = players.get(P.slot);
-    P.waiting = !!(p && p.waiting);
-    if (P.veil) P.veil.style.visibility = multi() ? 'hidden' : '';
-    P.cell.group.visible = !P.waiting;
-    if (P !== P1) {
-      // the switches in the feature panel act on every cell
-      Object.assign(P.swimmer.opts, swimmer.opts);
-      Object.assign(P.cell.opts, cell.opts);
-      if (P.cell.chlorella && cell.chlorella) P.cell.chlorella.visible = cell.chlorella.visible;
-      P.cell.cilia.mesh.visible = cell.cilia.mesh.visible;
-      P.cell.trichocysts.mesh.visible = cell.trichocysts.mesh.visible;
-      P.cell.macro.visible = cell.macro.visible; P.cell.micro.visible = cell.micro.visible;
-      P.cell.cilia.mat.uniforms.uWave.value = cell.cilia.mat.uniforms.uWave.value;
-      P.cell.body.material.uniforms.uPelOn.value = cell.body.material.uniforms.uPelOn.value;
-    }
-  }
+  for (let i = cells.length - 1; i > 0; i--) if (!players.list.some((p) => p.slot === cells[i].slot)) cells.splice(i, 1);
+  for (const c of cells) c.color = players.list.find((p) => p.slot === c.slot)?.color || c.color;
 }
-/** Put P beside a teammate: a couple of body lengths to the side, at its depth. */
-function placeNear(P, M) {
-  const m = M.swimmer.state, s = P.swimmer.state;
-  const a = m.yaw + (Math.random() < 0.5 ? 1 : -1) * (Math.PI / 2 + (Math.random() - 0.5) * 0.6);
-  const d = LENGTH * (1.4 + Math.random() * 0.8);
-  s.axis.set(m.axis.x + Math.cos(a) * d, Math.max(70, Math.min(DEPTH - 70, m.axis.y + (Math.random() - 0.5) * 40)), m.axis.z - Math.sin(a) * d);
-  s.yaw = m.yaw; s.pitch = 0; s.speed = 0;
-}
+syncCells();
+const multi = () => cells.length > 1;
+const who = (P) => (multi() ? `P${P.slot + 1}: ` : '');
+const liveCells = () => cells.filter((c) => c.live);
+/** The player as foes.js sees it. */
+const foeView = () => cells;
 
-/** A hunter close enough to touch (proboscis on the pellicle, or the food cup round you). */
-function touchingThreat(s) {
-  if (s.mode === 'captured') return s.captor;
-  let best = null, bd = Infinity;
-  for (const d of world.didinia) {
-    if (!enc.opts.didinium || !d.tip) continue;
-    const dd = Math.min(d.tip.distanceTo(s.center) - HL * 0.6, d.pos.distanceTo(s.center) - (d.radius || 60) - 10 - BODY_R);
-    if (dd < 55 && dd < bd) { bd = dd; best = d; }
-  }
-  if (amoeba.opts.on && (amoeba.cup > 0.02 || amoeba.edgeDist(s.center) < 40) && amoeba.edgeDist(s.center) < 90) best = best || amoeba;
-  return best;
+// --- the encounters, placed as you go (shared/director.js; route.js) ---
+const FWD = { x: 0, y: 0, b: 0 };
+function placePortalAt(x, y, b) {
+  leaf = makeLeaf(x, y);
+  FWD.x = x; FWD.y = y; FWD.b = b;
+  const [tx, ty] = trapAt(x, y, b);
+  Object.assign(trap, { x: tx, y: ty, a: b + Math.PI, placed: true, state: 'dormant', t: 0, resolve: TRAP.resolve });
+  glow.setPosition(x, y, 0);
+  glow.group.visible = true;
+  spir.x = x; spir.y = y; spir.z = DEPTH.min + 14;
+  return leaf;
 }
-
-const who = (P) => (multi() ? `${P.name}: ` : '');
-/**
- * B, the defence: the trichocysts fire from the patch facing the hunter and a
- * ciliary reversal backs you off it. What that does depends on the hunter, as
- * in life (combat-ideas.md, C14, C15):
- *  - Dileptus: the threads drive it off. Fired while its trunk is at you (its
- *    wind-up or strike, or once it holds you) it recoils and gives up; you
- *    need not face it, the discharge goes off where you are touched.
- *  - Didinium: the threads do not stop it (its pexicysts hold on). The jump
- *    and the reversal still move you, which helps only before it touches you;
- *    held, the threads change nothing. Keep away and dodge its lunge.
- *  - the amoeba's cup and the bladderwort's inflow: the burst throws you out.
- * With no hunter about, B is the avoidance reaction.
- */
-function defend(P) {
-  const s = P.swimmer.state;
-  if (s.mode === 'dead') return;
-  P.blockT = 0.6;
-  // the most pressing threat: what holds you, a hunter at you, else the trap's inflow, else any hunter near
-  const h = nearHunter(P, 320);
-  const trapNear = trap.awake && s.center.distanceTo(trap.door) < trap.pullR * 1.3;
-  const threat = s.mode === 'captured' ? s.captor : h && (attacking(h) || !trapNear) ? h : trapNear ? trap : h;
-  if (!threat) { if (P.swimmer.startAvoid(null, null)) audio.play('paramecium/reverse', { volume: 0.8 }); return; }
-  fireTrichocysts(P, threat);
-}
-const isDidinium = (th) => th && th.kind === 'didinium';
-const isDileptus = (th) => th && th.kind === 'dileptus';
-/** What trichocysts did, for the tests: { t, slot, at, outcome }. */
-const trichoLog = [];
-function fireTrichocysts(P, threat) {
-  const s = P.swimmer.state;
-  const at = threat === amoeba ? new THREE.Vector3(amoeba.pos.x, s.center.y - 40, amoeba.pos.z) : threat === trap ? trap.door : threat ? threat.pos : null;
-  const held = s.mode === 'captured';
-  if (held && isDidinium(threat)) {
-    // held by Didinium: the threads fire, and it holds on all the same
-    if (s.charges < 1) { hud.toast(`${who(P)}No trichocysts left: struggle with ${glyph('A')} or ${glyph('X')}!`); return; }
-    s.charges--; s.recharge = 0;
-    const away = new THREE.Vector3().subVectors(s.center, at).normalize();
-    const n = enc.discharge(s, away.clone().negate(), t, world.flowAt(s.center, t));
-    audio.play('paramecium/trichocysts', { volume: 1 });
-    P.pad.rumble(160, 0.5, 0.4);
-    trichoLog.push({ t, slot: P.slot, at: 'didinium', outcome: 'held on' });
-    hud.toast(`${who(P)}Trichocysts fired (${n} threads), but Didinium holds on: its pexicysts stick fast. Trichocysts can't stop Didinium: keep away from it next time`, 3600);
-    return;
-  }
-  s.reverse = -1; // the ciliary reversal: you back off, still facing it
-  const away = P.swimmer.burst(at);
-  if (away) audio.play('paramecium/trichocysts', { volume: 1 });
-  if (!away) {
-    if (!held && threat) { s.burst.addScaledVector(new THREE.Vector3().subVectors(s.center, at).setY(0).normalize(), 500); }
-    hud.toast(held ? `${who(P)}No trichocysts left: struggle with ${glyph('A')} or ${glyph('X')}!` : `${who(P)}No trichocysts left (they re-dock over time): backing off`);
-    return;
-  }
-  if (threat === trap) P.trapBurstAt = t; // a burst out of the trap's inflow: its pulse is wasted (a block)
-  const n = enc.discharge(s, away.clone().negate(), t, world.flowAt(s.center, t));
-  P.pad.rumble(240, 0.9, 1.0);
-  if (isDileptus(threat)) {
-    // the threads hit its trunk: it recoils and gives up (held or not, if it was at you)
-    const close = held || threat.tip.distanceTo(s.center) < HL + 140 || threat.fightState === 'windup' || threat.fightState === 'strike';
-    if (close) {
-      threat.stun = 2.5;
-      threat.fight.bitten(); const gone = threat.fight.bitten();
-      if (threat.hunger.hungry) threat.hunger.missed();
-      trichoLog.push({ t, slot: P.slot, at: 'dileptus', outcome: 'repelled' });
-      hud.toast(`${who(P)}Trichocysts (${n} threads) hit Dileptus's trunk: it recoils${gone ? ' and gives up' : ''}`, 2400);
-    } else {
-      trichoLog.push({ t, slot: P.slot, at: 'dileptus', outcome: 'too far' });
-      hud.toast(`${who(P)}Trichocysts fired (${n} threads): too early, Dileptus's trunk isn't at you yet`, 2000);
-    }
-    return;
-  }
-  if (isDidinium(threat)) {
-    // before it touches you: the jump moves you, but it comes on regardless
-    trichoLog.push({ t, slot: P.slot, at: 'didinium', outcome: 'unmoved' });
-    hud.toast(`${who(P)}Trichocysts fired (${n} threads): Didinium comes on regardless. Dodge sideways (${glyph('A')})!`, 2400);
-    return;
-  }
-  if (held) { if (threat === amoeba) amoeba.recoil(); else if (threat) threat.stun = 3; if (threat && threat.hunger && threat.hunger.hungry) threat.hunger.missed(); }
-  trichoLog.push({ t, slot: P.slot, at: threat === amoeba ? 'amoeba' : threat === trap ? 'trap' : 'other', outcome: held ? 'freed' : 'fired' });
-  hud.toast(`${who(P)}Trichocysts fired (${n} threads)${held ? (threat === amoeba ? ': the amoeba recoils' : ': it lets go') : ''}`);
-}
-/** The hunter close to a player (for B and X), or null. */
-function nearHunter(P, within) {
-  const s = P.swimmer.state;
-  let best = null, bd = within;
-  if (enc.opts.didinium) for (const d of world.didinia) { const dd = d.pos.distanceTo(s.center) - 60; if (dd < bd) { bd = dd; best = d; } }
-  if (amoeba.opts.on) { const da = amoeba.edgeDist(s.center); if (da < bd) { bd = da; best = amoeba; } }
-  return best;
-}
-const facingOf = (s, p) => { const v = new THREE.Vector3().subVectors(p, s.center); if (s === null) return 0; v.y *= 0.4; return s.F.dot(v.normalize()); };
-const hunterPoint = (th, s) => (th === amoeba ? new THREE.Vector3(amoeba.pos.x, Math.min(s.center.y, amoeba.H), amoeba.pos.z) : th.pos);
-/**
- * X at a hunter, fighting back: the cell rams it, body thrashing, and a jab of
- * trichocysts from the patch facing it stings it (no charge spent, a short
- * cooldown). Wears its interest down (createFight.bitten): it staggers back,
- * and after a few it gives up and swims off.
- */
-function fightBack(P, th) {
-  const s = P.swimmer.state;
-  if (P.fightCool > 0) return true;
-  P.fightCool = 0.8; P.fightFx = 0.5;
-  const at = hunterPoint(th, s);
-  const to = new THREE.Vector3().subVectors(at, s.center).normalize();
-  P.swimmer.dash(Math.atan2(-to.z, to.x));
-  if (!isDidinium(th)) enc.discharge(s, to, t, world.flowAt(s.center, t), 0.35);
-  contactFx.puff(new THREE.Vector3().addVectors(s.center, at).multiplyScalar(0.5), to.clone().negate(), 0.8);
-  audio.play('paramecium/trichocysts', { volume: 0.7, rate: 1.3 });
-  P.pad.rumble(160, 0.7, 0.6);
-  const reach = th === amoeba ? amoeba.edgeDist(s.center) < 120 : at.distanceTo(s.center) < (th.tipLen || 66) + 200;
-  if (reach && isDidinium(th)) {
-    // a ram staggers a Didinium for a moment, no more: it is avoided, not fought
-    th.stun = Math.max(th.stun || 0, 0.35);
-    hud.toast(`${who(P)}You ram Didinium: it barely notices. Keep away from it, dodge its lunge`, 1800);
-    return true;
-  }
-  if (reach && th.fight) {
-    const gone = th.fight.bitten();
-    if (th === amoeba) amoeba.stun = Math.max(amoeba.stun, 0.8);
-    hud.toast(gone ? `${who(P)}${th.label} has had enough: it turns and swims off` : `${who(P)}You ram and sting ${th.label}: it reels back`, 1600);
-  }
-  return true;
-}
-
-function doAttack(P) {
-  const s = P.swimmer.state;
-  if (s.mode === 'dead') return;
-  if (s.mode === 'captured') { P.cap.credit = Math.min(1.2, P.cap.credit + 0.4); return; } // struggle
-  const th = nearHunter(P, 260);
-  if (th && facingOf(s, hunterPoint(th, s)) > 0.2) { fightBack(P, th); return; }
-  if (P.gulpCool > 0) return;
-  P.gulpCool = 0.5; P.gulpT = 0.6;
-  audio.play('paramecium/gulp', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
-  const got = prey.near(updateGulpCentre(s), GULP_REACH).slice(0, 3);
-  for (const it of got) prey.gulp(it, P.feedRef);
-  P.pad.rumble(90, 0.35, 0.1);
-  // in the bloom: the gulp swallows a cone of Chlamydomonas ahead, clearing your way
-  const algae = bloom.on ? bloom.bite(gulpCentre, s.F, GULP_REACH * 1.6, { eat: true, angle: 0.95 }) : 0;
-  if (algae) { bloomLog.gulps.push({ t, slot: P.slot, n: algae }); P.cell.ingest(1, 8); if (!taught.has('bloomGulp')) { taught.add('bloomGulp'); hud.toast(`${who(P)}Gulped ${algae} Chlamydomonas: the way ahead clears. Push through, gulp (${glyph('X')}) or dash (${glyph('A')}) to open a lane`, 3200); } return; }
-  if (!got.length) hud.toast(`${who(P)}Gulp! Nothing in reach: swim up to prey (green rings), level with it`);
-}
-
-function doDash(P, ls) {
-  const s = P.swimmer.state;
-  if (s.mode === 'captured') return; // A struggles instead
-  if (!P.dash.ready) { if (P === P1) hud.toast('Dash recharging', 700); return; }
-  let yaw = null;
-  if (ls.m > 0.3) yaw = view.kind === 'scope' ? P.swimmer.stickYaw(ls, view.scopeYaw) : swimIntent(ls, view.camYaw + view.orbitYaw).yaw;
-  if (P.swimmer.dash(yaw)) {
-    audio.play('paramecium/dash', { volume: 0.9 }); P.dash.trigger(); P.dashFx = 0.45; P.pad.rumble(180, 0.6, 0.9);
-    // in the bloom: the sprint wedges a lane open, flinging the cells ahead aside
-    if (bloom.on) { const f = new THREE.Vector3(Math.cos(s.yaw), 0, -Math.sin(s.yaw)); const n = bloom.bite(s.center, f, 150, { eat: false, angle: 0.7 }); if (n) bloomLog.wedges.push({ t, slot: P.slot, n }); }
-  }
-}
-
-/** A contact: show where it happened and what it was; never a silent stop. */
-const taught = new Set();
-function onContact(P, c) {
-  game.contacts++;
-  if (c.impact < 40) return; // a graze: you just slide on
-  const k = Math.min(1, c.impact / 900);
-  contactFx.puff(c.p, c.n, 0.35 + k);
-  P.pad.rumble(60 + 90 * k, 0.15 + 0.4 * k, 0.05 + 0.3 * k);
-  if (view.kind === 'scope' && !multi()) { view.focusPull = 0.5; view.focusPullY = c.p.y; }
-  if (c.glass && !taught.has(c.what) && c.impact > 60) {
-    taught.add(c.what);
-    hud.toast(c.what === 'the slide' ? 'The slide: the glass floor of the drop. You glide along it' : c.what === 'the coverslip' ? 'The coverslip: the glass ceiling. You glide along it' : 'The meniscus: the edge of the drop. You slide round it', 2200);
-  }
-}
-
-// --- being caught: strike → hold → eat → follow → fade → respawn (shared/predation.js) ----
-// The camera pulls back to watch the hunter swallow you whole, follows it as
-// it swims (or creeps) off with you inside, then fades; you respawn at a safe
-// spot (alone) or beside a teammate (together), and it fades back in.
-const catchKind = (th) => (th === amoeba ? 'amoeba' : th === trap ? 'bladder' : th.kind === 'dileptus' ? 'dileptus' : 'didinium');
-function startCapture(P, th) {
-  if (!th || P.capture.active) return;
-  const k = catchKind(th), C = P.cap;
-  C.th = th; C.credit = 0; C.phase = 'strike'; C.anim = null; C.lastAt = P.swimmer.state.center.clone();
-  P.eatenFor = 0;
-  P.capture.start({ by: CATCH[k].by, how: CATCH[k].how });
-  const s = P.swimmer.state;
-  if (k === 'didinium') {
-    const toward = new THREE.Vector3().subVectors(s.center, th.tip).normalize();
-    enc.toxicysts(th.tip, toward, t);
-    contactFx.puff(th.tip, toward, 1);
-    audio.play('paramecium/didinium', { volume: 1 });
-  }
-  audio.play('paramecium/held', { volume: 1 });
-  P.pad.rumble(400, 0.6, 0.8);
-  if (k === 'bladder') hud.toast(`${who(P)}Sucked toward the trap door! ${glyph('B')}: trichocysts to burst free`, 2400);
-  else hud.toast(`${who(P)}${k === 'amoeba' ? `The amoeba's food cup closes! ${glyph('B')}: trichocysts · ${glyph('A')} / ${glyph('X')}: struggle` : `Didinium's proboscis has you! ${glyph('B')}: fire trichocysts · ${glyph('A')} / ${glyph('X')}: struggle`}`, 2800);
-  embed.captured({ by: CATCH[k].by, player: P.slot });
-}
-const otherCatch = (P) => roster.some((Q) => Q !== P && Q.capture.active);
-const EATING = new Set(['eat', 'follow', 'fadeOut', 'fadeIn']);
-/** Run the catch for this frame; returns the cell's eat-phase transform or null. */
-function stepCapture(P, dt) {
-  if (!P.capture.active) return null;
-  const s = P.swimmer.state, C = P.cap;
-  if (!C.th) { P.capture.update(dt); return null; } // respawned: fading back in
-  const th = C.th, k = catchKind(th);
-  // a fight in the strike or hold: trichocysts (B) break free, struggling (A/X) buys time
-  if ((C.phase === 'strike' || C.phase === 'hold') && s.mode !== 'captured') {
-    P.capture.reset(false); th.hunger.missed(); th.wrap = 0; C.th = null; C.phase = null;
-    if (th.fight) th.fight.bitten();
-    if (!otherCatch(P)) catchFx.reset();
-    return null;
-  }
-  let step = dt;
-  if (C.phase === 'hold') {
-    const len = Math.max(0.8, (th.holdFor || 4) - 0.45); // as long as the old hold: 3.5 s (amoeba 2.5 s)
-    const use = Math.min(C.credit, dt);
-    C.credit -= use;
-    step = (dt - use) / len;
-  }
-  const c = P.capture.update(step);
-  if (!c.active || !C.th) return null; // over, or respawned this frame (respawnPlayer has run)
-  if (c.phase !== C.phase) {
-    C.phase = c.phase;
-    if (c.phase === 'eat') {
-      P.swimmer.eaten();
-      C.from.copy(s.axis); C.fromQ.copy(P.cell.group.quaternion);
-      th.hunger.fed(); th.sated = 14;
-      game.deaths++;
-      audio.play('paramecium/gulp', { volume: 1, rate: k === 'didinium' ? 0.6 : 0.5 });
-      P.pad.rumble(600, 0.8, 0.6);
-    }
-    if (c.phase === 'follow') { th.followSpeed = k === 'didinium' ? 260 : 30; }
-  }
-  // the reel and the closing cup
-  if (c.phase === 'strike') { s.captureT = 0; th.wrap = c.t; }
-  else if (c.phase === 'hold') { s.captureT = c.t * (th.holdFor || 4); th.wrap = 1; }
-  if (c.phase === 'strike' && k === 'didinium') catchFx.didiniumGape(th, 0, 0);
-  if (EATING.has(c.phase)) {
-    const e = c.phase === 'eat' ? c.t : 1;
-    if (k === 'didinium' && c.phase !== 'eat') {
-      // swallowed whole: the mouth closes, the Didinium swims off bulging with you inside
-      const close = c.phase === 'follow' ? c.t : 1;
-      catchFx.didiniumGape(th, Math.max(0, 1 - close * 2.5), 1);
-      C.anim = C.anim || { pos: new THREE.Vector3(), quat: new THREE.Quaternion(), scale: new THREE.Vector3() };
-      C.anim.pos.copy(th.pos).addScaledVector(th.dir, -6);
-      C.anim.quat.setFromUnitVectors(new THREE.Vector3(1, 0, 0), th.dir.clone().negate());
-      C.anim.scale.set(0.56, 0.78, 0.78);
-    } else if (k === 'bladder') {
-      // through the door and into the bladder; the door shuts behind you and the camera holds on it
-      C.anim = C.anim || { pos: new THREE.Vector3(), quat: new THREE.Quaternion(), scale: new THREE.Vector3() };
-      const inside = trap.centre.clone().addScaledVector(trap.dir, 60).setY(trap.centre.y - 40);
-      C.anim.pos.copy(C.from).lerp(inside, sstep(0, 0.7, e));
-      C.anim.quat.copy(C.fromQ);
-      const k2 = 1 - 0.12 * sstep(0.5, 1, e);
-      C.anim.scale.set(k2, k2, k2);
-    } else if (k === 'dileptus') {
-      // engulfed at the base of the trunk, then carried inside as it glides off
-      C.anim = C.anim || { pos: new THREE.Vector3(), quat: new THREE.Quaternion(), scale: new THREE.Vector3() };
-      const mouth = th.pos.clone().addScaledVector(th.dir, 20), inside = th.pos.clone().addScaledVector(th.dir, -50);
-      C.anim.pos.copy(C.from).lerp(mouth, sstep(0, 0.45, e)).lerp(inside, sstep(0.45, 1, e));
-      C.anim.quat.copy(C.fromQ);
-      const k2 = 1 - 0.3 * sstep(0.3, 1, e);
-      C.anim.scale.set(k2, k2 * 0.8, k2 * 0.8);
-    } else C.anim = k === 'didinium' ? catchFx.eatDidinium(th, e, C.from, C.fromQ) : catchFx.eatAmoeba(e, C.from, C.fromQ);
-    s.axis.copy(C.anim.pos); // the camera follows you (and so the hunter)
-    return C.anim;
-  }
-  return null;
-}
-/** The catch is over (the screen is black): respawn beside a teammate, or (alone) somewhere safe. */
-function respawnPlayer(P) {
-  const C = P.cap;
-  if (C.th) { C.th.wrap = 0; C.th.followSpeed = 0; }
-  C.th = null; C.phase = null; C.anim = null;
-  if (!otherCatch(P)) catchFx.reset();
-  P.swimmer.respawn();
-  P.cell.group.scale.set(1, 1, 1);
-  P.eatenFor = 0;
-  const mates = roster.filter((Q) => Q !== P && !Q.waiting && Q.swimmer.state.mode !== 'dead' && !Q.capture.active);
-  const s = P.swimmer.state;
-  if (mates.length) { placeNear(P, mates[0]); hud.toast(`${P.name} is back, beside ${mates[0].name}`); }
-  else {
-    // a safe spot near where you were, a little back toward the start: the
-    // candidate furthest from every hunter, the trap and the bloom
-    const at = P.cap.lastAt || s.center, a0 = bearingOf(at);
-    const u0 = Math.max(200, progress(at) - 1500);
-    let best = null, bd = -1;
-    for (let i = 0; i < 16; i++) {
-      const q = ringPoint(u0 - Math.random() * 600, a0 + (Math.random() - 0.5) * Math.min(1.2, 1500 / Math.max(1, u0)), 120 + Math.random() * (DEPTH - 240));
-      const d = Math.min(...world.didinia.filter((h) => !h.parked).map((h) => h.pos.distanceTo(q)), Math.hypot(q.x - amoeba.pos.x, q.z - amoeba.pos.z) - amoeba.R, q.distanceTo(trap.door) - trap.pullR * 1.5, bloom.distTo(q) - 300);
-      if (d > bd) { bd = d; best = q; }
-    }
-    s.axis.copy(best);
-    if (P === P1) { view.camAxis.copy(best); view.focusY = best.y; }
-    hud.toast('A new Paramecium swims into view in calm water, a little back from where you were', 2600);
-  }
-  s.safeT = 3;
-}
-function restartRound() {
-  const s = swimmer.state;
-  for (const P of roster) {
-    if (P !== P1) { if (P.capture.active) P.capture.reset(false); P.cap.th = null; P.cap.phase = null; P.cap.anim = null; }
-  }
-  swimmer.respawn();
-  cap.th = null; cap.phase = null; cap.anim = null;
-  catchFx.reset();
-  for (const P of roster) { P.cell.group.scale.set(1, 1, 1); if (P !== P1) { P.swimmer.respawn(); placeNear(P, P1); } }
-  game.eaten = 0;
-  // the hunters go back to their own waters (on their rings), the amoeba to its floor
-  world.didinia.forEach((d) => { d.pos.copy(d.home); d.stun = 0; d.sated = 0; d.speed = 0; d.fight.reset(); });
-  amoeba.pos.set(LANDMARKS.back.pos.x, 0, LANDMARKS.back.pos.z);
-  void s;
-  amoeba.cup = 0; amoeba.sated = 0; amoeba.stun = 0; amoeba.wrap = 0;
-  resetHunger();
-  hud.toast('A new Paramecium swims into view. The hunters are calm for now', 2600);
-}
-
-// --- the fights -----------------------------------------------------------------
-// Each hunter has a shared/predation.js fight. Calm (not hungry) it ignores you.
-// Hungry and close it stalks, then winds up (a clear posture: Didinium slows and
-// aims its swelling, reddening toxicyst tip at you; the amoeba lifts and spreads
-// two arms round you), then strikes. Facing it and pressing B at the strike
-// blocks it; X fights back; facing it wears it down too. Out of interest, it
-// swims (or creeps) off. An unblocked strike that reaches you is a catch.
-for (const d of world.didinia) d.fight = d.kind === 'dileptus'
-  ? createFight({ windup: 1.1, strike: 0.36, recoverT: 1.2, repelT: 1.4, retreatT: 10 }) // a slow, sweeping slash
-  : createFight({ windup: 0.95, strike: 0.32, recoverT: 1.0, repelT: 1.2, retreatT: 6 });
-amoeba.fight = createFight({ windup: 1.4, strike: 0.5, recoverT: 1.6, repelT: 1.6, retreatT: 8, facingRate: 0.04 });
-amoeba.fightMode = true;
-enc.opts.fight = true;
-const segDist = (p, s) => { const ab = new THREE.Vector3().subVectors(s.axisB, s.axisA); const k = Math.max(0, Math.min(1, new THREE.Vector3().subVectors(p, s.axisA).dot(ab) / ab.lengthSq())); return s.axisA.clone().addScaledVector(ab, k).distanceTo(p); };
-function runFights(dt) {
-  const fightOn = (P) => { const s = P.swimmer.state; return !P.waiting && (s.mode === 'swim' || s.mode === 'avoid') && !P.capture.active && s.safeT <= 0; };
-  for (const th of hunters()) {
-    const isA = th === amoeba;
-    if (isA ? !amoeba.opts.on : !enc.opts.didinium) { th.fightState = 'stalk'; continue; }
-    const T = targetOf(th), s = T.swimmer.state;
-    // placed, not timed: a ciliate hunts only in its own waters (on its ring), the amoeba only round its floor
-    const zone = isA ? nearAmoebaFloor(s) : inWaters(th, s);
-    const on = th.hungry && th.stun <= 0 && th.sated <= 0 && fightOn(T) && zone;
-    const at = hunterPoint(th, s);
-    const dist = isA ? Math.hypot(s.center.x - amoeba.pos.x, s.center.z - amoeba.pos.z) : th.pos.distanceTo(s.center);
-    const low = isA ? s.center.y < amoeba.H * 2 + 150 : true;
-    const near = on && (isA ? dist < 650 : dist < 480);
-    const inReach = on && (isA ? dist < amoeba.R + 330 && low : dist < (th.tipLen || 66) + 184);
-    // facing it matters for a block, except against Dileptus: trichocysts fire where you are touched
-    const facing = isDileptus(th) ? T.blockT > 0 || facingOf(s, at) > 0.45 : facingOf(s, at) > 0.45;
-    // trichocysts never block Didinium (C15): only distance saves you from it
-    const blocking = !isDidinium(th) && T.blockT > 0;
-    if (near && !isA) hint(th, T);
-    const f = th.fight.update(dt, { near, inReach, facing, blocking });
-    th.fightState = f.state; th.fightT = f.t;
-    if (f.hit && on) {
-      const hit = isA ? dist < amoeba.R + 290 && low : th.tip && segDist(th.tip, s) < 85;
-      if (hit) {
-        if (isA) amoeba.tip.set(amoeba.pos.x, amoeba.H, amoeba.pos.z);
-        if (T.swimmer.capture(th)) startCapture(T, th);
-      } else if (T === P1 || multi()) hud.toast(`${who(T)}${th.label} strikes and misses${isDidinium(th) ? ': you dodged it' : ''}`, 1200);
-    }
-    if (f.blocked) {
-      contactFx.puff(isA ? s.center : th.tip || th.pos, new THREE.Vector3().subVectors(s.center, at).normalize(), 1);
-      if (isA) amoeba.recoil(); else th.stun = Math.max(th.stun || 0, isDileptus(th) ? 2.5 : 0.6);
-      T.pad.rumble(220, 0.8, 0.7);
-      hud.toast(`${who(T)}${isDileptus(th) ? 'Trichocysts! Dileptus recoils from the threads' : `Blocked! ${th.label} recoils`}`, 1600);
-    }
-    if (f.retreated) { th.hunger.missed(); hud.toast(`${th.label} loses interest and ${isA ? 'creeps' : 'swims'} away`, 2200); }
-  }
-}
-
-// --- one-time hints: the right defence for each hunter (combat-ideas.md idea 1) ---
-const HINTS = {
-  dileptus: () => `Dileptus: a long hunter that slashes with its trunk. Trichocysts drive it off: press ${glyph('B')} as its trunk swings at you`,
-  didinium: () => `Didinium: trichocysts can't stop it (its pexicysts hold on). Keep away: back off early with ${glyph('B')}, dodge its lunge sideways with ${glyph('A')}`,
-};
-const hinted = new Set();
-const hintLog = [];
-function hint(th, P) {
-  if (hinted.has(th.kind) || !HINTS[th.kind]) return;
-  hinted.add(th.kind);
-  hintLog.push({ kind: th.kind, t, slot: P.slot });
-  hud.toast(`${who(P)}${HINTS[th.kind]()}`, 6000);
-}
-
-// --- the boss: the bladderwort trap guarding the biofilm ---------------------------
-// A shared/predation.js fight with more resolve and three patterns: an aimed
-// pulse when you come near its door (trigger hairs), a pulse on its own every
-// 7–12 s while you are about, and (resolve under half) a wider pull. Its tell:
-// the door quivers and the walls draw in; then the suction pulse pulls in
-// everything near the door; then it resets for 2.4 s with the door shut: dash
-// past then. Each wasted pulse and each trichocyst burst out of its inflow
-// (B) costs it resolve; spent, it hangs full and slack and cannot fire for a
-// while. Dormant until a player comes near after the calm opening.
-trap.fight = createFight({ windup: 1.3, strike: 0.38, recoverT: 2.4, repelT: 1.4, retreatT: 24, facingRate: 0, blockHit: 0.18, biteHit: 0.17, regain: 0.008 });
-trap.hunger = createHunger({ grace: 0 });
-trap.spontT = 8;
-const gaugeEl = document.createElement('div');
-gaugeEl.style.cssText = 'position:fixed;left:50%;top:64px;transform:translateX(-50%);z-index:3;pointer-events:none;display:none;color:#e6d3a3;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.04em;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.7)';
-gaugeEl.innerHTML = '<div class="nm"></div><div style="margin:3px auto 0;width:150px;height:5px;border:1px solid rgba(201,163,90,.85);border-radius:3px;background:rgba(20,16,8,.45)"><i style="display:block;height:100%;background:#c9a35a;border-radius:2px;width:100%"></i></div>';
-document.body.appendChild(gaugeEl);
-const bossInfo = { log: [] };
-function runBoss(dt) {
-  // placed with the portal: until then it is hidden and out of the way
-  if (!trap.placed) { gaugeEl.style.display = 'none'; return; }
-  const after = true;
-  let nd = Infinity;
-  for (const P of liveRoster()) { const s = P.swimmer.state; if (s.mode === 'dead') continue; nd = Math.min(nd, s.center.distanceTo(trap.door)); }
-  if (!trap.awake && (after || bossInfo.force) && nd < trap.wakeR) {
-    trap.awake = true; bossInfo.log.push({ ev: 'wake', t });
-    hud.toast('A bladderwort trap guards the biofilm. Make it fire and miss until it is spent (the gauge), then slip past to the golden light', 4200);
-  }
-  if (!trap.awake) { trap.update(dt, 'stalk', 0, t); gaugeEl.style.display = 'none'; return; }
-  const pullR = trap.pullR * (trap.phase2 ? 1.3 : 1);
-  // the patterns: an aimed pulse (someone at its trigger hairs) or one on its own
-  trap.spontT -= dt;
-  let fire = nd < 320;
-  if (trap.spontT <= 0 && nd < trap.wakeR) { fire = true; if (trap.fight.state === 'windup') trap.spontT = 7 + Math.random() * 5; }
-  const inflow = (P) => { const s = P.swimmer.state; return !P.waiting && (s.mode === 'swim' || s.mode === 'avoid') && !P.capture.active && s.center.distanceTo(trap.door) < pullR; };
-  const blocking = roster.some((P) => (inflow(P) && P.blockT > 0) || (P.trapBurstAt !== undefined && t - P.trapBurstAt < 0.9));
-  const f = trap.fight.update(dt, { near: nd < trap.wakeR, inReach: fire, facing: true, blocking });
-  if (f.state === 'windup' && trap.state !== 'windup') bossInfo.log.push({ ev: 'tell', t });
-  trap.phase2 = f.interest < 0.5;
-  let caught = false;
-  if (f.state === 'strike') {
-    if (!trap.pulsed) { trap.pulsed = true; bossInfo.log.push({ ev: 'pulse', t }); contactFx.puff(trap.door, trap.dir, 1.4); for (const P of roster) if (inflow(P)) P.pad.rumble(300, 0.9, 0.9); }
-    for (const P of roster) {
-      if (!inflow(P)) continue;
-      const s = P.swimmer.state;
-      const to = new THREE.Vector3().subVectors(trap.door, s.center);
-      const d = to.length();
-      // B in the pulse: the trichocysts push you out of the inflow
-      if (P.blockT > 0) { s.axis.addScaledVector(to.normalize(), -900 * dt); continue; }
-      // the inflow: strongest at the door (a game value; really ≈1 m/s for half a millisecond); a dash out escapes it at the edge
-      s.axis.addScaledVector(to.normalize(), (200 + 1900 * Math.pow(1 - d / pullR, 0.8)) * dt);
-      if (d < 95) { s.safeT = 0; if (P.swimmer.capture(trap)) { startCapture(P, trap); caught = true; bossInfo.log.push({ ev: 'catch', slot: P.slot, t }); } }
-    }
-  }
-  if (f.blocked) trap.blockedPulse = true;
-  if (caught) trap.caughtPulse = true;
-  if (f.state !== 'strike' && trap.pulsed) {
-    // the pulse is over: wasted if it caught no one and no one burst out of it (that counted already)
-    const wasted = !trap.caughtPulse && !trap.blockedPulse && !roster.some((P) => P.capture.active && P.cap.th === trap);
-    trap.pulsed = false; trap.caughtPulse = false; trap.blockedPulse = false;
-    if (wasted) {
-    // a wasted pulse: it has to reset, and it tires
-    const gone = trap.fight.bitten();
-    bossInfo.log.push({ ev: 'miss', t });
-    if (nd < trap.wakeR && !gone) hud.toast('The trap fired and missed: it is resetting. Dash past now!', 2000);
-    }
-  }
-  if (f.blocked) { bossInfo.log.push({ ev: 'blocked', t }); hud.toast('Trichocysts! You burst clear of the inflow', 1800); }
-  if (trap.fight.state === 'retreat' && !trap.spent) { trap.spent = true; bossInfo.log.push({ ev: 'spent', t }); hud.toast('The trap has fired itself out: full and slack, it cannot reset for a while. Slip past to the biofilm!', 3600); }
-  else if (trap.fight.state !== 'retreat') trap.spent = false;
-  trap.fightT = f.t;
-  trap.update(dt, trap.fight.state, f.t, t);
-  // the resolve gauge: quiet, brass, only while someone is near
-  const show = trap.awake && nd < trap.wakeR * 1.3;
-  gaugeEl.style.display = show ? 'block' : 'none';
-  if (show) {
-    gaugeEl.querySelector('.nm').textContent = trap.spent ? 'Bladderwort trap · spent' : `Bladderwort trap${trap.phase2 ? ' · straining' : ''}`;
-    gaugeEl.querySelector('i').style.width = `${Math.round(trap.fight.interest * 100)}%`;
-  }
-}
-
-// --- who the hunters go for -------------------------------------------------------
-/** The player a hunter goes for: the one it holds, else the nearest free one. */
-function targetOf(th) {
-  const held = roster.find((P) => P.swimmer.state.captor === th);
-  if (held) return held;
-  const at = th === amoeba ? new THREE.Vector3(amoeba.pos.x, 0, amoeba.pos.z) : th.pos;
-  let best = null, bd = Infinity;
-  for (const P of liveRoster()) {
-    const s = P.swimmer.state;
-    if (s.mode === 'dead' || s.mode === 'captured' || P.capture.active) continue;
-    let d = th === amoeba ? Math.hypot(s.center.x - at.x, s.center.z - at.z) : s.center.distanceTo(at);
-    if (th !== amoeba && !inWaters(th, s)) d += 1e6; // a player outside its waters is never its first choice
-    if (d < bd) { bd = d; best = P; }
-  }
-  return best || P1;
-}
-
-// --- the landmarks ---------------------------------------------------------------
-const FWD = LANDMARKS.forward, BACK = LANDMARKS.back;
-const lm = { fired: false, near: false, nearing: false, log: [] };
-function landmark(kind, P) {
-  lm.log.push({ kind, slot: P ? P.slot : 0, t });
-  embed.landmark(kind, { player: P ? P.slot : 0 });
-}
-const flatDist = (s, L) => Math.hypot(s.center.x - L.pos.x, s.center.z - L.pos.z);
-// --- the encounters, placed as you go (micro/design/encounter-pattern.md) --------
-// The director (shared/director.js) places the encounters one at a time, in
-// this order (route.js ENCOUNTERS), in water nobody has seen, a little ahead
-// of whoever is furthest along (or, if they linger, round them): the
-// Dileptus, the Chlamydomonas bloom across the way, the two Didinium, then
-// the biofilm (the portal) with the bladderwort trap on guard in front of it.
-// Each comes only after the one before was met and a calm break has passed;
-// nothing a player has seen is ever placed, moved or removed. The scenery is
-// laid out before play (world.js); until placed, each hunter is parked
-// (hidden, not stepped), the bloom and the trap hidden.
-const livePos = () => liveRoster().filter((P) => P.swimmer.state.mode !== 'dead').map((P) => P.swimmer.state.center);
-const dileptus = world.didinia.find((d) => d.kind === 'dileptus'), didinia = world.didinia.filter((d) => d.kind === 'didinium');
-/** Put hunter d's home (and itself) at (x, z), at its own depth, hungry after a grace; shown and stepped from now on. */
-function placeHunter(d, x, z, i = 0, path = false) {
-  d.home.set(x, d.home.y, z); d.pos.copy(d.home); d.speed = 0; d.stun = 0; d.sated = 0;
-  d.parked = false; d.group.visible = enc.opts.didinium;
-  d.hunger.reset(pacing.grace + i * 5); d.fight.reset();
-  // (on the default path from the first frame: the encounters are reached when the first is met instead)
-  if (!pacing.reached && !path) { pacing.reached = true; pacing.reachedAt = t - pacing.t0; }
-}
-const nearXZ = (h, p, r) => Math.hypot(p.x - h.x, p.z - h.z) < r;
-const ENC = {
-  dileptus: { place: (x, z, b, info) => { placeHunter(dileptus, x, z, 0, info.instance === 'default'); return dileptus; },
-    // in its waters (its home and a margin), or close to it
-    met: (d, [p]) => nearXZ(d.home, p, d.homeR + 450) || nearXZ(d.pos, p, 550) },
-  bloom: { place: (x, z, b) => { bloom.place(x, z, b); bloom.group.visible = bloom.on; return bloom; },
-    met: (B, [p]) => bloom.distTo(p) < 300 },
-  didinium: { place: (x, z, b, info) => { didiniumHomes(x, z, b).forEach(([hx, hz], i) => placeHunter(didinia[i], hx, hz, i, info.instance === 'default')); return didinia; },
-    met: (L, [p]) => L.some((d) => nearXZ(d.home, p, d.homeR + 450) || nearXZ(d.pos, p, 550)) },
-  // the last: entering the open portal ends the level
-  portal: { place: (x, z, b) => { placePortal(x, z, b); return FWD; }, met: () => false },
-};
-// The default path (route.js DEFAULT_PATH): all four laid out along one bearing on the first frame, so the way
-// on exists from the start (sealed until the three before it are met: portalSealed); head off another way and
-// each, while nobody has seen it, leaves the path and is placed ahead of you as before (one thing each: single).
-const director = createDirector({ ...DIRECTOR, canPlace, defaultPath: DEFAULT_PATH, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id], single: true })) });
-const PORTAL_INDEX = ENCOUNTERS.findIndex((e) => e.final);
-/** The way on exists from the start but stays shut until every earlier encounter is met (the director's order). */
-function portalSealed() { return director.index < PORTAL_INDEX; }
-// What every view sees, for the director: each split view's frustum (the
-// camera offset for it), its far plane brought in to where the view fades out
-// (cullFor: VIEW_FAR), and its focus (what it frames). Updated each frame
-// after the cameras; debug.step updates the cameras too, so scripted runs see
-// what play would.
-const viewPool = [0, 1, 2, 3].map(() => ({ frustum: new THREE.Frustum(), focus: new THREE.Vector3() }));
-const _pm = new THREE.Matrix4(), _dfw = new THREE.Vector3();
-let seenViews = null;
-function directorViews(cam) {
-  const list = [];
-  const n = Math.max(1, split.views.length);
-  for (let i = 0; i < n && i < 4; i++) {
-    const v = viewPool[i];
-    split.withView(i, cam, () => {
-      cam.updateMatrixWorld();
-      v.frustum.setFromProjectionMatrix(_pm.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
-      cam.getWorldDirection(_dfw);
-      v.focus.copy(cam.position).addScaledVector(_dfw, shared.uFocus.value);
-      if (cam.isPerspectiveCamera) {
-        // the far plane: where the view fades out (not the camera's 12 mm)
-        let fi = 0, fd = 2;
-        v.frustum.planes.forEach((pl, k) => { const dd = pl.normal.dot(_dfw); if (dd < fd) { fd = dd; fi = k; } });
-        v.frustum.planes[fi].normal.copy(_dfw).negate();
-        v.frustum.planes[fi].constant = _dfw.dot(cam.position) + VIEW_FAR;
+const director = createDirector({
+  ...DIRECTOR, canPlace: (x, z, r) => canPlace(x, z, r), defaultPath: DEFAULT_PATH,
+  entries: ENCOUNTERS.map((e) => ({
+    ...e, single: true,
+    place: (x, z, b) => {
+      const y = z;
+      if (e.id === 'dileptus') { Object.assign(dileptus, { home: { x, y }, x: x - Math.cos(b) * 60, y: y - Math.sin(b) * 60, a: b + Math.PI, placed: true, mode: 'idle', t: 0, grace: 1.5, drives: 0 }); return dileptus; }
+      if (e.id === 'bloom') { placeBloom(bloom, x, y, b); return bloom; }
+      if (e.id === 'giant') { Object.assign(giant, { home: { x, y }, x, y, placed: true, mode: 'roam', t: 0, grace: 1.5, pods: [] }); stepGiant(giant, [], 0); return giant; }
+      if (e.id === 'didinium') {
+        didiniumHomes(x, y, b).forEach(([hx, hy], i) => Object.assign(didinia[i], { home: { x: hx, y: hy }, x: hx, y: hy, a: b + Math.PI, placed: true, mode: 'idle', t: 0, grace: 1 + i * 2.5, misses: 0 }));
+        return didinia;
       }
-    });
-    list.push(v);
-  }
-  seenViews = list;
-}
-function stepDirector(dt) {
-  if (outro) return;
-  const ps = roster.filter((P) => !P.waiting).map((P) => { const c = P.swimmer.state.center; return { id: P.slot, x: c.x, y: c.y, z: c.z, alive: P.swimmer.state.mode !== 'dead' && !P.capture.active }; });
-  const ev = director.update(dt, ps, seenViews);
-  for (const e of ev) {
-    lm.log.push({ kind: `${e.id} ${e.type}`, how: e.how, t: +t.toFixed(2) });
-    if (e.type === 'met' && !pacing.reached) { pacing.reached = true; pacing.reachedAt = t - pacing.t0; }
-  }
-  driftEncounter(dt);
-}
-/**
- * The current encounter, placed beyond a lingering player's reach, comes over
- * to them: a hunter's home (and so the hunter) drifts toward the leader at
- * DRIFT µm/s, the bloom too, until they meet it. Behaviour, not a placement.
- */
-const DRIFT = 350;
+      return placePortalAt(x, y, b);
+    },
+    met: (h, [p]) => {
+      if (e.id === 'dileptus') return hyp(p.x - dileptus.home.x, p.z - dileptus.home.y) < MET.dileptus || hyp(p.x - dileptus.x, p.z - dileptus.y) < MET.dileptus;
+      if (e.id === 'bloom') return bandDist(p.x, p.z, bloom.x, bloom.y, bloom.b) < MET.bloom;
+      if (e.id === 'giant') return hyp(p.x - giant.x, p.z - giant.y) < MET.giant;
+      if (e.id === 'didinium') return didinia.some((d) => hyp(p.x - d.home.x, p.z - d.home.y) < MET.didinium || hyp(p.x - d.x, p.z - d.y) < MET.didinium);
+      return hyp(p.x - FWD.x, p.z - FWD.y) < MET.portal;
+    },
+  })),
+});
+const PORTAL_INDEX = ENCOUNTERS.length - 1;
+const portalSealed = () => director.state().index < PORTAL_INDEX;
+const guarded = () => trapGuarding(trap);
+const challengeLog = [];
+/** The current encounter comes over to a player who lingers (behaviour, not a placement: main's driftEncounter). */
+let lingerT = 0;
 function driftEncounter(dt) {
-  const e = ENCOUNTERS[director.index];
-  if (!e || e.final) return;
-  const S0 = director.entry(e.id);
-  if (!S0 || S0.state !== 'placed' || t - (S0.driftT0 ??= t) < 4) return;
-  const lead = director.leader, P = lead && roster.find((Q) => Q.slot === lead.id);
-  if (!P || lead.moving) return;
-  const c = P.swimmer.state.center;
-  if (e.id === 'bloom') {
-    const d = bloom.distTo(c);
-    if (d < 250) return;
-    const dx = c.x - BLOOM.x, dz = c.z - BLOOM.z, l = Math.hypot(dx, dz) || 1, k = Math.min(d, DRIFT * dt) / l;
-    bloom.shift(dx * k, dz * k);
+  const s = director.state();
+  const L = s.leader && cells.find((c) => c.slot === s.leader.id);
+  if (!L || s.phase !== 'placed' || s.current === 'portal' || s.leader.moving) { lingerT = 0; return; }
+  lingerT += dt;
+  if (lingerT < 4) return;
+  const homes = s.current === 'dileptus' ? [dileptus.home] : s.current === 'giant' ? [giant.home, giant] : s.current === 'didinium' ? didinia.map((d) => d.home) : s.current === 'bloom' ? [bloom] : [];
+  for (const o of homes) {
+    const d = hyp(L.S.x - o.x, L.S.y - o.y);
+    if (d <= 520) continue;
+    const k = Math.min(d - 520, 300 * dt) / d, dx = (L.S.x - o.x) * k, dy = (L.S.y - o.y) * k;
+    o.x += dx; o.y += dy;
+    if (o === bloom) for (const c of bloom.cells) { c.x += dx; c.y += dy; }
+  }
+}
+/** The director's views: each view's field (a turned rectangle, a margin for parallax). */
+const dirViews = [0, 1, 2, 3].map(() => ({ frustum: [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], focus: { x: 0, y: 0, z: 0 } }));
+let lastViews = [{ cx: START.x, cy: START.y, hw: 320, hh: 180 }];
+function directorViews() {
+  const c = Math.cos(view.rot), s = Math.sin(view.rot);
+  return lastViews.slice(0, 4).map((v, i) => {
+    const D = dirViews[i], hw = v.hw * 1.2, hh = v.hh * 1.2;
+    const ex = [c, s], ey = [-s, c];
+    const dc = (e) => e[0] * v.cx + e[1] * v.cy;
+    D.frustum[0] = [-ex[0], 0, -ex[1], dc(ex) + hw]; D.frustum[1] = [ex[0], 0, ex[1], -dc(ex) + hw];
+    D.frustum[2] = [-ey[0], 0, -ey[1], dc(ey) + hh]; D.frustum[3] = [ey[0], 0, ey[1], -dc(ey) + hh];
+    D.focus.x = v.cx; D.focus.y = 0; D.focus.z = v.cy;
+    return D;
+  });
+}
+const dirPlayers = () => cells.map((c) => ({ id: c.slot, x: c.S.x, z: c.S.y, alive: c.live }));
+
+// --- the portal: the golden glow over the leaf (shared/portal.js), drawn over the field with a camera looking down ---
+const GLOW_S = 200, GLOW_D = 10;
+const glowScene = new THREE.Scene();
+const glowCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+const _buf = new THREE.Vector2();
+const glow = createPortalGlow({ THREE, scene: glowScene, size: 1, height: 0.9, beam: 0, count: 110, intensity: 1.6, pixelHeight: () => renderer.getDrawingBufferSize(_buf).y * GLOW_S * GLOW_D });
+glow.group.rotation.x = Math.PI / 2;
+glow.group.scale.set(GLOW_S, 1, GLOW_S);
+glow.group.visible = false;
+const glowUI = (() => { let u = null; glow.group.traverse((o) => { if (!u && o.material && o.material.uniforms && o.material.uniforms.uI) u = o.material.uniforms.uI; }); return u; })();
+const GLOW_I = glowUI ? glowUI.value : 1;
+const portalLight = createPortalLight({ zIndex: 3 });
+const marks = createLandmarks();
+// the next world's creature: a magnetotactic spirillum swimming over the biofilm
+const spir = { x: 0, y: 0, z: DEPTH.min + 14, a: 0, roll: 0, home: 0 };
+
+// --- the split screen (2D: the field drawn round a centre; its offsets turned with the view) ---
+const SPLIT_ZOOM_MAX = 1.6;
+const split = createSplitScreen(renderer, { capture: true, zoomMax: SPLIT_ZOOM_MAX });
+const groupZoom = { z: 1, applied: 1 };
+const toFrame = (x, y) => { const c = Math.cos(view.rot), s = Math.sin(view.rot), dx = x - view.cx, dy = y - view.cy; return { x: view.cx + dx * c + dy * s, y: view.cy - dx * s + dy * c, z: 0 }; };
+const fromFrameOffset = (o) => { const c = Math.cos(view.rot), s = Math.sin(view.rot); return { x: o.x * c - o.y * s, y: o.x * s + o.y * c }; };
+
+// ---------------------------------------------------------------- actions
+const hintOnce = (P, k, text, ms = 3200) => { if (P.hint[k]) return; P.hint[k] = true; hud.toast(`${who(P)}${text}`, ms); };
+const nearestThreatAngle = (P) => {
+  let best = null, bd = 700;
+  const consider = (x, y) => { const d = hyp(x - P.S.x, y - P.S.y); if (d < bd) { bd = d; best = Math.atan2(P.S.y - y, P.S.x - x); } };
+  if (dileptus.placed) consider(dileptus.x, dileptus.y);
+  for (const d of didinia) if (d.placed) consider(d.x, d.y);
+  if (giant.placed) consider(giant.x, giant.y);
+  if (trap.placed) { const D = trapDoor(trap); consider(D.x, D.y); }
+  return best;
+};
+/** X: gulp prey at the oral end; in the bloom gulp a cone of algae; else a trichocyst jab ahead. */
+function attack(P) {
+  const S = P.S;
+  const p = gulpPrey(prey, S);
+  if (p) { ate(P, p.kind === 'chilomonas' ? 'a Chilomonas' : 'a bacterial clump'); return; }
+  const n = gulpBloom(bloom, S);
+  if (n) {
+    P.algae = (P.algae || 0) + n;
+    audio.play('paramecium/gulp', { volume: 0.6, rate: 1.1 });
+    if (P.algae >= BLOOM.perMeal) { P.algae -= BLOOM.perMeal; ate(P, `${BLOOM.perMeal} Chlamydomonas`); }
     return;
   }
-  for (const d of e.id === 'dileptus' ? [dileptus] : didinia) {
-    const dx = c.x - d.home.x, dz = c.z - d.home.z, l = Math.hypot(dx, dz);
-    if (l < d.homeR + 300) continue;
-    const k = Math.min(l, DRIFT * dt) / l;
-    d.home.x += dx * k; d.home.z += dz * k;
-  }
+  if (P.jabCd > 0) return;
+  P.jab = 0; P.jabCd = 0.45;
+  audio.play('paramecium/trichocysts', { volume: 0.7, rate: 1.3 });
+  const fx = S.x + Math.cos(S.a) * LENGTH * 0.5, fy = S.y + Math.sin(S.a) * LENGTH * 0.5;
+  const inCone = (x, y, z, r = 0) => { const d = hyp(x - fx, y - fy) - r; return d < 150 && Math.abs(z - S.z) < 80 && Math.cos(Math.atan2(y - fy, x - fx) - S.a) > 0.5; };
+  if (dileptus.placed && inCone(dileptus.x, dileptus.y, dileptus.z, 40) && dileptus.mode !== 'flee') { dileptus.mode = 'stunned'; dileptus.t = 0.6; log('jab', 'dileptus', P); }
+  for (const d of didinia) if (d.placed && inCone(d.x, d.y, d.z, 40) && /chase|crouch/.test(d.mode)) { d.mode = 'stagger'; d.t = 0; log('jab', 'didinium', P); hintOnce(P, 'stagger', 'A jab staggers Didinium for a moment, no more: keep away'); }
+  if (giant.placed && (P.engulfed || hyp(giant.x - S.x, giant.y - S.y) < GIANT.R + 300)) { const r = burstGiant(giant, P); if (r) log('jab', 'giant:' + r, P); }
 }
-/** Put the biofilm at (x, z), met coming along bearing a, with the bladderwort trap on guard in front of it (door toward whoever comes). */
-function placePortal(x, z, a) {
-  drop.place(x, z, a);
-  const [tx, tz] = trapAt(x, z, a);
-  trap.place(new THREE.Vector3(tx, 0, tz), a + Math.PI);
-  portalGlow.setPosition(FWD.pos.x, 24, FWD.pos.z);
-  portalGlow.group.visible = true;
-  spir.pos.set(FWD.pos.x, 28, FWD.pos.z); spir.group.visible = true;
-  portal.turned = false;
-  lm.log.push({ kind: 'portalPlaced', a: +a.toFixed(3), t: +t.toFixed(2) });
+function ate(P, what) {
+  game.eaten++;
+  P.vacuoles.push({ l: Math.random() * TAU, rho: 0.3 + Math.random() * 0.6, r: 4 + Math.random() * 2.5, age: 0 });
+  if (P.vacuoles.length > 6) P.vacuoles.shift();
+  audio.play('paramecium/gulp', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
+  P.pad?.rumble?.(90, 0.3, 0.2);
+  if (game.eaten >= GOAL) { game.eaten = 0; game.divided++; hud.toast(`${who(P)}Ate ${what}: the cell divides! (${game.divided})`, 2600); }
+  else hud.toast(`${who(P)}Ate ${what} (${game.eaten}/${GOAL})`, 1400);
 }
-/** The portal's state: guarded while the trap is on guard (not spent). */
-const portal = { turned: false };
-const guarded = () => FWD.placed && !trap.spent;
-function landmarkTick(dt) {
-  let at = null, close = false;
-  for (const P of roster) {
-    const s = P.swimmer.state;
-    const ok = !P.waiting && (s.mode === 'swim' || s.mode === 'avoid') && !P.capture.active;
-    // forward: down on the biofilm (over the leaf), once it is placed; open, Y there goes through
-    const df = flatDist(s, FWD);
-    P.atPortal = FWD.placed && !outro && ok && df < FWD.r && s.center.y < FWD.reachY;
-    if (P.atPortal) at = at || P;
-    if (FWD.placed && df < FWD.r * 1.6 && s.center.y < FWD.reachY * 1.6) close = true;
-    // backdoor: low over the floor where the amoeba crawls
-    P.backT = ok && flatDist(s, BACK) < BACK.r && s.center.y < BACK.reachY ? P.backT + dt : 0;
-  }
-  // nearing the open way on: the shell can start loading the next world
-  const nearing = FWD.placed && !portalSealed() && livePos().some((c) => Math.hypot(c.x - FWD.pos.x, c.z - FWD.pos.z) < 900);
-  if (nearing !== !!lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
-  if (at && !lm.fired) {
-    if (guarded()) {
-      // turned back: the trap's inflow sweeps the water off the leaf toward its door
-      const sA = at.swimmer.state;
-      const away = new THREE.Vector3(START.x - sA.center.x, 0, START.z - sA.center.z).normalize();
-      sA.burst.addScaledVector(away, 3200);
-      if (!portal.turned) { portal.turned = true; hud.toast('Turned back: the bladderwort trap still guards the biofilm. Make it fire and miss until it is spent, then come back', 4200); }
-      lm.log.push({ kind: 'turnedBack', slot: at.slot, t: +t.toFixed(2) });
-      lm.fired = true;
-    } else if (portalSealed()) {
-      // the way on exists from the start (the default path) but opens only once every encounter before it is met
-      hud.toast('The biofilm is not open to you yet: the hunters are still out in the drop', 2600);
-      lm.log.push({ kind: 'sealed', slot: at.slot, t: +t.toFixed(2) });
-      lm.fired = true;
+/** B: the trichocyst burst (while charged) and the avoiding reaction. */
+function defend(P) {
+  const S = P.S;
+  const away = nearestThreatAngle(P);
+  backOff(S, away);
+  audio.play('paramecium/reverse', { volume: 0.7 });
+  if (P.charges <= 0) { hintOnce(P, 'empty', 'No trichocysts left: they recharge in a few seconds (the stars in the strip)', 2600); return; }
+  P.charges--; P.burst = 0;
+  audio.play('paramecium/trichocysts', { volume: 1 });
+  P.pad?.rumble?.(200, 0.5, 0.6);
+  const rD = burstDileptus(dileptus, P);
+  if (rD === 'driven' || rD === 'beaten') { log('burst', 'dileptus:' + rD, P); hud.toast(`${who(P)}Trichocysts! The Dileptus recoils${rD === 'beaten' ? ' and gives up' : ''}`, 2200); }
+  else if (rD === 'early') log('burst', 'dileptus:early', P);
+  const rG = burstGiant(giant, P);
+  if (rG) { log('burst', 'giant:' + rG, P); if (rG === 'freed') hud.toast(`${who(P)}Burst free of the amoeba's cup!`, 2000); }
+  const rT = burstTrap(trap, P);
+  if (rT) { log('burst', 'trap', P); hud.toast(`${who(P)}Burst out of the inflow! (the trap's resolve ${Math.max(0, trap.resolve)})`, 2000); }
+  for (const d of didinia) if (d.placed && d.target === P && /crouch|lunge/.test(d.mode) && hyp(d.x - S.x, d.y - S.y) < 320) { log('burst', 'didinium:no', P); hintOnce(P, 'didb', "Trichocysts can't stop Didinium: dodge sideways or change depth as it crouches"); }
+}
+function log(type, what, P) { challengeLog.push({ type, what, slot: P ? P.slot : 0, t: +game.t.toFixed(2) }); if (challengeLog.length > 200) challengeLog.shift(); }
+/** Death: the player keeps control until this moment; then the cell dissolves (visible), and comes back. */
+const DISSOLVE = 1.5, RESPAWN = 2.4;
+function kill(P, by, how) {
+  if (!P.live || P.invuln > 0 || outro) return;
+  P.live = false; P.dead = { t: 0, by, how }; P.engulfed = null;
+  hud.toast(`${who(P)}Eaten: ${by} ${how}`, 2600);
+  audio.play('paramecium/held', { volume: 1 });
+  P.pad?.rumble?.(500, 0.8, 0.9);
+  embed.captured({ by, player: P.slot });
+  log('died', by, P);
+}
+function respawn(P) {
+  const others = cells.filter((c) => c !== P && c.live);
+  let x, y, z = 0;
+  if (others.length) { const o = others[0]; x = o.S.x - Math.cos(o.S.a) * 160; y = o.S.y - Math.sin(o.S.a) * 160; z = o.S.z; }
+  else {
+    // a little back toward the start, at the spot furthest from every hunter
+    const bx = P.S.x + (START.x - P.S.x) * 0.15, by = P.S.y + (START.y - P.S.y) * 0.15;
+    let best = -1;
+    for (let k = 0; k < 12; k++) {
+      const a = (k / 12) * TAU, cx = bx + Math.cos(a) * 650, cy = by + Math.sin(a) * 650;
+      let d = 1e9;
+      if (dileptus.placed) d = Math.min(d, hyp(cx - dileptus.x, cy - dileptus.y));
+      for (const q of didinia) if (q.placed) d = Math.min(d, hyp(cx - q.x, cy - q.y));
+      if (giant.placed) d = Math.min(d, hyp(cx - giant.x, cy - giant.y) - GIANT.R);
+      if (trap.placed) d = Math.min(d, hyp(cx - trap.x, cy - trap.y) - 300);
+      if (bloom.placed) d = Math.min(d, bandDist(cx, cy, bloom.x, bloom.y, bloom.b) + 200);
+      if (d > best) { best = d; x = cx; y = cy; }
     }
   }
-  if (!close) lm.fired = false;
-  // anyone down on the open biofilm: "Y Enter the portal"; their Y goes through (the input loop)
-  setPortalPrompt(!!at && !outro && !portalSealed() && !guarded());
-  const dweller = roster.find((P) => P.backT > 0.5) || null;
-  if (!!dweller !== lm.near) { lm.near = !!dweller; embed.near('back', lm.near); }
-  promptEl.style.display = lm.near && !embed.active ? 'block' : 'none';
-  if (lm.near) promptEl.textContent = `${glyph('Y')} · back to the amoeba`;
+  Object.assign(P.S, { x, y, z: clamp(z, ZMIN, ZMAX), v: 0, dashT: 0, backT: 0 });
+  P.live = true; P.dead = null; P.spawn = 0; P.invuln = 2.5; P.charges = 3;
+  for (const f of [dileptus, ...didinia]) if (f.target === P) { f.target = null; if (f.mode !== 'parked') f.mode = 'idle'; f.grace = 3; }
 }
-/** The portal's Y prompt: on while anyone is at the open portal (the shell, or standalone embed.js, shows it). */
-function setPortalPrompt(on) {
-  if (on === !!lm.portal) return;
-  lm.portal = on;
-  embed.near('portal', on);
+
+// ---------------------------------------------------------------- landmarks: the portal and the way back
+const lm = { log: [], portal: false, nearing: false, back: false, latch: false, turned: false };
+const BACKR = 260;
+function stepLandmarks(dt) {
+  // the way on: down on the biofilm (over the leaf, deep in the drop)
+  let any = null;
+  for (const P of cells) {
+    P.atPortal = leaf.placed && P.live && hyp(P.S.x - FWD.x, P.S.y - FWD.y) < leaf.r * 0.85 && P.S.z < -50;
+    if (P.atPortal) any = P;
+  }
+  if (leaf.placed) {
+    const dmin = Math.min(...cells.map((P) => hyp(P.S.x - FWD.x, P.S.y - FWD.y)));
+    const nearing = !portalSealed() && dmin < 1400;
+    if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
+    if (dmin < 900 && !portalSealed() && guarded()) hintOnce(P1, 'trap', 'A bladderwort trap guards the biofilm: make it fire and miss (B bursts you out of its pull) until it hangs slack', 4000);
+  }
+  if (any && !lm.latch) {
+    lm.latch = true;
+    if (portalSealed()) hud.toast(`${who(any)}The biofilm is not open to you yet: the hunters are still out in the drop`, 2600);
+    else if (guarded()) {
+      // turned back: swept off the leaf by the trap's guard
+      lm.log.push({ kind: 'turnedBack', slot: any.slot, t: +game.t.toFixed(2) });
+      hud.toast(`${who(any)}Swept back off the leaf: the trap still guards it`, 2400);
+      const a = Math.atan2(any.S.y - FWD.y, any.S.x - FWD.x);
+      any.S.x = FWD.x + Math.cos(a) * leaf.r * 1.05; any.S.y = FWD.y + Math.sin(a) * leaf.r * 1.05; any.S.z = Math.max(any.S.z, -20);
+    } else hintOnce(any, 'portal', 'The biofilm: press Y to enter the portal', 2400);
+  }
+  if (!any) lm.latch = false;
+  setPortalPrompt(!!any && !outro && !portalSealed() && !guarded());
+  // the way back: dwell on the amoeba's patch of slide, deep
+  let back = null;
+  for (const P of cells) { const on = P.live && hyp(P.S.x - BACK.x, P.S.y - BACK.y) < BACKR && P.S.z < -40; P.back = on ? P.back + dt : 0; if (P.back > 0.5) back = P; }
+  if (!!back !== lm.back) { lm.back = !!back; embed.near('back', lm.back); }
 }
-/** Can player P go through now (down on the biofilm, its guard spent)? Then P's Y enters. */
-const atOpenPortal = (P) => !!P.atPortal && !outro && !portalSealed() && !guarded();
-/**
- * The way on: player P is at the open portal (the biofilm, its guard spent)
- * and pressed Y; it is never an automatic door (the owner, 2026-11-01). The
- * one place the zoom into the next world is triggered.
- */
+function setPortalPrompt(on) { if (on === lm.portal) return; lm.portal = on; embed.near('portal', on); }
+const atOpenPortal = (P) => P.atPortal && !outro && !portalSealed() && !guarded();
+/** The way on: P at the open portal pressed Y (never an automatic door: the owner, 2026-11-01). */
 function enterPortal(P) {
   if (outro) return;
   setPortalPrompt(false);
-  portalGlow.burst();
+  glow.burst();
   startOutro(P);
-  lm.log.push({ kind: 'forward', slot: P.slot, t });
+  lm.log.push({ kind: 'forward', slot: P.slot, t: +game.t.toFixed(2) });
   embed.landmark('forward', { player: P.slot, outro: embed.active });
 }
-/** The spirillum's swim: round the film's middle, or up to just ahead of whoever is down on the film. */
+/** The spirillum: round the film's middle, or up to just ahead of whoever is down on the leaf. */
 function stepSpirillum(dt, snap = false) {
-  if (!spir.group.visible) return;
-  let best = null, bd = Infinity;
-  for (const P of liveRoster()) {
-    const sc = P.swimmer.state.center, d = Math.hypot(sc.x - FWD.pos.x, sc.z - FWD.pos.z);
-    if (d < FWD.r * 1.6 && sc.y < FWD.reachY * 1.8 && d < bd) { bd = d; best = P; }
-  }
-  const want = new THREE.Vector3();
-  if (best) {
-    const s = best.swimmer.state, f = fwdOf(s.yaw);
-    want.copy(s.center).addScaledVector(f, HL + 45).setY(26);
-  } else {
-    spir.home += dt * 0.25;
-    want.set(FWD.pos.x + Math.cos(spir.home) * 40, 27, FWD.pos.z + Math.sin(spir.home) * 40);
-  }
-  const d = want.distanceTo(spir.pos);
-  if (snap && d > 30) spir.pos.copy(want);
+  if (!leaf.placed) return;
+  const P = cells.find((c) => c.atPortal) || (outro && outro.P);
+  let wx, wy;
+  if (P) { wx = P.S.x + Math.cos(P.S.a) * (LENGTH / 2 + 30); wy = P.S.y + Math.sin(P.S.a) * (LENGTH / 2 + 30); }
+  else { spir.home += dt * 0.25; wx = FWD.x + Math.cos(spir.home) * 60; wy = FWD.y + Math.sin(spir.home) * 60; }
+  const d = hyp(wx - spir.x, wy - spir.y);
+  if (snap && d > 20) { spir.x = wx; spir.y = wy; }
   else if (d > 0.5) {
-    const want_h = Math.atan2(want.z - spir.pos.z, want.x - spir.pos.x);
-    let dh = want_h - spir.heading; dh = Math.atan2(Math.sin(dh), Math.cos(dh));
-    spir.heading += Math.max(-1, Math.min(1, dh)) * dt * 4;
+    const want = Math.atan2(wy - spir.y, wx - spir.x);
+    spir.a = wrap(spir.a + clamp(wrap(want - spir.a), -4 * dt, 4 * dt));
     const v = Math.min(d, 60 * dt);
-    spir.pos.x += Math.cos(spir.heading) * v; spir.pos.z += Math.sin(spir.heading) * v;
-    spir.pos.y += (want.y - spir.pos.y) * Math.min(1, dt * 2);
-  } else spir.heading += dt * 0.6; // idling: a slow turn
-  spir.roll += dt * 9; // it spins on its axis as it swims
-  spir.group.position.copy(spir.pos);
-  // heading as atan2(z, x): three.js yaw turns +x toward -z, so the rotation is its negative
-  spir.group.rotation.set(0, -spir.heading, 0);
-  spir.mesh.rotation.x = spir.roll;
-  spirGlint.points.visible = true;
-  spirGlint.setPosition(spir.pos.x, spir.pos.y, spir.pos.z);
+    spir.x += Math.cos(spir.a) * v; spir.y += Math.sin(spir.a) * v;
+  } else spir.a += dt * 0.6;
+  spir.roll += dt * 9;
 }
 
 // ---------------------------------------------------------------- the continuous transition
-// Out (embed.js "Continuous transitions"): through the portal a golden burst
-// (the glow's), a bloom on screen, the shared chime and a rumble; then time
-// eases to a stop over ~1 s while the view keeps drawing (the freeze frame).
-// Frozen, it reports how the spirillum is framed (embed.frozen) and follows
-// the shell's `camera` poses: the chase camera dollies in on it (and turns to
-// look down on the film, as the bacterium's microscope does) while the
-// bacterium's world fades in under the same framing. Standalone (or a shell
-// that never answers) the freeze holds a moment and time comes back.
-// In: provides 'intro'. Held at its start, it draws its opening view, reports
-// how that frames your cell (embed.opening) and takes the shell's poses,
-// ending exactly on that view; on `begin` time eases back in.
-const OUTRO = { beat: 0.3, ease: 1.0, hold: 1.4, back: 0.6, giveUp: 8, rate: 1 }; // rate: tests slow it down
-// The dive (the shell's camera move, asked for in embed.frozen): longer than the
-// default and with a later crossfade, so it can tell the story in order: the
-// light turns to phase contrast as the push begins (LIGHT, fractions of the
-// move), the clump shows as a dark mass, the push resolves it into cells as the
-// slime thins (SLIME), and the bacterium world takes over under the same
-// framing and settles on your cell. LIGHT_BG: the bacterium's phase field.
-const DIVE = { duration: 5.2, fade: [0.5, 0.78], halo: [0.5, 0.68] }; // halo: the shell's gold on your cell, only once the clump has resolved
-const LIGHT = [0.03, 0.3], SLIME = [0.36, 0.6], LIGHT_BG = [0.6, 0.655, 0.615];
-let outro = null;
+// Out (embed.js "Continuous transitions"; ../../game/README.md): through the
+// portal a golden burst, a bloom on screen, the chime and a rumble; time
+// eases to a stop over ~1 s while the view keeps drawing. Frozen, it reports
+// how the spirillum is framed (a 2D pose: pitch 1.55, rel its on-screen
+// heading + π/2) and asks for the dive (DIVE): the shell's poses then narrow
+// the field onto it while the light turns from darkfield to the bacterium's
+// phase contrast, its kin clump shows as a dark mass, the slime thins and the
+// mass resolves into bacteria, and the bacterium world fades in under the
+// same framing. All three neighbours are 2D slides now, so the move is one
+// continuous narrowing of the same kind of view.
+// In: provides 'intro'. Held at its start, it draws its opening view (the
+// cell centred, facing up the screen), reports how that frames it, and
+// follows the shell's poses (the amoeba's P. bursaria beacon → this cell);
+// on `begin` time eases back in.
+const OUTRO = { beat: 0.3, ease: 1.0, hold: 1.4, back: 0.6, giveUp: 8, rate: 1 };
+const DIVE = { duration: 5.2, fade: [0.5, 0.78], halo: [0.5, 0.68] };
+const LIGHT = [0.03, 0.3], SLIME = [0.36, 0.6];
+const TOP_PITCH = 1.55;
+let outro = null, intro = null, diveLight = 0;
 let fxT = 0;
-let diveLight = 0; // how far the dive has turned the light to phase contrast (0..1)
-const _clumpAbs = new THREE.Vector3(1.6, 1.55, 1.45);
 const portalBloom = createPortalLight({ zIndex: 4, clock: () => fxT });
-const sm01 = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
-/** The camera's elevation and azimuth (embed.js poses): the direction from what it looks at back to it. */
-function camAngles(cam) {
-  const d = cam.getWorldDirection(new THREE.Vector3());
-  return { yaw: Math.atan2(-d.z, -d.x), pitch: Math.asin(Math.max(-1, Math.min(1, -d.y))) };
+/** The base field width (µm) at the current objective, before the group zoom. */
+const baseField = () => FIELDS[view.field] * (innerWidth >= innerHeight ? 1 : 0.62);
+const aspect = () => innerHeight / Math.max(1, innerWidth);
+/** A creature at (x, y), heading a, length len, as a pose in the view drawn now. */
+function pose2D(x, y, a, len) {
+  const w = view.fw, h = w * aspect(), q = toFrame(x, y);
+  return { f: len / w, x: (q.x - view.cx) / (w / 2), y: (q.y - view.cy) / (h / 2), pitch: TOP_PITCH, rel: wrap(a - view.rot + Math.PI / 2) };
 }
-const cellHeading = (s) => Math.atan2(-Math.sin(s.yaw), Math.cos(s.yaw)); // fwdOf(yaw) as atan2(z, x)
+/** Set the view (centre, width, turn) so a creature at (x, y), heading a, length len, is framed as `pose` says. */
+function poseView(pose, x, y, a, len) {
+  const w = len / Math.max(1e-6, pose.f), h = w * aspect();
+  view.rot = wrap(a + Math.PI / 2 - pose.rel);
+  const o = fromFrameOffset({ x: pose.x * w / 2, y: pose.y * h / 2 });
+  view.cx = x - o.x; view.cy = y - o.y; view.fw = w;
+}
+const spirPose = () => pose2D(spir.x, spir.y, spir.a, SPIRILLUM.L);
+const cellPose = () => pose2D(P1.S.x, P1.S.y, P1.S.a, LENGTH);
 function startOutro(P) {
-  outro = { t: 0, scale: 1, frozenAt: null, cam: null, heard: false, P };
+  outro = { t: 0, scale: 1, frozenAt: null, cam: null, heard: false, P, u: 0 };
   stepSpirillum(0, true);
-  const v = FWD.pos.clone().setY(24).project(chase);
-  if (v.z < 1) portalBloom.bloom((v.x * 0.5 + 0.5) * innerWidth, (0.5 - v.y * 0.5) * innerHeight, { scale: 1.2 });
-  const c = P.swimmer.state.center.clone().project(chase);
-  if (c.z < 1) portalBloom.bloom((c.x * 0.5 + 0.5) * innerWidth, (0.5 - c.y * 0.5) * innerHeight, { scale: 0.7 });
+  const s = toScreen(FWD.x, FWD.y), c = toScreen(P.S.x, P.S.y);
+  portalBloom.bloom(s.x, s.y, { scale: 1.2 }); portalBloom.bloom(c.x, c.y, { scale: 0.7 });
   audio.play('shared/portal-chime', { volume: 0.9 });
-  P.pad.rumble(520, 0.55, 0.85);
-  // the chrome goes, the bloom stays (cinematic(false) restores both)
+  P.pad?.rumble?.(520, 0.55, 0.85);
   if (embed.active) { embed.cinematic(true, canvas); portalBloom.canvas.style.visibility = 'visible'; }
 }
-/** Advance the outro by dt (frame time); returns the time scale for the world. */
 function stepOutro(dt) {
   const o = outro;
-  o.t += dt * OUTRO.rate;
-  fxT += dt * OUTRO.rate;
+  o.t += dt * OUTRO.rate; fxT += dt * OUTRO.rate;
   o.scale = 1 - sm01(OUTRO.beat, OUTRO.beat + OUTRO.ease, o.t);
   if (o.scale <= 0 && o.frozenAt === null) {
-    o.frozenAt = o.t;
-    o.f0 = spirPose().f;
+    o.frozenAt = o.t; o.f0 = spirPose().f;
     if (embed.active) embed.frozen(spirPose(), DIVE);
   }
   if (o.frozenAt !== null) {
     const held = o.t - o.frozenAt;
     const back = !embed.active ? held - OUTRO.hold : !o.heard && held > OUTRO.giveUp ? held - OUTRO.giveUp : -1;
-    if (back >= 0) {
-      o.scale = sm01(0, OUTRO.back, back);
-      if (back >= OUTRO.back) endOutro();
-    }
+    if (back >= 0) { o.scale = sm01(0, OUTRO.back, back); if (back >= OUTRO.back) endOutro(); }
   }
   return outro ? outro.scale : 1;
 }
-function endOutro() {
-  outro = null;
-  if (embed.active) embed.cinematic(false, canvas);
-}
-/** The spirillum as a pose in the chase view just drawn. */
-function spirPose() {
-  return embed.poseOf(chase, spir.pos, { len: SPIRILLUM.L, heading: spirHeading(), ...camAngles(chase) });
-}
-/** Point the chase camera as `pose` frames `c` (length len, heading), focused there. */
-function placePoseCamera(pose, c, len, heading) {
-  const [, H] = optics.size;
-  const r = embed.poseCamera(chase, pose, c, { len, heading });
-  chase.near = Math.max(0.2, r.depth * 0.05);
-  chase.updateProjectionMatrix();
-  chase.updateMatrixWorld();
-  shared.uFocus.value = chase.position.distanceTo(c);
-  const k = Math.min(1, shared.uFocus.value / 400); // the depth of field narrows as the camera closes in
-  shared.uDof.value.set(view.dof === 'off' ? 1e5 : Math.max(4, 70 * k), view.dof === 'off' ? 2e5 : Math.max(30, 460 * k));
-  shared.uFade.value = 1400;
-  shared.uNear.value.set(Math.min(40, r.depth * 0.25), Math.min(60, r.depth * 0.5));
-  shared.uPxPersp.value = (2 * Math.tan((chase.fov * Math.PI) / 360)) / H;
-  return chase;
-}
+function endOutro() { outro = null; if (embed.active) embed.cinematic(false, canvas); }
 embed.on('camera', (d) => {
   if (!d.pose) return;
   if (outro) { outro.cam = d.pose; outro.heard = true; if (Number.isFinite(d.u)) outro.u = d.u; }
@@ -1543,826 +489,361 @@ embed.on('camera', (d) => {
 embed.on('pause', () => { if (outro) outro.heard = true; });
 embed.provide('intro');
 const INTRO_EASE = 0.6;
-let intro = null; // { cam } while held; { ease } while time comes back
 embed.on('hold', () => {
   intro = { cam: null };
-  if (view.kind !== 'chase') features.set('view', VIEW_NAMES.chase);
-  const s = swimmer.state;
-  updateCameras(1e-4, s, { x: 0, y: 0, m: 0 }, group());
+  view.rot = 0; view.cx = P1.S.x; view.cy = P1.S.y; view.fw = baseField(); view.focus = P1.S.z;
   embed.cinematic(true, canvas);
-  embed.opening(embed.poseOf(chase, s.center, { len: LENGTH, heading: cellHeading(s), ...camAngles(chase) }));
+  embed.opening({ f: LENGTH / baseField(), x: 0, y: 0, pitch: TOP_PITCH, rel: wrap(P1.S.a + Math.PI / 2) });
 });
-embed.on('begin', () => { embed.cinematic(false, canvas); intro = { cam: null, ease: 0 }; });
-/** Where a view looks, in the plane (as ambient.js centres its tile): the scope's stage, or a little ahead of the chase camera. */
-const _vc = new THREE.Vector2(), _fw = new THREE.Vector3();
-function viewCentre(cam) {
-  if (cam.isOrthographicCamera) return _vc.set(cam.position.x, cam.position.z);
-  cam.getWorldDirection(_fw);
-  return _vc.set(cam.position.x + _fw.x * 350, cam.position.z + _fw.z * 350);
+embed.on('begin', () => { embed.cinematic(false, canvas); intro = { ease: 0 }; });
+function introEase(dt) {
+  if (!intro || !('ease' in intro)) return 1;
+  intro.ease += dt;
+  const k = sm01(0, INTRO_EASE, intro.ease);
+  if (intro.ease >= INTRO_EASE) intro = null;
+  return k;
 }
-/** Draw the portal's glow over a view's finished image (its own scene: ordinary materials). */
-function renderGlow(cam, rect) {
-  if (!portalGlow.group.visible) return;
-  renderer.setRenderTarget(null);
-  if (rect) {
-    const c = renderer.domElement, pr = renderer.getPixelRatio();
-    const W0 = c.width / pr, H0 = c.height / pr;
-    renderer.setScissor(rect[0] * W0, (1 - rect[3]) * H0, (rect[2] - rect[0]) * W0, (rect[3] - rect[1]) * H0);
-    renderer.setScissorTest(true);
-  }
-  renderer.clearDepth();
-  renderer.render(glowScene, cam);
-  if (rect) renderer.setScissorTest(false);
-}
+const introHeld = () => embed.held || !!(intro && !('ease' in intro));
 
-// --- loop --------------------------------------------------------------------
-let t = 0, last = performance.now(), blocked = false, frameCount = 0;
-let ls = { x: 0, y: 0, m: 0 };
-const NO_INPUT = { ls: { x: 0, y: 0, m: 0 }, rt: 0, lt: 0, rise: 0, avoid: false, dashP: false, attackP: false, defendP: false };
-/** Read a player's buttons once per frame (pressed() is a fresh press since the last poll). */
-function readInput(P) {
-  const c = P.ctl;
-  return { ls: c.move(), rt: c.rt(), lt: c.lt(), rise: c.secondary(), avoid: c.defend.pressed(), dashP: c.dash.pressed(), attackP: c.attack.pressed(), defendP: c.defend.pressed() };
-}
-
-function tick(dt, forced = false) {
-  if (debug.freeze && !forced) return;
-  t += dt;
-  pacing.now = t;
-  shared.uTime.value = t;
-  const s = swimmer.state;
-  s.inspect = debug.inspect;
-  const live = !blocked && !forced;
-  lightAt(t);
-  nearestLight(swimmer.state.center);
-  const evs = new Map();
-  for (const P of roster) {
-    const sP = P.swimmer.state;
-    const I = live && P.in && !P.waiting ? P.in : NO_INPUT;
-    const lsP = I.ls;
-    if (P === P1) ls = live ? lsP : { x: 0, y: 0, m: 0 };
-    // symbionts: in the light the Chlorella feed you, so the dash recharges faster
-    // there (a bonus, never a drain: nothing runs down in shade)
-    const sunny = GREEN && marks.light && inLight(sP.center);
-    P.sun = sunny ? 1 : 0;
-    P.dash.update(dt * (sunny ? 1.4 : 1));
-    P.gulpT = Math.max(0, P.gulpT - dt); P.gulpCool = Math.max(0, P.gulpCool - dt); P.dashFx = Math.max(0, P.dashFx - dt);
-    const isP1 = P === P1;
-    const inp = {
-      thrust: isP1 && debug.inspect ? 0.5 : live && !P.waiting ? Math.max(Math.min(1, Math.hypot(lsP.x, lsP.y)), I.rt, isP1 ? debug.thrust : 0) : isP1 ? debug.thrust : 0,
-      hover: Math.max(live ? I.lt : 0, P.gulpT > 0 ? 1 : 0), steer: live ? lsP : isP1 ? debug.steer : NO_INPUT.ls, rise: live ? I.rise : 0,
-      view: view.kind, camYaw: view.kind === 'scope' ? view.scopeYaw : view.camYaw + view.orbitYaw,
-      camPitch: swimLookPitch(view.orbitPitch),
-      vmaxK: bloom.on && bloom.inside(sP.center) ? 0.82 : 1, // pushing through the bloom costs a little speed, never more
-      avoid: false, struggle: live && I.dashP && sP.mode === 'captured', // B is handled by defend()
-    };
-    const ev = {};
-    const locked = P.capture.active; // a catch in progress: only the fight (X, A, B) while held
-    if (live && !locked && I.dashP) doDash(P, lsP);
-    if (live && locked && sP.mode === 'captured' && I.dashP) P.cap.credit = Math.min(1.2, P.cap.credit + 0.4);
-    P.blockT = Math.max(0, P.blockT - dt); P.fightFx = Math.max(0, P.fightFx - dt); P.fightCool = Math.max(0, P.fightCool - dt); P.eatFx = Math.max(0, P.eatFx - dt);
-    if (live && (!locked || sP.mode === 'captured') && I.defendP) defend(P);
-    P.swimmer.step(dt, t, inp, ev);
-    // the bloom's bioconvection: a mild sinking current in its plumes, gentle upwelling between
-    if (bloom.on && sP.mode !== 'dead' && sP.mode !== 'captured') {
-      const vy = bloom.currentAt(sP.center);
-      if (vy) {
-        sP.axis.y = Math.max(40, Math.min(DEPTH - 40, sP.axis.y + vy * dt));
-        // jostled by the cells you push: the heading wanders a little (the real cell reverses at every bump, S08; softened)
-        if (inp.thrust > 0.2 && sP.mode === 'swim') sP.yaw += Math.sin(t * 2.3 + P.slot * 1.7) * 0.18 * dt;
-        if (!bloomLog.entered.has(P.slot)) { bloomLog.entered.add(P.slot); bloomLog.enter.push({ t, slot: P.slot, u: Math.round(progress(sP.center)) }); if (!taught.has('bloom')) { taught.add('bloom'); hud.toast(`${who(P)}A Chlamydomonas bloom: swim to shove through, ${glyph('X')} to gulp a way, ${glyph('A')} to wedge a lane. Its plumes carry you down a little`, 4200); } }
-      }
-    }
-    if (live && (!locked || sP.mode === 'captured') && I.attackP) doAttack(P);
-    evs.set(P, ev);
-  }
-  game.sun = P1.sun; game.gulpT = P1.gulpT; game.dashFx = P1.dashFx;
-  if (bloom.on) bloom.update(dt, roster.map((P) => ({ position: P.swimmer.state.center, slot: P.slot, alive: !P.waiting && P.swimmer.state.mode !== 'dead' })));
-  soundTick(dt);
-  // hunger: each hunter's own clock; only a hungry one hunts
-  // each ciliate's clock starts when the director places it (the amoeba's runs from the start)
-  for (const th of hunters()) {
-    if (th === amoeba || !th.parked) th.hunger.update(dt);
-    th.hungry = isHungry(th.hunger);
-  }
-  if (pacing.firstHungry === null && hunters().some((th) => th.hungry)) pacing.firstHungry = t - pacing.t0;
-  // the fights: each hunter's wind-up, strike, block, bite back and retreat (shared/predation.js createFight)
-  runFights(dt);
-  runBoss(dt);
-  // hunters pick a player: the one they hold, else the nearest free one
-  const evH = {};
-  enc.update(dt, t, (d) => { const T = targetOf(d); d.target = T.swimmer; return T.swimmer; }, evH);
-  const aT = targetOf(amoeba);
-  amoeba.target = aT.swimmer;
-  for (const P of roster) if (P !== aT) P.swimmer.state.slow *= Math.exp(-dt * 4);
-  amoeba.update(dt, t, aT.swimmer, evH, world.flowAt);
-  stepDirector(dt);
-  if (pacing.firstThreat === null && s.mode === 'swim' && threats().some((th) => hunting(th) || (th === amoeba && amoeba.cup > 0))) pacing.firstThreat = t - pacing.t0;
-  // a catch began: whoever is now held
-  for (const P of roster) {
-    const sP = P.swimmer.state;
-    if (sP.mode === 'captured' && !P.capture.active && sP.captor) startCapture(P, sP.captor);
-  }
-  const anims = new Map();
-  for (const P of roster) anims.set(P, stepCapture(P, dt));
-  // the water, the bacteria and the prey, for every cell
-  const feeds = roster.map((P) => {
-    const sP = P.swimmer.state;
-    if (!P.feedRef) P.feedRef = {};
-    return Object.assign(P.feedRef, { center: sP.center, axisA: sP.axisA, axisB: sP.axisB, U: sP.U, mouth: sP.mouth, feed: sP.feed, alive: sP.mode !== 'dead' && !P.waiting });
-  });
-  const w = world.update(dt, t, feeds);
-  roster.forEach((P, i) => { for (let k = 0; k < (w.eatenBy ? w.eatenBy[i] : 0); k++) P.cell.ingest(10); });
-  game.bacteria += w.eaten;
-  const p = prey.update(dt, t, feeds, world.flowAt);
-  for (const it of p.eaten) {
-    const P = roster.find((Q) => Q.feedRef === it.eatenBy) || P1;
-    P.cell.ingest(1, it.kind === 'chilomonas' ? 12 : 9);
-    P.eatFx = 0.6;
-    game.eaten++;
-    P.pad.rumble(120, 0.4, 0.2);
-    if (game.eaten >= GOAL) {
-      hud.toast(`Well fed: ${GOAL} prey! The cell divides. Round ${game.round + 1}`, 3000);
-      game.eaten = 0; game.round++;
-    } else hud.toast(`${who(P)}Ate ${it.kind === 'chilomonas' ? 'a Chilomonas' : 'a bacterial clump'}: a food vacuole forms (${game.eaten}/${GOAL})`);
-  }
-
-  // the cells
-  for (const P of roster) {
-    const sP = P.swimmer.state, C = P.cell, ev = evs.get(P), anim = anims.get(P);
-    C.group.position.copy(sP.center);
-    C.group.quaternion.copy(sP.quat);
-    C.update(dt, { phase: sP.beatPhase, amp: sP.amp, reverse: sP.reverse, oral: sP.oral });
-    if (ev.contact) onContact(P, ev.contact);
-    if (ev.vorticella) hud.toast('Bumped a Vorticella: its stalk coils');
-    // the bump: the cell recoils from the contact and squashes a little
-    if (sP.bumpT > 0) {
-      const k = Math.sin(Math.PI * (1 - sP.bumpT / 0.28));
-      C.group.position.addScaledVector(sP.bumpN, 5 * k * (LENGTH / 120));
-      C.group.scale.set(1 - 0.1 * k, 1 + 0.05 * k, 1 + 0.05 * k);
-    } else C.group.scale.set(1, 1, 1);
-    // eating prey: the cell bulges round the oral groove as the food vacuole forms
-    if (P.eatFx > 0) { const k = Math.sin(Math.PI * P.eatFx / 0.6); C.group.scale.set(1 - 0.05 * k, 1 + 0.12 * k, 1 + 0.08 * k); }
-    // fighting back: a ram with the body thrashing about its long axis
-    if (P.fightFx > 0) {
-      const k = P.fightFx / 0.5;
-      C.group.rotateY(Math.sin(t * 46) * 0.22 * k);
-      C.group.rotateX(Math.sin(t * 31) * 0.5 * k);
-      C.group.scale.set(1 + 0.12 * k, 1 - 0.06 * k, 1 - 0.06 * k);
-    }
-    if (anim) { C.group.position.copy(anim.pos); C.group.quaternion.copy(anim.quat); C.group.scale.copy(anim.scale); }
-    if (sP.slow > 0.1) P.pad.rumble(40, 0.15 * sP.slow, 0.05); // the food cup dragging on you
-    if (ev.avoid) P.pad.rumble(50, 0.15, 0);
-  }
-  contactFx.update(dt);
-  landmarkTick(dt);
-}
-
-/** The group for the shared camera: the middle of the players' helix axes, and how far apart they are. */
-const grp = { multi: false, axis: new THREE.Vector3(), center: new THREE.Vector3(), spread: 0 };
-function group() {
-  const ps = liveRoster();
-  grp.multi = ps.length > 1;
-  grp.axis.set(0, 0, 0); grp.center.set(0, 0, 0);
-  for (const P of ps) { grp.axis.add(P.swimmer.state.axis); grp.center.add(P.swimmer.state.center); }
-  grp.axis.multiplyScalar(1 / Math.max(1, ps.length)); grp.center.multiplyScalar(1 / Math.max(1, ps.length));
-  grp.spread = 0;
-  for (const P of ps) grp.spread = Math.max(grp.spread, P.swimmer.state.axis.distanceTo(grp.axis));
-  return grp;
-}
-
-function frame(now) {
-  requestAnimationFrame(frame);
-  const dt = Math.min(0.05, (now - last) / 1000);
-  last = now;
-  frameCount++;
-  players.poll();
-  syncRoster();
-  unlockOnPad();
-  blocked = features.update(); // the panel is open: no game input this frame
-  if (!blocked) hud.update(pad);
-  // the continuous transition: held at the start (in) or in the outro (out): no input, time eased
-  const held = embed.held || (intro && !('ease' in intro));
-  let ts = 1;
-  if (outro) ts = stepOutro(dt);
-  else if (intro && 'ease' in intro) { intro.ease += dt; ts = sm01(0, INTRO_EASE, intro.ease); if (intro.ease >= INTRO_EASE) intro = null; }
-  const still = held || !!outro;
-  for (const P of roster) P.in = blocked || P.waiting || still ? null : readInput(P);
-  if (!blocked && !still) {
-    const step = ctl.lookStep();
-    if (step) {
-      if (borrow.id) features.set(borrow.id, false);
-      features.set('look', MODE_NAMES[MODES[(view.mode + step + MODES.length) % MODES.length]]);
-      hud.toast(MODE_NAMES[MODES[view.mode]]);
-    }
-    // Y: at the open portal it goes through; on the amoeba's floor it takes
-    // everyone back to the amoeba; elsewhere (player 1) the camera
-    for (const P of roster) {
-      if (P.waiting || !P.ctl.special.pressed()) continue;
-      if (atOpenPortal(P)) { enterPortal(P); break; }
-      if (P.backT > 0.5) landmark('back', P);
-      else if (P === P1) { features.set('view', view.kind === 'chase' ? VIEW_NAMES.scope : VIEW_NAMES.chase); hud.toast(view.kind === 'scope' ? `Microscope view, ${OBJECTIVES[view.obj].name} objective` : 'Chase camera (hypothetical)'); }
-    }
-    const z = ctl.zoomStep();
-    if (z) {
-      if (view.kind === 'scope') { features.set('objective', OBJECTIVES[Math.max(0, Math.min(2, view.obj + z))].name); hud.toast(`${OBJECTIVES[view.obj].name} objective`); }
-      else view.dist = Math.max(160, Math.min(1600, view.dist * (z > 0 ? 0.8 : 1.25)));
-    }
-  }
-  const rs = blocked || still ? { x: 0, y: 0, m: 0 } : ctl.camera();
-  if (still) { /* the camera is the transition's */ } else if (view.kind === 'chase') {
-    // orbit: look() pitch +1 means look up (the camera swings lower), Invert Y honoured
-    const lk = blocked ? { yaw: 0, pitch: 0, m: 0 } : ctl.look();
-    if (lk.m > 0.01) { view.lookHold = 0.45; view.camYaw -= lk.yaw * 2.2 * dt; }
-    else view.lookHold = Math.max(0, view.lookHold - dt);
-    view.orbitPitch = Math.max(-1.2, Math.min(1.2, view.orbitPitch + lk.pitch * 1.6 * dt));
-    // being caught by the amoeba: the camera rises to look down into the cup and the vacuole
-    const pitch0 = capture.active && cap.th === amoeba ? -0.85 : START_ORBIT.pitch;
-    if (rs.m === 0 && view.lookHold === 0 && !debug.inspect) { const k = 1 - Math.exp(-dt * (capture.active ? 2 : 0.6)); view.orbitYaw += (START_ORBIT.yaw - view.orbitYaw) * k; view.orbitPitch += (pitch0 - view.orbitPitch) * k; }
-  } else {
-    const half = OBJECTIVES[view.obj].field / 2;
-    view.stage.x = Math.max(-half, Math.min(half, view.stage.x + rs.x * half * dt));
-    view.stage.y = Math.max(-half, Math.min(half, view.stage.y + rs.y * half * dt));
-    if (rs.m === 0) view.stage.multiplyScalar(Math.exp(-dt * 0.8));
-  }
-
-  if (!held && ts > 0) { tick(dt * ts); stepSpirillum(dt * ts); }
-
-  const s = swimmer.state;
-  if ((held && intro && intro.cam) || (outro && outro.cam)) view.zoom = 1; // the shell's poses frame one creature
-  const cam = held && intro && intro.cam ? placePoseCamera(intro.cam, s.center, LENGTH, cellHeading(s))
-    : outro && outro.cam ? placePoseCamera(outro.cam, spir.pos, SPIRILLUM.L, spirHeading())
-      : updateCameras(held ? 1e-4 : dt * ts, s, ls, group());
-  if (portalGlow.group.visible) { portalGlow.setOpen(!guarded() && !portalSealed()); portalGlow.update(dt, t, cam); }
-  // the slow-down dims the glow so the spirillum's glint reads at the freeze (after the burst, as the mite's and
-  // the tardigrade's do); the camera move fades it out over the first ×4 of magnification, the glint over ×8 (the shell's halo carries it on)
-  const dive = outro && outro.cam && outro.f0 ? Math.log(Math.max(1, outro.cam.f / outro.f0)) : 0;
-  const slowDim = outro ? 1 - 0.7 * sm01(OUTRO.beat + 0.2, OUTRO.beat + OUTRO.ease, outro.t) : 1;
-  // the dive's light and the kin clump (DIVE): in with the slow-down, out again if time comes back (standalone)
-  const mu = outro && outro.u != null ? outro.u : 0;
-  // (the glow's sparks are darkfield's: they go with it as the light turns)
-  if (glowUI) glowUI.value = GLOW_I * slowDim * (1 - sm01(0, Math.log(4), dive)) * (1 - 0.8 * sm01(LIGHT[0], LIGHT[1], mu));
-  spirGlint.intensity = 0.9 * (1 - sm01(Math.log(2), Math.log(8), dive));
-  const clumpK = outro ? sm01(0, OUTRO.beat + OUTRO.ease, outro.t) * (outro.frozenAt !== null ? 1 - outro.scale : 1) : 0;
-  diveLight = outro ? sm01(LIGHT[0], LIGHT[1], mu) : 0;
-  clump.set(clumpK, 1 - sm01(SLIME[0], SLIME[1], mu));
-  // the leaf's lawn of rods thins as the light turns, so the clump stands out as a mass (and the bacterium's field, not the lawn, takes over)
-  drop.lawn.material.uniforms.uAlpha.value = outro ? 1 - 0.75 * diveLight - 0.25 * sm01(SLIME[0], DIVE.fade[0], mu) : 1;
-  if (clumpK > 0) { clump.group.position.copy(spir.pos); clump.group.rotation.set(0, -spir.heading, 0); }
-  // your spirillum takes the clump's look as the light turns (it glints in darkfield; in phase it is one of them)
-  spir.mesh.material.uniforms.uAbsorb.value.set(0.02, 0.022, 0.03).lerp(_clumpAbs, diveLight);
-  spirGlint.update(t);
-  // the split screen (one view while together: the fast path, as before)
-  const list = liveRoster().map((P) => ({ slot: P.slot, position: P.swimmer.state.center }));
-  const L = split.update(list.length ? list : [{ slot: 0, position: s.center }], { camera: cam, zoom: view.zoom }, dt);
-  groupZoom = split.zoom;
-  directorViews(cam);
-  quality.setSplitViews(L.views.length); // split views render at a lower resolution (the governor's split factor)
-  // the amoeba re-meshes rarely while no one is near its floor
-  amoeba.skipShape = !roster.some((P) => Math.hypot(P.swimmer.state.center.x - amoeba.pos.x, P.swimmer.state.center.z - amoeba.pos.z) < 2200);
-  drawOverlay(cam);
-  updateGoal(s);
-  if (adaptive && gpuBusy()) return; // the GPU is still on an earlier frame: skip this render
-  countRender(now, dt);
-  const modeName = MODES[view.mode];
-  const plate = modeName === 'darkfield' ? plates.darkfield : modeName === 'phase' ? plates.phase : null;
-  const pf = OBJECTIVES[view.obj].field * 4;
-  const many = L.views.length > 1;
-  split.render(cam, (v) => {
-    // each view focuses on its own players' depth
-    if (many) focusFor(v, cam);
-    const optP = {
-      mode: view.mode, stop: view.kind === 'scope' && view.fieldStop && !many, plate,
-      plateOff: new THREE.Vector2(cam.position.x / pf, -cam.position.z / pf),
-      blurScale: view.kind === 'scope' ? (view.dof === 'strong' ? 1.6 : 1) : 1.2,
-      plateMix: PLATE_MIX[view.plate][0], plateBlur: PLATE_MIX[view.plate][1],
-      plateRot: view.kind === 'scope' ? view.scopeYaw - Math.PI / 2 : 0,
-      bfSoft: 1,
-      lightMix: diveLight, lightBg: LIGHT_BG,
-    };
-    // per view: draw only what this view can see, and (split) only its own region
-    // the scenery tile: every set piece at its copy nearest where this view looks
-    { const c = viewCentre(cam); world.viewAt(c.x, c.y); }
-    if (cullOn) {
-      cullFor(cam, v); if (many) optP.rect = viewRect(v); bloom.lod(cam.position);
-      // just before the scene pass: cull again to the part of the screen it writes (a split view's padded region), and the bloom cell by cell
-      if (!borrow.id && debug.fineCull) optP.onScene = (box) => { if (many) cullRegion(cam, box); bloom.cullView(cam, box, v.index); };
-    }
-    if (borrow.id) renderBorrowed(cam, optP, dt);
-    else optics.render(scene, cam, optP);
-    renderGlow(cam, optP.rect || null);
-    if (cullOn) { uncull(); bloom.uncull(); }
-  });
-  fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
-  // the edge arrows: the brass chevron to the biofilm, the ring to the amoeba's floor
-  edgeMarks.begin();
-  // no arrow to the way on by default: once the portal is open its light spills in (the Portal arrow
-  // setting adds an arrow: drawPortalArrow). On the default path it is there from the start, sealed.
-  portalLight.begin();
-  portalBloom.begin();
-  if (FWD.placed && !portalSealed() && !outro) {
-    const dmin = Math.min(...livePos().map((c) => Math.hypot(c.x - FWD.pos.x, c.z - FWD.pos.z)), 1e9);
-    portalLight.drawSplit(arrowSplit(), FWD.pos, { strength: THREE.MathUtils.clamp(1.2 - dmin / 3000, 0.4, 1), open: portalGlow.open });
-  }
-  edgeMarks.drawSplit(arrowSplit(), BACK.pos, { kind: 'backdoor', label: BACK.label, range: 3000 });
-  drawPortalArrow();
-
-  const bl = s.netSpeed / LENGTH;
-  const charges = '●'.repeat(s.charges) + '○'.repeat(3 - s.charges);
-  const where = view.kind === 'scope' ? `microscope ${OBJECTIVES[view.obj].name}, field ${(OBJECTIVES[view.obj].field / 1000).toFixed(2)} mm` : 'chase camera (hypothetical)';
-  const near = nearestThreat(s);
-  hud.stats([
-    `${lookName()} · ${where}`,
-    `${SP.latin} ${LENGTH} µm · ${Math.round(s.netSpeed).toString().padStart(4)} µm/s · ${bl.toFixed(1)} body lengths/s (max ${VMAX})`,
-    `depth ${Math.round(s.center.y)} of ${DEPTH} µm · ${stateText(s)}`,
-    `prey ${game.eaten}/${GOAL} (round ${game.round}) · food vacuoles ${cell.foodCount} · bacteria ${game.bacteria}`,
-    `${dash.text()} · trichocysts ${charges}${GREEN ? ` · ${inLight(s.center) ? 'in the sun (dash recharges faster)' : 'in shade'}` : ''}`,
-    near ? `${near.label} ${Math.round(near.d)} µm away (${near.state})` : 'no hunter near',
-    `hunger: ${world.didinia.map((d, i) => `${d.label}${d.kind === 'didinium' ? ` ${i + 1}` : ''} ${enc.opts.didinium ? (d.parked ? 'not met yet' : hungerText(d.hunger)) : 'off'}`).join(' · ')} · amoeba ${amoeba.opts.on ? hungerText(amoeba.hunger) : 'off'}`,
-    `${Math.round(progress(s.center))} µm out${progress(s.center) < HALF ? ' (calm waters)' : ''} · encounters ${director.index}/${ENCOUNTERS.length} · ${FWD.placed ? `biofilm ${Math.round(flatDist(s, FWD))} µm${portalSealed() ? ' (sealed)' : guarded() ? ' (guarded)' : ' (open)'}` : 'portal not found yet'} · amoeba's floor ${Math.round(flatDist(s, BACK))} µm`,
-    multi() ? `players ${roster.length} · views ${L.views.length}${L.merged ? ' (together)' : ''}` : '',
-    `${Math.round(renderFps)} fps · render scale ${quality.scale.toFixed(2)} × pixel ratio ${quality.pixelRatio.toFixed(2)} · effects ${['low', 'medium', 'high'][qLevel]}${quality.auto ? ' (auto)' : ''}`,
-  ].filter((l) => l).join('\n'));
-}
-
-// --- per-view culling ----------------------------------------------------------
-// The optic materials displace nothing, but most meshes are marked
-// frustumCulled = false (their instanced or shader-built geometry has no
-// usable bounds), so three.js would draw every cell, hunter and set piece in
-// every view. Here each is tested against the view's own frustum (the camera
-// is already offset for the view) and against the depth of field's fade, and
-// hidden for that view's render only.
-const frustum = new THREE.Frustum(), projM = new THREE.Matrix4(), cullS = new THREE.Sphere();
-const culled = [];
-let cullList = null, cullFor_n = -1;
-const cullables = () => {
-  // built once per roster change (no garbage per view)
-  let key = roster.length;
-  for (const P of roster) key = key * 5 + P.slot + 1;
-  if (cullList && cullFor_n === key) return cullList;
-  cullFor_n = key;
-  const L = cullList = [];
-  for (const P of roster) L.push({ obj: P.cell.group, c: P.cell.group.position, r: HL * 1.5, cell: P });
-  for (const d of world.didinia) L.push({ obj: d.group, c: d.pos, r: (d.tipLen || 66) + 80 });
-  L.push({ obj: amoeba.group, c: amoeba.group.position, r: amoeba.R + 420 });
-  L.push({ obj: trap.group.children[0], c: trap.centre, r: 720 });
-  L.push({ obj: drop.fwdGroup, c: FWD.pos, r: 340 });
-  L.push({ obj: drop.backGroup, c: BACK.pos, r: 380 });
-  for (const dm of world.diatoms) L.push({ obj: dm.mesh, c: dm.mesh.position, r: 70 }); // 20–41 k triangles each
-  for (const col of world.colonies) L.push({ obj: col.group, c: col.group.position, r: 330 });
-  return L;
-};
-function cullFor(cam, v) {
-  projM.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
-  frustum.setFromProjectionMatrix(projM);
-  // beyond this, the depth of field has faded a contribution below ~4 %
-  const far = cam.isPerspectiveCamera ? shared.uFocus.value + shared.uDof.value.y + 5 * shared.uFade.value : Infinity;
-  for (const it of cullables()) {
-    if (!it.obj.visible) continue;
-    cullS.center.copy(it.c); cullS.radius = it.r;
-    const d = cam.position.distanceTo(it.c) - it.r;
-    if (!frustum.intersectsSphere(cullS) || d > far) { it.obj.visible = false; culled.push(it.obj); continue; }
-    // lowest effects step: another player's cell far off keeps its body but not its cilia
-    if (it.cell && qLevel === 0 && !v.slots.includes(it.cell.slot) && d > 600 && it.cell.cell.cilia.mesh.visible) { it.cell.cell.cilia.mesh.visible = false; culled.push(it.cell.cell.cilia.mesh); }
-  }
-}
-/**
- * A split view renders the whole camera but keeps only its region (the scene
- * pass is scissored to it, padded for the blur): what lies outside that padded
- * region is hidden too. `box` is the scene pass's box in normalised device
- * coordinates (the optics' onScene). Same bounds as cullFor.
- */
-const regionF = new THREE.Frustum();
-function cullRegion(cam, box) {
-  sceneFrustum(regionF, cam, box);
-  for (const it of cullables()) {
-    if (!it.obj.visible) continue;
-    cullS.center.copy(it.c); cullS.radius = it.r;
-    if (!regionF.intersectsSphere(cullS)) { it.obj.visible = false; culled.push(it.obj); }
-  }
-}
-function uncull() { for (const o of culled) o.visible = true; culled.length = 0; }
-/** A split view's region as a padded box (fractions of the screen, top-left origin) for the scissor. */
-function viewRect(v) {
-  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  for (const r of split.layout.regions) {
-    if (r.view !== v.index || r.polygon.length < 3) continue;
-    for (const [x, y] of r.polygon) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
-  }
-  if (!(x1 > x0)) return null;
-  const pad = 12;
-  return [Math.max(0, (x0 - pad) / cssW), Math.max(0, (y0 - pad) / cssH), Math.min(1, (x1 + pad) / cssW), Math.min(1, (y1 + pad) / cssH)];
-}
-
-/** A split view's focal plane: the depth of the players it shows. */
-function focusFor(v, cam) {
-  const c = new THREE.Vector3();
-  let n = 0;
-  for (const P of roster) if (v.slots.includes(P.slot)) { c.add(P.swimmer.state.center); n++; }
-  if (!n) return;
-  c.multiplyScalar(1 / n);
-  if (view.kind === 'scope') shared.uFocus.value = cam.position.y - c.y;
-  else { shared.uFocus.value = cam.position.distanceTo(c); shared.uNear.value.set(40, Math.max(60, shared.uFocus.value * 0.55)); }
-}
-
-function stateText(s) {
-  if (capture.active && cap.th) return `${cap.phase === 'strike' ? 'STRUCK' : cap.phase === 'hold' ? 'HELD' : 'BEING EATEN'} by ${CATCH[catchKind(cap.th)].by}`;
-  return s.mode === 'avoid' ? 'avoidance reaction' : s.mode === 'captured' ? (s.captor === amoeba ? 'ENGULFED by the amoeba' : 'HELD by Didinium')
-    : s.mode === 'dead' ? 'eaten' : s.dashT > 0 ? 'dashing' : P1.gulpT > 0 ? 'gulping' : s.feed > 0.3 ? 'feeding' : 'swimming';
-}
-
-function nearestThreat(s) {
-  let best = null;
-  for (const th of threats()) {
-    const d = th === amoeba ? amoeba.edgeDist(s.center) : th.pos.distanceTo(s.center);
-    if (!best || d < best.d) best = { th, d, label: th.label, state: th === amoeba ? amoeba.state : th.state };
-  }
-  return best && best.d < 900 ? best : null;
-}
-
-const hunting = (th) => (th === amoeba ? /cupping|toward/.test(amoeba.state) : th.state === 'hunting' || th.state === 'striking' || th.state === 'winding up' || th.state === 'feeding');
-/** A hunter visibly attacking (winding up or striking). */
-const attacking = (th) => th.fight && th.fightState && (th.fightState === 'windup' || th.fightState === 'strike') && (th === amoeba ? amoeba.cup > 0 : th.state === 'winding up' || th.state === 'striking');
-
-function updateGoal(s) {
-  const dots = '●'.repeat(game.eaten) + '○'.repeat(GOAL - game.eaten);
-  const n = Math.round(dash.charge * 5);
-  const parts = [`Eat ${GOAL} prey ${dots}`];
-  if (GREEN && inLight(s.center)) parts.push('☀ in the sun');
-  parts.push(`${glyph('A')} dash ${'■'.repeat(n)}${'□'.repeat(5 - n)}`, `${glyph('X')} trichocysts ${'●'.repeat(s.charges)}${'○'.repeat(3 - s.charges)}`);
-  // the most urgent thing happening to anyone (named in multiplayer)
-  let warn = '';
-  if (trap.awake) {
-    const near = liveRoster().find((P) => P.swimmer.state.center.distanceTo(trap.door) < trap.pullR * 1.3 && !P.capture.active);
-    const st = trap.fight.state;
-    if (near && st === 'windup') warn = `${who(near)}The trap door quivers: get clear of it, or wait for the pulse`;
-    else if (near && st === 'strike') warn = `${who(near)}SUCTION! Dash away (${glyph('A')}) · ${glyph('B')} trichocysts burst you out`;
-    else if (near && (st === 'recover' || st === 'repelled')) warn = `${who(near)}<span style="color:#bfe3a0">The trap is resetting: dash past now!</span>`;
-  }
-  for (const P of roster) {
-    const sP = P.swimmer.state, C = P.cap;
-    let w = '';
-    if (P.capture.active && C.th && C.phase !== 'eaten') w = catchText(catchKind(C.th), C.phase);
-    else if (P.capture.active) w = '';
-    else if (sP.mode === 'captured') w = sP.captor === amoeba ? `ENGULFED: ${glyph('B')} trichocysts · ${glyph('A')} struggle` : isDileptus(sP.captor) ? `HELD by Dileptus: ${glyph('B')} trichocysts drive it off` : `HELD by Didinium: trichocysts can't free you · ${glyph('A')} struggle`;
-    else {
-      const a = threats().find((th) => attacking(th) && (th === amoeba ? amoeba.target === P.swimmer : th.target === P.swimmer));
-      const h = threats().find((th) => hunting(th) && th !== amoeba && th.target === P.swimmer);
-      if (a === amoeba) w = `The amoeba's arms rise round you: face it and ${glyph('B')} to block, ${glyph('X')} to fight back, or dash out (${glyph('A')})`;
-      else if (a && isDidinium(a)) w = `Didinium is ${a.fightState === 'strike' ? 'LUNGING' : 'winding up'}: trichocysts won't stop it, dodge sideways (${glyph('A')})!`;
-      else if (a && isDileptus(a)) w = `Dileptus's trunk ${a.fightState === 'strike' ? 'SLASHES' : 'swings at you'}: ${glyph('B')} fires trichocysts, which drive it off`;
-      else if (a) w = `${a.label} is ${a.fightState === 'strike' ? 'STRIKING' : 'winding up to strike'}: face it and ${glyph('B')} to block · ${glyph('X')} to fight back`;
-      else if (h && isDidinium(h)) w = `Didinium is hunting you: keep away, back off (${glyph('B')}) early, dash sideways (${glyph('A')}) as it lunges`;
-      else if (h && isDileptus(h)) w = `Dileptus is hunting you: wait for its trunk, then ${glyph('B')} (trichocysts drive it off)`;
-      else if (h) w = `${h.label} is hunting you: face it (${glyph('X')} fights back) or dash sideways (${glyph('A')})`;
-      else { const r = threats().find((th) => th.fightState === 'retreat' && th.target === P.swimmer); if (r) w = ''; }
-    }
-    if (w) { warn = who(P) + w; break; }
-  }
-  goalEl.innerHTML = parts.join(' &nbsp;·&nbsp; ') + (warn ? `<div style="color:#ff8a7a;text-align:center;margin-top:2px">${warn}</div>` : '');
-  goalEl.style.borderRadius = warn ? '12px' : '999px';
-}
-
-// --- overlay: subtle cues, light and shade (nothing round your own cell) --------
-// Drawn once per split view, clipped to its region; in multiplayer each cell
-// gets a faint ring in its player's colour so you can tell who is who.
-/** The split layout without degenerate (empty) regions, for shared/landmark.js. */
-const arrowSplit = () => { const L = split.layout; return { layout: { ...L, regions: L.regions.filter((r) => r.polygon.length > 2) }, project: split.project }; };
-const split = createSplitScreen(renderer, { capture: true, up: null, zoomMax: SPLIT_ZOOM_MAX });
-const edgeMarks = createLandmarks({ zIndex: 4 });
-/**
- * The "Portal arrow" setting (the game's Settings, default off; ?arrow=1 here): an arrow at the edge of
- * each view toward the way on (the biofilm: the director's portals(), one here), with the view's nearest
- * cell's distance (mm; µm under 1 mm). Sealed too: it is where the way on will open.
- */
-let arrowLog = [];
-const arrowLabel = (d) => (d >= 1000 ? `${(d / 1000).toFixed(1)} mm` : `${Math.round(d)} µm`);
-function drawPortalArrow() {
-  arrowLog = [];
-  if (!portalArrowOn() || !FWD.placed || outro) return;
-  const pp = FWD.pos;
-  arrowLog = edgeMarks.drawSplit(arrowSplit(), (vp) => {
-    let d = Infinity;
-    for (const v of vp) { const P = roster.find((Q) => Q.slot === v.slot); if (P) d = Math.min(d, flatDist(P.swimmer.state, FWD)); }
-    if (!isFinite(d)) d = flatDist(swimmer.state, FWD);
-    return { position: pp, label: arrowLabel(d), distance: d };
-  }, { kind: 'forward', portal: true, range: 80000 }).map((r) => r && { x: r.x, y: r.y, angle: r.angle, onScreen: r.onScreen, d: Math.round(r.picked.distance), label: r.picked.label, at: [Math.round(pp.x), Math.round(pp.y), Math.round(pp.z)] });
-}
-function drawOverlay(cam) {
-  const g = markG, sg = shadeG;
-  g.setTransform(dpr, 0, 0, dpr, 0, 0); sg.setTransform(dpr, 0, 0, dpr, 0, 0);
-  g.clearRect(0, 0, cssW, cssH); sg.clearRect(0, 0, cssW, cssH);
-  if (debug.clean) return;
-  const L = split.layout;
-  const many = L.views.length > 1;
-  for (const v of L.views) {
-    const regs = L.regions.filter((r) => r.view === v.index && r.polygon.length > 2);
-    const P = roster.find((Q) => v.slots.includes(Q.slot)) || P1;
-    const anchor = regs.length && many ? [regs.reduce((a, r) => a + r.anchor[0], 0) / regs.length, regs.reduce((a, r) => a + r.anchor[1], 0) / regs.length] : [cssW / 2, cssH / 2];
-    for (const ctx of [g, sg]) {
-      ctx.save();
-      if (many) { ctx.beginPath(); for (const r of regs) { ctx.moveTo(r.polygon[0][0], r.polygon[0][1]); for (const q of r.polygon.slice(1)) ctx.lineTo(q[0], q[1]); ctx.closePath(); } ctx.clip(); }
-    }
-    drawViewOverlay(cam, P.swimmer.state, (p) => { const q = split.project(v.index, p); return { x: q.x, y: q.y, ok: !q.behind }; }, anchor, many);
-    g.restore(); sg.restore();
-  }
-}
-function drawViewOverlay(cam, s, proj, anchor, many) {
-  const g = markG, sg = shadeG;
-  const scopeV = view.kind === 'scope';
-  const stopOn = scopeV && view.fieldStop && !many;
-  const pxPerUm = scopeV ? cssH / (2 * (OBJECTIVES[view.obj].field / 2 / 0.95)) : cssH / (2 * Math.tan((chase.fov * Math.PI) / 360) * Math.max(1, chase.position.distanceTo(s.center)));
-  const [cx, cy] = anchor;
-  const R = stopOn ? cssH * 0.475 : Math.hypot(cssW, cssH) / 2;
-  const visible = (q) => q.ok && (stopOn ? Math.hypot(q.x - cssW / 2, q.y - cssH / 2) < R - 6 : q.x > 8 && q.y > 8 && q.x < cssW - 8 && q.y < cssH - 8);
-  const dark = MODES[view.mode] === 'darkfield' || (borrow.id === 'semMite');
-  const edgeArrow = (q, col, text) => {
-    let dx = q.x - cx, dy = q.y - cy;
-    if (!q.ok) { dx = -dx; dy = -dy; }
-    const a = Math.atan2(dy, dx);
-    const rr = stopOn ? R - 22 : Math.min(cssW, cssH) / 2 - 26;
-    const ex = stopOn ? cssW / 2 + Math.cos(a) * rr : Math.max(26, Math.min(cssW - 26, cx + Math.cos(a) * cssW));
-    const ey = stopOn ? cssH / 2 + Math.sin(a) * rr : Math.max(26, Math.min(cssH - 26, cy + Math.sin(a) * cssH));
-    g.save(); g.translate(ex, ey); g.rotate(a);
-    g.fillStyle = col; g.beginPath(); g.moveTo(13, 0); g.lineTo(-7, -9); g.lineTo(-3, 0); g.lineTo(-7, 9); g.closePath(); g.fill();
-    g.restore();
-    if (text) {
-      g.fillStyle = col;
-      g.fillText(text, ex - Math.cos(a) * 34, ey - Math.sin(a) * 26 + 4);
-    }
-  };
-
-  // light and shade (microscope view): the shaded part of the drop darker
-  if (GREEN && marks.light && scopeV) {
-    const lc = proj(new THREE.Vector3(light.c.x, 0, light.c.y));
-    const lr = light.r * pxPerUm;
-    sg.fillStyle = 'rgb(150,160,190)';
-    sg.fillRect(0, 0, cssW, cssH);
-    const gr = sg.createRadialGradient(lc.x, lc.y, lr * 0.8, lc.x, lc.y, lr * 1.12);
-    gr.addColorStop(0, 'rgb(255,250,235)'); gr.addColorStop(1, 'rgb(150,160,190)');
-    sg.fillStyle = gr; sg.beginPath(); sg.arc(lc.x, lc.y, lr * 1.12, 0, Math.PI * 2); sg.fill();
-    if (!inLight(s.center) && !visible(lc)) edgeArrow(lc, '#ffd25a', 'light');
-  }
-
-  // multiplayer: a faint ring in each player's colour (alone, nothing is drawn round your cell)
-  if (multi()) {
-    const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0);
-    for (const P of liveRoster()) {
-      const sP = P.swimmer.state;
-      if (sP.mode === 'dead') continue;
-      const q = proj(P.cell.group.position);
-      if (!q.ok) continue;
-      const e = proj(P.cell.group.position.clone().addScaledVector(right, HL * 1.25));
-      const r = Math.max(14, Math.hypot(e.x - q.x, e.y - q.y));
-      g.globalAlpha = 0.55; g.strokeStyle = P.color; g.lineWidth = 1.6;
-      g.beginPath(); g.arc(q.x, q.y, r, -0.3, Math.PI * 0.55); g.stroke();
-      g.beginPath(); g.arc(q.x, q.y, r, Math.PI * 0.85, Math.PI * 1.55); g.stroke();
-      g.globalAlpha = 0.8; g.fillStyle = P.color;
-      g.fillText(`P${P.slot + 1}`, q.x, q.y - r - 4);
-      g.globalAlpha = 1;
-    }
-  }
-
-  // the trap's tell and pulse: a pulsing red ring at its door
-  if (marks.threats && trap.awake && (trap.fight.state === 'windup' || trap.fight.state === 'strike')) {
-    const q = proj(trap.door);
-    if (visible(q)) { g.globalAlpha = 0.35 + 0.5 * (0.5 + 0.5 * Math.sin(t * 18)); g.strokeStyle = '#ff5a46'; g.lineWidth = 2.2; g.beginPath(); g.arc(q.x, q.y, Math.max(16, trap.doorR * 1.3 * pxPerUm), 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1; }
-  }
-  // the trap's inflow, visible (a current you can see and avoid): streaks of
-  // water rushing into the door, faint over its reach while it quivers (the
-  // pulse to come), strong while it pulses
-  if (trap.placed && trap.awake && (trap.fight.state === 'windup' || trap.fight.state === 'strike')) {
-    const strong = trap.fight.state === 'strike';
-    const R = trap.pullR * (trap.phase2 ? 1.3 : 1);
-    const side = new THREE.Vector3().crossVectors(trap.dir, new THREE.Vector3(0, 1, 0)).normalize();
-    const p0 = new THREE.Vector3(), p1 = new THREE.Vector3();
-    g.strokeStyle = strong ? 'rgba(255,215,170,0.85)' : 'rgba(255,200,160,0.45)';
-    g.lineWidth = strong ? 1.6 : 1.1;
-    g.beginPath();
-    for (let i = 0; i < 70; i++) {
-      const h1 = (i * 0.6180339) % 1, h2 = (i * 0.7548776) % 1, h3 = (i * 0.5698403) % 1;
-      const f = (h1 + t * (strong ? 2.2 : 0.35)) % 1; // 1 at the edge of the reach → 0 at the door
-      const r = R * (1 - f) + 20;
-      const th = (h2 - 0.5) * 2.6, ph = (h3 - 0.5) * 1.6; // a broad cone in front of the door
-      const dirv = new THREE.Vector3().copy(trap.dir).multiplyScalar(Math.cos(th) * Math.cos(ph)).addScaledVector(side, Math.sin(th) * Math.cos(ph)).addScaledVector(new THREE.Vector3(0, 1, 0), Math.sin(ph));
-      p0.copy(trap.door).addScaledVector(dirv, r);
-      p1.copy(trap.door).addScaledVector(dirv, Math.max(0, r - (strong ? 45 : 22)));
-      const q0 = proj(p0), q1 = proj(p1);
-      if (!q0.ok || !q1.ok) continue;
-      g.moveTo(q0.x, q0.y); g.lineTo(q1.x, q1.y);
-    }
-    g.stroke();
-  }
-  // an attack: a pulsing red ring on the toxicyst tip (or round the amoeba's rising arms) while it winds up and strikes
-  if (marks.threats) for (const th of threats()) {
-    if (!attacking(th)) continue;
-    const q = proj(th === amoeba ? new THREE.Vector3(amoeba.pos.x, amoeba.H, amoeba.pos.z) : th.tip || th.pos);
-    if (!visible(q)) continue;
-    const k = th.fightState === 'strike' ? 1 : th.fightT || 0;
-    const r = th === amoeba ? Math.max(30, (amoeba.R + 120) * pxPerUm) : 9 + 10 * (1 - k);
-    g.globalAlpha = 0.35 + 0.5 * (0.5 + 0.5 * Math.sin(t * 18));
-    g.strokeStyle = '#ff5a46'; g.lineWidth = th === amoeba ? 2 : 2.2;
-    if (th === amoeba) g.setLineDash([10, 8]);
-    g.beginPath(); g.arc(q.x, q.y, r, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
-    g.globalAlpha = 1;
-  }
-
-  // prey: a small soft ring only when in reach of a gulp; a faint arrow when none is in view
-  if (marks.prey && s.mode !== 'dead') {
-    const gcs = liveRoster().map((P) => updateGulpCentre(P.swimmer.state).clone());
-    let anyVisible = false;
-    for (const it of prey.items) {
-      if (!it.alive || it.pull) continue;
-      const q = proj(it.pos);
-      if (!visible(q)) continue;
-      anyVisible = true;
-      if (!gcs.some((gc) => it.pos.distanceTo(gc) < GULP_REACH)) continue;
-      const r = Math.max(7, (it.r + 5) * pxPerUm);
-      g.strokeStyle = dark ? 'rgba(150,240,160,0.55)' : 'rgba(40,150,60,0.55)';
-      g.lineWidth = 1.2;
-      g.beginPath(); g.arc(q.x, q.y, r, 0, Math.PI * 2); g.stroke();
-    }
-    if (!anyVisible) { const n = prey.nearest(s.center); if (n) edgeArrow(proj(n.pos), dark ? 'rgba(127,224,138,0.55)' : 'rgba(47,154,69,0.55)', ''); }
-  }
-
-  // hunters: a faint red arrow only for one closing in from out of view
-  if (marks.threats || marks.rings) {
-    for (const th of threats()) {
-      const isA = th === amoeba;
-      const d = isA ? amoeba.edgeDist(s.center) : th.pos.distanceTo(s.center);
-      const hot = hunting(th) || (isA && amoeba.cup > 0);
-      const centre = isA ? new THREE.Vector3(amoeba.pos.x, amoeba.H, amoeba.pos.z) : th.pos;
-      const q = proj(centre);
-      if (visible(q)) {
-        if (!marks.rings || (!hot && d > 700)) continue;
-        const col = hot ? 'rgba(255,90,70,0.8)' : 'rgba(255,190,80,0.7)';
-        const r = isA ? (amoeba.R + 70) * pxPerUm : Math.max(24, 80 * pxPerUm);
-        g.strokeStyle = col; g.lineWidth = 1.5; g.setLineDash([8, 6]);
-        g.beginPath(); g.arc(q.x, q.y, r, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
-        g.fillStyle = col;
-        g.fillText(th.label, q.x, Math.min(cssH - 8, q.y + r + 15));
-      } else if (marks.threats && hot && s.mode !== 'dead') {
-        const a = 0.35 + 0.45 * Math.max(0, 1 - d / 900);
-        edgeArrow(q, `rgba(255,80,60,${a.toFixed(2)})`, '');
-      }
-    }
-  }
-}
-
-function renderBorrowed(cam, optP, dt) {
-  const [W, H] = optics.size;
-  const ortho = view.kind === 'scope';
-  const half = OBJECTIVES[view.obj].field / 2 / 0.95;
-  const pxPerUm = ortho ? H / (2 * half) : H / (2 * Math.tan((chase.fov * Math.PI) / 360) * shared.uFocus.value);
-  if (borrow.id === 'semMite') {
-    const d = shared.uFocus.value;
-    looks.semScene(scene, cam, { dt, umPerUnit: 1, tan: ortho ? [(half * W) / H / d, half / d] : undefined, cls: (o) => (cellMeshes.has(o) ? CLS.CUTICLE : CLS.LITTER) });
+// ---------------------------------------------------------------- input and simulation
+let t = 0;
+function stepPlayer(P, dt, input) {
+  const S = P.S;
+  P.invuln = Math.max(0, P.invuln - dt);
+  P.jabCd = Math.max(0, P.jabCd - dt);
+  if (P.burst >= 0) P.burst += dt; if (P.burst > 1) P.burst = -1;
+  if (P.jab >= 0) P.jab += dt; if (P.jab > 1) P.jab = -1;
+  if (P.charges < 3) { P.chargeT += dt; if (P.chargeT >= 3) { P.chargeT = 0; P.charges++; } } else P.chargeT = 0;
+  for (const v of P.vacuoles) v.age += dt;
+  if (P.spawn < 1) P.spawn = Math.min(1, P.spawn + dt / 0.8);
+  if (P.dead) {
+    P.dead.t += dt;
+    S.v *= Math.exp(-dt * 4);
+    S.x += Math.cos(S.a) * S.v * dt; S.y += Math.sin(S.a) * S.v * dt;
+    if (P.dead.by === 'the giant amoeba' && giant.placed) { S.x += (giant.x - S.x) * dt * 0.3; S.y += (giant.y - S.y) * dt * 0.3; }
+    if (P.dead.by === 'the bladderwort trap' && trap.placed) { const D = trapDoor(trap); S.x += (trap.x - S.x) * dt * 2; S.y += (trap.y - S.y) * dt * 2; void D; }
+    if (P.dead.t >= RESPAWN) respawn(P);
     return;
   }
-  optics.render(scene, cam, { ...optP, upTo: 2 });
-  const { main, pong } = optics.targets;
-  looks.fieldFromBuffers(W, H, { a: { opd: main.textures[0], abs: main.textures[1], scatW: [0, 1, 0, 0] }, b: { opd: pong.textures[0], abs: pong.textures[1], scatW: [0, 1, 0, 0] }, opdK: 1, absK: 1 });
-  if (borrow.id === 'dicTardigrade') looks.dic({ mode: bmode.dic, pxPerUm, time: t, opdK: 1, absK: 1 });
-  else looks.amoeba({ mode: bmode.amoeba, focus: 0.6, time: t, umPerPx: 1 / pxPerUm, phaseK: 1, odK: 1 });
+  const env = { obstacles: [...world.near(S.x, S.y, 170, t), ...trapObstacles(trap)], drag: bloomDrag.get(P) ?? 1, push: trapPush.get(P) || null, held: !!P.engulfed };
+  if (P.engulfed && giant.placed) { S.x += (giant.x - S.x) * dt * 0.25; S.y += (giant.y - S.y) * dt * 0.25; }
+  stepSwim(S, input, env, dt);
+  // contacts: a puff and a rumble on a real bump (a weave is quiet)
+  for (const c of S.contacts) if (!c.weave && c.pen > 3 && !P.bumpCd) { P.bumpCd = 0.25; P.pad?.rumble?.(60, 0.2, 0.1); }
+  P.bumpCd = Math.max(0, (P.bumpCd || 0) - dt);
+  if (S.contacts.some((c) => c.weave)) hintOnce(P, 'weave', 'You wind over or under filaments and clumps on your own; RS up/down to choose your depth', 3000);
+  // the body: bend into a turn, squash in a dash; the cilia beat with the speed
+  const turn = wrap(S.a - P.lastA) / Math.max(dt, 1e-3); P.lastA = S.a;
+  P.bend += (clamp(turn / 6, -1, 1) - P.bend) * Math.min(1, dt * 8);
+  P.squash += ((S.dashT > 0 ? 1 : 0) - P.squash) * Math.min(1, dt * 10);
+  P.beat += beatRate(S.v) * dt;
 }
-
-// --- debug hooks for screenshots and tests ------------------------------------
-/** After a step without drawing: the cameras and the split as a drawn frame would have them, so the director sees what they see. */
-function stepViews(dt) {
-  const s = swimmer.state;
-  const cam = updateCameras(dt, s, ls, group());
-  const list = liveRoster().map((P) => ({ slot: P.slot, position: P.swimmer.state.center }));
-  split.update(list.length ? list : [{ slot: 0, position: s.center }], { camera: cam, zoom: view.zoom }, dt);
-  groupZoom = split.zoom;
-  directorViews(cam);
-}
-const slotP = (slot) => roster.find((P) => P.slot === slot) || P1;
-const debug = {
-  freeze: false, inspect: false, clean: false, thrust: 0, steer: { x: 0, y: 0, m: 0 },
-  fineCull: true, // the region and bloom-cell culling (cullRegion, bloom.cullView); false for A/B checks
-  setMode(i) { features.set('look', MODE_NAMES[MODES[((i % MODES.length) + MODES.length) % MODES.length]]); },
-  setView(k) { features.set('view', VIEW_NAMES[k]); },
-  setOrbit(yaw, pitch, dist) { view.orbitYaw = yaw; view.orbitPitch = pitch; if (dist) view.dist = dist; },
-  avoid() { swimmer.startAvoid(null, null); },
-  dash(yaw = null) { if (swimmer.dash(yaw)) { dash.trigger(); P1.dashFx = 0.45; } },
-  attack() { doAttack(P1); },
-  burst() { fireTrichocysts(P1, touchingThreat(swimmer.state)); },
-  /** Put a player (default player 1) at (x, y, z) µm; the camera snaps there for player 1. */
-  teleport(x, y, z, yaw = 0, pitch = 0, slot = 0) {
-    const P = slotP(slot), s = P.swimmer.state; s.axis.set(x, y, z); s.yaw = yaw; s.pitch = pitch;
-    if (P === P1) { view.camAxis.set(x, y, z); view.camYaw = yaw; view.camPitch = pitch; view.focusY = y; view.scopeYaw = yaw; }
-  },
-  /** Put a hunter at an offset (µm) from the player, heading at it. */
-  didinium(dx, dz, i = 0) {
-    const s = swimmer.state, d = world.didinia[i];
-    d.pos.set(s.center.x + dx, s.center.y, s.center.z + dz); d.dir.set(-dx, 0, -dz).normalize(); d.stun = 0; d.sated = 0;
-  },
-  amoeba(dx, dz) { const s = swimmer.state; amoeba.pos.set(s.center.x + dx, 0, s.center.z + dz); amoeba.sated = 0; amoeba.stun = 0; },
-  prey(dx, dz, i = 0) { const s = swimmer.state; const it = prey.items[i]; it.pos.set(s.center.x + dx, s.center.y, s.center.z + dz); it.alive = true; it.pull = 0; },
-  /** Step the world n times without drawing; the cameras and the director's views follow, as a drawn frame would have them. */
-  step(n = 1, dt = 1 / 60) { for (let i = 0; i < n; i++) { tick(dt, true); stepViews(dt); } },
-  /** Make every hunter hungry now (tests of the fights). */
-  /** Wake the boss now, whatever the calm opening says. */
-  wakeBoss() { bossInfo.force = true; },
-  /**
-   * Place the portal now, `d` µm from player 1 at bearing a (default: their
-   * bearing from the start), as the director would (every encounter before it
-   * counts as met).
-   */
-  placePortal(a, d = 3000) { const c = swimmer.state.center, b = a ?? (distFromStart(c) > 1 ? bearingOf(c) : 0); director.force('portal', c.x + Math.cos(b) * d, c.z + Math.sin(b) * d, b); },
-  /** Place encounter `id` now at (x, z), met coming along bearing b (every earlier one counts as met). */
-  placeEncounter(id, x, z, b = 0) { return director.force(id, x, z, b); },
-  hungry() { for (const th of hunters()) { th.hunger.reset(0.01); th.sated = 0; th.stun = 0; } swimmer.state.safeT = 0; },
-  /** Player 1's buttons for tests: 'B' defend, 'X' attack (eat or fight back). */
-  press(b, slot = 0) { const P = slotP(slot); if (b === 'B') defend(P); else if (b === 'X') doAttack(P); },
-};
-
-/** Test hook: put a hunter on a player (default player 1) and start its catch ('didinium' | 'amoeba'). */
-function forceCapture(kind = 'didinium', slot = 0) {
-  const P = slotP(slot);
-  const s = P.swimmer.state;
-  if (P.capture.active) P.capture.reset(false);
-  if (s.mode !== 'swim') { s.mode = 'swim'; s.captor = null; s.avoid = null; }
-  s.safeT = 0;
-  let th;
-  if (kind === 'amoeba') {
-    th = amoeba;
-    s.axis.y = Math.min(s.axis.y, 120);
-    const yaw = s.yaw + Math.PI / 2;
-    amoeba.pos.set(s.axis.x + Math.cos(yaw) * (amoeba.R + 90), 0, s.axis.z - Math.sin(yaw) * (amoeba.R + 90));
-    amoeba.stun = 0; amoeba.sated = 0;
-    amoeba.tip.set(amoeba.pos.x, amoeba.H, amoeba.pos.z);
-  } else {
-    th = world.didinia[0];
-    // from the side, so the chase camera sees the proboscis strike
-    const side = new THREE.Vector3().crossVectors(s.T, new THREE.Vector3(0, 1, 0)).normalize();
-    th.dir.copy(side).negate();
-    th.pos.copy(s.center).addScaledVector(side, WIDTH / 2 + 64).addScaledVector(s.T, LENGTH * 0.1);
-    th.tip = (th.tip || new THREE.Vector3()).copy(th.pos).addScaledVector(th.dir, 66);
-    th.stun = 0; th.sated = 0;
+const _in = { mx: 0, my: 0, m: 0, depth: 0 };
+function readInput(P, dt, frozen) {
+  _in.mx = _in.my = _in.m = _in.depth = 0;
+  if (frozen || !P.live) return _in;
+  const c = players.controls(P.slot);
+  if (!c) return _in;
+  const m = c.move();
+  // the stick in the view's frame: up the screen is the view's up
+  const sx = m.x, sy = -m.y, cr = Math.cos(view.rot), sr = Math.sin(view.rot);
+  _in.mx = sx * cr - sy * sr; _in.my = sx * sr + sy * cr; _in.m = Math.min(1, m.m);
+  const rs = c.camera();
+  // RS: up deeper (into the slide), down shallower (toward you); only far left/right turns the view
+  if (Math.abs(rs.x) > 0.7 && Math.abs(rs.x) > Math.abs(rs.y)) view.rot = wrap(view.rot - rs.x * 1.5 * dt);
+  else _in.depth = clamp(rs.y, -1, 1);
+  _in.depth = clamp(_in.depth + c.secondary(), -1, 1);
+  if (c.dash.pressed()) {
+    const dir = _in.m > 0.2 ? Math.atan2(_in.my, _in.mx) : null;
+    if (startDash(P.S, dir)) { audio.play('paramecium/dash', { volume: 0.9 }); P.pad?.rumble?.(160, 0.5, 0.7); flingBloom(bloom, P.S); }
   }
-  if (P.swimmer.capture(th)) startCapture(P, th);
-  return P.capture.phase;
+  if (c.attack.pressed()) attack(P);
+  if (c.defend.pressed()) defend(P);
+  if (c.special.pressed()) {
+    if (atOpenPortal(P)) enterPortal(P);
+    else if (P.back > 0.5) { lm.log.push({ kind: 'back', slot: P.slot, t: +game.t.toFixed(2) }); embed.landmark('back', { player: P.slot }); }
+  }
+  if (P === P1) {
+    const ls = c.lookStep ? c.lookStep() : 0;
+    if (ls) { const i = (LOOK_NAMES.indexOf(view.look) + ls + LOOK_NAMES.length) % LOOK_NAMES.length; features.set('look', LOOK_NAMES[i]); }
+    const zs = c.zoomStep ? c.zoomStep() : 0;
+    if (zs) view.field = clamp(view.field - zs, 0, FIELDS.length - 1);
+  }
+  return _in;
+}
+let bloomDrag = new Map(), trapPush = new Map();
+function stepWorld(dt) {
+  game.t += dt;
+  const list = foeView();
+  const ev = [];
+  ev.push(...stepDileptus(dileptus, list, dt));
+  for (const d of didinia) ev.push(...stepDidinium(d, list, dt));
+  ev.push(...stepGiant(giant, list, dt));
+  const tr = stepTrap(trap, list, dt);
+  ev.push(...tr.ev);
+  trapPush = tr.pushes;
+  bloomDrag = stepBloom(bloom, list, dt);
+  stepPrey(prey, list, dt, t);
+  // what the giant covers, it eats too (prey, algae)
+  if (giant.placed) {
+    for (const p of prey.list) if (!p.dying && hyp(p.x - giant.x, p.y - giant.y) < GIANT.R * 0.9) p.dying = 0.001;
+  }
+  world.stepVorticella(dt, (v) => cells.some((P) => { const ox = Math.round((P.S.x - v.ax) / TILE) * TILE, oy = Math.round((P.S.y - v.ay) / TILE) * TILE; const p = world.vortPose(v, ox, oy, t); return hyp(P.S.x - p.x1, P.S.y - p.y1) < 110 && Math.abs(P.S.z - p.z1) < 60; }));
+  for (const e of ev) {
+    if (e.type === 'kill') kill(e.P, e.by, e.how);
+    else if (e.type === 'engulf') { hintOnce(e.P, 'engulf', 'The giant amoeba is closing round you: B to burst out, or dash clear! Rise above it to stay out of reach', 3600); audio.play('paramecium/held', { volume: 0.7 }); }
+    else if (e.type === 'tell' && e.who.kind === 'didinium') { audio.play('paramecium/didinium', { volume: 0.9 }); hintOnce(e.P, 'did', 'Didinium crouches to lunge: dodge sideways or change depth (RS)!'); }
+    else if (e.type === 'tell' && e.who.kind === 'dileptus') hintOnce(e.P, 'dil', 'Dileptus winds its trunk back: B (trichocysts) drives it off');
+    else if (e.type === 'fled') hud.toast('The Dileptus gives up and swims off', 2000);
+    else if (e.type === 'trap-spent') hud.toast('The trap hangs slack: slip down onto the biofilm!', 2800);
+    if (/^(kill|miss|fled|rest|trap-)/.test(e.type)) log(e.type, e.who ? e.who.kind : e.by || '', e.P);
+  }
+  // director
+  const dev = director.update(dt, dirPlayers(), directorViews());
+  for (const e of dev) { challengeLog.push({ type: 'director', ev: e.type, id: e.id, how: e.how, t: +game.t.toFixed(2) }); if (e.type === 'met' && e.id === 'didinium' && !portalSealed()) {} }
+  driftEncounter(dt);
 }
 
-window.__micro = {
-  forceCapture,
-  /** Pacing for tests: time since the round began, first hungry and first threat (s), each hunter's hunger. */
-  pacing: () => ({ t: t - pacing.t0, firstHungry: pacing.firstHungry, firstThreat: pacing.firstThreat, grace: pacing.grace, cycles: pacing.cycles,
-    hunters: hunters().map((th) => ({ name: th.label, state: th.hunger.state, hungry: th.hungry, left: +th.hunger.left.toFixed(1), doing: th === amoeba ? amoeba.state : th.state })),
-    capture: capture.active && cap.th ? { phase: cap.phase, by: CATCH[catchKind(cap.th)].by } : null, mode: swimmer.state.mode }),
-  capture,
-  scene, renderer, cell, world, swimmer, encounters: enc, prey, amoeba, optics, view, debug, MODES, features, game, dash,
-  get camera() { return view.kind === 'scope' ? scope : chase; },
-  get t() { return t; },
-  /** Go through the portal now as player `slot` (what Y at the open portal does). */
-  enterPortal: (slot = 0) => enterPortal(slotP(slot)),
-  /** The portal arrow drawn last frame, per view: [{ x, y, angle, onScreen, d, label, at } | null] ([] when off). */
-  portalArrow: () => arrowLog,
-  /** The director's portals (the way on): [{ instance, x, y, z, open, seen, state }]. */
-  portals: () => director.portals().map(({ handle, ...q }) => q),
-  /** Is the way on still sealed (encounters left before it)? */
-  portalSealed: () => portalSealed(),
-  /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
-  outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam, u: outro.u ?? null, light: +diveLight.toFixed(3) } : null; },
-  OUTRO, DIVE,
-  /** The kin clump's cells (shared/kin-clump.js) on screen now, in normalised device coordinates (the shell-path checks compare them with the bacterium's). */
-  clumpScreen(n = 8) {
-    const v = new THREE.Vector3(), h = spir.heading;
-    return clump.layout.slice(0, n).map((c) => { v.set(spir.pos.x + c.u * Math.cos(h) + c.v * Math.sin(h), spir.pos.y, spir.pos.z + c.u * Math.sin(h) - c.v * Math.cos(h)).project(chase); return { kind: c.kind, x: +v.x.toFixed(4), y: +v.y.toFixed(4) }; });
-  },
-  /** The glimpsed spirillum (the next world's creature) and its pose in the chase view now; your cell's pose. */
-  spirillum: () => ({ pos: spir.pos.toArray(), heading: spir.heading, visible: spir.group.visible, pose: spirPose() }),
-  cellPose: () => embed.poseOf(chase, swimmer.state.center, { len: LENGTH, heading: cellHeading(swimmer.state), ...camAngles(chase) }),
-  get look() { return lookName(); },
-  // Micro Zoom: players, split screen and landmarks
-  players, split,
-  /** Testing: put player `slot`'s cell at (x, z) µm, at its depth. */
-  place(slot, x, z) { const st = slotP(slot).swimmer.state; const dx = x - st.axis.x, dz = z - st.axis.z; st.axis.x += dx; st.axis.z += dz; st.center.x += dx; st.center.z += dz; },
-  landmarks: { forward: FWD.pos, back: BACK.pos, log: lm.log, get near() { return lm.near; }, get prompt() { return !!lm.portal; } },
-  get frames() { return frameCount; },
-  /** Each hunter's fight: state, progress, interest, what it is doing. */
-  boss: () => ({ awake: trap.awake, state: trap.fight.state, t: +(trap.fightT || 0).toFixed(2), interest: +trap.fight.interest.toFixed(2), phase2: trap.phase2, door: trap.door.toArray(), log: bossInfo.log }),
-  trap,
-  bloom,
-  /** The encounters (the director's state), the portal, and where each player is (µm out from the start). */
-  route: () => ({ warm: HALF, reached: pacing.reached, reachedAt: pacing.reachedAt, encounters: director.state(),
-    portal: { placed: FWD.placed, bearing: FWD.bearing, pos: FWD.pos.toArray().map(Math.round), guarded: guarded(), sealed: FWD.placed && portalSealed(), open: FWD.placed && !portalSealed() && !guarded(), trap: trap.placed ? trap.centre.toArray().map(Math.round) : null },
-    players: roster.map((P) => ({ slot: P.slot, u: Math.round(progress(P.swimmer.state.center)), side: Math.round(lateral(P.swimmer.state.center)) })) }),
-  /** The director (shared/director.js): state(), seenAt(x, z), placeNow(), log. */
-  director,
-  encounterState: () => director.state(),
-  seenAt: (x, z) => director.seenAt(x, z),
-  placeNow: () => director.placeNow(),
-  /** Each challenge: where it is (placed by the director) or null while it is not yet placed. */
-  challenges: () => [
-    ...world.didinia.map((d, i) => ({ name: `${d.label}${d.kind === 'didinium' ? ` ${i + 1}` : ''}`, kind: d.kind, at: d.parked ? null : [Math.round(d.home.x), Math.round(d.home.z)], u: d.parked ? null : Math.round(progress(d.home)) })),
-    { name: 'Bladderwort trap', kind: 'boss', at: trap.placed ? [Math.round(trap.centre.x), Math.round(trap.centre.z)] : null, u: trap.placed ? Math.round(progress(trap.centre)) : null },
-    { name: 'Chlamydomonas bloom', kind: 'crowd', at: bloom.placed ? [Math.round(BLOOM.x), Math.round(BLOOM.z)] : null, u: bloom.placed ? Math.round(Math.hypot(BLOOM.x - START.x, BLOOM.z - START.z)) : null },
-  ],
-  trichoLog, hintLog, bloomLog: () => ({ enter: bloomLog.enter, gulps: bloomLog.gulps, wedges: bloomLog.wedges, alive: bloom.alive }),
-  quality,
-  fights: () => hunters().map((th) => ({ name: th.label, state: th.fightState, t: +(th.fightT || 0).toFixed(2), interest: +th.fight.interest.toFixed(2), doing: th === amoeba ? amoeba.state : th.state })),
-  roster: () => roster.map((P) => { const s = P.swimmer.state; return { slot: P.slot, x: s.center.x, y: s.center.y, z: s.center.z, mode: s.mode, capture: P.capture.active ? P.cap.phase : null, waiting: P.waiting }; }),
+// ---------------------------------------------------------------- the camera
+function stepCamera(dt) {
+  const live = cells.filter((c) => c.live || c.dead);
+  if (!live.length) return;
+  let x = 0, y = 0, z = 0, vx = 0, vy = 0;
+  for (const c of live) { x += c.S.x; y += c.S.y; z += c.S.z; vx += c.S.vx; vy += c.S.vy; }
+  const n = live.length;
+  x /= n; y /= n; z /= n; vx /= n; vy /= n;
+  // a little lead along the swim, critically damped (quick, no overshoot)
+  const lead = n === 1 ? 0.14 : 0;
+  const tx = x + vx * lead, ty = y + vy * lead;
+  const k = 1 - Math.exp(-dt / 0.12);
+  view.cx += (tx - view.cx) * k; view.cy += (ty - view.cy) * k;
+  view.focus += (z - view.focus) * (1 - Math.exp(-dt / 0.1));
+}
+const toScreen = (x, y, slot = 0) => {
+  const L = split.layout;
+  if (L && L.views && L.views.length > 1) { const v = L.views.find((q) => q.slots.includes(slot)) || L.views[0]; const p = split.project(v.index, toFrame(x, y)); return { x: p.x, y: p.y }; }
+  const q = toFrame(x, y), w = view.fw, h = w * aspect();
+  return { x: (q.x - view.cx) / w * innerWidth + innerWidth / 2, y: innerHeight / 2 - (q.y - view.cy) / h * innerHeight };
 };
-requestAnimationFrame((n) => { last = n; frame(n); });
+
+// ---------------------------------------------------------------- drawing
+function currentLook() {
+  const L = LOOKS[view.look];
+  if (diveLight <= 0) return L;
+  const D = LOOKS.Darkfield, Ph = LOOKS['Phase contrast'], m = diveLight;
+  return { bg: [0, 1, 2].map((i) => lerp(D.bg[i], PHASE_BG[i] * 0.5, m)), add: lerp(1, Ph.add, m), sub: lerp(0, Ph.sub, m), subTint: [1, 1, 1], tile: m < 0.5 ? 'dark' : 'phase', tileK: m < 0.5 ? D.tileK * (1 - 2 * m) : Ph.tileK * (2 * m - 1) };
+}
+function fill(rect) {
+  shapes.begin();
+  const G = shapes;
+  drawScenery(G, world, rect, t, { glitter: view.glitter });
+  if (BACK) drawBack(G, BACK, t);
+  if (leaf.placed) drawLeaf(G, leaf, t, { lawn: outro ? 1 - 0.75 * diveLight - 0.25 * sm01(SLIME[0], DIVE.fade[0], outro.u || 0) : 1 });
+  drawGiant(G, giant, t);
+  drawBloom(G, bloom, rect, t);
+  drawPrey(G, prey, rect, t);
+  drawTrap(G, trap, t);
+  for (const d of didinia) drawDidinium(G, d, t);
+  drawDileptus(G, dileptus, t);
+  if (leaf.placed) {
+    const clumpK = outro ? sm01(0, OUTRO.beat + OUTRO.ease, outro.t) * (outro.frozenAt !== null ? 1 - outro.scale : 1) : 0;
+    drawKinClump(G, spir, clumpK, 1 - sm01(SLIME[0], SLIME[1], outro ? outro.u || 0 : 0));
+    drawSpirillum(G, spir, t, 1);
+  }
+  for (const P of cells) {
+    if (!P.live && !P.dead) continue;
+    const blink = P.invuln > 0 && P.live ? 0.65 + 0.35 * Math.cos(P.invuln * 18) : 1;
+    drawCell(G, { x: P.S.x, y: P.S.y, z: P.S.z, a: P.S.a, v: P.S.v, bend: P.bend, squash: P.squash, t: t + P.slot * 7, beat: P.beat, variety: P.variety, burst: P.burst, jab: P.jab, dead: P.dead ? Math.min(1, P.dead.t / DISSOLVE) : 0, spawn: P.spawn, vacuoles: P.vacuoles, ring: multi() ? hexRgb(P.color) : null, alpha: blink });
+  }
+  shapes.end();
+}
+const hexRgb = (h) => { const n = parseInt(h.slice(1), 16); return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]; };
+function renderView(cx, cy, focus, look) {
+  const W = renderer.domElement.width, w = view.fw, hw = w / 2, hh = hw * aspect();
+  shapes.setView({ cx, cy, hw, hh, rot: view.rot, focus, pxUm: w / Math.max(1, W) });
+  shapes.depth(view.parallax ? 0.0009 : 0, view.parallax ? 0.07 : 0.015, view.parallax ? 0.006 : 0.002);
+  const tex = view.tile && look.tile ? tiles[look.tile] : null;
+  shapes.setTile(tex, look.tileK, look.tile === 'phase' ? 1400 : 1500, view.parallax ? 0.82 : 1, 2.2, look.tile === 'phase' ? [1, 1, 1] : [0.9, 0.95, 1.0]);
+  shapes.render(look);
+  // the portal's glow over it
+  if (glow.group.visible) {
+    glowCam.left = -hw; glowCam.right = hw; glowCam.top = hh; glowCam.bottom = -hh;
+    glowCam.position.set(cx, cy, GLOW_D); glowCam.rotation.set(0, 0, view.rot);
+    glowCam.updateProjectionMatrix(); glowCam.updateMatrixWorld();
+    renderer.render(glowScene, glowCam);
+  }
+}
+let fieldNow = 640;
+function render(dt) {
+  // the group's zoom-out (the split screen's): the field widens, only further apart does it split
+  const camHeld = (outro && outro.cam) || (intro && intro.cam && !('ease' in intro));
+  if (outro && outro.cam) poseView(outro.cam, spir.x, spir.y, spir.a, SPIRILLUM.L);
+  else if (intro && intro.cam && !('ease' in intro)) poseView(intro.cam, P1.S.x, P1.S.y, P1.S.a, LENGTH);
+  else { groupZoom.applied = multi() ? groupZoom.z : 1; view.fw = baseField() * groupZoom.applied; }
+  fieldNow = view.fw;
+  // the dive's light: darkfield to phase contrast as the push begins
+  diveLight = outro ? sm01(LIGHT[0], LIGHT[1], outro.u || 0) : 0;
+  if (glowUI) glowUI.value = GLOW_I * (outro && outro.cam && outro.f0 ? 1 - sm01(0, Math.log(4), Math.log(Math.max(1, outro.cam.f / outro.f0))) : 1);
+  glow.setOpen(!guarded() && !portalSealed());
+  glow.update(dt, t, glowCam);
+  const hw = view.fw / 2, hh = hw * aspect();
+  const list = cells.filter((c) => c.live || c.dead).map((c) => ({ slot: c.slot, position: toFrame(c.S.x, c.S.y) }));
+  const L = split.update(list.length ? list : [{ slot: 0, position: toFrame(P1.S.x, P1.S.y) }], { center: { x: view.cx, y: view.cy }, pxPerUnit: innerWidth / view.fw, yUp: true, zoom: camHeld ? 1 : groupZoom.applied }, dt);
+  groupZoom.z = split.zoom;
+  quality.setSplitViews(L.views.length);
+  const look = currentLook();
+  // the views: each one's centre and focus (its own players' depth)
+  const vs = (L.views.length > 1 && !camHeld ? L.views : [{ index: 0, offset: { x: 0, y: 0 }, slots: cells.map((c) => c.slot) }]).map((v) => {
+    const o = fromFrameOffset(v.offset);
+    const mine = cells.filter((c) => v.slots.includes(c.slot) && (c.live || c.dead));
+    const focus = camHeld && outro ? lerp(view.focus, spir.z, sm01(0, 0.3, outro.u || 0)) : mine.length && L.views.length > 1 ? mine.reduce((s, c) => s + c.S.z, 0) / mine.length : view.focus;
+    return { index: v.index, cx: view.cx + o.x, cy: view.cy + o.y, focus, hw, hh };
+  });
+  lastViews = vs;
+  // fill the shapes once for every view: the union of their fields (with room for the turn and parallax)
+  const R = Math.max(hw, hh) * 1.3;
+  const rect = [Math.min(...vs.map((v) => v.cx)) - R, Math.min(...vs.map((v) => v.cy)) - R, Math.max(...vs.map((v) => v.cx)) + R, Math.max(...vs.map((v) => v.cy)) + R];
+  fill(rect);
+  renderer.setRenderTarget(null);
+  if (vs.length === 1) renderView(vs[0].cx, vs[0].cy, vs[0].focus, look);
+  else {
+    for (const v of vs) { split.scissor(v.index, null); renderView(v.cx, v.cy, v.focus, look); split.capture(v.index); }
+    split.unscissor(null);
+    split.compose();
+  }
+  // the edge marks: the way back (a quiet ring); the portal's light spills in from the edge; the arrow (setting)
+  marks.begin();
+  portalLight.begin();
+  if (leaf.placed && !portalSealed() && !outro) {
+    const d = Math.min(...cells.map((P) => hyp(P.S.x - FWD.x, P.S.y - FWD.y)));
+    portalLight.drawSplit(split, toFrame(FWD.x, FWD.y), { strength: Math.max(0.3, Math.min(1, 1.2 - d / 1800)), open: glow.open });
+  }
+  if (!outro) marks.drawSplit(split, toFrame(BACK.x, BACK.y), { kind: 'backdoor', label: 'Pool', range: 1500, onScreen: 'none' });
+  drawPortalArrow();
+}
+let arrowLog = [];
+function drawPortalArrow() {
+  arrowLog = [];
+  if (!portalArrowOn() || outro) return;
+  const ps = director.portals();
+  if (!ps.length) return;
+  arrowLog = marks.drawSplit(split, (vp) => {
+    let best = null, bd = Infinity;
+    for (const p of ps) for (const v of vp) { const P = cells.find((c) => c.slot === v.slot); if (!P) continue; const d = hyp(P.S.x - p.x, P.S.y - p.z); if (d < bd) { bd = d; best = p; } }
+    if (!best) return null;
+    return { position: toFrame(best.x, best.z), label: bd >= 1000 ? `${(bd / 1000).toFixed(1)} mm` : `${Math.round(bd)} µm`, distance: bd };
+  }, { kind: 'forward', portal: true, range: 1e9 }).map((r) => r && { x: r.x, y: r.y, angle: r.angle, onScreen: r.onScreen, label: r.picked && r.picked.label });
+}
+
+// ---------------------------------------------------------------- HUD
+let goalText = '';
+function updateHud() {
+  const P = P1;
+  const dashK = 1 - Math.max(0, P.S.dashCd) / 0.9;
+  const dashBar = '▮'.repeat(Math.round(dashK * 4)) + '▯'.repeat(4 - Math.round(dashK * 4));
+  const stars = '✦'.repeat(P.charges) + '✧'.repeat(3 - P.charges);
+  const depthName = (z) => (z > 60 ? 'near the coverslip' : z < -60 ? 'near the slide' : 'mid-water');
+  let warn = '';
+  for (const C of cells) {
+    if (!C.live) { if (C.dead) warn = `${who(C)}Eaten by ${C.dead.by}`; continue; }
+    if (C.engulfed) { warn = `${who(C)}Engulfed! ${glyph('B')} to burst out, or dash clear`; break; }
+    if (trap.state === 'pulse' && trapPush.has(C)) { warn = `${who(C)}The trap pulls! ${glyph('B')} to burst out`; break; }
+    for (const d of didinia) if (d.target === C && /crouch|lunge/.test(d.mode)) warn = `${who(C)}Didinium lunges: dodge sideways or change depth`;
+    if (dileptus.target === C && /windup|strike/.test(dileptus.mode)) warn = `${who(C)}Dileptus slashes: ${glyph('B')} to drive it off`;
+    if (!warn && giant.placed && giant.target === C && hyp(C.S.x - giant.x, C.S.y - giant.y) < GIANT.R + 320) warn = `${who(C)}The giant amoeba reaches for you: keep clear, or rise above it`;
+  }
+  const s = director.state();
+  const way = !leaf.placed ? '' : portalSealed() ? '' : guarded() ? ` · trap ${'●'.repeat(Math.max(0, trap.resolve))}` : ' · the way on is open';
+  const text = `<div>Prey ${game.eaten}/${GOAL}${game.divided ? ` · divided ${game.divided}` : ''} · dash ${dashBar} · burst ${stars} · ${depthName(P.S.z)}${way}</div>${warn ? `<div style="color:#ff9c8a">${warn}</div>` : ''}`;
+  if (text !== goalText) { goalText = text; goalEl.innerHTML = text; }
+  void s;
+  // the depth gauge: each player's depth between the coverslip (top) and the slide
+  const H = 118;
+  while (gaugeDots.length < cells.length) { const d = document.createElement('i'); d.style.cssText = 'position:absolute;left:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;border:2px solid #0b0f14;box-sizing:border-box'; gaugeBar.appendChild(d); gaugeDots.push(d); }
+  gaugeDots.forEach((d, i) => { const C = cells[i]; if (!C) { d.style.display = 'none'; return; } d.style.display = ''; d.style.background = multi() ? C.color : '#e9f0d0'; d.style.top = `${((DEPTH.max - C.S.z) / (DEPTH.max - DEPTH.min)) * H}px`; });
+  gaugeEl.style.display = outro || introHeld() ? 'none' : '';
+  goalEl.style.display = outro || introHeld() ? 'none' : '';
+  if (!embed.active) {
+    const fwd = leaf.placed ? `${(hyp(P.S.x - FWD.x, P.S.y - FWD.y) / 1000).toFixed(2)} mm` : '…';
+    hud.stats(`field ${Math.round(fieldNow)} µm · ${view.look} · z ${P.S.z.toFixed(0)} µm · portal ${fwd} · back ${(hyp(P.S.x - BACK.x, P.S.y - BACK.y) / 1000).toFixed(2)} mm · next ${s.current || '—'} (${s.phase})`);
+  }
+}
+
+// ---------------------------------------------------------------- loop
+let last = performance.now(), frameCount = 0;
+const debug = { freeze: false };
+function frame(now) {
+  requestAnimationFrame(frame);
+  const real = Math.min(0.1, Math.max(0, (now - last) / 1000));
+  last = now;
+  quality.update(real);
+  const dtRaw = Math.min(1 / 20, real);
+  players.poll();
+  hud.update(pad);
+  const panel = features.update();
+  for (const p of players.list) { const pp = players.pad(p.slot); for (let b = 0; b < 16; b++) if (pp && pp.value(b) > 0.5) { audio.unlock(); break; } }
+  const held = introHeld();
+  let scale = held ? 0 : outro ? stepOutro(dtRaw) : introEase(dtRaw);
+  if (debug.freeze) scale = 0;
+  const dt = dtRaw * scale;
+  if (dt > 0) {
+    t += dt;
+    for (const P of cells) { P.pad = players.pad(P.slot); stepPlayer(P, dt, readInput(P, dt, panel || !!outro)); }
+    stepWorld(dt);
+    stepLandmarks(dt);
+  } else if (held) {
+    // drawn but not stepped: the shell's poses move the view
+  }
+  stepSpirillum(dtRaw * (outro ? 1 : scale));
+  if (!outro && !held) stepCamera(dtRaw);
+  // the swim's sound follows the speed
+  swimLoop.set({ volume: Math.min(0.5, Math.abs(P1.S.v) / 1400) });
+  render(dtRaw);
+  updateHud();
+  frameCount++;
+}
+requestAnimationFrame(frame);
+addEventListener('resize', () => renderer.setSize(innerWidth, innerHeight, false));
+split.prewarm?.();
+
+// ---------------------------------------------------------------- test hooks
+Object.assign(debug, {
+  /** Place the portal now (as if every encounter before it were met). */
+  placePortal() {
+    const P = P1.S, b = P.a;
+    director.force('portal', P.x + Math.cos(b) * 1500, P.y + Math.sin(b) * 1500, b);
+    return { x: FWD.x, y: FWD.y };
+  },
+  /** Put player slot at (x, y), depth z, heading a. */
+  teleport(x, y, z = null, a = null, slot = 0) {
+    const P = cells.find((c) => c.slot === slot) || P1;
+    P.S.x = x; P.S.y = y; if (z !== null) P.S.z = clamp(z, ZMIN, ZMAX); if (a !== null) { P.S.a = a; P.lastA = a; }
+    if (P === P1 || !multi()) { view.cx = x; view.cy = y; }
+  },
+  /** P1 d µm short of the leaf, heading at it, low over the film. */
+  toPortal(d = 260, z = -90) { const dx = FWD.x - P1.S.x, dy = FWD.y - P1.S.y, l = hyp(dx, dy) || 1; debug.teleport(FWD.x - (dx / l) * d, FWD.y - (dy / l) * d, z, Math.atan2(dy, dx)); },
+  /** The trap spent now (its guard down). */
+  spendTrap() { trap.state = 'spent'; trap.t = 0; trap.resolve = 0; },
+  wakeBoss() { if (trap.placed) { trap.state = 'set'; trap.t = 0; trap.next = 0; } },
+  place(id, x, y, b = 0) { director.force(id, x, y, b); return director.entry(id); },
+});
+window.__micro = {
+  get t() { return t; }, scene: shapes.scene, renderer, split, get layout() { return split.layout; }, players, cells, P1, view, world, director,
+  dileptus, didinia, giant, trap, bloom, prey, get leaf() { return leaf; }, spir, game, debug, features, glow,
+  /** run.mjs and perf compatibility: P1's state (swimmer.state.center). */
+  swimmer: { get state() { return { ...P1.S, center: { x: P1.S.x, y: P1.S.y, z: P1.S.z } }; } },
+  /** teleport(x, y, a, slot); perf's 6-argument call (x, y, z, yaw, pitch, slot) works too. */
+  teleport(x, y, a, slot = 0) { if (arguments.length >= 6) { slot = arguments[5]; a = null; } debug.teleport(x, y, null, a ?? null, slot); },
+  get landmarks() { return { forward: { x: FWD.x, y: FWD.y, z: FWD.y, placed: !!leaf.placed }, back: { ...BACK }, log: lm.log, near: lm.back, portal: lm.portal }; },
+  portals: () => director.portals(),
+  portalSealed, guarded, portalArrow: () => arrowLog,
+  enterPortal(slot = 0) { enterPortal(cells.find((c) => c.slot === slot) || P1); },
+  OUTRO, DIVE,
+  outro: () => outro && { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, u: outro.u, light: +diveLight.toFixed(3) },
+  spirillum: () => ({ x: spir.x, y: spir.y, z: spir.z, a: spir.a, pose: spirPose() }),
+  cellPose,
+  /** The kin clump's cells on screen now (normalised device coordinates; the shell-path checks compare them with the bacterium's). */
+  clumpScreen(n = 8) { return clumpLayout().slice(0, n).map((c) => { const q = placeInFrame(c, spir.x, spir.y, spir.a), f = toFrame(q.x, q.y), w = view.fw, h = w * aspect(); return { kind: c.kind, x: +((f.x - view.cx) / (w / 2)).toFixed(4), y: +((f.y - view.cy) / (h / 2)).toFixed(4) }; }); },
+  challenges: () => challengeLog.slice(),
+  state: () => ({ t: +t.toFixed(2), director: director.state(), eaten: game.eaten, divided: game.divided, cells: cells.map((c) => ({ slot: c.slot, x: +c.S.x.toFixed(1), y: +c.S.y.toFixed(1), z: +c.S.z.toFixed(1), a: +c.S.a.toFixed(2), v: +c.S.v.toFixed(0), live: c.live, dead: c.dead && c.dead.by, engulfed: !!c.engulfed })), trap: { state: trap.state, resolve: trap.resolve, log: trap.log.slice(-8) }, sealed: leaf.placed && portalSealed(), open: leaf.placed && !portalSealed() && !guarded(), prompt: lm.portal, shapes: shapes.count, field: Math.round(fieldNow), views: split.layout ? split.layout.views.length : 1 }),
+};

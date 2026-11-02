@@ -839,6 +839,7 @@ export function createWorld(scene) {
   };
   world.portal = null;
   world.gusts = []; // { p, dir, t }
+  world.current = null; // { center, dir, strength, radius } while a current passes (main.js, currents.js)
 
   /** Push the crowd (a gust or a passing phage). */
   world.gust = (p, dir) => world.gusts.push({ p: p.clone(), dir: dir.clone(), t: 0.6 });
@@ -897,7 +898,10 @@ export function createWorld(scene) {
       setSolids(b.material, solids);
       b.group.visible = world.opts.crowd;
       const u = b.material.uniforms;
-      if (g) { const k = g.t / 0.6; u.uGust.value.set(g.p.x, g.p.y, g.p.z, 26 * Math.sin(k * Math.PI)); u.uGustDir.value.copy(g.dir); } else u.uGust.value.w = 0;
+      // a passing current (main.js sets world.current) shoves the crowd along it, wider than a dash's gust
+      const cur = world.current;
+      if (cur && cur.strength > 0.01) { u.uGust.value.set(cur.center.x, cur.center.y, cur.center.z, 34 * cur.strength); u.uGustDir.value.copy(cur.dir); u.uGustR.value = cur.radius * 1.3; }
+      else if (g) { const k = g.t / 0.6; u.uGust.value.set(g.p.x, g.p.y, g.p.z, 26 * Math.sin(k * Math.PI)); u.uGustDir.value.copy(g.dir); u.uGustR.value = 90; } else u.uGust.value.w = 0;
     }
   };
 

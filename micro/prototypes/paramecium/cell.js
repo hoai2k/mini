@@ -22,20 +22,20 @@ export const VARIETIES = [
 ];
 const PELL = [0.86, 0.94, 1.0], CIL = [0.78, 0.9, 1.0], GOLD = [1.0, 0.8, 0.42], NUC = [0.85, 0.85, 0.72], CV = [0.9, 0.97, 1.0];
 const HL = LENGTH / 2, HW = WIDTH / 2;
-const N = 56, NC = 110;
+const N = 56, NC = 170;
 
 /** The body's half-width at s = u / HL (−1 rear .. +1 front): broad, with a blunt rear. */
 export function halfWidth(s) {
-  const q = Math.max(0, 1 - s * s);
-  return HW * Math.pow(q, 0.5) * (1 - 0.1 * s) * (s < 0 ? 1 + 0.06 * (1 + s) : 1);
+  const q = Math.max(0, 1 - Math.pow(Math.abs(s), 2.6));
+  return HW * Math.pow(q, 0.42) * (1 - 0.14 * Math.max(0, s) ** 2);
 }
 /** The oral groove's depth at s on the oral side (v < 0): from the front in to the mouth at mid-length. */
-const groove = (s) => (s > 0.02 && s < 0.88 ? Math.sin(((s - 0.02) / 0.86) * Math.PI) * 0.24 : 0);
+const groove = (s) => (s > 0.02 && s < 0.88 ? Math.sin(((s - 0.02) / 0.86) * Math.PI) * 0.13 : 0);
 
 function rng(seed) { let a = seed >>> 0; return () => ((a = (a * 1664525 + 1013904223) >>> 0) / 4294967296); }
 const r0 = rng(77);
-const CHL = Array.from({ length: 150 }, () => { const rho = 0.3 + 0.68 * Math.sqrt(r0()); return { rho, l: r0() * 6.283, w: 0.05 + r0() * 0.08, r: 1.8 + r0() * 0.9, k: r0() }; });
-const GRAN = Array.from({ length: 38 }, () => { const rho = 0.15 + 0.75 * Math.sqrt(r0()); return { rho, l: r0() * 6.283, w: 0.03 + r0() * 0.05, r: 0.9 + r0() * 1.6, k: r0() }; });
+const CHL = Array.from({ length: 130 }, () => { const rho = 0.3 + 0.68 * Math.sqrt(r0()); return { rho, l: r0() * 6.283, w: 0.05 + r0() * 0.08, r: 1.8 + r0() * 0.9, k: r0() }; });
+const GRAN = Array.from({ length: 64 }, () => { const rho = 0.1 + 0.85 * r0(); return { rho, l: r0() * 6.283, w: 0.03 + r0() * 0.05, r: 0.8 + r0() * r0() * 3.2, k: r0() }; });
 const BURST = Array.from({ length: 70 }, (_, i) => ({ th: (i / 70) * 6.283 + r0() * 0.05, L: 26 + r0() * 18, k: r0() }));
 
 /** The outline in the cell's frame (u ahead, v to its left), with a bend and a squash. */
@@ -43,7 +43,7 @@ export function outlineLocal(bend = 0, squash = 0, out = []) {
   for (let i = 0; i < N; i++) {
     const th = (i / N) * Math.PI * 2;
     const s = Math.cos(th), side = Math.sin(th);
-    let v = side * halfWidth(s);
+    let v = (side >= 0 ? 1 : -1) * halfWidth(s);
     if (side < 0) v *= 1 - groove(s);
     const u = s * HL * (1 + 0.07 * squash);
     v *= 1 - 0.07 * squash;
@@ -74,8 +74,8 @@ export function drawCell(G, C) {
   if (I0 <= 0.003) return;
   // the glassy body and the green cast
   if (dead < 0.5) {
-    G.ell(C.x, C.y, C.a, HL * 0.95, HW * 0.88, z, [0.5, 0.66, 0.85], 0.07 * I0, 7);
-    G.ell(C.x, C.y, C.a, HL * 0.8, HW * 0.7, z, V.chl, 0.06 * I0, 9);
+    G.ell(C.x, C.y, C.a, HL * 0.95, HW * 0.88, z, [0.5, 0.66, 0.85], 0.03 * I0, 7);
+    G.ell(C.x, C.y, C.a, HL * 0.8, HW * 0.7, z, V.chl, 0.035 * I0, 9);
   }
   // the pellicle: a crisp luminous outline (it breaks apart as it dissolves)
   for (let i = 0; i < N; i++) {
@@ -84,9 +84,9 @@ export function drawCell(G, C) {
     if (spread > 0) { const m = Math.hypot((p[0] + q[0]) / 2, (p[1] + q[1]) / 2) || 1; du = ((p[0] + q[0]) / 2 / m) * spread * (0.6 + ((i * 37) % 11) / 11); dv = ((p[1] + q[1]) / 2 / m) * spread * (0.6 + ((i * 53) % 7) / 7); }
     const gap = spread > 0 ? 0.25 * dead : 0;
     const u0 = p[0] + (q[0] - p[0]) * gap + du, v0 = p[1] + (q[1] - p[1]) * gap + dv, u1 = q[0] - (q[0] - p[0]) * gap + du, v1 = q[1] - (q[1] - p[1]) * gap + dv;
-    G.line(X(u0, v0), Y(u0, v0), X(u1, v1), Y(u1, v1), 0.95, z, PELL, 1.0 * I0, 0, 0.32, 3.5);
+    G.line(X(u0, v0), Y(u0, v0), X(u1, v1), Y(u1, v1), 0.62, z, PELL, 0.95 * I0, 0, 0.2, 2.6);
     // the cortex just inside: a faint second line
-    if (dead === 0) { const k = 0.9; G.line(X(p[0] * k, p[1] * k), Y(p[0] * k, p[1] * k), X(q[0] * k, q[1] * k), Y(q[0] * k, q[1] * k), 0.45, z, PELL, 0.22 * I0); }
+    if (dead === 0) { const k = 0.9; G.line(X(p[0] * k, p[1] * k), Y(p[0] * k, p[1] * k), X(q[0] * k, q[1] * k), Y(q[0] * k, q[1] * k), 0.45, z, PELL, 0.14 * I0); }
   }
   // the cilia: a fringe round the edge, beating in waves (metachrony) from front to back
   if (dead < 0.35) {
@@ -101,7 +101,7 @@ export function drawCell(G, C) {
       const arc = (i / NC) * 6.283;
       const ph = C.beat - Math.abs(Math.sin(arc * 0.5)) * 9; // waves running from the front back along both sides
       const sw = Math.sin(ph);
-      const len = (u > HL * 0.6 ? 11 : u < -HL * 0.75 ? 9.5 : 8.5) * (1 + 0.15 * Math.cos(ph));
+      const len = (u > HL * 0.6 ? 10 : u < -HL * 0.75 ? 9 : 8) * (1 + 0.15 * Math.cos(ph));
       const tilt = 0.75 * sw;
       // the stroke bends the cilium toward the rear (−u) through its power stroke
       const du = nu * Math.cos(tilt) - tu * Math.sin(tilt) * Math.sign(nv || 1), dv = nv * Math.cos(tilt) - tv * Math.sin(tilt) * Math.sign(nv || 1);
@@ -109,8 +109,8 @@ export function drawCell(G, C) {
       const mu = bu + du * len * 0.55, mv = bv + dv * len * 0.55;
       const eu = mu + (du * 0.8 + tu * 0.3 * sw) * len * 0.45, ev = mv + (dv * 0.8 + tv * 0.3 * sw) * len * 0.45;
       const b = 0.5 + 0.25 * Math.cos(ph);
-      G.line(X(bu, bv), Y(bu, bv), X(mu, mv), Y(mu, mv), 0.32, z, CIL, b * ci, 0, 0.12, 2);
-      G.line(X(mu, mv), Y(mu, mv), X(eu, ev), Y(eu, ev), 0.28, z, CIL, b * 0.8 * ci, 0, 0.1, 2);
+      G.line(X(bu, bv), Y(bu, bv), X(mu, mv), Y(mu, mv), 0.3, z, CIL, b * 0.6 * ci, 0, 0.05, 2);
+      G.line(X(mu, mv), Y(mu, mv), X(eu, ev), Y(eu, ev), 0.26, z, CIL, b * 0.45 * ci, 0, 0.04, 2);
     }
   }
   // the oral groove and the mouth (cytostome) at mid-length on the oral side
@@ -125,18 +125,18 @@ export function drawCell(G, C) {
   }
   // inside: cyclosis carries the Chlorella and the granules round a loop
   const cyc = C.t * 0.22;
-  const inner = (d, l, k = 0.82) => { const u = Math.cos(l) * d.rho * HL * k; return [u, Math.sin(l) * d.rho * halfWidth(u / HL) * 0.78]; };
+  const inner = (d, l, k = 0.84) => { const u = Math.cos(l) * Math.sqrt(d.rho) * HL * k; return [u, Math.sin(l) * Math.min(1, d.rho * 1.25) * halfWidth(u / HL) * 0.8]; };
   for (const d of CHL) {
     const [u, v] = inner(d, d.l + cyc * (0.6 + d.w * 4));
     const m = Math.hypot(u, v) || 1;
     const su = u + (u / m) * spread * (1.4 + d.k), sv = v + (v / m) * spread * (1.4 + d.k);
-    G.disc(X(su, sv), Y(su, sv), d.r, z, V.chl, (0.5 + 0.25 * d.k) * I0, 0.5, 0.22, 2.2);
+    G.disc(X(su, sv), Y(su, sv), d.r, z, V.chl, (0.3 + 0.2 * d.k) * I0, 0.5, 0.1, 2);
   }
   for (const d of GRAN) {
     const [u, v] = inner(d, d.l - cyc * (0.4 + d.w * 3), 0.78);
     const m = Math.hypot(u, v) || 1;
     const su = u + (u / m) * spread * (2 + d.k), sv = v + (v / m) * spread * (2 + d.k);
-    G.disc(X(su, sv), Y(su, sv), d.r, z, GOLD, (0.75 + 0.35 * Math.sin(C.t * 3 + d.l * 5)) * I0, 0.2, 0.55, 2.4);
+    G.disc(X(su, sv), Y(su, sv), d.r, z, GOLD, (0.7 + 0.3 * Math.sin(C.t * 3 + d.l * 5)) * I0, 0.2, 0.4, 2.2);
   }
   if (dead < 0.5) {
     // the macronucleus
@@ -147,11 +147,11 @@ export function drawCell(G, C) {
       const cyc2 = ((C.t / 5.5 + k * 0.5) % 1);
       const full = cyc2 < 0.85 ? cyc2 / 0.85 : 1 - (cyc2 - 0.85) / 0.15;
       const rr = 2.2 + 5 * full, cx = X(cu, 7), cy = Y(cu, 7);
-      G.ring(cx, cy, rr, 1, z, CV, 0.75 * I0, 0.3, 0.4, 2.5);
+      G.ring(cx, cy, rr, 0.8, z, CV, 0.6 * I0, 0.3, 0.3, 2.5);
       G.disc(cx, cy, rr * 0.6, z, CV, 0.18 * full * I0, 1.2);
       for (let c = 0; c < 7; c++) {
         const ang = C.a + c * 0.898 + 0.3, l0 = rr + 1, l1 = rr + 6 + 7 * (1 - full);
-        G.line(cx + Math.cos(ang) * l0, cy + Math.sin(ang) * l0, cx + Math.cos(ang) * l1, cy + Math.sin(ang) * l1, 0.6, z, CV, 0.5 * I0, 0.3, 0.2, 2);
+        G.line(cx + Math.cos(ang) * l0, cy + Math.sin(ang) * l0, cx + Math.cos(ang) * l1, cy + Math.sin(ang) * l1, 0.45, z, CV, 0.32 * I0, 0.3, 0.12, 2);
       }
     }
     // food vacuoles: what it has eaten, carried round (they shrink as they digest)

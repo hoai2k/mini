@@ -1,9 +1,12 @@
 // Phage prototype (Level 6 of the Zoom Chain): a T4-like tailed phage in bog
 // water, drawn in realistic microscopic false light (the Goodsell watercolour,
-// cryo-EM and fluorescence looks remain on the D-pad). LS drives a soft,
-// wobbly drift (a labelled departure: phages have no motor); Brownian motion,
-// the flow and slow tumbling act on top. Move attachment-fibres first and grab
-// a protruding protein (X): a matching receptor latches and starts injection.
+// cryo-EM and fluorescence looks remain on the D-pad). Crisp game controls (a
+// labelled departure: phages have no motor): LS forward/back along the view and
+// sideways, LB/RB down/up, A dashes forward. X or RT grabs whatever is in reach
+// of the fibres (grab.js: a free molecule to carry, or any point of a cell to
+// hang on to); only a matching receptor latches and starts injection. The water
+// is a visible textured liquid (medium.js) with occasional currents you see
+// coming (currents.js): hang on to a cell to ride one out.
 // Inside, thread the DNA's leading end past the host's restriction enzyme and
 // CRISPR complex until the whole genome is in. See README.md.
 import * as THREE from '../shared/vendor/three.module.min.js';
@@ -19,13 +22,15 @@ import { loadTexture } from '../shared/assets.js';
 import { createCapture, createFight } from '../shared/predation.js';
 import { createPost, goodsellShared, toonMaterial, inkedInstanced, setInkVisible } from '../shared/techniques/phage-goodsell.js';
 import { createT4, t4LiteGeometry, T4_FL } from '../shared/techniques/phage-model.js';
-import { createWorld, uvAt, progressAt, FIELD_R, START, UV_SHAFTS, DIRECTOR, DEFAULT_PATH, encounterSpecs, canPlace, bystanderClear } from './world.js';
+import { createWorld, uvAt, uvClear, flocClear, progressAt, FIELD_R, START, UV_SHAFTS, DIRECTOR, DEFAULT_PATH, encounterSpecs, canPlace, bystanderClear } from './world.js';
 import { createDirector } from '../shared/director.js';
 import { createPortalGlow, createPortalLight } from '../shared/portal.js';
 import { createQuality } from '../shared/quality.js';
 import { createInside, GENOME_NODES } from './inside.js';
 import { attachmentForward, aimedProtein } from './binding.js';
-import { createKicks } from './kicks.js';
+import { createCurrents, carriedPath } from './currents.js';
+import { pickGrabTarget, surfacePart, GRAB } from './grab.js';
+import { createMedium } from './medium.js';
 import { beadMesh, beadMaterial, beadTemplate, PALETTE } from '../shared/techniques/phage-beads.js';
 
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -81,18 +86,18 @@ const pad = players.pad(0);
 let ctl = players.controls(0);
 const hud = mountHud({
   title: 'Phage',
-  sub: 'A T4-like phage, 0.2 µm long, in bog water beside its host bacteria: a molecular illustration, not a microscope image. Drift with LS; let go and Brownian motion has you.',
+  sub: 'A T4-like phage, 0.2 µm long, in bog water beside its host bacteria: a molecular illustration, not a microscope image. Grab what you find; hang on to a cell when a current comes.',
   controls: hudControls({
-    move: 'Drift',
+    move: 'Move (forward/back, sideways)',
     camera: 'Turn the view',
-    analog: 'Drift nearer / farther',
-    dash: 'Dash',
-    attack: 'Grab / attack',
+    secondary: 'Down / up',
+    dash: 'Dash forward',
+    attack: 'Grab / let go (or attack)',
     defend: 'Block / slip through',
     special: 'Enter portal / info',
     look: 'Change the look',
     zoom: 'Zoom',
-    extra: [['Y', 'Way back: go up a world']],
+    extra: [['RT', 'Hold to grab and hang on'], ['Y', 'Way back: go up a world']],
   }),
   note: 'Get into the glowing host, and avoid the amoeba. Up to four players: press any button on another controller to join.',
 });
@@ -150,7 +155,7 @@ const ZOOMS = [60, 110, 180, 290];
 // lookAt and no up vector, so there is no pole to flip at); nothing turns it unless a stick is held,
 // apart from an optional, gentle roll that keeps the sunlit surface toward the top of the screen.
 const view = { look: 0, zoom: 1, groupZoom: 1, q: new THREE.Quaternion(), overlay: false, ink: true, art: true, target: new THREE.Vector3(), dist: 180, iso: null, lookHold: 0, level: true, turnRate: 0 };
-const opts = { drive: true, brownian: true, kicks: true, tumble: true, uv: true, amoeba: true };
+const opts = { drive: true, brownian: true, currents: true, tumble: true, uv: true, amoeba: true };
 
 function applyArt() {
   const use = view.art;
@@ -176,7 +181,8 @@ let waterColor = '#bcd3ea';
 // Clear water below and left of Host A; keep the surface/UV direction upright.
 // START comes from world.js: clear water at the lower left, far from Host A (upper right).
 const newP = () => ({
-  pos: START.clone(), vel: new THREE.Vector3(), bvel: new THREE.Vector3(), kv: new THREE.Vector3(), gust: new THREE.Vector3(),
+  // (kv: the velocity a current gives you, eased toward its flow; hold: what the fibres hold, see grabbing)
+  pos: START.clone(), vel: new THREE.Vector3(), bvel: new THREE.Vector3(), kv: new THREE.Vector3(), gust: new THREE.Vector3(), hold: null, rtDown: false, reachT: 0, idleT: 0,
   q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.95), angVel: new THREE.Vector3(),
   mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, walkLocal: new THREE.Vector3(), lift: 4,
   anchors: Array(6).fill(null), stepping: -1, stepT: 0, bound: 0, canCommit: false, commitT: 0, commitHost: null,
@@ -208,7 +214,7 @@ const HEADS = [
 ];
 function makeMember(slot, color) {
   const m = { slot, color, P: newP(), t4: createT4({ clip: true }), dash: createDash({ duration: 0.5, cooldown: 2.4 }),
-    capture: null, c: { active: false, phase: null, t: 0 }, jab: 0, kicks: createKicks({ rate: 1.7 }) };
+    capture: null, c: { active: false, phase: null, t: 0 }, jab: 0 };
   // caught: strike, hold, eat (the camera pulls back), follow the predator, fade, respawn, fade in
   m.capture = createCapture({ onRespawn: () => afterCatch(m) });
   m.t4.addTo(scene);
@@ -261,11 +267,11 @@ features.add({ id: 'art', group: 'Rendering', label: 'Delivered art (MP-V01/V02/
   onChange: (on) => { view.art = on; applyArt(); } });
 features.add({ id: 'model', group: 'Body', label: 'T4 from its anatomy', fixed: true,
   about: 'Prolate icosahedral head 120 × 86 nm studded with capsomers; collar and fibritin whiskers; a 23-ring sheath (98 nm) that contracts to 42 nm and fattens, exposing the inner tube; a hexagonal baseplate that opens into a star; six kinked long fibres of 160 nm simulated as chains, and six short fibres under the plate [S98, S99].' });
-features.add({ id: 'drive', group: 'Motion', label: 'LS drift', choices: ['Drift: LS pushes the phage (departure)', 'Honest: Brownian motion only'], value: 'Drift: LS pushes the phage (departure)',
-  about: 'A phage has no motor: it moves only by diffusion until it touches a host [S100]. The default lets LS push a soft, slow drift (about 0.3 µm/s on the slowed clock) as a labelled game departure, with Brownian jitter, the flow and tumbling layered on. Honest: the stick does nothing in open water (walking on a host still works, since bound phages do wander on the surface [S99]).',
+features.add({ id: 'drive', group: 'Motion', label: 'Steering', choices: ['Steer: LS, LB/RB move the phage (departure)', 'Honest: Brownian motion only'], value: 'Steer: LS, LB/RB move the phage (departure)',
+  about: 'A phage has no motor: it moves only by diffusion until it touches a host [S100]. The default gives it crisp game controls as a labelled departure: LS forward and back along the view and sideways, LB/RB down and up, quick to start and to stop (about 0.35 µm/s on the slowed clock), A a dash forward; nothing but a visible current fights the stick. Honest: the sticks do nothing in open water (grabbing still works).',
   onChange: (v) => { opts.drive = v.startsWith('Drift'); } });
 features.add({ id: 'brown', group: 'Motion', label: 'Brownian motion', on: true,
-  about: 'T4 diffuses with D ≈ 4 µm²/s [S100]. On the ~20× slowed clock that is ~0.2 µm²/s. You feel it as discrete kicks from molecules striking you (Molecular kicks); the water round you jostles thermally (the small molecules fastest), and the hosts and the amoeba\'s edge drift. Off: no kicks, and the phage drifts only where you steer it.',
+  about: 'T4 diffuses with D ≈ 4 µm²/s [S100]. On the ~20× slowed clock that is ~0.2 µm²/s. Here it is shown in the water round you, not done to you: the crowd jostles thermally (the small molecules fastest), the textured liquid drifts, and the hosts and the amoeba\'s edge drift; with the sticks let go the phage wanders very slowly. Off: all of it still.',
   onChange: (on) => { opts.brownian = on; world.opts.hostBrownian = on; for (const b of world.baths) b.uniforms.uJit.value = on ? b.jit0 : 0; } });
 features.add({ id: 'tumble', group: 'Motion', label: 'Slow tumbling', on: true,
   about: 'A 0.1 µm particle forgets its orientation within about a millisecond (rotational diffusion ~1.3 × 10³ rad²/s). Here it turns slowly instead, so you can see the phage (a labelled departure).',
@@ -279,9 +285,9 @@ features.add({ id: 'amoeba', group: 'Simulation', label: 'Amoeba on guard', on: 
 features.add({ id: 'crowd', group: 'World', label: 'Crowded water', on: true,
   about: 'Thousands of molecules (proteins, humic colloids, sugars, ions) as bead clusters, jostling and tumbling, pushed by gusts and by your passage, filling the water in every direction and round every split view (they wrap round each view on the GPU). Small solutes are drawn several times too large so they read, and the water is far more crowded than a real bog (departures).',
   onChange: (on) => { world.opts.crowd = on; } });
-features.add({ id: 'kicks', group: 'Motion', label: 'Molecular kicks', on: true,
-  about: 'Brownian motion made visible: now and then a molecule from the water strikes you and rebounds, leaving a small push and a little spin (small ions and sugars often and lightly, a protein rarely and harder). Real phages are struck about 10^13 times a second and the sum is a smooth random walk [S100]; a few drawn hits are a labelled departure. While you aim at a protein the spin is softened, so a kick never wrecks a grab.',
-  onChange: (on) => { opts.kicks = on; } });
+features.add({ id: 'currents', group: 'Motion', label: 'Currents', on: true,
+  about: 'Every 30 to 60 s a current sweeps through the water near you: you see it coming (the liquid streams into streaks from one side of the view, a whoosh and a note, at least 2.5 s before it arrives), and it carries anything not anchored, you included, a few µm on to a new area. Grab a cell (X or RT) before it reaches you and you hang on while it passes. Never sent across the way on, into a UV shaft or a floc. Bog water does have slow currents and eddies; a front you can see coming is a game departure. Off: none.',
+  onChange: (on) => { opts.currents = on; if (!on) currents.reset(); } });
 features.add({ id: 'level', group: 'Controls', label: 'Keep the surface up', on: true,
   about: 'The water has no up or down for a phage, and RS turns the view freely about its own axes (a quaternion: no pole to flip at, and it never turns on its own). On: a gentle roll keeps the sunlit surface, where the UV is, toward the top of the screen; it fades out when you look straight up or down, so it can never spin the view. Off: the view rolls only when you turn it.',
   onChange: (on) => { view.level = on; } });
@@ -317,9 +323,13 @@ function centreOf(out = new THREE.Vector3()) { return axisOf(out).multiplyScalar
 const camRight = (out = new THREE.Vector3()) => out.set(1, 0, 0).applyQuaternion(view.q);
 const camUp = (out = new THREE.Vector3()) => out.set(0, 1, 0).applyQuaternion(view.q);
 const camFwd = (out = new THREE.Vector3()) => out.set(0, 0, -1).applyQuaternion(view.q);
-/** The sticks in the water: LS across the view (its right and up, in 3D), the triggers into and out of it. */
-function stickWorld(ls, depth, out) {
-  out.copy(camRight(_w)).multiplyScalar(ls.x).addScaledVector(camUp(_n), -ls.y).addScaledVector(camFwd(_s), depth);
+/**
+ * The sticks in the water (the owner, 2 Nov 2026): LS up and down forward and back along the view (into
+ * and out of the screen), LS left and right sideways; `vert` (RB minus LB) up and down the screen. All in
+ * the view's own frame, so there is no up or down bias and no feedback into the view.
+ */
+function stickWorld(ls, vert, out) {
+  out.copy(camRight(_w)).multiplyScalar(ls.x).addScaledVector(camFwd(_s), -ls.y).addScaledVector(camUp(_n), vert);
   if (out.lengthSq() > 1) out.normalize();
   return out;
 }
@@ -342,8 +352,8 @@ function releaseAnchors() { for (let f = 0; f < 6; f++) { P.anchors[f] = null; t
 function placeAtStart(m, at = null) {
   use(m);
   P.pos.copy(at || START).add(at ? _v.set(0, 0, 0) : _v.set(m.slot * 26, (m.slot % 2) * 14, 0));
+  releaseHold(false);
   P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.kv.set(0, 0, 0); P.gust.set(0, 0, 0); P.angVel.set(0, 0, 0);
-  m.kicks.reset();
   P.q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.95);
   Object.assign(P, { damaged: false, wreck: 0, coHost: null, coT: 0 });
   if (stray.paired === m) stray.paired = null;
@@ -413,6 +423,7 @@ function resetLevel() {
 // --- death and capture sequences ---
 function startCapture(kind, by, how) {
   if (capture.active) return;
+  releaseHold(false);
   P.kind = kind;
   P.lostAt = kind === 'cut' || kind === 'dud' ? (P.commitHost || P.coHost || { pos: P.pos }).pos.clone() : P.pos.clone();
   P.mode = kind === 'cut' ? 'inside' : 'dead';
@@ -471,34 +482,149 @@ function beginCommit() {
   audio.play('bacterium/phage', { volume: 0.9 });
   curPad().rumble(250, 0.3, 0.5);
 }
-function tryGrab() {
-  if (!['drift', 'walk', 'clay'].includes(P.mode) || P.grabCooldown > 0) return;
-  if (P.foldTarget > 0.5 || P.fold > 0.5) { say('Extend the fibres (B) before grabbing a protein.', 1800, true); return; }
-  if (P.mode === 'clay') { say('Fold the fibres (B) to slip free of the clay first.', 1800, true); return; }
-  // A second player may try a wrong protein, but cannot enter an occupied host phase.
-  const aimed = aimedProtein(P.pos, attachmentForward(P.q), world.proteins, (target) => world.toWorld(target.host, target.local));
-  if (aimed && world.portal && aimed.host === world.portal.host && portalSealed()) { say('Host A\'s receptors do not take you yet: meet the other hosts first.', 2400, true); P.grabCooldown = 0.6; return; }
-  if (aimed && world.portal && aimed.host === world.portal.host && guarded()) {
-    // the way on, on guard: turned back (the lobe shoves you off the receptor)
-    const n = world.dirToWorld(aimed.host, aimed.normal, new THREE.Vector3());
-    P.gust.addScaledVector(n, 60).addScaledVector(_v.subVectors(P.pos, world.amoeba.center).normalize(), 25);
-    P.grabCooldown = 0.6; curPad().rumble(160, 0.4, 0.5); audio.play('bacterium/tumble', { volume: 0.6, rate: 0.8 });
-    say('Turned back: the amoeba\'s lobe guards this receptor. Lure it away, or fold (B) and jab (X) until it gives up.', 3200, true);
-    ringLog.push({ kind: 'turnedBack', t: +t.toFixed(2), slot: cur.slot });
+// --- grabbing (X or RT): whatever is in reach of the fibres (grab.js) ---
+// X grabs, and pressed again lets go. RT grabs as it is squeezed and holds while it stays squeezed: let it
+// go and the fibres let go (a hold made with X stays until X again, or until RT is squeezed and let go).
+// Held squeezed with nothing in reach, RT keeps reaching, so you catch the first thing you drift into.
+// A free molecule is carried at the baseplate and drifts off gently when let go; a point on a cell anchors
+// you (a current passes you by), and LS crawls you along the surface. Only a matching receptor goes further:
+// on a host's gold three-lobed receptor the fibres latch and the injection starts (Host A, the way on,
+// with Y); every other part of a cell, and every other protein, only holds.
+const HOLD_LIFT = 7; // the baseplate's stand-off from a held surface (the fibres' length, bent)
+const HOLD_REACH_T = 0.18; // the fibres' reach out to what they grab
+/** The fibres' reach centre: a little ahead of the baseplate. */
+const handOf = (out = new THREE.Vector3()) => out.copy(attachmentForward(P.q)).multiplyScalar(4).add(P.pos);
+/** The cells whose surface is within the grab's reach of point `hand` (hosts and the bystanders). */
+function cellsNear(hand, reach = GRAB.reach) {
+  const out = [];
+  for (const h of [...world.hosts, ...world.bystanders]) {
+    if (h.burst || h.hidden || h.locked) continue;
+    if (Math.abs(h.pos.x - hand.x) > h.half + h.r + reach || Math.abs(h.pos.y - hand.y) > h.half + h.r + reach || Math.abs(h.pos.z - hand.z) > h.half + h.r + reach) continue;
+    const n = new THREE.Vector3(), d = world.sdHost(h, hand, n);
+    if (d > reach) continue;
+    out.push({ host: h, d: Math.max(0, d), normal: n, point: hand.clone().addScaledVector(n, -d) });
+  }
+  return out;
+}
+/** What X or RT would take now: the grab assist's pick, or null. */
+function grabTarget() {
+  const hand = handOf(new THREE.Vector3());
+  return pickGrabTarget(hand, attachmentForward(P.q), mols.filter((o) => !o.heldBy), cellsNear(hand));
+}
+/** Host-local direction of a world direction. */
+const dirToLocal = (h, d, out = new THREE.Vector3()) => { const c = Math.cos(-h.ang), sn = Math.sin(-h.ang); return out.set(d.x * c - d.y * sn, d.x * sn + d.y * c, d.z); };
+/** Hold on to host h at world point `point` (its outward normal `normal`): anchored. */
+function holdCell(h, point, normal, by, part) {
+  releaseHold(false);
+  P.hold = { kind: 'cell', host: h, local: world.toLocal(h, point, new THREE.Vector3()), nLocal: dirToLocal(h, normal), by, t: 0, part };
+  P.reachT = HOLD_REACH_T;
+  P.vel.multiplyScalar(0.3); P.gust.set(0, 0, 0);
+  audio.play('bacterium/tumble', { volume: 0.35, rate: 1.5 }); curPad().rumble(70, 0.25, 0.15);
+  ringLog.push({ kind: 'hold', what: h.id, t: +t.toFixed(2), slot: cur.slot });
+}
+function holdMol(o, by) {
+  releaseHold(false);
+  o.heldBy = cur.slot; o.vel.set(0, 0, 0);
+  P.hold = { kind: 'mol', mol: o, by, t: 0 };
+  P.reachT = HOLD_REACH_T;
+  audio.play('bacterium/tumble', { volume: 0.3, rate: 1.8 }); curPad().rumble(50, 0.15, 0.1);
+  ringLog.push({ kind: 'hold', what: 'molecule', t: +t.toFixed(2), slot: cur.slot });
+}
+/** Let go: a carried molecule drifts gently off ahead of the baseplate; from a cell, a small push off it. */
+function releaseHold(push = true) {
+  const g = P && P.hold;
+  if (!g) return;
+  P.hold = null;
+  releaseAnchors();
+  if (g.kind === 'mol') {
+    g.mol.heldBy = null;
+    if (push) g.mol.vel.copy(P.vel).add(P.kv).addScaledVector(attachmentForward(P.q), 22);
+  } else if (push) P.gust.copy(world.dirToWorld(g.host, g.nLocal, _v)).multiplyScalar(12);
+  if (push) audio.play('bacterium/tumble', { volume: 0.2, rate: 1.3 });
+}
+/**
+ * X or RT: grab (`by` 'x' or 'rt'). quiet: RT still held, reaching again, with no toasts and no proteins
+ * (the injection and the way on take a deliberate press).
+ */
+function tryGrab(by = 'x', quiet = false) {
+  if (!['drift', 'walk'].includes(P.mode) || P.grabCooldown > 0 || P.hold) return;
+  if (P.foldTarget > 0.5 || P.fold > 0.5) { if (!quiet) say('Fibres folded: extend them (B) to grab.', 1800, true); return; }
+  if (P.mode === 'walk') return;
+  if (!quiet) {
+    // A protein aimed at: the gold receptors are the ones that matter (the injection); a second player may
+    // try a wrong protein, but cannot enter an occupied host phase.
+    const aimed = aimedProtein(P.pos, attachmentForward(P.q), world.proteins, (target) => world.toWorld(target.host, target.local));
+    const portalHost = aimed && world.portal && aimed.host === world.portal.host && aimed.compatible;
+    if (portalHost && portalSealed()) { say('Host A\'s receptors do not take you yet: meet the other hosts first.', 2400, true); P.grabCooldown = 0.6; return; }
+    if (portalHost && guarded()) {
+      // the way on, on guard: turned back (the lobe shoves you off the receptor)
+      const n = world.dirToWorld(aimed.host, aimed.normal, new THREE.Vector3());
+      P.gust.addScaledVector(n, 60).addScaledVector(_v.subVectors(P.pos, world.amoeba.center).normalize(), 25);
+      P.grabCooldown = 0.6; curPad().rumble(160, 0.4, 0.5); audio.play('bacterium/tumble', { volume: 0.6, rate: 0.8 });
+      say('Turned back: the amoeba\'s lobe guards this receptor. Lure it away, or fold (B) and jab (X) until it gives up.', 3200, true);
+      ringLog.push({ kind: 'turnedBack', t: +t.toFixed(2), slot: cur.slot });
+      return;
+    }
+    if (aimed) {
+      const n = world.dirToWorld(aimed.host, aimed.normal, new THREE.Vector3()), at = world.toWorld(aimed.host, aimed.surface, new THREE.Vector3());
+      // the way on is entered on purpose, with Y (the owner, 1 Nov 2026: "Press Y to enter portal", never an automatic door): hang on there
+      if (portalHost) { holdCell(aimed.host, at, n, by, 'a gold receptor'); say('The way on: press Y to enter Host A.', 2000, true); return; }
+      if (aimed.compatible) {
+        if (members().some((m) => m !== cur && ['grab', 'commit', 'inside', 'burst'].includes(m.P.mode) && (m.P.mode !== 'grab' || m.P.grab?.protein.compatible))) {
+          say('A teammate is already attaching or injecting: wait for them.', 1800, true); return;
+        }
+        releaseAnchors(); P.host = null; P.canCommit = false;
+        P.grab = { protein: aimed, time: 0, from: P.pos.clone(), q: P.q.clone() };
+        P.mode = 'grab'; P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0); P.kv.set(0, 0, 0);
+        audio.play('bacterium/tumble', { volume: 0.35, rate: 1.4 });
+        return;
+      }
+      holdCell(aimed.host, at, n, by, 'a violet protein');
+      say('This protein does not fit: you just hang on. Only a gold three-lobed receptor lets you in.', 2300);
+      return;
+    }
+  }
+  const tgt = grabTarget();
+  if (!tgt) {
+    if (!quiet) { cur.jab = 0.45; P.grabCooldown = 0.2; say('Nothing in reach: drift closer to a molecule or a cell.', 1600); }
     return;
   }
-  // the way on is entered on purpose, with Y (the owner, 1 Nov 2026: "Press Y to enter portal", never an automatic door)
-  if (aimed && aimed.compatible && world.portal && aimed.host === world.portal.host) { say('The way on: press Y to enter Host A.', 2000, true); P.grabCooldown = 0.25; return; }
-  const protein = aimedProtein(P.pos, attachmentForward(P.q), world.proteins,
-    (target) => world.toWorld(target.host, target.local));
-  if (!protein) { cur.jab = 0.45; P.grabCooldown = 0.25; say('No protein in reach: aim the leading fibres closer to a protruding protein, then X to grab.', 1800, true); return; }
-  if (protein.compatible && members().some((m) => m !== cur && ['grab', 'commit', 'inside', 'burst'].includes(m.P.mode) && (m.P.mode !== 'grab' || m.P.grab?.protein.compatible))) {
-    say('A teammate is already attaching or injecting: wait for them.', 1800, true); return;
+  if (tgt.kind === 'mol') { holdMol(tgt.mol, by); if (!quiet) say('Got a molecule: it rides with you. Let go to set it drifting.', 1600); return; }
+  const h = tgt.cell.host;
+  const part = surfacePart(world.toLocal(h, tgt.point, _v), h.wrong);
+  holdCell(h, tgt.point, tgt.cell.normal, by, part);
+  say(`Holding on to ${part} of ${h.bystander ? 'a bacterium of another kind' : h.name}: currents pass you by.${h.bystander || h.wrong ? '' : ' (Only a gold three-lobed receptor lets you in.)'}`, 2200);
+}
+/** Each frame while anchored to a cell: hang on at the anchor; LS crawls it along the surface. */
+function updateHoldCell(dt, inp) {
+  const g = P.hold, h = g.host;
+  if (h.burst || h.hidden || h.locked) { releaseHold(); return; }
+  g.t += dt;
+  const A = world.toWorld(h, g.local, new THREE.Vector3()), n = world.dirToWorld(h, g.nLocal, new THREE.Vector3());
+  // crawl: the stick's part along the surface moves the anchor (hand over hand), and it stays on the surface
+  if (inp.stick) {
+    const tan = _v.copy(inp.stick).addScaledVector(n, -inp.stick.dot(n));
+    if (tan.lengthSq() > 1e-4) {
+      A.addScaledVector(tan.normalize(), 16 * inp.stickM * dt);
+      world.projectToHost(h, A, 0, A, n);
+      world.toLocal(h, A, g.local); dirToLocal(h, n, g.nLocal);
+    }
   }
-  releaseAnchors(); P.host = null; P.canCommit = false;
-  P.grab = { protein, time: 0, from: P.pos.clone(), q: P.q.clone() };
-  P.mode = 'grab'; P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0);
-  audio.play('bacterium/tumble', { volume: 0.35, rate: 1.4 });
+  const goal = _w.copy(A).addScaledVector(n, HOLD_LIFT);
+  P.pos.lerp(goal, 1 - Math.exp(-dt * 9));
+  P.vel.set(0, 0, 0); P.kv.set(0, 0, 0); P.gust.set(0, 0, 0);
+  P.angVel.multiplyScalar(Math.exp(-dt * 4));
+  turnBaseToward(_s.copy(n).negate(), Math.min(1, dt * 5));
+  integrateRotation(dt);
+  // the six fibres plant round the anchor, reaching out over the first moment
+  const k = 1 - Math.max(0, P.reachT) / HOLD_REACH_T;
+  const ta = _n.crossVectors(n, Math.abs(n.y) < 0.9 ? UP : AX_X).normalize(), tb = _s.crossVectors(n, ta);
+  for (let f = 0; f < 6; f++) {
+    const a = (f / 6) * Math.PI * 2;
+    const foot = A.clone().addScaledVector(ta, Math.cos(a) * 6).addScaledVector(tb, Math.sin(a) * 6);
+    world.projectToHost(h, foot, 0.4, foot);
+    t4.fibres[f].anchor = k < 1 ? t4.tip(f).clone().lerp(foot, k) : foot;
+  }
 }
 function updateGrab(dt) {
   const g = P.grab, target = g.protein, h = target.host;
@@ -565,7 +691,7 @@ function tryEnter() {
     say('A teammate is already attaching or injecting: wait for them.', 1800, true); return true;
   }
   P.foldTarget = 0; P.fold = Math.min(P.fold, 0.5);
-  releaseAnchors(); P.host = null; P.canCommit = false;
+  releaseHold(false); releaseAnchors(); P.host = null; P.canCommit = false; P.kv.set(0, 0, 0);
   P.grab = { protein, time: 0, from: P.pos.clone(), q: P.q.clone() };
   P.mode = 'grab'; P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0);
   ringLog.push({ kind: 'enter', t: +t.toFixed(2), slot: cur.slot });
@@ -582,19 +708,31 @@ function updatePortalPrompt(where) {
 // --- per-mode updates ---
 const flow = new THREE.Vector3();
 let t = 0;
+const DRIVE = 36; // full stick, units/s (~0.36 µm/s on the slowed clock)
+const _cf2 = new THREE.Vector3();
 function updateDrift(dt, inp) {
+  if (P.hold?.kind === 'cell') { updateHoldCell(dt, inp); return; }
+  // crisp game control (a departure, the owner: "good control over the phage"): quick to speed up
+  // (~0.15 s) and quick to stop (~0.2 s) in the water's drag; nothing but a visible current fights the stick
   const drive = _v.set(0, 0, 0);
-  if (inp.stick && opts.drive) drive.copy(inp.stick).multiplyScalar(30 * inp.stickM);
-  P.vel.lerp(drive, 1 - Math.exp(-dt * 1.6));
-  // Brownian motion: the kicks (kicks.js) leave a velocity that the viscous water takes away again
-  P.kv.multiplyScalar(Math.exp(-dt / 0.45));
-  P.gust.multiplyScalar(Math.exp(-dt * 2.2));
-  world.flowAt(P.pos, t, flow);
-  P.pos.addScaledVector(P.vel, dt).addScaledVector(P.kv, dt).addScaledVector(P.gust, dt).addScaledVector(flow, dt);
+  if (inp.stick && opts.drive) drive.copy(inp.stick).multiplyScalar(DRIVE * inp.stickM);
+  P.vel.lerp(drive, 1 - Math.exp(-dt * (inp.stick ? 7 : 5)));
+  P.idleT = inp.stick ? 0 : P.idleT + dt;
+  // a current (currents.js) drags you along with its water (the water takes ~0.4 s to get you going)
+  currents.flowAt(P.pos, _cf2);
+  if (!opts.currents) _cf2.set(0, 0, 0);
+  P.kv.lerp(_cf2, 1 - Math.exp(-dt * 2.5));
+  P.gust.multiplyScalar(Math.exp(-dt * 2.6));
+  // the ambient drift and a very slow thermal wander, only with the sticks let go
+  const calm = Math.min(1, P.idleT / 1.2);
+  world.flowAt(P.pos, t, flow).multiplyScalar(calm);
+  if (opts.brownian && calm > 0) { P.bvel.multiplyScalar(Math.exp(-dt / 1.5)); const k = 1.6 * Math.sqrt(dt) * calm; P.bvel.x += gauss() * k; P.bvel.y += gauss() * k; P.bvel.z += gauss() * k; }
+  else P.bvel.multiplyScalar(Math.exp(-dt * 4));
+  P.pos.addScaledVector(P.vel, dt).addScaledVector(P.kv, dt).addScaledVector(P.gust, dt).addScaledVector(flow, dt).addScaledVector(P.bvel, dt);
   softBounds(dt);
-  // rotation: damped by the water; a slow thermal tumble while idle
-  P.angVel.multiplyScalar(Math.exp(-dt / 0.7));
-  if (opts.tumble && !inp.stick) { const k = 0.14 * Math.sqrt(dt); P.angVel.x += gauss() * k; P.angVel.y += gauss() * k; P.angVel.z += gauss() * k; }
+  // rotation: damped by the water; a slow thermal tumble only after the sticks have been let go a while
+  P.angVel.multiplyScalar(Math.exp(-dt / (inp.stick ? 0.3 : 0.7)));
+  if (opts.tumble && P.idleT > 2) { const k = 0.08 * Math.sqrt(dt); P.angVel.x += gauss() * k; P.angVel.y += gauss() * k; P.angVel.z += gauss() * k; }
   const mv = _w.copy(P.vel).add(P.gust);
   const sp = mv.length();
   // close to a cell with the fibres out, they catch the water near it and swing the baseplate round to face it
@@ -603,7 +741,7 @@ function updateDrift(dt, inp) {
   if (facing) {
     world.sdHost(near.host, P.pos, _s);
     turnBaseToward(_s.negate(), dt * (1 - near.d / 45) * 1.6);
-  } else if (sp > 4) turnBaseToward(mv.normalize(), dt * Math.min(1, sp / 25) * 3.0); // steering: the fibres lead
+  } else if (sp > 4) turnBaseToward(mv.normalize(), dt * Math.min(1, sp / 25) * 5.0); // steering: the fibres lead, promptly
   // readability: the body eases toward side-on to the view (weak; nothing else turns it)
   { const ax = axisOf(_n), f = camFwd(_s); const flat = _w.copy(ax).addScaledVector(f, -ax.dot(f)); if (flat.lengthSq() > 0.01) P.angVel.addScaledVector(_v.crossVectors(ax, flat.normalize()), dt * 0.5); }
   if (P.angVel.length() > 3) P.angVel.setLength(3); // a hard cap: nothing ever spins fast
@@ -619,7 +757,7 @@ function updateDrift(dt, inp) {
   for (const h of world.bystanders) {
     if (Math.abs(h.pos.x - c.x) > h.half + h.r + 20 || Math.abs(h.pos.y - c.y) > h.half + h.r + 20 || Math.abs(h.pos.z - c.z) > h.half + h.r + 20) continue;
     const sd = world.sdHost(h, c, _n);
-    if (sd < 11) { P.pos.addScaledVector(_n, 11 - sd); const vn = P.vel.dot(_n); if (vn < 0) P.vel.addScaledVector(_n, -vn); }
+    if (sd < 11) { P.pos.addScaledVector(_n, 11 - sd); const vn = P.vel.dot(_n); if (vn < 0) P.vel.addScaledVector(_n, -vn); P.kv.addScaledVector(_n, -Math.min(0, P.kv.dot(_n))); }
   }
   const sa = world.sdAmoeba(c);
   if (sa < 12) P.pos.addScaledVector(_n.subVectors(c, world.amoeba.center).normalize(), 12 - sa);
@@ -635,6 +773,14 @@ function updateDrift(dt, inp) {
     P.pos.lerp(P.snag.pos, 1 - Math.exp(-dt * 0.25)); // pulled into the tangle
     if (!was) { say('Fibres snagged in a humic floc: it drags you in. Fold them (B) to slip through.', 2600, true); curPad().rumble(140, 0.3, 0.2); audio.play('bacterium/tumble', { volume: 0.45, rate: 0.7 }); }
   } else P.snagT = 0;
+  // a carried molecule rides at the baseplate, the fibres closed round it
+  if (P.hold?.kind === 'mol') {
+    const o = P.hold.mol, hand = handOf(_w);
+    o.pos.lerp(hand, 1 - Math.exp(-dt * (P.reachT > 0 ? 14 : 20)));
+    o.vel.set(0, 0, 0);
+    const k = 1 - Math.max(0, P.reachT) / HOLD_REACH_T;
+    for (let f = 0; f < 6; f++) { const a = (f / 6) * Math.PI * 2; const pt = o.pos.clone().add(_n.set(Math.cos(a), 0, Math.sin(a)).applyQuaternion(P.q).multiplyScalar(o.size * 1.2)); t4.fibres[f].anchor = k < 1 ? t4.tip(f).clone().lerp(pt, k) : pt; }
+  }
   // fibre tips touching things
   if (P.fold < 0.4) {
     for (let f = 0; f < 6; f++) {
@@ -669,6 +815,7 @@ function enterWalk(host) {
 }
 
 function enterClay() {
+  releaseHold(false);
   P.mode = 'clay'; P.clayT = 0;
   for (let f = 0; f < 6; f++) { const tip = t4.tip(f); if (world.sdClay(tip) < 4) { P.stuckTip[f] = tip.clone(); t4.fibres[f].anchor = P.stuckTip[f]; } }
   P.vel.set(0, 0, 0); P.gust.set(0, 0, 0);

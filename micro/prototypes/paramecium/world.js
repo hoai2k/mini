@@ -13,8 +13,8 @@
 // winds over or under them on its own).
 import { START, DEPTH } from './route.js';
 
-export const TILE = 4800;
-const MAXREACH = 2300; // the longest thing's half-extent from its tile-local position (filaments)
+export const TILE = 2400;
+const MAXREACH = 1700; // the longest thing's half-extent from its tile-local position (filaments)
 
 export function rng(seed) {
   let a = seed >>> 0 || 1;
@@ -45,21 +45,21 @@ export function createWorld(seed = 11) {
 
   // Spirogyra: long unbranched filaments of cells, each with its spiral chloroplast ribbon
   const filaments = [];
-  for (let tries = 0; filaments.length < 6 && tries < 200; tries++) {
-    const L = R(2000, 4300), a = R(0, Math.PI), cx = R(0, TILE), cy = R(0, TILE);
+  for (let tries = 0; filaments.length < 7 && tries < 300; tries++) {
+    const L = R(1500, 3000), a = R(0, Math.PI), cx = R(0, TILE), cy = R(0, TILE);
     const x0 = cx - Math.cos(a) * L / 2, y0 = cy - Math.sin(a) * L / 2, x1 = cx + Math.cos(a) * L / 2, y1 = cy + Math.sin(a) * L / 2;
     if (!segClear(x0, y0, x1, y1, 30)) continue;
     // keep filaments apart where they would lie on top of one another
-    if (filaments.some((f) => Math.abs(Math.sin(f.ang - a)) < 0.25 && Math.hypot(f.cx - cx, f.cy - cy) < 500)) continue;
+    if (filaments.some((f) => Math.abs(Math.sin(f.ang - a)) < 0.25 && Math.hypot(f.cx - cx, f.cy - cy) < 380)) continue;
     const rad = R(16, 21);
     filaments.push({ x0, y0, x1, y1, cx, cy, ang: a, L, r: rad, z0: zr(-110, 110), z1: zr(-110, 110), cell: R(70, 105), pitch: R(26, 40), turns: r() < 0.5 ? 1 : 2, phase: R(0, 6.28), shade: R(0.8, 1.15) });
   }
   // detritus clumps: golden-brown flocs of granules; some carry Vorticella
   const clumps = [];
-  for (let tries = 0; clumps.length < 16 && tries < 400; tries++) {
+  for (let tries = 0; clumps.length < 26 && tries < 600; tries++) {
     const x = R(0, TILE), y = R(0, TILE), rad = R(26, 66);
     if (!clearOfStart(x, y, rad)) continue;
-    if (clumps.some((c) => Math.hypot(c.x - x, c.y - y) < c.r + rad + 120)) continue;
+    if (clumps.some((c) => Math.hypot(c.x - x, c.y - y) < c.r + rad + 90)) continue;
     const z = zr(-120, 60);
     const g = [];
     const n = Math.round(rad * 1.1);
@@ -81,7 +81,7 @@ export function createWorld(seed = 11) {
   }
   // diatoms: pennate (pointed boats with golden chloroplasts) and Fragilaria ribbons
   const diatoms = [];
-  for (let tries = 0; diatoms.length < 26 && tries < 400; tries++) {
+  for (let tries = 0; diatoms.length < 30 && tries < 600; tries++) {
     const x = R(0, TILE), y = R(0, TILE), rect = r() < 0.25;
     const L = rect ? R(60, 120) : R(45, 115), W = rect ? R(32, 55) : L * R(0.16, 0.26);
     if (!clearOfStart(x, y, L)) continue;

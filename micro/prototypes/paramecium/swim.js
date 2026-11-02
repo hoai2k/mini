@@ -24,7 +24,7 @@
 import { DEPTH } from './route.js';
 
 export const LENGTH = 120;      // µm, P. bursaria (a broad, short Paramecium)
-export const WIDTH = 52;        // µm across
+export const WIDTH = 46;        // µm across
 export const THICK = 18;        // µm: the body's half-thickness (it is flattened)
 export const VMAX = 620;        // µm/s
 export const DASH_V = 1500, DASH_T = 0.28, DASH_CD = 0.9;

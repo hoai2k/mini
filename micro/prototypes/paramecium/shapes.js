@@ -58,7 +58,8 @@ void main() {
   vL = vec2(local.x, local.y);
   vS = vec4(type < 1.5 ? hl : ra, rb, s, a3.w);
   vC = vec4(a2.rgb, a2.a / (1.0 + uDim * abs(dz)));
-  vT = vec3(type, a3.y, max(glowR, 0.5));
+  float gk = a3.z / max(glowR, 0.5);
+  vT = vec3(type, a3.y * gk * gk, max(glowR, 0.5));
 }`;
 const FS = /* glsl */`
 uniform float uSub, uGain; uniform vec3 uSubTint;
@@ -78,7 +79,7 @@ void main() {
   float s = vS.z;
   float cov = 1.0 - smoothstep(-s, s, d);
   // a line thinner than its blur spreads its light: dimmer, as defocus does
-  cov *= clamp(width / (1.6 * s), 0.12, 1.0);
+  cov *= clamp(width / (1.6 * s), 0.03, 1.0);
   float halo = vT.y * exp(-max(d, 0.0) / vT.z);
   vec3 col = vC.rgb * vC.a * (cov + halo);
   if (uSub > 0.0) {

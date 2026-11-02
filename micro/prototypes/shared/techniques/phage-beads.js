@@ -28,7 +28,7 @@ attribute vec4 iPos; attribute vec4 iQuat; attribute vec4 iTint;
 uniform float uTime; uniform float uScaleAll;
 uniform vec3 uCenter; uniform float uHalf; uniform float uJit; uniform float uSpin; uniform float uKeepR; uniform float uInner;
 uniform vec4 uPhage[${MAX_PHAGES}]; uniform vec4 uCapA[${MAX_SOLIDS}]; uniform vec4 uCapB[${MAX_SOLIDS}];
-uniform vec4 uGust; uniform vec3 uGustDir;
+uniform vec4 uGust; uniform vec3 uGustDir; uniform float uGustR;
 varying vec3 vC; varying float vR; varying vec3 vQ; varying vec3 vCol; varying vec3 vGCol; varying vec3 vOut; varying float vGlow;
 vec3 qrot(vec4 q, vec3 v){ return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v); }
 vec4 qmul(vec4 a, vec4 b){ return vec4(a.w * b.xyz + b.w * a.xyz + cross(a.xyz, b.xyz), a.w * b.w - dot(a.xyz, b.xyz)); }
@@ -59,7 +59,7 @@ void main(){
       vec3 o = base - ph.xyz; float l = length(o);
       if (l < ph.w) base += o / max(l, 1e-3) * (ph.w - l) * 0.9;
     }
-    if (uGust.w > 0.0) base += uGustDir * uGust.w * smoothstep(90.0, 0.0, length(base - uGust.xyz));
+    if (uGust.w > 0.0) base += uGustDir * uGust.w * smoothstep(uGustR, 0.0, length(base - uGust.xyz));
     // never inside a solid (the hosts, the amoeba, the clay, the flocs)
     for (int i = 0; i < ${MAX_SOLIDS}; i++) {
       vec4 a = uCapA[i];
@@ -138,7 +138,7 @@ export function beadMaterial({ bath = false, glow = 0, glowColor = '#ffc65a', sa
       uScaleAll: { value: 1 },
       uCenter: { value: new THREE.Vector3() }, uHalf: { value: 100 }, uJit: { value: 0.8 }, uSpin: { value: 0.35 }, uKeepR: { value: 30 }, uInner: { value: 0 },
       uPhage: { value: v4(MAX_PHAGES) }, uCapA: { value: v4(MAX_SOLIDS) }, uCapB: { value: v4(MAX_SOLIDS) },
-      uGust: { value: new THREE.Vector4() }, uGustDir: { value: new THREE.Vector3() },
+      uGust: { value: new THREE.Vector4() }, uGustDir: { value: new THREE.Vector3() }, uGustR: { value: 90 }, // (a dash's shove; a passing current (phage/currents.js) sets a wider one)
       uGlowAll: { value: glow }, uGlowColor: { value: new THREE.Color(glowColor) }, uSat: { value: sat },
     },
     vertexShader: VERT,
