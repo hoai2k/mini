@@ -97,6 +97,18 @@ export const ASSETS = {
     "file": "assets/paramecium/phase-tile.webp",
     "status": "delivered"
   },
+  "MP-P06": {
+    "file": "assets/paramecium/bursaria-darkfield.webp",
+    "status": "requested"
+  },
+  "MP-P07": {
+    "file": "assets/reference-sheets/paramecium-hunters-darkfield.webp",
+    "status": "requested"
+  },
+  "MP-P08": {
+    "file": "assets/game/intro-paramecium-darkfield.webp",
+    "status": "requested"
+  },
   "MP-S01": {
     "file": "assets/springtail/water-surface.webp",
     "status": "delivered"
