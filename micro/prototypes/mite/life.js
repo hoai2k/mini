@@ -7,7 +7,9 @@
 //   every 2.2 mm), so no stretch of moss is empty. Each group is a pure
 //   function of its site and the clock (stateless), so the moss you have seen
 //   is the moss you come back to; they shy away from a mite that comes close
-//   and now and then flick themselves into the air (the furcula).
+//   and now and then hop on the spot (the furcula), upright. A bite (X) is
+//   the one thing kept: a nipped one lies dazed, its group leaps away, and a
+//   dazed one bitten again is eaten (main.js biteNow).
 // - createBeads: water beads on the moss floor that grow commoner and larger
 //   as the game goes on (by encounter progress) and thickest round the wet
 //   leaf axil (the portal), the way the springtail's pondweed thickens toward
@@ -18,7 +20,8 @@
 //   moss cushion), or a shower of three: armed where the director put it, it
 //   falls when someone comes near, splashes (a mite in reach is knocked shut
 //   and rolled: main.js), sits as a bead and soaks away.
-// Departures: springtails flee and leap on a game rule; SEM shows water only
+// Departures: springtails flee and leap on a game rule; a box mite biting and
+// eating one is a game rule (box mites graze fungi and do not hunt); SEM shows water only
 // in an environmental (wet) instrument; a falling drop at this scale is a
 // game hazard, slowed.
 import * as THREE from '../shared/vendor/three.module.min.js';
@@ -36,7 +39,7 @@ export function hash2(i, j, s = 0) {
   h ^= h >>> 16;
   return (h >>> 0) / 4294967296;
 }
-const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _e = new THREE.Euler();
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3();
 
 /**
  * Springtail groups everywhere. blocked(x, z): no group there (the portal's
@@ -45,6 +48,11 @@ const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vect
  */
 export function createAmbient({ scene, tex, blocked = () => false, max = 150 }) {
   const CELL = 1800, DRAW = 4200, START = 900;
+  // SHY: how close a body comes before they edge away (µm, centre to centre;
+  // was 520, which kept them out of reach of a bite); STUN: how long a nipped
+  // one lies dazed; BACK: how long an eaten one is missing before another
+  // wanders into its place; SCATTER: how far the rest of a nipped group leap.
+  const SHY = 360, STUN = 2.4, BACK = 40, SCATTER = 520, LEAP = 0.45;
   const mat = gMaterial({ cls: CLS.NPC, tex: tex.cuticle, map: 'tri', scale: 70, bump: 1.2 });
   const mesh = new THREE.InstancedMesh(springtailGeometry(), mat, max);
   mesh.name = 'ambient springtails';
@@ -68,42 +76,131 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150 }) 
     return out;
   }
   const seenK = new Set();
-  let n = 0;
+  // The groups are a pure function of their site and the clock; what a bite
+  // does to them is kept here: bugs (`${site}:${member}` -> { stun: until,
+  // x, z (where it lies), eaten: until, held: { p, s } while being eaten }),
+  // and scatters (site -> { t0, x, z }: the group leapt away from there).
+  const bugs = new Map(), scatters = new Map();
+  /** The springtails drawn last update: [{ key, x, y, z, stunned }] (for bites and checks). */
+  const live = [];
+  let n = 0, now = 0;
+  const _n = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0), _qy = new THREE.Quaternion(), _qp = new THREE.Quaternion(), _ax = new THREE.Vector3();
+  /** Face yaw (world, about up), pitched nose-up by `pitch`, standing square to the moss under (x, z). */
+  function orient(x, z, yaw, pitch) {
+    const e = 12, dx = floorH(x + e, z) - floorH(x - e, z), dz = floorH(x, z + e) - floorH(x, z - e);
+    _n.set(-dx / (2 * e), 1, -dz / (2 * e)).normalize();
+    _q.setFromUnitVectors(_up, _n);
+    _q.multiply(_qy.setFromAxisAngle(_ax.set(0, 1, 0), yaw));
+    if (pitch) _q.multiply(_qp.setFromAxisAngle(_ax.set(0, 0, 1), pitch));
+    return _q;
+  }
   function member(s, m, t, bodies) {
+    const key = `${s.k}:${m}`, B = bugs.get(key);
+    if (B && B.eaten > t) return;
     const h = (q) => hash2(s.k, m, q);
+    const sc = 0.85 + h(13) * 0.35;
+    if (B && B.held) {
+      // in the jaws: carried at the mouth, shrinking as it is eaten
+      _p.copy(B.held.p);
+      _s.setScalar(sc * Math.max(0.02, B.held.s));
+      mesh.setMatrixAt(n++, _m.compose(_p, orient(_p.x, _p.z, B.yaw || 0, 0.3), _s));
+      live.push({ key, x: _p.x, y: _p.y, z: _p.z, stunned: true });
+      return;
+    }
+    if (B && B.stun > t) {
+      // nipped: a jolt, then it lies dazed where it was, crouched, legs twitching
+      const since = STUN - (B.stun - t), jolt = since < 0.25 ? Math.sin((since / 0.25) * Math.PI) : 0;
+      const tw = 0.18 * Math.sin(t * 31 + m) * Math.max(0.2, 1 - since / STUN);
+      _p.set(B.x, floorH(B.x, B.z) + 2 + 45 * jolt, B.z);
+      _s.set(sc * 1.05, sc * 0.8, sc * 1.05);
+      mesh.setMatrixAt(n++, _m.compose(_p, orient(B.x, B.z, (B.yaw || 0) + tw, -0.1 + 0.25 * jolt), _s));
+      live.push({ key, x: _p.x, y: _p.y, z: _p.z, stunned: true });
+      return;
+    }
     const a0 = h(5) * Math.PI * 2, r0 = 60 + h(6) * 230;
     const w1 = 0.25 + h(7) * 0.35, w2 = 0.2 + h(8) * 0.3, f1 = h(9) * 6.28, f2 = h(10) * 6.28;
     let x = s.x + Math.cos(a0) * r0 + Math.sin(t * w1 + f1) * 110, z = s.z + Math.sin(a0) * r0 + Math.cos(t * w2 + f2) * 110;
     let vx = Math.cos(t * w1 + f1) * w1, vz = -Math.sin(t * w2 + f2) * w2;
-    // shy: pushed away from any body that comes within 520 µm
+    let hop = 0, pitch = 0;
+    // scattered by a bite in the group: each leaps away from it (the furcula),
+    // and they drift back to graze over the next ten seconds
+    const S = scatters.get(s.k);
+    if (S) {
+      const ds = t - S.t0;
+      if (ds > 14) scatters.delete(s.k);
+      else {
+        let ux = x - S.x, uz = z - S.z;
+        const l = Math.hypot(ux, uz) || 1; ux /= l; uz /= l;
+        const go = SCATTER * (0.8 + 0.4 * h(15)) * sstep(0, LEAP, ds) * (1 - sstep(4, 12, ds));
+        x += ux * go; z += uz * go;
+        if (ds < LEAP) { const u = ds / LEAP; hop = Math.sin(Math.PI * u) * 1.1; pitch = 0.55 * Math.cos(Math.PI * u); vx = ux; vz = uz; }
+      }
+    }
+    // shy: pushed away from any body that comes within SHY
     for (const b of bodies) {
       const dx = x - b.x, dz = z - b.z, d = Math.hypot(dx, dz);
-      if (d < 520 && d > 1) { const k = (520 - d) * 1.1; x += (dx / d) * k; z += (dz / d) * k; vx = dx / d; vz = dz / d; }
+      if (d < SHY && d > 1) { const k = (SHY - d) * 1.1; x += (dx / d) * k; z += (dz / d) * k; vx = dx / d; vz = dz / d; }
     }
-    // now and then a leap (the furcula): a flicked arc, tumbling
-    const per = 4 + h(11) * 6, ph = ((t + h(12) * per) % per) / per;
-    const hop = ph < 0.1 ? Math.sin((Math.PI * ph) / 0.1) : 0;
-    const sc = 0.85 + h(13) * 0.35;
-    _p.set(x, floorH(x, z) + 4 + hop * 160, z);
-    _q.setFromEuler(_e.set(0, -Math.atan2(vz, vx), hop * Math.PI * 1.4 * Math.sign(h(14) - 0.5)));
+    // now and then a hop on the spot (the furcula, flicked lightly): a low arc,
+    // nose up on the way up and down on the way down, landing on its feet.
+    // (Real springtail leaps often tumble end over end; the old one here rolled
+    // through 250° and back, which read as bugs flipping upside down.)
+    if (!hop) {
+      const per = 9 + h(11) * 9, ph = (t + h(12) * per) % per;
+      if (ph < LEAP) { const u = ph / LEAP; hop = Math.sin(Math.PI * u) * 0.7; pitch = 0.45 * Math.cos(Math.PI * u); }
+    }
+    _p.set(x, floorH(x, z) + 4 + hop * 150, z);
     _s.setScalar(sc);
-    mesh.setMatrixAt(n++, _m.compose(_p, _q, _s));
+    mesh.setMatrixAt(n++, _m.compose(_p, orient(x, z, -Math.atan2(vz, vx), pitch), _s));
+    live.push({ key, x, y: _p.y, z, stunned: false });
   }
+  const find = (key) => live.find((b) => b.key === key);
   return {
-    mesh, site, sitesNear, CELL,
+    mesh, site, sitesNear, CELL, live, bugs, scatters, SHY, STUN,
     /** Groups first drawn so far (each lattice site, once). */
     get seen() { return seenK.size; },
+    /** The springtail nearest (x, y, z) within r (as drawn last update), or null: { key, x, y, z, stunned, d }. */
+    nearest(x, y, z, r, accept = () => true) {
+      let best = null, bd = r;
+      for (const b of live) {
+        const d = Math.hypot(b.x - x, (b.y - y) * 0.5, b.z - z);
+        if (d < bd && accept(b)) { bd = d; best = b; }
+      }
+      return best ? { ...best, d: bd } : null;
+    },
+    /**
+     * A bite lands on springtail `key` from (fx, fz): a dazed one is caught
+     * ('caught': the caller eats it, hold/eaten), a lively one is stunned where
+     * it stands and the rest of its group leap away ('stunned').
+     */
+    nip(key, fx, fz) {
+      const b = find(key);
+      if (!b) return null;
+      const B = bugs.get(key);
+      if (B && B.stun > now) { B.stun = now + 9; return 'caught'; }
+      bugs.set(key, { stun: now + STUN, x: b.x, z: b.z, yaw: -Math.atan2(b.z - fz, b.x - fx) + Math.PI, eaten: 0 });
+      scatters.set(+key.split(':')[0], { t0: now, x: fx, z: fz });
+      return 'stunned';
+    },
+    /** While eaten: drawn at p (world), at scale s (1 whole .. 0 gone). */
+    hold(key, p, s) { const B = bugs.get(key); if (B) B.held = { p: p.clone(), s }; },
+    /** Eating cut short: it drops, dazed a moment longer. */
+    drop(key) { const B = bugs.get(key); if (B && B.held) { B.x = B.held.p.x; B.z = B.held.p.z; B.held = null; B.stun = now + 1; } },
+    /** Eaten: gone until another wanders in (BACK s). */
+    eaten(key) { const B = bugs.get(key); if (B) { B.held = null; B.stun = 0; B.eaten = now + BACK; } },
     update(t, bodies, foci) {
-      n = 0;
+      n = 0; now = t; live.length = 0;
       const done = new Set();
       for (const f of foci) for (const s of sitesNear(f.x, f.z, DRAW)) {
         if (done.has(s.k)) continue;
         done.add(s.k); seenK.add(s.k);
         for (let m = 0; m < s.n && n < max; m++) member(s, m, t, bodies);
       }
+      for (const [k, B] of bugs) if (B.stun < t && B.eaten < t && !B.held) bugs.delete(k);
       mesh.count = n;
       mesh.instanceMatrix.needsUpdate = true;
     },
+    reset() { bugs.clear(); scatters.clear(); },
     setVisible(v) { mesh.visible = v; },
   };
 }

@@ -615,7 +615,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     // acting (set each frame with act()): rear 0..1 (forebody up), lunge 0..1
     // (body thrust forward), hold: a point leg I reaches for (food held to the
     // mouth), holdK 0..1
-    rear: 0, lunge: 0, hold: V3(), holdK: 0, lean: 0,
+    rear: 0, lunge: 0, gape: 0, hold: V3(), holdK: 0, lean: 0,
   };
   const events = [];
 
@@ -996,7 +996,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       let h = AN.stand + bob + st.lift - 70 * st.crouch + quiver - 75 * Math.sin(Math.PI * Math.min(1, 1 - st.squash)) * (st.squash > 0 ? 1 : 0);
       if (st.mode === 'closing') h = AN.stand + (st.h0 - AN.stand) * sstep(0.2, 1, st.t);
       h += 28 * st.rear;
-      center = _pc.copy(st.pos).addScaledVector(st.up, h).addScaledVector(st.fwd, 46 * st.lunge);
+      center = _pc.copy(st.pos).addScaledVector(st.up, h).addScaledVector(st.fwd, 72 * st.lunge);
       // (a body tipped up onto something, or lunging, stays inside the wall's face too)
       center.x = clamp(center.x, BX0, BX1); center.z = clamp(center.z, BZ0, BZ1);
       st.center.copy(center); st.q.copy(q);
@@ -1033,8 +1033,9 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     // X: a bite. The box mite dips its rostrum and works the chelicerae; the
     // predator thrusts its chelicerae forward.
     const bk = st.biteT > 0 ? Math.sin(Math.PI * (1 - st.biteT / 0.28)) : 0;
-    if (AN.kind === 'pred') aspis.position.set(AN.hinge[0] + 26 * Math.max(bk, st.chel), AN.hinge[1], AN.hinge[2]);
-    else aspis.rotation.z -= 0.2 * bk;
+    // (an attack's wind-up opens them first: gape, set by act())
+    if (AN.kind === 'pred') aspis.position.set(AN.hinge[0] + 26 * Math.max(bk, st.chel, st.gape), AN.hinge[1], AN.hinge[2]);
+    else aspis.rotation.z += 0.3 * st.gape - 0.34 * bk;
 
     // held: the feet hang from the body, kicking (flail), then limp and folded;
     // a gripped leg is pulled out to the predator's chelicerae
@@ -1272,9 +1273,9 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       st.mode = 'crouch'; st.t = 0; st.speed0 = st.speed; st.charge = 0;
       return true;
     },
-    /** The acting layer, set each frame: { rear, lunge, hold: world point | null, holdK }. */
-    act({ rear = 0, lunge = 0, hold = null, holdK = 0 } = {}) {
-      st.rear = rear; st.lunge = lunge; st.holdK = hold ? holdK : 0;
+    /** The acting layer, set each frame: { rear, lunge, gape (the rostrum lifted, chelicerae open), hold: world point | null, holdK }. */
+    act({ rear = 0, lunge = 0, gape = 0, hold = null, holdK = 0 } = {}) {
+      st.rear = rear; st.lunge = lunge; st.gape = gape; st.holdK = hold ? holdK : 0;
       if (hold) st.hold.copy(hold).divideScalar(k);
     },
     /** In the air: dive at a world point (the pounce-bite), arriving in ~0.2 s. False if not airborne. */

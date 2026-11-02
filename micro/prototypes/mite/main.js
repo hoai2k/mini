@@ -140,7 +140,7 @@ const hud = mountHud({
     move: 'Walk (relative to the view): a slight push walks, full tilt hurries (keys: a middle pace). Climbs grains, stems and flakes, pushes through blades',
     camera: 'Orbit the specimen (up looks up)',
     dash: 'Jump: tap to spring ~3 body lengths, hold to crouch deeper and release for ~6 (aim with the stick); X in the air: a pounce-bite',
-    attack: 'Bite: graze spores and hyphal tips (leg I holds them); at the predator, rear up and nip it',
+    attack: 'Bite: rear, lunge and snap. Grazes spores and hyphal tips (leg I holds them); nips a springtail (it lies dazed, its group leaps off; bite it again to eat it); nips the predator and the pseudoscorpion',
     defend: 'Hold: dash (scramble), ~1.7x full tilt, on a stamina meter; also breaks a grab in its strike window',
     special: 'Hold: close up (ptychoidy, defend): blocks the predator\'s strike. At the open portal: enter it. At the giant springtail: back up a world',
 
@@ -332,7 +332,8 @@ function npcInput(dt) {
   return npcIn;
 }
 
-/** The family: each grazes about its home, and closes up (ptychoidy) while a player is close. */
+/** The family: each grazes about its home, edges away from a player walking up, and closes up (ptychoidy) when touched, rushed or bitten. */
+const FAMILY_TOUCH = 300, FAMILY_ALARM = 480, FAMILY_RUSH = 650;
 function stepFamily(dt) {
   if (!family.home) return;
   // placed round a lingering player, they wander over (like the predator's ground: driftPred)
@@ -347,9 +348,16 @@ function stepFamily(dt) {
     ai.ang += (Math.sin(ai.t * 0.41) + Math.sin(ai.t * 0.9 + 2)) * 0.6 * dt;
     const c = m.center;
     if (Math.hypot(c.x - family.home.x, c.z - family.home.z) > FAMILY.r) ai.ang = Math.atan2(family.home.z - c.z, family.home.x - c.x);
-    let dist = Infinity;
-    for (const P of recs()) dist = Math.min(dist, c.distanceTo(P.mite.center));
-    if (dist < 420 && ai.scared <= 0 && m.mode === 'walk') ai.scared = 2.5 + Math.random() * 2;
+    // Ptychoidy is their alarm, so it should read as one, not as mites forever
+    // tipping over (the owner, 2026-11-02: "a bunch of bugs flipping upside
+    // down"): a mite walking up slowly is only turned away from; they shut
+    // when touched (FAMILY_TOUCH), hurried at (a scramble or full tilt within
+    // FAMILY_ALARM) or bitten (X), and stay shut a little less long.
+    let dist = Infinity, near = null;
+    for (const P of recs()) { const d = c.distanceTo(P.mite.center); if (d < dist) { dist = d; near = P; } }
+    const rushed = near && (near.mite.speed > FAMILY_RUSH || near.mite.airborne);
+    if (m.mode === 'walk' && ai.scared <= 0 && (dist < FAMILY_TOUCH || (dist < FAMILY_ALARM && rushed))) ai.scared = 1.8 + Math.random() * 1.4;
+    else if (near && dist < FAMILY_ALARM + 80 && ai.scared <= 0) ai.ang = Math.atan2(c.z - near.mite.center.z, c.x - near.mite.center.x);
     ai.scared -= dt;
     ai.pause = (ai.pause + dt) % 11;
     input.dir.set(Math.cos(ai.ang), 0, Math.sin(ai.ang)); input.mag = ai.pause < 7 ? 0.7 : 0; input.hold = ai.scared > 0;
@@ -621,7 +629,7 @@ F({ id: 'pounce', group: 'Simulation', label: 'Pounce-bite (X in the air; a game
 F({ id: 'boss', group: 'Simulation', label: 'Boss: pseudoscorpion (Neobisium-like)', fixed: true,
   about: '~2.5 mm, a real hunter of mites in moss, on guard before the wet leaf axil (the portal: placed as you go, the last encounter, in moss nobody has seen yet a short way ahead of you).' + ' Dormant until you come within 0.9 mm of its post; reaching the water while it guards turns you back. Lure it off (it follows you up to 2.6 mm from its post, then walks back slowly) and get round it, or wear it down. Its tell: pincers held open and dead still, then a snap, a two-pincer sweep, or a step-in and snap. Stay out of reach, close up (Y) to survive a grab (the venom tooth cannot get through), scramble (B) out of a grab in its strike window, and bite its pincer joints (X) while it recovers. About three good rounds and it backs into the moss. Its resolve is the brass gauge.' });
 F({ id: 'bite', group: 'Simulation', label: 'Bite and graze (X)', fixed: true,
-  about: 'The rostrum dips and the chelicerae work. In reach of the mouth: fungal spores (eaten) and hyphal branch tips (nibbled; they regrow), the box mite\'s real food. At the predator: a nip that makes it back off for 1.5 s (a game rule).' });
+  about: 'Every press is an attack you can see: the mite rears, the rostrum lifts (the chelicerae open), it lunges and snaps, and crumbs puff where the snap lands. In reach of the mouth: fungal spores (eaten) and hyphal branch tips (nibbled; they regrow), the box mite\'s real food. A springtail in front: the nip leaves it dazed for 2.4 s while its group leaps away (they drift back to graze); bite a dazed one again and it is held to the mouth and eaten (1.2 s: the scramble refilled, a grabbed leg mending 8 s sooner; another wanders in after 40 s). One of the box-mite family: it shuts itself in its capsule and the bite glances off. At the predator: a nip that makes it back off for 1.5 s. Departures: box mites graze fungi and decaying plant matter and do not hunt or eat springtails (predatory mites do); the nips and the meal are game rules.' });
 F({ id: 'predator', group: 'Simulation', label: 'Predatory mite (Parasitidae)', on: true,
   about: 'A pale, flattened gamasid ~0.8 mm long with long legs, leg I held up as a feeler. More than twice your length. It hunts on its own ground, placed as you go (the second encounter, after a few seconds of open moss, and twice again later, hungrier and faster each time), in moss nobody has seen yet a short way ahead of you. Calm until you first walk onto its ground, then hungry only some of the time (see Threats); hungry, it searches toward you, and when it touches you or feels you hurry close by it runs you down: ~0.76 mm/s the first time (full tilt outwalks it), ~0.9 the second (scramble or jump), ~1.0 the third, always hungry then (it outruns full tilt; the scramble ~1.5 and jumps still get away; all game speeds); walking past half tilt is felt from ~1-1.35 mm, creeping only by touch. Resting, it wanders and ignores you. It strikes at legs: on the third grab it holds on, pulls you in and eats you (the whole catch is shown); close up (Y) while it holds you and its grip slips off. Each strike is telegraphed: it rears, leg I and the palps up, the chelicerae open (0.8 s). Closed up (Y), you are a smooth capsule its strike slides off; blocks, nips (X) and facing it wear its interest down until it runs off (adult ptychoid mites are nearly immune: Peschel et al. 2006).',
   onChange: (v) => { predOn = v; pred.setVisible(v && predPlaced); } });
@@ -679,12 +687,24 @@ function renderView(dt) {
 let play = { hurt: 0, stun: 0, grazed: 0, caught: 0, nip: false, heal: 0 };
 const _fp = new THREE.Vector3(), _bc = new THREE.Vector3();
 const closedNow = () => mite.mode === 'closed' || (mite.mode === 'closing' && mite.st.retract > 0.5) || (mite.mode === 'opening' && mite.st.aspis > 0.5);
-// X: three moves, chosen by what is in front of the chelicerae.
-//  fight  the predator in reach: rear up (leg I raised), then lunge and snap;
-//         the nip lands at the snap (it recoils and loses interest)
+// X: one family of moves, chosen by what is in front of the chelicerae; every
+// press shows an attack (the owner, 2026-11-02: "I don't see any attack
+// animations when pressing X"): the mite rears, the rostrum lifts (the
+// chelicerae open), it lunges and snaps, and crumbs puff where the snap lands.
+//  fight  the predator or the pseudoscorpion in reach: rear up (leg I
+//         raised), then lunge and snap; the nip lands at the snap
 //  eat    a spore or a hyphal tip in reach: leg I reaches out and holds it to
 //         the mouth while the chelicerae work and it shrinks away (0.9 s)
-//  attack nothing in reach: a lunge with the chelicerae
+//  strike anything else: the lunge and snap (0.5 s). On a springtail it
+//         stuns it (it lies dazed STUN s, its group leaps away); on one of
+//         the box-mite family it shuts itself in its capsule; in the air, a
+//         snap at nothing
+//  devour a dazed springtail: a snap, then it is held to the mouth and eaten
+//         (1.2 s): scramble stamina refilled, a grabbed leg healing faster
+// (A departure: box mites graze fungi and do not hunt; README.)
+const sstepJ = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const BUG_REACH = 270;       // µm round a point 90 µm ahead of the mouth
+const STRIKE_DUR = 0.5, DEVOUR_DUR = 1.2;
 function biteNow() {
   if (mite.mode !== 'walk' || play.act) return;
   const m = mite.mouth(new THREE.Vector3());
@@ -701,6 +721,18 @@ function biteNow() {
     Object.assign(play, { act: 'clear', actT: 0, actDur: 0.32, snapped: false });
     return;
   }
+  // a springtail in front (the ambient groups), in reach of a lunge
+  const fw = _ct.set(1, 0, 0).applyQuaternion(mite.quat).setY(0).normalize().clone();
+  const c = mite.center;
+  const bug = ambient.nearest(m.x + fw.x * 90, m.y, m.z + fw.z * 90, BUG_REACH, (b) => (b.x - c.x) * fw.x + (b.z - c.z) * fw.z > 60);
+  if (bug && bug.stunned && ambient.nip(bug.key, c.x, c.z) === 'caught') {
+    Object.assign(play, { act: 'devour', actT: 0, actDur: DEVOUR_DUR, snapped: false, bug: bug.key, bug0: new THREE.Vector3(bug.x, bug.y, bug.z) });
+    return;
+  }
+  if (bug) { Object.assign(play, { act: 'strike', actT: 0, actDur: STRIKE_DUR, snapped: false, bug: bug.key, target: new THREE.Vector3(bug.x, bug.y + 20, bug.z), fam: null }); return; }
+  // one of the box-mite family in front
+  const fam = family.home && family.mites.find((f) => f.m.center.distanceTo(m) < 330 && f.m.mode === 'walk');
+  if (fam) { Object.assign(play, { act: 'strike', actT: 0, actDur: STRIKE_DUR, snapped: false, bug: null, target: fam.m.center.clone(), fam }); return; }
   // food: the tile's (spores and hyphal tips, in tile coordinates: the copy
   // nearest the mouth) and the thickets' spore heads (where they stand)
   let best = null, bd = 130, bsx = 0, bsz = 0;
@@ -723,9 +755,26 @@ function biteNow() {
     audio.play('mite/bite', { volume: 0.8, rate: 0.95 + Math.random() * 0.12 });
     return;
   }
-  Object.assign(play, { act: 'attack', actT: 0, actDur: 0.4 });
-  mite.bite();
-  audio.play('mite/bite', { volume: 0.6, rate: 1.2 });
+  Object.assign(play, { act: 'strike', actT: 0, actDur: STRIKE_DUR, snapped: false, bug: null, target: null, fam: null });
+}
+/** The strike's shape over its act (u 0..1): rear and gape (0-0.35), lunge and snap (0.35-0.75), settle. */
+function strikePose(u) {
+  const up = Math.min(1, u / 0.35), back = u < 0.35 ? 0 : Math.min(1, (u - 0.35) / 0.25);
+  return {
+    rear: 0.55 * Math.sin((up * Math.PI) / 2) * (1 - back),
+    gape: Math.sin((up * Math.PI) / 2) * (1 - Math.min(1, back * 3)),
+    lunge: u < 0.35 ? -0.25 * up : Math.sin(Math.min(1, (u - 0.35) / 0.55) * Math.PI) * 1.1,
+  };
+}
+/** Crumbs and moss scales puffed out where a snap lands (at p, world; k scales it). */
+function snapPuff(p, k = 1) {
+  const n = Math.round(14 * k);
+  for (let i = 0; i < n; i++) {
+    const d = dustP[dustI++ % DUST];
+    d.p.copy(p).add(new THREE.Vector3((Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30));
+    d.v.set(Math.random() - 0.5, Math.random() * 0.8 + 0.2, Math.random() - 0.5).normalize().multiplyScalar((260 + Math.random() * 260) * k);
+    d.t = 0; d.r = (8 + Math.random() * 11) * Math.min(1.3, k);
+  }
 }
 const _sm = new THREE.Matrix4(), _sp = new THREE.Vector3(), _sq = new THREE.Quaternion(), _ss = new THREE.Vector3(), _sp2 = new THREE.Vector3();
 /** Move and shrink a spore instance (s: 1 whole, 0 gone). */
@@ -740,6 +789,7 @@ function stepAct(dt) {
   if (!play.act || mite.mode !== 'walk') {
     if (play.act === 'eat' && play.food && play.food.kind === 'spore') placeSpore(play.food, _sp2.set(play.food0.x - play.foodSx, play.food0.y, play.food0.z - play.foodSz), 1);
     if (play.act === 'eat' && play.food && play.food.kind === 'head' && play.food.left > 0) thicket.shrinkHead(play.food, 1);
+    if (play.act === 'devour') ambient.drop(play.bug);
     play.act = null; mite.act({}); return;
   }
   play.actT += dt;
@@ -752,10 +802,11 @@ function stepAct(dt) {
     mite.st.fwd.lerp(to, Math.min(1, dt * 10)).setY(0).normalize();
     const rear = u < 0.45 ? Math.sin((u / 0.45) * Math.PI / 2) : Math.max(0, 1 - (u - 0.45) / 0.15);
     const lunge = u < 0.45 ? 0 : Math.sin(Math.min(1, (u - 0.45) / 0.4) * Math.PI);
-    mite.act({ rear, lunge });
+    mite.act({ rear, lunge, gape: u < 0.45 ? rear : 0 });
     if (u > 0.45 && !play.snapped) {
       play.snapped = true;
       mite.bite();
+      snapPuff(_sp2.copy(m).lerp(foeC, 0.35), 1.1);
       audio.play('mite/bite', { volume: 1, rate: 0.85 });
       if (play.foe === 'boss' && !capture.active && boss.bitePoints().some((p) => p.distanceTo(m) < 640)) {
         play.nips = (play.nips || 0) + 1;
@@ -774,7 +825,8 @@ function stepAct(dt) {
     const f = play.food;
     const reach = Math.min(1, u / 0.25);
     const at = play.food0.clone().lerp(m.clone().add(new THREE.Vector3(0, -8, 0)), Math.min(1, u / 0.35));
-    mite.act({ hold: at, holdK: reach, rear: 0.15 * reach });
+    const dart = Math.sin(Math.min(1, u / 0.3) * Math.PI); // a dart at it, chelicerae open, then the hold
+    mite.act({ hold: at, holdK: reach, rear: 0.15 * reach + 0.2 * dart, lunge: 0.6 * dart, gape: u < 0.18 ? 1 : 0 });
     if (Math.floor(play.actT / 0.22) !== Math.floor((play.actT - dt) / 0.22)) mite.bite();
     // (the spore is drawn in its tile copy: back into tile coordinates)
     if (f.kind === 'spore') placeSpore(f, _sp2.set(at.x - play.foodSx, at.y, at.z - play.foodSz), 1 - Math.max(0, (u - 0.3) / 0.7));
@@ -800,8 +852,60 @@ function stepAct(dt) {
       if (r.shoved && rumbleOn) padOf().rumble(70, 0.3, 0.2);
       if (!thickLog.biteTip) { thickLog.biteTip = true; hud.toast(r.threads ? 'Grazed through the threads: bite (X) to clear a lane, walk to shove the springtails aside' : 'Shoved the springtails aside', 2400); }
     }
-  } else {
-    mite.act({ lunge: Math.sin(u * Math.PI), rear: 0.1 * Math.sin(u * Math.PI) });
+  } else if (play.act === 'strike') {
+    // turn onto the target, rear with the chelicerae open, lunge and snap
+    if (play.target) {
+      const to = _ct.subVectors(play.target, mite.center).setY(0);
+      if (to.lengthSq() > 1) mite.st.fwd.lerp(to.normalize(), Math.min(1, dt * 10)).setY(0).normalize();
+    }
+    mite.act(strikePose(u));
+    if (u > 0.42 && !play.snapped) {
+      play.snapped = true;
+      mite.bite();
+      const fwd = _ct.set(1, 0, 0).applyQuaternion(mite.quat).setY(0).normalize();
+      const at = play.target && play.target.distanceTo(m) < BUG_REACH + 160 ? play.target.clone() : m.clone().addScaledVector(fwd, 60);
+      play.strikes = (play.strikes || 0) + 1;
+      play.lastStrike = { hit: null, x: Math.round(at.x), z: Math.round(at.z) };
+      if (play.bug) {
+        const r = ambient.nip(play.bug, mite.center.x, mite.center.z);
+        if (r && play.target.distanceTo(m) < BUG_REACH + 160) {
+          play.lastStrike.hit = 'springtail';
+          snapPuff(at, 1.2);
+          audio.play('mite/bite', { volume: 1, rate: 0.9 });
+          if (rumbleOn) padOf().rumble(90, 0.35, 0.25);
+          if (!lifeT.bugTip) { lifeT.bugTip = true; hud.toast('Nipped a springtail: it lies dazed and its group leaps away. Bite it again quickly to eat it', 2600); }
+        } else { snapPuff(at, 0.7); audio.play('mite/bite', { volume: 0.6, rate: 1.2 }); }
+      } else if (play.fam) {
+        // a box mite of its own kind: it shuts itself in its capsule, and the bite glances off
+        play.lastStrike.hit = 'boxmite';
+        play.fam.ai.scared = Math.max(play.fam.ai.scared, 3);
+        snapPuff(at, 0.8);
+        audio.play('mite/bite', { volume: 0.8, rate: 1.4 });
+        if (!lifeT.famTip) { lifeT.famTip = true; hud.toast('It shut itself in its capsule: the bite glances off a box mite', 2200); }
+      } else {
+        snapPuff(at, 0.7);
+        audio.play('mite/bite', { volume: 0.6, rate: 1.2 });
+      }
+    }
+  } else if (play.act === 'devour') {
+    // a quick snap onto it (0-0.25), then leg I holds it under the mouth and the chelicerae work while it shrinks
+    const k = play.actT;
+    const snap = Math.min(1, k / 0.25);
+    const to = _ct.subVectors(play.bug0, mite.center).setY(0);
+    if (k < 0.25 && to.lengthSq() > 1) mite.st.fwd.lerp(to.normalize(), Math.min(1, dt * 12)).setY(0).normalize();
+    const at = play.bug0.clone().lerp(m.clone().add(new THREE.Vector3(0, -10, 0)), sstepJ(0.1, 0.4, u));
+    mite.act({ rear: 0.2 + 0.25 * Math.sin(snap * Math.PI), lunge: 0.8 * Math.sin(snap * Math.PI), gape: snap < 0.5 ? 1 : 0, hold: at, holdK: Math.min(1, u / 0.3) });
+    if (!play.snapped && k > 0.12) { play.snapped = true; mite.bite(); snapPuff(play.bug0.clone().setY(play.bug0.y + 20), 1); audio.play('mite/bite', { volume: 1, rate: 0.85 }); }
+    if (k > 0.3 && Math.floor(k / 0.2) !== Math.floor((k - dt) / 0.2)) { mite.bite(); audio.play('mite/bite', { volume: 0.5, rate: 1.1 + Math.random() * 0.2 }); }
+    ambient.hold(play.bug, at, 1 - 0.95 * Math.max(0, (u - 0.25) / 0.75));
+    if (u >= 1) {
+      ambient.eaten(play.bug);
+      play.grazed++; play.bugs = (play.bugs || 0) + 1;
+      play.stam = 1;
+      if (play.hurt > 0) play.heal += 8;
+      if (rumbleOn) padOf().rumble(80, 0.3, 0.15);
+      hud.toast(`Ate a springtail (${play.bugs})${play.hurt > 0 ? ': scramble refilled, the grabbed leg mends sooner' : ': scramble refilled'}`, 1800);
+    }
   }
   if (u >= 1) { play.act = null; mite.act({}); }
 }
@@ -1180,7 +1284,7 @@ function newEncounters() {
   director.reset();
   predSpots.fill(null);
   parkPred();
-  parkFamily(); drip1.reset(); drip3.reset(); beads.reset();
+  parkFamily(); drip1.reset(); drip3.reset(); beads.reset(); ambient.reset();
   props.unplace();
   boss.setVisible(false);
   world.exclude.set('portal', []);
@@ -1955,7 +2059,7 @@ const api = {
   /** Testing: the thicket's drag on player `slot` now ({ k, threads, press }). */
   drag(slot = 0) { const P = pls[slot] || P1; return { ...thicket.drag(P.mite.center) }; },
   /** Testing: what player `slot` is doing. */
-  me(slot = 0) { const P = pls[slot] || P1; return { act: P.play.act || null, nips: P.play.nips || 0, grazed: P.play.grazed, mode: P.mite.mode, hurt: P.play.hurt }; },
+  me(slot = 0) { const P = pls[slot] || P1; return { act: P.play.act || null, nips: P.play.nips || 0, grazed: P.play.grazed, mode: P.mite.mode, hurt: P.play.hurt, strikes: P.play.strikes || 0, lastStrike: P.play.lastStrike || null, bugs: P.play.bugs || 0, stam: P.play.stam }; },
   /** Testing: put a spore right in front of player `slot`'s mouth. */
   feed(slot = 0) {
     const P = pls[slot] || P1;

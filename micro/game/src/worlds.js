@@ -28,7 +28,7 @@ export const WORLDS = [
     goal: 'Head out through the moss any way you like: a family of box mites, the predatory mite on its hunting ground, a drop of water falling into the moss, the predatory mite again (hungrier and faster), a shower of drops, the predator a third time, and at last a golden glow over a wet leaf axil, guarded by a pseudoscorpion; the moss grows wetter, beaded with water, as the water nears. Lure the pseudoscorpion off its post and get round it, or bite its pincer joints until it backs into the moss.',
     forward: 'A wet leaf axil under a golden glow, where a tardigrade walks in the water.',
     back: 'A giant springtail resting on the moss: dwell beside it and press Y to rise to the bog surface.',
-    controls: [['LS', 'Walk: a slight push walks, full tilt hurries'], ['RS', 'Orbit'], ['A', 'Jump: tap to spring, hold for farther (X in the air: a pounce-bite)'], ['X', 'Bite: graze, or bite back'], ['B', 'Hold: dash (scramble)'], ['Y', 'Hold: defend (close up); in a portal: enter it; at the backdoor, rise a world'], ['D-pad ↑↓', 'Magnification']],
+    controls: [['LS', 'Walk: a slight push walks, full tilt hurries'], ['RS', 'Orbit'], ['A', 'Jump: tap to spring, hold for farther (X in the air: a pounce-bite)'], ['X', 'Bite: graze, nip and eat springtails, or bite back'], ['B', 'Hold: dash (scramble)'], ['Y', 'Hold: defend (close up); in a portal: enter it; at the backdoor, rise a world'], ['D-pad ↑↓', 'Magnification']],
     facts: [
       'Box mites fold their legs inside and close the shell like a lid: ptychoidy.',
       'An electron microscope sees no colour; every grey is the tilt of a surface to the beam.',

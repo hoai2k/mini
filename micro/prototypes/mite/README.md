@@ -58,7 +58,7 @@ closer to your goal"):
 
 | # | What | Placed (ahead; round a lingering player) | Met |
 | --- | --- | --- | --- |
-| 1 | **A family of box mites** (three, grazing; they close up as you come; company, not a threat) | 3–4.6 mm; 2.4–3.6 mm, and they wander over | within 1.2 mm of their home |
+| 1 | **A family of box mites** (three, grazing; walk up slowly and they edge away, touch them, rush them or bite them and they close up; company, not a threat) | 3–4.6 mm; 2.4–3.6 mm, and they wander over | within 1.2 mm of their home |
 | 2 | **The predatory mite** on its hunting ground (1.1 mm radius, plus a 0.7 mm chase); hunts at 0.76 mm/s, so full tilt outwalks it | 3.8–5.8 mm; 2.6–4 mm, its ground drifts over | within 1.5 mm of its ground's centre or of it |
 | 3 | **A drop of water** falls into the moss (nothing shows until it falls; it starts when someone is within 1.5 mm, falls from 2.6 mm up, splashes 0.52 mm round: a mite there is knocked shut and tumbled, the predator staggers) | 2.6–3.8 mm; 1–1.45 mm | when it falls (or someone passes within 0.9 mm) |
 | 4 | **The predatory mite again** (the same one, gone on through the moss unseen): hungrier, 0.9 mm/s, feels a hurrying mite from 1.15 mm | as 2 | as 2 |
@@ -78,9 +78,18 @@ there is no portal; a new game (`resetLevel`) starts the director over.
 **Life everywhere** (`life.js`; scenery, not encounters, so nothing is ever
 empty): groups of three to six small soil springtails graze on a jittered
 lattice over the whole square (about seven groups in ten 1.8 mm cells: one every ~3 s at a rush),
-shying from a mite that comes within 0.5 mm and flicking themselves into the
-air now and then (the furcula); each group is a pure function of its place
-and the clock, so moss you come back to is as you left it. **Water beads**
+shying from a mite that comes within 0.36 mm (close enough for a bite) and
+hopping on the spot now and then (the furcula: a low arc, nose up then nose
+down, landing on their feet, every 9–18 s each), standing square to the
+slope of the moss under them; each group is a pure function of its place
+and the clock, so moss you come back to is as you left it. Only what a bite
+does is kept (a dazed or eaten one, a group that leapt away). **They used to
+flip upside down** (the owner, 2026-11-02: "a bunch of bugs flipping upside
+down, is that expected?"): no. Each hop rolled the body about its
+side-to-side axis through ±250° and straight back again within half a
+second, so a grazing group always had one or two on their backs (7.7% of
+them at any moment, measured over 60 s of their clock); now none tip past
+~35° (measured 0%, the steepest 34°). **Water beads**
 on the moss floor are decided per 1.1 mm cell the first time anyone comes
 within 5.2 mm (past the edge of any view) and then kept: a few at the start,
 commoner and larger with every encounter met, and thickest within 8 mm of
@@ -195,7 +204,7 @@ up.
 | LS (WASD) | Walk, relative to the view. The stick is analogue: a slight push walks at ~418 µm/s (the old walk), full tilt hurries at ~870 µm/s (the old scramble), a quadratic curve between so the slow end is easy to hold. The keys walk mid-pace (~610 µm/s); hold Q / F (LB / RB) for the slow end / full tilt. The mite turns toward the stick and walks forward; it climbs grains, flakes and stems and pushes through blades |
 | RS (arrows) | Orbit the specimen. Up looks up (the camera swings down toward the floor), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
 | **A (Space)** | **Jump**, with a flea's or a jumping spider's snap: tap for a 0.1 s crouch and a spring of ~1.1 mm (three body lengths, ~0.33 mm high); hold to crouch deeper (up to 0.45 s more, the body quivering at full charge) and release for ~2.1 mm (six body lengths, ~0.65 mm high); a run-up adds to it. Aim with LS while crouched; LS leans the arc a little in the air. Lands on the floor, a grain, a flake or a moss blade (the blade takes the landing and bends); 0.3 s after landing before the next. Borrowed from jumping oribatids (see Departures). **X in the air: the pounce-bite** |
-| **X (E)** | Three moves, by what is in reach: **eat** (a spore or hyphal tip: leg I reaches out and holds it to the mouth while the chelicerae work and it shrinks away, 0.9 s); **fight** (the predator or the pseudoscorpion's pincer: rear up with leg I raised, then lunge and snap); **attack** (nothing in reach: a lunge with the chelicerae) |
+| **X (E)** | **Bite.** Every press shows an attack: the mite rears, the rostrum lifts (the chelicerae open), it lunges and snaps, and crumbs puff where the snap lands (or in the air before it), with the bite sound. By what is in reach: **fight** (the predator or the pseudoscorpion's pincer: rear up with leg I raised, then lunge and snap); **strike** a springtail in front (it lies dazed 2.4 s, its group leaps away and drifts back over ~10 s); **devour** a dazed one (a snap, then it is held to the mouth and eaten, 1.2 s); **strike** one of the box-mite family (it shuts itself in its capsule; the bite glances off); **eat** (a spore or hyphal tip: a dart at it, then leg I holds it to the mouth while the chelicerae work and it shrinks away, 0.9 s); **strike** at nothing (a snap in the air). See "Biting springtails" |
 | **Y (R)**, hold | **Defend: ptychoidy.** Close into a sealed capsule (the predator's strike slides off; a held mite closing up drops out of the grip); release to reopen |
 | **B (Shift)**, hold | **Scramble** (the dash): a punchy burst to ~1.48 mm/s (~1.7x full tilt, ~3.5x the slow end), nose down, tight turns, the gait racing (feet still planted) and crumbs kicked up behind; on a stamina meter (`scramble ■■■■■` in the corner: empties in ~1.6 s, refills in ~2.8 s). In a grab's strike window, a scramble breaks out |
 | Y (R) at the open portal | Enter the portal (the zoom on to the tardigrade) instead of defending; the game shows "Y Enter the portal" while you are there |
@@ -342,6 +351,43 @@ cuticle class only. The look is a property of the mite's materials, so it
 carries through closing up, jumps, captures, respawn (the same mite comes
 back) and the outro, and in every split view. Other worlds that borrow the SEM
 pass `player: 0` by default and render unchanged.
+
+## Biting springtails (X)
+
+The owner (2026-11-02): "should I be able to eat them? Does a mite eat prey?
+If so it would be cool to be able to press X to eat or attack the other bugs
+I see. Currently I don't see any attack animations when pressing X."
+
+- **The biology:** no. Box mites (phthiracarids and most oribatids) are
+  fungivores and detritivores: they graze fungal hyphae and spores and chew
+  decaying plant matter. It is the predatory mites (Mesostigmata, like the
+  parasitid hunting you here) that eat springtails (S38).
+  Biting and eating springtails is a **game rule** (see Departures).
+- **The animation, every press:** the old bite at nothing was a 0.4 s nudge
+  (the body moved ~27 µm, the rostrum dipped 0.2 rad), too small to see at
+  this magnification. Now: 0.5 s; rear up (to 0.55 of the predator-fight
+  rear) with the rostrum lifted and the chelicerae open, a short draw back,
+  a lunge (~42 µm), the snap (the rostrum dips 0.34 rad), crumbs puffed at
+  the target or in the air before the mouth, the bite sound. The fight
+  (predator, pseudoscorpion) and the grazing dart share the same parts.
+- **Strike a springtail** (one in front, within ~0.27 mm of a point just
+  ahead of the mouth; they shy only to 0.36 mm, so walk up and face one): it
+  jolts and lies **dazed for 2.4 s** where it was, crouched, legs twitching,
+  facing you; the rest of its group **leap away** (~0.5 mm, upright arcs) and
+  drift back to graze over ~10 s.
+- **Devour a dazed one:** X again in time: a snap onto it, then it is held
+  under the mouth and shrinks away as the chelicerae work (1.2 s). It counts
+  as grazed, **refills the scramble** and brings a grabbed leg's healing 8 s
+  nearer (legs heal one per 20 s). Another wanders into its place after 40 s.
+- **Why two bites, and why it doesn't trivialise the encounters:** a nip
+  alone only drives them off; eating takes a second, timed bite and 1.7 s of
+  standing still. The predator and the pseudoscorpion come first (X in
+  their reach is always the fight), a stamina refill is all a meal gives in
+  a chase, and the family cannot be eaten: bitten, a box mite closes up and
+  the bite glances off (as the predator's does off you).
+- Test hooks: `bite(slot)`, `me(slot)` (`strikes`, `lastStrike: { hit:
+  'springtail' | 'boxmite' | null }`, `bugs` eaten, `stam`),
+  `life.ambient` (`live`, `nearest`, `bugs`, `scatters`).
 
 ## Fighting back
 
@@ -548,8 +594,9 @@ Built from parts placed by measurements against the reference, never traced:
   wherever the player is, in the air or not, its predators notice a mite
   within 0.9 mm of their ground, and the drops fall in front of whoever comes
   within 2.6 mm.
-- **Bite (X)**: the rostrum dips and the chelicerae work (0.28 s). Food is
-  the real diet of a phthiracarid: fungal spores (eaten, they vanish) and
+- **Bite (X)**: the rostrum lifts, then dips as the chelicerae snap (0.28 s),
+  inside an attack of rear, lunge and puff (see "Biting springtails"). Food
+  is the real diet of a phthiracarid: fungal spores (eaten, they vanish) and
   hyphal branch tips (nibbled; they regrow after 25 s).
 - **Ptychoidy**: the legs pull in and shrink into the cavity and the aspis
   folds down over it in 0.16 s (Heethoff et al. 2018 measured encapsulation
@@ -559,7 +606,14 @@ Built from parts placed by measurements against the reference, never traced:
   edges. Reopening is slower (0.9 s), and it rights itself onto whatever
   surface is under it.
 - A second box mite wanders with the same walker and closes up when you come
-  near.
+  near. The family (the first encounter) only edges away from a mite walking
+  up; they close up when touched (0.3 mm), rushed (full tilt, the scramble
+  or a jump within 0.48 mm) or bitten, and open again after 1.8–3.2 s.
+  Closed, they roll like yours, onto a flat side on a slope; before they
+  closed at 0.42 mm whatever you did (shut or shutting 64% of the time while
+  a mite walked slowly up to one, rolled past 90°; now 40%, tipped no more
+  than ~35°), which read
+  as mites forever flipping over.
 
 ## Size
 
@@ -1028,7 +1082,9 @@ across), built where they stand. Each thicket:
   pressing on you, at worst half speed; the scramble halves the drag).
 - **Bite (X)** in a thicket grazes away up to three threads in front (real
   oribatid feeding; they regrow after ~40 s once nobody is near) and shoves
-  the springtails in front aside (a box mite does not eat springtails).
+  the springtails in front aside (a box mite does not eat springtails; the
+  grazing groups on open moss can be bitten and eaten, a game rule: see
+  "Biting springtails").
 - Only the thickets near someone are simulated (their threads within 1.4 mm
   of a body, their crowd within 2.8 mm of a player).
 - Test hooks: `bite(slot)`, `drag(slot)`, `thicket` (its `clusters`, `log`:
@@ -1139,6 +1195,11 @@ Not borrowed:
   few hundred µm/s at most), so the moss can be crossed in good time; the
   scramble (~1.5 mm/s) and the predator (0.76–1.02 mm/s) are scaled to
   match.
+- **Biting and eating springtails** (X) is a game rule: box mites graze
+  fungi and decaying plant matter and do not hunt; predatory mites
+  (Mesostigmata) eat springtails. The springtail's daze and the meal's
+  rewards are game rules too. Their hops stay upright: real furcular leaps
+  often tumble end over end, which read here as a glitch.
 - **Life and water** (`life.js`): the springtail groups shy and leap on a
   game rule and are drawn on the floor's height (a member over a grain can
   sit in it); water in an SEM needs an environmental (wet) instrument, and a
