@@ -856,6 +856,8 @@ Object.assign(debug, {
   /** P1 d µm from the leaf's middle on its far side (away from the trap), heading at it, low in the drop. */
   toPortal(d = 260, z = -90) { const b = FWD.b; debug.teleport(FWD.x + Math.cos(b) * d, FWD.y + Math.sin(b) * d, z, b + Math.PI); },
   /** The trap spent now (its guard down). */
+  /** Player slot is eaten now (tests of the dissolve). */
+  kill(slot = 0, by = 'Didinium') { const P = cells.find((c) => c.slot === slot) || P1; P.invuln = 0; kill(P, by, 'in a test'); },
   spendTrap() { trap.state = 'spent'; trap.t = 0; trap.resolve = 0; },
   wakeBoss() { if (trap.placed) { trap.state = 'set'; trap.t = 0; trap.next = 0; } },
   place(id, x, y, b = 0) { director.force(id, x, y, b); return director.entry(id); },
