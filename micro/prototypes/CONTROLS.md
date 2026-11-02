@@ -90,7 +90,7 @@ cell out (held on, it slowly rounds up); LB/RB spread / push harder the
 pseudopod being moved. A surges, X engulfs (and cuts), B lets go or
 stiffens. Against another cell (the giant amoeba *Chaos*, or another player)
 a pseudopod is a push: cells never overlap, and a broad pseudopod or a surge
-pushes hardest; keep a gap open so *Chaos* cannot ring you. Y at the open
+pushes hardest (it can force a channel into *Chaos*, even through to the portal under it); keep a gap open so *Chaos* cannot ring you. Y at the open
 portal goes through it as soon as any part of the cell is on it. "Lead and follow" and the classic two-pseudopod scheme remain Features
 choices.
 

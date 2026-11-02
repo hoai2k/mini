@@ -163,7 +163,8 @@ prevent it and find the portal."
   shoves it. Touching it never eats you.
 - **The tell**: it raises and spreads its pseudopods, every arm out at once
   ("it is going to try to surround you").
-- **The encircle** (two attacks in three): two broad arms start from its
+- **The encircle** (every other attack; between attacks it recovers 4.5 s
+  and then stalks and pushes, so most of the bout is shoving): two broad arms start from its
   membrane beside your flanks and crawl round you, hugging your outline about
   95 µm out, curling on behind you; its body leans in. How far it rings you is
   measured every step (`contact.js` `encircle`: 48 rays from your centre, each
@@ -172,23 +173,43 @@ prevent it and find the portal."
   thicker and brighter as it closes, the open arc the gap to get out by. Its
   rust stain seeps into your cell where its arms press (`harmOf`), and the
   `shared/danger` sound plays as the ring passes half way.
-- **Its X**: only when the ring is shut (94% of the bearings covered and no
-  gap wider than ~17°) does it close it, its equivalent of X: 1.2 s in which
-  the ring pulses and tightens, the danger sound plays again and your
-  membrane trembles. Still ringed at the end (88%), you are engulfed; forced
-  open first (below 75%), it has to start again. A still cell is ringed in
-  about 6 s of an encircle and engulfed in ~15 s; a cell that keeps a way out
-  is not.
+- **Its X**: only when the ring is nearly shut (90% of the bearings covered
+  and no gap wider than ~26°) does it close it, its equivalent of X: 1.2 s in
+  which both arms drive for the last gap, the ring pulses and tightens, the
+  danger sound plays again and your membrane trembles. Fully shut at the end
+  (94%), you are engulfed; forced open first (below 80%) or not closed, it
+  has to start again. A still cell is ringed within one 9 s encircle and
+  engulfed ~11 s after Chaos wakes; a cell that keeps a way out is not.
 - **Getting away**: push out through the gap (both sticks that way, RT, a
   surge), or force the ring open with a thick pseudopod or your body. Every
-  third attack is instead **a shove**: one broad arm with the whole cell
+  other attack is instead **a shove**: one broad arm with the whole cell
   flowing after it, pushing hard (never a bite).
 - **The lure**: it follows you, slowly (~10 µm/s against your ~45), but no
   further than 720 µm from its post (`CHAOS_LEASH`), and once it is more than
   360 µm off its post it only follows (no new attack); then it gives up and
   flows back. Pushed off its post while dormant, it flows back too.
 - **The portal never waits on it**: there is no guard rule. Open, Y enters
-  whatever Chaos is doing; on the portal itself it blocks only with its body.
+  whatever Chaos is doing; on the portal itself it blocks only with its body,
+  and you can force a pseudopod through that (below).
+- **Forcing a pseudopod through it** (the owner, 2026-11-02: "you should be
+  able to try to push a pseudopod through the boss's body to reach the
+  portal, if it's directly on top of it. I want the amoeba battle to be very
+  push-and-pull oriented"). A pseudopod pushed into Chaos dents its membrane
+  in: a channel, lined with Chaos's membrane, opens ahead of the tip (never an
+  overlap). Chaos remembers each dent (`body.dent`), pushes back harder the
+  deeper it is (× 1 + dent / 250 µm in `pushAt`) and squeezes it shut again
+  (`squeeze`: 32 µm/s back out, the dent fading at 15%/s), so the tip gains
+  only while it pushes harder than that: a broad pseudopod (LB), pushed (RB),
+  with a surge (A) every time it recharges, works its way in; a thin one
+  stalls; ease off and the channel closes and shoves it back out. While a
+  steered pseudopod presses on another cell, the body puts its weight behind
+  it (flows on after it), so a held push keeps driving. The tip counts at the
+  portal like any part of the cell (`reaches`), so "Y Enter the portal" comes
+  up with Chaos still over the glow. Chaos, woken, goes on trying to ring
+  you while you do it. Node (`contact.test.mjs`, Chaos calm, a portal 260 µm
+  inside its edge): the broad surging pseudopod gets ~120-140 µm in and
+  reaches the portal in ~4 s; the thin one stalls under ~60 µm and never
+  does; let go after 8 s, the channel is pushed back out to under a third.
 - **Pinching (rare, not the way to play it)**: X when your membrane closes on
   both sides of the neck of one of its arms (within ~70 µm each side) cuts it
   (`Body.pinchAt`); the piece rounds up and dies and it staggers. Enough cuts
@@ -210,13 +231,17 @@ with `contact.js` `resolvePair`: each membrane node of one cell that got
 inside the other is moved out, and the other's membrane at that spot gives
 way, the weaker side yielding more. Its membrane dents in (and the area
 projection bulges it out elsewhere, so it gives ground), and a share of the
-yield moves the whole cell (a shove; less for a bigger cell). Up to four
-passes, twice round `untangle()`; under 2 µm of overlap is left (Playwright:
-0–2 µm between two players pushing for 6 s; 0 µm against Chaos).
+yield moves the whole cell (a shove; less for a bigger cell). Up to six
+passes, three times round `untangle()`, run last in the step (after prey and
+untangling have moved membrane); a couple of µm of overlap at most is left
+(Playwright: ≤ 2.3 µm between two players pushing for 6 s; 0 µm against
+Chaos).
 
 - **Push strength** at a contact node (`pushAt`): the cell's cross-section
-  there (`thickness`: an inward ray to the far membrane, capped at 250 µm, so
-  a broad pseudopod beats a thin one and a body beats either) × how actively
+  there (`thickness`: an inward ray to the far membrane, or, at a
+  pseudopod's tip, the chord across it 20 µm inside, whichever is less,
+  capped at 250 µm, so a broad pseudopod beats a thin one and a body beats
+  either) × how actively
   that membrane is advancing (0.5 resting, up to 1.5 in a pseudopod's cap or
   the front of a flowing body: `Body.Gp`) × the cell's `pushK`: for a player
   the surge factor (up to 2.5 at its peak), × (1 − 0.6 × spread) for LT, ×
@@ -975,3 +1000,14 @@ a cell that pushed out through the gap with a surge as soon as the ring
 passed 30% was never ringed past 35% and never engulfed; two players, one
 crawling into the other for 6 s, stayed in contact with at most 2 µm of
 overlap and shoved the other 134 µm along.
+
+**Forcing a pseudopod through Chaos (2026-11-02, later)**, Playwright, Chaos
+passive and placed right over the portal (its centre 40 µm beyond it, the
+portal ~280 µm inside its near edge): LS held at it with LB and RB and a
+surge each time it recharged, the channel opened and the prompt came up
+after 3.8 s with Chaos's body still over the portal; Y entered. LS alone (a
+thin pseudopod) got ~57 µm in and never brought it up in 16 s. Let go after
+reaching it, the tip was pushed back from 119 to 160 µm off the portal in
+3 s. No overlap (0 µm). Screenshots: `tunnel-1.png`, `tunnel-2.png`. The
+earlier runs above were repeated after the change (22/22, the ring now
+closing in the first encircle: its X at 9.1 s, engulfed 1.8 s later).
