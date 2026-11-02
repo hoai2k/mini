@@ -38,6 +38,14 @@
 //   (spatial hash), necks resist thinning (opts.neck), and step() ends with untangle(),
 //   which undoes any move that made two segments cross (call it again after moving
 //   nodes yourself); body.crossings() lists crossing segment pairs.
+//   input.pods[k].push / .spread (0..1): push harder / spread out for that one pseudopod
+//     (default: input.push for every steered one, and no spread of its own).
+//   input.round (0..1): the whole cell spreads out (as input.spread) and, held, relaxes towards
+//     a circle over ~2.5 s, its pseudopods drawn in (body.roundK: how far it has got).
+//   input.shape: [{ ux, uy, m }]: m > 0 stretches the cell along (ux, uy) (both ends out),
+//     m < 0 squishes it along that axis (the sides bulge); area conserved, no net travel.
+//   input.turn: rad/s at which the whole outline turns about the centroid (+: anticlockwise in
+//     x-right, y-up coordinates); body.turned is the angle turned in the last step.
 //   body.findCut(capsules) / body.pinchAt(i, j, keepX, keepY): a neck thinner than
 //   P.pinchW cut by a capsule splits the ring; the piece holding (keepX, keepY) stays
 //   the cell (resampled to N nodes, area target reset), the other is returned.
@@ -105,6 +113,9 @@ export const P = {
   vRetract: 9, // µm/s, a released pseudopod drawn back
   vRear: 22, // µm/s, uroid contraction at full drive
   vBody: 24, // µm/s, the body flowing after a held body stick (× speed)
+  vShape: 34, // µm/s, the ends of the cell moving out (stretch) or in (squish) at full input.shape
+  wTurn: 0.75, // rad/s, the whole cell turning at full input.turn
+  kRound: 1.6, // 1/s, the outline relaxing towards a circle at full input.round
   neckW: 26, // µm, a neck thinner than this pushes back (the cytoplasm resists thinning)
   pinchW: 12, // µm, a neck thinner than this can be cut through
 };
@@ -144,6 +155,8 @@ export class Body {
     this.zip = null;
     this.grid = new SdfGrid(128);
     this.spread = 0;
+    this.roundT = 0; this.roundK = 0; // input.round held for roundT s; roundK: 0..1 how round it is pulled
+    this.turned = 0;
     this.time = 0;
     this.contact = 0; // how much of the membrane pushed against something this step
     this.opts = { area: true, rearWeight: true, selfContact: true, idlePods: true, adhesion: true, untangle: true, neck: true, speed: 1, boost: 1 };
@@ -210,7 +223,11 @@ export class Body {
     }
     this.centroid();
     this.normals();
-    this.spread += ((input.spread || 0) - this.spread) * Math.min(1, dt * 1.2);
+    // Rounding up (input.round): held, it pulls harder the longer it is held; let go, it eases off.
+    const rin = input.round || 0;
+    this.roundT = rin > 0.05 ? Math.min(3, this.roundT + dt * rin) : Math.max(0, this.roundT - dt * 1.5);
+    this.roundK = smooth(0, 2.5, this.roundT);
+    this.spread += (Math.max(input.spread || 0, rin) - this.spread) * Math.min(1, dt * 1.2);
     this.flat = 1 - 0.26 * this.spread;
     const x = this.x, y = this.y, nx = this.nx, ny = this.ny;
     const ddx = this.ddx, ddy = this.ddy, G = this.G;
@@ -230,13 +247,18 @@ export class Body {
           pod.ret = 0;
         }
         pod.dx = st.dx; pod.dy = st.dy;
+        pod.push = st.push ?? (input.push || 0);
+        pod.sprIn = st.spread || 0;
         // While a food cup is closing, the cell commits: the sticks only nudge.
-        pod.target = st.m * (1 - 0.7 * this.spread) * (this.closing ? 0.15 : 1);
+        // A spread pseudopod is broader and runs out less far; rounding up draws it in.
+        pod.target = st.m * (1 - 0.7 * this.spread) * (1 - 0.35 * (pod.spr || 0)) * (1 - 0.6 * this.roundK) * (this.closing ? 0.15 : 1);
       } else if (pod.active) {
         pod.active = false;
         pod.target = 0;
         pod.ret = 1;
       }
+      if (!pod.active) { pod.push = input.push || 0; pod.sprIn = 0; }
+      pod.spr = (pod.spr || 0) + (pod.sprIn - (pod.spr || 0)) * Math.min(1, dt * 2);
       playing += pod.s;
     }
     for (let k = 2; k < pl.length; k++) {
@@ -294,11 +316,11 @@ export class Body {
         // A boosted pseudopod may run a little further out before the body must follow.
         const lim = clamp(1 - (reach - (req * 1.0 + (this.opts.reach ?? 110) + 40 * (boost - 1))) / 80, 0, 1);
         drive += pod.s * (1 - lim) * (pod.idle ? 0.3 : 1);
-        const v = (P.vPro + (pod.idle ? 0 : P.vBoost * (input.push || 0))) * pod.s * lim * (pod.idle ? 0.7 : spd * boost);
+        const v = (P.vPro + (pod.idle ? 0 : P.vBoost * (pod.push ?? (input.push || 0)))) * pod.s * lim * (pod.idle ? 0.7 : spd * boost);
         // A blunt cap of fixed width: membrane within the cap radius of the tip,
         // facing the aimed direction, advances (flat-topped, so the pseudopod
         // stays a roughly constant-width cylinder, as in A. proteus).
-        const R = pod.rad || P.capR;
+        const R = (pod.rad || P.capR) * (1 + 1.3 * (pod.spr || 0));
         const tx = x[pod.tip], ty = y[pod.tip];
         for (let j = 0; j < N; j++) {
           const ex = x[j] - tx, ey = y[j] - ty;
@@ -353,6 +375,53 @@ export class Body {
       }
       fx += ux * bd.m; fy += uy * bd.m;
       this.drive.x = ux; this.drive.y = uy; this.drive.m = bd.m * boost;
+    }
+
+    // -- whole-cell shape: stretch / squish (input.shape), rounding up (input.round) --
+    let shaping = 0;
+    for (const sh of input.shape || []) {
+      const am = Math.abs(sh.m);
+      if (am < 0.03) continue;
+      const ux = sh.ux, uy = sh.uy, out = sh.m > 0;
+      // How far the cell already reaches along the axis: stretching stops at about
+      // 2.4 radii either side, squishing at about half a radius.
+      let hi = -Infinity, lo = Infinity;
+      for (let i = 0; i < N; i++) { const r = (x[i] - this.cx) * ux + (y[i] - this.cy) * uy; if (r > hi) hi = r; if (r < lo) lo = r; }
+      const half = 0.5 * (hi - lo);
+      const lim = out ? clamp((2.4 * req - half) / (0.8 * req), 0, 1) : clamp((half - 0.5 * req) / (0.35 * req), 0, 1);
+      const v = P.vShape * am * lim * spd * boost * (1 - 0.4 * this.spread) * (this.closing ? 0.2 : 1);
+      shaping = Math.max(shaping, am);
+      for (let i = 0; i < N; i++) {
+        const r = (x[i] - this.cx) * ux + (y[i] - this.cy) * uy, sg = r >= 0 ? 1 : -1;
+        const c = (nx[i] * ux + ny[i] * uy) * sg; // 1: an end facing out along the axis
+        const end = Math.max(0, c) ** 1.5 * smooth(0.15 * req, 0.6 * req, Math.abs(r));
+        const k = out ? 1 : -1;
+        ddx[i] += ux * sg * k * v * end * dt; ddy[i] += uy * sg * k * v * end * dt;
+        // The area projection then takes the body from (stretch) or gives it to (squish) the sides.
+        if (out) G[i] += end * am;
+        else G[i] += (1 - Math.abs(c)) ** 2 * am;
+      }
+    }
+    this.turned = 0;
+    if (input.turn && Math.abs(input.turn) > 0.01) {
+      const a = P.wTurn * clamp(input.turn, -1, 1) * spd * boost * (this.closing ? 0.2 : 1) * dt;
+      const c = Math.cos(a), s = Math.sin(a);
+      for (let i = 0; i < N; i++) {
+        const ex = x[i] - this.cx, ey = y[i] - this.cy;
+        ddx[i] += ex * c - ey * s - ex; ddy[i] += ex * s + ey * c - ey;
+      }
+      this.turned = a;
+    }
+    if (this.roundK > 0.01) {
+      // Every node drawn towards the mean radius: the outline relaxes into a circle.
+      let rm = 0;
+      for (let i = 0; i < N; i++) rm += hyp(x[i] - this.cx, y[i] - this.cy);
+      rm /= N;
+      const k = P.kRound * this.roundK * dt;
+      for (let i = 0; i < N; i++) {
+        const ex = x[i] - this.cx, ey = y[i] - this.cy, r = hyp(ex, ey) || 1;
+        ddx[i] += (ex / r) * (rm - r) * k; ddy[i] += (ey / r) * (rm - r) * k;
+      }
     }
 
     const fm = hyp(fx, fy);
@@ -455,7 +524,8 @@ export class Body {
     // -- area (volume) projection ------------------------------------------------
     this.normals();
     let rx = 0, ry = 0;
-    if (hyp(this.fx, this.fy) > 0.1) { rx = this.fx; ry = this.fy; }
+    // (Shaping in place has no front: the area comes evenly off the sides.)
+    if (hyp(this.fx, this.fy) > 0.1 && !(shaping > 0.1 && fm < 0.3)) { rx = this.fx; ry = this.fy; }
     const target = this.A0 / this.flat;
     for (let it = 0; it < (this.opts.area ? 2 : 0); it++) {
       const dA = target - polygonArea(x, y, N);

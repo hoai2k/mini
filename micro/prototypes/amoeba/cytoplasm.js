@@ -106,6 +106,19 @@ export class Cytoplasm {
   }
 
   addVacuole(v) { this.vacuoles.push(v); }
+  /** The whole cell turned by `a` (rad) about (cx, cy): its contents turn with it. */
+  rotateAbout(cx, cy, a) {
+    if (!a) return;
+    const c = Math.cos(a), s = Math.sin(a);
+    const rot = (o) => { const ex = o.x - cx, ey = o.y - cy; o.x = cx + ex * c - ey * s; o.y = cy + ex * s + ey * c; };
+    for (let i = 0; i < this.n; i++) {
+      const ex = this.px[i] - cx, ey = this.py[i] - cy;
+      this.px[i] = cx + ex * c - ey * s; this.py[i] = cy + ex * s + ey * c;
+    }
+    rot(this.nucleus); this.nucleus.ang += a;
+    rot(this.cv);
+    for (const v of this.vacuoles) { rot(v); v.ang += a; }
+  }
 
   update(dt, body, time) {
     const grid = body.grid, R = 40;

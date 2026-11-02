@@ -73,8 +73,13 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   the forward landmark and the backdoor, the controls and field notes. "Press
   A to begin". Pending artwork shows a spinner rather than a temporary image.
   The selected world loads behind the intro at full viewport size, paused
-  and without sound or input. Begin reuses that frame; a ready world opens
-  immediately, while an unfinished load retains the loading screen. Going
+  and without sound or input. Begin reuses that frame: the panel slides off
+  to the left and the plate to the right (as going back does) over a dark
+  backdrop while the world, held on its first frames, fades in underneath,
+  and it starts once the reveal ends (reduced motion: a crossfade). A world
+  still loading is revealed as its loading veil ("Preparing the slide…"),
+  which fades into the world when it is ready. Input is ignored during the
+  reveal, and the world only runs once the Begin press is released. Going
   back to the tray discards the preload.
 - **Play.** The world in an iframe (`../prototypes/<world>/?embed=1`), a brass
   plaque (bottom right) with the world and its magnification, a controls-card
