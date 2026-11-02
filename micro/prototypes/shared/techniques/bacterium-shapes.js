@@ -11,6 +11,8 @@
 //   each frame:
 //     shapes.begin();
 //     shapes.rod(x, y, angle, length, radius, { curve, z, dn, scat, fl: [r,g,b], ab: [r,g,b] });
+//       (optional lab: [a, b]: two more fluorescence channels, in the alpha of
+//       attachments 1 and 2, shown in bacterium-fluorescence's uCol3, uCol4)
 //     shapes.strand(x, y, angle, length, radius, amp, wavelength, phase, { centred, taper, ... });
 //     shapes.disc(x, y, radius, { wobble, seed, cap, ... });
 //     shapes.chain(x, y, angle, length, dotRadius, count, {...});
@@ -42,10 +44,11 @@ in vec4 iB; // len, radius, p1, p2
 in vec4 iC; // phase, z, dn, scatter
 in vec4 iD; // fluorescence rgb, height scale
 in vec4 iE; // absorbance rgb, membrane weight
+in vec4 iF; // two extra fluorescence (label) channels, written to the alpha of attachments 1 and 2
 uniform mat4 projectionMatrix;
 uniform float uPx, uFocus, uDof, uDefocusK;
 out vec2 vLocal;
-flat out vec4 vA; flat out vec4 vB; flat out vec4 vC; flat out vec4 vD; flat out vec4 vE;
+flat out vec4 vA; flat out vec4 vB; flat out vec4 vC; flat out vec4 vD; flat out vec4 vE; flat out vec4 vF;
 flat out float vBlur;
 void main() {
   int type = int(iA.w + 0.5);
@@ -67,14 +70,14 @@ void main() {
   vLocal = q;
   float c = cos(iA.z), s = sin(iA.z);
   vec2 w = iA.xy + vec2(c * q.x - s * q.y, s * q.x + c * q.y);
-  vA = iA; vB = iB; vC = iC; vD = iD; vE = iE; vBlur = blur;
+  vA = iA; vB = iB; vC = iC; vD = iD; vE = iE; vF = iF; vBlur = blur;
   gl_Position = projectionMatrix * vec4(w, 0.0, 1.0);
 }`;
 
 const FS = /* glsl */ `
 precision highp float;
 in vec2 vLocal;
-flat in vec4 vA; flat in vec4 vB; flat in vec4 vC; flat in vec4 vD; flat in vec4 vE;
+flat in vec4 vA; flat in vec4 vB; flat in vec4 vC; flat in vec4 vD; flat in vec4 vE; flat in vec4 vF;
 flat in float vBlur;
 uniform float uPx, uTime;
 uniform sampler2D tCil, tBio, tMag;
@@ -215,14 +218,14 @@ void main() {
   float opd = vC.z * t * tex;
   float memb = vE.a > 0.0 ? mix(1.0, rim * 2.0, vE.a) : 1.0;
   o0 = vec4(opd, vC.w * t, h, smoothstep(0.0, 0.08, t));
-  o1 = vec4(vD.rgb * t * vec3(memb, 1.0, 1.0) * tex, 0.0);
-  o2 = vec4(vE.rgb * t * tex, 0.0);
+  o1 = vec4(vD.rgb * t * vec3(memb, 1.0, 1.0) * tex, vF.x * t * tex);
+  o2 = vec4(vE.rgb * t * tex, vF.y * t * tex);
 }`;
 
 export function createShapes(max = 4000) {
   const geo = new THREE.InstancedBufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, -1, 0, 1, 1, 0, -1, 1, 0], 3));
-  const names = ['iA', 'iB', 'iC', 'iD', 'iE'];
+  const names = ['iA', 'iB', 'iC', 'iD', 'iE', 'iF'];
   const arr = {};
   for (const n of names) {
     arr[n] = new Float32Array(max * 4);
@@ -251,17 +254,18 @@ export function createShapes(max = 4000) {
   let n = 0;
   let view = { x0: -1e9, x1: 1e9, y0: -1e9, y1: 1e9 };
 
-  const DEF = { z: 0, dn: 0.045, scat: 0, fl: [0, 0, 0], ab: [0, 0, 0], hk: 1, memb: 0, phase: 0 };
+  const DEF = { z: 0, dn: 0.045, scat: 0, fl: [0, 0, 0], ab: [0, 0, 0], hk: 1, memb: 0, phase: 0, lab: [0, 0] };
   function push(type, x, y, ang, L, r, p1, p2, o, reach) {
     if (n >= max) return;
     if (x + reach < view.x0 || x - reach > view.x1 || y + reach < view.y0 || y - reach > view.y1) return;
     const k = n * 4;
-    const z = o.z ?? DEF.z, fl = o.fl || DEF.fl, ab = o.ab || DEF.ab;
+    const z = o.z ?? DEF.z, fl = o.fl || DEF.fl, ab = o.ab || DEF.ab, lab = o.lab || DEF.lab;
     arr.iA[k] = x; arr.iA[k + 1] = y; arr.iA[k + 2] = ang; arr.iA[k + 3] = type;
     arr.iB[k] = L; arr.iB[k + 1] = r; arr.iB[k + 2] = p1; arr.iB[k + 3] = p2;
     arr.iC[k] = o.phase ?? 0; arr.iC[k + 1] = z; arr.iC[k + 2] = o.dn ?? DEF.dn; arr.iC[k + 3] = o.scat ?? DEF.scat;
     arr.iD[k] = fl[0]; arr.iD[k + 1] = fl[1]; arr.iD[k + 2] = fl[2]; arr.iD[k + 3] = o.hk ?? 1;
     arr.iE[k] = ab[0]; arr.iE[k + 1] = ab[1]; arr.iE[k + 2] = ab[2]; arr.iE[k + 3] = o.memb ?? 0;
+    arr.iF[k] = lab[0]; arr.iF[k + 1] = lab[1];
     n++;
   }
 

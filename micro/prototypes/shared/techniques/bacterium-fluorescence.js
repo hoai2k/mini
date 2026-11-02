@@ -17,8 +17,10 @@
 //   tex 0  r = optical path difference (Δn × thickness, µm), g = scatter,
 //          b = height (thickness, µm, for an SEM relief), a = coverage
 //   tex 1  rgb = fluorophore amount in three channels (any units; the
-//          display maps each channel to a pseudo-colour)
-//   tex 2  rgb = optical density (absorbance) per colour
+//          display maps each channel to a pseudo-colour), a = a fourth
+//          (label) channel, shown in uCol3
+//   tex 2  rgb = optical density (absorbance) per colour, a = a fifth
+//          (label) channel, shown in uCol4
 //   This is the adapters.js "optical field" with an extra fluorescence
 //   attachment, so the same buffers also feed the borrowed looks there.
 //
@@ -139,6 +141,7 @@ uniform vec2 uNoiseRes;     // the grain of the shot noise (screen pixels)
 uniform float uTime, uLambda;
 uniform float uHalo, uNoise, uPlateOn, uHasPlate, uStopR, uGain;
 uniform vec3 uCol0, uCol1, uCol2; // fluorescence pseudo-colours
+uniform vec3 uCol3, uCol4;        // two label channels (the alpha of attachments 1 and 2)
 uniform vec3 uBg;           // phase background
 layout(location = 0) out vec4 o;
 
@@ -152,8 +155,9 @@ float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a
 void main() {
   vec2 fuv = vUv * uFieldK;
   vec4 f0 = texture(tF0, fuv);
-  vec3 fl = texture(tF1, fuv).rgb;
-  vec3 od = texture(tF2, fuv).rgb;
+  vec4 f1 = texture(tF1, fuv), f2 = texture(tF2, fuv);
+  vec3 fl = f1.rgb;
+  vec3 od = f2.rgb;
   vec4 low = texture(tLow, vUv);
   vec2 world = uCenter + (vUv - 0.5) * uSize;
   float TAU = 6.2831853;
@@ -174,7 +178,7 @@ void main() {
   } else if (uLook == 1) {
     vec3 haze = low.gba * 0.35;
     vec3 e = fl + haze;
-    c = (e.r * uCol0 + e.g * uCol1 + e.b * uCol2) * uGain;
+    c = (e.r * uCol0 + e.g * uCol1 + e.b * uCol2 + f1.a * uCol3 + f2.a * uCol4) * uGain;
     c += vec3(0.010, 0.012, 0.016) + max(plate, 0.0) * vec3(0.02, 0.025, 0.02); // autofluorescence of the water and silt
     c = 1.0 - exp(-c * 1.6);
     c += n * uNoise * (0.025 + 0.12 * sqrt(max(dot(c, vec3(0.33)), 0.0)));
@@ -228,6 +232,7 @@ void main() { vec2 uv = vUv * uFieldK; o = vec4(texture(t0, uv).r, texture(t1, u
     uTime: { value: 0 }, uLambda: { value: 0.55 }, uHalo: { value: 0.75 }, uNoise: { value: 1 }, uPlateOn: { value: 1 }, uHasPlate: { value: 0 },
     uStopR: { value: 0 }, uGain: { value: 1 },
     uCol0: { value: new THREE.Color(1.0, 0.18, 0.45) }, uCol1: { value: new THREE.Color(0.25, 1.0, 0.35) }, uCol2: { value: new THREE.Color(0.25, 0.75, 1.0) },
+    uCol3: { value: new THREE.Color(1.0, 0.2, 0.14) }, uCol4: { value: new THREE.Color(0.55, 0.36, 1.0) },
     uBg: { value: new THREE.Color(0.66, 0.70, 0.66) },
   });
   const blank = new THREE.DataTexture(new Uint8Array([128, 128, 128, 255]), 1, 1);

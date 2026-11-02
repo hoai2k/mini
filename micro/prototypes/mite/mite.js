@@ -750,7 +750,8 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       // after a moment the mite lets go, closes and drops (box mites do).
       if (step > 0.01 && (st.stuck += dt) > 0.5) { st.drop = 0.35; st.stuck = 0; }
     } else st.stuck = Math.max(0, st.stuck - dt);
-    if (cfg.clear) clearance(true, Math.max(30, 1.3 * st.speed * dt)); // (keeps up with the scramble: ~43 µm a frame at 60 Hz)
+    // (the push-out keeps up with the scramble, ~43 µm a frame at 60 Hz: a larger step, and a second pass when fast)
+    if (cfg.clear) { const cap = Math.max(30, 1.3 * st.speed * dt); clearance(true, cap); if (st.speed > 900) clearance(true, cap); }
     const fy = floorH(st.pos.x, st.pos.z);
     if (st.pos.y < fy) st.pos.y = fy;
     const moved = st.pos.distanceTo(prev);
@@ -822,7 +823,11 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       const p = rr - h.dist;
       if (p > pen) { pen = p; st.penInfo = { dir: d.toArray(), kind: h.kind, belly: dirs === BELLY }; }
       if (dirs === CLEAR_DIRS) _cp.addScaledVector(_cd, -p);
-      else belly = Math.max(belly, p * Math.max(0, -d.y));
+      else {
+        belly = Math.max(belly, p * Math.max(0, -d.y));
+        // a grain too tall to stand over (the lift tops out at 140 µm): pushed back off it sideways
+        if (st.lift + p > 135 && Math.abs(_cd.dot(st.up)) < 0.98) _cp.addScaledVector(_dn.copy(_cd).addScaledVector(st.up, -_cd.dot(st.up)).normalize(), -p);
+      }
     }
     st.pen = pen;
     if (apply) {
@@ -981,7 +986,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       q.multiply(_pq2.setFromAxisAngle(_ax.set(1, 0, 0), sway));
       if (st.rear > 0) q.multiply(_pq2.setFromAxisAngle(_ax.set(0, 0, 1), 0.42 * st.rear));
       if (st.lean > 0.01) q.multiply(_pq2.setFromAxisAngle(_ax.set(0, 0, 1), -0.14 * st.lean)); // the scramble: nose down, driving
-      st.lift += (st.liftT - st.lift) * (st.liftT > st.lift ? 0.5 : 0.08);
+      st.lift += (st.liftT - st.lift) * (st.liftT > st.lift ? 0.5 + 0.45 * clamp((st.speed - 700) / 1500, 0, 1) : 0.08); // (rises faster at a run: grains come quicker)
       st.squash = Math.max(0, st.squash - dt * 4);
       const quiver = st.mode === 'crouch' && st.charge > 0.9 ? 3 * Math.sin(st.time * 90) : 0;
       let h = AN.stand + bob + st.lift - 70 * st.crouch + quiver - 75 * Math.sin(Math.PI * Math.min(1, 1 - st.squash)) * (st.squash > 0 ? 1 : 0);
