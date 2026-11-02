@@ -109,7 +109,9 @@ export class Life {
     this.events.toast('Eaten by Milnesium (A: start a new day)', 6000);
   }
 
-  get frozen() { return this.state !== 'active' || this.tun > 0.02 || !!this.feeding; }
+  // Feeding no longer holds the animal still (the owner, 2026-11-02: 'allow him
+  // to continue moving while he eats'); walking off the food ends the meal early.
+  get frozen() { return this.state !== 'active' || this.tun > 0.02; }
 
   updateFeeding(dt, input) {
     const P = this.creature.pose;
@@ -123,6 +125,28 @@ export class Life {
       // stays visible inside, fading into the gut; without it, it just shrinks.
       if (f.item && !this.events.swallowed) f.item.mesh.scale.setScalar(Math.max(0.05, 1 - f.t / f.dur));
       if (input.bitePressed && f.t > 0.2) { this.events.spat?.(f); this.feeding = null; return; }
+      // Walked off before the food is in the mouth (an item still being drawn
+      // in, the first 45%; a leaf cell still streaming, the first 60%): the meal
+      // breaks off. An item goes back where it was (main.js animateEating); a
+      // leaf cell gives the share already sucked out. Once it's in, walk on.
+      if (f.t / f.dur < (f.item ? 0.45 : 0.6)) {
+        const leaf = f.item ? f.item.leaf : f.leaf;
+        let off = Infinity;
+        if (leaf === w.leaf) {
+          const ml = w.leaf.toLocal(this.creature.anchorWorld('buccal tube + stylets'), {});
+          const [u, v] = f.item ? [f.item.u, f.item.v] : f.cell;
+          off = Math.hypot(u - ml.u, v - ml.v);
+        }
+        if (off > 0.7) {
+          if (!f.item) {
+            const part = f.t / f.dur;
+            this.energy = Math.min(1, this.energy + f.value * part);
+            if (part > 0.15) this.events.toast(`Fed a little on ${f.name} (+${Math.round(f.value * part * 100)}% health)`);
+          }
+          this.feeding = null;
+          return;
+        }
+      }
       if (f.t >= f.dur) {
         this.energy = Math.min(1, this.energy + f.value);
         if (this.events.swallowed) this.events.swallowed(f); // tints the gut as it fades
