@@ -314,6 +314,28 @@ game the roster comes in from the shell (`embed.players`).
   approach within 0.4 mm: `kind`, `d` µm from the start, `progress`, `t`),
   `unseen(x, z, r)`, `plan`.
 
+### Telling players apart
+
+Each player's mite has its own look, so you can find yourself in a crowd even
+without the rings. The SEM is a micrograph, and false-colouring micrographs is
+standard practice, so each player is a hand-tint of the same shell
+(`player` in `createMite`, `playerLook` in `shared/techniques/mite-sem.js`):
+
+| Player | False colour | SE and BSE (greyscale) |
+| --- | --- | --- |
+| P1 (gold) | amber, exactly as before | exactly as before |
+| P2 (teal) | teal | smoother, brighter shell, faint teal cast |
+| P3 (rose) | rose | granular, darker shell, faint rose cast |
+| P4 (blue) | periwinkle blue | flat tone with a bright rim (doubled edge effect), faint blue cast |
+
+The faint rings and "P2" tags stay with company. Cost: one uniform per mite
+(`uPlayer`, written into the fraction of the G-buffer's class channel, +0.06
+per player, so no extra buffer or pass); the composite decodes it for the
+cuticle class only. The look is a property of the mite's materials, so it
+carries through closing up, jumps, captures, respawn (the same mite comes
+back) and the outro, and in every split view. Other worlds that borrow the SEM
+pass `player: 0` by default and render unchanged.
+
 ## Fighting back
 
 Shared fight rules (`shared/predation.js`, `createFight`); the mite uses Y for defence and B for dash.
