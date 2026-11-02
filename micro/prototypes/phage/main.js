@@ -94,10 +94,10 @@ const hud = mountHud({
     dash: 'Dash forward',
     attack: 'Grab / let go (or attack)',
     defend: 'Block / slip through',
-    special: 'Enter portal / info',
+    special: 'Enter portal / way back · info',
     look: 'Change the look',
     zoom: 'Zoom',
-    extra: [['RT', 'Hold to grab and hang on'], ['Y', 'Way back: go up a world']],
+    extra: [['RT', 'Hold to grab and hang on']],
   }),
   note: 'Get into the glowing host, and avoid the amoeba. Up to four players: press any button on another controller to join.',
 });
