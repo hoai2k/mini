@@ -195,7 +195,8 @@ export function drawDileptus(G, D, t) {
   }
   G.ell(...P(-50, 0), D.a, 85, DILEPTUS.R * 0.8, z, COL.pale, 0.05, 4);
   // its bead-chain macronucleus and golden food granules
-  for (let k = 0; k < 9; k++) G.disc(...P(-110 + k * 13, Math.sin(k * 1.3) * 6), 4, z, COL.pale, 0.35, 0.6, 0.15, 2);
+  // (after MP-P07: a winding chain of a dozen pale beads down the body)
+  for (let k = 0; k < 12; k++) { const [bx, by] = P(-118 + k * 12, Math.sin(k * 0.9) * 9); G.disc(bx, by, 5, z, COL.pale, 0.16, 1.2); G.ring(bx, by, 5, 0.8, z, COL.pale, 0.5, 0.4, 0.15, 2); }
   for (let k = 0; k < 14; k++) G.disc(...P(-125 + ((k * 37) % 120), ((k * 23) % 40) - 20), 1.4 + (k % 3) * 0.6, z, COL.gold, 0.7, 0.2, 0.5, 2.5);
   // the trunk: long and supple, a row of toxicysts along its edge; its tip reddens in the wind-up
   const T = dileptusTrunk(D);
@@ -277,7 +278,9 @@ export function drawGiant(G, A, t, focusZ = 0) {
   }
   // the nucleus and food vacuoles
   const nx = A.x + Math.cos(A.t * 0.05) * 60, ny = A.y + Math.sin(A.t * 0.05) * 60;
-  G.disc(nx, ny, 26, zMid, COL.pale, 0.08, 4); G.ring(nx, ny, 26, 1.3, zMid, COL.pale, 0.45, 1, 0.15, 3);
+  // the disc nucleus, finely granular (as MP-P07 shows it)
+  G.disc(nx, ny, 26, zMid, COL.pale, 0.12, 4); G.ring(nx, ny, 26, 1.3, zMid, COL.pale, 0.6, 1, 0.2, 3);
+  for (let k = 0; k < 14; k++) { const a = k * 2.4, r = 20 * Math.sqrt((k + 0.5) / 14); G.disc(nx + Math.cos(a) * r, ny + Math.sin(a) * r, 1.2, zMid, COL.white, 0.35, 0.4); }
   for (let k = 0; k < 5; k++) { const a = k * 1.3 + A.t * 0.03, r = 90 + (k * 37) % 70; G.ring(A.x + Math.cos(a) * r, A.y + Math.sin(a) * r, 9 + k * 2, 1, zMid, COL.gold, 0.4, 0.8, 0.15, 3); G.disc(A.x + Math.cos(a) * r, A.y + Math.sin(a) * r, 5, zMid, COL.green, 0.3, 2); }
   if (pod && pod.hunt && pod.raise > 0.3) { const r = A.out[Math.round(((pod.a % TAU + TAU) % TAU) / TAU * N) % N]; tell(G, A.x + Math.cos(pod.a) * r, A.y + Math.sin(pod.a) * r, 24, GIANT.podTop * 0.6, (pod.raise - 0.3) * 0.8); }
 }
@@ -298,6 +301,8 @@ export function drawTrap(G, T, t) {
   for (let k = 0; k < 46; k++) { const a = k * 2.399, rr = Math.sqrt((k + 0.5) / 46) * 0.88; G.ring(...P(Math.cos(a) * ra * rr, Math.sin(a) * rb * rr), 7 + (k % 4) * 2, 0.7, z, COL.wall, 0.3, 0.5); }
   for (let k = 0; k < 16; k++) { const a = k * 1.7, rr = 0.25 + (k % 5) * 0.12; const [gx, gy] = P(Math.cos(a) * ra * rr, Math.sin(a) * rb * rr); for (let q = 0; q < 4; q++) { const b = q * 1.571 + 0.4; G.line(gx, gy, gx + Math.cos(b) * 5, gy + Math.sin(b) * 5, 0.5, z, COL.gold, 0.5, 0, 0.2, 2); } }
   for (let k = 0; k < 18; k++) G.disc(...P(-ra * 0.5 + ((k * 17) % 50) - 25, ((k * 29) % 70) - 35), 4 + (k % 3) * 2, z, COL.brown, 0.4, 1.5, 0.15, 3);
+  // green flecks through the sac's wall (as MP-P07 shows the bladder)
+  for (let k = 0; k < 60; k++) { const a = k * 2.399 + 0.5, rr = 0.25 + 0.7 * Math.sqrt((k + 0.5) / 60); G.disc(...P(Math.cos(a) * ra * rr, Math.sin(a) * rb * rr), 2 + (k % 3), z, COL.green, 0.4, 0.8, 0.15, 2.5); }
   // the door: an oval at the front with its thick threshold; it quivers (and reddens) in the tell, swings in for the pulse
   const quiver = T.state === 'tell' ? Math.min(1, T.t / TRAP.tell) : 0;
   const open = T.state === 'pulse' ? 1 : 0;
