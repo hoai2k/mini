@@ -144,6 +144,7 @@ export class View {
         uTips: { value: Array.from({ length: 5 }, () => new THREE.Vector4()) },
         uUroid: { value: new THREE.Vector3() }, uFlat: { value: 1 }, uTime: { value: 0 }, uDrain: { value: 0 },
         uTint: { value: new THREE.Vector4(0, 0, 0, 0) },
+        uVarE: { value: new THREE.Vector3() }, uVarV: { value: new THREE.Vector3() },
         uLook: { value: new THREE.Vector4(0, 1, 1, 0) },
       },
     });
@@ -273,6 +274,12 @@ export class View {
     const col = new THREE.Color(color);
     const od = (v) => -Math.log(Math.max(0.05, v));
     c.bodyMat.uniforms.uTint.value.set(od(col.r), od(col.g), od(col.b), strength);
+  }
+
+  /** A player's variety (main.js VARIETIES): extra optical density (rgb) of the endoplasm and of the food vacuoles; zero is today's cell. */
+  setVariety(c, endo = [0, 0, 0], vac = [0, 0, 0]) {
+    c.bodyMat.uniforms.uVarE.value.set(...endo);
+    c.bodyMat.uniforms.uVarV.value.set(...vac);
   }
 
   setPhoto(tex, mean) {

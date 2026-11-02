@@ -125,9 +125,10 @@ function pellicleShellMaterial() {
  * speed, radial fraction of the local radius, angle round the long axis),
  * iP = (radius µm, dn, scatter, seed). Uses the cyclosis uniform like pointsMaterial.
  */
+const CHLORELLA_ABS = [0.05, 0.011, 0.062], BODY_ABS = [0.0042, 0.0013, 0.0052];
 function chlorellaMaterial() {
   return opticMaterial({
-    uniforms: { uAbsorb: { value: new THREE.Vector3(0.05, 0.011, 0.062) }, uCyclosis: { value: 0 } },
+    uniforms: { uAbsorb: { value: new THREE.Vector3(...CHLORELLA_ABS) }, uCyclosis: { value: 0 } },
     vertexShader: /* glsl */ `
       ${GLSL_VERT_COMMON}
       ${GLSL_RADIUS}
@@ -188,7 +189,7 @@ export function createCell() {
   // P. bursaria: the cytoplasm itself carries a faint yellow-green cast (the
   // symbionts' pigment, spread and out of focus), so the cell reads as one green
   // body with the algae inside it, not as a cluster of green beads.
-  const bodyMat = volumeMaterial({ dn: 0.026, scatter: 1.0, absorb: SP.chlorella ? [0.0042, 0.0013, 0.0052] : [0.0011, 0.0016, 0.0032], pattern: 1, rimPow: 2.5 });
+  const bodyMat = volumeMaterial({ dn: 0.026, scatter: 1.0, absorb: SP.chlorella ? BODY_ABS : [0.0011, 0.0016, 0.0032], pattern: 1, rimPow: 2.5 });
   bodyMat.uniforms.uLen.value = LENGTH;
   const body = new THREE.Mesh(geo, bodyMat);
   body.frustumCulled = false;
@@ -387,6 +388,17 @@ export function createCell() {
   const api = {
     opts, granules, chlorella, macro, micro, group, body, shell, cilia: ciliaS, trichocysts: triS, surfaceSamples, food, species: SP,
     get foodCount() { return food.length; },
+    /**
+     * The player's variety (main.js VARIETIES): the Chlorella's absorbance
+     * (red, green, blue per µm), with the cytoplasm's faint cast following it
+     * in proportion. null: today's green (player 1). Only P. bursaria has them.
+     */
+    setVariety(abs = null) {
+      if (!cMat) return;
+      const a = abs || CHLORELLA_ABS;
+      cMat.uniforms.uAbsorb.value.set(...a);
+      bodyMat.uniforms.uAbsorb.value.set(...BODY_ABS.map((b, i) => b * a[i] / CHLORELLA_ABS[i]));
+    },
     /** A bacterium (or a few) reached the cytostome; every 10 makes a food vacuole. */
     ingested: 0,
     ingest(n = 10, size = 0) {

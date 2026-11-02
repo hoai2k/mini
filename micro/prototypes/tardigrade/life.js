@@ -14,6 +14,8 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 
 const TUN_FORM = 2.2, REVIVE_TIME = 2.4;
 
+const _gut = new THREE.Vector3();
+
 export class Life {
   /**
    * opts.clock (default true): this animal's Life owns the shared world state
@@ -27,6 +29,8 @@ export class Life {
     this.energy = 1;
     this.newDay(true);
     this.gutColour = new THREE.Vector3(0.62, 0.6, 0.5);
+    /** The player's variety: a filter on the gut colour (what this animal tends to eat); (1, 1, 1) for player 1. */
+    this.gutTint = new THREE.Vector3(1, 1, 1);
   }
 
   /** A restart: back at the start, full health, the food back in place (the shell's or the RS test). */
@@ -97,7 +101,7 @@ export class Life {
     }
     P.tun = this.tun;
     // Gut colour follows what was eaten (darker when full of food).
-    const g = this.gutColour;
+    const g = _gut.copy(this.gutColour).multiply(this.gutTint).clampScalar(0.02, 1);
     const absGut = new THREE.Vector3(-Math.log(g.x), -Math.log(g.y), -Math.log(g.z)).multiplyScalar(0.5 + 1.5 * this.energy).addScalar(0.1);
     this.creature.setGut(absGut);
   }

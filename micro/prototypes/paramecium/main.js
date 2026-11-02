@@ -640,8 +640,18 @@ CATCH.dileptus = { by: 'Dileptus', how: 'slashed you with its trunk and engulfed
 CATCH.bladder = { by: 'A bladderwort trap', how: 'sucked you in, and its door shut behind you', strike: 'SUCKED toward the trap door!', hold: () => `Pulled through the door: ${glyph('B')} trichocysts to burst free`, eat: 'The door shuts: you are inside the bladder', follow: 'Inside the bladder: its glands begin to digest you', fadeOut: '', fadeIn: '' };
 const catchText = (k, phase) => { const v = CATCH[k][phase]; return typeof v === 'function' ? v() : v; };
 const roster = [];
+/**
+ * Telling players apart: each player's P. bursaria carries its own shade of
+ * Chlorella (absorbance per µm of red, green, blue; the cytoplasm's faint cast
+ * follows). Player 1 is today's green; then blue-green, olive and yellow-green,
+ * keyed to the player colours (teal, rose, blue). Symbiont strains do differ
+ * in shade, but colour-coding them by player is a labelled departure.
+ * P. caudatum has no symbionts: its players are told apart by their rings.
+ */
+const VARIETIES = [null, [0.068, 0.01, 0.034], [0.05, 0.024, 0.088], [0.03, 0.008, 0.08]];
 function makePlayer(p, c = null, sw = null) {
   const cellP = c || createCell();
+  cellP.setVariety(VARIETIES[p.slot % VARIETIES.length]);
   if (!c) {
     scene.add(cellP.group);
     if (pellicleTex.tex) { cellP.body.material.uniforms.uPellicle.value = pellicleTex.tex; cellP.body.material.uniforms.uHasPellicle.value = 1; }

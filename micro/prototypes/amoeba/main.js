@@ -1550,8 +1550,28 @@ function respawnCell(c) {
   hud.toast(`${c.p.name}: a fresh amoeba${m ? ` beside ${m.p.name}` : ''}`, 2600);
 }
 
+/**
+ * Telling players apart: each player's amoeba has its own shade of endoplasm
+ * and of its food vacuoles, as extra optical density (absorbed red, green,
+ * blue). Player 1 is today's cell; then a cool grey-green, a rosier and a
+ * bluish cell, keyed to the player colours (teal, rose, blue). Readable in
+ * brightfield, plausible (stored food and digesting prey colour real amoebae),
+ * but a labelled departure: real strains are not colour-coded. The faint
+ * multiplayer tint stays.
+ */
+const VARIETIES = [
+  { endo: [0, 0, 0], vac: [0, 0, 0] },
+  { endo: [0.13, 0.03, 0.1], vac: [0.18, 0.02, 0.15] },
+  { endo: [0, 0.13, 0.06], vac: [0, 0.2, 0.08] },
+  { endo: [0.14, 0.08, 0], vac: [0.2, 0.11, 0] },
+];
+
 function retint() {
-  for (const c of cells) view.setTint(c.layer, c.p.color, cells.length > 1 ? 0.1 : 0);
+  for (const c of cells) {
+    view.setTint(c.layer, c.p.color, cells.length > 1 ? 0.1 : 0);
+    const v = VARIETIES[c.slot % VARIETIES.length];
+    view.setVariety(c.layer, v.endo, v.vac);
+  }
 }
 
 /** Every joined player has a cell, and only they do (after the shell's roster arrives). */

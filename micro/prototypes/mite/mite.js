@@ -750,7 +750,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       // after a moment the mite lets go, closes and drops (box mites do).
       if (step > 0.01 && (st.stuck += dt) > 0.5) { st.drop = 0.35; st.stuck = 0; }
     } else st.stuck = Math.max(0, st.stuck - dt);
-    if (cfg.clear) clearance(true);
+    if (cfg.clear) clearance(true, Math.max(30, 1.3 * st.speed * dt)); // (keeps up with the scramble: ~43 µm a frame at 60 Hz)
     const fy = floorH(st.pos.x, st.pos.z);
     if (st.pos.y < fy) st.pos.y = fy;
     const moved = st.pos.distanceTo(prev);

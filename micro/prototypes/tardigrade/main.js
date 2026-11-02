@@ -114,6 +114,15 @@ function tintCreature(c, color, on) {
   const col = new THREE.Color(color);
   u.add(new THREE.Vector3(-Math.log(Math.max(0.05, col.r)), -Math.log(Math.max(0.05, col.g)), -Math.log(Math.max(0.05, col.b))).multiplyScalar(0.22));
 }
+/**
+ * Telling players apart: each player's animal has its own gut colour, as if it
+ * had been eating different food (a filter on what it eats; the gut still
+ * takes on each meal's colour). Player 1 is today's look; then a green gut
+ * (algae), a red-brown one and a violet one, keyed to the player colours
+ * (teal, rose, blue). A labelled departure: real guts vary like this with diet,
+ * not with who is playing. The cuticle tint above stays (multiplayer only).
+ */
+const GUT_TINTS = [[1, 1, 1], [0.7, 1, 0.5], [1, 0.6, 0.62], [0.82, 0.6, 1.25]];
 let rumbleOn = true;
 const rumble = (ms, w, s) => { if (rumbleOn) pad.rumble(ms, w, s); };
 const audio = createAudio(['tardigrade/amb-film', 'tardigrade/step', 'tardigrade/dash', 'tardigrade/bite', 'tardigrade/tun', 'tardigrade/revive', 'tardigrade/rain', 'tardigrade/milnesium', 'shared/portal-chime']);
@@ -425,7 +434,12 @@ function syncAnimals() {
   for (const a of animals.slice()) if (!players.get(a.slot)) removeAnimal(a.slot);
   retint();
 }
-function retint() { for (const a of animals) tintCreature(a.creature, a.p.color, animals.length > 1); }
+function retint() {
+  for (const a of animals) {
+    tintCreature(a.creature, a.p.color, animals.length > 1);
+    a.life.gutTint.set(...GUT_TINTS[a.slot % GUT_TINTS.length]);
+  }
+}
 
 function addAnimal(p) {
   if (animals.some((a) => a.slot === p.slot)) return;

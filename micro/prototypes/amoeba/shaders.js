@@ -43,6 +43,7 @@ uniform vec4 uOrgA[12]; uniform vec4 uOrgB[12]; uniform int uOrgN;
 uniform vec4 uTips[5];
 uniform vec3 uUroid; uniform float uFlat, uTime, uDrain;
 uniform vec4 uTint; // local multiplayer: the player's colour as a faint optical density (rgb), strength (a)
+uniform vec3 uVarE, uVarV; // the player's variety: extra optical density of the endoplasm and of the food vacuoles (zero for player 1)
 uniform vec4 uLook; // x: extra olive endoplasm (Chaos), y: clear rim width scale, z: granular texture contrast
 varying vec2 vW;
 void main() {
@@ -85,7 +86,7 @@ void main() {
     } else {
       // Food vacuole: clear fluid around the prey (drawn separately), a thin edge.
       phase -= inside * 0.5 * h; phase += rim * 0.16;
-      od += inside * vec3(0.0, 0.01, 0.03) * b.z;
+      od += inside * (vec3(0.0, 0.01, 0.03) * b.z + uVarV * h);
       clear *= 1. - inside;
     }
   }
@@ -97,6 +98,8 @@ void main() {
   od += e2 * ((vec3(0.1, 0.1, 0.15) + h * vec3(0.5, 0.5, 0.66)) * (1. - 0.55 * uLook.x) + cod * 0.4 * uLook.z);
   phase += e2 * (0.08 + dot(cod, vec3(0.08)) * uLook.z);
   // Chaos: denser, olive-golden endoplasm (absorbs blue most), mottled.
+  // The player's variety: a shade of the endoplasm (stored food), strongest where the cell is thick.
+  od += e2 * uVarE * (0.35 + 0.65 * h);
   od += uLook.x * e2 * vec3(0.02, 0.05, 0.24) * (0.75 + 0.5 * fbm(vW * 0.035));
   // The uroid: the crumpled rear, denser and darker.
   float u = 1. - smoothstep(0., uUroid.z, distance(vW, uUroid.xy));

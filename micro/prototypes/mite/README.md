@@ -540,9 +540,9 @@ The predator stays at ~0.8 mm, more than twice your length; the springtail
 The predatory mite follows the shared pacing in `shared/predation.js`:
 
 - **Its hunting ground.** One ground (1.1 mm radius, `PRED_GROUND`), placed
-  by the director a short way ahead of whoever leads, twice (see The
-  encounters). It notices and hunts prey only there (plus a
-  short chase out of it) and goes back after a retreat. Coming upon a
+  by the director a short way ahead of whoever leads, three times, hungrier
+  and faster each time (see The encounters). It notices prey within 0.9 mm
+  of it and hunts only there (plus a 1.1 mm chase out of it) and goes back after a retreat. Coming upon a
   thicket it feeds on the springtails (S38: gamasids favour springtails).
 - **Calm until its ground.** It only wanders until someone first walks onto
   its ground (no clock); then it is awake.
@@ -1090,16 +1090,24 @@ node micro/prototypes/mite/route.test.mjs
 `route.test.mjs` checks the moss and the encounters without a browser: the
 tile's floor repeats, every way out passes within 0.4 mm of a thicket on both
 rings (with a way round), and the director with the SEM view's frustum:
-rushing in 16 directions meets the predator, the predator again and the
-portal in order (the first within ~10 s after a warm-up, a calm break before
-the second, the portal reached in 42–62 s), nothing placed in view, on seen
-moss or where it does not fit, nothing moved once seen; lingering brings
-them all round the player in order; turning back moves the unseen predator
-to follow; two players heading apart meet them all. With the default path:
-following its bearing meets the three pre-placed ones in order (nothing
-generated, the water reached in ~44 s); heading off three other ways takes
-each off the path while unseen and places it as you go, in order, nothing
-seen moved.
+rushing in 16 directions meets all seven in order (the first within ~10 s
+after a warm-up, a calm break of at least 4 s before each of the rest, none
+more than 16 s after the one before, the portal reached in 45–95 s), nothing
+placed in view, on seen moss or where it does not fit, nothing moved once
+seen; lingering brings them all round the player in order; turning back
+moves an unseen one to follow; two players heading apart meet them all; the
+walkable square is far beyond play. With the default path: following its
+bearing meets the seven pre-placed ones in order (nothing generated, the
+water reached in ~58 s); heading off three other ways takes each off the
+path while unseen and places it as you go, in order, nothing seen moved.
+
+`node --test micro/prototypes/mite/*.test.mjs micro/prototypes/shared/director.test.mjs`
+runs it with the shared director's tests. The speed, jump and rush
+measurements in this README came from Playwright scripts driving the page
+through a fake controller and the keyboard (`__micro.inputSteps(n, dt)`
+reads the pads as a frame does; `__micro.life` holds the springtail groups,
+the beads, the drops and the family; `__micro.inSight(x, z, r)` asks the
+views).
 
 The check loads the page in headless Chromium (software WebGL), drives the
 keyboard, and fails on any console error. Software WebGL is slow, so the
