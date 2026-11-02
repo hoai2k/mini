@@ -20,10 +20,25 @@
 // `resume` and `sound` messages by themselves, and window focus is left to
 // the shell (focus moves between the shell and the frame; the shell pauses
 // when the window loses it), so only a hidden tab silences the page here.
-import { SOUNDS } from './audio-list.js';
+//
+// Two sound sets (TEMPORARY: the owner is comparing them; the switch goes
+// once one is chosen): 'new' (the default) and 'old', the soundscape before
+// the sounds added on 2 November 2026 (audio-list.js ADDED). The shell's
+// Settings → Sound effects stores it in localStorage `micro.soundSet` and
+// sends it with `sound` ({ soundSet }); a change applies at once. A call says
+// what the old set played instead, and the set picks:
+//
+//   audio.play('mite/jump', { volume: 0.8, old: ['mite/dash', { volume: 0.7, rate: 1.3 }] });
+//   audio.play('shared/hit');                        // new only (an ADDED id, no `old`): silent in Old
+//   audio.play('mite/bite', { rate: 1.2, only: 'old' }); // a stand-in the new set dropped
+//   audio.loop('phage/amb-water', { old: 'bacterium/amb-sediment' });
+//   audio.set                                        // 'new' or 'old'
+import { SOUNDS, ADDED } from './audio-list.js';
 import { embed } from './embed.js';
 
 const base = new URL('../', import.meta.url);
+const SET_KEY = 'micro.soundSet';
+const readSet = () => { try { return localStorage.getItem(SET_KEY) === 'old' ? 'old' : 'new'; } catch { return 'new'; } };
 
 export function createAudio(ids = Object.keys(SOUNDS)) {
   let ctx = null, master = null, ambBus = null, sfxBus = null;
@@ -35,6 +50,23 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
   const isAway = () => document.hidden || (!embed.active && !document.hasFocus());
   const buffers = new Map(); // id -> Promise<AudioBuffer[]>
   const loops = new Set();
+  let soundSet = readSet();
+  /** What to play for `id` in the current set: [id, opts] or null (silent). */
+  function pick(id, { old, only, ...o } = {}) {
+    if (only && only !== soundSet) return null;
+    if (soundSet === 'old' && ADDED.has(id)) return old ? [old[0], old[1] || {}] : null;
+    return [id, o];
+  }
+  /** Preload this page's list for the current set (the Old set loads no ADDED sound). */
+  const preload = () => { for (const id of ids) if (!(soundSet === 'old' && ADDED.has(id))) load(id); };
+  function setSet(v) {
+    const s = v === 'old' ? 'old' : 'new';
+    if (s === soundSet) return;
+    soundSet = s;
+    if (ctx) preload();
+    for (const l of loops) l._switch();
+  }
+  addEventListener('storage', (e) => { if (e.key === SET_KEY) setSet(readSet()); });
 
   function ensure() {
     if (ctx) return ctx;
@@ -46,7 +78,7 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
     master.connect(ctx.destination);
     sfxBus = ctx.createGain(); sfxBus.connect(master);
     ambBus = ctx.createGain(); ambBus.gain.value = ambience ? 1 : 0; ambBus.connect(master);
-    for (const id of ids) load(id);
+    preload();
     for (const l of loops) l._start();
     if (paused) ctx.suspend().catch(() => {});
     return ctx;
@@ -96,7 +128,11 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
     resume() { paused = false; unlock(); updateAway(); },
     get paused() { return paused; },
     /** The game's master switch and volume (0..1), on top of the Sound effects feature. */
-    setMaster({ on, volume } = {}) {
+    /** The sound set in use: 'new' or 'old' (see the top of this file). */
+    get set() { return soundSet; },
+    setSet,
+    setMaster({ on, volume, soundSet: ss } = {}) {
+      if (ss) setSet(ss);
       if (typeof on === 'boolean') masterOn = on;
       if (typeof volume === 'number') masterVol = Math.max(0, Math.min(1, volume));
       if (masterOn && !paused) unlock();
@@ -104,7 +140,10 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
     },
     get ready() { return !!ctx && ctx.state === 'running'; },
     /** Play a one-shot. Returns nothing; silent if not loaded or disabled. */
-    play(id, { volume = 1, rate = 1, pan = 0, delay = 0 } = {}) {
+    play(id0, opts0) {
+      const p = pick(id0, opts0);
+      if (!p) return;
+      const [id, { volume = 1, rate = 1, pan = 0, delay = 0 } = {}] = p;
       if (!ctx || !enabled || ctx.state !== 'running') return;
       const v = (SOUNDS[id]?.volume ?? 1) * volume;
       load(id).then((list) => {
@@ -124,22 +163,37 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
      * Ids starting with 'amb' go through the Ambience switch.
      * Returns { set({volume, rate}), stop() }.
      */
-    loop(id, { volume = 1, rate = 1 } = {}) {
-      const isAmb = id.split('/')[1]?.startsWith('amb');
+    loop(id0, { volume = 1, rate = 1, old = null } = {}) {
+      // the id for the current set (null: silent in it)
+      const want = () => (soundSet === 'old' && ADDED.has(id0) ? old : id0);
+      let id = want();
+      const isAmb = () => !!id && id.split('/')[1]?.startsWith('amb');
       // sentV / sentR: the last target set() sent, so a world calling set() every
       // frame with the same values doesn't stack identical automation events
       // (re-sending the same target and time constant traces the same curve).
       const state = { volume, rate, src: null, gain: null, stopped: false, sentV: null, sentR: null };
       const handle = {
+        /** The sound set changed: fade out this loop's sound and start the other set's. */
+        _switch() {
+          const w = want();
+          if (w === id) return;
+          if (state.gain) state.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.2);
+          if (state.src) state.src.stop(ctx.currentTime + 1);
+          state.src = null; state.gain = null; state.sentV = null; state.sentR = null;
+          id = w;
+          handle._start();
+        },
         _start() {
-          if (!ctx || state.src || state.stopped) return;
-          load(id).then((list) => {
-            if (!list.length || state.src || state.stopped) return;
+          if (!ctx || !id || state.src || state.stopped) return;
+          const mine = id;
+          load(mine).then((list) => {
+            if (!list.length || state.src || state.stopped || id !== mine) return;
             const src = ctx.createBufferSource();
             src.buffer = list[0]; src.loop = true; src.playbackRate.value = state.rate;
             const g = ctx.createGain(); g.gain.value = 0;
             g.gain.setTargetAtTime((SOUNDS[id]?.volume ?? 1) * state.volume, ctx.currentTime, 0.4);
-            src.connect(g).connect(isAmb ? ambBus : sfxBus);
+            src.connect(g).connect(isAmb() ? ambBus : sfxBus);
+
             src.start();
             state.src = src; state.gain = g;
             state.sentV = null; state.sentR = null; // the fade-in above is a different curve

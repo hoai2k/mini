@@ -108,7 +108,11 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   controls card is raised above it (`z-index` 26 while `#pause` is shown) and
   stays sharp and readable beside the menu; a dialog opened from the menu
   (settings, instructions) still covers it.
-- **Settings.** Sound on/off and volume, Invert camera Y (the shared
+- **Settings.** Sound on/off and volume, Sound effects (New or Old:
+  temporary, while the owner compares the sounds added on 2 November 2026
+  with the original ones; stored as `micro.soundSet`, read by `src/sound.js`
+  and every world's `shared/audio.js`, and applied at once; to be removed
+  once one set is chosen), Invert camera Y (the shared
   `micro.invertY`), Portal arrow, fullscreen, and in play "World features"
   (the world's own feature panel, for development). The controls card always
   shows at the start of each world and transitions are always continuous (the

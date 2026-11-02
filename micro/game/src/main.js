@@ -612,7 +612,7 @@ async function worldReady(f) {
   if (S.frame !== f || !S.loading) return;
   S.loading = false;
   clearTimeout(S.loadTimer);
-  send(f, 'sound', { on: sound.on, volume: sound.volume });
+  send(f, 'sound', { on: sound.on, volume: sound.volume, soundSet: sound.set });
   send(f, 'settings', { invertY });
   send(f, 'players', { roster: roster.toJSON() });
   const veil = $('#veil');
@@ -686,7 +686,7 @@ function dedupe(kind) {
  */
 async function beginPlay() {
   if (S.zooming || S.screen !== 'intro') return;
-  sound.start();
+  sound.begin();
   S.board = 0;
   closeAllModals();
   const intro = $('#intro');
@@ -943,6 +943,11 @@ function settingItems() {
   const items = [
     { id: 'sound', label: t('shell.settings.sound'), get: () => sound.on, toggle: () => setSound(!sound.on) },
     { id: 'volume', label: t('shell.settings.volume'), slider: true, get: () => sound.volume, step: (d) => { sound.setVolume(Math.round((sound.volume + d * 0.1) * 10) / 10); pushSound(); sound.tick(); } },
+    // TEMPORARY (the owner is comparing them; goes once one is chosen): the new sound effects or the
+    // original ones, in the shell and every world (localStorage micro.soundSet; sound.js, shared/audio.js)
+    { id: 'soundSet', label: t('shell.settings.soundSet'), about: t('shell.settings.soundSetAbout'), choices: true,
+      get: () => sound.set, show: (v) => t(v === 'old' ? 'shell.settings.soundSetOld' : 'shell.settings.soundSetNew'),
+      step: () => { sound.setSet(sound.set === 'old' ? 'new' : 'old'); pushSound(); } },
     { id: 'invertY', label: t('shell.settings.invertY'), get: () => invertY, toggle: () => {
       invertY = !invertY;
       try { localStorage.setItem('micro.invertY', invertY ? '1' : '0'); } catch { /* private mode */ }
@@ -971,7 +976,7 @@ function renderSettings() {
     b.dataset.setting = it.id;
     let val;
     if (it.slider) val = `<span class="slider"><i style="width:${it.get() * 100}%"></i><b style="left:${it.get() * 100}%"></b></span><span class="val">${Math.round(it.get() * 100)}%</span>`;
-    else if (it.choices) val = `<span class="val"><span class="arrow">‹</span>${TRANSITIONS[it.get()]}<span class="arrow">›</span></span>`;
+    else if (it.choices) val = `<span class="val"><span class="arrow">‹</span>${it.show ? it.show(it.get()) : TRANSITIONS[it.get()]}<span class="arrow">›</span></span>`;
     else if (it.action) val = `<span class="val">${it.action}</span>`;
     else val = `<span class="val ${it.get() ? 'on' : 'off'}">${it.get() ? t('shell.settings.on') : t('shell.settings.off')}</span>`;
     b.innerHTML = `<span class="lab">${it.label}</span><span style="display:flex;gap:10px;align-items:center">${val}</span>${it.about ? `<span class="about">${it.about}</span>` : ''}`;
@@ -1008,7 +1013,7 @@ function setSound(on) {
   pushSound();
   if (S.modals.includes('settings')) renderSettings();
 }
-const pushSound = () => send(S.frame, 'sound', { on: sound.on, volume: sound.volume });
+const pushSound = () => send(S.frame, 'sound', { on: sound.on, volume: sound.volume, soundSet: sound.set });
 function openDevPanel() {
   closeAllModals();
   S.paused = false;
@@ -1061,7 +1066,7 @@ function activate(el) {
     case 'fullscreen': toggleFullscreen(); break;
     case 'begin': beginPlay(); break;
     case 'back': back(); break;
-    case 'resume': resume(); break;
+    case 'resume': sound.resumeItem(); resume(); break;
 
     case 'restart': confirmThen(t('shell.confirm.restartTitle'), t('shell.confirm.restartText'), restartWorld); break;
     case 'choose': confirmThen(t('shell.confirm.chooseTitle'), t('shell.confirm.chooseText'), () => leavePlay('menu')); break;

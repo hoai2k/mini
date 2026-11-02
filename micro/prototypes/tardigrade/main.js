@@ -1268,7 +1268,7 @@ function step(dt, G) {
     else if (e === 'windupWhip' || e === 'windupThrash') audio.play('tardigrade/prionchulus', { volume: 0.8 });
     if (e === 'windupWhip') { toast(tt('tardigrade.toasts.bossCoils', { who: a ? who(a) : '' }), 1800); rb(140, 0.3, 0); }
     else if (e === 'windupThrash') { toast(tt('tardigrade.toasts.bossThrashes', { who: a ? who(a) : '' }), 1800); rb(140, 0.3, 0); }
-    else if (e === 'strike') audio.play('tardigrade/whip', { volume: 0.8 });
+    else if (e === 'strike') audio.play('tardigrade/whip', { volume: 0.8, old: ['tardigrade/dash', { volume: 0.8, rate: 0.7 }] });
     else if (e === 'blocked' && a) { audio.play('shared/block', { volume: 0.8 }); toast(tt('tardigrade.toasts.bossBraced', { who: who(a), resolve: Math.round(boss.interest * 100) })); rb(260, 0.6, 0.5); (a.anim ||= {}).shove = 0.3; }
     else if (e === 'bitten' && a) { a.bossJab = true; toast(tt('tardigrade.toasts.bossStylets', { who: who(a), resolve: Math.round(boss.interest * 100) })); rb(200, 0.5, 0.4); audio.play('tardigrade/bite', { volume: 1, rate: 0.8 }); audio.play('tardigrade/impact', { volume: 0.55 }); }
     else if (e === 'flounder') toast(tt('tardigrade.toasts.bossFlounders'), 2000);
@@ -1314,7 +1314,7 @@ function step(dt, G) {
     if (xAtk) startAttack(a, a === target && jabbed ? 'hit' : bossHit ? 'hit' : a.meadowJab ? 'touch' : L.feeding ? 'food' : 'puff', bossHit ? boss.headW : a === target && jabbed ? predator.mouth(_atkP) : null);
     const feeding = !!L.feeding;
     // feeding: the stylets draw the cell in, heard again every ~1.5 s while it lasts
-    if (feeding && (!a.feeding || time >= a.feedSndT)) { a.feedSndT = time + 1.5; audio.play('tardigrade/feed', { volume: 0.7, rate: 0.95 + Math.random() * 0.1 }); }
+    if (feeding && (!a.feeding || (audio.set === 'new' && time >= a.feedSndT))) { a.feedSndT = time + 1.5; audio.play('tardigrade/feed', { volume: 0.7, rate: 0.95 + Math.random() * 0.1, old: ['tardigrade/bite', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 }] }); }
     a.feeding = feeding;
   }
   const raining = life.rainT > 0;
@@ -1330,7 +1330,7 @@ function step(dt, G) {
     if (e === 'recoil') { toast(tt('tardigrade.toasts.predatorRecoils', { who: who(a), interest: Math.round(predator.fight.interest * 100) })); rb(220, 0.5, 0.4); (a.anim ||= {}).hit = 0.3; }
     else if (e === 'windup') { toast(tt('tardigrade.toasts.predatorRears', { who: who(a) }), 1800); rb(120, 0.3, 0); audio.play('tardigrade/milnesium', { volume: 0.5, rate: 1.2 }); }
     else if (e === 'strike') audio.play('tardigrade/milnesium', { volume: 0.9, rate: 1.05 });
-    else if (e === 'blocked') { toast(tt('tardigrade.toasts.predatorBlocked', { who: who(a) })); rb(260, 0.6, 0.5); (a.anim ||= {}).shove = 0.3; audio.play('shared/block', { volume: 0.8 }); }
+    else if (e === 'blocked') { toast(tt('tardigrade.toasts.predatorBlocked', { who: who(a) })); rb(260, 0.6, 0.5); (a.anim ||= {}).shove = 0.3; audio.play('shared/block', { volume: 0.8, old: ['tardigrade/bite', { volume: 0.7, rate: 0.7 }] }); }
     else if (e === 'retreat') { audio.play('shared/foe-flees', { volume: 0.7 }); toast(tt('tardigrade.toasts.predatorGone', { who: who(a) }), 2600); }
     else if (e === 'stalk') toast(tt('tardigrade.toasts.predatorStalks', { who: who(a) }), 2600);
     else if (e === 'hunt') toast(tt('tardigrade.toasts.somethingLarge'), 2600);

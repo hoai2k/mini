@@ -127,14 +127,15 @@ const coll = createCollectives(world, {
     // a flock answers at once: the first answer to each beacon is heard, then the joins at most 4 a second
     if (collMsg.answerDue && t - collMsg.answerSnd > 0.3) { collMsg.answerSnd = t; audio.play('bacterium/answer', { volume: 0.5, rate: 0.95 + Math.random() * 0.1 }); }
     collMsg.answerDue = false;
-    if (t - collMsg.joinSnd > 0.25) { collMsg.joinSnd = t; audio.play('bacterium/join', { volume: 0.4, rate: 0.95 + Math.random() * 0.1 }); }
+    // (the Old set: its tumble stand-in, every 0.06 s)
+    if (t - collMsg.joinSnd > (audio.set === 'old' ? 0.06 : 0.25)) { collMsg.joinSnd = t; audio.play('bacterium/join', { volume: 0.4, rate: 0.95 + Math.random() * 0.1, old: ['bacterium/tumble', { volume: 0.35, rate: 1.7 + Math.random() * 0.3 }] }); }
     const n = C.members.length + C.players.length;
     if (C.members.length === 1) hud.toast(tt('bacterium.toasts.firstKin'), 3200);
     else if (n === COLL.shield && t - collMsg.recruitAt > 2) { collMsg.recruitAt = t; hud.toast(tt('bacterium.toasts.armyShield', { n }), 2600); }
     else if (n === COLL.raft && t - collMsg.recruitAt > 2) { collMsg.recruitAt = t; hud.toast(tt('bacterium.toasts.armyRaft', { n }), 2600); }
     else if (n === COLL.toxin && t - collMsg.recruitAt > 2) { collMsg.recruitAt = t; hud.toast(tt('bacterium.toasts.armyToxin', { n, glyph }), 2600); }
   },
-  onBeacon: () => { collMsg.answerDue = true; audio.play('bacterium/beacon', { volume: 0.6 }); },
+  onBeacon: () => { collMsg.answerDue = true; audio.play('bacterium/beacon', { volume: 0.6, old: ['bacterium/eat', { volume: 0.4, rate: 1.9 }] }); },
   onLost: (C, m, kind) => {
     if (kind === 'phage' && C && C.players.length && t - collMsg.infectSnd > 0.5) { collMsg.infectSnd = t; audio.play('bacterium/infected', { volume: 0.6 }); }
     // a member eaten by a grazer, the amoeba or Stentor poisons it (guards.js poison)
@@ -155,13 +156,13 @@ coll.reset(roster);
 const gateMsg = { seen: new Set() };
 const guards = createGuards(world, coll, stentor, {
   onBeaten: (q) => {
-    audio.play('bacterium/gate', { volume: 0.9 });
+    audio.play('bacterium/gate', { volume: 0.9, old: ['bacterium/eat', { volume: 1, rate: 0.6 }] });
     for (const P of roster) P.pad.rumble(250, 0.6, 0.6);
     const text = tt(`bacterium.toasts.gateBeaten.${q.kind}`);
     hud.toast(text, 3600);
     gateInfo.log.push({ ev: 'beaten', id: q.id, t });
   },
-  onKill: () => { audio.play('bacterium/lyse', { volume: 0.6 }); },
+  onKill: () => { audio.play('bacterium/lyse', { volume: 0.6, old: ['bacterium/eat', { volume: 0.6, rate: 1.3 }] }); },
   onInfected: (C) => { if (t - collMsg.infectSnd > 0.5) { collMsg.infectSnd = t; audio.play('bacterium/infected', { volume: 0.6 }); } if (t - collMsg.lostAt > 1.5) { collMsg.lostAt = t; hud.toast(tt('bacterium.toasts.infected', { left: C.members.length, shield: COLL.shield }), 2400); } },
   onSwept: () => {},
 });
@@ -223,7 +224,7 @@ function absorbHit(P, kind, who) {
 /** The toxin burst: every enemy in reach takes a big hit; grazers recoil, Bdellovibrio die or flee, phages are destroyed. */
 function toxinBurst(C, b) {
   const R = b.R;
-  audio.play('bacterium/toxin', { volume: 1 });
+  audio.play('bacterium/toxin', { volume: 1, old: ['bacterium/eat', { volume: 1, rate: 0.55 }] });
   for (const P of C.players) P.pad.rumble(300, 0.8, 0.6);
   let hit = guards.burstHit(b);
   for (const g of world.grazers) {
@@ -1262,7 +1263,7 @@ function pressX(P) {
   const hits = C ? guards.volley(C, t) : 0;
   if (hits) audio.play('bacterium/strike', { volume: 0.7 });
   if (eaten.length) {
-    audio.play('bacterium/lyse', { volume: 0.7 });
+    audio.play('bacterium/lyse', { volume: 0.7, old: ['bacterium/eat', { volume: 0.8, rate: 1.05 + Math.random() * 0.1 }] });
 
     P.pad.rumble(60, 0.3, 0.2);
     if (!P.msg.ate) { P.msg.ate = true; hud.toast(tt(eaten.length > 1 ? 'bacterium.toasts.lysedMany' : 'bacterium.toasts.lysedOne', { who: multi() ? P.name + ': ' : '', n: eaten.length }), 3000); }

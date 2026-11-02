@@ -647,7 +647,7 @@ function stepWorld(dt) {
   if (startled.length && !(game.vortSndT > game.t)) { game.vortSndT = game.t + 0.25; audio.play('paramecium/vorticella', { volume: 0.6, rate: 0.95 + Math.random() * 0.1 }); }
   for (const e of ev) {
     if (e.type === 'kill') kill(e.P, e.by, e.how);
-    else if (e.type === 'engulf') { hintOnce(e.P, 'engulf', tt('paramecium.hints.giant'), 3600); audio.play('paramecium/giant-engulf', { volume: 0.7 }); }
+    else if (e.type === 'engulf') { hintOnce(e.P, 'engulf', tt('paramecium.hints.giant'), 3600); audio.play('paramecium/giant-engulf', { volume: 0.7, old: ['paramecium/held', { volume: 0.7 }] }); }
     else if (e.type === 'tell' && e.who.kind === 'didinium') { audio.play('paramecium/didinium', { volume: 0.9 }); hintOnce(e.P, 'did', tt('paramecium.hints.didinium')); }
     else if (e.type === 'tell' && e.who.kind === 'dileptus') { audio.play('paramecium/dileptus', { volume: 0.8 }); hintOnce(e.P, 'dil', tt('paramecium.hints.dileptus')); }
     else if (e.type === 'miss' && e.who && e.who.kind === 'dileptus') audio.play('paramecium/slash', { volume: 0.6 }); // the slash sweeps past

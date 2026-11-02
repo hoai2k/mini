@@ -19,6 +19,9 @@ const KEY = 'micro.game.sound';
 const UI_BASE = new URL('../../prototypes/', import.meta.url);
 const UI = { move: 0.3, select: 0.45, back: 0.45, 'intro-in': 0.45, 'intro-out': 0.45, pause: 0.4, resume: 0.4, card: 0.4, 'zoom-in': 0.5, 'zoom-out': 0.35, start: 0.5 };
 const MOVE_GAP = 0.07; // s: held d-pad repeats are heard at most this often
+// TEMPORARY: the sound set, 'new' (the recorded sounds) or 'old' (the synthesised
+// ones, as before 2 November 2026), shared with the worlds (shared/audio.js).
+const SET_KEY = 'micro.soundSet';
 // The songs, from ../music/ (the same relative path in the repository and the
 // deploy). Gains bring both to about -24 LUFS, under the worlds' -20 LUFS
 // ambience (measured: Chamber Music -15.7 LUFS, Lullaby -18.2 LUFS).
@@ -36,6 +39,8 @@ export function createSound() {
   let uiBus = null; // the switch and volume only: pause and resume are heard while paused
   const ui = {}; // name -> AudioBuffer[] once loaded ([] if it failed); missing while loading
   let lastMove = -1;
+  let soundSet = (() => { try { return localStorage.getItem(SET_KEY) === 'old' ? 'old' : 'new'; } catch { return 'new'; } })();
+  const old = () => soundSet === 'old';
   let wanted = null; // the song the current screen asks for
   const songs = {}; // name -> { el, gain, failed, stopTimer }
   const away = () => document.hidden || !document.hasFocus();
@@ -123,7 +128,7 @@ export function createSound() {
    */
   function file(name, { rate = 1, evenPaused = false } = {}) {
     const list = ui[name];
-    if (!ctx || !list || !list.length) return false;
+    if (!ctx || old() || !list || !list.length) return false;
     if (!on || ctx.state !== 'running') return true; // silent, as the synth would be
     const src = ctx.createBufferSource();
     src.buffer = list[(Math.random() * list.length) | 0];
@@ -178,6 +183,9 @@ export function createSound() {
   return {
     get on() { return on; },
     get volume() { return volume; },
+    /** The sound set: 'new' or 'old' (TEMPORARY; see SET_KEY). */
+    get set() { return soundSet; },
+    setSet(v) { soundSet = v === 'old' ? 'old' : 'new'; try { localStorage.setItem(SET_KEY, soundSet); } catch { /* private mode */ } },
     /** Create or resume the context: call from a user gesture or a pad press. */
     unlock() { if (!ensure()) return; if (ctx.state === 'suspended' && !away()) ctx.resume().catch(() => {}); refresh(); },
     setOn(v) { on = !!v; save(); if (on) this.unlock(); refresh(); },
@@ -189,20 +197,24 @@ export function createSound() {
     get nowPlaying() { return { wanted, playing: Object.keys(songs).filter((n) => !songs[n].el.paused) }; },
     /** Focus moves (ui/move), at most every MOVE_GAP s. */
     tick() {
-      if (ctx) { if (ctx.currentTime - lastMove < MOVE_GAP && lastMove >= 0) return; lastMove = ctx.currentTime; }
+      if (ctx && !old()) { if (ctx.currentTime - lastMove < MOVE_GAP && lastMove >= 0) return; lastMove = ctx.currentTime; }
       if (file('move', { rate: 0.97 + Math.random() * 0.06 })) return;
       tone(1850, { type: 'triangle', d: 0.05, peak: 0.06 }); tone(3700, { d: 0.03, peak: 0.02 });
     },
     select() { if (file('select')) return; tone(620, { type: 'triangle', d: 0.09, peak: 0.12 }); tone(1240, { d: 0.18, peak: 0.07, at: 0.03 }); noise({ d: 0.06, peak: 0.05, f0: 3000, f1: 2000, q: 2 }); },
     back() { if (file('back')) return; tone(520, { type: 'triangle', d: 0.1, peak: 0.1, bend: 0.7 }); },
-    /** Begin (and Press Start on the title). */
+    /** Begin (the Old set: select, as it was). */
+    begin() { if (old()) this.select(); else this.start(); },
+    /** Press Start on the title (and Begin's recorded sound). */
     start() { if (file('start')) return; tone(392, { d: 0.5, peak: 0.12 }); tone(587, { d: 0.6, peak: 0.08, at: 0.08 }); tone(784, { d: 0.9, peak: 0.06, at: 0.16 }); },
     /** The intro card opens (ui/intro-in) and closes back to the tray (ui/intro-out); the synth's select and back stand in. */
     introIn() { if (!file('intro-in')) this.select(); },
     introOut() { if (!file('intro-out')) this.back(); },
     /** Pause and resume: heard over the paused mute (call pause() before setPaused(true)). */
-    pause() { if (!file('pause', { evenPaused: true })) this.back(); },
-    resume() { if (!file('resume', { evenPaused: true })) this.select(); },
+    pause() { if (!old() && !file('pause', { evenPaused: true })) this.back(); },
+    resume() { if (!old() && !file('resume', { evenPaused: true })) this.select(); },
+    /** The pause menu's Resume item: the Old set's select (the new set's resume() plays on resuming). */
+    resumeItem() { if (old()) this.select(); },
     /** The world card in the tray changes (ui/card); the tick stands in. */
     card() { if (!file('card', { rate: 0.97 + Math.random() * 0.06 })) this.tick(); },
     /** The zoom into the next world, or back out (the recording stretched to `seconds`); the synth: the objective turret, a click, then air. */

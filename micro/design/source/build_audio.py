@@ -630,7 +630,11 @@ def audio_list():
         "// Sounds listed with no files are not generated yet; the game synthesises\n"
         "// nothing (or its own stand-in) for them. Paths are relative to micro/prototypes/.\n"
         "export const SOUNDS = " + json.dumps(data, indent=2) + ";\n"
+        "// The sounds added on 2 November 2026 (WIRING): the Old sound set (the shell's\n"
+        "// Sound effects setting, shared/audio.js) plays none of them.\n"
+        "export const ADDED = new Set(" + json.dumps([i for i, _, _ in WIRING], indent=2) + ");\n"
     )
+
 
 
 def document():
@@ -663,7 +667,10 @@ def document():
             "the phage keeps a few bacterium sounds that have no phage counterpart (its drift loop, the walk "
             "steps, the surge, the near miss, the captures). The shell's `ui/` sounds replace the synthesised "
             "ones in `game/src/sound.js`, loaded from `../prototypes/assets/audio/ui/` (the synthesised sound "
-            "plays while a file loads, or if it fails to).", "",
+            "plays while a file loads, or if it fails to). For now (temporary) the shell's Settings → Sound "
+            "effects switches between this New set and the Old one, the soundscape as it was before: each call "
+            "names the stand-in the Old set played (`old:`), and none of these sounds plays in it "
+            "(`shared/audio.js`, `game/src/sound.js`).", "",
             "| Id | Event | Where |", "| --- | --- | --- |"]
     out += [f"| `{i}` | {e} | {w} |" for i, e, w in WIRING]
     out += ["", "## Prompts", ""]

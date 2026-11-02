@@ -845,15 +845,15 @@ function stepAct(dt) {
           audio.play('mite/bite', { volume: 1, rate: 0.9 });
           if (rumbleOn) padOf().rumble(90, 0.35, 0.25);
           if (!lifeT.bugTip) { lifeT.bugTip = true; hud.toast(tt('mite.toasts.nippedSpringtail'), 2600); }
-        } else snapPuff(at, 0.7);
+        } else { snapPuff(at, 0.7); audio.play('mite/bite', { volume: 0.6, rate: 1.2, only: 'old' }); }
       } else if (play.fam) {
         // a box mite of its own kind: it shuts itself in its capsule, and the bite glances off
         play.lastStrike.hit = 'boxmite';
         play.fam.ai.scared = Math.max(play.fam.ai.scared, 3);
         snapPuff(at, 0.8);
-        audio.play('mite/glance', { volume: 0.7 });
+        audio.play('mite/glance', { volume: 0.7, old: ['mite/bite', { volume: 0.8, rate: 1.4 }] });
         if (!lifeT.famTip) { lifeT.famTip = true; hud.toast(tt('mite.toasts.boxMiteShut'), 2200); }
-      } else snapPuff(at, 0.7);
+      } else { snapPuff(at, 0.7); audio.play('mite/bite', { volume: 0.6, rate: 1.2, only: 'old' }); }
     }
   } else if (play.act === 'devour') {
     // a quick snap onto it (0-0.25), then leg I holds it under the mouth and the chelicerae work while it shrinks
@@ -863,8 +863,8 @@ function stepAct(dt) {
     if (k < 0.25 && to.lengthSq() > 1) mite.st.fwd.lerp(to.normalize(), Math.min(1, dt * 12)).setY(0).normalize();
     const at = play.bug0.clone().lerp(m.clone().add(new THREE.Vector3(0, -10, 0)), sstepJ(0.1, 0.4, u));
     mite.act({ rear: 0.2 + 0.25 * Math.sin(snap * Math.PI), lunge: 0.8 * Math.sin(snap * Math.PI), gape: snap < 0.5 ? 1 : 0, hold: at, holdK: Math.min(1, u / 0.3) });
-    if (!play.snapped && k > 0.12) { play.snapped = true; mite.bite(); snapPuff(play.bug0.clone().setY(play.bug0.y + 20), 1); audio.play('mite/devour', { volume: 1 }); }
-    if (k > 0.3 && Math.floor(k / 0.2) !== Math.floor((k - dt) / 0.2)) mite.bite();
+    if (!play.snapped && k > 0.12) { play.snapped = true; mite.bite(); snapPuff(play.bug0.clone().setY(play.bug0.y + 20), 1); audio.play('mite/devour', { volume: 1, old: ['mite/bite', { volume: 1, rate: 0.85 }] }); }
+    if (k > 0.3 && Math.floor(k / 0.2) !== Math.floor((k - dt) / 0.2)) { mite.bite(); audio.play('mite/bite', { volume: 0.5, rate: 1.1 + Math.random() * 0.2, only: 'old' }); }
     ambient.hold(play.bug, at, 1 - 0.95 * Math.max(0, (u - 0.25) / 0.75));
     if (u >= 1) {
       ambient.eaten(play.bug);
@@ -898,8 +898,8 @@ function soundTick(dt, ev) {
     snd.mode = mite.mode;
   }
   for (const e of ev) {
-    if (e === 'jump') audio.play('mite/jump', { volume: 0.8 });
-    if (e === 'land') audio.play('mite/land', { volume: 0.8 });
+    if (e === 'jump') audio.play('mite/jump', { volume: 0.8, old: ['mite/dash', { volume: 0.7, rate: 1.3 }] });
+    if (e === 'land') audio.play('mite/land', { volume: 0.8, old: ['mite/step', { volume: 0.9, rate: 0.75 }] });
     // one plant of the lead leg per stride; at most ~8 a second
     if (e === 'step' && snd.t - snd.lastStep > 0.125) {
       snd.lastStep = snd.t; snd.side = -snd.side;
@@ -1231,10 +1231,10 @@ function stepLife(dt) {
   lifeT.t += dt;
   const ps = recs().filter((P) => !held(P)).map((P) => { const f = _ct.set(1, 0, 0).applyQuaternion(P.mite.quat); return { x: P.mite.center.x, z: P.mite.center.z, hx: f.x, hz: f.z }; });
   for (const D of [drip1, drip3]) for (const e of D.update(dt, ps)) {
-    if (e.type === 'fall') { hud.toast(tt('mite.toasts.drip'), 2400); audio.play('mite/drop-fall', { volume: 0.8 }); }
+    if (e.type === 'fall') { hud.toast(tt('mite.toasts.drip'), 2400); audio.play('mite/drop-fall', { volume: 0.8, old: ['mite/dash', { volume: 0.5, rate: 0.5 }] }); }
     if (e.type === 'splash') {
       puffDust(new THREE.Vector3(e.x, floorH(e.x, e.z) + 30, e.z), 22, 1.6);
-      audio.play('mite/drop-splash', { volume: 0.9 });
+      audio.play('mite/drop-splash', { volume: 0.9, old: ['mite/close', { volume: 1, rate: 0.6 }] });
       let hit = false;
       for (const P of recs()) {
         const c = P.mite.center, d = Math.hypot(c.x - e.x, c.z - e.z);
@@ -1511,7 +1511,7 @@ function startBossCapture() {
   play.caught++; play.stun = 0;
   capture.start({ by: tt('mite.capture.boss.by'), how: tt('mite.capture.boss.how') });
   embed.captured({ by: 'boss', player: cur.slot });
-  audio.play('mite/pincer', { volume: 0.9 });
+  audio.play('mite/pincer', { volume: 0.9, old: ['mite/predator', { volume: 1, rate: 0.6 }] });
   if (rumbleOn) padOf().rumble(400, 0.9, 1);
 }
 // the boss's resolve: a quiet brass gauge, shown while it is engaged
@@ -1667,7 +1667,7 @@ function tick(dt, inputs) {
         if (first) hud.toast(tt('mite.toasts.bossWakes'), 3000);
       }
       else if (e.type === 'tell') { audio.play('shared/danger', { volume: 0.5 }); for (const Q of recs()) if (Q.mite.center.distanceTo(boss.center) < 2600) withRec(Q, () => { if (rumbleOn) padOf().rumble(200, 0.12, 0); }); }
-      else if (e.type === 'snap') audio.play('mite/pincer', { volume: 0.8 });
+      else if (e.type === 'snap') audio.play('mite/pincer', { volume: 0.8, old: ['mite/predator', { volume: 0.8, rate: 0.7 }] });
       else if (['sweep', 'step'].includes(e.type)) audio.play('mite/predator', { volume: 0.8, rate: 0.7 });
       else if (e.type === 'grab' && P) withRec(P, () => startBossCapture());
       else if (e.type === 'survived') { audio.play('mite/glance', { volume: 0.8 }); hud.toast(tt('mite.toasts.bossClosedUp'), 1600); }

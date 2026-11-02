@@ -293,7 +293,7 @@ function startCatch(pts) {
   embed.captured({ by: 'fungus', player: cur ? cur.slot : 0 });
   if (C.closing) cancelClose();
   haustoria.forEach((h, k) => { h.hidden = !FC.pts[k]; h.grow = 0; });
-  audio.play('amoeba/pierce', { volume: 0.9 });
+  audio.play('amoeba/pierce', { volume: 0.9, old: ['amoeba/engulf', { volume: 1, rate: 0.6 }] });
   rumble(500, 0.8, 0.9);
   if (pacing.firstCatch === null) pacing.firstCatch = S.time - pacing.t0;
 }
@@ -1464,7 +1464,7 @@ function startEngulf(c) {
   c.lastChaos = { x: chaos.body.cx, y: chaos.body.cy };
   caught.start({ by: tt('amoeba.capture.chaos'), phases: CATCH_PHASES });
   embed.captured({ by: 'Chaos', player: c.slot });
-  audio.play('amoeba/chaos-engulf', { volume: 0.55 });
+  audio.play('amoeba/chaos-engulf', { volume: 0.55, old: ['amoeba/engulf', { volume: 1, rate: 0.55 }] });
   rumble(500, 0.8, 0.9);
   use(k);
 }
@@ -1477,7 +1477,7 @@ function pinchChaos(c, reach = 70) {
   addFragment(lost);
   const b = chaos.body;
   C.jab = { t: 0.35, x: (b.x[pin.i] + b.x[pin.j]) / 2, y: (b.y[pin.i] + b.y[pin.j]) / 2, k: jabSlot() };
-  audio.play('amoeba/pinch', { volume: 0.9 });
+  audio.play('amoeba/pinch', { volume: 0.9, old: ['amoeba/engulf', { volume: 1, rate: 1.4 }] });
   rumble(350, 0.7, 0.6);
   hud.toast(gone ? tt('amoeba.toasts.pinchedGone', { who: who() }) : tt('amoeba.toasts.pinched', { who: who(), resolve: Math.round(chaos.interest * 100) }), 2400);
   return true;

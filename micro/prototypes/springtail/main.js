@@ -989,7 +989,7 @@ function diveImpact(P, a) {
       P.pounces = (P.pounces || 0) + 1;
       hitPause = 0.12;
       rumble(260, 0.9, 0.7);
-      audio.play('springtail/pounce', { volume: 0.9 });
+      audio.play('springtail/pounce', { volume: 0.9, old: ['springtail/eat', { volume: 1, rate: 1.2 }] });
       if (inPoolHere) { field.drop(P.x, P.z, 1.2, -0.14); ripples.push({ x: P.x, z: P.z, strength: 1.2 }); }
       biteFoe(t.foe, P, 2, 'bite');
       // rebound off it
@@ -1570,7 +1570,7 @@ function stepWorld(dt) {
     if (e === 'lunge') audio.play('springtail/stenus-strike', { volume: 0.7, rate: 0.6 });
     if (e === 'lungeHit' && ctxS.alive) withRec(preyS, () => caught('stenus'));
     if (e === 'dodged' && ctxS.alive) { hud.toast(tt('springtail.toasts.dodgedMandibles'), 1100); missFoe('stenus', 'dodge'); }
-    if (e === 'blocked') { rumbleFor(preyS, 220, 0.6, 0.3); wearDown('stenus', 'block'); }
+    if (e === 'blocked') { rumbleFor(preyS, 220, 0.6, 0.3); audio.play('springtail/land-water', { volume: 0.8, rate: 1.6, only: 'old' }); wearDown('stenus', 'block'); }
     if (e === 'gaveUp') hunger.stenus.missed();
     if (e === 'miss' && hunger.stenus.hungry) hunger.stenus.missed();
     if (e === 'spotted' && ctxS.alive) audio.play('springtail/stenus-skim', { volume: 0.25, rate: 0.8 });
@@ -1584,7 +1584,7 @@ function stepWorld(dt) {
   const huntR = isHungry(hunger.strider) && (pace.anywhere || inCore('strider', preyR.x, preyR.z) || (rOn && inZone('strider', preyR.x, preyR.z)));
   for (const e of strider.update(dt, { player: ctxR, field, inPool, ripples: pace.anywhere ? ripples : ripples.filter((r) => inZone('strider', r.x, r.z)), hungry: huntR })) {
     if (e === 'caught' && ctxR.alive) withRec(preyR, () => caught('strider'));
-    if (e === 'blocked') { rumbleFor(preyR, 220, 0.6, 0.3); wearDown('strider', 'block'); }
+    if (e === 'blocked') { rumbleFor(preyR, 220, 0.6, 0.3); audio.play('springtail/land-water', { volume: 0.8, rate: 1.6, only: 'old' }); wearDown('strider', 'block'); }
     if (e === 'windup' && ctxR.alive) { rumbleFor(preyR, 300, 0.15, 0); audio.play('shared/danger', { volume: 0.6 }); hud.toast(tt('springtail.toasts.striderForelegs'), 1400); }
     if (e === 'lost' && hunger.strider.hungry) hunger.strider.missed();
     // (timed on the simulation clock, so a paused game holds it too)
@@ -1608,7 +1608,7 @@ function stepWorld(dt) {
     else if (e.type === 'return' && !boss.st.homeward) logChallenge('bossReturn', boss.st);
     else if (e.type === 'wander') logChallenge('spiderWander', boss.st);
     else if (e.type === 'tell') { audio.play('shared/danger', { volume: 0.5 }); for (const R of recs()) if (Math.hypot(R.x - boss.st.x, R.z - boss.st.z) < 16) rumbleFor(R, 200, 0.12, 0); }
-    else if (e.type === 'lunge' || e.type === 'pounce') audio.play('springtail/spider-lunge', { volume: 0.8 });
+    else if (e.type === 'lunge' || e.type === 'pounce') audio.play('springtail/spider-lunge', { volume: 0.8, old: ['springtail/stenus-strike', { volume: 0.9, rate: 0.7 }] });
     else if (e.type === 'caught' && Q && alive(Q)) withRec(Q, () => caught('boss'));
     else if (e.type === 'dodged') hud.toast(tt('springtail.toasts.spiderDodged'), 1500);
     else if (e.type === 'retreat') { audio.play('shared/foe-flees', { volume: 0.7 }); hud.toast(tt('springtail.toasts.spiderRetreats'), 2600); }
@@ -1727,8 +1727,12 @@ function poseTail(t) {
   // the glue strands, from the tentacle tips to the legs as they are posed now
   if (P.mode === 'stuck' && P.glueOn && P.stuckS) {
     const snaps = P.glue.update(pdt, tail.feet(), P.stuckS.progress, Math.max(P.yank || 0, P.stuckS.thrash * 0.6), t);
-    // a strand snapped (sundew-glue.js counts them): heard at most every 0.1 s
-    if (snaps) { if (!(P.snapSndT > simT)) { P.snapSndT = simT + 0.1; audio.play('springtail/glue-snap', { volume: 0.7, rate: 0.95 + Math.random() * 0.1 }); } rumble(90, 0.5, 0.2); }
+    // a strand snapped (sundew-glue.js counts them): heard at most every 0.1 s (the Old set: each time)
+    if (snaps) {
+      if (audio.set === 'old' || !(P.snapSndT > simT)) { P.snapSndT = simT + 0.1; audio.play('springtail/glue-snap', { volume: 0.7, rate: 0.95 + Math.random() * 0.1, old: ['springtail/land-sticky', { volume: 0.55, rate: 1.7 + Math.random() * 0.2 }] }); }
+      rumble(90, 0.5, 0.2);
+    }
+
   }
   // re-forming: motes fly in from round about and gather on the body
   if (P.mode === 'reform' && !P.reformSeeded) {
