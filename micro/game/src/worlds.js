@@ -66,12 +66,12 @@ export const WORLDS = [
   },
   {
     id: 'paramecium', n: 5, name: 'Hollow Pool', creature: 'Paramecium', latin: 'Paramecium bursaria',
-    mag: '20×', magNote: 'objective, darkfield', field: '0.9 mm', fieldMm: 0.9, body: '0.12 mm', look: 'Darkfield and brightfield',
+    mag: '20×', magNote: 'objective, darkfield', field: '0.9 mm', fieldMm: 0.9, body: '0.12 mm', look: 'Darkfield slide',
     card: 'MP-U04', intro: 'MP-G11', tint: ['#2a4a6a', '#05070b'], accent: '#8fc0e8',
     line: 'A fast swimmer covered in beating hairs, carrying green algae that feed it in the light.',
-    goal: 'Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium and the bladderwort.',
+    goal: 'Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium, the giant amoeba and the bladderwort.',
     back: true,
-    controls: [['LS', 'Swim'], ['RS', 'Camera'], ['A', 'Dash'], ['X', 'Attack / eat'], ['B', 'Block / drive off'], ['Y', 'Camera view / enter portal'], ['LB/RB', 'Dive / rise'], ['D-pad ↑↓', 'Zoom']],
+    controls: [['LS', 'Swim'], ['RS', 'Depth · far sides: turn view'], ['A', 'Dash'], ['X', 'Attack / eat'], ['B', 'Burst / back off'], ['Y', 'Enter portal'], ['LB/RB', 'Deeper / shallower'], ['D-pad ←→', 'Change the look'], ['D-pad ↑↓', 'Zoom']],
     facts: [
       'Its cilia beat in waves that run across the cell like wind over wheat.',
       'It carries hundreds of green algae that feed it in the light.',
@@ -97,10 +97,10 @@ export const WORLDS = [
     id: 'phage', n: 7, name: 'Host Surface', creature: 'Bacteriophage', latin: 'T4-like phage',
     mag: 'Beyond light', magNote: 'realistic false light', field: '≈ 1 µm', fieldMm: 0.0012, body: '0.2 µm', look: 'False light',
     card: 'MP-U09', intro: 'MP-G14', tint: ['#1f6f80', '#f0b44a'], accent: '#f0c070',
-    line: 'A virus with no engine, knocked about by molecules: drift legs-first and latch onto a host.',
+    line: 'A virus in a thick soup of molecules: grab what you find, hang on through the currents, and latch onto a host.',
     goal: 'Get into the glowing host, and avoid the amoeba.',
     back: true,
-    controls: [['LS', 'Drift'], ['LT/RT', 'Drift nearer / farther'], ['RS', 'Turn the view'], ['A', 'Dash'], ['X', 'Grab / attack'], ['B', 'Block / slip through'], ['Y', 'Enter portal / info'], ['D-pad ↑↓', 'Zoom']],
+    controls: [['LS', 'Move (forward/back, sideways)'], ['LB/RB', 'Down / up'], ['RS', 'Turn view'], ['A', 'Dash'], ['X / RT', 'Grab / attack'], ['B', 'Block'], ['Y', 'Enter portal'], ['D-pad ↑↓', 'Zoom']],
     facts: [
       'No light microscope can see a phage: it is smaller than the wavelength of light.',
       'A phage has no motor: molecules knock it about until it touches a host.',

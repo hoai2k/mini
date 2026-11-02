@@ -1845,7 +1845,9 @@ function checkLandmarks() {
   if (PORTAL.placed) {
     // nearing the open way on: the shell starts loading the next world (no prompt is shown)
     nearFwd = !portalSealed() && dmin < 1200;
-    if (nearFwd !== lm.nearFwd) { lm.nearFwd = nearFwd; embed.near('forward', nearFwd); }
+    // re-sent every ~1.2 s while near, so a shell busy with a fade can't miss it (the next world must preload)
+    lm.nearT = (lm.nearT || 0) + 1 / 60;
+    if (nearFwd !== lm.nearFwd || (nearFwd && lm.nearT > 1.2)) { lm.nearFwd = nearFwd; lm.nearT = 0; embed.near('forward', nearFwd); }
     if (!lm.hinted && dmin < 1000 && chaos.on && !chaos.beaten) { lm.hinted = true; hud.toast('Chaos guards the way on. Lure it off, or pinch its arms until it gives up', 3600); }
   }
   const fwd = cells.find((c) => c.atFwd);
