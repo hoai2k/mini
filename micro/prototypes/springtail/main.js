@@ -5,7 +5,7 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { embed } from '../shared/embed.js';
 import { createPlayers, PLAYER_COLORS } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
-import { createLandmarks } from '../shared/landmark.js';
+import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
 import { mountHud } from '../shared/hud.js';
 import { createControls, hudControls, addInvertY } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
@@ -2111,7 +2111,24 @@ function render(dt) {
     // (the nearest raft, while it is drawn at all)
     if (d < RAFT_SHOW) portalLight.drawSplit(split, props.position, { strength: THREE.MathUtils.clamp(1.2 - d / 300, 0.65, 1), open: props.glow.open });
   }
+  drawPortalArrow();
   return L;
+}
+
+/**
+ * The "Portal arrow" setting (the game's Settings, default off; ?arrow=1 here): an arrow at the edge of
+ * each view toward its players' nearest raft, with the distance beside it. Sealed rafts are pointed at
+ * too: they all open together once the encounters are met, and there is no nearer open one meanwhile.
+ */
+let arrowLog = [];
+function drawPortalArrow() {
+  arrowLog = [];
+  if (!portalArrowOn() || game.phase !== 'play' || outro) return;
+  arrowLog = marks.drawSplit(split, (vp) => {
+    let best = null, bd = Infinity;
+    for (const v of vp) { const P = pls[v.slot]; if (!P) continue; const n = nearestPortal(P.x, P.z); if (n.d < bd) { bd = n.d; best = n.p; } }
+    return best && { position: { x: best.x, y: 1, z: best.z }, label: `${Math.round(bd)} mm`, distance: bd, portal: best.i };
+  }, { kind: 'forward', portal: true, range: 900 }).map((r) => r && { x: r.x, y: r.y, angle: r.angle, onScreen: r.onScreen, portal: r.picked.portal, d: +r.picked.distance.toFixed(1), label: r.picked.label });
 }
 
 /** Tests that step without drawing: the camera and the views as a rendered frame would have them, so the director sees what they see. */
@@ -2179,6 +2196,8 @@ const api = {
   },
   /** Testing: are the portals still sealed (encounters left)? Set testOpen. */
   sealed(open = null) { if (open !== null) testOpen = !!open; return sealed(); },
+  /** The portal arrow drawn last frame, per view: [{ x, y, angle, onScreen, portal, d, label } | null] ([] when off). */
+  portalArrow() { return arrowLog; },
   /** Testing only: place encounter `k` ('stenus' | 'strider' | 'rain') at (x, z), met along bearing b, out of order. */
   placeEncounter(k, x, z, b = 0) { if (game.phase !== 'play') newGame(); return director.force(k, x, z, b); },
   /** The director (shared/director.js): state(), seenAt(x, z), placeNow(), log. */

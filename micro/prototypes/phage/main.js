@@ -10,7 +10,7 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { createPlayers } from '../shared/players.js';
 import { embed } from '../shared/embed.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
-import { createLandmarks } from '../shared/landmark.js';
+import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
 import { mountHud } from '../shared/hud.js';
 import { createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
@@ -19,7 +19,7 @@ import { loadTexture } from '../shared/assets.js';
 import { createCapture, createFight } from '../shared/predation.js';
 import { createPost, goodsellShared, toonMaterial, inkedInstanced, setInkVisible } from '../shared/techniques/phage-goodsell.js';
 import { createT4, t4LiteGeometry, T4_FL } from '../shared/techniques/phage-model.js';
-import { createWorld, uvAt, progressAt, FIELD_R, START, UV_SHAFTS, DIRECTOR, encounterSpecs, canPlace, bystanderClear } from './world.js';
+import { createWorld, uvAt, progressAt, FIELD_R, START, UV_SHAFTS, DIRECTOR, DEFAULT_PATH, encounterSpecs, canPlace, bystanderClear } from './world.js';
 import { createDirector } from '../shared/director.js';
 import { createPortalGlow, createPortalLight } from '../shared/portal.js';
 import { createQuality } from '../shared/quality.js';
@@ -387,7 +387,7 @@ function resetLevel() {
   for (const m of members()) placeAtStart(m);
   if (team[0]) use(team[0]);
   fight.reset(); fightState = 'stalk'; guard.gone = false; guard.turned = false; guard.hinted = false; portalGlow.group.visible = false;
-  ringLog.length = 0; director.reset(); drift.idle = 0;
+  ringLog.length = 0; leadPos.copy(START); director.reset(); drift.idle = 0;
   inside.reset();
   resetStray();
   progeny.setCount(0);
@@ -466,6 +466,7 @@ function tryGrab() {
   if (P.mode === 'clay') { say('Fold the fibres (B) to slip free of the clay first.', 1800, true); return; }
   // A second player may try a wrong protein, but cannot enter an occupied host phase.
   const aimed = aimedProtein(P.pos, attachmentForward(P.q), world.proteins, (target) => world.toWorld(target.host, target.local));
+  if (aimed && world.portal && aimed.host === world.portal.host && portalSealed()) { say('Host A\'s receptors do not take you yet: meet the other hosts first.', 2400, true); P.grabCooldown = 0.6; return; }
   if (aimed && world.portal && aimed.host === world.portal.host && guarded()) {
     // the way on, on guard: turned back (the lobe shoves you off the receptor)
     const n = world.dirToWorld(aimed.host, aimed.normal, new THREE.Vector3());
@@ -540,6 +541,7 @@ const _pc = new THREE.Vector3(), _pq = new THREE.Vector3();
 function tryEnter() {
   const protein = portalReceptorNear(cur);
   if (!protein) return false;
+  if (portalSealed()) { say('Host A\'s receptors do not take you yet: meet the other hosts first.', 2400, true); return true; }
   if (guarded()) {
     const n = world.dirToWorld(protein.host, protein.normal, new THREE.Vector3());
     P.gust.addScaledVector(n, 60).addScaledVector(_v.subVectors(P.pos, world.amoeba.center).normalize(), 25);
@@ -562,7 +564,7 @@ function tryEnter() {
 let nearPortal = false;
 /** The shell's "Y Enter the portal" prompt: on while any player is in the area and the guard is away. */
 function updatePortalPrompt(where) {
-  const on = where === 'outside' && !!world.portal && !guarded() && members().some((m) => portalReceptorNear(m));
+  const on = where === 'outside' && !!world.portal && !portalSealed() && !guarded() && members().some((m) => portalReceptorNear(m));
   if (on !== nearPortal) { nearPortal = on; embed.near('portal', on, 'Enter Host A (Y)'); }
 }
 
@@ -990,7 +992,13 @@ const ENC = {
   W: { place: placeDecoy(hostById('W')), met: metDecoy(hostById('W')) },
   portal: { place: (x, z, b, info) => { _sp.set(x, info.y, z); _dir.subVectors(_sp, leadPos); if (_dir.lengthSq() < 1e-6) _dir.set(1, 0, 0); return placePortal(_sp, _dir.normalize()); }, met: () => false },
 };
-const director = createDirector({ ...DIRECTOR, canPlace, entries: encounterSpecs(leadPos).map((e) => ({ ...e, ...ENC[e.id] })) });
+// The default path (world.js DEFAULT_PATH): the three are pre-placed out across the view on the first frame, so
+// the way on exists from the start (sealed until both decoys are met: portalSealed); head off another way and
+// each, while nobody has seen it, leaves the path and is placed ahead of you as before (one host each: single).
+const director = createDirector({ ...DIRECTOR, canPlace, defaultPath: DEFAULT_PATH, entries: encounterSpecs(leadPos).map((e) => ({ ...e, ...ENC[e.id], single: true })) });
+const PORTAL_INDEX = encounterSpecs(leadPos).findIndex((e) => e.final);
+/** The way on exists from the start but stays shut until both decoys are met (the director's order). */
+const portalSealed = () => director.index < PORTAL_INDEX;
 // What every view sees, for the director: each split view's frustum (its far plane brought in to 700 units
 // past what it frames: beyond that the haze leaves only a faint ghost) and its focus. Filled while drawing.
 const viewPool = [0, 1, 2, 3].map(() => ({ frustum: new THREE.Frustum(), focus: new THREE.Vector3() }));
@@ -1053,7 +1061,7 @@ function updatePortalGlow(dt) {
   const p = portalPoint(), n = portalNormal();
   portalGlow.setPosition(p.x, p.y, p.z);
   portalGlow.group.quaternion.setFromUnitVectors(UP, n);
-  portalGlow.setOpen(!guarded());
+  portalGlow.setOpen(!guarded() && !portalSealed());
   portalGlow.update(dt, t, camera);
 }
 
@@ -1188,6 +1196,24 @@ function updateOverlay(where) {
 const debug = { freeze: false, iso: false, camOverride: null };
 const split = createSplitScreen(renderer, { capture: true, up: null });
 const marks = createLandmarks();
+/**
+ * The "Portal arrow" setting (the game's Settings, default off; ?arrow=1 here): an arrow at the edge of each
+ * view toward the way on (Host A's gold receptor; the director's portals(): one here, each host being one
+ * object), with the view's nearest phage's distance in µm. Shown while the way on is still sealed too: it is
+ * where the way on will open. The arrow follows landmark.js's projection, flipped when it is behind the camera.
+ */
+let arrowLog = [];
+function drawPortalArrow() {
+  arrowLog = [];
+  if (!portalArrowOn() || !world.portal) return;
+  const pp = portalPoint().clone();
+  arrowLog = marks.drawSplit(split, (vp) => {
+    let d = Infinity;
+    for (const v of vp) { const m = team.find((o) => o.slot === v.slot); if (m) d = Math.min(d, m.P.pos.distanceTo(pp)); }
+    if (!isFinite(d)) d = P.pos.distanceTo(pp);
+    return { position: pp, label: `${(d / 100).toFixed(1)} µm`, distance: d };
+  }, { kind: 'forward', portal: true, range: 2000 }).map((r) => r && { x: r.x, y: r.y, angle: r.angle, onScreen: r.onScreen, d: +r.picked.distance.toFixed(1), label: r.picked.label, at: pp.toArray().map((x) => +x.toFixed(1)) });
+}
 let last = performance.now();
 let blocked = false;
 let nearBack = false;
@@ -1578,14 +1604,17 @@ function frame(now) {
     });
     // (shared/landmark.js trips on an empty split region, which splitscreen.js can emit for a frame as players leave)
     if (!debug.iso && lead.P.mode !== 'burst' && split.layout.regions.every((r) => r.polygon && r.polygon.length >= 3)) {
-      // no arrow to the way on (the owner: keep moving in any direction and you find it): its golden sparkle is the only marker
+      // no arrow to the way on by default (the owner: keep moving in any direction and you find it): its golden
+      // sparkle is the marker; the Portal arrow setting adds one (drawPortalArrow)
       marks.drawSplit(split, world.backdoor.pos, { kind: 'backdoor', label: 'Sediment', range: 600 });
-      if (world.portal) {
+      // (the way on is there from the start on the default path, but its light only shows once it is open)
+      if (world.portal && !portalSealed()) {
         const pp = portalPoint(), d = Math.min(...members().map((m) => m.P.pos.distanceTo(pp)));
         portalLight.drawSplit(split, pp, { strength: THREE.MathUtils.clamp(1.2 - d / 1200, 0.5, 1), open: portalGlow.open });
       }
-    }
-  } else post.render(inside.scene, inside.camera);
+      drawPortalArrow();
+    } else arrowLog = [];
+  } else { arrowLog = []; post.render(inside.scene, inside.camera); }
 
   use(team[0]);
   updateOverlay(where);
@@ -1606,7 +1635,7 @@ function goalLine(where) {
   if (where === 'inside') return 'GOAL: get the whole genome in · lead your end away from CRISPR-Cas';
   if (P.mode === 'commit' || P.mode === 'burst') return 'GOAL: injecting…';
   if (P.damaged) return 'GOAL: co-infect a host with a partner (the other damaged phage nearby, or a teammate)';
-  if (!world.portal) return `GOAL: explore, any direction · ${(P.pos.distanceTo(START) / 100).toFixed(1)} µm out · encounters ${director.index} of 3`;
+  if (!world.portal || portalSealed()) return `GOAL: explore, any direction · ${(P.pos.distanceTo(START) / 100).toFixed(1)} µm out · encounters ${director.index} of 3`;
   const d = Math.max(0, portalPoint().distanceTo(centreOf(_v)) - 10);
   if (d < 70) return guarded() ? 'GOAL: the amoeba guards the gold receptor: lure it off, or fold (B) and jab (X)' : 'GOAL: the receptor is open: press Y to enter Host A';
   return `GOAL: the golden glow on Host A · ${(d / 100).toFixed(1)} µm`;
@@ -1638,7 +1667,7 @@ Object.assign(debug, {
   cam(yaw, pitch, dist) { debug.camOverride = yaw == null ? null : { yaw, pitch, dist }; },
   fold: p1((v) => { P.foldTarget = v; }),
   walkOn: p1((id, u = 0, phi = 0) => {
-    if (id === 'A' && !world.portal) debug.placePortal();
+    if (id === 'A' && (!world.portal || portalSealed())) debug.placePortal();
     use(team[0]);
     const h = world.hosts.find((x) => x.id === id);
     const local = new THREE.Vector3(u, Math.cos(phi) * (h.r + 6), Math.sin(phi) * (h.r + 6));
@@ -1651,11 +1680,11 @@ Object.assign(debug, {
   /** Y in the portal's area (enter Host A on purpose). */
   enter: p1(() => tryEnter()),
   commit: p1(() => { if (P.mode === 'walk') beginCommit(); }),
-  inside: p1((id = 'A') => { if (id === 'A' && !world.portal) { debug.placePortal(); use(team[0]); } const h = world.hosts.find((x) => x.id === id); P.commitHost = h; P.mode = 'inside'; inside.start(h); inside.setRadar(view.overlay); P.fade = 0; }),
+  inside: p1((id = 'A') => { if (id === 'A' && (!world.portal || portalSealed())) { debug.placePortal(); use(team[0]); } const h = world.hosts.find((x) => x.id === id); P.commitHost = h; P.mode = 'inside'; inside.start(h); inside.setRadar(view.overlay); P.fade = 0; }),
   win: p1(() => { if (P.mode === 'inside') { inside.S.nodes.length = 0; P.mode = 'burst'; P.burstT = 0; P.burstStarted = false; for (let i = 0; i < GENOME_NODES; i++) inside.S.nodes.push(new THREE.Vector3(Math.sin(i * 0.2) * 40, 52 - i * 1.0, 0)); inside.S.prev = inside.S.nodes.map((n) => n.clone()); } }),
   capture: p1((kind, slot = 0) => {
     use(team[slot]);
-    if (kind === 'amoeba' && !world.portal) { debug.placePortal(); use(team[slot]); }
+    if (kind === 'amoeba' && (!world.portal || portalSealed())) { debug.placePortal(); use(team[slot]); }
     if (kind === 'amoeba') { const am = world.amoeba; const c = centreOf(new THREE.Vector3()); am.base.subVectors(c, am.center).normalize().multiplyScalar(am.r - 6).add(am.center); am.tip.copy(c).lerp(am.base, 0.3); am.reach = am.tip.distanceTo(am.base); startCapture('amoeba', 'The amoeba', 'closed a pseudopod round you into a food vacuole'); }
     if (kind === 'uv') startCapture('uv', 'UV-B from the sunlit surface', 'darkened and cracked your capsid and broke your DNA');
     if (kind === 'cut') { if (P.mode !== 'inside') debug.inside('A'); const e = inside.enzymes[0]; e.pos.copy(inside.tip()).add(new THREE.Vector3(14, -6, 0)); P.cutBy = e; startCapture('cut', 'The host\'s restriction enzyme', 'found a recognition site and cut your DNA'); }
@@ -1708,6 +1737,11 @@ Object.assign(debug, {
     if (Math.abs(at.y - world.portal.host.pos.y) > 1) placePortal(at, u);
     return debug.portal();
   },
+  /** The portal arrow drawn last frame, per view: [{ x, y, angle, onScreen, d, label, at } | null] ([] when off). */
+  portalArrow: () => arrowLog,
+  /** The director's portals (the way on): [{ instance, x, y, z, open, seen, state }]. */
+  portals: () => director.portals().map(({ handle, ...q }) => q),
+  portalSealed: () => portalSealed(),
   /** The director (shared/director.js): its state, log, what is seen; placeNow ends the current break. */
   encounters: () => director.state(),
   encounterLog: () => director.log.slice(),

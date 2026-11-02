@@ -251,8 +251,13 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   Standalone, the freeze holds 1.4 s, time comes back and `embed.js` shows its
   toast. Test hooks: `outro()`, `outroStep(n, dt)`.
 - **No backdoor:** this is the top of the Zoom Chain.
-- **No arrow** (`shared/landmark.js` draws no forward mark): the portal's
-  light at the edge of the view, and its sparkle in view, are the only marker.
+- **No arrow by default** (`shared/landmark.js` draws no forward mark): the
+  portal's light at the edge of the view, and its sparkle in view, are the
+  only marker. With **Portal arrow** on in the game's Settings (default off;
+  `?arrow=1` on this page) each view gets a brass arrow at its edge pointing
+  at its players' nearest raft, sealed or not (they open together), with the
+  distance beside it ("214 mm"); on screen, a marker over the raft. Test
+  hook: `portalArrow()`.
 
 ## Multiplayer
 

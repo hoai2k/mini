@@ -202,4 +202,146 @@ for (const a of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
   console.log(`  update with 4 views: ${ms.toFixed(3)} ms a frame`);
   assert.ok(ms < 1, 'under a millisecond a frame');
 }
-console.log('ok: director (order, unseen and out-of-view placement, lingering, turning back, passing, multiplayer, determinism, 3D)');
+// ---- the default path (opts.defaultPath): pre-placed along a bearing from the start; off it, placed as you go
+function makePathWorld({ single = false, bearing = 0.6 } = {}) {
+  const things = []; // every instance the world holds: { id, inst, x, z, seen, dropped, moves }
+  const checks = { placedOnSeen: 0, placedInView: 0, movedSeen: 0, droppedSeen: 0 };
+  let dir = null;
+  const mk = (id, size, extra = {}) => ({
+    id, size, minAhead: size + 30, maxAhead: size + 70, minNear: size + 10, maxNear: size + 40, single, ...extra,
+    place(x, z, b, info) {
+      if (dir) {
+        for (let a = 0; a < 12; a++) for (const rr of [0, (this.visible ?? size) * 0.7]) if (dir.seenAt(x + Math.cos(a) * rr, z + Math.sin(a) * rr)) checks.placedOnSeen++;
+        if (dir.visibleNow(x, 0, z, this.visible ?? size)) checks.placedInView++;
+      }
+      const h = { id, inst: info.instance, x, z, x0: x, z0: z, seen: false, dropped: false, moves: 0 };
+      things.push(h);
+      return h;
+    },
+    move(h, x, z, b, info) {
+      if (h.seen) checks.movedSeen++;
+      if (dir.seenAt(x, z)) checks.placedOnSeen++;
+      if (dir.visibleNow(x, 0, z, this.visible ?? size)) checks.placedInView++;
+      Object.assign(h, { x, z, inst: info.instance }); h.moves++;
+      return h;
+    },
+    drop(h) { if (h.seen) checks.droppedSeen++; h.dropped = true; },
+    met: (h, [p]) => !h.dropped && Math.hypot(h.x - p.x, h.z - p.z) < size * 0.7,
+  });
+  const entries = [mk('stenus', 30, { visible: 12 }), mk('strider', 40, { visible: 20 }), { id: 'rain', size: 0, minAhead: 0, maxAhead: 0, virtual: true, place: () => ({ rain: true }), met: () => true }, mk('portal', 20, { final: true, top: 60 })];
+  dir = createDirector({ entries, bounds: { x0: -1000, x1: 1000, z0: -1000, z1: 1000 }, cell: 10, seenDist: 60, nearSeen: 6, warmup: { sec: 3 }, calm: { sec: 4 }, linger: 6, seed: 5,
+    defaultPath: { from: { x: 0, z: 0 }, bearing, rush: 15, cone: 0.45 } });
+  return { dir, things, checks, entries };
+}
+function runPath(W, { seconds, move, look }) {
+  const p = { id: 0, x: 0, z: 0, a: 0 };
+  const ev = [];
+  for (let t = 0; t < seconds && !W.dir.done; t += DT) {
+    move(t, p, W);
+    const v = wedge(p.x, p.z, look ? look(p) : p.a);
+    for (const h of W.things) if (!h.dropped && inWedge(v, h.x, h.z) && Math.hypot(h.x - p.x, h.z - p.z) < 60) h.seen = true;
+    ev.push(...W.dir.update(DT, [p], [v]));
+    const P = W.dir.portals().find((q) => q.open && Math.hypot(q.x - p.x, q.z - p.z) < 15);
+    if (P) { p.reached = { t, instance: P.instance }; break; }
+  }
+  return { ev, p };
+}
+const stepTo = (p, x, z, sp = 15) => { const d = Math.hypot(x - p.x, z - p.z); if (d > 0.5) { p.a = Math.atan2(z - p.z, x - p.x); p.x += Math.cos(p.a) * Math.min(d, sp * DT); p.z += Math.sin(p.a) * Math.min(d, sp * DT); } };
+{
+  // from t = 0: the whole order is laid along the bearing, the portal among it, before anyone moves
+  const W = makePathWorld();
+  const P0 = W.dir.portals();
+  assert.equal(P0.length, 1, 'portals() lists the default portal from t = 0');
+  assert.equal(P0[0].instance, 'default');
+  assert.equal(P0[0].open, false, 'sealed until every earlier entry is met');
+  const S0 = W.dir.state();
+  const defs = S0.entries.map((e) => e.def);
+  assert.equal(defs[2], null, 'the virtual entry (the rain) has no place on the path');
+  let last = 0;
+  for (const i of [0, 1, 3]) {
+    const d = defs[i], r = Math.hypot(d.x, d.z);
+    assert.equal(d.state, 'placed');
+    assert.ok(r > last, `entry ${i} farther along the path (${r.toFixed(0)})`);
+    assert.ok(Math.abs(Math.atan2(Math.sin(Math.atan2(d.z, d.x) - 0.6), Math.cos(Math.atan2(d.z, d.x) - 0.6))) <= 0.45, `entry ${i} inside the cone`);
+    last = r;
+  }
+  assert.ok(Math.hypot(defs[0].x, defs[0].z) > 60 + 30, 'the first is out of view at the start');
+  W.dir.update(DT, [{ id: 0, x: 0, z: 0 }], [wedge(0, 0, 0.6)]);
+  for (const i of [0, 1, 3]) assert.ok(!W.dir.visibleNow(defs[i].x, 0, defs[i].z, 10) || Math.hypot(defs[i].x, defs[i].z) > 60, `entry ${i} not in sight at the start`);
+}
+{
+  // following the bearing: each pre-placed instance met in order, nothing placed as you go (but the rain, an event)
+  const W = makePathWorld();
+  const r = runPath(W, { seconds: 120, move: (t, p, W) => {
+    const s = W.dir.state(), cur = s.entries[s.index];
+    const tgt = cur && cur.def && cur.def.state === 'placed' ? cur.def : null;
+    if (tgt) stepTo(p, tgt.x, tgt.z); else { p.a = 0.6; p.x += Math.cos(0.6) * 15 * DT; p.z += Math.sin(0.6) * 15 * DT; }
+  } });
+  assert.deepEqual(order(r.ev), [0, 1, 2], 'default path: met in order');
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met' && e.index !== 2).map((e) => e.instance), ['default', 'default'], 'default path: the pre-placed instances');
+  assert.deepEqual(r.ev.filter((e) => e.type === 'placed' && !W.entries[e.index].virtual && e.how !== 'default'), [], 'default path: nothing generated');
+  assert.ok(r.p.reached && r.p.reached.instance === 'default', 'default path: the default portal reached, open');
+  assert.equal(W.dir.portals().length, 1);
+  assert.deepEqual([W.checks.placedOnSeen, W.checks.placedInView, W.checks.movedSeen, W.checks.droppedSeen], [0, 0, 0, 0]);
+  assert.ok(W.things.every((h) => h.moves === 0 && h.x === h.x0 && h.z === h.z0), 'default path: nothing moved');
+}
+for (const single of [false, true]) {
+  // heading off the other way: generated as you go, in order; the default path stays where it was (unseen ones
+  // dropped as their entry is met elsewhere; a single entry's one instance leaves the path while unseen)
+  const W = makePathWorld({ single });
+  const off = 0.6 + Math.PI;
+  const r = runPath(W, { seconds: 160, move: (t, p, W) => {
+    const P = W.dir.portals().find((q) => q.open && q.instance === 'dynamic');
+    if (P) return stepTo(p, P.x, P.z);
+    p.a = off; p.x += Math.cos(off) * 15 * DT; p.z += Math.sin(off) * 15 * DT;
+  } });
+  const tag = single ? 'off the path (single)' : 'off the path';
+  assert.deepEqual(order(r.ev), [0, 1, 2], `${tag}: met in order`);
+  for (const i of [0, 1, 3]) {
+    const pe = r.ev.find((e) => e.type === 'placed' && e.index === i && e.how !== 'default');
+    assert.ok(pe && pe.how !== 'default' && Math.cos(pe.b - off) > 0, `${tag}: entry ${i} placed ahead as you go`);
+    if (single) assert.equal(pe.from, 'default', `${tag}: entry ${i}'s one instance taken off the path`);
+  }
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met' && e.index !== 2).map((e) => e.instance), ['dynamic', 'dynamic']);
+  assert.deepEqual([W.checks.placedOnSeen, W.checks.placedInView, W.checks.movedSeen, W.checks.droppedSeen], [0, 0, 0, 0], `${tag}: never on seen ground, in view, or a seen thing moved or dropped`);
+  const ps = W.dir.portals();
+  if (single) assert.equal(ps.length, 1, `${tag}: one portal (moved off the path while unseen)`);
+  else {
+    assert.deepEqual(ps.map((q) => q.instance).sort(), ['default', 'dynamic'], `${tag}: two portals, the default one still there`);
+    assert.ok(ps.every((q) => q.open), `${tag}: both open once every encounter is met`);
+    const dp = W.things.find((h) => h.id === 'portal' && h.inst === 'default');
+    assert.ok(dp.x === dp.x0 && dp.z === dp.z0 && !dp.dropped, `${tag}: the default portal never moved`);
+    assert.ok(W.things.filter((h) => h.inst === 'default' && h.id !== 'portal').every((h) => h.dropped && !h.seen), `${tag}: the unseen default encounters dropped once met elsewhere`);
+  }
+  assert.ok(r.p.reached && r.p.reached.instance === 'dynamic', `${tag}: the generated portal reached`);
+}
+{
+  // seen, then left: a default instance someone has seen stays exactly where it is, and every cell seen stays seen
+  const W = makePathWorld();
+  const seenCells = [];
+  const r = runPath(W, { seconds: 160, move: (t, p, W) => {
+    const s = W.dir.state();
+    const st0 = s.entries[0].def;
+    if (!st0) return;
+    if (st0.seenT === null && t < 30) return stepTo(p, st0.x, st0.z);
+    if (!seenCells.length) for (let x = -200; x <= 200; x += 10) for (let z = -200; z <= 200; z += 10) if (W.dir.seenAt(x, z)) seenCells.push([x, z]);
+    const P = W.dir.portals().find((q) => q.open && q.instance === 'dynamic');
+    if (P) return stepTo(p, P.x, P.z);
+    const a = -0.6 - 1.4; p.a = a; p.x += Math.cos(a) * 15 * DT; p.z += Math.sin(a) * 15 * DT;
+  } });
+  const seenDef = W.things.find((h) => h.id === 'stenus' && h.inst === 'default');
+  const e0 = W.dir.state().entries[0];
+  assert.ok(e0.def.seenT !== null, 'the default Stenus was seen (by the director\'s grid)');
+  assert.equal(e0.via, 'dynamic', 'and the one met was placed as you go');
+  assert.equal(e0.def.state, 'placed', 'the seen default instance is kept');
+  assert.ok(seenDef.x === seenDef.x0 && seenDef.z === seenDef.z0 && !seenDef.dropped, 'seen: never moved or dropped');
+  assert.ok(seenCells.length > 0 && seenCells.every(([x, z]) => W.dir.seenAt(x, z)), 'seen cells stay seen');
+  assert.deepEqual(order(r.ev), [0, 1, 2], 'seen then left: still met in order');
+  assert.deepEqual([W.checks.placedOnSeen, W.checks.placedInView, W.checks.movedSeen, W.checks.droppedSeen], [0, 0, 0, 0]);
+}
+// ---- deterministic with a default path too
+{
+  const go = () => runPath(makePathWorld(), { seconds: 60, move: (t, p) => { p.a = 2 + Math.sin(t * 0.3); p.x += Math.cos(p.a) * 12 * DT; p.z += Math.sin(p.a) * 12 * DT; } }).ev;
+  assert.deepEqual(go(), go());
+}
+console.log('ok: director (order, unseen and out-of-view placement, lingering, turning back, passing, multiplayer, determinism, 3D, default path)');

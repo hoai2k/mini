@@ -8,8 +8,8 @@
 // speed stays under its cap. Then the view is turned fully round both axes (16 steps each) and the
 // fraction of the frame the scene covers (debug.coverage) must stay above a floor everywhere and never
 // fall below half the median (no empty side).
-// encounter: nothing happens while you hang about at the start; the director places the first decoy
-// ahead of a player drifting out, out of view (route.test.mjs runs the whole order headless); the guard
+// encounter: nothing happens while you hang about at the start; the default path is laid from the first
+// frame (the way on sealed); the director places the first decoy ahead of a player drifting off the path, out of view (route.test.mjs runs the whole order headless); the guard
 // on the (forced) portal turns you back; driven off, X there only says to press Y, and Y lets you in; a UV shaft damages at
 // once and a second one destroys.
 import { createServer } from 'node:http';
@@ -121,20 +121,25 @@ const waitSim = async (sec) => { const t0 = await ev(() => window.__micro.t); wh
 await waitSim(8);
 log.calm = await ev(() => ({ t: window.__micro.t, mode: window.__micro.P.mode, damaged: window.__micro.P.damaged, captured: window.__micro.capture.active }));
 if (log.calm.mode !== 'drift' || log.calm.damaged || log.calm.captured) fails.push('something happened at the start: ' + JSON.stringify(log.calm));
-// 1. the director (shared/director.js) places the first decoy ahead of a phage drifting out (across the
-// view, +x), out of view, on water nobody has seen; nothing before the warm-up
+// 1a. the default path (world.js DEFAULT_PATH): the three are laid out across the view (+x) on the first
+// frame, the way on among them, sealed until both decoys are met
+log.path = await ev(() => { const m = window.__micro; return { placed: m.debug.encounterLog().filter((x) => x.how === 'default').map((x) => `${x.id} ${x.t}`), portals: m.debug.portals(), sealed: m.debug.portalSealed() }; });
+if (log.path.placed.length !== 3 || log.path.portals.length !== 1 || log.path.portals[0].instance !== 'default' || !log.path.sealed) fails.push('no default path from the start: ' + JSON.stringify(log.path));
+// 1b. off the path the director places the first decoy ahead of a phage drifting out (across the view the
+// other way, -x), out of view, on water nobody has seen (taking it off the path: nobody had seen it)
 log.before = (await D('encounters')).entries[0].state;
-if (log.before !== 'waiting' && log.calm.t < 6) fails.push('a decoy placed before the warm-up');
-await page.keyboard.down('KeyD');
+if (log.before !== 'waiting') fails.push('a decoy placed off the path before the warm-up');
+await page.keyboard.down('KeyA');
 const t1 = await ev(() => window.__micro.t);
 let st = null;
 while ((await ev(() => window.__micro.t)) - t1 < 25) { st = await D('encounters'); if (st.entries[0].state !== 'waiting') break; await wait(150); }
-log.placed = await ev(() => { const m = window.__micro, e = m.debug.encounterLog().find((x) => x.type === 'placed' && x.id === 'B'); const h = m.world.hosts.find((q) => q.id === 'B'); return e && { ...e, host: h.pos.toArray().map((v) => +v.toFixed(0)), hidden: h.hidden, inViewNow: m.debug.director.visibleNow(h.pos.x, h.pos.y, h.pos.z, 1), player: m.P.pos.toArray().map((v) => +v.toFixed(0)) }; });
-await page.keyboard.up('KeyD');
-if (!log.placed) fails.push('no decoy placed ahead of a drifting phage');
+log.placed = await ev(() => { const m = window.__micro, e = m.debug.encounterLog().find((x) => x.type === 'placed' && x.id === 'B' && x.how !== 'default'); const h = m.world.hosts.find((q) => q.id === 'B'); return e && { ...e, host: h.pos.toArray().map((v) => +v.toFixed(0)), hidden: h.hidden, inViewNow: m.debug.director.visibleNow(h.pos.x, h.pos.y, h.pos.z, 1), player: m.P.pos.toArray().map((v) => +v.toFixed(0)) }; });
+await page.keyboard.up('KeyA');
+if (!log.placed) fails.push('no decoy placed ahead of a phage drifting off the path');
 else {
-  if (log.placed.host[0] < log.placed.player[0] + 100) fails.push(`decoy not ahead (+x) of the player: ${JSON.stringify(log.placed)}`);
+  if (log.placed.host[0] > log.placed.player[0] - 100) fails.push(`decoy not ahead (-x) of the player: ${JSON.stringify(log.placed)}`);
   if (log.placed.inViewNow) fails.push('decoy placed in view');
+  if (log.placed.from !== 'default') fails.push('the decoy was not taken off the path');
 }
 // 2. the way on (forced, for the guard checks below): Host A ahead of the player, the amoeba on guard
 log.portal = await D('placePortal', [1, 0.2, -0.3], 320);

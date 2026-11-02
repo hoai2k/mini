@@ -8,7 +8,7 @@
 import assert from 'node:assert/strict';
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { createDirector } from '../shared/director.js';
-import { DIRECTOR, encounterSpecs, canPlace, START, FIELD_R, HOST_GEO, sideOf, amoebaAt, clayAt, AMOEBA_R, FLOCS, UV_SHAFTS, uvClear, CALM_R } from './world.js';
+import { DIRECTOR, DEFAULT_PATH, encounterSpecs, canPlace, START, FIELD_R, HOST_GEO, sideOf, amoebaAt, clayAt, AMOEBA_R, FLOCS, UV_SHAFTS, uvClear, CALM_R } from './world.js';
 
 const DT = 1 / 30, SPEED = 30, DIST = 110;
 const ORDER = ['B', 'W', 'portal'];
@@ -37,7 +37,7 @@ function sdHost(id, c, ang, p) {
   return Math.hypot(lx - Math.max(-g.half, Math.min(g.half, lx)), ly, d.z) - g.r;
 }
 
-function game({ seconds, move, look = new THREE.Vector3(0, 0, -1) }) {
+function game({ seconds, move, look = new THREE.Vector3(0, 0, -1), path = false }) {
   const lead = { x: 0, y: 0, z: 0, hx: 1, hy: 0, hz: 0, moving: false }, vel = new THREE.Vector3(), prev = new THREE.Vector3();
   const specs = encounterSpecs(lead);
   const p = { id: 0, x: 0, y: 0, z: 0 }, P = new THREE.Vector3();
@@ -56,7 +56,7 @@ function game({ seconds, move, look = new THREE.Vector3(0, 0, -1) }) {
     },
     met: (h, [q]) => id !== 'portal' && sdHost(id, hosts[id].c, hosts[id].ang, P.set(q.x, q.y, q.z)) < 70,
   });
-  const D = createDirector({ ...DIRECTOR, canPlace, entries: specs.map((e) => ({ ...e, ...mk(e.id) })) });
+  const D = createDirector({ ...DIRECTOR, canPlace, ...(path ? { defaultPath: DEFAULT_PATH } : {}), entries: specs.map((e) => ({ ...e, ...mk(e.id), ...(path ? { single: true } : {}) })) });
   const ev = [];
   let idle = 0, sampleT = 0;
   for (let t = 0; t < seconds && !D.done; t += DT) {
@@ -75,7 +75,7 @@ function game({ seconds, move, look = new THREE.Vector3(0, 0, -1) }) {
       const h = hosts[cur.id], d = sdHost(cur.id, h.c, h.ang, P.set(p.x, p.y, p.z));
       if (d > 60) h.c.add(P.clone().sub(h.c).setLength(Math.min(d - 59, 12 * DT)));
     }
-    if (D.state().entries.at(-1).state === 'placed' && hosts.portal && P.set(p.x, p.y, p.z).distanceTo(hosts.portal.c) < 60) { p.reached ??= t; break; }
+    if (path ? D.portals().some((q) => q.open) : D.state().entries.at(-1).state === 'placed') if (hosts.portal && P.set(p.x, p.y, p.z).distanceTo(hosts.portal.c) < 60) { p.reached ??= t; break; }
   }
   return { ev, bad, p, D };
 }
@@ -120,5 +120,36 @@ for (const e of lin.ev.filter((x) => x.type === 'placed')) assert.ok(['near', 'w
 const back = game({ seconds: 150, move: (() => { const a = rusher(new THREE.Vector3(1, 0.2, 0)), b = rusher(new THREE.Vector3(-1, -0.2, 0)); return (t, ...r) => (t < 14 ? a : b)(t, ...r); })() });
 assert.deepEqual(back.bad, [], 'turn back');
 assert.deepEqual(back.ev.filter((e) => e.type === 'met').map((e) => e.id), ['B', 'W'], 'turn back: both decoys');
+// the default path (main.js passes world.js DEFAULT_PATH; each host one object, `single`): the order is laid out
+// across the view from the start, the portal among it from the first frame
+{
+  // following the bearing: the pre-placed hosts met in order, the pre-placed portal reached; nothing generated
+  const r = game({ seconds: 150, path: true, move: (t, p, D, hosts) => {
+    const s = D.state(), cur = s.entries[s.index];
+    const u = new THREE.Vector3(DEFAULT_PATH.bearing === 0 ? 1 : Math.cos(DEFAULT_PATH.bearing), Math.tan(DEFAULT_PATH.elevation), 0).normalize();
+    if (cur && hosts[cur.id]) u.copy(hosts[cur.id].c).sub(new THREE.Vector3(p.x, p.y, p.z)).normalize();
+    soft(p, u, DT);
+  } });
+  assert.deepEqual(r.bad, [], 'default path: nothing on seen water');
+  const placed = r.ev.filter((e) => e.type === 'placed');
+  assert.deepEqual(placed.map((e) => `${e.id} ${e.how}`), ['B default', 'W default', 'portal default'], 'default path: all three pre-placed, nothing generated');
+  assert.ok(placed.every((e) => e.t < 0.1), 'default path: from the first frame');
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.instance}`), ['B default', 'W default'], 'default path: met in order on it');
+  assert.ok(r.p.reached !== undefined && r.p.reached < 75, `default path: the pre-placed portal reached (${r.p.reached})`);
+  assert.equal(r.D.portals().length, 1);
+  rows.push(`default path, followed: met B ${at(r.ev, 'met', 'B').t}, W ${at(r.ev, 'met', 'W').t}; portal reached ${r.p.reached.toFixed(1)} s`);
+}
+for (const [name, v] of [['-x (away from the path)', [-1, 0, 0]], ['-y (down)', [0, -1, 0]], ['+z (out of the view)', [0, 0, 1]]]) {
+  // heading off: each host leaves the path while unseen and is placed ahead as you go, in order
+  const r = game({ seconds: 150, path: true, move: rusher(new THREE.Vector3(...v)) });
+  assert.deepEqual(r.bad, [], `off the path ${name}: nothing on seen water`);
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ['B', 'W'], `off the path ${name}: in order`);
+  for (const id of ['B', 'W', 'portal']) {
+    const e = r.ev.find((x) => x.type === 'placed' && x.id === id && x.how !== 'default');
+    assert.ok(e && e.from === 'default', `off the path ${name}: ${id} taken off the path and placed as you go (${e && e.how})`);
+  }
+  assert.ok(r.p.reached !== undefined && r.p.reached < 90, `off the path ${name}: the portal reached (${r.p.reached})`);
+  rows.push(`default path, off it ${name}: B met ${at(r.ev, 'met', 'B').t}; W met ${at(r.ev, 'met', 'W').t}; portal reached ${r.p.reached.toFixed(1)} s`);
+}
 const evs = (r) => r.ev.filter((e) => e.type === 'placed' || e.type === 'met').map((e) => `${e.id} ${e.type} ${e.t}${e.type === 'placed' ? ` (${e.how})` : ''}`).join(', ');
 console.log(`ok: ${FLOCS.length} flocs and ${UV_SHAFTS.length} UV shafts as scenery\n${rows.join('\n')}\nlingering: ${evs(lin)}; reached ${lin.p.reached.toFixed(1)} s\nturn back: ${evs(back)}; reached ${back.p.reached?.toFixed(1)} s`);

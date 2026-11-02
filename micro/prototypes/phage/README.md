@@ -137,10 +137,15 @@ hunt hard, a near dead end). The third cell is the wrong host.
   of it posts `near {kind: 'back', label: 'Y: back to Sediment'}`, and Y
   there posts `landmark('back')`; anywhere else Y is the overlay.
 - **Edge marks** (`shared/landmark.js`): only the ring toward the flagellum
-  (the way back), per view. There is no arrow to the way on (the owner: keep
-  moving in any direction and you find it); once placed, its golden light
-  spills in from the edge of each view on its side (`createPortalLight`),
-  and the sparkle marks it in view.
+  (the way back), per view. There is no arrow to the way on by default (the
+  owner: keep moving in any direction and you find it); once open, its golden
+  light spills in from the edge of each view on its side (`createPortalLight`),
+  and the sparkle marks it in view. With **Portal arrow** on in the game's
+  Settings (default off; `?arrow=1` on this page) each view gets a brass arrow
+  at its edge toward Host A's gold receptor, sealed or not, with the view's
+  nearest phage's distance beside it ("8.6 µm"); it points the right way when
+  the receptor is behind the camera too. Test hooks: `debug.portalArrow()`,
+  `debug.portals()`, `debug.portalSealed()`.
 - **Up to four local players** (`shared/players.js`): the roster comes from
   the shell (`embed.players`) or starts as P1 alone; anyone joins during play
   by pressing a button on another controller (posted as `join`). Each player
@@ -168,12 +173,23 @@ frames, where the haze has closed in), a little ahead of whoever leads, out
 of every view, with a calm break between. What anyone has seen never
 changes. Until placed, the hosts are hidden and parked far off.
 
+**The default path** (the owner, 2026-11-01: "a default path to a portal,
+but just dynamically generate the other directions"): on the first frame
+the director lays all three out across the view from the start (+x, a little
+up: `world.js` `DEFAULT_PATH`, Host B ~4.8 µm out, the wrong host ~7.2, Host A
+~9 µm), out of sight, so the way on exists from the start. It stays sealed
+(no prompt, no edge light, its glow shut; Y there says to meet the other
+hosts first) until both decoys are met. Follow that bearing and you meet
+them in order where they lie. Head another way and each host, while nobody
+has seen it, leaves the path and is placed ahead of you as before (each is
+one object: the director's `single`); one somebody has seen stays put.
+
 | Order | What | How it meets you |
 | --- | --- | --- |
 | warm-up | ~6 s of drifting in the calm water round the start (no hazard within ~2 µm; the backdoor flagellum off to one side) | — |
 | 1 | **Host B** (a matching CRISPR spacer), the clay platelet beside it | placed ahead of you, met within ~0.7 µm of it |
 | 2 | **The wrong host** (a Gram-positive) | the same, after a calm break of ~5 s of drifting |
-| last | **The way on**: Host A's gold receptor under the golden glow, the amoeba on guard | placed after both decoys; its golden light spills in from the edge of the view on its side (no arrow) |
+| last | **The way on**: Host A's gold receptor under the golden glow, the amoeba on guard | on the default path from the start, else placed after both decoys; open once both are met, then its golden light spills in from the edge of the view on its side (an arrow only with the Portal arrow setting) |
 
 **Scenery, everywhere** (pre-placed, the same every visit, all through the
 water but the start's calm water): 36 **humic flocs**, 26 **UV sunfleck
@@ -297,7 +313,7 @@ in multiplayer:
 
 ```bash
 node --test micro/prototypes/phage/binding.test.mjs micro/prototypes/phage/kicks.test.mjs
-node micro/prototypes/phage/route.test.mjs     # the director: 6 directions, lingering, out and back (V=1: each run's placements)
+node micro/prototypes/phage/route.test.mjs     # the director: 6 directions, lingering, out and back; the default path followed and left (V=1: each run's placements)
 node micro/prototypes/phage/play-check.mjs   # controls (no spin), coverage (no empty side), encounters
 node micro/prototypes/check.mjs phage
 node micro/game/check.mjs

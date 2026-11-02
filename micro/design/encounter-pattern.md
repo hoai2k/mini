@@ -121,6 +121,20 @@ dynamic distribution the default if we haven't specified any other."
   portals stay sealed until those are met, and anyone who reaches a hunting
   ground early has the rest placed round them at once
   (`prototypes/springtail/README.md`, "The way out").
+- **A default path to a portal** (the owner, 2026-11-01: "For dynamically
+  generated levels, let's have a default path to a portal, but just
+  dynamically generate the other directions if the player goes off in
+  another direction"): a director world may lay its whole order (each
+  encounter, then the boss and portal) along a bearing from the start on the
+  first frame, at the distances a rush would meet them, out of sight; off
+  that bearing it places as you go as before (`shared/director.js`
+  `defaultPath`, `portals()`; the phage is the first:
+  `prototypes/phage/README.md`, "The default path"). The portal there stays
+  sealed until every earlier encounter is met.
+- **The Portal arrow** (Settings, default off): every world points an arrow
+  at the edge of each view to its nearest portal, with the distance beside it
+  (`shared/landmark.js` `portalArrowOn`; how to wire a world is at the top of
+  `shared/director.js`).
 - **Entering a portal is deliberate** in every world: standing in its area
   while it is open shows "Y Enter the portal", and Y goes through
   (`game/README.md`, "Entering a portal (Y)").

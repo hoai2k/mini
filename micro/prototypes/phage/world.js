@@ -101,6 +101,15 @@ export const DIRECTOR = {
   passDist: 700, watchSec: 10, watchDist: 400,
 };
 /**
+ * The default path (shared/director.js `defaultPath`; the owner, 2026-11-01: "a default path to a portal,
+ * but just dynamically generate the other directions"): Host B, the wrong host and Host A with its amoeba
+ * pre-placed out across the view (+x, a little up) from the start, so the way on exists from the first
+ * frame. The field (FIELD_R) is too small for a rush's spacing (Host B ~6 s plus its ahead range, ...), so
+ * the distances are given: each a little farther than the start view can make out, then ~2.4 and ~2 µm on.
+ * Off that bearing they are placed as you go, as before (each host is one object: `single`).
+ */
+export const DEFAULT_PATH = { from: { x: START.x, y: START.y, z: START.z }, bearing: 0, elevation: 0.12, dists: [480, 720, 900], cone: 0.45 };
+/**
  * The encounters in order, for a leader whose position and heading `lead` ({ x, y, z, hx, hy, hz,
  * moving }) the caller keeps up to date: each is laid out from the way it is met (from the leader to the
  * spot), and while the leader is moving it goes within ~40° of their heading (in a 3D view, a spot off

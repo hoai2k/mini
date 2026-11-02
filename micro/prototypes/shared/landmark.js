@@ -38,7 +38,10 @@
 //       project(position) -> { x, y, behind } CSS px; region: polygon(s) [[x,y],...] or
 //       [[[x,y],...], ...] (default the whole screen); anchor: [x,y] (default the region's
 //       centre). Returns { x, y, angle, onScreen } or null.
-//   marks.drawSplit(split, position, opts)  draw for every view of split.layout
+//   marks.drawSplit(split, position, opts)  draw for every view of split.layout; position may be a
+//                                         function (viewPlayers, view) -> { position, label?, distance? } | null
+//                                         for a mark per view (the portal arrow: each view's nearest portal;
+//                                         each result then carries what pick returned as `picked`)
 //   marks.canvas                           the overlay canvas (taking it to paint on marks it for clearing)
 //   marks.dispose()
 
@@ -293,13 +296,22 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
   function drawSplit(split, position, opts = {}) {
     const L = split.layout;
     const out = [];
+    const pick = typeof position === 'function' ? position : null;
     for (const v of L.views) {
+      // per view (the portal arrow: each view's own nearest portal): pick(players, view) -> { position, label?, distance? } | null
+      let o2 = opts, picked = null;
+      if (pick) {
+        const r = pick((L.players || []).filter((p) => v.slots.includes(p.slot)), v);
+        if (!r || !r.position) { out.push(null); continue; }
+        position = r.position; picked = r;
+        o2 = { ...opts, ...(r.label != null ? { label: r.label } : {}), ...(r.distance != null ? { distance: r.distance } : {}) };
+      }
       // Skip empty or degenerate regions (a view can shrink to nothing while players leave).
       const regs = L.regions.filter((r) => r.view === v.index && r.polygon && r.polygon.length >= 3);
       if (!regs.length) continue;
       const region = L.views.length === 1 ? null : regs.map((r) => r.polygon);
       const anchor = [regs.reduce((s, r) => s + r.anchor[0], 0) / regs.length, regs.reduce((s, r) => s + r.anchor[1], 0) / regs.length];
-      let distance = opts.distance ?? null;
+      let distance = o2.distance ?? null;
       if (distance == null && L.players) {
         for (const p of L.players) {
           if (!v.slots.includes(p.slot)) continue;
@@ -307,7 +319,8 @@ export function createLandmarks({ parent = document.body, zIndex = 4, margin = 2
           distance = distance == null ? d : Math.min(distance, d);
         }
       }
-      out.push(draw({ ...opts, position, region, anchor, distance, project: (p) => split.project(v.index, p) }));
+      const res = draw({ ...o2, position, region, anchor, distance, project: (p) => split.project(v.index, p) });
+      out.push(res && picked ? { ...res, picked } : res);
     }
     return out;
   }
