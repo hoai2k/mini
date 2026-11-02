@@ -1694,6 +1694,81 @@ REQUESTS += [
 ]
 
 
+# ---- Round 8: achievement badges. Two sheets of sixteen, in the order of
+# game/js/achievementRules.js ACHIEVEMENTS (and game/js/ui/icons.js
+# BADGE_SHEETS); the game keys out the magenta and cuts them as it does the
+# item icons, and shows each achievement's emoji until its sheet arrives.
+BADGE_GROUP = "Round 8 · Achievements: badges (the game shows emoji until they arrive)"
+
+BADGE_STYLE = (
+    "Achievement badges in the blocky voxel style of Minecraft Dungeons: each badge a round "
+    "celestial-bronze medallion seen straight on, with a raised rim of Greek-key pattern and a "
+    "small chunky 3D voxel emblem standing out from its face, crisp pixel-art textures (about 16 "
+    "pixels per block), simple shading and a small highlight, warm gold glints, bright and a "
+    "little funny rather than grim. Every medallion is the same size, centred in its own square "
+    "cell with even padding, and never touches its neighbours; no ribbon, frame, number or label "
+    "(the game adds the locked grey and the names). The whole sheet sits on a perfectly flat "
+    "solid magenta #FF00FF background with no gradient, texture or cast shadow, so the "
+    "background can be removed. " + PALETTE
+)
+
+
+def badge_sheet(id_: str, title: str, items: list[str], use: str) -> dict:
+    assert len(items) == 16, f"{id_}: {len(items)} badges for 4 x 4 cells"
+    listed = "; ".join(f"{i + 1}. {it}" for i, it in enumerate(items))
+    return {
+        "id": id_, "group": BADGE_GROUP, "title": title,
+        "size": "1024 × 1024", "dest": "game",
+        "references": ["vox-key", "icons-magic"] + ([] if id_ == "icons-achievements-1" else ["icons-achievements-1"]),
+        "use": use,
+        "prompt": (
+            f"A sheet of 16 achievement badges in a grid of 4 columns by 4 rows, one badge per "
+            f"256-pixel cell, read left to right and top to bottom in exactly this order: {listed}. "
+            f"{BADGE_STYLE} {NO_TEXT}"
+        ),
+    }
+
+
+REQUESTS += [
+    badge_sheet("icons-achievements-1", "Achievement badges 1: the story and the bosses", [
+        "Worst Field Trip Ever: a yellow school bus with a small leathery bat wing on its roof",
+        "Pop Quiz: a sheet of maths homework with a big red cross on it and a bat wing in the corner",
+        "Grab the Bull by the Horns: a bull's horn stuck deep in a cracked stone wall",
+        "Claimed: a glowing sea-green trident floating over a mop of curly black hair",
+        "Don't Look: a pair of dark sunglasses reflecting a small green snake",
+        "One Size Fits All: a blue water bed with a large bronze axe leaning on it",
+        "Who's a Good Boy?: a red rubber ball with a small drool drop and three dog-ear tips behind it",
+        "Checked Out Early: a pink lotus flower lying on a gold casino chip",
+        "Mind the Doors: the silver Gateway Arch with a tiny egg-shaped tram car inside it",
+        "Not So Kindly: three crossed whips of red fire",
+        "Surf's Up, Ares: a blue wave crashing over a cracked red war helmet",
+        "Not the Lightning Thief: Zeus's master bolt, a glowing double-ended lightning bolt of bronze",
+        "Olympian: a golden laurel wreath around a small white mountain peak",
+        "Achilles Who?: a bronze sandalled heel behind a round golden shield without a scratch",
+        "A Quest Needs Three: three hands stacked on top of one another over a bronze sword hilt",
+        "The Whole Gang: five clay camp beads on a leather cord, orange, grey, green, red and blue",
+    ], "Achievement badges 1 to 16 (game/js/achievementRules.js), on the Achievements screen and the unlock toast."),
+    badge_sheet("icons-achievements-2", "Achievement badges 2: heroics and habits", [
+        "Demigod Reflexes: a golden stopwatch with its hands blurred by speed lines",
+        "Gravity Is a Suggestion: a cracked crater in the ground with three little stars spinning over it",
+        "Mist Opportunity: one wide eye looking out through swirling grey mist",
+        "Just Resting My Eyes: a battered bronze helmet lying on its side with three floating sleep bubbles",
+        "Mind the Gap: an orange sneaker stepping out over a dark empty pit",
+        "Tastes Like Mom's Cookies: a bright blue chocolate-chip cookie next to a small golden square of ambrosia",
+        "Identity Crisis: two theatre masks, one laughing and one crying, swapping places with a curved arrow",
+        "Divine Intervention: a beam of golden light pouring down from a cloud",
+        "Monster Hunter: a pile of glittering golden monster dust with a small bronze spearhead in it",
+        "Drachma Hoarder: an overflowing leather sack of gold drachma coins",
+        "One of a Kind: a small treasure chest bursting with orange light",
+        "Dressed for Olympus: a bronze breastplate glowing with a violet light",
+        "Changed My Mind: a rolled-up skill scroll with a curved arrow going back round it",
+        "Apollo Would Be Proud: a golden arrow in the centre of a red-and-white target",
+        "Hot Hot Hot: a stone climbing wall with orange lava pouring down it and a small flag on top",
+        "Iris Message: a little rainbow arching over a fountain with a gold drachma falling into it",
+    ], "Achievement badges 17 to 32 (game/js/achievementRules.js), on the Achievements screen and the unlock toast."),
+]
+
+
 def path_for(item: dict) -> Path:
     if item.get("dest") == "game":
         return GAME / f"{item['id']}.png"
@@ -1762,6 +1837,13 @@ def build() -> str:
         "`icons-weapons-1` first and attach it to the others so the icons match. All five",
         "were delivered on 2026-10-23 and the game loads them; an item whose picture is",
         "missing shows its emoji.",
+        "",
+        "### Round 8: achievements",
+        "",
+        "Two sheets of sixteen achievement badges (bronze medallions with a blocky",
+        "emblem) on flat magenta, in the order of game/js/achievementRules.js. Generate",
+        "`icons-achievements-1` first and attach it to the second so they match; the",
+        "game shows each achievement's emoji until its sheet arrives.",
         "",
         "### Round 7: gear on the heroes",
         "",
