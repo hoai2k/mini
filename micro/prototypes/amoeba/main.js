@@ -183,7 +183,8 @@ const newRoles = () => ({ pod: null, body: null, latch: new Set(), branch: false
   mode: 'pod', move: null, on: { sel: false, adj: false }, rest: { sel: 9, adj: 9 }, was: { sel: null, adj: null } });
 let R = newRoles();
 // Per-player game state (was in S): food eaten, the cup candidate and the closing cup, trap contact, bites, surge, drain.
-const newCellState = () => ({ eaten: 0, cand: null, closing: null, stuckT: 0, stuckN: 0, bitten: 0, surgeK: 1, drain: 0, A0init: 0 });
+const newCellState = () => ({ eaten: 0, cand: null, closing: null, stuckT: 0, stuckN: 0, bitten: 0, surgeK: 1, drain: 0, A0init: 0,
+  stuckAt: [], bites: [], death: 0, reform: 0 });
 let C = newCellState();
 const fragments = [];
 
@@ -320,10 +321,20 @@ const CATCH_TEXT = {
   eat: 'Drained: the cytoplasm darkens and the cell shrivels',
 };
 const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
+// A catch: the player keeps control through strike, hold and eat (a surge can
+// still tear free); 'die' is the death animation (the stain takes over, the cell
+// goes slack and breaks up, its granules drift off), then a short fade, the
+// respawn, and the fresh cell re-forms (its granules gather: C.reform).
+const CATCH_PHASES = [['strike', 0.45], ['hold', 1.0], ['eat', 2.4], ['die', 1.8], ['fadeOut', 0.45], ['fadeIn', 0.45]];
+const DYING = ['die', 'fadeOut', 'fadeIn'];
+/** Is cell c past the point of no return (dissolving, or faded out)? Its sticks no longer answer. */
+const dying = (c = cur) => !!c && c.caught.active && DYING.includes(c.FC.phase);
+const nodeNear = (b, x, y) => b.nearest(x, y).i;
 function startCatch(pts) {
   if (caught.active) return;
   FC.pts = pts.slice(0, 3); FC.A0 = body.A0; FC.phase = 'strike';
-  caught.start({ by: 'A zoopagalean fungus', how: 'grew haustoria into you and drained your cytoplasm' });
+  FC.nodes = FC.pts.map((p) => nodeNear(body, p.x, p.y));
+  caught.start({ by: 'Drained by a trap fungus', phases: CATCH_PHASES });
   embed.captured({ by: 'fungus', player: cur ? cur.slot : 0 });
   if (C.closing) cancelClose();
   haustoria.forEach((h, k) => { h.hidden = !FC.pts[k]; h.grow = 0; });
@@ -346,13 +357,14 @@ function placeHaustoria(reach) {
 function stepCatch(dt) {
   if (!caught.active) return;
   if (FC.by === 'chaos') { stepEngulf(dt); return; }
-  if ((FC.phase === 'strike' || FC.phase === 'hold') && surge.active) {
-    // torn free in time: the haustoria take a bite, and the fungus rests a while
+  if ((FC.phase === 'strike' || FC.phase === 'hold' || FC.phase === 'eat') && surge.active) {
+    // torn free in time: the haustoria take a bite (more, the longer they drained), and the fungus rests a while
     caught.reset(false); FC.phase = null;
-    body.A0 = FC.A0 * 0.93; C.bitten++; C.stuckT = 0; C.drain = 0;
+    for (const i of FC.nodes || []) C.bites.push({ i, t: 0, s: 0.5 + 0.5 * C.drain });
+    body.A0 = Math.min(FC.A0 * 0.93, body.A0); C.bitten++; C.stuckT = 0; C.drain = 0;
     for (const h of haustoria) { h.hidden = true; h.grow = 0; }
     fungus.missed();
-    hud.toast(`${who()}Torn free! The haustoria took a bite of the cell (−7%)`, 2600);
+    hud.toast(`${who()}Torn free!`, 1800);
     rumble(300, 0.6, 0.6);
     return;
   }
@@ -364,21 +376,23 @@ function stepCatch(dt) {
     if (c.phase === 'eat') { fungus.fed(); audio.play('amoeba/digest', { volume: 1, rate: 0.7 }); rumble(700, 0.5, 0.8); }
   }
   const k = c.t;
+  C.death = c.phase === 'die' ? k : DYING.includes(c.phase) ? 1 : 0;
   if (c.phase === 'strike') { placeHaustoria(0.55 * ease(k)); C.drain = 0; }
   else if (c.phase === 'hold') { placeHaustoria(0.55 + 0.45 * ease(k)); C.drain = 0.15 * k; }
   else {
     const e = c.phase === 'eat' ? ease(k) : 1;
     placeHaustoria(1);
     C.drain = 0.15 + 0.85 * e;
-    body.A0 = FC.A0 * (1 - 0.45 * e); // the cell shrivels as it is sucked dry
+    body.A0 = FC.A0 * (1 - 0.4 * e - 0.15 * C.death); // the cell shrivels as it is sucked dry, then goes slack
   }
 }
 /** Engulfed by Chaos: drawn into it, digested in a food vacuole (darkening, shrinking), carried off. */
 function stepEngulf(dt) {
-  if (FC.phase === 'strike' && surge.active) {
-    // broke out before the cup sealed
+  if ((FC.phase === 'strike' || FC.phase === 'hold') && surge.active) {
+    // broke out before the vacuole sealed
     caught.reset(false); FC.phase = null; FC.by = null; C.drain = 0;
-    hud.toast(`${who()}Surged out before the cup sealed!`, 2400);
+    C.bites.push({ i: nodeNear(body, chaos.body.cx, chaos.body.cy), t: 0, s: 0.6, chaos: true });
+    hud.toast(`${who()}Surged out!`, 1800);
     rumble(300, 0.6, 0.6);
     return;
   }
@@ -395,8 +409,52 @@ function stepEngulf(dt) {
   const dx = (chaos.body.cx - body.cx) * Math.min(1, pull * dt), dy = (chaos.body.cy - body.cy) * Math.min(1, pull * dt);
   moveCell(cur, dx, dy);
   const e = c.phase === 'eat' ? ease(c.t) : c.phase === 'strike' || c.phase === 'hold' ? 0 : 1;
+  C.death = c.phase === 'die' ? c.t : DYING.includes(c.phase) ? 1 : 0;
   C.drain = 0.1 + 0.8 * e;
-  body.A0 = FC.A0 * (1 - 0.55 * e);
+  body.A0 = FC.A0 * (1 - 0.5 * e - 0.1 * C.death);
+}
+// --- harm, made visible ------------------------------------------------------------
+// Whatever hurts the cell shows where it comes from: a stain seeping into the
+// cytoplasm from the contact (yellow-green from a fungus, rust-brown from Chaos's
+// digestion) and a tremor of the membrane there. Stuck on a trap hypha: a stain
+// creeping in from each glued spot, growing towards the 8 s mark, and the glued
+// membrane shivers. Caught: the haustoria's stain spreads with the drain until it
+// fills the cell. Engulfed by Chaos: its digestion seeps in from Chaos's side.
+// Torn free: the bitten spots stay stained for a few seconds. Dying: the cell
+// goes slack and breaks up, its granules drifting off and fading (C.death); the
+// fresh cell gathers itself up from scattered granules (C.reform).
+const TINT_FUNGUS = [0.3, 0.07, 0.68], TINT_CHAOS = [0.12, 0.36, 0.78];
+function harmOf(c) {
+  const b = c.body, s = c.s, F = c.FC;
+  const h = (c.harmBuf ||= { stains: [], shock: [], tint: TINT_FUNGUS, death: 0, scatter: 0, gran: 1 });
+  h.stains.length = 0; h.shock.length = 0; h.tint = TINT_FUNGUS;
+  const at = (i) => [b.x[i], b.y[i]];
+  const stain = (i, reach, str) => { if (h.stains.length < 3 && i != null) h.stains.push([...at(i), reach, str]); };
+  const shock = (i, amp) => { if (h.shock.length < 4 && i != null) h.shock.push([...at(i), amp]); };
+  const R = b.req;
+  if (c.caught.active && F.by === 'chaos') {
+    h.tint = TINT_CHAOS;
+    const i = nodeNear(b, chaos.body.cx, chaos.body.cy);
+    const k = F.phase === 'strike' ? 0.25 : F.phase === 'hold' ? 0.45 : 0.6 + 0.4 * (s.drain || 0);
+    stain(i, 60 + 2.6 * R * k, 0.5 + 0.5 * k);
+    if (F.phase === 'strike' || F.phase === 'hold') shock(i, 0.8);
+  } else if (c.caught.active) {
+    const dr = s.drain || 0;
+    for (const i of F.nodes || []) { stain(i, 60 + 2.4 * R * Math.min(1, dr * 1.15), 0.6 + 0.4 * dr); if (!DYING.includes(F.phase)) shock(i, 1 - 0.5 * dr); }
+  } else if (s.stuckN) {
+    const k = Math.min(1, s.stuckT / 8);
+    for (const i of s.stuckAt) { stain(i, 25 + 75 * k, 0.3 + 0.45 * k); shock(i, 0.7 + 0.3 * k); }
+  }
+  for (const q of s.bites) { if (q.chaos) h.tint = TINT_CHAOS; stain(q.i, 60 + 40 * q.t, q.s * (1 - q.t / 5)); }
+  if (s.reform > 0) { h.death = s.reform; h.scatter = ease(s.reform); h.gran = 1 - 0.85 * s.reform; }
+  else { h.death = s.death; h.scatter = ease(s.death); h.gran = 1 - 0.9 * ease(s.death); }
+  return h;
+}
+/** Per step: bites fade, a fresh cell finishes gathering itself up. */
+function stepHarm(dt) {
+  for (const q of C.bites) q.t += dt;
+  if (C.bites.length && C.bites[0].t > 5) C.bites = C.bites.filter((q) => q.t <= 5);
+  if (C.reform > 0 && !caught.active) C.reform = Math.max(0, C.reform - dt / 1.3);
 }
 /** The end of a catch (the screen is black): a fresh amoeba, beside a teammate or alone at a safe spot. */
 function captureRespawn(c) {
@@ -414,8 +472,8 @@ function captureRespawn(c) {
     Object.assign(c.R, newRoles());
     makeBody(c, best[0], best[1]);
     S.camX = best[0]; S.camY = best[1];
-    hud.toast('A fresh amoeba, on calm glass near where you were', 3000);
   }
+  c.s.reform = 1; // the fresh cell gathers itself up (granules drawing together)
   use(k === c ? c : k || cells[0]);
 }
 /**
@@ -667,7 +725,8 @@ function rawInput() {
 const IDLE = { ls: NONE, rs: NONE, lt: 0, rt: 0, lb: 0, rb: 0, lsc: false, rsc: false };
 function readInput() {
   // caught by the fungus: the cell no longer answers the sticks (only a surge, A, in the strike or hold)
-  const r = caught.active || outro ? IDLE : rawInput();
+  // Caught, the cell still answers (struggle, surge, stiffen) until it dies.
+  const r = dying() || outro ? IDLE : rawInput();
   if (S.scheme === 'classic') {
     const pods = [r.ls, r.rs];
     // A surge with no stick held goes along the cell's heading.
@@ -1239,6 +1298,9 @@ function stickToTraps(dt, traps) {
   }
   if (n && !C.stuckN) { hud.toast(who() + 'Caught on a fungal trap hypha: surge (A) to tear free'); rumble(250, 0.4, 0.6); }
   C.stuckN = free ? 0 : n;
+  // where it is glued (up to three spots along the stuck membrane), for the stain and the tremor
+  C.stuckAt.length = 0;
+  if (C.stuckN) for (let k = 0; k < 3; k++) { const i = stuckIdx[Math.floor(((k + 0.5) / 3) * stuckIdx.length)]; if (i !== undefined && !C.stuckAt.includes(i)) C.stuckAt.push(i); }
   C.stuckT = C.stuckN ? C.stuckT + dt : Math.max(0, C.stuckT - dt * 2);
   if (C.stuckT > 8 && !caught.active) {
     // stuck too long: haustoria grow in where the membrane is glued (the catch sequence)
@@ -1328,6 +1390,7 @@ function simStep(dt, granules = true) {
     }
     body.opts.boost = sk; C.surgeK = sk;
     stepCatch(dt);
+    stepHarm(dt);
     if (traps.length) { trapX.set(body.x); trapY.set(body.y); }
     body.step(adt, input, othersAsCircles(nearCol(c), c));
     if (body.turned) cyto.rotateAbout(body.cx, body.cy, body.turned); // the contents turn with the cell
@@ -1434,7 +1497,7 @@ function startEngulf(c) {
   if (C.closing) cancelClose();
   FC.by = 'chaos'; FC.phase = 'strike'; FC.A0 = body.A0; FC.pts = [{ x: chaos.body.cx, y: chaos.body.cy }];
   c.lastChaos = { x: chaos.body.cx, y: chaos.body.cy };
-  caught.start({ by: 'Chaos', how: 'cupped you and engulfed you whole' });
+  caught.start({ by: 'Engulfed by Chaos', phases: CATCH_PHASES });
   embed.captured({ by: 'Chaos', player: c.slot });
   audio.play('amoeba/engulf', { volume: 1, rate: 0.55 });
   rumble(500, 0.8, 0.9);
@@ -1569,7 +1632,7 @@ function respawnCell(c) {
   makeBody(c, x, y);
   use(c);
   const m = cells.find((o) => o !== c);
-  hud.toast(`${c.p.name}: a fresh amoeba${m ? ` beside ${m.p.name}` : ''}`, 2600);
+  hud.toast(`${c.p.name}: back${m ? ` beside ${m.p.name}` : ''}`, 1800);
 }
 
 /**
@@ -2160,7 +2223,7 @@ function frame(now) {
     for (const c of cells) {
       if (c.p.waiting) continue;
       use(c);
-      const fight = !caught.active || FC.phase === 'strike' || FC.phase === 'hold';
+      const fight = !caught.active || FC.phase === 'strike' || FC.phase === 'hold' || (FC.phase === 'eat' && FC.by !== 'chaos');
       if (fight && pressed(BTN.A) && surge.trigger()) { audio.play('amoeba/boost', { volume: 0.9 }); rumble(220, 0.3, 0.5); if (C.stuckN && !caught.active) hud.toast(`${who()}Surge: torn free of the trap`); }
       const threat = caught.active ? null : threatTrap(c);
       if (!caught.active && pressed(BTN.X) && !C.closing) {
@@ -2212,7 +2275,7 @@ function frame(now) {
   const solo = cells.length === 1;
   const lift = 0;
   let tx, ty;
-  const watching = solo && caught.active && ['eat', 'follow', 'fadeOut'].includes(FC.phase) && FC.pts[0];
+  const watching = solo && caught.active && ['eat', 'die', 'fadeOut'].includes(FC.phase) && FC.pts[0];
   if (watching) { tx = (body.cx + FC.pts[0].x) / 2; ty = (body.cy + FC.pts[0].y) / 2; }
   else if (solo) { tx = body.cx + body.fx * 60 * Math.min(1, body.fm); ty = body.cy + body.fy * 60 * Math.min(1, body.fm) - lift; }
   else { tx = 0; ty = 0; for (const c of cells) { tx += c.body.cx; ty += c.body.cy; } tx /= cells.length; ty /= cells.length; }
@@ -2251,7 +2314,7 @@ const pull = { k: 1 };
 const fieldWidth = () => {
   if (outro && outro.cam) { groupZoom.applied = 1; return poseView(outro.cam).w; }
   if (introHeld()) { groupZoom.applied = 1; return introView().w; }
-  const want = cells.length === 1 && caught.active && ['eat', 'follow', 'fadeOut'].includes(FC.phase) ? 1.45 : 1;
+  const want = cells.length === 1 && caught.active && ['eat', 'die', 'fadeOut'].includes(FC.phase) ? 1.45 : 1;
   pull.k += (want - pull.k) * 0.04;
   // several players in one view: the split screen's zoom-out (a wider field)
   // keeps them all in it; the screen splits only once it is at its widest
@@ -2261,7 +2324,7 @@ const fieldWidth = () => {
 /** Draw every view (one, straight to the screen, while the players are together), then the overlays. */
 function renderAll(dt) {
   const fieldW = fieldWidth();
-  for (const c of cells) { c.layer.drain = c.s.drain || 0; const q = (c.pos ||= { x: 0, y: 0, z: 0 }); q.x = c.body.cx; q.y = c.body.cy; }
+  for (const c of cells) { c.layer.drain = c.s.drain || 0; c.layer.harm = harmOf(c); const q = (c.pos ||= { x: 0, y: 0, z: 0 }); q.x = c.body.cx; q.y = c.body.cy; }
   view.bodyMat.uniforms.uDrain.value = cells[0].s.drain || 0;
   split.update(cells.map((c) => ({ slot: c.slot, position: c.pos })), { center: { x: S.camX, y: S.camY }, pxPerUnit: innerWidth / fieldW, yUp: true, zoom: groupZoom.applied }, dt);
   groupZoom.z = split.zoom;
@@ -2496,6 +2559,8 @@ window.__micro = {
     return { sel: c.R.sel, adj: c.R.adj, mode: c.R.mode, move: c.R.move, round: +b.roundK.toFixed(3), list: podList(b).map((p) => ({ k: p.k, deg: Math.round(p.a / DEG), y: Math.round(p.y - b.cy), idle: p.idle, s: +b.pods[p.k].s.toFixed(2), screen: toScreen(b.x[b.pods[p.k].tip], b.y[b.pods[p.k].tip], c.slot).map(Math.round) })) };
   },
   rolesText, fragments,
+  /** Harm drawn on player `slot`'s cell now: { stains: [[x, y, reach, strength]], shock, tint, death, scatter, gran }. */
+  harm(slot = 0) { const c = cellOf(slot); const h = harmOf(c); return { ...h, stains: h.stains.map((q) => q.slice()), shock: h.shock.map((q) => q.slice()) }; },
   /** 'select' (default), 'lead' or 'classic'. */
   scheme(v) { features.set('scheme', SCHEMES[Math.max(0, SCHEME_IDS.indexOf(v))]); },
   /** Test hook: cut the neck between ring nodes i and j as a hypha would (pinch-off demo). */

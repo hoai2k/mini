@@ -45,12 +45,20 @@ uniform vec3 uUroid; uniform float uFlat, uTime, uDrain;
 uniform vec4 uTint; // local multiplayer: the player's colour as a faint optical density (rgb), strength (a)
 uniform vec3 uVarE, uVarV; // the player's variety: extra optical density of the endoplasm and of the food vacuoles (zero for player 1)
 uniform vec4 uLook; // x: extra olive endoplasm (Chaos), y: clear rim width scale, z: granular texture contrast
+// Harm: up to three stains seeping in from where something hurts the cell (x, y µm, reach µm,
+// strength), their colour as optical density, and uHarm.x: dying (0..1: the cell breaks up).
+uniform vec4 uStain[3]; uniform vec3 uStainC; uniform vec2 uHarm;
 varying vec2 vW;
 void main() {
   float m = dot(texture2D(uMask, gl_FragCoord.xy / uRes), uChan);
   if (m < 0.004) discard;
   vec2 g = (vW - uGrid.xy) / uGrid.z;
   float d = texture2D(uSdf, g).r * 63.75;     // distance from the membrane, µm
+  // Dying (or re-forming): the cell breaks up into patches from the membrane inward.
+  if (uHarm.x > 0.001) {
+    float nb = fbm(vW * 0.022 + 5.3) + 0.3 * smoothstep(0., 70., d);
+    if (nb < uHarm.x * 1.45 - 0.12) discard;
+  }
   // Thickness: a dome rising from the edge (A. proteus is roughly 30–50 µm thick).
   float h = sqrt(clamp(d / 46., 0., 1.));
   h = max(h, 0.11) * uFlat;
@@ -106,8 +114,21 @@ void main() {
   od += u * endo * vec3(0.11, 0.12, 0.16) * (0.6 + 0.8 * fbm(vW * 0.08));
   od += uDrain * (0.35 + endo) * vec3(0.55, 0.47, 0.32) * (0.7 + 0.6 * fbm(vW * 0.05));
   phase += uDrain * 0.25 * endo;
+  // Poison seeping in from each contact: a mottled stain spreading inward, a darker front.
+  float st = 0., fr = 0.;
+  for (int i = 0; i < 3; i++) {
+    vec4 s = uStain[i];
+    if (s.w <= 0.) continue;
+    float dd = distance(vW, s.xy);
+    float reach = s.z * (0.7 + 0.6 * fbm(vW * 0.035 + float(i) * 3.7 + uTime * 0.05));
+    st += s.w * (1. - smoothstep(reach * 0.3, reach, dd));
+    fr += s.w * exp(-pow((dd - reach * 0.8) / 9., 2.));
+  }
+  st = clamp(st, 0., 1.);
+  od += (st * (0.55 + 0.5 * fbm(vW * 0.09 - uTime * 0.1)) + 0.5 * clamp(fr, 0., 1.) * st) * uStainC * (0.45 + h);
+  phase += st * 0.12 * h;
   od += uTint.a * uTint.rgb * (0.45 + 0.55 * (1. - endo)) * min(1., h * 3.);
-  gl_FragColor = vec4(phase, od) * m;
+  gl_FragColor = vec4(phase, od) * m * (1. - 0.5 * uHarm.x);
 }`;
 
 // --- granules and crystals (THREE.Points) ------------------------------------
@@ -124,7 +145,7 @@ void main() {
 }`;
 
 export const GRAN_FS = /* glsl */ `
-uniform float uTime;
+uniform float uTime, uAlpha;
 varying vec3 vInfo; varying float vPS; varying float vR;
 void main() {
   vec2 q = (gl_PointCoord - 0.5) * vPS;
@@ -147,7 +168,7 @@ void main() {
   else if (k < 3.5) { ph = 0.3 * sph; od = vec3(0.02, 0.04, 0.12) * edge; }
   else if (k < 4.5) { ph = 0.18 * sph; od = vec3(0.95, 0.22, 0.85) * 0.35 * edge; }
   else { ph = 0.15 * sph; od = vec3(0.18, 0.48, 0.36) * 0.55 * edge; }
-  gl_FragColor = vec4(ph * tw, od);
+  gl_FragColor = vec4(ph * tw, od) * uAlpha;
 }`;
 
 // --- prey ---------------------------------------------------------------------

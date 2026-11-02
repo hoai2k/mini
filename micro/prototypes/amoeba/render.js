@@ -146,6 +146,7 @@ export class View {
         uTint: { value: new THREE.Vector4(0, 0, 0, 0) },
         uVarE: { value: new THREE.Vector3() }, uVarV: { value: new THREE.Vector3() },
         uLook: { value: new THREE.Vector4(0, 1, 1, 0) },
+        uStain: { value: Array.from({ length: 3 }, () => new THREE.Vector4()) }, uStainC: { value: new THREE.Vector3() }, uHarm: { value: new THREE.Vector2() },
       },
     });
     c.bodyQuad = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), c.bodyMat);
@@ -158,7 +159,7 @@ export class View {
     c.granGeo = new THREE.BufferGeometry();
     c.granGeo.setAttribute('position', new THREE.BufferAttribute(c.granPos, 3));
     c.granGeo.setAttribute('aInfo', new THREE.BufferAttribute(info, 3));
-    c.granMat = propertyMaterial({ vertexShader: GRAN_VS, fragmentShader: GRAN_FS, uniforms: { uPx: { value: 1 }, uTime: { value: 0 } } });
+    c.granMat = propertyMaterial({ vertexShader: GRAN_VS, fragmentShader: GRAN_FS, uniforms: { uPx: { value: 1 }, uTime: { value: 0 }, uAlpha: { value: 1 } } });
     c.points = new THREE.Points(c.granGeo, c.granMat);
     c.points.frustumCulled = false;
     c.scene.add(c.points);
@@ -376,7 +377,7 @@ export class View {
 
   /** The mask outline: Catmull-Rom subdivided with the uroid wrinkles (smooth) or straight. */
   fillContour(time, smooth, c = this.cells[0]) {
-    const b = c.body, x = b.x, y = b.y;
+    const b = c.body, x = b.x, y = b.y, hm = c.harm;
     const pos = c.maskPos, ct = c.contour;
     let k = 0;
     for (let i = 0; i < N; i++) {
@@ -389,6 +390,16 @@ export class View {
           py = catmull(y[i0], y[i], y[i2], y[i3], t, t2, t3);
         } else {
           px = x[i] + (x[i2] - x[i]) * t; py = y[i] + (y[i2] - y[i]) * t;
+        }
+        if (hm && (hm.shock.length || hm.death > 0)) {
+          // Harm: the membrane trembles where it is hurt; dying, it goes slack all round.
+          let f = 0;
+          for (const q of hm.shock) {
+            const dq = (px - q[0]) ** 2 + (py - q[1]) ** 2;
+            if (dq < 3600) f += q[2] * (1 - dq / 3600) * (Math.sin(time * 47 + (i + t) * 1.9) * 2.6 + Math.sin(time * 83 + i * 0.7) * 1.4);
+          }
+          if (hm.death > 0) f += hm.death * (Math.sin((i + t) * 1.3 + time * 1.1) * 7 + Math.sin((i + t) * 3.1 - time * 0.7) * 3);
+          px += b.nx[i] * f; py += b.ny[i] * f;
         }
         if (smooth && this.flags.wrinkle) {
           // The uroid is crumpled: small folds near the rear.
@@ -497,9 +508,23 @@ export class View {
       A[o].set(v.x, v.y, v.rx, v.ry); B[o].set(2, v.ang, 1 - 0.7 * v.digest, 0); o++;
     }
     bu.uOrgN.value = o;
+    // Harm (main.js sets c.harm): stains, their colour, dying; granules scattering as it breaks up.
+    const hm = c.harm;
+    for (let k = 0; k < 3; k++) { const q = hm && hm.stains[k]; if (q) bu.uStain.value[k].set(q[0], q[1], q[2], q[3]); else bu.uStain.value[k].set(0, 0, 0, 0); }
+    if (hm) bu.uStainC.value.set(hm.tint[0], hm.tint[1], hm.tint[2]);
+    bu.uHarm.value.set(hm ? hm.death : 0, 0);
+    const sc = hm ? hm.scatter : 0;
+    c.granMat.uniforms.uAlpha.value = hm ? hm.gran : 1;
     const n = Math.min(cyto.n, granuleCount);
     const gp = c.granPos;
-    for (let i = 0; i < n; i++) { gp[i * 3] = cyto.px[i]; gp[i * 3 + 1] = cyto.py[i]; }
+    if (sc > 0) {
+      // breaking up (or gathering again): each granule drifts out from the centre, some further
+      for (let i = 0; i < n; i++) {
+        const ex = cyto.px[i] - b.cx, ey = cyto.py[i] - b.cy, l = Math.sqrt(ex * ex + ey * ey) || 1, sd = cyto.seed[i];
+        const r = sc * (40 + 260 * sd * sd) * (0.5 + l / 300), w = sc * 25 * Math.sin(sd * 40 + time * 0.8);
+        gp[i * 3] = cyto.px[i] + (ex / l) * r - (ey / l) * w; gp[i * 3 + 1] = cyto.py[i] + (ey / l) * r + (ex / l) * w;
+      }
+    } else for (let i = 0; i < n; i++) { gp[i * 3] = cyto.px[i]; gp[i * 3 + 1] = cyto.py[i]; }
     c.granGeo.attributes.position.needsUpdate = true;
     c.granGeo.setDrawRange(0, n);
     c.points.visible = this.flags.granules;
