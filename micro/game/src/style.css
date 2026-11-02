@@ -217,6 +217,7 @@ button { font: inherit; color: inherit; }
 .ghost { pointer-events: none; }
 #menu, #intro { isolation: isolate; } /* the menu's raised parts stay under the intro drawn over it */
 #intro.tx { background: transparent; }
+#intro.begin { z-index: 8; } /* Begin: the intro slides off over the world, its HUD and its loading veil */
 
 /* The card-to-intro zoom (only when the card and the intro share an image). */
 .zoomer { position: fixed; inset: 0; z-index: 30; pointer-events: none; overflow: hidden; }

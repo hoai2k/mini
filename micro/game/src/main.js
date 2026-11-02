@@ -406,7 +406,18 @@ function ghost(id) {
   return () => { el.classList.remove('ghost'); el.hidden = S.screen !== id; };
 }
 const SLIDE = { duration: 560, easing: 'cubic-bezier(.3,.15,.15,1)', fill: 'both' };
+const SLIDE_OUT = { duration: 460, easing: 'cubic-bezier(.45,0,.6,1)', fill: 'both' };
 const settle = (anims) => Promise.all(anims.map((a) => a.finished.catch(() => {})));
+/** The intro's panel leaving to the left and its plate to the right (back to the tray, and into the world). */
+function slideIntroOff(intro) {
+  const art = $('.intro-art', intro), shade = $('.intro-shade', intro), panel = $('.intro-panel', intro);
+  for (const a of art.getAnimations()) if (!(a instanceof CSSAnimation)) a.cancel(); // a late plate still sliding in
+  return [
+    panel.animate([{ opacity: 1, translate: '0 0' }, { opacity: 1, offset: 0.6 }, { opacity: 0, translate: 'calc(-100% - 48px) 0' }], SLIDE_OUT),
+    art.animate([{ opacity: 1, translate: '0 0' }, { opacity: 1, offset: 0.45 }, { opacity: 0, translate: '38% 0' }], SLIDE_OUT),
+    shade.animate([{ opacity: 1 }, { opacity: 0 }], { ...SLIDE_OUT, easing: 'ease-in' }),
+  ];
+}
 async function openIntro() {
   if (S.zooming) return;
   const w = WORLDS[S.sel];
@@ -492,21 +503,13 @@ async function closeIntro() {
   sound.back();
   goMenu();
   const intro = $('#intro'), menu = $('#menu');
-  const art = $('.intro-art', intro), shade = $('.intro-shade', intro), panel = $('.intro-panel', intro);
-  for (const a of art.getAnimations()) if (!(a instanceof CSSAnimation)) a.cancel(); // a late plate still sliding in
   const unghost = ghost('intro');
   intro.classList.add('tx');
   S.zooming = true;
-  const out = { duration: 460, easing: 'cubic-bezier(.45,0,.6,1)', fill: 'both' };
   const anims = reduced()
     ? [intro.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: 'both' }),
       menu.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, delay: 120, easing: 'ease-out', fill: 'both' })]
-    : [
-      panel.animate([{ opacity: 1, translate: '0 0' }, { opacity: 1, offset: 0.6 }, { opacity: 0, translate: 'calc(-100% - 48px) 0' }], out),
-      art.animate([{ opacity: 1, translate: '0 0' }, { opacity: 1, offset: 0.45 }, { opacity: 0, translate: '38% 0' }], out),
-      shade.animate([{ opacity: 1 }, { opacity: 0 }], { ...out, easing: 'ease-in' }),
-      menu.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380, delay: 200, easing: 'ease-out', fill: 'both' }),
-    ];
+    : [...slideIntroOff(intro), menu.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380, delay: 200, easing: 'ease-out', fill: 'both' })];
   await settle(anims);
   for (const a of anims) a.cancel();
   unghost();
@@ -665,12 +668,48 @@ function dedupe(kind) {
   return true;
 }
 
+/**
+ * Begin: the intro's panel slides off to the left and its plate to the right
+ * (as going back does) over a dark backdrop, and the world (preloaded behind
+ * the intro, held on its first frames) fades in underneath; it runs once the
+ * reveal ends. A world not ready yet is revealed as its loading veil, which
+ * fades into the world when it is (worldReady). Reduced motion: a crossfade.
+ * Input is ignored meanwhile, and the world never sees the Begin press
+ * (resumeFrame waits for every button to be released).
+ */
 async function beginPlay() {
+  if (S.zooming || S.screen !== 'intro') return;
   sound.select();
   S.board = 0;
   closeAllModals();
+  const intro = $('#intro');
   show('play');
-  await loadWorld(S.sel, { first: true });
+  const unghost = ghost('intro');
+  intro.classList.add('tx', 'begin');
+  S.zooming = true;
+  S.transitioning = true; // holds the world (and the controls card) until the reveal ends
+  const ready = loadWorld(S.sel, { first: true });
+  const f = S.frame, veil = $('#veil');
+  f.style.transition = 'none'; // the reveal's own fade, not the frame's CSS one
+  const rm = reduced();
+  const fadeIn = rm ? { duration: 320, delay: 80, easing: 'ease-out', fill: 'both' } : { duration: 520, delay: 150, easing: 'ease-out', fill: 'both' };
+  const anims = rm ? [intro.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, easing: 'ease-in', fill: 'both' })] : slideIntroOff(intro);
+  // the world fades in from the dark backdrop; a world still loading shows its veil instead
+  if (veil.hidden) anims.push(f.animate([{ opacity: 0 }, { opacity: 1 }], fadeIn));
+  anims.push($('#play .play-hud').animate([{ opacity: 0 }, { opacity: 1 }], fadeIn));
+  await settle(anims);
+  for (const a of anims) a.cancel();
+  f.style.transition = '';
+  unghost();
+  intro.classList.remove('tx', 'begin');
+  S.zooming = false;
+  S.transitioning = false;
+  if (document.hidden) pause('Paused while the tab was hidden.');
+  if (S.frame === f && S.screen === 'play' && !S.loading) {
+    if (S.pendingCard) { showControlsCard(8); S.pendingCard = false; S.cardBoard = S.board; }
+    if (!S.paused && S.modals.length === 0) resumeFrame();
+  }
+  await ready;
 }
 
 function pause(reason = '') {
