@@ -653,6 +653,7 @@ export class Mission {
     const boss = new Boss(g, resolveBoss(this.def.boss) ?? 'minotaur', pos, this.def.level ?? this.def.difficulty);
     g.scene.add(boss.object); g.enemies.push(boss);
     this.boss = boss; g.rig.subject = boss;   // (the camera keeps it in frame: camera.js)
+    boss.ach = { boss: boss.id, stuck: 0, sleepyHits: 0, stoned: 0, tipped: false, inSea: false, heroesHit: false };   // the fight's tally, for achievements
     g.rig.cinematic({ center: pos.clone().setY(pos.y + 2), dur: 3, dist: 14, pitch: 32 * Math.PI / 180, orbit: 0.12 });
     g.targetDof = 0.25; setTimeout(() => { g.targetDof = 0; }, 2800);
     if (!holdTitle) toast(boss.B.title, 'title boss');
@@ -662,6 +663,7 @@ export class Mission {
     this.updateText();
   }
   onBossKilled(boss) {
+    this.game.achievements?.bossDown(boss.ach);
     const g = this.game;
     // the drachma fountain comes with the boss's loot (main.js bossLoot, design/loot-design.md §5.3: t = 1.2 s)
     // (a resumed chapter replays this without a boss: no second reward)

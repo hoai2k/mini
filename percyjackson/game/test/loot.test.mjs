@@ -77,7 +77,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import * as P from '../js/progression.js';
 import { RARITY, BOONS, BOSS_SIGNATURE, ITEM_BY_ID, PLACE_TAGS, SALVAGE, itemTier, itemStrength, salvageValue, temperCost, rerollCost, reforgeCost, reforge, reforgeTarget, isOutdated, rollBoons, rollBossLoot, rollChapterReward, applyPity, signatureDue, recordSignature, signatureKey, rollTierFor } from '../js/loot.js';
 import { normalizeData, freshData } from '../js/save.js';
-import { ICON_CELL, ICON_SHEETS } from '../js/ui/icons.js';
+import { ICON_CELL, ICON_SHEETS, ALL_SHEETS } from '../js/ui/icons.js';
 import { CHAPTERS } from '../js/story/chapters.js';
 import { t } from '../js/text_config.js';
 import { hitEffects } from '../js/gearEffects.js';
@@ -253,7 +253,7 @@ test('the 16 new items (68 → 84): valid, with text, tags, icon cells and their
   assert.equal(cells.length, ITEMS.length); assert.equal(new Set(cells).size, ITEMS.length);
   // assets/icons.json names exactly the sheets delivered to game/assets (so the game never asks for a missing one)
   const listed = JSON.parse(readFileSync(new URL('../assets/icons.json', import.meta.url), 'utf8')).sheets;
-  const there = Object.keys(ICON_SHEETS).filter((s) => existsSync(new URL(`../assets/${s}.png`, import.meta.url)));
+  const there = Object.keys(ALL_SHEETS).filter((s) => existsSync(new URL(`../assets/${s}.png`, import.meta.url)));
   assert.deepEqual([...listed].sort(), there.sort(), 'assets/icons.json lists the delivered icon sheets');
 });
 

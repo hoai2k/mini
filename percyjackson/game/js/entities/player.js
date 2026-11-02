@@ -121,6 +121,7 @@ export class Player {
     const dmg = amount * (o.pure ? 1 : (1 - this.stats.armor)) * (g.difficultyDamageDealt ?? 1) * (this.barrierT > 0 ? 0.5 : 1);
     this.hp -= dmg;
     this.hurtT = 0.12;
+    if (dmg > 0 && !this.ai) { const b = g.mission?.boss; if (b?.ach && !b.dead) b.ach.heroesHit = true; }   // (achievements: Achilles Who?)
     this.rig.swap(g.flashMaterial);
     if (o.knock && !o.noKnock) { this.knock = (this.knock || new THREE.Vector3()).add(o.knock); }
     if (!o.dot) {
@@ -141,6 +142,7 @@ export class Player {
     const g = this.game;
     if (this.battleSense < 1 || settings.battleSense === false || this.ai) return;
     this.battleSense = 0;
+    g.achievements?.count('battleSense', this);
     g.battleSense(2.2);
     g.fx.flash?.(0xffd84a, 0.22, 0.25);
     g.fx.screenWave?.(this.pos.clone().setY(this.pos.y + 1), 0.6, 0.4);
@@ -158,7 +160,7 @@ export class Player {
     this.domainActive = false;
     g.audio?.enemyDie(true);
   }
-  revive(frac = 0.4) { this.downed = false; this.dead = false; this.hp = this.maxHp * frac; this.iframes = 2; this.action = null; this.game.fx.heal(this.pos); this.game.audio?.energy('heal'); }
+  revive(frac = 0.4) { if (this.downed && !this.dead) this.game.achievements?.count('revived', this); this.downed = false; this.dead = false; this.hp = this.maxHp * frac; this.iframes = 2; this.action = null; this.game.fx.heal(this.pos); this.game.audio?.energy('heal'); }
   // the flask's state, read by the HUD, companions and the playthrough bot
   get flaskLeft() { return this.flask.left; }
   get ammo() { return this.quiver.ammo; }
@@ -169,6 +171,7 @@ export class Player {
     if (!canDrink(this.flask, this.hp, this.maxHp)) return;
     const r = this.healOverTime;   // (on top of a heal still running: the Nectar Flask)
     this.healOverTime = { left: (r?.left ?? 0) + drink(this.flask, this.maxHp, this.stats), t: Math.max(FLASK.dur, r?.t ?? 0) };
+    this.game.achievements?.count('ambrosia', this);
     this.game.fx.heal(this.pos, 0x9affd8);
     // Ambrosia Shield: half damage for a moment after a drink
     if (this.procs.barrier) this.barrierT = Math.max(this.barrierT ?? 0, PROC.barrierFor(this.procs.barrier));
@@ -246,7 +249,9 @@ export class Player {
     if (this.inLiquid) return;
     const at = this.pos.clone(); at.y += 0.3;
     const dmg = SLAM.dmg * (this.stats.meleeMult ?? 1) * (this.stats.damage ?? 1);
+    const before = g.enemies.filter((e) => !e.dead && !e.isDummy);
     g.combat.aoe(at, SLAM.radius, dmg, this, { knock: SLAM.knock, stagger: 0.45, melee: true, blocks: true });
+    if (before.filter((e) => e.dead).length >= 3) g.achievements?.grant('gravity', this);   // (three with one slam)
     g.fx.rings?.spawn(at.clone().setY(this.pos.y + 0.08), { color: 0xffe0a0, r1: SLAM.radius, dur: 0.35, thick: 0.3 });
     g.fx.landDust?.(this.pos, 18);
     g.particles?.burst?.(at, { count: 16, color: 0xd8c8a8, speed: 5, up: 1.2, life: 0.5, size: 0.16 });
@@ -451,6 +456,7 @@ export class Player {
   }
   fellOff() {
     const g = this.game;
+    if (!this.ai) g.achievements?.count('fell', this);
     g.fx?.poof(this.pos);
     // An AI companion that steps off a ledge comes back beside the hero it
     // follows, unhurt: its last safe spot is usually the same ledge it walked

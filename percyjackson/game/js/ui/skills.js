@@ -80,7 +80,7 @@ export function openSkills(game, player, { ui = game.ui, embedded = false, onExi
     const reset = inCamp
       ? h('button', { class: 'btn small', 'data-k': 'reset', onclick: () => confirmDialog(game, {
         ui, title: tx('skillsScreen.reset.title'), text: tx('skillsScreen.reset.text', { n: pointsFor(level) }), yes: tx('skillsScreen.reset.yes'), no: tx('skillsScreen.reset.no'),
-        onYes: () => { respec(hero, S, level); pick = -1; changed(); game.audio?.ui('buy'); toast(tx('skillsScreen.reset.done')); redraw('reset'); },
+        onYes: () => { respec(hero, S, level); game.achievements?.count('respecs', player); pick = -1; changed(); game.audio?.ui('buy'); toast(tx('skillsScreen.reset.done')); redraw('reset'); },
       }) }, tx('skillsScreen.reset.button'))
       : h('span', { class: 'hint', style: 'margin:0 8px 0 0' }, tx('skillsScreen.reset.hint'));
     el.appendChild(h('div', { class: 'panel skills-panel' },

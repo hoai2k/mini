@@ -138,6 +138,7 @@ export class ClimbingWall {
     c.fillText(txt('minigames.climb.controlsHold'), W / 2, H - 9);
   }
   finish(won, quit = false) {
+    if (won) this.game.achievements?.grant('hot_hot_hot', this.p);
     if (this.done) return;
     this.done = true;
     cancelAnimationFrame(this.raf);

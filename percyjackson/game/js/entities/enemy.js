@@ -167,6 +167,7 @@ export class Enemy {
     if (!this.disguised || this.dead || this.def.mortal) return false;   // (a real mortal stays a person)
     const g = this.game;
     this.disguised = false; this.untargetable = false;
+    this.game.achievements?.count('reveals');
     this.radius = this.trueRadius; this.height = this.trueHeight;
     if (this.def.projectile) this.cd = Math.max(this.cd, 0.4 + Math.random() * 1.2);   // (shooters seen through the Mist don't all fire the moment True Sight finds them)
     const old = this.object;

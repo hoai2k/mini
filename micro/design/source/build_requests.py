@@ -375,7 +375,7 @@ GROUPS = [
                 "prompt": f"{TILE} Phase-contrast microscope look: mid-grey background, transparent structures dark with bright halos at their edges, colourless. The same pond water at about 2 mm across, out of focus: Spirogyra filaments continuing across the edges, detritus flocs, diatoms and a few small clusters of stalked Vorticella, spread evenly. No Paramecium. {SCIENCE}",
             },
             {
-                "id": "MP-P06", "status": "requested", "name": "Paramecium bursaria, darkfield, top down (body sprite)",
+                "id": "MP-P06", "status": "delivered", "name": "Paramecium bursaria, darkfield, top down (body sprite)",
                 "file": "assets/paramecium/bursaria-darkfield.webp", "size": "1024 x 512, transparent (#FF00FF background), the cell's long axis horizontal, front to the right",
                 "used": "The 2D slide (2026-11-02 redesign): the inside of the player's cell, drawn under its procedural outline, beating cilia fringe, granules and contractile vacuoles, tinted per player's Chlorella shade. The card art (MP-U04) is the target look.",
                 "standin": "Procedural: a faint fill, about 150 Chlorella dots, golden granules, the macronucleus and two star-shaped contractile vacuoles.",
@@ -383,7 +383,7 @@ GROUPS = [
                 "prompt": f"{DARKFIELD} Seen straight down, one Paramecium bursaria about 120 µm long filling the frame, its long axis horizontal with the front to the right: a broad slipper shape with a blunt rounded rear, the oral groove running diagonally from the front edge to the mouth at mid-length on the lower side. A thin luminous pellicle outline in cool white, the inside nearly black but packed with round green Chlorella (3 to 5 µm) and scattered pale-gold granules, a pale oval macronucleus in the middle and two star-shaped contractile vacuoles with radiating canals, one near each end. Draw the cilia only as a very faint short fringe (the game draws its own beating cilia). Flat #FF00FF background outside the cell. {SCIENCE}",
             },
             {
-                "id": "MP-P07", "status": "requested", "name": "Hunters of the pond drop in darkfield (reference sheet)",
+                "id": "MP-P07", "status": "delivered", "name": "Hunters of the pond drop in darkfield (reference sheet)",
                 "file": "assets/reference-sheets/paramecium-hunters-darkfield.webp", "size": "2048 x 2048, opaque",
                 "used": "Modelling the 2D slide's enemies as the card shows its creatures (luminous outlines, golden granules on black): Didinium, Dileptus, Amoeba proteus and the bladderwort trap, each seen straight down.",
                 "standin": "Procedural outlines built from the brightfield sheets (MP-R06 Didinium, MP-R17 Chaos, MP-R18 bladderwort) and anatomy.",
@@ -391,7 +391,7 @@ GROUPS = [
                 "prompt": f"{DARKFIELD} A reference sheet on black with four pond-water organisms, each seen straight down and labelled only by position (no text), at true relative size: Didinium nasutum (about 100 µm, a barrel with a short cone proboscis and two girdles of cilia), Dileptus (about 350 µm, a flask-shaped ciliate drawn out into a long flexible trunk with a row of toxicysts, a bead-chain macronucleus), Amoeba proteus (about 500 µm across, a flowing cell with blunt pseudopods, a granular interior glittering gold, a bright clear rim at each advancing tip, a disc nucleus and food vacuoles), and a bladderwort trap (Utricularia, about 1 mm, a translucent green sac with an oval door, branched antennae with bristles and short trigger hairs). Thin luminous outlines in cool white, granules in pale gold, chloroplasts faintly green. {SCIENCE}",
             },
             {
-                "id": "MP-P08", "status": "requested", "name": "World intro plate: the pond drop in darkfield (2D slide)",
+                "id": "MP-P08", "status": "delivered", "name": "World intro plate: the pond drop in darkfield (2D slide)",
                 "file": "assets/game/intro-paramecium-darkfield.webp", "size": "2560 x 1440, opaque",
                 "used": "A replacement for the Hollow Pool intro plate (MP-G11, a brightfield 3D scene) to match the 2D darkfield slide the world now is and its card (MP-U04); the shell switches to it once delivered.",
                 "standin": "MP-G11.",
