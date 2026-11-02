@@ -168,6 +168,7 @@ function openModal(id) {
   el.hidden = false;
   if (id === 'settings') renderSettings();
   if (id === 'instructions') renderInstructions();
+  if (id === 'credits') renderCredits();
   input.lockHeld();
   focusFirst(el);
 }
@@ -950,6 +951,7 @@ function settingItems() {
       try { localStorage.setItem('micro.portalArrow', on ? '1' : '0'); } catch { /* private mode */ }
     } },
     { id: 'fullscreen', label: t('shell.settings.fullscreen'), get: () => !!fsEl(), toggle: () => { toggleFullscreen(); setTimeout(renderSettings, 250); } },
+    { id: 'credits', label: t('shell.credits.settingsItem'), action: '›', run: () => openModal('credits') },
   ];
   if (S.screen === 'play' && S.frame && !S.loading) {
     items.push({ id: 'dev', label: t('shell.settings.worldFeatures'), dev: true, about: t('shell.settings.worldFeaturesAbout'), action: t('shell.settings.open'), run: openDevPanel });
@@ -980,7 +982,8 @@ function renderSettings() {
     });
     list.appendChild(b);
   }
-  if (keep) setFocus($(`[data-setting="${keep}"]`, list)); else if (S.modals[S.modals.length - 1] === 'settings') setFocus(list.firstChild);
+  // Only while Settings is on top: Credits opens over it and keeps the focus.
+  if (S.modals[S.modals.length - 1] === 'settings') setFocus((keep && $(`[data-setting="${keep}"]`, list)) || list.firstChild);
 }
 function activateSetting(it, dir) {
   if (it.slider || it.choices) it.step(dir);
@@ -1015,6 +1018,18 @@ function openDevPanel() {
 }
 
 // ---------------------------------------------------------------- instructions
+// ---------------------------------------------------------------- credits
+function renderCredits() {
+  const rows = (list) => list.map(([a, b]) => `<li><span>${a}</span>${b ? `<span>${b}</span>` : ''}</li>`).join('');
+  $('#credits-scroll').innerHTML = `
+    <p class="credits-game">${t('shell.credits.game')}</p>
+    <ul class="credits-list">${rows(tx('shell.credits.roles'))}</ul>
+    <h3>${t('shell.credits.thanksTitle')}</h3>
+    <ul class="credits-list">${rows(tx('shell.credits.thanks'))}</ul>
+    <h3>${t('shell.credits.madeWithTitle')}</h3>
+    <p>${t('shell.credits.madeWith')}</p>
+    <p class="credits-copy">${t('shell.credits.copyright')}</p>`;
+}
 function renderInstructions() {
   const mode = glyphMode();
   const shared = tx('shell.instructions.controls');
@@ -1124,11 +1139,11 @@ function handle(act) {
   }
   if (top === 'pause' && a === 'start') { resume(); return true; }
   if (a === 'escape' || a === 'b') { back(); return true; }
-  if (top === 'instructions' && (a === 'up' || a === 'down')) {
-    const sc = $('#ins-scroll');
+  if ((top === 'instructions' || top === 'credits') && (a === 'up' || a === 'down')) {
+    const sc = $(top === 'instructions' ? '#ins-scroll' : '#credits-scroll');
     const before = sc.scrollTop;
     sc.scrollBy({ top: a === 'down' ? 90 : -90, behavior: reduced() ? 'auto' : 'smooth' });
-    if (a === 'down' && Math.ceil(before + sc.clientHeight) >= sc.scrollHeight - 2) setFocus($('#instructions [data-action="close"]'));
+    if (a === 'down' && Math.ceil(before + sc.clientHeight) >= sc.scrollHeight - 2) setFocus($(`#${top} [data-action="close"]`));
     if (a === 'up') setFocus(sc);
     return true;
   }
