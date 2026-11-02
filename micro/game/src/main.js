@@ -691,11 +691,17 @@ async function beginPlay() {
   const ready = loadWorld(S.sel, { first: true });
   const f = S.frame, veil = $('#veil');
   f.style.transition = 'none'; // the reveal's own fade, not the frame's CSS one
+  // the preloaded world drew only its first frames (maybe before its art arrived): let it draw a few more, still paused
+  send(f, 'redraw', { frames: 4 });
   const rm = reduced();
   const fadeIn = rm ? { duration: 320, delay: 80, easing: 'ease-out', fill: 'both' } : { duration: 520, delay: 150, easing: 'ease-out', fill: 'both' };
   const anims = rm ? [intro.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, easing: 'ease-in', fill: 'both' })] : slideIntroOff(intro);
-  // the world fades in from the dark backdrop; a world still loading shows its veil instead
-  if (veil.hidden) anims.push(f.animate([{ opacity: 0 }, { opacity: 1 }], fadeIn));
+  // The slide reveals the dark backdrop; the world fades in once it is running
+  // (its held first frames show it before it starts, which can differ in colour
+  // from the running world, so revealing those would snap). A world still
+  // loading shows its veil instead.
+  const fadeWorld = veil.hidden;
+  if (fadeWorld) f.style.opacity = '0';
   anims.push($('#play .play-hud').animate([{ opacity: 0 }, { opacity: 1 }], fadeIn));
   await settle(anims);
   for (const a of anims) a.cancel();
@@ -707,7 +713,19 @@ async function beginPlay() {
   if (document.hidden) pause('Paused while the tab was hidden.');
   if (S.frame === f && S.screen === 'play' && !S.loading) {
     if (S.pendingCard) { showControlsCard(8); S.pendingCard = false; S.cardBoard = S.board; }
-    if (!S.paused && S.modals.length === 0) resumeFrame();
+    if (!S.paused && S.modals.length === 0) await resumeFrame();
+  }
+  if (fadeWorld && (S.frame !== f || S.paused || S.screen !== 'play')) f.style.opacity = ''; // not running (paused, left): just show it
+  else if (fadeWorld) {
+    // a frame or two of the running world first, then fade it in
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    await sleep(rm ? 0 : 60);
+    f.style.transition = 'none';
+    const a = f.animate([{ opacity: 0 }, { opacity: 1 }], rm ? { duration: 260, easing: 'ease-out', fill: 'both' } : { duration: 480, easing: 'ease-out', fill: 'both' });
+    await a.finished.catch(() => {});
+    f.style.opacity = '';
+    a.cancel();
+    f.style.transition = '';
   }
   await ready;
 }

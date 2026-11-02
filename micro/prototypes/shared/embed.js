@@ -50,6 +50,10 @@
 // Shell → world
 //   pause                    stop the simulation and the sound.
 //   resume                   carry on.
+//   redraw   {frames}        while paused, draw a few more frames (default 3,
+//                            at most 10), then hold again: a world preloaded
+//                            behind the intro shows the art loaded since its
+//                            first frames before the shell reveals it.
 //   sound     {on, volume}   the game's master sound switch and volume (0..1).
 //   controls  {show, autoHide?}  show or hide the controls panel; autoHide is
 //             seconds after which it hides itself (8 at the start of a board).
@@ -191,7 +195,10 @@ function sendReady() {
 }
 
 // Hold the page's animation frames while paused (see "Pausing" above).
+// `redraw` lets a paused page draw a few frames (e.g. so a world preloaded
+// behind the intro shows the art that has loaded since its first frames).
 let release = () => {};
+let grant = 0;
 if (active) {
   const native = window.requestAnimationFrame.bind(window);
   const nativeCancel = window.cancelAnimationFrame.bind(window);
@@ -199,11 +206,12 @@ if (active) {
   let fake = -1;
   let ran = 0;
   window.requestAnimationFrame = (cb) => {
-    if (paused && ran >= 2) { const id = fake--; held.set(id, cb); return id; }
+    if (paused && ran >= 2 && grant <= 0) { const id = fake--; held.set(id, cb); return id; }
     return native((t) => {
       // A frame already queued when `pause` arrived is held too, so nothing
       // advances after the pause.
-      if (paused && ran >= 2) { held.set(fake--, cb); return; }
+      if (paused && ran >= 2 && grant <= 0) { held.set(fake--, cb); return; }
+      if (paused && ran >= 2) grant--; // a frame granted by `redraw`
       ran++;
       if (ran >= 2) sendReady();
       cb(t);
@@ -223,6 +231,7 @@ if (active) {
     switch (d.type) {
       case 'pause': if (!paused) { paused = true; emit('pause', d); } return;
       case 'resume': if (paused) { paused = false; release(); emit('resume', d); } return;
+      case 'redraw': if (paused) { grant = Math.max(grant, Math.min(10, d.frames || 3)); release(); } return;
       case 'hold':
         holding = true;
         if (paused) { paused = false; release(); }
