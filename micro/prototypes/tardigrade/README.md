@@ -47,9 +47,41 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
   jab (X) at its head bites back: it staggers. Facing it, blocks and jabs wear
   its interest down; at none left it turns and crawls off, then rests. An
   unblocked lunge bites (−25% health); at none, you are caught.
-- **Your moves** (`fightPose` in `main.js`): the attack is a stylet jab with a
-  head thrust (also how every bite starts); defending (B) crouches, head drawn
-  in and down; a block butts its head away; a landed jab recoils a little.
+- **Your moves** (`fightPose`, `startAttack` in `main.js`): X is one attack,
+  the same whether it bites food, pierces a leaf cell, jabs Milnesium or
+  Prionchulus, touches the rotifers or bites at nothing (0.42 s): a **wind-up**
+  (0.08 s: the head draws back and up, the trunk bunches shorter and taller),
+  a **lunge** (the head thrusts forward and down with the trunk stretching
+  after it, the mouth ring opens wide, `pose.gape` ~1.1, and the stylets shoot
+  out past it, `pose.stylet` 1.45), a **snap** at 0.16 s (the ring closes on
+  the stylets) and a **recoil** back to rest. The snap lands an **impact** on
+  the overlay (it reads in every look): a bright burst of rays at Milnesium's
+  or Prionchulus's head, a gold one at the food or the cell, and at nothing (or
+  the rotifers) a small puff of ripples and bubbles in the water film just
+  ahead of the mouth. Fights are still decided on the press, with the same
+  timings as before: the animation is how it reads, not when it counts.
+  Pressing X while feeding spits the food out and plays no attack. Defending
+  (B) crouches, head drawn in and down; a block butts its head away; a landed
+  jab recoils a little.
+- **What you can eat** (`Life.reach`, `REACH` in `life.js`): a food item
+  (alga, diatom, detritus) on the face you stand on, anywhere under the front
+  quarter of the body (the head and the first leg pair: body x ≥ 0.98 of the
+  1.84 to the mouth ring, within 0.6 of the midline) or within 0.42 just ahead
+  of the mouth; the nearest to the mouth is eaten. Food under the middle or
+  back of the body is not. The food X would eat now (`life.target`) is
+  highlighted: a soft green glow and a breathing ring round it with the
+  button (X, or E on the keyboard), and the mouth ring parts a little with the
+  stylets showing (`drawCues`, `fightPose`). With nothing in reach X still
+  attacks, and over a living leaf cell under the mouth it pierces it as
+  before. You keep walking while you feed; walking the item out of reach (the
+  same zone with 0.3 of slack) before it is in the mouth breaks the meal off.
+- **Rumble** is kept for impacts: a bite into food, a jab that lands on
+  Milnesium or Prionchulus, being bitten or stabbed, the scramble, slips,
+  falls (and the claws biting again after a slip), the tun, the predators'
+  wind-ups and the portal. Walking does not rumble: each claw hooking a wall
+  used to knock the controller (45 ms, up to ~8 a second) and each hand-over
+  onto the next leaf kicked it (120 ms), so a steady walk buzzed; both are gone
+  (the footfall sounds stay).
 - **Eating** (`animateEating`): food is drawn to the mouth, through the buccal
   tube and pharynx and into the gut, visible all the way through the
   transparent body. There it slowly shrinks and fades over ~9 s, tinting the
@@ -705,7 +737,7 @@ portal), the rotifer meadows (on), Milnesium wakes (2 s / 10 s / 30 s / off)
 and Milnesium hunger (comes and goes / always / never).
 Motion also has the scramble (fixed) and smoothed trunk and camera (on; off
 is the old single lag).
-Controls: anatomy labels, rumble (claw catch, slips, scramble, bites),
+Controls: anatomy labels, rumble (impacts only: bites, scramble, slips, falls; not walking),
 Invert camera Y (shared by every prototype, off), camera-relative crawl
 (fixed).
 
@@ -839,7 +871,11 @@ full resolution on software GL), plus `players`, `animals`, `split`,
 `layout`, `places` (the landmarks), `landmarks.log` (every landmark and near
 posted), `teleport('forward' | 'back', slot)`, `place(slot, leaf, u, v)`,
 `forceCapture(slot)`, `boss`, `forceBossCapture(slot)`, `captor`, and
-`testStep(dt, stick, { down, pressed })` with button ids. The fight, the eating,
+`testStep(dt, stick, { down, pressed })` with button ids. The attack and the reach were checked in
+Playwright (2026-11-02): food under the front quarter beside the head (body
+x 1.15, z 0.35) is highlighted and eaten on X, food under the middle of the
+body is not, X with nothing plays the attack and a puff, and 10 s of walking
+calls no rumble. The fight, the eating,
 the catches and the boss were checked in Playwright (windup, strike, a block,
 jabs driving Milnesium and Prionchulus off, a diatom visible in the gut
 fading into it, both catches following the predator and respawning). Multiplayer was checked with mocked gamepads in

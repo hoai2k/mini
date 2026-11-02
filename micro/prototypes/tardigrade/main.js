@@ -1379,9 +1379,9 @@ const _fd = new THREE.Vector3(), _off = new THREE.Matrix4(), _rz = new THREE.Mat
  *   attack (X): one move for every bite, at food, a leaf cell, Milnesium or
  *     Prionchulus, or at nothing (startAttack, ATTACK): a wind-up (the head
  *     draws back and up, the trunk bunches), a lunge (the head thrusts forward
- *     and down, the trunk stretching after it, the mouth ring opens wide, the stylets shoot out past it), a
- *     snap (the ring closes on the stylets: the impact), and a recoil back to
- *     rest; 0.42 s in all. The fight is decided on the press, as before: this
+ *     and down, the trunk stretching after it, the mouth ring opens wide, the
+ *     stylets shoot out past it), a snap (the ring closes on the stylets: the
+ *     impact), and a recoil back to rest; 0.42 s in all. The fight is decided on the press, as before: this
  *     is how it reads, not when it counts.
  *   ready: food in reach (life.target): the mouth ring parts a little and the
  *     stylets show, pulsing (with the glow on the food, drawCues).
@@ -1445,13 +1445,13 @@ function fightPose(a, g, dt) {
 
 // ---------------------------------------------------------------- cues
 // The impact of a bite (drawn on the overlay, so it reads in every look):
-// a bright burst at what was hit, a green-gold one at food, and at nothing a
+// a bright burst at what was hit, a softer gold one at food, and at nothing a
 // small puff of ripples in the water film. The food X would eat now
 // (life.target) gets a soft pulsing glow, so where to bite is plain.
 const impacts = [];
 const IMPACT = {
   hit: { life: 0.38, color: '#fff2c8', ring: 0.34, spokes: 8, alpha: 0.95 },
-  food: { life: 0.42, color: '#c8f5a0', ring: 0.24, spokes: 6, alpha: 0.85 },
+  food: { life: 0.42, color: '#fff4c4', ring: 0.28, spokes: 6, alpha: 0.9 },
   touch: { life: 0.36, color: '#d8ecff', ring: 0.2, spokes: 0, alpha: 0.6 },
   puff: { life: 0.4, color: '#d8ecff', ring: 0.16, spokes: 0, alpha: 0.5 },
 };
