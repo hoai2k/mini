@@ -38,12 +38,14 @@ World 6 of the game (`micro/game/`), between the Paramecium and the phage.
 Both landmarks are drawn into the specimen with the same optics as
 everything else (`draw.js`, `landmarks`). A quiet edge mark
 (`shared/landmark.js`, a hollow ring) shows where the way back is when it is
-off screen; there is no arrow to the way on.
+off screen; there is no arrow to the way on unless the Portal arrow setting
+is on (see **The way**).
 
 - **Forward (the portal): a host cell with phages landing on it**, the
-  director's last encounter (see **The way**): placed after every gate has
-  been met, in water nobody has seen, a little ahead of whoever leads, out of
-  view (`placePortal` in `main.js`). The shared golden glow
+  director's last encounter (see **The way**): on the default path from the
+  first frame (sealed until every gate has been met), else placed after every
+  gate has been met, in water nobody has seen, a little ahead of whoever
+  leads, out of view (`placePortal` in `main.js`). The shared golden glow
   (`shared/portal.js` `createPortalGlow`, its ground plane turned to face the
   microscope, drawn over the optics with an orthographic camera; dimmer while
   guarded) and its light spilling in from the screen's edge
@@ -267,9 +269,29 @@ moved, so it cannot hold the game up.
   ~26 s (placed round you, then coming over) and the portal at ~145 s;
   heading out and turning back past the start, nothing is ever placed on
   seen water and no grain or biofilm cell a view has seen ever moves.
-- **No arrow** to the way on: once placed, its golden light spills in from
-  the edge of the view on its side (`createPortalLight`), and haloes it in
-  view.
+- **The default path** (the owner, 2026-11-01: "a default path to a portal,
+  but just dynamically generate the other directions"): on the first frame
+  the director lays the host with Stentor out across the field from the
+  start (`world.js` `DEFAULT_PATH`: 0.25 rad, right and a little up, away
+  from the Paramecium, ~440 µm out), out of sight, so the way on exists from
+  the start. The gates are not laid along it: the field has room for about
+  one break at a rush (5 s at ~45 µm/s plus a gate's ahead range is
+  ~360 µm), and each gate must wait for its break and the army-size hold, so
+  every gate is still placed as you go, with the hold, on the way to the host
+  or wherever you go (`dists` null for them). The host stays sealed (no
+  prompt, its glow shut, no edge light, nothing preloaded; at it: "The
+  host's phages are not ready for you yet: meet the gates first") until
+  every gate is met; Stentor guards it as always. Head off another way and
+  the host, while nobody has seen it, leaves the path and is placed ahead of
+  you after the last gate, as before (one thing: the director's `single`);
+  seen on the path (the field is small), it stays there.
+- **No arrow by default** to the way on: once open, its golden light spills
+  in from the edge of the view on its side (`createPortalLight`), and haloes
+  it in view. With **Portal arrow** on in the game's Settings (default off;
+  `?arrow=1` on this page) each view gets a brass arrow at its edge toward
+  the host, sealed or not, with the distance from the view's nearest flock
+  beside it ("442 µm"). Test hooks: `portalArrow()`, `portals()`,
+  `portalSealed()`, `focus(slot)`.
 
 - **Calm water:** the meadow has no enemy in it (linger there and the next
   encounter comes to you all the same: the owner's rule). The peritrichs'
@@ -528,7 +550,7 @@ pulses are a ring of discs in the existing shape batch (no new draw calls).
 
 ```bash
 node micro/prototypes/bacterium/flock.test.mjs
-node micro/prototypes/bacterium/route.test.mjs   # the director: 16 rushes, the eyepiece field, a small army, lingering, out and back
+node micro/prototypes/bacterium/route.test.mjs   # the director: 16 rushes, the eyepiece field, a small army, lingering, out and back; the default path followed and left
 node micro/prototypes/check.mjs bacterium
 ```
 

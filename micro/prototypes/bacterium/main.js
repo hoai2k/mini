@@ -16,7 +16,7 @@ import { loadTexture } from '../shared/assets.js';
 import { createLightOptics, LOOK_NAMES, psfSigmaUm } from '../shared/techniques/bacterium-fluorescence.js';
 import { createShapes } from '../shared/techniques/bacterium-shapes.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, DIC_MODES } from '../shared/techniques/adapters.js';
-import { createWorld, segDist, WORLD, DIRECTOR, ENCOUNTERS, canPlace } from './world.js';
+import { createWorld, segDist, WORLD, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace } from './world.js';
 import { createDirector } from '../shared/director.js';
 import { createSwimmer, SPECIES } from './swim.js';
 import { createGame, GOAL_PREY } from './game.js';
@@ -26,7 +26,7 @@ import { createOverlay } from './overlay.js';
 import { createCapture, createFight } from '../shared/predation.js';
 import { createPlayers } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
-import { createLandmarks } from '../shared/landmark.js';
+import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
 import { gauss } from './world.js';
 import { createCollectives, COLL, LEVEL_NAMES } from './collective.js';
@@ -186,17 +186,26 @@ const nextNeed = () => (ENCOUNTERS[director.index] || ENCOUNTERS[ENCOUNTERS.leng
 const gateMet = (q) => (h, [p]) => { const c = guards.centre(q); return q.beaten || Math.hypot(p.x - c.x, p.z - c.y) < q.zone + 8; };
 const ENC = { portal: { place: (x, y, b) => placePortal(x, y, b), met: () => false } };
 for (const q of guards.list) if (q.kind !== 'stentor') ENC[q.id] = { place: (x, y, b) => { guards.placeGate(q, x, y, b); return q; }, met: gateMet(q) };
+// The default path (world.js DEFAULT_PATH): the host with Stentor laid out across the field on
+// the first frame, so the way on exists from the start (sealed until every gate is met: portalSealed); the gates
+// are still placed as you go, each after its break and the army-size hold (the field has no room to lay them
+// out with their breaks). Off the bearing the host, while nobody has seen it, leaves the path and is placed
+// ahead of you after the last gate, as before (one thing each: single).
 const director = createDirector({
   ...DIRECTOR,
+  defaultPath: DEFAULT_PATH,
   // encounters also keep clear of the gates already met (still standing where they were)
   canPlace: (x, y, r, o) => canPlace(x, y, r) && guards.list.every((q) => !q.placed || q.id === o.entry.id || Math.hypot(guards.centre(q).x - x, guards.centre(q).y - y) > r * 0.5 + q.zone),
   entries: ENCOUNTERS.map((e, i) => {
-    const o = { ...e, ...ENC[e.id] };
+    const o = { ...e, ...ENC[e.id], single: true };
     // the break before it: longer (up to ARMY_HOLD s) while the leader's army is short of its need
     Object.defineProperty(o, 'calm', { get: () => { const base = (i === 0 ? DIRECTOR.warmup : DIRECTOR.calm).sec; return { sec: base + Math.max(0, Math.min(ARMY_HOLD, e.need - armyOf(leaderP()))) }; } });
     return o;
   }),
 });
+const PORTAL_INDEX = ENCOUNTERS.findIndex((e) => e.final);
+/** The way on exists from the start but stays shut until every earlier encounter is met (the director's order). */
+function portalSealed() { return director.index < PORTAL_INDEX; }
 /** A predator would take player P: the collective gives a member instead (or the slime stops it). */
 function absorbHit(P, kind, who) {
   const from = kind === 'grazer' ? who.pose.mouth : kind === 'stentor' ? who.mouth : kind === 'phage' ? (who.p || who) : who;
@@ -1022,7 +1031,7 @@ function landmarkTick(dt) {
   }
   if (F.placed) {
     if (!lm.hinted && dmin < 160) { lm.hinted = true; }
-    const nearing = dmin < 120;
+    const nearing = !portalSealed() && dmin < 120;
     if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
     if (at && !lm.fired) {
       if (guarded()) {
@@ -1031,12 +1040,17 @@ function landmarkTick(dt) {
         lm.log.push({ kind: 'turnedBack', slot: at.slot, t });
         if (!at.kickT || at.kickT <= 0) { at.kickT = 0.5; at.kickFrom = { x: F.x, y: F.y }; }
         if (!lm.turned || t - (lm.turnedAt ?? -9) > 4) { lm.turned = true; lm.turnedAt = t; hud.toast('Turned back: Stentor\'s current guards the host. Drive Stentor off with your army first', 3200); }
+      } else if (portalSealed()) {
+        // the way on exists from the start (the default path) but opens only once every gate is met
+        lm.fired = true;
+        lm.log.push({ kind: 'sealed', slot: at.slot, t });
+        hud.toast('The host\'s phages are not ready for you yet: meet the gates first', 2600);
       }
     }
     if (!close) lm.fired = false;
   }
   // anyone (or their flock) at the open host: "Y Enter the portal"; their Y goes through (readInput)
-  setPortalPrompt(F.placed && !!at && !outro && !guarded());
+  setPortalPrompt(F.placed && !!at && !outro && !portalSealed() && !guarded());
   const dweller = roster.find((P) => P.backT > 0.5) || null;
   if (!!dweller !== lm.near) { lm.near = !!dweller; embed.near('back', lm.near); }
   // standalone the page shows its own quiet prompt (the shell draws one in the game)
@@ -1050,7 +1064,7 @@ function setPortalPrompt(on) {
   embed.near('portal', on);
 }
 /** Can player P go through now (they or their flock at the host, Stentor beaten)? Then P's Y enters. */
-const atOpenPortal = (P) => !!P.atPortal && LMK.forward.placed && !outro && !guarded() && P.S.alive;
+const atOpenPortal = (P) => !!P.atPortal && LMK.forward.placed && !outro && !portalSealed() && !guarded() && P.S.alive;
 /**
  * The way on: player P is at the open portal and pressed Y (never an automatic
  * door: the owner, 2026-11-01). This is the one place the zoom into the
@@ -1520,10 +1534,27 @@ function drawField(cx, cy, stopOk, rect = null) {
   }
 }
 
+/**
+ * The "Portal arrow" setting (the game's Settings, default off; ?arrow=1 here): an arrow at the edge of
+ * each view toward the way on (the host: the director's portals(), one here), with the distance from the
+ * view's nearest flock (µm, as the stats count). Sealed too: it is where the way on will open.
+ */
+let arrowLog = [];
+function drawPortalArrow() {
+  arrowLog = [];
+  if (!portalArrowOn() || !world.landmarks.forward.placed || outro) return;
+  const pp = { x: FWD.x, y: FWD.y, z: 0 };
+  arrowLog = marks.drawSplit(arrowSplit(), (vp) => {
+    let d = Infinity;
+    for (const v of vp) { const P = roster.find((Q) => Q.slot === v.slot); if (P) { const f = focusOf(P); d = Math.min(d, Math.hypot(f.x - pp.x, f.y - pp.y)); } }
+    if (!isFinite(d)) { const f = focusOf(P1); d = Math.hypot(f.x - pp.x, f.y - pp.y); }
+    return { position: pp, label: `${Math.round(d)} µm`, distance: d };
+  }, { kind: 'forward', portal: true, range: 800 }).map((r) => r && { x: r.x, y: r.y, angle: r.angle, onScreen: r.onScreen, d: Math.round(r.picked.distance), label: r.picked.label, at: [+pp.x.toFixed(1), +pp.y.toFixed(1), 0] });
+}
 const posOf = (P) => { const p = focusOf(P); return { x: p.x, y: p.y, z: 0 }; };
 const cellPos = (P) => { const p = P.S.inside || P.S; return { x: p.x, y: p.y, z: 0 }; };
 function render(dt) {
-  glow.setOpen(!guarded());
+  glow.setOpen(!guarded() && !portalSealed());
   glow.update(dt, t, glowCam);
   const ov = camOverride();
   const fieldH = fieldNow = ov ? ov.fieldH : ZOOMS[zoomIdx()];
@@ -1559,14 +1590,16 @@ function render(dt) {
   // the edge marks: only the ring to the Paramecium (the way back)
   marks.begin();
   portalLight.begin();
-  // no arrow to the way on (the owner: keep moving and you find it): once placed, its golden light spills in
-  // from the edge of the view on its side (or haloes it in view); no text
-  if (world.landmarks.forward.placed && !outro) {
+  // no arrow to the way on by default (the owner: keep moving and you find it): once open, its golden light
+  // spills in from the edge of the view on its side (or haloes it in view); no text (the Portal arrow setting
+  // adds one: drawPortalArrow). On the default path it is there from the start, sealed.
+  if (world.landmarks.forward.placed && !portalSealed() && !outro) {
     let d = Infinity;
     for (const P of roster) { const f = focusOf(P); d = Math.min(d, Math.hypot(f.x - FWD.x, f.y - FWD.y)); }
     portalLight.drawSplit(arrowSplit(), FWD, { strength: Math.max(0.3, Math.min(1, 1.15 - d / 260)), open: portalGlow.open });
   }
   marks.drawSplit(arrowSplit(), BACK, { kind: 'backdoor', label: 'Pool', range: 420, onScreen: 'none' });
+  drawPortalArrow();
   drawMarks(L, fieldH);
   // scale bar
   const bar = fieldH >= 90 ? 20 : fieldH >= 40 ? 5 : 2;
@@ -1673,7 +1706,7 @@ function stats() {
     `gates: ${guards.list.map((q) => `${q.id} ${q.beaten ? 'beaten' : `${Math.round((100 * Math.max(0, q.hp)) / q.max)} %${q.contact ? ` (${q.contact} fighting)` : ''}`}`).join(' · ')}`,
     capture.active && cat.kind ? `CAUGHT by ${CATCH[cat.kind].by.toLowerCase()}: ${cat.phase}` : '',
     (() => { const C = coll.of(P1); return C && C.members.length ? `army: ${C.army} cells (${C.players.length > 1 ? C.players.length + ' players' : 'you'}) · ${LEVEL_NAMES.slice(1, C.level + 1).join(', ') || 'no abilities yet'} · toxin ${Math.round(C.charge * 100)} % · drag ×${C.drag.toFixed(2)} · flock ${C.speed.toFixed(0)} µm/s, ${C.extent.toFixed(0)} µm across` : coll.opts.on ? `army: none yet (press ${glyph('X')} near kin)` : ''; })(),
-    `out from the start ${Math.round(world.distFromStart(S.x, S.y))} µm · encounters ${director.index}/${ENCOUNTERS.length} (${director.state().phase})${world.landmarks.forward.placed ? ` · host ${Math.round(Math.hypot(S.x - FWD.x, S.y - FWD.y))} µm${guarded() ? ', guarded' : ', open'}` : ''} · Paramecium ${Math.round(Math.hypot(S.x - BACK.x, S.y - BACK.y))} µm`,
+    `out from the start ${Math.round(world.distFromStart(S.x, S.y))} µm · encounters ${director.index}/${ENCOUNTERS.length} (${director.state().phase})${world.landmarks.forward.placed ? ` · host ${Math.round(Math.hypot(S.x - FWD.x, S.y - FWD.y))} µm${portalSealed() ? ', sealed' : guarded() ? ', guarded' : ', open'}` : ''} · Paramecium ${Math.round(Math.hypot(S.x - BACK.x, S.y - BACK.y))} µm`,
     multi() ? `players ${roster.length} · views ${split.views.length}${split.merged ? ' (together)' : ''}` : '',
     `${Math.round(fps)} fps · ${shapes.count} shapes · render ${Math.round(quality.scale * 100)} %${optics.stats.down > 1 ? ` · PSF at 1/${optics.stats.down}` : ''}`,
   ];
@@ -1740,7 +1773,7 @@ window.__micro = { forceCapture, capture,
   seenAt: (x, y) => director.seenAt(x, y),
   placeNow: () => director.placeNow(),
   director,
-  rings: () => ({ log: director.log.slice(), portal: world.landmarks.forward.placed ? { x: FWD.x, y: FWD.y, guarded: guarded() } : null, turned: lm.log.filter((e) => e.kind === 'turnedBack').length }),
+  rings: () => ({ log: director.log.slice(), portal: world.landmarks.forward.placed ? { x: FWD.x, y: FWD.y, guarded: guarded(), sealed: portalSealed() } : null, turned: lm.log.filter((e) => e.kind === 'turnedBack').length }),
   /**
    * Testing only (it breaks the order on purpose): the portal now, `d` µm from player `slot` at bearing a
    * (default: where their flock is heading, else away from the start). director.force marks every
@@ -1758,6 +1791,14 @@ window.__micro = { forceCapture, capture,
   placeEncounter(id, x, y, b = 0) { return director.force(id, x, y, b); },
   /** Go through the portal now as player `slot` (what Y at the open portal does). */
   enterPortal(slot = 0) { enterPortal(roster.find((Q) => Q.slot === slot) || P1); },
+  /** The portal arrow drawn last frame, per view: [{ x, y, angle, onScreen, d, label, at } | null] ([] when off). */
+  portalArrow: () => arrowLog,
+  /** The director's portals (the way on): [{ instance, x, y, z, open, seen, state }]. */
+  portals: () => director.portals().map(({ handle, ...q }) => q),
+  /** Is the way on still sealed (encounters left before it)? */
+  portalSealed: () => portalSealed(),
+  /** Where player `slot`'s view centres (their flock's middle, or their cell): what the arrow measures from. */
+  focus: (slot = 0) => { const f = focusOf(roster.find((Q) => Q.slot === slot) || P1); return { x: f.x, y: f.y }; },
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
   OUTRO,

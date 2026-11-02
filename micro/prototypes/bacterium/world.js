@@ -101,6 +101,18 @@ export const ENCOUNTERS = [
   { id: 'portal', need: 24, size: 140, minAhead: 150, maxAhead: 260, minNear: 110, maxNear: 220, final: true,
     parts: (x, y, b) => portalParts(x, y, b), fits: (x, y, b) => inWater(x, y, 20) && allIn(portalParts(x, y, b).slice(1), -10) },
 ];
+/**
+ * The default path (shared/director.js `defaultPath`; the owner, 2026-11-01: "a default path to a portal,
+ * but just dynamically generate the other directions if the player goes off in another direction"): the
+ * host with Stentor laid out across the field from the start (0.25 rad: right and a little up, away from
+ * the Paramecium on the left; ~440 µm out, as far as Stentor beyond it leaves room) on the first frame, so
+ * the way on exists from the start. The gates are not laid along it: the field (~1.1 mm) has room for one
+ * break at a rush (5 s at ~45 µm/s plus the gate's ahead range is ~360 µm), and each gate must wait for its
+ * break and for the army it needs (the army-size hold), so every gate is still placed as you go (dists
+ * null), on the way to the host or wherever you go. Off the bearing the host, while nobody has seen it,
+ * leaves the path and is placed ahead of you after the last gate, as before (one thing: `single`).
+ */
+export const DEFAULT_PATH = { from: { x: START.x, z: START.y }, bearing: 0.25, dists: [null, null, null, null, null, 440], cone: 0.6 };
 /** Encounters go in open water, clear of the backdoor (the Paramecium and the water round it). */
 export const canPlace = (x, y, r) => inWater(x, y) && Math.hypot(x - BACKDOOR.x, y - BACKDOOR.y) > BACKDOOR.r + 90 + r * 0.5;
 /** How far out from the start (kept for the stats line). */

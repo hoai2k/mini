@@ -9,7 +9,7 @@
 //   node micro/prototypes/bacterium/route.test.mjs
 import assert from 'node:assert/strict';
 import { createDirector } from '../shared/director.js';
-import { createWorld, DIRECTOR, ENCOUNTERS, canPlace, inWater, START, WORLD } from './world.js';
+import { createWorld, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, inWater, START, WORLD } from './world.js';
 import { createCollectives } from './collective.js';
 import { createStentor } from './stentor.js';
 import { createGuards } from './guards.js';
@@ -20,7 +20,7 @@ assert.ok(ENCOUNTERS.at(-1).final && ENCOUNTERS.every((e) => e.need > 0));
 const DT = 1 / 30, SPEED = 45, ASPECT = 16 / 9;
 const DRIFT = 6, DRIFT_WAIT = 4, ARMY_HOLD = 8; // main.js driftGate, armyHold
 
-function game({ seconds, move, fieldH = 45, army = () => 30, check = true }) {
+function game({ seconds, move, fieldH = 45, army = () => 30, check = true, path = false }) {
   const world = createWorld();
   const stentor = createStentor();
   world.stentor = stentor;
@@ -66,9 +66,10 @@ function game({ seconds, move, fieldH = 45, army = () => 30, check = true }) {
   };
   const D = createDirector({
     ...DIRECTOR,
+    ...(path ? { defaultPath: DEFAULT_PATH } : {}),
     canPlace: (x, y, r, o) => canPlace(x, y, r) && guards.list.every((q) => !q.placed || q.id === o.entry.id || Math.hypot(guards.centre(q).x - x, guards.centre(q).y - y) > r * 0.5 + q.zone),
     entries: ENCOUNTERS.map((e, i) => {
-      const o = { ...e, ...ENC[e.id] };
+      const o = { ...e, ...ENC[e.id], ...(path ? { single: true } : {}) };
       Object.defineProperty(o, 'calm', { get: () => ({ sec: (i === 0 ? DIRECTOR.warmup : DIRECTOR.calm).sec + Math.max(0, Math.min(ARMY_HOLD, e.need - army(D))) }) });
       return o;
     }),
@@ -103,7 +104,8 @@ function rusher(a0) {
   return (t, p, D, { guards, host }) => {
     const s = D.state(), cur = s.entries[s.index];
     // (a gate once seen; the portal once placed: its golden light spills in from the edge of the view on its side)
-    if (cur && cur.state === 'placed' && (cur.seenT !== null || cur.id === 'portal')) {
+    // (with a default path: its instance too, once seen; the small field shows it often)
+    if (cur && ((cur.state === 'placed' && (cur.seenT !== null || cur.id === 'portal')) || (cur.def && cur.def.state === 'placed' && cur.def.seenT !== null))) {
       const tgt = cur.id === 'portal' ? host : guards.centre(guards.byId[cur.id]);
       a = Math.atan2(tgt.y - p.z, tgt.x - p.x);
       if (cur.id === 'portal' && Math.hypot(tgt.x - p.x, tgt.y - p.z) < 12) { p.reached ??= t; return; }
@@ -175,9 +177,60 @@ assert.deepEqual(back.bad, [], 'turn back: nothing placed on seen water');
 assert.deepEqual(back.moved, [], 'turn back: seen scenery stays put');
 assert.deepEqual(back.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER.slice(0, -1), 'turn back: every gate in order');
 
+// the default path (main.js passes world.js DEFAULT_PATH; the host one thing: `single`): the host laid at the
+// far end of the field's diagonal on the first frame; the gates still placed as you go (breaks, army hold)
+const pathRows = [];
+const pathDyn = ORDER.filter((id, i) => DEFAULT_PATH.dists[i] == null);
+{
+  // following it (rushing at the host; each gate as it comes, then the host once open): the gates placed as you
+  // go on the way and met in order, the pre-placed host reached; only the host pre-placed
+  const r = game({ seconds: 200, path: true, move: (t, p, D, { guards, host }) => {
+    const s = D.state(), cur = s.entries[s.index];
+    if (!cur) return;
+    let tgt = host;
+    if (cur.id !== 'portal' && cur.state === 'placed') tgt = guards.centre(guards.byId[cur.id]);
+    const a = Math.atan2(tgt.y - p.z, tgt.x - p.x), d = Math.hypot(tgt.x - p.x, tgt.y - p.z);
+    if (cur.id === 'portal' && d < 12) { p.reached ??= t; return; }
+    if (cur.id !== 'portal' && tgt === host && d < 60) return; // (at the sealed host: wait for the next gate)
+    p.x += Math.cos(a) * SPEED * DT; p.z += Math.sin(a) * SPEED * DT;
+  } });
+  assert.deepEqual(r.bad, [], 'default path: nothing placed on seen water');
+  assert.deepEqual(r.moved, [], 'default path: seen scenery stays put');
+  const pre = r.ev.filter((e) => e.type === 'placed' && e.how === 'default');
+  assert.deepEqual(pre.map((e) => e.id), ORDER.filter((id) => !pathDyn.includes(id)), 'default path: the host pre-placed');
+  assert.ok(pre.every((e) => e.t < 0.1), 'default path: from the first frame');
+  assert.ok(!r.ev.some((e) => e.type === 'placed' && e.id === 'portal' && e.how !== 'default'), 'default path: the host not generated again');
+  for (const id of pathDyn) assert.ok(r.ev.some((e) => e.type === 'placed' && e.id === id && e.how !== 'default'), `default path: ${id} placed as you go`);
+  for (let i = 1; i < pathDyn.length; i++) assert.ok(at(r.ev, 'placed', pathDyn[i]).t - at(r.ev, 'met', pathDyn[i - 1]).t >= 4.5, `default path: a calm break before ${pathDyn[i]}`);
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER.slice(0, -1), 'default path: every gate met in order');
+  assert.ok(r.p.reached !== undefined, 'default path: the host reached once open');
+  pathRows.push(`followed: host pre-placed ${Math.hypot(pre.at(-1).x - START.x, pre.at(-1).z - START.y).toFixed(0)} µm out; gates placed ${pathDyn.map((id) => `${id} ${at(r.ev, 'placed', id).t}`).join(', ')}; met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t}`).join(', ')}; host reached ${r.p.reached.toFixed(1)} s`);
+}
+for (const off of [Math.PI, Math.PI / 2, -Math.PI / 2]) {
+  // heading off another way: the gates placed as you go in order; the host, while nobody has seen it, leaves the path
+  const tag = `off the path (${Math.round((off * 180) / Math.PI)}°)`;
+  const r = game({ seconds: 200, path: true, move: rusher(DEFAULT_PATH.bearing + off) });
+  assert.deepEqual(r.bad, [], `${tag}: nothing placed on seen water`);
+  assert.deepEqual(r.moved, [], `${tag}: seen scenery stays put`);
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER.slice(0, -1), `${tag}: every gate, in order`);
+  const hp = r.ev.find((x) => x.type === 'placed' && x.id === 'portal' && x.how !== 'default'), seen = r.D.entry('portal').def.seenT;
+  assert.ok(hp ? hp.from === 'default' : seen !== null, `${tag}: the host taken off the path (or, seen on it first, left there)`);
+  assert.ok(r.p.reached !== undefined, `${tag}: the host reached`);
+  pathRows.push(`${tag}: met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t}`).join(', ')}; host ${hp ? `placed as you go ${hp.t} s (${hp.how})` : `seen on the path at ${seen.toFixed(1)} s, left there`}, reached ${r.p.reached.toFixed(1)} s`);
+}
+{
+  // the army-size hold still applies with the path: with a small army the warm-up and each break are longer
+  const r = game({ seconds: 300, path: true, army: () => 1, move: rusher(DEFAULT_PATH.bearing) });
+  const g1 = at(r.ev, 'placed', 'grazer1');
+  assert.ok(g1.t >= DIRECTOR.warmup.sec + ARMY_HOLD - 0.5, `default path, small army: a longer warm-up (${g1.t} s)`);
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER.slice(0, -1), 'default path, small army: every gate in order');
+  pathRows.push(`small army: first gate placed ${g1.t} s`);
+}
+
 const evs = (r) => r.ev.filter((e) => e.type === 'placed' || e.type === 'met').map((e) => `${e.id} ${e.type} ${e.t}${e.how && e.type === 'placed' ? ` (${e.how})` : ''}`).join(', ');
 console.log(`ok: rushing in 16 directions (default field): first gate placed ${span('first')}, met ${span('grazer1')}; bdello ${span('bdello')}, phage ${span('phage')}, amoeba ${span('amoeba')}, grazer2 ${span('grazer2')}; portal placed ${span('portalPlaced')}, reached ${span('portal')}; how met ${JSON.stringify(howMet)}
 wide field (4 runs): portal reached ${wide.map((r) => r.p.reached.toFixed(1)).join(', ')} s
 small army: warm-up ${firstSmall} s, portal placed ${at(small.ev, 'placed', 'portal').t} s
 lingering: ${evs(lin)}; reached ${lin.p.reached.toFixed(1)} s
-turn back: ${evs(back)}`);
+turn back: ${evs(back)}
+default path: ${pathRows.join('\n  ')}`);
