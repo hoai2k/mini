@@ -32,7 +32,7 @@ import { drawScenery, drawDileptus, drawDidinium, drawGiant, drawTrap, drawBloom
 import { createDileptus, stepDileptus, burstDileptus, createDidinium, stepDidinium, DIDINIUM, createGiant, stepGiant, burstGiant, GIANT, createTrap, stepTrap, burstTrap, trapObstacles, trapGuarding, trapDoor, TRAP } from './foes.js';
 import { createBloom, placeBloom, stepBloom, gulpBloom, flingBloom, BLOOM } from './bloom.js';
 import { createPrey, stepPrey, gulpPrey } from './prey.js';
-import { START, DEPTH, FIELDS, BACK, DIRECTOR, ENCOUNTERS, DEFAULT_PATH, MET, canPlace, didiniumHomes, trapAt, bandDist } from './route.js';
+import { START, DEPTH, FIELDS, BACK, DIRECTOR, ENCOUNTERS, DEFAULT_PATH, MET, DRIFT_TO, canPlace, didiniumHomes, trapAt, bandDist } from './route.js';
 import { clumpLayout, placeInFrame } from '../shared/kin-clump.js';
 
 const GOAL = 6; // prey to eat to divide
@@ -107,8 +107,8 @@ const game = { eaten: 0, divided: 0, t: 0 };
 const features = createFeatures({ key: 'paramecium.v5', pad });
 const LOOK_NAMES = ['Darkfield', 'Phase contrast', 'Brightfield'];
 const LOOKS = {
-  Darkfield: { bg: [0.004, 0.007, 0.014], add: 1, sub: 0, tile: 'dark', tileK: 0.2 },
-  'Phase contrast': { bg: [0.3, 0.33, 0.31], add: 0.32, sub: 0.85, tile: 'phase', tileK: 0.55, subTint: [1, 1, 1] },
+  Darkfield: { bg: [0.004, 0.007, 0.014], add: 1, sub: 0, tile: 'dark', tileK: 0.13 },
+  'Phase contrast': { bg: [0.3, 0.33, 0.31], add: 0.2, sub: 1.0, tile: 'phase', tileK: 0.55, subTint: [1, 1, 1] },
   Brightfield: { bg: [0.86, 0.84, 0.76], add: 0, sub: 0.7, tile: null, tileK: 0, subTint: [1.0, 0.95, 0.9] },
 };
 const PHASE_BG = [0.6, 0.655, 0.615]; // the bacterium's phase field (the dive turns the light to it)
@@ -122,8 +122,23 @@ features.add({ id: 'depthcues', group: 'Optics', label: 'Depth cues (focus, para
 features.add({ id: 'tile', group: 'Optics', label: 'Habitat backdrop (MP-P04, MP-P05)', on: true, about: 'The delivered seamless habitat tiles, far below the drop, blurred and dim.', onChange: (v) => { view.tile = v; } });
 features.add({ id: 'scenery', group: 'World', label: 'Spirogyra, detritus, Vorticella, diatoms, glitter', fixed: true, about: 'Laid out in a 4.8 mm tile repeated in every direction (world.js). Filaments run through the depth; the cell winds over or under them on its own.' });
 const tiles = { dark: null, phase: null };
-loadTexture('MP-P04').then((t) => { if (t) { t.colorSpace = THREE.NoColorSpace; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.needsUpdate = true; tiles.dark = t; } });
-loadTexture('MP-P05').then((t) => { if (t) { t.colorSpace = THREE.NoColorSpace; t.needsUpdate = true; tiles.phase = t; } });
+// the tiles lie far below the drop, out of focus: a small blurred copy of each is all the view needs (and cheap to sample)
+function softTile(t) {
+  const img = t.image, N = 512;
+  try {
+    const c = document.createElement('canvas'); c.width = c.height = N;
+    const g = c.getContext('2d');
+    g.filter = 'blur(3px)';
+    // drawn 3 x 3 and the middle kept, so the blur wraps across the seams
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) g.drawImage(img, i * N, j * N, N, N);
+    const out = new THREE.CanvasTexture(c);
+    out.wrapS = out.wrapT = THREE.RepeatWrapping; out.colorSpace = THREE.NoColorSpace; out.generateMipmaps = false; out.minFilter = THREE.LinearFilter;
+    t.dispose();
+    return out;
+  } catch { return t; }
+}
+loadTexture('MP-P04').then((t) => { if (t) tiles.dark = softTile(t); });
+loadTexture('MP-P05').then((t) => { if (t) tiles.phase = softTile(t); });
 
 const audio = createAudio(['paramecium/amb-pool', 'paramecium/swim', 'paramecium/dash', 'paramecium/gulp', 'paramecium/trichocysts', 'paramecium/reverse', 'paramecium/didinium', 'paramecium/held', 'shared/portal-chime']);
 audio.addToFeatures(features);
@@ -212,8 +227,9 @@ function driftEncounter(dt) {
   const homes = s.current === 'dileptus' ? [dileptus.home] : s.current === 'giant' ? [giant.home, giant] : s.current === 'didinium' ? didinia.map((d) => d.home) : s.current === 'bloom' ? [bloom] : [];
   for (const o of homes) {
     const d = hyp(L.S.x - o.x, L.S.y - o.y);
-    if (d <= 520) continue;
-    const k = Math.min(d - 520, 300 * dt) / d, dx = (L.S.x - o.x) * k, dy = (L.S.y - o.y) * k;
+    const stop = DRIFT_TO[s.current];
+    if (d <= stop) continue;
+    const k = Math.min(d - stop, 300 * dt) / d, dx = (L.S.x - o.x) * k, dy = (L.S.y - o.y) * k;
     o.x += dx; o.y += dy;
     if (o === bloom) for (const c of bloom.cells) { c.x += dx; c.y += dy; }
   }
@@ -367,7 +383,9 @@ function stepLandmarks(dt) {
   if (leaf.placed) {
     const dmin = Math.min(...cells.map((P) => hyp(P.S.x - FWD.x, P.S.y - FWD.y)));
     const nearing = !portalSealed() && dmin < 1400;
-    if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
+    // (said again now and then while near: a shell busy with a fade when it came keeps no record of it; preloading is idempotent)
+    lm.nearT = (lm.nearT || 0) + dt;
+    if (nearing !== lm.nearing || (nearing && lm.nearT > 1.5)) { lm.nearing = nearing; lm.nearT = 0; embed.near('forward', nearing); }
     if (dmin < 900 && !portalSealed() && guarded()) hintOnce(P1, 'trap', 'A bladderwort trap guards the biofilm: make it fire and miss (B bursts you out of its pull) until it hangs slack', 4000);
   }
   if (any && !lm.latch) {
@@ -663,10 +681,10 @@ function renderView(cx, cy, focus, look) {
   shapes.setView({ cx, cy, hw, hh, rot: view.rot, focus, pxUm: w / Math.max(1, W) });
   shapes.depth(view.parallax ? 0.0009 : 0, view.parallax ? 0.07 : 0.015, view.parallax ? 0.006 : 0.002);
   const tex = view.tile && look.tile ? tiles[look.tile] : null;
-  shapes.setTile(tex, look.tileK, look.tile === 'phase' ? 1400 : 1500, view.parallax ? 0.82 : 1, 2.2, look.tile === 'phase' ? [1, 1, 1] : [0.9, 0.95, 1.0]);
+  shapes.setTile(tex, look.tileK, look.tile === 'phase' ? 1000 : 1000, view.parallax ? 0.82 : 1, 0, look.tile === 'phase' ? [1, 1, 1] : [0.9, 0.95, 1.0]);
   shapes.render(look);
   // the portal's glow over it
-  if (glow.group.visible) {
+  if (glow.group.visible && hyp(FWD.x - cx, FWD.y - cy) < Math.max(hw, hh) + GLOW_S * 3) {
     glowCam.left = -hw; glowCam.right = hw; glowCam.top = hh; glowCam.bottom = -hh;
     glowCam.position.set(cx, cy, GLOW_D); glowCam.rotation.set(0, 0, view.rot);
     glowCam.updateProjectionMatrix(); glowCam.updateMatrixWorld();
@@ -683,7 +701,8 @@ function render(dt) {
   fieldNow = view.fw;
   // the dive's light: darkfield to phase contrast as the push begins
   diveLight = outro ? sm01(LIGHT[0], LIGHT[1], outro.u || 0) : 0;
-  if (glowUI) glowUI.value = GLOW_I * (outro && outro.cam && outro.f0 ? 1 - sm01(0, Math.log(4), Math.log(Math.max(1, outro.cam.f / outro.f0))) : 1);
+  // the glow fades over the first ×1.5 of the dive's magnification, so its glints do not blow up into the frame
+  if (glowUI) glowUI.value = GLOW_I * (outro && outro.cam && outro.f0 ? 1 - sm01(0, Math.log(1.5), Math.log(Math.max(1, outro.cam.f / outro.f0))) : 1);
   glow.setOpen(!guarded() && !portalSealed());
   glow.update(dt, t, glowCam);
   const hw = view.fw / 2, hh = hw * aspect();
@@ -783,7 +802,8 @@ function frame(now) {
   const panel = features.update();
   for (const p of players.list) { const pp = players.pad(p.slot); for (let b = 0; b < 16; b++) if (pp && pp.value(b) > 0.5) { audio.unlock(); break; } }
   const held = introHeld();
-  let scale = held ? 0 : outro ? stepOutro(dtRaw) : introEase(dtRaw);
+  // the outro runs on the frame's real time (up to a quarter second a frame): a slow machine plays it slower, never skips it
+  let scale = held ? 0 : outro ? stepOutro(Math.min(0.25, real)) : introEase(dtRaw);
   if (debug.freeze) scale = 0;
   const dt = dtRaw * scale;
   if (dt > 0) {
@@ -820,8 +840,8 @@ Object.assign(debug, {
     P.S.x = x; P.S.y = y; if (z !== null) P.S.z = clamp(z, ZMIN, ZMAX); if (a !== null) { P.S.a = a; P.lastA = a; }
     if (P === P1 || !multi()) { view.cx = x; view.cy = y; }
   },
-  /** P1 d µm short of the leaf, heading at it, low over the film. */
-  toPortal(d = 260, z = -90) { const dx = FWD.x - P1.S.x, dy = FWD.y - P1.S.y, l = hyp(dx, dy) || 1; debug.teleport(FWD.x - (dx / l) * d, FWD.y - (dy / l) * d, z, Math.atan2(dy, dx)); },
+  /** P1 d µm from the leaf's middle on its far side (away from the trap), heading at it, low in the drop. */
+  toPortal(d = 260, z = -90) { const b = FWD.b; debug.teleport(FWD.x + Math.cos(b) * d, FWD.y + Math.sin(b) * d, z, b + Math.PI); },
   /** The trap spent now (its guard down). */
   spendTrap() { trap.state = 'spent'; trap.t = 0; trap.resolve = 0; },
   wakeBoss() { if (trap.placed) { trap.state = 'set'; trap.t = 0; trap.next = 0; } },
@@ -834,7 +854,7 @@ window.__micro = {
   swimmer: { get state() { return { ...P1.S, center: { x: P1.S.x, y: P1.S.y, z: P1.S.z } }; } },
   /** teleport(x, y, a, slot); perf's 6-argument call (x, y, z, yaw, pitch, slot) works too. */
   teleport(x, y, a, slot = 0) { if (arguments.length >= 6) { slot = arguments[5]; a = null; } debug.teleport(x, y, null, a ?? null, slot); },
-  get landmarks() { return { forward: { x: FWD.x, y: FWD.y, z: FWD.y, placed: !!leaf.placed }, back: { ...BACK }, log: lm.log, near: lm.back, portal: lm.portal }; },
+  get landmarks() { return { forward: { x: FWD.x, y: FWD.y, z: FWD.y, placed: !!leaf.placed }, back: { ...BACK }, log: lm.log, near: lm.back, nearing: lm.nearing, portal: lm.portal, embed: embed.active }; },
   portals: () => director.portals(),
   portalSealed, guarded, portalArrow: () => arrowLog,
   enterPortal(slot = 0) { enterPortal(cells.find((c) => c.slot === slot) || P1); },

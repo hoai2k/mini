@@ -34,8 +34,8 @@ const groove = (s) => (s > 0.02 && s < 0.88 ? Math.sin(((s - 0.02) / 0.86) * Mat
 
 function rng(seed) { let a = seed >>> 0; return () => ((a = (a * 1664525 + 1013904223) >>> 0) / 4294967296); }
 const r0 = rng(77);
-const CHL = Array.from({ length: 130 }, () => { const rho = 0.3 + 0.68 * Math.sqrt(r0()); return { rho, l: r0() * 6.283, w: 0.05 + r0() * 0.08, r: 1.8 + r0() * 0.9, k: r0() }; });
-const GRAN = Array.from({ length: 64 }, () => { const rho = 0.1 + 0.85 * r0(); return { rho, l: r0() * 6.283, w: 0.03 + r0() * 0.05, r: 0.8 + r0() * r0() * 3.2, k: r0() }; });
+const CHL = Array.from({ length: 130 }, () => { const rho = 0.3 + 0.68 * Math.sqrt(r0()); return { rho, l: r0() * 6.283, w: 0.05 + r0() * 0.08, r: 1.6 + r0() * 0.7, k: r0() }; });
+const GRAN = Array.from({ length: 64 }, () => { const rho = 0.1 + 0.85 * r0(); return { rho, l: r0() * 6.283, w: 0.03 + r0() * 0.05, r: 0.6 + r0() * r0() * 2.4, k: r0() }; });
 const BURST = Array.from({ length: 70 }, (_, i) => ({ th: (i / 70) * 6.283 + r0() * 0.05, L: 26 + r0() * 18, k: r0() }));
 
 /** The outline in the cell's frame (u ahead, v to its left), with a bend and a squash. */
@@ -109,7 +109,7 @@ export function drawCell(G, C) {
       const mu = bu + du * len * 0.55, mv = bv + dv * len * 0.55;
       const eu = mu + (du * 0.8 + tu * 0.3 * sw) * len * 0.45, ev = mv + (dv * 0.8 + tv * 0.3 * sw) * len * 0.45;
       const b = 0.5 + 0.25 * Math.cos(ph);
-      G.line(X(bu, bv), Y(bu, bv), X(mu, mv), Y(mu, mv), 0.3, z, CIL, b * 0.6 * ci, 0, 0.05, 2);
+      G.line(X(bu, bv), Y(bu, bv), X(mu, mv), Y(mu, mv), 0.3, z, CIL, b * 0.75 * ci, 0, 0.06, 2);
       G.line(X(mu, mv), Y(mu, mv), X(eu, ev), Y(eu, ev), 0.26, z, CIL, b * 0.45 * ci, 0, 0.04, 2);
     }
   }
@@ -130,13 +130,13 @@ export function drawCell(G, C) {
     const [u, v] = inner(d, d.l + cyc * (0.6 + d.w * 4));
     const m = Math.hypot(u, v) || 1;
     const su = u + (u / m) * spread * (1.4 + d.k), sv = v + (v / m) * spread * (1.4 + d.k);
-    G.disc(X(su, sv), Y(su, sv), d.r, z, V.chl, (0.3 + 0.2 * d.k) * I0, 0.5, 0.1, 2);
+    G.disc(X(su, sv), Y(su, sv), d.r, z, V.chl, (0.22 + 0.16 * d.k) * I0, 0.5, 0.06, 2);
   }
   for (const d of GRAN) {
     const [u, v] = inner(d, d.l - cyc * (0.4 + d.w * 3), 0.78);
     const m = Math.hypot(u, v) || 1;
     const su = u + (u / m) * spread * (2 + d.k), sv = v + (v / m) * spread * (2 + d.k);
-    G.disc(X(su, sv), Y(su, sv), d.r, z, GOLD, (0.7 + 0.3 * Math.sin(C.t * 3 + d.l * 5)) * I0, 0.2, 0.4, 2.2);
+    G.disc(X(su, sv), Y(su, sv), d.r, z, GOLD, (0.6 + 0.3 * Math.sin(C.t * 3 + d.l * 5)) * I0, 0.2, 0.3, 2);
   }
   if (dead < 0.5) {
     // the macronucleus

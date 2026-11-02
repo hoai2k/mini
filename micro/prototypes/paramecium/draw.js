@@ -45,14 +45,14 @@ export function drawScenery(G, W, rect, t, opts = {}) {
 function drawGlitter(G, [x0, y0, x1, y1], t, k) {
   const C = 80;
   for (let i = Math.floor(x0 / C); i <= Math.floor(x1 / C); i++) for (let j = Math.floor(y0 / C); j <= Math.floor(y1 / C); j++) {
-    const n = 4 + Math.floor(hash(i, j, 9) * 5);
+    const n = 2 + Math.floor(hash(i, j, 9) * 4);
     for (let s = 0; s < n; s++) {
       const h1 = hash(i, j, s * 4 + 1), h2 = hash(i, j, s * 4 + 2), h3 = hash(i, j, s * 4 + 3), h4 = hash(i, j, s * 4 + 4);
       const x = (i + h1) * C, y = (j + h2) * C, z = DEPTH.min + h3 * (DEPTH.max - DEPTH.min);
       const tw = Math.max(0, Math.sin(t * (0.7 + h4 * 2.2) + h1 * 40));
       const c = h4 < 0.45 ? COL.gold : h4 < 0.8 ? COL.white : COL.blue;
       const I = (0.18 + 0.9 * tw ** 6) * k * (h3 > 0.5 ? 1 : 0.8);
-      G.disc(x, y, 0.5 + h2 * 0.8, z, c, I, 0.15, 0.25 + tw * 0.5, 1.6);
+      G.disc(x, y, 0.5 + h2 * 0.8, z, c, I, 0.15, tw > 0.4 ? 0.2 + tw * 0.5 : 0, 1.6);
     }
   }
 }
@@ -91,8 +91,8 @@ function drawSpirogyra(G, f, ox, oy, rect, t) {
       const [x, y] = P(u, v);
       const z = zAt(u) + front * r * 0.7;
       if (prev && inCell > 0.04 && inCell < 0.96) {
-        const I = (0.5 + 0.32 * front) * f.shade;
-        G.line(prev[0], prev[1], x, y, 2.3 + 0.7 * front, z, COL.green, I, 0.4, 0.16, 3);
+        const I = (0.55 + 0.3 * front) * f.shade;
+        G.line(prev[0], prev[1], x, y, 3.0 + 1.1 * front, z, COL.green, I, 0.5, 0.14, 3);
         // pyrenoids: bright beads on the ribbon
         if (front > 0.6 && (Math.floor(u / (f.pitch * 0.5)) !== Math.floor((u - step) / (f.pitch * 0.5)))) G.disc(x, y, 2.4, z, [0.8, 1.0, 0.45], 0.8, 0.3, 0.6, 3);
       }
@@ -105,7 +105,7 @@ function drawClump(G, c, ox, oy, t) {
   G.disc(x, y, c.r * 0.85, c.z, COL.brown, 0.07, c.r * 0.45);
   for (const g of c.g) {
     const tw = g.gold > 0.85 ? 0.5 + 0.5 * Math.sin(t * 1.7 + g.tw) : 1;
-    G.disc(x + g.dx, y + g.dy, g.r, c.z + g.dz, mix(COL.brown, COL.gold, g.gold), (0.32 + 0.55 * g.gold) * tw, 0.6, g.gold > 0.55 ? 0.45 : 0.1, 2.5);
+    G.disc(x + g.dx, y + g.dy, g.r, c.z + g.dz, mix(COL.brown, COL.gold, g.gold), (0.3 + 0.5 * g.gold) * tw, 0.4, g.gold > 0.75 ? 0.3 : 0, 2);
   }
 }
 function drawVorticella(G, v, p, t) {
@@ -121,14 +121,16 @@ function drawVorticella(G, v, p, t) {
   }
   // the bell: an inverted bell opening away from the stalk; contracted, it balls up and closes
   const b = v.bell, Lb = b * (2.2 - 0.9 * p.c), z = p.z1;
-  const prof = [[0, 1.5], [Lb * 0.18, b * 0.25], [Lb * 0.45, b * 0.58], [Lb * 0.75, b * (0.9 - 0.25 * p.c)], [Lb, b * (1.08 - 0.5 * p.c)]];
+  // the bell's profile: narrow at the stalk, swelling to a wide rim with a slight lip (rounder as it contracts)
+  const prof = [];
+  for (let i = 0; i <= 9; i++) { const q = i / 9; prof.push([Lb * q, 1.4 + b * (Math.sin(Math.PI / 2 * Math.pow(q, 0.62 + 0.3 * p.c)) * (1.02 - 0.45 * p.c) + 0.08 * Math.max(0, q - 0.85) / 0.15)]); }
   const P = (u, w) => [p.x1 + ux * u + nx * w, p.y1 + uy * u + ny * w];
   for (const s of [-1, 1]) for (let i = 1; i < prof.length; i++) {
     const [a1, a2] = P(prof[i - 1][0], s * prof[i - 1][1]), [b1, b2] = P(prof[i][0], s * prof[i][1]);
     G.line(a1, a2, b1, b2, 0.85, z, COL.white, 0.95, 0, 0.35, 3.5);
   }
   // the peristome (its rim) and the crown of cilia beating round it
-  const rimW = prof[4][1];
+  const rimW = prof[prof.length - 1][1];
   const [r1, r2] = P(Lb, -rimW), [s1, s2] = P(Lb, rimW), [m1, m2] = P(Lb + 3 * (1 - p.c), 0);
   G.line(r1, r2, m1, m2, 0.7, z, COL.white, 0.75, 0, 0.2, 3); G.line(m1, m2, s1, s2, 0.7, z, COL.white, 0.75, 0, 0.2, 3);
   if (p.c < 0.4) {
@@ -249,17 +251,17 @@ export function drawGiant(G, A, t, focusZ = 0) {
   for (let i = 0; i < N; i++) {
     const p = pts[i], q = pts[(i + 1) % N], rz = raiseAt(p[2]);
     const z = zMid + rz * (GIANT.podTop - zMid) * 0.9;
-    G.line(p[0], p[1], q[0], q[1], 1.3, z, mix([0.95, 0.9, 0.75], COL.amber, rz), 0.85 + rz * 0.4, 0, 0.35 + rz * 0.6, 4 + rz * 6);
+    G.line(p[0], p[1], q[0], q[1], 2.0, z, mix([0.95, 0.9, 0.75], COL.amber, rz), 1.1 + rz * 0.5, 0, 0.45 + rz * 0.6, 5 + rz * 6);
     const k = 0.93, cx = A.x + (p[0] - A.x) * k, cy = A.y + (p[1] - A.y) * k, dx = A.x + (q[0] - A.x) * k, dy = A.y + (q[1] - A.y) * k;
-    G.line(cx, cy, dx, dy, 0.6, z, COL.pale, 0.2);
+    G.line(cx, cy, dx, dy, 0.9, z, COL.pale, 0.35, 1);
   }
   // the body's haze through its depth, and the granules streaming inside
-  G.disc(A.x, A.y, GIANT.R * 0.95, zMid, [0.55, 0.5, 0.4], 0.06, GIANT.R * 0.3);
+  G.disc(A.x, A.y, GIANT.R * 0.95, zMid, [0.55, 0.5, 0.4], 0.09, GIANT.R * 0.3);
   for (const g of GIANT_G) {
     const th = g.a + t * g.sp, i = Math.floor(((th % TAU + TAU) % TAU) / TAU * N) % N;
     const r = A.out[i] * g.rho * 0.88;
     const z = GIANT.zBottom + 20 + g.c * (GIANT.top - GIANT.zBottom - 20);
-    G.disc(A.x + Math.cos(th) * r, A.y + Math.sin(th) * r, g.r, z, g.c < 0.6 ? COL.gold : g.c < 0.85 ? COL.white : COL.brown, 0.42 + 0.3 * g.c, 0.5, g.c < 0.4 ? 0.35 : 0.1, 2.5);
+    G.disc(A.x + Math.cos(th) * r, A.y + Math.sin(th) * r, g.r, z, g.c < 0.6 ? COL.gold : g.c < 0.85 ? COL.white : COL.brown, 0.6 + 0.4 * g.c, 0.5, g.c < 0.4 ? 0.35 : 0.1, 2.5);
   }
   // the nucleus and food vacuoles
   const nx = A.x + Math.cos(A.t * 0.05) * 60, ny = A.y + Math.sin(A.t * 0.05) * 60;
@@ -277,10 +279,10 @@ export function drawTrap(G, T, t) {
   const [s1, s2] = P(-ra, 0), [s3, s4] = P(-ra - 260, 60);
   for (const off of [-5, 5]) G.line(s1, s2 + off, s3, s4 + off, 0.9, z - 20, COL.wall, 0.5, 0, 0.2, 3);
   // the sac: a translucent green bladder, mottled wall, glands inside, a brown mass of old catches
-  G.ell(T.x, T.y, T.a, ra, rb, z, COL.leaf, 0.12, 12);
-  G.ellRing(T.x, T.y, T.a, ra, rb, 1.6, z, COL.wall, spent ? 0.6 : 0.95, 0, 0.4, 5);
+  G.ell(T.x, T.y, T.a, ra, rb, z, COL.leaf, 0.18, 12);
+  G.ellRing(T.x, T.y, T.a, ra, rb, 2.2, z, COL.wall, spent ? 0.7 : 1.1, 0, 0.5, 6);
   G.ellRing(T.x, T.y, T.a, ra * 0.95, rb * 0.93, 0.7, z, COL.wall, 0.3);
-  for (let k = 0; k < 46; k++) { const a = k * 2.399, rr = Math.sqrt((k + 0.5) / 46) * 0.88; G.ring(...P(Math.cos(a) * ra * rr, Math.sin(a) * rb * rr), 7 + (k % 4) * 2, 0.6, z, COL.wall, 0.16, 0.5); }
+  for (let k = 0; k < 46; k++) { const a = k * 2.399, rr = Math.sqrt((k + 0.5) / 46) * 0.88; G.ring(...P(Math.cos(a) * ra * rr, Math.sin(a) * rb * rr), 7 + (k % 4) * 2, 0.7, z, COL.wall, 0.3, 0.5); }
   for (let k = 0; k < 16; k++) { const a = k * 1.7, rr = 0.25 + (k % 5) * 0.12; const [gx, gy] = P(Math.cos(a) * ra * rr, Math.sin(a) * rb * rr); for (let q = 0; q < 4; q++) { const b = q * 1.571 + 0.4; G.line(gx, gy, gx + Math.cos(b) * 5, gy + Math.sin(b) * 5, 0.5, z, COL.gold, 0.5, 0, 0.2, 2); } }
   for (let k = 0; k < 18; k++) G.disc(...P(-ra * 0.5 + ((k * 17) % 50) - 25, ((k * 29) % 70) - 35), 4 + (k % 3) * 2, z, COL.brown, 0.4, 1.5, 0.15, 3);
   // the door: an oval at the front with its thick threshold; it quivers (and reddens) in the tell, swings in for the pulse

@@ -48,13 +48,20 @@ void main() {
   }
   float px = uPx / k;
   float s = max(soft, 0.7 * px);
-  float pad = 2.5 * s + (a3.y > 0.0 ? 4.5 * glowR : 0.0) + a3.w + px;
+  // the reach of the soft edge and the halo (exp(-3) ≈ 5 %): no further, every pixel costs
+  float gk0 = a3.z / max(glowR, 0.5);
+  float haloI = a3.y * gk0 * gk0 * a2.a;
+  float pad = s + (haloI > 0.04 ? 3.0 * glowR : 0.0) + a3.w + px;
   vec2 ext = vec2(hl + ra + pad, rb + pad);
   vec2 local = position.xy * ext;
   vec2 w = c + ax * local.x + vec2(-ax.y, ax.x) * local.y;
   vec2 rel = (w - uView.xy) * k;
   vec2 r2 = vec2(rel.x * uRot.x + rel.y * uRot.y, -rel.x * uRot.y + rel.y * uRot.x);
   gl_Position = vec4(r2 / uView.zw, 0.0, 1.0);
+  // too faint to see once spread by the defocus (a speck far off the focal plane): no fragments at all
+  float wdt = type > 0.5 && type < 1.5 || type > 2.5 ? a3.w : 2.0 * rb;
+  float peak = a2.a * clamp(wdt / (1.6 * s), 0.03, 1.0) / (1.0 + uDim * abs(dz)) + haloI;
+  if (peak < 0.012) gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
   vL = vec2(local.x, local.y);
   vS = vec4(type < 1.5 ? hl : ra, rb, s, a3.w);
   vC = vec4(a2.rgb, a2.a / (1.0 + uDim * abs(dz)));

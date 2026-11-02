@@ -43,8 +43,13 @@ export function createWorld(seed = 11) {
     return true;
   };
 
-  // Spirogyra: long unbranched filaments of cells, each with its spiral chloroplast ribbon
-  const filaments = [];
+  // Spirogyra: long unbranched filaments of cells, each with its spiral chloroplast ribbon.
+  // The opening view is composed after the card: two filaments crossing to the right of the start
+  // (below you), a clump of detritus with a Vorticella colony up to the left, diatoms between.
+  const filaments = [
+    { x0: sx + 40, y0: sy - 900, x1: sx + 420, y1: sy + 900, r: 19, z0: -55, z1: -25, cell: 92, pitch: 34, turns: 2, phase: 0.4, shade: 1.05 },
+    { x0: sx + 900, y0: sy - 465, x1: sx - 520, y1: sy + 510, r: 17, z0: 30, z1: 70, cell: 84, pitch: 30, turns: 1, phase: 2.0, shade: 0.95 },
+  ].map((f) => { const L = Math.hypot(f.x1 - f.x0, f.y1 - f.y0); return { ...f, L, cx: (f.x0 + f.x1) / 2, cy: (f.y0 + f.y1) / 2, ang: Math.atan2(f.y1 - f.y0, f.x1 - f.x0) }; });
   for (let tries = 0; filaments.length < 7 && tries < 300; tries++) {
     const L = R(1500, 3000), a = R(0, Math.PI), cx = R(0, TILE), cy = R(0, TILE);
     const x0 = cx - Math.cos(a) * L / 2, y0 = cy - Math.sin(a) * L / 2, x1 = cx + Math.cos(a) * L / 2, y1 = cy + Math.sin(a) * L / 2;
@@ -56,31 +61,34 @@ export function createWorld(seed = 11) {
   }
   // detritus clumps: golden-brown flocs of granules; some carry Vorticella
   const clumps = [];
+  const clumpAt = (x, y, rad, z) => {
+    const g = [];
+    for (let i = 0, n = Math.round(rad * 1.1); i < n; i++) { const aa = R(0, 6.28), d = rad * Math.pow(r(), 0.6); g.push({ dx: Math.cos(aa) * d * R(0.8, 1.15), dy: Math.sin(aa) * d, dz: R(-0.25, 0.25) * rad, r: R(1.2, 4.2), gold: r(), tw: R(0, 6.28) }); }
+    clumps.push({ x, y, z, r: rad, h: rad * 0.55, g });
+  };
+  clumpAt(sx - 215, sy + 20, 52, -20);
+  clumpAt(sx - 250, sy - 150, 38, -60);
   for (let tries = 0; clumps.length < 26 && tries < 600; tries++) {
     const x = R(0, TILE), y = R(0, TILE), rad = R(26, 66);
     if (!clearOfStart(x, y, rad)) continue;
     if (clumps.some((c) => Math.hypot(c.x - x, c.y - y) < c.r + rad + 90)) continue;
-    const z = zr(-120, 60);
-    const g = [];
-    const n = Math.round(rad * 1.1);
-    for (let i = 0; i < n; i++) {
-      const aa = R(0, 6.28), d = rad * Math.pow(r(), 0.6);
-      g.push({ dx: Math.cos(aa) * d * R(0.8, 1.15), dy: Math.sin(aa) * d, dz: R(-0.6, 0.6) * rad, r: R(1.2, 4.2), gold: r(), tw: R(0, 6.28) });
-    }
-    clumps.push({ x, y, z, r: rad, h: rad * 0.55, g });
+    clumpAt(x, y, rad, zr(-120, 60));
   }
   // Vorticella colonies on some clumps: bells on coiling stalks, fanning out from the clump
   const vorticella = [];
-  for (const c of clumps.filter((_, i) => i % 4 === 1)) {
-    const base = R(0, 6.28), n = 3 + Math.floor(r() * 4);
+  for (const c of clumps.filter((_, i) => i === 0 || i % 4 === 1)) {
+    const base = c === clumps[0] ? 0.75 : R(0, 6.28), n = c === clumps[0] ? 4 : 3 + Math.floor(r() * 4);
     for (let i = 0; i < n; i++) {
       const a = base + (i - (n - 1) / 2) * R(0.35, 0.55);
-      const stalk = R(70, 150);
+      const stalk = c === clumps[0] ? R(55, 95) : R(70, 150);
       vorticella.push({ clump: c, ax: c.x + Math.cos(a) * c.r * 0.7, ay: c.y + Math.sin(a) * c.r * 0.7, az: c.z, a: a + R(-0.15, 0.15), stalk, bz: c.z + R(-50, 70), bell: R(15, 20), phase: R(0, 6.28), next: R(3, 14), g: Array.from({ length: 14 }, () => ({ u: R(0.15, 0.9), v: R(-0.7, 0.7), r: R(1.3, 2.6), gold: r() })) });
     }
   }
   // diatoms: pennate (pointed boats with golden chloroplasts) and Fragilaria ribbons
-  const diatoms = [];
+  const diatoms = [
+    { x: sx + 150, y: sy - 100, z: 10, a: 0.35, L: 90, W: 19, rect: false, n: 0, drift: 3 },
+    { x: sx - 110, y: sy - 160, z: -20, a: 2.6, L: 66, W: 14, rect: false, n: 0, drift: -4 },
+  ];
   for (let tries = 0; diatoms.length < 30 && tries < 600; tries++) {
     const x = R(0, TILE), y = R(0, TILE), rect = r() < 0.25;
     const L = rect ? R(60, 120) : R(45, 115), W = rect ? R(32, 55) : L * R(0.16, 0.26);

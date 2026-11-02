@@ -22,9 +22,9 @@ export const START = { x: 0, y: 0 };
 /** The drop's depth range: the slide (floor) below, the coverslip above; z = 0 the middle (µm). */
 export const DEPTH = { min: -150, max: 150 };
 /** The view's width at zoom 1 (µm, landscape): the Paramecium (120 µm) about a fifth of it. */
-export const FIELD = 640;
+export const FIELD = 560;
 /** The objectives (D-pad up/down): field widths in µm. */
-export const FIELDS = [460, 640, 900];
+export const FIELDS = [400, 560, 820];
 /** Rushing: full speed with a dash as often as it recharges (swim.js; measured ~850 µm/s). */
 export const RUSH = 850;
 /** The default path's bearing from the start (radians, atan2(dy, dx)): up and to the right. */
@@ -56,14 +56,14 @@ export const GIANT_R = 230;
 export const DIRECTOR = {
   mode: '2d', cell: 250, groundY: 0, seenDist: 1300, nearSeen: 260, seed: 41, moveSpeed: 60,
   bounds: { x0: START.x - DROP_R, x1: START.x + DROP_R, z0: START.y - DROP_R, z1: START.y + DROP_R },
-  // the warm-up: ~4 s of swimming; a calm break of ~6.5 s of swimming clear of the last encounter
-  warmup: { sec: 4 }, calm: { sec: 6.5 }, linger: 5,
+  // the warm-up: ~4 s of swimming; a calm break of ~7.5 s of swimming clear of the last encounter
+  warmup: { sec: 4 }, calm: { sec: 7.5 }, linger: 5,
   // seen but not gone to: met once everyone is 2.2 mm off, or after 8 s in sight nearby (it is never moved)
   passDist: 2200, watchSec: 8,
 };
 export const ENCOUNTERS = [
   // Dileptus: its trunk's slash; a trichocyst burst (B) drives it off
-  { id: 'dileptus', size: 420, visible: 380, minAhead: 1500, maxAhead: 2100, minNear: 900, maxNear: 1300 },
+  { id: 'dileptus', size: 420, visible: 380, minAhead: 1800, maxAhead: 2400, minNear: 900, maxNear: 1300 },
   // the Chlamydomonas bloom: a band across the way to push and gulp through
   { id: 'bloom', size: 760, minAhead: 1500, maxAhead: 2100, minNear: 1000, maxNear: 1400, parts: bloomParts },
   // the giant amoeba: slow, huge, tall; it engulfs what it covers. Keep away (over it, round it)
@@ -77,6 +77,8 @@ export const ENCOUNTERS = [
 ];
 /** How close counts as met (µm from the encounter's spot; the bloom: from its band). */
 export const MET = { dileptus: 520, bloom: 220, giant: 600, didinium: 560, portal: 300 };
+/** A lingering player: the current encounter comes over (main.js driftEncounter, 300 µm/s after 4 s) to this far from them. */
+export const DRIFT_TO = { dileptus: 360, bloom: 120, giant: 430, didinium: 390 };
 /**
  * The default path (shared/director.js `defaultPath`; the owner, 2026-11-01: "a default path to a portal,
  * but just dynamically generate the other directions"): every encounter laid along BEARING on the first
