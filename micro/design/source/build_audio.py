@@ -269,9 +269,9 @@ SOUNDS = [
     S("tardigrade/whip", "oneshot", 0.8, "Prionchulus's whip strike.",
       "A fast wet whip crack underwater, a slick body lashing. " + CLOSE, variants=2),
     # Amoeba
-    S("amoeba/drain", "loop", 4, "Being drained by a trap fungus (the stain spreading, the membrane trembling).",
-      "A continuous sickly seeping, a slow wet hiss of fluid being drawn out with a faint unsettling trembling flutter. "
-      "Continuous, seamless. " + CLOSE, 0.6, volume=0.7),
+    S("amoeba/drain", "loop", 6, "Being drained by a trap fungus (the stain spreading, the membrane trembling).",
+      "A steady sickly seeping, a constant soft wet hiss of fluid drawn out with a faint trembling flutter, never pausing, "
+      "even level. Seamless. " + CLOSE, 0.6, volume=0.7),
     S("amoeba/tremble", "oneshot", 1.0, "The membrane trembling where it is drained or poisoned.",
       "A soft wet quivering wobble, jelly trembling. " + CLOSE, variants=2, volume=0.6),
     S("amoeba/squish", "oneshot", 0.6, "Subtle: the cell changing shape (spread, round up).",
@@ -403,6 +403,118 @@ SOUNDS = [
       "A long smooth falling whoosh of a microscope racking out, an airy swell receding, soft glass resonance fading."),
     U("ui/start", 2.0, "Starting a game from the title.",
       "A warm bright brass and glass flourish: a soft click and a rising shimmer of tiny glass chimes, inviting."),
+]
+
+# Where each sound added on 2026-11-02 should be played: (id, event, where). Not wired yet (the worlds'
+# main.js files were being refactored for text_config.js at the time); a follow-up adds each as a one-line
+# audio.play(id) at the event named, and adds the ids to that world's createAudio([...]) list so they
+# preload (play() also loads on demand, but the first play would then be late). "(hook)" marks an event
+# that has no single line to hang the call on yet.
+WIRING = [
+    ("shared/portal-enter", "Y at the open portal", "every world's enterPortal() (springtail, amoeba, bacterium, paramecium, tardigrade, mite, phage), just before startOutro()"),
+    ("shared/slowdown", "the success slow-down", "every world's startOutro(), next to shared/portal-chime, with { delay: OUTRO.beat } (0.3 s; the bacterium and amoeba use their own outro timing)"),
+    ("shared/portal-near", "\"Y Enter the portal\" appears", "setPortalPrompt(on) when on turns true (amoeba, bacterium, mite, paramecium, tardigrade); springtail checkLandmark() where lm.readyOn becomes true; phage updatePortalPrompt()"),
+    ("shared/portal-sealed", "Y at a sealed or guarded portal", "where lm.log gets kind/type 'sealed': amoeba checkLandmarks(), bacterium landmarkTick(), mite checkLandmarks(), springtail checkLandmark(), tardigrade checkPortal(); phage tryGrab() at its 'do not take you yet' and guarded branches"),
+    ("shared/portal-appear", "the way on unseals", "(hook) each world's frame: on the edge where portalSealed() turns false (keep a wasSealed flag)"),
+    ("shared/backdoor", "Y at the backdoor", "next to embed.landmark('back'): mite goBack(), bacterium readInput() (landmark('back', P)), paramecium readInput(), phage stepMember(), amoeba frame() (c.atBack)"),
+    ("shared/danger", "a predator's wind-up (generic)", "springtail stepWorld() on e === 'windup' (Stenus and the strider); any wind-up below that has no sound of its own"),
+    ("shared/block", "a braced block", "springtail wearDown() for a block; tardigrade step() events 'blocked' (both Prionchulus and Milnesium; replaces the slowed tardigrade/bite)"),
+    ("shared/hit", "knocked or stunned", "mite stepLife() on a splash that reaches a player; bacterium absorbHit()"),
+    ("shared/death", "dissolving (generic)", "springtail die() and caught() (the sundew digestion); paramecium kill() after paramecium/held; phage startCapture() for kind 'dead'; bacterium startCatch()"),
+    ("shared/reform", "re-forming from motes", "springtail startReform(); paramecium respawn(); bacterium respawnPlayer(); phage respawn(); tardigrade respawnSafe()/respawnNear(); mite respawnNear()"),
+    ("shared/foe-flees", "a predator gives up", "springtail stepWorld() on e.type === 'retreat'; paramecium stepWorld() on e.type === 'fled'; amoeba stepChaos() on e === 'retreat'; mite stepAct() when the pseudoscorpion has had enough"),
+    ("shared/join", "another player joins", "the players onJoin callback in each main.js (paramecium, bacterium, phage, ...)"),
+    ("springtail/charge", "A held: cocking the furcula", "springtail stepPlayer() on the edge where P.charging turns true"),
+    ("springtail/flip", "landing on its back", "springtail landAt() where pl.mode = 'flipped' (and stepPlayer() where a knock flips it)"),
+    ("springtail/right", "righting itself", "springtail stepPlayer() where P.rightT = 0 (the flick back over)"),
+    ("springtail/pounce", "the pounce-bite lands", "springtail diveImpact() on a hit"),
+    ("springtail/glue-snap", "a glue strand snaps", "(hook) sundew-glue.js reports each snapped strand; play from stepPlayer() after poseTail() (rate-limit ~0.1 s)"),
+    ("springtail/struggle", "wriggling and kicking in glue", "springtail stepPlayer() in the stuck branch on each effort (r.kick), rate-limited"),
+    ("springtail/tear-free", "torn free of the sundew", "springtail stepPlayer() at 'torn loose'"),
+    ("springtail/sundew-fold", "slipped back: the leaf closes", "springtail sundewStep() at the start of phase 'strike' (or animateCapture() when the sundew catch starts)"),
+    ("springtail/strider", "the strider skating in", "springtail stepWorld() on the strider's skim/stalk event (stenus-skim is used for both today)"),
+    ("springtail/spider", "the wolf spider stalking", "springtail stepSpiders() when a spider engages"),
+    ("springtail/spider-lunge", "the wolf spider's lunge", "springtail stepSpiders() / stepWorld() on the boss's lunge event"),
+    ("mite/jump", "the jump launch", "mite soundTick() on e === 'jump' (replaces mite/dash at rate 1.3)"),
+    ("mite/land", "landing", "mite soundTick() on e === 'land' (replaces the slowed mite/step)"),
+    ("mite/crouch", "A held: crouching to jump", "mite soundTick() when mite.mode turns 'crouch'"),
+    ("mite/strike", "X: lunge and snap", "mite stepAct() play.act === 'strike' at the snap (play.snapped = true); keep mite/bite for a bite that lands"),
+    ("mite/devour", "eating a springtail", "mite stepAct() play.act === 'devour' at the first snap (replaces the repeated mite/bite)"),
+    ("mite/drop-fall", "a drop falling", "mite stepLife() on e.type === 'fall' (replaces the slowed mite/dash)"),
+    ("mite/drop-splash", "the drop splashing down", "mite stepLife() on e.type === 'splash' (replaces the slowed mite/close)"),
+    ("mite/predator-windup", "the predatory mite rears", "mite tick() predator events, e === 'windup' (with the toast)"),
+    ("mite/predator-strike", "its strike", "mite tick() predator events, e === 'strike'"),
+    ("mite/glance", "a strike sliding off the capsule", "mite tick() where a strike hits a closed mite (the strike slides off)"),
+    ("mite/pincer", "the pseudoscorpion's pincer", "mite startBossCapture() and the boss's strike event"),
+    ("tardigrade/attack", "X at a foe: lunge and stylets", "tardigrade startAttack()"),
+    ("tardigrade/impact", "the attack lands", "tardigrade step() events 'bitten' (Prionchulus) and 'recoil' (Milnesium), with tardigrade/bite"),
+    ("tardigrade/feed", "feeding", "tardigrade step() where feeding starts (feeding && !a.feeding: replaces tardigrade/bite there), repeating every ~1.5 s while it feeds"),
+    ("tardigrade/brace", "B: gripping hard", "tardigrade step() when B (defend) is first pressed"),
+    ("tardigrade/prionchulus", "Prionchulus thrashing", "tardigrade step() events 'windupThrash' and 'windupWhip'"),
+    ("tardigrade/whip", "Prionchulus's whip strike", "tardigrade step() Prionchulus e === 'strike' (replaces the slowed tardigrade/dash)"),
+    ("amoeba/drain", "being drained (loop)", "amoeba stepCatch(): audio.loop() when the 'eat' phase starts, .stop() when the catch ends or tears free"),
+    ("amoeba/tremble", "the membrane trembling", "amoeba stepCatch() during 'hold'/'eat' every ~1 s"),
+    ("amoeba/squish", "changing shape (subtle)", "amoeba frame() when LT (spread / round up) is pressed or released"),
+    ("amoeba/roll", "turning (subtle)", "amoeba moveCell() when the cell turns fast, rate-limited"),
+    ("amoeba/stick", "stuck on a trap hypha", "amoeba where the 'Caught on a fungal trap hypha' toast shows (n && !C.stuckN)"),
+    ("amoeba/tear", "tearing free", "amoeba stepCatch() at 'Torn free!' and stepEngulf() at 'Surged out!'"),
+    ("amoeba/pierce", "haustoria pierce", "amoeba startCatch() (with the slowed amoeba/engulf, or instead of it)"),
+    ("amoeba/pinch", "pinching off Chaos's arm", "amoeba pinchChaos() when chaos.cut() takes something; pinchOff() for the cell's own pinch-off"),
+    ("amoeba/chaos", "Chaos flowing in", "amoeba stepChaos() when Chaos starts its chase"),
+    ("amoeba/chaos-windup", "Chaos rears / gathers", "amoeba stepChaos() events 'windupCup' and 'windupLunge'"),
+    ("amoeba/chaos-engulf", "engulfed by Chaos", "amoeba startEngulf()"),
+    ("amoeba/death", "the cell dies", "amoeba stepCatch() / stepEngulf() when the phase turns 'die'"),
+    ("amoeba/reform", "a fresh cell gathers", "amoeba respawnCell()"),
+    ("paramecium/depth", "deeper / shallower", "paramecium readInput() on the edge where the depth input starts"),
+    ("paramecium/burst", "B: the trichocyst burst", "paramecium defend() when a charge is spent (after paramecium/reverse)"),
+    ("paramecium/stun", "the jab lands", "paramecium attack() when the jab hits Dileptus, Didinium or the giant's pseudopod"),
+    ("paramecium/dileptus", "Dileptus winds back", "paramecium stepWorld() e.type === 'tell' && e.who.kind === 'dileptus'"),
+    ("paramecium/slash", "Dileptus slashes", "paramecium stepWorld() on Dileptus's strike (foes.js event), or kill() when by Dileptus"),
+    ("paramecium/giant", "the giant amoeba reaching", "paramecium stepWorld() when the giant starts reaching for a player (foes.js 'hunt' for the giant)"),
+    ("paramecium/giant-engulf", "closed round by the giant", "paramecium stepWorld() e.type === 'engulf' (replaces paramecium/held there)"),
+    ("paramecium/trap-tell", "the trap's door quivers", "paramecium stepWorld() e.type === 'trap-tell'"),
+    ("paramecium/trap-fire", "the trap fires", "paramecium stepWorld() e.type === 'trap-pulse'"),
+    ("paramecium/divide", "the cell divides", "paramecium ate() where game.divided++"),
+    ("paramecium/vorticella", "a Vorticella contracts", "(hook) paramecium/world.js stepVorticella(): when st.c is set to 1 by the near() callback"),
+    ("paramecium/bloom", "the dash flings bloom cells", "paramecium readInput() after flingBloom()"),
+    ("bacterium/beacon", "X: the beacon", "bacterium coll onBeacon (replaces bacterium/eat at rate 1.9)"),
+    ("bacterium/answer", "a kin cell answers", "bacterium coll onRecruit, the first time per beacon"),
+    ("bacterium/join", "a kin cell joins", "bacterium coll onRecruit (replaces bacterium/tumble at rate 1.7; keep the 0.06 s rate limit)"),
+    ("bacterium/toxin", "Y: the toxin burst", "bacterium toxinBurst() (replaces bacterium/eat at rate 0.55)"),
+    ("bacterium/lyse", "a prey rod lysed", "bacterium pressX() / guards onKill (replaces bacterium/eat at rate 1.3)"),
+    ("bacterium/strike", "a volley on an enemy", "bacterium pressX() when members touch an enemy"),
+    ("bacterium/stentor", "Stentor's tell", "bacterium runBoss() where f.state turns 'windup' (bossInfo.log 'tell')"),
+    ("bacterium/bdello", "Bdellovibrio rams", "bacterium runFights() where the Bdellovibrio fight turns 'strike'"),
+    ("bacterium/gate", "a gate beaten", "bacterium guards onBeaten (replaces bacterium/eat at rate 0.6)"),
+    ("bacterium/infected", "a member lost to a phage", "bacterium guards onInfected / coll onLost"),
+    ("phage/amb-water", "ambience", "phage: audio.loop('phage/amb-water') in place of bacterium/amb-sediment"),
+    ("phage/grab", "the fibres close on something", "phage holdCell() and holdMol() (replaces bacterium/tumble at rate 1.5 / 1.8)"),
+    ("phage/release", "letting go", "phage releaseHold() (replaces bacterium/tumble at rate 1.3)"),
+    ("phage/miss", "nothing in reach, or the wrong protein", "phage tryGrab() with nothing in reach; updateGrab() at 'this protein does not fit'"),
+    ("phage/throw", "flinging a carried molecule", "phage releaseHold() for a molecule when dashing (A while carrying)"),
+    ("phage/fold", "B: fold / unfold", "phage stepMember() at the fold toggle (replaces bacterium/tumble; rate 1.15 for unfolding)"),
+    ("phage/dash", "A: dash", "phage stepMember() at the dash (replaces bacterium/sprint)"),
+    ("phage/jab", "X at the lobe", "phage tryJab() (replaces bacterium/sprint at rate 1.4)"),
+    ("phage/lobe", "the lobe rears and lunges", "phage updateGuard() when f.state turns 'windup'"),
+    ("phage/current-coming", "a current seen coming", "phage stepCurrents() on ev === 'start' (replaces bacterium/sprint at rate 0.45)"),
+    ("phage/current-pass", "the current sweeps past", "phage stepCurrents() where curWarned turns true (a.t > warn - 0.3)"),
+    ("phage/latch", "fibres latch on a receptor", "phage beginCommit() (replaces bacterium/phage)"),
+    ("phage/sheath", "the sheath contracts", "phage updateCommit() at P.snapped (replaces bacterium/eat at rate 0.8)"),
+    ("phage/inject", "the DNA slides in", "phage updateCommit() after the sheath snap, once"),
+    ("phage/cas", "Cas3 swings in", "phage stepMember() binding events, when b.state turns 'windup'"),
+    ("phage/burst", "the host bursts", "phage updateBurst() where the progeny spill (replaces bacterium/graze at rate 1.3)"),
+    ("phage/snag", "snagged in a floc / stuck to clay", "phage updateDrift() at the floc snag; enterClay() (both bacterium/tumble today)"),
+    ("ui/move", "menu focus moves", "game/src/sound.js tick() (synthesised today): play the file instead, keeping the synth as the fallback"),
+    ("ui/select", "menu select", "game/src/sound.js select()"),
+    ("ui/back", "menu back", "game/src/sound.js back()"),
+    ("ui/zoom-in", "the zoom into the next world", "game/src/sound.js zoom('in', duration) (stretch with playbackRate = 4 / duration)"),
+    ("ui/zoom-out", "the zoom back out", "game/src/sound.js zoom('out', duration)"),
+    ("ui/intro-in", "an intro card slides in", "game/src/main.js where the intro screen is shown"),
+    ("ui/intro-out", "the intro card leaves", "game/src/main.js where the intro is dismissed and the world starts"),
+    ("ui/pause", "pause", "game/src/main.js where sound.setPaused(true) is called on opening the pause menu"),
+    ("ui/resume", "resume", "game/src/main.js resume()"),
+    ("ui/card", "the controls card opens / closes", "game/src/main.js where the controls card is shown and hidden"),
+    ("ui/start", "starting from the title", "game/src/main.js where the title's A / Start begins a game (sound.start())"),
 ]
 
 
@@ -545,7 +657,15 @@ def document():
         for s in [s for s in SOUNDS if s["id"].split("/")[0] == proto]:
             out.append(f"| `{s['id']}` | {s['kind']} | {s['seconds']} s | {len(files(s))} | {s['used']} |")
         out.append("")
-    out += ["## Prompts", ""]
+    out += ["## Wiring (follow-up)", "",
+            "The sounds added on 2 November 2026 are generated but not played yet: the worlds' `main.js` files "
+            "were being refactored at the time. Each goes in as a one-line `audio.play(id)` at the event named "
+            "(and into that world's `createAudio([...])` list so it preloads). \"(hook)\" marks an event with no "
+            "single line to hang it on yet. The shell's `ui/` sounds would replace the synthesised ones in "
+            "`game/src/sound.js`, loaded from `../prototypes/assets/audio/ui/`.", "",
+            "| Id | Event | Where |", "| --- | --- | --- |"]
+    out += [f"| `{i}` | {e} | {w} |" for i, e, w in WIRING]
+    out += ["", "## Prompts", ""]
     for s in SOUNDS:
         out += [f"### {s['id']}", "", "```text", s["prompt"], "```", ""]
     return "\n".join(out).rstrip() + "\n"
@@ -553,6 +673,14 @@ def document():
 
 def main() -> int:
     args = sys.argv[1:]
+    unknown = [i for i, _, _ in WIRING if i not in {s["id"] for s in SOUNDS}]
+    if unknown:
+        print(f"WIRING names sounds not in SOUNDS: {', '.join(unknown)}")
+        return 1
+    long = [s["id"] for s in SOUNDS if len(s["prompt"]) > 450]
+    if long:
+        print(f"prompts over ElevenLabs' 450 characters: {', '.join(long)}")
+        return 1
     if "--check" in args:
         stale = []
         for p, text in {LIST: audio_list(), DOC: document()}.items():
