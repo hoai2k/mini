@@ -29,6 +29,7 @@ import { Meadows } from './meadow.js';
 import { createPortalLight } from '../shared/portal.js';
 import { createDirector } from '../shared/director.js';
 import { DIRECTOR, encounters, canPlace, wayOut, defaultPathFor } from './encounters.js';
+import { t as tt, tx } from '../shared/text.js';
 
 const MODES = ['DIC (Nomarski)', 'Brightfield', 'Lit (hypothetical)'];
 // The second entry is the 10× objective behind a 1.25× intermediate
@@ -75,30 +76,31 @@ const players = createPlayers({
     // the roster rides along, so the shell carries this player into the next world
     embed.post('join', { index: p.slot, color: p.color, name: p.name, roster: players.toJSON() });
     addAnimal(p);
-    hud.toast(`Player ${p.slot + 1} joined`);
+    audio.play('shared/join', { volume: 0.6 });
+    hud.toast(tt('shared.players.joined', { n: p.slot + 1 }));
   },
-  onLeave: (p) => { embed.post('leave', { index: p.slot, roster: players.toJSON() }); removeAnimal(p.slot); hud.toast(`Player ${p.slot + 1} left`); },
+  onLeave: (p) => { embed.post('leave', { index: p.slot, roster: players.toJSON() }); removeAnimal(p.slot); hud.toast(tt('shared.players.left', { n: p.slot + 1 })); },
   onChange: (list) => hud && hud.players(list),
 });
 const pad = players.pad(0);
 const ctl = players.controls(0);
 const hud = mountHud({
-  title: 'Tardigrade · The Moss Film',
-  sub: 'A ~350 µm eutardigrade gripping moss-leaf cell walls in the water film: out from the shoot past a Milnesium, rotifer meadows and dry patches to the pool Prionchulus guards. Differential interference contrast (DIC) look.',
+  title: tt('tardigrade.hud.title'),
+  sub: tt('tardigrade.hud.sub'),
   controls: hudControls({
-    move: 'Move (keys: G hurry, T creep)',
-    camera: 'Camera',
-    dash: 'Dash',
-    attack: 'Attack / eat',
-    defend: 'Block (hold)',
-    special: 'Curl up / enter portal',
-    analog: 'Focus',
-    secondary: 'Labels / rain (test)',
-    look: 'Change the look',
-    zoom: 'Zoom',
-    extra: [['LS click', 'Refocus'], ['RS click', 'Restart (test)']],
+    move: tt('tardigrade.hud.controls.move'),
+    camera: tt('tardigrade.hud.controls.camera'),
+    dash: tt('tardigrade.hud.controls.dash'),
+    attack: tt('tardigrade.hud.controls.attack'),
+    defend: tt('tardigrade.hud.controls.defend'),
+    special: tt('tardigrade.hud.controls.special'),
+    analog: tt('tardigrade.hud.controls.analog'),
+    secondary: tt('tardigrade.hud.controls.secondary'),
+    look: tt('tardigrade.hud.controls.look'),
+    zoom: tt('tardigrade.hud.controls.zoom'),
+    extra: [['LS click', tt('tardigrade.hud.controls.refocus')], ['RS click', tt('tardigrade.hud.controls.restart')]],
   }),
-  note: 'Reach the glowing portal, and avoid getting eaten by Milnesium and the nematode. Up to four players: press any button on another controller to join.',
+  note: tt('tardigrade.hud.note'),
 });
 
 const toast = (t, ms) => hud.toast(t, ms);
@@ -125,7 +127,9 @@ function tintCreature(c, color, on) {
 const GUT_TINTS = [[1, 1, 1], [0.7, 1, 0.5], [1, 0.6, 0.62], [0.82, 0.6, 1.25]];
 let rumbleOn = true;
 const rumble = (ms, w, s) => { if (rumbleOn) pad.rumble(ms, w, s); };
-const audio = createAudio(['tardigrade/amb-film', 'tardigrade/step', 'tardigrade/dash', 'tardigrade/bite', 'tardigrade/tun', 'tardigrade/revive', 'tardigrade/rain', 'tardigrade/milnesium', 'shared/portal-chime']);
+const audio = createAudio(['tardigrade/amb-film', 'tardigrade/step', 'tardigrade/dash', 'tardigrade/bite', 'tardigrade/tun', 'tardigrade/revive', 'tardigrade/rain', 'tardigrade/milnesium', 'shared/portal-chime',
+  'tardigrade/attack', 'tardigrade/impact', 'tardigrade/feed', 'tardigrade/brace', 'tardigrade/prionchulus', 'tardigrade/whip',
+  'shared/portal-enter', 'shared/slowdown', 'shared/portal-near', 'shared/portal-sealed', 'shared/portal-appear', 'shared/backdoor', 'shared/block', 'shared/reform', 'shared/foe-flees', 'shared/join']);
 audio.loop('tardigrade/amb-film', { volume: 0.6 });
 const snd = { t: 0, lastStep: -1, side: 1, state: 'active', feeding: false, rain: false };
 /** Gamepads fire no DOM events: unlock sound on any pad button. */
@@ -156,7 +160,7 @@ function walkerEvents(a) {
       if (big) { rb(180, 0.35, 0.6); footstep(a, 1); return; }
       footstep(a, q);
     },
-    slip() { toast(`${who(a)}Losing grip! Hold B to brace`); rb(400, 0.5, 0.2); },
+    slip() { toast(tt('tardigrade.toasts.losingGrip', { who: who(a) })); rb(400, 0.5, 0.2); },
     fall(t) { toast(who(a) + t, 2600); rb(300, 0.6, 0.8); },
     transfer(t) { toast(who(a) + t); },
   };
@@ -282,84 +286,64 @@ function applyMode(m) {
 const features = createFeatures({ key: 'tardigrade', pad });
 const F = (o) => features.add(o);
 audio.addToFeatures(features);
-F({ id: 'look', group: 'Rendering', label: 'Optical look', choices: MODES, value: MODES[0],
-  about: 'DIC: relief from the gradient of optical path along one shear direction. Brightfield: pigment plus faint refractive edges. Lit: a hypothetical immersive view with ordinary lights (not what a microscope records). D-pad left/right cycles it.',
+F({ id: 'look', group: 'Rendering', choices: MODES, value: MODES[0],
   onChange: (v) => applyMode(MODES.indexOf(v)) });
-F({ id: 'opd', group: 'Rendering', label: 'Optical-path buffers (thickness from closed meshes)', fixed: true,
-  about: 'Every transparent object adds Δn·thickness, depth·thickness and pigment into two float targets at once (MRT, additive, double sided): front faces subtract their depth, back faces add it, so each pixel holds the chord through the object. Shared as shared/techniques/tardigrade-dic.js.' });
-F({ id: 'dof', group: 'Optics', label: 'Shallow depth of field (focal plane)', on: true,
-  about: 'Leaves and specimen are two layers, each blurred by its own mean depth from the focal plane (gather blur). LT/RT turn the fine focus through them. Off: everything sharp.',
+F({ id: 'opd', group: 'Rendering', fixed: true });
+F({ id: 'dof', group: 'Optics', on: true,
   onChange: (v) => (mic.opts.dof = v) });
-F({ id: 'autofocus', group: 'Optics', label: 'Auto-focus on the animal', on: true,
-  about: 'The focal plane follows the animal as it walks. Turning the fine focus (LT/RT) holds your setting while you stand still; walk on and it eases back onto the animal. LS click refocuses at once.',
+F({ id: 'autofocus', group: 'Optics', on: true,
   onChange: (v) => (view.autoFocus = v) });
-F({ id: 'fringes', group: 'Optics', label: 'Three-wavelength interference', on: true,
-  about: 'Evaluates sin²(π Γ/λ) at red, green and blue wavelengths, giving the warm shadows and cool highlights of real DIC. Off: one wavelength, pure grey.',
+F({ id: 'fringes', group: 'Optics', on: true,
   onChange: (v) => (mic.opts.fringes = v) });
-F({ id: 'shear', group: 'Optics', label: 'Shear × bias (relief strength)', choices: ['Standard', 'Subtle', 'Strong'], value: 'Standard',
-  about: 'How far apart the two beams are and the bias retardation: more shear, stronger one-sided relief.',
+F({ id: 'shear', group: 'Optics', choices: ['Standard', 'Subtle', 'Strong'], value: 'Standard',
   onChange: (v) => { mic.opts.shear = { Standard: 260, Subtle: 120, Strong: 600 }[v]; mic.opts.bias = { Standard: 95, Subtle: 80, Strong: 110 }[v]; } });
-F({ id: 'angle', group: 'Optics', label: 'Shear direction', choices: ['45°', '135°', '0°', '90°'], value: '45°',
-  about: 'The fixed direction of the prism shear on screen: relief is lit along this axis only, so a wall parallel to it vanishes (true of real DIC).',
+F({ id: 'angle', group: 'Optics', choices: ['45°', '135°', '0°', '90°'], value: '45°',
   onChange: (v) => (mic.opts.angle = (parseFloat(v) * Math.PI) / 180) });
-F({ id: 'grain', group: 'Rendering', label: 'Camera grain', on: true, about: 'Faint per-frame sensor noise.', onChange: (v) => (mic.opts.grain = v) });
-F({ id: 'vignette', group: 'Rendering', label: 'Vignette', on: true, about: 'Light fall-off towards the edge of the field.', onChange: (v) => (mic.opts.vignette = v) });
-F({ id: 'backdrop', group: 'Rendering', label: 'Out-of-focus backdrop (MP-T03)', on: true,
-  about: 'A deeply defocused moss layer behind everything, as soft retardation. Procedural stand-in until the image arrives.', onChange: (v) => (mic.opts.backdrop = v) });
-F({ id: 'walls', group: 'World', label: 'Cell walls as optical path', on: true,
-  about: 'Raised cell walls, domed cells, costa: drawn per pixel in the leaf shader from the same pattern the claws use, so every foothold is a visible wall.', onChange: (v) => (LEAF_FX.uFx.value.x = v ? 1 : 0) });
-F({ id: 'chloro', group: 'World', label: 'Chloroplasts', on: true, about: 'Lens-shaped green plastids lining each living cell: the only strong colour in the field. Cells you have sucked dry lose them.', onChange: (v) => (LEAF_FX.uFx.value.y = v ? 1 : 0) });
-F({ id: 'film', group: 'World', label: 'Water film', on: true, about: 'Film thickness = capacity - dryness, as optical path (water vs air Δn 0.33): it shows as menisci and contact lines, not as blue water.', onChange: (v) => (LEAF_FX.uFx.value.z = v ? 1 : 0) });
-F({ id: 'meniscus', group: 'World', label: 'Contact-line steepening', on: true, about: 'Film thickness rises as √h from the contact line, so a retreating meniscus is a sharp edge in DIC. Off: linear, soft.', onChange: (v) => (LEAF_FX.uFx.value.w = v ? 1 : 0) });
-F({ id: 'artwalls', group: 'World', label: 'Footholds read from the delivered micrographs', fixed: true,
-  about: 'When MP-T01/T02 arrive, wallmap.js finds the walls in the image (gradient threshold + chamfer distance transform) and labels the cells (flood fill): the claws hook the walls you see, a pierced cell empties as a whole, and the shader takes colour from the photo but relief from the wall map, so it follows this microscope’s shear.' });
-F({ id: 'particles', group: 'World', label: 'Drifting bacteria and detritus', on: true, about: 'Point sprites from a 4×4 atlas (MP-T04 stand-in) in Brownian drift; they stop where the film has gone.', onChange: (v) => (particles.points.visible = v) });
-F({ id: 'sdf', group: 'Body', label: 'SDF body from anatomical parts', fixed: true,
-  about: 'Head, four trunk regions with cuticle folds, eight lobopod legs (IV terminal, backwards), meshed once with surface nets; buccal tube, stylets, pharyngeal bulb with placoids, eyespots, midgut, gonad and storage cells as separate meshes inside.' });
-F({ id: 'internals', group: 'Body', label: 'Internal anatomy visible', on: true, about: 'Show the organs through the translucent cuticle.', onChange: (v) => { view.internals = v; for (const a of animals) for (const r of a.creature.internals) r.mesh.visible = v; } });
-F({ id: 'claws', group: 'Body', label: 'Claw size', choices: ['Enhanced (1.6× long, ~3× thick)', 'True size'], value: 'Enhanced (1.6× long, ~3× thick)',
-  about: 'Real claws are ~10 µm: barely a few pixels at 20×. Enhanced so the grip reads.', onChange: (v) => (view.claws = v.startsWith('True') ? 0.62 : 1) });
-F({ id: 'rig', group: 'Body', label: 'Part rig (on the GPU)', fixed: true,
-  about: 'Runs in the vertex shader in the optical looks (the lit look and the borrowed SEM use the same rig on the CPU). Each vertex knows its part: legs stretch and turn from hip to foot (telescoping lobopods), the trunk carries a travelling lateral wave and the tun contraction, blended where parts meet.' });
-F({ id: 'sway', group: 'Motion', label: 'Soft-body sway and surge', on: true, about: 'The trunk bends side to side with the gait and surges with each wave of legs.', onChange: (v) => (view.sway = v) });
+F({ id: 'grain', group: 'Rendering', on: true, onChange: (v) => (mic.opts.grain = v) });
+F({ id: 'vignette', group: 'Rendering', on: true, onChange: (v) => (mic.opts.vignette = v) });
+F({ id: 'backdrop', group: 'Rendering', on: true,
+  onChange: (v) => (mic.opts.backdrop = v) });
+F({ id: 'walls', group: 'World', on: true,
+  onChange: (v) => (LEAF_FX.uFx.value.x = v ? 1 : 0) });
+F({ id: 'chloro', group: 'World', on: true, onChange: (v) => (LEAF_FX.uFx.value.y = v ? 1 : 0) });
+F({ id: 'film', group: 'World', on: true, onChange: (v) => (LEAF_FX.uFx.value.z = v ? 1 : 0) });
+F({ id: 'meniscus', group: 'World', on: true, onChange: (v) => (LEAF_FX.uFx.value.w = v ? 1 : 0) });
+F({ id: 'artwalls', group: 'World', fixed: true });
+F({ id: 'particles', group: 'World', on: true, onChange: (v) => (particles.points.visible = v) });
+F({ id: 'sdf', group: 'Body', fixed: true });
+F({ id: 'internals', group: 'Body', on: true, onChange: (v) => { view.internals = v; for (const a of animals) for (const r of a.creature.internals) r.mesh.visible = v; } });
+F({ id: 'claws', group: 'Body', choices: ['Enhanced (1.6× long, ~3× thick)', 'True size'], value: 'Enhanced (1.6× long, ~3× thick)',
+  onChange: (v) => (view.claws = v.startsWith('True') ? 0.62 : 1) });
+F({ id: 'rig', group: 'Body', fixed: true });
+F({ id: 'sway', group: 'Motion', on: true, onChange: (v) => (view.sway = v) });
 let miteGait = false;
-F({ id: 'gait', group: 'Motion', label: 'Leg coordination', choices: Object.keys(GAITS), value: Object.keys(GAITS)[0],
-  about: 'Measured in Hypsibius (Nirody et al. 2021): steps run back to front along each side, the sides half a cycle apart, a tetrapod-like pattern. Alternatives for comparison.', onChange: (v) => { if (!miteGait) setGait(v); } });
-F({ id: 'footholds', group: 'Motion', label: 'Claws need cell walls', on: true,
-  about: 'Each foot searches for the nearest wall within reach and hooks it; junctions and walls across the pull hold best. Off: feet grip anywhere.', onChange: (v) => (walker.opts.footholds = v) });
-F({ id: 'gravity', group: 'Motion', label: 'Slope load and slipping (exaggerated)', on: true,
-  about: 'Steep and overhanging faces need more claws planted, or the animal slides. Real 0.35 mm animals are held mainly by surface tension; this is a game rule.', onChange: (v) => (walker.opts.gravity = v) });
-F({ id: 'rings', group: 'Simulation', label: 'Rings round the start (the encounter pattern)', fixed: true,
-  about: 'The shoot round the start, then a spoke of leaves every 30° out to the rim (~8.4 mm), with the same scenery at the same distances whichever way you go: a band of rotifers across every spoke (4.0-4.6 mm) and dry patches (5.5-6.2 mm). The enemies and events are placed as you go (shared/director.js), in order, on leaves nobody has seen yet a little ahead of whoever leads along their spoke: after a few seconds, Milnesium in its water; after a long calm (the meadow, the dry patches), the pool at the rim of your spoke with Prionchulus on guard. Linger and they come to you all the same. No drying clock, no water meter, no hunger: nothing runs out while you stay in a safe spot.' });
-F({ id: 'capacity', group: 'Simulation', label: 'Film capacity field', fixed: true,
-  about: 'Per leaf: wetter towards the stem, in random hollows and where another leaf nearly touches (capillary bridges); margins thinner. The dry ring\'s patches are bare: no film, a sharp contact line round them, slow going (claws on dry cell walls). The film does not dry out over time.' });
-F({ id: 'labels', group: 'Controls', label: 'Anatomy labels', on: false, about: 'Name the claws, leg IV, buccal tube, bulb, eyespot, gut and storage cells (LB).', onChange: (v) => (view.labels = v) });
-F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'Impacts only: your bites and jabs as they land, a kick on each scramble, heavy on slips, falls and being bitten, and the portal. Walking does not rumble.', onChange: (v) => (rumbleOn = v) });
-F({ id: 'scramble', group: 'Motion', label: 'Scramble (A)', fixed: true,
-  about: 'A 0.9 s burst of the same back-to-front wave gait at ~280 µm/s, nearly twice the full-tilt walk (150 µm/s): the legs step faster rather than further (each reaches only so far), with up to 45% of each cycle in swing and swings as short as 60 ms. It recharges over 2.6 s; it costs nothing else. A stretch: the fastest walking measured in Hypsibius is ~260 µm/s.' });
-F({ id: 'reach', group: 'Motion', label: 'Leg reach and hand-off', fixed: true,
-  about: 'A lobopod telescopes a little, never more: no leg is drawn longer than 1.14× its rest length. A planted foot steps before it is stretched past 1.11×, and one that cannot lets go; a foot with nothing in reach (crossing to another leaf, over a gap, falling) is drawn up under the body, paddling, until a hold comes into reach. After a transfer the feet let go of the old leaf one by one, back to front, each catching the new one as it comes in reach.' });
-F({ id: 'smooth', group: 'Motion', label: 'Smoothed trunk and camera', on: true,
-  about: 'The trunk follows its target through three lags in series, and a change of face (a transfer, the leaf margin, a fall) blends the old pose out over a smootherstep, so position, velocity and acceleration stay continuous. Slipping uses grip hysteresis (slide below 85% of the load for 0.6 s, catch at 75%). Off: the old single lag.',
+F({ id: 'gait', group: 'Motion', choices: Object.keys(GAITS), value: Object.keys(GAITS)[0],
+  onChange: (v) => { if (!miteGait) setGait(v); } });
+F({ id: 'footholds', group: 'Motion', on: true,
+  onChange: (v) => (walker.opts.footholds = v) });
+F({ id: 'gravity', group: 'Motion', on: true,
+  onChange: (v) => (walker.opts.gravity = v) });
+F({ id: 'rings', group: 'Simulation', fixed: true });
+F({ id: 'capacity', group: 'Simulation', fixed: true });
+F({ id: 'labels', group: 'Controls', on: false, onChange: (v) => (view.labels = v) });
+F({ id: 'rumble', group: 'Controls', on: true, onChange: (v) => (rumbleOn = v) });
+F({ id: 'scramble', group: 'Motion', fixed: true });
+F({ id: 'reach', group: 'Motion', fixed: true });
+F({ id: 'smooth', group: 'Motion', on: true,
   onChange: (v) => (walker.opts.smooth = v) });
-F({ id: 'milnesium', group: 'Simulation', label: 'Milnesium (predator)', on: true,
-  about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It browses in its water (placed as you go: the first encounter, a few seconds out, on a leaf nobody has seen yet a little ahead of you) and hunts only a player in its water (it lets you go ~0.5 mm past it). A moment after someone first comes into its water it gets hungry, then hunger comes and goes (see Threats); only hungry does it close in, stalk you within ~650 µm and bite (each bite −25% health; at none, it grips you and swallows you whole, all of it shown). After a bite it lets go, backs off and rests 45-75 s. Escape: scramble (A) past it, retreat into film too thin for its body (a dry patch), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
+F({ id: 'milnesium', group: 'Simulation', on: true,
   onChange: (v) => { milOn = v; predator.on = v && mz.placed; predator.setVisible(v && mz.placed); } });
-F({ id: 'boss', group: 'Simulation', label: 'Prionchulus (the boss)', on: true,
-  about: 'A predatory nematode (~1.3 mm here; adults reach ~2 mm) on guard at the portal, 420 µm inside it, placed with the portal (the last encounter) at the rim of the spoke whoever leads is heading out along. Reaching the portal while it guards turns you back. It wakes when you come within ~650 µm of its post and follows you up to ~850 µm from it; then (or when it has lost you) it glides back at 30 µm/s, ignoring everyone: that is the way in. Its tells: coiling into an S (then a forward whip) or rippling fast (then a sideways sweep), tooth bared. Brace (B) facing it to block, jab its head (X) as it recovers. Worn down (the brass resolve gauge), it slides away into a deep groove for good, leaving the way open. Off: the portal is open.',
+F({ id: 'boss', group: 'Simulation', on: true,
   onChange: (v) => { boss.on = v; if (!v) boss.group.visible = false; else boss.group.visible = boss.placed; } });
-F({ id: 'meadow', group: 'Simulation', label: 'Rotifer meadow (a crowd)', on: true,
-  about: 'On the meadow ring (4.0-4.6 mm out): a band of ~110 bdelloid rotifers across every spoke\'s leaf, anchored by the foot, swaying, their wheel-like coronae beating. Walk into them and they bend aside; a stylet jab (X) makes those in front contract onto their foot and opens a lane (they re-extend later, a little further off). They never hurt you; a dense patch slows you by up to a quarter. No timer. Only bands with someone on their leaf move. shared/crowd.js.',
+F({ id: 'meadow', group: 'Simulation', on: true,
   onChange: (v) => { meadow.on = v; meadow.mesh.visible = v; } });
-F({ id: 'grace', group: 'Simulation', label: 'Milnesium wakes', choices: ['2 s', '10 s', '30 s', 'Off'], value: '2 s',
-  about: 'How long after someone first comes into its water Milnesium browses before it first gets hungry. Either way it hunts only a player in its water. shared/predation.js.',
+F({ id: 'grace', group: 'Simulation', choices: ['2 s', '10 s', '30 s', 'Off'], value: '2 s',
   onChange: (v) => { predator.pace.grace = v === 'Off' ? 0 : parseFloat(v); predator.hunger.reset(predator.pace.grace); } });
-F({ id: 'hunger', group: 'Simulation', label: 'Milnesium hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
-  about: 'Comes and goes: after the calm opening it is hungry for ~30-45 s at a time (once stalking it sees the hunt through), then rests (45-75 s after a bite or eating you, 15-30 s after a jab, losing you or giving up on a tun); only a hungry Milnesium closes in, stalks and bites. Always: hungry from the end of the calm opening on. Never: it only browses (for exploring and testing).',
+F({ id: 'hunger', group: 'Simulation', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
   onChange: (v) => (predator.pace.mode = v) });
 addInvertY(features);
 if (quality) quality.addToFeatures(features);
-F({ id: 'camrel', group: 'Controls', label: 'Camera-relative crawl', fixed: true, about: 'The stick direction on screen is projected onto the leaf the animal is on.' });
+F({ id: 'camrel', group: 'Controls', fixed: true });
 
 // ---------------------------------------------------------------- borrowed (default off)
 const looks = createBorrowedLooks(renderer);
@@ -368,24 +352,22 @@ const bmode = { amoeba: 0, par: 0 };
 const leafMeshes = new Set(world.leaves.map((l) => l.mesh));
 const bodyMeshes = new Set();
 creature.group.traverse((o) => bodyMeshes.add(o));
-borrow.add({ id: 'semMite', label: 'SEM (scanning electron microscope)', from: 'mite',
-  about: 'The real geometry drawn into the mite\'s G-buffer (normal, material, depth in µm) and shaded by its secondary-electron composite: secant-law tilt contrast, edge glow, detector shadowing, crevice darkening, shot noise. Physically odd: a hydrated animal in a water film cannot go into a vacuum, and the cell walls (drawn per pixel by the optical leaf shader) are missing, so the leaves are bare slabs.',
+borrow.add({ id: 'semMite', from: 'mite',
   onChange: (v) => { if (v && view.mode === 2) features.set('look', MODES[0]); } });
-F({ id: 'semMiteMode', group: 'Borrowed', label: 'SEM detector', from: 'mite', choices: SEM_LOOKS, value: SEM_LOOKS[0],
-  about: 'SE (topography), BSE (composition: everything here is light organic matter, so it is flat) or false colour (animal amber, leaves green).', onChange: (v) => looks.semMode(SEM_LOOKS.indexOf(v)) });
-const FIELD = 'The DIC optical-path and pigment buffers (after the focal-plane blur) handed to another microscope\'s image formation, so the focus and depth of field still work.';
-borrow.add({ id: 'opticsAmoeba', label: 'Amoeba property optics', from: 'amoeba',
-  about: `Brightfield with transport-of-intensity defocus contrast, phase contrast, darkfield or the immersive lit view. ${FIELD}`,
+F({ id: 'semMiteMode', group: 'Borrowed', from: 'mite', choices: SEM_LOOKS, value: SEM_LOOKS[0],
+  onChange: (v) => looks.semMode(SEM_LOOKS.indexOf(v)) });
+const FIELD = tt('tardigrade.borrowedField');
+borrow.add({ id: 'opticsAmoeba', from: 'amoeba',
+  about: tt('tardigrade.features.opticsAmoeba.about', { thick: FIELD }),
   onChange: (v) => { if (v && view.mode === 2) features.set('look', MODES[0]); } });
-F({ id: 'opticsAmoebaMode', group: 'Borrowed', label: 'Amoeba method', from: 'amoeba', choices: AMOEBA_MODES, value: AMOEBA_MODES[0],
-  about: 'Which optical method the amoeba switch above uses.', onChange: (v) => (bmode.amoeba = AMOEBA_MODES.indexOf(v)) });
-borrow.add({ id: 'microscopeParamecium', label: 'Paramecium microscope', from: 'paramecium',
-  about: `Darkfield, phase contrast (with the phase-ring halo), brightfield, the paramecium's simpler DIC or its lit view. ${FIELD}`,
+F({ id: 'opticsAmoebaMode', group: 'Borrowed', from: 'amoeba', choices: AMOEBA_MODES, value: AMOEBA_MODES[0],
+  onChange: (v) => (bmode.amoeba = AMOEBA_MODES.indexOf(v)) });
+borrow.add({ id: 'microscopeParamecium', from: 'paramecium',
+  about: tt('tardigrade.features.microscopeParamecium.about', { thick: FIELD }),
   onChange: (v) => { if (v && view.mode === 2) features.set('look', MODES[0]); } });
-F({ id: 'microscopeParameciumMode', group: 'Borrowed', label: 'Paramecium technique', from: 'paramecium', choices: PARAMECIUM_MODES, value: PARAMECIUM_MODES[0],
-  about: 'Which technique the paramecium switch above uses.', onChange: (v) => (bmode.par = PARAMECIUM_MODES.indexOf(v)) });
-features.add({ id: 'miteGait', group: 'Borrowed', label: 'Arachnid alternating tetrapod gait', from: 'mite', on: false,
-  about: 'The mite\'s gait offsets (mite-gait.js) on the eight lobopods: diagonal groups {L1 R2 L3 R4} and {R1 L2 R3 L4} alternate, with a slight back-to-front lag. Not what tardigrades do (they run a back-to-front wave), here to compare. Overrides Leg coordination while on.',
+F({ id: 'microscopeParameciumMode', group: 'Borrowed', from: 'paramecium', choices: PARAMECIUM_MODES, value: PARAMECIUM_MODES[0],
+  onChange: (v) => (bmode.par = PARAMECIUM_MODES.indexOf(v)) });
+features.add({ id: 'miteGait', group: 'Borrowed', from: 'mite', on: false,
   onChange: (v) => {
     miteGait = v;
     if (v) setGaitWith((L) => legOffset('tetrapod', L.pair, L.name.endsWith('L') ? 0 : 1, 4));
@@ -398,7 +380,7 @@ labelBox.style.cssText = 'position:fixed;inset:0;pointer-events:none;font:12px s
 document.body.appendChild(labelBox);
 const labelEls = Object.keys(creature.anchors).map((name) => {
   const d = document.createElement('div');
-  d.textContent = name;
+  d.textContent = tx('tardigrade.anatomyLabels')[name] ?? name;
   d.style.cssText = 'position:absolute;transform:translate(8px,-50%);background:rgba(10,12,16,.6);padding:1px 6px;border-radius:6px;white-space:nowrap';
   const dot = document.createElement('i');
   dot.style.cssText = 'position:absolute;left:-8px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:#ffd36e';
@@ -433,7 +415,7 @@ const SPLIT_ZOOM_MAX = 1.7;
 let groupZoom = 1;
 const split = createSplitScreen(renderer, { renderScale: SOFTWARE ? 1 : 0.75, zoomMax: SPLIT_ZOOM_MAX });
 const marks = createLandmarks();
-const BACK_LABEL = 'Back to the mite';
+const BACK_LABEL = tt('tardigrade.prompts.back');
 
 /** Testing and the roster: every joined player has an animal, and only they do. */
 function syncAnimals() {
@@ -505,10 +487,11 @@ function spawnNear(a, mate) {
 /** Multiplayer: after being eaten (or a tun that did not wake) the animal comes back beside a teammate. */
 function respawnNear(a) {
   a.life.respawn();
+  audio.play('shared/reform', { volume: 0.7 });
   a.dash = createDash({ duration: 0.9, cooldown: 2.6 });
   const mate = teammate(a);
   if (mate) spawnNear(a, mate); else a.walker.spawn(world.leaves[START_SPOT.leaf], 1, START_SPOT.u, START_SPOT.v, 1, 0);
-  toast(`${a.p.name} wakes again${mate ? ` beside ${mate.p.name}` : ''}`, 2400);
+  toast(mate ? tt('tardigrade.toasts.wakesBeside', { name: a.p.name, mate: mate.p.name }) : tt('tardigrade.toasts.wakes', { name: a.p.name }), 2400);
 }
 
 // ---------------------------------------------------------------- being eaten
@@ -528,14 +511,14 @@ const _p1 = new THREE.Vector3(), _q1 = new THREE.Quaternion(), _s1 = new THREE.V
 const _Tm = new THREE.Matrix4(), _M = new THREE.Matrix4(), _R = new THREE.Matrix4().makeRotationY(Math.PI), _S = new THREE.Matrix4();
 const gauge = document.createElement('div');
 gauge.style.cssText = 'position:fixed;left:50%;top:50px;transform:translateX(-50%);z-index:6;display:none;align-items:center;gap:8px;padding:3px 10px;border-radius:999px;background:rgba(18,16,10,.55);color:#e8d6a6;font:600 11px system-ui,sans-serif;letter-spacing:.04em;pointer-events:none';
-gauge.innerHTML = '<span>PRIONCHULUS</span><span style="display:block;width:120px;height:5px;border:1px solid #b8913f;border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:100%;background:#d2a24c"></i></span>';
+gauge.innerHTML = `<span>${tt('tardigrade.bossGauge')}</span><span style="display:block;width:120px;height:5px;border:1px solid #b8913f;border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:100%;background:#d2a24c"></i></span>`;
 document.body.appendChild(gauge);
 const gaugeBar = gauge.querySelector('i');
 const capBanner = document.createElement('div');
 capBanner.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:6;padding:6px 14px;border-radius:999px;font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;color:#fff;pointer-events:none;white-space:nowrap;display:none';
 document.body.appendChild(capBanner);
-const BOSS_LINES = { strike: 'Prionchulus pins you with its tooth!', hold: 'Held at its mouth…', eat: 'Prionchulus is sucking you dry' };
-const CAP_LINES = { strike: 'Milnesium strikes: its mouth tube is on you!', hold: 'Gripped by the stylets…', eat: 'Milnesium is swallowing you whole' };
+const BOSS_LINES = tx('tardigrade.banner.bossCapture');
+const CAP_LINES = tx('tardigrade.banner.capture');
 let captor = 'milnesium';
 function startCapture(a = p1, by = 'milnesium') {
   if (capture.active) return;
@@ -546,8 +529,8 @@ function startCapture(a = p1, by = 'milnesium') {
   Object.assign(cap, { phase: null, t: 0 });
   cap.m0.copy(a.walker.matrix);
   cap.feet0 = a.creature.pose.feet.map((f) => f.clone());
-  if (by === 'boss') capture.start({ by: 'Prionchulus', how: 'pinned you with its tooth and sucked you dry' });
-  else capture.start({ by: 'Milnesium', how: 'gripped you with its stylets and swallowed you whole' });
+  if (by === 'boss') capture.start({ by: tt('tardigrade.capture.boss.by'), how: tt('tardigrade.capture.boss.how') });
+  else capture.start({ by: tt('tardigrade.capture.milnesium.by'), how: tt('tardigrade.capture.milnesium.how') });
   audio.play('tardigrade/milnesium', { volume: 1, rate: 0.9 });
   if (rumbleOn) a.pad.rumble(500, 0.9, 1);
   embed.captured({ by: by === 'boss' ? 'Prionchulus' : 'Milnesium', player: a.slot });
@@ -569,6 +552,7 @@ const SAFE_R = [0, (RINGS.warm + RINGS.meadow[0]) / 2, (RINGS.meadow[1] + RINGS.
 function respawnSafe(a) {
   const p = a.walker.dispPos.clone(), r = world.radius(p), k = world.spokeOf(a.walker.leaf, p);
   a.life.respawn();
+  audio.play('shared/reform', { volume: 0.7 });
   a.dash = createDash({ duration: 0.9, cooldown: 2.6 });
   const danger = captor === 'boss' ? boss.headW || boss.pointWorld(0) : predator.walker.dispPos;
   for (const R of SAFE_R.filter((x) => x <= r + 1).reverse()) {
@@ -690,11 +674,12 @@ function setNear(on) {
   embed.near('back', on, BACK_LABEL);
   lm.log.push({ type: 'near', on });
   const kb = !players.hasController;
-  promptEl.innerHTML = `<b style="display:inline-block;min-width:18px;padding:0 5px;margin-right:6px;border-radius:${kb ? '5px' : '50%'};background:${kb ? '#3a3426' : '#c9a33a'};color:${kb ? '#efe3c2' : '#1a1508'};text-align:center">${kb ? 'R' : 'Y'}</b>${BACK_LABEL}`;
+  promptEl.innerHTML = `<b style="display:inline-block;min-width:18px;padding:0 5px;margin-right:6px;border-radius:${kb ? '5px' : '50%'};background:${kb ? '#3a3426' : '#c9a33a'};color:${kb ? '#efe3c2' : '#1a1508'};text-align:center">${kb ? 'R' : 'Y'}</b>${BACK_LABEL}`; // BACK_LABEL: tardigrade.prompts.back
   promptEl.style.display = on && !embed.active ? 'block' : 'none';
 }
 function fireLandmark(kind, a) {
   lm.log.push({ type: 'landmark', kind, slot: a.slot, t: +time.toFixed(2) });
+  if (kind === 'back') audio.play('shared/backdoor', { volume: 0.55 });
   embed.landmark(kind, { player: a.slot });
 }
 
@@ -831,10 +816,15 @@ parkMilnesium();
 function setPortalPrompt(on) {
   if (on === lm.portal) return;
   lm.portal = on;
+  if (on) audio.play('shared/portal-near', { volume: 0.6 });
   embed.near('portal', on);
 }
 function checkPortal() {
   for (const a of animals) a.atPortal = false;
+  // the way on unseals (Milnesium met): heard once, on the edge
+  const isSealed = portalSealed();
+  if (lm.wasSealed && !isSealed) audio.play('shared/portal-appear', { volume: 0.8 });
+  lm.wasSealed = isSealed;
   if (!portal.placed || outro) { setPortalPrompt(false); return; }
   let at = null, dmin = Infinity;
   for (const a of animals) {
@@ -844,20 +834,22 @@ function checkPortal() {
     if (places.atForward(a.walker)) { at = a; a.atPortal = true; }
   }
   if (dmin < FOUND) portal.found = true;
-  if (!portal.hinted && dmin < HINT && guarded()) { portal.hinted = true; toast('Prionchulus guards the way on. Lure it off its post, then get round it', 3600); }
+  if (!portal.hinted && dmin < HINT && guarded()) { portal.hinted = true; toast(tt('tardigrade.toasts.bossHint'), 3600); }
   // nearing the open way on: the shell can start loading the next world (no prompt is shown)
   const nearing = !portalSealed() && dmin < 14;
   if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
   if (at && !lm.fired) {
     if (guarded()) {
       if (!lm.blocked) {
-        if (!portal.turned) { portal.turned = true; toast('Turned back: Prionchulus is on guard. Lead it away from its post first, then get round it', 3600); }
+        audio.play('shared/portal-sealed', { volume: 0.6 });
+        if (!portal.turned) { portal.turned = true; toast(tt('tardigrade.toasts.turnedBack'), 3600); }
         lm.log.push({ type: 'turnedBack', slot: at.slot, t: +time.toFixed(2) });
         lm.blocked = true;
       }
     } else if (portalSealed() && !lm.blocked) {
       // the way on exists from the start (the default path) but opens only once Milnesium is met
-      toast('The pool will not take you yet: Milnesium is still out on the leaves', 2600);
+      audio.play('shared/portal-sealed', { volume: 0.6 });
+      toast(tt('tardigrade.toasts.sealed'), 2600);
       lm.log.push({ type: 'sealed', slot: at.slot, t: +time.toFixed(2) });
       lm.blocked = true;
     }
@@ -876,6 +868,7 @@ function enterPortal(a) {
   if (lm.fired || outro) return;
   lm.fired = true;
   setPortalPrompt(false);
+  audio.play('shared/portal-enter', { volume: 0.8 });
   startOutro(a);
   lm.log.push({ type: 'landmark', kind: 'forward', slot: a.slot, t: +time.toFixed(2) });
   embed.landmark('forward', { player: a.slot, outro: embed.active });
@@ -915,10 +908,11 @@ function startOutro(a) {
   const me = split.project(0, a.walker.dispPos);
   if (!me.behind) portalLight.bloom(me.x, me.y, { scale: 0.7 });
   audio.play('shared/portal-chime', { volume: 0.9 });
+  audio.play('shared/slowdown', { volume: 0.5, delay: OUTRO.beat });
   rumble(520, 0.55, 0.85);
   // the chrome goes, the bloom stays (cinematic(false) restores both)
   if (embed.active) { embed.cinematic(true, canvas); portalLight.canvas.style.visibility = 'visible'; }
-  else toast(`${who(a)}The pool: the film meets open water`, 2400);
+  else toast(tt('tardigrade.toasts.pool', { who: who(a) }), 2400);
 }
 /** Advance the outro by dt (frame time); returns the time scale for the world. */
 function stepOutro(dt) {
@@ -1140,14 +1134,14 @@ function frame() {
   const P = (b) => !inMenu && pad.pressed(b);
 
   const look = inMenu ? 0 : ctl.lookStep();
-  if (look) { const m = (view.mode + look + 3) % 3; features.set('look', MODES[m]); toast(MODES[m]); }
+  if (look) { const m = (view.mode + look + 3) % 3; features.set('look', MODES[m]); toast(tx('tardigrade.features.look.choices')[MODES[m]] ?? MODES[m]); }
   const zs = inMenu ? 0 : ctl.zoomStep();
-  if (zs < 0 && view.obj > 0) { view.obj--; toast(`Objective ${OBJECTIVES[view.obj].name}`); }
-  if (zs > 0 && view.obj < OBJECTIVES.length - 1) { view.obj++; toast(`Objective ${OBJECTIVES[view.obj].name}`); }
+  if (zs < 0 && view.obj > 0) { view.obj--; toast(tt('tardigrade.toasts.objective', { name: OBJECTIVES[view.obj].name })); }
+  if (zs > 0 && view.obj < OBJECTIVES.length - 1) { view.obj++; toast(tt('tardigrade.toasts.objective', { name: OBJECTIVES[view.obj].name })); }
   if (P(B.RB)) life.rain();
-  if (P(B.RS)) { life.newDay(); toast('Back at the start'); }
+  if (P(B.RS)) { life.newDay(); toast(tt('tardigrade.toasts.backAtStart')); }
   if (P(B.LB)) features.set('labels', !view.labels);
-  if (P(B.LS)) { view.focus = 0; toast('Refocused on the animal'); }
+  if (P(B.LS)) { view.focus = 0; toast(tt('tardigrade.toasts.refocused')); }
   // RS: yaw, and pitch by intent (up = look up: the camera swings down). Any player turns the shared view.
   let yaw = 0, pitch = 0;
   if (!inMenu && !outro) for (const a of animals) { if (a.p.waiting) continue; const lk = a.ctl.look(); yaw += lk.yaw; pitch += lk.pitch; }
@@ -1267,23 +1261,24 @@ function step(dt, G) {
   for (const { e, a: pr } of bev) {
     const a = pr ? pr.a : null;
     const rb = (ms, w, s2) => { if (a && rumbleOn) a.pad.rumble(ms, w, s2); };
-    if (e === 'wake') { toast('A predatory nematode, Prionchulus, uncoils off its post', 2800); logChallenge('boss', pr ? pr.a : p1); }
-    else if (e === 'rewake') toast('Prionchulus stirs on its post', 1600);
-    else if (e === 'return') { toast('Prionchulus gives up and glides back to its post: get round it!', 2400); logChallenge('bossLured', pr ? pr.a : p1); }
-    else if (e === 'guard') toast('Prionchulus is back on guard', 1600);
-    else if (e === 'windupWhip') { toast(`${a ? who(a) : ''}Prionchulus coils into an S, tooth bared: face it and brace (B)!`, 1800); rb(140, 0.3, 0); }
-    else if (e === 'windupThrash') { toast(`${a ? who(a) : ''}Prionchulus thrashes: face it and brace (B)!`, 1800); rb(140, 0.3, 0); }
-    else if (e === 'strike') audio.play('tardigrade/dash', { volume: 0.8, rate: 0.7 });
-    else if (e === 'blocked' && a) { toast(`${who(a)}Braced! Its head glances off your claws (resolve ${Math.round(boss.interest * 100)}%)`); rb(260, 0.6, 0.5); (a.anim ||= {}).shove = 0.3; }
-    else if (e === 'bitten' && a) { a.bossJab = true; toast(`${who(a)}Stylets into its head! (resolve ${Math.round(boss.interest * 100)}%)`); rb(200, 0.5, 0.4); audio.play('tardigrade/bite', { volume: 1, rate: 0.8 }); }
-    else if (e === 'flounder') toast('In the thin film Prionchulus flounders and loses heart', 2000);
-    else if (e === 'retreat') toast('Worn down, Prionchulus slides away into a deep groove between the cells: the way on is open', 3000);
+    if (e === 'wake') { toast(tt('tardigrade.toasts.bossWakes'), 2800); logChallenge('boss', pr ? pr.a : p1); }
+    else if (e === 'rewake') toast(tt('tardigrade.toasts.bossStirs'), 1600);
+    else if (e === 'return') { toast(tt('tardigrade.toasts.bossReturns'), 2400); logChallenge('bossLured', pr ? pr.a : p1); }
+    else if (e === 'guard') toast(tt('tardigrade.toasts.bossGuard'), 1600);
+    else if (e === 'windupWhip' || e === 'windupThrash') audio.play('tardigrade/prionchulus', { volume: 0.8 });
+    if (e === 'windupWhip') { toast(tt('tardigrade.toasts.bossCoils', { who: a ? who(a) : '' }), 1800); rb(140, 0.3, 0); }
+    else if (e === 'windupThrash') { toast(tt('tardigrade.toasts.bossThrashes', { who: a ? who(a) : '' }), 1800); rb(140, 0.3, 0); }
+    else if (e === 'strike') audio.play('tardigrade/whip', { volume: 0.8, old: ['tardigrade/dash', { volume: 0.8, rate: 0.7 }] });
+    else if (e === 'blocked' && a) { audio.play('shared/block', { volume: 0.8 }); toast(tt('tardigrade.toasts.bossBraced', { who: who(a), resolve: Math.round(boss.interest * 100) })); rb(260, 0.6, 0.5); (a.anim ||= {}).shove = 0.3; }
+    else if (e === 'bitten' && a) { a.bossJab = true; toast(tt('tardigrade.toasts.bossStylets', { who: who(a), resolve: Math.round(boss.interest * 100) })); rb(200, 0.5, 0.4); audio.play('tardigrade/bite', { volume: 1, rate: 0.8 }); audio.play('tardigrade/impact', { volume: 0.55 }); }
+    else if (e === 'flounder') toast(tt('tardigrade.toasts.bossFlounders'), 2000);
+    else if (e === 'retreat') { audio.play('shared/foe-flees', { volume: 0.7 }); toast(tt('tardigrade.toasts.bossRetreats'), 3000); }
     else if (e === 'hit' && a) {
       const L = a.life;
       L.energy = Math.max(0, L.energy - 0.35); L.feeding = null; a.walker.speed = 0;
       rb(320, 0.8, 0.9); audio.play('tardigrade/milnesium', { volume: 1, rate: 0.6 });
       if (L.energy <= 0.001) startCapture(a, 'boss');
-      else toast(`${who(a)}Its tooth stabs you! Health ${Math.round(L.energy * 100)}%`, 2400);
+      else toast(tt('tardigrade.toasts.bossStabs', { who: who(a), health: Math.round(L.energy * 100) }), 2400);
     }
   }
   const jabbed = pev.includes('recoil');
@@ -1296,10 +1291,10 @@ function step(dt, G) {
     a.meadowJab = false;
     if (meadow.on && g.P(BTN_X) && L.state === 'active' && !L.feeding && !a.bossJab && !(a === target && jabbed)) {
       const n = meadow.jab(a.walker);
-      if (n) { a.meadowJab = true; if (!a.toldMeadow) { a.toldMeadow = true; toast(`${who(a)}Touched, the rotifers snap their coronae shut and contract onto their feet`, 2600); } }
+      if (n) { a.meadowJab = true; if (!a.toldMeadow) { a.toldMeadow = true; toast(tt('tardigrade.toasts.rotifers', { who: who(a) }), 2600); } }
     }
     const yBack = a.atBack && g.P(BTN_Y);
-    if (yBack) { fireLandmark('back', a); toast(`${who(a)}Back up to the moss canopy`); }
+    if (yBack) { fireLandmark('back', a); toast(tt('tardigrade.toasts.backUp', { who: who(a) })); }
     const yPortal = !a.atBack && a.atPortal && L.state === 'active' && portal.placed && !portalSealed() && !guarded() && g.P(BTN_Y);
     if (yPortal) enterPortal(a);
     const yOwn = !a.atBack && !yPortal;
@@ -1314,9 +1309,12 @@ function step(dt, G) {
     }
     a.bossJab = false;
     // X (not spitting out a meal): the attack plays, and its impact lands on what it hit
+    // B: gripping hard (on the press)
+    if (g.P(BTN_B) && L.state === 'active' && !(held && a === captive)) audio.play('tardigrade/brace', { volume: 0.5 });
     if (xAtk) startAttack(a, a === target && jabbed ? 'hit' : bossHit ? 'hit' : a.meadowJab ? 'touch' : L.feeding ? 'food' : 'puff', bossHit ? boss.headW : a === target && jabbed ? predator.mouth(_atkP) : null);
     const feeding = !!L.feeding;
-    if (feeding && !a.feeding) audio.play('tardigrade/bite', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
+    // feeding: the stylets draw the cell in, heard again every ~1.5 s while it lasts
+    if (feeding && (!a.feeding || (audio.set === 'new' && time >= a.feedSndT))) { a.feedSndT = time + 1.5; audio.play('tardigrade/feed', { volume: 0.7, rate: 0.95 + Math.random() * 0.1, old: ['tardigrade/bite', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 }] }); }
     a.feeding = feeding;
   }
   const raining = life.rainT > 0;
@@ -1328,23 +1326,23 @@ function step(dt, G) {
     if (e === 'bite' || e === 'tunBite') audio.play('tardigrade/milnesium', { volume: e === 'bite' ? 1 : 0.6 });
     else if (e === 'stalk') audio.play('tardigrade/milnesium', { volume: 0.45, rate: 0.85 });
     else if (e === 'hunt') audio.play('tardigrade/milnesium', { volume: 0.25, rate: 0.75 });
-    else if (e === 'recoil') audio.play('tardigrade/bite', { volume: 1, rate: 0.85 });
-    if (e === 'recoil') { toast(`${who(a)}Stylets into its head! It staggers back (interest ${Math.round(predator.fight.interest * 100)}%)`); rb(220, 0.5, 0.4); (a.anim ||= {}).hit = 0.3; }
-    else if (e === 'windup') { toast(`${who(a)}Milnesium rears to strike! Face it and brace (B), or jab (X)`, 1800); rb(120, 0.3, 0); audio.play('tardigrade/milnesium', { volume: 0.5, rate: 1.2 }); }
+    else if (e === 'recoil') { audio.play('tardigrade/bite', { volume: 1, rate: 0.85 }); audio.play('tardigrade/impact', { volume: 0.55 }); }
+    if (e === 'recoil') { toast(tt('tardigrade.toasts.predatorRecoils', { who: who(a), interest: Math.round(predator.fight.interest * 100) })); rb(220, 0.5, 0.4); (a.anim ||= {}).hit = 0.3; }
+    else if (e === 'windup') { toast(tt('tardigrade.toasts.predatorRears', { who: who(a) }), 1800); rb(120, 0.3, 0); audio.play('tardigrade/milnesium', { volume: 0.5, rate: 1.2 }); }
     else if (e === 'strike') audio.play('tardigrade/milnesium', { volume: 0.9, rate: 1.05 });
-    else if (e === 'blocked') { toast(`${who(a)}Blocked! Braced claws hold and you shove its head away`); rb(260, 0.6, 0.5); (a.anim ||= {}).shove = 0.3; audio.play('tardigrade/bite', { volume: 0.7, rate: 0.7 }); }
-    else if (e === 'retreat') toast(`${who(a)}The Milnesium has had enough: it turns and crawls off`, 2600);
-    else if (e === 'stalk') toast(`${who(a)}A Milnesium has your scent: scramble (A), jab (X) or tun (Y)`, 2600);
-    else if (e === 'hunt') toast('Something large is moving in the film…', 2600);
-    else if (e === 'tunBite') { toast(`${who(a)}The Milnesium mouths your tun but cannot get it in`); rb(120, 0.2, 0.3); }
-    else if (e === 'givesUp') toast('The Milnesium gives up on the tun and wanders off');
+    else if (e === 'blocked') { toast(tt('tardigrade.toasts.predatorBlocked', { who: who(a) })); rb(260, 0.6, 0.5); (a.anim ||= {}).shove = 0.3; audio.play('shared/block', { volume: 0.8, old: ['tardigrade/bite', { volume: 0.7, rate: 0.7 }] }); }
+    else if (e === 'retreat') { audio.play('shared/foe-flees', { volume: 0.7 }); toast(tt('tardigrade.toasts.predatorGone', { who: who(a) }), 2600); }
+    else if (e === 'stalk') toast(tt('tardigrade.toasts.predatorStalks', { who: who(a) }), 2600);
+    else if (e === 'hunt') toast(tt('tardigrade.toasts.somethingLarge'), 2600);
+    else if (e === 'tunBite') { toast(tt('tardigrade.toasts.tunMouthed', { who: who(a) })); rb(120, 0.2, 0.3); }
+    else if (e === 'givesUp') toast(tt('tardigrade.toasts.tunGivesUp'));
     else if (e === 'bite') {
       L.energy = Math.max(0, L.energy - 0.25);
       L.feeding = null;
       a.walker.speed = 0;
       rb(300, 0.8, 0.9);
       if (L.energy <= 0.001) startCapture(a);
-      else toast(`${who(a)}Milnesium bites! Health ${Math.round(L.energy * 100)}%. It lets go and backs off, for now`, 2600);
+      else toast(tt('tardigrade.toasts.predatorBites', { who: who(a), health: Math.round(L.energy * 100) }), 2600);
     }
   }
 
@@ -1399,6 +1397,8 @@ function startAttack(a, kind, at = null) {
   // nothing there (or the rotifers): just ahead of the mouth, in the water film
   if (!p) p = bodyPoint(a, MOUTH[0] + 0.32, MOUTH[1] - 0.1, 0, new THREE.Vector3());
   an.atk = { t: 0, kind, at: p, fx: false };
+  audio.play('tardigrade/attack', { volume: 0.7, rate: 0.95 + Math.random() * 0.1 });
+
 }
 const smooth = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 function fightPose(a, g, dt) {
@@ -1702,7 +1702,7 @@ function drawViews(dt) {
   }
   if (outro) return;
   drawCues(L, dt);
-  marks.drawSplit(split, places.back, { kind: 'backdoor', label: 'Moss', range: 30 });
+  marks.drawSplit(split, places.back, { kind: 'backdoor', label: tt('tardigrade.marks.moss'), range: 30 });
   drawPortalArrow();
   if (animals.length > 1) drawRings(L);
 }
@@ -1862,12 +1862,12 @@ function readout() {
   // What Milnesium is up to, on screen whenever it matters.
   let bt = '', hot = true;
   const tName = animals.length > 1 ? (animals.find((a) => a.slot === predator.target)?.p.name || '') : '';
-  if (capture.active) bt = (animals.length > 1 && captive ? `${captive.p.name}: ` : '') + ((captor === 'boss' ? BOSS_LINES : CAP_LINES)[capture.phase] || '');
-  else if (boss.attacking) bt = `Prionchulus ${boss.fs === 'windup' ? (boss.pattern ? 'thrashes' : 'coils into an S') : 'strikes'}! Face it and brace (B)`;
-  else if (predator.on && predator.attacking) bt = `${tName ? tName + ': ' : ''}Milnesium ${predator.fstate === 'windup' ? 'rears to strike' : 'lunges'}! Face it and brace (B)`;
-  else if (predator.on && predator.state === 'retreat') { bt = 'The Milnesium has lost interest and crawls off'; hot = false; }
-  else if (predator.on && predator.state === 'stalk') bt = tName ? `A Milnesium is stalking ${tName}` : 'A Milnesium is stalking you';
-  else if (predator.on && predator.state === 'approach') { bt = tName ? `A Milnesium is closing in on ${tName}` : 'A Milnesium is closing in'; hot = false; }
+  if (capture.active) { const line = (captor === 'boss' ? BOSS_LINES : CAP_LINES)[capture.phase] || ''; bt = animals.length > 1 && captive ? tt('shared.players.named', { name: captive.p.name, text: line }) : line; }
+  else if (boss.attacking) bt = tt(boss.fs === 'windup' ? (boss.pattern ? 'tardigrade.banner.bossThrashes' : 'tardigrade.banner.bossCoils') : 'tardigrade.banner.bossStrikes');
+  else if (predator.on && predator.attacking) { const line = tt(predator.fstate === 'windup' ? 'tardigrade.banner.predatorRears' : 'tardigrade.banner.predatorLunges'); bt = tName ? tt('shared.players.named', { name: tName, text: line }) : line; }
+  else if (predator.on && predator.state === 'retreat') { bt = tt('tardigrade.banner.predatorLeaves'); hot = false; }
+  else if (predator.on && predator.state === 'stalk') bt = tName ? tt('tardigrade.banner.stalkingName', { name: tName }) : tt('tardigrade.banner.stalking');
+  else if (predator.on && predator.state === 'approach') { bt = tName ? tt('tardigrade.banner.closingName', { name: tName }) : tt('tardigrade.banner.closing'); hot = false; }
   capBanner.style.display = bt ? 'block' : 'none';
   // the boss's resolve: a quiet brass gauge while it is awake
   const showG = boss.awake && !(capture.active && captor === 'boss');

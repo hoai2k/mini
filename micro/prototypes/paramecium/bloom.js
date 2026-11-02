@@ -85,10 +85,13 @@ export function gulpBloom(B, S) {
 }
 /** A dash through the bloom flings the cells near you aside. */
 export function flingBloom(B, S) {
-  if (!B.placed) return;
+  if (!B.placed) return 0;
+  let n = 0; // how many it flung (the dash is heard scattering them when any)
   for (const c of B.cells) {
     if (c.gone > 0 || Math.abs(c.z - S.z) > 60) continue;
     const dx = c.x - S.x, dy = c.y - S.y, d = Math.hypot(dx, dy);
-    if (d < 110 && d > 1e-3) { const k = (110 - d) * 0.8; c.x += (dx / d) * k; c.y += (dy / d) * k; }
+    if (d < 110 && d > 1e-3) { const k = (110 - d) * 0.8; c.x += (dx / d) * k; c.y += (dy / d) * k; n++; }
   }
+  return n;
 }
+

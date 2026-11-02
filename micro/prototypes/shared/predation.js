@@ -26,6 +26,8 @@
 //                  player's being-eaten animation from it (shrink, squash, pull into
 //                  the mouth, fade); keep the camera framing both.
 
+import { t as tt } from './text.js';
+
 const rand = (a, b) => a + Math.random() * (b - a);
 
 export function createHunger({ grace = 45, hungry = [18, 32], restFed = [45, 75], restMissed = [15, 30] } = {}) {
@@ -101,7 +103,7 @@ export function createCapture({ onRestart, onRespawn, restartButton = 0, card: u
       if (i >= 0) return;
       PHASES = opts.phases || DEFAULT_PHASES;
       info = opts; i = 0; t = 0;
-      if (!useCard && opts.by) { caption.textContent = `${opts.by}${opts.how ? ` ${opts.how}` : ''}`; caption.style.opacity = '1'; }
+      if (!useCard && opts.by) { caption.textContent = opts.how ? tt('shared.eaten.caption', { by: opts.by, how: opts.how }) : opts.by; caption.style.opacity = '1'; }
     },
     /** Advance; returns { active, phase, t, fade }. */
     update(dt, pad) {
@@ -122,9 +124,9 @@ export function createCapture({ onRestart, onRespawn, restartButton = 0, card: u
       if (veil.style.opacity !== veilOpacity) veil.style.opacity = veilOpacity; // unchanged through strike/hold/eat
       if (name === 'eaten') {
         if (card.style.display === 'none') {
-          card.innerHTML = `<div style="font-size:18px;font-weight:650;margin-bottom:4px">Eaten</div>`
-            + `<div style="color:#c5ccd4">${info?.by ? `${info.by}${info.how ? ` ${info.how}` : ''}.` : ''}</div>`
-            + `<div style="margin-top:10px;color:#9fd0ff">Press A to try again</div>`;
+          card.innerHTML = `<div style="font-size:18px;font-weight:650;margin-bottom:4px">${tt('shared.eaten.title')}</div>`
+            + `<div style="color:#c5ccd4">${info?.by ? (info.how ? tt('shared.eaten.byHow', { by: info.by, how: info.how }) : tt('shared.eaten.by', { by: info.by })) : ''}</div>`
+            + `<div style="margin-top:10px;color:#9fd0ff">${tt('shared.eaten.tryAgain')}</div>`;
           card.style.display = 'block';
         }
         if (t > 0.6 && pad && pad.pressed(restartButton)) api.reset(true);

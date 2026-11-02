@@ -344,5 +344,901 @@ export const SOUNDS = {
       "assets/audio/bacterium/graze.mp3"
     ],
     "volume": 1
+  },
+  "shared/portal-appear": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/shared/portal-appear.mp3"
+    ],
+    "volume": 1
+  },
+  "shared/portal-near": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/shared/portal-near-1.mp3",
+      "assets/audio/shared/portal-near-2.mp3"
+    ],
+    "volume": 0.6
+  },
+  "shared/portal-enter": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/shared/portal-enter.mp3"
+    ],
+    "volume": 1
+  },
+  "shared/slowdown": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/shared/slowdown.mp3"
+    ],
+    "volume": 1
+  },
+  "shared/portal-sealed": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/shared/portal-sealed-1.mp3",
+      "assets/audio/shared/portal-sealed-2.mp3"
+    ],
+    "volume": 1
+  },
+  "shared/backdoor": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/shared/backdoor.mp3"
+    ],
+    "volume": 1
+  },
+  "shared/danger": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/shared/danger-1.mp3",
+      "assets/audio/shared/danger-2.mp3",
+      "assets/audio/shared/danger-3.mp3"
+    ],
+    "volume": 1
+  },
+  "shared/block": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/shared/block-1.mp3",
+      "assets/audio/shared/block-2.mp3"
+    ],
+    "volume": 1
+  },
+  "shared/hit": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/shared/hit-1.mp3",
+      "assets/audio/shared/hit-2.mp3"
+    ],
+    "volume": 1
+  },
+  "shared/death": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/shared/death.mp3"
+    ],
+    "volume": 1
+  },
+  "shared/reform": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/shared/reform.mp3"
+    ],
+    "volume": 1
+  },
+  "shared/foe-flees": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/shared/foe-flees.mp3"
+    ],
+    "volume": 1
+  },
+  "shared/join": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/shared/join.mp3"
+    ],
+    "volume": 1
+  },
+  "springtail/charge": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/springtail/charge.mp3"
+    ],
+    "volume": 0.6
+  },
+  "springtail/flip": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/springtail/flip-1.mp3",
+      "assets/audio/springtail/flip-2.mp3"
+    ],
+    "volume": 1
+  },
+  "springtail/right": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/springtail/right-1.mp3",
+      "assets/audio/springtail/right-2.mp3"
+    ],
+    "volume": 1
+  },
+  "springtail/pounce": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/springtail/pounce-1.mp3",
+      "assets/audio/springtail/pounce-2.mp3"
+    ],
+    "volume": 1
+  },
+  "springtail/glue-snap": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/springtail/glue-snap-1.mp3",
+      "assets/audio/springtail/glue-snap-2.mp3",
+      "assets/audio/springtail/glue-snap-3.mp3"
+    ],
+    "volume": 1
+  },
+  "springtail/struggle": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/springtail/struggle-1.mp3",
+      "assets/audio/springtail/struggle-2.mp3"
+    ],
+    "volume": 1
+  },
+  "springtail/tear-free": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/springtail/tear-free.mp3"
+    ],
+    "volume": 1
+  },
+  "springtail/sundew-fold": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/springtail/sundew-fold.mp3"
+    ],
+    "volume": 1
+  },
+  "springtail/strider": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/springtail/strider.mp3"
+    ],
+    "volume": 1
+  },
+  "springtail/spider": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/springtail/spider.mp3"
+    ],
+    "volume": 1
+  },
+  "springtail/spider-lunge": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/springtail/spider-lunge-1.mp3",
+      "assets/audio/springtail/spider-lunge-2.mp3"
+    ],
+    "volume": 1
+  },
+  "mite/jump": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/mite/jump-1.mp3",
+      "assets/audio/mite/jump-2.mp3"
+    ],
+    "volume": 1
+  },
+  "mite/land": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/mite/land-1.mp3",
+      "assets/audio/mite/land-2.mp3",
+      "assets/audio/mite/land-3.mp3"
+    ],
+    "volume": 1
+  },
+  "mite/crouch": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/mite/crouch.mp3"
+    ],
+    "volume": 0.6
+  },
+  "mite/strike": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/mite/strike-1.mp3",
+      "assets/audio/mite/strike-2.mp3",
+      "assets/audio/mite/strike-3.mp3"
+    ],
+    "volume": 1
+  },
+  "mite/devour": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/mite/devour.mp3"
+    ],
+    "volume": 1
+  },
+  "mite/drop-fall": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/mite/drop-fall.mp3"
+    ],
+    "volume": 1
+  },
+  "mite/drop-splash": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/mite/drop-splash-1.mp3",
+      "assets/audio/mite/drop-splash-2.mp3"
+    ],
+    "volume": 1
+  },
+  "mite/predator-windup": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/mite/predator-windup.mp3"
+    ],
+    "volume": 1
+  },
+  "mite/predator-strike": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/mite/predator-strike-1.mp3",
+      "assets/audio/mite/predator-strike-2.mp3"
+    ],
+    "volume": 1
+  },
+  "mite/glance": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/mite/glance-1.mp3",
+      "assets/audio/mite/glance-2.mp3"
+    ],
+    "volume": 1
+  },
+  "mite/pincer": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/mite/pincer-1.mp3",
+      "assets/audio/mite/pincer-2.mp3"
+    ],
+    "volume": 1
+  },
+  "tardigrade/attack": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/tardigrade/attack-1.mp3",
+      "assets/audio/tardigrade/attack-2.mp3",
+      "assets/audio/tardigrade/attack-3.mp3"
+    ],
+    "volume": 1
+  },
+  "tardigrade/impact": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/tardigrade/impact-1.mp3",
+      "assets/audio/tardigrade/impact-2.mp3"
+    ],
+    "volume": 1
+  },
+  "tardigrade/feed": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/tardigrade/feed-1.mp3",
+      "assets/audio/tardigrade/feed-2.mp3"
+    ],
+    "volume": 1
+  },
+  "tardigrade/brace": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/tardigrade/brace.mp3"
+    ],
+    "volume": 1
+  },
+  "tardigrade/prionchulus": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/tardigrade/prionchulus.mp3"
+    ],
+    "volume": 1
+  },
+  "tardigrade/whip": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/tardigrade/whip-1.mp3",
+      "assets/audio/tardigrade/whip-2.mp3"
+    ],
+    "volume": 1
+  },
+  "amoeba/drain": {
+    "kind": "loop",
+    "files": [
+      "assets/audio/amoeba/drain.mp3"
+    ],
+    "volume": 0.7
+  },
+  "amoeba/tremble": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/amoeba/tremble-1.mp3",
+      "assets/audio/amoeba/tremble-2.mp3"
+    ],
+    "volume": 0.6
+  },
+  "amoeba/squish": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/amoeba/squish-1.mp3",
+      "assets/audio/amoeba/squish-2.mp3",
+      "assets/audio/amoeba/squish-3.mp3"
+    ],
+    "volume": 0.4
+  },
+  "amoeba/roll": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/amoeba/roll-1.mp3",
+      "assets/audio/amoeba/roll-2.mp3"
+    ],
+    "volume": 0.4
+  },
+  "amoeba/stick": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/amoeba/stick.mp3"
+    ],
+    "volume": 1
+  },
+  "amoeba/tear": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/amoeba/tear-1.mp3",
+      "assets/audio/amoeba/tear-2.mp3"
+    ],
+    "volume": 1
+  },
+  "amoeba/pierce": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/amoeba/pierce.mp3"
+    ],
+    "volume": 1
+  },
+  "amoeba/pinch": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/amoeba/pinch-1.mp3",
+      "assets/audio/amoeba/pinch-2.mp3"
+    ],
+    "volume": 1
+  },
+  "amoeba/chaos": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/amoeba/chaos.mp3"
+    ],
+    "volume": 1
+  },
+  "amoeba/chaos-windup": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/amoeba/chaos-windup.mp3"
+    ],
+    "volume": 1
+  },
+  "amoeba/chaos-engulf": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/amoeba/chaos-engulf.mp3"
+    ],
+    "volume": 1
+  },
+  "amoeba/death": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/amoeba/death.mp3"
+    ],
+    "volume": 1
+  },
+  "amoeba/reform": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/amoeba/reform.mp3"
+    ],
+    "volume": 1
+  },
+  "paramecium/depth": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/paramecium/depth-1.mp3",
+      "assets/audio/paramecium/depth-2.mp3"
+    ],
+    "volume": 0.5
+  },
+  "paramecium/burst": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/paramecium/burst.mp3"
+    ],
+    "volume": 1
+  },
+  "paramecium/stun": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/paramecium/stun-1.mp3",
+      "assets/audio/paramecium/stun-2.mp3"
+    ],
+    "volume": 1
+  },
+  "paramecium/dileptus": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/paramecium/dileptus.mp3"
+    ],
+    "volume": 1
+  },
+  "paramecium/slash": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/paramecium/slash-1.mp3",
+      "assets/audio/paramecium/slash-2.mp3"
+    ],
+    "volume": 1
+  },
+  "paramecium/giant": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/paramecium/giant.mp3"
+    ],
+    "volume": 1
+  },
+  "paramecium/giant-engulf": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/paramecium/giant-engulf.mp3"
+    ],
+    "volume": 1
+  },
+  "paramecium/trap-tell": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/paramecium/trap-tell.mp3"
+    ],
+    "volume": 1
+  },
+  "paramecium/trap-fire": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/paramecium/trap-fire-1.mp3",
+      "assets/audio/paramecium/trap-fire-2.mp3"
+    ],
+    "volume": 1
+  },
+  "paramecium/divide": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/paramecium/divide.mp3"
+    ],
+    "volume": 1
+  },
+  "paramecium/vorticella": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/paramecium/vorticella-1.mp3",
+      "assets/audio/paramecium/vorticella-2.mp3"
+    ],
+    "volume": 0.5
+  },
+  "paramecium/bloom": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/paramecium/bloom.mp3"
+    ],
+    "volume": 0.6
+  },
+  "bacterium/beacon": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/bacterium/beacon-1.mp3",
+      "assets/audio/bacterium/beacon-2.mp3"
+    ],
+    "volume": 1
+  },
+  "bacterium/answer": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/bacterium/answer-1.mp3",
+      "assets/audio/bacterium/answer-2.mp3",
+      "assets/audio/bacterium/answer-3.mp3"
+    ],
+    "volume": 0.5
+  },
+  "bacterium/join": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/bacterium/join-1.mp3",
+      "assets/audio/bacterium/join-2.mp3",
+      "assets/audio/bacterium/join-3.mp3"
+    ],
+    "volume": 0.5
+  },
+  "bacterium/toxin": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/bacterium/toxin.mp3"
+    ],
+    "volume": 1
+  },
+  "bacterium/lyse": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/bacterium/lyse-1.mp3",
+      "assets/audio/bacterium/lyse-2.mp3"
+    ],
+    "volume": 1
+  },
+  "bacterium/strike": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/bacterium/strike-1.mp3",
+      "assets/audio/bacterium/strike-2.mp3"
+    ],
+    "volume": 1
+  },
+  "bacterium/stentor": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/bacterium/stentor.mp3"
+    ],
+    "volume": 1
+  },
+  "bacterium/bdello": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/bacterium/bdello-1.mp3",
+      "assets/audio/bacterium/bdello-2.mp3"
+    ],
+    "volume": 1
+  },
+  "bacterium/gate": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/bacterium/gate.mp3"
+    ],
+    "volume": 1
+  },
+  "bacterium/infected": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/bacterium/infected.mp3"
+    ],
+    "volume": 0.7
+  },
+  "phage/amb-water": {
+    "kind": "loop",
+    "files": [
+      "assets/audio/phage/amb-water.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/grab": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/grab-1.mp3",
+      "assets/audio/phage/grab-2.mp3",
+      "assets/audio/phage/grab-3.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/release": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/release-1.mp3",
+      "assets/audio/phage/release-2.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/miss": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/miss.mp3"
+    ],
+    "volume": 0.6
+  },
+  "phage/throw": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/throw-1.mp3",
+      "assets/audio/phage/throw-2.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/fold": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/fold-1.mp3",
+      "assets/audio/phage/fold-2.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/dash": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/dash-1.mp3",
+      "assets/audio/phage/dash-2.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/jab": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/jab-1.mp3",
+      "assets/audio/phage/jab-2.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/lobe": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/lobe.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/current-coming": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/current-coming.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/current-pass": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/current-pass.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/latch": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/latch-1.mp3",
+      "assets/audio/phage/latch-2.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/sheath": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/sheath.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/inject": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/inject.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/cas": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/cas-1.mp3",
+      "assets/audio/phage/cas-2.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/burst": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/burst.mp3"
+    ],
+    "volume": 1
+  },
+  "phage/snag": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/phage/snag.mp3"
+    ],
+    "volume": 1
+  },
+  "ui/move": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/ui/move-1.mp3",
+      "assets/audio/ui/move-2.mp3",
+      "assets/audio/ui/move-3.mp3"
+    ],
+    "volume": 0.5
+  },
+  "ui/select": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/ui/select-1.mp3",
+      "assets/audio/ui/select-2.mp3"
+    ],
+    "volume": 1
+  },
+  "ui/back": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/ui/back-1.mp3",
+      "assets/audio/ui/back-2.mp3"
+    ],
+    "volume": 1
+  },
+  "ui/intro-in": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/ui/intro-in.mp3"
+    ],
+    "volume": 0.7
+  },
+  "ui/intro-out": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/ui/intro-out.mp3"
+    ],
+    "volume": 0.7
+  },
+  "ui/pause": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/ui/pause.mp3"
+    ],
+    "volume": 0.7
+  },
+  "ui/resume": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/ui/resume.mp3"
+    ],
+    "volume": 0.7
+  },
+  "ui/card": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/ui/card-1.mp3",
+      "assets/audio/ui/card-2.mp3"
+    ],
+    "volume": 0.6
+  },
+  "ui/zoom-in": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/ui/zoom-in.mp3"
+    ],
+    "volume": 1
+  },
+  "ui/zoom-out": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/ui/zoom-out.mp3"
+    ],
+    "volume": 1
+  },
+  "ui/start": {
+    "kind": "oneshot",
+    "files": [
+      "assets/audio/ui/start.mp3"
+    ],
+    "volume": 1
   }
 };
+// The sounds added on 2 November 2026 (WIRING): the Old sound set (the shell's
+// Sound effects setting, shared/audio.js) plays none of them.
+export const ADDED = new Set([
+  "shared/portal-enter",
+  "shared/slowdown",
+  "shared/portal-near",
+  "shared/portal-sealed",
+  "shared/portal-appear",
+  "shared/backdoor",
+  "shared/danger",
+  "shared/block",
+  "shared/hit",
+  "shared/death",
+  "shared/reform",
+  "shared/foe-flees",
+  "shared/join",
+  "springtail/charge",
+  "springtail/flip",
+  "springtail/right",
+  "springtail/pounce",
+  "springtail/glue-snap",
+  "springtail/struggle",
+  "springtail/tear-free",
+  "springtail/sundew-fold",
+  "springtail/strider",
+  "springtail/spider",
+  "springtail/spider-lunge",
+  "mite/jump",
+  "mite/land",
+  "mite/crouch",
+  "mite/strike",
+  "mite/devour",
+  "mite/drop-fall",
+  "mite/drop-splash",
+  "mite/predator-windup",
+  "mite/predator-strike",
+  "mite/glance",
+  "mite/pincer",
+  "tardigrade/attack",
+  "tardigrade/impact",
+  "tardigrade/feed",
+  "tardigrade/brace",
+  "tardigrade/prionchulus",
+  "tardigrade/whip",
+  "amoeba/drain",
+  "amoeba/tremble",
+  "amoeba/squish",
+  "amoeba/roll",
+  "amoeba/stick",
+  "amoeba/tear",
+  "amoeba/pierce",
+  "amoeba/pinch",
+  "amoeba/chaos",
+  "amoeba/chaos-windup",
+  "amoeba/chaos-engulf",
+  "amoeba/death",
+  "amoeba/reform",
+  "paramecium/depth",
+  "paramecium/burst",
+  "paramecium/stun",
+  "paramecium/dileptus",
+  "paramecium/slash",
+  "paramecium/giant",
+  "paramecium/giant-engulf",
+  "paramecium/trap-tell",
+  "paramecium/trap-fire",
+  "paramecium/divide",
+  "paramecium/vorticella",
+  "paramecium/bloom",
+  "bacterium/beacon",
+  "bacterium/answer",
+  "bacterium/join",
+  "bacterium/toxin",
+  "bacterium/lyse",
+  "bacterium/strike",
+  "bacterium/stentor",
+  "bacterium/bdello",
+  "bacterium/gate",
+  "bacterium/infected",
+  "phage/amb-water",
+  "phage/grab",
+  "phage/release",
+  "phage/miss",
+  "phage/throw",
+  "phage/fold",
+  "phage/dash",
+  "phage/jab",
+  "phage/lobe",
+  "phage/current-coming",
+  "phage/current-pass",
+  "phage/latch",
+  "phage/sheath",
+  "phage/inject",
+  "phage/cas",
+  "phage/burst",
+  "phage/snag",
+  "ui/move",
+  "ui/select",
+  "ui/back",
+  "ui/zoom-in",
+  "ui/zoom-out",
+  "ui/intro-in",
+  "ui/intro-out",
+  "ui/pause",
+  "ui/resume",
+  "ui/card",
+  "ui/start"
+]);

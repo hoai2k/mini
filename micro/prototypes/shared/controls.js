@@ -21,6 +21,7 @@
 //     secondary: 'Walk slowly / hurry', look: 'SEM mode', zoom: 'Objective',
 //     extra: [['LS click', 'Refocus']] }) });
 import { BTN } from './pad.js';
+import { t } from './text.js';
 
 // Camera pitch convention for every prototype: RS up looks up (the camera
 // swings down towards the horizon), RS down looks down, like most third-person
@@ -31,9 +32,7 @@ try { invertY = localStorage.getItem(INVERT_KEY) === '1'; } catch { /* private m
 
 /** Add the shared Invert Y switch to a prototype's feature panel. */
 export function addInvertY(features) {
-  features.add({ id: 'invertY', group: 'Controls', label: 'Invert camera Y',
-    about: 'Off: right stick up looks up (the camera swings down). On: right stick up looks down. Shared by every prototype.',
-    on: invertY, onChange: (v) => { invertY = !!v; try { localStorage.setItem(INVERT_KEY, invertY ? '1' : '0'); } catch { /* private mode */ } } });
+  features.add({ id: 'invertY', group: 'Controls', on: invertY, onChange: (v) => { invertY = !!v; try { localStorage.setItem(INVERT_KEY, invertY ? '1' : '0'); } catch { /* private mode */ } } });
 }
 
 function button(pad, b) {
@@ -115,6 +114,6 @@ export function hudControls({ move, camera, dash, attack, defend, special, analo
   if (look) rows.push(['D-pad ←→', look]);
   if (zoom) rows.push(['D-pad ↑↓', zoom]);
   rows.push(...extra);
-  rows.push(['Menu', 'Features: what this does, switches'], ['View', 'Hide this panel']);
+  rows.push(['Menu', t('shared.hud.menuRow')], ['View', t('shared.hud.viewRow')]);
   return rows;
 }

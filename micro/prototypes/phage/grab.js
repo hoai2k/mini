@@ -7,6 +7,8 @@
 // Pure logic (three.js maths only), so it runs in node tests (grab.test.mjs).
 import * as THREE from '../shared/vendor/three.module.min.js';
 
+import { t as tt } from '../shared/text.js';
+
 export const GRAB = { reach: 40, behind: 0.7 };
 
 const _o = new THREE.Vector3();
@@ -35,7 +37,7 @@ export function pickGrabTarget(hand, forward, molecules, cells, { reach = GRAB.r
 
 /** The kind of surface under a host-local point, for the toast (stable for a point; a wrong host is all wall). */
 export function surfacePart(local, wrong = false) {
-  if (wrong) return 'its thick wall';
+  if (wrong) return tt('phage.parts.thickWall');
   const h = Math.abs(Math.sin(local.x * 12.9898 + local.y * 78.233 + local.z * 37.719) * 43758.5453) % 1;
-  return h < 0.45 ? 'the LPS fur' : h < 0.7 ? 'a porin' : h < 0.9 ? 'a membrane protein' : 'the outer membrane';
+  return tt(h < 0.45 ? 'phage.parts.lpsFur' : h < 0.7 ? 'phage.parts.porin' : h < 0.9 ? 'phage.parts.membraneProtein' : 'phage.parts.outerMembrane');
 }

@@ -148,16 +148,20 @@ export function createWorld(seed = 11) {
     return { x0: v.ax + ox, y0: v.ay + oy, z0: v.az, x1: bx, y1: by, z1: bz, a, c: st.c, L };
   }
   /** Step the Vorticella: each contracts now and then on its own, and at once when something swims close. */
+  /** Returns the Vorticellae a swimmer startled this step (contracted by near(), not already contracted). */
   function stepVorticella(dt, near) {
+    const startled = [];
     for (const v of vorticella) {
       let st = stalkState.get(v);
       if (!st) { st = { c: 0, t: v.next }; stalkState.set(v, st); }
       st.t -= dt;
       if (st.c > 0.5 || st.t > 0) st.c = Math.max(0, st.c - dt * 0.55); // re-extends slowly
       if (st.t <= 0 && st.c < 0.05) { st.c = 1; st.t = 6 + (v.phase * 7) % 9; }
-      if (near && near(v)) { st.c = 1; st.t = Math.max(st.t, 4); }
+      if (near && near(v)) { if (st.c < 0.5) startled.push(v); st.c = 1; st.t = Math.max(st.t, 4); }
     }
+    return startled;
   }
+
 
   const ob = () => ({});
   /** The solid things near (x, y): obstacles for swim.js. */

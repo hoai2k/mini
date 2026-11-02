@@ -14,6 +14,12 @@ import { playContinuous, validPose, moveOf } from './continuous.js';
 import { loadRoster } from './players.js';
 import { listen, send } from './bus.js';
 import { glyph, glyphMode, refreshGlyphs, controlRows } from './glyphs.js';
+import { t, tx, fillText } from '../../prototypes/shared/text.js';
+
+// Every player-facing string is in ../../prototypes/shared/text_config.js
+// (keys under `shell.` and `worlds.`); index.html's static text is filled
+// from its data-t attributes first.
+fillText(document, { glyph: (b) => `<span class="g" data-btn="${b}"></span>` });
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -26,7 +32,9 @@ const store = {
 };
 
 // ---------------------------------------------------------------- state
-const settings = { controlsAtStart: true, transition: 'microscope', ...store.get('micro.game.settings', {}) };
+// The controls card always shows and transitions are always continuous ('microscope' is the
+// continuous path, falling back to the zoom where a world can't): the owner removed both settings.
+const settings = { ...store.get('micro.game.settings', {}), controlsAtStart: true, transition: 'microscope' };
 const saveSettings = () => store.set('micro.game.settings', settings);
 let invertY = false;
 try { invertY = localStorage.getItem('micro.invertY') === '1'; } catch { /* private mode */ }
@@ -87,16 +95,16 @@ const ICONS = {
 };
 function cornerButtons(el, which) {
   const b = (attr, icon, label, extra = '') => `<button class="icon-btn${extra}" data-nav ${attr} aria-label="${label}" title="${label}">${icon}<span class="btn-label">${label}</span></button>`;
-  el.innerHTML = (which.includes('instructions') ? b('data-open="instructions"', ICONS.instructions, 'Instructions') : '')
-    + b('data-open="settings"', ICONS.settings, 'Settings')
-    + b('data-action="sound" aria-pressed="true"', ICONS.soundOn, 'Sound on', ' sound-btn')
-    + b('data-action="fullscreen"', ICONS.fullscreen, 'Fullscreen');
+  el.innerHTML = (which.includes('instructions') ? b('data-open="instructions"', ICONS.instructions, t('shell.corner.instructions')) : '')
+    + b('data-open="settings"', ICONS.settings, t('shell.corner.settings'))
+    + b('data-action="sound" aria-pressed="true"', ICONS.soundOn, t('shell.corner.soundOn'), ' sound-btn')
+    + b('data-action="fullscreen"', ICONS.fullscreen, t('shell.corner.fullscreen'));
 }
 for (const el of $$('.corner-buttons')) cornerButtons(el, el.dataset.group === 'corner-pause' ? ['settings'] : ['instructions']);
 function syncSoundButtons() {
   for (const b of $$('.sound-btn')) {
     b.setAttribute('aria-pressed', String(sound.on));
-    const label = sound.on ? 'Sound on' : 'Sound off';
+    const label = sound.on ? t('shell.corner.soundOn') : t('shell.corner.soundOff');
     b.setAttribute('aria-label', label); b.title = label;
     b.innerHTML = (sound.on ? ICONS.soundOn : ICONS.soundOff) + `<span class="btn-label">${label}</span>`;
   }
@@ -116,14 +124,14 @@ function toast(html, { color, ms = 2600 } = {}) {
 // ---------------------------------------------------------------- players
 function renderPlayers() {
   const list = roster.list;
-  const html = list.map((p) => `<span class="pchip" style="--pc:${p.color}"><b>${p.index + 1}</b>${p.name || `Player ${p.index + 1}`}</span>`).join('')
-    + (list.length < 4 && glyphMode() === 'controller' ? `<span class="pchip empty"><b style="--pc:transparent">+</b>Any button on another controller joins</span>` : '');
+  const html = list.map((p) => `<span class="pchip" style="--pc:${p.color}"><b>${p.index + 1}</b>${p.name || t('shell.players.chip', { n: p.index + 1 })}</span>`).join('')
+    + (list.length < 4 && glyphMode() === 'controller' ? `<span class="pchip empty"><b style="--pc:transparent">+</b>${t('shell.players.joinHint')}</span>` : '');
   for (const el of $$('.players-row')) if (el.innerHTML !== html) el.innerHTML = html;
 }
 function announceJoin(p) {
   sound.join();
   const n = (p.index ?? 0) + 1;
-  toast(`<b>P${n}</b>Player ${n} joined<small>${S.screen === 'play' ? 'in this world' : 'ready to play'}</small>`, { color: p.color });
+  toast(t('shell.toasts.joined', { n, where: S.screen === 'play' ? t('shell.toasts.joinedInWorld') : t('shell.toasts.joinedReady') }), { color: p.color });
   renderPlayers();
   if (S.controlsShown) renderControlsCard();
 }
@@ -160,6 +168,7 @@ function openModal(id) {
   el.hidden = false;
   if (id === 'settings') renderSettings();
   if (id === 'instructions') renderInstructions();
+  if (id === 'credits') renderCredits();
   input.lockHeld();
   focusFirst(el);
 }
@@ -227,7 +236,7 @@ const titleBg = createTitleBg($('#title-bg'), { images: [], reduced: reduced(), 
     return true;
   });
   const logoReady = logo ? loadImage(logo).then((img) => {
-    if (img) { const el = $('#logo-img'); el.src = img.src; el.alt = 'Micro Zoom'; el.hidden = false; }
+    if (img) { const el = $('#logo-img'); el.src = img.src; el.alt = t('shell.title.logoAlt'); el.hidden = false; }
     return !!img;
   }) : Promise.resolve().then(() => {
     $('#logo-text').classList.remove('visually-hidden'); $('.vernier').hidden = false; return true;
@@ -237,7 +246,7 @@ const titleBg = createTitleBg($('#title-bg'), { images: [], reduced: reduced(), 
     const loader = $('#title-art-loading');
     loader.classList.remove('art-loading');
     loader.hidden = ok.every(Boolean);
-    if (!loader.hidden) { loader.classList.add('art-error'); loader.setAttribute('aria-label', 'Artwork unavailable'); }
+    if (!loader.hidden) { loader.classList.add('art-error'); loader.setAttribute('aria-label', t('shell.title.artUnavailable')); }
   });
   const menuBg = delivered('MP-G03');
   if (menuBg) { const el = $('.menu-bg'); el.classList.add('art'); afterTitleArt(() => showArtwork(el, menuBg)); }
@@ -263,18 +272,18 @@ const cardsEl = $('#cards');
 function buildCards() {
   const frame = delivered('MP-G04');
   cardsEl.innerHTML = WORLDS.map((w, i) => `
-    <div class="wcard${frame ? ' framed' : ''}" role="option" data-i="${i}" tabindex="-1" aria-label="${w.name}: ${w.creature}"><div class="lift">
+    <div class="wcard${frame ? ' framed' : ''}" role="option" data-i="${i}" tabindex="-1" aria-label="${t('shell.menu.cardLabel', { name: w.name, creature: w.creature })}"><div class="lift">
       <div class="face">
-        <div class="art"><span class="no">No. ${ROMAN[i]}</span><span class="stamp"></span></div>
+        <div class="art"><span class="no">${t('shell.menu.cardNo', { roman: ROMAN[i] })}</span><span class="stamp"></span></div>
         <div class="body">
           <p class="look">${w.look}</p>
           <h3>${w.name}</h3>
           <p class="who">${w.creature} · <em>${w.latin}</em></p>
           <dl>
-            <div><dt>Magnification</dt><dd>${w.mag}<small>${w.magNote}</small></dd></div>
-            <div><dt>Field</dt><dd>${w.field}</dd></div>
-            <div><dt>Body</dt><dd>${w.body}</dd></div>
-            <div><dt>World</dt><dd>${i + 1} of 7</dd></div>
+            <div><dt>${t('shell.menu.magnification')}</dt><dd>${w.mag}<small>${w.magNote}</small></dd></div>
+            <div><dt>${t('shell.menu.field')}</dt><dd>${w.field}</dd></div>
+            <div><dt>${t('shell.menu.body')}</dt><dd>${w.body}</dd></div>
+            <div><dt>${t('shell.menu.world')}</dt><dd>${t('shell.menu.worldOf', { n: i + 1 })}</dd></div>
           </dl>
           <p class="line">${w.line}</p>
         </div>
@@ -298,7 +307,7 @@ function updateStamps() {
     const visited = progress.visited.includes(w.id);
     const far = visited && +c.dataset.i === progress.furthest;
     st.className = 'stamp' + (far ? ' far' : visited ? '' : ' new');
-    st.textContent = far ? 'Furthest reached' : visited ? 'Visited' : 'Unvisited';
+    st.textContent = far ? t('shell.menu.furthest') : visited ? t('shell.menu.visited') : t('shell.menu.unvisited');
   }
 }
 function layoutCards() {
@@ -328,7 +337,7 @@ function layoutCards() {
     cur.style.left = `${pos}%`;
     const lab = cur.querySelector('span');
     lab.style.transform = pos < 15 ? 'translateX(-12px)' : pos > 85 ? 'translateX(calc(-100% + 12px))' : '';
-    lab.innerHTML = `${w.name} · field ${unitSafe(fmtField(w.fieldMm))}`;
+    lab.innerHTML = t('shell.menu.ruleCursor', { name: w.name, field: unitSafe(fmtField(w.fieldMm)) });
   }
   $$('.scale-rule .wm').forEach((m, i) => m.classList.toggle('on', i === S.sel));
 }
@@ -355,7 +364,7 @@ function selectCard(i, silent) {
   const n = Math.max(0, Math.min(WORLDS.length - 1, i));
   if (n === S.sel) return;
   S.sel = n;
-  if (!silent) sound.tick();
+  if (!silent) sound.card();
   loadImage(introArt(WORLDS[n]));
   layoutCards();
 }
@@ -378,13 +387,13 @@ $('#menu').addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) + Math.abs(
 // ---------------------------------------------------------------- intro
 function fillIntro(w) {
   const i = WORLDS.indexOf(w);
-  $('#intro-no').textContent = `World ${ROMAN[i]} of VII`;
+  $('#intro-no').textContent = t('shell.intro.worldNo', { roman: ROMAN[i] });
   $('#intro-look').textContent = w.look;
   $('#intro-name').textContent = w.name;
   $('#intro-creature').textContent = w.creature;
   $('#intro-latin').textContent = w.latin;
-  $('#intro-plate').innerHTML = `<div><dt>Magnification</dt><dd>${w.mag}<small>${w.magNote}</small></dd></div><div><dt>Field</dt><dd>${w.field}</dd></div>`
-    + `<div><dt>Body</dt><dd>${w.body}</dd></div><div><dt>Look</dt><dd style="font-size:.9rem">${w.look}</dd></div>`;
+  $('#intro-plate').innerHTML = `<div><dt>${t('shell.intro.magnification')}</dt><dd>${w.mag}<small>${w.magNote}</small></dd></div><div><dt>${t('shell.intro.field')}</dt><dd>${w.field}</dd></div>`
+    + `<div><dt>${t('shell.intro.body')}</dt><dd>${w.body}</dd></div><div><dt>${t('shell.intro.look')}</dt><dd style="font-size:.9rem">${w.look}</dd></div>`;
   $('#intro-goal').textContent = w.goal; // one line: the portal and the main threats (the owner, 2026-11-02)
   $('#intro-facts').innerHTML = w.facts.map((f) => `<li>${f}</li>`).join('');
   renderIntroControls();
@@ -392,7 +401,7 @@ function fillIntro(w) {
 }
 function renderIntroControls() {
   const w = WORLDS[S.sel];
-  const rows = [...w.controls, ...(w.back ? [['Y', 'Way back: go up a world']] : []), ['Menu', 'Pause'], ['View', 'Controls card']];
+  const rows = [...w.controls, ...(w.back ? [['Y', t('shell.controls.wayBack')]] : []), ['Menu', t('shell.controls.pause')], ['View', t('shell.controls.controlsCard')]];
   $('#intro-controls').innerHTML = controlRows(rows);
 }
 // The screen being left stays on screen, untouchable, while the new one
@@ -419,7 +428,7 @@ function slideIntroOff(intro) {
 async function openIntro() {
   if (S.zooming) return;
   const w = WORLDS[S.sel];
-  sound.select();
+  sound.introIn();
   fillIntro(w);
   preloadWorld(S.sel);
   const card = $(`.wcard[data-i="${S.sel}"] .art`);
@@ -498,7 +507,7 @@ async function openIntro() {
 /** Back from the intro to the tray, selection kept: the panel leaves to the left, the plate to the right, then the tray fades in. */
 async function closeIntro() {
   if (S.zooming) return;
-  sound.back();
+  sound.introOut();
   goMenu();
   const intro = $('#intro'), menu = $('#menu');
   const unghost = ghost('intro');
@@ -568,13 +577,13 @@ function loadWorld(i, { first }) {
   S.devPanel = false;
   showPrompt(null);
   hideControlsCard();
-  $('#plaque .no').textContent = `No. ${ROMAN[i]}`;
+  $('#plaque .no').textContent = t('shell.play.plaqueNo', { roman: ROMAN[i] });
   $('#plaque .nm').textContent = w.name;
-  $('#plaque .mg').textContent = `${w.mag} · ${w.field}`;
+  $('#plaque .mg').textContent = t('shell.play.plaqueMag', { mag: w.mag, field: w.field });
   const veil = $('#veil');
   const warm = preloaded?.i === i ? preloaded : null;
   veil.hidden = !!warm?.ready; veil.classList.remove('fade');
-  veil.querySelector('p').textContent = 'Preparing the slide…';
+  veil.querySelector('p').textContent = t('shell.play.preparing');
   unlisten();
   if (S.frame) S.frame.remove();
   let f;
@@ -593,7 +602,7 @@ function loadWorld(i, { first }) {
   const showCard = !first && settings.controlsAtStart;
   S.pendingCard = showCard;
   clearTimeout(S.loadTimer);
-  S.loadTimer = setTimeout(() => { if (S.loading && S.frame === f) veil.querySelector('p').textContent = 'This slide is taking a while to load…'; }, 15000);
+  S.loadTimer = setTimeout(() => { if (S.loading && S.frame === f) veil.querySelector('p').textContent = t('shell.play.slowLoad'); }, 15000);
   const ready = new Promise((resolve) => { S.onReady = resolve; });
   if (warm?.ready) worldReady(f);
   return ready;
@@ -603,7 +612,7 @@ async function worldReady(f) {
   if (S.frame !== f || !S.loading) return;
   S.loading = false;
   clearTimeout(S.loadTimer);
-  send(f, 'sound', { on: sound.on, volume: sound.volume });
+  send(f, 'sound', { on: sound.on, volume: sound.volume, soundSet: sound.set });
   send(f, 'settings', { invertY });
   send(f, 'players', { roster: roster.toJSON() });
   const veil = $('#veil');
@@ -653,7 +662,7 @@ function onWorldMessage(m, f) {
       break;
     case 'join': announceJoin({ index: m.index ?? roster.list.length, color: m.color || '#d8a440', name: m.name }); if (m.roster) roster.fromJSON(m.roster); break;
     case 'features':
-      if (!m.open && S.devPanel) { S.devPanel = false; pause('Back from the world’s feature panel.'); }
+      if (!m.open && S.devPanel) { S.devPanel = false; pause(t('shell.pause.fromFeatures')); }
       break;
     default: break;
   }
@@ -677,7 +686,7 @@ function dedupe(kind) {
  */
 async function beginPlay() {
   if (S.zooming || S.screen !== 'intro') return;
-  sound.select();
+  sound.begin();
   S.board = 0;
   closeAllModals();
   const intro = $('#intro');
@@ -708,7 +717,7 @@ async function beginPlay() {
   intro.classList.remove('tx', 'begin');
   S.zooming = false;
   S.transitioning = false;
-  if (document.hidden) pause('Paused while the tab was hidden.');
+  if (document.hidden) pause(t('shell.pause.tabHidden'));
   if (S.frame === f && S.screen === 'play' && !S.loading) {
     if (S.pendingCard) { showControlsCard(8); S.pendingCard = false; S.cardBoard = S.board; }
     if (!S.paused && S.modals.length === 0) await resumeFrame();
@@ -733,21 +742,23 @@ function pause(reason = '') {
   S.paused = true;
   S.devPanel = false;
   send(S.frame, 'pause');
+  sound.pause(); // (heard over the paused mute)
   sound.setPaused(true);
   showPrompt(S.near);
-  $('#pause-world').textContent = `World ${ROMAN[S.world]} · ${WORLDS[S.world].name}`;
+  $('#pause-world').textContent = t('shell.pause.world', { roman: ROMAN[S.world], name: WORLDS[S.world].name });
   $('#pause-reason').textContent = reason;
   renderPlayers();
   openModal('pause');
 }
 function resume() {
   if (!S.paused) return;
+  sound.resume();
   closeAllModals();
   S.paused = false;
   restoreScreenFocus();
   if (!S.loading) resumeFrame();
 }
-function confirmThen(title, text, fn, { cancel = 'Stay', ok = 'Leave' } = {}) {
+function confirmThen(title, text, fn, { cancel = t('shell.confirm.stay'), ok = t('shell.confirm.leave') } = {}) {
   $('#confirm-title').textContent = title;
   $('#confirm-text').textContent = text;
   $('#confirm-text').hidden = !text;
@@ -778,12 +789,12 @@ function leavePlay(to) {
 async function landmark(kind, info = {}) {
   if (S.screen !== 'play' || S.transitioning || S.loading) return;
   const i = S.world;
-  if (kind === 'back' && i === 0) { toast('Nothing above the bog surface: this is the top of the chain.'); return; }
+  if (kind === 'back' && i === 0) { toast(t('shell.toasts.topOfChain')); return; }
   if (kind === 'forward' && i === WORLDS.length - 1) {
     send(S.frame, 'pause');
     S.paused = true;
     sound.setPaused(true);
-    confirmThen('Work in progress', '', () => leavePlay('menu'), { cancel: 'Continue playing Phage', ok: 'Return to menu' });
+    confirmThen(t('shell.confirm.endTitle'), '', () => leavePlay('menu'), { cancel: t('shell.confirm.endStay'), ok: t('shell.confirm.endLeave') });
     return;
   }
   const next = kind === 'forward' ? i + 1 : i - 1;
@@ -873,11 +884,11 @@ function showPrompt(m) {
   const el = $('#prompt');
   if (!m || S.paused) { el.hidden = true; return; }
   const i = S.world;
-  if (m.kind === 'portal') { el.innerHTML = `${glyph('Y')} ${m.label || 'Enter the portal'}`; el.hidden = false; return; }
+  if (m.kind === 'portal') { el.innerHTML = `${glyph('Y')} ${m.label || t('shell.prompts.enterPortal')}`; el.hidden = false; return; }
   if (m.kind !== 'back') { el.hidden = true; return; } // nearing the way on has no text (the portal shows it)
   const label = m.label || (m.kind === 'back'
-    ? (i > 0 ? `Rise to the ${WORLDS[i - 1].name}` : 'The top of the chain')
-    : (i < WORLDS.length - 1 ? `Zoom in to the ${WORLDS[i + 1].name}` : 'Work in progress'));
+    ? (i > 0 ? t('shell.prompts.riseTo', { name: WORLDS[i - 1].name }) : t('shell.prompts.topOfChain'))
+    : (i < WORLDS.length - 1 ? t('shell.prompts.zoomInTo', { name: WORLDS[i + 1].name }) : t('shell.prompts.workInProgress')));
   el.innerHTML = (m.kind === 'back' ? glyph('Y') + ' ' : '→ ') + label;
   el.hidden = false;
 }
@@ -888,14 +899,14 @@ function renderControlsCard() {
   const w = WORLDS[S.world];
   let rows = S.hud?.rows || w.controls;
   rows = rows.filter(([b]) => b !== 'Menu' && b !== 'View');
-  if (w.back && !rows.some(([b, t]) => b === 'Y' && /back|rise/i.test(t))) rows = [...rows, ['Y', 'Way back: go up a world']];
-  rows = [...rows, ['Menu', 'Pause'], ['View', 'Show or hide this card']];
+  if (w.back && !rows.some(([b, what]) => b === 'Y' && /back|rise/i.test(what))) rows = [...rows, ['Y', t('shell.controls.wayBack')]];
+  rows = [...rows, ['Menu', t('shell.controls.pause')], ['View', t('shell.controls.showHide')]];
   const multi = roster.list.length > 1;
-  $('#controls-card').innerHTML = `<p class="eyebrow small"><span>World ${ROMAN[S.world]} · ${w.look}</span></p>
+  $('#controls-card').innerHTML = `<p class="eyebrow small"><span>${t('shell.controls.cardEyebrow', { roman: ROMAN[S.world], look: w.look })}</span></p>
     <h3>${w.name}</h3><p class="sub">${w.goal}</p>
     <ul class="controls-list">${controlRows(rows)}</ul>
     ${multi ? '<div class="players-row"></div>' : ''}
-    <div class="foot"><span>${glyphMode() === 'controller' ? 'Controller' : 'Keyboard (no controller connected)'}</span><span>${glyph('View')} hides this</span></div>
+    <div class="foot"><span>${glyphMode() === 'controller' ? t('shell.controls.controller') : t('shell.controls.keyboard')}</span><span>${t('shell.controls.hides', { glyph })}</span></div>
     <div class="timer"></div>`;
   if (multi) renderPlayers();
 }
@@ -930,24 +941,27 @@ const TRANSITIONS = { microscope: 'Continuous', zoom: 'Microscope zoom', card: '
 const portalArrow = () => { try { return localStorage.getItem('micro.portalArrow') === '1'; } catch { return false; } };
 function settingItems() {
   const items = [
-    { id: 'sound', label: 'Sound', about: 'Every world’s sound and the shell’s own.', get: () => sound.on, toggle: () => setSound(!sound.on) },
-    { id: 'volume', label: 'Volume', slider: true, get: () => sound.volume, step: (d) => { sound.setVolume(Math.round((sound.volume + d * 0.1) * 10) / 10); pushSound(); sound.tick(); } },
-    { id: 'invertY', label: 'Invert camera Y', about: 'Off: right stick up looks up. On: right stick up looks down. Shared by every world.', get: () => invertY, toggle: () => {
+    { id: 'sound', label: t('shell.settings.sound'), get: () => sound.on, toggle: () => setSound(!sound.on) },
+    { id: 'volume', label: t('shell.settings.volume'), slider: true, get: () => sound.volume, step: (d) => { sound.setVolume(Math.round((sound.volume + d * 0.1) * 10) / 10); pushSound(); sound.tick(); } },
+    // TEMPORARY (the owner is comparing them; goes once one is chosen): the new sound effects or the
+    // original ones, in the shell and every world (localStorage micro.soundSet; sound.js, shared/audio.js)
+    { id: 'soundSet', label: t('shell.settings.soundSet'), about: t('shell.settings.soundSetAbout'), choices: true,
+      get: () => sound.set, show: (v) => t(v === 'old' ? 'shell.settings.soundSetOld' : 'shell.settings.soundSetNew'),
+      step: () => { sound.setSet(sound.set === 'old' ? 'new' : 'old'); pushSound(); } },
+    { id: 'invertY', label: t('shell.settings.invertY'), get: () => invertY, toggle: () => {
       invertY = !invertY;
       try { localStorage.setItem('micro.invertY', invertY ? '1' : '0'); } catch { /* private mode */ }
       send(S.frame, 'settings', { invertY });
     } },
-    { id: 'portalArrow', label: 'Portal arrow', about: 'Off (default): find the portals by exploring. On: an arrow at the edge of the view points to the nearest portal, with its distance. Shared by every world.', get: () => portalArrow(), toggle: () => {
+    { id: 'portalArrow', label: t('shell.settings.portalArrow'), about: t('shell.settings.portalArrowAbout'), get: () => portalArrow(), toggle: () => {
       const on = !portalArrow();
       try { localStorage.setItem('micro.portalArrow', on ? '1' : '0'); } catch { /* private mode */ }
     } },
-    { id: 'controls', label: 'Controls card at the start of each world', about: 'Every world after the first shows its controls for 8 seconds; View brings them back.', get: () => settings.controlsAtStart, toggle: () => { settings.controlsAtStart = !settings.controlsAtStart; saveSettings(); } },
-    { id: 'transition', label: 'Transition between worlds', about: 'Continuous: from the portal the scene slows to a freeze and the camera moves straight into the next world (every pair from the springtail down to the phage: springtail → mite → tardigrade → amoeba → paramecium → bacterium → phage; the microscope zoom where a world cannot). Microscope zoom: the zoom-transitions prototype everywhere. Specimen plates: the shell’s own plate zoom.', choices: Object.keys(TRANSITIONS), get: () => settings.transition,
-      step: (d) => { const k = Object.keys(TRANSITIONS); settings.transition = k[(k.indexOf(settings.transition) + d + k.length) % k.length]; saveSettings(); } },
-    { id: 'fullscreen', label: 'Fullscreen', get: () => !!fsEl(), toggle: () => { toggleFullscreen(); setTimeout(renderSettings, 250); } },
+    { id: 'fullscreen', label: t('shell.settings.fullscreen'), get: () => !!fsEl(), toggle: () => { toggleFullscreen(); setTimeout(renderSettings, 250); } },
+    { id: 'credits', label: t('shell.credits.settingsItem'), action: '›', run: () => openModal('credits') },
   ];
   if (S.screen === 'play' && S.frame && !S.loading) {
-    items.push({ id: 'dev', label: 'World features', dev: true, about: 'The world’s own feature panel: what it is doing, with switches. Menu or B closes it.', action: 'Open', run: openDevPanel });
+    items.push({ id: 'dev', label: t('shell.settings.worldFeatures'), dev: true, about: t('shell.settings.worldFeaturesAbout'), action: t('shell.settings.open'), run: openDevPanel });
   }
   return items;
 }
@@ -962,9 +976,9 @@ function renderSettings() {
     b.dataset.setting = it.id;
     let val;
     if (it.slider) val = `<span class="slider"><i style="width:${it.get() * 100}%"></i><b style="left:${it.get() * 100}%"></b></span><span class="val">${Math.round(it.get() * 100)}%</span>`;
-    else if (it.choices) val = `<span class="val"><span class="arrow">‹</span>${TRANSITIONS[it.get()]}<span class="arrow">›</span></span>`;
+    else if (it.choices) val = `<span class="val"><span class="arrow">‹</span>${it.show ? it.show(it.get()) : TRANSITIONS[it.get()]}<span class="arrow">›</span></span>`;
     else if (it.action) val = `<span class="val">${it.action}</span>`;
-    else val = `<span class="val ${it.get() ? 'on' : 'off'}">${it.get() ? 'On' : 'Off'}</span>`;
+    else val = `<span class="val ${it.get() ? 'on' : 'off'}">${it.get() ? t('shell.settings.on') : t('shell.settings.off')}</span>`;
     b.innerHTML = `<span class="lab">${it.label}</span><span style="display:flex;gap:10px;align-items:center">${val}</span>${it.about ? `<span class="about">${it.about}</span>` : ''}`;
     b.addEventListener('click', (e) => {
       if (it.slider) {
@@ -975,7 +989,8 @@ function renderSettings() {
     });
     list.appendChild(b);
   }
-  if (keep) setFocus($(`[data-setting="${keep}"]`, list)); else if (S.modals[S.modals.length - 1] === 'settings') setFocus(list.firstChild);
+  // Only while Settings is on top: Credits opens over it and keeps the focus.
+  if (S.modals[S.modals.length - 1] === 'settings') setFocus((keep && $(`[data-setting="${keep}"]`, list)) || list.firstChild);
 }
 function activateSetting(it, dir) {
   if (it.slider || it.choices) it.step(dir);
@@ -998,7 +1013,7 @@ function setSound(on) {
   pushSound();
   if (S.modals.includes('settings')) renderSettings();
 }
-const pushSound = () => send(S.frame, 'sound', { on: sound.on, volume: sound.volume });
+const pushSound = () => send(S.frame, 'sound', { on: sound.on, volume: sound.volume, soundSet: sound.set });
 function openDevPanel() {
   closeAllModals();
   S.paused = false;
@@ -1010,57 +1025,32 @@ function openDevPanel() {
 }
 
 // ---------------------------------------------------------------- instructions
-const PAD_SVG = `<svg viewBox="0 0 720 300" role="img" aria-label="Xbox controller: the actions on each button">
-  <g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round">
-    <path d="M250 92 Q360 70 470 92 Q540 100 566 196 Q584 268 532 270 Q498 270 474 228 L246 228 Q222 270 188 270 Q136 268 154 196 Q180 100 250 92 Z"/>
-    <rect x="236" y="46" width="62" height="22" rx="7"/><rect x="422" y="46" width="62" height="22" rx="7"/>
-    <rect x="232" y="74" width="74" height="14" rx="7"/><rect x="414" y="74" width="74" height="14" rx="7"/>
-    <circle cx="266" cy="140" r="22"/><circle cx="420" cy="196" r="22"/>
-    <path d="M300 184h14v-14h14v14h14v14h-14v14h-14v-14h-14z"/>
-    <rect x="336" y="128" width="16" height="10" rx="4"/><rect x="368" y="128" width="16" height="10" rx="4"/>
-  </g>
-  <circle cx="468" cy="116" r="14" fill="#c49a22"/><text x="468" y="121" text-anchor="middle" font-size="14" font-weight="700" fill="#1c1406">Y</text>
-  <circle cx="442" cy="142" r="14" fill="#2f63b0"/><text x="442" y="147" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">X</text>
-  <circle cx="494" cy="142" r="14" fill="#b0362f"/><text x="494" y="147" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">B</text>
-  <circle cx="468" cy="168" r="14" fill="#3f8a34"/><text x="468" y="173" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">A</text>
-  <g stroke="#7d5f26" stroke-width="1.2" fill="none">
-    <path d="M236 57H150"/><path d="M232 81H150"/><path d="M244 140H150"/><path d="M300 191H150"/><path d="M344 128 L330 30 H300"/>
-    <path d="M484 57H570"/><path d="M488 81H570"/><path d="M482 116H570"/><path d="M508 142H570"/><path d="M482 168H570"/><path d="M442 196H570"/><path d="M376 128 L390 30 H420"/><path d="M442 142 L452 240 H570"/>
-  </g>
-  <g font-family="DM Sans, system-ui, sans-serif" font-size="13" fill="currentColor">
-    <text x="146" y="61" text-anchor="end"><tspan font-weight="700">LT</tspan> focus or zoom (analog)</text>
-    <text x="146" y="85" text-anchor="end"><tspan font-weight="700">LB</tspan> secondary</text>
-    <text x="146" y="144" text-anchor="end"><tspan font-weight="700">LS</tspan> move</text>
-    <text x="146" y="188" text-anchor="end"><tspan font-weight="700">D-pad ↑↓</tspan> zoom in / out</text>
-    <text x="146" y="205" text-anchor="end"><tspan font-weight="700">D-pad ←→</tspan> the optical look</text>
-    <text x="296" y="26" text-anchor="end"><tspan font-weight="700">View</tspan> controls card</text>
-    <text x="424" y="26"><tspan font-weight="700">Menu</tspan> pause</text>
-    <text x="574" y="61"><tspan font-weight="700">RT</tspan> focus or zoom (analog)</text>
-    <text x="574" y="85"><tspan font-weight="700">RB</tspan> secondary</text>
-    <text x="574" y="120"><tspan font-weight="700">Y</tspan> special · backdoor: rise</text>
-    <text x="574" y="146"><tspan font-weight="700">B</tspan> defend</text>
-    <text x="574" y="172"><tspan font-weight="700">A</tspan> dash</text>
-    <text x="574" y="200"><tspan font-weight="700">RS</tspan> camera</text>
-    <text x="574" y="244"><tspan font-weight="700">X</tspan> attack or eat</text>
-  </g>
-</svg>`;
+// ---------------------------------------------------------------- credits
+function renderCredits() {
+  const rows = (list) => list.map(([a, b]) => `<li><span>${a}</span>${b ? `<span>${b}</span>` : ''}</li>`).join('');
+  $('#credits-scroll').innerHTML = `
+    <p class="credits-game">${t('shell.credits.game')}</p>
+    <ul class="credits-list">${rows(tx('shell.credits.roles'))}</ul>
+    <h3>${t('shell.credits.thanksTitle')}</h3>
+    <ul class="credits-list">${rows(tx('shell.credits.thanks'))}</ul>
+    <p class="credits-copy">${t('shell.credits.copyright')}</p>`;
+}
 function renderInstructions() {
   const mode = glyphMode();
-  const shared = [['LS', 'Move'], ['RS', 'Camera'], ['A', 'Dash'], ['X', 'Attack / eat'], ['B', 'Block'],
-    ['Y', 'Special / enter portal'], ['LT/RT', 'Focus or zoom'], ['LB/RB', 'Extra'], ['D-pad ↑↓', 'Zoom'], ['D-pad ←→', 'Change the look'], ['Menu', 'Pause'], ['View', 'Controls card']];
+  const shared = tx('shell.instructions.controls');
+  const g = (b) => glyph(b, { mode });
   $('#ins-scroll').innerHTML = `
-    <p>Micro Zoom is seven worlds at seven magnifications, from a springtail on a bog pool’s surface film down to a virus no light microscope can see. Choose any world to start in; the springtail is the top of the chain.</p>
+    <p>${t('shell.instructions.intro')}</p>
     <div class="two-col">
-      <div><h3>Going deeper</h3><p>Every world has a <strong>glowing portal</strong>. Reach it, press ${glyph('Y', { mode })}, and the microscope zooms in to the next world and its creature.</p></div>
-      <div><h3>Going back up</h3><p>A ring at the edge of the view points the <strong>way back</strong>. Go there and press ${glyph('Y', { mode })} to zoom back out to the world above.</p></div>
+      <div><h3>${t('shell.instructions.deeperTitle')}</h3><p>${t('shell.instructions.deeper', { glyph: g })}</p></div>
+      <div><h3>${t('shell.instructions.backTitle')}</h3><p>${t('shell.instructions.back', { glyph: g })}</p></div>
     </div>
-    <h3>${mode === 'controller' ? 'Xbox controller' : 'Keyboard (connect a controller for the full layout)'}</h3>
-    ${mode === 'controller' ? `<div class="pad-diagram">${PAD_SVG}</div>` : ''}
+    <h3>${t('shell.instructions.controlsTitle')}</h3>
+    <p>${t('shell.instructions.controlsLead')}</p>
     <ul class="controls-list">${controlRows(shared, { mode })}</ul>
-    <p>Some creatures differ: the springtail and the mite jump with ${glyph('A', { mode })}, and the mite dashes with ${glyph('B', { mode })} and blocks with ${glyph('Y', { mode })}.</p>
-    <h3>Players</h3>
-    <p>Up to four can play. Player 1 uses the first controller${mode === 'keyboard' ? ' or the keyboard' : ''}; a second, third or fourth player joins by pressing any button on another controller, in the menus or during play. Players start in the same view; when they move apart, the view splits, and it joins up again when they come back together.</p>
-    <p class="muted">Each world tells you its own controls on its intro screen and its controls card (View).</p>`;
+    <h3>${t('shell.instructions.playersTitle')}</h3>
+    <p>${t('shell.instructions.players', { orKeyboard: mode === 'keyboard' ? t('shell.instructions.orKeyboard') : '' })}</p>
+`;
 }
 
 // ---------------------------------------------------------------- actions
@@ -1076,10 +1066,11 @@ function activate(el) {
     case 'fullscreen': toggleFullscreen(); break;
     case 'begin': beginPlay(); break;
     case 'back': back(); break;
-    case 'resume': sound.select(); resume(); break;
-    case 'restart': confirmThen('Restart this world?', 'Your place in this world is lost; the furthest world you reached is kept.', restartWorld); break;
-    case 'choose': confirmThen('Choose another world?', 'You leave this world; the furthest world you reached is kept.', () => leavePlay('menu')); break;
-    case 'title': confirmThen('Back to the title?', 'You leave this world; the furthest world you reached is kept.', () => leavePlay('title')); break;
+    case 'resume': sound.resumeItem(); resume(); break;
+
+    case 'restart': confirmThen(t('shell.confirm.restartTitle'), t('shell.confirm.restartText'), restartWorld); break;
+    case 'choose': confirmThen(t('shell.confirm.chooseTitle'), t('shell.confirm.chooseText'), () => leavePlay('menu')); break;
+    case 'title': confirmThen(t('shell.confirm.titleTitle'), t('shell.confirm.titleText'), () => leavePlay('title')); break;
     case 'close': closeModal(); break;
     case 'cancel': cancelConfirm(); break;
     case 'ok': { const fn = S.confirmFn; S.confirmFn = null; closeModal('confirm'); fn?.(); break; }
@@ -1154,11 +1145,11 @@ function handle(act) {
   }
   if (top === 'pause' && a === 'start') { resume(); return true; }
   if (a === 'escape' || a === 'b') { back(); return true; }
-  if (top === 'instructions' && (a === 'up' || a === 'down')) {
-    const sc = $('#ins-scroll');
+  if ((top === 'instructions' || top === 'credits') && (a === 'up' || a === 'down')) {
+    const sc = $(top === 'instructions' ? '#ins-scroll' : '#credits-scroll');
     const before = sc.scrollTop;
     sc.scrollBy({ top: a === 'down' ? 90 : -90, behavior: reduced() ? 'auto' : 'smooth' });
-    if (a === 'down' && Math.ceil(before + sc.clientHeight) >= sc.scrollHeight - 2) setFocus($('#instructions [data-action="close"]'));
+    if (a === 'down' && Math.ceil(before + sc.clientHeight) >= sc.scrollHeight - 2) setFocus($(`#${top} [data-action="close"]`));
     if (a === 'up') setFocus(sc);
     return true;
   }
@@ -1216,11 +1207,11 @@ document.addEventListener('keydown', (e) => {
 
 // ---------------------------------------------------------------- pause on focus loss, visibility, disconnect
 addEventListener('blur', () => setTimeout(() => {
-  if (!document.hasFocus() && S.screen === 'play' && !S.paused) pause('Paused while the window was in the background.');
+  if (!document.hasFocus() && S.screen === 'play' && !S.paused) pause(t('shell.pause.windowBackground'));
 }, 80));
-document.addEventListener('visibilitychange', () => { if (document.hidden && S.screen === 'play') pause('Paused while the tab was hidden.'); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && S.screen === 'play') pause(t('shell.pause.tabHidden')); });
 input.on('disconnect', () => {
-  if (S.screen === 'play' && !S.paused) pause('A controller was disconnected. Reconnect it, or choose Resume to carry on.');
+  if (S.screen === 'play' && !S.paused) pause(t('shell.pause.disconnected'));
   setTimeout(() => { refreshAllGlyphs(); renderPlayers(); }, 0);
 });
 input.on('connect', () => setTimeout(() => { refreshAllGlyphs(); renderPlayers(); }, 0));

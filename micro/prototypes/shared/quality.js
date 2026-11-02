@@ -166,14 +166,12 @@ export function createQuality({
 
     addToFeatures(features) {
       features.add({
-        id: 'quality', group: 'Rendering', label: 'Quality governor (auto)', on: !urlFixed,
-        about: 'Watches the frame time and lowers the render resolution (then effects) when frames run long, raising it again when there is headroom. Off: the manual quality below.',
+        id: 'quality', group: 'Rendering', on: !urlFixed,
         onChange: (on) => { if (urlFixed) return; auto = !!on; hold = 0.5; apply(); },
       });
       if (!urlFixed || manual !== null) {
         features.add({
-          id: 'qualityLevel', group: 'Rendering', label: 'Manual quality', choices: CHOICES, value: manual || 'High',
-          about: 'Used while the governor is off: High = full resolution and effects, Low = the cheapest step.',
+          id: 'qualityLevel', group: 'Rendering', choices: CHOICES, value: manual || 'High',
           onChange: (v) => { if (urlFixed) return; manual = v; apply(); },
         });
       }

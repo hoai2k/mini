@@ -7,6 +7,7 @@
 // `hud {title, sub, controls, note}` and View posts `view` (the shell toggles
 // its card). The shell can still show this panel with `controls {show}`.
 import { embed } from './embed.js';
+import { t } from './text.js';
 
 //
 // Which glyphs the controls list shows: controller buttons whenever any
@@ -56,7 +57,7 @@ function applyGlyphs(root, mode) {
     const kb = keyFor(b);
     const useKb = mode === 'keyboard' && kb;
     k.textContent = useKb ? kb : b;
-    k.title = useKb ? `Controller: ${b}` : (kb ? `Keyboard: ${kb}` : '');
+    k.title = useKb ? t('shared.hud.chipController', { button: b }) : (kb ? t('shared.hud.chipKeyboard', { key: kb }) : '');
     k.classList.toggle('kb', !!useKb);
     for (const c of Object.values(CHIP)) k.classList.toggle(c, !useKb && k.dataset.chip === c);
   }
@@ -68,16 +69,16 @@ function applyGlyphs(root, mode) {
  *   ('A', 'LT', 'LS', 'RS', 'LS click', 'D-pad', 'View'...).
  */
 export function mountHud({ title, sub, controls, note }) {
-  document.title = `${title} · Micro prototypes`;
+  document.title = t('shared.hud.pageTitle', { title });
   const el = document.createElement('div');
   el.className = 'hud';
   const rows = controls.map(([b, what]) => {
     const kb = keyFor(b);
-    return `<li><span class="k ${CHIP[b] || ''}" data-btn="${b}" data-chip="${CHIP[b] || ''}" title="Keyboard: ${kb}">${b}</span><span>${what}</span></li>`;
+    return `<li><span class="k ${CHIP[b] || ''}" data-btn="${b}" data-chip="${CHIP[b] || ''}" title="${t('shared.hud.chipKeyboard', { key: kb })}">${b}</span><span>${what}</span></li>`;
   }).join('');
   el.innerHTML = `<h1>${title}</h1><p class="sub">${sub}</p><ul>${rows}</ul>`
     + (note ? `<p class="note">${note}</p>` : '')
-    + `<div class="foot">${embed.active ? '' : '<a href="../">← All prototypes</a>'}<span class="dev">Keyboard (hover a button for its key)</span></div>`;
+    + `<div class="foot">${embed.active ? '' : `<a href="../">${t('shared.hud.allPrototypes')}</a>`}<span class="dev">${t('shared.hud.keyboardHover')}</span></div>`;
   document.body.appendChild(el);
   addKeyStyle();
   const dev = el.querySelector('.dev');
@@ -88,7 +89,7 @@ export function mountHud({ title, sub, controls, note }) {
     if (m === mode) return;
     mode = m;
     applyGlyphs(el, m);
-    dev.textContent = m === 'controller' ? 'Controller connected' : 'Keyboard (hover a button for its controller button)';
+    dev.textContent = m === 'controller' ? t('shared.hud.controllerConnected') : t('shared.hud.keyboardHoverController');
   }
   setMode(controllerConnected() ? 'controller' : 'keyboard');
   addEventListener('gamepadconnected', () => setMode('controller'));
@@ -138,7 +139,7 @@ export function mountHud({ title, sub, controls, note }) {
       if (playersEl.hidden !== !show) playersEl.hidden = !show;
       if (!show) return;
       // Rebuilt only when the roster's markup changes (worlds call this from onChange and per frame alike).
-      const html = list.map((p) => `<i class="${p.waiting ? 'waiting' : ''}" style="--pc:${p.color}">${p.name || 'P' + (p.slot + 1)}</i>`).join('');
+      const html = list.map((p) => `<i class="${p.waiting ? 'waiting' : ''}" style="--pc:${p.color}">${p.name || t('shared.hud.playerShort', { n: p.slot + 1 })}</i>`).join('');
       if (html !== playersHtml) { playersHtml = html; playersEl.innerHTML = html; }
     },
     /** Prototype-only diagnostic readout (scale, speed, state). Pass '' to hide. */

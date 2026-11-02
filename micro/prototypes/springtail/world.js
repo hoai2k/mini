@@ -6,6 +6,7 @@
 // surface is y = 0.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { litMaterial, macroShared, MACRO_GLSL } from '../shared/techniques/springtail-macro.js';
+import { t as tt } from '../shared/text.js';
 
 // (1.5 x 0.9 m until the portals were fixed: the pool grew so that a portal's
 // pondweed is ~30-60 s of rushing from the start whichever way you head.)
@@ -915,9 +916,9 @@ function buildPondweed(group, leafTex) {
 
 // ---------------------------------------------------------------- food on the film
 export const FOOD_TYPES = [
-  { name: 'pine pollen', color: [0.85, 0.62, 0.16], grains: 22, r: 0.055, spread: 0.32, stretch: 1.3 },
-  { name: 'fungal spores', color: [0.3, 0.17, 0.07], grains: 26, r: 0.04, spread: 0.24, stretch: 1.0 },
-  { name: 'green algae', color: [0.16, 0.42, 0.07], grains: 16, r: 0.04, spread: 0.36, stretch: 3.2 },
+  { name: tt('springtail.food.pollen'), color: [0.85, 0.62, 0.16], grains: 22, r: 0.055, spread: 0.32, stretch: 1.3 },
+  { name: tt('springtail.food.spores'), color: [0.3, 0.17, 0.07], grains: 26, r: 0.04, spread: 0.24, stretch: 1.0 },
+  { name: tt('springtail.food.algae'), color: [0.16, 0.42, 0.07], grains: 16, r: 0.04, spread: 0.36, stretch: 3.2 },
 ];
 
 function buildFood(group, rnd) {
