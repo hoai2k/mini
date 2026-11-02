@@ -18,12 +18,16 @@
 //   any view), and then kept, so seen moss never changes.
 // - createDrops: a drop of water falling into the moss (rain drips through a
 //   moss cushion), or a shower of three: armed where the director put it, it
-//   falls when someone comes near, splashes (a mite in reach is knocked shut
-//   and rolled: main.js), sits as a bead and soaks away.
+//   falls when someone comes near, each drop at a random spot in the moss
+//   round them but never on them (the owner, 2026-11-02: "definitely don't aim
+//   them at the player"), a ring on the moss under it as it falls; it splashes,
+//   sits as a bead and soaks away. A mite inside a bead is slowed and
+//   struggles, climbing out (main.js stepLife): no daze, no harm.
 // Departures: springtails flee and leap on a game rule; a box mite biting and
 // eating one is a game rule (box mites graze fungi and do not hunt); SEM shows water only
-// in an environmental (wet) instrument; a falling drop at this scale is a
-// game hazard, slowed.
+// in an environmental (wet) instrument; a falling drop at this scale is
+// slowed, and a mite in a bead pushes out of it in a moment (a real one would
+// be held by the water's surface tension).
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { gMaterial, CLS } from '../shared/techniques/mite-sem.js';
 import { springtailGeometry } from './thicket.js';
@@ -272,59 +276,119 @@ export function createBeads({ scene, wetness, max = 900 }) {
 }
 
 /**
- * Falling drops: a pool of n (one, or DRIP.shower). arm(spots [{ x, z, delay }]) sets
- * them over the moss (hidden), update(dt, players [{x, z}]) starts them falling
- * once anyone is within DRIP.trigger of the first, and returns events
- * [{ type: 'fall' | 'splash', x, z }]. state: idle | armed | falling | done.
+ * Where a drop may land: a random spot round player p, at least DRIP.clear from
+ * every player, now and `lead` s on at their velocity (so never on one, nor in
+ * the way of one walking on), at most DRIP.scatter from p (in sight), clear of
+ * the thickets and inside the edge; null after a few tries. rand: 0..1.
  */
-export function createDrops({ scene, n = DRIP.shower }) {
+export function scatterSpot(p, players, rand = Math.random, taken = [], lead = 0) {
+  // where each player will be when it lands, if they keep going (vx, vz µm/s): clear of that too
+  const ahead = players.map((q) => ({ x: q.x + (q.vx || 0) * lead, z: q.z + (q.vz || 0) * lead }));
+  for (let t = 0; t < 24; t++) {
+    const a = rand() * Math.PI * 2, d = DRIP.clear + rand() * (DRIP.scatter - DRIP.clear);
+    const x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d;
+    if (players.some((q) => Math.hypot(q.x - x, q.z - z) < DRIP.clear)) continue;
+    if (ahead.some((q) => Math.hypot(q.x - x, q.z - z) < DRIP.clear)) continue;
+    if (taken.some((q) => Math.hypot(q.x - x, q.z - z) < DRIP.r * 3)) continue;
+    if (!clearOfThickets(x, z, DRIP.r, 0) || !insideEdge(x, z, 600)) continue;
+    return { x, z };
+  }
+  return null;
+}
+
+/**
+ * Falling drops: a pool of n (one, or DRIP.shower). arm(spots [{ x, z, delay }]) sets
+ * them over the moss (hidden), update(dt, players [{ x, z, vx?, vz? }]) starts them falling
+ * once anyone is within DRIP.trigger of the first, each at its own scatterSpot
+ * round whoever came near (never aimed at a player), and returns events
+ * [{ type: 'fall' | 'splash', x, z }]. Before each drop falls, and as it falls, a
+ * ring on the moss marks where it will land (DRIP.warn s). fallAt(spots) drops
+ * them at exactly those spots (testing). wetAt(x, z, r): how deep a body of
+ * radius r at (x, z) is in a bead now (0..1). state: idle | armed | falling | done.
+ */
+export function createDrops({ scene, n = DRIP.shower, rand = Math.random }) {
   const mat = gMaterial({ cls: CLS.GRAIN, thin: 0 });
+  const ringMat = gMaterial({ cls: CLS.GRAIN, thin: 1 });
   const geo = new THREE.IcosahedronGeometry(DRIP.r, 3);
+  const ringGeo = new THREE.TorusGeometry(DRIP.r * 1.4, 9, 6, 48).rotateX(Math.PI / 2);
   const drops = Array.from({ length: n }, () => {
     const m = new THREE.Mesh(geo, mat); m.visible = false; m.name = 'drop'; scene.add(m);
-    return { m, x: 0, z: 0, y: 0, vy: 0, delay: 0, state: 'idle', t: 0, fy: 0 };
+    const ring = new THREE.Mesh(ringGeo, ringMat); ring.visible = false; ring.name = 'drop mark'; scene.add(ring);
+    return { m, ring, x: 0, z: 0, y: 0, vy: 0, delay: 0, state: 'idle', t: 0, fy: 0, k: 0 };
   });
+  const hide = (d) => { d.m.visible = false; d.ring.visible = false; };
+  const start = (spots) => {
+    drops.forEach((d, i) => {
+      const s = spots[i];
+      if (!s || d.state !== 'armed') { if (d.state === 'armed') { d.state = 'idle'; hide(d); } return; }
+      d.x = s.x; d.z = s.z; d.fy = floorH(d.x, d.z); d.y = d.fy + DRIP.height;
+      d.delay += DRIP.warn; d.ring.visible = true; d.ring.position.set(d.x, d.fy + 12, d.z);
+    });
+    api.state = 'falling';
+  };
   const api = {
-    drops, state: 'idle', spot: null,
+    drops, state: 'idle', spot: null, at: null,
     arm(spots) {
-      api.state = 'armed'; api.spot = spots[0];
+      api.state = 'armed'; api.spot = spots[0]; api.at = null;
       drops.forEach((d, i) => {
         const s = spots[i];
-        if (!s) { d.state = 'idle'; d.m.visible = false; return; }
-        d.x = s.x; d.z = s.z; d.delay = s.delay || 0; d.fy = floorH(s.x, s.z); d.y = d.fy + DRIP.height; d.vy = 0; d.state = 'armed'; d.m.visible = false; d.t = 0;
+        if (!s) { d.state = 'idle'; hide(d); return; }
+        d.x = s.x; d.z = s.z; d.delay = s.delay || 0; d.fy = floorH(s.x, s.z); d.y = d.fy + DRIP.height; d.vy = 0; d.state = 'armed'; hide(d); d.t = 0; d.k = 0;
       });
     },
-    reset() { api.state = 'idle'; api.spot = null; for (const d of drops) { d.state = 'idle'; d.m.visible = false; } },
+    reset() { api.state = 'idle'; api.spot = null; api.at = null; for (const d of drops) { d.state = 'idle'; hide(d); } },
+    /** Testing: drop the pool at exactly these spots [{ x, z, delay }] now (after the warning). */
+    fallAt(spots) { api.arm(spots); api.spot = null; api.at = { x: spots[0].x, z: spots[0].z }; start(spots); return api.at; },
+    wetAt(x, z, r = 0) {
+      let w = 0;
+      for (const d of drops) if (d.state === 'bead') {
+        const br = DRIP.r * 1.5 * (0.4 + 0.6 * d.k), dd = Math.hypot(d.x - x, d.z - z);
+        if (d.k > 0.05 && dd < br + r * 0.5) w = Math.max(w, d.k * clamp(1 - dd / (br + r * 0.5), 0.3, 1));
+      }
+      return w;
+    },
     update(dt, players) {
       const ev = [];
-      const p = api.state === 'armed' && players.find((q) => Math.hypot(q.x - api.spot.x, q.z - api.spot.z) < DRIP.trigger);
+      const p = api.state === 'armed' && api.spot && players.find((q) => Math.hypot(q.x - api.spot.x, q.z - api.spot.z) < DRIP.trigger);
       if (p) {
-        // nothing shows until it falls, so it falls where it is a hazard you can see: just ahead of
-        // whoever came near (the rest of a shower keep their places round the first)
-        const hl = Math.hypot(p.hx || 0, p.hz || 0) || 1, ax = p.x + ((p.hx || 0) / hl) * DRIP.ahead, az = p.z + ((p.hz || 0) / hl) * DRIP.ahead;
-        const ox = ax - api.spot.x, oz = az - api.spot.z;
-        for (const d of drops) if (d.state === 'armed') { d.x += ox; d.z += oz; d.fy = floorH(d.x, d.z); d.y = d.fy + DRIP.height; }
-        api.spot = { x: ax, z: az };
-        api.state = 'falling'; ev.push({ type: 'fall', x: ax, z: az });
+        // each drop lands somewhere in the moss round whoever came near, never on anyone (spots that fit
+        // nowhere stay dry); the first one's spot is where the fall is said to be
+        const spots = [];
+        const fall = Math.sqrt((2 * DRIP.height) / 5200);
+        for (let i = 0; i < drops.length; i++) { const s = scatterSpot(p, players, rand, spots, DRIP.warn + fall + (drops[i].delay || 0)); if (s) spots.push(s); }
+        if (spots.length) {
+          start(drops.map((d, i) => spots[i] || null));
+          api.at = { x: spots[0].x, z: spots[0].z };
+          ev.push({ type: 'fall', x: api.at.x, z: api.at.z });
+        } else { api.state = 'done'; for (const d of drops) { d.state = 'idle'; hide(d); } }
       }
       if (api.state !== 'falling') return ev;
       let live = 0;
       for (const d of drops) {
-        if (d.state === 'armed') { if ((d.delay -= dt) <= 0) { d.state = 'falling'; d.m.visible = true; } else { live++; continue; } }
+        if (d.state === 'armed') {
+          live++;
+          // the mark on the moss: a ring that tightens as the moment nears
+          const w = clamp(d.delay / DRIP.warn, 0, 1);
+          d.ring.scale.setScalar(0.7 + 0.6 * w);
+          if ((d.delay -= dt) <= 0) { d.state = 'falling'; d.m.visible = true; }
+          else continue;
+        }
         if (d.state === 'falling') {
           live++;
           d.vy -= 5200 * dt; d.y += d.vy * dt;
           const st = clamp(-d.vy / 4000, 0, 0.35);
-          if (d.y - DRIP.r <= d.fy) { d.state = 'bead'; d.t = 0; d.y = d.fy; ev.push({ type: 'splash', x: d.x, z: d.z }); }
+          d.ring.scale.setScalar(0.55 + 0.15 * clamp((d.y - d.fy) / DRIP.height, 0, 1));
+          if (d.y - DRIP.r <= d.fy) { d.state = 'bead'; d.t = 0; d.k = 1; d.y = d.fy; d.ring.visible = false; ev.push({ type: 'splash', x: d.x, z: d.z }); }
           d.m.position.set(d.x, d.y, d.z); d.m.scale.set(1 - st * 0.3, 1 + st, 1 - st * 0.3);
         } else if (d.state === 'bead') {
           live++;
           d.t += dt;
           // a flattened dome that wobbles, then soaks away into the moss over ~4 s
           const k = 1 - sstep(1.2, 4.5, d.t), wob = 0.12 * Math.exp(-d.t * 3) * Math.sin(d.t * 30);
+          d.k = k;
           d.m.position.set(d.x, d.fy - DRIP.r * 0.45, d.z);
           d.m.scale.set((1.5 + wob) * (0.4 + 0.6 * k), (0.75 - wob) * k + 0.01, (1.5 + wob) * (0.4 + 0.6 * k));
-          if (d.t > 4.5) { d.state = 'done'; d.m.visible = false; }
+          if (d.t > 4.5) { d.state = 'done'; d.k = 0; hide(d); }
         }
       }
       if (!live) api.state = 'done';

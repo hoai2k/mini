@@ -20,10 +20,10 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
 
 | Button | Action |
 | --- | --- |
-| LS (WASD) | Crawl, relative to the view. The stick is analogue: a slight push creeps at ~30 µm/s, full tilt hurries at ~150 µm/s (a quadratic curve between, so the slow end is easy to hold). The keys walk at a middle pace (~90 µm/s); hold **G** to hurry (full tilt) or **T** to creep (keyboard only). Push into a leaf edge, or into a leaf rising across the way, to reach across to it, or round the margin onto the underside |
+| LS (WASD) | Crawl, relative to the view. The stick is analogue: a slight push creeps at ~30 µm/s, full tilt hurries at ~150 µm/s (a quadratic curve between, so the slow end is easy to hold). The keys walk at a middle pace (~90 µm/s); hold **G** to hurry (full tilt) or **T** to creep (keyboard only). **Push behind it to walk backwards**: with the stick within ±45° of straight behind the body it backs up, legs in reverse, at 0.4× the forward speed on the same curve (up to ~60 µm/s), and does not turn; it keeps backing until the stick leaves ±60° of behind or is let go, and a little to either side curves the backward path gently (0.45 rad/s at most). To turn round, push to the side first (`wantsBack`, `BACK_*` in `gait.js`; every player, stick or keys; not during a scramble, and it does not reach across to another leaf while backing). Push into a leaf edge, or into a leaf rising across the way, to reach across to it, or round the margin onto the underside |
 | RS (arrows) | Turn and tilt the view. Up looks up (the camera swings down toward the leaf's edge-on view), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
 | **A (Space)** | **Scramble**: 0.9 s of fast wave gait (~280 µm/s, nearly twice the full-tilt walk), recharging over 2.6 s (the `dash` meter); no other cost. With no stick, straight ahead |
-| **X (E)** | **Pierce** with the stylets: food in reach (algae, diatoms, detritus) or the living leaf cell under the mouth. You can keep walking while you feed: walking off before the food is in the mouth breaks the meal off (a leaf cell gives the share already sucked out); at a Milnesium or Prionchulus, a jab with a head thrust that bites back |
+| **X (E)** | **Pierce** with the stylets: food in reach (algae, diatoms, detritus) or the living leaf cell under the mouth. One press starts the meal and it runs to the end by itself (no holding). You can keep walking while you feed: walking off before the food is in the mouth breaks the meal off (a leaf cell gives the share already sucked out); at a Milnesium or Prionchulus, a jab with a head thrust that bites back |
 | B (Shift), hold | **Defend**: grip hard / brace (two legs swing at most, slower, much harder to slip). Facing a predator as it lunges, it blocks |
 | Y (R), hold | Curl into a tun (a predator struggles to get it into its mouth). In a tun, press again to wake (it always wakes). In the leaf axil (the backdoor) Y goes back up to the mite instead, and at the open portal (the game shows "Y Enter the portal") Y goes through it |
 | LT / RT (Z / X) | Fine focus down / up through the layers. Auto-focus keeps the focal plane on the animal: a manual setting holds while you stand still and eases back onto the animal once you walk on (Features → Optics → Auto-focus) |
@@ -60,14 +60,21 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
   the rotifers) a small puff of ripples and bubbles in the water film just
   ahead of the mouth. Fights are still decided on the press, with the same
   timings as before: the animation is how it reads, not when it counts.
-  Pressing X while feeding spits the food out and plays no attack. Defending
+  Pressing X again while feeding (from 0.5 s in, so a double tap does not)
+  spits the food out and plays no attack. Defending
   (B) crouches, head drawn in and down; a block butts its head away; a landed
   jab recoils a little.
 - **What you can eat** (`Life.reach`, `REACH` in `life.js`): a food item
   (alga, diatom, detritus) on the face you stand on, anywhere under the front
   quarter of the body (the head and the first leg pair: body x ≥ 0.98 of the
   1.84 to the mouth ring, within 0.6 of the midline) or within 0.42 just ahead
-  of the mouth; the nearest to the mouth is eaten. Food under the middle or
+  of the mouth, with 0.12 of slack all round (`REACH.grace`); the nearest to
+  the mouth is eaten. **One press of X starts eating**, and the meal runs to
+  the end with X let go. Food in reach comes first: in a rotifer meadow the
+  press used to touch the rotifers instead (they took any X with rotifers in
+  front), so it took two or three presses, once they had contracted, to reach
+  the food; now the meadow takes the press only with no food in reach
+  (`Life.canEat`, the meadow jab in `step`). Checked in `controls.test.mjs`. Food under the middle or
   back of the body is not. The food X would eat now (`life.target`) is
   highlighted: a soft green glow and a breathing ring round it with the
   button (X, or E on the keyboard), and the mouth ring parts a little with the
@@ -828,6 +835,7 @@ Not borrowed:
 node micro/prototypes/check.mjs tardigrade
 node --test micro/prototypes/tardigrade/route.test.mjs
 node --test micro/prototypes/tardigrade/legs.test.mjs
+node --test micro/prototypes/tardigrade/controls.test.mjs
 ```
 
 The first must print `ok tardigrade` with no console errors. The second

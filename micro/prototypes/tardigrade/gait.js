@@ -31,6 +31,16 @@ export const WALK_MIN = 0.3;      // units/s = 30 µm/s, a slight push
 export const WALK_MAX = 1.5;      // 150 µm/s at full tilt (~0.43 body lengths/s; Nirody: 79-263 µm/s)
 export const DASH_SPEED = 2.8;    // the scramble: 280 µm/s, past the fastest measured walking (a stretch)
 export const MAX_SPEED = WALK_MAX;
+// Walking backwards (players only, opts.backward): the stick pointing within
+// BACK_IN of straight behind the body backs the animal up, legs in reverse, at
+// BACK_K of the forward speed (tardigrades can walk backwards, slowly), with
+// no turn to face the stick. It keeps backing until the stick leaves BACK_OUT
+// (hysteresis, so it doesn't flicker at the cone's edge) or is let go; a
+// little to either side curves the backward path gently (BACK_TURN rad/s).
+// To turn round, push to the side first (the owner, 2026-11-02).
+export const BACK_IN = Math.PI / 4, BACK_OUT = Math.PI / 3, BACK_K = 0.4, BACK_TURN = 0.45;
+/** Is the stick (angle `diff` from the heading, -π..π) asking to back up? `backing`: already backing. */
+export function wantsBack(diff, backing) { return Math.PI - Math.abs(diff) <= (backing ? BACK_OUT : BACK_IN); }
 /** The walk speed for a stick deflection 0..1 (after the pad's dead zone). */
 export function walkSpeed(m, min = WALK_MIN, max = WALK_MAX) { return m > 0 ? min + (max - min) * Math.min(1, m) * Math.min(1, m) : 0; }
 const SWING_FRAC = 0.34;           // of each cycle in swing at a walk; up to 0.45 at a scramble
@@ -81,7 +91,8 @@ const clamp = THREE.MathUtils.clamp;
 export class Walker {
   /**
    * opts: { scale (body size relative to the player's 350 µm animal), maxSpeed,
-   * minSpeed, curve (false: speed is maxSpeed × mag, linear, for the AI), smooth }
+   * minSpeed, curve (false: speed is maxSpeed × mag, linear, for the AI), smooth,
+   * backward (true: a stick behind the body backs it up, for the players) }
    * The predator (Milnesium) is a second walker at scale ~1.5.
    */
   constructor(world, creature, events, opts = {}) {
@@ -109,7 +120,7 @@ export class Walker {
   }
 
   spawn(leaf, side, u, v, hu, hv) {
-    Object.assign(this, { leaf, side, u, v, hu, hv, cameFrom: null, speed: 0, phase: 0, slipping: false, slipT: 0, deficitT: 0, slipVel: [0, 0], pushT: 0, grace: 1, tau: SMOOTH_TAU, blend: null, atEdge: false, wrapCandidate: null, handoffT: 0, hold: 1 });
+    Object.assign(this, { leaf, side, u, v, hu, hv, cameFrom: null, speed: 0, dir: 1, backing: false, phase: 0, slipping: false, slipT: 0, deficitT: 0, slipVel: [0, 0], pushT: 0, grace: 1, tau: SMOOTH_TAU, blend: null, atEdge: false, wrapCandidate: null, handoffT: 0, hold: 1 });
     this.targetFrame();
     this.dispPos.copy(this.tPos);
     this.dispQuat.copy(this.tQuat);
@@ -247,7 +258,7 @@ export class Walker {
       if (f.state !== 'stance') return;
       planted++;
       if (f.leaf !== L || f.side !== this.side) return;
-      const r = this.ratio(i, f.world), rNext = this.ratio(i, f.world, 0.02 * this.speed);
+      const r = this.ratio(i, f.world), rNext = this.ratio(i, f.world, 0.02 * this.speed * this.dir);
       if (rNext > r) rmax = Math.max(rmax, rNext);
     });
     this.hold = clamp((R_CAP - rmax) / (R_CAP - R_STEP), 0.35, 1) * clamp(planted / 4, 0.3, 1);
@@ -260,23 +271,40 @@ export class Walker {
       du /= dl; dv /= dl;
       const cross = this.hu * dv - this.hv * du, dot = this.hu * du + this.hv * dv;
       const diff = Math.atan2(cross, dot);
-      const maxTurn = (input.brace ? 0.6 : input.dash ? 1.6 : 1.1) * Math.max(0.5, this.hold) * dt;
-      turn = clamp(diff, -maxTurn, maxTurn);
+      // backing: the stick behind the body (not while scrambling)
+      this.backing = !!this.opts.backward && !input.dash && wantsBack(diff, this.backing);
+      if (this.backing) {
+        // the tail leads: turn so the back of the body heads for the stick, gently
+        const back = diff - Math.sign(diff || 1) * Math.PI;
+        const maxTurn = BACK_TURN * Math.max(0.5, this.hold) * dt;
+        turn = clamp(back, -maxTurn, maxTurn);
+        this.align = Math.max(0, Math.cos(back - turn));
+      } else {
+        const maxTurn = (input.brace ? 0.6 : input.dash ? 1.6 : 1.1) * Math.max(0.5, this.hold) * dt;
+        turn = clamp(diff, -maxTurn, maxTurn);
+        this.align = Math.max(0, Math.cos(diff - turn));
+      }
       const c = Math.cos(turn), s = Math.sin(turn);
       [this.hu, this.hv] = [this.hu * c - this.hv * s, this.hu * s + this.hv * c];
-      this.align = Math.max(0, Math.cos(diff - turn));
-    } else this.align = 0;
+    } else { this.align = 0; this.backing = false; }
+    // Which way it travels along its heading (dir, ±1): a change waits until
+    // it has slowed to a stop.
+    const wantDir = this.backing ? -1 : 1;
+    if (wantDir !== this.dir && this.speed === 0) this.dir = wantDir;
 
     // Speed: the analogue walk (walkSpeed), or A's scramble.
     const base = input.dash ? Math.max(DASH_SPEED * S, this.maxSpeed) * Math.min(1, mag)
       : this.curve ? walkSpeed(mag, this.minSpeed, this.maxSpeed) : this.maxSpeed * mag;
-    const target = base * this.align * input.film * (input.brace ? 0.45 : 1) * (0.6 + 0.4 * input.energy) * this.hold;
+    const target = (wantDir !== this.dir ? 0 : base * (this.dir < 0 ? BACK_K : 1)) * this.align * input.film * (input.brace ? 0.45 : 1) * (0.6 + 0.4 * input.energy) * this.hold;
     const acc = (target > this.speed ? (input.dash ? 14 : 3) : 4) * S;
     this.speed += clamp(target - this.speed, -acc * dt, acc * dt);
     if (this.speed < 0.002) this.speed = 0;
+    if (wantDir !== this.dir && this.speed === 0) this.dir = wantDir;
+    // vs: the velocity along the heading (negative backing up)
+    const sg = this.dir, vs = this.speed * sg;
     // Pulsed propulsion: the trunk surges as each wave of legs pushes.
     const surge = 1 + 0.3 * Math.cos(this.phase * Math.PI * 4); // mean 1: the speed is the speed over the ground
-    let mu = this.hu * this.speed * surge * dt, mv = this.hv * this.speed * surge * dt;
+    let mu = this.hu * vs * surge * dt, mv = this.hv * vs * surge * dt;
 
     // ---- slipping: slide downhill until the claws catch again
     const load = this.loads();
@@ -291,7 +319,7 @@ export class Walker {
     const nu = this.u + mu, nv = this.v + mv;
     // A leaf rising across the way is a wall: the head presses against it
     // (and, held there, climbs it) instead of walking through it.
-    const wall = this.candidate && this.candidate.wall && this.candidate.dist < 0.3 && mag > 0 && !this.slipping;
+    const wall = this.candidate && this.candidate.wall && this.candidate.dist < 0.3 && mag > 0 && !this.slipping && sg > 0;
     if (wall) { this.atEdge = true; this.speed *= 0.5; }
     else if (L.inside(nu, nv, 0.55)) { this.u = nu; this.v = nv; }
     else if (this.slipping) { this.fall(); return; }
@@ -306,7 +334,7 @@ export class Walker {
     const stride = Math.min(T_MAX / (1 - SF), 0.45 + 0.22 * sp) * S;
     const travel = stride * (1 - SF);
     this.stride = stride;
-    this.phase += (this.speed / stride) * dt + (Math.abs(turn) * 0.9 * S / stride);
+    this.phase += sg * ((this.speed / stride) * dt + (Math.abs(turn) * 0.9 * S / stride)); // backing: the legs in reverse
     this.targetFrame();
 
     // ---- legs
@@ -333,13 +361,13 @@ export class Walker {
         // Let go with nothing in reach: look again every few frames for a hold.
         if ((f.retry -= dt) > 0 || input.tun) continue;
         f.retry = 0.05;
-        const h = this.chooseHold(i, moving ? travel * 0.5 : 0, this.speed * 0.15);
+        const h = this.chooseHold(i, moving ? sg * travel * 0.5 : 0, vs * 0.15);
         if (h.ok && !isSwing(i ^ 1)) this.swing(f, h, 0.15);
         continue;
       }
       if (f.state === 'drag') { f.state = 'stance'; f.grip = 0.15; }
       // Judged where the body will be drawn this frame (it moves after the legs).
-      const r = this.ratio(i, f.world, this.speed * dt * 2 + 0.01 * S);
+      const r = this.ratio(i, f.world, vs * dt * 2 + sg * 0.01 * S);
       const ph = this.phase + OFF[i];
       const cyc = Math.floor(ph), loc = ph - cyc;
       const onOld = f.leaf !== this.leaf || f.side !== this.side;
@@ -353,8 +381,8 @@ export class Walker {
       // Lift, to a hold ahead: it lands half a stance forward of its centre
       // and the body moves on while it swings.
       const dur = settle && !moving ? 0.25 : dur0;
-      const ahead = moving ? this.speed * dur : 0;
-      const h = this.chooseHold(i, moving ? travel * 0.5 + ahead : 0, ahead);
+      const ahead = moving ? vs * dur : 0;
+      const h = this.chooseHold(i, moving ? sg * travel * 0.5 + ahead : 0, ahead);
       if (handoff) this.handoffT = HANDOFF_STAGGER;
       if (!h.ok) {
         // Nothing in reach on the face under the body yet: keep the hold it
@@ -373,8 +401,8 @@ export class Walker {
       // not gone where it was expected (it slowed, turned, a transfer), the
       // foot picks a new hold on the way rather than landing stretched.
       const left = Math.max(0, 1 - f.t) * f.dur;
-      if (f.t > 0 && this.ratio(i, f.to, this.speed * left) > R_STEP && f.leaf === this.leaf && f.side === this.side) {
-        const h = this.chooseHold(i, moving ? travel * 0.5 + this.speed * left : 0, this.speed * left);
+      if (f.t > 0 && this.ratio(i, f.to, vs * left) > R_STEP && f.leaf === this.leaf && f.side === this.side) {
+        const h = this.chooseHold(i, moving ? sg * travel * 0.5 + vs * left : 0, vs * left);
         if (h.ok) { f.to.copy(h.pos); f.toGrip = h.grip; }
       }
       const tt = clamp(f.t, 0, 1);
@@ -417,7 +445,7 @@ export class Walker {
     }
 
     // ---- reaching across to another leaf, or round the margin
-    this.considerTransfer(dt, mag, input);
+    this.considerTransfer(dt, sg > 0 ? mag : 0, input); // backing: the head isn't leading, no reaching across
 
     // ---- smoothing of the displayed trunk (the body lags its feet a little).
     // Three lags in series: a step in the target (a transfer, the margin, a
@@ -430,7 +458,7 @@ export class Walker {
     if (this.opts.smooth) {
       const k = 1 - Math.exp(-dt / this.tau);
       const [bp, bq] = this.blendTarget(dt);
-      const lead = _c.copy(this.forward).multiplyScalar(this.speed * 3 * this.tau).add(bp);
+      const lead = _c.copy(this.forward).multiplyScalar(vs * 3 * this.tau).add(bp);
       this.midPos.lerp(lead, k); this.midPos2.lerp(this.midPos, k); this.dispPos.lerp(this.midPos2, k);
       this.midQuat.slerp(bq, k); this.midQuat2.slerp(this.midQuat, k); this.dispQuat.slerp(this.midQuat2, k);
     } else {
@@ -465,7 +493,7 @@ export class Walker {
   }
 
   /** The pose before a change of face, for blendTarget. */
-  snapshot() { return { pos: this.tPos.clone().addScaledVector(this.forward, this.speed * 3 * this.tau), quat: this.tQuat.clone() }; }
+  snapshot() { return { pos: this.tPos.clone().addScaledVector(this.forward, this.speed * this.dir * 3 * this.tau), quat: this.tQuat.clone() }; }
 
   /** Start blending from a snapshot to the new target over T seconds. */
   startBlend(snap, T) {

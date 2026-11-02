@@ -1146,7 +1146,7 @@ function predEnc(k) {
   };
 }
 const nearAny = (x, z, r) => recs().some((P) => !held(P) && Math.hypot(P.mite.center.x - x, P.mite.center.z - z) < r);
-/** The falling drops: one, then (a pool of its own, so the first can finish soaking away) a shower of three. */
+/** The falling drops: one, then (a pool of its own, so the first can finish soaking away) a shower of three; never aimed at a player (life.js scatterSpot). */
 const drip1 = createDrops({ scene, n: 1 }), drip3 = createDrops({ scene, n: DRIP.shower });
 const dripEnc = (D, n) => ({
   place: (x, z, b) => {
@@ -1154,7 +1154,8 @@ const dripEnc = (D, n) => ({
     for (let i = 1; i < n; i++) { const a = b + (i === 1 ? 1.9 : -1.9); spots.push({ x: x + Math.cos(a) * DRIP.spread, z: z + Math.sin(a) * DRIP.spread, delay: 0.55 * i }); }
     D.arm(spots); return { x, z };
   },
-  met: (h) => (D.spot && D.spot.x === h.x && D.state !== 'armed') || nearAny(h.x, h.z, 900),
+  // met when it falls (the drops land round whoever came near, never on them) or when someone passes its spot
+  met: (h) => (D.spot && D.spot.x === h.x && D.state !== 'armed' && D.state !== 'idle') || nearAny(h.x, h.z, 900),
 });
 const ENC = {
   mites: { place: (x, z) => { placeFamily(x, z); return family.home; }, met: (h) => nearAny(h.x, h.z, FAMILY.r + 500) },
@@ -1226,26 +1227,22 @@ function driftPred(dt) {
 }
 /** A new game: the director starts over, the predator hidden and parked, no portal. */
 /** The drops, their splashes, the springtail groups and the beads, each step. */
-const lifeT = { t: 0, wetToast: false, edgeToast: 0 };
+const _wetDir = new THREE.Vector3();
+const lifeT = { t: 0, wetToast: false, edgeToast: 0, beadToast: false };
 function stepLife(dt) {
   lifeT.t += dt;
-  const ps = recs().filter((P) => !held(P)).map((P) => { const f = _ct.set(1, 0, 0).applyQuaternion(P.mite.quat); return { x: P.mite.center.x, z: P.mite.center.z, hx: f.x, hz: f.z }; });
+  const ps = recs().filter((P) => !held(P)).map((P) => { const v = P.mite.mode === 'walk' ? P.mite.speed : 0, f = P.mite.st.fwd; return { x: P.mite.center.x, z: P.mite.center.z, vx: f.x * v, vz: f.z * v }; });
   for (const D of [drip1, drip3]) for (const e of D.update(dt, ps)) {
     if (e.type === 'fall') { hud.toast(tt('mite.toasts.drip'), 2400); audio.play('mite/drop-fall', { volume: 0.8, old: ['mite/dash', { volume: 0.5, rate: 0.5 }] }); }
     if (e.type === 'splash') {
       puffDust(new THREE.Vector3(e.x, floorH(e.x, e.z) + 30, e.z), 22, 1.6);
       audio.play('mite/drop-splash', { volume: 0.9, old: ['mite/close', { volume: 1, rate: 0.6 }] });
-      let hit = false;
+      // a mite it happens to land on is not knocked about: it is left in (or by) the bead, and climbs out (the beads below)
       for (const P of recs()) {
-        const c = P.mite.center, d = Math.hypot(c.x - e.x, c.z - e.z);
-        if (d > DRIP.splash || held(P)) continue;
-        if (!hit) { hit = true; audio.play('shared/hit', { volume: 0.6 }); }
-        // knocked shut and tumbled (main hold: mite.st.drop closes it; it rolls on whatever is below)
-        P.mite.st.drop = 0.7;
-        if (P.mite.mode === 'walk') P.mite.st.fwd.set(c.x - e.x, 0, c.z - e.z).normalize();
-        P.play.stun = Math.max(P.play.stun, 0.4);
-        logChallenge('drip hit', P);
-        if (rumbleOn) players.pad(P.slot).rumble(220, 0.6, 0.7);
+        const c = P.mite.center;
+        if (held(P) || Math.hypot(c.x - e.x, c.z - e.z) > DRIP.splash) continue;
+        logChallenge('drip bead', P);
+        if (rumbleOn) players.pad(P.slot).rumble(120, 0.2, 0.3);
       }
       // the predator, caught by it too, staggers
       if (predHere() && Math.hypot(pred.center.x - e.x, pred.center.z - e.z) < DRIP.splash + 200) predAI.repel();
@@ -1270,7 +1267,7 @@ function newEncounters() {
   boss.setVisible(false);
   world.exclude.set('portal', []);
   portalState.hinted = false; portalState.turned = false;
-  lifeT.wetToast = false;
+  lifeT.wetToast = false; lifeT.beadToast = false;
   challengeLog.length = 0;
 }
 /** Put the portal (the wet leaf axil) at (x, z), met along bearing a, with the pseudoscorpion on guard before it. */
@@ -1571,6 +1568,14 @@ function tick(dt, inputs) {
     const dr = thicket.drag(mite.center, P.drag || (P.drag = { k: 1, threads: 0, press: 0 }));
     if (dr.k < 1 && input.maxSpeed) input.maxSpeed *= play.scr ? 1 - (1 - dr.k) * 0.5 : dr.k;
     if (play.stun > 0) input = { ...input, mag: 0 };
+    // in a bead of water (a drop that landed on or by it): slowed, wobbling as it pushes and climbs out; no daze
+    play.wet = mite.mode === 'walk' && !held(P) ? Math.max(drip1.wetAt(mite.center.x, mite.center.z, 175), drip3.wetAt(mite.center.x, mite.center.z, 175)) : 0;
+    if (play.wet > 0 && input.maxSpeed) {
+      const w = play.wet, t = simTime * 9 + P.slot;
+      if (!lifeT.beadToast) { lifeT.beadToast = true; hud.toast(tt('mite.toasts.bead'), 2400); }
+      const dir = input.mag > 0.01 ? _wetDir.copy(input.dir).applyAxisAngle(_up, 0.5 * w * Math.sin(t)) : input.dir;
+      input = { ...input, dir, maxSpeed: input.maxSpeed * (1 - (1 - DRIP.slow) * w), accel: 0.35, lean: Math.max(input.lean || 0, 0.6 * w * (0.5 + 0.5 * Math.sin(t * 1.7))) };
+    }
     if (cs.active && cap.who === P) input = { ...input, mag: 0 };
     const ev = mite.update(dt, input);
     if (ev.includes('jump')) puffDust(mite, 8, 0.8);
@@ -2086,6 +2091,13 @@ const api = {
   render(dt = 1 / 60) { const d = placeCamera(0); drawFrame(dt); updateText(d); },
   /** Testing: n steps of the simulation (players' pads as they are), no rendering; returns the frames stepped. */
   steps(n = 1, dt = 1 / 30, inputs = []) { for (let i = 0; i < n; i++) { simTime += dt; tick(dt, inputs); } return n; },
+  /**
+   * Testing only: drop the single drop at (x, z), default right on player `slot` (the game never aims
+   * one at a player): it falls after its warning ring and leaves a bead. Returns the spot.
+   */
+  dripAt(x = null, z = null, slot = 0) { const c = (pls[slot] || P1).mite.center; return drip1.fallAt([{ x: x ?? c.x, z: z ?? c.z, delay: 0 }]); },
+  /** Player `slot`'s state for checks: { wet (0..1, in a bead), stun, speed, mode, x, z }. */
+  wetState(slot = 0) { const P = pls[slot] || P1; return { wet: +(P.play.wet || 0).toFixed(3), stun: P.play.stun, speed: Math.round(P.mite.speed), mode: P.mite.mode, x: Math.round(P.mite.center.x), z: Math.round(P.mite.center.z) }; },
   /** Life and weather (life.js) and the box-mite family, for checks; inSight(x, z, r): can a view (last drawn or stepped) see that disc? */
   life: { ambient, beads, drip1, drip3, family, wetness }, inSight: (x, z, r) => inSight(x, z, r),
   /** Testing: n steps through the real input path (the pads and keyboard as they are read each frame), no rendering; returns each step's events for player 1. Pause the page first (`paused = true`). */

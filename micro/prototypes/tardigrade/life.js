@@ -23,7 +23,9 @@ const TUN_FORM = 2.2, REVIVE_TIME = 2.4;
  * 0.42 of it). The owner (2026-11-02): eat what is under the mouth, not only
  * what is straight ahead.
  */
-export const REACH = { front: 0.98, tip: 1.84, halfW: 0.6, mouth: [1.8, 0], ahead: 0.42 };
+export const REACH = { front: 0.98, tip: 1.84, halfW: 0.6, mouth: [1.8, 0], ahead: 0.42, grace: 0.12 };
+// grace: a little slack round the zone for the press (and the highlight that
+// matches it), so food at its edge is eaten on the first press of X.
 
 const _gut = new THREE.Vector3();
 const _fp = new THREE.Vector3();
@@ -91,14 +93,23 @@ export class Life {
   }
 
   /** The food item X would eat now (nearest the mouth), or null. */
-  foodInReach() {
+  foodInReach(margin = REACH.grace) {
     let best = null, bd = Infinity;
     for (const item of this.world.food) {
-      const d = this.reach(item);
+      const d = this.reach(item, margin);
       if (d < bd) { bd = d; best = item; }
     }
     return best;
   }
+
+  /**
+   * Would a press of X start a meal now (food in reach, nothing in the way)?
+   * main.js asks before the rotifer meadow takes the press: food in reach
+   * comes first, so one press always starts eating (the owner, 2026-11-02:
+   * in the meadow the press used to touch the rotifers instead, and only a
+   * second or third press, once they had contracted, reached the food).
+   */
+  canEat() { return this.state === 'active' && !this.feeding && !this.walker.slipping && this.tun < 0.02; }
 
   /** input: { yDown, yPressed, bitePressed (X), aPressed, moving(0..1) } */
   update(dt, input) {
@@ -116,7 +127,7 @@ export class Life {
       case 'active': {
         this.updateFeeding(dt, input);
         // what X would eat now (main.js highlights it and readies the mouth)
-        this.target = !this.feeding && !this.walker.slipping && this.tun < 0.02 ? this.foodInReach() : null;
+        this.target = this.canEat() ? this.foodInReach() : null;
         // Tun: hold Y
         const forming = input.yDown && !this.feeding;
         this.tun = THREE.MathUtils.clamp(this.tun + (forming ? dt / TUN_FORM : -dt / 1.2), 0, 1);
@@ -169,7 +180,8 @@ export class Life {
       // events.swallowed (main.js): the food is drawn in through the buccal tube and
       // stays visible inside, fading into the gut; without it, it just shrinks.
       if (f.item && !this.events.swallowed) f.item.mesh.scale.setScalar(Math.max(0.05, 1 - f.t / f.dur));
-      if (input.bitePressed && f.t > 0.2) { this.events.spat?.(f); this.feeding = null; return; }
+      // (not a quick second press: a double tap must not spit out what the first started)
+      if (input.bitePressed && f.t > 0.5) { this.events.spat?.(f); this.feeding = null; return; }
       // Walked off before the food is in the mouth (an item still being drawn
       // in, the first 45%; a leaf cell still streaming, the first 60%): the meal
       // breaks off. An item goes back where it was (main.js animateEating); a
@@ -212,7 +224,7 @@ export class Life {
     }
     P.stylet = Math.max(0, P.stylet - dt * 2);
     P.pump = Math.max(0, P.pump - dt * 3);
-    if (!input.bitePressed || w.slipping) return;
+    if (!input.bitePressed || !this.canEat()) return;
     const mouth = this.creature.anchorWorld('buccal tube + stylets');
     // food anywhere under the front quarter of the body or just ahead of the mouth
     const best = this.foodInReach();

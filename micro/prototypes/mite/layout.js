@@ -149,11 +149,14 @@ const PRED = {
   minAhead: 3800, maxAhead: 5800, minNear: 2600, maxNear: 4000, fits: predFits,
 };
 /**
- * A drop of water falling into the moss (one, or a shower of three round the spot), µm: its radius, how
- * far it splashes, how near someone must come to its spot to set it falling (it then falls `ahead` of
- * them: nothing shows before it falls), the height it falls from, the shower's size and spread.
+ * A drop of water falling into the moss (one, or a shower of three), µm: its radius, how far its splash
+ * reaches (the predator there staggers), how near someone must come to its spot to set it falling, the
+ * height it falls from, the shower's size and the spread of its armed spots. Set falling, each drop lands
+ * at a random spot round whoever came near, never aimed at anyone: at least `clear` from every player and
+ * at most `scatter` from them (in sight); a ring marks the spot `warn` s before it lets go.
+ * A mite in the bead it leaves moves at `slow` of its speed and struggles out (no daze, no harm).
  */
-export const DRIP = { r: 230, splash: 520, trigger: 2600, ahead: 650, height: 2600, shower: 3, spread: 700 };
+export const DRIP = { r: 230, splash: 520, trigger: 2600, height: 2600, shower: 3, spread: 700, clear: 900, scatter: 2000, warn: 0.8, slow: 0.4 };
 /** The box-mite family: how many, how far they wander from their spot (µm). */
 export const FAMILY = { n: 3, r: 700 };
 const dripFits = (x, z) => clearOfThickets(x, z, 600, 100) && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 1800;
@@ -165,11 +168,11 @@ export const ENCOUNTERS = [
   { id: 'mites', size: FAMILY.r + 400, visible: FAMILY.r + 300, minAhead: 3000, maxAhead: 4600, minNear: 2400, maxNear: 3600, fits: (x, z) => clearOfThickets(x, z, FAMILY.r, 150) && Math.hypot(x - NPC_HOME.x, z - NPC_HOME.z) > 1600 && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 2200 },
   // the predatory mite on its hunting ground (it starts at the spot itself; the ground is invisible)
   { id: 'pred', ...PRED },
-  // a drop of water falls into the moss ahead (rain drips through a moss cushion); nothing shows until it falls (visible: its spot)
+  // a drop of water falls into the moss round you (rain drips through a moss cushion), never on you; nothing shows until it falls (visible: its spot)
   { id: 'drip', calm: { sec: 3 }, size: DRIP.splash + 500, visible: 150, minAhead: 2600, maxAhead: 3800, minNear: 1000, maxNear: 1450, fits: dripFits },
   // and again, a way on (the same one: it has gone on through the moss, out of sight), hungrier
   { id: 'pred2', ...PRED },
-  // a shower: three drops round the spot
+  // a shower: three drops scattered in the moss round you
   { id: 'drips', calm: { sec: 3 }, size: DRIP.splash + DRIP.spread + 500, visible: 150, minAhead: 3000, maxAhead: 4400, minNear: 1000, maxNear: 1450, fits: dripFits },
   // the third time, in the wetter moss toward the water: at its hungriest
   { id: 'pred3', ...PRED },

@@ -166,7 +166,7 @@ function walkerEvents(a) {
   };
 }
 const p1 = { p: players.get(0), slot: 0, pad, ctl, creature, lastStep: -1, side: 1, catchBudget: 0, state: 'active' };
-const walker = new Walker(world, creature, walkerEvents(p1));
+const walker = new Walker(world, creature, walkerEvents(p1), { backward: true });
 const lifeEvents = (a) => ({
   toast: (t, ms) => toast(who(a) + t, ms),
   rumble: (ms, w, s) => { if (rumbleOn) a.pad.rumble(ms, w, s); },
@@ -437,7 +437,7 @@ function addAnimal(p) {
   if (animals.some((a) => a.slot === p.slot)) return;
   const c = new Creature(scene);
   const a = { p, slot: p.slot, pad: players.pad(p.slot), ctl: players.controls(p.slot), creature: c, lastStep: -1, side: 1, catchBudget: 0, state: 'active', feeding: false };
-  a.walker = new Walker(world, c, walkerEvents(a));
+  a.walker = new Walker(world, c, walkerEvents(a), { backward: true });
   a.life = new Life(world, a.walker, c, lifeEvents(a), { clock: false, day: life });
   a.life.opts = life.opts;
   a.dash = createDash({ duration: 0.9, cooldown: 2.6 });
@@ -1287,9 +1287,10 @@ function step(dt, G) {
     const g = inputs.get(a), L = a.life;
     // In the backdoor zone Y means "go back", and at the open portal "go
     // through" (checkPortal: a.atPortal), not "curl into a tun".
-    // X into the rotifer meadow: those in front contract and a lane opens
+    // X into the rotifer meadow: those in front contract and a lane opens.
+    // Food in reach comes first: the press eats it (one press, every time).
     a.meadowJab = false;
-    if (meadow.on && g.P(BTN_X) && L.state === 'active' && !L.feeding && !a.bossJab && !(a === target && jabbed)) {
+    if (meadow.on && g.P(BTN_X) && L.state === 'active' && !L.feeding && !a.bossJab && !(a === target && jabbed) && !(L.canEat() && L.foodInReach())) {
       const n = meadow.jab(a.walker);
       if (n) { a.meadowJab = true; if (!a.toldMeadow) { a.toldMeadow = true; toast(tt('tardigrade.toasts.rotifers', { who: who(a) }), 2600); } }
     }

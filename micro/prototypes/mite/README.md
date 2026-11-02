@@ -15,8 +15,8 @@ Open `micro/prototypes/mite/` (the invite gate is off on localhost).
 placed as you go, in order, in moss you have not seen yet (the encounter
 pattern, `../../design/encounter-pattern.md`, "Placed as you go"), rising in
 threat: a family of box mites, the predatory mite, a drop of water falling
-into the moss, the predatory mite again (hungrier, faster), a shower of
-drops, the predatory mite a third time (always hungry, faster than your full
+into the moss nearby (never aimed at you), the predatory mite again
+(hungrier, faster), a shower of drops round you, the predatory mite a third time (always hungry, faster than your full
 tilt), and then the way on: a wet leaf axil under a golden glow, where a
 tardigrade walks in the water, guarded by a pseudoscorpion. The moss grows
 wetter, beaded with water, as you go and thickest round the water; a row of
@@ -60,9 +60,9 @@ closer to your goal"):
 | --- | --- | --- | --- |
 | 1 | **A family of box mites** (three, grazing; walk up slowly and they edge away, touch them, rush them or bite them and they close up; company, not a threat) | 3–4.6 mm; 2.4–3.6 mm, and they wander over | within 1.2 mm of their home |
 | 2 | **The predatory mite** on its hunting ground (1.1 mm radius, plus a 0.7 mm chase); hunts at 0.76 mm/s, so full tilt outwalks it | 3.8–5.8 mm; 2.6–4 mm, its ground drifts over | within 1.5 mm of its ground's centre or of it |
-| 3 | **A drop of water** falls into the moss (nothing shows until it falls; it starts when someone is within 1.5 mm, falls from 2.6 mm up, splashes 0.52 mm round: a mite there is knocked shut and tumbled, the predator staggers) | 2.6–3.8 mm; 1–1.45 mm | when it falls (or someone passes within 0.9 mm) |
+| 3 | **A drop of water** falls into the moss round you, never aimed at you (the owner, 2026-11-02: "definitely don't aim them at the player"): when someone comes within 2.6 mm of its spot it lands at a random spot 0.9–2 mm from them and at least 0.9 mm from every player (and from where each will be by then, walking on), clear of the thickets; a ring on the moss marks the spot 0.8 s before it lets go, with the falling sound and a word, and it falls from 2.6 mm up. It leaves a bead of water that soaks away over ~4.5 s; a mite in a bead (one that walks in, or a drop that lands on one anyway) is slowed to 40% and wobbles as it pushes and climbs out: no daze, no loss of control, no harm. A predator within 0.72 mm of the splash staggers | 2.6–3.8 mm; 1–1.45 mm | when it falls (or someone passes within 0.9 mm) |
 | 4 | **The predatory mite again** (the same one, gone on through the moss unseen): hungrier, 0.9 mm/s, feels a hurrying mite from 1.15 mm | as 2 | as 2 |
-| 5 | **A shower**: three drops, 0.55 s apart, round the spot | 3–4.4 mm; 1–1.45 mm | as 3 |
+| 5 | **A shower**: three drops, 0.55 s apart, each at its own random spot round you (as 3, never on anyone) | 3–4.4 mm; 1–1.45 mm | as 3 |
 | 6 | **The predatory mite a third time**: always hungry, 1.02 mm/s (faster than full tilt: scramble or jump), feels you from 1.35 mm | as 2 | as 2 |
 | 7 | **The pseudoscorpion and the portal** (the wet leaf axil) | 5.2–7.8 mm (3.6–5.2 mm round a lingering player), the water's 1.5 mm arena, the post and the boss's retreat clear of the thickets, the stem and glow (2.4 mm tall) out of every view | entering the open portal |
 
@@ -592,8 +592,8 @@ Built from parts placed by measurements against the reference, never traced:
   (the walkable square clamps the body in the air too, against the face of
   the wall of moss at its edge, 0.96 m across) and can't skip an encounter: the director meets an encounter from
   wherever the player is, in the air or not, its predators notice a mite
-  within 0.9 mm of their ground, and the drops fall in front of whoever comes
-  within 2.6 mm.
+  within 0.9 mm of their ground, and the drops fall round whoever comes
+  within 2.6 mm (never on them).
 - **Bite (X)**: the rostrum lifts, then dips as the chelicerae snap (0.28 s),
   inside an attack of rear, lunge and puff (see "Biting springtails"). Food
   is the real diet of a phthiracarid: fungal spores (eaten, they vanish) and
@@ -1203,8 +1203,9 @@ Not borrowed:
 - **Life and water** (`life.js`): the springtail groups shy and leap on a
   game rule and are drawn on the floor's height (a member over a grain can
   sit in it); water in an SEM needs an environmental (wet) instrument, and a
-  falling drop is slowed into a game hazard (real rain drips through a moss
-  cushion; one would soak a mite rather than knock it shut). The beads are
+  falling drop is slowed (real rain drips through a moss cushion), and a
+  mite in the bead it leaves pushes out in a moment, where a real one would
+  be held by the water's surface tension. The beads are
   smooth domes, not modelled menisci.
 - **The jump is borrowed, and stretched.** Box mites (Phthiracaridae) do not jump. Some
   oribatids do: *Zetorchestes* (Zetorchestidae) jumps with enlarged, elongated
@@ -1257,7 +1258,9 @@ measurements in this README came from Playwright scripts driving the page
 through a fake controller and the keyboard (`__micro.inputSteps(n, dt)`
 reads the pads as a frame does; `__micro.life` holds the springtail groups,
 the beads, the drops and the family; `__micro.inSight(x, z, r)` asks the
-views).
+views; `__micro.dripAt(x, z, slot)` drops a drop at a spot, by default right
+on a player, which the game never does, and `__micro.wetState(slot)` reports
+how deep that player is in a bead, its stun and speed).
 
 The check loads the page in headless Chromium (software WebGL), drives the
 keyboard, and fails on any console error. Software WebGL is slow, so the
