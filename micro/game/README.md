@@ -20,7 +20,7 @@ counted for games.hoai.net/stats/ (the GoatCounter script in `index.html`).
 | `index.html` | The screens: title, world select, world intro, play, transition layer, pause, settings, instructions, confirm |
 | `src/boot.js` | The invite door, then `main.js` |
 | `src/main.js` | The shell: screens, focus and controller navigation, the play frame and its messages, pause, settings, progression, test hooks (`window.__game`) |
-| `src/worlds.js` | The seven worlds: card data (magnification, field, body, look), the one-line goal, whether there is a way back, the controls, field notes |
+| `src/worlds.js` | The seven worlds: card data (field width for the zoom, art ids, tints) and whether there is a way back; their words (magnification, field, body, look, goal, controls, field notes) come from `worlds.<id>` in `../prototypes/shared/text_config.js` (see "Editing the game's text") |
 | `src/transition.js` | `playTransition(from, to, dir) → Promise`: the zoom between worlds (see below) |
 | `src/continuous.js` | `playContinuous(…)`: the continuous transition's camera move and crossfade between two live worlds (see below) |
 | `src/bus.js` | Messages to and from the world frames |
@@ -344,6 +344,43 @@ Players 2–4 join by pressing any button on another controller, in the menus
 (a toast and a colour chip) or during play (the world's roster reports a
 `join`, and the shell toasts it). Instructions show controller glyphs whenever a
 controller is connected, and keyboard keys only when none is.
+
+## Editing the game's text
+
+Every word a player sees, in the shell and in the seven worlds (menus,
+buttons, the intro's goal, controls and field notes, HUD lines, toasts,
+warnings, prompts, end cards, the features panels and their choices,
+aria-labels), is in one file:
+[`../prototypes/shared/text_config.js`](../prototypes/shared/text_config.js).
+It exports `TEXT`, a nested object with readable keys: `shell.*` (title,
+menu, intro, play, pause, settings, instructions, credits, toasts),
+`worlds.<id>.*` (each world's card and intro: name, look, magnification,
+line, goal, `controls` rows, `facts`), `shared.*` (the help panel, the
+features panel, players, being eaten) and one block per world
+(`springtail.*` … `phage.*`: `hud`, `toasts`, `banner`/`warn`, `capture`,
+`features.<id>.label/about/choices`, …), then `prototypes`, `zoom` and
+`split-demo` for the prototype browser.
+
+- Edit the words between the quotes; keep the keys. `{name}`-style
+  placeholders are filled by the game and `{btn:A}` draws a button glyph
+  (or its key when no controller is connected); move them freely within a
+  sentence. Simple markup (`<b>`, `<i>`, `<br>`) shows as markup where the
+  string already had it.
+- Code reads it through `../prototypes/shared/text.js`: `t('shell.pause.resume')`
+  for a string (with `t(key, { n: 2 })` for placeholders), `tx(key)` for an
+  array or object, and `fillText()` for the `data-t`, `data-t-html`,
+  `data-t-aria` and `data-t-title` attributes in `index.html`. A missing key
+  shows the key itself and warns once in the console. Feature panels find
+  `<world>.features.<id>` by the feature's id.
+- Another language: copy `TEXT` with the same keys, translate the strings
+  (anything left out falls back to English) and call `setLocale(table)` from
+  `text.js` before the page builds its text.
+- Left in code on purpose: the developer stats line (`hud.stats`, hidden in
+  the game), console messages, number and unit formatting (`mm`, `µm`, `nm`,
+  `×`), button and key names (A, LS, Space, WASD), Latin species names used
+  as data (the amoeba's prey), the zoom prototype's transition data and
+  status line (`../prototypes/zoom/chain.js`, a developer page), and the
+  page `<title>`/description meta in `index.html` (read without scripts).
 
 ## Checks
 

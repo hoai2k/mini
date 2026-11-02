@@ -24,6 +24,7 @@ import { createLandmarks } from '../shared/landmark.js';
 import { createFeatures } from '../shared/features.js';
 import { createQuality } from '../shared/quality.js';
 import { createCrowd } from '../shared/crowd.js';
+import { t as tt } from '../shared/text.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -132,14 +133,14 @@ const players = createPlayers({
     joins.push({ slot: p.slot, padIndex: p.padIndex, color: p.color });
     const c = centroid();
     makeBody(p, new THREE.Vector3(c.x + 3 * Math.cos(p.slot * 2.1), 0, c.z + 3 * Math.sin(p.slot * 2.1)));
-    hud.toast(`Player ${p.slot + 1} joined`);
+    hud.toast(tt('shared.players.joined', { n: p.slot + 1 }));
     hud.players(players.list);
   },
   onLeave: (p) => {
     leaves.push({ slot: p.slot });
     const b = bodies[p.slot];
     if (b) { scene.remove(b.mesh); bodies[p.slot] = null; }
-    hud.toast(`Player ${p.slot + 1} left`);
+    hud.toast(tt('shared.players.left', { n: p.slot + 1 }));
     hud.players(players.list);
   },
   onChange: (list) => hud && hud.players(list),
@@ -147,24 +148,23 @@ const players = createPlayers({
 makeBody(players.get(0), new THREE.Vector3(0, 0, 0));
 
 const hud = mountHud({
-  title: 'Split screen',
-  sub: 'Up to four players. Walk apart and the view splits like the LEGO games; come back together and it merges. (The edge marks, a chevron to the next stage and a ring to the way back, are switched off in shared/landmark.js: the game has no arrow.)',
+  title: tt('split-demo.hud.title'),
+  sub: tt('split-demo.hud.sub'),
   controls: hudControls({
-    move: 'Walk (relative to the view)',
-    camera: 'Turn the shared camera (any player)',
-    dash: 'Dash',
-    attack: 'Bite (clears the crowd in front)',
-    special: 'Perspective orbit / top-down view',
-    zoom: 'Render scale of each split view (quality)',
+    move: tt('split-demo.hud.controls.move'),
+    camera: tt('split-demo.hud.controls.camera'),
+    dash: tt('split-demo.hud.controls.dash'),
+    attack: tt('split-demo.hud.controls.attack'),
+    special: tt('split-demo.hud.controls.special'),
+    zoom: tt('split-demo.hud.controls.zoom'),
   }),
-  note: 'To join, press any button on another controller, here or in a menu. Player 1 also plays on the keyboard.',
+  note: tt('split-demo.hud.note'),
 });
 
 // --------------------------------------------------------------- features
 const features = createFeatures({ key: 'split-demo', pad: players.pad(0) });
 let camMode = 'orbit';
-features.add({ id: 'view', group: 'Rendering', label: 'Camera', choices: ['Orbit', 'Top-down'], value: 'Orbit',
-  about: 'Orbit: a perspective camera looking down at about 50°, like the 3D worlds. Top-down: an orthographic camera straight down, like the microscope views. The split works the same in both.',
+features.add({ id: 'view', group: 'Rendering', choices: ['Orbit', 'Top-down'], value: 'Orbit',
   onChange: (v) => { camMode = v === 'Top-down' ? 'top' : 'orbit'; } });
 const split = createSplitScreen(renderer, { renderScale: 1, zoomMax: 2 });
 // The split views' scale: the governor's split factor (0.7 at 2 views, 0.55 at
@@ -175,11 +175,9 @@ const applyScale = () => { split.renderScale = manualScale * splitFactor; };
 const quality = createQuality({ renderer, key: 'split-demo', scalePixelRatio: true,
   onChange: (q) => { splitFactor = q.split; applyScale(); } });
 quality.addToFeatures(features);
-features.add({ id: 'scale', group: 'Rendering', label: 'Split view render scale', choices: ['100%', '85%', '70%', '50%'], value: '100%',
-  about: 'Each split view renders into its own target at this fraction of the split resolution (the governor already gives 70% at 2 views, 55% at 3-4), scissored to its region, then the regions are drawn through polygon masks. One shared view renders straight to the screen with no extra cost.',
+features.add({ id: 'scale', group: 'Rendering', choices: ['100%', '85%', '70%', '50%'], value: '100%',
   onChange: (v) => { manualScale = parseFloat(v) / 100; applyScale(); } });
-features.add({ id: 'crowd', group: 'World', label: 'Crowd (shared/crowd.js)', on: true,
-  about: '500 instanced soft bodies drifting east of the start. Walking into them shoves them aside; X bites a cone clear (eaten members come back later, away from every player). No time limits.',
+features.add({ id: 'crowd', group: 'World', on: true,
   onChange: (on) => { crowd.mesh.visible = on; } });
 const marks = createLandmarks();
 
@@ -266,7 +264,7 @@ function step(dt) {
     b.mesh.rotation.y = b.heading;
     if (p.slot === 0 && ctl.special.pressed()) {
       features.set('view', camMode === 'top' ? 'Orbit' : 'Top-down');
-      hud.toast(camMode === 'top' ? 'Top-down (orthographic)' : 'Orbit (perspective)');
+      hud.toast(camMode === 'top' ? tt('split-demo.toasts.topDown') : tt('split-demo.toasts.orbit'));
     }
     if (p.slot === 0) {
       const zs = ctl.zoomStep();
@@ -274,7 +272,7 @@ function step(dt) {
         const opts = ['50%', '70%', '85%', '100%'];
         const i = THREE.MathUtils.clamp(opts.indexOf(Math.round(split.renderScale * 100) + '%') + zs, 0, 3);
         features.set('scale', opts[i]);
-        hud.toast(`Split view render scale ${opts[i]}`);
+        hud.toast(tt('split-demo.toasts.renderScale', { scale: opts[i] }));
       }
     }
   }
@@ -295,8 +293,8 @@ function render(dt, snap = false) {
     renderer.render(scene, cam);
   });
   marks.begin();
-  marks.drawSplit(split, FORWARD, { kind: 'forward', label: 'Next', range: 160 });
-  marks.drawSplit(split, BACKDOOR, { kind: 'backdoor', label: 'Back', range: 160 });
+  marks.drawSplit(split, FORWARD, { kind: 'forward', label: tt('split-demo.marks.next'), range: 160 });
+  marks.drawSplit(split, BACKDOOR, { kind: 'backdoor', label: tt('split-demo.marks.back'), range: 160 });
   const L = split.layout;
   hud.stats(`players ${players.count} · views ${L.views.length}${L.merged ? ' (merged)' : ''} · scale ${Math.round(split.renderScale * 100)}% · px ${quality.pixelRatio.toFixed(2)}${quality.auto ? ' auto' : ''} · crowd ${crowd.alive}`);
 }

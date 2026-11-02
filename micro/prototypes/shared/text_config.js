@@ -2385,4 +2385,439 @@ export const TEXT = {
     scale: '{bar} µm · field {field} µm',
     scaleCrop: '{bar} µm · field {field} µm (crop)',
   },
+
+  // --------------------------------------------------------------------
+  // World 7, the phage (micro/prototypes/phage).
+  phage: {
+    hud: {
+      title: 'Phage',
+      sub: 'A T4-like phage, 0.2 µm long, in bog water beside its host bacteria: a molecular illustration, not a microscope image. Grab what you find; hang on to a cell when a current comes.',
+      controls: {
+        move: 'Move (forward/back, sideways)',
+        camera: 'Turn the view',
+        secondary: 'Down / up',
+        dash: 'Dash forward',
+        attack: 'Grab / let go (or attack)',
+        defend: 'Block / slip through',
+        special: 'Enter portal / way back · info',
+        look: 'Change the look',
+        zoom: 'Zoom',
+        grabHold: 'Hold to grab and hang on',
+      },
+      note: 'Get into the glowing host, and avoid the amoeba. Up to four players: press any button on another controller to join.',
+    },
+    dataTag: 'DATA OVERLAY · receptors, defences and odds: data, not optics',
+    features: {
+      lookFL: {
+        label: 'Look (D-pad ←→)',
+        about: 'Realistic false light (the default): realistic biological surfaces and translucent materials lit by a hypothetical light, as in micro/design/phage-visual-style.html: the phage glows gold against teal-blue translucent cells covered in surface proteins, in a crowded, softly lit molecular water with haze, bloom and a large depth of field (only far layers soften). No microscope makes this picture: the light is invented. Goodsell watercolour: crowded, colour-coded molecules with ink outlines, flat soft light and depth by desaturation, after David Goodsell\'s paintings. Cryo-EM greyscale: what cryo-electron tomography really gives (Hu et al. 2015 [S99]): protein density dark on grey, a bright defocus fringe, heavy shot noise. Fluorescence: every protein glowing as if tagged, a pseudo-colour fantasy (no light microscope resolves a phage). All three are illustrations.',
+        choices: {
+          'Realistic false light': 'Realistic false light',
+          'Goodsell watercolour': 'Goodsell watercolour',
+          'Cryo-EM greyscale': 'Cryo-EM greyscale',
+          'Fluorescence (pseudo-colour)': 'Fluorescence (pseudo-colour)',
+        },
+      },
+      capsid2: {
+        label: 'Capsid',
+        about: 'Translucent (the default): the capsid as a glassy, faceted shell, the DNA glowing inside. Cutaway: the half of the head facing you is clipped away, showing the DNA packed inside as a coaxial spool (~169 kbp, about 57 µm of DNA in a 0.12 µm head [S98]). Translucent: the capsid as a glassy shell. Solid: as it would look from outside.',
+        choices: {
+          Cutaway: 'Cutaway',
+          Translucent: 'Translucent',
+          Solid: 'Solid',
+        },
+      },
+      ink: {
+        label: 'Ink outlines',
+        about: 'An inverted-hull outline around every molecule, fading with depth, as in a Goodsell painting (Goodsell, cryo-EM and fluorescence looks; false light has none). Hidden hulls cost nothing.',
+      },
+      depth: {
+        label: 'Depth by desaturation',
+        about: 'Far things fade toward the water colour and lose saturation (Goodsell\'s depth cue) instead of getting smaller and darker.',
+      },
+      art: {
+        label: 'Delivered art (MP-V01/V02/V03)',
+        about: 'The envelope surface (MP-V01) on the hosts, the water backdrop (MP-V02) behind the scene and the envelope section (MP-V03) above the cytoplasm inside the host. Off: the procedural watercolour stand-ins.',
+      },
+      model: {
+        label: 'T4 from its anatomy',
+        about: 'Prolate icosahedral head 120 × 86 nm studded with capsomers; collar and fibritin whiskers; a 23-ring sheath (98 nm) that contracts to 42 nm and fattens, exposing the inner tube; a hexagonal baseplate that opens into a star; six kinked long fibres of 160 nm simulated as chains, and six short fibres under the plate [S98, S99].',
+      },
+      drive: {
+        label: 'Steering',
+        about: 'A phage has no motor: it moves only by diffusion until it touches a host [S100]. The default gives it crisp game controls as a labelled departure: LS forward and back along the view and sideways, LB/RB down and up, quick to start and to stop (about 0.35 µm/s on the slowed clock), A a dash forward; nothing but a visible current fights the stick. Honest: the sticks do nothing in open water (grabbing still works).',
+        choices: {
+          'Steer: LS, LB/RB move the phage (departure)': 'Steer: LS, LB/RB move the phage (departure)',
+          'Honest: Brownian motion only': 'Honest: Brownian motion only',
+        },
+      },
+      brown: {
+        label: 'Brownian motion',
+        about: 'T4 diffuses with D ≈ 4 µm²/s [S100]. On the ~20× slowed clock that is ~0.2 µm²/s. Here it is shown in the water round you, not done to you: the crowd jostles thermally (the small molecules fastest), the textured liquid drifts, and the hosts and the amoeba\'s edge drift; with the sticks let go the phage wanders very slowly. Off: all of it still.',
+      },
+      tumble: {
+        label: 'Slow tumbling',
+        about: 'A 0.1 µm particle forgets its orientation within about a millisecond (rotational diffusion ~1.3 × 10³ rad²/s). Here it turns slowly instead, so you can see the phage (a labelled departure).',
+      },
+      uv: {
+        label: 'UV sunfleck shafts',
+        about: 'Sunlight UV-B damages phage DNA. In humic bog water it is absorbed within centimetres (10 % left at 1.5 cm in the most humic lake [S104]); where a gap in the floating peat mat lets the sun through, a shaft of it reaches down. Here the shafts are visible violet columns on a shell round the start: touch one and your DNA is damaged at once (a second touch while damaged destroys you). No slow drain: away from the shafts you are safe for as long as you like. Off: the shafts are harmless light.',
+      },
+      amoeba: {
+        label: 'Amoeba on guard',
+        about: 'The way on (Host A\'s gold receptor) is guarded by an amoeba grazing beside it: its lobe hovers over the receptor. Come near and it reaches for you (and rears before it strikes); it follows you only so far and is slower than you. Lure it off and slip round, or fold your fibres (B) so its strike slides off and jab it (X) until it gives up and draws its lobe back for good. Grabbing the receptor while it is on guard turns you back. Off: no guard. Amoebae grazing on viruses is [Unverified] in the spec.',
+      },
+      medium: {
+        label: 'Textured water',
+        about: 'The water drawn as a thick liquid of molecules: faint drifting noise in a few slices across the view, tied to the world so it slides past as you move, and streaming into streaks where a current comes. Off (or ?medium=0): clear water, and a current shows only in the crowd and the sound.',
+      },
+      crowd: {
+        label: 'Crowded water',
+        about: 'Thousands of molecules (proteins, humic colloids, sugars, ions) as bead clusters, jostling and tumbling, pushed by gusts and by your passage, filling the water in every direction and round every split view (they wrap round each view on the GPU). Small solutes are drawn several times too large so they read, and the water is far more crowded than a real bog (departures).',
+      },
+      currents: {
+        label: 'Currents',
+        about: 'Every 30 to 60 s a current sweeps through the water near you: you see it coming (the liquid streams into streaks from one side of the view, a whoosh and a note, at least 2.5 s before it arrives), and it carries anything not anchored, you included, a few µm on to a new area. Grab a cell (X or RT) before it reaches you and you hang on while it passes. Never sent across the way on, into a UV shaft or a floc. Bog water does have slow currents and eddies; a front you can see coming is a game departure. Off: none.',
+      },
+      level: {
+        label: 'Keep the surface up',
+        about: 'The water has no up or down for a phage, and RS turns the view freely about its own axes (a quaternion: no pole to flip at, and it never turns on its own). On: a gentle roll keeps the sunlit surface, where the UV is, toward the top of the screen; it fades out when you look straight up or down, so it can never spin the view. Off: the view rolls only when you turn it.',
+      },
+    },
+    toasts: {
+      intro: 'You are a T4-like phage in bog water. LS moves you (up: forward into the view), LB/RB down and up, A dashes, RS turns the view; X or RT grabs what is in reach. Head out any way you like: what waits comes to meet you. Last, a golden glow marks the way on.',
+      receptorFits: 'Receptor fits: fibres latch, the baseplate opens and the sheath injects…',
+      fibresFolded: 'Fibres folded: extend them (B) to grab.',
+      sealed: 'Host A\'s receptors do not take you yet: meet the other hosts first.',
+      turnedBack: 'Turned back: the amoeba\'s lobe guards this receptor. Lure it away, or fold (B) and jab (X) until it gives up.',
+      wayOn: 'The way on: press Y to enter Host A.',
+      teammateBusy: 'A teammate is already attaching or injecting: wait for them.',
+      doesNotFit: 'This protein does not fit: you just hang on. Only a gold three-lobed receptor lets you in.',
+      nothingInReach: 'Nothing in reach: drift closer to a molecule or a cell.',
+      gotMolecule: 'Got a molecule: it rides with you. Let go to set it drifting.',
+      slipOff: 'The fibres close, but this protein does not fit: you slip off. Try a gold three-lobed receptor.',
+      flocSnag: 'Fibres snagged in a humic floc: it drags you in. Fold them (B) to slip through.',
+      claySnag: 'Fibres stuck to a clay platelet. Fold them (B) to slip free.',
+      clayFolded: 'Folded fibres slip off the clay.',
+      fibresBound: '{n} fibres bound to OmpC: X to commit (irreversible).',
+      damagedTeam: 'UV broke your DNA: you are DAMAGED. Alone your injection fails; inject into the same host as a teammate and your genomes recombine (multiplicity reactivation). More UV is fatal.',
+      damagedStray: 'UV broke your DNA: you are DAMAGED. Alone your injection fails. Another damaged phage is drifting nearby: find it, pair with it and co-infect a host together. Another shaft is fatal.',
+      strayPaired: 'The stray damaged phage drifts along with you: co-infect a host together and your broken genomes can recombine.',
+      genomeWaits: 'P{n}\'s damaged genome waits in {host} ({s} s): a teammate injecting there revives it.',
+      genomeAloneTeam: 'Your damaged genome is in, but cannot work alone. A teammate who injects into this host will recombine with it.',
+      genomeAlone: 'Your damaged genome is in, but cannot work alone, and no second phage came with you…',
+      insideHostB: 'Inside Host B. Its CRISPR complexes carry a spacer matching you: they hunt hard. Lead the DNA end away (LS).',
+      insideHost: 'Inside the host. Lead the DNA\'s end (LS) away from the restriction enzyme and CRISPR complex until the genome is in.',
+      jabGone: 'Jabbed again: the amoeba gives up and draws its lobe back.',
+      jab: 'Fibre jab: the lobe flinches back (a departure: a phage has no weapon).',
+      amoebaReaches: 'The amoeba beside Host A reaches its lobe for you: it guards the gold receptor. Lure it off and slip round, or fold (B) and jab (X) until it gives up.',
+      lobeSlides: 'Folded and slippery: the lobe slides off you.',
+      amoebaGone: 'The amoeba gives up and draws its lobe back for good: the gold receptor is open.',
+      lobeRears: 'The lobe rears and curls to strike: fold your fibres (B) to slip, or jab it (X)!',
+      current: 'A current is coming from {from}: grab a cell (X or RT) to hang on, or be carried off.',
+      look: 'Look: {look} (an illustration, labelled)',
+      foldIn: 'Fibres folded back against the sheath: you slip past clay and cells.',
+      foldOut: 'Fibres out: a wider net to catch receptors (and clay).',
+      pushOff: 'Push-off: the fibres kick you free of the surface (departure).',
+      stuckClay: 'Stuck to clay: a dash cannot pull you off. Fold the fibres (B).',
+      surge: 'A surge: the strand is pulled in faster (departure).',
+      nearMiss: 'Near miss! You pulled your end free before Cas3 could cut; the complex loses some of its grip.',
+      crisprLetsGo: 'The CRISPR complex lets go and drifts off along the host DNA, for now.',
+      bound: 'Bound! Its guide blazes and Cas3 swings in: pull your end away (LS, A to surge)!',
+      guideGlowing: 'The guide RNA is glowing: it is matching your DNA. Lead your end away from it.',
+      genomeIn: 'The whole genome is in. Phage genes switch on; the host\'s DNA is broken down…',
+      flagellumStandalone: 'The bacterium\'s flagellum sweeping past: Y goes back to the sediment (in the game).',
+      driftsBack: '{name} drifts back in.',
+      driftsBackBeside: '{name} drifts back in beside a teammate.',
+      holdingOn: 'Holding on to {part} of {host}: currents pass you by.',
+      holdingOnHint: 'Holding on to {part} of {host}: currents pass you by. (Only a gold three-lobed receptor lets you in.)',
+      reactivated: 'Multiplicity reactivation: two damaged genomes recombined into one that works.',
+      reactivatedPlayers: 'Multiplicity reactivation: two damaged genomes recombined into one that works: {players} is whole again.',
+      currentLeft: 'A current is coming from the left: grab a cell (X or RT) to hang on, or be carried off.',
+      currentRight: 'A current is coming from the right: grab a cell (X or RT) to hang on, or be carried off.',
+      currentBelow: 'A current is coming from below: grab a cell (X or RT) to hang on, or be carried off.',
+      currentAbove: 'A current is coming from above: grab a cell (X or RT) to hang on, or be carried off.',
+    },
+    parts: {
+      goldReceptor: 'a gold receptor',
+      violetProtein: 'a violet protein',
+      thickWall: 'its thick wall',
+      lpsFur: 'the LPS fur',
+      porin: 'a porin',
+      membraneProtein: 'a membrane protein',
+      outerMembrane: 'the outer membrane',
+    },
+    prompts: {
+      enterHostA: 'Enter Host A (Y)',
+      back: 'Y: back to Sediment',
+    },
+    capture: {
+      dud: {
+        by: 'Alone, your UV-damaged genome',
+        how: 'could not replicate, and the host broke it down',
+      },
+      amoeba: {
+        by: 'The amoeba',
+        how: 'closed its lobe round you into a food vacuole',
+      },
+      re: {
+        by: 'The host\'s restriction enzyme',
+        how: 'found a recognition site and cut your DNA',
+      },
+      crispr: {
+        by: 'The CRISPR-Cas complex',
+        how: 'matched its guide to your DNA, and Cas3 chewed the strand',
+      },
+      uv2: {
+        by: 'A second UV-B shaft',
+        how: 'darkened and cracked your capsid and broke your DNA past repair',
+      },
+    },
+    info: {
+      host: '<b>{name}</b><br>receptors: {receptors}<br>defences: {defence}<br>odds of a burst if you commit: <b>{odds} %</b>',
+      uv: 'UV-B sunfleck: sunlight through a gap in the floating peat mat · touch it: damaged at once',
+      encounter: 'nearest host {d} µm · diffusing, ~{s} s real to reach',
+      enzyme: '{label}<br>senses your end within {nm} nm',
+      amoeba: 'amoeba: <b>{state}</b><br>its lobe follows you ~{um} µm from the receptor',
+      amoebaGone: 'driven off',
+      amoebaGuard: 'on guard',
+      amoebaLured: 'lured off its post',
+    },
+    marks: {
+      sediment: 'Sediment',
+    },
+    inside: {
+      genomeIn: 'Genome in · {kbp} of 169 kbp',
+      match: 'CRISPR-Cas match',
+      matchLetGo: 'CRISPR-Cas match · let go',
+      matchBound: 'CRISPR-Cas match · BOUND',
+      restriction: 'Restriction enzyme',
+      crisprMatching: 'CRISPR-Cas (matching spacer)',
+      crisprPartial: 'CRISPR-Cas (partial match)',
+    },
+    scale: {
+      outside: '100 nm',
+      inside: '10 nm',
+    },
+    caption: {
+      honest: '{look} · an illustration, not a microscope image · time slowed ~20×',
+      steered: '{look} · an illustration, not a microscope image · time slowed ~20× · steering, the dash and the currents\' fronts are departures',
+    },
+    winCard: '<h2>Burst</h2><p>{host} lysed and released 40 new phages (real T4 bursts are dozens to hundreds; <i>[Unverified here]</i>). Taking over the cell took ~25 minutes, compressed to seconds.</p><p class="go">Press A to play again</p>',
+    hosts: {
+      a: 'Host A',
+      b: 'Host B',
+      wrong: 'Wrong host',
+      otherKind: 'a bacterium of another kind',
+      receptorsOmpC: 'OmpC + LPS',
+      receptorsWrong: 'none (a Gram-positive: thick wall, no outer membrane, no OmpC)',
+      defenceA: 'Restriction enzyme; CRISPR with no matching spacer',
+      defenceB: 'Restriction enzyme; CRISPR carrying a matching spacer',
+      defenceWrong: '—',
+    },
+  },
+
+  // --------------------------------------------------------------------
+  // The prototype list page (micro/prototypes/index.html).
+  prototypes: {
+    heading: 'Micro prototypes',
+    lede: 'Small experiments towards a game where you play as microscopic creatures. Each tries a different microscope look and a different way of moving. Every one plays with an Xbox controller (or the keyboard). The game itself, <a href="../" style="color:var(--accent)">Micro Zoom</a>, plays these same worlds one after another, zooming from each into the next.',
+    cards: {
+      springtail: {
+        name: 'Springtail',
+        look: 'Macro photography',
+        text: 'A 1.5 mm water springtail on the bog\'s surface film: spring off the water with your tail, dodge sundew glue and a rove beetle.',
+      },
+      mite: {
+        name: 'Mite',
+        look: 'Scanning electron microscope',
+        text: 'An armoured box mite, about 0.35 mm long, walks on eight jointed legs through moss and leaf litter.',
+      },
+      tardigrade: {
+        name: 'Tardigrade',
+        look: 'Differential interference contrast',
+        text: 'Climb a moss leaf cell by cell with clawed stubby legs while the water film dries around you.',
+      },
+      amoeba: {
+        name: 'Amoeba',
+        look: 'Brightfield',
+        text: 'Amoeba proteus: push out pseudopods (each one draws body from elsewhere) and close a food cup around prey.',
+      },
+      paramecium: {
+        name: 'Paramecium',
+        look: 'Darkfield slide',
+        text: 'A quick green ciliate on a 2D darkfield slide: dash, slip over and under things, and battle Dileptus, Didinium, a giant amoeba and a bladderwort trap.',
+      },
+      bacterium: {
+        name: 'Bacterium',
+        look: 'At the limit of the light microscope',
+        text: 'Call your kin with a beacon and steer them as a flock, each cell following in its own way. Gather an army and fight your way through a grazer, a Bdellovibrio pack, a phage cloud and an amoeba to Stentor and the host.',
+      },
+      phage: {
+        name: 'Phage',
+        look: 'Realistic false light',
+        text: 'A virus with no engine: drift, ride the currents, choose the right host and commit. Beyond any light microscope.',
+      },
+      zoom: {
+        name: 'Zoom transitions',
+        look: 'Every look, world to world',
+        text: 'Reach a highlighted spot, then zoom into it: the spot becomes the next world. Try switching the look before, during or after the zoom.',
+      },
+    },
+    footer: 'Background: the <a href="https://github.com/hoai2k/mini/tree/main/micro">Micro research atlas</a>. Press A on a controller to open the selected card.',
+  },
+
+  // --------------------------------------------------------------------
+  // The zoom prototype (micro/prototypes/zoom).
+  zoom: {
+    hud: {
+      title: 'Zoom transitions',
+      sub: 'The twelve world-to-world transitions of Micro Zoom: pick one in the menu to play it, or play the chain: reach the spot, see the next screen framed, zoom into it.',
+      controls: {
+        move: 'Move the creature (a demo drives it if you leave it)',
+        dash: 'Dash · on the framed spot: zoom now · hold: skip the highlight · while scrubbing: resume',
+        attack: 'Frame flash style',
+        defend: 'Reverse: zoom back out',
+        special: 'Play the transition selected in the menu',
+        analog: 'Scrub the transition (LT back, RT forward)',
+        secondary: 'Menu: previous / next transition',
+        look: 'Strategy: recommended / look first / during / zoom first / crossfade / cut',
+        zoom: 'Menu: previous / next transition',
+      },
+      note: 'One specimen at every scale: the highlighted frame is exactly the next world’s screen. Field widths, the scale bar and the magnification (180 mm ÷ field, a 10× eyepiece) are true; creature speeds are real except the amoeba’s (×10, as in its prototype) and the tun’s revival.',
+    },
+    features: {
+      strategy: {
+        label: 'Style transition strategy',
+        about: 'Recommended: each transition’s best strategy from the contact sheets (README). Look first: morph world N’s optics into N+1’s at N’s scale, then zoom. Look during: the optics morph with the zoom. Zoom first: zoom in N’s look, then morph. Crossfade: as during, but the two finished images cross-fade. Cut: the look switches at the hand-off. In the hand-offs (no zoom) “zoom first” falls back to “during”.',
+      },
+      hl: {
+        label: 'Highlight: the next world’s frame',
+        about: 'The highlight is exactly the rectangle the next world’s screen will show (its field width × the screen’s aspect). Frame flash: the frame and its inside flash twice; pulsing frame; or darken everything outside it. The zoom is a pure scaling about one fixed point, so that rectangle grows to fill the screen exactly.',
+      },
+      zoomDur: {
+        label: 'Zoom duration',
+        about: 'How long the zoom takes, whatever the magnification ratio (2× to 150×). Hand-offs last this plus 1.5 s (at least 4.5 s).',
+        choices: {
+          '2 s': '2 s',
+          '3.5 s': '3.5 s',
+          '6 s': '6 s',
+        },
+      },
+      morphDur: {
+        label: 'Look morph duration (look first / zoom first)',
+        choices: {
+          '1 s': '1 s',
+          '2.5 s': '2.5 s',
+          '4 s': '4 s',
+        },
+      },
+      hlDur: {
+        label: 'Highlight duration',
+        choices: {
+          '1.2 s': '1.2 s',
+          '2.2 s': '2.2 s',
+          '3.5 s': '3.5 s',
+        },
+      },
+      ease: {
+        label: 'Zoom easing',
+        about: 'The field width is interpolated in log space, so “constant” means the same magnification per second all the way down.',
+      },
+      miteLook: {
+        label: 'Mite world look',
+        about: 'The mite prototype’s SEM, or the reflected-light stereo microscope the spec names for the capitulum.',
+        choices: {
+          SEM: 'SEM',
+          'Stereo microscope': 'Stereo microscope',
+        },
+      },
+      bactLook: {
+        label: 'Bacteria world look',
+        choices: {
+          'Phase contrast': 'Phase contrast',
+          Fluorescence: 'Fluorescence',
+        },
+      },
+      scale: {
+        label: 'Render scale',
+        about: 'Resolution of the specimen field (two worlds are drawn at once during a zoom). A software renderer is capped at 35 %.',
+        choices: {
+          '50%': '50%',
+          '75%': '75%',
+          '100%': '100%',
+        },
+      },
+      specimen: {
+        label: 'One multi-scale specimen',
+        about: 'Every world is a scale band of one specimen: capitulum leaves carry the cell lattice the DIC resolves, the film runs down a leaf into the pool, the amoeba crawls on the pool floor below, the biofilm’s cells are the texture the brightfield shows. Each layer fades in by pixel size, so N’s detail blurs out as N+1’s structures resolve, aligned.',
+      },
+      optics: {
+        label: 'One image-formation model (zoom-optics.js)',
+        about: 'Macro, stereo, SEM, DIC, brightfield, phase, fluorescence, cryo-EM and the illustration are all one formula with different lamps and settings, so a morph moves the instrument, not just pixels.',
+      },
+      logzoom: {
+        label: 'Log-scale zoom, honest scale bar (zoom-path.js)',
+      },
+      demo: {
+        label: 'Demo when idle',
+        about: 'The creature walks, crawls or swims to the destination by itself after a moment without input.',
+      },
+      auto: {
+        label: 'Continue into the next transition',
+        about: 'After arriving, the next world’s destination is live, so the whole chain plays through.',
+      },
+    },
+  },
+
+  // --------------------------------------------------------------------
+  // The split-screen demo (micro/prototypes/split-demo).
+  'split-demo': {
+    hud: {
+      title: 'Split screen',
+      sub: 'Up to four players. Walk apart and the view splits like the LEGO games; come back together and it merges. (The edge marks, a chevron to the next stage and a ring to the way back, are switched off in shared/landmark.js: the game has no arrow.)',
+      controls: {
+        move: 'Walk (relative to the view)',
+        camera: 'Turn the shared camera (any player)',
+        dash: 'Dash',
+        attack: 'Bite (clears the crowd in front)',
+        special: 'Perspective orbit / top-down view',
+        zoom: 'Render scale of each split view (quality)',
+      },
+      note: 'To join, press any button on another controller, here or in a menu. Player 1 also plays on the keyboard.',
+    },
+    features: {
+      view: {
+        label: 'Camera',
+        about: 'Orbit: a perspective camera looking down at about 50°, like the 3D worlds. Top-down: an orthographic camera straight down, like the microscope views. The split works the same in both.',
+        choices: {
+          Orbit: 'Orbit',
+          'Top-down': 'Top-down',
+        },
+      },
+      scale: {
+        label: 'Split view render scale',
+        about: 'Each split view renders into its own target at this fraction of the split resolution (the governor already gives 70% at 2 views, 55% at 3-4), scissored to its region, then the regions are drawn through polygon masks. One shared view renders straight to the screen with no extra cost.',
+        choices: {
+          '100%': '100%',
+          '85%': '85%',
+          '70%': '70%',
+          '50%': '50%',
+        },
+      },
+      crowd: {
+        label: 'Crowd (shared/crowd.js)',
+        about: '500 instanced soft bodies drifting east of the start. Walking into them shoves them aside; X bites a cone clear (eaten members come back later, away from every player). No time limits.',
+      },
+    },
+    toasts: {
+      topDown: 'Top-down (orthographic)',
+      orbit: 'Orbit (perspective)',
+      renderScale: 'Split view render scale {scale}',
+    },
+    marks: {
+      next: 'Next',
+      back: 'Back',
+    },
+  },
 };

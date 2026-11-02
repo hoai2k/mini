@@ -7,6 +7,7 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { toonMaterial, inked, inkedInstanced, blobGeometry, lumpyGeometry, goodsellShared, setInkVisible } from '../shared/techniques/phage-goodsell.js';
 import { createFight } from '../shared/predation.js';
 import { createBath, PALETTE } from '../shared/techniques/phage-beads.js';
+import { t as tt } from '../shared/text.js';
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
@@ -274,9 +275,9 @@ export function createInside() {
       S.tipVel.set(0, -10, 0);
       for (const e of enzymes) scene.remove(e.g);
       enzymes.length = 0;
-      addEnzyme('re', { detect: 90, speed: 19, label: 'Restriction enzyme' });
+      addEnzyme('re', { detect: 90, speed: 19, label: tt('phage.inside.restriction') });
       // the boss: Cascade + Cas3. A matching spacer (Host B) finds you fast; a partial match (Host A) slowly
-      const casOpts = (m) => ({ detect: m ? 170 : 110, speed: m ? 27 : 20, matchRate: m ? 0.42 : 0.2, label: m ? 'CRISPR-Cas (matching spacer)' : 'CRISPR-Cas (partial match)',
+      const casOpts = (m) => ({ detect: m ? 170 : 110, speed: m ? 27 : 20, matchRate: m ? 0.42 : 0.2, label: m ? tt('phage.inside.crisprMatching') : tt('phage.inside.crisprPartial'),
         match: 0, fight: createFight({ windup: 1.0, strike: 0.35, recoverT: 1.4, repelT: 1.4, retreatT: 6, facingRate: 0, biteHit: 0.34 }) });
       addEnzyme('cas', casOpts(host.crispr));
       if (host.crispr) addEnzyme('cas', casOpts(true));
