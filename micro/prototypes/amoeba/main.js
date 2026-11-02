@@ -25,6 +25,7 @@ import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
 import { createQuality } from '../shared/quality.js';
 import { createPortalGlow, createPortalLight } from '../shared/portal.js';
+import { t as tt, tx as ttx } from '../shared/text.js';
 
 const MODES = ['Brightfield', 'Phase contrast', 'Darkfield', 'Immersive (hypothetical)'];
 const OBJECTIVES = [{ name: '10×', field: 1800 }, { name: '20×', field: 900 }];
@@ -56,8 +57,8 @@ const SOFTWARE = (() => {
 const cells = [];
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { embed.post('join', { index: p.slot, color: p.color, name: p.name, roster: players.toJSON() }); addCell(p); hud.toast(`Player ${p.slot + 1} joined`); },
-  onLeave: (p) => { embed.post('leave', { index: p.slot, roster: players.toJSON() }); removeCell(p.slot); hud.toast(`Player ${p.slot + 1} left`); },
+  onJoin: (p) => { embed.post('join', { index: p.slot, color: p.color, name: p.name, roster: players.toJSON() }); addCell(p); hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); },
+  onLeave: (p) => { embed.post('leave', { index: p.slot, roster: players.toJSON() }); removeCell(p.slot); hud.toast(tt('shared.players.left', { n: p.slot + 1 })); },
   onChange: (list) => hud && hud.players(list),
 });
 let pad = players.pad(0);
@@ -66,55 +67,17 @@ let surge = createDash({ duration: 0.9, cooldown: 2.4 });
 let cur = null; // the cell being stepped
 const SCHEMES = ['Pseudopods and movement (default)', 'Lead and follow', 'Two pseudopods (classic)'];
 const SCHEME_IDS = ['select', 'lead', 'classic'];
-const COMMON_CONTROLS = {
-  dash: 'Surge: pseudopods shoot out 2.5× faster and the cell flows after them',
-  attack: 'Close the food cup round prey; at a trap hypha, a pseudopod jab cuts its tip; round an arm of Chaos, pinch it off',
-  defend: 'Let go / egest; near a trap hypha, hold to stiffen (it slides off)',
-  special: 'Labels. At the open portal: enter it',
-  look: 'Optics: brightfield, phase, darkfield, immersive',
-  zoom: 'Objective 10× / 20×',
-};
-const CONTROLS = {
-  select: {
-    rows: hudControls({
-      ...COMMON_CONTROLS,
-      move: 'Move a pseudopod (L)',
-      camera: 'Move a pseudopod (R)',
-      dash: 'Surge',
-      attack: 'Engulf / cut / pinch',
-      defend: 'Let go / stiffen',
-      special: 'Enter portal · labels',
-      secondary: 'Spread / push a pseudopod',
-      extra: [['RT (hold)', 'Move the cell'], ['LT (hold)', 'Spread / round up'], ['LS click', 'Focus down'], ['RS click', 'Focus up']],
-    }),
-    note: 'Push a stick to grab the pseudopod that way (or grow one); rest it to let go. Hold RT and the sticks move the whole cell: same way crawls, apart stretches, together squishes, one up one down turns. Two pseudopods round prey (or an arm of Chaos), then X. The cell keeps its volume. Time is compressed; see the corner.',
-  },
-  lead: {
-    rows: hudControls({
-      ...COMMON_CONTROLS,
-      move: 'First stick pushed grows the pseudopod and aims it; the other stick moves the body after it',
-      camera: 'Either stick can lead (see the corner: LS / RS roles)',
-      analog: 'Hold: the body stick grows a second pseudopod beside the first, to encircle',
-      secondary: 'Spread out / push harder',
-      extra: [['LS click', 'Fine focus down'], ['RS click', 'Fine focus up']],
-    }),
-    note: 'Pseudopod stick and body stick both held: the cell travels behind its pseudopod. Body stick alone towards it: the body flows in and takes it back. Release both and the roles reset once the pseudopod is gone (or after eating). Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
-  },
-  classic: {
-    rows: hudControls({
-      ...COMMON_CONTROLS,
-      move: 'Pseudopod 1: aim and extend',
-      camera: 'Pseudopod 2: aim and extend',
-      analog: 'Spread out / push harder',
-      secondary: 'Fine focus down / up',
-    }),
-    note: 'Release a stick to let that pseudopod flow back. Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
-  },
-};
-const WAY_NOTE = ' Crawl out in any direction: the same encounters come in rings round the start (easy prey, fleeing ciliates, fungal traps), and about 2.8 mm out the way on: a green Paramecium bursaria in a golden glow, guarded by the giant amoeba Chaos. Lure Chaos off it or pinch its arms until it gives up. The Sphagnum leaf tip to the left (the ring) is the way back up: Y there. Other controllers join with any button.';
+// The help panel's rows and note for each control scheme: amoeba.hud in
+// shared/text_config.js (common rows, then each scheme's own).
+const COMMON_CONTROLS = ttx('amoeba.hud.common');
+const CONTROLS = Object.fromEntries(SCHEME_IDS.map((id) => [id, {
+  rows: hudControls({ ...COMMON_CONTROLS, ...ttx(`amoeba.hud.schemes.${id}.controls`) }),
+  note: tt(`amoeba.hud.schemes.${id}.note`),
+}]));
+const WAY_NOTE = tt('amoeba.hud.wayNote');
 const hud = mountHud({
-  title: 'Amoeba',
-  sub: 'Amoeba proteus (~450 µm) on a wet-mount slide. Push out pseudopods, chase down ciliates, cup round them and fill in. Mind the fungal traps; the way on is guarded.',
+  title: tt('amoeba.hud.title'),
+  sub: tt('amoeba.hud.sub'),
   controls: CONTROLS.select.rows,
   note: CONTROLS.select.note + WAY_NOTE,
 });
@@ -134,7 +97,7 @@ function showControls(which) {
   const note = el.querySelector('.note');
   if (note) note.textContent = CONTROLS[which].note + WAY_NOTE;
   // In the Micro Zoom shell its controls card follows the scheme too.
-  if (embed.active) embed.post('hud', { title: 'Amoeba', sub: el.querySelector('.sub')?.textContent || '', controls: CONTROLS[which].rows, note: CONTROLS[which].note + WAY_NOTE });
+  if (embed.active) embed.post('hud', { title: tt('amoeba.hud.title'), sub: el.querySelector('.sub')?.textContent || '', controls: CONTROLS[which].rows, note: CONTROLS[which].note + WAY_NOTE });
 }
 
 const rand = rng(11);
@@ -264,10 +227,10 @@ function trapFight(o, dt, armed) {
   const f = o.fight.update(dt, { near: !!n && n.d < 220, inReach: !!n && n.d < 40, facing: true, blocking });
   if (n && n.d < 220) logChallenge('traps', n.cell);
   o.wind = f.state === 'windup' ? f.t : f.state === 'strike' ? 1 : Math.max(0, o.wind - dt * 2);
-  if (f.state === 'windup' && f.t < 0.05 && n) { const k = cur; use(n.cell); hud.toast(`${who()}A trap hypha curls, its knobs swelling: stiffen (hold B) or cut it (X)`, 2200); rumble(120, 0.25, 0); use(k); }
-  if (f.hit && n) { o.grip = 7; const k = cur; use(n.cell); hud.toast(`${who()}The hypha snaps shut on the membrane`); rumble(250, 0.4, 0.6); use(k); }
-  if (f.blocked && n) { o.grip = 0; const k = cur; use(n.cell); hud.toast(`${who()}Stiffened: the hypha slides off the membrane (trap resolve ${Math.round(o.fight.interest * 100)}%)`); rumble(200, 0.5, 0.3); use(k); }
-  if (f.retreated) { o.grip = 0; hud.toast('The fungus gives up on you: the hypha withdraws', 2400); }
+  if (f.state === 'windup' && f.t < 0.05 && n) { const k = cur; use(n.cell); hud.toast(tt('amoeba.toasts.trapCurls', { who: who() }), 2200); rumble(120, 0.25, 0); use(k); }
+  if (f.hit && n) { o.grip = 7; const k = cur; use(n.cell); hud.toast(tt('amoeba.toasts.trapSnaps', { who: who() })); rumble(250, 0.4, 0.6); use(k); }
+  if (f.blocked && n) { o.grip = 0; const k = cur; use(n.cell); hud.toast(tt('amoeba.toasts.stiffened', { who: who(), resolve: Math.round(o.fight.interest * 100) })); rumble(200, 0.5, 0.3); use(k); }
+  if (f.retreated) { o.grip = 0; hud.toast(tt('amoeba.toasts.fungusGivesUp'), 2400); }
 }
 /** The pseudopod a jab uses: the first (lead, classic), or a free one (select and steer). */
 function jabSlot() {
@@ -285,7 +248,7 @@ function cutHypha(o, n) {
   const gone = o.fight.bitten();
   audio.play('amoeba/engulf', { volume: 0.8, rate: 1.3 });
   rumble(220, 0.4, 0.4);
-  hud.toast(`${who()}Pseudopod jab: you engulf the hypha tip and cut it off${gone ? '. The fungus withdraws' : ` (trap resolve ${Math.round(o.fight.interest * 100)}%)`}`, 2400);
+  hud.toast(gone ? tt('amoeba.toasts.jabGone', { who: who() }) : tt('amoeba.toasts.jab', { who: who(), resolve: Math.round(o.fight.interest * 100) }), 2400);
 }
 /** The trap threatening this cell most (winding up, striking or gripping), within reach of a jab. */
 function threatTrap(c) {
@@ -310,16 +273,8 @@ function resetFungus() {
 // a spot away from the traps).
 let caught = createCapture({ onRespawn: () => captureRespawn(cells[0]) });
 let FC = { pts: [], A0: 0, phase: null };
-const CHAOS_TEXT = {
-  strike: 'The cup of Chaos is closing over you: surge (A) to break out!',
-  hold: 'Engulfed: a food vacuole closes round you',
-  eat: 'Chaos is digesting you',
-};
-const CATCH_TEXT = {
-  strike: 'Haustoria pierce the membrane! Surge (A) to tear free',
-  hold: 'The fungus starts to drain you: surge (A) NOW',
-  eat: 'Being drained: surge (A) to tear free',
-};
+const CHAOS_TEXT = ttx('amoeba.banner.chaosCapture');
+const CATCH_TEXT = ttx('amoeba.banner.fungusCapture');
 const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 // A catch: the player keeps control through strike, hold and eat (a surge can
 // still tear free); 'die' is the death animation (the stain takes over, the cell
@@ -334,7 +289,7 @@ function startCatch(pts) {
   if (caught.active) return;
   FC.pts = pts.slice(0, 3); FC.A0 = body.A0; FC.phase = 'strike';
   FC.nodes = FC.pts.map((p) => nodeNear(body, p.x, p.y));
-  caught.start({ by: 'Drained by a trap fungus', phases: CATCH_PHASES });
+  caught.start({ by: tt('amoeba.capture.fungus'), phases: CATCH_PHASES });
   embed.captured({ by: 'fungus', player: cur ? cur.slot : 0 });
   if (C.closing) cancelClose();
   haustoria.forEach((h, k) => { h.hidden = !FC.pts[k]; h.grow = 0; });
@@ -364,7 +319,7 @@ function stepCatch(dt) {
     body.A0 = Math.min(FC.A0 * 0.93, body.A0); C.bitten++; C.stuckT = 0; C.drain = 0;
     for (const h of haustoria) { h.hidden = true; h.grow = 0; }
     fungus.missed();
-    hud.toast(`${who()}Torn free!`, 1800);
+    hud.toast(tt('amoeba.toasts.tornFree', { who: who() }), 1800);
     rumble(300, 0.6, 0.6);
     return;
   }
@@ -392,7 +347,7 @@ function stepEngulf(dt) {
     // broke out before the vacuole sealed
     caught.reset(false); FC.phase = null; FC.by = null; C.drain = 0;
     C.bites.push({ i: nodeNear(body, chaos.body.cx, chaos.body.cy), t: 0, s: 0.6, chaos: true });
-    hud.toast(`${who()}Surged out!`, 1800);
+    hud.toast(tt('amoeba.toasts.surgedOut', { who: who() }), 1800);
     rumble(300, 0.6, 0.6);
     return;
   }
@@ -502,7 +457,7 @@ function restartCell() {
   for (let i = 0; i < N; i++) { const a = (i / N) * TAU; body.x[i] = body.cx + Rr * Math.cos(a); body.y[i] = body.cy + Rr * Math.sin(a); }
   for (const p of body.pods) { p.s = 0; p.target = 0; p.active = false; p.ret = 0; }
   body.grid.build(body.x, body.y, N);
-  hud.toast('A fresh amoeba', 3000);
+  hud.toast(tt('amoeba.toasts.freshAmoeba'), 3000);
 }
 
 // --- features panel ----------------------------------------------------------
@@ -532,93 +487,74 @@ function soundTick(dt) {
   if (sy && !snd.systole) audio.play('amoeba/vacuole', { volume: 0.6, rate: 0.95 + Math.random() * 0.1 });
   snd.systole = sy;
 }
-F({ id: 'look', group: 'Optics', label: 'Optical method', choices: MODES, value: MODES[0],
-  about: 'D-pad left/right cycles. Brightfield is the reference look; phase contrast (dark phase with bright halos), darkfield (scattered light on black) and a hypothetical immersive lit view are for comparison. All four read the same property buffer.',
+F({ id: 'look', group: 'Optics', choices: MODES, value: MODES[0],
   onChange: (v) => { S.mode = Math.max(0, MODES.indexOf(v)); } });
-F({ id: 'propbuf', group: 'Rendering', label: 'Optical property buffer', fixed: true,
-  about: 'Objects draw phase (thickness × refractive step) and red/green/blue optical density additively into a float target, not colour; one composite pass applies the optics. Module: shared/techniques/amoeba-optics.js.' });
-F({ id: 'tie', group: 'Optics', label: 'Defocus contrast (transport of intensity)', on: true,
-  about: 'A transparent cell is nearly invisible in focus; slight defocus gives I ≈ I0(1 − Δz∇²φ): bright and dark lines at edges and granules. Fine focus (LB/RB) sets Δz and its sign.',
+F({ id: 'propbuf', group: 'Rendering', fixed: true });
+F({ id: 'tie', group: 'Optics', on: true,
   onChange: (v) => { S.flags.tie = v; } });
-F({ id: 'refraction', group: 'Optics', label: 'Edge refraction loss', on: true,
-  about: 'Steep slopes at the membrane bend light out of the objective aperture, darkening the edge in proportion to |∇φ|².', onChange: (v) => { S.flags.refraction = v; } });
-F({ id: 'chroma', group: 'Optics', label: 'Chromatic fringes', on: true,
-  about: 'Red, green and blue focus at slightly different depths, so the defocus term uses a different spacing per channel: faint coloured fringes like the reference photo.', onChange: (v) => { S.flags.chroma = v; } });
-F({ id: 'dof', group: 'Optics', label: 'Depth of field', on: true,
-  about: 'Things floating above the focal plane are drawn to a separate half-resolution buffer and Gaussian-blurred (≈ 6 µm depth of field at 20×). Focusing up makes them sharper.', onChange: (v) => { S.flags.dof = v; } });
-F({ id: 'bgrefr', group: 'Optics', label: 'Background refraction', on: true,
-  about: 'The slide texture is sampled through the phase gradient, so the field wobbles slightly behind the cell like a lens.', onChange: (v) => { S.flags.bgRefraction = v; } });
-F({ id: 'vignette', group: 'Rendering', label: 'Vignette', on: true, about: 'Illumination falls off towards the edge of the field.', onChange: (v) => { S.flags.vignette = v; } });
-F({ id: 'grain', group: 'Rendering', label: 'Sensor grain', on: true, about: 'A little per-pixel noise, like a camera on a microscope.', onChange: (v) => { S.flags.grain = v; } });
-F({ id: 'dome', group: 'Rendering', label: 'Thickness dome from a distance grid', fixed: true,
-  about: 'Each frame the membrane polygon is rasterised on the CPU and an exact distance transform gives distance-from-edge; thickness rises as its square root. It drives phase, absorption and the ectoplasm rim. Module: shared/techniques/amoeba-sdfgrid.js.' });
-F({ id: 'mask', group: 'Rendering', label: 'MSAA membrane mask', fixed: true,
-  about: 'The membrane ring, Catmull-Rom subdivided and triangulated (earcut), is drawn into a 4× multisampled mask for a clean edge.' });
-F({ id: 'wrinkle', group: 'Body', label: 'Crumpled uroid', on: true,
-  about: 'Small folds at the rear (the uroid) where the membrane is being taken back in.', onChange: (v) => { view.flags.wrinkle = v; } });
-F({ id: 'caps', group: 'Body', label: 'Hyaline caps', on: true,
-  about: 'A clear cap of cytoplasm at each advancing tip, free of granules.', onChange: (v) => { view.flags.caps = v; cyto.caps = v; } });
-F({ id: 'area', group: 'Body', label: 'Volume conservation (area pressure)', on: true,
-  about: 'An exact area projection after each step: any arm pushed out is paid for elsewhere. Off, the cell shrinks under tension and arms are free. Module: shared/techniques/amoeba-softbody.js.',
+F({ id: 'refraction', group: 'Optics', on: true,
+  onChange: (v) => { S.flags.refraction = v; } });
+F({ id: 'chroma', group: 'Optics', on: true,
+  onChange: (v) => { S.flags.chroma = v; } });
+F({ id: 'dof', group: 'Optics', on: true,
+  onChange: (v) => { S.flags.dof = v; } });
+F({ id: 'bgrefr', group: 'Optics', on: true,
+  onChange: (v) => { S.flags.bgRefraction = v; } });
+F({ id: 'vignette', group: 'Rendering', on: true, onChange: (v) => { S.flags.vignette = v; } });
+F({ id: 'grain', group: 'Rendering', on: true, onChange: (v) => { S.flags.grain = v; } });
+F({ id: 'dome', group: 'Rendering', fixed: true });
+F({ id: 'mask', group: 'Rendering', fixed: true });
+F({ id: 'wrinkle', group: 'Body', on: true,
+  onChange: (v) => { view.flags.wrinkle = v; } });
+F({ id: 'caps', group: 'Body', on: true,
+  onChange: (v) => { view.flags.caps = v; cyto.caps = v; } });
+F({ id: 'area', group: 'Body', on: true,
   onChange: (v) => { body.opts.area = v; } });
-F({ id: 'rear', group: 'Body', label: 'Rear retraction (uroid)', on: true,
-  about: 'The area correction is weighted to the membrane facing away from the active pseudopods, so the rear retracts and the cell crawls. Off, it shrinks evenly.', onChange: (v) => { body.opts.rearWeight = v; } });
-F({ id: 'self', group: 'Body', label: 'Self-contact', on: true,
-  about: 'Membrane nodes that are far apart along the ring repel when they meet, so two pseudopods can press together round prey without crossing.', onChange: (v) => { body.opts.selfContact = v; } });
-F({ id: 'idle', group: 'Body', label: 'Idle pseudopods (polypodial)', on: true,
-  about: 'A resting A. proteus probes with several pseudopods at once; up to three weak ones come and go when you are not steering.', onChange: (v) => { body.opts.idlePods = v; } });
-F({ id: 'overdamped', group: 'Motion', label: 'Overdamped (low Reynolds number)', fixed: true,
-  about: 'Displacement is proportional to force each step; nothing coasts. Stop protruding and the cell stops.' });
-F({ id: 'atime', group: 'Motion', label: 'Amoeba time compression', choices: Object.keys(AMOEBA_TIME), value: 'Amoeba ×10',
-  about: 'A. proteus advances about 1–4 µm/s. ×10 is the clock; with quick pseudopods (below) they grow ×20 their real rate, so a pseudopod reaches out in about a second. ×1 is real time (very slow).', onChange: (v) => { S.amoebaK = AMOEBA_TIME[v] ?? 1; } });
-F({ id: 'pspeed', group: 'Motion', label: 'Pseudopod speed', choices: Object.keys(PSEUDO_SPEED), value: 'Quick (2×)',
-  about: 'Quick: pseudopods ramp up and advance 2× faster than the original tuning (the cell still keeps its area, and the rear still retracts to pay for each arm). The time readout includes it.',
+F({ id: 'rear', group: 'Body', on: true,
+  onChange: (v) => { body.opts.rearWeight = v; } });
+F({ id: 'self', group: 'Body', on: true,
+  onChange: (v) => { body.opts.selfContact = v; } });
+F({ id: 'idle', group: 'Body', on: true,
+  onChange: (v) => { body.opts.idlePods = v; } });
+F({ id: 'overdamped', group: 'Motion', fixed: true });
+F({ id: 'atime', group: 'Motion', choices: Object.keys(AMOEBA_TIME), value: 'Amoeba ×10',
+  onChange: (v) => { S.amoebaK = AMOEBA_TIME[v] ?? 1; } });
+F({ id: 'pspeed', group: 'Motion', choices: Object.keys(PSEUDO_SPEED), value: 'Quick (2×)',
   onChange: (v) => { body.opts.speed = PSEUDO_SPEED[v] ?? 2; } });
-F({ id: 'surge', group: 'Motion', label: 'Surge (A)', fixed: true,
-  about: 'For 0.9 s every active pseudopod extends up to 2.5× faster (eased in and out), may run a little further ahead, the rear contracts harder and streaming surges toward the tips, so the whole cell lunges; recharges over 2.4 s. With no stick held it surges along the cell\'s current heading. It also tears the membrane free of a fungal trap. Inspired by blebbing, A. proteus\'s fastest protrusion; the strength is a game value.' });
-F({ id: 'stime', group: 'Motion', label: 'Swimmer speed', choices: Object.keys(SWIM_TIME), value: 'Swimmers ×0.1',
-  about: 'Ciliates swim at 0.3–1 mm/s: far too fast to catch on a ×10 amoeba clock, so swimmers are slowed. Real speed shows why amoebae ambush.', onChange: (v) => { S.swimK = SWIM_TIME[v] ?? 1; } });
-F({ id: 'stream', group: 'Simulation', label: 'Fountain streaming', on: true,
-  about: 'Endoplasm granules flow towards each advancing tip, about twice as fast as the tip, along the cell axis; the gel rim stays put.', onChange: (v) => { S.streaming = v; } });
-F({ id: 'brown', group: 'Simulation', label: 'Brownian / saltatory jitter', on: true, about: 'Random jiggling of granules.', onChange: (v) => { S.brownian = v; } });
-F({ id: 'gran', group: 'Simulation', label: 'Granules', choices: Object.keys(GRANULES), value: '2600 granules',
-  about: 'Particles carried by the endoplasm: fine granules, bipyramidal crystals, lipid droplets, algal remnants. Fewer for slow GPUs.', onChange: (v) => { S.granules = GRANULES[v] ?? 2600; } });
-F({ id: 'cv', group: 'Simulation', label: 'Contractile vacuole cycle', on: true,
-  about: 'Fills slowly (≈ 40 s here, minutes in life), then empties in about a second; faster while food vacuoles shed water.', onChange: (v) => { S.cv = v; } });
-F({ id: 'cup', group: 'Simulation', label: 'Food cup and food vacuoles', fixed: true,
-  about: 'The membrane run near a prey cell is measured by how far it winds round it; when the rims meet, the lining zips shut and the cup becomes a food vacuole that sheds water, then digests.' });
-F({ id: 'flee', group: 'Simulation', label: 'Ciliates flee the membrane', on: true,
-  about: 'Tetrahymena, Colpidium and Paramecium sense the approaching membrane (a mechanical and chemical cue) and swim away at about 2.2× their speed for a couple of seconds, so a plain pseudopod rarely catches them: surge (A) to close the gap. Escape swimming is real; the range and speed are game values.',
+F({ id: 'surge', group: 'Motion', fixed: true });
+F({ id: 'stime', group: 'Motion', choices: Object.keys(SWIM_TIME), value: 'Swimmers ×0.1',
+  onChange: (v) => { S.swimK = SWIM_TIME[v] ?? 1; } });
+F({ id: 'stream', group: 'Simulation', on: true,
+  onChange: (v) => { S.streaming = v; } });
+F({ id: 'brown', group: 'Simulation', on: true, onChange: (v) => { S.brownian = v; } });
+F({ id: 'gran', group: 'Simulation', choices: Object.keys(GRANULES), value: '2600 granules',
+  onChange: (v) => { S.granules = GRANULES[v] ?? 2600; } });
+F({ id: 'cv', group: 'Simulation', on: true,
+  onChange: (v) => { S.cv = v; } });
+F({ id: 'cup', group: 'Simulation', fixed: true });
+F({ id: 'flee', group: 'Simulation', on: true,
   onChange: (v) => { S.flee = v; } });
-F({ id: 'traps', group: 'World', label: 'Fungal trap hyphae (hazard)', on: true,
-  about: 'Zoopagalean fungi (Stylopage, Zoopage) catch amoebae on adhesive hyphae, then grow haustoria into them. Membrane touching a sticky trap hypha sticks (it moves at 8% of its pace); a surge (A) tears it free. Stuck for 8 s, haustoria pierce the cell: surge in the next 1.5 s to tear free with a bite (−7% of the cell), or it is drained (a yellow-green stain spreading in from the haustoria, the membrane trembling there; a surge still tears free until the drain is done), dies on screen (it goes slack, breaks up and its granules drift off) and a fresh cell gathers itself up nearby. Real predators of amoebae; the timing, the bite and the drain are game rules.',
+F({ id: 'traps', group: 'World', on: true,
   onChange: (v) => { S.traps = v; for (const o of world.obstacles) if (o.type === 'trap' && !o.haustorium) o.hidden = !v; } });
-F({ id: 'hunger', group: 'World', label: 'Traps come and go (fungal hunger)', on: true,
-  about: 'The fungus is "hungry" for 30–50 s: its adhesive knobs are sticky (large and dark, you can see it). Then it rests, 50–80 s after a catch and 20–35 s after you tear free: the knobs are dormant (small and pale) and do not stick. Off: they stay sticky.',
+F({ id: 'hunger', group: 'World', on: true,
   onChange: (on) => { pacing.cycles = on; } });
-F({ id: 'infill', group: 'Simulation', label: 'Filling in (X)', on: true,
-  about: 'While the cup closes, endoplasm floods toward the cup mouth so the rims visibly fill and thicken as they meet over the prey.',
+F({ id: 'infill', group: 'Simulation', on: true,
   onChange: (v) => { cyto.infill = v; } });
-F({ id: 'avoid', group: 'Simulation', label: 'Avoidance reaction, trichocysts', fixed: true,
-  about: 'Ciliates that touch the membrane back up, pivot and swim off. A Paramecium in a closing cup fires a local burst of trichocysts that shoves it clear (three bursts).' });
-F({ id: 'obstacles', group: 'World', label: 'Obstacles on the slide', on: true,
-  about: 'Spirogyra filaments, gliding diatoms and detritus flakes the cell must flow round.', onChange: (v) => { S.flags.obstacles = v; } });
-F({ id: 'above', group: 'World', label: 'Out-of-focus layer', on: true,
-  about: 'Filaments and flakes floating above the focal plane (MP-A03 when delivered).', onChange: (v) => { S.flags.above = v; } });
-F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'Controller rumble on contact, surges, trichocyst bursts, captures and when a trap hypha grabs the membrane.', onChange: (v) => { S.rumble = v; } });
-F({ id: 'scheme', group: 'Controls', label: 'Controls', choices: SCHEMES, value: SCHEMES[0],
-  about: 'Pseudopods and movement (default; the owner, 2026-11-02). Pseudopod mode (RT up): each stick owns one pseudopod, RS the one marked R and LS the one marked L. A stick resting in the centre (for more than 0.28 s) owns nothing; its first push takes the pseudopod whose tip lies within 34° of it (idle ones too), or grows one at the membrane that way, and steers it while pushed (direction and reach). Flicking through the centre quicker than that keeps it. R and L are never the same one: a push towards the other stick\'s pseudopod takes the next nearest, or grows one beside it. LB / RB spread out / push harder only the pseudopod a pushed stick is steering. Movement mode (RT held): the sticks are movement intents and steer no pseudopod. One stick, or both the same way: the cell crawls that way. Two different ways: it crawls between them and widens across its path. Opposite: LS left + RS right (apart) stretches it along that line, LS right + RS left (together) squishes it; LS up + RS down turns it clockwise, LS down + RS up anticlockwise, like a tank; in-between angles blend. LT (either mode): the whole cell spreads out at once; held on, from about 1.5 s it slowly draws its pseudopods in and rounds up, near round after about 8 s. Lead and follow: the first stick pushed grows a pseudopod (the pseudopod stick); the other stick moves the bulk of the cell (the body stick): the rear contracts and the cytoplasm streams after it. Both held: the cell travels behind its pseudopod, which holds its length. Body stick alone towards the pseudopod: the body flows into it and takes it back. Hold LT or RT and the body stick grows a second pseudopod 30–70° beside the first instead, to encircle prey. LB spreads out, RB pushes harder. Roles reset once the pseudopod is gone or after eating. Two pseudopods (classic): each stick grows its own pseudopod, LT/RT spread out and push harder, LB/RB focus.',
+F({ id: 'avoid', group: 'Simulation', fixed: true });
+F({ id: 'obstacles', group: 'World', on: true,
+  onChange: (v) => { S.flags.obstacles = v; } });
+F({ id: 'above', group: 'World', on: true,
+  onChange: (v) => { S.flags.above = v; } });
+F({ id: 'rumble', group: 'Controls', on: true, onChange: (v) => { S.rumble = v; } });
+F({ id: 'scheme', group: 'Controls', choices: SCHEMES, value: SCHEMES[0],
   onChange: (v) => {
     S.scheme = SCHEME_IDS[Math.max(0, SCHEMES.indexOf(v))];
     for (const c of cells) Object.assign(c.R, newRoles());
     showControls(S.scheme);
   } });
-F({ id: 'sticks', group: 'Controls', label: 'Stick-driven pseudopods', fixed: true,
-  about: 'Each pseudopod grows from the part of the membrane facing its stick; turning the stick bends it; centring the stick lets it flow back. A game interpretation of chemotactic protrusion.' });
-F({ id: 'simple', group: 'Body', label: 'Membrane never crosses itself', fixed: true,
-  about: 'Self-contact keeps every membrane node a few µm off every other stretch of membrane (a spatial hash of segments, so a segment cannot slip between two nodes); necks thinner than ≈ 26 µm push back; and any step that would still make two stretches cross is undone for those nodes. The mask outline is checked too: where the smooth, wrinkled outline would fold over itself it is drawn straight, so the triangulation never leaves stray triangles. Module: shared/techniques/amoeba-softbody.js.' });
-F({ id: 'pinch', group: 'Body', label: 'Pinch-off (rare)', on: true,
-  about: 'If a neck of the cell is squeezed thinner than 12 µm and a fungal trap hypha lies across it, the hypha cuts it: the piece with the nucleus stays the amoeba, the other piece rounds up, darkens and breaks up over a few seconds, and the cut pseudopod is left a stump. Necks resist thinning, so this almost never happens in play.',
+F({ id: 'sticks', group: 'Controls', fixed: true });
+F({ id: 'simple', group: 'Body', fixed: true });
+F({ id: 'pinch', group: 'Body', on: true,
   onChange: (v) => { S.pinch = v; } });
 
 // --- borrowed (default off) ----------------------------------------------------
@@ -628,24 +564,19 @@ F({ id: 'pinch', group: 'Body', label: 'Pinch-off (rare)', on: true,
 const looks = createBorrowedLooks(renderer);
 const borrow = borrowedSwitches(features);
 const bmode = { dic: 0, par: 0 };
-borrow.add({ id: 'semMite', label: 'SEM (scanning electron microscope)', from: 'mite',
-  about: 'The phase buffer read as a height map (phase × 40 µm, roughly the dome of a crawling cell), turned into the mite\'s G-buffer as seen from a virtual beam 4 mm above the slide, then shaded by its secondary-electron composite: tilt contrast, detector shadows on the glass, crevice darkening, noise. Physically odd: a live amoeba cannot be imaged in a vacuum; real SEMs of A. proteus are fixed and dried (S05).' });
-F({ id: 'semMiteMode', group: 'Borrowed', label: 'SEM detector', from: 'mite', choices: SEM_LOOKS, value: SEM_LOOKS[0],
-  about: 'SE (topography), BSE (the glass slide outshines the organic cell) or false colour.', onChange: (v) => looks.semMode(SEM_LOOKS.indexOf(v)) });
-borrow.add({ id: 'dicTardigrade', label: 'DIC (Nomarski) relief', from: 'tardigrade',
-  about: 'The tardigrade\'s interference image from the same phase and absorbance: relief from the gradient of optical path along one shear direction, warm and cool fringes. Real Nomarski images of amoebae look much like this.' });
-F({ id: 'dicTardigradeMode', group: 'Borrowed', label: 'Tardigrade look', from: 'tardigrade', choices: DIC_MODES, value: DIC_MODES[0],
-  about: 'Which of the tardigrade images the switch above uses: DIC or its brightfield.', onChange: (v) => (bmode.dic = DIC_MODES.indexOf(v)) });
-borrow.add({ id: 'microscopeParamecium', label: 'Paramecium microscope', from: 'paramecium',
-  about: 'Darkfield, phase contrast with the phase-ring halo, brightfield, a simpler DIC or the lit view, formed the paramecium way (high-pass of the path, post pass with chromatic softness and grain), from the same buffers.' });
-F({ id: 'microscopeParameciumMode', group: 'Borrowed', label: 'Paramecium technique', from: 'paramecium', choices: PARAMECIUM_MODES, value: PARAMECIUM_MODES[0],
-  about: 'Which technique the paramecium switch above uses.', onChange: (v) => (bmode.par = PARAMECIUM_MODES.indexOf(v)) });
-F({ id: 'preyLowRe', group: 'Borrowed', label: 'Prey: no-coasting recoil (low Re)', from: 'paramecium', on: false,
-  about: 'The paramecium\'s lowRe(): prey speed follows the beat with a 35 ms lag, and a trichocyst burst stops within milliseconds (≈7 µm) instead of gliding for ≈0.2 s (≈38 µm). Truer to low Reynolds number; a grabbed Paramecium escapes the cup less easily.',
+borrow.add({ id: 'semMite', from: 'mite' });
+F({ id: 'semMiteMode', group: 'Borrowed', from: 'mite', choices: SEM_LOOKS, value: SEM_LOOKS[0],
+  onChange: (v) => looks.semMode(SEM_LOOKS.indexOf(v)) });
+borrow.add({ id: 'dicTardigrade', from: 'tardigrade' });
+F({ id: 'dicTardigradeMode', group: 'Borrowed', from: 'tardigrade', choices: DIC_MODES, value: DIC_MODES[0],
+  onChange: (v) => (bmode.dic = DIC_MODES.indexOf(v)) });
+borrow.add({ id: 'microscopeParamecium', from: 'paramecium' });
+F({ id: 'microscopeParameciumMode', group: 'Borrowed', from: 'paramecium', choices: PARAMECIUM_MODES, value: PARAMECIUM_MODES[0],
+  onChange: (v) => (bmode.par = PARAMECIUM_MODES.indexOf(v)) });
+F({ id: 'preyLowRe', group: 'Borrowed', from: 'paramecium', on: false,
   onChange: (v) => (PREY_OPTS.lowRe = v) });
 let preyFlowOn = false;
-F({ id: 'preyFlow', group: 'Borrowed', label: 'Prey: squirmer flow round swimmers', from: 'paramecium', on: false,
-  about: 'Each swimming prey stirs the water as a neutral squirmer (source dipole, decaying as 1/r³), and other prey nearby drift in it: pushed ahead at its poles, swept back along its sides. Weak unless they pass close.',
+F({ id: 'preyFlow', group: 'Borrowed', from: 'paramecium', on: false,
   onChange: (v) => (preyFlowOn = v) });
 
 // --- prey ------------------------------------------------------------------
@@ -976,16 +907,17 @@ function resetRoles(latch) {
 }
 function rolesText() {
   if (S.scheme === 'select') {
-    const lt = R.ltHeld ? (body.roundK > 0.05 ? ' · LT: rounding up' : ' · LT: spreading') : '';
-    if (R.mode === 'move') return `RT: moving the cell (${R.move === 'free' || !R.move ? 'push a stick' : R.move})${lt}`;
-    const one = (key, stick, letter) => (R[key] != null ? (R.on[key] ? `${stick}: moving ${letter}` : `${stick}: holding ${letter}`) : `${stick}: free`);
-    return `${one('adj', 'LS', 'L')} · ${one('sel', 'RS', 'R')} · RT: move the cell${lt || ' · LT: spread'}`;
+    const lt = R.ltHeld ? (body.roundK > 0.05 ? tt('amoeba.corner.ltRounding') : tt('amoeba.corner.ltSpreading')) : '';
+    const motion = ttx('amoeba.corner.motion');
+    if (R.mode === 'move') return tt('amoeba.corner.moving', { what: R.move === 'free' || !R.move ? tt('amoeba.corner.pushAStick') : R.move.split(' + ').map((w) => motion[w] ?? w).join(' + '), lt });
+    const one = (key, stick, letter) => (R[key] != null ? (R.on[key] ? tt('amoeba.corner.stickMoving', { stick, letter }) : tt('amoeba.corner.stickHolding', { stick, letter })) : tt('amoeba.corner.stickFree', { stick }));
+    return tt('amoeba.corner.select', { ls: one('adj', 'LS', 'L'), rs: one('sel', 'RS', 'R'), lt: lt || tt('amoeba.corner.ltSpread') });
   }
-  if (S.scheme !== 'lead') return 'Controls: two pseudopods (classic) · LS: pseudopod 1 · RS: pseudopod 2';
-  if (!R.pod && !R.body) return 'LS: free · RS: free (push one to grow a pseudopod)';
+  if (S.scheme !== 'lead') return tt('amoeba.corner.classic');
+  if (!R.pod && !R.body) return tt('amoeba.corner.leadFree');
   const bk = R.pod ? other(R.pod) : R.body;
-  const name = (k) => (k === R.pod ? 'pseudopod' : k === bk ? (R.branch ? 'second pseudopod' : 'body') : 'free');
-  return `LS: ${name('ls')} · RS: ${name('rs')}`;
+  const name = (k) => tt(`amoeba.corner.roles.${k === R.pod ? 'pseudopod' : k === bk ? (R.branch ? 'second' : 'body') : 'free'}`);
+  return tt('amoeba.corner.lead', { ls: name('ls'), rs: name('rs') });
 }
 const pressed = (b) => pad.pressed(b) || ((!cur || cur.slot === 0) && test.presses.has(b));
 /** Toasts about one player's amoeba name the player when more than one is playing. */
@@ -996,14 +928,14 @@ function rumble(ms, weak, strong) { if (S.rumble) pad.rumble(ms, weak, strong); 
 // --- game logic ---------------------------------------------------------------
 function tryClose() {
   const c = C.cand;
-  if (!c) { hud.toast(who() + 'No prey in the cup: wrap pseudopods round one first'); return; }
+  if (!c) { hud.toast(who() + tt('amoeba.toasts.noPrey')); return; }
   if (c.cup.wrap < CUP_WRAP) {
-    hud.toast(who() + `Not enclosed yet: ${Math.round((c.cup.wrap * 180) / Math.PI)}° of ${Math.round((CUP_WRAP * 180) / Math.PI)}°`);
+    hud.toast(who() + tt('amoeba.toasts.notEnclosed', { deg: Math.round((c.cup.wrap * 180) / Math.PI), need: Math.round((CUP_WRAP * 180) / Math.PI) }));
     return;
   }
   C.closing = { prey: c.prey, t: 0, low: 0 };
   audio.play('amoeba/engulf', { volume: 0.7 });
-  hud.toast(who() + `Closing the food cup round the ${c.prey.sp.name}…`);
+  hud.toast(who() + tt('amoeba.toasts.closingCup', { name: c.prey.sp.name }));
 }
 
 function cancelClose(msg) {
@@ -1040,7 +972,7 @@ function capture(p, cup) {
     if (r.ls.m >= STICK_OFF) R.latch.add('ls');
   }
   C.closing = null;
-  hud.toast(who() + `${p.sp.name} engulfed: a food vacuole forms`);
+  hud.toast(who() + tt('amoeba.toasts.engulfed', { name: p.sp.name }));
   audio.play('amoeba/vacuole', { volume: 0.9, rate: 0.85 });
   rumble(300, 0.5, 0.2);
 }
@@ -1055,20 +987,20 @@ function onEgest(c, v) {
     p.x = body.ux; p.y = body.uy;
     p.th = Math.atan2(body.uy - body.cy, body.ux - body.cx);
     p.state = 'swim'; p.speedK = 1.6; p.sc = 1;
-    hud.toast(who() + `Let go: the ${p.sp.name} swims off`);
+    hud.toast(who() + tt('amoeba.toasts.letGoSwims', { name: p.sp.name }));
   } else {
     if (p) despawn(p);
     const fx = body.ux + (body.ux - body.cx) * 0.08, fy = body.uy + (body.uy - body.cy) * 0.08;
     addResidue(world, fx, fy, Math.max(14, Math.max(v.rx, v.ry) * 1.6), rand());
     if (p && S.respawn) S.pending.push({ key: keyOf(p), home: p.home, t: 6 });
-    hud.toast(who() + 'Food vacuole egested at the uroid');
+    hud.toast(who() + tt('amoeba.toasts.egested'));
   }
   use(k);
 }
 
 function egest() {
   const v = cyto.vacuoles.filter((x) => !x.egest).sort((a, b) => b.digest - a.digest || b.age - a.age)[0];
-  if (!v) { hud.toast(who() + 'Nothing to let go'); return; }
+  if (!v) { hud.toast(who() + tt('amoeba.toasts.nothingToLetGo')); return; }
   v.egest = true;
 }
 
@@ -1203,7 +1135,7 @@ function updateCup(dt) {
   const reach = Math.max(p.sp.L, p.sp.W) / 2 + 130;
   const cup = body.cupAround(p.x, p.y, reach);
   if (!cup || cup.wrap < 2.1) CL.low += dt; else CL.low = 0;
-  if (CL.low > 0.8 || CL.t > 14) { cancelClose(`The ${p.sp.name} slipped away`); return; }
+  if (CL.low > 0.8 || CL.t > 14) { cancelClose(tt('amoeba.toasts.slippedAway', { name: p.sp.name })); return; }
   if (!cup) return;
   body.closing = { i0: cup.i0, i1: cup.i1, mx: cup.mx, my: cup.my, px: p.x, py: p.y, run: cup.run };
   // A Paramecium caught in a closing cup fires its trichocysts.
@@ -1212,14 +1144,14 @@ function updateCup(dt) {
     if (p.discharge(body.x[n.i], body.y[n.i])) {
       body.blast(p.x, p.y, 140, 30);
       rumble(450, 0.9, 1);
-      hud.toast(who() + (p.charges ? 'Trichocysts! The Paramecium blasts the cup open' : 'Its last nearby trichocysts are spent'));
+      hud.toast(who() + (p.charges ? tt('amoeba.toasts.trichocysts') : tt('amoeba.toasts.trichocystsSpent')));
     }
   }
   if (body.grid.sample(p.x, p.y) > p.sp.W * 0.25) { capture(p, null); return; }
   if (cup.gap < 16) {
     const { inside } = body.cupContains(cup, p.x, p.y);
     if (inside) capture(p, cup);
-    else cancelClose(`The ${p.sp.name} got out before the rims met`);
+    else cancelClose(tt('amoeba.toasts.gotOut', { name: p.sp.name }));
   }
 }
 
@@ -1245,7 +1177,7 @@ function pinchOff(i, j) {
     for (let k = 0; k < n; k++) { cx += lost.xs[k]; cy += lost.ys[k]; }
     fragments.push({ xs: Float64Array.from(lost.xs), ys: Float64Array.from(lost.ys), cx: cx / n, cy: cy / n, R: Math.sqrt(lost.area / Math.PI), A: lost.area, age: 0, seed: rand(), mesh: null });
   }
-  hud.toast(who() + 'The hypha cut through a thin neck: that piece of the cell is lost', 2600);
+  hud.toast(who() + tt('amoeba.toasts.neckCut'), 2600);
   rumble(400, 0.8, 0.8);
 }
 /** A lost piece rounds up (curve shortening at a fixed area), shrinks a little, darkens and breaks up over about 4 s. */
@@ -1296,7 +1228,7 @@ function stickToTraps(dt, traps) {
       }
     }
   }
-  if (n && !C.stuckN) { hud.toast(who() + 'Caught on a fungal trap hypha: surge (A) to tear free'); rumble(250, 0.4, 0.6); }
+  if (n && !C.stuckN) { hud.toast(who() + tt('amoeba.toasts.caughtTrap')); rumble(250, 0.4, 0.6); }
   C.stuckN = free ? 0 : n;
   // where it is glued (up to three spots along the stuck membrane), for the stain and the tremor
   C.stuckAt.length = 0;
@@ -1463,12 +1395,12 @@ function stepChaos(dt, adt, col, granules = true) {
   for (const { e, p: pl } of ev) {
     const c = pl ? pl.cell : null, k = cur;
     if (c) use(c);
-    if (e === 'wake') { hud.toast('A giant amoeba, Chaos, stirs: it has noticed you', 2800); logChallenge('chaos', c); }
-    else if (e === 'windupCup') { hud.toast(`${who()}Chaos raises and spreads its pseudopods: it is going to cup you! Pinch its arms off (X with your membrane round them)`, 3000); rumble(150, 0.3, 0); }
-    else if (e === 'windupLunge') { hud.toast(`${who()}Chaos gathers itself to lunge: get out of the way (A)`, 2400); rumble(150, 0.3, 0); }
+    if (e === 'wake') { hud.toast(tt('amoeba.toasts.chaosStirs'), 2800); logChallenge('chaos', c); }
+    else if (e === 'windupCup') { hud.toast(tt('amoeba.toasts.chaosCups', { who: who() }), 3000); rumble(150, 0.3, 0); }
+    else if (e === 'windupLunge') { hud.toast(tt('amoeba.toasts.chaosLunges', { who: who() }), 2400); rumble(150, 0.3, 0); }
     else if (e === 'engulf' && c) startEngulf(c);
-    else if (e === 'retreat') hud.toast('Chaos has had enough: it flows away off the glow to rest. The way on is open', 3000);
-    else if (e === 'leash') hud.toast('Chaos gives up the chase and flows back to its post: get round it first!', 2800);
+    else if (e === 'retreat') hud.toast(tt('amoeba.toasts.chaosGone'), 3000);
+    else if (e === 'leash') hud.toast(tt('amoeba.toasts.chaosReturns'), 2800);
     use(k);
   }
   // engulfed: carried along inside it
@@ -1497,7 +1429,7 @@ function startEngulf(c) {
   if (C.closing) cancelClose();
   FC.by = 'chaos'; FC.phase = 'strike'; FC.A0 = body.A0; FC.pts = [{ x: chaos.body.cx, y: chaos.body.cy }];
   c.lastChaos = { x: chaos.body.cx, y: chaos.body.cy };
-  caught.start({ by: 'Engulfed by Chaos', phases: CATCH_PHASES });
+  caught.start({ by: tt('amoeba.capture.chaos'), phases: CATCH_PHASES });
   embed.captured({ by: 'Chaos', player: c.slot });
   audio.play('amoeba/engulf', { volume: 1, rate: 0.55 });
   rumble(500, 0.8, 0.9);
@@ -1514,7 +1446,7 @@ function pinchChaos(c, reach = 70) {
   C.jab = { t: 0.35, x: (b.x[pin.i] + b.x[pin.j]) / 2, y: (b.y[pin.i] + b.y[pin.j]) / 2, k: jabSlot() };
   audio.play('amoeba/engulf', { volume: 1, rate: 1.4 });
   rumble(350, 0.7, 0.6);
-  hud.toast(`${who()}Pinched off! The arm rounds up and dies${gone ? '. Chaos gives up' : ` (Chaos's resolve ${Math.round(chaos.interest * 100)}%)`}`, 2400);
+  hud.toast(gone ? tt('amoeba.toasts.pinchedGone', { who: who() }) : tt('amoeba.toasts.pinched', { who: who(), resolve: Math.round(chaos.interest * 100) }), 2400);
   return true;
 }
 
@@ -1632,7 +1564,7 @@ function respawnCell(c) {
   makeBody(c, x, y);
   use(c);
   const m = cells.find((o) => o !== c);
-  hud.toast(`${c.p.name}: back${m ? ` beside ${m.p.name}` : ''}`, 1800);
+  hud.toast(m ? tt('amoeba.toasts.backBeside', { name: c.p.name, mate: m.p.name }) : tt('amoeba.toasts.back', { name: c.p.name }), 1800);
 }
 
 /**
@@ -1683,7 +1615,7 @@ function syncCells() {
 // Backdoor: a Sphagnum leaf tip dipping into the pool, ~2.3 mm to the left
 // (world.js LEAF), with the water film's edge round it: dwelling there, Y goes
 // back up to the tardigrade.
-const BACK_LABEL = 'Back to the tardigrade';
+const BACK_LABEL = tt('amoeba.prompts.back');
 const PORTAL = { placed: false, found: false, x: 0, y: 0, a: 0, reach: 45 };
 /** Chaos counts as on guard while it is this close to the portal (and not beaten or leaving). */
 const GUARD_R = 480;
@@ -1848,7 +1780,7 @@ function checkLandmarks() {
     // re-sent every ~1.2 s while near, so a shell busy with a fade can't miss it (the next world must preload)
     lm.nearT = (lm.nearT || 0) + 1 / 60;
     if (nearFwd !== lm.nearFwd || (nearFwd && lm.nearT > 1.2)) { lm.nearFwd = nearFwd; lm.nearT = 0; embed.near('forward', nearFwd); }
-    if (!lm.hinted && dmin < 1000 && chaos.on && !chaos.beaten) { lm.hinted = true; hud.toast('Chaos guards the way on. Lure it off, or pinch its arms until it gives up', 3600); }
+    if (!lm.hinted && dmin < 1000 && chaos.on && !chaos.beaten) { lm.hinted = true; hud.toast(tt('amoeba.toasts.bossHint'), 3600); }
   }
   const fwd = cells.find((c) => c.atFwd);
   if (fwd && !lm.fwdLatch) {
@@ -1856,11 +1788,11 @@ function checkLandmarks() {
     if (guarded()) {
       // turned back: Chaos is on guard (it turns on you)
       lm.log.push({ type: 'turnedBack', slot: fwd.slot, t: +S.time.toFixed(2) });
-      if (!lm.turned) { lm.turned = true; hud.toast(`${who(fwd)}Turned back: Chaos is on guard. Lead it away from the glow first, then get round it`, 3600); }
+      if (!lm.turned) { lm.turned = true; hud.toast(tt('amoeba.toasts.turnedBack', { who: who(fwd) }), 3600); }
     } else if (portalSealed()) {
       // the way on exists from the start (the default path) but opens only once both patches are met
       lm.log.push({ type: 'sealed', slot: fwd.slot, t: +S.time.toFixed(2) });
-      hud.toast(`${who(fwd)}The bursaria swims on: hunt the ciliates first`, 2600);
+      hud.toast(tt('amoeba.toasts.sealed', { who: who(fwd) }), 2600);
     }
   }
   if (!cells.some((c) => c.atFwd || (PORTAL.placed && Math.hypot(c.body.cx - PORTAL.x, c.body.cy - PORTAL.y) < c.body.req + 250))) lm.fwdLatch = false;
@@ -1893,7 +1825,7 @@ function enterPortal(c) {
   portalLight.bloom(sx, sy, { scale: 1.1 });
   audio.play('shared/portal-chime', { volume: 0.9 });
   const k = cur; use(c); rumble(520, 0.55, 0.85); use(k);
-  if (!embed.active) hud.toast(`${who(c)}A green Paramecium bursaria: follow it out into the pool`, 2600);
+  if (!embed.active) hud.toast(tt('amoeba.toasts.bursaria', { who: who(c) }), 2600);
   startOutro(c);
   embed.landmark('forward', { player: c.slot, outro: embed.active });
 }
@@ -2082,7 +2014,7 @@ function updateOverlay() {
       rt.style.borderColor = ready ? 'rgba(40,140,60,.8)' : cells.length > 1 ? cl.p.color : 'rgba(40,60,90,.5)';
       rtx.style.left = `${sx}px`; rtx.style.top = `${sy + r + 4}px`;
       const deg = st.cand ? Math.round((st.cand.cup.wrap * 180) / Math.PI) : 0;
-      rtx.textContent = (cells.length > 1 ? `${cl.p.name} · ` : '') + (st.closing ? 'filling in…' : ready ? `${deg}° wrapped: X to close` : `${deg}° wrapped`);
+      rtx.textContent = (cells.length > 1 ? tt('amoeba.ring.namePrefix', { name: cl.p.name }) : '') + (st.closing ? tt('amoeba.ring.filling') : ready ? tt('amoeba.ring.wrappedReady', { deg }) : tt('amoeba.ring.wrapped', { deg }));
     } else {
       rt.style.display = rtx.style.display = 'none';
     }
@@ -2090,23 +2022,23 @@ function updateOverlay() {
   let i = 0;
   if (S.labels) {
     const nu = cyto.nucleus;
-    label(i++, nu.x, nu.y, 'nucleus (discoid, ~45 µm)');
-    label(i++, cyto.cv.x, cyto.cv.y, 'contractile vacuole');
-    label(i++, body.ux, body.uy, 'uroid (rear)');
-    for (const pod of body.pods) if (pod.s > 0.2 && !pod.idle) label(i++, pod.x, pod.y, 'hyaline cap');
-    for (const v of cyto.vacuoles) label(i++, v.x + v.rx, v.y, v.prey ? `food vacuole (${v.prey.sp.name})` : 'food vacuole (residue)');
+    label(i++, nu.x, nu.y, tt('amoeba.labels.nucleus'));
+    label(i++, cyto.cv.x, cyto.cv.y, tt('amoeba.labels.contractileVacuole'));
+    label(i++, body.ux, body.uy, tt('amoeba.labels.uroid'));
+    for (const pod of body.pods) if (pod.s > 0.2 && !pod.idle) label(i++, pod.x, pod.y, tt('amoeba.labels.hyalineCap'));
+    for (const v of cyto.vacuoles) label(i++, v.x + v.rx, v.y, v.prey ? tt('amoeba.labels.foodVacuole', { name: v.prey.sp.name }) : tt('amoeba.labels.foodVacuoleResidue'));
     const gx = body.cx + (body.ux - body.cx) * 0.35, gy = body.cy + (body.uy - body.cy) * 0.35;
-    label(i++, gx, gy, 'granular endoplasm (sol)');
+    label(i++, gx, gy, tt('amoeba.labels.endoplasm'));
     const e = body.nearest(body.cx + 1000 * body.fy, body.cy - 1000 * body.fx);
-    label(i++, body.x[e.i], body.y[e.i], 'ectoplasm (clear gel rim)');
+    label(i++, body.x[e.i], body.y[e.i], tt('amoeba.labels.ectoplasm'));
     for (const p of prey) if (!p.captured) label(i++, p.x + p.sp.L / 2, p.y, `${p.sp.name} ${p.sp.real.split(',')[0]}`);
-    if (S.traps) for (const o of trapList()) if (o.grow > 0.1) label(i++, o.x, o.y, `fungal trap hypha (Zoopagales), ${o.active > 0.5 ? 'sticky' : 'dormant'}`);
+    if (S.traps) for (const o of trapList()) if (o.grow > 0.1) label(i++, o.x, o.y, tt(o.active > 0.5 ? 'amoeba.labels.trapSticky' : 'amoeba.labels.trapDormant'));
     let k = 0;
     for (const o of world.obstacles) {
       if (o.layer !== 'focus' || k > 6) continue;
       const [sx, sy] = toScreen(o.x, o.y);
       if (sx < 0 || sy < 0 || sx > innerWidth || sy > innerHeight) continue;
-      label(i++, o.x, o.y, o.type === 'spiro' ? 'Spirogyra (alga)' : o.type === 'diatom' ? 'diatom' : o.type === 'leaf' ? 'Sphagnum leaf tip (the way back up)' : 'detritus'); k++;
+      label(i++, o.x, o.y, o.type === 'spiro' ? tt('amoeba.labels.spirogyra') : o.type === 'diatom' ? tt('amoeba.labels.diatom') : o.type === 'leaf' ? tt('amoeba.labels.leafTip') : tt('amoeba.labels.detritus')); k++;
     }
   }
   for (; i < labelPool.length; i++) labelPool[i].style.display = 'none';
@@ -2226,7 +2158,7 @@ function frame(now) {
       if (c.p.waiting) continue;
       use(c);
       const fight = !caught.active || FC.phase === 'strike' || FC.phase === 'hold' || (FC.phase === 'eat' && FC.by !== 'chaos');
-      if (fight && pressed(BTN.A) && surge.trigger()) { audio.play('amoeba/boost', { volume: 0.9 }); rumble(220, 0.3, 0.5); if (C.stuckN && !caught.active) hud.toast(`${who()}Surge: torn free of the trap`); }
+      if (fight && pressed(BTN.A) && surge.trigger()) { audio.play('amoeba/boost', { volume: 0.9 }); rumble(220, 0.3, 0.5); if (C.stuckN && !caught.active) hud.toast(tt('amoeba.toasts.surgeFree', { who: who() })); }
       const threat = caught.active ? null : threatTrap(c);
       if (!caught.active && pressed(BTN.X) && !C.closing) {
         // round one of Chaos's arms: pinch it off; at a hypha (and no cup ready to close): cut it; otherwise close the cup
@@ -2236,7 +2168,7 @@ function frame(now) {
       }
       if (!caught.active && pressed(BTN.B)) {
         if (threat || C.stuckN) C.defendMode = true;
-        else if (C.closing) cancelClose('Let go: the cup opens'); else egest();
+        else if (C.closing) cancelClose(tt('amoeba.toasts.cupOpens')); else egest();
       }
       if (!pad.down(BTN.B)) C.defendMode = false;
       C.defendHeld = C.defendMode && pad.down(BTN.B);
@@ -2244,7 +2176,7 @@ function frame(now) {
       // through; elsewhere player 1's labels.
       if (pressed(BTN.Y)) {
         if (atOpenPortal(c)) enterPortal(c);
-        else if (c.atBack && !caught.active) { lm.log.push({ type: 'landmark', kind: 'back', slot: c.slot }); hud.toast(`${who()}Back up to the water film`); embed.landmark('back', { player: c.slot }); }
+        else if (c.atBack && !caught.active) { lm.log.push({ type: 'landmark', kind: 'back', slot: c.slot }); hud.toast(tt('amoeba.toasts.backUp', { who: who() })); embed.landmark('back', { player: c.slot }); }
         else if (c.slot === 0) S.labels = !S.labels;
       }
       if (c.slot !== 0) continue;
@@ -2370,9 +2302,9 @@ function renderAll(dt) {
     renderer.outputColorSpace = cs;
   }
   // Warnings: player 1's, else the first player in trouble.
-  const warn = (c) => (c.caught.active ? ((c.FC.by === 'chaos' ? CHAOS_TEXT : CATCH_TEXT)[c.FC.phase] || '') : c.s.stuckN ? `Stuck on a fungal trap hypha: surge (A) to tear free (haustoria in ${Math.max(0, 8 - c.s.stuckT).toFixed(1)} s)` : '');
+  const warn = (c) => (c.caught.active ? ((c.FC.by === 'chaos' ? CHAOS_TEXT : CATCH_TEXT)[c.FC.phase] || '') : c.s.stuckN ? tt('amoeba.banner.stuck', { s: Math.max(0, 8 - c.s.stuckT).toFixed(1) }) : '');
   const chaosWarn = (c) => (chaos.attacking && chaos.target && chaos.target.cell === c && !c.caught.active
-    ? (chaos.fs === 'windup' ? 'Chaos raises and spreads its pseudopods: pinch its arms off (X), or get clear!' : chaos.attack % 3 === 0 ? 'Chaos lunges!' : `Its arms are closing round you: pinch them off (X)! ${Math.round((chaos.wrap || 0) * 57)}° of 225°`) : '');
+    ? (chaos.fs === 'windup' ? tt('amoeba.banner.chaosWindup') : chaos.attack % 3 === 0 ? tt('amoeba.banner.chaosLunges') : tt('amoeba.banner.chaosClosing', { deg: Math.round((chaos.wrap || 0) * 57) })) : '');
   const warn0 = warn;
   const warnAll = (c) => warn0(c) || chaosWarn(c);
   const wc = cells.find((c) => warnAll(c));
@@ -2381,7 +2313,7 @@ function renderAll(dt) {
   if (!CH.gauge) {
     CH.gauge = document.createElement('div');
     CH.gauge.style.cssText = 'position:fixed;left:50%;top:48px;transform:translateX(-50%);z-index:20;display:none;align-items:center;gap:8px;padding:3px 10px;border-radius:999px;background:rgba(18,16,10,.55);color:#e8d6a6;font:600 11px system-ui,sans-serif;letter-spacing:.04em;pointer-events:none';
-    CH.gauge.innerHTML = '<span>CHAOS</span><span style="display:block;width:120px;height:5px;border:1px solid #b8913f;border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:100%;background:#d2a24c"></i></span>';
+    CH.gauge.innerHTML = `<span>${tt('amoeba.bossGauge')}</span><span style="display:block;width:120px;height:5px;border:1px solid #b8913f;border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:100%;background:#d2a24c"></i></span>`;
     document.body.appendChild(CH.gauge);
   }
   CH.gauge.style.display = chaos.on && chaos.awake ? 'flex' : 'none';
@@ -2393,7 +2325,7 @@ function renderAll(dt) {
   // on the slide is its only marker; this canvas only shows the bloom on entering (the
   // Portal arrow setting adds an arrow: drawPortalArrow)
   portalLight.begin();
-  marks.drawSplit(split, { x: BACK_TIP.x, y: BACK_TIP.y, z: 0 }, { kind: 'backdoor', label: 'Leaf', range: 4500 });
+  marks.drawSplit(split, { x: BACK_TIP.x, y: BACK_TIP.y, z: 0 }, { kind: 'backdoor', label: tt('amoeba.marks.leaf'), range: 4500 });
   drawPortalArrow();
   if (cells.length > 1) drawRings(L, innerWidth / fieldW);
   drawPodMarks(L);

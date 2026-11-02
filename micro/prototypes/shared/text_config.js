@@ -1516,4 +1516,382 @@ export const TEXT = {
       aLeafCell: 'a leaf cell',
     },
   },
+
+  // --------------------------------------------------------------------
+  // World 4, the amoeba (micro/prototypes/amoeba).
+  amoeba: {
+    hud: {
+      common: {
+        dash: 'Surge: pseudopods shoot out 2.5× faster and the cell flows after them',
+        attack: 'Close the food cup round prey; at a trap hypha, a pseudopod jab cuts its tip; round an arm of Chaos, pinch it off',
+        defend: 'Let go / egest; near a trap hypha, hold to stiffen (it slides off)',
+        special: 'Labels. At the open portal: enter it',
+        look: 'Optics: brightfield, phase, darkfield, immersive',
+        zoom: 'Objective 10× / 20×',
+      },
+      wayNote: ' Crawl out in any direction: the same encounters come in rings round the start (easy prey, fleeing ciliates, fungal traps), and about 2.8 mm out the way on: a green Paramecium bursaria in a golden glow, guarded by the giant amoeba Chaos. Lure Chaos off it or pinch its arms until it gives up. The Sphagnum leaf tip to the left (the ring) is the way back up: Y there. Other controllers join with any button.',
+      schemes: {
+        select: {
+          controls: {
+            dash: 'Surge',
+            attack: 'Engulf / cut / pinch',
+            defend: 'Let go / stiffen',
+            special: 'Enter portal · labels',
+            move: 'Move a pseudopod (L)',
+            camera: 'Move a pseudopod (R)',
+            secondary: 'Spread / push a pseudopod',
+            extra: [
+              ['RT (hold)', 'Move the cell'],
+              ['LT (hold)', 'Spread / round up'],
+              ['LS click', 'Focus down'],
+              ['RS click', 'Focus up'],
+            ],
+          },
+          note: 'Push a stick to grab the pseudopod that way (or grow one); rest it to let go. Hold RT and the sticks move the whole cell: same way crawls, apart stretches, together squishes, one up one down turns. Two pseudopods round prey (or an arm of Chaos), then X. The cell keeps its volume. Time is compressed; see the corner.',
+        },
+        lead: {
+          controls: {
+            move: 'First stick pushed grows the pseudopod and aims it; the other stick moves the body after it',
+            camera: 'Either stick can lead (see the corner: LS / RS roles)',
+            analog: 'Hold: the body stick grows a second pseudopod beside the first, to encircle',
+            secondary: 'Spread out / push harder',
+            extra: [
+              ['LS click', 'Fine focus down'],
+              ['RS click', 'Fine focus up'],
+            ],
+          },
+          note: 'Pseudopod stick and body stick both held: the cell travels behind its pseudopod. Body stick alone towards it: the body flows in and takes it back. Release both and the roles reset once the pseudopod is gone (or after eating). Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
+        },
+        classic: {
+          controls: {
+            move: 'Pseudopod 1: aim and extend',
+            camera: 'Pseudopod 2: aim and extend',
+            analog: 'Spread out / push harder',
+            secondary: 'Fine focus down / up',
+          },
+          note: 'Release a stick to let that pseudopod flow back. Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
+        },
+      },
+      title: 'Amoeba',
+      sub: 'Amoeba proteus (~450 µm) on a wet-mount slide. Push out pseudopods, chase down ciliates, cup round them and fill in. Mind the fungal traps; the way on is guarded.',
+    },
+    corner: {
+      ltRounding: ' · LT: rounding up',
+      ltSpreading: ' · LT: spreading',
+      ltSpread: ' · LT: spread',
+      moving: 'RT: moving the cell ({what}){lt}',
+      pushAStick: 'push a stick',
+      motion: {
+        crawling: 'crawling',
+        widening: 'widening',
+        stretching: 'stretching',
+        squishing: 'squishing',
+        'turning clockwise': 'turning clockwise',
+        'turning anticlockwise': 'turning anticlockwise',
+      },
+      stickMoving: '{stick}: moving {letter}',
+      stickHolding: '{stick}: holding {letter}',
+      stickFree: '{stick}: free',
+      select: '{ls} · {rs} · RT: move the cell{lt}',
+      classic: 'Controls: two pseudopods (classic) · LS: pseudopod 1 · RS: pseudopod 2',
+      leadFree: 'LS: free · RS: free (push one to grow a pseudopod)',
+      roles: {
+        pseudopod: 'pseudopod',
+        second: 'second pseudopod',
+        body: 'body',
+        free: 'free',
+      },
+      lead: 'LS: {ls} · RS: {rs}',
+    },
+    toasts: {
+      trapCurls: '{who}A trap hypha curls, its knobs swelling: stiffen (hold B) or cut it (X)',
+      trapSnaps: '{who}The hypha snaps shut on the membrane',
+      stiffened: '{who}Stiffened: the hypha slides off the membrane (trap resolve {resolve}%)',
+      fungusGivesUp: 'The fungus gives up on you: the hypha withdraws',
+      tornFree: '{who}Torn free!',
+      surgedOut: '{who}Surged out!',
+      freshAmoeba: 'A fresh amoeba',
+      noPrey: 'No prey in the cup: wrap pseudopods round one first',
+      notEnclosed: 'Not enclosed yet: {deg}° of {need}°',
+      closingCup: 'Closing the food cup round the {name}…',
+      engulfed: '{name} engulfed: a food vacuole forms',
+      letGoSwims: 'Let go: the {name} swims off',
+      egested: 'Food vacuole egested at the uroid',
+      nothingToLetGo: 'Nothing to let go',
+      slippedAway: 'The {name} slipped away',
+      trichocysts: 'Trichocysts! The Paramecium blasts the cup open',
+      trichocystsSpent: 'Its last nearby trichocysts are spent',
+      gotOut: 'The {name} got out before the rims met',
+      neckCut: 'The hypha cut through a thin neck: that piece of the cell is lost',
+      caughtTrap: 'Caught on a fungal trap hypha: surge (A) to tear free',
+      chaosStirs: 'A giant amoeba, Chaos, stirs: it has noticed you',
+      chaosCups: '{who}Chaos raises and spreads its pseudopods: it is going to cup you! Pinch its arms off (X with your membrane round them)',
+      chaosLunges: '{who}Chaos gathers itself to lunge: get out of the way (A)',
+      chaosGone: 'Chaos has had enough: it flows away off the glow to rest. The way on is open',
+      chaosReturns: 'Chaos gives up the chase and flows back to its post: get round it first!',
+      bossHint: 'Chaos guards the way on. Lure it off, or pinch its arms until it gives up',
+      turnedBack: '{who}Turned back: Chaos is on guard. Lead it away from the glow first, then get round it',
+      sealed: '{who}The bursaria swims on: hunt the ciliates first',
+      bursaria: '{who}A green Paramecium bursaria: follow it out into the pool',
+      surgeFree: '{who}Surge: torn free of the trap',
+      cupOpens: 'Let go: the cup opens',
+      backUp: '{who}Back up to the water film',
+      jab: '{who}Pseudopod jab: you engulf the hypha tip and cut it off (trap resolve {resolve}%)',
+      jabGone: '{who}Pseudopod jab: you engulf the hypha tip and cut it off. The fungus withdraws',
+      pinched: '{who}Pinched off! The arm rounds up and dies (Chaos\'s resolve {resolve}%)',
+      pinchedGone: '{who}Pinched off! The arm rounds up and dies. Chaos gives up',
+      back: '{name}: back',
+      backBeside: '{name}: back beside {mate}',
+    },
+    banner: {
+      chaosCapture: {
+        strike: 'The cup of Chaos is closing over you: surge (A) to break out!',
+        hold: 'Engulfed: a food vacuole closes round you',
+        eat: 'Chaos is digesting you',
+      },
+      fungusCapture: {
+        strike: 'Haustoria pierce the membrane! Surge (A) to tear free',
+        hold: 'The fungus starts to drain you: surge (A) NOW',
+        eat: 'Being drained: surge (A) to tear free',
+      },
+      stuck: 'Stuck on a fungal trap hypha: surge (A) to tear free (haustoria in {s} s)',
+      chaosWindup: 'Chaos raises and spreads its pseudopods: pinch its arms off (X), or get clear!',
+      chaosLunges: 'Chaos lunges!',
+      chaosClosing: 'Its arms are closing round you: pinch them off (X)! {deg}° of 225°',
+    },
+    capture: {
+      fungus: 'Drained by a trap fungus',
+      chaos: 'Engulfed by Chaos',
+    },
+    features: {
+      look: {
+        label: 'Optical method',
+        about: 'D-pad left/right cycles. Brightfield is the reference look; phase contrast (dark phase with bright halos), darkfield (scattered light on black) and a hypothetical immersive lit view are for comparison. All four read the same property buffer.',
+        choices: {
+          Brightfield: 'Brightfield',
+          'Phase contrast': 'Phase contrast',
+          Darkfield: 'Darkfield',
+          'Immersive (hypothetical)': 'Immersive (hypothetical)',
+        },
+      },
+      propbuf: {
+        label: 'Optical property buffer',
+        about: 'Objects draw phase (thickness × refractive step) and red/green/blue optical density additively into a float target, not colour; one composite pass applies the optics. Module: shared/techniques/amoeba-optics.js.',
+      },
+      tie: {
+        label: 'Defocus contrast (transport of intensity)',
+        about: 'A transparent cell is nearly invisible in focus; slight defocus gives I ≈ I0(1 − Δz∇²φ): bright and dark lines at edges and granules. Fine focus (LB/RB) sets Δz and its sign.',
+      },
+      refraction: {
+        label: 'Edge refraction loss',
+        about: 'Steep slopes at the membrane bend light out of the objective aperture, darkening the edge in proportion to |∇φ|².',
+      },
+      chroma: {
+        label: 'Chromatic fringes',
+        about: 'Red, green and blue focus at slightly different depths, so the defocus term uses a different spacing per channel: faint coloured fringes like the reference photo.',
+      },
+      dof: {
+        label: 'Depth of field',
+        about: 'Things floating above the focal plane are drawn to a separate half-resolution buffer and Gaussian-blurred (≈ 6 µm depth of field at 20×). Focusing up makes them sharper.',
+      },
+      bgrefr: {
+        label: 'Background refraction',
+        about: 'The slide texture is sampled through the phase gradient, so the field wobbles slightly behind the cell like a lens.',
+      },
+      vignette: {
+        label: 'Vignette',
+        about: 'Illumination falls off towards the edge of the field.',
+      },
+      grain: {
+        label: 'Sensor grain',
+        about: 'A little per-pixel noise, like a camera on a microscope.',
+      },
+      dome: {
+        label: 'Thickness dome from a distance grid',
+        about: 'Each frame the membrane polygon is rasterised on the CPU and an exact distance transform gives distance-from-edge; thickness rises as its square root. It drives phase, absorption and the ectoplasm rim. Module: shared/techniques/amoeba-sdfgrid.js.',
+      },
+      mask: {
+        label: 'MSAA membrane mask',
+        about: 'The membrane ring, Catmull-Rom subdivided and triangulated (earcut), is drawn into a 4× multisampled mask for a clean edge.',
+      },
+      wrinkle: {
+        label: 'Crumpled uroid',
+        about: 'Small folds at the rear (the uroid) where the membrane is being taken back in.',
+      },
+      caps: {
+        label: 'Hyaline caps',
+        about: 'A clear cap of cytoplasm at each advancing tip, free of granules.',
+      },
+      area: {
+        label: 'Volume conservation (area pressure)',
+        about: 'An exact area projection after each step: any arm pushed out is paid for elsewhere. Off, the cell shrinks under tension and arms are free. Module: shared/techniques/amoeba-softbody.js.',
+      },
+      rear: {
+        label: 'Rear retraction (uroid)',
+        about: 'The area correction is weighted to the membrane facing away from the active pseudopods, so the rear retracts and the cell crawls. Off, it shrinks evenly.',
+      },
+      self: {
+        label: 'Self-contact',
+        about: 'Membrane nodes that are far apart along the ring repel when they meet, so two pseudopods can press together round prey without crossing.',
+      },
+      idle: {
+        label: 'Idle pseudopods (polypodial)',
+        about: 'A resting A. proteus probes with several pseudopods at once; up to three weak ones come and go when you are not steering.',
+      },
+      overdamped: {
+        label: 'Overdamped (low Reynolds number)',
+        about: 'Displacement is proportional to force each step; nothing coasts. Stop protruding and the cell stops.',
+      },
+      atime: {
+        label: 'Amoeba time compression',
+        about: 'A. proteus advances about 1–4 µm/s. ×10 is the clock; with quick pseudopods (below) they grow ×20 their real rate, so a pseudopod reaches out in about a second. ×1 is real time (very slow).',
+      },
+      pspeed: {
+        label: 'Pseudopod speed',
+        about: 'Quick: pseudopods ramp up and advance 2× faster than the original tuning (the cell still keeps its area, and the rear still retracts to pay for each arm). The time readout includes it.',
+      },
+      surge: {
+        label: 'Surge (A)',
+        about: 'For 0.9 s every active pseudopod extends up to 2.5× faster (eased in and out), may run a little further ahead, the rear contracts harder and streaming surges toward the tips, so the whole cell lunges; recharges over 2.4 s. With no stick held it surges along the cell\'s current heading. It also tears the membrane free of a fungal trap. Inspired by blebbing, A. proteus\'s fastest protrusion; the strength is a game value.',
+      },
+      stime: {
+        label: 'Swimmer speed',
+        about: 'Ciliates swim at 0.3–1 mm/s: far too fast to catch on a ×10 amoeba clock, so swimmers are slowed. Real speed shows why amoebae ambush.',
+      },
+      stream: {
+        label: 'Fountain streaming',
+        about: 'Endoplasm granules flow towards each advancing tip, about twice as fast as the tip, along the cell axis; the gel rim stays put.',
+      },
+      brown: {
+        label: 'Brownian / saltatory jitter',
+        about: 'Random jiggling of granules.',
+      },
+      gran: {
+        label: 'Granules',
+        about: 'Particles carried by the endoplasm: fine granules, bipyramidal crystals, lipid droplets, algal remnants. Fewer for slow GPUs.',
+      },
+      cv: {
+        label: 'Contractile vacuole cycle',
+        about: 'Fills slowly (≈ 40 s here, minutes in life), then empties in about a second; faster while food vacuoles shed water.',
+      },
+      cup: {
+        label: 'Food cup and food vacuoles',
+        about: 'The membrane run near a prey cell is measured by how far it winds round it; when the rims meet, the lining zips shut and the cup becomes a food vacuole that sheds water, then digests.',
+      },
+      flee: {
+        label: 'Ciliates flee the membrane',
+        about: 'Tetrahymena, Colpidium and Paramecium sense the approaching membrane (a mechanical and chemical cue) and swim away at about 2.2× their speed for a couple of seconds, so a plain pseudopod rarely catches them: surge (A) to close the gap. Escape swimming is real; the range and speed are game values.',
+      },
+      traps: {
+        label: 'Fungal trap hyphae (hazard)',
+        about: 'Zoopagalean fungi (Stylopage, Zoopage) catch amoebae on adhesive hyphae, then grow haustoria into them. Membrane touching a sticky trap hypha sticks (it moves at 8% of its pace); a surge (A) tears it free. Stuck for 8 s, haustoria pierce the cell: surge in the next 1.5 s to tear free with a bite (−7% of the cell), or it is drained (a yellow-green stain spreading in from the haustoria, the membrane trembling there; a surge still tears free until the drain is done), dies on screen (it goes slack, breaks up and its granules drift off) and a fresh cell gathers itself up nearby. Real predators of amoebae; the timing, the bite and the drain are game rules.',
+      },
+      hunger: {
+        label: 'Traps come and go (fungal hunger)',
+        about: 'The fungus is "hungry" for 30–50 s: its adhesive knobs are sticky (large and dark, you can see it). Then it rests, 50–80 s after a catch and 20–35 s after you tear free: the knobs are dormant (small and pale) and do not stick. Off: they stay sticky.',
+      },
+      infill: {
+        label: 'Filling in (X)',
+        about: 'While the cup closes, endoplasm floods toward the cup mouth so the rims visibly fill and thicken as they meet over the prey.',
+      },
+      avoid: {
+        label: 'Avoidance reaction, trichocysts',
+        about: 'Ciliates that touch the membrane back up, pivot and swim off. A Paramecium in a closing cup fires a local burst of trichocysts that shoves it clear (three bursts).',
+      },
+      obstacles: {
+        label: 'Obstacles on the slide',
+        about: 'Spirogyra filaments, gliding diatoms and detritus flakes the cell must flow round.',
+      },
+      above: {
+        label: 'Out-of-focus layer',
+        about: 'Filaments and flakes floating above the focal plane (MP-A03 when delivered).',
+      },
+      rumble: {
+        label: 'Rumble',
+        about: 'Controller rumble on contact, surges, trichocyst bursts, captures and when a trap hypha grabs the membrane.',
+      },
+      scheme: {
+        label: 'Controls',
+        about: 'Pseudopods and movement (default; the owner, 2026-11-02). Pseudopod mode (RT up): each stick owns one pseudopod, RS the one marked R and LS the one marked L. A stick resting in the centre (for more than 0.28 s) owns nothing; its first push takes the pseudopod whose tip lies within 34° of it (idle ones too), or grows one at the membrane that way, and steers it while pushed (direction and reach). Flicking through the centre quicker than that keeps it. R and L are never the same one: a push towards the other stick\'s pseudopod takes the next nearest, or grows one beside it. LB / RB spread out / push harder only the pseudopod a pushed stick is steering. Movement mode (RT held): the sticks are movement intents and steer no pseudopod. One stick, or both the same way: the cell crawls that way. Two different ways: it crawls between them and widens across its path. Opposite: LS left + RS right (apart) stretches it along that line, LS right + RS left (together) squishes it; LS up + RS down turns it clockwise, LS down + RS up anticlockwise, like a tank; in-between angles blend. LT (either mode): the whole cell spreads out at once; held on, from about 1.5 s it slowly draws its pseudopods in and rounds up, near round after about 8 s. Lead and follow: the first stick pushed grows a pseudopod (the pseudopod stick); the other stick moves the bulk of the cell (the body stick): the rear contracts and the cytoplasm streams after it. Both held: the cell travels behind its pseudopod, which holds its length. Body stick alone towards the pseudopod: the body flows into it and takes it back. Hold LT or RT and the body stick grows a second pseudopod 30–70° beside the first instead, to encircle prey. LB spreads out, RB pushes harder. Roles reset once the pseudopod is gone or after eating. Two pseudopods (classic): each stick grows its own pseudopod, LT/RT spread out and push harder, LB/RB focus.',
+        choices: {
+          'Pseudopods and movement (default)': 'Pseudopods and movement (default)',
+          'Lead and follow': 'Lead and follow',
+          'Two pseudopods (classic)': 'Two pseudopods (classic)',
+        },
+      },
+      sticks: {
+        label: 'Stick-driven pseudopods',
+        about: 'Each pseudopod grows from the part of the membrane facing its stick; turning the stick bends it; centring the stick lets it flow back. A game interpretation of chemotactic protrusion.',
+      },
+      simple: {
+        label: 'Membrane never crosses itself',
+        about: 'Self-contact keeps every membrane node a few µm off every other stretch of membrane (a spatial hash of segments, so a segment cannot slip between two nodes); necks thinner than ≈ 26 µm push back; and any step that would still make two stretches cross is undone for those nodes. The mask outline is checked too: where the smooth, wrinkled outline would fold over itself it is drawn straight, so the triangulation never leaves stray triangles. Module: shared/techniques/amoeba-softbody.js.',
+      },
+      pinch: {
+        label: 'Pinch-off (rare)',
+        about: 'If a neck of the cell is squeezed thinner than 12 µm and a fungal trap hypha lies across it, the hypha cuts it: the piece with the nucleus stays the amoeba, the other piece rounds up, darkens and breaks up over a few seconds, and the cut pseudopod is left a stump. Necks resist thinning, so this almost never happens in play.',
+      },
+      semMite: {
+        label: 'SEM (scanning electron microscope)',
+        about: 'The phase buffer read as a height map (phase × 40 µm, roughly the dome of a crawling cell), turned into the mite\'s G-buffer as seen from a virtual beam 4 mm above the slide, then shaded by its secondary-electron composite: tilt contrast, detector shadows on the glass, crevice darkening, noise. Physically odd: a live amoeba cannot be imaged in a vacuum; real SEMs of A. proteus are fixed and dried (S05).',
+      },
+      semMiteMode: {
+        label: 'SEM detector',
+        about: 'SE (topography), BSE (the glass slide outshines the organic cell) or false colour.',
+      },
+      dicTardigrade: {
+        label: 'DIC (Nomarski) relief',
+        about: 'The tardigrade\'s interference image from the same phase and absorbance: relief from the gradient of optical path along one shear direction, warm and cool fringes. Real Nomarski images of amoebae look much like this.',
+      },
+      dicTardigradeMode: {
+        label: 'Tardigrade look',
+        about: 'Which of the tardigrade images the switch above uses: DIC or its brightfield.',
+      },
+      microscopeParamecium: {
+        label: 'Paramecium microscope',
+        about: 'Darkfield, phase contrast with the phase-ring halo, brightfield, a simpler DIC or the lit view, formed the paramecium way (high-pass of the path, post pass with chromatic softness and grain), from the same buffers.',
+      },
+      microscopeParameciumMode: {
+        label: 'Paramecium technique',
+        about: 'Which technique the paramecium switch above uses.',
+      },
+      preyLowRe: {
+        label: 'Prey: no-coasting recoil (low Re)',
+        about: 'The paramecium\'s lowRe(): prey speed follows the beat with a 35 ms lag, and a trichocyst burst stops within milliseconds (≈7 µm) instead of gliding for ≈0.2 s (≈38 µm). Truer to low Reynolds number; a grabbed Paramecium escapes the cup less easily.',
+      },
+      preyFlow: {
+        label: 'Prey: squirmer flow round swimmers',
+        about: 'Each swimming prey stirs the water as a neutral squirmer (source dipole, decaying as 1/r³), and other prey nearby drift in it: pushed ahead at its poles, swept back along its sides. Weak unless they pass close.',
+      },
+    },
+    prompts: {
+      back: 'Back to the tardigrade',
+    },
+    ring: {
+      filling: 'filling in…',
+      wrappedReady: '{deg}° wrapped: X to close',
+      wrapped: '{deg}° wrapped',
+      namePrefix: '{name} · ',
+    },
+    labels: {
+      nucleus: 'nucleus (discoid, ~45 µm)',
+      contractileVacuole: 'contractile vacuole',
+      uroid: 'uroid (rear)',
+      hyalineCap: 'hyaline cap',
+      foodVacuole: 'food vacuole ({name})',
+      foodVacuoleResidue: 'food vacuole (residue)',
+      endoplasm: 'granular endoplasm (sol)',
+      ectoplasm: 'ectoplasm (clear gel rim)',
+      spirogyra: 'Spirogyra (alga)',
+      leafTip: 'Sphagnum leaf tip (the way back up)',
+      trapSticky: 'fungal trap hypha (Zoopagales), sticky',
+      trapDormant: 'fungal trap hypha (Zoopagales), dormant',
+      diatom: 'diatom',
+      detritus: 'detritus',
+    },
+    marks: {
+      leaf: 'Leaf',
+    },
+    bossGauge: 'CHAOS',
+  },
 };
