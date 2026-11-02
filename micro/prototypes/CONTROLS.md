@@ -27,7 +27,7 @@ Keyboard fallbacks are in `shared/pad.js`.
 | Mite | **Jump** (A; borrowed from jumping oribatids such as *Zetorchestes*, with a flea's feel): tap to spring ~3 body lengths (~1.1 mm), hold up to 0.45 s to crouch deeper and release for ~6 (~2.1 mm), aimed with LS. Scramble on held B: ~1.5 mm/s, ~1.7× full tilt, on a stamina meter. LS is analogue: a slight push walks (~0.42 mm/s), full tilt hurries (~0.87 mm/s); the keys walk mid-pace (~0.61 mm/s), LB/RB (Q/F) hold the slow end / full tilt | Bite with the chelicerae: every press rears, lunges and snaps (graze hyphae and spores; nip a springtail to daze it, again to eat it, a game rule; nip back at the predator) | Ptychoidy (close up, held Y: mite exception) |
 | Tardigrade | Scramble, ~280 µm/s, nearly twice the full-tilt walk (recharges in 2.6 s; no other cost). LS is analogue: a slight push creeps (~30 µm/s), full tilt hurries (~150 µm/s); the keys walk mid-pace, hold G to hurry, T to creep | Pierce with the stylets | Brace (grip hard) |
 | Amoeba | Surge (A): pseudopods shoot out and the cell flows after them | Close the food cup (X) | Let go or egest (B) |
-| Paramecium | Ciliary sprint | Feed (oral gulp); at a hunter, ram and sting | Trichocyst burst and back off (blocks a strike when facing it) |
+| Paramecium | Ciliary sprint | With a hunter close, a trichocyst jab ahead: it lands (a flash and a knock-back; three wear a hunter's interest out) or visibly misses (out of reach, or out of its depth); otherwise feed (oral gulp, or a cone of algae) | Block and back off: blocks the Dileptus's slash and the Didinium's crouch or lunge, with a trichocyst burst all round while charged |
 | Bacterium | Sprint run (all flagella bundled; the whole flock sprints) | Beacon: kin it reaches answer and join your flock; also lyses prey in reach and strikes enemies the flock touches (Bdellovibrio: attach / bore). LS steers the flock, released it stops; Y fires the toxin | Tumble |
 | Phage | Dash forward along the view (A; on a surface, push off with the fibres) | Grab / let go (X; RT: hold to grab and hang on): the grab assist takes the best molecule or cell-surface point in reach; only a gold receptor injects (at an amoeba lobe, a fibre jab) | Fold the fibres and slip (lets go) |
 
@@ -43,6 +43,14 @@ what lies beyond softens again. It eases in over ~0.4 s. Held LT brings the
 focus in to the water just below the springtail, shallow. Each player's own:
 with company, each split view takes its players' look. Keyboard: X (RT), Z
 (LT). Magnification stays on the D-pad (1 / 2).
+
+**The paramecium zooms with the triggers.** LT zooms out and RT zooms in,
+analogue and continuous (eased, clamped): from its closest field (560 µm) out
+to three times it; the world starts at 1.6×. The D-pad does not zoom there.
+Each player's own: with company, each split view takes its players' zoom.
+Its depth is continuous: RS up/down (and LB/RB) swim deeper and shallower
+through the drop, and fights, eating and catches need the two near in depth.
+Keyboard: Z (LT), X (RT).
 
 **The phage moves in open 3D water with no up or down,** all in the view's
 own frame: LS up and down move it forward and back along the view (into and
@@ -79,9 +87,11 @@ and resting the stick lets it go. Hold RT to move the whole cell instead: one
 stick or both the same way crawl, two ways crawl between and widen, apart
 stretches, together squishes, one up and one down turn it. LT spreads the whole
 cell out (held on, it slowly rounds up); LB/RB spread / push harder the
-pseudopod being moved. A surges, X engulfs (and cuts or pinches), B lets go or
-stiffens. To pinch an arm of *Chaos*, close two pseudopods round it and press
-X. "Lead and follow" and the classic two-pseudopod scheme remain Features
+pseudopod being moved. A surges, X engulfs (and cuts), B lets go or
+stiffens. Against another cell (the giant amoeba *Chaos*, or another player)
+a pseudopod is a push: cells never overlap, and a broad pseudopod or a surge
+pushes hardest; keep a gap open so *Chaos* cannot ring you. Y at the open
+portal goes through it as soon as any part of the cell is on it. "Lead and follow" and the classic two-pseudopod scheme remain Features
 choices.
 
 ## Multiplayer

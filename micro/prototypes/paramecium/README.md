@@ -22,11 +22,62 @@ planes, making the planes feel continuous and connected … sometimes you should
 automatically wind above or below a simple obstacle plant … RS left/right can
 be maybe rotating the camera (though only far left and right)".
 
-So the world is now a top-down slide (an orthographic view, as the amoeba's
-and the bacterium's are) drawn after the card (`assets/cards/paramecium.webp`),
-with a shallow continuous depth under the coverslip that the microscope's
-focus follows. The 3D chase camera, the volumetric optics, the ray-marched
-cell and the 3D set pieces are gone (see *What was removed*).
+So the world is now a top-down slide drawn after the card
+(`assets/cards/paramecium.webp`), with a continuous depth under the coverslip
+that the microscope's focus follows. The 3D chase camera, the volumetric
+optics, the ray-marched cell and the 3D set pieces are gone (see *What was
+removed*).
+
+## Fighting back, continuous depth and the zoom (2026-11-02, later)
+
+The owner: "I saw an enemy and kept attacking him but nothing seemed to do
+any damage and then he killed me. Do you know what's going on? Also, let's
+start at the further zoomed out level and have the current default be the
+furthest in you can zoom, but allow zooming further out. Also, let's zoom with
+LT and RT continuously instead of using DPad. And let's not have 3 depth
+levels, just a continuous depth. I want it to feel 3D."
+
+**Why attacks did nothing.** The hunters had no health or interest at all: X
+only paused one for a moment (a Dileptus for about a second, a Didinium for
+0.8 s, the giant's pseudopod pulled back) and nothing added up, so it always
+came straight back. The jab was also silently ignored in most of a hunter's
+states (a Didinium recovering next to you after a lunge, lunging, or idling;
+anything out of a narrow cone), X ate any prey or bloom algae at your mouth
+instead of jabbing, and a jab looked and sounded the same whether it landed
+or not. The Didinium's lunge could not be blocked at all, after a 0.55 s
+crouch. Now (`foes.js` *Fighting back*, `../CONTROLS.md` "Fighting back"):
+
+- every hunter has an **interest**; a jab that lands (X) costs it a third, a
+  block (B) of its strike half: **three jabs, or two blocks, and it gives up**
+  and swims off (the giant amoeba takes four jabs and draws back, creeping
+  away for 14 s). Red pips by a hunting hunter show what it can still take;
+- a jab that lands **flashes** where it struck (sparks, a ring), knocks the
+  hunter back, interrupts its wind-up and plays `shared/hit`; one that cannot
+  land is a **visible miss**: its threads fizzle where they fell short (grey;
+  a blue ring when the hunter is above or below you), with a word the first
+  time ("only reaches about half a body length", "match its depth");
+- X jabs before it eats whenever a hunter is close;
+- every strike is **telegraphed** (Dileptus: its trunk winds back 0.9 s, the
+  tip reddening; Didinium: a 0.7 s crouch, the snout reddening; the giant's
+  rising pseudopod) and **B blocks** the Dileptus's slash and the Didinium's
+  crouch or lunge (with or without trichocyst charges: `shared/block`, the
+  burst of threads, the hunter knocked back), so a death always follows a
+  tell you could have answered.
+
+**The depth is one continuous water volume** four body lengths deep (480 µm,
+`DEPTH`), seen in perspective (below). Everything sits at any depth; meeting
+(eating, a jab, a block, a catch) needs the two to be near in depth, within
+`ZTOL` (40 µm, about a body's thickness) on top of their half-thicknesses,
+never on the same level. The depths laid out for the old 300 µm drop (the
+scenery, the trap, the giant, the portal and the way back) are scaled by `ZK`.
+
+**The zoom** (`ZOOM`, `route.js`): the old default field (560 µm) is now the
+closest; play starts at 1.6× (896 µm, the 0.9 mm on the world's card), and
+**LT zooms out, RT in**, analogue and continuous (a full trigger is ×e in
+0.9 s), eased (0.14 s), clamped from 1× to 3× (1.68 mm). The D-pad no longer
+zooms (↑↓ do nothing; ←→ still change the look). Each player has their own
+zoom: one view shows the widest of its players', split views each keep their
+own players'.
 
 ## The look
 
@@ -66,24 +117,31 @@ where it scatters light.
   looks subtract them from a lit field. A view is one draw plus the tile and
   the portal's glow.
 
-## Depth (2.5D)
+## Depth (continuous, 3D)
 
-The drop is a shallow continuous depth, the coverslip above (`z` +150 µm),
-the slide below (−150 µm) (`route.js` `DEPTH`).
+The drop is one continuous water volume 480 µm deep, the coverslip above (`z`
++240 µm), the slide below (−240 µm) (`route.js` `DEPTH`).
 
 - **RS up swims deeper** (into the slide, away from you), **RS down
-  shallower** (toward you); LB/RB do the same (Q/F, or the arrow keys). The
-  depth gauge at the right edge shows where every player is between the glass
-  and the slide.
-- **The focus follows you** (each split view its own players). What lies
-  off your depth is drawn softer (its edges widen with the distance, which
-  also spreads and dims fine lines and specks, as defocus does), a little
-  dimmer, and scaled about the view's centre (nearer the objective: larger,
-  sliding faster as the view moves). Features → *Depth cues* turns the
-  parallax and most of the blur off.
-- **One connected volume**: contacts need bodies to meet in the plane and in
-  depth, with a generous reach, so things interact across depth rather than
-  in separate planes. Filaments and *Vorticella* stalks run through the depth
+  shallower** (toward you), smoothly (340 µm/s: the whole drop in 1.4 s);
+  LB/RB do the same (Q/F, or the arrow keys). The goal strip says how deep you
+  are (µm under the coverslip) and the gauge at the right edge shows where
+  every player is between the glass and the slide.
+- **Seen in perspective, the focus on you** (each split view its own
+  players' depth; `shapes.js`): the objective is 900 µm above the focal
+  plane, so what lies above you is drawn larger and slides faster as the view
+  moves, what lies below smaller and slower (parallax: the glittering motes,
+  spread through the whole depth, show the volume as you swim). Off your
+  depth things are softer (defocus: their edges widen 0.06 µm per µm, which
+  also spreads and dims fine lines and specks) and dimmer (more below than
+  above), and what lies below sinks into a cool blue haze. **Soft shadows**
+  fall on the slide (on the habitat tile in darkfield, plainer in
+  brightfield), offset from what casts them by its height, as from a low
+  lamp: a cell's shadow walks away from it as it rises. Features → *Depth
+  cues* turns the perspective, the haze and most of the blur off.
+- **One connected volume**: contacts need bodies to meet in the plane and
+  near in depth, so things interact across depth rather than in separate
+  planes. Filaments and *Vorticella* stalks run through the depth
   from one end to the other, the giant amoeba fills the lower half of the
   drop, the trap most of it; hunters follow you in depth, each at its own
   pace.
@@ -102,25 +160,27 @@ the slide below (−150 µm) (`route.js` `DEPTH`).
 | Button | Label | What it does |
 | --- | --- | --- |
 | LS | Swim | Analogue speed and direction (screen-relative); the cell turns to it fast; let go and it stops (low Reynolds number) |
-| RS | Depth · far sides: turn view | Up deeper, down shallower; pushed far left or right, turns the view |
+| RS | Deeper / shallower · far sides: turn view | Up deeper, down shallower, smoothly; pushed far left or right, turns the view |
 | A | Dash | A ciliary sprint (1.5 mm/s for 0.28 s, recharges in 0.9 s); flings bloom cells aside |
-| X | Attack / eat | Gulps prey at the oral end; in the bloom gulps a cone of algae; otherwise a trichocyst jab ahead (stuns Dileptus, staggers Didinium, makes the giant amoeba's reaching pseudopod pull back) |
-| B | Burst / back off | The avoiding reaction (back up and swing round, away from the nearest threat) with a trichocyst burst all round while charged (three charges, one back every 3 s): drives Dileptus off, bursts you out of the giant amoeba's cup and the trap's pull |
+| X | Jab / eat | With a hunter close: a trichocyst jab ahead (three threads fanned ±24°, reaching 110 µm past the front): it lands (a flash, `shared/hit`, the hunter knocked back and worn down) or visibly misses. Otherwise gulps prey at the oral end, or a cone of algae in the bloom |
+| B | Block / burst | The avoiding reaction (back up and swing round, away from the nearest threat); blocks a Dileptus's slash or a Didinium's crouch or lunge (always); with a charge also a trichocyst burst all round (three charges, one back every 3 s): bursts you out of the giant amoeba's cup and the trap's pull |
 | Y | Enter portal | At the open portal (down on the biofilm, the trap spent); on the amoeba's patch: back up a world |
+| LT/RT | Zoom out / in | Analogue and continuous, from the closest field (560 µm) to 3× (1.68 mm); the game starts at 1.6× |
 | LB/RB | Deeper / shallower | The same as RS up/down |
 | D-pad ←→ | Change the look | Darkfield, phase contrast, brightfield |
-| D-pad ↑↓ | Zoom | The objective: 400, 560 (default) or 820 µm across |
 
 Keyboard: WASD swim, arrow keys depth (far left/right turn), Space dash, E
-attack/eat, Shift burst, R enter, Q/F deeper/shallower, 3/4 look, 1/2 zoom.
-For `micro/game/src/worlds.js`: `[['LS', 'Swim'], ['RS', 'Depth · far sides:
-turn view'], ['A', 'Dash'], ['X', 'Attack / eat'], ['B', 'Burst / back off'],
-['Y', 'Enter portal'], ['LB/RB', 'Deeper / shallower'], ['D-pad ←→', 'Change
-the look'], ['D-pad ↑↓', 'Zoom']]`.
+jab/eat, Shift block/burst, R enter, Z/X zoom out/in, Q/F deeper/shallower,
+3/4 look. The shell's list (`micro/game/src/worlds.js`, from
+`../shared/text_config.js` `worlds.paramecium.controls`): `[['LS', 'Swim'],
+['RS', 'Deeper / shallower · far sides: turn view'], ['A', 'Dash'], ['X',
+'Jab / eat'], ['B', 'Block / burst'], ['Y', 'Enter portal'], ['LT/RT', 'Zoom
+out / in'], ['LB/RB', 'Deeper / shallower'], ['D-pad ←→', 'Change the
+look']]`.
 
 ## Playing
 
-- **Quick and light** (`swim.js`): up to 620 µm/s (a 560 µm field crossed in
+- **Quick and light** (`swim.js`): up to 620 µm/s (the closest field crossed in
   under a second), full speed in a fifth of a second, turns at 11 rad/s,
   stops almost at once; the dash more than doubles it. The camera follows the
   group's middle with a little lead.
@@ -165,16 +225,18 @@ furthest along, with calm breaks between (`route.js`; the owner's
   path and comes ahead of you (`single`). The portal stays sealed (no prompt,
   its glow shut) until the four before it are met.
 - **Timings** (`route.test.mjs`, the director alone, a cell rushing at 850
-  µm/s, the 560 µm view): in 16 directions the Dileptus is placed at 4.1 s
+  µm/s, the closest, 560 µm view): in 16 directions the Dileptus is placed at 4.1 s
   and met at 5.6 s, the bloom at 15.4 s, the giant amoeba at 25.5 s, the
   Didinium at 35.4 s, and the portal is reached at 46.4 s; on the default path
   at 45.7 s; out 8 s and back, 48 s; standing still, everything comes and the
   portal is placed near you at 87 s. **In the game** (`debug.rush({ bearing
   })`: the real swim, scenery, auto-weave and hunters stepped at 1/30 s,
   full stick and a dash whenever it is ready, steering for the portal only
-  once it is within 1.6 mm), in four directions (0.62 = the default path,
-  2.2, 3.8, 5.4): the Dileptus met at 5.7-6.2 s, the bloom 15.1-15.7 s, the
-  giant amoeba 24.1-25.6 s, the Didinium 32.6-39.1 s, the portal 42.5-50.6 s;
+  once it is within 1.6 mm and diving for it within 0.7 mm), at the start
+  zoom (1.6×) and in the 480 µm depth, in four directions (0.62 = the default
+  path, 2.2, 3.8, 5.4): the Dileptus met at 5.8-6.2 s, the bloom 15.0-15.7 s,
+  the giant amoeba 23.9-25.6 s, the Didinium 32.6-39.1 s, the portal reached
+  at 42.9-50.8 s;
   rushing flat out, nothing caught the cell (`safe: false`).
 
 ## The hunters (`foes.js`), each with its tell and its answer
@@ -182,9 +244,10 @@ furthest along, with calm breaks between (`route.js`; the owner's
 - ***Dileptus*** (a 330 µm flask with a long toxicyst trunk, a bead-chain
   macronucleus): it stalks you, then winds its trunk back (0.9 s, the tip
   reddening: the tell) and slashes across. **B** in the wind-up or the slash
-  drives it off (stunned, it recoils); twice and it gives up and swims off.
-  Its trunk reaches you only at its depth (±~70 µm); it follows you in depth
-  slowly (120 µm/s), so a quick dive also slips the slash.
+  blocks it (stunned, it recoils); **X** that lands staggers it; two blocks
+  or three jabs and it gives up and swims off. Its trunk reaches you only
+  near its depth (±~70 µm); it follows you in depth slowly (150 µm/s), so a
+  quick dive also slips the slash.
 - **The *Chlamydomonas* bloom** (`bloom.js`): 520 green flagellates through
   the whole depth, densest toward the coverslip (bioconvection: plumes sink,
   the rest rise). Swim and they part round you (0.72 speed while you push
@@ -195,14 +258,18 @@ furthest along, with calm breaks between (`route.js`; the owner's
   pseudopod reaches for you and rises toward your depth, its hyaline tip
   brightening (the tell). Touch it and it closes round you (1.4 s): **B**
   bursts you out (it flinches, its pseudopod pulls back), or dash clear. Near
-  the coverslip, over it, you are out of its reach. It eats the prey it
+  the coverslip, over it, you are out of its reach. **X** at its reaching
+  pseudopod or its edge makes it snap back; four jabs (or bursts from
+  inside) and it draws back and creeps away for 14 s. It eats the prey it
   covers too.
 - **Two *Didinium*** (100 µm barrels with two girdles of cilia and a snout):
-  they close in (480 µm/s: you outswim them only flat out) and follow you in depth quickly (210 µm/s), then
-  crouch (0.55 s, the snout reddening) and lunge straight (1.35 mm/s) at the
-  depth they crouched at. **B cannot stop them** (the warning says so): dodge
+  they close in (480 µm/s: you outswim them only flat out) and follow you in
+  depth quickly (260 µm/s), then crouch (0.7 s, the snout reddening) and
+  lunge straight (1.35 mm/s) at the depth they crouched at. **B** in the
+  crouch or the lunge blocks it (it glances off, staggered); or dodge
   sideways, or change depth while it crouches and it passes over or under
-  you. **X** staggers one for a moment. After three misses it rests.
+  you. Two blocks or three jabs (**X**) and it gives up and swims off. After
+  three misses it rests.
 - **The bladderwort trap** (the boss, `createTrap`): a *Utricularia* bladder
   just above the slide in front of the leaf, its door toward you; dormant until
   you come within 680 µm. Its tell: the door quivers and reddens and the walls
@@ -220,7 +287,7 @@ furthest along, with calm breaks between (`route.js`; the owner's
   glow (`../shared/portal.js`, its light spilling in from the screen's edge
   when it is off screen, `createPortalLight`); no arrow unless the Portal
   arrow setting is on (`?arrow=1` here; `portalArrow()`). Down on it (over
-  the leaf, deeper than −50 µm) with the trap spent: "Y Enter the portal"
+  the leaf, deeper than −80 µm) with the trap spent: "Y Enter the portal"
   (`embed.near('portal')`), and **Y** goes through (`enterPortal`). While the
   trap guards it, touching the leaf sweeps you back off it.
 - **The way back: the amoeba's patch of slide** (its slime trail and egested
@@ -236,9 +303,10 @@ furthest along, with calm breaks between (`route.js`; the owner's
   turning up its screen as time slows; this world opens on your cell centred,
   facing up the screen (heading π/2), at mid-depth, the focus on it, as a 2D
   pose (pitch 1.55, `rel` = heading + π/2 = π). The shell eases one pose to
-  the other; both worlds are top-down slides, so the move is a short push
-  between two framings of the same creature (f 0.144 → 0.214, measured equal
-  on both sides at every step) while darkfield fades in over brightfield.
+  the other; both worlds are top-down slides, so the move is a short change
+  between two framings of the same creature (f 0.144 → 0.134: this world
+  opens zoomed out at 1.6×, so the cell is about as large as the amoeba's
+  beacon, measured equal on both sides at every step) while darkfield fades in over brightfield.
   While held, the view takes each `camera` pose (`poseView`: its width from
   `f`, its centre from x, y, its turn from `rel`); on `begin` time eases back
   in over 0.6 s. Nothing changed on the amoeba's side.
@@ -263,10 +331,12 @@ furthest along, with calm breaks between (`route.js`; the owner's
 Up to four players (`../shared/players.js`): anyone joins with a button on
 another controller. Each has their own cell, dash, trichocysts and death; the
 prey count is shared. One view frames the group and **zooms out** as it spreads
-(`split.zoom`, up to 1.6× the field), then splits LEGO-style
+(`split.zoom`, up to 1.6× the field, on top of the players' own zoom), then splits LEGO-style
 (`../shared/splitscreen.js`, its 2D form: `{ center, pxPerUnit }`; positions
 are given in the turned view's frame and the offsets turned back), each split
-view focused on its own players' depth. Together, each cell carries a faint
+view focused on its own players' depth and zoomed to its own players' zoom
+(LT/RT: the widest of them; the shared view the widest of everyone's).
+Together, each cell carries a faint
 broken ring in its player's colour; hunters pick a player each; the trap's
 pulse pulls everyone in reach; anyone can wear it down; a player who dies
 comes back behind a teammate.
@@ -294,16 +364,25 @@ ratio; `?q=high`).
 
 ## Art
 
-Delivered and used: the darkfield and phase tiles MP-P04, MP-P05 (blurred
-512 px copies made at load, laid below the drop). Requested (procedural
-stand-ins until delivered; `../../design/source/build_requests.py`):
+Delivered and used (`../../design/source/build_requests.py`):
 
-- **MP-P06** a darkfield top-down *P. bursaria* body sprite (the inside of
-  the cell under the procedural outline and cilia);
-- **MP-P07** the hunters in darkfield, top down (a reference sheet for
-  Didinium, Dileptus, *Amoeba proteus* and the trap);
-- **MP-P08** a darkfield intro plate matching the card, to replace the
-  brightfield 3D one (MP-G11) in the shell.
+- the darkfield and phase tiles **MP-P04**, **MP-P05** (blurred 512 px
+  copies made at load, laid below the drop);
+- **MP-P06**, the darkfield top-down *P. bursaria* (`assets/paramecium/
+  bursaria-darkfield.webp`): the inside of every player's cell in darkfield,
+  its #FF00FF ground keyed to black at load so it simply adds to the field,
+  its *Chlorella* turned to each player's shade in the shader, drawn in the
+  same perspective and focus as everything else, under the procedural
+  pellicle, beating cilia, oral groove, streaming granules and food vacuoles
+  (the procedural Chlorella, nucleus and contractile vacuoles stand in for it
+  in the other looks, before it loads, and as the cell dissolves);
+- **MP-P07**, the hunters in darkfield (`assets/reference-sheets/
+  paramecium-hunters-darkfield.webp`): the reference the procedural Didinium,
+  Dileptus, giant amoeba and trap are drawn after (luminous outlines,
+  golden granules on black), as requested; not loaded by the game;
+- **MP-P08**, the darkfield intro plate (`assets/game/
+  intro-paramecium-darkfield.webp`): the shell's intro plate for this world
+  (`micro/game/src/worlds.js`), in place of the brightfield 3D one (MP-G11).
 
 Not used any more: the plates MP-P01, MP-P02 and the pellicle MP-P03 (the 3D
 cell's texture).
@@ -322,8 +401,16 @@ their names with new 2D contents; `shapes.js`, `draw.js` and `foes.js` are new.
 
 ## Performance
 
-`../../tools/perf/measure.mjs paramecium 1` and `4` (SwiftShader, 1280×720,
-a shared machine: rough): one player, 2 draws a frame, ~11.6 k primitives
+Zoomed (SwiftShader, 1280×720, a shared machine: rough): ~6.8 k shape
+instances at the closest field, ~11 k at the start (1.6×), ~22 k at the
+widest (3×; of 90 k), plus ~20-190 shadows; the glitter thins as the field
+widens (`drawGlitter` `lod`) and the filaments' ribbons take longer steps, and
+the culled rectangle grows only by what the perspective shows below the
+focus. A frame ~170-250 ms at the start and ~285 ms at the widest under
+SwiftShader on the loaded machine.
+
+`../../tools/perf/measure.mjs paramecium 1` and `4` (before the zoom and the
+perspective): one player, 2 draws a frame, ~11.6 k primitives
 (~5.8 k shape instances), SwiftShader frame ~245 ms (the 3D world's scene pass
 was ~1200 ms, with ~600 k triangles and ~100 draws); four players spread
 apart, 4 views, 13 draws, ~166 k primitives, ~1260 ms (every view redraws the
@@ -338,9 +425,11 @@ vertex shader.
 - The cell is drawn at its real length (120 µm) but swims about half as fast
   as a sprinting *Paramecium* (1-1.5 mm/s) at 620 µm/s, so the 560 µm view
   can follow it; the dash is faster than it.
-- The drop is 300 µm deep (a real wet mount is ~20-100 µm under a coverslip
-  but a pond drop far more); depth is shown by focus and a little parallax, as
-  a microscope would show it, plus the gauge.
+- The drop is 480 µm deep (a real wet mount is ~20-100 µm under a coverslip
+  but a pond drop far more), and it is seen in perspective with shadows on the
+  slide and a haze below, which a microscope's nearly parallel view would not
+  give: the focus and the defocus are a microscope's, the perspective, the
+  shadows and the haze are there so the volume reads as 3D.
 - The giant amoeba is *A. proteus* at the large end (460 µm across), and it
   rises toward you with a pseudopod; real amoebae crawl on the slide.
 - The trap's pulse is drawn over 0.38 s and pulls from ~430 µm (real: half a
@@ -366,8 +455,13 @@ under, by the side it was on) and passes a clump; a wall is glanced off; depth
 stops at the glass and the slide; the swim reaches full speed in 0.2 s, the
 dash doubles it and letting go stops it; a Didinium lunge catches you at its
 depth and **misses when you change depth while it crouches**; it follows you
-in depth as it closes; the Dileptus slashes without a defence and a burst in
-its wind-up drives it off (twice: beaten); the giant amoeba engulfs a cell
+in depth as it closes; the Dileptus slashes without a defence and a block in
+its wind-up drives it off (twice: beaten); the drop is one 480 µm depth and a
+jab lands at any depth near the hunter's; a jab lands in front, and misses
+(saying why) too far ahead, behind, above or below; three jabs drive a
+Didinium or a Dileptus off, each one flinching it; B blocks a Didinium in its
+crouch and in its lunge (no kill); four jabs drive the giant amoeba back and
+it then engulfs nobody; the zoom's limits; the giant amoeba engulfs a cell
 low in the drop, leaves one over it alone, a burst frees you and no burst
 means digestion; the trap pulls, bursts and wasted pulses spend it, and a cell
 at its door in a pulse is sucked in; the scenery repeats and the start is clear.

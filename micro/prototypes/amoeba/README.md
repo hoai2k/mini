@@ -8,7 +8,8 @@ the approaching membrane, so the surge (A) matters, and the trap hyphae of a
 predatory fungus wait on the slide. Crawl out in any direction: the
 encounters are placed as you go, ahead of you in glass you have not seen yet,
 one after another, out to the way on (a green *Paramecium bursaria* in a
-golden glow) guarded by the giant amoeba *Chaos* (see *The slide*). Built in three.js (`../shared/vendor`, no
+golden glow) with the giant amoeba *Chaos* lying beside it (see *The boss*
+and *The slide*). Built in three.js (`../shared/vendor`, no
 addons); world units are µm.
 
 Open `micro/prototypes/amoeba/` (the invite gate is off on localhost).
@@ -54,9 +55,9 @@ says what each stick holds (`LS: moving L · RS: free · RT: move the cell · LT
 spread`; `RT: moving the cell (crawling + widening)` in movement mode).
 
 After eating, the cup's pseudopods dissolve into the vacuole and a stick still
-pushed must be let go before it grabs another. **Pinching Chaos**: grab two
-pseudopods with the two sticks, close them round one of its arms from both
-sides (a pincer), then X.
+pushed must be let go before it grabs another. Against another cell (Chaos,
+or another player) a pseudopod is a push: aim a broad one at it, or surge
+(A), and it gives ground (see *Cells push, never overlap*).
 
 ### Lead and follow
 
@@ -94,9 +95,9 @@ still held keeps moving the body.
 | Button | Action |
 | --- | --- |
 | **A (Space)** | **Surge**: for 0.9 s every active pseudopod extends up to 2.5× faster and may run a little further ahead, the rear contracts harder and streaming surges to the tips, so the whole cell lunges; recharges over 2.4 s (the `dash` meter). With no stick held it surges along the cell's heading (in the default scheme and lead and follow, the body flows on that way). Tears the membrane free of a fungal trap |
-| **X (E)** | **Close the food cup** round the prey it wraps (needs ≥ 190° of membrane round it): the rims advance and endoplasm floods in to fill round the prey until they meet. At a trap hypha: a pseudopod jab that cuts its tip. With your membrane round an arm of Chaos: pinch it off |
+| **X (E)** | **Close the food cup** round the prey it wraps (needs ≥ 190° of membrane round it): the rims advance and endoplasm floods in to fill round the prey until they meet. At a trap hypha: a pseudopod jab that cuts its tip. (Rarely: with your membrane closed on both sides of an arm of Chaos, it pinches the arm off) |
 | B (Shift) | Let go while closing; otherwise egest the oldest food vacuole at the uroid (a live, barely digested prey swims away). Near a threatening trap hypha (or stuck on one), hold to **stiffen** (defend) |
-| Y (R) | Labels (nucleus, contractile vacuole, uroid, hyaline caps, ectoplasm, endoplasm, prey with real sizes, trap hyphae). At the leaf tip (the backdoor) Y goes back up to the tardigrade instead, and at the open portal (the game shows "Y Enter the portal") Y goes through it |
+| Y (R) | Labels (nucleus, contractile vacuole, uroid, hyaline caps, ectoplasm, endoplasm, prey with real sizes, trap hyphae). At the leaf tip (the backdoor) Y goes back up to the tardigrade instead, and at the open portal (any part of your cell on it; the game shows "Y Enter the portal") Y goes through it |
 | D-pad ← → (3 / 4) | Optics: brightfield, phase contrast, darkfield, hypothetical immersive lit view |
 | D-pad ↑ ↓ (1 / 2) | 20× objective (0.9 mm field) / 10× objective (1.8 mm field) |
 | Menu (Esc) | Features panel: what the prototype does, with switches |
@@ -134,7 +135,7 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
 
 The giant amoeba *Chaos*, multinucleate, an eater of smaller amoebae
 (`../../design/bosses.md`; *Chaos* eating *A. proteus* is plausible but not
-well documented), on guard at the portal. The same soft body as yours at ~1.9×
+well documented), lying beside the portal. The same soft body as yours at ~1.9×
 the width (~0.65 mm; real *Chaos* reaches 1–5 mm), with nine nuclei, slower.
 Its look follows the delivered sheet (`../assets/reference-sheets/boss-chaos.webp`):
 broad, blunt, finger-like arms (its pseudopods are ~1.7× the player's in
@@ -143,31 +144,90 @@ refractile granules to the tips (4200 granules, mostly lipid-like spheres and
 food granules; an extra olive density and coarser granularity in the body
 shader, `uLook`).
 
-- **On guard**: it is off the slide until the portal is placed, then sits on
-  its post beside the portal (330 µm to one side of it and 90 µm toward the
-  way you came: `world.js` `chaosPost`, the first side with room), dormant,
-  until a player's centre comes within 700 µm (`CHAOS_WAKE`); a brass
-  **resolve** gauge shows while it is awake.
-- **The tell**: it raises and spreads its pseudopods, every arm out at once.
-  **The cup**: two arms reach to your flanks, then curl round behind you; if
-  they wrap you (~170°+) it engulfs you. Every third attack is **a lunge**:
-  one broad arm with the whole cell flowing after it.
-- **Two ways past it.** *Lure it*: it follows you, slowly (~10 µm/s against
-  your ~45), but no further than 720 µm from its post (`CHAOS_LEASH`), and once
-  it is more than 360 µm off its post it only follows (no new attack); then it
-  gives up and flows back. While it is more than 480 µm from the portal the
-  portal is open: get round it. *Drive it off*: push into it and pinch its
-  arms off: X when your membrane is on both sides of an arm's neck (within
-  ~70 µm each side) cuts it (`Body.pinchAt`); the piece rounds up and dies.
-  Each cut staggers it and wears it down; worn out, it flows away off the
-  portal to rest to one side and stays beaten (the portal stays open).
-  Surging (A) in the first moment of an engulf breaks out.
+The owner (2026-11-02): "the normal interaction would be just pushing and
+ensuring you don't get encircled ... he shouldn't eat you just by touching
+you, but rather only if he manages to encircle you entirely and then do his
+equivalent of pressing X. That's what he'd attempt to do, but you have to
+prevent it and find the portal."
+
+- **Beside the portal**: it is off the slide until the portal is placed, then
+  lies on its post beside it (330 µm to one side and 90 µm toward the way you
+  came: `world.js` `chaosPost`, the first side with room; its edge just short
+  of the portal's centre), dormant. It is slow to notice you: only after you
+  have been within 240 µm of its edge (`CHAOS_WAKE`) for 2.2 s, or bump into
+  it, does it stir. So you can slip past it to the portal.
+- **Pushing.** Awake, it flows at you and pushes. Cells never overlap (see
+  *Cells push, never overlap*): you push back, and the thicker, more actively
+  advancing membrane wins ground. Its broad arms beat your thin pseudopods,
+  your body or a broad pseudopod holds one of its arms, and a surge (A)
+  shoves it. Touching it never eats you.
+- **The tell**: it raises and spreads its pseudopods, every arm out at once
+  ("it is going to try to surround you").
+- **The encircle** (two attacks in three): two broad arms start from its
+  membrane beside your flanks and crawl round you, hugging your outline about
+  95 µm out, curling on behind you; its body leans in. How far it rings you is
+  measured every step (`contact.js` `encircle`: 48 rays from your centre, each
+  covered where its membrane lies within 120 µm beyond your edge) and drawn as
+  **the closing ring**: rust-red arcs round your cell where it already has you,
+  thicker and brighter as it closes, the open arc the gap to get out by. Its
+  rust stain seeps into your cell where its arms press (`harmOf`), and the
+  `shared/danger` sound plays as the ring passes half way.
+- **Its X**: only when the ring is shut (94% of the bearings covered and no
+  gap wider than ~17°) does it close it, its equivalent of X: 1.2 s in which
+  the ring pulses and tightens, the danger sound plays again and your
+  membrane trembles. Still ringed at the end (88%), you are engulfed; forced
+  open first (below 75%), it has to start again. A still cell is ringed in
+  about 6 s of an encircle and engulfed in ~15 s; a cell that keeps a way out
+  is not.
+- **Getting away**: push out through the gap (both sticks that way, RT, a
+  surge), or force the ring open with a thick pseudopod or your body. Every
+  third attack is instead **a shove**: one broad arm with the whole cell
+  flowing after it, pushing hard (never a bite).
+- **The lure**: it follows you, slowly (~10 µm/s against your ~45), but no
+  further than 720 µm from its post (`CHAOS_LEASH`), and once it is more than
+  360 µm off its post it only follows (no new attack); then it gives up and
+  flows back. Pushed off its post while dormant, it flows back too.
+- **The portal never waits on it**: there is no guard rule. Open, Y enters
+  whatever Chaos is doing; on the portal itself it blocks only with its body.
+- **Pinching (rare, not the way to play it)**: X when your membrane closes on
+  both sides of the neck of one of its arms (within ~70 µm each side) cuts it
+  (`Body.pinchAt`); the piece rounds up and dies and it staggers. Enough cuts
+  and it flows away to rest to one side for good. Nothing prompts it.
 - **Engulfed**: drawn into its middle, darkened and shrunk in a food vacuole,
   a rust-brown stain of its digestion seeping in from its side (a surge breaks
   out in the strike or hold); then the cell dies on screen, the fade and the
-  respawn.
-  Sated, it stays asleep for 40 s and flows back to its post.
-- It targets the nearest player; the amoebae push against its membrane.
+  respawn. Sated, it stays asleep for 40 s and flows back to its post.
+- It targets the nearest player; a ring in progress stays on whoever it is
+  round.
+
+## Cells push, never overlap (`contact.js`)
+
+The owner (2026-11-02): "you shouldn't overlap him, you should have more of a
+push-pull struggle (same with other players)". Cells are not each other's
+colliders: every body steps freely, then `resolveCells()` (`main.js`)
+settles every touching pair (each player and Chaos, players with each other)
+with `contact.js` `resolvePair`: each membrane node of one cell that got
+inside the other is moved out, and the other's membrane at that spot gives
+way, the weaker side yielding more. Its membrane dents in (and the area
+projection bulges it out elsewhere, so it gives ground), and a share of the
+yield moves the whole cell (a shove; less for a bigger cell). Up to four
+passes, twice round `untangle()`; under 2 µm of overlap is left (Playwright:
+0–2 µm between two players pushing for 6 s; 0 µm against Chaos).
+
+- **Push strength** at a contact node (`pushAt`): the cell's cross-section
+  there (`thickness`: an inward ray to the far membrane, capped at 250 µm, so
+  a broad pseudopod beats a thin one and a body beats either) × how actively
+  that membrane is advancing (0.5 resting, up to 1.5 in a pseudopod's cap or
+  the front of a flowing body: `Body.Gp`) × the cell's `pushK`: for a player
+  the surge factor (up to 2.5 at its peak), × (1 − 0.6 × spread) for LT, ×
+  1.25 stiffened (B); for Chaos 0.85, 0.95 in an encircle and 1.5 in a shove.
+- **Contact inhibition**: a player's idle pseudopods are drawn in while it
+  touches another cell (`touchT`, 0.6 s after the last touch, and while
+  Chaos's ring is shut round it), as real amoebae's pseudopods collapse on
+  contact; the ones you steer are not.
+- `contact.test.mjs` runs it in node: two cells never overlap, the stronger
+  push wins ground, thickness, the ring measure, Chaos engulfing a still cell
+  only after its ring and X, and a cell pushing out through the gap escaping.
 
 ## The slide: scenery anywhere, encounters placed as you go
 
@@ -238,8 +298,10 @@ encounters, placed as you go*), in this order:
 - **The portal** (the way on) is the director's last entry: on the default
   path from the start, else placed after both patches were met. It stays
   sealed until both patches are met (no prompt, its sparkle shut, nothing
-  preloaded; reaching it says "The bursaria swims on: hunt the ciliates
-  first"); Chaos guards it as always. There is no arrow or edge pointer to
+  preloaded; reaching it says why, as a toast and on the warning line for as
+  long as you stay: "Sealed: the way on opens once you have hunted the
+  fleeing ciliates", or "... met the *Paramecium caudatum* patch"); Chaos
+  lies beside it as always. There is no arrow or edge pointer to
   it by default: keep crawling and you find it; the golden sparkle is its
   only marker. With **Portal arrow** on in the game's Settings (default off;
   `?arrow=1` on this page) each view gets a brass arrow at its edge toward
@@ -283,13 +345,20 @@ everything else.
   the viewer and built at unit size, scaled in the slide's plane only
   (`GLOW_S` µm), with `pixelHeight` sizing the glints for that camera
   (`drawGlow` in `main.js`; compiled and drawn once off screen at load, so no
-  program links in play). It is dimmer and restless while Chaos is on guard
-  and opens (brighter, calmer) when it is not. Placed (by the director) and
-  guarded as *The slide* above says.
-- **Reaching it**: when any player's membrane comes within ~45 µm of the
-  *P. bursaria*: on guard (Chaos within 480 µm of the portal, not beaten or
-  leaving), you are turned back (a brief toast, the first time) and Chaos
-  turns on you, and Y does what it does elsewhere. Open, it is never an
+  program links in play). It is dimmer and restless while sealed and opens
+  (brighter, calmer) once its encounters are met. Placed (by the director)
+  as *The slide* above says, with Chaos beside it.
+- **Reaching it**: a player is at the portal when any part of its cell
+  (outline or pseudopod) is within 120 µm of the portal's centre (`PORTAL.R`,
+  `atPortal`: the nearest membrane node, or the centre inside the cell), not
+  only its centre. The portal opens once its encounters are met and never
+  waits on Chaos (the owner, 2026-11-02): slipping past it or pushing it aside
+  is enough; Chaos right on the portal blocks it only with its body. (Before,
+  reaching it while Chaos was within 480 µm of the portal and not beaten
+  turned you back with no prompt and only a one-off toast, and the membrane
+  had to come within ~45 µm of the wandering *P. bursaria* rather than the
+  portal: why the owner reached it and saw no "Press Y".) Sealed, it says
+  why (above). Open, it is never an
   automatic door (the owner, 2026-11-01): while anyone is at it the game
   shows "Y Enter the portal" (`embed.near('portal', true)`; standalone,
   `shared/embed.js` shows it), and that player's **Y** (R) runs
@@ -297,8 +366,7 @@ everything else.
   triggered: the glow's burst, a golden bloom on the screen
   (`createPortalLight`), the portal chime and a rumble, then
   `embed.landmark('forward', { player })` (the shell runs the transition;
-  standalone, `embed.js` shows a toast). Turned back and still at it when
-  Chaos leaves: the prompt comes up. `embed.near('forward')` is posted while
+  standalone, `embed.js` shows a toast). `embed.near('forward')` is posted while
   someone is within 1.2 mm of the open portal, so the shell can load the
   next world. No arrow or edge pointer points to it (the owner's call) unless
   the Portal arrow setting is on: the sparkle on the slide is the only marker.
@@ -328,8 +396,9 @@ Inside the Micro Zoom shell the roster from its menus is restored.
   vacuoles, trap contact and catch. A joining amoeba appears beside a teammate.
   In `main.js` the per-player state is switched in by `use(cell)` (body,
   cytoplasm, surge, capture, roles, pad...), so the single-player code paths
-  run unchanged for each cell. Amoebae push against each other's membranes
-  instead of overlapping; prey flee, touch and are cupped by any of them.
+  run unchanged for each cell. Amoebae push against each other and never
+  overlap (*Cells push, never overlap*); prey flee, touch and are cupped by
+  any of them.
 - **Colour**: each player's cell has its own shade (**Telling players
   apart**), a faint tint of the player's colour in the cell (`uTint` in
   `BODY_FS`, mostly in the clear ectoplasm rim), and a broken ring and name
@@ -832,7 +901,8 @@ out each encounter was placed and met, and the director's state),
 `encounters()` (the director's state: the current entry, its phase, each
 entry's place and times), `director`, `seenAt(x, y)`, `placeNow()` (end the
 current break), `placeEncounter(id, x, y, b)`, `portal()` (placed, found,
-guarded or open, where it is, Chaos's state and distance), `placePortal(a,
+sealed or open, `blocked` (Chaos's body over its centre), `at` (the slots at
+it), where it is, Chaos's state and distance), `placePortal(a,
 slot, d)` (the portal `d` µm from that player at bearing `a`, as the director
 would: every encounter before it counts as met), `enterPortal(slot)`, `passive(on)`
 (traps never arm, Chaos never wakes: scripted runs), `log` (the encounter log),
@@ -841,7 +911,10 @@ and `fragments`; for multiplayer and the landmarks: `players`, `cells`,
 `split`, `layout`, `beacon` (the P. bursaria), `leaf`, `landmarks.log`
 (every landmark and near posted), `place(slot, x, y)`, `teleport('forward' |
 'back', slot)`, `forceCapture(slot)`, `traps()`, `defend(on, slot)`,
-`cut(slot)`, `chaos`, `pinchChaos(slot, reach)` and `engulf(slot)`. The trap
+`cut(slot)`, `chaos`, `pinchChaos(slot, reach)`, `engulf(slot)`, `contact()`
+(cells in contact last step, and the overlap between every two cells now),
+`ring()` (Chaos's ring: cover, gap, its X), `wakeChaos()`, `placeChaos(x, y)`
+and `addPlayer()` (a second local player with a cell). The trap
 fight (windup, a stiffened block, cuts driving it off), Chaos (dormant, the
 spread tell, the cup, pinched-off arms, retreat, an engulf with the camera
 following) and both catches were checked in Playwright; the scripted pinch
@@ -885,3 +958,20 @@ and streaming; S07 Kreutz, *Paramecium caudatum*; S08 Ogura & Takahashi
 trichocyst escape; S15 Lauga & Powers (2009), low Reynolds number. Full
 citations in `micro/research/build.py`. Digestion time of Chilomonas
 (3–18 min): Britannica, *Protozoan: mechanisms of food ingestion*.
+
+**Pushing, the ring and the portal (2026-11-02)**, checked in Playwright
+(software WebGL, `__micro` hooks, no page errors): with only the edge of the
+cell over the portal (its centre 248 µm from the portal's, ~60 µm of
+membrane inside the 120 µm reach) and Chaos awake beside it and not beaten,
+`portal().prompt` was on, the standalone pill read "Y R Enter the portal",
+and Y started the outro (`landmark forward`); a sealed portal (the default
+path, nothing met) showed no prompt and said "Sealed: the way on opens once
+you have hunted the fleeing ciliates" as a toast and on the warning line;
+pushing a pseudopod into Chaos for 4 s (37 steps in contact) neither ate the
+cell nor shut a ring, with no overlap left (0 µm); a still cell beside it
+was ringed (cover 0.25 → 0.88 in the first encircle, 1.0 in the second),
+its X began at 16.2 s and it was engulfed after it;
+a cell that pushed out through the gap with a surge as soon as the ring
+passed 30% was never ringed past 35% and never engulfed; two players, one
+crawling into the other for 6 s, stayed in contact with at most 2 µm of
+overlap and shoved the other 134 µm along.

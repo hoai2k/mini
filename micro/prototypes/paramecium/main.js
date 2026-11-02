@@ -817,7 +817,7 @@ function fill(rect, lod = 1) {
   drawDileptus(G, dileptus, t);
   // fighting back: a blow that landed flashes on the hunter, and its interest shows over it while it hunts
   const up = fromFrameOffset({ x: 0, y: 1 });
-  for (const f of [dileptus, ...didinia, giant]) drawFight(G, f, t, up);
+  for (const f of [dileptus, ...didinia, giant]) drawFight(G, f, t, [up.x, up.y], [view.cx, view.cy]);
   if (leaf.placed) {
     const clumpK = outro ? sm01(0, OUTRO.beat + OUTRO.ease, outro.t) * (outro.frozenAt !== null ? 1 - outro.scale : 1) : 0;
     drawKinClump(G, spir, clumpK, 1 - sm01(SLIME[0], SLIME[1], outro ? outro.u || 0 : 0));
@@ -839,7 +839,7 @@ function renderView(cx, cy, focus, look, hw = view.fw / 2, hh = hw * aspect()) {
   const W = renderer.domElement.width, w = hw * 2;
   shapes.setView({ cx, cy, hw, hh, rot: view.rot, focus, pxUm: w / Math.max(1, W) });
   // the depth cues: perspective (parallax and scale), defocus, dimming (more below), the haze below the focus
-  shapes.depth(persp(), view.parallax ? 0.06 : 0.015, view.parallax ? 0.0042 : 0.002, view.parallax ? 0.0016 : 0);
+  shapes.depth(persp(), view.parallax ? 0.06 : 0.015, view.parallax ? 0.0036 : 0.002, view.parallax ? 0.0016 : 0);
   const tex = view.tile && look.tile ? tiles[look.tile] : null;
   shapes.setTile(tex, look.tileK, look.tile === 'phase' ? 1000 : 1000, view.parallax ? 0.82 : 1, 0, look.tile === 'phase' ? [1, 1, 1] : [0.9, 0.95, 1.0]);
   shapes.render(look);
@@ -1036,10 +1036,11 @@ Object.assign(debug, {
       t += DT;
       if (safe) P1.invuln = 1;
       const s = director.state();
-      if (s.current === 'portal' && leaf.placed && !portalSealed() && hyp(FWD.x - P1.S.x, FWD.y - P1.S.y) < 1600) a = Math.atan2(FWD.y - P1.S.y, FWD.x - P1.S.x); // (only once in sight: a player has no arrow)
+      const toLeaf = leaf.placed && !portalSealed() && hyp(FWD.x - P1.S.x, FWD.y - P1.S.y) < 1600; // (only once in sight: a player has no arrow)
+      if (toLeaf) a = Math.atan2(FWD.y - P1.S.y, FWD.x - P1.S.x);
       if (P1.S.dashCd <= 0) startDash(P1.S, a);
       if (guarded() && hyp(P1.S.x - FWD.x, P1.S.y - FWD.y) < 900) debug.spendTrap();
-      const input = { mx: Math.cos(a), my: Math.sin(a), m: 1, depth: s.current === 'portal' && hyp(P1.S.x - FWD.x, P1.S.y - FWD.y) < 500 ? -1 : 0 };
+      const input = { mx: Math.cos(a), my: Math.sin(a), m: 1, depth: toLeaf && hyp(P1.S.x - FWD.x, P1.S.y - FWD.y) < 700 ? -1 : 0 };
       for (const P of cells) stepPlayer(P, DT, P === P1 ? input : { mx: 0, my: 0, m: 0, depth: 0 });
       stepWorld(DT); stepLandmarks(DT); stepCamera(DT);
       lastViews = [{ cx: view.cx, cy: view.cy, hw: baseField() * P1.zoom / 2, hh: baseField() * P1.zoom / 2 * aspect() }];

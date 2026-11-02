@@ -79,8 +79,8 @@ void main() {
   float hz = clamp(-dz * uHaze, 0.0, 0.7);
   vec3 col = mix(a2.rgb, vec3(0.45, 0.62, 0.85) * dot(a2.rgb, vec3(0.33)), hz);
   vC = vec4(col, a2.a / dim);
-  float gk = a3.z / max(glowR, 0.5);
-  vT = vec3(type, a3.y * gk * gk, max(glowR, 0.5));
+  // (a halo too faint to pad the quad for is left out, so no quad's edge ever cuts a glow)
+  vT = vec3(type, haloI > 0.04 ? a3.y * gk0 * gk0 : 0.0, max(glowR, 0.5));
 }`;
 const FS = /* glsl */`
 uniform float uSub, uGain; uniform vec3 uSubTint;
@@ -92,8 +92,10 @@ void main() {
     vec2 q = vec2(max(abs(vL.x) - vS.x, 0.0), vL.y);
     d = length(q) - vS.y; width = 2.0 * vS.y;
   } else {
-    vec2 q = vL / vec2(vS.x, vS.y);
-    d = (length(q) - 1.0) * min(vS.x, vS.y); width = 2.0 * min(vS.x, vS.y);
+    // the ellipse's distance (a close approximation: k0 (k0 − 1) / k1), right along both axes, so its soft edge ends inside the quad
+    vec2 r = vec2(vS.x, vS.y);
+    float k0 = length(vL / r), k1 = length(vL / (r * r));
+    d = k1 > 1e-6 ? k0 * (k0 - 1.0) / k1 : -min(r.x, r.y); width = 2.0 * min(vS.x, vS.y);
   }
   bool ring = type > 0.5 && type < 1.5 || type > 2.5;
   if (ring) { d = abs(d) - 0.5 * vS.w; width = vS.w; }
@@ -101,7 +103,7 @@ void main() {
   float cov = 1.0 - smoothstep(-s, s, d);
   // a line thinner than its blur spreads its light: dimmer, as defocus does
   cov *= clamp(width / (1.6 * s), 0.03, 1.0);
-  float halo = vT.y * exp(-max(d, 0.0) / vT.z);
+  float halo = vT.y * exp(-max(d, 0.0) / vT.z) * (1.0 - smoothstep(2.0 * vT.z, 3.0 * vT.z, d));
   vec3 col = vC.rgb * vC.a * (cov + halo);
   if (uSub > 0.0) {
     float l = dot(col, vec3(0.3, 0.55, 0.15));
@@ -115,8 +117,9 @@ const SHADOW_FS = /* glsl */`
 uniform vec3 uShadow;
 varying vec2 vL; varying vec4 vS; varying vec4 vC; varying vec3 vT;
 void main() {
-  vec2 q = vL / vec2(vS.x, vS.y);
-  float d = (length(q) - 1.0) * min(vS.x, vS.y);
+  vec2 r = vec2(vS.x, vS.y);
+  float k0 = length(vL / r), k1 = length(vL / (r * r));
+  float d = k1 > 1e-6 ? k0 * (k0 - 1.0) / k1 : -min(r.x, r.y);
   if (vT.x < 1.5) { vec2 c = vec2(max(abs(vL.x) - vS.x, 0.0), vL.y); d = length(c) - vS.y; }
   float cov = 1.0 - smoothstep(-vS.z, vS.z, d);
   gl_FragColor = vec4(uShadow * vC.a * cov, 1.0);
@@ -250,6 +253,14 @@ export function createShapes(renderer, { max = 90000, shadowMax = 1500, spriteMa
       const o = ns * F, ox = x + SLANT[0] * h, oy = y + SLANT[1] * h, soft = 4 + h * 0.09;
       if (rb < 0) { sdata.set([ox, oy, ox + Math.cos(a) * ra, oy + Math.sin(a) * ra, -rb, -rb, soft, floorZ, 1, 1, 1, I * k, 0, 0, 0.5, 0], o); }
       else sdata.set([ox, oy, Math.cos(a) * ra, Math.sin(a) * ra, rb, rb, soft, floorZ, 1, 1, 1, I * k, 2, 0, 0.5, 0], o);
+      ns++;
+    },
+    /** A soft shadow on the slide of a round rod from (x0, y0, z0) to (x1, y1, z1), radius r (each end offset by its own height). */
+    shadowSeg(x0, y0, z0, x1, y1, z1, r, I = 0.4) {
+      if (ns >= shadowMax) return;
+      const h0 = Math.max(0, z0 - floorZ), h1 = Math.max(0, z1 - floorZ), h = (h0 + h1) / 2, k = 1 - Math.min(0.75, h / 700);
+      if (I * k < 0.01) return;
+      sdata.set([x0 + SLANT[0] * h0, y0 + SLANT[1] * h0, x1 + SLANT[0] * h1, y1 + SLANT[1] * h1, r, r, 4 + h * 0.09, floorZ, 1, 1, 1, I * k, 0, 0, 0.5, 0], ns * F);
       ns++;
     },
     /** The body art: centred (x, y), its long axis at a, w x h µm (the whole image), depth z, intensity, the Chlorella's shade. */

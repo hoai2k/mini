@@ -1458,34 +1458,40 @@ function resolveCells(dt) {
   for (const c of cells) c.touchT = Math.max(0, (c.touchT || 0) - dt);
   contactLog.pairs = 0; contactLog.depth = 0;
   const moved = new Set();
+  let rnd = 0;
   const settle = (A, B, onA, onB) => {
-    for (let it = 0; it < 2; it++) {
+    for (let it = 0; it < 4; it++) {
       const r = resolvePair(A, B, CONTACT_OUT);
       if (!r) return it > 0;
-      if (!it) { contactLog.pairs++; contactLog.depth = Math.max(contactLog.depth, r.depth); }
+      if (!it && !rnd) { contactLog.pairs++; contactLog.depth = Math.max(contactLog.depth, r.depth); }
       onA(r.shiftA.x, r.shiftA.y); onB(r.shiftB.x, r.shiftB.y);
     }
     return true;
   };
-  if (chaos.on) {
-    const cb = chaos.body;
-    for (const c of live) {
-      const b = c.body;
-      if (Math.hypot(b.cx - cb.cx, b.cy - cb.cy) > cb.req * 2.6 + b.req + 200) continue;
-      if (settle(b, cb, (x, y) => moveCell(c, x, y), (x, y) => chaos.translate(x, y))) { c.touchT = 0.6; moved.add(c); moved.add(chaos); }
+  // twice: a correction that made a ring cross itself is undone by untangle(), so the pairs are settled again after it
+  for (let round = 0; round < 2; round++) {
+    rnd = round;
+    if (chaos.on) {
+      const cb = chaos.body;
+      for (const c of live) {
+        const b = c.body;
+        if (Math.hypot(b.cx - cb.cx, b.cy - cb.cy) > cb.req * 2.6 + b.req + 200) continue;
+        if (settle(b, cb, (x, y) => moveCell(c, x, y), (x, y) => chaos.translate(x, y))) { c.touchT = 0.6; moved.add(c); moved.add(chaos); }
+      }
+    }
+    for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {
+      const a = live[i], b = live[j];
+      if (Math.hypot(a.body.cx - b.body.cx, a.body.cy - b.body.cy) > a.body.req + b.body.req + 700) continue;
+      if (settle(a.body, b.body, (x, y) => moveCell(a, x, y), (x, y) => moveCell(b, x, y))) { moved.add(a); moved.add(b); }
+    }
+    for (const o of moved) {
+      const b = o === chaos ? chaos.body : o.body;
+      b.untangle(); b.centroid();
     }
   }
-  for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {
-    const a = live[i], b = live[j];
-    if (Math.hypot(a.body.cx - b.body.cx, a.body.cy - b.body.cy) > a.body.req + b.body.req + 700) continue;
-    if (settle(a.body, b.body, (x, y) => moveCell(a, x, y), (x, y) => moveCell(b, x, y))) { moved.add(a); moved.add(b); }
-  }
+  for (const o of moved) { const b = o === chaos ? chaos.body : o.body; b.grid.build(b.x, b.y, N); }
   // a ring closing round you holds your pseudopods in too
   if (chaos.closing && chaos.ringOf && chaos.ringOf.cell) chaos.ringOf.cell.touchT = Math.max(chaos.ringOf.cell.touchT || 0, 0.3);
-  for (const o of moved) {
-    const b = o === chaos ? chaos.body : o.body;
-    b.untangle(); b.centroid(); b.grid.build(b.x, b.y, N);
-  }
 }
 /** Chaos's cup closed round cell c: engulfed (strike, hold, eat, follow, fade, respawn). */
 function startEngulf(c) {
@@ -2681,6 +2687,8 @@ window.__micro = {
   contact: () => ({ ...contactLog, now: (() => { const bs = [...cells.filter((c) => !c.p.waiting && !(c.caught.active && c.FC.by === 'chaos')).map((c) => c.body), ...(chaos.on ? [chaos.body] : [])]; let n = 0, depth = 0; for (let i = 0; i < bs.length; i++) for (let j = i + 1; j < bs.length; j++) { const o = overlap(bs[i], bs[j]); n += o.n; depth = Math.max(depth, o.depth); } return { n, depth: +depth.toFixed(2) }; })() }),
   /** Chaos's ring round its target: null, or { cover, gap (deg), closing (s into its X, or null), slot }. */
   ring: () => (chaos.ring && chaos.ringOf ? { cover: +chaos.ring.cover.toFixed(2), gap: Math.round(chaos.ring.gap * 57.3), closing: chaos.closing ? +chaos.closing.t.toFixed(2) : null, slot: chaos.ringOf.cell.slot, state: chaos.state, fs: chaos.fs } : null),
+  /** Test hook: another local player joins (as a controller would), with a cell. Returns its slot. */
+  addPlayer() { const r = players.toJSON(); const slot = r.length; players.fromJSON([...r, { slot, padIndex: slot }]); syncCells(); return slot; },
   /** Test hook: Chaos wakes now and makes for player `slot` (its fight from the stalk). */
   wakeChaos() { chaos.state = 'fight'; chaos.fight.reset(); chaos.fs = 'stalk'; chaos.notice = 0; },
   /** Test hook: put Chaos (whole, granules and all) centred at (x, y) µm, and make that its post. */

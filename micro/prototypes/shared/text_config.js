@@ -1578,7 +1578,7 @@ export const TEXT = {
         },
       },
       title: 'Amoeba',
-      sub: 'Amoeba proteus (~450 µm) on a wet-mount slide. Push out pseudopods, chase down ciliates, cup round them and fill in. Mind the fungal traps; the way on is guarded.',
+      sub: 'Amoeba proteus (~450 µm) on a wet-mount slide. Push out pseudopods, chase down ciliates, cup round them and fill in. Mind the fungal traps, and the giant amoeba lying beside the way on.',
     },
     corner: {
       ltRounding: ' · LT: rounding up',

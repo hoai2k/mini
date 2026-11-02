@@ -140,6 +140,8 @@ export class Chaos {
     const input = { pods: [{ m: 0, dx: 1, dy: 0 }, { m: 0, dx: 1, dy: 0 }], push: 0, spread: 0, body: null };
     let tgt = null, td = Infinity;
     for (const p of players) { if (!p.active) continue; const d = Math.hypot(p.x - b.cx, p.y - b.cy); if (d < td) { td = d; tgt = p; } }
+    // the one it is ringing, as they are this step
+    if (this.ringOf) this.ringOf = players.find((q) => q.cell === this.ringOf.cell) || this.ringOf;
     // a ring in progress stays on whoever it is round
     if (this.closing && this.ringOf && this.ringOf.active) { tgt = this.ringOf; td = Math.hypot(tgt.x - b.cx, tgt.y - b.cy); }
     this.target = tgt;

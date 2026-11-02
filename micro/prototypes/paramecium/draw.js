@@ -72,13 +72,13 @@ function drawSpirogyra(G, f, ox, oy, rect, t, lod = 1) {
   const zAt = (u) => f.z0 + (f.z1 - f.z0) * (u / L);
   const P = (u, v) => [ax + dx * u + px * v, ay + dy * u + py * v];
   const r = f.r;
+  { const [p1, p2] = P(u0, 0), [q1, q2] = P(u1, 0); G.shadowSeg(p1, p2, zAt(u0), q1, q2, zAt(u1), r, 0.3); }
   // the body's faint green and the walls, in pieces (its depth changes along it)
   const STEP = 120;
   for (let u = u0; u < u1; u += STEP) {
     const ue = Math.min(u1, u + STEP), z = zAt((u + ue) / 2);
     const [a1, a2] = P(u, 0), [b1, b2] = P(ue, 0);
     G.line(a1, a2, b1, b2, r * 0.92, z, [0.42, 0.62, 0.12], 0.085 * f.shade, 3);
-    G.shadow(a1, a2, Math.atan2(b2 - a2, b1 - a1), Math.hypot(b1 - a1, b2 - a2), -r, z, 0.3);
     for (const s of [-1, 1]) { const [c1, c2] = P(u, s * r), [d1, d2] = P(ue, s * r); G.line(c1, c2, d1, d2, 0.8, z, COL.white, 0.9, 0, 0.28, 3.5); }
   }
   // the cross walls between cells
@@ -335,11 +335,11 @@ export function drawTrap(G, T, t) {
 /**
  * A blow that landed on hunter F (a jab, a block): it flinches (knocked back:
  * foes.js), a white-gold flash where it was struck, sparks, and a ring round
- * it; and while it hunts, its interest over it (up: the screen's up in the
- * slide, [x, y]): one pip for each blow it can still take, the spent ones
+ * it; and while it hunts, its interest by it (up: the screen's up in the
+ * slide, [x, y]; toward: the view's centre, the side it is drawn on): one pip for each blow it can still take, the spent ones
  * hollow. A game marker over the image, like the tells.
  */
-export function drawFight(G, F, t, up = [0, 1]) {
+export function drawFight(G, F, t, up = [0, 1], toward = null) {
   if (!F.placed || F.mode === 'parked') return;
   const z = F.kind === 'giant' ? GIANT.top : F.z;
   const R = F.kind === 'giant' ? GIANT.R : F.kind === 'dileptus' ? 90 : DIDINIUM.L * 0.55;
@@ -356,7 +356,10 @@ export function drawFight(G, F, t, up = [0, 1]) {
   const hunting = F.kind === 'giant' ? !!F.target : F.mode !== 'idle' && F.mode !== 'roam' && F.mode !== 'flee' && F.mode !== 'retreat' && F.mode !== 'rest';
   if (!hunting && !((F.interest ?? 1) < 1 && F.mode !== 'flee' && F.mode !== 'retreat')) return;
   const cost = F.kind === 'giant' ? FIGHT.giantJab : FIGHT.jab, n = Math.round(1 / cost), left = Math.ceil((F.interest ?? 1) / cost - 1e-6);
-  const px = -up[1], py = up[0], cx = F.x + up[0] * (R + 34), cy = F.y + up[1] * (R + 34);
+  // over it (the screen's up), or on its side toward the view's centre (so they stay in view as it closes in)
+  let dx = up[0], dy = up[1];
+  if (toward) { const vx = toward[0] - F.x, vy = toward[1] - F.y, l = Math.hypot(vx, vy); if (l > R + 60) { dx = vx / l; dy = vy / l; } }
+  const px = up[1], py = -up[0], cx = F.x + dx * (R + 34), cy = F.y + dy * (R + 34);
   for (let i = 0; i < n; i++) {
     const o = (i - (n - 1) / 2) * 13, x = cx + px * o, y = cy + py * o;
     if (i < left) G.disc(x, y, 3.6, z, COL.red, 0.9, 0.6, 0.7, 4);
