@@ -327,7 +327,7 @@ body:has(#pause:not([hidden])) .controls-card { z-index: 26; }
 .scroll h3 { margin: 16px 0 6px; font: 700 .66rem/1 var(--sans); letter-spacing: .22em; text-transform: uppercase; color: var(--brass-lo); }
 .scroll p { margin: 0 0 8px; font-size: .92rem; }
 .credits { text-align: center; }
-.credits-game { font: 600 1.5rem/1.2 var(--serif, 'Cormorant Garamond', serif); margin: 4px 0 10px !important; }
+.scroll .credits-game { font: 600 1.7rem/1.2 var(--serif); margin: 4px 0 12px; }
 .credits-list { list-style: none; margin: 0 0 8px; padding: 0; }
 .credits-list li { display: flex; flex-direction: column; margin: 0 0 8px; font-size: .95rem; }
 .credits-list li span + span { font-size: .78rem; color: var(--brass-lo); letter-spacing: .04em; }
