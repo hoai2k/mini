@@ -572,7 +572,7 @@ GROUPS = [
                 "used": "The title screen, the pause menu header and the library card.",
                 "standin": "The words MICRO ZOOM set in the game's display font.",
                 "refs": ref("springtail-swarm", "tardigrade-light"),
-                "prompt": f"{GAMEUI} A game title logo: the words \"MICRO ZOOM\" in capitals, spelled exactly M-I-C-R-O Z-O-O-M, in an elegant engraved serif with brass inlay and a thin ink outline, the O of ZOOM drawn as a microscope objective lens seen end-on with concentric brass rings and a tiny tardigrade silhouette inside. A fine engraved scale rule underlines the words. Wide landscape composition, even margins, no other text, no watermark. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+                "prompt": f"{GAMEUI} A game title logo: the words \"MICRO ZOOM\" in capitals, spelled exactly M-I-C-R-O Z-O-O-M, in an elegant engraved serif with brass inlay and a thin ink outline, the O of MICRO drawn as a microscope objective lens seen end-on with concentric brass rings and a tiny tardigrade silhouette inside. A fine engraved scale rule underlines the words. Wide landscape composition, even margins, no other text, no watermark. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
             },
             {
                 "id": "MP-G02", "status": "delivered", "name": "Title screen key art",
