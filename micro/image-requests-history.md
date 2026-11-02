@@ -2,7 +2,7 @@
 
 Every image request that has been delivered, with its prompt and reference images, for the record. Open requests are in [`image-requests.md`](image-requests.md). Generated from `design/source/build_requests.py`; a request moves here when its status is set to `delivered`.
 
-81 delivered.
+82 delivered.
 
 ## Launcher cards
 
@@ -505,6 +505,22 @@ Macro-photography look: a real photograph through a macro lens at 2 to 5 times l
 Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. A 4 by 4 grid of sixteen frames, each centred in its own cell with clear space around it, showing one raindrop hitting still dark water from directly above in sequence: the falling drop, the crater, the crown splash, the rebound jet, then expanding concentric ripple rings that grow and fade. Same scale in every frame, the drop about 3 mm across. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
 ```
 
+### MP-S06 · Bog pondweed floating leaf plate
+
+- **File:** `micro/prototypes/assets/springtail/pondweed-leaf.png`
+- **Size:** 1536 x 768, transparent
+- **Used for:** The floating leaves of bog pondweed that grow thick round each portal raft (the wolf spiders' hunting grounds) and only here and there elsewhere: a sign that the way on is a few seconds off. Mapped onto each leaf from above.
+- **Stand-in until delivered:** Procedural smooth, glossy fresh-green leaves with a soft yellow-green rim, a pale midrib and parallel veins, some faintly flushed red.
+- **Status:** delivered
+- **Reference images:**
+  - [Scottish Sphagnum bog pool; habitat analogue, not Simmelried documentation.](research/assets/references/production/bog-pool.jpg) · JarroNevsbaru, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg)
+  - [Moss habitat structure; use leaf architecture as environmental reference.](research/assets/references/moss.jpg) · HermannSchachner, CC0 · [source](https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG)
+  - Concept board (mood only): [`01-moss-frontier.webp`](research/assets/concepts/01-moss-frontier.webp)
+
+```text
+Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. One floating leaf of bog pondweed (Potamogeton polygonifolius) seen from directly above, isolated, its long axis left to right filling the frame: a smooth, leathery elliptic blade about 30 mm long and 12 mm wide with a blunt tip, fresh mid green with a soft yellow-green margin and only a faint reddish flush near the base, a glossy waxy surface with a soft sheen and no water droplets, a pale midrib and fine curved parallel veins running tip to base, the short stalk at the left edge. It must read as a calm, harmless floating leaf, nothing like a sundew: no hairs, no tentacles, no glistening drops, no red rim. Even soft daylight, the whole leaf in focus. No insect on it. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.
+```
+
 ## Bacterium (phase contrast and fluorescence)
 
 Images for the run-and-tumble bacterium prototype (Level 5), at 1000x oil immersion, the limit of the light microscope. The bacterium and its enemies are built in code; these supply the sediment background, the biofilm, a looming grazer and a fluorescence texture. Nothing here may show more detail than the optics can resolve.
@@ -761,7 +777,7 @@ Art for the full game (micro/game/): title screen, menu, cards and the intro scr
   - [Light-microscope photograph; phone-camera filtering is part of the source image.](research/assets/references/tardigrade-light.png) · Dorathyexplorer, CC BY 4.0 · [source](https://commons.wikimedia.org/wiki/File:BeautifulTardigrade.png)
 
 ```text
-Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A game title logo: the words "MICRO ZOOM" in capitals, spelled exactly M-I-C-R-O Z-O-O-M, in an elegant engraved serif with brass inlay and a thin ink outline, the O of ZOOM drawn as a microscope objective lens seen end-on with concentric brass rings and a tiny tardigrade silhouette inside. A fine engraved scale rule underlines the words. Wide landscape composition, even margins, no other text, no watermark. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
+Visual style for the game Micro Zoom: a Victorian natural-history laboratory seen through clean modern editorial design. Brass microscope fittings, engraved scale rules and vernier marks, aged ivory paper, specimen-slide labels, copperplate details, deep ink green, oxblood and brass accents, soft natural light. Scientific and a little steampunk, never technological: no screens, no holograms, no neon, no circuitry. A game title logo: the words "MICRO ZOOM" in capitals, spelled exactly M-I-C-R-O Z-O-O-M, in an elegant engraved serif with brass inlay and a thin ink outline, the O of MICRO drawn as a microscope objective lens seen end-on with concentric brass rings and a tiny tardigrade silhouette inside. A fine engraved scale rule underlines the words. Wide landscape composition, even margins, no other text, no watermark. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.
 ```
 
 ### MP-G02 · Title screen key art

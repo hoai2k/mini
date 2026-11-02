@@ -421,7 +421,7 @@ GROUPS = [
                 "prompt": f"{MACRO} A 4 by 4 grid of sixteen frames, each centred in its own cell with clear space around it, showing one raindrop hitting still dark water from directly above in sequence: the falling drop, the crater, the crown splash, the rebound jet, then expanding concentric ripple rings that grow and fade. Same scale in every frame, the drop about 3 mm across. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. {SCIENCE}",
             },
             {
-                "id": "MP-S06", "status": "requested", "name": "Bog pondweed floating leaf plate",
+                "id": "MP-S06", "status": "delivered", "name": "Bog pondweed floating leaf plate",
                 "file": "assets/springtail/pondweed-leaf.png", "size": "1536 x 768, transparent",
                 "used": "The floating leaves of bog pondweed that grow thick round each portal raft (the wolf spiders' hunting grounds) and only here and there elsewhere: a sign that the way on is a few seconds off. Mapped onto each leaf from above.",
                 "standin": "Procedural smooth, glossy fresh-green leaves with a soft yellow-green rim, a pale midrib and parallel veins, some faintly flushed red.",
@@ -572,7 +572,7 @@ GROUPS = [
                 "used": "The title screen, the pause menu header and the library card.",
                 "standin": "The words MICRO ZOOM set in the game's display font.",
                 "refs": ref("springtail-swarm", "tardigrade-light"),
-                "prompt": f"{GAMEUI} A game title logo: the words \"MICRO ZOOM\" in capitals, spelled exactly M-I-C-R-O Z-O-O-M, in an elegant engraved serif with brass inlay and a thin ink outline, the O of ZOOM drawn as a microscope objective lens seen end-on with concentric brass rings and a tiny tardigrade silhouette inside. A fine engraved scale rule underlines the words. Wide landscape composition, even margins, no other text, no watermark. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
+                "prompt": f"{GAMEUI} A game title logo: the words \"MICRO ZOOM\" in capitals, spelled exactly M-I-C-R-O Z-O-O-M, in an elegant engraved serif with brass inlay and a thin ink outline, the O of MICRO drawn as a microscope objective lens seen end-on with concentric brass rings and a tiny tardigrade silhouette inside. A fine engraved scale rule underlines the words. Wide landscape composition, even margins, no other text, no watermark. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration.",
             },
             {
                 "id": "MP-G02", "status": "delivered", "name": "Title screen key art",
