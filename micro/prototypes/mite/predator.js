@@ -16,8 +16,8 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 const TOUCH = 480;        // µm (centre to centre): senses the prey by touch / near contact
 const VIBRATION = 950;    // µm: senses a scrambling prey
 const LOSE = 1500;
-const SPEED = 600;        // µm/s hunting (the 0.35 mm player walks ~420, hurries ~590, scrambles ~750; game speeds)
-const SCRAMBLE = 600;     // µm/s: prey moving faster than this is felt from VIBRATION away
+const SPEED = 600;        // µm/s: its base pace (wandering at 0.45 of it); hunting it runs at ai.chase (main.js sets it per encounter: 760, 900, 1020)
+const SCRAMBLE = 600;     // µm/s: prey moving faster than this (a scramble, or a walk past ~half tilt) is felt from ai.vibration away
 const STRIKE = 200;       // µm from its chelicerae to the prey's body centre
 const STRIKE_EVERY = 1.2;
 
@@ -50,6 +50,8 @@ export function createPredatorAI(pred, zone) {
     /** Is the prey on its ground (where it notices and hunts)? */
     onGround(p, margin = 0) { return fromHome(p) < zone.r + margin; },
     state: 'wander', t: 0, cool: 0, recoil: 0, tries: 0, bored: 0, ang: 0.6, dist: 9999, t2: 0, rear: 0, groom: 0, groomT: 5,
+    /** Hunting speed (µm/s) and how far a fast-moving prey is felt (µm): raised each time it is met again (main.js placePred). */
+    chase: SPEED, vibration: VIBRATION,
     reset(x, z) { pred.place(x, z, 2.6); ai.state = 'wander'; ai.cool = 2; ai.tries = 0; ai.bored = 4; ai.rear = 0; ai.t2 = 0; },
     get attacking() { return ai.state === 'windup' || ai.state === 'strike'; },
     /** A nip, or a blocked strike: stagger back. */
@@ -87,12 +89,12 @@ export function createPredatorAI(pred, zone) {
           ai.groomT -= dt;
           if (ai.groomT <= 0) { ai.groom = 1.8; ai.groomT = 7 + Math.random() * 6; }
           if (ai.groom > 0) { ai.groom -= dt; mag = 0.02; } else { mag = 0.45; maxSpeed = SPEED * 0.45; }
-          const sensed = d < TOUCH || (d < VIBRATION && prey.speed > SCRAMBLE); // a scramble, not a walk
+          const sensed = d < TOUCH || (d < ai.vibration && prey.speed > SCRAMBLE); // a scramble, not a walk
           if (sensed && onGround && ai.bored <= 0 && prey.hungry !== false) { ai.state = 'hunt'; ai.groom = 0; ev.push('hunt'); }
           break;
         }
         case 'hunt': {
-          toward(); mag = 1;
+          toward(); mag = 1; maxSpeed = ai.chase;
           if (d > LOSE || !ai.onGround(them, 650)) { ai.state = 'wander'; ev.push('lost'); break; }
           if (prey.hungry === false) { ai.state = 'wander'; ai.bored = 4; ai.ang += Math.PI; ev.push('sated'); break; }
           if (mouthD < STRIKE + 130) mag = 0.25;

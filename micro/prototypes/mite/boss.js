@@ -212,7 +212,7 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250, leas
         if (!tgt) break;
         targetA = toT;
         // it keeps its distance: just inside pincer reach
-        targetV = bd > REACH - 100 ? 240 : bd < 1900 ? -200 : 0;
+        targetV = bd > REACH - 100 ? 360 : bd < 1900 ? -280 : 0; // (2026-11-02: up from 240 / -200 with the faster walk)
         st.open += (0.25 - st.open) * Math.min(1, dt * 3);
         st.lower = Math.max(0, st.lower - dt * 2);
         // lured too far from its post, or its target got away: it walks back to guard it
@@ -264,7 +264,7 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250, leas
       }
       case 'return': {
         const dp = Math.hypot(post.x - st.x, post.z - st.z);
-        targetA = Math.atan2(post.z - st.z, post.x - st.x); targetV = dp > 40 ? 260 : 0;
+        targetA = Math.atan2(post.z - st.z, post.x - st.x); targetV = dp > 40 ? 400 : 0; // back to its post (was 260)
         settle(Math.min(1, dt * 3)); st.lower = Math.max(0, st.lower - dt * 2);
         if (dp < 60) { st.x = post.x; st.z = post.z; go('dormant'); ev.push({ type: 'guard' }); break; }
         // someone close again while it is still near enough its post: it turns on them

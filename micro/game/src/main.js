@@ -405,7 +405,7 @@ function ghost(id) {
   el.classList.add('ghost');
   return () => { el.classList.remove('ghost'); el.hidden = S.screen !== id; };
 }
-const SLIDE = { duration: 540, easing: 'cubic-bezier(.22,.72,.2,1)', fill: 'both' };
+const SLIDE = { duration: 560, easing: 'cubic-bezier(.3,.15,.15,1)', fill: 'both' };
 const settle = (anims) => Promise.all(anims.map((a) => a.finished.catch(() => {})));
 async function openIntro() {
   if (S.zooming) return;
@@ -469,7 +469,7 @@ async function openIntro() {
   } else {
     const plateIn = () => art.animate([{ opacity: 0, translate: '38% 0' }, { opacity: 1, offset: 0.55 }, { opacity: 1, translate: '0 0' }], SLIDE);
     anims = [
-      menu.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: 'ease-out', fill: 'both' }),
+      menu.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 440, easing: 'ease-in-out', fill: 'both' }),
       shade.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 420, easing: 'ease-out', fill: 'both' }),
       panel.animate([{ opacity: 0, translate: 'calc(-100% - 48px) 0' }, { opacity: 1, offset: 0.4 }, { opacity: 1, translate: '0 0' }], SLIDE),
     ];
@@ -497,7 +497,7 @@ async function closeIntro() {
   const unghost = ghost('intro');
   intro.classList.add('tx');
   S.zooming = true;
-  const out = { duration: 440, easing: 'cubic-bezier(.5,0,.75,.3)', fill: 'both' };
+  const out = { duration: 460, easing: 'cubic-bezier(.45,0,.6,1)', fill: 'both' };
   const anims = reduced()
     ? [intro.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: 'both' }),
       menu.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, delay: 120, easing: 'ease-out', fill: 'both' })]
@@ -505,7 +505,7 @@ async function closeIntro() {
       panel.animate([{ opacity: 1, translate: '0 0' }, { opacity: 1, offset: 0.6 }, { opacity: 0, translate: 'calc(-100% - 48px) 0' }], out),
       art.animate([{ opacity: 1, translate: '0 0' }, { opacity: 1, offset: 0.45 }, { opacity: 0, translate: '38% 0' }], out),
       shade.animate([{ opacity: 1 }, { opacity: 0 }], { ...out, easing: 'ease-in' }),
-      menu.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380, delay: 260, easing: 'ease-out', fill: 'both' }),
+      menu.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380, delay: 200, easing: 'ease-out', fill: 'both' }),
     ];
   await settle(anims);
   for (const a of anims) a.cancel();

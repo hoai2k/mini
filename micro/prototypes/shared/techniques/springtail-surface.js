@@ -30,6 +30,11 @@
 //    broad sun lobe so the film reads as a glossy sheet, a raised meniscus
 //    rim where the water meets a shore (shoreGlsl), and the player's drop
 //    shadow (springtail-macro's dropShadow) laid on the film itself.
+//    Columns of light (shared/portal.js createPortalColumn) are reflected in
+//    the film: up to four vertical shafts in uniforms uCol[i] = (x, z, radius,
+//    strength), uColH their height and uColGold their colour (strength 0: off).
+//    Seen low over the water, a column out of frame above still lays a long
+//    golden path across the film toward it, as a low sun does.
 //  - waterGeometry(): a flat grid, fine in the middle and coarse far out, to
 //    centre under the camera so the water reaches the horizon.
 //
@@ -549,7 +554,28 @@ uniform float uFieldSize, uFieldTexel, uRippleK, uFloorScale, uCaustics, uShowSu
 uniform vec2 uFieldOrigin;
 uniform sampler2D uSurfTex;
 uniform vec3 uAbsorb;
+uniform vec4 uCol[4];
+uniform float uColH;
+uniform vec3 uColGold;
 varying vec3 vWorld;
+// the columns of light seen along the reflected ray R from P (each a soft vertical shaft)
+vec3 columnsSeen(vec3 P, vec3 R) {
+  vec3 c = vec3(0.0);
+  vec2 Rh = R.xz;
+  float rr = max(dot(Rh, Rh), 1e-6);
+  for (int i = 0; i < 4; i++) {
+    vec4 k = uCol[i];
+    if (k.w <= 0.0) continue;
+    vec2 d = k.xy - P.xz;
+    float t = dot(d, Rh) / rr;
+    if (t <= 0.0) continue;
+    float y = (P.y + R.y * t) / uColH;
+    if (y <= 0.0 || y >= 1.0) continue;
+    float x = length(P.xz + Rh * t - k.xy) / k.z;
+    c += uColGold * k.w * exp(-x * x * 2.2) * (0.3 + 0.7 * exp(-y * 4.0)) * pow(1.0 - y, 1.4);
+  }
+  return c;
+}
 POOL_DEPTH
 SHORE_DIST
 vec2 fieldUv(vec2 p) { return (p - uFieldOrigin) / uFieldSize + 0.5; }
@@ -600,6 +626,8 @@ void main() {
   // a sharp sun disc (glints that bloom into bokeh) and a soft halo
   float sharp = mix(1800.0, 4000.0, surf);
   refl += uSunCol * (pow(sunA, sharp) * 40.0 + pow(sunA, 120.0) * 0.6 + pow(sunA, 14.0) * 0.18 * uSheen);
+  // columns of light (portals), reflected
+  if (uColH > 0.0) refl += columnsSeen(P, R);
   // refraction to the floor
   vec3 T = refract(-V, N, 1.0 / 1.333);
   float depth = poolDepth(p);
@@ -680,6 +708,10 @@ export function waterMaterial({ field, dimples, depthGlsl, shoreGlsl = 'float sh
     uSurfTex: { value: surfTex },
     uHasSurfTex: { value: surfTex ? 1 : 0 },
     uAbsorb: { value: new THREE.Vector3(0.1, 0.19, 0.4) },
+    // columns of light to reflect: (x, z, radius, strength) each, strength 0 off; uColH 0: none
+    uCol: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, 0, 1, 0)) },
+    uColH: { value: 0 },
+    uColGold: { value: new THREE.Vector3(4.2, 2.4, 0.75) },
   };
   return new THREE.ShaderMaterial({
     uniforms,

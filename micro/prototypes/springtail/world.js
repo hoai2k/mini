@@ -797,10 +797,17 @@ function buildSundews(group, rnd, sundewTex) {
 /**
  * The floating leaves of bog pondweed (PONDWEED): one instanced mesh per
  * portal's patch (culled as one by the views that cannot see it), and the
- * strays in 300 mm tiles. A leaf is a leathery ellipse lying flat on the film, a little
- * domed, olive green flushed wine red toward the rim, with a pale midrib and
- * fine parallel veins converging on the tip; glossy (a waxy cuticle). MP-S06,
- * when delivered, is laid over it from above.
+ * strays in 300 mm tiles. Drawn to read at a glance as a calm, harmless
+ * plant, nothing like a sundew (the owner, 2026-11-02: "I wasn't sure when I
+ * saw it if it was a dangerous plant or not"): a smooth, glossy, broad oval
+ * lying flat on the film, a little domed, fresh green with a soft
+ * yellow-green margin, fine pale parallel veins converging on the tip and a
+ * pale midrib; about one leaf in four faintly flushed red toward its base
+ * (true of P. polygonifolius in acid water). No hairs, no tentacles, no
+ * droplets, no red rim. Round each raft a few flower spikes stand up out of
+ * the water (`spikes`: a slender green stalk and a dense cylindrical spike
+ * of tiny green-brown flowers), one more mesh per portal patch. MP-S06, when
+ * delivered, is laid over the leaf from above.
  */
 function buildPondweed(group, leafTex) {
   const N = 30, pos = [0, 0.14, 0], idx = [];
@@ -823,29 +830,52 @@ function buildPondweed(group, leafTex) {
     void surface(inout Surf s) {
       float ex = clamp(1.0 - vLocal.x * vLocal.x, 0.03, 1.0);
       float u = vLocal.z / sqrt(ex);
-      float vein = smoothstep(0.8, 1.0, abs(sin(u * 10.0)));
+      // fine parallel veins converging on the tip, pale (light through the leaf), and a pale midrib
+      float vein = smoothstep(0.86, 1.0, abs(sin(u * 11.0)));
       float mid = 1.0 - smoothstep(0.025, 0.07, abs(vLocal.z) / sqrt(ex));
-      float rim = smoothstep(0.7, 1.0, length(vLocal.xz));
-      vec3 c = vColor * (0.82 + 0.3 * mNoise(vLocal.xz * 6.0 + vColor.r * 40.0));
-      c = mix(c, vec3(0.085, 0.02, 0.012), rim * 0.55);
-      c = mix(c, c * 1.35 + vec3(0.015, 0.016, 0.004), mid * 0.6);
-      c *= 1.0 - 0.2 * vein;
+      float r = length(vLocal.xz);
+      float margin = smoothstep(0.72, 0.97, r);
+      vec3 c = vColor * (0.9 + 0.2 * mNoise(vLocal.xz * 5.0 + vColor.g * 40.0));
+      // a faint red flush toward the base on some leaves (their colour leans red)
+      float flush = smoothstep(0.55, 0.75, vColor.r / max(vColor.g, 1e-3)) * smoothstep(0.1, -0.9, vLocal.x);
+      c = mix(c, vec3(0.1, 0.045, 0.02), flush * 0.45);
+      // the soft yellow-green margin
+      c = mix(c, vec3(0.17, 0.21, 0.045), margin * 0.55);
+      c = mix(c, c * 1.3 + vec3(0.03, 0.04, 0.01), max(mid * 0.7, vein * 0.4));
       if (uHasLeafTex > 0.5) { vec4 t = texture2D(uLeafTex, vec2(0.5 + vLocal.x * 0.5, 0.5 - vLocal.z * 0.5)); c = mix(c, t.rgb, 0.85 * t.a); }
-      // wet and dark where it lies on the water
-      c *= mix(0.45, 1.0, smoothstep(-0.02, 0.06, vLocal.y));
-      s.N = normalize(s.N + vec3(0.0, 0.0, (vein - 0.5) * 0.06));
-      s.albedo = c; s.rough = 0.3; s.f0 = 0.04; s.wrap = 0.35; s.trans = 0.3; s.sheen = 0.1; s.sheenCol = vColor;
+      // a little darker where it lies wet on the water
+      c *= mix(0.7, 1.0, smoothstep(-0.02, 0.06, vLocal.y));
+      s.N = normalize(s.N + vec3(0.0, 0.0, (vein - 0.5) * 0.04));
+      // smooth and glossy: a waxy cuticle that catches the sky
+      s.albedo = c; s.rough = 0.16; s.f0 = 0.05; s.wrap = 0.35; s.trans = 0.45; s.sheen = 0.05; s.sheenCol = vColor;
     }`,
   });
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), col = new THREE.Color(), e = new THREE.Euler();
-  // olive to bronze and wine red (the floating leaves of bog pondweed are often flushed red in acid water)
-  const palette = [[0.04, 0.05, 0.009], [0.055, 0.042, 0.01], [0.07, 0.025, 0.01], [0.035, 0.046, 0.01], [0.062, 0.035, 0.009]];
+  // fresh greens; the last leans red (its base flushes, ~1 leaf in 4)
+  const palette = [[0.05, 0.13, 0.02], [0.065, 0.15, 0.024], [0.045, 0.115, 0.018], [0.075, 0.14, 0.022], [0.085, 0.13, 0.022]];
   let seed = 5150;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  // the flower spikes: one lathe, a slender stalk then a knobbly cylindrical spike (mm)
+  const prof = [[0.001, 0], [0.32, 0], [0.3, 6], [0.34, 9.6], [0.95, 10.2], [1.15, 11], [1.15, 16.5], [0.9, 17.6], [0.45, 18.3], [0.001, 18.5]];
+  const spikeGeo = new THREE.LatheGeometry(prof.map(([x, y]) => new THREE.Vector2(x, y)), 10);
+  {
+    // the tiny flowers: bumps over the spike
+    const sp = spikeGeo.attributes.position;
+    for (let i = 0; i < sp.count; i++) {
+      const x = sp.getX(i), y = sp.getY(i), z = sp.getZ(i);
+      if (y < 10.4 || y > 18) continue;
+      const a = Math.atan2(z, x), k = 1 + 0.16 * Math.sin(a * 5 + y * 2.1) * Math.sin(y * 4.4);
+      sp.setXYZ(i, x * k, y, z * k);
+    }
+    spikeGeo.computeVertexNormals();
+  }
+  const spikeMat = litMaterial({
+    surface: `s.albedo = vLocal.y < 10.0 ? vec3(0.05, 0.1, 0.02) : mix(vec3(0.07, 0.085, 0.02), vec3(0.11, 0.08, 0.03), mNoise(vLocal.xy * 3.0 + vLocal.z)); s.rough = 0.55; s.wrap = 0.4; s.trans = 0.3;`,
+  });
   const patches = new Map();
   // a patch per portal; the strays in 300 mm tiles (so the views cull them too)
   for (const w of PONDWEED) { const key = w.portal >= 0 ? w.portal : `s${Math.floor(w.x / 300)},${Math.floor(w.z / 300)}`; if (!patches.has(key)) patches.set(key, []); patches.get(key).push(w); }
-  const meshes = [];
+  const meshes = [], spikes = [];
   for (const [portal, list] of patches) {
     const im = new THREE.InstancedMesh(geo, mat, list.length);
     list.forEach((w, i) => {
@@ -859,9 +889,26 @@ function buildPondweed(group, leafTex) {
     im.userData.portal = typeof portal === 'number' ? portal : -1;
     group.add(im);
     meshes.push(im);
+    if (typeof portal !== 'number') continue;
+    // a few flower spikes near the raft, each rising beside a leaf's base
+    const P = PORTALS[portal];
+    const near = list.filter((w) => Math.hypot(w.x - P.x, w.z - P.z) < PORTAL_R + 34).slice(0, 5);
+    if (!near.length) continue;
+    const sm = new THREE.InstancedMesh(spikeGeo, spikeMat, near.length);
+    near.forEach((w, i) => {
+      const bx = w.x - Math.cos(w.a) * w.L * 0.56, bz = w.z - Math.sin(w.a) * w.L * 0.56;
+      q.setFromEuler(e.set((rnd() - 0.5) * 0.25, rnd() * 6.28, (rnd() - 0.5) * 0.25));
+      const k = 0.8 + rnd() * 0.4;
+      m4.compose(new THREE.Vector3(bx, -0.2, bz), q, new THREE.Vector3(k, k, k));
+      sm.setMatrixAt(i, m4);
+    });
+    sm.computeBoundingSphere();
+    sm.userData.portal = portal;
+    group.add(sm);
+    spikes.push(sm);
   }
   return {
-    meshes, material: mat,
+    meshes, spikes, material: mat,
     setTexture(t) { mat.uniforms.uLeafTex.value = t; mat.uniforms.uHasLeafTex.value = t ? 1 : 0; },
   };
 }

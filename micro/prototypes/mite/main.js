@@ -16,7 +16,8 @@ import { mountHud } from '../shared/hud.js';
 import { createSem, shared, MODES, CLS, gMaterial } from './sem.js';
 import { semTextures } from './textures.js';
 import { buildWorld, floorH, TILE } from './world.js';
-import { RINGS, PORTAL_CLEAR, CLUSTER, CLUSTERS, PRED_GROUND, BOSS, OPENING, NPC_HOME, predZoneAt, distFromStart, bearingFromStart, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, BOUNDS } from './layout.js';
+import { RINGS, PORTAL_CLEAR, CLUSTER, CLUSTERS, PRED_GROUND, BOSS, OPENING, NPC_HOME, predZoneAt, distFromStart, bearingFromStart, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, BOUNDS, DRIP, FAMILY } from './layout.js';
+import { createAmbient, createBeads, createDrops } from './life.js';
 import { createDirector } from '../shared/director.js';
 import { createQuality } from '../shared/quality.js';
 import { createMite, CFG, PRED, JUMP } from './mite.js';
@@ -82,6 +83,14 @@ mite.place(0, 0, 0.3);
 sem.warm(scene, camera);
 const npc = createMite(scene, world.colliders, { cls: CLS.NPC, tex, scale: MITE_SCALE });
 npc.place(NPC_HOME.x, NPC_HOME.z, 2.2);
+// The box-mite family (the first encounter, placed by the director): three
+// more box mites grazing together, which close up as you come. Parked hidden
+// until placed.
+const family = { home: null, mites: Array.from({ length: FAMILY.n }, (_, i) => {
+  const m = createMite(scene, world.colliders, { cls: CLS.NPC, tex, scale: MITE_SCALE * [1.05, 0.9, 0.78][i % 3] });
+  m.setVisible(false);
+  return { m, ai: { ang: i * 2.1, t: i * 3.3, scared: 0, pause: i * 4 }, input: { dir: new THREE.Vector3(), mag: 0, maxSpeed: 150 * MITE_SCALE, hold: false } };
+}) };
 // The predator: a parasitid (Mesostigmata), pale, long-legged, hunting by touch.
 const pred = createMite(scene, world.colliders, { cls: CLS.NPC, tex, anat: PRED });
 // It hunts on its own ground, placed by the encounter director (placeEncounter:
@@ -1167,7 +1176,7 @@ function puffDust(m, n = 10, k = 1) {
     const d = dustP[dustI++ % DUST], a = (i / n) * Math.PI * 2 + Math.random() * 0.5;
     d.p.set(c.x + Math.cos(a) * 90, y, c.z + Math.sin(a) * 90);
     d.v.set(Math.cos(a), 0, Math.sin(a)).multiplyScalar((250 + Math.random() * 300) * k).add(new THREE.Vector3(0, (200 + Math.random() * 300) * k, 0));
-    d.t = 0; d.r = 5 + Math.random() * 10 * k;
+    d.t = 0; d.r = (9 + Math.random() * 14) * k;
   }
 }
 function kickDust(m, n = 2) {
@@ -1356,7 +1365,7 @@ function tick(dt, inputs) {
     if (cs.active && cap.who === P) input = { ...input, mag: 0 };
     const ev = mite.update(dt, input);
     if (ev.includes('jump')) puffDust(mite, 8, 0.8);
-    if (ev.includes('land')) puffDust(mite, 14, Math.min(1.4, 0.6 + (mite.st.landV || 0) / 5000));
+    if (ev.includes('land')) puffDust(mite, 18, Math.min(1.4, 0.6 + (mite.st.landV || 0) / 5000));
     if (play.dive && (ev.includes('land') || ev.includes('impact') || mite.mode === 'walk')) diveImpact();
     else if (play.dive && play.dive.target && mite.mode === 'air') {
       // homing: the dive follows its target as it moves

@@ -171,11 +171,10 @@ const hud = mountHud({
     attack: 'Graze pollen, spores and algae; at a predator, rear up and nip it; in the air, a pounce-bite (dive and nip)',
     defend: 'Hold: hunker (defend). Facing a predator, it blocks the strike; waves cannot flip you',
     special: 'Camera: top-down / back to your low view',
-    analog: 'Focus nearer / farther',
     secondary: 'Aperture wider / narrower',
     look: 'Look: low sun, overcast, stereo microscope',
     zoom: 'Magnification 1x, 2x, 3x, 5x',
-    extra: [['LS click', 'Autofocus on the springtail']],
+    extra: [['RT', 'Hold: look far (a wider view, focus out across the water; RS looks round); let go to come back'], ['LT', 'Hold: a close look (nearer, shallow focus on you)']],
   }),
   note: `Goal: head out across the pool in any direction. The challenges find you one after another, wherever you go, with a little calm water between: after a few jumps the rove beetle Stenus, then the water strider and a mass of springtails, then the rain. Then the way on opens: moss rafts under a golden sparkle out across the pool, each where floating pondweed grows thick and a wolf spider hunts, going back to its raft between hunts (follow one home). Sundews grow on islands all over the pool. Lure the spider off its raft, then get round it. The scale bar is true at the focal plane. Jumps are shown slowed ~6x and half as long as life; ripples run ~5x slower (see Features).`,
 });
@@ -236,7 +235,7 @@ const APERTURES = [2.8, 4, 5.6, 8, 11, 16, 22];
 // the low view you had. (It used to be two modes, and in top-down RS pitch
 // was ignored, so the camera stuck overhead until Y was pressed again.)
 const PITCH_MIN = 0.1, PITCH_MAX = 1.5, PITCH_TOP = 1.5, PITCH_LOW = 0.42;
-const rig = { yaw: Math.PI - Math.PI / 6, pitch: PITCH_LOW, wantPitch: PITCH_LOW, pitchLow: PITCH_LOW, get mode() { return this.wantPitch > 1.05 ? 'top' : 'low'; }, zi: 1, ai: 4, focusOff: 0, target: new THREE.Vector3(START.x, 0.25, START.z), look: 0, lens: null, dofK: 1, aim: null };
+const rig = { yaw: Math.PI - Math.PI / 6, pitch: PITCH_LOW, wantPitch: PITCH_LOW, pitchLow: PITCH_LOW, get mode() { return this.wantPitch > 1.05 ? 'top' : 'low'; }, zi: 1, ai: 4, target: new THREE.Vector3(START.x, 0.25, START.z), look: 0, lens: null, dofK: 1, aim: null };
 let lookDef = applyLook(0);
 /** Where the jump being cocked, or the one in flight, will come down (x, y, z), or null. */
 function landingPoint() {
@@ -351,8 +350,90 @@ function placeCamera(dt) {
   }
   rig.dofK += (wantK - rig.dofK) * (dt ? 1 - Math.exp(-dt * 6) : 1);
   rig.focusD = rig.focusD === undefined || !dt ? focusD : rig.focusD + (focusD - rig.focusD) * (1 - Math.exp(-dt * 8));
-  macroShared.uFocus.value = rig.focusD + rig.focusOff;
+  macroShared.uFocus.value = rig.focusD;
+  // RT / LT held (alone): look far or close (the catch, the glide, a sundew and the outro keep their cameras)
+  rig.lookFx = null;
+  const lu = !mp && !multi() && !capOn && !glide && !stuckView && !outro ? lookOf(pl.slot).u : 0;
+  const fx = lookCamera(lu, L, rig.target, rig.focusD, rig.dofK);
+  if (fx) { world.sky.position.copy(camera.position); macroShared.uFocus.value = fx.focus; rig.lookFx = fx; return fx.L; }
   return L;
+}
+
+// ---------------------------------------------------------------- looking far and close (RT / LT held)
+// The owner (2026-11-02): "holding RT focuses in the distance (a larger FOV,
+// but away from the character) ... then LT and focus closer". Held RT eases
+// (LOOK.ease s) to a wider lens (focal length down to LOOK.f mm, the camera a
+// little farther back on the same orbit) aimed out ahead over the film along
+// the view (LOOK.ahead x the camera distance), with the focal plane out there
+// and the depth of field deepened, so the plants, spiders and portal light
+// beyond you come into focus; RS still turns and tilts it. Let go and it eases
+// back. Held LT: a close look (the field narrowed to LOOK.close, focus on you,
+// the lens's own shallow depth). Each player's own: alone it moves the shared
+// camera; with company each view takes its players' look (render).
+const LOOK = { ease: 0.4, f: 38, back: 1.15, ahead: 1.6, close: 0.6 };
+const looks = [], lookForce = [];
+/** Player `slot`'s look: want (-1 close, 0, 1 far: the triggers) and u (eased, -1..1). */
+function lookOf(slot) { return looks[slot] || (looks[slot] = { want: 0, u: 0 }); }
+/** Ease every player's look toward what they hold (nothing while caught, stuck, re-forming or in the outro). */
+function easeLook(dt) {
+  for (const P of recs()) {
+    const l = lookOf(P.slot);
+    const held = lookForce[P.slot] !== undefined ? lookForce[P.slot] : l.want;
+    const w = outro || game.phase !== 'play' || ['caught', 'stuck', 'dead', 'reform'].includes(P.mode) ? 0 : held;
+    const k = dt / LOOK.ease;
+    l.u = w > l.u ? Math.min(w, l.u + k) : Math.max(w, l.u - k);
+  }
+}
+/** The look of a view: its players' strongest. */
+function viewLook(slots) {
+  let u = 0;
+  for (const s of slots) { const l = looks[s]; if (l && Math.abs(l.u) > Math.abs(u)) u = l.u; }
+  return u;
+}
+const _ld = new THREE.Vector3(), _la = new THREE.Vector3(), _dbw = new THREE.Vector2();
+/**
+ * Re-aim `camera` (placed on its orbit round `pivot`, lens L) for look u: far
+ * (u > 0) or close (u < 0). Returns { L, focus, dofK, u } (null at u = 0).
+ */
+function lookCamera(u, L, pivot, focus0, dofK0) {
+  if (Math.abs(u) < 1e-3) return null;
+  const e = THREE.MathUtils.smoothstep(Math.abs(u), 0, 1);
+  _ld.copy(camera.position).sub(pivot);
+  const s0 = _ld.length() || L.s;
+  _ld.divideScalar(s0);
+  let L2, s;
+  if (u > 0) {
+    const f = 100 + (LOOK.f - 100) * e;
+    s = s0 * (1 + (LOOK.back - 1) * e);
+    L2 = lens({ hfw: 36 * (s / f - 1), f, N: L.N });
+    // out ahead over the film, along the view
+    let fx = -_ld.x, fz = -_ld.z;
+    const n = Math.hypot(fx, fz);
+    if (n < 1e-3) { fx = -Math.cos(rig.yaw); fz = -Math.sin(rig.yaw); } else { fx /= n; fz /= n; }
+    const R = s * LOOK.ahead * e;
+    _la.set(pivot.x + fx * R, pivot.y * (1 - e), pivot.z + fz * R);
+  } else {
+    L2 = lens({ hfw: L.hfw * (1 - (1 - LOOK.close) * e), N: L.N });
+    s = s0 * (L2.s / L.s);
+    _la.copy(pivot);
+  }
+  camera.position.copy(pivot).addScaledVector(_ld, s);
+  camera.lookAt(_la);
+  camera.fov = L2.vfov(camera.aspect);
+  camera.near = Math.max(2, s - 35);
+  camera.updateProjectionMatrix();
+  camera.updateMatrixWorld();
+  let focus, dofK;
+  if (u > 0) {
+    focus = focus0 + (camera.position.distanceTo(_la) - focus0) * e;
+    // deepen (in effect: stop down) until the film from ~0.6x to ~2x the focus distance is near sharp
+    const kFar = THREE.MathUtils.clamp((L2.cocK(renderer.getDrawingBufferSize(_dbw).x) * 0.67) / 4, 1, 24);
+    dofK = dofK0 + (kFar - dofK0) * e;
+  } else {
+    focus = focus0 - (s0 - s);
+    dofK = dofK0 + (1 - dofK0) * e;
+  }
+  return { L: L2, focus, dofK, u };
 }
 
 const _v = new THREE.Vector3();
@@ -787,7 +868,7 @@ F({ id: 'look', group: 'Optics', label: 'Look (D-pad left/right)', choices: MACR
 F({ id: 'thinlens', group: 'Optics', label: 'Thin-lens macro camera', fixed: true,
   about: 'A 100 mm macro lens on a 36 mm sensor: magnification m = 36 / field width, subject distance f(1 + 1/m), field of view from the field width, effective aperture N(1 + m), total depth of field 2Nc(1 + m)/m^2 (c = 0.03 mm). At 2x and f/11 that is about 0.5 mm: the springtail is barely in focus end to end.' });
 F({ id: 'autofocus', group: 'Optics', label: 'Autofocus on the springtail', on: true,
-  about: 'The focal plane follows the springtail; LT/RT offset it. Off: focus stays at the lens\'s set distance from the orbit centre.', onChange: (v) => (opt.autofocus = v) });
+  about: 'The focal plane follows the springtail (held RT pulls it out across the water to look far; held LT, a close look). Off: focus stays at the lens\'s set distance from the orbit centre.', onChange: (v) => (opt.autofocus = v) });
 F({ id: 'jumpFocus', group: 'Optics', label: 'Focus follows the jump', on: true,
   about: 'While you cock a jump and while you are in the air, the lens racks focus to between you and where you will land, deepens the depth of field until both are acceptably sharp, and the framing leans toward the landing. No marker: the landing spot comes into focus.',
   onChange: (v) => (opt.jumpFocus = v) });
@@ -1742,12 +1823,11 @@ function readInput(dt) {
   if (ls) { const i = (rig.look + ls + MACRO_LOOKS.length) % MACRO_LOOKS.length; features.set('look', MACRO_LOOKS[i].name); hud.toast(MACRO_LOOKS[i].name); }
   if (ctl.lb.pressed()) { rig.ai = Math.max(0, rig.ai - 1); hud.toast(`f/${APERTURES[rig.ai]}`); }
   if (ctl.rb.pressed()) { rig.ai = Math.min(APERTURES.length - 1, rig.ai + 1); hud.toast(`f/${APERTURES[rig.ai]}`); }
-  const an = ctl.analog();
-  if (an) rig.focusOff = THREE.MathUtils.clamp(rig.focusOff + an * dt * 6 / ZOOMS[rig.zi], -15, 15);
-  if (ctl.stickClick.left.pressed()) { rig.focusOff = 0; hud.toast('Autofocus'); }
   const out = [];
   for (const p of players.active) {
     const c = players.controls(p.slot);
+    // held RT: look far; held LT: a close look (each player's own view)
+    lookOf(p.slot).want = c.rt() > 0.35 ? 1 : c.lt() > 0.35 ? -1 : 0;
     out[p.slot] = { move: c.move(), dashDown: c.dash.down(), dashPressed: c.dash.pressed(), attackPressed: c.attack.pressed(), defend: c.defend.down() };
   }
   if (game.phase !== 'play') {
@@ -1999,7 +2079,8 @@ function updateText(L) {
   bar.querySelector('.lab').textContent = len >= 1 ? `${len} mm` : `${(len * 1000).toFixed(0)} µm`;
   const N = APERTURES[rig.ai];
   const dof = L.dof * MACRO_LOOKS[rig.look].dofK * rig.dofK;
-  bar.querySelector('.opt').textContent = `${L.m.toFixed(1)}x · f/${N} (eff. f/${L.Neff.toFixed(0)}) · DOF ${dof.toFixed(2)} mm${rig.focusOff ? ` · focus ${rig.focusOff > 0 ? '+' : ''}${rig.focusOff.toFixed(1)} mm` : ''}`;
+  const lk = rig.lookFx ? (rig.lookFx.u > 0 ? ` · looking far (${L.f.toFixed(0)} mm lens, focus ${macroShared.uFocus.value.toFixed(0)} mm)` : ' · close look') : '';
+  bar.querySelector('.opt').textContent = `${L.m.toFixed(1)}x · f/${N} (eff. f/${L.Neff.toFixed(0)}) · DOF ${(rig.lookFx ? L.dof * rig.lookFx.dofK : dof).toFixed(2)} mm${lk}`;
   status.querySelector('.food').textContent = `Food ${pl.food}/${GOAL}`;
   status.querySelector('.lives').textContent = '';
   const m = status.querySelector('.st-meter i');
@@ -2051,6 +2132,8 @@ function step(dt, inputs) {
   motes.update(dt);
   placeRings();
   props.update(simT, dt, camera, (i) => !sealed() && !guardedAt(i), outro ? outro.t : undefined, recs());
+  // the nearest columns of light, reflected in the film (a golden path toward a portal out of frame)
+  waterMat.uniforms.uColH.value = props.columnLights(waterMat.uniforms.uCol.value, 1);
   if (game.phase === 'play') { stepDirector(dt); checkLandmark(); logNear(); }
   // only the food near a player or the view is drawn (world.js buildFood)
   foodNear.length = 0;
@@ -2082,25 +2165,40 @@ function render(dt) {
   const one = split.views.length === 1;
   split.render(camera, (view, target) => {
     renderer.setRenderTarget(target);
-    let dofK = rig.dofK;
+    let dofK = rig.lookFx ? rig.lookFx.dofK : rig.dofK, Lv = L;
     if (!one) {
       // each view focuses on its own players, the water and the sky follow its camera
       const vr = view.slots.map((s) => pls[s]).filter(Boolean);
       const g = groupCentre(vr.length ? vr : [pl]);
-      macroShared.uFocus.value = camera.position.distanceTo(_v.set(g.x, g.y + 0.25, g.z)) + rig.focusOff;
+      macroShared.uFocus.value = camera.position.distanceTo(_v.set(g.x, g.y + 0.25, g.z));
       let far = 0;
-      for (const P of vr) far = Math.max(far, Math.abs(camera.position.distanceTo(_v.set(P.x, P.y + 0.25, P.z)) + rig.focusOff - macroShared.uFocus.value));
+      for (const P of vr) far = Math.max(far, Math.abs(camera.position.distanceTo(_v.set(P.x, P.y + 0.25, P.z)) - macroShared.uFocus.value));
       dofK = THREE.MathUtils.clamp((far + 0.6) / L.dof, 1, 14);
       water.position.set(Math.round(g.x / field.dx) * field.dx, 0, Math.round(g.z / field.dx) * field.dx);
       world.sky.position.copy(camera.position);
       setDrop(vr[0]);
     }
-    // moss tiles beyond the focal plane (plus a tile's reach) switch to the coarse heads
-    world.setLodDistance(macroShared.uFocus.value + MOSS_LOD_BEYOND);
+    // with company, each view looks far or close as its players hold RT / LT (alone, placeCamera did it)
+    let saved = null;
+    if (multi() && !outro) {
+      const u = viewLook(view.slots);
+      if (u) {
+        saved = { p: camera.position.clone(), q: camera.quaternion.clone(), fov: camera.fov, near: camera.near, sky: world.sky.position.clone() };
+        const pivot = camera.getWorldDirection(_v).multiplyScalar(L.s).add(camera.position);
+        const fx = lookCamera(u, L, pivot.clone(), macroShared.uFocus.value, dofK);
+        if (fx) { macroShared.uFocus.value = fx.focus; dofK = fx.dofK; Lv = fx.L; world.sky.position.copy(camera.position); }
+      }
+    }
+    // moss tiles beyond the focal plane (plus a tile's reach) switch to the coarse heads (looking far: from just past you)
+    world.setLodDistance(Lv === L ? macroShared.uFocus.value + MOSS_LOD_BEYOND : Math.min(macroShared.uFocus.value + MOSS_LOD_BEYOND, Lv.s + 60));
     // split: each internal pass fills only this view's region (padded for the bokeh's reach)
-    macro.render(scene, camera, { lens: L, look: lookDef, dofK, scissor: (rt) => split.scissor(view, rt, 64) });
+    macro.render(scene, camera, { lens: Lv, look: lookDef, dofK, scissor: (rt) => split.scissor(view, rt, 64) });
+    if (saved) {
+      camera.position.copy(saved.p); camera.quaternion.copy(saved.q); camera.fov = saved.fov; camera.near = saved.near;
+      camera.updateProjectionMatrix(); camera.updateMatrixWorld(); world.sky.position.copy(saved.sky);
+    }
   });
-  if (!one) { macroShared.uFocus.value = focus0; setDrop(pl); }
+  if (!one || multi()) { macroShared.uFocus.value = focus0; setDrop(pl); }
   marks.begin();
   portalLight.begin();
   // no arrow (the owner: keep moving and you find it): the nearest portal's golden
@@ -2109,7 +2207,9 @@ function render(dt) {
     let d = Infinity;
     for (const P of recs()) d = Math.min(d, Math.hypot(P.x - PORTAL.x, P.z - PORTAL.z));
     // (the nearest raft, while it is drawn at all)
-    if (d < RAFT_SHOW) portalLight.drawSplit(split, props.position, { strength: THREE.MathUtils.clamp(1.2 - d / 300, 0.65, 1), open: props.glow.open });
+    // (a view looking far or close with company is drawn from its own camera: no halo then)
+    const lookK = multi() ? 1 - Math.min(1, Math.max(...recs().map((P) => Math.abs(lookOf(P.slot).u)))) : 1;
+    if (d < RAFT_SHOW && lookK > 0.05) portalLight.drawSplit(split, props.position, { strength: THREE.MathUtils.clamp(1.2 - d / 300, 0.65, 1) * lookK, open: props.glow.open });
   }
   drawPortalArrow();
   return L;
@@ -2230,7 +2330,14 @@ const api = {
     return true;
   },
   /** Run n render passes (camera and split screen) without stepping the simulation. */
-  settle(n = 30) { for (let i = 0; i < n; i++) render(1 / 30); },
+  settle(n = 30) { for (let i = 0; i < n; i++) { easeLook(1 / 30); render(1 / 30); } },
+  /**
+   * Testing: hold RT (1: look far), LT (-1: a close look) or let go (0) for player `slot`, as the
+   * triggers would (null: back to the pad). Returns every player's eased look.
+   */
+  lookHold(v = 1, slot = 0) { lookForce[slot] = v === null ? undefined : v; return looks.map((l) => l && +l.u.toFixed(3)); },
+  /** Testing: the look state: each player's eased u, and the camera's lens and focus this frame. */
+  lookState() { return { u: looks.map((l) => l && +l.u.toFixed(3)), fx: rig.lookFx && { u: +rig.lookFx.u.toFixed(3), f: +rig.lookFx.L.f.toFixed(1), hfw: +rig.lookFx.L.hfw.toFixed(1), focus: +rig.lookFx.focus.toFixed(1), dofK: +rig.lookFx.dofK.toFixed(2) }, fov: +camera.fov.toFixed(2), focus: +macroShared.uFocus.value.toFixed(1), columns: props.columns() }; },
   /** Testing: is a predator coming for you, and how hungry is each. */
   pacing() {
     const S = stenus.st, R = strider.st;
@@ -2339,7 +2446,7 @@ const api = {
   /** Testing: read the pads and step the simulation n times (no rendering): mock pads drive it fast. */
   tick(n = 1, dt = 1 / 30) {
     for (let i = 0; i < n; i++) {
-      const inp = readInput(dt); step(dt, inp);
+      const inp = readInput(dt); easeLook(dt); step(dt, inp);
       stepViews(dt);
     }
   },
@@ -2381,6 +2488,7 @@ function frame() {
   // held by the shell in a transition (this world is never the new one yet), or in the outro: no input
   const ts = outro ? stepOutro(dt) : 1;
   const inp = outro || embed.held ? null : readInput(dt);
+  easeLook(dt);
   if (ts > 0 && !embed.held) { game.t += dt * ts; step(dt * ts, inp); }
   if (gpuBusy()) return;
   const raw = now - lastSubmit;

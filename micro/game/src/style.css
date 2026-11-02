@@ -215,6 +215,7 @@ button { font: inherit; color: inherit; }
 /* Tray <-> intro: the screen being left stays drawn underneath (a ghost)
    while the panel and the plate slide (openIntro, closeIntro in main.js). */
 .ghost { pointer-events: none; }
+#menu, #intro { isolation: isolate; } /* the menu's raised parts stay under the intro drawn over it */
 #intro.tx { background: transparent; }
 
 /* The card-to-intro zoom (only when the card and the intro share an image). */

@@ -1004,9 +1004,9 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       for (const L of legs) {
         if (isFeeler(L)) continue;
         const back = L.k >= 2 ? -110 * kick : 0;
-        const fx = L.rest.x * (0.85 - 0.4 * st.tuck + 0.3 * st.splay) + back;
-        const fy = -AN.stand * (0.95 * kick + (1 - kick) * (0.62 - 0.3 * st.tuck + 0.4 * st.splay));
-        const fz = L.rest.z * (0.9 - 0.45 * st.tuck + 0.35 * st.splay);
+        const fx = L.rest.x * (0.85 - 0.3 * st.tuck + 0.3 * st.splay) + back;
+        const fy = -AN.stand * (0.95 * kick + (1 - kick) * (0.62 - 0.22 * st.tuck + 0.4 * st.splay));
+        const fz = L.rest.z * (0.9 - 0.2 * st.tuck + 0.35 * st.splay);
         toWorld(_al.set(fx, fy, fz), center, q, L.foot);
       }
     } else { q = st.q; center = st.center; }

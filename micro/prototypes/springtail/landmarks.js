@@ -156,6 +156,20 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
   }
   const api = {
     group, rafts, ring, rings,
+    /**
+     * The nearest four columns drawn, for the water's reflection
+     * (springtail-surface.js uCol): fills `out` (four Vector4s) with (x, z,
+     * radius, strength); strength 0 for none.
+     */
+    columnLights(out, k = 1) {
+      const list = rafts.filter((r) => r.colShown).sort((a, b) => a.d - b.d);
+      out.forEach((v, j) => {
+        const r = list[j];
+        if (!r) { v.w = 0; return; }
+        v.set(r.position.x, r.position.z, COLUMN.radius * 1.3, k * (0.45 + 0.55 * r.column.open) * r.column.fade);
+      });
+      return COLUMN.height;
+    },
     /** The light columns drawn now: [{ i, d, open, fade }] (tests). */
     columns() { return rafts.filter((r) => r.colShown).map((r) => ({ i: r.i, d: +r.d.toFixed(1), open: +r.column.open.toFixed(2) })); },
     /** The raft in focus: its glow, the raft's top (world), the mite speck (raft-local). */

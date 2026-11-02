@@ -79,7 +79,7 @@
 //   column.setOpen(open)   eases between sealed (dim) and open (bright)
 //   column.setFade(f)      0..1 extra fade (e.g. the foot when a player stands on it)
 //   column.update(dt, time)
-//   column.open, column.dispose()
+//   column.open, column.fade, column.dispose()
 //   createPortalGlow({ ..., column: { height, radius, ... } }) builds one in the
 //   glow's group, updated and opened with it (glow.column).
 //
@@ -323,10 +323,9 @@ export function createPortalColumn({ THREE, height = 500, radius = 6, color = '#
       float h1(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       void main() {
         float x = vU.x, y = vU.y;
-        // through a glowing cylinder: the path length, softened at the edge, and a brighter core
-        float path = sqrt(max(0.0, 1.0 - x * x * 1.6));
-        float across = path * path * 0.75 + 0.35 * exp(-x * x * 14.0);
-        across *= smoothstep(1.0, 0.75, abs(x));
+        // through a glowing cylinder of haze: soft all the way out, a brighter core
+        float across = exp(-x * x * 4.5) * 0.7 + 0.3 * exp(-x * x * 22.0);
+        across *= smoothstep(1.0, 0.7, abs(x));
         // brightest at the foot, fading upward to nothing
         float up = (0.25 + 0.75 * exp(-y * 5.0)) * pow(1.0 - y, 1.4) * smoothstep(0.0, 0.004, y);
         float foot = exp(-y * uH / (uR * 1.5)) * 0.8;
@@ -348,8 +347,9 @@ export function createPortalColumn({ THREE, height = 500, radius = 6, color = '#
         float k = mix(0.3, 1.0, uOpen) * uFade * uI;
         // seen from right beside it, it thins out instead of filling the view
         k *= smoothstep(uR * 1.2, uR * 6.0, vCam);
-        vec3 col = mix(uColor, vec3(1.0, 0.95, 0.8), 0.35 * exp(-x * x * 10.0) + 0.25 * uOpen);
-        gl_FragColor = vec4(col * 1.6, clamp((a * 0.42 + m * 0.9) * k, 0.0, 1.0));
+        // a saturated gold (tone mapping pales bright light), a paler core when open
+        vec3 col = mix(uColor * vec3(1.0, 0.82, 0.5), vec3(1.0, 0.9, 0.65), 0.3 * exp(-x * x * 16.0) * (0.4 + 0.6 * uOpen));
+        gl_FragColor = vec4(col * 1.3, clamp((a * 0.3 + m * 0.8) * k, 0.0, 1.0));
       }`,
   }));
   mesh.renderOrder = 3;
@@ -358,6 +358,7 @@ export function createPortalColumn({ THREE, height = 500, radius = 6, color = '#
   return {
     mesh,
     get open() { return uniforms.uOpen.value; },
+    get fade() { return uniforms.uFade.value; },
     setPosition(x, y, z) { mesh.position.set(x, y, z); },
     setOpen(o) { want = o ? 1 : 0; },
     setFade(f) { uniforms.uFade.value = f; },
