@@ -74,7 +74,7 @@ export function createMedium() {
           streak = smoothstep(0.5, 0.86, s) * k;
         }
         float nearFade = smoothstep(0.3, 0.9, vNear); // the slice before the phage stays faint: it never hides you
-        float a = (wisp * 0.1 + grain * wisp * 0.05 + streak * 0.32) * nearFade * uOn * uGain;
+        float a = (wisp * 0.1 + grain * wisp * 0.05 + streak * 0.26) * nearFade * uOn * uGain;
         vec3 col = mix(uTint, uStreak, clamp(streak * 3.0, 0.0, 1.0));
         gl_FragColor = vec4(col * a, a * 0.3);
       }`,

@@ -1391,7 +1391,7 @@ const outsideModes = ['drift', 'walk', 'clay'];
 // drifts slowly, is carried by a current, and when nobody is near comes back somewhere out of sight.)
 const MOL_N = 36, MOL_NEAR = 300;
 const molMat = beadMaterial({ sat: 1 });
-const MOL_KINDS = [['complex', beadTemplate('complex', 21), [1.7, 2.3]], ['globule', beadTemplate('globule', 23, PALETTE.periwinkle), [2.0, 2.8]], ['teal', beadTemplate('globule', 25, PALETTE.teal), [1.8, 2.5]]];
+const MOL_KINDS = [['complex', beadTemplate('complex', 21), [1.3, 1.7]], ['globule', beadTemplate('globule', 23, PALETTE.periwinkle), [1.4, 2.0]], ['teal', beadTemplate('globule', 25, PALETTE.teal), [1.3, 1.8]]];
 const molMeshes = Object.fromEntries(MOL_KINDS.map(([k, tpl]) => { const bm = beadMesh(tpl, MOL_N, { material: molMat, dynamic: true }); scene.add(bm.mesh); return [k, bm]; }));
 const mols = Array.from({ length: MOL_N }, (_, i) => {
   const [kind, , sz] = MOL_KINDS[i % MOL_KINDS.length];
@@ -1408,7 +1408,7 @@ function placeMol(o, p, r0, r1, hide = false) {
   }
   o.vel.set(0, 0, 0); o.heldBy = null;
 }
-function resetMols() { for (const o of mols) placeMol(o, START, 30, 260); }
+function resetMols() { for (const o of mols) placeMol(o, START, 70, 260); } // (none right on top of you at the start)
 const _mf = new THREE.Vector3();
 function updateMols(dt, focus) {
   for (const o of mols) {
