@@ -196,11 +196,26 @@ export function drawCell(G, C) {
   // together: a faint broken ring in the player's colour
   if (C.ring && dead < 0.2) {
     const R = HL + 18;
+    G.marker = true; // (legible out of focus)
     for (let i = 0; i < 12; i++) {
       const a0 = (i / 12) * 6.283 + C.t * 0.3, a1 = a0 + 0.3;
       G.line(C.x + Math.cos(a0) * R, C.y + Math.sin(a0) * R, C.x + Math.cos(a1) * R, C.y + Math.sin(a1) * R, 1.1, z, C.ring, 0.55 * I0, 0.4, 0.2, 3);
     }
+    G.marker = false;
   }
+}
+/**
+ * Out of focus (defocus: µm between the cell and the focal plane), the cell
+ * keeps a readable silhouette, as a darkfield halo does: a soft glowing
+ * outline about as wide as the blur, so you can always tell where you are.
+ */
+export function drawCellHalo(G, C, defocus) {
+  const k = Math.min(1, Math.max(0, (defocus - 12) / 80)) * (1 - (C.dead || 0)) * (C.spawn ?? 1) * (C.alpha ?? 1);
+  if (k <= 0.01) return;
+  const w = 2 + defocus * 0.05;
+  G.marker = true;
+  G.ellRing(C.x, C.y, C.a, HL + 1, HW + 1, w, C.z, PELL, 0.42 * k, w * 0.9, 0.25 * k, 6 + w);
+  G.marker = false;
 }
 /** The cilia's beat rate (rad/s) at a speed: faster as it swims, reversed as it backs up. */
 export const beatRate = (v) => (v < -50 ? -1 : 1) * (13 + 26 * Math.min(1.6, Math.abs(v) / VMAX));

@@ -1935,7 +1935,7 @@ export const TEXT = {
       },
       depthcues: {
         label: 'Depth cues (focus, parallax)',
-        about: 'The drop is seen in perspective with the focus on your depth: what lies above you is larger and slides faster as the view moves, what lies below is smaller and slower and sinks into a blue haze, and both are drawn softer and dimmer the further they are from your depth. Shadows fall on the slide, further from what casts them the higher it swims.',
+        about: 'The drop is seen in perspective from your depth: what lies above you is larger and slides faster as the view moves, what lies below is smaller and slower. The microscope focuses like a person at the eyepiece: swim up or down and you go soft while the focus stays put; hold a depth for half a second and it turns the fine focus back to you, the rest of the drop sliding in and out of focus as it goes. Off the focus things are softer and dimmer, and below it they sink into a blue haze. Shadows fall on the slide, further from what casts them the higher it swims.',
       },
       tile: {
         label: 'Habitat backdrop (MP-P04, MP-P05)',

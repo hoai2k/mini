@@ -179,7 +179,7 @@ function drawDiatom(G, d, ox, oy, t) {
 
 // ---------------------------------------------------------------- the hunters
 /** A soft red rim: the tell of an attack to come (a game marker over the image). */
-const tell = (G, x, y, r, z, k) => { if (k > 0.01) G.ring(x, y, r, 1.6, z, COL.red, 0.75 * k, 1, 0.6 * k, 6); };
+const tell = (G, x, y, r, z, k) => { if (k > 0.01) { G.marker = true; G.ring(x, y, r, 1.6, z, COL.red, 0.75 * k, 1, 0.6 * k, 6); G.marker = false; } };
 export function drawDileptus(G, D, t) {
   if (!D.placed || D.mode === 'parked') return;
   const ca = Math.cos(D.a), sa = Math.sin(D.a), z = D.z;
@@ -346,6 +346,10 @@ export function drawTrap(G, T, t) {
  */
 export function drawFight(G, F, t, up = [0, 1], toward = null) {
   if (!F.placed || F.mode === 'parked') return;
+  G.marker = true; // legible out of focus
+  try { fightMarks(G, F, t, up, toward); } finally { G.marker = false; }
+}
+function fightMarks(G, F, t, up, toward) {
   const z = F.kind === 'giant' ? GIANT.top : F.z;
   const R = F.kind === 'giant' ? GIANT.R : F.kind === 'dileptus' ? 90 : DIDINIUM.L * 0.55;
   if (F.hitT >= 0 && F.hitT < FIGHT.flinch) {
@@ -374,11 +378,13 @@ export function drawFight(G, F, t, up = [0, 1], toward = null) {
 /** A jab that missed: its threads fizzle where they fell short (grey, scattering); out of depth, a ring above or below. */
 export function drawMiss(G, M, t) {
   const e = M.t / 0.6, k = 1 - e;
+  G.marker = true;
   for (let i = 0; i < 8; i++) {
     const a = i * 0.785 + 0.2, L = 4 + 18 * e;
     G.line(M.x + Math.cos(a) * L * 0.5, M.y + Math.sin(a) * L * 0.5, M.x + Math.cos(a) * L, M.y + Math.sin(a) * L, 0.45, M.z, COL.pale, 0.6 * k, 0.3);
   }
   G.ring(M.x, M.y, 8 + 16 * e, 0.8, M.z, M.why === 'depth' ? COL.blue : COL.pale, 0.55 * k, 0.6);
+  G.marker = false;
 }
 
 // ---------------------------------------------------------------- the crowd and the prey

@@ -5,8 +5,9 @@
 // you battle other protists ... including trying to avoid a giant amoeba";
 // then "2.5D", then "not 3 depth levels, just a continuous depth. I want it
 // to feel 3D": a water volume four body lengths deep that you swim through,
-// seen in perspective, the focus following you, creatures interacting across
-// it). The zoom is analogue on LT/RT, from the closest field (560 µm) out to
+// seen in perspective, creatures interacting across it; then "realistic
+// microscope like": the focus is a separate plane that a patient operator
+// turns back to you once your depth settles, focus.js). The zoom is analogue on LT/RT, from the closest field (560 µm) out to
 // three times it, starting at 1.6x. See README.md.
 //
 // Micro Zoom: the forward landmark (a biofilm on a leaf, guarded by a
@@ -30,7 +31,8 @@ import { createDirector } from '../shared/director.js';
 import { createShapes } from './shapes.js';
 import { createWorld, TILE } from './world.js';
 import { createSwimState, stepSwim, dash as startDash, backOff, LENGTH, ZMIN, ZMAX } from './swim.js';
-import { drawCell, VARIETIES, beatRate } from './cell.js';
+import { drawCell, drawCellHalo, VARIETIES, beatRate } from './cell.js';
+import { createFocus, stepFocus, FOCUS } from './focus.js';
 import { drawScenery, drawDileptus, drawDidinium, drawGiant, drawTrap, drawBloom, drawPrey, drawLeaf, makeLeaf, drawBack, drawSpirillum, drawKinClump, drawFight, drawMiss, SPIRILLUM } from './draw.js';
 import { createDileptus, stepDileptus, burstDileptus, createDidinium, stepDidinium, blockDidinium, DIDINIUM, createGiant, stepGiant, burstGiant, GIANT, createTrap, stepTrap, burstTrap, trapObstacles, trapGuarding, trapDoor, TRAP, jabFoe, hitFoe, FIGHT } from './foes.js';
 import { createBloom, placeBloom, stepBloom, gulpBloom, flingBloom, BLOOM } from './bloom.js';
@@ -617,7 +619,7 @@ embed.provide('intro');
 const INTRO_EASE = 0.6;
 embed.on('hold', () => {
   intro = { cam: null };
-  view.rot = 0; view.cx = P1.S.x; view.cy = P1.S.y; view.fw = baseField() * P1.zoom; view.focus = P1.S.z;
+  view.rot = 0; view.cx = P1.S.x; view.cy = P1.S.y; view.fw = baseField() * P1.zoom; view.focus = P1.S.z; focals.clear();
   embed.cinematic(true, canvas);
   embed.opening({ f: LENGTH / view.fw, x: 0, y: 0, pitch: TOP_PITCH, rel: wrap(P1.S.a + Math.PI / 2) });
 });
@@ -656,6 +658,8 @@ function stepPlayer(P, dt, input) {
   const env = { obstacles: [...world.near(S.x, S.y, 170, t), ...trapObstacles(trap)], drag: bloomDrag.get(P) ?? 1, push: trapPush.get(P) || null, held: !!P.engulfed };
   if (P.engulfed && giant.placed) { S.x += (giant.x - S.x) * dt * 0.25; S.y += (giant.y - S.y) * dt * 0.25; }
   stepSwim(S, input, env, dt);
+  // how long this cell's depth has held still (the microscope's operator refocuses on the most settled)
+  P.stillT = Math.abs(S.vz) > FOCUS.moving ? 0 : (P.stillT || 0) + dt;
   // contacts: a puff and a rumble on a real bump (a weave is quiet)
   for (const c of S.contacts) if (!c.weave && c.pen > 3 && !P.bumpCd) { P.bumpCd = 0.25; P.pad?.rumble?.(60, 0.2, 0.1); }
   P.bumpCd = Math.max(0, (P.bumpCd || 0) - dt);
@@ -770,6 +774,30 @@ function stepWorld(dt) {
   driftEncounter(dt);
 }
 
+// ---------------------------------------------------------------- the microscope's focus
+// Each view has its own focal plane, turned by a patient operator (focus.js):
+// it holds while its swimmer changes depth and refocuses once they settle.
+// Keyed by the view's players; a shared view keeps its most settled player in
+// focus. (The perspective is not lagged: view.focus, the swimmers' depth.)
+const focals = new Map();
+let worldDt = 0, focalFrame = 0;
+function focalFor(slots) {
+  const key = slots.slice().sort().join(',');
+  const mine = cells.filter((c) => slots.includes(c.slot) && (c.live || c.dead));
+  let best = null;
+  for (const c of mine) if (!best || (c.stillT || 0) > (best.stillT || 0) + 0.05) best = c;
+  const target = best ? best.S.z : view.focus;
+  let F = focals.get(key);
+  if (!F || F.used < focalFrame - 30) {
+    // a new view (a split or a merge): it starts where the shared view's plane was
+    const all = focals.get(cells.map((c) => c.slot).sort().join(','));
+    F = Object.assign(createFocus(all && all !== F ? all.z : target), { key });
+    focals.set(key, F);
+  }
+  if (F.used !== focalFrame) { stepFocus(F, target, worldDt); F.used = focalFrame; }
+  return F;
+}
+
 // ---------------------------------------------------------------- the camera
 function stepCamera(dt) {
   const live = cells.filter((c) => c.live || c.dead);
@@ -803,7 +831,8 @@ function currentLook() {
 const PERSP = 900;
 const persp = () => (view.parallax ? 1 / PERSP : 0);
 const kAt = (dz) => 1 / Math.max(0.25, 1 - persp() * dz);
-function fill(rect, lod = 1) {
+let focalNow = 0;
+function fill(rect, lod = 1, focalOf = () => focalNow) {
   shapes.begin();
   const G = shapes;
   drawScenery(G, world, rect, t, { glitter: view.glitter, lod });
@@ -830,14 +859,16 @@ function fill(rect, lod = 1) {
     if (P.live) G.shadow(P.S.x, P.S.y, P.S.a, LENGTH / 2, 22, P.S.z, 0.55);
     drawCell(G, { x: P.S.x, y: P.S.y, z: P.S.z, a: P.S.a, v: P.S.v, bend: P.bend, squash: P.squash, t: t + P.slot * 7, beat: P.beat, variety: P.variety, burst: P.burst, jab: P.jab, dead: P.dead ? Math.min(1, P.dead.t / DISSOLVE) : 0, spawn: P.spawn, vacuoles: P.vacuoles, ring: multi() ? hexRgb(P.color) : null, alpha: blink, sprite: spriteOn, spriteW: SPRITE_W, spriteH: SPRITE_H });
     if (P.miss) drawMiss(G, P.miss, t);
+    // out of focus, the cell keeps a readable halo
+    if (view.parallax) drawCellHalo(G, { x: P.S.x, y: P.S.y, z: P.S.z, a: P.S.a, dead: P.dead ? Math.min(1, P.dead.t / DISSOLVE) : 0, spawn: P.spawn, alpha: blink }, Math.abs(P.S.z - focalOf(P.slot)));
   }
   shapes.end();
 }
 const hexRgb = (h) => { const n = parseInt(h.slice(1), 16); return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]; };
 let spriteOn = false;
-function renderView(cx, cy, focus, look, hw = view.fw / 2, hh = hw * aspect()) {
+function renderView(cx, cy, focus, look, hw = view.fw / 2, hh = hw * aspect(), focal = focus) {
   const W = renderer.domElement.width, w = hw * 2;
-  shapes.setView({ cx, cy, hw, hh, rot: view.rot, focus, pxUm: w / Math.max(1, W) });
+  shapes.setView({ cx, cy, hw, hh, rot: view.rot, focus, focal, pxUm: w / Math.max(1, W) });
   // the depth cues: perspective (parallax and scale), defocus, dimming (more below), the haze below the focus
   shapes.depth(persp(), view.parallax ? 0.06 : 0.015, view.parallax ? 0.0036 : 0.002, view.parallax ? 0.0016 : 0);
   const tex = view.tile && look.tile ? tiles[look.tile] : null;
@@ -878,9 +909,12 @@ function render(dt) {
     const o = fromFrameOffset(v.offset);
     const mine = cells.filter((c) => v.slots.includes(c.slot) && (c.live || c.dead));
     const focus = camHeld && outro ? lerp(view.focus, spir.z, sm01(0, 0.3, outro.u || 0)) : mine.length && L.views.length > 1 ? mine.reduce((s, c) => s + c.S.z, 0) / mine.length : view.focus;
+    // the focal plane: the operator's (in the dive, it drops to the film with the view)
+    const F = focalFor(L.views.length > 1 && !camHeld ? v.slots : cells.map((c) => c.slot));
+    const focal = camHeld && outro ? lerp(F.z, spir.z, sm01(0, 0.3, outro.u || 0)) : F.z;
     // split, each view keeps its own players' zoom (the shared view: the widest of everyone's)
     const hw = L.views.length > 1 && !camHeld ? hw0 * zoomOf(v.slots) / zoomOf(cells.map((c) => c.slot)) : hw0;
-    return { index: v.index, cx: view.cx + o.x, cy: view.cy + o.y, focus, hw, hh: hw * aspect() };
+    return { index: v.index, cx: view.cx + o.x, cy: view.cy + o.y, focus, focal, slots: v.slots, hw, hh: hw * aspect() };
   });
   lastViews = vs;
   // fill the shapes once for every view: the union of their fields, with room for the turn and for the
@@ -888,11 +922,12 @@ function render(dt) {
   const R = Math.max(...vs.map((v) => Math.hypot(v.hw, v.hh) / kAt(DEPTH.min - v.focus))) + 30;
   const rect = [Math.min(...vs.map((v) => v.cx)) - R, Math.min(...vs.map((v) => v.cy)) - R, Math.max(...vs.map((v) => v.cx)) + R, Math.max(...vs.map((v) => v.cy)) + R];
   spriteOn = !!look.sprite && shapes.hasSprite;
-  fill(rect, Math.max(...vs.map((v) => v.hw)) * 2 / FIELD);
+  focalNow = vs[0].focal;
+  fill(rect, Math.max(...vs.map((v) => v.hw)) * 2 / FIELD, (slot) => (vs.find((v) => v.slots.includes(slot)) || vs[0]).focal);
   renderer.setRenderTarget(null);
-  if (vs.length === 1) renderView(vs[0].cx, vs[0].cy, vs[0].focus, look, vs[0].hw, vs[0].hh);
+  if (vs.length === 1) renderView(vs[0].cx, vs[0].cy, vs[0].focus, look, vs[0].hw, vs[0].hh, vs[0].focal);
   else {
-    for (const v of vs) { split.scissor(v.index, null); renderView(v.cx, v.cy, v.focus, look, v.hw, v.hh); split.capture(v.index); }
+    for (const v of vs) { split.scissor(v.index, null); renderView(v.cx, v.cy, v.focus, look, v.hw, v.hh, v.focal); split.capture(v.index); }
     split.unscissor(null);
     split.compose();
   }
@@ -982,6 +1017,7 @@ function frame(now) {
     // drawn but not stepped: the shell's poses move the view
   }
   for (const P of cells) stepZoom(P, dtRaw, !!outro || held);
+  worldDt = dt; focalFrame++;
   stepSpirillum(dtRaw * scale); // (frozen with the world: the dive's framing turns with it)
   if (!outro && !held) stepCamera(dtRaw);
   // the swim's sound follows the speed
@@ -1070,5 +1106,5 @@ window.__micro = {
   /** The kin clump's cells on screen now (normalised device coordinates; the shell-path checks compare them with the bacterium's). */
   clumpScreen(n = 8) { return clumpLayout().slice(0, n).map((c) => { const q = placeInFrame(c, spir.x, spir.y, spir.a), f = toFrame(q.x, q.y), w = view.fw, h = w * aspect(); return { kind: c.kind, x: +((f.x - view.cx) / (w / 2)).toFixed(4), y: +((f.y - view.cy) / (h / 2)).toFixed(4) }; }); },
   challenges: () => challengeLog.slice(),
-  state: () => ({ t: +t.toFixed(2), director: director.state(), eaten: game.eaten, divided: game.divided, cells: cells.map((c) => ({ slot: c.slot, x: +c.S.x.toFixed(1), y: +c.S.y.toFixed(1), z: +c.S.z.toFixed(1), a: +c.S.a.toFixed(2), v: +c.S.v.toFixed(0), live: c.live, dead: c.dead && c.dead.by, engulfed: !!c.engulfed })), trap: { state: trap.state, resolve: trap.resolve, log: trap.log.slice(-8) }, sealed: leaf.placed && portalSealed(), open: leaf.placed && !portalSealed() && !guarded(), prompt: lm.portal, shapes: shapes.count, shadows: shapes.shadows, sprite: shapes.hasSprite, field: Math.round(fieldNow), zoom: cells.map((c) => +c.zoom.toFixed(3)), focus: +view.focus.toFixed(1), views: split.layout ? split.layout.views.length : 1 }),
+  state: () => ({ t: +t.toFixed(2), director: director.state(), eaten: game.eaten, divided: game.divided, cells: cells.map((c) => ({ slot: c.slot, x: +c.S.x.toFixed(1), y: +c.S.y.toFixed(1), z: +c.S.z.toFixed(1), a: +c.S.a.toFixed(2), v: +c.S.v.toFixed(0), live: c.live, dead: c.dead && c.dead.by, engulfed: !!c.engulfed })), trap: { state: trap.state, resolve: trap.resolve, log: trap.log.slice(-8) }, sealed: leaf.placed && portalSealed(), open: leaf.placed && !portalSealed() && !guarded(), prompt: lm.portal, shapes: shapes.count, shadows: shapes.shadows, sprite: shapes.hasSprite, field: Math.round(fieldNow), zoom: cells.map((c) => +c.zoom.toFixed(3)), focus: +view.focus.toFixed(1), focal: +focalNow.toFixed(1), focals: [...focals.values()].map((F) => ({ key: F.key, z: +F.z.toFixed(1), mode: F.mode, turns: F.turns, interrupted: F.interrupted })), views: split.layout ? split.layout.views.length : 1 }),
 };

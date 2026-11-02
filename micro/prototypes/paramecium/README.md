@@ -127,18 +127,35 @@ The drop is one continuous water volume 480 µm deep, the coverslip above (`z`
   LB/RB do the same (Q/F, or the arrow keys). The goal strip says how deep you
   are (µm under the coverslip) and the gauge at the right edge shows where
   every player is between the glass and the slide.
-- **Seen in perspective, the focus on you** (each split view its own
-  players' depth; `shapes.js`): the objective is 900 µm above the focal
-  plane, so what lies above you is drawn larger and slides faster as the view
-  moves, what lies below smaller and slower (parallax: the glittering motes,
-  spread through the whole depth, show the volume as you swim). Off your
-  depth things are softer (defocus: their edges widen 0.06 µm per µm, which
+- **Seen in perspective from your depth** (each split view its own
+  players' depth; `shapes.js`): the objective is 900 µm above you, so what
+  lies above you is drawn larger and slides faster as the view moves, what
+  lies below smaller and slower (parallax: the glittering motes, spread
+  through the whole depth, show the volume as you swim). The perspective
+  follows you at once; only the focus lags (next).
+- **The focus is the microscope's, turned by a patient operator**
+  (`focus.js`; the owner: "if you move in depth you might appear defocused,
+  and then the microscope catches up and refocuses you ... if you're
+  continually moving up and down the depth the microscope doesn't follow, it
+  waits for a stable depth before refocusing, like a person would"). Each
+  view has its own focal plane, separate from the swimmers' depth. While
+  your depth changes (faster than 30 µm/s) the plane holds and you go soft,
+  what was at the old depth staying sharp; once you have held a depth for
+  0.5 s the operator turns the fine focus to you, an eased turn of 0.5-0.9 s
+  (longer the further) with a slight overshoot (~2 %) and settle, the drop
+  sliding in and out of focus as the plane sweeps; move again mid-turn and
+  the knob stops where it is, and the wait starts over. A shared view keeps
+  its most settled player in focus. Out of focus your cell keeps a soft
+  glowing outline (as a darkfield halo stays visible), and the game's marks
+  (the hunters' red tells, hits, misses, the interest pips, the players'
+  rings) keep most of their edge (`shapes.marker`), so nothing that matters
+  is lost in the blur. Off the focal plane things are softer (defocus: their edges widen 0.06 µm per µm, which
   also spreads and dims fine lines and specks) and dimmer (more below than
   above), and what lies below sinks into a cool blue haze. **Soft shadows**
   fall on the slide (on the habitat tile in darkfield, plainer in
   brightfield), offset from what casts them by its height, as from a low
   lamp: a cell's shadow walks away from it as it rises. Features → *Depth
-  cues* turns the perspective, the haze and most of the blur off.
+  cues* turns the perspective, the haze, the halo and most of the blur off.
 - **One connected volume**: contacts need bodies to meet in the plane and
   near in depth, so things interact across depth rather than in separate
   planes. Filaments and *Vorticella* stalks run through the depth
@@ -449,6 +466,12 @@ node micro/prototypes/check.mjs paramecium amoeba bacterium index
 node micro/game/check.mjs
 node micro/tools/perf/measure.mjs paramecium 1        # and 4
 ```
+
+`focus.test.mjs`: the operator holds the focus through a dive and through
+continual up and down, waits 0.5 s once the depth is still, then turns to it
+in 0.5-0.9 s (eased, a slight overshoot, settled), a longer turn for a longer
+way, and stops the knob when the swimmer moves again mid-turn, refocusing
+after the next wait.
 
 `play.test.mjs`: auto-weave crosses a filament with no depth input (over or
 under, by the side it was on) and passes a clump; a wall is glanced off; depth

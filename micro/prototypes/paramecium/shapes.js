@@ -7,12 +7,13 @@
 //
 // Depth (the owner, 2026-11-02: "not 3 depth levels, just a continuous depth.
 // I want it to feel 3D"): each instance carries its depth z (µm) in one
-// continuous water volume. The microscope's focus follows the player
-// (uFocus) and the view is a perspective from the objective, 1 / uPar µm
-// above the focal plane: a thing at dz = z − focus is scaled about the view's
-// centre by 1 / (1 − uPar · dz) (nearer the objective: larger, and sliding
-// faster as the view moves; deeper: smaller and slower: parallax). Off the
-// focal plane it is drawn softer (its edge widened by uBlur per µm, which also
+// continuous water volume. The view is a perspective from 1 / uPar µm
+// above the swimmer's depth (uFocus): a thing at dz = z − uFocus is scaled
+// about the view's centre by 1 / (1 − uPar · dz) (nearer the objective:
+// larger, and sliding faster as the view moves; deeper: smaller and slower:
+// parallax). What is sharp is the microscope's focal plane (uFocal), which
+// lags the swimmer the way a person turns the fine focus (focus.js). Off the
+// focal plane a thing is drawn softer (its edge widened by uBlur per µm, which also
 // spreads and so dims thin lines, as defocus does) and dimmer (uDim per µm,
 // more for what lies deeper), and what lies deeper also sinks into a cool
 // haze (uHaze). Soft shadows fall on the slide (shadow(): a second, small
@@ -36,14 +37,18 @@ const VS = /* glsl */`
 attribute vec4 a0; attribute vec4 a1; attribute vec4 a2; attribute vec4 a3;
 uniform vec4 uView;      // centre x, y; half width, half height (µm)
 uniform vec2 uRot;       // cos, sin of the view's turn
-uniform float uFocus, uPar, uBlur, uPx, uDim, uHaze;
+uniform float uFocus, uFocal, uPar, uBlur, uPx, uDim, uHaze;
 varying vec2 vL; varying vec4 vS; varying vec4 vC; varying vec3 vT;
 void main() {
-  float type = a3.x;
+  // a game marker (a tell, a hit, a miss, a warning ring: type + 10) keeps most of its edge out of focus
+  float mk = step(9.5, a3.x);
+  float type = a3.x - 10.0 * mk;
+  // the perspective from the swimmer's depth (uFocus); the focus from the microscope's focal plane (uFocal)
   float dz = a1.w - uFocus;
+  float df = a1.w - uFocal;
   float k = 1.0 / max(0.25, 1.0 - uPar * dz);
-  float dim = 1.0 + uDim * abs(dz) * (dz < 0.0 ? 1.4 : 0.6);
-  float blur = uBlur * abs(dz);
+  float dim = mix(1.0 + uDim * abs(df) * (df < 0.0 ? 1.4 : 0.6), 1.0, mk);
+  float blur = uBlur * abs(df) * (1.0 - 0.8 * mk);
   float soft = a1.z + blur;
   float glowR = a3.z + blur * 0.6;
   vec2 c, ax; float hl, ra, rb;
@@ -76,7 +81,7 @@ void main() {
   vL = vec2(local.x, local.y);
   vS = vec4(type < 1.5 ? hl : ra, rb, s, a3.w);
   // deeper than the focus: a cool haze (the water between), and dimmer
-  float hz = clamp(-dz * uHaze, 0.0, 0.7);
+  float hz = clamp(-df * uHaze, 0.0, 0.7) * (1.0 - mk);
   vec3 col = mix(a2.rgb, vec3(0.45, 0.62, 0.85) * dot(a2.rgb, vec3(0.33)), hz);
   vC = vec4(col, a2.a / dim);
   // (a halo too faint to pad the quad for is left out, so no quad's edge ever cuts a glow)
@@ -127,7 +132,7 @@ void main() {
 // the body art (a darkfield sprite, keyed and premultiplied at load): a quad at (x, y), turned a, ra x rb µm
 const SPRITE_VS = /* glsl */`
 attribute vec4 b0; attribute vec4 b1;
-uniform vec4 uView; uniform vec2 uRot; uniform float uFocus, uPar, uBlur, uPx, uDim;
+uniform vec4 uView; uniform vec2 uRot; uniform float uFocus, uFocal, uPar, uBlur, uPx, uDim;
 varying vec2 vUv; varying float vI; varying float vBias; varying vec3 vTint;
 attribute vec3 b2;
 void main() {
@@ -140,8 +145,9 @@ void main() {
   vec2 r2 = vec2(rel.x * uRot.x + rel.y * uRot.y, -rel.x * uRot.y + rel.y * uRot.x);
   gl_Position = vec4(r2 / uView.zw, 0.0, 1.0);
   vUv = position.xy * 0.5 + 0.5;
-  vI = b1.y / (1.0 + uDim * abs(dz));
-  vBias = log2(1.0 + uBlur * abs(dz) / max(uPx / k, 0.05));
+  float df = b1.z - uFocal;
+  vI = b1.y / (1.0 + uDim * abs(df));
+  vBias = log2(1.0 + uBlur * abs(df) / max(uPx / k, 0.05));
   vTint = b2;
 }`;
 const SPRITE_FS = /* glsl */`
@@ -152,7 +158,9 @@ void main() {
   // the Chlorella's green turned to this player's shade
   float g = max(0.0, c.g - max(c.r, c.b));
   c += g * (vTint - vec3(0.42, 0.84, 0.22)) * 1.6;
-  gl_FragColor = vec4(max(c, 0.0) * vI * uGain, 1.0);
+  // fade out toward the quad's border, so a defocused (mip-blurred) cell never shows the quad's edge
+  float e = smoothstep(0.0, 0.03, vUv.x) * smoothstep(1.0, 0.97, vUv.x) * smoothstep(0.0, 0.1, vUv.y) * smoothstep(1.0, 0.9, vUv.y);
+  gl_FragColor = vec4(max(c, 0.0) * vI * uGain * e, 1.0);
 }`;
 const BG_VS = /* glsl */`varying vec2 vN; void main() { vN = position.xy; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
 const BG_FS = /* glsl */`
@@ -177,7 +185,7 @@ export function createShapes(renderer, { max = 90000, shadowMax = 1500, spriteMa
   geo.instanceCount = 0;
   const uniforms = {
     uView: { value: new THREE.Vector4(0, 0, 320, 180) }, uRot: { value: new THREE.Vector2(1, 0) },
-    uFocus: { value: 0 }, uPar: { value: 1 / 900 }, uBlur: { value: 0.07 }, uPx: { value: 0.5 }, uDim: { value: 0.006 }, uHaze: { value: 0.0016 },
+    uFocus: { value: 0 }, uFocal: { value: 0 }, uPar: { value: 1 / 900 }, uBlur: { value: 0.07 }, uPx: { value: 0.5 }, uDim: { value: 0.006 }, uHaze: { value: 0.0016 },
     uSub: { value: 0 }, uGain: { value: 1 }, uSubTint: { value: new THREE.Vector3(1, 1, 1) },
   };
   const mk = (sub) => new THREE.ShaderMaterial({
@@ -273,8 +281,11 @@ export function createShapes(renderer, { max = 90000, shadowMax = 1500, spriteMa
     setSprite(tex) { spriteMat.uniforms.uTex.value = tex; },
     get hasSprite() { return !!spriteMat.uniforms.uTex.value; },
     /** One instance (the low-level call). */
+    /** While true, what is drawn is a game marker: it stays legible out of focus (a fifth of the defocus, no dimming or haze). */
+    marker: false,
     put(type, x0, y0, x1, y1, r, rb, soft, z, cr, cg, cb, I, glow, glowR, ringW) {
       if (n >= max || !(I > 0.002)) return;
+      if (api.marker) type += 10;
       const o = n * F;
       data[o] = x0; data[o + 1] = y0; data[o + 2] = x1; data[o + 3] = y1;
       data[o + 4] = r; data[o + 5] = rb; data[o + 6] = soft; data[o + 7] = z;
@@ -296,12 +307,14 @@ export function createShapes(renderer, { max = 90000, shadowMax = 1500, spriteMa
     },
     /**
      * Set the view: centre (cx, cy), half extents (µm), its turn (radians, the
-     * screen's up turned from the slide's +y), the focus depth, µm per pixel.
+     * screen's up turned from the slide's +y), the depth the perspective is
+     * seen from (the swimmer's: focus), the microscope's focal plane (focal:
+     * what is sharp; it lags the swimmer, focus.js), µm per pixel.
      */
-    setView({ cx, cy, hw, hh, rot = 0, focus = 0, pxUm = 0.5 }) {
+    setView({ cx, cy, hw, hh, rot = 0, focus = 0, focal = focus, pxUm = 0.5 }) {
       uniforms.uView.value.set(cx, cy, hw, hh);
       uniforms.uRot.value.set(Math.cos(rot), Math.sin(rot));
-      uniforms.uFocus.value = focus;
+      uniforms.uFocus.value = focus; uniforms.uFocal.value = focal;
       uniforms.uPx.value = pxUm;
     },
     depth(par, blur, dim, haze = 0) { uniforms.uPar.value = par; uniforms.uBlur.value = blur; uniforms.uDim.value = dim; uniforms.uHaze.value = haze; },
