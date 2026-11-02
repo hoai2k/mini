@@ -48,6 +48,7 @@ const GROUP_ORDER = ['Rendering', 'Optics', 'Body', 'Motion', 'Simulation', 'Wor
 
 export function createFeatures({ key, pad }) {
   const items = [];
+  const textKey = key.split('.')[0]; // 'paramecium.v5' keeps its text under paramecium
   const store = `micro.features.${key}`;
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem(store) || '{}') || {}; } catch { /* private mode */ }
@@ -190,7 +191,7 @@ export function createFeatures({ key, pad }) {
      */
     add(f) {
       const it = { on: true, ...f };
-      const base = textFor(key, it.id);
+      const base = textFor(textKey, it.id);
       if (base) {
         if (it.label === undefined && has(`${base}.label`)) it.label = t(`${base}.label`);
         if (it.about === undefined && has(`${base}.about`)) it.about = t(`${base}.about`);

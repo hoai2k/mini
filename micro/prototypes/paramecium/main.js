@@ -34,6 +34,7 @@ import { createBloom, placeBloom, stepBloom, gulpBloom, flingBloom, BLOOM } from
 import { createPrey, stepPrey, gulpPrey } from './prey.js';
 import { START, DEPTH, FIELDS, BACK, DIRECTOR, ENCOUNTERS, DEFAULT_PATH, MET, DRIFT_TO, canPlace, didiniumHomes, trapAt, bandDist } from './route.js';
 import { clumpLayout, placeInFrame } from '../shared/kin-clump.js';
+import { t as tt, tx as ttx } from '../shared/text.js';
 
 const GOAL = 6; // prey to eat to divide
 const TAU = Math.PI * 2;
@@ -52,8 +53,8 @@ renderer.setSize(innerWidth, innerHeight, false);
 // --- players: P1 on the keyboard and the first controller; 2-4 join with any button on another ---
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { hud.toast(`Player ${p.slot + 1} joined`); embed.join(p.slot, p.color, p.name, players.toJSON()); syncCells(); },
-  onLeave: (p) => { hud.toast(`Player ${p.slot + 1} left`); embed.leave(p.slot); syncCells(); },
+  onJoin: (p) => { hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); embed.join(p.slot, p.color, p.name, players.toJSON()); syncCells(); },
+  onLeave: (p) => { hud.toast(tt('shared.players.left', { n: p.slot + 1 })); embed.leave(p.slot); syncCells(); },
   onChange: (list) => { if (hud) hud.players(list); },
 });
 if (embed.players) players.fromJSON(embed.players);
@@ -61,21 +62,21 @@ embed.on('players', (r) => { players.fromJSON(r); syncCells(); });
 const pad = players.pad(0);
 
 const CONTROLS = {
-  move: 'Swim',
-  camera: 'Depth · far sides: turn view',
-  dash: 'Dash',
-  attack: 'Attack / eat',
-  defend: 'Burst / back off',
-  special: 'Enter portal',
-  secondary: 'Deeper / shallower',
-  look: 'Change the look',
-  zoom: 'Zoom',
+  move: tt('paramecium.hud.controls.move'),
+  camera: tt('paramecium.hud.controls.camera'),
+  dash: tt('paramecium.hud.controls.dash'),
+  attack: tt('paramecium.hud.controls.attack'),
+  defend: tt('paramecium.hud.controls.defend'),
+  special: tt('paramecium.hud.controls.special'),
+  secondary: tt('paramecium.hud.controls.secondary'),
+  look: tt('paramecium.hud.controls.look'),
+  zoom: tt('paramecium.hud.controls.zoom'),
 };
 const hud = mountHud({
-  title: 'Paramecium',
-  sub: 'Paramecium bursaria, 120 µm, green with symbiotic Chlorella, on a slide under the microscope (darkfield). Quick and light: eat, dodge, and battle your way through the pond drop.',
+  title: tt('paramecium.hud.title'),
+  sub: tt('paramecium.hud.sub'),
   controls: hudControls(CONTROLS),
-  note: `Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium, the giant amoeba and the bladderwort. Eat ${GOAL} prey to divide. Swim deeper or shallower (RS) to slip over and under things. Up to four players: press any button on another controller to join.`,
+  note: tt('paramecium.hud.note', { goal: GOAL }),
 });
 hud.players(players.list);
 const glyph = (b) => (hud.glyphs === 'keyboard' ? keyFor(b) || b : b);
@@ -113,14 +114,12 @@ const LOOKS = {
 };
 const PHASE_BG = [0.6, 0.655, 0.615]; // the bacterium's phase field (the dive turns the light to it)
 const view = { look: 'Darkfield', parallax: true, tile: true, glitter: 1, field: 1, rot: 0, cx: START.x, cy: START.y, focus: 0, vx: 0, vy: 0 };
-features.add({ id: 'look', group: 'Optics', label: 'Microscope look', choices: LOOK_NAMES, value: 'Darkfield',
-  about: 'Darkfield (the default, as the card shows it): structures glow where they scatter light, on black. Phase contrast: dark structures with bright halos on grey (the dive into the bacterium turns to it). Brightfield: dark on a lit field. D-pad left/right cycles.',
+features.add({ id: 'look', group: 'Optics', choices: LOOK_NAMES, value: 'Darkfield',
   onChange: (v) => { view.look = v; } });
-features.add({ id: 'depthcues', group: 'Optics', label: 'Depth cues (focus, parallax)', on: true,
-  about: 'The focus follows your depth: what lies above or below is drawn softer and dimmer, and a little larger (nearer the objective) or smaller (nearer the slide), sliding at its own pace as the view moves.',
+features.add({ id: 'depthcues', group: 'Optics', on: true,
   onChange: (v) => { view.parallax = v; } });
-features.add({ id: 'tile', group: 'Optics', label: 'Habitat backdrop (MP-P04, MP-P05)', on: true, about: 'The delivered seamless habitat tiles, far below the drop, blurred and dim.', onChange: (v) => { view.tile = v; } });
-features.add({ id: 'scenery', group: 'World', label: 'Spirogyra, detritus, Vorticella, diatoms, glitter', fixed: true, about: 'Laid out in a 4.8 mm tile repeated in every direction (world.js). Filaments run through the depth; the cell winds over or under them on its own.' });
+features.add({ id: 'tile', group: 'Optics', on: true, onChange: (v) => { view.tile = v; } });
+features.add({ id: 'scenery', group: 'World', fixed: true });
 const tiles = { dark: null, phase: null };
 // the tiles lie far below the drop, out of focus: a small blurred copy of each is all the view needs (and cheap to sample)
 function softTile(t) {
@@ -171,7 +170,9 @@ function syncCells() {
 }
 syncCells();
 const multi = () => cells.length > 1;
-const who = (P) => (multi() ? `P${P.slot + 1}: ` : '');
+const who = (P) => (multi() ? tt('paramecium.who', { n: P.slot + 1 }) : '');
+/** A foe's name as shown (the foes report an English name, kept as data). */
+const foeName = (by) => ttx('paramecium.foes')[by] ?? by;
 const liveCells = () => cells.filter((c) => c.live);
 /** The player as foes.js sees it. */
 const foeView = () => cells;
@@ -289,12 +290,12 @@ const nearestThreatAngle = (P) => {
 function attack(P) {
   const S = P.S;
   const p = gulpPrey(prey, S);
-  if (p) { ate(P, p.kind === 'chilomonas' ? 'a Chilomonas' : 'a bacterial clump'); return; }
+  if (p) { ate(P, p.kind === 'chilomonas' ? tt('paramecium.food.chilomonas') : tt('paramecium.food.bacteria')); return; }
   const n = gulpBloom(bloom, S);
   if (n) {
     P.algae = (P.algae || 0) + n;
     audio.play('paramecium/gulp', { volume: 0.6, rate: 1.1 });
-    if (P.algae >= BLOOM.perMeal) { P.algae -= BLOOM.perMeal; ate(P, `${BLOOM.perMeal} Chlamydomonas`); }
+    if (P.algae >= BLOOM.perMeal) { P.algae -= BLOOM.perMeal; ate(P, tt('paramecium.food.chlamydomonas', { n: BLOOM.perMeal })); }
     return;
   }
   if (P.jabCd > 0) return;
@@ -303,7 +304,7 @@ function attack(P) {
   const fx = S.x + Math.cos(S.a) * LENGTH * 0.5, fy = S.y + Math.sin(S.a) * LENGTH * 0.5;
   const inCone = (x, y, z, r = 0) => { const d = hyp(x - fx, y - fy) - r; return d < 150 && Math.abs(z - S.z) < 80 && Math.cos(Math.atan2(y - fy, x - fx) - S.a) > 0.5; };
   if (dileptus.placed && inCone(dileptus.x, dileptus.y, dileptus.z, 40) && dileptus.mode !== 'flee') { dileptus.mode = 'stunned'; dileptus.t = 0.6; log('jab', 'dileptus', P); }
-  for (const d of didinia) if (d.placed && inCone(d.x, d.y, d.z, 40) && /chase|crouch/.test(d.mode)) { d.mode = 'stagger'; d.t = 0; log('jab', 'didinium', P); hintOnce(P, 'stagger', 'A jab staggers Didinium for a moment, no more: keep away'); }
+  for (const d of didinia) if (d.placed && inCone(d.x, d.y, d.z, 40) && /chase|crouch/.test(d.mode)) { d.mode = 'stagger'; d.t = 0; log('jab', 'didinium', P); hintOnce(P, 'stagger', tt('paramecium.toasts.didiniumJab')); }
   if (giant.placed && (P.engulfed || hyp(giant.x - S.x, giant.y - S.y) < GIANT.R + 300)) { const r = burstGiant(giant, P); if (r) log('jab', 'giant:' + r, P); }
 }
 function ate(P, what) {
@@ -312,8 +313,8 @@ function ate(P, what) {
   if (P.vacuoles.length > 6) P.vacuoles.shift();
   audio.play('paramecium/gulp', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
   P.pad?.rumble?.(90, 0.3, 0.2);
-  if (game.eaten >= GOAL) { game.eaten = 0; game.divided++; hud.toast(`${who(P)}Ate ${what}: the cell divides! (${game.divided})`, 2600); }
-  else hud.toast(`${who(P)}Ate ${what} (${game.eaten}/${GOAL})`, 1400);
+  if (game.eaten >= GOAL) { game.eaten = 0; game.divided++; hud.toast(tt('paramecium.toasts.ateDivides', { who: who(P), what, n: game.divided }), 2600); }
+  else hud.toast(tt('paramecium.toasts.ate', { who: who(P), what, eaten: game.eaten, goal: GOAL }), 1400);
 }
 /** B: the trichocyst burst (while charged) and the avoiding reaction. */
 function defend(P) {
@@ -321,18 +322,18 @@ function defend(P) {
   const away = nearestThreatAngle(P);
   backOff(S, away);
   audio.play('paramecium/reverse', { volume: 0.7 });
-  if (P.charges <= 0) { hintOnce(P, 'empty', 'No trichocysts left: they recharge in a few seconds (the stars in the strip)', 2600); return; }
+  if (P.charges <= 0) { hintOnce(P, 'empty', tt('paramecium.toasts.noTrichocysts'), 2600); return; }
   P.charges--; P.burst = 0;
   audio.play('paramecium/trichocysts', { volume: 1 });
   P.pad?.rumble?.(200, 0.5, 0.6);
   const rD = burstDileptus(dileptus, P);
-  if (rD === 'driven' || rD === 'beaten') { log('burst', 'dileptus:' + rD, P); hud.toast(`${who(P)}Trichocysts! The Dileptus recoils${rD === 'beaten' ? ' and gives up' : ''}`, 2200); }
+  if (rD === 'driven' || rD === 'beaten') { log('burst', 'dileptus:' + rD, P); hud.toast(tt(rD === 'beaten' ? 'paramecium.toasts.dileptusGivesUp' : 'paramecium.toasts.dileptusRecoils', { who: who(P) }), 2200); }
   else if (rD === 'early') log('burst', 'dileptus:early', P);
   const rG = burstGiant(giant, P);
-  if (rG) { log('burst', 'giant:' + rG, P); if (rG === 'freed') hud.toast(`${who(P)}Burst free of the amoeba's cup!`, 2000); }
+  if (rG) { log('burst', 'giant:' + rG, P); if (rG === 'freed') hud.toast(tt('paramecium.toasts.burstCup', { who: who(P) }), 2000); }
   const rT = burstTrap(trap, P);
-  if (rT) { log('burst', 'trap', P); hud.toast(`${who(P)}Burst out of the inflow! (the trap's resolve ${Math.max(0, trap.resolve)})`, 2000); }
-  for (const d of didinia) if (d.placed && d.target === P && /crouch|lunge/.test(d.mode) && hyp(d.x - S.x, d.y - S.y) < 320) { log('burst', 'didinium:no', P); hintOnce(P, 'didb', "Trichocysts can't stop Didinium: dodge sideways or change depth as it crouches"); }
+  if (rT) { log('burst', 'trap', P); hud.toast(tt('paramecium.toasts.burstInflow', { who: who(P), resolve: Math.max(0, trap.resolve) }), 2000); }
+  for (const d of didinia) if (d.placed && d.target === P && /crouch|lunge/.test(d.mode) && hyp(d.x - S.x, d.y - S.y) < 320) { log('burst', 'didinium:no', P); hintOnce(P, 'didb', tt('paramecium.toasts.didiniumImmune')); }
 }
 function log(type, what, P) { challengeLog.push({ type, what, slot: P ? P.slot : 0, t: +game.t.toFixed(2) }); if (challengeLog.length > 200) challengeLog.shift(); }
 /** Death: the player keeps control until this moment; then the cell dissolves (visible), and comes back. */
@@ -340,7 +341,7 @@ const DISSOLVE = 1.5, RESPAWN = 2.4;
 function kill(P, by, how) {
   if (!P.live || P.invuln > 0 || outro) return;
   P.live = false; P.dead = { t: 0, by, how }; P.engulfed = null;
-  hud.toast(`${who(P)}Eaten: ${by} ${how}`, 2600);
+  hud.toast(tt('paramecium.toasts.eaten', { who: who(P), by: foeName(by), how }), 2600);
   audio.play('paramecium/held', { volume: 1 });
   P.pad?.rumble?.(500, 0.8, 0.9);
   embed.captured({ by, player: P.slot });
@@ -386,18 +387,18 @@ function stepLandmarks(dt) {
     // (said again now and then while near: a shell busy with a fade when it came keeps no record of it; preloading is idempotent)
     lm.nearT = (lm.nearT || 0) + dt;
     if (nearing !== lm.nearing || (nearing && lm.nearT > 1.5)) { lm.nearing = nearing; lm.nearT = 0; embed.near('forward', nearing); }
-    if (dmin < 900 && !portalSealed() && guarded()) hintOnce(P1, 'trap', 'A bladderwort trap guards the biofilm: make it fire and miss (B bursts you out of its pull) until it hangs slack', 4000);
+    if (dmin < 900 && !portalSealed() && guarded()) hintOnce(P1, 'trap', tt('paramecium.toasts.bossHint'), 4000);
   }
   if (any && !lm.latch) {
     lm.latch = true;
-    if (portalSealed()) hud.toast(`${who(any)}The biofilm is not open to you yet: the hunters are still out in the drop`, 2600);
+    if (portalSealed()) hud.toast(tt('paramecium.toasts.sealed', { who: who(any) }), 2600);
     else if (guarded()) {
       // turned back: swept off the leaf by the trap's guard
       lm.log.push({ kind: 'turnedBack', slot: any.slot, t: +game.t.toFixed(2) });
-      hud.toast(`${who(any)}Swept back off the leaf: the trap still guards it`, 2400);
+      hud.toast(tt('paramecium.toasts.sweptBack', { who: who(any) }), 2400);
       const a = Math.atan2(any.S.y - FWD.y, any.S.x - FWD.x);
       any.S.x = FWD.x + Math.cos(a) * leaf.r * 1.05; any.S.y = FWD.y + Math.sin(a) * leaf.r * 1.05; any.S.z = Math.max(any.S.z, -20);
-    } else hintOnce(any, 'portal', 'The biofilm: press Y to enter the portal', 2400);
+    } else hintOnce(any, 'portal', tt('paramecium.toasts.portal'), 2400);
   }
   if (!any) lm.latch = false;
   setPortalPrompt(!!any && !outro && !portalSealed() && !guarded());
@@ -549,7 +550,7 @@ function stepPlayer(P, dt, input) {
   // contacts: a puff and a rumble on a real bump (a weave is quiet)
   for (const c of S.contacts) if (!c.weave && c.pen > 3 && !P.bumpCd) { P.bumpCd = 0.25; P.pad?.rumble?.(60, 0.2, 0.1); }
   P.bumpCd = Math.max(0, (P.bumpCd || 0) - dt);
-  if (S.contacts.some((c) => c.weave)) hintOnce(P, 'weave', 'You wind over or under filaments and clumps on your own; RS up/down to choose your depth', 3000);
+  if (S.contacts.some((c) => c.weave)) hintOnce(P, 'weave', tt('paramecium.toasts.weave'), 3000);
   // the body: bend into a turn, squash in a dash; the cilia beat with the speed
   const turn = wrap(S.a - P.lastA) / Math.max(dt, 1e-3); P.lastA = S.a;
   P.bend += (clamp(turn / 6, -1, 1) - P.bend) * Math.min(1, dt * 8);
@@ -621,11 +622,11 @@ function stepWorld(dt) {
   world.stepVorticella(dt, (v) => cells.some((P) => { const ox = Math.round((P.S.x - v.ax) / TILE) * TILE, oy = Math.round((P.S.y - v.ay) / TILE) * TILE; const p = world.vortPose(v, ox, oy, t); return hyp(P.S.x - p.x1, P.S.y - p.y1) < 110 && Math.abs(P.S.z - p.z1) < 60; }));
   for (const e of ev) {
     if (e.type === 'kill') kill(e.P, e.by, e.how);
-    else if (e.type === 'engulf') { hintOnce(e.P, 'engulf', 'The giant amoeba is closing round you: B to burst out, or dash clear! Rise above it to stay out of reach', 3600); audio.play('paramecium/held', { volume: 0.7 }); }
-    else if (e.type === 'tell' && e.who.kind === 'didinium') { audio.play('paramecium/didinium', { volume: 0.9 }); hintOnce(e.P, 'did', 'Didinium crouches to lunge: dodge sideways or change depth (RS)!'); }
-    else if (e.type === 'tell' && e.who.kind === 'dileptus') hintOnce(e.P, 'dil', 'Dileptus winds its trunk back: B (trichocysts) drives it off');
-    else if (e.type === 'fled') hud.toast('The Dileptus gives up and swims off', 2000);
-    else if (e.type === 'trap-spent') hud.toast('The trap hangs slack: slip down onto the biofilm!', 2800);
+    else if (e.type === 'engulf') { hintOnce(e.P, 'engulf', tt('paramecium.hints.giant'), 3600); audio.play('paramecium/held', { volume: 0.7 }); }
+    else if (e.type === 'tell' && e.who.kind === 'didinium') { audio.play('paramecium/didinium', { volume: 0.9 }); hintOnce(e.P, 'did', tt('paramecium.hints.didinium')); }
+    else if (e.type === 'tell' && e.who.kind === 'dileptus') hintOnce(e.P, 'dil', tt('paramecium.hints.dileptus'));
+    else if (e.type === 'fled') hud.toast(tt('paramecium.hints.dileptusGone'), 2000);
+    else if (e.type === 'trap-spent') hud.toast(tt('paramecium.hints.trapSlack'), 2800);
     if (/^(kill|miss|fled|rest|trap-)/.test(e.type)) log(e.type, e.who ? e.who.kind : e.by || '', e.P);
   }
   // director
@@ -750,7 +751,7 @@ function render(dt) {
     const d = Math.min(...cells.map((P) => hyp(P.S.x - FWD.x, P.S.y - FWD.y)));
     portalLight.drawSplit(split, toFrame(FWD.x, FWD.y), { strength: Math.max(0.3, Math.min(1, 1.2 - d / 1800)), open: glow.open });
   }
-  if (!outro) marks.drawSplit(split, toFrame(BACK.x, BACK.y), { kind: 'backdoor', label: 'Pool', range: 1500, onScreen: 'none' });
+  if (!outro) marks.drawSplit(split, toFrame(BACK.x, BACK.y), { kind: 'backdoor', label: tt('paramecium.marks.pool'), range: 1500, onScreen: 'none' });
   drawPortalArrow();
 }
 let arrowLog = [];
@@ -774,19 +775,19 @@ function updateHud() {
   const dashK = 1 - Math.max(0, P.S.dashCd) / 0.9;
   const dashBar = '▮'.repeat(Math.round(dashK * 4)) + '▯'.repeat(4 - Math.round(dashK * 4));
   const stars = '✦'.repeat(P.charges) + '✧'.repeat(3 - P.charges);
-  const depthName = (z) => (z > 60 ? 'near the coverslip' : z < -60 ? 'near the slide' : 'mid-water');
+  const depthName = (z) => (z > 60 ? tt('paramecium.status.nearCoverslip') : z < -60 ? tt('paramecium.status.nearSlide') : tt('paramecium.status.midWater'));
   let warn = '';
   for (const C of cells) {
-    if (!C.live) { if (C.dead) warn = `${who(C)}Eaten by ${C.dead.by}`; continue; }
-    if (C.engulfed) { warn = `${who(C)}Engulfed! ${glyph('B')} to burst out, or dash clear`; break; }
-    if (trap.state === 'pulse' && trapPush.has(C)) { warn = `${who(C)}The trap pulls! ${glyph('B')} to burst out`; break; }
-    for (const d of didinia) if (d.target === C && /crouch|lunge/.test(d.mode)) warn = `${who(C)}Didinium lunges: dodge sideways or change depth`;
-    if (dileptus.target === C && /windup|strike/.test(dileptus.mode)) warn = `${who(C)}Dileptus slashes: ${glyph('B')} to drive it off`;
-    if (!warn && giant.placed && giant.target === C && hyp(C.S.x - giant.x, C.S.y - giant.y) < GIANT.R + 320) warn = `${who(C)}The giant amoeba reaches for you: keep clear, or rise above it`;
+    if (!C.live) { if (C.dead) warn = tt('paramecium.warn.eatenBy', { who: who(C), by: foeName(C.dead.by) }); continue; }
+    if (C.engulfed) { warn = tt('paramecium.warn.engulfed', { who: who(C), glyph }); break; }
+    if (trap.state === 'pulse' && trapPush.has(C)) { warn = tt('paramecium.warn.trapPulls', { who: who(C), glyph }); break; }
+    for (const d of didinia) if (d.target === C && /crouch|lunge/.test(d.mode)) warn = tt('paramecium.warn.didinium', { who: who(C) });
+    if (dileptus.target === C && /windup|strike/.test(dileptus.mode)) warn = tt('paramecium.warn.dileptus', { who: who(C), glyph });
+    if (!warn && giant.placed && giant.target === C && hyp(C.S.x - giant.x, C.S.y - giant.y) < GIANT.R + 320) warn = tt('paramecium.warn.giant', { who: who(C) });
   }
   const s = director.state();
-  const way = !leaf.placed ? '' : portalSealed() ? '' : guarded() ? ` · trap ${'●'.repeat(Math.max(0, trap.resolve))}` : ' · the way on is open';
-  const text = `<div>Prey ${game.eaten}/${GOAL}${game.divided ? ` · divided ${game.divided}` : ''} · dash ${dashBar} · burst ${stars} · ${depthName(P.S.z)}${way}</div>${warn ? `<div style="color:#ff9c8a">${warn}</div>` : ''}`;
+  const way = !leaf.placed ? '' : portalSealed() ? '' : guarded() ? tt('paramecium.status.trap', { dots: '●'.repeat(Math.max(0, trap.resolve)) }) : tt('paramecium.status.wayOpen');
+  const text = `<div>${tt(game.divided ? 'paramecium.status.lineDivided' : 'paramecium.status.line', { eaten: game.eaten, goal: GOAL, divided: game.divided, dash: dashBar, burst: stars, depth: depthName(P.S.z) })}${way}</div>${warn ? `<div style="color:#ff9c8a">${warn}</div>` : ''}`;
   if (text !== goalText) { goalText = text; goalEl.innerHTML = text; }
   void s;
   // the depth gauge: each player's depth between the coverslip (top) and the slide

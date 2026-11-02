@@ -1894,4 +1894,110 @@ export const TEXT = {
     },
     bossGauge: 'CHAOS',
   },
+
+  // --------------------------------------------------------------------
+  // World 5, the paramecium (micro/prototypes/paramecium).
+  paramecium: {
+    hud: {
+      controls: {
+        move: 'Swim',
+        camera: 'Depth · far sides: turn view',
+        dash: 'Dash',
+        attack: 'Attack / eat',
+        defend: 'Burst / back off',
+        special: 'Enter portal',
+        secondary: 'Deeper / shallower',
+        look: 'Change the look',
+        zoom: 'Zoom',
+      },
+      title: 'Paramecium',
+      sub: 'Paramecium bursaria, 120 µm, green with symbiotic Chlorella, on a slide under the microscope (darkfield). Quick and light: eat, dodge, and battle your way through the pond drop.',
+      note: 'Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium, the giant amoeba and the bladderwort. Eat {goal} prey to divide. Swim deeper or shallower (RS) to slip over and under things. Up to four players: press any button on another controller to join.',
+    },
+    features: {
+      look: {
+        label: 'Microscope look',
+        about: 'Darkfield (the default, as the card shows it): structures glow where they scatter light, on black. Phase contrast: dark structures with bright halos on grey (the dive into the bacterium turns to it). Brightfield: dark on a lit field. D-pad left/right cycles.',
+        choices: {
+          Darkfield: 'Darkfield',
+          'Phase contrast': 'Phase contrast',
+          Brightfield: 'Brightfield',
+        },
+      },
+      depthcues: {
+        label: 'Depth cues (focus, parallax)',
+        about: 'The focus follows your depth: what lies above or below is drawn softer and dimmer, and a little larger (nearer the objective) or smaller (nearer the slide), sliding at its own pace as the view moves.',
+      },
+      tile: {
+        label: 'Habitat backdrop (MP-P04, MP-P05)',
+        about: 'The delivered seamless habitat tiles, far below the drop, blurred and dim.',
+      },
+      scenery: {
+        label: 'Spirogyra, detritus, Vorticella, diatoms, glitter',
+        about: 'Laid out in a 4.8 mm tile repeated in every direction (world.js). Filaments run through the depth; the cell winds over or under them on its own.',
+      },
+    },
+    food: {
+      chilomonas: 'a Chilomonas',
+      bacteria: 'a bacterial clump',
+      chlamydomonas: '{n} Chlamydomonas',
+    },
+    toasts: {
+      didiniumJab: 'A jab staggers Didinium for a moment, no more: keep away',
+      ateDivides: '{who}Ate {what}: the cell divides! ({n})',
+      ate: '{who}Ate {what} ({eaten}/{goal})',
+      noTrichocysts: 'No trichocysts left: they recharge in a few seconds (the stars in the strip)',
+      burstCup: '{who}Burst free of the amoeba\'s cup!',
+      burstInflow: '{who}Burst out of the inflow! (the trap\'s resolve {resolve})',
+      didiniumImmune: 'Trichocysts can\'t stop Didinium: dodge sideways or change depth as it crouches',
+      bossHint: 'A bladderwort trap guards the biofilm: make it fire and miss (B bursts you out of its pull) until it hangs slack',
+      sealed: '{who}The biofilm is not open to you yet: the hunters are still out in the drop',
+      sweptBack: '{who}Swept back off the leaf: the trap still guards it',
+      portal: 'The biofilm: press Y to enter the portal',
+      weave: 'You wind over or under filaments and clumps on your own; RS up/down to choose your depth',
+      dileptusRecoils: '{who}Trichocysts! The Dileptus recoils',
+      dileptusGivesUp: '{who}Trichocysts! The Dileptus recoils and gives up',
+      eaten: '{who}Eaten: {by} {how}',
+    },
+    marks: {
+      pool: 'Pool',
+    },
+    warn: {
+      didinium: '{who}Didinium lunges: dodge sideways or change depth',
+      giant: '{who}The giant amoeba reaches for you: keep clear, or rise above it',
+      eatenBy: '{who}Eaten by {by}',
+      engulfed: '{who}Engulfed! {btn:B} to burst out, or dash clear',
+      trapPulls: '{who}The trap pulls! {btn:B} to burst out',
+      dileptus: '{who}Dileptus slashes: {btn:B} to drive it off',
+    },
+    hints: {
+      giant: 'The giant amoeba is closing round you: B to burst out, or dash clear! Rise above it to stay out of reach',
+      didinium: 'Didinium crouches to lunge: dodge sideways or change depth (RS)!',
+      dileptus: 'Dileptus winds its trunk back: B (trichocysts) drives it off',
+      dileptusGone: 'The Dileptus gives up and swims off',
+      trapSlack: 'The trap hangs slack: slip down onto the biofilm!',
+    },
+    status: {
+      nearCoverslip: 'near the coverslip',
+      nearSlide: 'near the slide',
+      midWater: 'mid-water',
+      trap: ' · trap {dots}',
+      wayOpen: ' · the way on is open',
+      line: 'Prey {eaten}/{goal} · dash {dash} · burst {burst} · {depth}',
+      lineDivided: 'Prey {eaten}/{goal} · divided {divided} · dash {dash} · burst {burst} · {depth}',
+    },
+    who: 'P{n}: ',
+    foes: {
+      Dileptus: 'Dileptus',
+      Didinium: 'Didinium',
+      'the giant amoeba': 'the giant amoeba',
+      'the bladderwort trap': 'the bladderwort trap',
+    },
+    how: {
+      dileptus: 'slashed with toxicysts',
+      didinium: 'harpooned and swallowed whole',
+      giant: 'engulfed in a food cup',
+      trap: 'sucked in through its door',
+    },
+  },
 };
