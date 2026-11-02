@@ -489,6 +489,27 @@ remaining tracks are in [design/music-requests.md](design/music-requests.md).
 The full design, including the later chapters and books, is in
 [design/game-design.md](design/game-design.md).
 
+## Achievements
+
+32 achievements (`game/js/achievementRules.js`, the rules; `game/js/achievements.js`,
+in play; their names and descriptions in `text_config.js` `achievements`):
+sixteen for the story and the bosses (finish the field trip, beat Mrs. Dodds
+without being paralyzed, get the Minotaur's horns stuck three times, beat
+Medusa with no one turned to stone, tip Procrustes onto his bed, hit a sleepy
+Cerberus ten times, leave the Lotus Casino with half the days left, beat Ares
+from the sea, a boss with no hero hit, three people on one quest, all five
+heroes...) and sixteen for heroics and habits (ten perfect dodges, three
+monsters with one jump slam, ten revives, ten falls off a ledge, 25 bites of
+ambrosia, fifty hero switches, a thousand monsters and a thousand drachmas, a
+Unique, a Heroic outfit, ten bullseyes, the top of the lava wall, playing
+online...). Each unlock goes to the profile of the person who earned it (the
+party's to everyone on the screen; AI companions earn nothing), shows a card
+with its badge, and is kept in the profile (`data.achievements`; merging two
+profiles keeps every unlock and the higher counts). **Settings → Achievements**
+(on every tab) lists them all: unlocked in gold with the day, the counted ones
+with their progress. The badges are the two sheets of image-requests round 8;
+until they arrive each shows its emoji.
+
 ## Debug: jump to any scene
 
 For testing and auditing levels and cutscenes. Settings has a **Debug** tab:

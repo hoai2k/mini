@@ -83,6 +83,7 @@ export const BOOK1_PATTERNS = {
       p.stunImmune = now + STUN + STUN_IMMUNE;
       if (p.remote) g.online?.stunRemote?.(p, STUN);
       else holdHero(g, p, { kind: 'stun', dur: STUN, by: this });
+      if (!p.ai && g.mission) g.mission.achParalyzed = true;   // (achievements: Pop Quiz)
       g.fx.damageNumber?.(p.pos, 0, { color: '#d8a0ff', text: txt('bosses.alecto.paralyzed') });
     }
     this.anim = { type: 'cast', t: 1 };
@@ -292,7 +293,7 @@ export const BOOK1_PATTERNS = {
       const toHer = Math.atan2(-tmp.x, -tmp.z);
       if (Math.abs(angleDiff(p.facing ?? 0, toHer)) > 1.1) continue;
       p.takeDamage(this.dmg * 0.4, this, { noKnock: true });
-      if (holdHero(g, p, { kind: 'stone', dur: 2.6 + this.phase * 0.4, by: this })) { stoned++; g.fx.damageNumber?.(p.pos, 0, { color: '#c8c4b8', text: txt('bosses.medusa.petrified') }); }
+      if (holdHero(g, p, { kind: 'stone', dur: 2.6 + this.phase * 0.4, by: this })) { stoned++; if (this.ach) this.ach.stoned++; g.fx.damageNumber?.(p.pos, 0, { color: '#c8c4b8', text: txt('bosses.medusa.petrified') }); }
     }
     if (stoned && this.gazeCount <= 2) toast(txt('bosses.medusa.turnedToStone'));
     yield 0.5;
@@ -476,7 +477,7 @@ export const BOOK1_PATTERNS = {
         onRelease: (p, why) => {
           g.scene.remove(bed); g.fx.poof?.(bedPos);
           if (self.grabbed === p) { self.grabbed = null; self.bed = null; }
-          if (why === 'mash' && !self.dead) { toast(txt('bosses.procrustes.tipped'), 'big'); self.dazeT = 2.5; }
+          if (why === 'mash' && !self.dead) { toast(txt('bosses.procrustes.tipped'), 'big'); self.dazeT = 2.5; if (self.ach) self.ach.tipped = true; }
           else if (why === 'freed' && !self.dead) toast(txt('bosses.procrustes.freed'));
         } });
       toast(txt('bosses.procrustes.straps', { name: heroName(g, caught) }), 'big');

@@ -11,6 +11,7 @@ import { h, toast, confirmDialog } from './ui.js';
 import { settings, saveSettings, resetSettings } from '../settings.js';
 import { QUALITY_LABEL } from '../gfx/renderer.js';
 import { openDebugMenu } from './debugMenu.js';
+import { openAchievements } from './achievementsScreen.js';
 import { t } from '../text_config.js';
 
 let tab = 'audio';
@@ -99,6 +100,8 @@ export function openSettings(game, onClose) {
       );
     }
     el.appendChild(h('div', { class: 'panel set-panel tabbed', role: 'dialog', 'aria-label': t('settings.title'), 'aria-modal': 'true', style: 'width:min(660px,96vw)' }, h('h2', {}, t('settings.title')), tabs, body,
-      h('div', { class: 'row', style: 'margin-top:12px;justify-content:flex-end' }, h('button', { class: 'btn primary', onclick: close }, t('settings.done')))));
+      h('div', { class: 'row', style: 'margin-top:12px;justify-content:space-between;gap:8px' },
+        h('button', { class: 'btn', onclick: () => openAchievements(game) }, '🏆 ' + t('achievements.button')),
+        h('button', { class: 'btn primary', onclick: close }, t('settings.done')))));
   }, { dim: true, onBack: close });
 }

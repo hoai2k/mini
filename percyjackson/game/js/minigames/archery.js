@@ -90,6 +90,7 @@ export class Archery {
         if (d < 0.85 && Math.abs(new THREE.Vector3().subVectors(a.mesh.position, tg.mesh.position).dot(this.fwd)) < 0.6) {
           tg.hit = true; a.life = 0;
           const bull = d < 0.22, inner = d < 0.46;
+          if (bull) g.achievements?.count('bullseyes', this.p);
           this.streak++; this.hits++;
           const pts = Math.round(tg.value * (bull ? 3 : inner ? 1.8 : 1) * (1 + Math.min(this.streak, 10) * 0.1));
           this.score += pts;

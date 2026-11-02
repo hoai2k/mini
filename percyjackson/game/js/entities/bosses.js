@@ -180,6 +180,7 @@ export class Boss {
     if (mul <= 0) return 0;
     const dmg = amount * mul * (this.stunT > 0 ? 2 : 1) * (this.mark > 0 ? 1.5 : 1);
     this.hp -= dmg; this.flashT = 0.08;
+    if (this.ach && this.sleepyT > 0 && src?.isPlayer) this.ach.sleepyHits++;   // (Cerberus asleep: achievements)
     if (this.hpFloor != null && this.hp <= this.hpFloor) { this.hp = this.hpFloor; const fn = this.onFloor; this.hpFloor = null; fn?.(this); return dmg; }
     if (o.knock && this.stunT <= 0) this.knock.addScaledVector(o.knock, KNOCK.boss);   // a boss only budges (combatRules.js)
     const f = this.hp / this.maxHp;
@@ -206,6 +207,7 @@ export class Boss {
     const g = this.game;
     if (this.dead) return;
     this.dead = true; this.deathT = 0; this.co = null; this.stunT = 0;
+    if (this.ach) this.ach.inSea = g.players.some((p) => !p.ai && !p.dead && p.inLiquid);   // (Ares: achievements)
     this.cleanupPattern?.(); this.cleanupPattern = null;
     releaseAllBy(g, this);
     this.B.onDie?.(this);
@@ -442,6 +444,7 @@ export class Boss {
   }
   *stuck(dir) {
     const g = this.game;
+    if (this.ach) this.ach.stuck++;
     const c = this.pos.clone().addScaledVector(dir, this.radius + 0.4).setY(this.pos.y + 2.2);
     g.shake(0.9); g.fx.explosion(c, 0xc9a070, 1.6); g.audio?.impact(2.2); g.audio?.breakBlock('wood');
     for (let i = 0; i < 10; i++) g.debris.spawn(c.clone(), new THREE.Vector3((Math.random() - 0.5) * 6, 4 + Math.random() * 4, (Math.random() - 0.5) * 6), 0.35, new THREE.Color(0.4, 0.3, 0.2), 1.2);

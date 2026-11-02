@@ -295,6 +295,7 @@ export class Party {
     human.gearOwner = dev;            // the companion keeps the gear of whoever last played it
     this.add(human);
     for (const q of [next, human]) q.refreshLoadout?.();
+    g.achievements?.count('switched', next);
     g.fx?.summonCircle?.(next.pos, 0xffd84a);
     g.toast?.(HEROES[next.hero]?.full ?? next.hero);
     g.audio?.ui?.('buy');

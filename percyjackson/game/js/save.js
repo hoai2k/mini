@@ -10,6 +10,7 @@ import { rollItem, normalizeItem } from './loot.js';
 import { migrateHero, defaultLoadout, pointsFor, TREE_VERSION } from './heroes/skillRules.js';
 import { t } from './text_config.js';
 import { xpFor } from './progression.js';
+import { freshAch, normalizeAch } from './achievementRules.js';
 
 export const LEGACY_KEY = 'half-blood-quests-save-v1';   // the single save of version 1
 export const VERSION = 2;
@@ -48,6 +49,7 @@ export function freshData(name = t('profiles.player1'), id = newId()) {
     sinceLegendary: 0,
     signatures: {},
     newCount: 0,
+    achievements: freshAch(),   // achievementRules.js: { got: {id: ms}, n: {stat: count}, sets }
   };
 }
 
@@ -77,6 +79,7 @@ export function normalizeData(d, fallbackName = t('profiles.player1')) {
   out.signatures = {};
   if (d.signatures && typeof d.signatures === 'object') for (const [k, v] of Object.entries(d.signatures)) if (Number.isFinite(v) && v > 0) out.signatures[k] = Math.min(4, Math.floor(v));
   out.newCount = out.inventory.filter((it) => it.isNew).length;
+  out.achievements = normalizeAch(d.achievements);
   out.level = Math.max(1, Math.floor(out.level));
   // skill trees: old ids moved, the rules applied, points = level - spent (heroes/skillRules.js)
   for (const [k, h] of Object.entries(out.heroes)) migrateHero(k, h, out.level);

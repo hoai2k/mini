@@ -30,6 +30,7 @@
 import { Save, freshData, normalizeData, newId, cleanName, LEGACY_KEY, ID_RE } from './save.js';
 import { spentPoints } from './loot.js';
 import { mergeHero } from './heroes/skillRules.js';
+import { mergeAch } from './achievementRules.js';
 import { t } from './text_config.js';
 
 // (a save slot other than the first keeps its keys under its own prefix: see slots.js)
@@ -66,6 +67,7 @@ export function mergeProfiles(aIn, bIn) {
     out.minigames[k] = typeof x === 'number' || typeof y === 'number' ? Math.max(num(x), num(y)) : (y ?? x);
   }
   for (const k of ['seenGearHint', 'unlockAll', 'prophecySeen']) if (a[k] || b[k]) out[k] = a[k] || b[k];
+  out.achievements = mergeAch(a.achievements, b.achievements);   // every unlock, the higher counts
   // inventory: union by uid
   const inv = new Map();
   for (const it of older.inventory) inv.set(it.uid, it);

@@ -291,6 +291,7 @@ export class Online {
 
   // ---------------------------------------------------------------- receiving presence
   onPeers(changed) {
+    if (this.session?.byUid?.size) this.game.achievements?.grant('iris');   // (achievements: playing online with someone)
     const s = this.session;
     for (const peer of changed) {
       const d = peer.p;

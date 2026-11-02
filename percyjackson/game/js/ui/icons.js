@@ -26,6 +26,15 @@ export const ICON_SHEETS = {
   'icons-armour': { cols: 6, rows: 4, ids: ['camp_shirt', 'bronze_breastplate', 'hermes_uniform', 'linothorax', 'biker_jacket', 'hunter_parka', 'sea_armor', 'hoplite_panoply', 'spartan_cloak', 'satyr_vest', 'nemean_pelt', 'fleece_cloak', 'forge_apron', 'amazon_armor', 'achilles_armor', 'hebe_robe', 'wind_cloak', 'hermes_cap', 'counsellor_vest', 'lotus_robe', 'mist_cloak', 'fury_wings', 'hellhound_hide', 'drakon_scale'] },
   'icons-magic': { cols: 7, rows: 4, ids: ['master_bolt', 'hephaestus_net', 'medusa_head', 'nemesis_coin', 'aegis', 'pegasus_whistle', 'nectar_flask', 'bag_of_winds', 'helm_of_darkness', 'winged_shoes', 'greek_fire', 'zeus_thunder', 'orpheus_lyre', 'apple_of_discord', 'athena_owl', 'ariadne_thread', 'caduceus', 'boar_tusk', 'trident_charm', 'sun_chariot', 'kronos_hourglass', 'cornucopia', 'stymphalian_feathers', 'ares_shield', 'lotus_card', 'cerberus_ball', 'dionysus_vine', 'hermes_vitamins'] },
 };
+// The achievement badges (design/image-requests.md round 8), in the order of
+// achievementRules.js ACHIEVEMENTS, under ids 'ach:<id>' (until a sheet
+// arrives the achievement's emoji stands in).
+export const BADGE_SHEETS = {
+  'icons-achievements-1': { cols: 4, rows: 4, ids: ['field_trip', 'pop_quiz', 'bull_horns', 'claimed', 'dont_look', 'perfect_fit', 'good_boy', 'checked_out', 'mind_doors', 'not_so_kindly', 'surfs_up', 'not_the_thief', 'olympian', 'achilles', 'quest_three', 'whole_gang'].map((id) => 'ach:' + id) },
+  'icons-achievements-2': { cols: 4, rows: 4, ids: ['reflexes', 'gravity', 'mist_opportunity', 'resting_eyes', 'mind_gap', 'cookies', 'identity_crisis', 'divine', 'hunter', 'hoarder', 'one_of_a_kind', 'dressed', 'changed_mind', 'apollo', 'hot_hot_hot', 'iris'].map((id) => 'ach:' + id) },
+};
+// every sheet the loader knows (items and badges)
+export const ALL_SHEETS = { ...ICON_SHEETS, ...BADGE_SHEETS };
 // item id -> [sheet, cell index]
 export const ICON_CELL = Object.fromEntries(Object.entries(ICON_SHEETS).flatMap(([sheet, S]) => S.ids.map((id, i) => [id, [sheet, i]])));
 
@@ -184,7 +193,7 @@ export function pieceCanvas(p, size = 0, { pad = 0.04, maxScale = Infinity } = {
   return c;
 }
 function cutSheet(name, img, size = 128) {
-  const S = ICON_SHEETS[name]; if (!S) return 0;
+  const S = ALL_SHEETS[name]; if (!S) return 0;
   const w = S.cols * CELL, hh = S.rows * CELL;
   const d = sheetPixels(img, w, hh);
   const seg = segmentData(d, w, hh);
@@ -206,7 +215,7 @@ export function loadIcons(base = 'assets/') {
   if (loading || typeof document === 'undefined') return loading ?? Promise.resolve(0);
   if (typeof window !== 'undefined') window.__icons = report;
   loading = fetch(base + 'icons.json').then((r) => (r.ok ? r.json() : { sheets: [] })).catch(() => ({ sheets: [] })).then((m) =>
-    Promise.all((m.sheets ?? []).filter((s) => ICON_SHEETS[s]).map((s) => new Promise((resolve) => {
+    Promise.all((m.sheets ?? []).filter((s) => ALL_SHEETS[s]).map((s) => new Promise((resolve) => {
       const img = new Image();
       img.onload = () => { try { resolve(cutSheet(s, img)); } catch (e) { console.warn('icons: could not cut', s, e); resolve(0); } };
       img.onerror = () => { console.warn('icons: could not load', s); resolve(0); };

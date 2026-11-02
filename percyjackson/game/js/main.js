@@ -51,6 +51,7 @@ import './heroes/clarisse.js';
 import { Profiles } from './profiles.js';
 import { Slots, slotPrefix } from './slots.js';
 import { Resume } from './resume.js';
+import { Achievements } from './achievements.js';
 import { rollChest, rollItem, powerFor, itemInfo, itemTier, itemRarity, RARITY, rollBossLoot, rollChapterReward, signatureKey, signatureDue, normalizeItem, rollTierFor, BOSS_SIGNATURE } from './loot.js';
 import { killXp, chapterXp, bossXp, rollCoins, coinLevel, DROP_CHANCE, DROP_RANGE, OW_CHAMPION_SECOND, AFFIXED_COINS } from './progression.js';
 import { FODDER_MONSTERS } from './data/fodder.js';
@@ -120,6 +121,7 @@ class Game {
     this.profiles = new Profiles(undefined, { prefix: slotPrefix(this.slots.active), slot: this.slots.active });
     this.save = this.profiles.main;
     this.resume = new Resume(this);
+    this.achievements = new Achievements(this);   // (achievements.js: unlocks credited to this screen's players)
     // the opening of a new game (story/openingFlow.js): the prologue, cutscenes, chapters 1 and 2
     this.opening = new OpeningFlow(this);
     this.cutscene = null; this.openingChapter = null;
@@ -719,6 +721,11 @@ class Game {
     }
     // the opening: the story goes on after the results (to the next cutscene)
     this.openingNext = this.openingChapter === cid ? this.opening.chapterDone(cid) : null;
+    // achievements for the chapter (achievementRules.js onChapterDone)
+    const H = m.handler;
+    this.achievements.chapterDone({ chapter: cid, difficulty: m.def.difficulty, humans: this.players.filter((p) => !p.ai).length,
+      heroesPlayed: this.players.filter((p) => !p.ai && !p.remote).map((p) => p.hero), noParalysis: !m.achParalyzed,
+      daysLeftShare: H && Number.isFinite(H.days) && H.limit ? 1 - H.days / H.limit : 0 });
     this.online.completed();
     this.resume.clear();   // net: nothing left to continue in this chapter
     this.audio.levelUp();
@@ -818,7 +825,7 @@ class Game {
   }
   // per-frame callbacks for technique effects; return false to finish
   addUpdater(fn) { this.updaters.push(fn); }
-  startDomain(p, def) { return this.domainSys.start(p, def); }
+  startDomain(p, def) { const r = this.domainSys.start(p, def); if (r !== false) this.achievements.count('powers', p); return r; }
   hostileTargets() { return this.allies.length ? [...this.players, ...this.allies] : this.players; }
   surfaceAt(pos) { const id = this.world.get(Math.floor(pos.x), Math.floor(pos.y - 0.1), Math.floor(pos.z)); return id ? BLOCKS[id].step : 'stone'; }
   nearestEnemy(pos, range) {
@@ -832,6 +839,7 @@ class Game {
   slowMo(dur, scale = 0.3) { if (!settings.slowmo) return; this.slowmo = Math.max(this.slowmo, dur); this.slowmoScale = scale; }
   onEnemyKilled(e) {
     this.mission?.onKill(e);
+    if (!e.isDummy && !e.def?.mortal) this.achievements.count('kills');
     const k = e.lastAttacker;
     if (k?.isPlayer && k.procs) {
       if (k.procs.leech) k.heal(k.maxHp * 0.02 * k.procs.leech, true);
@@ -1159,6 +1167,7 @@ class Game {
     this.particles.upload();
     this.hud.update(realDt);
     this.tracker.update(realDt);
+    if (this.state === 'playing') this.achievements.update(realDt);
     this.signs.update(this.paused && !this.cutscene ? 0 : realDt);
     if (this.minimap.level && (this.frameN = (this.frameN ?? 0) + 1) % 3 === 0) this.minimap.draw(this.hud.mini);
     this.crowd?.update(this.enemies);   // (same-kind monsters drawn part by part as one instanced mesh: gfx/crowd.js)
