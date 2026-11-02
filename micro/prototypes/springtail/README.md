@@ -573,6 +573,29 @@ overlap more (shallower furrows), a weaker sheen. The photos show the same
 blue-grey frosting under diffuse light that the shader gives when backlit
 or overcast.
 
+### Telling players apart
+
+In multiplayer each player's springtail has its own colouring, tied to the
+player colour (`PLAYER_COLORS`, `shared/players.js`) so the ring, the prompts
+and the body agree. Springtails vary a lot in life, so each is a natural
+colouring; `BODY_COLORS` in `springtail.js` holds them and `createSpringtail({ slot })`
+sets them as per-animal shader uniforms (dorsum, venter, legs, claws, furcula,
+antenna tips, sheen, specks):
+
+| Player | Ring | Body |
+| --- | --- | --- |
+| P1 | brass | blue-black Podura with a blue-grey sheen, exactly as before (also alone) |
+| P2 | teal | slate-teal dorsum, olive-brown belly, green sheen |
+| P3 | rose | plum-violet dorsum, rosy sheen, warm red limbs |
+| P4 | slate blue | lighter steel-blue dorsum, grey limbs, bright blue sheen |
+
+The colouring belongs to the animal, so it holds through the dissolve and
+re-form, the back-landing, captures, the outro and every split view; the white
+of a digested body keeps a faint cast of the sheen (none for P1). The motes are
+shared and stay whitish. The faint ring on the film stays. Labelled departure:
+P2-P4 are our own colour morphs; *Podura aquatica* itself is the blue-black of
+P1 (other springtails are violet, green, bronze or steel-blue).
+
 ## Movement and simulation
 
 - **Walking**: acceleration 11 mm/s² against a light drag (1.9 /s), so the top
