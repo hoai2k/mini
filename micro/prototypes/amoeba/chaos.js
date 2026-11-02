@@ -50,9 +50,10 @@ export const CHAOS_WAKE = WAKE;
 // The encircle: its membrane within RING_REACH µm beyond your edge covers that
 // bearing; shut when RING_SHUT of the bearings are covered and no gap is wider
 // than RING_GAP rad; then CLOSE_T s of its X, engulfing if still RING_HOLD covered.
-export const RING = { reach: 120, shut: 0.94, gap: 0.3, hold: 0.88, broken: 0.75, warn: 0.5, closeT: 1.2 };
-export const CHAOS_LEASH = 720;
-const SQUEEZE = 25;           // µm/s at which it squeezes a channel forced into it shut // it follows you no further than this from its post
+export const RING = { reach: 120, shut: 0.9, gap: 0.45, hold: 0.94, broken: 0.8, warn: 0.5, closeT: 1.2 };
+export const CHAOS_LEASH = 720; // it follows you no further than this from its post
+const SQUEEZE = 32;           // µm/s at which it squeezes a channel forced into it shut
+const DENT_FADE = 0.15, DENT_MAX = 300; // a dent is forgotten at 15%/s, and counts for no more than 300 µm
 const ARM_W = 7;              // nodes either side of an arm's tip: its neck
 
 export class Chaos {
@@ -90,7 +91,7 @@ export class Chaos {
     this.layer = view.addCell(b, this.cyto);
     // its look in the body shader: olive endoplasm, a thin clear rim, coarser granularity
     view.setLook(this.layer, { olive: 1, rim: 0.7, grain: 1.6 });
-    this.fight = createFight({ windup: 1.8, strike: 7, recoverT: 4.5, repelT: 2.2, retreatT: 18, facingRate: 0, blockHit: 0.1, biteHit: 0.2, regain: 0.01 });
+    this.fight = createFight({ windup: 1.8, strike: 9, recoverT: 4.5, repelT: 2.2, retreatT: 18, facingRate: 0, blockHit: 0.1, biteHit: 0.2, regain: 0.01 });
     // how far contact has pushed each membrane node in (contact.js): a channel forced into it, squeezed shut again (squeeze)
     b.dent = new Float32Array(N);
     this.on = true;
@@ -237,7 +238,7 @@ export class Chaos {
       this.armTip = [1, -1].map((s) => b.nearest(p.x + Math.cos(this.side0 + s * 1.1) * R, p.y + Math.sin(this.side0 + s * 1.1) * R).i);
       this.armDir = [null, null];
     }
-    const k = Math.min(1, this.ft * 7 / 4.2); // the strike's progress, the arms fully round after ~4.2 s
+    const k = Math.min(1, this.ft * 9 / 4.5); // the strike's progress (9 s), the arms fully round after ~4.5 s
     for (const [n, s] of [[0, 1], [1, -1]]) {
       const want = this.side0 + s * (1.1 + 2.3 * k); // from beside you round to behind you
       const pod = b.pods[n];
@@ -248,7 +249,8 @@ export class Chaos {
       const go = this.closing ? 1 : Math.atan2(Math.sin(want - at), Math.cos(want - at)) * s; // how far it still has to go round
       // aim at a point a little further round you (a chord, so it rides over your pseudopods, not into them)
       const lead = go > 0.05 ? s * Math.min(0.7, go + 0.25) : s * 0.1;
-      const la = at + lead, rr = Math.max(R, Math.min(r, R + 60));
+      // the X: both arms for the last gap, pressing in to seal it
+      const la = this.closing && ring.gap > 0 ? ring.gapA : at + lead, rr = this.closing ? R - 40 : Math.max(R, Math.min(r, R + 60));
       let ax = p.x + Math.cos(la) * rr - b.x[tip], ay = p.y + Math.sin(la) * rr - b.y[tip];
       const al = Math.hypot(ax, ay) || 1;
       ax /= al; ay /= al;
@@ -284,7 +286,7 @@ export class Chaos {
   /**
    * It squeezes a channel a pseudopod has forced into it closed again: each
    * dented membrane node flows back out along its normal (SQUEEZE µm/s, never
-   * past where it was) and counts as advancing, so it pushes hard (contact.js).
+   * past where it was) and counts as advancing, so it pushes harder (contact.js).
    * Ease off and the pseudopod is shoved back out; push harder than it
    * squeezes and the channel opens on.
    */
@@ -295,13 +297,22 @@ export class Chaos {
       if (dent[i] < 0.2) { dent[i] = 0; continue; }
       const m = Math.min(dent[i], SQUEEZE * dt);
       b.x[i] += b.nx[i] * m; b.y[i] += b.ny[i] * m;
-      dent[i] -= m;
+      // what is not squeezed back is slowly accepted as its shape (so its own arms pressing on you cannot wind it up)
+      dent[i] = Math.min(DENT_MAX, (dent[i] - m) * (1 - DENT_FADE * dt));
       b.Gp[i] = Math.max(b.Gp[i], 0.2);
     }
   }
 
-  /** How deep the deepest channel into it is now (µm of dent). */
+  /** How hard it is squeezing a channel now (µm of dent still to push back, at the deepest node). */
   get channel() { let m = 0; for (let i = 0; i < N; i++) if (this.body.dent[i] > m) m = this.body.dent[i]; return m; }
+
+  /** How far body pb has got into it: its deepest membrane point inside its rounded radius from its centre (µm; ≤ 0 outside). */
+  intrusion(pb) {
+    const b = this.body, R = Math.sqrt(b.A0 / Math.PI);
+    let m = -Infinity;
+    for (let i = 0; i < N; i++) { const d = R - Math.hypot(pb.x[i] - b.cx, pb.y[i] - b.cy); if (d > m) m = d; }
+    return m;
+  }
 
   /** Sated after engulfing someone: it will not wake for a while. */
   get resting() { return this.restUntil && this.t < this.restUntil; }

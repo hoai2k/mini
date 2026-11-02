@@ -1349,6 +1349,13 @@ function simStep(dt, granules = true) {
     stepCatch(dt);
     stepHarm(dt);
     if (traps.length) { trapX.set(body.x); trapY.set(body.y); }
+    // Pushing a pseudopod against another cell (Chaos, a player): the cell puts its weight behind it, the body
+    // flowing on after the pseudopod, so a held push keeps driving the tip in (a channel into Chaos) or shoves
+    if (c.touchT > 0 && !(input.body && input.body.m > 0.3) && input.pods) {
+      let best = null;
+      for (const q of input.pods) if (q && q.m > 0.5 && (!best || q.m > best.m)) best = q;
+      if (best) input.body = { m: 0.6 * best.m, dx: best.dx, dy: best.dy };
+    }
     // contact inhibition: pseudopods that touch another cell are drawn back, so its idle ones go quiet while it is held
     body.opts.idlePods = !(c.touchT > 0);
     body.step(adt, input, nearCol(c));
@@ -1361,7 +1368,6 @@ function simStep(dt, granules = true) {
   }
   use(cells[0]);
   stepChaos(dt, adt, chaos.on ? nearColliders(col, chaos.body.cx, chaos.body.cy, chaos.body.cx, chaos.body.cy, 900, CHAOS_COL) : col, granules);
-  resolveCells(dt);
   stepPrey(dt, preyCol(col));
   for (const c of cells) {
     use(c);
@@ -1386,6 +1392,8 @@ function simStep(dt, granules = true) {
     body.pods.forEach((p, k) => { p.s = saved[k]; });
   }
   use(cells[0]);
+  // cells meeting cells, last, after prey and untangling have moved membrane: nothing undoes it before the frame is drawn
+  resolveCells(dt);
   updateFragments(dt);
   if (preyFlowOn) preyFlow(dt * S.swimK);
   for (const q of ambient) { q.update(dt * S.swimK); if (Math.hypot(q.x - S.camX, q.y - S.camY) > 1400) { q.x = S.camX - Math.cos(q.th) * 1100; q.y = S.camY - Math.sin(q.th) * 1100; } }
@@ -1460,7 +1468,7 @@ function resolveCells(dt) {
   const moved = new Set();
   let rnd = 0;
   const settle = (A, B, onA, onB) => {
-    for (let it = 0; it < 4; it++) {
+    for (let it = 0; it < 6; it++) {
       const r = resolvePair(A, B, CONTACT_OUT);
       if (!r) return it > 0;
       if (!it && !rnd) { contactLog.pairs++; contactLog.depth = Math.max(contactLog.depth, r.depth); }
@@ -1468,8 +1476,8 @@ function resolveCells(dt) {
     }
     return true;
   };
-  // twice: a correction that made a ring cross itself is undone by untangle(), so the pairs are settled again after it
-  for (let round = 0; round < 2; round++) {
+  // three rounds: a correction that made a ring cross itself is undone by untangle(), so the pairs are settled again after it
+  for (let round = 0; round < 3; round++) {
     rnd = round;
     if (chaos.on) {
       const cb = chaos.body;

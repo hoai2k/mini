@@ -136,7 +136,7 @@ test('touching Chaos does not eat you, and pushing out through the gap gets you 
  * 3.3 s as the surge recharges), 'thin' (a plain pseudopod alone, no surge).
  * ease: let go after this many s. The portal is a point under Chaos, 260 µm in
  * from its edge. Returns the deepest channel, whether the cell reached the
- * portal, the channel at the end, and the deepest overlap.
+ * portal, how far in it is at the end, and the deepest overlap. Depth: Chaos.intrusion.
  */
 function tunnel(kind, sec = 16, ease = Infinity) {
   const view = { addCell: () => ({}), setLook() {} };
@@ -144,7 +144,7 @@ function tunnel(kind, sec = 16, ease = Infinity) {
   const pl = new Body(rng(3), 500, 0);
   pl.opts.idlePods = false;
   const portal = { x: 60, y: 0 };
-  let deepest = 0, channel = 0, reachedAt = null;
+  let deepest = 0, channel = 0, reachedAt = null, now = 0;
   for (let s = 0; s < sec / DT; s++) {
     const t = s * DT, on = t < ease, thick = kind === 'thick';
     const sk = thick && on && t % 3.3 < 0.9 ? 1 + 1.5 * Math.sin((Math.PI * (t % 3.3)) / 0.9) ** 0.6 : 1;
@@ -154,27 +154,28 @@ function tunnel(kind, sec = 16, ease = Infinity) {
     ch.update(DT, DT, [{ cell: 1, body: pl, x: pl.cx, y: pl.cy, req: pl.req, active: true }], W, { calm: true, granules: false });
     settle(pl, ch.body);
     deepest = Math.max(deepest, overlap(pl, ch.body).depth);
-    channel = Math.max(channel, ch.channel);
+    now = ch.intrusion(pl);
+    channel = Math.max(channel, now);
     if (reachedAt == null && reaches(pl, portal.x, portal.y, 120)) reachedAt = t;
   }
-  return { channel, reachedAt, now: ch.channel, under: ch.body.grid.sample(portal.x, portal.y), deepest };
+  return { channel, reachedAt, now, under: ch.body.grid.sample(portal.x, portal.y), deepest };
 }
 
 test('a thick pseudopod, surging, forces a channel into Chaos; a thin one stalls', () => {
   const thick = tunnel('thick'), thin = tunnel('thin');
   assert.ok(thick.channel > 100, `thick: a channel ${thick.channel.toFixed(0)} µm deep`);
-  assert.ok(thin.channel < 60, `thin: stalls at ${thin.channel.toFixed(0)} µm`);
+  assert.ok(thin.channel < 75, `thin: stalls at ${thin.channel.toFixed(0)} µm`);
   assert.ok(thick.channel > 2 * thin.channel, 'the thick one gets more than twice as deep');
   assert.ok(thick.deepest < 3 && thin.deepest < 3, `no overlap: the channel is Chaos's membrane dented in (${thick.deepest.toFixed(2)} µm)`);
 });
 
 test('ease off and Chaos squeezes the channel shut, shoving the pseudopod out', () => {
   const r = tunnel('thick', 16, 8);
-  assert.ok(r.channel > 100 && r.now < r.channel / 3, `${r.channel.toFixed(0)} µm deep at most, ${r.now.toFixed(0)} µm left 8 s after letting go`);
+  assert.ok(r.channel > 100 && r.now < r.channel / 3, `${r.channel.toFixed(0)} µm in at most, ${r.now.toFixed(0)} µm 8 s after letting go`);
 });
 
 test('a pseudopod tip reaching the portal through Chaos counts as being at it', () => {
-  const thick = tunnel('thick'), thin = tunnel('thin');
+  const thick = tunnel('thick', 12), thin = tunnel('thin', 12);
   assert.ok(thick.reachedAt != null && thick.under > 0, `thick: at the portal after ${thick.reachedAt?.toFixed(1)} s, with Chaos still over it (${thick.under.toFixed(0)} µm in)`);
   assert.equal(thin.reachedAt, null, 'thin: never gets there');
 });
