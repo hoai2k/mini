@@ -79,7 +79,7 @@ const CONTROLS = {
     rows: hudControls({
       ...COMMON_CONTROLS,
       move: 'Moves the body (twin-stick). With LT held: steers the pseudopod next to the selected one (L)',
-      camera: 'Steers the selected pseudopod (R); with none, grows one; pushed well away from it (>70°), starts a new one there',
+      camera: 'Steers the selected pseudopod (R); with none, grows one (RT picks another)',
       analog: 'LT held: LS takes the neighbouring pseudopod (above, or below the topmost), sprouting one if there is none. RT: select the next pseudopod clockwise (with LT, the pair moves)',
       secondary: 'Spread out / push harder',
       extra: [['LS click', 'Fine focus down'], ['RS click', 'Fine focus up']],
@@ -544,7 +544,7 @@ F({ id: 'above', group: 'World', label: 'Out-of-focus layer', on: true,
   about: 'Filaments and flakes floating above the focal plane (MP-A03 when delivered).', onChange: (v) => { S.flags.above = v; } });
 F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'Controller rumble on contact, surges, trichocyst bursts, captures and when a trap hypha grabs the membrane.', onChange: (v) => { S.rumble = v; } });
 F({ id: 'scheme', group: 'Controls', label: 'Controls', choices: SCHEMES, value: SCHEMES[0],
-  about: 'Select and steer (default): RS steers the selected pseudopod (marked R), growing one if there is none, and pushed more than ~70° away from it starts a new one there; LS moves the body. Hold LT and LS steers the neighbouring pseudopod (marked L: the next one round the outline towards the top of the screen, or below if the selected one is the topmost; one sprouts if there is none), so the two can close round prey or pinch an arm of Chaos. RT selects the next pseudopod clockwise round the outline (with LT held the pair moves together). LB spreads out, RB pushes harder. Lead and follow: the first stick pushed grows a pseudopod (the pseudopod stick); the other stick moves the bulk of the cell (the body stick): the rear contracts and the cytoplasm streams after it. Both held: the cell travels behind its pseudopod, which holds its length. Body stick alone towards the pseudopod: the body flows into it and takes it back. Hold LT or RT and the body stick grows a second pseudopod 30–70° beside the first instead, to encircle prey. LB spreads out, RB pushes harder. Roles reset once the pseudopod is gone or after eating. Two pseudopods (classic): each stick grows its own pseudopod, LT/RT spread out and push harder, LB/RB focus.',
+  about: 'Select and steer (default): RS steers the selected pseudopod (marked R), growing one if there is none; it stays selected however you steer it, until RT picks another (or it is gone); LS moves the body. Hold LT and LS steers the neighbouring pseudopod (marked L: the next one round the outline towards the top of the screen, or below if the selected one is the topmost; one sprouts if there is none), so the two can close round prey or pinch an arm of Chaos. RT selects the next pseudopod clockwise round the outline (with LT held the pair moves together). LB spreads out, RB pushes harder. Lead and follow: the first stick pushed grows a pseudopod (the pseudopod stick); the other stick moves the bulk of the cell (the body stick): the rear contracts and the cytoplasm streams after it. Both held: the cell travels behind its pseudopod, which holds its length. Body stick alone towards the pseudopod: the body flows into it and takes it back. Hold LT or RT and the body stick grows a second pseudopod 30–70° beside the first instead, to encircle prey. LB spreads out, RB pushes harder. Roles reset once the pseudopod is gone or after eating. Two pseudopods (classic): each stick grows its own pseudopod, LT/RT spread out and push harder, LB/RB focus.',
   onChange: (v) => {
     S.scheme = SCHEME_IDS[Math.max(0, SCHEMES.indexOf(v))];
     for (const c of cells) Object.assign(c.R, newRoles());
@@ -824,15 +824,15 @@ function selectInput(r) {
   if (rsOn) {
     const off = R.sel == null ? Infinity : Math.abs(angDiff(Math.atan2(rs.dy, rs.dx), angOf(b, b.pods[R.sel])));
     if (R.rsLatch) { if (off < 60 * DEG) R.rsLatch = false; R.offT = 0; }
-    else if (off > 70 * DEG) {
-      R.offT += dt;
-      // with none selected, or pushed well away from it (on a fresh push, or held there briefly)
-      if (R.sel == null || fresh || R.offT > 0.15) {
-        const there = podToward(b, rs.dx, rs.dy, 30 * DEG);
-        R.sel = there ? adopt(b, there.k) : newPod(b, rs.dx, rs.dy);
-        if (R.adj === R.sel) R.adj = null;
-        reselected = true; R.offT = 0;
-      }
+    else if (R.sel == null) {
+      // The selection only changes when the player asks (RT), or when the
+      // selected pseudopod is gone (the owner, 2026-11-02: steering one must
+      // never hand over to another). With none selected, RS takes one lying
+      // that way or grows one there.
+      const there = podToward(b, rs.dx, rs.dy, 30 * DEG);
+      R.sel = there ? adopt(b, there.k) : newPod(b, rs.dx, rs.dy);
+      if (R.adj === R.sel) R.adj = null;
+      reselected = true; R.offT = 0;
     } else R.offT = 0;
   } else { R.offT = 0; R.rsLatch = false; }
   if (R.sel != null && rsOn) {

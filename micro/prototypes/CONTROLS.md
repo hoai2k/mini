@@ -61,8 +61,8 @@ buttons, and build the HUD list with `hudControls({...})` so every prototype
 lists the same buttons in the same order. `createDash()` gives a dash with a
 recharge and a HUD meter. The amoeba uses its own twin-stick scheme: LS moves the body and RS steers
 the selected pseudopod (marked R in the player's colour). With no pseudopod,
-RS grows one; pushed more than about 70° from the selected one, it starts a new
-pseudopod there (or takes one already reaching that way). RT selects the next
+RS grows one (or takes one already reaching that way). The selected one stays
+selected however you steer it; only RT (or its being gone) changes it. RT selects the next
 pseudopod clockwise round the cell. Holding LT turns LS into a second
 pseudopod hand (marked L): the neighbour of the selected one towards
 screen-up, or towards screen-down if the selected one is the topmost, sprouting

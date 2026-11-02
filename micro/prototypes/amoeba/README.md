@@ -29,7 +29,7 @@ corner says what each stick holds (`RS: pseudopod R (3 out) · LS: body`).
 
 | Button | Action |
 | --- | --- |
-| RS (arrows) | Steers the selected pseudopod (area conserved). With none selected, grows one in its direction and selects it. Pushed more than ~70° from the selected one's base (on a fresh push, or held there for 0.15 s), starts a new pseudopod there and selects it (or selects the one already standing out that way) |
+| RS (arrows) | Steers the selected pseudopod (area conserved). With none selected, grows one in its direction and selects it (or selects the one already standing out that way). The selection never changes on its own while you steer: only RT picks another, or a new one is chosen when the selected pseudopod is gone (the owner, 2026-11-02) |
 | LS (WASD) | Moves the bulk of the cell that way (the rear contracts, the endoplasm streams forward). With RS held as well, the cell travels behind its pseudopod |
 | LT (Z), held | LS steers the **adjacent** pseudopod instead: the neighbour round the outline towards the top of the screen (anticlockwise on the right half of the cell, clockwise on the left), or towards the bottom if the selected one is the topmost. With no neighbour there, one sprouts 55° round (above, unless the selected one already points within 40° of straight up) and buds a little so you see it. Let go: LS moves the body again and that pseudopod flows slowly back |
 | RT (X) | Selects the next pseudopod **clockwise** round the outline (idle pseudopods count: selecting one takes it over). With LT held the pair moves together: the new selection's neighbour becomes the L one. With RS held through the press, the new one leans towards the stick (at most 60° off its base) until the stick comes round |
@@ -784,8 +784,7 @@ test uses a relaxed reach (120 µm) because it does not drive the sticks. `body`
 are player 1's. Multiplayer was checked with mocked gamepads in Playwright:
 joins during play, 2 and 4 players splitting and merging, a catch in
 multiplayer, both landmarks standalone and in the shell. Select and steer was
-checked with mocked pads: RS grows a pseudopod, RS >70° away starts and
-selects a new one, RT goes round clockwise and wraps, LT gives LS the
+checked with mocked pads: RS grows a pseudopod (the old ">70° away starts a new one" rule is gone), RT goes round clockwise and wraps, LT gives LS the
 adjacent pseudopod (or sprouts one above a lone right-side one), RT with LT
 moves the pair, LS without LT moves the body, two players steer
 independently, and LT + RS + LS round an arm of Chaos then X pinches it off.
