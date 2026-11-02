@@ -20,7 +20,7 @@ counted for games.hoai.net/stats/ (the GoatCounter script in `index.html`).
 | `index.html` | The screens: title, world select, world intro, play, transition layer, pause, settings, instructions, confirm |
 | `src/boot.js` | The invite door, then `main.js` |
 | `src/main.js` | The shell: screens, focus and controller navigation, the play frame and its messages, pause, settings, progression, test hooks (`window.__game`) |
-| `src/worlds.js` | The seven worlds: card data (magnification, field, body, look), goal, landmarks, controls, field notes |
+| `src/worlds.js` | The seven worlds: card data (magnification, field, body, look), the one-line goal, whether there is a way back, the controls, field notes |
 | `src/transition.js` | `playTransition(from, to, dir) → Promise`: the zoom between worlds (see below) |
 | `src/continuous.js` | `playContinuous(…)`: the continuous transition's camera move and crossfade between two live worlds (see below) |
 | `src/bus.js` | Messages to and from the world frames |
@@ -69,9 +69,14 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   slides in when it arrives. Only a world whose card and plate are the same
   image zooms the card to fill the screen. Going back slides the panel out to
   the left and the plate out to the right, then the tray fades in on the same
-  card (reduced motion: plain fades). The intro holds the plate (MP-G07–G13), the data, the goal,
-  the forward landmark and the backdoor, the controls and field notes. "Press
-  A to begin". Pending artwork shows a spinner rather than a temporary image.
+  card (reduced motion: plain fades). The intro holds the plate (MP-G07–G13), the data, a
+  one-line goal ("Reach the glowing portal, and avoid getting eaten by …",
+  naming the world's main threats in plain names), then the controls and the
+  field notes side by side. "Press A to begin". Player-facing text is in plain
+  game terms (the owner, 2026-11-02): control labels are 1–5 words ("Move",
+  "Dash", "Attack / eat", "Block (hold)", "Enter portal"), and the intro
+  leaves out the board's obstacles and landmarks; each world's README has
+  the detail. Pending artwork shows a spinner rather than a temporary image.
   The selected world loads behind the intro at full viewport size, paused
   and without sound or input. Begin reuses that frame: the panel slides off
   to the left and the plate to the right (as going back does) over a dark
@@ -99,7 +104,10 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   world stops (its frames and its sound). The pause menu (Resume,
   Instructions, Settings, Restart world, Choose world, Title) has the
   bottom-right buttons for settings, sound and fullscreen. Leaving or
-  restarting asks first.
+  restarting asks first. The pause veil blurs only the scene: an open
+  controls card is raised above it (`z-index` 26 while `#pause` is shown) and
+  stays sharp and readable beside the menu; a dialog opened from the menu
+  (settings, instructions) still covers it.
 - **Settings.** Sound on/off and volume, Invert camera Y (the shared
   `micro.invertY`), the controls card at the start of each world, the
   transition style (Continuous, the default: the continuous transition where a
@@ -329,7 +337,7 @@ The shared scheme (`../prototypes/CONTROLS.md`), plus:
 | Menu | Esc | Pause and resume |
 | View | Tab | The controls card |
 | D-pad ↑↓ | 1 / 2 | Passed to the world: zoom in and out |
-| Y | R | On the backdoor: rise a world (the world posts the landmark) |
+| Y | R | Enter the portal; on the way back: go up a world (the world posts the landmark) |
 | LS / D-pad | Arrows / WASD | Move through menus |
 | A / B | Enter / Esc | Choose / back |
 
