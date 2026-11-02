@@ -12,6 +12,7 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { cellAt, sphagCell, snapToWall, LAMINA, SPHAG, hash1 } from './patterns.js';
 import { opticalMaterial, leafOpticalMaterial, particleOpticalMaterial, litMaterial, leafLitMaterial } from './materials.js';
+import { t as tt } from '../shared/text.js';
 
 // ---------------------------------------------------------------- the rings
 // The scenery is laid out in rings round the start, the same in every
@@ -114,15 +115,15 @@ export class Leaf {
 
   /** Can the stylets get anything from the cell under (u, v)? Returns null if so, else why not. */
   whyNotEat(u, v) {
-    if (!this.inside(u, v)) return 'Nothing to bite here';
+    if (!this.inside(u, v)) return tt('tardigrade.cannotEat.nothing');
     if (this.wallMap) {
-      if (!this.wallMap.living(u, v)) return this.kind === 'sphagnum' ? 'A hyaline cell: dead, empty, only water' : 'A cell wall: nothing to suck';
-      return this.wallMap.isEaten(u, v) ? 'This cell is already empty' : null;
+      if (!this.wallMap.living(u, v)) return this.kind === 'sphagnum' ? tt('tardigrade.cannotEat.hyaline') : tt('tardigrade.cannotEat.wall');
+      return this.wallMap.isEaten(u, v) ? tt('tardigrade.cannotEat.empty') : null;
     }
-    if (this.kind === 'sphagnum' && sphagCell(u, v).dist > 0.03) return 'A hyaline cell: dead, empty, only water';
-    if (this.kind === 'lamina' && Math.abs(v) < LAMINA.costaW) return 'The costa: thick-walled, nothing to suck';
+    if (this.kind === 'sphagnum' && sphagCell(u, v).dist > 0.03) return tt('tardigrade.cannotEat.hyaline');
+    if (this.kind === 'lamina' && Math.abs(v) < LAMINA.costaW) return tt('tardigrade.cannotEat.costa');
     const i = this.cellIndex(u, v);
-    return i < 0 || this.eaten[i] ? 'This cell is already empty' : null;
+    return i < 0 || this.eaten[i] ? tt('tardigrade.cannotEat.empty') : null;
   }
 
   eat(u, v) {
@@ -165,12 +166,12 @@ export class World {
     this.dry = this.dry0;
     // The shoot round the start, seen from above: leaves overlap like shingles. Units 100 µm.
     this.leaves = [
-      new Leaf({ id: 0, name: 'leaf A', base: [-8, 0, 0], dir: [1, 0, 0.02], normalHint: [0, 1, 0], len: 17, hw: 3.2 }),
-      new Leaf({ id: 1, name: 'leaf B (above)', base: [-3.5, 1.05, -5.2], dir: [1, -0.03, 0.42], normalHint: [0.05, 1, -0.12], len: 15, hw: 2.8 }),
-      new Leaf({ id: 2, name: 'leaf C (steep)', base: [6.3, -0.15, 0.6], dir: [0.3, 0.78, 0.55], normalHint: [-1, 0.25, -0.2], len: 13, hw: 2.6 }),
-      new Leaf({ id: 3, name: 'Sphagnum leaf (below)', kind: 'sphagnum', base: [-6.5, -1.55, 2.2], dir: [1, 0.07, 0.18], normalHint: [0, 1, 0.02], len: 15, hw: 2.9 }),
-      new Leaf({ id: 4, name: 'leaf D (left)', base: [-7.2, 0.2, -0.6], dir: [-0.8, 0.45, -0.3], normalHint: [0.3, 1, 0.1], len: 12, hw: 2.5 }),
-      new Leaf({ id: 5, name: 'leaf E (broad)', base: [4.155, -1.016, 3.83], dir: [1, 0, 0.3], normalHint: [0, 1, 0], len: 18, hw: 3.8 }),
+      new Leaf({ id: 0, name: tt('tardigrade.leaves.a'), base: [-8, 0, 0], dir: [1, 0, 0.02], normalHint: [0, 1, 0], len: 17, hw: 3.2 }),
+      new Leaf({ id: 1, name: tt('tardigrade.leaves.b'), base: [-3.5, 1.05, -5.2], dir: [1, -0.03, 0.42], normalHint: [0.05, 1, -0.12], len: 15, hw: 2.8 }),
+      new Leaf({ id: 2, name: tt('tardigrade.leaves.c'), base: [6.3, -0.15, 0.6], dir: [0.3, 0.78, 0.55], normalHint: [-1, 0.25, -0.2], len: 13, hw: 2.6 }),
+      new Leaf({ id: 3, name: tt('tardigrade.leaves.sphagnumBelow'), kind: 'sphagnum', base: [-6.5, -1.55, 2.2], dir: [1, 0.07, 0.18], normalHint: [0, 1, 0.02], len: 15, hw: 2.9 }),
+      new Leaf({ id: 4, name: tt('tardigrade.leaves.d'), base: [-7.2, 0.2, -0.6], dir: [-0.8, 0.45, -0.3], normalHint: [0.3, 1, 0.1], len: 12, hw: 2.5 }),
+      new Leaf({ id: 5, name: tt('tardigrade.leaves.e'), base: [4.155, -1.016, 3.83], dir: [1, 0, 0.3], normalHint: [0, 1, 0], len: 18, hw: 3.8 }),
     ];
     this.shoot = this.leaves.slice();
     this.start = this.leaves[START_SPOT.leaf].toWorld(START_SPOT.u, START_SPOT.v, 0);
@@ -294,9 +295,9 @@ export class World {
     let s = this.seed * 977;
     const r = () => ((s = (s * 16807) % 2147483647) / 2147483647);
     const kinds = [
-      { type: 'Chlorella-type green alga', geo: () => new THREE.SphereGeometry(0.065, 14, 10), dn: 0.03, abs: [2.2, 0.5, 2.6], lit: 0x4f9a3a, value: 0.22, time: 2.4, gut: [0.35, 0.6, 0.2] },
-      { type: 'pennate diatom', geo: () => new THREE.CapsuleGeometry(0.045, 0.24, 4, 10), dn: 0.05, abs: [0.9, 1.3, 2.4], lit: 0xa8893a, value: 0.28, time: 3.0, gut: [0.55, 0.45, 0.2] },
-      { type: 'detritus', geo: () => lumpy(0.09, r), dn: 0.025, abs: [1.0, 1.5, 2.2], lit: 0x7a5a38, value: 0.12, time: 2.0, gut: [0.45, 0.33, 0.2] },
+      { type: tt('tardigrade.food.chlorella'), aType: tt('tardigrade.food.aChlorella'), geo: () => new THREE.SphereGeometry(0.065, 14, 10), dn: 0.03, abs: [2.2, 0.5, 2.6], lit: 0x4f9a3a, value: 0.22, time: 2.4, gut: [0.35, 0.6, 0.2] },
+      { type: tt('tardigrade.food.diatom'), aType: tt('tardigrade.food.aDiatom'), geo: () => new THREE.CapsuleGeometry(0.045, 0.24, 4, 10), dn: 0.05, abs: [0.9, 1.3, 2.4], lit: 0xa8893a, value: 0.28, time: 3.0, gut: [0.55, 0.45, 0.2] },
+      { type: tt('tardigrade.food.detritus'), aType: tt('tardigrade.food.aDetritus'), geo: () => lumpy(0.09, r), dn: 0.025, abs: [1.0, 1.5, 2.2], lit: 0x7a5a38, value: 0.12, time: 2.0, gut: [0.45, 0.33, 0.2] },
     ];
     // ~140 items over every leaf (more on the bigger ones): food is something
     // you come across and eat for health, not upkeep
@@ -430,7 +431,7 @@ function buildSpokes(world) {
       const lenAt = (b) => { const l = RINGS.portal - Math.hypot(b.x - S.x, b.z - S.z); return last ? Math.max(14, l + 2.6) : Math.max(12, Math.min(16 + lr * 3, l - 16)); };
       const kind = last || j % 2 ? 'sphagnum' : 'lamina';
       const hw = last ? 4.4 : Math.min(4.2, 2.3 + 0.5 * j);
-      const make = (b, lead, nh) => new Leaf({ id: -1, name: last ? `Sphagnum leaf (spoke ${k + 1}, the rim)` : `${kind === 'sphagnum' ? 'Sphagnum leaf' : 'leaf'} (spoke ${k + 1}, ${j + 1})`, kind, base: b.toArray(), dir: lead.toArray(), normalHint: nh.toArray(), len: lenAt(b), hw, spoke: k, pool: last });
+      const make = (b, lead, nh) => new Leaf({ id: -1, name: last ? tt('tardigrade.leaves.rim', { spoke: k + 1 }) : tt(kind === 'sphagnum' ? 'tardigrade.leaves.sphagnumSpoke' : 'tardigrade.leaves.spoke', { spoke: k + 1, n: j + 1 }), kind, base: b.toArray(), dir: lead.toArray(), normalHint: nh.toArray(), len: lenAt(b), hw, spoke: k, pool: last });
       let L = make(base, lead, nh);
       // The first leaf, off the shoot: where it would pass through a shoot
       // leaf or a neighbouring spoke's first leaf (they fan out from the same
