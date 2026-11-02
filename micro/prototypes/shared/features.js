@@ -33,9 +33,12 @@ import { t, tx, has } from './text.js';
 
 // A feature's label, about text and choice names come from text_config.js:
 // `<key>.features.<id>` (the world's own), else `shared.features.<id>` (the
-// shared modules' switches). A label or about passed to add() is used only
-// when the text file has none (e.g. one built at run time). Group headings
+// shared modules' switches). A label or about passed to add() wins (one with
+// numbers filled in at run time passes t(key, vars) itself). Group headings
 // are `shared.featureGroups.<group>`.
+// Choice names shared by several panels (the borrowed looks, quality steps):
+// `shared.choiceNames`, used when a feature's own choices map has no entry.
+const choiceNames = () => (has('shared.choiceNames') ? tx('shared.choiceNames') : {});
 function textFor(key, id) {
   for (const base of [`${key}.features.${id}`, `shared.features.${id}`]) if (has(base)) return base;
   return null;
@@ -123,7 +126,7 @@ export function createFeatures({ key, pad }) {
 
   function valueText(it) {
     if (it.fixed) return t('shared.featuresPanel.always');
-    if (it.choices) return it.choiceText?.[it.value] ?? it.value;
+    if (it.choices) return it.choiceText?.[it.value] ?? choiceNames()[it.value] ?? it.value;
     return it.on ? t('shared.featuresPanel.on') : t('shared.featuresPanel.off');
   }
 
@@ -189,8 +192,8 @@ export function createFeatures({ key, pad }) {
       const it = { on: true, ...f };
       const base = textFor(key, it.id);
       if (base) {
-        if (has(`${base}.label`)) it.label = t(`${base}.label`);
-        if (has(`${base}.about`)) it.about = t(`${base}.about`);
+        if (it.label === undefined && has(`${base}.label`)) it.label = t(`${base}.label`);
+        if (it.about === undefined && has(`${base}.about`)) it.about = t(`${base}.about`);
         if (has(`${base}.choices`)) it.choiceText = tx(`${base}.choices`);
       }
       if (it.fixed) it.on = true;

@@ -24,6 +24,7 @@ import { createMite, CFG, PRED, JUMP } from './mite.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
 import { createBorrowedLooks, borrowedSwitches, AMOEBA_MODES, DIC_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
+import { t as tt, tx } from '../shared/text.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
@@ -115,8 +116,8 @@ sem.warm(scene, camera);
 const joins = [];
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { joins.push({ slot: p.slot, padIndex: p.padIndex }); syncPlayers(); hud.toast(`Player ${p.slot + 1} joined`); embed.join(p.slot, p.color, p.name, players.toJSON()); }, // the roster rides along, so the shell carries this player into the next world
-  onLeave: (p) => { syncPlayers(); hud.toast(`Player ${p.slot + 1} left`); embed.leave(p.slot); },
+  onJoin: (p) => { joins.push({ slot: p.slot, padIndex: p.padIndex }); syncPlayers(); hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); embed.join(p.slot, p.color, p.name, players.toJSON()); }, // the roster rides along, so the shell carries this player into the next world
+  onLeave: (p) => { syncPlayers(); hud.toast(tt('shared.players.left', { n: p.slot + 1 })); embed.leave(p.slot); },
   onChange: (list) => hud && hud.players(list),
 });
 const pad = players.pad(0);
@@ -134,21 +135,21 @@ const KEY_WALK = 0.65;
 /** Walking speed (world µm/s) for a stick deflection 0..1 after the pad's dead zone. */
 function walkSpeed(m) { return m > 0 ? WALK_MIN + (WALK_MAX - WALK_MIN) * Math.min(1, m) ** 2 : 0; }
 const hud = mountHud({
-  title: 'Mite · SEM',
-  sub: 'A box mite (Phthiracaridae), about 0.35 mm long, in a moss cushion, imaged like a scanning electron micrograph. A predatory mite hunts here.',
+  title: tt('mite.hud.title'),
+  sub: tt('mite.hud.sub'),
   controls: hudControls({
-    move: 'Move',
-    camera: 'Camera',
-    dash: 'Jump (hold to charge)',
-    attack: 'Attack / eat',
-    defend: 'Dash (hold)',
-    special: 'Block (hold) / enter portal',
-    secondary: 'Walk slow / fast',
-    look: 'Change the look',
-    zoom: 'Zoom',
-    extra: [['Y', 'Way back: go up a world'], ...(embed.active ? [] : [['LS click', 'Instrument readout']])],
+    move: tt('mite.hud.controls.move'),
+    camera: tt('mite.hud.controls.camera'),
+    dash: tt('mite.hud.controls.dash'),
+    attack: tt('mite.hud.controls.attack'),
+    defend: tt('mite.hud.controls.defend'),
+    special: tt('mite.hud.controls.special'),
+    secondary: tt('mite.hud.controls.secondary'),
+    look: tt('mite.hud.controls.look'),
+    zoom: tt('mite.hud.controls.zoom'),
+    extra: [['Y', tt('mite.hud.controls.wayBack')], ...(embed.active ? [] : [['LS click', tt('mite.hud.controls.readout')]])],
   }),
-  note: 'Reach the glowing portal, and avoid getting eaten by the predatory mite and the pseudoscorpion. Up to four players: press any button on another controller to join.',
+  note: tt('mite.hud.note'),
 });
 
 // SEM data bar (observer mode)
@@ -413,12 +414,12 @@ function wearDown(how) {
     fightLog.retreats++;
     predAI.retreat();
     if (hunger.hungry) hunger.missed();
-    hud.toast('The predatory mite has had enough: it runs off', 2200);
+    hud.toast(tt('mite.toasts.predatorGone'), 2200);
     fight.reset();
     return true;
   }
   predAI.repel();
-  hud.toast(how === 'bite' ? 'Nipped! The predator recoils' : 'Its chelicerae slide off the closed capsule', 1500);
+  hud.toast(how === 'bite' ? tt('mite.toasts.predatorNipped') : tt('mite.toasts.predatorBlocked'), 1500);
   return false;
 }
 const _ct = new THREE.Vector3(), _cm = new THREE.Vector3(), _cf = new THREE.Vector3(), _cq = new THREE.Quaternion(), _up = new THREE.Vector3(0, 1, 0);
@@ -441,9 +442,9 @@ function startCapture() {
   Object.assign(cap, { phase: null, leg: best, heldOnce: false, t: 0, who: cur });
   cap.c0.copy(mite.center); cap.q0.copy(mite.quat);
   play.caught++; play.hurt = 0; play.stun = 0;
-  capture.start({ by: 'The predatory mite', how: 'seized a leg, pulled you in and ate you' });
+  capture.start({ by: tt('mite.capture.predator.by'), how: tt('mite.capture.predator.how') });
   embed.captured({ by: 'predator', player: cur.slot });
-  if (multi()) hud.toast(`Player ${cur.slot + 1} is seized by a leg: close up (Y)!`, 2200);
+  if (multi()) hud.toast(tt('mite.toasts.playerSeized', { n: cur.slot + 1 }), 2200);
   audio.play('mite/predator', { volume: 1, rate: 0.9 });
   if (rumbleOn) padOf().rumble(400, 0.9, 1);
 }
@@ -458,7 +459,7 @@ function animateCapture(c, dt) {
       // closed up in the pincer: the venom tooth cannot get through, it lets go
       capture.reset(); cap.phase = null; cap.byBoss = false;
       boss.st.state = 'recover'; boss.st.t = 0; boss.fight.bitten();
-      hud.toast('Closed up: its venom tooth cannot get through the capsule, and it lets go', 2400);
+      hud.toast(tt('mite.toasts.closedUpLetsGo'), 2400);
       return false;
     }
     if (c.phase !== cap.phase) { cap.phase = c.phase; if (c.phase === 'eat') { audio.play('mite/bite', { volume: 1, rate: 0.6 }); if (rumbleOn) padOf().rumble(500, 0.6, 0.3); } }
@@ -482,7 +483,7 @@ function animateCapture(c, dt) {
     pred.st.chel = 0;
     predAI.state = 'wander'; predAI.bored = 14; predAI.ang += Math.PI;
     if (hunger.hungry) hunger.missed();
-    hud.toast('Closed up in time: its chelicerae slip off the capsule and it gives up', 2600);
+    hud.toast(tt('mite.toasts.closedUpInTime'), 2600);
     if (rumbleOn) padOf().rumble(160, 0.3, 0.6);
     return false;
   }
@@ -535,113 +536,75 @@ audio.loop('mite/amb-moss', { volume: 0.6 });
 const LOOKS = ['SE', 'BSE', 'False colour'];
 let npcOn = true, rumbleOn = true, predOn = true;
 const F = (o) => features.add(o);
-F({ id: 'gbuffer', group: 'Rendering', label: 'Deferred SEM composite', fixed: true,
-  about: 'Surfaces write view-space normal, material class and depth to a float G-buffer; one full-screen shader turns that into a micrograph (shared/techniques/mite-sem.js).' });
-F({ id: 'look', group: 'Rendering', label: 'Imaging mode (D-pad left/right)', choices: LOOKS, value: 'SE',
-  about: 'SE: secondary electrons, topographic. BSE: low-vacuum backscatter, brightness from atomic number. False colour: the SE image tinted by material, like published coloured SEMs.',
+F({ id: 'gbuffer', group: 'Rendering', fixed: true });
+F({ id: 'look', group: 'Rendering', choices: LOOKS, value: 'SE',
   onChange: (v) => { const i = LOOKS.indexOf(v); if (i !== sem.mode) sem.setMode(i); } });
-F({ id: 'secant', group: 'Rendering', label: 'Secant-law tilt contrast', on: true,
-  about: 'SE yield rises as 1/cos(theta) with the angle between surface and beam, so slopes and rims are bright and faces square to the beam are darker. The beam is the camera, so it moves with the view.',
+F({ id: 'secant', group: 'Rendering', on: true,
   onChange: (v) => (sem.toggles.secant = v) });
-F({ id: 'edge', group: 'Rendering', label: 'Edge effect', on: true,
-  about: 'Electrons escape from two surfaces at silhouettes and thin parts (setae, hyphae, claws), so they glow. Found from depth jumps in the G-buffer plus a thin-feature flag.',
+F({ id: 'edge', group: 'Rendering', on: true,
   onChange: (v) => (sem.toggles.edge = v) });
-F({ id: 'shadow', group: 'Rendering', label: 'Detector shadowing (ETD)', on: true,
-  about: 'The Everhart-Thornley detector sits off to the upper left: faces toward it are brighter, and a short screen-space march toward it darkens points with something in the way. Soft, never black.',
+F({ id: 'shadow', group: 'Rendering', on: true,
   onChange: (v) => { shadowOn = v; sem.toggles.shadow = v && qLevel > 0; } });
-F({ id: 'ao', group: 'Rendering', label: 'Dark crevices (SSAO)', on: true,
-  about: 'Electrons emitted in a crevice are reabsorbed by its walls. Normal-oriented screen-space ambient occlusion over a ~34 µm radius.',
+F({ id: 'ao', group: 'Rendering', on: true,
   onChange: (v) => (sem.toggles.ao = v) });
-F({ id: 'bump', group: 'Rendering', label: 'Surface relief from SEM textures', on: true,
-  about: 'Leaf cells, humus crumbs and cuticle pits as bump mapping: texture luminance read as height (procedural stand-ins until MP-M01..M03 are delivered).',
+F({ id: 'bump', group: 'Rendering', on: true,
   onChange: (v) => (sem.toggles.bump = v) });
-F({ id: 'noise', group: 'Rendering', label: 'Shot noise', on: true,
-  about: 'Per-pixel noise that grows as the signal falls, fresh every frame, like a fast scan.', onChange: (v) => (sem.toggles.noise = v) });
-F({ id: 'lines', group: 'Rendering', label: 'Scan-line jitter', on: true,
-  about: 'Each raster line gets a small random brightness offset, as beam current and scan timing wander.', onChange: (v) => (sem.toggles.lines = v) });
-if (!embed.active) F({ id: 'observer', group: 'Rendering', label: 'Observer mode (LS click)', on: false,
-  about: 'A real micrograph data bar (HV, WD, mag, HFW, detector, true scale bar) and visible raster lines.',
+F({ id: 'noise', group: 'Rendering', on: true,
+  onChange: (v) => (sem.toggles.noise = v) });
+F({ id: 'lines', group: 'Rendering', on: true,
+  onChange: (v) => (sem.toggles.lines = v) });
+if (!embed.active) F({ id: 'observer', group: 'Rendering', on: false,
   onChange: (v) => { observer = v; bar.style.display = v ? 'flex' : 'none'; sem.setRaster(v); } });
 quality.addToFeatures(features);
-F({ id: 'dof', group: 'Optics', label: 'Infinite depth of field', fixed: true,
-  about: 'An SEM beam converges at milliradians, so everything is sharp from front to back; no blur is applied anywhere.' });
-F({ id: 'field', group: 'Optics', label: 'Narrow scan field, true magnification', fixed: true,
-  about: 'A 12-degree field (little perspective, like a beam pivoting far above the sample). HFW is the real field width at the mite; mag = 127 mm / HFW; the scale bar is measured from it.' });
-F({ id: 'cut', group: 'Optics', label: 'Cutaway in front of the mite', on: true,
-  about: 'Moss between the camera and the mite gets out of the way, so it never hides the specimen: each leaf, stem or litter flake whose centre line passes within ~340 µm of the line of sight in front of the mite dissolves as a whole over ~0.2 s (a stem takes its leaves; never what the mite stands on), and comes back the same way. Nothing is sliced, so orbiting and zooming out no longer clip plants. A game convenience, not optics.',
+F({ id: 'dof', group: 'Optics', fixed: true });
+F({ id: 'field', group: 'Optics', fixed: true });
+F({ id: 'cut', group: 'Optics', on: true,
   onChange: (v) => (shared.uCutOn.value = v ? 1 : 0) });
-F({ id: 'sdf', group: 'Body', label: 'Anatomy from SDF parts', fixed: true,
-  about: 'Notogaster, aspis, collar, genitoanal plates, bothridia, chelicerae and palps as signed-distance parts meshed with surface nets; the aspis is a separate hinged mesh.' });
-F({ id: 'setae', group: 'Body', label: 'Setae and sensilli', on: true,
-  about: '14 pairs of notogastral setae, four pairs on the aspis, two sensilli, and setae on every leg segment (drawn ~1.6x thicker than life).',
+F({ id: 'sdf', group: 'Body', fixed: true });
+F({ id: 'setae', group: 'Body', on: true,
   onChange: (v) => (CFG.setae = v) });
-F({ id: 'thick', group: 'Body', label: 'Thin parts thickened', fixed: true,
-  about: 'Legs ~1.3x and setae ~1.6x thicker than life so they survive at screen size.' });
+F({ id: 'thick', group: 'Body', fixed: true });
 const GAITL = { 'Alternating tetrapod': 'tetrapod', 'Wave (one leg at a time)': 'wave', 'Pairs (not arachnid)': 'pairs' };
-F({ id: 'gait', group: 'Motion', label: 'Gait', choices: Object.keys(GAITL), value: 'Alternating tetrapod',
-  about: 'Tetrapod: L1 R2 L3 R4 swing together, then R1 L2 R3 L4, with a small back-to-front lag. Wave: one leg at a time per side. Pairs: for comparison (shared/techniques/mite-gait.js).',
+F({ id: 'gait', group: 'Motion', choices: Object.keys(GAITL), value: 'Alternating tetrapod',
   onChange: (v) => (CFG.gait = GAITL[v]) });
-F({ id: 'ik', group: 'Motion', label: 'Two-bone leg IK', on: true,
-  about: 'Femur+genu and tibia+tarsus solved analytically with the knee bent up, the tarsus angled down to a planted claw. Off: each leg is a stiff strut from trochanter to foot.',
+F({ id: 'ik', group: 'Motion', on: true,
   onChange: (v) => (CFG.ik = v) });
-F({ id: 'plant', group: 'Motion', label: 'Planted feet, distance-driven phase', fixed: true,
-  about: 'The gait phase advances with distance walked (and turning), feet stay fixed in the world during stance and land half a stance ahead, so they never skate.' });
-F({ id: 'surface', group: 'Motion', label: 'Surface following and climbing', fixed: true,
-  about: 'Five ray probes fit the body to the ground under it; a forward probe tips the body onto walls, so it can climb grains, leaves and stems. Feet are raycast onto the real surfaces.' });
-F({ id: 'bob', group: 'Motion', label: 'Body bob and sway', on: true,
-  about: 'A few µm of rise and fall and a slight roll in time with the alternating leg groups.', onChange: (v) => (CFG.bob = v) });
-F({ id: 'ptych', group: 'Simulation', label: 'Ptychoidy speed', choices: ['Real (0.16 s)', 'Slowed 4x'], value: 'Real (0.16 s)',
-  about: 'Hold Y (defend): legs pull in and the aspis folds down to seal the body. Real euphthiracaroids close in about 0.1-0.15 s (Heethoff et al. 2018).',
+F({ id: 'plant', group: 'Motion', fixed: true });
+F({ id: 'surface', group: 'Motion', fixed: true });
+F({ id: 'bob', group: 'Motion', on: true,
+  onChange: (v) => (CFG.bob = v) });
+F({ id: 'ptych', group: 'Simulation', choices: ['Real (0.16 s)', 'Slowed 4x'], value: 'Real (0.16 s)',
   onChange: (v) => (CFG.closeTime = v.startsWith('Real') ? 0.16 : 0.64) });
-F({ id: 'roll', group: 'Simulation', label: 'Closed capsule rolls and falls', on: true,
-  about: 'Closed, the mite is a rigid egg: gravity torque about the contact point tips it, it rolls without slipping down slopes and falls off edges. Off: it stays put.',
+F({ id: 'roll', group: 'Simulation', on: true,
   onChange: (v) => (CFG.roll = v) });
-F({ id: 'npc', group: 'Simulation', label: 'A second box mite', on: true,
-  about: 'Another phthiracarid wanders with the same walker and shuts itself when you come close.',
+F({ id: 'npc', group: 'Simulation', on: true,
   onChange: (v) => { npcOn = v; npc.setVisible(v); } });
-for (const [id, label, about] of [
-  ['moss', 'Moss shoots', 'Stems with lanceolate leaves on a 137.5-degree spiral, costa and cell relief; the lowest leaves arch to the floor as ramps.'],
-  ['grains', 'Mineral grains', 'About 150 angular grains, 20-300 µm, faceted jittered icosahedra.'],
-  ['litter', 'Leaf litter flakes', 'Curled, ragged fragments of dead leaves, walkable.'],
-  ['hyphae', 'Fungal hyphae', 'Threads 3-5 µm thick strung between surfaces, with side branches.'],
-  ['spores', 'Spores and pollen', 'Fungal conidia, echinate (aster-type) pollen and bisaccate conifer pollen.'],
-]) F({ id, group: 'World', label, about: about + ' Off also removes it from walking.', on: true, onChange: (v) => world.setLayer(id, v) });
-F({ id: 'tex', group: 'World', label: 'Procedural SEM textures', fixed: true,
-  about: 'Stand-ins for MP-M01..M04 drawn in code; delivered images replace them automatically.' });
-F({ id: 'climb', group: 'Motion', label: 'Climbing rigid surfaces', on: true,
-  about: 'A face too steep to step onto (a grain, a stem, a flake on edge) tips the body up onto it as it comes within reach; the ground probes then find the face and the mite walks up and over, its up turning toward the smoothed surface normal. Off: it slides along steep faces (the old rule).',
+for (const id of ['moss', 'grains', 'litter', 'hyphae', 'spores']) F({ id, group: 'World', on: true, onChange: (v) => world.setLayer(id, v) });
+F({ id: 'tex', group: 'World', fixed: true });
+F({ id: 'climb', group: 'Motion', on: true,
   onChange: (v) => (CFG.climb = v) });
-F({ id: 'clear', group: 'Motion', label: 'Body clearance', on: true,
-  about: 'Thirteen rays from the body centre to its ellipsoid: any rigid surface inside it pushes the body back along the ground, so it never passes through grains, stems, flakes or the thick lowest leaves. The deepest overlap shows in the corner as "pen".',
+F({ id: 'clear', group: 'Motion', on: true,
   onChange: (v) => (CFG.clear = v) });
-F({ id: 'foliage', group: 'Simulation', label: 'Bending blades and hyphae', on: true,
-  about: 'Every thin moss leaf is a bendable blade (one tip offset with a spring back to rest, offset = d·u²) and every hypha a slack thread fixed at both ends (d·sin πu). Bodies push their centre lines out of the way, a mite standing on a blade bends it down, and they spring back. Only rods near a mite are simulated; their vertices and colliders are rewritten on the CPU (shared/techniques/mite-foliage.js).',
+F({ id: 'foliage', group: 'Simulation', on: true,
   onChange: (v) => { world.foliage.cfg.on = v; if (!v) world.foliage.reset(); } });
-F({ id: 'speed', group: 'Simulation', label: 'Game walking speed', fixed: true,
-  about: `The stick is analogue: a slight push walks at ~${WALK_MIN} µm/s, full tilt ~${WALK_MAX} µm/s (a quadratic curve between, so the slow end is easy to hold); the keys walk at ~${Math.round(walkSpeed(KEY_WALK))}, LB (Q) holds the slow end and RB (F) full tilt. Scaled with the 0.35 mm body: 1.2-2.5 body lengths a second. Real oribatids walk a few hundred µm/s at most; this is a game stretch. Strides lengthen up to ~2.2x with speed and the gait phase runs on distance, so the feet stay planted.` });
-F({ id: 'scramble', group: 'Simulation', label: 'Scramble (hold B)', fixed: true,
-  about: `Held: up to ~${DASH} µm/s (~1.7x full tilt), on a stamina meter (empties in ~1.6 s, refills in ~2.8 s). The gait phase runs on distance, so the legs speed up with it and the feet stay planted. A stretch: box mites are slow, steady walkers.` });
-F({ id: 'jump', group: 'Simulation', label: 'Jump (A), borrowed from jumping oribatids', fixed: true,
-  about: `A ${Math.round(JUMP.crouch * 1000)} ms crouch, then an explosive launch on a high arc (tap: ~1.1 mm, three body lengths, ~0.33 mm high; hold A up to ${JUMP.charge} s more to crouch deeper and release for ~2.1 mm, six body lengths, ~0.65 mm high; a run-up adds to it). Aim with the stick while crouched, and lean the arc a little in the air. The legs tuck in the air and splay for the landing, which squashes the body and kicks up crumbs; it lands on the floor, a grain, a flake or a blade (which takes the landing and bends); ${JUMP.cool} s before the next. Box mites do not jump, but some oribatids do: Zetorchestes with enlarged hind legs and a catch mechanism (Krisper 1990), and the ptychoid Indotritia, a box-mite relative, jumps backwards with its forelegs (Wauthy et al. 1998). Borrowed here as a forward leap, with the feel of a flea or a jumping spider.` });
-F({ id: 'pounce', group: 'Simulation', label: 'Pounce-bite (X in the air; a game stretch)', fixed: true,
-  about: 'In a jump, X dives at the nearest enemy point ahead (the predator, or the pseudoscorpion\'s pincer arm): a strong bite on impact (two bites\' worth, a hit-pause and a rumble), then a hop back; a mistimed dive is a clear miss. Box mites neither jump nor pounce: a game stretch on the borrowed Zetorchestes jump.' });
-F({ id: 'boss', group: 'Simulation', label: 'Boss: pseudoscorpion (Neobisium-like)', fixed: true,
-  about: '~2.5 mm, a real hunter of mites in moss, on guard before the wet leaf axil (the portal: placed as you go, the last encounter, in moss nobody has seen yet a short way ahead of you).' + ' Dormant until you come within 0.9 mm of its post; reaching the water while it guards turns you back. Lure it off (it follows you up to 2.6 mm from its post, then walks back slowly) and get round it, or wear it down. Its tell: pincers held open and dead still, then a snap, a two-pincer sweep, or a step-in and snap. Stay out of reach, close up (Y) to survive a grab (the venom tooth cannot get through), scramble (B) out of a grab in its strike window, and bite its pincer joints (X) while it recovers. About three good rounds and it backs into the moss. Its resolve is the brass gauge.' });
-F({ id: 'bite', group: 'Simulation', label: 'Bite and graze (X)', fixed: true,
-  about: 'Every press is an attack you can see: the mite rears, the rostrum lifts (the chelicerae open), it lunges and snaps, and crumbs puff where the snap lands. In reach of the mouth: fungal spores (eaten) and hyphal branch tips (nibbled; they regrow), the box mite\'s real food. A springtail in front: the nip leaves it dazed for 2.4 s while its group leaps away (they drift back to graze); bite a dazed one again and it is held to the mouth and eaten (1.2 s: the scramble refilled, a grabbed leg mending 8 s sooner; another wanders in after 40 s). One of the box-mite family: it shuts itself in its capsule and the bite glances off. At the predator: a nip that makes it back off for 1.5 s. Departures: box mites graze fungi and decaying plant matter and do not hunt or eat springtails (predatory mites do); the nips and the meal are game rules.' });
-F({ id: 'predator', group: 'Simulation', label: 'Predatory mite (Parasitidae)', on: true,
-  about: 'A pale, flattened gamasid ~0.8 mm long with long legs, leg I held up as a feeler. More than twice your length. It hunts on its own ground, placed as you go (the second encounter, after a few seconds of open moss, and twice again later, hungrier and faster each time), in moss nobody has seen yet a short way ahead of you. Calm until you first walk onto its ground, then hungry only some of the time (see Threats); hungry, it searches toward you, and when it touches you or feels you hurry close by it runs you down: ~0.76 mm/s the first time (full tilt outwalks it), ~0.9 the second (scramble or jump), ~1.0 the third, always hungry then (it outruns full tilt; the scramble ~1.5 and jumps still get away; all game speeds); walking past half tilt is felt from ~1-1.35 mm, creeping only by touch. Resting, it wanders and ignores you. It strikes at legs: on the third grab it holds on, pulls you in and eats you (the whole catch is shown); close up (Y) while it holds you and its grip slips off. Each strike is telegraphed: it rears, leg I and the palps up, the chelicerae open (0.8 s). Closed up (Y), you are a smooth capsule its strike slides off; blocks, nips (X) and facing it wear its interest down until it runs off (adult ptychoid mites are nearly immune: Peschel et al. 2006).',
+F({ id: 'speed', group: 'Simulation', fixed: true,
+  about: tt('mite.features.speed.about', { min: WALK_MIN, max: WALK_MAX, keys: Math.round(walkSpeed(KEY_WALK)) }) });
+F({ id: 'scramble', group: 'Simulation', fixed: true,
+  about: tt('mite.features.scramble.about', { dash: DASH }) });
+F({ id: 'jump', group: 'Simulation', fixed: true,
+  about: tt('mite.features.jump.about', { crouch: Math.round(JUMP.crouch * 1000), charge: JUMP.charge, cool: JUMP.cool }) });
+F({ id: 'pounce', group: 'Simulation', fixed: true });
+F({ id: 'boss', group: 'Simulation', fixed: true });
+F({ id: 'bite', group: 'Simulation', fixed: true });
+F({ id: 'predator', group: 'Simulation', on: true,
   onChange: (v) => { predOn = v; pred.setVisible(v && predPlaced); } });
-F({ id: 'grace', group: 'Simulation', label: 'Calm opening', choices: ['Until its ground', '20 s', 'Off'], value: 'Until its ground',
-  about: 'Until its ground (default): the predatory mite stays calm until someone first walks onto its hunting ground (no clock). 20 s / Off: a test calm on a timer, or none. shared/predation.js.',
+F({ id: 'grace', group: 'Simulation', choices: ['Until its ground', '20 s', 'Off'], value: 'Until its ground',
   onChange: (v) => { pace.grace = v === 'Off' ? 0 : v === '20 s' ? 20 : Infinity; hunger.reset(pace.grace); } });
-F({ id: 'hunger', group: 'Simulation', label: 'Predator hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
-  about: 'Comes and goes: once it is awake it is hungry for ~18-32 s at a time, then rests (45-75 s after eating you, 15-30 s after you slip free, lose it or it gives up on your capsule); only a hungry predator searches toward you and hunts. Always: hungry from the end of the calm opening on. Never: it never hunts (for exploring and testing).',
+F({ id: 'hunger', group: 'Simulation', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
   onChange: (v) => (pace.mode = v) });
-F({ id: 'camwalk', group: 'Controls', label: 'Camera-relative walking', fixed: true,
-  about: 'LS walks relative to the view; the mite turns toward the stick at a limited rate and walks forward (it does not strafe).' });
-F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true,
-  about: 'A faint tick on footfalls, a thump on closing, landing and opening, a kick on each scramble and jump, a jolt when the predator grabs a leg.', onChange: (v) => (rumbleOn = v) });
+F({ id: 'camwalk', group: 'Controls', fixed: true });
+F({ id: 'rumble', group: 'Controls', on: true,
+  onChange: (v) => (rumbleOn = v) });
 addInvertY(features);
 
 // ---------- borrowed looks (default off; shared/techniques/adapters.js) ----------
@@ -651,19 +614,19 @@ addInvertY(features);
 const looks = createBorrowedLooks(renderer);
 const borrow = borrowedSwitches(features);
 const bmode = { dic: 0, amoeba: 0, par: 0 };
-const THICK = 'Opaque scene read as a thick transparent specimen: optical path = height above the floor (from the G-buffer depth), tinted by material (cuticle amber, moss green). Physically odd: moss and a mite in air are opaque, not phase objects.';
-borrow.add({ id: 'dicTardigrade', label: 'DIC (Nomarski) relief', from: 'tardigrade',
-  about: `The tardigrade's interference image: relief from the gradient of optical path along one shear direction, three-wavelength fringes. ${THICK}` });
-F({ id: 'dicTardigradeMode', group: 'Borrowed', label: 'Tardigrade look', from: 'tardigrade', choices: DIC_MODES, value: DIC_MODES[0],
-  about: 'Which of the tardigrade images the switch above uses: DIC or its brightfield.', onChange: (v) => (bmode.dic = DIC_MODES.indexOf(v)) });
-borrow.add({ id: 'opticsAmoeba', label: 'Amoeba property optics', from: 'amoeba',
-  about: `Brightfield (Beer–Lambert and transport-of-intensity defocus), phase contrast, darkfield or the immersive lit view, from a phase + optical-density buffer. ${THICK}` });
-F({ id: 'opticsAmoebaMode', group: 'Borrowed', label: 'Amoeba method', from: 'amoeba', choices: AMOEBA_MODES, value: AMOEBA_MODES[0],
-  about: 'Which optical method the amoeba switch above uses.', onChange: (v) => (bmode.amoeba = AMOEBA_MODES.indexOf(v)) });
-borrow.add({ id: 'microscopeParamecium', label: 'Paramecium microscope', from: 'paramecium',
-  about: `Darkfield, phase contrast, brightfield, DIC or the lit view, formed the paramecium way (high-pass, phase ring with halo, post pass with chromatic softness and grain). ${THICK}` });
-F({ id: 'microscopeParameciumMode', group: 'Borrowed', label: 'Paramecium technique', from: 'paramecium', choices: PARAMECIUM_MODES, value: PARAMECIUM_MODES[0],
-  about: 'Which technique the paramecium switch above uses.', onChange: (v) => (bmode.par = PARAMECIUM_MODES.indexOf(v)) });
+const THICK = tt('mite.borrowedThick');
+borrow.add({ id: 'dicTardigrade', from: 'tardigrade',
+  about: tt('mite.features.dicTardigrade.about', { thick: THICK }) });
+F({ id: 'dicTardigradeMode', group: 'Borrowed', from: 'tardigrade', choices: DIC_MODES, value: DIC_MODES[0],
+  onChange: (v) => (bmode.dic = DIC_MODES.indexOf(v)) });
+borrow.add({ id: 'opticsAmoeba', from: 'amoeba',
+  about: tt('mite.features.opticsAmoeba.about', { thick: THICK }) });
+F({ id: 'opticsAmoebaMode', group: 'Borrowed', from: 'amoeba', choices: AMOEBA_MODES, value: AMOEBA_MODES[0],
+  onChange: (v) => (bmode.amoeba = AMOEBA_MODES.indexOf(v)) });
+borrow.add({ id: 'microscopeParamecium', from: 'paramecium',
+  about: tt('mite.features.microscopeParamecium.about', { thick: THICK }) });
+F({ id: 'microscopeParameciumMode', group: 'Borrowed', from: 'paramecium', choices: PARAMECIUM_MODES, value: PARAMECIUM_MODES[0],
+  onChange: (v) => (bmode.par = PARAMECIUM_MODES.indexOf(v)) });
 // Material classes (CLS order): background, cuticle, leaf, stem, grain, litter, hypha, spore, other mite. Optical density per µm of height.
 const MITE_ABS = [[0, 0, 0], [0.0012, 0.0026, 0.006], [0.004, 0.0012, 0.0045], [0.003, 0.0015, 0.0035], [0.0003, 0.0003, 0.0004],
   [0.0035, 0.0045, 0.0065], [0.0004, 0.0005, 0.0007], [0.001, 0.0016, 0.004], [0.001, 0.0035, 0.006]];
@@ -812,7 +775,7 @@ function stepAct(dt) {
         if (rumbleOn) padOf().rumble(140, 0.5, 0.4);
         const open = boss.open;
         const gone = boss.bitten(1, cur.slot);
-        hud.toast(gone ? 'The pseudoscorpion has had enough: it backs into the moss' : `Bit ${open ? 'a pincer joint' : 'its pincer'}! It flinches`, 1500);
+        hud.toast(gone ? tt('mite.toasts.bossGone') : tt(open ? 'mite.toasts.bitPincerJoint' : 'mite.toasts.bitPincer'), 1500);
       } else if (play.foe !== 'boss' && predHere() && !capture.active && pred.center.distanceTo(m) < 700) {
         play.nips = (play.nips || 0) + 1;
         if (rumbleOn) padOf().rumble(140, 0.5, 0.4);
@@ -832,9 +795,9 @@ function stepAct(dt) {
     if (f.kind === 'head') thicket.shrinkHead(f, 1 - Math.max(0, (u - 0.3) / 0.7));
     if (u >= 1) {
       play.grazed++;
-      if (f.kind === 'spore') { f.left = 0; world.eatSpore(f); hud.toast(`Ate a fungal spore (${play.grazed} grazed)`); }
-      else if (f.kind === 'head') { f.left = 0; f.t = 30; thicket.shrinkHead(f, 0); hud.toast(`Grazed a conidiophore's spore head (${play.grazed} grazed)`); }
-      else { f.left = 0; f.t = 25; hud.toast(`Nibbled a hyphal tip (${play.grazed} grazed)`); }
+      if (f.kind === 'spore') { f.left = 0; world.eatSpore(f); hud.toast(tt('mite.toasts.ateSpore', { count: play.grazed })); }
+      else if (f.kind === 'head') { f.left = 0; f.t = 30; thicket.shrinkHead(f, 0); hud.toast(tt('mite.toasts.grazedSporeHead', { count: play.grazed })); }
+      else { f.left = 0; f.t = 25; hud.toast(tt('mite.toasts.nibbledHypha', { count: play.grazed })); }
       if (rumbleOn) padOf().rumble(60, 0.25, 0.1);
     }
   } else if (play.act === 'clear') {
@@ -849,7 +812,7 @@ function stepAct(dt) {
       if (r.threads) { play.grazed += r.threads; audio.play('mite/bite', { volume: 0.8, rate: 1.05 }); }
       else audio.play('mite/bite', { volume: 0.6, rate: 1.25 });
       if (r.shoved && rumbleOn) padOf().rumble(70, 0.3, 0.2);
-      if (!thickLog.biteTip) { thickLog.biteTip = true; hud.toast(r.threads ? 'Grazed through the threads: bite (X) to clear a lane, walk to shove the springtails aside' : 'Shoved the springtails aside', 2400); }
+      if (!thickLog.biteTip) { thickLog.biteTip = true; hud.toast(r.threads ? tt('mite.toasts.grazedThreads') : tt('mite.toasts.shovedSpringtails'), 2400); }
     }
   } else if (play.act === 'strike') {
     // turn onto the target, rear with the chelicerae open, lunge and snap
@@ -872,7 +835,7 @@ function stepAct(dt) {
           snapPuff(at, 1.2);
           audio.play('mite/bite', { volume: 1, rate: 0.9 });
           if (rumbleOn) padOf().rumble(90, 0.35, 0.25);
-          if (!lifeT.bugTip) { lifeT.bugTip = true; hud.toast('Nipped a springtail: it lies dazed and its group leaps away. Bite it again quickly to eat it', 2600); }
+          if (!lifeT.bugTip) { lifeT.bugTip = true; hud.toast(tt('mite.toasts.nippedSpringtail'), 2600); }
         } else { snapPuff(at, 0.7); audio.play('mite/bite', { volume: 0.6, rate: 1.2 }); }
       } else if (play.fam) {
         // a box mite of its own kind: it shuts itself in its capsule, and the bite glances off
@@ -880,7 +843,7 @@ function stepAct(dt) {
         play.fam.ai.scared = Math.max(play.fam.ai.scared, 3);
         snapPuff(at, 0.8);
         audio.play('mite/bite', { volume: 0.8, rate: 1.4 });
-        if (!lifeT.famTip) { lifeT.famTip = true; hud.toast('It shut itself in its capsule: the bite glances off a box mite', 2200); }
+        if (!lifeT.famTip) { lifeT.famTip = true; hud.toast(tt('mite.toasts.boxMiteShut'), 2200); }
       } else {
         snapPuff(at, 0.7);
         audio.play('mite/bite', { volume: 0.6, rate: 1.2 });
@@ -903,7 +866,7 @@ function stepAct(dt) {
       play.stam = 1;
       if (play.hurt > 0) play.heal += 8;
       if (rumbleOn) padOf().rumble(80, 0.3, 0.15);
-      hud.toast(`Ate a springtail (${play.bugs})${play.hurt > 0 ? ': scramble refilled, the grabbed leg mends sooner' : ': scramble refilled'}`, 1800);
+      hud.toast(tt(play.hurt > 0 ? 'mite.toasts.ateSpringtailHurt' : 'mite.toasts.ateSpringtail', { count: play.bugs }), 1800);
     }
   }
   if (u >= 1) { play.act = null; mite.act({}); }
@@ -1049,19 +1012,19 @@ function checkLandmarks() {
   }
   if (PORTAL.placed && !outro) {
     // the boss's hint (brief, once): only when someone is close enough to meet it
-    if (!portalState.hinted && dmin < 3200) { portalState.hinted = true; hud.toast('A pseudoscorpion guards the water. Lure it away from its post and get round it, or bite its pincer joints until it backs off', 3600); }
+    if (!portalState.hinted && dmin < 3200) { portalState.hinted = true; hud.toast(tt('mite.toasts.bossHint'), 3600); }
     // nearing the open way on (a screen or two): the shell starts loading the next world (no prompt is shown)
     const nearing = !portalSealed() && dmin < 3000;
     if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
     if (at && !lm.fired) {
       if (guarded()) {
-        if (!portalState.turned) { portalState.turned = true; hud.toast('Turned back: the pseudoscorpion is on guard. Lead it away from the water first, then get round it', 3600); }
+        if (!portalState.turned) { portalState.turned = true; hud.toast(tt('mite.toasts.turnedBack'), 3600); }
         lm.log.push({ kind: 'turnedBack', slot: at.slot, t: +simTime.toFixed(2) });
         lm.fired = true; // once a visit (again after everyone has left)
         withRec(at, () => { if (rumbleOn) padOf().rumble(160, 0.4, 0.2); });
       } else if (portalSealed()) {
         // the way on exists from the start (the default path) but opens only once the predatory mite is met, twice
-        hud.toast('The water is shut to you yet: the predatory mite is still out in the moss', 2600);
+        hud.toast(tt('mite.toasts.sealed'), 2600);
         lm.log.push({ kind: 'sealed', slot: at.slot, t: +simTime.toFixed(2) });
         lm.fired = true;
       }
@@ -1072,11 +1035,11 @@ function checkLandmarks() {
   setPortalPrompt(PORTAL.placed && !outro && !!at && !portalSealed() && !guarded());
   if (nearB !== lm.near) {
     lm.near = nearB;
-    embed.near('back', nearB, 'Rise to the bog surface');
+    embed.near('back', nearB, tt('mite.prompts.rise'));
     // standalone: our own quiet prompt (in the game the shell shows it)
     if (!embed.active) {
       backPrompt.style.display = nearB ? 'block' : 'none';
-      backPrompt.textContent = `${hud.glyphs === 'keyboard' ? 'R' : 'Y'}: back to the bog surface`;
+      backPrompt.textContent = tt('mite.prompts.backStandalone', { key: hud.glyphs === 'keyboard' ? 'R' : 'Y' });
     }
   }
 }
@@ -1251,7 +1214,7 @@ function stepLife(dt) {
   lifeT.t += dt;
   const ps = recs().filter((P) => !held(P)).map((P) => { const f = _ct.set(1, 0, 0).applyQuaternion(P.mite.quat); return { x: P.mite.center.x, z: P.mite.center.z, hx: f.x, hz: f.z }; });
   for (const D of [drip1, drip3]) for (const e of D.update(dt, ps)) {
-    if (e.type === 'fall') { hud.toast('A drop of water is falling into the moss: get clear, or close up (Y)', 2400); audio.play('mite/dash', { volume: 0.5, rate: 0.5 }); }
+    if (e.type === 'fall') { hud.toast(tt('mite.toasts.drip'), 2400); audio.play('mite/dash', { volume: 0.5, rate: 0.5 }); }
     if (e.type === 'splash') {
       puffDust(new THREE.Vector3(e.x, floorH(e.x, e.z) + 30, e.z), 22, 1.6);
       audio.play('mite/close', { volume: 1, rate: 0.6 });
@@ -1274,10 +1237,10 @@ function stepLife(dt) {
   ambient.update(lifeT.t, bodies, foci);
   beads.update(foci);
   // the moss gets wetter: said once, as the water nears
-  if (!lifeT.wetToast && PORTAL.placed && !portalSealed() && foci.some((c) => Math.hypot(c.x - PORTAL.x, c.z - PORTAL.z) < WET_R * 0.75)) { lifeT.wetToast = true; hud.toast('The moss is wetter here, beaded with water: the water is near', 2600); }
+  if (!lifeT.wetToast && PORTAL.placed && !portalSealed() && foci.some((c) => Math.hypot(c.x - PORTAL.x, c.z - PORTAL.z) < WET_R * 0.75)) { lifeT.wetToast = true; hud.toast(tt('mite.toasts.wetter'), 2600); }
   // the walkable square's edge (half a metre out) is a wall of tall moss (edge.js); against it, a gentle word too
   lifeT.edgeToast = Math.max(0, lifeT.edgeToast - dt);
-  if (!lifeT.edgeToast && foci.some((c) => !insideEdge(c.x, c.z, 450))) { lifeT.edgeToast = 20; hud.toast('The edge of the moss cushion: tall Sphagnum, too dense to pass. Turn back toward the water', 2600); }
+  if (!lifeT.edgeToast && foci.some((c) => !insideEdge(c.x, c.z, 450))) { lifeT.edgeToast = 20; hud.toast(tt('mite.toasts.edge'), 2600); }
 }
 function newEncounters() {
   director.reset();
@@ -1468,12 +1431,12 @@ function challenges() {
     const c = P.mite.center;
     if (predHere() && predAI.onGround(c)) {
       // walking onto its ground ends its calm: it is awake (hungry now and then) and lurking
-      if (!challengeLog.some((x) => x.kind.startsWith('predator ground'))) { if (hunger.state === 'grace') { hunger.reset(0); hunger.update(0.01); } hud.toast('The predatory mite\'s hunting ground: watch for it rearing to strike', 2600); }
+      if (!challengeLog.some((x) => x.kind.startsWith('predator ground'))) { if (hunger.state === 'grace') { hunger.reset(0); hunger.update(0.01); } hud.toast(tt('mite.toasts.predatorGround'), 2600); }
       logChallenge(`predator ground ${predK}`, P);
     }
     const cl = thicket.inside(c);
     if (cl) {
-      if (!challengeLog.some((x) => x.kind.startsWith('thicket'))) hud.toast('A hyphal thicket full of springtails: push through (LS), bite the threads away (X), scramble (B)', 3200);
+      if (!challengeLog.some((x) => x.kind.startsWith('thicket'))) hud.toast(tt('mite.toasts.thicket'), 3200);
       logChallenge(`thicket ${cl.ring + 1}`, P);
     }
     // near each challenge (within 400 µm of it): the times a scripted rush meets them
@@ -1497,14 +1460,14 @@ function diveImpact() {
       audio.play('mite/bite', { volume: 1, rate: 0.75 });
       mite.bite();
       kickDust(mite, 8);
-      if (t.foe === 'boss') { const gone = boss.bitten(2, cur.slot); hud.toast(gone ? 'Pounce-bite! The pseudoscorpion backs into the moss' : 'Pounce-bite on its pincer!', 1300); }
-      else { wearDown('bite'); if (predAI.state !== 'retreat') wearDown('bite'); hud.toast('Pounce-bite on the predatory mite!', 1200); }
+      if (t.foe === 'boss') { const gone = boss.bitten(2, cur.slot); hud.toast(gone ? tt('mite.toasts.pounceBossGone') : tt('mite.toasts.pounceBoss'), 1300); }
+      else { wearDown('bite'); if (predAI.state !== 'retreat') wearDown('bite'); hud.toast(tt('mite.toasts.pouncePredator'), 1200); }
       // rebound: a little hop back
       mite.st.fwd.negate(); mite.jump(); play.rebound = 0.25;
       return;
     }
   }
-  hud.toast('Missed!', 900);
+  hud.toast(tt('mite.toasts.missed'), 900);
   kickDust(mite, 4);
 }
 /** A grab's strike window: a scramble (B) breaks out of it. */
@@ -1518,7 +1481,7 @@ function dashOut(P) {
   if (cap.byBoss) { boss.st.state = 'recover'; boss.st.t = 0; boss.fight.bitten(); } else { pred.st.chel = 0; predAI.repel(); fight.bitten(); }
   cap.byBoss = false;
   withRec(P, () => { if (rumbleOn) padOf().rumble(200, 0.6, 0.6); kickDust(P.mite, 10); });
-  hud.toast('Dashed out of its grip!', 1500);
+  hud.toast(tt('mite.toasts.dashedOut'), 1500);
 }
 /** The pseudoscorpion's grab: a catch like the predator's (createCapture), with its own pose. */
 function startBossCapture() {
@@ -1526,7 +1489,7 @@ function startBossCapture() {
   Object.assign(cap, { phase: null, leg: 0, heldOnce: false, t: 0, who: cur, byBoss: true });
   cap.c0.copy(mite.center); cap.q0.copy(mite.quat);
   play.caught++; play.stun = 0;
-  capture.start({ by: 'The pseudoscorpion', how: 'seized you in its pincer, venomed you and ate you' });
+  capture.start({ by: tt('mite.capture.boss.by'), how: tt('mite.capture.boss.how') });
   embed.captured({ by: 'boss', player: cur.slot });
   audio.play('mite/predator', { volume: 1, rate: 0.6 });
   if (rumbleOn) padOf().rumble(400, 0.9, 1);
@@ -1534,7 +1497,7 @@ function startBossCapture() {
 // the boss's resolve: a quiet brass gauge, shown while it is engaged
 const gauge = document.createElement('div');
 gauge.style.cssText = 'position:fixed;left:50%;top:48px;transform:translateX(-50%);display:none;align-items:center;gap:10px;color:#e9d9a8;font:600 11px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 1px 2px #000a;pointer-events:none;z-index:6';
-gauge.innerHTML = '<span>Pseudoscorpion</span><span style="width:180px;height:5px;border:1px solid #b8913f;background:rgba(20,16,8,.45);border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:100%;background:linear-gradient(90deg,#8a6a2c,#d8b268);transition:width .25s"></i></span>';
+gauge.innerHTML = `<span>${tt('mite.bossName')}</span><span style="width:180px;height:5px;border:1px solid #b8913f;background:rgba(20,16,8,.45);border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:100%;background:linear-gradient(90deg,#8a6a2c,#d8b268);transition:width .25s"></i></span>`;
 document.body.appendChild(gauge);
 
 function tick(dt, inputs) {
@@ -1565,7 +1528,7 @@ function tick(dt, inputs) {
     capture.reset(); cap.phase = null; cap.who = null; pred.st.chel = 0;
     predAI.state = 'wander'; predAI.bored = 10; predAI.ang += Math.PI;
     respawnNear(who);
-    hud.toast(`Player ${who.slot + 1} was eaten, and is back beside a teammate`, 2400);
+    hud.toast(tt('shared.players.eatenBack', { n: who.slot + 1 }), 2400);
     cs = { active: false };
   }
   // the strike window: a scramble (B, with stamina) breaks out of the grip
@@ -1643,20 +1606,20 @@ function tick(dt, inputs) {
       const toP = _ct.subVectors(pred.center, mite.center).setY(0).normalize();
       const fwd = _cf.set(1, 0, 0).applyQuaternion(mite.quat).setY(0).normalize();
       const f = fight.update(dt, { near: hunting && bd < 900, facing: toP.dot(fwd) > 0.5 });
-      if (f.retreated) { fightLog.retreats++; predAI.retreat(); if (hunger.hungry) hunger.missed(); hud.toast('The predatory mite gives up on you', 1800); fight.reset(); }
-      const who = multi() ? `Player ${cur.slot + 1}: ` : '';
+      if (f.retreated) { fightLog.retreats++; predAI.retreat(); if (hunger.hungry) hunger.missed(); hud.toast(tt('mite.toasts.predatorGivesUp'), 1800); fight.reset(); }
+      const who = (text) => (multi() ? tt('shared.players.prefixed', { n: cur.slot + 1, text }) : text);
       for (const e of r.events) {
         if ((e === 'gaveUp' || e === 'lost') && hunger.hungry) hunger.missed();
         if (e === 'hunt') { audio.play('mite/predator', { volume: 0.9 }); logChallenge('predator hunt', cur); }
         if (e === 'legHit') audio.play('mite/predator', { volume: 0.6, rate: 1.25 });
-        if (e === 'hunt') hud.toast(`${who}A predatory mite has touched you: run (B), jump (A), close up (Y) or nip it (X)`, 2600);
-        else if (e === 'windup') { hud.toast(`${who}It rears to strike: close up (Y), or jump`, 1400); if (rumbleOn) padOf().rumble(250, 0.15, 0); }
+        if (e === 'hunt') hud.toast(who(tt('mite.toasts.predatorTouched')), 2600);
+        else if (e === 'windup') { hud.toast(who(tt('mite.toasts.predatorRears')), 1400); if (rumbleOn) padOf().rumble(250, 0.15, 0); }
         else if (e === 'blocked') { if (rumbleOn) padOf().rumble(90, 0.2, 0.35); wearDown('block'); }
         else if (e === 'legHit') {
           play.hurt++; play.stun = 0.7; play.heal = 0;
           if (rumbleOn) padOf().rumble(260, 0.8, 0.9);
           if (play.hurt >= 3) startCapture();
-          else hud.toast(`${who}It grabbed a leg (${play.hurt}/3): get away!`);
+          else hud.toast(who(tt('mite.toasts.legGrabbed', { hurt: play.hurt })));
         }
       }
     });
@@ -1679,15 +1642,15 @@ function tick(dt, inputs) {
         for (const Q of recs()) { const d = Math.hypot(Q.mite.center.x - boss.post.x, Q.mite.center.z - boss.post.z); if (d < nd) { nd = d; nearest = Q; } }
         const first = !challengeLog.some((x) => x.kind === 'boss');
         logChallenge('boss', nearest);
-        if (first) hud.toast('The pseudoscorpion wakes! Watch for its pincers held open and still', 3000);
+        if (first) hud.toast(tt('mite.toasts.bossWakes'), 3000);
       }
       else if (e.type === 'tell') { for (const Q of recs()) if (Q.mite.center.distanceTo(boss.center) < 2600) withRec(Q, () => { if (rumbleOn) padOf().rumble(200, 0.12, 0); }); }
       else if (['snap', 'sweep', 'step'].includes(e.type)) audio.play('mite/predator', { volume: 0.8, rate: 0.7 });
       else if (e.type === 'grab' && P) withRec(P, () => startBossCapture());
-      else if (e.type === 'survived') hud.toast('Closed up: the pincer closes on a smooth capsule', 1600);
-      else if (e.type === 'miss') hud.toast('It missed: bite its pincer joints (X) while it recovers', 1500);
-      else if (e.type === 'retreat') hud.toast('The pseudoscorpion backs into the moss: the way is open', 2600);
-      else if (e.type === 'return') hud.toast('The pseudoscorpion turns back to guard the water', 1800);
+      else if (e.type === 'survived') hud.toast(tt('mite.toasts.bossClosedUp'), 1600);
+      else if (e.type === 'miss') hud.toast(tt('mite.toasts.bossMissed'), 1500);
+      else if (e.type === 'retreat') hud.toast(tt('mite.toasts.bossRetreats'), 2600);
+      else if (e.type === 'return') hud.toast(tt('mite.toasts.bossReturns'), 1800);
     }
   }
   props.update(simTime, dt);
@@ -1719,11 +1682,11 @@ function readInput(dt) {
   const lk = ctl.look();
   rig.pitch = THREE.MathUtils.clamp(rig.pitch - lk.pitch * 1.2 * dt, 0.18, 1.5);
   const look = ctl.lookStep();
-  if (look) { features.set('look', LOOKS[(sem.mode + look + LOOKS.length) % LOOKS.length]); hud.toast(MODES[sem.mode]); }
+  if (look) { features.set('look', LOOKS[(sem.mode + look + LOOKS.length) % LOOKS.length]); hud.toast(tx('mite.lookNames')[sem.mode] ?? MODES[sem.mode]); }
   const zs = ctl.zoomStep();
-  if (zs) { rig.hfw = THREE.MathUtils.clamp(rig.hfw / (zs > 0 ? 1.5 : 1 / 1.5), 160, 4200); hud.toast(`mag ${(127000 / rig.hfw).toFixed(0)}x`); }
+  if (zs) { rig.hfw = THREE.MathUtils.clamp(rig.hfw / (zs > 0 ? 1.5 : 1 / 1.5), 160, 4200); hud.toast(tt('mite.toasts.mag', { mag: (127000 / rig.hfw).toFixed(0) })); }
   // The SEM observer view is a standalone prototype aid, never a game action.
-  if (!embed.active && ctl.stickClick.left.pressed()) { features.set('observer', !observer); hud.toast(observer ? 'Observer mode' : 'Observer mode off'); }
+  if (!embed.active && ctl.stickClick.left.pressed()) { features.set('observer', !observer); hud.toast(observer ? tt('mite.toasts.observerOn') : tt('mite.toasts.observerOff')); }
   camFwd.set(-Math.cos(rig.yaw), 0, -Math.sin(rig.yaw));
   camRight.set(-camFwd.z, 0, camFwd.x);
   const out = [];
@@ -1779,17 +1742,17 @@ function react1(ev) {
 const banner = document.createElement('div');
 banner.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:6;padding:6px 14px;border-radius:999px;font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;color:#fff;pointer-events:none;white-space:nowrap;display:none';
 document.body.appendChild(banner);
-const CAP_LINES = { strike: 'Seized by a leg! Close up (Y) to slip free', hold: 'Being pulled in: close up (Y)!', eat: 'The predatory mite is eating you', follow: 'Eaten', fadeOut: 'Eaten', fadeIn: '' };
+const CAP_LINES = tx('mite.banner.capture');
 function updateBanner() {
   let txt = '', hot = true;
   gauge.style.display = boss.engaged ? 'flex' : 'none';
   gauge.querySelector('i').style.width = `${(boss.resolve * 100).toFixed(0)}%`;
-  if (capture.active) txt = cap.byBoss && ['strike', 'hold'].includes(capture.phase) ? 'In its pincer! Close up (Y), or scramble out (B) now' : cap.byBoss && capture.phase === 'eat' ? 'The pseudoscorpion is eating you' : CAP_LINES[capture.phase] || '';
-  else if (boss.attacking) txt = boss.st.state === 'tell' ? 'Pincers open and still: get out of reach, or close up (Y)' : 'It snaps!';
-  else if (predHere() && predAI.attacking) txt = 'It rears to strike! Close up (Y), or jump (A)';
-  else if (predHere() && predAI.state === 'retreat') { txt = 'The predatory mite is running off'; hot = false; }
-  else if (predHere() && predAI.state === 'hunt') txt = `A predatory mite is hunting you${play.hurt ? ` (legs grabbed ${play.hurt}/3)` : ''}`;
-  else if (predHere() && isHungry()) { txt = 'The predatory mite is hungry'; hot = false; }
+  if (capture.active) txt = cap.byBoss && ['strike', 'hold'].includes(capture.phase) ? tt('mite.banner.inPincer') : cap.byBoss && capture.phase === 'eat' ? tt('mite.banner.bossEating') : CAP_LINES[capture.phase] || '';
+  else if (boss.attacking) txt = boss.st.state === 'tell' ? tt('mite.banner.pincersOpen') : tt('mite.banner.snaps');
+  else if (predHere() && predAI.attacking) txt = tt('mite.banner.rears');
+  else if (predHere() && predAI.state === 'retreat') { txt = tt('mite.banner.runningOff'); hot = false; }
+  else if (predHere() && predAI.state === 'hunt') txt = play.hurt ? tt('mite.banner.huntingHurt', { hurt: play.hurt }) : tt('mite.banner.hunting');
+  else if (predHere() && isHungry()) { txt = tt('mite.banner.hungry'); hot = false; }
   banner.style.display = txt ? 'block' : 'none';
   banner.textContent = txt;
   banner.style.background = hot ? 'rgba(150,30,20,.8)' : 'rgba(10,12,16,.6)';
@@ -1865,7 +1828,7 @@ function drawFrame(dt) {
     portalLight.drawSplit(split, PORTAL.at, { strength: THREE.MathUtils.clamp(1.2 - d / 9000, 0.4, 1), open: props.glow.open });
   }
   if (outro) return;
-  marks.drawSplit(split, props.back, { kind: 'backdoor', label: 'Up', range: 4000 });
+  marks.drawSplit(split, props.back, { kind: 'backdoor', label: tt('mite.marks.up'), range: 4000 });
   drawPortalArrow();
   // players' colours: a faint ring round each mite (with company only)
   if (multi()) {
@@ -1917,7 +1880,7 @@ wayOn.style.cssText = 'position:fixed;left:50%;bottom:14px;transform:translateX(
 document.body.appendChild(wayOn);
 function updateWayOn() {
   const n = ENCOUNTERS.length, k = Math.min(n, director.index);
-  wayOn.textContent = outro || embed.held || intro ? '' : `the way on  ${'●'.repeat(k)}${'○'.repeat(n - k)}${k >= n - 1 ? '  the water is near' : ''}`;
+  wayOn.textContent = outro || embed.held || intro ? '' : tt(k >= n - 1 ? 'mite.status.wayOnNear' : 'mite.status.wayOn', { dots: '●'.repeat(k) + '○'.repeat(n - k) });
 }
 function updateText(d) {
   updateBanner();

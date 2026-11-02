@@ -442,11 +442,6 @@ export const TEXT = {
       qualityLevel: {
         label: 'Manual quality',
         about: 'Used while the governor is off: High = full resolution and effects, Low = the cheapest step.',
-        choices: {
-          High: 'High',
-          Medium: 'Medium',
-          Low: 'Low',
-        },
       },
       sound: {
         label: 'Sound effects',
@@ -492,6 +487,17 @@ export const TEXT = {
       youComeBack: '. You will come back beside a teammate',
       playerComesBack: '. Player {n} will come back beside a teammate',
       prefixed: 'Player {n}: {text}',
+      eatenBack: 'Player {n} was eaten, and is back beside a teammate',
+    },
+    choiceNames: {
+      Brightfield: 'Brightfield',
+      'Phase contrast': 'Phase contrast',
+      Darkfield: 'Darkfield',
+      Immersive: 'Immersive',
+      'DIC (Nomarski)': 'DIC (Nomarski)',
+      High: 'High',
+      Medium: 'Medium',
+      Low: 'Low',
     },
   },
 
@@ -822,6 +828,338 @@ export const TEXT = {
       pollen: 'pine pollen',
       spores: 'fungal spores',
       algae: 'green algae',
+    },
+  },
+
+  // --------------------------------------------------------------------
+  // World 2, the box mite (micro/prototypes/mite).
+  mite: {
+    hud: {
+      title: 'Mite · SEM',
+      sub: 'A box mite (Phthiracaridae), about 0.35 mm long, in a moss cushion, imaged like a scanning electron micrograph. A predatory mite hunts here.',
+      controls: {
+        move: 'Move',
+        camera: 'Camera',
+        dash: 'Jump (hold to charge)',
+        attack: 'Attack / eat',
+        defend: 'Dash (hold)',
+        special: 'Block (hold) / enter portal',
+        secondary: 'Walk slow / fast',
+        look: 'Change the look',
+        zoom: 'Zoom',
+        wayBack: 'Way back: go up a world',
+        readout: 'Instrument readout',
+      },
+      note: 'Reach the glowing portal, and avoid getting eaten by the predatory mite and the pseudoscorpion. Up to four players: press any button on another controller to join.',
+    },
+    toasts: {
+      predatorGone: 'The predatory mite has had enough: it runs off',
+      predatorNipped: 'Nipped! The predator recoils',
+      predatorBlocked: 'Its chelicerae slide off the closed capsule',
+      playerSeized: 'Player {n} is seized by a leg: close up (Y)!',
+      closedUpLetsGo: 'Closed up: its venom tooth cannot get through the capsule, and it lets go',
+      closedUpInTime: 'Closed up in time: its chelicerae slip off the capsule and it gives up',
+      bossGone: 'The pseudoscorpion has had enough: it backs into the moss',
+      ateSpore: 'Ate a fungal spore ({count} grazed)',
+      grazedSporeHead: 'Grazed a conidiophore\'s spore head ({count} grazed)',
+      nibbledHypha: 'Nibbled a hyphal tip ({count} grazed)',
+      grazedThreads: 'Grazed through the threads: bite (X) to clear a lane, walk to shove the springtails aside',
+      shovedSpringtails: 'Shoved the springtails aside',
+      nippedSpringtail: 'Nipped a springtail: it lies dazed and its group leaps away. Bite it again quickly to eat it',
+      boxMiteShut: 'It shut itself in its capsule: the bite glances off a box mite',
+      bossHint: 'A pseudoscorpion guards the water. Lure it away from its post and get round it, or bite its pincer joints until it backs off',
+      turnedBack: 'Turned back: the pseudoscorpion is on guard. Lead it away from the water first, then get round it',
+      sealed: 'The water is shut to you yet: the predatory mite is still out in the moss',
+      drip: 'A drop of water is falling into the moss: get clear, or close up (Y)',
+      wetter: 'The moss is wetter here, beaded with water: the water is near',
+      edge: 'The edge of the moss cushion: tall Sphagnum, too dense to pass. Turn back toward the water',
+      predatorGround: 'The predatory mite\'s hunting ground: watch for it rearing to strike',
+      thicket: 'A hyphal thicket full of springtails: push through (LS), bite the threads away (X), scramble (B)',
+      pounceBossGone: 'Pounce-bite! The pseudoscorpion backs into the moss',
+      pounceBoss: 'Pounce-bite on its pincer!',
+      pouncePredator: 'Pounce-bite on the predatory mite!',
+      missed: 'Missed!',
+      dashedOut: 'Dashed out of its grip!',
+      predatorGivesUp: 'The predatory mite gives up on you',
+      bossWakes: 'The pseudoscorpion wakes! Watch for its pincers held open and still',
+      bossClosedUp: 'Closed up: the pincer closes on a smooth capsule',
+      bossMissed: 'It missed: bite its pincer joints (X) while it recovers',
+      bossRetreats: 'The pseudoscorpion backs into the moss: the way is open',
+      bossReturns: 'The pseudoscorpion turns back to guard the water',
+      mag: 'mag {mag}x',
+      observerOn: 'Observer mode',
+      observerOff: 'Observer mode off',
+      bitPincerJoint: 'Bit a pincer joint! It flinches',
+      bitPincer: 'Bit its pincer! It flinches',
+      ateSpringtail: 'Ate a springtail ({count}): scramble refilled',
+      ateSpringtailHurt: 'Ate a springtail ({count}): scramble refilled, the grabbed leg mends sooner',
+      predatorTouched: 'A predatory mite has touched you: run (B), jump (A), close up (Y) or nip it (X)',
+      predatorRears: 'It rears to strike: close up (Y), or jump',
+      legGrabbed: 'It grabbed a leg ({hurt}/3): get away!',
+    },
+    capture: {
+      predator: {
+        by: 'The predatory mite',
+        how: 'seized a leg, pulled you in and ate you',
+      },
+      boss: {
+        by: 'The pseudoscorpion',
+        how: 'seized you in its pincer, venomed you and ate you',
+      },
+    },
+    features: {
+      gbuffer: {
+        label: 'Deferred SEM composite',
+        about: 'Surfaces write view-space normal, material class and depth to a float G-buffer; one full-screen shader turns that into a micrograph (shared/techniques/mite-sem.js).',
+      },
+      look: {
+        label: 'Imaging mode (D-pad left/right)',
+        about: 'SE: secondary electrons, topographic. BSE: low-vacuum backscatter, brightness from atomic number. False colour: the SE image tinted by material, like published coloured SEMs.',
+        choices: {
+          SE: 'SE',
+          BSE: 'BSE',
+          'False colour': 'False colour',
+        },
+      },
+      secant: {
+        label: 'Secant-law tilt contrast',
+        about: 'SE yield rises as 1/cos(theta) with the angle between surface and beam, so slopes and rims are bright and faces square to the beam are darker. The beam is the camera, so it moves with the view.',
+      },
+      edge: {
+        label: 'Edge effect',
+        about: 'Electrons escape from two surfaces at silhouettes and thin parts (setae, hyphae, claws), so they glow. Found from depth jumps in the G-buffer plus a thin-feature flag.',
+      },
+      shadow: {
+        label: 'Detector shadowing (ETD)',
+        about: 'The Everhart-Thornley detector sits off to the upper left: faces toward it are brighter, and a short screen-space march toward it darkens points with something in the way. Soft, never black.',
+      },
+      ao: {
+        label: 'Dark crevices (SSAO)',
+        about: 'Electrons emitted in a crevice are reabsorbed by its walls. Normal-oriented screen-space ambient occlusion over a ~34 µm radius.',
+      },
+      bump: {
+        label: 'Surface relief from SEM textures',
+        about: 'Leaf cells, humus crumbs and cuticle pits as bump mapping: texture luminance read as height (procedural stand-ins until MP-M01..M03 are delivered).',
+      },
+      noise: {
+        label: 'Shot noise',
+        about: 'Per-pixel noise that grows as the signal falls, fresh every frame, like a fast scan.',
+      },
+      lines: {
+        label: 'Scan-line jitter',
+        about: 'Each raster line gets a small random brightness offset, as beam current and scan timing wander.',
+      },
+      observer: {
+        label: 'Observer mode (LS click)',
+        about: 'A real micrograph data bar (HV, WD, mag, HFW, detector, true scale bar) and visible raster lines.',
+      },
+      dof: {
+        label: 'Infinite depth of field',
+        about: 'An SEM beam converges at milliradians, so everything is sharp from front to back; no blur is applied anywhere.',
+      },
+      field: {
+        label: 'Narrow scan field, true magnification',
+        about: 'A 12-degree field (little perspective, like a beam pivoting far above the sample). HFW is the real field width at the mite; mag = 127 mm / HFW; the scale bar is measured from it.',
+      },
+      cut: {
+        label: 'Cutaway in front of the mite',
+        about: 'Moss between the camera and the mite gets out of the way, so it never hides the specimen: each leaf, stem or litter flake whose centre line passes within ~340 µm of the line of sight in front of the mite dissolves as a whole over ~0.2 s (a stem takes its leaves; never what the mite stands on), and comes back the same way. Nothing is sliced, so orbiting and zooming out no longer clip plants. A game convenience, not optics.',
+      },
+      sdf: {
+        label: 'Anatomy from SDF parts',
+        about: 'Notogaster, aspis, collar, genitoanal plates, bothridia, chelicerae and palps as signed-distance parts meshed with surface nets; the aspis is a separate hinged mesh.',
+      },
+      setae: {
+        label: 'Setae and sensilli',
+        about: '14 pairs of notogastral setae, four pairs on the aspis, two sensilli, and setae on every leg segment (drawn ~1.6x thicker than life).',
+      },
+      thick: {
+        label: 'Thin parts thickened',
+        about: 'Legs ~1.3x and setae ~1.6x thicker than life so they survive at screen size.',
+      },
+      gait: {
+        label: 'Gait',
+        about: 'Tetrapod: L1 R2 L3 R4 swing together, then R1 L2 R3 L4, with a small back-to-front lag. Wave: one leg at a time per side. Pairs: for comparison (shared/techniques/mite-gait.js).',
+      },
+      ik: {
+        label: 'Two-bone leg IK',
+        about: 'Femur+genu and tibia+tarsus solved analytically with the knee bent up, the tarsus angled down to a planted claw. Off: each leg is a stiff strut from trochanter to foot.',
+      },
+      plant: {
+        label: 'Planted feet, distance-driven phase',
+        about: 'The gait phase advances with distance walked (and turning), feet stay fixed in the world during stance and land half a stance ahead, so they never skate.',
+      },
+      surface: {
+        label: 'Surface following and climbing',
+        about: 'Five ray probes fit the body to the ground under it; a forward probe tips the body onto walls, so it can climb grains, leaves and stems. Feet are raycast onto the real surfaces.',
+      },
+      bob: {
+        label: 'Body bob and sway',
+        about: 'A few µm of rise and fall and a slight roll in time with the alternating leg groups.',
+      },
+      ptych: {
+        label: 'Ptychoidy speed',
+        about: 'Hold Y (defend): legs pull in and the aspis folds down to seal the body. Real euphthiracaroids close in about 0.1-0.15 s (Heethoff et al. 2018).',
+        choices: {
+          'Real (0.16 s)': 'Real (0.16 s)',
+          'Slowed 4x': 'Slowed 4x',
+        },
+      },
+      roll: {
+        label: 'Closed capsule rolls and falls',
+        about: 'Closed, the mite is a rigid egg: gravity torque about the contact point tips it, it rolls without slipping down slopes and falls off edges. Off: it stays put.',
+      },
+      npc: {
+        label: 'A second box mite',
+        about: 'Another phthiracarid wanders with the same walker and shuts itself when you come close.',
+      },
+      tex: {
+        label: 'Procedural SEM textures',
+        about: 'Stand-ins for MP-M01..M04 drawn in code; delivered images replace them automatically.',
+      },
+      climb: {
+        label: 'Climbing rigid surfaces',
+        about: 'A face too steep to step onto (a grain, a stem, a flake on edge) tips the body up onto it as it comes within reach; the ground probes then find the face and the mite walks up and over, its up turning toward the smoothed surface normal. Off: it slides along steep faces (the old rule).',
+      },
+      clear: {
+        label: 'Body clearance',
+        about: 'Thirteen rays from the body centre to its ellipsoid: any rigid surface inside it pushes the body back along the ground, so it never passes through grains, stems, flakes or the thick lowest leaves. The deepest overlap shows in the corner as "pen".',
+      },
+      foliage: {
+        label: 'Bending blades and hyphae',
+        about: 'Every thin moss leaf is a bendable blade (one tip offset with a spring back to rest, offset = d·u²) and every hypha a slack thread fixed at both ends (d·sin πu). Bodies push their centre lines out of the way, a mite standing on a blade bends it down, and they spring back. Only rods near a mite are simulated; their vertices and colliders are rewritten on the CPU (shared/techniques/mite-foliage.js).',
+      },
+      speed: {
+        label: 'Game walking speed',
+        about: 'The stick is analogue: a slight push walks at ~{min} µm/s, full tilt ~{max} µm/s (a quadratic curve between, so the slow end is easy to hold); the keys walk at ~{keys}, LB (Q) holds the slow end and RB (F) full tilt. Scaled with the 0.35 mm body: 1.2-2.5 body lengths a second. Real oribatids walk a few hundred µm/s at most; this is a game stretch. Strides lengthen up to ~2.2x with speed and the gait phase runs on distance, so the feet stay planted.',
+      },
+      scramble: {
+        label: 'Scramble (hold B)',
+        about: 'Held: up to ~{dash} µm/s (~1.7x full tilt), on a stamina meter (empties in ~1.6 s, refills in ~2.8 s). The gait phase runs on distance, so the legs speed up with it and the feet stay planted. A stretch: box mites are slow, steady walkers.',
+      },
+      jump: {
+        label: 'Jump (A), borrowed from jumping oribatids',
+        about: 'A {crouch} ms crouch, then an explosive launch on a high arc (tap: ~1.1 mm, three body lengths, ~0.33 mm high; hold A up to {charge} s more to crouch deeper and release for ~2.1 mm, six body lengths, ~0.65 mm high; a run-up adds to it). Aim with the stick while crouched, and lean the arc a little in the air. The legs tuck in the air and splay for the landing, which squashes the body and kicks up crumbs; it lands on the floor, a grain, a flake or a blade (which takes the landing and bends); {cool} s before the next. Box mites do not jump, but some oribatids do: Zetorchestes with enlarged hind legs and a catch mechanism (Krisper 1990), and the ptychoid Indotritia, a box-mite relative, jumps backwards with its forelegs (Wauthy et al. 1998). Borrowed here as a forward leap, with the feel of a flea or a jumping spider.',
+      },
+      pounce: {
+        label: 'Pounce-bite (X in the air; a game stretch)',
+        about: 'In a jump, X dives at the nearest enemy point ahead (the predator, or the pseudoscorpion\'s pincer arm): a strong bite on impact (two bites\' worth, a hit-pause and a rumble), then a hop back; a mistimed dive is a clear miss. Box mites neither jump nor pounce: a game stretch on the borrowed Zetorchestes jump.',
+      },
+      boss: {
+        label: 'Boss: pseudoscorpion (Neobisium-like)',
+        about: '~2.5 mm, a real hunter of mites in moss, on guard before the wet leaf axil (the portal: placed as you go, the last encounter, in moss nobody has seen yet a short way ahead of you). Dormant until you come within 0.9 mm of its post; reaching the water while it guards turns you back. Lure it off (it follows you up to 2.6 mm from its post, then walks back slowly) and get round it, or wear it down. Its tell: pincers held open and dead still, then a snap, a two-pincer sweep, or a step-in and snap. Stay out of reach, close up (Y) to survive a grab (the venom tooth cannot get through), scramble (B) out of a grab in its strike window, and bite its pincer joints (X) while it recovers. About three good rounds and it backs into the moss. Its resolve is the brass gauge.',
+      },
+      bite: {
+        label: 'Bite and graze (X)',
+        about: 'Every press is an attack you can see: the mite rears, the rostrum lifts (the chelicerae open), it lunges and snaps, and crumbs puff where the snap lands. In reach of the mouth: fungal spores (eaten) and hyphal branch tips (nibbled; they regrow), the box mite\'s real food. A springtail in front: the nip leaves it dazed for 2.4 s while its group leaps away (they drift back to graze); bite a dazed one again and it is held to the mouth and eaten (1.2 s: the scramble refilled, a grabbed leg mending 8 s sooner; another wanders in after 40 s). One of the box-mite family: it shuts itself in its capsule and the bite glances off. At the predator: a nip that makes it back off for 1.5 s. Departures: box mites graze fungi and decaying plant matter and do not hunt or eat springtails (predatory mites do); the nips and the meal are game rules.',
+      },
+      predator: {
+        label: 'Predatory mite (Parasitidae)',
+        about: 'A pale, flattened gamasid ~0.8 mm long with long legs, leg I held up as a feeler. More than twice your length. It hunts on its own ground, placed as you go (the second encounter, after a few seconds of open moss, and twice again later, hungrier and faster each time), in moss nobody has seen yet a short way ahead of you. Calm until you first walk onto its ground, then hungry only some of the time (see Threats); hungry, it searches toward you, and when it touches you or feels you hurry close by it runs you down: ~0.76 mm/s the first time (full tilt outwalks it), ~0.9 the second (scramble or jump), ~1.0 the third, always hungry then (it outruns full tilt; the scramble ~1.5 and jumps still get away; all game speeds); walking past half tilt is felt from ~1-1.35 mm, creeping only by touch. Resting, it wanders and ignores you. It strikes at legs: on the third grab it holds on, pulls you in and eats you (the whole catch is shown); close up (Y) while it holds you and its grip slips off. Each strike is telegraphed: it rears, leg I and the palps up, the chelicerae open (0.8 s). Closed up (Y), you are a smooth capsule its strike slides off; blocks, nips (X) and facing it wear its interest down until it runs off (adult ptychoid mites are nearly immune: Peschel et al. 2006).',
+      },
+      grace: {
+        label: 'Calm opening',
+        about: 'Until its ground (default): the predatory mite stays calm until someone first walks onto its hunting ground (no clock). 20 s / Off: a test calm on a timer, or none. shared/predation.js.',
+        choices: {
+          'Until its ground': 'Until its ground',
+          '20 s': '20 s',
+          Off: 'Off',
+        },
+      },
+      hunger: {
+        label: 'Predator hunger',
+        about: 'Comes and goes: once it is awake it is hungry for ~18-32 s at a time, then rests (45-75 s after eating you, 15-30 s after you slip free, lose it or it gives up on your capsule); only a hungry predator searches toward you and hunts. Always: hungry from the end of the calm opening on. Never: it never hunts (for exploring and testing).',
+        choices: {
+          'Comes and goes': 'Comes and goes',
+          Always: 'Always',
+          Never: 'Never',
+        },
+      },
+      camwalk: {
+        label: 'Camera-relative walking',
+        about: 'LS walks relative to the view; the mite turns toward the stick at a limited rate and walks forward (it does not strafe).',
+      },
+      rumble: {
+        label: 'Rumble',
+        about: 'A faint tick on footfalls, a thump on closing, landing and opening, a kick on each scramble and jump, a jolt when the predator grabs a leg.',
+      },
+      dicTardigrade: {
+        label: 'DIC (Nomarski) relief',
+        about: 'The tardigrade\'s interference image: relief from the gradient of optical path along one shear direction, three-wavelength fringes. {thick}',
+      },
+      dicTardigradeMode: {
+        label: 'Tardigrade look',
+        about: 'Which of the tardigrade images the switch above uses: DIC or its brightfield.',
+      },
+      opticsAmoeba: {
+        label: 'Amoeba property optics',
+        about: 'Brightfield (Beer–Lambert and transport-of-intensity defocus), phase contrast, darkfield or the immersive lit view, from a phase + optical-density buffer. {thick}',
+      },
+      opticsAmoebaMode: {
+        label: 'Amoeba method',
+        about: 'Which optical method the amoeba switch above uses.',
+      },
+      microscopeParamecium: {
+        label: 'Paramecium microscope',
+        about: 'Darkfield, phase contrast, brightfield, DIC or the lit view, formed the paramecium way (high-pass, phase ring with halo, post pass with chromatic softness and grain). {thick}',
+      },
+      microscopeParameciumMode: {
+        label: 'Paramecium technique',
+        about: 'Which technique the paramecium switch above uses.',
+      },
+      moss: {
+        label: 'Moss shoots',
+        about: 'Stems with lanceolate leaves on a 137.5-degree spiral, costa and cell relief; the lowest leaves arch to the floor as ramps. Off also removes it from walking.',
+      },
+      grains: {
+        label: 'Mineral grains',
+        about: 'About 150 angular grains, 20-300 µm, faceted jittered icosahedra. Off also removes it from walking.',
+      },
+      litter: {
+        label: 'Leaf litter flakes',
+        about: 'Curled, ragged fragments of dead leaves, walkable. Off also removes it from walking.',
+      },
+      hyphae: {
+        label: 'Fungal hyphae',
+        about: 'Threads 3-5 µm thick strung between surfaces, with side branches. Off also removes it from walking.',
+      },
+      spores: {
+        label: 'Spores and pollen',
+        about: 'Fungal conidia, echinate (aster-type) pollen and bisaccate conifer pollen. Off also removes it from walking.',
+      },
+    },
+    prompts: {
+      rise: 'Rise to the bog surface',
+      backStandalone: '{key}: back to the bog surface',
+    },
+    banner: {
+      capture: {
+        strike: 'Seized by a leg! Close up (Y) to slip free',
+        hold: 'Being pulled in: close up (Y)!',
+        eat: 'The predatory mite is eating you',
+        follow: 'Eaten',
+        fadeOut: 'Eaten',
+        fadeIn: '',
+      },
+      inPincer: 'In its pincer! Close up (Y), or scramble out (B) now',
+      bossEating: 'The pseudoscorpion is eating you',
+      pincersOpen: 'Pincers open and still: get out of reach, or close up (Y)',
+      snaps: 'It snaps!',
+      rears: 'It rears to strike! Close up (Y), or jump (A)',
+      runningOff: 'The predatory mite is running off',
+      hungry: 'The predatory mite is hungry',
+      hunting: 'A predatory mite is hunting you',
+      huntingHurt: 'A predatory mite is hunting you (legs grabbed {hurt}/3)',
+    },
+    borrowedThick: 'Opaque scene read as a thick transparent specimen: optical path = height above the floor (from the G-buffer depth), tinted by material (cuticle amber, moss green). Physically odd: moss and a mite in air are opaque, not phase objects.',
+    bossName: 'Pseudoscorpion',
+    lookNames: ['SE · Everhart-Thornley', 'BSE · low vacuum', 'SE · false colour'],
+    status: {
+      wayOn: 'the way on  {dots}',
+      wayOnNear: 'the way on  {dots}  the water is near',
+    },
+    marks: {
+      up: 'Up',
     },
   },
 };
