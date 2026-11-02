@@ -141,19 +141,41 @@ function emit(type, data) {
   }
 }
 
-// A portal prompt for a world opened on its own (no shell): "Y (R) Enter the portal".
+// A portal prompt for a world opened on its own (no shell), in the shell's
+// style: a gold-edged pill at the top centre, "(Y) [R] Enter the portal".
 let promptEl = null;
+const PROMPT_CSS = `
+.micro-prompt { position: fixed; left: 50%; top: max(22px, calc(env(safe-area-inset-top) + 10px)); translate: -50% 0; z-index: 25; pointer-events: none;
+  display: flex; align-items: center; gap: 12px; padding: 11px 24px 11px 12px; border-radius: 999px; white-space: nowrap; max-width: calc(100vw - 32px);
+  background: rgba(12, 22, 16, .88); color: #f3ead3; border: 2px solid #f0d28c; text-shadow: 0 1px 2px rgba(0, 0, 0, .7);
+  font: 600 clamp(19px, 2.4vw, 25px)/1 'Cormorant Garamond', Georgia, serif; letter-spacing: .03em;
+  box-shadow: 0 0 0 1px rgba(79, 58, 20, .9), 0 6px 22px rgba(0, 0, 0, .5), 0 0 26px rgba(240, 210, 140, .3);
+  animation: microPromptIn .55s cubic-bezier(.2, .9, .3, 1.25) both, microPromptGlow 2.4s ease-in-out .55s infinite; }
+.micro-prompt[hidden] { display: none; }
+.micro-prompt b, .micro-prompt kbd { display: inline-grid; place-items: center; min-width: 32px; height: 32px; padding: 0 7px; box-sizing: border-box;
+  font: 700 15px/1 system-ui, -apple-system, 'Segoe UI', sans-serif; text-shadow: none; }
+.micro-prompt b { border-radius: 16px; background: #c49a22; color: #1c1406; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .25), 0 0 0 2px rgba(240, 210, 140, .55); }
+.micro-prompt kbd { border-radius: 6px; background: #efe5c9; color: #2a2a1e; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .18), 0 0 0 1px #a99a72; }
+@keyframes microPromptIn { from { opacity: 0; transform: translateY(-14px) scale(.9); } 60% { opacity: 1; } }
+@keyframes microPromptGlow { 50% { border-color: #fff0c4; box-shadow: 0 0 0 1px rgba(79, 58, 20, .9), 0 6px 22px rgba(0, 0, 0, .5), 0 0 40px 4px rgba(240, 210, 140, .5); } }
+@media (prefers-reduced-motion: reduce) { .micro-prompt { animation: none; } }`;
 function standalonePrompt(text) {
   if (typeof document === 'undefined') return;
   if (!text) { if (promptEl) promptEl.hidden = true; return; }
   if (!promptEl) {
+    const style = document.createElement('style');
+    style.textContent = PROMPT_CSS;
+    document.head.appendChild(style);
     promptEl = document.createElement('div');
-    Object.assign(promptEl.style, { position: 'fixed', left: '50%', bottom: '64px', transform: 'translateX(-50%)', zIndex: '25', pointerEvents: 'none',
-      background: 'rgba(14,12,8,.72)', color: '#f3dfae', border: '1px solid rgba(216,178,104,.6)', borderRadius: '999px', padding: '6px 14px',
-      font: '600 14px/1.3 system-ui, -apple-system, "Segoe UI", sans-serif' });
+    promptEl.className = 'micro-prompt';
+    promptEl.setAttribute('role', 'status');
+    promptEl.hidden = true;
     document.body.appendChild(promptEl);
   }
-  promptEl.textContent = `Y (R) ${text}`;
+  promptEl.replaceChildren();
+  const pad = document.createElement('b'), key = document.createElement('kbd'), label = document.createElement('span');
+  pad.textContent = 'Y'; key.textContent = 'R'; label.textContent = text;
+  promptEl.append(pad, key, label);
   promptEl.hidden = false;
 }
 

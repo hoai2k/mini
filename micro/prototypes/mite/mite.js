@@ -24,11 +24,15 @@
 // Thin parts are drawn thicker than life so they survive the screen: legs
 // about 1.3x, setae about 1.6x (3 µm instead of ~2 µm), sensilli 1.5x.
 //
-// Jump (a game borrowing, see the README): jump() crouches for JUMP.crouch s,
-// then launches the body on a ballistic arc (modes 'crouch' and 'air'); it
-// lands on whatever is below, floor, grain or a blade (which takes a kick and
-// bends), and can jump again after JUMP.cool s. Box mites do not do this;
-// zetorchestid oribatids jump with enlarged hind legs.
+// Jump (a game borrowing, see the README): jump() crouches (at least
+// JUMP.crouch s; held longer, input.jumpHeld, it charges for up to JUMP.charge
+// s, deeper), turning to the stick, then launches the body on a high ballistic
+// arc under its own snappier gravity (modes 'crouch' and 'air'): a tap carries
+// ~3 body lengths, a full charge ~6. In the air the legs tuck, then splay for
+// the landing; it lands on whatever is below, floor, grain or a blade (which
+// takes a kick and bends), squashes, and can jump again after JUMP.cool s.
+// Box mites do not do this; zetorchestid oribatids jump with enlarged hind
+// legs (the feel here is a flea's or a jumping spider's).
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { buildSdfMesh, sd, combine } from '../shared/sdf.js';
 import { gMaterial } from './sem.js';
@@ -49,8 +53,22 @@ const BELLY = [[0, -1, 0], [0.6, -1, 0], [-0.6, -1, 0], [0, -1, 0.6], [0, -1, -0
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
-/** The hop: crouch time (s), launch speeds (µm/s, up and forward), cooldown after landing (s). */
-export const JUMP = { crouch: 0.13, vy: 1250, vh: 700, cool: 0.45 };
+/**
+ * The jump (anatomy units: µm and µm/s at the 0.6 mm anatomy; the world mite is
+ * scaled by createMite's `scale`). crouch: the least crouch (s, a tap); charge:
+ * a held A charges for up to this long more (s); range0/range1: the distance
+ * of a tap / a full charge from a standstill on level ground; angle: launch
+ * elevation (rad); grav: gravity in the air (the walking world's 2600 is too
+ * floaty for a flea's snap); carry: the share of the run-up speed kept; steer:
+ * air control (µm/s² toward the stick); cool: after landing (s).
+ */
+export const JUMP = { crouch: 0.1, charge: 0.45, range0: 1720, range1: 3620, angle: 0.88, grav: 8000, carry: 0.45, steer: 900, cool: 0.3 };
+/** Launch speeds (µm/s, anatomy) for a charge 0..1: { vh, vy }. */
+export function jumpLaunch(charge) {
+  const R = JUMP.range0 + (JUMP.range1 - JUMP.range0) * Math.max(0, Math.min(1, charge));
+  const v = Math.sqrt((R * JUMP.grav) / Math.sin(2 * JUMP.angle));
+  return { vh: v * Math.cos(JUMP.angle), vy: v * Math.sin(JUMP.angle) };
+}
 
 export const ANAT = {
   noto: { c: [-70, 0, 0], r: [215, 172, 136] },
@@ -586,7 +604,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     center: V3(0, AN.stand, 0), q: new THREE.Quaternion(),
     vel: V3(), angVel: V3(), airborne: false,
     q0: new THREE.Quaternion(), c0: V3(), h0: 0, lastLand: 0,
-    jumpCool: 0, crouch: 0, airT: 0, squash: 0,
+    jumpCool: 0, crouch: 0, airT: 0, squash: 0, charge: 0, airVy0: 1, tuck: 0, splay: 0,
     biteT: 0, time: 0, pen: 0, climbing: 0, groundHit: null, lift: 0, liftT: 0, stuck: 0, drop: 0,
     // held by a predator (mode 'held'): legs flail, then go limp and fold; one leg may be gripped
     flail: 0, limp: 0, seizeLeg: -1, seize: V3(), chel: 0, canEscape: true,
@@ -738,8 +756,9 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     const moved = st.pos.distanceTo(prev);
 
     // gait phase advances with distance travelled (and turning), so stride matches speed;
-    // strides lengthen up to 1.5x at a run, so the legs don't flicker
-    const stride = AN.stride * (1 + 0.5 * clamp((st.speed - 210) / 700, 0, 1));
+    // strides lengthen with speed (1.5x at a walk's top, ~2.2x in the
+    // scramble), so the legs don't flicker into a blur at the faster speeds
+    const stride = AN.stride * (1 + 0.5 * clamp((st.speed - 210) / 700, 0, 1) + 0.7 * clamp((st.speed - 1000) / 1600, 0, 1));
     let err = 0;
     for (const L of legs) if (!L.swing && !isFeeler(L)) err = Math.max(err, L.foot.distanceTo(restWorld(L, _x)));
     // the front feet are ~330 µm from the centre, so turning sweeps them fast
@@ -887,13 +906,20 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     if (h.lengthSq() < 0.05) { h.copy(st.up); h.y = 0; }
     if (h.lengthSq() < 1e-4) h.set(1, 0, 0);
     h.normalize();
-    st.vel.copy(h).multiplyScalar(JUMP.vh + 0.5 * st.speed0).addScaledVector(WUP, JUMP.vy).addScaledVector(st.up, 150);
+    const { vh, vy } = jumpLaunch(st.charge);
+    st.vel.copy(h).multiplyScalar(vh + JUMP.carry * st.speed0).addScaledVector(WUP, vy).addScaledVector(st.up, 150);
+    st.airVy0 = Math.max(1, st.vel.y);
     st.mode = 'air'; st.airT = 0; st.crouch = 0; st.speed = 0;
     events.push('jump');
   }
-  function air(dt) {
+  function air(dt, input) {
     st.airT += dt;
-    st.vel.y -= GRAV * dt;
+    st.vel.y -= JUMP.grav * dt;
+    // a little air control: lean the arc toward the stick
+    if (input && input.mag > 0.01 && !st.diving) {
+      const ix = input.dir.x, iz = input.dir.z, il = Math.hypot(ix, iz);
+      if (il > 1e-3) { st.vel.x += (ix / il) * JUMP.steer * dt; st.vel.z += (iz / il) * JUMP.steer * dt; }
+    }
     const hv = V3(st.vel.x, 0, st.vel.z), hl = hv.length();
     if (hl > 1) {
       // rigid things ahead (a stem, a grain): bounce off; blades bend away
@@ -919,9 +945,10 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     st.up.copy(n);
     st.fwd.addScaledVector(st.up, -st.fwd.dot(st.up)).normalize();
     if (g && g.entry && g.entry.rod) { g.entry.rod.vel.addScaledVector(WUP, st.vel.y * 0.5); g.entry.rod.awake = true; } // a blade takes the landing
-    if (st.vel.y < -900) events.push('impact');
-    st.squash = clamp(-st.vel.y / 1400, 0.3, 1);
-    st.speed = Math.hypot(st.vel.x, st.vel.z) * 0.35;
+    if (st.vel.y < -2400) events.push('impact');
+    st.squash = clamp(-st.vel.y / 3000, 0.35, 1);
+    st.landV = -st.vel.y; st.diving = false;
+    st.speed = Math.hypot(st.vel.x, st.vel.z) * 0.25;
     st.vel.set(0, 0, 0);
     st.mode = 'walk'; st.jumpCool = JUMP.cool; st.lift = 0; st.liftT = 0;
     settleBody(dt, true);
@@ -951,7 +978,8 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       if (st.lean > 0.01) q.multiply(_pq2.setFromAxisAngle(_ax.set(0, 0, 1), -0.14 * st.lean)); // the scramble: nose down, driving
       st.lift += (st.liftT - st.lift) * (st.liftT > st.lift ? 0.5 : 0.08);
       st.squash = Math.max(0, st.squash - dt * 4);
-      let h = AN.stand + bob + st.lift - 75 * st.crouch - 55 * Math.sin(Math.PI * Math.min(1, 1 - st.squash)) * (st.squash > 0 ? 1 : 0);
+      const quiver = st.mode === 'crouch' && st.charge > 0.9 ? 3 * Math.sin(st.time * 90) : 0;
+      let h = AN.stand + bob + st.lift - 70 * st.crouch + quiver - 75 * Math.sin(Math.PI * Math.min(1, 1 - st.squash)) * (st.squash > 0 ? 1 : 0);
       if (st.mode === 'closing') h = AN.stand + (st.h0 - AN.stand) * sstep(0.2, 1, st.t);
       h += 28 * st.rear;
       center = _pc.copy(st.pos).addScaledVector(st.up, h).addScaledVector(st.fwd, 46 * st.lunge);
@@ -964,15 +992,22 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     } else if (st.mode === 'air') {
       // nose up on the way up, down on the way down
       q = basisQ(st.fwd, st.up, _pq);
-      q.multiply(_pq2.setFromAxisAngle(_ax.set(0, 0, 1), clamp(st.vel.y / 3000, -0.3, 0.3)));
+      q.multiply(_pq2.setFromAxisAngle(_ax.set(0, 0, 1), clamp(st.vel.y / st.airVy0, -1, 1) * 0.32));
       center = st.center;
       st.q.copy(q);
-      // legs: hind legs kicked back at take-off, then all reach down for the landing
-      const kick = Math.exp(-st.airT / 0.12);
+      // legs: the hind pairs drive back and down at take-off (the push-off),
+      // then every leg tucks in under the body; past the top they splay out
+      // wide and reach down for the landing
+      const kick = Math.exp(-st.airT / 0.07);
+      st.tuck = sstep(0.03, 0.16, st.airT) * (1 - sstep(-0.05, -0.45, st.vel.y / st.airVy0));
+      st.splay = sstep(-0.05, -0.55, st.vel.y / st.airVy0);
       for (const L of legs) {
         if (isFeeler(L)) continue;
-        const back = L.k === 3 ? -90 * kick : 0;
-        toWorld(_al.set(L.rest.x * 0.85 + back, -AN.stand * (0.62 + 0.25 * (1 - kick)), L.rest.z * 0.9), center, q, L.foot);
+        const back = L.k >= 2 ? -110 * kick : 0;
+        const fx = L.rest.x * (0.85 - 0.4 * st.tuck + 0.3 * st.splay) + back;
+        const fy = -AN.stand * (0.95 * kick + (1 - kick) * (0.62 - 0.3 * st.tuck + 0.4 * st.splay));
+        const fz = L.rest.z * (0.9 - 0.45 * st.tuck + 0.35 * st.splay);
+        toWorld(_al.set(fx, fy, fz), center, q, L.foot);
       }
     } else { q = st.q; center = st.center; }
 
@@ -1104,10 +1139,21 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     const hold = input.hold || st.drop > 0;
     if (st.mode === 'crouch') {
       st.t += dt;
-      st.crouch = sstep(0, 1, st.t / JUMP.crouch);
+      // a held A charges (deeper, a quiver at the top); released (or full) it goes
+      st.charge = clamp((st.t - JUMP.crouch) / JUMP.charge, 0, 1);
+      st.crouch = sstep(0, 1, st.t / JUMP.crouch) * (1 + 0.6 * st.charge);
       st.speed *= Math.exp(-dt / 0.05);
-      if (st.t >= JUMP.crouch) launch();
-    } else if (st.mode === 'air') air(dt);
+      // aim: turn quickly toward the stick while crouched
+      if (input.mag > 0.01) {
+        const d = _wd.copy(input.dir).addScaledVector(st.up, -input.dir.dot(st.up));
+        if (d.lengthSq() > 1e-6) {
+          d.normalize();
+          const ang = Math.atan2(_wu.crossVectors(st.fwd, d).dot(st.up), st.fwd.dot(d));
+          st.fwd.applyAxisAngle(st.up, clamp(ang, -12 * dt, 12 * dt)).normalize();
+        }
+      }
+      if (st.t >= JUMP.crouch && (!input.jumpHeld || st.charge >= 1)) launch();
+    } else if (st.mode === 'air') air(dt, input);
     else if (st.mode === 'held') {
       // closing up (ptychoidy) while held: the grip slips off the capsule
       if (hold && st.canEscape) {
@@ -1207,7 +1253,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     /** Start a hop (crouch, then launch). False if not walking or still recovering. */
     jump() {
       if (st.mode !== 'walk' || st.jumpCool > 0) return false;
-      st.mode = 'crouch'; st.t = 0; st.speed0 = st.speed;
+      st.mode = 'crouch'; st.t = 0; st.speed0 = st.speed; st.charge = 0;
       return true;
     },
     /** The acting layer, set each frame: { rear, lunge, hold: world point | null, holdK }. */
@@ -1221,8 +1267,9 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       const t = targetW.clone().divideScalar(k);
       const T = 0.2;
       st.vel.x = (t.x - st.center.x) / T; st.vel.z = (t.z - st.center.z) / T;
-      st.vel.y = Math.min(st.vel.y, (t.y + AN.stand - st.center.y) / T - 0.5 * GRAV * T);
+      st.vel.y = Math.min(st.vel.y, (t.y + AN.stand - st.center.y) / T + 0.5 * JUMP.grav * T);
       if (st.vel.y > -950) st.vel.y = -950;
+      st.diving = true;
       return true;
     },
     get airborne() { return st.mode === 'air' || st.mode === 'crouch'; },

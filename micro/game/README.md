@@ -62,8 +62,14 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   field width, body size, look, a line about the world and whether it has
   been visited. A brass log-scale rule along the bottom marks each world's
   field, with a cursor on the focused one. Every world can be chosen.
-- **Intro.** Choosing a card zooms it to fill the screen and becomes the
-  world's intro when its image is decoded: the plate (MP-G07–G13), the data, the goal,
+- **Intro.** Choosing a card opens the world's intro. When the card and the
+  intro plate are different pictures (every delivered world today), the
+  paper panel slides in from the left and the plate from the right while the
+  tray fades out underneath; a plate not decoded yet shows its spinner and
+  slides in when it arrives. Only a world whose card and plate are the same
+  image zooms the card to fill the screen. Going back slides the panel out to
+  the left and the plate out to the right, then the tray fades in on the same
+  card (reduced motion: plain fades). The intro holds the plate (MP-G07–G13), the data, the goal,
   the forward landmark and the backdoor, the controls and field notes. "Press
   A to begin". Pending artwork shows a spinner rather than a temporary image.
   The selected world loads behind the intro at full viewport size, paused
@@ -78,7 +84,8 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   keep their readouts.
   It shows for 8 s at the start of every world after the first (a setting),
   and View or the button toggles it. At the backdoor a prompt shows when the
-  world reports the player there (`near`, "Y · Rise to …"). The way on has no
+  world reports the player there (`near`, "Y · Rise to …"), in the same
+  gold-edged pill at the top centre of the screen as the portal's. The way on has no
   prompt or text: the portal itself (its golden light, `shared/portal.js`)
   says "go there"; a world's `near {kind: 'forward'}` only starts the next
   world loading.
@@ -281,7 +288,9 @@ the zoom out for now.
 A portal is never an automatic door (the owner, 2026-11-01). While a player
 is in a portal's area and its boss isn't guarding it, the world sends
 `embed.near('portal', true)` (and `false` when they leave or the boss returns);
-the shell shows "Y Enter the portal". Pressing Y there calls the world's
+the shell shows "Y Enter the portal" in a large gold-edged pill at the top
+centre of the screen (clear of the plaque, above the HUD; it pops in with a
+glow that then breathes gently, and toasts drop below it while it is up). Pressing Y there calls the world's
 `enterPortal(P)`, which starts the outro. A world opened on its own shows the
 same prompt itself (`shared/embed.js`). `near('forward')` stays a quiet
 "nearing the way on" signal that only preloads the next world.

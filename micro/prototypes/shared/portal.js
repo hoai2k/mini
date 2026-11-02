@@ -66,12 +66,29 @@
 //   light.bloom(x, y, { scale = 1 })      a golden bloom that swells and fades (1.3 s)
 //   light.canvas, light.dispose()
 //
+//   createPortalColumn({ THREE, height = 500, radius = 6, color = '#f0b44a',
+//     intensity = 1, motes = true }) -> column   a column of light from the sky
+//     onto the portal (god rays): a soft-edged shaft facing the camera about
+//     the vertical, brightest at its foot and fading upward, a slow pulse,
+//     faint streaks drifting in it and motes rising up it. Tall enough to rise
+//     above the horizon of a low camera, so it is seen from far off when the
+//     portal itself is out of frame or deep in the bokeh. One draw, frustum
+//     culled (its bounding sphere covers the whole shaft).
+//   column.mesh            THREE.Mesh (add it to the scene, or to the portal's group)
+//   column.setPosition(x, y, z)  the foot (on the portal)
+//   column.setOpen(open)   eases between sealed (dim) and open (bright)
+//   column.setFade(f)      0..1 extra fade (e.g. the foot when a player stands on it)
+//   column.update(dt, time)
+//   column.open, column.dispose()
+//   createPortalGlow({ ..., column: { height, radius, ... } }) builds one in the
+//   glow's group, updated and opened with it (glow.column).
+//
 // Cost: the glow is five draws (pool, burst ring, beacon, glints, sparks), no
 // textures; all blend additively into colour only (destination alpha is
 // kept), so pipelines that keep depth or coverage in alpha are untouched. The
 // light is a 2D canvas with a handful of gradients, cleared only when drawn.
 
-export function createPortalGlow({ THREE, scene = null, size = 10, color = '#f0b44a', count = 64, intensity = 1, height = null, beam = null, beamWidth = null, pixelHeight = null } = {}) {
+export function createPortalGlow({ THREE, scene = null, size = 10, color = '#f0b44a', count = 64, intensity = 1, height = null, beam = null, beamWidth = null, pixelHeight = null, column = null } = {}) {
   const group = new THREE.Group();
   group.name = 'portal-glow';
   const gold = new THREE.Color(color);
@@ -234,15 +251,19 @@ export function createPortalGlow({ THREE, scene = null, size = 10, color = '#f0b
   sparks.visible = false;
   group.add(sparks);
 
+  // the column of light from the sky (an option): a sixth draw
+  const col = column ? createPortalColumn({ THREE, color, intensity, radius: size * 0.7, ...column }) : null;
+  if (col) group.add(col.mesh);
+
   if (scene) scene.add(group);
   let want = 0;
   let burstAt = -1;
   const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000;
   const api = {
-    group,
+    group, column: col,
     get open() { return uniforms.uOpen.value; },
     setPosition(x, y, z) { group.position.set(x, y, z); },
-    setOpen(o) { want = o ? 1 : 0; },
+    setOpen(o) { want = o ? 1 : 0; if (col) col.setOpen(o); },
     burst() { burstAt = now(); want = 1; },
     get bursting() { return burstAt >= 0 && now() - burstAt < 1.6; },
     update(dt, time, camera, burstT) {
@@ -253,14 +274,99 @@ export function createPortalGlow({ THREE, scene = null, size = 10, color = '#f0b
       uniforms.uBurst.value = b;
       ring.visible = sparks.visible = b < 1.6;
       if (b < 1.6) uniforms.uOpen.value = Math.max(uniforms.uOpen.value, 1);
+      if (col) col.update(dt, time);
       void camera;
     },
     dispose() {
+      if (col) col.dispose();
       group.removeFromParent();
       for (const m of [pool, ring, pts, sparks, shaft]) if (m) { m.geometry.dispose(); m.material.dispose(); }
     },
   };
   return api;
+}
+
+/**
+ * A column of light from the sky onto a portal (see the header): a tall soft
+ * shaft of the portal's gold, turned to face the camera about the vertical,
+ * shaded as a glowing cylinder (brighter through the middle, where the light
+ * runs through more of it), brightest at the foot and fading to nothing high
+ * up, with slow streaks and rising motes in it. Additive into colour only
+ * (destination alpha kept), like the glow. Units are the world's.
+ */
+export function createPortalColumn({ THREE, height = 500, radius = 6, color = '#f0b44a', intensity = 1, motes = true } = {}) {
+  const gold = new THREE.Color(color);
+  const uniforms = {
+    uTime: { value: 0 }, uOpen: { value: 0 }, uFade: { value: 1 }, uColor: { value: new THREE.Vector3(gold.r, gold.g, gold.b) },
+    uH: { value: height }, uR: { value: radius }, uI: { value: intensity }, uMotes: { value: motes ? 1 : 0 },
+  };
+  const geo = new THREE.PlaneGeometry(1, 1, 1, 12).translate(0, 0.5, 0);
+  // the shaft is placed in the vertex shader: bound all of it for the views' culling
+  geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, height / 2, 0), height / 2 + radius * 3);
+  const mesh = new THREE.Mesh(geo, new THREE.ShaderMaterial({
+    uniforms, transparent: true, depthWrite: false, blending: THREE.CustomBlending,
+    blendEquation: THREE.AddEquation, blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneFactor,
+    blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor,
+    vertexShader: /* glsl */ `uniform float uH, uR; varying vec2 vU; varying float vCam;
+      void main() {
+        vec3 c = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+        vec3 toCam = cameraPosition - c; toCam.y = 0.0;
+        vCam = length(toCam);
+        vec3 side = normalize(cross(vec3(0.0, 1.0, 0.0), normalize(toCam + vec3(1e-4, 0.0, 0.0))));
+        // a little wider as it rises (light spreading from the sky), and a margin for the soft edge
+        float w = uR * 1.6 * (1.0 + 0.5 * position.y);
+        vU = vec2(position.x * 2.0, position.y);
+        vec3 p = c + side * position.x * 2.0 * w + vec3(0.0, position.y * uH, 0.0);
+        gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
+      }`,
+    fragmentShader: /* glsl */ `uniform float uTime, uOpen, uFade, uH, uR, uI, uMotes; uniform vec3 uColor; varying vec2 vU; varying float vCam;
+      float h1(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      void main() {
+        float x = vU.x, y = vU.y;
+        // through a glowing cylinder: the path length, softened at the edge, and a brighter core
+        float path = sqrt(max(0.0, 1.0 - x * x * 1.6));
+        float across = path * path * 0.75 + 0.35 * exp(-x * x * 14.0);
+        across *= smoothstep(1.0, 0.75, abs(x));
+        // brightest at the foot, fading upward to nothing
+        float up = (0.25 + 0.75 * exp(-y * 5.0)) * pow(1.0 - y, 1.4) * smoothstep(0.0, 0.004, y);
+        float foot = exp(-y * uH / (uR * 1.5)) * 0.8;
+        // slow streaks drifting down the shaft (god rays)
+        float st = 0.82 + 0.18 * sin(x * 9.0 + uTime * 0.35 + sin(y * 7.0 - uTime * 0.2) * 1.5);
+        float pulse = 0.86 + 0.14 * sin(uTime * 1.3);
+        float a = (across * up * st + foot * exp(-x * x * 6.0)) * pulse;
+        // motes rising up the shaft: one per cell, each on its own phase
+        float m = 0.0;
+        if (uMotes > 0.5) {
+          vec2 q = vec2(x * 2.5, y * uH / (uR * 1.2) - uTime * 0.55);
+          vec2 cell = floor(q), f = fract(q);
+          float r = h1(cell);
+          vec2 c = vec2(0.2 + 0.6 * h1(cell + 7.3), 0.2 + 0.6 * r);
+          float d = length((f - c) * vec2(1.0, 1.4));
+          float tw = 0.5 + 0.5 * sin(uTime * (2.0 + 3.0 * r) + r * 40.0);
+          m = exp(-d * d * 260.0) * step(0.45, r) * tw * smoothstep(1.0, 0.4, abs(x)) * pow(1.0 - y, 0.8);
+        }
+        float k = mix(0.3, 1.0, uOpen) * uFade * uI;
+        // seen from right beside it, it thins out instead of filling the view
+        k *= smoothstep(uR * 1.2, uR * 6.0, vCam);
+        vec3 col = mix(uColor, vec3(1.0, 0.95, 0.8), 0.35 * exp(-x * x * 10.0) + 0.25 * uOpen);
+        gl_FragColor = vec4(col * 1.6, clamp((a * 0.42 + m * 0.9) * k, 0.0, 1.0));
+      }`,
+  }));
+  mesh.renderOrder = 3;
+  mesh.name = 'portal-column';
+  let want = 0;
+  return {
+    mesh,
+    get open() { return uniforms.uOpen.value; },
+    setPosition(x, y, z) { mesh.position.set(x, y, z); },
+    setOpen(o) { want = o ? 1 : 0; },
+    setFade(f) { uniforms.uFade.value = f; },
+    update(dt, time) {
+      uniforms.uTime.value = time;
+      uniforms.uOpen.value += (want - uniforms.uOpen.value) * Math.min(1, (dt || 0) * 1.5);
+    },
+    dispose() { mesh.removeFromParent(); geo.dispose(); mesh.material.dispose(); },
+  };
 }
 
 /**

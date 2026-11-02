@@ -113,8 +113,17 @@ const players = createPlayers({
 const pad = players.pad(0);
 const ctl = players.controls(0);
 let dash = createDash({ duration: 0.6, cooldown: 2.2 });
-// Walking speeds (µm/s, world): scaled with the body (720 and 1300 at 0.6 mm).
-const WALK = Math.round(720 * MITE_SCALE), DASH = Math.round(WALK * 2.1); // the scramble: ~2x the walk
+// Walking speeds (µm/s, world), scaled with the body. The stick is analogue
+// (the owner, 2026-11-02): a slight push walks at WALK_MIN (the old walk, 720
+// at 0.6 mm), full tilt at WALK_MAX (the old scramble's limit), a quadratic
+// curve between (fine control near the slow end); the scramble (B) is DASH,
+// ~1.7x the old scramble. The keyboard walks at KEY_WALK on the curve; LB/RB
+// (Q/F) reach the slow end and full tilt.
+const WALK_MIN = Math.round(720 * MITE_SCALE), WALK_MAX = Math.round(WALK_MIN * 2.1), DASH = Math.round(WALK_MAX * 1.7);
+const WALK = WALK_MAX; // full tilt (tests' default)
+const KEY_WALK = 0.65;
+/** Walking speed (world µm/s) for a stick deflection 0..1 after the pad's dead zone. */
+function walkSpeed(m) { return m > 0 ? WALK_MIN + (WALK_MAX - WALK_MIN) * Math.min(1, m) ** 2 : 0; }
 const hud = mountHud({
   title: 'Mite · SEM',
   sub: 'A box mite (Phthiracaridae), about 0.35 mm long, in a moss cushion, imaged like a scanning electron micrograph. A predatory mite hunts here.',
@@ -1145,12 +1154,22 @@ function placeOutroCamera(pose) {
 // ---------- the scramble's stamina, its dust, the pounce-bite ----------
 const stamText = (pl) => { const n = Math.round((pl.stam ?? 1) * 5); return 'scramble ' + '■'.repeat(n) + '□'.repeat(5 - n); };
 // dust kicked up by a scramble: a few humus crumbs that fly back and settle (SEM-drawn, like everything)
-const DUST = 48;
+const DUST = 64;
 const dust = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), gMaterial({ cls: CLS.LITTER }), DUST);
 dust.frustumCulled = false;
 scene.add(dust);
 const dustP = Array.from({ length: DUST }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), t: 9, r: 8 }));
 let dustI = 0;
+/** A puff of humus crumbs in a ring round the feet (a jump's push-off or its landing; k scales it). */
+function puffDust(m, n = 10, k = 1) {
+  const c = m.center, y = c.y - 80;
+  for (let i = 0; i < n; i++) {
+    const d = dustP[dustI++ % DUST], a = (i / n) * Math.PI * 2 + Math.random() * 0.5;
+    d.p.set(c.x + Math.cos(a) * 90, y, c.z + Math.sin(a) * 90);
+    d.v.set(Math.cos(a), 0, Math.sin(a)).multiplyScalar((250 + Math.random() * 300) * k).add(new THREE.Vector3(0, (200 + Math.random() * 300) * k, 0));
+    d.t = 0; d.r = 5 + Math.random() * 10 * k;
+  }
+}
 function kickDust(m, n = 2) {
   const back = new THREE.Vector3(-1, 0, 0).applyQuaternion(m.quat).setY(0).normalize();
   for (let i = 0; i < n; i++) {
@@ -1336,6 +1355,8 @@ function tick(dt, inputs) {
     if (play.stun > 0) input = { ...input, mag: 0 };
     if (cs.active && cap.who === P) input = { ...input, mag: 0 };
     const ev = mite.update(dt, input);
+    if (ev.includes('jump')) puffDust(mite, 8, 0.8);
+    if (ev.includes('land')) puffDust(mite, 14, Math.min(1.4, 0.6 + (mite.st.landV || 0) / 5000));
     if (play.dive && (ev.includes('land') || ev.includes('impact') || mite.mode === 'walk')) diveImpact();
     else if (play.dive && play.dive.target && mite.mode === 'air') {
       // homing: the dive follows its target as it moves
@@ -1471,16 +1492,17 @@ function readInput(dt) {
   const out = [];
   for (const p of players.active) {
     const P = pls[p.slot];
-    if (P) out[p.slot] = withRec(P, () => inputFor(players.controls(p.slot)));
+    if (P) out[p.slot] = withRec(P, () => inputFor(players.controls(p.slot), players.pad(p.slot)));
   }
   return out;
 }
 /** One player's walking input from their controls (`mite` etc. are theirs). */
-function inputFor(c) {
+function inputFor(c, pd) {
   if (c.attack.pressed() && !mite.airborne) biteNow();
   const sec = c.secondary();
-  const speedMul = sec < 0 ? 0.5 : sec > 0 ? 1.4 : 1;
   const ls = c.move();
+  // the walking speed: LB (Q) the slow end, RB (F) full tilt, else the stick (keys: a middle pace)
+  const tilt = sec < 0 ? 1e-3 : sec > 0 ? 1 : pd && pd.kind === 'keyboard' ? KEY_WALK : ls.m;
   const dir = camFwd.clone().multiplyScalar(-ls.y).addScaledVector(camRight, ls.x);
   // Mite exception to shared actions: A jumps, B scrambles, Y closes up.
   // Shared c.defend reads B and c.special reads Y; at the backdoor Y goes back,
@@ -1499,7 +1521,7 @@ function inputFor(c) {
   if (atBack(cur) && mite.mode === 'walk' && c.special.pressed()) goBack(cur);
   const dashing = play.scr && mite.mode === 'walk';
   if (dashing && ls.m < 0.2) dir.set(1, 0, 0).applyQuaternion(mite.quat).setY(0); // no stick: straight ahead
-  return { dir: dir.lengthSq() > 0 ? dir.normalize() : dir, mag: dashing ? 1 : ls.m, maxSpeed: dashing ? DASH : WALK * speedMul * (1 - 0.15 * play.hurt), accel: dashing ? 0.07 : 0.18, turnK: dashing ? 2.4 : 1, lean: dashing ? 1 : 0, hold };
+  return { dir: dir.lengthSq() > 0 ? dir.normalize() : dir, mag: dashing || ls.m > 0 ? 1 : 0, maxSpeed: dashing ? DASH : walkSpeed(tilt) * (1 - 0.15 * play.hurt), accel: dashing ? 0.08 : 0.16, turnK: dashing ? 2.4 : 1, lean: dashing ? 1 : 0, hold, jumpHeld: c.dash.down() };
 }
 
 function react(evs) {

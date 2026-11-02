@@ -7,18 +7,28 @@
 // still closed, bright once it is open. Rafts far from every player are
 // hidden and not updated (`update`'s `near`). The one in focus (the nearest
 // to the players, `focus(i)`) is what the outro and the screen light use
-// (`glow`, `position`, `speck`, `mite()`). Also the players' colour rings, a
+// (`glow`, `position`, `speck`, `mite()`). Over every raft a column of light
+// comes down from the sky (`createPortalColumn`, shared/portal.js): it rises
+// far above the horizon of the low macro camera, so a portal is seen from
+// hundreds of mm off (hold RT to look far: it comes into focus). Columns
+// within COLUMN_SHOW of a player are drawn, and always the COLUMN_KEEP
+// nearest. Also the players' colour rings, a
 // faint loop on the film under each springtail when more than one plays.
 // Units: mm.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { litMaterial } from '../shared/techniques/springtail-macro.js';
-import { createPortalGlow, createGlint } from '../shared/portal.js';
+import { createPortalGlow, createGlint, createPortalColumn } from '../shared/portal.js';
 import { capitulumGeometry, PORTALS, PORTAL_R, raftTop } from './world.js';
 
 /** Rafts farther than this (mm) from every player are hidden and not updated. */
 export const RAFT_SHOW = 260;
 /** The mite (and its glint) are drawn only within this (mm) of a player: a 0.36 mm speck is under a pixel farther out. */
 export const MITE_SHOW = 120;
+/** Light columns farther than this (mm) from every player are hidden, except the COLUMN_KEEP nearest. */
+export const COLUMN_SHOW = 900;
+export const COLUMN_KEEP = 4;
+/** The column: how tall (mm; from the sky as the low camera sees it) and its radius at the foot. */
+export const COLUMN = { height: 700, radius: 7 };
 
 export function createLandmarkProps(world, { pixelHeight } = {}) {
   const group = new THREE.Group();
@@ -102,7 +112,11 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
     raft.updateMatrixWorld(true);
     group.add(raft);
     const position = new THREE.Vector3(L.x, topY, L.z);
-    const r = { i: L.i, raft, glow, glint, mite, body, legs, speck, position, shown: true, phase: L.i * 1.7 };
+    // the column of light from the sky: in the landmarks' group (not the raft's), so it shows from much farther
+    const column = createPortalColumn({ THREE, height: COLUMN.height, radius: COLUMN.radius, intensity: 1.5 });
+    column.setPosition(L.x, 0.2, L.z);
+    group.add(column.mesh);
+    const r = { i: L.i, raft, glow, glint, mite, body, legs, speck, position, column, shown: true, colShown: true, phase: L.i * 1.7 };
     return r;
   }
   const rafts = PORTALS.map(buildRaft);
@@ -142,6 +156,8 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
   }
   const api = {
     group, rafts, ring, rings,
+    /** The light columns drawn now: [{ i, d, open, fade }] (tests). */
+    columns() { return rafts.filter((r) => r.colShown).map((r) => ({ i: r.i, d: +r.d.toFixed(1), open: +r.column.open.toFixed(2) })); },
     /** The raft in focus: its glow, the raft's top (world), the mite speck (raft-local). */
     get raft() { return cur.raft; },
     get glow() { return cur.glow; },
@@ -170,9 +186,26 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
      * ([{ x, z }]) are hidden and skipped. burstT: the focus raft's burst clock.
      */
     update(t, dt = 0, camera = null, open = () => false, burstT = undefined, near = null) {
+      // the light columns: within COLUMN_SHOW of a player, and always the COLUMN_KEEP nearest
       for (const r of rafts) {
         let d = Infinity;
         if (near) for (const p of near) d = Math.min(d, Math.hypot(p.x - r.position.x, p.z - r.position.z));
+        r.d = d;
+      }
+      const keep = near ? rafts.slice().sort((a, b) => a.d - b.d).slice(0, COLUMN_KEEP) : rafts;
+      for (const r of rafts) {
+        const col = !near || r.d < COLUMN_SHOW || keep.includes(r);
+        if (col !== r.colShown) { r.column.mesh.visible = col; r.colShown = col; }
+        if (!col) continue;
+        r.column.setOpen(typeof open === 'function' ? open(r.i) : open);
+        // thinner where a player stands at its foot (the raft and the mite stay clear), and gone in the outro
+        let fade = 0.35 + 0.65 * Math.min(1, Math.max(0, (r.d - 12) / 48));
+        if (r === cur && burstT !== undefined) fade *= Math.max(0, 1 - burstT * 1.5);
+        r.column.setFade(fade);
+        r.column.update(dt, t);
+      }
+      for (const r of rafts) {
+        const d = r.d;
         const show = !near || d < RAFT_SHOW || (r === cur && burstT !== undefined);
         if (show !== r.shown) { r.raft.visible = show; r.shown = show; }
         const mite = show && (!near || d < MITE_SHOW || r === cur && burstT !== undefined);
