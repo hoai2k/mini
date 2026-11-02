@@ -386,8 +386,8 @@ any button on another controller (a "Player N joined" toast, and in the shell
 restored (`embed.players`, the `players` message).
 
 - **Each player is their own tardigrade** (its own Walker, Creature, health,
-  scramble and tun), with a faint tint of their colour in the
-  cuticle and a broken ring and name tag in that colour round it. A new
+  scramble and tun), its own gut colour (see **Telling players apart**), a faint
+  tint of their colour in the cuticle and a broken ring and name tag in that colour round it. A new
   player appears a body length behind a teammate on the same leaf.
 - **One world for everyone.** Player 1's Life owns the shared state (the
   rain test; `life.js`, `clock: false` for the others). Milnesium meets the
@@ -409,6 +409,25 @@ restored (`embed.players`, the `players` message).
   transition in the game.
 
 Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A water-film ambience loop; claw footfalls (at most ~8 a second), the scramble (A), stylet bites (X), forming the tun (Y), rehydrating, rain, and the Milnesium stalking and lunging.
+
+## Telling players apart
+
+Every player's animal has its own gut colour, so each keeps its look whether
+it plays alone or with others (`GUT_TINTS` in `main.js`, `Life.gutTint` in
+`life.js`: a filter on the gut's colour, which still takes on each meal's).
+Player 1 is today's look.
+
+| Player (colour) | Gut |
+| --- | --- |
+| P1 (gold) | today's: beige-olive, turning the colour of each meal |
+| P2 (teal) | green, as after algae |
+| P3 (rose) | red-brown |
+| P4 (blue) | violet |
+
+With more than one playing, the faint tint of the player's colour in the
+cuticle and the broken ring and name tag stay as before. **Departure**: real
+tardigrade guts are coloured by their food (green, brown, red after
+different prey), not by player; here a player's animal keeps its own cast.
 
 ## What it does
 

@@ -859,7 +859,7 @@ const padOf = () => players.pad(cur.slot);
 const held = (P) => P.mite.mode === 'held' || (capture.active && cap.who === P);
 /** A box mite for a player who joined (or came in with the shell's roster), beside the others. */
 function makeRec(p) {
-  const m = createMite(scene, world.colliders, { cls: CLS.CUTICLE, tex, scale: MITE_SCALE });
+  const m = createMite(scene, world.colliders, { cls: CLS.CUTICLE, tex, scale: MITE_SCALE, player: p.slot & 3 });
   const near = recs().filter((q) => !held(q));
   const c = near.length ? groupCentre(near).c : new THREE.Vector3();
   const a = p.slot * 2.1;

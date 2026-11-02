@@ -300,6 +300,24 @@ Test hooks: `__micro.players`, `__micro.split`, `__micro.roster()`,
 `__micro.landmarks` (positions, the log of fired landmarks, `near`),
 `debug.teleport(x, y, z, yaw, pitch, slot)`, `forceCapture(kind, slot)`.
 
+## Telling players apart
+
+Every player's *P. bursaria* carries its own shade of Chlorella, so each
+keeps its look whether it plays alone or with others (`VARIETIES` in
+`main.js`, `setVariety` in `cell.js`: the symbionts' absorbance per µm, with
+the cytoplasm's faint cast following it). Player 1 is today's green.
+
+| Player (colour) | Chlorella |
+| --- | --- |
+| P1 (gold) | today's green |
+| P2 (teal) | blue-green |
+| P3 (rose) | olive (brownish in brightfield, pale yellow in darkfield) |
+| P4 (blue) | light yellow-green |
+
+*P. caudatum* has no symbionts: there players are told apart by their rings
+alone. The rings and tags stay as before. **Departure**: symbiont strains
+do differ in shade (pigment content, light history), but not one per player.
+
 ## Look and roll (2026-11-01)
 
 The owner: "I feel like the original prototype looked better … a richer

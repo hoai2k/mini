@@ -263,7 +263,7 @@ const gVertFrames = /* glsl */ `
 
 const gFrag = /* glsl */ `
   varying vec3 vN; varying vec3 vView; varying vec3 vTri; varying vec3 vTriN; varying vec2 vUv;
-  uniform float uCls, uThin, uBump, uScale, uMode, uCut;
+  uniform float uCls, uThin, uPlayer, uBump, uScale, uMode, uCut;
   uniform sampler2D uTex;
   uniform vec3 uCutP; uniform float uCutR; uniform float uBumpOn, uCutOn, uDepthScale;
   varying float vCutId; uniform sampler2D uCutFade; uniform float uCutN, uCutObj;
@@ -300,13 +300,13 @@ const gFrag = /* glsl */ `
     }
     // keep normals facing the beam so z can be rebuilt from x and y
     if (dot(n, V) < 0.02) n = normalize(n + V * (0.02 - dot(n, V)));
-    gl_FragColor = vec4(n.x, n.y, uCls + uThin * 0.5, -vView.z * uDepthScale);
+    gl_FragColor = vec4(n.x, n.y, uCls + uThin * 0.5 + uPlayer * 0.06, -vView.z * uDepthScale);
   }`;
 
 /**
  * A G-buffer material.
  * @param {{cls:number, thin?:number, tex?:THREE.Texture, map?:'uv'|'tri'|'none',
- *   scale?:number, bump?:number, objSpace?:boolean, cut?:boolean, side?:number, frames?:boolean}} o
+ *   scale?:number, bump?:number, player?:number (0-3: a local player's look, class 1 only, see playerLook), objSpace?:boolean, cut?:boolean, side?:number, frames?:boolean}} o
  *   scale: UV repeat ('uv') or µm per tile ('tri'); bump: relief depth in µm.
  *   frames: parts posed in other frames and a second geometry, chosen by
  *   instance or vertex id (see gVertFrames); its uniforms start inactive.
@@ -318,7 +318,7 @@ export function gMaterial(o) {
     fragmentShader: gFrag,
     side: o.side ?? THREE.FrontSide,
     uniforms: {
-      uCls: { value: o.cls }, uThin: { value: o.thin || 0 },
+      uCls: { value: o.cls }, uThin: { value: o.thin || 0 }, uPlayer: { value: o.player || 0 },
       uTex: { value: o.tex || null }, uMode: { value: o.tex ? mode : 0 },
       uScale: { value: o.scale || 1 }, uBump: { value: o.tex ? (o.bump ?? 2) : 0 },
       uObjSpace: { value: o.objSpace ? 1 : 0 }, uCut: { value: o.cut ? 1 : 0 },
@@ -362,6 +362,21 @@ const compFrag = /* glsl */ `
     if (c < 7.5) return vec3(1.0, 0.92, 0.36);   // spores, pollen
     return vec3(0.95, 0.42, 0.32);               // the other mite
   }
+  // Local players (CLS.CUTICLE with a player index 1-3 in the G-buffer's class
+  // fraction, +0.06 each; 0 = today's look). Hand-tinted false colour, and in
+  // the greyscale modes a faint tint plus a different surface: x brightness,
+  // y shot-noise (grain), z edge/rim effect, w tint strength.
+  vec3 playerTint(float p) {
+    if (p < 1.5) return vec3(0.30, 0.82, 0.72);  // teal
+    if (p < 2.5) return vec3(1.0, 0.42, 0.56);   // rose
+    return vec3(0.50, 0.58, 1.0);                // blue
+  }
+  vec4 playerLook(float p) {
+    if (p < 0.5) return vec4(1.0, 1.0, 1.0, 0.0);
+    if (p < 1.5) return vec4(1.10, 0.45, 0.7, 0.11);  // smoother, brighter shell
+    if (p < 2.5) return vec4(0.92, 1.9, 1.0, 0.11);   // granular, darker shell
+    return vec4(1.0, 1.0, 2.2, 0.11);                 // bright rim, flat tone
+  }
   float bseZ(float c) {
     // low-vacuum backscatter of an uncoated sample: brightness rises with mean
     // atomic number; silicate grains (Z~10-11) outshine chitin and cellulose (~6-7)
@@ -387,7 +402,10 @@ const compFrag = /* glsl */ `
       col = vec3(b);
     } else {
       float cls = floor(g.b + 0.01);
-      float thin = fract(g.b) > 0.25 ? 1.0 : 0.0;
+      float pf = fract(g.b);
+      float thin = pf > 0.25 ? 1.0 : 0.0;
+      float pl = cls < 1.5 ? floor((pf - thin * 0.5) / 0.06 + 0.5) : 0.0;
+      vec4 look = playerLook(pl);
       vec3 n = vec3(g.xy, sqrt(max(0.0, 1.0 - dot(g.xy, g.xy))));
       vec3 P = viewPos(vUv, z);
       vec3 V = normalize(-P);
@@ -435,7 +453,7 @@ const compFrag = /* glsl */ `
 
       float facing = dot(n, uDet);
       float sec = mix(1.6, 1.0 / cosT, uSecOn);
-      edge *= uEdgeOn; thin *= uEdgeOn;
+      edge *= uEdgeOn * look.z; thin *= uEdgeOn * look.z;
       if (mode < 0.5 || mode > 1.5) {
         float se = 0.24 + 0.42 * (1.0 - cosT * uSecOn - 0.6 * (1.0 - uSecOn)) + 0.06 * min(sec - 1.0, 3.0); // secant law, softened by detector saturation
         se *= 1.0 - uShadowOn * (0.38 - 0.38 * facing);                               // detector side
@@ -443,15 +461,16 @@ const compFrag = /* glsl */ `
         se *= 1.0 - 0.62 * occ;                                   // reabsorbed in crevices
         se += edge * 0.22 + thin * (0.16 + 0.12 * (sec - 1.0));   // edge effect
         se = se / (1.0 + max(0.0, se - 0.85) * 1.6);              // soft saturation
-        float noise = (grainN + grainN2) * (0.05 + 0.08 * (1.0 - clamp(se, 0.0, 1.0))) + lineJit;
-        float v = clamp(se + noise, 0.0, 1.0);
-        col = mode < 0.5 ? vec3(v) : mix(vec3(v), falseColour(cls) * v * 1.18, 0.82);
+        float noise = (grainN + grainN2) * (0.05 + 0.08 * (1.0 - clamp(se, 0.0, 1.0))) * look.y + lineJit;
+        float v = clamp((se + noise) * look.x, 0.0, 1.0);
+        vec3 fc = pl > 0.5 ? playerTint(pl) : falseColour(cls);
+        col = mode < 0.5 ? mix(vec3(v), fc * v * 1.25, look.w) : mix(vec3(v), fc * v * 1.18, 0.82);
       } else {
         // backscatter: composition first, gentle topography from an annular
         // detector above the sample, almost no edge effect, more noise
         float b = bseZ(cls) * (0.62 + 0.38 * pow(cosT, 0.7)) * (1.0 - 0.3 * occ);
-        b += (grainN + grainN2) * 0.13 + lineJit * 1.6;
-        col = vec3(clamp(b, 0.0, 1.0));
+        b = b * look.x + (grainN + grainN2) * 0.13 * look.y + lineJit * 1.6;
+        col = pl > 0.5 ? mix(vec3(clamp(b, 0.0, 1.0)), playerTint(pl) * clamp(b, 0.0, 1.0) * 1.25, look.w) : vec3(clamp(b, 0.0, 1.0));
       }
     }
     if (uRaster > 0.5) col *= 0.93 + 0.07 * step(0.5, fract(gl_FragCoord.y * 0.5));

@@ -149,7 +149,8 @@ hunt hard, a near dead end). The third cell is the wrong host.
 - **Up to four local players** (`shared/players.js`): the roster comes from
   the shell (`embed.players`) or starts as P1 alone; anyone joins during play
   by pressing a button on another controller (posted as `join`). Each player
-  has their own phage, its sheath in their colour. The view is the LEGO split
+  has their own phage, its head glass in their own colour (see **Telling
+  players apart**). The view is the LEGO split
   (`shared/splitscreen.js`, image-plane offsets for this free-floating 3D
   world, with `capture` since the Goodsell pass draws to the screen): one view
   together, split as phages drift apart. The amoeba on guard reaches for the
@@ -158,6 +159,24 @@ hunt hard, a near dead end). The third cell is the wrong host.
   One player at a time can commit: the inside phase is a single shared view
   steered by the player who injected, while the others wait outside. Any
   player's camera stick, look and zoom buttons work.
+
+## Telling players apart
+
+Every player's phage has its own head (`HEADS` in `main.js`, `setHead` in
+`shared/techniques/phage-model.js`), whether it plays alone or with others:
+in false light the glass of the capsid, in the other looks the capsomers'
+colour. The tail keeps its bronze tones. Player 1 is today's.
+
+| Player (colour) | False light (glass) | Goodsell looks (capsid) |
+| --- | --- | --- |
+| P1 (gold) | bronze (today's) | blue (today's) |
+| P2 (teal) | jade | green |
+| P3 (rose) | copper | coral |
+| P4 (blue) | pearl-silver | pale grey |
+
+This replaces the earlier multiplayer tint of the sheath in the player's
+colour. **Departure**: every T4 is the same colourless protein; the colours
+are the look's, not the virus's.
 
 ## Threats and pacing
 

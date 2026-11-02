@@ -344,7 +344,8 @@ pressing a button on another controller ("Player 2 joined"; in the game the
 shell's roster comes in with `embed.players`).
 
 - **Each player is their own cell and their own flock** (the same species;
-  the Features choice applies to all), with its own dash, growth and catch. The corner brackets that mark your cell are drawn in each player's
+  the Features choice applies to all), with its own dash, growth and catch,
+  and its own fluorescent label (**Telling players apart**). The corner brackets that mark your cell are drawn in each player's
   colour with a "P2" tag (alone: the gold brackets as before).
 - **One shared field, then a split.** The stage follows the players' flocks' middle;
   as players separate the screen splits LEGO-style (`shared/splitscreen.js`,
@@ -363,7 +364,36 @@ shell's roster comes in with `embed.players`).
 
 Test hooks: `__micro.players`, `__micro.split`, `__micro.roster()`,
 `__micro.landmarks` (positions, the log, `near`),
-`debug.teleport(x, y, a, slot)`, `forceCapture(kind, slot)`.
+`debug.teleport(x, y, a, slot)`, `forceCapture(kind, slot)`, `beacon(slot)`,
+`seedFlock(slot, n)` (n daughters join that player's flock, with its label),
+`placePlayer(slot, x, y)`, and `coll()` (each flock's members' `labels`).
+
+## Telling players apart
+
+Every player's strain carries a fluorescent protein in its cytoplasm
+(`LABELS` in `draw.js`), and kin that join a player's flock by answering
+**that player's** beacon take the same label (the answer turns them,
+`collective.js`; their daughters keep it, and freed members keep it until
+they are recycled). Player 1 is today's cell, unlabelled.
+
+| Player (colour) | Label | Fluorescence | Phase contrast |
+| --- | --- | --- | --- |
+| P1 (gold) | none (today's) | magenta membrane, green flagella | today's |
+| P2 (teal) | CFP | cyan fill (the blue channel) | faint teal tint |
+| P3 (rose) | mCherry | red fill | faint rose tint |
+| P4 (blue) | mTagBFP2 | violet fill | faint slate-blue tint |
+
+So in fluorescence each flock reads in its player's colour, and a shared
+flock shows whose beacon called each member. The two new pseudo-colours ride
+in the alpha of the field's attachments 1 and 2
+(`shared/techniques/bacterium-shapes.js` `lab: [a, b]`,
+`bacterium-fluorescence.js` `uCol3`, `uCol4`). Features → Optics → "Players'
+labels" turns them off. **Departures**: a label cannot change when a cell
+answers a beacon (it is genetic), and these proteins barely tint a cell in
+transmitted light; the phase tint is there so players can tell their flocks
+apart without switching looks. Nothing shows in darkfield. The plan named
+GFP for player 1; that would change today's solo look, so player 1 stays
+unlabelled (its flagella stain is already green).
 
 ## No oxygen meter
 

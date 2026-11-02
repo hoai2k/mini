@@ -472,7 +472,7 @@ function support(c, r, d, out) {
 /**
  * @param {THREE.Scene} scene
  * @param {object} colliders world colliders (cast(origin, dir, far))
- * @param {{cls:number, tex:object, name?:string}} opts
+ * @param {{cls:number, tex:object, name?:string, player?:number}} opts  player: 0-3, the local player's look (shared/techniques/mite-sem.js)
  */
 /** The world's colliders seen from a mite drawn `k` times its anatomy's size. */
 function scaledColliders(c, k) {
@@ -498,7 +498,7 @@ function keepHit(h, out) {
   return out;
 }
 
-export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT, scale = 1 }) {
+export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT, scale = 1, player = 0 }) {
   const AN = anat;
   const k = scale;
   // the mite's own frame: 1 unit = k world µm
@@ -513,10 +513,10 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
   const BX0 = (BOUNDS.x0 + 150) / k, BX1 = (BOUNDS.x1 - 150) / k, BZ0 = (BOUNDS.z0 + 150) / k, BZ1 = (BOUNDS.z1 - 150) / k;
   const G = AN.kind === 'pred' ? predGeometry() : geometry();
   // frames materials: one draw for parts posed in different frames (see "fewer draws per mite")
-  const cut = gMaterial({ cls, tex: tex.cuticle, map: 'tri', scale: 150, bump: 1.6, objSpace: true, frames: true });
-  const legMat = gMaterial({ cls, frames: true });
-  const thinMat = gMaterial({ cls, thin: 1 });
-  const setaMat = gMaterial({ cls, thin: 1, frames: true });
+  const cut = gMaterial({ cls, player, tex: tex.cuticle, map: 'tri', scale: 150, bump: 1.6, objSpace: true, frames: true });
+  const legMat = gMaterial({ cls, player, frames: true });
+  const thinMat = gMaterial({ cls, player, thin: 1 });
+  const setaMat = gMaterial({ cls, player, thin: 1, frames: true });
 
   const body = new THREE.Group();
   // the notogaster and the aspis: one mesh; the aspis vertices are placed by

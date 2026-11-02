@@ -326,7 +326,8 @@ Inside the Micro Zoom shell the roster from its menus is restored.
   cytoplasm, surge, capture, roles, pad...), so the single-player code paths
   run unchanged for each cell. Amoebae push against each other's membranes
   instead of overlapping; prey flee, touch and are cupped by any of them.
-- **Colour**: a faint tint of the player's colour in the cell (`uTint` in
+- **Colour**: each player's cell has its own shade (**Telling players
+  apart**), a faint tint of the player's colour in the cell (`uTint` in
   `BODY_FS`, mostly in the clear ectoplasm rim), and a broken ring and name
   tag round each amoeba; each player's cup reticle is labelled.
 - **Rendering**: each amoeba is a cell layer in `render.js` (`addCell`): its
@@ -345,6 +346,25 @@ Inside the Micro Zoom shell the roster from its menus is restored.
   whole sequence, then a fresh amoeba appears beside a teammate (no card).
 - **The landmarks** trigger for any player. Labels, look, objective and focus
   are player 1's.
+
+## Telling players apart
+
+Every player's amoeba has its own shade of endoplasm and of its food
+vacuoles, as extra optical density (red, green, blue absorbed), so it reads
+in brightfield whether it plays alone or with others (`VARIETIES` in
+`main.js`, `setVariety` in `render.js`, `uVarE` / `uVarV` in `BODY_FS`).
+Player 1 is today's cell.
+
+| Player (colour) | Endoplasm and food vacuoles |
+| --- | --- |
+| P1 (gold) | today's: warm olive-grey |
+| P2 (teal) | a cool grey-green |
+| P3 (rose) | rosier, mauve-brown |
+| P4 (blue) | bluish slate |
+
+The faint multiplayer tint in the rim, the ring and name tag stay as before.
+**Departure**: real amoebae vary in shade with what they have eaten and
+stored, but not one colour per strain; here each player's cell keeps its own.
 
 ## The intro (from the tardigrade)
 
