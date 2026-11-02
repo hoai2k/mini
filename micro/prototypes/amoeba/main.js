@@ -318,7 +318,7 @@ const CHAOS_TEXT = {
 const CATCH_TEXT = {
   strike: 'Haustoria pierce the membrane! Surge (A) to tear free',
   hold: 'The fungus starts to drain you: surge (A) NOW',
-  eat: 'Drained: the cytoplasm darkens and the cell shrivels',
+  eat: 'Being drained: surge (A) to tear free',
 };
 const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 // A catch: the player keeps control through strike, hold and eat (a surge can
@@ -591,7 +591,7 @@ F({ id: 'flee', group: 'Simulation', label: 'Ciliates flee the membrane', on: tr
   about: 'Tetrahymena, Colpidium and Paramecium sense the approaching membrane (a mechanical and chemical cue) and swim away at about 2.2× their speed for a couple of seconds, so a plain pseudopod rarely catches them: surge (A) to close the gap. Escape swimming is real; the range and speed are game values.',
   onChange: (v) => { S.flee = v; } });
 F({ id: 'traps', group: 'World', label: 'Fungal trap hyphae (hazard)', on: true,
-  about: 'Zoopagalean fungi (Stylopage, Zoopage) catch amoebae on adhesive hyphae, then grow haustoria into them. Membrane touching a sticky trap hypha sticks (it moves at 8% of its pace); a surge (A) tears it free. Stuck for 8 s, haustoria pierce the cell: surge in the next 1.5 s to tear free with a bite (−7% of the cell), or it is drained, darkening and shrivelling, and eaten. Real predators of amoebae; the timing, the bite and the drain are game rules.',
+  about: 'Zoopagalean fungi (Stylopage, Zoopage) catch amoebae on adhesive hyphae, then grow haustoria into them. Membrane touching a sticky trap hypha sticks (it moves at 8% of its pace); a surge (A) tears it free. Stuck for 8 s, haustoria pierce the cell: surge in the next 1.5 s to tear free with a bite (−7% of the cell), or it is drained (a yellow-green stain spreading in from the haustoria, the membrane trembling there; a surge still tears free until the drain is done), dies on screen (it goes slack, breaks up and its granules drift off) and a fresh cell gathers itself up nearby. Real predators of amoebae; the timing, the bite and the drain are game rules.',
   onChange: (v) => { S.traps = v; for (const o of world.obstacles) if (o.type === 'trap' && !o.haustorium) o.hidden = !v; } });
 F({ id: 'hunger', group: 'World', label: 'Traps come and go (fungal hunger)', on: true,
   about: 'The fungus is "hungry" for 30–50 s: its adhesive knobs are sticky (large and dark, you can see it). Then it rests, 50–80 s after a catch and 20–35 s after you tear free: the knobs are dormant (small and pale) and do not stick. Off: they stay sticky.',

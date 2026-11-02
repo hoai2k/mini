@@ -1,479 +1,193 @@
-// Paramecium, built from its anatomy (all lengths in µm). Two species:
-// P. bursaria (the Level 3 protagonist: 85–150 µm, plump, green with
-// symbiotic Chlorella, S27) and the larger, colourless P. caudatum (S07).
-// The species is picked once at load (the Features choice reloads the page).
-// Local frame: +x anterior, +y dorsal, −y ventral (oral side), +z the cell's
-// left. The body is a slipper: blunt anterior, more pointed posterior,
-// widest a little behind the middle; the oral groove runs obliquely from the
-// anterior left down to the cytostome at mid-body.
-import * as THREE from '../shared/vendor/three.module.min.js';
-import { buildSdfMesh, sd, combine } from '../shared/sdf.js';
-import { volumeMaterial, pointsMaterial, opticMaterial, GLSL_VERT_COMMON, GLSL_FRAG_COMMON } from './optics.js';
-import { createStrands, KIND } from './strands.js';
+// The player's Paramecium bursaria on the 2D slide, drawn as the card shows
+// it (assets/cards/paramecium.webp): a luminous slipper outline (the
+// pellicle), a bright fringe of beating cilia round it (metachronal waves
+// running from front to back, faster as it swims, reversed as it backs up),
+// the oral groove running in from the front to the mouth at mid-length,
+// golden granules and green Chlorella streaming round inside (cyclosis), the
+// pale macronucleus, two star-shaped contractile vacuoles that fill and
+// empty, food vacuoles for what it has eaten. Its trichocyst burst (B) is a
+// spray of threads all round; the jab (X) a spray from the front. Eaten, it
+// dissolves: the outline breaks and drifts apart and its contents scatter.
+//
+// Telling players apart (README "Telling players apart"): each player's cell
+// carries its own shade of Chlorella (VARIETIES).
+import { LENGTH, WIDTH, VMAX } from './swim.js';
 
-export const SPECIES = {
-  bursaria: { name: 'P. bursaria (green, 120 µm)', latin: 'Paramecium bursaria', L: 120, XM: -6, RMAX: 28, pA: 2.6, pP: 2.4, taper: 0.12, FLAT: 0.8, chlorella: 760 },
-  caudatum: { name: 'P. caudatum (colourless, 230 µm)', latin: 'Paramecium caudatum', L: 230, XM: -20, RMAX: 31, pA: 3, pP: 1.8, taper: 0.22, FLAT: 0.86, chlorella: 0 },
-};
-export const FEATURE_KEY = 'paramecium.v4'; // v4: darkfield and the rich scene by default again, roll about the centred axis
-/** The species chosen in the feature panel (or ?f=species:...), read once at load. */
-function pickSpecies() {
-  let v = null;
-  try {
-    const f = new URL(location.href).searchParams.get('f') || '';
-    for (const part of f.split(',')) { const [k, x] = part.split(':'); if (k === 'species' && x) v = x; }
-    if (!v) v = (JSON.parse(localStorage.getItem(`micro.features.${FEATURE_KEY}`) || '{}') || {}).species;
-  } catch { /* private mode */ }
-  return Object.keys(SPECIES).find((k) => SPECIES[k].name === v || k === v) || 'bursaria';
+/** Per player: the Chlorella's colour in darkfield (scattered light), and its cast on the body. */
+export const VARIETIES = [
+  { name: 'green', chl: [0.36, 0.86, 0.24] },
+  { name: 'blue-green', chl: [0.18, 0.78, 0.66] },
+  { name: 'olive', chl: [0.78, 0.74, 0.3] },
+  { name: 'light yellow-green', chl: [0.66, 0.96, 0.34] },
+];
+const PELL = [0.86, 0.94, 1.0], CIL = [0.78, 0.9, 1.0], GOLD = [1.0, 0.8, 0.42], NUC = [0.85, 0.85, 0.72], CV = [0.9, 0.97, 1.0];
+const HL = LENGTH / 2, HW = WIDTH / 2;
+const N = 56, NC = 110;
+
+/** The body's half-width at s = u / HL (−1 rear .. +1 front): broad, with a blunt rear. */
+export function halfWidth(s) {
+  const q = Math.max(0, 1 - s * s);
+  return HW * Math.pow(q, 0.5) * (1 - 0.1 * s) * (s < 0 ? 1 + 0.06 * (1 + s) : 1);
 }
-export const SPECIES_ID = pickSpecies();
-const SP = SPECIES[SPECIES_ID];
-export const LENGTH = SP.L; // bursaria 85–150 µm (S27); caudatum 200–260 µm (S07)
-const HL = LENGTH / 2;
-const K = LENGTH / 230; // scale of the caudatum-tuned anatomy
-const FLAT = SP.FLAT; // dorsoventral flattening of the cross-section
+/** The oral groove's depth at s on the oral side (v < 0): from the front in to the mouth at mid-length. */
+const groove = (s) => (s > 0.02 && s < 0.88 ? Math.sin(((s - 0.02) / 0.86) * Math.PI) * 0.24 : 0);
 
-const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+function rng(seed) { let a = seed >>> 0; return () => ((a = (a * 1664525 + 1013904223) >>> 0) / 4294967296); }
+const r0 = rng(77);
+const CHL = Array.from({ length: 150 }, () => { const rho = 0.3 + 0.68 * Math.sqrt(r0()); return { rho, l: r0() * 6.283, w: 0.05 + r0() * 0.08, r: 1.8 + r0() * 0.9, k: r0() }; });
+const GRAN = Array.from({ length: 38 }, () => { const rho = 0.15 + 0.75 * Math.sqrt(r0()); return { rho, l: r0() * 6.283, w: 0.03 + r0() * 0.05, r: 0.9 + r0() * 1.6, k: r0() }; });
+const BURST = Array.from({ length: 70 }, (_, i) => ({ th: (i / 70) * 6.283 + r0() * 0.05, L: 26 + r0() * 18, k: r0() }));
 
-// Outline: two superellipse halves joined at the widest point, 20 µm behind
-// the middle. The anterior half (p = 3, tapering to about 0.78 of the width)
-// ends bluntly; the posterior half (p = 1.8) is conical and narrowly rounded.
-const XM = SP.XM, RMAX = SP.RMAX;
-export const WIDTH = RMAX * 2;
-/** Body radius (the z half-width) at axial position x. */
-export function radiusAt(x) {
-  if (x >= XM) {
-    const s = Math.min(1, (x - XM) / (HL - XM));
-    return RMAX * (1 - SP.taper * s * s) * Math.pow(Math.max(0, 1 - s ** SP.pA), 1 / SP.pA);
+/** The outline in the cell's frame (u ahead, v to its left), with a bend and a squash. */
+export function outlineLocal(bend = 0, squash = 0, out = []) {
+  for (let i = 0; i < N; i++) {
+    const th = (i / N) * Math.PI * 2;
+    const s = Math.cos(th), side = Math.sin(th);
+    let v = side * halfWidth(s);
+    if (side < 0) v *= 1 - groove(s);
+    const u = s * HL * (1 + 0.07 * squash);
+    v *= 1 - 0.07 * squash;
+    v += bend * 9 * s * s;
+    (out[i] ||= [0, 0])[0] = u; out[i][1] = v;
   }
-  const s = Math.min(1, (XM - x) / (XM + HL));
-  return RMAX * Math.pow(Math.max(0, 1 - s ** SP.pP), 1 / SP.pP);
+  out.length = N;
+  return out;
 }
-const rawBody = (x, y, z) => Math.max(Math.hypot(y / FLAT, z) - radiusAt(x), Math.abs(x) - HL);
-
-/** A point on the (uncarved) surface at axial x, angle a from ventral toward the left. */
-function surf(x, a, inset = 0) {
-  const r = radiusAt(x) + inset;
-  return [x, -Math.cos(a) * r * FLAT, Math.sin(a) * r];
-}
-
-// The oral groove: from the anterior left (a ≈ 1.25 rad) to the ventral cytostome.
-const GROOVE = [];
-for (let i = 0; i <= 7; i++) {
-  const k = i / 7;
-  const x = (100 - k * 102) * K;
-  const a = 1.25 * (1 - k) ** 1.3;
-  const rad = (14 - 5.5 * k) * Math.sqrt(K) * (RMAX / 31);
-  GROOVE.push({ x, a, rad, c: surf(x, a, rad * 0.12) });
-}
-export const MOUTH = new THREE.Vector3(...surf(-4 * K, 0, -6 * Math.sqrt(K))); // the cytostome, at the end of the buccal cavity
-
-function bodyParts() {
-  const parts = [{ id: 0, sdf: rawBody }];
-  for (let i = 0; i < GROOVE.length - 1; i++) {
-    const a = GROOVE[i], b = GROOVE[i + 1];
-    parts.push({ id: 1, op: 'sub', blend: 5, sdf: sd.roundCone(a.c, b.c, a.rad, b.rad) });
-  }
-  // the buccal cavity, a deeper pocket where the groove ends
-  const kb = Math.sqrt(K);
-  parts.push({ id: 1, op: 'sub', blend: 4, sdf: sd.ellipsoid(surf(-2 * K, 0, 1), [17 * kb, 11 * kb, 9 * kb]) });
-  return parts;
-}
-
-// The body's outline in GLSL (radiusAt above), for what must stay inside it.
-const GLSL_RADIUS = /* glsl */ `
-float bodyRadius(float x) {
-  const float HL = ${HL.toFixed(3)}, XM = ${XM.toFixed(3)}, RMAX = ${RMAX.toFixed(3)}, TAPER = ${SP.taper.toFixed(3)}, PA = ${SP.pA.toFixed(3)}, PP = ${SP.pP.toFixed(3)};
-  if (x >= XM) {
-    float s = min(1.0, (x - XM) / (HL - XM));
-    return RMAX * (1.0 - TAPER * s * s) * pow(max(0.0, 1.0 - pow(s, PA)), 1.0 / PA);
-  }
-  float s = min(1.0, (XM - x) / (XM + HL));
-  return RMAX * pow(max(0.0, 1.0 - pow(s, PP)), 1.0 / PP);
-}`;
-
-/** The pellicle: a thin shell (path ∝ thickness / cos) over the body mesh. */
-function pellicleShellMaterial() {
-  return opticMaterial({
-    uniforms: { uDn: { value: 0.04 }, uThick: { value: 0.9 }, uAlpha: { value: 1 } },
-    vertexShader: /* glsl */ `
-      ${GLSL_VERT_COMMON}
-      attribute vec3 aRef;
-      varying float vRef; varying vec3 vN; varying vec3 vV;
-      void main() {
-        vec4 mv = modelViewMatrix * vec4(position, 1.0);
-        vRef = -(modelViewMatrix * vec4(aRef, 1.0)).z;
-        vN = normalize(mat3(modelViewMatrix) * normal);
-        vV = isOrthographic ? vec3(0.0, 0.0, 1.0) : normalize(-mv.xyz);
-        gl_Position = projectionMatrix * mv;
-      }`,
-    fragmentShader: /* glsl */ `
-      ${GLSL_FRAG_COMMON}
-      uniform float uDn; uniform float uThick; uniform float uAlpha;
-      varying float vRef; varying vec3 vN; varying vec3 vV;
-      void main() {
-        float ndv = abs(dot(normalize(vN), vV));
-        float t = uThick / max(ndv, 0.16);
-        float rim = pow(1.0 - ndv, 6.0);
-        emit(uDn * t * uAlpha, 0.45 * rim * uAlpha, vec3(0.0012, 0.0012, 0.0016) * t * uAlpha, vRef);
-      }`,
-  });
-}
+const _loc = [];
 
 /**
- * Chlorella in cyclosis, kept inside the body: per instance iPos = (loop phase,
- * speed, radial fraction of the local radius, angle round the long axis),
- * iP = (radius µm, dn, scatter, seed). Uses the cyclosis uniform like pointsMaterial.
+ * Draw one player's cell. `C` holds what changes: { x, y, z, a (heading), v (speed), bend,
+ * squash, t, beat (the cilia's phase), variety, burst (s since a burst, or −1), jab, dead (0..1 dissolve),
+ * spawn (0..1 materialise), vacuoles: [{ u, v, r, age }], ring (player colour [r,g,b] or null), alpha }.
  */
-const CHLORELLA_ABS = [0.05, 0.011, 0.062], BODY_ABS = [0.0042, 0.0013, 0.0052];
-function chlorellaMaterial() {
-  return opticMaterial({
-    uniforms: { uAbsorb: { value: new THREE.Vector3(...CHLORELLA_ABS) }, uCyclosis: { value: 0 } },
-    vertexShader: /* glsl */ `
-      ${GLSL_VERT_COMMON}
-      ${GLSL_RADIUS}
-      attribute vec4 iPos;
-      attribute vec4 iP;
-      uniform float uCyclosis;
-      varying vec2 vQ; varying float vK; varying float vRef; varying vec4 vP;
-      void main() {
-        // the endoplasm loop: back along one side, forward along the other
-        float p = fract(iPos.x + uCyclosis * iPos.y);
-        float x = ${(HL * 0.84).toFixed(3)} * (4.0 * abs(p - 0.5) - 1.0);
-        float ang = iPos.w + 1.1 * sin(6.2831853 * p);
-        float r = max(0.0, bodyRadius(x) - iP.x - 3.8) * iPos.z;
-        vec3 c = vec3(x, -cos(ang) * r * ${FLAT.toFixed(3)}, sin(ang) * r);
-        vec4 mv = modelViewMatrix * vec4(c, 1.0);
-        float depth = -mv.z;
-        float re = max(iP.x, pxWorld(depth) * 0.9);
-        vK = (iP.x * iP.x) / (re * re);
-        vec2 cs = position.xy * 1.6;
-        mv.xy += cs * re;
-        vQ = cs; vRef = depth; vP = iP;
-        gl_Position = projectionMatrix * mv;
-      }`,
-    fragmentShader: /* glsl */ `
-      ${GLSL_FRAG_COMMON}
-      uniform vec3 uAbsorb;
-      varying vec2 vQ; varying float vK; varying float vRef; varying vec4 vP;
-      void main() {
-        float d2 = dot(vQ, vQ);
-        if (d2 > 1.44) discard;
-        float prof = max(1.0 - d2, 0.0);
-        float ring = exp(-pow((sqrt(d2) - 0.9) * 3.5, 2.0));
-        float t = sqrt(prof) * 2.0 * vP.x * vK;
-        emit(vP.y * t, vP.z * vK * (ring * 0.6 + prof * 0.4), uAbsorb * t, vRef);
-      }`,
-  });
-}
-
-function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
-
-export function createCell() {
-  const group = new THREE.Group();
-  group.name = 'paramecium';
-  const parts = bodyParts();
-  const field = combine(parts);
-  const geo = buildSdfMesh(parts, { min: [-HL - 6, -RMAX * FLAT - 4, -RMAX - 5], max: [HL + 6, RMAX * FLAT + 4, RMAX + 5], cell: Math.max(1.2, 1.8 * Math.sqrt(K)) });
-  // aRef: the axis point under each vertex (for the chord trick); aUv: (t, angle/2π) for the pellicle.
-  const pos = geo.attributes.position;
-  const ref = new Float32Array(pos.count * 3), uv = new Float32Array(pos.count * 2);
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-    ref[i * 3] = Math.max(-HL + 4, Math.min(HL - 4, x));
-    uv[i * 2] = (x + HL) / LENGTH;
-    uv[i * 2 + 1] = (Math.atan2(z, -y / FLAT) / (2 * Math.PI) + 1) % 1;
+export function drawCell(G, C) {
+  const ca = Math.cos(C.a), sa = Math.sin(C.a);
+  const X = (u, v) => C.x + ca * u - sa * v, Y = (u, v) => C.y + sa * u + ca * v;
+  const z = C.z;
+  const dead = C.dead || 0, life = (1 - dead) * (C.spawn ?? 1) * (C.alpha ?? 1);
+  const V = C.variety || VARIETIES[0];
+  const loc = outlineLocal(C.bend || 0, C.squash || 0, _loc);
+  // dissolving: everything drifts out from the middle and fades
+  const spread = dead * dead * 46;
+  const fade = (1 - dead) * (C.spawn ?? 1) * (C.alpha ?? 1);
+  const I0 = Math.max(0, fade);
+  if (I0 <= 0.003) return;
+  // the glassy body and the green cast
+  if (dead < 0.5) {
+    G.ell(C.x, C.y, C.a, HL * 0.95, HW * 0.88, z, [0.5, 0.66, 0.85], 0.07 * I0, 7);
+    G.ell(C.x, C.y, C.a, HL * 0.8, HW * 0.7, z, V.chl, 0.06 * I0, 9);
   }
-  geo.setAttribute('aRef', new THREE.BufferAttribute(ref, 3));
-  geo.setAttribute('aUv', new THREE.BufferAttribute(uv, 2));
-  // P. bursaria: the cytoplasm itself carries a faint yellow-green cast (the
-  // symbionts' pigment, spread and out of focus), so the cell reads as one green
-  // body with the algae inside it, not as a cluster of green beads.
-  const bodyMat = volumeMaterial({ dn: 0.026, scatter: 1.0, absorb: SP.chlorella ? BODY_ABS : [0.0011, 0.0016, 0.0032], pattern: 1, rimPow: 2.5 });
-  bodyMat.uniforms.uLen.value = LENGTH;
-  const body = new THREE.Mesh(geo, bodyMat);
-  body.frustumCulled = false;
-  group.add(body);
-  // The pellicle as a thin shell over the same surface: its path grows toward
-  // the silhouette (seen edge-on), which draws the crisp, continuous outline of
-  // the micrographs (MP-R reference sheet) round the whole cell in every look.
-  const shell = new THREE.Mesh(geo, pellicleShellMaterial());
-  shell.frustumCulled = false;
-  group.add(shell);
-
-  // Project a point onto the real (carved) surface along the field gradient.
-  const grad = (x, y, z) => {
-    const e = 0.4;
-    const g = [field(x + e, y, z) - field(x - e, y, z), field(x, y + e, z) - field(x, y - e, z), field(x, y, z + e) - field(x, y, z - e)];
-    const l = Math.hypot(...g) || 1;
-    return g.map((v) => v / l);
-  };
-  const toSurface = (p) => {
-    for (let k = 0; k < 6; k++) {
-      const d = field(...p), n = grad(...p);
-      p = [p[0] - n[0] * d, p[1] - n[1] * d, p[2] - n[2] * d];
-    }
-    return { p, n: grad(...p) };
-  };
-  const tangentDir = (n, v) => { // project v onto the tangent plane
-    const d = v[0] * n[0] + v[1] * n[1] + v[2] * n[2];
-    const t = [v[0] - n[0] * d, v[1] - n[1] * d, v[2] - n[2] * d];
-    const l = Math.hypot(...t) || 1;
-    return t.map((c) => c / l);
-  };
-  const rotAbout = (v, n, ang) => { // rotate v about unit n
-    const c = Math.cos(ang), s = Math.sin(ang);
-    const cr = [n[1] * v[2] - n[2] * v[1], n[2] * v[0] - n[0] * v[2], n[0] * v[1] - n[1] * v[0]];
-    const d = n[0] * v[0] + n[1] * v[1] + n[2] * v[2];
-    return [0, 1, 2].map((i) => v[i] * c + cr[i] * s + n[i] * d * (1 - c));
-  };
-
-  // --- Cilia along kineties --------------------------------------------------
-  // ≈100 kineties, 46 cilia each (≈4600; the real cell has ≈4000–5000, often
-  // paired). 10 µm long (drawn 0.8 µm wide, really 0.25 µm). Kineties twist
-  // slightly round the body; the stroke points posteriorly and obliquely to the
-  // right, which rolls the cell to the left. The metachronal wave is a phase
-  // offset along a diagonal, so waves sweep over the surface.
-  const rand = rng(7);
-  const cilia = [];
-  const ROWS = SP.chlorella ? 90 : 100, PER = Math.round(46 * K);
-  const surfaceSamples = [];
-  for (let k = 0; k < ROWS; k++) {
-    for (let j = 0; j < PER; j++) {
-      const t = 0.015 + (j + 0.5 * (k % 2)) / PER * 0.97;
-      const x = -HL + t * LENGTH;
-      const a = (k / ROWS) * Math.PI * 2 + 0.45 * (t - 0.5);
-      const { p, n } = toSurface(surf(x, a, 0));
-      let D = tangentDir(n, [-1, 0, 0]);
-      D = rotAbout(D, n, 0.32);
-      const arc = a * 26;
-      const phase = -(x / K * 0.85 + arc * 0.5) / 15 + rand() * 0.04;
-      cilia.push({ base: p, normal: n, dir: D, length: 10 + rand() * 1.5, width: 0.8, phase, kind: KIND.CILIUM });
-      surfaceSamples.push({ p, n });
-    }
+  // the pellicle: a crisp luminous outline (it breaks apart as it dissolves)
+  for (let i = 0; i < N; i++) {
+    const p = loc[i], q = loc[(i + 1) % N];
+    let du = 0, dv = 0;
+    if (spread > 0) { const m = Math.hypot((p[0] + q[0]) / 2, (p[1] + q[1]) / 2) || 1; du = ((p[0] + q[0]) / 2 / m) * spread * (0.6 + ((i * 37) % 11) / 11); dv = ((p[1] + q[1]) / 2 / m) * spread * (0.6 + ((i * 53) % 7) / 7); }
+    const gap = spread > 0 ? 0.25 * dead : 0;
+    const u0 = p[0] + (q[0] - p[0]) * gap + du, v0 = p[1] + (q[1] - p[1]) * gap + dv, u1 = q[0] - (q[0] - p[0]) * gap + du, v1 = q[1] - (q[1] - p[1]) * gap + dv;
+    G.line(X(u0, v0), Y(u0, v0), X(u1, v1), Y(u1, v1), 0.95, z, PELL, 1.0 * I0, 0, 0.32, 3.5);
+    // the cortex just inside: a faint second line
+    if (dead === 0) { const k = 0.9; G.line(X(p[0] * k, p[1] * k), Y(p[0] * k, p[1] * k), X(q[0] * k, q[1] * k), Y(q[0] * k, q[1] * k), 0.45, z, PELL, 0.22 * I0); }
   }
-  // Oral cilia: rows of longer, faster cilia lining the groove and the buccal cavity.
-  for (let i = 0; i < GROOVE.length - 1; i++) {
-    for (let q = 0; q < Math.round(14 * K + 4); q++) {
-      const f = q / Math.round(14 * K + 4);
-      const x = GROOVE[i].x + (GROOVE[i + 1].x - GROOVE[i].x) * f;
-      const a = GROOVE[i].a + (GROOVE[i + 1].a - GROOVE[i].a) * f;
-      for (const da of [-0.13, 0, 0.13]) {
-        const { p, n } = toSurface(surf(x, a + da, -3));
-        const D = tangentDir(n, [-1, 0, -0.3]);
-        cilia.push({ base: p, normal: n, dir: D, length: 9, width: 0.9, phase: -x / 10 + da, kind: KIND.ORAL });
-      }
-    }
-  }
-  // Caudal tuft: about 20 longer cilia at the posterior pole, bent outward.
-  for (let i = 0; i < 22; i++) {
-    const ang = (i / 22) * Math.PI * 2;
-    const rr = 2 + rand() * 4;
-    const { p, n } = toSurface([-HL + 1, Math.cos(ang) * rr * FLAT, Math.sin(ang) * rr]);
-    const out = tangentDir([-1, 0, 0], [0, Math.cos(ang), Math.sin(ang)]);
-    cilia.push({ base: p, normal: [-1, 0, 0].map((v, c) => v * 0.9 + n[c] * 0.1), dir: out, length: 17 + rand() * 5, width: 0.9, phase: rand(), kind: KIND.CAUDAL });
-  }
-  const ciliaS = createStrands(cilia, { segs: 6, dn: 0.03, scatter: 0.45 });
-  group.add(ciliaS.mesh);
-
-  // --- Trichocysts: a dense layer of spindles just below the pellicle -------
-  const tri = [];
-  for (let i = 0; i < Math.round(2600 * K); i++) {
-    const t = 0.03 + rand() * 0.94;
-    const x = -HL + t * LENGTH;
-    const a = rand() * Math.PI * 2;
-    const { p, n } = toSurface(surf(x, a, 0));
-    const b = p.map((v, c) => v - n[c] * 4.8);
-    tri.push({ base: b, normal: n, dir: [1, 0, 0], length: 3.6, width: 0.9, phase: 0, kind: KIND.DOCKED });
-  }
-  const triS = createStrands(tri, { segs: 1, dn: 0.05, scatter: 0.55 });
-  group.add(triS.mesh);
-
-  // --- Nuclei ---------------------------------------------------------------
-  const sph = new THREE.SphereGeometry(1, 28, 18);
-  const kn = SP.chlorella ? 0.62 : 1;
-  const macroGeo = sph.clone().scale(24 * kn, 11.5 * kn, 13 * kn);
-  const macro = new THREE.Mesh(macroGeo, volumeMaterial({ dn: 0.016, scatter: 0.45, absorb: [0.002, 0.002, 0.0025], centred: true }));
-  macro.position.set(-6 * K, 4 * kn, -2);
-  macro.rotation.z = 0.12;
-  group.add(macro);
-  const micro = new THREE.Mesh(sph, volumeMaterial({ dn: 0.022, scatter: 0.6, centred: true }));
-  micro.scale.setScalar(SP.chlorella ? 3 : 4);
-  micro.position.set(14 * K + 6 * kn, 11 * kn, -4);
-  group.add(micro);
-
-  // --- Contractile vacuoles, each with 8 radiating collecting canals --------
-  const cvMat = volumeMaterial({ dn: -0.026, scatter: 0.9, centred: true, rimPow: 1.5 });
-  const cvs = [60 * K, -62 * K].map((x, i) => {
-    const r = radiusAt(x);
-    const c = new THREE.Vector3(x, r * FLAT - 8 * Math.sqrt(K), i ? -3 : 3);
-    const m = new THREE.Mesh(sph, cvMat);
-    m.position.copy(c);
-    group.add(m);
-    return { c, mesh: m, offset: i * 0.5 };
-  });
-  const canalGeo = new THREE.SphereGeometry(1, 12, 8);
-  const canals = new THREE.InstancedMesh(canalGeo, volumeMaterial({ dn: -0.022, scatter: 0.6, centred: true, rimPow: 1.5 }), 16);
-  canals.frustumCulled = false;
-  group.add(canals);
-
-  const LOOP = [72 * K, 15 * (RMAX / 31) * (SP.chlorella ? 1.3 : 1), 30 * (RMAX / 31)];
-  // --- Food vacuoles in cyclosis ---------------------------------------------
-  const FV_MAX = 16;
-  const fvMesh = new THREE.InstancedMesh(sph, volumeMaterial({ dn: 0.024, scatter: 0.9, absorb: [0.0025, 0.004, 0.008], centred: true }), FV_MAX);
-  fvMesh.frustumCulled = false;
-  group.add(fvMesh);
-  const food = [];
-  const loopPos = (u, rs, tilt, zoff, out) => {
-    const a = LOOP[0] * rs, b = LOOP[1] * rs;
-    const q = [Math.cos(u) * a, Math.sin(u) * b, zoff];
-    const ct = Math.cos(tilt), st = Math.sin(tilt);
-    return out.set(q[0], q[1] * ct - q[2] * st, q[1] * st + q[2] * ct);
-  };
-  for (let i = 0; i < 6; i++) food.push({ u: -Math.PI / 2 - 1.1 * i, travelled: 1.1 * i, r: 4 + rand() * 3, rs: 0.6 + rand() * 0.25, tilt: rand() - 0.5, z: (rand() - 0.5) * 10, age: 10 });
-
-  // --- Cytoplasmic granules and crystals, streaming ---------------------------
-  const NG = Math.round(1500 * K * (SP.chlorella ? 0.6 : 1));
-  const gPos = new Float32Array(NG * 4), gP = new Float32Array(NG * 4);
-  for (let i = 0; i < NG; i++) {
-    const crystal = i < 140;
-    gPos.set([rand(), -(0.03 + rand() * 0.025), 0.15 + Math.sqrt(rand()) * 0.85, (rand() - 0.5) * 2.4], i * 4);
-    gP.set([crystal ? 0.9 + rand() * 0.7 : 0.35 + rand() * 0.5, crystal ? 0.1 : 0.06, crystal ? 1.1 : 0.35, rand()], i * 4);
-  }
-  const quad = new THREE.PlaneGeometry(2, 2);
-  const gGeo = new THREE.InstancedBufferGeometry();
-  gGeo.index = quad.index; gGeo.attributes.position = quad.attributes.position;
-  gGeo.setAttribute('iPos', new THREE.InstancedBufferAttribute(gPos, 4));
-  gGeo.setAttribute('iP', new THREE.InstancedBufferAttribute(gP, 4));
-  gGeo.instanceCount = NG;
-  const gMat = pointsMaterial({ cyclosis: true, absorb: [0.0012, 0.0016, 0.0026], loop: LOOP });
-  const granules = new THREE.Mesh(gGeo, gMat);
-  granules.frustumCulled = false;
-  group.add(granules);
-
-  // --- Chlorella symbionts (P. bursaria): a few hundred green algae 5–6 µm
-  // across filling the cytoplasm and riding the cyclosis (S27). Chlorophyll
-  // absorbs red and blue, so the cell is green in brightfield.
-  let chlorella = null, cMat = null;
-  if (SP.chlorella) {
-    // Each alga rides the cyclosis inside the cortex: along the cell and round
-    // it, always within the body's own outline (radiusAt, mirrored in the
-    // shader), mostly in the outer half so the middle (macronucleus, food
-    // vacuoles) stays clearer, as in the reference sheet. Real Chlorella here are
-    // 3–5 µm across; drawn 4–5 µm.
-    const NC = SP.chlorella;
-    const cPos = new Float32Array(NC * 4), cP = new Float32Array(NC * 4);
+  // the cilia: a fringe round the edge, beating in waves (metachrony) from front to back
+  if (dead < 0.35) {
+    const ci = (1 - dead / 0.35) * I0;
     for (let i = 0; i < NC; i++) {
-      cPos.set([rand(), 0.03 + rand() * 0.02, 0.42 + 0.58 * Math.sqrt(rand()), rand() * Math.PI * 2], i * 4);
-      cP.set([2.0 + rand() * 0.55, 0.04, 0.32, rand()], i * 4);
+      const f = i / NC * N, j = Math.floor(f), w = f - j;
+      const p = loc[j], q = loc[(j + 1) % N], pp = loc[(j + 2) % N];
+      const u = p[0] + (q[0] - p[0]) * w, v = p[1] + (q[1] - p[1]) * w;
+      // the outward normal from the local tangent
+      let tu = pp[0] - p[0], tv = pp[1] - p[1]; const tl = Math.hypot(tu, tv) || 1; tu /= tl; tv /= tl;
+      const nu = tv, nv = -tu;
+      const arc = (i / NC) * 6.283;
+      const ph = C.beat - Math.abs(Math.sin(arc * 0.5)) * 9; // waves running from the front back along both sides
+      const sw = Math.sin(ph);
+      const len = (u > HL * 0.6 ? 11 : u < -HL * 0.75 ? 9.5 : 8.5) * (1 + 0.15 * Math.cos(ph));
+      const tilt = 0.75 * sw;
+      // the stroke bends the cilium toward the rear (−u) through its power stroke
+      const du = nu * Math.cos(tilt) - tu * Math.sin(tilt) * Math.sign(nv || 1), dv = nv * Math.cos(tilt) - tv * Math.sin(tilt) * Math.sign(nv || 1);
+      const bu = u + nu * 0.8, bv = v + nv * 0.8;
+      const mu = bu + du * len * 0.55, mv = bv + dv * len * 0.55;
+      const eu = mu + (du * 0.8 + tu * 0.3 * sw) * len * 0.45, ev = mv + (dv * 0.8 + tv * 0.3 * sw) * len * 0.45;
+      const b = 0.5 + 0.25 * Math.cos(ph);
+      G.line(X(bu, bv), Y(bu, bv), X(mu, mv), Y(mu, mv), 0.32, z, CIL, b * ci, 0, 0.12, 2);
+      G.line(X(mu, mv), Y(mu, mv), X(eu, ev), Y(eu, ev), 0.28, z, CIL, b * 0.8 * ci, 0, 0.1, 2);
     }
-    const cGeo = new THREE.InstancedBufferGeometry();
-    cGeo.index = quad.index; cGeo.attributes.position = quad.attributes.position;
-    cGeo.setAttribute('iPos', new THREE.InstancedBufferAttribute(cPos, 4));
-    cGeo.setAttribute('iP', new THREE.InstancedBufferAttribute(cP, 4));
-    cGeo.instanceCount = NC;
-    cMat = chlorellaMaterial();
-    chlorella = new THREE.Mesh(cGeo, cMat);
-    chlorella.frustumCulled = false;
-    group.add(chlorella);
   }
-
-  // --------------------------------------------------------------------------
-  const m4 = new THREE.Matrix4(), v3 = new THREE.Vector3(), q4 = new THREE.Quaternion(), s3 = new THREE.Vector3();
-  let cvClock = 0, cyc = 0;
-  const cvState = [0, 0];
-  const UP = new THREE.Vector3(0, 1, 0);
-
-  const opts = { cyclosis: true, cv: true };
-  const api = {
-    opts, granules, chlorella, macro, micro, group, body, shell, cilia: ciliaS, trichocysts: triS, surfaceSamples, food, species: SP,
-    get foodCount() { return food.length; },
-    /**
-     * The player's variety (main.js VARIETIES): the Chlorella's absorbance
-     * (red, green, blue per µm), with the cytoplasm's faint cast following it
-     * in proportion. null: today's green (player 1). Only P. bursaria has them.
-     */
-    setVariety(abs = null) {
-      if (!cMat) return;
-      const a = abs || CHLORELLA_ABS;
-      cMat.uniforms.uAbsorb.value.set(...a);
-      bodyMat.uniforms.uAbsorb.value.set(...BODY_ABS.map((b, i) => b * a[i] / CHLORELLA_ABS[i]));
-    },
-    /** A bacterium (or a few) reached the cytostome; every 10 makes a food vacuole. */
-    ingested: 0,
-    ingest(n = 10, size = 0) {
-      api.ingested++;
-      if (api.ingested % n === 0) {
-        if (food.length >= FV_MAX) food.shift();
-        // size: a prey item (a clump, a Chilomonas) makes a bigger vacuole that swells at the
-        // cytostome, pinches off and rides the cyclosis round the cell, shrinking as it digests
-        food.push({ u: -Math.PI / 2, travelled: 0, r: 1, rs: 0.55 + rand() * 0.3, tilt: rand() - 0.5, z: (rand() - 0.5) * 8, age: 0, max: size || 0 });
-        return true;
+  // the oral groove and the mouth (cytostome) at mid-length on the oral side
+  if (dead < 0.6) {
+    let pu = 0, pv = 0;
+    for (let k = 0; k <= 10; k++) {
+      const s = 0.86 - k * 0.08, v = -halfWidth(s) * (1 - groove(s) - 0.1), u = s * HL;
+      if (k) G.line(X(pu, pv), Y(pu, pv), X(u, v), Y(u, v), 0.7, z, PELL, 0.32 * I0, 0.4);
+      pu = u; pv = v;
+    }
+    G.ring(X(HL * 0.08, -HW * 0.42), Y(HL * 0.08, -HW * 0.42), 3.2, 1, z, PELL, 0.4 * I0, 0.4);
+  }
+  // inside: cyclosis carries the Chlorella and the granules round a loop
+  const cyc = C.t * 0.22;
+  const inner = (d, l, k = 0.82) => { const u = Math.cos(l) * d.rho * HL * k; return [u, Math.sin(l) * d.rho * halfWidth(u / HL) * 0.78]; };
+  for (const d of CHL) {
+    const [u, v] = inner(d, d.l + cyc * (0.6 + d.w * 4));
+    const m = Math.hypot(u, v) || 1;
+    const su = u + (u / m) * spread * (1.4 + d.k), sv = v + (v / m) * spread * (1.4 + d.k);
+    G.disc(X(su, sv), Y(su, sv), d.r, z, V.chl, (0.5 + 0.25 * d.k) * I0, 0.5, 0.22, 2.2);
+  }
+  for (const d of GRAN) {
+    const [u, v] = inner(d, d.l - cyc * (0.4 + d.w * 3), 0.78);
+    const m = Math.hypot(u, v) || 1;
+    const su = u + (u / m) * spread * (2 + d.k), sv = v + (v / m) * spread * (2 + d.k);
+    G.disc(X(su, sv), Y(su, sv), d.r, z, GOLD, (0.75 + 0.35 * Math.sin(C.t * 3 + d.l * 5)) * I0, 0.2, 0.55, 2.4);
+  }
+  if (dead < 0.5) {
+    // the macronucleus
+    G.ell(X(-6, 2), Y(-6, 2), C.a + 0.2, 19, 12, z, NUC, 0.05 * I0, 2);
+    G.ellRing(X(-6, 2), Y(-6, 2), C.a + 0.2, 19, 12, 1.1, z, NUC, 0.26 * I0, 0.8);
+    // two contractile vacuoles: stars that fill (diastole) and empty (systole) in turn
+    for (const [k, cu] of [[0, HL * 0.55], [1, -HL * 0.58]]) {
+      const cyc2 = ((C.t / 5.5 + k * 0.5) % 1);
+      const full = cyc2 < 0.85 ? cyc2 / 0.85 : 1 - (cyc2 - 0.85) / 0.15;
+      const rr = 2.2 + 5 * full, cx = X(cu, 7), cy = Y(cu, 7);
+      G.ring(cx, cy, rr, 1, z, CV, 0.75 * I0, 0.3, 0.4, 2.5);
+      G.disc(cx, cy, rr * 0.6, z, CV, 0.18 * full * I0, 1.2);
+      for (let c = 0; c < 7; c++) {
+        const ang = C.a + c * 0.898 + 0.3, l0 = rr + 1, l1 = rr + 6 + 7 * (1 - full);
+        G.line(cx + Math.cos(ang) * l0, cy + Math.sin(ang) * l0, cx + Math.cos(ang) * l1, cy + Math.sin(ang) * l1, 0.6, z, CV, 0.5 * I0, 0.3, 0.2, 2);
       }
-      return false;
-    },
-    /**
-     * @param {number} dt
-     * @param {{phase:number, amp:number, reverse:number, oral:number, hidden?:boolean}} s
-     */
-    update(dt, s) {
-      const cu = ciliaS.mat.uniforms;
-      cu.uPhase.value = s.phase; cu.uAmp.value = s.amp; cu.uReverse.value = s.reverse; cu.uOral.value = s.oral;
-      // Cyclosis (sped up roughly fivefold so it reads in play).
-      if (opts.cyclosis) cyc += dt;
-      gMat.uniforms.uCyclosis.value = cyc;
-      if (cMat) cMat.uniforms.uCyclosis.value = cyc;
-
-      // Contractile vacuoles: canals swell, empty into the vacuole, the vacuole
-      // swells and then empties through its pore (systole). Period 6 s, the two
-      // vacuoles alternate half a cycle apart.
-      if (opts.cv) cvClock += dt / 6;
-      let ci = 0;
-      cvs.forEach((cv, i) => {
-        const p = (cvClock + cv.offset) % 1;
-        const canalFill = smooth(0.0, 0.45, p) * (1 - smooth(0.5, 0.72, p));
-        let vr = 1.2 + 6.8 * smooth(0.45, 0.88, p);
-        if (p > 0.9) vr *= 1 - smooth(0.9, 0.95, p);
-        cvState[i] = p;
-        cv.mesh.scale.set(vr, vr * 0.85, vr);
-        // 8 canals radiating in the plane under the dorsal pellicle
-        for (let k = 0; k < 8; k++) {
-          const ang = (k / 8) * Math.PI * 2 + i * 0.2;
-          const dir = v3.set(Math.cos(ang), 0, Math.sin(ang) * 1.1).normalize();
-          const len = 9 + 3 * canalFill;
-          const w = 0.9 + 2.0 * canalFill; // ampullae swell as they fill
-          const c = dir.clone().multiplyScalar(len + vr * 0.6).add(cv.c);
-          c.y -= 1.5;
-          q4.setFromUnitVectors(new THREE.Vector3(1, 0, 0), dir);
-          s3.set(len, w * 0.8, w);
-          m4.compose(c, q4, s3);
-          canals.setMatrixAt(ci++, m4);
-        }
-      });
-      canals.instanceMatrix.needsUpdate = true;
-
-      // Food vacuoles ride the cyclosis loop: posteriorly on the ventral side,
-      // forward dorsally, and are egested at the cytoproct after ≈1.3 loops.
-      for (let i = food.length - 1; i >= 0; i--) {
-        const f = food[i];
-        f.age += dt;
-        const du = opts.cyclosis ? dt * (f.max && f.age < 0.6 ? 0.05 : 0.32) : 0;
-        f.u -= du; f.travelled += du;
-        if (f.max) f.r = f.age < 0.6 ? Math.min(f.max, f.r + dt * f.max * 2.5) : Math.max(4, f.max * (1 - 0.45 * Math.min(1, f.travelled / 6)));
-        else f.r = Math.min(4 + (i % 3), f.r + dt * 3);
-        if (f.travelled > Math.PI * 2 * 1.3) food.splice(i, 1);
-      }
-      for (let i = 0; i < FV_MAX; i++) {
-        const f = food[i];
-        if (!f) { m4.makeScale(0, 0, 0); fvMesh.setMatrixAt(i, m4); continue; }
-        loopPos(f.u, f.rs, f.tilt, f.z, v3);
-        m4.makeScale(f.r, f.r, f.r).setPosition(v3);
-        fvMesh.setMatrixAt(i, m4);
-      }
-      fvMesh.instanceMatrix.needsUpdate = true;
-      void UP;
-    },
-    get cvPhases() { return cvState.slice(); },
-  };
-  return api;
+    }
+    // food vacuoles: what it has eaten, carried round (they shrink as they digest)
+    for (const fv of C.vacuoles || []) {
+      const l = fv.l + cyc * 0.7, rho = fv.rho;
+      const u = Math.cos(l) * rho * HL * 0.7, v = Math.sin(l) * rho * halfWidth(u / HL) * 0.6;
+      const r = fv.r * Math.max(0.4, 1 - fv.age / 40);
+      G.ring(X(u, v), Y(u, v), r, 0.9, z, GOLD, 0.45 * I0, 0.4, 0.2, 2);
+      G.disc(X(u, v), Y(u, v), r * 0.6, z, [0.9, 0.6, 0.3], 0.25 * I0, 1);
+    }
+  }
+  // the trichocyst burst (B): threads shot out all round; the jab (X): from the front
+  if (C.burst >= 0 && C.burst < 0.45) {
+    const e = C.burst / 0.45, len = Math.sqrt(Math.min(1, e * 3)), I = (1 - e) * 1.2;
+    for (const b of BURST) {
+      const s = Math.cos(b.th), u0 = s * HL * 0.95, v0 = Math.sin(b.th) * halfWidth(s) * 0.95;
+      const n = Math.hypot(u0 / HL / HL, v0 / HW / HW) || 1, nu = u0 / HL / HL / n, nv = v0 / HW / HW / n;
+      G.line(X(u0, v0), Y(u0, v0), X(u0 + nu * b.L * len, v0 + nv * b.L * len), Y(u0 + nu * b.L * len, v0 + nv * b.L * len), 0.45, z, [1, 0.97, 0.88], I * (0.6 + 0.4 * b.k), 0, 0.3, 2.5);
+    }
+  }
+  if (C.jab >= 0 && C.jab < 0.35) {
+    const e = C.jab / 0.35, len = Math.sqrt(Math.min(1, e * 3)), I = (1 - e) * 1.3;
+    for (let i = 0; i < 18; i++) {
+      const th = (i / 17 - 0.5) * 1.1, s = Math.cos(th * 0.5), u0 = HL * 0.9 * s, v0 = Math.sin(th) * HW * 0.6;
+      const L = (50 + ((i * 29) % 13) * 2.5) * len;
+      G.line(X(u0, v0), Y(u0, v0), X(u0 + Math.cos(th * 0.6) * L, v0 + Math.sin(th * 0.6) * L), Y(u0 + Math.cos(th * 0.6) * L, v0 + Math.sin(th * 0.6) * L), 0.5, z, [1, 0.96, 0.85], I, 0, 0.35, 2.5);
+    }
+  }
+  // together: a faint broken ring in the player's colour
+  if (C.ring && dead < 0.2) {
+    const R = HL + 18;
+    for (let i = 0; i < 12; i++) {
+      const a0 = (i / 12) * 6.283 + C.t * 0.3, a1 = a0 + 0.3;
+      G.line(C.x + Math.cos(a0) * R, C.y + Math.sin(a0) * R, C.x + Math.cos(a1) * R, C.y + Math.sin(a1) * R, 1.1, z, C.ring, 0.55 * I0, 0.4, 0.2, 3);
+    }
+  }
 }
+/** The cilia's beat rate (rad/s) at a speed: faster as it swims, reversed as it backs up. */
+export const beatRate = (v) => (v < -50 ? -1 : 1) * (13 + 26 * Math.min(1.6, Math.abs(v) / VMAX));

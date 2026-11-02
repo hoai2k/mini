@@ -35,7 +35,7 @@ export function createWorld(seed = 11) {
   const sx = mod(START.x, TILE), sy = mod(START.y, TILE);
   // the start stays open (a calm place to begin), and so does the way back
   const clearOfStart = (x, y, rad) => {
-    for (const [ox, oy] of [[0, 0], [TILE, 0], [-TILE, 0], [0, TILE], [0, -TILE]]) if (Math.hypot(x + ox - sx, y + oy - sy) < 420 + rad) return false;
+    for (const [ox, oy] of [[0, 0], [TILE, 0], [-TILE, 0], [0, TILE], [0, -TILE]]) if (Math.hypot(x + ox - sx, y + oy - sy) < 170 + rad) return false;
     return true;
   };
   const segClear = (x0, y0, x1, y1, rad) => {
@@ -150,23 +150,20 @@ export function createWorld(seed = 11) {
     }
   }
 
-  const obsPool = [];
-  let obsN = 0;
-  const ob = () => (obsPool[obsN] ||= {});
-  /** The solid things near (x, y): obstacles for swim.js (reused objects: copy what you keep). */
+  const ob = () => ({});
+  /** The solid things near (x, y): obstacles for swim.js. */
   function near(x, y, R0 = 160, time = 0) {
-    obsN = 0;
     const out = [];
     const x0 = x - R0, y0 = y - R0, x1 = x + R0, y1 = y + R0;
-    eachIn(filaments, x0, y0, x1, y1, (f, ox, oy) => { const o = ob(); obsN++; Object.assign(o, { kind: 'seg', x0: f.x0 + ox, y0: f.y0 + oy, z0: f.z0, x1: f.x1 + ox, y1: f.y1 + oy, z1: f.z1, r: f.r, weave: true, what: 'spirogyra' }); out.push(o); });
-    eachIn(clumps, x0, y0, x1, y1, (c, ox, oy) => { const o = ob(); obsN++; Object.assign(o, { kind: 'disc', x: c.x + ox, y: c.y + oy, z: c.z, r: c.r * 0.8, h: c.h, weave: true, what: 'detritus' }); out.push(o); });
+    eachIn(filaments, x0, y0, x1, y1, (f, ox, oy) => { const o = ob(); Object.assign(o, { kind: 'seg', x0: f.x0 + ox, y0: f.y0 + oy, z0: f.z0, x1: f.x1 + ox, y1: f.y1 + oy, z1: f.z1, r: f.r, weave: true, what: 'spirogyra' }); out.push(o); });
+    eachIn(clumps, x0, y0, x1, y1, (c, ox, oy) => { const o = ob(); Object.assign(o, { kind: 'disc', x: c.x + ox, y: c.y + oy, z: c.z, r: c.r * 0.8, h: c.h, weave: true, what: 'detritus' }); out.push(o); });
     eachIn(diatoms, x0, y0, x1, y1, (d, ox, oy) => {
-      const o = ob(); obsN++;
+      const o = ob();
       const hx = Math.cos(d.a) * (d.L / 2 - d.W / 4), hy = Math.sin(d.a) * (d.L / 2 - d.W / 4);
       Object.assign(o, { kind: 'seg', x0: d.x + ox - hx, y0: d.y + oy - hy, z0: d.z, x1: d.x + ox + hx, y1: d.y + oy + hy, z1: d.z, r: d.W / 2, weave: true, what: 'diatom' }); out.push(o);
     });
     eachIn(vorticella, x0, y0, x1, y1, (v, ox, oy) => {
-      const p = vortPose(v, ox, oy, time), o = ob(); obsN++;
+      const p = vortPose(v, ox, oy, time), o = ob();
       Object.assign(o, { kind: 'seg', x0: p.x0, y0: p.y0, z0: p.z0, x1: p.x1, y1: p.y1, z1: p.z1, r: 3, weave: true, what: 'stalk', vort: v }); out.push(o);
     });
     return out;

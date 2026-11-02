@@ -125,10 +125,10 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
 - **Attack (X)**: at a hypha (and no cup ready to close), a fast pseudopod jab
   engulfs its tip and cuts it back (bite back). Blocks and cuts wear the
   fungus down: the hypha withdraws for ~16 s.
-- **Being eaten** (no card): strike, hold (surge to tear free), drain, then
-  the view pulls back over the fungus at work and holds there, a fade, and a
-  fresh amoeba on calm glass nearby (see *Being caught* below; in
-  multiplayer, beside a teammate).
+- **Being eaten** (no card): strike, hold, drain (a surge tears free until
+  the drain is done), then the cell dies on screen (see *Harm, shown on the
+  cell* below), a short fade, and a fresh amoeba gathers itself up on calm
+  glass nearby (see *Being caught* below; in multiplayer, beside a teammate).
 
 ## The boss: Chaos (`chaos.js`)
 
@@ -163,7 +163,9 @@ shader, `uLook`).
   portal to rest to one side and stays beaten (the portal stays open).
   Surging (A) in the first moment of an engulf breaks out.
 - **Engulfed**: drawn into its middle, darkened and shrunk in a food vacuole,
-  while the camera follows it carrying you off; then the fade and respawn.
+  a rust-brown stain of its digestion seeping in from its side (a surge breaks
+  out in the strike or hold); then the cell dies on screen, the fade and the
+  respawn.
   Sated, it stays asleep for 40 s and flows back to its post.
 - It targets the nearest player; the amoebae push against its membrane.
 
@@ -528,9 +530,40 @@ their pacing and catches use the shared `shared/predation.js`
   and the haustoria take a bite (−7% of its area) as before; **eat**
   (1.8 s): the cytoplasm is drained, darkening and turning brown, and the
   cell shrivels to 55% of its area (`amoeba/engulf`, then `amoeba/digest`).
-  Then the fade and a fresh cell on calm glass nearby (or, with the card
-  option, the Eaten card and a fresh cell where the old one was). The sticks do nothing during the catch, and the red
-  line and the stats corner say why.
+  The player keeps control throughout (the sticks still steer, B still
+  stiffens), and a surge in the eat tears free too, at the cost of what was
+  drained. Then **die** (1.8 s, the sticks no longer answer), a 0.45 s fade,
+  the respawn on calm glass nearby and a 0.45 s fade in, while the fresh cell
+  gathers itself up (1.3 s). The caption at the bottom says only "Drained by
+  a trap fungus" (or "Engulfed by Chaos").
+
+### Harm, shown on the cell
+
+The owner, 2026-11-02, after a run where a toast about a fungus was followed
+by a respawn with nothing on screen to explain it. What had happened: a
+fungal hypha snapped shut on the membrane, held it for 8 s (only the red line
+said so), its haustoria drained the cell, and the game took the controls away
+and cut to a fresh amoeba with a toast. Now the danger shows where it comes
+from (`harmOf`, `stepHarm` in `main.js`; drawn by `render.js` and `BODY_FS`):
+
+- **Stuck on a hypha:** a yellow-green poison stain seeps into the cytoplasm
+  from up to three glued spots, its reach growing from ~30 to ~95 µm towards
+  the 8 s mark, and the membrane there trembles (a fast flicker of the
+  outline within 60 µm of each spot).
+- **Caught:** the stain spreads from the haustoria with the drain (~60 µm in
+  the hold, ~180 µm into the eat) until it fills the cell; the tremor goes on
+  until it dies.
+- **Engulfed by Chaos:** the same in rust brown, from Chaos's side.
+- **Torn free:** the bitten spots stay stained, fading over 5 s.
+- **Death** (C.death, the 1.8 s die phase): the cell goes slack (its outline
+  wrinkles all round and it shrinks), breaks up into patches from the
+  membrane inward (fragments discarded by a noise threshold), and its
+  granules drift outward and fade. **Re-forming** (C.reform): the fresh cell
+  runs the same in reverse, granules gathering into it.
+
+The stains are three uniforms (`uStain`: position of the membrane node, reach,
+strength; `uStainC`: the colour as optical density), so they move with the
+membrane and read in every optics mode.
 - **Testing:** Features → World → *Traps come and go* (off: sticky all the
   time). `window.__micro.pacing()` reports the time, when the traps
   first became sticky, the first time the membrane stuck and the first

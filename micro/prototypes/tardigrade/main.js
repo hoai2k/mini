@@ -1379,7 +1379,7 @@ const _fd = new THREE.Vector3(), _off = new THREE.Matrix4(), _rz = new THREE.Mat
  *   attack (X): one move for every bite, at food, a leaf cell, Milnesium or
  *     Prionchulus, or at nothing (startAttack, ATTACK): a wind-up (the head
  *     draws back and up, the trunk bunches), a lunge (the head thrusts forward
- *     and down, the mouth ring opens wide, the stylets shoot out past it), a
+ *     and down, the trunk stretching after it, the mouth ring opens wide, the stylets shoot out past it), a
  *     snap (the ring closes on the stylets: the impact), and a recoil back to
  *     rest; 0.42 s in all. The fight is decided on the press, as before: this
  *     is how it reads, not when it counts.
@@ -1409,7 +1409,7 @@ function fightPose(a, g, dt) {
   an.guard = (an.guard || 0) + (guard - (an.guard || 0)) * (1 - Math.exp(-dt * 12));
   const ready = L.target && L.state === 'active' && !L.feeding ? 1 : 0;
   an.ready = (an.ready || 0) + (ready - (an.ready || 0)) * (1 - Math.exp(-dt * 8));
-  let dx = -0.07 * an.guard, dy = -0.05 * an.guard, rz = -0.1 * an.guard;
+  let dx = -0.07 * an.guard, dy = -0.05 * an.guard, rz = -0.1 * an.guard, sx = 1, sy = 1;
   let gape = an.ready * (0.16 + 0.08 * Math.sin(time * 7)), stylet = an.ready * 0.35;
   const A = an.atk;
   if (A) {
@@ -1421,10 +1421,11 @@ function fightPose(a, g, dt) {
     const l = t < T.wind ? 0 : t < T.lunge ? 1 - (1 - (t - T.wind) / (T.lunge - T.wind)) ** 2 : t < T.snap ? 1 : 1 - smooth((t - T.snap) / (T.end - T.snap));
     // recoil: a small kick back after the snap
     const r = t > T.snap && t < T.end ? Math.sin(Math.PI * (t - T.snap) / (T.end - T.snap)) : 0;
-    dx += -0.1 * w + 0.36 * l - 0.07 * r;
+    dx += -0.06 * w + 0.24 * l - 0.06 * r;
     dy += 0.03 * w - 0.04 * l;
-    rz += 0.09 * w - 0.13 * l + 0.03 * r;
-    c.pose.surge += -0.12 * w + 0.1 * l; // the trunk bunches, then the head stretches out
+    rz += 0.08 * w - 0.12 * l + 0.03 * r;
+    // the trunk bunches (shorter, a little taller), then stretches out after the head
+    sx = 1 - 0.06 * w + 0.05 * l; sy = 1 + 0.05 * w - 0.02 * l;
     // the mouth: nearly shut on the wind-up, wide on the lunge, snapped shut on the stylets
     const open = t < T.wind ? 0.05 : t < T.lunge ? smooth((t - T.wind) / (T.lunge - T.wind)) : t < T.snap ? 1 - smooth((t - T.lunge) / (T.snap - T.lunge)) * 0.9 : 0.1 * (1 - smooth((t - T.snap) / 0.1));
     gape = Math.max(gape * (1 - l), 1.1 * open);
@@ -1436,7 +1437,10 @@ function fightPose(a, g, dt) {
   c.pose.stylet = Math.max(c.pose.stylet, stylet);
   if (an.shove > 0) { const e = Math.sin(Math.PI * (1 - an.shove / 0.3)); dx += 0.28 * e; rz += 0.06 * e; }
   if (an.hit > 0) { const e = Math.sin(Math.PI * (1 - an.hit / 0.3)); dx -= 0.08 * e; }
-  return _off.makeTranslation(dx, dy, 0).multiply(_rz.makeRotationZ(rz));
+  _off.makeTranslation(dx, dy, 0).multiply(_rz.makeRotationZ(rz));
+  // squash and stretch about the tail end (x = -1.6), so the head carries the lunge
+  if (sx !== 1 || sy !== 1) _off.multiply(_rz.makeTranslation(-1.6, 0, 0)).multiply(_rz.makeScale(sx, sy, 1)).multiply(_rz.makeTranslation(1.6, 0, 0));
+  return _off;
 }
 
 // ---------------------------------------------------------------- cues
