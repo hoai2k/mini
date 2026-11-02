@@ -130,7 +130,12 @@ dynamic distribution the default if we haven't specified any other."
   that bearing it places as you go as before (`shared/director.js`
   `defaultPath`, `portals()`; the phage is the first:
   `prototypes/phage/README.md`, "The default path"). The portal there stays
-  sealed until every earlier encounter is met.
+  sealed until every earlier encounter is met. Every director world has one
+  now: the mite, the amoeba and the paramecium along a bearing off to the
+  side of the opening view, the tardigrade out along one spoke (the 240°),
+  and the bacterium, whose field has no room for its gates' breaks and
+  army-size holds, lays only the host there (its gates still placed as you
+  go); each world's README says where.
 - **The Portal arrow** (Settings, default off): every world points an arrow
   at the edge of each view to its nearest portal, with the distance beside it
   (`shared/landmark.js` `portalArrowOn`; how to wire a world is at the top of
