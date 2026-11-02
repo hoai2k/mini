@@ -39,10 +39,17 @@ NATURE = ("Sound design for a nature documentary about the microscopic world, li
           "rich, organic, hyper-real cinematic foley, natural and warm, never electronic or mechanical. ")
 CLEAN = "No music, no narration, no voices, no speech."
 CLOSE = "Extremely close-miked, tiny, intimate, detailed. " + CLEAN
+# The shell's menus: a brass Victorian microscope (the title music is "Clockwork Chamber Music").
+BRASS = ("Sound design for the menus of a gentle, wondrous game about a brass Victorian microscope: small, "
+         "warm, tactile, acoustic and precise, real brass and glass, soft and pleasant, never harsh or electronic. ")
 
 
-def S(id, kind, seconds, used, prompt, influence=0.55, variants=1, volume=1):
-    return {"id": id, "kind": kind, "seconds": seconds, "used": used, "prompt": NATURE + prompt,
+def U(id, seconds, used, prompt, variants=1, volume=1, influence=0.6):
+    return S(id, "oneshot", seconds, used, BRASS + prompt + " " + CLEAN, influence, variants, volume, nature=False)
+
+
+def S(id, kind, seconds, used, prompt, influence=0.55, variants=1, volume=1, nature=True):
+    return {"id": id, "kind": kind, "seconds": seconds, "used": used, "prompt": (NATURE if nature else "") + prompt,
             "influence": influence, "variants": variants, "volume": volume}
 
 
@@ -54,6 +61,8 @@ GROUPS = [
     ("amoeba", "Amoeba (pool)"),
     ("paramecium", "Paramecium (pool)"),
     ("bacterium", "Bacterium (sediment)"),
+    ("phage", "Phage (bog water)"),
+    ("ui", "Shell (menus and transitions; game/src/sound.js synthesises these today)"),
 ]
 
 SOUNDS = [
@@ -185,6 +194,9 @@ def api_key():
     return key
 
 
+COST = {"credits": 0, "calls": 0}
+
+
 def request(s, key, loop):
     body = {"text": s["prompt"], "duration_seconds": s["seconds"], "prompt_influence": s["influence"],
             "model_id": "eleven_text_to_sound_v2"}
@@ -193,6 +205,10 @@ def request(s, key, loop):
     req = urllib.request.Request(API, data=json.dumps(body).encode(), method="POST",
                                  headers={"xi-api-key": key, "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=180) as res:
+        cost = res.headers.get("character-cost") or res.headers.get("x-character-count")
+        COST["calls"] += 1
+        if cost and cost.isdigit():
+            COST["credits"] += int(cost)
         return res.read()
 
 
@@ -323,6 +339,8 @@ def main() -> int:
         if missing or s["id"] in force:
             key = key or api_key()
             generate(s, key, force=s["id"] in force)
+    if COST["calls"]:
+        print(f"{COST['calls']} ElevenLabs calls, {COST['credits'] or 'unknown'} credits (from the response headers)")
     LIST.write_text(audio_list())
     DOC.write_text(document())
     print(f"wrote {LIST.relative_to(ROOT.parent)} and {DOC.relative_to(ROOT.parent)}")
