@@ -507,8 +507,11 @@ party's to everyone on the screen; AI companions earn nothing), shows a card
 with its badge, and is kept in the profile (`data.achievements`; merging two
 profiles keeps every unlock and the higher counts). **Settings → Achievements**
 (on every tab) lists them all: unlocked in gold with the day, the counted ones
-with their progress. The badges are the two sheets of image-requests round 8;
-until they arrive each shows its emoji.
+with their progress. The badges are the two sheets of image-requests round 8
+(`game/assets/icons-achievements-1.png`, `-2.png`, delivered 2026-11-02:
+bronze-faced medallions for the story, navy-faced for the habits), cut by
+`ui/icons.js` like the item icons; an achievement whose badge is missing shows
+its emoji.
 
 ## Debug: jump to any scene
 
