@@ -74,13 +74,30 @@ const transitions = createTransitions({ layer: $('#transition'), sound, protoBas
 
 // ---------------------------------------------------------------- fullscreen
 const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+// Resolves once the switch has settled (the window at its new size), or at once
+// when nothing was asked or the browser refused.
 function enterFullscreen() {
   const el = document.documentElement;
-  if (fsEl()) return;
-  try {
-    const r = el.requestFullscreen ? el.requestFullscreen({ navigationUI: 'hide' }) : el.webkitRequestFullscreen?.();
-    r?.catch?.(() => { /* refused: carry on windowed */ });
-  } catch { /* not allowed here */ }
+  if (fsEl()) return Promise.resolve();
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => { if (done) return; done = true; clearTimeout(cap); settle(); };
+    // After the change, wait until the size holds still for a moment.
+    const settle = () => {
+      let w = innerWidth, h = innerHeight;
+      const check = () => {
+        if (innerWidth === w && innerHeight === h) resolve();
+        else { w = innerWidth; h = innerHeight; setTimeout(check, 120); }
+      };
+      setTimeout(check, 120);
+    };
+    const cap = setTimeout(finish, 1500);
+    try {
+      const r = el.requestFullscreen ? el.requestFullscreen({ navigationUI: 'hide' }) : el.webkitRequestFullscreen?.();
+      if (r?.then) r.then(finish, () => { done = true; clearTimeout(cap); resolve(); /* refused: carry on windowed */ });
+      else document.addEventListener('webkitfullscreenchange', finish, { once: true });
+    } catch { done = true; clearTimeout(cap); resolve(); /* not allowed here */ }
+  });
 }
 function exitFullscreen() { try { (document.exitFullscreen || document.webkitExitFullscreen)?.call(document)?.catch?.(() => {}); } catch { /* ignore */ } }
 const toggleFullscreen = () => (fsEl() ? exitFullscreen() : enterFullscreen());
@@ -289,8 +306,7 @@ function pressStart() {
   syncSoundButtons();
   sound.unlock();
   sound.start();
-  enterFullscreen();
-  goMenu();
+  goMenuFromTitle(fsEl() ? null : enterFullscreen());
 }
 
 // ---------------------------------------------------------------- menu (world select)
@@ -395,6 +411,39 @@ function selectCard(i, silent) {
   layoutCards();
 }
 function focusCards() { S.menuFocus = 'cards'; setFocus($(`.wcard[data-i="${S.sel}"]`)); }
+// Everything the world select shows: its background, the card frame, the
+// seven card plates and the selected world's intro plate. They load while the
+// title idles (after the title's own art); leaving the title before they are in
+// holds the select screen black and fades it in once they are.
+let menuArtIn = false;
+const menuReady = menuArtGate.then(() => Promise.all(
+  [delivered('MP-G03'), delivered('MP-G04'), ...WORLDS.map(cardArt), introArt(WORLDS[S.sel])].filter(Boolean).map(loadImage),
+)).then(() => { menuArtIn = true; });
+function goMenuFromTitle(fullscreen) {
+  if (menuArtIn && !fullscreen) { goMenu(); return; }
+  const veil = $('#menu-veil');
+  veil.classList.remove('fade', 'slow');
+  veil.hidden = false;
+  S.veiled = true;
+  goMenu();
+  const slow = setTimeout(() => veil.classList.add('slow'), 2000);
+  const srcs = [delivered('MP-G03'), delivered('MP-G04'), ...WORLDS.map(cardArt)].filter(Boolean);
+  let n = 0;
+  const bar = $('.bar i', veil);
+  for (const src of srcs) loadImage(src).then(() => { n++; bar.style.width = `${Math.round((n / srcs.length) * 100)}%`; });
+  Promise.race([
+    Promise.all([menuReady, fullscreen || Promise.resolve()]),
+    new Promise((r) => setTimeout(r, 20000)),
+  ]).then(() => {
+    clearTimeout(slow);
+    layoutCards();
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      S.veiled = false;
+      veil.classList.add('fade');
+      setTimeout(() => { if (veil.classList.contains('fade')) veil.hidden = true; }, 750);
+    }));
+  });
+}
 function goMenu() {
   clearPreload();
   closeAllModals();
@@ -970,7 +1019,7 @@ function settingItems() {
     { id: 'sound', label: t('shell.settings.sound'), get: () => sound.on, toggle: () => setSound(!sound.on) },
     { id: 'volume', label: t('shell.settings.volume'), slider: true, get: () => sound.volume, step: (d) => { sound.setVolume(Math.round((sound.volume + d * 0.1) * 10) / 10); pushSound(); sound.tick(); } },
     // TEMPORARY (the owner is comparing them; goes once one is chosen): the new sound effects or the
-    // original ones, in the shell and every world (localStorage micro.soundSet; sound.js, shared/audio.js)
+    // original ones, in the shell and every world (localStorage micro.sfxSet; sound.js, shared/audio.js)
     { id: 'soundSet', label: t('shell.settings.soundSet'), about: t('shell.settings.soundSetAbout'), choices: true,
       get: () => sound.set, show: (v) => t(v === 'old' ? 'shell.settings.soundSetOld' : 'shell.settings.soundSetNew'),
       step: () => { sound.setSet(sound.set === 'old' ? 'new' : 'old'); pushSound(); } },
@@ -1146,6 +1195,7 @@ for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => sound.un
 
 // ---------------------------------------------------------------- input loop
 function handle(act) {
+  if (S.veiled) return true; // the world select is still black: wait for it
   const top = S.modals[S.modals.length - 1];
   const a = act.act;
   // Title, idle: A or Start (Enter, Space or P) starts; the stick or d-pad

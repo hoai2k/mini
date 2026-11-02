@@ -24,7 +24,7 @@
 // Two sound sets (TEMPORARY: the owner is comparing them; the switch goes
 // once one is chosen): 'new' (the default) and 'old', the soundscape before
 // the sounds added on 2 November 2026 (audio-list.js ADDED). The shell's
-// Settings → Sound effects stores it in localStorage `micro.soundSet` and
+// Settings → Sound effects stores it in localStorage `micro.sfxSet` and
 // sends it with `sound` ({ soundSet }); a change applies at once. A call says
 // what the old set played instead, and the set picks:
 //
@@ -37,8 +37,10 @@ import { SOUNDS, ADDED } from './audio-list.js';
 import { embed } from './embed.js';
 
 const base = new URL('../', import.meta.url);
-const SET_KEY = 'micro.soundSet';
-const readSet = () => { try { return localStorage.getItem(SET_KEY) === 'old' ? 'old' : 'new'; } catch { return 'new'; } };
+// 'new' (Experimental) or 'old' (Default, the original sounds). Renamed from micro.soundSet when
+// the default flipped to the original sounds, so earlier choices don't carry over.
+const SET_KEY = 'micro.sfxSet';
+const readSet = () => { try { return localStorage.getItem(SET_KEY) === 'new' ? 'new' : 'old'; } catch { return 'old'; } };
 
 export function createAudio(ids = Object.keys(SOUNDS)) {
   let ctx = null, master = null, ambBus = null, sfxBus = null;
