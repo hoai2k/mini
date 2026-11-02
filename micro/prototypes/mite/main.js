@@ -4,7 +4,7 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { embed } from '../shared/embed.js';
 import { createPlayers, PLAYER_COLORS } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
-import { createLandmarks } from '../shared/landmark.js';
+import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
 import { createLandmarkProps, FORWARD, BACKDOOR, TARDI_LEN } from './landmarks.js';
 import { createPseudoscorpion } from './boss.js';
 import { createThickets } from './thicket.js';
@@ -16,7 +16,7 @@ import { mountHud } from '../shared/hud.js';
 import { createSem, shared, MODES, CLS, gMaterial } from './sem.js';
 import { semTextures } from './textures.js';
 import { buildWorld, floorH, TILE } from './world.js';
-import { RINGS, PORTAL_CLEAR, CLUSTER, CLUSTERS, PRED_GROUND, BOSS, OPENING, NPC_HOME, predZoneAt, distFromStart, bearingFromStart, DIRECTOR, ENCOUNTERS, canPlace, BOUNDS } from './layout.js';
+import { RINGS, PORTAL_CLEAR, CLUSTER, CLUSTERS, PRED_GROUND, BOSS, OPENING, NPC_HOME, predZoneAt, distFromStart, bearingFromStart, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, BOUNDS } from './layout.js';
 import { createDirector } from '../shared/director.js';
 import { createQuality } from '../shared/quality.js';
 import { createMite, CFG, PRED, JUMP } from './mite.js';
@@ -873,7 +873,7 @@ function guarded() {
 /** Is player P at the portal's water (its reach)? */
 const atPortal = (P) => PORTAL.placed && !held(P) && flat(P.mite.center, PORTAL) < FORWARD.reach && Math.abs(P.mite.center.y - PORTAL.y) < 450;
 /** Can P go through now (at the water, the pseudoscorpion off guard)? Then Y enters. */
-const atOpenPortal = (P) => !outro && atPortal(P) && !guarded();
+const atOpenPortal = (P) => !outro && atPortal(P) && !portalSealed() && !guarded();
 function checkLandmarks() {
   let at = null, nearB = false, dmin = Infinity;
   for (const P of recs()) {
@@ -889,8 +889,8 @@ function checkLandmarks() {
   if (PORTAL.placed && !outro) {
     // the boss's hint (brief, once): only when someone is close enough to meet it
     if (!portalState.hinted && dmin < 3200) { portalState.hinted = true; hud.toast('A pseudoscorpion guards the water. Lure it away from its post and get round it, or bite its pincer joints until it backs off', 3600); }
-    // nearing the way on (a screen or two): the shell starts loading the next world (no prompt is shown)
-    const nearing = dmin < 3000;
+    // nearing the open way on (a screen or two): the shell starts loading the next world (no prompt is shown)
+    const nearing = !portalSealed() && dmin < 3000;
     if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
     if (at && !lm.fired) {
       if (guarded()) {
@@ -898,12 +898,17 @@ function checkLandmarks() {
         lm.log.push({ kind: 'turnedBack', slot: at.slot, t: +simTime.toFixed(2) });
         lm.fired = true; // once a visit (again after everyone has left)
         withRec(at, () => { if (rumbleOn) padOf().rumble(160, 0.4, 0.2); });
+      } else if (portalSealed()) {
+        // the way on exists from the start (the default path) but opens only once the predatory mite is met, twice
+        hud.toast('The water is shut to you yet: the predatory mite is still out in the moss', 2600);
+        lm.log.push({ kind: 'sealed', slot: at.slot, t: +simTime.toFixed(2) });
+        lm.fired = true;
       }
     }
     if (dmin > FORWARD.reach + 250) lm.fired = false;
   }
   // at the open portal (anyone): "Y Enter the portal"; Y goes through (inputFor)
-  setPortalPrompt(PORTAL.placed && !outro && !!at && !guarded());
+  setPortalPrompt(PORTAL.placed && !outro && !!at && !portalSealed() && !guarded());
   if (nearB !== lm.near) {
     lm.near = nearB;
     embed.near('back', nearB, 'Rise to the bog surface');
@@ -973,15 +978,39 @@ function parkPred() {
 }
 const reachPred = (P) => Math.hypot(P.mite.center.x - predZone.x, P.mite.center.z - predZone.z) < predZone.r + 400 || P.mite.center.distanceTo(pred.center) < 1500;
 // what each encounter does when placed, and when it counts as met
+// (one predator for both: on the default path its second ground is only a spot until the first is met,
+// then the predator goes there once nobody sees it: movePredOn)
+let pred2Spot = null;
 const ENC = {
-  pred: { place: (x, z) => { placePred(x, z, 1); return { k: 1 }; }, met: (h, [p]) => reachPred(pls[p.id] || P1) },
+  pred: { place: (x, z) => { placePred(x, z, 1); return { k: 1 }; }, met: (h, [p]) => predK === 1 && reachPred(pls[p.id] || P1) },
   // the second time: only once the predator is out of every view and busy with nobody (it walks off, unseen)
-  pred2: { place: (x, z) => { placePred(x, z, 2); return { k: 2 }; }, met: (h, [p]) => reachPred(pls[p.id] || P1),
-    fits: (x, z, b) => ENCOUNTERS[1].fits(x, z, b) && (predK === 2 || (!predEngaged() && !inSight(pred.center.x, pred.center.z, 600))) },
+  pred2: { place: (x, z, b, info) => {
+    if (info.instance === 'default' && predK !== 2) { pred2Spot = { k: 2, x, z }; return pred2Spot; }
+    pred2Spot = null; placePred(x, z, 2); return { k: 2 };
+  }, met: (h, [p]) => predK === 2 && reachPred(pls[p.id] || P1),
+    fits: (x, z, b) => ENCOUNTERS[1].fits(x, z, b) && (predK === 2 || director.index < 1 || (!predEngaged() && !inSight(pred.center.x, pred.center.z, 600))) },
   // the last: entering the open portal ends the level
   portal: { place: (x, z, b) => { placePortal(b, x, z); return { k: 'portal' }; }, met: () => false },
 };
-const director = createDirector({ ...DIRECTOR, canPlace, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id] })) });
+// The default path (layout.js DEFAULT_PATH): all three laid out along one bearing on the first frame, so the
+// way on exists from the start (sealed until the predator is met twice: portalSealed); head off another way
+// and each, while nobody has seen it, leaves the path and is placed ahead of you as before (one object each: single).
+const director = createDirector({ ...DIRECTOR, canPlace, defaultPath: DEFAULT_PATH, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id], single: true })) });
+const PORTAL_INDEX = ENCOUNTERS.findIndex((e) => e.final);
+/** The way on exists from the start but stays shut until every earlier encounter is met (the director's order). */
+function portalSealed() { return director.index < PORTAL_INDEX; }
+/**
+ * The predator's second ground on the default path: once its first is met, the predator goes on through
+ * the moss to it, unseen (out of every view, busy with nobody, the spot itself out of view).
+ */
+function movePredOn() {
+  if (!pred2Spot || predK !== 1 || director.index < 1) return;
+  const D = director.entry('pred2').def;
+  if (!D || D.handle !== pred2Spot || D.state !== 'placed') { pred2Spot = null; return; }
+  if (predEngaged() || inSight(pred.center.x, pred.center.z, 600) || inSight(pred2Spot.x, pred2Spot.z, 650)) return;
+  placePred(pred2Spot.x, pred2Spot.z, 2);
+  pred2Spot = null;
+}
 /** How far through the encounters the game is: met / all (0..1). */
 const encounterProgress = () => director.index / ENCOUNTERS.length;
 function stepDirector(dt) {
@@ -989,6 +1018,7 @@ function stepDirector(dt) {
   const ev = director.update(dt, recs().map((P) => ({ id: P.slot, x: P.mite.center.x, z: P.mite.center.z, alive: !held(P) })), seenViews);
   seenViews = null;
   for (const e of ev) if (e.type === 'met') logChallenge(`${e.id}Met`, pls[e.by && e.by[0]] || P1);
+  movePredOn();
   driftPred(dt);
 }
 /**
@@ -1010,6 +1040,7 @@ function driftPred(dt) {
 /** A new game: the director starts over, the predator hidden and parked, no portal. */
 function newEncounters() {
   director.reset();
+  pred2Spot = null;
   parkPred();
   props.unplace();
   boss.setVisible(false);
@@ -1524,7 +1555,7 @@ const glowU = props.glow.group.children[0].material.uniforms; // (its shared uni
 function drawFrame(dt) {
   glowT += dt;
   if (PORTAL.placed) {
-    props.glow.setOpen(!guarded());
+    props.glow.setOpen(!guarded() && !portalSealed());
     props.glow.update(dt, glowT, camera, outro ? outro.t : undefined);
     // after the burst the sparkle dims, so the tardigrade in the water reads in the freeze frame
     glowU.uI.value = outro ? 1.15 - 0.9 * THREE.MathUtils.smoothstep(outro.t, 0.5, 1.3) : 1.15;
@@ -1565,15 +1596,17 @@ function drawFrame(dt) {
   marks.begin();
   portalLight.begin();
   if (intro && !('ease' in intro)) return; // held in the intro: no marks
-  // no arrow (the owner: keep moving and you find it): once placed, the portal's golden
-  // light spills in from the edge of the view on its side, or haloes it in view; no text
-  if (PORTAL.placed && !outro) {
+  // no arrow by default (the owner: keep moving and you find it): once open, the portal's golden
+  // light spills in from the edge of the view on its side, or haloes it in view; no text (the Portal
+  // arrow setting adds one: drawPortalArrow). On the default path it is there from the start, sealed.
+  if (PORTAL.placed && !portalSealed() && !outro) {
     let d = Infinity;
     for (const P of recs()) d = Math.min(d, flat(P.mite.center, PORTAL));
     portalLight.drawSplit(split, PORTAL.at, { strength: THREE.MathUtils.clamp(1.2 - d / 9000, 0.4, 1), open: props.glow.open });
   }
   if (outro) return;
   marks.drawSplit(split, props.back, { kind: 'backdoor', label: 'Up', range: 4000 });
+  drawPortalArrow();
   // players' colours: a faint ring round each mite (with company only)
   if (multi()) {
     const ctx = marks.canvas.getContext('2d');
@@ -1600,6 +1633,23 @@ function drawFrame(dt) {
     ctx.restore();
   }
 }
+/**
+ * The "Portal arrow" setting (the game's Settings, default off; ?arrow=1 here): an arrow at the edge of
+ * each view toward the way on (the wet leaf axil: the director's portals(), one here, the axil being one
+ * object), with the view's nearest mite's distance in mm. Sealed too: it is where the way on will open.
+ */
+let arrowLog = [];
+function drawPortalArrow() {
+  arrowLog = [];
+  if (!portalArrowOn() || !PORTAL.placed || outro) return;
+  const pp = PORTAL.at;
+  arrowLog = marks.drawSplit(split, (vp) => {
+    let d = Infinity;
+    for (const v of vp) { const P = pls[v.slot]; if (P) d = Math.min(d, flat(P.mite.center, PORTAL)); }
+    if (!isFinite(d)) d = flat(P1.mite.center, PORTAL);
+    return { position: pp, label: `${(d / 1000).toFixed(1)} mm`, distance: d };
+  }, { kind: 'forward', portal: true, range: 30000 }).map((r) => r && { x: r.x, y: r.y, angle: r.angle, onScreen: r.onScreen, d: Math.round(r.picked.distance), label: r.picked.label, at: [Math.round(pp.x), Math.round(pp.y), Math.round(pp.z)] });
+}
 function updateText(d) {
   updateBanner();
   const mag = 127000 / rig.hfw; // relative to a 127 mm (Polaroid 4x5) reference image width
@@ -1608,7 +1658,7 @@ function updateText(d) {
   const pst = predHere() ? `predator ${capture.active ? `CAPTURE ${capture.phase}` : predAI.state === 'hunt' ? 'HUNTING' : predAI.state === 'recoil' ? 'recoiling' : 'wandering'} ${predAI.dist.toFixed(0)} µm · ${hunger.state === 'grace' ? 'calm until its ground' : `${hunger.state} ${hunger.left.toFixed(0)} s`}` : '';
   const info = renderer.info.render;
   const out = distFromStart(mite.center.x, mite.center.z);
-  hud.stats(`${MODES[sem.mode]}${qScale < 1 ? `  (res ${(qScale * 100).toFixed(0)}%)` : ''}\n${(out / 1000).toFixed(1)} mm out${PORTAL.placed ? (guarded() ? ' · portal guarded' : ' · portal open') : ''}\nHFW ${rig.hfw.toFixed(0)} µm   mag ${mag.toFixed(0)}x\n${st}\n${stamText(play)}   legs grabbed ${play.hurt}/3   grazed ${play.grazed}\n${pst}\nblades bending ${fol.moving}   pen ${mite.st.pen.toFixed(0)} µm\n${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
+  hud.stats(`${MODES[sem.mode]}${qScale < 1 ? `  (res ${(qScale * 100).toFixed(0)}%)` : ''}\n${(out / 1000).toFixed(1)} mm out${PORTAL.placed ? (portalSealed() ? ' · portal sealed' : guarded() ? ' · portal guarded' : ' · portal open') : ''}\nHFW ${rig.hfw.toFixed(0)} µm   mag ${mag.toFixed(0)}x\n${st}\n${stamText(play)}   legs grabbed ${play.hurt}/3   grazed ${play.grazed}\n${pst}\nblades bending ${fol.moving}   pen ${mite.st.pen.toFixed(0)} µm\n${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
   if (observer) {
     const sb = niceScale(rig.hfw);
     const px = (sb / rig.hfw) * innerWidth;
@@ -1677,7 +1727,7 @@ const api = {
   progress() { return encounterProgress(); },
   /** The portal: placed, where, guarded or open, the boss's state and how far it is from the water. */
   portal() {
-    return { placed: PORTAL.placed, a: +PORTAL.a.toFixed(3), x: Math.round(PORTAL.x), z: Math.round(PORTAL.z), guarded: PORTAL.placed && guarded(), open: PORTAL.placed && !guarded(),
+    return { placed: PORTAL.placed, a: +PORTAL.a.toFixed(3), x: Math.round(PORTAL.x), z: Math.round(PORTAL.z), guarded: PORTAL.placed && guarded(), sealed: PORTAL.placed && portalSealed(), open: PORTAL.placed && !portalSealed() && !guarded(),
       boss: { state: boss.st.state, x: Math.round(boss.st.x), z: Math.round(boss.st.z), fromWater: PORTAL.placed ? Math.round(Math.hypot(boss.st.x - PORTAL.x, boss.st.z - PORTAL.z)) : null, fromPost: PORTAL.placed ? Math.round(Math.hypot(boss.st.x - boss.post.x, boss.st.z - boss.post.z)) : null },
       glow: +props.glow.open.toFixed(2), prompt: lm.portal, tardigrade: PORTAL.placed ? props.tardi.center.toArray().map(Math.round) : null };
   },
@@ -1691,6 +1741,12 @@ const api = {
   placeEncounter(k, x, z, b = 0) { return director.force(k, x, z, b); },
   /** Go through the portal now as player `slot` (what Y at the open portal does). */
   enterPortal(slot = 0) { lm.fired = false; enterPortal(pls[slot] || P1); },
+  /** The portal arrow drawn last frame, per view: [{ x, y, angle, onScreen, d, label, at } | null] ([] when off). */
+  portalArrow() { return arrowLog; },
+  /** The director's portals (the way on): [{ instance, x, y, z, open, seen, state }]. */
+  portals() { return director.portals().map(({ handle, ...q }) => q); },
+  /** Is the way on still sealed (encounters left before it)? */
+  portalSealed() { return portalSealed(); },
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
   /** The outro's timings (seconds); `rate` slows it (tests). */
@@ -1703,7 +1759,7 @@ const api = {
   /** How the frozen view frames the tardigrade (what embed.frozen reports). */
   tardiPose: () => tardiPose(),
   /** Testing: player `slot` near the boss's post (the portal placed on their bearing if it is not yet), the calm over: it wakes. */
-  bossFight(slot = 0) { const P = pls[slot] || P1; if (!PORTAL.placed) api.placePortal(bearingFromStart(P.mite.center.x, P.mite.center.z) || A0, slot); pace.mode = 'Always'; hunger.reset(0); hunger.update(0.01); boss.reset(); predAI.reset(...PRED_START); pace.mode = 'Never'; const b = boss.post; P.mite.place(b.x + b.ux * 1150, b.z + b.uz * 1150, Math.atan2(b.uz, -b.ux)); rig.target.copy(P.mite.center); hunger.reset(0); hunger.update(0.01); },
+  bossFight(slot = 0) { const P = pls[slot] || P1; if (!PORTAL.placed || portalSealed()) api.placePortal(bearingFromStart(P.mite.center.x, P.mite.center.z) || A0, slot); pace.mode = 'Always'; hunger.reset(0); hunger.update(0.01); boss.reset(); predAI.reset(...PRED_START); pace.mode = 'Never'; const b = boss.post; P.mite.place(b.x + b.ux * 1150, b.z + b.uz * 1150, Math.atan2(b.uz, -b.ux)); rig.target.copy(P.mite.center); hunger.reset(0); hunger.update(0.01); },
   /** Testing: face the boss's nearest pincer joint, within bite reach. */
   bossBite(slot = 0) { const P = pls[slot] || P1; const j = boss.bitePoints()[0]; if (!j) return; const c = P.mite.center; const v = new THREE.Vector3(c.x - j.x, 0, c.z - j.z).normalize(); P.mite.place(j.x + v.x * 330, j.z + v.z * 330, Math.atan2(v.z, -v.x)); },
   impact(slot = 0) { const P = pls[slot] || P1; return { last: P.play.lastImpact || null, pounces: P.play.pounces || 0, mode: P.mite.mode, dive: !!P.play.dive, stam: P.play.stam, scr: !!P.play.scr }; },

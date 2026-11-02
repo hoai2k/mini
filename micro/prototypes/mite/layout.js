@@ -101,6 +101,16 @@ export const DIRECTOR = {
   // seen but not gone to: met once everyone is ~2 screens past it, or after 12 s in sight nearby (it is never moved)
   watchSec: 12, passDist: 6000,
 };
+/**
+ * The default path (shared/director.js `defaultPath`; the owner, 2026-11-01: "a default path to a portal,
+ * but just dynamically generate the other directions if the player goes off in another direction"): the
+ * predator's two grounds and the wet leaf axil with its pseudoscorpion are laid out along one bearing from
+ * the start on the first frame, at the distances a rush (~730 µm/s) would meet them (~8, ~19 and ~32 mm
+ * out), so the way on exists from the start. The bearing runs off to the side of the opening view (which
+ * looks along OPENING, ~2.5 rad) and away from the giant springtail behind it. Off that bearing they are
+ * placed as you go, as before (each is one object: `single`).
+ */
+export const DEFAULT_PATH = { from: { x: 0, z: 0 }, bearing: -2.6, rush: 730 };
 /** The predator's ground placed at (x, z): clear of the thickets (a chase may run into one: it eats springtails there), the giant springtail and the second box mite. */
 const predFits = (x, z) => clearOfThickets(x, z, PRED_GROUND.r, 150)
   && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 2600 && Math.hypot(x - NPC_HOME.x, z - NPC_HOME.z) > 2200;

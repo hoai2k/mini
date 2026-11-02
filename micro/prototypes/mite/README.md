@@ -62,6 +62,22 @@ wanders over: its ground drifts toward the leader at 200 µm/s after 5 s
 predator is hidden, parked in a corner of the square and not stepped, and
 there is no portal; a new game (`resetLevel`) starts the director over.
 
+**The default path** (the owner, 2026-11-01: "a default path to a portal,
+but just dynamically generate the other directions"): on the first frame the
+director lays all three out along one bearing from the start (`layout.js`
+`DEFAULT_PATH`: -2.6 rad, off to the side of the opening view and away from
+the giant springtail, at a rush's distances: the predator's ground ~8.4 mm
+out, its second ~17.6 mm, the water ~32 mm), out of sight, so the way on
+exists from the start. It stays sealed (no prompt, no edge light, its glow
+shut, nothing preloaded; reaching the water says "The water is shut to you
+yet: the predatory mite is still out in the moss") until the predator is met
+twice; the pseudoscorpion guards it as always. There is one predator: its
+second ground on the path is only a spot until the first is met, then it goes
+on there while nobody sees it (`movePredOn`). Follow the bearing and you meet
+them in order where they lie; head another way and each, while nobody has
+seen it, leaves the path and is placed ahead of you as before (each is one
+object: the director's `single`); one somebody has seen stays put.
+
 **Timing.** `route.test.mjs` runs the director with the SEM view's own
 frustum and a player rushing (~730 µm/s, a third slower in a thicket) in 16
 directions: the predator placed at 5.1 s and met at 8.3–9.5 s, placed again
@@ -85,7 +101,8 @@ draws and triangles are as before (47 and 197 k with one view, 69 and 354 k
 split four ways).
 
 **The portal and the boss.** The portal is the last encounter
-(`placePortal`: the water where the director put it, the pseudoscorpion's
+(`placePortal`: the water where the director put it, on the default path
+from the start, the pseudoscorpion's
 post 0.6 mm before it toward the way you came); the moss shoots stand aside
 there (an exclusion disc: its arena). Its golden glow (`shared/portal.js`) then draws you on; there is no
 arrow. A brief hint comes once, within 3.2 mm: "A pseudoscorpion guards the
@@ -202,9 +219,14 @@ everything else.
   when no controller is connected). There **Y goes back**
   (`embed.landmark('back')`) instead of closing up; anywhere else Y still
   closes up, and a mite held by the predator can still close up there.
-- **No arrow** (`shared/landmark.js` draws no forward mark): the portal's
-  golden light, at the edge of the view or over it in view, is the only
-  marker. The backdoor keeps its quiet "Up" mark near it.
+- **No arrow by default** (`shared/landmark.js` draws no forward mark): the
+  open portal's golden light, at the edge of the view or over it in view, is
+  the only marker. The backdoor keeps its quiet "Up" mark near it. With
+  **Portal arrow** on in the game's Settings (default off; `?arrow=1` on this
+  page) each view gets a brass arrow at its edge toward the wet leaf axil,
+  sealed or not, with the view's nearest mite's distance beside it
+  ("32.2 mm"); on screen, a marker over it. Test hooks: `portalArrow()`,
+  `portals()`, `portalSealed()`.
 
 ## Multiplayer
 
@@ -952,7 +974,11 @@ portal in order (the first within ~10 s after a warm-up, a calm break before
 the second, the portal reached in 42–62 s), nothing placed in view, on seen
 moss or where it does not fit, nothing moved once seen; lingering brings
 them all round the player in order; turning back moves the unseen predator
-to follow; two players heading apart meet them all.
+to follow; two players heading apart meet them all. With the default path:
+following its bearing meets the three pre-placed ones in order (nothing
+generated, the water reached in ~44 s); heading off three other ways takes
+each off the path while unseen and places it as you go, in order, nothing
+seen moved.
 
 The check loads the page in headless Chromium (software WebGL), drives the
 keyboard, and fails on any console error. Software WebGL is slow, so the
