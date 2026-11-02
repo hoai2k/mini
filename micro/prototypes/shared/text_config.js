@@ -167,47 +167,41 @@ export const TEXT = {
       close: 'Close',
       intro: 'Micro Zoom is seven worlds at seven magnifications, from a springtail on a bog pool’s surface film down to a virus no light microscope can see. Choose any world to start in; the springtail is the top of the chain.',
       deeperTitle: 'Going deeper',
-      deeper: 'Every world has a <strong>glowing portal</strong>. Reach it, press {btn:Y}, and the microscope zooms in to the next world and its creature.',
+      deeper: 'Every world has a <strong>sparkling portal</strong>. Find it and press {btn:Y} to go through the portal into the next world.',
       backTitle: 'Going back up',
       back: 'A ring at the edge of the view points the <strong>way back</strong>. Go there and press {btn:Y} to zoom back out to the world above.',
-      controllerTitle: 'Xbox controller',
-      keyboardTitle: 'Keyboard (connect a controller for the full layout)',
+      controlsTitle: 'Controls',
+      controlsLead: 'Each world has its own controls, shown on its intro. Most share these basics, so try them first:',
       controls: [
         ['LS', 'Move'],
         ['RS', 'Camera'],
-        ['A', 'Dash'],
+        ['A', 'Dash or jump'],
         ['X', 'Attack / eat'],
-        ['B', 'Block'],
-        ['Y', 'Special / enter portal'],
-        ['LT/RT', 'Focus or zoom'],
-        ['LB/RB', 'Extra'],
-        ['D-pad ↑↓', 'Zoom'],
-        ['D-pad ←→', 'Change the look'],
+        ['B', 'Defend'],
+        ['Y', 'Enter the portal'],
         ['Menu', 'Pause'],
-        ['View', 'Controls card'],
       ],
-      differ: 'Some creatures differ: the springtail and the mite jump with {btn:A}, and the mite dashes with {btn:B} and blocks with {btn:Y}.',
       playersTitle: 'Players',
       players: 'Up to four can play. Player 1 uses the first controller{orKeyboard}; a second, third or fourth player joins by pressing any button on another controller, in the menus or during play. Players start in the same view; when they move apart, the view splits, and it joins up again when they come back together.',
       orKeyboard: ' or the keyboard',
-      footer: 'Each world tells you its own controls on its intro screen and its controls card (View).',
-      padAria: 'Xbox controller: the actions on each button',
-      pad: {
-        LT: 'focus or zoom (analog)',
-        LB: 'secondary',
-        LS: 'move',
-        dpadUpDown: 'zoom in / out',
-        dpadLeftRight: 'the optical look',
-        View: 'controls card',
-        Menu: 'pause',
-        RT: 'focus or zoom (analog)',
-        RB: 'secondary',
-        Y: 'special · backdoor: rise',
-        B: 'defend',
-        A: 'dash',
-        RS: 'camera',
-        X: 'attack or eat',
-      },
+    },
+    credits: {
+      heading: 'Credits',
+      close: 'Close',
+      settingsItem: 'Credits',
+      game: 'Micro Zoom',
+      roles: [
+        ['Principal Game Designer', 'Hoai Nguyen'],
+      ],
+      thanksTitle: 'Special thanks',
+      thanks: [
+        ['Francis Nguyen', 'playtesting'],
+        ['Stephen Jay Gould', 'inspiration'],
+        ['Opus 5.5', ''],
+      ],
+      madeWithTitle: 'Made with',
+      madeWith: 'three.js · Cormorant Garamond and DM Sans · sound effects generated with ElevenLabs',
+      copyright: '© 2026 Hoai Nguyen',
     },
   },
 
@@ -488,6 +482,7 @@ export const TEXT = {
       playerComesBack: '. Player {n} will come back beside a teammate',
       prefixed: 'Player {n}: {text}',
       eatenBack: 'Player {n} was eaten, and is back beside a teammate',
+      named: '{name}: {text}',
     },
     choiceNames: {
       Brightfield: 'Brightfield',
@@ -1161,5 +1156,312 @@ export const TEXT = {
     marks: {
       up: 'Up',
     },
+  },
+
+  // --------------------------------------------------------------------
+  // World 3, the tardigrade (micro/prototypes/tardigrade).
+  tardigrade: {
+    hud: {
+      title: 'Tardigrade · The Moss Film',
+      sub: 'A ~350 µm eutardigrade gripping moss-leaf cell walls in the water film: out from the shoot past a Milnesium, rotifer meadows and dry patches to the pool Prionchulus guards. Differential interference contrast (DIC) look.',
+      controls: {
+        move: 'Move (keys: G hurry, T creep)',
+        camera: 'Camera',
+        dash: 'Dash',
+        attack: 'Attack / eat',
+        defend: 'Block (hold)',
+        special: 'Curl up / enter portal',
+        analog: 'Focus',
+        secondary: 'Labels / rain (test)',
+        look: 'Change the look',
+        zoom: 'Zoom',
+        refocus: 'Refocus',
+        restart: 'Restart (test)',
+      },
+      note: 'Reach the glowing portal, and avoid getting eaten by Milnesium and the nematode. Up to four players: press any button on another controller to join.',
+    },
+    toasts: {
+      losingGrip: '{who}Losing grip! Hold B to brace',
+      bossHint: 'Prionchulus guards the way on. Lure it off its post, then get round it',
+      turnedBack: 'Turned back: Prionchulus is on guard. Lead it away from its post first, then get round it',
+      sealed: 'The pool will not take you yet: Milnesium is still out on the leaves',
+      pool: '{who}The pool: the film meets open water',
+      objective: 'Objective {name}',
+      backAtStart: 'Back at the start',
+      refocused: 'Refocused on the animal',
+      bossWakes: 'A predatory nematode, Prionchulus, uncoils off its post',
+      bossStirs: 'Prionchulus stirs on its post',
+      bossReturns: 'Prionchulus gives up and glides back to its post: get round it!',
+      bossGuard: 'Prionchulus is back on guard',
+      bossBraced: '{who}Braced! Its head glances off your claws (resolve {resolve}%)',
+      bossStylets: '{who}Stylets into its head! (resolve {resolve}%)',
+      bossFlounders: 'In the thin film Prionchulus flounders and loses heart',
+      bossRetreats: 'Worn down, Prionchulus slides away into a deep groove between the cells: the way on is open',
+      bossStabs: '{who}Its tooth stabs you! Health {health}%',
+      rotifers: '{who}Touched, the rotifers snap their coronae shut and contract onto their feet',
+      backUp: '{who}Back up to the moss canopy',
+      predatorRecoils: '{who}Stylets into its head! It staggers back (interest {interest}%)',
+      predatorRears: '{who}Milnesium rears to strike! Face it and brace (B), or jab (X)',
+      predatorBlocked: '{who}Blocked! Braced claws hold and you shove its head away',
+      predatorGone: '{who}The Milnesium has had enough: it turns and crawls off',
+      predatorStalks: '{who}A Milnesium has your scent: scramble (A), jab (X) or tun (Y)',
+      somethingLarge: 'Something large is moving in the film…',
+      tunMouthed: '{who}The Milnesium mouths your tun but cannot get it in',
+      tunGivesUp: 'The Milnesium gives up on the tun and wanders off',
+      predatorBites: '{who}Milnesium bites! Health {health}%. It lets go and backs off, for now',
+      wakes: '{name} wakes again',
+      wakesBeside: '{name} wakes again beside {mate}',
+      bossCoils: '{who}Prionchulus coils into an S, tooth bared: face it and brace (B)!',
+      bossThrashes: '{who}Prionchulus thrashes: face it and brace (B)!',
+    },
+    features: {
+      look: {
+        label: 'Optical look',
+        about: 'DIC: relief from the gradient of optical path along one shear direction. Brightfield: pigment plus faint refractive edges. Lit: a hypothetical immersive view with ordinary lights (not what a microscope records). D-pad left/right cycles it.',
+        choices: {
+          'DIC (Nomarski)': 'DIC (Nomarski)',
+          Brightfield: 'Brightfield',
+          'Lit (hypothetical)': 'Lit (hypothetical)',
+        },
+      },
+      opd: {
+        label: 'Optical-path buffers (thickness from closed meshes)',
+        about: 'Every transparent object adds Δn·thickness, depth·thickness and pigment into two float targets at once (MRT, additive, double sided): front faces subtract their depth, back faces add it, so each pixel holds the chord through the object. Shared as shared/techniques/tardigrade-dic.js.',
+      },
+      dof: {
+        label: 'Shallow depth of field (focal plane)',
+        about: 'Leaves and specimen are two layers, each blurred by its own mean depth from the focal plane (gather blur). LT/RT turn the fine focus through them. Off: everything sharp.',
+      },
+      autofocus: {
+        label: 'Auto-focus on the animal',
+        about: 'The focal plane follows the animal as it walks. Turning the fine focus (LT/RT) holds your setting while you stand still; walk on and it eases back onto the animal. LS click refocuses at once.',
+      },
+      fringes: {
+        label: 'Three-wavelength interference',
+        about: 'Evaluates sin²(π Γ/λ) at red, green and blue wavelengths, giving the warm shadows and cool highlights of real DIC. Off: one wavelength, pure grey.',
+      },
+      shear: {
+        label: 'Shear × bias (relief strength)',
+        about: 'How far apart the two beams are and the bias retardation: more shear, stronger one-sided relief.',
+        choices: {
+          Standard: 'Standard',
+          Subtle: 'Subtle',
+          Strong: 'Strong',
+        },
+      },
+      angle: {
+        label: 'Shear direction',
+        about: 'The fixed direction of the prism shear on screen: relief is lit along this axis only, so a wall parallel to it vanishes (true of real DIC).',
+        choices: {
+          '45°': '45°',
+          '135°': '135°',
+          '0°': '0°',
+          '90°': '90°',
+        },
+      },
+      grain: {
+        label: 'Camera grain',
+        about: 'Faint per-frame sensor noise.',
+      },
+      vignette: {
+        label: 'Vignette',
+        about: 'Light fall-off towards the edge of the field.',
+      },
+      backdrop: {
+        label: 'Out-of-focus backdrop (MP-T03)',
+        about: 'A deeply defocused moss layer behind everything, as soft retardation. Procedural stand-in until the image arrives.',
+      },
+      walls: {
+        label: 'Cell walls as optical path',
+        about: 'Raised cell walls, domed cells, costa: drawn per pixel in the leaf shader from the same pattern the claws use, so every foothold is a visible wall.',
+      },
+      chloro: {
+        label: 'Chloroplasts',
+        about: 'Lens-shaped green plastids lining each living cell: the only strong colour in the field. Cells you have sucked dry lose them.',
+      },
+      film: {
+        label: 'Water film',
+        about: 'Film thickness = capacity - dryness, as optical path (water vs air Δn 0.33): it shows as menisci and contact lines, not as blue water.',
+      },
+      meniscus: {
+        label: 'Contact-line steepening',
+        about: 'Film thickness rises as √h from the contact line, so a retreating meniscus is a sharp edge in DIC. Off: linear, soft.',
+      },
+      artwalls: {
+        label: 'Footholds read from the delivered micrographs',
+        about: 'When MP-T01/T02 arrive, wallmap.js finds the walls in the image (gradient threshold + chamfer distance transform) and labels the cells (flood fill): the claws hook the walls you see, a pierced cell empties as a whole, and the shader takes colour from the photo but relief from the wall map, so it follows this microscope’s shear.',
+      },
+      particles: {
+        label: 'Drifting bacteria and detritus',
+        about: 'Point sprites from a 4×4 atlas (MP-T04 stand-in) in Brownian drift; they stop where the film has gone.',
+      },
+      sdf: {
+        label: 'SDF body from anatomical parts',
+        about: 'Head, four trunk regions with cuticle folds, eight lobopod legs (IV terminal, backwards), meshed once with surface nets; buccal tube, stylets, pharyngeal bulb with placoids, eyespots, midgut, gonad and storage cells as separate meshes inside.',
+      },
+      internals: {
+        label: 'Internal anatomy visible',
+        about: 'Show the organs through the translucent cuticle.',
+      },
+      claws: {
+        label: 'Claw size',
+        about: 'Real claws are ~10 µm: barely a few pixels at 20×. Enhanced so the grip reads.',
+        choices: {
+          'Enhanced (1.6× long, ~3× thick)': 'Enhanced (1.6× long, ~3× thick)',
+          'True size': 'True size',
+        },
+      },
+      rig: {
+        label: 'Part rig (on the GPU)',
+        about: 'Runs in the vertex shader in the optical looks (the lit look and the borrowed SEM use the same rig on the CPU). Each vertex knows its part: legs stretch and turn from hip to foot (telescoping lobopods), the trunk carries a travelling lateral wave and the tun contraction, blended where parts meet.',
+      },
+      sway: {
+        label: 'Soft-body sway and surge',
+        about: 'The trunk bends side to side with the gait and surges with each wave of legs.',
+      },
+      gait: {
+        label: 'Leg coordination',
+        about: 'Measured in Hypsibius (Nirody et al. 2021): steps run back to front along each side, the sides half a cycle apart, a tetrapod-like pattern. Alternatives for comparison.',
+      },
+      footholds: {
+        label: 'Claws need cell walls',
+        about: 'Each foot searches for the nearest wall within reach and hooks it; junctions and walls across the pull hold best. Off: feet grip anywhere.',
+      },
+      gravity: {
+        label: 'Slope load and slipping (exaggerated)',
+        about: 'Steep and overhanging faces need more claws planted, or the animal slides. Real 0.35 mm animals are held mainly by surface tension; this is a game rule.',
+      },
+      rings: {
+        label: 'Rings round the start (the encounter pattern)',
+        about: 'The shoot round the start, then a spoke of leaves every 30° out to the rim (~8.4 mm), with the same scenery at the same distances whichever way you go: a band of rotifers across every spoke (4.0-4.6 mm) and dry patches (5.5-6.2 mm). The enemies and events are placed as you go (shared/director.js), in order, on leaves nobody has seen yet a little ahead of whoever leads along their spoke: after a few seconds, Milnesium in its water; after a long calm (the meadow, the dry patches), the pool at the rim of your spoke with Prionchulus on guard. Linger and they come to you all the same. No drying clock, no water meter, no hunger: nothing runs out while you stay in a safe spot.',
+      },
+      capacity: {
+        label: 'Film capacity field',
+        about: 'Per leaf: wetter towards the stem, in random hollows and where another leaf nearly touches (capillary bridges); margins thinner. The dry ring\'s patches are bare: no film, a sharp contact line round them, slow going (claws on dry cell walls). The film does not dry out over time.',
+      },
+      labels: {
+        label: 'Anatomy labels',
+        about: 'Name the claws, leg IV, buccal tube, bulb, eyespot, gut and storage cells (LB).',
+      },
+      rumble: {
+        label: 'Rumble',
+        about: 'Impacts only: your bites and jabs as they land, a kick on each scramble, heavy on slips, falls and being bitten, and the portal. Walking does not rumble.',
+      },
+      scramble: {
+        label: 'Scramble (A)',
+        about: 'A 0.9 s burst of the same back-to-front wave gait at ~280 µm/s, nearly twice the full-tilt walk (150 µm/s): the legs step faster rather than further (each reaches only so far), with up to 45% of each cycle in swing and swings as short as 60 ms. It recharges over 2.6 s; it costs nothing else. A stretch: the fastest walking measured in Hypsibius is ~260 µm/s.',
+      },
+      reach: {
+        label: 'Leg reach and hand-off',
+        about: 'A lobopod telescopes a little, never more: no leg is drawn longer than 1.14× its rest length. A planted foot steps before it is stretched past 1.11×, and one that cannot lets go; a foot with nothing in reach (crossing to another leaf, over a gap, falling) is drawn up under the body, paddling, until a hold comes into reach. After a transfer the feet let go of the old leaf one by one, back to front, each catching the new one as it comes in reach.',
+      },
+      smooth: {
+        label: 'Smoothed trunk and camera',
+        about: 'The trunk follows its target through three lags in series, and a change of face (a transfer, the leaf margin, a fall) blends the old pose out over a smootherstep, so position, velocity and acceleration stay continuous. Slipping uses grip hysteresis (slide below 85% of the load for 0.6 s, catch at 75%). Off: the old single lag.',
+      },
+      milnesium: {
+        label: 'Milnesium (predator)',
+        about: 'A predatory tardigrade 1.5× your size with a wide buccal tube and no placoids. It browses in its water (placed as you go: the first encounter, a few seconds out, on a leaf nobody has seen yet a little ahead of you) and hunts only a player in its water (it lets you go ~0.5 mm past it). A moment after someone first comes into its water it gets hungry, then hunger comes and goes (see Threats); only hungry does it close in, stalk you within ~650 µm and bite (each bite −25% health; at none, it grips you and swallows you whole, all of it shown). After a bite it lets go, backs off and rests 45-75 s. Escape: scramble (A) past it, retreat into film too thin for its body (a dry patch), jab it with the stylets (X) so it backs off, or tun (Y): it cannot get a tun into its mouth quickly and gives up after three tries. The thin-film refuge, the recoil and the tun giving-up are game rules.',
+      },
+      boss: {
+        label: 'Prionchulus (the boss)',
+        about: 'A predatory nematode (~1.3 mm here; adults reach ~2 mm) on guard at the portal, 420 µm inside it, placed with the portal (the last encounter) at the rim of the spoke whoever leads is heading out along. Reaching the portal while it guards turns you back. It wakes when you come within ~650 µm of its post and follows you up to ~850 µm from it; then (or when it has lost you) it glides back at 30 µm/s, ignoring everyone: that is the way in. Its tells: coiling into an S (then a forward whip) or rippling fast (then a sideways sweep), tooth bared. Brace (B) facing it to block, jab its head (X) as it recovers. Worn down (the brass resolve gauge), it slides away into a deep groove for good, leaving the way open. Off: the portal is open.',
+      },
+      meadow: {
+        label: 'Rotifer meadow (a crowd)',
+        about: 'On the meadow ring (4.0-4.6 mm out): a band of ~110 bdelloid rotifers across every spoke\'s leaf, anchored by the foot, swaying, their wheel-like coronae beating. Walk into them and they bend aside; a stylet jab (X) makes those in front contract onto their foot and opens a lane (they re-extend later, a little further off). They never hurt you; a dense patch slows you by up to a quarter. No timer. Only bands with someone on their leaf move. shared/crowd.js.',
+      },
+      grace: {
+        label: 'Milnesium wakes',
+        about: 'How long after someone first comes into its water Milnesium browses before it first gets hungry. Either way it hunts only a player in its water. shared/predation.js.',
+        choices: {
+          '2 s': '2 s',
+          '10 s': '10 s',
+          '30 s': '30 s',
+          Off: 'Off',
+        },
+      },
+      hunger: {
+        label: 'Milnesium hunger',
+        about: 'Comes and goes: after the calm opening it is hungry for ~30-45 s at a time (once stalking it sees the hunt through), then rests (45-75 s after a bite or eating you, 15-30 s after a jab, losing you or giving up on a tun); only a hungry Milnesium closes in, stalks and bites. Always: hungry from the end of the calm opening on. Never: it only browses (for exploring and testing).',
+        choices: {
+          'Comes and goes': 'Comes and goes',
+          Always: 'Always',
+          Never: 'Never',
+        },
+      },
+      camrel: {
+        label: 'Camera-relative crawl',
+        about: 'The stick direction on screen is projected onto the leaf the animal is on.',
+      },
+      semMite: {
+        label: 'SEM (scanning electron microscope)',
+        about: 'The real geometry drawn into the mite\'s G-buffer (normal, material, depth in µm) and shaded by its secondary-electron composite: secant-law tilt contrast, edge glow, detector shadowing, crevice darkening, shot noise. Physically odd: a hydrated animal in a water film cannot go into a vacuum, and the cell walls (drawn per pixel by the optical leaf shader) are missing, so the leaves are bare slabs.',
+      },
+      semMiteMode: {
+        label: 'SEM detector',
+        about: 'SE (topography), BSE (composition: everything here is light organic matter, so it is flat) or false colour (animal amber, leaves green).',
+      },
+      opticsAmoeba: {
+        label: 'Amoeba property optics',
+        about: 'Brightfield with transport-of-intensity defocus contrast, phase contrast, darkfield or the immersive lit view. {thick}',
+      },
+      opticsAmoebaMode: {
+        label: 'Amoeba method',
+        about: 'Which optical method the amoeba switch above uses.',
+      },
+      microscopeParamecium: {
+        label: 'Paramecium microscope',
+        about: 'Darkfield, phase contrast (with the phase-ring halo), brightfield, the paramecium\'s simpler DIC or its lit view. {thick}',
+      },
+      microscopeParameciumMode: {
+        label: 'Paramecium technique',
+        about: 'Which technique the paramecium switch above uses.',
+      },
+      miteGait: {
+        label: 'Arachnid alternating tetrapod gait',
+        about: 'The mite\'s gait offsets (mite-gait.js) on the eight lobopods: diagonal groups {L1 R2 L3 R4} and {R1 L2 R3 L4} alternate, with a slight back-to-front lag. Not what tardigrades do (they run a back-to-front wave), here to compare. Overrides Leg coordination while on.',
+      },
+    },
+    prompts: {
+      back: 'Back to the mite',
+    },
+    banner: {
+      bossCapture: {
+        strike: 'Prionchulus pins you with its tooth!',
+        hold: 'Held at its mouth…',
+        eat: 'Prionchulus is sucking you dry',
+      },
+      capture: {
+        strike: 'Milnesium strikes: its mouth tube is on you!',
+        hold: 'Gripped by the stylets…',
+        eat: 'Milnesium is swallowing you whole',
+      },
+      predatorLeaves: 'The Milnesium has lost interest and crawls off',
+      bossThrashes: 'Prionchulus thrashes! Face it and brace (B)',
+      bossCoils: 'Prionchulus coils into an S! Face it and brace (B)',
+      bossStrikes: 'Prionchulus strikes! Face it and brace (B)',
+      predatorRears: 'Milnesium rears to strike! Face it and brace (B)',
+      predatorLunges: 'Milnesium lunges! Face it and brace (B)',
+      stalking: 'A Milnesium is stalking you',
+      stalkingName: 'A Milnesium is stalking {name}',
+      closing: 'A Milnesium is closing in',
+      closingName: 'A Milnesium is closing in on {name}',
+    },
+    capture: {
+      boss: {
+        by: 'Prionchulus',
+        how: 'pinned you with its tooth and sucked you dry',
+      },
+      milnesium: {
+        by: 'Milnesium',
+        how: 'gripped you with its stylets and swallowed you whole',
+      },
+    },
+    marks: {
+      moss: 'Moss',
+    },
+    borrowedField: 'The DIC optical-path and pigment buffers (after the focal-plane blur) handed to another microscope\'s image formation, so the focus and depth of field still work.',
+    bossGauge: 'PRIONCHULUS',
   },
 };
