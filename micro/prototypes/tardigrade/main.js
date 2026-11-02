@@ -1481,11 +1481,11 @@ function drawCues(L, dt) {
       const col = players.count > 1 ? a.p.color : '#b8ffcf';
       const grd = g.createRadialGradient(q.x, q.y, r * 0.35, q.x, q.y, r * 1.5);
       grd.addColorStop(0, 'rgba(190,255,210,0)');
-      grd.addColorStop(0.55, `rgba(190,255,210,${0.16 + 0.12 * pulse})`);
+      grd.addColorStop(0.55, `rgba(190,255,210,${0.3 + 0.18 * pulse})`);
       grd.addColorStop(1, 'rgba(190,255,210,0)');
       g.globalAlpha = 1; g.fillStyle = grd;
       g.beginPath(); g.arc(q.x, q.y, r * 1.5, 0, Math.PI * 2); g.fill();
-      g.globalAlpha = 0.55 + 0.35 * pulse; g.strokeStyle = col; g.lineWidth = 1.5;
+      g.globalAlpha = 0.7 + 0.3 * pulse; g.strokeStyle = col; g.lineWidth = 2;
       g.beginPath(); g.arc(q.x, q.y, r, 0, Math.PI * 2); g.stroke();
       g.globalAlpha = 0.9; g.fillStyle = 'rgba(10,20,14,0.55)';
       const bx = q.x + r * 0.78, by = q.y - r * 0.78;

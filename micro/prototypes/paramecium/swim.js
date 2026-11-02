@@ -1,313 +1,162 @@
-// How the Paramecium moves. Low Reynolds number (S15): there is no coasting.
-// Speed follows the ciliary beat within a few hundredths of a second, so the
-// cell stops the moment the movement stick is released, though the water around it
-// still carries it. It rolls gently about its own long axis, through the body's
-// centre, and the camera follows that centre. (The real left-handed helix, which
-// carried the body round an axis beside it, is the Corkscrew switch, off.)
+// How the Paramecium swims on the 2D slide (pure: no three.js; swim.test.mjs
+// runs it in node). Seen from above: x right, y up the screen, z the depth
+// (µm, the coverslip above, the slide below; DEPTH in route.js).
 //
-// Contact: the cell glances off whatever it touches and slides along it (the
-// heading turns along the surface, a short bump plays), so nothing stops it
-// dead. Avoidance reaction (S08, B, or on contact when that switch is on): the
-// cilia reverse, the cell backs up, pivots about its posterior end and swims
-// off in a new direction. Trichocyst
-// discharge (S09): a short, local burst that throws the cell away from the
-// threat, with the discharged threads left behind in the water (X on contact).
-// Dash (A): a ciliary sprint in the stick direction: escape swimming reaches
-// several mm/s for a fraction of a second.
-import * as THREE from '../shared/vendor/three.module.min.js';
-import { swimIntent, wrapAngle } from '../shared/swim-control.js';
-import { LENGTH, MOUTH, WIDTH, SPECIES_ID } from './cell.js';
-import { DROP_R, DEPTH } from './world.js';
-import { lowRe, helixPose } from '../shared/techniques/paramecium-squirmer.js';
+// - Quick and light (the owner, 2026-11-02: "the paramecium is quick"): LS
+//   sets the speed (analogue, up to VMAX) and the way to go; the cell turns
+//   to it fast (TURN rad/s) and, at low Reynolds number, stops almost at once
+//   when you let go (TAU s).
+// - A (dash): a ciliary sprint, DASH_V for DASH_T s, recharged in DASH_CD s.
+// - B (the avoiding reaction): the cilia reverse; it backs up quickly and
+//   swings its front round (towards the stick, or away from a threat).
+// - Depth: RS up/down (or LB/RB) swims deeper / shallower at DEPTH_V. The
+//   microscope's focus follows you (main.js).
+// - Auto-weave (the owner: "sometimes you should automatically wind above or
+//   below a simple obstacle plant"): touching a filament, a stalk or a clump
+//   (an obstacle with `weave`), the cell slides over or under it on its own,
+//   to the side its depth is already on (else the side with more room), a
+//   little slowed; only something that fills the depth (a wall: the trap,
+//   the giant amoeba) turns it aside, glancing along it.
+//
+// Obstacles (world.js `near`, main.js extras), all with a depth extent:
+//   { kind: 'seg', x0, y0, z0, x1, y1, z1, r, weave }  a filament or stalk, round (radius r)
+//   { kind: 'disc', x, y, z, r, h, weave }             a clump or a wall: radius r, half-thickness h
+import { DEPTH } from './route.js';
 
-// µm/s at full beat: the pre-rework 1.4 mm/s for both species (P. caudatum
-// measured 1–1.5 mm/s; P. bursaria is smaller, so ≈12 body lengths/s is a
-// stretched game value).
-export const VMAX = 1400;
-export const DASH_V = 3200; // µm/s peak of the sprint [stretch: "several mm/s, briefly"]
-export const DASH_T = 0.32; // s
-const TAU = 0.035; // s, beat-to-speed lag
-const HELIX_PITCH = 850 * Math.sqrt(LENGTH / 230); // µm per turn (≈849 µm measured in caudatum; scaled)
-const HELIX_R = 29 * (LENGTH / 230); // µm (≈29 µm measured in caudatum; scaled)
-const HL = LENGTH / 2;
-// Roll rate at full speed, about the long axis (rev/s). Real cells roll about once per
-// helix turn, ≈1–2.5 rev/s at these speeds; slowed here so it reads as swimming, not spinning.
-const ROLL_HZ = 0.45;
-const CAPSULE_R = WIDTH * 0.42, CAPSULE_HALF = HL - WIDTH * 0.45;
-export const BODY_R = CAPSULE_R;
+export const LENGTH = 120;      // µm, P. bursaria (a broad, short Paramecium)
+export const WIDTH = 52;        // µm across
+export const THICK = 18;        // µm: the body's half-thickness (it is flattened)
+export const VMAX = 620;        // µm/s
+export const DASH_V = 1500, DASH_T = 0.28, DASH_CD = 0.9;
+export const BACK_V = 700, BACK_T = 0.36;
+export const DEPTH_V = 260;     // µm/s
+export const TURN = 11;         // rad/s
+export const TAU = 0.09;        // s: speed follows the stick this fast (and stops)
+export const WEAVE_V = 520;     // µm/s: how fast it winds over or under
+/** The body as three discs along its axis (offset ahead, radius). */
+export const BODY = [[38, 21], [0, 26], [-38, 22]];
+export const ZMIN = DEPTH.min + THICK, ZMAX = DEPTH.max - THICK;
 
-const fwdOf = (yaw, pitch, out = new THREE.Vector3()) => out.set(Math.cos(pitch) * Math.cos(yaw), Math.sin(pitch), -Math.cos(pitch) * Math.sin(yaw));
-const angleWrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
-const approach = (a, b, max) => a + Math.max(-max, Math.min(max, b - a));
+const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
-export function createSwimmer(cell, world) {
-  const s = {
-    axis: new THREE.Vector3(-150, DEPTH * 0.55, 60),
-    yaw: -0.6, pitch: 0,
-    speed: 0, phi: 0, rh: 0, tilt: 0,
-    beatPhase: 0, freq: 1, reverse: 1, amp: 0.6, oral: 0.3, feed: 0,
-    mode: 'swim', // swim | avoid | captured | dead
-    avoid: null, captor: null, captureT: 0, deadT: 0, safeT: 10, // a grace period at the start to find your fins
-    charges: 3, recharge: 0, burst: new THREE.Vector3(),
-    dashT: 0, dashDir: new THREE.Vector3(), slow: 0,
-    center: new THREE.Vector3(), T: new THREE.Vector3(1, 0, 0), F: new THREE.Vector3(1, 0, 0),
-    quat: new THREE.Quaternion(),
-    U: new THREE.Vector3(), // body velocity, µm/s
-    netSpeed: 0,
-    axisA: new THREE.Vector3(), axisB: new THREE.Vector3(), mouth: new THREE.Vector3(),
-    lastHit: '', hitCount: 0,
-    contactT: 0, contactWhat: '', bumpT: 0, bumpN: new THREE.Vector3(0, 1, 0), slideSide: 1,
-    inspect: false,
-  };
-  const prevCenter = new THREE.Vector3(), tmp = new THREE.Vector3();
-  // switches (the feature panel): lowRe off = an inertial glide, for comparison
-  const opts = { lowRe: true, helix: true, corkscrew: false, beatScale: 1, avoidOnContact: false };
-  const tan = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);
-
-  function frame() {
-    fwdOf(s.yaw, s.pitch, s.F);
-    const T = helixPose(s.axis, s.F, s.phi, s.rh, s.tilt, s.center, s.quat);
-    s.T.copy(T);
-    s.axisA.copy(s.center).addScaledVector(s.T, -CAPSULE_HALF);
-    s.axisB.copy(s.center).addScaledVector(s.T, CAPSULE_HALF);
-    s.mouth.copy(MOUTH).applyQuaternion(s.quat).add(s.center);
-  }
-
-  function startAvoid(hint, stickDir) {
-    if (s.mode !== 'swim') return false;
-    let ty, tp;
-    if (hint) {
-      // bounce off the obstacle's normal, then the cell's own random-ish turn
-      const r = tmp.copy(s.F).addScaledVector(hint, -2 * s.F.dot(hint)).addScaledVector(hint, 0.6).normalize();
-      ty = Math.atan2(-r.z, r.x) + (Math.random() - 0.5) * 0.9;
-      tp = Math.asin(Math.max(-1, Math.min(1, r.y))) * 0.8;
-    } else if (stickDir) {
-      ty = Math.atan2(-stickDir.z, stickDir.x); tp = s.pitch * 0.5;
-    } else {
-      ty = s.yaw + (Math.random() < 0.5 ? -1 : 1) * (1.1 + Math.random() * 0.9);
-      tp = s.pitch * 0.4 + (Math.random() - 0.5) * 0.5;
-    }
-    s.avoid = { t: 0, y0: s.yaw, p0: s.pitch, y1: s.yaw + angleWrap(ty - s.yaw), p1: Math.max(-1.1, Math.min(1.1, tp)), anchor: null };
-    s.mode = 'avoid';
-    return true;
-  }
-
-  function respawn() {
-    const a = Math.random() * Math.PI * 2, r = 300 + Math.random() * 500;
-    s.axis.set(Math.cos(a) * r, 70 + Math.random() * (DEPTH - 140), Math.sin(a) * r);
-    s.mode = 'swim'; s.captor = null; s.captureT = 0; s.speed = 0; s.safeT = 3; s.charges = 3; s.slow = 0;
-  }
-
-  const api = {
-    state: s, opts,
-    startAvoid,
-    respawn,
-    /**
-     * @param {number} dt
-     * @param {number} t
-     * @param {object} inp {thrust, hover, steer:{x,y,m}, rise, view:'scope'|'chase', avoid, burst}
-     * @param {object} ev events out: {hit, burst, captured, escaped, eaten}
-     */
-    step(dt, t, inp, ev) {
-      prevCenter.copy(s.center);
-      s.safeT = Math.max(0, s.safeT - dt);
-      // trichocyst recharge (an invented game rate; real re-docking takes hours)
-      if (s.charges < 3) { s.recharge += dt; if (s.recharge > 9) { s.recharge = 0; s.charges++; } }
-      s.dashT = Math.max(0, s.dashT - dt);
-
-      if (s.mode === 'dead') {
-        s.deadT += dt; // being eaten: main.js plays the sequence and restarts the round
-        frame();
-        return;
-      }
-
-      let targetSpeed = 0;
-      let turn = 1.7 + 1.5 * inp.thrust;
-      s.feed = approach(s.feed, inp.hover, dt * 4);
-      if (s.mode === 'swim') {
-        targetSpeed = inp.thrust * VMAX * (inp.vmaxK ?? 1) * (1 - 0.75 * inp.hover) + 35 * inp.hover;
-        // steering
-        const st = inp.steer;
-        if (inp.view === 'scope') {
-          if (st.m > 0.15) {
-            const ty = api.stickYaw(st, inp.camYaw);
-            s.yaw = approach(s.yaw, s.yaw + angleWrap(ty - s.yaw), (s.dashT > 0 ? 9 : turn * 1.4) * st.m * dt);
-          }
-          const tp = inp.rise * 0.75;
-          s.pitch = approach(s.pitch, tp, (inp.rise ? 1.6 : 0.8) * dt);
-        } else {
-          const intent = swimIntent(st, inp.camYaw, inp.camPitch || 0);
-          // RT remains an optional forward drive; LS alone supplies both aim and thrust.
-          if (intent.thrust > 0 || inp.thrust > 0) {
-            const yaw = intent.thrust > 0 ? intent.yaw : inp.camYaw;
-            s.yaw += Math.max(-turn * dt, Math.min(turn * dt, wrapAngle(yaw - s.yaw)));
-          }
-          const pitch = Math.max(-1.1, Math.min(1.1, (intent.thrust > 0 ? intent.pitch : 0) + inp.rise * 0.85));
-          s.pitch = approach(s.pitch, pitch, 1.8 * dt);
-        }
-        if (inp.avoid) {
-          const sd = inp.view === 'scope' && st.m > 0.3 ? fwdOf(api.stickYaw(st, inp.camYaw), 0) : null;
-          if (startAvoid(null, sd)) ev.avoid = true;
-        }
-        s.reverse = approach(s.reverse, 1, dt * 6);
-      } else if (s.mode === 'avoid') {
-        const a = s.avoid;
-        a.t += dt;
-        if (a.t < 0.3) {
-          // ciliary reversal: the stroke flips within tens of ms, the cell backs up
-          s.reverse = approach(s.reverse, -1, dt * 30);
-          targetSpeed = -650;
-        } else if (a.t < 0.75) {
-          // pivot about the posterior end
-          if (!a.anchor) a.anchor = s.center.clone().addScaledVector(s.T, -HL * 0.85);
-          const k = (a.t - 0.3) / 0.45, e = k * k * (3 - 2 * k);
-          s.yaw = a.y0 + (a.y1 - a.y0) * e;
-          s.pitch = a.p0 + (a.p1 - a.p0) * e;
-          s.reverse = approach(s.reverse, 0.2, dt * 4);
-          targetSpeed = 0;
-        } else {
-          s.mode = 'swim'; s.avoid = null;
-        }
-      } else if (s.mode === 'captured') {
-        s.captureT += dt;
-        s.reverse = Math.sin(t * 9) > 0 ? 1 : -1; // thrashing
-        // main.js runs the catch (strike, hold, eat) with shared/predation.js and
-        // sets captureT from it; struggling there buys a moment
-      }
-
-      // low Re: speed tracks the beat almost at once
-      if (s.dashT > 0 && s.mode === 'swim') targetSpeed = Math.max(targetSpeed, DASH_V * (0.35 + 0.65 * s.dashT / DASH_T));
-      targetSpeed *= 1 - 0.6 * s.slow; // held back (an amoeba's food cup closing round you)
-      s.speed = lowRe(s.speed, targetSpeed, dt, opts.lowRe ? TAU : 1.4);
-
-      // beat (displayed slower than the real 20–35 Hz so the waves can be followed)
-      s.freq = s.mode === 'avoid' ? 7 : s.mode === 'captured' ? 9 : s.dashT > 0 ? 12 : 1.3 + 5.2 * inp.thrust + 1.5 * inp.hover;
-      s.beatPhase += s.freq * opts.beatScale * dt;
-      s.amp = s.mode === 'swim' ? (s.dashT > 0 ? 1 : 0.55 + 0.45 * Math.max(inp.thrust, 0.3 * inp.hover)) : 0.95;
-      s.oral = Math.min(1, 0.35 + 0.65 * s.feed + 0.2 * inp.thrust);
-
-      // Roll about the body's own long axis, through its centre (the oblique
-      // stroke rolls the cell to the left): gentle, and only while swimming.
-      // The body is no longer carried round a helix by default: with the helix
-      // the centre orbited a point 15 µm off the body (the axis the camera
-      // follows) 2.5 times a second while the tilted long axis swept a cone, so
-      // the cell seemed to spin about an axis beside it. Corkscrew (Features,
-      // off) brings that real path back for comparison.
-      const v = Math.abs(s.speed);
-      const omega = opts.corkscrew ? 2 * Math.PI * (0.25 + v / HELIX_PITCH) : 2 * Math.PI * ROLL_HZ * Math.min(1, v / VMAX);
-      s.phi -= omega * dt * (opts.helix ? 1 : 0);
-      const coil = opts.corkscrew && opts.helix && s.mode !== 'avoid' && !s.inspect;
-      const rhT = coil ? HELIX_R * Math.min(1, 0.12 + v / 500) : 0;
-      s.rh = approach(s.rh, rhT, dt * 80);
-      s.tilt = approach(s.tilt, coil ? 0.21 * Math.min(1, v / 400) : 0, dt * 1.5);
-
-      // move
-      fwdOf(s.yaw, s.pitch, s.F);
-      const flow = world.flowAt(s.axis, t);
-      if (s.mode === 'avoid' && s.avoid.anchor) {
-        s.axis.copy(s.avoid.anchor).addScaledVector(s.F, HL * 0.85);
-        s.avoid.anchor.addScaledVector(flow, dt);
-      } else if (s.mode === 'captured' && s.captor) {
-        const tip = s.captor.tip;
-        const dir = tmp.subVectors(s.axis, tip).normalize();
-        const reel = (s.captor.reach ?? HL * 0.95) * (1 - Math.min(1, s.captureT / (s.captor.holdFor || 4)) * 0.9);
-        const goal = tip.clone().addScaledVector(dir, reel);
-        s.axis.lerp(goal, 1 - Math.exp(-dt * 4));
-      } else if (!s.inspect) {
-        s.axis.addScaledVector(s.F, s.speed * dt).addScaledVector(flow, dt);
-      }
-      s.axis.addScaledVector(s.burst, dt);
-      // a safety net only (the visible slide, coverslip and meniscus are met by the contact below first)
-      s.axis.y = Math.max(CAPSULE_R * 0.6, Math.min(DEPTH - CAPSULE_R * 0.6, s.axis.y));
-      const rr = Math.hypot(s.axis.x, s.axis.z);
-      if (rr > DROP_R - CAPSULE_R * 0.6) s.axis.set(s.axis.x * (DROP_R - CAPSULE_R * 0.6) / rr, s.axis.y, s.axis.z * (DROP_R - CAPSULE_R * 0.6) / rr);
-      if (s.inspect) s.safeT = 1;
-      s.burst.multiplyScalar(Math.exp(-dt / 0.07));
-
-      frame();
-
-      // contact: push out and glance off. The heading turns along the surface,
-      // so the cell slides past instead of stopping; a fresh hit reports a
-      // contact (main.js shows a puff at the point, a bump of the cell, rumble).
-      s.contactT = Math.max(0, s.contactT - dt);
-      s.bumpT = Math.max(0, s.bumpT - dt);
-      const hit = world.collide(s.axisA, s.axisB, CAPSULE_R);
-      if (hit) {
-        s.axis.addScaledVector(hit.n, hit.depth);
-        if (hit.ob.ref) { if (world.touchVorticella(hit.ob.ref, t)) ev.vorticella = true; }
-        const into = s.F.dot(hit.n) * Math.sign(s.speed || 1); // < 0: swimming into it
-        if (s.mode === 'swim' && into < -0.02) {
-          tan.copy(s.F).addScaledVector(hit.n, -s.F.dot(hit.n));
-          if (tan.lengthSq() < 0.09) {
-            // head-on: pick a side and keep it while pressed, so it never dithers
-            if (s.contactT <= 0) s.slideSide = Math.random() < 0.5 ? -1 : 1;
-            const side = Math.abs(hit.n.y) > 0.7 ? tmp.set(-s.F.z, 0, s.F.x) : tmp.crossVectors(hit.n, UP);
-            if (side.lengthSq() < 1e-6) side.set(1, 0, 0);
-            tan.addScaledVector(side.normalize(), 0.5 * s.slideSide);
-          }
-          tan.normalize();
-          const k = 1 - Math.exp(-dt * (s.dashT > 0 ? 16 : 11));
-          tmp.copy(s.F).lerp(tan, k).normalize();
-          s.yaw = Math.atan2(-tmp.z, tmp.x);
-          s.pitch = Math.asin(Math.max(-1, Math.min(1, tmp.y)));
-          // at the glass, level out rather than keep pressing into it
-          if (hit.ob.glass && Math.abs(hit.n.y) > 0.7) s.pitch = hit.n.y > 0 ? Math.max(s.pitch, 0) : Math.min(s.pitch, 0);
-        }
-        const impact = Math.max(0, -into) * Math.abs(s.speed);
-        if (s.contactT <= 0 || s.contactWhat !== hit.ob.what) {
-          ev.hit = hit.ob.what;
-          ev.contact = { p: (hit.p || s.center).clone(), n: hit.n.clone(), what: hit.ob.what, glass: !!hit.ob.glass, impact };
-          s.lastHit = hit.ob.what; s.hitCount++;
-          if (impact > 60) { s.bumpT = 0.28; s.bumpN.copy(hit.n); }
-          if (opts.avoidOnContact && !hit.ob.glass && impact > 300 && s.mode === 'swim') startAvoid(hit.n);
-        }
-        s.contactT = 0.25; s.contactWhat = hit.ob.what;
-        frame();
-      }
-
-      s.U.subVectors(s.center, prevCenter).divideScalar(Math.max(dt, 1e-4));
-      if (s.U.length() > 4000) s.U.setLength(4000); // ignore teleports
-      const net = tmp.copy(s.F).multiplyScalar(s.speed).add(flow).add(s.burst).length();
-      s.netSpeed += (net - s.netSpeed) * (1 - Math.exp(-dt / 0.15));
-    },
-    /** World yaw the stick points to in the microscope view; camYaw: yaw at the top of the screen (π/2 = north-up). */
-    stickYaw(st, camYaw = Math.PI / 2) {
-      const c = camYaw;
-      const dx = Math.sin(c) * st.x - Math.cos(c) * st.y, dz = Math.cos(c) * st.x + Math.sin(c) * st.y;
-      return Math.atan2(-dz, dx);
-    },
-    /** Ciliary sprint toward `yaw` (or straight ahead). False while held or dead. */
-    dash(yaw = null) {
-      if (s.mode === 'dead') return false;
-      if (s.mode === 'captured') return false;
-      if (s.mode === 'avoid') { s.mode = 'swim'; s.avoid = null; }
-      if (yaw !== null) {
-        // the cell can only turn so fast even in a sprint: a quick pivot first
-        const d = angleWrap(yaw - s.yaw);
-        s.yaw += Math.max(-1.4, Math.min(1.4, d));
-      }
-      s.dashT = DASH_T;
-      return true;
-    },
-    /** Discharge trichocysts away from `threat` (a world point) or straight back. */
-    burst(threat) {
-      if (s.charges < 1 || s.mode === 'dead') return null;
-      s.charges--; s.recharge = 0;
-      const away = threat ? tmp.subVectors(s.center, threat).normalize().clone() : s.F.clone().negate();
-      s.burst.addScaledVector(away, 1700);
-      if (s.mode === 'captured') { s.mode = 'swim'; s.safeT = 2; if (s.captor) { s.captor.stun = 3; s.captor.released = true; } s.captor = null; s.captureT = 0; }
-      if (s.mode === 'avoid') { s.mode = 'swim'; s.avoid = null; }
-      return away;
-    },
-    release() { if (s.mode === 'captured') { s.mode = 'swim'; s.captor = null; s.captureT = 0; s.safeT = 1; } },
-    /** The hold is over: the predator eats the cell (main.js animates it). */
-    eaten() { if (s.mode === 'captured') { s.mode = 'dead'; s.deadT = 0; } },
-    capture(d) {
-      if (s.mode === 'dead' || s.mode === 'captured' || s.safeT > 0) return false;
-      s.mode = 'captured'; s.captor = d; s.captureT = 0; s.avoid = null;
-      return true;
-    },
-  };
-  frame();
-  return api;
+export function createSwimState(x = 0, y = 0, a = Math.PI / 2, z = 0) {
+  return { x, y, z, a, v: 0, vx: 0, vy: 0, vz: 0, dashT: 0, dashCd: 0, backT: 0, backTurn: 0, weave: 0, weaveDir: 0, blocked: 0, contacts: [] };
 }
+
+/** Closest point parameter on segment (x0,y0)-(x1,y1) to (px,py), in the plane. */
+function segT(o, px, py) {
+  const dx = o.x1 - o.x0, dy = o.y1 - o.y0, L2 = dx * dx + dy * dy;
+  return L2 > 1e-9 ? clamp(((px - o.x0) * dx + (py - o.y0) * dy) / L2, 0, 1) : 0;
+}
+
+/**
+ * One body disc (centre px, py, pz, radius rb) against an obstacle: null when
+ * clear, else { nx, ny (the plane's push-out direction), pen (µm), oz, need (µm
+ * of depth that would clear it), up (the side to wind to: +1 over, -1 under) }.
+ */
+export function contact(o, px, py, pz, rb, thick = THICK) {
+  let cx, cy, oz, R, H;
+  if (o.kind === 'seg') {
+    const t = segT(o, px, py);
+    cx = o.x0 + (o.x1 - o.x0) * t; cy = o.y0 + (o.y1 - o.y0) * t; oz = o.z0 + (o.z1 - o.z0) * t; R = o.r; H = o.r;
+  } else { cx = o.x; cy = o.y; oz = o.z; R = o.r; H = o.h; }
+  const dx = px - cx, dy = py - cy, d = Math.hypot(dx, dy);
+  const pen = rb + R - d;
+  if (pen <= 0) return null;
+  const gap = Math.abs(pz - oz) - (thick + H);
+  if (gap >= 0) return null;
+  const n = d > 1e-6 ? [dx / d, dy / d] : [1, 0];
+  return { nx: n[0], ny: n[1], pen, oz, need: -gap, H, up: pz >= oz ? 1 : -1 };
+}
+
+/**
+ * Advance the cell by dt.
+ *   input: { mx, my, m (stick: world direction, y up; m 0..1), depth (-1 deeper .. +1 shallower) }
+ *   env:   { obstacles: [...], drag = 1 (a crowd's slow-down), push: { x, y } (µm/s, a current), held }
+ * Returns the state (contacts: this step's contacts, for the puffs and the rumble).
+ */
+export function stepSwim(S, input, env, dt) {
+  const { mx = 0, my = 0, m = 0, depth = 0 } = input || {};
+  const drag = env.drag ?? 1;
+  S.dashCd = Math.max(0, S.dashCd - dt);
+  // heading: toward the stick, fast
+  if (S.backT > 0) {
+    S.backT -= dt;
+    S.a = wrap(S.a + S.backTurn * dt / BACK_T);
+  } else if (m > 0.08) {
+    const want = Math.atan2(my, mx);
+    const da = wrap(want - S.a), step = TURN * dt * (S.dashT > 0 ? 0.5 : 1);
+    S.a = wrap(S.a + clamp(da, -step, step));
+  }
+  // speed along the heading
+  let target;
+  if (S.backT > 0) target = -BACK_V;
+  else if (S.dashT > 0) { S.dashT -= dt; target = DASH_V; }
+  else {
+    const align = m > 0.08 ? Math.max(0, Math.cos(wrap(Math.atan2(my, mx) - S.a))) : 0;
+    target = VMAX * Math.min(1, m) * (0.35 + 0.65 * align);
+  }
+  const k = 1 - Math.exp(-dt / (S.dashT > 0 ? 0.04 : TAU));
+  S.v += (target * drag * (S.weave > 0.05 ? 0.78 : 1) - S.v) * k;
+  const ca = Math.cos(S.a), sa = Math.sin(S.a);
+  let vx = ca * S.v + (env.push ? env.push.x : 0), vy = sa * S.v + (env.push ? env.push.y : 0);
+  if (env.held) { vx *= 0.15; vy *= 0.15; }
+  // depth: the stick, plus the weave
+  let vz = depth * DEPTH_V;
+  S.x += vx * dt; S.y += vy * dt;
+  // contacts: each body disc against each obstacle near it
+  S.contacts.length = 0;
+  let weaveWant = 0, weaveNeed = 0;
+  for (const o of env.obstacles || []) {
+    for (const [off, rb] of BODY) {
+      const px = S.x + ca * off, py = S.y + sa * off;
+      const c = contact(o, px, py, S.z, rb);
+      if (!c) continue;
+      const roomUp = ZMAX - (c.oz + c.H + THICK), roomDown = (c.oz - c.H - THICK) - ZMIN;
+      let side = c.up;
+      if ((side > 0 && roomUp < 0) || (side < 0 && roomDown < 0)) side = roomUp >= roomDown ? 1 : -1;
+      const canWeave = o.weave && (side > 0 ? roomUp >= 0 : roomDown >= 0);
+      if (canWeave) {
+        // wind over or under: the depth moves, the plane gives a little
+        if (c.need > weaveNeed) { weaveNeed = c.need; weaveWant = side; }
+        const give = Math.min(c.pen, c.pen * 0.18);
+        S.x += c.nx * give; S.y += c.ny * give;
+      } else {
+        // glance: out along the plane, the push into it dropped
+        S.x += c.nx * c.pen; S.y += c.ny * c.pen;
+        const vn = vx * c.nx + vy * c.ny;
+        if (vn < 0) { vx -= vn * c.nx; vy -= vn * c.ny; }
+        S.blocked = 0.15;
+      }
+      S.contacts.push({ x: px - c.nx * rb, y: py - c.ny * rb, z: S.z, o, weave: canWeave, pen: c.pen });
+    }
+  }
+  if (weaveWant) {
+    S.weaveDir = weaveWant;
+    vz += weaveWant * Math.min(WEAVE_V, weaveNeed / dt);
+    S.weave = Math.min(1, S.weave + dt * 6);
+  } else S.weave = Math.max(0, S.weave - dt * 3);
+  S.z = clamp(S.z + vz * dt, ZMIN, ZMAX);
+  S.blocked = Math.max(0, S.blocked - dt);
+  S.vx = vx; S.vy = vy; S.vz = vz;
+  return S;
+}
+
+/** Start a dash (A); false while recharging. */
+export function dash(S, toward = null) {
+  if (S.dashCd > 0 || S.backT > 0) return false;
+  if (toward !== null) S.a = wrap(S.a + wrap(toward - S.a) * 0.6);
+  S.dashT = DASH_T; S.dashCd = DASH_CD;
+  return true;
+}
+/** The avoiding reaction (B): back up and swing the front round (toward `turnTo`, else a quarter turn). */
+export function backOff(S, turnTo = null) {
+  if (S.backT > 0) return false;
+  S.dashT = 0;
+  S.backT = BACK_T;
+  S.backTurn = turnTo === null ? Math.PI / 2 : clamp(wrap(turnTo - S.a), -2.2, 2.2);
+  return true;
+}
+/** The body's front (the oral end) and the point of its gulp. */
+export const frontOf = (S, k = 0.5) => ({ x: S.x + Math.cos(S.a) * LENGTH * k, y: S.y + Math.sin(S.a) * LENGTH * k });
