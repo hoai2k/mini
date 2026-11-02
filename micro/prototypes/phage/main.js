@@ -32,6 +32,7 @@ import { createCurrents, carriedPath } from './currents.js';
 import { pickGrabTarget, surfacePart, GRAB } from './grab.js';
 import { createMedium } from './medium.js';
 import { beadMesh, beadMaterial, beadTemplate, PALETTE } from '../shared/techniques/phage-beads.js';
+import { t as tt, tx } from '../shared/text.js';
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
@@ -79,29 +80,29 @@ resize();
 // up to four local players (shared/players.js); P1 also on the keyboard
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { syncTeam(); hud.toast(`Player ${p.slot + 1} joined`); hud.players(players.list); embed.join(p.slot, p.color, p.name); },
-  onLeave: (p) => { syncTeam(); hud.toast(`Player ${p.slot + 1} left`); hud.players(players.list); embed.leave(p.slot); },
+  onJoin: (p) => { syncTeam(); hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); hud.players(players.list); embed.join(p.slot, p.color, p.name); },
+  onLeave: (p) => { syncTeam(); hud.toast(tt('shared.players.left', { n: p.slot + 1 })); hud.players(players.list); embed.leave(p.slot); },
 });
 const pad = players.pad(0);
 let ctl = players.controls(0);
 const hud = mountHud({
-  title: 'Phage',
-  sub: 'A T4-like phage, 0.2 µm long, in bog water beside its host bacteria: a molecular illustration, not a microscope image. Grab what you find; hang on to a cell when a current comes.',
+  title: tt('phage.hud.title'),
+  sub: tt('phage.hud.sub'),
   controls: hudControls({
-    move: 'Move (forward/back, sideways)',
-    camera: 'Turn the view',
-    secondary: 'Down / up',
-    dash: 'Dash forward',
-    attack: 'Grab / let go (or attack)',
-    defend: 'Block / slip through',
-    special: 'Enter portal / way back · info',
-    look: 'Change the look',
-    zoom: 'Zoom',
-    extra: [['RT', 'Hold to grab and hang on']],
+    move: tt('phage.hud.controls.move'),
+    camera: tt('phage.hud.controls.camera'),
+    secondary: tt('phage.hud.controls.secondary'),
+    dash: tt('phage.hud.controls.dash'),
+    attack: tt('phage.hud.controls.attack'),
+    defend: tt('phage.hud.controls.defend'),
+    special: tt('phage.hud.controls.special'),
+    look: tt('phage.hud.controls.look'),
+    zoom: tt('phage.hud.controls.zoom'),
+    extra: [['RT', tt('phage.hud.controls.grabHold')]],
   }),
-  note: 'Get into the glowing host, and avoid the amoeba. Up to four players: press any button on another controller to join.',
+  note: tt('phage.hud.note'),
 });
-const tag = Object.assign(document.createElement('div'), { className: 'ph-tag', textContent: 'DATA OVERLAY · receptors, defences and odds: data, not optics' });
+const tag = Object.assign(document.createElement('div'), { className: 'ph-tag', textContent: tt('phage.dataTag') });
 const label = Object.assign(document.createElement('div'), { className: 'ph-label' });
 const scaleEl = Object.assign(document.createElement('div'), { className: 'ph-scale' });
 const card = Object.assign(document.createElement('div'), { className: 'ph-card' });
@@ -148,6 +149,8 @@ safeTexture('MP-V02').then((t) => { if (t) { art.water = t; applyArt(); } });
 safeTexture('MP-V03', { repeat: false }).then((t) => { if (t) { art.section = t; applyArt(); } });
 
 const LOOKS = ['Realistic false light', 'Goodsell watercolour', 'Cryo-EM greyscale', 'Fluorescence (pseudo-colour)'];
+/** A look's name as shown (LOOKS are the stored values; the words are phage.features.lookFL.choices). */
+const lookName = (v) => tx('phage.features.lookFL.choices')[v] ?? v;
 const POST_LOOK = [3, 0, 1, 2]; // createPost's look index for each
 const isFL = () => view.look === 0;
 const ZOOMS = [60, 110, 180, 290];
@@ -254,45 +257,32 @@ audio.loop('bacterium/amb-sediment', { volume: 0.5 });
 const driftLoop = audio.loop('bacterium/run', { volume: 0 });
 function unlockOnPad() { if (pad.kind !== 'controller') return; for (let b = 0; b < 16; b++) if (pad.value(b) > 0.5) { audio.unlock(); return; } }
 
-features.add({ id: 'lookFL', group: 'Rendering', label: 'Look (D-pad ←→)', choices: LOOKS, value: LOOKS[0],
-  about: 'Realistic false light (the default): realistic biological surfaces and translucent materials lit by a hypothetical light, as in micro/design/phage-visual-style.html: the phage glows gold against teal-blue translucent cells covered in surface proteins, in a crowded, softly lit molecular water with haze, bloom and a large depth of field (only far layers soften). No microscope makes this picture: the light is invented. Goodsell watercolour: crowded, colour-coded molecules with ink outlines, flat soft light and depth by desaturation, after David Goodsell\'s paintings. Cryo-EM greyscale: what cryo-electron tomography really gives (Hu et al. 2015 [S99]): protein density dark on grey, a bright defocus fringe, heavy shot noise. Fluorescence: every protein glowing as if tagged, a pseudo-colour fantasy (no light microscope resolves a phage). All three are illustrations.',
+features.add({ id: 'lookFL', group: 'Rendering', choices: LOOKS, value: LOOKS[0],
   onChange: (v) => { view.look = Math.max(0, LOOKS.indexOf(v)); applyStyle(); } });
-features.add({ id: 'capsid2', group: 'Rendering', label: 'Capsid', choices: ['Cutaway', 'Translucent', 'Solid'], value: 'Translucent',
-  about: 'Translucent (the default): the capsid as a glassy, faceted shell, the DNA glowing inside. Cutaway: the half of the head facing you is clipped away, showing the DNA packed inside as a coaxial spool (~169 kbp, about 57 µm of DNA in a 0.12 µm head [S98]). Translucent: the capsid as a glassy shell. Solid: as it would look from outside.',
+features.add({ id: 'capsid2', group: 'Rendering', choices: ['Cutaway', 'Translucent', 'Solid'], value: 'Translucent',
   onChange: (v) => { capsidMode = v.toLowerCase(); for (const m of members()) m.t4.set({ capsid: capsidMode }); applyInk(); } });
-features.add({ id: 'ink', group: 'Rendering', label: 'Ink outlines', on: true, about: 'An inverted-hull outline around every molecule, fading with depth, as in a Goodsell painting (Goodsell, cryo-EM and fluorescence looks; false light has none). Hidden hulls cost nothing.', onChange: (on) => { view.ink = on; goodsellShared.uInkOn.value = on ? 1 : 0; applyInk(); } });
-features.add({ id: 'depth', group: 'Rendering', label: 'Depth by desaturation', on: true, about: 'Far things fade toward the water colour and lose saturation (Goodsell\'s depth cue) instead of getting smaller and darker.', onChange: (on) => { goodsellShared.uDepthOn.value = on ? 1 : 0; } });
-features.add({ id: 'art', group: 'Rendering', label: 'Delivered art (MP-V01/V02/V03)', on: true,
-  about: 'The envelope surface (MP-V01) on the hosts, the water backdrop (MP-V02) behind the scene and the envelope section (MP-V03) above the cytoplasm inside the host. Off: the procedural watercolour stand-ins.',
+features.add({ id: 'ink', group: 'Rendering', on: true, onChange: (on) => { view.ink = on; goodsellShared.uInkOn.value = on ? 1 : 0; applyInk(); } });
+features.add({ id: 'depth', group: 'Rendering', on: true, onChange: (on) => { goodsellShared.uDepthOn.value = on ? 1 : 0; } });
+features.add({ id: 'art', group: 'Rendering', on: true,
   onChange: (on) => { view.art = on; applyArt(); } });
-features.add({ id: 'model', group: 'Body', label: 'T4 from its anatomy', fixed: true,
-  about: 'Prolate icosahedral head 120 × 86 nm studded with capsomers; collar and fibritin whiskers; a 23-ring sheath (98 nm) that contracts to 42 nm and fattens, exposing the inner tube; a hexagonal baseplate that opens into a star; six kinked long fibres of 160 nm simulated as chains, and six short fibres under the plate [S98, S99].' });
-features.add({ id: 'drive', group: 'Motion', label: 'Steering', choices: ['Steer: LS, LB/RB move the phage (departure)', 'Honest: Brownian motion only'], value: 'Steer: LS, LB/RB move the phage (departure)',
-  about: 'A phage has no motor: it moves only by diffusion until it touches a host [S100]. The default gives it crisp game controls as a labelled departure: LS forward and back along the view and sideways, LB/RB down and up, quick to start and to stop (about 0.35 µm/s on the slowed clock), A a dash forward; nothing but a visible current fights the stick. Honest: the sticks do nothing in open water (grabbing still works).',
+features.add({ id: 'model', group: 'Body', fixed: true });
+features.add({ id: 'drive', group: 'Motion', choices: ['Steer: LS, LB/RB move the phage (departure)', 'Honest: Brownian motion only'], value: 'Steer: LS, LB/RB move the phage (departure)',
   onChange: (v) => { opts.drive = v.startsWith('Steer'); } });
-features.add({ id: 'brown', group: 'Motion', label: 'Brownian motion', on: true,
-  about: 'T4 diffuses with D ≈ 4 µm²/s [S100]. On the ~20× slowed clock that is ~0.2 µm²/s. Here it is shown in the water round you, not done to you: the crowd jostles thermally (the small molecules fastest), the textured liquid drifts, and the hosts and the amoeba\'s edge drift; with the sticks let go the phage wanders very slowly. Off: all of it still.',
+features.add({ id: 'brown', group: 'Motion', on: true,
   onChange: (on) => { opts.brownian = on; world.opts.hostBrownian = on; for (const b of world.baths) b.uniforms.uJit.value = on ? b.jit0 : 0; } });
-features.add({ id: 'tumble', group: 'Motion', label: 'Slow tumbling', on: true,
-  about: 'A 0.1 µm particle forgets its orientation within about a millisecond (rotational diffusion ~1.3 × 10³ rad²/s). Here it turns slowly instead, so you can see the phage (a labelled departure).',
+features.add({ id: 'tumble', group: 'Motion', on: true,
   onChange: (on) => { opts.tumble = on; } });
-features.add({ id: 'uv', group: 'Simulation', label: 'UV sunfleck shafts', on: true,
-  about: 'Sunlight UV-B damages phage DNA. In humic bog water it is absorbed within centimetres (10 % left at 1.5 cm in the most humic lake [S104]); where a gap in the floating peat mat lets the sun through, a shaft of it reaches down. Here the shafts are visible violet columns on a shell round the start: touch one and your DNA is damaged at once (a second touch while damaged destroys you). No slow drain: away from the shafts you are safe for as long as you like. Off: the shafts are harmless light.',
+features.add({ id: 'uv', group: 'Simulation', on: true,
   onChange: (on) => { opts.uv = on; } });
-features.add({ id: 'amoeba', group: 'Simulation', label: 'Amoeba on guard', on: true,
-  about: 'The way on (Host A\'s gold receptor) is guarded by an amoeba grazing beside it: its lobe hovers over the receptor. Come near and it reaches for you (and rears before it strikes); it follows you only so far and is slower than you. Lure it off and slip round, or fold your fibres (B) so its strike slides off and jab it (X) until it gives up and draws its lobe back for good. Grabbing the receptor while it is on guard turns you back. Off: no guard. Amoebae grazing on viruses is [Unverified] in the spec.',
+features.add({ id: 'amoeba', group: 'Simulation', on: true,
   onChange: (on) => { opts.amoeba = on; } });
-features.add({ id: 'medium', group: 'World', label: 'Textured water', on: new URLSearchParams(location.search).get('medium') !== '0',
-  about: 'The water drawn as a thick liquid of molecules: faint drifting noise in a few slices across the view, tied to the world so it slides past as you move, and streaming into streaks where a current comes. Off (or ?medium=0): clear water, and a current shows only in the crowd and the sound.',
+features.add({ id: 'medium', group: 'World', on: new URLSearchParams(location.search).get('medium') !== '0',
   onChange: (on) => { opts.medium = on; } });
-features.add({ id: 'crowd', group: 'World', label: 'Crowded water', on: true,
-  about: 'Thousands of molecules (proteins, humic colloids, sugars, ions) as bead clusters, jostling and tumbling, pushed by gusts and by your passage, filling the water in every direction and round every split view (they wrap round each view on the GPU). Small solutes are drawn several times too large so they read, and the water is far more crowded than a real bog (departures).',
+features.add({ id: 'crowd', group: 'World', on: true,
   onChange: (on) => { world.opts.crowd = on; } });
-features.add({ id: 'currents', group: 'Motion', label: 'Currents', on: true,
-  about: 'Every 30 to 60 s a current sweeps through the water near you: you see it coming (the liquid streams into streaks from one side of the view, a whoosh and a note, at least 2.5 s before it arrives), and it carries anything not anchored, you included, a few µm on to a new area. Grab a cell (X or RT) before it reaches you and you hang on while it passes. Never sent across the way on, into a UV shaft or a floc. Bog water does have slow currents and eddies; a front you can see coming is a game departure. Off: none.',
+features.add({ id: 'currents', group: 'Motion', on: true,
   onChange: (on) => { opts.currents = on; if (!on) currents.reset(); } });
-features.add({ id: 'level', group: 'Controls', label: 'Keep the surface up', on: true,
-  about: 'The water has no up or down for a phage, and RS turns the view freely about its own axes (a quaternion: no pole to flip at, and it never turns on its own). On: a gentle roll keeps the sunlit surface, where the UV is, toward the top of the screen; it fades out when you look straight up or down, so it can never spin the view. Off: the view rolls only when you turn it.',
+features.add({ id: 'level', group: 'Controls', on: true,
   onChange: (on) => { view.level = on; } });
 addInvertY(features);
 quality.addToFeatures(features);
@@ -376,7 +366,7 @@ function respawn(m) {
   // the start, clear of the shafts and flocs; beside a teammate who is still in play, if any
   const at = mate ? mate.P.pos.clone().add(new THREE.Vector3(rand(-24, 24), 26, 0)) : safeSpot(m.P.lostAt);
   placeAtStart(m, at);
-  if (m.P === P) say(`${players.get(m.slot)?.name || 'P' + (m.slot + 1)} drifts back in${mate ? ' beside a teammate' : ''}.`, 2000, true);
+  if (m.P === P) say(tt(mate ? 'phage.toasts.driftsBackBeside' : 'phage.toasts.driftsBack', { name: players.get(m.slot)?.name || tt('shared.hud.playerShort', { n: m.slot + 1 }) }), 2000, true);
 }
 let respawning = false;
 /** A calm spot about 1.6 µm back toward the start from p (null: the start itself). */
@@ -420,7 +410,7 @@ function resetLevel() {
   P.burstSent = false;
   view.target.copy(P.pos); view.q.identity(); view.lookHold = 0;
   // in the game shell its intro has already said this
-  if (!embed.active || started) say('You are a T4-like phage in bog water. LS moves you (up: forward into the view), LB/RB down and up, A dashes, RS turns the view; X or RT grabs what is in reach. Head out any way you like: what waits comes to meet you. Last, a golden glow marks the way on.', 5200, true);
+  if (!embed.active || started) say(tt('phage.toasts.intro'), 5200, true);
   started = true;
 }
 
@@ -482,7 +472,7 @@ function captureAnim(phase, t, dt) {
 // --- explicit protein grab, then the existing irreversible injection ---
 function beginCommit() {
   P.mode = 'commit'; P.commitT = 0; P.commitHost = P.host; P.host.locked = true;
-  say('Receptor fits: fibres latch, the baseplate opens and the sheath injects…', 3200, true);
+  say(tt('phage.toasts.receptorFits'), 3200, true);
   audio.play('bacterium/phage', { volume: 0.9 });
   curPad().rumble(250, 0.3, 0.5);
 }
@@ -552,30 +542,30 @@ function releaseHold(push = true) {
  */
 function tryGrab(by = 'x', quiet = false) {
   if (!['drift', 'walk'].includes(P.mode) || P.grabCooldown > 0 || P.hold) return;
-  if (P.foldTarget > 0.5 || P.fold > 0.5) { if (!quiet) say('Fibres folded: extend them (B) to grab.', 1800, true); return; }
+  if (P.foldTarget > 0.5 || P.fold > 0.5) { if (!quiet) say(tt('phage.toasts.fibresFolded'), 1800, true); return; }
   if (P.mode === 'walk') return;
   if (!quiet) {
     // A protein aimed at: the gold receptors are the ones that matter (the injection); a second player may
     // try a wrong protein, but cannot enter an occupied host phase.
     const aimed = aimedProtein(P.pos, attachmentForward(P.q), world.proteins, (target) => world.toWorld(target.host, target.local));
     const portalHost = aimed && world.portal && aimed.host === world.portal.host && aimed.compatible;
-    if (portalHost && portalSealed()) { say('Host A\'s receptors do not take you yet: meet the other hosts first.', 2400, true); P.grabCooldown = 0.6; return; }
+    if (portalHost && portalSealed()) { say(tt('phage.toasts.sealed'), 2400, true); P.grabCooldown = 0.6; return; }
     if (portalHost && guarded()) {
       // the way on, on guard: turned back (the lobe shoves you off the receptor)
       const n = world.dirToWorld(aimed.host, aimed.normal, new THREE.Vector3());
       P.gust.addScaledVector(n, 60).addScaledVector(_v.subVectors(P.pos, world.amoeba.center).normalize(), 25);
       P.grabCooldown = 0.6; curPad().rumble(160, 0.4, 0.5); audio.play('bacterium/tumble', { volume: 0.6, rate: 0.8 });
-      say('Turned back: the amoeba\'s lobe guards this receptor. Lure it away, or fold (B) and jab (X) until it gives up.', 3200, true);
+      say(tt('phage.toasts.turnedBack'), 3200, true);
       ringLog.push({ kind: 'turnedBack', t: +t.toFixed(2), slot: cur.slot });
       return;
     }
     if (aimed) {
       const n = world.dirToWorld(aimed.host, aimed.normal, new THREE.Vector3()), at = world.toWorld(aimed.host, aimed.surface, new THREE.Vector3());
       // the way on is entered on purpose, with Y (the owner, 1 Nov 2026: "Press Y to enter portal", never an automatic door): hang on there
-      if (portalHost) { holdCell(aimed.host, at, n, by, 'a gold receptor'); say('The way on: press Y to enter Host A.', 2000, true); return; }
+      if (portalHost) { holdCell(aimed.host, at, n, by, tt('phage.parts.goldReceptor')); say(tt('phage.toasts.wayOn'), 2000, true); return; }
       if (aimed.compatible) {
         if (members().some((m) => m !== cur && ['grab', 'commit', 'inside', 'burst'].includes(m.P.mode) && (m.P.mode !== 'grab' || m.P.grab?.protein.compatible))) {
-          say('A teammate is already attaching or injecting: wait for them.', 1800, true); return;
+          say(tt('phage.toasts.teammateBusy'), 1800, true); return;
         }
         releaseAnchors(); P.host = null; P.canCommit = false;
         P.grab = { protein: aimed, time: 0, from: P.pos.clone(), q: P.q.clone() };
@@ -583,21 +573,21 @@ function tryGrab(by = 'x', quiet = false) {
         audio.play('bacterium/tumble', { volume: 0.35, rate: 1.4 });
         return;
       }
-      holdCell(aimed.host, at, n, by, 'a violet protein');
-      say('This protein does not fit: you just hang on. Only a gold three-lobed receptor lets you in.', 2300);
+      holdCell(aimed.host, at, n, by, tt('phage.parts.violetProtein'));
+      say(tt('phage.toasts.doesNotFit'), 2300);
       return;
     }
   }
   const tgt = grabTarget();
   if (!tgt) {
-    if (!quiet) { cur.jab = 0.45; P.grabCooldown = 0.2; say('Nothing in reach: drift closer to a molecule or a cell.', 1600); }
+    if (!quiet) { cur.jab = 0.45; P.grabCooldown = 0.2; say(tt('phage.toasts.nothingInReach'), 1600); }
     return;
   }
-  if (tgt.kind === 'mol') { holdMol(tgt.mol, by); if (!quiet) say('Got a molecule: it rides with you. Let go to set it drifting.', 1600); return; }
+  if (tgt.kind === 'mol') { holdMol(tgt.mol, by); if (!quiet) say(tt('phage.toasts.gotMolecule'), 1600); return; }
   const h = tgt.cell.host;
   const part = surfacePart(world.toLocal(h, tgt.point, _v), h.wrong);
   holdCell(h, tgt.point, tgt.cell.normal, by, part);
-  say(`Holding on to ${part} of ${h.bystander ? 'a bacterium of another kind' : h.name}: currents pass you by.${h.bystander || h.wrong ? '' : ' (Only a gold three-lobed receptor lets you in.)'}`, 2200);
+  say(tt(h.bystander || h.wrong ? 'phage.toasts.holdingOn' : 'phage.toasts.holdingOnHint', { part, host: h.bystander ? tt('phage.hosts.otherKind') : h.name }), 2200);
 }
 /** Each frame while anchored to a cell: hang on at the anchor; LS crawls it along the surface. */
 function updateHoldCell(dt, inp) {
@@ -658,7 +648,7 @@ function updateGrab(dt) {
   } else {
     releaseAnchors(); P.mode = 'drift'; P.gust.copy(normal).multiplyScalar(28);
     P.angVel.set(0, 0, 0.8); P.grabCooldown = 0.25;
-    say('The fibres close, but this protein does not fit: you slip off. Try a gold three-lobed receptor.', 2300, true);
+    say(tt('phage.toasts.slipOff'), 2300, true);
     audio.play('bacterium/tumble', { volume: 0.65, rate: 0.8 }); curPad().rumble(100, 0.15, 0.25);
   }
 }
@@ -682,17 +672,17 @@ const _pc = new THREE.Vector3(), _pq = new THREE.Vector3();
 function tryEnter() {
   const protein = portalReceptorNear(cur);
   if (!protein) return false;
-  if (portalSealed()) { say('Host A\'s receptors do not take you yet: meet the other hosts first.', 2400, true); return true; }
+  if (portalSealed()) { say(tt('phage.toasts.sealed'), 2400, true); return true; }
   if (guarded()) {
     const n = world.dirToWorld(protein.host, protein.normal, new THREE.Vector3());
     P.gust.addScaledVector(n, 60).addScaledVector(_v.subVectors(P.pos, world.amoeba.center).normalize(), 25);
     curPad().rumble(160, 0.4, 0.5); audio.play('bacterium/tumble', { volume: 0.6, rate: 0.8 });
-    say('Turned back: the amoeba\'s lobe guards this receptor. Lure it away, or fold (B) and jab (X) until it gives up.', 3200, true);
+    say(tt('phage.toasts.turnedBack'), 3200, true);
     ringLog.push({ kind: 'turnedBack', t: +t.toFixed(2), slot: cur.slot });
     return true;
   }
   if (members().some((m) => m !== cur && ['grab', 'commit', 'inside', 'burst'].includes(m.P.mode) && (m.P.mode !== 'grab' || m.P.grab?.protein.compatible))) {
-    say('A teammate is already attaching or injecting: wait for them.', 1800, true); return true;
+    say(tt('phage.toasts.teammateBusy'), 1800, true); return true;
   }
   P.foldTarget = 0; P.fold = Math.min(P.fold, 0.5);
   releaseHold(false); releaseAnchors(); P.host = null; P.canCommit = false; P.kv.set(0, 0, 0);
@@ -706,7 +696,7 @@ let nearPortal = false;
 /** The shell's "Y Enter the portal" prompt: on while any player is in the area and the guard is away. */
 function updatePortalPrompt(where) {
   const on = where === 'outside' && !!world.portal && !portalSealed() && !guarded() && members().some((m) => portalReceptorNear(m));
-  if (on !== nearPortal) { nearPortal = on; embed.near('portal', on, 'Enter Host A (Y)'); }
+  if (on !== nearPortal) { nearPortal = on; embed.near('portal', on, tt('phage.prompts.enterHostA')); }
 }
 
 // --- per-mode updates ---
@@ -775,7 +765,7 @@ function updateDrift(dt, inp) {
     P.snagT += dt;
     P.vel.multiplyScalar(Math.exp(-dt * 4)); P.kv.multiplyScalar(Math.exp(-dt * 4));
     P.pos.lerp(P.snag.pos, 1 - Math.exp(-dt * 0.25)); // pulled into the tangle
-    if (!was) { say('Fibres snagged in a humic floc: it drags you in. Fold them (B) to slip through.', 2600, true); curPad().rumble(140, 0.3, 0.2); audio.play('bacterium/tumble', { volume: 0.45, rate: 0.7 }); }
+    if (!was) { say(tt('phage.toasts.flocSnag'), 2600, true); curPad().rumble(140, 0.3, 0.2); audio.play('bacterium/tumble', { volume: 0.45, rate: 0.7 }); }
   } else P.snagT = 0;
   // a carried molecule rides at the baseplate, the fibres closed round it
   if (P.hold?.kind === 'mol') {
@@ -824,7 +814,7 @@ function enterClay() {
   for (let f = 0; f < 6; f++) { const tip = t4.tip(f); if (world.sdClay(tip) < 4) { P.stuckTip[f] = tip.clone(); t4.fibres[f].anchor = P.stuckTip[f]; } }
   P.vel.set(0, 0, 0); P.gust.set(0, 0, 0);
   audio.play('bacterium/tumble', { volume: 0.5, rate: 0.8 });
-  say('Fibres stuck to a clay platelet. Fold them (B) to slip free.', 3000, true);
+  say(tt('phage.toasts.claySnag'), 3000, true);
 }
 
 function updateClay(dt, inp) {
@@ -847,7 +837,7 @@ function leaveClay() {
   P.mode = 'drift'; P.stuckTip.fill(null);
   for (const f of t4.fibres) f.anchor = null;
   P.gust.set(0, -16, 0);
-  say('Folded fibres slip off the clay.', 1600, true);
+  say(tt('phage.toasts.clayFolded'), 1600, true);
 }
 
 function updateWalk(dt, inp) {
@@ -902,7 +892,7 @@ function updateWalk(dt, inp) {
   }
   const was = P.canCommit;
   P.bound = bound; P.canCommit = bound >= 3;
-  if (P.canCommit && !was) { say(`${bound} fibres bound to OmpC: X to commit (irreversible).`, 2600, true); curPad().rumble(60, 0.2, 0); }
+  if (P.canCommit && !was) { say(tt('phage.toasts.fibresBound', { n: bound }), 2600, true); curPad().rumble(60, 0.2, 0); }
 }
 
 function leaveSurface(push) {
@@ -948,8 +938,8 @@ function damage() {
     stray.t4.group.position.copy(stray.pos); stray.t4.resetFibres(t);
   }
   curPad().rumble(300, 0.5, 0.6); audio.play('bacterium/eat', { volume: 0.6, rate: 1.3 });
-  say(isMulti() ? 'UV broke your DNA: you are DAMAGED. Alone your injection fails; inject into the same host as a teammate and your genomes recombine (multiplicity reactivation). More UV is fatal.'
-    : 'UV broke your DNA: you are DAMAGED. Alone your injection fails. Another damaged phage is drifting nearby: find it, pair with it and co-infect a host together. Another shaft is fatal.', 5200, true);
+  say(isMulti() ? tt('phage.toasts.damagedTeam')
+    : tt('phage.toasts.damagedStray'), 5200, true);
   stray.log.push(`P${cur.slot + 1} damaged at t=${t.toFixed(1)}`);
 }
 function updateStray(dt) {
@@ -961,7 +951,7 @@ function updateStray(dt) {
     // a damaged phage that comes close pairs with it
     for (const o of members()) if (o.P.damaged && o.P.mode === 'drift' && o.P.pos.distanceTo(s.pos) < 70) {
       s.paired = o; s.log.push(`stray paired with P${o.slot + 1} at t=${t.toFixed(1)}`);
-      if (o === team[0] || isMulti()) say('The stray damaged phage drifts along with you: co-infect a host together and your broken genomes can recombine.', 3600, true);
+      if (o === team[0] || isMulti()) say(tt('phage.toasts.strayPaired'), 3600, true);
       break;
     }
   }
@@ -1026,8 +1016,8 @@ function updateCoinfect(dt) {
   const limit = isMulti() ? COINFECT_WAIT.multi : COINFECT_WAIT.solo;
   if (P.coT > limit) {
     P.coHost = null; h.locked = false;
-    startCapture('dud', 'Alone, your UV-damaged genome', 'could not replicate, and the host broke it down');
-  } else if (P.msgT <= 0 && isMulti()) { say(`P${cur.slot + 1}'s damaged genome waits in ${h.name} (${Math.ceil(limit - P.coT)} s): a teammate injecting there revives it.`, 2200); P.msgT = 6; }
+    startCapture('dud', tt('phage.capture.dud.by'), tt('phage.capture.dud.how'));
+  } else if (P.msgT <= 0 && isMulti()) { say(tt('phage.toasts.genomeWaits', { n: cur.slot + 1, host: h.name, s: Math.ceil(limit - P.coT) }), 2200); P.msgT = 6; }
 }
 
 const COMMIT_T = 3.6;
@@ -1056,8 +1046,8 @@ function updateCommit(dt) {
       // a damaged genome alone cannot work: wait in the host for a partner
       P.mode = 'coinfect'; P.coHost = h; P.coT = 0; P.fade = 0; h.locked = false;
       stray.log.push(`P${cur.slot + 1} damaged and alone in ${h.name}: waiting (t=${t.toFixed(1)})`);
-      say(isMulti() ? 'Your damaged genome is in, but cannot work alone. A teammate who injects into this host will recombine with it.'
-        : 'Your damaged genome is in, but cannot work alone, and no second phage came with you…', 4000, true);
+      say(isMulti() ? tt('phage.toasts.genomeAloneTeam')
+        : tt('phage.toasts.genomeAlone'), 4000, true);
       return;
     }
     if (strayJoins) { stray.used = true; stray.t4.group.visible = stray.t4.fibreMesh.visible = false; }
@@ -1066,11 +1056,11 @@ function updateCommit(dt) {
       P.damaged = false; P.integrity = 1; P.dark = 0; P.crack = 0; P.wreck = 0;
       stray.log.push(`P${cur.slot + 1} revived inside ${h.name} by multiplicity reactivation with ${strayJoins ? 'the stray' : 'P' + (partners[0].slot + 1)} (t=${t.toFixed(1)})`);
     }
-    if (partners.length || strayJoins) say(`Multiplicity reactivation: two damaged genomes recombined into one that works${partners.length ? `: P${partners.map((o) => o.slot + 1).join(', P')} is whole again` : ''}.`, 3600, true);
+    if (partners.length || strayJoins) say(partners.length ? tt('phage.toasts.reactivatedPlayers', { players: partners.map((o) => tt('shared.hud.playerShort', { n: o.slot + 1 })).join(', ') }) : tt('phage.toasts.reactivated'), 3600, true);
     P.mode = 'inside';
     inside.start(h);
     inside.setRadar(view.overlay);
-    say(h.crispr ? 'Inside Host B. Its CRISPR complexes carry a spacer matching you: they hunt hard. Lead the DNA end away (LS).' : 'Inside the host. Lead the DNA\'s end (LS) away from the restriction enzyme and CRISPR complex until the genome is in.', 4200, true);
+    say(h.crispr ? tt('phage.toasts.insideHostB') : tt('phage.toasts.insideHost'), 4200, true);
   }
 }
 
@@ -1253,7 +1243,7 @@ function tryJab(m) {
   const gone = fight.bitten();
   audio.play('bacterium/sprint', { volume: 0.7, rate: 1.4 });
   curPad().rumble(140, 0.5, 0.4);
-  say(gone ? 'Jabbed again: the amoeba gives up and draws its lobe back.' : 'Fibre jab: the lobe flinches back (a departure: a phage has no weapon).', 2000, true);
+  say(gone ? tt('phage.toasts.jabGone') : tt('phage.toasts.jab'), 2000, true);
   return true;
 }
 function updateGuard(dt) {
@@ -1284,7 +1274,7 @@ function updateGuard(dt) {
   }
   use(prey.m);
   const c = prey.c;
-  if (fightState === 'guard') { fightState = 'stalk'; if (P.msgT <= 0) { say('The amoeba beside Host A reaches its lobe for you: it guards the gold receptor. Lure it off and slip round, or fold (B) and jab (X) until it gives up.', 3600, true); P.msgT = 4; } }
+  if (fightState === 'guard') { fightState = 'stalk'; if (P.msgT <= 0) { say(tt('phage.toasts.amoebaReaches'), 3600, true); P.msgT = 4; } }
   const toward = _w.subVectors(c, am.tip);
   const d = toward.length();
   toward.normalize();
@@ -1303,8 +1293,8 @@ function updateGuard(dt) {
   } else if (f.state === 'strike') { standoff = 0; sp = 160; open = 1.6 - f.t * 1.6; posture = 1; }
   else if (f.state === 'recover') { standoff = 46; sp = 25; open = 0.3; }
   else if (f.state === 'repelled') { standoff = 80; sp = 70; open = 0; posture = 0; }
-  if (f.blocked) { P.gust.addScaledVector(toward, 40); curPad().rumble(160, 0.4, 0.6); audio.play('bacterium/tumble', { volume: 0.6, rate: 0.8 }); say('Folded and slippery: the lobe slides off you.', 1800, true); }
-  if (f.retreated) { guard.gone = true; say('The amoeba gives up and draws its lobe back for good: the gold receptor is open.', 3200, true); ringLog.push({ kind: 'guardGone', t: +t.toFixed(2) }); }
+  if (f.blocked) { P.gust.addScaledVector(toward, 40); curPad().rumble(160, 0.4, 0.6); audio.play('bacterium/tumble', { volume: 0.6, rate: 0.8 }); say(tt('phage.toasts.lobeSlides'), 1800, true); }
+  if (f.retreated) { guard.gone = true; say(tt('phage.toasts.amoebaGone'), 3200, true); ringLog.push({ kind: 'guardGone', t: +t.toFixed(2) }); }
   const goal = d - standoff;
   am.tip.addScaledVector(toward, Math.sign(goal) * Math.min(Math.abs(goal), sp * dt));
   // never further than its leash from its post
@@ -1313,8 +1303,8 @@ function updateGuard(dt) {
   am.reach = am.tip.distanceTo(am.base);
   am.posture(posture);
   world.drawPod(am.reach, am.base, am.tip, open);
-  if (f.hit) startCapture('amoeba', 'The amoeba', 'closed its lobe round you into a food vacuole');
-  if (f.state === 'windup' && f.t < 0.15 && P.msgT <= 0) { say('The lobe rears and curls to strike: fold your fibres (B) to slip, or jab it (X)!', 2400, true); P.msgT = 3; }
+  if (f.hit) startCapture('amoeba', tt('phage.capture.amoeba.by'), tt('phage.capture.amoeba.how'));
+  if (f.state === 'windup' && f.t < 0.15 && P.msgT <= 0) { say(tt('phage.toasts.lobeRears'), 2400, true); P.msgT = 3; }
 }
 
 // --- overlay labels ---
@@ -1340,17 +1330,17 @@ function updateOverlay(where) {
     for (const h of world.hosts) {
       if (h.burst || h.hidden) { const el = labelEls.get(h.id); if (el) el.style.display = 'none'; continue; }
       placeLabel(h.id, _w.copy(h.pos).add(new THREE.Vector3(0, h.r + 16, 0)),
-        `<b>${h.name}</b><br>receptors: ${h.receptors}<br>defences: ${h.defence}<br>odds of a burst if you commit: <b>${Math.round(h.odds * 100)} %</b>`, camera);
+        tt('phage.info.host', { name: h.name, receptors: h.receptors, defence: h.defence, odds: Math.round(h.odds * 100) }), camera);
     }
     { const near = UV_SHAFTS.reduce((a2, sh) => (sh.c.distanceTo(view.target) < a2.c.distanceTo(view.target) ? sh : a2));
-      placeLabel('uv', near.b, 'UV-B sunfleck: sunlight through a gap in the floating peat mat · touch it: damaged at once', camera); }
-    if (world.portal) placeLabel('am', world.amoeba.center.clone().addScaledVector(camUp(_s), world.amoeba.r * 0.7), `amoeba: <b>${guard.gone ? 'driven off' : guarded() ? 'on guard' : 'lured off its post'}</b><br>its lobe follows you ~${(LEASH / 100).toFixed(1)} µm from the receptor`, camera);
+      placeLabel('uv', near.b, tt('phage.info.uv'), camera); }
+    if (world.portal) placeLabel('am', world.amoeba.center.clone().addScaledVector(camUp(_s), world.amoeba.r * 0.7), tt('phage.info.amoeba', { state: tt(guard.gone ? 'phage.info.amoebaGone' : guarded() ? 'phage.info.amoebaGuard' : 'phage.info.amoebaLured'), um: (LEASH / 100).toFixed(1) }), camera);
     // encounter odds (illustrative): diffusion-limited k = 4πRD, here for this field
     const d = world.nearestHost(P.pos);
-    placeLabel('enc', _w.copy(P.pos).add(new THREE.Vector3(0, -12, 0)), `nearest host ${(Math.max(0, d.d) / 100).toFixed(2)} µm · diffusing, ~${Math.max(0.01, (Math.max(0, d.d) / 100) ** 2 / (6 * 4)).toFixed(2)} s real to reach`, camera);
+    placeLabel('enc', _w.copy(P.pos).add(new THREE.Vector3(0, -12, 0)), tt('phage.info.encounter', { d: (Math.max(0, d.d) / 100).toFixed(2), s: Math.max(0.01, (Math.max(0, d.d) / 100) ** 2 / (6 * 4)).toFixed(2) }), camera);
   } else {
     inside.updateRadar();
-    for (const e of inside.enzymes) placeLabel('e' + inside.enzymes.indexOf(e), _w.copy(e.pos).add(new THREE.Vector3(0, 14, 0)), `${e.label}<br>senses your end within ${Math.round(e.detect)} nm`, inside.camera);
+    for (const e of inside.enzymes) placeLabel('e' + inside.enzymes.indexOf(e), _w.copy(e.pos).add(new THREE.Vector3(0, 14, 0)), tt('phage.info.enzyme', { label: e.label, nm: Math.round(e.detect) }), inside.camera);
   }
 }
 
@@ -1482,9 +1472,9 @@ function stepCurrents(dt) {
     curWarned = false;
     curLog.push({ t: +t.toFixed(2), slot: pick?.slot, dir: a.dir.toArray().map((x) => +x.toFixed(2)) });
     // seen coming: a low whoosh and a word (where from, in the view's terms)
-    const d = a.dir, from = Math.abs(d.dot(camRight(_v))) > Math.abs(d.dot(camUp(_w))) ? (d.dot(_v) > 0 ? 'the left' : 'the right') : (d.dot(_w) > 0 ? 'below' : 'above');
+    const d = a.dir, from = Math.abs(d.dot(camRight(_v))) > Math.abs(d.dot(camUp(_w))) ? (d.dot(_v) > 0 ? 'Left' : 'Right') : (d.dot(_w) > 0 ? 'Below' : 'Above');
     audio.play('bacterium/sprint', { volume: 0.35, rate: 0.45 });
-    say(`A current is coming from ${from}: grab a cell (X or RT) to hang on, or be carried off.`, 3000, true);
+    say(tt(`phage.toasts.current${from}`), 3000, true);
   }
   if (a && !curWarned && a.t > currents.C.warn - 0.3) {
     curWarned = true;
@@ -1517,7 +1507,7 @@ function stepMember(m, dt, insideOwner, where) {
   const live = !idle && !c.active && !debug.freeze && !frozen;
   if (!idle) {
     const lstep = ctl.lookStep();
-    if (lstep) { const d = lstep; features.set('lookFL', LOOKS[(view.look + d + LOOKS.length) % LOOKS.length]); say(`Look: ${LOOKS[view.look]} (an illustration, labelled)`, 1800, true); }
+    if (lstep) { const d = lstep; features.set('lookFL', LOOKS[(view.look + d + LOOKS.length) % LOOKS.length]); say(tt('phage.toasts.look', { look: lookName(LOOKS[view.look]) }), 1800, true); }
     const zs = ctl.zoomStep();
     if (zs) view.zoom = clamp(view.zoom - zs, 0, ZOOMS.length - 1);
     if (ctl.special.pressed()) {
@@ -1531,7 +1521,7 @@ function stepMember(m, dt, insideOwner, where) {
     else if (ctl.defend.pressed() && outsideModes.includes(P.mode)) {
       P.foldTarget = P.foldTarget > 0.5 ? 0 : 1;
       audio.play('bacterium/tumble', { volume: 0.5, rate: P.foldTarget ? 0.9 : 1.15 });
-      say(P.foldTarget ? 'Fibres folded back against the sheath: you slip past clay and cells.' : 'Fibres out: a wider net to catch receptors (and clay).', 1800, true);
+      say(P.foldTarget ? tt('phage.toasts.foldIn') : tt('phage.toasts.foldOut'), 1800, true);
       if (P.mode === 'walk' && P.foldTarget > 0.5) leaveSurface(false);
       if (P.foldTarget > 0.5) releaseHold();
     }
@@ -1540,12 +1530,12 @@ function stepMember(m, dt, insideOwner, where) {
       // forward: along the view, into the screen (a held cell is let go; a carried molecule comes along)
       const dir = camFwd(new THREE.Vector3());
       if (P.hold?.kind === 'cell') releaseHold(false);
-      if (P.mode === 'walk') { leaveSurface(true); say('Push-off: the fibres kick you free of the surface (departure).', 1800, true); }
+      if (P.mode === 'walk') { leaveSurface(true); say(tt('phage.toasts.pushOff'), 1800, true); }
       else { P.gust.addScaledVector(dir, 105); P.vel.addScaledVector(dir, 12); }
       world.gust(P.pos, dir);
       audio.play('bacterium/sprint', { volume: 0.8 });
       curPad().rumble(120, 0.4, 0.3);
-    } else if (ctl.dash.pressed() && P.mode === 'clay') say('Stuck to clay: a dash cannot pull you off. Fold the fibres (B).', 1800, true);
+    } else if (ctl.dash.pressed() && P.mode === 'clay') say(tt('phage.toasts.stuckClay'), 1800, true);
     // X: grab, or let go (pressed again); at an amoeba's lobe, a fibre jab
     if (ctl.attack.pressed()) {
       if (!tryJab(m)) { if (P.hold) releaseHold(); else tryGrab('x'); }
@@ -1576,19 +1566,19 @@ function stepMember(m, dt, insideOwner, where) {
   if (P.mode === 'inside' || (P.mode === 'burst' && P.burstT < 2.6)) {
     const ev = inside.update(dt, t, { steer: live && ls.m > 0 ? { x: ls.x, y: -ls.y } : null, surge: live && ctl.dash.pressed() }, c.active || debug.freeze);
     if (P.mode === 'inside' && !c.active) P.fade = Math.max(0, P.fade - dt * 1.5);
-    if (ev.surged) { audio.play('bacterium/sprint', { volume: 0.6, rate: 1.2 }); say('A surge: the strand is pulled in faster (departure).', 1400); }
+    if (ev.surged) { audio.play('bacterium/sprint', { volume: 0.6, rate: 1.2 }); say(tt('phage.toasts.surge'), 1400); }
     if (ev.cut && P.mode === 'inside') {
       P.cutBy = ev.cut;
-      startCapture('cut', ev.cut.kind === 're' ? 'The host\'s restriction enzyme' : 'The CRISPR-Cas complex', ev.cut.kind === 're' ? 'found a recognition site and cut your DNA' : 'matched its guide to your DNA, and Cas3 chewed the strand');
+      startCapture('cut', ev.cut.kind === 're' ? tt('phage.capture.re.by') : tt('phage.capture.crispr.by'), ev.cut.kind === 're' ? tt('phage.capture.re.how') : tt('phage.capture.crispr.how'));
     }
-    if (ev.nearMiss) { say('Near miss! You pulled your end free before Cas3 could cut; the complex loses some of its grip.', 2200, true); curPad().rumble(120, 0.3, 0.5); audio.play('bacterium/tumble', { volume: 0.6, rate: 1.3 }); }
-    if (ev.retreat) say('The CRISPR complex lets go and drifts off along the host DNA, for now.', 2400, true);
+    if (ev.nearMiss) { say(tt('phage.toasts.nearMiss'), 2200, true); curPad().rumble(120, 0.3, 0.5); audio.play('bacterium/tumble', { volume: 0.6, rate: 1.3 }); }
+    if (ev.retreat) say(tt('phage.toasts.crisprLetsGo'), 2400, true);
     if (P.mode === 'inside' && !c.active) {
       const b = inside.bossLock();
-      if (b && b.state === 'windup' && P.msgT <= 0) { say('Bound! Its guide blazes and Cas3 swings in: pull your end away (LS, A to surge)!', 2000, true); P.msgT = 3; }
-      else if (b && b.match > 0.45 && b.state !== 'windup' && P.msgT <= 0) { say('The guide RNA is glowing: it is matching your DNA. Lead your end away from it.', 2200, true); P.msgT = 4; }
+      if (b && b.state === 'windup' && P.msgT <= 0) { say(tt('phage.toasts.bound'), 2000, true); P.msgT = 3; }
+      else if (b && b.match > 0.45 && b.state !== 'windup' && P.msgT <= 0) { say(tt('phage.toasts.guideGlowing'), 2200, true); P.msgT = 4; }
     }
-    if (ev.won && P.mode === 'inside') { P.mode = 'burst'; P.burstT = 0; P.burstStarted = false; say('The whole genome is in. Phage genes switch on; the host\'s DNA is broken down…', 3000, true); audio.play('bacterium/eat', { volume: 0.8 }); }
+    if (ev.won && P.mode === 'inside') { P.mode = 'burst'; P.burstT = 0; P.burstStarted = false; say(tt('phage.toasts.genomeIn'), 3000, true); audio.play('bacterium/eat', { volume: 0.8 }); }
   }
   // UV: a visible shaft, touched, damages you at once (no drain); a moment's grace to get out of it
   P.uvSafe = Math.max(0, (P.uvSafe || 0) - dt);
@@ -1602,7 +1592,7 @@ function stepMember(m, dt, insideOwner, where) {
       if (out.lengthSq() < 1e-4) out.set(1, 0, 0);
       P.gust.addScaledVector(out.normalize(), 55);
       if (!P.damaged) damage();
-      else startCapture('uv', 'A second UV-B shaft', 'darkened and cracked your capsid and broke your DNA past repair');
+      else startCapture('uv', tt('phage.capture.uv2.by'), tt('phage.capture.uv2.how'));
       ringLog.push({ kind: 'uvHit', t: +t.toFixed(2), slot: cur.slot, damaged: P.damaged });
     }
   }
@@ -1740,8 +1730,8 @@ function frame(now) {
     prog.style.display = where === 'inside' || lead.P.mode === 'inside' ? 'block' : 'none';
     const b = inside.bossLock();
     const lock = b ? (b.state === 'windup' || b.state === 'strike' ? 1 : b.match) : 0;
-    prog.innerHTML = `<span>Genome in · ${Math.round(s.progress * 169)} of 169 kbp</span><i style="width:${(s.progress * 100).toFixed(1)}%"></i>`
-      + `<span class="lock">CRISPR-Cas match${b && b.state === 'retreat' ? ' · let go' : lock > 0.99 ? ' · BOUND' : ''}</span><b style="width:${(lock * 100).toFixed(0)}%"></b>`;
+    prog.innerHTML = `<span>${tt('phage.inside.genomeIn', { kbp: Math.round(s.progress * 169) })}</span><i style="width:${(s.progress * 100).toFixed(1)}%"></i>`
+      + `<span class="lock">${tt(b && b.state === 'retreat' ? 'phage.inside.matchLetGo' : lock > 0.99 ? 'phage.inside.matchBound' : 'phage.inside.match')}</span><b style="width:${(lock * 100).toFixed(0)}%"></b>`;
     prog.classList.toggle('hot', lock > 0.99);
   } else prog.style.display = 'none';
   // the win: the last world has no next stage, so the burst is the ending
@@ -1755,8 +1745,8 @@ function frame(now) {
   const backNow = where === 'outside' && members().some((m) => m.P.inBack);
   if (backNow !== nearBack) {
     nearBack = backNow;
-    embed.near('back', backNow, 'Y: back to Sediment');
-    if (backNow && !embed.active) say('The bacterium\'s flagellum sweeping past: Y goes back to the sediment (in the game).', 2600, true);
+    embed.near('back', backNow, tt('phage.prompts.back'));
+    if (backNow && !embed.active) say(tt('phage.toasts.flagellumStandalone'), 2600, true);
   }
 
   // camera: frame the group (solo: your phage)
@@ -1857,7 +1847,7 @@ function frame(now) {
     if (!debug.iso && lead.P.mode !== 'burst' && split.layout.regions.every((r) => r.polygon && r.polygon.length >= 3)) {
       // no arrow to the way on by default (the owner: keep moving in any direction and you find it): its golden
       // sparkle is the marker; the Portal arrow setting adds one (drawPortalArrow)
-      marks.drawSplit(split, world.backdoor.pos, { kind: 'backdoor', label: 'Sediment', range: 600 });
+      marks.drawSplit(split, world.backdoor.pos, { kind: 'backdoor', label: tt('phage.marks.sediment'), range: 600 });
       // (the way on is there from the start on the default path, but its light only shows once it is open)
       if (world.portal && !portalSealed()) {
         const pp = portalPoint(), d = Math.min(...members().map((m) => m.P.pos.distanceTo(pp)));
@@ -1872,8 +1862,8 @@ function frame(now) {
   const spd = P.vel.length() + P.gust.length();
   driftLoop.set({ volume: P.mode === 'drift' ? Math.min(0.25, spd / 200) : 0, rate: 0.6 + spd / 200 });
   const pxPerUnit = innerHeight / (2 * Math.tan((camera.fov * Math.PI) / 360) * (where === 'outside' ? view.dist : inside.camera.position.distanceTo(inside.tip())));
-  scaleEl.innerHTML = `<i style="width:${(10 * pxPerUnit).toFixed(0)}px"></i>${where === 'outside' ? '100 nm' : '10 nm'}`;
-  label.textContent = `${LOOKS[view.look]} · an illustration, not a microscope image · time slowed ~20×${opts.drive ? ' · steering, the dash and the currents\' fronts are departures' : ''}`;
+  scaleEl.innerHTML = `<i style="width:${(10 * pxPerUnit).toFixed(0)}px"></i>${where === 'outside' ? tt('phage.scale.outside') : tt('phage.scale.inside')}`;
+  label.textContent = tt(opts.drive ? 'phage.caption.steered' : 'phage.caption.honest', { look: lookName(LOOKS[view.look]) });
   const n5 = (x) => { const k = Math.round(clamp(x, 0, 1) * 5); return '■'.repeat(k) + '□'.repeat(5 - k); };
   const modeName = { drift: P.hold?.kind === 'cell' ? `holding on to ${P.hold.part} of ${P.hold.host.name}` : P.hold ? 'carrying a molecule' : currents.nearness(P.pos) > 0.3 ? 'in a CURRENT' : 'drifting legs-first', grab: 'grabbing a surface protein', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', coinfect: `damaged genome waiting in ${P.coHost?.name} for a partner (B: give up)`, inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
   const am = !world.portal ? 'not found yet' : guard.gone ? 'driven off' : ({ guard: 'on guard', stalk: 'REACHING', windup: 'WINDING UP!', strike: 'STRIKING!', recover: 'recovering', repelled: 'repelled', retreat: 'retreating', off: 'off' }[fightState] || fightState) + (guarded() ? '' : ' · receptor OPEN') + ` · interest ${Math.round(fight.interest * 100)} %`;
@@ -1904,7 +1894,7 @@ function enterPortal(m) {
 }
 
 function showWinCard() {
-  card.innerHTML = `<h2>Burst</h2><p>${lead().P.commitHost.name} lysed and released 40 new phages (real T4 bursts are dozens to hundreds; <i>[Unverified here]</i>). Taking over the cell took ~25 minutes, compressed to seconds.</p><p class="go">Press A to play again</p>`;
+  card.innerHTML = tt('phage.winCard', { host: lead().P.commitHost.name });
   card.classList.add('show');
 }
 const lead = () => members().find((m) => m.P.mode === 'burst') || team[0];
