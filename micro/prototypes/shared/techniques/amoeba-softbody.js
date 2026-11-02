@@ -40,8 +40,9 @@
 //   nodes yourself); body.crossings() lists crossing segment pairs.
 //   input.pods[k].push / .spread (0..1): push harder / spread out for that one pseudopod
 //     (default: input.push for every steered one, and no spread of its own).
-//   input.round (0..1): the whole cell spreads out (as input.spread) and, held, relaxes towards
-//     a circle over ~2.5 s, its pseudopods drawn in (body.roundK: how far it has got).
+//   input.round (0..1): the whole cell spreads out at once (as input.spread); held on, from
+//     ~1.5 s it slowly draws its pseudopods in and relaxes towards a circle, near round after
+//     ~8 s (body.roundK: how far it has got).
 //   input.shape: [{ ux, uy, m }]: m > 0 stretches the cell along (ux, uy) (both ends out),
 //     m < 0 squishes it along that axis (the sides bulge); area conserved, no net travel.
 //   input.turn: rad/s at which the whole outline turns about the centroid (+: anticlockwise in
@@ -114,8 +115,8 @@ export const P = {
   vRear: 22, // µm/s, uroid contraction at full drive
   vBody: 24, // µm/s, the body flowing after a held body stick (× speed)
   vShape: 34, // µm/s, the ends of the cell moving out (stretch) or in (squish) at full input.shape
-  wTurn: 0.75, // rad/s, the whole cell turning at full input.turn
-  kRound: 1.6, // 1/s, the outline relaxing towards a circle at full input.round
+  wTurn: 0.45, // rad/s, the whole cell turning at full input.turn
+  kRound: 0.9, // 1/s, the outline relaxing towards a circle once input.round has been held long
   neckW: 26, // µm, a neck thinner than this pushes back (the cytoplasm resists thinning)
   pinchW: 12, // µm, a neck thinner than this can be cut through
 };
@@ -225,8 +226,13 @@ export class Body {
     this.normals();
     // Rounding up (input.round): held, it pulls harder the longer it is held; let go, it eases off.
     const rin = input.round || 0;
-    this.roundT = rin > 0.05 ? Math.min(3, this.roundT + dt * rin) : Math.max(0, this.roundT - dt * 1.5);
-    this.roundK = smooth(0, 2.5, this.roundT);
+    // Shaping in place (stretch, squish, turn) quiets the idle pseudopods.
+    let shapeIn = Math.min(1, Math.abs(input.turn || 0));
+    for (const sh of input.shape || []) shapeIn = Math.max(shapeIn, Math.abs(sh.m));
+    // At first it only spreads (as input.spread); held on, after ~1.5 s it starts to draw the
+    // pseudopods in and round the outline, slowly: near round after ~8 s.
+    this.roundT = rin > 0.05 ? Math.min(10, this.roundT + dt * rin) : Math.max(0, Math.min(8, this.roundT) - dt * 3);
+    this.roundK = smooth(1.5, 8, this.roundT);
     this.spread += (Math.max(input.spread || 0, rin) - this.spread) * Math.min(1, dt * 1.2);
     this.flat = 1 - 0.26 * this.spread;
     const x = this.x, y = this.y, nx = this.nx, ny = this.ny;
@@ -276,7 +282,7 @@ export class Body {
       }
       // A resting Amoeba proteus is polypodial: a few pseudopods probe at once.
       const fade = Math.min(1, pod.life / 2.5);
-      pod.target = (this.opts.idlePods ? 1 : 0) * (pod.base || 0) * fade * (playing > 0.15 ? 0.25 : 1) * (1 - this.spread);
+      pod.target = (this.opts.idlePods ? 1 : 0) * (pod.base || 0) * fade * (playing > 0.15 ? 0.25 : 1) * (1 - this.spread) * (1 - shapeIn);
       if (pod.life < 2.5 && pod.ret === 0) pod.ret = 0.4;
     }
 
@@ -384,11 +390,11 @@ export class Body {
       if (am < 0.03) continue;
       const ux = sh.ux, uy = sh.uy, out = sh.m > 0;
       // How far the cell already reaches along the axis: stretching stops at about
-      // 2.4 radii either side, squishing at about half a radius.
+      // 2.1 radii either side, squishing at about 0.65 of a radius.
       let hi = -Infinity, lo = Infinity;
       for (let i = 0; i < N; i++) { const r = (x[i] - this.cx) * ux + (y[i] - this.cy) * uy; if (r > hi) hi = r; if (r < lo) lo = r; }
       const half = 0.5 * (hi - lo);
-      const lim = out ? clamp((2.4 * req - half) / (0.8 * req), 0, 1) : clamp((half - 0.5 * req) / (0.35 * req), 0, 1);
+      const lim = out ? clamp((2.1 * req - half) / (0.7 * req), 0, 1) : clamp((half - 0.65 * req) / (0.3 * req), 0, 1);
       const v = P.vShape * am * lim * spd * boost * (1 - 0.4 * this.spread) * (this.closing ? 0.2 : 1);
       shaping = Math.max(shaping, am);
       for (let i = 0; i < N; i++) {
@@ -411,6 +417,7 @@ export class Body {
         ddx[i] += ex * c - ey * s - ex; ddy[i] += ex * s + ey * c - ey;
       }
       this.turned = a;
+      shaping = Math.max(shaping, Math.abs(input.turn));
     }
     if (this.roundK > 0.01) {
       // Every node drawn towards the mean radius: the outline relaxes into a circle.
@@ -525,7 +532,7 @@ export class Body {
     this.normals();
     let rx = 0, ry = 0;
     // (Shaping in place has no front: the area comes evenly off the sides.)
-    if (hyp(this.fx, this.fy) > 0.1 && !(shaping > 0.1 && fm < 0.3)) { rx = this.fx; ry = this.fy; }
+    if (hyp(this.fx, this.fy) > 0.1 && !(shaping > 0.1 && !(bd && bd.m > 0.06))) { rx = this.fx; ry = this.fy; }
     const target = this.A0 / this.flat;
     for (let it = 0; it < (this.opts.area ? 2 : 0); it++) {
       const dA = target - polygonArea(x, y, N);
@@ -556,7 +563,15 @@ export class Body {
     if (this.zip && this.zip.t > 0.9) this.finishZip();
 
     // -- uroid: the most rearward point, smoothed ------------------------------
+    const cx0 = this.cx, cy0 = this.cy;
     this.centroid();
+    // Stretching, squishing or turning in place goes nowhere: on an uneven
+    // outline the area projection would let the cell creep, so it is held.
+    if (shaping > 0.1 && !(bd && bd.m > 0.06) && playing < 0.15 && !this.closing && !this.zip) {
+      const k = Math.min(1, shaping * 2), ex = (this.cx - cx0) * k, ey = (this.cy - cy0) * k;
+      for (let i = 0; i < N; i++) { x[i] -= ex; y[i] -= ey; }
+      this.cx -= ex; this.cy -= ey;
+    }
     if (this.fm > 0.05 || !this.uroidSet) {
       let best = 0, bv = Infinity;
       for (let i = 0; i < N; i++) {

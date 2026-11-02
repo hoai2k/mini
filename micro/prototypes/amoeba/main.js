@@ -64,7 +64,7 @@ let pad = players.pad(0);
 let ctl = players.controls(0);
 let surge = createDash({ duration: 0.9, cooldown: 2.4 });
 let cur = null; // the cell being stepped
-const SCHEMES = ['Select and steer (default)', 'Lead and follow', 'Two pseudopods (classic)'];
+const SCHEMES = ['Pseudopods and movement (default)', 'Lead and follow', 'Two pseudopods (classic)'];
 const SCHEME_IDS = ['select', 'lead', 'classic'];
 const COMMON_CONTROLS = {
   dash: 'Surge: pseudopods shoot out 2.5× faster and the cell flows after them',
@@ -78,13 +78,13 @@ const CONTROLS = {
   select: {
     rows: hudControls({
       ...COMMON_CONTROLS,
-      move: 'Moves the body (twin-stick). With LT held: steers the pseudopod next to the selected one (L)',
-      camera: 'Steers the selected pseudopod (R); with none, grows one. With RT held: chooses R',
-      analog: 'RT held: RS chooses R, the pseudopod lying the way it points (or grows one there); let go and RS steers it. LT held: LS steers a second pseudopod (L: the neighbour, or a sprout). Both held: LS chooses L too',
-      secondary: 'Spread out / push harder',
+      move: 'Steers pseudopod L: the first push takes the one lying that way (or grows one there); it stays L until LS rests in the centre. RT held: a movement intent',
+      camera: 'Steers pseudopod R, the same way. RT held: a movement intent',
+      analog: 'LT: the whole cell spreads out; hold on and it slowly draws its pseudopods in and rounds up. RT held: movement mode: both sticks the same way crawl, apart stretch, together squish, one up one down turn',
+      secondary: 'The pseudopod you are steering: spread it out / push it harder',
       extra: [['LS click', 'Fine focus down'], ['RS click', 'Fine focus up']],
     }),
-    note: 'R and L ticks mark the pseudopods your sticks hold; a short tick shows where a choosing stick points. Hold RT, point RS at a pseudopod (or where you want one), let RT go, then steer it any way: it stays R. RS and LS together: the cell travels behind its pseudopod. Hold LT and close RS and LS round prey (or round an arm of Chaos, then X to pinch it off). A centred stick lets its pseudopod flow slowly back. Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
+    note: 'Each stick owns one pseudopod (marked L and R). Push a stick: it takes the pseudopod lying that way, or grows one there, and steers it; flick through the centre and you keep it; rest it in the centre a moment and it lets go, so the next push can take another. Two sticks round prey (or round an arm of Chaos), then X. Hold RT to move the whole cell instead: a stick (or both the same way) crawls that way; two different ways crawl between them and widen; LS left + RS right stretches, LS right + RS left squishes, LS up + RS down turns clockwise (down + up: anticlockwise). Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
   },
   lead: {
     rows: hudControls({
@@ -120,7 +120,7 @@ function showControls(which) {
   const el = document.querySelector('.hud');
   if (!el) return;
   const CHIP = { A: 'a', B: 'b', X: 'x', Y: 'y' };
-  const KEYS = { 'LT/RT': 'Z / X', 'LB/RB': 'Q / F', A: 'Space', B: 'Shift', X: 'E', Y: 'R', LS: 'WASD', RS: 'Arrows', View: 'Tab', Menu: 'Esc', 'D-pad': '1–4', 'LS click': 'C', 'RS click': 'V' };
+  const KEYS = { 'LT/RT': 'Z / X', LT: 'Z', RT: 'X', 'LB/RB': 'Q / F', A: 'Space', B: 'Shift', X: 'E', Y: 'R', LS: 'WASD', RS: 'Arrows', View: 'Tab', Menu: 'Esc', 'D-pad': '1–4', 'LS click': 'C', 'RS click': 'V' };
   const ul = el.querySelector('ul');
   if (ul) {
     ul.innerHTML = CONTROLS[which].rows.map(([b, what]) => {
@@ -173,9 +173,11 @@ const S = {
 };
 // Lead and follow: which stick grows the pseudopod (body.pods[0]) and which
 // moves the body; a stick in `latch` must be let go before it can lead again.
-// Select and steer: R.sel / R.adj are the indices (in body.pods) of the pseudopods
-// RS and (with LT held) LS steer; see selectInput().
-const newRoles = () => ({ pod: null, body: null, latch: new Set(), branch: false, last: null, sel: null, adj: null, lt: false, rsOn: false, lsOn: false, rt: false, ltHeld: false, aimR: null, aimL: null, budT: 0 });
+// Pseudopods and movement: R.sel / R.adj are the indices (in body.pods) of the
+// pseudopods RS (R) and LS (L) own; rest: how long each stick has been at rest;
+// was: the one each stick let go of last (its mark fades); see selectInput().
+const newRoles = () => ({ pod: null, body: null, latch: new Set(), branch: false, last: null, sel: null, adj: null, rt: false, ltHeld: false,
+  mode: 'pod', move: null, on: { sel: false, adj: false }, rest: { sel: 9, adj: 9 }, was: { sel: null, adj: null } });
 let R = newRoles();
 // Per-player game state (was in S): food eaten, the cup candidate and the closing cup, trap contact, bites, surge, drain.
 const newCellState = () => ({ eaten: 0, cand: null, closing: null, stuckT: 0, stuckN: 0, bitten: 0, surgeK: 1, drain: 0, A0init: 0 });
@@ -544,7 +546,7 @@ F({ id: 'above', group: 'World', label: 'Out-of-focus layer', on: true,
   about: 'Filaments and flakes floating above the focal plane (MP-A03 when delivered).', onChange: (v) => { S.flags.above = v; } });
 F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'Controller rumble on contact, surges, trichocyst bursts, captures and when a trap hypha grabs the membrane.', onChange: (v) => { S.rumble = v; } });
 F({ id: 'scheme', group: 'Controls', label: 'Controls', choices: SCHEMES, value: SCHEMES[0],
-  about: 'Select and steer (default): RS steers the selected pseudopod (marked R), growing one if there is none; it stays selected however you steer it (until it is gone); LS moves the body. Hold RT and RS chooses: the pseudopod lying the way RS points becomes R, or one grows there, as you sweep; let RT go and RS steers that one freely. Hold LT and LS steers a second pseudopod (marked L: the neighbour of R towards the top of the screen, or below if R is the topmost; one sprouts if there is none), so the two can close round prey or pinch an arm of Chaos. Hold LT and RT and both sticks choose (LS chooses L the same way); a centred stick keeps its choice, and R and L are never the same pseudopod. LB spreads out, RB pushes harder. Lead and follow: the first stick pushed grows a pseudopod (the pseudopod stick); the other stick moves the bulk of the cell (the body stick): the rear contracts and the cytoplasm streams after it. Both held: the cell travels behind its pseudopod, which holds its length. Body stick alone towards the pseudopod: the body flows into it and takes it back. Hold LT or RT and the body stick grows a second pseudopod 30–70° beside the first instead, to encircle prey. LB spreads out, RB pushes harder. Roles reset once the pseudopod is gone or after eating. Two pseudopods (classic): each stick grows its own pseudopod, LT/RT spread out and push harder, LB/RB focus.',
+  about: 'Pseudopods and movement (default; the owner, 2026-11-02). Pseudopod mode (RT up): each stick owns one pseudopod, RS the one marked R and LS the one marked L. A stick resting in the centre (for more than 0.28 s) owns nothing; its first push takes the pseudopod whose tip lies within 34° of it (idle ones too), or grows one at the membrane that way, and steers it while pushed (direction and reach). Flicking through the centre quicker than that keeps it. R and L are never the same one: a push towards the other stick\'s pseudopod takes the next nearest, or grows one beside it. LB / RB spread out / push harder only the pseudopod a pushed stick is steering. Movement mode (RT held): the sticks are movement intents and steer no pseudopod. One stick, or both the same way: the cell crawls that way. Two different ways: it crawls between them and widens across its path. Opposite: LS left + RS right (apart) stretches it along that line, LS right + RS left (together) squishes it; LS up + RS down turns it clockwise, LS down + RS up anticlockwise, like a tank; in-between angles blend. LT (either mode): the whole cell spreads out at once; held on, from about 1.5 s it slowly draws its pseudopods in and rounds up, near round after about 8 s. Lead and follow: the first stick pushed grows a pseudopod (the pseudopod stick); the other stick moves the bulk of the cell (the body stick): the rear contracts and the cytoplasm streams after it. Both held: the cell travels behind its pseudopod, which holds its length. Body stick alone towards the pseudopod: the body flows into it and takes it back. Hold LT or RT and the body stick grows a second pseudopod 30–70° beside the first instead, to encircle prey. LB spreads out, RB pushes harder. Roles reset once the pseudopod is gone or after eating. Two pseudopods (classic): each stick grows its own pseudopod, LT/RT spread out and push harder, LB/RB focus.',
   onChange: (v) => {
     S.scheme = SCHEME_IDS[Math.max(0, SCHEMES.indexOf(v))];
     for (const c of cells) Object.assign(c.R, newRoles());
@@ -710,26 +712,33 @@ function leadInput(r) {
   R.last = { pod: R.pod, body: bk };
   return { pods, push: r.rb, spread: r.lb, body: bodyIn };
 }
-// --- select and steer (the default scheme) ------------------------------------
-// RS steers the selected pseudopod (body.pods[R.sel]); LS moves the body, or,
-// while LT is held, steers a second pseudopod (R.adj). Holding RT turns RS into
-// a chooser: the pseudopod lying the way it points becomes R, or one grows
-// there; let RT go and RS steers that one freely. With LT and RT both held, LS
-// chooses L the same way. Otherwise the selection never changes while it
-// stands (the owner, 2026-11-02). Pseudopods are any steered pod still
-// standing out, and the idle (polypodial) ones, which are adopted into a
-// steered slot when selected. The soft body steers as many as it is given
-// (Body.addPod), so a released pseudopod keeps flowing back on its own.
+// --- pseudopods and movement (the default scheme) -------------------------------
+// The owner, 2026-11-02. Two modes, and nothing latches between them: every
+// frame the mode is read afresh from RT.
+//   Pseudopod mode (RT up): each stick owns one pseudopod, RS "R", LS "L". A
+//   stick at rest (inside STICK_OFF for longer than GRACE) owns nothing; its
+//   first push picks the pseudopod lying that way (within PICK_TOL), or grows
+//   one at the membrane that way; while pushed it steers it. Passing through
+//   neutral quicker than GRACE keeps it. R and L are never the same one.
+//   LB / RB spread / push harder the pseudopod(s) a pushed stick is steering.
+//   Movement mode (RT held): the sticks are movement intents (moveInput()).
+//   LT (either mode): the whole cell spreads out, and held, rounds up.
+// Pseudopods are any steered pod still standing out, and the idle
+// (polypodial) ones, which are adopted into a steered slot when picked. The
+// soft body steers as many as it is given (Body.addPod), so a released
+// pseudopod keeps flowing back on its own.
 const DEG = Math.PI / 180;
 const MAX_STEERED = 8;
-const TRIG_ON = 0.5, TRIG_OFF = 0.3;
-// A choosing stick takes a pseudopod within CHOOSE_TOL of it; the current
-// choice stays while within CHOOSE_KEEP unless another lies CHOOSE_MARGIN nearer.
-const CHOOSE_TOL = 32 * DEG, CHOOSE_KEEP = 45 * DEG, CHOOSE_MARGIN = 15 * DEG;
+const TRIG_ON = 0.5, TRIG_OFF = 0.3; // RT (movement mode) / LT: on above 0.5, off below 0.3
+const STICK_ON = 0.3, STICK_OFF = 0.15; // a stick counts as pushed above 0.3, at rest below 0.15
+const GRACE = 0.28; // s at rest before a stick lets go of its pseudopod
+const MARK_FADE = 0.7; // s: a let-go stick's letter fades out over this
+// A first push picks a pseudopod whose tip lies within PICK_TOL of it.
+const PICK_TOL = 34 * DEG;
 const ringGap = (i, j) => { const d = Math.abs(i - j) % N; return Math.min(d, N - d); };
 const angOf = (b, pod) => Math.atan2(b.y[pod.tip] - b.cy, b.x[pod.tip] - b.cx);
 const angDiff = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
-/** Does pods[k] stand out as a pseudopod the sticks can select? */
+/** Does pods[k] stand out as a pseudopod the sticks can take? */
 function podExists(b, k) {
   const pod = k == null ? null : b.pods[k];
   if (!pod) return false;
@@ -770,7 +779,7 @@ function newPod(b, dx, dy, tip = null) {
   Object.assign(p, { tip: t, dx, dy, s: 0, target: 0, ret: 0, active: false, rad: undefined, cut: undefined });
   return k;
 }
-/** Selecting an idle pseudopod moves it into a steered slot (same tip, same reach). */
+/** Taking an idle pseudopod moves it into a steered slot (same tip, same reach). */
 function adopt(b, k) {
   const ip = b.pods[k];
   if (!ip.idle) return k;
@@ -780,113 +789,111 @@ function adopt(b, k) {
   return j;
 }
 /**
- * A choosing stick (RS: key 'sel', the R pseudopod; LS: 'adj', the L one)
- * points `st`: the pseudopod lying within CHOOSE_TOL of it becomes the
- * selection, or, with none that way, a new one grows there. With hysteresis:
- * the current choice stays while it lies within CHOOSE_KEEP of the stick and
- * no other lies CHOOSE_MARGIN nearer, so a sweep does not flicker between two.
- * R and L are never the same pseudopod: pointing at the one the other stick
- * holds (or growing onto its lobe) is refused and the selection stays as it
- * was; the other stick may be choosing too, so swapping would fight it.
- * Returns 'kept', 'chose', 'grew' or 'refused'.
+ * A stick's first push (key 'sel': RS, R; 'adj': LS, L) picks its pseudopod:
+ * the one whose tip lies nearest the stick's direction within PICK_TOL, never
+ * the one the other stick owns (the next-best is taken instead). With none
+ * that way, a new one grows at the membrane furthest out that way; if that
+ * is the other stick's lobe, it grows beside it (30-60° round, on the side
+ * the stick points), so the two can close round something.
+ * Returns 'picked' or 'grew'.
  */
-function choosePod(b, key, st) {
-  const a = Math.atan2(st.dy, st.dx), mine = R[key], theirs = key === 'sel' ? R.adj : R.sel;
-  const curOff = podExists(b, mine) ? Math.abs(angDiff(angOf(b, b.pods[mine]), a)) : Infinity;
-  let best = null, bd = CHOOSE_TOL, blocked = false;
+function pickPod(b, key, st) {
+  const a = Math.atan2(st.dy, st.dx), theirs = key === 'sel' ? R.adj : R.sel;
+  let best = null, bd = PICK_TOL;
   for (const c of podList(b)) {
-    if (c.k === mine) continue;
+    if (c.k === theirs) continue;
+    if (theirs != null && podExists(b, theirs) && ringGap(b.pods[c.k].tip, b.pods[theirs].tip) < 12) continue;
     const d = Math.abs(angDiff(c.a, a));
     if (d < bd) { bd = d; best = c; }
   }
-  if (best && best.k === theirs) { blocked = true; best = null; }
-  if (curOff < CHOOSE_KEEP && !(best && bd + CHOOSE_MARGIN < curOff)) return 'kept';
-  if (blocked) return 'refused';
-  if (best) { R[key] = adopt(b, best.k); rumble(30, 0.12, 0); return 'chose'; }
-  // None that way: grow one from the membrane furthest out that way (not
-  // pickTip, which shies away from other pseudopods and could start it far off
-  // the stick), unless that is a held one's lobe; newPod takes over any other
-  // pseudopod already on that lobe.
+  rumble(30, 0.12, 0);
+  if (best) { R[key] = adopt(b, best.k); return 'picked'; }
   let t = 0, tv = -Infinity;
   for (let i = 0; i < N; i++) { const v = (b.x[i] - b.cx) * st.dx + (b.y[i] - b.cy) * st.dy; if (v > tv) { tv = v; t = i; } }
-  if (podExists(b, mine) && ringGap(t, b.pods[mine].tip) < 12) return 'kept';
-  if (podExists(b, theirs) && ringGap(t, b.pods[theirs].tip) < 12) return 'refused';
+  if (theirs != null && podExists(b, theirs) && ringGap(t, b.pods[theirs].tip) < 14) t = b.branchTip(st.dx, st.dy, b.pods[theirs], 30, 60);
   R[key] = newPod(b, st.dx, st.dy, t);
-  rumble(30, 0.12, 0);
   return 'grew';
 }
+const smoothstep = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 /**
- * The neighbour of the selected pseudopod round the outline towards the top of
- * the screen (anticlockwise on the right half, clockwise on the left), or
- * towards the bottom when the selected one is the topmost.
+ * Movement mode (RT held): a = LS, b = RS, each a movement intent. Split into
+ *   travel  a + b (capped at 1): the cell crawls that way (one stick, or both
+ *           the same way);
+ *   d = (b̂ − â)/2 × min(|a|, |b|), weighted by how far apart the sticks
+ *           point (OPP: 0 below 90°, 1 from 160°): its horizontal part
+ *           stretches (d.x > 0: the sticks point apart, LS left, RS right) or
+ *           squishes (d.x < 0: they point at each other) the cell along the
+ *           line of the sticks, and its vertical part turns it like a tank
+ *           (LS up + RS down: clockwise; LS down + RS up: anticlockwise);
+ *   widen   the rest of the angle between them (15-75°, fading as OPP rises):
+ *           the cell broadens across its travel ("kind of expand").
+ * Magnitudes scale everything, so mixed inputs blend smoothly.
  */
-function neighbour(b, list, k) {
-  const sp = b.pods[k], a = angOf(b, sp), sy = b.y[sp.tip];
-  const others = list.filter((c) => c.k !== k);
-  const topmost = !others.some((c) => c.y > sy);
-  let dir = Math.cos(a) >= 0 ? 1 : -1; // +1: anticlockwise
-  if (topmost) dir = -dir;
-  let best = null, bd = Infinity;
-  for (const c of others) {
-    const d = (((dir * (c.a - a)) % TAU) + TAU) % TAU;
-    if (d > 0.05 && d <= Math.PI + 0.01 && d < bd) { bd = d; best = c; }
+function moveInput(ls, rs) {
+  const am = ls.m >= STICK_OFF ? ls.m : 0, bm = rs.m >= STICK_OFF ? rs.m : 0;
+  const ax = ls.dx * am, ay = ls.dy * am, bx = rs.dx * bm, by = rs.dy * bm;
+  let tx = ax + bx, ty = ay + by;
+  const tm = Math.hypot(tx, ty);
+  const both = Math.min(am, bm);
+  let ang = 0, opp = 0;
+  if (both > 0) {
+    ang = Math.acos(clamp(ls.dx * rs.dx + ls.dy * rs.dy, -1, 1));
+    opp = smoothstep(90 * DEG, 160 * DEG, ang);
   }
-  return best;
-}
-/** LT: LS takes the neighbouring pseudopod, or one sprouts there. */
-function pickAdjacent(b) {
-  const best = neighbour(b, podList(b), R.sel);
-  if (best) { R.adj = adopt(b, best.k); R.budT = 0; return; }
-  // None: sprout one 55° round, towards the top of the screen (below, if the
-  // selected one already points up).
-  const sp = b.pods[R.sel], a = angOf(b, sp);
-  let d = Math.cos(a) >= 0 ? 1 : -1;
-  if (Math.sin(a) > Math.cos(40 * DEG)) d = -d;
-  const a2 = a + d * 55 * DEG, dx = Math.cos(a2), dy = Math.sin(a2);
-  R.adj = newPod(b, dx, dy, b.branchTip(dx, dy, sp, 40, 70));
-  R.budT = 0.6;
+  const dx = ((rs.dx - ls.dx) / 2) * both * opp, dy = ((rs.dy - ls.dy) / 2) * both * opp;
+  const widen = both * smoothstep(15 * DEG, 75 * DEG, ang) * (1 - opp);
+  const shape = [];
+  // stretch (+) or squish (−) along the line of the sticks, by the horizontal part of d
+  const dl = Math.hypot(dx, dy);
+  if (Math.abs(dx) > 0.02 && dl > 0) shape.push({ ux: dx / dl, uy: dy / dl, m: Math.sign(dx) * Math.min(1, Math.abs(dx) * 1.4) });
+  const travel = tm > 0.06 ? { m: Math.min(1, tm), dx: tx / tm, dy: ty / tm } : null;
+  if (widen > 0.03 && travel) shape.push({ ux: -travel.dy, uy: travel.dx, m: 0.8 * widen });
+  const turn = Math.abs(dy) > 0.02 ? Math.min(1, Math.abs(dy) * 1.4) * Math.sign(dy) : 0;
+  let what = 'free';
+  const parts = [[travel ? travel.m * (1 - opp) : 0, 'crawling'], [widen, 'widening'], [dx > 0 ? dx : 0, 'stretching'], [dx < 0 ? -dx : 0, 'squishing'], [Math.abs(dy), dy < 0 ? 'turning clockwise' : 'turning anticlockwise']];
+  const top = parts.filter((p) => p[0] > 0.08).sort((p, q) => q[0] - p[0]).slice(0, 2).map((p) => p[1]);
+  if (top.length) what = top.join(' + ');
+  return { body: travel, shape, turn, what };
 }
 function selectInput(r) {
   const b = body, dt = 1 / 60;
   const pods = [];
-  for (const k of [...R.latch]) if (r[k].m < ROLE_OFF) R.latch.delete(k);
-  if (!podExists(b, R.sel)) R.sel = null;
-  if (!podExists(b, R.adj) || R.adj === R.sel) R.adj = null;
-  const rs = R.latch.has('rs') ? NONE : r.rs, ls = r.ls;
-  const rsOn = rs.m >= (R.rsOn ? ROLE_OFF : ROLE_ON), lsOn = ls.m >= (R.lsOn ? ROLE_OFF : ROLE_ON);
-  R.rsOn = rsOn; R.lsOn = lsOn;
-  const rt = r.rt >= (R.rt ? TRIG_OFF : TRIG_ON), ltHeld = r.lt >= (R.ltHeld ? TRIG_OFF : TRIG_ON);
-  R.rt = rt; R.ltHeld = ltHeld;
-  const both = rt && ltHeld;
-  // RS: with RT held it chooses R (and grows it its way); with none selected
-  // it grows one (or takes the one reaching that way); otherwise it steers R.
-  R.aimR = rt && rsOn ? { dx: rs.dx, dy: rs.dy, refused: false } : null;
-  if (R.aimR || (rsOn && R.sel == null)) {
-    const res = choosePod(b, 'sel', rs);
-    if (R.aimR) R.aimR.refused = res === 'refused';
+  for (const k of [...R.latch]) if (r[k].m < STICK_OFF) R.latch.delete(k);
+  // The triggers are read afresh every frame (below TRIG_OFF is always off).
+  R.rt = r.rt >= (R.rt ? TRIG_OFF : TRIG_ON);
+  R.ltHeld = r.lt >= (R.ltHeld ? TRIG_OFF : TRIG_ON);
+  const lt = R.ltHeld ? r.lt : 0;
+  const st = { sel: R.latch.has('rs') ? NONE : r.rs, adj: R.latch.has('ls') ? NONE : r.ls };
+  let bodyIn = null, shape = null, turn = 0;
+  R.mode = R.rt ? 'move' : 'pod';
+  for (const key of ['sel', 'adj']) if (!podExists(b, R[key])) R[key] = null;
+  if (R.adj != null && R.adj === R.sel) R.adj = null;
+  if (R.rt) {
+    // Movement mode: the sticks steer no pseudopod (they flow slowly back).
+    for (const key of ['sel', 'adj']) { if (R[key] != null) R.was[key] = { k: R[key], t: 0 }; R[key] = null; R.on[key] = false; R.rest[key] = GRACE; }
+    const mv = moveInput(st.adj, st.sel);
+    bodyIn = mv.body; shape = mv.shape; turn = mv.turn; R.move = mv.what;
+  } else {
+    R.move = null;
+    for (const key of ['sel', 'adj']) {
+      const s = st[key];
+      const on = s.m >= (R.on[key] ? STICK_OFF : STICK_ON);
+      R.on[key] = on;
+      if (on) {
+        R.rest[key] = 0;
+        if (R[key] == null) pickPod(b, key, s);
+        const k = R[key];
+        if (k != null) pods[k] = { m: s.m, dx: s.dx, dy: s.dy, tip: b.pods[k].tip, push: r.rb, spread: r.lb };
+      } else {
+        R.rest[key] += dt;
+        if (R[key] != null && R.rest[key] > GRACE) { R.was[key] = { k: R[key], t: 0 }; R[key] = null; }
+      }
+    }
   }
-  if (R.sel != null && rsOn) pods[R.sel] = { m: rs.m, dx: rs.dx, dy: rs.dy, tip: b.pods[R.sel].tip };
-  // LS: with LT and RT held it chooses L; with LT held it steers L (the
-  // neighbour of R, picked when LT goes down); otherwise it moves the body.
-  R.aimL = both && lsOn ? { dx: ls.dx, dy: ls.dy, refused: false } : null;
-  if (R.aimL) R.aimL.refused = choosePod(b, 'adj', ls) === 'refused';
-  const lt = ltHeld && (R.sel != null || R.adj != null);
-  // LT alone (or RT let go while LT stays held) with no L: the neighbour of R, or a sprout.
-  if (lt && !rt && R.sel != null && R.adj == null) pickAdjacent(b);
-  R.lt = lt;
-  let bodyIn = null;
-  if (lt && R.adj != null) {
-    const ap = b.pods[R.adj];
-    if (ls.m > 0.06) pods[R.adj] = { m: ls.m, dx: ls.dx, dy: ls.dy, tip: ap.tip };
-    else if (R.budT > 0) pods[R.adj] = { m: 0.35, dx: ap.dx, dy: ap.dy, tip: ap.tip }; // a sprout shows where it is
-    R.budT -= dt;
-  } else if (!lt) {
-    R.adj = null;
-    if (ls.m > 0 && !both) bodyIn = ls;
-  }
+  for (const key of ['sel', 'adj']) { const w = R.was[key]; if (w && (w.t += dt) > MARK_FADE) R.was[key] = null; }
   // A surge with no stick held: the body flows on along its heading.
   if (surge.active && !pods.some((p) => p && p.m > 0) && !bodyIn) bodyIn = { m: 1, dx: b.fx || 1, dy: b.fy || 0 };
-  return { pods, push: r.rb, spread: r.lb, body: bodyIn };
+  return { pods, push: 0, spread: lt, round: lt, body: bodyIn, shape, turn };
 }
 
 /** After a step: the roles reset once the lead pseudopod has gone back into the body. */
@@ -907,11 +914,10 @@ function resetRoles(latch) {
 }
 function rolesText() {
   if (S.scheme === 'select') {
-    const n = podList(body).length;
-    const rs = R.rt ? (R.aimR?.refused ? 'RS: choosing R (L holds that one)' : 'RS: choosing R') : R.sel != null ? `RS: pseudopod R (${n} out)` : 'RS: grow a pseudopod';
-    const ls = R.rt && R.ltHeld ? (R.aimL?.refused ? 'LS: choosing L (R holds that one)' : 'LS: choosing L') : R.adj != null ? 'LS: pseudopod L (LT)' : 'LS: body';
-    const tr = R.rt ? (R.ltHeld ? 'LT+RT: both sticks choose' : 'let RT go to keep R') : 'hold RT: RS chooses';
-    return `${rs} · ${ls} · ${tr}`;
+    const lt = R.ltHeld ? (body.roundK > 0.05 ? ' · LT: spreading, rounding up' : ' · LT: spreading out') : '';
+    if (R.mode === 'move') return `RT: moving (${R.move === 'free' || !R.move ? 'push a stick' : R.move})${lt}`;
+    const one = (key, stick, letter) => (R[key] != null ? (R.on[key] ? `${stick}: steering ${letter}` : `${stick}: holding ${letter}`) : `${stick}: push to take ${letter}`);
+    return `${one('adj', 'LS', 'L')} · ${one('sel', 'RS', 'R')} · hold RT: move${lt || ' · LT: spread'}`;
   }
   if (S.scheme !== 'lead') return 'Controls: two pseudopods (classic) · LS: pseudopod 1 · RS: pseudopod 2';
   if (!R.pod && !R.body) return 'LS: free · RS: free (push one to grow a pseudopod)';
@@ -967,8 +973,9 @@ function capture(p, cup) {
     // The cup's pseudopods dissolve into the vacuole; a stick still held must be let go first.
     for (const pod of body.pods) if (!pod.idle) { pod.active = false; pod.target = 0; pod.ret = 1; }
     const r = rawInput();
-    R.sel = R.adj = null; R.rsOn = false;
-    if (r.rs.m >= ROLE_OFF) R.latch.add('rs');
+    R.sel = R.adj = null; R.on.sel = R.on.adj = false;
+    if (r.rs.m >= STICK_OFF) R.latch.add('rs');
+    if (r.ls.m >= STICK_OFF) R.latch.add('ls');
   }
   C.closing = null;
   hud.toast(who() + `${p.sp.name} engulfed: a food vacuole forms`);
@@ -1320,6 +1327,7 @@ function simStep(dt, granules = true) {
     stepCatch(dt);
     if (traps.length) { trapX.set(body.x); trapY.set(body.y); }
     body.step(adt, input, othersAsCircles(nearCol(c), c));
+    if (body.turned) cyto.rotateAbout(body.cx, body.cy, body.turned); // the contents turn with the cell
     if (traps.length) stickToTraps(dt, traps);
     body.grid.build(body.x, body.y, N);
     updateCup(adt);
@@ -2324,11 +2332,10 @@ function renderAll(dt) {
 }
 
 /**
- * Select and steer: a subtle mark on each player's selected pseudopod (R) and,
- * with LT held, the second one (L): a thin line along the membrane round
- * its tip, a short tick and the stick's letter, in the player's colour. They
- * follow the choice live while a stick chooses, and that stick's direction
- * shows as a faint dashed tick.
+ * Pseudopod mode: a subtle mark on the pseudopod each stick owns (R for RS,
+ * L for LS): a thin line along the membrane round its tip, a short tick and
+ * the stick's letter, in the player's colour. A stick passing through neutral
+ * dims its mark; one that has let go (rested, or RT went down) fades it out.
  */
 function drawPodMarks(L) {
   if (S.scheme !== 'select') return;
@@ -2344,8 +2351,10 @@ function drawPodMarks(L) {
     g.save();
     if (L.views.length > 1 && reg) { g.beginPath(); reg.polygon.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip(); }
     for (const [key, letter] of [['sel', 'R'], ['adj', 'L']]) {
-      const pk = c.R[key];
-      if (pk == null || !podExists(b, pk)) continue;
+      let pk = c.R[key], fade = 1;
+      if (pk != null) fade = c.R.on[key] ? 1 : 1 - 0.5 * Math.min(1, c.R.rest[key] / GRACE);
+      else if (c.R.was[key]) { pk = c.R.was[key].k; fade = 0.5 * (1 - c.R.was[key].t / MARK_FADE); }
+      if (pk == null || fade <= 0.02 || !b.pods[pk]) continue;
       const tip = b.pods[pk].tip;
       // along the membrane, 8 µm outside it, either side of the tip
       g.beginPath();
@@ -2354,7 +2363,7 @@ function drawPodMarks(L) {
         const [sx, sy] = toScreen(b.x[i] + b.nx[i] * 8, b.y[i] + b.ny[i] * 8, c.slot);
         if (r === -6) g.moveTo(sx, sy); else g.lineTo(sx, sy);
       }
-      g.strokeStyle = c.p.color; g.globalAlpha = letter === 'R' ? 0.7 : 0.6; g.lineWidth = 2;
+      g.strokeStyle = c.p.color; g.globalAlpha = (letter === 'R' ? 0.7 : 0.6) * fade; g.lineWidth = 2;
       g.stroke();
       const [ax, ay] = toScreen(b.x[tip] + b.nx[tip] * 12, b.y[tip] + b.ny[tip] * 12, c.slot);
       const [bx, by] = toScreen(b.x[tip] + b.nx[tip] * 13, b.y[tip] + b.ny[tip] * 13, c.slot);
@@ -2362,32 +2371,8 @@ function drawPodMarks(L) {
       g.beginPath(); g.moveTo(ax, ay); g.lineTo(ax + ux * 9, ay + uy * 9); g.lineWidth = 2; g.stroke();
       // the letter, with a faint dark halo so it reads on the pale slide and in darkfield
       const lx = ax + ux * 19, ly = ay + uy * 19;
-      g.globalAlpha = 0.5; g.lineWidth = 3; g.strokeStyle = 'rgba(20,18,12,0.8)'; g.strokeText(letter, lx, ly);
-      g.globalAlpha = 1; g.fillStyle = c.p.color; g.fillText(letter, lx, ly);
-    }
-    // A choosing stick (RS with RT held, LS with LT and RT): a short dashed tick
-    // just outside the membrane where it points, with its small letter (fainter if refused).
-    for (const [key, letter] of [['aimR', 'R'], ['aimL', 'L']]) {
-      const aim = c.R[key];
-      if (!aim) continue;
-      // where the ray from the centroid that way leaves the membrane
-      const a = Math.atan2(aim.dy, aim.dx);
-      let far = 0, bd = Infinity;
-      for (let i = 0; i < N; i++) {
-        const ex = b.x[i] - b.cx, ey = b.y[i] - b.cy, d = Math.abs(angDiff(Math.atan2(ey, ex), a));
-        if (d < bd) { bd = d; far = Math.hypot(ex, ey); }
-      }
-      const [ax, ay] = toScreen(b.cx + aim.dx * (far + 10), b.cy + aim.dy * (far + 10), c.slot);
-      const [ex, ey] = toScreen(b.cx + aim.dx * (far + 11), b.cy + aim.dy * (far + 11), c.slot);
-      const dl = Math.hypot(ex - ax, ey - ay) || 1, ux = (ex - ax) / dl, uy = (ey - ay) / dl;
-      const al = aim.refused ? 0.35 : 0.85;
-      g.setLineDash([4, 3]); g.beginPath(); g.moveTo(ax, ay); g.lineTo(ax + ux * 18, ay + uy * 18);
-      g.strokeStyle = 'rgba(20,18,12,0.8)'; g.lineWidth = 3.5; g.globalAlpha = al * 0.35; g.stroke();
-      g.strokeStyle = c.p.color; g.lineWidth = 2; g.globalAlpha = al; g.stroke();
-      g.setLineDash([]);
-      g.font = '600 10px system-ui,sans-serif'; g.fillStyle = c.p.color;
-      g.fillText(letter, ax + ux * 26, ay + uy * 26);
-      g.font = '700 12px system-ui,sans-serif';
+      g.globalAlpha = 0.5 * fade; g.lineWidth = 3; g.strokeStyle = 'rgba(20,18,12,0.8)'; g.strokeText(letter, lx, ly);
+      g.globalAlpha = fade; g.fillStyle = c.p.color; g.fillText(letter, lx, ly);
     }
     g.restore();
   }
@@ -2505,7 +2490,7 @@ window.__micro = {
   /** Select and steer: player `slot`'s pseudopods round the outline and which the sticks hold. */
   pods(slot = 0) {
     const c = cellOf(slot), b = c.body;
-    return { sel: c.R.sel, adj: c.R.adj, list: podList(b).map((p) => ({ k: p.k, deg: Math.round(p.a / DEG), y: Math.round(p.y - b.cy), idle: p.idle, s: +b.pods[p.k].s.toFixed(2), screen: toScreen(b.x[b.pods[p.k].tip], b.y[b.pods[p.k].tip], c.slot).map(Math.round) })) };
+    return { sel: c.R.sel, adj: c.R.adj, mode: c.R.mode, move: c.R.move, round: +b.roundK.toFixed(3), list: podList(b).map((p) => ({ k: p.k, deg: Math.round(p.a / DEG), y: Math.round(p.y - b.cy), idle: p.idle, s: +b.pods[p.k].s.toFixed(2), screen: toScreen(b.x[b.pods[p.k].tip], b.y[b.pods[p.k].tip], c.slot).map(Math.round) })) };
   },
   rolesText, fragments,
   /** 'select' (default), 'lead' or 'classic'. */
