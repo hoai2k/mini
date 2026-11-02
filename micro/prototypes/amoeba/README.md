@@ -213,9 +213,28 @@ encounters, placed as you go*), in this order:
 - **The fungal traps** lie grown from the start; whether they bite shows on
   the hyphae (their knobs: large, dark and sticky while the fungus is hungry;
   small and pale while it rests). Only hyphae near a player fight.
-- **The portal** (the way on) is the director's last entry, so it comes only
-  after both patches were met. There is no arrow or edge pointer to it: keep
-  crawling and you find it; the golden sparkle is its only marker.
+- **The default path** (the owner, 2026-11-01: "a default path to a portal,
+  but just dynamically generate the other directions"): on the director's
+  first update all three are laid along one bearing from the start
+  (`world.js` `DEFAULT_PATH`: 0.2 rad, away from the leaf; a rush's spacing
+  would put the portal past the clear glass, so the distances are given:
+  the ciliates ~1.2 mm out, *P. caudatum* ~2.2 mm, the portal ~3 mm), out of
+  sight, so the way on exists from the start. Follow that bearing and you
+  meet them in order where they lie; crawl off another way and each, while
+  nobody has seen it, leaves the path and is placed ahead of you as before
+  (each is one thing, a patch moved whole with its prey or the portal: the
+  director's `single`); one somebody has seen stays put.
+- **The portal** (the way on) is the director's last entry: on the default
+  path from the start, else placed after both patches were met. It stays
+  sealed until both patches are met (no prompt, its sparkle shut, nothing
+  preloaded; reaching it says "The bursaria swims on: hunt the ciliates
+  first"); Chaos guards it as always. There is no arrow or edge pointer to
+  it by default: keep crawling and you find it; the golden sparkle is its
+  only marker. With **Portal arrow** on in the game's Settings (default off;
+  `?arrow=1` on this page) each view gets a brass arrow at its edge toward
+  the bursaria, sealed or not, with the view's nearest cell's distance
+  beside it ("3.0 mm"; µm under 1 mm). Test hooks: `portalArrow()`,
+  `portals()`, `portalSealed()`.
 - **Snags**: a cell whose rear hooks round a flake or a diatom stretches out
   behind its pseudopod; stretched past ~900 µm it flows over the small debris
   (flakes and diatoms; not filaments or the leaf) until it has gathered itself
@@ -269,9 +288,9 @@ everything else.
   `embed.landmark('forward', { player })` (the shell runs the transition;
   standalone, `embed.js` shows a toast). Turned back and still at it when
   Chaos leaves: the prompt comes up. `embed.near('forward')` is posted while
-  someone is within 1.2 mm of the placed portal, so the shell can load the
-  next world. No arrow or edge pointer points to it (the owner's call): the
-  sparkle on the slide is the only marker.
+  someone is within 1.2 mm of the open portal, so the shell can load the
+  next world. No arrow or edge pointer points to it (the owner's call) unless
+  the Portal arrow setting is on: the sparkle on the slide is the only marker.
 - **Backdoor: a Sphagnum leaf tip** dipping into the pool, about 2.3 mm to the
   left (`LEAF_FS`: one cell thick, large clear hyaline cells with fibril bands
   and pores in a net of narrow green chlorophyllose cells, and the water
@@ -702,7 +721,10 @@ seeds.
 `route.test.mjs` checks that nothing is placed in view, every encounter comes
 in order (the portal last), and, in the lingering and turning-back runs and
 every fourth rush, that what the director put in a grid cell never changes
-once a view has seen that cell. Scripted runs in the
+once a view has seen that cell. With the default path: following its bearing
+meets the three pre-placed ones in order (nothing generated, the portal
+reached in ~60 s); crawling off three other ways takes each off the path
+while unseen and places it as you go, in order, explored cells unchanged. Scripted runs in the
 browser (2026-11-01; `advance()` in 0.25 s steps, both sticks toward the
 bearing, the surge whenever ready, steering 70° off for 2 s after 3 s stuck,
 traps and Chaos passive, Chaos stood down once the portal is placed): nothing

@@ -142,6 +142,16 @@ export const ENCOUNTERS = [
     parts: (x, y, b) => { const [cx, cy] = portalParts(x, y, b).chaos; return [[x, y, 200], [cx, cy, 320 + 90]]; },
     fits: (x, y, b) => portalRoom(x, y, b) },
 ];
+/**
+ * The default path (shared/director.js `defaultPath`; the owner, 2026-11-01: "a default path to a portal,
+ * but just dynamically generate the other directions if the player goes off in another direction"): the
+ * ciliates, P. caudatum and the portal with Chaos laid along one bearing from the start on the first frame
+ * (0.2 rad: away from the leaf on the left), out of sight, so the way on exists from the start. A rush's
+ * spacing (~50 µm/s) would put the portal past the slide's clear glass (SLIDE.far), so the distances are
+ * given: ~1.2, ~2.2 and ~3 mm out. Off that bearing they are placed as you go, as before (each is one
+ * thing: a patch, moved whole while unseen, or the portal: `single`).
+ */
+export const DEFAULT_PATH = { from: { x: 0, z: 0 }, bearing: 0.2, dists: [1200, 2200, 3000] };
 /** Encounters can go anywhere on the slide clear of the leaf and the traps. */
 export const canPlace = (x, y, r) => clearAt(x, y, Math.min(r, 160));
 

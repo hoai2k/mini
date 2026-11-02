@@ -9,7 +9,7 @@
 //   node micro/prototypes/amoeba/route.test.mjs
 import assert from 'node:assert/strict';
 import { createDirector } from '../shared/director.js';
-import { SLIDE, PATCHES, PATCH, TRAP_CENTRES, trapLayout, buildWorld, leafDist, LEAF, segDist, DIRECTOR, ENCOUNTERS, canPlace, clearAt, portalParts, portalRoom } from './world.js';
+import { SLIDE, PATCHES, PATCH, TRAP_CENTRES, trapLayout, buildWorld, leafDist, LEAF, segDist, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, clearAt, portalParts, portalRoom } from './world.js';
 import { CHAOS_R, CHAOS_WAKE } from './chaos.js';
 
 const deg = (a) => `${Math.round((a * 180) / Math.PI)}°`;
@@ -66,8 +66,13 @@ const partsOf = (id, x, z, b) => (spec(id).parts ? spec(id).parts(x, z, b) : [[x
 /** Which placed encounters cover each grid cell (the cells' contents as far as the director goes). */
 function coverage(D) {
   const m = new Map(), c = DIRECTOR.cell, B = DIRECTOR.bounds;
+  const list = [];
   for (const e of D.state().entries) {
-    if (e.state !== 'placed' && e.state !== 'met') continue;
+    if ((e.state === 'placed' || e.state === 'met') && e.placedT !== null) list.push(e);
+    // (a default-path instance: there from the first frame until met or taken off the path)
+    if (e.def && (e.def.state === 'placed' || e.def.state === 'met')) list.push({ ...e, x: e.def.x, z: e.def.z, b: D.entry(e.id).def.b, id: e.id, path: true });
+  }
+  for (const e of list) {
     for (const [px, pz, r] of partsOf(e.id, e.x, e.z, e.b)) {
       for (let i = Math.floor((px - r - B.x0) / c); i <= Math.floor((px + r - B.x0) / c); i++) for (let k = Math.floor((pz - r - B.z0) / c); k <= Math.floor((pz + r - B.z0) / c); k++) {
         if (Math.hypot(B.x0 + (i + 0.5) * c - px, B.z0 + (k + 0.5) * c - pz) > r + c * 0.71) continue; // the director's own test (cells round a disc)
@@ -78,7 +83,7 @@ function coverage(D) {
   }
   return m;
 }
-function game({ seconds, move, check = false }) {
+function game({ seconds, move, check = false, path = false }) {
   const bad = [], changed = [];
   let D;
   const handles = {};
@@ -91,7 +96,7 @@ function game({ seconds, move, check = false }) {
     caudatum: (h, [p]) => Math.hypot(p.x - h.x, p.z - h.y) < PATCH.ciliates.r + CELL_R + 120,
     portal: (h, [p]) => Math.hypot(p.x - h.x, p.z - h.y) < 120,
   };
-  D = createDirector({ ...DIRECTOR, canPlace, entries: ENCOUNTERS.map((e) => ({ ...e, place: place(e.id), met: met[e.id] })) });
+  D = createDirector({ ...DIRECTOR, canPlace, ...(path ? { defaultPath: DEFAULT_PATH } : {}), entries: ENCOUNTERS.map((e) => ({ ...e, place: place(e.id), met: met[e.id], ...(path ? { single: true } : {}) })) });
   const p = { id: 0, x: 0, z: 0, hx: 1, hz: 0 };
   const ev = [];
   const frozen = new Map(); // cell -> what the director had put there when it was first seen
@@ -106,7 +111,7 @@ function game({ seconds, move, check = false }) {
     if (ev.some((e) => e.type === 'met' && e.id === 'portal')) break;
     // main.js driftPatch: a patch placed out of a lingering player's reach swims over (30 µm/s, after 5 s)
     const cur = D.state();
-    const h = cur.current && cur.current !== 'portal' && cur.phase === 'placed' ? handles[cur.current] : null;
+    const h = cur.current && cur.current !== 'portal' && cur.phase === 'placed' && D.entry(cur.current).handle === handles[cur.current] ? handles[cur.current] : null;
     if (h) {
       patchT ??= t;
       const d = Math.hypot(p.x - h.x, p.z - h.y);
@@ -185,8 +190,46 @@ for (const a0 of [0.4, 2.2, 4.0]) {
   assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ['ciliates', 'caudatum', 'portal'], `turn-back ${a0}: every encounter in order`);
   turns.push(`${a0}: ${r.ev.filter((e) => e.type !== 'met' || e.id === 'portal').map((e) => `${e.id} ${e.type}${e.how ? ` (${e.how})` : ''} ${e.t} s`).join(', ')}; ${r.seen} cells seen`);
 }
+// ---- the default path (main.js passes world.js DEFAULT_PATH; each encounter one thing: `single`):
+// the whole order laid along one bearing on the first frame, the portal among it
+const pathRows = [];
+{
+  // following the bearing (crawling to each in turn): the pre-placed ones met in order, the pre-placed portal reached; nothing generated
+  const r = game({ seconds: 140, check: true, path: true, move: (t, p, D, H) => {
+    const s = D.state(), cur = s.entries[s.index];
+    crawl(p, cur && H[cur.id] ? toward(p, H[cur.id]) : DEFAULT_PATH.bearing, RUSH);
+  } });
+  assert.deepEqual(r.bad, [], 'default path: nothing placed in view');
+  assert.deepEqual(r.changed, [], 'default path: explored cells unchanged');
+  const placed = r.ev.filter((e) => e.type === 'placed');
+  assert.deepEqual(placed.map((e) => `${e.id} ${e.how}`), ['ciliates default', 'caudatum default', 'portal default'], 'default path: all three pre-placed, nothing generated');
+  assert.ok(placed.every((e) => e.t < 0.1), 'default path: from the first frame');
+  for (const e of placed) assert.ok(spec(e.id).fits(e.x, e.z, e.b), `default path: ${e.id} on clear glass`);
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.instance}`), ['ciliates default', 'caudatum default', 'portal default'], 'default path: met in order on it');
+  assert.ok(at(r.ev, 'met', 'portal').t <= 70, `default path: the portal reached within ~a minute (${at(r.ev, 'met', 'portal').t} s)`);
+  pathRows.push(`followed: ${placed.map((e) => `${e.id} at ${Math.hypot(e.x, e.z).toFixed(0)} µm`).join(', ')}; met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t} s`).join(', ')}`);
+}
+for (const off of [Math.PI, Math.PI / 2, -Math.PI / 2]) {
+  // heading off another way: each leaves the path while nobody has seen it and is placed as you go, in order; what was seen stays
+  let a = DEFAULT_PATH.bearing + off;
+  const tag = `off the path (${Math.round((off * 180) / Math.PI)}°)`;
+  const r = game({ seconds: 160, check: true, path: true, move: (t, p, D, H) => {
+    if (D.entry('portal').state === 'placed') a = toward(p, H.portal);
+    else if (Math.hypot(p.x, p.z) > SLIDE.field - 300) a += Math.PI * 0.75;
+    crawl(p, a, RUSH);
+  } });
+  assert.deepEqual(r.bad, [], tag);
+  assert.deepEqual(r.changed, [], `${tag}: explored cells unchanged`);
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.instance}`), ['ciliates dynamic', 'caudatum dynamic', 'portal dynamic'], `${tag}: every encounter in order, where placed as you go`);
+  for (const id of ['ciliates', 'caudatum', 'portal']) {
+    const e = r.ev.find((x) => x.type === 'placed' && x.id === id && x.how !== 'default');
+    assert.ok(e && e.from === 'default' && spec(id).fits(e.x, e.z, e.b), `${tag}: ${id} taken off the path and placed as you go (${e && e.how})`);
+  }
+  pathRows.push(`${tag}: met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t} s`).join(', ')}`);
+}
 void CHAOS_R; void CHAOS_WAKE; void clearAt; void portalParts;
 console.log(`ok: ${easy.length} easy patches ${Math.min(...ed).toFixed(0)}-${Math.max(...ed).toFixed(0)} µm out, ${TRAP_CENTRES.length} trap clusters ${Math.min(...td).toFixed(0)}-${Math.max(...td).toFixed(0)} µm out, ${focus.length} objects in focus`);
 console.log(`rushing (${RUSH} µm/s) in 16 directions: ciliates placed ${span('ciliatesPlaced')}, met ${span('ciliates')}; P. caudatum met ${span('caudatum')}; portal placed ${span('portalPlaced')}, reached ${span('portal')}; met by ${[...new Set(times.map((t) => t.how))].join(', ')}`);
 console.log(`lingering: ${r1.ev.filter((e) => e.type === 'placed' || e.type === 'met').map((e) => `${e.id} ${e.type} ${e.t} s${e.how && e.type === 'placed' ? ` (${e.how})` : ''}`).join(', ')}`);
 console.log(`turning back:\n  ${turns.join('\n  ')}`);
+console.log(`default path: ${pathRows.join('; ')}`);

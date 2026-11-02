@@ -13,7 +13,7 @@ import { Cytoplasm } from './cytoplasm.js';
 import { SPECIES, makePrey, PREY_OPTS } from './prey.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, DIC_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
 import { squirmerFlow } from '../shared/techniques/paramecium-squirmer.js';
-import { buildWorld, worldColliders, nearColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules, SLIDE, distFromStart, bearingFromStart, ringPoint, PATCHES, PATCH, CILIATES, BACK_TIP, leafDist, LEAF, portalParts, clearAt, DIRECTOR, ENCOUNTERS, canPlace } from './world.js';
+import { buildWorld, worldColliders, nearColliders, addResidue, wetMountCanvas, cytoplasmCanvas, meanColor, trapCapsules, SLIDE, distFromStart, bearingFromStart, ringPoint, PATCHES, PATCH, CILIATES, BACK_TIP, leafDist, LEAF, portalParts, clearAt, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace } from './world.js';
 import { createDirector } from '../shared/director.js';
 import { View } from './render.js';
 import { Chaos, CHAOS_R, CHAOS_WAKE, CHAOS_LEASH } from './chaos.js';
@@ -21,7 +21,7 @@ import { rng, TAU, clamp, hyp, Scratch } from './util.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createPlayers } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
-import { createLandmarks } from '../shared/landmark.js';
+import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
 import { createQuality } from '../shared/quality.js';
 import { createPortalGlow, createPortalLight } from '../shared/portal.js';
@@ -1661,7 +1661,14 @@ const ENC = {
   // the last: entering the open portal ends the level
   portal: { place: (x, y, b) => { placePortal(x, y, b); return PORTAL; }, met: () => false },
 };
-const director = createDirector({ ...DIRECTOR, canPlace, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id] })) });
+// The default path (world.js DEFAULT_PATH): all three laid out along one bearing on the director's first
+// update, so the way on exists from the start (sealed until both patches are met: portalSealed); head off
+// another way and each, while nobody has seen it, leaves the path and is placed ahead of you as before (one
+// thing each, a patch moved whole or the portal: single).
+const director = createDirector({ ...DIRECTOR, canPlace, defaultPath: DEFAULT_PATH, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id], single: true })) });
+const PORTAL_INDEX = ENCOUNTERS.findIndex((e) => e.final);
+/** The way on exists from the start but stays shut until every earlier encounter is met (the director's order). */
+function portalSealed() { return director.index < PORTAL_INDEX; }
 // What every view sees: the screen's rectangle round each split view's centre
 // (the whole screen: conservative for a split view), at the objective and
 // pull-back in use; and, when the camera lags a cell (advance() steps without
@@ -1731,8 +1738,8 @@ function checkLandmarks() {
     if (!PORTAL.found && !unseen(PORTAL.x, PORTAL.y, -60)) { PORTAL.found = true; lm.log.push({ type: 'found', slot: c.slot }); logChallenge('portalFound', c); }
   }
   if (PORTAL.placed) {
-    // nearing the way on: the shell starts loading the next world (no prompt is shown)
-    nearFwd = dmin < 1200;
+    // nearing the open way on: the shell starts loading the next world (no prompt is shown)
+    nearFwd = !portalSealed() && dmin < 1200;
     if (nearFwd !== lm.nearFwd) { lm.nearFwd = nearFwd; embed.near('forward', nearFwd); }
     if (!lm.hinted && dmin < 1000 && chaos.on && !chaos.beaten) { lm.hinted = true; hud.toast('Chaos guards the way on. Lure it off, or pinch its arms until it gives up', 3600); }
   }
@@ -1743,15 +1750,19 @@ function checkLandmarks() {
       // turned back: Chaos is on guard (it turns on you)
       lm.log.push({ type: 'turnedBack', slot: fwd.slot, t: +S.time.toFixed(2) });
       if (!lm.turned) { lm.turned = true; hud.toast(`${who(fwd)}Turned back: Chaos is on guard. Lead it away from the glow first, then get round it`, 3600); }
+    } else if (portalSealed()) {
+      // the way on exists from the start (the default path) but opens only once both patches are met
+      lm.log.push({ type: 'sealed', slot: fwd.slot, t: +S.time.toFixed(2) });
+      hud.toast(`${who(fwd)}The bursaria swims on: hunt the ciliates first`, 2600);
     }
   }
   if (!cells.some((c) => c.atFwd || (PORTAL.placed && Math.hypot(c.body.cx - PORTAL.x, c.body.cy - PORTAL.y) < c.body.req + 250))) lm.fwdLatch = false;
   // anyone at the open portal: "Y Enter the portal"; their Y goes through (the input loop: atOpenPortal)
-  setPortalPrompt(!!fwd && !outro && !guarded());
+  setPortalPrompt(!!fwd && !outro && !portalSealed() && !guarded());
   setNear(near);
 }
 /** Can cell c go through now (at the open portal)? Then its Y enters. */
-const atOpenPortal = (c) => PORTAL.placed && !outro && c.atFwd && !c.caught.active && !guarded();
+const atOpenPortal = (c) => PORTAL.placed && !outro && c.atFwd && !c.caught.active && !portalSealed() && !guarded();
 /** The portal's Y prompt: on while anyone is at the open portal (the shell, or standalone embed.js, shows it). */
 function setPortalPrompt(on) {
   if (on === lm.portal) return;
@@ -2179,7 +2190,7 @@ function frame(now) {
       `${MODES[S.mode]} · ${ob.name} objective, field ${(ob.field / 1000).toFixed(1)} mm · focus ${S.focus >= 0 ? '+' : ''}${S.focus.toFixed(2)}`,
       `Time: amoeba ×${amoebaX} (pseudopods ×${Math.round(amoebaX * (body.opts.speed || 1))}) · swimmers ×${swimX} of real speed`,
       `${surge.active ? `SURGE ×${C.surgeK.toFixed(1)}` : surge.text()}${C.stuckN ? ` · STUCK on a trap ${C.stuckT.toFixed(1)} s` : ''}${C.bitten ? ` · bitten ${C.bitten}` : ''}`,
-      `Fungal traps: ${fungusText()}${caught.active ? ` · CAUGHT: ${FC.phase}` : ''} · out ${Math.round(distFromStart(body.cx, body.cy))} µm${PORTAL.placed ? (guarded() ? ' · portal guarded' : ' · portal open') : ''}${chaos.on ? ` · Chaos ${chaos.state}` : ''}`,
+      `Fungal traps: ${fungusText()}${caught.active ? ` · CAUGHT: ${FC.phase}` : ''} · out ${Math.round(distFromStart(body.cx, body.cy))} µm${PORTAL.placed ? (portalSealed() ? ' · portal sealed' : guarded() ? ' · portal guarded' : ' · portal open') : ''}${chaos.on ? ` · Chaos ${chaos.state}` : ''}`,
       `Cell ${Math.round(L)} µm long · ${Math.round(body.A0 / 1000)}×10³ µm² · eaten ${C.eaten}${S.pinches ? ` · pinched off ${S.pinches}` : ''}`,
       `${C.cand ? `Cup: ${Math.round((C.cand.cup.wrap * 180) / Math.PI)}° round ${C.cand.prey.sp.name}` : 'Cup: none'}${C.closing ? ' · closing' : ''}`,
       cells.length > 1 ? `Players: ${cells.map((c) => `${c.p.name} eaten ${c.s.eaten}${c.caught.active ? ' (caught)' : c.p.waiting ? ' (waiting)' : ''}`).join(' · ')} · views ${split.layout.views.length}` : '',
@@ -2216,7 +2227,7 @@ function renderAll(dt) {
   // Its effects level: fewer granules drawn, then no chromatic fringes.
   const lvl = quality.level;
   const flags = lvl > 0 ? S.flags : { ...S.flags, chroma: false };
-  glow.setOpen(!guarded());
+  glow.setOpen(!guarded() && !portalSealed());
   glow.update(dt, S.time, glowCam);
   const args = { time: S.time, prey: PORTAL.placed ? [...prey, ...ambient, beacon] : [...prey, ...ambient], mode: S.mode, focus: S.focus, flags, granuleCount: Math.min(S.granules, [1100, 1800, 2600][lvl]), fragments };
   // While split, each view's own passes (mask, property buffers, blurs) are
@@ -2264,10 +2275,12 @@ function renderAll(dt) {
   warnEl.style.display = warnEl.textContent ? 'block' : 'none';
   updateOverlay();
   marks.begin();
-  // no arrow and no edge pointer to the portal (the owner): the golden sparkle
-  // on the slide is its only marker; this canvas only shows the bloom on entering
+  // no arrow and no edge pointer to the portal by default (the owner): the golden sparkle
+  // on the slide is its only marker; this canvas only shows the bloom on entering (the
+  // Portal arrow setting adds an arrow: drawPortalArrow)
   portalLight.begin();
   marks.drawSplit(split, { x: BACK_TIP.x, y: BACK_TIP.y, z: 0 }, { kind: 'backdoor', label: 'Leaf', range: 4500 });
+  drawPortalArrow();
   if (cells.length > 1) drawRings(L, innerWidth / fieldW);
   drawPodMarks(L);
 }
@@ -2318,6 +2331,24 @@ function drawPodMarks(L) {
 }
 
 /** With more than one player: a faint broken ring in each player's colour round their amoeba, and a name tag. */
+/**
+ * The "Portal arrow" setting (the game's Settings, default off; ?arrow=1 here): an arrow at the edge of
+ * each view toward the way on (the P. bursaria in its glow: the director's portals(), one here), with the
+ * view's nearest cell's distance (µm, or mm from 1 mm). Sealed too: it is where the way on will open.
+ */
+let arrowLog = [];
+const arrowLabel = (d) => (d >= 1000 ? `${(d / 1000).toFixed(1)} mm` : `${Math.round(d)} µm`);
+function drawPortalArrow() {
+  arrowLog = [];
+  if (!portalArrowOn() || !PORTAL.placed || outro) return;
+  const pp = { x: PORTAL.x, y: PORTAL.y, z: 0 };
+  arrowLog = marks.drawSplit(split, (vp) => {
+    let d = Infinity;
+    for (const v of vp) { const c = cells.find((q) => q.slot === v.slot); if (c) d = Math.min(d, Math.hypot(c.body.cx - pp.x, c.body.cy - pp.y)); }
+    if (!isFinite(d)) d = Math.hypot(body.cx - pp.x, body.cy - pp.y);
+    return { position: pp, label: arrowLabel(d), distance: d };
+  }, { kind: 'forward', portal: true, range: 4000 }).map((r) => r && { x: r.x, y: r.y, angle: r.angle, onScreen: r.onScreen, d: Math.round(r.picked.distance), label: r.picked.label, at: [Math.round(pp.x), Math.round(pp.y), 0] });
+}
 function drawRings(L, ppu) {
   const cv = marks.canvas, g = cv.getContext('2d');
   const k = cv.width / (cv.clientWidth || innerWidth);
@@ -2447,7 +2478,7 @@ window.__micro = {
   /** The portal for the level transition (the shell reads it): where it is (µm), whether it is placed, found, guarded or open, and Chaos. */
   portal() {
     return { placed: PORTAL.placed, found: PORTAL.found, x: PORTAL.x, y: PORTAL.y, bearing: PORTAL.a, reach: PORTAL.reach, beacon: { x: beacon.x, y: beacon.y },
-      guarded: PORTAL.placed && guarded(), open: PORTAL.placed && !guarded(), glow: +glow.open.toFixed(2), prompt: lm.portal,
+      guarded: PORTAL.placed && guarded(), sealed: PORTAL.placed && portalSealed(), open: PORTAL.placed && !portalSealed() && !guarded(), glow: +glow.open.toFixed(2), prompt: lm.portal,
       chaos: { on: chaos.on, state: chaos.state, beaten: chaos.beaten, x: chaos.body.cx, y: chaos.body.cy, d: PORTAL.placed ? Math.round(Math.hypot(chaos.body.cx - PORTAL.x, chaos.body.cy - PORTAL.y)) : null } };
   },
   /** Testing: place the portal now, `d` µm from player `slot` at bearing `a` (default: their bearing from the start); every encounter before it counts as met. */
@@ -2458,6 +2489,12 @@ window.__micro = {
   },
   /** Go through the portal now as player `slot` (what Y at the open portal does). */
   enterPortal(slot = 0) { enterPortal(cellOf(slot)); },
+  /** The portal arrow drawn last frame, per view: [{ x, y, angle, onScreen, d, label, at } | null] ([] when off). */
+  portalArrow: () => arrowLog,
+  /** The director's portals (the way on): [{ instance, x, y, z, open, seen, state }]. */
+  portals: () => director.portals().map(({ handle, ...q }) => q),
+  /** Is the way on still sealed (encounters left before it)? */
+  portalSealed: () => portalSealed(),
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
   /** The outro's timings (seconds); `rate` slows it (tests). */
@@ -2484,7 +2521,7 @@ window.__micro = {
   teleport(kind, slot = 0) {
     const c = cellOf(slot);
     if (kind === 'forward') {
-      if (!PORTAL.placed) window.__micro.placePortal(null, slot);
+      if (!PORTAL.placed || portalSealed()) window.__micro.placePortal(null, slot);
       lm.fwdLatch = false;
       const x = PORTAL.x + Math.cos(PORTAL.a) * 240, y = PORTAL.y + Math.sin(PORTAL.a) * 240; // just beyond it (Chaos guards the near side)
       window.__micro.place(slot, x, y);
