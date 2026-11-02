@@ -67,21 +67,17 @@ a moment, fades out and you respawn (`shared/predation.js`: `createFight`,
 Read the controls through `shared/controls.js` (`createControls(pad)`), not raw
 buttons, and build the HUD list with `hudControls({...})` so every prototype
 lists the same buttons in the same order. `createDash()` gives a dash with a
-recharge and a HUD meter. The amoeba uses its own twin-stick scheme: LS moves the body and RS steers
-the selected pseudopod (marked R in the player's colour). With no pseudopod,
-RS grows one (or takes one already reaching that way). The selected one stays
-selected however you steer it; only choosing with RT (or its being gone) changes it.
-Holding RT makes RS a chooser: the pseudopod lying the way it points becomes R
-(or one grows there); let RT go and RS steers it freely. Holding LT turns LS
-into a second pseudopod hand (marked L): the neighbour of the selected one
-towards screen-up, or towards screen-down if the selected one is the topmost,
-sprouting one if there is none. Holding LT and RT, both sticks choose (LS
-chooses L by direction); a centred stick keeps its choice, and R and L are
-never the same pseudopod. A surges,
-X closes the cup (and cuts or pinches), B lets go or stiffens, LB/RB spread out
-/ push harder. To pinch an arm of *Chaos*, hold LT, close the two pseudopods
-round it and press X. "Lead and follow" and the classic two-pseudopod scheme
-remain Features choices.
+recharge and a HUD meter. The amoeba uses its own twin-stick scheme. Each stick moves one pseudopod
+(marked L and R in the player's colour): its first push grabs the pseudopod
+lying that way (or grows one there), a quick flick through the centre keeps it,
+and resting the stick lets it go. Hold RT to move the whole cell instead: one
+stick or both the same way crawl, two ways crawl between and widen, apart
+stretches, together squishes, one up and one down turn it. LT spreads the whole
+cell out (held on, it slowly rounds up); LB/RB spread / push harder the
+pseudopod being moved. A surges, X engulfs (and cuts or pinches), B lets go or
+stiffens. To pinch an arm of *Chaos*, close two pseudopods round it and press
+X. "Lead and follow" and the classic two-pseudopod scheme remain Features
+choices.
 
 ## Multiplayer
 

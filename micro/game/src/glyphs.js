@@ -7,6 +7,7 @@
 const CHIP = { A: 'a', B: 'b', X: 'x', Y: 'y' };
 const WORLD_KEYS = {
   A: 'Space', B: 'Shift', X: 'E', Y: 'R', LB: 'Q', RB: 'F', LT: 'Z', RT: 'X', 'LT/RT': 'Z / X', 'LB/RB': 'Q / F',
+  'LS/RS': 'WASD / Arrows',
   LS: 'WASD', RS: 'Arrows', View: 'Tab', Menu: 'Esc', 'LS click': 'C', 'RS click': 'V',
   'D-pad': '1–4', 'D-pad ↑↓': '1 / 2', 'D-pad ←→': '3 / 4', 'D-pad ↑': '1', 'D-pad ↓': '2',
 };

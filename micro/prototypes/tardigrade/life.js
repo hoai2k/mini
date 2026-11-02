@@ -14,7 +14,18 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 
 const TUN_FORM = 2.2, REVIVE_TIME = 2.4;
 
+/**
+ * Where food can be eaten, in the animal's own frame (x forward, the body
+ * runs from the tail at x ≈ -1.6 to the mouth ring at x ≈ 1.84): anywhere
+ * under the front quarter of the body (the head and the first leg pair,
+ * x ≥ 0.98, within 0.6 of the midline), or just ahead of the mouth (within
+ * 0.42 of it). The owner (2026-11-02): eat what is under the mouth, not only
+ * what is straight ahead.
+ */
+export const REACH = { front: 0.98, tip: 1.84, halfW: 0.6, mouth: [1.8, 0], ahead: 0.42 };
+
 const _gut = new THREE.Vector3();
+const _fp = new THREE.Vector3();
 
 export class Life {
   /**
@@ -41,6 +52,7 @@ export class Life {
     this.state = 'active';
     this.tun = 0; this.tunHold = 0;
     this.feeding = null;
+    this.target = null;
     this.creature.pose.tun = 0;
     if (!first) { this.world.reseed(); const s = this.events.startSpot?.(); if (s) this.walker.spawn(...s); this.events.newDay?.(); }
   }
@@ -62,6 +74,31 @@ export class Life {
     return this.world.filmAt(w.leaf, w.u, w.v);
   }
 
+  /**
+   * How far food item `item` is from the mouth (in body units, along the
+   * leaf) if it lies in reach (REACH, grown by `margin`), else Infinity.
+   */
+  reach(item, margin = 0) {
+    const w = this.walker;
+    if (item.leaf !== w.leaf || item.side !== w.side) return Infinity;
+    const L = item.leaf;
+    const p = L.toWorld(item.u, item.v, item.side * (L.thick / 2 + 0.06), _fp).applyMatrix4(w.inv);
+    if (Math.abs(p.y + 0.6) > 0.5 + margin) return Infinity; // on the face under the feet
+    const [mx, mz] = REACH.mouth, d = Math.hypot(p.x - mx, p.z - mz);
+    const under = p.x >= REACH.front - margin && p.x <= REACH.tip + margin && Math.abs(p.z) <= REACH.halfW + margin;
+    return under || d <= REACH.ahead + margin ? d : Infinity;
+  }
+
+  /** The food item X would eat now (nearest the mouth), or null. */
+  foodInReach() {
+    let best = null, bd = Infinity;
+    for (const item of this.world.food) {
+      const d = this.reach(item);
+      if (d < bd) { bd = d; best = item; }
+    }
+    return best;
+  }
+
   /** input: { yDown, yPressed, bitePressed (X), aPressed, moving(0..1) } */
   update(dt, input) {
     const ev = this.events;
@@ -77,6 +114,8 @@ export class Life {
     switch (this.state) {
       case 'active': {
         this.updateFeeding(dt, input);
+        // what X would eat now (main.js highlights it and readies the mouth)
+        this.target = !this.feeding && !this.walker.slipping && this.tun < 0.02 ? this.foodInReach() : null;
         // Tun: hold Y
         const forming = input.yDown && !this.feeding;
         this.tun = THREE.MathUtils.clamp(this.tun + (forming ? dt / TUN_FORM : -dt / 1.2), 0, 1);
@@ -99,6 +138,7 @@ export class Life {
         if (input.aPressed) { if (this.events.restart) this.events.restart(this); else this.newDay(); }
         break;
     }
+    if (this.state !== 'active') this.target = null;
     P.tun = this.tun;
     // Gut colour follows what was eaten (darker when full of food).
     const g = _gut.copy(this.gutColour).multiply(this.gutTint).clampScalar(0.02, 1);
@@ -134,14 +174,17 @@ export class Life {
       // breaks off. An item goes back where it was (main.js animateEating); a
       // leaf cell gives the share already sucked out. Once it's in, walk on.
       if (f.t / f.dur < (f.item ? 0.45 : 0.6)) {
-        const leaf = f.item ? f.item.leaf : f.leaf;
-        let off = Infinity;
-        if (leaf === w.leaf) {
-          const ml = w.leaf.toLocal(this.creature.anchorWorld('buccal tube + stylets'), {});
-          const [u, v] = f.item ? [f.item.u, f.item.v] : f.cell;
-          off = Math.hypot(u - ml.u, v - ml.v);
+        let gone;
+        // an item: out of reach (with some slack) of the front of the body
+        if (f.item) gone = this.reach(f.item, 0.3) === Infinity;
+        else {
+          gone = f.leaf !== w.leaf;
+          if (!gone) {
+            const ml = w.leaf.toLocal(this.creature.anchorWorld('buccal tube + stylets'), {});
+            gone = Math.hypot(f.cell[0] - ml.u, f.cell[1] - ml.v) > 0.7;
+          }
         }
-        if (off > 0.7) {
+        if (gone) {
           if (!f.item) {
             const part = f.t / f.dur;
             this.energy = Math.min(1, this.energy + f.value * part);
@@ -170,13 +213,10 @@ export class Life {
     P.pump = Math.max(0, P.pump - dt * 3);
     if (!input.bitePressed || w.slipping) return;
     const mouth = this.creature.anchorWorld('buccal tube + stylets');
-    let best = null, bd = 0.45;
-    const ml = w.leaf.toLocal(mouth, {});
-    for (const item of this.world.food) {
-      const d = Math.hypot(item.u - ml.u, item.v - ml.v); // along the leaf: the mouth is above it
-      if (d < bd && item.leaf === w.leaf && item.side === w.side) { bd = d; best = item; }
-    }
+    // food anywhere under the front quarter of the body or just ahead of the mouth
+    const best = this.foodInReach();
     if (best) {
+      this.target = null;
       this.feeding = { item: best, t: 0, dur: best.time, value: best.value, gut: best.gut, name: `a ${best.type}` };
       this.events.toast(`Stylets into a ${best.type}…`);
       return;

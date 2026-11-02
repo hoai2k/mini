@@ -15,46 +15,48 @@ Open `micro/prototypes/amoeba/` (the invite gate is off on localhost).
 
 ## Controls (Xbox controller; keyboard in brackets)
 
-Three schemes, chosen in Features → Controls. **Select and steer** is the
-default (the owner's design); **Lead and follow** and **Two pseudopods
-(classic)** behave exactly as before.
+Three schemes, chosen in Features → Controls. **Pseudopods and movement** is
+the default (the owner, 2026-11-02; it replaces "Select and steer", where the
+triggers chose pseudopods); **Lead and follow** and **Two pseudopods
+(classic)** behave as before.
 
-### Select and steer (default)
+### Pseudopods and movement (default)
 
-RS always steers the **selected** pseudopod and LS moves the body
-(twin-stick), unless a trigger is held. The triggers choose: hold RT to
-create or take over a pseudopod with RS, let go and do anything with it;
-hold LT to bring in a second one on LS (the owner, 2026-11-02). The selected
-pseudopod carries a subtle mark in the player's colour: a thin line along the
-membrane round its tip, a tick and the letter **R**; while LT is held the
-second one carries an **L**. The marks follow the choice live, and a stick
-that is choosing shows a short dashed tick with its small letter just outside
-the membrane where it points (fainter when refused, below). The corner says
-what each stick holds (`RS: pseudopod R (3 out) · LS: body · hold RT: RS
-chooses`; `RS: choosing R` while RT is held).
+Two modes, read afresh from RT every frame, so neither can stick: RT up is
+pseudopod mode, RT held is movement mode.
 
 | Button | Action |
 | --- | --- |
-| RS (arrows) | Steers the selected pseudopod (area conserved). With none selected, grows one in its direction and selects it (or selects the one already standing out that way). The selection never changes on its own while you steer: only choosing with RT changes it, or a new one is chosen when the selected pseudopod is gone (the owner, 2026-11-02) |
-| LS (WASD) | Moves the bulk of the cell that way (the rear contracts, the endoplasm streams forward). With RS held as well, the cell travels behind its pseudopod |
-| RT (X), held | RS **chooses** R: the pseudopod lying within 32° of where RS points becomes R (idle pseudopods count: choosing one takes it over), or, with none that way, a new one grows there; RS also steers it as it chooses. The choice follows the stick as it sweeps, with hysteresis (the current one stays while within 45° of the stick, unless another lies 15° nearer), so it does not flicker between two. RS centred: R stays as it was. Let go of RT and the choice is locked: RS steers it any way you like, however far round, and it stays R |
-| LT (Z), held | LS steers a **second** pseudopod, L, instead of the body: the neighbour round the outline towards the top of the screen (anticlockwise on the right half of the cell, clockwise on the left), or towards the bottom if the selected one is the topmost. With no neighbour there, one sprouts 55° round (above, unless the selected one already points within 40° of straight up) and buds a little so you see it. Let go: LS moves the body again and that pseudopod flows slowly back |
-| LT + RT (Z + X), held | **Both sticks choose**: RS chooses R as above and LS chooses L the same way (within 32° of LS, or one grows there). A centred stick keeps its old selection. Let go of RT (LT still held) and LS steers L, RS steers R. R and L are never the same pseudopod: a stick pointing at the one the other stick holds (or growing onto its lobe) is refused, its selection stays as it was and its dashed tick fades (`RS: choosing R (L holds that one)`); swapping them instead would fight the other stick, which may be choosing too |
-| LB (Q) | Spread out / relax |
-| RB (F) | Push harder |
+| LS / RS (WASD / arrows) | **Move a pseudopod.** Each stick owns one: LS the one marked **L**, RS the one marked **R**. A stick at rest owns nothing; its first push (past 0.3) grabs the pseudopod whose tip lies within 34° of it (idle ones too), or grows one at the membrane that way, and steers it while pushed (direction and reach). Flick through the centre quicker than 0.28 s and you keep it; rest in the centre longer (below 0.15) and it lets go, so the next push can grab another. R and L are never the same: a push towards the other stick's pseudopod grabs the next one within 34°, or grows one 30–60° beside it |
+| RT (X), held | **Move the cell.** The sticks become movement intents and steer no pseudopod (ones let go flow slowly back). One stick, or both the same way: the cell crawls that way. Two different ways: it crawls between them and widens across its path. LS left + RS right (apart): stretches along that line; LS right + RS left (together): squishes; LS up + RS down: turns clockwise, LS down + RS up: anticlockwise, like a tank (the contents turn with it). Mixed angles blend (below). On above 0.5, off below 0.3 |
+| LT (Z), held | **Spread / round up**: the whole cell spreads out at once (the old LB, for the whole cell); held on, from about 1.5 s it slowly draws its pseudopods in and relaxes towards a circle, near round after about 8 s. Let go and it eases back |
+| LB / RB (Q / F) | **Spread / push a pseudopod**: only the pseudopod(s) a pushed stick is steering (in pseudopod mode): LB makes it broader and a little shorter, RB pushes it out faster. With no stick pushed, they do nothing |
 | LS click / RS click (C / V) | Fine focus down / up |
 
-A centred RS lets the selected pseudopod flow slowly back; it stays selected
-while it still stands out. After eating, the cup's pseudopods dissolve into
-the vacuole, nothing is selected, and an RS still held must be let go before
-it grows another. **Pinching Chaos**: hold LT and close RS and LS round one of
-its arms from both sides (a pincer), then X.
+Movement mode in detail (`moveInput` in `main.js`): with a = LS and b = RS,
+the cell travels along a + b (capped at full speed). How far apart the sticks
+point weights the rest: from 90° to 160° apart, d = (b̂ − â)/2 × the weaker
+stick's push drives a stretch (horizontal part of d > 0) or squish (< 0) along
+the line of the sticks and a turn by its vertical part (0.45 rad/s game time at
+full); below that, 15–75° apart widens the cell across its travel. In the soft
+body (`shared/techniques/amoeba-softbody.js`) these are `input.shape` (the ends
+pushed out or in, the area taken from or given to the sides, stretching
+stopping at about 2.1 radii, squishing at about 0.65), `input.turn` (the
+outline rotated about the centroid; `cytoplasm.rotateAbout` turns the
+contents) and `input.round` (LT); shaping in place quiets the idle pseudopods
+and holds the centroid, so it goes nowhere. Per-pseudopod `input.pods[k].push`
+and `.spread` carry RB and LB.
 
-In code (`main.js`, `selectInput`, `choosePod`, `pickAdjacent`): the soft body
-steers as many pseudopods as it is given (`Body.addPod`, up to 8 per cell), so
-a pseudopod let go keeps flowing back on its own while another is steered.
-The R/L marks are drawn on the landmarks overlay (`drawPodMarks`), clipped to
-each player's region when the screen is split.
+The marks: a thin line along the membrane round each owned pseudopod's tip, a
+tick and the stick's letter in the player's colour; dimmer while the stick
+passes through the centre, fading out over 0.7 s once it lets go. The corner
+says what each stick holds (`LS: moving L · RS: free · RT: move the cell · LT:
+spread`; `RT: moving the cell (crawling + widening)` in movement mode).
+
+After eating, the cup's pseudopods dissolve into the vacuole and a stick still
+pushed must be let go before it grabs another. **Pinching Chaos**: grab two
+pseudopods with the two sticks, close them round one of its arms from both
+sides (a pincer), then X.
 
 ### Lead and follow
 
@@ -91,7 +93,7 @@ still held keeps moving the body.
 
 | Button | Action |
 | --- | --- |
-| **A (Space)** | **Surge**: for 0.9 s every active pseudopod extends up to 2.5× faster and may run a little further ahead, the rear contracts harder and streaming surges to the tips, so the whole cell lunges; recharges over 2.4 s (the `dash` meter). With no stick held it surges along the cell's heading (in select and steer and lead and follow, the body flows on that way). Tears the membrane free of a fungal trap |
+| **A (Space)** | **Surge**: for 0.9 s every active pseudopod extends up to 2.5× faster and may run a little further ahead, the rear contracts harder and streaming surges to the tips, so the whole cell lunges; recharges over 2.4 s (the `dash` meter). With no stick held it surges along the cell's heading (in the default scheme and lead and follow, the body flows on that way). Tears the membrane free of a fungal trap |
 | **X (E)** | **Close the food cup** round the prey it wraps (needs ≥ 190° of membrane round it): the rims advance and endoplasm floods in to fill round the prey until they meet. At a trap hypha: a pseudopod jab that cuts its tip. With your membrane round an arm of Chaos: pinch it off |
 | B (Shift) | Let go while closing; otherwise egest the oldest food vacuole at the uroid (a live, barely digested prey swims away). Near a threatening trap hypha (or stuck on one), hold to **stiffen** (defend) |
 | Y (R) | Labels (nucleus, contractile vacuole, uroid, hyaline caps, ectoplasm, endoplasm, prey with real sizes, trap hyphae). At the leaf tip (the backdoor) Y goes back up to the tardigrade instead, and at the open portal (the game shows "Y Enter the portal") Y goes through it |
@@ -668,7 +670,7 @@ JS-only bench of 60 Hz steps (`advance`), since the frame harness is noisy here:
 | World | Traps come and go (fungal hunger) | on |
 | Body | Membrane never crosses itself | always |
 | Body | Pinch-off (rare) | on |
-| Controls | Controls: Select and steer, Lead and follow, Two pseudopods (classic) | Select and steer |
+| Controls | Controls: Pseudopods and movement, Lead and follow, Two pseudopods (classic) | Pseudopods and movement |
 | Controls | Rumble | on; Stick-driven pseudopods: always |
 
 Technique modules others can reuse (each documents its interface in its
@@ -790,7 +792,7 @@ the sticks), `press(name)`, `setMode(i)`, `pause()`, `renderOnce()`,
 `advance(seconds)` (simulate without rendering), `spawnPrey(kind, x, y)`,
 `clearPrey()`, `resetBody()`, `close()`, `surge` (the dash), `ctl`,
 `readInput()`, `roles` (`{ pod, body, branch, latch, sel, adj }`), `rolesText()`,
-`pods(slot)` (select and steer: `{ sel, adj, list }`, each pseudopod's angle
+`pods(slot)` (default scheme: `{ sel, adj, mode, move, round, list }`, each pseudopod's angle
 round the outline), `route()` (the slide, the trap hyphae's distances, the
 patches (scenery and the encounters') and their prey, `met`: when and how far
 out each encounter was placed and met, and the director's state),
@@ -824,7 +826,22 @@ a full RT sweep in 4 s changed R four times with no flicker; with RT let go
 RS swept 360° over 5 s and R never changed; RS centred under RT, and steering
 with no trigger, kept R; LT gave LS the neighbour; LT + RT let LS choose L
 by direction three times while RS held R; RS swept onto L's
-pseudopod under both triggers was refused; and R was never L on any frame.
+pseudopod under both triggers was refused; and R was never L on any frame. Pseudopods and movement (2026-11-02, replacing
+the trigger choosing) was checked frame by frame with a scripted pad in
+Playwright: a first RS push grows R that way and steers it; a 0.12 s pass
+through neutral keeps it; 0.6 s at rest lets it go and the next push grabs
+another; LS does the same with L; a push at the other stick's pseudopod grows
+one beside it; R was never L. RT 0.4 never enters movement mode, and letting
+RT go leaves it on the first frame. With RT: one stick or both right crawl
+right (~120 µm in 3 s); LS up + RS right crawls at ~50° and widens; apart
+stretches (aspect 1.0 → 2.7) and together squishes (→ 0.36) with the
+centroid still; LS up + RS down turns ~150° clockwise in 3 s (the nucleus with
+it), the reverse anticlockwise. LT spreads at once (spread 0.5 in 0.6 s,
+circularity unchanged) and only slowly rounds (circularity 0.54 after 1 s,
+0.94 after 5 s, 1.0 after 8 s). LB / RB changed only the steered pseudopod
+(broader 113 vs 56 µm; tip 75 vs 52 µm in 0.8 s) and nothing with no stick
+pushed. Two sticks closed R and L round an arm-sized obstacle and Chaos's
+pincer test found the neck.
 
 ## Sources
 

@@ -137,19 +137,18 @@ const hud = mountHud({
   title: 'Mite · SEM',
   sub: 'A box mite (Phthiracaridae), about 0.35 mm long, in a moss cushion, imaged like a scanning electron micrograph. A predatory mite hunts here.',
   controls: hudControls({
-    move: 'Walk (relative to the view): a slight push walks, full tilt hurries (keys: a middle pace). Climbs grains, stems and flakes, pushes through blades',
-    camera: 'Orbit the specimen (up looks up)',
-    dash: 'Jump: tap to spring ~3 body lengths, hold to crouch deeper and release for ~6 (aim with the stick); X in the air: a pounce-bite',
-    attack: 'Bite: rear, lunge and snap. Grazes spores and hyphal tips (leg I holds them); nips a springtail (it lies dazed, its group leaps off; bite it again to eat it); nips the predator and the pseudoscorpion',
-    defend: 'Hold: dash (scramble), ~1.7x full tilt, on a stamina meter; also breaks a grab in its strike window',
-    special: 'Hold: close up (ptychoidy, defend): blocks the predator\'s strike. At the open portal: enter it. At the giant springtail: back up a world',
-
-    secondary: 'Hold: walk slowly (the slow end) / hurry (full tilt)',
-    look: 'Imaging mode: SE, BSE, false colour',
-    zoom: 'Magnification steps',
-    extra: embed.active ? [] : [['LS click', 'Observer: SEM data bar and scan lines']],
+    move: 'Move',
+    camera: 'Camera',
+    dash: 'Jump (hold to charge)',
+    attack: 'Attack / eat',
+    defend: 'Dash (hold)',
+    special: 'Block (hold) / enter portal',
+    secondary: 'Walk slow / fast',
+    look: 'Change the look',
+    zoom: 'Zoom',
+    extra: [['Y', 'Way back: go up a world'], ...(embed.active ? [] : [['LS click', 'Instrument readout']])],
   }),
-  note: 'A live mite walking in an SEM is a deliberate fiction: real specimens are dried and gold-coated in a vacuum. The mag and scale bar are true to the field of view. Speeds are a game stretch: the walk (0.42-0.87 mm/s) is a few times a real oribatid\'s, and box mites do not jump (zetorchestid oribatids do; the feel here is a flea\'s).',
+  note: 'Reach the glowing portal, and avoid getting eaten by the predatory mite and the pseudoscorpion. Up to four players: press any button on another controller to join.',
 });
 
 // SEM data bar (observer mode)

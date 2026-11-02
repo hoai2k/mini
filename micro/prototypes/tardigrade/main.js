@@ -86,19 +86,19 @@ const hud = mountHud({
   title: 'Tardigrade · The Moss Film',
   sub: 'A ~350 µm eutardigrade gripping moss-leaf cell walls in the water film: out from the shoot past a Milnesium, rotifer meadows and dry patches to the pool Prionchulus guards. Differential interference contrast (DIC) look.',
   controls: hudControls({
-    move: 'Crawl (relative to the view): a slight push creeps, full tilt hurries; keys walk at a middle pace, hold G to hurry, T to creep. Push into a leaf edge to reach across',
-    camera: 'Turn and tilt the view (up looks up)',
-    dash: 'Scramble: a burst of fast wave gait (recharges in a few seconds)',
-    attack: 'Pierce with the stylets: feed, or jab a Milnesium (bite back)',
-    defend: 'Hold: brace. Facing a Milnesium, it blocks the lunge',
-    special: 'Hold: curl into a tun (again: wake). At the open portal: enter it',
-    analog: 'Fine focus down / up',
-    secondary: 'Anatomy labels / rain (test)',
-    look: 'Optical look: DIC / brightfield / lit',
-    zoom: 'Magnification 10× / 12.5× / 20× / 40×',
-    extra: [['LS click', 'Refocus on the animal'], ['RS click', 'Restart (test)']],
+    move: 'Move (keys: G hurry, T creep)',
+    camera: 'Camera',
+    dash: 'Dash',
+    attack: 'Attack / eat',
+    defend: 'Block (hold)',
+    special: 'Curl up / enter portal',
+    analog: 'Focus',
+    secondary: 'Labels / rain (test)',
+    look: 'Change the look',
+    zoom: 'Zoom',
+    extra: [['LS click', 'Refocus'], ['RS click', 'Restart (test)']],
   }),
-  note: 'Goal: head out along the leaves in any direction. A few seconds of calm leaves, then a Milnesium in its water, a calm stretch, a band of rotifers across the way (push and jab through), a stretch of dry patches (bare cells, slow going: walk round them), and at the rim, about 8.4 mm out, the way on: the tip of a broad Sphagnum leaf dipping into the pool under a golden sparkle, guarded by Prionchulus. Lure it off its post (it gives up and glides back slowly), then get round it to the tip, to zoom in to the pool floor. Nothing runs out while you stay put; food heals. The leaf axil at the stem, left of the start (the ring), is the way back up: Y there. Other controllers join with any button. Walking ~30 µm/s at a slight push to ~150 µm/s at full tilt (inside the measured 79-263 µm/s); the scramble (~280 µm/s) is a stretch. Claws drawn 1.6× longer, ~3× thicker than true. DIC relief is optical path, not height.',
+  note: 'Reach the glowing portal, and avoid getting eaten by Milnesium and the nematode. Up to four players: press any button on another controller to join.',
 });
 
 const toast = (t, ms) => hud.toast(t, ms);
@@ -143,17 +143,22 @@ function footstep(a, q = 0.5) {
 }
 /** Toasts about one animal name the player when more than one is playing. */
 const who = (a) => (players.count > 1 ? `${a.p.name}: ` : '');
+// Rumble is kept for impacts: bites (yours and theirs), the scramble, slips and
+// falls, the portal. Ordinary walking is silent in the hands: each claw that
+// hooked a wall used to knock (45 ms, up to ~8 a second) and each hand-over to
+// the next leaf kicked (120 ms), so a steady walk buzzed the controller (the
+// owner, 2026-11-02). The footfall sounds stay.
 function walkerEvents(a) {
   const rb = (ms, w, s) => { if (rumbleOn) a.pad.rumble(ms, w, s); };
   return {
     catch(q, big) {
+      // big: the claws bite again after a slip (an impact)
       if (big) { rb(180, 0.35, 0.6); footstep(a, 1); return; }
       footstep(a, q);
-      if (a.catchBudget <= 0) { rb(45, 0.04, 0.12 + 0.12 * q); a.catchBudget = 0.12; }
     },
     slip() { toast(`${who(a)}Losing grip! Hold B to brace`); rb(400, 0.5, 0.2); },
     fall(t) { toast(who(a) + t, 2600); rb(300, 0.6, 0.8); },
-    transfer(t) { toast(who(a) + t); rb(120, 0.15, 0.3); },
+    transfer(t) { toast(who(a) + t); },
   };
 }
 const p1 = { p: players.get(0), slot: 0, pad, ctl, creature, lastStep: -1, side: 1, catchBudget: 0, state: 'active' };
@@ -329,7 +334,7 @@ F({ id: 'rings', group: 'Simulation', label: 'Rings round the start (the encount
 F({ id: 'capacity', group: 'Simulation', label: 'Film capacity field', fixed: true,
   about: 'Per leaf: wetter towards the stem, in random hollows and where another leaf nearly touches (capillary bridges); margins thinner. The dry ring\'s patches are bare: no film, a sharp contact line round them, slow going (claws on dry cell walls). The film does not dry out over time.' });
 F({ id: 'labels', group: 'Controls', label: 'Anatomy labels', on: false, about: 'Name the claws, leg IV, buccal tube, bulb, eyespot, gut and storage cells (LB).', onChange: (v) => (view.labels = v) });
-F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'A small knock as each claw hooks a wall; heavy on slips and falls; a kick on each scramble and on a Milnesium bite.', onChange: (v) => (rumbleOn = v) });
+F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'Impacts only: your bites and jabs as they land, a kick on each scramble, heavy on slips, falls and being bitten, and the portal. Walking does not rumble.', onChange: (v) => (rumbleOn = v) });
 F({ id: 'scramble', group: 'Motion', label: 'Scramble (A)', fixed: true,
   about: 'A 0.9 s burst of the same back-to-front wave gait at ~280 µm/s, nearly twice the full-tilt walk (150 µm/s): the legs step faster rather than further (each reaches only so far), with up to 45% of each cycle in swing and swings as short as 60 ms. It recharges over 2.6 s; it costs nothing else. A stretch: the fastest walking measured in Hypsibius is ~260 µm/s.' });
 F({ id: 'reach', group: 'Motion', label: 'Leg reach and hand-off', fixed: true,
@@ -1291,13 +1296,15 @@ function step(dt, G) {
     a.meadowJab = false;
     if (meadow.on && g.P(BTN_X) && L.state === 'active' && !L.feeding && !a.bossJab && !(a === target && jabbed)) {
       const n = meadow.jab(a.walker);
-      if (n) { a.meadowJab = true; (a.anim ||= {}).jab = 0.34; if (!a.toldMeadow) { a.toldMeadow = true; toast(`${who(a)}Touched, the rotifers snap their coronae shut and contract onto their feet`, 2600); } }
+      if (n) { a.meadowJab = true; if (!a.toldMeadow) { a.toldMeadow = true; toast(`${who(a)}Touched, the rotifers snap their coronae shut and contract onto their feet`, 2600); } }
     }
     const yBack = a.atBack && g.P(BTN_Y);
     if (yBack) { fireLandmark('back', a); toast(`${who(a)}Back up to the moss canopy`); }
     const yPortal = !a.atBack && a.atPortal && L.state === 'active' && portal.placed && !portalSealed() && !guarded() && g.P(BTN_Y);
     if (yPortal) enterPortal(a);
     const yOwn = !a.atBack && !yPortal;
+    const xAtk = g.P(BTN_X) && L.state === 'active' && !L.feeding && !(held && a === captive);
+    const bossHit = a.bossJab;
     L.update(dt, { yDown: yOwn && g.D(BTN_Y), yPressed: yOwn && g.P(BTN_Y), bitePressed: g.P(BTN_X) && !(a === target && jabbed) && !a.bossJab && !a.meadowJab, aPressed: g.P(BTN_A), moving: a.walker.speed });
     // life-state transitions: the tun, the revival, a stylet bite
     if (L.state !== a.state) {
@@ -1306,6 +1313,8 @@ function step(dt, G) {
       a.state = L.state;
     }
     a.bossJab = false;
+    // X (not spitting out a meal): the attack plays, and its impact lands on what it hit
+    if (xAtk) startAttack(a, a === target && jabbed ? 'hit' : bossHit ? 'hit' : a.meadowJab ? 'touch' : L.feeding ? 'food' : 'puff', bossHit ? boss.headW : a === target && jabbed ? predator.mouth(_atkP) : null);
     const feeding = !!L.feeding;
     if (feeding && !a.feeding) audio.play('tardigrade/bite', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
     a.feeding = feeding;
@@ -1367,23 +1376,148 @@ const _fd = new THREE.Vector3(), _off = new THREE.Matrix4(), _rz = new THREE.Mat
 
 /**
  * The player's own fight moves, layered on the walker's pose:
- *   attack (X): a stylet jab with a head thrust (also the start of every bite);
+ *   attack (X): one move for every bite, at food, a leaf cell, Milnesium or
+ *     Prionchulus, or at nothing (startAttack, ATTACK): a wind-up (the head
+ *     draws back and up, the trunk bunches), a lunge (the head thrusts forward
+ *     and down, the mouth ring opens wide, the stylets shoot out past it), a
+ *     snap (the ring closes on the stylets: the impact), and a recoil back to
+ *     rest; 0.42 s in all. The fight is decided on the press, as before: this
+ *     is how it reads, not when it counts.
+ *   ready: food in reach (life.target): the mouth ring parts a little and the
+ *     stylets show, pulsing (with the glow on the food, drawCues).
  *   guard (B held): crouched, head drawn in and down, claws braced;
  *   shove: a blocked lunge, the head butted forward; hit: a jab that landed, a recoil.
  */
+const ATTACK = { wind: 0.08, lunge: 0.16, snap: 0.21, end: 0.42 };
+const _atkP = new THREE.Vector3(), _atkF = new THREE.Vector3();
+/** Start the attack; kind: 'hit' (Milnesium, Prionchulus), 'food', 'touch' (the rotifers), 'puff' (nothing there). */
+function startAttack(a, kind, at = null) {
+  const an = (a.anim ||= {});
+  const L = a.life, f = L.feeding;
+  let p = at ? at.clone() : null;
+  if (!p && kind === 'food' && f) p = f.item ? f.item.mesh.position.clone() : f.leaf.toWorld(f.cell[0], f.cell[1], f.leaf.thick / 2 * a.walker.side);
+  // nothing there (or the rotifers): just ahead of the mouth, in the water film
+  if (!p) p = bodyPoint(a, MOUTH[0] + 0.32, MOUTH[1] - 0.1, 0, new THREE.Vector3());
+  an.atk = { t: 0, kind, at: p, fx: false };
+}
+const smooth = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 function fightPose(a, g, dt) {
   const an = (a.anim ||= {});
   const c = a.creature, L = a.life;
-  for (const k of ['jab', 'shove', 'hit']) an[k] = Math.max(0, (an[k] || 0) - dt);
-  if (g && g.P(BTN_X) && L.state === 'active') an.jab = 0.34;
+  for (const k of ['shove', 'hit']) an[k] = Math.max(0, (an[k] || 0) - dt);
   const guard = g && g.D(BTN_B) && L.state === 'active' ? 1 : 0;
   an.guard = (an.guard || 0) + (guard - (an.guard || 0)) * (1 - Math.exp(-dt * 12));
+  const ready = L.target && L.state === 'active' && !L.feeding ? 1 : 0;
+  an.ready = (an.ready || 0) + (ready - (an.ready || 0)) * (1 - Math.exp(-dt * 8));
   let dx = -0.07 * an.guard, dy = -0.05 * an.guard, rz = -0.1 * an.guard;
-  if (an.jab > 0) { const e = Math.sin(Math.PI * (1 - an.jab / 0.34)); dx += 0.34 * e; rz -= 0.12 * e; c.pose.stylet = Math.max(c.pose.stylet, e); c.pose.gape = 0.6 * e; }
-  else c.pose.gape = Math.max(0, (c.pose.gape || 0) - dt * 3);
+  let gape = an.ready * (0.16 + 0.08 * Math.sin(time * 7)), stylet = an.ready * 0.35;
+  const A = an.atk;
+  if (A) {
+    A.t += dt;
+    const t = A.t, T = ATTACK;
+    // wind-up: in over 0.08 s, let go as the lunge starts
+    const w = t < T.wind ? smooth(t / T.wind) : 1 - smooth((t - T.wind) / 0.05);
+    // lunge: out fast, held through the snap, then back
+    const l = t < T.wind ? 0 : t < T.lunge ? 1 - (1 - (t - T.wind) / (T.lunge - T.wind)) ** 2 : t < T.snap ? 1 : 1 - smooth((t - T.snap) / (T.end - T.snap));
+    // recoil: a small kick back after the snap
+    const r = t > T.snap && t < T.end ? Math.sin(Math.PI * (t - T.snap) / (T.end - T.snap)) : 0;
+    dx += -0.1 * w + 0.36 * l - 0.07 * r;
+    dy += 0.03 * w - 0.04 * l;
+    rz += 0.09 * w - 0.13 * l + 0.03 * r;
+    c.pose.surge += -0.12 * w + 0.1 * l; // the trunk bunches, then the head stretches out
+    // the mouth: nearly shut on the wind-up, wide on the lunge, snapped shut on the stylets
+    const open = t < T.wind ? 0.05 : t < T.lunge ? smooth((t - T.wind) / (T.lunge - T.wind)) : t < T.snap ? 1 - smooth((t - T.lunge) / (T.snap - T.lunge)) * 0.9 : 0.1 * (1 - smooth((t - T.snap) / 0.1));
+    gape = Math.max(gape * (1 - l), 1.1 * open);
+    stylet = Math.max(stylet, t < T.wind ? 0 : 1.45 * l);
+    if (t >= T.lunge && !A.fx) { A.fx = true; addImpact(a, A.kind, A.at); }
+    if (t >= T.end) an.atk = null;
+  }
+  c.pose.gape = Math.max(gape, (c.pose.gape || 0) - dt * 4);
+  c.pose.stylet = Math.max(c.pose.stylet, stylet);
   if (an.shove > 0) { const e = Math.sin(Math.PI * (1 - an.shove / 0.3)); dx += 0.28 * e; rz += 0.06 * e; }
   if (an.hit > 0) { const e = Math.sin(Math.PI * (1 - an.hit / 0.3)); dx -= 0.08 * e; }
   return _off.makeTranslation(dx, dy, 0).multiply(_rz.makeRotationZ(rz));
+}
+
+// ---------------------------------------------------------------- cues
+// The impact of a bite (drawn on the overlay, so it reads in every look):
+// a bright burst at what was hit, a green-gold one at food, and at nothing a
+// small puff of ripples in the water film. The food X would eat now
+// (life.target) gets a soft pulsing glow, so where to bite is plain.
+const impacts = [];
+const IMPACT = {
+  hit: { life: 0.38, color: '#fff2c8', ring: 0.34, spokes: 8, alpha: 0.95 },
+  food: { life: 0.42, color: '#c8f5a0', ring: 0.24, spokes: 6, alpha: 0.85 },
+  touch: { life: 0.36, color: '#d8ecff', ring: 0.2, spokes: 0, alpha: 0.6 },
+  puff: { life: 0.4, color: '#d8ecff', ring: 0.16, spokes: 0, alpha: 0.5 },
+};
+function addImpact(a, kind, at) {
+  impacts.push({ a, kind, at: at.clone(), t: 0 });
+  if (impacts.length > 24) impacts.shift();
+  // a bite into food knocks once (hits on Milnesium and Prionchulus already rumble as they land)
+  if (kind === 'food' && rumbleOn) a.pad.rumble(60, 0.2, 0.25);
+  (api.impactLog ||= []).push({ slot: a.slot, kind, t: +time.toFixed(2) });
+  if (api.impactLog.length > 40) api.impactLog.shift();
+}
+function drawCues(L, dt) {
+  for (let i = impacts.length - 1; i >= 0; i--) if ((impacts[i].t += dt) > IMPACT[impacts[i].kind].life) impacts.splice(i, 1);
+  const targets = animals.filter((a) => a.life.target && a.life.state === 'active');
+  if (!impacts.length && !targets.length) return;
+  const cv = marks.canvas, g = cv.getContext('2d');
+  const k = cv.width / (cv.clientWidth || innerWidth);
+  const px = innerHeight / (2 * (view.camDist || view.dist) * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+  g.save();
+  g.setTransform(k, 0, 0, k, 0, 0);
+  const multi = L.views.length > 1;
+  for (const reg of multi ? L.regions : [{ view: L.regions[0]?.view ?? 0 }]) {
+    g.save();
+    if (multi) { g.beginPath(); reg.polygon.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip(); }
+    // the food in reach: a soft glow and a thin ring, breathing, with the button
+    for (const a of targets) {
+      if (multi && a.slot !== reg.slot) continue;
+      const it = a.life.target, q = split.project(reg.view, it.mesh.position);
+      const pulse = 0.5 + 0.5 * Math.sin(time * 5);
+      const r = THREE.MathUtils.clamp(0.17 * px, 9, 46) * (1 + 0.12 * pulse);
+      const col = players.count > 1 ? a.p.color : '#b8ffcf';
+      const grd = g.createRadialGradient(q.x, q.y, r * 0.35, q.x, q.y, r * 1.5);
+      grd.addColorStop(0, 'rgba(190,255,210,0)');
+      grd.addColorStop(0.55, `rgba(190,255,210,${0.16 + 0.12 * pulse})`);
+      grd.addColorStop(1, 'rgba(190,255,210,0)');
+      g.globalAlpha = 1; g.fillStyle = grd;
+      g.beginPath(); g.arc(q.x, q.y, r * 1.5, 0, Math.PI * 2); g.fill();
+      g.globalAlpha = 0.55 + 0.35 * pulse; g.strokeStyle = col; g.lineWidth = 1.5;
+      g.beginPath(); g.arc(q.x, q.y, r, 0, Math.PI * 2); g.stroke();
+      g.globalAlpha = 0.9; g.fillStyle = 'rgba(10,20,14,0.55)';
+      const bx = q.x + r * 0.78, by = q.y - r * 0.78;
+      g.beginPath(); g.arc(bx, by, 8, 0, Math.PI * 2); g.fill();
+      g.fillStyle = col; g.font = '700 10px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(a.pad.kind === 'keyboard' ? 'E' : 'X', bx, by + 0.5);
+    }
+    for (const im of impacts) {
+      if (multi && im.a.slot !== reg.slot) continue;
+      const S = IMPACT[im.kind], u = im.t / S.life, q = split.project(reg.view, im.at);
+      const R = Math.max(6, S.ring * px) * (0.35 + 0.9 * (1 - (1 - u) ** 2));
+      g.globalAlpha = S.alpha * (1 - u); g.strokeStyle = S.color; g.lineCap = 'round';
+      if (S.spokes) {
+        // a flash at the point, then rays flying out
+        if (u < 0.35) { g.fillStyle = S.color; g.globalAlpha = S.alpha * (1 - u / 0.35); g.beginPath(); g.arc(q.x, q.y, R * 0.45, 0, Math.PI * 2); g.fill(); g.globalAlpha = S.alpha * (1 - u); }
+        g.lineWidth = 2.2 * (1 - u) + 0.6;
+        for (let s = 0; s < S.spokes; s++) {
+          const ang = (s / S.spokes) * Math.PI * 2 + 0.3;
+          g.beginPath(); g.moveTo(q.x + Math.cos(ang) * R * 0.7, q.y + Math.sin(ang) * R * 0.7); g.lineTo(q.x + Math.cos(ang) * R * 1.15, q.y + Math.sin(ang) * R * 1.15); g.stroke();
+        }
+        g.lineWidth = 1.4; g.beginPath(); g.arc(q.x, q.y, R, 0, Math.PI * 2); g.stroke();
+      } else {
+        // ripples in the film and a few small bubbles
+        g.lineWidth = 1.2;
+        for (const f of [1, 0.62]) { g.beginPath(); g.ellipse(q.x, q.y, R * f, R * f * 0.7, 0, 0, Math.PI * 2); g.stroke(); }
+        g.fillStyle = S.color;
+        for (let s = 0; s < 5; s++) { const ang = s * 1.9 + 0.4, d = R * (0.4 + 0.5 * u) * (0.7 + 0.3 * ((s * 37) % 5) / 5); g.beginPath(); g.arc(q.x + Math.cos(ang) * d, q.y + Math.sin(ang) * d * 0.7 - 6 * u, 1.6, 0, Math.PI * 2); g.fill(); }
+      }
+    }
+    g.restore();
+  }
+  g.restore();
 }
 
 // ---------------------------------------------------------------- eating
@@ -1563,6 +1697,7 @@ function drawViews(dt) {
     portalLight.drawSplit(split, places.forward, { strength: THREE.MathUtils.clamp(1.15 - d / 30, 0.3, 1), open: places.glow.open });
   }
   if (outro) return;
+  drawCues(L, dt);
   marks.drawSplit(split, places.back, { kind: 'backdoor', label: 'Moss', range: 30 });
   drawPortalArrow();
   if (animals.length > 1) drawRings(L);

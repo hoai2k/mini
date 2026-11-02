@@ -78,13 +78,16 @@ const CONTROLS = {
   select: {
     rows: hudControls({
       ...COMMON_CONTROLS,
-      move: 'Steers pseudopod L: the first push takes the one lying that way (or grows one there); it stays L until LS rests in the centre. RT held: a movement intent',
-      camera: 'Steers pseudopod R, the same way. RT held: a movement intent',
-      analog: 'LT: the whole cell spreads out; hold on and it slowly draws its pseudopods in and rounds up. RT held: movement mode: both sticks the same way crawl, apart stretch, together squish, one up one down turn',
-      secondary: 'The pseudopod you are steering: spread it out / push it harder',
-      extra: [['LS click', 'Fine focus down'], ['RS click', 'Fine focus up']],
+      move: 'Move a pseudopod (L)',
+      camera: 'Move a pseudopod (R)',
+      dash: 'Surge',
+      attack: 'Engulf / cut / pinch',
+      defend: 'Let go / stiffen',
+      special: 'Enter portal · labels',
+      secondary: 'Spread / push a pseudopod',
+      extra: [['RT (hold)', 'Move the cell'], ['LT (hold)', 'Spread / round up'], ['LS click', 'Focus down'], ['RS click', 'Focus up']],
     }),
-    note: 'Each stick owns one pseudopod (marked L and R). Push a stick: it takes the pseudopod lying that way, or grows one there, and steers it; flick through the centre and you keep it; rest it in the centre a moment and it lets go, so the next push can take another. Two sticks round prey (or round an arm of Chaos), then X. Hold RT to move the whole cell instead: a stick (or both the same way) crawls that way; two different ways crawl between them and widen; LS left + RS right stretches, LS right + RS left squishes, LS up + RS down turns clockwise (down + up: anticlockwise). Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
+    note: 'Push a stick to grab the pseudopod that way (or grow one); rest it to let go. Hold RT and the sticks move the whole cell: same way crawls, apart stretches, together squishes, one up one down turns. Two pseudopods round prey (or an arm of Chaos), then X. The cell keeps its volume. Time is compressed; see the corner.',
   },
   lead: {
     rows: hudControls({
@@ -914,10 +917,10 @@ function resetRoles(latch) {
 }
 function rolesText() {
   if (S.scheme === 'select') {
-    const lt = R.ltHeld ? (body.roundK > 0.05 ? ' · LT: spreading, rounding up' : ' · LT: spreading out') : '';
-    if (R.mode === 'move') return `RT: moving (${R.move === 'free' || !R.move ? 'push a stick' : R.move})${lt}`;
-    const one = (key, stick, letter) => (R[key] != null ? (R.on[key] ? `${stick}: steering ${letter}` : `${stick}: holding ${letter}`) : `${stick}: push to take ${letter}`);
-    return `${one('adj', 'LS', 'L')} · ${one('sel', 'RS', 'R')} · hold RT: move${lt || ' · LT: spread'}`;
+    const lt = R.ltHeld ? (body.roundK > 0.05 ? ' · LT: rounding up' : ' · LT: spreading') : '';
+    if (R.mode === 'move') return `RT: moving the cell (${R.move === 'free' || !R.move ? 'push a stick' : R.move})${lt}`;
+    const one = (key, stick, letter) => (R[key] != null ? (R.on[key] ? `${stick}: moving ${letter}` : `${stick}: holding ${letter}`) : `${stick}: free`);
+    return `${one('adj', 'LS', 'L')} · ${one('sel', 'RS', 'R')} · RT: move the cell${lt || ' · LT: spread'}`;
   }
   if (S.scheme !== 'lead') return 'Controls: two pseudopods (classic) · LS: pseudopod 1 · RS: pseudopod 2';
   if (!R.pod && !R.body) return 'LS: free · RS: free (push one to grow a pseudopod)';

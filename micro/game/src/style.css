@@ -194,15 +194,13 @@ button { font: inherit; color: inherit; }
 .intro-panel .plate div { border-right: 1px solid rgba(125, 95, 38, .25); padding: 6px 8px 5px !important; }
 .intro-panel .plate div:last-child { border-right: 0; }
 .intro-panel h3 { margin: 12px 0 4px; font: 700 .64rem/1 var(--sans); letter-spacing: .22em; text-transform: uppercase; color: var(--brass-lo); }
-.intro-panel h3.lm::before { display: inline-block; margin-right: 6px; color: var(--oxblood); font-size: .9rem; letter-spacing: 0; }
-.intro-panel h3.lm.fwd::before { content: '→'; }
-.intro-panel h3.lm.back::before { content: '↶'; }
 .intro-panel p { margin: 0; font-size: .9rem; line-height: 1.45; }
-.intro-cols { display: grid; grid-template-columns: 1.1fr 1fr; gap: 0 22px; }
+.intro-panel p.goal { font: 500 1.12rem/1.35 var(--serif); color: var(--paper-ink); }
+.intro-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
 .controls-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: auto 1fr; gap: 5px 9px; align-items: center; font-size: .86rem; }
 .controls-list li { display: contents; }
 .controls-list .g { justify-self: start; }
-.facts { margin: 0; padding: 0 0 0 1.1em; font: 500 1.06rem/1.35 var(--serif); color: #3c3a2c; }
+.facts { margin: 0; padding: 0 0 0 1.1em; font: 500 1rem/1.32 var(--serif); color: #3c3a2c; }
 .facts li { margin: 3px 0; }
 .facts li::marker { color: var(--brass); }
 .intro-actions { display: flex; align-items: center; gap: 14px; margin-top: 18px; flex-wrap: wrap; }
@@ -290,6 +288,10 @@ body:has(#prompt:not([hidden])) .toasts { top: calc(max(22px, calc(env(safe-area
 /* ------------------------------------------------------------------ modals */
 .modal { position: absolute; inset: 0; z-index: 25; display: grid; place-items: center; padding: 16px; background: rgba(6, 11, 8, .55); backdrop-filter: blur(5px) saturate(.8); animation: fadeIn .25s both; }
 .modal.dialog { z-index: 27; background: rgba(6, 11, 8, .4); }
+/* Paused, the controls card stays sharp above the pause veil: only the scene
+   under it is blurred (the owner, 2026-11-02). A dialog opened over the pause
+   menu (z 27) still covers it. */
+body:has(#pause:not([hidden])) .controls-card { z-index: 26; }
 @keyframes fadeIn { from { opacity: 0; } }
 .panel { position: relative; width: min(440px, 100%); max-height: calc(100% - 8px); overflow: auto; padding: 24px 26px 20px; animation: rise .35s cubic-bezier(.2, .75, .2, 1) both; }
 .panel.wide { width: min(820px, 100%); display: flex; flex-direction: column; }

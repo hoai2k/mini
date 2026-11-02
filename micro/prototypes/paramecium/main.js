@@ -67,18 +67,18 @@ const hud = mountHud({
     ? `${SP.latin}, ${LENGTH} µm, green with symbiotic Chlorella, in a pond drop under the microscope. Eat, stay in the light, outswim the hunters.`
     : `${SP.latin}, ${LENGTH} µm, in a pond drop under the microscope. Eat and outswim the hunters.`,
   controls: hudControls({
-    move: 'Swim: LS forward drives, left/right turns relative to the camera; release to stop',
-    camera: 'Orbit and aim your swim; released, the camera follows your heading (microscope: move the stage)',
-    dash: 'Dash: ciliary sprint where the stick points',
-    attack: 'Eat: a gulp draws prey into the oral groove (in the bloom: clears a cone of algae). At a hunter: ram it (and sting with a jab of trichocysts)',
-    defend: 'Defend: trichocysts and back off. They drive Dileptus off and burst you out of the amoeba\'s cup or the trap\'s inflow; they cannot stop Didinium (keep away, dodge). Elsewhere: avoidance reaction',
-    special: 'Chase camera / microscope view. On the open biofilm: enter the portal. On the amoeba\'s floor: back to the amoeba',
-    analog: 'LT slow feeding beat · RT optional forward swim (LS already drives)',
+    move: 'Swim',
+    camera: 'Camera',
+    dash: 'Dash',
+    attack: 'Attack / eat',
+    defend: 'Block / drive off',
+    special: 'Camera view / enter portal',
+    analog: 'Hover / swim forward',
     secondary: 'Dive / rise',
-    look: 'Microscope technique',
-    zoom: 'Objective (chase camera: distance)',
+    look: 'Change the look',
+    zoom: 'Zoom',
   }),
-  note: `Goal: eat ${GOAL} prey (bacterial clumps and Chilomonas)${GREEN ? '; in the sunlit patch your Chlorella feed you and the dash recharges faster' : ''}. Head out in any direction: the challenges lie in rings round the start, the same whichever way you go. A little calm water first, then Dileptus (trichocysts, B, drive it off), a Chlamydomonas bloom to push and gulp through, two Didinium (trichocysts can't stop them: keep away, dodge), and about 8 cm out the way on (about a minute of rushing): a biofilm on a leaf under a golden light, guarded by a bladderwort trap. Make the trap fire and miss until it is spent, then swim down onto the leaf and press Y to enter the portal. Nothing runs down: stay in calm water as long as you like. The ring points to the floor where Amoeba proteus crawls (the way back). You glance off whatever you touch. Scale is honest (µm). Up to four players: press any button on another controller to join.`,
+  note: `Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium and the bladderwort. Eat ${GOAL} prey to divide. Up to four players: press any button on another controller to join.`,
 });
 hud.players(players.list);
 /** A button as the instructions should name it: the controller's, or the key while no controller is connected. */

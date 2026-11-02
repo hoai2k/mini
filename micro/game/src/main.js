@@ -385,16 +385,14 @@ function fillIntro(w) {
   $('#intro-latin').textContent = w.latin;
   $('#intro-plate').innerHTML = `<div><dt>Magnification</dt><dd>${w.mag}<small>${w.magNote}</small></dd></div><div><dt>Field</dt><dd>${w.field}</dd></div>`
     + `<div><dt>Body</dt><dd>${w.body}</dd></div><div><dt>Look</dt><dd style="font-size:.9rem">${w.look}</dd></div>`;
-  $('#intro-goal').textContent = w.goal;
-  $('#intro-fwd').textContent = w.forward ? `${w.forward} Reach it to zoom in to ${WORLDS[i + 1].name}.` : 'This is the end of the chain: nothing smaller is alive.';
-  $('#intro-back').innerHTML = w.back ? w.back.replace('press Y', `press ${glyph('Y')}`) : 'None: this is the top of the chain.';
+  $('#intro-goal').textContent = w.goal; // one line: the portal and the main threats (the owner, 2026-11-02)
   $('#intro-facts').innerHTML = w.facts.map((f) => `<li>${f}</li>`).join('');
   renderIntroControls();
   showArtwork($('.intro-art'), introArt(w));
 }
 function renderIntroControls() {
   const w = WORLDS[S.sel];
-  const rows = [...w.controls, ...(w.back ? [['Y', 'At the backdoor: rise a world']] : []), ['Menu', 'Pause'], ['View', 'Controls card']];
+  const rows = [...w.controls, ...(w.back ? [['Y', 'Way back: go up a world']] : []), ['Menu', 'Pause'], ['View', 'Controls card']];
   $('#intro-controls').innerHTML = controlRows(rows);
 }
 // The screen being left stays on screen, untouchable, while the new one
@@ -890,7 +888,7 @@ function renderControlsCard() {
   const w = WORLDS[S.world];
   let rows = S.hud?.rows || w.controls;
   rows = rows.filter(([b]) => b !== 'Menu' && b !== 'View');
-  if (w.back && !rows.some(([b, t]) => b === 'Y' && /back|rise/i.test(t))) rows = [...rows, ['Y', 'At the backdoor: rise a world']];
+  if (w.back && !rows.some(([b, t]) => b === 'Y' && /back|rise/i.test(t))) rows = [...rows, ['Y', 'Way back: go up a world']];
   rows = [...rows, ['Menu', 'Pause'], ['View', 'Show or hide this card']];
   const multi = roster.list.length > 1;
   $('#controls-card').innerHTML = `<p class="eyebrow small"><span>World ${ROMAN[S.world]} · ${w.look}</span></p>
@@ -1048,18 +1046,18 @@ const PAD_SVG = `<svg viewBox="0 0 720 300" role="img" aria-label="Xbox controll
 </svg>`;
 function renderInstructions() {
   const mode = glyphMode();
-  const shared = [['LS', 'Move'], ['RS', 'Camera, or move the stage'], ['A', 'Dash (each creature’s real fastest move)'], ['X', 'Attack or eat'], ['B', 'Defend'],
-    ['Y', 'Special; on the backdoor: rise a world'], ['LT/RT', 'Focus or zoom'], ['LB/RB', 'Secondary'], ['D-pad ↑↓', 'Zoom in / out'], ['D-pad ←→', 'Optical look'], ['Menu', 'Pause'], ['View', 'Controls card']];
+  const shared = [['LS', 'Move'], ['RS', 'Camera'], ['A', 'Dash'], ['X', 'Attack / eat'], ['B', 'Block'],
+    ['Y', 'Special / enter portal'], ['LT/RT', 'Focus or zoom'], ['LB/RB', 'Extra'], ['D-pad ↑↓', 'Zoom'], ['D-pad ←→', 'Change the look'], ['Menu', 'Pause'], ['View', 'Controls card']];
   $('#ins-scroll').innerHTML = `
     <p>Micro Zoom is seven worlds at seven magnifications, from a springtail on a bog pool’s surface film down to a virus no light microscope can see. Choose any world to start in; the springtail is the top of the chain.</p>
     <div class="two-col">
-      <div><h3>Going deeper</h3><p>Every world has a <strong>forward landmark</strong> in the direction of play. Reach it and the microscope zooms in: the landmark becomes the next world and its creature.</p></div>
-      <div><h3>Going back up</h3><p>In the opposite direction is an optional <strong>backdoor</strong>. Dwell on it and press ${glyph('Y', { mode })} to zoom back out to the world above.</p></div>
+      <div><h3>Going deeper</h3><p>Every world has a <strong>glowing portal</strong>. Reach it, press ${glyph('Y', { mode })}, and the microscope zooms in to the next world and its creature.</p></div>
+      <div><h3>Going back up</h3><p>A ring at the edge of the view points the <strong>way back</strong>. Go there and press ${glyph('Y', { mode })} to zoom back out to the world above.</p></div>
     </div>
     <h3>${mode === 'controller' ? 'Xbox controller' : 'Keyboard (connect a controller for the full layout)'}</h3>
     ${mode === 'controller' ? `<div class="pad-diagram">${PAD_SVG}</div>` : ''}
     <ul class="controls-list">${controlRows(shared, { mode })}</ul>
-    <p>The mite uses ${glyph('A', { mode })} to jump, ${glyph('B', { mode })} to dash, and ${glyph('Y', { mode })} to defend by closing its shell. At its backdoor, ${glyph('Y', { mode })} rises a world.</p>
+    <p>Some creatures differ: the springtail and the mite jump with ${glyph('A', { mode })}, and the mite dashes with ${glyph('B', { mode })} and blocks with ${glyph('Y', { mode })}.</p>
     <h3>Players</h3>
     <p>Up to four can play. Player 1 uses the first controller${mode === 'keyboard' ? ' or the keyboard' : ''}; a second, third or fourth player joins by pressing any button on another controller, in the menus or during play. Players start in the same view; when they move apart, the view splits, and it joins up again when they come back together.</p>
     <p class="muted">Each world tells you its own controls on its intro screen and its controls card (View).</p>`;
