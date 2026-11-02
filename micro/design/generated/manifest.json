@@ -1574,6 +1574,51 @@
     }
   },
   {
+    "id": "MP-S06",
+    "name": "Bog pondweed floating leaf plate",
+    "file": "assets/springtail/pondweed-leaf.png",
+    "size": "1536 x 768, transparent",
+    "used": "The floating leaves of bog pondweed that grow thick round each portal raft (the wolf spiders' hunting grounds) and only here and there elsewhere: a sign that the way on is a few seconds off. Mapped onto each leaf from above.",
+    "prompt": "Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. One floating leaf of bog pondweed (Potamogeton polygonifolius) seen from directly above, isolated, its long axis left to right filling the frame: a smooth, leathery elliptic blade about 30 mm long and 12 mm wide with a blunt tip, fresh mid green with a soft yellow-green margin and only a faint reddish flush near the base, a glossy waxy surface with a soft sheen and no water droplets, a pale midrib and fine curved parallel veins running tip to base, the short stalk at the left edge. It must read as a calm, harmless floating leaf, nothing like a sundew: no hairs, no tentacles, no glistening drops, no red rim. Even soft daylight, the whole leaf in focus. No insect on it. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.\n\nThe supplied images are habitat context only: neither is a pondweed anatomy reference. Do not imitate the tiny cellular moss image. Render a single complete intact elliptic aquatic leaf, widest near the middle, smoothly rounded blunt right tip, slender petiole at left. Longitudinal curved parallel veins rather than pinnate branching veins. Use a wide 2:1 canvas with slim clear transparent margins, blade fills nearly full width and height. No cast shadow outside leaf.",
+    "requested_prompt": "Macro-photography look: a real photograph through a macro lens at 2 to 5 times life size, natural overcast daylight, real colours, very shallow depth of field with creamy out-of-focus areas, fine water droplets and surface tension visible where they are real, no studio flash glare, no HDR, no colour grading. One floating leaf of bog pondweed (Potamogeton polygonifolius) seen from directly above, isolated, its long axis left to right filling the frame: a smooth, leathery elliptic blade about 30 mm long and 12 mm wide with a blunt tip, fresh mid green with a soft yellow-green margin and only a faint reddish flush near the base, a glossy waxy surface with a soft sheen and no water droplets, a pale midrib and fine curved parallel veins running tip to base, the short stalk at the left edge. It must read as a calm, harmless floating leaf, nothing like a sundew: no hairs, no tentacles, no glistening drops, no red rim. Even soft daylight, the whole leaf in focus. No insect on it. Transparent background (PNG with alpha). If transparency is not possible, use a flat pure magenta #FF00FF background with nothing else on it and no cast shadow; it is keyed out on integration. Scientifically grounded: match real microscopy of the named organisms and habitat, with correct anatomy and believable scale. No fantasy creatures, no faces, no glowing magic, no text, no labels, no scale bars, no watermark, no UI.",
+    "tool": "Built-in image_gen",
+    "source_artifact": "exec-f17229c4-c0f0-4efd-84e7-718503c77a11.png",
+    "input_images": [
+      "research/assets/references/production/bog-pool.jpg",
+      "research/assets/references/moss.jpg"
+    ],
+    "reference_usage": "References below come from the requested brief. input_images records the actual images supplied to the final generation or edit; an empty list means text-only generation.",
+    "original_dimensions": [
+      1774,
+      887
+    ],
+    "width": 1536,
+    "height": 768,
+    "sha256": "d5cb01b36a3ad89ee79021b62489fe95d630502f1b21b991ee2330e158544398",
+    "export": "LANCZOS resizing to requested dimensions; WebP quality 92 for opaque assets, PNG with original alpha for transparent assets. No composition edits.",
+    "references": [
+      {
+        "id": "bog-pool",
+        "local": "assets/references/production/bog-pool.jpg",
+        "author": "JarroNevsbaru",
+        "license": "CC BY 4.0",
+        "license_url": "https://creativecommons.org/licenses/by/4.0",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_Bog_Pool_Bealach_na_Ba_Viewpoint_1.jpg"
+      },
+      {
+        "id": "moss",
+        "local": "assets/references/moss.jpg",
+        "author": "HermannSchachner",
+        "license": "CC0",
+        "license_url": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "source": "https://commons.wikimedia.org/wiki/File:Sphagnum_girgensohnii_(a,_150137-481740)_7207.JPG"
+      }
+    ],
+    "mood_boards": [
+      "01-moss-frontier.webp"
+    ]
+  },
+  {
     "id": "MP-B01",
     "name": "Bog-sediment bacteria (phase contrast)",
     "file": "assets/bacterium/sediment-phase.webp",
