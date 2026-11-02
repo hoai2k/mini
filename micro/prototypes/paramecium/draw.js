@@ -2,7 +2,7 @@
 // renderer (shapes.js) as the card shows it: glowing outlines on black,
 // golden granules, green chloroplasts. Darkfield colours are the light each
 // structure scatters; the other looks derive from the same shapes.
-import { DILEPTUS, DIDINIUM, GIANT, TRAP, dileptusTrunk, trapDoor } from './foes.js';
+import { DILEPTUS, DIDINIUM, GIANT, TRAP, FIGHT, dileptusTrunk, trapDoor } from './foes.js';
 import { DEPTH } from './route.js';
 import { rng } from './world.js';
 import { clumpLayout, placeInFrame } from '../shared/kin-clump.js';
@@ -34,21 +34,27 @@ function clipSeg(ax, ay, bx, by, x0, y0, x1, y1) {
 // ---------------------------------------------------------------- the scenery
 export function drawScenery(G, W, rect, t, opts = {}) {
   const [x0, y0, x1, y1] = rect;
-  W.eachIn(W.filaments, x0, y0, x1, y1, (f, ox, oy) => drawSpirogyra(G, f, ox, oy, rect, t));
-  W.eachIn(W.clumps, x0, y0, x1, y1, (c, ox, oy) => drawClump(G, c, ox, oy, t));
+  const lod = opts.lod ?? 1;
+  W.eachIn(W.filaments, x0, y0, x1, y1, (f, ox, oy) => drawSpirogyra(G, f, ox, oy, rect, t, lod));
+  W.eachIn(W.clumps, x0, y0, x1, y1, (c, ox, oy) => { G.shadow(c.x + ox, c.y + oy, 0, c.r * 0.9, c.r * 0.8, c.z, 0.35); drawClump(G, c, ox, oy, t); });
   W.eachIn(W.vorticella, x0, y0, x1, y1, (v, ox, oy) => drawVorticella(G, v, W.vortPose(v, ox, oy, t), t));
   W.eachIn(W.diatoms, x0, y0, x1, y1, (d, ox, oy) => drawDiatom(G, d, ox, oy, t));
   W.eachIn(W.flocs, x0, y0, x1, y1, (f, ox, oy) => { for (const g of f.g) G.disc(f.x + ox + g.dx, f.y + oy + g.dy, g.r, f.z, mix(COL.brown, COL.gold, g.gold), 0.32 + 0.3 * g.gold, 0.3, g.gold > 0.6 ? 0.4 : 0, 2); });
-  drawGlitter(G, rect, t, opts.glitter ?? 1);
+  drawGlitter(G, rect, t, opts.glitter ?? 1, lod);
 }
-/** The fine glitter: specks hashed per 80 µm cell (the same every visit), twinkling. */
-function drawGlitter(G, [x0, y0, x1, y1], t, k) {
-  const C = 80;
+/**
+ * The fine glitter: specks hashed per 80 µm cell (the same every visit), twinkling, spread through the
+ * whole depth (the motes that make the volume read: each slides at its own depth's pace). Zoomed out
+ * (lod: the field over the closest field), fewer of them: they would only crowd the view and the frame.
+ */
+function drawGlitter(G, [x0, y0, x1, y1], t, k, lod = 1) {
+  const C = 80, keep = Math.min(1, 1.7 / Math.max(1, lod)), span = DEPTH.max - DEPTH.min - 20;
   for (let i = Math.floor(x0 / C); i <= Math.floor(x1 / C); i++) for (let j = Math.floor(y0 / C); j <= Math.floor(y1 / C); j++) {
     const n = 5 + Math.floor(hash(i, j, 9) * 6);
     for (let s = 0; s < n; s++) {
       const h1 = hash(i, j, s * 4 + 1), h2 = hash(i, j, s * 4 + 2), h3 = hash(i, j, s * 4 + 3), h4 = hash(i, j, s * 4 + 4);
-      const x = (i + h1) * C, y = (j + h2) * C, z = (h3 - 0.5) * (h4 < 0.7 ? 140 : 300);
+      if (keep < 1 && hash(i, j, s * 4 + 5) > keep) continue;
+      const x = (i + h1) * C, y = (j + h2) * C, z = (h3 - 0.5) * (h4 < 0.7 ? span * 0.5 : span);
       const tw = Math.max(0, Math.sin(t * (0.7 + h4 * 2.2) + h1 * 40));
       const c = h4 < 0.45 ? COL.gold : h4 < 0.8 ? COL.white : COL.blue;
       const I = (0.45 + 0.9 * tw ** 6) * k;
@@ -56,7 +62,7 @@ function drawGlitter(G, [x0, y0, x1, y1], t, k) {
     }
   }
 }
-function drawSpirogyra(G, f, ox, oy, rect, t) {
+function drawSpirogyra(G, f, ox, oy, rect, t, lod = 1) {
   const m = 30;
   const ax = f.x0 + ox, ay = f.y0 + oy, bx = f.x1 + ox, by = f.y1 + oy;
   const cl = clipSeg(ax, ay, bx, by, rect[0] - m, rect[1] - m, rect[2] + m, rect[3] + m);
@@ -72,6 +78,7 @@ function drawSpirogyra(G, f, ox, oy, rect, t) {
     const ue = Math.min(u1, u + STEP), z = zAt((u + ue) / 2);
     const [a1, a2] = P(u, 0), [b1, b2] = P(ue, 0);
     G.line(a1, a2, b1, b2, r * 0.92, z, [0.42, 0.62, 0.12], 0.085 * f.shade, 3);
+    G.shadow(a1, a2, Math.atan2(b2 - a2, b1 - a1), Math.hypot(b1 - a1, b2 - a2), -r, z, 0.3);
     for (const s of [-1, 1]) { const [c1, c2] = P(u, s * r), [d1, d2] = P(ue, s * r); G.line(c1, c2, d1, d2, 0.8, z, COL.white, 0.9, 0, 0.28, 3.5); }
   }
   // the cross walls between cells
@@ -80,7 +87,7 @@ function drawSpirogyra(G, f, ox, oy, rect, t) {
     G.line(a1, a2, b1, b2, 0.7, zAt(u), COL.white, 0.8, 0, 0.25, 3);
   }
   // the chloroplast ribbon: a helix seen from above, brighter on the near side (it runs through the depth)
-  const step = 4;
+  const step = 4 * Math.max(1, lod * 0.6);
   for (let rb = 0; rb < f.turns; rb++) {
     let prev = null;
     for (let u = Math.max(0, u0 - step); u <= u1 + step; u += step) {
@@ -177,6 +184,7 @@ export function drawDileptus(G, D, t) {
   if (!D.placed || D.mode === 'parked') return;
   const ca = Math.cos(D.a), sa = Math.sin(D.a), z = D.z;
   const P = (u, v) => [D.x + ca * u - sa * v, D.y + sa * u + ca * v];
+  G.shadow(...P(-140, 0), D.a, 190, -DILEPTUS.R * 0.8, z, 0.5);
   // the flask: a body tapering into the neck, its outline luminous, a fringe of cilia
   const prof = [];
   for (let i = 0; i <= 16; i++) { const u = -140 + (i / 16) * 195, s = (u + 140) / 195; prof.push([u, DILEPTUS.R * Math.sin(Math.PI * Math.min(1, s * 1.15)) ** 0.7 * (1 - 0.55 * Math.max(0, s - 0.55) / 0.45)]); }
@@ -214,6 +222,7 @@ export function drawDidinium(G, D, t) {
   const ra = DIDINIUM.L / 2 * (1 - 0.14 * crouch), rb = DIDINIUM.R * (1 + 0.1 * crouch), z = D.z;
   const ca = Math.cos(D.a), sa = Math.sin(D.a);
   const P = (u, v) => [D.x + ca * u - sa * v, D.y + sa * u + ca * v];
+  G.shadow(D.x, D.y, D.a, ra, rb, z, 0.55);
   // a lunge leaves a streak
   if (D.mode === 'lunge') for (let k = 1; k <= 4; k++) G.ellRing(...P(-k * 22, 0), D.a, ra, rb, 0.8, z, COL.edge, 0.25 / k, 1.5);
   G.ellRing(D.x, D.y, D.a, ra, rb, 1.0, z, COL.edge, 1.0, 0, 0.35, 4);
@@ -245,6 +254,7 @@ const GIANT_G = Array.from({ length: 300 }, (_, i) => { const r = rng(900 + i); 
 export function drawGiant(G, A, t, focusZ = 0) {
   if (!A.placed || A.mode === 'parked') return;
   const N = GIANT.N, zMid = (GIANT.zBottom + GIANT.top) / 2;
+  G.shadow(A.x, A.y, 0, GIANT.R * 0.95, GIANT.R * 0.95, GIANT.top, 0.4);
   const pts = [];
   for (let i = 0; i < N; i++) { const th = (i / N) * TAU, r = A.out[i]; pts.push([A.x + Math.cos(th) * r, A.y + Math.sin(th) * r, th]); }
   const pod = A.pods[0];
@@ -277,6 +287,7 @@ export function drawTrap(G, T, t) {
   const P = (u, v) => [T.x + ca * u - sa * v, T.y + sa * u + ca * v];
   const ra = TRAP.a * (1 + 0.05 * T.flex), rb = TRAP.b * (1 + 0.1 * T.flex);
   const spent = T.state === 'spent';
+  G.shadow(T.x, T.y, T.a, ra, rb, z + TRAP.h * 0.5, 0.45);
   // the stalk to the stem, behind
   const [s1, s2] = P(-ra, 0), [s3, s4] = P(-ra - 260, 60);
   for (const off of [-5, 5]) G.line(s1, s2 + off, s3, s4 + off, 0.9, z - 20, COL.wall, 0.5, 0, 0.2, 3);
@@ -318,6 +329,48 @@ export function drawTrap(G, T, t) {
       G.line(x, y, x - Math.cos(ang) * L, y - Math.sin(ang) * L, 0.5, door.z + ((i * 37) % 120) - 50, COL.white, 0.45 * k * (1 - ph * 0.5));
     }
   }
+}
+
+// ---------------------------------------------------------------- fighting back
+/**
+ * A blow that landed on hunter F (a jab, a block): it flinches (knocked back:
+ * foes.js), a white-gold flash where it was struck, sparks, and a ring round
+ * it; and while it hunts, its interest over it (up: the screen's up in the
+ * slide, [x, y]): one pip for each blow it can still take, the spent ones
+ * hollow. A game marker over the image, like the tells.
+ */
+export function drawFight(G, F, t, up = [0, 1]) {
+  if (!F.placed || F.mode === 'parked') return;
+  const z = F.kind === 'giant' ? GIANT.top : F.z;
+  const R = F.kind === 'giant' ? GIANT.R : F.kind === 'dileptus' ? 90 : DIDINIUM.L * 0.55;
+  if (F.hitT >= 0 && F.hitT < FIGHT.flinch) {
+    const e = F.hitT / FIGHT.flinch, k = 1 - e;
+    const hx = F.hitX ?? F.x, hy = F.hitY ?? F.y;
+    G.disc(hx, hy, 6 + 10 * e, z, COL.white, 1.6 * k, 2 + 4 * e, 1.4 * k, 10);
+    for (let i = 0; i < 12; i++) {
+      const a = i * 0.5236 + 0.3, L = 10 + 34 * Math.sqrt(e) * (0.6 + ((i * 7) % 5) / 8);
+      G.line(hx + Math.cos(a) * L * 0.4, hy + Math.sin(a) * L * 0.4, hx + Math.cos(a) * L, hy + Math.sin(a) * L, 0.7, z, i % 2 ? COL.gold : COL.white, 1.2 * k, 0, 0.5 * k, 3);
+    }
+    G.ring(F.x, F.y, R * (0.9 + 0.5 * e), 2.2, z, COL.white, 0.8 * k, 1, 0.6 * k, 8);
+  }
+  const hunting = F.kind === 'giant' ? !!F.target : F.mode !== 'idle' && F.mode !== 'roam' && F.mode !== 'flee' && F.mode !== 'retreat' && F.mode !== 'rest';
+  if (!hunting && !((F.interest ?? 1) < 1 && F.mode !== 'flee' && F.mode !== 'retreat')) return;
+  const cost = F.kind === 'giant' ? FIGHT.giantJab : FIGHT.jab, n = Math.round(1 / cost), left = Math.ceil((F.interest ?? 1) / cost - 1e-6);
+  const px = -up[1], py = up[0], cx = F.x + up[0] * (R + 34), cy = F.y + up[1] * (R + 34);
+  for (let i = 0; i < n; i++) {
+    const o = (i - (n - 1) / 2) * 13, x = cx + px * o, y = cy + py * o;
+    if (i < left) G.disc(x, y, 3.6, z, COL.red, 0.9, 0.6, 0.7, 4);
+    else G.ring(x, y, 3.6, 1, z, COL.pale, 0.45, 0.5);
+  }
+}
+/** A jab that missed: its threads fizzle where they fell short (grey, scattering); out of depth, a ring above or below. */
+export function drawMiss(G, M, t) {
+  const e = M.t / 0.6, k = 1 - e;
+  for (let i = 0; i < 8; i++) {
+    const a = i * 0.785 + 0.2, L = 4 + 18 * e;
+    G.line(M.x + Math.cos(a) * L * 0.5, M.y + Math.sin(a) * L * 0.5, M.x + Math.cos(a) * L, M.y + Math.sin(a) * L, 0.45, M.z, COL.pale, 0.6 * k, 0.3);
+  }
+  G.ring(M.x, M.y, 8 + 16 * e, 0.8, M.z, M.why === 'depth' ? COL.blue : COL.pale, 0.55 * k, 0.6);
 }
 
 // ---------------------------------------------------------------- the crowd and the prey

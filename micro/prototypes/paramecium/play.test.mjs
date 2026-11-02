@@ -1,12 +1,14 @@
-// The 2D slide's swimming and fights, without a browser: auto-weave over and
-// under obstacles, depth keeping you out of a hunter's reach, and each
-// hunter's right answer.
+// The drop's swimming and fights, without a browser: auto-weave over and
+// under obstacles, depth keeping you out of a hunter's reach, each hunter's
+// right answer, and fighting back (jabs that land or visibly miss, blocks,
+// a few blows driving a hunter off).
 //   node --test micro/prototypes/paramecium/play.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createSwimState, stepSwim, dash, ZMIN, ZMAX, VMAX } from './swim.js';
-import { createDidinium, stepDidinium, createDileptus, stepDileptus, burstDileptus, createGiant, stepGiant, burstGiant, GIANT, createTrap, stepTrap, burstTrap, TRAP, trapDoor } from './foes.js';
+import { createDidinium, stepDidinium, blockDidinium, createDileptus, stepDileptus, burstDileptus, createGiant, stepGiant, burstGiant, GIANT, createTrap, stepTrap, burstTrap, TRAP, trapDoor, jabFoe, hitFoe, FIGHT, DIDINIUM } from './foes.js';
 import { createWorld } from './world.js';
+import { DEPTH, ZTOL, ZOOM, FIELD } from './route.js';
 
 const DT = 1 / 60;
 const player = (x, y, a, z = 0) => ({ slot: 0, S: createSwimState(x, y, a, z), live: true });
@@ -105,8 +107,99 @@ test('Dileptus: its slash kills at your depth; a burst in the wind-up drives it 
   const r = run(true);
   assert.equal(r.res, 'driven');
   assert.equal(r.D.mode, 'stunned');
-  r.D.drives = 1; r.D.mode = 'windup';
+  assert.ok(r.D.interest < 1 && r.D.hitT === 0, 'the block wore it down and it flinched');
+  r.D.mode = 'windup';
   assert.equal(burstDileptus(r.D, { S: createSwimState(0, 0, Math.PI, 0) }), 'beaten');
+  assert.equal(r.D.mode, 'flee');
+});
+
+/** A hunter placed facing P, d µm ahead of P's front, at depth z. */
+function foeAhead(make, d, z = 0) {
+  const F = make();
+  Object.assign(F, { home: { x: d, y: 0 }, x: d, y: 0, z, a: Math.PI, placed: true, mode: F.kind === 'dileptus' ? 'stalk' : 'chase', grace: 0 });
+  return F;
+}
+test('the drop is one continuous depth, four body lengths deep; meeting needs nearby depth', () => {
+  assert.equal(DEPTH.max - DEPTH.min, 480);
+  assert.ok(ZTOL >= 30 && ZTOL <= 50, 'about a body thickness');
+  // a jab lands at any depth, as long as the hunter is near it
+  for (const z of [-180, -60, 0, 75, 190]) {
+    const P = player(0, 0, 0, z), F = foeAhead(() => createDidinium(0), 110, z + 20);
+    assert.ok(jabFoe(F, P).hit, `lands at z ${z}`);
+  }
+});
+test('X: a jab lands in front, misses out of reach or out of depth (and says which)', () => {
+  const P = player(0, 0, 0, 0);
+  assert.equal(jabFoe(foeAhead(() => createDidinium(0), 120), P).why, 'hit');
+  assert.equal(jabFoe(foeAhead(() => createDidinium(0), 330), P).why, 'reach', 'too far ahead');
+  assert.equal(jabFoe(foeAhead(() => createDidinium(0), 120, 150), P).why, 'depth', 'above you');
+  assert.equal(jabFoe(foeAhead(() => createDidinium(0), 120, -150), P).why, 'depth', 'below you');
+  const behind = foeAhead(() => createDidinium(0), -160);
+  assert.equal(jabFoe(behind, P).why, 'reach', 'behind you');
+  // the Dileptus: its body (behind the neck) and its trunk both count
+  assert.ok(jabFoe(foeAhead(createDileptus, 150), P).hit, 'the Dileptus at its stalking distance');
+});
+test('a few good jabs drive a hunter off; each flinches it', () => {
+  for (const make of [() => createDidinium(0), createDileptus]) {
+    const P = player(0, 0, 0, 0), F = foeAhead(make, 120);
+    const results = [];
+    for (let k = 0; k < 5 && F.mode !== 'flee'; k++) {
+      F.x = 120; F.y = 0; F.a = Math.PI; if (F.mode !== 'flee') F.mode = F.kind === 'dileptus' ? 'windup' : 'crouch';
+      const j = jabFoe(F, P);
+      assert.ok(j.hit);
+      const x0 = F.x;
+      results.push(hitFoe(F, P, j));
+      assert.equal(F.hitT, 0, 'it flinches');
+      assert.ok(F.kx > 0, 'knocked back, away from you');
+      if (F.mode !== 'flee') { if (F.kind === 'didinium') stepDidinium(F, [P], 0.1); else stepDileptus(F, [P], 0.1); assert.ok(F.x > x0, 'moved back'); }
+    }
+    assert.deepEqual(results, ['hit', 'hit', 'fled'], `${F.kind}: three jabs (${results})`);
+    assert.equal(F.mode, 'flee');
+    // it swims off, away from you
+    const d0 = Math.hypot(F.x, F.y);
+    for (let t = 0; t < 2; t += DT) F.kind === 'didinium' ? stepDidinium(F, [P], DT) : stepDileptus(F, [P], DT);
+    assert.ok(Math.hypot(F.x, F.y) > d0 + 200, 'gone off');
+  }
+});
+test('Didinium: B in its crouch or its lunge blocks it (no kill, it staggers, its interest falls)', () => {
+  for (const at of ['crouch', 'lunge']) {
+    const P = player(0, 0, 0, 0);
+    const D = createDidinium(0);
+    Object.assign(D, { home: { x: -250, y: 0 }, x: -250, y: 0, z: 0, a: 0, placed: true, mode: 'idle', grace: 0 });
+    const ev = [];
+    let r = null;
+    for (let t = 0; t < 4; t += DT) {
+      ev.push(...stepDidinium(D, [P], DT));
+      if (D.mode === at && !r && (at === 'crouch' ? D.t > DIDINIUM.crouch * 0.5 : true)) r = blockDidinium(D, P);
+      if (r) break;
+    }
+    assert.equal(r, 'blocked', `blocked in the ${at}`);
+    assert.equal(D.mode, 'stagger');
+    assert.ok(Math.abs(D.interest - (1 - FIGHT.block)) < 1e-9);
+    for (let t = 0; t < 0.5; t += DT) ev.push(...stepDidinium(D, [P], DT));
+    assert.ok(!ev.some((e) => e.type === 'kill'), 'not caught');
+  }
+  // its crouch is a tell long enough to answer
+  assert.ok(DIDINIUM.crouch >= 0.6);
+});
+test('the giant amoeba: jabs at its reaching pseudopod wear it down until it draws back (and leaves you be)', () => {
+  const G = createGiant();
+  Object.assign(G, { home: { x: 0, y: 0 }, x: 0, y: 0, placed: true, mode: 'roam', grace: 0 });
+  const P = player(GIANT.R + 150, 0, Math.PI, 40);
+  for (let t = 0; t < 2; t += DT) stepGiant(G, [P], DT);
+  let n = 0, r;
+  do { r = jabFoe(G, P); assert.ok(r.hit, `the jab reaches its edge (gap ${r.d?.toFixed(0)}, dz ${r.dz?.toFixed(0)})`); n++; } while (hitFoe(G, P, r) !== 'fled' && n < 8);
+  assert.equal(n, 4, 'four jabs');
+  assert.equal(G.mode, 'retreat');
+  const low = player(G.x + 60, G.y, 0, -150), ev = [];
+  for (let t = 0; t < 1; t += DT) ev.push(...stepGiant(G, [low], DT));
+  assert.ok(!ev.some((e) => e.type === 'engulf'), 'retreating, it engulfs nobody');
+});
+test('the zoom: the old default field is the closest, the start is wider, the widest about three times it', () => {
+  assert.equal(FIELD, 560);
+  assert.equal(ZOOM.min, 1);
+  assert.ok(ZOOM.start >= 1.6 && ZOOM.start <= 2);
+  assert.ok(ZOOM.max >= 2.8 && ZOOM.max <= 3.2);
 });
 
 test('the giant amoeba engulfs what it covers low in the drop; above it you are out of reach; a burst frees you', () => {

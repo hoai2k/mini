@@ -29,7 +29,7 @@ export const THICK = 18;        // µm: the body's half-thickness (it is flatten
 export const VMAX = 620;        // µm/s
 export const DASH_V = 1500, DASH_T = 0.28, DASH_CD = 0.9;
 export const BACK_V = 700, BACK_T = 0.36;
-export const DEPTH_V = 260;     // µm/s
+export const DEPTH_V = 340;     // µm/s (the whole drop in 1.4 s)
 export const TURN = 11;         // rad/s
 export const TAU = 0.09;        // s: speed follows the stick this fast (and stops)
 export const WEAVE_V = 520;     // µm/s: how fast it winds over or under

@@ -18,7 +18,7 @@ const DATA = [
   { id: 'mite', n: 2, fieldMm: 4.2, card: 'MP-U01', intro: 'MP-G08', tint: ['#8a8e92', '#1c1e20'], accent: '#c9cdd1', back: true },
   { id: 'tardigrade', n: 3, fieldMm: 1.8, card: 'MP-U02', intro: 'MP-G09', tint: ['#a9b4a0', '#3d4a3a'], accent: '#c8d4b8', back: true },
   { id: 'amoeba', n: 4, fieldMm: 1.4, card: 'MP-U03', intro: 'MP-G10', tint: ['#efe6cf', '#a99f84'], accent: '#e8d9a8', back: true },
-  { id: 'paramecium', n: 5, fieldMm: 0.9, card: 'MP-U04', intro: 'MP-G11', tint: ['#2a4a6a', '#05070b'], accent: '#8fc0e8', back: true },
+  { id: 'paramecium', n: 5, fieldMm: 0.9, card: 'MP-U04', intro: 'MP-P08', tint: ['#2a4a6a', '#05070b'], accent: '#8fc0e8', back: true },
   { id: 'bacterium', n: 6, fieldMm: 0.18, card: 'MP-U06', intro: 'MP-G12', tint: ['#2a2f3a', '#08090c'], accent: '#a8b4c8', back: true },
   { id: 'phage', n: 7, fieldMm: 0.0012, card: 'MP-U09', intro: 'MP-G14', tint: ['#1f6f80', '#f0b44a'], accent: '#f0c070', back: true },
 ];

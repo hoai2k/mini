@@ -11,7 +11,7 @@
 // glittering specks. draw.js draws them; swim.js collides with the solid
 // ones (filaments, clumps, diatoms, stalks: all of them `weave`, so the cell
 // winds over or under them on its own).
-import { START, DEPTH } from './route.js';
+import { START, DEPTH, ZK } from './route.js';
 
 export const TILE = 2400;
 const MAXREACH = 1700; // the longest thing's half-extent from its tile-local position (filaments)
@@ -47,8 +47,8 @@ export function createWorld(seed = 11) {
   // The opening view is composed after the card: two filaments crossing to the right of the start
   // (below you), a clump of detritus with a Vorticella colony up to the left, diatoms between.
   const filaments = [
-    { x0: sx + 40, y0: sy - 900, x1: sx + 420, y1: sy + 900, r: 19, z0: -55, z1: -25, cell: 92, pitch: 52, turns: 2, phase: 0.4, shade: 1.05 },
-    { x0: sx + 900, y0: sy - 465, x1: sx - 520, y1: sy + 510, r: 17, z0: 30, z1: 70, cell: 84, pitch: 46, turns: 1, phase: 2.0, shade: 0.95 },
+    { x0: sx + 40, y0: sy - 900, x1: sx + 420, y1: sy + 900, r: 19, z0: -55 * ZK, z1: -25 * ZK, cell: 92, pitch: 52, turns: 2, phase: 0.4, shade: 1.05 },
+    { x0: sx + 900, y0: sy - 465, x1: sx - 520, y1: sy + 510, r: 17, z0: 30 * ZK, z1: 70 * ZK, cell: 84, pitch: 46, turns: 1, phase: 2.0, shade: 0.95 },
   ].map((f) => { const L = Math.hypot(f.x1 - f.x0, f.y1 - f.y0); return { ...f, L, cx: (f.x0 + f.x1) / 2, cy: (f.y0 + f.y1) / 2, ang: Math.atan2(f.y1 - f.y0, f.x1 - f.x0) }; });
   for (let tries = 0; filaments.length < 7 && tries < 300; tries++) {
     const L = R(1500, 3000), a = R(0, Math.PI), cx = R(0, TILE), cy = R(0, TILE);
@@ -57,7 +57,7 @@ export function createWorld(seed = 11) {
     // keep filaments apart where they would lie on top of one another
     if (filaments.some((f) => Math.abs(Math.sin(f.ang - a)) < 0.25 && Math.hypot(f.cx - cx, f.cy - cy) < 380)) continue;
     const rad = R(16, 21);
-    filaments.push({ x0, y0, x1, y1, cx, cy, ang: a, L, r: rad, z0: zr(-110, 110), z1: zr(-110, 110), cell: R(70, 105), pitch: R(42, 60), turns: r() < 0.5 ? 1 : 2, phase: R(0, 6.28), shade: R(0.8, 1.15) });
+    filaments.push({ x0, y0, x1, y1, cx, cy, ang: a, L, r: rad, z0: zr(-110 * ZK, 110 * ZK), z1: zr(-110 * ZK, 110 * ZK), cell: R(70, 105), pitch: R(42, 60), turns: r() < 0.5 ? 1 : 2, phase: R(0, 6.28), shade: R(0.8, 1.15) });
   }
   // detritus clumps: golden-brown flocs of granules; some carry Vorticella
   const clumps = [];
@@ -66,14 +66,14 @@ export function createWorld(seed = 11) {
     for (let i = 0, n = Math.round(rad * 2.4); i < n; i++) { const aa = R(0, 6.28), d = rad * Math.pow(r(), 0.55); g.push({ dx: Math.cos(aa) * d * R(0.8, 1.2), dy: Math.sin(aa) * d, dz: R(-0.2, 0.2) * rad, r: R(0.8, 2.8) * (r() < 0.12 ? 1.6 : 1), gold: r(), tw: R(0, 6.28) }); }
     clumps.push({ x, y, z, r: rad, h: rad * 0.55, g });
   };
-  clumpAt(sx - 215, sy + 20, 60, -10);
-  clumpAt(sx - 260, sy - 150, 46, -30);
-  clumpAt(sx - 300, sy + 190, 40, -50);
+  clumpAt(sx - 215, sy + 20, 60, -10 * ZK);
+  clumpAt(sx - 260, sy - 150, 46, -30 * ZK);
+  clumpAt(sx - 300, sy + 190, 40, -50 * ZK);
   for (let tries = 0; clumps.length < 36 && tries < 900; tries++) {
     const x = R(0, TILE), y = R(0, TILE), rad = R(26, 66);
     if (!clearOfStart(x, y, rad)) continue;
     if (clumps.some((c) => Math.hypot(c.x - x, c.y - y) < c.r + rad + 90)) continue;
-    clumpAt(x, y, rad, zr(-120, 60));
+    clumpAt(x, y, rad, zr(-120 * ZK, 60 * ZK));
   }
   // Vorticella colonies on some clumps: bells on coiling stalks, fanning out from the clump
   const vorticella = [];
@@ -82,13 +82,13 @@ export function createWorld(seed = 11) {
     for (let i = 0; i < n; i++) {
       const a = base + (i - (n - 1) / 2) * R(0.35, 0.55);
       const stalk = c === clumps[0] ? R(55, 95) : R(70, 150);
-      vorticella.push({ clump: c, ax: c.x + Math.cos(a) * c.r * 0.7, ay: c.y + Math.sin(a) * c.r * 0.7, az: c.z, a: a + R(-0.15, 0.15), stalk, bz: c.z + R(-50, 70), bell: R(15, 20), phase: R(0, 6.28), next: R(3, 14), g: Array.from({ length: 14 }, () => ({ u: R(0.15, 0.9), v: R(-0.7, 0.7), r: R(1.3, 2.6), gold: r() })) });
+      vorticella.push({ clump: c, ax: c.x + Math.cos(a) * c.r * 0.7, ay: c.y + Math.sin(a) * c.r * 0.7, az: c.z, a: a + R(-0.15, 0.15), stalk, bz: c.z + R(-50, 70) * ZK, bell: R(15, 20), phase: R(0, 6.28), next: R(3, 14), g: Array.from({ length: 14 }, () => ({ u: R(0.15, 0.9), v: R(-0.7, 0.7), r: R(1.3, 2.6), gold: r() })) });
     }
   }
   // diatoms: pennate (pointed boats with golden chloroplasts) and Fragilaria ribbons
   const diatoms = [
-    { x: sx + 150, y: sy - 100, z: 10, a: 0.35, L: 90, W: 19, rect: false, n: 0, drift: 3 },
-    { x: sx - 110, y: sy - 160, z: -20, a: 2.6, L: 66, W: 14, rect: false, n: 0, drift: -4 },
+    { x: sx + 150, y: sy - 100, z: 10 * ZK, a: 0.35, L: 90, W: 19, rect: false, n: 0, drift: 3 },
+    { x: sx - 110, y: sy - 160, z: -20 * ZK, a: 2.6, L: 66, W: 14, rect: false, n: 0, drift: -4 },
   ];
   for (let tries = 0; diatoms.length < 30 && tries < 600; tries++) {
     const x = R(0, TILE), y = R(0, TILE), rect = r() < 0.25;

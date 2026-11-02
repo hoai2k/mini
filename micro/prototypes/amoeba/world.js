@@ -97,9 +97,9 @@ export const trapDist = (x, y) => Math.min(...TRAPS.map((t) => segDist(x, y, t))
  */
 export const clearAt = (x, y, r) => Math.hypot(x, y) < SLIDE.far - 150 - r && leafDist(x, y) > LEAF.W / 2 + 120 + r && trapDist(x, y) > 90 + r;
 // Chaos and the portal: Chaos on its post beside the portal, CHAOS_SIDE µm to
-// one side of it and CHAOS_IN toward whoever comes (it guards the portal within
-// 480 µm: main.js GUARD_R), on the first side with room; its rest (when beaten)
-// further off.
+// one side of it and CHAOS_IN toward whoever comes, on the first side with
+// room (its edge just short of the portal's centre: it lies beside the way on,
+// not on it, and blocks it only with its body); its rest (when beaten) further off.
 export const CHAOS_SIDE = 330, CHAOS_IN = 90;
 const chaosOk = (cx, cy) => clearAt(cx, cy, 320 + 200) && leafDist(cx, cy) > LEAF.W / 2 + 700;
 /** Where Chaos's post is for a portal at (x, y) met coming along bearing b (null: no room on either side). */

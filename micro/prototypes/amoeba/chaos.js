@@ -9,31 +9,48 @@
 // 1-5 mm: a labelled departure so it fits the field), slower, with a dozen
 // nuclei and denser cytoplasm.
 //
-// Fight (shared/predation.js createFight: lots of interest, two attacks):
-//   dormant: rounded and polypodial at its post until a player comes near;
+// Fight (shared/predation.js createFight for its rhythm; the owner, 2026-11-02:
+// "the normal interaction would be just pushing and ensuring you don't get
+// encircled ... he shouldn't eat you just by touching you, but rather only if
+// he manages to encircle you entirely and then do his equivalent of pressing X"):
+//   dormant: rounded and polypodial at its post. It is slow to notice: you
+//     have to stay within CHAOS_WAKE µm of its edge for NOTICE s (or touch it)
+//     before it stirs, so you can slip past it to the portal;
+//   stalk: it flows at you and pushes. Cells never overlap: contact.js makes
+//     every touch a push-pull struggle, the thicker and more actively
+//     advancing membrane winning ground;
 //   the tell: it raises and spreads its pseudopods (every arm out at once);
-//   the cup: two arms reach out round you, first to your flanks, then
-//     curling behind you; if they wrap you (a food cup) you are engulfed;
-//   the lunge (every third attack): the whole cell flows at you behind one
-//     broad arm.
-//   Push into it and pinch its arms off with two of your own, like a pincer:
-//   X when your membrane is on both sides of an arm's neck cuts it (the
-//   piece rounds up and dies) and staggers it. Cut the encircling arms
-//   before the cup closes, then slip round its edge. Worn down (the brass
-//   resolve gauge), it flows away off the portal and rests there for good
-//   (beaten).
+//   the encircle: two broad arms reach round your flanks and curl on behind
+//     you; ring() measures how far its membrane rings you (the closing ring
+//     main.js draws, with the danger stain and sound);
+//   the X: only when the ring is shut all round you does it close it (CLOSE_T
+//     s, its food cup sealing); still shut at the end, you are engulfed. Push
+//     out through the gap before it shuts, or force it open with a thick
+//     pseudopod or a surge (A), and it has to start again;
+//   the lunge (every third attack): the whole cell shoves at you behind one
+//     broad arm (a push, never a bite).
+//   Rarely, X with your membrane round the neck of one of its arms pinches it
+//   off (pincer, cut): it staggers; enough of them and it gives up and flows
+//   away to rest (beaten). Not the way to play it, just possible.
 //   The lure: it follows its target only up to LEASH µm from its post, then
-//   gives up and flows back (return); it is slower than you, so lead it off
-//   and get round it.
+//   gives up and flows back (return); it is slower than you.
+//   The portal never waits on it: at the open portal, Y enters whatever Chaos
+//   is doing; on the portal itself it blocks only with its body.
 import { Body, N } from '../shared/techniques/amoeba-softbody.js';
 import { Cytoplasm } from './cytoplasm.js';
 import { hyp } from './util.js';
 import { createFight } from '../shared/predation.js';
+import { encircle } from './contact.js';
 
 const TAU = Math.PI * 2;
 export const CHAOS_R = 320;   // µm, radius of the rounded cell
-const WAKE = 700;             // a player's centre this close wakes it
+const WAKE = 240;             // µm from its edge to yours: this close (for NOTICE s), it stirs
+const NOTICE = 2.2;           // s it takes to notice you (touching it wakes it at once)
 export const CHAOS_WAKE = WAKE;
+// The encircle: its membrane within RING_REACH µm beyond your edge covers that
+// bearing; shut when RING_SHUT of the bearings are covered and no gap is wider
+// than RING_GAP rad; then CLOSE_T s of its X, engulfing if still RING_HOLD covered.
+export const RING = { reach: 120, shut: 0.94, gap: 0.3, hold: 0.88, broken: 0.75, warn: 0.5, closeT: 1.2 };
 export const CHAOS_LEASH = 720; // it follows you no further than this from its post
 const ARM_W = 7;              // nodes either side of an arm's tip: its neck
 
@@ -72,13 +89,14 @@ export class Chaos {
     this.layer = view.addCell(b, this.cyto);
     // its look in the body shader: olive endoplasm, a thin clear rim, coarser granularity
     view.setLook(this.layer, { olive: 1, rim: 0.7, grain: 1.6 });
-    this.fight = createFight({ windup: 1.6, strike: 6.5, recoverT: 2.6, repelT: 2.2, retreatT: 18, facingRate: 0, blockHit: 0.1, biteHit: 0.2, regain: 0.01 });
+    this.fight = createFight({ windup: 1.8, strike: 7, recoverT: 2.6, repelT: 2.2, retreatT: 18, facingRate: 0, blockHit: 0.1, biteHit: 0.2, regain: 0.01 });
     this.on = true;
     this.reset();
   }
 
   reset() {
-    Object.assign(this, { state: 'dormant', t: 0, fs: 'stalk', ft: 0, attack: 0, target: null, cuts: 0, leaveT: 0, beaten: false, restUntil: 0 });
+    Object.assign(this, { state: 'dormant', t: 0, fs: 'stalk', ft: 0, attack: 0, target: null, cuts: 0, leaveT: 0, beaten: false, restUntil: 0, notice: 0, ring: null, ringOf: null, closing: null, warned: false });
+    this.body.pushK = 0.85;
     this.fight.reset();
   }
 
@@ -103,12 +121,17 @@ export class Chaos {
   }
 
   get awake() { return this.state === 'fight' || this.state === 'leaving'; }
-  get attacking() { return this.state === 'fight' && (this.fs === 'windup' || this.fs === 'strike'); }
+  get attacking() { return this.state === 'fight' && (this.fs === 'windup' || this.fs === 'strike' || !!this.closing); }
+  /** Is it ringing (strike, cup) someone now? Then ring is { cover, gap, gapA, bins } round ringOf (a player). */
+  get encircling() { return this.state === 'fight' && this.fs === 'strike' && this.attack % 3 !== 0; }
   get interest() { return this.fight.interest; }
 
   /**
-   * players: [{ cell, x, y, req, active }] (centroids, µm). Returns events [{ e, p }].
-   * calm: it stays asleep (sated after a meal, or passive for tests). col: colliders for the body (obstacles and the players' membranes).
+   * players: [{ cell, body, x, y, req, active }] (centroids, µm). Returns events [{ e, p }]:
+   * wake, windupCup, windupLunge, strike, ring (its arms are round half of you), closing (the
+   * ring is shut: its X begins), broken (you got the ring open again), engulf, retreat, leash, home.
+   * calm: it stays asleep (sated after a meal, or passive for tests). col: colliders for the body
+   * (obstacles only: the players' membranes meet it in contact.js after every step).
    */
   update(dt, adt, players, col, { calm = false, granules = true } = {}) {
     const ev = [];
@@ -117,12 +140,20 @@ export class Chaos {
     const input = { pods: [{ m: 0, dx: 1, dy: 0 }, { m: 0, dx: 1, dy: 0 }], push: 0, spread: 0, body: null };
     let tgt = null, td = Infinity;
     for (const p of players) { if (!p.active) continue; const d = Math.hypot(p.x - b.cx, p.y - b.cy); if (d < td) { td = d; tgt = p; } }
+    // a ring in progress stays on whoever it is round
+    if (this.closing && this.ringOf && this.ringOf.active) { tgt = this.ringOf; td = Math.hypot(tgt.x - b.cx, tgt.y - b.cy); }
     this.target = tgt;
+    const gap = tgt ? td - b.req - tgt.req : Infinity;
     b.opts.boost = 1;
     b.opts.speed = 0.75;
+    b.opts.reach = 230;
+    b.pushK = 0.85;
     const home = Math.hypot(b.cx - this.post.x, b.cy - this.post.y);
+    if (!this.encircling && !this.closing) { this.ring = null; this.ringOf = null; this.warned = false; }
     if (this.state === 'dormant') {
-      if (!calm && !this.beaten && tgt && td < WAKE) { this.state = 'fight'; this.fight.reset(); ev.push({ e: 'wake', p: tgt }); }
+      // slow to notice: you have to linger near it (or bump into it) before it stirs
+      this.notice = !calm && !this.beaten && tgt && gap < WAKE ? this.notice + dt : Math.max(0, this.notice - dt * 0.5);
+      if (!calm && !this.beaten && tgt && (this.notice > NOTICE || gap < 12)) { this.state = 'fight'; this.fight.reset(); this.notice = 0; ev.push({ e: 'wake', p: tgt }); }
       // pushed or carried off its post (not beaten): it goes back
       else if (!this.beaten && home > 140) this.state = 'return';
     } else if (this.state === 'return') {
@@ -130,56 +161,35 @@ export class Chaos {
       const ax = this.post.x - b.cx, ay = this.post.y - b.cy, l = Math.hypot(ax, ay) || 1;
       input.body = { m: 0.8, dx: ax / l, dy: ay / l };
       if (home < 60) { this.state = 'dormant'; this.fight.reset(); ev.push({ e: 'home', p: tgt }); }
-      else if (!calm && tgt && td - b.req - tgt.req < 40 && home < CHAOS_LEASH * 0.5) { this.state = 'fight'; this.fight.reset(); }
+      else if (!calm && tgt && gap < 40 && home < CHAOS_LEASH * 0.5) { this.state = 'fight'; this.fight.reset(); }
     } else if (this.state === 'fight' && home > CHAOS_LEASH && !this.attacking) {
-      // lured too far off its post: it gives up and flows back
+      // lured (or pushed) too far off its post: it gives up and flows back
       this.state = 'return'; this.fight.reset(); ev.push({ e: 'leash', p: tgt });
     } else if (this.state === 'fight') {
-      const gap = tgt ? td - b.req - tgt.req : Infinity;
-      // drawn well off its post it only follows (no new attack): the lure is a chase, not a trap
-      const f = this.fight.update(dt, { near: gap < 900, inReach: gap < 140 && home < CHAOS_LEASH * 0.5, facing: true, blocking: false });
+      // the X holds the fight still until the ring is either sealed or broken
+      const f = this.closing ? { state: this.fs, t: this.ft } : this.fight.update(dt, { near: gap < 900, inReach: gap < 160 && home < CHAOS_LEASH * 0.5, facing: true, blocking: false });
       if (f.state !== this.fs) {
         if (f.state === 'windup') { this.attack++; ev.push({ e: this.attack % 3 === 0 ? 'windupLunge' : 'windupCup', p: tgt }); this.aim = tgt ? { x: tgt.x, y: tgt.y } : null; }
-        if (f.state === 'strike') ev.push({ e: 'strike', p: tgt });
+        if (f.state === 'strike') { ev.push({ e: 'strike', p: tgt }); this.ringOf = tgt; this.warned = false; this.side0 = null; }
       }
       this.fs = f.state; this.ft = f.t;
       if (tgt) {
         const dx = tgt.x - b.cx, dy = tgt.y - b.cy, l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
-        if (f.state === 'stalk') input.body = { m: gap > 60 ? 0.7 : 0.15, dx: ux, dy: uy };
+        if (f.state === 'stalk' || f.state === 'recover') input.body = { m: f.state === 'stalk' ? (gap > 60 ? 0.7 : 0.45) : 0.2, dx: ux, dy: uy };
         else if (f.state === 'windup') {
           // the tell: every arm raised and spread at once
           for (let k = 2; k < b.pods.length; k++) { const pod = b.pods[k]; if (pod.life < 3) { pod.life = 3.5; pod.ret = 0; } pod.base = 1; }
           b.spread = 0;
-        } else if (f.state === 'strike') {
-          if (this.attack % 3 === 0) {
-            // the lunge: one broad arm, the cell flowing after it
-            input.pods[0] = { m: 1, dx: ux, dy: uy };
-            input.body = { m: 1, dx: ux, dy: uy };
-            b.opts.boost = 1.8;
-          } else {
-            // the cup: two arms to your flanks, then curling round behind you
-            const k = f.t, side = tgt.req + 70;
-            for (const [n, s] of [[0, 1], [1, -1]]) {
-              const tx = k < 0.4 ? tgt.x - ux * side * 0.6 - uy * s * side * 2.0 : tgt.x + ux * side * 1.4 - uy * s * side * 0.3;
-              const ty = k < 0.4 ? tgt.y - uy * side * 0.6 + ux * s * side * 2.0 : tgt.y + uy * side * 1.4 + ux * s * side * 0.3;
-              const ax = tx - b.cx, ay = ty - b.cy, al = Math.hypot(ax, ay) || 1;
-              input.pods[n] = { m: 1, dx: ax / al, dy: ay / al };
-            }
-            input.body = { m: 0.35, dx: ux, dy: uy };
-            b.opts.boost = 2.2; b.opts.speed = 2.4;
-            // closed round you: engulfed
-            const cup = b.cupAround(tgt.x, tgt.y, tgt.req + 120);
-            this.wrap = cup ? cup.wrap : 0;
-            if (cup && cup.wrap > 3.0) { ev.push({ e: 'engulf', p: tgt }); this.fight.update(10, {}); }
-          }
+        } else if (f.state === 'strike' && this.attack % 3 === 0) {
+          // the lunge: one broad arm, the cell flowing after it: a hard shove, never a bite
+          input.pods[0] = { m: 1, dx: ux, dy: uy };
+          input.body = { m: 1, dx: ux, dy: uy };
+          b.opts.boost = 1.8; b.pushK = 1.5;
+        } else if (f.state === 'strike' && this.ringOf) {
+          this.encircle(dt, input, this.ringOf, ev);
         } else if (f.state === 'repelled') input.body = { m: 0.5, dx: -ux, dy: -uy };
       }
-      if (f.hit && tgt && this.attack % 3 === 0) {
-        // the lunge landed: check whether its arm wraps you
-        const cup = b.cupAround(tgt.x, tgt.y, tgt.req + 120);
-        if (cup && cup.wrap > 3.3) ev.push({ e: 'engulf', p: tgt });
-      }
-      if (f.retreated || this.fight.state === 'retreat') { this.state = 'leaving'; this.beaten = true; this.leaveT = 0; ev.push({ e: 'retreat', p: tgt }); }
+      if (this.fight.state === 'retreat') { this.state = 'leaving'; this.beaten = true; this.leaveT = 0; this.closing = null; ev.push({ e: 'retreat', p: tgt }); }
     } else if (this.state === 'leaving') {
       // it flows away from you and rests
       this.leaveT += dt;
@@ -188,8 +198,9 @@ export class Chaos {
       if (this.leaveT < 22) input.body = { m: 0.8, dx: ax / l, dy: ay / l };
       else { this.state = 'dormant'; this.fight.reset(); }
     }
+    if (this.state !== 'fight') this.closing = null;
     // asleep and nobody near: it does not move (and costs nothing)
-    if (this.state === 'dormant' && td > WAKE * 1.3) { this.placeNuclei(); return ev; }
+    if (this.state === 'dormant' && gap > WAKE + 300) { this.placeNuclei(); return ev; }
     b.step(adt, input, col);
     b.grid.build(b.x, b.y, N);
     b.untangle();
@@ -198,6 +209,69 @@ export class Chaos {
     if (granules) { this.cyto.update(Math.min(this.gAcc, 4 / 60), b, this.t); this.gAcc = 0; }
     this.placeNuclei();
     return ev;
+  }
+
+  /**
+   * The encircle (strike, every attack but the lunge): two broad arms run round
+   * player p's flanks and curl on behind them, hugging their membrane, while
+   * the body leans in. ring() is measured every step; once it is shut all
+   * round, the X (closing): both arms drive for the last gap and, if after
+   * CLOSE_T s the ring still holds, 'engulf'. Opened again first: 'broken'.
+   */
+  encircle(dt, input, p, ev) {
+    const b = this.body;
+    const R = p.req + 95;
+    const ring = (this.ring = this.ringAround(p.body));
+    // the bearing it comes from (fixed when the strike starts), round which its arms open out
+    const dx = b.cx - p.x, dy = b.cy - p.y;
+    if (this.side0 == null) {
+      // the arms start from its membrane nearest your two flanks
+      this.side0 = Math.atan2(dy, dx);
+      this.armTip = [1, -1].map((s) => b.nearest(p.x + Math.cos(this.side0 + s * 1.1) * R, p.y + Math.sin(this.side0 + s * 1.1) * R).i);
+      this.armDir = [null, null];
+    }
+    const k = Math.min(1, this.ft * 7 / 4.2); // the strike's progress, the arms fully round after ~4.2 s
+    for (const [n, s] of [[0, 1], [1, -1]]) {
+      const want = this.side0 + s * (1.1 + 2.3 * k); // from beside you round to behind you
+      const pod = b.pods[n];
+      const tip = pod.active ? pod.tip : this.armTip[n];
+      // crawling round you: along your membrane (the tangent, its way round), held about R from your centre
+      const ex = b.x[tip] - p.x, ey = b.y[tip] - p.y, r = Math.hypot(ex, ey) || 1;
+      const at = Math.atan2(ey, ex);
+      const go = this.closing ? 1 : Math.atan2(Math.sin(want - at), Math.cos(want - at)) * s; // how far it still has to go round
+      // aim at a point a little further round you (a chord, so it rides over your pseudopods, not into them)
+      const lead = go > 0.05 ? s * Math.min(0.7, go + 0.25) : s * 0.1;
+      const la = at + lead, rr = Math.max(R, Math.min(r, R + 60));
+      let ax = p.x + Math.cos(la) * rr - b.x[tip], ay = p.y + Math.sin(la) * rr - b.y[tip];
+      const al = Math.hypot(ax, ay) || 1;
+      ax /= al; ay /= al;
+      // steadied, so the tip does not flick between nodes
+      const d0 = this.armDir[n];
+      if (d0) { const kk = Math.min(1, dt * 5); ax = d0.x + (ax - d0.x) * kk; ay = d0.y + (ay - d0.y) * kk; const m = Math.hypot(ax, ay) || 1; ax /= m; ay /= m; }
+      this.armDir[n] = { x: ax, y: ay };
+      input.pods[n] = { m: 1, dx: ax, dy: ay, tip: this.armTip[n] };
+    }
+    const l = Math.hypot(dx, dy) || 1;
+    input.body = { m: 0.12, dx: -dx / l, dy: -dy / l };
+    b.opts.boost = 2.2; b.opts.speed = 2.4; b.opts.reach = 600; b.pushK = 0.95;
+    if (!this.warned && ring.cover >= RING.warn) { this.warned = true; ev.push({ e: 'ring', p }); }
+    if (!this.closing) {
+      if (ring.cover >= RING.shut && ring.gap <= RING.gap) { this.closing = { t: 0 }; ev.push({ e: 'closing', p }); }
+    } else {
+      this.closing.t += dt;
+      if (ring.cover < RING.broken) { this.closing = null; ev.push({ e: 'broken', p }); }
+      else if (this.closing.t >= RING.closeT) {
+        this.closing = null;
+        if (ring.cover >= RING.hold) { ev.push({ e: 'engulf', p }); this.fight.update(10, {}); }
+        else ev.push({ e: 'broken', p });
+      }
+    }
+  }
+
+  /** How far its membrane rings body pb now: { cover, gap, gapA, bins, n } (contact.js encircle). */
+  ringAround(pb) {
+    this._ring = encircle(pb, this.body, RING.reach, this._ring);
+    return this._ring;
   }
 
   /** Sated after engulfing someone: it will not wake for a while. */

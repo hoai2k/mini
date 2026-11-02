@@ -19,12 +19,31 @@
 
 /** Where play starts (µm). */
 export const START = { x: 0, y: 0 };
-/** The drop's depth range: the slide (floor) below, the coverslip above; z = 0 the middle (µm). */
-export const DEPTH = { min: -150, max: 150 };
-/** The view's width at zoom 1 (µm, landscape): the Paramecium (120 µm) about a fifth of it. */
+/**
+ * The drop's depth: one continuous water volume, the slide (floor) below, the
+ * coverslip above, z = 0 the middle (µm). Four body lengths deep (the owner,
+ * 2026-11-02: "not 3 depth levels, just a continuous depth. I want it to feel
+ * 3D"); it was 300 µm, and ZK scales the depths laid out for that drop.
+ */
+export const DEPTH = { min: -240, max: 240 };
+export const ZK = (DEPTH.max - DEPTH.min) / 300;
+/**
+ * Near in depth: two things meet (eat, bite, block, catch) only when their
+ * depths are within this of each other (µm, about a body's thickness), on top
+ * of their own half-thicknesses where they have one.
+ */
+export const ZTOL = 40;
+/** The view's width at zoom 1 (µm, landscape): the closest zoom, the Paramecium (120 µm) about a fifth of it. */
 export const FIELD = 560;
-/** The objectives (D-pad up/down): field widths in µm. */
-export const FIELDS = [400, 560, 820];
+/**
+ * The zoom (the owner, 2026-11-02: "start at the further zoomed out level and
+ * have the current default be the furthest in you can zoom, but allow zooming
+ * further out"): the field is FIELD x zoom, from 1 (closest) to max, starting
+ * at start (0.9 mm across, the world's field on its card). LT zooms out and RT
+ * in, analogue: rate is the e-folding per second at a full trigger, ease the
+ * time constant the view follows it with.
+ */
+export const ZOOM = { min: 1, start: 1.6, max: 3, rate: 1.1, ease: 0.14 };
 /** Rushing: full speed with a dash as often as it recharges (swim.js; measured ~850 µm/s). */
 export const RUSH = 850;
 /** The default path's bearing from the start (radians, atan2(dy, dx)): up and to the right. */

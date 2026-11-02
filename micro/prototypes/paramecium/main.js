@@ -3,8 +3,11 @@
 // (the owner, 2026-11-02: "make it visually look like the image I see on the
 // selection card ... more like a 2D slide where the paramecium is quick and
 // you battle other protists ... including trying to avoid a giant amoeba";
-// then "2.5D": a shallow continuous depth you swim through, the focus
-// following you, creatures interacting across it). See README.md.
+// then "2.5D", then "not 3 depth levels, just a continuous depth. I want it
+// to feel 3D": a water volume four body lengths deep that you swim through,
+// seen in perspective, the focus following you, creatures interacting across
+// it). The zoom is analogue on LT/RT, from the closest field (560 µm) out to
+// three times it, starting at 1.6x. See README.md.
 //
 // Micro Zoom: the forward landmark (a biofilm on a leaf, guarded by a
 // bladderwort trap) dives into the bacterium level; the backdoor (the
@@ -28,11 +31,11 @@ import { createShapes } from './shapes.js';
 import { createWorld, TILE } from './world.js';
 import { createSwimState, stepSwim, dash as startDash, backOff, LENGTH, ZMIN, ZMAX } from './swim.js';
 import { drawCell, VARIETIES, beatRate } from './cell.js';
-import { drawScenery, drawDileptus, drawDidinium, drawGiant, drawTrap, drawBloom, drawPrey, drawLeaf, makeLeaf, drawBack, drawSpirillum, drawKinClump, SPIRILLUM } from './draw.js';
-import { createDileptus, stepDileptus, burstDileptus, createDidinium, stepDidinium, DIDINIUM, createGiant, stepGiant, burstGiant, GIANT, createTrap, stepTrap, burstTrap, trapObstacles, trapGuarding, trapDoor, TRAP } from './foes.js';
+import { drawScenery, drawDileptus, drawDidinium, drawGiant, drawTrap, drawBloom, drawPrey, drawLeaf, makeLeaf, drawBack, drawSpirillum, drawKinClump, drawFight, drawMiss, SPIRILLUM } from './draw.js';
+import { createDileptus, stepDileptus, burstDileptus, createDidinium, stepDidinium, blockDidinium, DIDINIUM, createGiant, stepGiant, burstGiant, GIANT, createTrap, stepTrap, burstTrap, trapObstacles, trapGuarding, trapDoor, TRAP, jabFoe, hitFoe, FIGHT } from './foes.js';
 import { createBloom, placeBloom, stepBloom, gulpBloom, flingBloom, BLOOM } from './bloom.js';
 import { createPrey, stepPrey, gulpPrey } from './prey.js';
-import { START, DEPTH, FIELDS, BACK, DIRECTOR, ENCOUNTERS, DEFAULT_PATH, MET, DRIFT_TO, canPlace, didiniumHomes, trapAt, bandDist } from './route.js';
+import { START, DEPTH, ZK, ZTOL, FIELD, ZOOM, BACK, DIRECTOR, ENCOUNTERS, DEFAULT_PATH, MET, DRIFT_TO, canPlace, didiniumHomes, trapAt, bandDist } from './route.js';
 import { clumpLayout, placeInFrame } from '../shared/kin-clump.js';
 import { t as tt, tx as ttx } from '../shared/text.js';
 
@@ -69,8 +72,8 @@ const CONTROLS = {
   defend: tt('paramecium.hud.controls.defend'),
   special: tt('paramecium.hud.controls.special'),
   secondary: tt('paramecium.hud.controls.secondary'),
+  analog: tt('paramecium.hud.controls.analog'),
   look: tt('paramecium.hud.controls.look'),
-  zoom: tt('paramecium.hud.controls.zoom'),
 };
 const hud = mountHud({
   title: tt('paramecium.hud.title'),
@@ -93,7 +96,7 @@ const gaugeBar = gaugeEl.children[1];
 const gaugeDots = [];
 
 // --- the world ---
-const shapes = createShapes(renderer);
+const shapes = createShapes(renderer, { floorZ: DEPTH.min });
 const world = createWorld(11);
 const dileptus = createDileptus();
 const didinia = [createDidinium(0), createDidinium(1)];
@@ -108,12 +111,12 @@ const game = { eaten: 0, divided: 0, t: 0 };
 const features = createFeatures({ key: 'paramecium.v5', pad });
 const LOOK_NAMES = ['Darkfield', 'Phase contrast', 'Brightfield'];
 const LOOKS = {
-  Darkfield: { bg: [0.004, 0.007, 0.014], add: 1, sub: 0, tile: 'dark', tileK: 0.13 },
-  'Phase contrast': { bg: [0.3, 0.33, 0.31], add: 0.2, sub: 1.0, tile: 'phase', tileK: 0.55, subTint: [1, 1, 1] },
-  Brightfield: { bg: [0.86, 0.84, 0.76], add: 0, sub: 0.7, tile: null, tileK: 0, subTint: [1.0, 0.95, 0.9] },
+  Darkfield: { bg: [0.004, 0.007, 0.014], add: 1, sub: 0, tile: 'dark', tileK: 0.16, shadow: 0.2, sprite: true },
+  'Phase contrast': { bg: [0.3, 0.33, 0.31], add: 0.2, sub: 1.0, tile: 'phase', tileK: 0.55, subTint: [1, 1, 1], shadow: 0.3 },
+  Brightfield: { bg: [0.86, 0.84, 0.76], add: 0, sub: 0.7, tile: null, tileK: 0, subTint: [1.0, 0.95, 0.9], shadow: 0.35 },
 };
 const PHASE_BG = [0.6, 0.655, 0.615]; // the bacterium's phase field (the dive turns the light to it)
-const view = { look: 'Darkfield', parallax: true, tile: true, glitter: 1, field: 1, rot: 0, cx: START.x, cy: START.y, focus: 0, vx: 0, vy: 0 };
+const view = { look: 'Darkfield', parallax: true, tile: true, glitter: 1, rot: 0, cx: START.x, cy: START.y, focus: 0, vx: 0, vy: 0, fw: FIELD * ZOOM.start };
 features.add({ id: 'look', group: 'Optics', choices: LOOK_NAMES, value: 'Darkfield',
   onChange: (v) => { view.look = v; } });
 features.add({ id: 'depthcues', group: 'Optics', on: true,
@@ -138,6 +141,27 @@ function softTile(t) {
 }
 loadTexture('MP-P04').then((t) => { if (t) tiles.dark = softTile(t); });
 loadTexture('MP-P05').then((t) => { if (t) tiles.phase = softTile(t); });
+// the body art (MP-P06, darkfield, on #FF00FF): the magenta keyed out to black, premultiplied, so it simply adds to the field
+const SPRITE_W = LENGTH * 1024 / 986, SPRITE_H = SPRITE_W / 2; // the cell spans 986 of the image's 1024 px
+function keySprite(t) {
+  try {
+    const img = t.image, c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+    const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+    const d = g.getImageData(0, 0, c.width, c.height), px = d.data;
+    for (let i = 0; i < px.length; i += 4) {
+      const m = Math.max(0, Math.min(px[i], px[i + 2]) - px[i + 1]) / 255; // how much of the pixel is the magenta ground
+      const bg = m > 0.82 ? 1 : m * 0.9;
+      px[i] = Math.max(0, px[i] - bg * 255); px[i + 2] = Math.max(0, px[i + 2] - bg * 255); if (m > 0.82) px[i + 1] = 0;
+      px[i + 3] = 255;
+    }
+    g.putImageData(d, 0, 0);
+    const out = new THREE.CanvasTexture(c);
+    out.colorSpace = THREE.NoColorSpace; out.generateMipmaps = true; out.minFilter = THREE.LinearMipmapLinearFilter; out.magFilter = THREE.LinearFilter;
+    t.dispose();
+    return out;
+  } catch { return null; }
+}
+loadTexture('MP-P06').then((t) => { if (t) { const k = keySprite(t); if (k) shapes.setSprite(k); } });
 
 const audio = createAudio(['paramecium/amb-pool', 'paramecium/swim', 'paramecium/dash', 'paramecium/gulp', 'paramecium/trichocysts', 'paramecium/reverse', 'paramecium/didinium', 'paramecium/held', 'shared/portal-chime',
   'paramecium/depth', 'paramecium/burst', 'paramecium/stun', 'paramecium/dileptus', 'paramecium/slash', 'paramecium/giant', 'paramecium/giant-engulf', 'paramecium/trap-tell', 'paramecium/trap-fire', 'paramecium/divide', 'paramecium/vorticella', 'paramecium/bloom',
@@ -155,6 +179,8 @@ function makeCell(slot, x, y, a = Math.PI / 2, z = 0) {
     slot, color: players.list.find((p) => p.slot === slot)?.color || '#d2a24c', S: createSwimState(x, y, a, z), live: true, dead: null, spawn: 1, invuln: 0,
     burst: -1, jab: -1, jabCd: 0, charges: 3, chargeT: 0, beat: 0, bend: 0, squash: 0, vacuoles: [], engulfed: null, held: false,
     variety: VARIETIES[slot % VARIETIES.length], hint: {}, back: 0, atPortal: false, lastA: a,
+    zoom: ZOOM.start, zoomWant: ZOOM.start, // the field is FIELD x zoom (LT out, RT in; each player their own)
+    miss: null, // the last jab that missed: { t, x, y, z, why } (drawn as a fizzle where it fell short)
   };
 }
 const P1 = makeCell(0, START.x, START.y);
@@ -164,7 +190,7 @@ function syncCells() {
     if (cells.some((c) => c.slot === p.slot)) continue;
     const near = cells.find((c) => c.live) || P1;
     const C = makeCell(p.slot, near.S.x + 150 * Math.cos(p.slot * 2), near.S.y + 150 * Math.sin(p.slot * 2), near.S.a, near.S.z);
-    C.spawn = 0; C.invuln = 2;
+    C.spawn = 0; C.invuln = 2; C.zoom = C.zoomWant = near.zoom;
     cells.push(C);
   }
   for (let i = cells.length - 1; i > 0; i--) if (!players.list.some((p) => p.slot === cells[i].slot)) cells.splice(i, 1);
@@ -288,28 +314,71 @@ const nearestThreatAngle = (P) => {
   if (trap.placed) { const D = trapDoor(trap); consider(D.x, D.y); }
   return best;
 };
-/** X: gulp prey at the oral end; in the bloom gulp a cone of algae; else a trichocyst jab ahead. */
+/** The hunters a jab can meet. */
+const hunters = () => [dileptus, ...didinia, giant].filter((f) => f.placed && f.mode !== 'parked');
+/** A hunter close enough to fight (in the plane and in depth): X jabs before it eats. */
+const inFight = (P) => hunters().some((f) => {
+  const r = f.kind === 'giant' ? GIANT.R + 260 : 380, z = f.kind === 'giant' ? GIANT.top : f.z;
+  return f.mode !== 'flee' && f.mode !== 'retreat' && hyp(f.x - P.S.x, f.y - P.S.y) < r && (f.kind === 'giant' || Math.abs(z - P.S.z) < 160);
+});
+/**
+ * X: a trichocyst jab ahead when a hunter is close (it lands, or it visibly
+ * misses: out of reach, or out of the hunter's depth); else gulp prey at the
+ * oral end, or a cone of algae in the bloom; else a jab at nothing.
+ */
 function attack(P) {
   const S = P.S;
-  const p = gulpPrey(prey, S);
-  if (p) { ate(P, p.kind === 'chilomonas' ? tt('paramecium.food.chilomonas') : tt('paramecium.food.bacteria')); return; }
-  const n = gulpBloom(bloom, S);
-  if (n) {
-    P.algae = (P.algae || 0) + n;
-    audio.play('paramecium/gulp', { volume: 0.6, rate: 1.1 });
-    if (P.algae >= BLOOM.perMeal) { P.algae -= BLOOM.perMeal; ate(P, tt('paramecium.food.chlamydomonas', { n: BLOOM.perMeal })); }
-    return;
+  const fight = inFight(P) || P.engulfed;
+  if (!fight) {
+    const p = gulpPrey(prey, S);
+    if (p) { ate(P, p.kind === 'chilomonas' ? tt('paramecium.food.chilomonas') : tt('paramecium.food.bacteria')); return; }
+    const n = gulpBloom(bloom, S);
+    if (n) {
+      P.algae = (P.algae || 0) + n;
+      audio.play('paramecium/gulp', { volume: 0.6, rate: 1.1 });
+      if (P.algae >= BLOOM.perMeal) { P.algae -= BLOOM.perMeal; ate(P, tt('paramecium.food.chlamydomonas', { n: BLOOM.perMeal })); }
+      return;
+    }
   }
   if (P.jabCd > 0) return;
-  P.jab = 0; P.jabCd = 0.45;
+  P.jab = 0; P.jabCd = 0.35; P.miss = null;
   audio.play('paramecium/trichocysts', { volume: 0.7, rate: 1.3 });
-  const fx = S.x + Math.cos(S.a) * LENGTH * 0.5, fy = S.y + Math.sin(S.a) * LENGTH * 0.5;
-  const inCone = (x, y, z, r = 0) => { const d = hyp(x - fx, y - fy) - r; return d < 150 && Math.abs(z - S.z) < 80 && Math.cos(Math.atan2(y - fy, x - fx) - S.a) > 0.5; };
-  let landed = false; // the jab landed (on Dileptus, a Didinium or the giant's pseudopod)
-  if (dileptus.placed && inCone(dileptus.x, dileptus.y, dileptus.z, 40) && dileptus.mode !== 'flee') { dileptus.mode = 'stunned'; dileptus.t = 0.6; log('jab', 'dileptus', P); landed = true; }
-  for (const d of didinia) if (d.placed && inCone(d.x, d.y, d.z, 40) && /chase|crouch/.test(d.mode)) { d.mode = 'stagger'; d.t = 0; log('jab', 'didinium', P); hintOnce(P, 'stagger', tt('paramecium.toasts.didiniumJab')); landed = true; }
-  if (giant.placed && (P.engulfed || hyp(giant.x - S.x, giant.y - S.y) < GIANT.R + 300)) { const r = burstGiant(giant, P); if (r) { log('jab', 'giant:' + r, P); landed = true; } }
-  if (landed) audio.play('paramecium/stun', { volume: 0.8 });
+  // held in the giant's cup: the jab bursts at it from inside (as B does)
+  if (P.engulfed && P.engulfed.by === giant) {
+    const r = burstGiant(giant, P);
+    if (r) { landed(P, giant, r === 'fled' ? 'fled' : 'hit', P.S.x, P.S.y); log('jab', 'giant:' + r, P); }
+    return;
+  }
+  // the nearest miss, to show why it fell short
+  let best = null;
+  for (const f of hunters()) {
+    const j = jabFoe(f, P);
+    if (j.hit) { const r = hitFoe(f, P, j); landed(P, f, r, j.x, j.y); log('jab', `${f.kind}:${r}`, P); return; }
+    if (j.why !== 'gone' && (!best || j.d + j.dz < best.j.d + best.j.dz)) best = { f, j };
+  }
+  if (best && best.j.d < 220) {
+    // a miss you can see: the threads fizzle where they fell short (or pass over or under it)
+    const { f, j } = best;
+    P.miss = { t: 0, x: j.x, y: j.y, z: S.z, why: j.why, foe: f.kind };
+    log('miss', `${f.kind}:${j.why}`, P);
+    hintOnce(P, 'miss-' + j.why, tt(j.why === 'depth' ? 'paramecium.toasts.missDepth' : 'paramecium.toasts.missReach'), 2600);
+  }
+}
+/** A blow landed on hunter f (a jab or a block): flash, sound, rumble, a word once; it gives up at 0 interest. */
+function landed(P, f, result, x, y) {
+  audio.play('shared/hit', { volume: 0.85, old: ['paramecium/stun', { volume: 0.8 }] });
+  audio.play('paramecium/stun', { volume: 0.5 });
+  P.pad?.rumble?.(120, 0.45, 0.5);
+  if (result === 'fled' || result === 'beaten') foeGivesUp(f, P);
+  else if (f.kind === 'didinium') hintOnce(P, 'hitDid', tt('paramecium.toasts.hitDidinium'), 2400);
+  else if (f.kind === 'dileptus') hintOnce(P, 'hitDil', tt('paramecium.toasts.hitDileptus'), 2400);
+  else if (f.kind === 'giant') hintOnce(P, 'hitGiant', tt('paramecium.toasts.hitGiant'), 2600);
+  void x; void y;
+}
+function foeGivesUp(f, P) {
+  audio.play('shared/foe-flees', { volume: 0.7 });
+  hud.toast(tt(f.kind === 'giant' ? 'paramecium.hints.giantGone' : f.kind === 'didinium' ? 'paramecium.hints.didiniumGone' : 'paramecium.hints.dileptusGone', { who: who(P) }), 2400);
+  log('fled', f.kind, P);
 }
 function ate(P, what) {
   game.eaten++;
@@ -321,24 +390,45 @@ function ate(P, what) {
   else hud.toast(tt('paramecium.toasts.ate', { who: who(P), what, eaten: game.eaten, goal: GOAL }), 1400);
 }
 /** B: the trichocyst burst (while charged) and the avoiding reaction. */
+/**
+ * B: the avoiding reaction (back up and swing away) and a block: a hunter's
+ * strike at you (the Dileptus's slash, a Didinium's lunge) glances off the
+ * trichocysts and knocks it back, charged or not. With a charge it is also a
+ * trichocyst burst all round (frees you from the giant's cup, bursts you out
+ * of the trap's inflow).
+ */
 function defend(P) {
   const S = P.S;
   const away = nearestThreatAngle(P);
   backOff(S, away);
   audio.play('paramecium/reverse', { volume: 0.7 });
-  if (P.charges <= 0) { hintOnce(P, 'empty', tt('paramecium.toasts.noTrichocysts'), 2600); return; }
+  P.block = 0;
+  let blocked = false;
+  const rD = burstDileptus(dileptus, P);
+  if (rD === 'driven' || rD === 'beaten') {
+    blocked = true; log('block', 'dileptus:' + rD, P);
+    audio.play('shared/block', { volume: 0.9, old: ['paramecium/stun', { volume: 0.8 }] });
+    if (rD === 'beaten') foeGivesUp(dileptus, P);
+    else hud.toast(tt('paramecium.toasts.dileptusRecoils', { who: who(P) }), 2200);
+  } else if (rD === 'early') log('burst', 'dileptus:early', P);
+  for (const d of didinia) {
+    const r = blockDidinium(d, P);
+    if (!r) continue;
+    blocked = true; log('block', 'didinium:' + r, P);
+    audio.play('shared/block', { volume: 0.9, old: ['paramecium/stun', { volume: 0.8 }] });
+    if (r === 'beaten') foeGivesUp(d, P);
+    else hud.toast(tt('paramecium.toasts.didiniumBlocked', { who: who(P) }), 2200);
+  }
+  if (blocked) { P.pad?.rumble?.(220, 0.6, 0.7); P.burst = 0; }
+  if (P.charges <= 0) { if (!blocked) hintOnce(P, 'empty', tt('paramecium.toasts.noTrichocysts'), 2600); return; }
   P.charges--; P.burst = 0;
   audio.play('paramecium/trichocysts', { volume: 1 });
   audio.play('paramecium/burst', { volume: 0.8 });
-  P.pad?.rumble?.(200, 0.5, 0.6);
-  const rD = burstDileptus(dileptus, P);
-  if (rD === 'driven' || rD === 'beaten') { log('burst', 'dileptus:' + rD, P); hud.toast(tt(rD === 'beaten' ? 'paramecium.toasts.dileptusGivesUp' : 'paramecium.toasts.dileptusRecoils', { who: who(P) }), 2200); }
-  else if (rD === 'early') log('burst', 'dileptus:early', P);
+  if (!blocked) P.pad?.rumble?.(200, 0.5, 0.6);
   const rG = burstGiant(giant, P);
-  if (rG) { log('burst', 'giant:' + rG, P); if (rG === 'freed') hud.toast(tt('paramecium.toasts.burstCup', { who: who(P) }), 2000); }
+  if (rG) { log('burst', 'giant:' + rG, P); if (rG === 'fled') foeGivesUp(giant, P); else if (rG === 'freed') hud.toast(tt('paramecium.toasts.burstCup', { who: who(P) }), 2000); }
   const rT = burstTrap(trap, P);
   if (rT) { log('burst', 'trap', P); hud.toast(tt('paramecium.toasts.burstInflow', { who: who(P), resolve: Math.max(0, trap.resolve) }), 2000); }
-  for (const d of didinia) if (d.placed && d.target === P && /crouch|lunge/.test(d.mode) && hyp(d.x - S.x, d.y - S.y) < 320) { log('burst', 'didinium:no', P); hintOnce(P, 'didb', tt('paramecium.toasts.didiniumImmune')); }
 }
 function log(type, what, P) { challengeLog.push({ type, what, slot: P ? P.slot : 0, t: +game.t.toFixed(2) }); if (challengeLog.length > 200) challengeLog.shift(); }
 /** Death: the player keeps control until this moment; then the cell dissolves (visible), and comes back. */
@@ -390,7 +480,7 @@ function stepLandmarks(dt) {
   // the way on: down on the biofilm (over the leaf, deep in the drop)
   let any = null;
   for (const P of cells) {
-    P.atPortal = leaf.placed && P.live && hyp(P.S.x - FWD.x, P.S.y - FWD.y) < leaf.r * 0.85 && P.S.z < -50;
+    P.atPortal = leaf.placed && P.live && hyp(P.S.x - FWD.x, P.S.y - FWD.y) < leaf.r * 0.85 && P.S.z < -50 * ZK;
     if (P.atPortal) any = P;
   }
   if (leaf.placed) {
@@ -410,14 +500,14 @@ function stepLandmarks(dt) {
       lm.log.push({ kind: 'turnedBack', slot: any.slot, t: +game.t.toFixed(2) });
       hud.toast(tt('paramecium.toasts.sweptBack', { who: who(any) }), 2400);
       const a = Math.atan2(any.S.y - FWD.y, any.S.x - FWD.x);
-      any.S.x = FWD.x + Math.cos(a) * leaf.r * 1.05; any.S.y = FWD.y + Math.sin(a) * leaf.r * 1.05; any.S.z = Math.max(any.S.z, -20);
+      any.S.x = FWD.x + Math.cos(a) * leaf.r * 1.05; any.S.y = FWD.y + Math.sin(a) * leaf.r * 1.05; any.S.z = Math.max(any.S.z, -20 * ZK);
     } else hintOnce(any, 'portal', tt('paramecium.toasts.portal'), 2400);
   }
   if (!any) lm.latch = false;
   setPortalPrompt(!!any && !outro && !portalSealed() && !guarded());
   // the way back: dwell on the amoeba's patch of slide, deep
   let back = null;
-  for (const P of cells) { const on = P.live && hyp(P.S.x - BACK.x, P.S.y - BACK.y) < BACKR && P.S.z < -40; P.back = on ? P.back + dt : 0; if (P.back > 0.5) back = P; }
+  for (const P of cells) { const on = P.live && hyp(P.S.x - BACK.x, P.S.y - BACK.y) < BACKR && P.S.z < -40 * ZK; P.back = on ? P.back + dt : 0; if (P.back > 0.5) back = P; }
   if (!!back !== lm.back) { lm.back = !!back; embed.near('back', lm.back); }
 }
 function setPortalPrompt(on) { if (on === lm.portal) return; lm.portal = on; if (on) audio.play('shared/portal-near', { volume: 0.6 }); embed.near('portal', on); }
@@ -473,7 +563,9 @@ let outro = null, intro = null, diveLight = 0;
 let fxT = 0;
 const portalBloom = createPortalLight({ zIndex: 4, clock: () => fxT });
 /** The base field width (µm) at the current objective, before the group zoom. */
-const baseField = () => FIELDS[view.field] * (innerWidth >= innerHeight ? 1 : 0.62);
+const baseField = () => FIELD * (innerWidth >= innerHeight ? 1 : 0.62);
+/** The zoom of a view showing these players: the widest of theirs (so nobody's view is narrowed by another's). */
+const zoomOf = (slots) => { let z = 0; for (const c of cells) if (slots.includes(c.slot)) z = Math.max(z, c.zoom); return z || P1.zoom; };
 const aspect = () => innerHeight / Math.max(1, innerWidth);
 /** A creature at (x, y), heading a, length len, as a pose in the view drawn now. */
 function pose2D(x, y, a, len) {
@@ -525,9 +617,9 @@ embed.provide('intro');
 const INTRO_EASE = 0.6;
 embed.on('hold', () => {
   intro = { cam: null };
-  view.rot = 0; view.cx = P1.S.x; view.cy = P1.S.y; view.fw = baseField(); view.focus = P1.S.z;
+  view.rot = 0; view.cx = P1.S.x; view.cy = P1.S.y; view.fw = baseField() * P1.zoom; view.focus = P1.S.z;
   embed.cinematic(true, canvas);
-  embed.opening({ f: LENGTH / baseField(), x: 0, y: 0, pitch: TOP_PITCH, rel: wrap(P1.S.a + Math.PI / 2) });
+  embed.opening({ f: LENGTH / view.fw, x: 0, y: 0, pitch: TOP_PITCH, rel: wrap(P1.S.a + Math.PI / 2) });
 });
 embed.on('begin', () => { embed.cinematic(false, canvas); intro = { ease: 0 }; });
 function introEase(dt) {
@@ -545,6 +637,8 @@ function stepPlayer(P, dt, input) {
   const S = P.S;
   P.invuln = Math.max(0, P.invuln - dt);
   P.jabCd = Math.max(0, P.jabCd - dt);
+  if (P.miss) { P.miss.t += dt; if (P.miss.t > 0.6) P.miss = null; }
+  if (P.block >= 0) { P.block += dt; if (P.block > 0.5) P.block = -1; }
   if (P.burst >= 0) P.burst += dt; if (P.burst > 1) P.burst = -1;
   if (P.jab >= 0) P.jab += dt; if (P.jab > 1) P.jab = -1;
   if (P.charges < 3) { P.chargeT += dt; if (P.chargeT >= 3) { P.chargeT = 0; P.charges++; } } else P.chargeT = 0;
@@ -620,10 +714,22 @@ function readInput(P, dt, frozen) {
   if (P === P1) {
     const ls = c.lookStep ? c.lookStep() : 0;
     if (ls) { const i = (LOOK_NAMES.indexOf(view.look) + ls + LOOK_NAMES.length) % LOOK_NAMES.length; features.set('look', LOOK_NAMES[i]); }
-    const zs = c.zoomStep ? c.zoomStep() : 0;
-    if (zs) view.field = clamp(view.field - zs, 0, FIELDS.length - 1);
   }
   return _in;
+}
+/**
+ * The zoom: LT out, RT in, analogue and continuous (each player their own,
+ * read even while the world is paused by a panel, never in a cinematic):
+ * the trigger sets how fast the wanted zoom moves, and the zoom eases to it.
+ */
+const zoomForce = [];
+function stepZoom(P, dt, frozen) {
+  const c = players.controls(P.slot);
+  const f = zoomForce[P.slot];
+  const rate = f !== undefined ? f : !frozen && c ? (c.lt ? c.lt() : 0) - (c.rt ? c.rt() : 0) : 0;
+  if (Math.abs(rate) > 0.04) P.zoomWant = clamp(P.zoomWant * Math.exp(rate * ZOOM.rate * dt), ZOOM.min, ZOOM.max);
+  P.zoom += (P.zoomWant - P.zoom) * (1 - Math.exp(-dt / ZOOM.ease));
+  if (Math.abs(P.zoom - P.zoomWant) < 1e-4) P.zoom = P.zoomWant;
 }
 let bloomDrag = new Map(), trapPush = new Map();
 function stepWorld(dt) {
@@ -654,8 +760,7 @@ function stepWorld(dt) {
     else if (e.type === 'hunt' && e.who === giant && !(giant.reachSndT > game.t)) { giant.reachSndT = game.t + 4; audio.play('paramecium/giant', { volume: 0.6 }); }
     else if (e.type === 'trap-tell') audio.play('paramecium/trap-tell', { volume: 0.8 });
     else if (e.type === 'trap-pulse') audio.play('paramecium/trap-fire', { volume: 0.5 });
-    else if (e.type === 'fled') { audio.play('shared/foe-flees', { volume: 0.7 }); hud.toast(tt('paramecium.hints.dileptusGone'), 2000); }
-
+    else if (e.type === 'fled') { audio.play('shared/foe-flees', { volume: 0.7 }); hud.toast(tt('paramecium.hints.dileptusGone', { who: '' }), 2000); }
     else if (e.type === 'trap-spent') hud.toast(tt('paramecium.hints.trapSlack'), 2800);
     if (/^(kill|miss|fled|rest|trap-)/.test(e.type)) log(e.type, e.who ? e.who.kind : e.by || '', e.P);
   }
@@ -692,12 +797,16 @@ function currentLook() {
   const L = LOOKS[view.look];
   if (diveLight <= 0) return L;
   const D = LOOKS.Darkfield, Ph = LOOKS['Phase contrast'], m = diveLight;
-  return { bg: [0, 1, 2].map((i) => lerp(D.bg[i], PHASE_BG[i] * 0.5, m)), add: lerp(1, Ph.add, m), sub: lerp(0, Ph.sub, m), subTint: [1, 1, 1], tile: m < 0.5 ? 'dark' : 'phase', tileK: m < 0.5 ? D.tileK * (1 - 2 * m) : Ph.tileK * (2 * m - 1) };
+  return { bg: [0, 1, 2].map((i) => lerp(D.bg[i], PHASE_BG[i] * 0.5, m)), add: lerp(1, Ph.add, m), sub: lerp(0, Ph.sub, m), subTint: [1, 1, 1], tile: m < 0.5 ? 'dark' : 'phase', tileK: m < 0.5 ? D.tileK * (1 - 2 * m) : Ph.tileK * (2 * m - 1), shadow: lerp(D.shadow, Ph.shadow, m), sprite: m < 0.3 };
 }
-function fill(rect) {
+/** Perspective (route.js: the objective this far above the focal plane, µm): the scale of a thing dz above the focus. */
+const PERSP = 900;
+const persp = () => (view.parallax ? 1 / PERSP : 0);
+const kAt = (dz) => 1 / Math.max(0.25, 1 - persp() * dz);
+function fill(rect, lod = 1) {
   shapes.begin();
   const G = shapes;
-  drawScenery(G, world, rect, t, { glitter: view.glitter });
+  drawScenery(G, world, rect, t, { glitter: view.glitter, lod });
   if (BACK) drawBack(G, BACK, t);
   if (leaf.placed) drawLeaf(G, leaf, t, { lawn: outro ? 1 - 0.75 * diveLight - 0.25 * sm01(SLIME[0], DIVE.fade[0], outro.u || 0) : 1 });
   drawGiant(G, giant, t);
@@ -706,6 +815,9 @@ function fill(rect) {
   drawTrap(G, trap, t);
   for (const d of didinia) drawDidinium(G, d, t);
   drawDileptus(G, dileptus, t);
+  // fighting back: a blow that landed flashes on the hunter, and its interest shows over it while it hunts
+  const up = fromFrameOffset({ x: 0, y: 1 });
+  for (const f of [dileptus, ...didinia, giant]) drawFight(G, f, t, up);
   if (leaf.placed) {
     const clumpK = outro ? sm01(0, OUTRO.beat + OUTRO.ease, outro.t) * (outro.frozenAt !== null ? 1 - outro.scale : 1) : 0;
     drawKinClump(G, spir, clumpK, 1 - sm01(SLIME[0], SLIME[1], outro ? outro.u || 0 : 0));
@@ -715,21 +827,27 @@ function fill(rect) {
     if (!P.live && !P.dead) continue;
     const blink = P.invuln > 0 && P.live ? 0.65 + 0.35 * Math.cos(P.invuln * 18) : 1;
     for (const w of P.wake || []) { const k = 1 - w.t / 1.6; G.disc(w.x, w.y, 0.7, w.z, w.gold ? [1, 0.8, 0.4] : [0.85, 0.92, 1], 0.7 * k * k, 0.1, 0.4 * k, 1.5); }
-    drawCell(G, { x: P.S.x, y: P.S.y, z: P.S.z, a: P.S.a, v: P.S.v, bend: P.bend, squash: P.squash, t: t + P.slot * 7, beat: P.beat, variety: P.variety, burst: P.burst, jab: P.jab, dead: P.dead ? Math.min(1, P.dead.t / DISSOLVE) : 0, spawn: P.spawn, vacuoles: P.vacuoles, ring: multi() ? hexRgb(P.color) : null, alpha: blink });
+    if (P.live) G.shadow(P.S.x, P.S.y, P.S.a, LENGTH / 2, 22, P.S.z, 0.55);
+    drawCell(G, { x: P.S.x, y: P.S.y, z: P.S.z, a: P.S.a, v: P.S.v, bend: P.bend, squash: P.squash, t: t + P.slot * 7, beat: P.beat, variety: P.variety, burst: P.burst, jab: P.jab, dead: P.dead ? Math.min(1, P.dead.t / DISSOLVE) : 0, spawn: P.spawn, vacuoles: P.vacuoles, ring: multi() ? hexRgb(P.color) : null, alpha: blink, sprite: spriteOn, spriteW: SPRITE_W, spriteH: SPRITE_H });
+    if (P.miss) drawMiss(G, P.miss, t);
   }
   shapes.end();
 }
 const hexRgb = (h) => { const n = parseInt(h.slice(1), 16); return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]; };
-function renderView(cx, cy, focus, look) {
-  const W = renderer.domElement.width, w = view.fw, hw = w / 2, hh = hw * aspect();
+let spriteOn = false;
+function renderView(cx, cy, focus, look, hw = view.fw / 2, hh = hw * aspect()) {
+  const W = renderer.domElement.width, w = hw * 2;
   shapes.setView({ cx, cy, hw, hh, rot: view.rot, focus, pxUm: w / Math.max(1, W) });
-  shapes.depth(view.parallax ? 0.0009 : 0, view.parallax ? 0.07 : 0.015, view.parallax ? 0.006 : 0.002);
+  // the depth cues: perspective (parallax and scale), defocus, dimming (more below), the haze below the focus
+  shapes.depth(persp(), view.parallax ? 0.06 : 0.015, view.parallax ? 0.0042 : 0.002, view.parallax ? 0.0016 : 0);
   const tex = view.tile && look.tile ? tiles[look.tile] : null;
   shapes.setTile(tex, look.tileK, look.tile === 'phase' ? 1000 : 1000, view.parallax ? 0.82 : 1, 0, look.tile === 'phase' ? [1, 1, 1] : [0.9, 0.95, 1.0]);
   shapes.render(look);
   // the portal's glow over it
-  if (glow.group.visible && hyp(FWD.x - cx, FWD.y - cy) < Math.max(hw, hh) + GLOW_S * 3) {
-    glowCam.left = -hw; glowCam.right = hw; glowCam.top = hh; glowCam.bottom = -hh;
+  if (glow.group.visible && hyp(FWD.x - cx, FWD.y - cy) < Math.max(hw, hh) * 1.6 + GLOW_S * 3) {
+    // in the same perspective as the leaf it hangs over (an orthographic camera widened by its depth's scale)
+    const k = kAt(DEPTH.min + 8 - focus);
+    glowCam.left = -hw / k; glowCam.right = hw / k; glowCam.top = hh / k; glowCam.bottom = -hh / k;
     glowCam.position.set(cx, cy, GLOW_D); glowCam.rotation.set(0, 0, view.rot);
     glowCam.updateProjectionMatrix(); glowCam.updateMatrixWorld();
     renderer.render(glowScene, glowCam);
@@ -741,7 +859,7 @@ function render(dt) {
   const camHeld = (outro && outro.cam) || (intro && intro.cam && !('ease' in intro));
   if (outro && outro.cam) poseView(outro.cam, spir.x, spir.y, spir.a, SPIRILLUM.L);
   else if (intro && intro.cam && !('ease' in intro)) poseView(intro.cam, P1.S.x, P1.S.y, P1.S.a, LENGTH);
-  else { groupZoom.applied = multi() ? groupZoom.z : 1; view.fw = baseField() * groupZoom.applied; }
+  else { groupZoom.applied = multi() ? groupZoom.z : 1; view.fw = baseField() * zoomOf(cells.map((c) => c.slot)) * groupZoom.applied; }
   fieldNow = view.fw;
   // the dive's light: darkfield to phase contrast as the push begins
   diveLight = outro ? sm01(LIGHT[0], LIGHT[1], outro.u || 0) : 0;
@@ -749,7 +867,7 @@ function render(dt) {
   if (glowUI) glowUI.value = GLOW_I * (outro && outro.cam && outro.f0 ? 1 - sm01(0, Math.log(1.5), Math.log(Math.max(1, outro.cam.f / outro.f0))) : 1);
   glow.setOpen(!guarded() && !portalSealed());
   glow.update(dt, t, glowCam);
-  const hw = view.fw / 2, hh = hw * aspect();
+  const hw0 = view.fw / 2;
   const list = cells.filter((c) => c.live || c.dead).map((c) => ({ slot: c.slot, position: toFrame(c.S.x, c.S.y) }));
   const L = split.update(list.length ? list : [{ slot: 0, position: toFrame(P1.S.x, P1.S.y) }], { center: { x: view.cx, y: view.cy }, pxPerUnit: innerWidth / view.fw, yUp: true, zoom: camHeld ? 1 : groupZoom.applied }, dt);
   groupZoom.z = split.zoom;
@@ -760,17 +878,21 @@ function render(dt) {
     const o = fromFrameOffset(v.offset);
     const mine = cells.filter((c) => v.slots.includes(c.slot) && (c.live || c.dead));
     const focus = camHeld && outro ? lerp(view.focus, spir.z, sm01(0, 0.3, outro.u || 0)) : mine.length && L.views.length > 1 ? mine.reduce((s, c) => s + c.S.z, 0) / mine.length : view.focus;
-    return { index: v.index, cx: view.cx + o.x, cy: view.cy + o.y, focus, hw, hh };
+    // split, each view keeps its own players' zoom (the shared view: the widest of everyone's)
+    const hw = L.views.length > 1 && !camHeld ? hw0 * zoomOf(v.slots) / zoomOf(cells.map((c) => c.slot)) : hw0;
+    return { index: v.index, cx: view.cx + o.x, cy: view.cy + o.y, focus, hw, hh: hw * aspect() };
   });
   lastViews = vs;
-  // fill the shapes once for every view: the union of their fields (with room for the turn and parallax)
-  const R = Math.max(hw, hh) * 1.3;
+  // fill the shapes once for every view: the union of their fields, with room for the turn and for the
+  // perspective (what lies deepest below the focus is drawn smallest, so more of it is in view)
+  const R = Math.max(...vs.map((v) => Math.hypot(v.hw, v.hh) / kAt(DEPTH.min - v.focus))) + 30;
   const rect = [Math.min(...vs.map((v) => v.cx)) - R, Math.min(...vs.map((v) => v.cy)) - R, Math.max(...vs.map((v) => v.cx)) + R, Math.max(...vs.map((v) => v.cy)) + R];
-  fill(rect);
+  spriteOn = !!look.sprite && shapes.hasSprite;
+  fill(rect, Math.max(...vs.map((v) => v.hw)) * 2 / FIELD);
   renderer.setRenderTarget(null);
-  if (vs.length === 1) renderView(vs[0].cx, vs[0].cy, vs[0].focus, look);
+  if (vs.length === 1) renderView(vs[0].cx, vs[0].cy, vs[0].focus, look, vs[0].hw, vs[0].hh);
   else {
-    for (const v of vs) { split.scissor(v.index, null); renderView(v.cx, v.cy, v.focus, look); split.capture(v.index); }
+    for (const v of vs) { split.scissor(v.index, null); renderView(v.cx, v.cy, v.focus, look, v.hw, v.hh); split.capture(v.index); }
     split.unscissor(null);
     split.compose();
   }
@@ -805,13 +927,14 @@ function updateHud() {
   const dashK = 1 - Math.max(0, P.S.dashCd) / 0.9;
   const dashBar = '▮'.repeat(Math.round(dashK * 4)) + '▯'.repeat(4 - Math.round(dashK * 4));
   const stars = '✦'.repeat(P.charges) + '✧'.repeat(3 - P.charges);
-  const depthName = (z) => (z > 60 ? tt('paramecium.status.nearCoverslip') : z < -60 ? tt('paramecium.status.nearSlide') : tt('paramecium.status.midWater'));
+  // the depth, continuous: µm under the coverslip
+  const depthName = (z) => tt('paramecium.status.depth', { um: Math.round(DEPTH.max - z) });
   let warn = '';
   for (const C of cells) {
     if (!C.live) { if (C.dead) warn = tt('paramecium.warn.eatenBy', { who: who(C), by: foeName(C.dead.by) }); continue; }
     if (C.engulfed) { warn = tt('paramecium.warn.engulfed', { who: who(C), glyph }); break; }
     if (trap.state === 'pulse' && trapPush.has(C)) { warn = tt('paramecium.warn.trapPulls', { who: who(C), glyph }); break; }
-    for (const d of didinia) if (d.target === C && /crouch|lunge/.test(d.mode)) warn = tt('paramecium.warn.didinium', { who: who(C) });
+    for (const d of didinia) if (d.target === C && /crouch|lunge/.test(d.mode)) warn = tt('paramecium.warn.didinium', { who: who(C), glyph });
     if (dileptus.target === C && /windup|strike/.test(dileptus.mode)) warn = tt('paramecium.warn.dileptus', { who: who(C), glyph });
     if (!warn && giant.placed && giant.target === C && hyp(C.S.x - giant.x, C.S.y - giant.y) < GIANT.R + 320) warn = tt('paramecium.warn.giant', { who: who(C) });
   }
@@ -828,7 +951,7 @@ function updateHud() {
   goalEl.style.display = outro || introHeld() ? 'none' : '';
   if (!embed.active) {
     const fwd = leaf.placed ? `${(hyp(P.S.x - FWD.x, P.S.y - FWD.y) / 1000).toFixed(2)} mm` : '…';
-    hud.stats(`field ${Math.round(fieldNow)} µm · ${view.look} · z ${P.S.z.toFixed(0)} µm · portal ${fwd} · back ${(hyp(P.S.x - BACK.x, P.S.y - BACK.y) / 1000).toFixed(2)} mm · next ${s.current || '—'} (${s.phase})`);
+    hud.stats(`field ${Math.round(fieldNow)} µm (zoom ${P.zoom.toFixed(2)}) · ${view.look} · z ${P.S.z.toFixed(0)} µm · portal ${fwd} · back ${(hyp(P.S.x - BACK.x, P.S.y - BACK.y) / 1000).toFixed(2)} mm · next ${s.current || '—'} (${s.phase})`);
   }
 }
 
@@ -858,6 +981,7 @@ function frame(now) {
   } else if (held) {
     // drawn but not stepped: the shell's poses move the view
   }
+  for (const P of cells) stepZoom(P, dtRaw, !!outro || held);
   stepSpirillum(dtRaw * scale); // (frozen with the world: the dive's framing turns with it)
   if (!outro && !held) stepCamera(dtRaw);
   // the swim's sound follows the speed
@@ -890,6 +1014,13 @@ Object.assign(debug, {
   /** Player slot is eaten now (tests of the dissolve). */
   kill(slot = 0, by = 'Didinium') { const P = cells.find((c) => c.slot === slot) || P1; P.invuln = 0; kill(P, by, 'in a test'); },
   spendTrap() { trap.state = 'spent'; trap.t = 0; trap.resolve = 0; },
+  /** Hold the zoom triggers for player slot as LT/RT would: +1 full LT (out), -1 full RT (in), null back to the pad. */
+  zoomHold(v = 1, slot = 0) { zoomForce[slot] = v === null ? undefined : v; },
+  /** Set player slot's zoom at once (1 closest .. ZOOM.max widest). */
+  setZoom(z, slot = 0) { const P = cells.find((c) => c.slot === slot) || P1; P.zoom = P.zoomWant = clamp(z, ZOOM.min, ZOOM.max); },
+  /** X and B for player slot, as the buttons do. */
+  attack(slot = 0) { attack(cells.find((c) => c.slot === slot) || P1); },
+  defend(slot = 0) { defend(cells.find((c) => c.slot === slot) || P1); },
   wakeBoss() { if (trap.placed) { trap.state = 'set'; trap.t = 0; trap.next = 0; } },
   place(id, x, y, b = 0) { director.force(id, x, y, b); return director.entry(id); },
   /**
@@ -911,7 +1042,7 @@ Object.assign(debug, {
       const input = { mx: Math.cos(a), my: Math.sin(a), m: 1, depth: s.current === 'portal' && hyp(P1.S.x - FWD.x, P1.S.y - FWD.y) < 500 ? -1 : 0 };
       for (const P of cells) stepPlayer(P, DT, P === P1 ? input : { mx: 0, my: 0, m: 0, depth: 0 });
       stepWorld(DT); stepLandmarks(DT); stepCamera(DT);
-      lastViews = [{ cx: view.cx, cy: view.cy, hw: baseField() / 2, hh: baseField() / 2 * aspect() }];
+      lastViews = [{ cx: view.cx, cy: view.cy, hw: baseField() * P1.zoom / 2, hh: baseField() * P1.zoom / 2 * aspect() }];
       if (P1.dead && P1.dead.t < DT * 1.5) out.deaths++;
       if (P1.atPortal && !portalSealed() && !guarded()) { out.portal = +game.t.toFixed(1); break; }
     }
@@ -930,12 +1061,13 @@ window.__micro = {
   portals: () => director.portals(),
   portalSealed, guarded, portalArrow: () => arrowLog,
   enterPortal(slot = 0) { enterPortal(cells.find((c) => c.slot === slot) || P1); },
-  OUTRO, DIVE,
+  OUTRO, DIVE, ZOOM, FIGHT,
+  foes: () => [dileptus, ...didinia, giant].map((f) => ({ kind: f.kind, mode: f.mode, placed: f.placed, x: +f.x.toFixed(1), y: +f.y.toFixed(1), z: +(f.z ?? 0).toFixed(1), interest: +(f.interest ?? 1).toFixed(2), hitT: f.hitT })),
   outro: () => outro && { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, u: outro.u, light: +diveLight.toFixed(3) },
   spirillum: () => ({ x: spir.x, y: spir.y, z: spir.z, a: spir.a, pose: spirPose() }),
   cellPose,
   /** The kin clump's cells on screen now (normalised device coordinates; the shell-path checks compare them with the bacterium's). */
   clumpScreen(n = 8) { return clumpLayout().slice(0, n).map((c) => { const q = placeInFrame(c, spir.x, spir.y, spir.a), f = toFrame(q.x, q.y), w = view.fw, h = w * aspect(); return { kind: c.kind, x: +((f.x - view.cx) / (w / 2)).toFixed(4), y: +((f.y - view.cy) / (h / 2)).toFixed(4) }; }); },
   challenges: () => challengeLog.slice(),
-  state: () => ({ t: +t.toFixed(2), director: director.state(), eaten: game.eaten, divided: game.divided, cells: cells.map((c) => ({ slot: c.slot, x: +c.S.x.toFixed(1), y: +c.S.y.toFixed(1), z: +c.S.z.toFixed(1), a: +c.S.a.toFixed(2), v: +c.S.v.toFixed(0), live: c.live, dead: c.dead && c.dead.by, engulfed: !!c.engulfed })), trap: { state: trap.state, resolve: trap.resolve, log: trap.log.slice(-8) }, sealed: leaf.placed && portalSealed(), open: leaf.placed && !portalSealed() && !guarded(), prompt: lm.portal, shapes: shapes.count, field: Math.round(fieldNow), views: split.layout ? split.layout.views.length : 1 }),
+  state: () => ({ t: +t.toFixed(2), director: director.state(), eaten: game.eaten, divided: game.divided, cells: cells.map((c) => ({ slot: c.slot, x: +c.S.x.toFixed(1), y: +c.S.y.toFixed(1), z: +c.S.z.toFixed(1), a: +c.S.a.toFixed(2), v: +c.S.v.toFixed(0), live: c.live, dead: c.dead && c.dead.by, engulfed: !!c.engulfed })), trap: { state: trap.state, resolve: trap.resolve, log: trap.log.slice(-8) }, sealed: leaf.placed && portalSealed(), open: leaf.placed && !portalSealed() && !guarded(), prompt: lm.portal, shapes: shapes.count, shadows: shapes.shadows, sprite: shapes.hasSprite, field: Math.round(fieldNow), zoom: cells.map((c) => +c.zoom.toFixed(3)), focus: +view.focus.toFixed(1), views: split.layout ? split.layout.views.length : 1 }),
 };

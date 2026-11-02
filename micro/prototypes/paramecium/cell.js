@@ -11,6 +11,14 @@
 //
 // Telling players apart (README "Telling players apart"): each player's cell
 // carries its own shade of Chlorella (VARIETIES).
+//
+// The body art (MP-P06, a darkfield P. bursaria seen from above, delivered):
+// with C.sprite on (darkfield, once loaded), the inside of the cell is that
+// image (its Chlorella turned to the player's shade by the renderer), under
+// the procedural pellicle, cilia, oral groove, streaming granules and food
+// vacuoles; the procedural Chlorella, macronucleus and contractile vacuoles
+// are left to it. Dissolving, the image fades and the procedural contents
+// scatter as before.
 import { LENGTH, WIDTH, VMAX } from './swim.js';
 
 /** Per player: the Chlorella's colour in darkfield (scattered light), and its cast on the body. */
@@ -72,8 +80,11 @@ export function drawCell(G, C) {
   const fade = (1 - dead) * (C.spawn ?? 1) * (C.alpha ?? 1);
   const I0 = Math.max(0, fade);
   if (I0 <= 0.003) return;
+  // the body art, under everything (it fades fast as the cell dissolves)
+  const art = !!C.sprite;
+  if (art) G.sprite(C.x, C.y, C.a, (C.spriteW || LENGTH * 1.04) * (1 + 0.07 * (C.squash || 0)), (C.spriteH || LENGTH * 0.52) * (1 - 0.07 * (C.squash || 0)), z, I0 * Math.max(0, 1 - dead * 2.5), V.chl);
   // the glassy body and the green cast
-  if (dead < 0.5) {
+  if (dead < 0.5 && !art) {
     G.ell(C.x, C.y, C.a, HL * 0.95, HW * 0.88, z, [0.6, 0.7, 0.8], 0.05 * I0, 6);
     G.ell(C.x, C.y, C.a, HL * 0.8, HW * 0.7, z, V.chl, 0.035 * I0, 9);
   }
@@ -126,7 +137,7 @@ export function drawCell(G, C) {
   // inside: cyclosis carries the Chlorella and the granules round a loop
   const cyc = C.t * 0.22;
   const inner = (d, l, k = 0.84) => { const u = Math.cos(l) * Math.sqrt(d.rho) * HL * k; return [u, Math.sin(l) * Math.min(1, d.rho * 1.25) * halfWidth(u / HL) * 0.8]; };
-  for (const d of CHL) {
+  for (const d of art && dead === 0 ? [] : CHL) {
     const [u, v] = inner(d, d.l + cyc * (0.6 + d.w * 4));
     const m = Math.hypot(u, v) || 1;
     const su = u + (u / m) * spread * (1.4 + d.k), sv = v + (v / m) * spread * (1.4 + d.k);
@@ -136,9 +147,9 @@ export function drawCell(G, C) {
     const [u, v] = inner(d, d.l - cyc * (0.4 + d.w * 3), 0.78);
     const m = Math.hypot(u, v) || 1;
     const su = u + (u / m) * spread * (2 + d.k), sv = v + (v / m) * spread * (2 + d.k);
-    G.disc(X(su, sv), Y(su, sv), d.r, z, GOLD, (0.6 + 0.3 * Math.sin(C.t * 3 + d.l * 5)) * I0, 0.2, 0.3, 2);
+    G.disc(X(su, sv), Y(su, sv), d.r, z, GOLD, (0.6 + 0.3 * Math.sin(C.t * 3 + d.l * 5)) * I0 * (art && dead === 0 ? 0.45 : 1), 0.2, 0.3, 2);
   }
-  if (dead < 0.5) {
+  if (dead < 0.5 && !art) {
     // the macronucleus
     G.ell(X(-6, 2), Y(-6, 2), C.a + 0.2, 19, 12, z, NUC, 0.05 * I0, 2);
     G.ellRing(X(-6, 2), Y(-6, 2), C.a + 0.2, 19, 12, 1.1, z, NUC, 0.26 * I0, 0.8);
@@ -154,6 +165,8 @@ export function drawCell(G, C) {
         G.line(cx + Math.cos(ang) * l0, cy + Math.sin(ang) * l0, cx + Math.cos(ang) * l1, cy + Math.sin(ang) * l1, 0.45, z, CV, 0.32 * I0, 0.3, 0.12, 2);
       }
     }
+  }
+  if (dead < 0.5) {
     // food vacuoles: what it has eaten, carried round (they shrink as they digest)
     for (const fv of C.vacuoles || []) {
       const l = fv.l + cyc * 0.7, rho = fv.rho;
