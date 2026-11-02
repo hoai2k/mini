@@ -22,19 +22,34 @@ knocked. Now: the water is packed in every direction with thousands of
 bead-cluster molecules drawn as sphere impostors, as real-time molecular
 viewers draw them (`shared/techniques/phage-beads.js`, look notes in
 [`LOOK.md`](LOOK.md)); the hosts are furred with LPS, porins and membrane
-proteins all round; the view turns about its own axes (no up or down, no poles,
-and it never turns on its own); and molecules visibly strike the phage and
-bounce off, each knock a small push and a little spin (`kicks.js`).
+proteins all round; and the view turns about its own axes (no up or down, no
+poles, and it never turns on its own).
 
-**LS drives the phage; let go and the water has it.** A real phage has no
-motor: it diffuses until it touches a receptor [S100]. At the owner's request
-the sticks still move it, as a labelled departure: LS drifts it across the
-view (the view's right and up, in full 3D), RT into the view and LT back
-toward you, a slow, sluggish drift (about 0.3 µm/s on the slowed clock) with
-the baseplate and long fibres turning to lead and the head following.
-Release the sticks and only the water moves it: molecules strike it now and
-then (Brownian motion), the ambient flow carries it, and it tumbles slowly.
-*Features → LS drift → Honest* turns the open-water drift off.
+**Controls and feel, second pass (2 November 2026).** The owner: "LS up and
+down should be forward and back (Z direction), and LB and RB should be down
+and up. Also, RT should be an attack / grab in addition to X. A is a dash
+forward. You should be able to grab and release any molecules you find in the
+environment", and "instead of having you randomly hit by fast particles you
+never saw coming", a textured liquid with occasional currents you can see
+coming and ride out by grabbing a cell; then "It should be easy ... to grab
+things ... auto-aim ... good control over the phage (even if that's
+realistic it doesn't matter, it's for game purposes)". So: the Brownian
+kicks (`kicks.js`) are gone; the controls are crisp game controls; X and RT
+grab whatever is in reach with an assist (`grab.js`); the water is a visible
+drifting noise of molecules (`medium.js`); and every 30–60 s a current you see
+coming sweeps through (`currents.js`).
+
+**You steer; the water only shows.** A real phage has no motor: it diffuses
+until it touches a receptor [S100]. At the owner's request it is steered
+like a game character, a labelled departure: LS up and down move it forward
+and back along the view (into and out of the screen), LS left and right
+sideways, LB and RB down and up the screen, A dashes forward; it gets going
+in about 0.15 s and stops in about 0.2 s (about 0.36 µm/s at full stick on the
+slowed clock), and the baseplate and long fibres turn promptly to lead.
+Nothing fights the stick except a visible current: the ambient drift, a very
+slow thermal wander and a slow tumble only come in once the sticks have been
+let go for a second or two. *Features → Steering → Honest* turns the
+open-water steering off.
 
 **No up or down.** The water is open in all three directions (the old play
 slab was ±0.34 µm deep; the field is now ±2.6 µm deep, with a soft current
@@ -75,25 +90,84 @@ nothing looking straight up or down, so it can never spin the view.
   scene's coverage of the frame at each step.
 - **Brownian motion as a float.** The phage's random motion was a smooth
   Ornstein–Uhlenbeck velocity, and the crowd drifted beside it untouched.
-  Now molecules strike it (see Motion below).
+  The revamp had molecules strike it; since the second pass Brownian motion
+  is shown in the water instead (see Motion below).
 
 ## Controls
 
-The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
+The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`). All
+movement is in the view's own frame, so there is no up or down bias:
 
 | Xbox | Keyboard | Action |
 | --- | --- | --- |
-| LS | WASD | **Drift across the view, legs first** (a labelled departure): the view's right and up, in 3D; the baseplate and fibres turn to lead |
-| LT / RT | Z / X | **Drift back toward you / into the view** (analog), so every direction in the water is a stick away |
+| LS | WASD | **Move**: up forward along the view (into the screen), down back toward you, left and right sideways. Crisp (a departure): quick to start and stop; the baseplate and fibres turn to lead. Holding on to a cell, LS crawls you along its surface |
+| LB / RB | Q / F | **Down / up** the screen |
 | RS | Arrows | **Turn the view** about its own axes (a quaternion: no up or down, no poles, no flips). It stays where you leave it |
-| **A** | Space | **Dash**: a passing *current gust* in open water, or a *push-off* with the fibres from a surface (both departures; recharging, HUD `dash` meter) |
-| **X** | E | **Grab protein**: aim the leading attachment fibres at a protruding protein and press X. The large gold three-lobed receptors fit; violet paired proteins do not. Both can be grabbed: the fibres converge for 0.45 s, then a mismatch slips off with a small recoil and a 0.25 s retry delay. A match latches and automatically starts the existing irreversible attachment: short fibres bind, baseplate opens, sheath contracts and DNA enters (camera close-up and shake on the snap). No automatic cell-contact attachment or hidden three-foot requirement. **Not on Host A, the way on**: there X only says to press Y (portals are entered on purpose). **At an amoeba's lobe: a fibre jab** (a departure, below) |
-| B | Shift | **Defend: fold the fibres** back against the sheath and slip: an amoeba's lobe gets no purchase, clay and wrong hosts slide past; also lets go of a host. Press again to extend them (ready to grab receptors with X; clay still catches them) |
+| **A** | Space | **Dash forward** along the view (recharging, HUD `dash` meter). Holding a cell, it lets go and dashes; a carried molecule comes along. On a surface (debug walk), a push-off with the fibres |
+| **X** | E | **Grab / let go** (a toggle): the grab assist takes the best thing in reach of the fibres (below). **At an amoeba's lobe: a fibre jab** (attack; a departure) |
+| **RT** | X | **Grab and hang on**: squeeze to grab (or jab), keep it squeezed to hold, let go to let go. Squeezed with nothing in reach, it keeps reaching, so you catch the first thing you drift into |
+| B | Shift | **Defend: fold the fibres** back against the sheath and slip: an amoeba's lobe gets no purchase, clay and flocs slide past; it also lets go of whatever you hold. Press again to extend them |
 | Y | R | **At Host A's gold receptors (the way on), within ~0.4 µm and with the amoeba off guard: enter** (the shell shows "Y Enter the portal"; the fibres latch on the nearest receptor and the injection starts; on guard: turned back). **At the flagellum (the backdoor)**: back to the sediment (Level 5); the two are far apart. Elsewhere: the odds and receptor overlay: receptor patches ringed, each host's receptors, defences and odds of a burst, the UV line, the amoeba's hunger, your distance to the nearest host; inside, each enzyme's sensing range. Marked on screen as data, not optics |
 | D-pad ←→ | 3 / 4 | Look: realistic false light (default), Goodsell watercolour, cryo-EM greyscale, fluorescence (pseudo-colour) |
 | D-pad ↑↓ | 1 / 2 | Zoom in / out |
 | Menu | Esc | Features panel |
 | View | Tab | Hide or show the controls |
+
+LT does nothing outside the host.
+
+### Grabbing (`grab.js`, tested in `grab.test.mjs`)
+
+- **The grab assist.** X or RT takes the best target within 0.4 µm (40 units)
+  of the fibres' reach centre, a little ahead of the baseplate: a free
+  molecule, or the nearest point of any cell's surface (hosts and the big
+  bacteria of other kinds). Things ahead of the baseplate win over things
+  beside or behind it at a similar distance, but anything in reach is taken,
+  so a sloppy aim still grabs. A soft ring in your player colour marks what
+  X / RT would take now, and the fibres reach out a little toward it. The
+  fibres reach out to what they grab over 0.18 s.
+- **Molecules.** 36 bigger free molecules (complexes and globules, `mols` in
+  `main.js`) drift round the players; the bath's thousands live on the GPU
+  and cannot be held. A grabbed one rides at the baseplate with the fibres
+  closed round it; let go, it drifts gently off ahead of the baseplate (16
+  units/s, slowed by the water's drag over a few seconds). Currents carry free
+  ones too; one nobody is near comes back somewhere out of sight.
+- **Cells.** Near a cell, a grab almost anywhere anchors you: the LPS fur, a
+  porin, a membrane protein (named in the toast). The phage pulls in to stand
+  on its fibres over the point, the six fibres planted round it, and stays
+  there as the cell drifts and while a current passes. LS crawls you along
+  the surface. A violet protein that does not fit only holds too.
+- **Injection only at the right receptor.** A grab aimed at a gold
+  three-lobed receptor latches and starts the irreversible injection, as
+  before (the fibres converge for 0.45 s, the short fibres bind, the sheath
+  contracts). On Host A, the way on, X there only holds on and says to press
+  Y; on guard, you are turned back. RT held while reaching again never
+  latches a receptor: that takes a deliberate press.
+
+### The water: a textured liquid, and currents
+
+- **The medium** (`medium.js`): four transparent slices across each view, at
+  0.55 to 2.3 times the camera's distance to the phage, each sampling a
+  slowly drifting 3D value noise (two lookups a pixel) at the world point it passes through (soft
+  clouds of molecules with a finer grain inside them). Tied to the world, the
+  near slices slide past faster than the far ones as you move, so the wisps
+  read as a volume you move through; the depth test hides them behind nearer
+  cells. Light only: each adds a faint pale colour and a very little alpha.
+  One draw; quality level 1 draws the nearer three slices, level 0 the
+  middle two.
+- **Currents** (`currents.js`, tested in `currents.test.mjs`): every 30–60 s
+  (the first after ~24 s, never in the calm water at the start) a ball of
+  moving water 1.4 µm across travels through, aimed at a player in open
+  water, coming from one side of the view (or from above or below it) so it
+  is seen. It starts upstream so its edge reaches you 3.4 s after it
+  appears: the liquid ahead of it streams into streaks along its direction
+  (from 2.2 radii out), the crowd is shoved along it, a low whoosh plays and
+  a toast says where it comes from; a soft rumble as it arrives. Inside it the
+  water flows at up to 0.78 µm/s and drags whatever is not anchored with it
+  (you, carried molecules, free molecules) until it has passed: about 3–4 µm
+  on, into a new area. Anchored to a cell, you hang on and it passes you by.
+  It is never sent where its path would cross the way on (once open), a UV
+  shaft, a floc or the amoeba, nor near the way on at all. *Features →
+  Currents* turns them off.
 
 Inside the host, LS steers the DNA's leading end and A is a short *surge* (the
 strand pulled in faster; a departure).
@@ -334,9 +408,9 @@ in multiplayer:
 ## Checks
 
 ```bash
-node --test micro/prototypes/phage/binding.test.mjs micro/prototypes/phage/kicks.test.mjs
+node --test micro/prototypes/phage/binding.test.mjs micro/prototypes/phage/grab.test.mjs micro/prototypes/phage/currents.test.mjs
 node micro/prototypes/phage/route.test.mjs     # the director: 6 directions, lingering, out and back; the default path followed and left (V=1: each run's placements)
-node micro/prototypes/phage/play-check.mjs   # controls (no spin), coverage (no empty side), encounters
+node micro/prototypes/phage/play-check.mjs   # controls (the mapping, no spin), coverage (no empty side), encounters, grab and currents
 node micro/prototypes/check.mjs phage
 node micro/game/check.mjs
 ```
@@ -345,10 +419,10 @@ The smoke check opens the page in headless Chromium, drives the keyboard and
 fails on any console error. `window.__micro.debug` has hooks for scripted
 screenshots: `teleport`, `orient`, `isolate` (the phage alone, for
 turnarounds), `cam(yaw, pitch, dist)`, `fold`, `walkOn(hostId, u, phi)`,
-`grab` (the normal aimed grab), `commit` (bypass from a debug walk), `inside(hostId)`, `win`, `capture('amoeba' | 'uv' | 'cut')`,
+`grab` (the normal aimed grab), `grabNow(by)` / `release()` / `hold(slot)` (grabbing), `mols()` / `placeMol(i, x, y, z)` (the free molecules), `current(dir)` / `currents()` (send one now; the state and log), `axes()` (the view's forward, right and up), `commit` (bypass from a debug walk), `inside(hostId)`, `win`, `capture('amoeba' | 'uv' | 'cut')`,
 `hungry`, `overlay`, `look`, `zoom`, `reset`, `place(slot, x, y)`, plus
 `maxDt` and `pause`; `debug.spin()` (the view's turn rate and each phage's angular speed, rad/s),
-`debug.kicks()` (the last molecule strikes), `debug.encounters()` (the director's state), `debug.encounterLog()`, `debug.seenAt(x, y, z)`, `debug.placeNow()`, `debug.placePortal(dir, d)` (out of order: tests), `debug.flocs()`, `debug.coverage()` (the fraction of the frame the scene
+`debug.encounters()` (the director's state), `debug.encounterLog()`, `debug.seenAt(x, y, z)`, `debug.placeNow()`, `debug.placePortal(dir, d)` (out of order: tests), `debug.flocs()`, `debug.coverage()` (the fraction of the frame the scene
 covers, read from the scene target's alpha), `debug.nanCount()` (non-finite texels in the last scene target: the black-block hunt, LOOK.md) and `debug.beads()` (beads drawn in the baths); `debug.fight` (the amoeba's fight state and interest) and `debug.boss()` (the CRISPR-Cas state, match, distance). `window.__micro` also exposes `team`, `players`,
 `split`, `nearBack` and `where`.
 
@@ -403,23 +477,16 @@ reference sheet and `research/assets/references/production/phage-t4.jpg`:
 
 ### Motion
 
-- Drift: the sticks set a target velocity the phage eases toward (a 0.6 s
-  lag), so it never snaps. Steering turns the baseplate toward the travel by
+- Steering: the sticks set a target velocity the phage reaches in ~0.15 s
+  and stops from in ~0.2 s (crisp, a departure). Steering turns the baseplate toward the travel by
   the shortest rotation from where it points now (never a flip); a weak
   torque eases the body toward side-on to the view so it stays readable;
   angular speed is capped at 3 rad/s.
-- **Brownian kicks** (`kicks.js`, tested in `kicks.test.mjs`): about 1.7
-  times a second a molecule flies in from a random direction, strikes the
-  phage's body (a capsule from baseplate to head), bounces off and fades. The
-  phage takes a push along the molecule's travel and a spin from the lever
-  arm, then the viscous water takes the velocity away (0.45 s). Small
-  molecules (ions, water clusters) are 60 % of hits, fast and light (6 units/s
-  pushes); sugar chains 28 % (9); proteins 12 %, slow and harder (14), with a
-  soft rumble and a tick. A pale ring flashes where each strikes. While the
-  fibres are aimed at a protein in reach the spin is cut to 30 % so a kick
-  never wrecks a grab; walking and clay soften kicks further. *Features →
-  Molecular kicks* turns them off. The bath itself jostles thermally, the
-  small molecules fastest.
+- **No Brownian kicks.** Until 2 November 2026 molecules flew in and
+  struck the phage about 1.7 times a second (`kicks.js`); the owner found
+  being hit by particles you never saw coming unfair, and they are gone.
+  Brownian motion is now shown in the water (the bath's thermal jostle, the
+  medium's drift) and as a very slow wander once the sticks have been let go.
 - Prototype debug walking (`walkOn`): the phage stands on its fibres over the host's surface and
   rocks. Each foot is pinned in the host's own frame (so it rides along as
   the host drifts); when a foot falls behind its ideal place, it lets go and
@@ -629,10 +696,10 @@ The Menu panel lists everything with a switch where it makes sense:
   desaturation (the haze in false light); Delivered art (in false light the
   painted envelope lends only its grain); Quality governor and Manual quality.
 - **Body**: T4 from its anatomy (always).
-- **Motion**: LS drift (Drift / Honest); Brownian motion; Molecular kicks;
+- **Motion**: Steering (Steer / Honest); Brownian motion; Currents;
   Slow tumbling.
 - **Simulation**: UV near the surface; Amoeba edge.
-- **World**: Crowded water (the baths).
+- **World**: Crowded water (the baths); Textured water (the medium; `?medium=0` starts with it off).
 - **Controls**: Keep the surface up (the gentle levelling roll); Invert
   camera Y (shared).
 - **Sound**: the shared Sound and Ambience switches.
@@ -687,15 +754,20 @@ the lysis burst.
 
 ## Departures, labelled
 
-- **Individual molecular kicks**: a real phage is struck ~10^13 times a
-  second and the sum is a smooth random walk [S100]; a strike every half
-  second or so, each a visible molecule bouncing off, makes the cause
-  visible. The water is also far more crowded and its small molecules far
-  larger than real (so they read).
-- **Free 3D drift with the triggers** (RT/LT into and out of the view): the
-  same departure as LS drift.
+- **Crisp steering, the dash and grabbing** (LS forward/back and sideways,
+  LB/RB down/up, A, X/RT): a phage has no motor and cannot choose what its
+  fibres hold; it is steered like a game character with a grab assist because
+  the owner wants good control ("it's for game purposes"). Its long fibres do
+  bind reversibly to many surface structures (LPS) before the irreversible
+  step at a matching receptor [S99], which is the grain of truth in hanging
+  on to any part of a cell.
+- **Currents you see coming**: bog water has slow currents and eddies, but not
+  fronts that travel through as visible balls of streaming water; the warning
+  and the streaks are for fairness. The medium's noise stands for the crowd
+  of molecules the phage moves through. The water is also far more crowded
+  and its small molecules far larger than real (so they read).
 
-- **LS drift and the dash** (current gust, fibre push-off, inside surge): a
+- **The steering and the dash** (fibre push-off, inside surge): a
   phage has no motor and makes no decisions; the player's choices stand for
   chance [S100]. The fibres' state follows conditions in reality, not a
   choice. Shown in the HUD, the bottom label and the toasts.

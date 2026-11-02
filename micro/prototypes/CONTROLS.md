@@ -29,7 +29,7 @@ Keyboard fallbacks are in `shared/pad.js`.
 | Amoeba | Surge (A): pseudopods shoot out and the cell flows after them | Close the food cup (X) | Let go or egest (B) |
 | Paramecium | Ciliary sprint | Feed (oral gulp); at a hunter, ram and sting | Trichocyst burst and back off (blocks a strike when facing it) |
 | Bacterium | Sprint run (all flagella bundled; the whole flock sprints) | Beacon: kin it reaches answer and join your flock; also lyses prey in reach and strikes enemies the flock touches (Bdellovibrio: attach / bore). LS steers the flock, released it stops; Y fires the toxin | Tumble |
-| Phage | Current gust (A; on a surface, push off with the fibres) | Grab the aimed protein with the leading fibres (at an amoeba lobe, a fibre jab) | Fold the fibres and slip |
+| Phage | Dash forward along the view (A; on a surface, push off with the fibres) | Grab / let go (X; RT: hold to grab and hang on): the grab assist takes the best molecule or cell-surface point in reach; only a gold receptor injects (at an amoeba lobe, a fibre jab) | Fold the fibres and slip (lets go) |
 
 **B is defend in every world** except the mite and the amoeba: the mite jumps
 on A, scrambles on held B and closes up (its defence) on held Y; the amoeba's
@@ -43,15 +43,19 @@ held LT brings it in to the water just below it, shallow. Each player's own: wit
 company, each split view takes its players' look. Keyboard: X (RT), Z (LT).
 Magnification stays on the D-pad (1 / 2).
 
-**The phage drifts in open 3D water with no up or down.** LS drifts across the
-view (its right and up, in 3D), RT drifts into the view and LT back toward
-you; the baseplate and fibres turn to lead. RS turns the view about its own
-axes (a quaternion, so there are no poles and no gimbal flips) and the view
-stays wherever you leave it: nothing turns it on its own except an optional
-gentle roll that keeps the sunlit surface toward the top of the screen
-(Features → Keep the surface up), which fades out looking straight up or down.
-Molecules striking the phage give it small kicks (Brownian motion you can
-see); they are softened while you aim at a protein.
+**The phage moves in open 3D water with no up or down,** all in the view's
+own frame: LS up and down move it forward and back along the view (into and
+out of the screen), LS left and right sideways, LB and RB down and up the
+screen, A dashes forward; crisp, quick to start and stop (a game departure).
+X grabs and lets go; RT grabs while squeezed and lets go when released. The
+grab assist takes the best thing in reach of the fibres, a free molecule (to
+carry and let drift off) or any point of a cell (to hang on to, riding out
+the occasional currents you see coming); only a gold three-lobed receptor
+latches and injects. RS turns the view about its own axes (a quaternion, so
+there are no poles and no gimbal flips) and the view stays wherever you leave
+it: nothing turns it on its own except an optional gentle roll that keeps the
+sunlit surface toward the top of the screen (Features → Keep the surface
+up), which fades out looking straight up or down.
 
 ## Fighting back
 

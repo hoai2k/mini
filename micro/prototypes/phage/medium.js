@@ -12,9 +12,10 @@
 // the UV shafts do (the post pass composites col = bg * (1 - a) + rgb).
 import * as THREE from '../shared/vendor/three.module.min.js';
 
-export const MEDIUM_SLICES = 5;
-// each slice's depth, as a fraction of the camera's distance to the phage (the phage sits at 1)
-const DEPTHS = [0.42, 0.72, 1.12, 1.6, 2.3];
+export const MEDIUM_SLICES = 4;
+// each slice's depth, as a fraction of the camera's distance to the phage (the phage sits at 1); the far
+// slices first in the index list, so the nearer ones blend over them
+const DEPTHS = [0.55, 1.1, 1.6, 2.3];
 
 export function createMedium() {
   const n = MEDIUM_SLICES;
@@ -23,7 +24,6 @@ export function createMedium() {
     [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([x, y], k) => { pos.set([x, y, 0], (i * 4 + k) * 3); layer[i * 4 + k] = DEPTHS[i]; });
     idx.push(i * 4, i * 4 + 1, i * 4 + 2, i * 4, i * 4 + 2, i * 4 + 3);
   }
-  // (far slices first, so the nearer ones blend over them)
   const order = [...Array(n).keys()].reverse();
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -58,9 +58,11 @@ export function createMedium() {
       void main(){
         vec3 p = vW - uDrift;
         // the liquid: soft clouds of molecules, a finer grain inside them, both drifting slowly
-        float n = vn(p * 0.03 + vec3(0.0, uTime * 0.04, 0.0)) * 0.62 + vn(p * 0.085 - vec3(uTime * 0.05, 0.0, uTime * 0.03)) * 0.38;
+        // (two noise lookups a pixel: four full-view slices are the cost, so the grain is the second octave's own)
+        float n2 = vn(p * 0.085 - vec3(uTime * 0.05, 0.0, uTime * 0.03));
+        float n = vn(p * 0.03 + vec3(0.0, uTime * 0.04, 0.0)) * 0.62 + n2 * 0.38;
         float wisp = smoothstep(0.42, 0.82, n);
-        float grain = smoothstep(0.62, 0.95, vn(p * 0.32 + uTime * 0.08));
+        float grain = smoothstep(0.7, 0.95, n2);
         // a current: streaks along its direction, streaming with its water, from well ahead of its edge
         float dc = length(vW - uCur.xyz);
         float k = uCurDir.w * (smoothstep(uCur.w * 2.2, uCur.w, dc) * 0.6 + smoothstep(uCur.w, uCur.w * 0.4, dc) * 0.4);
@@ -71,8 +73,8 @@ export function createMedium() {
           float s = vn(perp * 0.12 + dir * along * 0.011) * 0.7 + vn(perp * 0.3 + dir * along * 0.03 + 7.0) * 0.3;
           streak = smoothstep(0.5, 0.86, s) * k;
         }
-        float nearFade = smoothstep(0.3, 0.75, vNear); // the slice before the phage stays faint: it never hides you
-        float a = (wisp * 0.055 + grain * wisp * 0.03 + streak * 0.2) * nearFade * uOn * uGain;
+        float nearFade = smoothstep(0.3, 0.9, vNear); // the slice before the phage stays faint: it never hides you
+        float a = (wisp * 0.1 + grain * wisp * 0.05 + streak * 0.32) * nearFade * uOn * uGain;
         vec3 col = mix(uTint, uStreak, clamp(streak * 3.0, 0.0, 1.0));
         gl_FragColor = vec4(col * a, a * 0.3);
       }`,
@@ -85,8 +87,8 @@ export function createMedium() {
   const u = mat.uniforms;
   return {
     mesh, uniforms: u,
-    /** Quality level 0 draws the three middle slices only. */
-    setLevel(level) { geo.setDrawRange(level === 0 ? 6 : 0, level === 0 ? 18 : n * 6); },
+    /** Quality level 2 draws all four slices, 1 the nearer three, 0 the middle two. */
+    setLevel(level) { geo.setDrawRange(level === 0 ? 6 : level === 1 ? 6 : 0, (level === 0 ? 2 : level === 1 ? 3 : n) * 6); },
     /**
      * Each frame: the clock, the camera's distance to the phage, the ambient drift, and the current
      * ({ center, dir, strength, radius } or null) with how far its water has moved.

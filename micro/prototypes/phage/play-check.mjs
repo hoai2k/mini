@@ -1,17 +1,21 @@
 // Play checks for the phage world (headless Chromium, software WebGL; a few minutes):
 //
 //   node micro/prototypes/phage/play-check.mjs            # all
-//   node micro/prototypes/phage/play-check.mjs controls   # or: encounter
+//   node micro/prototypes/phage/play-check.mjs controls   # or: encounter, grab
 //
-// controls: every LS and trigger direction alone must not turn the view (the old spin); RS in every
+// controls: LS up moves forward along the view, LS down back, LS sideways along the view's right, RB up and
+// LB down the screen, A dashes forward; every LS and LB/RB direction alone must not turn the view (the old spin); RS in every
 // direction with LS held; after release everything settles (no runaway spin); the phage's angular
 // speed stays under its cap. Then the view is turned fully round both axes (16 steps each) and the
 // fraction of the frame the scene covers (debug.coverage) must stay above a floor everywhere and never
 // fall below half the median (no empty side).
 // encounter: nothing happens while you hang about at the start; the default path is laid from the first
 // frame (the way on sealed); the director places the first decoy ahead of a player drifting off the path, out of view (route.test.mjs runs the whole order headless); the guard
-// on the (forced) portal turns you back; driven off, X there only says to press Y, and Y lets you in; a UV shaft damages at
+// on the (forced) portal turns you back; driven off, X there only holds on and says to press Y, and Y lets you in; a UV shaft damages at
 // once and a second one destroys.
+// grab: X takes a molecule from a sloppy aim and lets it go to drift off; RT holds while squeezed and lets go
+// when let go; near a cell, a grab almost anywhere anchors and a current passes you by, while unanchored it
+// carries you off (only after a visible warning); a gold receptor on Host B still latches and injects.
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, extname, dirname } from 'node:path';
@@ -56,8 +60,22 @@ const fails = [];
 const hold = async (keys, ms) => { for (const k of keys) await page.keyboard.down(k); await page.waitForTimeout(ms); for (const k of keys) await page.keyboard.up(k); };
 let maxView = 0, maxPhage = 0;
 const sample = async () => { const s = await D('spin'); maxView = Math.max(maxView, s.view); maxPhage = Math.max(maxPhage, ...s.phages); return s; };
-// 1. every LS direction (and diagonals), the triggers, alone: the VIEW must not turn at all (the old spin)
-for (const keys of [['KeyD'], ['KeyA'], ['KeyW'], ['KeyS'], ['KeyW', 'KeyD'], ['KeyS', 'KeyA'], ['KeyX'], ['KeyZ'], ['KeyD', 'KeyX']]) {
+// 0. the mapping, in the view's own frame: LS up (W) forward into the view, down back, sideways right; RB (F) up, LB (Q) down; A (Space) a dash forward
+{
+  const ax = await D('axes');
+  const pos = () => ev(() => window.__micro.P.pos.toArray());
+  const along = (a, b, v) => a.reduce((s, x, i) => s + (b[i] - x) * v[i], 0);
+  // (in simulated time: the full bath on software WebGL draws a frame or two a second)
+  const simT = () => ev(() => window.__micro.t);
+  const holdSim = async (keys, sec) => { for (const k of keys) await page.keyboard.down(k); const t0 = await simT(); while ((await simT()) - t0 < sec) await page.waitForTimeout(100); for (const k of keys) await page.keyboard.up(k); };
+  const go = async (keys, axis) => { await holdSim([], 0.6); const a = await pos(); await holdSim(keys, 0.9); const b = await pos(); return { on: along(a, b, ax[axis]), off: ['fwd', 'right', 'up'].filter((k) => k !== axis).map((k) => Math.abs(along(a, b, ax[k]))) }; };
+  for (const [keys, axis, sign, name] of [[['KeyW'], 'fwd', 1, 'LS up: forward'], [['KeyS'], 'fwd', -1, 'LS down: back'], [['KeyD'], 'right', 1, 'LS right'], [['KeyF'], 'up', 1, 'RB: up'], [['KeyQ'], 'up', -1, 'LB: down'], [['Space'], 'fwd', 1, 'A: dash forward']]) {
+    const r = await go(keys, axis);
+    if (!(r.on * sign > 5) || Math.max(...r.off) > Math.abs(r.on) * 0.35) fails.push(`${name}: moved ${r.on.toFixed(1)} along ${axis}, ${r.off.map((x) => x.toFixed(1))} off it`);
+  }
+}
+// 1. every LS direction (and diagonals), LB/RB, alone: the VIEW must not turn at all (the old spin)
+for (const keys of [['KeyD'], ['KeyA'], ['KeyW'], ['KeyS'], ['KeyW', 'KeyD'], ['KeyS', 'KeyA'], ['KeyF'], ['KeyQ'], ['KeyD', 'KeyF']]) {
   await page.keyboard.down(keys[0]); for (const k of keys.slice(1)) await page.keyboard.down(k);
   let worst = 0;
   for (let i = 0; i < 6; i++) { await page.waitForTimeout(250); const s = await sample(); worst = Math.max(worst, s.view); }
@@ -66,7 +84,7 @@ for (const keys of [['KeyD'], ['KeyA'], ['KeyW'], ['KeyS'], ['KeyW', 'KeyD'], ['
   if (worst > 0.05) fails.push(`LS ${keys.join('+')}: the view turned on its own at ${worst} rad/s`);
 }
 // 2. the camera: RS every direction, and full turns round both axes, with LS held at the same time
-for (const keys of [['ArrowRight'], ['ArrowLeft'], ['ArrowUp'], ['ArrowDown'], ['ArrowRight', 'ArrowUp', 'KeyD'], ['ArrowLeft', 'ArrowDown', 'KeyW', 'KeyX']]) {
+for (const keys of [['ArrowRight'], ['ArrowLeft'], ['ArrowUp'], ['ArrowDown'], ['ArrowRight', 'ArrowUp', 'KeyD'], ['ArrowLeft', 'ArrowDown', 'KeyW', 'KeyF']]) {
   await page.keyboard.down(keys[0]); for (const k of keys.slice(1)) await page.keyboard.down(k);
   for (let i = 0; i < 8; i++) { await page.waitForTimeout(250); await sample(); }
   for (const k of keys) await page.keyboard.up(k);
@@ -97,7 +115,7 @@ const sorted = cov.map((c) => c.c).sort((a, b) => a - b), median = sorted[sorted
 // direction (the owner's look target, 2 Nov 2026, thinned the bath to open water between clumps: it was a
 // fifth), and no direction less than half as full as the median one (the old slab fell to ~0 past its edge)
 if (minCov < 0.12 || minCov < median * 0.5) fails.push(`a view was mostly empty: coverage ${minCov} vs median ${median}`);
-console.log(JSON.stringify({ q, median, maxView, maxPhage, lastView, lastPhage, minCov, cov: cov.map((c) => c.c), kicks: (await D('kicks')).length, errors: errors.slice(0, 3) }));
+console.log(JSON.stringify({ q, median, maxView, maxPhage, lastView, lastPhage, minCov, cov: cov.map((c) => c.c), errors: errors.slice(0, 3) }));
 
 
   console.log(fails.length || errors.length ? 'FAIL controls\n' + fails.concat(errors.slice(0, 3)).join('\n') : 'ok   controls');
@@ -188,6 +206,67 @@ console.log(errors.length ? 'ERRORS ' + errors.slice(0, 3).join(' | ') : '');
 
 
   console.log(fails.length || errors.length ? 'FAIL encounter\n' + fails.concat(errors.slice(0, 3)).join('\n') : 'ok   encounter');
+  failed += fails.length || errors.length ? 1 : 0;
+  await close();
+}
+if (which === 'all' || which === 'grab') {
+  const { base, page, errors, close } = await open(480, 270);
+  await page.goto(base + 'phage/?q=low', { waitUntil: 'load' });
+  await page.waitForTimeout(3000);
+  const D = (f, ...a) => page.evaluate(([f, a]) => window.__micro.debug[f](...a), [f, a]);
+  const ev = (fn, arg) => page.evaluate(fn, arg);
+  await ev(() => { window.__micro.debug.maxDt = 1 / 30; });
+  const waitSim = async (sec) => { const t0 = await ev(() => window.__micro.t); while ((await ev(() => window.__micro.t)) - t0 < sec) await page.waitForTimeout(100); };
+  const pos = () => ev(() => window.__micro.P.pos.toArray());
+  const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  const fails = [], log = {};
+  const tap = async (k) => { await page.keyboard.down(k); await waitSim(0.1); await page.keyboard.up(k); };
+  await waitSim(1);
+  // 1. X: a molecule from a sloppy aim (beside and a little behind the baseplate, ~25 units off) is taken
+  let p = await pos();
+  await D('placeMol', 0, p[0] + 20, p[1] + 14, p[2] + 5);
+  await tap('KeyE'); await waitSim(0.6);
+  log.molHold = await D('hold');
+  log.molAtHand = dist((await D('mols'))[0].pos, await pos());
+  if (log.molHold?.kind !== 'mol' || log.molAtHand > 10) fails.push('X did not take a molecule from a sloppy aim: ' + JSON.stringify(log));
+  // and X again lets it go: it drifts gently off
+  await tap('KeyE'); await waitSim(0.1);
+  const m0 = (await D('mols'))[0]; await waitSim(1.5); const m1 = (await D('mols'))[0];
+  log.released = await D('hold'); log.molDrift = +dist(m0.pos, m1.pos).toFixed(1);
+  if (log.released || !(log.molDrift > 4 && log.molDrift < 60)) fails.push(`X again did not let the molecule drift off (hold ${JSON.stringify(log.released)}, drifted ${log.molDrift})`);
+  // 2. RT: squeezed it holds, let go it lets go
+  p = await pos(); await D('placeMol', 1, p[0] - 15, p[1] - 10, p[2]);
+  await page.keyboard.down('KeyX'); await waitSim(0.5);
+  log.rtHold = (await D('hold'))?.kind;
+  await page.keyboard.up('KeyX'); await waitSim(0.2);
+  log.rtReleased = await D('hold');
+  if (log.rtHold !== 'mol' || log.rtReleased) fails.push(`RT hold/release failed (${log.rtHold}, ${JSON.stringify(log.rtReleased)})`);
+  // 3. near a cell, a grab almost anywhere anchors, and a current passes you by
+  const near = await ev(() => { const m = window.__micro, h = m.world.bystanders[0]; const n = h.pos.clone().set(0, 1, 0.3).normalize(); return m.world.projectToHost(h, h.pos.clone().addScaledVector(n, 200).add(h.pos.clone().set(40, 0, 0)), 26).toArray(); });
+  await D('teleport', ...near); await D('orient', 0.3, 0.2, 1.4); await waitSim(0.2);
+  log.cell = await D('grabNow', 'x'); await waitSim(1);
+  const h0 = await pos(); await D('current', [1, 0, 0]); await waitSim(9);
+  log.heldMoved = +dist(await pos(), h0).toFixed(1); log.stillHold = (await D('hold'))?.kind;
+  if (log.cell?.kind !== 'cell' || log.heldMoved > 8 || log.stillHold !== 'cell') fails.push(`holding a cell, a current moved you (${JSON.stringify(log.cell)}, moved ${log.heldMoved}, ${log.stillHold})`);
+  // 4. unanchored, a current carries you off, but only after its warning
+  await D('release'); await D('teleport', near[0], near[1] + 120, near[2] + 60); await waitSim(0.5);
+  const f0 = await pos(); await D('current', [1, 0, 0]);
+  const t0 = await ev(() => window.__micro.t); let first = null;
+  while ((await ev(() => window.__micro.t)) - t0 < 10) { await waitSim(0.1); const kv = await ev(() => window.__micro.P.kv.length()); if (first == null && kv > 2) first = (await ev(() => window.__micro.t)) - t0; }
+  log.freeMoved = +dist(await pos(), f0).toFixed(1); log.warning = first && +first.toFixed(2);
+  if (!(log.freeMoved > 150)) fails.push(`a current did not carry an unanchored phage off (${log.freeMoved})`);
+  if (!(log.warning > 2.5)) fails.push(`a current hit with too little warning (${log.warning} s)`);
+  // 5. the right receptor still injects: a gold receptor on Host B (on the default path), grabbed with X
+  await D('release');
+  log.inject = await ev(() => { const m = window.__micro, h = m.world.hosts.find((x) => x.id === 'B'); const q = m.world.proteins.find((x) => x.host === h && x.compatible); const n = m.world.dirToWorld(h, q.normal, h.pos.clone()); const at = m.world.toWorld(h, q.local, h.pos.clone()).addScaledVector(n, 12); return { at: at.toArray(), n: n.toArray() }; });
+  await D('teleport', ...log.inject.at);
+  await ev((nm) => { const P = window.__micro.P; const v = P.pos.clone().set(nm[0], nm[1], nm[2]); P.q.setFromUnitVectors(v.clone().set(0, 1, 0), v); P.angVel.set(0, 0, 0); }, log.inject.n);
+  await D('grabNow', 'x'); await waitSim(1.2);
+  log.injectMode = await ev(() => window.__micro.P.mode);
+  if (!['grab', 'commit', 'inside'].includes(log.injectMode)) fails.push(`a gold receptor on Host B did not latch (mode ${log.injectMode})`);
+  delete log.inject;
+  console.log(JSON.stringify(log));
+  console.log(fails.length || errors.length ? 'FAIL grab\n' + fails.concat(errors.slice(0, 3)).join('\n') : 'ok   grab');
   failed += fails.length || errors.length ? 1 : 0;
   await close();
 }

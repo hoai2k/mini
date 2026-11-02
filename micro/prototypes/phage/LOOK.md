@@ -199,6 +199,15 @@ Colours sampled from the image (a 9 × 9 average round each point):
   far layers only, plus a light softening of a molecule right at the lens; a
   partly transparent pixel (fur, glass, light) over the far background keeps
   its sharpness; highlights barely warmed (bronze, not yellow).
+- **The medium** (`medium.js`, added 2 November 2026 with the controls pass:
+  the owner asked for "a textured liquid of molecules ... transparent noise
+  texture"). Four faint slices of drifting world-space noise across each view
+  (0.55 to 2.3 times the camera's distance), pale teal light with a trace of
+  alpha, so the clear water between the clumps reads as a thick, slowly
+  moving liquid and parallaxes as you move; the slice before the phage is
+  kept faint so it never veils you. A current streams it into pale streaks
+  along its direction. It sits under the look: the target's clear water and
+  soft clumps still lead.
 
 ### The black blocks (fixed)
 
