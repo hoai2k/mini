@@ -69,6 +69,12 @@ try {
   await shot('1-title');
   step('title');
 
+  // A click away from Press Start starts the title music and stays on the title.
+  await tab.mouse.click(40, 360);
+  await until((s) => s.music.wanted === 'chamber' && s.music.playing.includes('chamber'), 8000, 'Clockwork Chamber Music after a click on the title');
+  if ((await state()).screen !== 'title') throw new Error('a click away from Press Start must stay on the title');
+  step('title music on a click, still on the title');
+
   await tab.keyboard.press('Enter');
   await until((s) => s.screen === 'menu', 20000, 'menu');
   await tab.waitForTimeout(900);
@@ -80,7 +86,8 @@ try {
   await tab.waitForTimeout(700);
   const sel = (await state()).sel;
   if (sel !== 0) throw new Error(`springtail should be focused, got ${sel}`);
-  step('menu (springtail focused)');
+  await until((s) => s.music.wanted === 'lullaby' && s.music.playing.includes('lullaby'), 8000, 'Clockwork Lullaby on world select');
+  step('menu (springtail focused, Clockwork Lullaby playing)');
 
   await tab.keyboard.press('Enter');
   await until((s) => s.screen === 'intro', 20000, 'intro');
@@ -88,10 +95,12 @@ try {
   await shot('3-intro');
   await until((s) => s.preloading === 'springtail' && s.preloadReady, 120000, 'world to preload during intro');
   await tab.evaluate(() => { window.__introFrame = document.querySelector('#frame-host iframe'); });
+  if ((await state()).music.wanted !== 'lullaby') throw new Error('the intro should keep Clockwork Lullaby');
   step('intro');
 
   await tab.keyboard.press('Enter');
   await until((s) => s.screen === 'play' && !s.loading, 120000, 'springtail to load');
+  await until((s) => s.music.wanted === null && s.music.playing.length === 0, 6000, 'menu music to stop in the world');
   const reused = await tab.evaluate(() => document.querySelector('#frame-host iframe') === window.__introFrame && document.querySelector('#veil').hidden);
   if (!reused) throw new Error('Begin must reuse the prepared world without a loading veil');
   await tab.waitForTimeout(2500);

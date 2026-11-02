@@ -146,7 +146,7 @@ function show(screen) {
   host.inert = screen !== 'play';
   host.setAttribute('aria-hidden', String(screen !== 'play'));
   for (const id of ['title', 'menu', 'intro', 'play']) $(`#${id}`).hidden = id !== screen;
-  if (screen === 'title' || screen === 'menu') sound.drone(true); else sound.drone(false);
+  sound.music(screen === 'title' ? 'chamber' : screen === 'menu' || screen === 'intro' ? 'lullaby' : null);
   if (screen === 'title') titleBg.start(); else titleBg.stop();
   input.lockHeld();
   clearFocus();
@@ -244,6 +244,10 @@ const titleBg = createTitleBg($('#title-bg'), { images: [], reduced: reduced(), 
   const paper = delivered('MP-G05');
   if (paper) loadImage(paper).then((img) => img && document.documentElement.style.setProperty('--paper', `url(${paper})`));
 }
+
+// Any input on the title that doesn't start the game starts its music:
+// browsers allow sound only after a press, so this is the first chance.
+function titleMusic() { sound.unlock(); }
 
 function pressStart() {
   sound.setOn(true);
@@ -989,19 +993,24 @@ for (const m of $$('.modal')) {
     if (b) { sound.unlock(); activate(b); }
   });
 }
-$('#title').addEventListener('click', (e) => { if (!e.target.closest('button') && !S.modals.length) pressStart(); });
+// A click on the title away from its buttons only starts the title music
+// (Press Start is a button, handled above, and starts the game).
+$('#title').addEventListener('click', (e) => { if (!e.target.closest('button') && !S.modals.length) titleMusic(); });
 for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => sound.unlock(), { capture: true });
 
 // ---------------------------------------------------------------- input loop
 function handle(act) {
   const top = S.modals[S.modals.length - 1];
   const a = act.act;
-  // Title, idle: any controller button, or Enter/Space, starts.
+  // Title, idle: A or Start (Enter, Space or P) starts; the stick or d-pad
+  // enters the corner buttons; every other button or key starts the music only.
   if (S.screen === 'title' && !top) {
     if (!S.titleNav) {
-      if (a === 'any' || a === 'a' || (a === 'key' && act.code === 'Enter')) { pressStart(); return true; }
-      if (['up', 'down', 'left', 'right'].includes(a)) { S.titleNav = true; $('.title-hint').classList.add('gone'); setFocus($('#press-start')); return true; }
-      return false;
+      if (a === 'a' || a === 'start') { pressStart(); return true; }
+      if (['up', 'down', 'left', 'right'].includes(a)) { titleMusic(); S.titleNav = true; $('.title-hint').classList.add('gone'); setFocus($('#press-start')); return true; }
+      if (a === 'any') { if (act.button !== 0 && act.button !== 9) titleMusic(); return true; }
+      titleMusic();
+      return true;
     }
     if (a === 'start') { pressStart(); return true; }
   }
@@ -1092,6 +1101,10 @@ document.addEventListener('fullscreenchange', () => { if (S.modals.includes('set
 buildCards();
 afterTitleArt(() => loadImage(introArt(WORLDS[S.sel])));
 show('title');
+// Some browsers let a site they know play sound before any press (Chrome, for
+// a site the visitor uses often): try the title music straight away. Where it
+// isn't allowed this does nothing, and the first press starts it.
+sound.unlock();
 renderPlayers();
 requestAnimationFrame(loop);
 
@@ -1099,7 +1112,7 @@ requestAnimationFrame(loop);
 window.__game = {
   state: () => ({ screen: S.screen, modals: [...S.modals], sel: S.sel, world: WORLDS[S.world].id, paused: S.paused, loading: S.loading,
     preloading: preloaded ? WORLDS[preloaded.i].id : null, preloadReady: !!preloaded?.ready,
-    transitioning: S.transitioning, controlsShown: S.controlsShown, cardBoard: S.cardBoard, board: S.board, cont: S.cont && { ...S.cont }, sound: sound.on, players: roster.list.length, stubRoster: !!roster.stub,
+    transitioning: S.transitioning, controlsShown: S.controlsShown, cardBoard: S.cardBoard, board: S.board, cont: S.cont && { ...S.cont }, sound: sound.on, music: sound.nowPlaying, players: roster.list.length, stubRoster: !!roster.stub,
     progress: { ...progress }, transitionProgress: $('#transition').dataset.progress }),
   pressStart,
   titleZoom: titleBg,

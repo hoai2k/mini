@@ -27,7 +27,8 @@ counted for games.hoai.net/stats/ (the GoatCounter script in `index.html`).
 | `src/input.js` | Menu input: every controller (any joined player drives the menus), keyboard, repeat timing, held-button locking |
 | `src/players.js` | The local players (up to four), through `../prototypes/shared/players.js`; a stub with the same surface stands in if it is missing |
 | `src/glyphs.js` | Button glyphs: Xbox buttons whenever a controller is connected, keyboard keys only when none is |
-| `src/sound.js` | The shell's own synthesised sounds and the master switch and volume (sent to the worlds) |
+| `src/sound.js` | The shell's own synthesised sounds, the menu music and the master switch and volume (sent to the worlds) |
+| `music/` | The menu songs: `clockwork-chamber-music.mp3` (title) and `clockwork-lullaby.mp3` (world select and intros) |
 | `src/title-bg.js` | The title's moving background: an endless zoom through the worlds' plates, nested as objective fields |
 | `src/art.js` | Delivered images from `../image-requests.md`, with drawn stand-ins |
 | `src/style.css` | Ivory paper, brass rules and vernier ticks, ink green and oxblood; Cormorant Garamond and DM Sans (Google Fonts, with Georgia and system fallbacks) |
@@ -49,8 +50,10 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   The Phage uses the updated realistic false-light environment without glow.
   All images decode before the first scene appears; reduced motion holds a
   composed frame. [Plates and loop design](../design/title-zoom.html).
-  "Press Start" pulses. Any controller button, Enter, Space or a
-  click goes to the menu, asks for fullscreen and turns the sound on. Moving
+  "Press Start" pulses. A or Start on a controller, Enter, Space, P or a
+  click on Press Start goes to the menu, asks for fullscreen and turns the
+  sound on. Any other controller button or key, and a click anywhere else on
+  the title, only starts the title music (and the sound switch still applies). Moving
   the left stick enters the corner buttons (Instructions, Settings, Sound,
   Fullscreen).
 - **World select.** One card per world (MP-U01–U07 in the MP-G04 brass
@@ -346,6 +349,14 @@ the chain, leads to "Work in progress" for now.
 
 ## Known issues
 
+- **Music.** The title plays "Clockwork Chamber Music"; world select and the
+  intros play "Clockwork Lullaby"; the worlds have no music, only their own
+  ambience. Songs crossfade on a screen change, loop, keep their place when
+  left and resumed, and play through the master switch and volume at about
+  -24 LUFS. A song that fails to load falls back to the old synthesised drone.
+  The title tries its song on load (some browsers allow that for a site the
+  visitor knows); otherwise any press that doesn't start the game, a stick
+  move, or a click away from Press Start starts it.
 - Fullscreen and sound need a user gesture: a controller button on the title
   is not one for the browser, so with a controller alone fullscreen may be
   refused (play carries on in the window and the Fullscreen button stays).
