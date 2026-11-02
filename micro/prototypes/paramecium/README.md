@@ -164,12 +164,18 @@ furthest along, with calm breaks between (`route.js`; the owner's
   where they lie; head off another way and each, while unseen, leaves the
   path and comes ahead of you (`single`). The portal stays sealed (no prompt,
   its glow shut) until the four before it are met.
-- **Timings** (`route.test.mjs`, a cell rushing at 850 µm/s, the 560 µm
-  view): in 16 directions the Dileptus is placed at 4.1 s and met at 5.6 s,
-  the bloom at 15.4 s, the giant amoeba at 25.5 s, the Didinium at 35.4 s,
-  and the portal is reached at 46.4 s; on the default path at 45.7 s; out 8 s
-  and back, 48 s; standing still, everything comes and the portal is placed
-  near you at 87 s.
+- **Timings** (`route.test.mjs`, the director alone, a cell rushing at 850
+  µm/s, the 560 µm view): in 16 directions the Dileptus is placed at 4.1 s
+  and met at 5.6 s, the bloom at 15.4 s, the giant amoeba at 25.5 s, the
+  Didinium at 35.4 s, and the portal is reached at 46.4 s; on the default path
+  at 45.7 s; out 8 s and back, 48 s; standing still, everything comes and the
+  portal is placed near you at 87 s. **In the game** (`debug.rush({ bearing
+  })`: the real swim, scenery, auto-weave and hunters stepped at 1/30 s,
+  full stick and a dash whenever it is ready, steering for the portal only
+  once it is within 1.6 mm), in four directions (0.62 = the default path,
+  2.2, 3.8, 5.4): the Dileptus met at 5.7-6.2 s, the bloom 15.1-15.7 s, the
+  giant amoeba 24.1-25.6 s, the Didinium 32.6-39.1 s, the portal 42.5-50.6 s;
+  rushing flat out, nothing caught the cell (`safe: false`).
 
 ## The hunters (`foes.js`), each with its tell and its answer
 
@@ -192,7 +198,7 @@ furthest along, with calm breaks between (`route.js`; the owner's
   the coverslip, over it, you are out of its reach. It eats the prey it
   covers too.
 - **Two *Didinium*** (100 µm barrels with two girdles of cilia and a snout):
-  they close in (360 µm/s) and follow you in depth quickly (210 µm/s), then
+  they close in (480 µm/s: you outswim them only flat out) and follow you in depth quickly (210 µm/s), then
   crouch (0.55 s, the snout reddening) and lunge straight (1.35 mm/s) at the
   depth they crouched at. **B cannot stop them** (the warning says so): dodge
   sideways, or change depth while it crouches and it passes over or under
@@ -317,11 +323,13 @@ their names with new 2D contents; `shapes.js`, `draw.js` and `foes.js` are new.
 ## Performance
 
 `../../tools/perf/measure.mjs paramecium 1` and `4` (SwiftShader, 1280×720,
-a shared machine: rough): one player, 2 draws a frame, ~8.8 k primitives
-(~4.4 k shape instances), SwiftShader frame ~235 ms (the 3D world's scene pass
-was ~1200 ms); four players, 4 views, 13 draws, ~119 k primitives, ~970 ms
-(every view redraws the shared instance buffer). CPU ~4 ms a frame (one
-player). Fill is the cost: each quad covers only its shape's soft edge and
+a shared machine: rough): one player, 2 draws a frame, ~11.6 k primitives
+(~5.8 k shape instances), SwiftShader frame ~245 ms (the 3D world's scene pass
+was ~1200 ms, with ~600 k triangles and ~100 draws); four players spread
+apart, 4 views, 13 draws, ~166 k primitives, ~1260 ms (every view redraws the
+shared instance buffer, filled once over the union of the views; the 3D
+world drew 2.7 M triangles in 423 draws there). CPU ~3 ms a frame (one
+player), ~10 ms (four). Fill is the cost: each quad covers only its shape's soft edge and
 halo (to 5 %), and a speck too faint once spread by defocus is dropped in the
 vertex shader.
 

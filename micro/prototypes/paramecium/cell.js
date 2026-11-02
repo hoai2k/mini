@@ -15,7 +15,7 @@ import { LENGTH, WIDTH, VMAX } from './swim.js';
 
 /** Per player: the Chlorella's colour in darkfield (scattered light), and its cast on the body. */
 export const VARIETIES = [
-  { name: 'green', chl: [0.36, 0.86, 0.24] },
+  { name: 'green', chl: [0.42, 0.84, 0.22] },
   { name: 'blue-green', chl: [0.18, 0.78, 0.66] },
   { name: 'olive', chl: [0.78, 0.74, 0.3] },
   { name: 'light yellow-green', chl: [0.66, 0.96, 0.34] },
@@ -35,7 +35,7 @@ const groove = (s) => (s > 0.02 && s < 0.88 ? Math.sin(((s - 0.02) / 0.86) * Mat
 function rng(seed) { let a = seed >>> 0; return () => ((a = (a * 1664525 + 1013904223) >>> 0) / 4294967296); }
 const r0 = rng(77);
 const CHL = Array.from({ length: 130 }, () => { const rho = 0.3 + 0.68 * Math.sqrt(r0()); return { rho, l: r0() * 6.283, w: 0.05 + r0() * 0.08, r: 1.6 + r0() * 0.7, k: r0() }; });
-const GRAN = Array.from({ length: 64 }, () => { const rho = 0.1 + 0.85 * r0(); return { rho, l: r0() * 6.283, w: 0.03 + r0() * 0.05, r: 0.6 + r0() * r0() * 2.4, k: r0() }; });
+const GRAN = Array.from({ length: 90 }, () => { const rho = 0.1 + 0.85 * r0(); return { rho, l: r0() * 6.283, w: 0.03 + r0() * 0.05, r: 0.6 + r0() * r0() * 2.4, k: r0() }; });
 const BURST = Array.from({ length: 70 }, (_, i) => ({ th: (i / 70) * 6.283 + r0() * 0.05, L: 26 + r0() * 18, k: r0() }));
 
 /** The outline in the cell's frame (u ahead, v to its left), with a bend and a squash. */
@@ -74,7 +74,7 @@ export function drawCell(G, C) {
   if (I0 <= 0.003) return;
   // the glassy body and the green cast
   if (dead < 0.5) {
-    G.ell(C.x, C.y, C.a, HL * 0.95, HW * 0.88, z, [0.5, 0.66, 0.85], 0.03 * I0, 7);
+    G.ell(C.x, C.y, C.a, HL * 0.95, HW * 0.88, z, [0.6, 0.7, 0.8], 0.05 * I0, 6);
     G.ell(C.x, C.y, C.a, HL * 0.8, HW * 0.7, z, V.chl, 0.035 * I0, 9);
   }
   // the pellicle: a crisp luminous outline (it breaks apart as it dissolves)

@@ -47,8 +47,8 @@ export function createWorld(seed = 11) {
   // The opening view is composed after the card: two filaments crossing to the right of the start
   // (below you), a clump of detritus with a Vorticella colony up to the left, diatoms between.
   const filaments = [
-    { x0: sx + 40, y0: sy - 900, x1: sx + 420, y1: sy + 900, r: 19, z0: -55, z1: -25, cell: 92, pitch: 34, turns: 2, phase: 0.4, shade: 1.05 },
-    { x0: sx + 900, y0: sy - 465, x1: sx - 520, y1: sy + 510, r: 17, z0: 30, z1: 70, cell: 84, pitch: 30, turns: 1, phase: 2.0, shade: 0.95 },
+    { x0: sx + 40, y0: sy - 900, x1: sx + 420, y1: sy + 900, r: 19, z0: -55, z1: -25, cell: 92, pitch: 52, turns: 2, phase: 0.4, shade: 1.05 },
+    { x0: sx + 900, y0: sy - 465, x1: sx - 520, y1: sy + 510, r: 17, z0: 30, z1: 70, cell: 84, pitch: 46, turns: 1, phase: 2.0, shade: 0.95 },
   ].map((f) => { const L = Math.hypot(f.x1 - f.x0, f.y1 - f.y0); return { ...f, L, cx: (f.x0 + f.x1) / 2, cy: (f.y0 + f.y1) / 2, ang: Math.atan2(f.y1 - f.y0, f.x1 - f.x0) }; });
   for (let tries = 0; filaments.length < 7 && tries < 300; tries++) {
     const L = R(1500, 3000), a = R(0, Math.PI), cx = R(0, TILE), cy = R(0, TILE);
@@ -57,18 +57,19 @@ export function createWorld(seed = 11) {
     // keep filaments apart where they would lie on top of one another
     if (filaments.some((f) => Math.abs(Math.sin(f.ang - a)) < 0.25 && Math.hypot(f.cx - cx, f.cy - cy) < 380)) continue;
     const rad = R(16, 21);
-    filaments.push({ x0, y0, x1, y1, cx, cy, ang: a, L, r: rad, z0: zr(-110, 110), z1: zr(-110, 110), cell: R(70, 105), pitch: R(26, 40), turns: r() < 0.5 ? 1 : 2, phase: R(0, 6.28), shade: R(0.8, 1.15) });
+    filaments.push({ x0, y0, x1, y1, cx, cy, ang: a, L, r: rad, z0: zr(-110, 110), z1: zr(-110, 110), cell: R(70, 105), pitch: R(42, 60), turns: r() < 0.5 ? 1 : 2, phase: R(0, 6.28), shade: R(0.8, 1.15) });
   }
   // detritus clumps: golden-brown flocs of granules; some carry Vorticella
   const clumps = [];
   const clumpAt = (x, y, rad, z) => {
     const g = [];
-    for (let i = 0, n = Math.round(rad * 1.1); i < n; i++) { const aa = R(0, 6.28), d = rad * Math.pow(r(), 0.6); g.push({ dx: Math.cos(aa) * d * R(0.8, 1.15), dy: Math.sin(aa) * d, dz: R(-0.25, 0.25) * rad, r: R(1.2, 4.2), gold: r(), tw: R(0, 6.28) }); }
+    for (let i = 0, n = Math.round(rad * 2.4); i < n; i++) { const aa = R(0, 6.28), d = rad * Math.pow(r(), 0.55); g.push({ dx: Math.cos(aa) * d * R(0.8, 1.2), dy: Math.sin(aa) * d, dz: R(-0.2, 0.2) * rad, r: R(0.8, 2.8) * (r() < 0.12 ? 1.6 : 1), gold: r(), tw: R(0, 6.28) }); }
     clumps.push({ x, y, z, r: rad, h: rad * 0.55, g });
   };
-  clumpAt(sx - 215, sy + 20, 52, -20);
-  clumpAt(sx - 250, sy - 150, 38, -60);
-  for (let tries = 0; clumps.length < 26 && tries < 600; tries++) {
+  clumpAt(sx - 215, sy + 20, 60, -10);
+  clumpAt(sx - 260, sy - 150, 46, -30);
+  clumpAt(sx - 300, sy + 190, 40, -50);
+  for (let tries = 0; clumps.length < 36 && tries < 900; tries++) {
     const x = R(0, TILE), y = R(0, TILE), rad = R(26, 66);
     if (!clearOfStart(x, y, rad)) continue;
     if (clumps.some((c) => Math.hypot(c.x - x, c.y - y) < c.r + rad + 90)) continue;
@@ -96,7 +97,7 @@ export function createWorld(seed = 11) {
     diatoms.push({ x, y, z: zr(), a: R(0, Math.PI), L, W, rect, n: rect ? Math.round(L / 9) : 0, drift: R(-6, 6) });
   }
   // flocs: small loose golden clusters (texture to swim through)
-  const flocs = Array.from({ length: 70 }, () => {
+  const flocs = Array.from({ length: 130 }, () => {
     const rad = R(6, 22);
     return { x: R(0, TILE), y: R(0, TILE), z: zr(), r: rad, g: Array.from({ length: Math.round(4 + rad * 0.5) }, () => ({ dx: R(-1, 1) * rad, dy: R(-1, 1) * rad, r: R(0.8, 2.2), gold: r() })) };
   });

@@ -45,14 +45,14 @@ export function drawScenery(G, W, rect, t, opts = {}) {
 function drawGlitter(G, [x0, y0, x1, y1], t, k) {
   const C = 80;
   for (let i = Math.floor(x0 / C); i <= Math.floor(x1 / C); i++) for (let j = Math.floor(y0 / C); j <= Math.floor(y1 / C); j++) {
-    const n = 2 + Math.floor(hash(i, j, 9) * 4);
+    const n = 5 + Math.floor(hash(i, j, 9) * 6);
     for (let s = 0; s < n; s++) {
       const h1 = hash(i, j, s * 4 + 1), h2 = hash(i, j, s * 4 + 2), h3 = hash(i, j, s * 4 + 3), h4 = hash(i, j, s * 4 + 4);
-      const x = (i + h1) * C, y = (j + h2) * C, z = DEPTH.min + h3 * (DEPTH.max - DEPTH.min);
+      const x = (i + h1) * C, y = (j + h2) * C, z = (h3 - 0.5) * (h4 < 0.7 ? 140 : 300);
       const tw = Math.max(0, Math.sin(t * (0.7 + h4 * 2.2) + h1 * 40));
       const c = h4 < 0.45 ? COL.gold : h4 < 0.8 ? COL.white : COL.blue;
-      const I = (0.18 + 0.9 * tw ** 6) * k * (h3 > 0.5 ? 1 : 0.8);
-      G.disc(x, y, 0.5 + h2 * 0.8, z, c, I, 0.15, tw > 0.4 ? 0.2 + tw * 0.5 : 0, 1.6);
+      const I = (0.45 + 0.9 * tw ** 6) * k;
+      G.disc(x, y, 0.6 + h2 * 0.8, z, c, I, 0.1, tw > 0.3 ? 0.2 + tw * 0.5 : 0.08, 1.5);
     }
   }
 }
@@ -71,16 +71,16 @@ function drawSpirogyra(G, f, ox, oy, rect, t) {
   for (let u = u0; u < u1; u += STEP) {
     const ue = Math.min(u1, u + STEP), z = zAt((u + ue) / 2);
     const [a1, a2] = P(u, 0), [b1, b2] = P(ue, 0);
-    G.line(a1, a2, b1, b2, r * 0.9, z, COL.leaf, 0.055 * f.shade, 4);
-    for (const s of [-1, 1]) { const [c1, c2] = P(u, s * r), [d1, d2] = P(ue, s * r); G.line(c1, c2, d1, d2, 0.85, z, COL.wall, 0.9, 0, 0.3, 4); }
+    G.line(a1, a2, b1, b2, r * 0.92, z, [0.42, 0.62, 0.12], 0.085 * f.shade, 3);
+    for (const s of [-1, 1]) { const [c1, c2] = P(u, s * r), [d1, d2] = P(ue, s * r); G.line(c1, c2, d1, d2, 0.8, z, COL.white, 0.9, 0, 0.28, 3.5); }
   }
   // the cross walls between cells
   for (let k = Math.ceil(u0 / f.cell); k * f.cell <= u1; k++) {
     const u = k * f.cell, [a1, a2] = P(u, -r), [b1, b2] = P(u, r);
-    G.line(a1, a2, b1, b2, 0.75, zAt(u), COL.wall, 0.75, 0, 0.25, 3);
+    G.line(a1, a2, b1, b2, 0.7, zAt(u), COL.white, 0.8, 0, 0.25, 3);
   }
   // the chloroplast ribbon: a helix seen from above, brighter on the near side (it runs through the depth)
-  const step = 4.5;
+  const step = 4;
   for (let rb = 0; rb < f.turns; rb++) {
     let prev = null;
     for (let u = Math.max(0, u0 - step); u <= u1 + step; u += step) {
@@ -91,10 +91,10 @@ function drawSpirogyra(G, f, ox, oy, rect, t) {
       const [x, y] = P(u, v);
       const z = zAt(u) + front * r * 0.7;
       if (prev && inCell > 0.04 && inCell < 0.96) {
-        const I = (0.55 + 0.3 * front) * f.shade;
-        G.line(prev[0], prev[1], x, y, 3.0 + 1.1 * front, z, COL.green, I, 0.5, 0.14, 3);
+        const I = (0.5 + 0.3 * front) * f.shade;
+        G.line(prev[0], prev[1], x, y, 3.0 + 1.0 * front, z, [0.6, 0.88, 0.16], I, 0.5, 0.1, 3);
         // pyrenoids: bright beads on the ribbon
-        if (front > 0.6 && (Math.floor(u / (f.pitch * 0.5)) !== Math.floor((u - step) / (f.pitch * 0.5)))) G.disc(x, y, 2.4, z, [0.8, 1.0, 0.45], 0.8, 0.3, 0.6, 3);
+        if (front > 0.6 && (Math.floor(u / (f.pitch * 0.5)) !== Math.floor((u - step) / (f.pitch * 0.5)))) G.disc(x, y, 2.2, z, [0.9, 1.0, 0.5], 0.6, 0.3, 0.4, 2.5);
       }
       prev = [x, y];
     }
@@ -102,7 +102,9 @@ function drawSpirogyra(G, f, ox, oy, rect, t) {
 }
 function drawClump(G, c, ox, oy, t) {
   const x = c.x + ox, y = c.y + oy;
-  G.disc(x, y, c.r * 0.85, c.z, COL.brown, 0.07, c.r * 0.45);
+  G.disc(x, y, c.r * 0.85, c.z, COL.brown, 0.08, c.r * 0.35);
+  // fibres: the floc's tangle of fine strands
+  for (let k = 0; k < c.g.length; k += 4) { const g = c.g[k], h = c.g[(k + 1) % c.g.length]; G.line(x + g.dx, y + g.dy, x + g.dx * 0.8 + h.dx * 0.2, y + g.dy * 0.8 + h.dy * 0.2, 0.3, c.z + g.dz, mix(COL.brown, COL.gold, 0.5), 0.22, 0.2); }
   for (const g of c.g) {
     const tw = g.gold > 0.85 ? 0.5 + 0.5 * Math.sin(t * 1.7 + g.tw) : 1;
     G.disc(x + g.dx, y + g.dy, g.r, c.z + g.dz, mix(COL.brown, COL.gold, g.gold), (0.3 + 0.5 * g.gold) * tw, 0.4, g.gold > 0.75 ? 0.3 : 0, 2);

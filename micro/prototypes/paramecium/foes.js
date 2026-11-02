@@ -148,7 +148,7 @@ export function burstDileptus(D, P) {
 }
 
 // ------------------------------------------------------------------ Didinium
-export const DIDINIUM = { L: 100, R: 38, H: 36, speed: 360, zv: 210, crouch: 0.55, lunge: 0.42, lungeV: 1350, recover: 1.1, sight: 620, misses: 3, rest: 6 };
+export const DIDINIUM = { L: 100, R: 38, H: 36, speed: 480, zv: 210, crouch: 0.55, lunge: 0.42, lungeV: 1350, recover: 1.1, sight: 620, misses: 3, rest: 6 };
 export function createDidinium(i = 0) {
   return { kind: 'didinium', i, x: 0, y: 0, z: 0, a: 0, home: null, placed: false, mode: 'parked', t: 0, target: null, grace: 0, misses: 0, spin: Math.random() * TAU, lz: 0 };
 }

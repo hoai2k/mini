@@ -256,7 +256,7 @@ const GLOW_S = 200, GLOW_D = 10;
 const glowScene = new THREE.Scene();
 const glowCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
 const _buf = new THREE.Vector2();
-const glow = createPortalGlow({ THREE, scene: glowScene, size: 1, height: 0.9, beam: 0, count: 110, intensity: 1.6, pixelHeight: () => renderer.getDrawingBufferSize(_buf).y * GLOW_S * GLOW_D });
+const glow = createPortalGlow({ THREE, scene: glowScene, size: 1, height: 0.9, beam: 0, count: 70, intensity: 1.25, pixelHeight: () => renderer.getDrawingBufferSize(_buf).y * GLOW_S * GLOW_D });
 glow.group.rotation.x = Math.PI / 2;
 glow.group.scale.set(GLOW_S, 1, GLOW_S);
 glow.group.visible = false;
@@ -555,6 +555,18 @@ function stepPlayer(P, dt, input) {
   P.bend += (clamp(turn / 6, -1, 1) - P.bend) * Math.min(1, dt * 8);
   P.squash += ((S.dashT > 0 ? 1 : 0) - P.squash) * Math.min(1, dt * 10);
   P.beat += beatRate(S.v) * dt;
+  // the wake: specks swept along the body and shed behind it, glittering (as the card shows the cell's trail)
+  P.wake ||= [];
+  const sp = Math.abs(S.v);
+  P.wakeAcc = (P.wakeAcc || 0) + dt * Math.min(60, sp / 14);
+  while (P.wakeAcc >= 1 && P.wake.length < 90) {
+    P.wakeAcc -= 1;
+    const side = Math.random() < 0.5 ? -1 : 1, u = -LENGTH * (0.2 + Math.random() * 0.35), v = side * (18 + Math.random() * 14);
+    const ca = Math.cos(S.a), sa = Math.sin(S.a);
+    P.wake.push({ x: S.x + ca * u - sa * v, y: S.y + sa * u + ca * v, z: S.z + (Math.random() - 0.5) * 30, vx: -ca * sp * 0.08 - sa * side * 25, vy: -sa * sp * 0.08 + ca * side * 25, t: 0, gold: Math.random() < 0.6 });
+  }
+  for (const w of P.wake) { w.t += dt; w.x += w.vx * dt; w.y += w.vy * dt; w.vx *= Math.exp(-dt * 2); w.vy *= Math.exp(-dt * 2); }
+  while (P.wake.length && P.wake[0].t > 1.6) P.wake.shift();
 }
 const _in = { mx: 0, my: 0, m: 0, depth: 0 };
 function readInput(P, dt, frozen) {
@@ -671,6 +683,7 @@ function fill(rect) {
   for (const P of cells) {
     if (!P.live && !P.dead) continue;
     const blink = P.invuln > 0 && P.live ? 0.65 + 0.35 * Math.cos(P.invuln * 18) : 1;
+    for (const w of P.wake || []) { const k = 1 - w.t / 1.6; G.disc(w.x, w.y, 0.7, w.z, w.gold ? [1, 0.8, 0.4] : [0.85, 0.92, 1], 0.7 * k * k, 0.1, 0.4 * k, 1.5); }
     drawCell(G, { x: P.S.x, y: P.S.y, z: P.S.z, a: P.S.a, v: P.S.v, bend: P.bend, squash: P.squash, t: t + P.slot * 7, beat: P.beat, variety: P.variety, burst: P.burst, jab: P.jab, dead: P.dead ? Math.min(1, P.dead.t / DISSOLVE) : 0, spawn: P.spawn, vacuoles: P.vacuoles, ring: multi() ? hexRgb(P.color) : null, alpha: blink });
   }
   shapes.end();
@@ -814,7 +827,7 @@ function frame(now) {
   } else if (held) {
     // drawn but not stepped: the shell's poses move the view
   }
-  stepSpirillum(dtRaw * (outro ? 1 : scale));
+  stepSpirillum(dtRaw * scale); // (frozen with the world: the dive's framing turns with it)
   if (!outro && !held) stepCamera(dtRaw);
   // the swim's sound follows the speed
   swimLoop.set({ volume: Math.min(0.5, Math.abs(P1.S.v) / 1400) });
@@ -846,6 +859,32 @@ Object.assign(debug, {
   spendTrap() { trap.state = 'spent'; trap.t = 0; trap.resolve = 0; },
   wakeBoss() { if (trap.placed) { trap.state = 'set'; trap.t = 0; trap.next = 0; } },
   place(id, x, y, b = 0) { director.force(id, x, y, b); return director.entry(id); },
+  /**
+   * A rush without rendering (tests): the real game logic stepped at 1/30 s, player 1 swimming along
+   * `bearing` at full stick and dashing whenever it can, heading for the portal once it is open and near, `safe`
+   * (no deaths) by default. Returns when each encounter was placed and met, and when the portal was reached.
+   */
+  rush({ bearing = 0.6, seconds = 120, safe = true } = {}) {
+    const DT = 1 / 30, out = { placed: {}, met: {}, deaths: 0 };
+    const base = director.log.length;
+    let a = bearing;
+    for (let k = 0; k < seconds / DT; k++) {
+      t += DT;
+      if (safe) P1.invuln = 1;
+      const s = director.state();
+      if (s.current === 'portal' && leaf.placed && !portalSealed() && hyp(FWD.x - P1.S.x, FWD.y - P1.S.y) < 1600) a = Math.atan2(FWD.y - P1.S.y, FWD.x - P1.S.x); // (only once in sight: a player has no arrow)
+      if (P1.S.dashCd <= 0) startDash(P1.S, a);
+      if (guarded() && hyp(P1.S.x - FWD.x, P1.S.y - FWD.y) < 900) debug.spendTrap();
+      const input = { mx: Math.cos(a), my: Math.sin(a), m: 1, depth: s.current === 'portal' && hyp(P1.S.x - FWD.x, P1.S.y - FWD.y) < 500 ? -1 : 0 };
+      for (const P of cells) stepPlayer(P, DT, P === P1 ? input : { mx: 0, my: 0, m: 0, depth: 0 });
+      stepWorld(DT); stepLandmarks(DT); stepCamera(DT);
+      lastViews = [{ cx: view.cx, cy: view.cy, hw: baseField() / 2, hh: baseField() / 2 * aspect() }];
+      if (P1.dead && P1.dead.t < DT * 1.5) out.deaths++;
+      if (P1.atPortal && !portalSealed() && !guarded()) { out.portal = +game.t.toFixed(1); break; }
+    }
+    for (const e of director.log.slice(base)) { if (e.type === 'placed' && !(e.id in out.placed)) out.placed[e.id] = +e.t.toFixed(1); if (e.type === 'met') out.met[e.id] = +e.t.toFixed(1); }
+    return out;
+  },
 });
 window.__micro = {
   get t() { return t; }, scene: shapes.scene, renderer, split, get layout() { return split.layout; }, players, cells, P1, view, world, director,
