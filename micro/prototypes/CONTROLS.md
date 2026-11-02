@@ -36,12 +36,13 @@ on A, scrambles on held B and closes up (its defence) on held Y; the amoeba's
 B lets go or stiffens.
 
 **The springtail focuses with the triggers.** Its LT / RT change only the
-focus and the depth of field, never the lens or the camera: held RT eases
-(~0.4 s) the focus out to the water ahead (the upper part of the frame) with a
-deeper depth of field, so what lies in front of the springtail comes sharp;
-held LT brings it in to the water just below it, shallow. Each player's own: with
-company, each split view takes its players' look. Keyboard: X (RT), Z (LT).
-Magnification stays on the D-pad (1 / 2).
+focus and the depth of field, never the lens or the camera. Held RT works like
+the wider focus of a jump, over a set band: everything from the springtail out
+to about two jumps ahead (60 mm) comes sharp, plants and animals included, and
+what lies beyond softens again. It eases in over ~0.4 s. Held LT brings the
+focus in to the water just below the springtail, shallow. Each player's own:
+with company, each split view takes its players' look. Keyboard: X (RT), Z
+(LT). Magnification stays on the D-pad (1 / 2).
 
 **The phage moves in open 3D water with no up or down,** all in the view's
 own frame: LS up and down move it forward and back along the view (into and

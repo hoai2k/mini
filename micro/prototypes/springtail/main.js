@@ -371,15 +371,16 @@ function placeCamera(dt) {
 // ---------------------------------------------------------------- looking far and close (RT / LT held)
 // The owner (2026-11-02, revised): RT and LT change only the focus and the
 // depth of field, never the lens, the camera's place or its angle. Held RT
-// eases (LOOK.ease s) the focal plane out to the film seen in the upper part
-// of the frame (the ray through LOOK.farY of the screen height above the
-// centre), ahead of the springtail, and deepens the depth of field so the
-// plants and spiders in front of you come sharp; held LT pulls the focal plane
-// to the film in the lower part of the frame (LOOK.nearY) with the lens's own
-// shallow depth. Let go and it eases back onto the springtail. Each player's
-// own: alone it focuses the shared camera; with company each view takes its
-// players' look (render).
-const LOOK = { ease: 0.4, farY: 0.75, nearY: -0.7, deep: 6 };
+// works like the focus of a jump (between the springtail and where it lands,
+// stopped down until both are sharp), over a set band instead: from the
+// springtail out to LOOK.reach mm ahead along the view (about two jumps; a
+// full jump is 36 mm), so everything in front of you, plants and animals
+// included, comes sharp rather than one distance past them. It eases in over
+// LOOK.ease s. Held LT pulls the focal plane to the film in the lower part of
+// the frame (LOOK.nearY) with the lens's own shallow depth. Let go and it eases
+// back onto the springtail. Each player's own: alone it focuses the shared
+// camera; with company each view takes its players' look (render).
+const LOOK = { ease: 0.4, reach: 60, sharpPx: 1.2, nearY: -0.7 };
 const looks = [], lookForce = [];
 /** Player `slot`'s look: want (-1 close, 0, 1 far: the triggers) and u (eased, -1..1). */
 function lookOf(slot) { return looks[slot] || (looks[slot] = { want: 0, u: 0 }); }
@@ -418,9 +419,21 @@ function lookCamera(u, L, pivot, focus0, dofK0) {
   camera.updateMatrixWorld();
   let focus, dofK;
   if (u > 0) {
-    const d = filmDistAt(LOOK.farY) ?? focus0 * 3;
-    focus = focus0 + (Math.max(focus0, d) - focus0) * e;
-    dofK = dofK0 + (Math.max(dofK0, LOOK.deep) - dofK0) * e; // deeper (stopped down), so the near-ahead stays readable too
+    // the band from the springtail to LOOK.reach mm ahead along the view, all sharp
+    const dS = camera.position.distanceTo(pivot);
+    camera.getWorldDirection(_ld); _ld.y = 0;
+    if (_ld.lengthSq() < 1e-6) _ld.set(0, 0, -1);
+    _ld.normalize().multiplyScalar(LOOK.reach).add(pivot);
+    _ld.y = Math.max(0, pivot.y - 0.25);
+    const dF = camera.position.distanceTo(_ld);
+    const lo = Math.max(1, Math.min(dS, dF) - 2), hi = Math.max(dS, dF) + 2;
+    // The blur disc grows as |d - focus| / d (springtail-macro.js), so the band is
+    // sharpest focused at the harmonic mean of its ends, stopped down until both
+    // ends blur by under LOOK.sharpPx: beyond the band it softens again.
+    const F = (2 * lo * hi) / (lo + hi), rel = (hi - lo) / (hi + lo);
+    const k = THREE.MathUtils.clamp((L.cocK(macro.sceneRT.width) * rel) / LOOK.sharpPx, 1, 2000);
+    focus = focus0 + (F - focus0) * e;
+    dofK = dofK0 + (Math.max(dofK0, k) - dofK0) * e;
   } else {
     const d = filmDistAt(LOOK.nearY) ?? focus0 * 0.85;
     focus = focus0 + (Math.min(focus0, d) - focus0) * e;
