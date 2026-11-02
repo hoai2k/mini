@@ -150,7 +150,7 @@ const afterTitleArt = (fn) => menuArtGate.then(fn);
 // ---------------------------------------------------------------- screens
 function show(screen) {
   S.screen = screen;
-  if (screen !== 'title') openMenuArt();
+  if (screen !== 'title') { openMenuArt(); revealTitle(); }
   host.inert = screen !== 'play';
   host.setAttribute('aria-hidden', String(screen !== 'play'));
   for (const id of ['title', 'menu', 'intro', 'play']) $(`#${id}`).hidden = id !== screen;
@@ -227,6 +227,7 @@ function moveFocus(dir) {
 }
 
 // ---------------------------------------------------------------- title
+let revealTitle = () => {};
 const titleBg = createTitleBg($('#title-bg'), { images: [], reduced: reduced(), startPlate: TITLE_ZOOM_START });
 {
   const logo = delivered('MP-G01');
@@ -241,6 +242,31 @@ const titleBg = createTitleBg($('#title-bg'), { images: [], reduced: reduced(), 
   }) : Promise.resolve().then(() => {
     $('#logo-text').classList.remove('visually-hidden'); $('.vernier').hidden = false; return true;
   });
+  // The page opens black (#boot in index.html) and fades into the title once
+  // the fonts, logo and title plates are in, so nothing jumps as they arrive;
+  // a loading bar shows if that takes more than two seconds.
+  const boot = $('#boot');
+  let bootLeft = TITLE_ZOOM_PLATES.length + 2, bootDone = 0;
+  const bootTick = () => {
+    bootDone++;
+    const pct = Math.round((bootDone / bootLeft) * 100);
+    $('.bar i', boot).style.width = `${pct}%`;
+    boot.setAttribute('aria-valuenow', String(pct));
+  };
+  TITLE_ZOOM_PLATES.forEach((src) => loadImage(src).then(bootTick));
+  logoReady.then(bootTick);
+  const fonts = (document.fonts?.ready ?? Promise.resolve()).then(bootTick);
+  const slowTimer = setTimeout(() => boot.classList.add('slow'), 2000);
+  revealTitle = () => {
+    if (boot.classList.contains('done')) return;
+    clearTimeout(slowTimer);
+    boot.classList.add('done');
+    setTimeout(() => boot.remove(), 900);
+  };
+  Promise.race([
+    Promise.all([background, logoReady, fonts]),
+    new Promise((r) => setTimeout(r, 20000)),
+  ]).then(() => requestAnimationFrame(() => requestAnimationFrame(revealTitle)));
   Promise.all([background, logoReady]).then((ok) => {
     openMenuArt();
     const loader = $('#title-art-loading');
@@ -782,7 +808,7 @@ function leavePlay(to) {
   hideControlsCard();
   showPrompt(null);
   sound.setPaused(false);
-  if (to === 'title') { closeAllModals(); show('title'); S.titleNav = false; $('.title-hint').classList.remove('gone'); }
+  if (to === 'title') { closeAllModals(); show('title'); S.titleNav = false; }
   else { S.sel = S.world; goMenu(); }
 }
 
@@ -1093,9 +1119,9 @@ function back() {
   if (S.screen === 'intro') { closeIntro(); return; }
   if (S.screen === 'menu') {
     if (S.menuFocus === 'corner') { focusCards(); return; }
-    sound.back(); show('title'); S.titleNav = false; $('.title-hint').classList.remove('gone'); return;
+    sound.back(); show('title'); S.titleNav = false; return;
   }
-  if (S.screen === 'title' && S.titleNav) { S.titleNav = false; clearFocus(); $('.title-hint').classList.remove('gone'); }
+  if (S.screen === 'title' && S.titleNav) { S.titleNav = false; clearFocus(); }
 }
 
 document.addEventListener('click', (e) => {
@@ -1127,7 +1153,7 @@ function handle(act) {
   if (S.screen === 'title' && !top) {
     if (!S.titleNav) {
       if (a === 'a' || a === 'start') { pressStart(); return true; }
-      if (['up', 'down', 'left', 'right'].includes(a)) { titleMusic(); S.titleNav = true; $('.title-hint').classList.add('gone'); setFocus($('#press-start')); return true; }
+      if (['up', 'down', 'left', 'right'].includes(a)) { titleMusic(); S.titleNav = true; setFocus($('#press-start')); return true; }
       if (a === 'any') { if (act.button !== 0 && act.button !== 9) titleMusic(); return true; }
       titleMusic();
       return true;

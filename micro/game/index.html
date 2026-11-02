@@ -16,12 +16,23 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+  <!-- Black until the title's fonts, logo and plates are in (inline so it paints before the stylesheet). -->
+  <style>
+    html, body { background: #000; }
+    #boot { position: fixed; inset: 0; z-index: 1000; background: #000; transition: opacity .8s ease; }
+    #boot.done { opacity: 0; pointer-events: none; }
+    #boot .bar { position: absolute; left: 50%; top: 62%; width: min(320px, 60vw); height: 2px; transform: translateX(-50%);
+      background: rgba(200, 155, 71, .18); opacity: 0; transition: opacity .5s ease; }
+    #boot.slow .bar { opacity: 1; }
+    #boot .bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: #e2bd6e; transition: width .35s ease; }
+  </style>
   <link rel="stylesheet" href="src/style.css">
   <!-- Visit counting (GoatCounter: no cookies, no identifiers), read by games.hoai.net/stats/. -->
   <script>window.goatcounter = { path: function () { return location.pathname; } };</script>
   <script data-goatcounter="https://hoai.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
+  <div id="boot" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-t-aria="shell.title.loadingArt"><div class="bar"><i></i></div></div>
   <div id="app">
     <div id="frame-host" aria-hidden="true" inert></div>
     <canvas id="title-bg" aria-hidden="true"></canvas>
@@ -35,7 +46,6 @@
         <h1 id="logo-text" class="logo-type visually-hidden"><span class="w1" data-t="shell.title.logoWord1"></span><span class="w2">Z<span class="lens" aria-hidden="true"></span><span class="lens" aria-hidden="true"></span>m</span><span class="visually-hidden" data-t="shell.title.logoName"></span></h1>
         <div class="vernier" aria-hidden="true" hidden></div>
         <button id="press-start" class="press-start" data-nav data-action="start" data-t="shell.title.pressStart"></button>
-        <p class="hint title-hint" data-t="shell.title.hint"></p>
         <div class="players-row" aria-live="polite"></div>
       </div>
       <div class="corner-buttons" data-group="corner"></div>

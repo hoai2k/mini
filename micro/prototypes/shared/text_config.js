@@ -34,7 +34,6 @@ export const TEXT = {
       logoWord1: 'Micro',
       logoName: 'Micro Zoom',
       pressStart: 'Press Start',
-      hint: 'Move left stick for options',
     },
     corner: {
       instructions: 'Instructions',
