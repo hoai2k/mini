@@ -94,7 +94,7 @@ const family = { home: null, mites: Array.from({ length: FAMILY.n }, (_, i) => {
 // The predator: a parasitid (Mesostigmata), pale, long-legged, hunting by touch.
 const pred = createMite(scene, world.colliders, { cls: CLS.NPC, tex, anat: PRED });
 // It hunts on its own ground, placed by the encounter director (placeEncounter:
-// in moss nobody has seen, a short way ahead of whoever leads), twice. Until
+// in moss nobody has seen, a short way ahead of whoever leads), three times. Until
 // placed it is hidden, parked in a corner of the square and not stepped.
 const A0 = Math.atan2(OPENING.uz, OPENING.ux);
 const PRED_PARK = { x: BOUNDS.x1 - 400, z: BOUNDS.z1 - 400 };
@@ -992,9 +992,10 @@ function enterPortal(P) {
 // The director (design/encounter-pattern.md, "Placed as you go") places the
 // enemies and events one at a time, in this order, in moss nobody has seen
 // yet, a short way ahead of whoever leads (or, if they linger, round them):
-// the predatory mite on its hunting ground, the predatory mite again (it has
-// gone on through the moss, out of sight), then the wet leaf axil with the
-// pseudoscorpion on guard. Each comes only after the one before was met and a
+// a family of box mites, the predatory mite on its hunting ground, a falling
+// drop, the predatory mite again (gone on through the moss, out of sight;
+// hungrier), a shower, the predatory mite a third time (hungriest), then the
+// wet leaf axil with the pseudoscorpion on guard: rising in threat. Each comes only after the one before was met and a
 // calm break has passed; nothing a player has seen is placed, moved or
 // removed. The thickets, the moss and its food are scenery (layout.js).
 // What every view sees comes from the frame drawn (drawFrame: each view's
@@ -1069,8 +1070,8 @@ const ENC = {
   // the last: entering the open portal ends the level
   portal: { place: (x, z, b) => { placePortal(b, x, z); return { k: 'portal' }; }, met: () => false },
 };
-// The default path (layout.js DEFAULT_PATH): all three laid out along one bearing on the first frame, so the
-// way on exists from the start (sealed until the predator is met twice: portalSealed); head off another way
+// The default path (layout.js DEFAULT_PATH): all seven laid out along one bearing on the first frame, so the
+// way on exists from the start (sealed until every earlier encounter is met: portalSealed); head off another way
 // and each, while nobody has seen it, leaves the path and is placed ahead of you as before (one object each: single).
 const director = createDirector({ ...DIRECTOR, canPlace, defaultPath: DEFAULT_PATH, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id], single: true })) });
 // Life everywhere (life.js): springtail groups on a lattice over the whole square, and water beads that
@@ -1891,7 +1892,7 @@ const api = {
    * marks every earlier encounter met ('forced').
    */
   placePortal(a = null, slot = 0, d = 3000) { const P = pls[slot] || P1, c = P.mite.center, b = a ?? Math.atan2(P.mite.st.fwd.z, P.mite.st.fwd.x); director.force('portal', c.x + Math.cos(b) * d, c.z + Math.sin(b) * d, b); return api.portal(); },
-  /** Testing only: place encounter `k` ('pred' | 'pred2' | 'portal') at (x, z), met along bearing b, out of order. */
+  /** Testing only: place encounter `k` ('mites' | 'pred' | 'drip' | 'pred2' | 'drips' | 'pred3' | 'portal') at (x, z), met along bearing b, out of order. */
   placeEncounter(k, x, z, b = 0) { return director.force(k, x, z, b); },
   /** Go through the portal now as player `slot` (what Y at the open portal does). */
   enterPortal(slot = 0) { lm.fired = false; enterPortal(pls[slot] || P1); },

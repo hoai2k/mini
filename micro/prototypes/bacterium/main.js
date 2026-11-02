@@ -102,6 +102,7 @@ const dashFor = (sp) => (sp === 'mtb' ? createDash({ duration: 0.6, cooldown: 3 
 const roster = [];
 function makePlayer(p) {
   const swimmer = createSwimmer(world);
+  swimmer.state.label = p.slot; // the strain's fluorescent protein (draw.js LABELS; player 1 unlabelled)
   const P = {
     slot: p.slot, color: p.color, name: `Player ${p.slot + 1}`, swimmer, S: swimmer.state, game: createGame(world, swimmer),
     dash: dashFor('mtb'), pad: players.pad(p.slot), ctl: players.controls(p.slot),
@@ -767,6 +768,7 @@ features.add({ id: 'noise', group: 'Optics', label: 'Camera shot noise', on: tru
 features.add({ id: 'stop', group: 'Optics', label: 'Eyepiece field stop', on: true, about: 'At 180 µm (the whole field of a 100× objective with an FN 18 eyepiece) the round field stop shows. Smaller fields are camera crops.', onChange: (on) => { view.stop = on; } });
 features.add({ id: 'chMemb', group: 'Optics', label: 'Stain: membranes (FM 4-64)', on: true, about: 'A lipophilic dye in the membranes of every cell, brighter at the rim. Fluorescence look only.', onChange: (on) => { drawer.chan.memb = on ? 1 : 0; } });
 features.add({ id: 'chFlag', group: 'Optics', label: 'Stain: flagella (Alexa 488 maleimide)', on: true, about: 'Flagellin with a cysteine added, labelled with a maleimide dye: how Turner, Ryu and Berg filmed bundles forming and flying apart in tumbles.', onChange: (on) => { drawer.chan.flag = on ? 1 : 0; } });
+features.add({ id: 'chLabel', group: 'Optics', label: 'Players\' labels (fluorescent proteins)', on: true, about: 'Telling players apart: each player\'s strain carries a fluorescent protein in its cytoplasm, and kin that answer that player\'s beacon take it too. Player 1 unlabelled (today\'s cell), then CFP (cyan), mCherry (red), mTagBFP2 (violet). Bright in fluorescence, a faint tint of the player\'s colour in phase contrast (a departure), nothing in darkfield.', onChange: (on) => { drawer.chanLab.on = on ? 1 : 0; } });
 features.add({ id: 'chMag', group: 'Optics', label: 'Stain: magnetosome chain (MamC-GFP)', on: true, about: 'A fluorescent protein fused to a magnetosome membrane protein: a line down the middle of the cell. Shown in blue so it reads apart from the flagella (pseudo-colour).', onChange: (on) => { drawer.chan.mag = on ? 1 : 0; } });
 features.add({ id: 'chPhage', group: 'Optics', label: 'Stain: phages (SYBR Gold)', on: true, about: 'A nucleic-acid stain makes each 60 nm phage a diffraction-limited spot: the standard way to count viruses in pond water. Without it, no light microscope shows them.', onChange: (on) => { drawer.chan.phage = on ? 1 : 0; } });
 features.add({ id: 'overlay', group: 'Optics', label: 'Data overlay (Y)', on: false,
@@ -1808,6 +1810,12 @@ window.__micro = { forceCapture, capture,
   glimpsePose: () => { const ov = camOverride(); if (!ov) return glimpsePose(); const g = glimpsePhage(); return pose2D(g.x, g.y, g.a, PHAGE_LEN, ov.cx, ov.cy, ov.fieldH); },
   gates: () => guards.report(), guards,
   /** Every flock member (tests): position, velocity, speed, heading, spin. */
+  /** Testing: player `slot` sends a beacon now (what X does). */
+  beacon: (slot = 0) => !!coll.beacon(roster.find((Q) => Q.slot === slot) || P1, t),
+  /** Testing: `n` daughters of player `slot`'s cell join its flock (they carry its label). */
+  seedFlock: (slot = 0, n = 6) => { const P = roster.find((Q) => Q.slot === slot) || P1; let k = 0; for (let i = 0; i < n; i++) { const a = i * 2.4; if (coll.adopt(P, P.S.x + Math.cos(a) * (2 + i * 0.6), P.S.y + Math.sin(a) * (2 + i * 0.6), P.S.a)) k++; } return k; },
+  /** Testing: put player `slot`'s cell at (x, y). */
+  placePlayer: (slot, x, y) => { const P = roster.find((Q) => Q.slot === slot); if (P) { P.S.x = x; P.S.y = y; } return !!P; },
   members: (slot = 0) => { const C = coll.of(roster.find((Q) => Q.slot === slot) || P1); return C ? C.members.map((m) => ({ x: m.x, y: m.y, vx: m.vx, vy: m.vy, sp: m.sp, a: m.a, body: m.bodyPhase, fl: m.flPhase, lag: m.lag, vmax: m.vmax })) : []; },
   fights: () => ({ grazers: world.grazers.map((g) => ({ state: g.fightState, t: +(g.fightT || 0).toFixed(2), interest: +g.fight.interest.toFixed(2), pull: +(g.pull || 1).toFixed(2), target: g.target ? g.target.slot : null })),
     phage: roster.map((P) => (P.phage ? P.phage.fight.state : null)), bdello: roster.map((P) => (P.bdello ? P.bdello.fight.state : null)) }),

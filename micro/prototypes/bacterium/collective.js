@@ -96,7 +96,7 @@ export function createCollectives(world, hooks = {}) {
   /** A kin cell with its own way of following the flock (FLOCK; README "The army"). */
   function newKin(x, y) {
     const k = { x, y, a: r() * TAU, vx: 0, vy: 0, sp: 0, ix: 0, iy: 0, r: 0.27, z: (r() - 0.5) * 0.5,
-      flPhase: r() * 6, bodyPhase: r() * 6, coll: null, growth: r() * 0.3, dying: null, answer: null, wa: r() * TAU, hx: x, hy: y };
+      flPhase: r() * 6, bodyPhase: r() * 6, coll: null, growth: r() * 0.3, dying: null, answer: null, wa: r() * TAU, hx: x, hy: y, label: 0 };
     k.L = 2.5 + r() * 0.8; k.amp = 0.26 + r() * 0.1; k.wl = 1.45 + r() * 0.3; // slight size and shape variety
     k.vmax = 0.82 + r() * 0.36;   // its own top speed (× FLOCK.v)
     k.turn = 4 + r() * 4;         // its own turn rate, rad/s
@@ -109,7 +109,7 @@ export function createCollectives(world, hooks = {}) {
   /** Put free kin cell k at (x, y) (its home: it wanders round it), free and well. */
   function putFree(k, x, y) {
     k.x = k.hx = x; k.y = k.hy = y; k.parked = false;
-    k.coll = null; k.dying = null; k.answer = null; k.growth = r() * 0.3; k.vx = k.vy = 0; k.sp = 0;
+    k.coll = null; k.dying = null; k.answer = null; k.growth = r() * 0.3; k.vx = k.vy = 0; k.sp = 0; k.label = 0;
   }
   /** Put free kin cell k in the meadow round the start. */
   function placeFree(k) {
@@ -377,7 +377,7 @@ export function createCollectives(world, hooks = {}) {
     if (!C || !opts.on || !P.S.alive || P.S.species !== 'mtb' || t - C.lastBeacon < COLL.beaconGap) return null;
     C.lastBeacon = t;
     const R = Math.min(COLL.beaconMax, Math.max(COLL.beaconMin, C.extent + COLL.beaconPad));
-    const b = { x: C.cx, y: C.cy, t: 0, R, dur: 0.25 + R / 45, n: 0, C };
+    const b = { x: C.cx, y: C.cy, t: 0, R, dur: 0.25 + R / 45, n: 0, C, slot: P.slot ?? 0 };
     C.beacons.push(b);
     hooks.onBeacon?.(C, b, P);
     return b;
@@ -400,7 +400,7 @@ export function createCollectives(world, hooks = {}) {
         const dx = k.x - b.x, dy = k.y - b.y;
         if (dx > front || dx < -front || dy > front || dy < -front || dx * dx + dy * dy > front * front) continue;
         if (b.C.members.length + b.C.answered >= COLL.max) continue;
-        k.answer = { C: b.C, t: -(0.08 + 0.09 * b.n + r() * 0.08), joined: false };
+        k.answer = { C: b.C, t: -(0.08 + 0.09 * b.n + r() * 0.08), joined: false, slot: b.slot };
         b.n++; b.C.answered++;
         break;
       }
@@ -413,6 +413,7 @@ export function createCollectives(world, hooks = {}) {
         A.joined = true; A.C.answered = Math.max(0, A.C.answered - 1);
         if (!k.dying && !k.coll && list.includes(A.C) && A.C.players.length && A.C.members.length < COLL.max) {
           k.coll = A.C; A.C.members.push(k);
+          k.label = A.slot; // its answer turns it: it takes the label of the player whose beacon it answered (draw.js LABELS)
           k.ix = A.C.intent.x * 0.3; k.iy = A.C.intent.y * 0.3;
           hooks.onRecruit?.(A.C, k);
         }
@@ -542,7 +543,7 @@ export function createCollectives(world, hooks = {}) {
           m.growth = 0;
           if (C.members.length + add.length >= COLL.max) continue;
           const d = newKin(m.x - Math.cos(m.a) * 1.6, m.y - Math.sin(m.a) * 1.6);
-          d.a = m.a + Math.PI; d.coll = C;
+          d.a = m.a + Math.PI; d.coll = C; d.label = m.label; // a daughter carries its mother's label
           add.push(d);
         }
       }
@@ -553,7 +554,7 @@ export function createCollectives(world, hooks = {}) {
   function adopt(P, x, y, a) {
     const C = of(P);
     if (!C || C.members.length >= COLL.max) return false;
-    const d = newKin(x, y); d.a = a; d.coll = C; kin.push(d); C.members.push(d);
+    const d = newKin(x, y); d.a = a; d.coll = C; d.label = P.slot ?? 0; kin.push(d); C.members.push(d);
     return true;
   }
 
@@ -617,7 +618,7 @@ export function createCollectives(world, hooks = {}) {
   return {
     COLL, FLOCK, kin, list, opts, of, dragK, ensure, putFree, park, isFree, remove, reset, pre, post, absorb, burst, adopt, beacon, eat, focus, lose,
     /** For tests and the HUD: each flock's players, members, size, level, charge and middle. */
-    report: () => list.map((C) => ({ id: C.id, players: C.players.map((P) => P.slot), members: C.members.length, army: C.army, level: C.level, charge: +C.charge.toFixed(2), x: +C.cx.toFixed(1), y: +C.cy.toFixed(1), fx: +(C.fx || 0).toFixed(1), fy: +(C.fy || 0).toFixed(1), speed: +C.speed.toFixed(1), extent: +C.extent.toFixed(1), beacons: C.beacons.length })),
+    report: () => list.map((C) => ({ id: C.id, players: C.players.map((P) => P.slot), members: C.members.length, labels: C.members.map((m) => m.label), army: C.army, level: C.level, charge: +C.charge.toFixed(2), x: +C.cx.toFixed(1), y: +C.cy.toFixed(1), fx: +(C.fx || 0).toFixed(1), fy: +(C.fy || 0).toFixed(1), speed: +C.speed.toFixed(1), extent: +C.extent.toFixed(1), beacons: C.beacons.length })),
   };
 }
 

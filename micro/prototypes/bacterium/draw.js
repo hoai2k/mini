@@ -8,6 +8,30 @@ import { rng, WORLD } from './world.js';
 // volume (a filament is mostly surface), so their per-volume amount is high.
 const MEMB = 1.0, FLAG = 260, MAG = 140, PHAGE = 650;
 
+/**
+ * Telling players apart (README "Telling players apart"): each player's strain
+ * carries a fluorescent protein filling its cytoplasm, and kin that join a
+ * player's flock by answering that player's beacon take the same label (their
+ * daughters keep it). Player 1 is today's cell, unlabelled; then CFP (shown
+ * cyan, the stain's blue channel), mCherry (red) and mTagBFP2 (violet), keyed
+ * to the player colours (teal, rose, blue). Bright in fluorescence; in phase
+ * contrast a faint tint of the player's colour (a labelled departure: these
+ * proteins barely tint a cell in transmitted light); nothing in darkfield.
+ * The label channels: fl's blue for CFP, lab's two (bacterium-shapes.js).
+ */
+const FP_AMT = 2.4; // label per µm of chord
+const tintAb = (hex, k = 0.16) => {
+  const n = parseInt(hex.slice(1), 16), c = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => -Math.log(Math.max(0.05, v / 255)));
+  const lo = Math.min(...c);
+  return c.map((v) => (v - lo) * k);
+};
+export const LABELS = [
+  null,
+  { name: 'CFP', color: '#4fa89a', fl: [0, 0, FP_AMT * 0.8], lab: [0, 0] },
+  { name: 'mCherry', color: '#c8697a', fl: [0, 0, 0], lab: [FP_AMT, 0] },
+  { name: 'mTagBFP2', color: '#7f8fd0', fl: [0, 0, 0], lab: [0, FP_AMT] },
+].map((L) => L && { ...L, ab: tintAb(L.color) });
+
 export function createDrawer(world) {
   const chan = { memb: 1, flag: 1, mag: 1, phage: 1 };
   const opts = { flagella: true, slowBeat: true };
@@ -15,6 +39,16 @@ export function createDrawer(world) {
   const granules = Array.from({ length: 90 }, () => ({ lx: (r() - 0.5) * 80, ly: -4 - r() * 50, r: 0.25 + r() * 0.45, z: (r() - 0.5) * 2, k: r() }));
   const flakes = new WeakMap();
 
+  const chanLab = { on: 1 };
+  // The label's fill: drawn over the body with no index step or scatter, so only fluorescence (and a faint tint) shows it.
+  const labMat = { dn: 0, scat: 0, fl: [0, 0, 0], lab: [0, 0], ab: [0, 0, 0], memb: 0, z: 0, centred: true, phase: 0, curve: 0, hk: 0 };
+  function label(slot, k = 1, z = 0) {
+    const L = LABELS[slot | 0];
+    if (!L || !chanLab.on || k <= 0) return null;
+    for (let i = 0; i < 3; i++) { labMat.fl[i] = L.fl[i] * k; labMat.ab[i] = L.ab[i] * k; }
+    labMat.lab[0] = L.lab[0] * k; labMat.lab[1] = L.lab[1] * k; labMat.z = z;
+    return labMat;
+  }
   const cell = (fl = 1) => ({ dn: 0.05, scat: 0.12, fl: [MEMB * chan.memb * fl, 0, 0], memb: 0.85, ab: [0.002, 0.002, 0.003] });
   const flag = (k = 1) => ({ dn: 0.13, scat: 90, fl: [0, FLAG * chan.flag * k, 0], hk: 0.3 });
 
@@ -317,6 +351,9 @@ export function createDrawer(world) {
       // a charged collective holds the toxin: a faint purple (violacein-like) absorbance
       const charge = C ? C.charge : 0;
       spirillum(S, k.x, k.y, k.a, k.L, k.r, k.amp, k.wl, k.bodyPhase, C ? 0 : k.z, k.flPhase * fl, C ? KIN_MEMBER : KIN_FREE);
+      // its label (answering a player's beacon turned it); fading in over its answer pulse
+      const lm = k.label && label(k.label, k.answer && k.answer.t >= 0 ? Math.min(1, k.answer.t / 0.7) : 1, C ? 0 : k.z);
+      if (lm) { lm.phase = k.bodyPhase; S.strand(k.x, k.y, k.a, k.L, k.r, k.amp, k.wl, lm); }
       if (charge > 0.2) { const ab = kinTox.ab; ab[0] = 0.03 * charge; ab[1] = 0.09 * charge; ab[2] = 0.02 * charge; S.disc(k.x, k.y, 0.5, kinTox); }
       // the slime shield: EPS round every member (thin, faint in phase, a haze in fluorescence)
       if (C && C.level >= 1) { kinSlime.fl[0] = 0.03 * chan.memb; S.disc(k.x, k.y, 2.1, kinSlime); }
@@ -396,10 +433,15 @@ export function createDrawer(world) {
     const sp = s.sp, mtb = s.species === 'mtb';
     const L = sp.L * (1 - 0.85 * round), rr = sp.r * (1 + 1.0 * round);
     const mat = { dn: 0.05 * (1 - 0.5 * dim), scat: 0.12, fl: [MEMB * chan.memb * (1 - 0.7 * dim), 0, 0], memb: 0.85, ab: [0.002 + 0.05 * dim, 0.002 + 0.045 * dim, 0.003 + 0.03 * dim], z: 0 };
+    const lm = label(s.label, 1 - dim);
     if (mtb && round < 0.35) {
       S.strand(x, y, a, L, rr, sp.amp * (1 - round / 0.35), sp.wl, { ...mat, centred: true, phase: s.bodyPhase });
+      if (lm) { lm.phase = s.bodyPhase; S.strand(x, y, a, L, rr, sp.amp * (1 - round / 0.35), sp.wl, lm); }
       if (opts.flagella && flagella) for (const sgn of [1, -1]) S.strand(x + Math.cos(a) * L * 0.5 * sgn, y + Math.sin(a) * L * 0.5 * sgn, a + (sgn > 0 ? 0 : Math.PI), 3.2, 0.011, 0.24, 1.25, { ...flag(1 - dim), phase: flPh * sgn, z: 0 });
-    } else S.rod(x, y, a, L, rr, { ...mat, curve: mtb ? 0 : (sp.curve || 0) * (1 - round) });
+    } else {
+      S.rod(x, y, a, L, rr, { ...mat, curve: mtb ? 0 : (sp.curve || 0) * (1 - round) });
+      if (lm) { lm.curve = mtb ? 0 : (sp.curve || 0) * (1 - round); S.rod(x, y, a, L, rr, lm); lm.curve = 0; }
+    }
     if (mtb) S.chain(x, y, a, L * 0.48 * (1 - 0.6 * round), 0.024, 15, { dn: 1.0, scat: 2, fl: [0, 0, MAG * chan.mag * (1 - dim)], ab: [2.5, 2.5, 2.5], z: 0, hk: 0.2 });
     if (!mtb && opts.flagella && flagella && round < 0.3) S.strand(x - Math.cos(a) * L * 0.5, y - Math.sin(a) * L * 0.5, a + Math.PI, 3.2, 0.014, 0.2, 1.05, { ...flag(1.3), phase: flPh, z: 0 });
   }
@@ -472,6 +514,11 @@ export function createDrawer(world) {
     }
   }
 
+  /** The player's label over its spirillum body (drawPlayer). */
+  function labelSpiral(S, s, x, y, L, phase = s.bodyPhase) {
+    const lm = label(s.label);
+    if (lm) { lm.phase = phase; S.strand(x, y, s.a, L, s.sp.r, s.sp.amp, s.sp.wl, lm); }
+  }
   function drawPlayer(S, t, s) {
     const sp = s.sp;
     if (s.catchAnim) { drawCaught(S, t, s, s.catchAnim); return; }
@@ -493,10 +540,10 @@ export function createDrawer(world) {
         // binary fission: the cell elongates, constricts, and each daughter keeps half the chain
         const k = Math.min(1, s.divideT / 2);
         const L = sp.L * (1 + 0.8 * Math.min(1, k * 1.6));
-        if (k < 0.65) spirillum(S, s.x, s.y, s.a, L, sp.r, sp.amp, sp.wl, s.bodyPhase, 0, flPh, {});
+        if (k < 0.65) { spirillum(S, s.x, s.y, s.a, L, sp.r, sp.amp, sp.wl, s.bodyPhase, 0, flPh, {}); labelSpiral(S, s, s.x, s.y, L); }
         else {
           const off = L * 0.26 + (k - 0.65) * 1.5;
-          for (const sg of [1, -1]) spirillum(S, s.x + Math.cos(s.a) * off * sg, s.y + Math.sin(s.a) * off * sg, s.a, L * 0.48, sp.r, sp.amp, sp.wl, s.bodyPhase, 0, flPh, {});
+          for (const sg of [1, -1]) { spirillum(S, s.x + Math.cos(s.a) * off * sg, s.y + Math.sin(s.a) * off * sg, s.a, L * 0.48, sp.r, sp.amp, sp.wl, s.bodyPhase, 0, flPh, {}); labelSpiral(S, s, s.x + Math.cos(s.a) * off * sg, s.y + Math.sin(s.a) * off * sg, L * 0.48); }
         }
         return;
       }
@@ -507,17 +554,22 @@ export function createDrawer(world) {
         for (let i = 0; i < 6; i++) { const ang = i * 1.047 + t * 1.3, rr = 2.4 - ((t * 1.6 + i * 0.37) % 1) * 2; S.disc(s.x + Math.cos(ang) * rr, s.y + Math.sin(ang) * rr, 0.09, { dn: 0.03, scat: 1.5, fl: [0.05, 0.6, 0.05], z: 0 }); }
       }
       spirillum(S, s.x, s.y, s.a, sp.L, sp.r, sp.amp, sp.wl, s.bodyPhase * s.sense, 0, flPh, { tumbling: s.mode === 'tumble' });
+      labelSpiral(S, s, s.x, s.y, sp.L, s.bodyPhase * s.sense);
     } else {
       if (s.inside) {
         // inside the bdelloplast the predator grows as a filament: only a fluorescent protein shows it (green channel)
         const p = s.inside;
         const k = Math.min(1, s.insideT / 4);
         S.rod(p.x, p.y, p.a + 0.6, 0.6 + 0.9 * k, 0.15, { dn: 0, scat: 0, fl: [0, 6 * chan.flag, 0], z: 0 });
+        const lm = label(s.label);
+        if (lm) { lm.curve = 0; S.rod(p.x, p.y, p.a + 0.6, 0.6 + 0.9 * k, 0.15, lm); }
         return;
       }
       // boring in: the predator spins on its pole against the prey's wall and a pore opens there
       const boreA = s.boring ? Math.sin(t * 38) * 0.22 : 0;
       vibrio(S, s.x, s.y, s.a + boreA, sp.L, sp.r, sp.curve, 0, flPh, s.mode === 'tumble' ? Math.sin((1 - s.tumbleT / sp.tumble) * Math.PI) : 0, { flagellum: !s.boring || s.boreT < 1.5 });
+      const lm = label(s.label);
+      if (lm) { lm.curve = sp.curve; S.rod(s.x, s.y, s.a + boreA, sp.L, sp.r, lm); lm.curve = 0; }
       if (s.boring) {
         const k = Math.min(1, s.boreT / 2.5), px = s.x + Math.cos(s.a) * sp.L * 0.5, py = s.y + Math.sin(s.a) * sp.L * 0.5;
         S.disc(px, py, 0.14 + 0.12 * k + 0.04 * Math.sin(t * 20), { dn: -0.02, scat: 1.2, fl: [0.5 * chan.memb, 30 * chan.flag * k, 0], z: 0 });
@@ -525,5 +577,5 @@ export function createDrawer(world) {
     }
   }
 
-  return { draw, drawPlayer, chan, opts };
+  return { draw, drawPlayer, chan, chanLab, opts, LABELS };
 }

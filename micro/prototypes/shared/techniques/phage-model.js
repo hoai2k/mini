@@ -148,10 +148,12 @@ export function createT4({ clip = true } = {}) {
   for (const p of V) capPts.push(p.clone().multiplyScalar(1.01));
   const caps = inkedInstanced(bumpGeo, capsMat, capPts.length, { clip, width: 0.45, color: '#253a6a' });
   const cBlue = new THREE.Color(T4_COLORS.capsid), cGreen = new THREE.Color(T4_COLORS.vertex);
+  const capJit = []; // per bead: [vertex?, hue jitter, lightness jitter] (setHead recolours them)
   capPts.forEach((p, i) => {
     let dmin = 1e9; for (const q of V) dmin = Math.min(dmin, p.distanceTo(q));
     const green = dmin < 1.35;
-    _c.copy(green ? cGreen : cBlue).offsetHSL((Math.random() - 0.5) * 0.03, 0, (Math.random() - 0.5) * 0.08);
+    capJit.push([green, (Math.random() - 0.5) * 0.03, (Math.random() - 0.5) * 0.08]);
+    _c.copy(green ? cGreen : cBlue).offsetHSL(capJit[i][1], 0, capJit[i][2]);
     caps.setColorAt(i, _c);
     _m.compose(p, _q.identity(), _s.setScalar(green ? 0.95 : 0.8 + Math.random() * 0.2));
     caps.setMatrixAt(i, _m);
@@ -484,6 +486,18 @@ export function createT4({ clip = true } = {}) {
     dispose(scene) { api.removeFrom(scene); group.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); tubeGeo.dispose(); jointGeo.dispose(); },
     removeFrom(scene) { scene.remove(group); scene.remove(fibreMesh); },
     /** The look: false light shows the capsid's glowing facet edges instead of its capsomer beads. */
+    /**
+     * The head's own colour (a player's variety): o.fl the false-light glass ({ color, color2, glowColor },
+     * over T4_FL.capsid), o.capsid / o.capsidDeep the capsomer and face colours of the other looks.
+     * null: today's (bronze glass, blue capsid). The tail is left as it is.
+     */
+    setHead(o = null) {
+      headMat.setFL({ ...T4_FL.capsid, ...(o && o.fl) });
+      headMat.uniforms.uColor.value.set((o && o.capsidDeep) || T4_COLORS.capsidDeep);
+      const base = new THREE.Color((o && o.capsid) || T4_COLORS.capsid);
+      capJit.forEach(([green, h, l], i) => caps.setColorAt(i, _c.copy(green ? cGreen : base).offsetHSL(h, 0, l)));
+      caps.instanceColor.needsUpdate = true;
+    },
     setStyle(fl) { state.fl = fl; caps.visible = !fl; edges.visible = fl; edgeMat.clippingPlanes = headMat.clippingPlanes; edgeMat.needsUpdate = true; layout(); },
     set(o) { Object.assign(state, o); if (o.capsid && o.capsid !== api._capsid) { api._capsid = o.capsid; setCapsid(o.capsid); } },
     /** Clip the camera-facing half of the capsid (cutaway): pass the camera position. */

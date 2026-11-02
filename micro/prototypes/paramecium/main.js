@@ -648,7 +648,7 @@ const roster = [];
  * in shade, but colour-coding them by player is a labelled departure.
  * P. caudatum has no symbionts: its players are told apart by their rings.
  */
-const VARIETIES = [null, [0.068, 0.01, 0.034], [0.05, 0.024, 0.088], [0.03, 0.008, 0.08]];
+const VARIETIES = [null, [0.068, 0.01, 0.034], [0.046, 0.03, 0.088], [0.022, 0.005, 0.072]];
 function makePlayer(p, c = null, sw = null) {
   const cellP = c || createCell();
   cellP.setVariety(VARIETIES[p.slot % VARIETIES.length]);

@@ -194,6 +194,18 @@ function use(m) { cur = m; P = m.P; t4 = m.t4; dash = m.dash; capture = m.captur
 const curPad = () => players.pad(cur ? cur.slot : 0);
 const members = () => team.filter(Boolean);
 const isMulti = () => members().length > 1;
+/**
+ * Telling players apart: each player's phage has its own head glass in false light (the tail keeps its
+ * bronze tones), and its own capsid colour in the other looks. Player 1 is today's bronze (blue capsid);
+ * then jade, copper and pearl-silver, keyed to the player colours (teal, rose, blue). A labelled departure:
+ * every T4 is the same protein, colourless; the colours are the look's, not the virus's.
+ */
+const HEADS = [
+  null,
+  { fl: { color: '#3c7a60', color2: '#7cc09c', glowColor: '#a8e4c4' }, capsid: '#6cc4a2', capsidDeep: '#4a9a7e' },
+  { fl: { color: '#963e2a', color2: '#dc8062', glowColor: '#f6a68c' }, capsid: '#e49274', capsidDeep: '#c2684a' },
+  { fl: { color: '#7c8296', color2: '#d4dae6', glowColor: '#f0f4ff' }, capsid: '#c4ccdc', capsidDeep: '#9aa4bc' },
+];
 function makeMember(slot, color) {
   const m = { slot, color, P: newP(), t4: createT4({ clip: true }), dash: createDash({ duration: 0.5, cooldown: 2.4 }),
     capture: null, c: { active: false, phase: null, t: 0 }, jab: 0, kicks: createKicks({ rate: 1.7 }) };
@@ -201,6 +213,7 @@ function makeMember(slot, color) {
   m.capture = createCapture({ onRespawn: () => afterCatch(m) });
   m.t4.addTo(scene);
   m.t4.set({ capsid: capsidMode });
+  m.t4.setHead(HEADS[slot % HEADS.length]);
   team[slot] = m;
   return m;
 }
@@ -224,8 +237,6 @@ function syncTeam() {
     syncTeam.joined = true;
   }
   if (syncTeam.joined) { syncTeam.joined = false; for (const m of members()) m.t4.setStyle(isFL()); applyInk(); }
-  const multi = isMulti();
-  if (multi !== syncTeam.multi || members().length !== syncTeam.n) { for (const m of members()) m.t4.setTint(multi ? m.color : null); syncTeam.multi = multi; syncTeam.n = members().length; }
   if (team[0]) use(team[0]);
 }
 
