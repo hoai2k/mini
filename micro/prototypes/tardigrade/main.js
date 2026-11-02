@@ -6,7 +6,7 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createPlayers } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
-import { createLandmarks } from '../shared/landmark.js';
+import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
 import { mountHud } from '../shared/hud.js';
 import { createFeatures } from '../shared/features.js';
@@ -28,7 +28,7 @@ import { Nematode, GUARD } from './nematode.js';
 import { Meadows } from './meadow.js';
 import { createPortalLight } from '../shared/portal.js';
 import { createDirector } from '../shared/director.js';
-import { DIRECTOR, encounters, canPlace, wayOut } from './encounters.js';
+import { DIRECTOR, encounters, canPlace, wayOut, defaultPathFor } from './encounters.js';
 
 const MODES = ['DIC (Nomarski)', 'Brightfield', 'Lit (hypothetical)'];
 // The second entry is the 10× objective behind a 1.25× intermediate
@@ -734,7 +734,15 @@ const ENC = {
   // the last: entering the open portal ends the level
   portal: { place: (x, z) => { const R = E.rimAt(x, z); placePortal(R.k); return R; }, met: () => false },
 };
-const director = createDirector({ ...DIRECTOR, canPlace, progress: (p) => world.radius(p), entries: E.list.map((e) => ({ ...e, ...ENC[e.id] })) });
+// The default path (encounters.js defaultPathFor: out along spoke PATH_SPOKE): Milnesium and the pool with
+// Prionchulus laid on its leaves on the first frame, so the way on exists from the start (sealed until
+// Milnesium is met: portalSealed); head out along another spoke and each, while nobody has seen it, leaves the
+// path and is placed ahead of you there as before (one object each: single).
+const PATH = defaultPathFor(world);
+const director = createDirector({ ...DIRECTOR, canPlace, progress: (p) => world.radius(p), defaultPath: PATH, entries: E.list.map((e) => ({ ...e, ...ENC[e.id], single: true })) });
+const PORTAL_INDEX = E.list.findIndex((e) => e.final);
+/** The way on exists from the start but stays shut until every earlier encounter is met (the director's order). */
+function portalSealed() { return director.index < PORTAL_INDEX; }
 /** How far through the encounters the game is: met / all (0..1). */
 const encounterProgress = () => director.index / E.list.length;
 let seenViews = null;
@@ -748,6 +756,7 @@ function stepDirector(dt) {
     E.prefer = wayOut(world, lead.walker.leaf, p, (p.x - q.x) / dt, (p.z - q.z) / dt);
   }
   for (const a of animals) (_lastP.get(a) || _lastP.set(a, new THREE.Vector3()).get(a)).copy(a.walker.dispPos);
+  if (!director.path) E.prefer = PATH.spoke; // (the default path is laid along its spoke, on the first update)
   const ev = director.update(dt, ps, seenViews);
   seenViews = null;
   for (const e of ev) if (e.type === 'met') logChallenge(`${e.id}Met`, animals.find((a) => e.by && a.slot === e.by[0]) || p1);
@@ -812,8 +821,8 @@ function checkPortal() {
   }
   if (dmin < FOUND) portal.found = true;
   if (!portal.hinted && dmin < HINT && guarded()) { portal.hinted = true; toast('Prionchulus guards the way on. Lure it off its post, then get round it', 3600); }
-  // nearing the way on: the shell can start loading the next world (no prompt is shown)
-  const nearing = dmin < 14;
+  // nearing the open way on: the shell can start loading the next world (no prompt is shown)
+  const nearing = !portalSealed() && dmin < 14;
   if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
   if (at && !lm.fired) {
     if (guarded()) {
@@ -822,12 +831,17 @@ function checkPortal() {
         lm.log.push({ type: 'turnedBack', slot: at.slot, t: +time.toFixed(2) });
         lm.blocked = true;
       }
+    } else if (portalSealed() && !lm.blocked) {
+      // the way on exists from the start (the default path) but opens only once Milnesium is met
+      toast('The pool will not take you yet: Milnesium is still out on the leaves', 2600);
+      lm.log.push({ type: 'sealed', slot: at.slot, t: +time.toFixed(2) });
+      lm.blocked = true;
     }
   }
   if (!at) lm.blocked = false;
   if (dmin > 6) lm.fired = false; // once per visit
   // anyone at the open portal: the prompt; their Y goes through (step's input loop)
-  setPortalPrompt(!!at && !guarded());
+  setPortalPrompt(!!at && !portalSealed() && !guarded());
 }
 /**
  * The way on: player `a` is at the open portal and pressed Y. This is the one place
@@ -1035,7 +1049,7 @@ const api = window.__micro = { cullViews: true, // per-view culling of the anima
    */
   portal() {
     const f = places.forward;
-    return { placed: portal.placed, spoke: portal.k, x: f.x, y: f.y, z: f.z, found: portal.found, guarded: portal.placed && guarded(), open: portal.placed && !guarded(),
+    return { placed: portal.placed, spoke: portal.k, x: f.x, y: f.y, z: f.z, found: portal.found, guarded: portal.placed && guarded(), sealed: portal.placed && portalSealed(), open: portal.placed && !portalSealed() && !guarded(),
       boss: { state: boss.state, fromPost: portal.placed ? +boss.fromPost.toFixed(2) : null, interest: +boss.interest.toFixed(2) }, glow: +places.glow.open.toFixed(2), prompt: lm.portal, t: portal.t };
   },
   /**
@@ -1048,6 +1062,12 @@ const api = window.__micro = { cullViews: true, // per-view culling of the anima
   placeEncounter(k, x, z, b = 0) { const pr = E.prefer; E.prefer = null; try { return director.force(k, x, z, b); } finally { E.prefer = pr; } },
   /** Go through the portal now as player `slot` (what Y at the open portal does). */
   enterPortal(slot = 0) { lm.fired = false; enterPortal(animals.find((b) => b.slot === slot) || p1); },
+  /** The portal arrow drawn last frame, per view: [{ x, y, angle, onScreen, d, label, at } | null] ([] when off). */
+  portalArrow: () => arrowLog,
+  /** The director's portals (the way on): [{ instance, x, y, z, open, seen, state }]. */
+  portals: () => director.portals().map(({ handle, ...q }) => q),
+  /** Is the way on still sealed (encounters left before it)? */
+  portalSealed: () => portalSealed(),
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam } : null; },
   /** The outro's timings (seconds); `rate` slows it (tests). */
@@ -1148,7 +1168,7 @@ function chooseTarget() {
 function step(dt, G) {
   time += dt;
   snd.t += dt;
-  places.update(dt, camera, portal.placed && !guarded());
+  places.update(dt, camera, portal.placed && !portalSealed() && !guarded());
   const cs = capture.update(dt, capPad);
   if (!cs.active && captive) captive = null;
   // the caught player is back (after the fade) while the screen fades in
@@ -1254,7 +1274,7 @@ function step(dt, G) {
     }
     const yBack = a.atBack && g.P(BTN_Y);
     if (yBack) { fireLandmark('back', a); toast(`${who(a)}Back up to the moss canopy`); }
-    const yPortal = !a.atBack && a.atPortal && L.state === 'active' && portal.placed && !guarded() && g.P(BTN_Y);
+    const yPortal = !a.atBack && a.atPortal && L.state === 'active' && portal.placed && !portalSealed() && !guarded() && g.P(BTN_Y);
     if (yPortal) enterPortal(a);
     const yOwn = !a.atBack && !yPortal;
     L.update(dt, { yDown: yOwn && g.D(BTN_Y), yPressed: yOwn && g.P(BTN_Y), bitePressed: g.P(BTN_X) && !(a === target && jabbed) && !a.bossJab && !a.meadowJab, aPressed: g.P(BTN_A), moving: a.walker.speed });
@@ -1507,16 +1527,38 @@ function drawViews(dt) {
   // Edge arrows (shared/landmark.js) and, with more than one player, a ring in each player's colour.
   marks.begin();
   portalLight.begin();
-  // no arrow (the owner: keep moving and you find it): once placed, the portal's golden
-  // light spills in from the edge of the view on its side (or haloes it in view); no text
-  if (portal.placed && !(capture.active && solo) && !outro) {
+  // no arrow by default (the owner: keep moving and you find it): once open, the portal's golden
+  // light spills in from the edge of the view on its side (or haloes it in view); no text (the Portal
+  // arrow setting adds one: drawPortalArrow). On the default path it is there from the start, sealed.
+  if (portal.placed && !portalSealed() && !(capture.active && solo) && !outro) {
     let d = Infinity;
     for (const a of animals) d = Math.min(d, a.walker.dispPos.distanceTo(places.forward));
     portalLight.drawSplit(split, places.forward, { strength: THREE.MathUtils.clamp(1.15 - d / 30, 0.3, 1), open: places.glow.open });
   }
   if (outro) return;
   marks.drawSplit(split, places.back, { kind: 'backdoor', label: 'Moss', range: 30 });
+  drawPortalArrow();
   if (animals.length > 1) drawRings(L);
+}
+
+/**
+ * The "Portal arrow" setting (the game's Settings, default off; ?arrow=1 here): an arrow at the edge of
+ * each view toward the way on (the pool at a rim leaf's tip: the director's portals(), one here), with the
+ * view's nearest tardigrade's distance (mm, or µm under 1 mm, as the readout counts). Sealed too: it is
+ * where the way on will open.
+ */
+let arrowLog = [];
+const arrowLabel = (d) => (d >= 10 ? `${(d / 10).toFixed(1)} mm` : `${Math.round(d * 100)} µm`);
+function drawPortalArrow() {
+  arrowLog = [];
+  if (!portalArrowOn() || !portal.placed || outro) return;
+  const pp = places.forward;
+  arrowLog = marks.drawSplit(split, (vp) => {
+    let d = Infinity;
+    for (const v of vp) { const a = animals.find((b) => b.slot === v.slot); if (a) d = Math.min(d, a.walker.dispPos.distanceTo(pp)); }
+    if (!isFinite(d)) d = p1.walker.dispPos.distanceTo(pp);
+    return { position: pp, label: arrowLabel(d), distance: d };
+  }, { kind: 'forward', portal: true, range: 90 }).map((r) => r && { x: r.x, y: r.y, angle: r.angle, onScreen: r.onScreen, d: +r.picked.distance.toFixed(2), label: r.picked.label, at: [pp.x, pp.y, pp.z].map((v) => +v.toFixed(2)) });
 }
 
 function drawRings(L) {
@@ -1676,7 +1718,7 @@ function readout() {
   const bar = (x) => '█'.repeat(Math.round(x * 10)).padEnd(10, '·');
   const L = split.layout;
   hud.stats([
-    `out ${Math.round(world.radius(walker.dispPos) * 100)} µm of ${RINGS.portal * 100} (spoke ${world.spokeOf(walker.leaf, walker.dispPos) + 1})${portal.placed ? (guarded() ? ' · portal guarded' : ' · portal open') : ''}`,
+    `out ${Math.round(world.radius(walker.dispPos) * 100)} µm of ${RINGS.portal * 100} (spoke ${world.spokeOf(walker.leaf, walker.dispPos) + 1})${portal.placed ? (portalSealed() ? ' · portal sealed' : guarded() ? ' · portal guarded' : ' · portal open') : ''}`,
     `${ob.name}  ${MODES[view.mode].split(' ')[0]}  focus ${view.focus >= 0 ? '+' : ''}${Math.round(-view.focus * 100)} µm`,
     `${walker.leaf.name}${walker.side < 0 ? ' · underside' : ''}`,
     `film     ${film > 0.03 ? Math.round(Math.min(film, 2) * 22) + ' µm' : 'DRY patch (slow going)'}`,

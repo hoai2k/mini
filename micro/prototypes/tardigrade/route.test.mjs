@@ -12,7 +12,7 @@ import { World, RINGS, SPOKES, tipU, HANDOVER_GAP } from './world.js';
 import { Walker } from './gait.js';
 import { Creature } from './creature.js';
 import { createDirector } from '../shared/director.js';
-import { DIRECTOR, encounters, canPlace, wayOut } from './encounters.js';
+import { DIRECTOR, encounters, canPlace, wayOut, defaultPathFor, PATH_SPOKE } from './encounters.js';
 
 const world = new World({ add() {} });
 // gait.js considerTransfer: the claws reach 0.55 across directly (1.2 over a wet film)
@@ -108,7 +108,7 @@ function spokePath(k) {
   for (const L of sp.leaves) for (let u = 1.2; u <= tipU(L); u += 0.5) pts.push(L.toWorld(u, 0, 0));
   return pts;
 }
-function game({ seconds, plan }) {
+function game({ seconds, plan, path = false }) {
   const E = encounters(world);
   const bad = [], at = {};
   let D;
@@ -127,7 +127,8 @@ function game({ seconds, plan }) {
     milnesium: (h, [p]) => Math.hypot(p.x - h.p.x, p.y - h.p.y, p.z - h.p.z) < RINGS.milnesium.r,
     portal: (h, [p]) => Math.hypot(p.x - h.p.x, p.y - h.p.y, p.z - h.p.z) < 1.7,
   };
-  D = createDirector({ ...DIRECTOR, canPlace, entries: E.list.map((e) => ({ ...e, place: place(e.id), met: met[e.id] })) });
+  const PATH = path ? defaultPathFor(world) : null;
+  D = createDirector({ ...DIRECTOR, canPlace, ...(PATH ? { defaultPath: PATH } : {}), entries: E.list.map((e) => ({ ...e, place: place(e.id), met: met[e.id], ...(PATH ? { single: true } : {}) })) });
   const pl = { id: 0, x: S.x, y: S.y, z: S.z };
   const ev = [];
   const walk = { path: null, i: 0, f: 0 };
@@ -146,6 +147,7 @@ function game({ seconds, plan }) {
     const v = walk.path && walk.last ? { x: (pl.x - walk.last.x) / DT, z: (pl.z - walk.last.z) / DT } : { x: 0, z: 0 };
     walk.last = { x: pl.x, z: pl.z };
     E.prefer = wayOut(world, walk.path ? { spoke: walk.i > 1 ? walk.k : -1 } : null, pl, v.x, v.z);
+    if (PATH && !D.path) E.prefer = PATH.spoke; // (main.js: the path is laid along its spoke)
     ev.push(...D.update(DT, [pl], [view(pl)]));
     // main.js driftMilnesium: placed out of a lingering player's reach, its water drifts over (0.8/s, after 5 s)
     const M = D.entry('milnesium');
@@ -156,6 +158,8 @@ function game({ seconds, plan }) {
       if (h.t > 5 && !D.leader.moving && d > RINGS.milnesium.r - 1) { h.p.x += ((pl.x - h.p.x) / d) * 0.8 * DT; h.p.y += ((pl.y - h.p.y) / d) * 0.8 * DT; h.p.z += ((pl.z - h.p.z) / d) * 0.8 * DT; }
     }
     if (at.portal && D.entry('portal').seenT !== null) at.portal.seen = true;
+    // (a default-path instance seen: never moved after)
+    if (PATH) for (const id of ['milnesium', 'portal']) { const R = D.entry(id); if (R.def && R.def.seenT !== null && at[id] === R.def.handle) at[id].seen = true; }
   }
   return { ev, bad, D, at };
 }
@@ -203,6 +207,37 @@ test('the director: turning back before Milnesium is in sight, it follows unseen
   assert.deepEqual(r.bad, [], 'turning back: nothing placed or moved where it was seen');
   assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ['milnesium', 'portal']);
   console.log(`turning back: ${r.ev.map((e) => `${e.id} ${e.type}${e.type !== 'met' ? ` (${e.how})` : ''} ${e.t} s`).join(', ')}`);
+});
+
+// ---- the default path (main.js passes encounters.js defaultPathFor(world): out along spoke PATH_SPOKE; each one object: `single`)
+test('the default path: laid along its spoke from the first frame; following it meets both there, in order', () => {
+  const r = game({ seconds: 120, path: true, plan: rushPlan(PATH_SPOKE) });
+  assert.deepEqual(r.bad, [], 'default path: nothing placed in view or on seen leaves');
+  const placed = r.ev.filter((e) => e.type === 'placed');
+  assert.deepEqual(placed.map((e) => `${e.id} ${e.how}`), ['milnesium default', 'portal default'], 'default path: both pre-placed, nothing generated');
+  assert.ok(placed.every((e) => e.t < 0.1), 'default path: from the first frame');
+  assert.equal(r.at.milnesium.s.spoke, PATH_SPOKE, 'Milnesium on the path\'s spoke');
+  assert.equal(r.at.portal.R.k, PATH_SPOKE, 'the pool at the path\'s rim');
+  const m = r.ev.filter((e) => e.type === 'met');
+  assert.deepEqual(m.map((e) => `${e.id} ${e.instance}`), ['milnesium default', 'portal default'], 'default path: met in order on it');
+  assert.ok(m[0].t <= 14 && m[1].t >= 45 && m[1].t <= 62, `default path: Milnesium at ${m[0].t} s, the pool at ${m[1].t} s`);
+  console.log(`default path (spoke ${PATH_SPOKE}, ${deg(world.spokes[PATH_SPOKE].a)}°): ${placed.map((e) => `${e.id} at ${world.radius(new THREE.Vector3(e.x, 0, e.z)).toFixed(1)}`).join(', ')}; met ${m.map((e) => `${e.id} ${e.t} s`).join(', ')}`);
+});
+
+test('the default path: heading out along another spoke, each leaves the path unseen and is placed as you go there', () => {
+  for (const k of [(PATH_SPOKE + 6) % SPOKES, (PATH_SPOKE + 3) % SPOKES, (PATH_SPOKE + 9) % SPOKES]) {
+    // (making for the pool only once it is placed as you go: the path's own is on spoke PATH_SPOKE)
+    const go = rushPlan(k), r = game({ seconds: 120, path: true, plan: (t, walk, at, D) => go(t, walk, D.entry('portal').state === 'placed' ? at : {}) });
+    const tag = `spoke ${k} (${deg(world.spokes[k].a)}°)`;
+    assert.deepEqual(r.bad, [], `${tag}: nothing placed in view or on seen leaves, nothing seen moved`);
+    assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.instance}`), ['milnesium dynamic', 'portal dynamic'], `${tag}: in order, where placed as you go`);
+    for (const id of ['milnesium', 'portal']) {
+      const e = r.ev.find((x) => x.type === 'placed' && x.id === id && x.how !== 'default');
+      assert.ok(e && e.from === 'default', `${tag}: ${id} taken off the path (${e && e.how})`);
+    }
+    assert.equal(r.at.portal.R.k, k, `${tag}: the pool at this spoke's rim`);
+    console.log(`default path, out along ${tag} instead: ${r.ev.filter((e) => e.type !== 'moved').map((e) => `${e.id} ${e.type}${e.type !== 'met' ? ` (${e.how})` : ''} ${e.t} s`).join(', ')}`);
+  }
 });
 
 test('the start is calm and the film never runs out by itself', () => {

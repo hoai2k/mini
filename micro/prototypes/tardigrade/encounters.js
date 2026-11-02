@@ -118,5 +118,20 @@ export function wayOut(world, leaf, p, vx, vz) {
   }
   return best;
 }
+/**
+ * The default path (shared/director.js `defaultPath`; the owner, 2026-11-01: "a default path to a portal,
+ * but just dynamically generate the other directions if the player goes off in another direction"): the
+ * walkable world is the spokes, so the path runs out along one of them, PATH_SPOKE (240°: across the
+ * opening view, which looks out along the 330° spoke, and level, unlike the climbing west spokes).
+ * Milnesium ~2.2 mm out on one of its wet leaves (where a rush meets it), the pool at its rim (8.4 mm),
+ * both from the first frame. main.js (and route.test.mjs) set E.prefer to that spoke while the path is
+ * laid, so both snap to it. The cone (0.4 rad) keeps the neighbouring spokes (0.52 rad off) off the path.
+ */
+export const PATH_SPOKE = 8;
+export function defaultPathFor(world, k = PATH_SPOKE) {
+  const S = world.start, R = rimOf(world, k), g = R.spot;
+  const h = Math.hypot(g.x - S.x, g.z - S.z), d = Math.hypot(h, g.y - S.y);
+  return { from: { x: S.x, y: S.y, z: S.z }, bearing: world.spokes[k].a, elevation: Math.atan2(g.y - S.y, h), dists: [22, d], cone: 0.4, spoke: k };
+}
 /** Anything placed stays inside the patch. */
 export const canPlace = (x, z) => Math.hypot(x, z) < 96;

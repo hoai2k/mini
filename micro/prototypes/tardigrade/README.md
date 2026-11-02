@@ -11,7 +11,7 @@ It follows the encounter pattern (`../../design/encounter-pattern.md`): the
 scenery laid out round the start, the same in every direction, the enemies
 and events placed as you go by the shared director (in order, on leaves
 nobody has seen yet, a short way ahead of whoever leads), a portal the boss
-guards, no arrow, and nothing that runs you down while you stay put (see The
+guards, no arrow unless the Portal arrow setting is on, and nothing that runs you down while you stay put (see The
 rings and the encounters, and What was removed).
 
 ## Controls (Xbox; keyboard in brackets)
@@ -134,6 +134,23 @@ director over. The pool can only dip at a rim leaf's tip, so a player who
 lingers at the start gets Milnesium round them and then the pool at the
 nearest rim, ~8.4 mm off: they still have to walk out to it.
 
+**The default path** (the owner, 2026-11-01: "a default path to a portal,
+but just dynamically generate the other directions"): the walkable world is
+the spokes, so the path runs out along one, the 240° spoke (`encounters.js`
+`PATH_SPOKE`, `defaultPathFor`: across the opening view, which looks out
+along the 330° spoke, and level, unlike the climbing west spokes). On the
+first frame the director lays Milnesium on one of its wet leaves ~2.2 mm out
+(where a rush meets it) and the pool with Prionchulus at its rim (8.4 mm),
+out of sight, so the way on exists from the start. It stays sealed (no
+prompt, the sparkle shut, no edge light, nothing preloaded; reaching the tip
+says "The pool will not take you yet: Milnesium is still out on the leaves")
+until Milnesium is met; Prionchulus guards it as always. Walk out along that
+spoke and you meet them where they lie; head out along another and each,
+while nobody has seen it, leaves the path and is placed ahead of you on your
+spoke as before (each is one object: the director's `single`; the cone that
+counts as on the path, 0.4 rad, keeps the neighbouring spokes off it); one
+somebody has seen stays put.
+
 **The meadows** are static: a band on every spoke (`Meadows` in `meadow.js`); only
 the bands with someone on their leaf move, and each is culled per view.
 **The dry patches** are in the film-capacity field (`world.js`): bare cells
@@ -178,9 +195,13 @@ bursaria* swimming in it, towards the amoeba's pool floor), the golden
 sparkle (`../shared/portal.js` `createPortalGlow`, drawn over the
 microscope's picture, not through the optics) hangs over the tip, dim and
 restless while guarded, bright once open, and *Prionchulus* goes on guard at
-its post 420 µm inside it. There is no arrow: its golden light
-(`createPortalLight`) spills in from the edge of the view on its side, and
-haloes it in view. Reaching the portal (the last ~430 µm before it and beyond, on the rim
+its post 420 µm inside it. There is no arrow by default: once open, its
+golden light (`createPortalLight`) spills in from the edge of the view on
+its side, and haloes it in view. With **Portal arrow** on in the game's
+Settings (default off; `?arrow=1` on this page) each view gets a brass arrow
+at its edge toward the pool's tip, sealed or not, with the view's nearest
+tardigrade's distance beside it ("8.4 mm"; µm under 1 mm). Test hooks:
+`portalArrow()`, `portals()`, `portalSealed()`. Reaching the portal (the last ~430 µm before it and beyond, on the rim
 leaf, either face) while Prionchulus is on guard (its head within 350 µm of
 its post) turns you back (a toast, once). **The way in: lure it off.** It
 wakes when you come within 650 µm of its post and follows you up to 850 µm
@@ -765,7 +786,11 @@ director: rushing along every spoke meets Milnesium (within ~10 s, after a
 warm-up) and then the pool at that spoke's rim (reached in 45-62 s), nothing
 placed in view, on seen leaves or off the leaves, nothing moved once seen;
 lingering brings Milnesium round them and then the pool; turning back moves
-nothing that was seen. Then it walks: the real gait (`gait.js` Walker, with
+nothing that was seen. With the default path: walking out along its spoke
+meets the pre-placed Milnesium and pool in order (nothing generated, the
+pool reached in ~53 s); heading out along three other spokes takes each off
+the path while unseen and places it ahead on that spoke, in order, nothing
+seen moved. Then it walks: the real gait (`gait.js` Walker, with
 grip, slips, falls and hand-overs) steered out along each of the 12 spokes,
 aiming a little ahead on the leaf's centre line, must reach the rim leaf's tip
 within 90 s (42-56 s), never carried back a leaf, never falling or bridging;
