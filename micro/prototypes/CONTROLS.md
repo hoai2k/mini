@@ -72,11 +72,14 @@ lists the same buttons in the same order. `createDash()` gives a dash with a
 recharge and a HUD meter. The amoeba uses its own twin-stick scheme: LS moves the body and RS steers
 the selected pseudopod (marked R in the player's colour). With no pseudopod,
 RS grows one (or takes one already reaching that way). The selected one stays
-selected however you steer it; only RT (or its being gone) changes it. RT selects the next
-pseudopod clockwise round the cell. Holding LT turns LS into a second
-pseudopod hand (marked L): the neighbour of the selected one towards
-screen-up, or towards screen-down if the selected one is the topmost, sprouting
-one if there is none; RT with LT held moves the pair round together. A surges,
+selected however you steer it; only choosing with RT (or its being gone) changes it.
+Holding RT makes RS a chooser: the pseudopod lying the way it points becomes R
+(or one grows there); let RT go and RS steers it freely. Holding LT turns LS
+into a second pseudopod hand (marked L): the neighbour of the selected one
+towards screen-up, or towards screen-down if the selected one is the topmost,
+sprouting one if there is none. Holding LT and RT, both sticks choose (LS
+chooses L by direction); a centred stick keeps its choice, and R and L are
+never the same pseudopod. A surges,
 X closes the cup (and cuts or pinches), B lets go or stiffens, LB/RB spread out
 / push harder. To pinch an arm of *Chaos*, hold LT, close the two pseudopods
 round it and press X. "Lead and follow" and the classic two-pseudopod scheme

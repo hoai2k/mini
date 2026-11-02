@@ -22,17 +22,24 @@ default (the owner's design); **Lead and follow** and **Two pseudopods
 ### Select and steer (default)
 
 RS always steers the **selected** pseudopod and LS moves the body
-(twin-stick), unless LT is held. The selected pseudopod carries a subtle mark
-in the player's colour: a thin line along the membrane round its tip, a tick
-and the letter **R**; while LT is held its neighbour carries an **L**. The
-corner says what each stick holds (`RS: pseudopod R (3 out) · LS: body`).
+(twin-stick), unless a trigger is held. The triggers choose: hold RT to
+create or take over a pseudopod with RS, let go and do anything with it;
+hold LT to bring in a second one on LS (the owner, 2026-11-02). The selected
+pseudopod carries a subtle mark in the player's colour: a thin line along the
+membrane round its tip, a tick and the letter **R**; while LT is held the
+second one carries an **L**. The marks follow the choice live, and a stick
+that is choosing shows a short dashed tick with its small letter just outside
+the membrane where it points (fainter when refused, below). The corner says
+what each stick holds (`RS: pseudopod R (3 out) · LS: body · hold RT: RS
+chooses`; `RS: choosing R` while RT is held).
 
 | Button | Action |
 | --- | --- |
-| RS (arrows) | Steers the selected pseudopod (area conserved). With none selected, grows one in its direction and selects it (or selects the one already standing out that way). The selection never changes on its own while you steer: only RT picks another, or a new one is chosen when the selected pseudopod is gone (the owner, 2026-11-02) |
+| RS (arrows) | Steers the selected pseudopod (area conserved). With none selected, grows one in its direction and selects it (or selects the one already standing out that way). The selection never changes on its own while you steer: only choosing with RT changes it, or a new one is chosen when the selected pseudopod is gone (the owner, 2026-11-02) |
 | LS (WASD) | Moves the bulk of the cell that way (the rear contracts, the endoplasm streams forward). With RS held as well, the cell travels behind its pseudopod |
-| LT (Z), held | LS steers the **adjacent** pseudopod instead: the neighbour round the outline towards the top of the screen (anticlockwise on the right half of the cell, clockwise on the left), or towards the bottom if the selected one is the topmost. With no neighbour there, one sprouts 55° round (above, unless the selected one already points within 40° of straight up) and buds a little so you see it. Let go: LS moves the body again and that pseudopod flows slowly back |
-| RT (X) | Selects the next pseudopod **clockwise** round the outline (idle pseudopods count: selecting one takes it over). With LT held the pair moves together: the new selection's neighbour becomes the L one. With RS held through the press, the new one leans towards the stick (at most 60° off its base) until the stick comes round |
+| RT (X), held | RS **chooses** R: the pseudopod lying within 32° of where RS points becomes R (idle pseudopods count: choosing one takes it over), or, with none that way, a new one grows there; RS also steers it as it chooses. The choice follows the stick as it sweeps, with hysteresis (the current one stays while within 45° of the stick, unless another lies 15° nearer), so it does not flicker between two. RS centred: R stays as it was. Let go of RT and the choice is locked: RS steers it any way you like, however far round, and it stays R |
+| LT (Z), held | LS steers a **second** pseudopod, L, instead of the body: the neighbour round the outline towards the top of the screen (anticlockwise on the right half of the cell, clockwise on the left), or towards the bottom if the selected one is the topmost. With no neighbour there, one sprouts 55° round (above, unless the selected one already points within 40° of straight up) and buds a little so you see it. Let go: LS moves the body again and that pseudopod flows slowly back |
+| LT + RT (Z + X), held | **Both sticks choose**: RS chooses R as above and LS chooses L the same way (within 32° of LS, or one grows there). A centred stick keeps its old selection. Let go of RT (LT still held) and LS steers L, RS steers R. R and L are never the same pseudopod: a stick pointing at the one the other stick holds (or growing onto its lobe) is refused, its selection stays as it was and its dashed tick fades (`RS: choosing R (L holds that one)`); swapping them instead would fight the other stick, which may be choosing too |
 | LB (Q) | Spread out / relax |
 | RB (F) | Push harder |
 | LS click / RS click (C / V) | Fine focus down / up |
@@ -43,7 +50,7 @@ the vacuole, nothing is selected, and an RS still held must be let go before
 it grows another. **Pinching Chaos**: hold LT and close RS and LS round one of
 its arms from both sides (a pincer), then X.
 
-In code (`main.js`, `selectInput`, `cyclePods`, `pickAdjacent`): the soft body
+In code (`main.js`, `selectInput`, `choosePod`, `pickAdjacent`): the soft body
 steers as many pseudopods as it is given (`Body.addPod`, up to 8 per cell), so
 a pseudopod let go keeps flowing back on its own while another is steered.
 The R/L marks are drawn on the landmarks overlay (`drawPodMarks`), clipped to
@@ -784,10 +791,17 @@ test uses a relaxed reach (120 µm) because it does not drive the sticks. `body`
 are player 1's. Multiplayer was checked with mocked gamepads in Playwright:
 joins during play, 2 and 4 players splitting and merging, a catch in
 multiplayer, both landmarks standalone and in the shell. Select and steer was
-checked with mocked pads: RS grows a pseudopod (the old ">70° away starts a new one" rule is gone), RT goes round clockwise and wraps, LT gives LS the
-adjacent pseudopod (or sprouts one above a lone right-side one), RT with LT
-moves the pair, LS without LT moves the body, two players steer
-independently, and LT + RS + LS round an arm of Chaos then X pinches it off.
+checked with mocked pads: RS grows a pseudopod (the old ">70° away starts a new one" rule is gone), LT gives LS the
+adjacent pseudopod (or sprouts one above a lone right-side one), LS without LT
+moves the body, two players steer independently, and LT + RS + LS round an
+arm of Chaos then X pinches it off. The trigger choosing (2026-11-02) was
+checked frame by frame with a scripted pad in Playwright: RT + RS at
+0/90/180/270° chose the pseudopod that way or grew one (each within 40°);
+a full RT sweep in 4 s changed R four times with no flicker; with RT let go
+RS swept 360° over 5 s and R never changed; RS centred under RT, and steering
+with no trigger, kept R; LT gave LS the neighbour; LT + RT let LS choose L
+by direction three times while RS held R; RS swept onto L's
+pseudopod under both triggers was refused; and R was never L on any frame.
 
 ## Sources
 

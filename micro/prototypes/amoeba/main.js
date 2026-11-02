@@ -79,12 +79,12 @@ const CONTROLS = {
     rows: hudControls({
       ...COMMON_CONTROLS,
       move: 'Moves the body (twin-stick). With LT held: steers the pseudopod next to the selected one (L)',
-      camera: 'Steers the selected pseudopod (R); with none, grows one (RT picks another)',
-      analog: 'LT held: LS takes the neighbouring pseudopod (above, or below the topmost), sprouting one if there is none. RT: select the next pseudopod clockwise (with LT, the pair moves)',
+      camera: 'Steers the selected pseudopod (R); with none, grows one. With RT held: chooses R',
+      analog: 'RT held: RS chooses R, the pseudopod lying the way it points (or grows one there); let go and RS steers it. LT held: LS steers a second pseudopod (L: the neighbour, or a sprout). Both held: LS chooses L too',
       secondary: 'Spread out / push harder',
       extra: [['LS click', 'Fine focus down'], ['RS click', 'Fine focus up']],
     }),
-    note: 'R and L ticks mark the pseudopods your sticks hold. RS and LS together: the cell travels behind its pseudopod. Hold LT and close RS and LS round prey (or round an arm of Chaos, then X to pinch it off). A centred stick lets its pseudopod flow slowly back. Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
+    note: 'R and L ticks mark the pseudopods your sticks hold; a short tick shows where a choosing stick points. Hold RT, point RS at a pseudopod (or where you want one), let RT go, then steer it any way: it stays R. RS and LS together: the cell travels behind its pseudopod. Hold LT and close RS and LS round prey (or round an arm of Chaos, then X to pinch it off). A centred stick lets its pseudopod flow slowly back. Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
   },
   lead: {
     rows: hudControls({
@@ -175,7 +175,7 @@ const S = {
 // moves the body; a stick in `latch` must be let go before it can lead again.
 // Select and steer: R.sel / R.adj are the indices (in body.pods) of the pseudopods
 // RS and (with LT held) LS steer; see selectInput().
-const newRoles = () => ({ pod: null, body: null, latch: new Set(), branch: false, last: null, sel: null, adj: null, lt: false, rsOn: false, rsLatch: false, offT: 0, budT: 0, cycled: 0 });
+const newRoles = () => ({ pod: null, body: null, latch: new Set(), branch: false, last: null, sel: null, adj: null, lt: false, rsOn: false, lsOn: false, rt: false, ltHeld: false, aimR: null, aimL: null, budT: 0 });
 let R = newRoles();
 // Per-player game state (was in S): food eaten, the cup candidate and the closing cup, trap contact, bites, surge, drain.
 const newCellState = () => ({ eaten: 0, cand: null, closing: null, stuckT: 0, stuckN: 0, bitten: 0, surgeK: 1, drain: 0, A0init: 0 });
@@ -544,7 +544,7 @@ F({ id: 'above', group: 'World', label: 'Out-of-focus layer', on: true,
   about: 'Filaments and flakes floating above the focal plane (MP-A03 when delivered).', onChange: (v) => { S.flags.above = v; } });
 F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'Controller rumble on contact, surges, trichocyst bursts, captures and when a trap hypha grabs the membrane.', onChange: (v) => { S.rumble = v; } });
 F({ id: 'scheme', group: 'Controls', label: 'Controls', choices: SCHEMES, value: SCHEMES[0],
-  about: 'Select and steer (default): RS steers the selected pseudopod (marked R), growing one if there is none; it stays selected however you steer it, until RT picks another (or it is gone); LS moves the body. Hold LT and LS steers the neighbouring pseudopod (marked L: the next one round the outline towards the top of the screen, or below if the selected one is the topmost; one sprouts if there is none), so the two can close round prey or pinch an arm of Chaos. RT selects the next pseudopod clockwise round the outline (with LT held the pair moves together). LB spreads out, RB pushes harder. Lead and follow: the first stick pushed grows a pseudopod (the pseudopod stick); the other stick moves the bulk of the cell (the body stick): the rear contracts and the cytoplasm streams after it. Both held: the cell travels behind its pseudopod, which holds its length. Body stick alone towards the pseudopod: the body flows into it and takes it back. Hold LT or RT and the body stick grows a second pseudopod 30–70° beside the first instead, to encircle prey. LB spreads out, RB pushes harder. Roles reset once the pseudopod is gone or after eating. Two pseudopods (classic): each stick grows its own pseudopod, LT/RT spread out and push harder, LB/RB focus.',
+  about: 'Select and steer (default): RS steers the selected pseudopod (marked R), growing one if there is none; it stays selected however you steer it (until it is gone); LS moves the body. Hold RT and RS chooses: the pseudopod lying the way RS points becomes R, or one grows there, as you sweep; let RT go and RS steers that one freely. Hold LT and LS steers a second pseudopod (marked L: the neighbour of R towards the top of the screen, or below if R is the topmost; one sprouts if there is none), so the two can close round prey or pinch an arm of Chaos. Hold LT and RT and both sticks choose (LS chooses L the same way); a centred stick keeps its choice, and R and L are never the same pseudopod. LB spreads out, RB pushes harder. Lead and follow: the first stick pushed grows a pseudopod (the pseudopod stick); the other stick moves the bulk of the cell (the body stick): the rear contracts and the cytoplasm streams after it. Both held: the cell travels behind its pseudopod, which holds its length. Body stick alone towards the pseudopod: the body flows into it and takes it back. Hold LT or RT and the body stick grows a second pseudopod 30–70° beside the first instead, to encircle prey. LB spreads out, RB pushes harder. Roles reset once the pseudopod is gone or after eating. Two pseudopods (classic): each stick grows its own pseudopod, LT/RT spread out and push harder, LB/RB focus.',
   onChange: (v) => {
     S.scheme = SCHEME_IDS[Math.max(0, SCHEMES.indexOf(v))];
     for (const c of cells) Object.assign(c.R, newRoles());
@@ -712,13 +712,20 @@ function leadInput(r) {
 }
 // --- select and steer (the default scheme) ------------------------------------
 // RS steers the selected pseudopod (body.pods[R.sel]); LS moves the body, or,
-// while LT is held, steers the neighbouring pseudopod (R.adj). RT selects the
-// next pseudopod clockwise round the outline. Pseudopods are any steered pod
-// still standing out, and the idle (polypodial) ones, which are adopted into a
+// while LT is held, steers a second pseudopod (R.adj). Holding RT turns RS into
+// a chooser: the pseudopod lying the way it points becomes R, or one grows
+// there; let RT go and RS steers that one freely. With LT and RT both held, LS
+// chooses L the same way. Otherwise the selection never changes while it
+// stands (the owner, 2026-11-02). Pseudopods are any steered pod still
+// standing out, and the idle (polypodial) ones, which are adopted into a
 // steered slot when selected. The soft body steers as many as it is given
 // (Body.addPod), so a released pseudopod keeps flowing back on its own.
 const DEG = Math.PI / 180;
 const MAX_STEERED = 8;
+const TRIG_ON = 0.5, TRIG_OFF = 0.3;
+// A choosing stick takes a pseudopod within CHOOSE_TOL of it; the current
+// choice stays while within CHOOSE_KEEP unless another lies CHOOSE_MARGIN nearer.
+const CHOOSE_TOL = 32 * DEG, CHOOSE_KEEP = 45 * DEG, CHOOSE_MARGIN = 15 * DEG;
 const ringGap = (i, j) => { const d = Math.abs(i - j) % N; return Math.min(d, N - d); };
 const angOf = (b, pod) => Math.atan2(b.y[pod.tip] - b.cy, b.x[pod.tip] - b.cx);
 const angDiff = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
@@ -772,12 +779,41 @@ function adopt(b, k) {
   ip.s = 0; ip.target = 0; ip.life = 0; ip.active = false; // it reappears somewhere else later
   return j;
 }
-/** A pseudopod lying within `tol` of a direction (to select instead of starting a new one). */
-function podToward(b, dx, dy, tol) {
-  const a = Math.atan2(dy, dx);
-  let best = null, bd = tol;
-  for (const c of podList(b)) { const d = Math.abs(angDiff(c.a, a)); if (c.k !== R.sel && d < bd) { bd = d; best = c; } }
-  return best;
+/**
+ * A choosing stick (RS: key 'sel', the R pseudopod; LS: 'adj', the L one)
+ * points `st`: the pseudopod lying within CHOOSE_TOL of it becomes the
+ * selection, or, with none that way, a new one grows there. With hysteresis:
+ * the current choice stays while it lies within CHOOSE_KEEP of the stick and
+ * no other lies CHOOSE_MARGIN nearer, so a sweep does not flicker between two.
+ * R and L are never the same pseudopod: pointing at the one the other stick
+ * holds (or growing onto its lobe) is refused and the selection stays as it
+ * was; the other stick may be choosing too, so swapping would fight it.
+ * Returns 'kept', 'chose', 'grew' or 'refused'.
+ */
+function choosePod(b, key, st) {
+  const a = Math.atan2(st.dy, st.dx), mine = R[key], theirs = key === 'sel' ? R.adj : R.sel;
+  const curOff = podExists(b, mine) ? Math.abs(angDiff(angOf(b, b.pods[mine]), a)) : Infinity;
+  let best = null, bd = CHOOSE_TOL, blocked = false;
+  for (const c of podList(b)) {
+    if (c.k === mine) continue;
+    const d = Math.abs(angDiff(c.a, a));
+    if (d < bd) { bd = d; best = c; }
+  }
+  if (best && best.k === theirs) { blocked = true; best = null; }
+  if (curOff < CHOOSE_KEEP && !(best && bd + CHOOSE_MARGIN < curOff)) return 'kept';
+  if (blocked) return 'refused';
+  if (best) { R[key] = adopt(b, best.k); rumble(30, 0.12, 0); return 'chose'; }
+  // None that way: grow one from the membrane furthest out that way (not
+  // pickTip, which shies away from other pseudopods and could start it far off
+  // the stick), unless that is a held one's lobe; newPod takes over any other
+  // pseudopod already on that lobe.
+  let t = 0, tv = -Infinity;
+  for (let i = 0; i < N; i++) { const v = (b.x[i] - b.cx) * st.dx + (b.y[i] - b.cy) * st.dy; if (v > tv) { tv = v; t = i; } }
+  if (podExists(b, mine) && ringGap(t, b.pods[mine].tip) < 12) return 'kept';
+  if (podExists(b, theirs) && ringGap(t, b.pods[theirs].tip) < 12) return 'refused';
+  R[key] = newPod(b, st.dx, st.dy, t);
+  rumble(30, 0.12, 0);
+  return 'grew';
 }
 /**
  * The neighbour of the selected pseudopod round the outline towards the top of
@@ -817,68 +853,40 @@ function selectInput(r) {
   if (!podExists(b, R.sel)) R.sel = null;
   if (!podExists(b, R.adj) || R.adj === R.sel) R.adj = null;
   const rs = R.latch.has('rs') ? NONE : r.rs, ls = r.ls;
-  const rsOn = rs.m >= (R.rsOn ? ROLE_OFF : ROLE_ON);
-  const fresh = rsOn && !R.rsOn;
-  R.rsOn = rsOn;
-  let reselected = false;
-  if (rsOn) {
-    const off = R.sel == null ? Infinity : Math.abs(angDiff(Math.atan2(rs.dy, rs.dx), angOf(b, b.pods[R.sel])));
-    if (R.rsLatch) { if (off < 60 * DEG) R.rsLatch = false; R.offT = 0; }
-    else if (R.sel == null) {
-      // The selection only changes when the player asks (RT), or when the
-      // selected pseudopod is gone (the owner, 2026-11-02: steering one must
-      // never hand over to another). With none selected, RS takes one lying
-      // that way or grows one there.
-      const there = podToward(b, rs.dx, rs.dy, 30 * DEG);
-      R.sel = there ? adopt(b, there.k) : newPod(b, rs.dx, rs.dy);
-      if (R.adj === R.sel) R.adj = null;
-      reselected = true; R.offT = 0;
-    } else R.offT = 0;
-  } else { R.offT = 0; R.rsLatch = false; }
-  if (R.sel != null && rsOn) {
-    const sp = b.pods[R.sel];
-    let dx = rs.dx, dy = rs.dy;
-    if (R.rsLatch) {
-      // just cycled with RS held: the new one leans towards the stick, at most 60° off its base
-      const a0 = angOf(b, sp), d = clamp(angDiff(Math.atan2(dy, dx), a0), -60 * DEG, 60 * DEG);
-      dx = Math.cos(a0 + d); dy = Math.sin(a0 + d);
-    }
-    pods[R.sel] = { m: rs.m, dx, dy, tip: sp.tip };
+  const rsOn = rs.m >= (R.rsOn ? ROLE_OFF : ROLE_ON), lsOn = ls.m >= (R.lsOn ? ROLE_OFF : ROLE_ON);
+  R.rsOn = rsOn; R.lsOn = lsOn;
+  const rt = r.rt >= (R.rt ? TRIG_OFF : TRIG_ON), ltHeld = r.lt >= (R.ltHeld ? TRIG_OFF : TRIG_ON);
+  R.rt = rt; R.ltHeld = ltHeld;
+  const both = rt && ltHeld;
+  // RS: with RT held it chooses R (and grows it its way); with none selected
+  // it grows one (or takes the one reaching that way); otherwise it steers R.
+  R.aimR = rt && rsOn ? { dx: rs.dx, dy: rs.dy, refused: false } : null;
+  if (R.aimR || (rsOn && R.sel == null)) {
+    const res = choosePod(b, 'sel', rs);
+    if (R.aimR) R.aimR.refused = res === 'refused';
   }
-  const lt = r.lt > 0.5 && R.sel != null;
-  if (lt && (!R.lt || R.adj == null || reselected || R.cycled)) pickAdjacent(b);
-  R.lt = lt; R.cycled = 0;
+  if (R.sel != null && rsOn) pods[R.sel] = { m: rs.m, dx: rs.dx, dy: rs.dy, tip: b.pods[R.sel].tip };
+  // LS: with LT and RT held it chooses L; with LT held it steers L (the
+  // neighbour of R, picked when LT goes down); otherwise it moves the body.
+  R.aimL = both && lsOn ? { dx: ls.dx, dy: ls.dy, refused: false } : null;
+  if (R.aimL) R.aimL.refused = choosePod(b, 'adj', ls) === 'refused';
+  const lt = ltHeld && (R.sel != null || R.adj != null);
+  // LT alone (or RT let go while LT stays held) with no L: the neighbour of R, or a sprout.
+  if (lt && !rt && R.sel != null && R.adj == null) pickAdjacent(b);
+  R.lt = lt;
   let bodyIn = null;
   if (lt && R.adj != null) {
     const ap = b.pods[R.adj];
     if (ls.m > 0.06) pods[R.adj] = { m: ls.m, dx: ls.dx, dy: ls.dy, tip: ap.tip };
     else if (R.budT > 0) pods[R.adj] = { m: 0.35, dx: ap.dx, dy: ap.dy, tip: ap.tip }; // a sprout shows where it is
     R.budT -= dt;
-  } else {
-    if (!lt) R.adj = null;
-    if (ls.m > 0) bodyIn = ls;
+  } else if (!lt) {
+    R.adj = null;
+    if (ls.m > 0 && !both) bodyIn = ls;
   }
   // A surge with no stick held: the body flows on along its heading.
   if (surge.active && !pods.some((p) => p && p.m > 0) && !bodyIn) bodyIn = { m: 1, dx: b.fx || 1, dy: b.fy || 0 };
   return { pods, push: r.rb, spread: r.lb, body: bodyIn };
-}
-/** RT: select the next pseudopod clockwise round the outline (with LT held the pair moves). */
-function cyclePods() {
-  if (S.scheme !== 'select') return false;
-  const b = body, list = podList(b);
-  const from = R.sel != null && podExists(b, R.sel) ? angOf(b, b.pods[R.sel]) : Math.PI / 2 + 1e-3;
-  let best = null, bd = Infinity;
-  for (const c of list) {
-    if (c.k === R.sel) continue;
-    const d = (((from - c.a) % TAU) + TAU) % TAU;
-    if (d > 1e-4 && d < bd) { bd = d; best = c; }
-  }
-  if (!best) { rumble(40, 0.12, 0); return false; }
-  R.sel = adopt(b, best.k);
-  if (R.adj === R.sel) R.adj = null;
-  R.rsLatch = R.rsOn; R.offT = 0; R.cycled = 1;
-  rumble(50, 0.15, 0);
-  return true;
 }
 
 /** After a step: the roles reset once the lead pseudopod has gone back into the body. */
@@ -900,7 +908,10 @@ function resetRoles(latch) {
 function rolesText() {
   if (S.scheme === 'select') {
     const n = podList(body).length;
-    return `${R.sel != null ? `RS: pseudopod R (${n} out)` : 'RS: grow a pseudopod'} · ${R.adj != null ? 'LS: pseudopod L (LT)' : 'LS: body'} · RT: next clockwise`;
+    const rs = R.rt ? (R.aimR?.refused ? 'RS: choosing R (L holds that one)' : 'RS: choosing R') : R.sel != null ? `RS: pseudopod R (${n} out)` : 'RS: grow a pseudopod';
+    const ls = R.rt && R.ltHeld ? (R.aimL?.refused ? 'LS: choosing L (R holds that one)' : 'LS: choosing L') : R.adj != null ? 'LS: pseudopod L (LT)' : 'LS: body';
+    const tr = R.rt ? (R.ltHeld ? 'LT+RT: both sticks choose' : 'let RT go to keep R') : 'hold RT: RS chooses';
+    return `${rs} · ${ls} · ${tr}`;
   }
   if (S.scheme !== 'lead') return 'Controls: two pseudopods (classic) · LS: pseudopod 1 · RS: pseudopod 2';
   if (!R.pod && !R.body) return 'LS: free · RS: free (push one to grow a pseudopod)';
@@ -2136,7 +2147,6 @@ function frame(now) {
       use(c);
       const fight = !caught.active || FC.phase === 'strike' || FC.phase === 'hold';
       if (fight && pressed(BTN.A) && surge.trigger()) { audio.play('amoeba/boost', { volume: 0.9 }); rumble(220, 0.3, 0.5); if (C.stuckN && !caught.active) hud.toast(`${who()}Surge: torn free of the trap`); }
-      if (S.scheme === 'select' && !caught.active && pressed(BTN.RT)) cyclePods();
       const threat = caught.active ? null : threatTrap(c);
       if (!caught.active && pressed(BTN.X) && !C.closing) {
         // round one of Chaos's arms: pinch it off; at a hypha (and no cup ready to close): cut it; otherwise close the cup
@@ -2307,8 +2317,10 @@ function renderAll(dt) {
 
 /**
  * Select and steer: a subtle mark on each player's selected pseudopod (R) and,
- * with LT held, the neighbouring one (L): a thin line along the membrane round
- * its tip, a short tick and the stick's letter, in the player's colour.
+ * with LT held, the second one (L): a thin line along the membrane round
+ * its tip, a short tick and the stick's letter, in the player's colour. They
+ * follow the choice live while a stick chooses, and that stick's direction
+ * shows as a faint dashed tick.
  */
 function drawPodMarks(L) {
   if (S.scheme !== 'select') return;
@@ -2344,6 +2356,30 @@ function drawPodMarks(L) {
       const lx = ax + ux * 19, ly = ay + uy * 19;
       g.globalAlpha = 0.5; g.lineWidth = 3; g.strokeStyle = 'rgba(20,18,12,0.8)'; g.strokeText(letter, lx, ly);
       g.globalAlpha = 1; g.fillStyle = c.p.color; g.fillText(letter, lx, ly);
+    }
+    // A choosing stick (RS with RT held, LS with LT and RT): a short dashed tick
+    // just outside the membrane where it points, with its small letter (fainter if refused).
+    for (const [key, letter] of [['aimR', 'R'], ['aimL', 'L']]) {
+      const aim = c.R[key];
+      if (!aim) continue;
+      // where the ray from the centroid that way leaves the membrane
+      const a = Math.atan2(aim.dy, aim.dx);
+      let far = 0, bd = Infinity;
+      for (let i = 0; i < N; i++) {
+        const ex = b.x[i] - b.cx, ey = b.y[i] - b.cy, d = Math.abs(angDiff(Math.atan2(ey, ex), a));
+        if (d < bd) { bd = d; far = Math.hypot(ex, ey); }
+      }
+      const [ax, ay] = toScreen(b.cx + aim.dx * (far + 10), b.cy + aim.dy * (far + 10), c.slot);
+      const [ex, ey] = toScreen(b.cx + aim.dx * (far + 11), b.cy + aim.dy * (far + 11), c.slot);
+      const dl = Math.hypot(ex - ax, ey - ay) || 1, ux = (ex - ax) / dl, uy = (ey - ay) / dl;
+      const al = aim.refused ? 0.35 : 0.85;
+      g.setLineDash([4, 3]); g.beginPath(); g.moveTo(ax, ay); g.lineTo(ax + ux * 18, ay + uy * 18);
+      g.strokeStyle = 'rgba(20,18,12,0.8)'; g.lineWidth = 3.5; g.globalAlpha = al * 0.35; g.stroke();
+      g.strokeStyle = c.p.color; g.lineWidth = 2; g.globalAlpha = al; g.stroke();
+      g.setLineDash([]);
+      g.font = '600 10px system-ui,sans-serif'; g.fillStyle = c.p.color;
+      g.fillText(letter, ax + ux * 26, ay + uy * 26);
+      g.font = '700 12px system-ui,sans-serif';
     }
     g.restore();
   }
