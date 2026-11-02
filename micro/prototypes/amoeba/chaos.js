@@ -27,7 +27,7 @@
 //     s, its food cup sealing); still shut at the end, you are engulfed. Push
 //     out through the gap before it shuts, or force it open with a thick
 //     pseudopod or a surge (A), and it has to start again;
-//   the lunge (every third attack): the whole cell shoves at you behind one
+//   the lunge (every other attack): the whole cell shoves at you behind one
 //     broad arm (a push, never a bite).
 //   Rarely, X with your membrane round the neck of one of its arms pinches it
 //   off (pincer, cut): it staggers; enough of them and it gives up and flows
@@ -51,7 +51,8 @@ export const CHAOS_WAKE = WAKE;
 // bearing; shut when RING_SHUT of the bearings are covered and no gap is wider
 // than RING_GAP rad; then CLOSE_T s of its X, engulfing if still RING_HOLD covered.
 export const RING = { reach: 120, shut: 0.94, gap: 0.3, hold: 0.88, broken: 0.75, warn: 0.5, closeT: 1.2 };
-export const CHAOS_LEASH = 720; // it follows you no further than this from its post
+export const CHAOS_LEASH = 720;
+const SQUEEZE = 25;           // µm/s at which it squeezes a channel forced into it shut // it follows you no further than this from its post
 const ARM_W = 7;              // nodes either side of an arm's tip: its neck
 
 export class Chaos {
@@ -89,7 +90,9 @@ export class Chaos {
     this.layer = view.addCell(b, this.cyto);
     // its look in the body shader: olive endoplasm, a thin clear rim, coarser granularity
     view.setLook(this.layer, { olive: 1, rim: 0.7, grain: 1.6 });
-    this.fight = createFight({ windup: 1.8, strike: 7, recoverT: 2.6, repelT: 2.2, retreatT: 18, facingRate: 0, blockHit: 0.1, biteHit: 0.2, regain: 0.01 });
+    this.fight = createFight({ windup: 1.8, strike: 7, recoverT: 4.5, repelT: 2.2, retreatT: 18, facingRate: 0, blockHit: 0.1, biteHit: 0.2, regain: 0.01 });
+    // how far contact has pushed each membrane node in (contact.js): a channel forced into it, squeezed shut again (squeeze)
+    b.dent = new Float32Array(N);
     this.on = true;
     this.reset();
   }
@@ -97,6 +100,7 @@ export class Chaos {
   reset() {
     Object.assign(this, { state: 'dormant', t: 0, fs: 'stalk', ft: 0, attack: 0, target: null, cuts: 0, leaveT: 0, beaten: false, restUntil: 0, notice: 0, ring: null, ringOf: null, closing: null, warned: false });
     this.body.pushK = 0.85;
+    if (this.body.dent) this.body.dent.fill(0);
     this.fight.reset();
   }
 
@@ -123,7 +127,7 @@ export class Chaos {
   get awake() { return this.state === 'fight' || this.state === 'leaving'; }
   get attacking() { return this.state === 'fight' && (this.fs === 'windup' || this.fs === 'strike' || !!this.closing); }
   /** Is it ringing (strike, cup) someone now? Then ring is { cover, gap, gapA, bins } round ringOf (a player). */
-  get encircling() { return this.state === 'fight' && this.fs === 'strike' && this.attack % 3 !== 0; }
+  get encircling() { return this.state === 'fight' && this.fs === 'strike' && this.attack % 2 !== 0; }
   get interest() { return this.fight.interest; }
 
   /**
@@ -171,7 +175,7 @@ export class Chaos {
       // the X holds the fight still until the ring is either sealed or broken
       const f = this.closing ? { state: this.fs, t: this.ft } : this.fight.update(dt, { near: gap < 900, inReach: gap < 160 && home < CHAOS_LEASH * 0.5, facing: true, blocking: false });
       if (f.state !== this.fs) {
-        if (f.state === 'windup') { this.attack++; ev.push({ e: this.attack % 3 === 0 ? 'windupLunge' : 'windupCup', p: tgt }); this.aim = tgt ? { x: tgt.x, y: tgt.y } : null; }
+        if (f.state === 'windup') { this.attack++; ev.push({ e: this.attack % 2 === 0 ? 'windupLunge' : 'windupCup', p: tgt }); this.aim = tgt ? { x: tgt.x, y: tgt.y } : null; }
         if (f.state === 'strike') { ev.push({ e: 'strike', p: tgt }); this.ringOf = tgt; this.warned = false; this.side0 = null; }
       }
       this.fs = f.state; this.ft = f.t;
@@ -182,7 +186,7 @@ export class Chaos {
           // the tell: every arm raised and spread at once
           for (let k = 2; k < b.pods.length; k++) { const pod = b.pods[k]; if (pod.life < 3) { pod.life = 3.5; pod.ret = 0; } pod.base = 1; }
           b.spread = 0;
-        } else if (f.state === 'strike' && this.attack % 3 === 0) {
+        } else if (f.state === 'strike' && this.attack % 2 === 0) {
           // the lunge: one broad arm, the cell flowing after it: a hard shove, never a bite
           input.pods[0] = { m: 1, dx: ux, dy: uy };
           input.body = { m: 1, dx: ux, dy: uy };
@@ -204,6 +208,7 @@ export class Chaos {
     // asleep and nobody near: it does not move (and costs nothing)
     if (this.state === 'dormant' && gap > WAKE + 300) { this.placeNuclei(); return ev; }
     b.step(adt, input, col);
+    this.squeeze(adt);
     b.grid.build(b.x, b.y, N);
     b.untangle();
     // the granules once per frame (main.js passes granules on its last catch-up step)
@@ -276,6 +281,28 @@ export class Chaos {
     return this._ring;
   }
 
+  /**
+   * It squeezes a channel a pseudopod has forced into it closed again: each
+   * dented membrane node flows back out along its normal (SQUEEZE µm/s, never
+   * past where it was) and counts as advancing, so it pushes hard (contact.js).
+   * Ease off and the pseudopod is shoved back out; push harder than it
+   * squeezes and the channel opens on.
+   */
+  squeeze(dt) {
+    const b = this.body, dent = b.dent;
+    b.normals();
+    for (let i = 0; i < N; i++) {
+      if (dent[i] < 0.2) { dent[i] = 0; continue; }
+      const m = Math.min(dent[i], SQUEEZE * dt);
+      b.x[i] += b.nx[i] * m; b.y[i] += b.ny[i] * m;
+      dent[i] -= m;
+      b.Gp[i] = Math.max(b.Gp[i], 0.2);
+    }
+  }
+
+  /** How deep the deepest channel into it is now (µm of dent). */
+  get channel() { let m = 0; for (let i = 0; i < N; i++) if (this.body.dent[i] > m) m = this.body.dent[i]; return m; }
+
   /** Sated after engulfing someone: it will not wake for a while. */
   get resting() { return this.restUntil && this.t < this.restUntil; }
 
@@ -313,6 +340,7 @@ export class Chaos {
   cut(i, j) {
     const b = this.body;
     const lost = b.pinchAt(i, j, b.cx, b.cy);
+    b.dent.fill(0); // the nodes are renumbered
     b.grid.build(b.x, b.y, N);
     this.cuts++;
     const gone = this.fight.bitten();

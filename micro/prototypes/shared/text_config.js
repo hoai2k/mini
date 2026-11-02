@@ -303,14 +303,14 @@ export const TEXT = {
       field: '1.8–0.9 mm',
       body: '0.45 mm',
       line: 'A shapeshifting blob: reach out arms, flow after them and swallow your prey whole.',
-      goal: 'Reach the glowing portal. Push past Chaos the giant amoeba (or slip by while it dozes) and never let it get its arms all the way round you; mind the fungus.',
+      goal: 'Reach the glowing portal. Shove Chaos the giant amoeba aside, or force a thick pseudopod through it, and never let its arms close all the way round you; mind the fungus.',
       controls: [
         ['LS/RS', 'Move a pseudopod'],
         ['RT', 'Hold: move the cell'],
         ['LT', 'Hold: spread / round up'],
         ['LB/RB', 'Push harder / spread a pseudopod'],
         ['A', 'Surge'],
-        ['X', 'Engulf / cut'],
+        ['X', 'Engulf'],
         ['B', 'Let go / stiffen'],
         ['Y', 'Enter portal'],
         ['D-pad ↑↓', 'Zoom'],
@@ -318,7 +318,7 @@ export const TEXT = {
       facts: [
         'An amoeba keeps its volume: every arm it grows takes body from somewhere else.',
         'It cups prey without touching it, then closes the cup into a bubble and digests it.',
-        'Two amoebae never merge: their membranes press and push, and the thicker, harder-pushing arm wins ground.',
+        'Two amoebae never merge: their membranes press and push, and the thicker, harder-pushing arm wins ground, even denting a channel deep into the other.',
         'A giant amoeba eats smaller ones by flowing its arms all the way round them. Keep a gap open and push out through it.',
         'Some fungi farm amoebae: their sticky threads catch a passing cell and grow into it.',
       ],
@@ -1534,12 +1534,12 @@ export const TEXT = {
         look: 'Optics: brightfield, phase, darkfield, immersive',
         zoom: 'Objective 10× / 20×',
       },
-      wayNote: ' Crawl out in any direction: the same encounters come in rings round the start (easy prey, fleeing ciliates, fungal traps), and about 2.8 mm out the way on: a green Paramecium bursaria in a golden glow, with the giant amoeba Chaos lying beside it. Slip past while it dozes, or push it aside: cells never overlap, they push, and a thick pseudopod or a surge (A) pushes hardest. Don\'t let its arms get all the way round you. The Sphagnum leaf tip to the left (the ring) is the way back up: Y there. Other controllers join with any button.',
+      wayNote: ' Crawl out in any direction: the same encounters come in rings round the start (easy prey, fleeing ciliates, fungal traps), and about 2.8 mm out the way on: a green Paramecium bursaria in a golden glow, with the giant amoeba Chaos lying beside it. Slip past while it dozes, shove it aside, or, if it lies on the glow, force a thick pseudopod into it until the tip reaches the glow: cells never overlap, they push, and a thick pseudopod or a surge (A) pushes hardest; ease off and it squeezes you back out. Don\'t let its arms close all the way round you. The Sphagnum leaf tip to the left (the ring) is the way back up: Y there. Other controllers join with any button.',
       schemes: {
         select: {
           controls: {
             dash: 'Surge',
-            attack: 'Engulf / cut',
+            attack: 'Engulf',
             defend: 'Let go / stiffen',
             special: 'Enter portal · labels',
             move: 'Move a pseudopod (L)',
@@ -1637,7 +1637,7 @@ export const TEXT = {
       chaosBroken: '{who}You forced the ring open',
       chaosGone: 'Chaos has had enough: it flows away to rest',
       chaosReturns: 'Chaos gives up the chase and flows back to its post',
-      bossHint: 'Chaos, a giant amoeba, lies beside the way on. It is slow to notice you: slip past, or push it aside. Never let its arms get all the way round you',
+      bossHint: 'Chaos, a giant amoeba, lies beside the way on. Slip past while it dozes, shove it aside, or force a thick pseudopod through it to the glow (surge, A). Never let its arms close round you',
       sealed: '{who}Sealed: the way on opens once you have hunted the fleeing ciliates',
       sealedCaudatum: '{who}Sealed: the way on opens once you have met the Paramecium caudatum patch',
       bursaria: '{who}A green Paramecium bursaria: follow it out into the pool',
@@ -1665,7 +1665,7 @@ export const TEXT = {
       stuck: 'Stuck on a fungal trap hypha: surge (A) to tear free (haustoria in {s} s)',
       chaosWindup: 'Chaos raises and spreads its pseudopods: it is going to try to surround you. Keep a way out',
       chaosLunges: 'Chaos shoves!',
-      chaosClosing: 'Its arms are closing round you ({pct}% of the way): push out through the gap!',
+      chaosClosing: 'Its arms are closing round you: push out through the gap!',
       chaosShut: 'The ring is shut: it is closing its cup! Burst out now (A)',
     },
     capture: {

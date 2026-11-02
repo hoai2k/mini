@@ -17,7 +17,7 @@ import { buildWorld, worldColliders, nearColliders, addResidue, wetMountCanvas, 
 import { createDirector } from '../shared/director.js';
 import { View } from './render.js';
 import { Chaos, CHAOS_R, CHAOS_WAKE, CHAOS_LEASH, RING } from './chaos.js';
-import { resolvePair, overlap, BINS } from './contact.js';
+import { resolvePair, overlap, reaches, BINS } from './contact.js';
 import { rng, TAU, clamp, hyp, Scratch } from './util.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createPlayers } from '../shared/players.js';
@@ -1731,7 +1731,8 @@ function blocked() {
 function atPortal(c) {
   const b = c.body;
   if (Math.hypot(b.cx - PORTAL.x, b.cy - PORTAL.y) > b.req * 3 + PORTAL.R) return false; // its outline cannot reach that far
-  return b.nearest(PORTAL.x, PORTAL.y).d < PORTAL.R || b.grid.sample(PORTAL.x, PORTAL.y) > 0;
+  // a pseudopod forced into a channel through Chaos counts too: it is part of the cell
+  return reaches(b, PORTAL.x, PORTAL.y, PORTAL.R);
 }
 /** Why the way on is still sealed: the next encounter's text key. */
 const sealedWhy = () => (ENCOUNTERS[director.index] && ENCOUNTERS[director.index].id === 'caudatum' ? 'amoeba.toasts.sealedCaudatum' : 'amoeba.toasts.sealed');
@@ -2396,8 +2397,8 @@ function renderAll(dt) {
   const chaosWarn = (c) => (chaos.attacking && chaos.target && chaos.target.cell === c && !c.caught.active
     ? (chaos.closing ? tt('amoeba.banner.chaosShut')
       : chaos.fs === 'windup' ? tt('amoeba.banner.chaosWindup')
-        : chaos.attack % 3 === 0 ? tt('amoeba.banner.chaosLunges')
-          : tt('amoeba.banner.chaosClosing', { pct: Math.round((chaos.ring ? chaos.ring.cover : 0) * 100) })) : '');
+        : chaos.attack % 2 === 0 ? tt('amoeba.banner.chaosLunges')
+          : tt('amoeba.banner.chaosClosing')) : '');
   const sealedWarn = (c) => (lm.sealedAt && c.atFwd ? tt(sealedWhy(), { who: '' }) : '');
   const warnAll = (c) => warn(c) || chaosWarn(c) || sealedWarn(c);
   const wc = cells.find((c) => warnAll(c));

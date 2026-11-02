@@ -15,6 +15,12 @@
 // the game sets each step (the surge, A, raises it; spreading out, LT, lowers
 // it; Chaos's lunge raises its own).
 //
+// A cell that carries b.dent (Chaos) remembers how far contact has pushed
+// each of its membrane nodes in: that dent is a channel a pseudopod has forced
+// into it. It pushes back harder the deeper the dent (pushAt: × 1 + dent /
+// CONTACT.dentK), and chaos.js squeezes the channel closed again over time,
+// so a pseudopod can tunnel into it only while it keeps pushing hard.
+//
 // encircle() measures how far one cell's membrane rings another: rays from the
 // ringed cell's centre, each covered when the other's membrane lies within
 // `reach` beyond its own edge. Chaos engulfs only when that ring is closed.
@@ -30,6 +36,7 @@ export const CONTACT = {
   skin: 1.5,  // µm left between two membranes after a correction
   shift: 0.4, // share of a cell's yield that moves the whole cell (a shove), for a player-sized cell
   rest: 0.5,  // push of membrane that is not advancing, relative to a fully advancing one (1.5)
+  dentK: 250, // µm of dent at which a dented cell pushes back twice as hard
 };
 
 /** The ring's bounding box into out [x0, y0, x1, y1]. */
@@ -51,7 +58,7 @@ export function inside(b, px, py) {
   return c;
 }
 
-/** The cell's thickness through node i: from it inward, along its inward normal, to the far membrane (µm, at most cap). */
+/** The cell's thickness at node i (µm, at most cap): inward along its normal to the far membrane, or across it just inside (a pseudopod's tip), whichever is less. */
 export function thickness(b, i, cap = CONTACT.cap) {
   const x = b.x, y = b.y;
   const a = (i + N - 1) % N, c = (i + 1) % N;
@@ -69,13 +76,25 @@ export function thickness(b, i, cap = CONTACT.cap) {
     const t = (wx * ey - wy * ex) / den, s = (wx * dy - wy * dx) / den;
     if (t > 0.5 && s >= 0 && s <= 1 && t < best) best = t;
   }
+  // at a pseudopod's tip the inward ray runs down its length: its cross-section is
+  // the chord across it, just inside the tip (perpendicular to the normal)
+  if (best > 30) {
+    const qx = ox + dx * 20, qy = oy + dy * 20;
+    let a = cap, c = cap;
+    for (let j = 0; j < N; j++) {
+      const k = (j + 1) % N;
+      const ta = rayHit(qx, qy, -dy, dx, x[j], y[j], x[k], y[k]); if (ta > 0 && ta < a) a = ta;
+      const tc = rayHit(qx, qy, dy, -dx, x[j], y[j], x[k], y[k]); if (tc > 0 && tc < c) c = tc;
+    }
+    if (a + c < best) best = a + c;
+  }
   return best;
 }
 
 /** How hard body b pushes at node i (thickness th): cross-section × advancing × b.pushK. */
 export function pushAt(b, i, th = thickness(b, i)) {
   const g = b.Gp ? Math.min(1, b.Gp[i]) : 0;
-  return th * (CONTACT.rest + (1.5 - CONTACT.rest) * g) * (b.pushK ?? 1);
+  return th * (CONTACT.rest + (1.5 - CONTACT.rest) * g) * (b.pushK ?? 1) * (b.dent ? 1 + b.dent[i] / CONTACT.dentK : 1);
 }
 
 const BA = [0, 0, 0, 0], BB = [0, 0, 0, 0];
@@ -123,10 +142,12 @@ export function resolvePair(A, B, out = { shiftA: { x: 0, y: 0 }, shiftB: { x: 0
       const sP = pushAt(P, i), sQ = pushAt(Q, t < 0.5 ? j : k);
       const w = sQ / (sP + sQ || 1); // P's share of the correction: the weaker side yields more
       px[i] += ux * d * w; py[i] += uy * d * w;
+      if (P.dent) P.dent[i] += d * w;
       // Q's membrane at the contact point gives way (1 - w) of it, spread over the segment's two nodes
       const c = (1 - w) * d / ((1 - t) * (1 - t) + t * t);
       qx[j] -= ux * c * (1 - t); qy[j] -= uy * c * (1 - t);
       qx[k] -= ux * c * t; qy[k] -= uy * c * t;
+      if (Q.dent) { Q.dent[j] += c * (1 - t); Q.dent[k] += c * t; }
       n++; if (d > depth) depth = d;
       if (pass === 0) { sAsum += sP; sBsum += sQ; ax += ux * d * w; ay += uy * d * w; bx -= ux * d * (1 - w); by -= uy * d * (1 - w); }
       else { sBsum += sP; sAsum += sQ; bx += ux * d * w; by += uy * d * w; ax -= ux * d * (1 - w); ay -= uy * d * (1 - w); }
@@ -140,6 +161,17 @@ export function resolvePair(A, B, out = { shiftA: { x: 0, y: 0 }, shiftB: { x: 0
   out.shiftA.x = ax * kA; out.shiftA.y = ay * kA;
   out.shiftB.x = bx * kB; out.shiftB.y = by * kB;
   return out;
+}
+
+/**
+ * Does any part of body b (outline or pseudopod) come within R µm of the point
+ * (px, py), or cover it? A pseudopod pushed into a channel in another cell
+ * reaches whatever lies there (main.js atPortal).
+ */
+export function reaches(b, px, py, R) {
+  const x = b.x, y = b.y, r2 = R * R;
+  for (let i = 0; i < N; i++) if ((x[i] - px) * (x[i] - px) + (y[i] - py) * (y[i] - py) < r2) return true;
+  return inside(b, px, py);
 }
 
 /** How much two rings overlap: { n (nodes of either inside the other), depth (the deepest, µm) }. For tests and checks. */

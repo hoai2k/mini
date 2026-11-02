@@ -8,7 +8,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Body } from '../shared/techniques/amoeba-softbody.js';
 import { rng } from './util.js';
-import { resolvePair, overlap, shiftBody, thickness, pushAt, encircle } from './contact.js';
+import { resolvePair, overlap, shiftBody, thickness, pushAt, encircle, reaches } from './contact.js';
 import { Chaos, RING } from './chaos.js';
 
 const DT = 1 / 60, W = { capsules: [], circles: [] };
@@ -65,8 +65,8 @@ test('a thick pseudopod pushes harder than a thin one; a body harder than either
   for (let i = 0; i < thin.x.length; i++) thin.y[i] *= 0.15;
   thin.Gp.fill(1);
   const finger = thickness(thin, 40); // through the narrow middle
-  assert.ok(body > 200 && finger < 70, `thickness: body ${body.toFixed(0)}, finger ${finger.toFixed(0)}`);
-  assert.ok(pushAt(b, 0) > 3 * pushAt(thin, 40), 'the body outpushes the finger');
+  assert.ok(body > 150 && finger < 70, `thickness: body ${body.toFixed(0)}, finger ${finger.toFixed(0)}`);
+  assert.ok(pushAt(b, 0) > 2.5 * pushAt(thin, 40), 'the body outpushes the finger');
 });
 
 test('encircle measures how far one ring surrounds another', () => {
@@ -128,4 +128,53 @@ test('touching Chaos does not eat you, and pushing out through the gap gets you 
   const names = r.ev.map((e) => e.e);
   assert.ok(names.includes('wake') && names.includes('strike'), names.join(' '));
   assert.ok(!names.includes('engulf') && !names.includes('closing'), `escaped: ${names.join(' ')}`);
+});
+
+/**
+ * A pseudopod pushed straight into Chaos (calm, so it only resists) for `sec` s.
+ * kind: 'thick' (a spread, broad pseudopod, the body following, surging every
+ * 3.3 s as the surge recharges), 'thin' (a plain pseudopod alone, no surge).
+ * ease: let go after this many s. The portal is a point under Chaos, 260 µm in
+ * from its edge. Returns the deepest channel, whether the cell reached the
+ * portal, the channel at the end, and the deepest overlap.
+ */
+function tunnel(kind, sec = 16, ease = Infinity) {
+  const view = { addCell: () => ({}), setLook() {} };
+  const ch = new Chaos(rng(41), view, 0, 0);
+  const pl = new Body(rng(3), 500, 0);
+  pl.opts.idlePods = false;
+  const portal = { x: 60, y: 0 };
+  let deepest = 0, channel = 0, reachedAt = null;
+  for (let s = 0; s < sec / DT; s++) {
+    const t = s * DT, on = t < ease, thick = kind === 'thick';
+    const sk = thick && on && t % 3.3 < 0.9 ? 1 + 1.5 * Math.sin((Math.PI * (t % 3.3)) / 0.9) ** 0.6 : 1;
+    pl.opts.boost = sk; pl.pushK = sk;
+    const pod = on ? { m: 1, dx: -1, dy: 0, push: thick ? 1 : 0, spread: thick ? 1 : 0 } : { m: 0, dx: -1, dy: 0 };
+    pl.step(DT, { pods: [pod, { m: 0, dx: 1, dy: 0 }], push: 0, spread: 0, body: thick && on ? { m: 0.6, dx: -1, dy: 0 } : null }, W);
+    ch.update(DT, DT, [{ cell: 1, body: pl, x: pl.cx, y: pl.cy, req: pl.req, active: true }], W, { calm: true, granules: false });
+    settle(pl, ch.body);
+    deepest = Math.max(deepest, overlap(pl, ch.body).depth);
+    channel = Math.max(channel, ch.channel);
+    if (reachedAt == null && reaches(pl, portal.x, portal.y, 120)) reachedAt = t;
+  }
+  return { channel, reachedAt, now: ch.channel, under: ch.body.grid.sample(portal.x, portal.y), deepest };
+}
+
+test('a thick pseudopod, surging, forces a channel into Chaos; a thin one stalls', () => {
+  const thick = tunnel('thick'), thin = tunnel('thin');
+  assert.ok(thick.channel > 100, `thick: a channel ${thick.channel.toFixed(0)} µm deep`);
+  assert.ok(thin.channel < 60, `thin: stalls at ${thin.channel.toFixed(0)} µm`);
+  assert.ok(thick.channel > 2 * thin.channel, 'the thick one gets more than twice as deep');
+  assert.ok(thick.deepest < 3 && thin.deepest < 3, `no overlap: the channel is Chaos's membrane dented in (${thick.deepest.toFixed(2)} µm)`);
+});
+
+test('ease off and Chaos squeezes the channel shut, shoving the pseudopod out', () => {
+  const r = tunnel('thick', 16, 8);
+  assert.ok(r.channel > 100 && r.now < r.channel / 3, `${r.channel.toFixed(0)} µm deep at most, ${r.now.toFixed(0)} µm left 8 s after letting go`);
+});
+
+test('a pseudopod tip reaching the portal through Chaos counts as being at it', () => {
+  const thick = tunnel('thick'), thin = tunnel('thin');
+  assert.ok(thick.reachedAt != null && thick.under > 0, `thick: at the portal after ${thick.reachedAt?.toFixed(1)} s, with Chaos still over it (${thick.under.toFixed(0)} µm in)`);
+  assert.equal(thin.reachedAt, null, 'thin: never gets there');
 });
