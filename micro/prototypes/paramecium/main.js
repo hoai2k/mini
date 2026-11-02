@@ -23,7 +23,7 @@ import { createPrey } from './prey.js';
 import { createProteus } from './proteus.js';
 import { createCatchFx, sstep } from './catch.js';
 import { createLandmarks as createDropLandmarks, LANDMARKS, progress, lateral, HALF, ringPoint, bearingOf, distFromStart, START } from './landmarks.js';
-import { DIRECTOR, ENCOUNTERS, canPlace, didiniumHomes, trapAt, VIEW_FAR } from './route.js';
+import { DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, didiniumHomes, trapAt, VIEW_FAR } from './route.js';
 import { createDirector } from '../shared/director.js';
 import { createPortalGlow, createPortalLight, createGlint } from '../shared/portal.js';
 import { createBloom, BLOOM } from './bloom.js';
@@ -36,7 +36,7 @@ import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
 import { createPlayers } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
-import { createLandmarks } from '../shared/landmark.js';
+import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
 import { clumpLayout } from '../shared/kin-clump.js';
 import { createBorrowedLooks, borrowedSwitches, CLS, SEM_LOOKS, AMOEBA_MODES, DIC_MODES } from '../shared/techniques/adapters.js';
@@ -1222,25 +1222,32 @@ const flatDist = (s, L) => Math.hypot(s.center.x - L.pos.x, s.center.z - L.pos.z
 const livePos = () => liveRoster().filter((P) => P.swimmer.state.mode !== 'dead').map((P) => P.swimmer.state.center);
 const dileptus = world.didinia.find((d) => d.kind === 'dileptus'), didinia = world.didinia.filter((d) => d.kind === 'didinium');
 /** Put hunter d's home (and itself) at (x, z), at its own depth, hungry after a grace; shown and stepped from now on. */
-function placeHunter(d, x, z, i = 0) {
+function placeHunter(d, x, z, i = 0, path = false) {
   d.home.set(x, d.home.y, z); d.pos.copy(d.home); d.speed = 0; d.stun = 0; d.sated = 0;
   d.parked = false; d.group.visible = enc.opts.didinium;
   d.hunger.reset(pacing.grace + i * 5); d.fight.reset();
-  if (!pacing.reached) { pacing.reached = true; pacing.reachedAt = t - pacing.t0; }
+  // (on the default path from the first frame: the encounters are reached when the first is met instead)
+  if (!pacing.reached && !path) { pacing.reached = true; pacing.reachedAt = t - pacing.t0; }
 }
 const nearXZ = (h, p, r) => Math.hypot(p.x - h.x, p.z - h.z) < r;
 const ENC = {
-  dileptus: { place: (x, z) => { placeHunter(dileptus, x, z); return dileptus; },
+  dileptus: { place: (x, z, b, info) => { placeHunter(dileptus, x, z, 0, info.instance === 'default'); return dileptus; },
     // in its waters (its home and a margin), or close to it
     met: (d, [p]) => nearXZ(d.home, p, d.homeR + 450) || nearXZ(d.pos, p, 550) },
   bloom: { place: (x, z, b) => { bloom.place(x, z, b); bloom.group.visible = bloom.on; return bloom; },
     met: (B, [p]) => bloom.distTo(p) < 300 },
-  didinium: { place: (x, z, b) => { didiniumHomes(x, z, b).forEach(([hx, hz], i) => placeHunter(didinia[i], hx, hz, i)); return didinia; },
+  didinium: { place: (x, z, b, info) => { didiniumHomes(x, z, b).forEach(([hx, hz], i) => placeHunter(didinia[i], hx, hz, i, info.instance === 'default')); return didinia; },
     met: (L, [p]) => L.some((d) => nearXZ(d.home, p, d.homeR + 450) || nearXZ(d.pos, p, 550)) },
   // the last: entering the open portal ends the level
   portal: { place: (x, z, b) => { placePortal(x, z, b); return FWD; }, met: () => false },
 };
-const director = createDirector({ ...DIRECTOR, canPlace, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id] })) });
+// The default path (route.js DEFAULT_PATH): all four laid out along one bearing on the first frame, so the way
+// on exists from the start (sealed until the three before it are met: portalSealed); head off another way and
+// each, while nobody has seen it, leaves the path and is placed ahead of you as before (one thing each: single).
+const director = createDirector({ ...DIRECTOR, canPlace, defaultPath: DEFAULT_PATH, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id], single: true })) });
+const PORTAL_INDEX = ENCOUNTERS.findIndex((e) => e.final);
+/** The way on exists from the start but stays shut until every earlier encounter is met (the director's order). */
+function portalSealed() { return director.index < PORTAL_INDEX; }
 // What every view sees, for the director: each split view's frustum (the
 // camera offset for it), its far plane brought in to where the view fades out
 // (cullFor: VIEW_FAR), and its focus (what it frames). Updated each frame
@@ -1275,7 +1282,10 @@ function stepDirector(dt) {
   if (outro) return;
   const ps = roster.filter((P) => !P.waiting).map((P) => { const c = P.swimmer.state.center; return { id: P.slot, x: c.x, y: c.y, z: c.z, alive: P.swimmer.state.mode !== 'dead' && !P.capture.active }; });
   const ev = director.update(dt, ps, seenViews);
-  for (const e of ev) lm.log.push({ kind: `${e.id} ${e.type}`, how: e.how, t: +t.toFixed(2) });
+  for (const e of ev) {
+    lm.log.push({ kind: `${e.id} ${e.type}`, how: e.how, t: +t.toFixed(2) });
+    if (e.type === 'met' && !pacing.reached) { pacing.reached = true; pacing.reachedAt = t - pacing.t0; }
+  }
   driftEncounter(dt);
 }
 /**
@@ -1333,8 +1343,8 @@ function landmarkTick(dt) {
     // backdoor: low over the floor where the amoeba crawls
     P.backT = ok && flatDist(s, BACK) < BACK.r && s.center.y < BACK.reachY ? P.backT + dt : 0;
   }
-  // nearing the way on: the shell can start loading the next world
-  const nearing = FWD.placed && livePos().some((c) => Math.hypot(c.x - FWD.pos.x, c.z - FWD.pos.z) < 900);
+  // nearing the open way on: the shell can start loading the next world
+  const nearing = FWD.placed && !portalSealed() && livePos().some((c) => Math.hypot(c.x - FWD.pos.x, c.z - FWD.pos.z) < 900);
   if (nearing !== !!lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
   if (at && !lm.fired) {
     if (guarded()) {
@@ -1345,11 +1355,16 @@ function landmarkTick(dt) {
       if (!portal.turned) { portal.turned = true; hud.toast('Turned back: the bladderwort trap still guards the biofilm. Make it fire and miss until it is spent, then come back', 4200); }
       lm.log.push({ kind: 'turnedBack', slot: at.slot, t: +t.toFixed(2) });
       lm.fired = true;
+    } else if (portalSealed()) {
+      // the way on exists from the start (the default path) but opens only once every encounter before it is met
+      hud.toast('The biofilm is not open to you yet: the hunters are still out in the drop', 2600);
+      lm.log.push({ kind: 'sealed', slot: at.slot, t: +t.toFixed(2) });
+      lm.fired = true;
     }
   }
   if (!close) lm.fired = false;
   // anyone down on the open biofilm: "Y Enter the portal"; their Y goes through (the input loop)
-  setPortalPrompt(!!at && !outro && !guarded());
+  setPortalPrompt(!!at && !outro && !portalSealed() && !guarded());
   const dweller = roster.find((P) => P.backT > 0.5) || null;
   if (!!dweller !== lm.near) { lm.near = !!dweller; embed.near('back', lm.near); }
   promptEl.style.display = lm.near && !embed.active ? 'block' : 'none';
@@ -1362,7 +1377,7 @@ function setPortalPrompt(on) {
   embed.near('portal', on);
 }
 /** Can player P go through now (down on the biofilm, its guard spent)? Then P's Y enters. */
-const atOpenPortal = (P) => !!P.atPortal && !outro && !guarded();
+const atOpenPortal = (P) => !!P.atPortal && !outro && !portalSealed() && !guarded();
 /**
  * The way on: player P is at the open portal (the biofilm, its guard spent)
  * and pressed Y; it is never an automatic door (the owner, 2026-11-01). The
@@ -1757,7 +1772,7 @@ function frame(now) {
   const cam = held && intro && intro.cam ? placePoseCamera(intro.cam, s.center, LENGTH, cellHeading(s))
     : outro && outro.cam ? placePoseCamera(outro.cam, spir.pos, SPIRILLUM.L, spirHeading())
       : updateCameras(held ? 1e-4 : dt * ts, s, ls, group());
-  if (portalGlow.group.visible) { portalGlow.setOpen(!guarded()); portalGlow.update(dt, t, cam); }
+  if (portalGlow.group.visible) { portalGlow.setOpen(!guarded() && !portalSealed()); portalGlow.update(dt, t, cam); }
   // the slow-down dims the glow so the spirillum's glint reads at the freeze (after the burst, as the mite's and
   // the tardigrade's do); the camera move fades it out over the first ×4 of magnification, the glint over ×8 (the shell's halo carries it on)
   const dive = outro && outro.cam && outro.f0 ? Math.log(Math.max(1, outro.cam.f / outro.f0)) : 0;
@@ -1819,14 +1834,16 @@ function frame(now) {
   fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
   // the edge arrows: the brass chevron to the biofilm, the ring to the amoeba's floor
   edgeMarks.begin();
-  // no arrow to the way on until the portal has been found (placed); then it points there and its light spills in
+  // no arrow to the way on by default: once the portal is open its light spills in (the Portal arrow
+  // setting adds an arrow: drawPortalArrow). On the default path it is there from the start, sealed.
   portalLight.begin();
   portalBloom.begin();
-  if (FWD.placed && !outro) {
+  if (FWD.placed && !portalSealed() && !outro) {
     const dmin = Math.min(...livePos().map((c) => Math.hypot(c.x - FWD.pos.x, c.z - FWD.pos.z)), 1e9);
     portalLight.drawSplit(arrowSplit(), FWD.pos, { strength: THREE.MathUtils.clamp(1.2 - dmin / 3000, 0.4, 1), open: portalGlow.open });
   }
   edgeMarks.drawSplit(arrowSplit(), BACK.pos, { kind: 'backdoor', label: BACK.label, range: 3000 });
+  drawPortalArrow();
 
   const bl = s.netSpeed / LENGTH;
   const charges = '●'.repeat(s.charges) + '○'.repeat(3 - s.charges);
@@ -1840,7 +1857,7 @@ function frame(now) {
     `${dash.text()} · trichocysts ${charges}${GREEN ? ` · ${inLight(s.center) ? 'in the sun (dash recharges faster)' : 'in shade'}` : ''}`,
     near ? `${near.label} ${Math.round(near.d)} µm away (${near.state})` : 'no hunter near',
     `hunger: ${world.didinia.map((d, i) => `${d.label}${d.kind === 'didinium' ? ` ${i + 1}` : ''} ${enc.opts.didinium ? (d.parked ? 'not met yet' : hungerText(d.hunger)) : 'off'}`).join(' · ')} · amoeba ${amoeba.opts.on ? hungerText(amoeba.hunger) : 'off'}`,
-    `${Math.round(progress(s.center))} µm out${progress(s.center) < HALF ? ' (calm waters)' : ''} · encounters ${director.index}/${ENCOUNTERS.length} · ${FWD.placed ? `biofilm ${Math.round(flatDist(s, FWD))} µm${guarded() ? ' (guarded)' : ' (open)'}` : 'portal not found yet'} · amoeba's floor ${Math.round(flatDist(s, BACK))} µm`,
+    `${Math.round(progress(s.center))} µm out${progress(s.center) < HALF ? ' (calm waters)' : ''} · encounters ${director.index}/${ENCOUNTERS.length} · ${FWD.placed ? `biofilm ${Math.round(flatDist(s, FWD))} µm${portalSealed() ? ' (sealed)' : guarded() ? ' (guarded)' : ' (open)'}` : 'portal not found yet'} · amoeba's floor ${Math.round(flatDist(s, BACK))} µm`,
     multi() ? `players ${roster.length} · views ${L.views.length}${L.merged ? ' (together)' : ''}` : '',
     `${Math.round(renderFps)} fps · render scale ${quality.scale.toFixed(2)} × pixel ratio ${quality.pixelRatio.toFixed(2)} · effects ${['low', 'medium', 'high'][qLevel]}${quality.auto ? ' (auto)' : ''}`,
   ].filter((l) => l).join('\n'));
@@ -1991,6 +2008,24 @@ function updateGoal(s) {
 const arrowSplit = () => { const L = split.layout; return { layout: { ...L, regions: L.regions.filter((r) => r.polygon.length > 2) }, project: split.project }; };
 const split = createSplitScreen(renderer, { capture: true, up: null });
 const edgeMarks = createLandmarks({ zIndex: 4 });
+/**
+ * The "Portal arrow" setting (the game's Settings, default off; ?arrow=1 here): an arrow at the edge of
+ * each view toward the way on (the biofilm: the director's portals(), one here), with the view's nearest
+ * cell's distance (mm; µm under 1 mm). Sealed too: it is where the way on will open.
+ */
+let arrowLog = [];
+const arrowLabel = (d) => (d >= 1000 ? `${(d / 1000).toFixed(1)} mm` : `${Math.round(d)} µm`);
+function drawPortalArrow() {
+  arrowLog = [];
+  if (!portalArrowOn() || !FWD.placed || outro) return;
+  const pp = FWD.pos;
+  arrowLog = edgeMarks.drawSplit(arrowSplit(), (vp) => {
+    let d = Infinity;
+    for (const v of vp) { const P = roster.find((Q) => Q.slot === v.slot); if (P) d = Math.min(d, flatDist(P.swimmer.state, FWD)); }
+    if (!isFinite(d)) d = flatDist(swimmer.state, FWD);
+    return { position: pp, label: arrowLabel(d), distance: d };
+  }, { kind: 'forward', portal: true, range: 80000 }).map((r) => r && { x: r.x, y: r.y, angle: r.angle, onScreen: r.onScreen, d: Math.round(r.picked.distance), label: r.picked.label, at: [Math.round(pp.x), Math.round(pp.y), Math.round(pp.z)] });
+}
 function drawOverlay(cam) {
   const g = markG, sg = shadeG;
   g.setTransform(dpr, 0, 0, dpr, 0, 0); sg.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -2259,6 +2294,12 @@ window.__micro = {
   get t() { return t; },
   /** Go through the portal now as player `slot` (what Y at the open portal does). */
   enterPortal: (slot = 0) => enterPortal(slotP(slot)),
+  /** The portal arrow drawn last frame, per view: [{ x, y, angle, onScreen, d, label, at } | null] ([] when off). */
+  portalArrow: () => arrowLog,
+  /** The director's portals (the way on): [{ instance, x, y, z, open, seen, state }]. */
+  portals: () => director.portals().map(({ handle, ...q }) => q),
+  /** Is the way on still sealed (encounters left before it)? */
+  portalSealed: () => portalSealed(),
   /** The outro after the portal: null, or { t, scale (the world's time scale), frozen, cam (the shell's pose) }. */
   outro() { return outro ? { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, cam: outro.cam, u: outro.u ?? null, light: +diveLight.toFixed(3) } : null; },
   OUTRO, DIVE,
@@ -2280,7 +2321,7 @@ window.__micro = {
   bloom,
   /** The encounters (the director's state), the portal, and where each player is (µm out from the start). */
   route: () => ({ warm: HALF, reached: pacing.reached, reachedAt: pacing.reachedAt, encounters: director.state(),
-    portal: { placed: FWD.placed, bearing: FWD.bearing, pos: FWD.pos.toArray().map(Math.round), guarded: guarded(), trap: trap.placed ? trap.centre.toArray().map(Math.round) : null },
+    portal: { placed: FWD.placed, bearing: FWD.bearing, pos: FWD.pos.toArray().map(Math.round), guarded: guarded(), sealed: FWD.placed && portalSealed(), open: FWD.placed && !portalSealed() && !guarded(), trap: trap.placed ? trap.centre.toArray().map(Math.round) : null },
     players: roster.map((P) => ({ slot: P.slot, u: Math.round(progress(P.swimmer.state.center)), side: Math.round(lateral(P.swimmer.state.center)) })) }),
   /** The director (shared/director.js): state(), seenAt(x, z), placeNow(), log. */
   director,

@@ -55,8 +55,23 @@ encounters, placed as you go*, what each does):
   hunter) or the bloom drifts toward the leader at 350 µm/s
   (`driftEncounter`: behaviour, not a placement) until they meet it. In the
   end the portal is placed near them too.
+- **The default path** (the owner, 2026-11-01: "a default path to a portal,
+  but just dynamically generate the other directions"): on the first frame
+  the director lays all four along one bearing from the start (`route.js`
+  `DEFAULT_PATH`: square to the opening view's heading, away from the way
+  back, at a rush's distances: the Dileptus ~19.7 mm out, the bloom ~38 mm,
+  the Didinium ~56 mm, the biofilm ~75 mm), out of sight, so the way on
+  exists from the start. It stays sealed (no prompt, its glow shut, no edge
+  light, nothing preloaded; down on it: "The biofilm is not open to you yet:
+  the hunters are still out in the drop") until the three before it are met;
+  the trap guards it as always. Follow that bearing and you meet them in
+  order where they lie; swim off another way and each, while nobody has seen
+  it, leaves the path and is placed ahead of you as before (each is one
+  thing, a hunter, the bloom, the pair of Didinium or the biofilm: the
+  director's `single`); one somebody has seen stays put.
 - **Until placed** each hunter is parked far off, hidden and not stepped
-  (`world.js`, `encounters.js` `parked`), the bloom and the trap hidden. A
+  (`world.js`, `encounters.js` `parked`), the bloom and the trap hidden (on
+  the default path all are placed from the first frame). A
   hunter's hunger clock starts when it is placed (6 s grace, the second
   Didinium 5 s later); it hunts only a player in its waters.
 - **Timings** (`route.test.mjs`: the director with these settings against a
@@ -67,7 +82,11 @@ encounters, placed as you go*, what each does):
   near them at 79 s. Scripted runs in the browser are in *Checks*.
 - **Explored stays constant** is checked in `route.test.mjs`: in the
   lingering and turning-back runs and every fourth rush, what the director
-  put in each grid cell never changes once a view has seen it.
+  put in each grid cell never changes once a view has seen it. With the
+  default path: following its bearing meets the four pre-placed ones in
+  order (nothing generated, the biofilm reached in ~50 s); swimming off
+  three other ways takes each off the path while unseen and places it as you
+  go, in order, explored cells unchanged.
 - **The way back** stays a fixed place: the amoeba's floor 17 mm from the
   start the other way from the opening view, where the amoeba keeps to its
   patch and hunts only round it, after its own 45 s calm opening.
@@ -95,8 +114,13 @@ encounters, placed as you go*, what each does):
 - A player who is eaten comes back alone a little back from where they were
   (toward the start), at the spot furthest from every hunter, the trap and
   the bloom (with others: beside a teammate).
-- **No arrow:** there is no edge pointer to the portal (`shared/landmark.js`
-  draws no forward mark); its golden glow is its only marker.
+- **No arrow by default:** there is no edge pointer to the portal
+  (`shared/landmark.js` draws no forward mark); its golden glow is its only
+  marker. With **Portal arrow** on in the game's Settings (default off;
+  `?arrow=1` on this page) each view gets a brass arrow at its edge toward
+  the biofilm, sealed or not, with the view's nearest cell's distance beside
+  it ("75.0 mm"; µm under 1 mm). Test hooks: `portalArrow()`, `portals()`,
+  `portalSealed()`.
 
 The dish is about 17 cm across (`route.js` `DROP_R`; a labelled departure).
 The set pieces (five Spirogyra, 70 flakes, six Vorticella colonies with 35
@@ -174,7 +198,8 @@ node --test micro/prototypes/shared/swim-control.test.mjs
 World 5 of the game (`micro/game/`), between the amoeba and the bacterium.
 Both landmarks are things in the drop, drawn with the microscope's own
 materials (`landmarks.js`). `shared/landmark.js` draws no edge arrow to
-either (the owner's call): the portal's golden glow is its only marker.
+either (the owner's call; the Portal arrow setting adds one to the portal):
+the portal's golden glow is its only marker.
 
 - **Forward: the biofilm on a leaf** (the portal). A fragment of dead leaf
   lies on the slide where the director placed it (see *Placed as you go*),

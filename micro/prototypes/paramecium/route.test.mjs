@@ -8,7 +8,7 @@
 //   node micro/prototypes/paramecium/route.test.mjs
 import assert from 'node:assert/strict';
 import { createDirector } from '../shared/director.js';
-import { DIRECTOR, ENCOUNTERS, canPlace, START, BACK, DROP_R, VIEW_FAR, BLOOM_BAND, didiniumHomes, trapAt, bloomParts } from './route.js';
+import { DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, START, BACK, DROP_R, VIEW_FAR, BLOOM_BAND, didiniumHomes, trapAt, bloomParts } from './route.js';
 
 assert.deepEqual(ENCOUNTERS.map((e) => e.id), ['dileptus', 'bloom', 'didinium', 'portal'], 'the order');
 assert.ok(ENCOUNTERS.at(-1).final);
@@ -30,8 +30,13 @@ const partsOf = (id, x, z, b) => (spec(id).parts ? spec(id).parts(x, z, b) : [[x
 /** Which placed encounters cover each grid cell (the director's own test: cells round a disc). */
 function coverage(D) {
   const m = new Map(), c = DIRECTOR.cell, B = DIRECTOR.bounds;
+  const list = [];
   for (const e of D.state().entries) {
-    if (e.state !== 'placed' && e.state !== 'met') continue;
+    if ((e.state === 'placed' || e.state === 'met') && e.placedT !== null) list.push(e);
+    // (a default-path instance: there from the first frame until met or taken off the path)
+    if (e.def && (e.def.state === 'placed' || e.def.state === 'met')) list.push({ ...e, x: e.def.x, z: e.def.z, b: D.entry(e.id).def.b });
+  }
+  for (const e of list) {
     for (const [px, pz, r] of partsOf(e.id, e.x, e.z, e.b)) {
       for (let i = Math.floor((px - r - B.x0) / c); i <= Math.floor((px + r - B.x0) / c); i++) for (let k = Math.floor((pz - r - B.z0) / c); k <= Math.floor((pz + r - B.z0) / c); k++) {
         if (Math.hypot(B.x0 + (i + 0.5) * c - px, B.z0 + (k + 0.5) * c - pz) > r + c * 0.71) continue;
@@ -49,7 +54,7 @@ function bandDist(p, h) {
   return Math.hypot(Math.max(0, Math.abs(lx) - BLOOM_BAND.half), Math.max(0, Math.abs(lz) - BLOOM_BAND.across));
 }
 const HOME_R = 250;
-function game({ seconds, move, check = false }) {
+function game({ seconds, move, check = false, path = false }) {
   const bad = [], changed = [];
   let D;
   const H = {};
@@ -65,7 +70,7 @@ function game({ seconds, move, check = false }) {
     didinium: (h, [p]) => h.some((q) => near(q, p, HOME_R + 450)),
     portal: (h, [p]) => near(h, p, 230),
   };
-  D = createDirector({ ...DIRECTOR, canPlace, entries: ENCOUNTERS.map((e) => ({ ...e, place: place(e.id), met: met[e.id] })) });
+  D = createDirector({ ...DIRECTOR, canPlace, ...(path ? { defaultPath: DEFAULT_PATH } : {}), entries: ENCOUNTERS.map((e) => ({ ...e, place: place(e.id), met: met[e.id], ...(path ? { single: true } : {}) })) });
   const p = { id: 0, x: START.x, z: START.z, y: 300, hx: Math.cos(0.98), hz: Math.sin(0.98) };
   const ev = [];
   const frozen = new Map();
@@ -80,7 +85,7 @@ function game({ seconds, move, check = false }) {
     if (ev.some((e) => e.type === 'met' && e.id === 'portal')) break;
     // main.js driftEncounter: the current encounter, placed out of a lingering player's reach, comes over (350 µm/s, after 4 s)
     const s = D.state();
-    if (s.current && s.current !== 'portal' && s.phase === 'placed' && H[s.current]) {
+    if (s.current && s.current !== 'portal' && s.phase === 'placed' && H[s.current] && D.entry(s.current).handle === H[s.current]) {
       driftT ??= t;
       if (t - driftT > 4 && !s.leader.moving) for (const h of [H[s.current]].flat()) {
         const d = Math.hypot(p.x - h.x, p.z - h.z);
@@ -148,7 +153,40 @@ for (const a0 of [0.98, 2.6, 4.4]) {
   assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, `turn-back ${a0}: every encounter in order`);
   turns.push(`${a0}: ${r.ev.map((e) => `${e.id} ${e.type}${e.how && e.type !== 'met' ? ` (${e.how})` : ''} ${e.t} s`).join(', ')}; ${r.seen} cells seen`);
 }
+// ---- the default path (main.js passes route.js DEFAULT_PATH; each encounter one thing: `single`):
+// the whole order laid along one bearing on the first frame, the portal among it
+const pathRows = [];
+{
+  // following the bearing (rushing to each in turn): the pre-placed ones met in order, the pre-placed portal reached; nothing generated
+  const r = game({ seconds: 150, check: true, path: true, move: (t, p, D, H) => {
+    const s = D.state(), cur = s.entries[s.index], h = cur && H[cur.id] && [H[cur.id]].flat()[0];
+    swim(p, h ? toward(p, h) : DEFAULT_PATH.bearing, RUSH);
+  } });
+  assert.deepEqual(r.bad, [], 'default path: nothing placed in view');
+  assert.deepEqual(r.changed, [], 'default path: explored cells unchanged');
+  const placed = r.ev.filter((e) => e.type === 'placed');
+  assert.deepEqual(placed.map((e) => `${e.id} ${e.how}`), ORDER.map((id) => `${id} default`), 'default path: all four pre-placed, nothing generated');
+  assert.ok(placed.every((e) => e.t < 0.1 && canPlace(e.x, e.z, spec(e.id).size)), 'default path: from the first frame, in the dish');
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.instance}`), ORDER.map((id) => `${id} default`), 'default path: met in order on it');
+  const pm = at(r.ev, 'met', 'portal').t;
+  assert.ok(pm >= 40 && pm <= 65, `default path: the portal reached in about a minute (${pm} s)`);
+  pathRows.push(`followed: ${placed.map((e) => `${e.id} at ${(Math.hypot(e.x - START.x, e.z - START.z) / 1000).toFixed(1)} mm`).join(', ')}; met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t} s`).join(', ')}`);
+}
+for (const off of [Math.PI, Math.PI / 2, -Math.PI / 2]) {
+  // heading off another way: each leaves the path while nobody has seen it and is placed as you go, in order; what was seen stays
+  const a0 = DEFAULT_PATH.bearing + off, tag = `off the path (${Math.round((off * 180) / Math.PI)}°)`;
+  const r = game({ seconds: 200, check: true, path: true, move: (t, p, D, H) => swim(p, D.entry('portal').state === 'placed' ? toward(p, H.portal) : a0, RUSH) });
+  assert.deepEqual(r.bad, [], tag);
+  assert.deepEqual(r.changed, [], `${tag}: explored cells unchanged`);
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.instance}`), ORDER.map((id) => `${id} dynamic`), `${tag}: every encounter in order, where placed as you go`);
+  for (const id of ORDER) {
+    const e = r.ev.find((x) => x.type === 'placed' && x.id === id && x.how !== 'default');
+    assert.ok(e && e.from === 'default', `${tag}: ${id} taken off the path and placed as you go (${e && e.how})`);
+  }
+  pathRows.push(`${tag}: met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t} s`).join(', ')}`);
+}
 void bloomParts;
 console.log(`rushing (${RUSH} µm/s) in 16 directions: Dileptus placed ${span('first')}, met ${span('dileptus')}; bloom ${span('bloom')}; Didinium ${span('didinium')}; portal placed ${span('portalPlaced')}, reached ${span('portal')}; met by ${[...new Set(times.map((t) => t.how))].join(', ')}`);
 console.log(`lingering: ${r1.ev.filter((e) => e.type === 'placed' || e.type === 'met').map((e) => `${e.id} ${e.type} ${e.t} s${e.how && e.type === 'placed' ? ` (${e.how})` : ''}`).join(', ')}`);
 console.log(`turning back:\n  ${turns.join('\n  ')}`);
+console.log(`default path: ${pathRows.join('; ')}`);

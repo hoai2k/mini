@@ -73,5 +73,15 @@ export const ENCOUNTERS = [
   { id: 'portal', size: 1600, top: TOP, minAhead: 9500, maxAhead: 13000, minNear: 3500, maxNear: 5500, final: true,
     parts: (x, z, b) => { const [tx, tz] = trapAt(x, z, b); return [[x, z, 420], [tx, tz, 750]]; } },
 ];
+/**
+ * The default path (shared/director.js `defaultPath`; the owner, 2026-11-01: "a default path to a portal,
+ * but just dynamically generate the other directions if the player goes off in another direction"): the
+ * Dileptus, the bloom, the two Didinium and the biofilm with the trap laid along one bearing from the start
+ * on the first frame, at the distances a rush (~1.5 mm/s) would meet them (~2, ~3.8, ~5.6 and ~7.5 cm out),
+ * so the way on exists from the start. The bearing is square to the opening view's (A0, which the chase
+ * camera looks along) and away from the way back (behind it). Off that bearing they are placed as you go,
+ * as before (each is one thing: a hunter, the bloom, the pair of Didinium, the biofilm: `single`).
+ */
+export const DEFAULT_PATH = { from: { x: START.x, z: START.z }, bearing: A0 - Math.PI / 2, rush: 1500 };
 /** Encounters go anywhere in the dish well inside the meniscus, and not on the way back. */
 export const canPlace = (x, z, r) => Math.hypot(x - START.x, z - START.z) < DROP_R - 3000 - r && Math.hypot(x - BACK.x, z - BACK.z) > 2500 + r;
