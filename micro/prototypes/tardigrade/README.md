@@ -394,7 +394,11 @@ restored (`embed.players`, the `players` message).
   one farthest out on its ring; the portal goes on the spoke of the first to
   near the portal ring.
 - **Split screen** (`../shared/splitscreen.js`): together, one shared view
-  (straight to the screen, as before); apart, the LEGO-style split, each view
+  (straight to the screen, as before), which zooms out as the group spreads
+  (the split's `zoom`: the orbit camera pulled back) up to 1.7x the solo
+  framing and splits only beyond that; it merges once you are back inside
+  0.75 of it for most of a second (split views keep a gentle 1.275x). Apart,
+  the LEGO-style split, each view
   composed by the DIC microscope into its own target (`tardigrade-dic.js`
   `render({ target })`, render scale 0.75; the auto quality drops the optical
   buffers further if the frame rate falls). Any player's right stick turns

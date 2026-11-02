@@ -281,9 +281,11 @@ shell's roster comes in with `embed.players`).
   The prey count is shared.
 - **One shared camera, then a split.** Player 1's controls set the view (Y
   chase/microscope, RS orbit or stage, D-pad technique and objective). The
-  camera frames the group's middle and backs off as it spreads; further apart
-  the screen splits LEGO-style (`shared/splitscreen.js`) and merges again when
-  you meet. The chase camera splits in its image plane (`up: null`); the
+  camera frames the group's middle and zooms out as it spreads (the split's
+  `zoom`: the chase camera backs off along its view, the microscope's field
+  widens) up to 2x the solo framing; only further apart does the screen split
+  LEGO-style (`shared/splitscreen.js`), and it merges again once you are back
+  inside 0.75 of that for most of a second (split views keep 1.5x). The chase camera splits in its image plane (`up: null`); the
   microscope's top-down view slides its stage. The optics pipeline ends on
   the screen, so each view is rendered and captured (`capture: true`), at
   75 % resolution while split, without the field stop, and each view focuses

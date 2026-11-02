@@ -697,7 +697,11 @@ const looks = createBorrowedLooks(renderer);
 // rendered to the screen and captured (the optics end on the screen)
 /** The split layout without degenerate (empty) regions, for shared/landmark.js. */
 const arrowSplit = () => { const L = split.layout; return { layout: { ...L, regions: L.regions.filter((r) => r.polygon.length > 2) }, project: split.project }; };
-const split = createSplitScreen(renderer, { capture: true });
+// Two to four players share one view, zoomed out up to this far (a field 1.6x
+// as tall) before the screen splits; split views settle at 0.75 of it.
+const SPLIT_ZOOM_MAX = 1.6;
+const groupZoom = { z: 1, applied: 1 };
+const split = createSplitScreen(renderer, { capture: true, zoomMax: SPLIT_ZOOM_MAX });
 const marks = createLandmarks({ zIndex: 4 });
 
 // Delivered art (null until delivered; the ids may not be in the list yet).
@@ -897,7 +901,7 @@ function landmark(kind, P) {
 // planes on the director's ground plane (its z is our y).
 const dirViews = [0, 1, 2, 3].map(() => ({ frustum: [[1, 0, 0, 0], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, -1, 0]], focus: { x: 0, y: 0, z: 0 } }));
 function directorViews() {
-  const fieldH = ZOOMS[zoomIdx()], fw = (fieldH * innerWidth) / Math.max(1, innerHeight), pad = 6;
+  const fieldH = ZOOMS[zoomIdx()] * groupZoom.applied, fw = (fieldH * innerWidth) / Math.max(1, innerHeight), pad = 6;
   const cx = view.cx + view.stage.x, cy = view.cy + view.stage.y;
   const offs = split.views && split.views.length ? split.views.map((v) => v.offset) : [{ x: 0, y: 0 }];
   const out = [];
@@ -1559,7 +1563,10 @@ function render(dt) {
   glow.setOpen(!guarded() && !portalSealed());
   glow.update(dt, t, glowCam);
   const ov = camOverride();
-  const fieldH = fieldNow = ov ? ov.fieldH : ZOOMS[zoomIdx()];
+  // several players in one view: the split screen's zoom-out (a taller field)
+  // keeps them all in it; the screen splits only once it is at its widest
+  groupZoom.applied = !ov && multi() ? groupZoom.z : 1;
+  const fieldH = fieldNow = ov ? ov.fieldH : ZOOMS[zoomIdx()] * groupZoom.applied;
   const cx = ov ? ov.cx : view.cx + view.stage.x, cy = ov ? ov.cy : view.cy + view.stage.y;
   if (world.landmarks.forward.placed) { const g = glimpsePhage(); glimpse.setPosition(g.x, g.y, 0); } else glimpse.setPosition(1e6, 1e6, 0);
   glimpse.update(t);
@@ -1568,7 +1575,8 @@ function render(dt) {
   if (glowUI) glowUI.value = GLOW_I * (1 - sm01(0, Math.log(4), dive));
   glimpse.intensity = 1.1 * (1 - sm01(Math.log(4), Math.log(20), dive));
   const list = roster.filter((P) => !P.waiting).map((P) => ({ slot: P.slot, position: posOf(P) }));
-  const L = split.update(list.length ? list : [{ slot: 0, position: posOf(P1) }], { center: { x: cx, y: cy }, pxPerUnit: innerHeight / fieldH, yUp: true }, dt);
+  const L = split.update(list.length ? list : [{ slot: 0, position: posOf(P1) }], { center: { x: cx, y: cy }, pxPerUnit: innerHeight / fieldH, yUp: true, zoom: groupZoom.applied }, dt);
+  groupZoom.z = split.zoom;
   // split frames render every view: the governor drops each one's resolution (0.7 at 2 views, 0.55 at 3-4)
   quality.setSplitViews(L.views.length);
   // the shapes are culled once for every view: the union of the views' fields

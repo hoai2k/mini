@@ -1711,7 +1711,7 @@ function rectView(v, cx, cy, hw, hh) {
   return v;
 }
 function directorViews() {
-  const hw = (OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6) * Math.max(1, pull.k)) / 2, hh = hw * (innerHeight / Math.max(1, innerWidth));
+  const hw = (OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6) * Math.max(1, pull.k) * groupZoom.applied) / 2, hh = hw * (innerHeight / Math.max(1, innerWidth));
   const list = [];
   const L = split.layout, views = L && L.views.length ? L.views : [{ offset: { x: 0, y: 0 } }];
   for (const v of views) { const o = v.offset || { x: 0, y: 0 }; if (list.length < 4) list.push(rectView(dirViews[list.length], S.camX + (o.x || 0), S.camY + (o.y || 0), hw, hh)); }
@@ -2114,7 +2114,11 @@ let acc = 0;
 const MAX_CATCHUP = 2;
 // Split screen: a 2D microscope field drawn round a centre (shared/splitscreen.js);
 // while split each view draws its property buffers at SPLIT_SCALE of the screen.
-const split = createSplitScreen(renderer, { renderScale: SOFTWARE ? 1 : 0.75 });
+// Two to four players share one view, zoomed out up to this far (a field 2x
+// as wide) before the screen splits; split views settle at 0.75 of it.
+const SPLIT_ZOOM_MAX = 2;
+const groupZoom = { z: 1, applied: 1 };
+const split = createSplitScreen(renderer, { renderScale: SOFTWARE ? 1 : 0.75, zoomMax: SPLIT_ZOOM_MAX });
 const splitT = { on: 0, off: 0, n: 1 };
 // The shared quality governor: it steps the property buffers' scale (and then
 // the effects level) down when frames run long, up when there is headroom,
@@ -2234,18 +2238,22 @@ function frame(now) {
 // while you are drained the view pulls back (eased) to show the fungus at work
 const pull = { k: 1 };
 const fieldWidth = () => {
-  if (outro && outro.cam) return poseView(outro.cam).w;
-  if (introHeld()) return introView().w;
+  if (outro && outro.cam) { groupZoom.applied = 1; return poseView(outro.cam).w; }
+  if (introHeld()) { groupZoom.applied = 1; return introView().w; }
   const want = cells.length === 1 && caught.active && ['eat', 'follow', 'fadeOut'].includes(FC.phase) ? 1.45 : 1;
   pull.k += (want - pull.k) * 0.04;
-  return OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6) * pull.k;
+  // several players in one view: the split screen's zoom-out (a wider field)
+  // keeps them all in it; the screen splits only once it is at its widest
+  groupZoom.applied = cells.length > 1 ? groupZoom.z : 1;
+  return OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6) * pull.k * groupZoom.applied;
 };
 /** Draw every view (one, straight to the screen, while the players are together), then the overlays. */
 function renderAll(dt) {
   const fieldW = fieldWidth();
   for (const c of cells) { c.layer.drain = c.s.drain || 0; const q = (c.pos ||= { x: 0, y: 0, z: 0 }); q.x = c.body.cx; q.y = c.body.cy; }
   view.bodyMat.uniforms.uDrain.value = cells[0].s.drain || 0;
-  split.update(cells.map((c) => ({ slot: c.slot, position: c.pos })), { center: { x: S.camX, y: S.camY }, pxPerUnit: innerWidth / fieldW, yUp: true }, dt);
+  split.update(cells.map((c) => ({ slot: c.slot, position: c.pos })), { center: { x: S.camX, y: S.camY }, pxPerUnit: innerWidth / fieldW, yUp: true, zoom: groupZoom.applied }, dt);
+  groupZoom.z = split.zoom;
   const L = split.layout;
   // (the camera move frames one creature: a single view)
   const many = L.views.length > 1 && !(outro && outro.cam);

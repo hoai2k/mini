@@ -335,7 +335,10 @@ Inside the Micro Zoom shell the roster from its menus is restored.
   (Chaos too) go four at a time into one RGBA mask target, a channel each
   (one clear, one pass, one MSAA resolve), then their bodies into the
   property buffer. The split screen (`../shared/splitscreen.js`, 2D mode:
-  a field drawn round a centre) composes each view into its own target
+  a field drawn round a centre) prefers one shared field: as the cells
+  spread the field widens (the split's `zoom`) up to 2x before it splits,
+  and it merges once they are back inside 0.75 of that for most of a second
+  (split views keep a 1.5x field). It composes each view into its own target
   (`render({ target })`, render scale 0.75), and while split the quality
   governor draws the property buffers at 0.7 (2 views) or 0.55 (3–4) of its
   scale, so a split frame costs well under N full frames. A joining amoeba

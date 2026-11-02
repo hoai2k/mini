@@ -278,7 +278,8 @@ const view = {
   focusPull: 0, focusPullY: 0, // a contact pulls fine focus to what you touched, briefly
   lookHold: 0, // hold manual RS framing briefly before following the body
   pull: 0, // being eaten: 0..1, the camera pulls back to frame the hunter
-  groupDist: 0, // multiplayer: the chase camera backs off as the group spreads (then the screen splits)
+  groupDist: 0, // multiplayer: how far the chase camera backs off for the split screen's zoom-out (view.zoom)
+  zoom: 1,
 };
 const fwdOf = (yaw, out = new THREE.Vector3()) => out.set(Math.cos(yaw), 0, -Math.sin(yaw));
 const angleWrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -348,6 +349,11 @@ resize();
  * `grp` the group: { multi, axis (the middle of the players' helix axes),
  * center, spread }.
  */
+// Two to four players share one view, zoomed out up to this far (the chase
+// camera 2x as far back, or the microscope's field 2x as wide) before the
+// screen splits; split views settle at 0.75 of it.
+const SPLIT_ZOOM_MAX = 2;
+let groupZoom = 1;
 function updateCameras(dt, s, steer, grp) {
   const [W, H] = optics.size;
   const k = 1 - Math.exp(-dt * 6);
@@ -355,7 +361,11 @@ function updateCameras(dt, s, steer, grp) {
   const centre = grp.multi ? grp.center : s.center;
   // being eaten: the camera pulls back to watch the hunter swallow you and follows it
   view.pull += ((capture.active && EATING.has(cap.phase) ? 1 : 0) - view.pull) * (1 - Math.exp(-dt * 2.2));
-  view.groupDist += ((grp.multi ? Math.min(view.dist * 1.2, grp.spread * 0.55) : 0) - view.groupDist) * (1 - Math.exp(-dt * 2));
+  // several players in one view: the split screen's zoom-out (the chase
+  // camera pulled back along its view, the microscope's field widened) keeps
+  // them all in frame; the screen splits only once it is at its widest
+  view.zoom = grp.multi ? groupZoom : 1;
+  view.groupDist = view.dist * (view.zoom - 1);
   if (view.kind === 'chase') {
     // follow the helix axis and the travel heading, not the rolling body
     const heading = !view.smoothHelix && !grp.multi ? Math.atan2(-s.T.z, s.T.x) : s.yaw;
@@ -378,7 +388,7 @@ function updateCameras(dt, s, steer, grp) {
     return chase;
   }
   const o = OBJECTIVES[view.obj];
-  const half = (o.field / 2 / 0.95) * (1 + 0.9 * view.pull);
+  const half = (o.field / 2 / 0.95) * (1 + 0.9 * view.pull) * view.zoom;
   scope.top = half; scope.bottom = -half; scope.left = -half * (W / H); scope.right = half * (W / H);
   scope.updateProjectionMatrix();
   // The view turns with the heading (never the roll), slowly, and holds still
@@ -1779,6 +1789,7 @@ function frame(now) {
   if (!held && ts > 0) { tick(dt * ts); stepSpirillum(dt * ts); }
 
   const s = swimmer.state;
+  if ((held && intro && intro.cam) || (outro && outro.cam)) view.zoom = 1; // the shell's poses frame one creature
   const cam = held && intro && intro.cam ? placePoseCamera(intro.cam, s.center, LENGTH, cellHeading(s))
     : outro && outro.cam ? placePoseCamera(outro.cam, spir.pos, SPIRILLUM.L, spirHeading())
       : updateCameras(held ? 1e-4 : dt * ts, s, ls, group());
@@ -1803,7 +1814,8 @@ function frame(now) {
   spirGlint.update(t);
   // the split screen (one view while together: the fast path, as before)
   const list = liveRoster().map((P) => ({ slot: P.slot, position: P.swimmer.state.center }));
-  const L = split.update(list.length ? list : [{ slot: 0, position: s.center }], { camera: cam }, dt);
+  const L = split.update(list.length ? list : [{ slot: 0, position: s.center }], { camera: cam, zoom: view.zoom }, dt);
+  groupZoom = split.zoom;
   directorViews(cam);
   quality.setSplitViews(L.views.length); // split views render at a lower resolution (the governor's split factor)
   // the amoeba re-meshes rarely while no one is near its floor
@@ -2016,7 +2028,7 @@ function updateGoal(s) {
 // gets a faint ring in its player's colour so you can tell who is who.
 /** The split layout without degenerate (empty) regions, for shared/landmark.js. */
 const arrowSplit = () => { const L = split.layout; return { layout: { ...L, regions: L.regions.filter((r) => r.polygon.length > 2) }, project: split.project }; };
-const split = createSplitScreen(renderer, { capture: true, up: null });
+const split = createSplitScreen(renderer, { capture: true, up: null, zoomMax: SPLIT_ZOOM_MAX });
 const edgeMarks = createLandmarks({ zIndex: 4 });
 /**
  * The "Portal arrow" setting (the game's Settings, default off; ?arrow=1 here): an arrow at the edge of
@@ -2220,7 +2232,8 @@ function stepViews(dt) {
   const s = swimmer.state;
   const cam = updateCameras(dt, s, ls, group());
   const list = liveRoster().map((P) => ({ slot: P.slot, position: P.swimmer.state.center }));
-  split.update(list.length ? list : [{ slot: 0, position: s.center }], { camera: cam }, dt);
+  split.update(list.length ? list : [{ slot: 0, position: s.center }], { camera: cam, zoom: view.zoom }, dt);
+  groupZoom = split.zoom;
   directorViews(cam);
 }
 const slotP = (slot) => roster.find((P) => P.slot === slot) || P1;
@@ -2323,7 +2336,10 @@ window.__micro = {
   cellPose: () => embed.poseOf(chase, swimmer.state.center, { len: LENGTH, heading: cellHeading(swimmer.state), ...camAngles(chase) }),
   get look() { return lookName(); },
   // Micro Zoom: players, split screen and landmarks
-  players, split, landmarks: { forward: FWD.pos, back: BACK.pos, log: lm.log, get near() { return lm.near; }, get prompt() { return !!lm.portal; } },
+  players, split,
+  /** Testing: put player `slot`'s cell at (x, z) µm, at its depth. */
+  place(slot, x, z) { const st = slotP(slot).swimmer.state; const dx = x - st.axis.x, dz = z - st.axis.z; st.axis.x += dx; st.axis.z += dz; st.center.x += dx; st.center.z += dz; },
+  landmarks: { forward: FWD.pos, back: BACK.pos, log: lm.log, get near() { return lm.near; }, get prompt() { return !!lm.portal; } },
   get frames() { return frameCount; },
   /** Each hunter's fight: state, progress, interest, what it is doing. */
   boss: () => ({ awake: trap.awake, state: trap.fight.state, t: +(trap.fightT || 0).toFixed(2), interest: +trap.fight.interest.toFixed(2), phase2: trap.phase2, door: trap.door.toArray(), log: bossInfo.log }),

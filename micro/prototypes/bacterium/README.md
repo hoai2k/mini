@@ -347,8 +347,11 @@ shell's roster comes in with `embed.players`).
   the Features choice applies to all), with its own dash, growth and catch,
   and its own fluorescent label (**Telling players apart**). The corner brackets that mark your cell are drawn in each player's
   colour with a "P2" tag (alone: the gold brackets as before).
-- **One shared field, then a split.** The stage follows the players' flocks' middle;
-  as players separate the screen splits LEGO-style (`shared/splitscreen.js`,
+- **One shared field, then a split.** The stage follows the players' flocks' middle,
+  and the field grows as they spread (the split's `zoom`, up to 1.6x the
+  field); only further apart does the screen split LEGO-style, merging again
+  once they are back inside 0.75 of that for most of a second (split views
+  keep 1.2x; `shared/splitscreen.js`,
   its 2D mode: each view is the field drawn round its own centre, captured,
   at 70 % resolution while split, without the field stop). Player 1 has the
   view controls (look, field, focus, stage, Y for the data overlay).

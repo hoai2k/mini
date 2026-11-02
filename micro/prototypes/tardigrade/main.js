@@ -262,6 +262,7 @@ function placePoseCamera(pose) {
   view.yaw = Math.PI / 2 - r.yaw; view.pitch = r.pitch;
   view.target.set(r.target.x, r.target.y, r.target.z);
   view.dist = r.depth;
+  view.zoom = 1; view.camDist = view.dist;
 }
 
 function applyMode(m) {
@@ -421,7 +422,11 @@ resize();
 
 
 // ---------------------------------------------------------------- players
-const split = createSplitScreen(renderer, { renderScale: SOFTWARE ? 1 : 0.75 });
+// Two to four players share one view, zoomed out up to this far (the camera
+// 1.7x farther back) before the screen splits; split views settle at 0.75 of it.
+const SPLIT_ZOOM_MAX = 1.7;
+let groupZoom = 1;
+const split = createSplitScreen(renderer, { renderScale: SOFTWARE ? 1 : 0.75, zoomMax: SPLIT_ZOOM_MAX });
 const marks = createLandmarks();
 const BACK_LABEL = 'Back to the mite';
 
@@ -966,6 +971,7 @@ function placeOutroCamera(pose) {
   view.yaw = Math.PI / 2 - r.yaw; view.pitch = r.pitch;
   view.target.set(r.target.x, r.target.y, r.target.z);
   view.dist = r.depth;
+  view.zoom = 1; view.camDist = view.dist;
 }
 
 // ---------------------------------------------------------------- loop
@@ -997,7 +1003,8 @@ function inputOf(a, inMenu) {
 /** Tests that step without drawing: the camera and the views as a drawn frame would have them, so the director sees what they see. */
 function stepViews(dt) {
   placeViewCamera(dt);
-  split.update(animals.map((a) => ({ slot: a.slot, position: shownAt(a, a.shown || (a.shown = new THREE.Vector3())) })), { camera }, dt);
+  split.update(animals.map((a) => ({ slot: a.slot, position: shownAt(a, a.shown || (a.shown = new THREE.Vector3())) })), { camera, zoom: view.zoom }, dt);
+  groupZoom = split.zoom;
   viewN = 0;
   const L = split.layout;
   if (L.views.length <= 1) split.withView(0, camera, noteView);
@@ -1486,15 +1493,20 @@ function placeViewCamera(dt) {
   const dist = field / 2 / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.max(1, camera.aspect) * 1.0;
   if (outro) placeOutroView();
   else view.dist = THREE.MathUtils.lerp(view.dist || dist, dist, 1 - Math.exp(-dt * 4));
+  // several players in one view: the split screen's zoom-out (the camera
+  // pulled back along its view) keeps them all in frame; the screen splits
+  // only once it is at its widest (shared/splitscreen.js)
+  view.zoom = !solo && !outro && !view.fixed ? groupZoom : 1;
+  view.camDist = view.dist * view.zoom;
   let aim;
   if (capture.active && solo && following) aim = captor === 'boss' ? _ct.copy(boss.headW) : _ct.copy(predator.walker.dispPos);
   else if (capture.active && solo && ph !== 'fadeIn') aim = _ct.copy(walker.dispPos).lerp(captor === 'boss' ? boss.headW : predator.walker.dispPos, 0.5);
   else { aim = _ct.set(0, 0, 0); for (const a of animals) aim.add(shownAt(a, _c2)); aim.multiplyScalar(1 / animals.length); }
   if (!outro) view.target.lerp(aim, 1 - Math.exp(-dt * 3));
   camera.position.set(
-    view.target.x + view.dist * Math.cos(view.pitch) * Math.sin(view.yaw),
-    view.target.y + view.dist * Math.sin(view.pitch),
-    view.target.z + view.dist * Math.cos(view.pitch) * Math.cos(view.yaw),
+    view.target.x + view.camDist * Math.cos(view.pitch) * Math.sin(view.yaw),
+    view.target.y + view.camDist * Math.sin(view.pitch),
+    view.target.z + view.camDist * Math.cos(view.pitch) * Math.cos(view.yaw),
   );
   camera.up.set(0, 1, 0);
   if (view.fixed && solo) { // turnaround shots (testing): orbit in the animal's own frame
@@ -1512,7 +1524,8 @@ function drawViews(dt) {
   viewN = 0;
   // Split screen (one view, straight to the screen, while together).
   const list = animals.map((a) => ({ slot: a.slot, position: shownAt(a, a.shown || (a.shown = new THREE.Vector3())) }));
-  split.update(list, { camera }, dt);
+  split.update(list, { camera, zoom: view.zoom }, dt);
+  groupZoom = split.zoom;
   const L = split.layout;
   // The lit look swaps in ordinary materials, so the optical buffers would be empty.
   if (borrow.id && borrow.id !== 'semMite' && view.mode === 2) features.set(borrow.id, false);
@@ -1580,7 +1593,7 @@ function drawRings(L) {
   const k = cv.width / (cv.clientWidth || innerWidth);
   g.save();
   g.setTransform(k, 0, 0, k, 0, 0);
-  const px = innerHeight / (2 * view.dist * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+  const px = innerHeight / (2 * (view.camDist || view.dist) * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
   for (const a of animals) {
     const reg = L.regions.find((r) => r.slot === a.slot);
     if (!reg) continue;
@@ -1653,7 +1666,7 @@ function noteView() {
   camera.updateMatrixWorld();
   v.frustum.setFromProjectionMatrix(_vm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
   camera.getWorldDirection(_vdir);
-  v.focus.copy(camera.position).addScaledVector(_vdir, view.dist || camera.position.distanceTo(view.target));
+  v.focus.copy(camera.position).addScaledVector(_vdir, view.camDist || view.dist || camera.position.distanceTo(view.target));
   seenViews = viewPool.slice(0, viewN);
 }
 function drawView(v, target, dt) {

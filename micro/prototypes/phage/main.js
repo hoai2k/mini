@@ -149,7 +149,7 @@ const ZOOMS = [60, 110, 180, 290];
 // The camera's orientation is a quaternion turned about its own axes by RS (no yaw/pitch angles, no
 // lookAt and no up vector, so there is no pole to flip at); nothing turns it unless a stick is held,
 // apart from an optional, gentle roll that keeps the sunlit surface toward the top of the screen.
-const view = { look: 0, zoom: 1, q: new THREE.Quaternion(), overlay: false, ink: true, art: true, target: new THREE.Vector3(), dist: 180, iso: null, lookHold: 0, level: true, turnRate: 0 };
+const view = { look: 0, zoom: 1, groupZoom: 1, q: new THREE.Quaternion(), overlay: false, ink: true, art: true, target: new THREE.Vector3(), dist: 180, iso: null, lookHold: 0, level: true, turnRate: 0 };
 const opts = { drive: true, brownian: true, kicks: true, tumble: true, uv: true, amoeba: true };
 
 function applyArt() {
@@ -1205,7 +1205,11 @@ function updateOverlay(where) {
 
 // --- frame ---
 const debug = { freeze: false, iso: false, camOverride: null };
-const split = createSplitScreen(renderer, { capture: true, up: null });
+// Two to four players share one view, zoomed out up to this far (the camera
+// 1.8x as far back) before the screen splits; split views settle at 0.75 of it.
+const SPLIT_ZOOM_MAX = 1.8;
+let groupZoom = 1;
+const split = createSplitScreen(renderer, { capture: true, up: null, zoomMax: SPLIT_ZOOM_MAX });
 const marks = createLandmarks();
 /**
  * The "Portal arrow" setting (the game's Settings, default off; ?arrow=1 here): an arrow at the edge of each
@@ -1550,7 +1554,11 @@ function frame(now) {
     const want = lead.P.mode === 'burst' ? lead.P.commitHost.pos : split.centroid(focusPts);
     view.target.lerp(_v.set(want.x, want.y, want.z), 1 - Math.exp(-dt * (lead.P.mode === 'burst' ? 1 : 2.5)));
     const o = debug.camOverride;
-    const dist = o ? o.dist : view.dist * (lead.P.mode === 'burst' ? 1.6 : 1);
+    // several phages in one view: the split screen's zoom-out (the camera
+    // pulled back along its view) keeps them all in frame; the screen splits
+    // only once it is at its widest (shared/splitscreen.js)
+    view.groupZoom = !o && inPlay.length > 1 && lead.P.mode !== 'burst' && !(held && intro && intro.cam) ? groupZoom : 1;
+    const dist = o ? o.dist : view.dist * (lead.P.mode === 'burst' ? 1.6 : 1) * view.groupZoom;
     // the camera is the view quaternion, at `dist` behind the target along its own back axis
     if (o) view.q.setFromEuler(new THREE.Euler(o.pitch, o.yaw, 0, 'YXZ'));
     camera.quaternion.copy(view.q);
@@ -1599,7 +1607,8 @@ function frame(now) {
   if (where === 'outside') {
     // LEGO split screen: one view while together, split as players drift apart
     const list = inPlay.length ? inPlay.map((m, i) => ({ slot: m.slot, position: focusPts[i] })) : [{ slot: 0, position: view.target }];
-    split.update(list, { camera }, dt);
+    split.update(list, { camera, zoom: view.groupZoom }, dt);
+    groupZoom = split.zoom;
     quality.setSplitViews(split.views.length);
     // the phages' wakes in the bath (molecules make way round each phage, so it always reads)
     world.setWake(debug.iso ? [] : members().filter((m) => m.t4.group.visible).map((m) => { use(m); return { p: centreOf(new THREE.Vector3()), r: 16 * P.scale }; }));

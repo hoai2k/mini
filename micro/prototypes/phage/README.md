@@ -153,7 +153,10 @@ hunt hard, a near dead end). The third cell is the wrong host.
   players apart**). The view is the LEGO split
   (`shared/splitscreen.js`, image-plane offsets for this free-floating 3D
   world, with `capture` since the Goodsell pass draws to the screen): one view
-  together, split as phages drift apart. The amoeba on guard reaches for the
+  together, which zooms out as the phages drift apart (the split's `zoom`:
+  the camera backs off along its view, the focus and fog with it) up to 1.8x,
+  split only beyond that, merged again once they are back inside 0.75 of it
+  for most of a second (split views keep 1.35x). The amoeba on guard reaches for the
   phage nearest its post; the UV shafts act on each. A caught player plays the whole sequence, then drifts back
   in beside a teammate (no card; `captured` is posted); solo keeps the card.
   One player at a time can commit: the inside phase is a single shared view

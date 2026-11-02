@@ -213,6 +213,7 @@ function placePoseCamera(pose) {
   rig.yaw = r.yaw; rig.pitch = r.pitch;
   rig.target.set(r.target.x, r.target.y, r.target.z);
   rig.viewHfw = 2 * r.halfW;
+  rig.zoom = 1;
   const d = r.depth;
   camera.near = Math.max(20, d * 0.08);
   camera.far = d + 9000;
@@ -226,16 +227,25 @@ function placePoseCamera(pose) {
 }
 
 const cutKeep = new Set();
+// Two to four players share one view, zoomed out up to this far (1.8x the
+// field) before the screen splits; split views settle at 0.75 of it.
+const SPLIT_ZOOM_MAX = 1.8;
+let groupZoom = 1;
 function placeCamera(dt) {
   const tanH = Math.tan(THREE.MathUtils.degToRad(VFOV) / 2) * camera.aspect;
-  // several players: frame the group, a little wider as it spreads (the split screen takes over when they part)
+  // several players: frame the group (the split screen takes over when they part)
   const mp = multi();
   const gc = mp ? groupCentre(recs()) : null;
-  let want = mp ? rig.hfw * (1 + Math.min(0.6, (gc.spread / rig.hfw) * 0.7)) : rig.hfw;
+  let want = rig.hfw;
   // a boss fight: the lens widens to keep the pseudoscorpion and its pincers in frame
   const bd = boss.engaged ? boss.center.distanceTo(mp ? gc.c : mite.center) : Infinity;
   if (bd < 3400 && !capture.active && !outro) want = Math.min(4200, Math.max(want, bd * 1.3 + 2600));
   if (!outro) rig.viewHfw = rig.viewHfw === undefined || !dt ? want : rig.viewHfw + (want - rig.viewHfw) * (1 - Math.exp(-dt / 0.4));
+  // a group in one view: the split screen's zoom-out (the camera pulled back
+  // along its view) keeps everyone in frame; the screen splits only once it
+  // is at its widest (shared/splitscreen.js). The boss's widening counts too.
+  if (mp && !outro) rig.viewHfw = Math.max(rig.viewHfw, rig.hfw * groupZoom);
+  rig.zoom = mp && !outro ? Math.max(1, rig.viewHfw / rig.hfw) : 1;
   const d = rig.viewHfw / (2 * tanH);
   const k = dt ? 1 - Math.exp(-dt / 0.25) : 1;
   // a catch is framed whole: you and the predator (alone; with company the camera keeps the group)
@@ -1261,6 +1271,7 @@ function placeOutroCamera(pose) {
   rig.yaw = r.yaw; rig.pitch = r.pitch;
   rig.target.set(r.target.x, r.target.y, r.target.z);
   rig.viewHfw = 2 * r.halfW;
+  rig.zoom = 1;
   const d = r.depth;
   camera.near = Math.max(20, d * 0.08);
   camera.far = d + 9000;
@@ -1686,7 +1697,7 @@ let frames = 0, statT = 0;
 // The SEM composite (and a borrowed look) ends on the screen, so the split
 // copies each view from it (capture). Split views render at a lower
 // resolution (the quality governor's split factor): the composite costs per pixel.
-const split = createSplitScreen(renderer, { capture: true });
+const split = createSplitScreen(renderer, { capture: true, zoomMax: SPLIT_ZOOM_MAX });
 const marks = createLandmarks();
 const _vc = new THREE.Vector3(), _vd = new THREE.Vector3(), _pm = new THREE.Matrix4();
 /** Where a view looks: its line of sight met with the floor's mean level (or 5 mm out, looking up). */
@@ -1707,7 +1718,8 @@ function drawFrame(dt) {
   }
   // a caught player's view follows the predator with its meal
   const eating = capture.active && ['eat', 'follow', 'fadeOut'].includes(capture.phase);
-  split.update(recs().map((P) => ({ slot: P.slot, position: (eating && cap.who === P ? (cap.byBoss ? boss.center : pred.center) : P.mite.center).clone() })), { camera }, dt);
+  split.update(recs().map((P) => ({ slot: P.slot, position: (eating && cap.who === P ? (cap.byBoss ? boss.center : pred.center) : P.mite.center).clone() })), { camera, zoom: rig.zoom }, dt);
+  groupZoom = split.zoom;
   quality.setSplitViews(split.views.length);
   const one = split.views.length === 1;
   const cut0 = shared.uCutP.value.clone();
@@ -1825,7 +1837,8 @@ function updateText(d) {
 /** Tests that step without drawing: the camera and the views' frustums as a drawn frame would have them, so the director sees what they see. */
 function stepViews(dt) {
   placeCamera(dt);
-  split.update(recs().map((P) => ({ slot: P.slot, position: P.mite.center.clone() })), { camera }, dt);
+  split.update(recs().map((P) => ({ slot: P.slot, position: P.mite.center.clone() })), { camera, zoom: rig.zoom }, dt);
+  groupZoom = split.zoom;
   const n = Math.max(1, split.views.length);
   for (let i = 0; i < n && i < 4; i++) split.withView(i, camera, () => {
     camera.updateMatrixWorld();

@@ -305,9 +305,13 @@ shell (`embed.players`).
   that view's camera and put back after; the portal halo is left out while
   anyone looks).
 - **Split screen** (`shared/splitscreen.js`, LEGO-style): together, one view
-  that frames the group (a little wider as it spreads, with the depth of
-  field deepened until everyone is sharp); apart, the view splits and each
-  view focuses on its own players. The macro chain ends on the screen, so the
+  that frames the group, with the depth of field deepened until everyone is
+  sharp. It prefers to stay one view: as the group spreads it zooms out (the
+  split's `zoom`: the lens's field widened, so the camera backs off on the
+  same orbit and the focal plane follows it) up to 1.8x the solo framing, and
+  splits only once that is not enough; it merges again once you are back
+  inside 0.75 of it for most of a second. Split views keep a gentle 0.75 x 1.8
+  (1.35x) zoom-out, and each view focuses on its own players. The macro chain ends on the screen, so the
   split copies each view (`capture`), and split views render at 70%
   resolution (55% when split three or four ways): the quality governor's
   split factor (`setSplitViews`). Every pass of the macro chain (scene,

@@ -260,6 +260,10 @@ function landingPoint() {
   }
   return null;
 }
+// Two to four players share one view, zoomed out up to this far (the lens's
+// field 1.8x wide) before the screen splits; split views settle at 0.75 of it.
+const SPLIT_ZOOM_MAX = 1.8;
+let groupZoom = 1;
 function placeCamera(dt) {
   // while a predator has you, the lens widens (or closes in) to frame you and
   // it together, and swings side-on to the catch
@@ -275,9 +279,13 @@ function placeCamera(dt) {
   const base = 36 / ZOOMS[rig.zi];
   // stuck on a sundew leaf (alone): the lens closes in on the struggle
   const stuckView = !mp && pl.mode === 'stuck';
-  const hfwWant = capOn ? CAP_VIEW[cap.kind].hfw * (capFollow ? 1.7 : 1) : mp ? base * (1 + Math.min(0.5, (gc.spread / base) * 0.6)) : stuckView ? Math.min(base, CAP_VIEW.sundew.hfw) : base;
+  const hfwWant = capOn ? CAP_VIEW[cap.kind].hfw * (capFollow ? 1.7 : 1) : stuckView ? Math.min(base, CAP_VIEW.sundew.hfw) : base;
   rig.hfw = rig.hfw === undefined || !dt ? hfwWant : rig.hfw + (hfwWant - rig.hfw) * (1 - Math.exp(-dt * 3));
-  const L = (rig.lens = lens({ hfw: rig.hfw, N: APERTURES[rig.ai] }));
+  // a group in one view: the split screen's zoom-out (the lens's field widened,
+  // the camera farther back on the same orbit) keeps everyone in frame; the
+  // screen splits only once it is at its widest (shared/splitscreen.js)
+  rig.zoom = mp ? groupZoom : 1;
+  const L = (rig.lens = lens({ hfw: rig.hfw * rig.zoom, N: APERTURES[rig.ai] }));
   const want = mp ? new THREE.Vector3(gc.x, gc.y + 0.25, gc.z) : new THREE.Vector3(pl.x, pl.y + 0.25, pl.z);
   // frame a little toward where a jump will land
   const land = opt.jumpFocus && !capOn && !mp ? landingPoint() : null;
@@ -2142,7 +2150,7 @@ function step(dt, inputs) {
   world.food.update((x, z) => field.height(x, z) + dimples.height(x, z) * 0.5, foodNear);
   updateContacts();
 }
-const split = createSplitScreen(renderer, { capture: true });
+const split = createSplitScreen(renderer, { capture: true, zoomMax: SPLIT_ZOOM_MAX });
 const marks = createLandmarks();
 // a caught player's view follows the predator with its meal
 const posOf = (P) => {
@@ -2153,12 +2161,13 @@ const MOSS_LOD_BEYOND = 90; // mm past the focus distance (a 64 mm tile reaches 
 function render(dt) {
   // the outro: the camera slows with time, holds on the freeze, then follows the shell's poses
   let L;
-  if (outro && outro.cam) L = placePoseCamera(outro.cam);
+  if (outro && outro.cam) { L = placePoseCamera(outro.cam); rig.zoom = 1; }
   else if (outro && outro.scale <= 0 && outro.L) L = outro.L;
   else L = placeCamera(outro ? dt * Math.max(outro.scale, 1e-3) : dt);
   if (outro) outro.L = L;
   field.upload();
-  split.update(recs().map((P) => ({ slot: P.slot, position: posOf(P) })), { camera }, dt);
+  split.update(recs().map((P) => ({ slot: P.slot, position: posOf(P) })), { camera, zoom: rig.zoom }, dt);
+  groupZoom = split.zoom;
   directorViews();
   quality.setSplitViews(split.views.length);
   const focus0 = macroShared.uFocus.value;
@@ -2234,7 +2243,8 @@ function drawPortalArrow() {
 /** Tests that step without drawing: the camera and the views as a rendered frame would have them, so the director sees what they see. */
 function stepViews(dt) {
   placeCamera(dt);
-  split.update(recs().map((P) => ({ slot: P.slot, position: posOf(P) })), { camera }, dt);
+  split.update(recs().map((P) => ({ slot: P.slot, position: posOf(P) })), { camera, zoom: rig.zoom }, dt);
+  groupZoom = split.zoom;
   directorViews();
 }
 const api = {

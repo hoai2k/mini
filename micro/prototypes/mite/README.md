@@ -297,8 +297,12 @@ game the roster comes in from the shell (`embed.players`).
   orbits the shared camera, player 1 also has magnification, imaging mode and
   observer mode.
 - **Split screen** (`shared/splitscreen.js`): together, one view on the
-  group (a little wider as it spreads); apart, LEGO-style split views, each
-  with the cutaway cleared toward its own players. The SEM composite ends on
+  group, which zooms out as it spreads (the split's `zoom`: the camera pulled
+  back along its view, the HFW and scale bar widening with it) up to 1.8x the
+  solo field before it splits; it merges once you are back inside 0.75 of
+  that for most of a second, and split views keep a gentle 1.35x. Apart,
+  LEGO-style split views, each with the cutaway cleared toward its own
+  players. The SEM composite ends on
   the screen, so the split copies each view (`capture`); split views render
   at 70% resolution (55% when split three or four ways).
 - **The predator** goes for the nearest player. A caught player plays the

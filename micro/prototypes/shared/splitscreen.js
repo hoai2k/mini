@@ -1,6 +1,11 @@
 // LEGO-style dynamic split screen for 1-4 local players.
 //
-// Together, everyone shares one view. As players separate the screen splits
+// Together, everyone shares one view, and it prefers to stay that way (the
+// owner, 2026-11-02: "go far apart and it should zoom out a little and try to
+// keep us both in the frame and then split only when it's not possible
+// anymore"): as the players spread, the shared view zooms out (split.zoom,
+// which each world applies to its own camera) up to its maximum, and only
+// then, with a player still near the edge, does the screen split. As players separate further the screen splits
 // along lines perpendicular to the directions between them as they appear on
 // screen, so the tilt of a divider always shows where the other player is:
 // each player's region faces the others. The split lines turn smoothly as
@@ -27,24 +32,44 @@
 //      Regions = the power diagram (a weighted Voronoi diagram) of the sites
 //      clipped to the screen; with 3-4 players the weights grow any region
 //      smaller than about 1/2N of the screen, smoothly, so no one gets a sliver.
-//   3. Each player should appear at d_i: where they already are while they
-//      are near the middle (|s_i| up to rho_i, the distance of their region's
-//      centroid along s_i), otherwise held at that distance and eased onto the
-//      region's centroid. The raw shift is s_i - d_i (px): exactly zero while
-//      every player is inside their rho. Each player's shift becomes their own
-//      camera offset (step 6); players within ~12% of the short side of each
-//      other share one offset (blending out to ~26%, closed over chains), so a
-//      close group shares a view, and its views are already identical when
-//      they join.
-//   4. Merged or split, with hysteresis on E = max |s_i| / rho_i: the screen
-//      splits when E passes `splitAt` (1.12), and the group would not fit
-//      around its own on-screen centre either (or a player is leaving the
-//      screen), so a player joining beside a teammate before the world's
-//      camera has re-centred starts merged; it merges again only at E <= 1,
-//      where every raw shift is already zero. On splitting, the shifts ease in
-//      from zero over `splitIn` seconds (no jump); dividers fade with the
-//      difference between the views' shifts. So a merge is continuous: the
-//      offsets reach zero and the dividers vanish on the same frame.
+//   3. Split, each player is shown at their region's centroid g_i: the raw
+//      shift is s_i - g_i (px), scaled by the split's ease (step 4). Each
+//      player's shift becomes their own camera offset (step 6); players
+//      within ~12% of the short side of each other share one offset (blending
+//      out to ~26%, closed over chains), so a close group shares a view, and
+//      its views are already identical when they join.
+//   4. Zoom out first, split last, merge late. F = the group's reach, the
+//      largest |s_x| / (W/2) or |s_y| / (H/2) (1 = a player on the screen's
+//      edge). need = zoom x F / `comfort` (0.6) is the zoom that would put
+//      the group inside the comfortable margin (exact for a zoom that scales
+//      the picture about its centre: a 2D field, a wider lens; close for a
+//      camera pulled back). Merged, the zoom target follows need up at once
+//      and comes back down only once need has fallen `zoomBand` (10%) below
+//      it (a dead band: no pumping), clamped to 1..`zoomMax`; split.zoom
+//      eases to it critically damped (no overshoot), out in ~`zoomOutTime`
+//      (0.35 s), in over ~`zoomInTime` (1 s). The world's solo framing is
+//      zoom 1: a lone player is never zoomed.
+//        Split when the zoom is at its maximum (>= 0.97 x zoomMax, or a
+//      player is already leaving the screen) and the group still reaches past
+//      `splitFit` (0.86 of the way to the edge at the maximum zoom: need >
+//      zoomMax x splitFit / comfort), around the screen centre and around the
+//      group's own on-screen centre alike (a player joining beside a teammate
+//      before the world's camera has re-centred stays merged).
+//        While split, the views settle (over ~1.2 s) to a gentle zoom-out,
+//      `mergeAt` x zoomMax (0.75 x; at least 1): each view still shows a
+//      little more round its player than the solo framing, and it is exactly
+//      the zoom the merged view will need, so the merge needs no zoom change.
+//        Merge once the group has fitted that zoom (need <= mergeAt x
+//      zoomMax) for `mergeDwell` (0.8 s) in a row: the shifts then ease out
+//      over `splitOut` (0.5 s), and the screen is merged when they reach zero
+//      (moving apart again past 1.25 x that need first eases them back in, no
+//      transition). So walking about near the split distance never flickers:
+//      splitting takes the maximum zoom and a group past 0.86 of it, merging
+//      a group back inside 0.75 of it for most of a second. On splitting, the
+//      shifts ease in from zero over `splitIn` seconds (no jump); dividers
+//      fade with the difference between the views' shifts and with the ease,
+//      so a split and a merge are both continuous: the offsets reach zero and
+//      the dividers vanish on the same frame. 3-4 players: the same rule.
 //   5. Players whose offsets agree (within 0.3 px, apart beyond 0.8 px) share
 //      one view (one render). While merged there is one view with no shift and
 //      the world renders straight to the screen exactly as without split screen.
@@ -60,9 +85,11 @@
 //
 // Use (three.js world):
 //   import { createSplitScreen } from '../shared/splitscreen.js';
-//   const split = createSplitScreen(renderer, { renderScale: 1 });
-//   ... each frame, after moving the players and placing the shared camera:
-//   split.update(players.map((p) => ({ slot: p.slot, position: p.mesh.position })), { camera }, dt);
+//   const split = createSplitScreen(renderer, { renderScale: 1, zoomMax: 1.8 });
+//   ... each frame, after moving the players, place the shared camera with
+//   its group framing widened by z = split.zoom (pull it back z x along its
+//   view, or widen tan(fov/2) z x; orthographic or 2D: the field z x), then:
+//   split.update(players.map((p) => ({ slot: p.slot, position: p.mesh.position })), { camera, zoom: z }, dt);
 //   split.render(camera, (view, target) => {
 //     renderer.setRenderTarget(target);   // null on the fast path: the screen
 //     renderer.render(scene, camera);     // the camera is already offset for this view
@@ -75,7 +102,8 @@
 // texture after each view (renderer.copyFramebufferToTexture, full resolution).
 //
 // A 2D world with no three.js camera (a microscope field drawn around a
-// centre): split.update(players, { center: { x, y }, pxPerUnit, yUp: true });
+// centre): split.update(players, { center: { x, y }, pxPerUnit, yUp: true, zoom });
+// (pxPerUnit already divided by the zoom);
 // then view.offset is { x, y } in world units: draw view i around
 // center + offset, into split.target(i), then split.compose().
 //
@@ -104,14 +132,21 @@
 //     scissor = true, margin = 24 (drawing-buffer px), captureScale = false,
 //     divider = { color: '#c9a35a', width: 1.75, shadow: 'rgba(16,12,6,0.5)', soft: 5 },
 //     mergeBlend = 0.2, minArea, up = [0, 1, 0] | null,
-//     splitAt = 1.12, splitIn = 0.5, turnRate = 3 (rad/s) }) -> split
+//     splitIn = 0.5, splitOut = 0.5, turnRate = 3 (rad/s),
+//     zoomMax = 1 (the world's maximum zoom-out), comfort = 0.6, splitFit = 0.86,
+//     mergeAt = 0.75, mergeDwell = 0.8, zoomOutTime = 0.35, zoomInTime = 1,
+//     zoomBand = 0.1 }) -> split
 //   split.update(players, shared, dt = 1/60) -> layout
 //     players: [{ slot, position: {x,y,z} }]  (1-4)
-//     shared:  { camera }  or  { center: {x,y}, pxPerUnit, yUp = true }
+//     shared:  { camera, zoom }  or  { center: {x,y}, pxPerUnit, yUp = true, zoom }
+//              zoom: what the world applied this frame (default split.zoom)
+//   split.zoom                        the shared view's zoom-out factor (1..zoomMax): read
+//                                    it before update and widen the camera's framing by it
+//   split.zoomMax
 //   split.layout -> { merged, width, height, views, regions, edges, players,
-//                     amount (0-1 split ease-in), spread (E), angle (2 players:
-//                     on-screen direction from the lower slot to the higher,
-//                     radians, unwrapped) }
+//                     amount (0-1 split ease), spread (max |s_i| / rho_i), angle
+//                     (2 players: on-screen direction from the lower slot to the
+//                     higher, radians, unwrapped), zoom, need, fit (F), merging }
 //     views[i]:   { index, slots, shift: {x,y} px, offset: Vector3 | {x,y},
 //                   rect: {x,y,w,h} drawing-buffer px from the bottom-left (padded by margin),
 //                   box: {x,y,w,h} CSS px from the top-left (unpadded) }
@@ -646,6 +681,7 @@ export function createSplitScreen(renderer, opts = {}) {
     st.zoomV = (st.zoomV - w * tmpV) * e;
     let out = z + (d + tmpV) * e;
     if ((z - st.zoom > 0) === (out > z)) { out = z; st.zoomV = 0; } // no overshoot
+    if (Math.abs(out - z) < 1e-4 && Math.abs(st.zoomV) < 1e-3) { out = z; st.zoomV = 0; }
     st.zoom = Math.max(1, Math.min(Math.max(1, zoomMax), out));
   }
 

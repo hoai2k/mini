@@ -333,6 +333,8 @@ window.__splitDemo = {
     arr.forEach((xz, slot) => { const b = bodies[slot]; if (b && xz) { b.mesh.position.set(xz[0], 0, xz[1]); b.vel.set(0, 0, 0); } });
     render(1 / 60, true);
   },
+  /** Testing: put player `slot` at (x, z), standing (no render, no camera snap). */
+  place(slot, x, z) { const b = bodies[slot]; if (b) { b.mesh.position.set(x, 0, z); b.vel.set(0, 0, 0); } return !!b; },
   setYaw(v) { rig.yaw = v; render(1 / 60, true); },
   setView(v) { features.set('view', v === 'top' ? 'Top-down' : 'Orbit'); render(1 / 60, true); },
   /** Manual stepping: the animation loop stops advancing; tick() runs one fixed frame. */
