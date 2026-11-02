@@ -43,7 +43,7 @@ renderer.autoClear = false;
 // --- players: P1 on the keyboard and the first controller; 2-4 join with any button on another ---
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); embed.join(p.slot, p.color, p.name, players.toJSON()); }, // the roster rides along, so the shell carries this player into the next world
+  onJoin: (p) => { audio.play('shared/join', { volume: 0.6 }); hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); embed.join(p.slot, p.color, p.name, players.toJSON()); }, // the roster rides along, so the shell carries this player into the next world
   onLeave: (p) => { hud.toast(tt('shared.players.left', { n: p.slot + 1 })); embed.leave(p.slot); },
   onChange: (list) => { if (hud) hud.players(list); },
 });
@@ -121,18 +121,22 @@ const P1 = makePlayer(players.get(0));
 roster.push(P1);
 
 // --- the collective (collective.js): touch kin and they join you; no leader, one flock ---
-const collMsg = { lostAt: -9, recruitAt: -9, n: 0, beaconT: -9, joinSnd: -9 };
+const collMsg = { lostAt: -9, recruitAt: -9, n: 0, beaconT: -9, joinSnd: -9, answerDue: false, answerSnd: -9, infectSnd: -9 };
 const coll = createCollectives(world, {
   onRecruit: (C) => {
-    if (t - collMsg.joinSnd > 0.06) { collMsg.joinSnd = t; audio.play('bacterium/tumble', { volume: 0.35, rate: 1.7 + Math.random() * 0.3 }); }
+    // a flock answers at once: the first answer to each beacon is heard, then the joins at most 4 a second
+    if (collMsg.answerDue && t - collMsg.answerSnd > 0.3) { collMsg.answerSnd = t; audio.play('bacterium/answer', { volume: 0.5, rate: 0.95 + Math.random() * 0.1 }); }
+    collMsg.answerDue = false;
+    if (t - collMsg.joinSnd > 0.25) { collMsg.joinSnd = t; audio.play('bacterium/join', { volume: 0.4, rate: 0.95 + Math.random() * 0.1 }); }
     const n = C.members.length + C.players.length;
     if (C.members.length === 1) hud.toast(tt('bacterium.toasts.firstKin'), 3200);
     else if (n === COLL.shield && t - collMsg.recruitAt > 2) { collMsg.recruitAt = t; hud.toast(tt('bacterium.toasts.armyShield', { n }), 2600); }
     else if (n === COLL.raft && t - collMsg.recruitAt > 2) { collMsg.recruitAt = t; hud.toast(tt('bacterium.toasts.armyRaft', { n }), 2600); }
     else if (n === COLL.toxin && t - collMsg.recruitAt > 2) { collMsg.recruitAt = t; hud.toast(tt('bacterium.toasts.armyToxin', { n, glyph }), 2600); }
   },
-  onBeacon: () => { audio.play('bacterium/eat', { volume: 0.4, rate: 1.9 }); },
+  onBeacon: () => { collMsg.answerDue = true; audio.play('bacterium/beacon', { volume: 0.6 }); },
   onLost: (C, m, kind) => {
+    if (kind === 'phage' && C && C.players.length && t - collMsg.infectSnd > 0.5) { collMsg.infectSnd = t; audio.play('bacterium/infected', { volume: 0.6 }); }
     // a member eaten by a grazer, the amoeba or Stentor poisons it (guards.js poison)
     if (C && C.players.length) guards.poison(kind, m, C);
     if (!C || !C.players.length || t - collMsg.lostAt < 1.5) return;
@@ -151,14 +155,14 @@ coll.reset(roster);
 const gateMsg = { seen: new Set() };
 const guards = createGuards(world, coll, stentor, {
   onBeaten: (q) => {
-    audio.play('bacterium/eat', { volume: 1, rate: 0.6 });
+    audio.play('bacterium/gate', { volume: 0.9 });
     for (const P of roster) P.pad.rumble(250, 0.6, 0.6);
     const text = tt(`bacterium.toasts.gateBeaten.${q.kind}`);
     hud.toast(text, 3600);
     gateInfo.log.push({ ev: 'beaten', id: q.id, t });
   },
-  onKill: () => { audio.play('bacterium/eat', { volume: 0.6, rate: 1.3 }); },
-  onInfected: (C) => { if (t - collMsg.lostAt > 1.5) { collMsg.lostAt = t; hud.toast(tt('bacterium.toasts.infected', { left: C.members.length, shield: COLL.shield }), 2400); } },
+  onKill: () => { audio.play('bacterium/lyse', { volume: 0.6 }); },
+  onInfected: (C) => { if (t - collMsg.infectSnd > 0.5) { collMsg.infectSnd = t; audio.play('bacterium/infected', { volume: 0.6 }); } if (t - collMsg.lostAt > 1.5) { collMsg.lostAt = t; hud.toast(tt('bacterium.toasts.infected', { left: C.members.length, shield: COLL.shield }), 2400); } },
   onSwept: () => {},
 });
 const gateInfo = { log: [] };
@@ -211,6 +215,7 @@ function portalSealed() { return director.index < PORTAL_INDEX; }
 function absorbHit(P, kind, who) {
   const from = kind === 'grazer' ? who.pose.mouth : kind === 'stentor' ? who.mouth : kind === 'phage' ? (who.p || who) : who;
   if (!coll.absorb(P, kind, from)) return false;
+  if (!(P.hitSndT > t)) { P.hitSndT = t + 0.3; audio.play('shared/hit', { volume: 0.55 }); }
   if (from && !(P.kickT > 0)) { P.kickT = kind === 'phage' || kind === 'bdello' || kind === 'stentor' ? 0.2 : 0.6; P.kickFrom = { x: from.x, y: from.y }; }
   P.pad.rumble(160, 0.5, 0.4);
   return true;
@@ -218,7 +223,7 @@ function absorbHit(P, kind, who) {
 /** The toxin burst: every enemy in reach takes a big hit; grazers recoil, Bdellovibrio die or flee, phages are destroyed. */
 function toxinBurst(C, b) {
   const R = b.R;
-  audio.play('bacterium/eat', { volume: 1, rate: 0.55 });
+  audio.play('bacterium/toxin', { volume: 1 });
   for (const P of C.players) P.pad.rumble(300, 0.8, 0.6);
   let hit = guards.burstHit(b);
   for (const g of world.grazers) {
@@ -344,6 +349,7 @@ function startCatch(P, { kind, who }) {
   coll.remove(P); // members stay with the others (or go free)
   P.capture.start({ by: CATCH[kind].by, how: CATCH[kind].how });
   audio.play(CATCH[kind].sound, { volume: 1, rate: kind === 'amoeba' ? 0.7 : 1 });
+  audio.play('shared/death', { volume: 0.6, delay: 0.4 });
   P.pad.rumble(400, 0.7, 0.8);
   if (kind === 'phage') who.p.anim = true;
   if (pacing.firstCatch === null) pacing.firstCatch = pacing.now - pacing.t0;
@@ -415,6 +421,7 @@ function respawnPlayer(P) {
   P.swimmer.reset(P.S.species);
   P.dash = dashFor(P.S.species);
   P.eatenFor = 0; P.phage = null; P.bdello = null;
+  audio.play('shared/reform', { volume: 0.7 });
   const mates = alive().filter((Q) => Q !== P && !Q.capture.active);
   if (mates.length) { placeNear(P, mates[0]); hud.toast(tt('bacterium.toasts.backBeside', { name: P.name, mate: mates[0].name })); return; }
   // a safe spot: open water ~90-130 µm from where you were, as far as can be from every gate still
@@ -555,6 +562,8 @@ function runFights(dt) {
       const { c, fight } = P.bdello;
       const d = segTo(c.x, c.y, S) - S.sp.r;
       const f = fight.update(dt, { near: d < 32, inReach: d < 6, facing: P.blockT > 0, blocking: P.blockT > 0 });
+      if (f.state === 'strike' && P.bdello.st !== 'strike') audio.play('bacterium/bdello', { volume: 0.7 }); // it rams
+      P.bdello.st = f.state;
       const to = Math.atan2(S.y - c.y, S.x - c.x);
       const off = { x: S.x - Math.cos(to) * (S.sp.L * 0.5 + 4.2), y: S.y - Math.sin(to) * (S.sp.L * 0.5 + 4.2) };
       c.tumble = 0;
@@ -611,7 +620,7 @@ function runBoss(dt) {
   for (const P of roster) if (inVortex(P) && P.blockT > 0) P.vortexTumbleAt = P.tumbleAt;
   const blocking = roster.some((P) => P.vortexTumbleAt !== undefined && (B.fight.state === 'strike' ? P.vortexTumbleAt > (B.strikeAt ?? t) - 0.35 : P.blockT > 0));
   const f = B.fight.update(dt, { near: nd < B.wakeR, inReach: nd < B.pullR, facing: true, blocking });
-  if (f.state === 'windup' && B.state !== 'windup') bossInfo.log.push({ ev: 'tell', t });
+  if (f.state === 'windup' && B.state !== 'windup') { bossInfo.log.push({ ev: 'tell', t }); audio.play('bacterium/stentor', { volume: 0.6 }); }
   if (f.state === 'strike' && !B.inStrike) { B.inStrike = true; B.strikeAt = t; B.strikeLoss = 0; bossInfo.log.push({ ev: 'pull', t }); }
   else if (f.state !== 'strike') B.inStrike = false;
   B.phase2 = G.hp < G.max * 0.5;
@@ -742,7 +751,9 @@ resize();
 // --- features ---
 const features = createFeatures({ key: 'bacterium', pad });
 quality.addToFeatures(features);
-const audio = createAudio(['bacterium/amb-sediment', 'bacterium/run', 'bacterium/tumble', 'bacterium/sprint', 'bacterium/eat', 'bacterium/phage', 'bacterium/graze', 'shared/portal-chime']);
+const audio = createAudio(['bacterium/amb-sediment', 'bacterium/run', 'bacterium/tumble', 'bacterium/sprint', 'bacterium/eat', 'bacterium/phage', 'bacterium/graze', 'shared/portal-chime',
+  'bacterium/beacon', 'bacterium/answer', 'bacterium/join', 'bacterium/toxin', 'bacterium/lyse', 'bacterium/strike', 'bacterium/stentor', 'bacterium/bdello', 'bacterium/gate', 'bacterium/infected',
+  'shared/portal-enter', 'shared/slowdown', 'shared/portal-near', 'shared/portal-sealed', 'shared/portal-appear', 'shared/backdoor', 'shared/hit', 'shared/death', 'shared/reform', 'shared/join']);
 audio.addToFeatures(features);
 audio.loop('bacterium/amb-sediment', { volume: 0.6 });
 const runLoop = audio.loop('bacterium/run', { volume: 0 });
@@ -881,6 +892,7 @@ function clumpScreen(n = 8) {
 // --- the landmarks: forward (the host with phages: the portal) and the backdoor (the Paramecium) ---
 function landmark(kind, P) {
   lm.log.push({ kind, slot: P ? P.slot : 0, t });
+  if (kind === 'back') audio.play('shared/backdoor', { volume: 0.55 });
   embed.landmark(kind, { player: P ? P.slot : 0 });
 }
 
@@ -1006,6 +1018,10 @@ function clearPortal() {
 const guarded = () => !stentor.beaten;
 function landmarkTick(dt) {
   const F = LMK.forward;
+  // the way on unseals (every gate met): heard once, on the edge
+  const isSealed = portalSealed();
+  if (lm.wasSealed && !isSealed) audio.play('shared/portal-appear', { volume: 0.8 });
+  lm.wasSealed = isSealed;
   let at = null, close = false, dmin = Infinity;
   for (const P of roster) {
     P.atPortal = false;
@@ -1032,12 +1048,14 @@ function landmarkTick(dt) {
         // Stentor guards it: its current turns you back (your cell, and your flock with it)
         lm.fired = true;
         lm.log.push({ kind: 'turnedBack', slot: at.slot, t });
+        audio.play('shared/portal-sealed', { volume: 0.6 });
         if (!at.kickT || at.kickT <= 0) { at.kickT = 0.5; at.kickFrom = { x: F.x, y: F.y }; }
         if (!lm.turned || t - (lm.turnedAt ?? -9) > 4) { lm.turned = true; lm.turnedAt = t; hud.toast(tt('bacterium.toasts.turnedBack'), 3200); }
       } else if (portalSealed()) {
         // the way on exists from the start (the default path) but opens only once every gate is met
         lm.fired = true;
         lm.log.push({ kind: 'sealed', slot: at.slot, t });
+        audio.play('shared/portal-sealed', { volume: 0.6 });
         hud.toast(tt('bacterium.toasts.sealed'), 2600);
       }
     }
@@ -1055,6 +1073,7 @@ function landmarkTick(dt) {
 function setPortalPrompt(on) {
   if (on === lm.portal) return;
   lm.portal = on;
+  if (on) audio.play('shared/portal-near', { volume: 0.6 });
   embed.near('portal', on);
 }
 /** Can player P go through now (they or their flock at the host, Stentor beaten)? Then P's Y enters. */
@@ -1072,7 +1091,9 @@ function enterPortal(P) {
   portalGlow.burst();
   const L = split.layout;
   if (L && L.views && L.views.length) { const q = split.project(0, { x: FWD.x, y: FWD.y, z: 0 }); portalLight.bloom(q.x, q.y, { scale: 1.2 }); }
+  audio.play('shared/portal-enter', { volume: 0.8 });
   audio.play('shared/portal-chime', { volume: 0.9 });
+  audio.play('shared/slowdown', { volume: 0.5, delay: OUTRO.beat });
   P.pad.rumble(520, 0.55, 0.85);
   startOutro(P);
   lm.log.push({ kind: 'forward', slot: P.slot, t });
@@ -1239,8 +1260,10 @@ function pressX(P) {
   const C = coll.of(P);
   const eaten = coll.eat(P);
   const hits = C ? guards.volley(C, t) : 0;
+  if (hits) audio.play('bacterium/strike', { volume: 0.7 });
   if (eaten.length) {
-    audio.play('bacterium/eat', { volume: 0.8, rate: 1.05 + Math.random() * 0.1 });
+    audio.play('bacterium/lyse', { volume: 0.7 });
+
     P.pad.rumble(60, 0.3, 0.2);
     if (!P.msg.ate) { P.msg.ate = true; hud.toast(tt(eaten.length > 1 ? 'bacterium.toasts.lysedMany' : 'bacterium.toasts.lysedOne', { who: multi() ? P.name + ': ' : '', n: eaten.length }), 3000); }
   }

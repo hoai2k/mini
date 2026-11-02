@@ -57,7 +57,7 @@ const SOFTWARE = (() => {
 const cells = [];
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { embed.post('join', { index: p.slot, color: p.color, name: p.name, roster: players.toJSON() }); addCell(p); hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); },
+  onJoin: (p) => { embed.post('join', { index: p.slot, color: p.color, name: p.name, roster: players.toJSON() }); addCell(p); audio.play('shared/join', { volume: 0.6 }); hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); },
   onLeave: (p) => { embed.post('leave', { index: p.slot, roster: players.toJSON() }); removeCell(p.slot); hud.toast(tt('shared.players.left', { n: p.slot + 1 })); },
   onChange: (list) => hud && hud.players(list),
 });
@@ -293,7 +293,7 @@ function startCatch(pts) {
   embed.captured({ by: 'fungus', player: cur ? cur.slot : 0 });
   if (C.closing) cancelClose();
   haustoria.forEach((h, k) => { h.hidden = !FC.pts[k]; h.grow = 0; });
-  audio.play('amoeba/engulf', { volume: 1, rate: 0.6 });
+  audio.play('amoeba/pierce', { volume: 0.9 });
   rumble(500, 0.8, 0.9);
   if (pacing.firstCatch === null) pacing.firstCatch = S.time - pacing.t0;
 }
@@ -319,6 +319,7 @@ function stepCatch(dt) {
     body.A0 = Math.min(FC.A0 * 0.93, body.A0); C.bitten++; C.stuckT = 0; C.drain = 0;
     for (const h of haustoria) { h.hidden = true; h.grow = 0; }
     fungus.missed();
+    audio.play('amoeba/tear', { volume: 0.8 });
     hud.toast(tt('amoeba.toasts.tornFree', { who: who() }), 1800);
     rumble(300, 0.6, 0.6);
     return;
@@ -329,6 +330,7 @@ function stepCatch(dt) {
   if (c.phase !== FC.phase) {
     FC.phase = c.phase;
     if (c.phase === 'eat') { fungus.fed(); audio.play('amoeba/digest', { volume: 1, rate: 0.7 }); rumble(700, 0.5, 0.8); }
+    if (c.phase === 'die') audio.play('amoeba/death', { volume: 0.8 });
   }
   const k = c.t;
   C.death = c.phase === 'die' ? k : DYING.includes(c.phase) ? 1 : 0;
@@ -347,6 +349,7 @@ function stepEngulf(dt) {
     // broke out before the vacuole sealed
     caught.reset(false); FC.phase = null; FC.by = null; C.drain = 0;
     C.bites.push({ i: nodeNear(body, chaos.body.cx, chaos.body.cy), t: 0, s: 0.6, chaos: true });
+    audio.play('amoeba/tear', { volume: 0.8 });
     hud.toast(tt('amoeba.toasts.surgedOut', { who: who() }), 1800);
     rumble(300, 0.6, 0.6);
     return;
@@ -357,6 +360,7 @@ function stepEngulf(dt) {
   if (c.phase !== FC.phase) {
     FC.phase = c.phase;
     if (c.phase === 'eat') { audio.play('amoeba/digest', { volume: 1, rate: 0.6 }); rumble(600, 0.5, 0.7); }
+    if (c.phase === 'die') audio.play('amoeba/death', { volume: 0.8 });
   }
   FC.pts = [{ x: chaos.body.cx, y: chaos.body.cy }];
   // pulled towards its middle
@@ -429,6 +433,7 @@ function captureRespawn(c) {
     S.camX = best[0]; S.camY = best[1];
   }
   c.s.reform = 1; // the fresh cell gathers itself up (granules drawing together)
+  audio.play('amoeba/reform', { volume: 0.8 });
   use(k === c ? c : k || cells[0]);
 }
 /**
@@ -463,7 +468,9 @@ function restartCell() {
 // --- features panel ----------------------------------------------------------
 const features = createFeatures({ key: 'amoeba', pad });
 const F = (o) => features.add(o);
-const audio = createAudio(['amoeba/amb-pool', 'amoeba/stretch', 'amoeba/boost', 'amoeba/engulf', 'amoeba/vacuole', 'amoeba/digest', 'shared/portal-chime']);
+const audio = createAudio(['amoeba/amb-pool', 'amoeba/stretch', 'amoeba/boost', 'amoeba/engulf', 'amoeba/vacuole', 'amoeba/digest', 'shared/portal-chime',
+  'amoeba/drain', 'amoeba/tremble', 'amoeba/squish', 'amoeba/roll', 'amoeba/stick', 'amoeba/tear', 'amoeba/pierce', 'amoeba/pinch', 'amoeba/chaos', 'amoeba/chaos-windup', 'amoeba/chaos-engulf', 'amoeba/death', 'amoeba/reform',
+  'shared/portal-enter', 'shared/slowdown', 'shared/portal-near', 'shared/portal-sealed', 'shared/portal-appear', 'shared/backdoor', 'shared/foe-flees', 'shared/join']);
 audio.addToFeatures(features);
 audio.loop('amoeba/amb-pool', { volume: 0.6 });
 const snd = { t: 0, lastStretch: -9, pods: [], systole: 0 };
@@ -486,6 +493,31 @@ function soundTick(dt) {
   const sy = cyto.cv.systole > 0;
   if (sy && !snd.systole) audio.play('amoeba/vacuole', { volume: 0.6, rate: 0.95 + Math.random() * 0.1 });
   snd.systole = sy;
+  // caught by the trap fungus: the drain loop runs through its 'eat' phase
+  // (and stops when the catch moves on, ends or is torn free); the membrane
+  // trembles about once a second while it holds and drains
+  const draining = caught.active && FC.by !== 'chaos' && FC.phase === 'eat';
+  if (draining && !cur.drainSnd) cur.drainSnd = audio.loop('amoeba/drain', { volume: 0.6 });
+  else if (!draining && cur.drainSnd) { cur.drainSnd.stop(); cur.drainSnd = null; }
+  if (caught.active && (FC.phase === 'hold' || FC.phase === 'eat')) {
+    C.trembleT = (C.trembleT ?? 0.3) - dt;
+    if (C.trembleT <= 0) { C.trembleT = 1; audio.play('amoeba/tremble', { volume: 0.45, rate: 0.95 + Math.random() * 0.1 }); }
+  } else C.trembleT = undefined;
+  if (caught.active) return;
+  // changing shape (LT spreads, held it rounds up): a subtle squish on the press and the release, at most every 0.3 s
+  const lt = rawInput().lt >= (C.ltSnd ? 0.3 : 0.5);
+  if (lt !== !!C.ltSnd) {
+    C.ltSnd = lt;
+    if (!(C.squishT > snd.t)) { C.squishT = snd.t + 0.3; audio.play('amoeba/squish', { volume: 0.3, rate: 0.95 + Math.random() * 0.1 }); }
+  }
+  // turning fast (the front swinging round as it moves): a subtle roll, at most every 1.5 s
+  const ang = Math.atan2(body.fy, body.fx);
+  if (C.lastAng !== undefined && dt > 0) {
+    const turn = Math.abs(Math.atan2(Math.sin(ang - C.lastAng), Math.cos(ang - C.lastAng))) / dt;
+    C.turnRate = (C.turnRate || 0) + (turn - (C.turnRate || 0)) * Math.min(1, dt * 6);
+    if (C.turnRate > 0.8 && body.fm > 0.3 && !(C.rollT > snd.t)) { C.rollT = snd.t + 1.5; audio.play('amoeba/roll', { volume: 0.25, rate: 0.9 + Math.random() * 0.2 }); }
+  }
+  C.lastAng = ang;
 }
 F({ id: 'look', group: 'Optics', choices: MODES, value: MODES[0],
   onChange: (v) => { S.mode = Math.max(0, MODES.indexOf(v)); } });
@@ -1177,6 +1209,7 @@ function pinchOff(i, j) {
     for (let k = 0; k < n; k++) { cx += lost.xs[k]; cy += lost.ys[k]; }
     fragments.push({ xs: Float64Array.from(lost.xs), ys: Float64Array.from(lost.ys), cx: cx / n, cy: cy / n, R: Math.sqrt(lost.area / Math.PI), A: lost.area, age: 0, seed: rand(), mesh: null });
   }
+  audio.play('amoeba/pinch', { volume: 0.8 });
   hud.toast(who() + tt('amoeba.toasts.neckCut'), 2600);
   rumble(400, 0.8, 0.8);
 }
@@ -1228,7 +1261,7 @@ function stickToTraps(dt, traps) {
       }
     }
   }
-  if (n && !C.stuckN) { hud.toast(who() + tt('amoeba.toasts.caughtTrap')); rumble(250, 0.4, 0.6); }
+  if (n && !C.stuckN) { hud.toast(who() + tt('amoeba.toasts.caughtTrap')); rumble(250, 0.4, 0.6); audio.play('amoeba/stick', { volume: 0.7 }); }
   C.stuckN = free ? 0 : n;
   // where it is glued (up to three spots along the stuck membrane), for the stain and the tremor
   C.stuckAt.length = 0;
@@ -1395,11 +1428,11 @@ function stepChaos(dt, adt, col, granules = true) {
   for (const { e, p: pl } of ev) {
     const c = pl ? pl.cell : null, k = cur;
     if (c) use(c);
-    if (e === 'wake') { hud.toast(tt('amoeba.toasts.chaosStirs'), 2800); logChallenge('chaos', c); }
-    else if (e === 'windupCup') { hud.toast(tt('amoeba.toasts.chaosCups', { who: who() }), 3000); rumble(150, 0.3, 0); }
-    else if (e === 'windupLunge') { hud.toast(tt('amoeba.toasts.chaosLunges', { who: who() }), 2400); rumble(150, 0.3, 0); }
+    if (e === 'wake') { audio.play('amoeba/chaos', { volume: 0.8 }); hud.toast(tt('amoeba.toasts.chaosStirs'), 2800); logChallenge('chaos', c); }
+    else if (e === 'windupCup') { audio.play('amoeba/chaos-windup', { volume: 0.6 }); hud.toast(tt('amoeba.toasts.chaosCups', { who: who() }), 3000); rumble(150, 0.3, 0); }
+    else if (e === 'windupLunge') { audio.play('amoeba/chaos-windup', { volume: 0.6, rate: 1.1 }); hud.toast(tt('amoeba.toasts.chaosLunges', { who: who() }), 2400); rumble(150, 0.3, 0); }
     else if (e === 'engulf' && c) startEngulf(c);
-    else if (e === 'retreat') hud.toast(tt('amoeba.toasts.chaosGone'), 3000);
+    else if (e === 'retreat') { audio.play('shared/foe-flees', { volume: 0.7 }); hud.toast(tt('amoeba.toasts.chaosGone'), 3000); }
     else if (e === 'leash') hud.toast(tt('amoeba.toasts.chaosReturns'), 2800);
     use(k);
   }
@@ -1431,7 +1464,7 @@ function startEngulf(c) {
   c.lastChaos = { x: chaos.body.cx, y: chaos.body.cy };
   caught.start({ by: tt('amoeba.capture.chaos'), phases: CATCH_PHASES });
   embed.captured({ by: 'Chaos', player: c.slot });
-  audio.play('amoeba/engulf', { volume: 1, rate: 0.55 });
+  audio.play('amoeba/chaos-engulf', { volume: 0.55 });
   rumble(500, 0.8, 0.9);
   use(k);
 }
@@ -1444,7 +1477,7 @@ function pinchChaos(c, reach = 70) {
   addFragment(lost);
   const b = chaos.body;
   C.jab = { t: 0.35, x: (b.x[pin.i] + b.x[pin.j]) / 2, y: (b.y[pin.i] + b.y[pin.j]) / 2, k: jabSlot() };
-  audio.play('amoeba/engulf', { volume: 1, rate: 1.4 });
+  audio.play('amoeba/pinch', { volume: 0.9 });
   rumble(350, 0.7, 0.6);
   hud.toast(gone ? tt('amoeba.toasts.pinchedGone', { who: who() }) : tt('amoeba.toasts.pinched', { who: who(), resolve: Math.round(chaos.interest * 100) }), 2400);
   return true;
@@ -1549,6 +1582,8 @@ function removeCell(slot) {
   for (const v of c.cyto.vacuoles) if (v.prey) despawn(v.prey);
   for (const h of c.haustoria) { h.hidden = true; h.grow = 0; }
   c.caught.reset(false);
+  if (c.drainSnd) { c.drainSnd.stop(); c.drainSnd = null; }
+
   view.removeCell(c.layer);
   c.ret?.remove(); c.retText?.remove();
   cells.splice(i, 1);
@@ -1762,6 +1797,10 @@ function driftPatch(dt) {
 }
 /** Where each player stands with respect to the landmarks; posts them. */
 function checkLandmarks() {
+  // the way on unseals (both patches met): heard once, on the edge
+  const isSealed = portalSealed();
+  if (lm.wasSealed && !isSealed) audio.play('shared/portal-appear', { volume: 0.8 });
+  lm.wasSealed = isSealed;
   let near = false, nearFwd = false, dmin = Infinity;
   for (const c of cells) {
     const b = c.body;
@@ -1788,10 +1827,12 @@ function checkLandmarks() {
     if (guarded()) {
       // turned back: Chaos is on guard (it turns on you)
       lm.log.push({ type: 'turnedBack', slot: fwd.slot, t: +S.time.toFixed(2) });
+      audio.play('shared/portal-sealed', { volume: 0.6 });
       if (!lm.turned) { lm.turned = true; hud.toast(tt('amoeba.toasts.turnedBack', { who: who(fwd) }), 3600); }
     } else if (portalSealed()) {
       // the way on exists from the start (the default path) but opens only once both patches are met
       lm.log.push({ type: 'sealed', slot: fwd.slot, t: +S.time.toFixed(2) });
+      audio.play('shared/portal-sealed', { volume: 0.6 });
       hud.toast(tt('amoeba.toasts.sealed', { who: who(fwd) }), 2600);
     }
   }
@@ -1806,6 +1847,7 @@ const atOpenPortal = (c) => PORTAL.placed && !outro && c.atFwd && !c.caught.acti
 function setPortalPrompt(on) {
   if (on === lm.portal) return;
   lm.portal = on;
+  if (on) audio.play('shared/portal-near', { volume: 0.6 });
   embed.near('portal', on);
 }
 /**
@@ -1823,7 +1865,10 @@ function enterPortal(c) {
   glow.burst();
   const [sx, sy] = toScreen(PORTAL.x, PORTAL.y, c.slot);
   portalLight.bloom(sx, sy, { scale: 1.1 });
+  audio.play('shared/portal-enter', { volume: 0.8 });
   audio.play('shared/portal-chime', { volume: 0.9 });
+  audio.play('shared/slowdown', { volume: 0.5, delay: OUTRO.beat });
+
   const k = cur; use(c); rumble(520, 0.55, 0.85); use(k);
   if (!embed.active) hud.toast(tt('amoeba.toasts.bursaria', { who: who(c) }), 2600);
   startOutro(c);
@@ -2176,7 +2221,7 @@ function frame(now) {
       // through; elsewhere player 1's labels.
       if (pressed(BTN.Y)) {
         if (atOpenPortal(c)) enterPortal(c);
-        else if (c.atBack && !caught.active) { lm.log.push({ type: 'landmark', kind: 'back', slot: c.slot }); hud.toast(tt('amoeba.toasts.backUp', { who: who() })); embed.landmark('back', { player: c.slot }); }
+        else if (c.atBack && !caught.active) { lm.log.push({ type: 'landmark', kind: 'back', slot: c.slot }); audio.play('shared/backdoor', { volume: 0.55 }); hud.toast(tt('amoeba.toasts.backUp', { who: who() })); embed.landmark('back', { player: c.slot }); }
         else if (c.slot === 0) S.labels = !S.labels;
       }
       if (c.slot !== 0) continue;

@@ -53,7 +53,7 @@ renderer.setSize(innerWidth, innerHeight, false);
 // --- players: P1 on the keyboard and the first controller; 2-4 join with any button on another ---
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); embed.join(p.slot, p.color, p.name, players.toJSON()); syncCells(); },
+  onJoin: (p) => { audio.play('shared/join', { volume: 0.6 }); hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); embed.join(p.slot, p.color, p.name, players.toJSON()); syncCells(); },
   onLeave: (p) => { hud.toast(tt('shared.players.left', { n: p.slot + 1 })); embed.leave(p.slot); syncCells(); },
   onChange: (list) => { if (hud) hud.players(list); },
 });
@@ -139,7 +139,9 @@ function softTile(t) {
 loadTexture('MP-P04').then((t) => { if (t) tiles.dark = softTile(t); });
 loadTexture('MP-P05').then((t) => { if (t) tiles.phase = softTile(t); });
 
-const audio = createAudio(['paramecium/amb-pool', 'paramecium/swim', 'paramecium/dash', 'paramecium/gulp', 'paramecium/trichocysts', 'paramecium/reverse', 'paramecium/didinium', 'paramecium/held', 'shared/portal-chime']);
+const audio = createAudio(['paramecium/amb-pool', 'paramecium/swim', 'paramecium/dash', 'paramecium/gulp', 'paramecium/trichocysts', 'paramecium/reverse', 'paramecium/didinium', 'paramecium/held', 'shared/portal-chime',
+  'paramecium/depth', 'paramecium/burst', 'paramecium/stun', 'paramecium/dileptus', 'paramecium/slash', 'paramecium/giant', 'paramecium/giant-engulf', 'paramecium/trap-tell', 'paramecium/trap-fire', 'paramecium/divide', 'paramecium/vorticella', 'paramecium/bloom',
+  'shared/portal-enter', 'shared/slowdown', 'shared/portal-near', 'shared/portal-sealed', 'shared/portal-appear', 'shared/backdoor', 'shared/death', 'shared/reform', 'shared/foe-flees', 'shared/join']);
 audio.addToFeatures(features);
 audio.loop('paramecium/amb-pool', { volume: 0.6 });
 const swimLoop = audio.loop('paramecium/swim', { volume: 0 });
@@ -303,9 +305,11 @@ function attack(P) {
   audio.play('paramecium/trichocysts', { volume: 0.7, rate: 1.3 });
   const fx = S.x + Math.cos(S.a) * LENGTH * 0.5, fy = S.y + Math.sin(S.a) * LENGTH * 0.5;
   const inCone = (x, y, z, r = 0) => { const d = hyp(x - fx, y - fy) - r; return d < 150 && Math.abs(z - S.z) < 80 && Math.cos(Math.atan2(y - fy, x - fx) - S.a) > 0.5; };
-  if (dileptus.placed && inCone(dileptus.x, dileptus.y, dileptus.z, 40) && dileptus.mode !== 'flee') { dileptus.mode = 'stunned'; dileptus.t = 0.6; log('jab', 'dileptus', P); }
-  for (const d of didinia) if (d.placed && inCone(d.x, d.y, d.z, 40) && /chase|crouch/.test(d.mode)) { d.mode = 'stagger'; d.t = 0; log('jab', 'didinium', P); hintOnce(P, 'stagger', tt('paramecium.toasts.didiniumJab')); }
-  if (giant.placed && (P.engulfed || hyp(giant.x - S.x, giant.y - S.y) < GIANT.R + 300)) { const r = burstGiant(giant, P); if (r) log('jab', 'giant:' + r, P); }
+  let landed = false; // the jab landed (on Dileptus, a Didinium or the giant's pseudopod)
+  if (dileptus.placed && inCone(dileptus.x, dileptus.y, dileptus.z, 40) && dileptus.mode !== 'flee') { dileptus.mode = 'stunned'; dileptus.t = 0.6; log('jab', 'dileptus', P); landed = true; }
+  for (const d of didinia) if (d.placed && inCone(d.x, d.y, d.z, 40) && /chase|crouch/.test(d.mode)) { d.mode = 'stagger'; d.t = 0; log('jab', 'didinium', P); hintOnce(P, 'stagger', tt('paramecium.toasts.didiniumJab')); landed = true; }
+  if (giant.placed && (P.engulfed || hyp(giant.x - S.x, giant.y - S.y) < GIANT.R + 300)) { const r = burstGiant(giant, P); if (r) { log('jab', 'giant:' + r, P); landed = true; } }
+  if (landed) audio.play('paramecium/stun', { volume: 0.8 });
 }
 function ate(P, what) {
   game.eaten++;
@@ -313,7 +317,7 @@ function ate(P, what) {
   if (P.vacuoles.length > 6) P.vacuoles.shift();
   audio.play('paramecium/gulp', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
   P.pad?.rumble?.(90, 0.3, 0.2);
-  if (game.eaten >= GOAL) { game.eaten = 0; game.divided++; hud.toast(tt('paramecium.toasts.ateDivides', { who: who(P), what, n: game.divided }), 2600); }
+  if (game.eaten >= GOAL) { game.eaten = 0; game.divided++; audio.play('paramecium/divide', { volume: 0.9 }); hud.toast(tt('paramecium.toasts.ateDivides', { who: who(P), what, n: game.divided }), 2600); }
   else hud.toast(tt('paramecium.toasts.ate', { who: who(P), what, eaten: game.eaten, goal: GOAL }), 1400);
 }
 /** B: the trichocyst burst (while charged) and the avoiding reaction. */
@@ -325,6 +329,7 @@ function defend(P) {
   if (P.charges <= 0) { hintOnce(P, 'empty', tt('paramecium.toasts.noTrichocysts'), 2600); return; }
   P.charges--; P.burst = 0;
   audio.play('paramecium/trichocysts', { volume: 1 });
+  audio.play('paramecium/burst', { volume: 0.8 });
   P.pad?.rumble?.(200, 0.5, 0.6);
   const rD = burstDileptus(dileptus, P);
   if (rD === 'driven' || rD === 'beaten') { log('burst', 'dileptus:' + rD, P); hud.toast(tt(rD === 'beaten' ? 'paramecium.toasts.dileptusGivesUp' : 'paramecium.toasts.dileptusRecoils', { who: who(P) }), 2200); }
@@ -343,6 +348,8 @@ function kill(P, by, how) {
   P.live = false; P.dead = { t: 0, by, how }; P.engulfed = null;
   hud.toast(tt('paramecium.toasts.eaten', { who: who(P), by: foeName(by), how }), 2600);
   audio.play('paramecium/held', { volume: 1 });
+  if (by === 'Dileptus') audio.play('paramecium/slash', { volume: 0.7 });
+  audio.play('shared/death', { volume: 0.7, delay: 0.5 });
   P.pad?.rumble?.(500, 0.8, 0.9);
   embed.captured({ by, player: P.slot });
   log('died', by, P);
@@ -368,6 +375,7 @@ function respawn(P) {
   }
   Object.assign(P.S, { x, y, z: clamp(z, ZMIN, ZMAX), v: 0, dashT: 0, backT: 0 });
   P.live = true; P.dead = null; P.spawn = 0; P.invuln = 2.5; P.charges = 3;
+  audio.play('shared/reform', { volume: 0.7 });
   for (const f of [dileptus, ...didinia]) if (f.target === P) { f.target = null; if (f.mode !== 'parked') f.mode = 'idle'; f.grace = 3; }
 }
 
@@ -375,6 +383,10 @@ function respawn(P) {
 const lm = { log: [], portal: false, nearing: false, back: false, latch: false, turned: false };
 const BACKR = 260;
 function stepLandmarks(dt) {
+  // the way on unseals (every encounter met): heard once, on the edge
+  const isSealed = portalSealed();
+  if (lm.wasSealed && !isSealed) audio.play('shared/portal-appear', { volume: 0.8 });
+  lm.wasSealed = isSealed;
   // the way on: down on the biofilm (over the leaf, deep in the drop)
   let any = null;
   for (const P of cells) {
@@ -391,8 +403,9 @@ function stepLandmarks(dt) {
   }
   if (any && !lm.latch) {
     lm.latch = true;
-    if (portalSealed()) hud.toast(tt('paramecium.toasts.sealed', { who: who(any) }), 2600);
+    if (portalSealed()) { audio.play('shared/portal-sealed', { volume: 0.6 }); hud.toast(tt('paramecium.toasts.sealed', { who: who(any) }), 2600); }
     else if (guarded()) {
+      audio.play('shared/portal-sealed', { volume: 0.6 });
       // turned back: swept off the leaf by the trap's guard
       lm.log.push({ kind: 'turnedBack', slot: any.slot, t: +game.t.toFixed(2) });
       hud.toast(tt('paramecium.toasts.sweptBack', { who: who(any) }), 2400);
@@ -407,13 +420,14 @@ function stepLandmarks(dt) {
   for (const P of cells) { const on = P.live && hyp(P.S.x - BACK.x, P.S.y - BACK.y) < BACKR && P.S.z < -40; P.back = on ? P.back + dt : 0; if (P.back > 0.5) back = P; }
   if (!!back !== lm.back) { lm.back = !!back; embed.near('back', lm.back); }
 }
-function setPortalPrompt(on) { if (on === lm.portal) return; lm.portal = on; embed.near('portal', on); }
+function setPortalPrompt(on) { if (on === lm.portal) return; lm.portal = on; if (on) audio.play('shared/portal-near', { volume: 0.6 }); embed.near('portal', on); }
 const atOpenPortal = (P) => P.atPortal && !outro && !portalSealed() && !guarded();
 /** The way on: P at the open portal pressed Y (never an automatic door: the owner, 2026-11-01). */
 function enterPortal(P) {
   if (outro) return;
   setPortalPrompt(false);
   glow.burst();
+  audio.play('shared/portal-enter', { volume: 0.8 });
   startOutro(P);
   lm.log.push({ kind: 'forward', slot: P.slot, t: +game.t.toFixed(2) });
   embed.landmark('forward', { player: P.slot, outro: embed.active });
@@ -481,6 +495,7 @@ function startOutro(P) {
   const s = toScreen(FWD.x, FWD.y), c = toScreen(P.S.x, P.S.y);
   portalBloom.bloom(s.x, s.y, { scale: 1.2 }); portalBloom.bloom(c.x, c.y, { scale: 0.7 });
   audio.play('shared/portal-chime', { volume: 0.9 });
+  audio.play('shared/slowdown', { volume: 0.5, delay: OUTRO.beat });
   P.pad?.rumble?.(520, 0.55, 0.85);
   if (embed.active) { embed.cinematic(true, canvas); portalBloom.canvas.style.visibility = 'visible'; }
 }
@@ -584,15 +599,23 @@ function readInput(P, dt, frozen) {
   if (Math.abs(rs.x) > 0.7 && Math.abs(rs.x) > Math.abs(rs.y)) view.rot = wrap(view.rot - rs.x * 1.5 * dt);
   else _in.depth = clamp(rs.y, -1, 1);
   _in.depth = clamp(_in.depth + c.secondary(), -1, 1);
+  // deeper / shallower: heard where the depth input starts
+  const diving = Math.abs(_in.depth) > (P.diving ? 0.3 : 0.5);
+  if (diving && !P.diving) audio.play('paramecium/depth', { volume: 0.5, rate: _in.depth > 0 ? 0.9 : 1.1 });
+  P.diving = diving;
   if (c.dash.pressed()) {
     const dir = _in.m > 0.2 ? Math.atan2(_in.my, _in.mx) : null;
-    if (startDash(P.S, dir)) { audio.play('paramecium/dash', { volume: 0.9 }); P.pad?.rumble?.(160, 0.5, 0.7); flingBloom(bloom, P.S); }
+    if (startDash(P.S, dir)) {
+      audio.play('paramecium/dash', { volume: 0.9 }); P.pad?.rumble?.(160, 0.5, 0.7);
+      // flung through the bloom: the algae scatter (flingBloom returns how many it flung, or nothing)
+      if (flingBloom(bloom, P.S)) audio.play('paramecium/bloom', { volume: 0.7 });
+    }
   }
   if (c.attack.pressed()) attack(P);
   if (c.defend.pressed()) defend(P);
   if (c.special.pressed()) {
     if (atOpenPortal(P)) enterPortal(P);
-    else if (P.back > 0.5) { lm.log.push({ kind: 'back', slot: P.slot, t: +game.t.toFixed(2) }); embed.landmark('back', { player: P.slot }); }
+    else if (P.back > 0.5) { lm.log.push({ kind: 'back', slot: P.slot, t: +game.t.toFixed(2) }); audio.play('shared/backdoor', { volume: 0.55 }); embed.landmark('back', { player: P.slot }); }
   }
   if (P === P1) {
     const ls = c.lookStep ? c.lookStep() : 0;
@@ -619,13 +642,20 @@ function stepWorld(dt) {
   if (giant.placed) {
     for (const p of prey.list) if (!p.dying && hyp(p.x - giant.x, p.y - giant.y) < GIANT.R * 0.9) p.dying = 0.001;
   }
-  world.stepVorticella(dt, (v) => cells.some((P) => { const ox = Math.round((P.S.x - v.ax) / TILE) * TILE, oy = Math.round((P.S.y - v.ay) / TILE) * TILE; const p = world.vortPose(v, ox, oy, t); return hyp(P.S.x - p.x1, P.S.y - p.y1) < 110 && Math.abs(P.S.z - p.z1) < 60; }));
+  const startled = world.stepVorticella(dt, (v) => cells.some((P) => { const ox = Math.round((P.S.x - v.ax) / TILE) * TILE, oy = Math.round((P.S.y - v.ay) / TILE) * TILE; const p = world.vortPose(v, ox, oy, t); return hyp(P.S.x - p.x1, P.S.y - p.y1) < 110 && Math.abs(P.S.z - p.z1) < 60; }));
+  // a Vorticella startled by a swimmer snaps its stalk shut: heard once per contraction (at most every 0.25 s)
+  if (startled.length && !(game.vortSndT > game.t)) { game.vortSndT = game.t + 0.25; audio.play('paramecium/vorticella', { volume: 0.6, rate: 0.95 + Math.random() * 0.1 }); }
   for (const e of ev) {
     if (e.type === 'kill') kill(e.P, e.by, e.how);
-    else if (e.type === 'engulf') { hintOnce(e.P, 'engulf', tt('paramecium.hints.giant'), 3600); audio.play('paramecium/held', { volume: 0.7 }); }
+    else if (e.type === 'engulf') { hintOnce(e.P, 'engulf', tt('paramecium.hints.giant'), 3600); audio.play('paramecium/giant-engulf', { volume: 0.7 }); }
     else if (e.type === 'tell' && e.who.kind === 'didinium') { audio.play('paramecium/didinium', { volume: 0.9 }); hintOnce(e.P, 'did', tt('paramecium.hints.didinium')); }
-    else if (e.type === 'tell' && e.who.kind === 'dileptus') hintOnce(e.P, 'dil', tt('paramecium.hints.dileptus'));
-    else if (e.type === 'fled') hud.toast(tt('paramecium.hints.dileptusGone'), 2000);
+    else if (e.type === 'tell' && e.who.kind === 'dileptus') { audio.play('paramecium/dileptus', { volume: 0.8 }); hintOnce(e.P, 'dil', tt('paramecium.hints.dileptus')); }
+    else if (e.type === 'miss' && e.who && e.who.kind === 'dileptus') audio.play('paramecium/slash', { volume: 0.6 }); // the slash sweeps past
+    else if (e.type === 'hunt' && e.who === giant && !(giant.reachSndT > game.t)) { giant.reachSndT = game.t + 4; audio.play('paramecium/giant', { volume: 0.6 }); }
+    else if (e.type === 'trap-tell') audio.play('paramecium/trap-tell', { volume: 0.8 });
+    else if (e.type === 'trap-pulse') audio.play('paramecium/trap-fire', { volume: 0.5 });
+    else if (e.type === 'fled') { audio.play('shared/foe-flees', { volume: 0.7 }); hud.toast(tt('paramecium.hints.dileptusGone'), 2000); }
+
     else if (e.type === 'trap-spent') hud.toast(tt('paramecium.hints.trapSlack'), 2800);
     if (/^(kill|miss|fled|rest|trap-)/.test(e.type)) log(e.type, e.who ? e.who.kind : e.by || '', e.P);
   }

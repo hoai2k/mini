@@ -243,7 +243,9 @@ export function stepGiant(G, players, dt) {
   G.grace = Math.max(0, G.grace - dt);
   G.pinch = Math.max(0, G.pinch - dt);
   const P = G.grace > 0 ? null : near(players, G.x, G.y, GIANT.sight, (Q) => !Q.engulfed || Q.engulfed.by === G);
+  if (P && !G.target) ev.push({ type: 'hunt', who: G, target: P }); // it starts reaching for a player (target, not P: no hint is tied to it)
   G.target = P;
+
   // creep: toward its prey, else round its home
   const gx = P ? P.S.x : G.home.x + Math.cos(G.t * 0.07) * 200, gy = P ? P.S.y : G.home.y + Math.sin(G.t * 0.07) * 200;
   const d = hyp(gx - G.x, gy - G.y);

@@ -80,7 +80,7 @@ resize();
 // up to four local players (shared/players.js); P1 also on the keyboard
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { syncTeam(); hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); hud.players(players.list); embed.join(p.slot, p.color, p.name); },
+  onJoin: (p) => { syncTeam(); audio.play('shared/join', { volume: 0.6 }); hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); hud.players(players.list); embed.join(p.slot, p.color, p.name); },
   onLeave: (p) => { syncTeam(); hud.toast(tt('shared.players.left', { n: p.slot + 1 })); hud.players(players.list); embed.leave(p.slot); },
 });
 const pad = players.pad(0);
@@ -251,9 +251,20 @@ function syncTeam() {
 
 // --- features ---
 const features = createFeatures({ key: 'phage', pad });
-const audio = createAudio(['bacterium/amb-sediment', 'bacterium/run', 'bacterium/tumble', 'bacterium/sprint', 'bacterium/eat', 'bacterium/phage', 'bacterium/graze']);
+const audio = createAudio(['bacterium/run', 'bacterium/tumble', 'bacterium/sprint', 'bacterium/eat', 'bacterium/phage', 'bacterium/graze',
+  'phage/amb-water', 'phage/grab', 'phage/release', 'phage/miss', 'phage/throw', 'phage/fold', 'phage/dash', 'phage/jab', 'phage/lobe', 'phage/current-coming', 'phage/current-pass',
+  'phage/latch', 'phage/sheath', 'phage/inject', 'phage/cas', 'phage/burst', 'phage/snag',
+  'shared/portal-enter', 'shared/portal-near', 'shared/portal-sealed', 'shared/portal-appear', 'shared/backdoor', 'shared/block', 'shared/death', 'shared/reform', 'shared/foe-flees', 'shared/join']);
 audio.addToFeatures(features);
-audio.loop('bacterium/amb-sediment', { volume: 0.5 });
+audio.loop('phage/amb-water', { volume: 0.5 });
+/** A frequent sound (grab, miss) for the current player: at most one every `gap` s each. */
+function playLimited(id, gap, opts) {
+  const due = (P.sndT ||= {});
+  if (due[id] > t) return;
+  due[id] = t + gap;
+
+  audio.play(id, opts);
+}
 const driftLoop = audio.loop('bacterium/run', { volume: 0 });
 function unlockOnPad() { if (pad.kind !== 'controller') return; for (let b = 0; b < 16; b++) if (pad.value(b) > 0.5) { audio.unlock(); return; } }
 
@@ -366,6 +377,7 @@ function respawn(m) {
   // the start, clear of the shafts and flocs; beside a teammate who is still in play, if any
   const at = mate ? mate.P.pos.clone().add(new THREE.Vector3(rand(-24, 24), 26, 0)) : safeSpot(m.P.lostAt);
   placeAtStart(m, at);
+  audio.play('shared/reform', { volume: 0.7 });
   if (m.P === P) say(tt(mate ? 'phage.toasts.driftsBackBeside' : 'phage.toasts.driftsBack', { name: players.get(m.slot)?.name || tt('shared.hud.playerShort', { n: m.slot + 1 }) }), 2000, true);
 }
 let respawning = false;
@@ -425,6 +437,7 @@ function startCapture(kind, by, how) {
   curPad().rumble(400, 0.6, 0.9);
   if (isMulti()) embed.captured({ player: cur.slot, kind });
   audio.play(kind === 'amoeba' ? 'bacterium/graze' : kind === 'cut' ? 'bacterium/tumble' : 'bacterium/eat', { volume: 0.9 });
+  if (kind !== 'cut') audio.play('shared/death', { volume: 0.6, delay: 0.4 }); // (cut: the genome, not the phage, is lost)
 }
 function captureAnim(phase, t, dt) {
   const am = world.amoeba;
@@ -471,9 +484,9 @@ function captureAnim(phase, t, dt) {
 
 // --- explicit protein grab, then the existing irreversible injection ---
 function beginCommit() {
-  P.mode = 'commit'; P.commitT = 0; P.commitHost = P.host; P.host.locked = true;
+  P.mode = 'commit'; P.commitT = 0; P.commitHost = P.host; P.host.locked = true; P.injected = false;
   say(tt('phage.toasts.receptorFits'), 3200, true);
-  audio.play('bacterium/phage', { volume: 0.9 });
+  audio.play('phage/latch', { volume: 0.8 });
   curPad().rumble(250, 0.3, 0.5);
 }
 // --- grabbing (X or RT): whatever is in reach of the fibres (grab.js) ---
@@ -513,7 +526,7 @@ function holdCell(h, point, normal, by, part) {
   P.hold = { kind: 'cell', host: h, local: world.toLocal(h, point, new THREE.Vector3()), nLocal: dirToLocal(h, normal), by, t: 0, part };
   P.reachT = HOLD_REACH_T;
   P.vel.multiplyScalar(0.3); P.gust.set(0, 0, 0);
-  audio.play('bacterium/tumble', { volume: 0.35, rate: 1.5 }); curPad().rumble(70, 0.25, 0.15);
+  playLimited('phage/grab', 0.25, { volume: 0.6, rate: 0.95 + Math.random() * 0.1 }); curPad().rumble(70, 0.25, 0.15);
   ringLog.push({ kind: 'hold', what: h.id, t: +t.toFixed(2), slot: cur.slot });
 }
 function holdMol(o, by) {
@@ -521,7 +534,7 @@ function holdMol(o, by) {
   o.heldBy = cur.slot; o.vel.set(0, 0, 0);
   P.hold = { kind: 'mol', mol: o, by, t: 0 };
   P.reachT = HOLD_REACH_T;
-  audio.play('bacterium/tumble', { volume: 0.3, rate: 1.8 }); curPad().rumble(50, 0.15, 0.1);
+  playLimited('phage/grab', 0.25, { volume: 0.5, rate: 1.1 }); curPad().rumble(50, 0.15, 0.1);
   ringLog.push({ kind: 'hold', what: 'molecule', t: +t.toFixed(2), slot: cur.slot });
 }
 /** Let go: a carried molecule drifts gently off ahead of the baseplate; from a cell, a small push off it. */
@@ -534,7 +547,7 @@ function releaseHold(push = true) {
     g.mol.heldBy = null;
     if (push) g.mol.vel.copy(P.vel).add(P.kv).addScaledVector(attachmentForward(P.q), 16);
   } else if (push) P.gust.copy(world.dirToWorld(g.host, g.nLocal, _v)).multiplyScalar(12);
-  if (push) audio.play('bacterium/tumble', { volume: 0.2, rate: 1.3 });
+  if (push) audio.play('phage/release', { volume: 0.5 });
 }
 /**
  * X or RT: grab (`by` 'x' or 'rt'). quiet: RT still held, reaching again, with no toasts and no proteins
@@ -549,12 +562,12 @@ function tryGrab(by = 'x', quiet = false) {
     // try a wrong protein, but cannot enter an occupied host phase.
     const aimed = aimedProtein(P.pos, attachmentForward(P.q), world.proteins, (target) => world.toWorld(target.host, target.local));
     const portalHost = aimed && world.portal && aimed.host === world.portal.host && aimed.compatible;
-    if (portalHost && portalSealed()) { say(tt('phage.toasts.sealed'), 2400, true); P.grabCooldown = 0.6; return; }
+    if (portalHost && portalSealed()) { audio.play('shared/portal-sealed', { volume: 0.6 }); say(tt('phage.toasts.sealed'), 2400, true); P.grabCooldown = 0.6; return; }
     if (portalHost && guarded()) {
       // the way on, on guard: turned back (the lobe shoves you off the receptor)
       const n = world.dirToWorld(aimed.host, aimed.normal, new THREE.Vector3());
       P.gust.addScaledVector(n, 60).addScaledVector(_v.subVectors(P.pos, world.amoeba.center).normalize(), 25);
-      P.grabCooldown = 0.6; curPad().rumble(160, 0.4, 0.5); audio.play('bacterium/tumble', { volume: 0.6, rate: 0.8 });
+      P.grabCooldown = 0.6; curPad().rumble(160, 0.4, 0.5); audio.play('shared/portal-sealed', { volume: 0.6 });
       say(tt('phage.toasts.turnedBack'), 3200, true);
       ringLog.push({ kind: 'turnedBack', t: +t.toFixed(2), slot: cur.slot });
       return;
@@ -570,17 +583,18 @@ function tryGrab(by = 'x', quiet = false) {
         releaseAnchors(); P.host = null; P.canCommit = false;
         P.grab = { protein: aimed, time: 0, from: P.pos.clone(), q: P.q.clone() };
         P.mode = 'grab'; P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0); P.kv.set(0, 0, 0);
-        audio.play('bacterium/tumble', { volume: 0.35, rate: 1.4 });
+        playLimited('phage/grab', 0.25, { volume: 0.6 });
         return;
       }
       holdCell(aimed.host, at, n, by, tt('phage.parts.violetProtein'));
+      playLimited('phage/miss', 0.3, { volume: 0.5 }); // the wrong protein
       say(tt('phage.toasts.doesNotFit'), 2300);
       return;
     }
   }
   const tgt = grabTarget();
   if (!tgt) {
-    if (!quiet) { cur.jab = 0.45; P.grabCooldown = 0.2; say(tt('phage.toasts.nothingInReach'), 1600); }
+    if (!quiet) { cur.jab = 0.45; P.grabCooldown = 0.2; playLimited('phage/miss', 0.3, { volume: 0.5 }); say(tt('phage.toasts.nothingInReach'), 1600); }
     return;
   }
   if (tgt.kind === 'mol') { holdMol(tgt.mol, by); if (!quiet) say(tt('phage.toasts.gotMolecule'), 1600); return; }
@@ -649,7 +663,7 @@ function updateGrab(dt) {
     releaseAnchors(); P.mode = 'drift'; P.gust.copy(normal).multiplyScalar(28);
     P.angVel.set(0, 0, 0.8); P.grabCooldown = 0.25;
     say(tt('phage.toasts.slipOff'), 2300, true);
-    audio.play('bacterium/tumble', { volume: 0.65, rate: 0.8 }); curPad().rumble(100, 0.15, 0.25);
+    playLimited('phage/miss', 0.3, { volume: 0.6 }); curPad().rumble(100, 0.15, 0.25);
   }
 }
 
@@ -672,11 +686,11 @@ const _pc = new THREE.Vector3(), _pq = new THREE.Vector3();
 function tryEnter() {
   const protein = portalReceptorNear(cur);
   if (!protein) return false;
-  if (portalSealed()) { say(tt('phage.toasts.sealed'), 2400, true); return true; }
+  if (portalSealed()) { audio.play('shared/portal-sealed', { volume: 0.6 }); say(tt('phage.toasts.sealed'), 2400, true); return true; }
   if (guarded()) {
     const n = world.dirToWorld(protein.host, protein.normal, new THREE.Vector3());
     P.gust.addScaledVector(n, 60).addScaledVector(_v.subVectors(P.pos, world.amoeba.center).normalize(), 25);
-    curPad().rumble(160, 0.4, 0.5); audio.play('bacterium/tumble', { volume: 0.6, rate: 0.8 });
+    curPad().rumble(160, 0.4, 0.5); audio.play('shared/portal-sealed', { volume: 0.6 });
     say(tt('phage.toasts.turnedBack'), 3200, true);
     ringLog.push({ kind: 'turnedBack', t: +t.toFixed(2), slot: cur.slot });
     return true;
@@ -689,14 +703,19 @@ function tryEnter() {
   P.grab = { protein, time: 0, from: P.pos.clone(), q: P.q.clone() };
   P.mode = 'grab'; P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0);
   ringLog.push({ kind: 'enter', t: +t.toFixed(2), slot: cur.slot });
-  audio.play('bacterium/tumble', { volume: 0.35, rate: 1.4 });
+  audio.play('shared/portal-enter', { volume: 0.8 });
   return true;
 }
 let nearPortal = false;
 /** The shell's "Y Enter the portal" prompt: on while any player is in the area and the guard is away. */
+let wasSealed;
 function updatePortalPrompt(where) {
+  // the way on unseals (both decoys met): heard once, on the edge
+  const isSealed = portalSealed();
+  if (wasSealed && !isSealed) audio.play('shared/portal-appear', { volume: 0.8 });
+  wasSealed = isSealed;
   const on = where === 'outside' && !!world.portal && !portalSealed() && !guarded() && members().some((m) => portalReceptorNear(m));
-  if (on !== nearPortal) { nearPortal = on; embed.near('portal', on, tt('phage.prompts.enterHostA')); }
+  if (on !== nearPortal) { nearPortal = on; if (on) audio.play('shared/portal-near', { volume: 0.6 }); embed.near('portal', on, tt('phage.prompts.enterHostA')); }
 }
 
 // --- per-mode updates ---
@@ -765,7 +784,7 @@ function updateDrift(dt, inp) {
     P.snagT += dt;
     P.vel.multiplyScalar(Math.exp(-dt * 4)); P.kv.multiplyScalar(Math.exp(-dt * 4));
     P.pos.lerp(P.snag.pos, 1 - Math.exp(-dt * 0.25)); // pulled into the tangle
-    if (!was) { say(tt('phage.toasts.flocSnag'), 2600, true); curPad().rumble(140, 0.3, 0.2); audio.play('bacterium/tumble', { volume: 0.45, rate: 0.7 }); }
+    if (!was) { say(tt('phage.toasts.flocSnag'), 2600, true); curPad().rumble(140, 0.3, 0.2); audio.play('phage/snag', { volume: 0.6 }); }
   } else P.snagT = 0;
   // a carried molecule rides at the baseplate, the fibres closed round it
   if (P.hold?.kind === 'mol') {
@@ -813,7 +832,7 @@ function enterClay() {
   P.mode = 'clay'; P.clayT = 0;
   for (let f = 0; f < 6; f++) { const tip = t4.tip(f); if (world.sdClay(tip) < 4) { P.stuckTip[f] = tip.clone(); t4.fibres[f].anchor = P.stuckTip[f]; } }
   P.vel.set(0, 0, 0); P.gust.set(0, 0, 0);
-  audio.play('bacterium/tumble', { volume: 0.5, rate: 0.8 });
+  audio.play('phage/snag', { volume: 0.6, rate: 0.9 });
   say(tt('phage.toasts.claySnag'), 3000, true);
 }
 
@@ -1031,7 +1050,9 @@ function updateCommit(dt) {
   P.contract = k < 1 ? k * k * (3 - 2 * k) : 1 + Math.sin((c - 1.75) * 18) * 0.05 * Math.exp(-(c - 1.75) * 5);
   P.dna = 1 - ramp(c, 2.1, COMMIT_T) * 0.35;
   P.lift = 4 - ramp(c, 0.3, 1.2) * 3;
-  if (k > 0 && k < 1 && !P.snapped) { P.snapped = true; curPad().rumble(200, 0.7, 0.8); audio.play('bacterium/eat', { volume: 0.8, rate: 0.8 }); }
+  if (k > 0 && k < 1 && !P.snapped) { P.snapped = true; curPad().rumble(200, 0.7, 0.8); audio.play('phage/sheath', { volume: 0.9 }); }
+  // the DNA slides in once the sheath has snapped (the genome's ramp)
+  if (P.snapped && !P.injected && c >= 2.1) { P.injected = true; audio.play('phage/inject', { volume: 0.7 }); }
   const base = world.toWorld(h, P.walkLocal, new THREE.Vector3());
   world.projectToHost(h, base, P.lift, base, _n);
   P.pos.copy(base);
@@ -1085,7 +1106,7 @@ function updateBurst(dt) {
     progeny.setCount(40);
     P.pos.copy(h.pos).add(new THREE.Vector3(0, h.r + 40, 0));
     view.target.copy(h.pos);
-    audio.play('bacterium/graze', { volume: 0.8, rate: 1.3 });
+    audio.play('phage/burst', { volume: 1 });
     curPad().rumble(500, 0.8, 0.8);
   }
   P.fade = 1 - ramp(b, 2.6, 3.4);
@@ -1241,7 +1262,7 @@ function tryJab(m) {
   m.P.gust.addScaledVector(away, 45); // the kick also pushes you off it
   am.tip.addScaledVector(away, -28);   // and the lobe recoils
   const gone = fight.bitten();
-  audio.play('bacterium/sprint', { volume: 0.7, rate: 1.4 });
+  audio.play('phage/jab', { volume: 0.7 });
   curPad().rumble(140, 0.5, 0.4);
   say(gone ? tt('phage.toasts.jabGone') : tt('phage.toasts.jab'), 2000, true);
   return true;
@@ -1283,6 +1304,7 @@ function updateGuard(dt) {
   const facing = base.dot(dirTo) > 0.35 || (P.lastStickT > 0 && P.lastStick && P.lastStick.dot(dirTo) > 0.5);
   const blocking = P.foldTarget > 0.5;
   const f = fight.update(dt, { near: d < 140, inReach: d < REACH, facing: facing || (blocking && d < REACH), blocking });
+  if (f.state === 'windup' && fightState !== 'windup') audio.play('phage/lobe', { volume: 0.8 }); // the lobe rears and lunges
   fightState = f.state;
   let open = 0.4, posture = 0, standoff = 26, sp = 15 + Math.sin(t * 2.1) * 4;
   if (f.state === 'stalk') { standoff = 22; }
@@ -1293,8 +1315,8 @@ function updateGuard(dt) {
   } else if (f.state === 'strike') { standoff = 0; sp = 160; open = 1.6 - f.t * 1.6; posture = 1; }
   else if (f.state === 'recover') { standoff = 46; sp = 25; open = 0.3; }
   else if (f.state === 'repelled') { standoff = 80; sp = 70; open = 0; posture = 0; }
-  if (f.blocked) { P.gust.addScaledVector(toward, 40); curPad().rumble(160, 0.4, 0.6); audio.play('bacterium/tumble', { volume: 0.6, rate: 0.8 }); say(tt('phage.toasts.lobeSlides'), 1800, true); }
-  if (f.retreated) { guard.gone = true; say(tt('phage.toasts.amoebaGone'), 3200, true); ringLog.push({ kind: 'guardGone', t: +t.toFixed(2) }); }
+  if (f.blocked) { P.gust.addScaledVector(toward, 40); curPad().rumble(160, 0.4, 0.6); audio.play('shared/block', { volume: 0.7 }); say(tt('phage.toasts.lobeSlides'), 1800, true); }
+  if (f.retreated) { guard.gone = true; audio.play('shared/foe-flees', { volume: 0.7 }); say(tt('phage.toasts.amoebaGone'), 3200, true); ringLog.push({ kind: 'guardGone', t: +t.toFixed(2) }); }
   const goal = d - standoff;
   am.tip.addScaledVector(toward, Math.sign(goal) * Math.min(Math.abs(goal), sp * dt));
   // never further than its leash from its post
@@ -1473,11 +1495,12 @@ function stepCurrents(dt) {
     curLog.push({ t: +t.toFixed(2), slot: pick?.slot, dir: a.dir.toArray().map((x) => +x.toFixed(2)) });
     // seen coming: a low whoosh and a word (where from, in the view's terms)
     const d = a.dir, from = Math.abs(d.dot(camRight(_v))) > Math.abs(d.dot(camUp(_w))) ? (d.dot(_v) > 0 ? 'Left' : 'Right') : (d.dot(_w) > 0 ? 'Below' : 'Above');
-    audio.play('bacterium/sprint', { volume: 0.35, rate: 0.45 });
+    audio.play('phage/current-coming', { volume: 0.5 });
     say(tt(`phage.toasts.current${from}`), 3000, true);
   }
   if (a && !curWarned && a.t > currents.C.warn - 0.3) {
     curWarned = true;
+    audio.play('phage/current-pass', { volume: 0.6 });
     for (const m of members()) if (currents.nearness(m.P.pos) > 0.5) players.pad(m.slot).rumble(220, 0.2, 0.35);
   }
 }
@@ -1512,7 +1535,7 @@ function stepMember(m, dt, insideOwner, where) {
     if (zs) view.zoom = clamp(view.zoom - zs, 0, ZOOMS.length - 1);
     if (ctl.special.pressed()) {
       // (the backdoor and the portal are far apart; whichever this player is in wins, else the overlay)
-      if (where === 'outside' && P.inBack && outsideModes.includes(P.mode)) embed.landmark('back', { player: m.slot });
+      if (where === 'outside' && P.inBack && outsideModes.includes(P.mode)) { audio.play('shared/backdoor', { volume: 0.55 }); embed.landmark('back', { player: m.slot }); }
       else if (!(where === 'outside' && live && tryEnter())) { view.overlay = !view.overlay; inside.setRadar(view.overlay); }
     }
   }
@@ -1520,7 +1543,7 @@ function stepMember(m, dt, insideOwner, where) {
     if (ctl.defend.pressed() && P.mode === 'coinfect') { P.coT = 1e6; }
     else if (ctl.defend.pressed() && outsideModes.includes(P.mode)) {
       P.foldTarget = P.foldTarget > 0.5 ? 0 : 1;
-      audio.play('bacterium/tumble', { volume: 0.5, rate: P.foldTarget ? 0.9 : 1.15 });
+      audio.play('phage/fold', { volume: 0.6, rate: P.foldTarget ? 1 : 1.15 });
       say(P.foldTarget ? tt('phage.toasts.foldIn') : tt('phage.toasts.foldOut'), 1800, true);
       if (P.mode === 'walk' && P.foldTarget > 0.5) leaveSurface(false);
       if (P.foldTarget > 0.5) releaseHold();
@@ -1533,7 +1556,8 @@ function stepMember(m, dt, insideOwner, where) {
       if (P.mode === 'walk') { leaveSurface(true); say(tt('phage.toasts.pushOff'), 1800, true); }
       else { P.gust.addScaledVector(dir, 105); P.vel.addScaledVector(dir, 12); }
       world.gust(P.pos, dir);
-      audio.play('bacterium/sprint', { volume: 0.8 });
+      // A while carrying a molecule flings it along; otherwise the dash
+      audio.play(P.hold?.kind === 'mol' ? 'phage/throw' : 'phage/dash', { volume: 0.7 });
       curPad().rumble(120, 0.4, 0.3);
     } else if (ctl.dash.pressed() && P.mode === 'clay') say(tt('phage.toasts.stuckClay'), 1800, true);
     // X: grab, or let go (pressed again); at an amoeba's lobe, a fibre jab
@@ -1575,6 +1599,10 @@ function stepMember(m, dt, insideOwner, where) {
     if (ev.retreat) say(tt('phage.toasts.crisprLetsGo'), 2400, true);
     if (P.mode === 'inside' && !c.active) {
       const b = inside.bossLock();
+      // Cas3 swings in: heard on the edge into its wind-up
+      if (b && b.state === 'windup' && P.casState !== 'windup') audio.play('phage/cas', { volume: 0.8 });
+      P.casState = b ? b.state : null;
+
       if (b && b.state === 'windup' && P.msgT <= 0) { say(tt('phage.toasts.bound'), 2000, true); P.msgT = 3; }
       else if (b && b.match > 0.45 && b.state !== 'windup' && P.msgT <= 0) { say(tt('phage.toasts.guideGlowing'), 2200, true); P.msgT = 4; }
     }

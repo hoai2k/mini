@@ -116,7 +116,7 @@ sem.warm(scene, camera);
 const joins = [];
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { joins.push({ slot: p.slot, padIndex: p.padIndex }); syncPlayers(); hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); embed.join(p.slot, p.color, p.name, players.toJSON()); }, // the roster rides along, so the shell carries this player into the next world
+  onJoin: (p) => { joins.push({ slot: p.slot, padIndex: p.padIndex }); syncPlayers(); audio.play('shared/join', { volume: 0.6 }); hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); embed.join(p.slot, p.color, p.name, players.toJSON()); }, // the roster rides along, so the shell carries this player into the next world
   onLeave: (p) => { syncPlayers(); hud.toast(tt('shared.players.left', { n: p.slot + 1 })); embed.leave(p.slot); },
   onChange: (list) => hud && hud.players(list),
 });
@@ -399,6 +399,7 @@ function afterCatch() {
     const s = P.safe && P.safe.distanceTo(pred.center) > 900 ? P.safe : new THREE.Vector3(c.x * back, 0, c.z * back);
     P.mite.place(s.x, s.z, rig.yaw + Math.PI);
     P.play.hurt = 0; P.play.stun = 0; P.play.heal = 0;
+    audio.play('shared/reform', { volume: 0.7 });
   }
   cap.phase = null; cap.heldOnce = false;
   if (P === P1 || !multi()) { rig.target.copy(P.mite.center); rig.viewHfw = undefined; }
@@ -412,6 +413,7 @@ function wearDown(how) {
   fightLog[how === 'bite' ? 'bites' : 'blocks']++;
   if (fight.bitten()) {
     fightLog.retreats++;
+    audio.play('shared/foe-flees', { volume: 0.7 });
     predAI.retreat();
     if (hunger.hungry) hunger.missed();
     hud.toast(tt('mite.toasts.predatorGone'), 2200);
@@ -530,7 +532,9 @@ function animateCapture(c, dt) {
 
 // ---------- features panel ----------
 const features = createFeatures({ key: 'mite', pad });
-const audio = createAudio(['mite/amb-moss', 'mite/step', 'mite/dash', 'mite/close', 'mite/open', 'mite/bite', 'mite/blade', 'mite/predator', 'shared/portal-chime']);
+const audio = createAudio(['mite/amb-moss', 'mite/step', 'mite/dash', 'mite/close', 'mite/open', 'mite/bite', 'mite/blade', 'mite/predator', 'shared/portal-chime',
+  'mite/jump', 'mite/land', 'mite/crouch', 'mite/strike', 'mite/devour', 'mite/drop-fall', 'mite/drop-splash', 'mite/predator-windup', 'mite/predator-strike', 'mite/glance', 'mite/pincer',
+  'shared/portal-enter', 'shared/slowdown', 'shared/portal-near', 'shared/portal-sealed', 'shared/portal-appear', 'shared/backdoor', 'shared/hit', 'shared/reform', 'shared/foe-flees', 'shared/danger', 'shared/join']);
 audio.addToFeatures(features);
 audio.loop('mite/amb-moss', { volume: 0.6 });
 const LOOKS = ['SE', 'BSE', 'False colour'];
@@ -770,17 +774,21 @@ function stepAct(dt) {
       mite.bite();
       snapPuff(_sp2.copy(m).lerp(foeC, 0.35), 1.1);
       audio.play('mite/bite', { volume: 1, rate: 0.85 });
+      let fled = false;
       if (play.foe === 'boss' && !capture.active && boss.bitePoints().some((p) => p.distanceTo(m) < 640)) {
         play.nips = (play.nips || 0) + 1;
         if (rumbleOn) padOf().rumble(140, 0.5, 0.4);
         const open = boss.open;
         const gone = boss.bitten(1, cur.slot);
+        fled = gone;
         hud.toast(gone ? tt('mite.toasts.bossGone') : tt(open ? 'mite.toasts.bitPincerJoint' : 'mite.toasts.bitPincer'), 1500);
       } else if (play.foe !== 'boss' && predHere() && !capture.active && pred.center.distanceTo(m) < 700) {
         play.nips = (play.nips || 0) + 1;
         if (rumbleOn) padOf().rumble(140, 0.5, 0.4);
         wearDown('bite');
       }
+      // the pseudoscorpion has had enough (wearDown plays it for the predator)
+      if (fled) audio.play('shared/foe-flees', { volume: 0.7 });
     }
   } else if (play.act === 'eat') {
     // leg I reaches for the food (0-0.25), holds it under the mouth, the chelicerae work, it shrinks
@@ -828,6 +836,7 @@ function stepAct(dt) {
       const at = play.target && play.target.distanceTo(m) < BUG_REACH + 160 ? play.target.clone() : m.clone().addScaledVector(fwd, 60);
       play.strikes = (play.strikes || 0) + 1;
       play.lastStrike = { hit: null, x: Math.round(at.x), z: Math.round(at.z) };
+      audio.play('mite/strike', { volume: 0.8 });
       if (play.bug) {
         const r = ambient.nip(play.bug, mite.center.x, mite.center.z);
         if (r && play.target.distanceTo(m) < BUG_REACH + 160) {
@@ -836,18 +845,15 @@ function stepAct(dt) {
           audio.play('mite/bite', { volume: 1, rate: 0.9 });
           if (rumbleOn) padOf().rumble(90, 0.35, 0.25);
           if (!lifeT.bugTip) { lifeT.bugTip = true; hud.toast(tt('mite.toasts.nippedSpringtail'), 2600); }
-        } else { snapPuff(at, 0.7); audio.play('mite/bite', { volume: 0.6, rate: 1.2 }); }
+        } else snapPuff(at, 0.7);
       } else if (play.fam) {
         // a box mite of its own kind: it shuts itself in its capsule, and the bite glances off
         play.lastStrike.hit = 'boxmite';
         play.fam.ai.scared = Math.max(play.fam.ai.scared, 3);
         snapPuff(at, 0.8);
-        audio.play('mite/bite', { volume: 0.8, rate: 1.4 });
+        audio.play('mite/glance', { volume: 0.7 });
         if (!lifeT.famTip) { lifeT.famTip = true; hud.toast(tt('mite.toasts.boxMiteShut'), 2200); }
-      } else {
-        snapPuff(at, 0.7);
-        audio.play('mite/bite', { volume: 0.6, rate: 1.2 });
-      }
+      } else snapPuff(at, 0.7);
     }
   } else if (play.act === 'devour') {
     // a quick snap onto it (0-0.25), then leg I holds it under the mouth and the chelicerae work while it shrinks
@@ -857,8 +863,8 @@ function stepAct(dt) {
     if (k < 0.25 && to.lengthSq() > 1) mite.st.fwd.lerp(to.normalize(), Math.min(1, dt * 12)).setY(0).normalize();
     const at = play.bug0.clone().lerp(m.clone().add(new THREE.Vector3(0, -10, 0)), sstepJ(0.1, 0.4, u));
     mite.act({ rear: 0.2 + 0.25 * Math.sin(snap * Math.PI), lunge: 0.8 * Math.sin(snap * Math.PI), gape: snap < 0.5 ? 1 : 0, hold: at, holdK: Math.min(1, u / 0.3) });
-    if (!play.snapped && k > 0.12) { play.snapped = true; mite.bite(); snapPuff(play.bug0.clone().setY(play.bug0.y + 20), 1); audio.play('mite/bite', { volume: 1, rate: 0.85 }); }
-    if (k > 0.3 && Math.floor(k / 0.2) !== Math.floor((k - dt) / 0.2)) { mite.bite(); audio.play('mite/bite', { volume: 0.5, rate: 1.1 + Math.random() * 0.2 }); }
+    if (!play.snapped && k > 0.12) { play.snapped = true; mite.bite(); snapPuff(play.bug0.clone().setY(play.bug0.y + 20), 1); audio.play('mite/devour', { volume: 1 }); }
+    if (k > 0.3 && Math.floor(k / 0.2) !== Math.floor((k - dt) / 0.2)) mite.bite();
     ambient.hold(play.bug, at, 1 - 0.95 * Math.max(0, (u - 0.25) / 0.75));
     if (u >= 1) {
       ambient.eaten(play.bug);
@@ -888,11 +894,12 @@ function soundTick(dt, ev) {
   if (mite.mode !== snd.mode) {
     if (mite.mode === 'closing') audio.play('mite/close');
     else if (mite.mode === 'opening') audio.play('mite/open');
+    else if (mite.mode === 'crouch') audio.play('mite/crouch', { volume: 0.45 });
     snd.mode = mite.mode;
   }
   for (const e of ev) {
-    if (e === 'jump') audio.play('mite/dash', { volume: 0.7, rate: 1.3 });
-    if (e === 'land') audio.play('mite/step', { volume: 0.9, rate: 0.75 });
+    if (e === 'jump') audio.play('mite/jump', { volume: 0.8 });
+    if (e === 'land') audio.play('mite/land', { volume: 0.8 });
     // one plant of the lead leg per stride; at most ~8 a second
     if (e === 'step' && snd.t - snd.lastStep > 0.125) {
       snd.lastStep = snd.t; snd.side = -snd.side;
@@ -963,6 +970,7 @@ function respawnNear(P) {
   const a = Math.random() * Math.PI * 2;
   P.mite.place(c.x + Math.cos(a) * 280, c.z + Math.sin(a) * 280, a + Math.PI);
   P.play.hurt = 0; P.play.stun = 0; P.play.heal = 0;
+  audio.play('shared/reform', { volume: 0.7 });
 }
 
 // ---------- landmarks: the portal (forward) and the backdoor ----------
@@ -984,6 +992,7 @@ backPrompt.style.cssText = 'position:fixed;left:50%;bottom:64px;transform:transl
 document.body.appendChild(backPrompt);
 function goBack(P) {
   lm.log.push({ kind: 'back', slot: P.slot, t: +simTime.toFixed(2) });
+  audio.play('shared/backdoor', { volume: 0.55 });
   embed.landmark('back', { player: P.slot });
 }
 const PORTAL = props.forward; // { placed, a, x, z, ... }
@@ -999,6 +1008,10 @@ const atPortal = (P) => PORTAL.placed && !held(P) && flat(P.mite.center, PORTAL)
 /** Can P go through now (at the water, the pseudoscorpion off guard)? Then Y enters. */
 const atOpenPortal = (P) => !outro && atPortal(P) && !portalSealed() && !guarded();
 function checkLandmarks() {
+  // the way on unseals (the predatory mite met): heard once, on the edge
+  const isSealed = portalSealed();
+  if (lm.wasSealed && !isSealed) audio.play('shared/portal-appear', { volume: 0.8 });
+  lm.wasSealed = isSealed;
   let at = null, nearB = false, dmin = Infinity;
   for (const P of recs()) {
     if (held(P)) continue;
@@ -1018,12 +1031,14 @@ function checkLandmarks() {
     if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
     if (at && !lm.fired) {
       if (guarded()) {
+        audio.play('shared/portal-sealed', { volume: 0.6 });
         if (!portalState.turned) { portalState.turned = true; hud.toast(tt('mite.toasts.turnedBack'), 3600); }
         lm.log.push({ kind: 'turnedBack', slot: at.slot, t: +simTime.toFixed(2) });
         lm.fired = true; // once a visit (again after everyone has left)
         withRec(at, () => { if (rumbleOn) padOf().rumble(160, 0.4, 0.2); });
       } else if (portalSealed()) {
         // the way on exists from the start (the default path) but opens only once the predatory mite is met, twice
+        audio.play('shared/portal-sealed', { volume: 0.6 });
         hud.toast(tt('mite.toasts.sealed'), 2600);
         lm.log.push({ kind: 'sealed', slot: at.slot, t: +simTime.toFixed(2) });
         lm.fired = true;
@@ -1047,6 +1062,7 @@ function checkLandmarks() {
 function setPortalPrompt(on) {
   if (on === lm.portal) return;
   lm.portal = on;
+  if (on) audio.play('shared/portal-near', { volume: 0.6 });
   embed.near('portal', on);
 }
 /**
@@ -1060,6 +1076,7 @@ function enterPortal(P) {
   setPortalPrompt(false);
   lm.log.push({ kind: 'forward', slot: P.slot, t: +simTime.toFixed(2) });
   logChallenge('enter', P);
+  audio.play('shared/portal-enter', { volume: 0.8 });
   startOutro(P);
   embed.landmark('forward', { player: P.slot, outro: embed.active });
 }
@@ -1214,13 +1231,15 @@ function stepLife(dt) {
   lifeT.t += dt;
   const ps = recs().filter((P) => !held(P)).map((P) => { const f = _ct.set(1, 0, 0).applyQuaternion(P.mite.quat); return { x: P.mite.center.x, z: P.mite.center.z, hx: f.x, hz: f.z }; });
   for (const D of [drip1, drip3]) for (const e of D.update(dt, ps)) {
-    if (e.type === 'fall') { hud.toast(tt('mite.toasts.drip'), 2400); audio.play('mite/dash', { volume: 0.5, rate: 0.5 }); }
+    if (e.type === 'fall') { hud.toast(tt('mite.toasts.drip'), 2400); audio.play('mite/drop-fall', { volume: 0.8 }); }
     if (e.type === 'splash') {
       puffDust(new THREE.Vector3(e.x, floorH(e.x, e.z) + 30, e.z), 22, 1.6);
-      audio.play('mite/close', { volume: 1, rate: 0.6 });
+      audio.play('mite/drop-splash', { volume: 0.9 });
+      let hit = false;
       for (const P of recs()) {
         const c = P.mite.center, d = Math.hypot(c.x - e.x, c.z - e.z);
         if (d > DRIP.splash || held(P)) continue;
+        if (!hit) { hit = true; audio.play('shared/hit', { volume: 0.6 }); }
         // knocked shut and tumbled (main hold: mite.st.drop closes it; it rolls on whatever is below)
         P.mite.st.drop = 0.7;
         if (P.mite.mode === 'walk') P.mite.st.fwd.set(c.x - e.x, 0, c.z - e.z).normalize();
@@ -1292,6 +1311,7 @@ function startOutro(P) {
   const me = split.project(0, P.mite.center);
   if (!me.behind) portalLight.bloom(me.x, me.y, { scale: 0.7 });
   audio.play('shared/portal-chime', { volume: 0.9 });
+  audio.play('shared/slowdown', { volume: 0.5, delay: OUTRO.beat });
   withRec(P, () => { if (rumbleOn) padOf().rumble(520, 0.55, 0.85); });
   hud.toast('', 1);
   banner.style.display = 'none'; gauge.style.display = 'none';
@@ -1491,7 +1511,7 @@ function startBossCapture() {
   play.caught++; play.stun = 0;
   capture.start({ by: tt('mite.capture.boss.by'), how: tt('mite.capture.boss.how') });
   embed.captured({ by: 'boss', player: cur.slot });
-  audio.play('mite/predator', { volume: 1, rate: 0.6 });
+  audio.play('mite/pincer', { volume: 0.9 });
   if (rumbleOn) padOf().rumble(400, 0.9, 1);
 }
 // the boss's resolve: a quiet brass gauge, shown while it is engaged
@@ -1606,15 +1626,17 @@ function tick(dt, inputs) {
       const toP = _ct.subVectors(pred.center, mite.center).setY(0).normalize();
       const fwd = _cf.set(1, 0, 0).applyQuaternion(mite.quat).setY(0).normalize();
       const f = fight.update(dt, { near: hunting && bd < 900, facing: toP.dot(fwd) > 0.5 });
-      if (f.retreated) { fightLog.retreats++; predAI.retreat(); if (hunger.hungry) hunger.missed(); hud.toast(tt('mite.toasts.predatorGivesUp'), 1800); fight.reset(); }
+      if (f.retreated) { fightLog.retreats++; audio.play('shared/foe-flees', { volume: 0.7 }); predAI.retreat(); if (hunger.hungry) hunger.missed(); hud.toast(tt('mite.toasts.predatorGivesUp'), 1800); fight.reset(); }
       const who = (text) => (multi() ? tt('shared.players.prefixed', { n: cur.slot + 1, text }) : text);
       for (const e of r.events) {
         if ((e === 'gaveUp' || e === 'lost') && hunger.hungry) hunger.missed();
         if (e === 'hunt') { audio.play('mite/predator', { volume: 0.9 }); logChallenge('predator hunt', cur); }
         if (e === 'legHit') audio.play('mite/predator', { volume: 0.6, rate: 1.25 });
+        if (e === 'windup') audio.play('mite/predator-windup', { volume: 0.8 });
+        if (e === 'strike') audio.play('mite/predator-strike', { volume: 0.8 });
         if (e === 'hunt') hud.toast(who(tt('mite.toasts.predatorTouched')), 2600);
         else if (e === 'windup') { hud.toast(who(tt('mite.toasts.predatorRears')), 1400); if (rumbleOn) padOf().rumble(250, 0.15, 0); }
-        else if (e === 'blocked') { if (rumbleOn) padOf().rumble(90, 0.2, 0.35); wearDown('block'); }
+        else if (e === 'blocked') { if (rumbleOn) padOf().rumble(90, 0.2, 0.35); audio.play('mite/glance', { volume: 0.8 }); wearDown('block'); }
         else if (e === 'legHit') {
           play.hurt++; play.stun = 0.7; play.heal = 0;
           if (rumbleOn) padOf().rumble(260, 0.8, 0.9);
@@ -1644,12 +1666,15 @@ function tick(dt, inputs) {
         logChallenge('boss', nearest);
         if (first) hud.toast(tt('mite.toasts.bossWakes'), 3000);
       }
-      else if (e.type === 'tell') { for (const Q of recs()) if (Q.mite.center.distanceTo(boss.center) < 2600) withRec(Q, () => { if (rumbleOn) padOf().rumble(200, 0.12, 0); }); }
-      else if (['snap', 'sweep', 'step'].includes(e.type)) audio.play('mite/predator', { volume: 0.8, rate: 0.7 });
+      else if (e.type === 'tell') { audio.play('shared/danger', { volume: 0.5 }); for (const Q of recs()) if (Q.mite.center.distanceTo(boss.center) < 2600) withRec(Q, () => { if (rumbleOn) padOf().rumble(200, 0.12, 0); }); }
+      else if (e.type === 'snap') audio.play('mite/pincer', { volume: 0.8 });
+      else if (['sweep', 'step'].includes(e.type)) audio.play('mite/predator', { volume: 0.8, rate: 0.7 });
       else if (e.type === 'grab' && P) withRec(P, () => startBossCapture());
-      else if (e.type === 'survived') hud.toast(tt('mite.toasts.bossClosedUp'), 1600);
+      else if (e.type === 'survived') { audio.play('mite/glance', { volume: 0.8 }); hud.toast(tt('mite.toasts.bossClosedUp'), 1600); }
+
       else if (e.type === 'miss') hud.toast(tt('mite.toasts.bossMissed'), 1500);
-      else if (e.type === 'retreat') hud.toast(tt('mite.toasts.bossRetreats'), 2600);
+      else if (e.type === 'retreat') { audio.play('shared/foe-flees', { volume: 0.7 }); hud.toast(tt('mite.toasts.bossRetreats'), 2600); }
+
       else if (e.type === 'return') hud.toast(tt('mite.toasts.bossReturns'), 1800);
     }
   }

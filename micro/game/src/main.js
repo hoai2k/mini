@@ -364,7 +364,7 @@ function selectCard(i, silent) {
   const n = Math.max(0, Math.min(WORLDS.length - 1, i));
   if (n === S.sel) return;
   S.sel = n;
-  if (!silent) sound.tick();
+  if (!silent) sound.card();
   loadImage(introArt(WORLDS[n]));
   layoutCards();
 }
@@ -428,7 +428,7 @@ function slideIntroOff(intro) {
 async function openIntro() {
   if (S.zooming) return;
   const w = WORLDS[S.sel];
-  sound.select();
+  sound.introIn();
   fillIntro(w);
   preloadWorld(S.sel);
   const card = $(`.wcard[data-i="${S.sel}"] .art`);
@@ -507,7 +507,7 @@ async function openIntro() {
 /** Back from the intro to the tray, selection kept: the panel leaves to the left, the plate to the right, then the tray fades in. */
 async function closeIntro() {
   if (S.zooming) return;
-  sound.back();
+  sound.introOut();
   goMenu();
   const intro = $('#intro'), menu = $('#menu');
   const unghost = ghost('intro');
@@ -686,7 +686,7 @@ function dedupe(kind) {
  */
 async function beginPlay() {
   if (S.zooming || S.screen !== 'intro') return;
-  sound.select();
+  sound.start();
   S.board = 0;
   closeAllModals();
   const intro = $('#intro');
@@ -742,6 +742,7 @@ function pause(reason = '') {
   S.paused = true;
   S.devPanel = false;
   send(S.frame, 'pause');
+  sound.pause(); // (heard over the paused mute)
   sound.setPaused(true);
   showPrompt(S.near);
   $('#pause-world').textContent = t('shell.pause.world', { roman: ROMAN[S.world], name: WORLDS[S.world].name });
@@ -751,6 +752,7 @@ function pause(reason = '') {
 }
 function resume() {
   if (!S.paused) return;
+  sound.resume();
   closeAllModals();
   S.paused = false;
   restoreScreenFocus();
@@ -1059,7 +1061,8 @@ function activate(el) {
     case 'fullscreen': toggleFullscreen(); break;
     case 'begin': beginPlay(); break;
     case 'back': back(); break;
-    case 'resume': sound.select(); resume(); break;
+    case 'resume': resume(); break;
+
     case 'restart': confirmThen(t('shell.confirm.restartTitle'), t('shell.confirm.restartText'), restartWorld); break;
     case 'choose': confirmThen(t('shell.confirm.chooseTitle'), t('shell.confirm.chooseText'), () => leavePlay('menu')); break;
     case 'title': confirmThen(t('shell.confirm.titleTitle'), t('shell.confirm.titleText'), () => leavePlay('title')); break;

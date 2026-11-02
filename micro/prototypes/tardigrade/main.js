@@ -76,6 +76,7 @@ const players = createPlayers({
     // the roster rides along, so the shell carries this player into the next world
     embed.post('join', { index: p.slot, color: p.color, name: p.name, roster: players.toJSON() });
     addAnimal(p);
+    audio.play('shared/join', { volume: 0.6 });
     hud.toast(tt('shared.players.joined', { n: p.slot + 1 }));
   },
   onLeave: (p) => { embed.post('leave', { index: p.slot, roster: players.toJSON() }); removeAnimal(p.slot); hud.toast(tt('shared.players.left', { n: p.slot + 1 })); },
@@ -126,7 +127,9 @@ function tintCreature(c, color, on) {
 const GUT_TINTS = [[1, 1, 1], [0.7, 1, 0.5], [1, 0.6, 0.62], [0.82, 0.6, 1.25]];
 let rumbleOn = true;
 const rumble = (ms, w, s) => { if (rumbleOn) pad.rumble(ms, w, s); };
-const audio = createAudio(['tardigrade/amb-film', 'tardigrade/step', 'tardigrade/dash', 'tardigrade/bite', 'tardigrade/tun', 'tardigrade/revive', 'tardigrade/rain', 'tardigrade/milnesium', 'shared/portal-chime']);
+const audio = createAudio(['tardigrade/amb-film', 'tardigrade/step', 'tardigrade/dash', 'tardigrade/bite', 'tardigrade/tun', 'tardigrade/revive', 'tardigrade/rain', 'tardigrade/milnesium', 'shared/portal-chime',
+  'tardigrade/attack', 'tardigrade/impact', 'tardigrade/feed', 'tardigrade/brace', 'tardigrade/prionchulus', 'tardigrade/whip',
+  'shared/portal-enter', 'shared/slowdown', 'shared/portal-near', 'shared/portal-sealed', 'shared/portal-appear', 'shared/backdoor', 'shared/block', 'shared/reform', 'shared/foe-flees', 'shared/join']);
 audio.loop('tardigrade/amb-film', { volume: 0.6 });
 const snd = { t: 0, lastStep: -1, side: 1, state: 'active', feeding: false, rain: false };
 /** Gamepads fire no DOM events: unlock sound on any pad button. */
@@ -484,6 +487,7 @@ function spawnNear(a, mate) {
 /** Multiplayer: after being eaten (or a tun that did not wake) the animal comes back beside a teammate. */
 function respawnNear(a) {
   a.life.respawn();
+  audio.play('shared/reform', { volume: 0.7 });
   a.dash = createDash({ duration: 0.9, cooldown: 2.6 });
   const mate = teammate(a);
   if (mate) spawnNear(a, mate); else a.walker.spawn(world.leaves[START_SPOT.leaf], 1, START_SPOT.u, START_SPOT.v, 1, 0);
@@ -548,6 +552,7 @@ const SAFE_R = [0, (RINGS.warm + RINGS.meadow[0]) / 2, (RINGS.meadow[1] + RINGS.
 function respawnSafe(a) {
   const p = a.walker.dispPos.clone(), r = world.radius(p), k = world.spokeOf(a.walker.leaf, p);
   a.life.respawn();
+  audio.play('shared/reform', { volume: 0.7 });
   a.dash = createDash({ duration: 0.9, cooldown: 2.6 });
   const danger = captor === 'boss' ? boss.headW || boss.pointWorld(0) : predator.walker.dispPos;
   for (const R of SAFE_R.filter((x) => x <= r + 1).reverse()) {
@@ -674,6 +679,7 @@ function setNear(on) {
 }
 function fireLandmark(kind, a) {
   lm.log.push({ type: 'landmark', kind, slot: a.slot, t: +time.toFixed(2) });
+  if (kind === 'back') audio.play('shared/backdoor', { volume: 0.55 });
   embed.landmark(kind, { player: a.slot });
 }
 
@@ -810,10 +816,15 @@ parkMilnesium();
 function setPortalPrompt(on) {
   if (on === lm.portal) return;
   lm.portal = on;
+  if (on) audio.play('shared/portal-near', { volume: 0.6 });
   embed.near('portal', on);
 }
 function checkPortal() {
   for (const a of animals) a.atPortal = false;
+  // the way on unseals (Milnesium met): heard once, on the edge
+  const isSealed = portalSealed();
+  if (lm.wasSealed && !isSealed) audio.play('shared/portal-appear', { volume: 0.8 });
+  lm.wasSealed = isSealed;
   if (!portal.placed || outro) { setPortalPrompt(false); return; }
   let at = null, dmin = Infinity;
   for (const a of animals) {
@@ -830,12 +841,14 @@ function checkPortal() {
   if (at && !lm.fired) {
     if (guarded()) {
       if (!lm.blocked) {
+        audio.play('shared/portal-sealed', { volume: 0.6 });
         if (!portal.turned) { portal.turned = true; toast(tt('tardigrade.toasts.turnedBack'), 3600); }
         lm.log.push({ type: 'turnedBack', slot: at.slot, t: +time.toFixed(2) });
         lm.blocked = true;
       }
     } else if (portalSealed() && !lm.blocked) {
       // the way on exists from the start (the default path) but opens only once Milnesium is met
+      audio.play('shared/portal-sealed', { volume: 0.6 });
       toast(tt('tardigrade.toasts.sealed'), 2600);
       lm.log.push({ type: 'sealed', slot: at.slot, t: +time.toFixed(2) });
       lm.blocked = true;
@@ -855,6 +868,7 @@ function enterPortal(a) {
   if (lm.fired || outro) return;
   lm.fired = true;
   setPortalPrompt(false);
+  audio.play('shared/portal-enter', { volume: 0.8 });
   startOutro(a);
   lm.log.push({ type: 'landmark', kind: 'forward', slot: a.slot, t: +time.toFixed(2) });
   embed.landmark('forward', { player: a.slot, outro: embed.active });
@@ -894,6 +908,7 @@ function startOutro(a) {
   const me = split.project(0, a.walker.dispPos);
   if (!me.behind) portalLight.bloom(me.x, me.y, { scale: 0.7 });
   audio.play('shared/portal-chime', { volume: 0.9 });
+  audio.play('shared/slowdown', { volume: 0.5, delay: OUTRO.beat });
   rumble(520, 0.55, 0.85);
   // the chrome goes, the bloom stays (cinematic(false) restores both)
   if (embed.active) { embed.cinematic(true, canvas); portalLight.canvas.style.visibility = 'visible'; }
@@ -1250,13 +1265,14 @@ function step(dt, G) {
     else if (e === 'rewake') toast(tt('tardigrade.toasts.bossStirs'), 1600);
     else if (e === 'return') { toast(tt('tardigrade.toasts.bossReturns'), 2400); logChallenge('bossLured', pr ? pr.a : p1); }
     else if (e === 'guard') toast(tt('tardigrade.toasts.bossGuard'), 1600);
-    else if (e === 'windupWhip') { toast(tt('tardigrade.toasts.bossCoils', { who: a ? who(a) : '' }), 1800); rb(140, 0.3, 0); }
+    else if (e === 'windupWhip' || e === 'windupThrash') audio.play('tardigrade/prionchulus', { volume: 0.8 });
+    if (e === 'windupWhip') { toast(tt('tardigrade.toasts.bossCoils', { who: a ? who(a) : '' }), 1800); rb(140, 0.3, 0); }
     else if (e === 'windupThrash') { toast(tt('tardigrade.toasts.bossThrashes', { who: a ? who(a) : '' }), 1800); rb(140, 0.3, 0); }
-    else if (e === 'strike') audio.play('tardigrade/dash', { volume: 0.8, rate: 0.7 });
-    else if (e === 'blocked' && a) { toast(tt('tardigrade.toasts.bossBraced', { who: who(a), resolve: Math.round(boss.interest * 100) })); rb(260, 0.6, 0.5); (a.anim ||= {}).shove = 0.3; }
-    else if (e === 'bitten' && a) { a.bossJab = true; toast(tt('tardigrade.toasts.bossStylets', { who: who(a), resolve: Math.round(boss.interest * 100) })); rb(200, 0.5, 0.4); audio.play('tardigrade/bite', { volume: 1, rate: 0.8 }); }
+    else if (e === 'strike') audio.play('tardigrade/whip', { volume: 0.8 });
+    else if (e === 'blocked' && a) { audio.play('shared/block', { volume: 0.8 }); toast(tt('tardigrade.toasts.bossBraced', { who: who(a), resolve: Math.round(boss.interest * 100) })); rb(260, 0.6, 0.5); (a.anim ||= {}).shove = 0.3; }
+    else if (e === 'bitten' && a) { a.bossJab = true; toast(tt('tardigrade.toasts.bossStylets', { who: who(a), resolve: Math.round(boss.interest * 100) })); rb(200, 0.5, 0.4); audio.play('tardigrade/bite', { volume: 1, rate: 0.8 }); audio.play('tardigrade/impact', { volume: 0.55 }); }
     else if (e === 'flounder') toast(tt('tardigrade.toasts.bossFlounders'), 2000);
-    else if (e === 'retreat') toast(tt('tardigrade.toasts.bossRetreats'), 3000);
+    else if (e === 'retreat') { audio.play('shared/foe-flees', { volume: 0.7 }); toast(tt('tardigrade.toasts.bossRetreats'), 3000); }
     else if (e === 'hit' && a) {
       const L = a.life;
       L.energy = Math.max(0, L.energy - 0.35); L.feeding = null; a.walker.speed = 0;
@@ -1293,9 +1309,12 @@ function step(dt, G) {
     }
     a.bossJab = false;
     // X (not spitting out a meal): the attack plays, and its impact lands on what it hit
+    // B: gripping hard (on the press)
+    if (g.P(BTN_B) && L.state === 'active' && !(held && a === captive)) audio.play('tardigrade/brace', { volume: 0.5 });
     if (xAtk) startAttack(a, a === target && jabbed ? 'hit' : bossHit ? 'hit' : a.meadowJab ? 'touch' : L.feeding ? 'food' : 'puff', bossHit ? boss.headW : a === target && jabbed ? predator.mouth(_atkP) : null);
     const feeding = !!L.feeding;
-    if (feeding && !a.feeding) audio.play('tardigrade/bite', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
+    // feeding: the stylets draw the cell in, heard again every ~1.5 s while it lasts
+    if (feeding && (!a.feeding || time >= a.feedSndT)) { a.feedSndT = time + 1.5; audio.play('tardigrade/feed', { volume: 0.7, rate: 0.95 + Math.random() * 0.1 }); }
     a.feeding = feeding;
   }
   const raining = life.rainT > 0;
@@ -1307,12 +1326,12 @@ function step(dt, G) {
     if (e === 'bite' || e === 'tunBite') audio.play('tardigrade/milnesium', { volume: e === 'bite' ? 1 : 0.6 });
     else if (e === 'stalk') audio.play('tardigrade/milnesium', { volume: 0.45, rate: 0.85 });
     else if (e === 'hunt') audio.play('tardigrade/milnesium', { volume: 0.25, rate: 0.75 });
-    else if (e === 'recoil') audio.play('tardigrade/bite', { volume: 1, rate: 0.85 });
+    else if (e === 'recoil') { audio.play('tardigrade/bite', { volume: 1, rate: 0.85 }); audio.play('tardigrade/impact', { volume: 0.55 }); }
     if (e === 'recoil') { toast(tt('tardigrade.toasts.predatorRecoils', { who: who(a), interest: Math.round(predator.fight.interest * 100) })); rb(220, 0.5, 0.4); (a.anim ||= {}).hit = 0.3; }
     else if (e === 'windup') { toast(tt('tardigrade.toasts.predatorRears', { who: who(a) }), 1800); rb(120, 0.3, 0); audio.play('tardigrade/milnesium', { volume: 0.5, rate: 1.2 }); }
     else if (e === 'strike') audio.play('tardigrade/milnesium', { volume: 0.9, rate: 1.05 });
-    else if (e === 'blocked') { toast(tt('tardigrade.toasts.predatorBlocked', { who: who(a) })); rb(260, 0.6, 0.5); (a.anim ||= {}).shove = 0.3; audio.play('tardigrade/bite', { volume: 0.7, rate: 0.7 }); }
-    else if (e === 'retreat') toast(tt('tardigrade.toasts.predatorGone', { who: who(a) }), 2600);
+    else if (e === 'blocked') { toast(tt('tardigrade.toasts.predatorBlocked', { who: who(a) })); rb(260, 0.6, 0.5); (a.anim ||= {}).shove = 0.3; audio.play('shared/block', { volume: 0.8 }); }
+    else if (e === 'retreat') { audio.play('shared/foe-flees', { volume: 0.7 }); toast(tt('tardigrade.toasts.predatorGone', { who: who(a) }), 2600); }
     else if (e === 'stalk') toast(tt('tardigrade.toasts.predatorStalks', { who: who(a) }), 2600);
     else if (e === 'hunt') toast(tt('tardigrade.toasts.somethingLarge'), 2600);
     else if (e === 'tunBite') { toast(tt('tardigrade.toasts.tunMouthed', { who: who(a) })); rb(120, 0.2, 0.3); }
@@ -1378,6 +1397,8 @@ function startAttack(a, kind, at = null) {
   // nothing there (or the rotifers): just ahead of the mouth, in the water film
   if (!p) p = bodyPoint(a, MOUTH[0] + 0.32, MOUTH[1] - 0.1, 0, new THREE.Vector3());
   an.atk = { t: 0, kind, at: p, fx: false };
+  audio.play('tardigrade/attack', { volume: 0.7, rate: 0.95 + Math.random() * 0.1 });
+
 }
 const smooth = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 function fightPose(a, g, dt) {

@@ -156,7 +156,7 @@ const opt = { righting: true, slow: true, uPose: true, menisci: 1, rumble: true,
 const joins = [];
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { joins.push({ slot: p.slot, padIndex: p.padIndex }); syncPlayers(); hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); embed.join(p.slot, p.color, p.name, players.toJSON()); }, // the roster rides along, so the shell carries this player into the next world
+  onJoin: (p) => { joins.push({ slot: p.slot, padIndex: p.padIndex }); syncPlayers(); audio.play('shared/join', { volume: 0.6 }); hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); embed.join(p.slot, p.color, p.name, players.toJSON()); }, // the roster rides along, so the shell carries this player into the next world
   onLeave: (p) => { syncPlayers(); hud.toast(tt('shared.players.left', { n: p.slot + 1 })); embed.leave(p.slot); },
   onChange: (list) => hud && hud.players(list),
 });
@@ -665,6 +665,7 @@ function stickToLeaf(P, leaf) {
 /** Come back: hidden, then the body re-forms from motes gathering on it (poseTail seeds them), with a ripple ring. */
 function startReform(P) {
   P.mode = 'reform'; P.reformT = 0; P.reformSeeded = false; P.reformRing = false;
+  audio.play('shared/reform', { volume: 0.7 });
   P.dissolve = 1; P.digestWhite = 1; P.lockA = true;
   P.charging = false; P.charge = 0; P.queuedJump = null;
 }
@@ -692,8 +693,10 @@ function wearDown(kind, how) {
   fightLog[how === 'bite' ? 'bites' : 'blocks']++;
   const gone = fights[kind].bitten();
   const pr = PRED[kind]();
+  if (how === 'block') audio.play('shared/block', { volume: 0.8 });
   if (gone) {
     fightLog.retreats++;
+    audio.play('shared/foe-flees', { volume: 0.7 });
     pr.retreat();
     hunger[kind].missed();
     hud.toast(tt(`springtail.predators.${kind}.gone`), 2200);
@@ -714,6 +717,7 @@ function missFoe(kind, how) {
   const gone = fights[kind].bitten();
   if (!gone) return false;
   fightLog.retreats++;
+  audio.play('shared/foe-flees', { volume: 0.7 });
   PRED[kind]().retreat();
   hunger[kind].missed();
   fights[kind].reset();
@@ -766,6 +770,8 @@ function animateCapture(c, dt) {
   const P = pl;
   if (c.phase !== cap.phase) {
     cap.phase = c.phase;
+    if (cap.kind === 'sundew' && c.phase === 'strike') audio.play('springtail/sundew-fold', { volume: 0.85 });
+    if (cap.kind === 'sundew' && c.phase === 'eat') audio.play('shared/death', { volume: 0.7 });
     if (c.phase === 'hold') { rumble(300, 0.5, 0.7); if (cap.kind === 'strider') audio.play('springtail/raindrop', { volume: 0.25, rate: 1.8 }); }
     if (c.phase === 'eat') { audio.play('springtail/eat', { volume: 1, rate: cap.kind === 'stenus' ? 0.7 : 0.55 }); rumble(600, 0.6, 0.3); }
     if (c.phase === 'follow') audio.play('springtail/eat', { volume: 0.7, rate: 0.5 });
@@ -820,7 +826,9 @@ function sundewStep(phase, u, dt) {
 // ---------------------------------------------------------------- features
 const features = createFeatures({ key: 'springtail', pad });
 const F = (o) => features.add(o);
-const audio = createAudio(['springtail/amb-bog', 'springtail/jump', 'springtail/land-water', 'springtail/land-sticky', 'springtail/eat', 'springtail/raindrop', 'springtail/stenus-skim', 'springtail/stenus-strike', 'shared/portal-chime']);
+const audio = createAudio(['springtail/amb-bog', 'springtail/jump', 'springtail/land-water', 'springtail/land-sticky', 'springtail/eat', 'springtail/raindrop', 'springtail/stenus-skim', 'springtail/stenus-strike', 'shared/portal-chime',
+  'springtail/charge', 'springtail/flip', 'springtail/right', 'springtail/pounce', 'springtail/glue-snap', 'springtail/struggle', 'springtail/tear-free', 'springtail/sundew-fold', 'springtail/strider', 'springtail/spider', 'springtail/spider-lunge',
+  'shared/portal-enter', 'shared/slowdown', 'shared/portal-near', 'shared/portal-sealed', 'shared/portal-appear', 'shared/danger', 'shared/block', 'shared/death', 'shared/reform', 'shared/foe-flees', 'shared/join']);
 audio.addToFeatures(features);
 audio.loop('springtail/amb-bog', { volume: 0.6 });
 /** Gamepads fire no DOM events: unlock sound on any pad button. */
@@ -981,7 +989,7 @@ function diveImpact(P, a) {
       P.pounces = (P.pounces || 0) + 1;
       hitPause = 0.12;
       rumble(260, 0.9, 0.7);
-      audio.play('springtail/eat', { volume: 1, rate: 1.2 });
+      audio.play('springtail/pounce', { volume: 0.9 });
       if (inPoolHere) { field.drop(P.x, P.z, 1.2, -0.14); ripples.push({ x: P.x, z: P.z, strength: 1.2 }); }
       biteFoe(t.foe, P, 2, 'bite');
       // rebound off it
@@ -1018,6 +1026,7 @@ function die(cause) {
   pl.mode = 'dead';
   pl.deadT = 0;
   pl.cause = cause;
+  audio.play('shared/death', { volume: 0.7 });
   rumbleFor(pl, 450, 0.8, 1);
   hud.toast(cause, 2400);
 }
@@ -1109,7 +1118,7 @@ function landAt(g) {
   pl.landT = simT;
   const leaf = world.sundews.leafAt(pl.x, pl.y, pl.z);
   if (leaf && g.kind !== 'moss') return;
-  if (!a.upright) { pl.mode = 'flipped'; pl.flipT = 0; pl.rightT = undefined; pl.flipHop = 0; pl.roll = Math.PI; rumble(160, 0.4, 0.3); hud.toast(tt('springtail.toasts.onYourBack'), 1100); }
+  if (!a.upright) { pl.mode = 'flipped'; pl.flipT = 0; pl.rightT = undefined; pl.flipHop = 0; pl.roll = Math.PI; rumble(160, 0.4, 0.3); audio.play('springtail/flip', { volume: 0.8 }); hud.toast(tt('springtail.toasts.onYourBack'), 1100); }
   else pl.mode = modeFor(g.kind);
   if (g.kind === 'film') {
     audio.play('springtail/land-water', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
@@ -1140,6 +1149,9 @@ function stepPlayer(dt, inp) {
   if (dir.lengthSq() > 0) dir.normalize();
   const jumpAim = mag > 0.25 ? dir : { x: Math.cos(P.heading), z: Math.sin(P.heading) };
   updateJumpInput(P, inp, dt, { x: jumpAim.x, z: jumpAim.z });
+  // A held: the furcula cocks (once per charge, on the edge)
+  if (P.charging && !P.wasCharging && P.mode !== 'caught' && P.mode !== 'dead') audio.play('springtail/charge', { volume: 0.55 });
+  P.wasCharging = P.charging;
   P.moved = Math.max(0, P.moved - dt);
 
   if (P.mode === 'caught') return; // posed by animateCapture
@@ -1253,6 +1265,7 @@ function stepPlayer(dt, inp) {
       stenus.slip();
       fightLog.slipT = simT;
       missFoe('stenus', 'slip');
+      audio.play('springtail/tear-free', { volume: 0.8 });
       hud.toast(tt('springtail.toasts.wriggledFree'), 1800);
       rumble(160, 0.5, 0.3);
     }
@@ -1273,6 +1286,8 @@ function stepPlayer(dt, inp) {
       rumble(40, r.both ? 0.4 : 0.25, 0.1);
       ripples.push({ x: P.x, z: P.z, strength: 0.35 });
       if (r.kick) P.furc = 1; // the furcula slaps against the leaf
+      // the wriggle heard, at most every 0.35 s
+      if (r.kick && !(P.struggleSndT > simT)) { P.struggleSndT = simT + 0.35; audio.play('springtail/struggle', { volume: 0.6, rate: 0.95 + Math.random() * 0.1 }); }
     }
     P.yank = Math.max(0, (P.yank || 0) - dt * 4);
     if (r.paused && !P.pauseSaid) { P.pauseSaid = true; hud.toast(tt('springtail.toasts.leafPulling'), 1400); }
@@ -1299,6 +1314,7 @@ function stepPlayer(dt, inp) {
       const tugged = S.t - S.lastTug < 0.7 && P.tugX !== undefined;
       jump(tugged ? P.tugX : P.x - leaf.x || 1, tugged ? P.tugZ : P.z - leaf.z, 0.3);
       rumble(160, 0.5, 0.3);
+      audio.play('springtail/tear-free', { volume: 0.9 });
       hud.toast(tt('springtail.toasts.free'));
     } else if (r.engulfed) caught('sundew');
     return;
@@ -1332,7 +1348,7 @@ function stepPlayer(dt, inp) {
       P.roll = 0; P.pitch = 0; P.mode = modeFor(groundAt(P.x, P.z).kind);
       jump(Math.cos(P.heading), Math.sin(P.heading), 0.12);
       if (P.air) P.air.upright = true;
-    } else if (inp.dashPressed || P.flipT > FLIP_SELF) { P.rightT = 0; field.drop(P.x, P.z, 0.4, -0.05); ripples.push({ x: P.x, z: P.z, strength: 0.4 }); }
+    } else if (inp.dashPressed || P.flipT > FLIP_SELF) { P.rightT = 0; audio.play('springtail/right', { volume: 0.5 }); field.drop(P.x, P.z, 0.4, -0.05); ripples.push({ x: P.x, z: P.z, strength: 0.4 }); }
     return;
   }
 
@@ -1354,7 +1370,7 @@ function stepPlayer(dt, inp) {
     fx = fl[0] * (1 - P.hunker * 0.8) - sl[0] * 30 * (1 - P.hunker); fz = fl[1] * (1 - P.hunker * 0.8) - sl[1] * 30 * (1 - P.hunker);
     // waves flip an unbraced springtail
     const s = Math.hypot(sl[0], sl[1]);
-    if (s > 0.2 && P.hunker < 0.5) { P.mode = 'flipped'; P.flipT = 0; P.rightT = undefined; P.flipHop = 0; P.heading += (Math.random() - 0.5) * 2; rumble(200, 0.5, 0.3); hud.toast(tt('springtail.toasts.flipped'), 1500); return; }
+    if (s > 0.2 && P.hunker < 0.5) { P.mode = 'flipped'; P.flipT = 0; P.rightT = undefined; P.flipHop = 0; P.heading += (Math.random() - 0.5) * 2; rumble(200, 0.5, 0.3); audio.play('springtail/flip', { volume: 0.8 }); hud.toast(tt('springtail.toasts.flipped'), 1500); return; }
   }
   const nx = P.x + (P.vx + fx) * dt, nz = P.z + (P.vz + fz) * dt;
   if (poolE(nx, nz) < BANK_E) { P.x = nx; P.z = nz; } else { P.vx *= 0.3; P.vz *= 0.3; }
@@ -1508,7 +1524,7 @@ function stepWorld(dt) {
   for (const [k, prey, pr] of [['stenus', preyS, stenus], ['strider', preyR, strider]]) {
     const hunting = k === 'stenus' ? ['stalk', 'windup', 'strike', 'repelled'].includes(pr.st.state) : pr.st.state === 'hunt' || pr.st.st2 !== 'none';
     const f = fights[k].update(dt, { near: hunting && Math.hypot(prey.x - pr.st.x, prey.z - pr.st.z) < 12, facing: facingTo(prey, pr.st.x, pr.st.z) });
-    if (f.retreated) { pr.retreat(); hunger[k].missed(); fights[k].reset(); hud.toast(tt(`springtail.predators.${k}.givesUp`), 1800); }
+    if (f.retreated) { audio.play('shared/foe-flees', { volume: 0.7 }); pr.retreat(); hunger[k].missed(); fights[k].reset(); hud.toast(tt(`springtail.predators.${k}.givesUp`), 1800); }
   }
   // a predator wakes (its hunger starts) when a player first comes into its water
   if (game.phase === 'play') for (const k of ['stenus', 'strider']) {
@@ -1554,26 +1570,26 @@ function stepWorld(dt) {
     if (e === 'lunge') audio.play('springtail/stenus-strike', { volume: 0.7, rate: 0.6 });
     if (e === 'lungeHit' && ctxS.alive) withRec(preyS, () => caught('stenus'));
     if (e === 'dodged' && ctxS.alive) { hud.toast(tt('springtail.toasts.dodgedMandibles'), 1100); missFoe('stenus', 'dodge'); }
-    if (e === 'blocked') { rumbleFor(preyS, 220, 0.6, 0.3); audio.play('springtail/land-water', { volume: 0.8, rate: 1.6 }); wearDown('stenus', 'block'); }
+    if (e === 'blocked') { rumbleFor(preyS, 220, 0.6, 0.3); wearDown('stenus', 'block'); }
     if (e === 'gaveUp') hunger.stenus.missed();
     if (e === 'miss' && hunger.stenus.hungry) hunger.stenus.missed();
     if (e === 'spotted' && ctxS.alive) audio.play('springtail/stenus-skim', { volume: 0.25, rate: 0.8 });
     if (e === 'skim') audio.play('springtail/stenus-skim', { volume: 0.7 });
     if (e === 'strike') audio.play('springtail/stenus-strike', { volume: 0.9 });
     if (e === 'skim') hud.toast(tt('springtail.toasts.stenusSkimming'), 1000);
-    if (e === 'windup' && ctxS.alive) { rumbleFor(preyS, 300, 0.15, 0); hud.toast(tt('springtail.toasts.stenusFreezes'), 1400); } // the head dips: jump now
+    if (e === 'windup' && ctxS.alive) { rumbleFor(preyS, 300, 0.15, 0); audio.play('shared/danger', { volume: 0.6 }); hud.toast(tt('springtail.toasts.stenusFreezes'), 1400); } // the head dips: jump now
     if ((e === 'spotted' || e === 'windup') && ctxS.alive) logChallenge('stenusHunt', preyS);
   }
   const rOn = strider.st.state === 'hunt' || strider.st.st2 !== 'none';
   const huntR = isHungry(hunger.strider) && (pace.anywhere || inCore('strider', preyR.x, preyR.z) || (rOn && inZone('strider', preyR.x, preyR.z)));
   for (const e of strider.update(dt, { player: ctxR, field, inPool, ripples: pace.anywhere ? ripples : ripples.filter((r) => inZone('strider', r.x, r.z)), hungry: huntR })) {
     if (e === 'caught' && ctxR.alive) withRec(preyR, () => caught('strider'));
-    if (e === 'blocked') { rumbleFor(preyR, 220, 0.6, 0.3); audio.play('springtail/land-water', { volume: 0.8, rate: 1.6 }); wearDown('strider', 'block'); }
-    if (e === 'windup' && ctxR.alive) { rumbleFor(preyR, 300, 0.15, 0); hud.toast(tt('springtail.toasts.striderForelegs'), 1400); }
+    if (e === 'blocked') { rumbleFor(preyR, 220, 0.6, 0.3); wearDown('strider', 'block'); }
+    if (e === 'windup' && ctxR.alive) { rumbleFor(preyR, 300, 0.15, 0); audio.play('shared/danger', { volume: 0.6 }); hud.toast(tt('springtail.toasts.striderForelegs'), 1400); }
     if (e === 'lost' && hunger.strider.hungry) hunger.strider.missed();
     // (timed on the simulation clock, so a paused game holds it too)
     if (e === 'heard' && ctxR.alive) logChallenge('striderHunt', preyR);
-    if (e === 'heard' && ctxR.alive && !(strider.st.heardUntil > simT)) { strider.st.heardUntil = simT + 6; hud.toast(tt('springtail.toasts.striderFelt'), 1800); }
+    if (e === 'heard' && ctxR.alive && !(strider.st.heardUntil > simT)) { strider.st.heardUntil = simT + 6; audio.play('springtail/strider', { volume: 0.7 }); hud.toast(tt('springtail.toasts.striderFelt'), 1800); }
   }
   // the spiders (boss.js): each rests at its raft and goes out on rounds of
   // its hunting ground; the one in focus (`boss`, nearest the players) hunts
@@ -1586,15 +1602,16 @@ function stepWorld(dt) {
   for (const e of bossEv) {
     const Q = e.slot !== undefined ? pls[e.slot] : null;
     if (e.type === 'wake') logChallenge('boss', recs().reduce((a, R) => (!a || Math.hypot(R.x - boss.st.x, R.z - boss.st.z) < Math.hypot(a.x - boss.st.x, a.z - boss.st.z) ? R : a), null));
+    if (e.type === 'wake') audio.play('springtail/spider', { volume: 0.8 });
     if (e.type === 'wake' && !bossSaid.wake) { bossSaid.wake = true; hud.toast(tt('springtail.toasts.spiderWakes'), 3600); }
     else if (e.type === 'investigate') logChallenge('bossLured', boss.st);
     else if (e.type === 'return' && !boss.st.homeward) logChallenge('bossReturn', boss.st);
     else if (e.type === 'wander') logChallenge('spiderWander', boss.st);
-    else if (e.type === 'tell') { for (const R of recs()) if (Math.hypot(R.x - boss.st.x, R.z - boss.st.z) < 16) rumbleFor(R, 200, 0.12, 0); }
-    else if (e.type === 'lunge' || e.type === 'pounce') audio.play('springtail/stenus-strike', { volume: 0.9, rate: 0.7 });
+    else if (e.type === 'tell') { audio.play('shared/danger', { volume: 0.5 }); for (const R of recs()) if (Math.hypot(R.x - boss.st.x, R.z - boss.st.z) < 16) rumbleFor(R, 200, 0.12, 0); }
+    else if (e.type === 'lunge' || e.type === 'pounce') audio.play('springtail/spider-lunge', { volume: 0.8 });
     else if (e.type === 'caught' && Q && alive(Q)) withRec(Q, () => caught('boss'));
     else if (e.type === 'dodged') hud.toast(tt('springtail.toasts.spiderDodged'), 1500);
-    else if (e.type === 'retreat') hud.toast(tt('springtail.toasts.spiderRetreats'), 2600);
+    else if (e.type === 'retreat') { audio.play('shared/foe-flees', { volume: 0.7 }); hud.toast(tt('springtail.toasts.spiderRetreats'), 2600); }
   }
   ripples.length = 0;
   // the rain falls round whoever leads (the director's leader: furthest along the encounters)
@@ -1710,7 +1727,8 @@ function poseTail(t) {
   // the glue strands, from the tentacle tips to the legs as they are posed now
   if (P.mode === 'stuck' && P.glueOn && P.stuckS) {
     const snaps = P.glue.update(pdt, tail.feet(), P.stuckS.progress, Math.max(P.yank || 0, P.stuckS.thrash * 0.6), t);
-    if (snaps) { audio.play('springtail/land-sticky', { volume: 0.55, rate: 1.7 + Math.random() * 0.2 }); rumble(90, 0.5, 0.2); }
+    // a strand snapped (sundew-glue.js counts them): heard at most every 0.1 s
+    if (snaps) { if (!(P.snapSndT > simT)) { P.snapSndT = simT + 0.1; audio.play('springtail/glue-snap', { volume: 0.7, rate: 0.95 + Math.random() * 0.1 }); } rumble(90, 0.5, 0.2); }
   }
   // re-forming: motes fly in from round about and gather on the body
   if (P.mode === 'reform' && !P.reformSeeded) {
@@ -1891,6 +1909,11 @@ const atPortal = (P) => { const n = nearestPortal(P.x, P.z); return n.d < n.p.re
 function checkLandmark() {
   if (game.phase !== 'play') return;
   if (outro) return;
+  // the way on unseals (every encounter met): heard once, on the edge
+  const isSealed = sealed();
+  if (lm.wasSealed && !isSealed) audio.play('shared/portal-appear', { volume: 0.8 });
+  lm.wasSealed = isSealed;
+
   let at = null, atI = -1, near = false, dmin = Infinity;
   for (const P of recs()) {
     if (!alive(P)) continue;
@@ -1909,13 +1932,15 @@ function checkLandmark() {
   lm.ready.length = 0;
   for (const P of recs()) { if (!alive(P)) continue; const i = atPortal(P); if (i >= 0 && !shut(i)) lm.ready.push(P); }
   const ready = lm.ready.length > 0;
-  if (ready !== lm.readyOn) { lm.readyOn = ready; embed.near('portal', ready); if (ready) lm.log.push({ kind: 'ready', slot: lm.ready[0].slot, portal: atPortal(lm.ready[0]), t: +simT.toFixed(2) }); }
+  if (ready !== lm.readyOn) { lm.readyOn = ready; embed.near('portal', ready); if (ready) audio.play('shared/portal-near', { volume: 0.6 }); if (ready) lm.log.push({ kind: 'ready', slot: lm.ready[0].slot, portal: atPortal(lm.ready[0]), t: +simT.toFixed(2) }); }
   if (at && !lm.fired) {
     if (shut(atI)) {
       if (sealed()) {
+        audio.play('shared/portal-sealed', { volume: 0.6 });
         if (!portal.sealedSaid) { portal.sealedSaid = true; hud.toast(tt('springtail.toasts.sealed'), 3600); }
         lm.log.push({ kind: 'sealed', slot: at.slot, portal: atI, t: +simT.toFixed(2) });
       } else {
+        audio.play('shared/portal-sealed', { volume: 0.6 });
         if (!portal.turned) { portal.turned = true; hud.toast(tt('springtail.toasts.turnedBack'), 3600); }
         lm.log.push({ kind: 'turnedBack', slot: at.slot, portal: atI, t: +simT.toFixed(2) });
       }
@@ -1947,6 +1972,7 @@ function enterPortal(P, i = atPortal(P) >= 0 ? atPortal(P) : nearestPortal(P.x, 
   lm.fired = true;
   if (lm.readyOn) { lm.readyOn = false; embed.near('portal', false); }
   lm.log.push({ kind: 'forward', slot: P.slot, portal: i, t: +simT.toFixed(2) });
+  audio.play('shared/portal-enter', { volume: 0.8 });
   startOutro(P);
   embed.landmark('forward', { player: P.slot, outro: embed.active });
 }
@@ -1973,7 +1999,9 @@ function startOutro(P) {
   const me = split.project(0, _v.set(P.x, P.y + 0.25, P.z));
   if (!me.behind) portalLight.bloom(me.x, me.y, { scale: 0.7 });
   audio.play('shared/portal-chime', { volume: 0.9 });
+  audio.play('shared/slowdown', { volume: 0.5, delay: OUTRO.beat });
   rumbleFor(P, 520, 0.55, 0.85);
+
   // the chrome goes, the bloom stays (cinematic(false) restores both)
   if (embed.active) { embed.cinematic(true, canvas); portalLight.canvas.style.visibility = 'visible'; }
 }
