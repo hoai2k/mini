@@ -16,7 +16,7 @@ import { mountHud } from '../shared/hud.js';
 import { createSem, shared, MODES, CLS, gMaterial } from './sem.js';
 import { semTextures } from './textures.js';
 import { buildWorld, floorH, TILE } from './world.js';
-import { RINGS, PORTAL_CLEAR, CLUSTER, CLUSTERS, PRED_GROUND, BOSS, OPENING, NPC_HOME, predZoneAt, distFromStart, bearingFromStart, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, BOUNDS, DRIP, FAMILY } from './layout.js';
+import { RINGS, PORTAL_CLEAR, CLUSTER, CLUSTERS, PRED_GROUND, BOSS, OPENING, NPC_HOME, predZoneAt, distFromStart, bearingFromStart, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, insideEdge, BOUNDS, DRIP, FAMILY } from './layout.js';
 import { createAmbient, createBeads, createDrops } from './life.js';
 import { createDirector } from '../shared/director.js';
 import { createQuality } from '../shared/quality.js';
@@ -1162,9 +1162,9 @@ function stepLife(dt) {
   beads.update(foci);
   // the moss gets wetter: said once, as the water nears
   if (!lifeT.wetToast && PORTAL.placed && !portalSealed() && foci.some((c) => Math.hypot(c.x - PORTAL.x, c.z - PORTAL.z) < WET_R * 0.75)) { lifeT.wetToast = true; hud.toast('The moss is wetter here, beaded with water: the water is near', 2600); }
-  // the walkable square's edge (half a metre out): said, never a silent wall
+  // the walkable square's edge (half a metre out) is a wall of tall moss (edge.js); against it, a gentle word too
   lifeT.edgeToast = Math.max(0, lifeT.edgeToast - dt);
-  if (!lifeT.edgeToast && foci.some((c) => Math.max(Math.abs(c.x), Math.abs(c.z)) > BOUNDS.half - 600)) { lifeT.edgeToast = 6; hud.toast('The edge of the specimen stub: the scan ends here. Turn back toward the water', 3000); }
+  if (!lifeT.edgeToast && foci.some((c) => !insideEdge(c.x, c.z, 450))) { lifeT.edgeToast = 20; hud.toast('The edge of the moss cushion: tall Sphagnum, too dense to pass. Turn back toward the water', 2600); }
 }
 function newEncounters() {
   director.reset();

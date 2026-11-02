@@ -101,8 +101,9 @@ so walking straight out for about a minute ended against nothing visible.
 The large bug was the predatory mite (~0.8 mm, more than twice your length)
 or the giant springtail at the backdoor (~1.5 mm, behind the start view);
 both are meant to be there. Now the square is 0.96 m across (over 7 minutes
-of scrambling straight out; its edge, if anyone gets there, says so in a
-toast), the order has seven entries rising in threat with shorter breaks,
+of scrambling straight out; its edge, if anyone gets there, is a wall of
+tall Sphagnum you can see and stop against: see World, The edge of the
+cushion), the order has seven entries rising in threat with shorter breaks,
 life and water beads cover the moss everywhere, the beads thicken toward the
 water, and the marks at the foot of the screen show the way on filling.
 
@@ -173,13 +174,15 @@ raised 2026-11-02 from 260 and 240 with the faster walk: a mite walks
 418–870 µm/s, scrambles ~1480) and guards again; someone close by on its way back turns it
 round. The glow is dim and restless while it is guarded, bright once open.
 
-**The moss reaches the portal and beyond in every direction**, with no edge:
-one 9.6 mm scenery tile repeated (see World). The walkable square
-(`BOUNDS`) is 0.96 m across (it was 87 mm, and the owner walked into its
-edge, an invisible wall); it keeps the body inside it (not a collider), the
-director places nothing within 2.5 mm of its edge, and within 0.6 mm of it a
-toast says that the scan ends there. A 3-minute rush straight out goes
-~0.2 m. The director's seen grid covers the square (0.5 mm cells, ~3.7 MB).
+**The moss reaches the portal and beyond in every direction**: one 9.6 mm
+scenery tile repeated (see World). The walkable square (`BOUNDS`) is 0.96 m
+across (it was 87 mm, and the owner walked into its edge, an invisible wall);
+its edge is now a visible one, a wall of tall Sphagnum shoots (`EDGE`,
+`edge.js`; see World), the body is kept inside its face, the director places
+nothing within reach of it or of the shed leaves in front of it (`canPlace`:
+each entry's whole clearance disc stays 5 mm short of the face), and pressed
+against it a toast says it too (at most every 20 s). A 3-minute rush straight
+out goes ~0.2 m. The director's seen grid covers the square (0.5 mm cells, ~3.7 MB).
 
 ## Controls (Xbox controller; keyboard in brackets)
 
@@ -536,8 +539,8 @@ Built from parts placed by measurements against the reference, never traced:
 
   All 80 jumps landed and walked on; the deepest body overlap after a landing
   was 49 µm (eased out within a few frames). A jump can't leave the world
-  (the walkable square clamps the body in the air too, and it is 0.96 m
-  across) and can't skip an encounter: the director meets an encounter from
+  (the walkable square clamps the body in the air too, against the face of
+  the wall of moss at its edge, 0.96 m across) and can't skip an encounter: the director meets an encounter from
   wherever the player is, in the air or not, its predators notice a mite
   within 0.9 mm of their ground, and the drops fall in front of whoever comes
   within 2.6 mm.
@@ -892,8 +895,8 @@ pits) works through the same path.
 ## World (`world.js`)
 
 The moss is one **scenery tile**, 9.6 × 9.6 mm (`TILE`), repeated in every
-direction, so wherever the encounters are placed there is moss all the way and there is no
-edge. The tile holds:
+direction, so wherever the encounters are placed there is moss all the way, to
+the wall of tall moss at the walkable square's edge (below). The tile holds:
 
 - about 600 angular mineral grains, 20–300 µm;
 - ~40 curled litter flakes;
@@ -949,6 +952,57 @@ coordinates: each body is handed to them in every copy within reach of the
 tile (`tileBodies`). The per-object cutaway tests each copy of an object
 near the line of sight (`createObjectCut` `period`). Food in the tile is
 eaten from the copy nearest the mouth.
+
+### The edge of the cushion (`edge.js`)
+
+The owner, 2026-11-02: "for the mite world if there's an edge to it ensure
+we have a visual barrier, not just a message". The walkable square ends in
+the edge of the moss cushion: a band of tall Sphagnum shoots standing
+shoulder to shoulder all round it (`layout.js` `EDGE`), 6–9 mm tall (far over
+a jump's ~1.1 mm apex and over the camera at the default zoom, so it fills
+the frame as you reach it and nothing shows "past the end") and 2.4 mm deep.
+
+- **What it is.** Each side is cut into 1.6 mm segments, each one of three
+  prebuilt variants (a hash of its side and index picks it, so it always
+  looks the same). A segment has four rows: the front row's stems touch the
+  face, with tongue-shaped stem leaves, a fascicle of spreading branches
+  every ~0.7 mm with imbricate leaves, and a capitulum (the dense head of
+  short curling branches a Sphagnum shoot ends in); two rows behind with
+  fewer branches; a palisade of bare stems at the back, so nothing shows
+  through. Each side's band runs on past the corners, so they are filled by
+  both. Same SEM look as the moss (`gMaterial`, the stem and leaf classes).
+- **Its face is the collision.** The face is the plane |x| = `EDGE.face` (and
+  |z|), 0.3 mm inside the square's edge. Nothing of the wall reaches inside it
+  below 0.9 mm up (every vertex is pushed back to the face there), and
+  `mite.js` keeps the body's centre its reach (its longest half-axis and
+  offset, so the front of the aspis: 189 µm for the box mite) inside the face,
+  walking, scrambling, rolling, in the air and as posed, so the mite stops
+  with its front against the front row's stems. The wall has no colliders
+  (nothing to climb). Checked by script: walking, scrambling, a 4 mm/s push
+  and repeated full jumps into each side and two corners, and the keyboard's
+  W+Shift and Space: the centre never passed 479 512 µm (the face at
+  479 700).
+- **Seen coming.** The 12° scan at the default pitch sees only ~0.9 mm beyond
+  the mite, so the wall enters the frame about then, rising out of the top;
+  lowered (pitch 0.18) the view sees ~6 mm ahead and the wall stands across
+  it. Before that, shed leaves lie on the floor for 5 mm in front of it,
+  sparse at first and piling up toward the wall: placed per segment once, on
+  the floor's height and slope, when a view first comes near, and kept. The
+  springtail groups and water beads (`life.js`) keep inside the face.
+- **Drawn near a view only.** `world.setView` hands each view to
+  `edge.setView`: the segments within 16 mm of the view's target along the
+  wall whose box meets the view are written as instances (one
+  `InstancedMesh` per variant and part: stems, branches, leaves, a lighter
+  leaf set for segments more than 2.6 mm from the target), and the shed
+  leaves within 7 mm; a few KB a view. More than 16 mm from the wall nothing
+  is drawn or written. Measured at 1.5 mm from the wall looking at it: +110 k
+  triangles (four segments, ~180 shed leaves), ~290 k in all against ~245 k
+  at the start, and fewer draws (the wall hides tile copies). Building the
+  three variants takes ~0.6 s at load.
+- **The cutaway.** When the camera swings out over the wall (the mite with
+  its back to it), the shoots between the camera and the mite are cleared by
+  the cutaway cylinder (they carry no per-object ids), a little wider than for
+  the moss.
 
 ## The crowd: the hyphal thickets (`thicket.js`)
 

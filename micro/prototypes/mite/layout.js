@@ -15,9 +15,10 @@
 // without a browser). Rushing (full tilt with every scramble) meets them all
 // and reaches the portal in a little over a minute; dealing with them, a few.
 // The moss itself is one 9.6 mm scenery tile repeated in every direction
-// (world.js TILE), so there is no edge to walk off; the walkable square
-// (BOUNDS) is ~1 m across, many minutes of rushing from the start, and its
-// edge says so when you reach it (main.js edgeNote).
+// (world.js TILE); the walkable square (BOUNDS) is ~1 m across, many minutes
+// of rushing from the start, and its edge is the edge of the moss cushion: a
+// wall of tall, close-packed Sphagnum shoots (EDGE; edge.js draws it) that
+// the walker stops against (mite.js clamps the body to its face).
 
 /** Distance from the start (µm). */
 export const distFromStart = (x, z) => Math.hypot(x, z);
@@ -79,6 +80,24 @@ export const PORTAL_CLEAR = 1500;
  */
 export const HALF = 480000;
 export const BOUNDS = { x0: -HALF, x1: HALF, z0: -HALF, z1: HALF, cx: 0, cz: 0, half: HALF };
+
+/**
+ * The edge of the cushion (edge.js): a band of tall Sphagnum shoots standing
+ * shoulder to shoulder all round the walkable square. Its inner face is the
+ * plane |x| = face (and |z| = face): the front row's stems touch it and nothing
+ * of the band reaches inside it below `clear` µm up, so the walker's clamp
+ * (mite.js: the body's centre kept its own reach inside the face, on the
+ * ground and in the air) is exactly where the mite meets the stems. The
+ * shoots stand `height` µm tall (several times a jump's ~1.1 mm apex and
+ * taller than the camera stands at the default zoom), `depth` µm deep, and
+ * shed leaves lie on the floor for `apron` µm in front of it, thickening
+ * toward the wall (the cue while it is still out of frame: the 12° scan sees
+ * only ~1 mm beyond the mite at the default pitch). The corners are covered:
+ * each side's band runs on past them.
+ */
+export const EDGE = { face: HALF - 300, depth: 2400, height: [6000, 9000], clear: 900, apron: 5000 };
+/** Is (x, z) inside the edge's face by more than m µm? */
+export const insideEdge = (x, z, m = 0) => Math.abs(x) < EDGE.face - m && Math.abs(z) < EDGE.face - m;
 
 /** Where the opening view looks (up and right on screen). */
 const DX = -1500, DZ = 1030, DL = Math.hypot(DX, DZ);
@@ -159,5 +178,5 @@ export const ENCOUNTERS = [
     parts: (x, z, b) => { const P = portalAt(b, x, z); return [[x, z, PORTAL_CLEAR], [P.post.x, P.post.z, 1100], [P.home.x, P.home.z, 700]]; },
     fits: (x, z, b) => { const P = portalAt(b, x, z); return clearOfThickets(x, z, PORTAL_CLEAR, 200) && clearOfThickets(P.post.x, P.post.z, 1100, 200) && clearOfThickets(P.home.x, P.home.z, 700, 100) && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 4000; } },
 ];
-/** Anything placed stays well inside the walkable square. */
-export const canPlace = (x, z, r) => Math.abs(x) < HALF - 2000 - r * 0.5 && Math.abs(z) < HALF - 2000 - r * 0.5;
+/** Anything placed stays well inside the walkable square, its whole clearance disc short of the edge's apron of shed leaves. */
+export const canPlace = (x, z, r) => insideEdge(x, z, Math.max(1700 + r * 0.5, EDGE.apron + r));

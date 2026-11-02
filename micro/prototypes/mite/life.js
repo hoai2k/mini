@@ -25,7 +25,7 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { gMaterial, CLS } from '../shared/techniques/mite-sem.js';
 import { springtailGeometry } from './thicket.js';
 import { floorH } from './world.js';
-import { clearOfThickets, DRIP } from './layout.js';
+import { clearOfThickets, insideEdge, DRIP } from './layout.js';
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
@@ -55,7 +55,7 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150 }) 
   function site(i, j) {
     if (hash2(i, j, 1) > 0.7) return null;
     const x = (i + 0.2 + 0.6 * hash2(i, j, 2)) * CELL, z = (j + 0.2 + 0.6 * hash2(i, j, 3)) * CELL;
-    if (Math.hypot(x, z) < START || !clearOfThickets(x, z, 350, 250) || blocked(x, z)) return null;
+    if (Math.hypot(x, z) < START || !clearOfThickets(x, z, 350, 250) || !insideEdge(x, z, 400) || blocked(x, z)) return null;
     return { x, z, n: 3 + Math.floor(hash2(i, j, 4) * 4), k: i * 7919 + j * 104729 };
   }
   function sitesNear(x, z, r) {
@@ -133,7 +133,7 @@ export function createBeads({ scene, wetness, max = 900 }) {
       const r = (14 + 46 * hash2(i, j, 70 + q) * (0.4 + 0.6 * clamp(w, 0, 1))) ;
       out.set([x, floorH(x, z), z, r], q * 4);
     }
-    return { beads: clearOfThickets(cx, cz, 0, 0) ? out : new Float32Array(0), w };
+    return { beads: clearOfThickets(cx, cz, 0, 0) && insideEdge(cx, cz, CELL) ? out : new Float32Array(0), w };
   }
   let n = 0;
   return {

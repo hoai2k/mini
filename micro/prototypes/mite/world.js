@@ -26,9 +26,10 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { gMaterial, CLS, createObjectCut } from './sem.js';
 import { rng, hash } from './textures.js';
 import { createFoliage } from '../shared/techniques/mite-foliage.js';
-import { BOUNDS, HALF } from './layout.js';
+import { BOUNDS, HALF, EDGE } from './layout.js';
+import { createEdge } from './edge.js';
 
-export { BOUNDS, HALF };
+export { BOUNDS, HALF, EDGE };
 /** The scenery tile (µm): a whole number of floor-texture repeats (320 and 160 µm). */
 export const TILE = 9600;
 const HT = TILE / 2;
@@ -1112,7 +1113,12 @@ export function buildWorld(tex) {
       if (g.visible) seenN++;
     }
     lastView.ix = ix; lastView.iz = iz; lastView.seen = seenN;
+    // the wall of tall moss round the walkable square (edge.js): its segments near this view
+    edge.setView(camera, x, z);
   }
+  // The edge of the cushion: drawn segment by segment round each view's target (setView)
+  const edge = createEdge({ tex, floorH, floorN });
+  group.add(edge.group);
   setView(new THREE.PerspectiveCamera(), 0, 0);
 
   /**
@@ -1143,5 +1149,5 @@ export function buildWorld(tex) {
   }
 
   return { group, copies, colliders: col, exclude, grains, stems, mats, topAt, layers, setLayer, foliage, food, eatSpore, cut, floorTiles,
-    setView, lastView, tileBodies, proxies };
+    setView, lastView, tileBodies, proxies, edge };
 }

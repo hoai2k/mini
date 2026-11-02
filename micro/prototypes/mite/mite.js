@@ -36,7 +36,7 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { buildSdfMesh, sd, combine } from '../shared/sdf.js';
 import { gMaterial } from './sem.js';
-import { BOUNDS, floorH as worldFloorH, floorN as worldFloorN } from './world.js';
+import { EDGE, floorH as worldFloorH, floorN as worldFloorN } from './world.js';
 import { GAITS, legOffset, gaitTriggers, swingTarget, twoBoneIK } from '../shared/techniques/mite-gait.js';
 
 /** Live switches, shared by every mite (the feature panel edits it). */
@@ -509,8 +509,12 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
   if (k !== 1) colliders = scaledColliders(colliders, k);
   const floorH = (x, z) => worldFloorH(x * k, z * k) / k;
   const floorN = (x, z, out) => worldFloorN(x * k, z * k, out);
-  // the walkable square (world.js BOUNDS), kept 150 µm inside, in this mite's units
-  const BX0 = (BOUNDS.x0 + 150) / k, BX1 = (BOUNDS.x1 - 150) / k, BZ0 = (BOUNDS.z0 + 150) / k, BZ1 = (BOUNDS.z1 - 150) / k;
+  // the walkable square: the body's centre is kept its reach (the body's
+  // longest half-axis and its offset, so the front of the aspis) inside the
+  // face of the wall of moss round it (layout.js EDGE), in this mite's units:
+  // the mite stops with its front against the front row's stems
+  const REACH = Math.max(...AN.noto.r) + Math.abs(AN.noto.c[0]) + 40;
+  const BX1 = EDGE.face / k - REACH, BX0 = -BX1, BZ0 = BX0, BZ1 = BX1;
   const G = AN.kind === 'pred' ? predGeometry() : geometry();
   // frames materials: one draw for parts posed in different frames (see "fewer draws per mite")
   const cut = gMaterial({ cls, player, tex: tex.cuticle, map: 'tri', scale: 150, bump: 1.6, objSpace: true, frames: true });
@@ -993,6 +997,8 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       if (st.mode === 'closing') h = AN.stand + (st.h0 - AN.stand) * sstep(0.2, 1, st.t);
       h += 28 * st.rear;
       center = _pc.copy(st.pos).addScaledVector(st.up, h).addScaledVector(st.fwd, 46 * st.lunge);
+      // (a body tipped up onto something, or lunging, stays inside the wall's face too)
+      center.x = clamp(center.x, BX0, BX1); center.z = clamp(center.z, BZ0, BZ1);
       st.center.copy(center); st.q.copy(q);
     } else if (st.mode === 'opening') {
       const e = sstep(0, 0.75, st.t);

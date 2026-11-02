@@ -10,7 +10,7 @@
 //   node micro/prototypes/mite/route.test.mjs
 import assert from 'node:assert/strict';
 import { createDirector } from '../shared/director.js';
-import { RINGS, CLUSTERS, clusterRing, CLUSTER, PRED_GROUND, BOSS, BOUNDS, NPC_HOME, PORTAL_CLEAR, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, portalAt, predZoneAt, clearOfThickets, distFromStart, DRIP, FAMILY } from './layout.js';
+import { RINGS, CLUSTERS, clusterRing, CLUSTER, PRED_GROUND, BOSS, BOUNDS, NPC_HOME, PORTAL_CLEAR, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, portalAt, predZoneAt, clearOfThickets, distFromStart, DRIP, FAMILY, EDGE, insideEdge, HALF } from './layout.js';
 import { floorH, TILE, wrapD, tileOf } from './world.js';
 
 // Rushing speeds (µm/s, measured with rush scripts on the page, enemies passive; 2026-11-02 speeds):
@@ -50,6 +50,17 @@ for (const c of CLUSTERS) {
 assert.deepEqual(ENCOUNTERS.map((e) => e.id), ORDER, 'the order (rising in threat)');
 assert.ok(BOUNDS.half >= 400000, 'the walkable square is far beyond play (no wall in reach)');
 assert.ok(ENCOUNTERS.at(-1).final);
+
+// --- the edge of the cushion (edge.js): a wall of moss at the square's edge, nothing placed in it or in front of it
+assert.ok(EDGE.face < HALF && EDGE.face > HALF - 1000, 'the wall stands at the walkable square\'s edge');
+assert.ok(EDGE.height[0] > 3 * 1100, 'the wall stands far over a jump (apex ~1.1 mm)');
+assert.ok(EDGE.height[0] > 4280 * Math.sin(0.62), 'and over the camera at the default zoom');
+for (const e of ENCOUNTERS) {
+  // the furthest out the director may place it (canPlace), each of its parts' discs, stays short of the apron
+  const lim = Math.max(...[0, 1].map((k) => { let lo = 0, hi = HALF; for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (canPlace(m, k ? m : 0, e.size)) lo = m; else hi = m; } return lo; }));
+  assert.ok(lim + e.size <= EDGE.face - EDGE.apron, `${e.id}: placed at most ${lim.toFixed(0)} out, clear of the wall and its shed leaves`);
+  if (e.parts) for (const [px, pz, pr] of e.parts(lim, 0, 0)) assert.ok(insideEdge(px, pz, pr), `${e.id}: its parts clear of the wall`);
+}
 
 // --- the SEM view as a frustum (main.js placeCamera)
 const VFOV = 12, ASPECT = 16 / 9, YAW = -0.6 - Math.PI / 6, PITCH = 0.62;
