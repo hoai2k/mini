@@ -49,7 +49,7 @@ export function clusterRing(k) {
 export const CLUSTERS = [...clusterRing(0), ...clusterRing(1)];
 
 /** The predator's hunting ground: radius r round where it is placed; it gives up a chase `chase` past r. */
-export const PRED_GROUND = { r: 1100, chase: 700 };
+export const PRED_GROUND = { r: 1100, chase: 1100 }; // (it notices a mite within 0.9 mm of the ground: predator.js)
 export const predZoneAt = (x, z) => ({ x, z, r: PRED_GROUND.r });
 
 /**
@@ -129,8 +129,12 @@ const PRED = {
   size: PRED_GROUND.r + PRED_GROUND.chase + 100, visible: 650,
   minAhead: 3800, maxAhead: 5800, minNear: 2600, maxNear: 4000, fits: predFits,
 };
-/** A drop of water falling into the moss (one, or a shower of three round the spot): where it lands and how far it splashes, µm. */
-export const DRIP = { r: 230, splash: 520, trigger: 1500, height: 2600, shower: 3, spread: 700 };
+/**
+ * A drop of water falling into the moss (one, or a shower of three round the spot), µm: its radius, how
+ * far it splashes, how near someone must come to its spot to set it falling (it then falls `ahead` of
+ * them: nothing shows before it falls), the height it falls from, the shower's size and spread.
+ */
+export const DRIP = { r: 230, splash: 520, trigger: 2600, ahead: 650, height: 2600, shower: 3, spread: 700 };
 /** The box-mite family: how many, how far they wander from their spot (µm). */
 export const FAMILY = { n: 3, r: 700 };
 const dripFits = (x, z) => clearOfThickets(x, z, 600, 100) && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 1800;

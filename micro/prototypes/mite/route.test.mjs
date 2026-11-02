@@ -98,11 +98,11 @@ function game({ seconds, move, players = 1, path = false }) {
   // as main.js: the family within its range, a drop once someone comes within its trigger (it falls), a predator on its ground
   const met = {
     mites: (h, [p]) => reach(h, p) < FAMILY.r + 500,
-    pred: (h, [p]) => reach(h, p) < PRED_GROUND.r + 400,
+    pred: (h, [p]) => reach(h, p) < PRED_GROUND.r + 900,
     drip: (h, [p]) => reach(h, p) < DRIP.trigger,
-    pred2: (h, [p]) => reach(h, p) < PRED_GROUND.r + 400,
+    pred2: (h, [p]) => reach(h, p) < PRED_GROUND.r + 900,
     drips: (h, [p]) => reach(h, p) < DRIP.trigger,
-    pred3: (h, [p]) => reach(h, p) < PRED_GROUND.r + 400,
+    pred3: (h, [p]) => reach(h, p) < PRED_GROUND.r + 900,
     portal: (h, [p]) => reach(h, p) < 360,
   };
   D = createDirector({ ...DIRECTOR, canPlace, ...(path ? { defaultPath: DEFAULT_PATH } : {}), entries: ENCOUNTERS.map((e) => ({ ...e, place: place(e.id), met: met[e.id], ...(path ? { single: true } : {}) })) });

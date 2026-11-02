@@ -78,7 +78,7 @@ export function createPredatorAI(pred, zone) {
       switch (ai.state) {
         case 'wander': {
           ai.ang += (Math.sin(ai.t * 0.41) + Math.sin(ai.t * 0.97 + 2)) * 0.7 * dt;
-          const onGround = ai.onGround(them, 250);
+          const onGround = ai.onGround(them, 900); // (it notices a mite passing near its ground, not only on it)
           if (prey.hungry !== false && d < 3000 && onGround) {
             const want = Math.atan2(them.z - me.z, them.x - me.x);
             ai.ang += Math.atan2(Math.sin(want - ai.ang), Math.cos(want - ai.ang)) * Math.min(1, dt * 0.5);
@@ -95,7 +95,7 @@ export function createPredatorAI(pred, zone) {
         }
         case 'hunt': {
           toward(); mag = 1; maxSpeed = ai.chase;
-          if (d > LOSE || !ai.onGround(them, 650)) { ai.state = 'wander'; ev.push('lost'); break; }
+          if (d > LOSE || !ai.onGround(them, 1100)) { ai.state = 'wander'; ev.push('lost'); break; } // (1100: layout.js PRED_GROUND.chase)
           if (prey.hungry === false) { ai.state = 'wander'; ai.bored = 4; ai.ang += Math.PI; ev.push('sated'); break; }
           if (mouthD < STRIKE + 130) mag = 0.25;
           if (mouthD < STRIKE + 110 && ai.cool <= 0) { ai.state = 'windup'; ai.t2 = 0; ev.push('windup'); }

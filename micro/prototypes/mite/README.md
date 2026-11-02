@@ -13,10 +13,14 @@ Open `micro/prototypes/mite/` (the invite gate is off on localhost).
 
 **Goal:** head out through the moss in any direction. The encounters are
 placed as you go, in order, in moss you have not seen yet (the encounter
-pattern, `../../design/encounter-pattern.md`, "Placed as you go"): after a
-few seconds the predatory mite, after a calm stretch the predatory mite
-again, and then the way on: a wet leaf axil under a golden glow, where a
-tardigrade walks in the water, guarded by a pseudoscorpion. Lure it off its post and get round it (or bite
+pattern, `../../design/encounter-pattern.md`, "Placed as you go"), rising in
+threat: a family of box mites, the predatory mite, a drop of water falling
+into the moss, the predatory mite again (hungrier, faster), a shower of
+drops, the predatory mite a third time (always hungry, faster than your full
+tilt), and then the way on: a wet leaf axil under a golden glow, where a
+tardigrade walks in the water, guarded by a pseudoscorpion. The moss grows
+wetter, beaded with water, as you go and thickest round the water; a row of
+marks at the foot of the screen ("the way on ●●○○○○○") fills as each is met. Lure it off its post and get round it (or bite
 its pincer joints until it backs into the moss), reach the water, and in the
 Micro Zoom game the light changes to the tardigrade's world. Nothing runs you
 down while you stay put: no hunger, no timers; food heals nothing and is
@@ -46,54 +50,90 @@ never a stop), so they are scenery, not encounters.
 moss nobody has seen yet (a 0.5 mm grid marked from every view's frustum
 within 4.2 mm of what it frames, plus 0.45 mm round every player), out of
 every view, a short way ahead of whoever leads (or, if they linger, round
-them), and only after the one before was met and a calm break has passed:
+them), and only after the one before was met and a calm break has passed
+(4 s of moving over open moss first; 4.5 s between, 3 s before a drop, 6 s
+before the portal). The order rises in threat (the owner, 2026-11-02: "more
+frequent encounters ... more dangerous creatures indicating that you are
+closer to your goal"):
 
-| # | What | Placed | Met |
+| # | What | Placed (ahead; round a lingering player) | Met |
 | --- | --- | --- | --- |
-| 1 | **The predatory mite** on its hunting ground (1.1 mm radius, plus a 0.7 mm chase) | after the warm-up (5 s of moving), 3.8–5.8 mm ahead (2.6–4 mm round a lingering player), its ground clear of the thickets, the giant springtail and the second box mite | within 1.5 mm of its ground's centre or of it |
-| 2 | **The predatory mite again** (the same one: it has gone on through the moss) | after 8 s of moving clear of the first, the same way; only once it is out of every view and busy with nobody (so nobody sees it go) | as above |
-| 3 | **The pseudoscorpion and the portal** (the wet leaf axil) | after 9 s of moving clear of the second, 5.2–7.8 mm ahead (3.6–5.2 mm round a lingering player), the water's 1.5 mm arena, the post and the boss's retreat clear of the thickets, the stem and glow (2.4 mm tall) out of every view | entering the open portal |
+| 1 | **A family of box mites** (three, grazing; they close up as you come; company, not a threat) | 3–4.6 mm; 2.4–3.6 mm, and they wander over | within 1.2 mm of their home |
+| 2 | **The predatory mite** on its hunting ground (1.1 mm radius, plus a 0.7 mm chase); hunts at 0.76 mm/s, so full tilt outwalks it | 3.8–5.8 mm; 2.6–4 mm, its ground drifts over | within 1.5 mm of its ground's centre or of it |
+| 3 | **A drop of water** falls into the moss (nothing shows until it falls; it starts when someone is within 1.5 mm, falls from 2.6 mm up, splashes 0.52 mm round: a mite there is knocked shut and tumbled, the predator staggers) | 2.6–3.8 mm; 1–1.45 mm | when it falls (or someone passes within 0.9 mm) |
+| 4 | **The predatory mite again** (the same one, gone on through the moss unseen): hungrier, 0.9 mm/s, feels a hurrying mite from 1.15 mm | as 2 | as 2 |
+| 5 | **A shower**: three drops, 0.55 s apart, round the spot | 3–4.4 mm; 1–1.45 mm | as 3 |
+| 6 | **The predatory mite a third time**: always hungry, 1.02 mm/s (faster than full tilt: scramble or jump), feels you from 1.35 mm | as 2 | as 2 |
+| 7 | **The pseudoscorpion and the portal** (the wet leaf axil) | 5.2–7.8 mm (3.6–5.2 mm round a lingering player), the water's 1.5 mm arena, the post and the boss's retreat clear of the thickets, the stem and glow (2.4 mm tall) out of every view | entering the open portal |
 
 Anything placed but not yet seen moves (unseen to unseen) if the leader
 heads elsewhere; anything seen stays where it is (seen and walked away from,
 it counts as met). A predator placed beyond a lingering player's reach
 wanders over: its ground drifts toward the leader at 200 µm/s after 5 s
-(`driftPred`, behaviour rather than a placement). Until placed, the
-predator is hidden, parked in a corner of the square and not stepped, and
+(`driftPred`, behaviour rather than a placement); the family does the same
+(`stepFamily`). Until placed, the predator and the family are hidden, parked
+in a corner of the square and not stepped, the drops are not armed, and
 there is no portal; a new game (`resetLevel`) starts the director over.
+
+**Life everywhere** (`life.js`; scenery, not encounters, so nothing is ever
+empty): groups of three to six small soil springtails graze on a jittered
+lattice over the whole square (about seven groups in ten 1.8 mm cells: one every ~3 s at a rush),
+shying from a mite that comes within 0.5 mm and flicking themselves into the
+air now and then (the furcula); each group is a pure function of its place
+and the clock, so moss you come back to is as you left it. **Water beads**
+on the moss floor are decided per 1.1 mm cell the first time anyone comes
+within 5.2 mm (past the edge of any view) and then kept: a few at the start,
+commoner and larger with every encounter met, and thickest within 8 mm of
+the water (like the springtail world's pondweed thickening toward its
+portal). Entering the wet moss once the water is open says so ("The moss is
+wetter here ... the water is near").
+
+**What went wrong in the owner's run (2026-11-02)**, "I walked for a while
+seeing nothing, and then I hit an invisible wall": the order was only the
+predatory mite, the predatory mite again and the portal, each a few
+millimetres ahead after an 8 s calm break, and the predator's hunting ground
+is invisible (only the 0.8 mm mite on it shows, and it can sit at the edge
+of the 1.1 mm ground, off to the side of the view), so between the two rings
+of thickets (5 and 20.3 mm out) there were long stretches with nothing on
+screen. The wall was the walkable square: 87 mm across, 43.5 mm from the
+start each way, kept by a hard clamp in `mite.js` with nothing drawn there,
+so walking straight out for about a minute ended against nothing visible.
+The large bug was the predatory mite (~0.8 mm, more than twice your length)
+or the giant springtail at the backdoor (~1.5 mm, behind the start view);
+both are meant to be there. Now the square is 0.96 m across (over 7 minutes
+of scrambling straight out; its edge, if anyone gets there, says so in a
+toast), the order has seven entries rising in threat with shorter breaks,
+life and water beads cover the moss everywhere, the beads thicken toward the
+water, and the marks at the foot of the screen show the way on filling.
 
 **The default path** (the owner, 2026-11-01: "a default path to a portal,
 but just dynamically generate the other directions"): on the first frame the
-director lays all three out along one bearing from the start (`layout.js`
+director lays all seven out along one bearing from the start (`layout.js`
 `DEFAULT_PATH`: -2.6 rad, off to the side of the opening view and away from
-the giant springtail, at a rush's distances: the predator's ground ~8.4 mm
-out, its second ~17.6 mm, the water ~32 mm), out of sight, so the way on
-exists from the start. It stays sealed (no prompt, no edge light, its glow
-shut, nothing preloaded; reaching the water says "The water is shut to you
-yet: the predatory mite is still out in the moss") until the predator is met
-twice; the pseudoscorpion guards it as always. There is one predator: its
-second ground on the path is only a spot until the first is met, then it goes
+the giant springtail, at a rush's distances: the family ~8 mm out, the
+predator's grounds ~18, ~34 and ~51 mm, the drops ~24 and ~41 mm, the water
+~64 mm), out of sight, so the way on exists from the start. It stays sealed
+(no prompt, no edge light, its glow shut, nothing preloaded; reaching the
+water says "The water is shut to you yet") until every earlier encounter is
+met; the pseudoscorpion guards it as always. There is one predator: its later
+grounds on the path are only spots until the one before is met, then it goes
 on there while nobody sees it (`movePredOn`). Follow the bearing and you meet
 them in order where they lie; head another way and each, while nobody has
 seen it, leaves the path and is placed ahead of you as before (each is one
 object: the director's `single`); one somebody has seen stays put.
 
 **Timing.** `route.test.mjs` runs the director with the SEM view's own
-frustum and a player rushing (~730 µm/s, a third slower in a thicket) in 16
-directions: the predator placed at 5.1 s and met at 8.3–9.5 s, placed again
-at 20.9–22.1 s and met at 30.0–35.4 s, the portal placed at 43.5–48.1 s and
-reached at 50.2–54.8 s. On the page (a script hurrying with every scramble
-the stamina allows, steering round whatever blocks it, the predator and the
-boss passive, views from the camera each step), from the opening bearing and
-+90°, +180°, +270°: met the predator at 12.4, 8.1, 18.4 (after ~6 s stuck
-among the start's shoots) and 8.6 s, again at 26.9, 32.3, 35.2 and 32.5 s,
-and reached the water at 47.1, 52.4, 55.6 and 49.7 s. Lingering at the
-start: the predator placed round them at 11 s and over to them by 21.5 s,
-again at 35.5 and 46 s, the portal placed 6.9 mm off (just past the inner
-thickets: there is no room for its arena nearer) at 61 s and reached at
-72 s. Turning back 6 s out: the unseen predator was moved to follow (twice)
-and met at 23.7 s, the portal reached at 64.6 s. Dealing with the predator
-twice and the pseudoscorpion makes it a few minutes.
+frustum and a player rushing (~1100 µm/s: full tilt with every scramble the
+stamina allows, a third slower in a thicket) in 16 directions: the family met
+at 5.8–6.8 s, the predator at 13.7–15.2 s, the drop at 20.8–22.3 s, the
+predator again at 29.3–30.8 s, the shower at 36.7–38.2 s, the predator a
+third time at 46.2–47.7 s and the portal reached at 59.7–61.2 s; the longest
+wait from one encounter to the next is 13.5 s. On the default path the water
+is reached at ~58 s. Lingering at the start, each comes round them in turn
+(the portal at 130 s). On the page (`life` and `inputSteps` test hooks; a
+script at full tilt scrambling whenever the stamina is full, steering round
+whatever blocks it, the predator passive), see the measurements under
+Movement.
 
 **Cost.** Placing and the seen grid cost less than the profiler reports
 (under 0.1 ms a frame in `tools/perf/measure.mjs`, one view and four); the
@@ -119,14 +159,18 @@ closing up; a Y already held (closed up) as you arrive keeps you closed.
 While the pseudoscorpion guards it there is no prompt and Y closes up as
 usual. Luring: it follows its target out
 to 2.6 mm from its post (`BOSS.leash`), gives up one that gets 3.6 mm away
-(`BOSS.lose`), and then walks back at 260 µm/s (a walking mite does ~420, a
-scramble ~880) and guards again; someone close by on its way back turns it
+(`BOSS.lose`), and then walks back at 400 µm/s (it stalks at 360; both
+raised 2026-11-02 from 260 and 240 with the faster walk: a mite walks
+418–870 µm/s, scrambles ~1480) and guards again; someone close by on its way back turns it
 round. The glow is dim and restless while it is guarded, bright once open.
 
 **The moss reaches the portal and beyond in every direction**, with no edge:
 one 9.6 mm scenery tile repeated (see World). The walkable square
-(`BOUNDS`, 87 mm across) keeps the body inside it (not a collider); the
-director places nothing within 2.5 mm of its edge.
+(`BOUNDS`) is 0.96 m across (it was 87 mm, and the owner walked into its
+edge, an invisible wall); it keeps the body inside it (not a collider), the
+director places nothing within 2.5 mm of its edge, and within 0.6 mm of it a
+toast says that the scan ends there. A 3-minute rush straight out goes
+~0.2 m. The director's seen grid covers the square (0.5 mm cells, ~3.7 MB).
 
 ## Controls (Xbox controller; keyboard in brackets)
 
@@ -136,16 +180,16 @@ up.
 
 | Button | Action |
 | --- | --- |
-| LS (WASD) | Walk (~420 µm/s), relative to the view. The mite turns toward the stick and walks forward; it climbs grains, flakes and stems and pushes through blades |
+| LS (WASD) | Walk, relative to the view. The stick is analogue: a slight push walks at ~418 µm/s (the old walk), full tilt hurries at ~870 µm/s (the old scramble), a quadratic curve between so the slow end is easy to hold. The keys walk mid-pace (~610 µm/s); hold Q / F (LB / RB) for the slow end / full tilt. The mite turns toward the stick and walks forward; it climbs grains, flakes and stems and pushes through blades |
 | RS (arrows) | Orbit the specimen. Up looks up (the camera swings down toward the floor), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
-| **A (Space)** | **Jump**: a 0.13 s crouch, then a hop (~0.17 mm high, ~0.35–0.4 mm long) onto the floor, a grain, a flake or a moss blade (the blade takes the landing and bends); 0.45 s after landing before the next. Borrowed from jumping oribatids (see Notes). **X in the air: the pounce-bite** |
+| **A (Space)** | **Jump**, with a flea's or a jumping spider's snap: tap for a 0.1 s crouch and a spring of ~1.1 mm (three body lengths, ~0.33 mm high); hold to crouch deeper (up to 0.45 s more, the body quivering at full charge) and release for ~2.1 mm (six body lengths, ~0.65 mm high); a run-up adds to it. Aim with LS while crouched; LS leans the arc a little in the air. Lands on the floor, a grain, a flake or a moss blade (the blade takes the landing and bends); 0.3 s after landing before the next. Borrowed from jumping oribatids (see Departures). **X in the air: the pounce-bite** |
 | **X (E)** | Three moves, by what is in reach: **eat** (a spore or hyphal tip: leg I reaches out and holds it to the mouth while the chelicerae work and it shrinks away, 0.9 s); **fight** (the predator or the pseudoscorpion's pincer: rear up with leg I raised, then lunge and snap); **attack** (nothing in reach: a lunge with the chelicerae) |
 | **Y (R)**, hold | **Defend: ptychoidy.** Close into a sealed capsule (the predator's strike slides off; a held mite closing up drops out of the grip); release to reopen |
-| **B (Shift)**, hold | **Scramble**: a punchy burst to ~2.1x the walk (~0.88 mm/s), nose down, tight turns, the gait racing (feet still planted) and crumbs kicked up behind; on a stamina meter (`scramble ■■■■■` in the corner: empties in ~1.6 s, refills in ~2.8 s). In a grab's strike window, a scramble breaks out |
+| **B (Shift)**, hold | **Scramble** (the dash): a punchy burst to ~1.48 mm/s (~1.7x full tilt, ~3.5x the slow end), nose down, tight turns, the gait racing (feet still planted) and crumbs kicked up behind; on a stamina meter (`scramble ■■■■■` in the corner: empties in ~1.6 s, refills in ~2.8 s). In a grab's strike window, a scramble breaks out |
 | Y (R) at the open portal | Enter the portal (the zoom on to the tardigrade) instead of defending; the game shows "Y Enter the portal" while you are there |
 | Y (R) at the backdoor | Go back up to the bog surface instead of defending |
 | LS click (C), standalone prototype only | Observer mode: simulated SEM instrument data (voltage, working distance, detector, magnification and scale) and raster lines. This viewing aid and its feature switch are omitted from the embedded game |
-| LB / RB (Q / F) | Walk slowly (~210 µm/s) / hurry (~590 µm/s) |
+| LB / RB (Q / F), hold | Walk at the slow end (~418 µm/s) / full tilt (~870 µm/s), whatever the stick's push |
 | D-pad ← → (3 / 4) | Imaging mode: SE (Everhart-Thornley), BSE (low vacuum), SE false colour |
 | D-pad ↑ ↓ (1 / 2) | Magnification steps (×1.5) |
 | Menu (Esc) | Features panel: what the prototype does, with switches |
@@ -154,7 +198,7 @@ up.
 Rumble: a tick on footfalls, a thump on closing, landing and opening, a kick
 on each scramble and jump, a jolt when the predator grabs a leg.
 
-Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A moss ambience loop; footfalls (at most ~8 a second), the scramble (B), the jump and its landing (A), closing and opening (Y), the bite (X), moss blades brushing as they bend, and the predator closing in or grabbing a leg.
+Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound effects, Ambience). A moss ambience loop; footfalls (at most ~8 a second), the scramble (B), the jump and its landing (A), closing and opening (Y), the bite (X), moss blades brushing as they bend, a falling drop and its splash, and the predator closing in or grabbing a leg.
 
 ## The intro (from the springtail)
 
@@ -389,25 +433,83 @@ Built from parts placed by measurements against the reference, never traced:
   mites' bodies push them aside (position-based, so they never pass through),
   a mite standing on a blade bends it down and rides it, and they spring back
   in about a second when left. Feet and probes walk on the bent collider.
-- **Speed**: walking is ~720 µm/s, twice the old hurry pace (at the owner's
-  request), with slow ~360 and hurry ~1 mm/s. Strides lengthen up to 1.5×
-  with speed (118 → 177 µm) so the legs don't flicker, and the gait phase
-  runs on distance, so the feet stay planted: a scripted 3 s walk measured
-  ~680 µm/s over the ground and 0 µm of stance-foot slip.
-- **Scramble (B)**: the speed limit rises to ~1.3 mm/s with a fast
-  acceleration (tau 0.05 s). The legs cycle faster and the stance feet stay
+- **Speed** (the owner, 2026-11-02: "the mite current movement should be
+  the slowest normal movement (LS slightly pushed), whereas the current dash
+  speed should be how fast he moves when LS is at full tilt, and then dash
+  should be even faster than that"). Before, the stick was linear from
+  nothing to the walk (418 µm/s at full tilt; 720 at the 0.6 mm anatomy ×
+  0.58), so the walk the owner knew was the fastest the stick went, a slight
+  push crept at ~30 µm/s, the keys always walked at 418, and only RB (×1.4)
+  and the scramble (878) went faster. Now (`walkSpeed` in `main.js`, after
+  the pad's dead zone of 0.14): a slight push walks at 418 µm/s (the old
+  walk), full tilt at 878 µm/s (the old scramble's limit), 418 + 460·m²
+  between, so the slow end is easy to hold; the keys walk at m = 0.65
+  (~610 µm/s), Q / LB holds the slow end and F / RB full tilt; the scramble
+  (B) is 1490 µm/s (1.7× the old one), on the same stamina meter. Strides
+  lengthen with speed (118 µm at a stroll, 1.5× at 0.9 mm/s, ~2.2× in the
+  scramble, `mite.js`), and the gait phase runs on distance, so the feet stay
+  planted. Measured over the ground through the real input path (a fake
+  controller and the keyboard into `readInput`, `__micro.inputSteps`; 12 runs
+  from six open spots at 60 Hz, the median after a 1.5 s run-up; scramble
+  after 0.4 s):
+
+  | Input | Before | After |
+  | --- | --- | --- |
+  | stick 0.2 | 30 µm/s | 417 µm/s |
+  | stick 0.35 | 101 | 442 |
+  | stick 0.5 | 172 | 496 |
+  | stick 0.75 | 292 | 644 |
+  | stick 1.0 (full tilt) | 415 | 863 |
+  | LB (slow) at full tilt | 207 | 415 |
+  | RB (hurry) at stick 0.2 / 1.0 | 42 / 582 | 863 / 863 |
+  | keys W / Q+W / F+W | 414 / 207 / 582 | 610 / 414 / 863 |
+  | scramble (B) | 872 | 1483 |
+
+  Stance feet moved 0.0 µm in every run (a stance foot's travel between
+  frames, steps excluded), and no step completed within a single frame at
+  60 Hz. At 30 Hz the fastest scramble swings a leg in one or two frames (a
+  blur, as in a real mite).
+- **Scramble (B)**: the speed limit rises to ~1.5 mm/s with a fast
+  acceleration (tau 0.08 s). The legs cycle faster and the stance feet stay
   planted (swings shorten to 80 ms). A stretch: box mites are slow, steady
   walkers.
-- **Jump (A)** (`jump()` in `mite.js`, modes `crouch` and `air`): the body
-  sinks ~75 µm over 0.13 s, then launches at 1.25 mm/s up and 0.7 mm/s
-  forward (plus half the running speed) under the game gravity. In the air
-  the hind legs kick back and then all legs reach down; the body noses up and
-  then down. Rigid things ahead (stems, grains) bounce it back; blades bend
-  out of its way. It lands on whatever is below (floor, grain, flake or
-  blade), sinks briefly into the landing, and a blade it lands on takes a
-  downward kick and bends (scripted landings bent blades 250–290 µm at the
-  tip). From a standstill on open floor: ~290 µm high, 690 µm long, 1.1 s in
-  the air.
+- **Jump (A)** (`jump()` and `jumpLaunch()` in `mite.js`, modes `crouch` and
+  `air`; the owner: "the mite jump should feel bigger and more flea or spider
+  like"): a quick crouch (0.1 s, the body sinking ~40 µm), then an explosive
+  launch on a 50° arc under its own snappier gravity (8000 µm/s² at the
+  anatomy, 4640 in the world, against the walking world's 2600 / 1510, so the
+  arc is quick rather than floaty), carrying 45% of the run-up speed. A tap
+  springs ~3 body lengths; **holding A charges** (up to 0.45 s more: the
+  crouch deepens to ~65 µm and quivers at full charge) and the release
+  springs ~6 (charge for distance, like the springtail's hold-and-release:
+  it fits the mite because A is its own button and charging is a clear
+  commitment while a predator rears). LS aims it during the crouch (the body
+  turns quickly to the stick) and leans the arc a little in the air
+  (900 µm/s²). In the air the hind pairs drive back at take-off, then every
+  leg tucks under the body; past the top they splay out and reach down; the
+  body noses up and then down. It lands on whatever is below (floor, grain,
+  flake or blade: a blade takes a downward kick and bends), squashes into the
+  landing (deeper the harder it lands) and kicks up a ring of crumbs (and a
+  smaller puff at take-off); 0.3 s before the next. Rigid things ahead
+  (stems, grains) bounce it back; blades bend out of its way; nothing above
+  it is passed through (a cast up stops the rise). Measured from 16 spots
+  (`jump.mjs` in the session's scratch; through the real input path, 60 Hz):
+
+  | Jump | Before | After |
+  | --- | --- | --- |
+  | tap, standing | 422 µm long, 212 µm high, 0.98 s | 1066 µm, 332 µm, 0.72 s |
+  | full charge, standing | (no charge) | 2135 µm, 660 µm, 1.03 s |
+  | tap, at full tilt | 709 µm | 1707 µm |
+  | full charge, at full tilt | | 3030 µm |
+  | tap, scrambling | 1094 µm | 2073 µm |
+
+  All 80 jumps landed and walked on; the deepest body overlap after a landing
+  was 49 µm (eased out within a few frames). A jump can't leave the world
+  (the walkable square clamps the body in the air too, and it is 0.96 m
+  across) and can't skip an encounter: the director meets an encounter from
+  wherever the player is, in the air or not, its predators notice a mite
+  within 0.9 mm of their ground, and the drops fall in front of whoever comes
+  within 2.6 mm.
 - **Bite (X)**: the rostrum dips and the chelicerae work (0.28 s). Food is
   the real diet of a phthiracarid: fungal spores (eaten, they vanish) and
   hyphal branch tips (nibbled; they regrow after 25 s).
@@ -478,10 +580,20 @@ forward as a feeler and taps ahead; legs II–IV walk with the same walker and
 gait as the box mite (createMite with the `PRED` anatomy), so it climbs and
 pushes through blades the same way.
 
-- Only when hungry (see Threats and pacing): it wanders toward you until it
-  touches you (~480 µm centre to centre) or feels you scramble close by
-  (~950 µm), then runs you down at ~0.6 mm/s: faster than your walk
-  (~0.42 mm/s), slower than your scramble (~0.75 mm/s).
+- Only when hungry (see Threats and pacing): it wanders toward you (once you
+  are within 0.9 mm of its ground) until it touches you (~480 µm centre to
+  centre) or feels you hurry close by (moving faster than 0.6 mm/s, past
+  about half tilt: within 0.95 mm the first time, 1.15 the second, 1.35 the
+  third; creep at the slow end and only touch gives you away), then runs you
+  down, chasing up to 1.1 mm past its ground. **Fairness at the new speeds**
+  (2026-11-02): it hunts at 0.76 mm/s the first time (full tilt, 0.87,
+  outwalks it), 0.9 the second (level with full tilt: scramble or jump), and
+  1.02 the third, always hungry then (faster than full tilt; the scramble,
+  ~1.48 mm/s for 1.6 s, gains ~0.75 mm a burst and a chain of charged jumps
+  ~1.5 mm/s, so it can always be escaped, but not by walking). Before, it ran
+  at 0.6 mm/s against a 0.42 walk and a 0.88 scramble. Its lunge (1.1 mm/s
+  for 0.3 s after a 0.8 s rear) is unchanged: a jump or a close-up still
+  answers it.
 - It strikes at legs first: each grab stuns you for 0.7 s and slows you 15%;
   a grabbed leg recovers after 20 s; the third grab holds on and it eats you
   (the catch above).
@@ -931,17 +1043,26 @@ Not borrowed:
   in low vacuum**. A gold-coated sample would look uniform in BSE.
 - **Thin parts are thickened**: legs about 1.3×, setae about 1.6× (3 µm
   instead of about 2 µm), sensilli about 1.5×.
-- **Time**: falling uses a game gravity of 2600 µm/s², far slower than real
-  (a mite crosses this world in a few milliseconds of free fall). The walking
-  speed (~720 µm/s) is a game speed, several times what an oribatid walks
-  (a few hundred µm/s at most), so the moss can be crossed in good time; the
-  scramble (~1.3 mm/s) and the predator (~0.9 mm/s) are scaled to match.
-- **The jump is borrowed.** Box mites (Phthiracaridae) do not jump. Some
+- **Time**: falling uses a game gravity of ~1500 µm/s² in the world (2600 at
+  the anatomy; the jump its own ~4600), far slower than real (a mite crosses
+  this world in a few milliseconds of free fall). The walking speeds
+  (0.42–0.87 mm/s) are game speeds, several times what an oribatid walks (a
+  few hundred µm/s at most), so the moss can be crossed in good time; the
+  scramble (~1.5 mm/s) and the predator (0.76–1.02 mm/s) are scaled to
+  match.
+- **Life and water** (`life.js`): the springtail groups shy and leap on a
+  game rule and are drawn on the floor's height (a member over a grain can
+  sit in it); water in an SEM needs an environmental (wet) instrument, and a
+  falling drop is slowed into a game hazard (real rain drips through a moss
+  cushion; one would soak a mite rather than knock it shut). The beads are
+  smooth domes, not modelled menisci.
+- **The jump is borrowed, and stretched.** Box mites (Phthiracaridae) do not jump. Some
   oribatids do: *Zetorchestes* (Zetorchestidae) jumps with enlarged, elongated
   hind legs and a catch mechanism (Krisper 1990, 1991), and the ptychoid
   *Indotritia* (Oribotritiidae), a box-mite relative, jumps backwards using a
   catch mechanism in its forelegs (Wauthy et al. 1998, Proc. R. Soc. Lond. B
-  265: 2235–2242). The game's forward hop, its height and its cooldown are
+  265: 2235–2242). The game's forward leap (three to six body lengths, a
+  flea's or a jumping spider's feel), its charge, height and cooldown are
   game values.
 - **The predator's rules**: the touch and vibration ranges, its speed, three
   grabs to be caught, and the recoil after a nip are game values. Going for

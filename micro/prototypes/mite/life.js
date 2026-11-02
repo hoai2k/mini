@@ -4,7 +4,7 @@
 //
 // - createAmbient: little groups of soil springtails grazing on the moss
 //   floor, on a jittered lattice that covers the whole square (about one group
-//   every 2.6 mm), so no stretch of moss is empty. Each group is a pure
+//   every 2.2 mm), so no stretch of moss is empty. Each group is a pure
 //   function of its site and the clock (stateless), so the moss you have seen
 //   is the moss you come back to; they shy away from a mite that comes close
 //   and now and then flick themselves into the air (the furcula).
@@ -44,7 +44,7 @@ const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vect
  * within DRAW of any focus; sitesNear(x, z, r) lists the groups (for checks).
  */
 export function createAmbient({ scene, tex, blocked = () => false, max = 150 }) {
-  const CELL = 2600, DRAW = 4200, START = 900;
+  const CELL = 1800, DRAW = 4200, START = 900;
   const mat = gMaterial({ cls: CLS.NPC, tex: tex.cuticle, map: 'tri', scale: 70, bump: 1.2 });
   const mesh = new THREE.InstancedMesh(springtailGeometry(), mat, max);
   mesh.name = 'ambient springtails';
@@ -53,7 +53,7 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150 }) 
   scene.add(mesh);
   /** The group at lattice site (i, j), or null: { x, z, n, k }. */
   function site(i, j) {
-    if (hash2(i, j, 1) > 0.62) return null;
+    if (hash2(i, j, 1) > 0.7) return null;
     const x = (i + 0.2 + 0.6 * hash2(i, j, 2)) * CELL, z = (j + 0.2 + 0.6 * hash2(i, j, 3)) * CELL;
     if (Math.hypot(x, z) < START || !clearOfThickets(x, z, 350, 250) || blocked(x, z)) return null;
     return { x, z, n: 3 + Math.floor(hash2(i, j, 4) * 4), k: i * 7919 + j * 104729 };
@@ -200,7 +200,16 @@ export function createDrops({ scene, n = DRIP.shower }) {
     reset() { api.state = 'idle'; api.spot = null; for (const d of drops) { d.state = 'idle'; d.m.visible = false; } },
     update(dt, players) {
       const ev = [];
-      if (api.state === 'armed' && players.some((p) => Math.hypot(p.x - api.spot.x, p.z - api.spot.z) < DRIP.trigger)) { api.state = 'falling'; ev.push({ type: 'fall', x: api.spot.x, z: api.spot.z }); }
+      const p = api.state === 'armed' && players.find((q) => Math.hypot(q.x - api.spot.x, q.z - api.spot.z) < DRIP.trigger);
+      if (p) {
+        // nothing shows until it falls, so it falls where it is a hazard you can see: just ahead of
+        // whoever came near (the rest of a shower keep their places round the first)
+        const hl = Math.hypot(p.hx || 0, p.hz || 0) || 1, ax = p.x + ((p.hx || 0) / hl) * DRIP.ahead, az = p.z + ((p.hz || 0) / hl) * DRIP.ahead;
+        const ox = ax - api.spot.x, oz = az - api.spot.z;
+        for (const d of drops) if (d.state === 'armed') { d.x += ox; d.z += oz; d.fy = floorH(d.x, d.z); d.y = d.fy + DRIP.height; }
+        api.spot = { x: ax, z: az };
+        api.state = 'falling'; ev.push({ type: 'fall', x: ax, z: az });
+      }
       if (api.state !== 'falling') return ev;
       let live = 0;
       for (const d of drops) {

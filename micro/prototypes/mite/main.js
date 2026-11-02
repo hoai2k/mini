@@ -1033,7 +1033,7 @@ function parkPred() {
   predPlaced = false; predK = 0;
   pred.setVisible(false);
 }
-const reachPred = (P) => Math.hypot(P.mite.center.x - predZone.x, P.mite.center.z - predZone.z) < predZone.r + 400 || P.mite.center.distanceTo(pred.center) < 1500;
+const reachPred = (P) => Math.hypot(P.mite.center.x - predZone.x, P.mite.center.z - predZone.z) < predZone.r + 900 || P.mite.center.distanceTo(pred.center) < 1800;
 // what each encounter does when placed, and when it counts as met
 // (one predator for all three: on the default path its later grounds are only spots until the one before is
 // met, then the predator goes on there once nobody sees it: movePredOn)
@@ -1135,7 +1135,7 @@ function driftPred(dt) {
 const lifeT = { t: 0, wetToast: false, edgeToast: 0 };
 function stepLife(dt) {
   lifeT.t += dt;
-  const ps = recs().filter((P) => !held(P)).map((P) => ({ x: P.mite.center.x, z: P.mite.center.z }));
+  const ps = recs().filter((P) => !held(P)).map((P) => { const f = _ct.set(1, 0, 0).applyQuaternion(P.mite.quat); return { x: P.mite.center.x, z: P.mite.center.z, hx: f.x, hz: f.z }; });
   for (const D of [drip1, drip3]) for (const e of D.update(dt, ps)) {
     if (e.type === 'fall') { hud.toast('A drop of water is falling into the moss: get clear, or close up (Y)', 2400); audio.play('mite/dash', { volume: 0.5, rate: 0.5 }); }
     if (e.type === 'splash') {

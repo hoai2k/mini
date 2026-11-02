@@ -25,10 +25,10 @@ export const WORLDS = [
     mag: '≈ 80×', magNote: 'SEM, HFW 1.6 mm', field: '4.2–0.16 mm', fieldMm: 4.2, body: '0.35 mm', look: 'Scanning electron microscope',
     card: 'MP-U01', intro: 'MP-G08', tint: ['#8a8e92', '#1c1e20'], accent: '#c9cdd1',
     line: 'An armoured mite on eight jointed legs, through moss and fungal threads.',
-    goal: 'Head out through the moss any way you like: a ring of hyphal thickets crowded with springtails (push and bite through), the predatory mite on its hunting ground, more thickets, the predatory mite again, and at last a golden glow over a wet leaf axil, guarded by a pseudoscorpion. Lure it off its post and get round it, or bite its pincer joints until it backs into the moss.',
+    goal: 'Head out through the moss any way you like: a family of box mites, the predatory mite on its hunting ground, a drop of water falling into the moss, the predatory mite again (hungrier and faster), a shower of drops, the predator a third time, and at last a golden glow over a wet leaf axil, guarded by a pseudoscorpion; the moss grows wetter, beaded with water, as the water nears. Lure the pseudoscorpion off its post and get round it, or bite its pincer joints until it backs into the moss.',
     forward: 'A wet leaf axil under a golden glow, where a tardigrade walks in the water.',
     back: 'A giant springtail resting on the moss: dwell beside it and press Y to rise to the bog surface.',
-    controls: [['LS', 'Walk'], ['RS', 'Orbit'], ['A', 'Jump (X in the air: a pounce-bite)'], ['X', 'Bite: graze, or bite back'], ['B', 'Hold: dash (scramble)'], ['Y', 'Hold: defend (close up); in a portal: enter it; at the backdoor, rise a world'], ['D-pad ↑↓', 'Magnification']],
+    controls: [['LS', 'Walk: a slight push walks, full tilt hurries'], ['RS', 'Orbit'], ['A', 'Jump: tap to spring, hold for farther (X in the air: a pounce-bite)'], ['X', 'Bite: graze, or bite back'], ['B', 'Hold: dash (scramble)'], ['Y', 'Hold: defend (close up); in a portal: enter it; at the backdoor, rise a world'], ['D-pad ↑↓', 'Magnification']],
     facts: [
       'Box mites fold their legs inside and close the shell like a lid: ptychoidy.',
       'An electron microscope sees no colour; every grey is the tilt of a surface to the beam.',
