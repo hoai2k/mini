@@ -166,7 +166,7 @@ let camMode = 'orbit';
 features.add({ id: 'view', group: 'Rendering', label: 'Camera', choices: ['Orbit', 'Top-down'], value: 'Orbit',
   about: 'Orbit: a perspective camera looking down at about 50°, like the 3D worlds. Top-down: an orthographic camera straight down, like the microscope views. The split works the same in both.',
   onChange: (v) => { camMode = v === 'Top-down' ? 'top' : 'orbit'; } });
-const split = createSplitScreen(renderer, { renderScale: 1 });
+const split = createSplitScreen(renderer, { renderScale: 1, zoomMax: 2 });
 // The split views' scale: the governor's split factor (0.7 at 2 views, 0.55 at
 // 3-4) times this manual choice. The governor's own step goes into the pixel
 // ratio (scalePixelRatio), since this world has no buffers of its own.
@@ -186,7 +186,7 @@ const marks = createLandmarks();
 // ----------------------------------------------------------------- camera
 const persp = new THREE.PerspectiveCamera(45, 16 / 9, 0.5, 400);
 const ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.5, 400);
-const rig = { yaw: 0, pitch: 0.92, focus: new THREE.Vector3(), dist: 28 };
+const rig = { yaw: 0, pitch: 0.92, focus: new THREE.Vector3(), dist: 28, zoom: 1 };
 
 function resize() {
   const w = innerWidth, h = innerHeight;
@@ -208,9 +208,10 @@ function placeCamera(dt, snap = false) {
   const c = split.centroid(ps);
   const k = snap ? 1 : 1 - Math.exp(-dt * 6);
   rig.focus.lerp(new THREE.Vector3(c.x, 0, c.z), k);
-  // Zoom out a little as the group spreads, up to a cap (then the view splits).
-  const want = 28 + Math.min(10, split.spread(ps) * 0.35);
-  rig.dist += (want - rig.dist) * k;
+  // The split screen's group zoom: pull back (orbit) or widen (top-down) as
+  // the group spreads, up to zoomMax; the view splits only beyond that.
+  rig.zoom = split.zoom;
+  rig.dist = 28 * rig.zoom;
   let cam;
   if (camMode === 'top') {
     cam = ortho;
@@ -286,7 +287,7 @@ function render(dt, snap = false) {
   const cam = placeCamera(dt, snap);
   lastCam = cam;
   const list = players.list.filter((p) => bodies[p.slot]).map((p) => ({ slot: p.slot, position: bodies[p.slot].mesh.position }));
-  split.update(list, { camera: cam }, dt);
+  split.update(list, { camera: cam, zoom: rig.zoom }, dt);
   quality.setSplitViews(split.views.length);
   split.render(cam, (view, target) => {
     renderer.setRenderTarget(target);

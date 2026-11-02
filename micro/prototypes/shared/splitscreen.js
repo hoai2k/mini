@@ -215,9 +215,17 @@ export function createSplitScreen(renderer, opts = {}) {
     capture = false,
     divider = {},
     mergeBlend = 0.2,
-    splitAt = 1.12,
     splitIn = 0.5,
+    splitOut = 0.5,
     turnRate = 3,
+    zoomMax = 1,
+    comfort = 0.6,
+    splitFit = 0.86,
+    mergeAt = 0.75,
+    mergeDwell = 0.8,
+    zoomOutTime = 0.35,
+    zoomInTime = 1,
+    zoomBand = 0.1,
     scissor: autoScissor = true,
     margin = 24,
     captureScale = false,
@@ -246,7 +254,13 @@ export function createSplitScreen(renderer, opts = {}) {
   // State carried between frames, keyed by slot so it survives reordering.
   const st = {
     split: false,     // the hysteresis state
-    amount: 0,        // 0-1 ease-in of the shifts after a split starts
+    merging: false,   // split, easing the shifts back out to a merge
+    dwell: 0,         // seconds the group has fitted the merge zoom while split
+    amount: 0,        // 0-1 ease-in of the shifts after a split starts (and out before a merge)
+    zoom: 1,          // the merged view's zoom-out factor (1 = the world's solo framing)
+    zoomV: 0,         // its rate (critically damped)
+    zoomTarget: 1,    // what it eases to (held inside the dead band)
+    need: 1,          // the zoom the group needs to sit inside the comfortable margin
     angle: null,      // 2 players: unwrapped on-screen direction lower slot -> higher slot
     sites: new Map(), // 3-4 players: slot -> smoothed site [x, y]
     weights: new Map(), // slot -> power-diagram weight
@@ -396,11 +410,15 @@ export function createSplitScreen(renderer, opts = {}) {
     const full = [[-W / 2, -H / 2], [W / 2, -H / 2], [W / 2, H / 2], [-W / 2, H / 2]];
     const toAbs = (p) => [p[0] + W / 2, p[1] + H / 2];
 
+    // The zoom the world applied to its camera this frame (it read split.zoom).
+    const zApplied = Math.max(1, shared.zoom ?? st.zoom);
+    const zMax = Math.max(1, zoomMax);
     if (n <= 1) {
-      st.split = false; st.amount = 0; st.angle = null; st.together.clear();
+      st.split = false; st.merging = false; st.dwell = 0; st.amount = 0; st.angle = null; st.together.clear();
+      st.need = 1; st.zoomTarget = 1; easeZoom(1, dt);
       views.push({ index: 0, slots: n ? [slotOf(0)] : [], members: n ? [0] : [], shift: { x: 0, y: 0 }, offset: zeroOffset() });
       if (n) regions.push({ slot: slotOf(0), view: 0, polygon: full.map(toAbs), centroid: [W / 2, H / 2], anchor: toAbs([S[0].x, S[0].y]), area: W * H });
-      layout = { merged: true, width: W, height: H, views, regions, edges, players, amount: 0, spread: 0, angle: 0 };
+      layout = { merged: true, width: W, height: H, views, regions, edges, players, amount: 0, spread: 0, angle: 0, zoom: st.zoom, need: 1, fit: 0, merging: false };
       setRects(layout);
       return layout;
     }
@@ -478,9 +496,12 @@ export function createSplitScreen(renderer, opts = {}) {
       }
     }
 
-    // 3. Where each player should appear, and the raw shift of their view.
+    // 3. How far out the group reaches (F: the largest |s_x| / (W/2) or
+    // |s_y| / (H/2); Fc: the same about the group's own on-screen centre),
+    // and the raw shift of each player's view: split, each player is shown at
+    // their region's centroid.
     const raw = [];
-    let E = 0, Ec = 0, leaving = false;
+    let E = 0, F = 0, Fc = 0, leaving = false;
     const mx = S.reduce((a, s) => a + s.x, 0) / n, my = S.reduce((a, s) => a + s.y, 0) / n;
     for (let i = 0; i < n; i++) {
       const s = S[i];
@@ -490,26 +511,41 @@ export function createSplitScreen(renderer, opts = {}) {
       const ux = len > 1e-6 ? s.x / len : 0, uy = len > 1e-6 ? s.y / len : 0;
       const rho = Math.max(24, ux * g[0] + uy * g[1], 0.3 * gl);
       E = Math.max(E, len / rho);
-      // The same about the group's own on-screen centre (the camera may still be on its way).
-      Ec = Math.max(Ec, Math.hypot(s.x - mx, s.y - my) / rho);
+      F = Math.max(F, Math.abs(s.x) / (W / 2), Math.abs(s.y) / (H / 2));
+      Fc = Math.max(Fc, Math.abs(s.x - mx) / (W / 2), Math.abs(s.y - my) / (H / 2));
       if (Math.abs(s.x) > 0.47 * W || Math.abs(s.y) > 0.47 * H) leaving = true;
-      let d;
-      if (len <= rho) d = [s.x, s.y];
-      else {
-        const t = smooth(1, 2.2, len / rho);
-        d = [ux * rho + (g[0] - ux * rho) * t, uy * rho + (g[1] - uy * rho) * t];
-      }
-      raw.push([s.x - d[0], s.y - d[1]]);
+      raw.push([s.x - g[0], s.y - g[1]]);
     }
 
-    // 4. Merged or split, with hysteresis; the shifts ease in after a split.
-    // Split only when the group would not fit around its own centre either
-    // (a player joining beside a teammate while the world's camera is still
-    // centred on the teammate stays merged), or when someone is leaving the screen.
-    if (!st.split && E > splitAt && (Ec > splitAt || leaving)) { st.split = true; st.amount = 0; }
-    else if (st.split && E <= 1) { st.split = false; st.amount = 0; }
-    if (st.split) st.amount = Math.min(1, st.amount + (splitIn > 0 ? dt / splitIn : 1));
+    // 4. Zoom out first, split last. `need` is the zoom that puts the group
+    // inside the comfortable margin (F = comfort): exact for a zoom that
+    // scales the picture about its centre (a 2D field, a wider field of
+    // view), close for a camera pulled back. Merged, the zoom follows it up at
+    // once and back down only past a dead band. The screen splits only once
+    // the zoom is at its maximum (or a player is leaving the screen) and the
+    // group still reaches past splitFit, around the screen centre and its own
+    // centre alike; it merges once the group has fitted mergeAt x the maximum
+    // zoom for mergeDwell seconds, easing the shifts out (the views settle at
+    // that zoom while split, so the merged picture needs no zoom change).
+    const need = zApplied * F / comfort, needC = zApplied * Fc / comfort;
+    const splitNeed = zMax * splitFit / comfort, mergeNeed = mergeAt * zMax, zSplit = Math.max(1, Math.min(zMax, mergeNeed));
+    st.need = need;
+    if (!st.split) {
+      if (need > splitNeed && needC > splitNeed && (zApplied >= 0.97 * zMax || leaving)) { st.split = true; st.merging = false; st.dwell = 0; st.amount = 0; }
+    } else {
+      st.dwell = need <= mergeNeed ? st.dwell + dt : 0;
+      if (!st.merging && st.dwell >= mergeDwell) st.merging = true;
+      else if (st.merging && need > mergeNeed * 1.25) { st.merging = false; st.dwell = 0; }
+    }
+    if (st.split && st.merging) {
+      st.amount = Math.max(0, st.amount - (splitOut > 0 ? dt / splitOut : 1));
+      if (st.amount <= 0) { st.split = false; st.merging = false; st.dwell = 0; }
+    } else if (st.split) st.amount = Math.min(1, st.amount + (splitIn > 0 ? dt / splitIn : 1));
     const amt = st.split ? smooth(0, 1, st.amount) : 0;
+    const want = Math.max(1, Math.min(zMax, need));
+    if (st.split && !st.merging) st.zoomTarget = zSplit;
+    else if (want > st.zoomTarget || want < st.zoomTarget / (1 + zoomBand)) st.zoomTarget = want;
+    easeZoom(st.zoomTarget, dt, st.split && !st.merging ? 1.2 : undefined);
 
     // Each player's own camera offset (world units) for their eased-in shift;
     // players close together blend offsets, so a group shares a view. Blending
@@ -595,10 +631,22 @@ export function createSplitScreen(renderer, opts = {}) {
       if (alpha > 0.004) edges.push({ a: toAbs(a), b: toAbs(b), alpha, slots: [slotOf(i), slotOf(j)], angle: Math.atan2(ty, tx) });
     }
     const merged = !st.split;
-    layout = { merged, width: W, height: H, views, regions, edges, players, amount: amt, spread: E, angle: n === 2 ? st.angle : null };
+    layout = { merged, width: W, height: H, views, regions, edges, players, amount: amt, spread: E, angle: n === 2 ? st.angle : null,
+      zoom: st.zoom, need, fit: F, merging: st.merging };
     setRects(layout);
     if (renderer.outputColorSpace !== warmCs || renderer.toneMapping !== warmTm) warm();
     return layout;
+  }
+
+  /** Ease the zoom toward z (critically damped: out quickly, in slowly, or over `time`). */
+  function easeZoom(z, dt, time) {
+    const T = time ?? (z > st.zoom ? zoomOutTime : zoomInTime);
+    const w = 2 / Math.max(1e-3, T), x = w * dt, e = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+    const d = st.zoom - z, tmpV = (st.zoomV + w * d) * dt;
+    st.zoomV = (st.zoomV - w * tmpV) * e;
+    let out = z + (d + tmpV) * e;
+    if ((z - st.zoom > 0) === (out > z)) { out = z; st.zoomV = 0; } // no overshoot
+    st.zoom = Math.max(1, Math.min(Math.max(1, zoomMax), out));
   }
 
   // Each view's box (CSS px, top-left) and rect (drawing-buffer px, bottom-left, padded).
@@ -960,6 +1008,14 @@ export function createSplitScreen(renderer, opts = {}) {
     get views() { return layout.views; },
     get regions() { return layout.regions; },
     get merged() { return layout.merged; },
+    /**
+     * The merged view's zoom-out factor (1 = the world's solo framing, up to
+     * zoomMax): read it before update() and widen the shared camera's framing
+     * by it (2D: pxPerUnit / zoom; 3D: the camera pulled back zoom x along its
+     * view, or tan(fov/2) x zoom), then pass it as shared.zoom.
+     */
+    get zoom() { return st.zoom; },
+    get zoomMax() { return Math.max(1, zoomMax); },
     get renderScale() { return renderScale; },
     set renderScale(v) { renderScale = Math.max(0.25, Math.min(1, v)); },
     /** The shared per-view resolution factor for the current view count (1, 0.7, 0.55). */
