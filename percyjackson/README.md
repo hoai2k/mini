@@ -504,10 +504,12 @@ ambrosia, fifty hero switches, a thousand monsters and a thousand drachmas, a
 Unique, a Heroic outfit, ten bullseyes, the top of the lava wall, playing
 online...). Each unlock goes to the profile of the person who earned it (the
 party's to everyone on the screen; AI companions earn nothing), shows a card
-with its badge, and is kept in the profile (`data.achievements`; merging two
+with its badge and why it was earned ("You beat Medusa and nobody turned to
+stone."), above any open screen; a chapter's results list the achievements it
+earned the same way. It is kept in the profile (`data.achievements`; merging two
 profiles keeps every unlock and the higher counts). **Settings → Achievements**
-(on every tab) lists them all: unlocked in gold with the day, the counted ones
-with their progress. The badges are the two sheets of image-requests round 8
+(on every tab) lists them all: unlocked in gold with why they were earned and
+the day, the rest with how to earn them (the counted ones with their progress). The badges are the two sheets of image-requests round 8
 (`game/assets/icons-achievements-1.png`, `-2.png`, delivered 2026-11-02:
 bronze-faced medallions for the story, navy-faced for the habits), cut by
 `ui/icons.js` like the item icons; an achievement whose badge is missing shows

@@ -711,7 +711,7 @@ body.reduce-motion .trk-pin .chev { animation: none; }
 @container (max-width: 760px) { .inv2 .inv-hero .slots-eq { grid-template-columns: repeat(4, minmax(0, 72px)); } .inv2 .slots-eq .item { font-size: 26px; } }
 
 /* Achievements: the unlock card (achievements.js) and the screen (ui/achievementsScreen.js) */
-.ach-card { position: fixed; left: 50%; top: 84px; transform: translate(-50%, -16px); opacity: 0; transition: opacity .3s ease, transform .3s ease; z-index: 40; display: flex; gap: 12px; align-items: center; min-width: 320px; max-width: min(520px, 92vw); padding: 10px 16px 10px 10px; border: 2px solid #c9963a; border-radius: 12px; background: linear-gradient(180deg, rgba(36, 29, 20, .96), rgba(23, 19, 15, .96)); box-shadow: 0 8px 28px rgba(0, 0, 0, .55), 0 0 18px rgba(240, 200, 103, .25); color: #f4ead5; pointer-events: none; }
+.ach-card { position: fixed; left: 50%; top: 84px; transform: translate(-50%, -16px); opacity: 0; transition: opacity .3s ease, transform .3s ease; z-index: 60; display: flex; gap: 12px; align-items: center; min-width: 320px; max-width: min(520px, 92vw); padding: 10px 16px 10px 10px; border: 2px solid #c9963a; border-radius: 12px; background: linear-gradient(180deg, rgba(36, 29, 20, .96), rgba(23, 19, 15, .96)); box-shadow: 0 8px 28px rgba(0, 0, 0, .55), 0 0 18px rgba(240, 200, 103, .25); color: #f4ead5; pointer-events: none; }
 .ach-card.in { opacity: 1; transform: translate(-50%, 0); }
 .ach-badge { flex: 0 0 auto; width: 64px; height: 64px; display: grid; place-items: center; font-size: 38px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #3a2e1c, #17130f); border: 2px solid #8a5f1c; }
 .ach-badge img { width: 100%; height: 100%; object-fit: contain; }
@@ -730,3 +730,8 @@ body.reduce-motion .trk-pin .chev { animation: none; }
 .ach-prog { display: flex; gap: 8px; align-items: center; font-size: 12px; color: #b9ab8c; margin-top: 4px; }
 .ach-prog .bar { flex: 1; height: 6px; border-radius: 3px; background: #2a2218; overflow: hidden; }
 .ach-prog .fill { height: 100%; background: linear-gradient(90deg, #c9963a, #f0c867); }
+/* the chapter's results: the achievements it earned, each with its badge and why */
+.results-ach { margin-top: 10px; text-align: left; }
+.results-ach h3 { text-align: center; margin: 4px 0 6px; }
+.ach-row { display: flex; gap: 10px; align-items: center; padding: 6px 8px; border: 1px solid #c9963a; border-radius: 10px; background: rgba(42, 32, 18, .75); margin-top: 6px; }
+.ach-row .ach-badge { width: 52px; height: 52px; font-size: 30px; }

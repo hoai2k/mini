@@ -23,8 +23,8 @@ export function openAchievements(game, onClose) {
       const foot = on ? h('div', { class: 'ach-when' }, t('achievements.gotOn', { date: new Date(rec.got[a.id]).toLocaleDateString() }))
         : pr ? h('div', { class: 'ach-prog' }, h('div', { class: 'bar' }, h('div', { class: 'fill', style: `width:${Math.round(100 * pr.n / pr.goal)}%` })), h('span', {}, t('achievements.progress', pr)))
         : h('div', { class: 'ach-when' }, t('achievements.locked'));
-      return h('div', { class: 'ach-item' + (on ? ' on' : ''), 'data-nav': '', tabindex: '0', ...(a === ACHIEVEMENTS[0] ? { 'data-autofocus': true } : {}), 'aria-label': `${t(`achievements.list.${a.id}.name`)}: ${on ? '' : t('achievements.locked') + '. '}${t(`achievements.list.${a.id}.desc`)}` },
-        badge, h('div', { class: 'ach-txt' }, h('div', { class: 'ach-name' }, t(`achievements.list.${a.id}.name`)), h('div', { class: 'ach-desc' }, t(`achievements.list.${a.id}.desc`)), foot));
+      return h('div', { class: 'ach-item' + (on ? ' on' : ''), 'data-nav': '', tabindex: '0', ...(a === ACHIEVEMENTS[0] ? { 'data-autofocus': true } : {}), 'aria-label': `${t(`achievements.list.${a.id}.name`)}: ${on ? t(`achievements.list.${a.id}.why`) : t('achievements.locked') + '. ' + t(`achievements.list.${a.id}.desc`)}` },
+        badge, h('div', { class: 'ach-txt' }, h('div', { class: 'ach-name' }, t(`achievements.list.${a.id}.name`)), h('div', { class: 'ach-desc' }, t(`achievements.list.${a.id}.${on ? 'why' : 'desc'}`)), foot));   // (earned: why it was earned; not yet: how to earn it)
     };
     el.appendChild(h('div', { class: 'panel ach-panel', role: 'dialog', 'aria-label': t('achievements.title'), 'aria-modal': 'true' },
       h('h2', {}, t('achievements.title')),

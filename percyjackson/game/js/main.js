@@ -51,7 +51,7 @@ import './heroes/clarisse.js';
 import { Profiles } from './profiles.js';
 import { Slots, slotPrefix } from './slots.js';
 import { Resume } from './resume.js';
-import { Achievements } from './achievements.js';
+import { Achievements, achRow } from './achievements.js';
 import { rollChest, rollItem, powerFor, itemInfo, itemTier, itemRarity, RARITY, rollBossLoot, rollChapterReward, signatureKey, signatureDue, normalizeItem, rollTierFor, BOSS_SIGNATURE } from './loot.js';
 import { killXp, chapterXp, bossXp, rollCoins, coinLevel, DROP_CHANCE, DROP_RANGE, OW_CHAMPION_SECOND, AFFIXED_COINS } from './progression.js';
 import { FODDER_MONSTERS } from './data/fodder.js';
@@ -767,6 +767,7 @@ class Game {
         h('div', { class: 'stat-line' }, t('game.results.coins'), h('b', {}, kitImg('coin_stack', 'kit-coin-img stack'), String(st.coins ?? 0))),
         h('div', { class: 'stat-line' }, t('game.results.secrets'), h('b', {}, String(st.secrets ?? 0))),
         h('div', { class: 'loot-list', id: 'results-loot' }),
+        m?.achEarned?.length ? h('div', { class: 'results-ach' }, h('h3', {}, t('achievements.earned')), ...m.achEarned.map((id) => achRow(id))) : null,
         h('div', { class: 'row', style: 'justify-content:center;margin-top:10px' },
           !victory ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { const d = m.def; this.ui.close('results'); this.startMission(d); } }, t('game.results.retry')) : null,
           victory && this.openingNext ? h('button', { class: 'btn primary', 'data-autofocus': true, onclick: () => { this.ui.close('results'); this.paused = false; const n = this.openingNext; this.openingNext = null; this.opening.run(n); } }, t('game.results.continueStory')) : h('button', { class: 'btn' + (victory ? ' primary' : ''), 'data-autofocus': victory, onclick: () => { this.ui.close('results'); this.paused = false; this.returnToHub(); if (this.newProphecy && Screens.openProphecy) { const b = this.newProphecy; this.newProphecy = null; setTimeout(() => { Screens.openProphecy(this, b); this.audio?.stinger?.('prophecy-line'); }, 600); } } }, t('game.results.returnToCamp')))));
