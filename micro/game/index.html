@@ -28,14 +28,14 @@
 
     <!-- Title -->
     <section id="title" class="screen" aria-labelledby="logo-text">
-      <div id="title-art-loading" class="art-loading" role="status" aria-label="Loading artwork"></div>
+      <div id="title-art-loading" class="art-loading" role="status" data-t-aria="shell.title.loadingArt"></div>
       <div class="title-block">
-        <p class="eyebrow"><span>Seven worlds</span><i></i><span>1.5 mm to 0.2 <span class="u">µm</span></span></p>
+        <p class="eyebrow"><span data-t="shell.title.eyebrowWorlds"></span><i></i><span data-t-html="shell.title.eyebrowRange"></span></p>
         <img id="logo-img" alt="" hidden>
-        <h1 id="logo-text" class="logo-type visually-hidden"><span class="w1">Micro</span><span class="w2">Z<span class="lens" aria-hidden="true"></span><span class="lens" aria-hidden="true"></span>m</span><span class="visually-hidden">Micro Zoom</span></h1>
+        <h1 id="logo-text" class="logo-type visually-hidden"><span class="w1" data-t="shell.title.logoWord1"></span><span class="w2">Z<span class="lens" aria-hidden="true"></span><span class="lens" aria-hidden="true"></span>m</span><span class="visually-hidden" data-t="shell.title.logoName"></span></h1>
         <div class="vernier" aria-hidden="true" hidden></div>
-        <button id="press-start" class="press-start" data-nav data-action="start">Press Start</button>
-        <p class="hint title-hint">Move left stick for options</p>
+        <button id="press-start" class="press-start" data-nav data-action="start" data-t="shell.title.pressStart"></button>
+        <p class="hint title-hint" data-t="shell.title.hint"></p>
         <div class="players-row" aria-live="polite"></div>
       </div>
       <div class="corner-buttons" data-group="corner"></div>
@@ -46,14 +46,14 @@
       <div class="menu-bg" aria-hidden="true"><div class="grid"></div><div class="glow"></div></div>
       <header class="screen-head">
         <div>
-          <p class="eyebrow small"><span>Specimen tray</span><i></i><span>Levels of Magnification</span></p>
-          <h2 id="menu-title">Choose your world</h2>
+          <p class="eyebrow small"><span data-t="shell.menu.eyebrowTray"></span><i></i><span data-t="shell.menu.eyebrowLevels"></span></p>
+          <h2 id="menu-title" data-t="shell.menu.heading"></h2>
         </div>
         <div class="players-row" aria-live="polite"></div>
       </header>
-      <div class="carousel" id="cards" role="listbox" aria-label="Worlds"></div>
+      <div class="carousel" id="cards" role="listbox" data-t-aria="shell.menu.worldsLabel"></div>
       <div class="scale-rule" id="scale-rule" aria-hidden="true"></div>
-      <p class="menu-hint hint"><span class="g" data-btn="A"></span> Select <span class="g" data-btn="B"></span> Title <span class="g" data-btn="LS"></span> Browse</p>
+      <p class="menu-hint hint" data-t-html="shell.menu.hint"></p>
       <div class="corner-buttons" data-group="corner"></div>
     </section>
 
@@ -66,40 +66,40 @@
         <h2 id="intro-name"></h2>
         <p class="latin"><span id="intro-creature"></span> · <em id="intro-latin"></em></p>
         <dl class="plate" id="intro-plate"></dl>
-        <h3>Goal</h3><p class="goal" id="intro-goal"></p>
+        <h3 data-t="shell.intro.goal"></h3><p class="goal" id="intro-goal"></p>
         <div class="intro-cols">
           <div>
-            <h3>Controls</h3><ul class="controls-list" id="intro-controls"></ul>
+            <h3 data-t="shell.intro.controls"></h3><ul class="controls-list" id="intro-controls"></ul>
           </div>
           <div>
-            <h3>Field notes</h3><ul class="facts" id="intro-facts"></ul>
+            <h3 data-t="shell.intro.fieldNotes"></h3><ul class="facts" id="intro-facts"></ul>
           </div>
         </div>
         <div class="intro-actions">
-          <button class="press-start small" data-nav data-action="begin">Press <span class="g" data-btn="A"></span> to begin</button>
-          <button class="text-btn" data-nav data-action="back"><span class="g" data-btn="B"></span> Back to the tray</button>
+          <button class="press-start small" data-nav data-action="begin" data-t-html="shell.intro.begin"></button>
+          <button class="text-btn" data-nav data-action="back" data-t-html="shell.intro.back"></button>
         </div>
       </article>
     </section>
 
     <!-- Play -->
-    <section id="play" class="screen" hidden aria-label="Play">
+    <section id="play" class="screen" hidden data-t-aria="shell.play.label">
       <div class="play-hud">
         <div class="plaque" id="plaque"><span class="no"></span><span class="nm"></span><span class="mg"></span></div>
         <div class="hud-buttons">
-          <button class="icon-btn small" data-action="controls" aria-pressed="false" aria-label="Controls card" title="Controls card (View)">
+          <button class="icon-btn small" data-action="controls" aria-pressed="false" data-t-aria="shell.play.controlsAria" data-t-title="shell.play.controlsTitle">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7 10h4M9 8v4M15 9.5h.01M17 11.5h.01M7 15h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-            <span class="btn-label">Controls</span>
+            <span class="btn-label" data-t="shell.play.controlsButton"></span>
           </button>
-          <button class="icon-btn small" data-action="pause" aria-label="Pause" title="Pause (Menu)">
+          <button class="icon-btn small" data-action="pause" data-t-aria="shell.play.pauseButton" data-t-title="shell.play.pauseTitle">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5v14M15.5 5v14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
-            <span class="btn-label">Pause</span>
+            <span class="btn-label" data-t="shell.play.pauseButton"></span>
           </button>
         </div>
       </div>
       <aside id="controls-card" class="controls-card paper" hidden aria-live="polite"></aside>
       <div id="prompt" class="landmark-prompt" hidden></div>
-      <div id="veil" class="veil" hidden><div class="objective-spin" aria-hidden="true"></div><p>Preparing the slide…</p></div>
+      <div id="veil" class="veil" hidden><div class="objective-spin" aria-hidden="true"></div><p data-t="shell.play.preparing"></p></div>
     </section>
 
     <!-- Transition between worlds -->
@@ -114,15 +114,15 @@
     <section id="pause" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="pause-title">
       <div class="panel paper pause-panel">
         <p class="eyebrow small"><span id="pause-world"></span></p>
-        <h2 id="pause-title">Paused</h2>
+        <h2 id="pause-title" data-t="shell.pause.heading"></h2>
         <p id="pause-reason" class="muted"></p>
         <div class="menu-list">
-          <button class="menu-btn primary" data-nav data-action="resume">Resume</button>
-          <button class="menu-btn" data-nav data-open="instructions">Instructions</button>
-          <button class="menu-btn" data-nav data-open="settings">Settings</button>
-          <button class="menu-btn" data-nav data-action="restart">Restart world</button>
-          <button class="menu-btn" data-nav data-action="choose">Choose world</button>
-          <button class="menu-btn" data-nav data-action="title">Title</button>
+          <button class="menu-btn primary" data-nav data-action="resume" data-t="shell.pause.resume"></button>
+          <button class="menu-btn" data-nav data-open="instructions" data-t="shell.pause.instructions"></button>
+          <button class="menu-btn" data-nav data-open="settings" data-t="shell.pause.settings"></button>
+          <button class="menu-btn" data-nav data-action="restart" data-t="shell.pause.restart"></button>
+          <button class="menu-btn" data-nav data-action="choose" data-t="shell.pause.choose"></button>
+          <button class="menu-btn" data-nav data-action="title" data-t="shell.pause.title"></button>
         </div>
         <div class="players-row"></div>
       </div>
@@ -132,18 +132,27 @@
     <!-- Settings -->
     <section id="settings" class="modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <div class="panel paper">
-        <h2 id="settings-title">Settings</h2>
+        <h2 id="settings-title" data-t="shell.settings.heading"></h2>
         <div class="settings-list" id="settings-list"></div>
-        <button class="menu-btn" data-nav data-action="close">Done</button>
+        <button class="menu-btn" data-nav data-action="close" data-t="shell.settings.done"></button>
       </div>
     </section>
 
     <!-- Instructions -->
     <section id="instructions" class="modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="ins-title">
       <div class="panel paper wide">
-        <h2 id="ins-title">Instructions</h2>
+        <h2 id="ins-title" data-t="shell.instructions.heading"></h2>
         <div class="scroll" id="ins-scroll" tabindex="0" data-nav data-scroll></div>
-        <button class="menu-btn" data-nav data-action="close">Close</button>
+        <button class="menu-btn" data-nav data-action="close" data-t="shell.instructions.close"></button>
+      </div>
+    </section>
+
+    <!-- Credits -->
+    <section id="credits" class="modal dialog" hidden role="dialog" aria-modal="true" aria-labelledby="credits-title">
+      <div class="panel paper">
+        <h2 id="credits-title" data-t="shell.credits.heading"></h2>
+        <div class="scroll credits" id="credits-scroll" tabindex="0" data-nav data-scroll></div>
+        <button class="menu-btn" data-nav data-action="close" data-t="shell.credits.close"></button>
       </div>
     </section>
 
@@ -153,8 +162,8 @@
         <h2 id="confirm-title"></h2>
         <p id="confirm-text" class="muted"></p>
         <div class="row-buttons">
-          <button class="menu-btn" data-nav data-action="cancel">Stay</button>
-          <button class="menu-btn primary" data-nav data-action="ok">Leave</button>
+          <button class="menu-btn" data-nav data-action="cancel" data-t="shell.confirm.stay"></button>
+          <button class="menu-btn primary" data-nav data-action="ok" data-t="shell.confirm.leave"></button>
         </div>
       </div>
     </section>

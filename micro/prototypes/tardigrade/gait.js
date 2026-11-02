@@ -19,6 +19,7 @@
 // underside.
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { LEGS, BODY_HEIGHT } from './creature.js';
+import { t as say } from '../shared/text.js';
 
 // Speed. The stick is analogue: a slight push walks at WALK_MIN, full tilt at
 // WALK_MAX, with a quadratic curve between (fine control near the slow end);
@@ -562,7 +563,7 @@ export class Walker {
     this.targetFrame();
     this.startBlend(snap, 0.7);
     this.handoffT = 0;
-    this.events.transfer(`${bridged ? 'Across the water bridge to ' : 'Claws over onto '}${M.name}${side < 0 ? ' (underside)' : ''}`);
+    this.events.transfer(say(`tardigrade.toasts.${bridged ? 'bridge' : 'clawsOver'}${side < 0 ? 'Underside' : ''}`, { leaf: M.name }));
   }
 
   wrapMargin() {
@@ -576,7 +577,7 @@ export class Walker {
     this.targetFrame();
     this.startBlend(snap, 0.8);
     this.handoffT = 0;
-    this.events.transfer(`Round the leaf margin onto the ${this.side > 0 ? 'upper' : 'lower'} face`);
+    this.events.transfer(say(this.side > 0 ? 'tardigrade.toasts.marginUpper' : 'tardigrade.toasts.marginLower'));
   }
 
   fall() {
@@ -624,10 +625,10 @@ export class Walker {
       this.startBlend(snap, 0.45);
       // Falling, the legs let go and paddle; they catch as the body lands.
       this.feet.forEach((f) => this.letGo(f));
-      this.events.fall(`Lost grip and fell ${Math.round(best.t * 100)} µm onto ${M.name}`);
+      this.events.fall(say('tardigrade.toasts.fell', { um: Math.round(best.t * 100), leaf: M.name }));
     } else {
       this.spawn(this.world.leaves[0], 1, 6.5, 0.6, 1, 0);
-      this.events.fall('Fell out of the moss cushion: back to leaf A');
+      this.events.fall(say('tardigrade.toasts.fellOut'));
     }
   }
 

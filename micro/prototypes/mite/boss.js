@@ -32,6 +32,7 @@ import * as THREE from '../shared/vendor/three.module.min.js';
 import { gMaterial, CLS } from '../shared/techniques/mite-sem.js';
 import { createFight } from '../shared/predation.js';
 import { floorH } from './world.js';
+import { t as tt } from '../shared/text.js';
 
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const ease = (x) => x * x * (3 - 2 * x);
@@ -313,7 +314,7 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250, leas
 
   const api = {
     st, group, fight, post, home, setVisible, update, tips, joints,
-    get name() { return 'Pseudoscorpion'; },
+    get name() { return tt('mite.bossName'); },
     get center() { return new THREE.Vector3(st.x, floorH(st.x, st.z) + 150, st.z); },
     get resolve() { return fight.interest; },
     get engaged() { return !['dormant', 'gone', 'retreat', 'return'].includes(st.state); },

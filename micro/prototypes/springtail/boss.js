@@ -39,6 +39,7 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { litMaterial } from '../shared/techniques/springtail-macro.js';
 import { createFight } from '../shared/predation.js';
+import { t as tt } from '../shared/text.js';
 
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const ease = (x) => x * x * (3 - 2 * x);
@@ -408,7 +409,7 @@ export function createWolfSpider(scene, { post, home, ground = null, seed = 1 })
 
   const api = {
     st, group, legs, fight, post, home, setVisible, update, fang,
-    get name() { return 'Pond wolf spider'; },
+    get name() { return tt('springtail.spider.name'); },
     /** 1 at full resolve, 0 when it gives up. */
     get resolve() { return fight.interest; },
     /** True from waking until it retreats or walks back (the gauge shows). */

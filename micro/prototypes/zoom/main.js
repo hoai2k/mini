@@ -15,6 +15,7 @@ import { embed } from '../shared/embed.js';
 import { createEngine, DEFAULT_OPTS, HL_NAMES, STRAT_IDS, STRAT_NAMES, NT } from './engine.js';
 import { WORLDS, TRANSITIONS, IDS } from './chain.js';
 import { listTransitions, transitionFor } from './player.js';
+import { t as tt } from '../shared/text.js';
 
 // The embedded single transition (the game's 'microscope' transition style).
 const params = new URLSearchParams(location.search);
@@ -29,20 +30,20 @@ const canvas = document.querySelector('canvas.view');
 const pad = createPad();
 const ctl = createControls(pad);
 const hud = mountHud({
-  title: 'Zoom transitions',
-  sub: 'The twelve world-to-world transitions of Micro Zoom: pick one in the menu to play it, or play the chain: reach the spot, see the next screen framed, zoom into it.',
+  title: tt('zoom.hud.title'),
+  sub: tt('zoom.hud.sub'),
   controls: hudControls({
-    move: 'Move the creature (a demo drives it if you leave it)',
-    dash: 'Dash · on the framed spot: zoom now · hold: skip the highlight · while scrubbing: resume',
-    attack: 'Frame flash style',
-    defend: 'Reverse: zoom back out',
-    special: 'Play the transition selected in the menu',
-    analog: 'Scrub the transition (LT back, RT forward)',
-    secondary: 'Menu: previous / next transition',
-    look: 'Strategy: recommended / look first / during / zoom first / crossfade / cut',
-    zoom: 'Menu: previous / next transition',
+    move: tt('zoom.hud.controls.move'),
+    dash: tt('zoom.hud.controls.dash'),
+    attack: tt('zoom.hud.controls.attack'),
+    defend: tt('zoom.hud.controls.defend'),
+    special: tt('zoom.hud.controls.special'),
+    analog: tt('zoom.hud.controls.analog'),
+    secondary: tt('zoom.hud.controls.secondary'),
+    look: tt('zoom.hud.controls.look'),
+    zoom: tt('zoom.hud.controls.zoom'),
   }),
-  note: 'One specimen at every scale: the highlighted frame is exactly the next world’s screen. Field widths, the scale bar and the magnification (180 mm ÷ field, a 10× eyepiece) are true; creature speeds are real except the amoeba’s (×10, as in its prototype) and the tun’s revival.',
+  note: tt('zoom.hud.note'),
 });
 
 // ---------------------------------------------------------------- features
@@ -50,35 +51,30 @@ const opts = { ...DEFAULT_OPTS, noCap: params.get('hq') === '1' };
 let eng = null;
 const features = createFeatures({ key: 'zoom', pad });
 const strategyChoices = STRAT_IDS.map((s) => STRAT_NAMES[s]);
-features.add({ id: 'strategy', group: 'Rendering', label: 'Style transition strategy', choices: strategyChoices, value: STRAT_NAMES.auto,
-  about: 'Recommended: each transition’s best strategy from the contact sheets (README). Look first: morph world N’s optics into N+1’s at N’s scale, then zoom. Look during: the optics morph with the zoom. Zoom first: zoom in N’s look, then morph. Crossfade: as during, but the two finished images cross-fade. Cut: the look switches at the hand-off. In the hand-offs (no zoom) “zoom first” falls back to “during”.',
+features.add({ id: 'strategy', group: 'Rendering', choices: strategyChoices, value: STRAT_NAMES.auto,
   onChange: (v) => { opts.strategy = STRAT_IDS[strategyChoices.indexOf(v)] || 'auto'; eng?.retime(); } });
-features.add({ id: 'hl', group: 'Rendering', label: 'Highlight: the next world’s frame', choices: HL_NAMES, value: HL_NAMES[0],
-  about: 'The highlight is exactly the rectangle the next world’s screen will show (its field width × the screen’s aspect). Frame flash: the frame and its inside flash twice; pulsing frame; or darken everything outside it. The zoom is a pure scaling about one fixed point, so that rectangle grows to fill the screen exactly.',
+features.add({ id: 'hl', group: 'Rendering', choices: HL_NAMES, value: HL_NAMES[0],
   onChange: (v) => { opts.hl = HL_NAMES.includes(v) ? v : HL_NAMES[0]; } });
-features.add({ id: 'zoomDur', group: 'Motion', label: 'Zoom duration', choices: ['2 s', '3.5 s', '6 s'], value: '3.5 s',
-  about: 'How long the zoom takes, whatever the magnification ratio (2× to 150×). Hand-offs last this plus 1.5 s (at least 4.5 s).', onChange: (v) => { opts.zoomDur = parseFloat(v); eng?.retime(); } });
-features.add({ id: 'morphDur', group: 'Motion', label: 'Look morph duration (look first / zoom first)', choices: ['1 s', '2.5 s', '4 s'], value: '2.5 s',
+features.add({ id: 'zoomDur', group: 'Motion', choices: ['2 s', '3.5 s', '6 s'], value: '3.5 s',
+  onChange: (v) => { opts.zoomDur = parseFloat(v); eng?.retime(); } });
+features.add({ id: 'morphDur', group: 'Motion', choices: ['1 s', '2.5 s', '4 s'], value: '2.5 s',
   onChange: (v) => { opts.morphDur = parseFloat(v); eng?.retime(); } });
-features.add({ id: 'hlDur', group: 'Motion', label: 'Highlight duration', choices: ['1.2 s', '2.2 s', '3.5 s'], value: '2.2 s',
+features.add({ id: 'hlDur', group: 'Motion', choices: ['1.2 s', '2.2 s', '3.5 s'], value: '2.2 s',
   onChange: (v) => { opts.hlDur = parseFloat(v); eng?.retime(); } });
 const EASE_NAMES = { log: 'Constant zoom speed (log)', smooth: 'Ease in and out', arrive: 'Fast start, slow arrival' };
-features.add({ id: 'ease', group: 'Motion', label: 'Zoom easing', choices: Object.values(EASE_NAMES), value: EASE_NAMES.log,
-  about: 'The field width is interpolated in log space, so “constant” means the same magnification per second all the way down.',
+features.add({ id: 'ease', group: 'Motion', choices: Object.values(EASE_NAMES), value: EASE_NAMES.log,
   onChange: (v) => { opts.ease = Object.keys(EASE_NAMES).find((k) => EASE_NAMES[k] === v) || 'log'; } });
-features.add({ id: 'miteLook', group: 'Optics', label: 'Mite world look', choices: ['SEM', 'Stereo microscope'], value: 'SEM',
-  about: 'The mite prototype’s SEM, or the reflected-light stereo microscope the spec names for the capitulum.', onChange: (v) => { opts.miteLook = v === 'SEM' ? 'sem' : 'stereo'; } });
-features.add({ id: 'bactLook', group: 'Optics', label: 'Bacteria world look', choices: ['Phase contrast', 'Fluorescence'], value: 'Phase contrast',
+features.add({ id: 'miteLook', group: 'Optics', choices: ['SEM', 'Stereo microscope'], value: 'SEM',
+  onChange: (v) => { opts.miteLook = v === 'SEM' ? 'sem' : 'stereo'; } });
+features.add({ id: 'bactLook', group: 'Optics', choices: ['Phase contrast', 'Fluorescence'], value: 'Phase contrast',
   onChange: (v) => { opts.bactLook = v === 'Phase contrast' ? 'phase' : 'fluor'; } });
-features.add({ id: 'scale', group: 'Rendering', label: 'Render scale', choices: ['50%', '75%', '100%'], value: '75%',
-  about: 'Resolution of the specimen field (two worlds are drawn at once during a zoom). A software renderer is capped at 35 %.', onChange: (v) => { opts.scale = parseFloat(v) / 100; eng?.resize(); } });
-features.add({ id: 'specimen', group: 'World', label: 'One multi-scale specimen', fixed: true,
-  about: 'Every world is a scale band of one specimen: capitulum leaves carry the cell lattice the DIC resolves, the film runs down a leaf into the pool, the amoeba crawls on the pool floor below, the biofilm’s cells are the texture the brightfield shows. Each layer fades in by pixel size, so N’s detail blurs out as N+1’s structures resolve, aligned.' });
-features.add({ id: 'optics', group: 'Optics', label: 'One image-formation model (zoom-optics.js)', fixed: true,
-  about: 'Macro, stereo, SEM, DIC, brightfield, phase, fluorescence, cryo-EM and the illustration are all one formula with different lamps and settings, so a morph moves the instrument, not just pixels.' });
-features.add({ id: 'logzoom', group: 'Optics', label: 'Log-scale zoom, honest scale bar (zoom-path.js)', fixed: true });
-features.add({ id: 'demo', group: 'Controls', label: 'Demo when idle', on: true, about: 'The creature walks, crawls or swims to the destination by itself after a moment without input.', onChange: (v) => { opts.demo = v; } });
-features.add({ id: 'auto', group: 'Controls', label: 'Continue into the next transition', on: true, about: 'After arriving, the next world’s destination is live, so the whole chain plays through.', onChange: (v) => { opts.auto = EMBED ? false : v; } });
+features.add({ id: 'scale', group: 'Rendering', choices: ['50%', '75%', '100%'], value: '75%',
+  onChange: (v) => { opts.scale = parseFloat(v) / 100; eng?.resize(); } });
+features.add({ id: 'specimen', group: 'World', fixed: true });
+features.add({ id: 'optics', group: 'Optics', fixed: true });
+features.add({ id: 'logzoom', group: 'Optics', fixed: true });
+features.add({ id: 'demo', group: 'Controls', on: true, onChange: (v) => { opts.demo = v; } });
+features.add({ id: 'auto', group: 'Controls', on: true, onChange: (v) => { opts.auto = EMBED ? false : v; } });
 const audio = createAudio(['springtail/amb-bog', 'mite/amb-moss', 'tardigrade/amb-film', 'amoeba/amb-pool', 'paramecium/amb-pool', 'bacterium/amb-sediment', 'mite/step', 'tardigrade/step', 'tardigrade/revive']);
 audio.addToFeatures(features);
 if (EMBED) { opts.auto = false; opts.demo = false; opts.strategy = params.get('strategy') && STRAT_IDS.includes(params.get('strategy')) ? params.get('strategy') : 'auto'; }

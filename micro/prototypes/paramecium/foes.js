@@ -24,6 +24,7 @@
 // Each step returns events: { type: 'kill', P, by, how } | { type: 'engulf', P } | ...
 import { THICK, BODY } from './swim.js';
 import { DEPTH } from './route.js';
+import { t as tt } from '../shared/text.js';
 
 const TAU = Math.PI * 2;
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -108,7 +109,7 @@ export function stepDileptus(D, players, dt) {
     case 'strike': {
       D.swing = D.strikeA * (-0.85 + 1.9 * Math.min(1, D.t / C.strike));
       const T = dileptusTrunk(D);
-      for (const Q of players) if (Q.live && bodyHitsSeg(Q.S, T.bx, T.by, T.tx, T.ty, 7, D.z, C.H + 22)) { ev.push({ type: 'kill', P: Q, by: 'Dileptus', how: 'slashed with toxicysts' }); D.mode = 'recover'; D.t = 0; break; }
+      for (const Q of players) if (Q.live && bodyHitsSeg(Q.S, T.bx, T.by, T.tx, T.ty, 7, D.z, C.H + 22)) { ev.push({ type: 'kill', P: Q, by: 'Dileptus', how: tt('paramecium.how.dileptus') }); D.mode = 'recover'; D.t = 0; break; }
       if (D.mode === 'strike' && D.t >= C.strike) { D.mode = 'recover'; D.t = 0; ev.push({ type: 'miss', who: D }); }
       break;
     }
@@ -191,7 +192,7 @@ export function stepDidinium(D, players, dt) {
       D.x += Math.cos(D.a) * C.lungeV * dt; D.y += Math.sin(D.a) * C.lungeV * dt;
       // the snout: the front of the barrel
       const sx = D.x + Math.cos(D.a) * C.L * 0.55, sy = D.y + Math.sin(D.a) * C.L * 0.55;
-      for (const Q of players) if (Q.live && bodyHitsSeg(Q.S, D.x, D.y, sx, sy, 12, D.z, C.H)) { ev.push({ type: 'kill', P: Q, by: 'Didinium', how: 'harpooned and swallowed whole' }); D.mode = 'recover'; D.t = 0; D.misses = 0; break; }
+      for (const Q of players) if (Q.live && bodyHitsSeg(Q.S, D.x, D.y, sx, sy, 12, D.z, C.H)) { ev.push({ type: 'kill', P: Q, by: 'Didinium', how: tt('paramecium.how.didinium') }); D.mode = 'recover'; D.t = 0; D.misses = 0; break; }
       if (D.mode === 'lunge' && D.t >= C.lunge) { D.mode = 'recover'; D.t = 0; D.misses++; ev.push({ type: 'miss', who: D }); }
       break;
     }
@@ -242,7 +243,9 @@ export function stepGiant(G, players, dt) {
   G.grace = Math.max(0, G.grace - dt);
   G.pinch = Math.max(0, G.pinch - dt);
   const P = G.grace > 0 ? null : near(players, G.x, G.y, GIANT.sight, (Q) => !Q.engulfed || Q.engulfed.by === G);
+  if (P && !G.target) ev.push({ type: 'hunt', who: G, target: P }); // it starts reaching for a player (target, not P: no hint is tied to it)
   G.target = P;
+
   // creep: toward its prey, else round its home
   const gx = P ? P.S.x : G.home.x + Math.cos(G.t * 0.07) * 200, gy = P ? P.S.y : G.home.y + Math.sin(G.t * 0.07) * 200;
   const d = hyp(gx - G.x, gy - G.y);
@@ -274,7 +277,7 @@ export function stepGiant(G, players, dt) {
     if (Q.engulfed && Q.engulfed.by === G) {
       if (!insideGiant(G, Q.S.x, Q.S.y, Q.S.z, 26)) { Q.engulfed = null; ev.push({ type: 'escaped', P: Q }); continue; }
       Q.engulfed.t += dt;
-      if (Q.engulfed.t >= GIANT.close) { Q.engulfed = null; ev.push({ type: 'kill', P: Q, by: 'the giant amoeba', how: 'engulfed in a food cup' }); }
+      if (Q.engulfed.t >= GIANT.close) { Q.engulfed = null; ev.push({ type: 'kill', P: Q, by: 'the giant amoeba', how: tt('paramecium.how.giant') }); }
     }
   }
   for (let i = 0; i < GIANT.N; i++) G.out[i] = giantAt(G, (i / GIANT.N) * TAU).r;
@@ -351,7 +354,7 @@ export function stepTrap(T, players, dt) {
         const dk = 1 - 0.55 * clamp((P.S.z - door.z) / 140, 0, 1);
         const k = Math.pow(1 - d / (TRAP.reach * wide), 0.7) * dk;
         pushes.set(P, { x: (dx / (d || 1)) * TRAP.pull * k, y: (dy / (d || 1)) * TRAP.pull * k });
-        if (d < TRAP.suck && Math.abs(P.S.z - door.z) < 90) { T.caught.add(P); ev.push({ type: 'kill', P, by: 'the bladderwort trap', how: 'sucked in through its door' }); log('catch', { slot: P.slot }); }
+        if (d < TRAP.suck && Math.abs(P.S.z - door.z) < 90) { T.caught.add(P); ev.push({ type: 'kill', P, by: 'the bladderwort trap', how: tt('paramecium.how.trap') }); log('catch', { slot: P.slot }); }
       }
       if (T.t >= TRAP.pulse) {
         if (!T.caught.size) { T.resolve -= 1; log('miss', { resolve: T.resolve }); }

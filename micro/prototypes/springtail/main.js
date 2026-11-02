@@ -29,6 +29,7 @@ import { createGlue } from './sundew-glue.js';
 import { createMotes, surfacePoint } from './motes.js';
 import { createStenus, createStrider, createRain } from './enemies.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
+import { t as tt, tx as ttx } from '../shared/text.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
@@ -155,28 +156,28 @@ const opt = { righting: true, slow: true, uPose: true, menisci: 1, rumble: true,
 const joins = [];
 const players = createPlayers({
   max: 4,
-  onJoin: (p) => { joins.push({ slot: p.slot, padIndex: p.padIndex }); syncPlayers(); hud.toast(`Player ${p.slot + 1} joined`); embed.join(p.slot, p.color, p.name, players.toJSON()); }, // the roster rides along, so the shell carries this player into the next world
-  onLeave: (p) => { syncPlayers(); hud.toast(`Player ${p.slot + 1} left`); embed.leave(p.slot); },
+  onJoin: (p) => { joins.push({ slot: p.slot, padIndex: p.padIndex }); syncPlayers(); audio.play('shared/join', { volume: 0.6 }); hud.toast(tt('shared.players.joined', { n: p.slot + 1 })); embed.join(p.slot, p.color, p.name, players.toJSON()); }, // the roster rides along, so the shell carries this player into the next world
+  onLeave: (p) => { syncPlayers(); hud.toast(tt('shared.players.left', { n: p.slot + 1 })); embed.leave(p.slot); },
   onChange: (list) => hud && hud.players(list),
 });
 const pad = players.pad(0);
 const ctl = createControls(pad);
 const hud = mountHud({
-  title: 'Springtail · macro',
-  sub: 'Level 0, a bog pool: the water springtail Podura aquatica, 1.5 mm long, lives on the surface film. Eat, dodge, and spring away with the furcula.',
+  title: tt('springtail.hud.title'),
+  sub: tt('springtail.hud.sub'),
   controls: hudControls({
-    move: 'Move',
-    camera: 'Camera',
-    dash: 'Jump (hold for distance)',
-    attack: 'Attack / eat',
-    defend: 'Block (hold)',
-    special: 'Top view / enter portal',
-    secondary: 'Background blur',
-    look: 'Change the look',
-    zoom: 'Zoom',
-    extra: [['RT', 'Focus ahead'], ['LT', 'Focus near']],
+    move: tt('springtail.hud.controls.move'),
+    camera: tt('springtail.hud.controls.camera'),
+    dash: tt('springtail.hud.controls.dash'),
+    attack: tt('springtail.hud.controls.attack'),
+    defend: tt('springtail.hud.controls.defend'),
+    special: tt('springtail.hud.controls.special'),
+    secondary: tt('springtail.hud.controls.secondary'),
+    look: tt('springtail.hud.controls.look'),
+    zoom: tt('springtail.hud.controls.zoom'),
+    extra: [['RT', tt('springtail.hud.controls.focusAhead')], ['LT', tt('springtail.hud.controls.focusNear')]],
   }),
-  note: 'Reach the glowing portal, and avoid getting eaten by Stenus the rove beetle, the water strider and the wolf spider. Up to four players: press any button on another controller to join.',
+  note: tt('springtail.hud.note'),
 });
 
 // ---------------------------------------------------------------- overlay DOM
@@ -203,14 +204,14 @@ bar.className = 'st-bar';
 bar.innerHTML = '<div class="rule"></div><div class="lab"></div><div class="opt"></div>';
 const status = document.createElement('div');
 status.className = 'st-status';
-status.innerHTML = '<span class="food"></span><span class="lives"></span><span class="furc">Furcula</span><span class="st-meter"><i></i></span><span class="threat"></span>';
+status.innerHTML = `<span class="food"></span><span class="lives"></span><span class="furc">${tt('springtail.status.furcula')}</span><span class="st-meter"><i></i></span><span class="threat"></span>`;
 const card = document.createElement('div');
 card.className = 'st-card';
-card.innerHTML = '<div><img alt=""><h2>Level 0 · Bog surface</h2><p>You are a water springtail, 1.5 mm long, standing on the surface film of a bog pool.</p><p>Graze the pollen, spores and algae floating on the water (X). Spring away with your furcula (hold and release A). Hunker (B) when ripples come.</p><p>Head out in any direction. One after another, with a little calm water between, the rove beetle <i>Stenus</i> and its harpoon, a water strider and the rain find you. Then the way on opens: moss rafts under a golden sparkle, each in a column of light from the sky, out where the pondweed grows thick and a wolf spider hunts (follow one home). Hold RT to focus on what lies ahead. Lure it off, then get round it. Mind the sundews.</p><p><b>Press A to start</b></p></div>';
+card.innerHTML = `<div><img alt=""><h2>${tt('springtail.card.title')}</h2>${ttx('springtail.card.paragraphs').map((p) => `<p>${p}</p>`).join('')}<p><b>${tt('springtail.card.start')}</b></p></div>`;
 // the boss's resolve: a quiet brass gauge, shown while it is engaged
 const gauge = document.createElement('div');
 gauge.className = 'st-gauge';
-gauge.innerHTML = '<span class="nm">Pond wolf spider</span><span class="g"><i></i></span>';
+gauge.innerHTML = `<span class="nm">${tt('springtail.spider.name')}</span><span class="g"><i></i></span>`;
 document.body.append(bar, status, card, gauge);
 art('MP-U05', { repeat: false }).then((t) => {
   if (!t || !t.image) return;
@@ -618,16 +619,7 @@ let slowMo = 0;
 const cap = { kind: null, x0: 0, y0: 0, z0: 0, h0: 0, leaf: null, phase: null, mid: new THREE.Vector3() };
 // how close the lens frames each catch (field width, mm) and from how high
 const CAP_VIEW = { boss: { hfw: 18, pitch: 0.5 }, stenus: { hfw: 12, pitch: 0.45 }, strider: { hfw: 16, pitch: 0.55 }, sundew: { hfw: 7, pitch: 0.75 } };
-const CAP_TEXT = {
-  boss: { by: 'The pond wolf spider', how: 'ran you down, sank its fangs in and ate you',
-    phases: { strike: 'The wolf spider has you!', hold: 'Held in its fangs…', eat: 'The spider is eating you', follow: 'Eaten', fadeOut: 'Eaten', fadeIn: 'Back again' } },
-  stenus: { by: 'Stenus', how: 'harpooned you with its sticky labium, reeled you in and ate you',
-    phases: { strike: 'Harpooned by Stenus!', hold: 'Reeled in…', eat: 'Stenus is eating you', follow: 'Eaten', fadeOut: 'Eaten', fadeIn: 'Back again' } },
-  strider: { by: 'The water strider', how: 'seized you in its forelegs and sucked you dry',
-    phases: { strike: 'Grabbed by a strider!', hold: 'Lifted to its beak…', eat: 'Being sucked dry', follow: 'Eaten', fadeOut: 'Eaten', fadeIn: 'Back again' } },
-  sundew: { by: 'The sundew', how: 'wrapped you in its tentacles and closed its leaf over you',
-    phases: { strike: 'The tentacles close!', hold: 'Wrapped in glue…', eat: 'Dissolving…', follow: 'Digested', fadeOut: 'Digested', fadeIn: 'Back again' } },
-};
+const CAP_TEXT = ttx('springtail.capture');
 const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 // A catch plays out (strike, hold, eat), the camera pulls back and follows the
 // predator a moment, then (no black fade: `fade: false`) glides to where you
@@ -668,11 +660,12 @@ function stickToLeaf(P, leaf) {
   P.stuckS = newStruggle(); P.glueOn = false;
   P.charging = false; P.charge = 0; P.queuedJump = null;
   leaf.target = new THREE.Vector3(P.x, P.y + 0.2, P.z);
-  hud.toast('Stuck in sundew glue! Wriggle (LS) and kick (A) together to tear free', 2200);
+  hud.toast(tt('springtail.toasts.stuckInGlue'), 2200);
 }
 /** Come back: hidden, then the body re-forms from motes gathering on it (poseTail seeds them), with a ripple ring. */
 function startReform(P) {
   P.mode = 'reform'; P.reformT = 0; P.reformSeeded = false; P.reformRing = false;
+  audio.play('shared/reform', { volume: 0.7 });
   P.dissolve = 1; P.digestWhite = 1; P.lockA = true;
   P.charging = false; P.charge = 0; P.queuedJump = null;
 }
@@ -686,7 +679,7 @@ function biteFoe(kind, P, power = 1, how = 'bite') {
   if (kind === 'boss') {
     const p = (boss.open ? 2 : 1) * power;
     const gone = boss.nipped(p, P.slot);
-    hud.toast(gone ? 'The wolf spider has had enough: it backs off under the moss' : `${power > 1 ? 'Pounce-bite' : 'Nipped'}${boss.open ? ' an overreached tarsus' : ''}! The spider flinches`, 1600);
+    hud.toast(gone ? tt('springtail.toasts.spiderGone') : tt(power > 1 ? (boss.open ? 'springtail.toasts.spiderPounceTarsus' : 'springtail.toasts.spiderPounce') : (boss.open ? 'springtail.toasts.spiderNipTarsus' : 'springtail.toasts.spiderNip')), 1600);
     return gone;
   }
   let gone = false;
@@ -700,16 +693,17 @@ function wearDown(kind, how) {
   fightLog[how === 'bite' ? 'bites' : 'blocks']++;
   const gone = fights[kind].bitten();
   const pr = PRED[kind]();
-  const name = kind === 'stenus' ? 'Stenus' : 'The strider';
+  if (how === 'block') audio.play('shared/block', { volume: 0.8 });
   if (gone) {
     fightLog.retreats++;
+    audio.play('shared/foe-flees', { volume: 0.7 });
     pr.retreat();
     hunger[kind].missed();
-    hud.toast(`${name} has had enough: it ${kind === 'stenus' ? 'skims' : 'rows'} away`, 2200);
+    hud.toast(tt(`springtail.predators.${kind}.gone`), 2200);
     fights[kind].reset();
   } else {
     pr.repel();
-    hud.toast(how === 'bite' ? `Nipped ${kind === 'stenus' ? 'its tarsus' : 'a foreleg'}! ${name} staggers back` : `Blocked! ${name}'s strike glances off`, 1500);
+    hud.toast(tt(`springtail.predators.${kind}.${how === 'bite' ? 'nipped' : 'blocked'}`), 1500);
   }
   return gone;
 }
@@ -723,10 +717,11 @@ function missFoe(kind, how) {
   const gone = fights[kind].bitten();
   if (!gone) return false;
   fightLog.retreats++;
+  audio.play('shared/foe-flees', { volume: 0.7 });
   PRED[kind]().retreat();
   hunger[kind].missed();
   fights[kind].reset();
-  hud.toast(`${kind === 'stenus' ? 'Stenus' : 'The strider'} has missed too often: it ${kind === 'stenus' ? 'skims' : 'rows'} away`, 2200);
+  hud.toast(tt(`springtail.predators.${kind}.missedTooOften`), 2200);
   return true;
 }
 /** Stage 1 went wrong: the labium's sticky pads hold you. Mash A to tear loose before it reels you in. */
@@ -734,7 +729,7 @@ function stickToLabium() {
   const P = pl;
   P.mode = 'labium'; P.air = null; P.charging = false; P.charge = 0; P.queuedJump = null; P.vx = P.vz = 0; P.hunker = 0; P.act = null; P.actT = 0; P.eatT = 0;
   P.wriggle = 0;
-  hud.toast('Stuck on the labium! Mash A to wriggle free', 1600);
+  hud.toast(tt('springtail.toasts.stuckOnLabium'), 1600);
   audio.play('springtail/land-sticky', { volume: 0.8, rate: 1.3 });
   rumble(220, 0.6, 0.5);
 }
@@ -764,9 +759,9 @@ function caught(kind) {
   if (kind !== 'sundew') { P.pitch = 0; P.roll = 0; P.bend = 0; }
   if (hunger[kind]) hunger[kind].fed();
   const t = CAP_TEXT[kind];
-  const left = !solo ? `. ${P === P1 ? 'You' : `Player ${P.slot + 1}`} will come back beside a teammate` : '';
+  const left = !solo ? (P === P1 ? tt('shared.players.youComeBack') : tt('shared.players.playerComesBack', { n: P.slot + 1 })) : '';
   capture.start({ by: t.by, how: t.how + left, phases: kind === 'sundew' ? SUNDEW_PHASES : CATCH_PHASES });
-  hud.toast(solo ? t.phases.strike : `Player ${P.slot + 1}: ${t.phases.strike}`, 1500);
+  hud.toast(solo ? t.phases.strike : tt('shared.players.prefixed', { n: P.slot + 1, text: t.phases.strike }), 1500);
   embed.captured({ by: kind, player: P.slot });
   rumbleFor(P, 450, 0.8, 1);
 }
@@ -775,6 +770,8 @@ function animateCapture(c, dt) {
   const P = pl;
   if (c.phase !== cap.phase) {
     cap.phase = c.phase;
+    if (cap.kind === 'sundew' && c.phase === 'strike') audio.play('springtail/sundew-fold', { volume: 0.85 });
+    if (cap.kind === 'sundew' && c.phase === 'eat') audio.play('shared/death', { volume: 0.7 });
     if (c.phase === 'hold') { rumble(300, 0.5, 0.7); if (cap.kind === 'strider') audio.play('springtail/raindrop', { volume: 0.25, rate: 1.8 }); }
     if (c.phase === 'eat') { audio.play('springtail/eat', { volume: 1, rate: cap.kind === 'stenus' ? 0.7 : 0.55 }); rumble(600, 0.6, 0.3); }
     if (c.phase === 'follow') audio.play('springtail/eat', { volume: 0.7, rate: 0.5 });
@@ -829,7 +826,9 @@ function sundewStep(phase, u, dt) {
 // ---------------------------------------------------------------- features
 const features = createFeatures({ key: 'springtail', pad });
 const F = (o) => features.add(o);
-const audio = createAudio(['springtail/amb-bog', 'springtail/jump', 'springtail/land-water', 'springtail/land-sticky', 'springtail/eat', 'springtail/raindrop', 'springtail/stenus-skim', 'springtail/stenus-strike', 'shared/portal-chime']);
+const audio = createAudio(['springtail/amb-bog', 'springtail/jump', 'springtail/land-water', 'springtail/land-sticky', 'springtail/eat', 'springtail/raindrop', 'springtail/stenus-skim', 'springtail/stenus-strike', 'shared/portal-chime',
+  'springtail/charge', 'springtail/flip', 'springtail/right', 'springtail/pounce', 'springtail/glue-snap', 'springtail/struggle', 'springtail/tear-free', 'springtail/sundew-fold', 'springtail/strider', 'springtail/spider', 'springtail/spider-lunge',
+  'shared/portal-enter', 'shared/slowdown', 'shared/portal-near', 'shared/portal-sealed', 'shared/portal-appear', 'shared/danger', 'shared/block', 'shared/death', 'shared/reform', 'shared/foe-flees', 'shared/join']);
 audio.addToFeatures(features);
 audio.loop('springtail/amb-bog', { volume: 0.6 });
 /** Gamepads fire no DOM events: unlock sound on any pad button. */
@@ -840,79 +839,58 @@ function unlockOnPad() {
     for (let b = 0; b < 16; b++) if (pp.value(b) > 0.5) { audio.unlock(); return; }
   }
 }
-F({ id: 'dof', group: 'Rendering', label: 'Depth of field (bokeh gather)', on: true,
-  about: 'Every surface writes its distance from the focal plane into the alpha of a half-float target. A half-res pass turns that into a signed blur-disc size (thin-lens CoC), 8x8 tiles record the largest foreground blur, and a 64-tap golden-spiral gather spreads each tap only as far as its own disc reaches (taps behind the centre are clamped to its blur, so sharp edges never smear backward). shared/techniques/springtail-macro.js.',
+F({ id: 'dof', group: 'Rendering', on: true,
   onChange: (v) => (macro.options.dof = v) });
-F({ id: 'rim', group: 'Rendering', label: 'Bright-rimmed bokeh discs', on: true,
-  about: 'Taps near the edge of a blur disc are weighted up, like the onion-ring bokeh of real macro lenses with aspherical elements. Sun glints on the water bloom into discs.', onChange: (v) => (macro.options.rim = v ? 0.35 : 0) });
-F({ id: 'caustics', group: 'Rendering', label: 'Caustics and dimple shadows on the pool floor', on: true,
-  about: 'The floor under the refracted view ray is lit through the surface above it (offset toward the sun); its brightness is 1 / (1 + depth x curvature / 4), so ripples focus light into bright bands and each dimple throws a dark spot with a bright rim, like a water strider\'s famous shadows.',
+F({ id: 'rim', group: 'Rendering', on: true,
+  onChange: (v) => (macro.options.rim = v ? 0.35 : 0) });
+F({ id: 'caustics', group: 'Rendering', on: true,
   onChange: (v) => (waterMat.uniforms.uCaustics.value = v ? 1 : 0) });
-F({ id: 'refraction', group: 'Rendering', label: 'Water film shading', fixed: true,
-  about: 'Fresnel mix of a reflected sky-and-bog environment and the refracted pool floor (Snell, n = 1.333) through tea-coloured, humic bog water (Beer-Lambert absorption, red passes, blue is lost); a tiny sun disc gives the specular glints. The refracted floor writes its apparent depth so the lens blurs it as a camera would.' });
-F({ id: 'velvet', group: 'Rendering', label: 'Velvety cuticle', fixed: true,
-  about: 'Slate blue-black dorsum, reddish-brown venter and legs, fine granules as noise bump with frosty specks, a blue-grey sheen at grazing angles, dark furrows where two body rings meet (from the sdf.js part weights), glossy black eye patches. Checked against photographs of Podura.' });
-F({ id: 'grain', group: 'Rendering', label: 'Sensor grain', on: true, about: 'A faint per-frame noise, like a high-ISO macro shot.', onChange: (v) => (macro.options.grain = v ? 0.012 : 0) });
+F({ id: 'refraction', group: 'Rendering', fixed: true });
+F({ id: 'velvet', group: 'Rendering', fixed: true });
+F({ id: 'grain', group: 'Rendering', on: true, onChange: (v) => (macro.options.grain = v ? 0.012 : 0) });
 quality.addToFeatures(features);
-F({ id: 'look', group: 'Optics', label: 'Look (D-pad left/right)', choices: MACRO_LOOKS.map((l) => l.name), value: MACRO_LOOKS[0].name,
-  about: 'Low sun: daylight with glints and backlit moss. Overcast: soft sky light, no glints. Stereo microscope: a ring light round the objective, a round field stop, and ~4x the depth of field (stereo microscopes work at low aperture).',
+F({ id: 'look', group: 'Optics', choices: MACRO_LOOKS.map((l) => l.name), value: MACRO_LOOKS[0].name,
   onChange: (v) => { rig.look = MACRO_LOOKS.findIndex((l) => l.name === v); lookDef = applyLook(rig.look); } });
-F({ id: 'thinlens', group: 'Optics', label: 'Thin-lens macro camera', fixed: true,
-  about: 'A 100 mm macro lens on a 36 mm sensor: magnification m = 36 / field width, subject distance f(1 + 1/m), field of view from the field width, effective aperture N(1 + m), total depth of field 2Nc(1 + m)/m^2 (c = 0.03 mm). At 2x and f/11 that is about 0.5 mm: the springtail is barely in focus end to end.' });
-F({ id: 'autofocus', group: 'Optics', label: 'Autofocus on the springtail', on: true,
-  about: 'The focal plane follows the springtail (held RT moves it out to the water ahead; held LT, in close). Off: focus stays at the lens\'s set distance from the orbit centre.', onChange: (v) => (opt.autofocus = v) });
-F({ id: 'jumpFocus', group: 'Optics', label: 'Focus follows the jump', on: true,
-  about: 'While you cock a jump and while you are in the air, the lens racks focus to between you and where you will land, deepens the depth of field until both are acceptably sharp, and the framing leans toward the landing. No marker: the landing spot comes into focus.',
+F({ id: 'thinlens', group: 'Optics', fixed: true });
+F({ id: 'autofocus', group: 'Optics', on: true,
+  onChange: (v) => (opt.autofocus = v) });
+F({ id: 'jumpFocus', group: 'Optics', on: true,
   onChange: (v) => (opt.jumpFocus = v) });
-F({ id: 'dropShadow', group: 'Rendering', label: 'Drop shadow under the springtail', on: true,
-  about: 'A soft shadow straight below you on whatever is there (water film, moss, a sundew leaf, debris): a contact shadow when you stand, and in a leap it shows your height and the spot you will land on. Not optics but a game cue, alongside the true sun-cast shadow on the pool floor.',
+F({ id: 'dropShadow', group: 'Rendering', on: true,
   onChange: (v) => (opt.dropShadow = v) });
-F({ id: 'sheen', group: 'Rendering', label: 'Legible water film', on: true,
-  about: 'A boosted Fresnel sky sheen and a broad sun lobe so the film reads as a glossy sheet over the darker tea-coloured depths, a raised meniscus with a bright line and a wet dark band where the water meets an island or the bank, and a rising meniscus round each floating piece of debris.',
+F({ id: 'sheen', group: 'Rendering', on: true,
   onChange: (v) => { waterMat.uniforms.uSheen.value = v ? 1 : 0; waterMat.uniforms.uMeniscus.value = v ? 0.18 : 0; } });
-F({ id: 'ripples', group: 'Simulation', label: 'Ripple height field', on: true,
-  about: 'A 256 x 256 damped wave equation over 84 mm (0.33 mm cells), stepped 240 times a second on the CPU. Raindrops, landings, striders\' strokes and walking beetles push it. Ripples run at ~43 mm/s, ~5x slower than real millimetre capillary waves (~0.23 m/s minimum), so you can see and dodge them. shared/techniques/springtail-surface.js.',
+F({ id: 'ripples', group: 'Simulation', on: true,
   onChange: (v) => { field.enabled = v; if (!v) field.clear(); } });
-F({ id: 'cheapRipples', group: 'Simulation', label: 'Cheaper ripples (experimental)', on: false,
-  about: 'Runs the ripple field on a 128 x 128 grid (0.66 mm cells) stepped 120 times a second instead of 256 x 256 at 240: an eighth of the work, about 2 ms a frame less on a laptop CPU (the step 2.2-2.9 ms down to ~0.35, the texture upload 0.1-0.15 down to 0.03). Ripples still travel as fast, rise as high and die away as quickly, but their fronts are coarser and softer: rings from small pushes (a footstep, a nip, a skimming beetle) come out wider and lower, with about half the slope, and the finest wavelets are gone, so small ripples rock you less. Large rings (raindrops, the spider) look much the same. Switching clears the film.',
+F({ id: 'cheapRipples', group: 'Simulation', on: false,
   onChange: (v) => { if (field.setResolution(v ? 128 : 256, v ? 120 : 240)) waterMat.uniforms.uFieldTexel.value = field.dx; } });
-F({ id: 'marangoni', group: 'Simulation', label: 'Marangoni surfactant', on: true,
-  about: 'A second field: Stenus\'s secretion spreads (diffusion), decays, damps capillary waves under it and drives a surface flow down its gradient, which shoves floating food (and you) away from the beetle\'s wake.',
+F({ id: 'marangoni', group: 'Simulation', on: true,
   onChange: (v) => (field.surfDecay = v ? 0.25 : 50) });
-F({ id: 'showSurf', group: 'Simulation', label: 'Show the surfactant', on: false,
-  about: 'Tints the film yellow where the surfactant lies (it is invisible in life: you would only see the calmed water).', onChange: (v) => (waterMat.uniforms.uShowSurf.value = v ? 1 : 0) });
-F({ id: 'menisci', group: 'Simulation', label: 'Meniscus depth', choices: ['Exaggerated ~3x (game)', 'Life-like'], value: 'Exaggerated ~3x (game)',
-  about: 'Analytic dimples where claws, the ventral tube, floating grains and the strider\'s legs press the film: a logarithmic profile, like the K0 meniscus of a small load, fading to flat a few contact radii out.',
+F({ id: 'showSurf', group: 'Simulation', on: false,
+  onChange: (v) => (waterMat.uniforms.uShowSurf.value = v ? 1 : 0) });
+F({ id: 'menisci', group: 'Simulation', choices: ['Exaggerated ~3x (game)', 'Life-like'], value: 'Exaggerated ~3x (game)',
   onChange: (v) => (dimples.scale = v.startsWith('Ex') ? 1 : 0.35) });
-F({ id: 'righting', group: 'Simulation', label: 'Landing odds', choices: ['Real (85% upright)', 'Always upright'], value: 'Real (85% upright)',
-  about: 'Semiaquatic springtails land on their ventral side 85% of the time (Ortega-Jimenez et al. 2022); otherwise you land on your back, lying in the film with the legs and furcula kicking, and flip over: at once with A (a little hop), or by yourself after ~1.2 s.', onChange: (v) => (opt.righting = v.startsWith('Real')) });
-F({ id: 'slow', group: 'Simulation', label: 'Jump time', choices: ['Slowed ~6x (playable)', 'Real time'], value: 'Slowed ~6x (playable)',
-  about: 'A real full jump off water lasts ~0.1-0.2 s at ~0.7 m/s take-off. Slowed, a full jump takes 0.85 s, so you can see the tumble, the U-pose and the landing.', onChange: (v) => (opt.slow = v.startsWith('Slow')) });
-F({ id: 'pounce', group: 'Simulation', label: 'Pounce-bite (a departure)', fixed: true,
-  about: 'X in the air, or a jump released at an enemy in range: the springtail tucks into a dive onto the nearest leg or body under its arc (aim assist), nips on impact (worth two nips: a stagger, a splash, a rumble, a brief hit-pause), then rebounds off it; a mistimed dive is a clear miss. Landing on food takes a whole bite. A labelled departure: Podura grazes, and its furcula jump is an escape (a few springtails such as Friesea prey on tiny animals, never by leaping).' });
-F({ id: 'boss', group: 'World', label: 'Boss: pond wolf spider (Pirata)', fixed: true,
-  about: 'A juvenile, ~5 mm (scaled down from adults so the arena fits). One lives at every portal raft (the ways on, fixed across the pool where the bog pondweed grows thick). It rests on the raft\'s rim, goes out on rounds of its hunting ground (the pondweed, 80 mm round the raft) and walks back, so you can follow it home. Out on its ground it comes for a springtail within 22 mm (or one landing within 20), and hurries home if one makes for the raft; on its post it wakes when you come within 30 mm, follows you up to 90 mm out, then gives up and walks back (slower than you jump); a big ripple (a charged landing, a raindrop) within 50 mm draws it off to look. While it is more than 15 mm off its post, the raft lets you through (once the beetle, the strider and the rain have all been met). Its tells: it crouches and raises its first two pairs of legs before a lunge, and turns to pounce on your landing ripples. Jump clear (a dodge wears it down), then nip or pounce on an overreached tarsus (double). About three good rounds and it backs off under the moss for good, leaving the way open. Its resolve is the brass gauge. Catches follow the follow-and-respawn sequence.' });
-F({ id: 'sundewGlue', group: 'World', label: 'Sundews: struggle, digestion, re-forming', fixed: true,
-  about: 'Land on a sundew leaf and you are held on its glue drops, a glue strand from a tentacle tip to each leg. Tear free by struggling: tug with LS (each new push or change of direction; WASD on a keyboard) and kick with A, both together (about 2 s; A alone takes ~5-6 s of hard mashing and is barely faster than the leaf, LS alone loses). The body thrashes with every effort and the strands thin and snap one by one as you win. Stop for 0.8 s and the hold wins: you slip back, sink among the tentacles as they fold over and the blade cups; about 2.5 s more and you are engulfed: the body turns white and breaks up into motes that drift away (digestion; real sundews take days). After any catch the camera glides to where you come back (a dip to black if that is far) and you re-form there from gathering motes, with a ring on the film: ~2 s, not skippable, and A held through it does nothing until let go. sundew-struggle.js, sundew-glue.js, motes.js.' });
-F({ id: 'upose', group: 'Body', label: 'Mid-air U-pose righting', on: true,
-  about: 'Right after take-off the body tumbles; within ~20 ms (here ~0.15 s) it curls head and tail up into a U, which aerodynamically turns the ventral tube downward. Off: it tumbles all the way and lands upright half the time.', onChange: (v) => (opt.uPose = v) });
-F({ id: 'sdf', group: 'Body', label: 'Anatomy from SDF parts', fixed: true,
-  about: 'Head with eye patches and mouth cone, 4-segment antennae, pronotum, two thoracic and six abdominal rings, three pairs of short legs, the collophore on Abd I, the retinaculum on Abd III and the furcula on Abd IV (a separate mesh that swings down and back ~160 degrees). Meshed with surface nets (shared/sdf.js), 26-bone part rig in the vertex shader.' });
-F({ id: 'stenus', group: 'World', label: 'Rove beetle (Stenus)', on: true, onChange: (v) => { stenus.st.enabled = v; stenus.setVisible(v && placed.stenus); } ,
-  about: 'Patrols, stalks what moves, skims at you on its surfactant, lowers its head (the wind-up) and shoots its sticky labium ~2 mm.' });
-F({ id: 'strider', group: 'World', label: 'Water strider (Gerris)', on: true, onChange: (v) => { strider.st.enabled = v; strider.setVisible(v && placed.strider); },
-  about: 'Hears ripples: landings, grazing and struggling bring it rowing over; its strokes send waves that flip an unbraced springtail; its forelegs grab.' });
-F({ id: 'rain', group: 'World', label: 'Rain', choices: ['Sometimes', 'Often', 'Off'], value: 'Sometimes',
-  about: 'A drop ~3 mm across (twice your length) is telegraphed by its shadow, falls, craters the film and rings it.', onChange: (v) => { rain.enabled = v !== 'Off'; rain.every = v === 'Often' ? 3.5 : 7; } });
-F({ id: 'grace', group: 'World', label: 'Calm on arrival', choices: ['Off', '5 s', '15 s'], value: 'Off',
-  about: 'The encounters are placed as you go (shared/director.js), in order, each in water nobody has seen yet a little ahead of whoever leads: after a few seconds of moving, Stenus and its water; a calm break; the strider and the Podura mass; the rain; then the way on opens: the portal rafts (fixed, each with its wolf spider and its pondweed). Linger and they come to you all the same; reach a portal first and the rest are placed round you at once. Each predator stays calm until someone first comes into its water, then waits this long before its hunger starts. shared/predation.js.',
+F({ id: 'righting', group: 'Simulation', choices: ['Real (85% upright)', 'Always upright'], value: 'Real (85% upright)',
+  onChange: (v) => (opt.righting = v.startsWith('Real')) });
+F({ id: 'slow', group: 'Simulation', choices: ['Slowed ~6x (playable)', 'Real time'], value: 'Slowed ~6x (playable)',
+  onChange: (v) => (opt.slow = v.startsWith('Slow')) });
+F({ id: 'pounce', group: 'Simulation', fixed: true });
+F({ id: 'boss', group: 'World', fixed: true });
+F({ id: 'sundewGlue', group: 'World', fixed: true });
+F({ id: 'upose', group: 'Body', on: true,
+  onChange: (v) => (opt.uPose = v) });
+F({ id: 'sdf', group: 'Body', fixed: true });
+F({ id: 'stenus', group: 'World', on: true, onChange: (v) => { stenus.st.enabled = v; stenus.setVisible(v && placed.stenus); } });
+F({ id: 'strider', group: 'World', on: true, onChange: (v) => { strider.st.enabled = v; strider.setVisible(v && placed.strider); } });
+F({ id: 'rain', group: 'World', choices: ['Sometimes', 'Often', 'Off'], value: 'Sometimes',
+  onChange: (v) => { rain.enabled = v !== 'Off'; rain.every = v === 'Often' ? 3.5 : 7; } });
+F({ id: 'grace', group: 'World', choices: ['Off', '5 s', '15 s'], value: 'Off',
   onChange: (v) => { pace.grace = v === 'Off' ? 0 : parseFloat(v); resetHunger(); } });
-F({ id: 'hunger', group: 'World', label: 'Predator hunger', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
-  about: 'Comes and goes: once awake (a player came into its water) each predator is hungry for ~18-32 s, then rests (45-75 s after a meal, 15-30 s after a miss or when it loses you); only a hungry one stalks, skims, strikes, answers ripples or grabs. Always: hungry from the moment it wakes. Never: they patrol and never hunt (for exploring and testing).',
+F({ id: 'hunger', group: 'World', choices: ['Comes and goes', 'Always', 'Never'], value: 'Comes and goes',
   onChange: (v) => (pace.mode = v) });
 addInvertY(features);
-F({ id: 'camrel', group: 'Controls', label: 'Camera-relative walking and aiming', fixed: true, about: 'LS walks and aims relative to the view, in both camera modes.' });
-F({ id: 'rumble', group: 'Controls', label: 'Rumble', on: true, about: 'A kick when the furcula fires, a tap on landing, a thump for raindrops and being caught.', onChange: (v) => (opt.rumble = v) });
+F({ id: 'camrel', group: 'Controls', fixed: true });
+F({ id: 'rumble', group: 'Controls', on: true, onChange: (v) => (opt.rumble = v) });
 const rumbleFor = (P, ms, a, b) => opt.rumble && players.pad(P.slot || 0).rumble(ms, a, b);
 const rumble = (ms, a, b) => rumbleFor(pl, ms, a, b);
 
@@ -1011,7 +989,7 @@ function diveImpact(P, a) {
       P.pounces = (P.pounces || 0) + 1;
       hitPause = 0.12;
       rumble(260, 0.9, 0.7);
-      audio.play('springtail/eat', { volume: 1, rate: 1.2 });
+      audio.play('springtail/pounce', { volume: 0.9, old: ['springtail/eat', { volume: 1, rate: 1.2 }] });
       if (inPoolHere) { field.drop(P.x, P.z, 1.2, -0.14); ripples.push({ x: P.x, z: P.z, strength: 1.2 }); }
       biteFoe(t.foe, P, 2, 'bite');
       // rebound off it
@@ -1019,7 +997,7 @@ function diveImpact(P, a) {
       P.mode = 'film';
       jump(ax || -Math.cos(P.heading), az || -Math.sin(P.heading), 0.22);
       if (P.air) P.air.upright = true;
-      hud.toast(`Pounce-bite on ${t.foe === 'boss' ? 'the wolf spider' : t.foe === 'stenus' ? 'Stenus' : 'the strider'}!`, 1200);
+      hud.toast(tt(`springtail.predators.${t.foe === 'boss' || t.foe === 'stenus' ? t.foe : 'strider'}.pounceOn`), 1200);
       return;
     }
   }
@@ -1031,10 +1009,10 @@ function diveImpact(P, a) {
     c.bites--; c.chew = 0;
     audio.play('springtail/eat', { volume: 0.9, rate: 1.05 });
     rumble(90, 0.3, 0.2);
-    if (c.bites <= 0) { P.food++; c.respawnT = 6; hud.toast(`Pounced on ${c.type.name} (${P.food}/${GOAL})`); }
+    if (c.bites <= 0) { P.food++; c.respawnT = 6; hud.toast(tt('springtail.toasts.pouncedOn', { name: c.type.name, food: P.food, goal: GOAL })); }
   } else if (!(t && t.food)) {
     // a clear miss: a splash, a stagger
-    hud.toast('Missed!', 900);
+    hud.toast(tt('springtail.toasts.missed'), 900);
     P.vx = Math.cos(P.heading) * 2; P.vz = Math.sin(P.heading) * 2;
   }
   if (inPoolHere) { field.drop(P.x, P.z, 0.7, -0.08); ripples.push({ x: P.x, z: P.z, strength: 1 }); }
@@ -1048,6 +1026,7 @@ function die(cause) {
   pl.mode = 'dead';
   pl.deadT = 0;
   pl.cause = cause;
+  audio.play('shared/death', { volume: 0.7 });
   rumbleFor(pl, 450, 0.8, 1);
   hud.toast(cause, 2400);
 }
@@ -1139,7 +1118,7 @@ function landAt(g) {
   pl.landT = simT;
   const leaf = world.sundews.leafAt(pl.x, pl.y, pl.z);
   if (leaf && g.kind !== 'moss') return;
-  if (!a.upright) { pl.mode = 'flipped'; pl.flipT = 0; pl.rightT = undefined; pl.flipHop = 0; pl.roll = Math.PI; rumble(160, 0.4, 0.3); hud.toast('On your back! Tap A to flip over', 1100); }
+  if (!a.upright) { pl.mode = 'flipped'; pl.flipT = 0; pl.rightT = undefined; pl.flipHop = 0; pl.roll = Math.PI; rumble(160, 0.4, 0.3); audio.play('springtail/flip', { volume: 0.8 }); hud.toast(tt('springtail.toasts.onYourBack'), 1100); }
   else pl.mode = modeFor(g.kind);
   if (g.kind === 'film') {
     audio.play('springtail/land-water', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
@@ -1170,6 +1149,9 @@ function stepPlayer(dt, inp) {
   if (dir.lengthSq() > 0) dir.normalize();
   const jumpAim = mag > 0.25 ? dir : { x: Math.cos(P.heading), z: Math.sin(P.heading) };
   updateJumpInput(P, inp, dt, { x: jumpAim.x, z: jumpAim.z });
+  // A held: the furcula cocks (once per charge, on the edge)
+  if (P.charging && !P.wasCharging && P.mode !== 'caught' && P.mode !== 'dead') audio.play('springtail/charge', { volume: 0.55 });
+  P.wasCharging = P.charging;
   P.moved = Math.max(0, P.moved - dt);
 
   if (P.mode === 'caught') return; // posed by animateCapture
@@ -1283,7 +1265,8 @@ function stepPlayer(dt, inp) {
       stenus.slip();
       fightLog.slipT = simT;
       missFoe('stenus', 'slip');
-      hud.toast('Wriggled free! No jump for a moment: step aside from the mandibles', 1800);
+      audio.play('springtail/tear-free', { volume: 0.8 });
+      hud.toast(tt('springtail.toasts.wriggledFree'), 1800);
       rumble(160, 0.5, 0.3);
     }
     return;
@@ -1303,9 +1286,11 @@ function stepPlayer(dt, inp) {
       rumble(40, r.both ? 0.4 : 0.25, 0.1);
       ripples.push({ x: P.x, z: P.z, strength: 0.35 });
       if (r.kick) P.furc = 1; // the furcula slaps against the leaf
+      // the wriggle heard, at most every 0.35 s
+      if (r.kick && !(P.struggleSndT > simT)) { P.struggleSndT = simT + 0.35; audio.play('springtail/struggle', { volume: 0.6, rate: 0.95 + Math.random() * 0.1 }); }
     }
     P.yank = Math.max(0, (P.yank || 0) - dt * 4);
-    if (r.paused && !P.pauseSaid) { P.pauseSaid = true; hud.toast('The leaf is pulling you in: keep struggling!', 1400); }
+    if (r.paused && !P.pauseSaid) { P.pauseSaid = true; hud.toast(tt('springtail.toasts.leafPulling'), 1400); }
     if (!r.paused) P.pauseSaid = false;
     // the pose: big bends and rolls with the effort, a lunge against the strands toward the stick
     const th = S.thrash;
@@ -1329,7 +1314,8 @@ function stepPlayer(dt, inp) {
       const tugged = S.t - S.lastTug < 0.7 && P.tugX !== undefined;
       jump(tugged ? P.tugX : P.x - leaf.x || 1, tugged ? P.tugZ : P.z - leaf.z, 0.3);
       rumble(160, 0.5, 0.3);
-      hud.toast('Free!');
+      audio.play('springtail/tear-free', { volume: 0.9 });
+      hud.toast(tt('springtail.toasts.free'));
     } else if (r.engulfed) caught('sundew');
     return;
   }
@@ -1362,7 +1348,7 @@ function stepPlayer(dt, inp) {
       P.roll = 0; P.pitch = 0; P.mode = modeFor(groundAt(P.x, P.z).kind);
       jump(Math.cos(P.heading), Math.sin(P.heading), 0.12);
       if (P.air) P.air.upright = true;
-    } else if (inp.dashPressed || P.flipT > FLIP_SELF) { P.rightT = 0; field.drop(P.x, P.z, 0.4, -0.05); ripples.push({ x: P.x, z: P.z, strength: 0.4 }); }
+    } else if (inp.dashPressed || P.flipT > FLIP_SELF) { P.rightT = 0; audio.play('springtail/right', { volume: 0.5 }); field.drop(P.x, P.z, 0.4, -0.05); ripples.push({ x: P.x, z: P.z, strength: 0.4 }); }
     return;
   }
 
@@ -1384,7 +1370,7 @@ function stepPlayer(dt, inp) {
     fx = fl[0] * (1 - P.hunker * 0.8) - sl[0] * 30 * (1 - P.hunker); fz = fl[1] * (1 - P.hunker * 0.8) - sl[1] * 30 * (1 - P.hunker);
     // waves flip an unbraced springtail
     const s = Math.hypot(sl[0], sl[1]);
-    if (s > 0.2 && P.hunker < 0.5) { P.mode = 'flipped'; P.flipT = 0; P.rightT = undefined; P.flipHop = 0; P.heading += (Math.random() - 0.5) * 2; rumble(200, 0.5, 0.3); hud.toast('Flipped by a wave! Tap A to flip over; hunker (B) next time', 1500); return; }
+    if (s > 0.2 && P.hunker < 0.5) { P.mode = 'flipped'; P.flipT = 0; P.rightT = undefined; P.flipHop = 0; P.heading += (Math.random() - 0.5) * 2; rumble(200, 0.5, 0.3); audio.play('springtail/flip', { volume: 0.8 }); hud.toast(tt('springtail.toasts.flipped'), 1500); return; }
   }
   const nx = P.x + (P.vx + fx) * dt, nz = P.z + (P.vz + fz) * dt;
   if (poolE(nx, nz) < BANK_E) { P.x = nx; P.z = nz; } else { P.vx *= 0.3; P.vz *= 0.3; }
@@ -1485,7 +1471,7 @@ function stepPlayer(dt, inp) {
         c.bites--;
         if (c.bites <= 0) {
           P.food++;
-          hud.toast(`Ate ${c.type.name} (${P.food}/${GOAL})${P.food === GOAL ? ': now reach the moss edge!' : ''}`);
+          hud.toast(tt(P.food === GOAL ? 'springtail.toasts.ateLast' : 'springtail.toasts.ate', { name: c.type.name, food: P.food, goal: GOAL }));
           c.respawnT = 6;
         }
         P.eatFood = null;
@@ -1500,7 +1486,7 @@ function stepPlayer(dt, inp) {
     nearestPortal(P.x, P.z).d > 45 && !(boss.group.visible && Math.hypot(boss.st.x - P.x, boss.st.z - P.z) < 40)) { P.safeT = 0; P.safe = { x: P.x, z: P.z }; }
   if (game.phase === 'play' && P.food >= GOAL && onMoss && !P.fedSaid) {
     P.fedSaid = true;
-    hud.toast(!sealed() ? 'Fed and safe on the moss. The way on: the golden sparkle over a raft of red capitula, where the pondweed grows thick' : 'Fed and safe on the moss. Head out across the pool: the way on opens after the beetle, the strider and the rain', 3200);
+    hud.toast(!sealed() ? tt('springtail.toasts.fedOpen') : tt('springtail.toasts.fedSealed'), 3200);
   }
 }
 
@@ -1538,7 +1524,7 @@ function stepWorld(dt) {
   for (const [k, prey, pr] of [['stenus', preyS, stenus], ['strider', preyR, strider]]) {
     const hunting = k === 'stenus' ? ['stalk', 'windup', 'strike', 'repelled'].includes(pr.st.state) : pr.st.state === 'hunt' || pr.st.st2 !== 'none';
     const f = fights[k].update(dt, { near: hunting && Math.hypot(prey.x - pr.st.x, prey.z - pr.st.z) < 12, facing: facingTo(prey, pr.st.x, pr.st.z) });
-    if (f.retreated) { pr.retreat(); hunger[k].missed(); fights[k].reset(); hud.toast(`${k === 'stenus' ? 'Stenus' : 'The strider'} gives up on you`, 1800); }
+    if (f.retreated) { audio.play('shared/foe-flees', { volume: 0.7 }); pr.retreat(); hunger[k].missed(); fights[k].reset(); hud.toast(tt(`springtail.predators.${k}.givesUp`), 1800); }
   }
   // a predator wakes (its hunger starts) when a player first comes into its water
   if (game.phase === 'play') for (const k of ['stenus', 'strider']) {
@@ -1577,33 +1563,33 @@ function stepWorld(dt) {
   for (const e of stenus.update(dt, { player: ctxS, field, inPool, hungry: huntS })) {
     if (e === 'caught' && ctxS.alive) withRec(preyS, () => caught('stenus'));
     // the two-stage strike (enemies.js): a clean escape, stuck on the labium, the follow-up lunge
-    if (e === 'escaped') { slowMo = 0.7; rumbleFor(preyS, 160, 0.3, 0.6); hud.toast('Clean escape! Its labium snaps shut on nothing. Now the mandibles: dodge the lunge', 1800); missFoe('stenus', 'escape'); }
+    if (e === 'escaped') { slowMo = 0.7; rumbleFor(preyS, 160, 0.3, 0.6); hud.toast(tt('springtail.toasts.cleanEscape'), 1800); missFoe('stenus', 'escape'); }
     if (e === 'stuck' && ctxS.alive) withRec(preyS, () => stickToLabium());
     if (e === 'reeled') { const Q = sHeld || preyS; withRec(Q, () => { Q.mode = 'film'; caught('stenus'); }); }
-    if (e === 'lungeTell' && ctxS.alive) { rumbleFor(preyS, 400, 0.25, 0.05); hud.toast('Stenus rears, mandibles wide: jump or step aside!', 1300); }
+    if (e === 'lungeTell' && ctxS.alive) { rumbleFor(preyS, 400, 0.25, 0.05); hud.toast(tt('springtail.toasts.stenusRears'), 1300); }
     if (e === 'lunge') audio.play('springtail/stenus-strike', { volume: 0.7, rate: 0.6 });
     if (e === 'lungeHit' && ctxS.alive) withRec(preyS, () => caught('stenus'));
-    if (e === 'dodged' && ctxS.alive) { hud.toast('Dodged the mandibles!', 1100); missFoe('stenus', 'dodge'); }
-    if (e === 'blocked') { rumbleFor(preyS, 220, 0.6, 0.3); audio.play('springtail/land-water', { volume: 0.8, rate: 1.6 }); wearDown('stenus', 'block'); }
+    if (e === 'dodged' && ctxS.alive) { hud.toast(tt('springtail.toasts.dodgedMandibles'), 1100); missFoe('stenus', 'dodge'); }
+    if (e === 'blocked') { rumbleFor(preyS, 220, 0.6, 0.3); audio.play('springtail/land-water', { volume: 0.8, rate: 1.6, only: 'old' }); wearDown('stenus', 'block'); }
     if (e === 'gaveUp') hunger.stenus.missed();
     if (e === 'miss' && hunger.stenus.hungry) hunger.stenus.missed();
     if (e === 'spotted' && ctxS.alive) audio.play('springtail/stenus-skim', { volume: 0.25, rate: 0.8 });
     if (e === 'skim') audio.play('springtail/stenus-skim', { volume: 0.7 });
     if (e === 'strike') audio.play('springtail/stenus-strike', { volume: 0.9 });
-    if (e === 'skim') hud.toast('Stenus is skimming at you!', 1000);
-    if (e === 'windup' && ctxS.alive) { rumbleFor(preyS, 300, 0.15, 0); hud.toast('Stenus lowers its head and freezes: jump now!', 1400); } // the head dips: jump now
+    if (e === 'skim') hud.toast(tt('springtail.toasts.stenusSkimming'), 1000);
+    if (e === 'windup' && ctxS.alive) { rumbleFor(preyS, 300, 0.15, 0); audio.play('shared/danger', { volume: 0.6 }); hud.toast(tt('springtail.toasts.stenusFreezes'), 1400); } // the head dips: jump now
     if ((e === 'spotted' || e === 'windup') && ctxS.alive) logChallenge('stenusHunt', preyS);
   }
   const rOn = strider.st.state === 'hunt' || strider.st.st2 !== 'none';
   const huntR = isHungry(hunger.strider) && (pace.anywhere || inCore('strider', preyR.x, preyR.z) || (rOn && inZone('strider', preyR.x, preyR.z)));
   for (const e of strider.update(dt, { player: ctxR, field, inPool, ripples: pace.anywhere ? ripples : ripples.filter((r) => inZone('strider', r.x, r.z)), hungry: huntR })) {
     if (e === 'caught' && ctxR.alive) withRec(preyR, () => caught('strider'));
-    if (e === 'blocked') { rumbleFor(preyR, 220, 0.6, 0.3); audio.play('springtail/land-water', { volume: 0.8, rate: 1.6 }); wearDown('strider', 'block'); }
-    if (e === 'windup' && ctxR.alive) { rumbleFor(preyR, 300, 0.15, 0); hud.toast('The strider raises its forelegs: face it and hunker (B), or jump', 1400); }
+    if (e === 'blocked') { rumbleFor(preyR, 220, 0.6, 0.3); audio.play('springtail/land-water', { volume: 0.8, rate: 1.6, only: 'old' }); wearDown('strider', 'block'); }
+    if (e === 'windup' && ctxR.alive) { rumbleFor(preyR, 300, 0.15, 0); audio.play('shared/danger', { volume: 0.6 }); hud.toast(tt('springtail.toasts.striderForelegs'), 1400); }
     if (e === 'lost' && hunger.strider.hungry) hunger.strider.missed();
     // (timed on the simulation clock, so a paused game holds it too)
     if (e === 'heard' && ctxR.alive) logChallenge('striderHunt', preyR);
-    if (e === 'heard' && ctxR.alive && !(strider.st.heardUntil > simT)) { strider.st.heardUntil = simT + 6; hud.toast('A water strider felt your ripples: keep still and hunker (B)', 1800); }
+    if (e === 'heard' && ctxR.alive && !(strider.st.heardUntil > simT)) { strider.st.heardUntil = simT + 6; audio.play('springtail/strider', { volume: 0.7 }); hud.toast(tt('springtail.toasts.striderFelt'), 1800); }
   }
   // the spiders (boss.js): each rests at its raft and goes out on rounds of
   // its hunting ground; the one in focus (`boss`, nearest the players) hunts
@@ -1616,15 +1602,16 @@ function stepWorld(dt) {
   for (const e of bossEv) {
     const Q = e.slot !== undefined ? pls[e.slot] : null;
     if (e.type === 'wake') logChallenge('boss', recs().reduce((a, R) => (!a || Math.hypot(R.x - boss.st.x, R.z - boss.st.z) < Math.hypot(a.x - boss.st.x, a.z - boss.st.z) ? R : a), null));
-    if (e.type === 'wake' && !bossSaid.wake) { bossSaid.wake = true; hud.toast('The wolf spider comes for you! Lead it away from the raft: it follows you out, then walks back slowly. Jump clear when it crouches and raises its front legs', 3600); }
+    if (e.type === 'wake') audio.play('springtail/spider', { volume: 0.8 });
+    if (e.type === 'wake' && !bossSaid.wake) { bossSaid.wake = true; hud.toast(tt('springtail.toasts.spiderWakes'), 3600); }
     else if (e.type === 'investigate') logChallenge('bossLured', boss.st);
     else if (e.type === 'return' && !boss.st.homeward) logChallenge('bossReturn', boss.st);
     else if (e.type === 'wander') logChallenge('spiderWander', boss.st);
-    else if (e.type === 'tell') { for (const R of recs()) if (Math.hypot(R.x - boss.st.x, R.z - boss.st.z) < 16) rumbleFor(R, 200, 0.12, 0); }
-    else if (e.type === 'lunge' || e.type === 'pounce') audio.play('springtail/stenus-strike', { volume: 0.9, rate: 0.7 });
+    else if (e.type === 'tell') { audio.play('shared/danger', { volume: 0.5 }); for (const R of recs()) if (Math.hypot(R.x - boss.st.x, R.z - boss.st.z) < 16) rumbleFor(R, 200, 0.12, 0); }
+    else if (e.type === 'lunge' || e.type === 'pounce') audio.play('springtail/spider-lunge', { volume: 0.8, old: ['springtail/stenus-strike', { volume: 0.9, rate: 0.7 }] });
     else if (e.type === 'caught' && Q && alive(Q)) withRec(Q, () => caught('boss'));
-    else if (e.type === 'dodged') hud.toast('Dodged! It overreached: nip its tarsus (X) or pounce (X in the air)', 1500);
-    else if (e.type === 'retreat') hud.toast('The wolf spider backs off under the moss: the way on is open', 2600);
+    else if (e.type === 'dodged') hud.toast(tt('springtail.toasts.spiderDodged'), 1500);
+    else if (e.type === 'retreat') { audio.play('shared/foe-flees', { volume: 0.7 }); hud.toast(tt('springtail.toasts.spiderRetreats'), 2600); }
   }
   ripples.length = 0;
   // the rain falls round whoever leads (the director's leader: furthest along the encounters)
@@ -1640,7 +1627,7 @@ function stepWorld(dt) {
       const d = Math.hypot(e.x - Q.x, e.z - Q.z);
       if (d < 6) rumble(250, Math.min(1, 3 / d), Math.min(1, 2 / d));
       if (!alive(Q) || game.phase !== 'play') return;
-      if (d < e.r * 0.95 && Q.mode !== 'air') die('Swamped by a raindrop');
+      if (d < e.r * 0.95 && Q.mode !== 'air') die(tt('springtail.toasts.swamped'));
       else if (d < e.r * 3 && Q.mode !== 'air' && Q.mode !== 'stuck') {
         // thrown out of the crater
         const ax = Q.x - e.x, az = Q.z - e.z;
@@ -1740,7 +1727,12 @@ function poseTail(t) {
   // the glue strands, from the tentacle tips to the legs as they are posed now
   if (P.mode === 'stuck' && P.glueOn && P.stuckS) {
     const snaps = P.glue.update(pdt, tail.feet(), P.stuckS.progress, Math.max(P.yank || 0, P.stuckS.thrash * 0.6), t);
-    if (snaps) { audio.play('springtail/land-sticky', { volume: 0.55, rate: 1.7 + Math.random() * 0.2 }); rumble(90, 0.5, 0.2); }
+    // a strand snapped (sundew-glue.js counts them): heard at most every 0.1 s (the Old set: each time)
+    if (snaps) {
+      if (audio.set === 'old' || !(P.snapSndT > simT)) { P.snapSndT = simT + 0.1; audio.play('springtail/glue-snap', { volume: 0.7, rate: 0.95 + Math.random() * 0.1, old: ['springtail/land-sticky', { volume: 0.55, rate: 1.7 + Math.random() * 0.2 }] }); }
+      rumble(90, 0.5, 0.2);
+    }
+
   }
   // re-forming: motes fly in from round about and gather on the body
   if (P.mode === 'reform' && !P.reformSeeded) {
@@ -1806,13 +1798,13 @@ function readInput(dt) {
   if (rig.mode === 'low') rig.pitchLow = rig.wantPitch;
   // Y: on an open portal, enter it (the camera toggle waits until you are off it)
   if (!portalY() && ctl.special.pressed()) {
-    if (rig.mode === 'top') { rig.wantPitch = Math.min(rig.pitchLow, 0.9); hud.toast('Low macro'); }
-    else { rig.pitchLow = rig.wantPitch; rig.wantPitch = PITCH_TOP; hud.toast('Top-down (RS or Y to come back down)'); }
+    if (rig.mode === 'top') { rig.wantPitch = Math.min(rig.pitchLow, 0.9); hud.toast(tt('springtail.toasts.cameraLow')); }
+    else { rig.pitchLow = rig.wantPitch; rig.wantPitch = PITCH_TOP; hud.toast(tt('springtail.toasts.cameraTop')); }
   }
   const zs = ctl.zoomStep();
-  if (zs) { rig.zi = THREE.MathUtils.clamp(rig.zi + zs, 0, ZOOMS.length - 1); hud.toast(`${ZOOMS[rig.zi]}x · field ${(36 / ZOOMS[rig.zi]).toFixed(1)} mm`); }
+  if (zs) { rig.zi = THREE.MathUtils.clamp(rig.zi + zs, 0, ZOOMS.length - 1); hud.toast(tt('springtail.toasts.zoom', { zoom: ZOOMS[rig.zi], field: (36 / ZOOMS[rig.zi]).toFixed(1) })); }
   const ls = ctl.lookStep();
-  if (ls) { const i = (rig.look + ls + MACRO_LOOKS.length) % MACRO_LOOKS.length; features.set('look', MACRO_LOOKS[i].name); hud.toast(MACRO_LOOKS[i].name); }
+  if (ls) { const i = (rig.look + ls + MACRO_LOOKS.length) % MACRO_LOOKS.length; features.set('look', MACRO_LOOKS[i].name); hud.toast(ttx('springtail.features.look.choices')[MACRO_LOOKS[i].name] ?? MACRO_LOOKS[i].name); }
   if (ctl.lb.pressed()) { rig.ai = Math.max(0, rig.ai - 1); hud.toast(`f/${APERTURES[rig.ai]}`); }
   if (ctl.rb.pressed()) { rig.ai = Math.min(APERTURES.length - 1, rig.ai + 1); hud.toast(`f/${APERTURES[rig.ai]}`); }
   const out = [];
@@ -1921,6 +1913,11 @@ const atPortal = (P) => { const n = nearestPortal(P.x, P.z); return n.d < n.p.re
 function checkLandmark() {
   if (game.phase !== 'play') return;
   if (outro) return;
+  // the way on unseals (every encounter met): heard once, on the edge
+  const isSealed = sealed();
+  if (lm.wasSealed && !isSealed) audio.play('shared/portal-appear', { volume: 0.8 });
+  lm.wasSealed = isSealed;
+
   let at = null, atI = -1, near = false, dmin = Infinity;
   for (const P of recs()) {
     if (!alive(P)) continue;
@@ -1930,7 +1927,7 @@ function checkLandmark() {
     if (n.d < n.p.reach + 12) near = true;
   }
   // the boss's hint (brief): only once someone is close enough to meet it
-  if (!portal.hinted && dmin < PORTAL_HINT) { portal.hinted = true; hud.toast('The wolf spider guards the way on. Lure it off the moss, then get round it', 3600); }
+  if (!portal.hinted && dmin < PORTAL_HINT) { portal.hinted = true; hud.toast(tt('springtail.toasts.spiderHint'), 3600); }
   // nearing the way on: the shell starts loading the next world (no prompt is shown)
   const nearing = dmin < 120;
   if (nearing !== lm.nearing) { lm.nearing = nearing; embed.near('forward', nearing); }
@@ -1939,14 +1936,16 @@ function checkLandmark() {
   lm.ready.length = 0;
   for (const P of recs()) { if (!alive(P)) continue; const i = atPortal(P); if (i >= 0 && !shut(i)) lm.ready.push(P); }
   const ready = lm.ready.length > 0;
-  if (ready !== lm.readyOn) { lm.readyOn = ready; embed.near('portal', ready); if (ready) lm.log.push({ kind: 'ready', slot: lm.ready[0].slot, portal: atPortal(lm.ready[0]), t: +simT.toFixed(2) }); }
+  if (ready !== lm.readyOn) { lm.readyOn = ready; embed.near('portal', ready); if (ready) audio.play('shared/portal-near', { volume: 0.6 }); if (ready) lm.log.push({ kind: 'ready', slot: lm.ready[0].slot, portal: atPortal(lm.ready[0]), t: +simT.toFixed(2) }); }
   if (at && !lm.fired) {
     if (shut(atI)) {
       if (sealed()) {
-        if (!portal.sealedSaid) { portal.sealedSaid = true; hud.toast('Not yet: the way on opens once you have met what else the pool holds', 3600); }
+        audio.play('shared/portal-sealed', { volume: 0.6 });
+        if (!portal.sealedSaid) { portal.sealedSaid = true; hud.toast(tt('springtail.toasts.sealed'), 3600); }
         lm.log.push({ kind: 'sealed', slot: at.slot, portal: atI, t: +simT.toFixed(2) });
       } else {
-        if (!portal.turned) { portal.turned = true; hud.toast('Turned back: the wolf spider is on guard. Lead it away from the raft first, then get round it', 3600); }
+        audio.play('shared/portal-sealed', { volume: 0.6 });
+        if (!portal.turned) { portal.turned = true; hud.toast(tt('springtail.toasts.turnedBack'), 3600); }
         lm.log.push({ kind: 'turnedBack', slot: at.slot, portal: atI, t: +simT.toFixed(2) });
       }
       lm.blockedT = simT;
@@ -1977,6 +1976,7 @@ function enterPortal(P, i = atPortal(P) >= 0 ? atPortal(P) : nearestPortal(P.x, 
   lm.fired = true;
   if (lm.readyOn) { lm.readyOn = false; embed.near('portal', false); }
   lm.log.push({ kind: 'forward', slot: P.slot, portal: i, t: +simT.toFixed(2) });
+  audio.play('shared/portal-enter', { volume: 0.8 });
   startOutro(P);
   embed.landmark('forward', { player: P.slot, outro: embed.active });
 }
@@ -2003,7 +2003,9 @@ function startOutro(P) {
   const me = split.project(0, _v.set(P.x, P.y + 0.25, P.z));
   if (!me.behind) portalLight.bloom(me.x, me.y, { scale: 0.7 });
   audio.play('shared/portal-chime', { volume: 0.9 });
+  audio.play('shared/slowdown', { volume: 0.5, delay: OUTRO.beat });
   rumbleFor(P, 520, 0.55, 0.85);
+
   // the chrome goes, the bloom stays (cinematic(false) restores both)
   if (embed.active) { embed.cinematic(true, canvas); portalLight.canvas.style.visibility = 'visible'; }
 }
@@ -2071,9 +2073,9 @@ function updateText(L) {
   bar.querySelector('.lab').textContent = len >= 1 ? `${len} mm` : `${(len * 1000).toFixed(0)} µm`;
   const N = APERTURES[rig.ai];
   const dof = L.dof * MACRO_LOOKS[rig.look].dofK * rig.dofK;
-  const lk = rig.lookFx ? (rig.lookFx.u > 0 ? ` · focus ahead (${macroShared.uFocus.value.toFixed(0)} mm)` : ' · focus near') : '';
+  const lk = rig.lookFx ? (rig.lookFx.u > 0 ? tt('springtail.status.focusAhead', { mm: macroShared.uFocus.value.toFixed(0) }) : tt('springtail.status.focusNear')) : '';
   bar.querySelector('.opt').textContent = `${L.m.toFixed(1)}x · f/${N} (eff. f/${L.Neff.toFixed(0)}) · DOF ${(rig.lookFx ? L.dof * rig.lookFx.dofK : dof).toFixed(2)} mm${lk}`;
-  status.querySelector('.food').textContent = `Food ${pl.food}/${GOAL}`;
+  status.querySelector('.food').textContent = tt('springtail.status.food', { food: pl.food, goal: GOAL });
   status.querySelector('.lives').textContent = '';
   const m = status.querySelector('.st-meter i');
   const furcTxt = status.querySelector('.furc');
@@ -2085,16 +2087,16 @@ function updateText(L) {
   gauge.style.display = boss.engaged ? 'flex' : 'none';
   gauge.querySelector('i').style.width = `${(boss.resolve * 100).toFixed(0)}%`;
   const stage = stenus.stage;
-  thr.textContent = capture.active ? '' : pl.mode === 'stuck' ? 'Sundew: wriggle and kick!' : stage === 'tell' ? 'Stenus: jump now!' : stage === 'stuck' ? 'Stuck: mash A!' : stage === 'lungeTell' || stage === 'lunge' ? 'Mandibles: jump or step aside!' : attacking ? 'Attacking! Face it + B, or jump' : hunting ? 'Hunted!' : isHungry(hs) || isHungry(hr) ? `${[isHungry(hs) && 'Stenus', isHungry(hr) && 'Strider'].filter(Boolean).join(' & ')} hungry` : 'Calm';
+  thr.textContent = capture.active ? '' : pl.mode === 'stuck' ? tt('springtail.status.sundew') : stage === 'tell' ? tt('springtail.status.stenusJump') : stage === 'stuck' ? tt('springtail.status.stuck') : stage === 'lungeTell' || stage === 'lunge' ? tt('springtail.status.mandibles') : attacking ? tt('springtail.status.attacking') : hunting ? tt('springtail.status.hunted') : isHungry(hs) || isHungry(hr) ? tt(isHungry(hs) && isHungry(hr) ? 'springtail.status.bothHungry' : isHungry(hs) ? 'springtail.status.stenusHungry' : 'springtail.status.striderHungry') : tt('springtail.status.calm');
   thr.classList.toggle('hot', hunting || attacking);
   const prog = encounterProgress();
-  if (!hunting && !attacking && !capture.active && pl.mode !== 'stuck' && !inZone('stenus', pl.x, pl.z) && !inZone('strider', pl.x, pl.z)) thr.textContent = 'Calm water';
-  if (capture.active && cap.phase) { furcTxt.textContent = (cap.kind && CAP_TEXT[cap.kind].phases[cap.phase]) || 'Back again'; m.style.width = `${{ strike: 25, hold: 50, eat: 80, follow: 100, fadeOut: 100, fadeIn: 100 }[cap.phase] || 100}%`; m.style.background = '#e04f3a'; }
-  else if (pl.mode === 'stuck') { const S = pl.stuckS; furcTxt.textContent = S && S.idle > 0.8 ? 'Pulled in: struggle!' : 'Struggle: LS + A'; m.style.width = `${pl.struggle * 100}%`; m.style.background = '#e07a5f'; }
-  else if (pl.mode === 'reform') { furcTxt.textContent = 'Back again'; m.style.width = `${Math.min(1, pl.reformT / REFORM) * 100}%`; m.style.background = '#c9d6df'; }
-  else if (pl.mode === 'labium') { furcTxt.textContent = 'Wriggle (mash A)'; m.style.width = `${Math.min(1, pl.wriggle) * 100}%`; m.style.background = '#e07a5f'; }
-  else if (pl.charging) { furcTxt.textContent = pl.charge > 0.98 ? 'Full jump' : 'Cocking'; m.style.width = `${pl.charge * 100}%`; m.style.background = '#f2cc8f'; }
-  else { furcTxt.textContent = pl.cock < 1 ? 'Re-cocking' : 'Furcula'; m.style.width = `${Math.max(0, pl.cock) * 100}%`; m.style.background = pl.cock < 1 ? '#7a8a99' : '#9fd0ff'; }
+  if (!hunting && !attacking && !capture.active && pl.mode !== 'stuck' && !inZone('stenus', pl.x, pl.z) && !inZone('strider', pl.x, pl.z)) thr.textContent = tt('springtail.status.calmWater');
+  if (capture.active && cap.phase) { furcTxt.textContent = (cap.kind && CAP_TEXT[cap.kind].phases[cap.phase]) || tt('springtail.status.backAgain'); m.style.width = `${{ strike: 25, hold: 50, eat: 80, follow: 100, fadeOut: 100, fadeIn: 100 }[cap.phase] || 100}%`; m.style.background = '#e04f3a'; }
+  else if (pl.mode === 'stuck') { const S = pl.stuckS; furcTxt.textContent = S && S.idle > 0.8 ? tt('springtail.status.pulledIn') : tt('springtail.status.struggle'); m.style.width = `${pl.struggle * 100}%`; m.style.background = '#e07a5f'; }
+  else if (pl.mode === 'reform') { furcTxt.textContent = tt('springtail.status.backAgain'); m.style.width = `${Math.min(1, pl.reformT / REFORM) * 100}%`; m.style.background = '#c9d6df'; }
+  else if (pl.mode === 'labium') { furcTxt.textContent = tt('springtail.status.wriggle'); m.style.width = `${Math.min(1, pl.wriggle) * 100}%`; m.style.background = '#e07a5f'; }
+  else if (pl.charging) { furcTxt.textContent = pl.charge > 0.98 ? tt('springtail.status.fullJump') : tt('springtail.status.cocking'); m.style.width = `${pl.charge * 100}%`; m.style.background = '#f2cc8f'; }
+  else { furcTxt.textContent = pl.cock < 1 ? tt('springtail.status.reCocking') : tt('springtail.status.furcula'); m.style.width = `${Math.max(0, pl.cock) * 100}%`; m.style.background = pl.cock < 1 ? '#7a8a99' : '#9fd0ff'; }
   const info = renderer.info.render;
   hud.stats(`${pl.mode}${pl.mode === 'film' ? ` ${Math.hypot(pl.vx, pl.vz).toFixed(1)} mm/s` : ''}  Stenus: ${stenus.st.state} (${hs.state} ${hs.left.toFixed(0)} s)  strider: ${strider.st.state} (${hr.state} ${hr.left.toFixed(0)} s)${capture.active ? `  capture: ${cap.kind} ${cap.phase}` : ''}  encounters ${director.index}/${ENCOUNTERS.length}${sealed() ? ' portals sealed' : guarded() ? ' portal guarded' : ' portal open'}\n${MACRO_LOOKS[rig.look].name}  quality ${quality.level} (res ${(quality.scale * 100).toFixed(0)}%)\n${fps.toFixed(0)} fps  ${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
 }

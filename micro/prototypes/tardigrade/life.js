@@ -11,6 +11,7 @@
 // muscle-driven shape change); a predator struggles to get a tun into its
 // mouth. Press Y again and it rehydrates and walks on (it always wakes).
 import * as THREE from '../shared/vendor/three.module.min.js';
+import { t as tt } from '../shared/text.js';
 
 const TUN_FORM = 2.2, REVIVE_TIME = 2.4;
 
@@ -66,7 +67,7 @@ export class Life {
   /** Test (RB): a shower floods the film for a moment; it settles back as it was. */
   rain() {
     this.rainT = 2.2;
-    this.events.toast('Rain: the film floods over the leaves');
+    this.events.toast(tt('tardigrade.toasts.rain'));
   }
 
   filmHere() {
@@ -119,7 +120,7 @@ export class Life {
         // Tun: hold Y
         const forming = input.yDown && !this.feeding;
         this.tun = THREE.MathUtils.clamp(this.tun + (forming ? dt / TUN_FORM : -dt / 1.2), 0, 1);
-        if (this.tun >= 1) { this.state = 'tun'; this.tunT = 0; ev.toast('Tun formed: legs in, body contracted (Y again: wake)'); ev.rumble(220, 0.3, 0.5); }
+        if (this.tun >= 1) { this.state = 'tun'; this.tunT = 0; ev.toast(tt('tardigrade.toasts.tunFormed')); ev.rumble(220, 0.3, 0.5); }
         break;
       }
       case 'tun': {
@@ -131,7 +132,7 @@ export class Life {
         this.reviveT += dt;
         const k = Math.min(1, this.reviveT / REVIVE_TIME);
         this.tun = 1 - k * k;
-        if (k >= 1) { this.state = 'active'; this.tun = 0; ev.toast('Rehydrated: walking again'); ev.rumble(160, 0.2, 0.2); }
+        if (k >= 1) { this.state = 'active'; this.tun = 0; ev.toast(tt('tardigrade.toasts.rehydrated')); ev.rumble(160, 0.2, 0.2); }
         break;
       }
       case 'dead':
@@ -150,7 +151,7 @@ export class Life {
   eaten() {
     if (this.state !== 'active') return;
     this.state = 'dead'; this.feeding = null; this.tun = 0;
-    this.events.toast('Eaten by Milnesium (A: start a new day)', 6000);
+    this.events.toast(tt('tardigrade.toasts.eatenNewDay'), 6000);
   }
 
   // Feeding no longer holds the animal still (the owner, 2026-11-02: 'allow him
@@ -188,7 +189,7 @@ export class Life {
           if (!f.item) {
             const part = f.t / f.dur;
             this.energy = Math.min(1, this.energy + f.value * part);
-            if (part > 0.15) this.events.toast(`Fed a little on ${f.name} (+${Math.round(f.value * part * 100)}% health)`);
+            if (part > 0.15) this.events.toast(tt('tardigrade.toasts.fedLittle', { name: f.name, pct: Math.round(f.value * part * 100) }));
           }
           this.feeding = null;
           return;
@@ -204,7 +205,7 @@ export class Life {
         } else {
           f.leaf.eat(...f.cell);
         }
-        this.events.toast(`Fed on ${f.name} (+${Math.round(f.value * 100)}% health)`);
+        this.events.toast(tt('tardigrade.toasts.fed', { name: f.name, pct: Math.round(f.value * 100) }));
         this.feeding = null;
       }
       return;
@@ -217,8 +218,8 @@ export class Life {
     const best = this.foodInReach();
     if (best) {
       this.target = null;
-      this.feeding = { item: best, t: 0, dur: best.time, value: best.value, gut: best.gut, name: `a ${best.type}` };
-      this.events.toast(`Stylets into a ${best.type}…`);
+      this.feeding = { item: best, t: 0, dur: best.time, value: best.value, gut: best.gut, name: best.aType };
+      this.events.toast(tt('tardigrade.toasts.styletsInto', { name: best.aType }));
       return;
     }
     // Otherwise pierce the leaf cell under the mouth (grazers suck moss cells).
@@ -227,7 +228,7 @@ export class Life {
     const why = L.whyNotEat(loc.u, loc.v);
     if (why) { this.events.toast(why); return; }
     const cell = [loc.u, loc.v];
-    this.feeding = { leaf: L, cell, t: 0, dur: 3.2, value: 0.07, gut: [0.45, 0.62, 0.25], name: 'a leaf cell' };
-    this.events.toast('Piercing a leaf cell with the stylets…');
+    this.feeding = { leaf: L, cell, t: 0, dur: 3.2, value: 0.07, gut: [0.45, 0.62, 0.25], name: tt('tardigrade.food.aLeafCell') };
+    this.events.toast(tt('tardigrade.toasts.piercing'));
   }
 }

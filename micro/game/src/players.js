@@ -10,10 +10,12 @@
 //   roster.list                    // [{ index, color, name, pad }]
 //   roster.toJSON()                // passed to the world in the `players` message
 
+import { t } from '../../prototypes/shared/text.js';
+
 export const COLORS = ['#d8a440', '#4f9fd8', '#d0584e', '#6fbf6a'];
 
 function stubRoster(max = 4) {
-  let players = [{ index: 0, color: COLORS[0], name: 'Player 1', pad: null }];
+  let players = [{ index: 0, color: COLORS[0], name: t('shell.players.chip', { n: 1 }), pad: null }];
   const joinFns = [];
   const prevHeld = new Map();
   return {

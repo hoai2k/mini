@@ -14,6 +14,7 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { toonMaterial, inked, inkedInstanced, blobGeometry, goodsellShared, furShells } from '../shared/techniques/phage-goodsell.js';
 import { createBath, createSprites, beadMesh, beadMaterial, beadTemplate, setSolids, setPhages, PALETTE } from '../shared/techniques/phage-beads.js';
+import { t as tt } from '../shared/text.js';
 
 export const START = new THREE.Vector3(0, 0, 0);
 /** No walls or floor: beyond FIELD_R from the start a soft current carries you back (main.js). */
@@ -148,12 +149,12 @@ const UP = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
 // Homes: every host waits hidden and parked (PARKED) until the director places it (main.js): Host B and the
 // wrong host as the decoys, Host A with the portal.
 const HOSTS = [
-  { id: 'A', name: 'Host A', home: [0, -9000, 0], angle: 0.1, half: 78, r: 38, patches: [[-48, -0.25], [8, 0.35], [52, -0.1], [-48, Math.PI - 0.25]],
-    receptors: 'OmpC + LPS', defence: 'Restriction enzyme; CRISPR with no matching spacer', odds: 0.6, crispr: false, color: '#eef3c4', lps: '#86c06a', hidden: true },
-  { id: 'B', name: 'Host B', home: PARKED, angle: -0.45, half: 58, r: 36, patches: [[-20, 0.2], [30, -0.3]],
-    receptors: 'OmpC + LPS', defence: 'Restriction enzyme; CRISPR carrying a matching spacer', odds: 0.15, crispr: true, color: '#f1efc0', lps: '#9cc36a', hidden: true },
-  { id: 'W', name: 'Wrong host', home: PARKED, angle: 0.85, half: 46, r: 30, patches: [],
-    receptors: 'none (a Gram-positive: thick wall, no outer membrane, no OmpC)', defence: '—', odds: 0, crispr: false, wrong: true, color: '#ead9b8', lps: '#c9ad78', hidden: true },
+  { id: 'A', name: tt('phage.hosts.a'), home: [0, -9000, 0], angle: 0.1, half: 78, r: 38, patches: [[-48, -0.25], [8, 0.35], [52, -0.1], [-48, Math.PI - 0.25]],
+    receptors: tt('phage.hosts.receptorsOmpC'), defence: tt('phage.hosts.defenceA'), odds: 0.6, crispr: false, color: '#eef3c4', lps: '#86c06a', hidden: true },
+  { id: 'B', name: tt('phage.hosts.b'), home: PARKED, angle: -0.45, half: 58, r: 36, patches: [[-20, 0.2], [30, -0.3]],
+    receptors: tt('phage.hosts.receptorsOmpC'), defence: tt('phage.hosts.defenceB'), odds: 0.15, crispr: true, color: '#f1efc0', lps: '#9cc36a', hidden: true },
+  { id: 'W', name: tt('phage.hosts.wrong'), home: PARKED, angle: 0.85, half: 46, r: 30, patches: [],
+    receptors: tt('phage.hosts.receptorsWrong'), defence: tt('phage.hosts.defenceWrong'), odds: 0, crispr: false, wrong: true, color: '#ead9b8', lps: '#c9ad78', hidden: true },
 ];
 
 const _bv = new THREE.Vector3(), _bw = new THREE.Vector3(), _by = new THREE.Vector3(0, 1, 0), _bz = new THREE.Vector3(0, 0, 1);
@@ -179,7 +180,7 @@ export const BYSTANDERS = (() => {
     const fx = fixed[i];
     const p = fx ? new THREE.Vector3(fx[0], fx[1], fx[2]) : dirs[(i * 53) % dirs.length].clone().multiplyScalar(R);
     const k = out.length, big = k % 3 === 0;
-    const b = { id: `S${k}`, name: 'a bacterium of another kind', bystander: true, home: p.toArray(), angle: fx ? fx[3] : (i * 1.7) % 3.1,
+    const b = { id: `S${k}`, name: tt('phage.hosts.otherKind'), bystander: true, home: p.toArray(), angle: fx ? fx[3] : (i * 1.7) % 3.1,
       half: fx ? fx[4] : big ? 130 + (k % 4) * 22 : 60 + (k % 5) * 16, r: fx ? fx[5] : big ? 60 + (k % 3) * 9 : 34 + (k % 4) * 6, patches: [], color: '#e8eedc', lps: '#86b0a0', tint: BY_TINTS[k % BY_TINTS.length] };
     if (capD(START, b) < 110 || capD(BACKDOOR, b) < 110) continue;
     if (out.some((o) => p.distanceTo(_bw.set(...o.home)) < o.half + o.r + b.half + b.r + 30)) continue;
