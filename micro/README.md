@@ -56,6 +56,10 @@ Video games where you play as microscopic creatures.
   ([`prototypes/CONTROLS.md`](prototypes/CONTROLS.md): A dash, X
   attack/eat), a feature panel listing what each does (with techniques
   borrowed from the others, off by default) and sound.
+- [`workbench/`](workbench/README.md) is the workbench: its Audio tab plays
+  every sound trigger in the game in both sound sets (Default and
+  Experimental), the menu sounds and music, and every take with its prompt,
+  for marking what to keep, bring into Default or regenerate.
 - [`intake/`](intake/README.md) is the drop box for delivered art.
 
 ## Checks
@@ -74,4 +78,8 @@ node micro/game/check-worlds.mjs
 
 ```bash
 node micro/game/check.mjs
+```
+
+```bash
+node micro/workbench/check.mjs
 ```

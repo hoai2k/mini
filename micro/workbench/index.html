@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Micro Workbench</title>
+  <link rel="icon" href="../game/icons/icon-32.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="workbench.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="eyebrow">Micro Zoom</span><h1>Workbench</h1></div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="audio">Audio</button>
+    </nav>
+  </header>
+
+  <main id="audio" class="tab-panel">
+    <section class="bar">
+      <div class="seg" role="radiogroup" aria-label="View">
+        <button data-view="triggers" aria-pressed="true">Triggers</button>
+        <button data-view="sounds" aria-pressed="false">Sounds</button>
+      </div>
+      <label>World <select id="world"></select></label>
+      <label>Show <select id="show">
+        <option value="all">Everything</option>
+        <option value="differs">Default and Experimental differ</option>
+        <option value="new">Experimental sounds (added 2 Nov)</option>
+        <option value="marked">Marked</option>
+      </select></label>
+      <label class="grow"><span class="sr">Search</span><input id="q" type="search" placeholder="Search: id, event, file"></label>
+      <label class="vol">Volume <input id="vol" type="range" min="0" max="1" step="0.05" value="0.8"></label>
+      <button id="stop" class="ghost">Stop all</button>
+    </section>
+    <p class="lede" id="lede"></p>
+    <div id="list" class="list"></div>
+    <footer class="notes">
+      <div>
+        <h2>Your marks</h2>
+        <p>Marks and notes stay in this browser. Export copies them as a list to paste into a request.</p>
+      </div>
+      <div class="note-actions"><span id="mark-count"></span><button id="export">Copy marks</button><button id="clear" class="ghost">Clear marks</button></div>
+    </footer>
+  </main>
+  <script type="module" src="audio.js"></script>
+</body>
+</html>
