@@ -264,7 +264,7 @@ export function createCollectives(world, hooks = {}) {
       const cells = liveCells(C);
       let sx = 0, sy = 0, n = 0;
       for (const S of cells) { sx += S.x; sy += S.y; n++; }
-      for (const m of C.members) { sx += m.x; sy += m.y; n++; }
+      for (const m of C.members) if (!m.drift) { sx += m.x; sy += m.y; n++; } // (drifting members are off the formation)
       if (!n) continue;
       const cx = sx / n, cy = sy / n;
       const v = dt > 0 && C.speed >= 0 ? Math.hypot(cx - C.cx, cy - C.cy) / dt : 0;
@@ -278,7 +278,7 @@ export function createCollectives(world, hooks = {}) {
       C.cx = cx; C.cy = cy;
       let e2 = 0;
       for (const S of cells) e2 = Math.max(e2, (S.x - cx) ** 2 + (S.y - cy) ** 2);
-      for (const m of C.members) e2 = Math.max(e2, (m.x - cx) ** 2 + (m.y - cy) ** 2);
+      for (const m of C.members) if (!m.drift) e2 = Math.max(e2, (m.x - cx) ** 2 + (m.y - cy) ** 2);
       C.extent += (Math.sqrt(e2) - C.extent) * Math.min(1, dt * 6);
       C.R0 = 1.05 * Math.sqrt(n) + 1.2; // the comfortable radius: cells ~2.3 µm apart
       // the camera follows the flock's middle, smoothed (alone: your cell)

@@ -236,6 +236,17 @@ export function createWorld() {
   const pack = ROUTE.gates[1];
   for (let i = 0; i < 4; i++) { const c = addCell('bdello', PARK.x, PARK.y); c.home = { x: PARK.x, y: PARK.y, r: pack.r }; c.hp = 1; c.parked = true; }
 
+  // the stranger strain: other magnetotactic cells (collective.js WAYLAY: they waylay your army's
+  // members), parked until main.js keepAmbient brings a couple in near each player, where nobody has
+  // looked. Their own random stream, so nothing else in the world moves for them.
+  {
+    const rs = rng(733);
+    for (let i = 0; i < 8; i++) {
+      cells.push({ kind: 'mtb', stranger: true, x: PARK.x, y: PARK.y, a: rs() * 6.28, z: (rs() - 0.5) * 0.9, run: rs() * 1.5, tumble: 0, stopped: 0, bdelloplast: 0, ghost: false, sense: rs() < 0.5 ? 1 : -1, attachedBy: null, flPhase: rs() * 6,
+        L: 2.6 + rs() * 0.8, r: 0.27, v: 35 + rs() * 15, motile: true, gramNeg: true, prey: false, amp: 0.3, wl: 1.6, parked: true, zone: 1 });
+    }
+  }
+
   // --- food patches: dissolved organic matter round decaying detritus or a lysed cell ---
   const patches = [];
   const addPatch = (x, y, lysis = false) => {

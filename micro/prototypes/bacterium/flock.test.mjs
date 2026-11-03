@@ -8,11 +8,11 @@ import { createCollectives } from './collective.js';
 import { createStentor } from './stentor.js';
 import { createGuards } from './guards.js';
 
-function setup() {
+function setup(hooks = {}) {
   const world = createWorld();
   const stentor = createStentor();
   world.stentor = stentor;
-  const coll = createCollectives(world);
+  const coll = createCollectives(world, hooks);
   world.coll = coll;
   const sw = createSwimmer(world);
   sw.reset('mtb');
@@ -136,6 +136,73 @@ const UP = { x: 0, y: 1, m: 1 };
     step(15, { x: dx / dl, y: dy / dl, m: Math.min(1, dl / 10) }); coll.beacon(P, 1000 + i); guards.volley(C, 0); t += 0.25;
   }
   assert.ok(G.beaten && g.beaten, `an army of 12 beats it (${t} s, ${C.members.length} members left)`);
+}
+
+// --- waylaying: a stranger draws a member off visibly; ignored, it is picked off; X calls it back ---
+function waylaySetup() {
+  const ev = { waylay: 0, lost: 0, recall: 0 };
+  const T = setup({ onWaylay: () => ev.waylay++, onWaylaid: () => ev.lost++, onRecall: () => ev.recall++ });
+  const { world, coll, P, step, fill, move } = T;
+  // out of the meadow (the start stays safe), in open water
+  move(world.start.x + 150, world.start.y + 40); fill(10); step(60);
+  const C = coll.of(P);
+  // one stranger (another magnetotactic cell) a little off the flock; the others far away
+  const ss = world.cells.filter((c) => c.kind === 'mtb');
+  ss.forEach((c, i) => { c.x = world.start.x - 400; c.y = world.start.y + 100 + i * 30; });
+  const s = ss[0]; s.parked = false; s.x = C.cx + C.extent + 18; s.y = C.cy;
+  return { ...T, C, s, ev };
+}
+{
+  const { coll, C, s, ev, step } = waylaySetup();
+  let i = 0;
+  for (; i < 360 && !C.members.some((m) => m.drift); i++) step(1);
+  assert.ok(s.waylay && s.waylay.state === 'lure', 'the stranger comes over and loiters at the edge');
+  const m = C.members.find((q) => q.drift);
+  assert.ok(m && ev.waylay === 1, `its decoy pulse draws a member off (${(i / 60).toFixed(1)} s)`);
+  const d0 = Math.hypot(m.x - C.cx, m.y - C.cy);
+  step(120);
+  assert.ok(m.drift && m.coll === C, 'after 2 s it is still drifting, not yet lost');
+  const d1 = Math.hypot(m.x - C.cx, m.y - C.cy);
+  assert.ok(d1 > d0 + 2 && d1 > C.R0 + 3, `it leaves the formation toward the stranger (${d0.toFixed(1)} → ${d1.toFixed(1)} µm from the middle)`);
+  const n0 = C.members.length;
+  step(60 * 6);
+  assert.ok(ev.lost >= 1 && !m.coll && m.dying && m.dying.kind === 'waylaid', `ignored, it is picked off (${ev.lost} lost, ${C.members.length} of ${n0} left)`);
+  assert.ok(!s.waylay, 'and the stranger swims off with it');
+  step(60 * 3);
+  assert.ok(m.parked, 'then it is gone');
+  assert.equal(coll.waylays().drifting.length, C.members.filter((q) => q.drift).length);
+}
+{
+  const { coll, C, s, ev, P, step, t } = waylaySetup();
+  for (let i = 0; i < 360 && !C.members.some((m) => m.drift); i++) step(1);
+  const m = C.members.find((q) => q.drift);
+  step(90);
+  assert.ok(m && m.drift, 'drifting for 1.5 s');
+  assert.ok(coll.beacon(P, 500), 'X');
+  for (let i = 0; i < 60 && m.drift; i++) step(1);
+  assert.ok(!m.drift && m.coll === C && ev.recall >= 1, 'the beacon reaching it calls it back at once');
+  assert.ok(!s.waylay && s.wlCool > 0, 'and drives the stranger off');
+  step(120);
+  assert.ok(Math.hypot(m.x - C.cx, m.y - C.cy) < C.R0 + 4, 'it is back in the formation');
+}
+{
+  // pulsing X now and then (every 1.5 s): members drift but none is ever lost
+  const { C, s, ev, P, coll, step } = waylaySetup();
+  const n0 = C.members.length;
+  for (let k = 0; k < 20; k++) {
+    step(90); coll.beacon(P, 1000 + k * 2);
+    if (!s.waylay && s.wlCool > 0) { s.wlCool = 0; s.x = C.cx + C.extent + 15; s.y = C.cy + 3; } // a stranger keeps coming
+  }
+  assert.ok(ev.waylay >= 2 && ev.lost === 0 && C.members.length >= n0, `pulsing X, nobody is lost (${ev.waylay} drawn off, ${ev.recall} called back, ${ev.lost} lost)`);
+}
+{
+  // the meadow round the start stays safe for ever
+  const { world, coll, P, step, fill, move } = setup();
+  move(world.start.x + 10, world.start.y + 10); fill(10); step(30);
+  const C = coll.of(P), s = world.cells.find((c) => c.kind === 'mtb');
+  s.parked = false; s.x = C.cx + C.extent + 12; s.y = C.cy;
+  step(60 * 6);
+  assert.ok(!s.waylay && !C.members.some((m) => m.drift), 'no waylaying in the meadow');
 }
 
 console.log('bacterium flock: all checks pass');
