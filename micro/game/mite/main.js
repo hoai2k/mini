@@ -25,6 +25,7 @@ import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
 import { createBorrowedLooks, borrowedSwitches, AMOEBA_MODES, DIC_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
 import { t as tt, tx } from '../shared/text.js';
+import { createCamLock } from '../shared/camlock.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
@@ -160,7 +161,11 @@ let observer = false;
 
 // Starts at HFW 1.6 mm (~79x): the 0.35 mm mite is about a fifth of the
 // field, with the moss around it in view.
-const rig = { yaw: -0.6 - Math.PI / 6, pitch: 0.62, hfw: 1600, target: mite.center.clone() };
+// The world's forward (the owner, 2026-11-03: the camera's turn is locked to it, so the layout has a
+// "forward"): the camera looks along -(cos, sin) of this yaw (see README).
+const FORWARD_YAW = -0.6 - Math.PI / 6;
+const camLock = createCamLock({ forward: FORWARD_YAW });
+const rig = { yaw: FORWARD_YAW, pitch: 0.62, hfw: 1600, target: mite.center.clone() };
 const camFwd = new THREE.Vector3(), camRight = new THREE.Vector3();
 
 // The quality governor (shared/quality.js) owns the resolution: min(DPR, 1.25)
@@ -227,6 +232,17 @@ function placePoseCamera(pose) {
 }
 
 const cutKeep = new Set();
+// RS left/right peeks (shared/camlock.js): each view's camera slides sideways along the ground by up to
+// peekFrac of the field's width, eased, and blended through a split and a merge.
+const _pr = new THREE.Vector3();
+function applyPeek() {
+  if (outro) return;
+  camera.updateMatrixWorld();
+  _pr.setFromMatrixColumn(camera.matrixWorld, 0); _pr.y = 0;
+  if (_pr.lengthSq() < 1e-8) return;
+  _pr.normalize();
+  camLock.applyPeek(split, (v, p) => _pr.clone().multiplyScalar(p * camLock.peekFrac * (rig.viewHfw || rig.hfw)));
+}
 // Two to four players share one view, zoomed out up to this far (1.8x the
 // field) before the screen splits; split views settle at 0.75 of it.
 const SPLIT_ZOOM_MAX = 1.8;
@@ -1709,10 +1725,14 @@ function readInput(dt) {
   capPad = !menu;
   if (menu) return [];
   hud.update(pad);
-  // RS: orbit (any player turns it); pitch by intent (up looks up: the camera swings down).
+  // RS: the camera's turn is locked to the world's forward (FORWARD_YAW, shared/camlock.js): RS
+  // left/right peeks sideways (each player's own); up/down pitches by intent (up looks up: the camera
+  // swings down). With the Free camera setting and one player, RS left/right orbits as it used to.
   let yaw = 0;
-  for (const p of players.active) yaw += players.controls(p.slot).look().yaw;
-  rig.yaw += THREE.MathUtils.clamp(yaw, -1, 1) * 1.8 * dt;
+  const nAct = players.active.length, free = camLock.free(nAct);
+  for (const p of players.active) { const lk0 = players.controls(p.slot).look(); yaw += lk0.yaw; camLock.peek(p.slot, free ? 0 : lk0.yaw, dt); }
+  camLock.keep(players.active.map((p) => p.slot));
+  rig.yaw = camLock.yaw(rig.yaw, dt, nAct, THREE.MathUtils.clamp(yaw, -1, 1) * 1.8 * dt, capture.active);
   const lk = ctl.look();
   rig.pitch = THREE.MathUtils.clamp(rig.pitch - lk.pitch * 1.2 * dt, 0.18, 1.5);
   const look = ctl.lookStep();
@@ -1826,6 +1846,7 @@ function drawFrame(dt) {
   // a caught player's view follows the predator with its meal
   const eating = capture.active && ['eat', 'follow', 'fadeOut'].includes(capture.phase);
   split.update(recs().map((P) => ({ slot: P.slot, position: (eating && cap.who === P ? (cap.byBoss ? boss.center : pred.center) : P.mite.center).clone() })), { camera, zoom: rig.zoom }, dt);
+  applyPeek();
   groupZoom = split.zoom;
   quality.setSplitViews(split.views.length);
   const one = split.views.length === 1;
@@ -1945,6 +1966,7 @@ function updateText(d) {
 function stepViews(dt) {
   placeCamera(dt);
   split.update(recs().map((P) => ({ slot: P.slot, position: P.mite.center.clone() })), { camera, zoom: rig.zoom }, dt);
+  applyPeek();
   groupZoom = split.zoom;
   const n = Math.max(1, split.views.length);
   for (let i = 0; i < n && i < 4; i++) split.withView(i, camera, () => {

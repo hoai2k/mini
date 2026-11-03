@@ -7,7 +7,7 @@ predators, chasing prey, and the dash is the key verb.
 | Button | Action |
 | --- | --- |
 | LS | Move (relative to the view) |
-| RS | Camera (orbit, or move the stage in a microscope view) |
+| RS | Camera: up/down tilts (pitch); left/right peeks sideways (the turn is locked to the world's forward: below). The phage turns freely; the bacterium looks around |
 | **A** | **Dash**: a short burst of speed in the stick direction, on a cooldown or an energy meter shown in the HUD, with rumble. Each creature's dash is its real fastest move (or a labelled stretch of one). |
 | **X** | **Attack / eat**: bite, engulf, pierce, feed, depending on the creature. Hitting a predator with it can fight back where that is biologically plausible. |
 | B | Defend: block, curl up, armour, reverse, depending on the creature |
@@ -64,6 +64,20 @@ its motion (up to 22 % of the field); RS held looks that way (up to 40 % of
 the field, by how far it is pushed) and eases back when released. Each player
 has their own; a split view follows its own players.
 
+**The camera's turn is locked to each world's forward** (the owner,
+2026-11-03) in the springtail, the mite, the tardigrade and the paramecium:
+RS up/down tilts (the paramecium: deeper / shallower), RS left/right is a
+sideways **peek**, the view sliding about 30 % of its width that way and
+easing back when let go (each player's own, blended through a split and a
+merge), and LS moves relative to that fixed forward, which the worlds' layouts
+can rely on (each README names it). Zoom keeps its controls. **Free camera
+(single player)** in the game's Settings (default off; `micro.freeCamera`;
+`?freecam=1` on a world's own page) gives a lone player the old free turn
+back (RS left/right turns); when a second player joins, or it is turned off,
+the view eases back to the forward over 0.6 s and locks
+(`shared/camlock.js`). The phage keeps its free cameras (a fixed split); the
+bacterium and the amoeba never turn.
+
 **The paramecium zooms with the triggers.** LT zooms out and RT zooms in,
 analogue and continuous (eased, clamped): from its closest field (560 µm) out
 to three times it; the world starts at 1.6×. The D-pad does not zoom there.
@@ -80,7 +94,7 @@ only their own camera.
 
 **The mite zooms with the triggers** too: the SEM's horizontal field width,
 160 µm to 4.2 mm, a little faster than the paramecium (its range is nine times
-as wide). Its view is one for everyone (RS turns it for all), so any player's
+as wide). Its view is one for everyone, so any player's
 triggers move the one field; the magnification shows once they are let go.
 
 **The phage moves in open 3D water with no up or down,** all in the view's

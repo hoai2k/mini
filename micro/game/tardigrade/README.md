@@ -21,7 +21,7 @@ The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`):
 | Button | Action |
 | --- | --- |
 | LS (WASD) | Crawl, relative to the view. The stick is analogue: a slight push creeps at ~30 µm/s, full tilt hurries at ~150 µm/s (a quadratic curve between, so the slow end is easy to hold). The keys walk at a middle pace (~90 µm/s); hold **G** to hurry (full tilt) or **T** to creep (keyboard only). **Push behind it to walk backwards**: with the stick within ±45° of straight behind the body it backs up, legs in reverse, at 0.4× the forward speed on the same curve (up to ~60 µm/s), and does not turn; it keeps backing until the stick leaves ±60° of behind or is let go, and a little to either side curves the backward path gently (0.45 rad/s at most). To turn round, push to the side first (`wantsBack`, `BACK_*` in `gait.js`; every player, stick or keys; not during a scramble, and it does not reach across to another leaf while backing). Push into a leaf edge, or into a leaf rising across the way, to reach across to it, or round the margin onto the underside |
-| RS (arrows) | Turn and tilt the view. Up looks up (the camera swings down toward the leaf's edge-on view), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
+| RS (arrows) | **Tilt · peek**: left/right peeks sideways (the turn is locked to the world's forward, below; Free camera in single player turns it). Up looks up (the camera swings down toward the leaf's edge-on view), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
 | **A (Space)** | **Scramble**: 0.9 s of fast wave gait (~280 µm/s, nearly twice the full-tilt walk), recharging over 2.6 s (the `dash` meter); no other cost. With no stick, straight ahead |
 | **X (E)** | **Pierce** with the stylets: food in reach (algae, diatoms, detritus) or the living leaf cell under the mouth. One press starts the meal and it runs to the end by itself (no holding). You can keep walking while you feed: walking off before the food is in the mouth breaks the meal off (a leaf cell gives the share already sucked out); at a Milnesium or Prionchulus, a jab with a head thrust that bites back |
 | B (Shift), hold | **Defend**: grip hard / brace (two legs swing at most, slower, much harder to slip). Facing a predator as it lunges, it blocks |
@@ -417,6 +417,17 @@ ring labelled Moss towards the way back.
   instead of curling into a tun.
 
 ## Multiplayer (local, up to four)
+
+**The world's forward** (the owner, 2026-11-03): the camera's turn is locked
+to it, so obstacle layout can rely on it. `FORWARD_YAW` in `main.js` (the
+start view, 5π/3): the camera sits at −x, +z of its target and looks toward
++x (along the start leaf) and a little −z. RS left/right peeks sideways
+instead (the view slides about 30 % of its width that way and eases back;
+each player's own, blended through a split and a merge), RS up/down tilts,
+and LS moves relative to the fixed forward. With **Free camera (single
+player)** on in the game's Settings (or `?freecam=1` here) a lone player turns
+the camera freely again; a second player joining eases it back to the forward
+over 0.6 s and locks it (`../shared/camlock.js`).
 
 Through `../shared/players.js`, as `../CONTROLS.md` describes: player 1 on the
 keyboard and the first controller; players 2-4 join at any time by pressing

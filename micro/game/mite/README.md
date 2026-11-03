@@ -206,7 +206,7 @@ the lists no longer carry "enter portal" or a "Way back" row (3 November
 | Button | Action |
 | --- | --- |
 | LS (WASD) | Walk, relative to the view. The stick is analogue: a slight push walks at ~418 µm/s (the old walk), full tilt hurries at ~870 µm/s (the old scramble), a quadratic curve between so the slow end is easy to hold. The keys walk mid-pace (~610 µm/s); hold Q / F (LB / RB) for the slow end / full tilt. The mite turns toward the stick and walks forward; it climbs grains, flakes and stems and pushes through blades |
-| RS (arrows) | Orbit the specimen. Up looks up (the camera swings down toward the floor), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
+| RS (arrows) | **Tilt · peek**: left/right peeks sideways (the turn is locked to the world's forward, see Multiplayer; Free camera in single player orbits). Up looks up (the camera swings down toward the floor), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
 | **A (Space)** | **Jump**, with a flea's or a jumping spider's snap: tap for a 0.1 s crouch and a spring of ~1.1 mm (three body lengths, ~0.33 mm high); hold to crouch deeper (up to 0.45 s more, the body quivering at full charge) and release for ~2.1 mm (six body lengths, ~0.65 mm high); a run-up adds to it. Aim with LS while crouched; LS leans the arc a little in the air. Lands on the floor, a grain, a flake or a moss blade (the blade takes the landing and bends); 0.3 s after landing before the next. Borrowed from jumping oribatids (see Departures). **X in the air: the pounce-bite** |
 | **X (E)** | **Bite.** Every press shows an attack: the mite rears, the rostrum lifts (the chelicerae open), it lunges and snaps, and crumbs puff where the snap lands (or in the air before it), with the bite sound. By what is in reach: **fight** (the predator or the pseudoscorpion's pincer: rear up with leg I raised, then lunge and snap); **strike** a springtail in front (it lies dazed 2.4 s, its group leaps away and drifts back over ~10 s); **devour** a dazed one (a snap, then it is held to the mouth and eaten, 1.2 s); **strike** one of the box-mite family (it shuts itself in its capsule; the bite glances off); **eat** (a spore or hyphal tip: a dart at it, then leg I holds it to the mouth while the chelicerae work and it shrinks away, 0.9 s); **strike** at nothing (a snap in the air). See "Biting springtails" |
 | **Y (R)**, hold | **Defend: ptychoidy.** Close into a sealed capsule (the predator's strike slides off; a held mite closing up drops out of the grip); release to reopen |
@@ -216,7 +216,7 @@ the lists no longer carry "enter portal" or a "Way back" row (3 November
 | LS click (C), standalone prototype only | Observer mode: simulated SEM instrument data (voltage, working distance, detector, magnification and scale) and raster lines. This viewing aid and its feature switch are omitted from the embedded game |
 | LB / RB (Q / F), hold | Walk at the slow end (~418 µm/s) / full tilt (~870 µm/s), whatever the stick's push |
 | D-pad ← → (3 / 4) | Imaging mode: SE (Everhart-Thornley), BSE (low vacuum), SE false colour |
-| LT / RT (Z / X) | **Zoom out / in** (3 November 2026, was D-pad steps of ×1.5): analogue and continuous like the paramecium's, the horizontal field width from 160 µm to 4.2 mm, ×e^1.4 a second at full trigger (`ZOOM_HFW`, `ZOOM_RATE` in `main.js`), the camera easing to it; the magnification shows once the triggers are let go. The field is one for everyone (as RS turns the one view), so any player's triggers move it. The D-pad's ↑↓ no longer zoom |
+| LT / RT (Z / X) | **Zoom out / in** (3 November 2026, was D-pad steps of ×1.5): analogue and continuous like the paramecium's, the horizontal field width from 160 µm to 4.2 mm, ×e^1.4 a second at full trigger (`ZOOM_HFW`, `ZOOM_RATE` in `main.js`), the camera easing to it; the magnification shows once the triggers are let go. The field is one for everyone (the one view), so any player's triggers move it. The D-pad's ↑↓ no longer zoom |
 | Menu (Esc) | Features panel: what the prototype does, with switches |
 | View (Tab) | Hide the help panel |
 
@@ -298,6 +298,14 @@ everything else.
   `portals()`, `portalSealed()`.
 
 ## Multiplayer
+**The world's forward** (the owner, 2026-11-03): the camera's turn is locked
+to it, so obstacle layout can rely on it. `FORWARD_YAW` in `main.js` (−0.6 − π/6, the start view): the camera sits at +x, −z of its target and looks toward −x and +z. RS left/right peeks
+sideways instead (the view slides about 30 % of its width that way and eases
+back; each player's own, blended through a split and a merge), RS up/down
+tilts, and LS moves relative to the fixed forward. With **Free camera (single
+player)** on in the game's Settings (or `?freecam=1` here) a lone player turns
+the camera freely again; a second player joining eases it back to the forward
+over 0.6 s and locks it (`../shared/camlock.js`).
 
 Up to four players (`shared/players.js`, `../CONTROLS.md`): player 1 on the
 keyboard and the first controller, players 2–4 join at any time by pressing
@@ -306,8 +314,8 @@ game the roster comes in from the shell (`embed.players`).
 
 - Each player is a box mite of their own, with their own scramble, wounds and
   footfalls; a faint ellipse of their colour and a "P2" tag mark them (the
-  SEM has no colour). Everyone uses the shared controls; RS from any player
-  orbits the shared camera, player 1 also has magnification, imaging mode and
+  SEM has no colour). Everyone uses the shared controls; RS left/right peeks (each
+  player's own view), player 1 also has magnification, imaging mode and
   observer mode.
 - **Split screen** (`shared/splitscreen.js`): together, one view on the
   group, which zooms out as it spreads (the split's `zoom`: the camera pulled

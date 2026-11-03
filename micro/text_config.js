@@ -153,6 +153,8 @@ export const TEXT = {
       invertY: 'Invert camera Y',
       portalArrow: 'Portal arrow',
       portalArrowAbout: 'Off: find the portals by exploring. On: an arrow at the edge of the view points to the nearest portal.',
+      freeCamera: 'Free camera (single player)',
+      freeCameraAbout: 'On: turn the camera freely when playing alone, in worlds that allow it.',
       fullscreen: 'Fullscreen',
       worldFeatures: 'World features',
       worldFeaturesAbout: 'The world’s own feature panel: what it is doing, with switches. Menu or B closes it.',
@@ -215,7 +217,7 @@ export const TEXT = {
       goal: 'Reach the glowing portal, and avoid getting eaten by Stenus the rove beetle, the water strider and the wolf spider.',
       controls: [
         ['LS', 'Move'],
-        ['RS', 'Camera'],
+        ['RS', 'Tilt · peek'],
         ['A', 'Jump (hold for distance)'],
         ['X', 'Attack / eat'],
         ['B', 'Block (hold)'],
@@ -244,7 +246,7 @@ export const TEXT = {
       goal: 'Reach the glowing portal, and avoid getting eaten by the predatory mite and the pseudoscorpion.',
       controls: [
         ['LS', 'Move'],
-        ['RS', 'Camera'],
+        ['RS', 'Tilt · peek'],
         ['A', 'Jump (hold to charge)'],
         ['X', 'Attack / eat'],
         ['B', 'Dash (hold)'],
@@ -271,7 +273,7 @@ export const TEXT = {
       goal: 'Reach the glowing portal, and avoid getting eaten by Milnesium and the nematode.',
       controls: [
         ['LS', 'Move (back: walk backwards)'],
-        ['RS', 'Camera'],
+        ['RS', 'Tilt · peek'],
         ['A', 'Dash'],
         ['X', 'Attack / eat (one press)'],
         ['B', 'Block (hold)'],
@@ -328,7 +330,7 @@ export const TEXT = {
       goal: 'Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium, the giant amoeba and the bladderwort.',
       controls: [
         ['LS', 'Swim'],
-        ['RS', 'Deeper / shallower · far sides: turn view'],
+        ['RS', 'Deeper / shallower · peek'],
         ['A', 'Dash'],
         ['X', 'Jab / eat'],
         ['B', 'Block / burst'],
@@ -500,7 +502,7 @@ export const TEXT = {
       sub: 'Level 0, a bog pool: the water springtail Podura aquatica, 1.5 mm long, lives on the surface film. Eat, dodge, and spring away with the furcula.',
       controls: {
         move: 'Move',
-        camera: 'Camera',
+        camera: 'Tilt · peek',
         dash: 'Jump (hold for distance)',
         attack: 'Attack / eat',
         defend: 'Block (hold)',
@@ -830,7 +832,7 @@ export const TEXT = {
       sub: 'A box mite (Phthiracaridae), about 0.35 mm long, in a moss cushion, imaged like a scanning electron micrograph. A predatory mite hunts here.',
       controls: {
         move: 'Move',
-        camera: 'Camera',
+        camera: 'Tilt · peek',
         dash: 'Jump (hold to charge)',
         attack: 'Attack / eat',
         defend: 'Dash (hold)',
@@ -1162,7 +1164,7 @@ export const TEXT = {
       sub: 'A ~350 µm eutardigrade gripping moss-leaf cell walls in the water film: out from the shoot past a Milnesium, rotifer meadows and dry patches to the pool Prionchulus guards. Differential interference contrast (DIC) look.',
       controls: {
         move: 'Move; push behind to walk backwards, to the side to turn (keys: G hurry, T creep)',
-        camera: 'Camera',
+        camera: 'Tilt · peek',
         dash: 'Dash',
         attack: 'Attack / eat (one press)',
         defend: 'Block (hold)',
@@ -1906,7 +1908,7 @@ export const TEXT = {
     hud: {
       controls: {
         move: 'Swim',
-        camera: 'Deeper / shallower · far sides: turn view',
+        camera: 'Deeper / shallower · peek',
         dash: 'Dash',
         attack: 'Jab / eat',
         defend: 'Block / burst',

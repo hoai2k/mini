@@ -30,6 +30,7 @@ import { createMotes, surfacePoint } from './motes.js';
 import { createStenus, createStrider, createRain } from './enemies.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { t as tt, tx as ttx } from '../shared/text.js';
+import { createCamLock } from '../shared/camlock.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
@@ -236,7 +237,11 @@ const APERTURES = [2.8, 4, 5.6, 8, 11, 16, 22];
 // the low view you had. (It used to be two modes, and in top-down RS pitch
 // was ignored, so the camera stuck overhead until Y was pressed again.)
 const PITCH_MIN = 0.1, PITCH_MAX = 1.5, PITCH_TOP = 1.5, PITCH_LOW = 0.42;
-const rig = { yaw: Math.PI - Math.PI / 6, pitch: PITCH_LOW, wantPitch: PITCH_LOW, pitchLow: PITCH_LOW, get mode() { return this.wantPitch > 1.05 ? 'top' : 'low'; }, zi: 1, ai: 4, target: new THREE.Vector3(START.x, 0.25, START.z), look: 0, lens: null, dofK: 1, aim: null };
+// The world's forward (the owner, 2026-11-03: the camera's turn is locked to it, so the layout has a
+// "forward"): the camera looks along -(cos, sin) of this yaw, i.e. toward +x and a little -z (see README).
+const FORWARD_YAW = Math.PI - Math.PI / 6;
+const camLock = createCamLock({ forward: FORWARD_YAW });
+const rig = { yaw: FORWARD_YAW, pitch: PITCH_LOW, wantPitch: PITCH_LOW, pitchLow: PITCH_LOW, get mode() { return this.wantPitch > 1.05 ? 'top' : 'low'; }, zi: 1, ai: 4, target: new THREE.Vector3(START.x, 0.25, START.z), look: 0, lens: null, dofK: 1, aim: null };
 let lookDef = applyLook(0);
 /** Where the jump being cocked, or the one in flight, will come down (x, y, z), or null. */
 function landingPoint() {
@@ -1800,12 +1805,15 @@ function readInput(dt) {
   menuOpen = features.update();
   if (menuOpen) return [];
   hud.update(pad);
-  // RS: yaw (any player turns the shared camera), and pitch by intent (+1
-  // looks up: the camera swings down toward the horizon), honouring the
-  // shared Invert Y. It works in either view.
+  // RS: the camera's turn is locked to the world's forward (FORWARD_YAW, shared/camlock.js):
+  // RS left/right peeks sideways (each player's own), up/down pitches by intent (+1 looks up:
+  // the camera swings down toward the horizon), honouring the shared Invert Y. With the Free
+  // camera setting and one player, RS left/right turns the camera as it used to (any player).
   let yaw = 0;
-  for (const p of players.active) yaw += players.controls(p.slot).look().yaw;
-  rig.yaw += THREE.MathUtils.clamp(yaw, -1, 1) * 1.9 * dt;
+  const nAct = players.active.length, free = camLock.free(nAct);
+  for (const p of players.active) { const lk = players.controls(p.slot).look(); yaw += lk.yaw; camLock.peek(p.slot, free ? 0 : lk.yaw, dt); }
+  camLock.keep(players.active.map((p) => p.slot));
+  rig.yaw = camLock.yaw(rig.yaw, dt, nAct, THREE.MathUtils.clamp(yaw, -1, 1) * 1.9 * dt, capture.active);
   const look = ctl.look();
   rig.wantPitch = THREE.MathUtils.clamp(rig.wantPitch - look.pitch * 1.1 * dt, PITCH_MIN, PITCH_MAX);
   if (rig.mode === 'low') rig.pitchLow = rig.wantPitch;
@@ -2157,6 +2165,18 @@ const posOf = (P) => {
   if (P.mode === 'caught' && cap.who === P && (cap.kind === 'stenus' || cap.kind === 'strider' || cap.kind === 'boss') && ['eat', 'follow', 'fadeOut'].includes(cap.phase)) { const b = capBody(); return { x: b.x, y: 0.4, z: b.z }; }
   return { x: P.x, y: P.y + 0.25, z: P.z };
 };
+// RS left/right peeks (shared/camlock.js): each view's camera slides sideways along the ground by up to
+// peekFrac of the view's width at its target, eased, and blended through a split and a merge.
+const _pr = new THREE.Vector3();
+function applyPeek() {
+  if (outro) return;
+  camera.updateMatrixWorld();
+  _pr.setFromMatrixColumn(camera.matrixWorld, 0); _pr.y = 0;
+  if (_pr.lengthSq() < 1e-8) return;
+  _pr.normalize();
+  const w = 2 * camera.position.distanceTo(rig.target) * Math.tan((camera.fov * Math.PI) / 360) * camera.aspect;
+  camLock.applyPeek(split, (v, p) => _pr.clone().multiplyScalar(p * camLock.peekFrac * w));
+}
 const MOSS_LOD_BEYOND = 90; // mm past the focus distance (a 64 mm tile reaches ~45 mm from its centre)
 function render(dt) {
   // the outro: the camera slows with time, holds on the freeze, then follows the shell's poses
@@ -2167,6 +2187,7 @@ function render(dt) {
   if (outro) outro.L = L;
   field.upload();
   split.update(recs().map((P) => ({ slot: P.slot, position: posOf(P) })), { camera, zoom: rig.zoom }, dt);
+  applyPeek();
   groupZoom = split.zoom;
   directorViews();
   quality.setSplitViews(split.views.length);
@@ -2256,6 +2277,7 @@ function drawPortalArrow() {
 function stepViews(dt) {
   placeCamera(dt);
   split.update(recs().map((P) => ({ slot: P.slot, position: posOf(P) })), { camera, zoom: rig.zoom }, dt);
+  applyPeek();
   groupZoom = split.zoom;
   directorViews();
 }

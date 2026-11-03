@@ -38,6 +38,10 @@ const settings = { ...store.get('micro.game.settings', {}), controlsAtStart: tru
 const saveSettings = () => store.set('micro.game.settings', settings);
 let invertY = false;
 try { invertY = localStorage.getItem('micro.invertY') === '1'; } catch { /* private mode */ }
+// Free camera (single player): the worlds lock the camera's turn to their forward; on, a lone player may turn
+// it freely where the world allows (shared/camlock.js). Default off.
+let freeCamera = false;
+try { freeCamera = localStorage.getItem('micro.freeCamera') === '1'; } catch { /* private mode */ }
 const progress = { furthest: 0, visited: [], ...store.get('micro.game.progress', {}) };
 const saveProgress = () => store.set('micro.game.progress', progress);
 
@@ -689,7 +693,7 @@ async function worldReady(f) {
   S.loading = false;
   clearTimeout(S.loadTimer);
   send(f, 'sound', { on: sound.on, volume: sound.volume, soundSet: sound.set });
-  send(f, 'settings', { invertY });
+  send(f, 'settings', { invertY, freeCamera });
   send(f, 'players', { roster: roster.toJSON() });
   const veil = $('#veil');
   if (!veil.hidden) {
@@ -1022,6 +1026,11 @@ function settingItems() {
       invertY = !invertY;
       try { localStorage.setItem('micro.invertY', invertY ? '1' : '0'); } catch { /* private mode */ }
       send(S.frame, 'settings', { invertY });
+    } },
+    { id: 'freeCamera', label: t('shell.settings.freeCamera'), about: t('shell.settings.freeCameraAbout'), get: () => freeCamera, toggle: () => {
+      freeCamera = !freeCamera;
+      try { localStorage.setItem('micro.freeCamera', freeCamera ? '1' : '0'); } catch { /* private mode */ }
+      send(S.frame, 'settings', { freeCamera });
     } },
     { id: 'portalArrow', label: t('shell.settings.portalArrow'), about: t('shell.settings.portalArrowAbout'), get: () => portalArrow(), toggle: () => {
       const on = !portalArrow();

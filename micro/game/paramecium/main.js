@@ -40,6 +40,7 @@ import { createPrey, stepPrey, gulpPrey } from './prey.js';
 import { START, DEPTH, ZK, ZTOL, FIELD, ZOOM, BACK, DIRECTOR, ENCOUNTERS, DEFAULT_PATH, MET, DRIFT_TO, canPlace, didiniumHomes, trapAt, bandDist } from './route.js';
 import { clumpLayout, placeInFrame } from '../shared/kin-clump.js';
 import { t as tt, tx as ttx } from '../shared/text.js';
+import { createCamLock } from '../shared/camlock.js';
 
 const GOAL = 6; // prey to eat to divide
 const TAU = Math.PI * 2;
@@ -117,6 +118,9 @@ const LOOKS = {
   Brightfield: { bg: [0.86, 0.84, 0.76], add: 0, sub: 0.7, tile: null, tileK: 0, subTint: [1.0, 0.95, 0.9], shadow: 0.35 },
 };
 const PHASE_BG = [0.6, 0.655, 0.615]; // the bacterium's phase field (the dive turns the light to it)
+// The world's forward (the owner, 2026-11-03): the view's turn is locked with the slide's +y up the
+// screen (view.rot 0), so the layout has a "forward" (see README); RS left/right peeks instead.
+const camLock = createCamLock({ forward: 0 });
 const view = { look: 'Darkfield', parallax: true, tile: true, glitter: 1, rot: 0, cx: START.x, cy: START.y, focus: 0, vx: 0, vy: 0, fw: FIELD * ZOOM.start };
 features.add({ id: 'look', group: 'Optics', choices: LOOK_NAMES, value: 'Darkfield',
   onChange: (v) => { view.look = v; } });
@@ -684,16 +688,19 @@ function stepPlayer(P, dt, input) {
 const _in = { mx: 0, my: 0, m: 0, depth: 0 };
 function readInput(P, dt, frozen) {
   _in.mx = _in.my = _in.m = _in.depth = 0;
-  if (frozen || !P.live) return _in;
-  const c = players.controls(P.slot);
-  if (!c) return _in;
+  const c = frozen || !P.live ? null : players.controls(P.slot);
+  if (!c) { camLock.peek(P.slot, 0, dt); return _in; }
   const m = c.move();
   // the stick in the view's frame: up the screen is the view's up
   const sx = m.x, sy = -m.y, cr = Math.cos(view.rot), sr = Math.sin(view.rot);
   _in.mx = sx * cr - sy * sr; _in.my = sx * sr + sy * cr; _in.m = Math.min(1, m.m);
   const rs = c.camera();
-  // RS: up deeper (into the slide), down shallower (toward you); only far left/right turns the view
-  if (Math.abs(rs.x) > 0.7 && Math.abs(rs.x) > Math.abs(rs.y)) view.rot = wrap(view.rot - rs.x * 1.5 * dt);
+  // RS: up deeper (into the slide), down shallower (toward you); left/right peeks sideways (the view's
+  // turn is locked to the slide's up, shared/camlock.js). With the Free camera setting and one player,
+  // far left/right turns the view as it used to.
+  const free = camLock.free(players.active.length);
+  camLock.peek(P.slot, free ? 0 : rs.x, dt);
+  if (free && Math.abs(rs.x) > 0.7 && Math.abs(rs.x) > Math.abs(rs.y)) view.rot = wrap(view.rot - rs.x * 1.5 * dt);
   else _in.depth = clamp(rs.y, -1, 1);
   _in.depth = clamp(_in.depth + c.secondary(), -1, 1);
   // deeper / shallower: heard where the depth input starts
@@ -901,6 +908,8 @@ function render(dt) {
   const list = cells.filter((c) => c.live || c.dead).map((c) => ({ slot: c.slot, position: toFrame(c.S.x, c.S.y) }));
   const L = split.update(list.length ? list : [{ slot: 0, position: toFrame(P1.S.x, P1.S.y) }], { center: { x: view.cx, y: view.cy }, pxPerUnit: innerWidth / view.fw, yUp: true, zoom: camHeld ? 1 : groupZoom.applied }, dt);
   groupZoom.z = split.zoom;
+  // RS left/right peeks: each view's centre slides along the screen's right by up to peekFrac of the field
+  if (!camHeld) camLock.applyPeek(split, (v, p) => ({ x: p * camLock.peekFrac * view.fw, y: 0 }));
   quality.setSplitViews(L.views.length);
   const look = currentLook();
   // the views: each one's centre and focus (its own players' depth). What a split view keeps of its
@@ -912,7 +921,7 @@ function render(dt) {
   const splitNow = !L.merged && !camHeld;
   const Fall = focalFor(allSlots); // (kept stepping while split, so a merge eases back onto it)
   const cellAt = (j) => cells.find((c) => c.slot === L.players[j].slot) || P1;
-  const vs = (splitNow ? L.views : [{ index: 0, offset: { x: 0, y: 0 }, slots: allSlots }]).map((v) => {
+  const vs = (splitNow ? L.views : [{ index: 0, offset: !camHeld && L.views[0] ? L.views[0].offset : { x: 0, y: 0 }, slots: allSlots }]).map((v) => {
     const o = fromFrameOffset(v.offset);
     const mine = cells.filter((c) => v.slots.includes(c.slot) && (c.live || c.dead));
     // the view's own depth, focal plane (each player's own, focus.js) and zoom, blended with the split
@@ -1027,6 +1036,9 @@ function frame(now) {
   if (dt > 0) {
     t += dt;
     for (const P of cells) { P.pad = players.pad(P.slot); stepPlayer(P, dt, readInput(P, dt, panel || !!outro)); }
+    camLock.keep(cells.map((P) => P.slot));
+    // the view's turn: locked to the slide's up (eased back there when it was turned: the shell's pose, the free camera)
+    if (!outro) view.rot = camLock.yaw(view.rot, dt, players.active.length, 0, false);
     stepWorld(dt);
     stepLandmarks(dt);
   } else if (held) {

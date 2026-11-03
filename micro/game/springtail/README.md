@@ -211,7 +211,7 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | Button | Action |
 | --- | --- |
 | LS (WASD) | Walk on the film, relative to the view. Slow and a bit slippery: you coast |
-| RS (arrows) | Orbit the camera. Up looks up (the camera swings down toward the horizon), down looks down, in either view; Features → Invert camera Y flips it (shared by every prototype) |
+| RS (arrows) | **Tilt · peek**: left/right peeks sideways (the turn is locked to the world's forward, below; Free camera in single player turns it). Up looks up (the camera swings down toward the horizon), down looks down, in either view; Features → Invert camera Y flips it (shared by every prototype) |
 | **A** (Space) | **Furcula jump.** Tap to hop; hold and release for distance (~0.7 s for a full jump). Aim with LS (no stick: straight ahead). Tap again during a jump to hop immediately on landing, or hold in the air to prepare a charged jump. The furcula re-cocks in 0.08 s, including during flight, so normal landings have no extra cooldown. Released at an enemy in range, the jump becomes a pounce-bite. When stuck in sundew glue, struggle: tug with LS (each new push or change of direction counts; WASD changes on a keyboard) and kick with A, both together, to tear free; on your back (lying in the film, legs kicking), tap A to flip over at once, or wait ~1.2 s and it rights itself |
 | **X** (E) | Three moves, by what is in front of your head: **eat** (food: the head goes down on a grain, the mouthparts work and the grain shrinks away, 0.7 s a bite); **fight** (a predator's leg in reach: rear up, then snap: a nip that staggers it); **attack** (nothing in reach: a lunge-nip). **In the air: the pounce-bite** (see Fighting back) |
 | **B** (Shift) | Hold: **hunker, the defend button.** Pressed flat with the collophore: facing a predator, it blocks its strike; waves cannot flip you, and a still, hunkered springtail makes no ripples for the strider to feel. You cannot move |
@@ -289,6 +289,14 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
   hook: `portalArrow()`.
 
 ## Multiplayer
+**The world's forward** (the owner, 2026-11-03): the camera's turn is locked
+to it, so obstacle layout can rely on it. `FORWARD_YAW` in `main.js` (5π/6, the start view): the camera looks toward +x and a little toward -z (the camera sits at −x, +z of its target). RS left/right peeks
+sideways instead (the view slides about 30 % of its width that way and eases
+back; each player's own, blended through a split and a merge), RS up/down
+tilts, and LS moves relative to the fixed forward. With **Free camera (single
+player)** on in the game's Settings (or `?freecam=1` here) a lone player turns
+the camera freely again; a second player joining eases it back to the forward
+over 0.6 s and locks it (`../shared/camlock.js`).
 
 Up to four players (`shared/players.js`, `../CONTROLS.md`): player 1 on the
 keyboard and the first controller, players 2–4 join at any time by pressing
@@ -298,8 +306,8 @@ shell (`embed.players`).
 
 - Each player is a springtail of their own (a second springtail shares the
   first one's meshed geometry), marked by a faint ring of their colour on the
-  film. Everyone uses the shared controls; RS from any player turns the
-  shared camera, and player 1 also has the optics (Y, zoom, look, aperture).
+  film. Everyone uses the shared controls; RS left/right peeks (each
+  player's own view), and player 1 also has the optics (Y, zoom, look, aperture).
   Focusing ahead or near (RT / LT held) is each player's own: alone it
   focuses the shared camera; with company each view takes its own players'
   focus (the portal halo is left out while anyone looks). A split view's own

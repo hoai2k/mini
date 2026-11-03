@@ -168,16 +168,20 @@ The drop is one continuous water volume 480 µm deep, the coverslip above (`z`
   something that fills the depth (the trap's wall) turns you aside, glancing
   along it. You never need RS to get past the scenery; you use it to slip
   under a lunge or over the giant amoeba.
-- **RS far left/right turns the view** about its axis (only past 0.7 and
-  more sideways than up/down, so depth is never disturbed). Swimming stays
-  screen-relative.
+- **RS left/right peeks** sideways (the view slides about 30 % of the field
+  that way and eases back). The view's turn is locked with the slide's +y up
+  the screen (`view.rot` 0: the world's forward, for the layout); with **Free
+  camera (single player)** on in the game's Settings (or `?freecam=1`), a lone
+  player's RS far left/right turns the view as it used to, and a second
+  player joining eases it back over 0.6 s and locks it
+  (`../shared/camlock.js`). Swimming stays screen-relative.
 
 ## Controls
 
 | Button | Label | What it does |
 | --- | --- | --- |
 | LS | Swim | Analogue speed and direction (screen-relative); the cell turns to it fast; let go and it stops (low Reynolds number) |
-| RS | Deeper / shallower · far sides: turn view | Up deeper, down shallower, smoothly; pushed far left or right, turns the view |
+| RS | Deeper / shallower · peek | Up deeper, down shallower, smoothly; left/right peeks sideways |
 | A | Dash | A ciliary sprint (1.5 mm/s for 0.28 s, recharges in 0.9 s); flings bloom cells aside |
 | X | Jab / eat | With a hunter close: a trichocyst jab ahead (three threads fanned ±24°, reaching 110 µm past the front): it lands (a flash, `shared/hit`, the hunter knocked back and worn down) or visibly misses. Otherwise gulps prey at the oral end, or a cone of algae in the bloom |
 | B | Block / burst | The avoiding reaction (back up and swing round, away from the nearest threat); blocks a Dileptus's slash or a Didinium's crouch or lunge (always); with a charge also a trichocyst burst all round (three charges, one back every 3 s): bursts you out of the giant amoeba's cup and the trap's pull |
@@ -186,11 +190,11 @@ The drop is one continuous water volume 480 µm deep, the coverslip above (`z`
 | LB/RB | Deeper / shallower | The same as RS up/down |
 | D-pad ←→ | Change the look | Darkfield, phase contrast, brightfield |
 
-Keyboard: WASD swim, arrow keys depth (far left/right turn), Space dash, E
+Keyboard: WASD swim, arrow keys depth (left/right peek), Space dash, E
 jab/eat, Shift block/burst, R enter, Z/X zoom out/in, Q/F deeper/shallower,
 3/4 look. The shell's list (`micro/game/src/worlds.js`, from
 `../../text_config.js` `worlds.paramecium.controls`): `[['LS', 'Swim'],
-['RS', 'Deeper / shallower · far sides: turn view'], ['A', 'Dash'], ['X',
+['RS', 'Deeper / shallower · peek'], ['A', 'Dash'], ['X',
 'Jab / eat'], ['B', 'Block / burst'], ['LT/RT', 'Zoom out / in'], ['LB/RB', 'Deeper / shallower'], ['D-pad ←→', 'Change the
 look']]`.
 

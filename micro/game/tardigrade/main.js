@@ -30,6 +30,7 @@ import { createPortalLight } from '../shared/portal.js';
 import { createDirector } from '../shared/director.js';
 import { DIRECTOR, encounters, canPlace, wayOut, defaultPathFor } from './encounters.js';
 import { t as tt, tx } from '../shared/text.js';
+import { createCamLock } from '../shared/camlock.js';
 
 const MODES = ['DIC (Nomarski)', 'Brightfield', 'Lit (hypothetical)'];
 // The second entry is the 10× objective behind a 1.25× intermediate
@@ -233,7 +234,11 @@ const viewScale = () => (quality ? quality.scale / Q_MAX : SPLIT_SW[Math.min(4, 
 // leaf, the film and the surroundings read while the animal stays readable;
 // D-pad down steps out to 10×, up in to 20× and 40×.
 // (opens looking along leaf A, the +x spoke up and to the right)
-const view = { yaw: Math.atan2(1, 0) + Math.PI + Math.PI / 6, pitch: 1.18, obj: 1, manualFocusT: 99, focus: 0, mode: 0, labels: false, target: new THREE.Vector3(), claws: 1, internals: true, sway: true };
+// The world's forward (the owner, 2026-11-03: the camera's turn is locked to it, so the layout has a
+// "forward"): the camera's azimuth round its target is π/2 - this yaw (see README).
+const FORWARD_YAW = Math.atan2(1, 0) + Math.PI + Math.PI / 6;
+const camLock = createCamLock({ forward: FORWARD_YAW });
+const view = { yaw: FORWARD_YAW, pitch: 1.18, obj: 1, manualFocusT: 99, focus: 0, mode: 0, labels: false, target: new THREE.Vector3(), claws: 1, internals: true, sway: true };
 view.target.copy(walker.dispPos);
 
 // ---------------------------------------------------------------- the intro (continuous transitions)
@@ -897,6 +902,18 @@ const NEXT_OPENING = { f: 0.382, pitch: 1.55, rel: Math.PI };
 let outro = null;
 const glowU = places.glow.group.children[0].material.uniforms; // (its shared uniforms: uI is its brightness)
 const glowI0 = glowU.uI.value;
+// RS left/right peeks (shared/camlock.js): each view's camera slides sideways (its right, level) by up to
+// peekFrac of the view's width at its target, eased, and blended through a split and a merge.
+const _pr = new THREE.Vector3();
+function applyPeek() {
+  if (outro) return;
+  camera.updateMatrixWorld();
+  _pr.setFromMatrixColumn(camera.matrixWorld, 0); _pr.y = 0;
+  if (_pr.lengthSq() < 1e-8) return;
+  _pr.normalize();
+  const w = 2 * (view.camDist || view.dist || camera.position.distanceTo(view.target)) * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
+  camLock.applyPeek(split, (v, p) => _pr.clone().multiplyScalar(p * camLock.peekFrac * w));
+}
 const azimuth = () => Math.PI / 2 - view.yaw; // this world's orbit: the camera's azimuth round its target
 function startOutro(a) {
   const am = places.amoeba;
@@ -1003,6 +1020,7 @@ function inputOf(a, inMenu) {
 function stepViews(dt) {
   placeViewCamera(dt);
   split.update(animals.map((a) => ({ slot: a.slot, position: shownAt(a, a.shown || (a.shown = new THREE.Vector3())) })), { camera, zoom: view.zoom }, dt);
+  applyPeek();
   groupZoom = split.zoom;
   viewN = 0;
   const L = split.layout;
@@ -1142,11 +1160,15 @@ function frame() {
   if (P(B.RS)) { life.newDay(); toast(tt('tardigrade.toasts.backAtStart')); }
   if (P(B.LB)) features.set('labels', !view.labels);
   if (P(B.LS)) { view.focus = 0; toast(tt('tardigrade.toasts.refocused')); }
-  // RS: yaw, and pitch by intent (up = look up: the camera swings down). Any player turns the shared view.
+  // RS: the camera's turn is locked to the world's forward (FORWARD_YAW, shared/camlock.js): RS
+  // left/right peeks sideways (each player's own); up/down pitches by intent (up = look up: the camera
+  // swings down; any player). With the Free camera setting and one player, RS left/right turns the view.
   let yaw = 0, pitch = 0;
-  if (!inMenu && !outro) for (const a of animals) { if (a.p.waiting) continue; const lk = a.ctl.look(); yaw += lk.yaw; pitch += lk.pitch; }
+  const live = animals.filter((a) => !a.p.waiting), free = camLock.free(live.length);
+  for (const a of live) { const lk = !inMenu && !outro ? a.ctl.look() : { yaw: 0, pitch: 0 }; yaw += lk.yaw; pitch += lk.pitch; camLock.peek(a.slot, free ? 0 : lk.yaw, dt); }
+  camLock.keep(live.map((a) => a.slot));
   yaw = THREE.MathUtils.clamp(yaw, -1, 1); pitch = THREE.MathUtils.clamp(pitch, -1, 1);
-  view.yaw -= yaw * dt * 1.6;
+  view.yaw = camLock.yaw(view.yaw, dt, live.length, -yaw * dt * 1.6, !!outro || capture.active || !!(intro && intro.cam));
   view.pitch = THREE.MathUtils.clamp(view.pitch - pitch * dt * 1.2, 0.35, 1.52);
   const fin = inMenu ? 0 : ctl.analog();
   view.focus = THREE.MathUtils.clamp(view.focus - fin * dt * 0.8, -3, 3);
@@ -1664,6 +1686,7 @@ function drawViews(dt) {
   // Split screen (one view, straight to the screen, while together).
   const list = animals.map((a) => ({ slot: a.slot, position: shownAt(a, a.shown || (a.shown = new THREE.Vector3())) }));
   split.update(list, { camera, zoom: view.zoom }, dt);
+  applyPeek();
   groupZoom = split.zoom;
   const L = split.layout;
   // The lit look swaps in ordinary materials, so the optical buffers would be empty.

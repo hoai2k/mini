@@ -57,7 +57,7 @@
 //   sound     {on, volume}   the game's master sound switch and volume (0..1).
 //   controls  {show, autoHide?}  show or hide the controls panel; autoHide is
 //             seconds after which it hides itself (8 at the start of a board).
-//   settings  {invertY, ...} shared settings changed in the shell.
+//   settings  {invertY, freeCamera, ...} shared settings changed in the shell (freeCamera: shared/camlock.js).
 //   features  {open}         open the world's developer feature panel.
 //   players   {roster}       the joined players, shared/players.js toJSON(),
 //             sent before `resume`; the world restores it with fromJSON() and
