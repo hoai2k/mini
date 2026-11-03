@@ -3,8 +3,7 @@
 World 5 of Micro Zoom (`micro/game/`, "Hollow Pool"), between the amoeba and
 the bacterium: swim as the green *Paramecium bursaria* across a microscope
 slide in darkfield, quick and light, battling the pond drop's other protists
-on the way to a biofilm guarded by a bladderwort trap. Published in the
-prototype archive at `micro/game/paramecium/`.
+on the way to a biofilm guarded by a bladderwort trap. Published at `micro/game/paramecium/`.
 
 ## The redesign: a 2D slide that looks like its card (2026-11-02)
 
@@ -71,13 +70,99 @@ crouch. Now (`foes.js` *Fighting back*, `../CONTROLS.md` "Fighting back"):
 never on the same level. The depths laid out for the old 300 µm drop (the
 scenery, the trap, the giant, the portal and the way back) are scaled by `ZK`.
 
-**The zoom** (`ZOOM`, `route.js`): the old default field (560 µm) is now the
-closest; play starts at 1.6× (896 µm, the 0.9 mm on the world's card), and
-**LT zooms out, RT in**, analogue and continuous (a full trigger is ×e in
-0.9 s), eased (0.14 s), clamped from 1× to 3× (1.68 mm). The D-pad no longer
-zooms (↑↓ do nothing; ←→ still change the look). Each player has their own
-zoom: one view shows the widest of its players', split views each keep their
-own players'.
+**The zoom** (`ZOOM`, `route.js`; recalibrated 2026-11-03, below): **LT
+zooms out, RT in**, analogue and continuous (a full trigger is ×e in 0.9 s),
+eased (0.14 s). The D-pad does not zoom (↑↓ do nothing; ←→ change the look).
+Each player has their own zoom: one view shows the widest of its players',
+split views each keep their own players'.
+
+## Everything stirs, the zoom recalibrated, the way to the portal legible (2026-11-03)
+
+The owner: "in the paramecium world, I notice plants that retract when I go
+by (what are those and should I be able to eat them?). Also I see what look
+like thin oval cells standing still with an H shape in the middle of them,
+but they don't seem interactable … pressing X seems to spurt out lines …
+it only seems to have an effect on the tiny bugs that I can eat. It should
+also be able to move / affect other things in the environment … Everything
+should be interactable if possible. Also, can we start the zoom from the
+current furthest zoom, and recalibrate to be able to go further out or in
+from there? Also I couldn't find the portal … We should slowly vary the
+environment as we get closer to the portal, so you know which track to take."
+
+The retracting "plants" are the *Vorticella* colonies (bells on contractile
+stalks: `world.js` `vorticella`, drawn by `drawVorticella`); the still ovals
+with an H are pennate diatoms (the H is the raphe slit down the middle and
+its central nodule: `drawDiatom`). Neither can be eaten: a *Vorticella* bell
+is a ciliate about a third of your length, a diatom is glass. Now:
+
+**X sends a push wave** (`stir.js` `WAVE`): the jab's threads are shorter and
+softer (9 fanning out ±35° ahead, ~25 µm, fading in 0.3 s; `cell.js`), and
+an arc runs out ahead of the oral end to 170 µm in 0.42 s and fades
+(`draw.js` `drawWaves`), rippling the glitter as it passes. What it reaches
+(once, in its arc, within 75 µm of depth) is shoved along it by its mass;
+the jab's hits on hunters (`foes.js`) and the gulp of food at your mouth are
+unchanged. **X during a dash** (or just after one) is a strong wave: 240 µm,
+2.6× the push. What each thing does (each tile copy keeps its own state,
+`world.js` `dynOf`; `stir.js` `shove`):
+
+| Thing | X (and the body) | Strong X (in a dash) |
+| --- | --- | --- |
+| Pennate diatom (live: gold plates) | slides away and turns, by its mass (a small one ~60 µm, a big one ~20); the body shoves it as you weave over it; it glides slowly to and fro along its raphe on its own (14-34 µm at 7-13 µm/s) | tumbles |
+| Empty frustule (dead: glass, striae, no gold; ~30 %, one near the start) | slides and turns | **cracks** across: two half-shells part, two food clumps spill out |
+| *Fragilaria* ribbon | slides, heavier | tumbles |
+| Detritus clump | wobbles; **crumbles** once struck harder than its radius / 36 µm (one jab breaks a small one, a big one takes two or a strong one; a dash into it counts 0.6): its granules fly apart and settle as a loose scatter, 1-2 bacterial clumps (food) drift out, and it is no longer an obstacle | crumbles |
+| Clump carrying a *Vorticella* colony | wobbles only (the colony holds it) | wobbles |
+| *Spirogyra* filament (anchored) | bends where struck (up to 34 µm) and springs back (a damped spring, 8 rad/s); the body bends it as you weave through | bends further |
+| *Vorticella* | snaps its stalk shut at once (also when you bump its stalk, and as before when you swim close), the bell recoiling with a wobble; one struck **open** (feeding) knocks loose the bacterial clump at its mouth (food, once every 14 s per bell). Open bells draw drifting bacterial clumps toward them (their feeding current, up to 44 µm/s within 170 µm, with specks swirling into the bell), so food gathers at them | the same |
+| Flocs | pushed far (light) and loosened; the body sweeps them along | broken up |
+| Prey | bacterial clumps knocked along; a *Chilomonas* darts off | |
+| Bloom cells | pushed out of the wave's way (beyond the gulp) | |
+| Bladderwort trap | its antennae and trigger hairs wave; touch the hairs of a set trap and it fires (early: a wasted pulse if you are clear). Its pulse also drags in the loose diatoms, flocs and prey within its reach, and swallows what reaches its door | |
+
+**Departures:** a real trichocyst discharge is a defence, not a current
+strong enough to shove a diatom; the wave stands for the discharge plus the
+cell's oral current, scaled up so a hit reads. Detritus does not hold
+bacteria as tidy clumps, and a frustule does not hold food; both spill
+"food" for the game. *Vorticella* contracts in milliseconds and re-extends in
+seconds (as here); a knocked bell does not really spit out a clump.
+
+**The zoom recalibrated** (`route.js` `ZOOM`): play starts at **3×** (1.68
+mm across, the widest it used to go), zooms in to **0.9×** (504 µm, a little
+closer than the old closest) and out to **5.6×** (3.1 mm, 1.9× the old
+widest). Zoomed out, the far detail thins (`draw.js` `lod`: glitter, clump
+granules and fibres, *Vorticella* stalks, cilia and granules, the
+filaments' ribbon steps; flocs at 3.6×), and past 3.2× the cell keeps a soft
+glowing outline so it never shrinks into the scenery (`drawCellHalo`). The
+fill rectangle is now the view's own box (the turn is locked to the slide's
+up), not a square round it: a third of the shapes at the start. The world's
+card keeps its nominal 0.9 mm field (the shell's ladder of fields,
+`../src/worlds.js` `fieldMm`, must keep falling from the amoeba's 1.4 mm);
+the transition in eases to the opening framing as before.
+
+**The gradient toward the portal** (`world.js` `RICH`, `richAt`): a value
+`rich(x, y)` from the distance to the portal's leaf, 0 beyond 44 mm, rising
+(eased) to 1 within 1.2 mm; at the start of the default path (39 mm) it is
+0.07. A second, ranked layer of scenery (8 more filaments, 26 clumps, most
+carrying *Vorticella* colonies, 14 diatoms, 70 flocs a tile) shows where the
+gradient passes each thing's rank, fading in over a fifth of the range; and
+toward the leaf: bacteria join the glitter (up to 4 more short rods per 80 µm,
+low in the drop), patches of biofilm haze (green and amber, with
+microcolonies) thicken on the slide, a warm green creeps into the field and
+the habitat tile below (`main.js` `tintLook`), more food is kept round you
+(6 → 10), and within ~5 mm the slide turns to leaf litter (a net of plant
+cells). Sideways and back it stays open water (it depends only on distance,
+so it works wherever the portal ends up: if the portal is placed as you go,
+the gradient's reference eases after it over a few seconds, `stepRich`). The
+way back has its own cue: within 2.4 mm of the amoeba's patch its slime
+trails and egested vacuoles thicken on the slide (`backK`). Measured at 3×
+along the default path (`rich` / shape instances): start 0.07 / 10.6 k,
+quarter way 0.28 / 11.7 k, half 0.51 / 13.7 k, three quarters 0.76 / 14.7 k,
+3 mm short 0.95 / 18.2 k; 20 mm to the side 0.04 / 8.9 k.
+
+**Straight up the screen reaches everything** (2026-11-03, this build):
+`debug.rush({ bearing: π/2 })` (the real game stepped at 1/30 s, dashing
+when ready) meets the Dileptus at 5.8 s, the bloom 14.5, the giant amoeba
+23.1, the Didinium 35.8 and reaches the open portal at 47.6 s, no deaths.
 
 ## The look
 
@@ -98,11 +183,13 @@ where it scatters light.
   angles and running through the depth; golden-brown detritus clumps;
   colonies of bell-shaped *Vorticella* on coiled stalks rising from some of
   them (each contracts now and then on its own, and at once when you swim
-  close, its stalk coiling up, then re-extends slowly); pennate diatoms with
-  golden chloroplast plates and *Fragilaria* ribbons; loose golden flocs; and
+  close or knock it, its stalk coiling up, then re-extends slowly); pennate
+  diatoms with golden chloroplast plates (some empty, glass only) gliding
+  slowly along their raphe, and *Fragilaria* ribbons; loose golden flocs; and
   fine glittering specks everywhere (hashed per 80 µm cell, the same on every
   visit), twinkling. All laid out in a 2.4 mm tile repeated in every
-  direction, so the field is as full far out as at the start; the opening view
+  direction (each copy keeping its own shoves and breaks), richer toward the
+  portal (above); the opening view
   is composed after the card (two filaments crossing to the right, a
   *Vorticella* colony on a clump up to the left, diatoms between).
 - **Far below the drop**, the delivered seamless habitat tile (MP-P04;
@@ -183,10 +270,10 @@ The drop is one continuous water volume 480 µm deep, the coverslip above (`z`
 | LS | Swim | Analogue speed and direction (screen-relative); the cell turns to it fast; let go and it stops (low Reynolds number) |
 | RS | Deeper / shallower · peek | Up deeper, down shallower, smoothly; left/right peeks sideways |
 | A | Dash | A ciliary sprint (1.5 mm/s for 0.28 s, recharges in 0.9 s); flings bloom cells aside |
-| X | Jab / eat | With a hunter close: a trichocyst jab ahead (three threads fanned ±24°, reaching 110 µm past the front): it lands (a flash, `shared/hit`, the hunter knocked back and worn down) or visibly misses. Otherwise gulps prey at the oral end, or a cone of algae in the bloom |
+| X | Jab · push / eat | With a hunter close: a trichocyst jab ahead (reaching 110 µm past the front): it lands (a flash, `shared/hit`, the hunter knocked back and worn down) or visibly misses. Otherwise gulps prey at the oral end, or a cone of algae in the bloom. Every jab sends a push wave ahead that shoves, bends, snaps or breaks what it reaches (above); in a dash, a strong one |
 | B | Block / burst | The avoiding reaction (back up and swing round, away from the nearest threat); blocks a Dileptus's slash or a Didinium's crouch or lunge (always); with a charge also a trichocyst burst all round (three charges, one back every 3 s): bursts you out of the giant amoeba's cup and the trap's pull |
 | Y | (not in the in-game list) | At the open portal (down on the biofilm, the trap spent); on the amoeba's patch: back up a world. The world asks for Y on screen there, so the controls lists leave it out (3 November 2026) |
-| LT/RT | Zoom out / in | Analogue and continuous, from the closest field (560 µm) to 3× (1.68 mm); the game starts at 1.6× |
+| LT/RT | Zoom out / in | Analogue and continuous, from 0.9× (504 µm) to 5.6× (3.1 mm); the game starts at 3× (1.68 mm) |
 | LB/RB | Deeper / shallower | The same as RS up/down |
 | D-pad ←→ | Change the look | Darkfield, phase contrast, brightfield |
 
@@ -195,7 +282,7 @@ jab/eat, Shift block/burst, R enter, Z/X zoom out/in, Q/F deeper/shallower,
 3/4 look. The shell's list (`micro/game/src/worlds.js`, from
 `../../text_config.js` `worlds.paramecium.controls`): `[['LS', 'Swim'],
 ['RS', 'Deeper / shallower · peek'], ['A', 'Dash'], ['X',
-'Jab / eat'], ['B', 'Block / burst'], ['LT/RT', 'Zoom out / in'], ['LB/RB', 'Deeper / shallower'], ['D-pad ←→', 'Change the
+'Jab · push / eat'], ['B', 'Block / burst'], ['LT/RT', 'Zoom out / in'], ['LB/RB', 'Deeper / shallower'], ['D-pad ←→', 'Change the
 look']]`.
 
 ## Playing
@@ -438,6 +525,13 @@ their names with new 2D contents; `shapes.js`, `draw.js` and `foes.js` are new.
 
 ## Performance
 
+2026-11-03 (the fill rectangle now the view's own box; SwiftShader, 1280×720,
+the same shared machine): ~4.8 k shape instances at the closest (0.9×),
+~10.6 k at the start (3×), ~14.9 k at the widest (5.6×), ~18-20 k at 3× next
+to the portal (the gradient's full layer) and ~29 k at the widest there; a
+frame ~170 ms at the start and ~265 ms at the widest. The numbers below are
+from before.
+
 Zoomed (SwiftShader, 1280×720, a shared machine: rough): ~6.8 k shape
 instances at the closest field, ~11 k at the start (1.6×), ~22 k at the
 widest (3×; of 90 k), plus ~20-190 shadows; the glitter thins as the field
@@ -475,12 +569,15 @@ vertex shader.
   ≈100 µm/s; flagella not drawn.
 - Glitter, granules and flocs are scattered light from particles too small
   to name; their density follows the card, not a count.
+- The push wave, the food spilled by a crumbled clump, a cracked frustule
+  or a knocked *Vorticella*, and the gradient's tidy rise toward one leaf
+  (see *Everything stirs*).
 
 ## Checks
 
 ```bash
 for f in micro/game/paramecium/*.js micro/game/paramecium/*.mjs; do node --check "$f"; done
-node --test micro/game/paramecium/*.test.mjs micro/game/shared/director.test.mjs
+node --test micro/game/paramecium/*.test.mjs micro/game/shared/director.test.mjs   # stir.test.mjs: the pushes, breaks and gradient
 node micro/game/paramecium/route.test.mjs        # the timings above
 node micro/game/check-worlds.mjs paramecium amoeba bacterium index
 node micro/game/check.mjs
@@ -493,6 +590,19 @@ in 0.5-0.9 s (eased, a slight overshoot, settled), a longer turn for a longer
 way, and stops the knob when the swimmer moves again mid-turn, refocusing
 after the next wait.
 
+`stir.test.mjs`: the wave shoves a diatom (it slides off and turns, a
+heavier one less); a strong wave cracks an empty frustule (no longer an
+obstacle) and only tumbles a live one, a plain one cracks nothing; a small
+clump crumbles at one jab, a big one at a strong one, one carrying a colony
+never; a filament bends where struck and springs back, its ends still; a
+*Vorticella* snaps shut, its bell recoils and, struck open, it knocks loose
+food (struck shut, nothing); the body shoves a diatom it swims into; shoves
+die away; the strong wave reaches further; the gradient rises steadily
+toward the portal (subtle at 39 mm, about half at 20 mm), the start barely
+changes, 1.5 mm short of the portal the clumps and colonies are 1.4× as
+many or more, square to the way nothing changes, leaf litter only near it
+(in three directions).
+
 `play.test.mjs`: auto-weave crosses a filament with no depth input (over or
 under, by the side it was on) and passes a clump; a wall is glanced off; depth
 stops at the glass and the slide; the swim reaches full speed in 0.2 s, the
@@ -504,7 +614,8 @@ jab lands at any depth near the hunter's; a jab lands in front, and misses
 (saying why) too far ahead, behind, above or below; three jabs drive a
 Didinium or a Dileptus off, each one flinching it; B blocks a Didinium in its
 crouch and in its lunge (no kill); four jabs drive the giant amoeba back and
-it then engulfs nobody; the zoom's limits; the giant amoeba engulfs a cell
+it then engulfs nobody; the zoom's limits (start 3×, 0.8-1× in, 1.6-2× the
+old widest out); the giant amoeba engulfs a cell
 low in the drop, leaves one over it alone, a burst frees you and no burst
 means digestion; the trap pulls, bursts and wasted pulses spend it, and a cell
 at its door in a pulse is sucked in; the scenery repeats and the start is clear.
