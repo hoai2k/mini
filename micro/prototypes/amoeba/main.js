@@ -685,15 +685,20 @@ function despawn(p) {
 const test = { input: null, presses: new Set() };
 const NONE = { m: 0, dx: 1, dy: 0 };
 const ROLE_ON = 0.35, ROLE_OFF = 0.12;
-/** Both sticks and the shoulder buttons, from the pad or the test override. */
+/**
+ * Both sticks and the shoulder buttons, from the pad or the test override.
+ * The triggers are swapped here (the owner, 2026-11-02): the physical LT holds
+ * movement mode and RT spreads, so everything below reads `rt` as "move the
+ * cell" and `lt` as "spread" as before.
+ */
 function rawInput() {
   if (test.input && (!cur || cur.slot === 0)) {
     const t = test.input;
     const st = (s) => { const m = Math.min(1, Math.hypot(s?.x || 0, s?.y || 0)); return m > 0 ? { m, dx: s.x / m, dy: -s.y / m } : NONE; };
-    return { ls: st(t.ls), rs: st(t.rs), lt: t.lt || 0, rt: t.rt || 0, lb: t.lb ? 1 : 0, rb: t.rb ? 1 : 0, lsc: !!t.lsc, rsc: !!t.rsc };
+    return { ls: st(t.ls), rs: st(t.rs), lt: t.rt || 0, rt: t.lt || 0, lb: t.lb ? 1 : 0, rb: t.rb ? 1 : 0, lsc: !!t.lsc, rsc: !!t.rsc };
   }
   const st = (s) => (s.m > 0 ? { m: s.m, dx: s.x / Math.hypot(s.x, s.y), dy: -s.y / Math.hypot(s.x, s.y) } : NONE);
-  return { ls: st(ctl.move()), rs: st(ctl.camera()), lt: pad.lt(), rt: pad.rt(), lb: pad.down(BTN.LB) ? 1 : 0, rb: pad.down(BTN.RB) ? 1 : 0, lsc: pad.down(BTN.LS), rsc: pad.down(BTN.RS) };
+  return { ls: st(ctl.move()), rs: st(ctl.camera()), lt: pad.rt(), rt: pad.lt(), lb: pad.down(BTN.LB) ? 1 : 0, rb: pad.down(BTN.RB) ? 1 : 0, lsc: pad.down(BTN.LS), rsc: pad.down(BTN.RS) };
 }
 const IDLE = { ls: NONE, rs: NONE, lt: 0, rt: 0, lb: 0, rb: 0, lsc: false, rsc: false };
 function readInput() {

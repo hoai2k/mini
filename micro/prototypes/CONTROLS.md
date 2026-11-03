@@ -83,9 +83,9 @@ lists the same buttons in the same order. `createDash()` gives a dash with a
 recharge and a HUD meter. The amoeba uses its own twin-stick scheme. Each stick moves one pseudopod
 (marked L and R in the player's colour): its first push grabs the pseudopod
 lying that way (or grows one there), a quick flick through the centre keeps it,
-and resting the stick lets it go. Hold RT to move the whole cell instead: one
+and resting the stick lets it go. Hold LT to move the whole cell instead: one
 stick or both the same way crawl, two ways crawl between and widen, apart
-stretches, together squishes, one up and one down turn it. LT spreads the whole
+stretches, together squishes, one up and one down turn it. RT spreads the whole
 cell out (held on, it slowly rounds up); LB/RB spread / push harder the
 pseudopod being moved. A surges, X engulfs (and cuts), B lets go or
 stiffens. Against another cell (the giant amoeba *Chaos*, or another player)

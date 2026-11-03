@@ -125,7 +125,7 @@ spirals into the oral pouch off-frame.
 
 `collective.js`, drawn in `draw.js` (`kin`), run from `main.js`.
 
-- **The beacon (X).** X sends a pulse from the middle of your flock out to
+- **The beacon (X).** X sends a pulse from the front of your flock (the cell furthest along its way), riding with the flock, out to
   its reach: its edge plus 7 µm (alone: 9 µm, three body lengths; at most
   44 µm). It is drawn on the medium as a ring of soft spots spreading and
   fading. Free kin cells (your own species, the dim spirilla wandering in the
@@ -415,7 +415,7 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | LS | WASD | **Steer your flock** (a labelled assist): it heads where you point, as fast as you tilt (0–45 µm/s); your own cell turns toward the stick (up to ~5.5 rad/s), every member follows in its own way (see **The army**). Released: the motors stop and the flock settles; only Brownian motion, flow and the field move you. Tumbles (B) also lean toward the stick. Features → LS steering → *Tumble bias only* or *Honest: no steering* |
 | RS | Arrows | Move the stage (the view drifts back to your flock) |
 | **A** | Space | **Sprint run**: every flagellum at full motor speed (spirillum 95 µm/s, Bdellovibrio 160 µm/s), 0.6 s, recharging (HUD `dash` meter); the whole flock sprints. It also shakes off loosely bound phages and an attaching Bdellovibrio, and sprinting out of a grazer's current wears it down |
-| **X** | E | **Beacon, eat, strike** (magnetotactic, one press every 0.3 s): a pulse from your flock's middle that kin in reach answer as they join; every prey rod in reach of a member lysed; a volley from every member touching an enemy. Held, your cell also takes up food in a patch. Bdellovibrio: press while touching a Gram-negative rod to attach and bore in (it spins on its pole and a pore opens in the prey's wall) |
+| **X** | E | **Beacon, eat, strike** (magnetotactic, one press every 0.3 s): a pulse from your flock's front, riding with it, that kin in reach answer as they join; every prey rod in reach of a member lysed; a volley from every member touching an enemy. Held, your cell also takes up food in a patch. Bdellovibrio: press while touching a Gram-negative rod to attach and bore in (it spins on its pole and a pore opens in the prey's wall) |
 | **B** | Shift | **Defend: tumble** (the shared defend button, an evasive move): stop, turn to a random new heading (E. coli's distribution, mean 68°), run on. For Bdellovibrio it is a reverse plus a flick. While you hold LS, the stick turns you back afterwards. **At the moment a predator strikes** (a grazer's surge, a phage committing, a Bdellovibrio's ram) it evades it |
 | Y | R | **Toxin burst** when your army's toxin is charged (army 12; also LS click). Otherwise: data overlay (food, field lines and feeding currents, marked on screen as data, not optics). At the open host (the portal, "Y Enter the portal" showing): enter it. At the Paramecium (the backdoor): back to the pool |
 | LT / RT | Z / X | Fine focus down / up (it drifts back to your cell's plane unless switched off) |

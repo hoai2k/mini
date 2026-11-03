@@ -1251,7 +1251,7 @@ function doDash(P) {
 
 const idle = () => ({ attack: false, attackPressed: false, focusing: false, steer: null });
 /**
- * X (the magnetotactic cell): a beacon from the flock's middle (kin it reaches answer and join), every prey
+ * X (the magnetotactic cell): a beacon from the flock's front (riding with it) (kin it reaches answer and join), every prey
  * rod in reach of a member lysed, and a volley on any enemy the flock touches. One press every 0.3 s.
  */
 function pressX(P) {

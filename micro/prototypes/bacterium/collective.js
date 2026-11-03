@@ -227,6 +227,12 @@ export function createCollectives(world, hooks = {}) {
       const cx = sx / n, cy = sy / n;
       const v = dt > 0 && C.speed >= 0 ? Math.hypot(cx - C.cx, cy - C.cy) / dt : 0;
       C.speed += (Math.min(200, v) - C.speed) * Math.min(1, dt * 3);
+      // the flock's velocity (smoothed): the beacon goes out from its front and travels with it
+      if (dt > 0 && C.speed > 0) {
+        const k = Math.min(1, dt * 4);
+        C.vx += (Math.max(-200, Math.min(200, (cx - C.cx) / dt)) - C.vx) * k;
+        C.vy += (Math.max(-200, Math.min(200, (cy - C.cy) / dt)) - C.vy) * k;
+      }
       C.cx = cx; C.cy = cy;
       let e2 = 0;
       for (const S of cells) e2 = Math.max(e2, (S.x - cx) ** 2 + (S.y - cy) ** 2);
@@ -371,13 +377,27 @@ export function createCollectives(world, hooks = {}) {
     world.pushOutOfGrains(c, c.r + 0.1);
   }
 
-  // --- the beacon (X): a pulse from the flock's middle; kin it passes answer, one by one, and join ---
+  // --- the beacon (X): a pulse from the flock's front (the owner: from the middle it was always
+  // behind by the time the ring spread); it rides along with the flock while it spreads. Kin it
+  // passes answer, one by one, and join ---
   function beacon(P, t) {
     const C = of(P);
     if (!C || !opts.on || !P.S.alive || P.S.species !== 'mtb' || t - C.lastBeacon < COLL.beaconGap) return null;
     C.lastBeacon = t;
     const R = Math.min(COLL.beaconMax, Math.max(COLL.beaconMin, C.extent + COLL.beaconPad));
-    const b = { x: C.cx, y: C.cy, t: 0, R, dur: 0.25 + R / 45, n: 0, C, slot: P.slot ?? 0 };
+    // the front: the cell furthest along the way the flock is going (its motion, else where it is steered)
+    let ux = C.vx, uy = C.vy, um = Math.hypot(ux, uy);
+    if (um < 3) { ux = C.ux; uy = C.uy; um = Math.hypot(ux, uy); }
+    let x = C.cx, y = C.cy;
+    if (um > 1e-6) {
+      ux /= um; uy /= um;
+      let best = -Infinity;
+      for (const c of [...liveCells(C), ...C.members]) {
+        const d = (c.x - C.cx) * ux + (c.y - C.cy) * uy;
+        if (d > best) { best = d; x = c.x; y = c.y; }
+      }
+    }
+    const b = { x, y, t: 0, R, dur: 0.25 + R / 45, n: 0, C, slot: P.slot ?? 0 };
     C.beacons.push(b);
     hooks.onBeacon?.(C, b, P);
     return b;
@@ -388,6 +408,7 @@ export function createCollectives(world, hooks = {}) {
       for (let i = C.beacons.length - 1; i >= 0; i--) {
         const b = C.beacons[i];
         b.t += dt;
+        b.x += C.vx * dt; b.y += C.vy * dt; // rides with the flock
         if (b.t > b.dur + 0.5) { C.beacons.splice(i, 1); continue; }
         if (b.t <= b.dur + dt && C.players.length) recruit.push(b);
       }

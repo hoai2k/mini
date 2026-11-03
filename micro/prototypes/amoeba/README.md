@@ -23,14 +23,14 @@ triggers chose pseudopods); **Lead and follow** and **Two pseudopods
 
 ### Pseudopods and movement (default)
 
-Two modes, read afresh from RT every frame, so neither can stick: RT up is
-pseudopod mode, RT held is movement mode.
+Two modes, read afresh from LT every frame, so neither can stick: LT up is
+pseudopod mode, LT held is movement mode.
 
 | Button | Action |
 | --- | --- |
 | LS / RS (WASD / arrows) | **Move a pseudopod.** Each stick owns one: LS the one marked **L**, RS the one marked **R**. A stick at rest owns nothing; its first push (past 0.3) grabs the pseudopod whose tip lies within 34° of it (idle ones too), or grows one at the membrane that way, and steers it while pushed (direction and reach). Flick through the centre quicker than 0.28 s and you keep it; rest in the centre longer (below 0.15) and it lets go, so the next push can grab another. R and L are never the same: a push towards the other stick's pseudopod grabs the next one within 34°, or grows one 30–60° beside it |
-| RT (X), held | **Move the cell.** The sticks become movement intents and steer no pseudopod (ones let go flow slowly back). One stick, or both the same way: the cell crawls that way. Two different ways: it crawls between them and widens across its path. LS left + RS right (apart): stretches along that line; LS right + RS left (together): squishes; LS up + RS down: turns clockwise, LS down + RS up: anticlockwise, like a tank (the contents turn with it). Mixed angles blend (below). On above 0.5, off below 0.3 |
-| LT (Z), held | **Spread / round up**: the whole cell spreads out at once (the old LB, for the whole cell); held on, from about 1.5 s it slowly draws its pseudopods in and relaxes towards a circle, near round after about 8 s. Let go and it eases back |
+| LT (Z), held | **Move the cell.** The sticks become movement intents and steer no pseudopod (ones let go flow slowly back). One stick, or both the same way: the cell crawls that way. Two different ways: it crawls between them and widens across its path. LS left + RS right (apart): stretches along that line; LS right + RS left (together): squishes; LS up + RS down: turns clockwise, LS down + RS up: anticlockwise, like a tank (the contents turn with it). Mixed angles blend (below). On above 0.5, off below 0.3 |
+| RT (X), held | **Spread / round up**: the whole cell spreads out at once (the old LB, for the whole cell); held on, from about 1.5 s it slowly draws its pseudopods in and relaxes towards a circle, near round after about 8 s. Let go and it eases back |
 | LB / RB (Q / F) | **Spread / push a pseudopod**: only the pseudopod(s) a pushed stick is steering (in pseudopod mode): LB makes it broader and a little shorter, RB pushes it out faster. With no stick pushed, they do nothing |
 | LS click / RS click (C / V) | Fine focus down / up |
 
@@ -44,15 +44,15 @@ body (`shared/techniques/amoeba-softbody.js`) these are `input.shape` (the ends
 pushed out or in, the area taken from or given to the sides, stretching
 stopping at about 2.1 radii, squishing at about 0.65), `input.turn` (the
 outline rotated about the centroid; `cytoplasm.rotateAbout` turns the
-contents) and `input.round` (LT); shaping in place quiets the idle pseudopods
+contents) and `input.round` (RT); shaping in place quiets the idle pseudopods
 and holds the centroid, so it goes nowhere. Per-pseudopod `input.pods[k].push`
 and `.spread` carry RB and LB.
 
 The marks: a thin line along the membrane round each owned pseudopod's tip, a
 tick and the stick's letter in the player's colour; dimmer while the stick
 passes through the centre, fading out over 0.7 s once it lets go. The corner
-says what each stick holds (`LS: moving L · RS: free · RT: move the cell · LT:
-spread`; `RT: moving the cell (crawling + widening)` in movement mode).
+says what each stick holds (`LS: moving L · RS: free · LT: move the cell · RT:
+spread`; `LT: moving the cell (crawling + widening)` in movement mode).
 
 After eating, the cup's pseudopods dissolve into the vacuole and a stick still
 pushed must be let go before it grabs another. Against another cell (Chaos,
@@ -70,7 +70,7 @@ The corner shows the roles (`LS: body · RS: pseudopod`).
 | --- | --- |
 | Pseudopod stick (LS WASD or RS arrows) | Aims and extends the pseudopod (area conserved, as before) |
 | Body stick (the other one) | Moves the bulk of the cell that way: the rear (uroid) contracts, the endoplasm streams forward, the centroid travels. **Both held**: the pseudopod holds its length and its tip keeps advancing, so the cell travels behind it. **Body stick alone towards the pseudopod**: the body flows into it and takes it back. Pointed elsewhere: the body goes that way and the pseudopod trails or flows back |
-| LT / RT (Z / X), held | The body stick grows a **second pseudopod** instead, starting 30–70° round from the first on the side the stick points, so the two can close round prey. Let go: that stick moves the body again, and the second pseudopod relaxes slowly (hold the trigger again to pick it back up) |
+| RT / LT (Z / X), held | The body stick grows a **second pseudopod** instead, starting 30–70° round from the first on the side the stick points, so the two can close round prey. Let go: that stick moves the body again, and the second pseudopod relaxes slowly (hold the trigger again to pick it back up) |
 | LB (Q) | Spread out / relax: the cell flattens, rounds up and its pseudopods relax |
 | RB (F) | Push harder |
 | LS click / RS click (C / V) | Fine focus down / up |
@@ -86,8 +86,8 @@ still held keeps moving the body.
 | --- | --- |
 | LS (WASD) | Pseudopod 1: grows from the part of the cell facing the stick; turning the stick bends it; stick magnitude is how hard it pushes |
 | RS (arrows) | Pseudopod 2, so the two sticks can wrap a cup round prey from both sides |
-| RT (X) | Push harder |
-| LT (Z) | Spread out / relax: the cell flattens (its footprint grows, since the volume is fixed), rounds up and its pseudopods relax |
+| LT (Z) | Push harder |
+| RT (X) | Spread out / relax: the cell flattens (its footprint grows, since the volume is fixed), rounds up and its pseudopods relax |
 | LB / RB (Q / F) | Fine focus down / up: changes the sign and size of the defocus contrast and how blurred the layer above is |
 
 ### All schemes
@@ -180,7 +180,7 @@ prevent it and find the portal."
   (94%), you are engulfed; forced open first (below 80%) or not closed, it
   has to start again. A still cell is ringed within one 9 s encircle and
   engulfed ~11 s after Chaos wakes; a cell that keeps a way out is not.
-- **Getting away**: push out through the gap (both sticks that way, RT, a
+- **Getting away**: push out through the gap (both sticks that way, LT, a
   surge), or force the ring open with a thick pseudopod or your body. Every
   other attack is instead **a shove**: one broad arm with the whole cell
   flowing after it, pushing hard (never a bite).
@@ -244,7 +244,7 @@ Chaos).
   either) × how actively
   that membrane is advancing (0.5 resting, up to 1.5 in a pseudopod's cap or
   the front of a flowing body: `Body.Gp`) × the cell's `pushK`: for a player
-  the surge factor (up to 2.5 at its peak), × (1 − 0.6 × spread) for LT, ×
+  the surge factor (up to 2.5 at its peak), × (1 − 0.6 × spread) for RT, ×
   1.25 stiffened (B); for Chaos 0.85, 0.95 in an encircle and 1.5 in a shove.
 - **Contact inhibition**: a player's idle pseudopods are drawn in while it
   touches another cell (`touchT`, 0.6 s after the last touch, and while
@@ -841,7 +841,7 @@ Not borrowed:
   ambush slow or browsing prey.
 - **2D approximation.** The cell is a 2D outline with area conservation
   standing in for volume; thickness is a dome derived from the outline, not
-  simulated. Spreading (LT) trades thickness for area explicitly.
+  simulated. Spreading (RT) trades thickness for area explicitly.
 - **Stick-driven pseudopods** are a game interpretation of chemotactic
   protrusion; the idle pseudopods stand in for the cell's own probing.
 - **Closing the cup on a button** is a game decision; in life the cup closes

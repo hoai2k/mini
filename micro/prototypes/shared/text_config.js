@@ -306,8 +306,8 @@ export const TEXT = {
       goal: 'Reach the glowing portal. Shove Chaos the giant amoeba aside, or force a thick pseudopod through it, and never let its arms close all the way round you; mind the fungus.',
       controls: [
         ['LS/RS', 'Move a pseudopod'],
-        ['RT', 'Hold: move the cell'],
-        ['LT', 'Hold: spread / round up'],
+        ['LT', 'Hold: move the cell'],
+        ['RT', 'Hold: spread / round up'],
         ['LB/RB', 'Push harder / spread a pseudopod'],
         ['A', 'Surge'],
         ['X', 'Engulf'],
@@ -1546,13 +1546,13 @@ export const TEXT = {
             camera: 'Move a pseudopod (R)',
             secondary: 'Spread / push a pseudopod',
             extra: [
-              ['RT (hold)', 'Move the cell'],
-              ['LT (hold)', 'Spread / round up'],
+              ['LT (hold)', 'Move the cell'],
+              ['RT (hold)', 'Spread / round up'],
               ['LS click', 'Focus down'],
               ['RS click', 'Focus up'],
             ],
           },
-          note: 'Push a stick to grab the pseudopod that way (or grow one); rest it to let go. Hold RT and the sticks move the whole cell: same way crawls, apart stretches, together squishes, one up one down turns. Two pseudopods round prey, then X. Push against other cells with a thick pseudopod; A shoves. The cell keeps its volume. Time is compressed; see the corner.',
+          note: 'Push a stick to grab the pseudopod that way (or grow one); rest it to let go. Hold LT and the sticks move the whole cell: same way crawls, apart stretches, together squishes, one up one down turns. Two pseudopods round prey, then X. Push against other cells with a thick pseudopod; A shoves. The cell keeps its volume. Time is compressed; see the corner.',
         },
         lead: {
           controls: {
@@ -1581,10 +1581,10 @@ export const TEXT = {
       sub: 'Amoeba proteus (~450 µm) on a wet-mount slide. Push out pseudopods, chase down ciliates, cup round them and fill in. Mind the fungal traps, and the giant amoeba lying beside the way on.',
     },
     corner: {
-      ltRounding: ' · LT: rounding up',
-      ltSpreading: ' · LT: spreading',
-      ltSpread: ' · LT: spread',
-      moving: 'RT: moving the cell ({what}){lt}',
+      ltRounding: ' · RT: rounding up',
+      ltSpreading: ' · RT: spreading',
+      ltSpread: ' · RT: spread',
+      moving: 'LT: moving the cell ({what}){lt}',
       pushAStick: 'push a stick',
       motion: {
         crawling: 'crawling',
@@ -1597,7 +1597,7 @@ export const TEXT = {
       stickMoving: '{stick}: moving {letter}',
       stickHolding: '{stick}: holding {letter}',
       stickFree: '{stick}: free',
-      select: '{ls} · {rs} · RT: move the cell{lt}',
+      select: '{ls} · {rs} · LT: move the cell{lt}',
       classic: 'Controls: two pseudopods (classic) · LS: pseudopod 1 · RS: pseudopod 2',
       leadFree: 'LS: free · RS: free (push one to grow a pseudopod)',
       roles: {
@@ -1821,7 +1821,7 @@ export const TEXT = {
       },
       scheme: {
         label: 'Controls',
-        about: 'Pseudopods and movement (default; the owner, 2026-11-02). Pseudopod mode (RT up): each stick owns one pseudopod, RS the one marked R and LS the one marked L. A stick resting in the centre (for more than 0.28 s) owns nothing; its first push takes the pseudopod whose tip lies within 34° of it (idle ones too), or grows one at the membrane that way, and steers it while pushed (direction and reach). Flicking through the centre quicker than that keeps it. R and L are never the same one: a push towards the other stick\'s pseudopod takes the next nearest, or grows one beside it. LB / RB spread out / push harder only the pseudopod a pushed stick is steering. Movement mode (RT held): the sticks are movement intents and steer no pseudopod. One stick, or both the same way: the cell crawls that way. Two different ways: it crawls between them and widens across its path. Opposite: LS left + RS right (apart) stretches it along that line, LS right + RS left (together) squishes it; LS up + RS down turns it clockwise, LS down + RS up anticlockwise, like a tank; in-between angles blend. LT (either mode): the whole cell spreads out at once; held on, from about 1.5 s it slowly draws its pseudopods in and rounds up, near round after about 8 s. Lead and follow: the first stick pushed grows a pseudopod (the pseudopod stick); the other stick moves the bulk of the cell (the body stick): the rear contracts and the cytoplasm streams after it. Both held: the cell travels behind its pseudopod, which holds its length. Body stick alone towards the pseudopod: the body flows into it and takes it back. Hold LT or RT and the body stick grows a second pseudopod 30–70° beside the first instead, to encircle prey. LB spreads out, RB pushes harder. Roles reset once the pseudopod is gone or after eating. Two pseudopods (classic): each stick grows its own pseudopod, LT/RT spread out and push harder, LB/RB focus.',
+        about: 'Pseudopods and movement (default; the owner, 2026-11-02). Pseudopod mode (LT up): each stick owns one pseudopod, RS the one marked R and LS the one marked L. A stick resting in the centre (for more than 0.28 s) owns nothing; its first push takes the pseudopod whose tip lies within 34° of it (idle ones too), or grows one at the membrane that way, and steers it while pushed (direction and reach). Flicking through the centre quicker than that keeps it. R and L are never the same one: a push towards the other stick\'s pseudopod takes the next nearest, or grows one beside it. LB / RB spread out / push harder only the pseudopod a pushed stick is steering. Movement mode (LT held): the sticks are movement intents and steer no pseudopod. One stick, or both the same way: the cell crawls that way. Two different ways: it crawls between them and widens across its path. Opposite: LS left + RS right (apart) stretches it along that line, LS right + RS left (together) squishes it; LS up + RS down turns it clockwise, LS down + RS up anticlockwise, like a tank; in-between angles blend. RT (either mode): the whole cell spreads out at once; held on, from about 1.5 s it slowly draws its pseudopods in and rounds up, near round after about 8 s. Lead and follow: the first stick pushed grows a pseudopod (the pseudopod stick); the other stick moves the bulk of the cell (the body stick): the rear contracts and the cytoplasm streams after it. Both held: the cell travels behind its pseudopod, which holds its length. Body stick alone towards the pseudopod: the body flows into it and takes it back. Hold RT or LT and the body stick grows a second pseudopod 30–70° beside the first instead, to encircle prey. LB spreads out, RB pushes harder. Roles reset once the pseudopod is gone or after eating. Two pseudopods (classic): each stick grows its own pseudopod, RT/LT spread out and push harder, LB/RB focus.',
         choices: {
           'Pseudopods and movement (default)': 'Pseudopods and movement (default)',
           'Lead and follow': 'Lead and follow',
@@ -2225,7 +2225,7 @@ export const TEXT = {
       },
       collective: {
         label: 'Your army: a flock of kin (X calls them)',
-        about: 'X sends a beacon from the middle of your flock (an autoinducer pulse, drawn so it shows: a departure, they are invisible small molecules). Kin it reaches (your own species, wandering in the meadow by the start and in the breaks between the gates) answer with their own small pulse, one after another, and join. They never join by themselves. X also lyses prey rods in reach of any member, and each one feeds a member toward dividing, so the army grows. The flock: you steer it (the stick sets its heading and speed); every member follows by its own rules, with its own top speed, turn rate, reaction lag and wander, so the front moves first and the rest catch up, overshoot and turn back. Members are your health (a predator takes one in your place). Army size gates the slime shield (5: phages stick in it), the raft (8: currents drag you less, the bigger it is) and the toxin (12: it charges; Y or LS click fires it). Together: touch another player\'s flock to join it (sticks blend); move away to leave: past 20 µm the army splits evenly. Real basis: quorum sensing, swarming rafts, multicellular magnetotactic prokaryotes, contact killing. Departures: a player steers the group, kin answering one by one, members die in your place.',
+        about: 'X sends a beacon from the front of your flock, travelling with it (an autoinducer pulse, drawn so it shows: a departure, they are invisible small molecules). Kin it reaches (your own species, wandering in the meadow by the start and in the breaks between the gates) answer with their own small pulse, one after another, and join. They never join by themselves. X also lyses prey rods in reach of any member, and each one feeds a member toward dividing, so the army grows. The flock: you steer it (the stick sets its heading and speed); every member follows by its own rules, with its own top speed, turn rate, reaction lag and wander, so the front moves first and the rest catch up, overshoot and turn back. Members are your health (a predator takes one in your place). Army size gates the slime shield (5: phages stick in it), the raft (8: currents drag you less, the bigger it is) and the toxin (12: it charges; Y or LS click fires it). Together: touch another player\'s flock to join it (sticks blend); move away to leave: past 20 µm the army splits evenly. Real basis: quorum sensing, swarming rafts, multicellular magnetotactic prokaryotes, contact killing. Departures: a player steers the group, kin answering one by one, members die in your place.',
       },
       shapes: {
         label: 'Instanced 2D distance-field specimen',
