@@ -504,6 +504,7 @@ export function createWorld() {
     }
     if (c.dead) { c.dead += dt; return; } // a Bdellovibrio killed by the army: it rounds and fades (draw.js)
     if (c.ghost) return;
+    if (c.waylay) return; // a stranger waylaying a flock: collective.js (WAYLAY) moves it
     const f = grazerFlow(c.x, c.y, tmpF);
     if (c.bdelloplast > 0 || c.attachedBy) {
       // a prey cell with a predator attached stops swimming; a bdelloplast is a sphere

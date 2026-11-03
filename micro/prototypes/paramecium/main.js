@@ -72,7 +72,6 @@ const CONTROLS = {
   dash: tt('paramecium.hud.controls.dash'),
   attack: tt('paramecium.hud.controls.attack'),
   defend: tt('paramecium.hud.controls.defend'),
-  special: tt('paramecium.hud.controls.special'),
   secondary: tt('paramecium.hud.controls.secondary'),
   analog: tt('paramecium.hud.controls.analog'),
   look: tt('paramecium.hud.controls.look'),

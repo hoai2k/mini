@@ -13,8 +13,8 @@
 // frame (the way on sealed); the director places the first decoy ahead of a player drifting off the path, out of view (route.test.mjs runs the whole order headless); the guard
 // on the (forced) portal turns you back; driven off, X there only holds on and says to press Y, and Y lets you in; a UV shaft damages at
 // once and a second one destroys.
-// grab: X takes a molecule from a sloppy aim and lets it go to drift off; RT holds while squeezed and lets go
-// when let go; near a cell, a grab almost anywhere anchors and a current passes you by, while unanchored it
+// grab: X takes a molecule from a sloppy aim and lets it go to drift off; RT (X key) zooms in and LT (Z key)
+// out, analogue and clamped, and RT no longer grabs (a molecule in reach stays free); near a cell, a grab almost anywhere anchors and a current passes you by, while unanchored it
 // carries you off (only after a visible warning); a gold receptor on Host B still latches and injects.
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
@@ -234,13 +234,25 @@ if (which === 'all' || which === 'grab') {
   const m0 = (await D('mols'))[0]; await waitSim(1.5); const m1 = (await D('mols'))[0];
   log.released = await D('hold'); log.molDrift = +dist(m0.pos, m1.pos).toFixed(1);
   if (log.released || !(log.molDrift > 4 && log.molDrift < 60)) fails.push(`X again did not let the molecule drift off (hold ${JSON.stringify(log.released)}, drifted ${log.molDrift})`);
-  // 2. RT: squeezed it holds, let go it lets go
+  // 2. the triggers zoom (RT in, LT out: eased, continuous, clamped to the range), and RT grabs nothing
+  const Z = await ev(() => window.__micro.debug.ZOOM);
+  const z = async () => (await D('zooms'))[0];
+  log.zoom0 = (await z()).zoom;
   p = await pos(); await D('placeMol', 1, p[0] - 15, p[1] - 10, p[2]);
   await page.keyboard.down('KeyX'); await waitSim(0.5);
-  log.rtHold = (await D('hold'))?.kind;
-  await page.keyboard.up('KeyX'); await waitSim(0.2);
-  log.rtReleased = await D('hold');
-  if (log.rtHold !== 'mol' || log.rtReleased) fails.push(`RT hold/release failed (${log.rtHold}, ${JSON.stringify(log.rtReleased)})`);
+  log.rtHold = (await D('hold'))?.kind ?? null;
+  log.zoomRtHalf = (await z()).zoom;
+  await waitSim(2.5); await page.keyboard.up('KeyX'); await waitSim(0.6);
+  log.zoomIn = (await z()).zoom;
+  await page.keyboard.down('KeyZ'); await waitSim(0.5); log.zoomLtHalf = (await z()).zoom;
+  await waitSim(3); await page.keyboard.up('KeyZ'); await waitSim(0.6);
+  log.zoomOut = (await z()).zoom;
+  if (log.rtHold) fails.push(`RT still grabs (${log.rtHold})`);
+  if (!(log.zoomRtHalf < log.zoom0 && log.zoomRtHalf > Z.min)) fails.push(`RT did not zoom in smoothly (${log.zoom0} -> ${log.zoomRtHalf})`);
+  if (Math.abs(log.zoomIn - Z.min) > 0.5) fails.push(`RT held did not reach the closest zoom ${Z.min} (${log.zoomIn})`);
+  if (!(log.zoomLtHalf > log.zoomIn && log.zoomLtHalf < Z.max)) fails.push(`LT did not zoom out smoothly (${log.zoomIn} -> ${log.zoomLtHalf})`);
+  if (Math.abs(log.zoomOut - Z.max) > 0.5) fails.push(`LT held did not reach the widest zoom ${Z.max} (${log.zoomOut})`);
+  await D('zoom', 1);
   // 3. near a cell, a grab almost anywhere anchors, and a current passes you by
   const near = await ev(() => { const m = window.__micro, h = m.world.bystanders[0]; const n = h.pos.clone().set(0, 1, 0.3).normalize(); return m.world.projectToHost(h, h.pos.clone().addScaledVector(n, 200).add(h.pos.clone().set(40, 0, 0)), 26).toArray(); });
   await D('teleport', ...near); await D('orient', 0.3, 0.2, 1.4); await waitSim(0.2);

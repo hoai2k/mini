@@ -2,7 +2,7 @@
 // water, drawn in realistic microscopic false light (the Goodsell watercolour,
 // cryo-EM and fluorescence looks remain on the D-pad). Crisp game controls (a
 // labelled departure: phages have no motor): LS forward/back along the view and
-// sideways, LB/RB down/up, A dashes forward. X or RT grabs whatever is in reach
+// sideways, LB/RB down/up, A dashes forward, LT/RT zoom out/in. X grabs whatever is in reach
 // of the fibres (grab.js: a free molecule to carry, or any point of a cell to
 // hang on to); only a matching receptor latches and starts injection. The water
 // is a visible textured liquid (medium.js) with occasional currents you see
@@ -40,6 +40,7 @@ const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const ramp = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
 const UP = new THREE.Vector3(0, 1, 0), AX_X = new THREE.Vector3(1, 0, 0), AX_Z = new THREE.Vector3(0, 0, 1);
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _n = new THREE.Vector3(), _q = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3();
+const _back = new THREE.Vector3(); // (a split view's own zoom: the camera's back axis)
 
 // --- renderer, scenes, cameras ---
 const canvas = document.querySelector('canvas.view');
@@ -96,9 +97,8 @@ const hud = mountHud({
     attack: tt('phage.hud.controls.attack'),
     defend: tt('phage.hud.controls.defend'),
     special: tt('phage.hud.controls.special'),
+    analog: tt('phage.hud.controls.zoom'),
     look: tt('phage.hud.controls.look'),
-    zoom: tt('phage.hud.controls.zoom'),
-    extra: [['RT', tt('phage.hud.controls.grabHold')]],
   }),
   note: tt('phage.hud.note'),
 });
@@ -153,11 +153,15 @@ const LOOKS = ['Realistic false light', 'Goodsell watercolour', 'Cryo-EM greysca
 const lookName = (v) => tx('phage.features.lookFL.choices')[v] ?? v;
 const POST_LOOK = [3, 0, 1, 2]; // createPost's look index for each
 const isFL = () => view.look === 0;
-const ZOOMS = [60, 110, 180, 290];
+// The zoom: LT out, RT in, analogue and continuous, with the paramecium's feel (the same rate and easing):
+// the camera's distance behind the phage, each player their own (the owner, 3 Nov 2026: "for Phage let's
+// have LT/RT also be zoom instead of DPad"). The range is the old four D-pad steps' (60 to 290).
+const ZOOM = { min: 60, start: 110, max: 290, rate: 1.1, ease: 0.14 };
+const ZOOMS = [60, 110, 180, 290]; // (the old steps: debug.zoom(i) still takes an index)
 // The camera's orientation is a quaternion turned about its own axes by RS (no yaw/pitch angles, no
 // lookAt and no up vector, so there is no pole to flip at); nothing turns it unless a stick is held,
 // apart from an optional, gentle roll that keeps the sunlit surface toward the top of the screen.
-const view = { look: 0, zoom: 1, groupZoom: 1, q: new THREE.Quaternion(), overlay: false, ink: true, art: true, target: new THREE.Vector3(), dist: 180, iso: null, lookHold: 0, level: true, turnRate: 0 };
+const view = { look: 0, groupZoom: 1, camDist: 180, q: new THREE.Quaternion(), overlay: false, ink: true, art: true, target: new THREE.Vector3(), dist: 180, iso: null, lookHold: 0, level: true, turnRate: 0 };
 const opts = { drive: true, brownian: true, currents: true, tumble: true, uv: true, amoeba: true, medium: new URLSearchParams(location.search).get('medium') !== '0' };
 
 function applyArt() {
@@ -185,7 +189,7 @@ let waterColor = '#bcd3ea';
 // START comes from world.js: clear water at the lower left, far from Host A (upper right).
 const newP = () => ({
   // (kv: the velocity a current gives you, eased toward its flow; hold: what the fibres hold, see grabbing)
-  pos: START.clone(), vel: new THREE.Vector3(), bvel: new THREE.Vector3(), kv: new THREE.Vector3(), gust: new THREE.Vector3(), hold: null, rtDown: false, reachT: 0, idleT: 0,
+  pos: START.clone(), vel: new THREE.Vector3(), bvel: new THREE.Vector3(), kv: new THREE.Vector3(), gust: new THREE.Vector3(), hold: null, reachT: 0, idleT: 0,
   q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.95), angVel: new THREE.Vector3(),
   mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, walkLocal: new THREE.Vector3(), lift: 4,
   anchors: Array(6).fill(null), stepping: -1, stepT: 0, bound: 0, canCommit: false, commitT: 0, commitHost: null,
@@ -216,7 +220,8 @@ const HEADS = [
   { fl: { color: '#8e8a8c', color2: '#ece6e2', glowColor: '#fff8f0' }, capsid: '#d0ccd0', capsidDeep: '#a8a2a8' },
 ];
 function makeMember(slot, color) {
-  const m = { slot, color, P: newP(), t4: createT4({ clip: true }), dash: createDash({ duration: 0.5, cooldown: 2.4 }),
+  const z0 = team[0] ? team[0].zoomWant : ZOOM.start; // (a joining player starts at player 1's zoom)
+  const m = { slot, color, zoom: z0, zoomWant: z0, P: newP(), t4: createT4({ clip: true }), dash: createDash({ duration: 0.5, cooldown: 2.4 }),
     capture: null, c: { active: false, phase: null, t: 0 }, jab: 0 };
   // caught: strike, hold, eat (the camera pulls back), follow the predator, fade, respawn, fade in
   m.capture = createCapture({ onRespawn: () => afterCatch(m) });
@@ -489,10 +494,8 @@ function beginCommit() {
   audio.play('phage/latch', { volume: 0.8, old: ['bacterium/phage', { volume: 0.9 }] });
   curPad().rumble(250, 0.3, 0.5);
 }
-// --- grabbing (X or RT): whatever is in reach of the fibres (grab.js) ---
-// X grabs, and pressed again lets go. RT grabs as it is squeezed and holds while it stays squeezed: let it
-// go and the fibres let go (a hold made with X stays until X again, or until RT is squeezed and let go).
-// Held squeezed with nothing in reach, RT keeps reaching, so you catch the first thing you drift into.
+// --- grabbing (X): whatever is in reach of the fibres (grab.js) ---
+// X grabs, and pressed again lets go (RT, which also grabbed and held while squeezed, zooms now).
 // A free molecule is carried at the baseplate and drifts off gently when let go; a point on a cell anchors
 // you (a current passes you by), and LS crawls you along the surface. Only a matching receptor goes further:
 // on a host's gold three-lobed receptor the fibres latch and the injection starts (Host A, the way on,
@@ -513,7 +516,7 @@ function cellsNear(hand, reach = GRAB.reach) {
   }
   return out;
 }
-/** What X or RT would take now: the grab assist's pick, or null. */
+/** What X would take now: the grab assist's pick, or null. */
 function grabTarget() {
   const hand = handOf(new THREE.Vector3());
   return pickGrabTarget(hand, attachmentForward(P.q), mols.filter((o) => !o.heldBy), cellsNear(hand));
@@ -550,8 +553,8 @@ function releaseHold(push = true) {
   if (push) audio.play('phage/release', { volume: 0.5, old: ['bacterium/tumble', { volume: 0.2, rate: 1.3 }] });
 }
 /**
- * X or RT: grab (`by` 'x' or 'rt'). quiet: RT still held, reaching again, with no toasts and no proteins
- * (the injection and the way on take a deliberate press).
+ * X: grab (`by` 'x'). quiet: with no toasts and no proteins (the injection and the way on take a
+ * deliberate press).
  */
 function tryGrab(by = 'x', quiet = false) {
   if (!['drift', 'walk'].includes(P.mode) || P.grabCooldown > 0 || P.hold) return;
@@ -1445,7 +1448,7 @@ function drawMols(dt) {
   }
   for (const [k, bm] of Object.entries(molMeshes)) { bm.setCount(n[k]); bm.commit(); }
 }
-// the grab assist's mark: a soft ring in each player's colour on what X / RT would take now
+// the grab assist's mark: a soft ring in each player's colour on what X would take now
 const pingGeo = new THREE.RingGeometry(0.8, 1, 40);
 const reachRings = [0, 1, 2, 3].map(() => { const mm = new THREE.Mesh(pingGeo, new THREE.MeshBasicMaterial({ color: '#bfe8ff', transparent: true, opacity: 0, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending })); mm.visible = false; mm.renderOrder = 6; scene.add(mm); return mm; });
 function updateReachRing(m) {
@@ -1510,6 +1513,21 @@ const medium = createMedium();
 scene.add(medium.mesh);
 const mediumDrift = new THREE.Vector3();
 
+/**
+ * The zoom: LT out, RT in (paramecium's stepZoom): how far the trigger is squeezed sets how fast the wanted
+ * distance moves (exponentially, so each step feels the same near and far), and the camera eases to it.
+ */
+const zoomForce = [];
+function stepZoom(m, dt, frozen) {
+  const f = zoomForce[m.slot], c = players.controls(m.slot);
+  const rate = f !== undefined ? f : frozen ? 0 : c.lt() - c.rt();
+  if (Math.abs(rate) > 0.04) m.zoomWant = clamp(m.zoomWant * Math.exp(rate * ZOOM.rate * dt), ZOOM.min, ZOOM.max);
+  m.zoom += (m.zoomWant - m.zoom) * (1 - Math.exp(-dt / ZOOM.ease));
+  if (Math.abs(m.zoom - m.zoomWant) < 1e-3) m.zoom = m.zoomWant;
+}
+/** The camera distance of a view showing these players (all of them by default): the widest of theirs. */
+function zoomOf(slots) { let z = 0; for (const m of members()) if (!slots || slots.includes(m.slot)) z = Math.max(z, m.zoom); return z || ZOOM.start; }
+
 function stepMember(m, dt, insideOwner, where) {
   use(m);
   P.msgT -= dt;
@@ -1528,11 +1546,10 @@ function stepMember(m, dt, insideOwner, where) {
   m.c = c;
   const frozen = insideOwner && insideOwner !== m; // a teammate is inside a host: wait
   const live = !idle && !c.active && !debug.freeze && !frozen;
+  stepZoom(m, dt, idle);
   if (!idle) {
     const lstep = ctl.lookStep();
     if (lstep) { const d = lstep; features.set('lookFL', LOOKS[(view.look + d + LOOKS.length) % LOOKS.length]); say(tt('phage.toasts.look', { look: lookName(LOOKS[view.look]) }), 1800, true); }
-    const zs = ctl.zoomStep();
-    if (zs) view.zoom = clamp(view.zoom - zs, 0, ZOOMS.length - 1);
     if (ctl.special.pressed()) {
       // (the backdoor and the portal are far apart; whichever this player is in wins, else the overlay)
       if (where === 'outside' && P.inBack && outsideModes.includes(P.mode)) { audio.play('shared/backdoor', { volume: 0.55 }); embed.landmark('back', { player: m.slot }); }
@@ -1564,13 +1581,7 @@ function stepMember(m, dt, insideOwner, where) {
     if (ctl.attack.pressed()) {
       if (!tryJab(m)) { if (P.hold) releaseHold(); else tryGrab('x'); }
     }
-    // RT: squeeze to grab (or jab), keep squeezed to hang on (reaching again while nothing is held), let go to let go
-    const rt = ctl.rt(), was = P.rtDown;
-    P.rtDown = rt > (was ? 0.3 : 0.5);
-    if (P.rtDown && !was) { if (!tryJab(m)) { if (P.hold) P.hold.by = 'rt'; else tryGrab('rt'); } P.rtRetry = 0.15; }
-    else if (P.rtDown && !P.hold && P.mode === 'drift' && (P.rtRetry -= dt) <= 0) { P.rtRetry = 0.15; tryGrab('rt', true); }
-    else if (!P.rtDown && was && P.hold?.by === 'rt') releaseHold();
-  } else if (P.rtDown) P.rtDown = false;
+  }
   P.reachT -= dt;
   m.jab = Math.max(0, m.jab - dt);
   P.grabCooldown = Math.max(0, P.grabCooldown - dt);
@@ -1672,7 +1683,7 @@ const openingPose = () => embed.poseOf(camera, phageCentre(), { len: PHAGE_LEN, 
 embed.on('hold', () => {
   intro = { cam: null };
   // the opening view settled (the camera's distance and target eased home), so play carries on from it without a drift
-  view.dist = ZOOMS[view.zoom]; view.target.copy(phageCentre());
+  view.dist = zoomOf(); view.target.copy(phageCentre());
   camera.quaternion.copy(view.q);
   camera.position.set(0, 0, view.dist).applyQuaternion(view.q).add(view.target);
   camera.updateMatrixWorld();
@@ -1784,7 +1795,8 @@ function frame(now) {
   if (where === 'outside') turnView(look, dt);
   // caught: pull back to watch the predator swallow you, then follow it
   const watching = solo && team[0].c.active && ['eat', 'follow', 'fadeOut'].includes(team[0].c.phase) && team[0].P.kind !== 'cut';
-  const wantDist = commitFocus ? Math.min(ZOOMS[view.zoom], 75) : watching ? Math.max(ZOOMS[view.zoom], 110) * 2.1 : ZOOMS[view.zoom];
+  const zNow = zoomOf();
+  const wantDist = commitFocus ? Math.min(zNow, 75) : watching ? Math.max(zNow, 110) * 2.1 : zNow;
   view.dist += (wantDist - view.dist) * (1 - Math.exp(-dt * (watching ? 1.2 : 2)));
   const inPlay = members().filter((m) => m.P.mode !== 'inside' && m.P.mode !== 'burst' && m.P.mode !== 'dead');
   const focusPts = (inPlay.length ? inPlay : [team[0]]).map((m) => { use(m); return centreOf(new THREE.Vector3()); });
@@ -1801,6 +1813,7 @@ function frame(now) {
     // only once it is at its widest (shared/splitscreen.js)
     view.groupZoom = !o && inPlay.length > 1 && lead.P.mode !== 'burst' && !(held && intro && intro.cam) ? groupZoom : 1;
     const dist = o ? o.dist : view.dist * (lead.P.mode === 'burst' ? 1.6 : 1) * view.groupZoom;
+    view.camDist = dist;
     // the camera is the view quaternion, at `dist` behind the target along its own back axis
     if (o) view.q.setFromEuler(new THREE.Euler(o.pitch, o.yaw, 0, 'YXZ'));
     camera.quaternion.copy(view.q);
@@ -1828,7 +1841,7 @@ function frame(now) {
   } else {
     const cutting = insideOwner && insideOwner.c.active && insideOwner.P.kind === 'cut';
     const chewing = cutting && ['eat', 'follow', 'fadeOut'].includes(insideOwner.c.phase);
-    inside.frame(dt, look, chewing ? 140 : cutting ? 85 : ZOOMS[view.zoom] * 1.05 + 40, chewing ? insideOwner.P.camFocus : null);
+    inside.frame(dt, look, chewing ? 140 : cutting ? 85 : (insideOwner ? insideOwner.zoom : zNow) * 1.05 + 40, chewing ? insideOwner.P.camFocus : null);
     goodsellShared.uFogNear.value = 150; goodsellShared.uFogFar.value = isFL() ? 300 : 360;
     post.uniforms.uWater.value.set('#efc4a0');
     post.uniforms.uUseBg.value = 0; // the cytoplasm, not the water plate
@@ -1862,14 +1875,21 @@ function frame(now) {
     mediumDrift.x += dt * 2.2; mediumDrift.y += dt * 1.1;
     medium.mesh.visible = !debug.iso && opts.medium !== false;
     medium.update(t, view.dist * view.groupZoom, mediumDrift, world.current, currents.offset);
+    const zAll = zoomOf();
     split.render(camera, (v) => {
+      // split, each view keeps its own players' zoom: the camera pulled back (or in) along its view from the
+      // shared framing, which is the widest of everyone's (put back after the view is drawn)
+      const vk = split.views.length > 1 && !debug.camOverride ? zoomOf(v.slots) / zAll : 1;
+      const pull = view.camDist * (vk - 1);
+      if (pull) { camera.position.addScaledVector(_back.set(0, 0, 1).applyQuaternion(camera.quaternion), pull); camera.updateMatrixWorld(); post.uniforms.uFocus.value = view.camDist * vk; }
       noteView(); // (what this view sees, for the director)
       // each view wraps the bath round its own centre: the water is full in every view, together or apart
-      world.viewBath(_v.set(0, 0, -view.dist).applyQuaternion(camera.quaternion).add(camera.position));
+      world.viewBath(_v.set(0, 0, -view.dist * vk).applyQuaternion(camera.quaternion).add(camera.position));
       for (const m of members()) m.t4.setCutFrom(camera.position);
       for (const r of reachRings) r.quaternion.copy(camera.quaternion);
       // every internal pass (scene, DOF copy, bloom) scissored to this view's region when split
       post.render(scene, camera, (rt) => split.scissor(v, rt));
+      if (pull) { camera.position.addScaledVector(_back, -pull); camera.updateMatrixWorld(); post.uniforms.uFocus.value = view.camDist; }
     });
     // (shared/landmark.js trips on an empty split region, which splitscreen.js can emit for a frame as players leave)
     if (!debug.iso && lead.P.mode !== 'burst' && split.layout.regions.every((r) => r.polygon && r.polygon.length >= 3)) {
@@ -1969,7 +1989,7 @@ Object.assign(debug, {
   spin: () => ({ view: +view.turnRate.toFixed(4), phages: members().map((m) => +m.P.angVel.length().toFixed(4)) }),
   /** What player `slot`'s fibres hold: null | { kind: 'mol', i, pos } | { kind: 'cell', host, part, by }. */
   hold: (slot = 0) => { const g = team[slot]?.P.hold; return !g ? null : g.kind === 'mol' ? { kind: 'mol', i: g.mol.i, by: g.by, pos: g.mol.pos.toArray().map((x) => +x.toFixed(1)) } : { kind: 'cell', host: g.host.id, part: g.part, by: g.by }; },
-  /** X (or RT) as if pressed now; release() lets go. */
+  /** X as if pressed now; release() lets go. */
   grabNow: p1((by = 'x') => { if (!tryJab(cur)) tryGrab(by); return debug.hold(0); }),
   release: p1(() => releaseHold()),
   /** The free molecules: [{ i, pos, vel, held }]. */
@@ -2042,7 +2062,13 @@ Object.assign(debug, {
   driveOff() { guard.gone = true; },
   overlay(on) { view.overlay = on; inside.setRadar(on); },
   look(i) { features.set('lookFL', LOOKS[i]); },
-  zoom(i) { view.zoom = i; view.dist = ZOOMS[i]; },
+  /** Set every player's zoom (camera distance) at once: an index into the old steps (0..3), or a distance. */
+  zoom(i) { const d = Number.isInteger(i) && i >= 0 && i < ZOOMS.length ? ZOOMS[i] : clamp(i, ZOOM.min, ZOOM.max); for (const m of members()) m.zoom = m.zoomWant = d; view.dist = d; },
+  /** Hold the zoom triggers for player slot as LT/RT would: +1 full LT (out), -1 full RT (in), null back to the pad. */
+  zoomHold(v = 1, slot = 0) { zoomForce[slot] = v === null ? undefined : v; },
+  /** Each player's zoom (camera distance) now: [{ slot, zoom, want }]. */
+  zooms: () => members().map((m) => ({ slot: m.slot, zoom: +m.zoom.toFixed(1), want: +m.zoomWant.toFixed(1) })),
+  ZOOM,
   reset: resetLevel,
   boss() { const b = inside.bossLock(); return b ? { state: b.state, match: +b.match.toFixed(2), d: +b.pos.distanceTo(inside.tip()).toFixed(1) } : null; },
 });

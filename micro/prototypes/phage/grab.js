@@ -1,6 +1,6 @@
 // The grab assist (the owner, 2 Nov 2026: "It should be easy in the phage world to grab things, so if it's
 // nearby you can auto-aim to grab it ... if you're near a cell surface it should be pretty easy to grab a
-// random place"). X or RT picks the best thing within a forgiving reach of the fibres: a free molecule, or
+// random place"). X picks the best thing within a forgiving reach of the fibres: a free molecule, or
 // the nearest point of a cell's surface (any point: LPS fur, a porin, a membrane protein). Things ahead of
 // the baseplate win over things beside or behind it, but anything in reach can be taken.
 //

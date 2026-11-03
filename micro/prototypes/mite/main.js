@@ -146,8 +146,8 @@ const hud = mountHud({
     special: tt('mite.hud.controls.special'),
     secondary: tt('mite.hud.controls.secondary'),
     look: tt('mite.hud.controls.look'),
-    zoom: tt('mite.hud.controls.zoom'),
-    extra: [['Y', tt('mite.hud.controls.wayBack')], ...(embed.active ? [] : [['LS click', tt('mite.hud.controls.readout')]])],
+    analog: tt('mite.hud.controls.zoom'),
+    extra: [...(embed.active ? [] : [['LS click', tt('mite.hud.controls.readout')]])],
   }),
   note: tt('mite.hud.note'),
 });
@@ -1697,6 +1697,10 @@ function unlockAny() {
   }
 }
 /** Every player's input this frame, by slot (player 1 also drives the camera and the imaging). */
+// The trigger zoom: the field's half width (µm) runs 160 to 4200; full trigger changes it by e^1.4 a second
+// (a little faster than the paramecium's 1.1, for a range nine times as wide).
+const ZOOM_HFW = [160, 4200], ZOOM_RATE = 1.4;
+let zoomToastT = 0;
 function readInput(dt) {
   players.poll(); // the roster and every player's pad (do not also poll the pads)
   syncPlayers();
@@ -1713,8 +1717,15 @@ function readInput(dt) {
   rig.pitch = THREE.MathUtils.clamp(rig.pitch - lk.pitch * 1.2 * dt, 0.18, 1.5);
   const look = ctl.lookStep();
   if (look) { features.set('look', LOOKS[(sem.mode + look + LOOKS.length) % LOOKS.length]); hud.toast(tx('mite.lookNames')[sem.mode] ?? MODES[sem.mode]); }
-  const zs = ctl.zoomStep();
-  if (zs) { rig.hfw = THREE.MathUtils.clamp(rig.hfw / (zs > 0 ? 1.5 : 1 / 1.5), 160, 4200); hud.toast(tt('mite.toasts.mag', { mag: (127000 / rig.hfw).toFixed(0) })); }
+  // LT/RT: zoom out / in, analogue and continuous like the paramecium's (was D-pad steps of 1.5x; the owner,
+  // 3 Nov 2026: trigger zoom wherever the triggers are free, and here they were). The field is one for
+  // everyone, as RS turns the one view, so any player's triggers drive it; the camera eases to it
+  // (placeCamera), and the magnification shows once the triggers are let go.
+  let zr = 0;
+  for (const p of players.active) { const c = players.controls(p.slot); zr += c.lt() - c.rt(); }
+  zr = THREE.MathUtils.clamp(zr, -1, 1);
+  if (Math.abs(zr) > 0.04) { rig.hfw = THREE.MathUtils.clamp(rig.hfw * Math.exp(zr * ZOOM_RATE * dt), ZOOM_HFW[0], ZOOM_HFW[1]); zoomToastT = 0.35; }
+  else if (zoomToastT > 0 && (zoomToastT -= dt) <= 0) hud.toast(tt('mite.toasts.mag', { mag: (127000 / rig.hfw).toFixed(0) }));
   // The SEM observer view is a standalone prototype aid, never a game action.
   if (!embed.active && ctl.stickClick.left.pressed()) { features.set('observer', !observer); hud.toast(observer ? tt('mite.toasts.observerOn') : tt('mite.toasts.observerOff')); }
   camFwd.set(-Math.cos(rig.yaw), 0, -Math.sin(rig.yaw));

@@ -35,6 +35,8 @@
 //               8  raft: currents (grazers, Stentor's vortex) drag the flock
 //                  less, and less the bigger it is (dragK: a third at 12)
 //              12  toxin: a burst charges (COLL.chargeT); Y fires it
+//   waylaid  the stranger strain (other magnetotactic cells) loiters at the flock's
+//            edge and its decoy pulse draws members off; X calls them back (WAYLAY).
 //   together a player who touches another player's flock joins it: their sticks
 //            blend into one intent (each player's own cell steers half by its
 //            own stick, so a player can still pull away). LEAVING is by moving
@@ -81,6 +83,45 @@ export const FLOCK = {
   turnGain: 6,      // how hard a member turns toward its wish (its own turn rate caps it)
 };
 
+/**
+ * Waylaying (the owner, 2026-11-03: "interactions with some other bacteria able to cause certain
+ * members of your group able to be picked off by kind of waylaying them, so you'd have to call them
+ * back ... If you go around spamming X then you won't have this problem"). The stranger strain (the
+ * other magnetotactic cells in the water, world.js 'mtb') comes over to a flock and loiters at its
+ * edge, sending its own decoy pulse (an amber ring) every WAYLAY.pulse s; each pulse draws the nearest
+ * member in reach off the formation toward it. A drifting member is tinted amber and trails a thin
+ * link back to the flock that fades as it goes; after WAYLAY.lostT s (or WAYLAY.lostD µm from the
+ * middle, after WAYLAY.lostMin s) it is picked off: it swims away with the stranger and is gone.
+ * Your beacon (X) reaching a drifting member calls it back at once, and reaching the stranger drives
+ * it off (its followers come back too), so a player who keeps pulsing X never loses one. Real basis:
+ * autoinducer crosstalk between strains (one strain's signal read by another's receptor) and
+ * chemotaxis toward a neighbour's attractant. [Departure]: a strain luring cells on purpose, and the
+ * numbers (game values).
+ */
+export const WAYLAY = {
+  min: 4,        // flocks with fewer members are left alone
+  notice: 40,    // a stranger this far beyond a flock's edge comes over, µm
+  edge: 4,       // it loiters this far beyond the flock's edge
+  come: 34,      // its speed coming over, µm/s
+  lureV: 28,     // and its top speed while loitering (a flock running at 45 µm/s leaves it behind)
+  creep: 3,      // µm/s it edges away while loitering (drawing its followers off), up to creepMax
+  creepMax: 14,
+  pulse: 2.4,    // s between its decoy pulses (each draws off one member)
+  reach: 10,     // a pulse draws off the nearest member within this far of the stranger, µm
+  each: 2,       // members one stranger draws off at once
+  max: 3,        // drifting members per flock at once
+  stay: 16,      // s a stranger loiters before it swims on
+  cool: 14,      // s before a stranger (driven off or gone) waylays again
+  pull: 3,       // s for a drifting member to give up the flock's way entirely
+  lostT: 7,      // s of drifting before it is picked off
+  lostD: 45,     // or this far from the flock's middle, once it has drifted lostMin s
+  lostMin: 3,
+  immune: 4,     // s after a recall before it can be drawn off again
+  recallMax: 60, // a beacon stretches this far (from its origin) to reach a drifting member
+  safeR: 80,     // no waylaying within this far of the start (the meadow stays safe for ever)
+  gone: 2.4,     // s a picked-off member is seen swimming off with the stranger before it is gone
+};
+
 let nextId = 1;
 const TAU = Math.PI * 2;
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -90,7 +131,7 @@ export function createCollectives(world, hooks = {}) {
   const kin = [];          // every kin cell: free, a member, or dying
   const list = [];         // the flocks (one per player while alone)
   const byPlayer = new Map();
-  const opts = { on: true };
+  const opts = { on: true, waylay: true };
   const W = WORLD;
 
   /** A kin cell with its own way of following the flock (FLOCK; README "The army"). */
@@ -109,7 +150,7 @@ export function createCollectives(world, hooks = {}) {
   /** Put free kin cell k at (x, y) (its home: it wanders round it), free and well. */
   function putFree(k, x, y) {
     k.x = k.hx = x; k.y = k.hy = y; k.parked = false;
-    k.coll = null; k.dying = null; k.answer = null; k.growth = r() * 0.3; k.vx = k.vy = 0; k.sp = 0; k.label = 0;
+    k.coll = null; k.dying = null; k.answer = null; k.drift = null; k.immune = 0; k.growth = r() * 0.3; k.vx = k.vy = 0; k.sp = 0; k.label = 0;
   }
   /** Put free kin cell k in the meadow round the start. */
   function placeFree(k) {
@@ -126,6 +167,7 @@ export function createCollectives(world, hooks = {}) {
 
   function reset(roster) {
     list.length = 0; byPlayer.clear(); kin.length = 0;
+    for (const c of world.cells) { c.waylay = null; c.wlCool = 0; } // no stranger is waylaying anyone
     for (let i = 0; i < COLL.free; i++) {
       const k = newKin(0, 0);
       // COLL.meadow in the meadow; the rest ambient: scattered over the water away from the start,
@@ -158,7 +200,7 @@ export function createCollectives(world, hooks = {}) {
     byPlayer.delete(P);
     C.players = C.players.filter((Q) => Q !== P);
     if (!C.players.length) {
-      for (const m of C.members) { m.coll = null; m.hx = m.x; m.hy = m.y; m.sp = 0; }
+      for (const m of C.members) { unDrift(m); m.coll = null; m.hx = m.x; m.hy = m.y; m.sp = 0; }
       C.members.length = 0;
       list.splice(list.indexOf(C), 1);
     }
@@ -255,6 +297,7 @@ export function createCollectives(world, hooks = {}) {
     for (const C of list) if (C.members.length) stepFlock(C, dt, sq);
     stepFree(dt, sq);
     beacons(dt, t);
+    waylay(dt, t);
 
     mergeAndSplit(t, roster);
     losses(dt, t, ctx);
@@ -262,7 +305,11 @@ export function createCollectives(world, hooks = {}) {
     bdelloPack(dt);
     // the dying: shown for a moment (rounding, darkening), then parked: main.js keepAmbient brings it
     // back as a free cell near whoever needs kin, in water nobody has seen (the army can be topped up)
-    for (const k of kin) if (k.dying) { k.dying.t += dt; if (k.dying.t > 1.6) park(k); }
+    for (const k of kin) if (k.dying) {
+      k.dying.t += dt;
+      if (k.dying.kind === 'waylaid') { followOff(k, dt); if (k.dying.t > WAYLAY.gone) park(k); }
+      else if (k.dying.t > 1.6) park(k);
+    }
   }
   /** Free kin (not parked, not joining): the ones keepAmbient counts and may move. */
   const isFree = (k) => !k.coll && !k.dying && !k.answer && !k.parked;
@@ -321,6 +368,13 @@ export function createCollectives(world, hooks = {}) {
       m.wa += 1.4 * sq * gauss(r);
       const wk = 5 * m.wander * (0.1 + 0.9 * C.intent.m);
       Dx += Math.cos(m.wa) * wk; Dy += Math.sin(m.wa) * wk;
+      // waylaid: drawn off toward the stranger, more the longer it drifts (WAYLAY)
+      if (m.drift) {
+        const s = m.drift.c, w = Math.min(1, 0.35 + m.drift.t / WAYLAY.pull);
+        const gx = s.x - m.x, gy = s.y - m.y, gd = Math.hypot(gx, gy) || 1, gv = Math.min(vm * 0.7, 3 * Math.max(0, gd - 1.8));
+        Dx = Dx * (1 - w) + (gx / gd) * gv * w + pushX[i] * FLOCK.sepK * w;
+        Dy = Dy * (1 - w) + (gy / gd) * gv * w + pushY[i] * FLOCK.sepK * w;
+      }
       const dm = Math.hypot(Dx, Dy);
       // it swims along its body: turn toward the wish at its own rate, slower while facing away
       // (a stopped cell needs a little more to start again, so a resting flock rests)
@@ -397,7 +451,10 @@ export function createCollectives(world, hooks = {}) {
         if (d > best) { best = d; x = c.x; y = c.y; }
       }
     }
-    const b = { x, y, t: 0, R, dur: 0.25 + R / 45, n: 0, C, slot: P.slot ?? 0 };
+    // it stretches to reach the flock's drifting (waylaid) members, up to WAYLAY.recallMax
+    let R2 = R;
+    for (const m of C.members) if (m.drift) R2 = Math.max(R2, Math.min(WAYLAY.recallMax, Math.hypot(m.x - x, m.y - y) + 2.5));
+    const b = { x, y, t: 0, R: R2, dur: 0.25 + R2 / 45, n: 0, C, slot: P.slot ?? 0 };
     C.beacons.push(b);
     hooks.onBeacon?.(C, b, P);
     return b;
@@ -426,6 +483,12 @@ export function createCollectives(world, hooks = {}) {
         break;
       }
     }
+    // a drifting member the pulse reaches comes back at once; a stranger it reaches is driven off
+    for (const b of recruit) {
+      const front = b.R * Math.min(1, b.t / b.dur) ** 0.7, f2 = front * front;
+      for (const m of b.C.members) if (m.drift && (m.x - b.x) ** 2 + (m.y - b.y) ** 2 <= f2) recall(m, b);
+      for (const c of world.cells) if (c.waylay && c.waylay.C === b.C && (c.x - b.x) ** 2 + (c.y - b.y) ** 2 <= f2) { for (const m of b.C.members) if (m.drift && m.drift.c === c) recall(m, b); release(c, true); }
+    }
     // answering: the kin cell's own small pulse, and it joins
     for (const k of kin) {
       const A = k.answer;
@@ -441,6 +504,114 @@ export function createCollectives(world, hooks = {}) {
       }
       if (k.coll) A.t += dt; // a member's answer pulse plays out
       if (A.t > 0.7) k.answer = null;
+    }
+  }
+
+  // --- waylaying (WAYLAY): the stranger strain draws members off; the beacon calls them back ---
+  /** Stop drifting without a recall (lost to something else, or set free). */
+  function unDrift(m) { const s = m.drift && m.drift.c; if (s && s.waylay) s.waylay.n = Math.max(0, s.waylay.n - 1); m.drift = null; }
+  const strangerOk = (c) => c.kind === 'mtb' && !c.parked && !c.ghost && !c.lysed && !c.dead && !c.bdelloplast && !c.attachedBy;
+  /** A drifting member answers the beacon: back into the flock at once (its own small answer pulse). */
+  function recall(m, b) {
+    const s = m.drift && m.drift.c;
+    if (s && s.waylay) s.waylay.n = Math.max(0, s.waylay.n - 1);
+    m.drift = null; m.immune = WAYLAY.immune;
+    m.answer = { C: m.coll, t: 0, joined: true, slot: m.label };
+    m.ix = m.coll.intent.x; m.iy = m.coll.intent.y;
+    hooks.onRecall?.(m.coll, m, b);
+  }
+  /** The stranger swims on (driven off by a beacon, done loitering, or away with its catch). */
+  function release(c, driven = false) {
+    const W = c.waylay;
+    if (!W) return;
+    c.waylay = null; c.wlCool = WAYLAY.cool;
+    const C = W.C;
+    c.a = Math.atan2(c.y - C.cy, c.x - C.cx); c.run = 2 + r(); c.tumble = 0;
+    if (driven) hooks.onDriven?.(C, c);
+  }
+  /** A member picked off: it leaves the flock and swims away with the stranger. */
+  function pickOff(m) {
+    const C = m.coll, s = m.drift.c;
+    const i = C.members.indexOf(m); if (i >= 0) C.members.splice(i, 1);
+    m.coll = null; m.answer = null; m.drift = null; m.dying = { kind: 'waylaid', t: 0, c: s, x: m.x, y: m.y };
+    if (s.waylay) { s.waylay.n = Math.max(0, s.waylay.n - 1); s.waylay.took = (s.waylay.took || 0) + 1; }
+    hooks.onWaylaid?.(C, m, s);
+  }
+  /** A picked-off member following the stranger away (it is parked after WAYLAY.gone s). */
+  function followOff(k, dt) {
+    const s = k.dying.c;
+    const dx = s.x - k.x, dy = s.y - k.y, d = Math.hypot(dx, dy) || 1, v = Math.min(55, 6 * Math.max(0, d - 1.6));
+    k.a += wrap(Math.atan2(dy, dx) - k.a) * Math.min(1, dt * 6);
+    k.sp = v; k.vx = Math.cos(k.a) * v; k.vy = Math.sin(k.a) * v;
+    k.x += k.vx * dt; k.y += k.vy * dt;
+    k.bodyPhase += dt * (v / 1.6) * Math.PI; k.flPhase += dt * 20 * Math.min(2.2, v / FLOCK.v);
+  }
+  function waylay(dt, t) {
+    const on = opts.waylay && world.opts.npcRun !== false;
+    for (const c of world.cells) {
+      if (c.kind !== 'mtb') continue;
+      if (c.wlCool > 0) c.wlCool -= dt;
+      const W = c.waylay;
+      if (!W) {
+        if (!on || c.wlCool > 0 || !strangerOk(c)) continue;
+        for (const C of list) {
+          if (!C.players.length || C.members.length < WAYLAY.min || world.distFromStart(C.cx, C.cy) < WAYLAY.safeR) continue;
+          const reach = C.extent + WAYLAY.notice;
+          if (Math.abs(c.x - C.cx) > reach || Math.abs(c.y - C.cy) > reach || Math.hypot(c.x - C.cx, c.y - C.cy) > reach) continue;
+          c.waylay = { C, state: 'come', t: 0, lureT: 0, pulseT: 0.9, ping: -1, n: 0, took: 0 };
+          hooks.onStranger?.(C, c);
+          break;
+        }
+        continue;
+      }
+      const C = W.C;
+      W.t += dt;
+      // the flock is gone or too small, the stranger is hurt or taken, or it has loitered long enough: it swims on
+      if (!on || !strangerOk(c) || !list.includes(C) || !C.players.length || C.members.length < 2 || W.t > WAYLAY.stay || W.took >= 1) { release(c); continue; }
+      // where it heads: just beyond the flock's edge on its own side, edging further off while it lures
+      const ox = c.x - C.cx, oy = c.y - C.cy, od = Math.hypot(ox, oy) || 1;
+      if (W.state === 'lure') W.lureT += dt;
+      const want = C.extent + WAYLAY.edge + Math.min(WAYLAY.creepMax, WAYLAY.creep * W.lureT);
+      const tx = C.cx + (ox / od) * want, ty = C.cy + (oy / od) * want;
+      const dx = tx - c.x, dy = ty - c.y, d = Math.hypot(dx, dy);
+      const vmax = W.state === 'come' ? WAYLAY.come : WAYLAY.lureV;
+      const v = Math.min(vmax, d * 3);
+      if (d > 0.05) { c.x += (dx / d) * v * dt; c.y += (dy / d) * v * dt; }
+      // it faces the way it swims; loitering, it turns side-on to the flock
+      const face = v > 4 ? Math.atan2(dy, dx) : Math.atan2(oy, ox) + Math.PI / 2;
+      c.a += wrap(face - c.a) * Math.min(1, dt * 4);
+      c.vx = d > 0.05 ? (dx / d) * v : 0; c.vy = d > 0.05 ? (dy / d) * v : 0;
+      if (W.state === 'come' && od < C.extent + WAYLAY.edge + 3) W.state = 'lure';
+      if (W.state !== 'lure') continue;
+      // its decoy pulse: each draws off the nearest member in reach (never your own cell)
+      W.pulseT -= dt;
+      if (W.ping >= 0) W.ping += dt;
+      if (W.pulseT > 0) continue;
+      W.pulseT = WAYLAY.pulse; W.ping = 0;
+      if (W.n >= WAYLAY.each) continue;
+      let drifting = 0;
+      for (const m of C.members) if (m.drift) drifting++;
+      if (drifting >= WAYLAY.max) continue;
+      let best = null, bd = WAYLAY.reach * WAYLAY.reach;
+      for (const m of C.members) {
+        if (m.drift || m.latched || (m.immune || 0) > 0) continue;
+        const e2 = (m.x - c.x) ** 2 + (m.y - c.y) ** 2;
+        if (e2 < bd) { bd = e2; best = m; }
+      }
+      if (!best) continue;
+      best.drift = { c, t: 0 }; W.n++;
+      hooks.onWaylay?.(C, best, c);
+    }
+    // the drifting members: picked off if left too long or too far
+    for (const C of list) {
+      for (let i = C.members.length - 1; i >= 0; i--) {
+        const m = C.members[i];
+        if (m.immune > 0) m.immune -= dt;
+        if (!m.drift) continue;
+        m.drift.t += dt;
+        const far = Math.hypot(m.x - C.cx, m.y - C.cy);
+        if (m.drift.t > WAYLAY.lostT || (m.drift.t > WAYLAY.lostMin && far > WAYLAY.lostD)) pickOff(m);
+      }
     }
   }
 
@@ -517,6 +688,7 @@ export function createCollectives(world, hooks = {}) {
   // --- members lost to predators (members are your health) ---
   function lose(m, kind) {
     const C = m.coll;
+    unDrift(m);
     if (C) { const i = C.members.indexOf(m); if (i >= 0) C.members.splice(i, 1); }
     m.coll = null; m.answer = null; m.dying = { kind, t: 0 };
     hooks.onLost?.(C, m, kind);
@@ -637,9 +809,11 @@ export function createCollectives(world, hooks = {}) {
   }
 
   return {
-    COLL, FLOCK, kin, list, opts, of, dragK, ensure, putFree, park, isFree, remove, reset, pre, post, absorb, burst, adopt, beacon, eat, focus, lose,
+    COLL, FLOCK, WAYLAY, kin, list, opts, of, dragK, ensure, putFree, park, isFree, remove, reset, pre, post, absorb, burst, adopt, beacon, eat, focus, lose,
     /** For tests and the HUD: each flock's players, members, size, level, charge and middle. */
-    report: () => list.map((C) => ({ id: C.id, players: C.players.map((P) => P.slot), members: C.members.length, labels: C.members.map((m) => m.label), army: C.army, level: C.level, charge: +C.charge.toFixed(2), x: +C.cx.toFixed(1), y: +C.cy.toFixed(1), fx: +(C.fx || 0).toFixed(1), fy: +(C.fy || 0).toFixed(1), speed: +C.speed.toFixed(1), extent: +C.extent.toFixed(1), beacons: C.beacons.length })),
+    report: () => list.map((C) => ({ id: C.id, players: C.players.map((P) => P.slot), members: C.members.length, labels: C.members.map((m) => m.label), army: C.army, level: C.level, charge: +C.charge.toFixed(2), x: +C.cx.toFixed(1), y: +C.cy.toFixed(1), fx: +(C.fx || 0).toFixed(1), fy: +(C.fy || 0).toFixed(1), speed: +C.speed.toFixed(1), extent: +C.extent.toFixed(1), beacons: C.beacons.length, drifting: C.members.filter((m) => m.drift).length })),
+    /** For tests and the HUD: the strangers waylaying a flock, and its drifting members. */
+    waylays: () => ({ strangers: world.cells.filter((c) => c.waylay).map((c) => ({ x: +c.x.toFixed(1), y: +c.y.toFixed(1), state: c.waylay.state, t: +c.waylay.t.toFixed(2), n: c.waylay.n, flock: c.waylay.C.id })), drifting: list.flatMap((C) => C.members.filter((m) => m.drift).map((m) => ({ flock: C.id, t: +m.drift.t.toFixed(2), d: +Math.hypot(m.x - C.cx, m.y - C.cy).toFixed(1) }))), gone: kin.filter((k) => k.dying && k.dying.kind === 'waylaid').length }),
   };
 }
 
