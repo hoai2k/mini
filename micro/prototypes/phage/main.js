@@ -1376,6 +1376,7 @@ const debug = { freeze: false, iso: false, camOverride: null };
 const SPLIT_ZOOM_MAX = 1.8;
 let groupZoom = 1;
 const split = createSplitScreen(renderer, { capture: true, up: null, zoomMax: SPLIT_ZOOM_MAX });
+const viewCams = []; // each view's camera as last drawn (tests)
 const marks = createLandmarks();
 /**
  * The "Portal arrow" setting (the game's Settings, default off; ?arrow=1 here): an arrow at the edge of each
@@ -1889,6 +1890,7 @@ function frame(now) {
       for (const r of reachRings) r.quaternion.copy(camera.quaternion);
       // every internal pass (scene, DOF copy, bloom) scissored to this view's region when split
       post.render(scene, camera, (rt) => split.scissor(v, rt));
+      (viewCams[v.index] ||= camera.clone()).copy(camera); // (tests: the view as drawn)
       if (pull) { camera.position.addScaledVector(_back, -pull); camera.updateMatrixWorld(); post.uniforms.uFocus.value = view.camDist; }
     });
     // (shared/landmark.js trips on an empty split region, which splitscreen.js can emit for a frame as players leave)
@@ -2078,6 +2080,14 @@ window.__micro = {
   get P() { return team[0].P; }, get t4() { return team[0].t4; }, get capture() { return team[0].capture; },
   team, players, split, world, inside, camera, view, debug, features, guard, post, medium, currents, get t() { return t; },
   get nearBack() { return nearBack; },
+  /** Testing (the split audit): where player `slot`'s phage centre is drawn now (CSS px from the top left), through its view's camera as drawn, and that camera's distance to it. */
+  shown(slot = 0) {
+    const m = team[slot], r = split.layout.regions.find((q) => q.slot === slot), c = viewCams[r ? r.view : 0];
+    if (!m || !c) return null;
+    const was = cur; use(m); const p = centreOf(new THREE.Vector3()); use(was);
+    const d = c.position.distanceTo(p); p.project(c);
+    return { x: (p.x + 1) / 2 * innerWidth, y: (1 - p.y) / 2 * innerHeight, view: r ? r.view : 0, dist: d };
+  },
   /** Your phage as a pose (embed.js) in the view now. */
   cellPose: () => embed.poseOf(camera, phageCentre(), { len: PHAGE_LEN, heading: 0, ...camAngles(camera) }), get where() { return members().some((m) => m.P.mode === 'inside') ? 'inside' : 'outside'; },
 };

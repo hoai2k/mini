@@ -2150,6 +2150,7 @@ function step(dt, inputs) {
   updateContacts();
 }
 const split = createSplitScreen(renderer, { capture: true, zoomMax: SPLIT_ZOOM_MAX });
+const viewFx = []; // each view's focus distance and depth-of-field factor as last drawn (tests)
 const marks = createLandmarks();
 // a caught player's view follows the predator with its meal
 const posOf = (P) => {
@@ -2200,6 +2201,7 @@ function render(dt) {
     // moss tiles beyond the focal plane (plus a tile's reach) switch to the coarse heads (looking far: from just past you)
     world.setLodDistance(Lv === L ? macroShared.uFocus.value + MOSS_LOD_BEYOND : Math.min(macroShared.uFocus.value + MOSS_LOD_BEYOND, Lv.s + 60));
     // split: each internal pass fills only this view's region (padded for the bokeh's reach)
+    viewFx[view.index] = { focus: macroShared.uFocus.value, dofK }; // (tests: each view's focus as drawn)
     macro.render(scene, camera, { lens: Lv, look: lookDef, dofK, scissor: (rt) => split.scissor(view, rt, 64) });
     if (saved) {
       camera.position.copy(saved.p); camera.quaternion.copy(saved.q); camera.fov = saved.fov; camera.near = saved.near;
@@ -2328,6 +2330,8 @@ const api = {
   get frames() { return frames; },
   get layout() { return split.layout; },
   recs: () => recs().map((P) => ({ slot: P.slot, x: +P.x.toFixed(2), z: +P.z.toFixed(2), mode: P.mode, color: P.color })),
+  /** Testing (the split audit): each view's focus distance (mm) and depth-of-field factor as last drawn. */
+  viewFx: () => viewFx.slice(0, Math.max(1, split.views.length)),
   /** Put a player at (x, z) mm, standing, and snap the camera. */
   teleport(slot, x, z) {
     const P = pls[slot];

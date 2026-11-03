@@ -1105,5 +1105,15 @@ window.__micro = {
   /** The kin clump's cells on screen now (normalised device coordinates; the shell-path checks compare them with the bacterium's). */
   clumpScreen(n = 8) { return clumpLayout().slice(0, n).map((c) => { const q = placeInFrame(c, spir.x, spir.y, spir.a), f = toFrame(q.x, q.y), w = view.fw, h = w * aspect(); return { kind: c.kind, x: +((f.x - view.cx) / (w / 2)).toFixed(4), y: +((f.y - view.cy) / (h / 2)).toFixed(4) }; }); },
   challenges: () => challengeLog.slice(),
+  /** The views as last drawn: centre, half extents (µm), the perspective's depth (focus) and the focal plane. */
+  views: () => lastViews.map((v) => ({ index: v.index, slots: v.slots, cx: v.cx, cy: v.cy, hw: v.hw, hh: v.hh, focus: v.focus, focal: v.focal })),
+  /** Where player `slot`'s cell is drawn now (CSS px from the top left), through its view as drawn (perspective included). */
+  shown(slot = 0) {
+    const c = cells.find((q) => q.slot === slot), v = lastViews.find((q) => q.slots && q.slots.includes(slot)) || lastViews[0];
+    if (!c || !v) return null;
+    const k = kAt(c.S.z - (v.focus ?? view.focus)), rx = (c.S.x - v.cx) * k, ry = (c.S.y - v.cy) * k;
+    const cr = Math.cos(view.rot), sr = Math.sin(view.rot), x = rx * cr + ry * sr, y = -rx * sr + ry * cr;
+    return { x: innerWidth / 2 + (x / v.hw) * innerWidth / 2, y: innerHeight / 2 - (y / v.hh) * innerHeight / 2, view: v.index };
+  },
   state: () => ({ t: +t.toFixed(2), director: director.state(), eaten: game.eaten, divided: game.divided, cells: cells.map((c) => ({ slot: c.slot, x: +c.S.x.toFixed(1), y: +c.S.y.toFixed(1), z: +c.S.z.toFixed(1), a: +c.S.a.toFixed(2), v: +c.S.v.toFixed(0), live: c.live, dead: c.dead && c.dead.by, engulfed: !!c.engulfed })), trap: { state: trap.state, resolve: trap.resolve, log: trap.log.slice(-8) }, sealed: leaf.placed && portalSealed(), open: leaf.placed && !portalSealed() && !guarded(), prompt: lm.portal, shapes: shapes.count, shadows: shapes.shadows, sprite: shapes.hasSprite, field: Math.round(fieldNow), zoom: cells.map((c) => +c.zoom.toFixed(3)), focus: +view.focus.toFixed(1), focal: +focalNow.toFixed(1), focals: [...focals.values()].map((F) => ({ key: F.key, z: +F.z.toFixed(1), mode: F.mode, turns: F.turns, interrupted: F.interrupted })), views: split.layout ? split.layout.views.length : 1 }),
 };
