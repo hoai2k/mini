@@ -112,10 +112,10 @@ movement is in the view's own frame, so there is no up or down bias:
 | --- | --- | --- |
 | LS | WASD | **Move**: up forward along the view (into the screen), down back toward you, left and right sideways. Crisp (a departure): quick to start and stop; the baseplate and fibres turn to lead. Holding on to a cell, LS crawls you along its surface |
 | LB / RB | Q / F | **Down / up** the screen |
-| RS | Arrows | **Turn the view** about its own axes (a quaternion: no up or down, no poles, no flips). It stays where you leave it |
+| RS | Arrows | **Turn the view** about its own axes (a quaternion: no up or down, no poles, no flips). It stays where you leave it. With company, each player turns their own view |
 | **A** | Space | **Dash forward** along the view (recharging, HUD `dash` meter). Holding a cell, it lets go and dashes; a carried molecule comes along. On a surface (debug walk), a push-off with the fibres |
 | **X** | E | **Grab / let go** (a toggle): the grab assist takes the best thing in reach of the fibres (below). **At an amoeba's lobe: a fibre jab** (attack; a departure) |
-| LT / RT | Z / X | **Zoom out / in**, analogue and continuous: how far the trigger is squeezed sets how fast it zooms, and the camera eases there; 60 to 290 units behind the phage, starting at 110. Each player's own: together the view takes the widest of everyone's, split each view takes its own players'. Inside the host it sets the inside camera's distance too (the injecting player's) |
+| LT / RT | Z / X | **Zoom out / in**, analogue and continuous: how far the trigger is squeezed sets how fast it zooms, and the camera eases there; 60 to 290 units behind the phage, starting at 110. Each player's own, in their own view. Inside the host it sets the inside camera's distance too (the injecting player's) |
 | B | Shift | **Defend: fold the fibres** back against the sheath and slip: an amoeba's lobe gets no purchase, clay and flocs slide past; it also lets go of whatever you hold. Press again to extend them |
 | Y | R | **At Host A's gold receptors (the way on), within ~0.4 µm and with the amoeba off guard: enter** (the shell shows "Y Enter the portal"; the fibres latch on the nearest receptor and the injection starts; on guard: turned back). **At the flagellum (the backdoor)**: back to the sediment (Level 5); the two are far apart. Elsewhere: the odds and receptor overlay: receptor patches ringed, each host's receptors, defences and odds of a burst, the UV line, the amoeba's hunger, your distance to the nearest host; inside, each enzyme's sensing range. Marked on screen as data, not optics |
 | D-pad ←→ | 3 / 4 | Look: realistic false light (default), Goodsell watercolour, cryo-EM greyscale, fluorescence (pseudo-colour) |
@@ -232,18 +232,28 @@ hunt hard, a near dead end). The third cell is the wrong host.
   the shell (`embed.players`) or starts as P1 alone; anyone joins during play
   by pressing a button on another controller (posted as `join`). Each player
   has their own phage, its head glass in their own colour (see **Telling
-  players apart**). The view is the LEGO split
-  (`shared/splitscreen.js`, image-plane offsets for this free-floating 3D
-  world, with `capture` since the Goodsell pass draws to the screen): one view
-  together, which zooms out as the phages drift apart (the split's `zoom`:
-  the camera backs off along its view, the focus and fog with it) up to 1.8x,
-  split only beyond that, merged again once they are back inside 0.75 of it
-  for most of a second (split views keep 1.35x). The amoeba on guard reaches for the
+  players apart**). **A fixed split screen** (the owner, 2026-11-03: "The
+  phage world can be split screen. I don't think interactions between phage
+  players is really needed as much"): with two or more phages in play outside
+  the screen is split, always, a region each in slot order (two: side by
+  side; three: player 1 along the top, players 2 and 3 below; four:
+  quadrants), along brass hairlines that never move, and the views never
+  merge. Each player has a camera of their own (`m.cam`: its turn, what it
+  frames, its distance), turned by their own RS and zoomed by their own
+  LT / RT, framing their phage at their region's centre (a view offset on the
+  lens, `placeViewCamera`), and LS moves their phage along their own view.
+  Free-turning cameras can't merge without a snap, so they don't
+  (`shared/splitscreen.js` `fixed`: no zoom-out, no merging, no turning
+  dividers; each view drawn by its own camera, which `split.project` uses for
+  the edge marks and the portal's light). With one phage in play (the others
+  inside, or lost) that player's view fills the screen; the burst and the
+  shell's opening pose are one view too. The amoeba on guard reaches for the
   phage nearest its post; the UV shafts act on each. A caught player plays the whole sequence, then drifts back
   in beside a teammate (no card; `captured` is posted); solo keeps the card.
   One player at a time can commit: the inside phase is a single shared view
-  steered by the player who injected, while the others wait outside. Any
-  player's camera stick, look buttons and zoom triggers work.
+  steered by the player who injected, while the others wait outside (any
+  player's camera stick turns it). The look buttons are anyone's and change
+  every view.
 
 ## Telling players apart
 
@@ -436,11 +446,10 @@ covers, read from the scene target's alpha), `debug.nanCount()` (non-finite texe
 
 ## Known issues
 
-- `shared/landmark.js` throws on an empty split-region polygon, which
-  `shared/splitscreen.js` can emit for a frame while players leave; the
-  phage skips its edge marks on such frames.
-- The overlay's text labels are placed with the shared camera, so in a split
-  they sit in the merged position.
+- `shared/landmark.js` throws on an empty split-region polygon; the phage
+  skips its edge marks on such frames (the fixed split never makes one).
+- The overlay's text labels (Y) are placed with player 1's view, so in a split
+  they sit right in player 1's region only.
 - Software WebGL: four split views cost about 1–3 s a frame in headless
   SwiftShader (each view is a full pass); on a GPU it is the usual N renders.
 - The bath's molecules collapse inside the hosts, the amoeba and the clay

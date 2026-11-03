@@ -750,8 +750,9 @@ function layoutCams(L, cx, cy, fieldH) {
     // out with the split (L.amount), so a merge needs no zoom change; it zooms about the view's players
     // (their follow points), so they stay where the split screen shows them
     c.fieldH = frameCam.fieldH;
-    if (vs.length > 1 && v.slots && L.amount > 0) {
-      const r = 1 + (zoomPull(fieldOfSlots(v.slots)) * groupZoom.applied / frameCam.fieldH - 1) * L.amount;
+    if (L && !L.merged && v.slots) {
+      // (split.viewBlend: each player's field blended with those near them, eased with the split)
+      const r = split.viewBlend(v, (j) => zoomPull(fieldOfSlots([L.players[j].slot])) * groupZoom.applied / frameCam.fieldH, 1);
       const ms = (v.members || []).map((j) => L.players[j] && L.players[j].position).filter(Boolean);
       if (r !== 1 && ms.length) {
         const mx = ms.reduce((s, p) => s + p.x, 0) / ms.length, my = ms.reduce((s, p) => s + p.y, 0) / ms.length;

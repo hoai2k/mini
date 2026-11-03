@@ -135,11 +135,17 @@
 //     splitIn = 0.5, splitOut = 0.5, turnRate = 3 (rad/s),
 //     zoomMax = 1 (the world's maximum zoom-out), comfort = 0.6, splitFit = 0.86,
 //     mergeAt = 0.75, mergeDwell = 0.8, zoomOutTime = 0.35, zoomInTime = 1,
-//     zoomBand = 0.1 }) -> split
+//     zoomBand = 0.1, fixed = false }) -> split
 //   split.update(players, shared, dt = 1/60) -> layout
 //     players: [{ slot, position: {x,y,z} }]  (1-4)
-//     shared:  { camera, zoom }  or  { center: {x,y}, pxPerUnit, yUp = true, zoom }
+//     shared:  { camera, zoom, cameras? }  or  { center: {x,y}, pxPerUnit, yUp = true, zoom }
 //              zoom: what the world applied this frame (default split.zoom)
+//   split.fixed                       (read/write) the fixed split: with 2-4 players a region each,
+//                                    always (2 side by side; 3: the first along the top; 4: quadrants),
+//                                    never merged, no zoom-out; shared.cameras[i] (players' order) is
+//                                    each view's own camera, drawn by the world (e.g. with a view offset
+//                                    framing its player at view.center, CSS px) and used by project().
+//                                    For worlds whose players turn cameras of their own (the phage).
 //   split.zoom                        the shared view's zoom-out factor (1..zoomMax): read
 //                                    it before update and widen the camera's framing by it
 //   split.zoomMax
@@ -154,6 +160,9 @@
 //                 CSS px from the top-left; anchor = where the player is drawn
 //     edges[k]:   { a: [x,y], b: [x,y], alpha, slots: [s, t], angle }  the dividers
 //   split.views / split.regions / split.merged   shortcuts
+//   split.viewBlend(view|i, own(i), shared)  a view's own value of a per-player property (zoom,
+//                                    focus, look), continuous through split, merge and players
+//                                    joining a view: blended by the offset weights, eased by amount
 //   split.render(camera, drawView)   drawView(view, target): render the view
 //   split.withView(i, camera, fn)    offset the camera for view i, run fn, put it back
 //   split.target(i)                  WebGLRenderTarget for view i (screen x renderScale), scissored to its rect
@@ -670,7 +679,7 @@ export function createSplitScreen(renderer, opts = {}) {
     }
     const merged = !st.split;
     layout = { merged, width: W, height: H, views, regions, edges, players, amount: amt, spread: E, angle: n === 2 ? st.angle : null,
-      zoom: st.zoom, need, fit: F, merging: st.merging };
+      zoom: st.zoom, need, fit: F, merging: st.merging, weights: bw };
     setRects(layout);
     if (renderer.outputColorSpace !== warmCs || renderer.toneMapping !== warmTm) warm();
     return layout;
@@ -1075,6 +1084,25 @@ export function createSplitScreen(renderer, opts = {}) {
       clearSources();
     },
     get layout() { return layout; },
+    /**
+     * A view's own value of something each player has (a zoom, a focus, a look), blended so that it is
+     * continuous through the split, the merge and players joining one view: each player's value is
+     * blended with the players near them by the weights that share their offsets (layout.weights), the
+     * view takes its members' mean, and the result is eased from `shared` (the merged view's value) by
+     * the split's ease (layout.amount). own(i): player i's value (i indexes layout.players).
+     */
+    viewBlend(v, own, shared) {
+      if (typeof v === 'number') v = layout.views[v];
+      const wts = layout.weights;
+      if (!v || !v.members || !v.members.length || !wts || layout.merged || !(layout.amount > 0)) return shared;
+      let s = 0;
+      for (const i of v.members) {
+        let a = 0, w = 0;
+        for (let j = 0; j < wts.length; j++) { const b = wts[i][j]; if (b > 0) { a += b * own(j); w += b; } }
+        s += w > 0 ? a / w : own(i);
+      }
+      return shared + (s / v.members.length - shared) * layout.amount;
+    },
     get views() { return layout.views; },
     get regions() { return layout.regions; },
     get merged() { return layout.merged; },

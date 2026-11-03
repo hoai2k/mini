@@ -2177,16 +2177,23 @@ function render(dt) {
     let dofK = rig.lookFx ? rig.lookFx.dofK : rig.dofK, Lv = L;
     // how far the split has eased in (0 merged .. 1 split): a split view's own focus and look are
     // blended in with it, so the merge (the views' offsets reaching zero) needs no focus change
-    const amt = one ? 0 : split.layout.amount;
+    // a split view's own focus, depth of field and look (split.viewBlend: blended with the players near
+    // each, eased with the split's amount), so the split, the merge and players joining one view change
+    // no focus at once: merged, every view has the shared camera's
+    const SL = split.layout, sp = !SL.merged && !outro;
+    const recAt = (j) => pls[SL.players[j].slot] || pl;
+    if (sp) {
+      const dAt = (j) => { const P = recAt(j); return camera.position.distanceTo(_v.set(P.x, P.y + 0.25, P.z)); };
+      const own = split.viewBlend(view, dAt, focus0);
+      let far = 0;
+      for (const j of view.members || []) far = Math.max(far, Math.abs(dAt(j) - own));
+      macroShared.uFocus.value = own;
+      dofK += (THREE.MathUtils.clamp((far + 0.6) / L.dof, 1, 14) - dofK) * SL.amount;
+    }
     if (!one) {
-      // each view focuses on its own players, the water and the sky follow its camera
+      // each view's water and sky follow its camera
       const vr = view.slots.map((s) => pls[s]).filter(Boolean);
       const g = groupCentre(vr.length ? vr : [pl]);
-      const own = camera.position.distanceTo(_v.set(g.x, g.y + 0.25, g.z));
-      let far = 0;
-      for (const P of vr) far = Math.max(far, Math.abs(camera.position.distanceTo(_v.set(P.x, P.y + 0.25, P.z)) - own));
-      macroShared.uFocus.value = focus0 + (own - focus0) * amt;
-      dofK += (THREE.MathUtils.clamp((far + 0.6) / L.dof, 1, 14) - dofK) * amt;
       water.position.set(Math.round(g.x / field.dx) * field.dx, 0, Math.round(g.z / field.dx) * field.dx);
       world.sky.position.copy(camera.position);
       setDrop(vr[0]);
@@ -2194,7 +2201,7 @@ function render(dt) {
     // with company, each view looks far or close as its players hold RT / LT (alone, placeCamera did it)
     let saved = null;
     if (multi() && !outro) {
-      const u0 = viewLook(recs().map((P) => P.slot)), u = u0 + (viewLook(view.slots) - u0) * amt;
+      const u0 = viewLook(recs().map((P) => P.slot)), u = sp ? split.viewBlend(view, (j) => lookOf(SL.players[j].slot).u, u0) : u0;
       if (u) {
         saved = { p: camera.position.clone(), q: camera.quaternion.clone(), fov: camera.fov, near: camera.near, sky: world.sky.position.clone() };
         const pivot = camera.getWorldDirection(_v).multiplyScalar(L.s).add(camera.position);

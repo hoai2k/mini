@@ -302,7 +302,9 @@ shell (`embed.players`).
   shared camera, and player 1 also has the optics (Y, zoom, look, aperture).
   Focusing ahead or near (RT / LT held) is each player's own: alone it
   focuses the shared camera; with company each view takes its own players'
-  focus (the portal halo is left out while anyone looks).
+  focus (the portal halo is left out while anyone looks). A split view's own
+  focus, depth of field and look are eased in and out with the split, so a
+  merge changes no focus (the shared view's is the strongest look of all).
 - **Split screen** (`shared/splitscreen.js`, LEGO-style): together, one view
   that frames the group, with the depth of field deepened until everyone is
   sharp. It prefers to stay one view: as the group spreads it zooms out (the

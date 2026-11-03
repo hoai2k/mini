@@ -74,8 +74,9 @@ Keyboard: Z (LT), X (RT).
 
 **The phage zooms with the triggers** the same way and at the same rate: the
 camera's distance behind the phage, from 60 to 290 units (the range of the old
-D-pad steps). Each player's own: together, the shared view takes the widest of
-everyone's; split, each view takes its own players' zoom.
+D-pad steps). Each player's own, in their own view: the phage world is always
+split with company (a fixed region each, below), and each player's RS turns
+only their own camera.
 
 **The mite zooms with the triggers** too: the SEM's horizontal field width,
 160 µm to 4.2 mm, a little faster than the paramecium (its range is nine times
@@ -141,6 +142,10 @@ Up to four players share the screen (`shared/players.js`).
 - **Split screen** (`shared/splitscreen.js`): together, players share one
   view; as they separate the screen splits LEGO-style along a brass hairline
   that turns with their direction, and merges back seamlessly when they meet.
+  The phage is the exception: with company its screen is split from the start,
+  a fixed region each (side by side; three: player 1 along the top; four:
+  quadrants), each player with their own free-turning camera and zoom, and
+  its views never merge.
 - **Landmarks** (`shared/landmark.js`): near the edge of each view, a hollow
   ring points to the way back. The way on has no mark: its golden light
   (`shared/portal.js`) is the only marker.

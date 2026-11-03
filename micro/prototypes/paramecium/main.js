@@ -814,7 +814,7 @@ function stepCamera(dt) {
 }
 const toScreen = (x, y, slot = 0) => {
   const L = split.layout;
-  if (L && L.views && L.views.length > 1) { const v = L.views.find((q) => q.slots.includes(slot)) || L.views[0]; const p = split.project(v.index, toFrame(x, y)); return { x: p.x, y: p.y }; }
+  if (L && L.views && !L.merged) { const v = L.views.find((q) => q.slots.includes(slot)) || L.views[0]; const p = split.project(v.index, toFrame(x, y)); return { x: p.x, y: p.y }; }
   const q = toFrame(x, y), w = view.fw, h = w * aspect();
   return { x: (q.x - view.cx) / w * innerWidth + innerWidth / 2, y: innerHeight / 2 - (q.y - view.cy) / h * innerHeight };
 };
@@ -907,21 +907,23 @@ function render(dt) {
   // own (depth, focal plane, zoom) is eased in and out with the split (L.amount, 0 merged .. 1 split),
   // so the last split frame is the first merged one: the view's offset reaches zero on the same frame.
   const allSlots = cells.map((c) => c.slot);
-  const splitNow = L.views.length > 1 && !camHeld;
-  const amt = splitNow ? L.amount : 0;
+  // (split: !L.merged, also while the views have joined into one on the way to a merge, whose offset
+  // is then still the group's own)
+  const splitNow = !L.merged && !camHeld;
   const Fall = focalFor(allSlots); // (kept stepping while split, so a merge eases back onto it)
+  const cellAt = (j) => cells.find((c) => c.slot === L.players[j].slot) || P1;
   const vs = (splitNow ? L.views : [{ index: 0, offset: { x: 0, y: 0 }, slots: allSlots }]).map((v) => {
     const o = fromFrameOffset(v.offset);
     const mine = cells.filter((c) => v.slots.includes(c.slot) && (c.live || c.dead));
-    const own = mine.length ? mine.reduce((s, c) => s + c.S.z, 0) / mine.length : view.focus;
-    const focus = camHeld && outro ? lerp(view.focus, spir.z, sm01(0, 0.3, outro.u || 0)) : lerp(view.focus, own, amt);
-    // the focal plane: the operator's (in the dive, it drops to the film with the view)
-    const F = splitNow ? focalFor(v.slots) : Fall;
-    const fz = lerp(Fall.z, F.z, amt);
+    // the view's own depth, focal plane (each player's own, focus.js) and zoom, blended with the split
+    // (split.viewBlend: continuous through the split, the merge and players joining one view)
+    const focus = camHeld && outro ? lerp(view.focus, spir.z, sm01(0, 0.3, outro.u || 0)) : split.viewBlend(v, (j) => cellAt(j).S.z, view.focus);
+    const fz = splitNow ? split.viewBlend(v, (j) => focalFor([L.players[j].slot]).z, Fall.z) : Fall.z;
     const focal = camHeld && outro ? lerp(fz, spir.z, sm01(0, 0.3, outro.u || 0)) : fz;
     // split, each view keeps its own players' zoom (the shared view: the widest of everyone's), zoomed
     // about its players, so they stay where the split screen shows them (their region's middle)
-    const r = splitNow ? 1 + (zoomOf(v.slots) / zoomOf(allSlots) - 1) * amt : 1;
+    const zAll = zoomOf(allSlots);
+    const r = splitNow ? split.viewBlend(v, (j) => cellAt(j).zoom / zAll, 1) : 1;
     let cx = view.cx + o.x, cy = view.cy + o.y;
     if (r !== 1 && mine.length) {
       const mx = mine.reduce((s, c) => s + c.S.x, 0) / mine.length, my = mine.reduce((s, c) => s + c.S.y, 0) / mine.length;
