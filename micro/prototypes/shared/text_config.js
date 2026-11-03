@@ -182,8 +182,7 @@ export const TEXT = {
         ['View', 'Hide/show instructions'],
       ],
       playersTitle: 'Players',
-      players: 'Up to four can play. Player 1 uses the first controller{orKeyboard}; a second, third or fourth player joins by pressing any button on another controller, in the menus or during play. Players start in the same view; when they move apart, the view splits, and it joins up again when they come back together.',
-      orKeyboard: ' or the keyboard',
+      players: 'Up to 4 can play together. Join anytime, even during gameplay.',
     },
     credits: {
       heading: 'Credits',
@@ -254,8 +253,8 @@ export const TEXT = {
         ['X', 'Attack / eat'],
         ['B', 'Dash (hold)'],
         ['Y', 'Block (hold)'],
+        ['LT/RT', 'Zoom out / in'],
         ['LB/RB', 'Walk slow / fast'],
-        ['D-pad ↑↓', 'Zoom'],
       ],
       facts: [
         'Box mites fold their legs inside and close the shell like a lid.',
@@ -840,7 +839,7 @@ export const TEXT = {
         special: 'Block (hold)',
         secondary: 'Walk slow / fast',
         look: 'Change the look',
-        zoom: 'Zoom',
+        zoom: 'Zoom out / in',
         readout: 'Instrument readout',
       },
       note: 'Reach the glowing portal, and avoid getting eaten by the predatory mite and the pseudoscorpion. Up to four players: press any button on another controller to join.',

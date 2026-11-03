@@ -1124,7 +1124,7 @@ function renderInstructions() {
     <p>${t('shell.instructions.controlsLead')}</p>
     <ul class="controls-list">${controlRows(shared, { mode })}</ul>
     <h3>${t('shell.instructions.playersTitle')}</h3>
-    <p>${t('shell.instructions.players', { orKeyboard: mode === 'keyboard' ? t('shell.instructions.orKeyboard') : '' })}</p>
+    <p>${t('shell.instructions.players')}</p>
 `;
 }
 
