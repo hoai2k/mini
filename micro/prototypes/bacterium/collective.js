@@ -439,11 +439,11 @@ export function createCollectives(world, hooks = {}) {
     if (!C || !opts.on || !P.S.alive || P.S.species !== 'mtb' || t - C.lastBeacon < COLL.beaconGap) return null;
     C.lastBeacon = t;
     const R = Math.min(COLL.beaconMax, Math.max(COLL.beaconMin, C.extent + COLL.beaconPad));
-    // the front: the cell furthest along the way the flock is going (its motion, else where it is steered)
-    let ux = C.vx, uy = C.vy, um = Math.hypot(ux, uy);
-    if (um < 3) { ux = C.ux; uy = C.uy; um = Math.hypot(ux, uy); }
+    // moving: from the front, the cell furthest along the flock's motion; still: from the middle (the owner)
+    let ux = C.vx, uy = C.vy;
+    const um = Math.hypot(ux, uy);
     let x = C.cx, y = C.cy;
-    if (um > 1e-6) {
+    if (um >= 3) {
       ux /= um; uy /= um;
       let best = -Infinity;
       for (const c of [...liveCells(C), ...C.members]) {

@@ -125,7 +125,7 @@ spirals into the oral pouch off-frame.
 
 `collective.js`, drawn in `draw.js` (`kin`), run from `main.js`.
 
-- **The beacon (X).** X sends a pulse from the front of your flock (the cell furthest along its way), riding with the flock, out to
+- **The beacon (X).** X sends a pulse from your flock, from its front while it moves (the cell furthest along its way) or its middle when still, riding with the flock, out to
   its reach: its edge plus 7 µm (alone: 9 µm, three body lengths; at most
   44 µm). It is drawn on the medium as a ring of soft spots spreading and
   fading. Free kin cells (your own species, the dim spirilla wandering in the
