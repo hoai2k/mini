@@ -333,6 +333,38 @@ export function createDrawer(world) {
       if (S.inView(px, py, 1)) S.disc(px, py, size, pulse);
     }
   }
+  // waylaying (collective.js WAYLAY): the stranger's decoy pulse, a drifting member's amber tint and its
+  // thin link back to the flock (fading as it drifts), and a member picked off swimming away
+  const amber = { dn: 0, scat: 0, fl: [0, 0, 0], ab: [0, 0, 0], z: 0 };
+  function amberMat(k) { amber.dn = 0.03 * k; amber.scat = 0.8 * k; amber.fl[0] = 0.55 * k * chan.memb; amber.fl[1] = 0.2 * k; amber.fl[2] = 0; amber.ab[0] = 0; amber.ab[1] = 0.025 * k; amber.ab[2] = 0.07 * k; return amber; }
+  function amberRing(S, x, y, R, k, size, n) {
+    const m = amberMat(k);
+    for (let i = 0; i < n; i++) { const a = (i / n) * 6.283; const px = x + Math.cos(a) * R, py = y + Math.sin(a) * R; if (S.inView(px, py, 1)) S.disc(px, py, size, m); }
+  }
+  const driftTint = { dn: 0, scat: 0, fl: [0, 0, 0], lab: [0, 0], ab: [0, 0, 0], memb: 0, z: 0, centred: true, phase: 0, curve: 0, hk: 0 };
+  function tint(S, k, o, a) {
+    driftTint.fl[0] = 0.9 * a * chan.memb; driftTint.fl[1] = 0.35 * a; driftTint.ab[1] = 0.12 * a; driftTint.ab[2] = 0.4 * a; driftTint.phase = k.bodyPhase; driftTint.z = o;
+    S.strand(k.x, k.y, k.a, k.L, k.r, k.amp, k.wl, driftTint);
+  }
+  function waylays(S, coll, WAY) {
+    // the strangers luring a flock: faintly amber, with their decoy pulse spreading to its reach
+    for (const c of world.cells) {
+      const Wl = c.waylay;
+      if (!Wl || !S.inView(c.x, c.y, WAY.reach + 2)) continue;
+      tint(S, { x: c.x, y: c.y, a: c.a, L: c.L, r: c.r, amp: c.amp, wl: c.wl, bodyPhase: c.flPhase * 0.4 * c.sense }, c.z, 0.7);
+      if (Wl.ping >= 0 && Wl.ping < 1) { const e = Wl.ping ** 0.7; amberRing(S, c.x, c.y, 0.8 + (WAY.reach - 0.8) * e, (1 - Wl.ping) * 0.9, 0.26, Math.max(12, Math.round(6.283 * (0.8 + WAY.reach * e) / 1.2))); }
+    }
+    for (const C of coll.list) for (const m of C.members) {
+      if (!m.drift || !S.inView(m.x, m.y, 60)) continue;
+      // the link back to the flock: a thin dotted line to its middle's edge, fading as the drift goes on
+      const left = Math.max(0, 1 - m.drift.t / WAY.lostT);
+      const dx = C.cx - m.x, dy = C.cy - m.y, d = Math.hypot(dx, dy), run = d - C.R0 * 0.6;
+      if (run > 1) {
+        const n = Math.min(60, Math.floor(run / 1.1)), mat = amberMat(0.25 + 0.6 * left);
+        for (let i = 1; i <= n; i++) { const u = (i * 1.1) / d; const px = m.x + dx * u, py = m.y + dy * u; if (S.inView(px, py, 1)) S.disc(px, py, 0.09 + 0.06 * left, mat); }
+      }
+    }
+  }
   const kinTox = { dn: 0.004, scat: 0.05, ab: [0, 0, 0], z: 0 };
   const kinSlime = { dn: 0.003, scat: 0.02, fl: [0, 0.01, 0.03], z: 0.05 };
   function kin(S, t, coll) {
@@ -342,6 +374,14 @@ export function createDrawer(world) {
       const C = k.coll;
       // its answer to a beacon: a small pulse of its own as it joins
       if (k.answer && k.answer.t >= 0) { const e = Math.min(1, k.answer.t / 0.7); ring(S, k.x, k.y, 0.9 + 2.8 * e, (1 - e) * 1.3, 0.2, 12); }
+      if (k.dying && k.dying.kind === 'waylaid') {
+        // picked off by a stranger: an amber flash where it left, then it swims away with it, fading
+        const e = Math.min(1, k.dying.t / 2.4);
+        if (k.dying.t < 0.8) amberRing(S, k.dying.x, k.dying.y, 1 + 5 * (k.dying.t / 0.8), 1 - k.dying.t / 0.8, 0.3, 18);
+        spirillum(S, k.x, k.y, k.a, k.L, k.r, k.amp, k.wl, k.bodyPhase, k.z, k.flPhase * fl, { tumbling: false, fl: 1 - e });
+        tint(S, k, k.z, 1 - e);
+        continue;
+      }
       if (k.dying) {
         // a member taken in your place: it rounds up, darkens and fades
         const e = Math.min(1, k.dying.t / 1.2);
@@ -354,10 +394,13 @@ export function createDrawer(world) {
       // its label (answering a player's beacon turned it); fading in over its answer pulse
       const lm = k.label && label(k.label, k.answer && k.answer.t >= 0 ? Math.min(1, k.answer.t / 0.7) : 1, C ? 0 : k.z);
       if (lm) { lm.phase = k.bodyPhase; S.strand(k.x, k.y, k.a, k.L, k.r, k.amp, k.wl, lm); }
+      // drifting off after a stranger: tinted amber (fading back as it is called back)
+      if (k.drift) tint(S, k, 0, Math.min(1, 0.4 + k.drift.t / 2));
       if (charge > 0.2) { const ab = kinTox.ab; ab[0] = 0.03 * charge; ab[1] = 0.09 * charge; ab[2] = 0.02 * charge; S.disc(k.x, k.y, 0.5, kinTox); }
       // the slime shield: EPS round every member (thin, faint in phase, a haze in fluorescence)
       if (C && C.level >= 1) { kinSlime.fl[0] = 0.03 * chan.memb; S.disc(k.x, k.y, 2.1, kinSlime); }
     }
+    if (coll.WAYLAY) waylays(S, coll, coll.WAYLAY);
     // the beacon (X): a pulse spreading from the flock's middle to its reach, then fading
     for (const C of coll.list) {
       for (const b of C.beacons) {

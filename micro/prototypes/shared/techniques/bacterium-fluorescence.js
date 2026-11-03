@@ -143,7 +143,19 @@ uniform float uHalo, uNoise, uPlateOn, uHasPlate, uStopR, uGain;
 uniform vec3 uCol0, uCol1, uCol2; // fluorescence pseudo-colours
 uniform vec3 uCol3, uCol4;        // two label channels (the alpha of attachments 1 and 2)
 uniform vec3 uBg;           // phase background
+uniform mat4 uInv;          // optional: the inverse of the camera's matrix (a turned or tilted view), when uUseInv is 1
+uniform float uUseInv;
 layout(location = 0) out vec4 o;
+
+// the slide point seen at this pixel: through an inverse camera matrix (a turned or tilted view) when given
+vec2 slideAt(vec2 uv, vec2 c, vec2 sz, mat4 inv, float useInv) {
+  if (useInv < 0.5) return c + (uv - 0.5) * sz;
+  vec2 n = uv * 2.0 - 1.0;
+  vec4 a = inv * vec4(n, -1.0, 1.0), b = inv * vec4(n, 1.0, 1.0);
+  a /= a.w; b /= b.w;
+  float k = abs(a.z - b.z) > 1e-9 ? a.z / (a.z - b.z) : 0.0;
+  return mix(a.xy, b.xy, k);
+}
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float vnoise(vec2 p) {
@@ -159,7 +171,7 @@ void main() {
   vec3 fl = f1.rgb;
   vec3 od = f2.rgb;
   vec4 low = texture(tLow, vUv);
-  vec2 world = uCenter + (vUv - 0.5) * uSize;
+  vec2 world = slideAt(vUv, uCenter, uSize, uInv, uUseInv);
   float TAU = 6.2831853;
   float phi = TAU * f0.r / uLambda;
   float phiLow = TAU * low.r / uLambda;
@@ -234,6 +246,7 @@ void main() { vec2 uv = vUv * uFieldK; o = vec4(texture(t0, uv).r, texture(t1, u
     uCol0: { value: new THREE.Color(1.0, 0.18, 0.45) }, uCol1: { value: new THREE.Color(0.25, 1.0, 0.35) }, uCol2: { value: new THREE.Color(0.25, 0.75, 1.0) },
     uCol3: { value: new THREE.Color(1.0, 0.2, 0.14) }, uCol4: { value: new THREE.Color(0.55, 0.36, 1.0) },
     uBg: { value: new THREE.Color(0.66, 0.70, 0.66) },
+    uInv: { value: new THREE.Matrix4() }, uUseInv: { value: 0 },
   });
   const blank = new THREE.DataTexture(new Uint8Array([128, 128, 128, 255]), 1, 1);
   blank.needsUpdate = true;
@@ -332,7 +345,7 @@ void main() { vec2 uv = vUv * uFieldK; o = vec4(texture(t0, uv).r, texture(t1, u
      * colors: three pseudo-colours for the fluorescence channels. gain: fluorescence exposure.
      * noiseRes: the grain of the shot noise in pixels (default: the field size).
      */
-    render({ look = 'phase', umPerPx = 0.1, center = [0, 0], time = 0, lambda = 0.55, na = 1.3, haloUm = 1.2, stopR = 0, plate = null, colors = null, gain = 1, target = null, skipDiffract = false, noiseRes = null }) {
+    render({ look = 'phase', umPerPx = 0.1, center = [0, 0], inv = null, time = 0, lambda = 0.55, na = 1.3, haloUm = 1.2, stopR = 0, plate = null, colors = null, gain = 1, target = null, skipDiffract = false, noiseRes = null }) {
       const haloW = (look === 'fluorescence' ? 1.6 : haloUm) / umPerPx;
       const haloM = Math.ceil(3.3 * haloW + 8);
       let F = { tex: cur.field.textures, kx: 1, ky: 1 };
@@ -353,6 +366,8 @@ void main() { vec2 uv = vUv * uFieldK; o = vec4(texture(t0, uv).r, texture(t1, u
       c.uLook.value = Math.max(0, LOOKS.indexOf(look));
       c.uCenter.value.set(center[0], center[1]);
       c.uSize.value.set(W * umPerPx, H * umPerPx);
+      // a turned or tilted camera (bacterium's orbit): the background is read on the slide through it
+      c.uUseInv.value = inv ? 1 : 0; if (inv) c.uInv.value.copy(inv);
       c.uRes.value.set(W, H);
       if (noiseRes) c.uNoiseRes.value.set(noiseRes[0], noiseRes[1]); else c.uNoiseRes.value.set(W, H);
       c.uTime.value = time; c.uLambda.value = lambda;

@@ -168,6 +168,33 @@ spirals into the oral pouch off-frame.
     origin, the gates) use the flock's middle, smoothed; alone, your cell.
     Your own cell's corner brackets show only while you are alone (or, in
     multiplayer, in your colour).
+- **Waylaying** (the owner, 3 November 2026: "interactions with some other
+  bacteria able to cause certain members of your group able to be picked off
+  by kind of waylaying them, so you'd have to call them back ... If you go
+  around spamming X then you won't have this problem"; `WAYLAY` in
+  `collective.js`). A **stranger strain** (other magnetotactic cells,
+  `world.js`) comes over to a flock of 4 or more and loiters just beyond its
+  edge, edging slowly away; every 2.4 s it sends a decoy pulse (an amber ring)
+  that draws off the nearest member within 10 µm of it (at most 2 per stranger
+  and 3 per flock at once; a member just called back is left alone for 4 s).
+  A **drifting member** leaves the formation for the stranger, more the longer
+  it drifts: it is tinted amber, ringed in amber and trails a thin dashed amber
+  link back to the flock that thins and fades as its time runs out (no meter).
+  Left **7 s** (or 45 µm from the middle after 3 s), it is **picked off**: an
+  amber flash, and it swims away with the stranger and is gone; the stranger
+  leaves with its catch. **Your beacon (X)** reaching a drifting member calls
+  it back at once (its own small answer pulse), and reaching the stranger
+  drives it off (its followers come back too); the beacon stretches up to
+  60 µm to reach them. A stranger loiters 12 s at most and comes back to
+  waylay after 25 s, so a player who pulses X now and then never loses one.
+  Never in the meadow round the start (it stays safe for ever). Measured
+  (`flock.test.mjs`): a stranger 18 µm off a resting flock of 10 comes over
+  and draws a member off within ~2.5 s; ignored, the member is picked off ~7 s
+  later; X calls it back in under 0.8 s; pulsing X every 1.5 s for 30 s loses
+  none. Real basis: autoinducer crosstalk between strains and chemotaxis to a
+  neighbour's attractants. **[Departure]**: a strain luring cells on purpose,
+  and the numbers. Test hooks: `__micro.waylays()`, `debug.stranger(slot, d,
+  a)`.
 - **Members are your health.** A predator that would take you (a grazer's
   funnel, the amoeba, Stentor, a Bdellovibrio's ram, a phage) takes the
   member on its side instead. Members it eats poison it (`guards.js`).
@@ -353,8 +380,10 @@ shell's roster comes in with `embed.players`).
   once they are back inside 0.75 of that for most of a second (split views
   keep 1.2x; `shared/splitscreen.js`,
   its 2D mode: each view is the field drawn round its own centre, captured,
-  at 70 % resolution while split, without the field stop). Player 1 has the
-  view controls (look, field, focus, stage, Y for the data overlay).
+  at 70 % resolution while split, without the field stop). Each player zooms
+  their own field (LT/RT); a shared view shows everyone's widest, and each
+  split view its own players' widest. Every player's RS turns the one camera.
+  Player 1 has the look and Y for the data overlay.
 - **Hunters pick a player:** the amoeba's edge slides toward the nearest
   living cell; grazers, phages and Bdellovibrio catch whoever they touch. The
   warning line names the player. The gates are fought by every flock at once.
@@ -413,17 +442,23 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | Xbox | Keyboard | Action |
 | --- | --- | --- |
 | LS | WASD | **Steer your flock** (a labelled assist): it heads where you point, as fast as you tilt (0–45 µm/s); your own cell turns toward the stick (up to ~5.5 rad/s), every member follows in its own way (see **The army**). Released: the motors stop and the flock settles; only Brownian motion, flow and the field move you. Tumbles (B) also lean toward the stick. Features → LS steering → *Tumble bias only* or *Honest: no steering* |
-| RS | Arrows | Move the stage (the view drifts back to your flock) |
+| RS | Arrows | **Camera** (a 3D orbit round the flock): left/right turns it round (yaw), up/down tilts it (pitch, from straight down to ~55°; the shared Invert Y applies). It eases and stays where you leave it; LS steers relative to it |
 | **A** | Space | **Sprint run**: every flagellum at full motor speed (spirillum 95 µm/s, Bdellovibrio 160 µm/s), 0.6 s, recharging (HUD `dash` meter); the whole flock sprints. It also shakes off loosely bound phages and an attaching Bdellovibrio, and sprinting out of a grazer's current wears it down |
 | **X** | E | **Beacon, eat, strike** (magnetotactic, one press every 0.3 s): a pulse from your flock's front, riding with it, that kin in reach answer as they join; every prey rod in reach of a member lysed; a volley from every member touching an enemy. Held, your cell also takes up food in a patch. Bdellovibrio: press while touching a Gram-negative rod to attach and bore in (it spins on its pole and a pore opens in the prey's wall) |
 | **B** | Shift | **Defend: tumble** (the shared defend button, an evasive move): stop, turn to a random new heading (E. coli's distribution, mean 68°), run on. For Bdellovibrio it is a reverse plus a flick. While you hold LS, the stick turns you back afterwards. **At the moment a predator strikes** (a grazer's surge, a phage committing, a Bdellovibrio's ram) it evades it |
-| Y | R | **Toxin burst** when your army's toxin is charged (army 12; also LS click). Otherwise: data overlay (food, field lines and feeding currents, marked on screen as data, not optics). At the open host (the portal, "Y Enter the portal" showing): enter it. At the Paramecium (the backdoor): back to the pool |
-| LT / RT | Z / X | Fine focus down / up (it drifts back to your cell's plane unless switched off) |
+| Y | R | **Toxin burst** when your army's toxin is charged (army 12; also LS click). Otherwise: data overlay (food, field lines and feeding currents, marked on screen as data, not optics) |
+| LT / RT | Z / X | **Zoom** out / in, analogue and continuous (eased): from a 22 µm camera crop to the 180 µm eyepiece field (the field stop shows there); starts at 45 µm. Each player's own |
 | LB / RB | Q / F | **Reverse the run**: the other pole leads. For the magnetotactic cell, this is how it swims back the other way along the field line |
 | D-pad ←→ | 3 / 4 | Look: phase contrast, fluorescence, darkfield, SEM (borrowed), DIC (borrowed) |
-| D-pad ↑↓ | 1 / 2 | Field: 180 µm (the eyepiece field) / 90 / 45 / 22 µm (camera crops) |
 | Menu | Esc | Features panel |
 | View | Tab | Hide or show the controls |
+
+The portal and the way back are not in this list: at the open host and at the
+Paramecium the game asks for Y on screen (see **Landmarks**). There is no focus
+control (the focus stays on your cell's plane) and no D-pad zoom (the owner,
+3 November 2026: "LT/RT be zoom (like paramecium) instead of DPad ... we don't
+need a 'focus' control"; "RS should be camera ... as you'd expect for a 3d
+camera").
 
 The stats corner shows the real speed in µm/s and body lengths per second,
 growth or prey, the dash meter, phages on you, the magnetic alignment
@@ -597,8 +632,13 @@ peritrich down and an army of 12 beats it. The smoke check opens the page in
 headless Chromium, drives the keyboard and fails on any console error.
 `window.__micro.debug` has hooks for scripted runs and screenshots
 (`teleport` (your flock comes along), `step(n, dt, input | { slots })`, `x`,
-`fill`, `look`, `zoom`, `tumble`, `dash`, `reverse`, `overlay`, `species`,
-`phageOnMe`, `nearGrazer`).
+`fill`, `look`, `zoom(field µm, slot)`, `zoomHold(±1 | null, slot)` (LT/RT),
+`rsHold(yaw, pitch | null)` (RS), `cam(yaw, pitch)`, `stranger(slot, d, a)`,
+`tumble`, `dash`, `reverse`, `overlay`, `species`, `phageOnMe`, `nearGrazer`;
+`__micro.cam()` gives the camera, each player's field and each view's centre).
+`flock.test.mjs` also checks waylaying: a stranger draws a member off, which
+leaves the formation; ignored it is picked off and gone; X calls it back and
+drives the stranger off; pulsing X loses none; the meadow stays safe.
 
 ## Approach
 
@@ -623,10 +663,11 @@ sediment surface sits in the same focal plane as the water.
 - **The biofilm**: an EPS-rich layer of attached rods and cocci (slows you to
   45 %), matrix strands, clay and silt grains far bigger than you.
 - **Other bacteria**: E. coli-like rods that run and tumble (18–28 µm/s), cocci
-  and Gram-positive chains (non-motile, Brownian), ten other magnetotactic
-  cells that swim along the field and reverse by their oxygen sense (so the
-  field lines show in their traffic), and three Bdellovibrio hunting rods and
-  leaving bdelloplasts.
+  and Gram-positive chains (non-motile, Brownian), a stranger strain of
+  magnetotactic cells (eight, one kept near an army big enough to waylay; they
+  swim along the field and reverse by their oxygen sense, and waylay your
+  members: **The army**), and three Bdellovibrio hunting rods and leaving
+  bdelloplasts.
 - **Grazers**: two Vorticella-like peritrichs on stalks. Their oral cilia beat
   a feeding current, a sink about 60 µm/s at 16 µm from the funnel and faster
   near it (faster than you), strongest in front of the opening. Specks,
@@ -688,7 +729,18 @@ receives the real chord through the cross-section (2√(r² − d²)).
   20 nm flagellum carries its true tiny signal into the blur, and vanishes in
   phase contrast as it really does.
 - **Depth of field ≈ 0.4 µm**: objects off the focal plane are drawn wider and
-  fainter with their total kept. LT/RT move the focus.
+  fainter with their total kept. The focus stays on your cell's plane.
+- **The camera** (RS, `stepCamera` and `camMatrix` in `main.js`): a
+  perspective camera (30° field of view) looking at the flock's middle, set so
+  its field there is the zoom's height; straight down it frames exactly the
+  old orthographic field. Yaw turns it round, pitch tilts it (to 0.95 rad).
+  The specimen's matrix, the optics' background and the data overlay
+  (through the inverse matrix, `uInv`), the split screen (through `toFrame`,
+  the shared frame), the culling box and the director's views (the quad each
+  view frames on the slide) all follow it. The portal's glow is an
+  orthographic camera turned with the view and placed where the host shows.
+  During the continuous transitions the camera eases back to straight down.
+  **[Departure]**: a microscope cannot orbit or tilt its view.
 - **Phase contrast** (Ph3, 100× oil): I = e^(−OD)·(1 − c·tanh(k(φ − 0.75·φ_low))):
   dark cells with bright halos and shade-off. Flagella and phages invisible.
 - **Fluorescence**: pseudo-coloured channels on black: membranes (FM 4-64,
@@ -714,8 +766,8 @@ mixed:
 
 - **Body**: protagonist (Magnetospirillum / Bdellovibrio); flagella on/off;
   how each cell turns (fixed, explained).
-- **Optics**: look; diffraction limit; phase halo; depth of field and focus
-  follow; background; noise; field stop; each stain channel; data overlay;
+- **Optics**: look; diffraction limit; phase halo; depth of field (fixed:
+  focused on your cell); background; noise; field stop; each stain channel; data overlay;
   the corner brackets that mark your cell (a game marker, not optics).
 - **Rendering**: the instanced distance-field specimen; the shared optical
   field (fixed, explained).

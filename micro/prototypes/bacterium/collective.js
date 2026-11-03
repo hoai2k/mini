@@ -110,8 +110,8 @@ export const WAYLAY = {
   reach: 10,     // a pulse draws off the nearest member within this far of the stranger, µm
   each: 2,       // members one stranger draws off at once
   max: 3,        // drifting members per flock at once
-  stay: 16,      // s a stranger loiters before it swims on
-  cool: 14,      // s before a stranger (driven off or gone) waylays again
+  stay: 12,      // s a stranger loiters before it swims on
+  cool: 25,      // s before a stranger (driven off or gone) waylays again
   pull: 3,       // s for a drifting member to give up the flock's way entirely
   lostT: 7,      // s of drifting before it is picked off
   lostD: 45,     // or this far from the flock's middle, once it has drifted lostMin s
@@ -452,10 +452,12 @@ export function createCollectives(world, hooks = {}) {
       }
     }
     // it stretches to reach the flock's drifting (waylaid) members and the strangers luring them, up to WAYLAY.recallMax
+    // (each is answered when the front passes where it was as the pulse went out, so none can outrun it)
     let R2 = R;
-    for (const m of C.members) if (m.drift) R2 = Math.max(R2, Math.min(WAYLAY.recallMax, Math.hypot(m.x - x, m.y - y) + 2.5));
-    for (const c of world.cells) if (c.waylay && c.waylay.C === C) R2 = Math.max(R2, Math.min(WAYLAY.recallMax, Math.hypot(c.x - x, c.y - y) + 2.5));
-    const b = { x, y, t: 0, R: R2, dur: 0.25 + R2 / 45, n: 0, C, slot: P.slot ?? 0 };
+    const reach = [];
+    for (const m of C.members) if (m.drift) { const d = Math.hypot(m.x - x, m.y - y); if (d < WAYLAY.recallMax) { reach.push({ o: m, d }); R2 = Math.max(R2, d + 3); } }
+    for (const c of world.cells) if (c.waylay && c.waylay.C === C) { const d = Math.hypot(c.x - x, c.y - y); if (d < WAYLAY.recallMax) { reach.push({ o: c, d }); R2 = Math.max(R2, d + 3); } }
+    const b = { x, y, t: 0, R: R2, dur: 0.25 + R2 / 45, n: 0, C, slot: P.slot ?? 0, reach };
     C.beacons.push(b);
     hooks.onBeacon?.(C, b, P);
     return b;
@@ -488,6 +490,11 @@ export function createCollectives(world, hooks = {}) {
     for (const b of recruit) {
       const front = b.R * Math.min(1, b.t / b.dur) ** 0.7, f2 = front * front;
       for (const m of b.C.members) if (m.drift && (m.x - b.x) ** 2 + (m.y - b.y) ** 2 <= f2) recall(m, b);
+      for (const q of b.reach) if (q.d <= front) {
+        const o = q.o;
+        if (o.drift && o.coll === b.C) recall(o, b);
+        else if (o.waylay && o.waylay.C === b.C) { for (const m of b.C.members) if (m.drift && m.drift.c === o) recall(m, b); release(o, true); }
+      }
       for (const c of world.cells) if (c.waylay && c.waylay.C === b.C && (c.x - b.x) ** 2 + (c.y - b.y) ** 2 <= f2) { for (const m of b.C.members) if (m.drift && m.drift.c === c) recall(m, b); release(c, true); }
     }
     // answering: the kin cell's own small pulse, and it joins
@@ -572,7 +579,8 @@ export function createCollectives(world, hooks = {}) {
       // where it heads: just beyond the flock's edge on its own side, edging further off while it lures
       const ox = c.x - C.cx, oy = c.y - C.cy, od = Math.hypot(ox, oy) || 1;
       if (W.state === 'lure') W.lureT += dt;
-      const want = C.extent + WAYLAY.edge + Math.min(WAYLAY.creepMax, WAYLAY.creep * W.lureT);
+      W.ext = W.ext === undefined ? C.extent : W.ext + (C.extent - W.ext) * Math.min(1, dt * 0.8); // (eased: a member coming back must not throw it outward)
+      const want = W.ext + WAYLAY.edge + Math.min(WAYLAY.creepMax, WAYLAY.creep * W.lureT);
       const tx = C.cx + (ox / od) * want, ty = C.cy + (oy / od) * want;
       const dx = tx - c.x, dy = ty - c.y, d = Math.hypot(dx, dy);
       const vmax = W.state === 'come' ? WAYLAY.come : WAYLAY.lureV;
@@ -582,7 +590,7 @@ export function createCollectives(world, hooks = {}) {
       const face = v > 4 ? Math.atan2(dy, dx) : Math.atan2(oy, ox) + Math.PI / 2;
       c.a += wrap(face - c.a) * Math.min(1, dt * 4);
       c.vx = d > 0.05 ? (dx / d) * v : 0; c.vy = d > 0.05 ? (dy / d) * v : 0;
-      if (W.state === 'come' && od < C.extent + WAYLAY.edge + 3) W.state = 'lure';
+      if (W.state === 'come' && od < W.ext + WAYLAY.edge + 3) W.state = 'lure';
       if (W.state !== 'lure') continue;
       // its decoy pulse: each draws off the nearest member in reach (never your own cell)
       W.pulseT -= dt;

@@ -9,7 +9,7 @@
 // (shared/landmark.js).
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { mountHud, keyFor } from '../shared/hud.js';
-import { createDash, hudControls } from '../shared/controls.js';
+import { createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
@@ -64,7 +64,6 @@ const hud = mountHud({
     analog: tt('bacterium.hud.controls.analog'),
     secondary: tt('bacterium.hud.controls.secondary'),
     look: tt('bacterium.hud.controls.look'),
-    zoom: tt('bacterium.hud.controls.zoom'),
   }),
   note: tt('bacterium.hud.note'),
 });
@@ -108,7 +107,8 @@ function makePlayer(p) {
     slot: p.slot, color: p.color, name: tt('shared.players.name', { n: p.slot + 1 }), swimmer, S: swimmer.state, game: createGame(world, swimmer),
     dash: dashFor('mtb'), pad: players.pad(p.slot), ctl: players.controls(p.slot),
     capture: createCapture({ onRespawn: () => respawnPlayer(P) }),
-    cat: { kind: null, who: null, phase: null, t: 0, x0: 0, y0: 0, a0: 0, zoom0: 2, released: false },
+    cat: { kind: null, who: null, phase: null, t: 0, x0: 0, y0: 0, a0: 0, zoom0: 45, released: false },
+    zoom: SPECIES.mtb.view, zoomWant: SPECIES.mtb.view, // the field height (µm): LT out, RT in, each player their own (stepZoom)
     backT: 0, eatenFor: 0, msg: { phageHint: false }, blockT: 0, sprintT: 0, phage: null, bdello: null,
   };
   // the capture's card (unused: the catch follows the predator, then respawns), its veil (the
@@ -149,6 +149,20 @@ const coll = createCollectives(world, {
   onSplit: (C, N, P, k) => { hud.toast(tt('bacterium.toasts.branchesOff', { name: P.name, k, name2: P.name, stay: C.members.length }), 3000); },
   onDivide: () => {},
   onBurst: (C, b) => toxinBurst(C, b),
+  // waylaying (collective.js WAYLAY): a stranger's decoy pulse draws a member off; X calls it back
+  onWaylay: (C) => {
+    if (!C.players.length) return;
+    audio.play('bacterium/answer', { volume: 0.35, rate: 0.62 });
+    if (!collMsg.waylayHint) { collMsg.waylayHint = true; hud.toast(tt('bacterium.toasts.waylay', { glyph }), 4200); }
+  },
+  onRecall: () => { if (t - collMsg.answerSnd > 0.2) { collMsg.answerSnd = t; audio.play('bacterium/answer', { volume: 0.5, rate: 1.15 }); } },
+  onWaylaid: (C) => {
+    if (!C || !C.players.length) return;
+    audio.play('bacterium/infected', { volume: 0.45, rate: 1.3 });
+    if (t - collMsg.lostAt < 1.5) return;
+    collMsg.lostAt = t;
+    hud.toast(tt('bacterium.toasts.waylaid', { left: C.members.length, glyph }), 3200);
+  },
 });
 world.coll = coll;
 coll.reset(roster);
@@ -182,7 +196,7 @@ const ARMY_HOLD = 8;
 // (stepDirector below: a lingering player's gate drifts over to them; kin and prey are kept near every player)
 const DRIFT = 6, DRIFT_WAIT = 4;
 const drift = { idle: 0 };
-const KEEP = { r: 130, kin: 8, kinShort: 18, prey: 14, far: 240, every: 0.4, moves: 4 };
+const KEEP = { r: 130, kin: 8, kinShort: 18, prey: 14, strangers: 1, far: 240, every: 0.4, moves: 4 };
 const keepT = { t: 0 };
 const leaderP = () => { const L = director.leader; return L ? roster.find((P) => P.slot === L.id) || null : null; };
 const armyOf = (P) => { const C = P && coll.opts.on && coll.of(P); return C ? C.army : 1; };
@@ -344,7 +358,7 @@ const capture = P1.capture;
 const cat = P1.cat;
 function startCatch(P, { kind, who }) {
   const S = P.S, cat = P.cat;
-  Object.assign(cat, { kind, who, phase: 'strike', t: 0, x0: S.x, y0: S.y, a0: S.a, zoom0: view.zoom, released: false });
+  Object.assign(cat, { kind, who, phase: 'strike', t: 0, x0: S.x, y0: S.y, a0: S.a, zoom0: P.zoom, released: false });
   S.catchAnim = cat;
   P.eatenFor = 0;
   coll.remove(P); // members stay with the others (or go free)
@@ -706,8 +720,39 @@ const overlay = createOverlay();
 const looks = createBorrowedLooks(renderer);
 // split screen: in a 2D field the view is drawn around a centre; each view is
 // rendered to the screen and captured (the optics end on the screen)
-/** The split layout without degenerate (empty) regions, for shared/landmark.js. */
-const arrowSplit = () => { const L = split.layout; return { layout: { ...L, regions: L.regions.filter((r) => r.polygon.length > 2) }, project: split.project }; };
+/** The split layout without degenerate (empty) regions, for shared/landmark.js, projecting through each view's camera. */
+const arrowSplit = () => { const L = split.layout; return { layout: { ...L, regions: L.regions.filter((r) => r.polygon.length > 2) }, project: projectView }; };
+// Each view's camera (camMatrix): its centre on the slide, field, matrix and inverse. The split screen's
+// 2D mode works in the shared frame: the slide as the shared camera shows it (toFrame), so a view's
+// offset there is turned back into a centre on the slide (groundAt).
+const camViews = [];
+const camPool = [0, 1, 2, 3].map((index) => ({ index, cx: 0, cy: 0, fieldH: 45, M: new THREE.Matrix4(), Mi: new THREE.Matrix4() }));
+const frameCam = { cx: 0, cy: 0, fieldH: 45, fw: 80, M: new THREE.Matrix4(), Mi: new THREE.Matrix4(), yaw: 0, pitch: 0 };
+function setFrame(cx, cy, fieldH, yaw, pitch) {
+  Object.assign(frameCam, { cx, cy, fieldH, fw: fieldH * aspect(), yaw, pitch });
+  camMatrix(frameCam.M, cx, cy, fieldH, aspect(), yaw, pitch); frameCam.Mi.copy(frameCam.M).invert();
+}
+const _nq = {};
+/** A slide point in the shared frame (what the split screen's 2D mode lays out). */
+function toFrame(p) { ndcOf(frameCam.M, p.x, p.y, _nq); return { x: frameCam.cx + _nq.x * frameCam.fw / 2, y: frameCam.cy + _nq.y * frameCam.fieldH / 2, z: 0 }; }
+/** The cameras for the split layout L (null: one view, the shared frame's own). */
+function layoutCams(L, cx, cy, fieldH) {
+  if (!L) setFrame(cx, cy, fieldH, frameCam.yaw, frameCam.pitch);
+  camViews.length = 0;
+  const vs = L && L.views.length ? L.views : [{ index: 0, offset: { x: 0, y: 0 }, slots: null }];
+  for (const v of vs) {
+    const c = camPool[v.index] || camPool[0], o = v.offset || { x: 0, y: 0 };
+    groundAt(frameCam.Mi, o.x / (frameCam.fw / 2), o.y / (frameCam.fieldH / 2), _nq);
+    c.cx = _nq.x; c.cy = _nq.y;
+    // split: each view keeps its own players' zoom (the shared view: everyone's widest)
+    c.fieldH = vs.length > 1 && v.slots ? zoomPull(fieldOfSlots(v.slots)) * groupZoom.applied : frameCam.fieldH;
+    camMatrix(c.M, c.cx, c.cy, c.fieldH, aspect(), frameCam.yaw, frameCam.pitch); c.Mi.copy(c.M).invert();
+    camViews.push(c);
+  }
+}
+const camOf = (i) => camViews.find((c) => c.index === i) || camViews[0] || camPool[0];
+/** Screen position (CSS px from the top left) of a slide point as view i shows it. */
+function projectView(i, p) { const q = ndcOf(camOf(i).M, p.x, p.y, {}); return { x: (q.x + 1) / 2 * innerWidth, y: (1 - q.y) / 2 * innerHeight, behind: q.behind }; }
 // Two to four players share one view, zoomed out up to this far (a field 1.6x
 // as tall) before the screen splits; split views settle at 0.75 of it.
 const SPLIT_ZOOM_MAX = 1.6;
@@ -723,10 +768,19 @@ safeTexture('MP-B02').then((t) => { if (t) shapes.setTextures({ bio: t }); });
 safeTexture('MP-B03').then((t) => { if (t) shapes.setTextures({ cil: t }); });
 safeTexture('MP-B04').then((t) => { if (t) shapes.setTextures({ mag: t }); });
 
-const ZOOMS = [180, 90, 45, 22]; // field height in µm: the eyepiece field at 1000×, then camera crops
-/** The field shown: being eaten (alone), the camera pulls back to watch the predator, then follows it. */
-const zoomIdx = () => (!multi() && P1.capture.active && P1.cat.realPhase && /eat|follow|fade/.test(P1.cat.realPhase) ? Math.min(view.zoom, 1) : view.zoom);
-const view = { mark: true, zoom: 2, cx: 0, cy: 30, stage: new THREE.Vector2(), focus: 0, look: 'phase', overlay: false, stop: true, focusFollows: true };
+/**
+ * The zoom (the owner, 2026-11-03: "LT/RT be zoom (like paramecium) instead of DPad"): LT out, RT in,
+ * analogue and continuous, each player their own, as the Paramecium's: the trigger sets how fast the
+ * wanted field moves (×e^(rate·s) at full pull), and the field eases to it. From a 22 µm camera crop to
+ * the 180 µm eyepiece field (the field stop shows there), starting at the species' field (45 µm).
+ */
+const ZOOM = { min: 22, max: 180, eyepiece: 180, rate: 1.1, ease: 0.14, pull: 90 };
+/** The widest field of these players (a shared view never narrows anyone's). */
+const fieldOfSlots = (slots) => { let z = 0; for (const P of roster) if (!P.waiting && slots.includes(P.slot)) z = Math.max(z, P.zoom); return z || P1.zoom; };
+/** The field shown (one view: every player's widest): being eaten (alone), the camera pulls back to watch the predator, then follows it. */
+const zoomPull = (z) => (!multi() && P1.capture.active && P1.cat.realPhase && /eat|follow|fade/.test(P1.cat.realPhase) ? Math.max(z, ZOOM.pull) : z);
+const baseField = () => zoomPull(fieldOfSlots(roster.map((P) => P.slot)));
+const view = { mark: true, cx: 0, cy: 30, focus: 0, look: 'phase', overlay: false, stop: true, yaw: 0, pitch: 0, yawV: 0, pitchV: 0 }; // yaw, pitch: the orbit camera (RS, stepCamera)
 
 const gl = renderer.getContext();
 const soft = /SwiftShader|llvmpipe|Software/i.test(String(gl.getParameter(gl.RENDERER)) + (gl.getExtension('WEBGL_debug_renderer_info') ? gl.getParameter(0x9246) : ''));
@@ -752,6 +806,7 @@ resize();
 // --- features ---
 const features = createFeatures({ key: 'bacterium', pad });
 quality.addToFeatures(features);
+addInvertY(features); // RS's tilt follows the shared Invert Y (and the shell's settings message)
 const audio = createAudio(['bacterium/amb-sediment', 'bacterium/run', 'bacterium/tumble', 'bacterium/sprint', 'bacterium/eat', 'bacterium/phage', 'bacterium/graze', 'shared/portal-chime',
   'bacterium/beacon', 'bacterium/answer', 'bacterium/join', 'bacterium/toxin', 'bacterium/lyse', 'bacterium/strike', 'bacterium/stentor', 'bacterium/bdello', 'bacterium/gate', 'bacterium/infected',
   'shared/portal-enter', 'shared/slowdown', 'shared/portal-near', 'shared/portal-sealed', 'shared/portal-appear', 'shared/backdoor', 'shared/hit', 'shared/death', 'shared/reform', 'shared/join']);
@@ -775,8 +830,7 @@ features.add({ id: 'psf', group: 'Optics', on: true,
   about: tt('bacterium.features.psf.about', { nm: (psfSigmaUm() * 1000).toFixed(0) }),
   onChange: (on) => { optics.toggles.psf = on; } });
 features.add({ id: 'halo', group: 'Optics', on: true, onChange: (on) => { optics.toggles.halo = on; } });
-features.add({ id: 'focus', group: 'Optics', on: true,
-  onChange: (on) => { view.focusFollows = on; } });
+features.add({ id: 'focus', group: 'Optics', fixed: true }); // the focus stays on your cell's plane (no focus control: the owner, 2026-11-03)
 features.add({ id: 'plate', group: 'Optics', on: true, onChange: (on) => { optics.toggles.plate = on; } });
 features.add({ id: 'noise', group: 'Optics', on: true, onChange: (on) => { optics.toggles.noise = on; } });
 features.add({ id: 'stop', group: 'Optics', on: true, onChange: (on) => { view.stop = on; } });
@@ -848,7 +902,7 @@ function setSpecies(sp) {
   coll.opts.on = sp === 'mtb' && collFeature.on;
   coll.reset(roster);
   if (sp === 'mtb') arrangeClump();
-  view.zoom = ZOOMS.indexOf(SPECIES[sp].view);
+  for (const P of roster) P.zoom = P.zoomWant = SPECIES[sp].view;
   view.cx = S.x; view.cy = S.y;
   card.classList.remove('show');
   hud.toast(sp === 'mtb' ? tt('bacterium.toasts.startMtb', { glyph }) : tt('bacterium.toasts.startBdello', { goal: GOAL_PREY, glyph }), 3600);
@@ -885,8 +939,8 @@ function arrangeClump() {
 }
 /** The kin clump's first n cells as poses' screen points in the field drawn now (normalised device coordinates; tests). */
 function clumpScreen(n = 8) {
-  const ov = camOverride(), fieldH = ov ? ov.fieldH : ZOOMS[zoomIdx()];
-  const cx = ov ? ov.cx : view.cx + view.stage.x, cy = ov ? ov.cy : view.cy + view.stage.y, w = fieldH * aspect();
+  const ov = camOverride(), fieldH = ov ? ov.fieldH : baseField();
+  const cx = ov ? ov.cx : view.cx, cy = ov ? ov.cy : view.cy, w = fieldH * aspect();
   return clumpLayout().slice(0, n).map((c) => { const q = placeInFrame(c, P1.S.x, P1.S.y, P1.S.a); return { kind: c.kind, x: +((q.x - cx) / (w / 2)).toFixed(4), y: +((q.y - cy) / (fieldH / 2)).toFixed(4) }; });
 }
 
@@ -900,16 +954,21 @@ function landmark(kind, P) {
 // --- the director, each step (see `director` above) ---
 // What every view sees: one rectangle per split view (the field drawn round its centre), as four
 // planes on the director's ground plane (its z is our y).
+// What each view sees is the quad its camera (orbited, tilted) frames on the slide: four planes, one per edge.
 const dirViews = [0, 1, 2, 3].map(() => ({ frustum: [[1, 0, 0, 0], [-1, 0, 0, 0], [0, 0, 1, 0], [0, 0, -1, 0]], focus: { x: 0, y: 0, z: 0 } }));
+const _corner = [{}, {}, {}, {}], CORNERS = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
 function directorViews() {
-  const fieldH = ZOOMS[zoomIdx()] * groupZoom.applied, fw = (fieldH * innerWidth) / Math.max(1, innerHeight), pad = 6;
-  const cx = view.cx + view.stage.x, cy = view.cy + view.stage.y;
-  const offs = split.views && split.views.length ? split.views.map((v) => v.offset) : [{ x: 0, y: 0 }];
-  const out = [];
-  for (let i = 0; i < offs.length && i < 4; i++) {
-    const v = dirViews[i], x = cx + offs[i].x, y = cy + offs[i].y, F = v.frustum;
-    F[0][3] = -(x - fw / 2 - pad); F[1][3] = x + fw / 2 + pad; F[2][3] = -(y - fieldH / 2 - pad); F[3][3] = y + fieldH / 2 + pad;
-    v.focus.x = x; v.focus.z = y;
+  if (!camViews.length) layoutCams(null, view.cx, view.cy, baseField() * groupZoom.applied);
+  const out = [], pad = 6;
+  for (let i = 0; i < camViews.length && i < 4; i++) {
+    const c = camViews[i], v = dirViews[i], F = v.frustum;
+    for (let j = 0; j < 4; j++) groundAt(c.Mi, CORNERS[j][0], CORNERS[j][1], _corner[j]);
+    for (let j = 0; j < 4; j++) {
+      const a = _corner[j], b = _corner[(j + 1) % 4];
+      let nx = -(b.y - a.y), nz = b.x - a.x; const l = Math.hypot(nx, nz) || 1; nx /= l; nz /= l;
+      F[j][0] = nx; F[j][1] = 0; F[j][2] = nz; F[j][3] = -(nx * a.x + nz * a.y) + pad;
+    }
+    v.focus.x = c.cx; v.focus.z = c.cy;
     out.push(v);
   }
   return out;
@@ -987,6 +1046,17 @@ function keepAmbient(dt) {
       const at = c && spot();
       if (!at) break;
       c.x = at.x; c.y = at.y; c.parked = false; c.zone = 1; c.stopped = 0; n++;
+    }
+    // the stranger strain (collective.js WAYLAY): a couple kept near an army big enough to waylay
+    if (coll.opts.on && coll.opts.waylay && C && C.members.length >= coll.WAYLAY.min) {
+      let k = 0;
+      for (const c of world.cells) if (c.stranger && !c.parked && near(c.x, c.y)) k++;
+      for (let m = 0; m < KEEP.moves && k < KEEP.strangers; m++) {
+        const c = world.cells.find((q) => q.stranger && q.parked) || world.cells.find((q) => q.stranger && !q.waylay && farFromAll(q.x, q.y) && unseenSpot(q.x, q.y));
+        const at = c && spot();
+        if (!at) break;
+        c.x = at.x; c.y = at.y; c.parked = false; c.zone = 1; k++;
+      }
     }
   });
 }
@@ -1091,7 +1161,7 @@ function enterPortal(P) {
   setPortalPrompt(false);
   portalGlow.burst();
   const L = split.layout;
-  if (L && L.views && L.views.length) { const q = split.project(0, { x: FWD.x, y: FWD.y, z: 0 }); portalLight.bloom(q.x, q.y, { scale: 1.2 }); }
+  if (L && L.views && L.views.length) { const q = projectView(0, { x: FWD.x, y: FWD.y, z: 0 }); portalLight.bloom(q.x, q.y, { scale: 1.2 }); }
   audio.play('shared/portal-enter', { volume: 0.8 });
   audio.play('shared/portal-chime', { volume: 0.9 });
   audio.play('shared/slowdown', { volume: 0.5, delay: OUTRO.beat });
@@ -1146,7 +1216,7 @@ function startOutro() {
 /** The glimpsed phage as a pose in the field drawn now. */
 function glimpsePose() {
   const g = glimpsePhage();
-  return pose2D(g.x, g.y, g.a, PHAGE_LEN, view.cx + view.stage.x, view.cy + view.stage.y, ZOOMS[zoomIdx()]);
+  return pose2D(g.x, g.y, g.a, PHAGE_LEN, view.cx, view.cy, baseField());
 }
 /** Advance the outro by dt (frame time); returns the world's time scale. */
 function stepOutro(dt) {
@@ -1169,7 +1239,7 @@ function stepOutro(dt) {
   return outro ? outro.scale : 1;
 }
 /** Your cell as a pose in the field drawn now. */
-const cellPose = () => pose2D(P1.S.x, P1.S.y, P1.S.a, P1.S.sp.L, view.cx + view.stage.x, view.cy + view.stage.y, ZOOMS[zoomIdx()]);
+const cellPose = () => pose2D(P1.S.x, P1.S.y, P1.S.a, P1.S.sp.L, view.cx, view.cy, baseField());
 embed.provide('intro');
 embed.on('hold', () => {
   intro = { cam: null };
@@ -1198,7 +1268,22 @@ const debug = {
     if (P === P1 || !multi()) { view.cx = x; view.cy = y; }
   },
   look(k) { const want = LOOK_CYCLE.indexOf(k); for (let i = 0; i < 6 && currentLookKey() !== k; i++) cycleLook(1); return want >= 0; },
-  zoom(i) { view.zoom = i; },
+  /** Set player slot's field at once (µm, ZOOM.min..max; or an index into the old steps 180/90/45/22). */
+  zoom(z, slot = 0) { const P = roster.find((Q) => Q.slot === slot) || P1; const f = Number.isInteger(z) && z < 4 ? [180, 90, 45, 22][z] : z; P.zoom = P.zoomWant = Math.max(ZOOM.min, Math.min(ZOOM.max, f)); },
+  /** Hold the zoom triggers for player slot as LT/RT would: +1 full LT (out), -1 full RT (in), null back to the pad. */
+  /** Waylaying (tests): put a stranger d µm off player slot's flock (side a, radians) and let it come over. Returns it. */
+  stranger(slot = 0, d = 14, a = 0) {
+    const P = roster.find((Q) => Q.slot === slot) || P1, C = coll.of(P);
+    const c = world.cells.find((q) => q.stranger && !q.waylay) || world.cells.find((q) => q.stranger);
+    const R = (C ? C.extent : 0) + d;
+    c.waylay = null; c.wlCool = 0; c.parked = false; c.x = (C ? C.cx : P.S.x) + Math.cos(a) * R; c.y = (C ? C.cy : P.S.y) + Math.sin(a) * R;
+    return { x: c.x, y: c.y };
+  },
+  zoomHold(v = 1, slot = 0) { zoomForce[slot] = v === null ? undefined : v; },
+  /** Hold the camera stick (RS) as if pushed: yaw -1..1 (right orbits right), pitch -1..1 (up looks up); null back to the pad. */
+  rsHold(yaw = 0, pitch = 0) { rsForce = yaw === null ? null : { yaw, pitch }; },
+  /** Set the camera at once (radians): yaw round the flock, pitch (tilt) from straight down. */
+  cam(yaw = 0, pitch = 0) { view.yaw = yaw; view.pitch = Math.max(0, Math.min(CAM.pitchMax, pitch)); },
   tumble() { return swimmer.tumble(null); },
   dash() { if (P1.dash.trigger()) doDash(P1); },
   reverse() { return swimmer.reverse(); },
@@ -1249,7 +1334,7 @@ function doDash(P) {
   else if (res === 'detached') hud.toast(tt('bacterium.toasts.letGoPrey', { who }));
 }
 
-const idle = () => ({ attack: false, attackPressed: false, focusing: false, steer: null });
+const idle = () => ({ attack: false, attackPressed: false, steer: null });
 /**
  * X (the magnetotactic cell): a beacon from the flock's front (riding with it) (kin it reaches answer and join), every prey
  * rod in reach of a member lysed, and a volley on any enemy the flock touches. One press every 0.3 s.
@@ -1344,8 +1429,6 @@ function tick(dt, inputs) {
     events(P, ev);
   }
   if (pacing.firstThreat === null && S.alive && (S.flow > 15 || S.phages.length || S.attacker || world.insideAmoeba(S.x, S.y, t) > 0)) pacing.firstThreat = t - pacing.t0;
-  // focus drifts back to the cell's plane
-  if (view.focusFollows && !(inputs[0] && inputs[0].focusing)) view.focus *= Math.exp(-dt * 1.5);
   // camera: the stage follows your flock's middle (the players' middles together; the split screen does the rest)
   const k = 1 - Math.exp(-dt * 5);
   let { x: fx, y: fy } = focusOf(P1);
@@ -1383,13 +1466,15 @@ function readInput(P, dt) {
   const inp = idle();
   const S = P.S, c = P.ctl, me = P === P1;
   const ls = c.move();
-  // the stick in world axes (screen up = world +y, toward the air)
-  if (ls.m > 0) inp.steer = { x: ls.x, y: -ls.y, m: Math.min(1, ls.m) };
+  // the stick relative to the camera: screen right and screen up on the slide, turned by the orbit's yaw
+  const cy = Math.cos(view.yaw), sy = Math.sin(view.yaw);
+  const wx = ls.x * cy + ls.y * sy, wy = ls.x * sy - ls.y * cy;
+  if (ls.m > 0) inp.steer = { x: wx, y: wy, m: Math.min(1, ls.m) };
   if (S.alive) {
     if (c.defend.pressed()) {
       P.blockT = 0.55; // a tumble at a strike evades it
       P.tumbleAt = t;
-      const bias = P.swimmer.opts.bias && ls.m > 0.3 ? { x: ls.x, y: -ls.y } : null;
+      const bias = P.swimmer.opts.bias && ls.m > 0.3 ? { x: wx, y: wy } : null;
       if (P.swimmer.tumble(bias)) {
         audio.play('bacterium/tumble', { volume: 0.8, rate: 0.95 + Math.random() * 0.1 });
         P.pad.rumble(40, 0.2, 0);
@@ -1402,7 +1487,8 @@ function readInput(P, dt) {
     inp.attackPressed = c.attack.pressed();
   } else if (me && !multi() && !S.caught && S.overT > 1 && (c.dash.pressed() || c.attack.pressed())) setSpecies(S.species);
   // Y: at the open portal it goes through; at the Paramecium it takes everyone
-  // back; with the toxin charged it fires; else (player 1) the overlay
+  // back (the game asks for Y there; it is not in the controls list); with the
+  // toxin charged it fires; else (player 1) the overlay
   const C = coll.of(P);
   if (c.special.pressed()) {
     if (atOpenPortal(P)) enterPortal(P);
@@ -1414,16 +1500,78 @@ function readInput(P, dt) {
   if (!me) return inp;
   const ls2 = c.lookStep();
   if (ls2) cycleLook(ls2);
-  const zs = c.zoomStep();
-  if (zs) { view.zoom = Math.max(0, Math.min(ZOOMS.length - 1, view.zoom + zs)); hud.toast(view.zoom === 0 ? tt('bacterium.toasts.fieldFull') : tt('bacterium.toasts.fieldCrop', { um: ZOOMS[view.zoom] })); }
-  const an = c.analog();
-  if (Math.abs(an) > 0.05) { view.focus = Math.max(-3, Math.min(3, view.focus + an * 1.5 * dt)); inp.focusing = true; }
-  const rs = c.camera();
-  const half = ZOOMS[view.zoom] / 2;
-  view.stage.x = Math.max(-half, Math.min(half, view.stage.x + rs.x * half * dt));
-  view.stage.y = Math.max(-half, Math.min(half, view.stage.y - rs.y * half * dt));
-  if (rs.m === 0) view.stage.multiplyScalar(Math.exp(-dt * 0.8));
   return inp;
+}
+
+/**
+ * The zoom: LT out, RT in, analogue and continuous (each player their own, read even while the world is
+ * paused by a panel, never in a cinematic), as the Paramecium's: the trigger sets how fast the wanted
+ * field moves, and the field eases to it.
+ */
+const zoomForce = [];
+function stepZoom(P, dt, frozen) {
+  const f = zoomForce[P.slot], c = P.ctl;
+  const rate = f !== undefined ? f : !frozen && c ? c.lt() - c.rt() : 0;
+  if (Math.abs(rate) > 0.04) P.zoomWant = Math.max(ZOOM.min, Math.min(ZOOM.max, P.zoomWant * Math.exp(rate * ZOOM.rate * dt)));
+  P.zoom += (P.zoomWant - P.zoom) * (1 - Math.exp(-dt / ZOOM.ease));
+  if (Math.abs(P.zoom - P.zoomWant) < 1e-3) P.zoom = P.zoomWant;
+}
+/**
+ * The camera (RS; the owner, 2026-11-03: "RS should be camera ... and should behave as you'd expect for a
+ * 3d camera"): an orbit round the flock's middle. RS left/right turns it round (yaw), RS up/down tilts it
+ * (pitch, from straight down, the microscope's own view, to CAM.pitchMax), honouring the shared Invert Y.
+ * It eases, and stays where you leave it (no recentring). Every player's RS turns the one camera. In a
+ * cinematic (the continuous transitions) it eases back to straight down, screen up the slide's +y.
+ * [Departure]: a microscope cannot orbit or tilt its view; the image is formed as if it could.
+ */
+const CAM = { fov: 30 * Math.PI / 180, pitchMax: 0.95, yawRate: 2.2, pitchRate: 1.3, ease: 0.1 };
+let rsForce = null;
+function stepCamera(dt, frozen) {
+  let yaw = 0, pitch = 0;
+  if (rsForce) ({ yaw, pitch } = rsForce);
+  else if (!frozen) for (const P of roster) { if (P.waiting) continue; const l = P.ctl.look(); if (l.m > 0.12) { yaw += l.yaw; pitch += l.pitch; } }
+  yaw = Math.max(-1, Math.min(1, yaw)); pitch = Math.max(-1, Math.min(1, pitch));
+  const k = 1 - Math.exp(-dt / CAM.ease);
+  view.yawV += (yaw * CAM.yawRate - view.yawV) * k;
+  view.pitchV += (pitch * CAM.pitchRate - view.pitchV) * k;
+  view.yaw = Math.atan2(Math.sin(view.yaw + view.yawV * dt), Math.cos(view.yaw + view.yawV * dt));
+  view.pitch = Math.max(0, Math.min(CAM.pitchMax, view.pitch + view.pitchV * dt));
+  if (outro || intro) {
+    // a cinematic: back to the straight-down field the transitions frame (pose2D)
+    const e = 1 - Math.exp(-dt * 5);
+    view.yaw -= view.yaw * e; view.pitch -= view.pitch * e; view.yawV = view.pitchV = 0;
+    if (Math.abs(view.yaw) < 1e-3) view.yaw = 0;
+    if (view.pitch < 1e-3) view.pitch = 0;
+  }
+}
+// The camera's matrix: looking at (cx, cy) on the slide from above, its field fieldH tall there, turned
+// by yaw (screen up on the slide is (-sin yaw, cos yaw)) and tilted by pitch toward the screen's bottom.
+// Straight down it frames exactly what the old orthographic field did.
+const _pc = new THREE.PerspectiveCamera(30, 1, 1, 1000);
+const _v4 = new THREE.Vector4();
+function camMatrix(out, cx, cy, fieldH, asp, yaw = view.yaw, pitch = view.pitch) {
+  const D = (fieldH / 2) / Math.tan(CAM.fov / 2), ux = -Math.sin(yaw), uy = Math.cos(yaw), sp = Math.sin(pitch), cp = Math.cos(pitch);
+  _pc.fov = CAM.fov * 180 / Math.PI; _pc.aspect = asp; _pc.near = D * 0.05; _pc.far = D * 20; _pc.updateProjectionMatrix();
+  _pc.position.set(cx - ux * D * sp, cy - uy * D * sp, D * cp);
+  _pc.up.set(ux * cp, uy * cp, sp);
+  _pc.lookAt(cx, cy, 0);
+  _pc.updateMatrixWorld(true);
+  return out.multiplyMatrices(_pc.projectionMatrix, _pc.matrixWorldInverse);
+}
+/** A slide point (µm) through matrix M to normalised device coordinates. */
+function ndcOf(M, x, y, o = {}) { _v4.set(x, y, 0, 1).applyMatrix4(M); o.x = _v4.x / _v4.w; o.y = _v4.y / _v4.w; o.behind = _v4.w <= 0; return o; }
+/** The slide point (µm) seen at normalised device coordinates (nx, ny) through the inverse matrix Mi. */
+function groundAt(Mi, nx, ny, o = {}) {
+  _v4.set(nx, ny, -1, 1).applyMatrix4(Mi); const ax = _v4.x / _v4.w, ay = _v4.y / _v4.w, az = _v4.z / _v4.w;
+  _v4.set(nx, ny, 1, 1).applyMatrix4(Mi); const bx = _v4.x / _v4.w, by = _v4.y / _v4.w, bz = _v4.z / _v4.w;
+  const k = Math.abs(az - bz) > 1e-9 ? az / (az - bz) : 0;
+  o.x = ax + (bx - ax) * k; o.y = ay + (by - ay) * k; return o;
+}
+const _q = {};
+/** The box on the slide a camera matrix sees (its four corners on the ground), for culling. */
+function footprint(Mi, box) {
+  for (const nx of [-1, 1]) for (const ny of [-1, 1]) { groundAt(Mi, nx, ny, _q); box.x0 = Math.min(box.x0, _q.x); box.x1 = Math.max(box.x1, _q.x); box.y0 = Math.min(box.y0, _q.y); box.y1 = Math.max(box.y1, _q.y); }
+  return box;
 }
 
 function frame(now) {
@@ -1443,6 +1591,9 @@ function frame(now) {
   let ts = 1;
   if (outro) ts = stepOutro(dt);
   else if (intro && 'ease' in intro) { intro.ease += dt; ts = sm01(0, INTRO_EASE, intro.ease); if (intro.ease >= INTRO_EASE) intro = null; }
+  // the zoom (each player's triggers) and the orbit camera (RS), read even while a panel pauses the world, never in a cinematic
+  for (const P of roster) if (!P.waiting) stepZoom(P, dt, held || !!outro);
+  stepCamera(dt, held || !!outro || blocked);
   const inputs = {};
   if (!blocked && !held && !outro) for (const P of roster) if (!P.waiting) inputs[P.slot] = readInput(P, dt);
   // ?flock=n (tests and perf): every player's army is kept at n (losses are replaced)
@@ -1511,13 +1662,14 @@ function showEnd(S) {
 }
 
 /** Draw the specimen around (cx, cy) to the screen: one view. */
-let fieldNow = ZOOMS[2]; // the field height being drawn (render sets it: the zoom's, or the transition's)
-function drawField(cx, cy, stopOk, rect = null) {
+let fieldNow = 45; // the field height being drawn (render sets it: the zoom's, or the transition's)
+function drawField(cam, stopOk, rect = null) {
   const [W, H] = optics.size;
-  const fieldH = fieldNow;
+  const { cx, cy, fieldH } = cam;
   const umPerPx = fieldH / H;
   const fieldW = W * umPerPx;
   shapes.setView(cx, cy, fieldW, fieldH, umPerPx, view.focus, t);
+  shapes.camera.projectionMatrix.copy(cam.M); // the orbit camera (camMatrix): straight down, the same field as the orthographic one
   // split: every pass only over this view's region (plus the blurs' reach)
   const look0 = currentLookKey();
   const margin = rect ? Math.ceil(3.3 * (0.12 / umPerPx + (look0 === 'fluorescence' ? 1.6 : 1.2) / umPerPx) + 12) : 0;
@@ -1527,7 +1679,7 @@ function drawField(cx, cy, stopOk, rect = null) {
   renderer.clear();
   renderer.render(shapes.scene, shapes.camera);
   const look = currentLookKey();
-  const stopR = stopOk && view.stop && fieldH === ZOOMS[0] ? 90 / umPerPx : 0;
+  const stopR = stopOk && view.stop && fieldH >= ZOOM.eyepiece - 0.5 && frameCam.pitch < 0.02 ? 90 / umPerPx : 0;
   if (look === 'sem') {
     const f = optics.field.textures;
     looks.fieldFromBuffers(W, H, { a: { opd: f[0], abs: f[2], opdW: [0, 0, 1, 0], scatW: [0, 1, 0, 0] }, opdK: 1, absK: 1, heightK: 1 });
@@ -1540,13 +1692,18 @@ function drawField(cx, cy, stopOk, rect = null) {
     renderer.setRenderTarget(null);
     looks.dic({ mode: bmode.dic, pxPerUm: 1 / umPerPx, time: t, opdK: 1, absK: 1 });
   } else {
-    optics.render({ look, umPerPx, center: [cx, cy], time: t, stopR, plate: look === 'phase' ? plates.phase : null, noiseRes: [renderer.domElement.width, renderer.domElement.height] });
+    optics.render({ look, umPerPx, center: [cx, cy], inv: cam.Mi, time: t, stopR, plate: look === 'phase' ? plates.phase : null, noiseRes: [renderer.domElement.width, renderer.domElement.height] });
   }
-  if (view.overlay) overlay.render(renderer, { center: [cx, cy], size: [fieldW, fieldH], res: [W, H], time: t, band: S.sp.o2, world, flTex: optics.field.textures[1] });
+  if (view.overlay) overlay.render(renderer, { center: [cx, cy], inv: cam.Mi, size: [fieldW, fieldH], res: [W, H], time: t, band: S.sp.o2, world, flTex: optics.field.textures[1] });
   // the portal's glow, when it is in this view
-  if (world.landmarks.forward.placed && Math.abs(portalGlow.x - cx) < fieldW / 2 + 15 && Math.abs(portalGlow.y - cy) < fieldH / 2 + 15) {
-    glowCam.left = cx - fieldW / 2; glowCam.right = cx + fieldW / 2; glowCam.top = cy + fieldH / 2; glowCam.bottom = cy - fieldH / 2;
-    glowCam.updateProjectionMatrix();
+  // (an orthographic camera turned with the view and placed so the host lands where the orbit camera shows it)
+  const gq = ndcOf(cam.M, portalGlow.x, portalGlow.y, {});
+  if (world.landmarks.forward.placed && !gq.behind && Math.abs(gq.x) < 1 + 30 / fieldW && Math.abs(gq.y) < 1 + 30 / fieldH) {
+    const hw = fieldW / 2, hh = fieldH / 2 / Math.max(0.5, Math.cos(frameCam.pitch)), yaw = frameCam.yaw, a = gq.x * hw, b = gq.y * hh;
+    glowCam.left = -hw; glowCam.right = hw; glowCam.top = hh; glowCam.bottom = -hh;
+    glowCam.position.set(portalGlow.x - (a * Math.cos(yaw) - b * Math.sin(yaw)), portalGlow.y - (a * Math.sin(yaw) + b * Math.cos(yaw)), 100);
+    glowCam.rotation.set(0, 0, yaw);
+    glowCam.updateProjectionMatrix(); glowCam.updateMatrixWorld(true);
     renderer.setRenderTarget(null);
     renderer.render(glowScene, glowCam);
   }
@@ -1578,35 +1735,32 @@ function render(dt) {
   // several players in one view: the split screen's zoom-out (a taller field)
   // keeps them all in it; the screen splits only once it is at its widest
   groupZoom.applied = !ov && multi() ? groupZoom.z : 1;
-  const fieldH = fieldNow = ov ? ov.fieldH : ZOOMS[zoomIdx()] * groupZoom.applied;
-  const cx = ov ? ov.cx : view.cx + view.stage.x, cy = ov ? ov.cy : view.cy + view.stage.y;
+  const fieldH = fieldNow = ov ? ov.fieldH : baseField() * groupZoom.applied;
+  const cx = ov ? ov.cx : view.cx, cy = ov ? ov.cy : view.cy;
+  // the shared frame: the orbit camera round the middle (straight down while a transition frames the field)
+  setFrame(cx, cy, fieldH, ov ? 0 : view.yaw, ov ? 0 : view.pitch);
   if (world.landmarks.forward.placed) { const g = glimpsePhage(); glimpse.setPosition(g.x, g.y, 0); } else glimpse.setPosition(1e6, 1e6, 0);
   glimpse.update(t);
   // the camera move: the glow fades over the first ×4 of magnification, the glint over ×4 to ×20 (the shell's halo carries it on)
   const dive = outro && outro.cam && outro.f0 ? Math.log(Math.max(1, outro.cam.f / outro.f0)) : 0;
   if (glowUI) glowUI.value = GLOW_I * (1 - sm01(0, Math.log(4), dive));
   glimpse.intensity = 1.1 * (1 - sm01(Math.log(4), Math.log(20), dive));
-  const list = roster.filter((P) => !P.waiting).map((P) => ({ slot: P.slot, position: posOf(P) }));
-  const L = split.update(list.length ? list : [{ slot: 0, position: posOf(P1) }], { center: { x: cx, y: cy }, pxPerUnit: innerHeight / fieldH, yUp: true, zoom: groupZoom.applied }, dt);
+  const list = roster.filter((P) => !P.waiting).map((P) => ({ slot: P.slot, position: toFrame(posOf(P)) }));
+  const L = split.update(list.length ? list : [{ slot: 0, position: toFrame(posOf(P1)) }], { center: { x: cx, y: cy }, pxPerUnit: innerHeight / fieldH, yUp: true, zoom: groupZoom.applied }, dt);
   groupZoom.z = split.zoom;
   // split frames render every view: the governor drops each one's resolution (0.7 at 2 views, 0.55 at 3-4)
   quality.setSplitViews(L.views.length);
-  // the shapes are culled once for every view: the union of the views' fields
-  const fw = fieldH * innerWidth / innerHeight;
-  let ux0 = Infinity, ux1 = -Infinity, uy0 = Infinity, uy1 = -Infinity;
-  for (const v of (L.views.length ? L.views : [{ offset: { x: 0, y: 0 } }])) {
-    const x = cx + v.offset.x, y = cy + v.offset.y;
-    ux0 = Math.min(ux0, x - fw / 2); ux1 = Math.max(ux1, x + fw / 2); uy0 = Math.min(uy0, y - fieldH / 2); uy1 = Math.max(uy1, y + fieldH / 2);
-  }
-  shapes.cull(ux0, uy0, ux1, uy1);
+  // each view's camera; the shapes are culled once for every view: the union of what they frame on the slide
+  layoutCams(ov ? null : L, cx, cy, fieldH);
+  const box = { x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity };
+  for (const c of camViews) footprint(c.Mi, box);
+  shapes.cull(box.x0, box.y0, box.x1, box.y1);
   shapes.begin();
   drawer.draw(shapes, t, roster.map((P) => P.S), view);
   shapes.end();
-  if (ov || L.views.length <= 1) {
-    const o = L.views[0] && !ov ? L.views[0].offset : { x: 0, y: 0 };
-    drawField(cx + o.x, cy + o.y, true);
-  } else {
-    for (const v of L.views) { drawField(cx + v.offset.x, cy + v.offset.y, false, useRects ? viewRect(L, v.index) : null); split.capture(v.index); }
+  if (ov || L.views.length <= 1) drawField(camViews[0], true);
+  else {
+    for (const v of L.views) { drawField(camOf(v.index), false, useRects ? viewRect(L, v.index) : null); split.capture(v.index); }
     split.compose();
   }
   // the edge marks: only the ring to the Paramecium (the way back)
@@ -1626,7 +1780,7 @@ function render(dt) {
   // scale bar
   const bar = fieldH >= 90 ? 20 : fieldH >= 40 ? 5 : 2;
   const cssPerUm = innerHeight / fieldH;
-  scaleEl.innerHTML = `<i style="width:${Math.round(bar * cssPerUm)}px"></i>${tt(view.zoom ? 'bacterium.scaleCrop' : 'bacterium.scale', { bar, field: fieldH })}`;
+  scaleEl.innerHTML = `<i style="width:${Math.round(bar * cssPerUm)}px"></i>${tt(fieldH < ZOOM.eyepiece - 0.5 ? 'bacterium.scaleCrop' : 'bacterium.scale', { bar, field: Math.round(fieldH) })}`;
   armyChip();
 }
 
@@ -1673,8 +1827,8 @@ function drawMarks(L, fieldH) {
   markG.clearRect(0, 0, w, h);
   if (!view.mark) return;
   markG.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const cssPerUm = innerHeight / fieldH;
   for (const v of L.views) {
+    const cssPerUm = innerHeight / camOf(v.index).fieldH;
     markG.save();
     if (L.views.length > 1) {
       markG.beginPath();
@@ -1687,7 +1841,7 @@ function drawMarks(L, fieldH) {
       if (P.capture.active && P.cat.phase === 'eaten' && multi()) continue;
       // with a flock (alone at the stick), your cell is just one member: no marker
       if (!multi() && coll.focus(P)) continue;
-      const q = split.project(v.index, cellPos(P));
+      const q = projectView(v.index, cellPos(P));
       const size = Math.max(26, S.sp.L * cssPerUm + 18), hs = size / 2, arm = 7;
       markG.globalAlpha = multi() ? 0.8 : 0.55;
       markG.strokeStyle = multi() ? P.color : '#ffd28a';
@@ -1701,14 +1855,55 @@ function drawMarks(L, fieldH) {
       if (multi()) { markG.fillStyle = P.color; markG.font = '600 10px system-ui, sans-serif'; markG.textAlign = 'center'; markG.fillText(`P${P.slot + 1}`, q.x, q.y - hs - 4); }
     }
     // an attack under way: a pulsing red ring on the predator (a game marker, not optics)
-    const ring = (x, y, r) => { const q = split.project(v.index, { x, y, z: 0 }); markG.globalAlpha = 0.35 + 0.45 * (0.5 + 0.5 * Math.sin(t * 18)); markG.strokeStyle = '#ff5a46'; markG.lineWidth = 2; markG.beginPath(); markG.arc(q.x, q.y, r, 0, Math.PI * 2); markG.stroke(); };
+    const ring = (x, y, r) => { const q = projectView(v.index, { x, y, z: 0 }); markG.globalAlpha = 0.35 + 0.45 * (0.5 + 0.5 * Math.sin(t * 18)); markG.strokeStyle = '#ff5a46'; markG.lineWidth = 2; markG.beginPath(); markG.arc(q.x, q.y, r, 0, Math.PI * 2); markG.stroke(); };
     for (const g of world.grazers) if (g.target && (g.fightState === 'windup' || g.fightState === 'strike')) ring(g.pose.mouth.x, g.pose.mouth.y, Math.max(16, 7 * cssPerUm));
     for (const P of roster) {
       if (P.bdello && /windup|strike/.test(P.bdello.fight.state)) ring(P.bdello.c.x, P.bdello.c.y, Math.max(12, 1.6 * cssPerUm));
       if (P.phage && /windup|strike/.test(P.phage.fight.state)) ring(P.phage.p.x, P.phage.p.y, Math.max(9, 0.9 * cssPerUm));
     }
+    // waylaying (collective.js WAYLAY), a game marker like the ring above: a drifting member trails a thin
+    // amber link back to its flock that fades as it drifts on (gone when it is picked off); the stranger
+    // luring it shows its decoy pulse; a member picked off flashes as it goes
+    if (coll.opts.on) waylayMarks(v.index, cssPerUm);
     markG.globalAlpha = 1;
     markG.restore();
+  }
+}
+
+function waylayMarks(i, cssPerUm) {
+  const W = coll.WAYLAY;
+  markG.lineCap = 'round';
+  for (const C of coll.list) {
+    if (!C.players.length) continue;
+    for (const m of C.members) {
+      if (!m.drift) continue;
+      const left = Math.max(0, 1 - m.drift.t / W.lostT);
+      const a = projectView(i, { x: m.x, y: m.y, z: 0 }), dx = C.cx - m.x, dy = C.cy - m.y, d = Math.hypot(dx, dy) || 1;
+      const reach = Math.max(0, d - C.R0 * 0.7), b = projectView(i, { x: m.x + (dx / d) * reach, y: m.y + (dy / d) * reach, z: 0 });
+      markG.globalAlpha = 0.25 + 0.6 * left;
+      markG.strokeStyle = '#ffb347';
+      markG.lineWidth = 1 + 1.2 * left;
+      markG.setLineDash([5, 4]);
+      markG.beginPath(); markG.moveTo(a.x, a.y); markG.lineTo(b.x, b.y); markG.stroke();
+      markG.setLineDash([]);
+      markG.lineWidth = 1.5;
+      markG.beginPath(); markG.arc(a.x, a.y, Math.max(8, 2.2 * cssPerUm), 0, Math.PI * 2); markG.stroke();
+    }
+  }
+  for (const c of world.cells) {
+    const Wl = c.waylay;
+    if (!Wl || Wl.ping < 0 || Wl.ping > 1 || !Wl.C.players.length) continue;
+    const q = projectView(i, { x: c.x, y: c.y, z: 0 });
+    markG.globalAlpha = 0.6 * (1 - Wl.ping);
+    markG.strokeStyle = '#ffb347'; markG.lineWidth = 1.5;
+    markG.beginPath(); markG.arc(q.x, q.y, Math.max(6, (1 + (W.reach - 1) * Wl.ping ** 0.7) * cssPerUm), 0, Math.PI * 2); markG.stroke();
+  }
+  for (const k of coll.kin) {
+    if (!k.dying || k.dying.kind !== 'waylaid' || k.dying.t > 1) continue;
+    const q = projectView(i, { x: k.dying.x, y: k.dying.y, z: 0 }), e = k.dying.t;
+    markG.globalAlpha = 0.85 * (1 - e);
+    markG.strokeStyle = '#ffb347'; markG.lineWidth = 2;
+    markG.beginPath(); markG.arc(q.x, q.y, Math.max(10, (1.5 + 6 * e) * cssPerUm), 0, Math.PI * 2); markG.stroke();
   }
 }
 
@@ -1718,7 +1913,7 @@ function stats() {
   const lookName = { phase: 'Phase contrast', fluorescence: 'Fluorescence (pseudo-colour)', darkfield: 'Darkfield', sem: 'SEM (borrowed)', dic: 'DIC (borrowed)' }[look];
   const dash = P1.dash;
   const lines = [
-    `${sp.short} · ${lookName} · focus ${view.focus >= 0 ? '+' : ''}${view.focus.toFixed(1)} µm`,
+    `${sp.short} · ${lookName} · field ${Math.round(fieldNow)} µm · camera ${Math.round(view.yaw * 180 / Math.PI)}°, tilt ${Math.round(view.pitch * 180 / Math.PI)}°`,
     `speed ${Math.round(S.speed).toString().padStart(3)} µm/s · ${(S.speed / sp.L).toFixed(0)} body lengths/s · ${S.mode === 'tumble' ? 'TUMBLE' : S.boring ? 'BORING IN' : S.inside ? 'INSIDE PREY' : dash.active ? 'SPRINT' : 'run'}${S.mode === 'run' && !S.boring && !S.inside ? (S.steering ? ' · steering (LS)' : swimmer.opts.steer ? ' · stopped: Brownian, flow, field' : '') : ''}`,
     S.species === 'mtb'
       ? `growth ${'█'.repeat(Math.round(Math.min(1, S.growth) * 10))}${'░'.repeat(10 - Math.round(Math.min(1, S.growth) * 10))} · food ${S.food.toFixed(2)}${S.feeding ? ' (uptake)' : ''}`
@@ -1781,6 +1976,12 @@ window.__micro = { forceCapture, capture,
   boss: () => ({ awake: stentor.awake, state: stentor.fight.state, t: +(stentor.fightT || 0).toFixed(2), interest: +stentor.fight.interest.toFixed(2), phase2: stentor.phase2, flowK: +stentor.flowK.toFixed(2), contract: +stentor.contract.toFixed(2), log: bossInfo.log }),
   stentor, collective: coll, quality,
   coll: () => coll.report(),
+  /** Waylaying: the strangers luring a flock and its drifting members (collective.js WAYLAY). */
+  waylays: () => coll.waylays(),
+  /** The camera: the orbit (yaw, pitch, radians), each player's field (µm) and each view's centre and field. */
+  cam: () => ({ yaw: +view.yaw.toFixed(3), pitch: +view.pitch.toFixed(3), zoom: roster.map((P) => +P.zoom.toFixed(2)), views: camViews.map((c) => ({ index: c.index, cx: +c.cx.toFixed(1), cy: +c.cy.toFixed(1), fieldH: +c.fieldH.toFixed(1) })) }),
+  /** Screen position (CSS px) of a slide point in view i (tests). */
+  project: (x, y, i = 0) => projectView(i, { x, y, z: 0 }),
   collInfo,
   /** The way on: each gate (world.js ENCOUNTERS, guards.js) and the portal: where it is, placed or not. */
   challenges: () => {

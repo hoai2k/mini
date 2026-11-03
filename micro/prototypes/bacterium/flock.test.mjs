@@ -195,7 +195,7 @@ function waylaySetup() {
     step(90); coll.beacon(P, 1000 + k * 2);
     if (!s.waylay && s.wlCool > 0) { s.wlCool = 0; s.x = C.cx + C.extent + 15; s.y = C.cy + 3; } // a stranger keeps coming
   }
-  assert.ok(ev.waylay >= 2 && ev.lost === 0 && C.members.length >= n0, `pulsing X, nobody is lost (${ev.waylay} drawn off, ${ev.recall} called back, ${ev.lost} lost)`);
+  assert.ok(ev.waylay >= 1 && ev.lost === 0 && C.members.length >= n0, `pulsing X, nobody is lost (${ev.waylay} drawn off, ${ev.recall} called back, ${ev.lost} lost)`);
 }
 {
   // the meadow round the start stays safe for ever
