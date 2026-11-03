@@ -161,7 +161,17 @@ const ZOOMS = [60, 110, 180, 290]; // (the old steps: debug.zoom(i) still takes 
 // The camera's orientation is a quaternion turned about its own axes by RS (no yaw/pitch angles, no
 // lookAt and no up vector, so there is no pole to flip at); nothing turns it unless a stick is held,
 // apart from an optional, gentle roll that keeps the sunlit surface toward the top of the screen.
-const view = { look: 0, groupZoom: 1, camDist: 180, q: new THREE.Quaternion(), overlay: false, ink: true, art: true, target: new THREE.Vector3(), dist: 180, iso: null, lookHold: 0, level: true, turnRate: 0 };
+const view = { look: 0, overlay: false, ink: true, art: true, iso: null, level: true };
+// Each player has a camera of their own (the owner, 2026-11-03: "The phage world can be split screen"):
+// its turn (q), what it frames (target), distance (dist, eased to the player's zoom; camDist as drawn),
+// the camera stick's hold and its turn rate. view.q, view.target, view.dist, view.camDist,
+// view.lookHold and view.turnRate are the current member's (use(m)), so the code below that moves a
+// phage relative to "the camera" uses that player's own.
+const camState = () => ({ q: new THREE.Quaternion(), target: new THREE.Vector3(), dist: 180, camDist: 180, lookHold: 0, turnRate: 0 });
+const noCam = camState(); // (before any player exists)
+const camOfCur = () => (cur && cur.cam) || noCam;
+for (const k of ['q', 'target']) Object.defineProperty(view, k, { get: () => camOfCur()[k], enumerable: true });
+for (const k of ['dist', 'camDist', 'lookHold', 'turnRate']) Object.defineProperty(view, k, { get: () => camOfCur()[k], set: (v) => { camOfCur()[k] = v; }, enumerable: true });
 const opts = { drive: true, brownian: true, currents: true, tumble: true, uv: true, amoeba: true, medium: new URLSearchParams(location.search).get('medium') !== '0' };
 
 function applyArt() {
@@ -225,6 +235,9 @@ function makeMember(slot, color) {
     capture: null, c: { active: false, phase: null, t: 0 }, jab: 0 };
   // caught: strike, hold, eat (the camera pulls back), follow the predator, fade, respawn, fade in
   m.capture = createCapture({ onRespawn: () => afterCatch(m) });
+  // the player's own camera (a joining player starts with player 1's)
+  m.cam = camState();
+  if (team[0] && team[0].cam) { const c0 = team[0].cam; m.cam.q.copy(c0.q); m.cam.target.copy(c0.target); m.cam.dist = c0.dist; m.cam.camDist = c0.camDist; }
   m.t4.addTo(scene);
   m.t4.set({ capsid: capsidMode });
   m.t4.setHead(HEADS[slot % HEADS.length]);
@@ -425,7 +438,8 @@ function resetLevel() {
   progeny.setCount(0);
   card.classList.remove('show');
   P.burstSent = false;
-  view.target.copy(P.pos); view.q.identity(); view.lookHold = 0;
+  for (const m of members()) { use(m); view.target.copy(P.pos); view.q.identity(); view.lookHold = 0; }
+  if (team[0]) use(team[0]);
   // in the game shell its intro has already said this
   if (!embed.active || started) say(tt('phage.toasts.intro'), 5200, true);
   started = true;
@@ -1373,9 +1387,10 @@ function updateOverlay(where) {
 const debug = { freeze: false, iso: false, camOverride: null };
 // Two to four players share one view, zoomed out up to this far (the camera
 // 1.8x as far back) before the screen splits; split views settle at 0.75 of it.
-const SPLIT_ZOOM_MAX = 1.8;
-let groupZoom = 1;
-const split = createSplitScreen(renderer, { capture: true, up: null, zoomMax: SPLIT_ZOOM_MAX });
+// With two to four phages in play outside, a fixed split screen: a region each (side by side; three:
+// player 1 along the top; four: quadrants), each drawn by that player's own camera, never merged (the
+// owner: the phages need not share a view). One player in play: their view fills the screen.
+const split = createSplitScreen(renderer, { capture: true, up: null, fixed: true });
 const viewCams = []; // each view's camera as last drawn (tests)
 const marks = createLandmarks();
 /**
@@ -1685,6 +1700,7 @@ embed.on('hold', () => {
   intro = { cam: null };
   // the opening view settled (the camera's distance and target eased home), so play carries on from it without a drift
   view.dist = zoomOf(); view.target.copy(phageCentre());
+  camera.clearViewOffset();
   camera.quaternion.copy(view.q);
   camera.position.set(0, 0, view.dist).applyQuaternion(view.q).add(view.target);
   camera.updateMatrixWorld();
@@ -1696,6 +1712,7 @@ embed.on('begin', () => { embed.cinematic(false, canvas); intro = { cam: null, e
 /** The camera for a pose from the shell, with the haze and focus at its distance. */
 function placePoseCamera(pose) {
   const c = phageCentre();
+  if (camera.view && camera.view.enabled) camera.clearViewOffset();
   const r = embed.poseCamera(camera, pose, c, { len: PHAGE_LEN, heading: 0 });
   const d = r.depth;
   camera.far = Math.max(3000, d + 1500);
@@ -1703,6 +1720,28 @@ function placePoseCamera(pose) {
   camera.updateMatrixWorld();
   goodsellShared.uFogNear.value = d * 0.8; goodsellShared.uFogFar.value = d + 300;
   post.uniforms.uFocus.value = d;
+}
+
+/**
+ * The camera for member m's view: their turn, at their distance behind what they frame (the burst: a
+ * little further), with its haze and focus; `at` (CSS px) puts their target there on the screen (a
+ * split view's region centre: a view offset, the lens unchanged), null the screen's centre.
+ */
+function placeViewCamera(m, at) {
+  use(m);
+  const o = debug.camOverride;
+  const dist = o ? o.dist : view.dist * (P.mode === 'burst' ? 1.6 : 1);
+  view.camDist = dist;
+  if (o) view.q.setFromEuler(new THREE.Euler(o.pitch, o.yaw, 0, 'YXZ'));
+  camera.quaternion.copy(view.q);
+  camera.position.set(0, 0, dist).applyQuaternion(view.q).add(view.target);
+  if (P.mode === 'commit' && P.contract > 0.05 && P.contract < 1.1 && P.commitT < 2.2) { const k = (2.2 - P.commitT) * 0.25; camera.position.x += Math.sin(t * 61) * k; camera.position.y += Math.cos(t * 53) * k; } // the snap
+  if (at) camera.setViewOffset(innerWidth, innerHeight, innerWidth / 2 - at[0], innerHeight / 2 - at[1], innerWidth, innerHeight);
+  else if (camera.view && camera.view.enabled) camera.clearViewOffset();
+  camera.updateMatrixWorld();
+  goodsellShared.uFogNear.value = dist * 0.8; goodsellShared.uFogFar.value = dist + 300;
+  post.uniforms.uFocus.value = dist;
+  post.uniforms.uBgOff.value.set(view.target.x * 0.0006, view.target.y * 0.0006);
 }
 
 function turnView(look, dt) {
@@ -1754,7 +1793,6 @@ function frame(now) {
   if (!held) for (const m of members()) stepMember(m, dt, insideOwner, where);
   insideOwner = owner();
   const lead = members().find((m) => m.P.mode === 'burst') || insideOwner || team[0];
-  const solo = !isMulti();
 
   // the amoeba hunts the nearest phage; the crowd moves round the view
   if (where === 'outside' && !debug.iso) {
@@ -1789,45 +1827,43 @@ function frame(now) {
     if (backNow && !embed.active) say(tt('phage.toasts.flagellumStandalone'), 2600, true);
   }
 
-  // camera: frame the group (solo: your phage)
-  const commitFocus = solo && P.mode === 'commit';
-  if (look.m > 0.01) view.lookHold = 0.45;
-  else view.lookHold = Math.max(0, view.lookHold - dt);
-  if (where === 'outside') turnView(look, dt);
-  // caught: pull back to watch the predator swallow you, then follow it
-  const watching = solo && team[0].c.active && ['eat', 'follow', 'fadeOut'].includes(team[0].c.phase) && team[0].P.kind !== 'cut';
-  const zNow = zoomOf();
-  const wantDist = commitFocus ? Math.min(zNow, 75) : watching ? Math.max(zNow, 110) * 2.1 : zNow;
-  view.dist += (wantDist - view.dist) * (1 - Math.exp(-dt * (watching ? 1.2 : 2)));
+  // the cameras: each player's own, turned by their own camera stick, at their own zoom, framing their
+  // own phage (being eaten: pulled back to watch the predator; committing: in close; the burst: its host)
   const inPlay = members().filter((m) => m.P.mode !== 'inside' && m.P.mode !== 'burst' && m.P.mode !== 'dead');
   const focusPts = (inPlay.length ? inPlay : [team[0]]).map((m) => { use(m); return centreOf(new THREE.Vector3()); });
-  if (watching && team[0].P.kind === 'amoeba') focusPts[0].lerp(world.amoeba.base, 0.35); // frame the amoeba as well as you
+  for (const m of members()) {
+    use(m);
+    const l = !blocked && !held ? players.controls(m.slot).look() : { yaw: 0, pitch: 0, m: 0 };
+    if (l.m > 0.01) view.lookHold = 0.45;
+    else view.lookHold = Math.max(0, view.lookHold - dt);
+    if (where === 'outside') turnView(l, dt);
+    const watching = m.c.active && ['eat', 'follow', 'fadeOut'].includes(m.c.phase) && P.kind !== 'cut';
+    const zNow = m.zoom;
+    const wantDist = P.mode === 'commit' ? Math.min(zNow, 75) : watching ? Math.max(zNow, 110) * 2.1 : zNow;
+    view.dist += (wantDist - view.dist) * (1 - Math.exp(-dt * (watching ? 1.2 : 2)));
+    if (where === 'outside') {
+      const want = P.mode === 'burst' ? _v.copy(P.commitHost.pos) : centreOf(_v);
+      if (watching && P.kind === 'amoeba') want.lerp(world.amoeba.base, 0.35); // frame the amoeba as well as you
+      view.target.lerp(want, 1 - Math.exp(-dt * (P.mode === 'burst' ? 1 : 2.5)));
+    }
+  }
+  const zNow = zoomOf();
+  // the views: a fixed region each while two or more are in play outside (shared/splitscreen.js `fixed`),
+  // else one, full screen: the burst's, the one player in play, or player 1's (the shell's pose holds it)
+  const poseHeld = held && intro && intro.cam;
+  const splitViews = where === 'outside' && !debug.camOverride && !poseHeld && lead.P.mode !== 'burst' && inPlay.length > 1;
+  const soloView = lead.P.mode === 'burst' ? lead : inPlay.length === 1 ? inPlay[0] : team[0];
   use(lead);
   marks.begin();
   portalLight.begin();
   if (where === 'outside') {
-    const want = lead.P.mode === 'burst' ? lead.P.commitHost.pos : split.centroid(focusPts);
-    view.target.lerp(_v.set(want.x, want.y, want.z), 1 - Math.exp(-dt * (lead.P.mode === 'burst' ? 1 : 2.5)));
-    const o = debug.camOverride;
-    // several phages in one view: the split screen's zoom-out (the camera
-    // pulled back along its view) keeps them all in frame; the screen splits
-    // only once it is at its widest (shared/splitscreen.js)
-    view.groupZoom = !o && inPlay.length > 1 && lead.P.mode !== 'burst' && !(held && intro && intro.cam) ? groupZoom : 1;
-    const dist = o ? o.dist : view.dist * (lead.P.mode === 'burst' ? 1.6 : 1) * view.groupZoom;
-    view.camDist = dist;
-    // the camera is the view quaternion, at `dist` behind the target along its own back axis
-    if (o) view.q.setFromEuler(new THREE.Euler(o.pitch, o.yaw, 0, 'YXZ'));
-    camera.quaternion.copy(view.q);
-    camera.position.set(0, 0, dist).applyQuaternion(view.q).add(view.target);
-    if (commitFocus && P.contract > 0.05 && P.contract < 1.1 && P.commitT < 2.2) { const k = (2.2 - P.commitT) * 0.25; camera.position.x += Math.sin(t * 61) * k; camera.position.y += Math.cos(t * 53) * k; } // the snap
-    camera.updateMatrixWorld();
-    goodsellShared.uFogNear.value = dist * 0.8; goodsellShared.uFogFar.value = dist + 300;
+    placeViewCamera(soloView, null);
+    use(lead);
     post.uniforms.uWater.value.set(waterColor);
     post.uniforms.uUseBg.value = view.art && art.water ? 1 : 0;
     goodsellShared.uFogColor.value.set(waterColor);
     goodsellShared.uHaze.value.set('#185462');
     post.uniforms.uTop.value.set('#2f8494'); post.uniforms.uBot.value.set('#07202c'); post.uniforms.uShaft.value.set('#8ad8da');
-    post.uniforms.uFocus.value = dist;
     // (the UV is drawn as its shafts, world geometry; the old screen wash over the sunlit layer is off)
     post.uniforms.uUv.value = 0;
     world.shafts.visible = !debug.iso; world.shafts.material.uniforms.uOn.value = opts.uv ? 1 : 0.35;
@@ -1837,8 +1873,7 @@ function frame(now) {
     post.uniforms.uAO.value = [0.3, 0.6, 0.4, 0.2][view.look];
     post.uniforms.uEdge.value = [0, 0.6, 0.8, 0.25][view.look];
     post.uniforms.uInk.value.set(view.look === 1 ? '#2b2236' : '#0c1c28');
-    post.uniforms.uBgOff.value.set(view.target.x * 0.0006, view.target.y * 0.0006);
-    if (held && intro && intro.cam) placePoseCamera(intro.cam);
+    if (poseHeld) placePoseCamera(intro.cam);
   } else {
     const cutting = insideOwner && insideOwner.c.active && insideOwner.P.kind === 'cut';
     const chewing = cutting && ['eat', 'follow', 'fadeOut'].includes(insideOwner.c.phase);
@@ -1861,10 +1896,11 @@ function frame(now) {
   post.uniforms.uFlashColor.value.set(uvDying ? '#efe4ff' : '#ffffff');
   world.clay.group.visible = !debug.iso && !hostById('B').hidden;
   if (where === 'outside') {
-    // LEGO split screen: one view while together, split as players drift apart
-    const list = inPlay.length ? inPlay.map((m, i) => ({ slot: m.slot, position: focusPts[i] })) : [{ slot: 0, position: view.target }];
-    split.update(list, { camera, zoom: view.groupZoom }, dt);
-    groupZoom = split.zoom;
+    // the split screen: fixed, a region per player in play, each drawn through its player's own camera
+    const shown = splitViews ? inPlay : [soloView];
+    const list = shown.map((m) => ({ slot: m.slot, position: focusPts[inPlay.indexOf(m)] || (use(m), centreOf(new THREE.Vector3())) }));
+    for (const m of shown) m.viewCam ||= camera.clone();
+    split.update(list, { camera, cameras: splitViews ? shown.map((m) => m.viewCam) : null }, dt);
     quality.setSplitViews(split.views.length);
     // the phages' wakes in the bath (molecules make way round each phage, so it always reads)
     world.setWake(debug.iso ? [] : members().filter((m) => m.t4.group.visible).map((m) => { use(m); return { p: centreOf(new THREE.Vector3()), r: 16 * P.scale }; }));
@@ -1875,37 +1911,24 @@ function frame(now) {
     // the textured liquid: drifting with the ambient water; a current streams it into streaks
     mediumDrift.x += dt * 2.2; mediumDrift.y += dt * 1.1;
     medium.mesh.visible = !debug.iso && opts.medium !== false;
-    medium.update(t, view.dist * view.groupZoom, mediumDrift, world.current, currents.offset);
-    const zAll = zoomOf();
+    use(soloView);
+    medium.update(t, view.dist, mediumDrift, world.current, currents.offset);
+    use(lead);
     split.render(camera, (v) => {
-      // split, each view keeps its own players' zoom: the camera pulled back (or in) along its view from the
-      // shared framing, which is the widest of everyone's (put back after the view is drawn)
-      // It is eased in and out with the split (layout.amount), so a merge needs no zoom change, and the
-      // camera dollies along the line from its players' centre, so they stay where the split screen
-      // shows them (their region's middle) rather than sliding toward the view's centre.
-      const amt = split.views.length > 1 && !debug.camOverride ? split.layout.amount : 0;
-      const vk = 1 + (zoomOf(v.slots) / zAll - 1) * amt;
-      const pull = view.camDist * (vk - 1);
-      const ms = (v.members || []).map((j) => list[j] && list[j].position).filter(Boolean);
-      if (pull) {
-        camera.getWorldDirection(_back);
-        if (ms.length) {
-          _pv.set(0, 0, 0); for (const p of ms) _pv.add(p); _pv.multiplyScalar(1 / ms.length);
-          const depth = Math.max(1, _pd.subVectors(_pv, camera.position).dot(_back));
-          _back.subVectors(camera.position, _pv).multiplyScalar(1 / depth); // per unit of pull: back along the view, out from the players
-        } else _back.negate();
-        camera.position.addScaledVector(_back, pull); camera.updateMatrixWorld(); post.uniforms.uFocus.value = view.camDist + pull;
-      }
+      // split: this view's player's own camera, framing them at their region's centre
+      const m = split.views.length > 1 ? team[v.slots[0]] : null;
+      if (m) { placeViewCamera(m, v.center); m.viewCam.copy(camera); use(lead); }
       noteView(); // (what this view sees, for the director)
-      // each view wraps the bath round its own centre: the water is full in every view, together or apart
-      world.viewBath(_v.set(0, 0, -view.dist * vk).applyQuaternion(camera.quaternion).add(camera.position));
-      for (const m of members()) m.t4.setCutFrom(camera.position);
+      // each view wraps the bath round its own centre: the water is full in every view
+      world.viewBath(_v.set(0, 0, -camera.position.distanceTo(_pv.copy(m ? m.cam.target : soloView.cam.target))).applyQuaternion(camera.quaternion).add(camera.position));
+      for (const q of members()) q.t4.setCutFrom(camera.position);
       for (const r of reachRings) r.quaternion.copy(camera.quaternion);
       // every internal pass (scene, DOF copy, bloom) scissored to this view's region when split
       post.render(scene, camera, (rt) => split.scissor(v, rt));
       (viewCams[v.index] ||= camera.clone()).copy(camera); // (tests: the view as drawn)
-      if (pull) { camera.position.addScaledVector(_back, -pull); camera.updateMatrixWorld(); post.uniforms.uFocus.value = view.camDist; }
     });
+    // afterwards the camera is player 1's view as drawn (the labels and markers that follow use it)
+    if (split.views.length > 1) { const v0 = split.views.find((v) => v.slots.includes(0)) || split.views[0]; placeViewCamera(team[v0.slots[0]], v0.center); use(lead); }
     // (shared/landmark.js trips on an empty split region, which splitscreen.js can emit for a frame as players leave)
     if (!debug.iso && lead.P.mode !== 'burst' && split.layout.regions.every((r) => r.polygon && r.polygon.length >= 3)) {
       // no arrow to the way on by default (the owner: keep moving in any direction and you find it): its golden
