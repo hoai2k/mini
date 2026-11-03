@@ -271,6 +271,7 @@ export function createSplitScreen(renderer, opts = {}) {
   // free-floating 3D swimmers).
   const groundUp = opts.up === null ? null : new THREE.Vector3(...(opts.up || [0, 1, 0])).normalize();
   let renderScale = opts.renderScale ?? 1;
+  let fixed = !!opts.fixed; // the fixed split (fixedLayout)
   const minAreaOpt = opts.minArea;
   const dividerColor = cssColor(divider.color || '#c9a35a', 0.95);
   const shadowColor = cssColor(divider.shadow || 'rgba(16,12,6,0.5)');
@@ -457,6 +458,8 @@ export function createSplitScreen(renderer, opts = {}) {
       setRects(layout);
       return layout;
     }
+
+    if (fixed) return fixedLayout(players, shared, n, slotOf, dt);
 
     // 2. Sites.
     const q = [];
@@ -668,6 +671,37 @@ export function createSplitScreen(renderer, opts = {}) {
     const merged = !st.split;
     layout = { merged, width: W, height: H, views, regions, edges, players, amount: amt, spread: E, angle: n === 2 ? st.angle : null,
       zoom: st.zoom, need, fit: F, merging: st.merging };
+    setRects(layout);
+    if (renderer.outputColorSpace !== warmCs || renderer.toneMapping !== warmTm) warm();
+    return layout;
+  }
+
+  // The fixed split (opts.fixed or split.fixed = true): with 2-4 players, a screen region each, always
+  // (2: side by side; 3: player 1 along the top, the others below; 4: quadrants), in slot order, with no
+  // zoom-out, merging or turning dividers. Each view's offset is zero: the world draws each view with a
+  // camera of its own (one per player, shared.cameras[i] in the players' order, framing that player at
+  // its region's centre, e.g. with camera.setViewOffset), which split.project then uses.
+  function fixedLayout(players, shared, n, slotOf, dt) {
+    st.split = false; st.merging = false; st.dwell = 0; st.amount = 0; st.angle = null; st.together.clear();
+    st.need = 1; st.zoomTarget = 1; easeZoom(1, dt);
+    const order = players.map((p, i) => i).sort((a, b) => slotOf(a) - slotOf(b));
+    const rect = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+    const w2 = W / 2, h2 = H / 2;
+    const cells = n === 2 ? [rect(0, 0, w2, H), rect(w2, 0, W, H)]
+      : n === 3 ? [rect(0, 0, W, h2), rect(0, h2, w2, H), rect(w2, h2, W, H)]
+        : [rect(0, 0, w2, h2), rect(w2, 0, W, h2), rect(0, h2, w2, H), rect(w2, h2, W, H)];
+    const lines = n === 2 ? [[[w2, 0], [w2, H], 0, 1]]
+      : n === 3 ? [[[0, h2], [W, h2], 0, 1], [[w2, h2], [w2, H], 1, 2]]
+        : [[[w2, 0], [w2, H], 0, 1], [[0, h2], [W, h2], 0, 2]];
+    const views = [], regions = [], edges = [];
+    const cams = shared.cameras || [];
+    order.forEach((i, k) => {
+      const poly = cells[k], c = [(poly[0][0] + poly[2][0]) / 2, (poly[0][1] + poly[2][1]) / 2];
+      views.push({ index: k, slots: [slotOf(i)], members: [i], shift: { x: 0, y: 0 }, offset: zeroOffset(), camera: cams[i] || null, center: c });
+      regions.push({ slot: slotOf(i), view: k, polygon: poly, centroid: c, anchor: c, area: (poly[2][0] - poly[0][0]) * (poly[2][1] - poly[0][1]) });
+    });
+    for (const [a, b, i, j] of lines) edges.push({ a, b, alpha: 1, slots: [slotOf(order[i]), slotOf(order[j])], angle: Math.atan2(b[1] - a[1], b[0] - a[0]) });
+    layout = { merged: false, fixed: true, width: W, height: H, views, regions, edges, players, amount: 1, spread: 0, angle: null, zoom: st.zoom, need: 1, fit: 0, merging: false };
     setRects(layout);
     if (renderer.outputColorSpace !== warmCs || renderer.toneMapping !== warmTm) warm();
     return layout;
@@ -1052,6 +1086,9 @@ export function createSplitScreen(renderer, opts = {}) {
      */
     get zoom() { return st.zoom; },
     get zoomMax() { return Math.max(1, zoomMax); },
+    /** The fixed split (fixedLayout): a region per player always, each view with its own camera. */
+    get fixed() { return fixed; },
+    set fixed(v) { fixed = !!v; },
     get renderScale() { return renderScale; },
     set renderScale(v) { renderScale = Math.max(0.25, Math.min(1, v)); },
     /** The shared per-view resolution factor for the current view count (1, 0.7, 0.55). */
@@ -1064,6 +1101,14 @@ export function createSplitScreen(renderer, opts = {}) {
     project(i, p) {
       if (!mode) return { x: 0, y: 0, behind: false };
       const v = layout.views[i];
+      if (v && v.camera) {
+        // a view with a camera of its own (the fixed split): through it, as it is drawn
+        v.camera.updateMatrixWorld();
+        tmp.set(p.x, p.y, p.z).applyMatrix4(v.camera.matrixWorldInverse);
+        const behind = !v.camera.isOrthographicCamera && tmp.z > 0;
+        tmp.applyMatrix4(v.camera.projectionMatrix);
+        return { x: (tmp.x + 1) / 2 * W, y: (1 - tmp.y) / 2 * H, behind };
+      }
       const s = screenOf(p, v ? v.offset : null);
       return { x: s.x + W / 2, y: s.y + H / 2, behind: s.behind };
     },
