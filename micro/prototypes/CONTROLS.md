@@ -74,8 +74,9 @@ Keyboard: Z (LT), X (RT).
 
 **The phage zooms with the triggers** the same way and at the same rate: the
 camera's distance behind the phage, from 60 to 290 units (the range of the old
-D-pad steps). Each player's own: together, the shared view takes the widest of
-everyone's; split, each view takes its own players' zoom.
+D-pad steps). Each player's own, in their own view: the phage world is always
+split with company (a fixed region each, below), and each player's RS turns
+only their own camera.
 
 **The mite zooms with the triggers** too: the SEM's horizontal field width,
 160 µm to 4.2 mm, a little faster than the paramecium (its range is nine times
@@ -110,14 +111,20 @@ a moment, fades out and you respawn (`shared/predation.js`: `createFight`,
 Read the controls through `shared/controls.js` (`createControls(pad)`), not raw
 buttons, and build the HUD list with `hudControls({...})` so every prototype
 lists the same buttons in the same order. `createDash()` gives a dash with a
-recharge and a HUD meter. The amoeba uses its own twin-stick scheme. Each stick moves one pseudopod
-(marked L and R in the player's colour): its first push grabs the pseudopod
-lying that way (or grows one there), a quick flick through the centre keeps it,
-and resting the stick lets it go. Hold LT to move the whole cell instead: one
-stick or both the same way crawl, two ways crawl between and widen, apart
-stretches, together squishes, one up and one down turn it. RT spreads the whole
-cell out (held on, it slowly rounds up); LB/RB spread / push harder the
-pseudopod being moved. A surges, X engulfs (and cuts), B lets go or
+recharge and a HUD meter. The amoeba uses its own twin-stick scheme. Each stick keeps one pseudopod
+(marked L and R in the player's colour): pushed it steers it, at neutral it
+rests and stays that stick's; only once it is gone does the next push take
+the one lying that way (or grow one). Hold RT to choose others: a glow at the
+base of each stick's pseudopod (dim while that stick is still pushed, until it
+comes back to neutral) slides round the membrane as the stick moves, snapping
+to a pseudopod's base, and letting go of RT takes the pseudopod there or grows
+one at bare membrane; the view widens if the cell does not fit, and stays.
+Hold LT to move the whole cell instead: one stick or both the same way crawl,
+two ways crawl between and widen, apart stretches, together squishes, one up
+and one down turn it; a pseudopod ahead of the crawl rolls into a stump and
+merges unless its own stick points on along the crawl. LB thickens the steered
+pseudopod (none steered: the whole cell spreads, and held on rounds up); RB
+pushes it harder. A surges, X engulfs (and cuts), B lets go or
 stiffens. Against another cell (the giant amoeba *Chaos*, or another player)
 a pseudopod is a push: cells never overlap, and a broad pseudopod or a surge
 pushes hardest (it can force a channel into *Chaos*, even through to the portal under it); keep a gap open so *Chaos* cannot ring you. At the open
@@ -141,6 +148,10 @@ Up to four players share the screen (`shared/players.js`).
 - **Split screen** (`shared/splitscreen.js`): together, players share one
   view; as they separate the screen splits LEGO-style along a brass hairline
   that turns with their direction, and merges back seamlessly when they meet.
+  The phage is the exception: with company its screen is split from the start,
+  a fixed region each (side by side; three: player 1 along the top; four:
+  quadrants), each player with their own free-turning camera and zoom, and
+  its views never merge.
 - **Landmarks** (`shared/landmark.js`): near the edge of each view, a hollow
   ring points to the way back. The way on has no mark: its golden light
   (`shared/portal.js`) is the only marker.

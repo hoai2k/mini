@@ -23,16 +23,32 @@ triggers chose pseudopods); **Lead and follow** and **Two pseudopods
 
 ### Pseudopods and movement (default)
 
-Two modes, read afresh from LT every frame, so neither can stick: LT up is
-pseudopod mode, LT held is movement mode.
+The logic is `select.js` (pure, tested in node by `select.test.mjs`); `main.js`
+feeds it each player's body and roles. Three modes, read afresh every frame
+from the triggers: LT held is movement mode, RT held is choosing, neither is
+pseudopod mode. The owner, 2026-11-03: "we won't auto select pseudopods after
+neutral but keep them defined. To change them we hold RT and then we see a
+glow at the base of the currently selected pseudopods. If any are currently
+moving they don't become editable until they rest at neutral first. When
+editable you can move their stick around and the glow will find a new base
+to use. The glow should move smoothly from its initial position and settle
+accurately, being easy to control. If needed to display the selection, auto
+zoom the camera out and keep it there."
 
 | Button | Action |
 | --- | --- |
-| LS / RS (WASD / arrows) | **Move a pseudopod.** Each stick owns one: LS the one marked **L**, RS the one marked **R**. A stick at rest owns nothing; its first push (past 0.3) grabs the pseudopod whose tip lies within 34° of it (idle ones too), or grows one at the membrane that way, and steers it while pushed (direction and reach). Flick through the centre quicker than 0.28 s and you keep it; rest in the centre longer (below 0.15) and it lets go, so the next push can grab another. R and L are never the same: a push towards the other stick's pseudopod grabs the next one within 34°, or grows one 30–60° beside it |
-| LT (Z), held | **Move the cell.** The sticks become movement intents and steer no pseudopod (ones let go flow slowly back). One stick, or both the same way: the cell crawls that way. Two different ways: it crawls between them and widens across its path. LS left + RS right (apart): stretches along that line; LS right + RS left (together): squishes; LS up + RS down: turns clockwise, LS down + RS up: anticlockwise, like a tank (the contents turn with it). Mixed angles blend (below). On above 0.5, off below 0.3 |
-| RT (X), held | **Spread / round up**: the whole cell spreads out at once (the old LB, for the whole cell); held on, from about 1.5 s it slowly draws its pseudopods in and relaxes towards a circle, near round after about 8 s. Let go and it eases back |
-| LB / RB (Q / F) | **Spread / push a pseudopod**: only the pseudopod(s) a pushed stick is steering (in pseudopod mode): LB makes it broader and a little shorter, RB pushes it out faster. With no stick pushed, they do nothing |
+| LS / RS (WASD / arrows) | **Steer your pseudopods.** Each stick keeps one: LS the one marked **L**, RS the one marked **R**. Pushed (past 0.3), the stick steers it (direction and reach); at neutral (below 0.15) it rests (no longer steered, it flows slowly back) and stays that stick's, so the next push steers the same one. Only when it is gone (drawn in, eaten, merged) does the next push take a default: the pseudopod whose tip lies within 34° of the stick (idle ones too), or a new one grown at the membrane that way. R and L are never the same |
+| RT (X), held | **Choose pseudopods.** The sticks steer nothing. A soft glow in your colour, marked L and R, sits at the base of each stick's pseudopod (where it meets the body). A stick still pushed as RT goes down is *busy*: its glow is dim and pulsing until the stick comes back to neutral; then it is *editable* (bright, ringed). Pushed past 0.25, it slides its glow round the membrane toward the stick's direction: critically damped easing (13 rad/s) from where it was, settling exactly on the target; within 20° of a pseudopod's base the glow snaps to it, and lets go only past 28° (no flicker). L and R never share a base: the other's is skipped and the glow is held 24° aside. Let go of RT and each moved glow takes the pseudopod at its base, or, at bare membrane, grows a new one there (pushed out on its own for 0.8 s, along the membrane's normal); a glow left alone keeps its pseudopod; a stick still pushed must come back to neutral before it steers. Sounds: a soft stretch on entering, a squish on a commit, and a short rumble. On above 0.5, off below 0.3 |
+| LT (Z), held | **Move the cell.** The sticks become movement intents; the pseudopods stay assigned and rest. One stick, or both the same way: the cell crawls that way. Two different ways: it crawls between them and widens across its path. LS left + RS right (apart): stretches along that line; LS right + RS left (together): squishes; LS up + RS down: turns clockwise, LS down + RS up: anticlockwise, like a tank (the contents turn with it). Mixed angles blend (below). **Rolling into a pseudopod** (the owner, 2026-11-03: "if moving in the direction of an extended pseudopod, if that stick is not pointing in the same direction, the pseudopod should thicken into a stump as the body rolls into/past it. If the pseudopod is actively reaching forward while moving then it stays"): a steered pseudopod within 60° ahead of the crawl whose own stick does not point on along it (within 35°), or which has none, is fed only a weak, fully spread push, so it shortens and its base broadens into a stump, and the cell is squished along the travel so the body flows into it; once it stands out less than 22 µm it is let go and merges. Its stick pointing on along the crawl, it keeps reaching and the cell travels behind it (with both sticks forward, both crawl and both pseudopods they point along keep reaching). Pseudopods to the side or behind are left alone. On above 0.5, off below 0.3 |
+| LB (Q) | **Thicken**: the pseudopod a pushed stick is steering gets broader and shorter (the thickness that wins pushes, `contact.js`). With none steered, the whole cell spreads out at once; held on, from about 1.5 s it draws its pseudopods in and rounds up, near round after about 8 s |
+| RB (F) | **Push harder**: the steered pseudopod runs out faster |
 | LS click / RS click (C / V) | Fine focus down / up |
+
+**The camera when choosing**: if the cell and its glows (70 µm round it) do
+not fit within 80% of the view when RT goes down, the field widens to frame
+them (eased over ~0.6 s), up to 3×, and stays there: it never zooms back in
+on its own; the D-pad objective starts afresh. One field serves every view,
+so in split screen it widens for whichever player needs it.
 
 Movement mode in detail (`moveInput` in `main.js`): with a = LS and b = RS,
 the cell travels along a + b (capped at full speed). How far apart the sticks
@@ -44,15 +60,20 @@ body (`shared/techniques/amoeba-softbody.js`) these are `input.shape` (the ends
 pushed out or in, the area taken from or given to the sides, stretching
 stopping at about 2.1 radii, squishing at about 0.65), `input.turn` (the
 outline rotated about the centroid; `cytoplasm.rotateAbout` turns the
-contents) and `input.round` (RT); shaping in place quiets the idle pseudopods
+contents) and `input.round` (LB with nothing steered); shaping in place quiets the idle pseudopods
 and holds the centroid, so it goes nowhere. Per-pseudopod `input.pods[k].push`
 and `.spread` carry RB and LB.
 
 The marks: a thin line along the membrane round each owned pseudopod's tip, a
-tick and the stick's letter in the player's colour; dimmer while the stick
-passes through the centre, fading out over 0.7 s once it lets go. The corner
-says what each stick holds (`LS: moving L · RS: free · LT: move the cell · RT:
-spread`; `LT: moving the cell (crawling + widening)` in movement mode).
+tick and the stick's letter in the player's colour; dimmer while it rests.
+While choosing, the glows replace them. The corner says what each stick holds
+(`LS: steering L · RS: R resting · LT: move · RT: choose`; `RT: choosing
+pseudopods · LS: L busy (back to neutral first) · RS: R at a new base`; `LT:
+moving the cell (crawling + widening)` in movement mode).
+
+The other schemes are unchanged: **Lead and follow** (either trigger held
+grows the second pseudopod) and **Two pseudopods (classic)** (physical LT
+pushes harder, RT spreads, after the trigger swap in `rawInput`).
 
 After eating, the cup's pseudopods dissolve into the vacuole and a stick still
 pushed must be let go before it grabs another. Against another cell (Chaos,
@@ -1011,3 +1032,19 @@ reaching it, the tip was pushed back from 119 to 160 µm off the portal in
 3 s. No overlap (0 µm). Screenshots: `tunnel-1.png`, `tunnel-2.png`. The
 earlier runs above were repeated after the change (22/22, the ring now
 closing in the first encircle: its X at 9.1 s, engulfed 1.8 s later).
+
+**Choosing on RT and rolling into stumps (2026-11-03)**: `select.test.mjs`
+(node, 9 tests): assignments persist through neutral and movement mode; a
+busy stick's glow stays put until it rests, then follows; the glow eases with
+no overshoot and settles exactly (also the short way across ±180°); snapping
+within 20°, held to 25°, let go at 35°; L and R held apart when both sticks
+aim at the same place; RT release takes an existing pseudopod or grows one at
+bare membrane (within 25° of its glow); LB broadens a steered pseudopod (> 1.3×)
+without spreading the cell, and spreads the cell with none steered; LT
+crawling into a resting pseudopod turns it into a stump (spread > 0.5, reach
+under 60%) that merges, while one whose stick reaches on keeps its reach and
+the cell follows it; one to the side is left alone. Playwright (10/10, no page
+errors; screenshots in the scratchpad `amoeba-select/`): R busy then
+editable, its glow moving and settling at -60°, the commit growing a new R
+at -53° with L kept, the view widening to 1.73× at 20× and staying after RT,
+and an LT crawl rolling a 144 µm pseudopod into a 55 µm stump.

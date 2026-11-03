@@ -2150,6 +2150,7 @@ function step(dt, inputs) {
   updateContacts();
 }
 const split = createSplitScreen(renderer, { capture: true, zoomMax: SPLIT_ZOOM_MAX });
+const viewFx = []; // each view's focus distance and depth-of-field factor as last drawn (tests)
 const marks = createLandmarks();
 // a caught player's view follows the predator with its meal
 const posOf = (P) => {
@@ -2174,14 +2175,25 @@ function render(dt) {
   split.render(camera, (view, target) => {
     renderer.setRenderTarget(target);
     let dofK = rig.lookFx ? rig.lookFx.dofK : rig.dofK, Lv = L;
+    // how far the split has eased in (0 merged .. 1 split): a split view's own focus and look are
+    // blended in with it, so the merge (the views' offsets reaching zero) needs no focus change
+    // a split view's own focus, depth of field and look (split.viewBlend: blended with the players near
+    // each, eased with the split's amount), so the split, the merge and players joining one view change
+    // no focus at once: merged, every view has the shared camera's
+    const SL = split.layout, sp = !SL.merged && !outro;
+    const recAt = (j) => pls[SL.players[j].slot] || pl;
+    if (sp) {
+      const dAt = (j) => { const P = recAt(j); return camera.position.distanceTo(_v.set(P.x, P.y + 0.25, P.z)); };
+      const own = split.viewBlend(view, dAt, focus0);
+      let far = 0;
+      for (const j of view.members || []) far = Math.max(far, Math.abs(dAt(j) - own));
+      macroShared.uFocus.value = own;
+      dofK += (THREE.MathUtils.clamp((far + 0.6) / L.dof, 1, 14) - dofK) * SL.amount;
+    }
     if (!one) {
-      // each view focuses on its own players, the water and the sky follow its camera
+      // each view's water and sky follow its camera
       const vr = view.slots.map((s) => pls[s]).filter(Boolean);
       const g = groupCentre(vr.length ? vr : [pl]);
-      macroShared.uFocus.value = camera.position.distanceTo(_v.set(g.x, g.y + 0.25, g.z));
-      let far = 0;
-      for (const P of vr) far = Math.max(far, Math.abs(camera.position.distanceTo(_v.set(P.x, P.y + 0.25, P.z)) - macroShared.uFocus.value));
-      dofK = THREE.MathUtils.clamp((far + 0.6) / L.dof, 1, 14);
       water.position.set(Math.round(g.x / field.dx) * field.dx, 0, Math.round(g.z / field.dx) * field.dx);
       world.sky.position.copy(camera.position);
       setDrop(vr[0]);
@@ -2189,7 +2201,7 @@ function render(dt) {
     // with company, each view looks far or close as its players hold RT / LT (alone, placeCamera did it)
     let saved = null;
     if (multi() && !outro) {
-      const u = viewLook(view.slots);
+      const u0 = viewLook(recs().map((P) => P.slot)), u = sp ? split.viewBlend(view, (j) => lookOf(SL.players[j].slot).u, u0) : u0;
       if (u) {
         saved = { p: camera.position.clone(), q: camera.quaternion.clone(), fov: camera.fov, near: camera.near, sky: world.sky.position.clone() };
         const pivot = camera.getWorldDirection(_v).multiplyScalar(L.s).add(camera.position);
@@ -2200,6 +2212,7 @@ function render(dt) {
     // moss tiles beyond the focal plane (plus a tile's reach) switch to the coarse heads (looking far: from just past you)
     world.setLodDistance(Lv === L ? macroShared.uFocus.value + MOSS_LOD_BEYOND : Math.min(macroShared.uFocus.value + MOSS_LOD_BEYOND, Lv.s + 60));
     // split: each internal pass fills only this view's region (padded for the bokeh's reach)
+    viewFx[view.index] = { focus: macroShared.uFocus.value, dofK }; // (tests: each view's focus as drawn)
     macro.render(scene, camera, { lens: Lv, look: lookDef, dofK, scissor: (rt) => split.scissor(view, rt, 64) });
     if (saved) {
       camera.position.copy(saved.p); camera.quaternion.copy(saved.q); camera.fov = saved.fov; camera.near = saved.near;
@@ -2328,6 +2341,8 @@ const api = {
   get frames() { return frames; },
   get layout() { return split.layout; },
   recs: () => recs().map((P) => ({ slot: P.slot, x: +P.x.toFixed(2), z: +P.z.toFixed(2), mode: P.mode, color: P.color })),
+  /** Testing (the split audit): each view's focus distance (mm) and depth-of-field factor as last drawn. */
+  viewFx: () => viewFx.slice(0, Math.max(1, split.views.length)),
   /** Put a player at (x, z) mm, standing, and snap the camera. */
   teleport(slot, x, z) {
     const P = pls[slot];

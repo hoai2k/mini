@@ -814,7 +814,7 @@ function stepCamera(dt) {
 }
 const toScreen = (x, y, slot = 0) => {
   const L = split.layout;
-  if (L && L.views && L.views.length > 1) { const v = L.views.find((q) => q.slots.includes(slot)) || L.views[0]; const p = split.project(v.index, toFrame(x, y)); return { x: p.x, y: p.y }; }
+  if (L && L.views && !L.merged) { const v = L.views.find((q) => q.slots.includes(slot)) || L.views[0]; const p = split.project(v.index, toFrame(x, y)); return { x: p.x, y: p.y }; }
   const q = toFrame(x, y), w = view.fw, h = w * aspect();
   return { x: (q.x - view.cx) / w * innerWidth + innerWidth / 2, y: innerHeight / 2 - (q.y - view.cy) / h * innerHeight };
 };
@@ -903,17 +903,34 @@ function render(dt) {
   groupZoom.z = split.zoom;
   quality.setSplitViews(L.views.length);
   const look = currentLook();
-  // the views: each one's centre and focus (its own players' depth)
-  const vs = (L.views.length > 1 && !camHeld ? L.views : [{ index: 0, offset: { x: 0, y: 0 }, slots: cells.map((c) => c.slot) }]).map((v) => {
+  // the views: each one's centre and focus (its own players' depth). What a split view keeps of its
+  // own (depth, focal plane, zoom) is eased in and out with the split (L.amount, 0 merged .. 1 split),
+  // so the last split frame is the first merged one: the view's offset reaches zero on the same frame.
+  const allSlots = cells.map((c) => c.slot);
+  // (split: !L.merged, also while the views have joined into one on the way to a merge, whose offset
+  // is then still the group's own)
+  const splitNow = !L.merged && !camHeld;
+  const Fall = focalFor(allSlots); // (kept stepping while split, so a merge eases back onto it)
+  const cellAt = (j) => cells.find((c) => c.slot === L.players[j].slot) || P1;
+  const vs = (splitNow ? L.views : [{ index: 0, offset: { x: 0, y: 0 }, slots: allSlots }]).map((v) => {
     const o = fromFrameOffset(v.offset);
     const mine = cells.filter((c) => v.slots.includes(c.slot) && (c.live || c.dead));
-    const focus = camHeld && outro ? lerp(view.focus, spir.z, sm01(0, 0.3, outro.u || 0)) : mine.length && L.views.length > 1 ? mine.reduce((s, c) => s + c.S.z, 0) / mine.length : view.focus;
-    // the focal plane: the operator's (in the dive, it drops to the film with the view)
-    const F = focalFor(L.views.length > 1 && !camHeld ? v.slots : cells.map((c) => c.slot));
-    const focal = camHeld && outro ? lerp(F.z, spir.z, sm01(0, 0.3, outro.u || 0)) : F.z;
-    // split, each view keeps its own players' zoom (the shared view: the widest of everyone's)
-    const hw = L.views.length > 1 && !camHeld ? hw0 * zoomOf(v.slots) / zoomOf(cells.map((c) => c.slot)) : hw0;
-    return { index: v.index, cx: view.cx + o.x, cy: view.cy + o.y, focus, focal, slots: v.slots, hw, hh: hw * aspect() };
+    // the view's own depth, focal plane (each player's own, focus.js) and zoom, blended with the split
+    // (split.viewBlend: continuous through the split, the merge and players joining one view)
+    const focus = camHeld && outro ? lerp(view.focus, spir.z, sm01(0, 0.3, outro.u || 0)) : split.viewBlend(v, (j) => cellAt(j).S.z, view.focus);
+    const fz = splitNow ? split.viewBlend(v, (j) => focalFor([L.players[j].slot]).z, Fall.z) : Fall.z;
+    const focal = camHeld && outro ? lerp(fz, spir.z, sm01(0, 0.3, outro.u || 0)) : fz;
+    // split, each view keeps its own players' zoom (the shared view: the widest of everyone's), zoomed
+    // about its players, so they stay where the split screen shows them (their region's middle)
+    const zAll = zoomOf(allSlots);
+    const r = splitNow ? split.viewBlend(v, (j) => cellAt(j).zoom / zAll, 1) : 1;
+    let cx = view.cx + o.x, cy = view.cy + o.y;
+    if (r !== 1 && mine.length) {
+      const mx = mine.reduce((s, c) => s + c.S.x, 0) / mine.length, my = mine.reduce((s, c) => s + c.S.y, 0) / mine.length;
+      cx = mx - r * (mx - cx); cy = my - r * (my - cy);
+    }
+    const hw = hw0 * r;
+    return { index: v.index, cx, cy, focus, focal, slots: v.slots, hw, hh: hw * aspect() };
   });
   lastViews = vs;
   // fill the shapes once for every view: the union of their fields, with room for the turn and for the
@@ -1105,5 +1122,15 @@ window.__micro = {
   /** The kin clump's cells on screen now (normalised device coordinates; the shell-path checks compare them with the bacterium's). */
   clumpScreen(n = 8) { return clumpLayout().slice(0, n).map((c) => { const q = placeInFrame(c, spir.x, spir.y, spir.a), f = toFrame(q.x, q.y), w = view.fw, h = w * aspect(); return { kind: c.kind, x: +((f.x - view.cx) / (w / 2)).toFixed(4), y: +((f.y - view.cy) / (h / 2)).toFixed(4) }; }); },
   challenges: () => challengeLog.slice(),
+  /** The views as last drawn: centre, half extents (µm), the perspective's depth (focus) and the focal plane. */
+  views: () => lastViews.map((v) => ({ index: v.index, slots: v.slots, cx: v.cx, cy: v.cy, hw: v.hw, hh: v.hh, focus: v.focus, focal: v.focal })),
+  /** Where player `slot`'s cell is drawn now (CSS px from the top left), through its view as drawn (perspective included). */
+  shown(slot = 0) {
+    const c = cells.find((q) => q.slot === slot), v = lastViews.find((q) => q.slots && q.slots.includes(slot)) || lastViews[0];
+    if (!c || !v) return null;
+    const k = kAt(c.S.z - (v.focus ?? view.focus)), rx = (c.S.x - v.cx) * k, ry = (c.S.y - v.cy) * k;
+    const cr = Math.cos(view.rot), sr = Math.sin(view.rot), x = rx * cr + ry * sr, y = -rx * sr + ry * cr;
+    return { x: innerWidth / 2 + (x / v.hw) * innerWidth / 2, y: innerHeight / 2 - (y / v.hh) * innerHeight / 2, view: v.index };
+  },
   state: () => ({ t: +t.toFixed(2), director: director.state(), eaten: game.eaten, divided: game.divided, cells: cells.map((c) => ({ slot: c.slot, x: +c.S.x.toFixed(1), y: +c.S.y.toFixed(1), z: +c.S.z.toFixed(1), a: +c.S.a.toFixed(2), v: +c.S.v.toFixed(0), live: c.live, dead: c.dead && c.dead.by, engulfed: !!c.engulfed })), trap: { state: trap.state, resolve: trap.resolve, log: trap.log.slice(-8) }, sealed: leaf.placed && portalSealed(), open: leaf.placed && !portalSealed() && !guarded(), prompt: lm.portal, shapes: shapes.count, shadows: shapes.shadows, sprite: shapes.hasSprite, field: Math.round(fieldNow), zoom: cells.map((c) => +c.zoom.toFixed(3)), focus: +view.focus.toFixed(1), focal: +focalNow.toFixed(1), focals: [...focals.values()].map((F) => ({ key: F.key, z: +F.z.toFixed(1), mode: F.mode, turns: F.turns, interrupted: F.interrupted })), views: split.layout ? split.layout.views.length : 1 }),
 };

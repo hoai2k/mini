@@ -19,6 +19,7 @@ import { View } from './render.js';
 import { Chaos, CHAOS_R, CHAOS_WAKE, CHAOS_LEASH, RING } from './chaos.js';
 import { resolvePair, overlap, reaches, BINS } from './contact.js';
 import { rng, TAU, clamp, hyp, Scratch } from './util.js';
+import { selectRoles, selectInput as selectPods, podList, podExists, steeredSlot, basePoint, DEG, STICK_OFF, KEYS } from './select.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
 import { createPlayers } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
@@ -141,11 +142,12 @@ const S = {
 // Lead and follow: which stick grows the pseudopod (body.pods[0]) and which
 // moves the body; a stick in `latch` must be let go before it can lead again.
 // Pseudopods and movement: R.sel / R.adj are the indices (in body.pods) of the
-// pseudopods RS (R) and LS (L) own; rest: how long each stick has been at rest;
-// was: the one each stick let go of last (its mark fades); see selectInput().
-const newRoles = () => ({ pod: null, body: null, latch: new Set(), branch: false, last: null, sel: null, adj: null, rt: false, ltHeld: false,
-  mode: 'pod', move: null, on: { sel: false, adj: false }, rest: { sel: 9, adj: 9 }, was: { sel: null, adj: null } });
+// pseudopods RS (R) and LS (L) own (kept through neutral); choose / glow: RT's
+// choosing (select.js selectRoles).
+const newRoles = () => ({ pod: null, body: null, branch: false, last: null, ...selectRoles() });
 let R = newRoles();
+// the view widened for choosing pseudopods (frameChoosing): k eased toward want, which only grows
+const selZoom = { k: 1, want: 1 };
 // Per-player game state (was in S): food eaten, the cup candidate and the closing cup, trap contact, bites, surge, drain.
 const newCellState = () => ({ eaten: 0, cand: null, closing: null, stuckT: 0, stuckN: 0, bitten: 0, surgeK: 1, drain: 0, A0init: 0,
   stuckAt: [], bites: [], death: 0, reform: 0 });
@@ -752,190 +754,22 @@ function leadInput(r) {
   R.last = { pod: R.pod, body: bk };
   return { pods, push: r.rb, spread: r.lb, body: bodyIn };
 }
-// --- pseudopods and movement (the default scheme) -------------------------------
-// The owner, 2026-11-02. Two modes, and nothing latches between them: every
-// frame the mode is read afresh from RT.
-//   Pseudopod mode (RT up): each stick owns one pseudopod, RS "R", LS "L". A
-//   stick at rest (inside STICK_OFF for longer than GRACE) owns nothing; its
-//   first push picks the pseudopod lying that way (within PICK_TOL), or grows
-//   one at the membrane that way; while pushed it steers it. Passing through
-//   neutral quicker than GRACE keeps it. R and L are never the same one.
-//   LB / RB spread / push harder the pseudopod(s) a pushed stick is steering.
-//   Movement mode (RT held): the sticks are movement intents (moveInput()).
-//   LT (either mode): the whole cell spreads out, and held, rounds up.
-// Pseudopods are any steered pod still standing out, and the idle
-// (polypodial) ones, which are adopted into a steered slot when picked. The
-// soft body steers as many as it is given (Body.addPod), so a released
-// pseudopod keeps flowing back on its own.
-const DEG = Math.PI / 180;
-const MAX_STEERED = 8;
-const TRIG_ON = 0.5, TRIG_OFF = 0.3; // RT (movement mode) / LT: on above 0.5, off below 0.3
-const STICK_ON = 0.3, STICK_OFF = 0.15; // a stick counts as pushed above 0.3, at rest below 0.15
-const GRACE = 0.28; // s at rest before a stick lets go of its pseudopod
-const MARK_FADE = 0.7; // s: a let-go stick's letter fades out over this
-// A first push picks a pseudopod whose tip lies within PICK_TOL of it.
-const PICK_TOL = 34 * DEG;
-const ringGap = (i, j) => { const d = Math.abs(i - j) % N; return Math.min(d, N - d); };
-const angOf = (b, pod) => Math.atan2(b.y[pod.tip] - b.cy, b.x[pod.tip] - b.cx);
-const angDiff = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
-/** Does pods[k] stand out as a pseudopod the sticks can take? */
-function podExists(b, k) {
-  const pod = k == null ? null : b.pods[k];
-  if (!pod) return false;
-  const r = Math.hypot(b.x[pod.tip] - b.cx, b.y[pod.tip] - b.cy) - b.req;
-  if (pod.idle) return pod.s > 0.3 && r > 10;
-  return pod.active || pod.s > 0.1 || (pod.ret > 0.02 && r > 22);
-}
-/** The pseudopods round the outline: [{ k, a (angle of the tip about the centroid), y, idle }]. */
-function podList(b) {
-  const out = [];
-  b.pods.forEach((pod, k) => { if (podExists(b, k)) out.push({ k, a: angOf(b, pod), y: b.y[pod.tip], idle: pod.idle }); });
-  // Two tips on the same lobe are one pseudopod: keep the steered one, or the stronger.
-  const same = (c, o) => ringGap(b.pods[o.k].tip, b.pods[c.k].tip) < 12;
-  const better = (o, c) => (o.idle !== c.idle ? !o.idle : b.pods[o.k].s > b.pods[c.k].s || (b.pods[o.k].s === b.pods[c.k].s && o.k < c.k));
-  return out.filter((c) => !out.some((o) => o !== c && same(c, o) && better(o, c)));
-}
-/** A steered slot for a new pseudopod (free, or a new one, or the one with least left). */
-function steeredSlot(b, avoid) {
-  for (let k = 0; k < b.pods.length; k++) {
-    const p = b.pods[k];
-    if (p.idle || avoid.includes(k)) continue;
-    if (!p.active && p.s < 0.05 && !(p.ret > 0.02)) return k;
-  }
-  if (b.pods.filter((p) => !p.idle).length < MAX_STEERED) return b.pods.indexOf(b.addPod());
-  let best = -1, bv = Infinity;
-  b.pods.forEach((p, k) => { if (!p.idle && !avoid.includes(k) && p.s + p.ret < bv) { bv = p.s + p.ret; best = k; } });
-  return best;
-}
+// --- pseudopods and movement (the default scheme): select.js -------------------
+// Each stick keeps its pseudopod through neutral; RT held chooses them (glows
+// at their bases, moved round the membrane by the sticks); LT held moves the
+// cell; LB thickens the steered pseudopod (none steered: spreads the cell); RB
+// pushes it harder. The logic is select.js; here it is fed this player's
+// body and roles, with sound and rumble.
 const held = () => [R.sel, R.adj].filter((v) => v != null);
-/** Start a pseudopod towards (dx, dy) (from membrane node `tip` if given). Returns its index. */
-function newPod(b, dx, dy, tip = null) {
-  // Where the membrane stands out furthest that way is often a pseudopod already: take that one.
-  const t = tip != null && tip >= 0 ? tip : b.pickTip(dx, dy);
-  const there = podList(b).find((c) => c.k !== R.sel && c.k !== R.adj && ringGap(b.pods[c.k].tip, t) < 12);
-  if (there) return adopt(b, there.k);
-  const k = steeredSlot(b, held());
-  const p = b.pods[k];
-  Object.assign(p, { tip: t, dx, dy, s: 0, target: 0, ret: 0, active: false, rad: undefined, cut: undefined });
-  return k;
-}
-/** Taking an idle pseudopod moves it into a steered slot (same tip, same reach). */
-function adopt(b, k) {
-  const ip = b.pods[k];
-  if (!ip.idle) return k;
-  const j = steeredSlot(b, held());
-  Object.assign(b.pods[j], { tip: ip.tip, dx: ip.dx, dy: ip.dy, s: ip.s, target: 0, rad: ip.rad, active: false, ret: 1, cut: undefined });
-  ip.s = 0; ip.target = 0; ip.life = 0; ip.active = false; // it reappears somewhere else later
-  return j;
-}
-/**
- * A stick's first push (key 'sel': RS, R; 'adj': LS, L) picks its pseudopod:
- * the one whose tip lies nearest the stick's direction within PICK_TOL, never
- * the one the other stick owns (the next-best is taken instead). With none
- * that way, a new one grows at the membrane furthest out that way; if that
- * is the other stick's lobe, it grows beside it (30-60° round, on the side
- * the stick points), so the two can close round something.
- * Returns 'picked' or 'grew'.
- */
-function pickPod(b, key, st) {
-  const a = Math.atan2(st.dy, st.dx), theirs = key === 'sel' ? R.adj : R.sel;
-  let best = null, bd = PICK_TOL;
-  for (const c of podList(b)) {
-    if (c.k === theirs) continue;
-    if (theirs != null && podExists(b, theirs) && ringGap(b.pods[c.k].tip, b.pods[theirs].tip) < 12) continue;
-    const d = Math.abs(angDiff(c.a, a));
-    if (d < bd) { bd = d; best = c; }
-  }
-  rumble(30, 0.12, 0);
-  if (best) { R[key] = adopt(b, best.k); return 'picked'; }
-  let t = 0, tv = -Infinity;
-  for (let i = 0; i < N; i++) { const v = (b.x[i] - b.cx) * st.dx + (b.y[i] - b.cy) * st.dy; if (v > tv) { tv = v; t = i; } }
-  if (theirs != null && podExists(b, theirs) && ringGap(t, b.pods[theirs].tip) < 14) t = b.branchTip(st.dx, st.dy, b.pods[theirs], 30, 60);
-  R[key] = newPod(b, st.dx, st.dy, t);
-  return 'grew';
-}
-const smoothstep = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-/**
- * Movement mode (RT held): a = LS, b = RS, each a movement intent. Split into
- *   travel  a + b (capped at 1): the cell crawls that way (one stick, or both
- *           the same way);
- *   d = (b̂ − â)/2 × min(|a|, |b|), weighted by how far apart the sticks
- *           point (OPP: 0 below 90°, 1 from 160°): its horizontal part
- *           stretches (d.x > 0: the sticks point apart, LS left, RS right) or
- *           squishes (d.x < 0: they point at each other) the cell along the
- *           line of the sticks, and its vertical part turns it like a tank
- *           (LS up + RS down: clockwise; LS down + RS up: anticlockwise);
- *   widen   the rest of the angle between them (15-75°, fading as OPP rises):
- *           the cell broadens across its travel ("kind of expand").
- * Magnitudes scale everything, so mixed inputs blend smoothly.
- */
-function moveInput(ls, rs) {
-  const am = ls.m >= STICK_OFF ? ls.m : 0, bm = rs.m >= STICK_OFF ? rs.m : 0;
-  const ax = ls.dx * am, ay = ls.dy * am, bx = rs.dx * bm, by = rs.dy * bm;
-  let tx = ax + bx, ty = ay + by;
-  const tm = Math.hypot(tx, ty);
-  const both = Math.min(am, bm);
-  let ang = 0, opp = 0;
-  if (both > 0) {
-    ang = Math.acos(clamp(ls.dx * rs.dx + ls.dy * rs.dy, -1, 1));
-    opp = smoothstep(90 * DEG, 160 * DEG, ang);
-  }
-  const dx = ((rs.dx - ls.dx) / 2) * both * opp, dy = ((rs.dy - ls.dy) / 2) * both * opp;
-  const widen = both * smoothstep(15 * DEG, 75 * DEG, ang) * (1 - opp);
-  const shape = [];
-  // stretch (+) or squish (−) along the line of the sticks, by the horizontal part of d
-  const dl = Math.hypot(dx, dy);
-  if (Math.abs(dx) > 0.02 && dl > 0) shape.push({ ux: dx / dl, uy: dy / dl, m: Math.sign(dx) * Math.min(1, Math.abs(dx) * 1.4) });
-  const travel = tm > 0.06 ? { m: Math.min(1, tm), dx: tx / tm, dy: ty / tm } : null;
-  if (widen > 0.03 && travel) shape.push({ ux: -travel.dy, uy: travel.dx, m: 0.8 * widen });
-  const turn = Math.abs(dy) > 0.02 ? Math.min(1, Math.abs(dy) * 1.4) * Math.sign(dy) : 0;
-  let what = 'free';
-  const parts = [[travel ? travel.m * (1 - opp) : 0, 'crawling'], [widen, 'widening'], [dx > 0 ? dx : 0, 'stretching'], [dx < 0 ? -dx : 0, 'squishing'], [Math.abs(dy), dy < 0 ? 'turning clockwise' : 'turning anticlockwise']];
-  const top = parts.filter((p) => p[0] > 0.08).sort((p, q) => q[0] - p[0]).slice(0, 2).map((p) => p[1]);
-  if (top.length) what = top.join(' + ');
-  return { body: travel, shape, turn, what };
-}
+const SELECT_ENV = { dt: 1 / 60, surge: false, rumble: (ms, w, st) => rumble(ms, w, st), sound: (e) => audio.play(e === 'enter' ? 'amoeba/stretch' : 'amoeba/squish', { volume: e === 'enter' ? 0.35 : 0.5, rate: e === 'enter' ? 1.6 : 1.3 }) };
 function selectInput(r) {
-  const b = body, dt = 1 / 60;
-  const pods = [];
-  for (const k of [...R.latch]) if (r[k].m < STICK_OFF) R.latch.delete(k);
-  // The triggers are read afresh every frame (below TRIG_OFF is always off).
-  R.rt = r.rt >= (R.rt ? TRIG_OFF : TRIG_ON);
-  R.ltHeld = r.lt >= (R.ltHeld ? TRIG_OFF : TRIG_ON);
-  const lt = R.ltHeld ? r.lt : 0;
-  const st = { sel: R.latch.has('rs') ? NONE : r.rs, adj: R.latch.has('ls') ? NONE : r.ls };
-  let bodyIn = null, shape = null, turn = 0;
-  R.mode = R.rt ? 'move' : 'pod';
-  for (const key of ['sel', 'adj']) if (!podExists(b, R[key])) R[key] = null;
-  if (R.adj != null && R.adj === R.sel) R.adj = null;
-  if (R.rt) {
-    // Movement mode: the sticks steer no pseudopod (they flow slowly back).
-    for (const key of ['sel', 'adj']) { if (R[key] != null) R.was[key] = { k: R[key], t: 0 }; R[key] = null; R.on[key] = false; R.rest[key] = GRACE; }
-    const mv = moveInput(st.adj, st.sel);
-    bodyIn = mv.body; shape = mv.shape; turn = mv.turn; R.move = mv.what;
-  } else {
-    R.move = null;
-    for (const key of ['sel', 'adj']) {
-      const s = st[key];
-      const on = s.m >= (R.on[key] ? STICK_OFF : STICK_ON);
-      R.on[key] = on;
-      if (on) {
-        R.rest[key] = 0;
-        if (R[key] == null) pickPod(b, key, s);
-        const k = R[key];
-        if (k != null) pods[k] = { m: s.m, dx: s.dx, dy: s.dy, tip: b.pods[k].tip, push: r.rb, spread: r.lb };
-      } else {
-        R.rest[key] += dt;
-        if (R[key] != null && R.rest[key] > GRACE) { R.was[key] = { k: R[key], t: 0 }; R[key] = null; }
-      }
-    }
-  }
-  for (const key of ['sel', 'adj']) { const w = R.was[key]; if (w && (w.t += dt) > MARK_FADE) R.was[key] = null; }
-  // A surge with no stick held: the body flows on along its heading.
-  if (surge.active && !pods.some((p) => p && p.m > 0) && !bodyIn) bodyIn = { m: 1, dx: b.fx || 1, dy: b.fy || 0 };
-  return { pods, push: 0, spread: lt, round: lt, body: bodyIn, shape, turn };
+  SELECT_ENV.surge = surge.active;
+  const was = R.choose;
+  const out = selectPods(body, R, r, SELECT_ENV);
+  if (R.choose && !was && cur) frameChoosing(cur);
+  if (!R.choose && was && R.committed) rumble(60, 0.2, 0.1);
+  return out;
 }
-
 /** After a step: the roles reset once the lead pseudopod has gone back into the body. */
 function updateRoles() {
   if (S.scheme !== 'lead' || !R.pod) return;
@@ -954,11 +788,17 @@ function resetRoles(latch) {
 }
 function rolesText() {
   if (S.scheme === 'select') {
-    const lt = R.ltHeld ? (body.roundK > 0.05 ? tt('amoeba.corner.ltRounding') : tt('amoeba.corner.ltSpreading')) : '';
+    const steering = R.on.sel || R.on.adj;
+    const r = rawInput();
+    const lb = r.lb ? (steering ? tt('amoeba.corner.lbThick') : body.roundK > 0.05 ? tt('amoeba.corner.lbRounding') : tt('amoeba.corner.lbSpreading')) : '';
     const motion = ttx('amoeba.corner.motion');
-    if (R.mode === 'move') return tt('amoeba.corner.moving', { what: R.move === 'free' || !R.move ? tt('amoeba.corner.pushAStick') : R.move.split(' + ').map((w) => motion[w] ?? w).join(' + '), lt });
+    if (R.mode === 'move') return tt('amoeba.corner.moving', { what: R.move === 'free' || !R.move ? tt('amoeba.corner.pushAStick') : R.move.split(' + ').map((w) => motion[w] ?? w).join(' + '), lt: lb });
+    if (R.mode === 'choose') {
+      const one = (key, stick, letter) => { const g = R.glow[key]; return tt(g && g.busy ? 'amoeba.corner.glowBusy' : g && g.moved ? 'amoeba.corner.glowMoved' : 'amoeba.corner.glowReady', { stick, letter }); };
+      return tt('amoeba.corner.choosing', { ls: one('adj', 'LS', 'L'), rs: one('sel', 'RS', 'R') });
+    }
     const one = (key, stick, letter) => (R[key] != null ? (R.on[key] ? tt('amoeba.corner.stickMoving', { stick, letter }) : tt('amoeba.corner.stickHolding', { stick, letter })) : tt('amoeba.corner.stickFree', { stick }));
-    return tt('amoeba.corner.select', { ls: one('adj', 'LS', 'L'), rs: one('sel', 'RS', 'R'), lt: lt || tt('amoeba.corner.ltSpread') });
+    return tt('amoeba.corner.select', { ls: one('adj', 'LS', 'L'), rs: one('sel', 'RS', 'R'), lt: lb });
   }
   if (S.scheme !== 'lead') return tt('amoeba.corner.classic');
   if (!R.pod && !R.body) return tt('amoeba.corner.leadFree');
@@ -1815,7 +1655,7 @@ function rectView(v, cx, cy, hw, hh) {
   return v;
 }
 function directorViews() {
-  const hw = (OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6) * Math.max(1, pull.k) * groupZoom.applied) / 2, hh = hw * (innerHeight / Math.max(1, innerWidth));
+  const hw = (OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6) * Math.max(1, pull.k) * selZoom.k * groupZoom.applied) / 2, hh = hw * (innerHeight / Math.max(1, innerWidth));
   const list = [];
   const L = split.layout, views = L && L.views.length ? L.views : [{ offset: { x: 0, y: 0 } }];
   for (const v of views) { const o = v.offset || { x: 0, y: 0 }; if (list.length < 4) list.push(rectView(dirViews[list.length], S.camX + (o.x || 0), S.camY + (o.y || 0), hw, hh)); }
@@ -2287,7 +2127,7 @@ function frame(now) {
       const look = ctl.lookStep() || (test.presses.has(BTN.RIGHT) ? 1 : 0);
       if (look) features.set('look', MODES[(S.mode + look + MODES.length) % MODES.length]);
       const zs = ctl.zoomStep();
-      if (zs) S.objective = zs > 0 ? 1 : 0;
+      if (zs) { S.objective = zs > 0 ? 1 : 0; selZoom.want = selZoom.k = 1; }
       // Fine focus: LB/RB in the classic scheme; the stick clicks in lead and follow (LB/RB spread and push).
       const ri = S.scheme === 'classic' ? null : rawInput();
       const sec = S.scheme === 'classic' ? ctl.secondary() : (ri.rsc ? 1 : 0) - (ri.lsc ? 1 : 0);
@@ -2349,6 +2189,20 @@ function frame(now) {
 /** The field (µm across the screen). */
 // while you are drained the view pulls back (eased) to show the fungus at work
 const pull = { k: 1 };
+// Choosing pseudopods (RT): when the cell and its glows do not fit comfortably,
+// the view widens (eased) to frame them, and stays there: it never zooms back
+// in on its own (the owner, 2026-11-03: "auto zoom the camera out and keep it
+// there"); changing the objective (D-pad) starts afresh. One field for every
+// view, so in split screen it widens for whichever player needs it.
+function frameChoosing(c) {
+  const b = c.body;
+  let ex = 0, ey = 0;
+  for (let i = 0; i < N; i++) { ex = Math.max(ex, Math.abs(b.x[i] - b.cx)); ey = Math.max(ey, Math.abs(b.y[i] - b.cy)); }
+  const m = 70; // the glows and their letters
+  const w = baseField() * pull.k * (cells.length > 1 ? groupZoom.z : 1) * selZoom.want, h = w * (innerHeight / Math.max(1, innerWidth));
+  const need = Math.max((2 * (ex + m)) / (0.8 * w), (2 * (ey + m)) / (0.8 * h));
+  if (need > 1) selZoom.want = Math.min(3, selZoom.want * need);
+}
 const fieldWidth = () => {
   if (outro && outro.cam) { groupZoom.applied = 1; return poseView(outro.cam).w; }
   if (introHeld()) { groupZoom.applied = 1; return introView().w; }
@@ -2357,7 +2211,11 @@ const fieldWidth = () => {
   // several players in one view: the split screen's zoom-out (a wider field)
   // keeps them all in it; the screen splits only once it is at its widest
   groupZoom.applied = cells.length > 1 ? groupZoom.z : 1;
-  return OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6) * pull.k * groupZoom.applied;
+  // eased over ~0.6 s of real time, whatever the frame rate
+  const now = performance.now(), zdt = Math.min(0.1, (now - (selZoom.t || now)) / 1000);
+  selZoom.t = now;
+  selZoom.k += (selZoom.want - selZoom.k) * Math.min(1, zdt * 5);
+  return OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6) * pull.k * selZoom.k * groupZoom.applied;
 };
 /** Draw every view (one, straight to the screen, while the players are together), then the overlays. */
 function renderAll(dt) {
@@ -2433,9 +2291,14 @@ function renderAll(dt) {
 /**
  * Pseudopod mode: a subtle mark on the pseudopod each stick owns (R for RS,
  * L for LS): a thin line along the membrane round its tip, a short tick and
- * the stick's letter, in the player's colour. A stick passing through neutral
- * dims its mark; one that has let go (rested, or RT went down) fades it out.
+ * the stick's letter, in the player's colour; dimmer while it rests (its stick
+ * at neutral). Choosing (RT held): instead, a soft glow in the player's colour
+ * at the base of each stick's pseudopod, marked L and R, eased round the
+ * membrane as the stick moves it (select.js); dim and pulsing while busy (its
+ * stick was pushed when RT went down and has not yet come back to neutral),
+ * bright with a ring once editable.
  */
+const GLOW_PT = { x: 0, y: 0 };
 function drawPodMarks(L) {
   if (S.scheme !== 'select') return;
   const cv = marks.canvas, g = cv.getContext('2d');
@@ -2449,11 +2312,34 @@ function drawPodMarks(L) {
     const b = c.body, reg = L.regions.find((r) => r.slot === c.slot);
     g.save();
     if (L.views.length > 1 && reg) { g.beginPath(); reg.polygon.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip(); }
+    if (c.R.choose) {
+      const [cx0, cy0] = toScreen(b.cx, b.cy, c.slot), [cx1] = toScreen(b.cx + 1, b.cy, c.slot);
+      const px = Math.abs(cx1 - cx0) || 1;
+      for (const [key, letter] of [['sel', 'R'], ['adj', 'L']]) {
+        const gl = c.R.glow[key];
+        if (!gl) continue;
+        basePoint(b, gl.a, GLOW_PT);
+        const [sx, sy] = toScreen(GLOW_PT.x, GLOW_PT.y, c.slot);
+        const pulse = gl.busy ? 0.5 + 0.5 * Math.sin(S.time * 7) : 1;
+        const rad = Math.max(26, 46 * px);
+        const grad = g.createRadialGradient(sx, sy, 0, sx, sy, rad);
+        grad.addColorStop(0, 'rgba(255,250,235,0.95)'); grad.addColorStop(0.25, c.p.color); grad.addColorStop(1, 'rgba(0,0,0,0)');
+        g.globalAlpha = gl.busy ? 0.4 + 0.25 * pulse : 0.9;
+        g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, rad, 0, TAU); g.fill();
+        if (!gl.busy) { g.globalAlpha = 0.9; g.strokeStyle = c.p.color; g.lineWidth = 2; g.beginPath(); g.arc(sx, sy, Math.max(9, 16 * px), 0, TAU); g.stroke(); }
+        // the letter just outside the membrane
+        const ox = (GLOW_PT.x - b.cx), oy = (GLOW_PT.y - b.cy), ol = Math.hypot(ox, oy) || 1;
+        const [lx, ly] = toScreen(GLOW_PT.x + (ox / ol) * 34, GLOW_PT.y + (oy / ol) * 34, c.slot);
+        g.globalAlpha = gl.busy ? 0.55 : 1; g.lineWidth = 3; g.strokeStyle = 'rgba(20,18,12,0.8)'; g.strokeText(letter, lx, ly);
+        g.fillStyle = c.p.color; g.fillText(letter, lx, ly);
+      }
+      g.restore();
+      continue;
+    }
     for (const [key, letter] of [['sel', 'R'], ['adj', 'L']]) {
-      let pk = c.R[key], fade = 1;
-      if (pk != null) fade = c.R.on[key] ? 1 : 1 - 0.5 * Math.min(1, c.R.rest[key] / GRACE);
-      else if (c.R.was[key]) { pk = c.R.was[key].k; fade = 0.5 * (1 - c.R.was[key].t / MARK_FADE); }
-      if (pk == null || fade <= 0.02 || !b.pods[pk]) continue;
+      const pk = c.R[key];
+      if (pk == null || !b.pods[pk]) continue;
+      const fade = c.R.on[key] ? 1 : 0.5;
       const tip = b.pods[pk].tip;
       // along the membrane, 8 µm outside it, either side of the tip
       g.beginPath();
@@ -2625,7 +2511,8 @@ window.__micro = {
   /** Select and steer: player `slot`'s pseudopods round the outline and which the sticks hold. */
   pods(slot = 0) {
     const c = cellOf(slot), b = c.body;
-    return { sel: c.R.sel, adj: c.R.adj, mode: c.R.mode, move: c.R.move, round: +b.roundK.toFixed(3), list: podList(b).map((p) => ({ k: p.k, deg: Math.round(p.a / DEG), y: Math.round(p.y - b.cy), idle: p.idle, s: +b.pods[p.k].s.toFixed(2), screen: toScreen(b.x[b.pods[p.k].tip], b.y[b.pods[p.k].tip], c.slot).map(Math.round) })) };
+    const gl = (g) => (g ? { a: Math.round(g.a / DEG), target: Math.round(g.target / DEG), busy: g.busy, moved: g.moved, snapK: g.snapK, screen: toScreen(...Object.values(basePoint(b, g.a)), c.slot).map(Math.round) } : null);
+    return { glow: { sel: gl(c.R.glow.sel), adj: gl(c.R.glow.adj) }, choose: c.R.choose, sel: c.R.sel, adj: c.R.adj, mode: c.R.mode, move: c.R.move, round: +b.roundK.toFixed(3), spread: +b.spread.toFixed(3), list: podList(b).map((p) => ({ k: p.k, deg: Math.round(p.a / DEG), y: Math.round(p.y - b.cy), idle: p.idle, s: +b.pods[p.k].s.toFixed(2), screen: toScreen(b.x[b.pods[p.k].tip], b.y[b.pods[p.k].tip], c.slot).map(Math.round) })) };
   },
   rolesText, fragments,
   /** Harm drawn on player `slot`'s cell now: { stains: [[x, y, reach, strength]], shock, tint, death, scatter, gran }. */
@@ -2701,6 +2588,8 @@ window.__micro = {
   contact: () => ({ ...contactLog, now: (() => { const bs = [...cells.filter((c) => !c.p.waiting && !(c.caught.active && c.FC.by === 'chaos')).map((c) => c.body), ...(chaos.on ? [chaos.body] : [])]; let n = 0, depth = 0; for (let i = 0; i < bs.length; i++) for (let j = i + 1; j < bs.length; j++) { const o = overlap(bs[i], bs[j]); n += o.n; depth = Math.max(depth, o.depth); } return { n, depth: +depth.toFixed(2) }; })() }),
   /** Chaos's ring round its target: null, or { cover, gap (deg), closing (s into its X, or null), slot }. */
   ring: () => (chaos.ring && chaos.ringOf ? { cover: +chaos.ring.cover.toFixed(2), gap: Math.round(chaos.ring.gap * 57.3), closing: chaos.closing ? +chaos.closing.t.toFixed(2) : null, slot: chaos.ringOf.cell.slot, state: chaos.state, fs: chaos.fs } : null),
+  /** The view's widening for choosing pseudopods: { k (now), want }. */
+  selZoom: () => ({ k: +selZoom.k.toFixed(3), want: +selZoom.want.toFixed(3) }),
   /** Test hook: another local player joins (as a controller would), with a cell. Returns its slot. */
   addPlayer() { const r = players.toJSON(); const slot = r.length; players.fromJSON([...r, { slot, padIndex: slot }]); syncCells(); return slot; },
   /** Test hook: Chaos wakes now and makes for player `slot` (its fight from the stalk). */

@@ -383,7 +383,9 @@ shell's roster comes in with `embed.players`).
   its 2D mode: each view is the field drawn round its own centre, captured,
   at 70 % resolution while split, without the field stop). Each player zooms
   their own field (LT/RT); a shared view shows everyone's widest, and each
-  split view its own players' widest. Each player has their own follow camera
+  split view its own players' widest, eased in and out with the split and
+  zoomed about the view's players, so they stay at their region's middle and
+  a merge needs no zoom change. Each player has their own follow camera
   and RS look, and a split view follows its own players.
   Player 1 has the look and Y for the data overlay.
 - **Hunters pick a player:** the amoeba's edge slides toward the nearest

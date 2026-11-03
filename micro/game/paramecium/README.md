@@ -351,7 +351,12 @@ prey count is shared. One view frames the group and **zooms out** as it spreads
 (`../shared/splitscreen.js`, its 2D form: `{ center, pxPerUnit }`; positions
 are given in the turned view's frame and the offsets turned back), each split
 view focused on its own players' depth and zoomed to its own players' zoom
-(LT/RT: the widest of them; the shared view the widest of everyone's).
+(LT/RT: the widest of them; the shared view the widest of everyone's). A
+split view's own depth, focal plane (each player's own) and zoom are blended
+with the players near them and eased in and out with the split
+(`split.viewBlend`; the zoom about its players, so they stay at their region's
+middle), so the last split frame and the first merged one are the same
+picture, and two views joining on the way to a merge do not jump.
 Together, each cell carries a faint
 broken ring in its player's colour; hunters pick a player each; the trap's
 pulse pulls everyone in reach; anyone can wear it down; a player who dies
