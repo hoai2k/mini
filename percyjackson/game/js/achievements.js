@@ -47,6 +47,9 @@ export class Achievements {
   }
   announce(id, sv) {
     if (!ACH[id]) return;
+    // what a chapter earned, for its results screen
+    const m = this.game.mission;
+    if (m) { const l = (m.achEarned ??= []); if (!l.includes(id)) l.push(id); }
     const many = (this.game.localSaves?.() ?? []).length > 1;
     this.queue.push({ id, who: many ? sv.name : null });
   }
@@ -60,13 +63,27 @@ export class Achievements {
     const txt = document.createElement('div'); txt.className = 'ach-txt';
     const k = document.createElement('div'); k.className = 'ach-kicker'; k.textContent = who ? t('achievements.unlockedBy', { name: who }) : t('achievements.unlocked');
     const n = document.createElement('div'); n.className = 'ach-name'; n.textContent = t(`achievements.list.${id}.name`);
-    const dsc = document.createElement('div'); dsc.className = 'ach-desc'; dsc.textContent = t(`achievements.list.${id}.desc`);
+    // the reason it was earned, in the past tense, with the badge
+    const dsc = document.createElement('div'); dsc.className = 'ach-desc'; dsc.textContent = t(`achievements.list.${id}.why`);
     txt.append(k, n, dsc); el.append(badge, txt);
-    (document.getElementById('toast-layer') ?? document.body).appendChild(el);
+    document.body.appendChild(el);   // (over every screen: in the toast layer it hid behind the results screen)
     requestAnimationFrame(() => el.classList.add('in'));
-    this.showing = { el, t: 4.2 };
+    this.showing = { el, t: 5.5 };
     this.game.audio?.levelUp?.();
   }
 }
 // all of them, for the screen
 export const ACH_LIST = ACHIEVEMENTS;
+// One earned achievement as a row: its badge, its name and why it was earned
+// (the chapter's results screen lists what the chapter earned).
+export function achRow(id) {
+  const a = ACH[id], row = document.createElement('div'); row.className = 'ach-row';
+  const badge = document.createElement('div'); badge.className = 'ach-badge';
+  const u = iconUrl('ach:' + id);
+  if (u) { const img = document.createElement('img'); img.src = u; img.alt = ''; badge.append(img); } else badge.textContent = a?.icon ?? '🏆';
+  const txt = document.createElement('div'); txt.className = 'ach-txt';
+  const n = document.createElement('div'); n.className = 'ach-name'; n.textContent = t(`achievements.list.${id}.name`);
+  const w = document.createElement('div'); w.className = 'ach-desc'; w.textContent = t(`achievements.list.${id}.why`);
+  txt.append(n, w); row.append(badge, txt);
+  return row;
+}

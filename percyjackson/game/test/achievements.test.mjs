@@ -9,11 +9,11 @@ import { t } from '../js/text_config.js';
 import { freshData, normalizeData } from '../js/save.js';
 import { mergeProfiles } from '../js/profiles.js';
 
-test('32 achievements, each with a name, a description, an emoji and a badge cell', () => {
+test('32 achievements, each with a name, how to earn it, why it was earned, an emoji and a badge cell', () => {
   assert.equal(ACHIEVEMENTS.length, 32);
   assert.equal(new Set(ACHIEVEMENTS.map((a) => a.id)).size, 32);
   for (const a of ACHIEVEMENTS) {
-    for (const k of ['name', 'desc']) { const s = t(`achievements.list.${a.id}.${k}`); assert.ok(s && !s.startsWith('achievements.'), `${a.id} ${k}`); }
+    for (const k of ['name', 'desc', 'why']) { const s = t(`achievements.list.${a.id}.${k}`); assert.ok(s && !s.startsWith('achievements.'), `${a.id} ${k}`); }
     assert.ok(a.icon, `${a.id} emoji`);
     if (a.stat || a.set) assert.ok(a.goal > 1, `${a.id} goal`);
   }
