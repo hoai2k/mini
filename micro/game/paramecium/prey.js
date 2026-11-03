@@ -10,6 +10,12 @@ export const PREY = { perPlayer: 6, born: [420, 720], far: 1300, reach: 52, dz: 
 export function createPrey() {
   return { list: [], eaten: 0 };
 }
+/** A clump of food loose at (x, y, z) now, drifting off at (vx, vy) (spilled, knocked loose). */
+export function spill(R, x, y, z, vx = 0, vy = 0) {
+  const p = { kind: 'clump', x, y, z: Math.max(DEPTH.min + 20, Math.min(DEPTH.max - 20, z)), a: Math.random() * 6.283, v: 0, cd: 0, ph: Math.random() * 6.283, gone: false, dying: 0, r: 6 + Math.random() * 3, vx, vy, spilled: true };
+  R.list.push(p);
+  return p;
+}
 function spawn(R, x, y, kind) {
   const a = Math.random() * 6.283, d = PREY.born[0] + Math.random() * (PREY.born[1] - PREY.born[0]);
   const p = { kind: kind || (Math.random() < 0.55 ? 'clump' : 'chilomonas'), x: x + Math.cos(a) * d, y: y + Math.sin(a) * d, z: DEPTH.min + 30 + Math.random() * (DEPTH.max - DEPTH.min - 60), a: Math.random() * 6.283, v: 0, cd: 0, ph: Math.random() * 6.283, gone: false, dying: 0 };
@@ -17,16 +23,23 @@ function spawn(R, x, y, kind) {
   R.list.push(p);
   return p;
 }
-export function stepPrey(R, players, dt, t) {
+/**
+ * Step the prey. per(P): how many to keep round player P (default PREY.perPlayer; main.js adds more toward
+ * the biofilm, where food is thicker). A clump with a velocity (vx, vy: knocked loose from a Vorticella,
+ * spilled from a crumbled clump or a cracked frustule, pushed by a jab's wave) drifts on it, slowing.
+ */
+export function stepPrey(R, players, dt, t, per = null) {
   const live = players.filter((P) => P.live);
   // let the far ones go; keep enough round everyone
   R.list = R.list.filter((p) => !p.gone && (p.dying <= 0 || p.dying < 0.6) && live.some((P) => Math.hypot(P.S.x - p.x, P.S.y - p.y) < PREY.far));
   for (const P of live) {
     const n = R.list.filter((p) => Math.hypot(P.S.x - p.x, P.S.y - p.y) < PREY.born[1] + 100).length;
-    for (let k = n; k < PREY.perPlayer; k++) spawn(R, P.S.x, P.S.y);
+    const want = per ? per(P) : PREY.perPlayer;
+    for (let k = n; k < want; k++) spawn(R, P.S.x, P.S.y);
   }
   for (const p of R.list) {
     if (p.dying > 0) { p.dying += dt; continue; }
+    if (p.vx || p.vy) { p.x += p.vx * dt; p.y += p.vy * dt; const k = Math.exp(-dt * 2.4); p.vx *= k; p.vy *= k; if (Math.hypot(p.vx, p.vy) < 1) p.vx = p.vy = 0; }
     if (p.kind === 'clump') {
       p.x += Math.sin(t * 0.3 + p.ph) * 6 * dt; p.y += Math.cos(t * 0.27 + p.ph) * 6 * dt;
     } else {

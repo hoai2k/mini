@@ -195,11 +195,12 @@ test('the giant amoeba: jabs at its reaching pseudopod wear it down until it dra
   for (let t = 0; t < 1; t += DT) ev.push(...stepGiant(G, [low], DT));
   assert.ok(!ev.some((e) => e.type === 'engulf'), 'retreating, it engulfs nobody');
 });
-test('the zoom: the old default field is the closest, the start is wider, the widest about three times it', () => {
+test('the zoom (recalibrated 2026-11-03): play starts at the old widest (3x), out to ~1.6-2x that, in to the old closest or a little closer', () => {
   assert.equal(FIELD, 560);
-  assert.equal(ZOOM.min, 1);
-  assert.ok(ZOOM.start >= 1.6 && ZOOM.start <= 2);
-  assert.ok(ZOOM.max >= 2.8 && ZOOM.max <= 3.2);
+  assert.equal(ZOOM.start, 3, 'starts at the old widest (1.68 mm)');
+  assert.ok(ZOOM.min <= 1 && ZOOM.min >= 0.8, `the closest at or a little inside the old closest (${ZOOM.min})`);
+  assert.ok(ZOOM.max / 3 >= 1.6 && ZOOM.max / 3 <= 2, `the widest 1.6-2x the old widest (${ZOOM.max})`);
+  assert.ok(ZOOM.min < ZOOM.start && ZOOM.start < ZOOM.max, 'room to zoom both ways from the start');
 });
 
 test('the giant amoeba engulfs what it covers low in the drop; above it you are out of reach; a burst frees you', () => {

@@ -33,17 +33,20 @@ export const ZK = (DEPTH.max - DEPTH.min) / 300;
  * of their own half-thicknesses where they have one.
  */
 export const ZTOL = 40;
-/** The view's width at zoom 1 (µm, landscape): the closest zoom, the Paramecium (120 µm) about a fifth of it. */
+/** The view's width at zoom 1 (µm, landscape): the old closest zoom, the Paramecium (120 µm) about a fifth of it. */
 export const FIELD = 560;
 /**
- * The zoom (the owner, 2026-11-02: "start at the further zoomed out level and
- * have the current default be the furthest in you can zoom, but allow zooming
- * further out"): the field is FIELD x zoom, from 1 (closest) to max, starting
- * at start (0.9 mm across, the world's field on its card). LT zooms out and RT
- * in, analogue: rate is the e-folding per second at a full trigger, ease the
- * time constant the view follows it with.
+ * The zoom: the field is FIELD x zoom. LT zooms out and RT in, analogue: rate is the e-folding per second at
+ * a full trigger, ease the time constant the view follows it with.
+ *
+ * Recalibrated (the owner, 2026-11-03: "can we start the zoom from the current furthest zoom, and
+ * recalibrate to be able to go further out or in from there?"): play starts at 3 (1.68 mm across, the
+ * widest it used to go), the closest is 0.9 (504 µm, a little closer than the old closest, 1), and the
+ * widest 5.6 (3.1 mm, 1.9x the old widest; the far detail thins: draw.js lod). It was min 1, start 1.6,
+ * max 3 (2026-11-02: "start at the further zoomed out level and have the current default be the furthest
+ * in you can zoom, but allow zooming further out").
  */
-export const ZOOM = { min: 1, start: 1.6, max: 3, rate: 1.1, ease: 0.14 };
+export const ZOOM = { min: 0.9, start: 3, max: 5.6, rate: 1.1, ease: 0.14 };
 /** Rushing: full speed with a dash as often as it recharges (swim.js; measured ~850 µm/s). */
 export const RUSH = 850;
 /**

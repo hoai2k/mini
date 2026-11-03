@@ -7,8 +7,10 @@
 // to feel 3D": a water volume four body lengths deep that you swim through,
 // seen in perspective, creatures interacting across it; then "realistic
 // microscope like": the focus is a separate plane that a patient operator
-// turns back to you once your depth settles, focus.js). The zoom is analogue on LT/RT, from the closest field (560 µm) out to
-// three times it, starting at 1.6x. See README.md.
+// turns back to you once your depth settles, focus.js). The zoom is analogue on LT/RT, from 0.9x the
+// field (504 µm) out to 5.6x (3.1 mm), starting at 3x. Everything in the drop can be pushed, bent, snapped
+// or broken (stir.js: the jab's push wave and the body), and the drop grows richer toward the portal
+// (world.js RICH). See README.md.
 //
 // Micro Zoom: the forward landmark (a biofilm on a leaf, guarded by a
 // bladderwort trap) dives into the bacterium level; the backdoor (the
@@ -30,13 +32,14 @@ import { createPortalGlow, createPortalLight } from '../shared/portal.js';
 import { createDirector } from '../shared/director.js';
 import { createShapes } from './shapes.js';
 import { createWorld, TILE } from './world.js';
-import { createSwimState, stepSwim, dash as startDash, backOff, LENGTH, ZMIN, ZMAX } from './swim.js';
+import { createSwimState, stepSwim, dash as startDash, backOff, LENGTH, ZMIN, ZMAX, DASH_CD } from './swim.js';
+import { makeWave, stepWaves, stepStir, bodyShove, pullTo, waveAt, WAVE } from './stir.js';
 import { drawCell, drawCellHalo, VARIETIES, beatRate } from './cell.js';
 import { createFocus, stepFocus, FOCUS } from './focus.js';
-import { drawScenery, drawDileptus, drawDidinium, drawGiant, drawTrap, drawBloom, drawPrey, drawLeaf, makeLeaf, drawBack, drawSpirillum, drawKinClump, drawFight, drawMiss, SPIRILLUM } from './draw.js';
+import { drawScenery, drawDileptus, drawDidinium, drawGiant, drawTrap, drawBloom, drawPrey, drawLeaf, makeLeaf, drawBack, drawSpirillum, drawKinClump, drawFight, drawMiss, drawWaves, SPIRILLUM } from './draw.js';
 import { createDileptus, stepDileptus, burstDileptus, createDidinium, stepDidinium, blockDidinium, DIDINIUM, createGiant, stepGiant, burstGiant, GIANT, createTrap, stepTrap, burstTrap, trapObstacles, trapGuarding, trapDoor, TRAP, jabFoe, hitFoe, FIGHT } from './foes.js';
 import { createBloom, placeBloom, stepBloom, gulpBloom, flingBloom, BLOOM } from './bloom.js';
-import { createPrey, stepPrey, gulpPrey } from './prey.js';
+import { createPrey, stepPrey, gulpPrey, spill, PREY } from './prey.js';
 import { START, DEPTH, ZK, ZTOL, FIELD, ZOOM, BACK, DIRECTOR, ENCOUNTERS, DEFAULT_PATH, MET, DRIFT_TO, canPlace, didiniumHomes, trapAt, bandDist } from './route.js';
 import { clumpLayout, placeInFrame } from '../shared/kin-clump.js';
 import { t as tt, tx as ttx } from '../shared/text.js';
@@ -108,6 +111,8 @@ const bloom = createBloom();
 const prey = createPrey();
 let leaf = { placed: false };
 const game = { eaten: 0, divided: 0, t: 0 };
+/** The jabs' push waves running now (stir.js): they shove, bend, snap and break what they reach. */
+const waves = [];
 
 // --- features ---
 const features = createFeatures({ key: 'paramecium.v5', pad });
@@ -346,8 +351,12 @@ function attack(P) {
     }
   }
   if (P.jabCd > 0) return;
-  P.jab = 0; P.jabCd = 0.35; P.miss = null;
-  audio.play('paramecium/trichocysts', { volume: 0.7, rate: 1.3 });
+  // X in a dash (or just after one) is a strong jab: its wave reaches further and hits harder (it cracks
+  // an empty diatom, tumbles a live one, crumbles a big clump)
+  const strong = S.dashT > 0 || S.dashCd > DASH_CD - 0.4;
+  P.jab = 0; P.jabCd = 0.35; P.miss = null; P.jabStrong = strong;
+  waves.push(makeWave(S, { strong, slot: P.slot }));
+  audio.play('paramecium/trichocysts', { volume: 0.7, rate: strong ? 1.1 : 1.3 });
   // held in the giant's cup: the jab bursts at it from inside (as B does)
   if (P.engulfed && P.engulfed.by === giant) {
     const r = burstGiant(giant, P);
@@ -393,6 +402,32 @@ function ate(P, what) {
   P.pad?.rumble?.(90, 0.3, 0.2);
   if (game.eaten >= GOAL) { game.eaten = 0; game.divided++; audio.play('paramecium/divide', { volume: 0.9 }); hud.toast(tt('paramecium.toasts.ateDivides', { who: who(P), what, n: game.divided }), 2600); }
   else hud.toast(tt('paramecium.toasts.ate', { who: who(P), what, eaten: game.eaten, goal: GOAL }), 1400);
+}
+/** Food spilled at (x, y, z): n clumps drifting out (a crumbled clump's bacteria, a cracked frustule's contents). */
+function spillFood(x, y, z, n, speed = 70) {
+  for (let i = 0; i < n; i++) { const a = Math.random() * TAU; spill(prey, x + Math.cos(a) * 8, y + Math.sin(a) * 8, z + (Math.random() - 0.5) * 20, Math.cos(a) * speed, Math.sin(a) * speed); }
+}
+/** Something in the drop gave way (stir.js shove's events): food, a sound, a word the first time. */
+function stirEvent(e, P, body = false) {
+  if (!e) return;
+  const vortSound = () => { if (!(game.vortSndT > game.t)) { game.vortSndT = game.t + 0.25; audio.play('paramecium/vorticella', { volume: 0.6, rate: 0.95 + Math.random() * 0.1 }); } };
+  if (e.type === 'crack') {
+    spillFood(e.x, e.y, e.z, 2);
+    audio.play('paramecium/stun', { volume: 0.4, rate: 1.6 });
+    P.pad?.rumble?.(90, 0.3, 0.3);
+    log('stir', 'crack', P); hintOnce(P, 'crack', tt('paramecium.toasts.crack'), 2800);
+  } else if (e.type === 'crumble') {
+    spillFood(e.x, e.y, e.z, e.r > 45 ? 2 : 1, 55);
+    audio.play('paramecium/bloom', { volume: 0.4, rate: 0.75 });
+    log('stir', 'crumble', P); hintOnce(P, 'crumble', tt('paramecium.toasts.crumble'), 2800);
+  } else if (e.type === 'spit') {
+    spill(prey, e.x, e.y, e.z, Math.cos(e.a) * 80, Math.sin(e.a) * 80);
+    vortSound(); log('stir', 'spit', P); hintOnce(P, 'spit', tt('paramecium.toasts.vortSpit'), 2800);
+  } else if (e.type === 'snap') {
+    vortSound(); log('stir', 'snap', P);
+    if (!body) hintOnce(P, 'snap', tt('paramecium.toasts.vortSnap'), 2800);
+  } else if (e.type === 'tumble') { log('stir', 'tumble', P); hintOnce(P, 'tumble', tt('paramecium.toasts.diatomLive'), 2800); }
+  else if (e.type === 'push' && !body && e.kind === 'diatom') hintOnce(P, 'shove', tt('paramecium.toasts.diatomShove'), 2800);
 }
 /** B: the trichocyst burst (while charged) and the avoiding reaction. */
 /**
@@ -661,6 +696,8 @@ function stepPlayer(P, dt, input) {
   const env = { obstacles: [...world.near(S.x, S.y, 170, t), ...trapObstacles(trap)], drag: bloomDrag.get(P) ?? 1, push: trapPush.get(P) || null, held: !!P.engulfed };
   if (P.engulfed && giant.placed) { S.x += (giant.x - S.x) * dt * 0.25; S.y += (giant.y - S.y) * dt * 0.25; }
   stepSwim(S, input, env, dt);
+  // the body shoves what it touches (stir.js): diatoms slide, filaments bend, stalks snap, flocs sweep along
+  for (const e of bodyShove(world, S, dt, t)) stirEvent(e, P, true);
   // how long this cell's depth has held still (the microscope's operator refocuses on the most settled)
   P.stillT = Math.abs(S.vz) > FOCUS.moving ? 0 : (P.stillT || 0) + dt;
   // contacts: a puff and a rumble on a real bump (a weave is quiet)
@@ -741,6 +778,87 @@ function stepZoom(P, dt, frozen) {
   P.zoom += (P.zoomWant - P.zoom) * (1 - Math.exp(-dt / ZOOM.ease));
   if (Math.abs(P.zoom - P.zoomWant) < 1e-4) P.zoom = P.zoomWant;
 }
+/**
+ * The drop stirred (stir.js): the push waves run out and shove what they reach (scenery, prey, the bloom,
+ * the trap's hairs), the shoved things settle, open Vorticella draw food in, the trap's pulse drags the
+ * light things (and prey) to its door.
+ */
+function stepStirring(dt) {
+  for (const w of waves) w.P = cells.find((c) => c.slot === w.slot) || P1;
+  for (const e of stepWaves(world, waves, dt, t)) stirEvent(e, cells.find((c) => c.slot === e.slot) || P1);
+  stepStir(world, dt);
+  for (const w of waves) {
+    if (w.t > WAVE.dur + 0.02) continue;
+    // prey: knocked along (a Chilomonas darts off)
+    for (const p of prey.list) {
+      if (p.dying > 0 || w.hit.has(p)) continue;
+      const f = waveAt(w, p.x, p.y, p.z, p.r || 6);
+      if (!f) continue;
+      w.hit.add(p);
+      const a = Math.atan2(p.y - w.y, p.x - w.x);
+      if (p.kind === 'chilomonas') { p.a = a; p.v = 420; p.cd = 1.2; } else { p.vx = (p.vx || 0) + Math.cos(a) * 110 * f; p.vy = (p.vy || 0) + Math.sin(a) * 110 * f; }
+    }
+    // the bloom's cells: pushed out of the way along the wave
+    if (bloom.placed && hyp(bloom.x - w.x, bloom.y - w.y) < 1200) for (const c of bloom.cells) {
+      if (c.gone > 0 || w.hit.has(c)) continue;
+      const f = waveAt(w, c.x, c.y, c.z, 3);
+      if (!f) continue;
+      w.hit.add(c);
+      const dx = c.x - w.x, dy = c.y - w.y, d = hyp(dx, dy) || 1;
+      c.x += dx / d * 22 * f; c.y += dy / d * 22 * f;
+    }
+    // the bladderwort: its antennae and trigger hairs wave; a set trap, its hairs touched, fires (early)
+    if (trap.placed && !w.hit.has(trap)) {
+      const D = trapDoor(trap);
+      if (waveAt(w, D.x, D.y, D.z, 80)) {
+        w.hit.add(trap); trap.wob = 1;
+        if (trap.state === 'set') { trap.next = 0; log('stir', 'trap-trigger', w.P); }
+      }
+    }
+  }
+  if (trap.wob) { trap.wob *= Math.exp(-dt * 2.5); if (trap.wob < 0.01) trap.wob = 0; }
+  // open Vorticella draw drifting food into their bells (their feeding current): food gathers at them
+  for (const p of prey.list) {
+    if (p.dying > 0 || p.kind !== 'clump') continue;
+    world.eachIn(world.vorticella, p.x - 170, p.y - 170, p.x + 170, p.y + 170, (v, ox, oy) => {
+      if (!world.vortOpen(v) || world.vis(v, ox, oy) < 0.5) return;
+      const q = world.vortPose(v, ox, oy, t);
+      const mx = q.x1 + Math.cos(q.a) * 26, my = q.y1 + Math.sin(q.a) * 26, dx = mx - p.x, dy = my - p.y, d = hyp(dx, dy);
+      if (d > 170 || d < 12 || Math.abs(p.z - q.z1) > 90) return;
+      const sp = 8 + 36 * (1 - d / 170);
+      p.x += dx / d * sp * dt; p.y += dy / d * sp * dt; p.z += (q.z1 - p.z) * Math.min(1, dt * 0.6);
+    }, 400);
+  }
+  // the trap's pulse drags in what is loose near its door (diatoms, flocs, prey)
+  if (trap.placed && trap.state === 'pulse') {
+    const D = trapDoor(trap);
+    pullTo(world, D.x, D.y, D.z, TRAP.reach, 520, dt, t);
+    for (const p of prey.list) {
+      if (p.dying > 0) continue;
+      const dx = D.x - p.x, dy = D.y - p.y, d = hyp(dx, dy);
+      if (d > TRAP.reach) continue;
+      if (d < TRAP.suck) { p.dying = 0.001; continue; }
+      const k = 480 * Math.pow(1 - d / TRAP.reach, 0.7);
+      p.x += dx / d * k * dt; p.y += dy / d * k * dt;
+    }
+  }
+}
+/**
+ * The gradient's reference (world.js setRichRef): the portal's leaf (before it is placed, the director's
+ * default-path portal). If the portal moves (placed as you go, ahead of you), the reference follows it
+ * over several seconds, so the drop turns rather than jumps.
+ */
+const richRef = { x: 0, y: 0, set: false };
+function stepRich(dt) {
+  let tx, ty;
+  if (leaf.placed) { tx = FWD.x; ty = FWD.y; } else { const ps = director.portals(); if (!ps.length) return; tx = ps[0].x; ty = ps[0].z; }
+  if (!richRef.set) { richRef.x = tx; richRef.y = ty; richRef.set = true; }
+  else {
+    const d = hyp(tx - richRef.x, ty - richRef.y), m = Math.max(500, d * 0.15) * dt;
+    if (d > m) { richRef.x += (tx - richRef.x) * m / d; richRef.y += (ty - richRef.y) * m / d; } else { richRef.x = tx; richRef.y = ty; }
+  }
+  world.setRichRef(richRef.x, richRef.y);
+}
 let bloomDrag = new Map(), trapPush = new Map();
 function stepWorld(dt) {
   game.t += dt;
@@ -753,7 +871,10 @@ function stepWorld(dt) {
   ev.push(...tr.ev);
   trapPush = tr.pushes;
   bloomDrag = stepBloom(bloom, list, dt);
-  stepPrey(prey, list, dt, t);
+  // more food toward the biofilm (the gradient: world.js RICH)
+  stepPrey(prey, list, dt, t, (P) => PREY.perPlayer + Math.round(4 * world.rich(P.S.x, P.S.y)));
+  stepRich(dt);
+  stepStirring(dt);
   // what the giant covers, it eats too (prey, algae)
   if (giant.placed) {
     for (const p of prey.list) if (!p.dying && hyp(p.x - giant.x, p.y - giant.y) < GIANT.R * 0.9) p.dying = 0.001;
@@ -828,10 +949,26 @@ const toScreen = (x, y, slot = 0) => {
 
 // ---------------------------------------------------------------- drawing
 function currentLook() {
+  return tintLook(lookNow());
+}
+function lookNow() {
   const L = LOOKS[view.look];
   if (diveLight <= 0) return L;
   const D = LOOKS.Darkfield, Ph = LOOKS['Phase contrast'], m = diveLight;
   return { bg: [0, 1, 2].map((i) => lerp(D.bg[i], PHASE_BG[i] * 0.5, m)), add: lerp(1, Ph.add, m), sub: lerp(0, Ph.sub, m), subTint: [1, 1, 1], tile: m < 0.5 ? 'dark' : 'phase', tileK: m < 0.5 ? D.tileK * (1 - 2 * m) : Ph.tileK * (2 * m - 1), shadow: lerp(D.shadow, Ph.shadow, m), sprite: m < 0.3 };
+}
+/**
+ * The gradient's tint (world.js RICH; view.richK, eased, at the view's middle): toward the biofilm a warm
+ * green creeps into the field and the habitat below, which thickens a little (the film's haze).
+ */
+function tintLook(L) {
+  const g = view.richK || 0;
+  const tile = L.tile === 'phase' ? [1, 1, 1] : [0.9, 0.95, 1.0];
+  if (g < 0.002) return L.tileTint ? L : { ...L, tileTint: tile };
+  const dark = L.add >= 0.99;
+  const bg = dark ? [L.bg[0] + 0.012 * g, L.bg[1] + 0.016 * g, L.bg[2] - 0.006 * g] : [L.bg[0] * (1 + 0.01 * g), L.bg[1] * (1 + 0.035 * g), L.bg[2] * (1 - 0.13 * g)];
+  const warm = L.tile === 'phase' ? [1.03, 1.05, 0.84] : [1.12, 1.06, 0.6];
+  return { ...L, bg, tileK: L.tileK * (1 + 0.45 * g), tileTint: tile.map((v, i) => lerp(v, warm[i], g)) };
 }
 /** Perspective (route.js: the objective this far above the focal plane, µm): the scale of a thing dz above the focus. */
 const PERSP = 900;
@@ -841,7 +978,7 @@ let focalNow = 0;
 function fill(rect, lod = 1, focalOf = () => focalNow) {
   shapes.begin();
   const G = shapes;
-  drawScenery(G, world, rect, t, { glitter: view.glitter, lod });
+  drawScenery(G, world, rect, t, { glitter: view.glitter, lod, waves });
   if (BACK) drawBack(G, BACK, t);
   if (leaf.placed) drawLeaf(G, leaf, t, { lawn: outro ? 1 - 0.75 * diveLight - 0.25 * sm01(SLIME[0], DIVE.fade[0], outro.u || 0) : 1 });
   drawGiant(G, giant, t);
@@ -863,11 +1000,14 @@ function fill(rect, lod = 1, focalOf = () => focalNow) {
     const blink = P.invuln > 0 && P.live ? 0.65 + 0.35 * Math.cos(P.invuln * 18) : 1;
     for (const w of P.wake || []) { const k = 1 - w.t / 1.6; G.disc(w.x, w.y, 0.7, w.z, w.gold ? [1, 0.8, 0.4] : [0.85, 0.92, 1], 0.7 * k * k, 0.1, 0.4 * k, 1.5); }
     if (P.live) G.shadow(P.S.x, P.S.y, P.S.a, LENGTH / 2, 22, P.S.z, 0.55);
-    drawCell(G, { x: P.S.x, y: P.S.y, z: P.S.z, a: P.S.a, v: P.S.v, bend: P.bend, squash: P.squash, t: t + P.slot * 7, beat: P.beat, variety: P.variety, burst: P.burst, jab: P.jab, dead: P.dead ? Math.min(1, P.dead.t / DISSOLVE) : 0, spawn: P.spawn, vacuoles: P.vacuoles, ring: multi() ? hexRgb(P.color) : null, alpha: blink, sprite: spriteOn, spriteW: SPRITE_W, spriteH: SPRITE_H });
+    drawCell(G, { x: P.S.x, y: P.S.y, z: P.S.z, a: P.S.a, v: P.S.v, bend: P.bend, squash: P.squash, t: t + P.slot * 7, beat: P.beat, variety: P.variety, burst: P.burst, jab: P.jab, jabStrong: P.jabStrong, dead: P.dead ? Math.min(1, P.dead.t / DISSOLVE) : 0, spawn: P.spawn, vacuoles: P.vacuoles, ring: multi() ? hexRgb(P.color) : null, alpha: blink, sprite: spriteOn, spriteW: SPRITE_W, spriteH: SPRITE_H });
     if (P.miss) drawMiss(G, P.miss, t);
     // out of focus, the cell keeps a readable halo
-    if (view.parallax) drawCellHalo(G, { x: P.S.x, y: P.S.y, z: P.S.z, a: P.S.a, dead: P.dead ? Math.min(1, P.dead.t / DISSOLVE) : 0, spawn: P.spawn, alpha: blink }, Math.abs(P.S.z - focalOf(P.slot)));
+    // (zoomed out past the start, a soft outline as well, so the cell never shrinks into the scenery)
+    const wide = Math.max(0, lod - 3.2) * 45;
+    if (view.parallax || wide > 0) drawCellHalo(G, { x: P.S.x, y: P.S.y, z: P.S.z, a: P.S.a, dead: P.dead ? Math.min(1, P.dead.t / DISSOLVE) : 0, spawn: P.spawn, alpha: blink }, Math.max(view.parallax ? Math.abs(P.S.z - focalOf(P.slot)) : 0, wide));
   }
+  drawWaves(G, waves);
   shapes.end();
 }
 const hexRgb = (h) => { const n = parseInt(h.slice(1), 16); return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]; };
@@ -878,7 +1018,7 @@ function renderView(cx, cy, focus, look, hw = view.fw / 2, hh = hw * aspect(), f
   // the depth cues: perspective (parallax and scale), defocus, dimming (more below), the haze below the focus
   shapes.depth(persp(), view.parallax ? 0.06 : 0.015, view.parallax ? 0.0036 : 0.002, view.parallax ? 0.0016 : 0);
   const tex = view.tile && look.tile ? tiles[look.tile] : null;
-  shapes.setTile(tex, look.tileK, look.tile === 'phase' ? 1000 : 1000, view.parallax ? 0.82 : 1, 0, look.tile === 'phase' ? [1, 1, 1] : [0.9, 0.95, 1.0]);
+  shapes.setTile(tex, look.tileK, look.tile === 'phase' ? 1000 : 1000, view.parallax ? 0.82 : 1, 0, look.tileTint || (look.tile === 'phase' ? [1, 1, 1] : [0.9, 0.95, 1.0]));
   shapes.render(look);
   // the portal's glow over it
   if (glow.group.visible && hyp(FWD.x - cx, FWD.y - cy) < Math.max(hw, hh) * 1.6 + GLOW_S * 3) {
@@ -898,6 +1038,8 @@ function render(dt) {
   else if (intro && intro.cam && !('ease' in intro)) poseView(intro.cam, P1.S.x, P1.S.y, P1.S.a, LENGTH);
   else { groupZoom.applied = multi() ? groupZoom.z : 1; view.fw = baseField() * zoomOf(cells.map((c) => c.slot)) * groupZoom.applied; }
   fieldNow = view.fw;
+  // the gradient at the view's middle, eased (the tint)
+  view.richK = lerp(view.richK || 0, world.rich(view.cx, view.cy), 1 - Math.exp(-dt / 1.5));
   // the dive's light: darkfield to phase contrast as the push begins
   diveLight = outro ? sm01(LIGHT[0], LIGHT[1], outro.u || 0) : 0;
   // the glow fades over the first ×1.5 of the dive's magnification, so its glints do not blow up into the frame
@@ -944,8 +1086,11 @@ function render(dt) {
   lastViews = vs;
   // fill the shapes once for every view: the union of their fields, with room for the turn and for the
   // perspective (what lies deepest below the focus is drawn smallest, so more of it is in view)
-  const R = Math.max(...vs.map((v) => Math.hypot(v.hw, v.hh) / kAt(DEPTH.min - v.focus))) + 30;
-  const rect = [Math.min(...vs.map((v) => v.cx)) - R, Math.min(...vs.map((v) => v.cy)) - R, Math.max(...vs.map((v) => v.cx)) + R, Math.max(...vs.map((v) => v.cy)) + R];
+  // (the turned view's own bounding box: the turn is locked to the slide's up in play, so this is the view's rectangle)
+  const cr = Math.abs(Math.cos(view.rot)), sr = Math.abs(Math.sin(view.rot));
+  const RX = Math.max(...vs.map((v) => (cr * v.hw + sr * v.hh) / kAt(DEPTH.min - v.focus))) + 30;
+  const RY = Math.max(...vs.map((v) => (sr * v.hw + cr * v.hh) / kAt(DEPTH.min - v.focus))) + 30;
+  const rect = [Math.min(...vs.map((v) => v.cx)) - RX, Math.min(...vs.map((v) => v.cy)) - RY, Math.max(...vs.map((v) => v.cx)) + RX, Math.max(...vs.map((v) => v.cy)) + RY];
   spriteOn = !!look.sprite && shapes.hasSprite;
   focalNow = vs[0].focal;
   fill(rect, Math.max(...vs.map((v) => v.hw)) * 2 / FIELD, (slot) => (vs.find((v) => v.slots.includes(slot)) || vs[0]).focal);
@@ -1011,7 +1156,7 @@ function updateHud() {
   goalEl.style.display = outro || introHeld() ? 'none' : '';
   if (!embed.active) {
     const fwd = leaf.placed ? `${(hyp(P.S.x - FWD.x, P.S.y - FWD.y) / 1000).toFixed(2)} mm` : '…';
-    hud.stats(`field ${Math.round(fieldNow)} µm (zoom ${P.zoom.toFixed(2)}) · ${view.look} · z ${P.S.z.toFixed(0)} µm · portal ${fwd} · back ${(hyp(P.S.x - BACK.x, P.S.y - BACK.y) / 1000).toFixed(2)} mm · next ${s.current || '—'} (${s.phase})`);
+    hud.stats(`field ${Math.round(fieldNow)} µm (zoom ${P.zoom.toFixed(2)}) · ${view.look} · z ${P.S.z.toFixed(0)} µm · portal ${fwd} · back ${(hyp(P.S.x - BACK.x, P.S.y - BACK.y) / 1000).toFixed(2)} mm · rich ${world.rich(P.S.x, P.S.y).toFixed(2)} · next ${s.current || '—'} (${s.phase})`);
   }
 }
 
@@ -1086,6 +1231,35 @@ Object.assign(debug, {
   attack(slot = 0) { attack(cells.find((c) => c.slot === slot) || P1); },
   defend(slot = 0) { defend(cells.find((c) => c.slot === slot) || P1); },
   wakeBoss() { if (trap.placed) { trap.state = 'set'; trap.t = 0; trap.next = 0; } },
+  /**
+   * The nearest scenery of a kind to player slot ('diatom', 'clump', 'vort', 'filament'; filter(item) to
+   * pick, e.g. d => d.empty): { x, y, z, a, it, ox, oy } (where it is now), or null.
+   */
+  nearest(kind, filter = () => true, slot = 0) {
+    const P = cells.find((c) => c.slot === slot) || P1, R = 2600;
+    const list = { diatom: world.diatoms, clump: world.clumps, vort: world.vorticella, filament: world.filaments }[kind];
+    let best = null, bd = Infinity;
+    world.eachIn(list, P.S.x - R, P.S.y - R, P.S.x + R, P.S.y + R, (it, ox, oy) => {
+      if (!filter(it) || world.vis(it, ox, oy) < 0.5) return;
+      let q;
+      if (kind === 'diatom') { const p = world.diatomPose(it, ox, oy, t); if (p.s && (p.s.cracked || p.s.gone)) return; q = { x: p.x, y: p.y, z: p.z, a: p.a }; }
+      else if (kind === 'clump') { const p = world.clumpPose(it, ox, oy); if (p.cr >= 0) return; q = { x: p.x, y: p.y, z: it.z, a: 0 }; }
+      else if (kind === 'vort') { const p = world.vortPose(it, ox, oy, t); q = { x: p.x1, y: p.y1, z: p.z1, a: p.a, c: p.c }; }
+      else q = { x: it.cx + ox, y: it.cy + oy, z: (it.z0 + it.z1) / 2, a: it.ang };
+      const d = hyp(q.x - P.S.x, q.y - P.S.y);
+      if (d < bd) { bd = d; best = { ...q, it, ox, oy, d }; }
+    });
+    return best;
+  },
+  /** The scenery state of a copy (what nearest() returned): its shove, crumble, crack, bends; a Vorticella's contraction. */
+  stirOf(n) {
+    if (!n) return null;
+    if (world.vorticella.includes(n.it)) { const st = world.stalkState.get(n.it); return st ? { c: st.c, wob: st.wob || 0 } : { c: 0 }; }
+    const s = world.dynOf(n.it, n.ox, n.oy);
+    return s ? { ...s, it: undefined, kind: s.kind } : null;
+  },
+  /** The gradient toward the portal at (x, y) (0 open water .. 1 at the leaf) and its reference. */
+  rich(x = P1.S.x, y = P1.S.y) { return { g: world.rich(x, y), leaf: world.leafK(x, y), back: world.backK(x, y), ref: { ...richRef } }; },
   place(id, x, y, b = 0) { director.force(id, x, y, b); return director.entry(id); },
   /**
    * A rush without rendering (tests): the real game logic stepped at 1/30 s, player 1 swimming along
@@ -1117,7 +1291,7 @@ Object.assign(debug, {
 });
 window.__micro = {
   get t() { return t; }, scene: shapes.scene, renderer, split, get layout() { return split.layout; }, players, cells, P1, view, world, director,
-  dileptus, didinia, giant, trap, bloom, prey, get leaf() { return leaf; }, spir, game, debug, features, glow,
+  dileptus, didinia, giant, trap, bloom, prey, get leaf() { return leaf; }, spir, game, debug, features, glow, waves,
   /** run.mjs and perf compatibility: P1's state (swimmer.state.center). */
   swimmer: { get state() { return { ...P1.S, center: { x: P1.S.x, y: P1.S.y, z: P1.S.z } }; } },
   /** teleport(x, y, a, slot); perf's 6-argument call (x, y, z, yaw, pitch, slot) works too. */

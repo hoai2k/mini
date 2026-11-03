@@ -332,7 +332,7 @@ export const TEXT = {
         ['LS', 'Swim'],
         ['RS', 'Deeper / shallower · peek'],
         ['A', 'Dash'],
-        ['X', 'Jab / eat'],
+        ['X', 'Jab · push / eat'],
         ['B', 'Block / burst'],
         ['LT/RT', 'Zoom out / in'],
         ['LB/RB', 'Deeper / shallower'],
@@ -342,6 +342,8 @@ export const TEXT = {
         'Its cilia beat in waves that run across the cell like wind over wheat.',
         'It carries hundreds of green algae that feed it in the light.',
         'At this size water is thick as syrup: stop swimming and you stop dead.',
+        'Vorticella snap their stalks into a coil in a few thousandths of a second, then stretch out again slowly.',
+        'Diatoms live in glass shells and glide along a slit in them, the raphe: the H you see in the middle.',
       ],
     },
     bacterium: {
@@ -1910,7 +1912,7 @@ export const TEXT = {
         move: 'Swim',
         camera: 'Deeper / shallower · peek',
         dash: 'Dash',
-        attack: 'Jab / eat',
+        attack: 'Jab · push / eat',
         defend: 'Block / burst',
         analog: 'Zoom out / in',
         secondary: 'Deeper / shallower',
@@ -1918,7 +1920,7 @@ export const TEXT = {
       },
       title: 'Paramecium',
       sub: 'Paramecium bursaria, 120 µm, green with symbiotic Chlorella, in a drop of pond water under the microscope (darkfield). Quick and light: eat, dodge, and battle your way through the drop.',
-      note: 'Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium, the giant amoeba and the bladderwort. Eat {goal} prey to divide. A hunter winds up before it strikes: B blocks the strike, X jabs back, and a few blows drive it off (the red pips over it). Swim deeper or shallower (RS, LB/RB) through the drop; you only meet what is near your depth. LT/RT zoom out and in. Up to four players: press any button on another controller to join.',
+      note: 'Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium, the giant amoeba and the bladderwort. Eat {goal} prey to divide. A hunter winds up before it strikes: B blocks the strike, X jabs back, and a few blows drive it off (the red pips over it). Swim deeper or shallower (RS, LB/RB) through the drop; you only meet what is near your depth. X also sends a push wave ahead that moves whatever it reaches: diatoms slide, detritus crumbles, Vorticella snap shut. The drop grows greener and fuller toward the portal. LT/RT zoom out and in. Up to four players: press any button on another controller to join.',
     },
     features: {
       look: {
@@ -1940,7 +1942,7 @@ export const TEXT = {
       },
       scenery: {
         label: 'Spirogyra, detritus, Vorticella, diatoms, glitter',
-        about: 'Laid out in a 4.8 mm tile repeated in every direction (world.js). Filaments run through the depth; the cell winds over or under them on its own.',
+        about: 'Laid out in a 2.4 mm tile repeated in every direction (world.js), richer toward the portal. Filaments run through the depth; the cell winds over or under them on its own. Everything can be pushed: filaments bend and spring back, diatoms slide and spin (empty ones crack), detritus crumbles, Vorticella snap shut.',
       },
     },
     food: {
@@ -1965,6 +1967,12 @@ export const TEXT = {
       sweptBack: '{who}Swept back off the leaf: the trap still guards it',
       portal: 'The biofilm: press Y to enter the portal',
       weave: 'You wind over or under filaments and clumps on your own; RS up/down to choose your depth',
+      diatomShove: 'Diatoms are too big to eat, but X shoves them aside (X in a dash hits hardest)',
+      diatomLive: 'A live diatom only tumbles; an empty one (glass, no gold inside) cracks open',
+      crack: 'Cracked an empty diatom shell: a little food spills out',
+      crumble: 'The detritus crumbles: the bacteria living on it drift loose. Eat them!',
+      vortSnap: 'Vorticella snap their stalks shut when knocked; open, they draw food into their bells',
+      vortSpit: 'Knocked loose a bacterial clump from the Vorticella\'s bell!',
       dileptusRecoils: '{who}Blocked! The Dileptus recoils',
       eaten: '{who}Eaten: {by} {how}',
     },

@@ -32,54 +32,157 @@ function clipSeg(ax, ay, bx, by, x0, y0, x1, y1) {
 }
 
 // ---------------------------------------------------------------- the scenery
+/**
+ * The pond drop's scenery in rect. opts: lod (the field over the closest field: zoomed out, fine detail is
+ * thinned so the counts stay sane), glitter (its strength), waves (the jabs' push waves running now, which
+ * ripple the glitter as they pass). Each thing is drawn where it is now (world.js poses: shoves, bends,
+ * crumbs, glides), and a ranked one (the gradient toward the portal) fades in by W.vis.
+ */
 export function drawScenery(G, W, rect, t, opts = {}) {
   const [x0, y0, x1, y1] = rect;
   const lod = opts.lod ?? 1;
-  W.eachIn(W.filaments, x0, y0, x1, y1, (f, ox, oy) => drawSpirogyra(G, f, ox, oy, rect, t, lod));
-  W.eachIn(W.clumps, x0, y0, x1, y1, (c, ox, oy) => { G.shadow(c.x + ox, c.y + oy, 0, c.r * 0.9, c.r * 0.8, c.z, 0.35); drawClump(G, c, ox, oy, t); });
-  W.eachIn(W.vorticella, x0, y0, x1, y1, (v, ox, oy) => drawVorticella(G, v, W.vortPose(v, ox, oy, t), t));
-  W.eachIn(W.diatoms, x0, y0, x1, y1, (d, ox, oy) => drawDiatom(G, d, ox, oy, t));
-  W.eachIn(W.flocs, x0, y0, x1, y1, (f, ox, oy) => { for (const g of f.g) G.disc(f.x + ox + g.dx, f.y + oy + g.dy, g.r, f.z, mix(COL.brown, COL.gold, g.gold), 0.32 + 0.3 * g.gold, 0.3, g.gold > 0.6 ? 0.4 : 0, 2); });
-  drawGlitter(G, rect, t, opts.glitter ?? 1, lod);
+  drawGradient(G, W, rect, t, lod);
+  const faded = (k, fn) => { if (k <= 0.01) return; G.gain = k; try { fn(); } finally { G.gain = 1; } };
+  W.eachIn(W.filaments, x0, y0, x1, y1, (f, ox, oy) => faded(W.vis(f, ox, oy), () => drawSpirogyra(G, f, ox, oy, rect, t, lod, W.dynOf(f, ox, oy), W)));
+  W.eachIn(W.clumps, x0, y0, x1, y1, (c, ox, oy) => faded(W.vis(c, ox, oy), () => drawClump(G, c, W.clumpPose(c, ox, oy), t, lod)));
+  W.eachIn(W.vorticella, x0, y0, x1, y1, (v, ox, oy) => faded(W.vis(v, ox, oy), () => drawVorticella(G, v, W.vortPose(v, ox, oy, t), t, lod, W.vortOpen(v))));
+  W.eachIn(W.diatoms, x0, y0, x1, y1, (d, ox, oy) => faded(W.vis(d, ox, oy), () => drawDiatom(G, d, W.diatomPose(d, ox, oy, t), t)));
+  const fstep = lod > 3.6 ? 2 : 1;
+  W.eachIn(W.flocs, x0, y0, x1, y1, (f, ox, oy) => faded(W.vis(f, ox, oy), () => {
+    const p = W.flocPose(f, ox, oy);
+    if (p.gone) return;
+    const sp = 1 + 1.6 * p.sp, I = 1 - 0.45 * p.sp;
+    for (let i = 0; i < f.g.length; i += fstep) { const g = f.g[i]; G.disc(p.x + g.dx * sp, p.y + g.dy * sp, g.r * (fstep > 1 ? 1.25 : 1), f.z, mix(COL.brown, COL.gold, g.gold), (0.32 + 0.3 * g.gold) * I, 0.3, g.gold > 0.6 ? 0.4 : 0, 2); }
+  }), 200);
+  drawGlitter(G, rect, t, opts.glitter ?? 1, lod, W, opts.waves);
+}
+/**
+ * The gradient's own marks on the slide (world.js RICH): toward the portal, patches of biofilm haze
+ * (green and amber, thickening) and, near the leaf, the leaf litter's cell net; toward the way back,
+ * the amoeba's slime trails and egested vacuoles.
+ */
+function drawGradient(G, W, [x0, y0, x1, y1], t, lod) {
+  const zf = DEPTH.min + 5;
+  // biofilm haze: soft patches on the slide, hashed per 300 µm cell; a patch shows where the gradient passes its rank
+  const C = 300;
+  for (let i = Math.floor(x0 / C); i <= Math.floor(x1 / C); i++) for (let j = Math.floor(y0 / C); j <= Math.floor(y1 / C); j++) {
+    const cx = (i + 0.5) * C, cy = (j + 0.5) * C, g = W.rich(cx, cy);
+    if (g < 0.03) continue;
+    for (let s = 0; s < 3; s++) {
+      const rk = hash(i, j, 60 + s), k = Math.min(1, (g - rk * 0.9) * 4);
+      if (k <= 0) continue;
+      const x = (i + hash(i, j, 61 + s * 3)) * C, y = (j + hash(i, j, 62 + s * 3)) * C, r = 70 + 130 * hash(i, j, 63 + s * 3);
+      G.disc(x, y, r * 0.6, zf + 6 + s * 8, hash(i, j, 70 + s) < 0.5 ? [0.45, 0.75, 0.22] : COL.amber, (0.03 + 0.04 * g) * k, r * 0.5);
+      // microcolonies in it: a few bright dots and rods
+      if (lod < 4) for (let q = 0; q < 6; q++) {
+        const a = hash(i, j, 80 + s * 9 + q) * TAU, d = r * 0.7 * Math.sqrt(hash(i, j, 90 + s * 9 + q));
+        const px = x + Math.cos(a) * d, py = y + Math.sin(a) * d, b = hash(i, j, 99 + q) * TAU;
+        G.line(px, py, px + Math.cos(b) * 2.5, py + Math.sin(b) * 2.5, 0.6, zf + 8, q % 3 ? COL.white : COL.blue, 0.35 * k * g, 0.1, 0.2, 1.5);
+      }
+    }
+  }
+  // the leaf litter near the portal: a faint net of plant cells on the slide (a jittered grid)
+  const L0 = W.leafK((x0 + x1) / 2, (y0 + y1) / 2);
+  if (L0 > 0.01 || W.leafK(x0, y0) > 0.01 || W.leafK(x1, y1) > 0.01) {
+    const N = lod > 3.6 ? 150 : 90;
+    const vx = (i, j) => [(i + 0.2 + 0.6 * hash(i, j, 41)) * N, (j + 0.2 + 0.6 * hash(i, j, 42)) * N * 0.55];
+    for (let i = Math.floor(x0 / N) - 1; i <= Math.floor(x1 / N); i++) for (let j = Math.floor(y0 / (N * 0.55)) - 1; j <= Math.floor(y1 / (N * 0.55)); j++) {
+      const [ax, ay] = vx(i, j), k = W.leafK(ax, ay);
+      if (k < 0.02) continue;
+      const [bx, by] = vx(i + 1, j), [cx2, cy2] = vx(i, j + 1);
+      G.line(ax, ay, bx, by, 1.4, zf + 2, COL.leaf, 0.45 * k, 1.4, 0.2, 4);
+      if ((i + j) % 2 === 0) G.line(ax, ay, cx2, cy2, 1.2, zf + 2, COL.leaf, 0.36 * k, 1.4);
+      if (hash(i, j, 43) < 0.3) G.disc(ax + 20, ay + 8, 3.5, zf + 2, [0.6, 0.85, 0.25], 0.4 * k, 1, 0.4, 3); // a chloroplast left in the litter
+    }
+  }
+  // the way back: the amoeba's slime trails and egested vacuoles, thickening toward its patch
+  const B0 = Math.max(W.backK(x0, y0), W.backK(x1, y1), W.backK(x0, y1), W.backK(x1, y0), W.backK((x0 + x1) / 2, (y0 + y1) / 2));
+  if (B0 > 0.01) {
+    const CB = 260;
+    for (let i = Math.floor(x0 / CB); i <= Math.floor(x1 / CB); i++) for (let j = Math.floor(y0 / CB); j <= Math.floor(y1 / CB); j++) {
+      const cx = (i + 0.5) * CB, cy = (j + 0.5) * CB, k = Math.min(1, (W.backK(cx, cy) - hash(i, j, 50) * 0.8) * 3);
+      if (k <= 0) continue;
+      const a = hash(i, j, 51) * TAU, L = 120 + 120 * hash(i, j, 52);
+      let prev = null;
+      for (let q = 0; q <= 6; q++) {
+        const u = (q / 6 - 0.5) * L, x = cx + Math.cos(a) * u - Math.sin(a) * Math.sin(q * 0.9 + i) * 18, y = cy + Math.sin(a) * u + Math.cos(a) * Math.sin(q * 0.9 + i) * 18;
+        if (prev) G.line(prev[0], prev[1], x, y, 9, zf, COL.pale, 0.04 * k, 5);
+        prev = [x, y];
+      }
+      if (hash(i, j, 53) < 0.6) G.ring(cx + 30, cy - 20, 5 + 4 * hash(i, j, 54), 0.9, zf, COL.gold, 0.4 * k, 0.5, 0.2, 3);
+    }
+  }
 }
 /**
  * The fine glitter: specks hashed per 80 µm cell (the same every visit), twinkling, spread through the
  * whole depth (the motes that make the volume read: each slides at its own depth's pace). Zoomed out
  * (lod: the field over the closest field), fewer of them: they would only crowd the view and the frame.
+ * Toward the portal (W.rich), bacteria join them: tiny bright rods, more the closer. A push wave passing
+ * ripples them outward (they settle back as it goes on).
  */
-function drawGlitter(G, [x0, y0, x1, y1], t, k, lod = 1) {
-  const C = 80, keep = Math.min(1, 1.7 / Math.max(1, lod)), span = DEPTH.max - DEPTH.min - 20;
+function drawGlitter(G, [x0, y0, x1, y1], t, k, lod = 1, W = null, waves = null) {
+  const C = 80, keep = Math.min(1, 1.7 / Math.max(1, lod)) * Math.min(1, 3 / Math.max(1, lod)), span = DEPTH.max - DEPTH.min - 20;
+  const ws = waves && waves.length ? waves : null;
+  const ripple = (x, y, z) => {
+    let ox = 0, oy = 0;
+    for (const w of ws) {
+      const dx = x - w.x, dy = y - w.y, d = Math.hypot(dx, dy);
+      if (d > w.r || d < 1 || Math.abs(z - w.z) > w.dz * 1.4) continue;
+      if (Math.cos(Math.atan2(dy, dx) - w.a) < Math.cos(w.half + 0.15)) continue;
+      const A = 16 * w.k * (1 - d / (w.reach * 1.2)) * Math.exp(-(w.r - d) / 45) * Math.max(0, 1 - w.t / 0.62);
+      ox += dx / d * A; oy += dy / d * A;
+    }
+    return [ox, oy];
+  };
   for (let i = Math.floor(x0 / C); i <= Math.floor(x1 / C); i++) for (let j = Math.floor(y0 / C); j <= Math.floor(y1 / C); j++) {
     const n = 5 + Math.floor(hash(i, j, 9) * 6);
     for (let s = 0; s < n; s++) {
       const h1 = hash(i, j, s * 4 + 1), h2 = hash(i, j, s * 4 + 2), h3 = hash(i, j, s * 4 + 3), h4 = hash(i, j, s * 4 + 4);
       if (keep < 1 && hash(i, j, s * 4 + 5) > keep) continue;
-      const x = (i + h1) * C, y = (j + h2) * C, z = (h3 - 0.5) * (h4 < 0.7 ? span * 0.5 : span);
+      let x = (i + h1) * C, y = (j + h2) * C;
+      const z = (h3 - 0.5) * (h4 < 0.7 ? span * 0.5 : span);
+      if (ws) { const [ox, oy] = ripple(x, y, z); x += ox; y += oy; }
       const tw = Math.max(0, Math.sin(t * (0.7 + h4 * 2.2) + h1 * 40));
       const c = h4 < 0.45 ? COL.gold : h4 < 0.8 ? COL.white : COL.blue;
       const I = (0.45 + 0.9 * tw ** 6) * k;
       G.disc(x, y, 0.6 + h2 * 0.8, z, c, I, 0.1, tw > 0.3 ? 0.2 + tw * 0.5 : 0.08, 1.5);
     }
+    // bacteria toward the portal: up to 4 more a cell, short rods, drifting a little
+    if (!W) continue;
+    const g = W.rich((i + 0.5) * C, (j + 0.5) * C);
+    if (g < 0.04) continue;
+    const m = Math.floor(g * 4 + hash(i, j, 19));
+    for (let s = 0; s < m; s++) {
+      if (keep < 1 && hash(i, j, s * 5 + 205) > keep) continue;
+      const h1 = hash(i, j, s * 5 + 201), h2 = hash(i, j, s * 5 + 202), h3 = hash(i, j, s * 5 + 203), h4 = hash(i, j, s * 5 + 204);
+      let x = (i + h1) * C + Math.sin(t * 0.5 + h3 * 9) * 4, y = (j + h2) * C + Math.cos(t * 0.4 + h4 * 9) * 4;
+      const z = DEPTH.min + 15 + h3 * span * (0.35 + 0.65 * (1 - g)); // they gather low, on the film's side
+      if (ws) { const [ox, oy] = ripple(x, y, z); x += ox; y += oy; }
+      const b = h4 * TAU + t * 0.3;
+      G.line(x, y, x + Math.cos(b) * 2.4, y + Math.sin(b) * 2.4, 0.55, z, h4 < 0.5 ? COL.white : [0.85, 1.0, 0.6], 0.5 * k, 0.1, 0.25, 1.5);
+    }
   }
 }
-function drawSpirogyra(G, f, ox, oy, rect, t, lod = 1) {
-  const m = 30;
+function drawSpirogyra(G, f, ox, oy, rect, t, lod = 1, s = null, W = null) {
+  const m = 30 + (s ? 40 : 0);
   const ax = f.x0 + ox, ay = f.y0 + oy, bx = f.x1 + ox, by = f.y1 + oy;
   const cl = clipSeg(ax, ay, bx, by, rect[0] - m, rect[1] - m, rect[2] + m, rect[3] + m);
   if (!cl) return;
   const L = f.L, dx = (bx - ax) / L, dy = (by - ay) / L, px = -dy, py = dx;
   const u0 = cl[0] * L, u1 = cl[1] * L;
   const zAt = (u) => f.z0 + (f.z1 - f.z0) * (u / L);
-  const P = (u, v) => [ax + dx * u + px * v, ay + dy * u + py * v];
+  // bent where something pushed it (anchored, it springs back: stir.js)
+  const bent = s && s.b.length ? (u) => W.bendAt(s, u) : null;
+  const P = bent ? (u, v) => { const o = v + bent(u); return [ax + dx * u + px * o, ay + dy * u + py * o]; } : (u, v) => [ax + dx * u + px * v, ay + dy * u + py * v];
   const r = f.r;
   { const [p1, p2] = P(u0, 0), [q1, q2] = P(u1, 0); G.shadowSeg(p1, p2, zAt(u0), q1, q2, zAt(u1), r, 0.3); }
-  // the body's faint green and the walls, in pieces (its depth changes along it)
-  const STEP = 120;
+  // the body's faint green and the walls, in pieces (its depth changes along it; finer where it bends)
+  const STEP = bent ? 30 : 120;
   for (let u = u0; u < u1; u += STEP) {
     const ue = Math.min(u1, u + STEP), z = zAt((u + ue) / 2);
     const [a1, a2] = P(u, 0), [b1, b2] = P(ue, 0);
     G.line(a1, a2, b1, b2, r * 0.92, z, [0.42, 0.62, 0.12], 0.085 * f.shade, 3);
-    for (const s of [-1, 1]) { const [c1, c2] = P(u, s * r), [d1, d2] = P(ue, s * r); G.line(c1, c2, d1, d2, 0.8, z, COL.white, 0.9, 0, 0.28, 3.5); }
+    for (const sd of [-1, 1]) { const [c1, c2] = P(u, sd * r), [d1, d2] = P(ue, sd * r); G.line(c1, c2, d1, d2, 0.8, z, COL.white, 0.9, 0, 0.28, 3.5); }
   }
   // the cross walls between cells
   for (let k = Math.ceil(u0 / f.cell); k * f.cell <= u1; k++) {
@@ -87,7 +190,7 @@ function drawSpirogyra(G, f, ox, oy, rect, t, lod = 1) {
     G.line(a1, a2, b1, b2, 0.7, zAt(u), COL.white, 0.8, 0, 0.25, 3);
   }
   // the chloroplast ribbon: a helix seen from above, brighter on the near side (it runs through the depth)
-  const step = 4 * Math.max(1, lod * 0.6);
+  const step = 4 * Math.max(1, lod * (lod > 2.5 ? 0.8 : 0.6));
   for (let rb = 0; rb < f.turns; rb++) {
     let prev = null;
     for (let u = Math.max(0, u0 - step); u <= u1 + step; u += step) {
@@ -107,20 +210,36 @@ function drawSpirogyra(G, f, ox, oy, rect, t, lod = 1) {
     }
   }
 }
-function drawClump(G, c, ox, oy, t) {
-  const x = c.x + ox, y = c.y + oy;
+/** A detritus clump where it is (p: world.js clumpPose); crumbled (p.cr s ago), its granules scatter and thin to a loose patch. */
+function drawClump(G, c, p, t, lod = 1) {
+  const x = p.x, y = p.y;
+  const gs = lod > 4.4 ? 3 : lod > 2.6 ? 2 : 1, gr = gs > 1 ? 1 + 0.18 * gs : 1;
+  if (p.cr >= 0) {
+    // crumbled: the granules fly apart (each its own way), slow, and settle as a loose, dimmer scatter
+    const e = 1 - Math.exp(-p.cr * 1.6), fade = 1 - 0.55 * Math.min(1, p.cr / 2.5);
+    G.disc(x, y, c.r * (0.85 + 1.2 * e), c.z, COL.brown, 0.08 * (1 - e), c.r * 0.35);
+    for (let k = 0; k < c.g.length; k += gs) {
+      const g = c.g[k];
+      if (p.cr > 2.5 && k % 3) continue; // most drift off; a third stay as a loose patch
+      const sp = 1 + e * (0.9 + 1.4 * ((k * 37) % 11) / 11), sw = e * 10 * Math.sin(k * 1.7);
+      G.disc(x + g.dx * sp - g.dy / c.r * sw, y + g.dy * sp + g.dx / c.r * sw, g.r * gr, c.z + g.dz * (1 + e), mix(COL.brown, COL.gold, g.gold), (0.3 + 0.5 * g.gold) * fade, 0.4, g.gold > 0.75 ? 0.3 + 0.4 * (1 - e) : 0, 2);
+    }
+    return;
+  }
+  G.shadow(x, y, 0, c.r * 0.9, c.r * 0.8, c.z, 0.35);
   G.disc(x, y, c.r * 0.85, c.z, COL.brown, 0.08, c.r * 0.35);
   // fibres: the floc's tangle of fine strands
-  for (let k = 0; k < c.g.length; k += 4) { const g = c.g[k], h = c.g[(k + 1) % c.g.length]; G.line(x + g.dx, y + g.dy, x + g.dx * 0.8 + h.dx * 0.2, y + g.dy * 0.8 + h.dy * 0.2, 0.3, c.z + g.dz, mix(COL.brown, COL.gold, 0.5), 0.22, 0.2); }
-  for (const g of c.g) {
+  if (lod < 2.6) for (let k = 0; k < c.g.length; k += 4) { const g = c.g[k], h = c.g[(k + 1) % c.g.length]; G.line(x + g.dx, y + g.dy, x + g.dx * 0.8 + h.dx * 0.2, y + g.dy * 0.8 + h.dy * 0.2, 0.3, c.z + g.dz, mix(COL.brown, COL.gold, 0.5), 0.22, 0.2); }
+  for (let k = 0; k < c.g.length; k += gs) {
+    const g = c.g[k];
     const tw = g.gold > 0.85 ? 0.5 + 0.5 * Math.sin(t * 1.7 + g.tw) : 1;
-    G.disc(x + g.dx, y + g.dy, g.r, c.z + g.dz, mix(COL.brown, COL.gold, g.gold), (0.3 + 0.5 * g.gold) * tw, 0.4, g.gold > 0.75 ? 0.3 : 0, 2);
+    G.disc(x + g.dx, y + g.dy, g.r * gr, c.z + g.dz, mix(COL.brown, COL.gold, g.gold), (0.3 + 0.5 * g.gold) * tw, 0.4, g.gold > 0.75 ? 0.3 : 0, 2);
   }
 }
-function drawVorticella(G, v, p, t) {
+function drawVorticella(G, v, p, t, lod = 1, open = false) {
   // the stalk: a coiled spring (its spasmoneme), tighter and wider coils as it contracts
   const L = Math.hypot(p.x1 - p.x0, p.y1 - p.y0) || 1, ux = (p.x1 - p.x0) / L, uy = (p.y1 - p.y0) / L, nx = -uy, ny = ux;
-  const coils = 4 + 12 * p.c, amp = 1.2 + 5.5 * p.c, n = 36;
+  const coils = 4 + 12 * p.c, amp = 1.2 + 5.5 * p.c, n = lod > 3.8 ? 16 : lod > 2.6 ? 24 : 36;
   let prev = [p.x0, p.y0];
   for (let i = 1; i <= n; i++) {
     const s = i / n, w = Math.sin(s * coils * TAU) * amp * Math.min(1, s * 6);
@@ -142,38 +261,98 @@ function drawVorticella(G, v, p, t) {
   const rimW = prof[prof.length - 1][1];
   const [r1, r2] = P(Lb, -rimW), [s1, s2] = P(Lb, rimW), [m1, m2] = P(Lb + 3 * (1 - p.c), 0);
   G.line(r1, r2, m1, m2, 0.7, z, COL.white, 0.75, 0, 0.2, 3); G.line(m1, m2, s1, s2, 0.7, z, COL.white, 0.75, 0, 0.2, 3);
-  if (p.c < 0.4) {
-    for (let k = 0; k < 18; k++) {
-      const w = (k / 17 - 0.5) * 2 * rimW, ang = (k / 17 - 0.5) * 2.2 + Math.sin(t * 14 + k * 0.7) * 0.25;
+  const nc = lod > 3.8 ? 0 : lod > 2.6 ? 9 : 18;
+  if (p.c < 0.4 && nc) {
+    for (let k = 0; k < nc; k++) {
+      const w = (k / (nc - 1) - 0.5) * 2 * rimW, ang = (k / (nc - 1) - 0.5) * 2.2 + Math.sin(t * 14 + k * 0.7) * 0.25;
       const [c1, c2] = P(Lb + 1, w), len = 8 + 2 * Math.sin(t * 9 + k);
       G.line(c1, c2, c1 + (ux * Math.cos(ang) + nx * Math.sin(ang)) * len, c2 + (uy * Math.cos(ang) + ny * Math.sin(ang)) * len, 0.3, z, COL.edge, 0.55 * (1 - p.c * 2), 0, 0.15, 2);
     }
   }
+  // open and feeding: its cilia draw a current into the bell; specks swirl in along it (main.js draws the prey in too)
+  if (open && lod < 4) {
+    for (let k = 0; k < 6; k++) {
+      const ph = (t * 0.45 + k / 6) % 1, d = 18 + 70 * (1 - ph), sw = (k % 2 ? 1 : -1) * (1 - ph) * 1.1 + Math.sin(k * 2.3) * 0.4;
+      const [qx, qy] = P(Lb + d * Math.cos(sw), d * Math.sin(sw));
+      G.disc(qx, qy, 0.8, z, k % 3 ? COL.gold : COL.white, 0.5 * Math.sin(Math.PI * ph), 0.2, 0.3, 1.5);
+    }
+  }
   G.ell(...P(Lb * 0.55, 0), Math.atan2(uy, ux), Lb * 0.45, b * 0.6, z, COL.pale, 0.05, 3);
-  for (const g of v.g) {
+  for (let i = 0; i < v.g.length; i += lod > 2.6 ? 2 : 1) {
+    const g = v.g[i];
     const [gx, gy] = P(Lb * g.u, g.v * b * (0.3 + 0.6 * g.u));
     G.disc(gx, gy, g.r, z, g.gold > 0.4 ? COL.gold : COL.green, 0.55, 0.3, 0.3, 2);
   }
 }
-function drawDiatom(G, d, ox, oy, t) {
-  const x = d.x + ox + Math.cos(d.a) * Math.sin(t * 0.2 + d.drift) * d.drift, y = d.y + oy + Math.sin(d.a) * Math.sin(t * 0.2 + d.drift) * d.drift;
-  const ca = Math.cos(d.a), sa = Math.sin(d.a);
+/** A diatom where it is (p: world.js diatomPose). Empty (dead), glass only; cracked, its two halves drifting apart. */
+function drawDiatom(G, d, p, t) {
+  if (p.s && p.s.gone) return;
+  const x = p.x, y = p.y, a = p.a;
+  const ca = Math.cos(a), sa = Math.sin(a);
   const P = (u, v) => [x + ca * u - sa * v, y + sa * u + ca * v];
   if (d.rect) {
     // a Fragilaria ribbon: frustules side by side, each with a golden chloroplast band
     const hu = d.L / 2, hv = d.W / 2;
     const c = [P(-hu, -hv), P(hu, -hv), P(hu, hv), P(-hu, hv)];
-    for (let i = 0; i < 4; i++) G.line(c[i][0], c[i][1], c[(i + 1) % 4][0], c[(i + 1) % 4][1], 0.75, d.z, COL.edge, 0.85, 0, 0.3, 3);
-    for (let k = 1; k < d.n; k++) { const u = -hu + (k / d.n) * d.L, [a1, a2] = P(u, -hv), [b1, b2] = P(u, hv); G.line(a1, a2, b1, b2, 0.45, d.z, COL.edge, 0.45); }
-    for (let k = 0; k < d.n; k++) { const u = -hu + ((k + 0.5) / d.n) * d.L; G.ell(...P(u, 0), d.a + Math.PI / 2, hv * 0.8, d.L / d.n * 0.18, d.z, COL.gold, 0.45, 0.4, 0.3, 2); }
-  } else {
-    // a pennate diatom: a glassy boat, its raphe down the middle, two golden chloroplast plates
-    G.ellRing(x, y, d.a, d.L / 2, d.W / 2, 0.85, d.z, COL.edge, 0.95, 0, 0.35, 3.5);
-    G.ell(x, y, d.a, d.L / 2, d.W / 2, d.z, COL.pale, 0.04, 2);
-    const [a1, a2] = P(-d.L * 0.42, 0), [b1, b2] = P(d.L * 0.42, 0);
-    G.line(a1, a2, b1, b2, 0.4, d.z, COL.edge, 0.5);
-    for (const s of [-1, 1]) G.ell(...P(0, s * d.W * 0.2), d.a, d.L * 0.36, d.W * 0.13, d.z, COL.gold, 0.55, 0.5, 0.3, 2.5);
-    G.disc(x, y, 1.6, d.z, COL.white, 0.6, 0.3, 0.4, 2);
+    for (let i = 0; i < 4; i++) G.line(c[i][0], c[i][1], c[(i + 1) % 4][0], c[(i + 1) % 4][1], 0.75, p.z, COL.edge, 0.85, 0, 0.3, 3);
+    for (let k = 1; k < d.n; k++) { const u = -hu + (k / d.n) * d.L, [a1, a2] = P(u, -hv), [b1, b2] = P(u, hv); G.line(a1, a2, b1, b2, 0.45, p.z, COL.edge, 0.45); }
+    for (let k = 0; k < d.n; k++) { const u = -hu + ((k + 0.5) / d.n) * d.L; G.ell(...P(u, 0), a + Math.PI / 2, hv * 0.8, d.L / d.n * 0.18, p.z, COL.gold, 0.45, 0.4, 0.3, 2); }
+    return;
+  }
+  const hl = d.L / 2, hw = d.W / 2;
+  if (p.s && p.s.cracked) {
+    // cracked across its middle: two half-boats parting and turning, their glass edges bright where they broke
+    const e = 1 - Math.exp(-p.s.ct * 2.2);
+    for (const sd of [-1, 1]) {
+      const sh = sd * (2 + 9 * e), rot = sd * 0.35 * e;
+      const cr = Math.cos(a + rot), sr = Math.sin(a + rot);
+      const cx = x + ca * sh, cy = y + sa * sh;
+      const Q = (u, v) => [cx + cr * u - sr * v, cy + sr * u + cr * v];
+      let prev = null;
+      for (let i = 0; i <= 10; i++) {
+        const th = sd > 0 ? -Math.PI / 2 + (i / 10) * Math.PI : Math.PI / 2 + (i / 10) * Math.PI;
+        const q = Q(Math.cos(th) * hl, Math.sin(th) * hw);
+        if (prev) G.line(prev[0], prev[1], q[0], q[1], 0.8, p.z, COL.edge, 0.8, 0, 0.3, 3);
+        prev = q;
+      }
+      // the broken edge: jagged
+      const j1 = Q(0, -hw), j2 = Q(sd * 2.5, -hw * 0.3), j3 = Q(-sd * 1.5, hw * 0.3), j4 = Q(0, hw);
+      G.line(j1[0], j1[1], j2[0], j2[1], 0.6, p.z, COL.white, 0.9 * (1 - 0.5 * e), 0, 0.5, 3);
+      G.line(j2[0], j2[1], j3[0], j3[1], 0.6, p.z, COL.white, 0.9 * (1 - 0.5 * e), 0, 0.5, 3);
+      G.line(j3[0], j3[1], j4[0], j4[1], 0.6, p.z, COL.white, 0.9 * (1 - 0.5 * e), 0, 0.5, 3);
+      const [r1, r2] = Q(sd * hl * 0.84, 0), [o1, o2] = Q(sd * 3, 0);
+      G.line(o1, o2, r1, r2, 0.35, p.z, COL.edge, 0.4);
+    }
+    return;
+  }
+  // a pennate diatom: a glassy boat, its raphe down the middle (the H: the raphe and its central nodule),
+  // two golden chloroplast plates; an empty one (dead) is glass alone, fainter, its striae showing
+  G.ellRing(x, y, a, hl, hw, 0.85, p.z, COL.edge, d.empty ? 0.7 : 0.95, 0, 0.35, 3.5);
+  G.ell(x, y, a, hl, hw, p.z, COL.pale, d.empty ? 0.025 : 0.04, 2);
+  const [a1, a2] = P(-d.L * 0.42, 0), [b1, b2] = P(d.L * 0.42, 0);
+  G.line(a1, a2, b1, b2, 0.4, p.z, COL.edge, 0.5);
+  if (!d.empty) for (const sd of [-1, 1]) G.ell(...P(0, sd * d.W * 0.2), a, d.L * 0.36, d.W * 0.13, p.z, COL.gold, 0.55, 0.5, 0.3, 2.5);
+  else for (let k = -4; k <= 4; k++) { const [s1, s2] = P(k * d.L * 0.09, -hw * 0.75), [e1, e2] = P(k * d.L * 0.09, hw * 0.75); G.line(s1, s2, e1, e2, 0.3, p.z, COL.edge, 0.28); }
+  G.disc(x, y, 1.6, p.z, COL.white, 0.6, 0.3, 0.4, 2);
+}
+/**
+ * The jabs' push waves (stir.js): an arc running out ahead of the oral end, soft and fading, with a
+ * fainter echo behind it, the jab's own few threads drawn by cell.js. A strong one (X in a dash) wider and brighter.
+ */
+export function drawWaves(G, waves) {
+  for (const w of waves) {
+    const e = w.t / 0.42, k = Math.max(0, 1 - w.t / 0.62);
+    if (k <= 0 || w.r < 4) continue;
+    const n = 15, base = w.strong ? 1.0 : 0.75;
+    for (const [rr, I, wd] of [[w.r, base, w.strong ? 2.0 : 1.5], [w.r * 0.72, base * 0.35, 1.0]]) {
+      let prev = null;
+      for (let i = 0; i <= n; i++) {
+        const q = i / n, ang = w.a + (q - 0.5) * 2 * w.half;
+        const x = w.x + Math.cos(ang) * rr, y = w.y + Math.sin(ang) * rr;
+        if (prev) { const taper = Math.sin(Math.PI * (q - 0.5 / n)); G.line(prev[0], prev[1], x, y, wd, w.z, [0.78, 0.9, 1.0], I * k * taper * (0.6 + 0.4 * Math.min(1, e * 3)), 2.5, 0.4 * k, 7); }
+        prev = [x, y];
+      }
+    }
   }
 }
 
@@ -315,14 +494,14 @@ export function drawTrap(G, T, t) {
   for (const side of [-1, 1]) {
     let [px, py] = P(ra * 0.85, side * TRAP.door * 0.9);
     for (let k = 0; k < 6; k++) {
-      const ang = T.a + side * (0.5 + k * 0.12) + Math.sin(t * 0.8 + k) * 0.03, L = 26;
+      const ang = T.a + side * (0.5 + k * 0.12) + Math.sin(t * 0.8 + k) * 0.03 + (T.wob || 0) * Math.sin(t * 15 + k * 0.9 + side) * 0.22, L = 26; // (a jab's wave sets them waving: T.wob)
       const nx = px + Math.cos(ang) * L, ny = py + Math.sin(ang) * L;
       G.line(px, py, nx, ny, 0.9, z + 20, COL.wall, 0.75, 0, 0.25, 3);
       for (const b of [-1, 1]) { const ba = ang + b * 0.9; G.line(nx, ny, nx + Math.cos(ba) * 18, ny + Math.sin(ba) * 18, 0.4, z + 20, COL.wall, 0.4); G.disc(nx + Math.cos(ba) * 18, ny + Math.sin(ba) * 18, 1.6, z + 20, COL.gold, 0.6, 0.3, 0.4, 2); }
       px = nx; py = ny;
     }
   }
-  for (let k = 0; k < 6; k++) { const [hx, hy] = P(ra * 1.02, (k - 2.5) * 12), ang = T.a + (k - 2.5) * 0.12 + Math.sin(t * 30 + k) * 0.15 * quiver; G.line(hx, hy, hx + Math.cos(ang) * 16, hy + Math.sin(ang) * 16, 0.45, z + 10, COL.edge, 0.65, 0, 0.2, 2); }
+  for (let k = 0; k < 6; k++) { const [hx, hy] = P(ra * 1.02, (k - 2.5) * 12), ang = T.a + (k - 2.5) * 0.12 + Math.sin(t * 30 + k) * (0.15 * quiver + 0.35 * (T.wob || 0)); G.line(hx, hy, hx + Math.cos(ang) * 16, hy + Math.sin(ang) * 16, 0.45, z + 10, COL.edge, 0.65, 0, 0.2, 2); }
   // the inflow you can see: streaks rushing into the door (faint over its reach while it quivers, strong in the pulse)
   const k = T.state === 'pulse' ? 1 : quiver * 0.35;
   if (k > 0.02) {

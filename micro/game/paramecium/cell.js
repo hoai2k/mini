@@ -65,7 +65,7 @@ const _loc = [];
 
 /**
  * Draw one player's cell. `C` holds what changes: { x, y, z, a (heading), v (speed), bend,
- * squash, t, beat (the cilia's phase), variety, burst (s since a burst, or −1), jab, dead (0..1 dissolve),
+ * squash, t, beat (the cilia's phase), variety, burst (s since a burst, or −1), jab, jabStrong, dead (0..1 dissolve),
  * spawn (0..1 materialise), vacuoles: [{ u, v, r, age }], ring (player colour [r,g,b] or null), alpha }.
  */
 export function drawCell(G, C) {
@@ -185,12 +185,15 @@ export function drawCell(G, C) {
       G.line(X(u0, v0), Y(u0, v0), X(u0 + nu * b.L * len, v0 + nv * b.L * len), Y(u0 + nu * b.L * len, v0 + nv * b.L * len), 0.45, z, [1, 0.97, 0.88], I * (0.6 + 0.4 * b.k), 0, 0.3, 2.5);
     }
   }
-  if (C.jab >= 0 && C.jab < 0.35) {
-    const e = C.jab / 0.35, len = Math.sqrt(Math.min(1, e * 3)), I = (1 - e) * 1.3;
-    for (let i = 0; i < 18; i++) {
-      const th = (i / 17 - 0.5) * 1.1, s = Math.cos(th * 0.5), u0 = HL * 0.9 * s, v0 = Math.sin(th) * HW * 0.6;
-      const L = (50 + ((i * 29) % 13) * 2.5) * len;
-      G.line(X(u0, v0), Y(u0, v0), X(u0 + Math.cos(th * 0.6) * L, v0 + Math.sin(th * 0.6) * L), Y(u0 + Math.cos(th * 0.6) * L, v0 + Math.sin(th * 0.6) * L), 0.5, z, [1, 0.96, 0.85], I, 0, 0.35, 2.5);
+  // the jab (X): a few short, soft threads fanning out ahead and fading (the push wave they send is draw.js
+  // drawWaves); a strong one (X in a dash) more and longer
+  if (C.jab >= 0 && C.jab < 0.3) {
+    const e = C.jab / 0.3, len = Math.sqrt(Math.min(1, e * 2.5)), I = (1 - e) ** 1.6 * 0.85, strong = !!C.jabStrong;
+    const n = strong ? 13 : 9, fan = strong ? 1.5 : 1.15;
+    for (let i = 0; i < n; i++) {
+      const q = i / (n - 1) - 0.5, th = q * fan, u0 = HL * 0.92 * Math.cos(q * 0.6), v0 = Math.sin(q * 1.2) * HW * 0.55;
+      const L = ((strong ? 34 : 22) + ((i * 29) % 7) * 1.8) * len, dx = Math.cos(th * 0.85), dy = Math.sin(th * 0.85);
+      G.line(X(u0, v0), Y(u0, v0), X(u0 + dx * L, v0 + dy * L), Y(u0 + dx * L, v0 + dy * L), 0.35, z, [0.95, 0.97, 1], I * (1 - 0.5 * Math.abs(q)), 0.9, 0.22, 3);
     }
   }
   // together: a faint broken ring in the player's colour

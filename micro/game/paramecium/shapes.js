@@ -283,7 +283,10 @@ export function createShapes(renderer, { max = 90000, shadowMax = 1500, spriteMa
     /** One instance (the low-level call). */
     /** While true, what is drawn is a game marker: it stays legible out of focus (a fifth of the defocus, no dimming or haze). */
     marker: false,
+    /** Every intensity drawn is scaled by this (a thing fading in or out: the gradient's ranked scenery). */
+    gain: 1,
     put(type, x0, y0, x1, y1, r, rb, soft, z, cr, cg, cb, I, glow, glowR, ringW) {
+      I *= api.gain;
       if (n >= max || !(I > 0.002)) return;
       if (api.marker) type += 10;
       const o = n * F;
