@@ -746,8 +746,19 @@ function layoutCams(L, cx, cy, fieldH) {
     const c = camPool[v.index] || camPool[0], o = v.offset || { x: 0, y: 0 };
     groundAt(frameCam.Mi, o.x / (frameCam.fw / 2), o.y / (frameCam.fieldH / 2), _nq);
     c.cx = _nq.x; c.cy = _nq.y;
-    // split: each view keeps its own players' zoom (the shared view: everyone's widest)
-    c.fieldH = vs.length > 1 && v.slots ? zoomPull(fieldOfSlots(v.slots)) * groupZoom.applied : frameCam.fieldH;
+    // split: each view keeps its own players' zoom (the shared view: everyone's widest), eased in and
+    // out with the split (L.amount), so a merge needs no zoom change; it zooms about the view's players
+    // (their follow points), so they stay where the split screen shows them
+    c.fieldH = frameCam.fieldH;
+    if (vs.length > 1 && v.slots && L.amount > 0) {
+      const r = 1 + (zoomPull(fieldOfSlots(v.slots)) * groupZoom.applied / frameCam.fieldH - 1) * L.amount;
+      const ms = (v.members || []).map((j) => L.players[j] && L.players[j].position).filter(Boolean);
+      if (r !== 1 && ms.length) {
+        const mx = ms.reduce((s, p) => s + p.x, 0) / ms.length, my = ms.reduce((s, p) => s + p.y, 0) / ms.length;
+        c.cx = mx - r * (mx - c.cx); c.cy = my - r * (my - c.cy);
+      }
+      c.fieldH = frameCam.fieldH * r;
+    }
     camMatrix(c.M, c.cx, c.cy, c.fieldH, aspect()); c.Mi.copy(c.M).invert();
     camViews.push(c);
   }

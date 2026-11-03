@@ -903,17 +903,32 @@ function render(dt) {
   groupZoom.z = split.zoom;
   quality.setSplitViews(L.views.length);
   const look = currentLook();
-  // the views: each one's centre and focus (its own players' depth)
-  const vs = (L.views.length > 1 && !camHeld ? L.views : [{ index: 0, offset: { x: 0, y: 0 }, slots: cells.map((c) => c.slot) }]).map((v) => {
+  // the views: each one's centre and focus (its own players' depth). What a split view keeps of its
+  // own (depth, focal plane, zoom) is eased in and out with the split (L.amount, 0 merged .. 1 split),
+  // so the last split frame is the first merged one: the view's offset reaches zero on the same frame.
+  const allSlots = cells.map((c) => c.slot);
+  const splitNow = L.views.length > 1 && !camHeld;
+  const amt = splitNow ? L.amount : 0;
+  const Fall = focalFor(allSlots); // (kept stepping while split, so a merge eases back onto it)
+  const vs = (splitNow ? L.views : [{ index: 0, offset: { x: 0, y: 0 }, slots: allSlots }]).map((v) => {
     const o = fromFrameOffset(v.offset);
     const mine = cells.filter((c) => v.slots.includes(c.slot) && (c.live || c.dead));
-    const focus = camHeld && outro ? lerp(view.focus, spir.z, sm01(0, 0.3, outro.u || 0)) : mine.length && L.views.length > 1 ? mine.reduce((s, c) => s + c.S.z, 0) / mine.length : view.focus;
+    const own = mine.length ? mine.reduce((s, c) => s + c.S.z, 0) / mine.length : view.focus;
+    const focus = camHeld && outro ? lerp(view.focus, spir.z, sm01(0, 0.3, outro.u || 0)) : lerp(view.focus, own, amt);
     // the focal plane: the operator's (in the dive, it drops to the film with the view)
-    const F = focalFor(L.views.length > 1 && !camHeld ? v.slots : cells.map((c) => c.slot));
-    const focal = camHeld && outro ? lerp(F.z, spir.z, sm01(0, 0.3, outro.u || 0)) : F.z;
-    // split, each view keeps its own players' zoom (the shared view: the widest of everyone's)
-    const hw = L.views.length > 1 && !camHeld ? hw0 * zoomOf(v.slots) / zoomOf(cells.map((c) => c.slot)) : hw0;
-    return { index: v.index, cx: view.cx + o.x, cy: view.cy + o.y, focus, focal, slots: v.slots, hw, hh: hw * aspect() };
+    const F = splitNow ? focalFor(v.slots) : Fall;
+    const fz = lerp(Fall.z, F.z, amt);
+    const focal = camHeld && outro ? lerp(fz, spir.z, sm01(0, 0.3, outro.u || 0)) : fz;
+    // split, each view keeps its own players' zoom (the shared view: the widest of everyone's), zoomed
+    // about its players, so they stay where the split screen shows them (their region's middle)
+    const r = splitNow ? 1 + (zoomOf(v.slots) / zoomOf(allSlots) - 1) * amt : 1;
+    let cx = view.cx + o.x, cy = view.cy + o.y;
+    if (r !== 1 && mine.length) {
+      const mx = mine.reduce((s, c) => s + c.S.x, 0) / mine.length, my = mine.reduce((s, c) => s + c.S.y, 0) / mine.length;
+      cx = mx - r * (mx - cx); cy = my - r * (my - cy);
+    }
+    const hw = hw0 * r;
+    return { index: v.index, cx, cy, focus, focal, slots: v.slots, hw, hh: hw * aspect() };
   });
   lastViews = vs;
   // fill the shapes once for every view: the union of their fields, with room for the turn and for the

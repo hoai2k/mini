@@ -40,7 +40,7 @@ const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const ramp = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
 const UP = new THREE.Vector3(0, 1, 0), AX_X = new THREE.Vector3(1, 0, 0), AX_Z = new THREE.Vector3(0, 0, 1);
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _n = new THREE.Vector3(), _q = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3();
-const _back = new THREE.Vector3(); // (a split view's own zoom: the camera's back axis)
+const _back = new THREE.Vector3(), _pv = new THREE.Vector3(), _pd = new THREE.Vector3(); // (a split view's own zoom: the camera's pull direction, its players' centre)
 
 // --- renderer, scenes, cameras ---
 const canvas = document.querySelector('canvas.view');
@@ -1880,9 +1880,22 @@ function frame(now) {
     split.render(camera, (v) => {
       // split, each view keeps its own players' zoom: the camera pulled back (or in) along its view from the
       // shared framing, which is the widest of everyone's (put back after the view is drawn)
-      const vk = split.views.length > 1 && !debug.camOverride ? zoomOf(v.slots) / zAll : 1;
+      // It is eased in and out with the split (layout.amount), so a merge needs no zoom change, and the
+      // camera dollies along the line from its players' centre, so they stay where the split screen
+      // shows them (their region's middle) rather than sliding toward the view's centre.
+      const amt = split.views.length > 1 && !debug.camOverride ? split.layout.amount : 0;
+      const vk = 1 + (zoomOf(v.slots) / zAll - 1) * amt;
       const pull = view.camDist * (vk - 1);
-      if (pull) { camera.position.addScaledVector(_back.set(0, 0, 1).applyQuaternion(camera.quaternion), pull); camera.updateMatrixWorld(); post.uniforms.uFocus.value = view.camDist * vk; }
+      const ms = (v.members || []).map((j) => list[j] && list[j].position).filter(Boolean);
+      if (pull) {
+        camera.getWorldDirection(_back);
+        if (ms.length) {
+          _pv.set(0, 0, 0); for (const p of ms) _pv.add(p); _pv.multiplyScalar(1 / ms.length);
+          const depth = Math.max(1, _pd.subVectors(_pv, camera.position).dot(_back));
+          _back.subVectors(camera.position, _pv).multiplyScalar(1 / depth); // per unit of pull: back along the view, out from the players
+        } else _back.negate();
+        camera.position.addScaledVector(_back, pull); camera.updateMatrixWorld(); post.uniforms.uFocus.value = view.camDist + pull;
+      }
       noteView(); // (what this view sees, for the director)
       // each view wraps the bath round its own centre: the water is full in every view, together or apart
       world.viewBath(_v.set(0, 0, -view.dist * vk).applyQuaternion(camera.quaternion).add(camera.position));
