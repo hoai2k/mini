@@ -1018,11 +1018,6 @@ function settingItems() {
   const items = [
     { id: 'sound', label: t('shell.settings.sound'), get: () => sound.on, toggle: () => setSound(!sound.on) },
     { id: 'volume', label: t('shell.settings.volume'), slider: true, get: () => sound.volume, step: (d) => { sound.setVolume(Math.round((sound.volume + d * 0.1) * 10) / 10); pushSound(); sound.tick(); } },
-    // TEMPORARY (the owner is comparing them; goes once one is chosen): the new sound effects or the
-    // original ones, in the shell and every world (localStorage micro.sfxSet; sound.js, shared/audio.js)
-    { id: 'soundSet', label: t('shell.settings.soundSet'), about: t('shell.settings.soundSetAbout'), choices: true,
-      get: () => sound.set, show: (v) => t(v === 'old' ? 'shell.settings.soundSetOld' : 'shell.settings.soundSetNew'),
-      step: () => { sound.setSet(sound.set === 'old' ? 'new' : 'old'); pushSound(); } },
     { id: 'invertY', label: t('shell.settings.invertY'), get: () => invertY, toggle: () => {
       invertY = !invertY;
       try { localStorage.setItem('micro.invertY', invertY ? '1' : '0'); } catch { /* private mode */ }

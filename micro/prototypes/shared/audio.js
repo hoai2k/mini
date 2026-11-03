@@ -21,11 +21,10 @@
 // the shell (focus moves between the shell and the frame; the shell pauses
 // when the window loses it), so only a hidden tab silences the page here.
 //
-// Two sound sets (TEMPORARY: the owner is comparing them; the switch goes
-// once one is chosen): 'new' (the default) and 'old', the soundscape before
-// the sounds added on 2 November 2026 (audio-list.js ADDED). The shell's
-// Settings → Sound effects stores it in localStorage `micro.sfxSet` and
-// sends it with `sound` ({ soundSet }); a change applies at once. A call says
+// Two sound sets: 'old', the original soundscape (what plays), and 'new', the
+// sounds added on 2 November 2026 (audio-list.js ADDED), held back for the
+// owner's sound workbench. ?sfx=experimental on the page's address (or the
+// shell's, sent with `sound` ({ soundSet })) plays the new set. A call says
 // what the old set played instead, and the set picks:
 //
 //   audio.play('mite/jump', { volume: 0.8, old: ['mite/dash', { volume: 0.7, rate: 1.3 }] });
@@ -37,10 +36,9 @@ import { SOUNDS, ADDED } from './audio-list.js';
 import { embed } from './embed.js';
 
 const base = new URL('../', import.meta.url);
-// 'new' (Experimental) or 'old' (Default, the original sounds). Renamed from micro.soundSet when
-// the default flipped to the original sounds, so earlier choices don't carry over.
-const SET_KEY = 'micro.sfxSet';
-const readSet = () => { try { return localStorage.getItem(SET_KEY) === 'new' ? 'new' : 'old'; } catch { return 'old'; } };
+// The Settings switch is gone (the owner, 2026-11-03): the original sounds, unless the page's address
+// (or the shell's, sent with `sound`) carries ?sfx=experimental, kept for trying the new set.
+const readSet = () => { try { return new URLSearchParams(location.search).get('sfx') === 'experimental' ? 'new' : 'old'; } catch { return 'old'; } };
 
 export function createAudio(ids = Object.keys(SOUNDS)) {
   let ctx = null, master = null, ambBus = null, sfxBus = null;
@@ -68,7 +66,6 @@ export function createAudio(ids = Object.keys(SOUNDS)) {
     if (ctx) preload();
     for (const l of loops) l._switch();
   }
-  addEventListener('storage', (e) => { if (e.key === SET_KEY) setSet(readSet()); });
 
   function ensure() {
     if (ctx) return ctx;

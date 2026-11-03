@@ -21,9 +21,6 @@ const UI = { move: 0.3, select: 0.45, back: 0.45, 'intro-in': 0.45, 'intro-out':
 const MOVE_GAP = 0.07; // s: held d-pad repeats are heard at most this often
 // TEMPORARY: the sound set, 'new' (the recorded sounds) or 'old' (the synthesised
 // ones, as before 2 November 2026), shared with the worlds (shared/audio.js).
-// 'new' (Experimental) or 'old' (Default, the original sounds). Renamed from micro.soundSet when
-// the default flipped to the original sounds, so earlier choices don't carry over.
-const SET_KEY = 'micro.sfxSet';
 // The songs, from ../music/ (the same relative path in the repository and the
 // deploy). Gains bring both to about -24 LUFS, under the worlds' -20 LUFS
 // ambience (measured: Chamber Music -15.7 LUFS, Lullaby -18.2 LUFS).
@@ -41,7 +38,9 @@ export function createSound() {
   let uiBus = null; // the switch and volume only: pause and resume are heard while paused
   const ui = {}; // name -> AudioBuffer[] once loaded ([] if it failed); missing while loading
   let lastMove = -1;
-  let soundSet = (() => { try { return localStorage.getItem(SET_KEY) === 'new' ? 'new' : 'old'; } catch { return 'old'; } })();
+  // The Settings switch is gone (the owner, 2026-11-03: the original sounds; the new ones wait for the
+  // sound workbench): ?sfx=experimental on the page's address still plays the new set, for trying it.
+  let soundSet = (() => { try { return new URLSearchParams(location.search).get('sfx') === 'experimental' ? 'new' : 'old'; } catch { return 'old'; } })();
   const old = () => soundSet === 'old';
   let wanted = null; // the song the current screen asks for
   const songs = {}; // name -> { el, gain, failed, stopTimer }
@@ -185,9 +184,9 @@ export function createSound() {
   return {
     get on() { return on; },
     get volume() { return volume; },
-    /** The sound set: 'new' or 'old' (TEMPORARY; see SET_KEY). */
+    /** The sound set: 'new' or 'old' (the original 'old' unless ?sfx=experimental). */
     get set() { return soundSet; },
-    setSet(v) { soundSet = v === 'old' ? 'old' : 'new'; try { localStorage.setItem(SET_KEY, soundSet); } catch { /* private mode */ } },
+    setSet(v) { soundSet = v === 'old' ? 'old' : 'new'; },
     /** Create or resume the context: call from a user gesture or a pad press. */
     unlock() { if (!ensure()) return; if (ctx.state === 'suspended' && !away()) ctx.resume().catch(() => {}); refresh(); },
     setOn(v) { on = !!v; save(); if (on) this.unlock(); refresh(); },
