@@ -65,7 +65,7 @@ test('the glow eases from where it was and settles exactly on the target', () =>
   const gl = { a: 0, v: 0, target: 100 * DEG };
   const path = [];
   for (let i = 0; i < 60; i++) { easeGlow(gl, DT); path.push(gl.a); }
-  assert.ok(path[1] - path[0] < 3 * DEG, 'it starts gently');
+  assert.ok(path[0] < 6 * DEG && path[1] - path[0] > path[0], 'it starts gently and speeds up');
   assert.ok(path.every((a, i) => i === 0 || a >= path[i - 1] - 1e-9), 'no overshoot back and forth (critically damped)');
   assert.ok(path.every((a) => a <= 100 * DEG + 1e-9), 'never past the target');
   assert.equal(gl.a, 100 * DEG, 'settled exactly within 1 s');
@@ -156,4 +156,32 @@ test('basePoint sits on the body where a pseudopod meets it', () => {
   const a = tipAngle(g.b, g.R.sel) * DEG, p = basePoint(g.b, a);
   const r = Math.hypot(p.x - g.b.cx, p.y - g.b.cy);
   assert.ok(r <= g.b.req * 0.95 + 1e-6 && r > g.b.req * 0.6, `at ${r.toFixed(0)} µm (req ${g.b.req.toFixed(0)})`);
+});
+
+test('moving (LT) into a pseudopod its stick is not reaching with: it thickens into a stump and is absorbed; a reached one keeps its length', () => {
+  const reach = (b, k) => b.podReach(b.pods[k]);
+  // a pseudopod out to the right, then LT with LS crawling right while RS (its stick) rests
+  const g = rig();
+  run(g, 3, raw({ rs: 0 }));
+  const k = g.R.sel, r0 = reach(g.b, k);
+  assert.ok(r0 > 50, `out ${r0.toFixed(0)} µm`);
+  run(g, 2, (t) => { const out = raw({ ls: 0, move: 1 }); return out; });
+  const r1 = reach(g.b, k);
+  assert.ok(r1 < r0 * 0.6, `shorter as the body rolls in (${r0.toFixed(0)} → ${r1.toFixed(0)} µm)`);
+  assert.ok(g.b.pods[k].spr > 0.5, 'broadened into a stump');
+  run(g, 4, raw({ ls: 0, move: 1 }));
+  assert.ok(!podExists(g.b, k) || reach(g.b, k) < 30, `merged into the body (${reach(g.b, k).toFixed(0)} µm left)`);
+  // the same, but RS pushed along the travel: it keeps reaching and the cell follows
+  const h = rig();
+  run(h, 3, raw({ rs: 0 }));
+  const j = h.R.sel, q0 = reach(h.b, j), x0 = h.b.cx;
+  run(h, 3, raw({ ls: 0, rs: 10, move: 1 }));
+  assert.ok(reach(h.b, j) > q0 * 0.8, `it keeps its reach (${q0.toFixed(0)} → ${reach(h.b, j).toFixed(0)} µm)`);
+  assert.ok(h.b.cx - x0 > 40, `and the cell travels behind it (${(h.b.cx - x0).toFixed(0)} µm)`);
+  // one to the side is left alone
+  const s = rig();
+  run(s, 3, raw({ rs: 90 }));
+  const m = s.R.sel, side0 = reach(s.b, m);
+  run(s, 1, raw({ ls: 0, move: 1 }));
+  assert.ok(reach(s.b, m) > side0 * 0.6, 'a pseudopod to the side is not turned into a stump');
 });

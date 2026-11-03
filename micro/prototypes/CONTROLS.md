@@ -111,14 +111,20 @@ a moment, fades out and you respawn (`shared/predation.js`: `createFight`,
 Read the controls through `shared/controls.js` (`createControls(pad)`), not raw
 buttons, and build the HUD list with `hudControls({...})` so every prototype
 lists the same buttons in the same order. `createDash()` gives a dash with a
-recharge and a HUD meter. The amoeba uses its own twin-stick scheme. Each stick moves one pseudopod
-(marked L and R in the player's colour): its first push grabs the pseudopod
-lying that way (or grows one there), a quick flick through the centre keeps it,
-and resting the stick lets it go. Hold LT to move the whole cell instead: one
-stick or both the same way crawl, two ways crawl between and widen, apart
-stretches, together squishes, one up and one down turn it. RT spreads the whole
-cell out (held on, it slowly rounds up); LB/RB spread / push harder the
-pseudopod being moved. A surges, X engulfs (and cuts), B lets go or
+recharge and a HUD meter. The amoeba uses its own twin-stick scheme. Each stick keeps one pseudopod
+(marked L and R in the player's colour): pushed it steers it, at neutral it
+rests and stays that stick's; only once it is gone does the next push take
+the one lying that way (or grow one). Hold RT to choose others: a glow at the
+base of each stick's pseudopod (dim while that stick is still pushed, until it
+comes back to neutral) slides round the membrane as the stick moves, snapping
+to a pseudopod's base, and letting go of RT takes the pseudopod there or grows
+one at bare membrane; the view widens if the cell does not fit, and stays.
+Hold LT to move the whole cell instead: one stick or both the same way crawl,
+two ways crawl between and widen, apart stretches, together squishes, one up
+and one down turn it; a pseudopod ahead of the crawl rolls into a stump and
+merges unless its own stick points on along the crawl. LB thickens the steered
+pseudopod (none steered: the whole cell spreads, and held on rounds up); RB
+pushes it harder. A surges, X engulfs (and cuts), B lets go or
 stiffens. Against another cell (the giant amoeba *Chaos*, or another player)
 a pseudopod is a push: cells never overlap, and a broad pseudopod or a surge
 pushes hardest (it can force a channel into *Chaos*, even through to the portal under it); keep a gap open so *Chaos* cannot ring you. At the open

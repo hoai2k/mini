@@ -2211,7 +2211,10 @@ const fieldWidth = () => {
   // several players in one view: the split screen's zoom-out (a wider field)
   // keeps them all in it; the screen splits only once it is at its widest
   groupZoom.applied = cells.length > 1 ? groupZoom.z : 1;
-  selZoom.k += (selZoom.want - selZoom.k) * 0.06;
+  // eased over ~0.6 s of real time, whatever the frame rate
+  const now = performance.now(), zdt = Math.min(0.1, (now - (selZoom.t || now)) / 1000);
+  selZoom.t = now;
+  selZoom.k += (selZoom.want - selZoom.k) * Math.min(1, zdt * 5);
   return OBJECTIVES[S.objective].field * (innerWidth > innerHeight ? 1 : 0.6) * pull.k * selZoom.k * groupZoom.applied;
 };
 /** Draw every view (one, straight to the screen, while the players are together), then the overlays. */
@@ -2318,10 +2321,10 @@ function drawPodMarks(L) {
         basePoint(b, gl.a, GLOW_PT);
         const [sx, sy] = toScreen(GLOW_PT.x, GLOW_PT.y, c.slot);
         const pulse = gl.busy ? 0.5 + 0.5 * Math.sin(S.time * 7) : 1;
-        const rad = Math.max(16, 40 * px);
+        const rad = Math.max(26, 46 * px);
         const grad = g.createRadialGradient(sx, sy, 0, sx, sy, rad);
-        grad.addColorStop(0, c.p.color); grad.addColorStop(1, 'rgba(0,0,0,0)');
-        g.globalAlpha = gl.busy ? 0.25 + 0.2 * pulse : 0.75;
+        grad.addColorStop(0, 'rgba(255,250,235,0.95)'); grad.addColorStop(0.25, c.p.color); grad.addColorStop(1, 'rgba(0,0,0,0)');
+        g.globalAlpha = gl.busy ? 0.4 + 0.25 * pulse : 0.9;
         g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, rad, 0, TAU); g.fill();
         if (!gl.busy) { g.globalAlpha = 0.9; g.strokeStyle = c.p.color; g.lineWidth = 2; g.beginPath(); g.arc(sx, sy, Math.max(9, 16 * px), 0, TAU); g.stroke(); }
         // the letter just outside the membrane

@@ -219,10 +219,15 @@ function commitChoose(b, R, st, env) {
     n++;
     if (g.snapK != null && podExists(b, g.snapK) && g.snapK !== R[otherKey(key)]) R[key] = adopt(b, R, g.snapK);
     else {
-      const dx = Math.cos(g.target), dy = Math.sin(g.target);
-      // grown from the membrane at the glow's base, never on the other stick's
+      // grown from the membrane at the glow's base, never on the other stick's, out along the membrane's
+      // own normal there (so its tip stays put rather than sliding to wherever the cell bulges furthest)
+      const node = nodeAt(b, g.target), i0 = (node + N - 1) % N, i1 = (node + 1) % N;
+      let dx = b.y[i1] - b.y[i0], dy = -(b.x[i1] - b.x[i0]);
+      const dl = Math.hypot(dx, dy) || 1;
+      dx = dx / dl + 0.5 * Math.cos(g.target); dy = dy / dl + 0.5 * Math.sin(g.target);
+      const dm = Math.hypot(dx, dy) || 1; dx /= dm; dy /= dm;
       R[key] = null;
-      const k = newPod(b, R, dx, dy, nodeAt(b, g.target));
+      const k = newPod(b, R, dx, dy, node);
       R[key] = k;
       R.grow[key] = GLOW.growT; R.growDir[key] = { dx, dy };
     }
@@ -278,6 +283,46 @@ export function moveInput(ls, rs) {
 }
 
 /**
+ * Movement mode, travelling (the owner, 2026-11-03: "if moving in the direction
+ * of an extended pseudopod, if that stick is not pointing in the same
+ * direction, the pseudopod should thicken into a stump as the body rolls
+ * into/past it. If the pseudopod is actively reaching forward while moving
+ * then it stays"). For each steered pseudopod whose tip lies within AHEAD of
+ * the travel:
+ *   reaching: its own stick is pushed within REACH_TOL of the travel: it
+ *     keeps reaching that way (the cell travels behind it, lead and follow);
+ *   otherwise: it is fed only a weak, fully spread push, so it shortens and
+ *     its base broadens into a stump, and the cell is squished along the
+ *     travel (input.shape) so the body flows into it; once it stands out
+ *     less than STUMP_GONE beyond the body it is let go and merges (the area
+ *     projection keeps the volume throughout).
+ * Pseudopods to the side or behind are left as they are.
+ */
+export const ROLL = { ahead: 60 * DEG, reachTol: 35 * DEG, stumpM: 0.12, gone: 22, squish: 0.7 };
+function rollInto(b, R, st, travel, pods) {
+  const ta = Math.atan2(travel.dy, travel.dx);
+  R.stumps = 0;
+  for (let k = 0; k < b.pods.length; k++) {
+    const pod = b.pods[k];
+    if (pod.idle || !podExists(b, k)) continue;
+    const a = angOf(b, pod);
+    if (Math.abs(angDiff(a, ta)) > ROLL.ahead) continue;
+    const key = R.sel === k ? 'sel' : R.adj === k ? 'adj' : null;
+    const s = key ? st[key] : null;
+    if (s && s.m >= STICK_ON && Math.abs(angDiff(Math.atan2(s.dy, s.dx), ta)) <= ROLL.reachTol) {
+      pods[k] = { m: s.m, dx: s.dx, dy: s.dy, tip: pod.tip, push: 0, spread: 0 };
+      continue;
+    }
+    if (b.podReach(pod) > ROLL.gone) {
+      // a stump: short and broad, the body rolling into it
+      pods[k] = { m: ROLL.stumpM, dx: Math.cos(a), dy: Math.sin(a), tip: pod.tip, push: 0, spread: 1 };
+      R.stumps++;
+    } else if (pod.active || pod.s > 0.05) { pod.ret = 1; } // passed: it merges
+  }
+  return R.stumps > 0;
+}
+
+/**
  * One frame of the default scheme for body b and roles R. r: raw input
  * ({ ls, rs: { m, dx, dy }, lt (choose), rt (move), lb, rb }). env: { dt,
  * surge (a surge is on), rumble(ms, weak, strong), sound('enter' | 'commit') }.
@@ -314,6 +359,10 @@ export function selectInput(b, R, r, env = {}) {
     const mv = moveInput(st.adj, st.sel);
     bodyIn = mv.body; shape = mv.shape; turn = mv.turn; R.move = mv.what;
     R.on.sel = R.on.adj = false;
+    if (bodyIn && rollInto(b, R, st, bodyIn, pods)) {
+      // the body rolls into the stump(s): drawn in along the travel (the sides take the volume), the cell still crawling on
+      (shape ||= []).push({ ux: bodyIn.dx, uy: bodyIn.dy, m: -ROLL.squish * bodyIn.m });
+    }
   } else {
     R.move = null;
     for (const key of KEYS) {
