@@ -1,6 +1,6 @@
 // Micro Zoom: the game shell. Title (Press Start) → world select → world intro
 // → play, with each world (a prototype page) hosted in a same-origin iframe
-// and driven through the embed protocol (../../prototypes/shared/embed.js).
+// and driven through the embed protocol (../shared/embed.js).
 // Landmarks in a world play a zoom transition to the next world (forward) or
 // back up to the previous one (the backdoor). See ../README.md.
 import { WORLDS } from './worlds.js';
@@ -14,9 +14,9 @@ import { playContinuous, validPose, moveOf } from './continuous.js';
 import { loadRoster } from './players.js';
 import { listen, send } from './bus.js';
 import { glyph, glyphMode, refreshGlyphs, controlRows } from './glyphs.js';
-import { t, tx, fillText } from '../../prototypes/shared/text.js';
+import { t, tx, fillText } from '../shared/text.js';
 
-// Every player-facing string is in ../../prototypes/shared/text_config.js
+// Every player-facing string is in micro/text_config.js (../../text_config.js)
 // (keys under `shell.` and `worlds.`); index.html's static text is filled
 // from its data-t attributes first.
 fillText(document, { glyph: (b) => `<span class="g" data-btn="${b}"></span>` });

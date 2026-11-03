@@ -1,7 +1,7 @@
 # Micro Zoom: one boss per world
 
 Each world keeps its ordinary predators (with the shared fight rules in
-`micro/prototypes/shared/predation.js`: a visible wind-up, block with B, bite
+`micro/game/shared/predation.js`: a visible wind-up, block with B, bite
 back with X, interest that runs out). On top of that, each world reserves one
 **boss**: a bigger, real enemy of that habitat that guards the way to the
 forward landmark. A boss fight is about movement first: reading its tells,

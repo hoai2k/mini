@@ -1,11 +1,11 @@
 // World-to-world transitions: playTransition(from, to, dir) → Promise.
 //
 // 'microscope' style plays the zoom-transitions prototype. First choice is its
-// reusable module, prototypes/zoom/player.js (createTransitionPlayer({
+// reusable module, game/zoom/player.js (createTransitionPlayer({
 // container, audio }) → { play(from, to, {dir}), skip(), dispose() }, world
 // ids as in worlds.js), drawn into this layer. Failing that, the page itself
 // embedded
-// (prototypes/zoom/?embed=1&from=<id>&to=<id>&dir=in|out). It must declare
+// (game/zoom/?embed=1&from=<id>&to=<id>&dir=in|out). It must declare
 // embed.provide('transition'), play on `resume` and post `done`; until it
 // does, the shell falls back (once per session it probes, then remembers) to
 // its own specimen zoom below.
@@ -20,7 +20,7 @@
 // push. Going back up plays the same zoom in reverse.
 import { listen, send } from './bus.js';
 import { cardArt, loadImage } from './art.js';
-import { t } from '../../prototypes/shared/text.js';
+import { t } from '../shared/text.js';
 
 const HANDOFF = new Set(['mite>tardigrade', 'tardigrade>amoeba']);
 const smooth = (x) => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };

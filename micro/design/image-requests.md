@@ -128,9 +128,9 @@ Dedicated plates for the [continuous title zoom](title-zoom.html). The last plat
 ### TZ-01 · Springtail on a bog pool
 
 Status: delivered.
-[View runtime image](../prototypes/assets/game/title-zoom/springtail-bog.webp) · [Original PNG](generated/title-zoom/springtail-bog.png) · 1254 × 1254.
+[View runtime image](../game/assets/game/title-zoom/springtail-bog.webp) · [Original PNG](generated/title-zoom/springtail-bog.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/springtail-bog.png`
-Runtime file: `micro/prototypes/assets/game/title-zoom/springtail-bog.webp`
+Runtime file: `micro/game/assets/game/title-zoom/springtail-bog.webp`
 
 Prompt:
 
@@ -145,9 +145,9 @@ Scene: An ordinary dark water springtail, with segmented body, six little legs a
 ### TZ-02 · Mite among wet moss
 
 Status: delivered.
-[View runtime image](../prototypes/assets/game/title-zoom/mite-moss.webp) · [Original PNG](generated/title-zoom/mite-moss.png) · 1254 × 1254.
+[View runtime image](../game/assets/game/title-zoom/mite-moss.webp) · [Original PNG](generated/title-zoom/mite-moss.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/mite-moss.png`
-Runtime file: `micro/prototypes/assets/game/title-zoom/mite-moss.webp`
+Runtime file: `micro/game/assets/game/title-zoom/mite-moss.webp`
 
 Prompt:
 
@@ -162,9 +162,9 @@ Scene: An ordinary tiny box mite in wet moss litter, with its rounded armoured c
 ### TZ-03 · Tardigrade in the water film
 
 Status: delivered.
-[View runtime image](../prototypes/assets/game/title-zoom/tardigrade-film.webp) · [Original PNG](generated/title-zoom/tardigrade-film.png) · 1254 × 1254.
+[View runtime image](../game/assets/game/title-zoom/tardigrade-film.webp) · [Original PNG](generated/title-zoom/tardigrade-film.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/tardigrade-film.png`
-Runtime file: `micro/prototypes/assets/game/title-zoom/tardigrade-film.webp`
+Runtime file: `micro/game/assets/game/title-zoom/tardigrade-film.webp`
 
 Prompt:
 
@@ -179,9 +179,9 @@ Scene: A translucent ordinary tardigrade with eight short clawed legs crawling a
 ### TZ-04 · Amoeba and pond-water cells
 
 Status: delivered.
-[View runtime image](../prototypes/assets/game/title-zoom/amoeba-water.webp) · [Original PNG](generated/title-zoom/amoeba-water.png) · 1254 × 1254.
+[View runtime image](../game/assets/game/title-zoom/amoeba-water.webp) · [Original PNG](generated/title-zoom/amoeba-water.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/amoeba-water.png`
-Runtime file: `micro/prototypes/assets/game/title-zoom/amoeba-water.webp`
+Runtime file: `micro/game/assets/game/title-zoom/amoeba-water.webp`
 
 Prompt:
 
@@ -196,9 +196,9 @@ Scene: An ordinary translucent Amoeba proteus with broad lobed pseudopods, a tex
 ### TZ-05 · Paramecium in a pond drop
 
 Status: delivered.
-[View runtime image](../prototypes/assets/game/title-zoom/paramecium-drop.webp) · [Original PNG](generated/title-zoom/paramecium-drop.png) · 1254 × 1254.
+[View runtime image](../game/assets/game/title-zoom/paramecium-drop.webp) · [Original PNG](generated/title-zoom/paramecium-drop.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/paramecium-drop.png`
-Runtime file: `micro/prototypes/assets/game/title-zoom/paramecium-drop.webp`
+Runtime file: `micro/game/assets/game/title-zoom/paramecium-drop.webp`
 
 Prompt:
 
@@ -213,9 +213,9 @@ Scene: An ordinary translucent slipper-shaped paramecium with short fine cilia s
 ### TZ-06 · Bacterial cells and a host surface
 
 Status: delivered.
-[View runtime image](../prototypes/assets/game/title-zoom/bacterial-host.webp) · [Original PNG](generated/title-zoom/bacterial-host.png) · 1254 × 1254.
+[View runtime image](../game/assets/game/title-zoom/bacterial-host.webp) · [Original PNG](generated/title-zoom/bacterial-host.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/bacterial-host.png`
-Runtime file: `micro/prototypes/assets/game/title-zoom/bacterial-host.webp`
+Runtime file: `micro/game/assets/game/title-zoom/bacterial-host.webp`
 
 Prompt:
 
@@ -230,9 +230,9 @@ Scene: Several ordinary bacterial cells in a watery microscopic field, including
 ### TZ-07 · Normal phage in the updated environment
 
 Status: delivered.
-[View runtime image](../prototypes/assets/game/title-zoom/phage-normal.webp) · [Original PNG](generated/title-zoom/phage-normal.png) · 1254 × 1254.
+[View runtime image](../game/assets/game/title-zoom/phage-normal.webp) · [Original PNG](generated/title-zoom/phage-normal.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/phage-normal.png`
-Runtime file: `micro/prototypes/assets/game/title-zoom/phage-normal.webp`
+Runtime file: `micro/game/assets/game/title-zoom/phage-normal.webp`
 
 Prompt:
 
@@ -247,9 +247,9 @@ Scene: An ordinary T4-shaped bacteriophage approaches a bacterial host surface. 
 ### TZ-08 · Water bridge back into the bog
 
 Status: delivered.
-[View runtime image](../prototypes/assets/game/title-zoom/water-return.webp) · [Original PNG](generated/title-zoom/water-return.png) · 1254 × 1254.
+[View runtime image](../game/assets/game/title-zoom/water-return.webp) · [Original PNG](generated/title-zoom/water-return.png) · 1254 × 1254.
 Source: `micro/design/generated/title-zoom/water-return.png`
-Runtime file: `micro/prototypes/assets/game/title-zoom/water-return.webp`
+Runtime file: `micro/game/assets/game/title-zoom/water-return.webp`
 
 Prompt:
 

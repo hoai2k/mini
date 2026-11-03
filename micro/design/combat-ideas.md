@@ -12,7 +12,7 @@ mechanics for the shared controls in
 [`../prototypes/CONTROLS.md`](../prototypes/CONTROLS.md): **A** dash or jump,
 **B** defend, **X** attack, eat or bite back, **Y** special. The amoeba keeps
 its two-stick lead-and-follow pseudopods. The shared fight model in
-`prototypes/shared/predation.js` stays the baseline: a predator winds up, then
+`game/shared/predation.js` stays the baseline: a predator winds up, then
 strikes. You block with B or bite back with X, and the predator's interest
 wears down until it retreats. If it catches you, the camera follows it, the
 screen fades and you respawn.

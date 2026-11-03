@@ -1,7 +1,7 @@
 # Micro Zoom: performance audit
 
 Audit of every world (springtail, mite, tardigrade, amoeba, paramecium,
-bacterium, phage), the zoom transition player (`prototypes/zoom/`) and the
+bacterium, phage), the zoom transition player (`game/zoom/`) and the
 shell (`game/`), at 1 player and at 4 players split. Measured on 31 Oct 2026
 while other agents were adding fight-back and animations, so **line numbers are
 as of the audit and drift**: each reference also names the function. Nothing
@@ -137,7 +137,7 @@ trade-off (T2).
 
 ## Per world
 
-### Springtail (`prototypes/springtail/`, `shared/techniques/springtail-macro.js`, `springtail-surface.js`)
+### Springtail (`game/springtail/`, `shared/techniques/springtail-macro.js`, `springtail-surface.js`)
 
 Pipeline (`createMacro`): scene → `sceneRT` (RGBA16F + depth, full res) →
 `pre` (½ res, 4 fetches) → `tile` (1/32 res, 256 fetches: negligible) →
@@ -172,7 +172,7 @@ Top bottlenecks:
 3. **The DOF gather** (64 taps at ½ res, `GATHER_FS`): fine at 1 player, and
    reduced by the split pixel ratio.
 
-### Mite (`prototypes/mite/`, `shared/techniques/mite-sem.js`)
+### Mite (`game/mite/`, `shared/techniques/mite-sem.js`)
 
 Pipeline (`createSem`): scene → G-buffer (`FloatType` RGBA32F + depth, full
 res, `mite-sem.js` ~367) → SEM composite to the screen (8 AO taps, 8
@@ -202,7 +202,7 @@ Top bottlenecks:
    composite with poor cache locality (AO taps up to 34 µm away). It is
    bandwidth-heavy on integrated GPUs; it is fine at 1 player.
 
-### Tardigrade (`prototypes/tardigrade/`, `shared/techniques/tardigrade-dic.js`)
+### Tardigrade (`game/tardigrade/`, `shared/techniques/tardigrade-dic.js`)
 
 Pipeline (`DicMicroscope.render`): layers a and b (substrate, specimen), each
 an MRT of 2 × RGBA32F (`FloatType` whenever `EXT_float_blend` exists,
@@ -234,7 +234,7 @@ Top bottlenecks:
    when claws are scaled (`main.js` ~756), and `refreshNormals` per frame in
    the lit look.
 
-### Amoeba (`prototypes/amoeba/`, `render.js`, `shared/techniques/amoeba-optics.js`)
+### Amoeba (`game/amoeba/`, `render.js`, `shared/techniques/amoeba-optics.js`)
 
 Pipeline (`View.render`): per cell, a mask (MSAA 4×, cleared, resolved,
 `render.js` ~63) and the body + granules into `focusRT` (RGBA16F, additive);
@@ -264,7 +264,7 @@ Top bottlenecks:
 3. **Per-cell masks**: at 4 players, 16 MSAA mask passes and 16 resolves per
    frame, each clearing the whole target for one cell.
 
-### Paramecium (`prototypes/paramecium/`, `shared/techniques/paramecium-microscope.js`)
+### Paramecium (`game/paramecium/`, `shared/techniques/paramecium-microscope.js`)
 
 Pipeline (`createOptics.render`): scene → `main` (4 × RGBA16F MRT, additive,
 full res) → down (¼ res) → 2 blurs (¼ res, 15 taps × 3) → form (full, 9
@@ -293,7 +293,7 @@ Top bottlenecks:
 The quarter-resolution blurs here are already the right design: the other
 worlds should copy them.
 
-### Bacterium (`prototypes/bacterium/`, `shared/techniques/bacterium-fluorescence.js`)
+### Bacterium (`game/bacterium/`, `shared/techniques/bacterium-fluorescence.js`)
 
 Pipeline (`createLightOptics`): cells → `field` (3 × RGBA16F MRT, full res) →
 `diffract` (separable PSF, full res, 2 passes × up to 21 taps × 3 attachments)
@@ -315,7 +315,7 @@ Top bottlenecks:
    here.
 3. Split ×0.7 per view: 4 × 0.49 ≈ 2× fill.
 
-### Phage (`prototypes/phage/`, `shared/techniques/phage-goodsell.js`)
+### Phage (`game/phage/`, `shared/techniques/phage-goodsell.js`)
 
 Pipeline (`createPost`): scene → RGBA8 target (full res) → post (17 fetches:
 centre + 8 + 8 rings) to the screen. Ink outlines are inverted hulls
@@ -337,7 +337,7 @@ Top bottlenecks:
 3. Landmark arrow search (`shared/landmark.js` `inPoly` / `insetInside`
    ~50/~128): ~1.8 ms/frame at 4 players here, and GC at 1 player.
 
-### Zoom transition (`prototypes/zoom/`)
+### Zoom transition (`game/zoom/`)
 
 One procedural field pass (`FIELD_FS` in `specimen.js`: many small loops, no
 textures) and one optics pass (`zoom-optics.js`, 3 × 12-iteration loops), at
@@ -559,8 +559,8 @@ GPU timing are the final check: 4 players, 1080p, 60 fps.
 
 ## Second pass (2026-11-01)
 
-Scope: the shared modules (`prototypes/shared/*.js`), the game shell
-(`game/`), the zoom player and page (`prototypes/zoom/`) and `split-demo`.
+Scope: the shared modules (`game/shared/*.js`), the game shell
+(`game/`), the zoom player and page (`game/zoom/`) and `split-demo`.
 The worlds' own folders were out of scope; other sessions were editing them.
 
 `measure.mjs tardigrade 4 --url=q=high` ran before and after, back to back.
@@ -645,7 +645,7 @@ Verified with a deterministic A/B: virtual clock, seeded `Math.random`,
 frames stepped by hand, mock pads, and the original files served for "before".
 `split-demo` at 1 and 4 players (a 4-way split with landmarks) and the zoom
 page at 45 %: every canvas is byte-identical and the page text is identical.
-`node prototypes/check.mjs index zoom split-demo` passes,
+`node game/check-worlds.mjs index zoom split-demo` passes,
 `node game/check.mjs` passes, the Node tests pass 6/6, and `node --check`
 passes on every touched file.
 

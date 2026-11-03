@@ -1,5 +1,5 @@
 // Smoke check for the Micro Zoom shell: serves micro/ locally (the game at
-// /game/, the worlds at /prototypes/), opens the game in headless Chromium
+// /game/, the worlds at /game/<world>/), opens the game in headless Chromium
 // (software WebGL) and walks title → menu → intro → play (springtail) →
 // controls card → pause → settings → resume → the springtail's portal (the
 // continuous transition into the mite) → a back landmark (the zoom back out

@@ -2,7 +2,7 @@
 //
 //   node measure.mjs <world> [players=1] [seconds=8] [--native] [--size=1280x720] [--url=extra query]
 //
-// <world> is a folder under micro/prototypes (springtail, ..., zoom, split-demo)
+// <world> is a world folder under micro/game (springtail, ..., zoom), or split-demo (micro/prototypes)
 // or "game" for the shell. Writes out/<world>-<players>p.json (summary, a
 // median frame's passes, per-pass SwiftShader ms, CPU profile by file and by
 // function) and out/<world>-programs.json (every linked shader, for reading).
@@ -57,7 +57,7 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(String(e).slice(0, 300)));
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text().slice(0, 300)));
 
-const url = world === 'game' ? `${base}game/${extra ? '?' + extra : ''}` : `${base}prototypes/${world}/?f=-dynres,-adaptive${extra ? '&' + extra : ''}`;
+const url = world === 'game' ? `${base}game/${extra ? '?' + extra : ''}` : `${base}${world === 'split-demo' ? 'prototypes' : 'game'}/${world}/?f=-dynres,-adaptive${extra ? '&' + extra : ''}`;
 await page.goto(url, { waitUntil: 'load' });
 const sleep = (ms) => page.waitForTimeout(ms);
 await sleep(warm * 1000);

@@ -15,16 +15,16 @@
 //                      gives the split views their 0.7 / 0.55 scale.
 //   shared/crowd.js    a crowd of soft bodies east of the start: walk into it
 //                      to shove through, X bites a cone clear in front.
-import * as THREE from '../shared/vendor/three.module.min.js';
-import { createPlayers } from '../shared/players.js';
-import { hudControls } from '../shared/controls.js';
-import { mountHud } from '../shared/hud.js';
-import { createSplitScreen } from '../shared/splitscreen.js';
-import { createLandmarks } from '../shared/landmark.js';
-import { createFeatures } from '../shared/features.js';
-import { createQuality } from '../shared/quality.js';
-import { createCrowd } from '../shared/crowd.js';
-import { t as tt } from '../shared/text.js';
+import * as THREE from '../../game/shared/vendor/three.module.min.js';
+import { createPlayers } from '../../game/shared/players.js';
+import { hudControls } from '../../game/shared/controls.js';
+import { mountHud } from '../../game/shared/hud.js';
+import { createSplitScreen } from '../../game/shared/splitscreen.js';
+import { createLandmarks } from '../../game/shared/landmark.js';
+import { createFeatures } from '../../game/shared/features.js';
+import { createQuality } from '../../game/shared/quality.js';
+import { createCrowd } from '../../game/shared/crowd.js';
+import { t as tt } from '../../game/shared/text.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });

@@ -7,9 +7,9 @@
 // Every word the player sees (name, creature, Latin name, look,
 // magnification, field, body, the card's line, the one-line goal, the
 // controls labels and the field notes) is in
-// ../../prototypes/shared/text_config.js under `worlds.<id>`; it is merged
+// micro/text_config.js under `worlds.<id>`; it is merged
 // in below, so each world here carries the same fields as before.
-import { tx } from '../../prototypes/shared/text.js';
+import { tx } from '../shared/text.js';
 
 const TEXT_FIELDS = ['name', 'creature', 'latin', 'look', 'mag', 'magNote', 'field', 'body', 'line', 'goal', 'controls', 'facts'];
 

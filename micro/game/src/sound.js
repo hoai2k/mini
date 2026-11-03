@@ -1,5 +1,5 @@
 // The shell's own sound: the recorded menu sounds (the `ui/` group of
-// micro/design/source/build_audio.py, in ../prototypes/assets/audio/ui/:
+// micro/design/source/build_audio.py, in ../assets/audio/ui/:
 // focus moves, select, back, the intro card in and out, pause and resume, a
 // world card changing, the zoom in and back out, Begin), each falling back to
 // a small synthesised stand-in (a brass tick for focus, an objective click
@@ -10,13 +10,13 @@
 // that can't load. The worlds play
 // their own sound inside their frames; the master switch and volume set here
 // are sent to them (embed `sound`). Persisted in localStorage.
-import { SOUNDS } from '../../prototypes/shared/audio-list.js';
+import { SOUNDS } from '../shared/audio-list.js';
 
 const KEY = 'micro.game.sound';
 // The recorded menu sounds: their gains under the music (the files sit about
 // -20 to -25 dB mean; zoom-out is the loudest), and the paths in audio-list.js
-// are relative to the prototypes folder.
-const UI_BASE = new URL('../../prototypes/', import.meta.url);
+// are relative to micro/game/.
+const UI_BASE = new URL('../', import.meta.url);
 const UI = { move: 0.3, select: 0.45, back: 0.45, 'intro-in': 0.45, 'intro-out': 0.45, pause: 0.4, resume: 0.4, card: 0.4, 'zoom-in': 0.5, 'zoom-out': 0.35, start: 0.5 };
 const MOVE_GAP = 0.07; // s: held d-pad repeats are heard at most this often
 // TEMPORARY: the sound set, 'new' (the recorded sounds) or 'old' (the synthesised

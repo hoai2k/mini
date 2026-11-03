@@ -7,7 +7,7 @@ Not published: `tools/` is outside the Pages build.
 node micro/tools/perf/measure.mjs <world> [players=1] [seconds=8] [--size=1280x720] [--url=q=high] [--warm=8] [--tag=-before] [--native]
 ```
 
-- `<world>` is a folder under `micro/prototypes/` (springtail … phage, zoom,
+- `<world>` is a world folder under `micro/game/` (springtail … phage, zoom,
   split-demo) or `game` for the shell.
 - Writes `<world>-<players>p<tag>.json` and a screenshot to `$PERF_OUT`
   (default `out/`, ignored by Git): CPU ms per frame, draw calls, triangles,

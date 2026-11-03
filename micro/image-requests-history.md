@@ -10,7 +10,7 @@ One card per prototype on the prototypes page (micro/prototypes/), from the spri
 
 ### MP-U01 · Mite card (SEM)
 
-- **File:** `micro/prototypes/assets/cards/mite.webp`
+- **File:** `micro/game/assets/cards/mite.webp`
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Mite card on the prototypes page.
 - **Stand-in until delivered:** A grey gradient with the title.
@@ -27,7 +27,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 
 ### MP-U02 · Tardigrade card
 
-- **File:** `micro/prototypes/assets/cards/tardigrade.webp`
+- **File:** `micro/game/assets/cards/tardigrade.webp`
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Tardigrade card on the prototypes page.
 - **Stand-in until delivered:** A grey-green gradient with the title.
@@ -44,7 +44,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 
 ### MP-U03 · Amoeba card
 
-- **File:** `micro/prototypes/assets/cards/amoeba.webp`
+- **File:** `micro/game/assets/cards/amoeba.webp`
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Amoeba card on the prototypes page.
 - **Stand-in until delivered:** A pale warm gradient with the title.
@@ -61,7 +61,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 
 ### MP-U04 · Paramecium card
 
-- **File:** `micro/prototypes/assets/cards/paramecium.webp`
+- **File:** `micro/game/assets/cards/paramecium.webp`
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Paramecium card on the prototypes page.
 - **Stand-in until delivered:** A dark blue gradient with the title.
@@ -78,7 +78,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 
 ### MP-U05 · Springtail card (macro photography)
 
-- **File:** `micro/prototypes/assets/cards/springtail.webp`
+- **File:** `micro/game/assets/cards/springtail.webp`
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Springtail card on the prototypes page.
 - **Stand-in until delivered:** A moss-green gradient with the title.
@@ -96,7 +96,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 
 ### MP-U06 · Bacterium card (phase contrast)
 
-- **File:** `micro/prototypes/assets/cards/bacterium.webp`
+- **File:** `micro/game/assets/cards/bacterium.webp`
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Bacterium card on the prototypes page.
 - **Stand-in until delivered:** A dark slate gradient with the title.
@@ -114,7 +114,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 
 ### MP-U07 · Phage card (molecular illustration)
 
-- **File:** `micro/prototypes/assets/cards/phage.webp`
+- **File:** `micro/game/assets/cards/phage.webp`
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Phage card on the prototypes page.
 - **Stand-in until delivered:** A teal and amber gradient with the title.
@@ -129,7 +129,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 
 ### MP-U08 · Zoom transitions card
 
-- **File:** `micro/prototypes/assets/cards/zoom.webp`
+- **File:** `micro/game/assets/cards/zoom.webp`
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Zoom transitions card on the prototypes page.
 - **Stand-in until delivered:** A radial gradient with the title.
@@ -150,7 +150,7 @@ Textures for the scanning-electron-microscope mite prototype. The moss, grains a
 
 ### MP-M01 · SEM moss leaf surface
 
-- **File:** `micro/prototypes/assets/mite/sem-moss-leaf.webp`
+- **File:** `micro/game/assets/mite/sem-moss-leaf.webp`
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** Detail texture on the moss leaf blades the mite walks over.
 - **Stand-in until delivered:** Procedural elongated cell pattern with bright cell walls.
@@ -167,7 +167,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-M02 · SEM litter and mineral grains
 
-- **File:** `micro/prototypes/assets/mite/sem-litter.webp`
+- **File:** `micro/game/assets/mite/sem-litter.webp`
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The ground plane between moss stems.
 - **Stand-in until delivered:** Procedural grains and noise.
@@ -183,7 +183,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-M03 · SEM oribatid cuticle
 
-- **File:** `micro/prototypes/assets/mite/sem-cuticle.webp`
+- **File:** `micro/game/assets/mite/sem-cuticle.webp`
 - **Size:** 1024 x 1024, opaque, tileable
 - **Used for:** Detail texture on the mite's notogaster and leg segments.
 - **Stand-in until delivered:** Procedural fine pitting and sockets.
@@ -199,7 +199,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-M04 · SEM moss forest backdrop
 
-- **File:** `micro/prototypes/assets/mite/sem-backdrop.webp`
+- **File:** `micro/game/assets/mite/sem-backdrop.webp`
 - **Size:** 2560 x 1080, opaque
 - **Used for:** The far backdrop behind the walkable area, wrapped around the scene.
 - **Stand-in until delivered:** Dark gradient with fog.
@@ -219,7 +219,7 @@ Images for the tardigrade climbing prototype, seen through a DIC-style wet mount
 
 ### MP-T01 · Moss lamina cells (DIC)
 
-- **File:** `micro/prototypes/assets/tardigrade/lamina-dic.webp`
+- **File:** `micro/game/assets/tardigrade/lamina-dic.webp`
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** Surface of the leaf the tardigrade climbs on.
 - **Stand-in until delivered:** Procedural cell walls with directional relief.
@@ -235,7 +235,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-T02 · Sphagnum hyaline cells (DIC)
 
-- **File:** `micro/prototypes/assets/tardigrade/sphagnum-dic.webp`
+- **File:** `micro/game/assets/tardigrade/sphagnum-dic.webp`
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** A second leaf type, with big water-holding cells and pores.
 - **Stand-in until delivered:** Procedural large cells with fibril bands.
@@ -250,7 +250,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-T03 · Water-film backdrop
 
-- **File:** `micro/prototypes/assets/tardigrade/film-backdrop.webp`
+- **File:** `micro/game/assets/tardigrade/film-backdrop.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Out-of-focus plate behind the climbing plane.
 - **Stand-in until delivered:** Soft gradient with blurred leaf shapes.
@@ -267,7 +267,7 @@ Differential-interference-contrast (Nomarski) microscope look: smooth grey backg
 
 ### MP-T04 · Detritus and food particles
 
-- **File:** `micro/prototypes/assets/tardigrade/particles.png`
+- **File:** `micro/game/assets/tardigrade/particles.png`
 - **Size:** 1024 x 1024, transparent, 4 x 4 sprite grid
 - **Used for:** Drifting particles in the water film and food the tardigrade can reach.
 - **Stand-in until delivered:** Procedural specks.
@@ -288,7 +288,7 @@ Images for the amoeba prototype, seen in brightfield. The amoeba and its prey ar
 
 ### MP-A01 · Wet-mount background (brightfield)
 
-- **File:** `micro/prototypes/assets/amoeba/wetmount.webp`
+- **File:** `micro/game/assets/amoeba/wetmount.webp`
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The slide the amoeba crawls over.
 - **Stand-in until delivered:** Procedural pale field with soft detritus.
@@ -305,7 +305,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-A02 · Amoeba cytoplasm granules
 
-- **File:** `micro/prototypes/assets/amoeba/cytoplasm.webp`
+- **File:** `micro/game/assets/amoeba/cytoplasm.webp`
 - **Size:** 1024 x 1024, opaque, tileable
 - **Used for:** Granular endoplasm texture that streams inside the amoeba.
 - **Stand-in until delivered:** Procedural granule noise.
@@ -320,7 +320,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-A03 · Algal filament backdrop
 
-- **File:** `micro/prototypes/assets/amoeba/filaments.webp`
+- **File:** `micro/game/assets/amoeba/filaments.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Out-of-focus layer above the slide.
 - **Stand-in until delivered:** Blurred procedural filaments.
@@ -340,7 +340,7 @@ Images for the Paramecium swimming prototype, which can switch between darkfield
 
 ### MP-P01 · Pond habitat plate (darkfield)
 
-- **File:** `micro/prototypes/assets/paramecium/darkfield-plate.webp`
+- **File:** `micro/game/assets/paramecium/darkfield-plate.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The far background in darkfield mode.
 - **Stand-in until delivered:** Black field with procedural scattering specks.
@@ -357,7 +357,7 @@ Darkfield microscope look: near-black background, objects visible only as bright
 
 ### MP-P02 · Pond habitat plate (phase contrast)
 
-- **File:** `micro/prototypes/assets/paramecium/phase-plate.webp`
+- **File:** `micro/game/assets/paramecium/phase-plate.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The far background in phase-contrast mode.
 - **Stand-in until delivered:** Mid-grey field with procedural haloed specks.
@@ -374,7 +374,7 @@ Phase-contrast microscope look: mid-grey background, transparent structures dark
 
 ### MP-P03 · Paramecium pellicle
 
-- **File:** `micro/prototypes/assets/paramecium/pellicle.webp`
+- **File:** `micro/game/assets/paramecium/pellicle.webp`
 - **Size:** 1024 x 1024, opaque, tileable
 - **Used for:** Surface pattern on the cell body under the cilia.
 - **Stand-in until delivered:** Procedural kinety rows.
@@ -389,7 +389,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-P04 · Pond habitat tile (darkfield, seamless)
 
-- **File:** `micro/prototypes/assets/paramecium/darkfield-tile.webp`
+- **File:** `micro/game/assets/paramecium/darkfield-tile.webp`
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The far background in darkfield mode (the default look again), repeated as the view moves. MP-P01 is not seamless, so its edges show as straight dark seams across the screen as you swim.
 - **Stand-in until delivered:** MP-P01, with its seams.
@@ -406,7 +406,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-P05 · Pond habitat tile (phase contrast, seamless)
 
-- **File:** `micro/prototypes/assets/paramecium/phase-tile.webp`
+- **File:** `micro/game/assets/paramecium/phase-tile.webp`
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The far background in phase-contrast mode, repeated as the view moves (MP-P02 is not seamless).
 - **Stand-in until delivered:** MP-P02, with its seams.
@@ -423,7 +423,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-P06 · Paramecium bursaria, darkfield, top down (body sprite)
 
-- **File:** `micro/prototypes/assets/paramecium/bursaria-darkfield.webp`
+- **File:** `micro/game/assets/paramecium/bursaria-darkfield.webp`
 - **Size:** 1024 x 512, transparent (#FF00FF background), the cell's long axis horizontal, front to the right
 - **Used for:** The 2D slide (2026-11-02 redesign): the inside of the player's cell, drawn under its procedural outline, beating cilia fringe, granules and contractile vacuoles, tinted per player's Chlorella shade. The card art (MP-U04) is the target look.
 - **Stand-in until delivered:** Procedural: a faint fill, about 150 Chlorella dots, golden granules, the macronucleus and two star-shaped contractile vacuoles.
@@ -439,7 +439,7 @@ Darkfield microscope look: near-black background, objects visible only as bright
 
 ### MP-P07 · Hunters of the pond drop in darkfield (reference sheet)
 
-- **File:** `micro/prototypes/assets/reference-sheets/paramecium-hunters-darkfield.webp`
+- **File:** `micro/game/assets/reference-sheets/paramecium-hunters-darkfield.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the 2D slide's enemies as the card shows its creatures (luminous outlines, golden granules on black): Didinium, Dileptus, Amoeba proteus and the bladderwort trap, each seen straight down.
 - **Stand-in until delivered:** Procedural outlines built from the brightfield sheets (MP-R06 Didinium, MP-R17 Chaos, MP-R18 bladderwort) and anatomy.
@@ -457,7 +457,7 @@ Darkfield microscope look: near-black background, objects visible only as bright
 
 ### MP-P08 · World intro plate: the pond drop in darkfield (2D slide)
 
-- **File:** `micro/prototypes/assets/game/intro-paramecium-darkfield.webp`
+- **File:** `micro/game/assets/game/intro-paramecium-darkfield.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** A replacement for the Hollow Pool intro plate (MP-G11, a brightfield 3D scene) to match the 2D darkfield slide the world now is and its card (MP-U04); the shell switches to it once delivered.
 - **Stand-in until delivered:** MP-G11.
@@ -479,7 +479,7 @@ Images for the springtail prototype (Level 0, the bog surface), seen as a macro 
 
 ### MP-S01 · Bog pool water surface
 
-- **File:** `micro/prototypes/assets/springtail/water-surface.webp`
+- **File:** `micro/game/assets/springtail/water-surface.webp`
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The surface film the springtail walks and jumps on.
 - **Stand-in until delivered:** Procedural dark water with drifting specks.
@@ -496,7 +496,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-S02 · Sphagnum lawn from above
 
-- **File:** `micro/prototypes/assets/springtail/sphagnum-lawn.webp`
+- **File:** `micro/game/assets/springtail/sphagnum-lawn.webp`
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The moss lawn around the pool, the springtail's dry ground.
 - **Stand-in until delivered:** Procedural green star clusters.
@@ -513,7 +513,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-S03 · Bog backdrop plate
 
-- **File:** `micro/prototypes/assets/springtail/bog-backdrop.webp`
+- **File:** `micro/game/assets/springtail/bog-backdrop.webp`
 - **Size:** 2560 x 1080, opaque
 - **Used for:** The far backdrop, wrapped around the scene at springtail height.
 - **Stand-in until delivered:** Soft green-brown gradient with blurred shapes.
@@ -530,7 +530,7 @@ Macro-photography look: a real photograph through a macro lens at 2 to 5 times l
 
 ### MP-S04 · Sundew leaf plate
 
-- **File:** `micro/prototypes/assets/springtail/sundew-leaf.png`
+- **File:** `micro/game/assets/springtail/sundew-leaf.png`
 - **Size:** 1536 x 1536, transparent
 - **Used for:** The sundew leaf hazard: sticky tentacles that hold the springtail.
 - **Stand-in until delivered:** Procedural red stalks with clear droplets.
@@ -545,7 +545,7 @@ Macro-photography look: a real photograph through a macro lens at 2 to 5 times l
 
 ### MP-S05 · Raindrop and ripple sprites
 
-- **File:** `micro/prototypes/assets/springtail/ripples.png`
+- **File:** `micro/game/assets/springtail/ripples.png`
 - **Size:** 2048 x 2048, transparent, 4 x 4 sprite grid
 - **Used for:** Raindrop impacts and the ripples they send across the pool surface.
 - **Stand-in until delivered:** Procedural expanding rings.
@@ -559,7 +559,7 @@ Macro-photography look: a real photograph through a macro lens at 2 to 5 times l
 
 ### MP-S06 · Bog pondweed floating leaf plate
 
-- **File:** `micro/prototypes/assets/springtail/pondweed-leaf.png`
+- **File:** `micro/game/assets/springtail/pondweed-leaf.png`
 - **Size:** 1536 x 768, transparent
 - **Used for:** The floating leaves of bog pondweed that grow thick round each portal raft (the wolf spiders' hunting grounds) and only here and there elsewhere: a sign that the way on is a few seconds off. Mapped onto each leaf from above.
 - **Stand-in until delivered:** Procedural smooth, glossy fresh-green leaves with a soft yellow-green rim, a pale midrib and parallel veins, some faintly flushed red.
@@ -579,7 +579,7 @@ Images for the run-and-tumble bacterium prototype (Level 5), at 1000x oil immers
 
 ### MP-B01 · Bog-sediment bacteria (phase contrast)
 
-- **File:** `micro/prototypes/assets/bacterium/sediment-phase.webp`
+- **File:** `micro/game/assets/bacterium/sediment-phase.webp`
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The far background: the sediment field the bacterium swims over.
 - **Stand-in until delivered:** Procedural grey field with haloed rods.
@@ -596,7 +596,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-B02 · Biofilm surface
 
-- **File:** `micro/prototypes/assets/bacterium/biofilm.webp`
+- **File:** `micro/game/assets/bacterium/biofilm.webp`
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The biofilm floor: dense cells in matrix, with channels between clusters.
 - **Stand-in until delivered:** Procedural cell clusters on a dark field.
@@ -612,7 +612,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-B03 · Grazer's oral region (looming ciliate)
 
-- **File:** `micro/prototypes/assets/bacterium/grazer-mouth.webp`
+- **File:** `micro/game/assets/bacterium/grazer-mouth.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The looming threat: a ciliate's feeding current and mouth filling the frame.
 - **Stand-in until delivered:** A dark procedural wall with a beating fringe.
@@ -629,7 +629,7 @@ Phase-contrast microscope look at 1000x oil immersion: mid-grey background, tran
 
 ### MP-B04 · Magnetosome chain (fluorescence texture)
 
-- **File:** `micro/prototypes/assets/bacterium/magnetosomes.webp`
+- **File:** `micro/game/assets/bacterium/magnetosomes.webp`
 - **Size:** 1024 x 1024, opaque, tileable
 - **Used for:** Texture inside the magnetotactic bacterium's body and on its compass display.
 - **Stand-in until delivered:** Procedural dotted chain.
@@ -643,11 +643,11 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ## Phage (molecular illustration)
 
-Images for the phage world (Level 6): no light microscope can see a phage, so the level is an illustration grounded in cryo-EM shapes. Since the revamp (November 2026) its default look is an illustrative molecular scene in false light (micro/prototypes/phage/LOOK.md): dense bead-cluster molecules with ambient occlusion, thin silhouettes and colour by molecule type. The phage, hosts and molecules are built in code; these give surfaces, the backdrop in every direction, look-development sheets, the new humic-floc obstacle, and an updated card and intro plate. Everything open here has a procedural stand-in (the card and intro keep the current art until delivered).
+Images for the phage world (Level 6): no light microscope can see a phage, so the level is an illustration grounded in cryo-EM shapes. Since the revamp (November 2026) its default look is an illustrative molecular scene in false light (micro/game/phage/LOOK.md): dense bead-cluster molecules with ambient occlusion, thin silhouettes and colour by molecule type. The phage, hosts and molecules are built in code; these give surfaces, the backdrop in every direction, look-development sheets, the new humic-floc obstacle, and an updated card and intro plate. Everything open here has a procedural stand-in (the card and intro keep the current art until delivered).
 
 ### MP-V01 · Outer membrane surface (top view)
 
-- **File:** `micro/prototypes/assets/phage/envelope.webp`
+- **File:** `micro/game/assets/phage/envelope.webp`
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The host cell's surface the phage lands on and walks across.
 - **Stand-in until delivered:** Procedural lipopolysaccharide brush and protein dots.
@@ -662,7 +662,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-V02 · Crowded water (backdrop)
 
-- **File:** `micro/prototypes/assets/phage/water.webp`
+- **File:** `micro/game/assets/phage/water.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The far backdrop of the water the phage drifts through.
 - **Stand-in until delivered:** A soft gradient with procedural molecule dots.
@@ -676,7 +676,7 @@ Molecular-illustration look in the manner of David Goodsell's watercolours: flat
 
 ### MP-V03 · Envelope cross-section
 
-- **File:** `micro/prototypes/assets/phage/envelope-section.webp`
+- **File:** `micro/game/assets/phage/envelope-section.webp`
 - **Size:** 2560 x 1080, opaque
 - **Used for:** The cutaway shown when the tail tube pierces the envelope and the DNA enters.
 - **Stand-in until delivered:** Procedural layered bands.
@@ -691,7 +691,7 @@ Molecular-illustration look in the manner of David Goodsell's watercolours: flat
 
 ### MP-V04 · Molecule species sheet (look development)
 
-- **File:** `micro/prototypes/assets/reference-sheets/phage-molecules.webp`
+- **File:** `micro/game/assets/reference-sheets/phage-molecules.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Look development for the revamped phage world: sets the shape, size and colour of each kind of molecule in the water and on the host (the bead-cluster templates and palette in shared/techniques/phage-beads.js). Not drawn in the game.
 - **Stand-in until delivered:** None needed: the templates and palette are built in code from the species list in phage/LOOK.md.
@@ -707,7 +707,7 @@ Illustrative molecular look, as in modern molecular visualisation (mesoscale cel
 
 ### MP-V05 · Host envelope surface (false light, tileable)
 
-- **File:** `micro/prototypes/assets/phage/envelope-fl.webp`
+- **File:** `micro/game/assets/phage/envelope-fl.webp`
 - **Size:** 2048 x 2048, opaque, tileable
 - **Used for:** The revamped hosts' wet outer membrane: its albedo and relief under the bead forest of LPS and proteins (replaces MP-V01's grain in the default look).
 - **Stand-in until delivered:** Procedural wet relief (world-space noise bump and cavity darkening) under a bead forest of LPS and proteins.
@@ -722,7 +722,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-V06 · Deep water panorama (every direction)
 
-- **File:** `micro/prototypes/assets/phage/water-panorama.webp`
+- **File:** `micro/game/assets/phage/water-panorama.webp`
 - **Size:** 4096 x 2048, opaque, equirectangular, wraps left to right
 - **Used for:** The far backdrop of the revamped phage world, sampled by view direction so the water is full wherever the camera turns (no up or down). Replaces MP-V02's flat plate in the default look.
 - **Stand-in until delivered:** A procedural backdrop drawn by view direction in the final pass, behind a bath of thousands of molecules and a shell of far cells in every direction.
@@ -737,7 +737,7 @@ Illustrative molecular look, as in modern molecular visualisation (mesoscale cel
 
 ### MP-V07 · Far molecule sprite sheet
 
-- **File:** `micro/prototypes/assets/phage/molecule-sprites.webp`
+- **File:** `micro/game/assets/phage/molecule-sprites.webp`
 - **Size:** 2048 x 2048, transparent (or #FF00FF background)
 - **Used for:** Optional far layer: the most distant molecules of the phage world as soft camera-facing sprites (the near ones stay 3D bead clusters).
 - **Stand-in until delivered:** Procedural bead-cluster impostors drawn in the shader (the same shader the near molecules use).
@@ -752,7 +752,7 @@ Illustrative molecular look, as in modern molecular visualisation (mesoscale cel
 
 ### MP-R21 · Humic floc (a new obstacle)
 
-- **File:** `micro/prototypes/assets/reference-sheets/humic-floc.webp`
+- **File:** `micro/game/assets/reference-sheets/humic-floc.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the humic flocs of the revamped phage world: drifting sticky tangles of humic matter that snag extended tail fibres (fold them with B to slip through).
 - **Stand-in until delivered:** Procedural flocs: tangled bead chains with clumps, built in code.
@@ -767,7 +767,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R22 · Host bacterium in the new look
 
-- **File:** `micro/prototypes/assets/reference-sheets/phage-host.webp`
+- **File:** `micro/game/assets/reference-sheets/phage-host.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling and colouring the revamped host cells (Host A and B, Gram-negative rods) and, for contrast, the wrong host (a Gram-positive rod) of the phage world.
 - **Stand-in until delivered:** None needed: the hosts are built in code (capsule body, wet relief, bead forest).
@@ -783,7 +783,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-U09 · Phage card (the new look)
 
-- **File:** `micro/prototypes/assets/cards/phage.webp`
+- **File:** `micro/game/assets/cards/phage.webp`
 - **Size:** 1200 x 800, opaque
 - **Used for:** The Phage card in Micro Zoom's world select and on the prototypes page. Replaces MP-U07's file in place: until it is delivered, the card shows MP-U07 (the old watercolour card).
 - **Stand-in until delivered:** MP-U07, the current card.
@@ -799,7 +799,7 @@ Landscape key art for a scientific microscopy game prototype, 3:2. Leave the low
 
 ### MP-G14 · World intro: Host surface (phage), the new look
 
-- **File:** `micro/prototypes/assets/game/intro-phage.webp`
+- **File:** `micro/game/assets/game/intro-phage.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The phage world's intro screen, which the select card zooms into; text sits over the left third. Replaces MP-G13's file in place: until it is delivered, the intro shows MP-G13.
 - **Stand-in until delivered:** MP-G13, the current intro plate.
@@ -819,7 +819,7 @@ Art for the full game (micro/game/): title screen, menu, cards and the intro scr
 
 ### MP-G01 · Micro Zoom logo
 
-- **File:** `micro/prototypes/assets/game/logo.png`
+- **File:** `micro/game/assets/game/logo.png`
 - **Size:** 1600 x 640, transparent
 - **Used for:** The title screen, the pause menu header and the library card.
 - **Stand-in until delivered:** The words MICRO ZOOM set in the game's display font.
@@ -834,7 +834,7 @@ Visual style for the game Micro Zoom: a Victorian natural-history laboratory see
 
 ### MP-G02 · Title screen key art
 
-- **File:** `micro/prototypes/assets/game/title.webp`
+- **File:** `micro/game/assets/game/title.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Full-screen behind the title (Press Start).
 - **Stand-in until delivered:** A slow procedural zoom through the worlds' colours.
@@ -852,7 +852,7 @@ Visual style for the game Micro Zoom: a Victorian natural-history laboratory see
 
 ### MP-G03 · Menu background
 
-- **File:** `micro/prototypes/assets/game/menu.webp`
+- **File:** `micro/game/assets/game/menu.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Behind the world-select cards.
 - **Stand-in until delivered:** A dark green-to-ink gradient with a faint engraved grid.
@@ -866,7 +866,7 @@ Visual style for the game Micro Zoom: a Victorian natural-history laboratory see
 
 ### MP-G04 · Card frame
 
-- **File:** `micro/prototypes/assets/game/card-frame.png`
+- **File:** `micro/game/assets/game/card-frame.png`
 - **Size:** 1024 x 1400, transparent
 - **Used for:** The frame around each world card on the select screen (stretched as a 9-slice).
 - **Stand-in until delivered:** A CSS brass border with engraved corner marks.
@@ -880,7 +880,7 @@ Visual style for the game Micro Zoom: a Victorian natural-history laboratory see
 
 ### MP-G05 · Paper panel texture
 
-- **File:** `micro/prototypes/assets/game/paper.webp`
+- **File:** `micro/game/assets/game/paper.webp`
 - **Size:** 1024 x 1024, opaque, tileable
 - **Used for:** Panels: the intro text, the pause menu, settings and the controls card.
 - **Stand-in until delivered:** A flat warm ivory with procedural grain.
@@ -894,7 +894,7 @@ Seamlessly tileable square texture: the left edge continues into the right edge 
 
 ### MP-G06 · App icon
 
-- **File:** `micro/prototypes/assets/game/icon.png`
+- **File:** `micro/game/assets/game/icon.png`
 - **Size:** 1024 x 1024, transparent
 - **Used for:** Browser tab and home-screen icon.
 - **Stand-in until delivered:** A drawn brass objective ring.
@@ -908,7 +908,7 @@ Visual style for the game Micro Zoom: a Victorian natural-history laboratory see
 
 ### MP-G07 · World intro: Bog surface (springtail)
 
-- **File:** `micro/prototypes/assets/game/intro-springtail.webp`
+- **File:** `micro/game/assets/game/intro-springtail.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The intro screen of this world, which the select card zooms into; text sits over the left third.
 - **Stand-in until delivered:** The world's launcher card, enlarged and blurred.
@@ -924,7 +924,7 @@ Visual style for the game Micro Zoom: a Victorian natural-history laboratory see
 
 ### MP-G08 · World intro: Moss canopy (mite)
 
-- **File:** `micro/prototypes/assets/game/intro-mite.webp`
+- **File:** `micro/game/assets/game/intro-mite.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The intro screen of this world, which the select card zooms into; text sits over the left third.
 - **Stand-in until delivered:** The world's launcher card, enlarged and blurred.
@@ -940,7 +940,7 @@ Visual style for the game Micro Zoom: a Victorian natural-history laboratory see
 
 ### MP-G09 · World intro: Water film (tardigrade)
 
-- **File:** `micro/prototypes/assets/game/intro-tardigrade.webp`
+- **File:** `micro/game/assets/game/intro-tardigrade.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The intro screen of this world, which the select card zooms into; text sits over the left third.
 - **Stand-in until delivered:** The world's launcher card, enlarged and blurred.
@@ -956,7 +956,7 @@ Visual style for the game Micro Zoom: a Victorian natural-history laboratory see
 
 ### MP-G10 · World intro: Pool floor (amoeba)
 
-- **File:** `micro/prototypes/assets/game/intro-amoeba.webp`
+- **File:** `micro/game/assets/game/intro-amoeba.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The intro screen of this world, which the select card zooms into; text sits over the left third.
 - **Stand-in until delivered:** The world's launcher card, enlarged and blurred.
@@ -972,7 +972,7 @@ Visual style for the game Micro Zoom: a Victorian natural-history laboratory see
 
 ### MP-G11 · World intro: Hollow pool (Paramecium)
 
-- **File:** `micro/prototypes/assets/game/intro-paramecium.webp`
+- **File:** `micro/game/assets/game/intro-paramecium.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The intro screen of this world, which the select card zooms into; text sits over the left third.
 - **Stand-in until delivered:** The world's launcher card, enlarged and blurred.
@@ -988,7 +988,7 @@ Visual style for the game Micro Zoom: a Victorian natural-history laboratory see
 
 ### MP-G12 · World intro: Sediment (bacterium)
 
-- **File:** `micro/prototypes/assets/game/intro-bacterium.webp`
+- **File:** `micro/game/assets/game/intro-bacterium.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The intro screen of this world, which the select card zooms into; text sits over the left third.
 - **Stand-in until delivered:** The world's launcher card, enlarged and blurred.
@@ -1004,7 +1004,7 @@ Visual style for the game Micro Zoom: a Victorian natural-history laboratory see
 
 ### MP-G13 · World intro: Host surface (phage)
 
-- **File:** `micro/prototypes/assets/game/intro-phage.webp`
+- **File:** `micro/game/assets/game/intro-phage.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** The intro screen of this world, which the select card zooms into; text sits over the left third.
 - **Stand-in until delivered:** The world's launcher card, enlarged and blurred.
@@ -1024,7 +1024,7 @@ One boss per world (micro/design/bosses.md). Orthographic modelling sheets, like
 
 ### MP-R14 · Pond wolf spider (Pirata), boss of the bog surface
 
-- **File:** `micro/prototypes/assets/reference-sheets/boss-wolf-spider.webp`
+- **File:** `micro/game/assets/reference-sheets/boss-wolf-spider.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling this world's boss.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1040,7 +1040,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R15 · Pseudoscorpion, boss of the moss canopy
 
-- **File:** `micro/prototypes/assets/reference-sheets/boss-pseudoscorpion.webp`
+- **File:** `micro/game/assets/reference-sheets/boss-pseudoscorpion.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling this world's boss.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1056,7 +1056,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R16 · Predatory nematode (Prionchulus), boss of the water film
 
-- **File:** `micro/prototypes/assets/reference-sheets/boss-nematode.webp`
+- **File:** `micro/game/assets/reference-sheets/boss-nematode.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling this world's boss.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1071,7 +1071,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R17 · Giant amoeba (Chaos), boss of the pool floor
 
-- **File:** `micro/prototypes/assets/reference-sheets/boss-chaos.webp`
+- **File:** `micro/game/assets/reference-sheets/boss-chaos.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling this world's boss.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1087,7 +1087,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R18 · Bladderwort trap (Utricularia), boss of the hollow pool
 
-- **File:** `micro/prototypes/assets/reference-sheets/boss-bladderwort.webp`
+- **File:** `micro/game/assets/reference-sheets/boss-bladderwort.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling this world's boss.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1103,7 +1103,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R19 · Stentor, boss of the sediment
 
-- **File:** `micro/prototypes/assets/reference-sheets/boss-stentor.webp`
+- **File:** `micro/game/assets/reference-sheets/boss-stentor.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling this world's boss.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1120,7 +1120,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R20 · CRISPR-Cas complex, boss inside the host
 
-- **File:** `micro/prototypes/assets/reference-sheets/boss-cas.webp`
+- **File:** `micro/game/assets/reference-sheets/boss-cas.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling this world's boss.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1141,7 +1141,7 @@ One orthographic turnaround sheet per creature or enemy that will be built as a 
 
 ### MP-R01 · Water springtail (Podura aquatica)
 
-- **File:** `micro/prototypes/assets/reference-sheets/springtail.webp`
+- **File:** `micro/game/assets/reference-sheets/springtail.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the springtail protagonist (Level 0).
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1155,7 +1155,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R02 · Rove beetle (Stenus)
 
-- **File:** `micro/prototypes/assets/reference-sheets/stenus.webp`
+- **File:** `micro/game/assets/reference-sheets/stenus.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the Stenus rove beetle that skims on the water and harpoons springtails.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1170,7 +1170,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R03 · Water strider (Gerris)
 
-- **File:** `micro/prototypes/assets/reference-sheets/water-strider.webp`
+- **File:** `micro/game/assets/reference-sheets/water-strider.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the water strider standing on the pool surface.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1184,7 +1184,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R04 · Predatory mite (Pergamasus-type)
 
-- **File:** `micro/prototypes/assets/reference-sheets/predatory-mite.webp`
+- **File:** `micro/game/assets/reference-sheets/predatory-mite.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the predatory mesostigmatid mite (Levels 0 and 1).
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1199,7 +1199,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R13 · Predatory mite (Pergamasus-type), revision
 
-- **File:** `micro/prototypes/assets/reference-sheets/predatory-mite-v2.webp`
+- **File:** `micro/game/assets/reference-sheets/predatory-mite-v2.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Replaces MP-R04, which came out as a domed, glossy, dark tick-like mite. Modelling the predatory mesostigmatid mite (Levels 0 and 1).
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1214,7 +1214,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R05 · Predatory tardigrade (Milnesium)
 
-- **File:** `micro/prototypes/assets/reference-sheets/milnesium.webp`
+- **File:** `micro/game/assets/reference-sheets/milnesium.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Milnesium, the carnivorous tardigrade of Level 2.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1230,7 +1230,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R06 · Didinium nasutum
 
-- **File:** `micro/prototypes/assets/reference-sheets/didinium.webp`
+- **File:** `micro/game/assets/reference-sheets/didinium.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Didinium, the Paramecium hunter of Level 3.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1245,7 +1245,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R07 · Paramecium bursaria
 
-- **File:** `micro/prototypes/assets/reference-sheets/paramecium-bursaria.webp`
+- **File:** `micro/game/assets/reference-sheets/paramecium-bursaria.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the Level 3 protagonist, the green Paramecium.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1260,7 +1260,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R08 · Peranema trichophorum
 
-- **File:** `micro/prototypes/assets/reference-sheets/peranema.webp`
+- **File:** `micro/game/assets/reference-sheets/peranema.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Peranema, the gliding predatory euglenid of Level 4.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1275,7 +1275,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R09 · Actinophrys sol (sun animalcule)
 
-- **File:** `micro/prototypes/assets/reference-sheets/actinophrys.webp`
+- **File:** `micro/game/assets/reference-sheets/actinophrys.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Actinophrys, the radiating ambush predator of Level 4.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1289,7 +1289,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R10 · Magnetotactic bacterium
 
-- **File:** `micro/prototypes/assets/reference-sheets/magnetotactic.webp`
+- **File:** `micro/game/assets/reference-sheets/magnetotactic.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the Level 5 protagonist.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1303,7 +1303,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R11 · Bdellovibrio bacteriovorus
 
-- **File:** `micro/prototypes/assets/reference-sheets/bdellovibrio.webp`
+- **File:** `micro/game/assets/reference-sheets/bdellovibrio.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling Bdellovibrio, the predatory bacterium of Level 5.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1317,7 +1317,7 @@ Orthographic model reference sheet for building a 3D model: the same single indi
 
 ### MP-R12 · Bacteriophage T4
 
-- **File:** `micro/prototypes/assets/reference-sheets/phage-t4.webp`
+- **File:** `micro/game/assets/reference-sheets/phage-t4.webp`
 - **Size:** 2048 x 2048, opaque
 - **Used for:** Modelling the phage protagonist of Level 6 and the phages that threaten Level 5.
 - **Stand-in until delivered:** None needed: the model is built from the photographs.
@@ -1335,7 +1335,7 @@ Concept plates for the levels that have no prototype art yet: the mood, palette 
 
 ### MP-E01 · The bog surface at springtail height
 
-- **File:** `micro/prototypes/assets/concepts/bog-surface.webp`
+- **File:** `micro/game/assets/concepts/bog-surface.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Concept for Level 0, the bog surface.
 - **Stand-in until delivered:** None needed.
@@ -1355,7 +1355,7 @@ Macro-photography look: a real photograph through a macro lens at 2 to 5 times l
 
 ### MP-E02 · The periphyton at 400x
 
-- **File:** `micro/prototypes/assets/concepts/periphyton.webp`
+- **File:** `micro/game/assets/concepts/periphyton.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Concept for Level 4, the periphyton and the trap.
 - **Stand-in until delivered:** None needed.
@@ -1376,7 +1376,7 @@ Differential-interference-contrast (Nomarski) microscope look: smooth grey backg
 
 ### MP-E03 · The bacterial sediment at 1000x
 
-- **File:** `micro/prototypes/assets/concepts/bacterial-sediment.webp`
+- **File:** `micro/game/assets/concepts/bacterial-sediment.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Concept for Level 5, the film of bacteria.
 - **Stand-in until delivered:** None needed.
@@ -1394,7 +1394,7 @@ Phase-contrast microscope look at 1000x oil immersion: mid-grey background, tran
 
 ### MP-E04 · The phage level (molecular illustration)
 
-- **File:** `micro/prototypes/assets/concepts/phage-level.webp`
+- **File:** `micro/game/assets/concepts/phage-level.webp`
 - **Size:** 2560 x 1440, opaque
 - **Used for:** Concept for Level 6, the viruses.
 - **Stand-in until delivered:** None needed.

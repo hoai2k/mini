@@ -97,7 +97,7 @@ def main():
     for ident in IDS:
         r, candidate = requests[ident], inputs[ident]
         assert r.get('status', 'requested') == 'requested'
-        path = ROOT / 'prototypes' / r['file']
+        path = ROOT / 'game' / r['file']
         assert not path.exists(), ('Do not overwrite existing art', path)
         input_path = ROOT / 'design/generated/review' / candidate['candidate']
         assert hashlib.sha256(input_path.read_bytes()).hexdigest() == candidate['sha256']
@@ -138,7 +138,7 @@ def main():
     review.write_text(text)
     for ident, candidate in inputs.items():
         candidate['status'] = 'earlier candidate; finished texture delivered'
-        candidate['finished_file'] = 'micro/prototypes/' + requests[ident]['file']
+        candidate['finished_file'] = 'micro/game/' + requests[ident]['file']
     (ROOT / 'design/generated/review/manifest.json').write_text(json.dumps(list(inputs.values()), indent=2) + '\n')
 
 

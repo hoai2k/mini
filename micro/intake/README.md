@@ -6,7 +6,7 @@ is published or loaded.
 
 Save each image under the file name given in its **File** line in
 [`../image-requests.md`](../image-requests.md). On integration it
-moves to that path under `micro/prototypes/`, its status is set to `delivered`
+moves to that path under `micro/game/`, its status is set to `delivered`
 in `../design/source/build_requests.py`, and the script is rerun. Images on a
 flat `#FF00FF` background have the magenta keyed out; tileable textures are
 checked for seams.

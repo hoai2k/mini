@@ -1,5 +1,5 @@
 // Messages to and from the world frames (the protocol is documented in
-// micro/prototypes/shared/embed.js). Only same-origin messages tagged
+// micro/game/shared/embed.js). Only same-origin messages tagged
 // 'micro-embed' from a frame we registered are passed on.
 const TAG = 'micro-embed';
 const routes = new Map(); // Window -> fn(msg)

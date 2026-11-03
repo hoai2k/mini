@@ -1,6 +1,6 @@
 {
   "selected": "micro-lens",
-  "runtime_file": "../../../prototypes/assets/game/logo.png",
+  "runtime_file": "../../../game/assets/game/logo.png",
   "previous_delivery": {
     "id": "MP-G01",
     "name": "Micro Zoom logo",

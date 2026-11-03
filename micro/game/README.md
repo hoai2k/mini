@@ -10,7 +10,7 @@ carries on into the next world. Behind the start is an optional **backdoor**:
 dwell on it and press Y to zoom back out to the world above.
 
 Published at https://hoai2k.github.io/mini/micro/, public: it has no invite
-gate (`../prototypes/shared/boot.js` starts the page directly). Visits are
+gate (`../game/shared/boot.js` starts the page directly). Visits are
 counted for games.hoai.net/stats/ (the GoatCounter script in `index.html`).
 
 ## Structure
@@ -20,12 +20,12 @@ counted for games.hoai.net/stats/ (the GoatCounter script in `index.html`).
 | `index.html` | The screens: title, world select, world intro, play, transition layer, pause, settings, instructions, confirm |
 | `src/boot.js` | The invite door, then `main.js` |
 | `src/main.js` | The shell: screens, focus and controller navigation, the play frame and its messages, pause, settings, progression, test hooks (`window.__game`) |
-| `src/worlds.js` | The seven worlds: card data (field width for the zoom, art ids, tints) and whether there is a way back; their words (magnification, field, body, look, goal, controls, field notes) come from `worlds.<id>` in `../prototypes/shared/text_config.js` (see "Editing the game's text") |
+| `src/worlds.js` | The seven worlds: card data (field width for the zoom, art ids, tints) and whether there is a way back; their words (magnification, field, body, look, goal, controls, field notes) come from `worlds.<id>` in `../text_config.js` (see "Editing the game's text") |
 | `src/transition.js` | `playTransition(from, to, dir) → Promise`: the zoom between worlds (see below) |
 | `src/continuous.js` | `playContinuous(…)`: the continuous transition's camera move and crossfade between two live worlds (see below) |
 | `src/bus.js` | Messages to and from the world frames |
 | `src/input.js` | Menu input: every controller (any joined player drives the menus), keyboard, repeat timing, held-button locking |
-| `src/players.js` | The local players (up to four), through `../prototypes/shared/players.js`; a stub with the same surface stands in if it is missing |
+| `src/players.js` | The local players (up to four), through `../game/shared/players.js`; a stub with the same surface stands in if it is missing |
 | `src/glyphs.js` | Button glyphs: Xbox buttons whenever a controller is connected, keyboard keys only when none is |
 | `src/sound.js` | The shell's own synthesised sounds, the menu music and the master switch and volume (sent to the worlds) |
 | `music/` | The menu songs: `clockwork-chamber-music.mp3` (title) and `clockwork-lullaby.mp3` (world select and intros) |
@@ -33,13 +33,20 @@ counted for games.hoai.net/stats/ (the GoatCounter script in `index.html`).
 | `src/art.js` | Delivered images from `../image-requests.md`, with drawn stand-ins |
 | `src/style.css` | Ivory paper, brass rules and vernier ticks, ink green and oxblood; Cormorant Garamond and DM Sans (Google Fonts, with Georgia and system fallbacks) |
 | `icons/`, `manifest.webmanifest` | The app icon (MP-G06) at 512, 192, 180 and 32 px |
-| `check.mjs` | The headless check |
+| `check.mjs` | The headless check of the shell |
+| `check-worlds.mjs` | The headless check of each world's own page, the zoom player and the prototype browser |
+| `springtail/` … `phage/`, `zoom/` | The worlds and the zoom player, each with its own README |
+| `shared/` | Modules the worlds and the shell share (input, HUD, sound, text lookup, embed protocol, techniques) |
+| `assets/` | Delivered art and sound, listed in `shared/asset-list.js` and `shared/audio-list.js` |
 
-The modules reach the prototypes at `../../prototypes/` from `src/`. In the
-repository that is `micro/prototypes/`; `../publish.sh` puts `index.html` at
-the root of `<site>/micro/` and the modules in `<site>/micro/game/src/`,
-beside `<site>/micro/prototypes/`, so the same relative path holds (only
-`index.html`'s own `src/` references are rewritten to `game/src/`).
+Everything the game runs is under `micro/game/`: the shell in `src/`, the
+world pages (`springtail/` … `phage/`), `zoom/`, `shared/`, `assets/` and
+`music/`, all siblings, so the shell reaches a world at `../<world>/` and the
+shared modules at `../shared/` from `src/`. The player-facing text is one
+level up, in `micro/text_config.js`. `../publish.sh` mirrors that layout into
+`<site>/micro/` (`game/` to `<site>/micro/game/`, `text_config.js` beside
+it), so every relative path holds; only `index.html` moves, to the root of
+`<site>/micro/`, with its `src/` references rewritten to `game/src/`.
 
 ## Screens
 
@@ -86,7 +93,7 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
   which fades into the world when it is ready. Input is ignored during the
   reveal, and the world only runs once the Begin press is released. Going
   back to the tray discards the preload.
-- **Play.** The world in an iframe (`../prototypes/<world>/?embed=1`), a brass
+- **Play.** The world in an iframe (`../<world>/?embed=1`, i.e. `micro/game/<world>/`), a brass
   plaque (bottom right) with the world and its magnification, a controls-card
   button and a pause button. The controls card is the shell's own (in the
   game's style, filled with the world's live control rows from its HUD).
@@ -130,7 +137,7 @@ beside `<site>/micro/prototypes/`, so the same relative path holds (only
 
 ## The embed protocol
 
-Documented in full in `../prototypes/shared/embed.js`. In short:
+Documented in full in `../game/shared/embed.js`. In short:
 
 - World → shell: `ready` (sent by embed.js after the first frames), `hud`
   (the controls rows, sent by `shared/hud.js`), `landmark {kind:
@@ -286,14 +293,14 @@ the zoom out for now.
   `embed.poseCamera(camera, pose, centre, { len, heading })` and render. Post
   `embed.near('forward', on)` from ~a screen or two away so B preloads. The
   springtail's `startOutro` / `stepOutro` / `placePoseCamera` in
-  `../prototypes/springtail/main.js` are the reference.
+  `../game/springtail/main.js` are the reference.
 - B: `embed.provide('intro')` before its first frame; on `hold` place its
   opening camera, `embed.cinematic(true, canvas)` and reply
   `embed.opening(embed.poseOf(...))`; while `embed.held`, render without
   stepping, with `embed.poseCamera` for each `camera` pose (and set its rig
   from the result so play carries on from it); on `begin`, cinematic off and
   ease time back in. The mite's `placePoseCamera` and frame loop in
-  `../prototypes/mite/main.js` are the reference.
+  `../game/mite/main.js` are the reference.
 - The creature lengths must be the same creature's: A's speck and B's body
   (the speck 0.36 mm, the mite `2 × max(mite.radii)` µm).
 - No shell changes are needed: it takes the continuous path whenever A sends
@@ -316,7 +323,7 @@ same prompt itself (`shared/embed.js`). `near('forward')` stays a quiet
 
 `playTransition(from, to, dir)` in `src/transition.js` tries, in order:
 
-1. the zoom prototype's module, `../prototypes/zoom/player.js`
+1. the zoom prototype's module, `../game/zoom/player.js`
    (`createTransitionPlayer({ container }).play(fromId, toId, { dir })`),
    drawn into the transition layer under the shell's caption and readout (the
    readout follows `player.readout()`);
@@ -355,7 +362,7 @@ Every word a player sees, in the shell and in the seven worlds (menus,
 buttons, the intro's goal, controls and field notes, HUD lines, toasts,
 warnings, prompts, end cards, the features panels and their choices,
 aria-labels), is in one file:
-[`../prototypes/shared/text_config.js`](../prototypes/shared/text_config.js).
+[`../text_config.js`](../text_config.js) (at the top of `micro/`).
 It exports `TEXT`, a nested object with readable keys: `shell.*` (title,
 menu, intro, play, pause, settings, instructions, credits, toasts),
 `worlds.<id>.*` (each world's card and intro: name, look, magnification,
@@ -370,7 +377,7 @@ features panel, players, being eaten) and one block per world
   (or its key when no controller is connected); move them freely within a
   sentence. Simple markup (`<b>`, `<i>`, `<br>`) shows as markup where the
   string already had it.
-- Code reads it through `../prototypes/shared/text.js`: `t('shell.pause.resume')`
+- Code reads it through `shared/text.js`: `t('shell.pause.resume')`
   for a string (with `t(key, { n: 2 })` for placeholders), `tx(key)` for an
   array or object, and `fillText()` for the `data-t`, `data-t-html`,
   `data-t-aria` and `data-t-title` attributes in `index.html`. A missing key
@@ -383,7 +390,7 @@ features panel, players, being eaten) and one block per world
   the game), console messages, number and unit formatting (`mm`, `µm`, `nm`,
   `×`), button and key names (A, LS, Space, WASD), Latin species names used
   as data (the amoeba's prey), the zoom prototype's transition data and
-  status line (`../prototypes/zoom/chain.js`, a developer page), and the
+  status line (`../game/zoom/chain.js`, a developer page), and the
   page `<title>`/description meta in `index.html` (read without scripts).
 
 ## Checks
@@ -398,8 +405,8 @@ resume, renders transition stills, fires a forward landmark
 (`__game.forceLandmark('forward')`, the zoom into the mite, whose controls card
 must show) and a back landmark (back to the springtail). It fails on any
 console or page error and saves a screenshot of each screen to `$SHOTS`.
-Also run `node micro/prototypes/check.mjs`, since the shell loads the
-prototypes, and `bash micro/publish.sh local/pages/micro`.
+Also run `node micro/game/check-worlds.mjs`, which opens every world's own
+page and the prototype browser, and `bash micro/publish.sh local/pages/micro`.
 
 ## What each world still needs
 

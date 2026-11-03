@@ -10,7 +10,7 @@
 //   roster.list                    // [{ index, color, name, pad }]
 //   roster.toJSON()                // passed to the world in the `players` message
 
-import { t } from '../../prototypes/shared/text.js';
+import { t } from '../shared/text.js';
 
 export const COLORS = ['#d8a440', '#4f9fd8', '#d0584e', '#6fbf6a'];
 

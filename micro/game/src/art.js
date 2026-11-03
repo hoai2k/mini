@@ -1,12 +1,11 @@
 // Artwork for the shell: delivered images from micro/image-requests.md (the
 // launcher cards MP-U01–U07, and the game's own MP-G01–G13 once delivered),
 // with drawn stand-ins in the same style until then. Paths in asset-list.js
-// are relative to micro/prototypes/, which sits at ../../prototypes/ from
-// this module both in the repository (micro/game/src/) and when published
-// (micro/game/src/ beside micro/prototypes/).
-import { ASSETS } from '../../prototypes/shared/asset-list.js';
+// are relative to micro/game/, which is ../ from this module both in the
+// repository and when published (micro/game/src/).
+import { ASSETS } from '../shared/asset-list.js';
 
-export const PROTO = new URL('../../prototypes/', import.meta.url);
+export const PROTO = new URL('../', import.meta.url);
 
 /** URL of a delivered image, or null while it is still requested. */
 export function delivered(id) {

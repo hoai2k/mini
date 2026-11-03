@@ -50,7 +50,7 @@ walk around can be in safe areas too, because you can just avoid them."
 
 - **The director places enemies and events, not scenery.** Predators, a
   boss, weather that starts (the rain), the portal: these come from the
-  director (`prototypes/shared/director.js`), one at a time, in the world's
+  director (`game/shared/director.js`), one at a time, in the world's
   order. Scenery, ambient life and avoidable static hazards (sundews, plants,
   traps you can walk round or jump over) are pre-placed as before, anywhere,
   early or late, safe areas included.
@@ -71,8 +71,8 @@ walk around can be in safe areas too, because you can just avoid them."
   narrow, "ahead" is along the way the player is going and every spot is
   snapped onto it: the tardigrade's spokes of leaves (Milnesium onto a wet
   leaf of the spoke the leader is heading out along, the pool onto that
-  spoke's rim: `prototypes/tardigrade/encounters.js`). The mite
-  (`prototypes/mite/layout.js`) and the tardigrade use the director too.
+  spoke's rim: `game/tardigrade/encounters.js`). The mite
+  (`game/mite/layout.js`) and the tardigrade use the director too.
 - **Nothing is skipped.** Encounters come strictly in order; the boss and the
   portal are placed only after the player has met every earlier encounter. A
   player who hangs about in a safe area still gets them: if they linger, the
@@ -85,17 +85,17 @@ walk around can be in safe areas too, because you can just avoid them."
   is, or the next one placed near the leader.
 - **Rings are the fallback.** A world that hasn't adopted the director yet
   keeps its rings round the start (above). The springtail world was the first
-  to use the director (`prototypes/springtail/README.md`, "The way out"; its
+  to use the director (`game/springtail/README.md`, "The way out"; its
   portals are now fixed: "Per-world placement", below);
-  the amoeba (`prototypes/amoeba/README.md`, "The slide") and the paramecium
-  (`prototypes/paramecium/README.md`, "Placed as you go": a 2D darkfield
+  the amoeba (`game/amoeba/README.md`, "The slide") and the paramecium
+  (`game/paramecium/README.md`, "Placed as you go": a 2D darkfield
   slide since 2026-11-02, the director in 2D, five encounters including the
   giant amoeba) followed; how to adopt it is at the top of
   `shared/director.js`.
-  The bacterium (`prototypes/bacterium/README.md`, "The way: placed as you
+  The bacterium (`game/bacterium/README.md`, "The way: placed as you
   go": the gates in order, the breaks held longer while the army is short,
   kin and prey kept near every player) and the phage
-  (`prototypes/phage/README.md`, "Threats and pacing": a 3D grid, the decoys
+  (`game/phage/README.md`, "Threats and pacing": a 3D grid, the decoys
   then the portal, flocs, UV shafts and big cells as scenery) use it too.
 
 ## Per-world placement
@@ -121,7 +121,7 @@ dynamic distribution the default if we haven't specified any other."
   still places Stenus, the strider and the rain as you go, in order; the
   portals stay sealed until those are met, and anyone who reaches a hunting
   ground early has the rest placed round them at once
-  (`prototypes/springtail/README.md`, "The way out").
+  (`game/springtail/README.md`, "The way out").
 - **A default path to a portal** (the owner, 2026-11-01: "For dynamically
   generated levels, let's have a default path to a portal, but just
   dynamically generate the other directions if the player goes off in
@@ -130,7 +130,7 @@ dynamic distribution the default if we haven't specified any other."
   first frame, at the distances a rush would meet them, out of sight; off
   that bearing it places as you go as before (`shared/director.js`
   `defaultPath`, `portals()`; the phage is the first:
-  `prototypes/phage/README.md`, "The default path"). The portal there stays
+  `game/phage/README.md`, "The default path"). The portal there stays
   sealed until every earlier encounter is met. Every director world has one
   now: the mite, the amoeba and the paramecium along a bearing off to the
   side of the opening view, the tardigrade out along one spoke (the 240°),
