@@ -423,9 +423,10 @@ furthest along, with calm breaks between (`route.js`; the owner's
   facing up the screen (heading π/2), at mid-depth, the focus on it, as a 2D
   pose (pitch 1.55, `rel` = heading + π/2 = π). The shell eases one pose to
   the other; both worlds are top-down slides, so the move is a short change
-  between two framings of the same creature (f 0.144 → 0.134: this world
-  opens zoomed out at 1.6×, so the cell is about as large as the amoeba's
-  beacon, measured equal on both sides at every step) while darkfield fades in over brightfield.
+  between two framings of the same creature (f 0.144 → 0.071 since
+  2026-11-03: this world opens at 3×, so the cell narrows to about half the
+  amoeba's beacon during the move; at the old 1.6× start it was 0.134, about
+  as large) while darkfield fades in over brightfield.
   While held, the view takes each `camera` pose (`poseView`: its width from
   `f`, its centre from x, y, its turn from `rel`); on `begin` time eases back
   in over 0.6 s. Nothing changed on the amoeba's side.
