@@ -119,15 +119,24 @@ export function wayOut(world, leaf, p, vx, vz) {
   return best;
 }
 /**
+ * The world's forward (the owner, 2026-11-03: the camera's turn is locked to it). main.js's camera sits
+ * at (sin, cos) of FORWARD_YAW (5π/3) from its target, so it looks along -(sin, cos): straight ahead on the
+ * screen is the bearing FORWARD (atan2(z, x): -30°, i.e. 330°), out along the start leaf's spoke.
+ */
+export const FORWARD_YAW = Math.atan2(1, 0) + Math.PI + Math.PI / 6;
+export const FORWARD = Math.atan2(-Math.cos(FORWARD_YAW), -Math.sin(FORWARD_YAW));
+/**
  * The default path (shared/director.js `defaultPath`; the owner, 2026-11-01: "a default path to a portal,
  * but just dynamically generate the other directions if the player goes off in another direction"): the
- * walkable world is the spokes, so the path runs out along one of them, PATH_SPOKE (240°: across the
- * opening view, which looks out along the 330° spoke, and level, unlike the climbing west spokes).
- * Milnesium ~2.2 mm out on one of its wet leaves (where a rush meets it), the pool at its rim (8.4 mm),
- * both from the first frame. main.js (and route.test.mjs) set E.prefer to that spoke while the path is
- * laid, so both snap to it. The cone (0.4 rad) keeps the neighbouring spokes (0.52 rad off) off the path.
+ * walkable world is the spokes, so the path runs out along one of them, PATH_SPOKE: the spoke straight
+ * ahead, along the forward (the owner, 2026-11-03: "with the new camera, we should have the default path
+ * be straight forward essentially ... make the forward path the one of discovery"; it was the 240° spoke,
+ * across the view). Milnesium ~2.2 mm out on one of its wet leaves (where a rush meets it), the pool at its
+ * rim (8.4 mm), both from the first frame. main.js (and route.test.mjs) set E.prefer to that spoke while
+ * the path is laid, so both snap to it. The cone (0.4 rad) keeps the neighbouring spokes (0.52 rad off)
+ * off the path.
  */
-export const PATH_SPOKE = 8;
+export const PATH_SPOKE = ((Math.round(FORWARD / ((2 * Math.PI) / SPOKES)) % SPOKES) + SPOKES) % SPOKES;
 export function defaultPathFor(world, k = PATH_SPOKE) {
   const S = world.start, R = rimOf(world, k), g = R.spot;
   const h = Math.hypot(g.x - S.x, g.z - S.z), d = Math.hypot(h, g.y - S.y);

@@ -47,8 +47,17 @@ as you go (`design/encounter-pattern.md`, "Per-world placement").
   bearings (`rushToGround`: 15 mm/s, round islands, along the bank toward the
   nearer raft once it meets it) and adds a raft on the way of any bearing
   that would go more than 58 s without reaching a ground (8 of the 16), kept
-  at least 0.6 x the spacing from the others. Result: nearest neighbours
-  214–486 mm apart (mean 259), 531–819 mm from the start. Each raft is turned
+  at least 0.6 x the spacing from the others. Then **the forward raft**
+  (`FORWARD_RAFT`; the owner, 2026-11-03: "with the new camera ... make the
+  forward path the one of discovery"): the raft nearest the spot 590 mm
+  straight ahead along the world's forward (`FORWARD`, screen-up with the
+  locked camera) is moved across onto that line, only as far as it must
+  (within 20 mm of it: raft 14, moved 65 mm), and the coverage pass runs
+  again; walking screen-up then leads into its spider's ground at ~34 s of
+  rushing. (Before, the nearest raft stood 85 mm off the line, just past the
+  edge of its ground, so straight ahead passed it by and went on to raft 0,
+  800 mm out.) Result: nearest neighbours 214–486 mm apart (mean 261),
+  531–819 mm from the start. Each raft is turned
   so its mite faces the start. `route.test.mjs` checks every one of 64
   bearings with its own rusher: a ground after 30.2–52.7 s (mean 41; 27
   bearings meet the bank first, and the far way along the bank is never more
@@ -104,18 +113,30 @@ as you go (`design/encounter-pattern.md`, "Per-world placement").
 | --- | --- | --- | --- |
 | warm-up | Calm water | — | ~5 s of moving (a few jumps) |
 | 1 | *Stenus*: its water (40 mm, chase leash 25 mm) with the beetle at the spot | 55–95 mm ahead (lingering: 40–62 mm round you) | in its reach, or within 30 mm of the beetle |
-| 2 | The water strider (its water 42 mm, leash 20) and the *Podura* mass (220 NPC springtails, `shared/crowd.js`) at its near edge, a little to one side | 72–112 mm ahead (lingering: 50–80 mm) | in the strider's reach, or within 30 mm of the mass's edge |
+| 2 | The water strider (its water 42 mm, leash 20) and the *Podura* mass (220 NPC springtails, `shared/crowd.js`) at its near edge, a little to one side | 72–125 mm ahead (lingering: 50–80 mm) | in the strider's reach, or within 30 mm of the mass's edge |
 | 3 | The rain, from now on, round whoever leads; then the portals open | at once (an event) | at once |
 
 Between them, calm breaks of ~8–10 s of moving (counted only once you are
-outside the last encounter). The director's old last entry (the portal and
+outside the last encounter). "Ahead" is the way the leader has gone over the
+last 3 s (`headingSec`: a hop round an island does not swing it), and a spot
+straight ahead is preferred to one off to the side (`aheadBias` 3): the
+strider's mass sits on its near side, so straight ahead it needs the far end
+of its range (to 125 mm; it was 112, and straight ahead it kept landing
+~80 mm off the line and being moved on unseen until the raft). The director's old last entry (the portal and
 its spider, placed ahead) is gone. Encounters are never placed on a raft and
 its spider's post (`canPlace`: 38–68 mm clear of every raft).
 
 **Timings** (sim seconds, enemies passive). `route.test.mjs`, 16 directions,
-15 mm/s, into the nearest ground and on to its raft: *Stenus* met 5.2–6.1 s,
-the strider 18.9–35.5 s, the rain 27.9–40.6 s, a ground 30.1–48.8 s, a raft
-34.7–53.4 s. In the browser (tap jumps of ~8 mm, along the bank toward the
+15 mm/s, into the nearest ground and on to its raft: *Stenus* met 5.2–6.5 s,
+the strider 20.3–24.5 s, the rain 30.2–38.4 s, a ground 30.1–48.8 s, a raft
+34.7–53.4 s. Straight ahead (screen-up, round islands, no steering until a
+raft is near): *Stenus* 5.8 s, the strider 23.7 s, the forward raft's ground
+34.3 s, the raft 38.9 s, the rain on arrival in the ground (34.4 s). On the
+page (2026-11-03; a mock pad, the stick held up, a tap jump every 5 frames,
+~8 mm/s, turning for a raft once within 60 mm): *Stenus* met 5.4 s, the
+strider 23.7 s, the rain 37.8 s, on raft 14 at 53.5 s; before the forward
+raft, the same run met the same three but passed raft 14 ~100 mm off and
+reached raft 0 at 62.6 s. In the browser (tap jumps of ~8 mm, along the bank toward the
 nearest raft, four directions: +x, +z, −x, −z): the first pondweed leaf of a
 ground 37–47 s (strays earlier), the ground 26–49 s, a spider within 45 mm
 30–51 s (on three of the four), the raft 31–52 s. The browser rusher makes
@@ -290,7 +311,7 @@ Sound: generated nature-documentary foley (`shared/audio.js`; Features: Sound ef
 
 ## Multiplayer
 **The world's forward** (the owner, 2026-11-03): the camera's turn is locked
-to it, so obstacle layout can rely on it. `FORWARD_YAW` in `main.js` (5π/6, the start view): the camera looks toward +x and a little toward -z (the camera sits at −x, +z of its target). RS left/right peeks
+to it, so obstacle layout can rely on it. `FORWARD_YAW` in `world.js` (5π/6, the start view): the camera looks toward +x and a little toward -z (the camera sits at −x, +z of its target), the bearing `FORWARD` (−π/6) from the start, and one raft stands on that line (`FORWARD_RAFT`, The way out). RS left/right peeks
 sideways instead (the view slides about 30 % of its width that way and eases
 back; each player's own, blended through a split and a merge), RS up/down
 tilts, and LS moves relative to the fixed forward. With **Free camera (single
@@ -903,7 +924,7 @@ in `islandDist` (slower under SwiftShader).
 
 ```bash
 node micro/game/check-worlds.mjs springtail
-node micro/game/springtail/route.test.mjs       # the fixed portals (64 bearings: a ground in 30-60 s), the pondweed (thick round each raft, rare elsewhere), a spider's rounds (out and home; follow it home), and the director with this world's settings: rushing out on 16 bearings, beelining and sprinting for a raft (don't skip), lingering: every encounter in order, out of view, on open water; sundews scattered
+node micro/game/springtail/route.test.mjs       # the fixed portals (64 bearings: a ground in 30-60 s), the pondweed (thick round each raft, rare elsewhere), a spider's rounds (out and home; follow it home), and the director with this world's settings: rushing out on 16 bearings, straight ahead (screen-up: Stenus after the warm-up, then the forward raft's ground and raft within a minute), beelining and sprinting for a raft (don't skip), lingering: every encounter in order, out of view, on open water; sundews scattered
 node micro/game/shared/director.test.mjs         # the director itself
 node micro/game/springtail/jump-input.test.mjs
 node micro/game/springtail/sundew-struggle.test.mjs   # the struggle's balance: both inputs ~2 s, A alone slow, LS alone or idle engulfed

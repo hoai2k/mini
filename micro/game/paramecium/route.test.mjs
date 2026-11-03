@@ -7,7 +7,7 @@
 //   node micro/game/paramecium/route.test.mjs
 import assert from 'node:assert/strict';
 import { createDirector } from '../shared/director.js';
-import { DIRECTOR, DEFAULT_PATH, ENCOUNTERS, MET, DRIFT_TO, canPlace, START, BACK, FIELD, RUSH, didiniumHomes, trapAt, bandDist } from './route.js';
+import { DIRECTOR, DEFAULT_PATH, ENCOUNTERS, MET, DRIFT_TO, canPlace, START, BACK, FIELD, RUSH, didiniumHomes, trapAt, bandDist, FORWARD } from './route.js';
 
 const ORDER = ['dileptus', 'bloom', 'giant', 'didinium', 'portal'];
 assert.deepEqual(ENCOUNTERS.map((e) => e.id), ORDER, 'the order');
@@ -142,6 +142,29 @@ assert.deepEqual(rp.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, 
 assert.ok(rp.ev.filter((e) => e.type === 'met').every((e) => e.via === 'default' || e.instance === 'default' || e.how === 'met'), 'default path: met where they lie');
 const pathPortal = at(rp.ev, 'met', 'portal').t;
 assert.ok(pathPortal >= 40 && pathPortal <= 65, `default path: the portal in about a minute (${pathPortal.toFixed(1)} s)`);
+// ---- straight ahead (the owner, 2026-11-03: "make the forward path the one of discovery"): the view keeps
+// the slide's +y up the screen (FORWARD), and the default path runs along it; holding the stick up (only
+// turning for the leaf once it is within a view's height) meets the pre-placed order where it lies, the
+// first after the warm-up, at roughly even spacing, the portal in about a minute rushing
+assert.ok(Math.abs(DEFAULT_PATH.bearing - FORWARD) < 1e-12 && Math.abs(FORWARD - Math.PI / 2) < 1e-12, 'the default path runs up the screen');
+const straightRows = [];
+for (const [speed, label, firstMax, portalMax] of [[RUSH, 'rushing', 12, 65], [RUSH * 0.6, 'swimming without dashes', 20, 110]]) {
+  const r = game({ seconds: 220, path: true, check: true, move: (t, p, D, H) => {
+    const P = D.entry('portal').def;
+    swim(p, D.state().current === 'portal' && P && Math.hypot(P.x - p.x, P.z - p.z) < FIELD * 0.9 ? toward(p, P) : FORWARD, speed);
+  } });
+  const tag = `straight ahead, ${label}`;
+  assert.deepEqual(r.bad, [], tag);
+  assert.deepEqual(r.changed, [], `${tag}: explored cells unchanged`);
+  const met = r.ev.filter((e) => e.type === 'met');
+  assert.deepEqual(met.map((e) => `${e.id} ${e.instance}`), ORDER.map((id) => `${id} default`), `${tag}: the pre-placed order met where it lies`);
+  assert.ok(r.ev.filter((e) => e.type === 'placed').every((e) => e.how === 'default'), `${tag}: nothing generated`);
+  const T = met.map((e) => e.t), gaps = T.slice(1).map((v, i) => v - T[i]), mean = (T.at(-1) - T[0]) / (T.length - 1);
+  assert.ok(T[0] >= 4 && T[0] <= firstMax, `${tag}: the first after a warm-up, by ${firstMax} s (${T[0]} s)`);
+  for (let i = 0; i < gaps.length; i++) assert.ok(gaps[i] < mean * 1.8 && gaps[i] > mean * 0.4, `${tag}: ${ORDER[i + 1]} ${gaps[i].toFixed(1)} s after ${ORDER[i]} (roughly even: mean ${mean.toFixed(1)} s)`);
+  assert.ok(T.at(-1) <= portalMax, `${tag}: the portal by ${portalMax} s (${T.at(-1)} s)`);
+  straightRows.push(`${label}: ${met.map((e) => `${e.id} ${e.t} s`).join(', ')}`);
+}
 // ---- off the path three other ways: each leaves the path while unseen and comes ahead of you
 for (const a0 of [DEFAULT_PATH.bearing + Math.PI, DEFAULT_PATH.bearing + Math.PI / 2, DEFAULT_PATH.bearing - Math.PI / 2]) {
   let a = a0;
@@ -153,3 +176,4 @@ for (const a0 of [DEFAULT_PATH.bearing + Math.PI, DEFAULT_PATH.bearing + Math.PI
 
 console.log(`ok: 16 rushes: first placed ${span('first')}, Dileptus met ${span('dileptus')}, bloom ${span('bloom')}, giant ${span('giant')}, Didinium ${span('didinium')}, portal reached ${span('portal')}`);
 console.log(`ok: lingering: portal placed near them at ${lingerPortal.toFixed(1)} s; turning back: portal at ${turns.join(', ')} s; default path: portal at ${pathPortal.toFixed(1)} s`);
+console.log(`ok: straight ahead: ${straightRows.join('; ')}`);

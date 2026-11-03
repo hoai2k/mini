@@ -46,10 +46,20 @@ export const FIELD = 560;
 export const ZOOM = { min: 1, start: 1.6, max: 3, rate: 1.1, ease: 0.14 };
 /** Rushing: full speed with a dash as often as it recharges (swim.js; measured ~850 µm/s). */
 export const RUSH = 850;
-/** The default path's bearing from the start (radians, atan2(dy, dx)): up and to the right. */
-export const BEARING = 0.62;
-/** The way back (the amoeba's patch of slide): a fixed place behind the start. */
-export const BACK = { x: START.x + Math.cos(BEARING + Math.PI) * 2600, y: START.y + Math.sin(BEARING + Math.PI) * 2600 };
+/**
+ * The world's forward (the owner, 2026-11-03: the view's turn is locked with the slide's +y up the
+ * screen): straight up the screen, the bearing π/2 (atan2(dy, dx)).
+ */
+export const FORWARD = Math.PI / 2;
+/**
+ * The default path's bearing from the start (radians, atan2(dy, dx)): straight ahead, up the screen (the
+ * owner, 2026-11-03: "with the new camera, we should have the default path be straight forward
+ * essentially ... make the forward path the one of discovery"; it was 0.62, up and to the right).
+ */
+export const BEARING = FORWARD;
+/** The way back (the amoeba's patch of slide): a fixed place behind the start, down and to the left (where it always was). */
+const BACK_BEARING = 0.62 + Math.PI;
+export const BACK = { x: START.x + Math.cos(BACK_BEARING) * 2600, y: START.y + Math.sin(BACK_BEARING) * 2600 };
 /** The dish: far bigger than a game ever goes (a labelled departure). */
 export const DROP_R = 60000;
 
@@ -103,7 +113,7 @@ export const DRIFT_TO = { dileptus: 360, bloom: 120, giant: 430, didinium: 390 }
  * but just dynamically generate the other directions"): every encounter laid along BEARING on the first
  * frame, at the distances a rush meets them, out of sight, so the way on exists from the start.
  */
-export const DEFAULT_PATH = { from: { x: START.x, z: START.y }, bearing: BEARING, rush: RUSH };
+export const DEFAULT_PATH = { from: { x: START.x, z: START.y }, bearing: BEARING, rush: RUSH, lateral: [0, 120, -120, 240, -240, 360, -360] };
 /** Encounters go anywhere in the dish, not on the way back and not on the start. */
 export const canPlace = (x, y, r) => Math.hypot(x - START.x, y - START.y) < DROP_R - 3000 - r && Math.hypot(x - BACK.x, y - BACK.y) > 900 + r && Math.hypot(x - START.x, y - START.y) > 700 + r;
 /** Distance from (x, y) to the bloom's band (middle hx, hy, lying across bearing b). */

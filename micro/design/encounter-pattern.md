@@ -115,7 +115,9 @@ dynamic distribution the default if we haven't specified any other."
   return to the portal, so you could follow the spiders to their portal").
   Sixteen portal rafts are laid out before play by seeded blue noise with a
   coverage check (every bearing from the start reaches a portal's
-  surroundings in ~30–60 s of rushing), each with its own wolf spider that
+  surroundings in ~30–60 s of rushing; the raft nearest the forward line is
+  moved onto it, within 20 mm, so walking screen-up leads to one), each with
+  its own wolf spider that
   goes out on rounds of its hunting ground and back to its raft, and bog
   pondweed growing thick in that ground and rare elsewhere. The director
   still places Stenus, the strider and the rain as you go, in order; the
@@ -132,11 +134,40 @@ dynamic distribution the default if we haven't specified any other."
   `defaultPath`, `portals()`; the phage is the first:
   `game/phage/README.md`, "The default path"). The portal there stays
   sealed until every earlier encounter is met. Every director world has one
-  now: the mite, the amoeba and the paramecium along a bearing off to the
-  side of the opening view, the tardigrade out along one spoke (the 240°),
-  and the bacterium, whose field has no room for its gates' breaks and
-  army-size holds, lays only the host there (its gates still placed as you
-  go); each world's README says where.
+  now; each world's README says where.
+- **The default path runs along the world's forward** (the owner,
+  2026-11-03: "With the new camera, we should have the default path be
+  straight forward essentially, since that's the most likely direction of
+  travel when the camera is fixed ... Can you see if we can make the forward
+  path the one of discovery?"). Where the camera's turn is locked
+  (`shared/camlock.js`) or the view never turns, screen-up is the world's
+  forward, and the default path is laid straight along it from the start:
+  the mite along `FORWARD` (its locked yaw's view), the tardigrade out along
+  the spoke straight ahead (the 330°, the start leaf's), the paramecium and
+  the amoeba up the screen (the slide's +y). Each encounter sits as near the
+  line as it fits (`defaultPath.lateral`: a step aside, or a little nearer or
+  farther along, before any turn of the bearing), so a player holding the
+  stick up meets the whole order where it lies, the first after the warm-up
+  (~10 s), the rest at roughly even spacing, the portal and its boss about a
+  minute's rush out. Nothing else changes: off the line the director still
+  places as you go, in unseen space, so going sideways meets encounters too;
+  forward is only the best-paced line. Two director rules keep it so: a
+  leader who walks straight past an unmet path instance (a little to one
+  side, never seeing it) is off the path, and the entry is placed ahead of
+  them instead of waiting there for good; and a world may set `headingSec`
+  (ahead is the way they have gone over that long, so a step round a stem or
+  an island does not swing it) and `aheadBias` (a spot off to the side counts
+  more against it than one a little farther ahead). Before this the mite's
+  path ran ~95° to the side of its locked forward (and the paramecium's 54°,
+  the amoeba's 80°, the tardigrade's 90°): walking forward, every encounter
+  was placed as you go, but the pre-placed portal, its wet-moss cue and the
+  Portal arrow all pointed off to the side and never came nearer (the
+  owner: "I went forward a long way but didn't ever reach the destination").
+  The springtail's portals stay fixed (below), but one raft stands on its
+  forward line (`FORWARD_RAFT`), its ground ~35 s of rushing out. The
+  bacterium is left as it was: its camera follows the player straight down
+  with no fixed forward, screen-up is only the way to the air, and its field
+  is about two screens across.
 - **The Portal arrow** (Settings, default off): every world points an arrow
   at the edge of each view to its nearest portal, with the distance beside it
   (`shared/landmark.js` `portalArrowOn`; how to wire a world is at the top of

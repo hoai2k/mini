@@ -13,7 +13,7 @@ import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
 import { createMacro, lens, macroShared, applyLook, MACRO_LOOKS } from '../shared/techniques/springtail-macro.js';
 import { RippleField, Dimples, waterMaterial, waterGeometry, peatFloorTexture } from '../shared/techniques/springtail-surface.js';
-import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHORE_GLSL, BANK_E, START, ZONES, PORTAL, PORTALS, GROUND, PONDWEED, focusPortal, nearestPortal, pondweedAt, distFromStart, setZoneAt, parkZone, DIRECTOR, ENCOUNTERS, canPlace, inReach } from './world.js';
+import { buildWorld, inPool, poolE, mossTop, islandEdge, ISLANDS, POOL_GLSL, SHORE_GLSL, BANK_E, START, ZONES, PORTAL, PORTALS, GROUND, PONDWEED, focusPortal, nearestPortal, pondweedAt, distFromStart, setZoneAt, parkZone, DIRECTOR, ENCOUNTERS, canPlace, inReach, FORWARD_YAW } from './world.js';
 import { createDirector } from '../shared/director.js';
 import { createQuality } from '../shared/quality.js';
 import { createCrowd } from '../shared/crowd.js';
@@ -239,7 +239,6 @@ const APERTURES = [2.8, 4, 5.6, 8, 11, 16, 22];
 const PITCH_MIN = 0.1, PITCH_MAX = 1.5, PITCH_TOP = 1.5, PITCH_LOW = 0.42;
 // The world's forward (the owner, 2026-11-03: the camera's turn is locked to it, so the layout has a
 // "forward"): the camera looks along -(cos, sin) of this yaw, i.e. toward +x and a little -z (see README).
-const FORWARD_YAW = Math.PI - Math.PI / 6;
 const camLock = createCamLock({ forward: FORWARD_YAW });
 const rig = { yaw: FORWARD_YAW, pitch: PITCH_LOW, wantPitch: PITCH_LOW, pitchLow: PITCH_LOW, get mode() { return this.wantPitch > 1.05 ? 'top' : 'low'; }, zi: 1, ai: 4, target: new THREE.Vector3(START.x, 0.25, START.z), look: 0, lens: null, dofK: 1, aim: null };
 let lookDef = applyLook(0);

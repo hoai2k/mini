@@ -43,7 +43,10 @@ backdoor) behind the start view, and the **hyphal thickets full of
 springtails** (`CLUSTERS`: 13 round the 5 mm ring and 54 round the 20.3 mm
 ring, each 1.64 mm across, alternately 0.35 mm in and out, so every straight
 way out passes within 0.4 mm of one on each ring and there is always a way
-round). The thickets are a harmless crowd you push or bite through (a drag,
+round; and five more along the forward route, `FORWARD_THICKETS`, at 12.6,
+28.8, 37.9, 46.2 and 57.5 mm, to alternate sides of the line with their edges
+~0.65 mm off it, in the gaps between the default path's encounters: walking
+straight ahead skirts each one). The thickets are a harmless crowd you push or bite through (a drag,
 never a stop), so they are scenery, not encounters.
 
 **The encounters, in order** (`ENCOUNTERS`), each placed by the director in
@@ -118,11 +121,18 @@ water, and the marks at the foot of the screen show the way on filling.
 
 **The default path** (the owner, 2026-11-01: "a default path to a portal,
 but just dynamically generate the other directions"): on the first frame the
-director lays all seven out along one bearing from the start (`layout.js`
-`DEFAULT_PATH`: -2.6 rad, off to the side of the opening view and away from
-the giant springtail, at a rush's distances: the family ~8 mm out, the
-predator's grounds ~18, ~34 and ~51 mm, the drops ~24 and ~41 mm, the water
-~64 mm), out of sight, so the way on exists from the start. It stays sealed
+director lays all seven out from the start, out of sight, so the way on
+exists from the start, straight ahead along the world's forward (`layout.js`
+`DEFAULT_PATH`, bearing `FORWARD`, ~2.02 rad: screen-up with the locked
+camera; the owner, 2026-11-03: "With the new camera, we should have the
+default path be straight forward essentially ... make the forward path the
+one of discovery"), at a rush's distances: the family ~8 mm out, the
+predator's grounds ~16.5, ~34 and ~51 mm, the drops ~24 and ~41 mm, the
+water ~64 mm, each as near the line as it fits (`lateral`: up to 1.6 mm
+aside, or a little nearer or farther along it). The moss grows wetter
+toward the water (`wetness`, the beads) along the same line.
+
+The way on stays sealed
 (no prompt, no edge light, its glow shut, nothing preloaded; reaching the
 water says "The water is shut to you yet") until every earlier encounter is
 met; the pseudoscorpion guards it as always. There is one predator: its later
@@ -132,14 +142,42 @@ them in order where they lie; head another way and each, while nobody has
 seen it, leaves the path and is placed ahead of you as before (each is one
 object: the director's `single`); one somebody has seen stays put.
 
+*Why forward was empty before (2026-11-03).* The path then ran at -2.6 rad,
+~95° to the side of the locked forward. Walking straight ahead, the director
+did place every encounter as you go (in a scripted page run at full tilt the
+family came at 8 s, the predator at 18 s, then every ~10 s), but until the
+last of them was met (~65 s at full tilt, ~88 s at a slight push) the way on
+stayed where the path had put it, 64 mm off to the side: the Portal arrow
+pointed there and its distance only grew (66 mm at 16 s, 85 mm at 62 s), the
+wet-moss cue thickened only round it, and past the
+second ring of thickets (20.3 mm) nothing stood near the forward line but
+the ambient springtail groups and the beads, so between encounters there
+was only springtails to see. The predator's ground is invisible and a drop
+shows only when it falls, so on a 1.6 mm view several encounters were easy
+to pass without noticing: a long walk forward felt like nothing but
+springtails and a destination that never came nearer. Now the whole order,
+the wet moss and the water lie ahead, with thickets in the gaps.
+
 **Timing.** `route.test.mjs` runs the director with the SEM view's own
 frustum and a player rushing (~1100 µm/s: full tilt with every scramble the
 stamina allows, a third slower in a thicket) in 16 directions: the family met
-at 5.8–6.8 s, the predator at 13.7–15.2 s, the drop at 20.8–22.3 s, the
-predator again at 29.3–30.8 s, the shower at 36.7–38.2 s, the predator a
-third time at 46.2–47.7 s and the portal reached at 59.7–61.2 s; the longest
-wait from one encounter to the next is 13.5 s. On the default path the water
-is reached at ~58 s. Lingering at the start, each comes round them in turn
+at 5.8–6.9 s, the predator at 13.9–15.1 s, the drop at 20.8–22.4 s, the
+predator again at 28.9–30.4 s, the shower at 36.1–37.6 s, the predator a
+third time at 45.4–47.0 s and the portal reached at 59.8–61.3 s; the longest
+wait from one encounter to the next is 14.3 s. ("Ahead" is the way the
+leader has gone over the last 2.5 s, `headingSec`, with a spot straight
+ahead preferred to one off to the side, `aheadBias`, so stepping round a
+stem or a thicket does not swing the next one off the line.) On the default
+path the water is reached at ~59 s. **Straight ahead** (the stick held up,
+turning only for the water once it is within 3 mm): rushing, the family at
+7.1 s, the predator 13.9, the drop 21.3, the predator 30.7, the shower 36.5,
+the predator 45.9, the water 59.3 s, all where the path laid them; walking
+on the keys (~610 µm/s), 12.8, 27.5, 38.4, 55.4, 65.9, 82.8 and 107 s. On the
+page (`testStep` at full tilt, 870 µm/s, straight up the screen, 2026-11-03):
+the family met at 9.4 s, the predator 21.1, the drop 28.8, the predator 40.6,
+the shower 49.4, the predator 63.3, and the water (guarded) passed ~0.5 mm
+off at ~80 s, with the moss beaded and "the water is near" from ~70 s
+(screenshots of the run were taken every 10 s). Lingering at the start, each comes round them in turn
 (the portal at 130 s). On the page (`life` and `inputSteps` test hooks; a
 script at full tilt scrambling whenever the stamina is full, steering round
 whatever blocks it, the predator passive and its catches off, the drops and
@@ -299,7 +337,7 @@ everything else.
 
 ## Multiplayer
 **The world's forward** (the owner, 2026-11-03): the camera's turn is locked
-to it, so obstacle layout can rely on it. `FORWARD_YAW` in `main.js` (−0.6 − π/6, the start view): the camera sits at +x, −z of its target and looks toward −x and +z. RS left/right peeks
+to it, so obstacle layout can rely on it. `FORWARD_YAW` in `layout.js` (−0.6 − π/6, the start view): the camera sits at +x, −z of its target and looks toward −x and +z (`FORWARD`, ~2.02 rad from the start, is screen-up, and the default path runs along it: see The default path). RS left/right peeks
 sideways instead (the view slides about 30 % of its width that way and eases
 back; each player's own, blended through a split and a merge), RS up/down
 tilts, and LS moves relative to the fixed forward. With **Free camera (single
@@ -1080,7 +1118,7 @@ The set piece of `micro/design/combat-ideas.md`: pushing and biting through a
 crowd. The owner: moving and attacking clear the way without much
 difficulty, and nothing is timed. Laid out as two rings of clusters round the
 start (`layout.js` `CLUSTERS`: 13 at 5 mm, 54 at 20.3 mm, each 1.64 mm
-across), built where they stand. Each thicket:
+across) and five along the forward route (12.6-57.5 mm), built where they stand. Each thicket:
 
 - **Conidiophores and threads**: 34 upright fungal stalks (120–270 µm, a
   spore head on top, food that regrows after 30 s) with ~50 threads strung
@@ -1261,8 +1299,13 @@ seen; lingering brings them all round the player in order; turning back
 moves an unseen one to follow; two players heading apart meet them all; the
 walkable square is far beyond play. With the default path: following its
 bearing meets the seven pre-placed ones in order (nothing generated, the
-water reached in ~58 s); heading off three other ways takes each off the
+water reached in ~59 s); heading off three other ways takes each off the
 path while unseen and places it as you go, in order, nothing seen moved.
+Straight ahead (the default path runs along `FORWARD`, screen-up): holding
+the stick up, rushing and walking, meets the pre-placed order where it lies,
+the first after the warm-up (by 12 s rushing, 20 s walking), the gaps
+roughly even (none over 1.8x the mean), the water by 80 s rushing and
+140 s walking.
 
 `node --test micro/game/mite/*.test.mjs micro/game/shared/director.test.mjs`
 runs it with the shared director's tests. The speed, jump and rush

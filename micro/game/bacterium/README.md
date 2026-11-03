@@ -312,7 +312,13 @@ moved, so it cannot hold the game up.
   every gate is met; Stentor guards it as always. Head off another way and
   the host, while nobody has seen it, leaves the path and is placed ahead of
   you after the last gate, as before (one thing: the director's `single`);
-  seen on the path (the field is small), it stays there.
+  seen on the path (the field is small), it stays there. It is not laid
+  along a "forward" (the owner, 2026-11-03, for the worlds with a locked
+  camera: "the default path [should] be straight forward essentially"):
+  this camera follows you straight down with no turn to lock, so it has no
+  forward; screen-up is only the way to the air (the meniscus), and the
+  field is about two screens across, the host already within one of the
+  start.
 - **No arrow by default** to the way on: once open, its golden light spills
   in from the edge of the view on its side (`createPortalLight`), and haloes
   it in view. With **Portal arrow** on in the game's Settings (default off;

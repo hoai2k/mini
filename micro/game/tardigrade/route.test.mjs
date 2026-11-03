@@ -12,7 +12,7 @@ import { World, RINGS, SPOKES, tipU, HANDOVER_GAP } from './world.js';
 import { Walker } from './gait.js';
 import { Creature } from './creature.js';
 import { createDirector } from '../shared/director.js';
-import { DIRECTOR, encounters, canPlace, wayOut, defaultPathFor, PATH_SPOKE } from './encounters.js';
+import { DIRECTOR, encounters, canPlace, wayOut, defaultPathFor, PATH_SPOKE, FORWARD, FORWARD_YAW } from './encounters.js';
 
 const world = new World({ add() {} });
 // gait.js considerTransfer: the claws reach 0.55 across directly (1.2 over a wet film)
@@ -221,6 +221,12 @@ test('the default path: laid along its spoke from the first frame; following it 
   const m = r.ev.filter((e) => e.type === 'met');
   assert.deepEqual(m.map((e) => `${e.id} ${e.instance}`), ['milnesium default', 'portal default'], 'default path: met in order on it');
   assert.ok(m[0].t <= 14 && m[1].t >= 45 && m[1].t <= 62, `default path: Milnesium at ${m[0].t} s, the pool at ${m[1].t} s`);
+  // straight ahead (the owner, 2026-11-03: "make the forward path the one of discovery"): the camera's turn is
+  // locked to FORWARD_YAW, so walking screen-up goes out along the forward spoke, and that is the path's
+  const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+  assert.ok(Math.abs(wrapA(FORWARD - Math.atan2(-Math.cos(FORWARD_YAW), -Math.sin(FORWARD_YAW)))) < 1e-9, 'FORWARD is screen-up');
+  assert.ok(Math.abs(wrapA(world.spokes[PATH_SPOKE].a - FORWARD)) < Math.PI / SPOKES, `the path's spoke (${deg(world.spokes[PATH_SPOKE].a)}°) is the one straight ahead (${deg(FORWARD)}°)`);
+  assert.ok(m[0].t >= 4 && m[0].t <= 20, `straight ahead: Milnesium after the warm-up (${m[0].t} s)`);
   console.log(`default path (spoke ${PATH_SPOKE}, ${deg(world.spokes[PATH_SPOKE].a)}°): ${placed.map((e) => `${e.id} at ${world.radius(new THREE.Vector3(e.x, 0, e.z)).toFixed(1)}`).join(', ')}; met ${m.map((e) => `${e.id} ${e.t} s`).join(', ')}`);
 });
 

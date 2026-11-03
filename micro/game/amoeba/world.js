@@ -143,15 +143,23 @@ export const ENCOUNTERS = [
     fits: (x, y, b) => portalRoom(x, y, b) },
 ];
 /**
+ * The view's forward: it never turns, +y up the screen (main.js toScreen), so straight up is where a
+ * player most likely heads (the owner, 2026-11-03: "the default path [should] be straight forward
+ * essentially, since that's the most likely direction of travel when the camera is fixed").
+ */
+export const FORWARD = Math.PI / 2;
+/**
  * The default path (shared/director.js `defaultPath`; the owner, 2026-11-01: "a default path to a portal,
  * but just dynamically generate the other directions if the player goes off in another direction"): the
- * ciliates, P. caudatum and the portal with Chaos laid along one bearing from the start on the first frame
- * (0.2 rad: away from the leaf on the left), out of sight, so the way on exists from the start. A rush's
- * spacing (~50 µm/s) would put the portal past the slide's clear glass (SLIDE.far), so the distances are
- * given: ~1.2, ~2.2 and ~3 mm out. Off that bearing they are placed as you go, as before (each is one
- * thing: a patch, moved whole while unseen, or the portal: `single`).
+ * ciliates, P. caudatum and the portal with Chaos laid along one bearing from the start on the first frame,
+ * straight up the screen (FORWARD; it was 0.2 rad, to the right; both are away from the leaf on the left),
+ * each as near the line as it fits (`lateral`), out of sight, so the way on exists from the start. A
+ * rush's spacing (~50 µm/s) would put the portal past the slide's clear glass (SLIDE.far), so the
+ * distances are given: ~1.1, ~2.6 and ~3.5 mm out (a cluster of fungal traps stands on the line at
+ * ~2.1 mm, scenery to crawl round, so P. caudatum goes past it). Off that bearing they are placed as you go, as before
+ * (each is one thing: a patch, moved whole while unseen, or the portal: `single`).
  */
-export const DEFAULT_PATH = { from: { x: 0, z: 0 }, bearing: 0.2, dists: [1200, 2200, 3000] };
+export const DEFAULT_PATH = { from: { x: 0, z: 0 }, bearing: FORWARD, dists: [1100, 2580, 3500], lateral: [0, 80, -80, 160, -160, 240, -240] };
 /** Encounters can go anywhere on the slide clear of the leaf and the traps. */
 export const canPlace = (x, y, r) => clearAt(x, y, Math.min(r, 160));
 

@@ -13,7 +13,7 @@ import { createDirector } from '../shared/director.js';
 import { createWolfSpider, LEASH } from './boss.js';
 import {
   START, POOL, ZONES, SUNDEW_ISLANDS, SUNDEW_CLUSTERS, ISLANDS, DIRECTOR, ENCOUNTERS, canPlace, inPool, poolE, islandEdge, distFromStart, setZoneAt, parkZone, inReach,
-  PORTALS, PORTAL_R, PORTAL_SPACING, PORTAL_MIN_D, GROUND, layPortals, nearestPortal, PONDWEED, pondweedAt, pondweedDensity, mossTop,
+  PORTALS, PORTAL_R, PORTAL_SPACING, PORTAL_MIN_D, GROUND, layPortals, nearestPortal, PONDWEED, pondweedAt, pondweedDensity, mossTop, FORWARD, FORWARD_YAW, FORWARD_RAFT,
 } from './world.js';
 
 assert.ok(inPool(START.x, START.z) && poolE(START.x, START.z) < 0.3, 'the start is on open water, mid-pool');
@@ -202,7 +202,7 @@ function game({ seconds, move }) {
     }
     if (raft && D.done) break;
   }
-  return { ev, bad, D, raft, doneT, groundT };
+  return { ev, bad, D, raft, doneT, groundT, lastX: p.x, lastZ: p.z };
 }
 const at = (ev, type, id) => ev.find((e) => e.type === type && e.id === id);
 /**
@@ -253,6 +253,28 @@ for (let k = 0; k < 16; k++) {
 }
 const span = (k) => `${Math.min(...times.map((t) => t[k])).toFixed(1)}-${Math.max(...times.map((t) => t[k])).toFixed(1)} s`;
 
+// ---- straight ahead (the owner, 2026-11-03: "with the new camera ... make the forward path the one of
+// discovery"): the camera's turn is locked to FORWARD_YAW, so screen-up is FORWARD; holding it (round
+// islands, no steering) meets Stenus after the warm-up, the strider, the rain, then walks into the forward
+// raft's ground (FORWARD_RAFT) and on to that raft, open, in about a minute
+assert.ok(Math.abs(YAW - FORWARD_YAW) < 1e-12, 'the test view is the forward view');
+const fwdRaft = PORTALS.find((q) => q.forward);
+assert.ok(fwdRaft, 'a raft on the forward line');
+{
+  const ux = Math.cos(FORWARD), uz = Math.sin(FORWARD), d = (fwdRaft.x - START.x) * ux + (fwdRaft.z - START.z) * uz;
+  assert.ok(Math.abs(-(fwdRaft.x - START.x) * uz + (fwdRaft.z - START.z) * ux) <= FORWARD_RAFT.aside + 0.1 && d > PORTAL_MIN_D && d < 700, `the forward raft ${d.toFixed(0)} mm straight ahead`);
+}
+const straight = game({ seconds: 150, move: rusher(FORWARD) });
+assert.deepEqual(straight.bad, [], 'straight ahead');
+const sMet = straight.ev.filter((e) => e.type === 'met');
+assert.deepEqual(sMet.map((e) => e.id), ['stenus', 'strider', 'rain'], 'straight ahead: every encounter, in order');
+assert.ok(sMet[0].t >= 4 && sMet[0].t <= 20, `straight ahead: Stenus after the warm-up (${sMet[0].t} s)`);
+assert.ok(straight.raft, 'straight ahead: a raft reached');
+assert.ok(straight.groundT >= 25 && straight.groundT <= 50 && straight.raft.t <= 60, `straight ahead: the forward raft's ground at ${straight.groundT.toFixed(1)} s, the raft at ${straight.raft.t.toFixed(1)} s`);
+assert.ok(Math.hypot(straight.lastX - fwdRaft.x, straight.lastZ - fwdRaft.z) < 12, 'straight ahead: the raft reached is the forward one');
+assert.ok(straight.doneT <= straight.raft.t + 15, `straight ahead: everything met by the raft, or soon after (${straight.doneT} s)`);
+const straightRow = `straight ahead: ${sMet.map((e) => `${e.id} ${e.t} s`).join(', ')}, ground ${straight.groundT.toFixed(1)} s, raft ${straight.raft.t.toFixed(1)} s${straight.raft.sealed ? ' (sealed: open at ' + straight.doneT.toFixed(1) + ' s)' : ''} (portal ${fwdRaft.i})`;
+
 // ---- don't skip: a beeline for the nearest portal gets there sealed or not, but every encounter is met first
 const beeline = (speed) => (t, p) => {
   const { p: L } = nearestPortal(START.x, START.z);
@@ -284,6 +306,7 @@ assert.deepEqual(r1.ev.filter((e) => e.type === 'met').map((e) => e.id), ['stenu
 for (const e of r1.ev.filter((x) => x.type === 'placed' && x.id !== 'rain')) assert.ok(['near', 'wider'].includes(e.how) && Math.hypot(e.x - START.x, e.z - START.z) < 160, `lingering: ${e.id} placed round them (${e.how}, ${Math.hypot(e.x - START.x, e.z - START.z).toFixed(0)} mm)`);
 
 const rt = runs.map((r) => r.t);
+console.log(straightRow);
 console.log(`ok: ${ISLANDS.length} islands, ${SUNDEW_CLUSTERS} sundew clusters ${Math.min(...ds).toFixed(0)}-${Math.max(...ds).toFixed(0)} mm out; ${PORTALS.length} portals (${PORTALS.filter((p) => p.fill).length} from the coverage pass), nearest neighbour ${Math.min(...nn).toFixed(0)}-${Math.max(...nn).toFixed(0)} mm (mean ${(nn.reduce((a, b) => a + b) / nn.length).toFixed(0)}), ${PORTALS.map((p) => distFromStart(p.x, p.z)).reduce((a, b) => Math.min(a, b), 1e9).toFixed(0)}-${PORTALS.map((p) => distFromStart(p.x, p.z)).reduce((a, b) => Math.max(a, b), 0).toFixed(0)} mm from the start; ` +
   `${BEARINGS} bearings: a ground after ${Math.min(...rt).toFixed(1)}-${Math.max(...rt).toFixed(1)} s (mean ${(rt.reduce((a, b) => a + b) / rt.length).toFixed(1)}; ${bankRuns.length} meet the bank first, the far way along it ≤ ${Math.max(...bankRuns.map((r) => r.far)).toFixed(0)} s); ` +
   `pondweed ${PONDWEED.length} leaves (${strays.length} strays), ${(ground / elsewhere).toFixed(0)}x as thick in a ground; ` +

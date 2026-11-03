@@ -175,9 +175,12 @@ nearest rim, ~8.4 mm off: they still have to walk out to it.
 
 **The default path** (the owner, 2026-11-01: "a default path to a portal,
 but just dynamically generate the other directions"): the walkable world is
-the spokes, so the path runs out along one, the 240° spoke (`encounters.js`
-`PATH_SPOKE`, `defaultPathFor`: across the opening view, which looks out
-along the 330° spoke, and level, unlike the climbing west spokes). On the
+the spokes, so the path runs out along one: the spoke straight ahead, the
+330° spoke the opening view looks out along (`encounters.js` `PATH_SPOKE`,
+derived from `FORWARD`, `defaultPathFor`; the owner, 2026-11-03: "with the
+new camera, we should have the default path be straight forward
+essentially ... make the forward path the one of discovery"; it was the 240°
+spoke, across the view). On the
 first frame the director lays Milnesium on one of its wet leaves ~2.2 mm out
 (where a rush meets it) and the pool with Prionchulus at its rim (8.4 mm),
 out of sight, so the way on exists from the start. It stays sealed (no
@@ -419,9 +422,10 @@ ring labelled Moss towards the way back.
 ## Multiplayer (local, up to four)
 
 **The world's forward** (the owner, 2026-11-03): the camera's turn is locked
-to it, so obstacle layout can rely on it. `FORWARD_YAW` in `main.js` (the
-start view, 5π/3): the camera sits at −x, +z of its target and looks toward
-+x (along the start leaf) and a little −z. RS left/right peeks sideways
+to it, so obstacle layout can rely on it. `FORWARD_YAW` in `encounters.js`
+(the start view, 5π/3): the camera sits at −x, +z of its target and looks
+toward +x (along the start leaf) and a little −z, the bearing `FORWARD`
+(330°): walking screen-up goes out along the 330° spoke, the default path's. RS left/right peeks sideways
 instead (the view slides about 30 % of its width that way and eases back;
 each player's own, blended through a split and a merge), RS up/down tilts,
 and LS moves relative to the fixed forward. With **Free camera (single
@@ -860,9 +864,12 @@ director: rushing along every spoke meets Milnesium (within ~10 s, after a
 warm-up) and then the pool at that spoke's rim (reached in 45-62 s), nothing
 placed in view, on seen leaves or off the leaves, nothing moved once seen;
 lingering brings Milnesium round them and then the pool; turning back moves
-nothing that was seen. With the default path: walking out along its spoke
-meets the pre-placed Milnesium and pool in order (nothing generated, the
-pool reached in ~53 s); heading out along three other spokes takes each off
+nothing that was seen. With the default path: its spoke is the one
+straight ahead (`FORWARD`), and walking out along it meets the pre-placed
+Milnesium (after the warm-up, ~10 s) and pool in order (nothing generated,
+the pool reached in ~53 s); on the page (2026-11-03, `testStep` with the
+stick held straight up at full tilt, no scrambles) the walker stays on the
+330° spoke, meets Milnesium at 13.4 s and reaches the pool at 81 s; heading out along three other spokes takes each off
 the path while unseen and places it ahead on that spoke, in order, nothing
 seen moved. Then it walks: the real gait (`gait.js` Walker, with
 grip, slips, falls and hand-overs) steered out along each of the 12 spokes,

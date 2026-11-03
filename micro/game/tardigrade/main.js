@@ -28,7 +28,7 @@ import { Nematode, GUARD } from './nematode.js';
 import { Meadows } from './meadow.js';
 import { createPortalLight } from '../shared/portal.js';
 import { createDirector } from '../shared/director.js';
-import { DIRECTOR, encounters, canPlace, wayOut, defaultPathFor } from './encounters.js';
+import { DIRECTOR, encounters, canPlace, wayOut, defaultPathFor, FORWARD_YAW } from './encounters.js';
 import { t as tt, tx } from '../shared/text.js';
 import { createCamLock } from '../shared/camlock.js';
 
@@ -236,7 +236,6 @@ const viewScale = () => (quality ? quality.scale / Q_MAX : SPLIT_SW[Math.min(4, 
 // (opens looking along leaf A, the +x spoke up and to the right)
 // The world's forward (the owner, 2026-11-03: the camera's turn is locked to it, so the layout has a
 // "forward"): the camera's azimuth round its target is π/2 - this yaw (see README).
-const FORWARD_YAW = Math.atan2(1, 0) + Math.PI + Math.PI / 6;
 const camLock = createCamLock({ forward: FORWARD_YAW });
 const view = { yaw: FORWARD_YAW, pitch: 1.18, obj: 1, manualFocusT: 99, focus: 0, mode: 0, labels: false, target: new THREE.Vector3(), claws: 1, internals: true, sway: true };
 view.target.copy(walker.dispPos);

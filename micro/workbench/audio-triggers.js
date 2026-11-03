@@ -25,7 +25,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:686"
+   "springtail/main.js:685"
   ],
   "event": "re-forming from motes"
  },
@@ -38,7 +38,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:714"
+   "springtail/main.js:713"
   ],
   "event": "a braced block"
  },
@@ -51,10 +51,10 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:717",
-   "springtail/main.js:738",
-   "springtail/main.js:1545",
-   "springtail/main.js:1632"
+   "springtail/main.js:716",
+   "springtail/main.js:737",
+   "springtail/main.js:1544",
+   "springtail/main.js:1631"
   ],
   "event": "a predator gives up"
  },
@@ -72,7 +72,7 @@ export const TRIGGERS = [
    "rate": 1.3
   },
   "sites": [
-   "springtail/main.js:751"
+   "springtail/main.js:750"
   ],
   "event": "Landing on a sundew leaf: stuck."
  },
@@ -85,7 +85,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:791"
+   "springtail/main.js:790"
   ],
   "event": "slipped back: the leaf closes"
  },
@@ -98,8 +98,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:792",
-   "springtail/main.js:1047"
+   "springtail/main.js:791",
+   "springtail/main.js:1046"
   ],
   "event": "dissolving (generic)"
  },
@@ -117,7 +117,7 @@ export const TRIGGERS = [
    "rate": 1.8
   },
   "sites": [
-   "springtail/main.js:793"
+   "springtail/main.js:792"
   ],
   "event": "A raindrop cratering the pool next to you."
  },
@@ -135,6 +135,24 @@ export const TRIGGERS = [
    "rate": "cap.kind === 'stenus' ? 0.7 : 0.55"
   },
   "sites": [
+   "springtail/main.js:793"
+  ],
+  "event": "X (eat): grazing pollen and spores."
+ },
+ {
+  "world": "springtail",
+  "kind": "play",
+  "experimental": {
+   "id": "springtail/eat",
+   "volume": 0.7,
+   "rate": 0.5
+  },
+  "default": {
+   "id": "springtail/eat",
+   "volume": 0.7,
+   "rate": 0.5
+  },
+  "sites": [
    "springtail/main.js:794"
   ],
   "event": "X (eat): grazing pollen and spores."
@@ -144,24 +162,6 @@ export const TRIGGERS = [
   "kind": "play",
   "experimental": {
    "id": "springtail/eat",
-   "volume": 0.7,
-   "rate": 0.5
-  },
-  "default": {
-   "id": "springtail/eat",
-   "volume": 0.7,
-   "rate": 0.5
-  },
-  "sites": [
-   "springtail/main.js:795"
-  ],
-  "event": "X (eat): grazing pollen and spores."
- },
- {
-  "world": "springtail",
-  "kind": "play",
-  "experimental": {
-   "id": "springtail/eat",
    "volume": 0.5,
    "rate": "0.8 + Math.random() * 0.2"
   },
@@ -171,7 +171,7 @@ export const TRIGGERS = [
    "rate": "0.8 + Math.random() * 0.2"
   },
   "sites": [
-   "springtail/main.js:809"
+   "springtail/main.js:808"
   ],
   "event": "X (eat): grazing pollen and spores."
  },
@@ -187,7 +187,7 @@ export const TRIGGERS = [
    "volume": 0.6
   },
   "sites": [
-   "springtail/main.js:851"
+   "springtail/main.js:850"
   ],
   "event": "Ambience: the bog pool surface at springtail height."
  },
@@ -205,7 +205,7 @@ export const TRIGGERS = [
    "rate": "1.1 - 0.2 * p + Math.random() * 0.06"
   },
   "sites": [
-   "springtail/main.js:954"
+   "springtail/main.js:953"
   ],
   "event": "A (dash): the furcula jump."
  },
@@ -222,7 +222,7 @@ export const TRIGGERS = [
    "rate": 1.2
   },
   "sites": [
-   "springtail/main.js:1010"
+   "springtail/main.js:1009"
   ],
   "event": "the pounce-bite lands"
  },
@@ -240,7 +240,7 @@ export const TRIGGERS = [
    "rate": 1.05
   },
   "sites": [
-   "springtail/main.js:1028"
+   "springtail/main.js:1027"
   ],
   "event": "X (eat): grazing pollen and spores."
  },
@@ -258,7 +258,7 @@ export const TRIGGERS = [
    "rate": 0.85
   },
   "sites": [
-   "springtail/main.js:1037"
+   "springtail/main.js:1036"
   ],
   "event": "Landing on the water film."
  },
@@ -271,8 +271,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:1139",
-   "springtail/main.js:1391"
+   "springtail/main.js:1138",
+   "springtail/main.js:1390"
   ],
   "event": "landing on its back"
  },
@@ -290,7 +290,7 @@ export const TRIGGERS = [
    "rate": "0.95 + Math.random() * 0.1"
   },
   "sites": [
-   "springtail/main.js:1142"
+   "springtail/main.js:1141"
   ],
   "event": "Landing on the water film."
  },
@@ -308,7 +308,7 @@ export const TRIGGERS = [
    "rate": "1.35 + Math.random() * 0.1"
   },
   "sites": [
-   "springtail/main.js:1147"
+   "springtail/main.js:1146"
   ],
   "event": "Landing on the water film."
  },
@@ -321,7 +321,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:1171"
+   "springtail/main.js:1170"
   ],
   "event": "A held: cocking the furcula"
  },
@@ -339,7 +339,7 @@ export const TRIGGERS = [
    "rate": 1.1
   },
   "sites": [
-   "springtail/main.js:1188"
+   "springtail/main.js:1187"
   ],
   "event": "Landing on the water film."
  },
@@ -353,7 +353,7 @@ export const TRIGGERS = [
    "id": "springtail/land-sticky"
   },
   "sites": [
-   "springtail/main.js:1247"
+   "springtail/main.js:1246"
   ],
   "event": "Landing on a sundew leaf: stuck."
  },
@@ -366,7 +366,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:1286"
+   "springtail/main.js:1285"
   ],
   "event": "torn free of the sundew"
  },
@@ -380,7 +380,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:1308"
+   "springtail/main.js:1307"
   ],
   "event": "wriggling and kicking in glue"
  },
@@ -393,7 +393,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:1335"
+   "springtail/main.js:1334"
   ],
   "event": "torn free of the sundew"
  },
@@ -406,7 +406,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:1369"
+   "springtail/main.js:1368"
   ],
   "event": "righting itself"
  },
@@ -424,7 +424,7 @@ export const TRIGGERS = [
    "rate": "0.95 + Math.random() * 0.1"
   },
   "sites": [
-   "springtail/main.js:1461"
+   "springtail/main.js:1460"
   ],
   "event": "X (eat): grazing pollen and spores."
  },
@@ -442,7 +442,7 @@ export const TRIGGERS = [
    "rate": 1.3
   },
   "sites": [
-   "springtail/main.js:1481"
+   "springtail/main.js:1480"
   ],
   "event": "X (eat): grazing pollen and spores."
  },
@@ -460,7 +460,7 @@ export const TRIGGERS = [
    "rate": 0.6
   },
   "sites": [
-   "springtail/main.js:1588"
+   "springtail/main.js:1587"
   ],
   "event": "The rove beetle's harpoon strike."
  },
@@ -474,8 +474,8 @@ export const TRIGGERS = [
    "rate": 1.6
   },
   "sites": [
-   "springtail/main.js:1591",
-   "springtail/main.js:1605"
+   "springtail/main.js:1590",
+   "springtail/main.js:1604"
   ],
   "event": "Landing on the water film."
  },
@@ -493,6 +493,22 @@ export const TRIGGERS = [
    "rate": 0.8
   },
   "sites": [
+   "springtail/main.js:1593"
+  ],
+  "event": "The rove beetle skimming across the water."
+ },
+ {
+  "world": "springtail",
+  "kind": "play",
+  "experimental": {
+   "id": "springtail/stenus-skim",
+   "volume": 0.7
+  },
+  "default": {
+   "id": "springtail/stenus-skim",
+   "volume": 0.7
+  },
+  "sites": [
    "springtail/main.js:1594"
   ],
   "event": "The rove beetle skimming across the water."
@@ -501,22 +517,6 @@ export const TRIGGERS = [
   "world": "springtail",
   "kind": "play",
   "experimental": {
-   "id": "springtail/stenus-skim",
-   "volume": 0.7
-  },
-  "default": {
-   "id": "springtail/stenus-skim",
-   "volume": 0.7
-  },
-  "sites": [
-   "springtail/main.js:1595"
-  ],
-  "event": "The rove beetle skimming across the water."
- },
- {
-  "world": "springtail",
-  "kind": "play",
-  "experimental": {
    "id": "springtail/stenus-strike",
    "volume": 0.9
   },
@@ -525,8 +525,8 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "springtail/main.js:1596",
-   "springtail/main.js:2440"
+   "springtail/main.js:1595",
+   "springtail/main.js:2439"
   ],
   "event": "The rove beetle's harpoon strike."
  },
@@ -539,8 +539,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:1598",
-   "springtail/main.js:1606"
+   "springtail/main.js:1597",
+   "springtail/main.js:1605"
   ],
   "event": "a predator's wind-up (generic)"
  },
@@ -553,7 +553,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:1610"
+   "springtail/main.js:1609"
   ],
   "event": "the strider skating in"
  },
@@ -566,7 +566,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:1623"
+   "springtail/main.js:1622"
   ],
   "event": "the wolf spider stalking"
  },
@@ -579,7 +579,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:1628"
+   "springtail/main.js:1627"
   ],
   "event": "a predator's wind-up (generic)"
  },
@@ -596,7 +596,7 @@ export const TRIGGERS = [
    "rate": 0.7
   },
   "sites": [
-   "springtail/main.js:1629"
+   "springtail/main.js:1628"
   ],
   "event": "the wolf spider's lunge"
  },
@@ -614,7 +614,7 @@ export const TRIGGERS = [
    "rate": "0.92 + Math.random() * 0.16"
   },
   "sites": [
-   "springtail/main.js:1643"
+   "springtail/main.js:1642"
   ],
   "event": "A raindrop cratering the pool next to you."
  },
@@ -632,7 +632,7 @@ export const TRIGGERS = [
    "rate": "1.7 + Math.random() * 0.2"
   },
   "sites": [
-   "springtail/main.js:1750"
+   "springtail/main.js:1749"
   ],
   "event": "a glue strand snaps"
  },
@@ -645,7 +645,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:1939"
+   "springtail/main.js:1938"
   ],
   "event": "the way on unseals"
  },
@@ -658,7 +658,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:1960"
+   "springtail/main.js:1959"
   ],
   "event": "\"Y Enter the portal\" appears"
  },
@@ -671,8 +671,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:1964",
-   "springtail/main.js:1968"
+   "springtail/main.js:1963",
+   "springtail/main.js:1967"
   ],
   "event": "Y at a sealed or guarded portal"
  },
@@ -685,7 +685,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:2000"
+   "springtail/main.js:1999"
   ],
   "event": "Y at the open portal"
  },
@@ -701,7 +701,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "springtail/main.js:2026"
+   "springtail/main.js:2025"
   ],
   "event": "Going through a portal (the way on): the success chime before the freeze and the zoom into the next world."
  },
@@ -714,7 +714,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "springtail/main.js:2027"
+   "springtail/main.js:2026"
   ],
   "event": "the success slow-down"
  },
@@ -1484,8 +1484,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "tardigrade/main.js:495",
-   "tardigrade/main.js:560"
+   "tardigrade/main.js:494",
+   "tardigrade/main.js:559"
   ],
   "event": "re-forming from motes"
  },
@@ -1503,7 +1503,7 @@ export const TRIGGERS = [
    "rate": 0.9
   },
   "sites": [
-   "tardigrade/main.js:539"
+   "tardigrade/main.js:538"
   ],
   "event": "The predatory tardigrade lunging."
  },
@@ -1521,7 +1521,7 @@ export const TRIGGERS = [
    "rate": 0.7
   },
   "sites": [
-   "tardigrade/main.js:621"
+   "tardigrade/main.js:620"
   ],
   "event": "X: stylets pierce a cell."
  },
@@ -1539,7 +1539,7 @@ export const TRIGGERS = [
    "rate": 0.7
   },
   "sites": [
-   "tardigrade/main.js:622"
+   "tardigrade/main.js:621"
   ],
   "event": "The predatory tardigrade lunging."
  },
@@ -1552,7 +1552,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "tardigrade/main.js:687"
+   "tardigrade/main.js:686"
   ],
   "event": "Y at the backdoor"
  },
@@ -1565,7 +1565,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "tardigrade/main.js:824"
+   "tardigrade/main.js:823"
   ],
   "event": "\"Y Enter the portal\" appears"
  },
@@ -1578,7 +1578,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "tardigrade/main.js:831"
+   "tardigrade/main.js:830"
   ],
   "event": "the way on unseals"
  },
@@ -1591,8 +1591,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "tardigrade/main.js:849",
-   "tardigrade/main.js:856"
+   "tardigrade/main.js:848",
+   "tardigrade/main.js:855"
   ],
   "event": "Y at a sealed or guarded portal"
  },
@@ -1605,7 +1605,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "tardigrade/main.js:876"
+   "tardigrade/main.js:875"
   ],
   "event": "Y at the open portal"
  },
@@ -1621,7 +1621,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "tardigrade/main.js:927"
+   "tardigrade/main.js:926"
   ],
   "event": "Going through a portal (the way on): the success chime before the freeze and the zoom into the next world."
  },
@@ -1634,7 +1634,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "tardigrade/main.js:928"
+   "tardigrade/main.js:927"
   ],
   "event": "the success slow-down"
  },
@@ -1650,7 +1650,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "tardigrade/main.js:1230"
+   "tardigrade/main.js:1229"
   ],
   "event": "A (dash): the scramble."
  },
@@ -1663,7 +1663,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "tardigrade/main.js:1290"
+   "tardigrade/main.js:1289"
   ],
   "event": "Prionchulus thrashing"
  },
@@ -1680,7 +1680,7 @@ export const TRIGGERS = [
    "rate": 0.7
   },
   "sites": [
-   "tardigrade/main.js:1293"
+   "tardigrade/main.js:1292"
   ],
   "event": "Prionchulus's whip strike"
  },
@@ -1693,7 +1693,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "tardigrade/main.js:1294"
+   "tardigrade/main.js:1293"
   ],
   "event": "a braced block"
  },
@@ -1711,7 +1711,7 @@ export const TRIGGERS = [
    "rate": 0.8
   },
   "sites": [
-   "tardigrade/main.js:1295"
+   "tardigrade/main.js:1294"
   ],
   "event": "X: stylets pierce a cell."
  },
@@ -1724,8 +1724,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "tardigrade/main.js:1295",
-   "tardigrade/main.js:1352"
+   "tardigrade/main.js:1294",
+   "tardigrade/main.js:1351"
   ],
   "event": "the attack lands"
  },
@@ -1738,8 +1738,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "tardigrade/main.js:1297",
-   "tardigrade/main.js:1357"
+   "tardigrade/main.js:1296",
+   "tardigrade/main.js:1356"
   ],
   "event": "a predator gives up"
  },
@@ -1757,7 +1757,7 @@ export const TRIGGERS = [
    "rate": 0.6
   },
   "sites": [
-   "tardigrade/main.js:1301"
+   "tardigrade/main.js:1300"
   ],
   "event": "The predatory tardigrade lunging."
  },
@@ -1771,7 +1771,7 @@ export const TRIGGERS = [
    "id": "tardigrade/tun"
   },
   "sites": [
-   "tardigrade/main.js:1329"
+   "tardigrade/main.js:1328"
   ],
   "event": "Y: drying into a tun."
  },
@@ -1785,7 +1785,7 @@ export const TRIGGERS = [
    "id": "tardigrade/revive"
   },
   "sites": [
-   "tardigrade/main.js:1330"
+   "tardigrade/main.js:1329"
   ],
   "event": "Rehydrating out of the tun."
  },
@@ -1798,7 +1798,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "tardigrade/main.js:1336"
+   "tardigrade/main.js:1335"
   ],
   "event": "B: gripping hard"
  },
@@ -1816,7 +1816,7 @@ export const TRIGGERS = [
    "rate": "0.95 + Math.random() * 0.1"
   },
   "sites": [
-   "tardigrade/main.js:1340"
+   "tardigrade/main.js:1339"
   ],
   "event": "feeding"
  },
@@ -1832,7 +1832,7 @@ export const TRIGGERS = [
    "volume": 0.8
   },
   "sites": [
-   "tardigrade/main.js:1344"
+   "tardigrade/main.js:1343"
   ],
   "event": "Rain arriving on the moss."
  },
@@ -1848,7 +1848,7 @@ export const TRIGGERS = [
    "volume": "e === 'bite' ? 1 : 0.6"
   },
   "sites": [
-   "tardigrade/main.js:1349"
+   "tardigrade/main.js:1348"
   ],
   "event": "The predatory tardigrade lunging."
  },
@@ -1864,6 +1864,24 @@ export const TRIGGERS = [
    "id": "tardigrade/milnesium",
    "volume": 0.45,
    "rate": 0.85
+  },
+  "sites": [
+   "tardigrade/main.js:1349"
+  ],
+  "event": "The predatory tardigrade lunging."
+ },
+ {
+  "world": "tardigrade",
+  "kind": "play",
+  "experimental": {
+   "id": "tardigrade/milnesium",
+   "volume": 0.25,
+   "rate": 0.75
+  },
+  "default": {
+   "id": "tardigrade/milnesium",
+   "volume": 0.25,
+   "rate": 0.75
   },
   "sites": [
    "tardigrade/main.js:1350"
@@ -1874,35 +1892,17 @@ export const TRIGGERS = [
   "world": "tardigrade",
   "kind": "play",
   "experimental": {
-   "id": "tardigrade/milnesium",
-   "volume": 0.25,
-   "rate": 0.75
+   "id": "tardigrade/bite",
+   "volume": 1,
+   "rate": 0.85
   },
   "default": {
-   "id": "tardigrade/milnesium",
-   "volume": 0.25,
-   "rate": 0.75
+   "id": "tardigrade/bite",
+   "volume": 1,
+   "rate": 0.85
   },
   "sites": [
    "tardigrade/main.js:1351"
-  ],
-  "event": "The predatory tardigrade lunging."
- },
- {
-  "world": "tardigrade",
-  "kind": "play",
-  "experimental": {
-   "id": "tardigrade/bite",
-   "volume": 1,
-   "rate": 0.85
-  },
-  "default": {
-   "id": "tardigrade/bite",
-   "volume": 1,
-   "rate": 0.85
-  },
-  "sites": [
-   "tardigrade/main.js:1352"
   ],
   "event": "X: stylets pierce a cell."
  },
@@ -1920,7 +1920,7 @@ export const TRIGGERS = [
    "rate": 1.2
   },
   "sites": [
-   "tardigrade/main.js:1354"
+   "tardigrade/main.js:1353"
   ],
   "event": "The predatory tardigrade lunging."
  },
@@ -1938,7 +1938,7 @@ export const TRIGGERS = [
    "rate": 1.05
   },
   "sites": [
-   "tardigrade/main.js:1355"
+   "tardigrade/main.js:1354"
   ],
   "event": "The predatory tardigrade lunging."
  },
@@ -1955,7 +1955,7 @@ export const TRIGGERS = [
    "rate": 0.7
   },
   "sites": [
-   "tardigrade/main.js:1356"
+   "tardigrade/main.js:1355"
   ],
   "event": "a braced block"
  },
@@ -1969,7 +1969,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "tardigrade/main.js:1423"
+   "tardigrade/main.js:1422"
   ],
   "event": "X at a foe: lunge and stylets"
  },

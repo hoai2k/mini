@@ -120,13 +120,15 @@ export const DIRECTOR = {
   // the warm-up: ~5 s of moving (a few jumps); then a calm break of ~8-10 s of moving clear of the last encounter
   // (rushing out with tap jumps, every encounter is met within ~30 s, before a portal's pondweed)
   warmup: { sec: 5 }, calm: { sec: 9 }, linger: 6, moveSpeed: 2.5,
+  // "ahead" is the way they have gone over ~3 s (a hop round an island does not swing it off the forward line)
+  headingSec: 3, aheadBias: 3,
   // seen but not gone to: met once everyone is ~3 screens off, or after 10 s in sight nearby (it is never moved)
   watchSec: 10,
 };
 export const ENCOUNTERS = [
   { id: 'stenus', size: 40, visible: 8, minAhead: 55, maxAhead: 95, minNear: 40, maxNear: 62,
     fits: (x, z) => openAt(x, z, 6) && roomAt(x, z, 30) },
-  { id: 'strider', size: 62, minAhead: 72, maxAhead: 112, minNear: 50, maxNear: 80,
+  { id: 'strider', size: 62, minAhead: 72, maxAhead: 125, minNear: 50, maxNear: 80,
     parts: (x, z, b) => { const c = zoneAt('crowd', x, z, b); return [[x, z, 14], [c.x, c.z, ZONES.crowd.r + 2]]; },
     fits: (x, z, b) => { const c = zoneAt('crowd', x, z, b); return openAt(x, z, 10) && roomAt(x, z, 40) && openAt(c.x, c.z, ZONES.crowd.r + 3) && roomAt(c.x, c.z, ZONES.crowd.r); } },
   // an event, not a thing in the water
@@ -161,6 +163,17 @@ export const PORTAL_R = 8;
 /** A portal's hunting ground and pondweed zone: radius (mm) round the raft (~5 s of rushing). */
 export const GROUND = { r: 80 };
 export const PORTAL_SPACING = 340, PORTAL_MIN_D = 450 + GROUND.r, PORTAL_SEED = 44;
+/**
+ * The world's forward (the owner, 2026-11-03: the camera's turn is locked to it): main.js's camera looks
+ * along -(cos, sin) of FORWARD_YAW (5π/6), so straight ahead on the screen is the bearing FORWARD (-π/6:
+ * +x and a little -z). The owner: "make the forward path the one of discovery": one raft stands on that
+ * line (`FORWARD_RAFT`: within `aside` mm of it, `d` ± `slack` mm out, its ground's edge ~35 s of rushing
+ * away; layPortals moves the nearest raft across, only as far as it must), so walking screen-up leads to
+ * a portal and its spider.
+ */
+export const FORWARD_YAW = Math.PI - Math.PI / 6;
+export const FORWARD = FORWARD_YAW - Math.PI;
+export const FORWARD_RAFT = { d: 590, slack: 70, aside: 20, apart: 0.6 };
 export const PORTALS = [];
 /** The portal in focus (the one nearest the players: its raft's glow, its spider in the fight; main.js `focusPortal`). */
 export const PORTAL = { placed: true, i: 0, x: 0, z: 0, a: 0, r: PORTAL_R, reach: 11 };
@@ -268,29 +281,63 @@ export function rushToGround(list, b, limit = 120, speed = 15) {
 /** Can a raft go at (x, z): open water, away from the start, islands and the bank? */
 const raftFits = (x, z) => poolE(x, z) < 0.88 && distFromStart(x, z) > PORTAL_MIN_D && islandEdge(x, z).d > PORTAL_R + 14 && roomAt(x, z, PORTAL_R + 20, 0.93);
 /** Lay out the portals for a seed (blue noise, then the coverage pass). Exported for tests. */
-export function layPortals(seed = PORTAL_SEED, { spacing = PORTAL_SPACING, bearings = 64, within = 58 } = {}) {
+export function layPortals(seed = PORTAL_SEED, { spacing = PORTAL_SPACING, bearings = 64, within = 58, forward = true } = {}) {
   const r = seeded(seed), list = [];
   for (let k = 0; k < 9000; k++) {
     const x = (r() * 2 - 1) * POOL.a, z = (r() * 2 - 1) * POOL.b;
     if (raftFits(x, z) && list.every((p) => Math.hypot(p.x - x, p.z - z) > spacing)) list.push({ x, z, fill: false });
   }
-  for (let pass = 0; pass < 6; pass++) {
-    let added = false;
-    for (let k = 0; k < bearings; k++) {
-      const run = rushToGround(list, (k / bearings) * Math.PI * 2, within + 1);
-      if (run.t <= within) continue;
-      for (const tt of [48, 44, 52, 40, 56, 36]) {
-        let [x, z] = run.path[Math.min(run.path.length - 1, Math.round(tt * 10))];
-        for (let q = 0; q < 40 && !raftFits(x, z); q++) { x = START.x + (x - START.x) * 0.985; z = START.z + (z - START.z) * 0.985; }
-        if (raftFits(x, z) && list.every((p) => Math.hypot(p.x - x, p.z - z) > spacing * 0.6)) { list.push({ x, z, fill: true }); added = true; break; }
+  const cover = (within) => {
+    for (let pass = 0; pass < 6; pass++) {
+      let added = false;
+      for (let k = 0; k < bearings; k++) {
+        const run = rushToGround(list, (k / bearings) * Math.PI * 2, within + 1);
+        if (run.t <= within) continue;
+        for (const tt of [48, 44, 52, 40, 56, 36]) {
+          let [x, z] = run.path[Math.min(run.path.length - 1, Math.round(tt * 10))];
+          for (let q = 0; q < 40 && !raftFits(x, z); q++) { x = START.x + (x - START.x) * 0.985; z = START.z + (z - START.z) * 0.985; }
+          if (raftFits(x, z) && list.every((p) => Math.hypot(p.x - x, p.z - z) > spacing * 0.6)) { list.push({ x, z, fill: true }); added = true; break; }
+        }
       }
+      if (!added) break;
     }
-    if (!added) break;
+  };
+  cover(within);
+  // the forward raft: one raft on the line straight ahead of the start (FORWARD), its spider's ground
+  // ~35 s of rushing out, so walking screen-up leads to a portal (after the coverage pass, which then runs
+  // again in case moving a raft left a bearing short)
+  if (forward) {
+    const ux = Math.cos(FORWARD), uz = Math.sin(FORWARD);
+    const along = (p) => (p.x - START.x) * ux + (p.z - START.z) * uz, aside = (p) => -(p.x - START.x) * uz + (p.z - START.z) * ux;
+    const onLine = list.some((p) => Math.abs(aside(p)) <= FORWARD_RAFT.aside && Math.abs(along(p) - FORWARD_RAFT.d) <= FORWARD_RAFT.slack);
+    if (!onLine) {
+      // the nearest raft to the spot moved across onto the line (only as far as it must: `aside` mm off it
+      // is in its spider's ground and in view of a walker going straight), else a new one there
+      const spot = (d, off = 0) => ({ x: START.x + ux * d - uz * off, z: START.z + uz * d + ux * off });
+      const s0 = spot(FORWARD_RAFT.d);
+      const near = list.map((p, i) => ({ p, i, d: Math.hypot(p.x - s0.x, p.z - s0.z) })).sort((a, b) => a.d - b.d)[0];
+      const keep = (q, skip) => raftFits(q.x, q.z) && list.every((p, i) => i === skip || Math.hypot(p.x - q.x, p.z - q.z) > spacing * FORWARD_RAFT.apart);
+      const A = FORWARD_RAFT.aside;
+      let done = false;
+      if (near && near.d < 160) {
+        const p = near.p, a0 = Math.max(FORWARD_RAFT.d - FORWARD_RAFT.slack, Math.min(FORWARD_RAFT.d + FORWARD_RAFT.slack, along(p))), sgn = Math.sign(aside(p)) || 1;
+        for (let off = A; off >= -A && !done; off -= 5) for (const dd of [0, 10, -10, 20, -20]) {
+          const q = spot(a0 + dd, sgn * off);
+          if (keep(q, near.i)) { Object.assign(p, { x: q.x, z: q.z, forward: true }); done = true; break; }
+        }
+      }
+      for (const dd of [0, 15, -15, 30, -30, 45, -45, 60, -60]) for (const off of [0, 10, -10, 20, -20]) {
+        if (done) break;
+        const q = spot(FORWARD_RAFT.d + dd, off);
+        if (keep(q, -1)) { list.push({ x: q.x, z: q.z, fill: false, forward: true }); done = true; }
+      }
+    } else list.find((p) => Math.abs(aside(p)) <= FORWARD_RAFT.aside && Math.abs(along(p) - FORWARD_RAFT.d) <= FORWARD_RAFT.slack).forward = true;
   }
+  if (forward) cover(within);
   // round to 0.1 mm; each raft turned so its mite's head faces the start
   return list.map((p, i) => {
     const x = Math.round(p.x * 10) / 10, z = Math.round(p.z * 10) / 10;
-    return { i, x, z, a: Math.atan2(z - START.z, x - START.x), r: PORTAL_R, reach: 11, fill: p.fill };
+    return { i, x, z, a: Math.atan2(z - START.z, x - START.x), r: PORTAL_R, reach: 11, fill: p.fill, forward: !!p.forward };
   });
 }
 PORTALS.push(...layPortals());

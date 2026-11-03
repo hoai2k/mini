@@ -46,8 +46,30 @@ export function clusterRing(k) {
   }
   return out;
 }
+/**
+ * The world's forward (the owner, 2026-11-03: the camera's turn is locked to it). The camera looks along
+ * -(cos, sin) of FORWARD_YAW (main.js), so straight ahead on the screen is the bearing FORWARD from the
+ * start (~2.02 rad: toward -x and +z, a little left of the opening view's OPENING).
+ */
+export const FORWARD_YAW = -0.6 - Math.PI / 6;
+export const FORWARD = FORWARD_YAW + Math.PI;
+/**
+ * Thickets along the forward route (the owner, 2026-11-03: "I went forward a long way ... I saw lots of
+ * springtails, but that was about it"): past the inner ring the forward line had nothing but springtail
+ * groups and beads for ~15 mm, and past the outer ring for ~45 mm. These stand in the gaps between the
+ * default path's encounters, to alternate sides of the line, their edges ~0.6 mm off it: a walker going
+ * straight ahead skirts each one (the hyphae and their springtails at the side of the view).
+ */
+export const FORWARD_THICKETS = [12600, 28800, 37900, 46200, 57500];
+export function forwardClusters() {
+  const ux = Math.cos(FORWARD), uz = Math.sin(FORWARD);
+  return FORWARD_THICKETS.map((d, i) => {
+    const side = (i % 2 ? -1 : 1) * (CLUSTER.r + 650);
+    return { x: ux * d - uz * side, z: uz * d + ux * side, r: CLUSTER.r, ring: 2, i, a: FORWARD };
+  });
+}
 /** Every thicket cluster. */
-export const CLUSTERS = [...clusterRing(0), ...clusterRing(1)];
+export const CLUSTERS = [...clusterRing(0), ...clusterRing(1), ...forwardClusters()];
 
 /** The predator's hunting ground: radius r round where it is placed; it gives up a chase `chase` past r. */
 export const PRED_GROUND = { r: 1100, chase: 1100 }; // (it notices a mite within 0.9 mm of the ground: predator.js)
@@ -128,19 +150,25 @@ export const DIRECTOR = {
   // the warm-up: ~4 s of moving over open moss; a calm break of ~4.5 s of moving clear of the last
   // (the owner, 2026-11-02: "there should be more frequent encounters")
   warmup: { sec: 4 }, calm: { sec: 4.5 }, linger: 6, moveSpeed: 120,
+  // "ahead" is the way they have gone over ~2.5 s, straight ahead preferred (a step round a stem or a thicket
+  // does not swing the next encounter off the line they are walking)
+  headingSec: 2.5, aheadBias: 2,
   // seen but not gone to: met once everyone is ~2 screens past it, or after 12 s in sight nearby (it is never moved)
   watchSec: 12, passDist: 6000,
 };
 /**
  * The default path (shared/director.js `defaultPath`; the owner, 2026-11-01: "a default path to a portal,
  * but just dynamically generate the other directions if the player goes off in another direction"): the
- * predator's two grounds and the wet leaf axil with its pseudoscorpion are laid out along one bearing from
- * the start on the first frame, at the distances a rush (~730 µm/s) would meet them (~8, ~19 and ~32 mm
- * out), so the way on exists from the start. The bearing runs off to the side of the opening view (which
- * looks along OPENING, ~2.5 rad) and away from the giant springtail behind it. Off that bearing they are
+ * whole order is laid out on the first frame at the distances a rush (~1100 µm/s) would meet them (the
+ * family ~8 mm out, the predator's grounds ~18, ~34 and ~51 mm, the drops ~24 and ~41 mm, the water
+ * ~64 mm), so the way on exists from the start. It runs straight ahead along the world's forward
+ * (FORWARD; the owner, 2026-11-03: "with the new camera, we should have the default path be straight
+ * forward essentially ... make the forward path the one of discovery"), each as near the line as it fits
+ * (`lateral`: up to 1.6 mm aside, nearer and farther along it first), so walking screen-up meets them in
+ * turn. It ran at -2.6 rad before, ~95° to the side of the locked forward. Off that bearing they are
  * placed as you go, as before (each is one object: `single`).
  */
-export const DEFAULT_PATH = { from: { x: 0, z: 0 }, bearing: -2.6, rush: 1100 };
+export const DEFAULT_PATH = { from: { x: 0, z: 0 }, bearing: FORWARD, rush: 1100, lateral: [0, 400, -400, 800, -800, 1200, -1200, 1600, -1600] };
 /** The predator's ground placed at (x, z): clear of the thickets (a chase may run into one: it eats springtails there), the giant springtail and the second box mite. */
 const predFits = (x, z) => clearOfThickets(x, z, PRED_GROUND.r, 150)
   && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 2600 && Math.hypot(x - NPC_HOME.x, z - NPC_HOME.z) > 2200;

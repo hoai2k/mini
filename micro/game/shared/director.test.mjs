@@ -24,7 +24,7 @@ function wedge(x, z, a, h = 0.2, back = 120, reach = 60) {
 }
 const inWedge = (v, x, z, r = 0) => v.frustum.every((p) => p[0] * x + p[2] * z + p[3] >= -r);
 
-function makeWorld({ walkers = true } = {}) {
+function makeWorld({ walkers = true, opts = {} } = {}) {
   const things = [];
   const checks = { placedOnSeen: 0, placedInView: 0, movedSeen: 0, places: 0 };
   let dir = null;
@@ -42,7 +42,7 @@ function makeWorld({ walkers = true } = {}) {
     met: (h, [p]) => Math.hypot(h.x - p.x, h.z - p.z) < size * 0.7,
   });
   const entries = [mk('stenus', 30, { visible: 12 }), mk('strider', 40, { visible: 20 }), { id: 'rain', size: 0, minAhead: 0, maxAhead: 0, virtual: true, place: () => ({ rain: true }), met: () => true }, mk('portal', 20, { final: true, top: 60 })];
-  dir = createDirector({ entries, bounds: { x0: -1000, x1: 1000, z0: -1000, z1: 1000 }, cell: 10, seenDist: 60, nearSeen: 6, warmup: { sec: 3 }, calm: { sec: 4 }, linger: 6, seed: 5 });
+  dir = createDirector({ entries, bounds: { x0: -1000, x1: 1000, z0: -1000, z1: 1000 }, cell: 10, seenDist: 60, nearSeen: 6, warmup: { sec: 3 }, calm: { sec: 4 }, linger: 6, seed: 5, ...opts });
   // the enemies come for the nearest player once placed (the springtail's predators hunt)
   const stepThings = (players) => {
     if (!walkers) return;
@@ -203,7 +203,7 @@ for (const a of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
   assert.ok(ms < 1, 'under a millisecond a frame');
 }
 // ---- the default path (opts.defaultPath): pre-placed along a bearing from the start; off it, placed as you go
-function makePathWorld({ single = false, bearing = 0.6 } = {}) {
+function makePathWorld({ single = false, bearing = 0.6, path = {}, opts = {} } = {}) {
   const things = []; // every instance the world holds: { id, inst, x, z, seen, dropped, moves }
   const checks = { placedOnSeen: 0, placedInView: 0, movedSeen: 0, droppedSeen: 0 };
   let dir = null;
@@ -230,7 +230,7 @@ function makePathWorld({ single = false, bearing = 0.6 } = {}) {
   });
   const entries = [mk('stenus', 30, { visible: 12 }), mk('strider', 40, { visible: 20 }), { id: 'rain', size: 0, minAhead: 0, maxAhead: 0, virtual: true, place: () => ({ rain: true }), met: () => true }, mk('portal', 20, { final: true, top: 60 })];
   dir = createDirector({ entries, bounds: { x0: -1000, x1: 1000, z0: -1000, z1: 1000 }, cell: 10, seenDist: 60, nearSeen: 6, warmup: { sec: 3 }, calm: { sec: 4 }, linger: 6, seed: 5,
-    defaultPath: { from: { x: 0, z: 0 }, bearing, rush: 15, cone: 0.45 } });
+    defaultPath: { from: { x: 0, z: 0 }, bearing, rush: 15, cone: 0.45, ...path }, ...opts });
   return { dir, things, checks, entries };
 }
 function runPath(W, { seconds, move, look }) {
@@ -284,6 +284,50 @@ const stepTo = (p, x, z, sp = 15) => { const d = Math.hypot(x - p.x, z - p.z); i
   assert.equal(W.dir.portals().length, 1);
   assert.deepEqual([W.checks.placedOnSeen, W.checks.placedInView, W.checks.movedSeen, W.checks.droppedSeen], [0, 0, 0, 0]);
   assert.ok(W.things.every((h) => h.moves === 0 && h.x === h.x0 && h.z === h.z0), 'default path: nothing moved');
+}
+{
+  // straight along the bearing (a world's locked forward), never steering: with `lateral` every instance lies
+  // on or beside the line, so holding the stick up meets the whole order where it lies
+  const W = makePathWorld({ path: { lateral: [0, 5, -5, 10, -10] } });
+  const ux = Math.cos(0.6), uz = Math.sin(0.6);
+  for (const e of W.dir.state().entries) if (e.def) assert.ok(Math.abs(-e.def.x * uz + e.def.z * ux) <= 10 + 1e-6, `${e.id} within 10 of the line (${(-e.def.x * uz + e.def.z * ux).toFixed(1)})`);
+  const r = runPath(W, { seconds: 120, move: (t, p) => { p.a = 0.6; p.x += ux * 15 * DT; p.z += uz * 15 * DT; } });
+  assert.deepEqual(order(r.ev), [0, 1, 2], 'straight along the bearing: met in order');
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met' && e.index !== 2).map((e) => e.instance), ['default', 'default'], 'straight along the bearing: where the path laid them');
+  assert.ok(r.p.reached && r.p.reached.instance === 'default', 'straight along the bearing: the default portal reached');
+}
+for (const single of [false, true]) {
+  // inside the cone but well to one side of the line, never steering: the walker passes each instance without
+  // meeting it; once past one it is off the path, and the entry is placed ahead of them (it does not wait for good)
+  const W = makePathWorld({ single });
+  const a = 0.6 + 0.35;
+  const r = runPath(W, { seconds: 200, move: (t, p, W) => {
+    // (once the portal is open, they go to the nearest)
+    const D = W.dir.portals().filter((q) => q.open).sort((u, v) => Math.hypot(u.x - p.x, u.z - p.z) - Math.hypot(v.x - p.x, v.z - p.z))[0];
+    if (D) return stepTo(p, D.x, D.z);
+    p.a = a; p.x += Math.cos(a) * 15 * DT; p.z += Math.sin(a) * 15 * DT;
+  } });
+  const tag = `beside the line${single ? ' (single)' : ''}`;
+  assert.deepEqual(order(r.ev), [0, 1, 2], `${tag}: met in order all the same`);
+  assert.ok(r.ev.some((e) => e.type === 'placed' && e.how !== 'default' && !W.entries[e.index].virtual), `${tag}: an entry passed on the path is placed ahead`);
+  assert.ok(r.p.reached, `${tag}: a portal reached`);
+  assert.deepEqual([W.checks.placedOnSeen, W.checks.placedInView, W.checks.movedSeen, W.checks.droppedSeen], [0, 0, 0, 0], `${tag}: never on seen ground or in view, nothing seen moved or dropped`);
+}
+{
+  // headingSec: a brief swerve does not swing where "ahead" is (the next entry still goes along the way they have gone)
+  for (const [hs, want] of [[0, false], [3, true]]) {
+    const placed = [];
+    const W = makeWorld({ opts: { headingSec: hs } }), D = W.dir;
+    const p = { id: 0, x: 0, z: 0 };
+    for (let t = 0; t < 4; t += DT) {
+      // along +x, with a sharp swerve to +z for the second before the first is due
+      const a = t > 2.2 && t < 3.6 ? Math.PI / 2 : 0;
+      p.x += Math.cos(a) * 15 * DT; p.z += Math.sin(a) * 15 * DT;
+      placed.push(...D.update(DT, [p], [wedge(p.x, p.z, a)]).filter((e) => e.type === 'placed'));
+    }
+    assert.ok(placed.length, 'placed during the swerve');
+    assert.equal(Math.abs(Math.atan2(Math.sin(placed[0].b), Math.cos(placed[0].b))) < 0.6, want, `headingSec ${hs}: the first placed toward ${placed[0].b.toFixed(2)} rad`);
+  }
 }
 for (const single of [false, true]) {
   // heading off the other way: generated as you go, in order; the default path stays where it was (unseen ones

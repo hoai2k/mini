@@ -238,9 +238,14 @@ furthest along, with calm breaks between (`route.js`; the owner's
   `driftEncounter`, to `DRIFT_TO`).
 - **What counts as seen:** each view's field (a turned rectangle with a 1.2
   margin for parallax), plus 260 µm round each cell. Seen water never changes.
-- **The default path:** all five laid along one bearing from the start
-  (`BEARING`, up and to the right) on the first frame at a rush's distances
-  (5.5, 13.7, 22, 30 and 39 mm), out of sight; follow it and you meet them
+- **The default path:** all five laid along one bearing from the start on
+  the first frame, straight up the screen, the world's forward (`BEARING` =
+  `FORWARD`, π/2: the view's turn is locked with the slide's +y up; the
+  owner, 2026-11-03: "with the new camera, we should have the default path
+  be straight forward essentially ... make the forward path the one of
+  discovery"; it was 0.62 rad, up and to the right), at a rush's distances
+  (5.5, 13.7, 22, 30 and 39 mm), each as near the line as it fits
+  (`lateral`), out of sight; follow it and you meet them
   where they lie; head off another way and each, while unseen, leaves the
   path and comes ahead of you (`single`). The portal stays sealed (no prompt,
   its glow shut) until the four before it are met.
@@ -248,13 +253,20 @@ furthest along, with calm breaks between (`route.js`; the owner's
   µm/s, the closest, 560 µm view): in 16 directions the Dileptus is placed at 4.1 s
   and met at 5.6 s, the bloom at 15.4 s, the giant amoeba at 25.5 s, the
   Didinium at 35.4 s, and the portal is reached at 46.4 s; on the default path
-  at 45.7 s; out 8 s and back, 48 s; standing still, everything comes and the
+  at 45.7 s; straight up the screen (turning for the leaf only within 0.9
+  of a view), rushing: the Dileptus 5.9 s, the bloom 15.6, the giant 25.1,
+  the Didinium 34.9, the portal 45.7 s, all where the path laid them, and
+  without dashes (510 µm/s) 9.8, 26.0, 41.9, 58.1 and 76.2 s; on the page
+  (2026-11-03, W held, real time) 9.1, 22.5, 35.8 (the cell put back ~3 mm
+  just after), 59.6 and 74.7 s, against, before (the path at 0.62 rad), each
+  placed as you go and the pre-placed portal ~32 mm off to the side the
+  whole way up until the portal was placed ahead at 68 s; out 8 s and back, 48 s; standing still, everything comes and the
   portal is placed near you at 87 s. **In the game** (`debug.rush({ bearing
   })`: the real swim, scenery, auto-weave and hunters stepped at 1/30 s,
   full stick and a dash whenever it is ready, steering for the portal only
   once it is within 1.6 mm and diving for it within 0.7 mm), at the start
   zoom (1.6×) and in the 480 µm depth, in four directions (0.62 = the default
-  path, 2.2, 3.8, 5.4): the Dileptus met at 5.8-6.2 s, the bloom 15.0-15.7 s,
+  path then, 2.2, 3.8, 5.4; measured before it turned up the screen): the Dileptus met at 5.8-6.2 s, the bloom 15.0-15.7 s,
   the giant amoeba 23.9-25.6 s, the Didinium 32.6-39.1 s, the portal reached
   at 42.9-50.8 s;
   rushing flat out, nothing caught the cell (`safe: false`).

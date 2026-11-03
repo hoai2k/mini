@@ -9,7 +9,7 @@
 //   node micro/game/amoeba/route.test.mjs
 import assert from 'node:assert/strict';
 import { createDirector } from '../shared/director.js';
-import { SLIDE, PATCHES, PATCH, TRAP_CENTRES, trapLayout, buildWorld, leafDist, LEAF, segDist, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, clearAt, portalParts, portalRoom } from './world.js';
+import { SLIDE, PATCHES, PATCH, TRAP_CENTRES, trapLayout, buildWorld, leafDist, LEAF, segDist, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, clearAt, portalParts, portalRoom, FORWARD } from './world.js';
 import { CHAOS_R, CHAOS_WAKE } from './chaos.js';
 
 const deg = (a) => `${Math.round((a * 180) / Math.PI)}°`;
@@ -208,6 +208,26 @@ const pathRows = [];
   assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.instance}`), ['ciliates default', 'caudatum default', 'portal default'], 'default path: met in order on it');
   assert.ok(at(r.ev, 'met', 'portal').t <= 70, `default path: the portal reached within ~a minute (${at(r.ev, 'met', 'portal').t} s)`);
   pathRows.push(`followed: ${placed.map((e) => `${e.id} at ${Math.hypot(e.x, e.z).toFixed(0)} µm`).join(', ')}; met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t} s`).join(', ')}`);
+}
+{
+  // straight ahead (the owner, 2026-11-03: "the default path [should] be straight forward essentially, since
+  // that's the most likely direction of travel when the camera is fixed"): the view never turns, +y up the
+  // screen (FORWARD); crawling straight up (turning for the portal only once it is within half a 20x view)
+  // meets the three pre-placed ones where they lie, the first after the warm-up, the portal in about a minute
+  assert.ok(Math.abs(DEFAULT_PATH.bearing - FORWARD) < 1e-12 && Math.abs(FORWARD - Math.PI / 2) < 1e-12, 'the default path runs up the screen');
+  const r = game({ seconds: 160, check: true, path: true, move: (t, p, D, H) => {
+    const P = D.entry('portal').def;
+    crawl(p, D.state().current === 'portal' && P && Math.hypot(P.x - p.x, P.z - p.z) < 450 ? toward(p, { x: P.x, y: P.z }) : FORWARD, RUSH);
+  } });
+  assert.deepEqual(r.bad, [], 'straight ahead: nothing placed in view');
+  assert.deepEqual(r.changed, [], 'straight ahead: explored cells unchanged');
+  const met = r.ev.filter((e) => e.type === 'met');
+  assert.deepEqual(met.map((e) => `${e.id} ${e.instance}`), ['ciliates default', 'caudatum default', 'portal default'], 'straight ahead: the pre-placed order met where it lies');
+  const T = met.map((e) => e.t);
+  assert.ok(T[0] >= 5 && T[0] <= 20, `straight ahead: the ciliates after the warm-up, by 20 s (${T[0]} s)`);
+  assert.ok(T[1] - T[0] < 1.6 * (T[2] - T[1]) && T[2] - T[1] < 1.6 * (T[1] - T[0]), `straight ahead: roughly even (${T.join(', ')} s)`);
+  assert.ok(T[2] <= 80, `straight ahead: the portal reached in about a minute (${T[2]} s)`);
+  pathRows.push(`straight ahead (up the screen): met ${met.map((e) => `${e.id} ${e.t} s`).join(', ')}`);
 }
 for (const off of [Math.PI, Math.PI / 2, -Math.PI / 2]) {
   // heading off another way: each leaves the path while nobody has seen it and is placed as you go, in order; what was seen stays

@@ -16,7 +16,7 @@ import { mountHud } from '../shared/hud.js';
 import { createSem, shared, MODES, CLS, gMaterial } from './sem.js';
 import { semTextures } from './textures.js';
 import { buildWorld, floorH, TILE } from './world.js';
-import { RINGS, PORTAL_CLEAR, CLUSTER, CLUSTERS, PRED_GROUND, BOSS, OPENING, NPC_HOME, predZoneAt, distFromStart, bearingFromStart, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, insideEdge, BOUNDS, DRIP, FAMILY } from './layout.js';
+import { RINGS, PORTAL_CLEAR, CLUSTER, CLUSTERS, PRED_GROUND, BOSS, OPENING, NPC_HOME, predZoneAt, distFromStart, bearingFromStart, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, insideEdge, BOUNDS, DRIP, FAMILY, FORWARD_YAW } from './layout.js';
 import { createAmbient, createBeads, createDrops } from './life.js';
 import { createDirector } from '../shared/director.js';
 import { createQuality } from '../shared/quality.js';
@@ -162,8 +162,8 @@ let observer = false;
 // Starts at HFW 1.6 mm (~79x): the 0.35 mm mite is about a fifth of the
 // field, with the moss around it in view.
 // The world's forward (the owner, 2026-11-03: the camera's turn is locked to it, so the layout has a
-// "forward"): the camera looks along -(cos, sin) of this yaw (see README).
-const FORWARD_YAW = -0.6 - Math.PI / 6;
+// "forward"): the camera looks along -(cos, sin) of this yaw (layout.js FORWARD_YAW; the default path
+// runs straight out along it: see README).
 const camLock = createCamLock({ forward: FORWARD_YAW });
 const rig = { yaw: FORWARD_YAW, pitch: 0.62, hfw: 1600, target: mite.center.clone() };
 const camFwd = new THREE.Vector3(), camRight = new THREE.Vector3();

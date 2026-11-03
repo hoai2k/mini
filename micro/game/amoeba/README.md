@@ -333,10 +333,18 @@ encounters, placed as you go*), in this order:
 - **The default path** (the owner, 2026-11-01: "a default path to a portal,
   but just dynamically generate the other directions"): on the director's
   first update all three are laid along one bearing from the start
-  (`world.js` `DEFAULT_PATH`: 0.2 rad, away from the leaf; a rush's spacing
-  would put the portal past the clear glass, so the distances are given:
-  the ciliates ~1.2 mm out, *P. caudatum* ~2.2 mm, the portal ~3 mm), out of
-  sight, so the way on exists from the start. Follow that bearing and you
+  (`world.js` `DEFAULT_PATH`), straight up the screen (`FORWARD`, π/2: the
+  view never turns, so up is where a player most likely heads; the owner,
+  2026-11-03: "the default path [should] be straight forward essentially,
+  since that's the most likely direction of travel when the camera is
+  fixed"; it was 0.2 rad, to the right; both are away from the leaf), each
+  as near the line as it fits (`lateral`). A rush's spacing would put the
+  portal past the clear glass, so the distances are given: the ciliates
+  ~1.1 mm out, *P. caudatum* ~2.6 mm (past a cluster of fungal traps that
+  stands on the line at ~2.1 mm), the portal ~3.5 mm, out of sight, so the
+  way on exists from the start. Crawling straight up (`route.test.mjs`,
+  50 µm/s) meets them where they lie: the ciliates at 13.1 s, *P. caudatum*
+  42.7 s, the portal 67.6 s. Follow that bearing and you
   meet them in order where they lie; crawl off another way and each, while
   nobody has seen it, leaves the path and is placed ahead of you as before
   (each is one thing, a patch moved whole with its prey or the portal: the
@@ -903,7 +911,9 @@ in order (the portal last), and, in the lingering and turning-back runs and
 every fourth rush, that what the director put in a grid cell never changes
 once a view has seen that cell. With the default path: following its bearing
 meets the three pre-placed ones in order (nothing generated, the portal
-reached in ~60 s); crawling off three other ways takes each off the path
+reached in ~68 s); straight up the screen, the path's bearing, likewise
+(the first after the warm-up by 20 s, the gaps roughly even, the portal by
+80 s); crawling off three other ways takes each off the path
 while unseen and places it as you go, in order, explored cells unchanged. Scripted runs in the
 browser (2026-11-01; `advance()` in 0.25 s steps, both sticks toward the
 bearing, the surge whenever ready, steering 70° off for 2 s after 3 s stuck,

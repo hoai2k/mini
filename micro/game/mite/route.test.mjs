@@ -10,7 +10,7 @@
 //   node micro/game/mite/route.test.mjs
 import assert from 'node:assert/strict';
 import { createDirector } from '../shared/director.js';
-import { RINGS, CLUSTERS, clusterRing, CLUSTER, PRED_GROUND, BOSS, BOUNDS, NPC_HOME, PORTAL_CLEAR, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, portalAt, predZoneAt, clearOfThickets, distFromStart, DRIP, FAMILY, EDGE, insideEdge, HALF } from './layout.js';
+import { RINGS, CLUSTERS, clusterRing, forwardClusters, FORWARD, FORWARD_YAW, CLUSTER, PRED_GROUND, BOSS, BOUNDS, NPC_HOME, PORTAL_CLEAR, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, portalAt, predZoneAt, clearOfThickets, distFromStart, DRIP, FAMILY, EDGE, insideEdge, HALF } from './layout.js';
 import { floorH, TILE, wrapD, tileOf } from './world.js';
 
 // Rushing speeds (µm/s, measured with rush scripts on the page, enemies passive; 2026-11-02 speeds):
@@ -41,8 +41,8 @@ for (const [k, list] of [[0, t1], [1, t2]]) {
     assert.ok(Math.hypot(a.x - b.x, a.z - b.z) > a.r + b.r + 300, `ring ${k + 1}: clusters ${i} and ${(i + 1) % list.length} stand apart (a way round)`);
   }
 }
-assert.equal(CLUSTERS.length, t1.length + t2.length);
-assert.ok(CLUSTERS.length <= 70, `${CLUSTERS.length} thickets (each a few draws when in view)`);
+assert.equal(CLUSTERS.length, t1.length + t2.length + forwardClusters().length);
+assert.ok(CLUSTERS.length <= 75, `${CLUSTERS.length} thickets (each a few draws when in view)`);
 for (const c of CLUSTERS) {
   assert.ok(distFromStart(c.x, c.z) - c.r >= RINGS.warm - 1, 'no thicket in the open moss round the start');
   assert.ok(Math.hypot(c.x - NPC_HOME.x, c.z - NPC_HOME.z) > c.r + 1400, 'the second box mite wanders clear of the thickets');
@@ -241,6 +241,34 @@ for (const off of [Math.PI, Math.PI / 2, -Math.PI / 2]) {
   pathRows.push(`${tag}: met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t} s`).join(', ')}`);
 }
 
+// --- straight ahead (the owner, 2026-11-03: "with the new camera ... the default path [should] be straight
+// forward essentially ... make the forward path the one of discovery"): the camera's turn is locked to
+// FORWARD_YAW, so screen-up is the bearing FORWARD; a player holding the stick straight up, only turning
+// for the water once its glow is in sight (within 3 mm), meets the whole pre-placed order where it lies,
+// the first after the warm-up, at roughly even spacing, and reaches the water in about a minute rushing.
+assert.ok(Math.abs(FORWARD - (FORWARD_YAW + Math.PI)) < 1e-12 && Math.abs(DEFAULT_PATH.bearing - FORWARD) < 1e-9, 'the default path runs along the forward');
+const straightRows = [];
+for (const [speed, label, firstMax, portalMax] of [[RUSH, 'rushing', 12, 80], [610, 'walking (keys)', 20, 140]]) {
+  const r = game({ seconds: 200, path: true, move: (t, p, D, at) => {
+    let a = FORWARD;
+    const P = at.portal;
+    if (D.index === ORDER.length - 1 && P && Math.hypot(P.x - p.x, P.z - p.z) < 3000) a = Math.atan2(P.z - p.z, P.x - p.x);
+    const sp = speed * (inThicket(p.x, p.z) ? THICK : 1);
+    p.x += Math.cos(a) * sp * DT; p.z += Math.sin(a) * sp * DT;
+  } });
+  const tag = `straight ahead, ${label}`;
+  assert.deepEqual(r.bad, [], `${tag}: nothing placed in view or on seen moss`);
+  const met = r.ev.filter((e) => e.type === 'met');
+  assert.deepEqual(met.map((e) => `${e.id} ${e.instance}`), ORDER.map((id) => `${id} default`), `${tag}: the pre-placed order met where it lies`);
+  assert.ok(r.ev.filter((e) => e.type === 'placed').every((e) => e.how === 'default'), `${tag}: nothing generated`);
+  const T = met.map((e) => e.t), gaps = T.slice(1).map((v, i) => v - T[i]);
+  assert.ok(T[0] >= 4 && T[0] <= firstMax, `${tag}: the first encounter after a warm-up, by ${firstMax} s (${T[0]} s)`);
+  const mean = (T.at(-2) - T[0]) / (T.length - 2);
+  for (let i = 0; i < gaps.length - 1; i++) assert.ok(gaps[i] < mean * 1.8, `${tag}: ${ORDER[i + 1]} ${gaps[i].toFixed(1)} s after ${ORDER[i]} (roughly even: mean ${mean.toFixed(1)} s)`);
+  assert.ok(T.at(-1) <= portalMax, `${tag}: the water reached by ${portalMax} s (${T.at(-1)} s)`);
+  straightRows.push(`${label}: ${met.map((e) => `${e.id} ${e.t} s`).join(', ')}`);
+}
+
 // --- the portal and its arena: the boss's post before the water, beside the way in
 const q = portalAt(0.7, 12000, -8000);
 assert.ok(Math.hypot(q.post.x - q.x, q.post.z - q.z) < BOSS.wake + 200, 'its post is beside the way in');
@@ -248,4 +276,5 @@ assert.ok((q.post.x - q.x) * q.ux + (q.post.z - q.z) * q.uz < 0, 'the boss waits
 assert.ok(PORTAL_CLEAR >= 1200, 'an arena round the water');
 
 console.log(`default path: ${pathRows.join('; ')}`);
-console.log(`ok: tile ${TILE} µm; ${CLUSTERS.length} thickets (${t1.length} + ${t2.length}, scenery, ${CLUSTER.r * 2 / 1000} mm across); rushing in 16 directions: ${ORDER.map((id) => `${id} met ${span(id)}`).join(', ')}; longest wait between encounters ${gapMax.toFixed(1)} s; lingering: ${r1.ev.filter((e) => e.type === 'placed' || e.type === 'met').map((e) => `${e.id} ${e.type} ${e.t} s${e.how && e.type === 'placed' ? ` (${e.how})` : ''}`).join(', ')}; turning back: ${r2.ev.filter((e) => e.type !== 'met').map((e) => `${e.id} ${e.type} ${e.t} s (${e.how})`).join(', ')}`);
+console.log(`straight ahead: ${straightRows.join('; ')}`);
+console.log(`ok: tile ${TILE} µm; ${CLUSTERS.length} thickets (${t1.length} + ${t2.length} + ${forwardClusters().length} along the forward, scenery, ${CLUSTER.r * 2 / 1000} mm across); rushing in 16 directions: ${ORDER.map((id) => `${id} met ${span(id)}`).join(', ')}; longest wait between encounters ${gapMax.toFixed(1)} s; lingering: ${r1.ev.filter((e) => e.type === 'placed' || e.type === 'met').map((e) => `${e.id} ${e.type} ${e.t} s${e.how && e.type === 'placed' ? ` (${e.how})` : ''}`).join(', ')}; turning back: ${r2.ev.filter((e) => e.type !== 'met').map((e) => `${e.id} ${e.type} ${e.t} s (${e.how})`).join(', ')}`);

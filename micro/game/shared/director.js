@@ -48,7 +48,9 @@
 //     exists from the start. While the leader is on the path (still within
 //     `startR` of the start, inside the cone round the bearing, close to the
 //     current entry's instance, or heading for it) and not lingering, the
-//     current entry is its pre-placed instance and nothing is generated. Off
+//     current entry is its pre-placed instance and nothing is generated (a
+//     leader gone on along the bearing past an instance it never met is off
+//     the path: the entry is then placed ahead of them as below). Off
 //     the path, the current entry is placed as you go exactly as above, a
 //     second ("dynamic") instance; whichever instance a player meets first
 //     counts, and only the current entry's (strict order holds: meeting a
@@ -100,6 +102,10 @@
 //     seenDist = 60, nearSeen = 6,
 //     warmup = { sec: 4 }, calm = { sec: 4 }, linger = 8,
 //     moveSpeed = 2,                // units/s: slower than this a player is idle
+//     headingSec = 0,               // "ahead" is the way they have gone over this long (s; 0: their heading now),
+//                                   //   so stepping round an obstacle does not swing it (a world with a locked forward)
+//     aheadBias = 1,                // how much a spot off to the side counts against it, against farther ahead
+//                                   //   (higher: straighter ahead, a little farther off)
 //     passDist (default per entry: size + 2 * seenDist), passSec = 1.5,
 //     watchSec = 20, watchDist (default per entry: size + seenDist),
 //     canPlace(x, z, r, { y, b, entry }) -> bool,
@@ -110,6 +116,9 @@
 //       bearing?, elevation?,       //   atan2(dz, dx) (default: from the seed); 3D: up from level
 //       rush?,                      //   units/s of a rush between them (default 5 x moveSpeed)
 //       dists?: [d, ...],           //   or each entry's distance from the start (null: virtual)
+//       lateral?: [d, ...],         //   step aside from the bearing's line by these (units, nearest first;
+//                                   //   e.g. [0, 400, -400, ...]) before trying angles: so walking straight
+//                                   //   along the bearing meets them (a world's locked forward)
 //       cone = 0.45,                //   half-angle (rad) round the bearing that counts as on the path
 //       startR?,                    //   still at the start within this (default 0.4 x the first distance, at most seenDist)
 //     },
@@ -160,8 +169,11 @@
 //   Phage (game/phage/main.js) is the worked example.
 //   1. Default path: pass `defaultPath: { from: START, bearing, rush }` (3D: also
 //      `elevation`; `dists` when the field is too small for a rush's spacing)
-//      to createDirector. Pick a bearing that is not straight into the start
-//      view (the pre-placed things should be out of sight at first).
+//      to createDirector. Where the camera's turn is locked (camlock.js) or the
+//      view never turns, the bearing is the world's forward, screen-up (the
+//      owner, 2026-11-03: "make the forward path the one of discovery"), with
+//      `lateral` so each lies close to the line; the first is far enough out
+//      to be out of sight (placing still refuses any spot in view).
 //   2. place() is now also called on the first update for every entry, with
 //      info.instance === 'default', before any encounter is due: it must work
 //      then (the world built, the start pose set). If the world holds only one
@@ -216,7 +228,7 @@ export function createDirector(o) {
   const seen = new Uint8Array(nx * ny * nz);
   const seenDist = o.seenDist ?? 60, nearSeen = o.nearSeen ?? 6;
   const warmup = o.warmup ?? { sec: 4 }, calm = o.calm ?? { sec: 4 }, linger = o.linger ?? 8;
-  const moveSpeed = o.moveSpeed ?? 2, passSec = o.passSec ?? 1.5, watchSec = o.watchSec ?? 20;
+  const moveSpeed = o.moveSpeed ?? 2, passSec = o.passSec ?? 1.5, watchSec = o.watchSec ?? 20, headingSec = o.headingSec ?? 0, aheadBias = o.aheadBias ?? 1;
   const cellR = cell * (three ? 0.87 : 0.71);
 
   let t, idx, seenCount, views, rand, breakT0, breakMoved, breakDist, forceBreak, nextTry, prev, defDone, defCheckT, pending;
@@ -284,7 +296,7 @@ export function createDirector(o) {
   function trackPlayers(dt, players) {
     for (const p of players) {
       let q = pl.get(p.id);
-      if (!q) pl.set(p.id, (q = { id: p.id, x: p.x, y: p.y ?? groundY, z: p.z, vx: 0, vy: 0, vz: 0, hx: 0, hy: 0, hz: 0, heading: false, moving: false, odo: 0, reached: idx, alive: true, src: p }));
+      if (!q) pl.set(p.id, (q = { id: p.id, x: p.x, y: p.y ?? groundY, z: p.z, vx: 0, vy: 0, vz: 0, hx: 0, hy: 0, hz: 0, ax: 0, ay: 0, az: 0, sx: 0, sy: 0, sz: 0, heading: false, moving: false, odo: 0, reached: idx, alive: true, src: p }));
       const y = p.y ?? groundY;
       const dx = p.x - q.x, dy = three ? y - q.y : 0, dz = p.z - q.z;
       const step = Math.hypot(dx, dy, dz);
@@ -299,6 +311,15 @@ export function createDirector(o) {
       const sp = Math.hypot(q.vx, q.vy, q.vz);
       q.moving = q.alive && sp > moveSpeed;
       if (q.moving) { q.hx = q.vx / sp; q.hy = q.vy / sp; q.hz = q.vz / sp; q.heading = true; }
+      // the way they are going for "ahead": the heading, or (opts.headingSec) the velocity averaged over that long,
+      // so a step round an obstacle does not swing where the next encounter goes
+      if (!headingSec) { q.ax = q.hx; q.ay = q.hy; q.az = q.hz; }
+      else if (dt > 0 && !jumped) {
+        const k = 1 - Math.exp(-dt / headingSec);
+        q.sx += (dx / dt - q.sx) * k; q.sy += (dy / dt - q.sy) * k; q.sz += (dz / dt - q.sz) * k;
+        const ss = Math.hypot(q.sx, q.sy, q.sz);
+        if (ss > moveSpeed * 0.5) { q.ax = q.sx / ss; q.ay = q.sy / ss; q.az = q.sz / ss; } else if (q.moving) { q.ax = q.hx; q.ay = q.hy; q.az = q.hz; }
+      }
       if (q.alive && nearSeen > 0) markSphere(q.x, q.y, q.z, nearSeen);
     }
     for (const id of [...pl.keys()]) if (!players.some((p) => p.id === id)) pl.delete(id);
@@ -337,22 +358,22 @@ export function createDirector(o) {
     if (o.canPlace && !o.canPlace(x, z, e.size, { y, b, entry: e })) return false;
     return true;
   }
-  function candidates(L, lo, hi, offs, base, nd) {
+  function candidates(L, lo, hi, offs, base, nd, bias = 1) {
     const out = [];
     for (const off of offs) for (let n = 0; n < nd; n++) {
       const d = lo + ((hi - lo) * n) / Math.max(1, nd - 1);
       const a = base + off + (rand() - 0.5) * 0.18;
-      out.push({ a, d, score: (d - lo) / Math.max(1, hi - lo) + Math.abs(off) / (Math.PI / 2) });
+      out.push({ a, d, score: (d - lo) / Math.max(1, hi - lo) + (bias * Math.abs(off)) / (Math.PI / 2) });
     }
     return out.sort((p, q) => p.score - q.score);
   }
   function findSpot(e, L) {
-    if (e.virtual) return { x: L.x, y: L.y, z: L.z, b: L.heading ? Math.atan2(L.hz, L.hx) : 0, how: 'virtual' };
+    if (e.virtual) return { x: L.x, y: L.y, z: L.z, b: L.heading ? Math.atan2(L.az, L.ax) : 0, how: 'virtual' };
     const idle = !L.moving;
     const lo = idle ? e.minNear ?? e.minAhead : e.minAhead, hi = idle ? e.maxNear ?? e.maxAhead : e.maxAhead;
-    const dir = L.heading ? Math.atan2(L.hz, L.hx) : 0;
+    const dir = L.heading ? Math.atan2(L.az, L.ax) : 0;
     // 3D: around the leader's own climb or dive (heading straight up or down meets things too), then above and below it
-    const el0 = three && L.heading ? Math.asin(Math.max(-1, Math.min(1, L.hy))) : 0;
+    const el0 = three && L.heading ? Math.asin(Math.max(-1, Math.min(1, L.ay))) : 0;
     const elev = three ? [el0, el0 + 0.35, el0 - 0.35] : [0];
     if (three && Math.abs(el0) > 0.5) elev.push(0, -0.35 * Math.sign(el0)); // (and level, when climbing or diving steeply)
     const tryList = (list, how) => {
@@ -366,7 +387,7 @@ export function createDirector(o) {
     const ahead = [0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05, 1.4, -1.4, 1.75, -1.75];
     const round = Array.from({ length: 16 }, (_, i) => (i ? (i % 2 ? 1 : -1) * Math.ceil(i / 2) * (TAU / 16) : 0));
     let s = null;
-    if (!idle) s = tryList(candidates(L, lo, hi, ahead, dir, 5), 'ahead');
+    if (!idle) s = tryList(candidates(L, lo, hi, ahead, dir, 5, aheadBias), 'ahead');
     if (!s) s = tryList(candidates(L, lo, hi, round, dir, 5), idle ? 'near' : 'around');
     if (!s) s = tryList(candidates(L, hi, hi * 3, Array.from({ length: 24 }, (_, i) => (i * TAU) / 24), dir, 6), 'wider');
     if (!s) {
@@ -422,10 +443,24 @@ export function createDirector(o) {
     const offs = [0];
     for (let k = 1; k * 0.12 <= DP.cone * 0.9; k++) offs.push(k * 0.12, -k * 0.12);
     const muls = [1, 1.08, 0.92, 1.16, 0.84, 1.25];
+    // (DP.lateral: step aside from the bearing's line by these distances, or nearer or farther along it,
+    // the least change first, so a player walking straight along it meets them)
+    const lat = DP.lateral, px = -Math.sin(a), pz = Math.cos(a);
+    // (each aside step against each distance, the least change first: the widest step counts as much as a quarter further)
+    const latMax = lat ? Math.max(1, ...lat.map(Math.abs)) : 1;
+    const latTries = lat ? lat.flatMap((off) => muls.map((m) => [off, m])).sort((p, q) => (Math.abs(p[0]) / latMax + Math.abs(p[1] - 1) / 0.25) - (Math.abs(q[0]) / latMax + Math.abs(q[1] - 1) / 0.25)) : [];
     entries.forEach((e, i) => {
       if (e.virtual || dists[i] == null) return;
       let s = null;
-      for (const m of muls) { for (const da of offs) { for (const de of three ? offs.slice(0, 5) : [0]) {
+      if (lat) {
+        for (const [off, m] of latTries) {
+          const dd = dists[i] * m;
+          const x = path.x + path.ux * dd + px * off, z = path.z + path.uz * dd + pz * off, y = three ? path.y + path.uy * dd : groundY;
+          const aa = Math.atan2(z - path.z, x - path.x);
+          if (valid(e, x, y, z, aa)) { s = { x, y, z, b: aa }; break; }
+        }
+      }
+      if (!s) for (const m of muls) { for (const da of offs) { for (const de of three ? offs.slice(0, 5) : [0]) {
         const dd = dists[i] * m, aa = a + da, ee = el + de, ce = Math.cos(ee);
         const x = path.x + Math.cos(aa) * ce * dd, z = path.z + Math.sin(aa) * ce * dd, y = three ? path.y + Math.sin(ee) * dd : groundY;
         if (valid(e, x, y, z, aa)) { s = { x, y, z, b: aa }; break; }
@@ -437,13 +472,19 @@ export function createDirector(o) {
       log.push(ev); pending.push(ev);
     });
   }
-  /** Is the leader on the default path to D: still at the start, inside the cone round the bearing, close to D, or heading for it? */
+  /**
+   * Is the leader on the default path to D: still at the start, inside the cone round the bearing (and not
+   * gone on past D along it: walking straight past an instance a little to one side without meeting it
+   * must not leave the entry waiting there for good), close to D, or heading for it?
+   */
   function onPath(L, D, e) {
     const rx = L.x - path.x, ry = three ? L.y - path.y : 0, rz = L.z - path.z, rl = Math.hypot(rx, ry, rz);
-    if (rl < path.startR || (rx * path.ux + ry * path.uy + rz * path.uz) / rl >= path.cos) return true;
+    const along = rx * path.ux + ry * path.uy + rz * path.uz;
+    const past = along > (D.x - path.x) * path.ux + (three ? (D.y - path.y) * path.uy : 0) + (D.z - path.z) * path.uz + e.size;
+    if (rl < path.startR || (!past && along / rl >= path.cos)) return true;
     const dx = D.x - L.x, dy = three ? D.y - L.y : 0, dz = D.z - L.z, dl = Math.hypot(dx, dy, dz) || 1;
     if (dl < e.minAhead + vis(e)) return true;
-    return L.moving && (dx * L.hx + dy * L.hy + dz * L.hz) / dl >= path.cos;
+    return L.moving && (dx * L.ax + dy * L.ay + dz * L.az) / dl >= path.cos;
   }
   /** Seen-and-left-alone for a record R (an entry's dynamic instance or its default one): 'passed', 'watched' or null. */
   function leftAlone(e, R, dt, needNear) {
@@ -537,14 +578,14 @@ export function createDirector(o) {
     if (S.seenT === null) {
       // never seen: it may still be moved to meet the leader where they are going
       const d = dist(L, S), toIt = Math.atan2(S.z - L.z, S.x - L.x);
-      const away = d > e.minAhead && (d > (L.moving ? e.maxAhead : e.maxNear ?? e.maxAhead) * 1.6 || (L.moving && Math.abs(wrap(toIt - Math.atan2(L.hz, L.hx))) > 1.9) || (!L.moving && t - S.placedT > linger && d > (e.maxNear ?? e.maxAhead) * 1.2));
+      const away = d > e.minAhead && (d > (L.moving ? e.maxAhead : e.maxNear ?? e.maxAhead) * 1.6 || (L.moving && Math.abs(wrap(toIt - Math.atan2(L.az, L.ax))) > 1.9) || (!L.moving && t - S.placedT > linger && d > (e.maxNear ?? e.maxAhead) * 1.2));
       if (away && t >= nextTry) {
         S.state = 'moving'; // keep itself out of its own clearance test
         const s = findSpot(e, L);
         S.state = 'placed';
         nextTry = t + 0.5;
         // only to somewhere that suits the leader better (nearer, or ahead where it was behind)
-        const better = s && (dist(L, s) < d - cell || (L.moving && Math.abs(wrap(Math.atan2(s.z - L.z, s.x - L.x) - Math.atan2(L.hz, L.hx))) < 1.2 && Math.abs(wrap(toIt - Math.atan2(L.hz, L.hx))) > 1.9));
+        const better = s && (dist(L, s) < d - cell || (L.moving && Math.abs(wrap(Math.atan2(s.z - L.z, s.x - L.x) - Math.atan2(L.az, L.ax))) < 1.2 && Math.abs(wrap(toIt - Math.atan2(L.az, L.ax))) > 1.9));
         if (better) put(idx, s, L, 'moved');
       }
       return events;
