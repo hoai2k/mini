@@ -169,7 +169,6 @@ button { font: inherit; color: inherit; }
 .scale-rule .cursor::before { content: ''; position: absolute; left: -7px; top: 0; border: 7px solid transparent; border-top: 10px solid var(--brass-hi); filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)); }
 .scale-rule .cursor > span { position: absolute; bottom: 14px; left: 0; transform: translateX(-50%); font: 600 .7rem/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--ivory); white-space: nowrap; }
 .scale-rule .end { position: absolute; top: 34px; font: 600 .6rem/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; color: rgba(243, 234, 211, .45); }
-.menu-hint { position: absolute; left: var(--gutter); bottom: max(26px, env(safe-area-inset-bottom)); margin: 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; z-index: 2; }
 
 /* Glyphs: Xbox buttons, or keyboard keys when no controller is connected. */
 .g { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; font: 700 .7rem/1 var(--sans); letter-spacing: .02em;
@@ -358,7 +357,7 @@ body:has(#pause:not([hidden])) .controls-card { z-index: 26; }
   .intro-panel .plate { grid-template-columns: 1fr 1fr; }
   .intro-panel { padding: 20px 18px; }
   .scale-rule .lab:nth-of-type(even) { display: none; }
-  .menu-hint { display: none; }
+
   .tr-readout > span { min-width: 0; }
   .eyebrow { letter-spacing: .14em; gap: 8px; }
   .eyebrow i { flex-basis: 18px; }
@@ -381,4 +380,4 @@ body:has(#pause:not([hidden])) .controls-card { z-index: 26; }
 .menu-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(180deg, rgba(6,14,10,.78) 0%, rgba(6,14,10,0) 22%, rgba(6,14,10,0) 72%, rgba(6,14,10,.82) 100%),
               linear-gradient(90deg, rgba(6,14,10,.55) 0%, rgba(6,14,10,0) 30%); }
-.screen-head h2, .menu-hint { text-shadow: 0 1px 2px rgba(0,0,0,.85), 0 0 18px rgba(0,0,0,.6); }
+.screen-head h2 { text-shadow: 0 1px 2px rgba(0,0,0,.85), 0 0 18px rgba(0,0,0,.6); }

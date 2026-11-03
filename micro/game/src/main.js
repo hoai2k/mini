@@ -142,7 +142,7 @@ function toast(html, { color, ms = 2600 } = {}) {
 function renderPlayers() {
   const list = roster.list;
   const html = list.map((p) => `<span class="pchip" style="--pc:${p.color}"><b>${p.index + 1}</b>${p.name || t('shell.players.chip', { n: p.index + 1 })}</span>`).join('')
-    + (list.length < 4 && glyphMode() === 'controller' ? `<span class="pchip empty"><b style="--pc:transparent">+</b>${t('shell.players.joinHint')}</span>` : '');
+    + (list.length < 4 && glyphMode() === 'controller' ? `<span class="pchip empty"><b style="--pc:transparent">+</b>${t('shell.players.joinHint', { n: list.length + 1, glyph: (b) => glyph(b) })}</span>` : '');
   for (const el of $$('.players-row')) if (el.innerHTML !== html) el.innerHTML = html;
 }
 function announceJoin(p) {
