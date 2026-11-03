@@ -19,21 +19,9 @@ uniform vec4 uPatch[12];
 uniform vec4 uSink[2];
 uniform vec3 uField; // direction xy, strength (µT)
 uniform sampler2D tFl;
-uniform mat4 uInv;
-uniform float uUseInv;
 layout(location = 0) out vec4 o;
-
-// the slide point seen at this pixel: through an inverse camera matrix (a turned or tilted view) when given
-vec2 slideAt(vec2 uv, vec2 c, vec2 sz, mat4 inv, float useInv) {
-  if (useInv < 0.5) return c + (uv - 0.5) * sz;
-  vec2 n = uv * 2.0 - 1.0;
-  vec4 a = inv * vec4(n, -1.0, 1.0), b = inv * vec4(n, 1.0, 1.0);
-  a /= a.w; b /= b.w;
-  float k = abs(a.z - b.z) > 1e-9 ? a.z / (a.z - b.z) : 0.0;
-  return mix(a.xy, b.xy, k);
-}
 void main() {
-  vec2 w = slideAt(vUv, uCenter, uSize, uInv, uUseInv); // the slide point here (through the orbit camera)
+  vec2 w = uCenter + (vUv - 0.5) * uSize;
   float px = uSize.y / uRes.y;
   vec4 c = vec4(0.0);
   // food: contour lines of the dissolved-nutrient field
@@ -85,7 +73,6 @@ export function createOverlay() {
     uSink: { value: [new THREE.Vector4(), new THREE.Vector4()] },
     uField: { value: new THREE.Vector3(0, -1, 20) },
     tFl: { value: null },
-    uInv: { value: new THREE.Matrix4() }, uUseInv: { value: 0 },
   };
   const mat = new THREE.RawShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: VS, fragmentShader: FS, uniforms, depthTest: false, depthWrite: false, transparent: true, blending: THREE.NormalBlending });
   const mesh = new THREE.Mesh(tri, mat);
@@ -95,9 +82,8 @@ export function createOverlay() {
   const cam = new THREE.Camera();
   return {
     uniforms,
-    render(renderer, { center, inv = null, size, res, time, band, world, flTex }) {
+    render(renderer, { center, size, res, time, band, world, flTex }) {
       const u = uniforms;
-      u.uUseInv.value = inv ? 1 : 0; if (inv) u.uInv.value.copy(inv);
       u.uCenter.value.set(center[0], center[1]); u.uSize.value.set(size[0], size[1]); u.uRes.value.set(res[0], res[1]);
       u.uTime.value = time; u.uLo.value = band[0]; u.uHi.value = Math.min(band[1], 99);
       world.patches.slice(0, 12).forEach((p, i) => u.uPatch.value[i].set(p.x, p.y, p.r, p.amt));

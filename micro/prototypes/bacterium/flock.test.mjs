@@ -207,4 +207,30 @@ function waylaySetup() {
   assert.ok(!s.waylay && !C.members.some((m) => m.drift), 'no waylaying in the meadow');
 }
 
+// --- 2.5D: members spread in depth, amble up and over a grain and settle back ---
+{
+  const { world, coll, P, step, fill, move } = setup();
+  // the biggest grain away from the start; the flock just to its left
+  const g = world.grains.filter((q) => q.cap >= 5 && world.distFromStart(q.x, q.y) > 120 && q.y > 30).sort((a, b) => b.r - a.r)[0];
+  const others = world.grains.filter((q) => q !== g && Math.hypot(q.x - g.x, q.y - g.y) < g.r + q.r + 40);
+  for (const q of others) { q.x += 500; } // (nothing else in the way)
+  move(g.x - g.r - 14, g.y); fill(12); step(120);
+  const C = coll.of(P);
+  const hs = C.members.map((m) => m.hz);
+  assert.ok(Math.max(...hs) - Math.min(...hs) > 1, `the flock is spread in depth (${Math.min(...hs).toFixed(1)}–${Math.max(...hs).toFixed(1)} µm)`);
+  let peak = 0, over = 0, inside = 0;
+  for (let i = 0; i < 150; i++) {
+    step(1, { x: 1, y: 0, m: 0.6 });
+    for (const m of C.members) {
+      const d = Math.hypot(m.x - g.x, m.y - g.y);
+      if (d < g.r * 0.5) { inside++; if (m.hz >= world.groundAt(m.x, m.y)) over++; peak = Math.max(peak, m.hz); }
+    }
+  }
+  assert.ok(inside > 20 && over === inside, `members cross the grain's middle on top of it (${inside} member-steps, all over its surface)`);
+  assert.ok(peak > Math.min(7, g.cap) * 0.8, `they rise over it (peak ${peak.toFixed(1)} µm; the grain ${g.cap} µm thick)`);
+  step(300);
+  const after = Math.max(...C.members.map((m) => m.hz));
+  assert.ok(after < 5.6, `and settle back on the far side (highest ${after.toFixed(1)} µm)`);
+}
+
 console.log('bacterium flock: all checks pass');

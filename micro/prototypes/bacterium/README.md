@@ -164,8 +164,9 @@ spirals into the oral pouch off-frame.
     their speeds differ by ±2.5–3.5 µm/s and their headings by ±0.08 rad;
     after a reversal the first turns round at about 0.45 s and the last at
     about 1.2 s; released, the flock is still within about 4 s.
-  - The camera and "where the flock is" (the split screen, the edge arrows'
-    origin, the gates) use the flock's middle, smoothed; alone, your cell.
+  - The camera (a follow camera: **The view**) and "where the flock is" (the
+    split screen, the edge arrows' origin, the gates) use the flock's middle,
+    smoothed; alone, your cell.
     Your own cell's corner brackets show only while you are alone (or, in
     multiplayer, in your colour).
 - **Waylaying** (the owner, 3 November 2026: "interactions with some other
@@ -382,7 +383,8 @@ shell's roster comes in with `embed.players`).
   its 2D mode: each view is the field drawn round its own centre, captured,
   at 70 % resolution while split, without the field stop). Each player zooms
   their own field (LT/RT); a shared view shows everyone's widest, and each
-  split view its own players' widest. Every player's RS turns the one camera.
+  split view its own players' widest. Each player has their own follow camera
+  and RS look, and a split view follows its own players.
   Player 1 has the look and Y for the data overlay.
 - **Hunters pick a player:** the amoeba's edge slides toward the nearest
   living cell; grazers, phages and Bdellovibrio catch whoever they touch. The
@@ -442,7 +444,7 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | Xbox | Keyboard | Action |
 | --- | --- | --- |
 | LS | WASD | **Steer your flock** (a labelled assist): it heads where you point, as fast as you tilt (0–45 µm/s); your own cell turns toward the stick (up to ~5.5 rad/s), every member follows in its own way (see **The army**). Released: the motors stop and the flock settles; only Brownian motion, flow and the field move you. Tumbles (B) also lean toward the stick. Features → LS steering → *Tumble bias only* or *Honest: no steering* |
-| RS | Arrows | **Camera** (a 3D orbit round the flock): left/right turns it round (yaw), up/down tilts it (pitch, from straight down to ~55°; the shared Invert Y applies). It eases and stays where you leave it; LS steers relative to it |
+| RS | Arrows | **Look around**: held, the view looks that way (up to 40 % of the field, by how far it is pushed), easing back when released (see **The view**) |
 | **A** | Space | **Sprint run**: every flagellum at full motor speed (spirillum 95 µm/s, Bdellovibrio 160 µm/s), 0.6 s, recharging (HUD `dash` meter); the whole flock sprints. It also shakes off loosely bound phages and an attaching Bdellovibrio, and sprinting out of a grazer's current wears it down |
 | **X** | E | **Beacon, eat, strike** (magnetotactic, one press every 0.3 s): a pulse from your flock's front, riding with it, that kin in reach answer as they join; every prey rod in reach of a member lysed; a volley from every member touching an enemy. Held, your cell also takes up food in a patch. Bdellovibrio: press while touching a Gram-negative rod to attach and bore in (it spins on its pole and a pore opens in the prey's wall) |
 | **B** | Shift | **Defend: tumble** (the shared defend button, an evasive move): stop, turn to a random new heading (E. coli's distribution, mean 68°), run on. For Bdellovibrio it is a reverse plus a flick. While you hold LS, the stick turns you back afterwards. **At the moment a predator strikes** (a grazer's surge, a phage committing, a Bdellovibrio's ram) it evades it |
@@ -455,10 +457,9 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 
 The portal and the way back are not in this list: at the open host and at the
 Paramecium the game asks for Y on screen (see **Landmarks**). There is no focus
-control (the focus stays on your cell's plane) and no D-pad zoom (the owner,
+control (the focus follows your cell's height) and no D-pad zoom (the owner,
 3 November 2026: "LT/RT be zoom (like paramecium) instead of DPad ... we don't
-need a 'focus' control"; "RS should be camera ... as you'd expect for a 3d
-camera").
+need a 'focus' control").
 
 The stats corner shows the real speed in µm/s and body lengths per second,
 growth or prey, the dash meter, phages on you, the magnetic alignment
@@ -618,6 +619,7 @@ pulses are a ring of discs in the existing shape batch (no new draw calls).
 
 ```bash
 node micro/prototypes/bacterium/flock.test.mjs
+node micro/prototypes/bacterium/followcam.test.mjs
 node micro/prototypes/bacterium/route.test.mjs   # the director: 16 rushes, the eyepiece field, a small army, lingering, out and back; the default path followed and left
 node micro/prototypes/check.mjs bacterium
 ```
@@ -633,12 +635,17 @@ headless Chromium, drives the keyboard and fails on any console error.
 `window.__micro.debug` has hooks for scripted runs and screenshots
 (`teleport` (your flock comes along), `step(n, dt, input | { slots })`, `x`,
 `fill`, `look`, `zoom(field µm, slot)`, `zoomHold(±1 | null, slot)` (LT/RT),
-`rsHold(yaw, pitch | null)` (RS), `cam(yaw, pitch)`, `stranger(slot, d, a)`,
+`rsHold(x, y | null)` (player 1's RS look), `stranger(slot, d, a)`,
 `tumble`, `dash`, `reverse`, `overlay`, `species`, `phageOnMe`, `nearGrazer`;
-`__micro.cam()` gives the camera, each player's field and each view's centre).
+`__micro.cam()` gives the view centre, each player's follow camera (point,
+look-ahead, RS look, target) and field, and each view).
 `flock.test.mjs` also checks waylaying: a stranger draws a member off, which
 leaves the formation; ignored it is picked off and gone; X calls it back and
-drives the stranger off; pulsing X loses none; the meadow stays safe.
+drives the stranger off; pulsing X loses none; the meadow stays safe; and the
+2.5D layer: the flock is spread in depth, its members cross a grain on top of
+it, rising over it, and settle back. `followcam.test.mjs` checks the follow
+camera: still inside the dead zone, an eased catch-up with no overshoot, the
+look-ahead in a run and through a reversal, the RS look and its easing back.
 
 ## Approach
 
@@ -729,18 +736,55 @@ receives the real chord through the cross-section (2√(r² − d²)).
   20 nm flagellum carries its true tiny signal into the blur, and vanishes in
   phase contrast as it really does.
 - **Depth of field ≈ 0.4 µm**: objects off the focal plane are drawn wider and
-  fainter with their total kept. The focus stays on your cell's plane.
-- **The camera** (RS, `stepCamera` and `camMatrix` in `main.js`): a
-  perspective camera (30° field of view) looking at the flock's middle, set so
-  its field there is the zoom's height; straight down it frames exactly the
-  old orthographic field. Yaw turns it round, pitch tilts it (to 0.95 rad).
-  The specimen's matrix, the optics' background and the data overlay
-  (through the inverse matrix, `uInv`), the split screen (through `toFrame`,
-  the shared frame), the culling box and the director's views (the quad each
-  view frames on the slide) all follow it. The portal's glow is an
-  orthographic camera turned with the view and placed where the host shows.
-  During the continuous transitions the camera eases back to straight down.
-  **[Departure]**: a microscope cannot orbit or tilt its view.
+  fainter with their total kept. The focus follows your cell's height (2.5D).
+- **The view** (`followcam.js`; the owner, 3 November 2026: "I think we
+  don't need a 3d camera in 2d. Let's keep the slide for now, and have a
+  follow camera ... a little look ahead in your direction of movement. RS can
+  adjust this positioning by holding a look ahead in any given direction").
+  Straight down on the slide, as the microscope sees it. Each player has a
+  follow camera on their flock's middle (alone: their cell): it stays put
+  while the flock moves within a **dead zone** (16 % of the field height
+  round it), then catches up with a **critically damped spring** (4.5/s)
+  toward the zone's edge, moving with the flock, so it is eased but never
+  locked and never overshoots; a **look-ahead** along the flock's velocity
+  (up to 22 % of the field at full run speed) eases in and out over 0.9 s, so
+  a reversal swings it through rather than whipping it across; **RS** held
+  adds a look in its direction (up to 40 % of the field, by how far it is
+  pushed), easing in over 0.25 s and back when released. All scaled by the
+  field shown, so it feels the same at every zoom. A view centres on its
+  players' follow points (the split screen lays them out), so each split view
+  follows its own. A jump (a respawn, a teleport) puts the camera there at
+  once; the catch's pull-back and the continuous transitions' poses work as
+  before.
+- **2.5D** (the owner: "like controlling a flock in a 3d world but just
+  moving through it on a 2d path ... the flock is distributed in 3d and the
+  creatures you encounter ... you can amble over them"; `LAYER` in
+  `world.js`). Steering stays on the slide. Everything that moves (your cell,
+  every member and free kin cell, the stranger strain, the rods, the
+  Bdellovibrio) has a height above the sediment in a water layer 8 µm deep:
+  each wanders on its own random walk between 0.4 and 5 µm (round 2 µm), so a
+  flock is spread in depth, and rides up and over a clay grain (a dome as
+  high as the grain is thick, up to 7 µm) instead of being pushed round it,
+  then settles back. Your own cell climbs too, more gently (it is still
+  pushed round the part of a grain above it). The phage cloud's particles
+  each hang at their own height. Contact uses 3D distance with 3 µm of slack
+  (`zGap`), so play stays readable: the beacon reaches kin and drifting
+  members in a slab round the flock's mean height, X lyses prey in reach in
+  3D, a stranger's pulse draws the nearest member in 3D, and a predator takes
+  the member nearest it in 3D (the grazers' funnels and the amoeba still act
+  through the whole layer). **Depth cues** (`depth` in `draw.js`), gentle:
+  the focus follows your cell's height, and a mover's height above or below
+  it is fed (×0.15) into the optics' own defocus, so it is softer, not lost;
+  a 1.5 % per µm scale; and a faint footprint offset on the sediment under
+  anything more than 1.2 µm above it. The image is formed in transmitted
+  light, so every layer's optical path adds (as through a real specimen) and
+  there is no draw order as such; for "higher over lower", a cell riding on a
+  clay grain takes the grain's optical path out under itself (a cell-shaped
+  window, `overGrain`), so in phase contrast it shows as a light shape
+  crossing the dark grain instead of vanishing in it (the grain's texture
+  shows round it). **[Departure]**: the heights compressed into the defocus,
+  the footprints (a microscope shows no shadows), the windows, and cells
+  riding over grains.
 - **Phase contrast** (Ph3, 100× oil): I = e^(−OD)·(1 − c·tanh(k(φ − 0.75·φ_low))):
   dark cells with bright halos and shade-off. Flagella and phages invisible.
 - **Fluorescence**: pseudo-coloured channels on black: membranes (FM 4-64,

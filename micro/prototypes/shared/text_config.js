@@ -358,7 +358,7 @@ export const TEXT = {
       goal: 'Gather an army, then reach the glowing portal past Stentor.',
       controls: [
         ['LS', 'Lead your army'],
-        ['RS', 'Camera: turn and tilt'],
+        ['RS', 'Look around'],
         ['A', 'Sprint'],
         ['X', 'Call allies / eat'],
         ['B', 'Dodge'],
@@ -2014,7 +2014,7 @@ export const TEXT = {
       sub: 'A magnetotactic spirillum, 3 µm long, in bog sediment at 1000× (or the predator Bdellovibrio). Gather an army of your kin and fight your way to the host cell.',
       controls: {
         move: 'Lead your army',
-        camera: 'Camera: turn and tilt',
+        camera: 'Look around',
         dash: 'Sprint',
         attack: 'Call allies / eat',
         defend: 'Dodge',
@@ -2173,7 +2173,7 @@ export const TEXT = {
       },
       focus: {
         label: 'Depth of field ≈ 0.4 µm, focused on your cell',
-        about: 'At NA 1.3 only a slice about 0.4 µm thick is sharp. Things above or below are drawn wider and fainter with their total kept. The focus stays on your cell\'s plane (there is no focus control: LT/RT zoom).',
+        about: 'At NA 1.3 only a slice about 0.4 µm thick is sharp. Things above or below are drawn wider and fainter with their total kept. The focus follows your cell up and down through the water (there is no focus control: LT/RT zoom); cells above or below it are softer.',
       },
       plate: {
         label: 'Out-of-focus background',

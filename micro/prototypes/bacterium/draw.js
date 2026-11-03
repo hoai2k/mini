@@ -40,6 +40,37 @@ export function createDrawer(world) {
   const flakes = new WeakMap();
 
   const chanLab = { on: 1 };
+  // 2.5D depth cues (world.js LAYER): a mover's height hz is drawn relative to the plane your cell swims in
+  // (depth.focusH, set by main.js: the focus follows your cell), compressed by depth.zk into the optics'
+  // own defocus (so a cell 4 µm above is softer, not lost), a slight scale (depth.scale per µm), and a faint
+  // offset footprint on the sediment under anything well above it.
+  const depth = { focusH: 1.8, zk: 0.15, scale: 0.015, shadow: true };
+  const zOf = (o, z0 = 0) => (o.hz === undefined ? z0 : z0 + (o.hz - depth.focusH) * depth.zk);
+  const sizeOf = (o) => (o.hz === undefined ? 1 : 1 + depth.scale * (o.hz - depth.focusH));
+  const shade = { dn: 0, scat: 0, ab: [0, 0, 0], z: 0 };
+  // A cell riding on top of a clay grain: the grain's optical path is taken out under it (a cell-shaped
+  // window of three soft discs along it), so the cell shows over the grain as a light shape with its own
+  // image in it, instead of being lost in the grain. (The image adds every layer's optical path, so "on
+  // top" needs this: a labelled stretch of the optics.)
+  const win = { dn: -0.2, scat: -0.35, fl: [-0.006, -0.01, 0], ab: [-0.05, -0.065, -0.09], cap: 0, z: 0 };
+  function overGrain(S, o, L) {
+    if (o.hz === undefined || !world.grainUnder) return;
+    const u = world.grainUnder(o.x, o.y);
+    if (!u || u.h < 0.6 || o.hz < u.h) return;
+    const g = u.g, thick = Math.min(g.cap, 2 * Math.sqrt(Math.max(0, g.r * g.r - u.d * u.d)));
+    win.cap = thick; win.z = g.z;
+    const ca = Math.cos(o.a || 0), sa = Math.sin(o.a || 0);
+    for (const f of [-0.3, 0, 0.3]) S.disc(o.x + ca * L * f, o.y + sa * L * f, 0.8, win);
+  }
+  function footprint(S, o, L, r) {
+    if (!depth.shadow || o.hz === undefined) return;
+    const g = world.groundAt ? world.groundAt(o.x, o.y) : 0, up = o.hz - g;
+    if (up < 1.2) return;
+    const k = Math.min(1, (up - 1.2) / 3) * 0.8;
+    shade.dn = 0.005 * k; shade.scat = 0.02 * k; shade.ab[0] = shade.ab[1] = 0.012 * k; shade.ab[2] = 0.016 * k;
+    shade.z = (g - depth.focusH) * depth.zk;
+    S.rod(o.x + 0.22 * up, o.y - 0.3 * up, o.a || 0, L * 0.9, r * 1.7, shade);
+  }
   // The label's fill: drawn over the body with no index step or scatter, so only fluorescence (and a faint tint) shows it.
   const labMat = { dn: 0, scat: 0, fl: [0, 0, 0], lab: [0, 0], ab: [0, 0, 0], memb: 0, z: 0, centred: true, phase: 0, curve: 0, hk: 0 };
   function label(slot, k = 1, z = 0) {
@@ -185,6 +216,26 @@ export function createDrawer(world) {
     }
   }
 
+  /** One free cell of the world (rods, cocci, chains, the stranger strain, Bdellovibrio). */
+  function drawCell(S, c, t) {
+    if (c.kind === 'rod') { rodCell(S, c, t); peritrichous(S, c, t); }
+    else if (c.kind === 'coccus') S.disc(c.x, c.y, c.r, { ...cell(), z: c.z });
+    else if (c.kind === 'chain') {
+      for (let i = 0; i < c.n; i++) {
+        const u = (i - (c.n - 1) / 2) * c.r * 1.9;
+        const b = c.bend * u * u;
+        S.disc(c.x + Math.cos(c.a) * u - Math.sin(c.a) * b, c.y + Math.sin(c.a) * u + Math.cos(c.a) * b, c.r, { ...cell(), z: c.z });
+      }
+    } else if (c.kind === 'mtb') {
+      if (c.bdelloplast || c.ghost) rodCell(S, c, t);
+      else spirillum(S, c.x, c.y, c.a, c.L, c.r, c.amp, c.wl, c.flPhase * 0.4 * c.sense, c.z, c.flPhase * (opts.slowBeat ? 1 : 5), { tumbling: c.tumble > 0 });
+    } else if (c.kind === 'bdello') {
+      vibrio(S, c.x, c.y, c.a, c.L, c.r, c.curve, c.z, c.flPhase * (opts.slowBeat ? 1 : 5), c.tumble > 0 ? 1 : 0, { flagellum: !c.prey });
+      // lining up to ram (main.js: c.windup): its leading pole sharpens into a bright point
+      if (c.windup > 0) S.disc(c.x + Math.cos(c.a) * c.L * 0.5, c.y + Math.sin(c.a) * c.L * 0.5, 0.12 + 0.12 * c.windup, { dn: 0.12, scat: 2.5, fl: [0.4 * chan.memb, 20 * chan.flag * c.windup, 0], z: c.z, hk: 0.5 });
+    }
+  }
+
   function draw(S, t, player, view) {
     const W = world;
     // the biofilm and sediment surface
@@ -211,27 +262,17 @@ export function createDrawer(world) {
         continue;
       }
       if (c.hidden > 0 || !S.inView(c.x, c.y, 12)) continue;
-      if (c.kind === 'rod') { rodCell(S, c, t); peritrichous(S, c, t); }
-      else if (c.kind === 'coccus') S.disc(c.x, c.y, c.r, { ...cell(), z: c.z });
-      else if (c.kind === 'chain') {
-        for (let i = 0; i < c.n; i++) {
-          const u = (i - (c.n - 1) / 2) * c.r * 1.9;
-          const b = c.bend * u * u;
-          S.disc(c.x + Math.cos(c.a) * u - Math.sin(c.a) * b, c.y + Math.sin(c.a) * u + Math.cos(c.a) * b, c.r, { ...cell(), z: c.z });
-        }
-      } else if (c.kind === 'mtb') {
-        if (c.bdelloplast || c.ghost) rodCell(S, c, t);
-        else spirillum(S, c.x, c.y, c.a, c.L, c.r, c.amp, c.wl, c.flPhase * 0.4 * c.sense, c.z, c.flPhase * (opts.slowBeat ? 1 : 5), { tumbling: c.tumble > 0 });
-      } else if (c.kind === 'bdello') {
-        vibrio(S, c.x, c.y, c.a, c.L, c.r, c.curve, c.z, c.flPhase * (opts.slowBeat ? 1 : 5), c.tumble > 0 ? 1 : 0, { flagellum: !c.prey });
-        // lining up to ram (main.js: c.windup): its leading pole sharpens into a bright point
-        if (c.windup > 0) S.disc(c.x + Math.cos(c.a) * c.L * 0.5, c.y + Math.sin(c.a) * c.L * 0.5, 0.12 + 0.12 * c.windup, { dn: 0.12, scat: 2.5, fl: [0.4 * chan.memb, 20 * chan.flag * c.windup, 0], z: c.z, hk: 0.5 });
-      }
+      // (2.5D: drawn at its height for this frame, then put back)
+      const z0 = c.z, L0 = c.L, r0 = c.r;
+      if (c.hz !== undefined) { const k = sizeOf(c); c.z = zOf(c, z0); c.L = L0 * k; c.r = r0 * k; footprint(S, c, L0, r0); overGrain(S, c, L0); }
+      drawCell(S, c, t);
+      c.z = z0; c.L = L0; c.r = r0;
     }
     if (W.opts.phages) for (const p of W.phages) {
       if (p.anim || p.homing || !S.inView(p.x, p.y, 3.1)) continue;
       // the cloud on the way (a gate) is drawn 3× so it reads in every look (a labelled stretch, as for a homing phage)
-      if (p.cloud) S.disc(p.x, p.y, 0.09, cloudPhage);
+      // (2.5D: each particle at its own stable height in the layer, drawn round your cell's plane)
+      if (p.cloud) { if (p.dh === undefined) p.dh = 0.6 + 5 * ((++phageN * 0.6180339) % 1); cloudPhage.z = (p.dh - depth.focusH) * depth.zk; S.disc(p.x, p.y, 0.09, cloudPhage); }
       else S.disc(p.x, p.y, 0.03, { dn: 0.15, scat: 18, fl: [0, PHAGE * chan.phage, 0], z: p.stuck ? 0 : p.z, hk: 1 });
     }
     // a phage homing in on a player (main.js): drawn 3× and denser so it reads in every look (a labelled
@@ -318,6 +359,7 @@ export function createDrawer(world) {
     }
   }
 
+  let phageN = 0; // (each cloud phage's stable height, handed out in turn)
   const cloudPhage = { dn: 0.32, scat: 9, fl: [0, PHAGE * 0.12, 0], z: 0, hk: 1 };
 
   // --- your army (collective.js): kin cells, free or members, the beacon and answers, the slime, the toxin ---
@@ -351,7 +393,7 @@ export function createDrawer(world) {
     for (const c of world.cells) {
       const Wl = c.waylay;
       if (!Wl || !S.inView(c.x, c.y, WAY.reach + 2)) continue;
-      tint(S, { x: c.x, y: c.y, a: c.a, L: c.L, r: c.r, amp: c.amp, wl: c.wl, bodyPhase: c.flPhase * 0.4 * c.sense }, c.z, 0.7);
+      tint(S, { x: c.x, y: c.y, a: c.a, L: c.L, r: c.r, amp: c.amp, wl: c.wl, bodyPhase: c.flPhase * 0.4 * c.sense }, zOf(c, c.z), 0.7);
       if (Wl.ping >= 0 && Wl.ping < 1) { const e = Wl.ping ** 0.7; amberRing(S, c.x, c.y, 0.8 + (WAY.reach - 0.8) * e, (1 - Wl.ping) * 0.9, 0.26, Math.max(12, Math.round(6.283 * (0.8 + WAY.reach * e) / 1.2))); }
     }
     for (const C of coll.list) for (const m of C.members) {
@@ -378,24 +420,28 @@ export function createDrawer(world) {
         // picked off by a stranger: an amber flash where it left, then it swims away with it, fading
         const e = Math.min(1, k.dying.t / 2.4);
         if (k.dying.t < 0.8) amberRing(S, k.dying.x, k.dying.y, 1 + 5 * (k.dying.t / 0.8), 1 - k.dying.t / 0.8, 0.3, 18);
-        spirillum(S, k.x, k.y, k.a, k.L, k.r, k.amp, k.wl, k.bodyPhase, k.z, k.flPhase * fl, { tumbling: false, fl: 1 - e });
-        tint(S, k, k.z, 1 - e);
+        spirillum(S, k.x, k.y, k.a, k.L, k.r, k.amp, k.wl, k.bodyPhase, zOf(k, k.z), k.flPhase * fl, { tumbling: false, fl: 1 - e });
+        tint(S, k, zOf(k, k.z), 1 - e);
         continue;
       }
       if (k.dying) {
         // a member taken in your place: it rounds up, darkens and fades
         const e = Math.min(1, k.dying.t / 1.2);
-        S.rod(k.x, k.y, k.a, k.L * (1 - 0.8 * e), k.r * (1 + e), { dn: 0.05 * (1 - 0.6 * e), scat: 0.12, fl: [MEMB * chan.memb * (1 - 0.8 * e), 0, 0], memb: 0.85, ab: [0.002 + 0.05 * e, 0.002 + 0.045 * e, 0.003 + 0.03 * e], z: k.z });
+        S.rod(k.x, k.y, k.a, k.L * (1 - 0.8 * e), k.r * (1 + e), { dn: 0.05 * (1 - 0.6 * e), scat: 0.12, fl: [MEMB * chan.memb * (1 - 0.8 * e), 0, 0], memb: 0.85, ab: [0.002 + 0.05 * e, 0.002 + 0.045 * e, 0.003 + 0.03 * e], z: zOf(k, k.z) });
         continue;
       }
       // a charged collective holds the toxin: a faint purple (violacein-like) absorbance
       const charge = C ? C.charge : 0;
-      spirillum(S, k.x, k.y, k.a, k.L, k.r, k.amp, k.wl, k.bodyPhase, C ? 0 : k.z, k.flPhase * fl, C ? KIN_MEMBER : KIN_FREE);
+      // (2.5D: at its height round your cell's plane, a touch bigger above it, with a footprint below)
+      const kz = zOf(k, C ? 0 : k.z), ks = sizeOf(k);
+      footprint(S, k, k.L, k.r);
+      overGrain(S, k, k.L);
+      spirillum(S, k.x, k.y, k.a, k.L * ks, k.r * ks, k.amp, k.wl, k.bodyPhase, kz, k.flPhase * fl, C ? KIN_MEMBER : KIN_FREE);
       // its label (answering a player's beacon turned it); fading in over its answer pulse
-      const lm = k.label && label(k.label, k.answer && k.answer.t >= 0 ? Math.min(1, k.answer.t / 0.7) : 1, C ? 0 : k.z);
-      if (lm) { lm.phase = k.bodyPhase; S.strand(k.x, k.y, k.a, k.L, k.r, k.amp, k.wl, lm); }
+      const lm = k.label && label(k.label, k.answer && k.answer.t >= 0 ? Math.min(1, k.answer.t / 0.7) : 1, kz);
+      if (lm) { lm.phase = k.bodyPhase; S.strand(k.x, k.y, k.a, k.L * ks, k.r * ks, k.amp, k.wl, lm); }
       // drifting off after a stranger: tinted amber (fading back as it is called back)
-      if (k.drift) tint(S, k, 0, Math.min(1, 0.4 + k.drift.t / 2));
+      if (k.drift) tint(S, k, kz, Math.min(1, 0.4 + k.drift.t / 2));
       if (charge > 0.2) { const ab = kinTox.ab; ab[0] = 0.03 * charge; ab[1] = 0.09 * charge; ab[2] = 0.02 * charge; S.disc(k.x, k.y, 0.5, kinTox); }
       // the slime shield: EPS round every member (thin, faint in phase, a haze in fluorescence)
       if (C && C.level >= 1) { kinSlime.fl[0] = 0.03 * chan.memb; S.disc(k.x, k.y, 2.1, kinSlime); }
@@ -620,5 +666,5 @@ export function createDrawer(world) {
     }
   }
 
-  return { draw, drawPlayer, chan, chanLab, opts, LABELS };
+  return { draw, drawPlayer, chan, chanLab, opts, LABELS, depth };
 }

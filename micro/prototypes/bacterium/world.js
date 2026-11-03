@@ -128,6 +128,19 @@ export function oxygen(y) {
 export function oxygenY(pct) { return WORLD.y1 + 38 * Math.log((pct + 1) / 100); }
 
 // Seeded random numbers so the scene is the same each visit.
+/**
+ * 2.5D (the owner, 2026-11-03: "like controlling a flock in a 3d world but just moving through it on a
+ * 2d path"): steering stays on the slide, but every cell that moves has a height hz (µm above the
+ * sediment) in a thin water layer, LAYER.top deep: it wanders in height on its own random walk round
+ * LAYER.mid, and rides up and over a clay grain (a dome LAYER-capped at the grain's thickness `cap`)
+ * instead of being pushed round it, settling back after. Contact uses 3D distance with LAYER.tol of
+ * slack (zGap), so play stays readable. The heights draw their own random stream (rng(909)), so the
+ * world's other randomness is unchanged.
+ */
+export const LAYER = { top: 8, lo: 0.4, hi: 5, mid: 2, walk: 0.7, settle: 1.0, tol: 3 };
+/** The height difference beyond the slack LAYER.tol (0 within it): add it to a 2D distance for contact in 3D. */
+export const zGap = (a, b) => { const d = Math.abs((a || 0) - (b || 0)) - LAYER.tol; return d > 0 ? d : 0; };
+
 export function rng(seed) {
   let a = seed >>> 0;
   return () => {
@@ -361,16 +374,57 @@ export function createWorld() {
 
   function pushOutOfGrains(o, rad) {
     // (o's position read once: o is a cell, a kin cell, a speck or a player, so these reads are megamorphic and box)
-    const ox = o.x, oy = o.y;
+    const ox = o.x, oy = o.y, oh = o.hz;
     for (const g of grains) {
       // a grain more than its reach away along either axis can't touch (Math.hypot >= |dx|, |dy|): skipping it
       // first saves a Math.hypot, which V8 doesn't inline and which boxes its result (~1 MB a step)
       const m = g.r * 0.92 + rad, ex = ox - g.x, ey = oy - g.y;
       if (ex >= m || ex <= -m || ey >= m || ey <= -m) continue;
       const dx = ex, dy = ey, d = Math.hypot(dx, dy);
+      // 2.5D: a cell with a height rides over the grain (stepHeight) instead of being pushed round it
+      if (oh !== undefined && oh >= domeH(g, d) - 0.05) continue;
       if (d < m && d > 1e-6) { o.x = g.x + (dx / d) * m; o.y = g.y + (dy / d) * m; return true; }
     }
     return false;
+  }
+  /** A grain's top at distance d from its centre: a dome its thickness `cap` high (at most the layer's top). */
+  function domeH(g, d) { const R = g.r * 0.92, q = d / R; return q >= 1 ? 0 : Math.min(LAYER.top - 1, g.cap || 2) * Math.sqrt(1 - q * q); }
+  /** The sediment's height here: the top of any grain (0 on open floor). */
+  function groundAt(x, y) {
+    let h = 0;
+    for (const g of grains) {
+      const R = g.r * 0.92, ex = x - g.x, ey = y - g.y;
+      if (ex >= R || ex <= -R || ey >= R || ey <= -R) continue;
+      const v = domeH(g, Math.hypot(ex, ey));
+      if (v > h) h = v;
+    }
+    return h;
+  }
+  /** The grain under (x, y) whose top is highest there, with that height and the distance from its centre (or null). */
+  function grainUnder(x, y) {
+    let best = null, h = 0, bd = 0;
+    for (const g of grains) {
+      const R = g.r * 0.92, ex = x - g.x, ey = y - g.y;
+      if (ex >= R || ex <= -R || ey >= R || ey <= -R) continue;
+      const d = Math.hypot(ex, ey), v = domeH(g, d);
+      if (v > h) { h = v; best = g; bd = d; }
+    }
+    return best ? { g: best, h, d: bd } : null;
+  }
+  const rz = rng(909);
+  /**
+   * A moving cell's height (2.5D, LAYER): a random walk of where it likes to swim (o.hw), and o.hz eases
+   * to it, but never below the ground under it plus its radius: up and over a grain, then settling back.
+   */
+  function stepHeight(o, dt, sq, rad = 0.3) {
+    if (o.hz === undefined) { o.hw = LAYER.lo + rz() * (LAYER.hi - LAYER.lo); o.hz = o.hw; }
+    o.hw += LAYER.walk * sq * gauss(rz) + (LAYER.mid - o.hw) * 0.08 * dt;
+    o.hw = Math.max(LAYER.lo, Math.min(LAYER.hi, o.hw));
+    const floor = groundAt(o.x, o.y) + rad + 0.25;
+    if (o.hz < floor) o.hz = floor; // rides up the grain's side
+    else o.hz += (Math.max(o.hw, floor) - o.hz) * (1 - Math.exp(-dt * LAYER.settle));
+    if (o.hz > LAYER.top) o.hz = LAYER.top;
+    return o.hz;
   }
 
   // --- the landmarks of the Micro Zoom chain ---
@@ -412,7 +466,7 @@ export function createWorld() {
       return false;
     },
     PARK, opts, hunt, grains, specks, eps, film, cells, phages, patches, grazers, amoeba, slab, surfaceY,
-    oxygen, food, eat, insideAmoeba, pushOutOfGrains, grazerPose,
+    oxygen, food, eat, insideAmoeba, pushOutOfGrains, grazerPose, groundAt, grainUnder, stepHeight,
     /** The current at (x, y), µm/s. `out`, if given, is filled and returned instead of a new object. */
     flowAt(x, y, out = { x: 0, y: 0 }) {
       const f = grazerFlow(x, y, out);
@@ -578,6 +632,7 @@ export function createWorld() {
     if (c.x > W.x1) c.x -= W.x1 - W.x0;
     // the pack keeps to its gate: beyond its reach a Bdellovibrio turns home
     if (c.home && Math.hypot(c.x - c.home.x, c.y - c.home.y) > c.home.r + 18) c.a = Math.atan2(c.home.y - c.y, c.home.x - c.x);
+    if (c.motile) stepHeight(c, dt, sq, c.r); // 2.5D: moving cells swim at heights and ride over grains
     pushOutOfGrains(c, c.r);
     if (feedingNow.length && eatenByGrazer(c)) { if (c.home) { c.x = c.home.x; c.y = c.home.y; } else { c.x = W.x0 + r() * (W.x1 - W.x0); c.y = W.slabY + 20 + r() * 150; } }
     void player; void t;

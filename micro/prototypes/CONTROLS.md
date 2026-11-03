@@ -28,7 +28,7 @@ Keyboard fallbacks are in `shared/pad.js`.
 | Tardigrade | Scramble, ~280 µm/s, nearly twice the full-tilt walk (recharges in 2.6 s; no other cost). LS is analogue: a slight push creeps (~30 µm/s), full tilt hurries (~150 µm/s); the keys walk mid-pace, hold G to hurry, T to creep | Pierce with the stylets | Brace (grip hard) |
 | Amoeba | Surge (A): pseudopods shoot out and the cell flows after them | Close the food cup (X) | Let go or egest (B) |
 | Paramecium | Ciliary sprint | With a hunter close, a trichocyst jab ahead: it lands (a flash and a knock-back; three wear a hunter's interest out) or visibly misses (out of reach, or out of its depth); otherwise feed (oral gulp, or a cone of algae) | Block and back off: blocks the Dileptus's slash and the Didinium's crouch or lunge, with a trichocyst burst all round while charged |
-| Bacterium | Sprint run (all flagella bundled; the whole flock sprints) | Beacon: kin it reaches answer and join your flock; members a stranger strain has drawn off (amber) come back; also lyses prey in reach and strikes enemies the flock touches (Bdellovibrio: attach / bore). LS steers the flock relative to the camera, released it stops; Y fires the toxin | Tumble |
+| Bacterium | Sprint run (all flagella bundled; the whole flock sprints) | Beacon: kin it reaches answer and join your flock; members a stranger strain has drawn off (amber) come back; also lyses prey in reach and strikes enemies the flock touches (Bdellovibrio: attach / bore). LS steers the flock on the slide, released it stops; Y fires the toxin | Tumble |
 | Phage | Dash forward along the view (A; on a surface, push off with the fibres) | Grab / let go (X): the grab assist takes the best molecule or cell-surface point in reach; only a gold receptor injects (at an amoeba lobe, a fibre jab) | Fold the fibres and slip (lets go) |
 
 **B is defend in every world** except the mite and the amoeba: the mite jumps
@@ -53,14 +53,16 @@ the tardigrade for fine focus (its magnification is four real objectives,
 stepped on the D-pad), and the amoeba uses them in play (LT moves the cell, RT
 spreads it).
 
-**The bacterium zooms with the triggers and orbits on RS.** LT zooms out and
+**The bacterium zooms with the triggers; RS looks around.** LT zooms out and
 RT in, as the paramecium's (eased, clamped): from a 22 µm camera crop out to
 the 180 µm eyepiece field, starting at 45 µm; each player's own, and each
-split view takes its players' widest. It has no focus control (the focus stays
-on your cell's plane) and no D-pad zoom. RS is a 3D camera round the flock:
-left/right turns it round (yaw), up/down tilts it (pitch, from straight down to
-about 55°), honouring Invert Y; it eases and stays where you leave it. LS steers
-relative to the camera.
+split view takes its players' widest. It has no focus control (the focus
+follows your cell's height) and no D-pad zoom. The view stays straight down on
+the slide with a follow camera: your flock moves freely within a dead zone
+(16 % of the field) before the camera eases after it, with a look-ahead along
+its motion (up to 22 % of the field); RS held looks that way (up to 40 % of
+the field, by how far it is pushed) and eases back when released. Each player
+has their own; a split view follows its own players.
 
 **The paramecium zooms with the triggers.** LT zooms out and RT zooms in,
 analogue and continuous (eased, clamped): from its closest field (560 µm) out

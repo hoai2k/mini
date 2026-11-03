@@ -9,7 +9,7 @@
 // (shared/landmark.js).
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { mountHud, keyFor } from '../shared/hud.js';
-import { createDash, hudControls, addInvertY } from '../shared/controls.js';
+import { createDash, hudControls } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
 import { loadTexture } from '../shared/assets.js';
@@ -30,6 +30,7 @@ import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
 import { gauss } from './world.js';
 import { createCollectives, COLL, LEVEL_NAMES } from './collective.js';
+import { createFollow, snapFollow, stepFollow, FOLLOW } from './followcam.js';
 import { createGuards } from './guards.js';
 import { createQuality } from '../shared/quality.js';
 import { createPortalGlow, createPortalLight, createGlint } from '../shared/portal.js';
@@ -108,6 +109,7 @@ function makePlayer(p) {
     dash: dashFor('mtb'), pad: players.pad(p.slot), ctl: players.controls(p.slot),
     capture: createCapture({ onRespawn: () => respawnPlayer(P) }),
     cat: { kind: null, who: null, phase: null, t: 0, x0: 0, y0: 0, a0: 0, zoom0: 45, released: false },
+    follow: createFollow(), look: { x: 0, y: 0 }, // the follow camera (followcam.js) and the RS look held
     zoom: SPECIES.mtb.view, zoomWant: SPECIES.mtb.view, // the field height (µm): LT out, RT in, each player their own (stepZoom)
     backT: 0, eatenFor: 0, msg: { phageHint: false }, blockT: 0, sprintT: 0, phage: null, bdello: null,
   };
@@ -727,17 +729,17 @@ const arrowSplit = () => { const L = split.layout; return { layout: { ...L, regi
 // offset there is turned back into a centre on the slide (groundAt).
 const camViews = [];
 const camPool = [0, 1, 2, 3].map((index) => ({ index, cx: 0, cy: 0, fieldH: 45, M: new THREE.Matrix4(), Mi: new THREE.Matrix4() }));
-const frameCam = { cx: 0, cy: 0, fieldH: 45, fw: 80, M: new THREE.Matrix4(), Mi: new THREE.Matrix4(), yaw: 0, pitch: 0 };
-function setFrame(cx, cy, fieldH, yaw, pitch) {
-  Object.assign(frameCam, { cx, cy, fieldH, fw: fieldH * aspect(), yaw, pitch });
-  camMatrix(frameCam.M, cx, cy, fieldH, aspect(), yaw, pitch); frameCam.Mi.copy(frameCam.M).invert();
+const frameCam = { cx: 0, cy: 0, fieldH: 45, fw: 80, M: new THREE.Matrix4(), Mi: new THREE.Matrix4() };
+function setFrame(cx, cy, fieldH) {
+  Object.assign(frameCam, { cx, cy, fieldH, fw: fieldH * aspect() });
+  camMatrix(frameCam.M, cx, cy, fieldH, aspect()); frameCam.Mi.copy(frameCam.M).invert();
 }
 const _nq = {};
 /** A slide point in the shared frame (what the split screen's 2D mode lays out). */
 function toFrame(p) { ndcOf(frameCam.M, p.x, p.y, _nq); return { x: frameCam.cx + _nq.x * frameCam.fw / 2, y: frameCam.cy + _nq.y * frameCam.fieldH / 2, z: 0 }; }
 /** The cameras for the split layout L (null: one view, the shared frame's own). */
 function layoutCams(L, cx, cy, fieldH) {
-  if (!L) setFrame(cx, cy, fieldH, frameCam.yaw, frameCam.pitch);
+  if (!L) setFrame(cx, cy, fieldH);
   camViews.length = 0;
   const vs = L && L.views.length ? L.views : [{ index: 0, offset: { x: 0, y: 0 }, slots: null }];
   for (const v of vs) {
@@ -746,7 +748,7 @@ function layoutCams(L, cx, cy, fieldH) {
     c.cx = _nq.x; c.cy = _nq.y;
     // split: each view keeps its own players' zoom (the shared view: everyone's widest)
     c.fieldH = vs.length > 1 && v.slots ? zoomPull(fieldOfSlots(v.slots)) * groupZoom.applied : frameCam.fieldH;
-    camMatrix(c.M, c.cx, c.cy, c.fieldH, aspect(), frameCam.yaw, frameCam.pitch); c.Mi.copy(c.M).invert();
+    camMatrix(c.M, c.cx, c.cy, c.fieldH, aspect()); c.Mi.copy(c.M).invert();
     camViews.push(c);
   }
 }
@@ -780,7 +782,7 @@ const fieldOfSlots = (slots) => { let z = 0; for (const P of roster) if (!P.wait
 /** The field shown (one view: every player's widest): being eaten (alone), the camera pulls back to watch the predator, then follows it. */
 const zoomPull = (z) => (!multi() && P1.capture.active && P1.cat.realPhase && /eat|follow|fade/.test(P1.cat.realPhase) ? Math.max(z, ZOOM.pull) : z);
 const baseField = () => zoomPull(fieldOfSlots(roster.map((P) => P.slot)));
-const view = { mark: true, cx: 0, cy: 30, focus: 0, look: 'phase', overlay: false, stop: true, yaw: 0, pitch: 0, yawV: 0, pitchV: 0 }; // yaw, pitch: the orbit camera (RS, stepCamera)
+const view = { mark: true, cx: 0, cy: 30, focus: 0, focusH: 1.8, look: 'phase', overlay: false, stop: true }; // focusH: the height your cell swims at (the focus follows it)
 
 const gl = renderer.getContext();
 const soft = /SwiftShader|llvmpipe|Software/i.test(String(gl.getParameter(gl.RENDERER)) + (gl.getExtension('WEBGL_debug_renderer_info') ? gl.getParameter(0x9246) : ''));
@@ -806,7 +808,6 @@ resize();
 // --- features ---
 const features = createFeatures({ key: 'bacterium', pad });
 quality.addToFeatures(features);
-addInvertY(features); // RS's tilt follows the shared Invert Y (and the shell's settings message)
 const audio = createAudio(['bacterium/amb-sediment', 'bacterium/run', 'bacterium/tumble', 'bacterium/sprint', 'bacterium/eat', 'bacterium/phage', 'bacterium/graze', 'shared/portal-chime',
   'bacterium/beacon', 'bacterium/answer', 'bacterium/join', 'bacterium/toxin', 'bacterium/lyse', 'bacterium/strike', 'bacterium/stentor', 'bacterium/bdello', 'bacterium/gate', 'bacterium/infected',
   'shared/portal-enter', 'shared/slowdown', 'shared/portal-near', 'shared/portal-sealed', 'shared/portal-appear', 'shared/backdoor', 'shared/hit', 'shared/death', 'shared/reform', 'shared/join']);
@@ -1279,11 +1280,10 @@ const debug = {
     c.waylay = null; c.wlCool = 0; c.parked = false; c.x = (C ? C.cx : P.S.x) + Math.cos(a) * R; c.y = (C ? C.cy : P.S.y) + Math.sin(a) * R;
     return { x: c.x, y: c.y };
   },
+  /** Hold the zoom triggers for player slot as LT/RT would: +1 full LT (out), -1 full RT (in), null back to the pad. */
   zoomHold(v = 1, slot = 0) { zoomForce[slot] = v === null ? undefined : v; },
-  /** Hold the camera stick (RS) as if pushed: yaw -1..1 (right orbits right), pitch -1..1 (up looks up); null back to the pad. */
-  rsHold(yaw = 0, pitch = 0) { rsForce = yaw === null ? null : { yaw, pitch }; },
-  /** Set the camera at once (radians): yaw round the flock, pitch (tilt) from straight down. */
-  cam(yaw = 0, pitch = 0) { view.yaw = yaw; view.pitch = Math.max(0, Math.min(CAM.pitchMax, pitch)); },
+  /** Hold player 1's right stick (RS look) as if pushed: x right, y up (-1..1); null back to the pad. */
+  rsHold(x = 0, y = 0) { rsForce = x === null ? null : { x, y }; },
   tumble() { return swimmer.tumble(null); },
   dash() { if (P1.dash.trigger()) doDash(P1); },
   reverse() { return swimmer.reverse(); },
@@ -1386,6 +1386,9 @@ function tick(dt, inputs) {
     const ev = {}, C = coll.of(P);
     P.S.flowK = C ? C.drag : 1; // a raft: currents drag it less, the bigger it is (collective.js dragK)
     P.swimmer.step(dt, t, inputs[P.slot], ev);
+    // 2.5D (world.js LAYER): your cell swims at a height too, and ambles up over grains (swim.js still
+    // pushes it round the part of a grain above it, so it climbs gently)
+    if (P.S.alive) world.stepHeight(P.S, dt, Math.sqrt(dt), P.S.sp.r);
     evs.set(P, ev);
   }
   snd.t += dt;
@@ -1429,16 +1432,10 @@ function tick(dt, inputs) {
     events(P, ev);
   }
   if (pacing.firstThreat === null && S.alive && (S.flow > 15 || S.phages.length || S.attacker || world.insideAmoeba(S.x, S.y, t) > 0)) pacing.firstThreat = t - pacing.t0;
-  // camera: the stage follows your flock's middle (the players' middles together; the split screen does the rest)
-  const k = 1 - Math.exp(-dt * 5);
-  let { x: fx, y: fy } = focusOf(P1);
-  if (multi()) {
-    const ps = roster.filter((P) => !P.waiting).map(focusOf);
-    fx = ps.reduce((a, p) => a + p.x, 0) / ps.length; fy = ps.reduce((a, p) => a + p.y, 0) / ps.length;
-  }
-  // once eaten, the view slides down so your remains sit above the Eaten card
-  const lift = 0;
-  view.cx += (fx - view.cx) * k; view.cy += (fy - lift - view.cy) * k;
+  // the cameras: each player's follow camera (followcam.js); the view centres on them
+  stepCameras(dt, false);
+  // the focus follows your cell's height (eased; the optics' depth of field is round it)
+  if (P1.S.hz !== undefined) view.focusH += (P1.S.hz - view.focusH) * (1 - Math.exp(-dt * 2));
   landmarkTick(dt);
 }
 
@@ -1466,9 +1463,8 @@ function readInput(P, dt) {
   const inp = idle();
   const S = P.S, c = P.ctl, me = P === P1;
   const ls = c.move();
-  // the stick relative to the camera: screen right and screen up on the slide, turned by the orbit's yaw
-  const cy = Math.cos(view.yaw), sy = Math.sin(view.yaw);
-  const wx = ls.x * cy + ls.y * sy, wy = ls.x * sy - ls.y * cy;
+  // the stick in slide axes (screen up = slide +y, toward the air)
+  const wx = ls.x, wy = -ls.y;
   if (ls.m > 0) inp.steer = { x: wx, y: wy, m: Math.min(1, ls.m) };
   if (S.alive) {
     if (c.defend.pressed()) {
@@ -1517,46 +1513,33 @@ function stepZoom(P, dt, frozen) {
   if (Math.abs(P.zoom - P.zoomWant) < 1e-3) P.zoom = P.zoomWant;
 }
 /**
- * The camera (RS; the owner, 2026-11-03: "RS should be camera ... and should behave as you'd expect for a
- * 3d camera"): an orbit round the flock's middle. RS left/right turns it round (yaw), RS up/down tilts it
- * (pitch, from straight down, the microscope's own view, to CAM.pitchMax), honouring the shared Invert Y.
- * It eases, and stays where you leave it (no recentring). Every player's RS turns the one camera. In a
- * cinematic (the continuous transitions) it eases back to straight down, screen up the slide's +y.
- * [Departure]: a microscope cannot orbit or tilt its view; the image is formed as if it could.
+ * The view: straight down on the slide, as the microscope sees it (the owner, 2026-11-03: "I think we
+ * don't need a 3d camera in 2d. Let's keep the slide"). Each player has a follow camera (followcam.js:
+ * a dead zone, a critically damped catch-up, a look-ahead along the motion, and RS held to look in any
+ * direction); a view is centred on its players' follow points, so a split view follows its own.
  */
-const CAM = { fov: 30 * Math.PI / 180, pitchMax: 0.95, yawRate: 2.2, pitchRate: 1.3, ease: 0.1 };
-let rsForce = null;
-function stepCamera(dt, frozen) {
-  let yaw = 0, pitch = 0;
-  if (rsForce) ({ yaw, pitch } = rsForce);
-  else if (!frozen) for (const P of roster) { if (P.waiting) continue; const l = P.ctl.look(); if (l.m > 0.12) { yaw += l.yaw; pitch += l.pitch; } }
-  yaw = Math.max(-1, Math.min(1, yaw)); pitch = Math.max(-1, Math.min(1, pitch));
-  const k = 1 - Math.exp(-dt / CAM.ease);
-  view.yawV += (yaw * CAM.yawRate - view.yawV) * k;
-  view.pitchV += (pitch * CAM.pitchRate - view.pitchV) * k;
-  view.yaw = Math.atan2(Math.sin(view.yaw + view.yawV * dt), Math.cos(view.yaw + view.yawV * dt));
-  view.pitch = Math.max(0, Math.min(CAM.pitchMax, view.pitch + view.pitchV * dt));
-  if (outro || intro) {
-    // a cinematic: back to the straight-down field the transitions frame (pose2D)
-    const e = 1 - Math.exp(-dt * 5);
-    view.yaw -= view.yaw * e; view.pitch -= view.pitch * e; view.yawV = view.pitchV = 0;
-    if (Math.abs(view.yaw) < 1e-3) view.yaw = 0;
-    if (view.pitch < 1e-3) view.pitch = 0;
+let rsForce = null; // (tests: debug.rsHold)
+function stepCameras(dt, frozen) {
+  for (const P of roster) {
+    if (P.waiting) continue;
+    const f = focusOf(P), C = coll.of(P), F = P.follow, fieldH = zoomPull(P.zoom) * groupZoom.applied;
+    // a jump (a respawn, a teleport, a new game): the camera is put there at once
+    if (!(F.bx === F.bx) || Math.hypot(f.x - F.bx, f.y - F.by) > fieldH * 1.5) snapFollow(F, f.x, f.y);
+    let vx = 0, vy = 0;
+    if (C && C.members.length) { vx = C.vx; vy = C.vy; } else if (P.S.alive) { const v = P.S.speed || 0; vx = Math.cos(P.S.a) * v; vy = Math.sin(P.S.a) * v; }
+    const look = rsForce && P === P1 ? rsForce : frozen ? null : P.look;
+    stepFollow(F, dt, f.x, f.y, vx, vy, look, fieldH);
   }
+  const ps = roster.filter((P) => !P.waiting);
+  if (!ps.length) return;
+  view.cx = ps.reduce((a, P) => a + P.follow.x, 0) / ps.length;
+  view.cy = ps.reduce((a, P) => a + P.follow.y, 0) / ps.length;
 }
-// The camera's matrix: looking at (cx, cy) on the slide from above, its field fieldH tall there, turned
-// by yaw (screen up on the slide is (-sin yaw, cos yaw)) and tilted by pitch toward the screen's bottom.
-// Straight down it frames exactly what the old orthographic field did.
-const _pc = new THREE.PerspectiveCamera(30, 1, 1, 1000);
+// A view's matrix: the field fieldH tall round (cx, cy), straight down (orthographic).
 const _v4 = new THREE.Vector4();
-function camMatrix(out, cx, cy, fieldH, asp, yaw = view.yaw, pitch = view.pitch) {
-  const D = (fieldH / 2) / Math.tan(CAM.fov / 2), ux = -Math.sin(yaw), uy = Math.cos(yaw), sp = Math.sin(pitch), cp = Math.cos(pitch);
-  _pc.fov = CAM.fov * 180 / Math.PI; _pc.aspect = asp; _pc.near = D * 0.05; _pc.far = D * 20; _pc.updateProjectionMatrix();
-  _pc.position.set(cx - ux * D * sp, cy - uy * D * sp, D * cp);
-  _pc.up.set(ux * cp, uy * cp, sp);
-  _pc.lookAt(cx, cy, 0);
-  _pc.updateMatrixWorld(true);
-  return out.multiplyMatrices(_pc.projectionMatrix, _pc.matrixWorldInverse);
+function camMatrix(out, cx, cy, fieldH, asp) {
+  const hw = (fieldH * asp) / 2, hh = fieldH / 2;
+  return out.makeOrthographic(cx - hw, cx + hw, cy + hh, cy - hh, -10, 10);
 }
 /** A slide point (µm) through matrix M to normalised device coordinates. */
 function ndcOf(M, x, y, o = {}) { _v4.set(x, y, 0, 1).applyMatrix4(M); o.x = _v4.x / _v4.w; o.y = _v4.y / _v4.w; o.behind = _v4.w <= 0; return o; }
@@ -1593,7 +1576,8 @@ function frame(now) {
   else if (intro && 'ease' in intro) { intro.ease += dt; ts = sm01(0, INTRO_EASE, intro.ease); if (intro.ease >= INTRO_EASE) intro = null; }
   // the zoom (each player's triggers) and the orbit camera (RS), read even while a panel pauses the world, never in a cinematic
   for (const P of roster) if (!P.waiting) stepZoom(P, dt, held || !!outro);
-  stepCamera(dt, held || !!outro || blocked);
+  // (RS: each player's look, for the follow camera)
+  for (const P of roster) { const r = !blocked && !held && !outro && !P.waiting ? P.ctl.camera() : null; P.look.x = r && r.m > 0.12 ? r.x : 0; P.look.y = r && r.m > 0.12 ? -r.y : 0; }
   const inputs = {};
   if (!blocked && !held && !outro) for (const P of roster) if (!P.waiting) inputs[P.slot] = readInput(P, dt);
   // ?flock=n (tests and perf): every player's army is kept at n (losses are replaced)
@@ -1669,7 +1653,7 @@ function drawField(cam, stopOk, rect = null) {
   const umPerPx = fieldH / H;
   const fieldW = W * umPerPx;
   shapes.setView(cx, cy, fieldW, fieldH, umPerPx, view.focus, t);
-  shapes.camera.projectionMatrix.copy(cam.M); // the orbit camera (camMatrix): straight down, the same field as the orthographic one
+
   // split: every pass only over this view's region (plus the blurs' reach)
   const look0 = currentLookKey();
   const margin = rect ? Math.ceil(3.3 * (0.12 / umPerPx + (look0 === 'fluorescence' ? 1.6 : 1.2) / umPerPx) + 12) : 0;
@@ -1679,7 +1663,7 @@ function drawField(cam, stopOk, rect = null) {
   renderer.clear();
   renderer.render(shapes.scene, shapes.camera);
   const look = currentLookKey();
-  const stopR = stopOk && view.stop && fieldH >= ZOOM.eyepiece - 0.5 && frameCam.pitch < 0.02 ? 90 / umPerPx : 0;
+  const stopR = stopOk && view.stop && fieldH >= ZOOM.eyepiece - 0.5 ? 90 / umPerPx : 0;
   if (look === 'sem') {
     const f = optics.field.textures;
     looks.fieldFromBuffers(W, H, { a: { opd: f[0], abs: f[2], opdW: [0, 0, 1, 0], scatW: [0, 1, 0, 0] }, opdK: 1, absK: 1, heightK: 1 });
@@ -1692,18 +1676,13 @@ function drawField(cam, stopOk, rect = null) {
     renderer.setRenderTarget(null);
     looks.dic({ mode: bmode.dic, pxPerUm: 1 / umPerPx, time: t, opdK: 1, absK: 1 });
   } else {
-    optics.render({ look, umPerPx, center: [cx, cy], inv: cam.Mi, time: t, stopR, plate: look === 'phase' ? plates.phase : null, noiseRes: [renderer.domElement.width, renderer.domElement.height] });
+    optics.render({ look, umPerPx, center: [cx, cy], time: t, stopR, plate: look === 'phase' ? plates.phase : null, noiseRes: [renderer.domElement.width, renderer.domElement.height] });
   }
-  if (view.overlay) overlay.render(renderer, { center: [cx, cy], inv: cam.Mi, size: [fieldW, fieldH], res: [W, H], time: t, band: S.sp.o2, world, flTex: optics.field.textures[1] });
+  if (view.overlay) overlay.render(renderer, { center: [cx, cy], size: [fieldW, fieldH], res: [W, H], time: t, band: S.sp.o2, world, flTex: optics.field.textures[1] });
   // the portal's glow, when it is in this view
-  // (an orthographic camera turned with the view and placed so the host lands where the orbit camera shows it)
-  const gq = ndcOf(cam.M, portalGlow.x, portalGlow.y, {});
-  if (world.landmarks.forward.placed && !gq.behind && Math.abs(gq.x) < 1 + 30 / fieldW && Math.abs(gq.y) < 1 + 30 / fieldH) {
-    const hw = fieldW / 2, hh = fieldH / 2 / Math.max(0.5, Math.cos(frameCam.pitch)), yaw = frameCam.yaw, a = gq.x * hw, b = gq.y * hh;
-    glowCam.left = -hw; glowCam.right = hw; glowCam.top = hh; glowCam.bottom = -hh;
-    glowCam.position.set(portalGlow.x - (a * Math.cos(yaw) - b * Math.sin(yaw)), portalGlow.y - (a * Math.sin(yaw) + b * Math.cos(yaw)), 100);
-    glowCam.rotation.set(0, 0, yaw);
-    glowCam.updateProjectionMatrix(); glowCam.updateMatrixWorld(true);
+  if (world.landmarks.forward.placed && Math.abs(portalGlow.x - cx) < fieldW / 2 + 15 && Math.abs(portalGlow.y - cy) < fieldH / 2 + 15) {
+    glowCam.left = cx - fieldW / 2; glowCam.right = cx + fieldW / 2; glowCam.top = cy + fieldH / 2; glowCam.bottom = cy - fieldH / 2;
+    glowCam.updateProjectionMatrix();
     renderer.setRenderTarget(null);
     renderer.render(glowScene, glowCam);
   }
@@ -1737,16 +1716,18 @@ function render(dt) {
   groupZoom.applied = !ov && multi() ? groupZoom.z : 1;
   const fieldH = fieldNow = ov ? ov.fieldH : baseField() * groupZoom.applied;
   const cx = ov ? ov.cx : view.cx, cy = ov ? ov.cy : view.cy;
-  // the shared frame: the orbit camera round the middle (straight down while a transition frames the field)
-  setFrame(cx, cy, fieldH, ov ? 0 : view.yaw, ov ? 0 : view.pitch);
+  // the shared frame (what the split screen lays out)
+  setFrame(cx, cy, fieldH);
   if (world.landmarks.forward.placed) { const g = glimpsePhage(); glimpse.setPosition(g.x, g.y, 0); } else glimpse.setPosition(1e6, 1e6, 0);
   glimpse.update(t);
   // the camera move: the glow fades over the first ×4 of magnification, the glint over ×4 to ×20 (the shell's halo carries it on)
   const dive = outro && outro.cam && outro.f0 ? Math.log(Math.max(1, outro.cam.f / outro.f0)) : 0;
   if (glowUI) glowUI.value = GLOW_I * (1 - sm01(0, Math.log(4), dive));
   glimpse.intensity = 1.1 * (1 - sm01(Math.log(4), Math.log(20), dive));
-  const list = roster.filter((P) => !P.waiting).map((P) => ({ slot: P.slot, position: toFrame(posOf(P)) }));
-  const L = split.update(list.length ? list : [{ slot: 0, position: toFrame(posOf(P1)) }], { center: { x: cx, y: cy }, pxPerUnit: innerHeight / fieldH, yUp: true, zoom: groupZoom.applied }, dt);
+  // (each player's follow point, so a split view follows its own players as one view does)
+  const camPos = (P) => (ov ? posOf(P) : { x: P.follow.x, y: P.follow.y, z: 0 });
+  const list = roster.filter((P) => !P.waiting).map((P) => ({ slot: P.slot, position: toFrame(camPos(P)) }));
+  const L = split.update(list.length ? list : [{ slot: 0, position: toFrame(camPos(P1)) }], { center: { x: cx, y: cy }, pxPerUnit: innerHeight / fieldH, yUp: true, zoom: groupZoom.applied }, dt);
   groupZoom.z = split.zoom;
   // split frames render every view: the governor drops each one's resolution (0.7 at 2 views, 0.55 at 3-4)
   quality.setSplitViews(L.views.length);
@@ -1756,6 +1737,7 @@ function render(dt) {
   for (const c of camViews) footprint(c.Mi, box);
   shapes.cull(box.x0, box.y0, box.x1, box.y1);
   shapes.begin();
+  drawer.depth.focusH = view.focusH;
   drawer.draw(shapes, t, roster.map((P) => P.S), view);
   shapes.end();
   if (ov || L.views.length <= 1) drawField(camViews[0], true);
@@ -1913,7 +1895,7 @@ function stats() {
   const lookName = { phase: 'Phase contrast', fluorescence: 'Fluorescence (pseudo-colour)', darkfield: 'Darkfield', sem: 'SEM (borrowed)', dic: 'DIC (borrowed)' }[look];
   const dash = P1.dash;
   const lines = [
-    `${sp.short} · ${lookName} · field ${Math.round(fieldNow)} µm · camera ${Math.round(view.yaw * 180 / Math.PI)}°, tilt ${Math.round(view.pitch * 180 / Math.PI)}°`,
+    `${sp.short} · ${lookName} · field ${Math.round(fieldNow)} µm · your cell ${view.focusH.toFixed(1)} µm above the sediment`,
     `speed ${Math.round(S.speed).toString().padStart(3)} µm/s · ${(S.speed / sp.L).toFixed(0)} body lengths/s · ${S.mode === 'tumble' ? 'TUMBLE' : S.boring ? 'BORING IN' : S.inside ? 'INSIDE PREY' : dash.active ? 'SPRINT' : 'run'}${S.mode === 'run' && !S.boring && !S.inside ? (S.steering ? ' · steering (LS)' : swimmer.opts.steer ? ' · stopped: Brownian, flow, field' : '') : ''}`,
     S.species === 'mtb'
       ? `growth ${'█'.repeat(Math.round(Math.min(1, S.growth) * 10))}${'░'.repeat(10 - Math.round(Math.min(1, S.growth) * 10))} · food ${S.food.toFixed(2)}${S.feeding ? ' (uptake)' : ''}`
@@ -1978,8 +1960,8 @@ window.__micro = { forceCapture, capture,
   coll: () => coll.report(),
   /** Waylaying: the strangers luring a flock and its drifting members (collective.js WAYLAY). */
   waylays: () => coll.waylays(),
-  /** The camera: the orbit (yaw, pitch, radians), each player's field (µm) and each view's centre and field. */
-  cam: () => ({ yaw: +view.yaw.toFixed(3), pitch: +view.pitch.toFixed(3), zoom: roster.map((P) => +P.zoom.toFixed(2)), views: camViews.map((c) => ({ index: c.index, cx: +c.cx.toFixed(1), cy: +c.cy.toFixed(1), fieldH: +c.fieldH.toFixed(1) })) }),
+  /** The cameras: the view centre, each player's follow camera (its point, look-ahead, RS look, target), field (µm), and each view. */
+  cam: () => ({ cx: +view.cx.toFixed(1), cy: +view.cy.toFixed(1), follow: roster.map((P) => ({ x: +P.follow.x.toFixed(1), y: +P.follow.y.toFixed(1), ahead: +Math.hypot(P.follow.ax, P.follow.ay).toFixed(1), look: [+P.follow.lx.toFixed(1), +P.follow.ly.toFixed(1)], target: (({ x, y }) => [+x.toFixed(1), +y.toFixed(1)])(focusOf(P)) })), zoom: roster.map((P) => +P.zoom.toFixed(2)), views: camViews.map((c) => ({ index: c.index, cx: +c.cx.toFixed(1), cy: +c.cy.toFixed(1), fieldH: +c.fieldH.toFixed(1) })) }),
   /** Screen position (CSS px) of a slide point in view i (tests). */
   project: (x, y, i = 0) => projectView(i, { x, y, z: 0 }),
   collInfo,

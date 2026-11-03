@@ -50,7 +50,7 @@
 // group, the visible beacon (autoinducers are invisible small molecules),
 // kin answering one by one, members dying in your place, and a magnetotactic
 // spirillum lysing prey (myxobacteria hunt in packs; Magnetospirillum does not).
-import { gauss, WORLD } from './world.js';
+import { gauss, WORLD, zGap } from './world.js';
 
 export const COLL = {
   touch: 3.0,      // centre distance at which two flocks touch, µm
@@ -286,6 +286,11 @@ export function createCollectives(world, hooks = {}) {
       else if (!(C.fx === C.fx)) { C.fx = cx; C.fy = cy; }
       else { C.fx += (cx - C.fx) * sm; C.fy += (cy - C.fy) * sm; }
       C.army = C.members.length + cells.length;
+      // the flock's mean height (2.5D: the beacon spreads in a slab round it)
+      let hs = 0, hn = 0;
+      for (const S of cells) { hs += S.hz || 0; hn++; }
+      for (const m of C.members) if (m.hz !== undefined) { hs += m.hz; hn++; }
+      C.hz = hn ? hs / hn : 2;
       C.level = C.army >= COLL.toxin ? 3 : C.army >= COLL.raft ? 2 : C.army >= COLL.shield ? 1 : 0;
       C.drag = dragK(C);
       // the toxin charges at army size 12 and holds; it fades if the army falls below
@@ -398,6 +403,7 @@ export function createCollectives(world, hooks = {}) {
       // the body and flagella turn with its speed: still when it stops
       m.bodyPhase += dt * (m.sp / 1.6) * Math.PI;
       m.flPhase += dt * 20 * Math.min(2.2, m.sp / FLOCK.v);
+      world.stepHeight(m, dt, sq, m.r); // 2.5D: its own height, up and over grains (world.js LAYER)
       clampCell(m);
     }
     // your own cell is pushed by the members as they are by it
@@ -418,6 +424,7 @@ export function createCollectives(world, hooks = {}) {
       k.x += (k.vx + f.x) * dt + 0.6 * sq * gauss(r);
       k.y += (k.vy + f.y) * dt + 0.6 * sq * gauss(r);
       k.bodyPhase += dt * (k.sp / 1.6) * Math.PI; k.flPhase += dt * 20 * (k.sp / FLOCK.v);
+      world.stepHeight(k, dt, sq, k.r);
       clampCell(k);
     }
   }
@@ -455,9 +462,10 @@ export function createCollectives(world, hooks = {}) {
     // (each is answered when the front passes where it was as the pulse went out, so none can outrun it)
     let R2 = R;
     const reach = [];
-    for (const m of C.members) if (m.drift) { const d = Math.hypot(m.x - x, m.y - y); if (d < WAYLAY.recallMax) { reach.push({ o: m, d }); R2 = Math.max(R2, d + 3); } }
-    for (const c of world.cells) if (c.waylay && c.waylay.C === C) { const d = Math.hypot(c.x - x, c.y - y); if (d < WAYLAY.recallMax) { reach.push({ o: c, d }); R2 = Math.max(R2, d + 3); } }
-    const b = { x, y, t: 0, R: R2, dur: 0.25 + R2 / 45, n: 0, C, slot: P.slot ?? 0, reach };
+    const bh = C.hz ?? 2;
+    for (const m of C.members) if (m.drift) { const d = Math.hypot(m.x - x, m.y - y, zGap(m.hz, bh)); if (d < WAYLAY.recallMax) { reach.push({ o: m, d }); R2 = Math.max(R2, d + 3); } }
+    for (const c of world.cells) if (c.waylay && c.waylay.C === C) { const d = Math.hypot(c.x - x, c.y - y, zGap(c.hz, bh)); if (d < WAYLAY.recallMax) { reach.push({ o: c, d }); R2 = Math.max(R2, d + 3); } }
+    const b = { x, y, hz: bh, t: 0, R: R2, dur: 0.25 + R2 / 45, n: 0, C, slot: P.slot ?? 0, reach };
     C.beacons.push(b);
     hooks.onBeacon?.(C, b, P);
     return b;
@@ -479,7 +487,9 @@ export function createCollectives(world, hooks = {}) {
       for (const b of recruit) {
         const front = b.R * Math.min(1, b.t / b.dur) ** 0.7;
         const dx = k.x - b.x, dy = k.y - b.y;
-        if (dx > front || dx < -front || dy > front || dy < -front || dx * dx + dy * dy > front * front) continue;
+        if (dx > front || dx < -front || dy > front || dy < -front) continue;
+        const dz = zGap(k.hz, b.hz); // 2.5D: a kin cell far above or below the pulse's slab is not reached
+        if (dx * dx + dy * dy + dz * dz > front * front) continue;
         if (b.C.members.length + b.C.answered >= COLL.max) continue;
         k.answer = { C: b.C, t: -(0.08 + 0.09 * b.n + r() * 0.08), joined: false, slot: b.slot };
         b.n++; b.C.answered++;
@@ -489,13 +499,13 @@ export function createCollectives(world, hooks = {}) {
     // a drifting member the pulse reaches comes back at once; a stranger it reaches is driven off
     for (const b of recruit) {
       const front = b.R * Math.min(1, b.t / b.dur) ** 0.7, f2 = front * front;
-      for (const m of b.C.members) if (m.drift && (m.x - b.x) ** 2 + (m.y - b.y) ** 2 <= f2) recall(m, b);
+      for (const m of b.C.members) if (m.drift && (m.x - b.x) ** 2 + (m.y - b.y) ** 2 + zGap(m.hz, b.hz) ** 2 <= f2) recall(m, b);
       for (const q of b.reach) if (q.d <= front) {
         const o = q.o;
         if (o.drift && o.coll === b.C) recall(o, b);
         else if (o.waylay && o.waylay.C === b.C) { for (const m of b.C.members) if (m.drift && m.drift.c === o) recall(m, b); release(o, true); }
       }
-      for (const c of world.cells) if (c.waylay && c.waylay.C === b.C && (c.x - b.x) ** 2 + (c.y - b.y) ** 2 <= f2) { for (const m of b.C.members) if (m.drift && m.drift.c === c) recall(m, b); release(c, true); }
+      for (const c of world.cells) if (c.waylay && c.waylay.C === b.C && (c.x - b.x) ** 2 + (c.y - b.y) ** 2 + zGap(c.hz, b.hz) ** 2 <= f2) { for (const m of b.C.members) if (m.drift && m.drift.c === c) recall(m, b); release(c, true); }
     }
     // answering: the kin cell's own small pulse, and it joins
     for (const k of kin) {
@@ -552,6 +562,7 @@ export function createCollectives(world, hooks = {}) {
     k.a += wrap(Math.atan2(dy, dx) - k.a) * Math.min(1, dt * 6);
     k.sp = v; k.vx = Math.cos(k.a) * v; k.vy = Math.sin(k.a) * v;
     k.x += k.vx * dt; k.y += k.vy * dt;
+    if (s.hz !== undefined) k.hz = (k.hz ?? s.hz) + (s.hz - (k.hz ?? s.hz)) * Math.min(1, dt * 3);
     k.bodyPhase += dt * (v / 1.6) * Math.PI; k.flPhase += dt * 20 * Math.min(2.2, v / FLOCK.v);
   }
   function waylay(dt, t) {
@@ -590,6 +601,7 @@ export function createCollectives(world, hooks = {}) {
       const face = v > 4 ? Math.atan2(dy, dx) : Math.atan2(oy, ox) + Math.PI / 2;
       c.a += wrap(face - c.a) * Math.min(1, dt * 4);
       c.vx = d > 0.05 ? (dx / d) * v : 0; c.vy = d > 0.05 ? (dy / d) * v : 0;
+      world.stepHeight(c, dt, Math.sqrt(dt), c.r);
       if (W.state === 'come' && od < W.ext + WAYLAY.edge + 3) W.state = 'lure';
       if (W.state !== 'lure') continue;
       // its decoy pulse: each draws off the nearest member in reach (never your own cell)
@@ -604,7 +616,7 @@ export function createCollectives(world, hooks = {}) {
       let best = null, bd = WAYLAY.reach * WAYLAY.reach;
       for (const m of C.members) {
         if (m.drift || m.latched || (m.immune || 0) > 0) continue;
-        const e2 = (m.x - c.x) ** 2 + (m.y - c.y) ** 2;
+        const e2 = (m.x - c.x) ** 2 + (m.y - c.y) ** 2 + zGap(m.hz, c.hz) ** 2;
         if (e2 < bd) { bd = e2; best = m; }
       }
       if (!best) continue;
@@ -638,7 +650,7 @@ export function createCollectives(world, hooks = {}) {
       if (Math.abs(c.x - C.cx) > ext || Math.abs(c.y - C.cy) > ext) continue;
       const reach = c.L * 0.5 + COLL.eatReach;
       let best = null, bd = reach * reach;
-      for (const m of nodes) { const d2 = (m.x - c.x) ** 2 + (m.y - c.y) ** 2; if (d2 < bd) { bd = d2; best = m; } }
+      for (const m of nodes) { const d2 = (m.x - c.x) ** 2 + (m.y - c.y) ** 2 + zGap(m.hz, c.hz) ** 2; if (d2 < bd) { bd = d2; best = m; } }
       if (!best) continue;
       c.lysed = 0.001;
       best.growth = Math.min(1.2, (best.growth || 0) + 0.34); // three rods make a division
@@ -726,7 +738,8 @@ export function createCollectives(world, hooks = {}) {
     if (!C.members.length) return false;
     let best = C.members[0], bd = Infinity;
     const fx = from ? from.x : P.S.x, fy = from ? from.y : P.S.y;
-    for (const m of C.members) { const d = (m.x - fx) ** 2 + (m.y - fy) ** 2; if (d < bd) { bd = d; best = m; } }
+    const fh = from && from.hz !== undefined ? from.hz : P.S.hz;
+    for (const m of C.members) { const d = (m.x - fx) ** 2 + (m.y - fy) ** 2 + zGap(m.hz, fh) ** 2; if (d < bd) { bd = d; best = m; } }
     lose(best, kind);
     P.safeT = 1.6;
     return true;
@@ -745,7 +758,7 @@ export function createCollectives(world, hooks = {}) {
           m.growth = 0;
           if (C.members.length + add.length >= COLL.max) continue;
           const d = newKin(m.x - Math.cos(m.a) * 1.6, m.y - Math.sin(m.a) * 1.6);
-          d.a = m.a + Math.PI; d.coll = C; d.label = m.label; // a daughter carries its mother's label
+          d.a = m.a + Math.PI; d.coll = C; d.label = m.label; d.hz = m.hz; d.hw = m.hw; // a daughter carries its mother's label (and height)
           add.push(d);
         }
       }
