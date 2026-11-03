@@ -476,7 +476,8 @@ function fillIntro(w) {
 }
 function renderIntroControls() {
   const w = WORLDS[S.sel];
-  const rows = [...w.controls, ...(w.back ? [['Y', t('shell.controls.wayBack')]] : []), ['Menu', t('shell.controls.pause')], ['View', t('shell.controls.controlsCard')]];
+  // No portal / way-back (Y) or Menu rows: the world asks for Y when it is wanted, and Menu pauses (the owner, 2026-11-03).
+  const rows = [...w.controls.filter(([b]) => b !== 'Menu' && b !== 'View'), ['View', t('shell.controls.showHide')]];
   $('#intro-controls').innerHTML = controlRows(rows);
 }
 // The screen being left stays on screen, untouchable, while the new one
@@ -974,8 +975,7 @@ function renderControlsCard() {
   const w = WORLDS[S.world];
   let rows = S.hud?.rows || w.controls;
   rows = rows.filter(([b]) => b !== 'Menu' && b !== 'View');
-  if (w.back && !rows.some(([b, what]) => b === 'Y' && /back|rise/i.test(what))) rows = [...rows, ['Y', t('shell.controls.wayBack')]];
-  rows = [...rows, ['Menu', t('shell.controls.pause')], ['View', t('shell.controls.showHide')]];
+  rows = [...rows, ['View', t('shell.controls.showHide')]];
   const multi = roster.list.length > 1;
   $('#controls-card').innerHTML = `<p class="eyebrow small"><span>${t('shell.controls.cardEyebrow', { roman: ROMAN[S.world], look: w.look })}</span></p>
     <h3>${w.name}</h3><p class="sub">${w.goal}</p>
