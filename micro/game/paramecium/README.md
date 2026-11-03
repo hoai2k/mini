@@ -162,7 +162,11 @@ quarter way 0.28 / 11.7 k, half 0.51 / 13.7 k, three quarters 0.76 / 14.7 k,
 **Straight up the screen reaches everything** (2026-11-03, this build):
 `debug.rush({ bearing: π/2 })` (the real game stepped at 1/30 s, dashing
 when ready) meets the Dileptus at 5.8 s, the bloom 14.5, the giant amoeba
-23.1, the Didinium 35.8 and reaches the open portal at 47.6 s, no deaths.
+23.1, the Didinium 35.8 and reaches the open portal at 47.6 s, no deaths. On
+the page with W held (no dashes, game time): the Dileptus met at 8.6 s, the
+bloom 22.5, the giant amoeba 36.4, the Didinium 50.7, the leaf's edge (700
+µm) at 65.2 s, never killed; the gradient read 0.07, 0.26, 0.47, 0.68 and
+0.93 at 0, 15, 30, 45 and 60 s.
 
 ## The look
 
