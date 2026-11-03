@@ -179,7 +179,9 @@ function waylaySetup() {
   step(90);
   assert.ok(m && m.drift, 'drifting for 1.5 s');
   assert.ok(coll.beacon(P, 500), 'X');
-  for (let i = 0; i < 60 && m.drift; i++) step(1);
+  let back = null;
+  for (let i = 0; i < 60; i++) { step(1); if (back === null && !m.drift) back = i / 60; }
+  assert.ok(back !== null && back < 0.8, `called back ${back} s after X`);
   assert.ok(!m.drift && m.coll === C && ev.recall >= 1, 'the beacon reaching it calls it back at once');
   assert.ok(!s.waylay && s.wlCool > 0, 'and drives the stranger off');
   step(120);

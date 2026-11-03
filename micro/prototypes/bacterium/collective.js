@@ -451,9 +451,10 @@ export function createCollectives(world, hooks = {}) {
         if (d > best) { best = d; x = c.x; y = c.y; }
       }
     }
-    // it stretches to reach the flock's drifting (waylaid) members, up to WAYLAY.recallMax
+    // it stretches to reach the flock's drifting (waylaid) members and the strangers luring them, up to WAYLAY.recallMax
     let R2 = R;
     for (const m of C.members) if (m.drift) R2 = Math.max(R2, Math.min(WAYLAY.recallMax, Math.hypot(m.x - x, m.y - y) + 2.5));
+    for (const c of world.cells) if (c.waylay && c.waylay.C === C) R2 = Math.max(R2, Math.min(WAYLAY.recallMax, Math.hypot(c.x - x, c.y - y) + 2.5));
     const b = { x, y, t: 0, R: R2, dur: 0.25 + R2 / 45, n: 0, C, slot: P.slot ?? 0 };
     C.beacons.push(b);
     hooks.onBeacon?.(C, b, P);
