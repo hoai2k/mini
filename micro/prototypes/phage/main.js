@@ -1155,7 +1155,7 @@ const hostById = (id) => world.hosts.find((h) => h.id === id);
 const leadPos = new THREE.Vector3();
 const _dir = new THREE.Vector3(), _sp = new THREE.Vector3();
 const metDecoy = (h) => (x, [p]) => {
-  const m = team.find((o) => o.slot === p.id);
+  const m = team[p.id];
   return !!m && (m.P.host === h || m.P.coHost === h || world.sdHost(h, _sp.set(p.x, p.y, p.z)) < 70);
 };
 const placeDecoy = (h) => (x, z, b, info) => {
@@ -1200,7 +1200,7 @@ const drift = { idle: 0 };
 function stepDirector(dt) {
   const out = outsideMembers();
   const ps = members().map((m) => ({ id: m.slot, x: m.P.pos.x, y: m.P.pos.y, z: m.P.pos.z, alive: out.includes(m) }));
-  const L = director.leader, lm = (L && team.find((o) => o.slot === L.id)) || out[0] || team[0];
+  const L = director.leader, lm = (L && team[L.id]) || out[0] || team[0];
   if (lm) leadPos.copy(lm.P.pos);
   // (what the views see is marked every third frame: a 3D grid walk is the director's one real cost here)
   const mark = seenViews.length && (++markTick % 3 === 0 || !director.state().seenCells);
@@ -1390,7 +1390,7 @@ function drawPortalArrow() {
   const pp = portalPoint().clone();
   arrowLog = marks.drawSplit(split, (vp) => {
     let d = Infinity;
-    for (const v of vp) { const m = team.find((o) => o.slot === v.slot); if (m) d = Math.min(d, m.P.pos.distanceTo(pp)); }
+    for (const v of vp) { const m = team[v.slot]; if (m) d = Math.min(d, m.P.pos.distanceTo(pp)); }
     if (!isFinite(d)) d = P.pos.distanceTo(pp);
     return { position: pp, label: `${(d / 100).toFixed(1)} µm`, distance: d };
   }, { kind: 'forward', portal: true, range: 2000 }).map((r) => r && { x: r.x, y: r.y, angle: r.angle, onScreen: r.onScreen, d: +r.picked.distance.toFixed(1), label: r.picked.label, at: pp.toArray().map((x) => +x.toFixed(1)) });

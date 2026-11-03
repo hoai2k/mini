@@ -39,6 +39,16 @@ grab whatever is in reach with an assist (`grab.js`); the water is a visible
 drifting noise of molecules (`medium.js`); and every 30–60 s a current you see
 coming sweeps through (`currents.js`).
 
+**Zoom on the triggers (3 November 2026).** The owner: "for Phage let's have
+LT/RT also be zoom instead of DPad". LT zooms out and RT in, analogue and
+continuous like the paramecium's (`ZOOM` and `stepZoom` in `main.js`: the
+same rate, ×e a second at full trigger, and easing, 0.14 s), from 60 to 290
+units behind the phage (the old D-pad steps' range); the D-pad no longer
+zooms. RT no longer grabs, so grabbing is X alone (a toggle, as before) with
+the same grab assist. The controls lists drop the portal and way-back
+mentions on Y (the world asks for Y on screen when you are there), and keep
+Y's overlay as "Info overlay".
+
 **You steer; the water only shows.** A real phage has no motor: it diffuses
 until it touches a receptor [S100]. At the owner's request it is steered
 like a game character, a labelled departure: LS up and down move it forward
@@ -105,25 +115,24 @@ movement is in the view's own frame, so there is no up or down bias:
 | RS | Arrows | **Turn the view** about its own axes (a quaternion: no up or down, no poles, no flips). It stays where you leave it |
 | **A** | Space | **Dash forward** along the view (recharging, HUD `dash` meter). Holding a cell, it lets go and dashes; a carried molecule comes along. On a surface (debug walk), a push-off with the fibres |
 | **X** | E | **Grab / let go** (a toggle): the grab assist takes the best thing in reach of the fibres (below). **At an amoeba's lobe: a fibre jab** (attack; a departure) |
-| **RT** | X | **Grab and hang on**: squeeze to grab (or jab), keep it squeezed to hold, let go to let go. Squeezed with nothing in reach, it keeps reaching, so you catch the first thing you drift into |
+| LT / RT | Z / X | **Zoom out / in**, analogue and continuous: how far the trigger is squeezed sets how fast it zooms, and the camera eases there; 60 to 290 units behind the phage, starting at 110. Each player's own: together the view takes the widest of everyone's, split each view takes its own players'. Inside the host it sets the inside camera's distance too (the injecting player's) |
 | B | Shift | **Defend: fold the fibres** back against the sheath and slip: an amoeba's lobe gets no purchase, clay and flocs slide past; it also lets go of whatever you hold. Press again to extend them |
 | Y | R | **At Host A's gold receptors (the way on), within ~0.4 µm and with the amoeba off guard: enter** (the shell shows "Y Enter the portal"; the fibres latch on the nearest receptor and the injection starts; on guard: turned back). **At the flagellum (the backdoor)**: back to the sediment (Level 5); the two are far apart. Elsewhere: the odds and receptor overlay: receptor patches ringed, each host's receptors, defences and odds of a burst, the UV line, the amoeba's hunger, your distance to the nearest host; inside, each enzyme's sensing range. Marked on screen as data, not optics |
 | D-pad ←→ | 3 / 4 | Look: realistic false light (default), Goodsell watercolour, cryo-EM greyscale, fluorescence (pseudo-colour) |
-| D-pad ↑↓ | 1 / 2 | Zoom in / out |
 | Menu | Esc | Features panel |
 | View | Tab | Hide or show the controls |
 
-LT does nothing outside the host.
+The D-pad's ↑↓ do nothing (they zoomed before the triggers did).
 
 ### Grabbing (`grab.js`, tested in `grab.test.mjs`)
 
-- **The grab assist.** X or RT takes the best target within 0.4 µm (40 units)
+- **The grab assist.** X takes the best target within 0.4 µm (40 units)
   of the fibres' reach centre, a little ahead of the baseplate: a free
   molecule, or the nearest point of any cell's surface (hosts and the big
   bacteria of other kinds). Things ahead of the baseplate win over things
   beside or behind it at a similar distance, but anything in reach is taken,
   so a sloppy aim still grabs. A soft ring in your player colour marks what
-  X / RT would take now, and the fibres reach out a little toward it. The
+  X would take now, and the fibres reach out a little toward it. The
   fibres reach out to what they grab over 0.18 s.
 - **Molecules.** 36 bigger free molecules (complexes and globules, `mols` in
   `main.js`) drift round the players; the bath's thousands live on the GPU
@@ -140,8 +149,7 @@ LT does nothing outside the host.
   three-lobed receptor latches and starts the irreversible injection, as
   before (the fibres converge for 0.45 s, the short fibres bind, the sheath
   contracts). On Host A, the way on, X there only holds on and says to press
-  Y; on guard, you are turned back. RT held while reaching again never
-  latches a receptor: that takes a deliberate press.
+  Y; on guard, you are turned back.
 
 ### The water: a textured liquid, and currents
 
@@ -235,7 +243,7 @@ hunt hard, a near dead end). The third cell is the wrong host.
   in beside a teammate (no card; `captured` is posted); solo keeps the card.
   One player at a time can commit: the inside phase is a single shared view
   steered by the player who injected, while the others wait outside. Any
-  player's camera stick, look and zoom buttons work.
+  player's camera stick, look buttons and zoom triggers work.
 
 ## Telling players apart
 
@@ -420,7 +428,7 @@ fails on any console error. `window.__micro.debug` has hooks for scripted
 screenshots: `teleport`, `orient`, `isolate` (the phage alone, for
 turnarounds), `cam(yaw, pitch, dist)`, `fold`, `walkOn(hostId, u, phi)`,
 `grab` (the normal aimed grab), `grabNow(by)` / `release()` / `hold(slot)` (grabbing), `mols()` / `placeMol(i, x, y, z)` (the free molecules), `current(dir)` / `currents()` (send one now; the state and log), `axes()` (the view's forward, right and up), `commit` (bypass from a debug walk), `inside(hostId)`, `win`, `capture('amoeba' | 'uv' | 'cut')`,
-`hungry`, `overlay`, `look`, `zoom`, `reset`, `place(slot, x, y)`, plus
+`hungry`, `overlay`, `look`, `zoom(i)` (an old step index 0..3, or a distance), `zoomHold(v, slot)` (as LT/RT: +1 out, -1 in, null back to the pad), `zooms()` (each player's zoom), `ZOOM`, `reset`, `place(slot, x, y)`, plus
 `maxDt` and `pause`; `debug.spin()` (the view's turn rate and each phage's angular speed, rad/s),
 `debug.encounters()` (the director's state), `debug.encounterLog()`, `debug.seenAt(x, y, z)`, `debug.placeNow()`, `debug.placePortal(dir, d)` (out of order: tests), `debug.flocs()`, `debug.coverage()` (the fraction of the frame the scene
 covers, read from the scene target's alpha), `debug.nanCount()` (non-finite texels in the last scene target: the black-block hunt, LOOK.md) and `debug.beads()` (beads drawn in the baths); `debug.fight` (the amoeba's fight state and interest) and `debug.boss()` (the CRISPR-Cas state, match, distance). `window.__micro` also exposes `team`, `players`,

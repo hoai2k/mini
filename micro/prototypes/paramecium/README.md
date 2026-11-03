@@ -181,7 +181,7 @@ The drop is one continuous water volume 480 µm deep, the coverslip above (`z`
 | A | Dash | A ciliary sprint (1.5 mm/s for 0.28 s, recharges in 0.9 s); flings bloom cells aside |
 | X | Jab / eat | With a hunter close: a trichocyst jab ahead (three threads fanned ±24°, reaching 110 µm past the front): it lands (a flash, `shared/hit`, the hunter knocked back and worn down) or visibly misses. Otherwise gulps prey at the oral end, or a cone of algae in the bloom |
 | B | Block / burst | The avoiding reaction (back up and swing round, away from the nearest threat); blocks a Dileptus's slash or a Didinium's crouch or lunge (always); with a charge also a trichocyst burst all round (three charges, one back every 3 s): bursts you out of the giant amoeba's cup and the trap's pull |
-| Y | Enter portal | At the open portal (down on the biofilm, the trap spent); on the amoeba's patch: back up a world |
+| Y | (not in the in-game list) | At the open portal (down on the biofilm, the trap spent); on the amoeba's patch: back up a world. The world asks for Y on screen there, so the controls lists leave it out (3 November 2026) |
 | LT/RT | Zoom out / in | Analogue and continuous, from the closest field (560 µm) to 3× (1.68 mm); the game starts at 1.6× |
 | LB/RB | Deeper / shallower | The same as RS up/down |
 | D-pad ←→ | Change the look | Darkfield, phase contrast, brightfield |
@@ -191,8 +191,7 @@ jab/eat, Shift block/burst, R enter, Z/X zoom out/in, Q/F deeper/shallower,
 3/4 look. The shell's list (`micro/game/src/worlds.js`, from
 `../shared/text_config.js` `worlds.paramecium.controls`): `[['LS', 'Swim'],
 ['RS', 'Deeper / shallower · far sides: turn view'], ['A', 'Dash'], ['X',
-'Jab / eat'], ['B', 'Block / burst'], ['Y', 'Enter portal'], ['LT/RT', 'Zoom
-out / in'], ['LB/RB', 'Deeper / shallower'], ['D-pad ←→', 'Change the
+'Jab / eat'], ['B', 'Block / burst'], ['LT/RT', 'Zoom out / in'], ['LB/RB', 'Deeper / shallower'], ['D-pad ←→', 'Change the
 look']]`.
 
 ## Playing

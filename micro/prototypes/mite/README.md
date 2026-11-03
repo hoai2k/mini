@@ -197,7 +197,11 @@ out goes ~0.2 m. The director's seen grid covers the square (0.5 mm cells, ~3.7 
 
 The shared scheme (`../CONTROLS.md`, read through `../shared/controls.js`),
 with one exception at the owner's request: A jumps, B scrambles and Y closes
-up.
+up. The in-game controls lists (`../shared/text_config.js`
+`worlds.mite.controls` and `mite.hud.controls`) list Y as "Block (hold)"
+only: the portal and the way back ask for Y on screen when you are there, so
+the lists no longer carry "enter portal" or a "Way back" row (3 November
+2026).
 
 | Button | Action |
 | --- | --- |
@@ -212,7 +216,7 @@ up.
 | LS click (C), standalone prototype only | Observer mode: simulated SEM instrument data (voltage, working distance, detector, magnification and scale) and raster lines. This viewing aid and its feature switch are omitted from the embedded game |
 | LB / RB (Q / F), hold | Walk at the slow end (~418 µm/s) / full tilt (~870 µm/s), whatever the stick's push |
 | D-pad ← → (3 / 4) | Imaging mode: SE (Everhart-Thornley), BSE (low vacuum), SE false colour |
-| D-pad ↑ ↓ (1 / 2) | Magnification steps (×1.5) |
+| LT / RT (Z / X) | **Zoom out / in** (3 November 2026, was D-pad steps of ×1.5): analogue and continuous like the paramecium's, the horizontal field width from 160 µm to 4.2 mm, ×e^1.4 a second at full trigger (`ZOOM_HFW`, `ZOOM_RATE` in `main.js`), the camera easing to it; the magnification shows once the triggers are let go. The field is one for everyone (as RS turns the one view), so any player's triggers move it. The D-pad's ↑↓ no longer zoom |
 | Menu (Esc) | Features panel: what the prototype does, with switches |
 | View (Tab) | Hide the help panel |
 

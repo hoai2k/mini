@@ -1971,6 +1971,8 @@ const api = {
   // ---- multiplayer and landmarks (Playwright drives these)
   players, split, marks, joins, landmarks: { forward: FORWARD, back: BACKDOOR, forwardAt: props.forward.at, backAt: props.back }, landmarkLog: lm.log, props,
   get frames() { return frames; },
+  /** The camera rig (hfw: the field's half width the triggers zoom, viewHfw: the camera's eased one). */
+  get rig() { return rig; },
   get layout() { return split.layout; },
   recs: () => recs().map((P) => ({ slot: P.slot, x: Math.round(P.mite.center.x), z: Math.round(P.mite.center.z), mode: P.mite.mode, hurt: P.play.hurt })),
   /** Put a player's mite at (x, z) µm and snap the camera. */
