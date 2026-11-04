@@ -348,19 +348,33 @@ export function createWorld(scene) {
       forest(beadTemplate('lps', 1), Math.ceil(nL / 2), def.wrong ? [0.6, 0.8] : [0.55, 0.8], lc);
       forest(beadTemplate('lps', 2), Math.floor(nL / 2), def.wrong ? [0.6, 0.8] : [0.55, 0.8], lc);
     }
-    // the protein flowers standing out of the fur on their stalks (sparse: a few dozen to a side), and a few
-    // pili or flagella curving off into the water (one merged tube geometry)
+    // The grab points (the owner, 4 Nov 2026: "You shouldn't be able to grab on the flat surface of the cell,
+    // but it should be easier to grab any of the proteins on the cell"): every protein flower standing out of
+    // the fur on its stalk is a hold (host.grabs, host-local: the knob's head, its base and the normal), as
+    // are the gold and violet proteins below. Plentiful (about one per 30 units of surface, so one is always
+    // within the grab assist's reach of a cell), bigger than they were, and none on a receptor site.
+    host.grabs = [];
+    const sitesUV = def.bystander ? [] : [...def.patches, [-def.half * 0.8, 2.25], [0, Math.PI], [def.half * 0.65, 2.8], [0, -0.35]];
+    const _sp = new THREE.Vector3(), _sn = new THREE.Vector3();
+    const siteLocal = sitesUV.map(([u, phi]) => surf(u, phi, new THREE.Vector3(), _sn));
+    // ... and a few pili or flagella curving off into the water (one merged tube geometry)
     if (!def.wrong) {
-      const nf = Math.round(area / (by ? 1500 : 1200));
+      const nf = Math.round(area / (by ? 950 : 800));
       // (a scenery cell carries one kind, so it costs one draw; the hosts all three)
       const kinds = by ? [world.bystanders.length % FLOWERS.length] : FLOWERS.map((_, v) => v);
       for (const v of kinds) {
         const cnt = Math.round(nf / kinds.length);
         const fm = beadMesh(FLOWERS[v], cnt, { material: flowerMat });
         for (let i = 0; i < cnt; i++) {
-          surf(rand(-def.half - def.r * 0.8, def.half + def.r * 0.8), rand(-Math.PI, Math.PI), _p, n);
-          _q.setFromUnitVectors(UP, n).multiply(new THREE.Quaternion().setFromAxisAngle(UP, Math.random() * 6)).multiply(new THREE.Quaternion().setFromAxisAngle(Z, rand(-0.25, 0.25)));
-          fm.set(i, _p.addScaledVector(n, 0.5), _q, rand(1.15, 1.75) * Math.sqrt(def.r / 40), null);
+          for (let k = 0; k < 8; k++) {
+            surf(rand(-def.half - def.r * 0.8, def.half + def.r * 0.8), rand(-Math.PI, Math.PI), _p, n);
+            if (!siteLocal.some((s) => s.distanceTo(_p) < 20)) break;
+          }
+          _q.setFromUnitVectors(UP, n).multiply(new THREE.Quaternion().setFromAxisAngle(UP, Math.random() * 6)).multiply(new THREE.Quaternion().setFromAxisAngle(Z, rand(-0.12, 0.12)));
+          const sc = rand(1.35, 1.9) * Math.sqrt(def.r / 40);
+          _sp.copy(_p);
+          fm.set(i, _p.addScaledVector(n, 0.5), _q, sc, null);
+          host.grabs.push({ host, kind: 'flower', compatible: false, surface: _sp.clone(), normal: n.clone(), local: _sp.clone().addScaledVector(n, 0.5 + 7.8 * sc), size: 2.6 * sc });
         }
         fm.commit(); fm.fitBounds(); g.add(fm.mesh);
       }
@@ -424,9 +438,9 @@ export function createWorld(scene) {
       list.forEach((site, k) => {
         surf(site.u, site.phi, _p, n);
         const protein = { id: `${def.id}-${world.proteins.filter((q) => q.host === host).length}`, host, compatible,
-          surface: _p.clone(), normal: n.clone(), local: _p.clone().addScaledVector(n, 7) };
+          surface: _p.clone(), normal: n.clone(), local: _p.clone().addScaledVector(n, 7), kind: compatible ? 'gold' : 'violet', size: 4 };
         mesh.set(k, _p, _q.setFromUnitVectors(UP, n), 1);
-        world.proteins.push(protein);
+        world.proteins.push(protein); host.grabs.push(protein);
       });
       mesh.commit(); mesh.fitBounds(); g.add(mesh.mesh);
     }

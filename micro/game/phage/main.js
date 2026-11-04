@@ -2,11 +2,12 @@
 // water, drawn in realistic microscopic false light (the Goodsell watercolour,
 // cryo-EM and fluorescence looks remain on the D-pad). Crisp game controls (a
 // labelled departure: phages have no motor): LS forward/back along the view and
-// sideways, LB/RB down/up, A dashes forward, LT/RT zoom out/in. X grabs whatever is in reach
-// of the fibres (grab.js: a free molecule to carry, or any point of a cell to
-// hang on to); only a matching receptor latches and starts injection. The water
-// is a visible textured liquid (medium.js) with occasional currents you see
-// coming (currents.js): hang on to a cell to ride one out.
+// sideways, LB/RB down/up, A dashes forward, LT/RT zoom out/in. X grabs what is in reach
+// of the fibres (grab.js: a piece of debris to carry, or a protein standing on a cell to
+// hang on to and ride; never the bare membrane); only a matching receptor latches and starts
+// injection. Y kicks: off a cell, debris away, or a small kick-swim. B retracts the fibres.
+// The water is a visible textured liquid (medium.js) with occasional currents you see
+// coming (currents.js): hang on to a cell to ride one out, or kick out of one.
 // Inside, thread the DNA's leading end past the host's restriction enzyme and
 // CRISPR complex until the whole genome is in. See README.md.
 import * as THREE from '../shared/vendor/three.module.min.js';
@@ -27,9 +28,9 @@ import { createDirector } from '../shared/director.js';
 import { createPortalGlow, createPortalLight } from '../shared/portal.js';
 import { createQuality } from '../shared/quality.js';
 import { createInside, GENOME_NODES } from './inside.js';
-import { attachmentForward, aimedProtein } from './binding.js';
+import { attachmentForward } from './binding.js';
 import { createCurrents, carriedPath } from './currents.js';
-import { pickGrabTarget, surfacePart, GRAB } from './grab.js';
+import { pickGrabTarget, kickPlan, kickVelocities, grabMotion, kickMotion, yawTurn, GRAB, MOVE } from './grab.js';
 import { createMedium } from './medium.js';
 import { beadMesh, beadMaterial, beadTemplate, PALETTE } from '../shared/techniques/phage-beads.js';
 import { t as tt, tx } from '../shared/text.js';
@@ -199,7 +200,7 @@ let waterColor = '#bcd3ea';
 // START comes from world.js: clear water at the lower left, far from Host A (upper right).
 const newP = () => ({
   // (kv: the velocity a current gives you, eased toward its flow; hold: what the fibres hold, see grabbing)
-  pos: START.clone(), vel: new THREE.Vector3(), bvel: new THREE.Vector3(), kv: new THREE.Vector3(), gust: new THREE.Vector3(), hold: null, reachT: 0, idleT: 0,
+  pos: START.clone(), vel: new THREE.Vector3(), dashV: new THREE.Vector3(), bvel: new THREE.Vector3(), kv: new THREE.Vector3(), gust: new THREE.Vector3(), hold: null, reachT: 0, idleT: 0,
   q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.95), angVel: new THREE.Vector3(),
   mode: 'drift', foldTarget: 0, fold: 0, integrity: 1, host: null, walkLocal: new THREE.Vector3(), lift: 4,
   anchors: Array(6).fill(null), stepping: -1, stepT: 0, bound: 0, canCommit: false, commitT: 0, commitHost: null,
@@ -231,8 +232,8 @@ const HEADS = [
 ];
 function makeMember(slot, color) {
   const z0 = team[0] ? team[0].zoomWant : ZOOM.start; // (a joining player starts at player 1's zoom)
-  const m = { slot, color, zoom: z0, zoomWant: z0, P: newP(), t4: createT4({ clip: true }), dash: createDash({ duration: 0.5, cooldown: 2.4 }),
-    capture: null, c: { active: false, phase: null, t: 0 }, jab: 0 };
+  const m = { slot, color, zoom: z0, zoomWant: z0, P: newP(), t4: createT4({ clip: true }), dash: createDash({ duration: MOVE.dashT, cooldown: MOVE.dashCool }),
+    capture: null, c: { active: false, phase: null, t: 0 }, jab: 0, motion: null, kickCd: 0, fovKick: 0, streak: makeStreak() };
   // caught: strike, hold, eat (the camera pulls back), follow the predator, fade, respawn, fade in
   m.capture = createCapture({ onRespawn: () => afterCatch(m) });
   // the player's own camera (a joining player starts with player 1's)
@@ -248,6 +249,7 @@ function dropMember(slot) {
   const m = team[slot];
   if (!m) return;
   m.t4.dispose(scene);
+  scene.remove(m.streak);
   team[slot] = null;
 }
 /** Make the team match the roster (joins and leaves, a roster from the shell). */
@@ -305,6 +307,9 @@ features.add({ id: 'uv', group: 'Simulation', on: true,
   onChange: (on) => { opts.uv = on; } });
 features.add({ id: 'amoeba', group: 'Simulation', on: true,
   onChange: (on) => { opts.amoeba = on; } });
+// the odds and receptor overlay (Y toggled it until 4 Nov 2026, when Y became the kick)
+features.add({ id: 'overlay', group: 'Simulation', on: false,
+  onChange: (on) => { view.overlay = on; inside.setRadar(on); } });
 features.add({ id: 'medium', group: 'World', on: new URLSearchParams(location.search).get('medium') !== '0',
   onChange: (on) => { opts.medium = on; } });
 features.add({ id: 'crowd', group: 'World', on: true,
@@ -375,7 +380,8 @@ function placeAtStart(m, at = null) {
   use(m);
   P.pos.copy(at || START).add(at ? _v.set(0, 0, 0) : _v.set(m.slot * 26, (m.slot % 2) * 14, 0));
   releaseHold(false);
-  P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.kv.set(0, 0, 0); P.gust.set(0, 0, 0); P.angVel.set(0, 0, 0);
+  P.vel.set(0, 0, 0); P.dashV.set(0, 0, 0); P.bvel.set(0, 0, 0); P.kv.set(0, 0, 0); P.gust.set(0, 0, 0); P.angVel.set(0, 0, 0);
+  m.motion = null; m.fovKick = 0; m.streakT = 0;
   P.q.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 2.95);
   Object.assign(P, { damaged: false, wreck: 0, coHost: null, coT: 0 });
   if (stray.paired === m) stray.paired = null;
@@ -508,53 +514,71 @@ function beginCommit() {
   audio.play('phage/latch', { volume: 0.8, old: ['bacterium/phage', { volume: 0.9 }] });
   curPad().rumble(250, 0.3, 0.5);
 }
-// --- grabbing (X): whatever is in reach of the fibres (grab.js) ---
-// X grabs, and pressed again lets go (RT, which also grabbed and held while squeezed, zooms now).
-// A free molecule is carried at the baseplate and drifts off gently when let go; a point on a cell anchors
-// you (a current passes you by), and LS crawls you along the surface. Only a matching receptor goes further:
-// on a host's gold three-lobed receptor the fibres latch and the injection starts (Host A, the way on,
-// with Y); every other part of a cell, and every other protein, only holds.
-const HOLD_LIFT = 7; // the baseplate's stand-off from a held surface (the fibres' length, bent)
+// --- grabbing (X): what is in reach of the fibres (grab.js) ---
+// X grabs, and pressed again lets go. The targets are the proteins standing on the cells (every protein
+// flower, and the violet and gold proteins: host.grabs in world.js) and the debris drifting in the water;
+// never the bare membrane (the owner, 4 Nov 2026: "You shouldn't be able to grab on the flat surface of the
+// cell, but it should be easier to grab any of the proteins on the cell"). A protein held fixes you
+// rigidly to that spot on its cell: you ride with the cell, never sliding, and a current passes you by.
+// Carried debris rides at the baseplate and drags you a little by its size. Only a matching receptor goes
+// further: on a host's gold three-lobed receptor the fibres latch and the injection starts (Host A, the way
+// on, with Y); every other protein only holds. With nothing in reach the fibres play a grab motion (reach,
+// close, clutch, return), which moves nothing.
+const HOLD_LIFT = 6; // the baseplate's stand-off from a held protein's knob (the fibres round it)
 const HOLD_REACH_T = 0.18; // the fibres' reach out to what they grab
 /** The fibres' reach centre: a little ahead of the baseplate. */
 const handOf = (out = new THREE.Vector3()) => out.copy(attachmentForward(P.q)).multiplyScalar(4).add(P.pos);
-/** The cells whose surface is within the grab's reach of point `hand` (hosts and the bystanders). */
-function cellsNear(hand, reach = GRAB.reach) {
+/** The cells whose bounding box is within `reach` of point `p` (hosts and the bystanders). */
+function cellsAround(p, reach) {
   const out = [];
   for (const h of [...world.hosts, ...world.bystanders]) {
     if (h.burst || h.hidden || h.locked) continue;
-    if (Math.abs(h.pos.x - hand.x) > h.half + h.r + reach || Math.abs(h.pos.y - hand.y) > h.half + h.r + reach || Math.abs(h.pos.z - hand.z) > h.half + h.r + reach) continue;
-    const n = new THREE.Vector3(), d = world.sdHost(h, hand, n);
-    if (d > reach) continue;
-    out.push({ host: h, d: Math.max(0, d), normal: n, point: hand.clone().addScaledVector(n, -d) });
+    const pad = h.half + h.r + reach + 16;
+    if (Math.abs(h.pos.x - p.x) > pad || Math.abs(h.pos.y - p.y) > pad || Math.abs(h.pos.z - p.z) > pad) continue;
+    out.push(h);
   }
   return out;
+}
+const _gp = new THREE.Vector3();
+/** The grab assist's candidates near `hand`: the proteins on nearby cells and the free debris. */
+function grabCandidates(hand, reach = GRAB.reach) {
+  const list = [];
+  if (!debug.noProteins) {
+    for (const h of cellsAround(hand, reach)) {
+      if (world.sdHost(h, hand) > reach + 16) continue;
+      for (const q of h.grabs) {
+        world.toWorld(h, q.local, _gp);
+        if (Math.abs(_gp.x - hand.x) > reach + 6 || Math.abs(_gp.y - hand.y) > reach + 6 || Math.abs(_gp.z - hand.z) > reach + 6) continue;
+        list.push({ kind: 'protein', item: q, pos: _gp.clone(), rad: q.size * 0.5 });
+      }
+    }
+  }
+  for (const o of mols) if (o.heldBy == null && o.fade > 0.5) list.push({ kind: 'debris', item: o, pos: o.pos, rad: o.rad });
+  return list;
 }
 /** What X would take now: the grab assist's pick, or null. */
 function grabTarget() {
   const hand = handOf(new THREE.Vector3());
-  return pickGrabTarget(hand, attachmentForward(P.q), mols.filter((o) => !o.heldBy), cellsNear(hand));
+  return pickGrabTarget(hand, attachmentForward(P.q), grabCandidates(hand));
 }
-/** Host-local direction of a world direction. */
-const dirToLocal = (h, d, out = new THREE.Vector3()) => { const c = Math.cos(-h.ang), sn = Math.sin(-h.ang); return out.set(d.x * c - d.y * sn, d.x * sn + d.y * c, d.z); };
-/** Hold on to host h at world point `point` (its outward normal `normal`): anchored. */
-function holdCell(h, point, normal, by, part) {
+/** Hold on to protein q of host q.host: fixed to that spot of the cell. */
+function holdProtein(q, by, part) {
   releaseHold(false);
-  P.hold = { kind: 'cell', host: h, local: world.toLocal(h, point, new THREE.Vector3()), nLocal: dirToLocal(h, normal), by, t: 0, part };
-  P.reachT = HOLD_REACH_T;
-  P.vel.multiplyScalar(0.3); P.gust.set(0, 0, 0);
+  P.hold = { kind: 'protein', host: q.host, q, by, t: 0, part, from: P.pos.clone() };
+  P.reachT = HOLD_REACH_T; cur.motion = null;
+  P.vel.set(0, 0, 0); P.gust.set(0, 0, 0); P.dashV.set(0, 0, 0); P.kv.set(0, 0, 0);
   playLimited('phage/grab', 0.25, { volume: 0.6, rate: 0.95 + Math.random() * 0.1, old: ['bacterium/tumble', { volume: 0.35, rate: 1.5 }] }); curPad().rumble(70, 0.25, 0.15);
-  ringLog.push({ kind: 'hold', what: h.id, t: +t.toFixed(2), slot: cur.slot });
+  ringLog.push({ kind: 'hold', what: q.host.id, protein: q.kind, t: +t.toFixed(2), slot: cur.slot });
 }
 function holdMol(o, by) {
   releaseHold(false);
-  o.heldBy = cur.slot; o.vel.set(0, 0, 0);
+  o.heldBy = cur.slot; o.vel.set(0, 0, 0); o.kicked = null;
   P.hold = { kind: 'mol', mol: o, by, t: 0 };
-  P.reachT = HOLD_REACH_T;
+  P.reachT = HOLD_REACH_T; cur.motion = null;
   playLimited('phage/grab', 0.25, { volume: 0.5, rate: 1.1, old: ['bacterium/tumble', { volume: 0.3, rate: 1.8 }] }); curPad().rumble(50, 0.15, 0.1);
-  ringLog.push({ kind: 'hold', what: 'molecule', t: +t.toFixed(2), slot: cur.slot });
+  ringLog.push({ kind: 'hold', what: 'debris', debris: o.kind, t: +t.toFixed(2), slot: cur.slot });
 }
-/** Let go: a carried molecule drifts gently off ahead of the baseplate; from a cell, a small push off it. */
+/** Let go: carried debris drifts gently off ahead of the baseplate; from a cell, a small push off it. */
 function releaseHold(push = true) {
   const g = P && P.hold;
   if (!g) return;
@@ -563,92 +587,84 @@ function releaseHold(push = true) {
   if (g.kind === 'mol') {
     g.mol.heldBy = null;
     if (push) g.mol.vel.copy(P.vel).add(P.kv).addScaledVector(attachmentForward(P.q), 16);
-  } else if (push) P.gust.copy(world.dirToWorld(g.host, g.nLocal, _v)).multiplyScalar(12);
+  } else if (push) P.gust.copy(world.dirToWorld(g.host, g.q.normal, _v)).multiplyScalar(12);
   if (push) audio.play('phage/release', { volume: 0.5, old: ['bacterium/tumble', { volume: 0.2, rate: 1.3 }] });
 }
+/** Start a fibre motion on member m ('grab': reach and clutch at nothing; 'kick'): fibres only, no push. */
+function startMotion(m, kind) { m.motion = { kind, t: 0 }; }
 /**
- * X: grab (`by` 'x'). quiet: with no toasts and no proteins (the injection and the way on take a
+ * X: grab (`by` 'x'). quiet: with no toasts and no gold receptors (the injection and the way on take a
  * deliberate press).
  */
 function tryGrab(by = 'x', quiet = false) {
   if (!['drift', 'walk'].includes(P.mode) || P.grabCooldown > 0 || P.hold) return;
   if (P.foldTarget > 0.5 || P.fold > 0.5) { if (!quiet) say(tt('phage.toasts.fibresFolded'), 1800, true); return; }
   if (P.mode === 'walk') return;
-  if (!quiet) {
-    // A protein aimed at: the gold receptors are the ones that matter (the injection); a second player may
-    // try a wrong protein, but cannot enter an occupied host phase.
-    const aimed = aimedProtein(P.pos, attachmentForward(P.q), world.proteins, (target) => world.toWorld(target.host, target.local));
-    const portalHost = aimed && world.portal && aimed.host === world.portal.host && aimed.compatible;
+  const tgt = grabTarget();
+  if (!tgt) {
+    // nothing in reach: the grab motion (the fibres reach out, close, clutch and come back), never a push
+    if (!quiet) { startMotion(cur, 'grab'); P.grabCooldown = 0.3; playLimited('phage/miss', 0.3, { volume: 0.4, rate: 1.15 }); say(tt('phage.toasts.nothingInReach'), 1600); ringLog.push({ kind: 'grabMotion', t: +t.toFixed(2), slot: cur.slot }); }
+    return;
+  }
+  if (tgt.kind === 'debris') { holdMol(tgt.item, by); if (!quiet) say(tt('phage.toasts.gotDebris'), 1600); return; }
+  const q = tgt.item, h = q.host;
+  if (q.compatible) {
+    if (quiet) return;
+    const portalHost = world.portal && h === world.portal.host;
     if (portalHost && portalSealed()) { audio.play('shared/portal-sealed', { volume: 0.6 }); say(tt('phage.toasts.sealed'), 2400, true); P.grabCooldown = 0.6; return; }
     if (portalHost && guarded()) {
       // the way on, on guard: turned back (the lobe shoves you off the receptor)
-      const n = world.dirToWorld(aimed.host, aimed.normal, new THREE.Vector3());
+      const n = world.dirToWorld(h, q.normal, new THREE.Vector3());
       P.gust.addScaledVector(n, 60).addScaledVector(_v.subVectors(P.pos, world.amoeba.center).normalize(), 25);
       P.grabCooldown = 0.6; curPad().rumble(160, 0.4, 0.5); audio.play('shared/portal-sealed', { volume: 0.6, old: ['bacterium/tumble', { volume: 0.6, rate: 0.8 }] });
       say(tt('phage.toasts.turnedBack'), 3200, true);
       ringLog.push({ kind: 'turnedBack', t: +t.toFixed(2), slot: cur.slot });
       return;
     }
-    if (aimed) {
-      const n = world.dirToWorld(aimed.host, aimed.normal, new THREE.Vector3()), at = world.toWorld(aimed.host, aimed.surface, new THREE.Vector3());
-      // the way on is entered on purpose, with Y (the owner, 1 Nov 2026: "Press Y to enter portal", never an automatic door): hang on there
-      if (portalHost) { holdCell(aimed.host, at, n, by, tt('phage.parts.goldReceptor')); say(tt('phage.toasts.wayOn'), 2000, true); return; }
-      if (aimed.compatible) {
-        if (members().some((m) => m !== cur && ['grab', 'commit', 'inside', 'burst'].includes(m.P.mode) && (m.P.mode !== 'grab' || m.P.grab?.protein.compatible))) {
-          say(tt('phage.toasts.teammateBusy'), 1800, true); return;
-        }
-        releaseAnchors(); P.host = null; P.canCommit = false;
-        P.grab = { protein: aimed, time: 0, from: P.pos.clone(), q: P.q.clone() };
-        P.mode = 'grab'; P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0); P.kv.set(0, 0, 0);
-        playLimited('phage/grab', 0.25, { volume: 0.6, old: ['bacterium/tumble', { volume: 0.35, rate: 1.4 }] });
-        return;
-      }
-      holdCell(aimed.host, at, n, by, tt('phage.parts.violetProtein'));
-      playLimited('phage/miss', 0.3, { volume: 0.5 }); // the wrong protein
-      say(tt('phage.toasts.doesNotFit'), 2300);
-      return;
+    // the way on is entered on purpose, with Y (the owner, 1 Nov 2026: "Press Y to enter portal", never an automatic door): hang on there
+    if (portalHost) { holdProtein(q, by, tt('phage.parts.goldReceptor')); say(tt('phage.toasts.wayOn'), 2000, true); return; }
+    if (members().some((m) => m !== cur && ['grab', 'commit', 'inside', 'burst'].includes(m.P.mode) && (m.P.mode !== 'grab' || m.P.grab?.protein.compatible))) {
+      say(tt('phage.toasts.teammateBusy'), 1800, true); return;
     }
-  }
-  const tgt = grabTarget();
-  if (!tgt) {
-    if (!quiet) { cur.jab = 0.45; P.grabCooldown = 0.2; playLimited('phage/miss', 0.3, { volume: 0.5 }); say(tt('phage.toasts.nothingInReach'), 1600); }
+    releaseAnchors(); P.host = null; P.canCommit = false;
+    P.grab = { protein: q, time: 0, from: P.pos.clone(), q: P.q.clone() };
+    P.mode = 'grab'; P.vel.set(0, 0, 0); P.bvel.set(0, 0, 0); P.gust.set(0, 0, 0); P.kv.set(0, 0, 0); P.dashV.set(0, 0, 0);
+    playLimited('phage/grab', 0.25, { volume: 0.6, old: ['bacterium/tumble', { volume: 0.35, rate: 1.4 }] });
     return;
   }
-  if (tgt.kind === 'mol') { holdMol(tgt.mol, by); if (!quiet) say(tt('phage.toasts.gotMolecule'), 1600); return; }
-  const h = tgt.cell.host;
-  const part = surfacePart(world.toLocal(h, tgt.point, _v), h.wrong);
-  holdCell(h, tgt.point, tgt.cell.normal, by, part);
-  say(tt(h.bystander || h.wrong ? 'phage.toasts.holdingOn' : 'phage.toasts.holdingOnHint', { part, host: h.bystander ? tt('phage.hosts.otherKind') : h.name }), 2200);
+  if (q.kind === 'violet') {
+    holdProtein(q, by, tt('phage.parts.violetProtein'));
+    if (!quiet) say(tt('phage.toasts.doesNotFit'), 2300);
+    return;
+  }
+  const part = tt('phage.parts.membraneProtein');
+  holdProtein(q, by, part);
+  if (!quiet) say(tt(h.bystander || h.wrong ? 'phage.toasts.holdingOn' : 'phage.toasts.holdingOnHint', { part, host: h.bystander ? tt('phage.hosts.otherKind') : h.name }), 2200);
 }
-/** Each frame while anchored to a cell: hang on at the anchor; LS crawls it along the surface. */
-function updateHoldCell(dt, inp) {
-  const g = P.hold, h = g.host;
+/**
+ * Each frame while holding a protein: fixed to it. The baseplate pulls in over the fibres' reach (0.18 s),
+ * then sits exactly at the protein's knob in the cell's own frame, so it rides with the cell as it drifts and
+ * turns and never slides; the fibres clutch the knob. LS does nothing here: let go (X), kick off (Y) or dash.
+ */
+function updateHoldProtein(dt) {
+  const g = P.hold, h = g.host, q = g.q;
   if (h.burst || h.hidden || h.locked) { releaseHold(); return; }
   g.t += dt;
-  const A = world.toWorld(h, g.local, new THREE.Vector3()), n = world.dirToWorld(h, g.nLocal, new THREE.Vector3());
-  // crawl: the stick's part along the surface moves the anchor (hand over hand), and it stays on the surface
-  if (inp.stick) {
-    const tan = _v.copy(inp.stick).addScaledVector(n, -inp.stick.dot(n));
-    if (tan.lengthSq() > 1e-4) {
-      A.addScaledVector(tan.normalize(), 16 * inp.stickM * dt);
-      world.projectToHost(h, A, 0, A, n);
-      world.toLocal(h, A, g.local); dirToLocal(h, n, g.nLocal);
-    }
-  }
+  const A = world.toWorld(h, q.local, new THREE.Vector3()), n = world.dirToWorld(h, q.normal, new THREE.Vector3());
   const goal = _w.copy(A).addScaledVector(n, HOLD_LIFT);
-  P.pos.lerp(goal, 1 - Math.exp(-dt * 9));
-  P.vel.set(0, 0, 0); P.kv.set(0, 0, 0); P.gust.set(0, 0, 0);
-  P.angVel.multiplyScalar(Math.exp(-dt * 4));
-  turnBaseToward(_s.copy(n).negate(), Math.min(1, dt * 5));
+  const k = Math.min(1, g.t / HOLD_REACH_T), e = k * k * (3 - 2 * k);
+  if (k < 1) P.pos.lerpVectors(g.from, goal, e); else P.pos.copy(goal);
+  P.vel.set(0, 0, 0); P.kv.set(0, 0, 0); P.gust.set(0, 0, 0); P.dashV.set(0, 0, 0); P.bvel.set(0, 0, 0);
+  P.angVel.multiplyScalar(Math.exp(-dt * 6));
+  turnBaseToward(_s.copy(n).negate(), Math.min(1, dt * 7));
   integrateRotation(dt);
-  // the six fibres plant round the anchor, reaching out over the first moment
-  const k = 1 - Math.max(0, P.reachT) / HOLD_REACH_T;
+  // the six fibres close round the knob, reaching out over the first moment
   const ta = _n.crossVectors(n, Math.abs(n.y) < 0.9 ? UP : AX_X).normalize(), tb = _s.crossVectors(n, ta);
+  const rr = q.size * 0.55 + 1;
   for (let f = 0; f < 6; f++) {
     const a = (f / 6) * Math.PI * 2;
-    const foot = A.clone().addScaledVector(ta, Math.cos(a) * 6).addScaledVector(tb, Math.sin(a) * 6);
-    world.projectToHost(h, foot, 0.4, foot);
-    t4.fibres[f].anchor = k < 1 ? t4.tip(f).clone().lerp(foot, k) : foot;
+    const foot = A.clone().addScaledVector(ta, Math.cos(a) * rr).addScaledVector(tb, Math.sin(a) * rr).addScaledVector(n, -1.5);
+    t4.fibres[f].anchor = k < 1 ? t4.tip(f).clone().lerp(foot, e) : foot;
   }
 }
 function updateGrab(dt) {
@@ -738,15 +754,21 @@ function updatePortalPrompt(where) {
 // --- per-mode updates ---
 const flow = new THREE.Vector3();
 let t = 0;
-const DRIVE = 36; // full stick, units/s (~0.36 µm/s on the slowed clock)
+// full stick, units/s (~0.64 µm/s on the slowed clock; the owner, 4 Nov 2026: "you should move faster": it was 36)
+const DRIVE = MOVE.drive;
 const _cf2 = new THREE.Vector3();
 function updateDrift(dt, inp) {
-  if (P.hold?.kind === 'cell') { updateHoldCell(dt, inp); return; }
+  if (P.hold?.kind === 'protein') { updateHoldProtein(dt); return; }
   // crisp game control (a departure, the owner: "good control over the phage"): quick to speed up
-  // (~0.15 s) and quick to stop (~0.2 s) in the water's drag; nothing but a visible current fights the stick
+  // (~0.15 s) and quick to stop (~0.2 s) in the water's drag; nothing but a visible current fights the stick.
+  // Carried debris drags you a little by its size.
+  const carry = P.hold?.kind === 'mol' ? 1 / (1 + 0.06 * P.hold.mol.rad) : 1;
+  const dashing = cur.dash.active;
   const drive = _v.set(0, 0, 0);
-  if (inp.stick && opts.drive) drive.copy(inp.stick).multiplyScalar(DRIVE * inp.stickM);
-  P.vel.lerp(drive, 1 - Math.exp(-dt * (inp.stick ? 7 : 5)));
+  if (inp.stick && opts.drive && !dashing) drive.copy(inp.stick).multiplyScalar(DRIVE * inp.stickM * carry);
+  P.vel.lerp(drive, 1 - Math.exp(-dt * (dashing ? 9 : inp.stick ? 7 : 6)));
+  // the dash (A): a burst of 3× the cruise held for its moment, then braked quickly (crisp stops)
+  if (!dashing) P.dashV.multiplyScalar(Math.exp(-dt * 9));
   P.idleT = inp.stick ? 0 : P.idleT + dt;
   // a current (currents.js) drags you along with its water (the water takes ~0.4 s to get you going)
   currents.flowAt(P.pos, _cf2);
@@ -758,12 +780,12 @@ function updateDrift(dt, inp) {
   world.flowAt(P.pos, t, flow).multiplyScalar(calm);
   if (opts.brownian && calm > 0) { P.bvel.multiplyScalar(Math.exp(-dt / 1.5)); const k = 1.6 * Math.sqrt(dt) * calm; P.bvel.x += gauss() * k; P.bvel.y += gauss() * k; P.bvel.z += gauss() * k; }
   else P.bvel.multiplyScalar(Math.exp(-dt * 4));
-  P.pos.addScaledVector(P.vel, dt).addScaledVector(P.kv, dt).addScaledVector(P.gust, dt).addScaledVector(flow, dt).addScaledVector(P.bvel, dt);
+  P.pos.addScaledVector(P.vel, dt).addScaledVector(P.dashV, dt * carry).addScaledVector(P.kv, dt).addScaledVector(P.gust, dt).addScaledVector(flow, dt).addScaledVector(P.bvel, dt);
   softBounds(dt);
   // rotation: damped by the water; a slow thermal tumble only after the sticks have been let go a while
   P.angVel.multiplyScalar(Math.exp(-dt / (inp.stick ? 0.3 : 0.7)));
   if (opts.tumble && P.idleT > 2) { const k = 0.08 * Math.sqrt(dt); P.angVel.x += gauss() * k; P.angVel.y += gauss() * k; P.angVel.z += gauss() * k; }
-  const mv = _w.copy(P.vel).add(P.gust);
+  const mv = _w.copy(P.vel).add(P.gust).add(P.dashV);
   const sp = mv.length();
   // close to a cell with the fibres out, they catch the water near it and swing the baseplate round to face it
   const near = world.nearestHost(centreOf(new THREE.Vector3()));
@@ -781,13 +803,13 @@ function updateDrift(dt, inp) {
   for (const h of world.hosts) {
     if (h.burst) continue;
     const sd = world.sdHost(h, c, _n);
-    if (sd < 11) { P.pos.addScaledVector(_n, 11 - sd); const vn = P.vel.dot(_n); if (vn < 0) P.vel.addScaledVector(_n, -vn); P.gust.addScaledVector(_n, -Math.min(0, P.gust.dot(_n))); P.kv.addScaledVector(_n, -Math.min(0, P.kv.dot(_n))); }
+    if (sd < 11) { P.pos.addScaledVector(_n, 11 - sd); const vn = P.vel.dot(_n); if (vn < 0) P.vel.addScaledVector(_n, -vn); P.gust.addScaledVector(_n, -Math.min(0, P.gust.dot(_n))); P.kv.addScaledVector(_n, -Math.min(0, P.kv.dot(_n))); P.dashV.addScaledVector(_n, -Math.min(0, P.dashV.dot(_n))); }
   }
   // the bystanders (big bacteria of other kinds): solid scenery
   for (const h of world.bystanders) {
     if (Math.abs(h.pos.x - c.x) > h.half + h.r + 20 || Math.abs(h.pos.y - c.y) > h.half + h.r + 20 || Math.abs(h.pos.z - c.z) > h.half + h.r + 20) continue;
     const sd = world.sdHost(h, c, _n);
-    if (sd < 11) { P.pos.addScaledVector(_n, 11 - sd); const vn = P.vel.dot(_n); if (vn < 0) P.vel.addScaledVector(_n, -vn); P.kv.addScaledVector(_n, -Math.min(0, P.kv.dot(_n))); }
+    if (sd < 11) { P.pos.addScaledVector(_n, 11 - sd); const vn = P.vel.dot(_n); if (vn < 0) P.vel.addScaledVector(_n, -vn); P.kv.addScaledVector(_n, -Math.min(0, P.kv.dot(_n))); P.dashV.addScaledVector(_n, -Math.min(0, P.dashV.dot(_n))); }
   }
   const sa = world.sdAmoeba(c);
   if (sa < 12) P.pos.addScaledVector(_n.subVectors(c, world.amoeba.center).normalize(), 12 - sa);
@@ -805,11 +827,11 @@ function updateDrift(dt, inp) {
   } else P.snagT = 0;
   // a carried molecule rides at the baseplate, the fibres closed round it
   if (P.hold?.kind === 'mol') {
-    const o = P.hold.mol, hand = handOf(_w);
+    const o = P.hold.mol, hand = handOf(_w).addScaledVector(attachmentForward(P.q), o.rad * 0.6);
     o.pos.lerp(hand, 1 - Math.exp(-dt * (P.reachT > 0 ? 14 : 20)));
     o.vel.set(0, 0, 0);
     const k = 1 - Math.max(0, P.reachT) / HOLD_REACH_T;
-    for (let f = 0; f < 6; f++) { const a = (f / 6) * Math.PI * 2; const pt = o.pos.clone().add(_n.set(Math.cos(a), 0, Math.sin(a)).applyQuaternion(P.q).multiplyScalar(o.size * 1.2)); t4.fibres[f].anchor = k < 1 ? t4.tip(f).clone().lerp(pt, k) : pt; }
+    for (let f = 0; f < 6; f++) { const a = (f / 6) * Math.PI * 2; const pt = o.pos.clone().add(_n.set(Math.cos(a), 0, Math.sin(a)).applyQuaternion(P.q).multiplyScalar(o.rad * 0.7)).addScaledVector(attachmentForward(P.q), -o.rad * 0.2); t4.fibres[f].anchor = k < 1 ? t4.tip(f).clone().lerp(pt, k) : pt; }
   }
   // fibre tips touching things
   if (P.fold < 0.4) {
@@ -1346,6 +1368,147 @@ function updateGuard(dt) {
   if (f.state === 'windup' && f.t < 0.15 && P.msgT <= 0) { say(tt('phage.toasts.lobeRears'), 2400, true); P.msgT = 3; }
 }
 
+// --- the kick (Y; grab.js kickPlan, kickVelocities): the owner, 4 Nov 2026: "have Y be a kick action, so if
+// you're on a cell you launch backwards, or if you have debris in you arm area you kick it off" ---
+// On a cell (holding a protein, or the baseplate against a membrane): the fibres push off and you launch
+// head first away from it, letting go (out of a current's way, or just for distance). Holding debris, or with
+// a free piece in the fibres' arm area: kicked off, flying away along the baseplate; it knocks into other
+// debris, other players' phages and the amoeba's lobe (a hit there counts as a jab). Otherwise a small
+// kick-swim. Each kick plays the fibres' kick motion.
+const KICK_WALL = 18; // how near a membrane the baseplate must be for Y to push off it
+function tryKick(m) {
+  use(m);
+  if (!['drift', 'walk'].includes(P.mode) || m.kickCd > 0) return;
+  m.kickCd = 0.35;
+  const fwd = attachmentForward(P.q), hand = handOf(new THREE.Vector3());
+  let wall = null, touching = null;
+  if (!P.hold) {
+    if (P.mode === 'walk') wall = world.dirToWorld(P.host, _v.copy(P.walkLocal).setX(0).normalize(), new THREE.Vector3());
+    else for (const h of cellsAround(hand, KICK_WALL)) { const n = new THREE.Vector3(); if (world.sdHost(h, hand, n) < KICK_WALL) { wall = n; break; } }
+    let bd = Infinity;
+    for (const o of mols) {
+      if (o.heldBy != null || o.fade < 0.5) continue;
+      const d = o.pos.distanceTo(hand) - o.rad;
+      if (d < MOVE.touch && d < bd && _w.subVectors(o.pos, hand).dot(fwd) > -0.3 * o.pos.distanceTo(hand)) { bd = d; touching = o; }
+    }
+  }
+  const plan = kickPlan({ hold: P.hold?.kind === 'protein' ? 'protein' : P.hold?.kind === 'mol' ? 'debris' : null, touching, wall });
+  startMotion(m, 'kick');
+  curPad().rumble(140, 0.45, 0.3);
+  if (plan === 'cell') {
+    const normal = P.hold?.kind === 'protein' ? world.dirToWorld(P.hold.host, P.hold.q.normal, new THREE.Vector3()) : wall;
+    const from = P.hold?.host || P.host;
+    releaseHold(false);
+    if (P.mode === 'walk') leaveSurface(false);
+    const { self } = kickVelocities('cell', fwd, { normal });
+    P.gust.copy(self); P.kv.set(0, 0, 0); P.vel.set(0, 0, 0); P.dashV.set(0, 0, 0);
+    P.grabCooldown = 0.3;
+    m.streakT = 0.4; m.streakDir = self.clone().normalize();
+    audio.play('phage/jab', { volume: 0.7, rate: 0.85, old: ['bacterium/sprint', { volume: 0.7, rate: 1.2 }] });
+    audio.play('phage/dash', { volume: 0.45, rate: 1.2, old: ['bacterium/tumble', { volume: 0.4, rate: 1.4 }] });
+    say(tt('phage.toasts.kickOff'), 1600);
+    ringLog.push({ kind: 'kick', what: 'cell', host: from?.id, t: +t.toFixed(2), slot: m.slot });
+  } else if (plan === 'debris') {
+    const o = P.hold?.kind === 'mol' ? P.hold.mol : touching;
+    releaseHold(false);
+    const { self, thing } = kickVelocities('debris', fwd, { mass: o.mass });
+    o.heldBy = null; o.vel.copy(P.vel).add(thing); o.kicked = { by: m.slot, t: 0, hit: new Set() };
+    o.pos.addScaledVector(fwd, 2);
+    P.gust.add(self);
+    audio.play('phage/throw', { volume: 0.75, old: ['bacterium/sprint', { volume: 0.7, rate: 1.3 }] });
+    say(tt('phage.toasts.kickDebris'), 1500);
+    ringLog.push({ kind: 'kick', what: 'debris', i: o.i, t: +t.toFixed(2), slot: m.slot });
+  } else {
+    P.gust.add(kickVelocities('swim', fwd).self);
+    audio.play('phage/release', { volume: 0.45, rate: 0.9, old: ['bacterium/tumble', { volume: 0.3, rate: 1.2 }] });
+    ringLog.push({ kind: 'kick', what: 'swim', t: +t.toFixed(2), slot: m.slot });
+  }
+}
+/** Kicked debris knocks into things: other debris, phages (not the kicker for a moment), the amoeba's lobe, cells. */
+function kickedHits(o, dt) {
+  const k = o.kicked;
+  k.t += dt;
+  const sp = o.vel.length();
+  if (sp < 25 || k.t > 3) { o.kicked = null; return; }
+  for (const p of mols) {
+    if (p === o || p.heldBy != null || k.hit.has(p)) continue;
+    const d = p.pos.distanceTo(o.pos), r = p.rad + o.rad;
+    if (d < r && d > 1e-3) {
+      // a knock: momentum along the line between them, shared by mass
+      _w.subVectors(p.pos, o.pos).multiplyScalar(1 / d);
+      const vn = o.vel.dot(_w) - p.vel.dot(_w);
+      if (vn > 0) { const j = (2 * vn) / (o.mass + p.mass) * 0.8; o.vel.addScaledVector(_w, -j * p.mass); p.vel.addScaledVector(_w, j * o.mass); p.kicked = p.kicked || { by: k.by, t: 0, hit: new Set([o]) }; }
+      p.pos.addScaledVector(_w, r - d);
+      k.hit.add(p);
+      audio.play('phage/jab', { volume: 0.35, rate: 1.4 });
+    }
+  }
+  for (const mm of members()) {
+    if ((mm.slot === k.by && k.t < 0.4) || k.hit.has(mm) || mm.c.active || !['drift', 'walk', 'clay'].includes(mm.P.mode)) continue;
+    const c = _w.copy(UP).applyQuaternion(mm.P.q).multiplyScalar(10 * mm.P.scale).add(mm.P.pos);
+    if (c.distanceTo(o.pos) < o.rad + 12) {
+      k.hit.add(mm);
+      if (mm.P.hold?.kind !== 'protein' && mm.P.mode === 'drift') mm.P.gust.addScaledVector(o.vel, 0.6 * o.mass / (1 + o.mass));
+      mm.P.angVel.add(_v.set(gauss(), gauss(), gauss()).multiplyScalar(0.8));
+      o.vel.multiplyScalar(-0.3);
+      players.pad(mm.slot).rumble(120, 0.4, 0.3);
+      audio.play('phage/jab', { volume: 0.55, rate: 1.1 });
+      ringLog.push({ kind: 'debrisHit', what: 'phage', slot: mm.slot, by: k.by, t: +t.toFixed(2) });
+    }
+  }
+  const am = world.amoeba;
+  if (world.portal && opts.amoeba && !guard.gone && am.reach > 2 && !k.hit.has(am) && am.tip.distanceTo(o.pos) < o.rad + 24) {
+    // a hit on the lobe: it flinches back as from a fibre jab, and loses interest
+    k.hit.add(am);
+    am.tip.addScaledVector(_v.copy(o.vel).normalize(), 28);
+    const gone = fight.bitten();
+    o.vel.multiplyScalar(-0.25);
+    audio.play('phage/jab', { volume: 0.7, old: ['bacterium/sprint', { volume: 0.7, rate: 1.4 }] });
+    const was = cur; if (team[k.by]) use(team[k.by]);
+    say(gone ? tt('phage.toasts.jabGone') : tt('phage.toasts.debrisLobe'), 2000, true);
+    if (was) use(was);
+    ringLog.push({ kind: 'debrisHit', what: 'amoeba', by: k.by, t: +t.toFixed(2) });
+  }
+  for (const h of cellsAround(o.pos, o.rad)) {
+    const d = world.sdHost(h, o.pos, _n);
+    if (d < o.rad) { o.pos.addScaledVector(_n, o.rad - d); const vn = o.vel.dot(_n); if (vn < 0) o.vel.addScaledVector(_n, -1.5 * vn); }
+  }
+}
+/** The fibres' grab or kick motion (grab.js), phage-local poses turned into the tips' anchors; fibres only. */
+function poseMotion(m, dt) {
+  const mo = m.motion;
+  if (!mo) return;
+  const stop = () => { m.motion = null; for (const fb of m.t4.fibres) if (fb.motion) { if (!m.P.hold && m.P.mode === 'drift') fb.anchor = null; fb.motion = false; } };
+  if (m.P.hold || m.P.mode !== 'drift' || m.c.active || m.P.fold > 0.5) { stop(); return; }
+  mo.t += dt;
+  for (let f = 0; f < 6; f++) {
+    const fb = m.t4.fibres[f];
+    const loc = (mo.kind === 'grab' ? grabMotion : kickMotion)(Math.cos(fb.angle), -Math.sin(fb.angle), mo.t, _v);
+    if (!loc) { stop(); return; }
+    fb.anchor = loc.clone().multiplyScalar(m.P.scale).applyQuaternion(m.P.q).add(m.P.pos);
+    fb.motion = true;
+  }
+}
+/** The dash's streak: a soft additive wake drawn behind the phage, fading over half a second. */
+const streakGeo = new THREE.CylinderGeometry(0.2, 4.2, 1, 12, 1, true).translate(0, 0.5, 0);
+function makeStreak() {
+  const mesh = new THREE.Mesh(streakGeo, new THREE.MeshBasicMaterial({ color: '#ffe6a8', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+  mesh.visible = false; mesh.renderOrder = 5; scene.add(mesh);
+  return mesh;
+}
+function updateStreak(m, dt) {
+  const s = m.streak;
+  m.streakT = Math.max(0, (m.streakT || 0) - dt);
+  s.visible = m.streakT > 0 && m.P.mode !== 'inside' && !m.c.active;
+  if (!s.visible) return;
+  const k = m.streakT / 0.55, sp = m.P.dashV.length() + m.P.gust.length() * 0.5;
+  // from the phage's centre back along the way it came
+  s.position.copy(UP).applyQuaternion(m.P.q).multiplyScalar(10 * m.P.scale).add(m.P.pos);
+  s.quaternion.setFromUnitVectors(UP, _v.copy(m.streakDir).negate());
+  s.scale.set(1, Math.max(4, Math.min(90, sp * 0.4)) , 1);
+  s.material.opacity = 0.35 * k;
+}
+
 // --- overlay labels ---
 const labelEls = new Map();
 function placeLabel(id, pos3, html, cam) {
@@ -1384,7 +1547,7 @@ function updateOverlay(where) {
 }
 
 // --- frame ---
-const debug = { freeze: false, iso: false, camOverride: null };
+const debug = { freeze: false, iso: false, camOverride: null, noProteins: false };
 // Two to four players share one view, zoomed out up to this far (the camera
 // 1.8x as far back) before the screen splits; split views settle at 0.75 of it.
 // With two to four phages in play outside, a fixed split screen: a region each (side by side; three:
@@ -1417,50 +1580,75 @@ let nearBack = false;
 const ZERO_LS = { x: 0, y: 0, m: 0 }, ZERO_LOOK = { yaw: 0, pitch: 0, m: 0 };
 const outsideModes = ['drift', 'walk', 'clay'];
 
-// --- free molecules to grab (grab.js): a few dozen bigger molecules drifting round the players ---
-// (the bath's thousands live on the GPU and cannot be held: these are the ones the fibres can take. Each
-// drifts slowly, is carried by a current, and when nobody is near comes back somewhere out of sight.)
-const MOL_N = 36, MOL_NEAR = 300;
+// --- debris to grab, carry and kick (grab.js): a few dozen bigger pieces drifting round the players ---
+// (the bath's thousands live on the GPU and cannot be held: these are the ones the fibres can take.) The
+// owner, 4 Nov 2026: "you should be able to grab onto various debris floating around". Molecules, a
+// ribosome-sized complex, humic clumps, membrane fragments (porin and LPS rafts) and bits of broken
+// flagellum, all from the world's own bead templates. Each drifts slowly, is carried by a current and
+// knocked about by kicked debris; one nobody is near comes back ahead of whoever is moving (along the way),
+// fading in, or behind the view when nobody moves.
+const MOL_N = 64, MOL_NEAR = 320;
 const molMat = beadMaterial({ sat: 1 });
-const MOL_KINDS = [['complex', beadTemplate('complex', 21), [1.3, 1.7]], ['globule', beadTemplate('globule', 23, PALETTE.periwinkle), [1.4, 2.0]], ['teal', beadTemplate('globule', 25, PALETTE.teal), [1.3, 1.8]]];
-const molMeshes = Object.fromEntries(MOL_KINDS.map(([k, tpl]) => { const bm = beadMesh(tpl, MOL_N, { material: molMat, dynamic: true }); scene.add(bm.mesh); return [k, bm]; }));
+const DEBRIS_KINDS = [
+  ['complex', beadTemplate('complex', 21), [1.3, 1.7]],
+  ['globule', beadTemplate('globule', 23, PALETTE.periwinkle), [1.4, 2.0]],
+  ['teal', beadTemplate('globule', 25, PALETTE.teal), [1.3, 1.8]],
+  ['clump', beadTemplate('humic', 27), [1.1, 1.5]],
+  ['fragment', [...beadTemplate('porin', 29), ...beadTemplate('porin', 31).map((b) => ({ ...b, p: [b.p[0] + 2.6, b.p[1] - 0.3, b.p[2] + 1.2] })), ...beadTemplate('lps', 33).map((b) => ({ ...b, p: [b.p[0] - 1.8, b.p[1] - 0.5, b.p[2] - 1.4] }))], [1.5, 2.0]],
+  ['flagellum', beadTemplate('chain', 35, PALETTE.periwinkle), [1.8, 2.4]],
+];
+const extentOf = (tpl) => { const n = tpl.length, c = [0, 1, 2].map((k) => tpl.reduce((a, b) => a + b.p[k], 0) / n); return Math.max(...tpl.map((b) => Math.hypot(b.p[0] - c[0], b.p[1] - c[1], b.p[2] - c[2]) + b.r)); };
+const molMeshes = Object.fromEntries(DEBRIS_KINDS.map(([k, tpl]) => { const bm = beadMesh(tpl, MOL_N, { material: molMat, dynamic: true }); scene.add(bm.mesh); return [k, bm]; }));
 const mols = Array.from({ length: MOL_N }, (_, i) => {
-  const [kind, , sz] = MOL_KINDS[i % MOL_KINDS.length];
-  return { i, kind, size: rand(...sz), pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion().random(), w: new THREE.Vector3(gauss(), gauss(), gauss()).multiplyScalar(0.25), heldBy: null };
+  const [kind, tpl, sz] = DEBRIS_KINDS[i % DEBRIS_KINDS.length];
+  const size = rand(...sz), rad = extentOf(tpl) * size;
+  return { i, kind, size, rad, mass: (rad / 4) ** 3, fade: 1, pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion().random(), w: new THREE.Vector3(gauss(), gauss(), gauss()).multiplyScalar(0.25), heldBy: null, kicked: null };
 });
 const inSolid = (p, pad = 8) => world.hosts.some((h) => !h.hidden && !h.burst && world.sdHost(h, p) < pad) || bystanderClear(p) < pad || world.sdAmoeba(p) < pad;
-/** Put molecule o in clear water `r0..r1` from p, out of sight when `hide` (behind the view) if it can. */
-function placeMol(o, p, r0, r1, hide = false) {
+/**
+ * Put debris o in clear water `r0..r1` from p. hide: out of sight (behind the view) if it can; ahead: a unit
+ * direction to put it along instead (where someone is going), fading in.
+ */
+function placeMol(o, p, r0, r1, hide = false, ahead = null) {
   for (let k = 0; k < 10; k++) {
-    o.pos.set(gauss(), gauss(), gauss()).normalize();
-    if (hide && o.pos.dot(camFwd(_v)) > -0.2 && k < 8) continue;
+    if (ahead) o.pos.set(gauss(), gauss(), gauss()).multiplyScalar(0.45).add(ahead).normalize();
+    else o.pos.set(gauss(), gauss(), gauss()).normalize();
+    if (!ahead && hide && o.pos.dot(camFwd(_v)) > -0.2 && k < 8) continue;
     o.pos.multiplyScalar(rand(r0, r1)).add(p);
-    if (!inSolid(o.pos)) break;
+    if (!inSolid(o.pos, o.rad + 6)) break;
   }
-  o.vel.set(0, 0, 0); o.heldBy = null;
+  o.vel.set(0, 0, 0); o.heldBy = null; o.kicked = null;
+  o.fade = ahead ? 0 : 1;
 }
-function resetMols() { for (const o of mols) placeMol(o, START, 70, 260); } // (none right on top of you at the start)
-const _mf = new THREE.Vector3();
+// (a good amount round the start: none right on top of you, a handful within a few seconds' drift)
+function resetMols() { mols.forEach((o, i) => placeMol(o, START, i < 12 ? 45 : 70, i < 12 ? 120 : 280)); }
+const _mf = new THREE.Vector3(), _fv = new THREE.Vector3();
 function updateMols(dt, focus) {
   for (const o of mols) {
     if (o.heldBy != null) { const m = team[o.heldBy]; if (!m || m.P.hold?.mol !== o) o.heldBy = null; else continue; }
-    // the water's drag takes a let-go molecule's speed away over a few seconds: it drifts gently off
-    o.vel.multiplyScalar(Math.exp(-dt * 0.7));
-    if (opts.currents) o.vel.lerp(currents.flowAt(o.pos, _mf).add(o.vel), 1 - Math.exp(-dt * 2.5));
+    o.fade = Math.min(1, o.fade + dt * 1.2);
+    // the water's drag takes a let-go piece's speed away over a few seconds (a kicked one sooner)
+    o.vel.multiplyScalar(Math.exp(-dt * (o.kicked ? 1.5 : 0.7)));
+    if (opts.currents && !o.kicked) o.vel.lerp(currents.flowAt(o.pos, _mf).add(o.vel), 1 - Math.exp(-dt * 2.5));
     o.pos.addScaledVector(o.vel, dt);
     o.pos.addScaledVector(world.flowAt(o.pos, t, _mf), dt * 0.5);
-    for (const h of world.hosts) { if (h.hidden || h.burst) continue; const d = world.sdHost(h, o.pos, _mf); if (d < 4) o.pos.addScaledVector(_mf, 4 - d); }
-    // nobody near: it comes back near someone, out of sight
+    if (o.kicked) kickedHits(o, dt);
+    for (const h of world.hosts) { if (h.hidden || h.burst) continue; const d = world.sdHost(h, o.pos, _mf); if (d < o.rad) o.pos.addScaledVector(_mf, o.rad - d); }
+    // nobody near: it comes back near someone, ahead of them if they are moving, else out of sight
     let near = Infinity;
-    for (const p of focus) near = Math.min(near, p.distanceTo(o.pos));
-    if (near > MOL_NEAR && focus.length) placeMol(o, focus[o.i % focus.length], 130, 260, true);
+    for (const p of focus) near = Math.min(near, p.pos.distanceTo(o.pos));
+    if (near > MOL_NEAR && focus.length) {
+      const f = focus[o.i % focus.length];
+      if (f.vel.lengthSq() > 15 * 15) placeMol(o, f.pos, 170, 290, true, _mf.copy(f.vel).normalize());
+      else placeMol(o, f.pos, 140, 270, true);
+    }
   }
 }
 function drawMols(dt) {
-  const n = Object.fromEntries(MOL_KINDS.map(([k]) => [k, 0]));
+  const n = Object.fromEntries(DEBRIS_KINDS.map(([k]) => [k, 0]));
   for (const o of mols) {
     if (o.heldBy == null) o.q.multiply(_q.setFromEuler(new THREE.Euler(o.w.x * dt, o.w.y * dt, o.w.z * dt)));
-    molMeshes[o.kind].set(n[o.kind]++, o.pos, o.q, o.size);
+    molMeshes[o.kind].set(n[o.kind]++, o.pos, o.q, o.size * Math.max(0.05, o.fade));
   }
   for (const [k, bm] of Object.entries(molMeshes)) { bm.setCount(n[k]); bm.commit(); }
 }
@@ -1475,7 +1663,7 @@ function updateReachRing(m) {
   ring.visible = !!tgt;
   if (!tgt) return;
   ring.position.copy(tgt.point);
-  ring.scale.setScalar(tgt.kind === 'mol' ? tgt.mol.size * 3.2 : 6);
+  ring.scale.setScalar(tgt.kind === 'debris' ? tgt.item.rad * 1.4 : Math.max(5, tgt.item.size * 1.4));
   ring.material.color.set(m.color || '#bfe8ff');
   ring.material.opacity = 0.28 + 0.12 * Math.sin(t * 6);
 }
@@ -1567,9 +1755,10 @@ function stepMember(m, dt, insideOwner, where) {
     const lstep = ctl.lookStep();
     if (lstep) { const d = lstep; features.set('lookFL', LOOKS[(view.look + d + LOOKS.length) % LOOKS.length]); say(tt('phage.toasts.look', { look: lookName(LOOKS[view.look]) }), 1800, true); }
     if (ctl.special.pressed()) {
-      // (the backdoor and the portal are far apart; whichever this player is in wins, else the overlay)
+      // (the backdoor and the portal are far apart; whichever this player is in wins, else the kick. The
+      // info overlay that Y used to toggle is in the Features panel now: Simulation, Info overlay.)
       if (where === 'outside' && P.inBack && outsideModes.includes(P.mode)) { audio.play('shared/backdoor', { volume: 0.55 }); embed.landmark('back', { player: m.slot }); }
-      else if (!(where === 'outside' && live && tryEnter())) { view.overlay = !view.overlay; inside.setRadar(view.overlay); }
+      else if (where === 'outside' && live && !tryEnter()) tryKick(m);
     }
   }
   if (live) {
@@ -1583,15 +1772,19 @@ function stepMember(m, dt, insideOwner, where) {
     }
     if (ctl.dash.pressed() && dash.ready && (P.mode === 'drift' || P.mode === 'walk')) {
       dash.trigger();
-      // forward: along the view, into the screen (a held cell is let go; a carried molecule comes along)
+      // forward: along the view, into the screen, at 3× the cruise for a moment (the owner, 4 Nov 2026: "dash
+      // should make more of a difference"); a held protein is let go, carried debris comes along
       const dir = camFwd(new THREE.Vector3());
-      if (P.hold?.kind === 'cell') releaseHold(false);
+      if (P.hold?.kind === 'protein') releaseHold(false);
       if (P.mode === 'walk') { leaveSurface(true); say(tt('phage.toasts.pushOff'), 1800, true); }
-      else { P.gust.addScaledVector(dir, 105); P.vel.addScaledVector(dir, 12); }
+      else { P.dashV.copy(dir).multiplyScalar(MOVE.drive * MOVE.dashMul); P.gust.multiplyScalar(0.3); }
       world.gust(P.pos, dir);
-      // A while carrying a molecule flings it along; otherwise the dash
-      audio.play(P.hold?.kind === 'mol' ? 'phage/throw' : 'phage/dash', { volume: 0.7, old: ['bacterium/sprint', { volume: 0.8 }] });
-      curPad().rumble(120, 0.4, 0.3);
+      m.fovKick = 1; m.streakT = 0.55; m.streakDir = dir.clone();
+      // the whoosh: the dash's own sound and a fast pass of the current's rush
+      audio.play('phage/dash', { volume: 0.8, old: ['bacterium/sprint', { volume: 0.8 }] });
+      audio.play('phage/current-coming', { volume: 0.3, rate: 1.9, old: ['bacterium/sprint', { volume: 0.35, rate: 1.6 }] });
+      ringLog.push({ kind: 'dash', t: +t.toFixed(2), slot: cur.slot });
+      curPad().rumble(160, 0.5, 0.35);
     } else if (ctl.dash.pressed() && P.mode === 'clay') say(tt('phage.toasts.stuckClay'), 1800, true);
     // X: grab, or let go (pressed again); at an amoeba's lobe, a fibre jab
     if (ctl.attack.pressed()) {
@@ -1600,6 +1793,8 @@ function stepMember(m, dt, insideOwner, where) {
   }
   P.reachT -= dt;
   m.jab = Math.max(0, m.jab - dt);
+  m.kickCd = Math.max(0, m.kickCd - dt);
+  m.fovKick = Math.max(0, m.fovKick - dt * 2.2);
   P.grabCooldown = Math.max(0, P.grabCooldown - dt);
   if (frozen) return;
   P.fold += (P.foldTarget - P.fold) * (1 - Math.exp(-dt * 2.6));
@@ -1662,7 +1857,9 @@ function stepMember(m, dt, insideOwner, where) {
   t4.group.quaternion.copy(P.q);
   t4.group.scale.setScalar(P.scale);
   t4.group.visible = t4.fibreMesh.visible = P.mode !== 'inside' && !(P.mode === 'burst');
-  for (let f = 0; f < 6; f++) t4.fibres[f].reach = m.jab > 0 ? 1.2 * Math.sin((m.jab / 0.45) * Math.PI) : P.mode === 'grab' ? 0.8 : P.mode === 'drift' && m.reachTarget ? 0.45 : P.mode === 'drift' && inp.stick ? 0.25 : 0;
+  for (let f = 0; f < 6; f++) t4.fibres[f].reach = m.jab > 0 ? 1.2 * Math.sin((m.jab / 0.45) * Math.PI) : m.motion ? 0 : P.mode === 'grab' ? 0.8 : P.mode === 'drift' && m.reachTarget ? 0.45 : P.mode === 'drift' && inp.stick ? 0.25 : 0;
+  poseMotion(m, dt);
+  updateStreak(m, dt);
   t4.state.sway = P.mode === 'walk' || P.mode === 'commit' ? 0.4 : 1;
   t4.update(dt, t);
 }
@@ -1736,6 +1933,9 @@ function placeViewCamera(m, at) {
   camera.quaternion.copy(view.q);
   camera.position.set(0, 0, dist).applyQuaternion(view.q).add(view.target);
   if (P.mode === 'commit' && P.contract > 0.05 && P.contract < 1.1 && P.commitT < 2.2) { const k = (2.2 - P.commitT) * 0.25; camera.position.x += Math.sin(t * 61) * k; camera.position.y += Math.cos(t * 53) * k; } // the snap
+  // the dash's slight field-of-view kick (eased out), this view's own
+  const fov = 35 + 6 * (m.fovKick * m.fovKick * (3 - 2 * m.fovKick));
+  if (Math.abs(camera.fov - fov) > 1e-3) { camera.fov = fov; camera.updateProjectionMatrix(); }
   if (at) camera.setViewOffset(innerWidth, innerHeight, innerWidth / 2 - at[0], innerHeight / 2 - at[1], innerWidth, innerHeight);
   else if (camera.view && camera.view.enabled) camera.clearViewOffset();
   camera.updateMatrixWorld();
@@ -1748,7 +1948,7 @@ function turnView(look, dt) {
   _prevQ.copy(view.q);
   if (look.m > 0.01) {
     view.q.multiply(_qa.setFromAxisAngle(AX_X, look.pitch * 1.25 * dt));
-    view.q.multiply(_qb.setFromAxisAngle(UP, look.yaw * 1.6 * dt));
+    view.q.multiply(_qb.setFromAxisAngle(UP, yawTurn(look.yaw, 1.6, dt))); // (RS right turns the view right: the owner, 4 Nov 2026)
   }
   if (view.level) {
     const fwd = camFwd(_v), up = camUp(_w);
@@ -1905,7 +2105,7 @@ function frame(now) {
     // the phages' wakes in the bath (molecules make way round each phage, so it always reads)
     world.setWake(debug.iso ? [] : members().filter((m) => m.t4.group.visible).map((m) => { use(m); return { p: centreOf(new THREE.Vector3()), r: 16 * P.scale }; }));
     use(lead);
-    if (!debug.freeze) updateMols(dt, focusPts);
+    if (!debug.freeze) updateMols(dt, (inPlay.length ? inPlay : [team[0]]).map((m, k) => ({ pos: focusPts[k], vel: _fv.copy(m.P.vel).add(m.P.dashV).clone() })));
     for (const mm of Object.values(molMeshes)) mm.mesh.visible = !debug.iso;
     drawMols(dt);
     // the textured liquid: drifting with the ambient water; a current streams it into streaks
@@ -1951,7 +2151,7 @@ function frame(now) {
   scaleEl.innerHTML = `<i style="width:${(10 * pxPerUnit).toFixed(0)}px"></i>${where === 'outside' ? tt('phage.scale.outside') : tt('phage.scale.inside')}`;
   label.textContent = tt(opts.drive ? 'phage.caption.steered' : 'phage.caption.honest', { look: lookName(LOOKS[view.look]) });
   const n5 = (x) => { const k = Math.round(clamp(x, 0, 1) * 5); return '■'.repeat(k) + '□'.repeat(5 - k); };
-  const modeName = { drift: P.hold?.kind === 'cell' ? `holding on to ${P.hold.part} of ${P.hold.host.name}` : P.hold ? 'carrying a molecule' : currents.nearness(P.pos) > 0.3 ? 'in a CURRENT' : 'drifting legs-first', grab: 'grabbing a surface protein', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', coinfect: `damaged genome waiting in ${P.coHost?.name} for a partner (B: give up)`, inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
+  const modeName = { drift: P.hold?.kind === 'protein' ? `holding on to ${P.hold.part} of ${P.hold.host.name} (Y: kick off)` : P.hold ? `carrying debris (${P.hold.mol.kind}; Y: kick it)` : currents.nearness(P.pos) > 0.3 ? 'in a CURRENT' : 'drifting legs-first', grab: 'grabbing a surface protein', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', coinfect: `damaged genome waiting in ${P.coHost?.name} for a partner (B: give up)`, inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
   const am = !world.portal ? 'not found yet' : guard.gone ? 'driven off' : ({ guard: 'on guard', stalk: 'REACHING', windup: 'WINDING UP!', strike: 'STRIKING!', recover: 'recovering', repelled: 'repelled', retreat: 'retreating', off: 'off' }[fightState] || fightState) + (guarded() ? '' : ' · receptor OPEN') + ` · interest ${Math.round(fight.interest * 100)} %`;
   const others = isMulti() ? '\n' + members().filter((m) => m.slot).map((m) => `P${m.slot + 1} ${m.P.mode} ${n5(m.P.integrity)}`).join('  ') : '';
   hud.stats(`${goalLine(where)}\n${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\n${P.damaged ? 'DAMAGED: one more UV shaft is fatal' : 'whole'}  ${dash.text()}\nguard (amoeba) ${am}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `${(P.pos.distanceTo(START) / 100).toFixed(1)} µm out · encounters ${director.index}/3 (${director.state().phase})`}${others}`);
@@ -1988,7 +2188,7 @@ const lead = () => members().find((m) => m.P.mode === 'burst') || team[0];
 // --- debug hooks for scripted screenshots (they act on player 1) ---
 const p1 = (fn) => (...a) => { use(team[0]); return fn(...a); };
 Object.assign(debug, {
-  teleport: p1((x, y, z = 0) => { releaseHold(false); P.vel.set(0, 0, 0); P.kv.set(0, 0, 0); P.gust.set(0, 0, 0); P.pos.set(x, y, z); view.target.copy(P.pos); t4.group.position.copy(P.pos); t4.resetFibres(t); if (P.mode !== 'drift') { P.mode = 'drift'; releaseAnchors(); } }),
+  teleport: p1((x, y, z = 0) => { releaseHold(false); cur.motion = null; P.dashV.set(0, 0, 0); P.vel.set(0, 0, 0); P.kv.set(0, 0, 0); P.gust.set(0, 0, 0); P.pos.set(x, y, z); view.target.copy(P.pos); t4.group.position.copy(P.pos); t4.resetFibres(t); if (P.mode !== 'drift') { P.mode = 'drift'; releaseAnchors(); } }),
   orient: p1((ax, ay, az) => { P.q.setFromEuler(new THREE.Euler(ax, ay, az)); P.angVel.set(0, 0, 0); }),
   isolate(on) { debug.iso = on; for (const h of world.hosts) h.group.visible = !on; world.opts.crowd = !on; world.amoeba.mesh.visible = !on; world.backdoor.group.visible = !on; const keep = new Set(members().map((m) => m.t4.fibreMesh)); for (const o of scene.children) if (o.isInstancedMesh && !keep.has(o) && o !== progeny) o.visible = !on; },
   cam(yaw, pitch, dist) { debug.camOverride = yaw == null ? null : { yaw, pitch, dist }; },
@@ -2025,15 +2225,37 @@ Object.assign(debug, {
   placements: () => world.placements(),
   /** Turn rates now: the view (rad/s) and each phage's angular speed (rad/s). */
   spin: () => ({ view: +view.turnRate.toFixed(4), phages: members().map((m) => +m.P.angVel.length().toFixed(4)) }),
-  /** What player `slot`'s fibres hold: null | { kind: 'mol', i, pos } | { kind: 'cell', host, part, by }. */
-  hold: (slot = 0) => { const g = team[slot]?.P.hold; return !g ? null : g.kind === 'mol' ? { kind: 'mol', i: g.mol.i, by: g.by, pos: g.mol.pos.toArray().map((x) => +x.toFixed(1)) } : { kind: 'cell', host: g.host.id, part: g.part, by: g.by }; },
+  /** What player `slot`'s fibres hold: null | { kind: 'debris', i, what, pos } | { kind: 'protein', host, protein, part, by, local }. */
+  hold: (slot = 0) => {
+    const m = team[slot], g = m?.P.hold;
+    if (!g) return null;
+    if (g.kind === 'mol') return { kind: 'debris', i: g.mol.i, what: g.mol.kind, by: g.by, pos: g.mol.pos.toArray().map((x) => +x.toFixed(1)) };
+    return { kind: 'protein', host: g.host.id, protein: g.q.kind, part: g.part, by: g.by, local: world.toLocal(g.host, m.P.pos).toArray().map((x) => +x.toFixed(2)) };
+  },
+  /** Y as if pressed now (the kick). */
+  kick: p1(() => { tryKick(cur); return ringLog.filter((e) => e.kind === 'kick').pop() || null; }),
+  /** Player `slot`'s speed now (units/s, all it moves by) and the cruise and dash settings. */
+  speed: (slot = 0) => { const P = team[slot].P; return { v: +_v.copy(P.vel).add(P.dashV).add(P.gust).add(P.kv).length().toFixed(2), drive: MOVE.drive, dash: MOVE.drive * MOVE.dashMul, fov: +camera.fov.toFixed(2), streak: team[slot].streak.visible }; },
+  /** Player 1's fibre motion now ({ kind, t } | null) and its fibre tips' radial distances from the axis. */
+  motion: () => { const m = team[0]; const ax = _v.copy(UP).applyQuaternion(m.P.q); return { motion: m.motion && { kind: m.motion.kind, t: +m.motion.t.toFixed(2) }, tips: m.t4.fibres.map((fb, f) => { const d = _w.subVectors(m.t4.tip(f), m.P.pos); return +d.addScaledVector(ax, -d.dot(ax)).length().toFixed(1); }) }; },
+  /** A grab point on a cell (host id or 'S<k>' for a bystander; index k of its grabs, or the one nearest the camera's view): { at, n, host, kind }. */
+  protein: (id = 'S0', k = null) => {
+    const h = [...world.hosts, ...world.bystanders].find((x) => x.id === id);
+    let q = k != null ? h.grabs[k] : null;
+    if (!q) { const want = _w.copy(camFwd(_s)).negate(); let best = -2; for (const g of h.grabs) { const c = world.dirToWorld(h, g.normal, _n).dot(want); if (g.kind === 'flower' && c > best) { best = c; q = g; } } }
+    return { at: world.toWorld(h, q.local).toArray(), n: world.dirToWorld(h, q.normal).toArray(), host: h.id, kind: q.kind, index: h.grabs.indexOf(q), count: h.grabs.length };
+  },
+  /** Grab points per cell (host and bystander ids → count). */
+  grabCounts: () => Object.fromEntries([...world.hosts, ...world.bystanders].map((h) => [h.id, h.grabs.length])),
+  /** Player 1's position in host `id`'s own frame. */
+  localTo: (id) => { const h = [...world.hosts, ...world.bystanders].find((x) => x.id === id); return world.toLocal(h, team[0].P.pos).toArray(); },
   /** X as if pressed now; release() lets go. */
   grabNow: p1((by = 'x') => { if (!tryJab(cur)) tryGrab(by); return debug.hold(0); }),
   release: p1(() => releaseHold()),
-  /** The free molecules: [{ i, pos, vel, held }]. */
-  mols: () => mols.map((o) => ({ i: o.i, pos: o.pos.toArray().map((x) => +x.toFixed(1)), vel: +o.vel.length().toFixed(2), held: o.heldBy })),
-  /** Put molecule i at x, y, z (still). */
-  placeMol: (i, x, y, z) => { const o = mols[i]; o.pos.set(x, y, z); o.vel.set(0, 0, 0); },
+  /** The debris: [{ i, kind, rad, pos, vel, held, kicked }]. */
+  mols: () => mols.map((o) => ({ i: o.i, kind: o.kind, rad: +o.rad.toFixed(1), pos: o.pos.toArray().map((x) => +x.toFixed(1)), vel: +o.vel.length().toFixed(2), held: o.heldBy, kicked: !!o.kicked })),
+  /** Put debris i at x, y, z (still, shown). */
+  placeMol: (i, x, y, z) => { const o = mols[i]; o.pos.set(x, y, z); o.vel.set(0, 0, 0); o.fade = 1; o.kicked = null; },
   /** Send a current now at player 1 along [x, y, z] (default: from the view's left). */
   current: p1((dir = null) => { const d = dir ? new THREE.Vector3(...dir) : camRight(new THREE.Vector3()); currents.start(P.pos, d); curLog.push({ t: +t.toFixed(2), slot: 0, dir: d.normalize().toArray(), forced: true }); return debug.currents(); }),
   /** The current now ({ center, dir, t, strength, life } | null), when the next is due, and the log. */
@@ -2098,7 +2320,7 @@ Object.assign(debug, {
   flocs: () => world.flocs.map((f) => [...f.home.toArray(), f.r]),
   /** Drive the guard off (as if worn down). */
   driveOff() { guard.gone = true; },
-  overlay(on) { view.overlay = on; inside.setRadar(on); },
+  overlay(on) { features.set('overlay', !!on); },
   look(i) { features.set('lookFL', LOOKS[i]); },
   /** Set every player's zoom (camera distance) at once: an index into the old steps (0..3), or a distance. */
   zoom(i) { const d = Number.isInteger(i) && i >= 0 && i < ZOOMS.length ? ZOOMS[i] : clamp(i, ZOOM.min, ZOOM.max); for (const m of members()) m.zoom = m.zoomWant = d; view.dist = d; },
