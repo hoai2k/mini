@@ -92,7 +92,35 @@ down, is that expected?"): no. Each hop rolled the body about its
 side-to-side axis through ±250° and straight back again within half a
 second, so a grazing group always had one or two on their backs (7.7% of
 them at any moment, measured over 60 s of their clock); now none tip past
-~35° (measured 0%, the steepest 34°). **Water beads**
+~35° (measured 0%, the steepest 34°). **They used to stand sunk in the
+moss** (the owner, 2026-11-04: "are the springtails and similar ambient
+creatures clipping through the ground?"): yes. Each was set with its centre
+4 µm above the floor at one point, but the body hangs ~56 µm below its centre
+(legs to -55, the belly to -30), so every one stood in the moss to its back:
+over 240 frames of a walk through the groups (2236 springtails posed), the
+deepest vertex was 68-87 µm under the floor (52.7 µm on average), and up to
+200 µm inside a grain, since they walked straight through grains, litter and
+stems. The thickets' crowd (`shared/crowd.js`) stood level on slopes, its
+downhill feet up to 19 µm in. Now each stands on its six feet (`stand.js`
+`standSpringtail`): the feet sample the ground, a plane fitted to them sets
+the body square to the slope at its legs' height, and wherever a foot, the
+belly, the flanks, the head or the nose (a hop's landing) would still dip it
+is lifted clear; hops pitch nose up rising and down falling but come down
+level, on their feet. The ground is the floor plus the grains and litter on
+it (`createGround`: the colliders cast down once per 16 µm lattice point and
+kept, the moss left out because it bends); the big grains (over ~90 µm) and
+the moss stems are walked round (`createKeepOut`), the smaller grains and the
+flakes climbed. The crowd's members are stood the same way after each crowd
+step. Measured the same way: 0.3 µm under the floor at worst (0 on average),
+and inside a grain at most 7-9 µm in ~0.5% of the samples (a facet between
+the checked points). A pose is reused while a member has moved under 4 µm on
+even ground: 0.19 ms an update for 42 springtails (0.08 before) in headless
+Chromium. The second box mite, the family and the predator (`mite.js`) could
+also set a foot into the floor for a few frames (up to ~90 µm when a body
+tipped onto a stem cast its foothold along its tilted up from under the
+floor, and 6-17 µm mid-stride over a hump on the predator's long legs); a
+foothold and a swinging foot are now kept on the floor (0 in 43 200 foot
+samples, against 42 before). **Water beads**
 on the moss floor are decided per 1.1 mm cell the first time anyone comes
 within 5.2 mm (past the edge of any view) and then kept: a few at the start,
 commoner and larger with every encounter met, and thickest within 8 mm of
@@ -426,7 +454,18 @@ I see. Currently I don't see any attack animations when pressing X."
   facing you; the rest of its group **leap away** (~0.5 mm, upright arcs) and
   drift back to graze over ~10 s.
 - **Devour a dazed one:** X again in time: a snap onto it, then it is held
-  under the mouth and shrinks away as the chelicerae work (1.2 s). It counts
+  under the mouth and shrinks away as the chelicerae work (1.2 s). **Seen
+  from behind** (the owner, 2026-11-04: "if you eat one while facing away
+  from the camera, can we show it sort of lifted up ... From the front it
+  looks good already") the mite's body hid it, so the devour blends toward
+  a rear (to ~0.5 rad) with the springtail lifted ~150 µm in legs I and the
+  chelicerae, above the outline of the back, kicking and twisting (weaker as
+  it is eaten), each bite of the chelicerae puffing bits off it. The blend
+  is by the view: the dot of the mite's facing with the horizontal direction
+  from its own split view's camera to it (each view's camera, noted as the
+  views are drawn: `viewDir`), 0 below -0.15 (the front, unchanged), 1 above
+  0.45, eased over 0.25 s so a peek never jumps it. The timing, the reach
+  and what a meal gives are unchanged. It counts
   as grazed, **refills the scramble** and brings a grabbed leg's healing 8 s
   nearer (legs heal one per 20 s). Another wanders into its place after 40 s.
 - **Why two bites, and why it doesn't trivialise the encounters:** a nip
@@ -1251,8 +1290,9 @@ Not borrowed:
   rewards are game rules too. Their hops stay upright: real furcular leaps
   often tumble end over end, which read here as a glitch.
 - **Life and water** (`life.js`): the springtail groups shy and leap on a
-  game rule and are drawn on the floor's height (a member over a grain can
-  sit in it); water in an SEM needs an environmental (wet) instrument, and a
+  game rule and stand on the floor, its grains and its litter (`stand.js`),
+  walking round the big grains and the stems and through the moss leaves
+  (which bend for a mite, not for them); water in an SEM needs an environmental (wet) instrument, and a
   falling drop is slowed (real rain drips through a moss cushion), and a
   mite in the bead it leaves pushes out in a moment, where a real one would
   be held by the water's surface tension. The beads are
@@ -1308,7 +1348,12 @@ roughly even (none over 1.8x the mean), the water by 80 s rushing and
 140 s walking.
 
 `node --test micro/game/mite/*.test.mjs micro/game/shared/director.test.mjs`
-runs it with the shared director's tests. The speed, jump and rush
+runs it with the shared director's tests. `stand.test.mjs` poses the
+grazing groups (minutes of their clock, with bites, leaps and hops) and the
+thickets' crowd and puts every vertex of every springtail through its matrix:
+none may be more than 1 µm under the floor (it failed by 52-87 µm before);
+over a bumpy stand-in for the grains its feet and underside stay out; and it
+checks the ground cache and the walk-round discs. The speed, jump and rush
 measurements in this README came from Playwright scripts driving the page
 through a fake controller and the keyboard (`__micro.inputSteps(n, dt)`
 reads the pads as a frame does; `__micro.life` holds the springtail groups,

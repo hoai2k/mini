@@ -99,19 +99,22 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150, gr
   // the head or a foot would dip (the old pose set the centre 4 µm above the
   // floor at one point, and the body hangs ~57 µm below its centre: they all
   // stood sunk to the back in the moss). A pose is kept per member and reused
-  // while it has not moved (a dazed one, a still one).
+  // while it has moved less than a few µm (a dazed one, a still one, a slow
+  // grazer between steps), carried with the ground under its centre.
   const poses = new Map();
   const _st = { y: 0, q: new THREE.Quaternion(), pen: 0, n: new THREE.Vector3() };
   /** Stand member `key` at (x, z) facing yaw, scaled (sc, sc * sy, sc), pitched nose-up, lifted (a hop): sets _p and _q. */
   function stand(key, x, z, yaw, sc, sy, pitch, lift) {
     let P = poses.get(key);
-    if (P && Math.abs(P.x - x) + Math.abs(P.z - z) < 0.5 && Math.abs(P.yaw - yaw) < 0.004 && P.sc === sc && P.sy === sy && P.pitch === pitch) {
-      _q.copy(P.q); _p.set(x, P.y + lift, z); stats.reused++; P.used = now;
-      return;
+    // (moved a step of a few µm, turned a hair: the same pose, carried with the ground under its centre)
+    // (not where the ground steps: by a grain or a flake's edge it is posed again)
+    if (P && Math.abs(P.x - x) + Math.abs(P.z - z) < 4 && Math.abs(P.yaw - yaw) < 0.02 && P.sc === sc && P.sy === sy && P.pitch === pitch) {
+      const dg = ground(x, z) - P.g;
+      if (dg > -1.5 && dg < 1.5) { _q.copy(P.q); _p.set(x, P.y + dg + lift, z); stats.reused++; P.used = now; return; }
     }
     standSpringtail(ground, x, z, yaw, sc, sc * sy, sc, pitch, 0, _st);
     if (!P) poses.set(key, (P = { q: new THREE.Quaternion() }));
-    P.x = x; P.z = z; P.yaw = yaw; P.sc = sc; P.sy = sy; P.pitch = pitch; P.y = _st.y; P.q.copy(_st.q); P.used = now;
+    P.x = x; P.z = z; P.yaw = yaw; P.sc = sc; P.sy = sy; P.pitch = pitch; P.y = _st.y; P.g = ground(x, z); P.q.copy(_st.q); P.used = now;
     stats.posed++; if (_st.pen > stats.lifted) stats.lifted = _st.pen;
     _q.copy(_st.q); _p.set(x, _st.y + lift, z);
   }

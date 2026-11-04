@@ -24,13 +24,13 @@ import { floorH } from './world.js';
 /**
  * The springtail's anatomy as springtailGeometry (thicket.js) builds it, in its
  * own frame (head at +x, up +y, µm at scale 1): the foot tips (x, z), how far
- * below the origin they reach (rod tips at -54, radius 4), and points on the
+ * below the origin they reach (the leg rods end at -54, their rims to -55.5), and points on the
  * underside (x, y) that must stay out of the ground (the ventral tube, the
  * furcula, the belly and its flanks, the head; x, y, z).
  */
 export const SPRINGTAIL = {
   feet: [[58, 52], [58, -52], [20, 52], [20, -52], [-18, 52], [-18, -52]],
-  stand: 57,
+  stand: 55.5,
   under: [[14, -39, 0], [-45, -37, 0], [-20, -31, 0], [50, -29, 0], [78, -24, 0], [-80, -16, 0], [104, -12, 0], [-94, 0, 0],
     [-30, -24, 26], [-30, -24, -26], [36, -22, 26], [36, -22, -26], [-70, -12, 20], [-70, -12, -20]],
 };
@@ -96,33 +96,51 @@ export function standSpringtail(ground, x, z, yaw, sx, sy, sz, pitch = 0, lift =
  * kinds walked through (the moss: it bends). Each 24 µm lattice point is cast
  * once, from `band` µm above the floor (what stands higher is overhead: a
  * springtail walks under it), and kept; between points the extra height is
- * interpolated, so a grain is a smooth dome and a flake's edge a short ramp.
+ * interpolated (held up near the highest corner), so a grain is a dome and a
+ * flake's edge a short ramp.
  */
-export function createGround(cast, { cell = 16, band = 200, skip = new Set(['stem', 'blade']), max = 400000 } = {}) {
-  const cache = new Map();
+export function createGround(cast, { cell = 16, band = 200, skip = new Set(['stem', 'blade']), maxChunks = 400 } = {}) {
+  // the lattice in chunks of 64 x 64 points (a typed array each, NaN: not cast yet)
+  const CH = 64, chunks = new Map();
   const o = new THREE.Vector3(), down = new THREE.Vector3(0, -1, 0);
-  const stats = { casts: 0, hits: 0 };
+  const stats = { casts: 0, chunks: 0 };
+  let lastK = NaN, lastA = null;
   function extra(i, j) {
-    const k = (i + 32768) * 65536 + (j + 32768);
-    let e = cache.get(k);
-    if (e === undefined) {
-      if (cache.size > max) cache.clear();
+    const ci = i >> 6, cj = j >> 6, k = (ci + 32768) * 65536 + (cj + 32768);
+    let a;
+    if (k === lastK) a = lastA;
+    else {
+      a = chunks.get(k);
+      if (!a) {
+        if (chunks.size >= maxChunks) chunks.clear();
+        chunks.set(k, (a = new Float32Array(CH * CH).fill(NaN)));
+        stats.chunks++;
+      }
+      lastK = k; lastA = a;
+    }
+    const q = (i & 63) * CH + (j & 63);
+    let e = a[q];
+    if (e !== e) {
       const x = i * cell, z = j * cell, f = floorH(x, z);
       o.set(x, f + band, z);
       const h = cast(o, down, band + 20, true, skip);
       stats.casts++;
-      e = h ? Math.max(0, h.point.y - f) : 0;
-      cache.set(k, e);
-    } else stats.hits++;
+      e = a[q] = h ? Math.max(0, h.point.y - f) : 0;
+    }
     return e;
   }
   function ground(x, z) {
     const px = x / cell, pz = z / cell, i = Math.floor(px), j = Math.floor(pz), fx = px - i, fz = pz - j;
     const e00 = extra(i, j), e10 = extra(i + 1, j), e01 = extra(i, j + 1), e11 = extra(i + 1, j + 1);
-    return floorH(x, z) + e00 + (e10 - e00) * fx + (e01 - e00) * fz + (e00 - e10 - e01 + e11) * fx * fz;
+    const f = floorH(x, z);
+    if (e00 === 0 && e10 === 0 && e01 === 0 && e11 === 0) return f;
+    // (the higher of the interpolation and most of the highest corner: a grain's
+    // faceted flank is steeper than a lattice cell, and interpolating alone left
+    // the belly up to ~17 µm inside one; this errs a few µm high, never low)
+    const bil = e00 + (e10 - e00) * fx + (e01 - e00) * fz + (e00 - e10 - e01 + e11) * fx * fz;
+    return f + Math.max(bil, Math.max(e00, e10, e01, e11) - 6);
   }
   ground.stats = stats;
-  ground.cache = cache;
   return ground;
 }
 

@@ -695,6 +695,32 @@ const closedNow = () => mite.mode === 'closed' || (mite.mode === 'closing' && mi
 const sstepJ = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const BUG_REACH = 270;       // µm round a point 90 µm ahead of the mouth
 const STRIKE_DUR = 0.5, DEVOUR_DUR = 1.2;
+// Eating seen from behind (the owner, 2026-11-04: "if you eat one while facing
+// away from the camera, can we show it sort of lifted up during the eat
+// animation such that it's more obvious from behind ... From the front it
+// looks good already"): from the front the springtail is held under the mouth
+// in plain view; from behind, the mite's own body hid it. So the devour blends,
+// by how far the view looks along the mite's facing, toward a rear with the
+// prey lifted in the chelicerae and legs I above the mite's outline, kicking.
+// Each player's view is the one their own split view draws them in (each view
+// has its own camera position; the yaw is shared): viewDir[slot], the
+// horizontal direction from that camera to them, noted as each view is drawn.
+const viewDir = [];
+const _vdc = new THREE.Vector3();
+function noteViewDirs(slots) {
+  for (const s of slots) {
+    const P = pls[s];
+    if (!P) continue;
+    _vdc.subVectors(P.mite.center, camera.position).setY(0);
+    if (_vdc.lengthSq() < 1) continue;
+    (viewDir[s] || (viewDir[s] = new THREE.Vector3())).copy(_vdc.normalize());
+  }
+}
+/** How much of the from-behind lift to show (0 seen from the front .. 1 from behind), by the view's direction and the mite's facing. */
+function liftFromView(fw) {
+  const vd = viewDir[cur.slot] || camFwd;
+  return sstepJ(-0.15, 0.45, vd.x * fw.x + vd.z * fw.z);
+}
 function biteNow() {
   if (mite.mode !== 'walk' || play.act) return;
   const m = mite.mouth(new THREE.Vector3());
@@ -716,7 +742,7 @@ function biteNow() {
   const c = mite.center;
   const bug = ambient.nearest(m.x + fw.x * 90, m.y, m.z + fw.z * 90, BUG_REACH, (b) => (b.x - c.x) * fw.x + (b.z - c.z) * fw.z > 60);
   if (bug && bug.stunned && ambient.nip(bug.key, c.x, c.z) === 'caught') {
-    Object.assign(play, { act: 'devour', actT: 0, actDur: DEVOUR_DUR, snapped: false, bug: bug.key, bug0: new THREE.Vector3(bug.x, bug.y, bug.z) });
+    Object.assign(play, { act: 'devour', actT: 0, actDur: DEVOUR_DUR, snapped: false, bug: bug.key, bug0: new THREE.Vector3(bug.x, bug.y, bug.z), backK: null });
     return;
   }
   if (bug) { Object.assign(play, { act: 'strike', actT: 0, actDur: STRIKE_DUR, snapped: false, bug: bug.key, target: new THREE.Vector3(bug.x, bug.y + 20, bug.z), fam: null }); return; }
@@ -886,10 +912,28 @@ function stepAct(dt) {
     const to = _ct.subVectors(play.bug0, mite.center).setY(0);
     if (k < 0.25 && to.lengthSq() > 1) mite.st.fwd.lerp(to.normalize(), Math.min(1, dt * 12)).setY(0).normalize();
     const at = play.bug0.clone().lerp(m.clone().add(new THREE.Vector3(0, -10, 0)), sstepJ(0.1, 0.4, u));
-    mite.act({ rear: 0.2 + 0.25 * Math.sin(snap * Math.PI), lunge: 0.8 * Math.sin(snap * Math.PI), gape: snap < 0.5 ? 1 : 0, hold: at, holdK: Math.min(1, u / 0.3) });
+    // seen from behind: rear up and lift it clear of the body's outline (blended
+    // by the view, eased so a peek never jumps it; from the front b is 0 and
+    // this is the devour as it always was)
+    const fw = _ct.set(1, 0, 0).applyQuaternion(mite.quat).setY(0).normalize();
+    const want = liftFromView(fw);
+    play.backK = play.backK == null ? want : play.backK + (want - play.backK) * Math.min(1, dt / 0.25);
+    const L = play.backK * sstepJ(0.12, 0.38, u) * (1 - sstepJ(0.86, 1, u));
+    const kick = L * (1 - 0.6 * u); // it struggles, weaker as it is eaten
+    if (L > 0) {
+      at.addScaledVector(fw, 55 * L);
+      at.y += 150 * L + 6 * kick * Math.sin(k * 41);
+      at.addScaledVector(_sp.set(-fw.z, 0, fw.x), 7 * kick * Math.sin(k * 29 + 1));
+    }
+    mite.act({ rear: 0.2 + 0.25 * Math.sin(snap * Math.PI) + 0.9 * L, lunge: 0.8 * Math.sin(snap * Math.PI) * (1 - 0.5 * L), gape: snap < 0.5 ? 1 : 0, hold: at, holdK: Math.min(1, u / 0.3) });
     if (!play.snapped && k > 0.12) { play.snapped = true; mite.bite(); snapPuff(play.bug0.clone().setY(play.bug0.y + 20), 1); audio.play('mite/devour', { volume: 1, old: ['mite/bite', { volume: 1, rate: 0.85 }] }); }
-    if (k > 0.3 && Math.floor(k / 0.2) !== Math.floor((k - dt) / 0.2)) { mite.bite(); audio.play('mite/bite', { volume: 0.5, rate: 1.1 + Math.random() * 0.2, only: 'old' }); }
-    ambient.hold(play.bug, at, 1 - 0.95 * Math.max(0, (u - 0.25) / 0.75));
+    if (k > 0.3 && Math.floor(k / 0.2) !== Math.floor((k - dt) / 0.2)) {
+      mite.bite(); audio.play('mite/bite', { volume: 0.5, rate: 1.1 + Math.random() * 0.2, only: 'old' });
+      // held up, each bite of the chelicerae sheds bits of it against the sky
+      if (L > 0.05) snapPuff(at, 0.4 * L);
+    }
+    ambient.hold(play.bug, at, 1 - 0.95 * Math.max(0, (u - 0.25) / 0.75),
+      L > 0 ? { pitch: 0.7 * L, roll: 0.5 * kick * Math.sin(k * 27), twist: 0.35 * kick * Math.sin(k * 19 + 2) } : null);
     if (u >= 1) {
       ambient.eaten(play.bug);
       play.grazed++; play.bugs = (play.bugs || 0) + 1;
@@ -1868,6 +1912,7 @@ function drawFrame(dt) {
     f.setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
     (viewFoci[fi] || (viewFoci[fi] = new THREE.Vector3())).copy(_vc);
     fi++;
+    noteViewDirs(view.slots);
     if (!one) {
       // the cutaway clears the way to this view's own players
       _vc.set(0, 0, 0);
@@ -1979,6 +2024,7 @@ function stepViews(dt) {
   const n = Math.max(1, split.views.length);
   for (let i = 0; i < n && i < 4; i++) split.withView(i, camera, () => {
     camera.updateMatrixWorld();
+    noteViewDirs(split.views[i] ? split.views[i].slots : [0]);
     (viewFrusta[i] || (viewFrusta[i] = new THREE.Frustum())).setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
     viewTarget(camera, viewFoci[i] || (viewFoci[i] = new THREE.Vector3()));
   });

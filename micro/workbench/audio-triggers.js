@@ -727,7 +727,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:120"
+   "mite/main.js:128"
   ],
   "event": "another player joins"
  },
@@ -740,8 +740,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:418",
-   "mite/main.js:989"
+   "mite/main.js:426",
+   "mite/main.js:1041"
   ],
   "event": "re-forming from motes"
  },
@@ -754,10 +754,10 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:432",
-   "mite/main.js:807",
-   "mite/main.js:1650",
-   "mite/main.js:1697"
+   "mite/main.js:440",
+   "mite/main.js:841",
+   "mite/main.js:1702",
+   "mite/main.js:1749"
   ],
   "event": "a predator gives up"
  },
@@ -775,7 +775,7 @@ export const TRIGGERS = [
    "rate": 0.9
   },
   "sites": [
-   "mite/main.js:466"
+   "mite/main.js:474"
   ],
   "event": "The predatory mite closing in."
  },
@@ -793,7 +793,7 @@ export const TRIGGERS = [
    "rate": 0.6
   },
   "sites": [
-   "mite/main.js:483"
+   "mite/main.js:491"
   ],
   "event": "X: chelicerae bite."
  },
@@ -811,7 +811,7 @@ export const TRIGGERS = [
    "rate": 1.2
   },
   "sites": [
-   "mite/main.js:510"
+   "mite/main.js:518"
   ],
   "event": "The predatory mite closing in."
  },
@@ -829,7 +829,7 @@ export const TRIGGERS = [
    "rate": 0.7
   },
   "sites": [
-   "mite/main.js:511"
+   "mite/main.js:519"
   ],
   "event": "X: chelicerae bite."
  },
@@ -845,7 +845,7 @@ export const TRIGGERS = [
    "volume": 0.6
   },
   "sites": [
-   "mite/main.js:555"
+   "mite/main.js:563"
   ],
   "event": "Ambience: inside the moss cushion."
  },
@@ -863,7 +863,7 @@ export const TRIGGERS = [
    "rate": "0.95 + Math.random() * 0.12"
   },
   "sites": [
-   "mite/main.js:737"
+   "mite/main.js:771"
   ],
   "event": "X: chelicerae bite."
  },
@@ -881,7 +881,7 @@ export const TRIGGERS = [
    "rate": 0.85
   },
   "sites": [
-   "mite/main.js:792"
+   "mite/main.js:826"
   ],
   "event": "X: chelicerae bite."
  },
@@ -899,7 +899,7 @@ export const TRIGGERS = [
    "rate": 1.05
   },
   "sites": [
-   "mite/main.js:836"
+   "mite/main.js:870"
   ],
   "event": "X: chelicerae bite."
  },
@@ -917,7 +917,7 @@ export const TRIGGERS = [
    "rate": 1.25
   },
   "sites": [
-   "mite/main.js:837"
+   "mite/main.js:871"
   ],
   "event": "X: chelicerae bite."
  },
@@ -930,7 +930,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:855"
+   "mite/main.js:889"
   ],
   "event": "X: lunge and snap"
  },
@@ -948,7 +948,7 @@ export const TRIGGERS = [
    "rate": 0.9
   },
   "sites": [
-   "mite/main.js:861"
+   "mite/main.js:895"
   ],
   "event": "X: chelicerae bite."
  },
@@ -962,8 +962,8 @@ export const TRIGGERS = [
    "rate": 1.2
   },
   "sites": [
-   "mite/main.js:864",
-   "mite/main.js:872"
+   "mite/main.js:898",
+   "mite/main.js:906"
   ],
   "event": "X: chelicerae bite."
  },
@@ -980,7 +980,7 @@ export const TRIGGERS = [
    "rate": 1.4
   },
   "sites": [
-   "mite/main.js:870"
+   "mite/main.js:904"
   ],
   "event": "a strike sliding off the capsule"
  },
@@ -997,7 +997,7 @@ export const TRIGGERS = [
    "rate": 0.85
   },
   "sites": [
-   "mite/main.js:882"
+   "mite/main.js:929"
   ],
   "event": "eating a springtail"
  },
@@ -1011,7 +1011,7 @@ export const TRIGGERS = [
    "rate": "1.1 + Math.random() * 0.2"
   },
   "sites": [
-   "mite/main.js:883"
+   "mite/main.js:931"
   ],
   "event": "X: chelicerae bite."
  },
@@ -1025,7 +1025,7 @@ export const TRIGGERS = [
    "id": "mite/close"
   },
   "sites": [
-   "mite/main.js:911"
+   "mite/main.js:963"
   ],
   "event": "B: closing into the armoured capsule."
  },
@@ -1039,7 +1039,7 @@ export const TRIGGERS = [
    "id": "mite/open"
   },
   "sites": [
-   "mite/main.js:912"
+   "mite/main.js:964"
   ],
   "event": "Opening up again."
  },
@@ -1052,7 +1052,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:913"
+   "mite/main.js:965"
   ],
   "event": "A held: crouching to jump"
  },
@@ -1069,7 +1069,7 @@ export const TRIGGERS = [
    "rate": 1.3
   },
   "sites": [
-   "mite/main.js:917"
+   "mite/main.js:969"
   ],
   "event": "the jump launch"
  },
@@ -1086,7 +1086,7 @@ export const TRIGGERS = [
    "rate": 0.75
   },
   "sites": [
-   "mite/main.js:918"
+   "mite/main.js:970"
   ],
   "event": "landing"
  },
@@ -1104,7 +1104,7 @@ export const TRIGGERS = [
    "rate": "0.9 + Math.random() * 0.25 + Math.min(0.2, mite.speed / 2000)"
   },
   "sites": [
-   "mite/main.js:922"
+   "mite/main.js:974"
   ],
   "event": "Footfalls (rate follows the gait)."
  },
@@ -1122,7 +1122,7 @@ export const TRIGGERS = [
    "rate": "0.9 + Math.random() * 0.2"
   },
   "sites": [
-   "mite/main.js:936"
+   "mite/main.js:988"
   ],
   "event": "Pushing past a moss blade, which springs back."
  },
@@ -1135,7 +1135,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:1011"
+   "mite/main.js:1063"
   ],
   "event": "Y at the backdoor"
  },
@@ -1148,7 +1148,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:1029"
+   "mite/main.js:1081"
   ],
   "event": "the way on unseals"
  },
@@ -1161,8 +1161,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:1050",
-   "mite/main.js:1057"
+   "mite/main.js:1102",
+   "mite/main.js:1109"
   ],
   "event": "Y at a sealed or guarded portal"
  },
@@ -1175,7 +1175,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:1081"
+   "mite/main.js:1133"
   ],
   "event": "\"Y Enter the portal\" appears"
  },
@@ -1188,7 +1188,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:1095"
+   "mite/main.js:1147"
   ],
   "event": "Y at the open portal"
  },
@@ -1205,7 +1205,7 @@ export const TRIGGERS = [
    "rate": 0.5
   },
   "sites": [
-   "mite/main.js:1252"
+   "mite/main.js:1304"
   ],
   "event": "a drop falling"
  },
@@ -1222,7 +1222,7 @@ export const TRIGGERS = [
    "rate": 0.6
   },
   "sites": [
-   "mite/main.js:1255"
+   "mite/main.js:1307"
   ],
   "event": "the drop splashing down"
  },
@@ -1238,7 +1238,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "mite/main.js:1326"
+   "mite/main.js:1378"
   ],
   "event": "Going through a portal (the way on): the success chime before the freeze and the zoom into the next world."
  },
@@ -1251,7 +1251,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:1327"
+   "mite/main.js:1379"
   ],
   "event": "the success slow-down"
  },
@@ -1269,7 +1269,7 @@ export const TRIGGERS = [
    "rate": 0.75
   },
   "sites": [
-   "mite/main.js:1493"
+   "mite/main.js:1545"
   ],
   "event": "X: chelicerae bite."
  },
@@ -1286,7 +1286,7 @@ export const TRIGGERS = [
    "rate": 0.6
   },
   "sites": [
-   "mite/main.js:1527"
+   "mite/main.js:1579"
   ],
   "event": "the pseudoscorpion's pincer"
  },
@@ -1302,7 +1302,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "mite/main.js:1654"
+   "mite/main.js:1706"
   ],
   "event": "The predatory mite closing in."
  },
@@ -1320,7 +1320,7 @@ export const TRIGGERS = [
    "rate": 1.25
   },
   "sites": [
-   "mite/main.js:1655"
+   "mite/main.js:1707"
   ],
   "event": "The predatory mite closing in."
  },
@@ -1333,7 +1333,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:1656"
+   "mite/main.js:1708"
   ],
   "event": "the predatory mite rears"
  },
@@ -1346,7 +1346,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:1657"
+   "mite/main.js:1709"
   ],
   "event": "its strike"
  },
@@ -1359,8 +1359,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:1660",
-   "mite/main.js:1694"
+   "mite/main.js:1712",
+   "mite/main.js:1746"
   ],
   "event": "a strike sliding off the capsule"
  },
@@ -1373,7 +1373,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "mite/main.js:1690"
+   "mite/main.js:1742"
   ],
   "event": "a predator's wind-up (generic)"
  },
@@ -1390,7 +1390,7 @@ export const TRIGGERS = [
    "rate": 0.7
   },
   "sites": [
-   "mite/main.js:1691"
+   "mite/main.js:1743"
   ],
   "event": "the pseudoscorpion's pincer"
  },
@@ -1408,7 +1408,7 @@ export const TRIGGERS = [
    "rate": 0.7
   },
   "sites": [
-   "mite/main.js:1692"
+   "mite/main.js:1744"
   ],
   "event": "The predatory mite closing in."
  },
@@ -1424,7 +1424,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "mite/main.js:1775"
+   "mite/main.js:1827"
   ],
   "event": "A (dash): the scramble."
  },
