@@ -1266,17 +1266,20 @@ Object.assign(debug, {
    * `bearing` at full stick and dashing whenever it can, heading for the portal once it is open and near, `safe`
    * (no deaths) by default. Returns when each encounter was placed and met, and when the portal was reached.
    */
-  rush({ bearing = 0.6, seconds = 120, safe = true } = {}) {
-    const DT = 1 / 30, out = { placed: {}, met: {}, deaths: 0 };
+  rush({ bearing = 0.6, seconds = 120, safe = true, dash = true, steer = null, sight = 1600 } = {}) {
+    const DT = 1 / 30, out = { placed: {}, met: {}, deaths: 0, track: [] };
     const base = director.log.length;
     let a = bearing;
     for (let k = 0; k < seconds / DT; k++) {
       t += DT;
       if (safe) P1.invuln = 1;
       const s = director.state();
-      const toLeaf = leaf.placed && !portalSealed() && hyp(FWD.x - P1.S.x, FWD.y - P1.S.y) < 1600; // (only once in sight: a player has no arrow)
+      const toLeaf = leaf.placed && !portalSealed() && hyp(FWD.x - P1.S.x, FWD.y - P1.S.y) < sight; // (only once in sight: a player has no arrow)
+      if (P1.engulfed && P1.charges > 0 && !(k % 15)) defend(P1); // (held in the giant's cup: burst out, as a player would)
       if (toLeaf) a = Math.atan2(FWD.y - P1.S.y, FWD.x - P1.S.x);
-      if (P1.S.dashCd <= 0) startDash(P1.S, a);
+      else if (steer) { const b = steer(game.t, { x: P1.S.x, y: P1.S.y, a, s }); if (b !== null && b !== undefined) a = b; }
+      if (dash && P1.S.dashCd <= 0) startDash(P1.S, a);
+      if (k % 30 === 0) out.track.push([+game.t.toFixed(1), Math.round(P1.S.x), Math.round(P1.S.y)]);
       if (guarded() && hyp(P1.S.x - FWD.x, P1.S.y - FWD.y) < 900) debug.spendTrap();
       const input = { mx: Math.cos(a), my: Math.sin(a), m: 1, depth: toLeaf && hyp(P1.S.x - FWD.x, P1.S.y - FWD.y) < 700 ? -1 : 0 };
       for (const P of cells) stepPlayer(P, DT, P === P1 ? input : { mx: 0, my: 0, m: 0, depth: 0 });

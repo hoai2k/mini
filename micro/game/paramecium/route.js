@@ -13,9 +13,15 @@
 // The scenery (Spirogyra, detritus, Vorticella, diatoms, glitter) repeats in
 // a tile in every direction (world.js); the way back is a fixed place. The
 // director places the rest one at a time, in this order, in water nobody has
-// seen, a little ahead of whoever is furthest along: the Dileptus, the
-// Chlamydomonas bloom, the giant amoeba, the two Didinium, and last the
-// biofilm on a leaf (the portal) with the bladderwort trap on guard.
+// seen, a little ahead of whoever is furthest along: a Dileptus, a Didinium,
+// the Chlamydomonas bloom, a pair of Didinium, the giant amoeba, a pack (a
+// Dileptus with a Didinium), and last the biofilm on a leaf (the portal) with
+// the bladderwort trap on guard. Between them lies the food trail (TRAIL,
+// trail.js): little clusters of food every ~1.4 screen heights that lead to
+// the portal; the hunters lie in the gaps between clusters, never on one
+// (the owner, 2026-11-04: "little groups of food as frequent checkpoints on the
+// way to the portal ... frequent enemies, but in between the food areas
+// mostly, not on top of them").
 
 /** Where play starts (µm). */
 export const START = { x: 0, y: 0 };
@@ -71,52 +77,89 @@ const perp = (b) => [-Math.sin(b), Math.cos(b)];
 /** The bloom: a band 2 × half deep (along the way) and 2 × across wide, lying across the way. */
 export const BLOOM_BAND = { half: 200, across: 700 };
 export const bloomParts = (x, y, b) => { const [px, py] = perp(b); return [-560, -280, 0, 280, 560].map((k) => [x + px * k, y + py * k, BLOOM_BAND.half + 140]); };
-/** The two Didinium: their homes this far either side of the spot, across the way. */
+/** The pair of Didinium: their homes this far either side of the spot, across the way. */
 export const DIDINIUM_SIDE = 220;
 export const didiniumHomes = (x, y, b) => { const [px, py] = perp(b); return [[x - px * DIDINIUM_SIDE, y - py * DIDINIUM_SIDE], [x + px * DIDINIUM_SIDE, y + py * DIDINIUM_SIDE]]; };
+/** The pack: a Dileptus and a Didinium side by side across the way (homes: [Dileptus, Didinium]). */
+export const PACK_SIDE = 200;
+export const packHomes = (x, y, b) => { const [px, py] = perp(b); return [[x - px * PACK_SIDE, y - py * PACK_SIDE], [x + px * PACK_SIDE, y + py * PACK_SIDE]]; };
 /** The bladderwort trap's centre: this far short of the leaf, toward whoever comes (its door faces them). */
 export const TRAP_IN = 520;
 export const trapAt = (x, y, b) => [x - Math.cos(b) * TRAP_IN, y - Math.sin(b) * TRAP_IN];
 /** The giant amoeba's resting radius (µm): it nearly fills the view at zoom 1. */
 export const GIANT_R = 230;
 
+// ---- the food trail (trail.js; the owner, 2026-11-04: "little groups of food as frequent checkpoints on the
+// way to the portal so that if you follow that and eat all the food you'll be getting closer and closer")
+/**
+ * Clusters of food from the start to the portal: the first `first` µm up the screen (in the opening view), then
+ * one every `step` µm (1.43 screen heights at the start zoom: the next is at the view's edge or just past it
+ * when you finish one), `count` of them, the last `last` µm short of the leaf (the glow shows from there).
+ * Each holds `items` bacterial clumps within `r` of its middle at one depth (mid-drop, `z` ± zr). A player
+ * with no unfinished cluster within `ahead` toward the portal gets one `step` ahead of them, toward it, in
+ * water nobody has seen (`rejoin`). `clear`: no encounter is placed within this of a cluster.
+ */
+export const TRAIL = { first: 420, step: 1350, count: 20, last: 1330, r: 62, items: [4, 6], z: 40, zr: 16, ahead: 2100, clear: 430, endShort: 700, activate: 1900, seed: 7 };
+/** The distance of path cluster k from the start (µm). */
+export const trailDist = (k) => TRAIL.first + TRAIL.step * k;
+/** The middle of the gap after cluster g (where the path's hunters lie). */
+export const gapDist = (g) => trailDist(g) + TRAIL.step / 2;
+/** The default path's portal: just past the last cluster (27.4 mm: ~55 s holding the stick up, ~33 s dashing). */
+export const PORTAL_DIST = trailDist(TRAIL.count - 1) + TRAIL.last;
+/** The cluster spots along the default path (START, up the screen): [[x, y], ...]. */
+export const trailLine = (b = Math.PI / 2) => Array.from({ length: TRAIL.count }, (_, k) => [START.x + Math.cos(b) * trailDist(k), START.y + Math.sin(b) * trailDist(k)]);
+
 /**
  * The director's settings (2D: its x, z are our x, y). One cell ≈ a third of
- * the view; seenDist ≈ two views; the warm-up and the calm breaks are the
- * rhythm (the owner: an obstacle, a calm break, the next).
+ * the view at zoom 1; seenDist ≈ two views; the warm-up and the calm breaks
+ * are the rhythm (the owner: an obstacle, a calm break, the next; 2026-11-04:
+ * "more enemies around to battle": the breaks are 4 s now, 7.5 before).
  */
 export const DIRECTOR = {
   mode: '2d', cell: 250, groundY: 0, seenDist: 1300, nearSeen: 260, seed: 41, moveSpeed: 60,
   bounds: { x0: START.x - DROP_R, x1: START.x + DROP_R, z0: START.y - DROP_R, z1: START.y + DROP_R },
-  // the warm-up: ~4 s of swimming; a calm break of ~7.5 s of swimming clear of the last encounter
-  warmup: { sec: 4 }, calm: { sec: 7.5 }, linger: 5,
+  // the warm-up: ~4 s of swimming; a calm break of ~4 s of swimming clear of the last encounter
+  warmup: { sec: 4 }, calm: { sec: 4 }, linger: 5,
   // seen but not gone to: met once everyone is 2.2 mm off, or after 8 s in sight nearby (it is never moved)
   passDist: 2200, watchSec: 8,
 };
+/** Which gap of the default path's trail each encounter lies in (after cluster g; the portal: PORTAL_DIST). */
+export const PATH_GAPS = { dileptus: 2, didinium: 5, bloom: 7, pair: 10, giant: 13, pack: 16 };
 export const ENCOUNTERS = [
-  // Dileptus: its trunk's slash; a trichocyst burst (B) drives it off
-  { id: 'dileptus', size: 420, visible: 380, minAhead: 1800, maxAhead: 2400, minNear: 900, maxNear: 1300 },
+  // a Dileptus: its trunk's slash; B blocks it, X jabs it
+  { id: 'dileptus', size: 420, visible: 380, minAhead: 1500, maxAhead: 2100, minNear: 900, maxNear: 1300 },
+  // a Didinium alone: its crouch and lunge
+  { id: 'didinium', size: 380, visible: 300, minAhead: 1500, maxAhead: 2100, minNear: 900, maxNear: 1300 },
   // the Chlamydomonas bloom: a band across the way to push and gulp through
   { id: 'bloom', size: 760, minAhead: 1500, maxAhead: 2100, minNear: 1000, maxNear: 1400, parts: bloomParts },
-  // the giant amoeba: slow, huge, tall; it engulfs what it covers. Keep away (over it, round it)
-  { id: 'giant', size: 520, visible: GIANT_R + 160, minAhead: 1600, maxAhead: 2200, minNear: 1000, maxNear: 1400 },
-  // the two Didinium, side by side across the way
-  { id: 'didinium', size: 480, minAhead: 1500, maxAhead: 2100, minNear: 900, maxNear: 1300,
+  // the pair of Didinium, side by side across the way
+  { id: 'pair', size: 480, minAhead: 1500, maxAhead: 2100, minNear: 900, maxNear: 1300,
     parts: (x, y, b) => didiniumHomes(x, y, b).map(([hx, hy]) => [hx, hy, 200]) },
+  // the giant amoeba (a set piece): slow, huge, tall; it engulfs what it covers. Keep away (over it, round it)
+  { id: 'giant', size: 520, visible: GIANT_R + 160, minAhead: 1600, maxAhead: 2200, minNear: 1000, maxNear: 1400 },
+  // the pack: a Dileptus and a Didinium together
+  { id: 'pack', size: 480, minAhead: 1500, maxAhead: 2100, minNear: 900, maxNear: 1300,
+    parts: (x, y, b) => packHomes(x, y, b).map(([hx, hy]) => [hx, hy, 260]) },
   // the boss and the way on: the biofilm on its leaf, the bladderwort trap on guard in front of it
   { id: 'portal', size: 700, minAhead: 2300, maxAhead: 3000, minNear: 1100, maxNear: 1500, final: true,
     parts: (x, y, b) => { const [tx, ty] = trapAt(x, y, b); return [[x, y, 300], [tx, ty, 330]]; } },
 ];
 /** How close counts as met (µm from the encounter's spot; the bloom: from its band). */
-export const MET = { dileptus: 520, bloom: 220, giant: 600, didinium: 560, portal: 300 };
+export const MET = { dileptus: 520, didinium: 520, bloom: 220, pair: 560, giant: 600, pack: 560, portal: 300 };
 /** A lingering player: the current encounter comes over (main.js driftEncounter, 300 µm/s after 4 s) to this far from them. */
-export const DRIFT_TO = { dileptus: 360, bloom: 120, giant: 430, didinium: 390 };
+export const DRIFT_TO = { dileptus: 360, didinium: 380, bloom: 120, pair: 390, giant: 430, pack: 390 };
+/** The hunters each encounter brings: which Dileptus (0, 1) and which Didinium (0-3), home by home (main.js). */
+export const SQUADS = { dileptus: [['dileptus', 0]], didinium: [['didinium', 0]], pair: [['didinium', 1], ['didinium', 2]], pack: [['dileptus', 1], ['didinium', 3]] };
+/** Each squad member's home for an encounter at (x, y) met coming along b: [[hx, hy], ...] in SQUADS order. */
+export const squadHomes = (id, x, y, b) => (id === 'pair' ? didiniumHomes(x, y, b) : id === 'pack' ? packHomes(x, y, b) : [[x, y]]);
 /**
  * The default path (shared/director.js `defaultPath`; the owner, 2026-11-01: "a default path to a portal,
  * but just dynamically generate the other directions"): every encounter laid along BEARING on the first
  * frame, at the distances a rush meets them, out of sight, so the way on exists from the start.
  */
-export const DEFAULT_PATH = { from: { x: START.x, z: START.y }, bearing: BEARING, rush: RUSH, lateral: [0, 120, -120, 240, -240, 360, -360] };
+export const DEFAULT_PATH = { from: { x: START.x, z: START.y }, bearing: BEARING, rush: RUSH, lateral: [0, 120, -120, 240, -240, 360, -360],
+  // each in its gap of the trail (2026-11-04; before, at a rush's distances: 5.5, 13.7, 22, 30 and 39 mm)
+  dists: ENCOUNTERS.map((e) => (e.final ? PORTAL_DIST : gapDist(PATH_GAPS[e.id]))) };
 /** Encounters go anywhere in the dish, not on the way back and not on the start. */
 export const canPlace = (x, y, r) => Math.hypot(x - START.x, y - START.y) < DROP_R - 3000 - r && Math.hypot(x - BACK.x, y - BACK.y) > 900 + r && Math.hypot(x - START.x, y - START.y) > 700 + r;
 /** Distance from (x, y) to the bloom's band (middle hx, hy, lying across bearing b). */
