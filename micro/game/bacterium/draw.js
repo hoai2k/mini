@@ -258,15 +258,19 @@ export function createDrawer(world) {
       S.amoebaCut(ox, oy, A.ang, ax, bb, amp, A.seed, cutT, bodyMat);
       // blanching round it: the cytoplasm pales where it is drilled, more the more irritated it is
       const ux = Math.cos(T.a), uy = Math.sin(T.a), step = Math.max(2.5, T.w * 1.2), f = (0.45 + 0.55 * irr) * fade;
-      blanch.dn = -0.004 * f; blanch.scat = 0.14 * f; blanch.fl[0] = 0.025 * f * chan.memb; blanch.ab[0] = blanch.ab[1] = blanch.ab[2] = -0.0015 * f;
+      blanch.scat = 0.1 * f; blanch.fl[0] = 0.02 * f * chan.memb; blanch.ab[0] = blanch.ab[1] = blanch.ab[2] = -0.0012 * f;
       for (let u = 0; u <= T.len + 0.01; u += step) { at(T.x + ux * u, T.y + uy * u, _p); if (S.inView(_p.x, _p.y, T.w * 3)) S.disc(_p.x, _p.y, T.w * 2.4, blanch); }
       // pinching: the lips of its mouth swell and close in (the tell; main.js rings it, the warning line says so)
       if (pin > 0) {
         for (const sg of [1, -1]) {
-          const v = sg * T.w * (1.15 - 0.9 * pin);
-          at(T.x - uy * v + ux * 1.5, T.y + ux * v + uy * 1.5, _p);
-          lip.dn = 0.03 * (0.6 + 0.4 * pin); lip.scat = 0.1 + 0.3 * pin; lip.fl[0] = (0.05 + 0.08 * pin) * chan.memb;
-          if (S.inView(_p.x, _p.y, 6)) S.disc(_p.x, _p.y, 1.6 + 1.6 * pin, lip);
+          // (at the neck, 7 µm in, past its thin clear margin, where the tunnel narrows most)
+          const v = sg * T.w * (1.1 - 0.75 * pin), u0 = Math.min(T.len, 7);
+          for (let j = 0; j < 3; j++) {
+            const uj = u0 + (j - 1) * 2.2;
+            at(T.x - uy * v + ux * uj, T.y + ux * v + uy * uj, _p);
+            lip.dn = 0.025 * (0.5 + 0.5 * pin); lip.scat = 0.1 + 0.3 * pin; lip.fl[0] = (0.05 + 0.08 * pin) * chan.memb;
+            if (S.inView(_p.x, _p.y, 6)) S.disc(_p.x, _p.y, 0.8 + 1.1 * pin, lip);
+          }
         }
       }
       // just shut: a fresh food vacuole where it closed
@@ -307,8 +311,8 @@ export function createDrawer(world) {
   }
   const bodyMat = { dn: 0.03, scat: 0.05, fl: [0.04, 0, 0], memb: 1, ab: [0.003, 0.003, 0.004], z: 0.2 };
   const cutT = { x: 0, y: 0, a: 0, len: 0, w: 0, pinch: 0 }, _p = { x: 0, y: 0 };
-  const blanch = { dn: -0.004, scat: 0.14, fl: [0.02, 0, 0], ab: [-0.0015, -0.0015, -0.0015], cap: 2, z: 0.2 };
-  const lip = { dn: 0.03, scat: 0.1, fl: [0.05, 0, 0], memb: 1, ab: [0.003, 0.003, 0.004], cap: 3, z: 0.2, wobble: 0.2, seed: 5 };
+  const blanch = { dn: 0, scat: 0.1, fl: [0.02, 0, 0], ab: [-0.0012, -0.0012, -0.0012], cap: 2, z: 0.2 };
+  const lip = { dn: 0.025, scat: 0.1, fl: [0.05, 0, 0], memb: 1, ab: [0.003, 0.003, 0.004], cap: 3, z: 0.2 };
   const granMat = { dn: 0.08, scat: 0.6, ab: [0.02, 0.02, 0.03], z: 0 };
   const podMat = { dn: 0.03, scat: 0.06, fl: [0.04, 0, 0], memb: 1, ab: [0.003, 0.003, 0.004], cap: 5, z: 0.2, wobble: 0.15, seed: 0 };
   function pseudopods(S, A, t) {

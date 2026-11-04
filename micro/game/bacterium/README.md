@@ -426,6 +426,62 @@ the sediment bank), with everything on it from the first frame:
   the host, sealed or not, with the distance. Test hooks: `portalArrow()`,
   `portals()`, `portalSealed()`, `focus(slot)`, `challenges()`.
 
+### The amoeba: routed, never killed; tunnels (4 November 2026)
+
+The owner: "In the bacteria board, the amoeba should essentially have
+infinite HP (because it's huge, right?), but be able to be routed by
+attacks. Also you should be able to eventually drill a hole straight
+through its pseudopod or body if you try hard enough, though, it can
+surround you and trap you easier when you're burrowing, so you'd have to be
+careful to back off and ensure you don't get surrounded and caught inside
+it." So (`guards.js` `IRR`, `TUN`, `PINCH`, `WRAP`; `world.js` `AMOEBA_ARMS`,
+`tunnelCut`):
+
+- **No health.** Nothing about it falls to zero and it never dies, dissolves
+  or fades; it has no bar. What your attacks build is its **irritation**
+  (0..1), a leaky sum: drilling, X and the toxin add to it and it ebbs all
+  the time (a time constant of 60 s), so a lone cell or a small swarm never
+  gets anywhere, and only an attack kept up hard enough tips it over. The
+  drills at one spot share it (a tunnel's n drillers count n^0.6), deeper
+  tunnels hurt it more, and however hard it is drilled it rises at most
+  0.17 a second: routing it takes a while. Y's toxin adds 0.2 at once.
+- **You see it working**: its body recoils from the drills (up to 10 µm, a
+  jolt on each X), its cytoplasm blanches round every drill site, its
+  granules flinch away from the tunnels, its contractile vacuoles pump
+  faster; the gauge reads unbothered, stung, flinching, giving way, and at
+  half way a line says "The amoeba flinches from your drills: keep at it
+  and it will give way".
+- **Routed**, it flows away along its own line, off the way, over about four
+  seconds (to its own length and more to one side, away from the swarm that
+  drove it), and stays there, whole; the gate is open.
+- **Tunnels.** Members drilling at one spot bore a tunnel into it: the
+  first to latch there opens one, the rest crowd in behind it, the front
+  ones at its rounded end and the rest queued down it, a row every 1.3 µm.
+  It deepens with every member drilling it (0.35 µm a second × the drill
+  rate × drillers^0.6, slower the deeper) and widens with them (2.2 to
+  6 µm half-width), X jolts it deeper, and left alone 1.5 s it closes again
+  at 1.2 µm a second as the cytoplasm flows back. It is cut out of the body
+  in the picture (`SHAPE.AMOEBA_CUT`: the body's own thickness taken away
+  inside its walls) and for every cell (`world.insideAmoeba` cuts it out:
+  a cell in a tunnel is inside the amoeba's outline yet in open water).
+- **Through.** Three thin pseudopods reach out of its front (`AMOEBA_ARMS`,
+  9 to 13 µm thick, swaying): 40 members boring into the side of one get
+  through in a few seconds; with enough effort a tunnel gets through the
+  220 µm body too. A tunnel out past the far side is a passage: its drillers
+  swim on through it, and it stays open three times as long.
+- **The risk.** A tunnel with your cells in it, 10 µm deep or more, for
+  1.5 s, starts to **pinch shut**: its mouth narrows over 1.6 s (the lips of
+  the neck swell and close in, a solid red ring round it filling, "The
+  tunnel is pinching shut: pull out of the tunnel!"), then it closes on the
+  cells still inside that were warned at least half its tell before (deep in
+  it near-certain, near its mouth less; at most 30), engulfed where they are
+  (the vacuole animation), and half the tunnel fills in; then it rests 5 s.
+  Its pseudopod loop also closes 1.25 times as fast round cells burrowed
+  more than 10 µm under its surface, and closes round at most 30 at once.
+  **Backing out saves them**: steer away and the members in a tunnel reverse
+  out of it (a spirillum swims either way: they back straight out rather
+  than turning in it) and dart clear.
+
 ### Every loss is an attack you can see coming (the audit, 4 November 2026)
 
 The owner: "when I went over to attack the amoeba, it looked like I was
@@ -440,6 +496,7 @@ be lost, before and now:
 | --- | --- | --- |
 | the amoeba's bite | every cell at its edge, drillers too; tell barely visible | **only cells inside a loop of pseudopods**: two pseudopods flow out of its edge either side of the cells crowding its front and curve round them over 1.8 s (thick and dark, a dashed red ring round the loop filling as it closes, "Its pseudopods are closing round your cells: pull out of the loop!"); at the bite the loop closes on the cells still in it; drillers at its plain edge are never taken |
 | inside the amoeba for 1.2 s | engulfed, silently | **none**: a member that swims into it is pushed back out |
+| a tunnel pinching shut (since the tunnels, above) | — | only cells it warned at least 0.8 s before (the narrowing neck, the ring, "pull out of the tunnel!"), at most 30 |
 | the peritrich's mouth | a member within 3 µm of it was eaten at once | **none**: pushed back out; only its bite takes members |
 | the peritrich's bite | the cone in front of its mouth after a 1.8 s tell | the same, its cone now outlined on screen (red, dashed) during the tell and its markers sized for the zoom |
 | Stentor's suction | continuous in its cone | the same, but a member in the cone is warned first and only taken after 0.8 s in it; the cone outlined (red, dashed) while any of your cells is in it, the warning line, the shimmer and streamlines sized for the zoom |
@@ -555,23 +612,26 @@ bacterium is like an extra HP for fighting sake". A tug-of-war you can read:
   driller bores 0.35 more at once), **Y** fires the toxin (army 12: 12 % of
   the enemy's health). Steer on and the drills let go once the swarm's middle
   has gone 24 µm past its own radius from them.
-- **Its health** is the brass gauge at the top ("Amoeba · 63 drilling") and a
+- **Its health** is the brass gauge at the top ("Stentor · 63 drilling") and a
   bar over the enemy (warm in its tell), and the enemy shows it: the bell
-  shrinks and darkens, the amoeba's edge thins and loses its granules,
-  Stentor pales, and each flashes where it is hit. Out of contact it grows
-  back (twice as fast with nobody drilling).
-- **Beaten**, it dies, dissolves or flees, and the way is open: the
+  shrinks and darkens, Stentor pales, and each flashes where it is hit. Out
+  of contact it grows back (twice as fast with nobody drilling). The amoeba
+  has no health (next section): its gauge names how it is taking it
+  ("Amoeba · flinching · 63 drilling"), with no bar.
+- **Beaten**, it dies, flees or is routed, and the way is open: the
   peritrich coils up and its bell dissolves away, the pack is killed off,
-  the amoeba withdraws into the sediment and fades, Stentor contracts and
-  stays shut. It stays beaten.
+  the amoeba flows away off the way, whole, Stentor contracts and stays
+  shut. It stays beaten.
 - **The numbers** (`flock.test.mjs`; health / regrowth per s): peritrich
-  80 / 3, Bdellovibrio pack 16 × 10, amoeba 550 / 4, Stentor 2000 / 3. A lone
-  cell gets nowhere; three times a gate's need wins in a few seconds (42 at
-  the peritrich in ~4.5 s, 150 at the pack in ~4.5 s, 450 at the amoeba in
-  ~1.5 s, 900 at Stentor in ~3.5 s). The amoeba's need (150): pulling back at
-  each tell, it wins keeping ~140 (~40 s); pushing in regardless, ~110 are
-  swallowed. The peritrich's need (14): drilling its back, all 14 live;
-  driven into its mouth, 5 are sucked in.
+  80 / 3, Bdellovibrio pack 16 × 10, Stentor 2000 / 3; the amoeba is routed,
+  not worn down (next section). A lone cell gets nowhere; three times a
+  gate's need wins in a few seconds (42 at the peritrich in ~4.5 s, 150 at
+  the pack in ~5 s, 450 at the amoeba in ~6 s, 900 at Stentor in ~3.5 s).
+  The amoeba's need (150): drilling its edge and pulling out of each attack,
+  it is routed in ~33 s with ~145 left; burrowing in regardless, in ~6 s with
+  ~125 left (kept up for 15 s with no rout, burrowed cells lose ~140, careful
+  ones ~5). The peritrich's need (14): drilling its back, all 14 live; driven
+  into its mouth, 7 are sucked in.
 
 - **A lone cell** still has its own fights with the predators that come for
   it when it has no swarm (`runFights`: the peritrich's surge, a pack
@@ -898,8 +958,14 @@ to a stop; nothing left where the old walls were); kin over the old cap
 answer and the stranger strain never joins; **members are HP** (three hits
 take three members, then your cell); **the battles** (for each gate: a lone
 cell gets nowhere and three times its need wins fast; at the amoeba a
-careful swarm of its need, pulling back at each tell, wins keeping most and a
-reckless one loses many; at the peritrich a swarm driven into its mouth loses
+careful swarm of its need, pulling back at each tell, routs it keeping most,
+a reckless one routs it sooner, and kept up with no rout burrowed cells lose
+many times more; the amoeba can't be killed (no health; routed, it is still
+whole), sustained drilling routs it (its irritation builds, ebbs when you
+stop) and it flows off the way, a tunnel deepens with drilling and closes
+when left, a thin pseudopod can be bored through (a passage), a tunnel's
+pinch takes only cells it warned (its neck narrowing first), and backing out
+in time saves them; at the peritrich a swarm driven into its mouth loses
 more than one drilling its back; the capture zones: a bite takes most of the
 members deep in its zone and none outside it, and each taken member is still
 there, drawn in, then digesting, and only gone after its whole end; a
@@ -1146,8 +1212,12 @@ page runs before the request list has them), with procedural stand-ins:
   members poisoning what eats them are real kinds of defence (type VI
   secretion, violacein) but not of *Magnetospirillum*; "drilling" into a
   protist, the enemies' rhythm of tell and bite, their capture zones (and the faint flow lines and shadows that show them), members darting out at once when you pull back, the eaten animations (a real vacuole forms in seconds to minutes), the health numbers, an enemy
-  staying beaten, the amoeba sliding along its edge to stay in front of you
-  and withdrawing, the pack keeping to its gate, and the host letting you in
+  staying beaten, the amoeba sliding along its edge to stay in front of you,
+  its irritation and rout (a real amoeba does retreat from noxious contact,
+  but not on a meter), bacteria boring tunnels through an amoeba's cytoplasm
+  and the tunnels pinching shut on them (a real amoeba engulfs what presses
+  into it; cells do not bore through), and members reversing out of a
+  tunnel (real spirilla do swim either way), the pack keeping to its gate, and the host letting you in
   only once Stentor is beaten are game rules.
 - **The drop** (see **The drop**): a real drop's meniscus bends light in a
   much thinner band, and a cell reaching it is held by surface tension in a

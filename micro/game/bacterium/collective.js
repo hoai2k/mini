@@ -467,17 +467,23 @@ export function createCollectives(world, hooks = {}) {
       const catchUp = m.flee > 0 ? 1.7 : 1.15 + Math.min(0.85, Math.max(0, d - C.R0 * 1.2) / 25);
       if (d > C.R0 * 3 + 40) { m.hw = Math.min(m.hw ?? 3, 3); if (m.hz !== undefined) m.hz = Math.max(m.hz, 6.5); } // (a straggler far behind swims up over the clay to catch up)
       let target = dm < (m.sp < 2 ? FLOCK.stop * 1.6 : FLOCK.stop) ? 0 : Math.min(dm, vm * dashK * catchUp);
+      let back = false;
       if (dm > 0.5) {
         const diff = wrap(Math.atan2(Dy, Dx) - m.a);
-        const w = Math.max(-m.turn * (m.flee > 0 ? 2 : 1), Math.min(m.turn * (m.flee > 0 ? 2 : 1), diff * FLOCK.turnGain));
-        m.a += w * dt;
-        target *= 0.3 + 0.7 * Math.max(0, Math.cos(diff));
+        // pulling back out (m.flee) with the way out behind it: it reverses (a spirillum has a flagellum at each
+        // pole and swims either way), backing straight out of a tunnel or a crowd instead of turning in it
+        if (m.flee > 0 && Math.cos(diff) < -0.4) { back = true; target *= -Math.cos(diff); }
+        else {
+          const w = Math.max(-m.turn * (m.flee > 0 ? 2 : 1), Math.min(m.turn * (m.flee > 0 ? 2 : 1), diff * FLOCK.turnGain));
+          m.a += w * dt;
+          target *= 0.3 + 0.7 * Math.max(0, Math.cos(diff));
+        }
       }
       if (!far) m.a += 0.22 * sq * gauss(r); // rotational Brownian motion (reduced, as for your steered cell)
       target *= world.filmK ? world.filmK(m.x, m.y) : 1; // the biofilm's EPS (thicker the deeper)
       if (insideAmoeba && world.insideAmoeba(m.x, m.y, t) > 0) target *= 0.35; // being engulfed
       m.sp += (target - m.sp) * (1 - Math.exp(-dt / m.acc));
-      m.vx = Math.cos(m.a) * m.sp; m.vy = Math.sin(m.a) * m.sp;
+      m.vx = Math.cos(m.a) * m.sp * (back ? -1 : 1); m.vy = Math.sin(m.a) * m.sp * (back ? -1 : 1);
       // currents: a raft is dragged less (dragK)
       let fx = 0, fy = 0;
       if (!world.flowNear || world.flowNear(m.x, m.y)) { const f = world.flowAt(m.x, m.y, flow); fx = f.x * C.drag; fy = f.y * C.drag; }

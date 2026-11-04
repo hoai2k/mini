@@ -67,21 +67,22 @@ export const GATES = {
 /** After a bite that took someone it swallows: SWALLOW.t s with no regrowth and drills biting SWALLOW.k times as hard (the moment to go back in). */
 export const SWALLOW = { t: 1.6, k: 1.5 };
 /** The amoeba's pseudopods (aimWrap): round the cells within WRAP.near µm of its edge, a loop WRAP.Rmin..Rmax µm across, engulfing at most WRAP.max at once (the nearest its middle). */
-export const WRAP = { near: 14, Rmin: 9, Rmax: 30, fast: 1.4, dent: 10, max: 30 };
+export const WRAP = { near: 14, Rmin: 9, Rmax: 30, fast: 1.25, dent: 10, max: 30 };
 /** Stentor's suction (suck): a member at depth k in its cone is taken at SUCK.rate·k² a second, at most SUCK.max a second in all. Its knockback per share of its health drilled away: KNOCK. */
 export const SUCK = { rate: 1.6, max: 4, grace: 0.8 };
 export const KNOCK = { drill: 6, volley: 0.004 };
 /**
  * The amoeba cannot be killed (the owner, 2026-11-04: "the amoeba should essentially have infinite HP (because
  * it's huge, right?), but be able to be routed by attacks"): what your attacks build up is its irritation, 0..1,
- * a leaky sum: drilling, X and the toxin add pain / IRR.k, and it ebbs by irritation / IRR.tau a second, so only
+ * a leaky sum: drilling, X and the toxin add pain / IRR.k, and it ebbs by irritation / IRR.tau a second (three
+ * times as fast once nobody has touched it for IRR.calm s), so only
  * an attack kept up hard enough ever gets it to 1, when it is routed: it flows off the way (world.js). The drills
  * at one spot share it: a tunnel's n drillers hurt it n^IRR.share times one drill's rate (more spots, more pain),
  * and more the deeper the tunnel (× 1 + depth / IRR.deep). However hard it is attacked, its irritation rises at
  * most IRR.rate a second (it is huge: routing it takes a while, so a swarm burrowed in meets its traps); only
  * the toxin (Y, IRR.toxin at once) is not held to that.
  */
-export const IRR = { k: 200, tau: 30, deep: 60, share: 0.6, rate: 0.17, toxin: 0.2 };
+export const IRR = { k: 200, tau: 60, calm: 2, deep: 60, share: 0.6, rate: 0.17, toxin: 0.2 };
 /**
  * Its tunnels (the owner: "you should be able to eventually drill a hole straight through its pseudopod or
  * body if you try hard enough"): the members drilling at one spot bore a tunnel, a capsule TUN.w0..wMax µm
@@ -300,15 +301,22 @@ export function createGuards(world, coll, stentor, hooks = {}) {
       const D = m.drill;
       if (D && D.q === q) {
         // let go: steered away and left behind, drawn off by a stranger, or its Bdellovibrio gone
-        if (away || m.drift || Math.hypot(m.x - C.cx, m.y - C.cy) > leash || (D.ref && (D.ref.dead || D.ref.parked))) { m.drill = null; continue; }
+        if (away || m.drift || Math.hypot(m.x - C.cx, m.y - C.cy) > leash || (D.ref && (D.ref.dead || D.ref.parked))) {
+          // (one at the end of a tunnel reverses, its nose now pointing back out along the tunnel: a spirillum swims either way)
+          if (D.tun && away) { const A = q.A, ta = D.tun.a + A.ang; m.a = Math.atan2(-Math.sin(ta), -Math.cos(ta)); m.flee = Math.max(m.flee || 0, 0.8); }
+          m.drill = null; continue;
+        }
         // held on the surface where it latched (for the pack: on its Bdellovibrio), nose in, turning hard
         const bx = D.ref ? D.ref.x : cx, by = D.ref ? D.ref.y : cy;
         if (q.kind === 'amoeba') {
           // (on its surface as it flows, or at the end of its tunnel as that deepens: kept just outside it, in its frame)
           if (D.tun && D.tun.through) { m.drill = null; continue; } // (bored right through: on through the passage)
           if (D.tun) {
-            // in a tunnel: at its end (on its rounded end, as far across as it latched), boring on as it deepens
-            const T = D.tun, ux = Math.cos(T.a), uy = Math.sin(T.a), v = Math.max(-T.w * 0.85, Math.min(T.w * 0.85, D.v)), u = T.len + Math.sqrt(Math.max(0, T.w * T.w - v * v)) - 0.35;
+            // in a tunnel: at its end (on its rounded end, as far across as it latched), boring on as it deepens;
+            // the rest queued up behind, a row every 1.3 µm, pushing (D.rank: tunnels())
+            const T = D.tun, ux = Math.cos(T.a), uy = Math.sin(T.a), per = Math.max(1, Math.floor((2 * T.w) / 0.9)), row = Math.floor((D.rank || 0) / per);
+            const v = row ? ((((D.rank || 0) % per) + 0.5) / per - 0.5) * 2 * T.w * 0.8 : Math.max(-T.w * 0.85, Math.min(T.w * 0.85, D.v));
+            const u = Math.max(0.3 - row * 0.2, T.len + (row ? 0 : Math.sqrt(Math.max(0, T.w * T.w - v * v))) - 0.35 - row * 1.3);
             D.lx = T.x + ux * u - uy * v; D.ly = T.y + uy * u + ux * v;
           } else {
             LOC.x = D.lx; LOC.y = D.ly;
@@ -440,7 +448,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
   }
   function bite(q, t) {
     // the peritrich's surge sucks in its vortex; the amoeba's lobe closes over its reach
-    const n = take(q, t); globalThis.BY = globalThis.BY || {}; if (q.A) BY[q.A.wrap && q.A.wrap.fast ? 'fastwrap' : 'wrap'] = (BY[q.A.wrap && q.A.wrap.fast ? 'fastwrap' : 'wrap'] || 0) + n; // (taken first: an optional hook call would skip its arguments)
+    const n = take(q, t); // (taken first: an optional hook call would skip its arguments)
     hooks.onBite?.(q, n);
   }
   /**
@@ -526,9 +534,8 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     for (const C of coll.list) for (const m of C.members) {
       const D = m.drill;
       if (!D || D.q !== q || !D.tun) continue;
-      const T = D.tun; T.n++;
-      const ux = Math.cos(T.a), uy = Math.sin(T.a), ex = T.x + ux * T.len, ey = T.y + uy * T.len;
-      if (Math.hypot(D.lx - ex, D.ly - ey) < T.w + 2.5) T.tip++;
+      // (every one of them bores: those behind push the ones at its end; D.rank: its place in the queue)
+      const T = D.tun; D.rank = T.n++; T.tip++;
     }
     // the cells inside each (past its mouth), drilling or not
     eachFlock(q, (C) => {
@@ -606,7 +613,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     if (hit.length) q.swallowT = SWALLOW.t;
     T.len *= PINCH.keep; T.pinch = null; T.cool = PINCH.cool; T.shut = 0.6;
     for (const C of coll.list) for (const m of C.members) if (m.drill && m.drill.tun === T) m.drill = null;
-    globalThis.BY = globalThis.BY || {}; BY.pinch = (BY.pinch || 0) + hit.length; hooks.onBite?.(q, hit.length, 'tunnel');
+    hooks.onBite?.(q, hit.length, 'tunnel');
   }
 
   function update(dt, t, roster) {
@@ -661,7 +668,9 @@ export function createGuards(world, coll, stentor, hooks = {}) {
         A.surge += (0 - A.surge) * Math.min(1, dt * 4);
         if (live) tunnels(q, dt, t, dps);
         // its irritation: the drills' pain (more at the end of a deep tunnel), ebbing all the time (IRR)
-        q.irr = Math.max(0, q.irr - (q.irr / IRR.tau) * dt);
+        // (left alone over IRR.calm s, it calms three times as fast)
+        q.idleT = q.contact ? 0 : (q.idleT || 0) + dt;
+        q.irr = Math.max(0, q.irr - (q.irr / (q.idleT > IRR.calm ? IRR.tau / 3 : IRR.tau)) * dt);
         // (the drills at one spot share it: each tunnel hurts as its drillers^IRR.share, more the deeper it goes)
         let pain = 0, loose = 0;
         if (q.contact) {

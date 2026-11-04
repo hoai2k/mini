@@ -1962,7 +1962,7 @@ function threatMarks(i, cssPerUm) {
   const A = world.amoeba, Wr = A.wrap;
   if (Wr && !A.beaten) ring(Wr.x, Wr.y, Wr.R * cssPerUm, Wr.done ? 1 : Wr.p);
   // a tunnel pinching shut: a solid ring round its mouth, filling as it closes
-  if (!A.beaten) for (const T of A.tunnels) if (T.pinch) { const m = world.amoebaWorld(T.x + Math.cos(T.a) * Math.min(T.len, 8) * 0.5, T.y + Math.sin(T.a) * Math.min(T.len, 8) * 0.5, { x: 0, y: 0 }); ring(m.x, m.y, Math.max(12, (T.w + 4) * cssPerUm), Math.min(1, T.pinch.t / T.pinch.tell), false); }
+  if (!A.beaten) for (const T of A.tunnels) if (T.pinch) { const u = Math.min(T.len, 7), m = world.amoebaWorld(T.x + Math.cos(T.a) * u, T.y + Math.sin(T.a) * u, { x: 0, y: 0 }); ring(m.x, m.y, Math.max(12, (T.w + 3) * cssPerUm), Math.min(1, T.pinch.t / T.pinch.tell), false); }
   const g = guards.byId.grazer1;
   if (g.placed && !g.beaten && g.atk.st === 'tell' && g.engaged) {
     const P = g.g.pose, M = P.mouth, ua = Math.atan2(P.up.y, P.up.x), R = g.reach, p = projectView(i, { x: M.x, y: M.y, z: 0 });

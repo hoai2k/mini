@@ -124,8 +124,8 @@ ${ARMS_GLSL}
   }
   return d;
 }
-// its thickness at depth d: a thin clear margin, thick behind it
-float amoebaT(float d) { return (clamp(d * 0.35, 0.0, 1.5) + clamp((d - 6.0) * 0.6, 0.0, 9.0)) * smoothstep(-vBlur - uPx, vBlur + uPx, d); }
+// its thickness at depth d: a thin clear margin, thick behind it (a thin pseudopod a few µm thick)
+float amoebaT(float d) { return (clamp(d * 0.5, 0.0, 2.5) + clamp((d - 5.0) * 0.6, 0.0, 8.0)) * smoothstep(-vBlur - uPx, vBlur + uPx, d); }
 
 // chord of a round cross-section of radius r at distance d, widened to rr
 // (sub-pixel) and to rb (defocus) with the integrated amount kept.
@@ -248,20 +248,23 @@ void main() {
     rim = 1.0 - smoothstep(0.0, 2.0, d);
     tex = 0.85 + 0.3 * fbm(p * 0.6 + p2);
   } else if (type == 10) {
-    // a tunnel bored into the amoeba (drawn with its material negated): what the body would have there less
-    // what it has with the tunnel cut out, so the two sum to the body with the tunnel exactly. The tunnel: a
+    // a tunnel bored into the amoeba (drawn with its material negated): the body's own thickness there, taken
+    // away inside the tunnel, so the two sum to the body with the tunnel cut out. The tunnel: a
     // capsule from its mouth vF.xy along angle vF.z, vF.w long, half-width vC.x, its mouth narrowed by vE.a (a pinch).
+    // (the body there is taken away inside the tunnel's walls, softly at the wall; the outline stays the one the
+    // bacterium's world.js tunnelCut gives)
     float d = amoebaD(p, L, r, p1, p2);
     vec2 u = vec2(cos(vF.z), sin(vF.z));
     float uu = dot(p - vF.xy, u), s = clamp(uu, 0.0, vF.w);
     float we = vC.x * (1.0 - 0.8 * vE.a * (1.0 - smoothstep(4.0, 12.0, uu)));
-    float dc = min(d, length(p - vF.xy - u * s) - we);
-    float t0 = amoebaT(d), t1 = amoebaT(dc), dt = t0 - t1;
+    float e = we - length(p - vF.xy - u * s), soft = 0.35 + vBlur + uPx;
+    float cover = smoothstep(-soft, soft, e);
+    float t0 = amoebaT(d), dt = t0 * cover;
     if (dt <= 0.0) discard;
     float tx = 0.85 + 0.3 * fbm(p * 0.6 + p2);
-    float r0 = 2.0 * (1.0 - smoothstep(0.0, 2.0, d)), r1 = 2.0 * (1.0 - smoothstep(0.0, 2.0, dc));
+    float r0 = 2.0 * (1.0 - smoothstep(0.0, 2.0, d));
     o0 = vec4(vC.z * dt * tx, vC.w * dt, dt * vD.a, 0.0);
-    o1 = vec4(vD.rgb * vec3(t0 * r0 - t1 * r1, dt, dt) * tx, 0.0);
+    o1 = vec4(vD.rgb * vec3(dt * r0, dt, dt) * tx, 0.0);
     o2 = vec4(vE.rgb * dt * tx, 0.0);
     return;
   } else {

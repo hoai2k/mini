@@ -81,7 +81,7 @@ function fight(id, n, { x = true, maxT = 60, careful = false, mouth = false, log
     let tg = cc;
     if (id === 'grazer1') { const g = q.g; tg = mouth ? g.pose.mouth : { x: cc.x - g.pose.up.x * g.R * 1.3, y: cc.y - g.pose.up.y * g.R * 1.3 }; }
     if (id === 'stentor') tg = stentorFlank(stentor, C.cx, C.cy);
-    if (id === 'amoeba') { const k = careful ? 8 : 25; tg = { x: cc.x + Math.sin(q.A.ang) * k, y: cc.y - Math.cos(q.A.ang) * k }; } // (pushing on into it, past its edge: a reckless swarm burrows deep)
+    if (id === 'amoeba') { const k = careful ? 0 : 25; tg = { x: cc.x + Math.sin(q.A.ang) * k, y: cc.y - Math.cos(q.A.ang) * k }; } // (pushing on into it, past its edge: a reckless swarm burrows deep)
     // (the amoeba's tunnel pinching shut is a tell too)
     // (a player sees the attack coming and reacts: 0.4 s after its tell shows)
     const tell = q.kind === 'stentor' ? false : (q.atk.st === 'tell' && world.time - q.atk0 > 0.4) || q.atk.st === 'bite' || (q.kind === 'amoeba' && q.A.tunnels.some((T) => T.pinch && T.pinch.t > 0.4));
@@ -663,8 +663,8 @@ const amoebaFight = (n, at = 0) => {
   const mid = q.irr;
   assert.ok(mid > 0.15 && !q.beaten, `drilling builds its irritation (${mid.toFixed(2)} after 3 s), and does not rout it at once`);
   // let go: it ebbs
-  for (let i = 0; i < 16; i++) step(15, { x: nx, y: ny, m: 1 });
-  assert.ok(q.irr < mid * 0.95, `pulled away, its irritation ebbs (${mid.toFixed(2)} → ${q.irr.toFixed(2)})`);
+  for (let i = 0; i < 24; i++) step(15, { x: nx, y: ny, m: 1 });
+  assert.ok(q.irr < mid * 0.85, `pulled away, its irritation ebbs (${mid.toFixed(2)} → ${q.irr.toFixed(2)})`);
   for (let i = 0; i < 240 && !q.beaten; i++) step(15, { x: -nx, y: -ny, m: 0.7 });
   assert.ok(q.beaten && A.routed && q.hp === Infinity, `kept up, the drilling routs it (${q.irr.toFixed(2)})`);
   const x0 = A.x, y0 = A.y;
@@ -694,13 +694,13 @@ const amoebaFight = (n, at = 0) => {
   const along = (u, v) => { const ux = Math.cos(deep.a), uy = Math.sin(deep.a); return worldAt(A, deep.x + ux * u - uy * v, deep.y + uy * u + ux * v); };
   assert.ok(along(deep.len * 0.6, 0) < 0 && along(deep.len * 0.6, deep.w + 3) > 0, 'inside the tunnel is open water; beside it, body');
   // steer off: the drills let go, and after a moment the cytoplasm flows back in
-  const L0 = deep.len;
+  const L0 = deep.len, n0 = deep.n;
   for (let i = 0; i < 8; i++) step(15, { x: nx, y: ny, m: 1 });
   const L1 = deep.len;
   for (let i = 0; i < 60 && A.tunnels.includes(deep); i++) step(15);
   assert.ok(L1 >= L0 - 1.5 && !A.tunnels.includes(deep), `left alone it holds a moment (${L0.toFixed(1)} → ${L1.toFixed(1)} µm in 2 s), then closes up (gone)`);
   PINCH.minLen = oldMin; IRR.k = oldK;
-  battle.tunnel = `60 drilling bored ${L0.toFixed(1)} µm in 4 s (${deep.n} in it); left alone it closed in ${(TUN.hold + L0 / TUN.close).toFixed(0)} s`;
+  battle.tunnel = `60 drilling bored ${L0.toFixed(1)} µm in 4 s (${n0} in it); left alone it closed in ${(TUN.hold + L0 / TUN.close).toFixed(0)} s`;
 }
 /** A member's place in the amoeba's frame, and how deep it is under the body's surface as it was before any tunnel. */
 function T_world(A, m) { const W = A._w; const L = W.amoebaLocal(m.x, m.y, { x: 0, y: 0 }); L.inBody = W.amoebaAt(L.x, L.y, W.time, false); return L; }
