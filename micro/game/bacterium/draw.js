@@ -2,7 +2,7 @@
 // properties (refractive index step, scatter, fluorescent stain, absorbance).
 // Index steps: cytoplasm ≈ 1.38–1.39 in water 1.333 (Δn ≈ 0.05); flagellin
 // and phage protein ≈ 1.45–1.5; clay ≈ 1.55; magnetite ≈ 2.4.
-import { rng, WORLD } from './world.js';
+import { rng, WORLD, DROP } from './world.js';
 
 // Stain amounts per µm of chord. Thin things carry a lot of dye for their
 // volume (a filament is mostly surface), so their per-volume amount is high.
@@ -45,6 +45,10 @@ export function createDrawer(world) {
   // own defocus (so a cell 4 µm above is softer, not lost), a slight scale (depth.scale per µm), and a faint
   // offset footprint on the sediment under anything well above it.
   const depth = { focusH: 1.8, zk: 0.15, scale: 0.015, shadow: true };
+  // level of detail for a big swarm (perf; main.js sets px, the µm per screen pixel being drawn): a cell
+  // shorter than lod.simple px on screen is drawn as its body alone (no flagella, magnetosome chain,
+  // footprint or slime: none of them would show at that size), one instanced shape
+  const lod = { px: 0.05, simple: 12, crowd: 200 };
   const zOf = (o, z0 = 0) => (o.hz === undefined ? z0 : z0 + (o.hz - depth.focusH) * depth.zk);
   const sizeOf = (o) => (o.hz === undefined ? 1 : 1 + depth.scale * (o.hz - depth.focusH));
   const shade = { dn: 0, scat: 0, ab: [0, 0, 0], z: 0 };
@@ -131,7 +135,7 @@ export function createDrawer(world) {
     S.strand(x, y, a, L, rr, amp, wl, spBody);
     // a magnetosome chain along the axis: ~15 magnetite crystals of ~45 nm
     if (o.chain !== false) { spChain.fl[2] = MAG * chan.mag; spChain.z = z; S.chain(x, y, a, L * 0.48, 0.024, 15, spChain); }
-    if (opts.flagella) {
+    if (opts.flagella && o.flagella !== false) {
       // one flagellum at each pole (flag())
       spFlag.fl[1] = FLAG * chan.flag; spFlag.z = z;
       for (let sgn = 1; sgn >= -1; sgn -= 2) {
@@ -155,13 +159,19 @@ export function createDrawer(world) {
   function grazer(S, g, t) {
     const P = g.pose;
     const ext = g.ext;
-    const R = g.R * (0.82 + 0.18 * ext);
+    // its damage state (guards.js hpK): the bell shrinks and darkens as the drills wear it down; a hit
+    // flashes it; beaten, the bell dissolves away (fade)
+    const hp = g.hpK ?? 1, fade = 1 - (g.fade || 0), hit = g.hit ? 1 : 0;
+    if (fade <= 0.01) return;
+    const R = g.R * (0.82 + 0.18 * ext) * (0.8 + 0.2 * hp);
     // stalk: from the biofilm to the bell's base; coiled when contracted
     const bx = P.ox - P.up.x * R * 1.9, by = P.oy - P.up.y * R * 1.9;
     const sx = g.x, sy = g.base;
     const L = Math.hypot(bx - sx, by - sy);
-    S.strand((sx + bx) / 2, (sy + by) / 2, Math.atan2(by - sy, bx - sx), L, 0.9, 0.3 + (1 - ext) * 3, 3 + ext * 30, { dn: 0.035, scat: 0.2, centred: true, fl: [0.15 * chan.memb, 0, 0], memb: 1, z: 0.4 });
-    S.bell(P.ox, P.oy, P.ang, R, 8, R * 0.32, g.seed, { dn: 0.028, scat: 0.06, fl: [0.035 * chan.memb, 0, 0], memb: 1, ab: [0.004, 0.003, 0.006], z: 0.2 });
+    S.strand((sx + bx) / 2, (sy + by) / 2, Math.atan2(by - sy, bx - sx), L, 0.9, 0.3 + (1 - ext) * 3, 3 + ext * 30, { dn: 0.035 * fade, scat: 0.2 * fade, centred: true, fl: [0.15 * chan.memb * fade, 0, 0], memb: 1, z: 0.4 });
+    const dmg = 1 - hp;
+    S.bell(P.ox, P.oy, P.ang, R, 8, R * 0.32, g.seed, { dn: 0.028 * fade, scat: (0.06 + 0.12 * hit) * fade, fl: [(0.035 + 0.05 * hit) * chan.memb * fade, 0, 0], memb: 1, ab: [(0.004 + 0.02 * dmg) * fade, (0.003 + 0.022 * dmg) * fade, (0.006 + 0.016 * dmg) * fade], z: 0.2 });
+    if (fade < 1) return;
     // food vacuoles and granules inside the bell
     const rr = rng(Math.floor(g.seed * 100));
     for (let i = 0; i < 26; i++) {
@@ -204,9 +214,17 @@ export function createDrawer(world) {
   }
 
   function amoeba(S, A, t) {
-    S.edge(A.x, A.y, A.ang, A.width, A.depth, A.amp, A.seed, { dn: 0.03, scat: 0.05, fl: [0.04 * chan.memb, 0, 0], memb: 1, ab: [0.003, 0.003, 0.004], z: 0.2 });
+    // its damage state (guards.js hpK): the edge thins and its granules thin out as the drills wear it down;
+    // the surge (its bite) bulges the edge forward; beaten, it withdraws and fades
+    const hp = A.hpK ?? 1, fade = 1 - (A.fade || 0), hit = A.hit ? 1 : 0;
+    if (fade <= 0.01) return;
+    const k = fade * (0.55 + 0.45 * hp);
+    const sx = A.surge ? -Math.sin(A.ang) * 5 * A.surge : 0, sy = A.surge ? Math.cos(A.ang) * 5 * A.surge : 0;
+    S.edge(A.x + sx, A.y + sy, A.ang, A.width, A.depth, A.amp * (1 + 0.8 * (A.surge || 0)), A.seed, { dn: 0.03 * k, scat: (0.05 + 0.1 * hit) * k, fl: [(0.04 + 0.05 * hit) * chan.memb * k, 0, 0], memb: 1, ab: [0.003 * k, 0.003 * k, 0.004 * k], z: 0.2 });
     const c = Math.cos(A.ang), s = Math.sin(A.ang);
-    for (const g of granules) {
+    const nG = Math.round(granules.length * (0.35 + 0.65 * hp) * fade);
+    for (let gi = 0; gi < nG; gi++) {
+      const g = granules[gi];
       // granules stream toward the advancing edge, and are recycled at the back
       g.ly += 0.6 * (1 / 60);
       const edge = A.amp * (0.6 * Math.sin(0.07 * g.lx + A.seed + 0.2 * t) + 0.4 * Math.sin(0.17 * g.lx + 2 * A.seed - 0.13 * t));
@@ -228,7 +246,12 @@ export function createDrawer(world) {
       }
     } else if (c.kind === 'mtb') {
       if (c.bdelloplast || c.ghost) rodCell(S, c, t);
-      else spirillum(S, c.x, c.y, c.a, c.L, c.r, c.amp, c.wl, c.flPhase * 0.4 * c.sense, c.z, c.flPhase * (opts.slowBeat ? 1 : 5), { tumbling: c.tumble > 0 });
+      else {
+        // the stranger strain: never your kin (it does not answer your beacon), so it never looks like it:
+        // longer and thinner, a tighter helix, no magnetosome-chain stain, and always faintly amber
+        spirillum(S, c.x, c.y, c.a, c.L, c.r, c.amp, c.wl, c.flPhase * 0.4 * c.sense, c.z, c.flPhase * (opts.slowBeat ? 1 : 5), { tumbling: c.tumble > 0, chain: !c.stranger });
+        if (c.stranger && !c.waylay) tint(S, { x: c.x, y: c.y, a: c.a, L: c.L, r: c.r, amp: c.amp, wl: c.wl, bodyPhase: c.flPhase * 0.4 * c.sense }, c.z, 0.45);
+      }
     } else if (c.kind === 'bdello') {
       vibrio(S, c.x, c.y, c.a, c.L, c.r, c.curve, c.z, c.flPhase * (opts.slowBeat ? 1 : 5), c.tumble > 0 ? 1 : 0, { flagellum: !c.prey });
       // lining up to ram (main.js: c.windup): its leading pole sharpens into a bright point
@@ -240,14 +263,17 @@ export function createDrawer(world) {
     const W = world;
     // the biofilm and sediment surface
     // centred on x = 0 (its wavy top edge is in local x, matching world.js surfaceY), wide enough for the whole level
-    S.slab(0, WORLD.slabY, 2 * Math.max(-WORLD.x0, WORLD.x1) + 40, 70, W.slab.amp, W.slab.seed, { dn: 0.014, scat: 0.04, fl: [0.06 * chan.memb, 0, 0.0], ab: [0.012, 0.015, 0.024], z: -0.2, hk: 3 });
-    for (const e of W.eps) if (S.inView(e.x, e.y, e.L + e.amp + 3)) S.strand(e.x, e.y, e.a, e.L, 0.14, e.amp, e.wl, { dn: 0.012, scat: 0.15, centred: true, fl: [0.35 * chan.memb, 0, 0.04], z: e.z, phase: e.ph });
-    for (const c of W.film) {
-      if (!S.inView(c.x, c.y, 5)) continue;
+    // the sediment bank: deep enough that you never see past it (its EPS slows you to a stop: world.js filmK)
+    const B = S.box;
+    if (B.y0 < WORLD.slabY + 20) S.slab(0, WORLD.slabY, 2 * DROP.R + 400, 320, W.slab.amp, W.slab.seed, { dn: 0.014, scat: 0.04, fl: [0.06 * chan.memb, 0, 0.0], ab: [0.012, 0.015, 0.024], z: -0.2, hk: 3 });
+    // the scenery over the view only (world.js keeps it in a grid)
+    W.eachEps(B.x0 - 35, B.y0 - 35, B.x1 + 35, B.y1 + 35, (e) => { if (S.inView(e.x, e.y, e.L + e.amp + 3)) S.strand(e.x, e.y, e.a, e.L, 0.14, e.amp, e.wl, { dn: 0.012, scat: 0.15, centred: true, fl: [0.35 * chan.memb, 0, 0.04], z: e.z, phase: e.ph }); });
+    W.eachFilm(B.x0 - 5, B.y0 - 5, B.x1 + 5, B.y1 + 5, (c) => {
+      if (!S.inView(c.x, c.y, 5)) return;
       if (c.kind === 'coccus') S.disc(c.x, c.y, c.r, { ...cell(), z: c.z });
       else rodCell(S, c, t);
-    }
-    for (const g of W.grains) S.disc(g.x, g.y, g.r, { wobble: g.wob, seed: g.seed, cap: g.cap, ang: g.ang, dn: 0.2, scat: 0.35, fl: [0.006, 0.01, 0.0], ab: [0.05, 0.065, 0.09], z: g.z });
+    });
+    W.eachGrain(B.x0 - 30, B.y0 - 30, B.x1 + 30, B.y1 + 30, (g) => S.disc(g.x, g.y, g.r, { wobble: g.wob, seed: g.seed, cap: g.cap, ang: g.ang, dn: 0.2, scat: 0.35, fl: [0.006, 0.01, 0.0], ab: [0.05, 0.065, 0.09], z: g.z }));
     for (const p of W.specks) if (S.inView(p.x, p.y, 3.5)) S.disc(p.x, p.y, p.r, { wobble: 0.2, seed: p.seed, dn: 0.2, scat: 0.5, fl: [0.01, 0.015, 0], ab: [0.06, 0.08, 0.11], z: p.z });
     for (const p of W.patches) {
       // a flake of decaying detritus at the patch's heart (the dissolved food itself is invisible)
@@ -320,7 +346,9 @@ export function createDrawer(world) {
     const L = L0 * (1 - 0.45 * c); // contracted: it shortens in a flash toward its foot
     const ca = Math.cos(ang), sa = Math.sin(ang);
     const at = (u, v) => [fx + ca * u - sa * v, fy + sa * u + ca * v];
-    const blue = { dn: 0.03, scat: 0.12, fl: [0.06 * chan.memb, 0, 0], memb: 1, ab: [0.014, 0.006, 0.002], z: 0.2, phase: B.phase * 0.15 };
+    // its damage state (guards.js hpK): paler as the drills wear it down, a flash where they hit
+    const hp = B.hpK ?? 1, hit = B.hit ? 1 : 0, pale = 0.45 + 0.55 * hp;
+    const blue = { dn: 0.03, scat: 0.12 + 0.15 * hit, fl: [(0.06 + 0.06 * hit) * chan.memb, 0, 0], memb: 1, ab: [0.014 * pale, 0.006 * pale, 0.002 * pale], z: 0.2, phase: B.phase * 0.15 };
     if (S.inView(fx + ca * L * 0.5, fy + sa * L * 0.5, L + R * 1.5)) S.trumpet(fx, fy, ang, L, R, 2.6, 6.1, blue);
     // the macronucleus: a chain of beads down the body (moniliform)
     for (const b of beads) {
@@ -364,6 +392,14 @@ export function createDrawer(world) {
 
   // --- your army (collective.js): kin cells, free or members, the beacon and answers, the slime, the toxin ---
   const KIN_MEMBER = { tumbling: false, fl: 1 }, KIN_FREE = { tumbling: false, fl: 0.8 };
+  const KIN_SIMPLE = { tumbling: false, fl: 1, chain: false, flagella: false }, KIN_FREE_SIMPLE = { tumbling: false, fl: 0.8, chain: false, flagella: false };
+  // the drill's pore: a bright speck at the nose of a member boring into an enemy, flickering
+  const boreMat = { dn: -0.02, scat: 1.4, fl: [0, 0, 0], ab: [0, 0, 0], z: 0 };
+  function bore(S, k, t) {
+    const f = 0.6 + 0.4 * Math.sin(t * 31 + k.wa * 7);
+    boreMat.scat = 1.6 * f; boreMat.fl[0] = 0.55 * f * chan.memb; boreMat.fl[1] = 0.25 * f; boreMat.dn = -0.025 * f;
+    S.disc(k.x + Math.cos(k.a) * k.L * 0.55, k.y + Math.sin(k.a) * k.L * 0.55, 0.32 + 0.12 * f, boreMat);
+  }
   const pulse = { dn: 0, scat: 0, fl: [0, 0, 0], ab: [0, 0, 0], z: 0 };
   /** A ring of soft spots: the beacon on the medium (autoinducer drawn so it shows: a labelled departure). */
   function ring(S, x, y, R, fade, size, n) {
@@ -433,15 +469,29 @@ export function createDrawer(world) {
       // a charged collective holds the toxin: a faint purple (violacein-like) absorbance
       const charge = C ? C.charge : 0;
       // (2.5D: at its height round your cell's plane, a touch bigger above it, with a footprint below)
-      const kz = zOf(k, C ? 0 : k.z), ks = sizeOf(k);
-      footprint(S, k, k.L, k.r);
-      overGrain(S, k, k.L);
+      const crowd = C && C.members.length > lod.crowd; // (a big swarm: no footprints, windows or per-cell slime: the swarm reads as one)
+      const kz = zOf(k, C ? 0 : k.z) * (crowd ? 0.4 : 1), ks = sizeOf(k); // (a big swarm is kept nearer the focus, so it reads as a swarm, not a blur)
+      const simple = k.L / lod.px < lod.simple; // (LOD: too small on screen for its parts to show)
+      if (simple) {
+        // (far out, a cell is drawn a little fatter than life so a big swarm still reads at a wide field: at least
+        // 1.6 px across, with its optical path kept per µm, a labelled stretch)
+        spirillum(S, k.x, k.y, k.a, k.L * ks, Math.max(k.r * ks, 0.8 * lod.px), k.amp, k.wl, k.bodyPhase, kz, 0, C ? KIN_SIMPLE : KIN_FREE_SIMPLE);
+        const lm = k.label && label(k.label, 1, kz);
+        if (lm) { lm.phase = k.bodyPhase; S.strand(k.x, k.y, k.a, k.L * ks, k.r * ks, k.amp, k.wl, lm); }
+        if (k.drift) tint(S, k, kz, Math.min(1, 0.4 + k.drift.t / 2));
+        if (k.drill) bore(S, k, t);
+        continue;
+      }
+      if (!crowd) { footprint(S, k, k.L, k.r); overGrain(S, k, k.L); }
       spirillum(S, k.x, k.y, k.a, k.L * ks, k.r * ks, k.amp, k.wl, k.bodyPhase, kz, k.flPhase * fl, C ? KIN_MEMBER : KIN_FREE);
       // its label (answering a player's beacon turned it); fading in over its answer pulse
       const lm = k.label && label(k.label, k.answer && k.answer.t >= 0 ? Math.min(1, k.answer.t / 0.7) : 1, kz);
       if (lm) { lm.phase = k.bodyPhase; S.strand(k.x, k.y, k.a, k.L * ks, k.r * ks, k.amp, k.wl, lm); }
       // drifting off after a stranger: tinted amber (fading back as it is called back)
       if (k.drift) tint(S, k, kz, Math.min(1, 0.4 + k.drift.t / 2));
+      // drilling into an enemy: a bright pore at its nose, flickering as it bores (guards.js)
+      if (k.drill) bore(S, k, t);
+      if (crowd) continue;
       if (charge > 0.2) { const ab = kinTox.ab; ab[0] = 0.03 * charge; ab[1] = 0.09 * charge; ab[2] = 0.02 * charge; S.disc(k.x, k.y, 0.5, kinTox); }
       // the slime shield: EPS round every member (thin, faint in phase, a haze in fluorescence)
       if (C && C.level >= 1) { kinSlime.fl[0] = 0.03 * chan.memb; S.disc(k.x, k.y, 2.1, kinSlime); }
@@ -666,5 +716,5 @@ export function createDrawer(world) {
     }
   }
 
-  return { draw, drawPlayer, chan, chanLab, opts, LABELS, depth };
+  return { draw, drawPlayer, chan, chanLab, opts, LABELS, depth, lod };
 }

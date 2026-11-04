@@ -143,6 +143,8 @@ uniform float uHalo, uNoise, uPlateOn, uHasPlate, uStopR, uGain;
 uniform vec3 uCol0, uCol1, uCol2; // fluorescence pseudo-colours
 uniform vec3 uCol3, uCol4;        // two label channels (the alpha of attachments 1 and 2)
 uniform vec3 uBg;           // phase background
+uniform vec4 uDrop;         // the drop's edge: centre (µm), radius (µm), how strongly the light bends there (0: no drop)
+uniform vec3 uHost;         // a haze toward a point (the bacterium's host cell): its position (µm), strength (0: none)
 layout(location = 0) out vec4 o;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -153,13 +155,28 @@ float vnoise(vec2 p) {
 float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * vnoise(p); p *= 2.03; a *= 0.5; } return s; }
 
 void main() {
-  vec2 fuv = vUv * uFieldK;
+  // the drop's edge (uDrop): how far inside it this pixel is, and the light bent near it. The meniscus
+  // curves up to the coverslip like a lens, so the last few tens of µm inside the edge are magnified
+  // outward (each pixel shows the water a little nearer the edge), in a few soft bands, more the nearer
+  // the view comes (uDrop.w); the edge itself stays where it is
+  vec2 world0 = uCenter + (vUv - 0.5) * uSize;
+  float rimD = 1e6;
+  vec2 uv = vUv;
+  if (uDrop.z > 0.0) {
+    vec2 rel = world0 - uDrop.xy;
+    float rl = max(length(rel), 1e-3);
+    rimD = uDrop.z - rl;
+    float dd = max(rimD, 0.0);
+    float bend = 0.55 * uDrop.w * dd * exp(-dd / 22.0) * (1.0 + 0.25 * sin(dd * 0.35 - uTime * 0.5));
+    uv = vUv + (rel / rl) * bend / uSize;
+  }
+  vec2 fuv = uv * uFieldK;
   vec4 f0 = texture(tF0, fuv);
   vec4 f1 = texture(tF1, fuv), f2 = texture(tF2, fuv);
   vec3 fl = f1.rgb;
   vec3 od = f2.rgb;
-  vec4 low = texture(tLow, vUv);
-  vec2 world = uCenter + (vUv - 0.5) * uSize;
+  vec4 low = texture(tLow, uv);
+  vec2 world = uCenter + (uv - 0.5) * uSize;
   float TAU = 6.2831853;
   float phi = TAU * f0.r / uLambda;
   float phiLow = TAU * low.r / uLambda;
@@ -188,6 +205,39 @@ void main() {
     c = vec3(0.92, 0.95, 1.0) * (1.0 - exp(-i * 1.4)) + 0.012;
     c *= exp(-od * 0.5);
     c += n * uNoise * 0.03;
+  }
+  // the host's signal: a faint haze thickening toward it, over ~2 mm and much more over its last 650 µm (phase: a warm brightening; fluorescence:
+  // the green of free phage DNA; darkfield: a glow of fine scatter)
+  if (uHost.z > 0.0) {
+    float hd = length(world0 - uHost.xy);
+    float h = uHost.z * (0.2 * (1.0 - smoothstep(0.0, 2200.0, hd)) + 0.8 * (1.0 - smoothstep(60.0, 650.0, hd))) * (0.6 + 0.4 * fbm(world0 / 40.0 + uTime * 0.03));
+    if (uLook == 0) c = c * (1.0 + 0.07 * h) + vec3(0.035, 0.03, 0.0) * h;
+    else if (uLook == 1) c += vec3(0.012, 0.05, 0.02) * h;
+    else c += vec3(0.02, 0.025, 0.012) * h;
+  }
+  // the meniscus: a darkening inside it, then a bright refracted line with coloured fringes (the light
+  // bending), a dark wall of the curved water just past it, and beyond, the empty air under the coverslip
+  if (rimD < 90.0) {
+    float px = uSize.y / uRes.y;
+    float lw = max(0.3, 1.4 * px);
+    float dark = smoothstep(32.0, 0.0, rimD) * step(0.0, rimD);
+    float air = smoothstep(lw * 0.5, -lw * 0.5, rimD);
+    float wall = exp(-pow((rimD + 2.5 * lw) / (1.6 * lw), 2.0)) + 0.5 * exp(-pow((rimD - 3.0 * lw) / (2.0 * lw), 2.0));
+    vec3 line = vec3(exp(-pow((rimD - 0.35 * lw) / lw, 2.0)), exp(-pow(rimD / lw, 2.0)), exp(-pow((rimD + 0.35 * lw) / lw, 2.0)));
+    if (uLook == 0) {
+      c *= 1.0 - 0.3 * dark * dark;
+      c = mix(c, uBg * (1.14 + 0.05 * fbm(world0 / 14.0)), air);
+      c *= 1.0 - 0.55 * wall;
+      c += vec3(0.95, 0.93, 0.88) * line * 0.6;
+    } else if (uLook == 1) {
+      c *= 1.0 - 0.6 * dark;
+      c = mix(c, vec3(0.006, 0.007, 0.009), air);
+      c += vec3(0.42, 0.62, 0.85) * line * 0.45;
+    } else {
+      c *= 1.0 - 0.45 * dark;
+      c = mix(c, vec3(0.012), air);
+      c += vec3(0.9, 0.93, 1.0) * line * 0.8;
+    }
   }
   // round eyepiece field stop
   if (uStopR > 0.0) {
@@ -234,6 +284,7 @@ void main() { vec2 uv = vUv * uFieldK; o = vec4(texture(t0, uv).r, texture(t1, u
     uCol0: { value: new THREE.Color(1.0, 0.18, 0.45) }, uCol1: { value: new THREE.Color(0.25, 1.0, 0.35) }, uCol2: { value: new THREE.Color(0.25, 0.75, 1.0) },
     uCol3: { value: new THREE.Color(1.0, 0.2, 0.14) }, uCol4: { value: new THREE.Color(0.55, 0.36, 1.0) },
     uBg: { value: new THREE.Color(0.66, 0.70, 0.66) },
+    uDrop: { value: new THREE.Vector4(0, 0, 0, 0) }, uHost: { value: new THREE.Vector3(0, 0, 0) },
   });
   const blank = new THREE.DataTexture(new Uint8Array([128, 128, 128, 255]), 1, 1);
   blank.needsUpdate = true;
@@ -331,8 +382,10 @@ void main() { vec2 uv = vUv * uFieldK; o = vec4(texture(t0, uv).r, texture(t1, u
      * haloUm: width of the phase ring's leakage (µm). stopR: field-stop radius in field pixels (0 = none).
      * colors: three pseudo-colours for the fluorescence channels. gain: fluorescence exposure.
      * noiseRes: the grain of the shot noise in pixels (default: the field size).
+     * drop: { x, y, R, k } the edge of a drop (µm) and how strongly the light bends there (0..1), or null.
+     * host: { x, y, k } a haze thickening toward a point (µm), strength k, or null.
      */
-    render({ look = 'phase', umPerPx = 0.1, center = [0, 0], time = 0, lambda = 0.55, na = 1.3, haloUm = 1.2, stopR = 0, plate = null, colors = null, gain = 1, target = null, skipDiffract = false, noiseRes = null }) {
+    render({ look = 'phase', umPerPx = 0.1, center = [0, 0], time = 0, lambda = 0.55, na = 1.3, haloUm = 1.2, stopR = 0, plate = null, colors = null, gain = 1, target = null, skipDiffract = false, noiseRes = null, drop = null, host = null }) {
       const haloW = (look === 'fluorescence' ? 1.6 : haloUm) / umPerPx;
       const haloM = Math.ceil(3.3 * haloW + 8);
       let F = { tex: cur.field.textures, kx: 1, ky: 1 };
@@ -363,6 +416,8 @@ void main() { vec2 uv = vUv * uFieldK; o = vec4(texture(t0, uv).r, texture(t1, u
       c.tPlate.value = plate || blank;
       c.uStopR.value = stopR;
       c.uGain.value = gain;
+      if (drop) c.uDrop.value.set(drop.x, drop.y, drop.R, drop.k ?? 1); else c.uDrop.value.set(0, 0, 0, 0);
+      if (host) c.uHost.value.set(host.x, host.y, host.k ?? 1); else c.uHost.value.set(0, 0, 0);
       if (colors) { c.uCol0.value.setRGB(...colors[0]); c.uCol1.value.setRGB(...colors[1]); c.uCol2.value.setRGB(...colors[2]); }
       if (target) scissor(target, 0);
       const sc = !target && rect;

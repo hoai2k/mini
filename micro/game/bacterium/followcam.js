@@ -66,3 +66,16 @@ export function stepFollow(F, dt, tx, ty, vx, vy, look, fieldH) {
   F.x = F.bx + F.ax + F.lx; F.y = F.by + F.ay + F.ly;
   return F;
 }
+
+/**
+ * The default field for a swarm (the owner, 2026-11-03: "The default camera should also slowly zoom out
+ * as your group becomes bigger and bigger"): the field height (µm) that fits a flock of `army` cells
+ * spread `extent` µm from its middle, never below the species' own field `base` nor above AUTO.max.
+ * main.js eases toward it over AUTO.ease s; the player's LT/RT zoom multiplies it.
+ */
+export const AUTO = { perR: 3.6, pad: 12, perExtent: 2.5, max: 200, ease: 2.5 };
+export function autoFieldFor(army, extent, base = 45) {
+  if (!(army > 1)) return base;
+  const R0 = 1.05 * Math.sqrt(army) + 1.2; // the flock's comfortable radius (collective.js)
+  return Math.min(AUTO.max, Math.max(base, AUTO.perR * R0 + AUTO.pad, AUTO.perExtent * (extent || 0) + 10));
+}

@@ -275,6 +275,8 @@ export function createShapes(max = 4000) {
     /** The culling box for the next shapes (µm): set it to cover every view before drawing a split frame. */
     cull(x0, y0, x1, y1) { view = { x0, x1, y0, y1 }; },
     inView(x, y, reach) { return !(x + reach < view.x0 || x - reach > view.x1 || y + reach < view.y0 || y - reach > view.y1); },
+    /** The culling box now (µm): { x0, x1, y0, y1 }. */
+    get box() { return view; },
     begin() { n = 0; },
     end() {
       geo.instanceCount = n;

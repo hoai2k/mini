@@ -9,16 +9,32 @@
 //   node micro/game/bacterium/route.test.mjs
 import assert from 'node:assert/strict';
 import { createDirector } from '../shared/director.js';
-import { createWorld, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, inWater, START, WORLD } from './world.js';
+import { createWorld, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, inWater, START, WORLD, DROP, BEATS, COLONIES, routeAlong, rimDist, FAR_OUT } from './world.js';
 import { createCollectives } from './collective.js';
 import { createStentor } from './stentor.js';
 import { createGuards } from './guards.js';
 
-assert.deepEqual(ENCOUNTERS.map((e) => e.id), ['grazer1', 'bdello', 'phage', 'amoeba', 'grazer2', 'portal'], 'the order');
+assert.deepEqual(ENCOUNTERS.map((e) => e.id), ['grazer1', 'bdello', 'amoeba', 'portal'], 'the order: three gates, then the host with Stentor');
 assert.ok(ENCOUNTERS.at(-1).final && ENCOUNTERS.every((e) => e.need > 0));
+assert.ok(ENCOUNTERS.every((e, i) => i === 0 || e.need > ENCOUNTERS[i - 1].need), 'each gate wants a bigger swarm than the last');
+
+// --- the drop: its edge is well beyond the host in every direction (the owner: "You should be able to find a portal long before you find the edge") ---
+{
+  const hostReach = BEATS.host + 122 + 128; // the host, Stentor's mouth beyond it, its oral disc
+  for (let k = 0; k < 64; k++) {
+    const a = (k / 64) * Math.PI * 2, far = { x: START.x + Math.cos(a) * 2 * BEATS.host, y: START.y + Math.sin(a) * 2 * BEATS.host };
+    assert.ok(rimDist(far.x, far.y) > 0, `the edge is beyond twice the host's distance at ${(a * 57.3).toFixed(0)}°`);
+  }
+  assert.ok(DROP.R >= 2 * BEATS.host && DROP.R - hostReach > 1800, `the edge ${DROP.R} µm out, the host ${BEATS.host} (Stentor's disc ${hostReach}), so ${DROP.R - hostReach} µm beyond it`);
+  // the beats in order along the route: gate, colony, gate, colony, gate, colony, host
+  const along = ['grazer1', 'colony1', 'bdello', 'colony2', 'amoeba', 'colony3', 'host'].map((k) => BEATS[k]);
+  assert.ok(along.every((d, i) => i === 0 || d > along[i - 1] + 150), `the beats are spaced along the route (${along.join(', ')} µm)`);
+  for (const C of COLONIES) { const r = routeAlong(C.x, C.y); assert.ok(Math.abs(r.lat) < 60 && inWater(C.x, C.y, C.r), `${C.id} beside the route`); }
+  assert.ok(COLONIES.every((C, i) => i === 0 || C.kin > COLONIES[i - 1].kin), 'each colony bigger than the last');
+}
 
 const DT = 1 / 30, SPEED = 45, ASPECT = 16 / 9;
-const DRIFT = 6, DRIFT_WAIT = 4, ARMY_HOLD = 8; // main.js driftGate, armyHold
+const DRIFT = 6, DRIFT_WAIT = 4, ARMY_HOLD = 8; // main.js driftGate, armyHold (a second per 4 cells short, up to ARMY_HOLD)
 
 function game({ seconds, move, fieldH = 45, army = () => 30, check = true, path = false }) {
   const world = createWorld();
@@ -31,6 +47,7 @@ function game({ seconds, move, fieldH = 45, army = () => 30, check = true, path 
   const fw = fieldH * ASPECT, pad = 6;
   // an independent seen grid (5 µm cells): everything every view has framed
   const G = 5, gx = (x) => Math.floor((x - WORLD.x0) / G), gy = (y) => Math.floor((y - WORLD.slabY) / G), NX = gx(WORLD.x1) + 1, NY = gy(WORLD.y1) + 1;
+  let maxOut = 0;
   const mine = new Uint8Array(NX * NY);
   const markRect = (x0, y0, x1, y1) => { for (let j = Math.max(0, gy(y0)); j <= Math.min(NY - 1, gy(y1)); j++) for (let i = Math.max(0, gx(x0)); i <= Math.min(NX - 1, gx(x1)); i++) mine[i + NX * j] = 1; };
   const discSeen = (x, y, r) => { for (let j = Math.max(0, gy(y - r)); j <= Math.min(NY - 1, gy(y + r)); j++) for (let i = Math.max(0, gx(x - r)); i <= Math.min(NX - 1, gx(x + r)); i++) { const cx = WORLD.x0 + (i + 0.5) * G, cy = WORLD.slabY + (j + 0.5) * G; if (Math.hypot(cx - x, cy - y) < r - G && mine[i + NX * j]) return true; } return false; };
@@ -70,7 +87,7 @@ function game({ seconds, move, fieldH = 45, army = () => 30, check = true, path 
     canPlace: (x, y, r, o) => canPlace(x, y, r) && guards.list.every((q) => !q.placed || q.id === o.entry.id || Math.hypot(guards.centre(q).x - x, guards.centre(q).y - y) > r * 0.5 + q.zone),
     entries: ENCOUNTERS.map((e, i) => {
       const o = { ...e, ...ENC[e.id], ...(path ? { single: true } : {}) };
-      Object.defineProperty(o, 'calm', { get: () => ({ sec: (i === 0 ? DIRECTOR.warmup : DIRECTOR.calm).sec + Math.max(0, Math.min(ARMY_HOLD, e.need - army(D))) }) });
+      Object.defineProperty(o, 'calm', { get: () => (Math.hypot(p.x - START.x, p.z - START.y) > FAR_OUT ? { sec: 1 } : { sec: (i === 0 ? DIRECTOR.warmup : DIRECTOR.calm).sec + Math.max(0, Math.min(ARMY_HOLD, (e.need - army(D)) / 4)) }) });
       return o;
     }),
   });
@@ -78,6 +95,7 @@ function game({ seconds, move, fieldH = 45, army = () => 30, check = true, path 
   let idle = 0, t = 0;
   for (; t < seconds && !D.done; t += DT) {
     move(t, p, D, { guards, host });
+    maxOut = Math.max(maxOut, Math.hypot(p.x - START.x, p.z - START.y));
     const x0 = p.x - fw / 2 - pad, x1 = p.x + fw / 2 + pad, y0 = p.z - fieldH / 2 - pad, y1 = p.z + fieldH / 2 + pad;
     const view = { frustum: [[1, 0, 0, -x0], [-1, 0, 0, x1], [0, 0, 1, -y0], [0, 0, -1, y1]], focus: { x: p.x, y: 0, z: p.z } };
     const out = D.update(DT, [p], [view]);
@@ -93,7 +111,7 @@ function game({ seconds, move, fieldH = 45, army = () => 30, check = true, path 
     }
     lastLeader = L;
   }
-  return { ev, bad, moved, movedN, D, guards, host, t, p, seen: (x, y) => seenPt(x, y) };
+  return { ev, bad, moved, movedN, D, guards, host, t, p, maxOut, seen: (x, y) => seenPt(x, y) };
 }
 const at = (ev, type, id) => ev.find((e) => e.type === type && e.id === id);
 const ORDER = ENCOUNTERS.map((e) => e.id);
@@ -119,47 +137,47 @@ function rusher(a0) {
   };
 }
 const times = [];
+// rushing out in 16 directions (the default path on, as main.js has it; off its bearing every gate is placed as you go)
 for (let k = 0; k < 16; k++) {
-  const r = game({ seconds: 150, move: rusher((k / 16) * Math.PI * 2) });
+  const r = game({ seconds: 200, path: true, move: rusher((k / 16) * Math.PI * 2) });
   const tag = `bearing ${k * 22.5}`;
   assert.deepEqual(r.bad, [], tag);
   assert.deepEqual(r.moved, [], `${tag}: seen scenery stays put`);
   assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER.slice(0, -1), `${tag}: every gate, in order`);
-  assert.ok(at(r.ev, 'placed', 'portal'), `${tag}: the portal placed`);
   for (const e of r.ev.filter((x) => x.type === 'placed' || x.type === 'moved')) {
     const spec = ENCOUNTERS.find((s) => s.id === e.id);
     assert.ok(!spec.fits || spec.fits(e.x, e.z, e.b), `${tag}: ${e.id} in open water`);
   }
-  const T = { first: at(r.ev, 'placed', 'grazer1').t, portalPlaced: at(r.ev, 'placed', 'portal').t, portal: r.p.reached ?? Infinity, metHow: r.ev.filter((e) => e.type === 'met').map((e) => e.how) };
+  const T = { portal: r.p.reached ?? Infinity, metHow: r.ev.filter((e) => e.type === 'met').map((e) => e.how), out: Math.round(r.maxOut) };
   for (const id of ORDER.slice(0, -1)) T[id] = at(r.ev, 'met', id).t;
-  assert.ok(T.first >= 4.5, `${tag}: a warm-up first (${T.first} s)`);
-  assert.ok(T.grazer1 <= 12, `${tag}: the first gate within ~10 s (${T.grazer1} s)`);
-  for (let i = 1; i < ORDER.length - 1; i++) assert.ok(at(r.ev, 'placed', ORDER[i]).t - T[ORDER[i - 1]] >= 4.5, `${tag}: a calm break before ${ORDER[i]}`);
-  // V=1 node route.test.mjs: each run's placements
-  if (process.env.V) console.log(tag, JSON.stringify(T), r.ev.filter((e) => e.type !== 'met').map((e) => `${e.type} ${e.id} ${e.t} ${e.how} ${Math.hypot(e.x - START.x, e.z - START.y).toFixed(0)} µm out`).join('; '));
-  assert.ok(T.portal <= 70, `${tag}: the portal reached within about a minute (${T.portal} s)`);
+  assert.ok(T.grazer1 <= 18, `${tag}: the first gate within ~15 s (${T.grazer1} s)`);
+  if (process.env.V) console.log(tag, JSON.stringify(T));
+  assert.ok(T.portal <= 120, `${tag}: the host reached within two minutes of rushing (${T.portal} s)`);
+  // and long before the edge: the furthest out they went is well inside the drop
+  if (process.env.V) console.log(tag, r.ev.filter((e) => e.type !== "met").map((e) => `${e.type} ${e.id} ${e.t} ${e.how} ${Math.hypot(e.x - START.x, e.z - START.y).toFixed(0)}`).join("; "));
+  assert.ok(r.maxOut < DROP.R * 0.65, `${tag}: the host long before the edge (furthest out ${T.out} µm of ${DROP.R})`);
   times.push(T);
 }
 const span = (k) => `${Math.min(...times.map((t) => t[k])).toFixed(1)}-${Math.max(...times.map((t) => t[k])).toFixed(1)} s`;
 const howMet = times.flatMap((t) => t.metHow).reduce((o, h) => ((o[h] = (o[h] || 0) + 1), o), {});
 
-// the eyepiece field (180 µm, 320 across): still every gate, out of view, on unseen water
-const wide = [0, 2, 4, 6].map((q) => game({ seconds: 150, fieldH: 180, move: rusher((q / 8) * Math.PI * 2) }));
+// a wide field (180 µm, 320 across: a big swarm's camera): still every gate, out of view, on unseen water
+const wide = [0, 2, 4, 6].map((q) => game({ seconds: 200, fieldH: 180, path: true, move: rusher((q / 8) * Math.PI * 2 + 1) }));
 for (const r of wide) {
   assert.deepEqual(r.bad, [], 'wide field');
   assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER.slice(0, -1), 'wide field: every gate in order');
-  assert.ok(r.p.reached !== undefined, 'wide field: the portal reached');
+  assert.ok(r.p.reached !== undefined, 'wide field: the host reached');
 }
 
-// a small army: the breaks last longer (up to ARMY_HOLD s) while it is short of the next gate's need
-const small = game({ seconds: 200, army: () => 1, move: rusher(0.4) });
+// a small army off the route: the breaks last longer (up to ARMY_HOLD s) while it is short of the next gate's need
+const small = game({ seconds: 300, army: () => 1, move: rusher(DEFAULT_PATH.bearing + Math.PI) });
 assert.deepEqual(small.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER.slice(0, -1), 'small army: every gate in order all the same');
 const firstSmall = at(small.ev, 'placed', 'grazer1').t;
-assert.ok(firstSmall >= DIRECTOR.warmup.sec + ARMY_HOLD - 0.5, `small army: a longer warm-up (${firstSmall} s)`);
+assert.ok(firstSmall >= DIRECTOR.warmup.sec + Math.min(ARMY_HOLD, (ENCOUNTERS[0].need - 1) / 4) - 0.5, `small army: a longer warm-up (${firstSmall} s)`);
 
-// lingering at the start: every gate still comes (placed round them, then coming over), then the portal near them
+// lingering at the start (no default path): every gate still comes (placed round them, then coming over), then the host near them
 let lingerPortal = null;
-const lin = game({ seconds: 400, move: (t, p, D, { host }) => {
+const lin = game({ seconds: 500, move: (t, p, D, { host }) => {
   const s = D.state();
   if (s.current === 'portal' && s.phase === 'placed') {
     lingerPortal ??= t;
@@ -168,69 +186,47 @@ const lin = game({ seconds: 400, move: (t, p, D, { host }) => {
 } });
 assert.deepEqual(lin.bad, []);
 assert.deepEqual(lin.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER.slice(0, -1), 'lingering: every gate in order');
-for (const e of lin.ev.filter((x) => x.type === 'placed')) assert.ok(['near', 'wider'].includes(e.how) && Math.hypot(e.x - START.x, e.z - START.y) < 300, `lingering: ${e.id} placed round them (${e.how}, ${Math.hypot(e.x - START.x, e.z - START.y).toFixed(0)} µm)`);
-assert.ok(lin.p.reached !== undefined, 'lingering: the portal reached once they go to it');
+for (const e of lin.ev.filter((x) => x.type === 'placed')) assert.ok(['near', 'wider'].includes(e.how) && Math.hypot(e.x - START.x, e.z - START.y) < 400, `lingering: ${e.id} placed round them (${e.how}, ${Math.hypot(e.x - START.x, e.z - START.y).toFixed(0)} µm)`);
+assert.ok(lin.p.reached !== undefined, 'lingering: the host reached once they go to it');
 
 // out and back: head out for 14 s, turn round to the start and on beyond: nothing placed where they had looked
-const back = game({ seconds: 150, move: (() => { const go = rusher(0.9); const ret = rusher(0.9 + Math.PI); return (t, p, D, o) => (t < 14 ? go : ret)(t, p, D, o); })() });
+const back = game({ seconds: 200, path: true, move: (() => { const go = rusher(2.4); const ret = rusher(2.4 + Math.PI); return (t, p, D, o) => (t < 14 ? go : ret)(t, p, D, o); })() });
 assert.deepEqual(back.bad, [], 'turn back: nothing placed on seen water');
 assert.deepEqual(back.moved, [], 'turn back: seen scenery stays put');
 assert.deepEqual(back.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER.slice(0, -1), 'turn back: every gate in order');
 
-// the default path (main.js passes world.js DEFAULT_PATH; the host one thing: `single`): the host laid at the
-// far end of the field's diagonal on the first frame; the gates still placed as you go (breaks, army hold)
+// --- the route (world.js DEFAULT_PATH): every gate and the host pre-placed along it on the first frame, in order; walking it meets them in order ---
 const pathRows = [];
-const pathDyn = ORDER.filter((id, i) => DEFAULT_PATH.dists[i] == null);
 {
-  // following it (rushing at the host; each gate as it comes, then the host once open): the gates placed as you
-  // go on the way and met in order, the pre-placed host reached; only the host pre-placed
   const r = game({ seconds: 200, path: true, move: (t, p, D, { guards, host }) => {
     const s = D.state(), cur = s.entries[s.index];
     if (!cur) return;
-    let tgt = host;
-    if (cur.id !== 'portal' && cur.state === 'placed') tgt = guards.centre(guards.byId[cur.id]);
+    // walk the route; turn to each thing once it is in sight
+    const tgt = cur.id === 'portal' ? host : guards.centre(guards.byId[cur.id]);
     const a = Math.atan2(tgt.y - p.z, tgt.x - p.x), d = Math.hypot(tgt.x - p.x, tgt.y - p.z);
     if (cur.id === 'portal' && d < 12) { p.reached ??= t; return; }
-    if (cur.id !== 'portal' && tgt === host && d < 60) return; // (at the sealed host: wait for the next gate)
     p.x += Math.cos(a) * SPEED * DT; p.z += Math.sin(a) * SPEED * DT;
   } });
-  assert.deepEqual(r.bad, [], 'default path: nothing placed on seen water');
-  assert.deepEqual(r.moved, [], 'default path: seen scenery stays put');
+  assert.deepEqual(r.bad, [], 'the route: nothing placed on seen water');
+  assert.deepEqual(r.moved, [], 'the route: seen scenery stays put');
   const pre = r.ev.filter((e) => e.type === 'placed' && e.how === 'default');
-  assert.deepEqual(pre.map((e) => e.id), ORDER.filter((id) => !pathDyn.includes(id)), 'default path: the host pre-placed');
-  assert.ok(pre.every((e) => e.t < 0.1), 'default path: from the first frame');
-  assert.ok(!r.ev.some((e) => e.type === 'placed' && e.id === 'portal' && e.how !== 'default'), 'default path: the host not generated again');
-  for (const id of pathDyn) assert.ok(r.ev.some((e) => e.type === 'placed' && e.id === id && e.how !== 'default'), `default path: ${id} placed as you go`);
-  for (let i = 1; i < pathDyn.length; i++) assert.ok(at(r.ev, 'placed', pathDyn[i]).t - at(r.ev, 'met', pathDyn[i - 1]).t >= 4.5, `default path: a calm break before ${pathDyn[i]}`);
-  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER.slice(0, -1), 'default path: every gate met in order');
-  assert.ok(r.p.reached !== undefined, 'default path: the host reached once open');
-  pathRows.push(`followed: host pre-placed ${Math.hypot(pre.at(-1).x - START.x, pre.at(-1).z - START.y).toFixed(0)} µm out; gates placed ${pathDyn.map((id) => `${id} ${at(r.ev, 'placed', id).t}`).join(', ')}; met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t}`).join(', ')}; host reached ${r.p.reached.toFixed(1)} s`);
-}
-for (const off of [Math.PI, Math.PI / 2, -Math.PI / 2]) {
-  // heading off another way: the gates placed as you go in order; the host, while nobody has seen it, leaves the path
-  const tag = `off the path (${Math.round((off * 180) / Math.PI)}°)`;
-  const r = game({ seconds: 200, path: true, move: rusher(DEFAULT_PATH.bearing + off) });
-  assert.deepEqual(r.bad, [], `${tag}: nothing placed on seen water`);
-  assert.deepEqual(r.moved, [], `${tag}: seen scenery stays put`);
-  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER.slice(0, -1), `${tag}: every gate, in order`);
-  const hp = r.ev.find((x) => x.type === 'placed' && x.id === 'portal' && x.how !== 'default'), seen = r.D.entry('portal').def.seenT;
-  assert.ok(hp ? hp.from === 'default' : seen !== null, `${tag}: the host taken off the path (or, seen on it first, left there)`);
-  assert.ok(r.p.reached !== undefined, `${tag}: the host reached`);
-  pathRows.push(`${tag}: met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t}`).join(', ')}; host ${hp ? `placed as you go ${hp.t} s (${hp.how})` : `seen on the path at ${seen.toFixed(1)} s, left there`}, reached ${r.p.reached.toFixed(1)} s`);
-}
-{
-  // the army-size hold still applies with the path: with a small army the warm-up and each break are longer
-  const r = game({ seconds: 300, path: true, army: () => 1, move: rusher(DEFAULT_PATH.bearing) });
-  const g1 = at(r.ev, 'placed', 'grazer1');
-  assert.ok(g1.t >= DIRECTOR.warmup.sec + ARMY_HOLD - 0.5, `default path, small army: a longer warm-up (${g1.t} s)`);
-  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER.slice(0, -1), 'default path, small army: every gate in order');
-  pathRows.push(`small army: first gate placed ${g1.t} s`);
+  assert.deepEqual(pre.map((e) => e.id), ORDER, 'the route: every gate and the host pre-placed');
+  assert.ok(pre.every((e) => e.t < 0.1), 'the route: from the first frame');
+  const along = pre.map((e) => routeAlong(e.x, e.z));
+  assert.ok(along.every((q, i) => Math.abs(q.lat) <= 90 && Math.abs(q.d - DEFAULT_PATH.dists[i]) < DEFAULT_PATH.dists[i] * 0.3), `the route: each on the line at its beat (${along.map((q) => `${q.d.toFixed(0)}/${q.lat.toFixed(0)}`).join(', ')})`);
+  assert.ok(along.every((q, i) => i === 0 || q.d > along[i - 1].d), 'the route: in order along it');
+  // each colony lies between the gate before it and the next
+  COLONIES.forEach((C, i) => { const c = routeAlong(C.x, C.y).d; assert.ok(c > along[i].d && c < along[i + 1].d, `${C.id} between ${ORDER[i]} and ${ORDER[i + 1]}`); });
+  assert.ok(!r.ev.some((e) => e.type === 'placed' && e.how !== 'default'), 'the route: nothing generated again');
+  assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER.slice(0, -1), 'the route: every gate met in order');
+  assert.ok(r.p.reached !== undefined, 'the route: the host reached once open');
+  pathRows.push(`walked: pre-placed ${pre.map((e) => `${e.id} ${routeAlong(e.x, e.z).d.toFixed(0)} µm`).join(', ')}; met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t}`).join(', ')}; host reached ${r.p.reached.toFixed(1)} s (no fights)`);
 }
 
 const evs = (r) => r.ev.filter((e) => e.type === 'placed' || e.type === 'met').map((e) => `${e.id} ${e.type} ${e.t}${e.how && e.type === 'placed' ? ` (${e.how})` : ''}`).join(', ');
-console.log(`ok: rushing in 16 directions (default field): first gate placed ${span('first')}, met ${span('grazer1')}; bdello ${span('bdello')}, phage ${span('phage')}, amoeba ${span('amoeba')}, grazer2 ${span('grazer2')}; portal placed ${span('portalPlaced')}, reached ${span('portal')}; how met ${JSON.stringify(howMet)}
-wide field (4 runs): portal reached ${wide.map((r) => r.p.reached.toFixed(1)).join(', ')} s
-small army: warm-up ${firstSmall} s, portal placed ${at(small.ev, 'placed', 'portal').t} s
+console.log(`ok: rushing in 16 directions: gates met ${span('grazer1')}, ${span('bdello')}, ${span('amoeba')}; host reached ${span('portal')}; furthest out ${Math.min(...times.map((t) => t.out))}-${Math.max(...times.map((t) => t.out))} µm (the edge ${DROP.R}); how met ${JSON.stringify(howMet)}
+wide field (4 runs): host reached ${wide.map((r) => r.p.reached.toFixed(1)).join(', ')} s
+small army: warm-up ${firstSmall} s, host placed ${at(small.ev, 'placed', 'portal').t} s
 lingering: ${evs(lin)}; reached ${lin.p.reached.toFixed(1)} s
 turn back: ${evs(back)}
-default path: ${pathRows.join('\n  ')}`);
+route: ${pathRows.join('\n  ')}`);

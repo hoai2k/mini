@@ -78,13 +78,13 @@ export function createGame(world, swimmer) {
     if (world.opts.grazers && !s.inside) {
       let inMouth = null;
       for (const g of world.grazers) {
-        if (g.contract > 0 || g.feeding === false) continue; // a resting grazer's current is off
+        if (g.contract > 0 || g.feeding === false || g.parked) continue; // a resting grazer's current is off
         const P = g.pose;
         const d = Math.hypot(s.x - P.mouth.x, s.y - P.mouth.y);
         if (d < 3.2) inMouth = g;
         // touching the bell makes it contract (mechanosensitive), sometimes
         const c = { x: P.ox - P.up.x * g.R * 0.95, y: P.oy - P.up.y * g.R * 0.95 };
-        if (Math.hypot(s.x - c.x, s.y - c.y) < g.R * 0.98 && d > 6 && r() < dt * 0.6) { g.contract = 3; g.ext = 0; ev.contracted = true; }
+        if (!g.battle && Math.hypot(s.x - c.x, s.y - c.y) < g.R * 0.98 && d > 6 && r() < dt * 0.6) { g.contract = 3; g.ext = 0; ev.contracted = true; } // (not while it fights your swarm)
       }
       if (inMouth) { s.captureT += dt; if (s.captureT < dt * 1.5) ev.captured = true; } else s.captureT = Math.max(0, s.captureT - dt * 2);
       if (inMouth && s.captureT > (inMouth.fight ? 2.2 : 0.9)) { catchBy('grazer', inMouth, ev); return; }
@@ -179,7 +179,8 @@ export function createGame(world, swimmer) {
         if (e < bd) { bd = e; best = c; }
       }
     };
-    scan(world.cells); scan(world.film);
+    scan(world.cells);
+    if (world.eachFilm) { const near = []; world.eachFilm(x - 5, y - 5, x + 5, y + 5, (c) => near.push(c)); scan(near); } else scan(world.film);
     return best;
   }
 

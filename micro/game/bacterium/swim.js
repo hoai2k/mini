@@ -8,7 +8,7 @@
 // kin around, collective.js steers it as one member of the flock (the stick
 // sets the flock's heading and speed). B still tumbles into a new, random
 // direction. The honest mode (no steering) is plain run and tumble.
-import { oxygen, gauss, rng, tumbleAngle, WORLD, START } from './world.js';
+import { oxygen, gauss, rng, tumbleAngle, START } from './world.js';
 
 // Two protagonists. Numbers and their sources are in README.md.
 export const SPECIES = {
@@ -139,9 +139,8 @@ export function createSwimmer(world) {
       thrust = inp.dashActive ? sp.dash : sp.v * k;
     }
     if (s.boring || s.inside) thrust = 0;
-    // in the EPS of the biofilm everything is slower (a viscous, polymer-rich matrix)
-    const inFilm = s.y < world.surfaceY(s.x) + 1;
-    if (inFilm) thrust *= 0.45;
+    // in the EPS of the biofilm everything is slower (a viscous, polymer-rich matrix), the more the deeper
+    thrust *= world.filmK ? world.filmK(s.x, s.y) : s.y < world.surfaceY(s.x) + 1 ? 0.45 : 1;
     // inside the amoeba's cytoplasm a cell hardly moves (it is being engulfed)
     if (world.insideAmoeba(s.x, s.y, t) > 0) thrust *= 0.35;
     // the body and flagella turn with the motor: fast in a run, slowing as it slows, still when stopped
@@ -183,6 +182,7 @@ export function createSwimmer(world) {
     const tvx = Math.cos(s.a) * thrust, tvy = Math.sin(s.a) * thrust;
     s.vx += (tvx - s.vx) * lag; s.vy += (tvy - s.vy) * lag;
     const br = opts.brownian ? Math.sqrt(2 * sp.Dt) * sq * (steering ? STEER.transNoise : 1) : 0;
+    const px = s.x, py = s.y;
     if (!s.inside && !s.boring) {
       s.x += (s.vx + f.x) * dt + br * gauss(r);
       s.y += (s.vy + f.y) * dt + br * gauss(r);
@@ -193,12 +193,10 @@ export function createSwimmer(world) {
     } else { s.x = s.inside.x; s.y = s.inside.y; }
     s.speed = Math.hypot(s.vx, s.vy);
     s.flow = Math.hypot(f.x, f.y);
-    // walls: the meniscus above; the sediment's grains
-    if (s.y > WORLD.y1 - 2) s.y = WORLD.y1 - 2;
-    const floor = world.surfaceY(s.x) - 20; // the biofilm packs into sediment below this
-    if (s.y < floor) s.y = floor;
-    if (s.x < WORLD.x0 + 2) s.x = WORLD.x0 + 2;
-    if (s.x > WORLD.x1 - 2) s.x = WORLD.x1 - 2;
+    // no walls (the owner: "It should not be an invisible wall"): at the drop's edge surface tension
+    // slows you to a stop against the meniscus you can see, and in the biofilm the EPS thickens until
+    // you can go no deeper (world.soften); clay grains push you round them
+    if (!s.inside && !s.boring && world.soften) world.soften(s, px, py);
     if (world.pushOutOfGrains(s, sp.r + 0.1) && s.mode === 'run') ev.bump = true;
 
     // senses: oxygen and food, compared over time (the chemotaxis network's ~1–4 s memory)

@@ -50,24 +50,28 @@
 // group, the visible beacon (autoinducers are invisible small molecules),
 // kin answering one by one, members dying in your place, and a magnetotactic
 // spirillum lysing prey (myxobacteria hunt in packs; Magnetospirillum does not).
-import { gauss, WORLD, zGap } from './world.js';
+import { gauss, zGap } from './world.js';
 
 export const COLL = {
   touch: 3.0,      // centre distance at which two flocks touch, µm
   shield: 5, raft: 8, toxin: 12, // army sizes (members + players' cells)
   leaveD: 20,      // branching off this far from the other players splits the flock
-  max: 48,         // members per flock
+  max: 1000,       // members per flock (the owner: "hundreds or a thousand bacteria in your group")
   joinCool: 2.5,   // s after a split before those players can merge again
-  free: 100,       // free kin cells in the world at the start
-  meadow: 40,      // of them in the meadow round the start; the rest ambient, kept near the players (main.js keepAmbient)
+  free: 760,       // free kin cells in the world at the start
+  meadow: 40,      // of them in the meadow round the start, then the colonies' (world.js COLONIES); the rest ambient along the route, kept near the players (main.js keepAmbient)
   burstR: 32, chargeT: 6,
   beaconGap: 0.3,  // s between two beacons
   beaconPad: 7,    // a beacon reaches this far beyond the flock's edge, µm
   beaconMin: 9,    // a lone cell's beacon reaches this far (three body lengths)
-  beaconMax: 44,   // and never further than this from the middle
-  latch: 1.5,      // s a pack Bdellovibrio clings to a member before it bores in
+  beaconMax: 50,   // and never further than this from where it goes out
+  latch: 1.0,      // s a pack Bdellovibrio clings to a member before it bores in
   eatReach: 1.7,   // a prey rod this close to a member's middle (beyond its half length) is lysed
+  grow: 1 / 300,   // a member's own slow growth toward dividing, per s (×2 in a food patch; three prey rods make a division)
+  sleep: 520,      // free kin this far (each axis) from every player rest where they are (perf)
 };
+/** The stagger before the n-th answer to one beacon (s): one by one at first, then a quick ripple, never more than 1.8 s. */
+export const answerDelay = (n) => Math.min(1.8, n < 8 ? 0.09 * n : 0.72 + 0.012 * (n - 8));
 
 /** The flock's rules (collective.js post); README "The army" lists them. */
 export const FLOCK = {
@@ -132,7 +136,6 @@ export function createCollectives(world, hooks = {}) {
   const list = [];         // the flocks (one per player while alone)
   const byPlayer = new Map();
   const opts = { on: true, waylay: true };
-  const W = WORLD;
 
   /** A kin cell with its own way of following the flock (FLOCK; README "The army"). */
   function newKin(x, y) {
@@ -168,17 +171,27 @@ export function createCollectives(world, hooks = {}) {
   function reset(roster) {
     list.length = 0; byPlayer.clear(); kin.length = 0;
     for (const c of world.cells) { c.waylay = null; c.wlCool = 0; } // no stranger is waylaying anyone
+    const cols = world.colonies || [];
+    let n = 0;
     for (let i = 0; i < COLL.free; i++) {
       const k = newKin(0, 0);
-      // COLL.meadow in the meadow; the rest ambient: scattered over the water away from the start,
-      // and kept near the players (main.js keepAmbient moves the ones nobody has seen)
+      // COLL.meadow in the meadow, then each colony's (zone 0: they stay where they live); the rest
+      // ambient: along the route, away from the start, kept near the players (main.js keepAmbient
+      // moves the ones nobody has seen)
       if (i < COLL.meadow) placeFree(k);
       else {
-        let q = world.anywhere();
-        for (let j = 0; j < 8 && world.distFromStart(q.x, q.y) < 150; j++) q = world.anywhere();
-        putFree(k, q.x, q.y); k.zone = 1;
+        let C = null, acc = COLL.meadow;
+        for (const c of cols) { if (i < acc + c.kin) { C = c; break; } acc += c.kin; }
+        if (C) {
+          for (let j = 0; j < 6; j++) { const a = r() * TAU, d = 15 + Math.sqrt(r()) * (C.r - 12); putFree(k, C.x + Math.cos(a) * d, C.y + Math.sin(a) * d); if (!world.pushOutOfGrains({ x: k.x, y: k.y }, 0.5)) break; }
+          k.zone = 0; k.colony = C.id;
+        } else {
+          let q = world.routeSpot ? world.routeSpot() : world.anywhere();
+          for (let j = 0; j < 8 && world.distFromStart(q.x, q.y) < 150; j++) q = world.routeSpot ? world.routeSpot() : world.anywhere();
+          putFree(k, q.x, q.y); k.zone = 1;
+        }
       }
-      kin.push(k);
+      k.inKin = true; kin.push(k); n++;
     }
     // a handful start right beside you, so the first beacon has someone to answer
     for (let i = 0; i < 4; i++) { const k = kin[i]; const a = 0.3 + i * 0.9; k.x = k.hx = world.start.x + 7 + Math.cos(a) * (3 + i * 2); k.y = k.hy = world.start.y + 3 + Math.sin(a) * 3; }
@@ -200,7 +213,7 @@ export function createCollectives(world, hooks = {}) {
     byPlayer.delete(P);
     C.players = C.players.filter((Q) => Q !== P);
     if (!C.players.length) {
-      for (const m of C.members) { unDrift(m); m.coll = null; m.hx = m.x; m.hy = m.y; m.sp = 0; }
+      for (const m of C.members) { unDrift(m); m.coll = null; m.drill = null; m.hx = m.x; m.hy = m.y; m.sp = 0; }
       C.members.length = 0;
       list.splice(list.indexOf(C), 1);
     }
@@ -212,7 +225,39 @@ export function createCollectives(world, hooks = {}) {
   const flow = { x: 0, y: 0 };      // the current at a cell (world.flowAt writes it)
   // scratch for the flock step (members + players' cells of one flock)
   const nodes = [];
-  const pushX = new Float32Array(128), pushY = new Float32Array(128), alX = new Float32Array(128), alY = new Float32Array(128), alN = new Float32Array(128);
+  const NMAX = COLL.max + 16;
+  const pushX = new Float32Array(NMAX), pushY = new Float32Array(NMAX), alX = new Float32Array(NMAX), alY = new Float32Array(NMAX), alN = new Float32Array(NMAX);
+  const pxs = new Float32Array(NMAX), pys = new Float32Array(NMAX); // (each member's position before its move: the soft limits)
+  /**
+   * The neighbour grid (perf, the owner: "hundreds or a thousand bacteria"): each flock's cells in a
+   * grid of FLOCK.alignR cells, so separation and alignment look only at the 3×3 cells round each
+   * one (about n × 9 × a few pairs, not n²). Rebuilt every step; kept on the flock (C.grid) for eat().
+   */
+  function buildGrid(C, list, N) {
+    const cs = FLOCK.alignR;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (let i = 0; i < N; i++) { const o = list[i]; if (o.x < x0) x0 = o.x; if (o.x > x1) x1 = o.x; if (o.y < y0) y0 = o.y; if (o.y > y1) y1 = o.y; }
+    // (a member far off, drifting after a stranger, would make the grid huge: clamp it into the edge cells)
+    const nx = Math.max(1, Math.min(160, Math.ceil((x1 - x0) / cs) + 1)), ny = Math.max(1, Math.min(160, Math.ceil((y1 - y0) / cs) + 1));
+    let G = C.grid;
+    if (!G || G.head.length < nx * ny || G.next.length < N) G = C.grid = { head: new Int32Array(Math.max(nx * ny, 256) * 2), next: new Int32Array(NMAX), cellOf: new Int32Array(NMAX), nx: 0, ny: 0, x0: 0, y0: 0, cs, nodes: [] };
+    G.nx = nx; G.ny = ny; G.x0 = x0; G.y0 = y0; G.n = N;
+    G.head.fill(-1, 0, nx * ny);
+    G.nodes.length = 0;
+    for (let i = 0; i < N; i++) {
+      const o = list[i];
+      const gi = Math.min(nx - 1, Math.floor((o.x - x0) / cs)), gj = Math.min(ny - 1, Math.floor((o.y - y0) / cs)), c = gi + nx * gj;
+      G.cellOf[i] = c; G.next[i] = G.head[c]; G.head[c] = i; G.nodes.push(o);
+    }
+    return G;
+  }
+  /** Visit every grid neighbour j of (x, y) within reach (the 3×3 cells round it). */
+  function eachNear(G, x, y, fn) {
+    const gi = Math.floor((x - G.x0) / G.cs), gj = Math.floor((y - G.y0) / G.cs);
+    for (let j = Math.max(0, gj - 1); j <= Math.min(G.ny - 1, gj + 1); j++) for (let i = Math.max(0, gi - 1); i <= Math.min(G.nx - 1, gi + 1); i++) {
+      for (let n = G.head[i + G.nx * j]; n >= 0; n = G.next[n]) fn(G.nodes[n], n);
+    }
+  }
 
   // --- before the swimmers step: the flock's intent from the sticks; each player's cell steered as a member ---
   function pre(dt, t, roster, inputs) {
@@ -276,10 +321,12 @@ export function createCollectives(world, hooks = {}) {
         C.vy += (Math.max(-200, Math.min(200, (cy - C.cy) / dt)) - C.vy) * k;
       }
       C.cx = cx; C.cy = cy;
-      let e2 = 0;
-      for (const S of cells) e2 = Math.max(e2, (S.x - cx) ** 2 + (S.y - cy) ** 2);
-      for (const m of C.members) if (!m.drift) e2 = Math.max(e2, (m.x - cx) ** 2 + (m.y - cy) ** 2);
+      let e2 = 0, s2 = 0;
+      for (const S of cells) { const q = (S.x - cx) ** 2 + (S.y - cy) ** 2; e2 = Math.max(e2, q); s2 += q; }
+      for (const m of C.members) if (!m.drift) { const q = (m.x - cx) ** 2 + (m.y - cy) ** 2; e2 = Math.max(e2, q); s2 += q; }
       C.extent += (Math.sqrt(e2) - C.extent) * Math.min(1, dt * 6);
+      // (its spread: the root-mean-square distance from the middle, which a straggler or two hardly moves: the camera's fit)
+      C.spread = (C.spread || 0) + (Math.sqrt(s2 / n) - (C.spread || 0)) * Math.min(1, dt * 3);
       C.R0 = 1.05 * Math.sqrt(n) + 1.2; // the comfortable radius: cells ~2.3 µm apart
       // the camera follows the flock's middle, smoothed (alone: your cell)
       if (!C.members.length && cells.length === 1) { C.fx = cells[0].x; C.fy = cells[0].y; }
@@ -313,7 +360,12 @@ export function createCollectives(world, hooks = {}) {
     for (const k of kin) if (k.dying) {
       k.dying.t += dt;
       if (k.dying.kind === 'waylaid') { followOff(k, dt); if (k.dying.t > WAYLAY.gone) park(k); }
-      else if (k.dying.t > 1.6) park(k);
+      else {
+        // taken by an enemy: drawn into its mouth (sucked in, engulfed, swept into the pouch) as it rounds up and fades
+        const to = k.dying.to;
+        if (to) { const e = Math.min(1, k.dying.t / 0.7), q = e * e * (3 - 2 * e); k.x = k.dying.x0 + (to.x - k.dying.x0) * q; k.y = k.dying.y0 + (to.y - k.dying.y0) * q; k.a += dt * 9; }
+        if (k.dying.t > 1.6) park(k);
+      }
     }
   }
   /** Free kin (not parked, not joining): the ones keepAmbient counts and may move. */
@@ -326,22 +378,26 @@ export function createCollectives(world, hooks = {}) {
     for (const m of all) nodes.push(m);
     for (const S of cells) nodes.push(S);
     const N = nodes.length, M = all.length;
-    // pairs: separation (a physical push, shared) and alignment (neighbours' velocities)
+    // pairs: separation (a physical push, shared) and alignment (neighbours' velocities), over the grid
     for (let i = 0; i < N; i++) { pushX[i] = 0; pushY[i] = 0; alX[i] = 0; alY[i] = 0; alN[i] = 0; }
     const sR = FLOCK.sepR, aR = FLOCK.alignR, aR2 = aR * aR;
+    const G = buildGrid(C, nodes, N), head = G.head, next = G.next, gnx = G.nx, gny = G.ny;
     for (let i = 0; i < N; i++) {
-      const a = nodes[i];
-      for (let j = i + 1; j < N; j++) {
-        const b = nodes[j], ex = a.x - b.x, ey = a.y - b.y;
-        if (ex > aR || ex < -aR || ey > aR || ey < -aR) continue;
-        const e2 = ex * ex + ey * ey;
-        if (e2 > aR2) continue;
-        alX[i] += b.vx; alY[i] += b.vy; alN[i]++;
-        alX[j] += a.vx; alY[j] += a.vy; alN[j]++;
-        if (e2 < sR * sR) {
-          const e = Math.sqrt(e2) || 0.01, p = (sR - e) * 0.5;
-          pushX[i] += (ex / e) * p; pushY[i] += (ey / e) * p;
-          pushX[j] -= (ex / e) * p; pushY[j] -= (ey / e) * p;
+      const a = nodes[i], c = G.cellOf[i], gi = c % gnx, gj = (c - gi) / gnx;
+      for (let jj = Math.max(0, gj - 1); jj <= Math.min(gny - 1, gj + 1); jj++) for (let ii = Math.max(0, gi - 1); ii <= Math.min(gnx - 1, gi + 1); ii++) {
+        for (let j = head[ii + gnx * jj]; j >= 0; j = next[j]) {
+          if (j <= i) continue;
+          const b = nodes[j], ex = a.x - b.x, ey = a.y - b.y;
+          if (ex > aR || ex < -aR || ey > aR || ey < -aR) continue;
+          const e2 = ex * ex + ey * ey;
+          if (e2 > aR2) continue;
+          alX[i] += b.vx; alY[i] += b.vy; alN[i]++;
+          alX[j] += a.vx; alY[j] += a.vy; alN[j]++;
+          if (e2 < sR * sR) {
+            const e = Math.sqrt(e2) || 0.01, p = (sR - e) * 0.5;
+            pushX[i] += (ex / e) * p; pushY[i] += (ey / e) * p;
+            pushX[j] -= (ex / e) * p; pushY[j] -= (ey / e) * p;
+          }
         }
       }
     }
@@ -352,8 +408,17 @@ export function createCollectives(world, hooks = {}) {
     const iX = C.intent.x, iY = C.intent.y, idle = 1 - C.intent.m;
     const dashK = C.dash ? FLOCK.dash : 1;
     const t = world.time || 0;
+    // LOD (perf): members out of every view follow the intent and the flock's middle (no alignment,
+    // no wander, no Brownian jitter, their height every few steps); those in view get everything
+    const inView = world.watch && world.watch.inView;
+    const frame = (C.frame = (C.frame || 0) + 1);
+    const insideAmoeba = world.amoeba && !world.amoeba.parked && !world.amoeba.beaten;
+    let farN = 0;
     for (let i = 0; i < M; i++) {
       const m = nodes[i];
+      if (m.drill) { m.sp = 0; continue; } // drilling into an enemy (guards.js holds it there)
+      const far = inView ? !inView(m.x, m.y, 4) : false;
+      m.far = far; if (far) farN++;
       // the intent as this member has perceived it so far: its own lag plus the wave from the front
       const behind = sMax - ((m.x - cx) * ux + (m.y - cy) * uy);
       const tau = m.lag + FLOCK.wave * behind;
@@ -367,12 +432,14 @@ export function createCollectives(world, hooks = {}) {
       Dx += (dx / d) * coh; Dy += (dy / d) * coh;
       // separation as steering (the push itself is applied below)
       Dx += pushX[i] * 2 * FLOCK.sepK; Dy += pushY[i] * 2 * FLOCK.sepK;
-      // alignment: match the neighbours' velocity a little (each to its own degree)
-      if (alN[i] > 0) { Dx += (alX[i] / alN[i] - m.vx) * m.align; Dy += (alY[i] / alN[i] - m.vy) * m.align; }
-      // wander: its own slow meander
-      m.wa += 1.4 * sq * gauss(r);
-      const wk = 5 * m.wander * (0.1 + 0.9 * C.intent.m);
-      Dx += Math.cos(m.wa) * wk; Dy += Math.sin(m.wa) * wk;
+      if (!far) {
+        // alignment: match the neighbours' velocity a little (each to its own degree)
+        if (alN[i] > 0) { Dx += (alX[i] / alN[i] - m.vx) * m.align; Dy += (alY[i] / alN[i] - m.vy) * m.align; }
+        // wander: its own slow meander
+        m.wa += 1.4 * sq * gauss(r);
+        const wk = 5 * m.wander * (0.1 + 0.9 * C.intent.m);
+        Dx += Math.cos(m.wa) * wk; Dy += Math.sin(m.wa) * wk;
+      }
       // waylaid: drawn off toward the stranger, more the longer it drifts (WAYLAY)
       if (m.drift) {
         const s = m.drift.c, w = Math.min(1, 0.35 + m.drift.t / WAYLAY.pull);
@@ -383,58 +450,70 @@ export function createCollectives(world, hooks = {}) {
       const dm = Math.hypot(Dx, Dy);
       // it swims along its body: turn toward the wish at its own rate, slower while facing away
       // (a stopped cell needs a little more to start again, so a resting flock rests)
-      let target = dm < (m.sp < 2 ? FLOCK.stop * 1.6 : FLOCK.stop) ? 0 : Math.min(dm, vm * dashK * 1.15);
+      // (a laggard well behind may swim a little over its own top speed to catch up, so a slow cell is not left behind for good)
+      const catchUp = 1.15 + Math.min(0.85, Math.max(0, d - C.R0 * 1.2) / 25);
+      if (d > C.R0 * 3 + 40) { m.hw = Math.min(m.hw ?? 3, 3); if (m.hz !== undefined) m.hz = Math.max(m.hz, 6.5); } // (a straggler far behind swims up over the clay to catch up)
+      let target = dm < (m.sp < 2 ? FLOCK.stop * 1.6 : FLOCK.stop) ? 0 : Math.min(dm, vm * dashK * catchUp);
       if (dm > 0.5) {
         const diff = wrap(Math.atan2(Dy, Dx) - m.a);
         const w = Math.max(-m.turn, Math.min(m.turn, diff * FLOCK.turnGain));
         m.a += w * dt;
         target *= 0.3 + 0.7 * Math.max(0, Math.cos(diff));
       }
-      m.a += 0.22 * sq * gauss(r); // rotational Brownian motion (reduced, as for your steered cell)
-      if (m.y < world.surfaceY(m.x) + 1) target *= 0.45;   // the biofilm's EPS
-      if (world.insideAmoeba(m.x, m.y, t) > 0) target *= 0.35; // being engulfed
+      if (!far) m.a += 0.22 * sq * gauss(r); // rotational Brownian motion (reduced, as for your steered cell)
+      target *= world.filmK ? world.filmK(m.x, m.y) : 1; // the biofilm's EPS (thicker the deeper)
+      if (insideAmoeba && world.insideAmoeba(m.x, m.y, t) > 0) target *= 0.35; // being engulfed
       m.sp += (target - m.sp) * (1 - Math.exp(-dt / m.acc));
       m.vx = Math.cos(m.a) * m.sp; m.vy = Math.sin(m.a) * m.sp;
       // currents: a raft is dragged less (dragK)
-      const f = world.flowAt(m.x, m.y, flow);
-      const fk = C.drag;
-      m.x += (m.vx + f.x * fk) * dt + pushX[i] + 0.5 * sq * gauss(r);
-      m.y += (m.vy + f.y * fk) * dt + pushY[i] + 0.5 * sq * gauss(r);
+      let fx = 0, fy = 0;
+      if (!world.flowNear || world.flowNear(m.x, m.y)) { const f = world.flowAt(m.x, m.y, flow); fx = f.x * C.drag; fy = f.y * C.drag; }
+      pxs[i] = m.x; pys[i] = m.y;
+      if (far) { m.x += (m.vx + fx) * dt + pushX[i]; m.y += (m.vy + fy) * dt + pushY[i]; }
+      else { m.x += (m.vx + fx) * dt + pushX[i] + 0.5 * sq * gauss(r); m.y += (m.vy + fy) * dt + pushY[i] + 0.5 * sq * gauss(r); }
       // the body and flagella turn with its speed: still when it stops
       m.bodyPhase += dt * (m.sp / 1.6) * Math.PI;
       m.flPhase += dt * 20 * Math.min(2.2, m.sp / FLOCK.v);
-      world.stepHeight(m, dt, sq, m.r); // 2.5D: its own height, up and over grains (world.js LAYER)
-      clampCell(m);
+      if (!far || (frame + i) % 4 === 0) world.stepHeight(m, far ? dt * 4 : dt, far ? sq * 2 : sq, m.r); // 2.5D: its own height, up and over grains (world.js LAYER)
+      softLimits(m, pxs[i], pys[i]);
     }
+    C.far = farN;
     // your own cell is pushed by the members as they are by it
-    for (let i = M; i < N; i++) { nodes[i].x += pushX[i]; nodes[i].y += pushY[i]; }
+    for (let i = M; i < N; i++) { const S = nodes[i], px = S.x, py = S.y; S.x += pushX[i]; S.y += pushY[i]; if (world.soften) world.soften(S, px, py); }
   }
 
-  // free kin: slow wanderers that keep near where they live (they never join by themselves)
+  // free kin: slow wanderers that keep near where they live (they never join by themselves); far from
+  // every player they rest where they are (perf: COLL.sleep)
   function stepFree(dt, sq) {
+    const ps = world.watch ? world.watch.players : null, S = COLL.sleep;
     for (const k of kin) {
       if (k.coll || k.dying || k.parked) continue;
       if (k.answer) k.answer.t += dt;
+      if (ps && !k.answer) { let awake = false; for (const p of ps) if (Math.abs(p.x - k.x) < S && Math.abs(p.y - k.y) < S) { awake = true; break; } if (!awake) continue; }
       k.a += 0.9 * sq * gauss(r);
       const dx = k.hx - k.x, dy = k.hy - k.y;
       if (dx * dx + dy * dy > 10 * 10) k.a += wrap(Math.atan2(dy, dx) - k.a) * Math.min(1, dt * 2);
       k.sp = 5;
-      const f = world.flowAt(k.x, k.y, flow);
+      let fx = 0, fy = 0;
+      if (!world.flowNear || world.flowNear(k.x, k.y)) { const f = world.flowAt(k.x, k.y, flow); fx = f.x; fy = f.y; }
       k.vx = Math.cos(k.a) * k.sp; k.vy = Math.sin(k.a) * k.sp;
-      k.x += (k.vx + f.x) * dt + 0.6 * sq * gauss(r);
-      k.y += (k.vy + f.y) * dt + 0.6 * sq * gauss(r);
+      const px = k.x, py = k.y;
+      k.x += (k.vx + fx) * dt + 0.6 * sq * gauss(r);
+      k.y += (k.vy + fy) * dt + 0.6 * sq * gauss(r);
       k.bodyPhase += dt * (k.sp / 1.6) * Math.PI; k.flPhase += dt * 20 * (k.sp / FLOCK.v);
       world.stepHeight(k, dt, sq, k.r);
-      clampCell(k);
+      // free kin keep to the open water: the biofilm's surface turns them back
+      if (k.y < world.surfaceY(k.x) + 0.5) k.y = world.surfaceY(k.x) + 0.5;
+      softLimits(k, px, py);
     }
   }
 
-  function clampCell(c) {
-    if (c.y > W.y1 - 2) c.y = W.y1 - 2;
-    // free kin keep to the water; members follow you into the biofilm, as far as your cell can go
-    const floor = world.surfaceY(c.x) + (c.coll ? -20 : 0.5);
-    if (c.y < floor) c.y = floor;
-    c.x = Math.max(W.x0 + 2, Math.min(W.x1 - 2, c.x));
+  /**
+   * The soft limits (no invisible walls): surface tension at the drop's edge and the biofilm's EPS
+   * slow a cell to a stop (world.soften), and clay grains push it round them (or it rides over).
+   */
+  function softLimits(c, px, py) {
+    if (world.soften) world.soften(c, px, py);
     world.pushOutOfGrains(c, c.r + 0.1);
   }
 
@@ -491,7 +570,7 @@ export function createCollectives(world, hooks = {}) {
         const dz = zGap(k.hz, b.hz); // 2.5D: a kin cell far above or below the pulse's slab is not reached
         if (dx * dx + dy * dy + dz * dz > front * front) continue;
         if (b.C.members.length + b.C.answered >= COLL.max) continue;
-        k.answer = { C: b.C, t: -(0.08 + 0.09 * b.n + r() * 0.08), joined: false, slot: b.slot };
+        k.answer = { C: b.C, t: -(0.08 + answerDelay(b.n) + r() * 0.08), joined: false, slot: b.slot };
         b.n++; b.C.answered++;
         break;
       }
@@ -644,13 +723,15 @@ export function createCollectives(world, hooks = {}) {
     nodes.length = 0;
     for (const m of C.members) nodes.push(m);
     for (const S of cells) nodes.push(S);
+    // (the flock's neighbour grid, fresh: prey rods look only at the members in the cells round them)
+    const G = buildGrid(C, nodes, nodes.length);
     const ext = C.extent + 5, got = [];
     for (const c of world.cells) {
-      if (c.kind !== 'rod' || c.ghost || c.lysed || c.bdelloplast || c.attachedBy) continue;
+      if (c.kind !== 'rod' || c.ghost || c.lysed || c.bdelloplast || c.attachedBy || c.parked) continue;
       if (Math.abs(c.x - C.cx) > ext || Math.abs(c.y - C.cy) > ext) continue;
       const reach = c.L * 0.5 + COLL.eatReach;
       let best = null, bd = reach * reach;
-      for (const m of nodes) { const d2 = (m.x - c.x) ** 2 + (m.y - c.y) ** 2 + zGap(m.hz, c.hz) ** 2; if (d2 < bd) { bd = d2; best = m; } }
+      eachNear(G, c.x, c.y, (m) => { const d2 = (m.x - c.x) ** 2 + (m.y - c.y) ** 2 + zGap(m.hz, c.hz) ** 2; if (d2 < bd) { bd = d2; best = m; } });
       if (!best) continue;
       c.lysed = 0.001;
       best.growth = Math.min(1.2, (best.growth || 0) + 0.34); // three rods make a division
@@ -707,11 +788,12 @@ export function createCollectives(world, hooks = {}) {
   }
 
   // --- members lost to predators (members are your health) ---
-  function lose(m, kind) {
+  function lose(m, kind, to = null) {
     const C = m.coll;
     unDrift(m);
     if (C) { const i = C.members.indexOf(m); if (i >= 0) C.members.splice(i, 1); }
-    m.coll = null; m.answer = null; m.dying = { kind, t: 0 };
+    // (to: where it is taken, a mouth or an amoeba's body: it is drawn there as it goes, collective post)
+    m.coll = null; m.answer = null; m.drill = null; m.dying = { kind, t: 0, to: to ? { x: to.x, y: to.y } : null, x0: m.x, y0: m.y };
     hooks.onLost?.(C, m, kind);
   }
   function losses(dt, t) {
@@ -750,26 +832,36 @@ export function createCollectives(world, hooks = {}) {
     for (const C of list) {
       if (!C.players.length) continue;
       const add = [];
-      for (const m of C.members) {
-        let rate = 1 / 150;
-        if (world.food(m.x, m.y) > 0.15) rate *= 2;
+      const fed = C.members.length < 200; // (perf: a big flock reads the food patches for one member in four)
+      for (let i = 0; i < C.members.length; i++) {
+        const m = C.members[i];
+        let rate = COLL.grow;
+        if ((fed || (i & 3) === (C.frame & 3)) && world.food(m.x, m.y) > 0.15) m.fedT = 1.2;
+        if (m.fedT > 0) { m.fedT -= dt; rate *= 2; }
         m.growth += rate * dt;
         if (m.growth >= 1) {
           m.growth = 0;
           if (C.members.length + add.length >= COLL.max) continue;
-          const d = newKin(m.x - Math.cos(m.a) * 1.6, m.y - Math.sin(m.a) * 1.6);
+          const d = reuse(m.x - Math.cos(m.a) * 1.6, m.y - Math.sin(m.a) * 1.6);
           d.a = m.a + Math.PI; d.coll = C; d.label = m.label; d.hz = m.hz; d.hw = m.hw; // a daughter carries its mother's label (and height)
           add.push(d);
         }
       }
-      for (const d of add) { kin.push(d); C.members.push(d); hooks.onDivide?.(C, d); }
+      for (const d of add) { if (!d.inKin) { d.inKin = true; kin.push(d); } C.members.push(d); hooks.onDivide?.(C, d); }
     }
   }
+  /** A new cell at (x, y): a parked kin cell taken back (one lost earlier), else a new one. */
+  function reuse(x, y) {
+    for (let i = reuseAt; i < kin.length; i++) { const k = kin[i]; if (k.parked && !k.coll && !k.dying && !k.answer) { reuseAt = i + 1; putFree(k, x, y); k.inKin = true; k.zone = 1; k.colony = null; return k; } }
+    reuseAt = 0;
+    return newKin(x, y);
+  }
+  let reuseAt = 0;
   /** The player's own division: the daughter joins the flock. */
   function adopt(P, x, y, a) {
     const C = of(P);
     if (!C || C.members.length >= COLL.max) return false;
-    const d = newKin(x, y); d.a = a; d.coll = C; d.label = P.slot ?? 0; kin.push(d); C.members.push(d);
+    const d = reuse(x, y); d.a = a; d.coll = C; d.label = P.slot ?? 0; if (!d.inKin) { d.inKin = true; kin.push(d); } C.members.push(d);
     return true;
   }
 
@@ -792,7 +884,7 @@ export function createCollectives(world, hooks = {}) {
         if (L.t >= COLL.latch) { m.latched = null; lose(m, 'bdello'); m.dying.bdello = c; c.latch = null; c.windup = 0; c.hidden = 1.5; c.cooldown = 3; }
         continue;
       }
-      if (c.prey || c.hidden > 0 || c.stalking || c.cooldown > 1) continue;
+      if (c.prey || c.hidden > 0 || c.stalking || c.cooldown > 1 || c.drillLatch) continue;
       let best = null, bd = 40;
       for (const C of list) {
         if (!C.members.length || !C.players.length) continue;
@@ -806,7 +898,7 @@ export function createCollectives(world, hooks = {}) {
       if (Math.hypot(best.x - c.x, best.y - c.y) < 1.4) {
         const C = best.coll;
         // the slime shield: half the rams glance off
-        if (C.level >= 1 && r() < 0.5) { c.cooldown = 1.6; c.a += Math.PI; hooks.onShield?.(C, null, 'bdello'); continue; }
+        if (C.level >= 1 && r() < 0.3) { c.cooldown = 1.6; c.a += Math.PI; hooks.onShield?.(C, null, 'bdello'); continue; }
         c.latch = { m: best, t: 0 }; best.latched = c;
       }
     }

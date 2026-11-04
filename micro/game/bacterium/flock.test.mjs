@@ -2,39 +2,81 @@
 // and the gates, stepped with the real world, swimmer, collective and guards.
 //   node micro/game/bacterium/flock.test.mjs
 import assert from 'node:assert/strict';
-import { createWorld } from './world.js';
+import { createWorld, DROP, rimDist, WORLD, ENCOUNTERS } from './world.js';
 import { createSwimmer } from './swim.js';
-import { createCollectives } from './collective.js';
+import { createCollectives, COLL } from './collective.js';
 import { createStentor } from './stentor.js';
 import { createGuards } from './guards.js';
+import { createGame } from './game.js';
+import { createFight } from '../shared/predation.js';
+import { autoFieldFor, AUTO } from './followcam.js';
 
-function setup(hooks = {}) {
+function setup(hooks = {}, { quiet = false } = {}) {
   const world = createWorld();
   const stentor = createStentor();
   world.stentor = stentor;
-  const coll = createCollectives(world, hooks);
+  let guards = null;
+  // (a member an enemy eats poisons it, as main.js wires it)
+  const coll = createCollectives(world, { ...hooks, onLost: (C, m, kind) => { if (guards && C && C.players.length) guards.poison(kind, m, C); hooks.onLost?.(C, m, kind); } });
   world.coll = coll;
   const sw = createSwimmer(world);
   sw.reset('mtb');
   const P = { slot: 0, S: sw.state, dash: { active: false } };
   coll.reset([P]);
-  const guards = createGuards(world, coll, stentor);
+  if (quiet) for (const k of coll.kin) if (!k.coll) coll.park(k); // (no free kin about: the fights measure the swarm they start with)
+  guards = createGuards(world, coll, stentor);
+  // Stentor's rhythm (main.js runBoss, without the player's own catch): its pull is its bite
+  stentor.fight = createFight({ windup: 1.4, strike: 0.9, recoverT: 2.4, repelT: 3.5, retreatT: 22, facingRate: 0, blockHit: 0, biteHit: 0, regain: 0 });
   let t = 0;
   const dt = 1 / 60;
+  const boss = () => {
+    const B = stentor;
+    if (!B.placed || B.beaten) return;
+    const d = Math.hypot(P.S.x - B.mouth.x, P.S.y - B.mouth.y);
+    if (!B.awake && d < B.wakeR) B.awake = true;
+    if (!B.awake) { B.update(dt, 'stalk', 0); return; }
+    const f = B.fight.update(dt, { near: d < B.wakeR, inReach: d < B.pullR, facing: true, blocking: false });
+    if (f.state === 'strike' && !B.inStrike) { B.inStrike = true; guards.stentorPull(); } else if (f.state !== 'strike') B.inStrike = false;
+    B.update(dt, B.fight.state, f.t);
+  };
   const step = (n, steer = null) => {
     for (let i = 0; i < n; i++) {
       const inputs = { 0: { steer: steer ? { ...steer } : null, dashActive: false } };
       coll.pre(dt, t, [P], inputs);
       sw.step(dt, t, inputs[0], {});
       world.update(dt, t, P.S);
+      boss();
       coll.post(dt, t, [P]);
       guards.update(dt, t, [P]);
       t += dt; world.time = t;
     }
   };
-  const fill = (n) => { for (let i = 0; i < 80 && coll.of(P).members.length < n; i++) coll.adopt(P, P.S.x + Math.cos(i * 2.4) * (1.5 + 0.35 * i), P.S.y + Math.sin(i * 2.4) * (1.5 + 0.35 * i), i); };
-  const move = (x, y) => { const C = coll.of(P), dx = x - P.S.x, dy = y - P.S.y; for (const m of C.members) { m.x += dx; m.y += dy; } P.S.x = x; P.S.y = y; };
+  const fill = (n) => { for (let i = 0; i < COLL.max + 8 && coll.of(P).members.length < n; i++) coll.adopt(P, P.S.x + Math.cos(i * 2.4) * (1.5 + 1.15 * Math.sqrt(i)), P.S.y + Math.sin(i * 2.4) * (1.5 + 1.15 * Math.sqrt(i)), i); };
+  const move = (x, y) => { const C = coll.of(P), dx = x - P.S.x, dy = y - P.S.y; for (const m of C.members) { m.x += dx; m.y += dy; } P.S.x = x; P.S.y = y; C.cx += dx; C.cy += dy; if (C.fx === C.fx) { C.fx += dx; C.fy += dy; } };
   return { world, stentor, coll, guards, P, step, fill, move, get t() { return t; } };
+}
+/** A swarm of n pushed into gate `id` (X every 0.5 s unless x is false): { won, t (s from first contact), left, ... }. */
+function fight(id, n, { x = true, maxT = 60 } = {}) {
+  const T = setup({}, { quiet: true });
+  const { coll, guards, P, step, fill, move, stentor, world } = T;
+  const q = guards.byId[id];
+  if (id === 'stentor') { world.setPortal(400, 0, 0); stentor.place(400, 0, 0); } else guards.placeGate(q, 400, 0, 0);
+  const c = guards.centre(q);
+  move(c.x - 70 - (1.05 * Math.sqrt(n) + 1.2) * 2, c.y - (id === 'grazer1' ? 10 : 0)); fill(n); step(60);
+  const C = coll.of(P);
+  let tt = 0, first = null, maxD = 0, hp0 = q.max, falls = 0;
+  const states = new Set();
+  for (; tt < maxT && !q.beaten && C.members.length + 1 > 1; tt += 0.25) {
+    if (first === null && q.contact) first = tt;
+    maxD = Math.max(maxD, q.drills); states.add(q.atk.st);
+    if (q.hp < hp0 - 0.5) falls++; hp0 = q.hp;
+    let tg = guards.centre(q);
+    if (id === 'grazer1') { const g = q.g; tg = { x: tg.x - g.pose.up.x * g.R * 1.3, y: tg.y - g.pose.up.y * g.R * 1.3 }; }
+    const dx = tg.x - C.cx, dy = tg.y - C.cy, dl = Math.hypot(dx, dy) || 1;
+    step(15, n ? { x: dx / dl, y: dy / dl, m: Math.min(1, dl / 10 + 0.3) } : { x: (tg.x - P.S.x) / (Math.hypot(tg.x - P.S.x, tg.y - P.S.y) || 1), y: (tg.y - P.S.y) / (Math.hypot(tg.x - P.S.x, tg.y - P.S.y) || 1), m: 0.4 });
+    if (x && Math.round(tt * 4) % 2 === 0) guards.volley(C, 0);
+  }
+  return { won: q.beaten, t: first === null ? null : +(tt - first).toFixed(1), left: C.members.length, hp: Math.round(q.hp), max: q.max, maxD, eaten: q.eaten, bites: q.bites, falls, states: [...states] };
 }
 const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
 const sd = (a) => { const m = mean(a); return Math.sqrt(mean(a.map((x) => (x - m) ** 2))); };
@@ -213,7 +255,7 @@ function waylaySetup() {
   // the biggest grain away from the start; the flock just to its left
   const g = world.grains.filter((q) => q.cap >= 5 && world.distFromStart(q.x, q.y) > 120 && q.y > 30).sort((a, b) => b.r - a.r)[0];
   const others = world.grains.filter((q) => q !== g && Math.hypot(q.x - g.x, q.y - g.y) < g.r + q.r + 40);
-  for (const q of others) { q.x += 500; } // (nothing else in the way)
+  for (const q of others) world.moveGrain(q, q.x + 500, q.y); // (nothing else in the way)
   move(g.x - g.r - 14, g.y); fill(12); step(120);
   const C = coll.of(P);
   const hs = C.members.map((m) => m.hz);
@@ -233,4 +275,110 @@ function waylaySetup() {
   assert.ok(after < 5.6, `and settle back on the far side (highest ${after.toFixed(1)} µm)`);
 }
 
-console.log('bacterium flock: all checks pass');
+// --- no invisible walls: the drop's edge is a soft stop at the meniscus you can see ---
+{
+  const { P, step, move, world } = setup();
+  const a = 2.2, R = DROP.R; // up and to the left, away from the sediment bank
+  move(Math.cos(a) * (R - 60), Math.sin(a) * (R - 60));
+  const out = { x: Math.cos(a), y: Math.sin(a), m: 1 };
+  const radial = [];
+  let prev = rimDist(P.S.x, P.S.y);
+  for (let i = 0; i < 360; i++) { step(1, out); const d = rimDist(P.S.x, P.S.y); radial.push((prev - d) * 60); prev = d; }
+  const end = rimDist(P.S.x, P.S.y);
+  assert.ok(end > 0 && end < 3, `swimming straight out, the cell stops at the drop's edge (${end.toFixed(2)} µm inside it, where the meniscus is drawn)`);
+  const drops = radial.slice(1).map((v, i) => radial[i] - v);
+  assert.ok(Math.max(...drops) < 15 && radial.slice(0, 30).some((v) => v > 30), `it eases to a stop, no wall (fastest out ${Math.max(...radial).toFixed(0)} µm/s, biggest slow-down in a frame ${Math.max(...drops).toFixed(1)} µm/s)`);
+  // along the edge it slides freely (surface tension holds it in, it does not hold it still)
+  const t0 = { x: P.S.x, y: P.S.y };
+  step(120, { x: -Math.sin(a) * 0.95 + Math.cos(a) * 0.3, y: Math.cos(a) * 0.95 + Math.sin(a) * 0.3, m: 1 });
+  assert.ok(Math.hypot(P.S.x - t0.x, P.S.y - t0.y) > 40 && rimDist(P.S.x, P.S.y) > 0, `it slides along the edge (${Math.hypot(P.S.x - t0.x, P.S.y - t0.y).toFixed(0)} µm in 2 s)`);
+  // and no clamp is left where the old walls were (x = ±560, y = 560)
+  move(600, 600); step(150, { x: 0.7, y: 0.7, m: 1 });
+  assert.ok(P.S.x > 620 && P.S.y > 620, 'past where the old invisible walls stood');
+  void world;
+}
+{
+  // a swarm of 60 pushed at the edge: every member stays inside the drop, piled against the meniscus
+  const { P, coll, step, fill, move } = setup();
+  const a = 1.9, R = DROP.R;
+  move(Math.cos(a) * (R - 80), Math.sin(a) * (R - 80)); fill(60); step(30);
+  step(420, { x: Math.cos(a), y: Math.sin(a), m: 1 });
+  const C = coll.of(P), ds = C.members.map((m) => rimDist(m.x, m.y));
+  assert.ok(Math.min(...ds) > 0 && Math.min(...ds) < 4, `the swarm piles against the edge, none beyond it (nearest ${Math.min(...ds).toFixed(2)} µm inside)`);
+}
+{
+  // the sediment bank: visible, and its EPS thickens until you can go no deeper (a soft stop, not a wall)
+  const { P, step, move, world } = setup();
+  move(200, world.surfaceY(200) + 30);
+  const ys = [];
+  for (let i = 0; i < 300; i++) { step(1, { x: 0, y: -1, m: 1 }); ys.push(P.S.y); }
+  const depth = world.surfaceY(P.S.x) - P.S.y, v = ys.slice(1).map((y, i) => (ys[i] - y) * 60);
+  assert.ok(depth > 2 && depth < 25 && v.at(-1) < 3 && v.at(-1) < v[20] / 5, `into the biofilm it slows to a stop ${depth.toFixed(1)} µm in`);
+  assert.ok(Math.max(...v.slice(1).map((x, i) => v[i] - x)) < 15, 'eased, not stopped dead');
+}
+
+// --- kin over the old cap of 48 still answer; the stranger strain never does (and looks different: draw.js) ---
+{
+  const { world, coll, P, step, fill } = setup();
+  fill(60); step(30);
+  const C = coll.of(P), free = coll.kin.filter((k) => !k.coll && !k.parked && !k.dying);
+  free.slice(0, 5).forEach((k, i) => { k.x = k.hx = C.cx + C.extent + 2 + i; k.y = k.hy = C.cy; });
+  const s = world.cells.find((c) => c.stranger); s.parked = false; s.x = C.cx + C.extent + 3; s.y = C.cy + 2;
+  coll.beacon(P, 900); step(90);
+  assert.ok(C.members.length >= 65, `a swarm of 60 still recruits (${C.members.length})`);
+  assert.ok(!C.members.includes(s) && !coll.kin.includes(s), 'the stranger strain does not join');
+  assert.ok(s.stranger && s.wl < 1.3 && s.L > 3.4, 'and it is built differently (longer, a tighter helix: drawn amber)');
+}
+
+// --- members are your health: a predator takes a member, not you, while you have one ---
+{
+  const { world, coll, P, step, fill } = setup();
+  fill(3); step(10);
+  const game = createGame(world, { state: P.S, caught: (kind, who) => { P.S.alive = false; P.S.caught = { kind, who }; return true; } });
+  game.opts.absorb = (kind, who) => coll.absorb(P, kind, who);
+  let lost = 0;
+  for (let i = 0; i < 3; i++) { P.safeT = 0; const ev = {}; game.catchBy('amoeba', world.amoeba, ev); if (ev.absorbed) lost++; }
+  assert.ok(lost === 3 && P.S.alive && coll.of(P).members.length === 0, `three hits take three members, not you (${coll.of(P).members.length} left, alive ${P.S.alive})`);
+  P.safeT = 0; const ev = {}; game.catchBy('amoeba', world.amoeba, ev);
+  assert.ok(ev.caught && !P.S.alive, 'with none left, the next takes your own cell');
+}
+
+// --- the gate battles: they eat members in a rhythm (a tell, then a bite); members drill in; a modest swarm wins, a big one fast ---
+const battle = {};
+for (const [id, small, need, big, fast] of [['grazer1', 5, 14, 42, 8], ['bdello', 14, 50, 150, 12], ['amoeba', 60, 150, 450, 8], ['stentor', 120, 300, 900, 10]]) {
+  const e = ENCOUNTERS.find((q) => q.id === (id === 'stentor' ? 'portal' : id));
+  assert.ok(need <= e.need, `${id}: tested at its need or below (${need} ≤ ${e.need})`);
+  const a = fight(id, 0, { maxT: 20 }), b = fight(id, small, { maxT: 40 }), c = fight(id, need), d = fight(id, big);
+  assert.ok(!a.won && a.hp > a.max * 0.8, `${id}: a lone cell gets nowhere (${a.hp} of ${a.max} left)`);
+  assert.ok(!b.won, `${id}: a small swarm (${small}) loses (${b.hp} of ${b.max} left, ${b.left} cells left)`);
+  assert.ok(c.won && c.left > 0 && c.left < need, `${id}: a modest swarm (${need}) wins, losing cells (${c.t} s, ${c.left} left)`);
+  assert.ok(d.won && d.t < fast && d.left > big * 0.85, `${id}: a big swarm (${big}) wins fast (${d.t} s, ${d.left} left)`);
+  assert.ok(c.maxD >= 5 && c.falls > 4, `${id}: members drill in and wear it down (${c.maxD} drilling at once)`);
+  if (id === 'grazer1' || id === 'amoeba') assert.ok(c.states.includes('tell') && c.states.includes('bite') && c.eaten > 0, `${id}: it eats members, a tell before each bite (${c.bites} bites, ${c.eaten} eaten)`);
+  battle[id] = `${small} loses; ${need} wins in ${c.t} s (${c.left} left); ${big} in ${d.t} s (${d.left} left)`;
+}
+
+// --- a swarm of 1000 steps within a time budget, headless ---
+{
+  const { world, coll, P, step, fill, move } = setup({}, { quiet: true });
+  move(200, 400); fill(1000); step(30);
+  const C = coll.of(P);
+  // (a view round the swarm, as main.js sets it: members off screen take the cheap path)
+  world.watch.inView = (x, y, r) => Math.abs(x - C.cx) < 120 + r && Math.abs(y - C.cy) < 68 + r;
+  world.watch.players = [{ x: C.cx, y: C.cy }];
+  const t0 = performance.now(); step(120, { x: 1, y: 0.2, m: 1 }); const ms = (performance.now() - t0) / 120;
+  assert.equal(C.members.length, 1000);
+  assert.ok(ms < 16, `1000 members step in ${ms.toFixed(2)} ms (budget 16 ms, headless)`);
+  assert.ok(C.speed > 15 && C.extent < 120, `and still move as one (${C.speed.toFixed(0)} µm/s, ${C.extent.toFixed(0)} µm from the middle)`);
+  battle.perf = `${ms.toFixed(2)} ms per step for 1000 members`;
+}
+
+// --- the camera: the default field widens as the swarm grows (main.js stepZoom; LT/RT multiply it) ---
+{
+  const f = [1, 10, 40, 100, 300, 1000].map((n) => autoFieldFor(n, 1.3 * (1.05 * Math.sqrt(n) + 1.2)));
+  assert.ok(f[0] === 45 && f.every((v, i) => i === 0 || v >= f[i - 1]) && f[5] > f[2] * 2 && f[5] <= AUTO.max, `the field grows with the swarm (${f.map((v) => v.toFixed(0)).join(', ')} µm)`);
+  for (const n of [100, 300, 1000]) { const R0 = 1.05 * Math.sqrt(n) + 1.2; assert.ok(autoFieldFor(n, R0) > 2.2 * R0 * 1.3, `a swarm of ${n} fits its field`); }
+}
+
+console.log(`bacterium flock: all checks pass
+  battles: ${Object.entries(battle).map(([k, v]) => `${k}: ${v}`).join('\n           ')}`);
