@@ -8,7 +8,6 @@ import { createCollectives, COLL, densityK } from './collective.js';
 import { createStentor } from './stentor.js';
 import { createGuards } from './guards.js';
 import { createGame } from './game.js';
-import { createFight } from '../shared/predation.js';
 import { ZOOM, zoomStep } from './followcam.js';
 import { SPECIES } from './swim.js';
 import { readFileSync } from 'node:fs';
@@ -27,19 +26,15 @@ function setup(hooks = {}, { quiet = false } = {}) {
   coll.reset([P]);
   if (quiet) for (const k of coll.kin) if (!k.coll) coll.park(k); // (no free kin about: the fights measure the swarm they start with)
   guards = createGuards(world, coll, stentor);
-  // Stentor's rhythm (main.js runBoss, without the player's own catch): its pull is its bite
-  stentor.fight = createFight({ windup: 2.0, strike: 0.9, recoverT: 2.4, repelT: 3.5, retreatT: 22, facingRate: 0, blockHit: 0, biteHit: 0, regain: 0 });
   let t = 0;
   const dt = 1 / 60;
+  // Stentor (main.js runBoss, without the player's own catch): it wakes, then hunts the swarm's middle
   const boss = () => {
     const B = stentor;
-    if (!B.placed || B.beaten) return;
-    const d = Math.hypot(P.S.x - B.mouth.x, P.S.y - B.mouth.y);
-    if (!B.awake && d < B.wakeR) B.awake = true;
-    if (!B.awake) { B.update(dt, 'stalk', 0); return; }
-    const f = B.fight.update(dt, { near: d < B.wakeR, inReach: d < B.pullR, facing: true, blocking: false });
-    if (f.state === 'strike' && !B.inStrike) { B.inStrike = true; guards.stentorPull(t); } else if (f.state !== 'strike') B.inStrike = false;
-    B.fightT = f.t; B.update(dt, B.fight.state, f.t);
+    if (!B.placed) return;
+    const C = coll.of(P), f = C && C.members.length ? { x: C.cx, y: C.cy } : { x: P.S.x, y: P.S.y };
+    if (!B.awake && !B.beaten && Math.hypot(f.x - B.mouth.x, f.y - B.mouth.y) < B.wakeR) B.awake = true;
+    B.update(dt, B.awake ? f : null);
   };
   const step = (n, steer = null) => {
     for (let i = 0; i < n; i++) {
@@ -56,6 +51,12 @@ function setup(hooks = {}, { quiet = false } = {}) {
   const fill = (n) => { for (let i = 0; i < COLL.max + 8 && coll.of(P).members.length < n; i++) coll.adopt(P, P.S.x + Math.cos(i * 2.4) * (1.5 + 1.15 * Math.sqrt(i)), P.S.y + Math.sin(i * 2.4) * (1.5 + 1.15 * Math.sqrt(i)), i); };
   const move = (x, y) => { const C = coll.of(P), dx = x - P.S.x, dy = y - P.S.y; for (const m of C.members) { m.x += dx; m.y += dy; } P.S.x = x; P.S.y = y; C.cx += dx; C.cy += dy; if (C.fx === C.fx) { C.fx += dx; C.fy += dy; } };
   return { world, stentor, coll, guards, P, step, fill, move, get t() { return t; } };
+}
+/** A point beside Stentor's body, on the swarm's side of it, out of its feeding cone (where a careful swarm drills). */
+function stentorFlank(B, x, y) {
+  const c = Math.cos(B.ang), s = Math.sin(B.ang), side = Math.sign(-(x - B.foot.x) * s + (y - B.foot.y) * c) || 1, u = B.len * 0.55;
+  const w = 2.6 + (0.56 * B.R - 2.6) * Math.pow(0.55, 2.3) + 2;
+  return { x: B.foot.x + c * u - s * w * side, y: B.foot.y + s * u + c * w * side };
 }
 /**
  * A swarm of n pushed into gate `id` (X every 0.5 s unless x is false). careful: pull back straight out from it
@@ -79,8 +80,8 @@ function fight(id, n, { x = true, maxT = 60, careful = false, mouth = false } = 
     const cc = guards.centre(q);
     let tg = cc;
     if (id === 'grazer1') { const g = q.g; tg = mouth ? g.pose.mouth : { x: cc.x - g.pose.up.x * g.R * 1.3, y: cc.y - g.pose.up.y * g.R * 1.3 }; }
-    if (id === 'stentor') { const D = stentor.disc(C.cx, C.cy), rho = Math.max(1e-3, D.rho); tg = { x: cc.x + (C.cx - cc.x) / rho * 0.97, y: cc.y + (C.cy - cc.y) / rho * 0.97 }; }
-    const tell = q.kind === 'stentor' ? (stentor.fight.state === 'windup' && (stentor.fightT || 0) > 0.4) || stentor.fight.state === 'strike' : (q.atk.st === 'tell' && q.atk.t > q.tell * 0.4) || q.atk.st === 'bite';
+    if (id === 'stentor') tg = stentorFlank(stentor, C.cx, C.cy);
+    const tell = q.kind === 'stentor' ? false : (q.atk.st === 'tell' && q.atk.t > q.tell * 0.4) || q.atk.st === 'bite';
     if (careful && tell && C.members.some((m) => guards.zone(q, m.x, m.y, world.time) > 0)) {
       // pull back: straight out from it (the amoeba's edge faces whoever comes; else away from its middle)
       let ox = C.cx - cc.x, oy = C.cy - cc.y;
@@ -387,7 +388,7 @@ for (const [id, big, fast] of [['grazer1', 42, 8], ['bdello', 150, 12], ['amoeba
 }
 {
   // capture zones: a bite takes members in its zone (by depth) and never one outside it
-  for (const id of ['grazer1', 'amoeba', 'stentor']) {
+  for (const id of ['grazer1', 'amoeba']) {
     const T = setup({}, { quiet: true });
     const { coll, guards, P, step, fill, world, stentor } = T;
     const q = guards.byId[id];
@@ -406,7 +407,7 @@ for (const [id, big, fast] of [['grazer1', 42, 8], ['bdello', 150, 12], ['amoeba
     outside.forEach((m, i) => { m.x = 250 + (i % 6) * 3; m.y = 60 + Math.floor(i / 6) * 3; });
     assert.ok(inside.every((m) => guards.zone(q, m.x, m.y, world.time) > 0.6) && outside.every((m) => guards.zone(q, m.x, m.y, world.time) === 0), `${id}: the test cells are deep in its zone or well out of it`);
     { const cc = guards.centre(q); C.cx = cc.x; C.cy = cc.y; C.extent = 200; } // (the flock is at it: the bite looks at flocks near it)
-    const n = id === 'stentor' ? guards.stentorPull() : guards.biteNow(q);
+    const n = guards.biteNow(q);
     const lostIn = inside.filter((m) => m.dying).length, lostOut = outside.filter((m) => m.dying).length;
     assert.ok(lostOut === 0, `${id}: no member outside its zone is taken`);
     assert.ok(lostIn >= 22 && n === lostIn, `${id}: most of those deep in it are (${lostIn} of 30)`);
@@ -438,6 +439,66 @@ for (const [id, big, fast] of [['grazer1', 42, 8], ['bdello', 150, 12], ['amoeba
   for (let i = 0; i < 240 && !caught; i++) { step(1); caught = coll.kin.find((k) => k.dying && k.dying.kind === 'bdello'); }
   assert.ok(caught === m && far.every((k) => !k.dying), 'Bdellovibrio: it takes the member in its reach, not the far ones');
   step(30); assert.ok(m.dying && !m.parked && m.dying.bdello, 'and the member rounds up with it inside, still there');
+}
+
+// --- Stentor: guards the portal, sucks your swarm in little by little, recoils from your drills, moves smoothly, can be pushed off ---
+{
+  const T = setup({}, { quiet: true });
+  const { coll, guards, P, step, fill, move, world, stentor: B } = T;
+  world.setPortal(400, 0, 0); B.place(400, 0, 0);
+  const host = { x: 400, y: 0 };
+  assert.ok(B.covers(host.x, host.y), 'placed, it covers the host (its body leans over it)');
+  const text = readFileSync(new URL('../../text_config.js', import.meta.url), 'utf8');
+  assert.ok(/stentor: 'Stentor guards the portal/.test(text), 'the first time you reach it: "Stentor guards the portal ..."');
+  // suction by depth: hold 30 members deep in its cone, 30 shallow, 30 outside it, for 3 s
+  B.awake = true; B.update(1 / 60, null);
+  move(B.mouth.x - 200, B.mouth.y); fill(90); step(2);
+  const C = coll.of(P), ms = C.members.slice(0, 90);
+  const put = () => ms.forEach((m, i) => { if (m.dying) return; const g = Math.floor(i / 30), d = g === 0 ? 20 : g === 1 ? 95 : 160; m.x = B.mouth.x - d - (i % 5) * 1.5; m.y = B.mouth.y + ((i % 6) - 2.5) * 2; m.drill = null; });
+  put();
+  const ks = [0, 30, 60].map((i) => B.cone(ms[i].x, ms[i].y).toFixed(2));
+  C.cx = B.mouth.x - 80; C.cy = B.mouth.y; C.extent = 120;
+  for (let i = 0; i < 180; i++) { put(); guards.suck(guards.byId.stentor, 1 / 60); }
+  const lost = [0, 1, 2].map((g) => ms.slice(g * 30, g * 30 + 30).filter((m) => m.dying).length);
+  assert.ok(lost[2] === 0 && lost[0] > lost[1] * 2 && lost[0] >= 5 && lost[0] < 30, `it takes members by depth in its cone, a few at a time (depth ${ks.join(', ')}: ${lost.join(', ')} of 30 taken in 3 s)`);
+  const eaten = ms.find((m) => m.dying);
+  assert.ok(eaten.dying.kind === 'stentor' && !eaten.parked, 'a member taken is drawn in (still there), not removed');
+}
+{
+  // knockback: drilling on one side makes it flinch away from that side; its size changes only smoothly
+  const T = setup({}, { quiet: true });
+  const { world, stentor: B } = T;
+  world.setPortal(400, 0, 0); B.place(400, 0, 0); B.awake = true;
+  const side = { x: B.foot.x + Math.cos(B.ang) * 60 - Math.sin(B.ang) * 20, y: B.foot.y + Math.sin(B.ang) * 60 + Math.cos(B.ang) * 20 };
+  const angTo = () => { const dx = side.x - B.foot.x, dy = side.y - B.foot.y; return Math.abs(Math.atan2(Math.sin(Math.atan2(dy, dx) - B.ang), Math.cos(Math.atan2(dy, dx) - B.ang))); };
+  const a0 = angTo(), f0 = { ...B.foot };
+  let maxDL = 0, maxDR = 0, L = B.len, R = B.R;
+  for (let i = 0; i < 120; i++) { B.knock(side.x, side.y, i % 20 === 0 ? 0.8 : 0.02); B.update(1 / 60, null); maxDL = Math.max(maxDL, Math.abs(B.len - L)); maxDR = Math.max(maxDR, Math.abs(B.R - R)); L = B.len; R = B.R; }
+  assert.ok(angTo() > a0 + 0.05, `it flinches away from the drill side (${a0.toFixed(2)} → ${angTo().toFixed(2)} rad off its axis)`);
+  assert.ok(Math.hypot(B.foot.x - f0.x, B.foot.y - f0.y) > 3, 'and its holdfast is pushed back');
+  assert.ok(B.contract > 0.05 && maxDL < 1.5 && maxDR < 0.6, `it contracts a little, smoothly (most per frame: body ${maxDL.toFixed(2)} µm, disc ${maxDR.toFixed(2)} µm)`);
+  // beaten: it shrinks shut slowly, never a jump
+  B.beaten = true; maxDR = 0; R = B.R;
+  for (let i = 0; i < 180; i++) { B.update(1 / 60, null); maxDR = Math.max(maxDR, Math.abs(B.R - R)); R = B.R; }
+  assert.ok(B.contract > 0.8 && maxDR < 0.6, `beaten, it closes over ~2 s with no jump (${maxDR.toFixed(2)} µm a frame at most)`);
+}
+{
+  // a swarm drilling its flank pushes it off the host (the way through without beating it), and hurts it
+  const T = setup({}, { quiet: true });
+  const { coll, guards, P, step, fill, move, world, stentor: B } = T;
+  world.setPortal(400, 0, 0); B.place(400, 0, 0);
+  guards.byId.stentor.max = guards.byId.stentor.hp = 1e9; // (it must not die: this is about pushing)
+  const fl = stentorFlank(B, B.foot.x, B.foot.y + 50);
+  move(fl.x, fl.y + 40); fill(300); step(30);
+  const C = coll.of(P);
+  let off = null, maxD = 0;
+  for (let i = 0; i < 160 && off === null; i++) {
+    const tg = stentorFlank(B, C.cx, C.cy), dx = tg.x - C.cx, dy = tg.y - C.cy, dl = Math.hypot(dx, dy) || 1;
+    step(15, { x: dx / dl, y: dy / dl, m: Math.min(1, dl / 10 + 0.3) }); if (i % 2 === 0) guards.volley(C, 0);
+    maxD = Math.max(maxD, guards.byId.stentor.drills);
+    if (!B.covers(400, 0)) off = i / 4;
+  }
+  assert.ok(off !== null && maxD > 10, `sustained drilling pushes it off the host (uncovered after ${off} s; ${maxD} drilling at once)`);
 }
 
 // --- a swarm of 1000 steps within a time budget, headless ---

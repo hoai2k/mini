@@ -2062,9 +2062,9 @@ export const TEXT = {
       slimeRamWho: '{who}The ram glances off the slime round your army',
       bdelloRammed: '{who}Bdellovibrio has rammed you! Sprint ({btn:A}) or tumble ({btn:B}) to shake it off',
       bdelloMissed: '{who}Tumbled: the Bdellovibrio\'s ram misses',
-      stentorFoot: 'You bumped Stentor\'s foot: it flinches and pauses',
+      stentorFoot: 'You bumped Stentor\'s foot: it flinches back',
       tumbledFree: 'Tumbled free of the pull!',
-      turnedBack: 'Stentor\'s current pushes you back: beat Stentor first (drill into its rim)',
+      turnedBack: 'Stentor covers the portal: push it off (drill its body from the side) or beat it',
       sealed: 'The host is closed: get past the enemies on the way first',
       shookBdello: '{who}Shook the Bdellovibrio off before it could bore in',
       letGoPrey: '{who}Let go of the prey',
@@ -2090,7 +2090,7 @@ export const TEXT = {
       memberTaken: {
         grazer: 'The peritrich ate cells in front of its mouth ({left} left). Each cell is a life; stay out of its current when its funnel opens',
         amoeba: 'The amoeba swallowed cells at its edge ({left} left). Each cell is a life; pull back when its edge bulges',
-        stentor: 'Stentor swallowed cells near its mouth ({left} left). Each cell is a life; pull back when its rim shimmers',
+        stentor: 'Stentor sucked cells into its funnel ({left} left). Each cell is a life; keep out of the cone in front of it',
         bdello: 'A Bdellovibrio bored into one of your cells ({left} left). Each cell is a life: it takes them, not you',
         phage: 'A phage infected one of your cells ({left} left). Each cell is a life: it takes them, not you',
         other: 'You lost a cell ({left} left). Each cell is a life: it is taken, not you',
@@ -2102,7 +2102,7 @@ export const TEXT = {
         bdello: 'The Bdellovibrio pack is dead. The way is open, with kin and food beyond',
         phage: 'The phage cloud is swept up in your slime. The way is open',
         amoeba: 'The amoeba is beaten: it pulls back into the sediment. The way is open, with kin and food beyond',
-        stentor: 'Stentor is beaten: it shrinks shut. The host is open: touch it and press {btn:Y}',
+        stentor: 'Stentor is beaten: it shrinks shut. The portal is open: touch the host and press {btn:Y}',
       },
       toxinHit: 'Toxin burst! It hit: {what}',
       toxinNeedsSwarm: 'No toxin yet: it needs a swarm of {n} (you have {army})',
@@ -2122,7 +2122,7 @@ export const TEXT = {
       phage: 'A phage cloud: it infects your cells. A swarm of 5 grows a slime shield that sweeps phages up',
       amoeba: 'A giant amoeba lies across the way. Drill into its edge, but when its edge bulges, pull back: it swallows every cell within its reach',
       grazer2: 'A bigger peritrich: bring a bigger swarm',
-      stentor: 'Stentor guards the host. Drill into its rim, and pull back out when its rim shimmers: its pull swallows every cell near its mouth. {btn:Y} fires your toxin',
+      stentor: 'Stentor guards the portal. Its funnel sucks in whatever is in front of it: keep out of it, drill its body from the side, and push it off the portal (or beat it). {btn:Y} fires your toxin',
     },
     capture: {
       stentor: {
@@ -2220,7 +2220,7 @@ export const TEXT = {
         about: 'A nucleic-acid stain makes each 60 nm phage a diffraction-limited spot: the standard way to count viruses in pond water. Without it, no light microscope shows them.',
       },
       overlay: {
-        label: 'Data overlay (Y)',
+        label: 'Data overlay',
         about: 'Food contours, the field lines and the grazers\' currents, and the magnetosome chain picked out. Marked on screen as data, not optics.',
       },
       mark: {
@@ -2356,7 +2356,7 @@ export const TEXT = {
       tell: {
         grazer: 'Its funnel opens: pull back out of its current!',
         amoeba: 'Its edge bulges: pull back out of its reach!',
-        stentor: 'Its rim shimmers: pull back out of its pull!',
+        stentor: 'Stentor\'s funnel is sucking your cells in: get out of the cone in front of it!',
         bdello: 'A Bdellovibrio is boring into one of your cells: drill it first',
       },
       bite: {
@@ -2366,8 +2366,8 @@ export const TEXT = {
         bdello: 'Bdellovibrio bore in! Drill them ({btn:X} harder)',
       },
       stentorSpeeds: 'Stentor\'s membranelles speed up, its vortex brightens: get to the edge, or tumble ({btn:B}) at the pull',
-      stentorPulls: 'Stentor PULLS: tumble ({btn:B}) to break free, sprint ({btn:A}) out',
-      stentorSlackens: 'Its pull slackens: drill into its rim now!',
+      stentorPulls: 'Stentor\'s funnel is pulling you in: sprint ({btn:A}) out of the cone',
+      stentorSlackens: 'Stentor flinches: keep pushing it off the portal!',
       bdelloLining: 'Bdellovibrio is lining up to ram you: tumble ({btn:B}) at the ram',
       phageCaught: 'A phage\'s tail fibres have caught your wall: tumble ({btn:B}) now',
       bdelloStalking: 'A Bdellovibrio is stalking you: keep moving, tumble ({btn:B}) when it rams',

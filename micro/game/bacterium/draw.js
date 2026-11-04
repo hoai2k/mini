@@ -381,21 +381,28 @@ export function createDrawer(world) {
   // and green food vacuoles (zoochlorellae) inside. Here it stands as in the sheet's first
   // view: foot on the biofilm at the lower left, disc tilted to the upper right.
   const stR = rng(707);
-  const vortex = Array.from({ length: 90 }, () => ({ a: stR() * 6.283, r: stR(), v: 0.4 + stR() * 0.8, sz: 0.25 + stR() * 0.5 }));
+  const vortex = Array.from({ length: 160 }, () => ({ a: (stR() - 0.5) * 1.9, r: stR(), v: 0.4 + stR() * 0.8, sz: 0.25 + stR() * 0.5 }));
   const beads = Array.from({ length: 11 }, (_, i) => ({ u: 0.22 + i * 0.055, off: 0.18 + 0.05 * Math.sin(i * 1.7), r: 0.55 + 0.25 * stR() }));
   const vac = Array.from({ length: 16 }, () => ({ u: 0.45 + stR() * 0.5, v: (stR() - 0.5) * 1.4, r: 2.2 + stR() * 3, green: stR() < 0.55 }));
+  const dent = { dn: -0.012, scat: 0.05, fl: [-0.004, 0, 0], ab: [-0.004, -0.002, -0.001], cap: 3, z: 0.2 };
   function stentor(S, t, B) {
     const M = B.mouth, c = B.contract;
-    const R = B.discR * (1 - 0.4 * c); // contracted: the disc pulls in
+    const R = B.R; // (contracted: the disc pulls in; stentor.js eases it, never a snap)
     const fx = B.foot.x, fy = B.foot.y;
-    const ang = Math.atan2(M.y - fy, M.x - fx), L0 = Math.hypot(M.x - fx, M.y - fy);
-    const L = L0 * (1 - 0.45 * c); // contracted: it shortens in a flash toward its foot
+    const ang = Math.atan2(M.y - fy, M.x - fx), L = Math.hypot(M.x - fx, M.y - fy); // (its mouth is already where its contraction puts it)
     const ca = Math.cos(ang), sa = Math.sin(ang);
     const at = (u, v) => [fx + ca * u - sa * v, fy + sa * u + ca * v];
     // its damage state (guards.js hpK): paler as the drills wear it down, a flash where they hit
     const hp = B.hpK ?? 1, hit = B.hit ? 1 : 0, pale = 0.45 + 0.55 * hp;
     const blue = { dn: 0.03, scat: 0.12 + 0.15 * hit, fl: [(0.06 + 0.06 * hit) * chan.memb, 0, 0], memb: 1, ab: [0.014 * pale, 0.006 * pale, 0.002 * pale], z: 0.2, phase: B.phase * 0.15 };
     if (S.inView(fx + ca * L * 0.5, fy + sa * L * 0.5, L + R * 1.5)) S.trumpet(fx, fy, ang, L, R, 2.6, 6.1, blue);
+    // the pinch where your members drill: each drill takes a little of its body's optical path at its tip, so
+    // where many drill together a dent deepens (a labelled stretch, as the windows over grains)
+    if (world.coll) for (const C of world.coll.list) for (const m of C.members) {
+      if (!m.drill || m.drill.q.kind !== 'stentor') continue;
+      const x = m.x + Math.cos(m.a) * m.L * 0.9, y = m.y + Math.sin(m.a) * m.L * 0.9;
+      if (S.inView(x, y, 3)) S.disc(x, y, 1.9, dent);
+    }
     // the macronucleus: a chain of beads down the body (moniliform)
     for (const b of beads) {
       const u = b.u * L, w = 2.6 + (0.56 * R - 2.6) * Math.pow(b.u, 2.3);
@@ -422,26 +429,27 @@ export function createDrawer(world) {
       const beat = Math.sin(B.phase * 2 - i * 0.45);
       S.strand(x, y, nrm + 0.5 * beat * (1 - c), (15 + 3 * beat) * (1 - 0.7 * c), 0.35, 0.6, 14, { dn: 0.05, scat: 1.4 + 2.5 * B.glow, fl: [0.6 * chan.memb, 0, 0], memb: 1, z: 0.1, phase: B.phase + i });
     }
-    // its capture zone while it winds up (guards.js tellK): a shimmer out at the reach of its suction, past the rim
-    if (B.tellK > 0 && B.zoneR && !B.beaten) {
-      const k = B.tellK, rr = B.discR * (1 - 0.4 * c);
+    // its feeding cone (stentor.js cone), always on while it is awake (guards.js tellK): a shimmer along its edges
+    // and its far arc, and specks (debris) drawn in along spiralling streamlines into the mouth
+    const half = B.cone !== undefined ? 0.95 : 0.95, reach = B.pullR;
+    if (B.tellK > 0 && !B.beaten) {
+      const k = B.tellK;
       zmat.scat = 0.3 + 0.7 * k; zmat.dn = 0.015 * k; zmat.fl[0] = 0.12 * k * chan.memb; zmat.fl[1] = 0.25 * k;
-      for (let i = 0; i < 90; i++) {
-        const q = (i / 90) * Math.PI * 2, ex = 0.42 * rr, ox = Math.cos(q), oy = Math.sin(q);
-        const nl = Math.hypot(ox / ex, oy / rr) || 1, out = B.zoneR * (0.9 + 0.1 * Math.sin(q * 7 + t * 4));
-        const lu = ox * ex + (ox / ex) / nl * out, lv = oy * rr + (oy / rr) / nl * out;
-        const x = dx + ca * lu - sa * lv, y = dy + sa * lu + ca * lv;
-        if (S.inView(x, y, 1)) S.disc(x, y, 0.3, zmat);
+      for (let i = 0; i < 40; i++) {
+        const q = (i / 39 - 0.5) * 2 * half, rr = reach * (0.97 + 0.03 * Math.sin(i * 1.7 + t * 4));
+        const x = M.x + Math.cos(ang + q) * rr, y = M.y + Math.sin(ang + q) * rr;
+        if (S.inView(x, y, 1)) S.disc(x, y, Math.max(0.3, 1.1 * lod.px), zmat);
       }
+      for (const sg of [-1, 1]) for (let i = 1; i < 16; i++) { const rr = (i / 16) * reach, x = M.x + Math.cos(ang + sg * half) * rr, y = M.y + Math.sin(ang + sg * half) * rr; if (S.inView(x, y, 1)) S.disc(x, y, Math.max(0.22, 0.9 * lod.px), zmat); }
     }
-    // the vortex: specks spiralling into the mouth, brighter and faster as it winds up
-    if (B.flowK > 0.05) for (const p of vortex) {
-      p.r -= 0.0025 * p.v * B.flowK * (1 - c);
-      p.a += 0.012 * p.v * B.flowK / Math.max(0.2, p.r) * (1 - c);
-      if (p.r < 0.1) { p.r = 1; p.a = stR() * 6.283; }
-      const rr = B.catchR * 0.4 + p.r * (B.pullR - B.catchR * 0.4);
-      const x = M.x + Math.cos(p.a) * rr, y = M.y + Math.sin(p.a) * rr;
-      S.disc(x, y, p.sz, { dn: 0.06, scat: 0.6 + 4 * B.glow, fl: [0.02, 0.05 + 0.3 * B.glow, 0.02], ab: [0.01, 0.01, 0.012], z: 0 });
+    if (B.flowK > 0.05 && !B.beaten) for (const p of vortex) {
+      // in toward the mouth, faster as it nears, swirling round it
+      p.r -= (0.0015 + 0.004 * (1 - p.r)) * p.v * B.flowK * (1 - c);
+      p.a *= 1 - 0.01 * p.v * B.flowK;
+      if (p.r < 0.04) { p.r = 0.8 + stR() * 0.2; p.a = (stR() - 0.5) * 2 * half; }
+      const rr = p.r * reach, aa = ang + p.a + (1 - p.r) * 1.6;
+      const x = M.x + Math.cos(aa) * rr, y = M.y + Math.sin(aa) * rr;
+      if (S.inView(x, y, 1)) S.disc(x, y, Math.max(p.sz, 1.2 * lod.px), { dn: 0.06, scat: 0.6 + 4 * B.glow, fl: [0.02, 0.05 + 0.3 * B.glow, 0.02], ab: [0.01, 0.01, 0.012], z: 0 });
     }
   }
 

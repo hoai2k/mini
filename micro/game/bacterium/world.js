@@ -113,9 +113,9 @@ export function portalParts(x, y, b) {
   const [ux, uy, px, py] = u2(b);
   return [
     [x, y, 95], // the host and the water cleared round it (main.js placePortal moves grains and film off)
-    [x + ux * 122 + px * 20, y + uy * 122 + py * 20, 128], // Stentor's oral disc and membranelles
-    [x + ux * 78 - px * 35, y + uy * 78 - py * 35, 45], // its body
-    [x + ux * 34 - px * 100, y + uy * 34 - py * 100, 26], // its foot on a clay grain
+    [x - ux * 92, y - uy * 92, 110], // Stentor's oral disc and membranelles, leaning over the host toward whoever comes (stentor.js place)
+    [x - ux * 30, y - uy * 30, 45], // its body over the host
+    [x + ux * 28, y + uy * 28, 26], // its holdfast just beyond the host, on a clay grain
   ];
 }
 export function grazerParts(x, y, b) {
@@ -728,26 +728,35 @@ export function createWorld() {
       recycleT -= dt;
       const recycle = recycleT <= 0;
       if (recycle) recycleT = 0.5;
+      // Stentor's feeding cone draws debris and free cells in too, and swallows them at its mouth
+      const st = world.stentor, stOn = !!(st && st.placed && !st.beaten && st.flowK > 0.05);
+      const stFlow = (p, f) => { if (stOn && Math.abs(p.x - st.mouth.x) < st.pullR && Math.abs(p.y - st.mouth.y) < st.pullR) { const v = st.flow(p.x, p.y, tmpS); f.x += v.x; f.y += v.y; } return f; };
+      const stEats = (p) => stOn && Math.abs(p.x - st.mouth.x) < 6 && Math.abs(p.y - st.mouth.y) < 6;
       // specks: Brownian (D = kT / 6πηr ≈ 0.22/r µm²/s) and carried by the feeding currents
       for (const p of specks) {
         const D = 0.22 / p.r;
-        const f = feedingNow.length ? grazerFlow(p.x, p.y, tmpF) : (tmpF.x = tmpF.y = 0, tmpF);
+        const f = stFlow(p, feedingNow.length ? grazerFlow(p.x, p.y, tmpF) : (tmpF.x = tmpF.y = 0, tmpF));
         p.x += f.x * dt + br * Math.sqrt(2 * D) * sq * gauss(r);
         p.y += f.y * dt + br * Math.sqrt(2 * D) * sq * gauss(r);
-        if (eatenByGrazer(p) || (recycle && !near(p.x, p.y, WIN + 40))) respawnFar(p);
+        if (eatenByGrazer(p) || stEats(p) || (recycle && !near(p.x, p.y, WIN + 40))) respawnFar(p);
       }
       // phages: D ≈ 4 µm²/s (a 60 nm head and tail)
       if (opts.phages) for (const p of phages) {
         if (p.stuck) continue;
-        const f = feedingNow.length ? grazerFlow(p.x, p.y, tmpF) : (tmpF.x = tmpF.y = 0, tmpF);
+        const f = stFlow(p, feedingNow.length ? grazerFlow(p.x, p.y, tmpF) : (tmpF.x = tmpF.y = 0, tmpF));
         p.x += f.x * dt + br * 2.9 * sq * gauss(r);
         p.y += f.y * dt + br * 2.9 * sq * gauss(r);
-        if (eatenByGrazer(p) || (recycle && !near(p.x, p.y, WIN + 40)) || rimDist(p.x, p.y) < 2 || p.y < surfaceY(p.x) - 10) respawnFar(p);
+        if (eatenByGrazer(p) || stEats(p) || (recycle && !near(p.x, p.y, WIN + 40)) || rimDist(p.x, p.y) < 2 || p.y < surfaceY(p.x) - 10) respawnFar(p);
       }
       // free cells
       for (const c of cells) {
         if (recycle && c.amb && !c.parked && !c.attachedBy && !c.bdelloplast && !near(c.x, c.y, WIN + 40)) respawnFar(c);
         stepCell(c, dt, t, sq, br, player);
+        // (free cells in Stentor's cone are drawn in and swallowed: the ambient ones come back elsewhere)
+        if (stOn && !c.parked && !c.home && !c.stranger && !c.lysed && st.cone(c.x, c.y) > 0) {
+          const v = st.flow(c.x, c.y, tmpS); c.x += v.x * dt; c.y += v.y * dt;
+          if (stEats(c)) { if (c.amb) respawnFar(c); else { c.parked = true; c.x = PARK.x; c.y = PARK.y; } }
+        }
       }
       // depleted patches are replaced by a new one elsewhere (a new lysis or decaying flake)
       for (let i = patches.length - 1; i >= 0; i--) {

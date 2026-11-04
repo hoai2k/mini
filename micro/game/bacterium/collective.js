@@ -847,9 +847,10 @@ export function createCollectives(world, hooks = {}) {
         d.body = { x: bx + Math.cos(a) * rr, y: by + Math.sin(a) * rr };
       }
     } else if (kind === 'stentor' && world.stentor) {
-      const B = world.stentor; d.to = d.to || { x: B.mouth.x, y: B.mouth.y };
-      const f = 0.22 + r() * 0.25, px = -(B.foot.y - B.mouth.y), py = B.foot.x - B.mouth.x, pl = Math.hypot(px, py) || 1, o = (r() - 0.5) * 30;
-      d.body = { x: B.mouth.x + (B.foot.x - B.mouth.x) * f + (px / pl) * o, y: B.mouth.y + (B.foot.y - B.mouth.y) * f + (py / pl) * o };
+      // (into its mouth as it moves, then a vacuole in its body, carried with it: in its frame from the holdfast)
+      const B = world.stentor; d.st = B; d.to = { x: B.mouth.x, y: B.mouth.y };
+      d.fu = 0.55 + r() * 0.3; d.lv = (r() - 0.5) * B.discR * 0.35 * d.fu;
+      d.body = { x: B.mouth.x, y: B.mouth.y };
     } else if (kind === 'amoeba' && world.amoeba) {
       // in the amoeba's own frame, so the vacuole moves with it: from where it was taken, to a few µm in
       const A = world.amoeba, c = Math.cos(A.ang), sn = Math.sin(A.ang), dx = m.x - A.x, dy = m.y - A.y;
@@ -862,6 +863,12 @@ export function createCollectives(world, hooks = {}) {
     const d = k.dying, t = d.t;
     if (!d.end) { const to = d.to; if (to) { const e = Math.min(1, t / 0.7), q = e * e * (3 - 2 * e); k.x = d.x0 + (to.x - d.x0) * q; k.y = d.y0 + (to.y - d.y0) * q; k.a += dt * 9; } return t < 1.6; }
     const wriggle = t < d.pull ? Math.sin(t * 38 + d.wr) * 0.5 * (1 - t / d.pull) : 0;
+    if (d.st) {
+      // Stentor moves: its mouth and the vacuole's place in its body follow it
+      const B = d.st, c = Math.cos(B.ang), sn = Math.sin(B.ang), u = d.fu * B.len;
+      d.to.x = B.mouth.x; d.to.y = B.mouth.y;
+      d.body.x = B.foot.x + c * u - sn * d.lv; d.body.y = B.foot.y + sn * u + c * d.lv;
+    }
     if (d.kind === 'grazer' || d.kind === 'stentor') {
       if (t < d.pull && d.to) {
         // along the flow into the mouth: round it (a spiral) and in, faster and faster
@@ -894,10 +901,11 @@ export function createCollectives(world, hooks = {}) {
         const m = C.members[i];
         if (world.grazerMouthAt && world.grazerMouthAt(m.x, m.y, 9)) { lose(m, 'grazer'); continue; } // (swum into the funnel itself)
         if (world.insideAmoeba(m.x, m.y, t) > 1.5) { m.engulf = (m.engulf || 0) + dt; if (m.engulf > 1.2) { lose(m, 'amoeba'); continue; } } else m.engulf = 0;
-        // Stentor: inside its oral disc's rim a cell is swept in, faster the harder it pulls (~3 s steady, ~0.5 s in a pull)
-        if (st && st.awake && !st.beaten && Math.abs(m.x - st.mouth.x) < st.discR + 5 && Math.abs(m.y - st.mouth.y) < st.discR + 5 && st.disc(m.x, m.y).rho < 1) { m.swept = (m.swept || 0) + dt * st.flowK * 0.35; if (m.swept > 1) { lose(m, 'stentor'); continue; } } else m.swept = 0;
+        // (Stentor's cone takes members a little at a time: guards.js suck)
       }
     }
+    // stray free kin drawn into Stentor's mouth are swallowed (seen: eatenState)
+    if (st && st.placed && !st.beaten && st.awake) for (const k of kin) if (!k.coll && !k.dying && !k.parked && Math.abs(k.x - st.mouth.x) < 5 && Math.abs(k.y - st.mouth.y) < 5) { if (k.answer && !k.answer.joined) k.answer.C.answered = Math.max(0, k.answer.C.answered - 1); k.answer = null; k.dying = eatenState(k, 'stentor', st.mouth); }
     // free kin can be eaten too (they come back elsewhere)
     for (const k of kin) if (!k.coll && !k.dying && world.grazerMouthAt && world.grazerMouthAt(k.x, k.y, 9)) { if (k.answer && !k.answer.joined) k.answer.C.answered = Math.max(0, k.answer.C.answered - 1); k.dying = { kind: 'grazer', t: 0 }; k.answer = null; }
   }

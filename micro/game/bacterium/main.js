@@ -35,7 +35,7 @@ import { createGuards } from './guards.js';
 import { createQuality } from '../shared/quality.js';
 import { createPortalGlow, createPortalLight, createGlint } from '../shared/portal.js';
 import { clumpLayout, placeInFrame } from '../shared/kin-clump.js';
-import { t as tt } from '../shared/text.js';
+import { t as tt, tx } from '../shared/text.js';
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'high-performance' });
@@ -270,7 +270,7 @@ function toxinBurst(C, b) {
   for (const P of roster) if (P.bdello && Math.hypot(P.bdello.c.x - b.x, P.bdello.c.y - b.y) < R + 20) { P.bdello.c.stalking = null; P.bdello = null; }
   for (const p of world.phages) if (!p.stuck && Math.hypot(p.x - b.x, p.y - b.y) < R) { p.x = b.x + (Math.random() < 0.5 ? -1 : 1) * (200 + Math.random() * 100); p.y = b.y + (Math.random() - 0.5) * 300; p.homing = false; p.cloud = null; hit.push('phage'); }
   for (const P of roster) if (P.phage && Math.hypot(P.phage.p.x - b.x, P.phage.p.y - b.y) < R) P.phage = null;
-  if (Math.hypot(stentor.mouth.x - b.x, stentor.mouth.y - b.y) < R + stentor.catchR && stentor.awake && !stentor.beaten) stentor.fight.bitten();
+  if (Math.hypot(stentor.mouth.x - b.x, stentor.mouth.y - b.y) < R + stentor.discR && stentor.awake && !stentor.beaten) stentor.knock(b.x, b.y, 0.9); // (a big recoil)
   collInfo.bursts.push({ t, x: b.x, y: b.y, hit: [...new Set(hit)] });
   const what = [...new Set(hit)];
   const names = tx('bacterium.hitNames');
@@ -330,7 +330,7 @@ function resetPressure() {
   pacing.t0 = pacing.now; pacing.firstThreat = null; pacing.firstCatch = null;
   for (const p of world.phages) p.anim = false;
   for (const c of world.cells) if (c.kind === 'bdello' && c.prey && c.prey.isPlayer) { c.prey = null; c.cooldown = 6; c.L = 1.0; }
-  stentor.awake = false; stentor.fight.reset(); bossInfo.log.length = 0;
+  stentor.awake = false; stentor.recoil = 0; stentor.contract = 0; bossInfo.log.length = 0; bossInfo.guardMsg = false;
   clearPortal(); lm.fired = false;
   resetEncounters();
   gateMsg.seen.clear();
@@ -619,68 +619,45 @@ function runFights(dt) {
   }
 }
 
-// --- the boss: Stentor, anchored by the host cell ---------------------------------
-// The last gate (guards.js 'stentor'): its health is worn down by the army at
-// its rim of membranelles (and by X's volleys, the toxin burst, a tumble free of
-// its pull, a bump of its foot and every pull that comes up empty). Its
-// patterns (shared/predation.js createFight, as the state machine only): the
-// steady vortex, the pull (tell: membranelles speed up, the vortex brightens),
-// and below half health a longer, harder pull. Anything inside the rim of its
-// oral disc is swept in, and the host lies in its feeding current: only once
-// it is beaten (it contracts and stays shut) does the host let you in.
-stentor.fight = createFight({ windup: 2.0, strike: 0.9, recoverT: 2.4, repelT: 3.5, retreatT: 22, facingRate: 0, blockHit: 0, biteHit: 0, regain: 0 });
-const BOSS_HIT = () => guards.byId.stentor.max * BOSS_HIT_K; // health taken by a tumble free of a pull, a foot bump or a wasted pull
+// --- the boss: Stentor, guarding the host cell -----------------------------------
+// The last gate (guards.js 'stentor', stentor.js): it leans over the host, covering it; its feeding cone
+// draws in debris, free cells and your members a little at a time; it turns and stretches to aim the cone
+// at you, deliberately; drilling dents its body and knocks it back, and sustained pushing drags its holdfast
+// off the host, which uncovers the way on. Beat it, or push it off: either opens the host.
+const BOSS_HIT = () => guards.byId.stentor.max * BOSS_HIT_K; // health taken by a bump of its foot
 const gaugeEl = document.createElement('div');
 gaugeEl.style.cssText = 'position:fixed;left:50%;top:56px;transform:translateX(-50%);z-index:20;pointer-events:none;display:none;color:#e6d3a3;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.04em;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.7)';
 gaugeEl.innerHTML = '<div class="nm"></div><div style="margin:3px auto 0;width:150px;height:5px;border:1px solid rgba(201,163,90,.85);border-radius:3px;background:rgba(20,16,8,.45)"><i style="display:block;height:100%;background:#c9a35a;border-radius:2px;width:100%"></i></div>';
 document.body.appendChild(gaugeEl);
-const bossInfo = { log: [], footT: 0 };
+const bossInfo = { log: [], footT: 0, guardMsg: false };
+/**
+ * Stentor (stentor.js) each step: it wakes when a swarm comes near, turns and stretches its feeding cone
+ * toward the nearest swarm (or lone cell), and its holdfast creeps after you; its cone takes your members a
+ * little at a time (guards.js) and draws in a lone cell; bumping its foot knocks it. Its grain follows its foot.
+ */
 function runBoss(dt) {
-  const B = stentor, M = B.mouth, G = guards.byId.stentor;
-  const dist = (P) => Math.hypot(P.S.x - M.x, P.S.y - M.y);
-  let nd = Infinity;
-  for (const P of roster) if (fightable(P)) nd = Math.min(nd, dist(P));
+  const B = stentor, G = guards.byId.stentor;
   if (!B.placed) return;
-  if (B.beaten) { B.update(dt, 'retreat', 1); return; }
-  if (!B.awake && (nd < B.wakeR || bossInfo.force)) { B.awake = true; bossInfo.log.push({ ev: 'wake', t }); }
-  if (!B.awake) { B.update(dt, 'stalk', 0); return; }
-  const inVortex = (P) => fightable(P) && dist(P) < B.pullR;
-  // a tumble just before or during the pull breaks free (the pull is long: the window is the whole pull)
-  for (const P of roster) if (inVortex(P) && P.blockT > 0) P.vortexTumbleAt = P.tumbleAt;
-  const blocking = roster.some((P) => P.vortexTumbleAt !== undefined && (B.fight.state === 'strike' ? P.vortexTumbleAt > (B.strikeAt ?? t) - 0.35 : P.blockT > 0));
-  const f = B.fight.update(dt, { near: nd < B.wakeR, inReach: nd < B.pullR, facing: true, blocking });
-  if (f.state === 'windup' && B.state !== 'windup') { bossInfo.log.push({ ev: 'tell', t }); audio.play('bacterium/stentor', { volume: 0.6 }); }
-  // the pull (its bite): members at its rim and inside it are swept into the oral pouch (guards.js)
-  if (f.state === 'strike' && !B.inStrike) { B.inStrike = true; B.strikeAt = t; B.strikeLoss = guards.stentorPull(); bossInfo.log.push({ ev: 'pull', t, took: B.strikeLoss }); }
-  else if (f.state !== 'strike') B.inStrike = false;
-  B.phase2 = G.hp < G.max * 0.5;
-  let caught = false;
+  let tgt = null, nd = Infinity;
+  for (const P of roster) if (fightable(P)) { const f = focusOf(P), d = Math.hypot(f.x - B.mouth.x, f.y - B.mouth.y); if (d < nd) { nd = d; tgt = { x: f.x, y: f.y }; } }
+  if (!B.awake && !B.beaten && (nd < B.wakeR || bossInfo.force)) { B.awake = true; bossInfo.log.push({ ev: 'wake', t }); audio.play('bacterium/stentor', { volume: 0.6 }); }
+  B.update(dt, tgt);
+  stentorGrain.x = B.foot.x - B.ux * 10; stentorGrain.y = B.foot.y - B.uy * 10;
+  if (B.beaten || !B.awake) return;
   for (const P of roster) {
     if (!fightable(P)) continue;
-    // inside its oral disc's rim you are swept in, faster the harder it pulls (members first, collective.js)
-    P.sweptT = B.disc(P.S.x, P.S.y).rho < 1 ? (P.sweptT || 0) + dt * B.flowK * 0.35 : 0;
-    if (P.sweptT > 1) { P.sweptT = 0; const ev = {}; P.game.catchBy('stentor', B, ev); if (ev.caught) { startCatch(P, ev.caught); caught = true; bossInfo.log.push({ ev: 'catch', slot: P.slot, t }); } }
-    // a tumble at the pull breaks you free of it: a kick out of the vortex
-    if (B.fight.state === 'strike' && inVortex(P) && P.tumbleAt > (B.strikeAt ?? t) - 0.35 && P.kickedAt !== B.strikeAt) { P.kickedAt = B.strikeAt; P.kickT = 0.7; P.kickFrom = M; }
-    // bumping its foot: it contracts in a flash and pauses
+    // deep in its cone a cell is drawn in (with a swarm, its members are taken first: guards.js and absorb)
+    const k = B.cone(P.S.x, P.S.y);
+    P.sweptT = k > 0.4 ? (P.sweptT || 0) + dt * k * 0.8 : 0;
+    if (P.sweptT > 1) { P.sweptT = 0; const ev = {}; P.game.catchBy('stentor', B, ev); if (ev.caught) { startCatch(P, ev.caught); bossInfo.log.push({ ev: 'catch', slot: P.slot, t }); } }
+    // bumping its foot: it flinches back (a knock)
     if (Math.hypot(P.S.x - B.foot.x, P.S.y - B.foot.y) < 9 && bossInfo.footT <= 0) {
-      bossInfo.footT = 4; B.fight.bitten(); guards.hurt(G, BOSS_HIT()); bossInfo.log.push({ ev: 'foot', slot: P.slot, t });
+      bossInfo.footT = 4; guards.hurt(G, BOSS_HIT()); B.knock(P.S.x, P.S.y, 0.6); bossInfo.log.push({ ev: 'foot', slot: P.slot, t });
       P.pad.rumble(200, 0.6, 0.6);
       hud.toast(tt('bacterium.toasts.stentorFoot'), 2000);
     }
   }
   bossInfo.footT = Math.max(0, bossInfo.footT - dt);
-  if (f.blocked) {
-    for (const P of roster) if (P.vortexTumbleAt > (B.strikeAt ?? t) - 0.35 && !(P.kickT > 0)) { P.kickT = 0.6; P.kickFrom = M; }
-    guards.hurt(G, BOSS_HIT());
-    bossInfo.log.push({ ev: 'blocked', t });
-    hud.toast(tt('bacterium.toasts.tumbledFree'), 1500);
-  }
-  if (f.hit && !caught && !B.strikeLoss) { bossInfo.log.push({ ev: 'miss', t }); guards.hurt(G, BOSS_HIT()); }
-  B.fightT = f.t;
-  B.update(dt, B.fight.state, f.t);
-  // below half health: a longer, harder pull
-  if (B.phase2 && B.fight.state === 'strike') B.flowK = Math.max(B.flowK, 6.5);
 }
 /** The enemy gauge: the nearest gate your flock is fighting, its health as a brass bar. */
 function gauge() {
@@ -689,9 +666,9 @@ function gauge() {
   gaugeEl.style.display = q ? 'block' : 'none';
   if (!q) return;
   const B = stentor;
-  const name = q.kind === 'stentor' ? tt(B.phase2 ? 'bacterium.gauge.stentorStraining' : 'bacterium.gauge.stentor') : q.kind === 'bdello' ? tt('bacterium.gauge.bdello', { left: world.cells.filter((c) => c.kind === 'bdello' && c.home && !c.dead).length }) : q.kind === 'amoeba' ? tt('bacterium.gauge.amoeba') : tt('bacterium.gauge.peritrich');
+  const name = q.kind === 'stentor' ? tt(q.hp < q.max * 0.5 ? 'bacterium.gauge.stentorStraining' : 'bacterium.gauge.stentor') : q.kind === 'bdello' ? tt('bacterium.gauge.bdello', { left: world.cells.filter((c) => c.kind === 'bdello' && c.home && !c.dead).length }) : q.kind === 'amoeba' ? tt('bacterium.gauge.amoeba') : tt('bacterium.gauge.peritrich');
   // (its tell shows in the gauge too: the line turns warm while it winds up to bite)
-  const tell = q.kind === 'stentor' ? B.fight.state === 'windup' : q.atk.st === 'tell';
+  const tell = q.kind === 'stentor' ? B.state === 'recoil' : q.atk.st === 'tell';
   gaugeEl.querySelector('.nm').textContent = q.drills ? tt('bacterium.gauge.drilling', { name, n: q.drills }) : name;
   gaugeEl.querySelector('.nm').style.color = tell ? '#ffb27a' : '';
   gaugeEl.querySelector('i').style.width = `${Math.round(Math.max(0, q.hp / q.max) * 100)}%`;
@@ -1117,7 +1094,8 @@ function clearPortal() {
   portalGlow.place(1e6, 1e6);
 }
 /** Is the portal guarded? Stentor guards it until your army beats it. */
-const guarded = () => !stentor.beaten;
+/** Is the portal guarded? Stentor covers it until it is beaten or pushed off it (stentor.js covers). */
+const guarded = () => !stentor.beaten && stentor.covers(FWD.x, FWD.y);
 function landmarkTick(dt) {
   const F = LMK.forward;
   // the way on unseals (every gate met): heard once, on the edge
@@ -1667,20 +1645,16 @@ function attackText(P) {
   const C = coll.opts.on && coll.of(P);
   if (C && C.members.length) {
     for (const q of guards.list) {
-      if (!q.engaged || q.beaten) continue;
-      const tell = q.kind === 'stentor' ? stentor.fight.state === 'windup' : q.atk.st === 'tell';
-      const bite = q.kind === 'stentor' ? stentor.fight.state === 'strike' : q.atk.st === 'bite';
+      if (!q.engaged || q.beaten || q.kind === 'stentor') continue;
+      const tell = q.atk.st === 'tell', bite = q.atk.st === 'bite';
       if (tell || bite) return { text: tt(`bacterium.warn.${bite ? 'bite' : 'tell'}.${q.kind}`, { glyph }), sev: bite ? 2.2 : 1.8 };
     }
-    if (stentor.awake && !stentor.beaten && stentor.fight.state === 'recover' && Math.hypot(P.S.x - stentor.mouth.x, P.S.y - stentor.mouth.y) < stentor.pullR + 15) return { text: tt('bacterium.warn.stentorSlackens'), sev: 0.4 };
+    // Stentor's cone: some of your cells are in it (it takes them a few at a time)
+    if (stentor.awake && !stentor.beaten && C.members.some((m) => stentor.cone(m.x, m.y) > 0.15)) return { text: tt('bacterium.warn.tell.stentor', { glyph }), sev: 2.0 };
+    if (stentor.state === 'recoil' && guards.byId.stentor.engaged) return { text: tt('bacterium.warn.stentorSlackens'), sev: 0.4 };
     return null;
   }
-  if (stentor.awake && !stentor.beaten && Math.hypot(P.S.x - stentor.mouth.x, P.S.y - stentor.mouth.y) < stentor.pullR + 15) {
-    const st = stentor.fight.state;
-    if (st === 'windup') return { text: tt('bacterium.warn.stentorSpeeds', { glyph }), sev: 2.3 };
-    if (st === 'strike') return { text: tt('bacterium.warn.stentorPulls', { glyph }), sev: 2.6 };
-    if (st === 'recover') return { text: tt('bacterium.warn.stentorSlackens'), sev: 0.4 };
-  }
+  if (stentor.awake && !stentor.beaten && stentor.cone(P.S.x, P.S.y) > 0) return { text: tt('bacterium.warn.stentorPulls', { glyph }), sev: 2.4 };
   const g = world.grazers.find((q) => q.target === P && (q.fightState === 'windup' || q.fightState === 'strike'));
   if (g) return { text: tt(g.fightState === 'strike' ? 'bacterium.warn.grazerSurging' : 'bacterium.warn.grazerIntensifying', { glyph }), sev: 2.2 };
   if (P.bdello && /windup|strike/.test(P.bdello.fight.state)) return { text: tt('bacterium.warn.bdelloLining', { glyph }), sev: 2.1 };
@@ -1932,7 +1906,7 @@ function enemyBars(i, cssPerUm) {
     const p = projectView(i, { x: c.x, y: c.y + up, z: 0 });
     if (p.x < -80 || p.x > innerWidth + 80 || p.y < -40 || p.y > innerHeight + 40) continue;
     const w = 86, h = 6, x = Math.max(8, Math.min(innerWidth - w - 8, p.x - w / 2)), y = Math.max(70, Math.min(innerHeight - 40, p.y - 12));
-    const tell = q.kind === 'stentor' ? stentor.fight.state === 'windup' : q.atk.st === 'tell';
+    const tell = q.kind === 'stentor' ? stentor.state === 'recoil' : q.atk.st === 'tell';
     markG.globalAlpha = 0.85;
     markG.fillStyle = 'rgba(20,16,8,.55)'; markG.fillRect(x, y, w, h);
     markG.fillStyle = tell ? '#ff9a6a' : '#c9a35a'; markG.fillRect(x + 1, y + 1, (w - 2) * Math.max(0, q.hp / q.max), h - 2);
@@ -2043,7 +2017,7 @@ window.__micro = { forceCapture, capture,
   players, split, landmarks: { forward: FWD, back: BACK, log: lm.log, get near() { return lm.near; }, get prompt() { return lm.portal; } },
   get frames() { return frameCount; },
   /** The fights: each grazer's state, and each player's phage and Bdellovibrio stalker. */
-  boss: () => ({ awake: stentor.awake, state: stentor.fight.state, t: +(stentor.fightT || 0).toFixed(2), interest: +stentor.fight.interest.toFixed(2), phase2: stentor.phase2, flowK: +stentor.flowK.toFixed(2), contract: +stentor.contract.toFixed(2), log: bossInfo.log }),
+  boss: () => ({ awake: stentor.awake, state: stentor.state, beaten: stentor.beaten, recoil: +stentor.recoil.toFixed(2), contract: +stentor.contract.toFixed(3), ang: +stentor.ang.toFixed(3), L: +stentor.L.toFixed(1), foot: { x: +stentor.foot.x.toFixed(1), y: +stentor.foot.y.toFixed(1) }, mouth: { x: +stentor.mouth.x.toFixed(1), y: +stentor.mouth.y.toFixed(1) }, covers: stentor.covers(FWD.x, FWD.y), log: bossInfo.log }),
   stentor, collective: coll, quality,
   coll: () => coll.report(),
   /** Waylaying: the strangers luring a flock and its drifting members (collective.js WAYLAY). */
