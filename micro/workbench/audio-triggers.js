@@ -2219,7 +2219,7 @@ export const TRIGGERS = [
    "rate": "e === 'enter' ? 1.6 : 1.3"
   },
   "sites": [
-   "amoeba/main.js:764"
+   "amoeba/main.js:766"
   ],
   "event": "A pseudopod flowing out."
  },
@@ -2233,7 +2233,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:764"
+   "amoeba/main.js:766"
   ],
   "event": "changing shape (subtle)"
  },
@@ -2249,7 +2249,7 @@ export const TRIGGERS = [
    "volume": 0.7
   },
   "sites": [
-   "amoeba/main.js:824"
+   "amoeba/main.js:826"
   ],
   "event": "X: the food cup closing round prey."
  },
@@ -2267,7 +2267,7 @@ export const TRIGGERS = [
    "rate": 0.85
   },
   "sites": [
-   "amoeba/main.js:863"
+   "amoeba/main.js:865"
   ],
   "event": "The contractile vacuole emptying."
  },
@@ -2283,7 +2283,7 @@ export const TRIGGERS = [
    "volume": 0.8
   },
   "sites": [
-   "amoeba/main.js:929"
+   "amoeba/main.js:931"
   ],
   "event": "Digesting a food vacuole."
  },
@@ -2296,7 +2296,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:1067"
+   "amoeba/main.js:1069"
   ],
   "event": "pinching off Chaos's arm"
  },
@@ -2309,7 +2309,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:1119"
+   "amoeba/main.js:1121"
   ],
   "event": "stuck on a trap hypha"
  },
@@ -2322,7 +2322,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:1269"
+   "amoeba/main.js:1271"
   ],
   "event": "Chaos flowing in"
  },
@@ -2335,7 +2335,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:1270"
+   "amoeba/main.js:1272"
   ],
   "event": "Chaos rears / gathers"
  },
@@ -2348,7 +2348,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:1271"
+   "amoeba/main.js:1273"
   ],
   "event": "a predator's wind-up (generic)"
  },
@@ -2362,7 +2362,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:1272"
+   "amoeba/main.js:1274"
   ],
   "event": "a predator's wind-up (generic)"
  },
@@ -2376,7 +2376,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:1272"
+   "amoeba/main.js:1274"
   ],
   "event": "Chaos rears / gathers"
  },
@@ -2390,7 +2390,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:1274"
+   "amoeba/main.js:1276"
   ],
   "event": "Chaos rears / gathers"
  },
@@ -2403,7 +2403,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:1276"
+   "amoeba/main.js:1278"
   ],
   "event": "a predator gives up"
  },
@@ -2420,7 +2420,7 @@ export const TRIGGERS = [
    "rate": 0.55
   },
   "sites": [
-   "amoeba/main.js:1358"
+   "amoeba/main.js:1360"
   ],
   "event": "engulfed by Chaos"
  },
@@ -2437,7 +2437,7 @@ export const TRIGGERS = [
    "rate": 1.4
   },
   "sites": [
-   "amoeba/main.js:1371"
+   "amoeba/main.js:1373"
   ],
   "event": "pinching off Chaos's arm"
  },
@@ -2450,7 +2450,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:1705"
+   "amoeba/main.js:1707"
   ],
   "event": "the way on unseals"
  },
@@ -2463,7 +2463,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:1733"
+   "amoeba/main.js:1735"
   ],
   "event": "Y at a sealed or guarded portal"
  },
@@ -2476,7 +2476,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:1750"
+   "amoeba/main.js:1752"
   ],
   "event": "\"Y Enter the portal\" appears"
  },
@@ -2489,7 +2489,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:1768"
+   "amoeba/main.js:1770"
   ],
   "event": "Y at the open portal"
  },
@@ -2505,7 +2505,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "amoeba/main.js:1769"
+   "amoeba/main.js:1771"
   ],
   "event": "Going through a portal (the way on): the success chime before the freeze and the zoom into the next world."
  },
@@ -2518,7 +2518,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:1770"
+   "amoeba/main.js:1772"
   ],
   "event": "the success slow-down"
  },
@@ -2534,7 +2534,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "amoeba/main.js:2105"
+   "amoeba/main.js:2107"
   ],
   "event": "A (dash): the surge."
  },
@@ -2547,7 +2547,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "amoeba/main.js:2123"
+   "amoeba/main.js:2125"
   ],
   "event": "Y at the backdoor"
  },
@@ -3731,7 +3731,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "phage/main.js:84"
+   "phage/main.js:85"
   ],
   "event": "another player joins"
  },
@@ -3747,7 +3747,7 @@ export const TRIGGERS = [
    "volume": 0.5
   },
   "sites": [
-   "phage/main.js:277"
+   "phage/main.js:279"
   ],
   "event": "ambience"
  },
@@ -3763,7 +3763,7 @@ export const TRIGGERS = [
    "volume": 0
   },
   "sites": [
-   "phage/main.js:286"
+   "phage/main.js:288"
   ],
   "event": "The flagellar motor during a run (rate follows speed)."
  },
@@ -3776,7 +3776,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "phage/main.js:398"
+   "phage/main.js:404"
   ],
   "event": "re-forming from motes"
  },
@@ -3792,7 +3792,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "phage/main.js:458"
+   "phage/main.js:464"
   ],
   "event": "A grazer's feeding current pulling at you."
  },
@@ -3808,7 +3808,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "phage/main.js:458"
+   "phage/main.js:464"
   ],
   "event": "B: a tumble."
  },
@@ -3824,7 +3824,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "phage/main.js:458"
+   "phage/main.js:464"
   ],
   "event": "X: absorbing nutrients."
  },
@@ -3837,7 +3837,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "phage/main.js:459"
+   "phage/main.js:465"
   ],
   "event": "dissolving (generic)"
  },
@@ -3853,7 +3853,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "phage/main.js:508"
+   "phage/main.js:514"
   ],
   "event": "fibres latch on a receptor"
  },
@@ -3870,7 +3870,7 @@ export const TRIGGERS = [
    "rate": 1.3
   },
   "sites": [
-   "phage/main.js:567"
+   "phage/main.js:591"
   ],
   "event": "letting go"
  },
@@ -3883,8 +3883,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "phage/main.js:582",
-   "phage/main.js:706"
+   "phage/main.js:614",
+   "phage/main.js:722"
   ],
   "event": "Y at a sealed or guarded portal"
  },
@@ -3901,8 +3901,8 @@ export const TRIGGERS = [
    "rate": 0.8
   },
   "sites": [
-   "phage/main.js:587",
-   "phage/main.js:710"
+   "phage/main.js:619",
+   "phage/main.js:726"
   ],
   "event": "Y at a sealed or guarded portal"
  },
@@ -3919,7 +3919,7 @@ export const TRIGGERS = [
    "rate": 1.4
   },
   "sites": [
-   "phage/main.js:723"
+   "phage/main.js:739"
   ],
   "event": "Y at the open portal"
  },
@@ -3932,7 +3932,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "phage/main.js:732"
+   "phage/main.js:748"
   ],
   "event": "the way on unseals"
  },
@@ -3945,7 +3945,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "phage/main.js:735"
+   "phage/main.js:751"
   ],
   "event": "\"Y Enter the portal\" appears"
  },
@@ -3962,7 +3962,7 @@ export const TRIGGERS = [
    "rate": 0.7
   },
   "sites": [
-   "phage/main.js:804"
+   "phage/main.js:827"
   ],
   "event": "snagged in a floc / stuck to clay"
  },
@@ -3980,7 +3980,7 @@ export const TRIGGERS = [
    "rate": 1.2
   },
   "sites": [
-   "phage/main.js:842"
+   "phage/main.js:865"
   ],
   "event": "A phage latching on."
  },
@@ -3998,7 +3998,7 @@ export const TRIGGERS = [
    "rate": 0.8
   },
   "sites": [
-   "phage/main.js:852"
+   "phage/main.js:875"
   ],
   "event": "snagged in a floc / stuck to clay"
  },
@@ -4016,7 +4016,7 @@ export const TRIGGERS = [
    "rate": 1.6
   },
   "sites": [
-   "phage/main.js:920"
+   "phage/main.js:943"
   ],
   "event": "B: a tumble."
  },
@@ -4034,7 +4034,7 @@ export const TRIGGERS = [
    "rate": 1.3
   },
   "sites": [
-   "phage/main.js:976"
+   "phage/main.js:999"
   ],
   "event": "X: absorbing nutrients."
  },
@@ -4051,7 +4051,7 @@ export const TRIGGERS = [
    "rate": 0.8
   },
   "sites": [
-   "phage/main.js:1070"
+   "phage/main.js:1093"
   ],
   "event": "the sheath contracts"
  },
@@ -4064,7 +4064,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "phage/main.js:1072"
+   "phage/main.js:1095"
   ],
   "event": "the DNA slides in"
  },
@@ -4081,7 +4081,7 @@ export const TRIGGERS = [
    "rate": 1.3
   },
   "sites": [
-   "phage/main.js:1126"
+   "phage/main.js:1149"
   ],
   "event": "the host bursts"
  },
@@ -4098,7 +4098,8 @@ export const TRIGGERS = [
    "rate": 1.4
   },
   "sites": [
-   "phage/main.js:1282"
+   "phage/main.js:1305",
+   "phage/main.js:1467"
   ],
   "event": "X at the lobe"
  },
@@ -4111,7 +4112,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "phage/main.js:1324"
+   "phage/main.js:1347"
   ],
   "event": "the lobe rears and lunges"
  },
@@ -4128,7 +4129,7 @@ export const TRIGGERS = [
    "rate": 0.8
   },
   "sites": [
-   "phage/main.js:1335"
+   "phage/main.js:1358"
   ],
   "event": "a braced block"
  },
@@ -4141,9 +4142,116 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "phage/main.js:1336"
+   "phage/main.js:1359"
   ],
   "event": "a predator gives up"
+ },
+ {
+  "world": "phage",
+  "kind": "play",
+  "experimental": {
+   "id": "phage/jab",
+   "volume": 0.7,
+   "rate": 0.85
+  },
+  "default": {
+   "id": "bacterium/sprint",
+   "volume": 0.7,
+   "rate": 1.2
+  },
+  "sites": [
+   "phage/main.js:1408"
+  ],
+  "event": "X at the lobe"
+ },
+ {
+  "world": "phage",
+  "kind": "play",
+  "experimental": {
+   "id": "phage/dash",
+   "volume": 0.45,
+   "rate": 1.2
+  },
+  "default": {
+   "id": "bacterium/tumble",
+   "volume": 0.4,
+   "rate": 1.4
+  },
+  "sites": [
+   "phage/main.js:1409"
+  ],
+  "event": "A: dash"
+ },
+ {
+  "world": "phage",
+  "kind": "play",
+  "experimental": {
+   "id": "phage/throw",
+   "volume": 0.75
+  },
+  "default": {
+   "id": "bacterium/sprint",
+   "volume": 0.7,
+   "rate": 1.3
+  },
+  "sites": [
+   "phage/main.js:1419"
+  ],
+  "event": "flinging a carried molecule"
+ },
+ {
+  "world": "phage",
+  "kind": "play",
+  "experimental": {
+   "id": "phage/release",
+   "volume": 0.45,
+   "rate": 0.9
+  },
+  "default": {
+   "id": "bacterium/tumble",
+   "volume": 0.3,
+   "rate": 1.2
+  },
+  "sites": [
+   "phage/main.js:1424"
+  ],
+  "event": "letting go"
+ },
+ {
+  "world": "phage",
+  "kind": "play",
+  "experimental": {
+   "id": "phage/jab",
+   "volume": 0.35,
+   "rate": 1.4
+  },
+  "default": {
+   "id": "bacterium/tumble",
+   "volume": 0.3,
+   "rate": 1.7
+  },
+  "sites": [
+   "phage/main.js:1444"
+  ],
+  "event": "X at the lobe"
+ },
+ {
+  "world": "phage",
+  "kind": "play",
+  "experimental": {
+   "id": "phage/jab",
+   "volume": 0.55,
+   "rate": 1.1
+  },
+  "default": {
+   "id": "bacterium/tumble",
+   "volume": 0.5,
+   "rate": 1.3
+  },
+  "sites": [
+   "phage/main.js:1456"
+  ],
+  "event": "X at the lobe"
  },
  {
   "world": "phage",
@@ -4158,7 +4266,7 @@ export const TRIGGERS = [
    "rate": 0.45
   },
   "sites": [
-   "phage/main.js:1517"
+   "phage/main.js:1716"
   ],
   "event": "a current seen coming"
  },
@@ -4171,7 +4279,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "phage/main.js:1522"
+   "phage/main.js:1721"
   ],
   "event": "the current sweeps past"
  },
@@ -4184,7 +4292,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "phage/main.js:1571"
+   "phage/main.js:1771"
   ],
   "event": "Y at the backdoor"
  },
@@ -4202,7 +4310,7 @@ export const TRIGGERS = [
    "rate": "P.foldTarget ? 0.9 : 1.15"
   },
   "sites": [
-   "phage/main.js:1579"
+   "phage/main.js:1779"
   ],
   "event": "B: fold / unfold"
  },
@@ -4210,31 +4318,15 @@ export const TRIGGERS = [
   "world": "phage",
   "kind": "play",
   "experimental": {
-   "id": "phage/throw",
-   "volume": 0.7
-  },
-  "default": {
-   "id": "bacterium/sprint",
-   "volume": 0.8
-  },
-  "sites": [
-   "phage/main.js:1593"
-  ],
-  "event": "flinging a carried molecule"
- },
- {
-  "world": "phage",
-  "kind": "play",
-  "experimental": {
    "id": "phage/dash",
-   "volume": 0.7
+   "volume": 0.8
   },
   "default": {
    "id": "bacterium/sprint",
    "volume": 0.8
   },
   "sites": [
-   "phage/main.js:1593"
+   "phage/main.js:1795"
   ],
   "event": "A: dash"
  },
@@ -4242,6 +4334,24 @@ export const TRIGGERS = [
   "world": "phage",
   "kind": "play",
   "experimental": {
+   "id": "phage/current-coming",
+   "volume": 0.3,
+   "rate": 1.9
+  },
+  "default": {
+   "id": "bacterium/sprint",
+   "volume": 0.35,
+   "rate": 1.6
+  },
+  "sites": [
+   "phage/main.js:1796"
+  ],
+  "event": "a current seen coming"
+ },
+ {
+  "world": "phage",
+  "kind": "play",
+  "experimental": {
    "id": "bacterium/sprint",
    "volume": 0.6,
    "rate": 1.2
@@ -4252,7 +4362,7 @@ export const TRIGGERS = [
    "rate": 1.2
   },
   "sites": [
-   "phage/main.js:1620"
+   "phage/main.js:1826"
   ],
   "event": "A (dash): the sprint run."
  },
@@ -4270,7 +4380,7 @@ export const TRIGGERS = [
    "rate": 1.3
   },
   "sites": [
-   "phage/main.js:1625"
+   "phage/main.js:1831"
   ],
   "event": "B: a tumble."
  },
@@ -4283,7 +4393,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "phage/main.js:1630"
+   "phage/main.js:1836"
   ],
   "event": "Cas3 swings in"
  },
@@ -4299,7 +4409,7 @@ export const TRIGGERS = [
    "volume": 0.8
   },
   "sites": [
-   "phage/main.js:1636"
+   "phage/main.js:1842"
   ],
   "event": "X: absorbing nutrients."
  }
@@ -6037,4 +6147,4 @@ export const SOUNDS = {
   "prompt": "Sound design for the menus of a gentle, wondrous game about a brass Victorian microscope: small, warm, tactile, acoustic and precise, real brass and glass, soft and pleasant, never harsh or electronic. A warm bright brass and glass flourish: a soft click and a rising shimmer of tiny glass chimes, inviting. No music, no narration, no voices, no speech."
  }
 };
-export const DYNAMIC = ["bacterium/main.js:379","phage/main.js:284","zoom/engine.js:206"];
+export const DYNAMIC = ["bacterium/main.js:379","phage/main.js:286","zoom/engine.js:206"];

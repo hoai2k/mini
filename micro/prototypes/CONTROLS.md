@@ -11,7 +11,7 @@ predators, chasing prey, and the dash is the key verb.
 | **A** | **Dash**: a short burst of speed in the stick direction, on a cooldown or an energy meter shown in the HUD, with rumble. Each creature's dash is its real fastest move (or a labelled stretch of one). |
 | **X** | **Attack / eat**: bite, engulf, pierce, feed, depending on the creature. Hitting a predator with it can fight back where that is biologically plausible. |
 | B | Defend: block, curl up, armour, reverse, depending on the creature |
-| Y | The creature's special (tun, labels, view mode...). Entering a portal or going back up a world is also Y, but the world asks for it on screen when you are there, so the controls lists leave it out |
+| Y | The creature's special (tun, top view, toxin, the phage's kick...). No world uses Y for an info overlay or labels any more (the owner, 4 November 2026): those are switches in the Features panel. Entering a portal or going back up a world is also Y, but the world asks for it on screen when you are there, so the controls lists leave it out |
 | LT / RT | Analog: zoom (LT out, RT in) wherever the triggers are free; otherwise focus, or the creature's own analog control |
 | LB / RB | Secondary: objective, speed, dive and rise |
 | D-pad left/right | Cycle the optical look |
@@ -29,7 +29,7 @@ Keyboard fallbacks are in `shared/pad.js`.
 | Amoeba | Surge (A): pseudopods shoot out and the cell flows after them | Close the food cup (X) | Let go or egest (B) |
 | Paramecium | Ciliary sprint | With a hunter close, a trichocyst jab ahead: it lands (a flash and a knock-back; three wear a hunter's interest out) or visibly misses (out of reach, or out of its depth); otherwise feed (oral gulp, or a cone of algae) | Block and back off: blocks the Dileptus's slash and the Didinium's crouch or lunge, with a trichocyst burst all round while charged |
 | Bacterium | Sprint run (all flagella bundled; the whole flock sprints) | Beacon: kin it reaches answer and join your flock; members a stranger strain has drawn off (amber) come back; also lyses prey in reach and strikes enemies the flock touches (Bdellovibrio: attach / bore). LS steers the flock on the slide, released it stops; Y fires the toxin | Tumble |
-| Phage | Dash forward along the view (A; on a surface, push off with the fibres) | Grab / let go (X): the grab assist takes the best molecule or cell-surface point in reach; only a gold receptor injects (at an amoeba lobe, a fibre jab) | Fold the fibres and slip (lets go) |
+| Phage | Dash forward along the view (A): a burst of 3× the cruise for 0.3 s, with a streak, a whoosh and a slight field-of-view kick | Grab / let go (X): the grab assist takes the nearest protein standing on a cell (never the bare membrane) or piece of debris in a generous reach and cone; with nothing in reach the fibres play a grab motion; only a gold receptor injects (at an amoeba lobe, a fibre jab). Y kicks: off a cell, debris away, or a small kick-swim | Retract: fold the fibres (lets go) |
 
 **B is defend in every world** except the mite and the amoeba: the mite jumps
 on A, scrambles on held B and closes up (its defence) on held Y; the amoeba's
@@ -100,14 +100,20 @@ triggers move the one field; the magnification shows once they are let go.
 **The phage moves in open 3D water with no up or down,** all in the view's
 own frame: LS up and down move it forward and back along the view (into and
 out of the screen), LS left and right sideways, LB and RB down and up the
-screen, A dashes forward; crisp, quick to start and stop (a game departure).
-X grabs and lets go (RT used to grab too; it zooms now). The
-grab assist takes the best thing in reach of the fibres, a free molecule (to
-carry and let drift off) or any point of a cell (to hang on to, riding out
-the occasional currents you see coming); only a gold three-lobed receptor
-latches and injects. RS turns the view about its own axes (a quaternion, so
-there are no poles and no gimbal flips) and the view stays wherever you leave
-it: nothing turns it on its own except an optional gentle roll that keeps the
+screen, A dashes forward (3× the cruise for a moment); crisp, quick to start
+and stop (a game departure). X grabs and lets go, B retracts the fibres (letting
+go), Y kicks (the owner, 4 November 2026: "X to grab, B to retract, A dash, Y
+kick"). The grab assist takes the nearest thing in a generous reach and cone of
+the fibres: a protein standing on a cell (to hang on to, fixed to that spot as
+the cell drifts, riding out the occasional currents you see coming) or a piece
+of debris (to carry, dragging a little by its size, let drift off or kick
+away); never the bare membrane. Only a gold three-lobed receptor latches and
+injects. Y on a cell launches you head first off it; with debris held or in the
+fibres' arm area it kicks it flying (it knocks into other debris, phages and
+the amoeba's lobe); otherwise a small kick-swim. RS turns the view about its
+own axes (a quaternion, so there are no poles and no gimbal flips; RS right
+turns it right, up looks up, Invert camera Y flips the pitch) and the view
+stays wherever you leave it: nothing turns it on its own except an optional gentle roll that keeps the
 sunlit surface toward the top of the screen (Features → Keep the surface
 up), which fades out looking straight up or down.
 

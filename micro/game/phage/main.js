@@ -539,7 +539,7 @@ function cellsAround(p, reach) {
   }
   return out;
 }
-const _gp = new THREE.Vector3();
+const _gq = new THREE.Vector3();
 /** The grab assist's candidates near `hand`: the proteins on nearby cells and the free debris. */
 function grabCandidates(hand, reach = GRAB.reach) {
   const list = [];
@@ -547,9 +547,9 @@ function grabCandidates(hand, reach = GRAB.reach) {
     for (const h of cellsAround(hand, reach)) {
       if (world.sdHost(h, hand) > reach + 16) continue;
       for (const q of h.grabs) {
-        world.toWorld(h, q.local, _gp);
-        if (Math.abs(_gp.x - hand.x) > reach + 6 || Math.abs(_gp.y - hand.y) > reach + 6 || Math.abs(_gp.z - hand.z) > reach + 6) continue;
-        list.push({ kind: 'protein', item: q, pos: _gp.clone(), rad: q.size * 0.5 });
+        world.toWorld(h, q.local, _gq);
+        if (Math.abs(_gq.x - hand.x) > reach + 6 || Math.abs(_gq.y - hand.y) > reach + 6 || Math.abs(_gq.z - hand.z) > reach + 6) continue;
+        list.push({ kind: 'protein', item: q, pos: _gq.clone(), rad: q.size * 0.5 });
       }
     }
   }
@@ -603,7 +603,7 @@ function tryGrab(by = 'x', quiet = false) {
   const tgt = grabTarget();
   if (!tgt) {
     // nothing in reach: the grab motion (the fibres reach out, close, clutch and come back), never a push
-    if (!quiet) { startMotion(cur, 'grab'); P.grabCooldown = 0.3; playLimited('phage/miss', 0.3, { volume: 0.4, rate: 1.15 }); say(tt('phage.toasts.nothingInReach'), 1600); ringLog.push({ kind: 'grabMotion', t: +t.toFixed(2), slot: cur.slot }); }
+    if (!quiet) { startMotion(cur, 'grab'); P.grabCooldown = 0.3; playLimited('phage/miss', 0.3, { volume: 0.4, rate: 1.15, old: ['bacterium/tumble', { volume: 0.25, rate: 1.9 }] }); say(tt('phage.toasts.nothingInReach'), 1600); ringLog.push({ kind: 'grabMotion', t: +t.toFixed(2), slot: cur.slot }); }
     return;
   }
   if (tgt.kind === 'debris') { holdMol(tgt.item, by); if (!quiet) say(tt('phage.toasts.gotDebris'), 1600); return; }
@@ -762,7 +762,7 @@ function updateDrift(dt, inp) {
   // crisp game control (a departure, the owner: "good control over the phage"): quick to speed up
   // (~0.15 s) and quick to stop (~0.2 s) in the water's drag; nothing but a visible current fights the stick.
   // Carried debris drags you a little by its size.
-  const carry = P.hold?.kind === 'mol' ? 1 / (1 + 0.06 * P.hold.mol.rad) : 1;
+  const carry = P.hold?.kind === 'mol' ? 1 / (1 + 0.04 * P.hold.mol.rad) : 1;
   const dashing = cur.dash.active;
   const drive = _v.set(0, 0, 0);
   if (inp.stick && opts.drive && !dashing) drive.copy(inp.stick).multiplyScalar(DRIVE * inp.stickM * carry);
@@ -785,7 +785,8 @@ function updateDrift(dt, inp) {
   // rotation: damped by the water; a slow thermal tumble only after the sticks have been let go a while
   P.angVel.multiplyScalar(Math.exp(-dt / (inp.stick ? 0.3 : 0.7)));
   if (opts.tumble && P.idleT > 2) { const k = 0.08 * Math.sqrt(dt); P.angVel.x += gauss() * k; P.angVel.y += gauss() * k; P.angVel.z += gauss() * k; }
-  const mv = _w.copy(P.vel).add(P.gust).add(P.dashV);
+  // (what the player drives, not a kick's or a knock's recoil: a kick off a cell does not swing you round)
+  const mv = _w.copy(P.vel).add(P.dashV);
   const sp = mv.length();
   // close to a cell with the fibres out, they catch the water near it and swing the baseplate round to face it
   const near = world.nearestHost(centreOf(new THREE.Vector3()));
@@ -1440,7 +1441,7 @@ function kickedHits(o, dt) {
       if (vn > 0) { const j = (2 * vn) / (o.mass + p.mass) * 0.8; o.vel.addScaledVector(_w, -j * p.mass); p.vel.addScaledVector(_w, j * o.mass); p.kicked = p.kicked || { by: k.by, t: 0, hit: new Set([o]) }; }
       p.pos.addScaledVector(_w, r - d);
       k.hit.add(p);
-      audio.play('phage/jab', { volume: 0.35, rate: 1.4 });
+      audio.play('phage/jab', { volume: 0.35, rate: 1.4, old: ['bacterium/tumble', { volume: 0.3, rate: 1.7 }] });
     }
   }
   for (const mm of members()) {
@@ -1452,7 +1453,7 @@ function kickedHits(o, dt) {
       mm.P.angVel.add(_v.set(gauss(), gauss(), gauss()).multiplyScalar(0.8));
       o.vel.multiplyScalar(-0.3);
       players.pad(mm.slot).rumble(120, 0.4, 0.3);
-      audio.play('phage/jab', { volume: 0.55, rate: 1.1 });
+      audio.play('phage/jab', { volume: 0.55, rate: 1.1, old: ['bacterium/tumble', { volume: 0.5, rate: 1.3 }] });
       ringLog.push({ kind: 'debrisHit', what: 'phage', slot: mm.slot, by: k.by, t: +t.toFixed(2) });
     }
   }
@@ -1489,24 +1490,34 @@ function poseMotion(m, dt) {
     fb.motion = true;
   }
 }
-/** The dash's streak: a soft additive wake drawn behind the phage, fading over half a second. */
-const streakGeo = new THREE.CylinderGeometry(0.2, 4.2, 1, 12, 1, true).translate(0, 0.5, 0);
+/**
+ * The dash's streak: speed lines, a ring of thin soft additive strokes trailing back from round the phage
+ * along the way it came (seen from behind they converge on it), fading over half a second.
+ */
+const streakGeo = new THREE.CylinderGeometry(0.22, 0.04, 1, 5, 1, true).translate(0, 0.5, 0);
 function makeStreak() {
-  const mesh = new THREE.Mesh(streakGeo, new THREE.MeshBasicMaterial({ color: '#ffe6a8', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
-  mesh.visible = false; mesh.renderOrder = 5; scene.add(mesh);
-  return mesh;
+  const g = new THREE.Group(), mat = new THREE.MeshBasicMaterial({ color: '#ffeab8', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+  for (let k = 0; k < 10; k++) {
+    const a = (k / 10) * Math.PI * 2 + (k % 2) * 0.3, r = 9 + (k % 3) * 5;
+    const line = new THREE.Mesh(streakGeo, mat);
+    line.position.set(Math.cos(a) * r, (k % 4) * 0.06, Math.sin(a) * r); // (y is scaled by the length: staggered starts)
+    line.scale.set(1, 0.6 + (k % 3) * 0.25, 1);
+    g.add(line);
+  }
+  g.visible = false; g.renderOrder = 5; g.userData.mat = mat; scene.add(g);
+  return g;
 }
 function updateStreak(m, dt) {
   const s = m.streak;
   m.streakT = Math.max(0, (m.streakT || 0) - dt);
   s.visible = m.streakT > 0 && m.P.mode !== 'inside' && !m.c.active;
   if (!s.visible) return;
-  const k = m.streakT / 0.55, sp = m.P.dashV.length() + m.P.gust.length() * 0.5;
-  // from the phage's centre back along the way it came
+  const k = m.streakT / 0.55, sp = m.P.dashV.length() + m.P.gust.length() * 0.6;
+  // from round the phage's centre back along the way it came, as long as the speed makes them
   s.position.copy(UP).applyQuaternion(m.P.q).multiplyScalar(10 * m.P.scale).add(m.P.pos);
   s.quaternion.setFromUnitVectors(UP, _v.copy(m.streakDir).negate());
-  s.scale.set(1, Math.max(4, Math.min(90, sp * 0.4)) , 1);
-  s.material.opacity = 0.35 * k;
+  s.scale.set(1, Math.max(6, Math.min(70, sp * 0.35)), 1);
+  s.userData.mat.opacity = 0.45 * k;
 }
 
 // --- overlay labels ---
@@ -1602,7 +1613,7 @@ const molMeshes = Object.fromEntries(DEBRIS_KINDS.map(([k, tpl]) => { const bm =
 const mols = Array.from({ length: MOL_N }, (_, i) => {
   const [kind, tpl, sz] = DEBRIS_KINDS[i % DEBRIS_KINDS.length];
   const size = rand(...sz), rad = extentOf(tpl) * size;
-  return { i, kind, size, rad, mass: (rad / 4) ** 3, fade: 1, pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion().random(), w: new THREE.Vector3(gauss(), gauss(), gauss()).multiplyScalar(0.25), heldBy: null, kicked: null };
+  return { i, kind, size, rad, mass: clamp((rad / 6) ** 2, 0.4, 2.5), fade: 1, pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion().random(), w: new THREE.Vector3(gauss(), gauss(), gauss()).multiplyScalar(0.25), heldBy: null, kicked: null };
 });
 const inSolid = (p, pad = 8) => world.hosts.some((h) => !h.hidden && !h.burst && world.sdHost(h, p) < pad) || bystanderClear(p) < pad || world.sdAmoeba(p) < pad;
 /**

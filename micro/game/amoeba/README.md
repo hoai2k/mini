@@ -118,7 +118,7 @@ still held keeps moving the body.
 | **A (Space)** | **Surge**: for 0.9 s every active pseudopod extends up to 2.5× faster and may run a little further ahead, the rear contracts harder and streaming surges to the tips, so the whole cell lunges; recharges over 2.4 s (the `dash` meter). With no stick held it surges along the cell's heading (in the default scheme and lead and follow, the body flows on that way). Tears the membrane free of a fungal trap |
 | **X (E)** | **Close the food cup** round the prey it wraps (needs ≥ 190° of membrane round it): the rims advance and endoplasm floods in to fill round the prey until they meet. At a trap hypha: a pseudopod jab that cuts its tip. (Rarely: with your membrane closed on both sides of an arm of Chaos, it pinches the arm off) |
 | B (Shift) | Let go while closing; otherwise egest the oldest food vacuole at the uroid (a live, barely digested prey swims away). Near a threatening trap hypha (or stuck on one), hold to **stiffen** (defend) |
-| Y (R) | Labels (nucleus, contractile vacuole, uroid, hyaline caps, ectoplasm, endoplasm, prey with real sizes, trap hyphae). At the leaf tip (the backdoor) Y goes back up to the tardigrade instead, and at the open portal (any part of your cell on it; the game shows "Y Enter the portal") Y goes through it. The in-game controls lists show Y as "Labels" only (3 November 2026): the portal and the way back ask for Y on screen when you are there, so the lists leave them out (the shell's list, `worlds.amoeba.controls`, has no Y row) |
+| Y (R) | At the leaf tip (the backdoor) Y goes back up to the tardigrade, and at the open portal (any part of your cell on it; the game shows "Y Enter the portal") Y goes through it; elsewhere it does nothing. The anatomy labels it toggled until 4 November 2026 (nucleus, contractile vacuole, uroid, hyaline caps, ectoplasm, endoplasm, prey with real sizes, trap hyphae) are in the Features panel (Rendering, Anatomy labels): the owner asked for the info-overlay action to go from every world. The in-game controls lists have no Y row (the portal and the way back ask for Y on screen when you are there) |
 | D-pad ← → (3 / 4) | Optics: brightfield, phase contrast, darkfield, hypothetical immersive lit view |
 | D-pad ↑ ↓ (1 / 2) | 20× objective (0.9 mm field) / 10× objective (1.8 mm field) |
 | Menu (Esc) | Features panel: what the prototype does, with switches |
@@ -416,7 +416,7 @@ everything else.
   automatic door (the owner, 2026-11-01): while anyone is at it the game
   shows "Y Enter the portal" (`embed.near('portal', true)`; standalone,
   `shared/embed.js` shows it), and that player's **Y** (R) runs
-  `enterPortal(cell)` (instead of the labels), the one place the way on is
+  `enterPortal(cell)`, the one place the way on is
   triggered: the glow's burst, a golden bloom on the screen
   (`createPortalLight`), the portal chime and a rumble, then
   `embed.landmark('forward', { player })` (the shell runs the transition;
@@ -431,8 +431,7 @@ everything else.
   the slide's middle (`world.js` `LEAF`). The amoeba flows round it (capsule
   colliders down its axis). Near the tip a quiet "Y: Back to the tardigrade"
   prompt shows (the shell's, from `embed.near('back')`, or this page's own
-  when standalone), and Y there posts `embed.landmark('back')` instead of
-  toggling the labels. A hollow ring labelled Leaf marks it at the edge of the
+  when standalone), and Y there posts `embed.landmark('back')`. A hollow ring labelled Leaf marks it at the edge of the
   view (`../shared/landmark.js`).
 - Steady crawling (both sticks held) covers ~45 µm/s on the ×10 clock (~65
   with the surge used whenever it is ready), so the way on is about a minute
@@ -643,7 +642,7 @@ their pacing and catches use the shared `shared/predation.js`
   its adhesive knobs are large, dark and sticky. Then it rests, 50–80 s
   after a catch and 20–35 s after you tear free: the knobs shrink and pale
   and nothing sticks. The stats corner shows `sticky` or `dormant` with the
-  seconds left, and the labels (Y) mark each hypha.
+  seconds left, and the anatomy labels (Features) mark each hypha.
 - **Stuck** on a sticky hypha, a red line at the top counts down to the
   haustoria (8 s, as before) and asks for a surge (A).
 - **The catch, shown in full:** **strike** (0.45 s): haustoria (feeding

@@ -1157,7 +1157,7 @@ function frame() {
   if (zs > 0 && view.obj < OBJECTIVES.length - 1) { view.obj++; toast(tt('tardigrade.toasts.objective', { name: OBJECTIVES[view.obj].name })); }
   if (P(B.RB)) life.rain();
   if (P(B.RS)) { life.newDay(); toast(tt('tardigrade.toasts.backAtStart')); }
-  if (P(B.LB)) features.set('labels', !view.labels);
+  // (LB toggled the anatomy labels until 4 Nov 2026; they are in the Features panel: Controls, Labels)
   if (P(B.LS)) { view.focus = 0; toast(tt('tardigrade.toasts.refocused')); }
   // RS: the camera's turn is locked to the world's forward (FORWARD_YAW, shared/camlock.js): RS
   // left/right peeks sideways (each player's own); up/down pitches by intent (up = look up: the camera

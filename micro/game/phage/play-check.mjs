@@ -1,7 +1,7 @@
 // Play checks for the phage world (headless Chromium, software WebGL; a few minutes):
 //
 //   node micro/game/phage/play-check.mjs            # all
-//   node micro/game/phage/play-check.mjs controls   # or: encounter, grab
+//   node micro/game/phage/play-check.mjs controls   # or: encounter, grab, verbs
 //
 // controls: LS up moves forward along the view, LS down back, LS sideways along the view's right, RB up and
 // LB down the screen, A dashes forward; every LS and LB/RB direction alone must not turn the view (the old spin); RS in every
@@ -13,9 +13,16 @@
 // frame (the way on sealed); the director places the first decoy ahead of a player drifting off the path, out of view (route.test.mjs runs the whole order headless); the guard
 // on the (forced) portal turns you back; driven off, X there only holds on and says to press Y, and Y lets you in; a UV shaft damages at
 // once and a second one destroys.
-// grab: X takes a molecule from a sloppy aim and lets it go to drift off; RT (X key) zooms in and LT (Z key)
-// out, analogue and clamped, and RT no longer grabs (a molecule in reach stays free); near a cell, a grab almost anywhere anchors and a current passes you by, while unanchored it
+// grab: X takes debris from a sloppy aim and lets it go to drift off; RT (X key) zooms in and LT (Z key)
+// out, analogue and clamped, and RT no longer grabs (debris in reach stays free); near a cell, a grab takes one of its proteins and a current passes you by, while unanchored it
 // carries you off (only after a visible warning); a gold receptor on Host B still latches and injects.
+// verbs (the owner, 4 Nov 2026): X with nothing in reach plays the grab motion (the fibres open, then close
+// inward) and pushes nothing; the bare membrane cannot be grabbed (with the proteins hidden from the assist,
+// X beside a cell takes nothing), and with them a protein; holding one fixes you to that spot of its cell
+// (LS held, the cell moved and turned: no sliding); Y off a cell launches you away from it; debris is
+// grabbed, carried, and kicked flying, knocking another piece on; the cruise is 1.5-2x the old 36 units/s
+// and the dash about 3x the cruise, with a quick stop; RS right turns the view right, RS up looks up, and
+// Invert camera Y flips only the pitch.
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, extname, dirname } from 'node:path';
@@ -228,7 +235,7 @@ if (which === 'all' || which === 'grab') {
   await tap('KeyE'); await waitSim(0.6);
   log.molHold = await D('hold');
   log.molAtHand = dist((await D('mols'))[0].pos, await pos());
-  if (log.molHold?.kind !== 'mol' || log.molAtHand > 10) fails.push('X did not take a molecule from a sloppy aim: ' + JSON.stringify(log));
+  if (log.molHold?.kind !== 'debris' || log.molAtHand > 16) fails.push('X did not take debris from a sloppy aim: ' + JSON.stringify(log));
   // and X again lets it go: it drifts gently off
   await tap('KeyE'); await waitSim(0.1);
   const m0 = (await D('mols'))[0]; await waitSim(1.5); const m1 = (await D('mols'))[0];
@@ -253,13 +260,13 @@ if (which === 'all' || which === 'grab') {
   if (!(log.zoomLtHalf > log.zoomIn && log.zoomLtHalf < Z.max)) fails.push(`LT did not zoom out smoothly (${log.zoomIn} -> ${log.zoomLtHalf})`);
   if (Math.abs(log.zoomOut - Z.max) > 0.5) fails.push(`LT held did not reach the widest zoom ${Z.max} (${log.zoomOut})`);
   await D('zoom', 1);
-  // 3. near a cell, a grab almost anywhere anchors, and a current passes you by
+  // 3. near a cell, a grab takes one of its proteins, and a current passes you by
   const near = await ev(() => { const m = window.__micro, h = m.world.bystanders[0]; const n = h.pos.clone().set(0, 1, 0.3).normalize(); return m.world.projectToHost(h, h.pos.clone().addScaledVector(n, 200).add(h.pos.clone().set(40, 0, 0)), 26).toArray(); });
   await D('teleport', ...near); await D('orient', 0.3, 0.2, 1.4); await waitSim(0.2);
   log.cell = await D('grabNow', 'x'); await waitSim(1);
   const h0 = await pos(); await D('current', [1, 0, 0]); await waitSim(9);
   log.heldMoved = +dist(await pos(), h0).toFixed(1); log.stillHold = (await D('hold'))?.kind;
-  if (log.cell?.kind !== 'cell' || log.heldMoved > 8 || log.stillHold !== 'cell') fails.push(`holding a cell, a current moved you (${JSON.stringify(log.cell)}, moved ${log.heldMoved}, ${log.stillHold})`);
+  if (log.cell?.kind !== 'protein' || log.heldMoved > 8 || log.stillHold !== 'protein') fails.push(`holding a cell, a current moved you (${JSON.stringify(log.cell)}, moved ${log.heldMoved}, ${log.stillHold})`);
   // 4. unanchored, a current carries you off, but only after its warning
   await D('release'); await D('teleport', near[0], near[1] + 120, near[2] + 60); await waitSim(0.5);
   const f0 = await pos(); await D('current', [1, 0, 0]);
@@ -279,6 +286,129 @@ if (which === 'all' || which === 'grab') {
   delete log.inject;
   console.log(JSON.stringify(log));
   console.log(fails.length || errors.length ? 'FAIL grab\n' + fails.concat(errors.slice(0, 3)).join('\n') : 'ok   grab');
+  failed += fails.length || errors.length ? 1 : 0;
+  await close();
+}
+if (which === 'all' || which === 'verbs') {
+  const { base, page, errors, close } = await open(480, 270);
+  await page.goto(base + 'game/phage/?q=low', { waitUntil: 'load' });
+  await page.waitForTimeout(3000);
+  const D = (f, ...a) => page.evaluate(([f, a]) => window.__micro.debug[f](...a), [f, a]);
+  const ev = (fn, arg) => page.evaluate(fn, arg);
+  await ev(() => { window.__micro.debug.maxDt = 1 / 30; window.__micro.features.set('currents', false); });
+  const simT = () => ev(() => window.__micro.t);
+  const waitSim = async (sec) => { const t0 = await simT(); while ((await simT()) - t0 < sec) await page.waitForTimeout(60); };
+  const pos = () => ev(() => window.__micro.P.pos.toArray());
+  const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const fails = [], log = {};
+  const tap = async (k) => { await page.keyboard.down(k); await waitSim(0.08); await page.keyboard.up(k); };
+  // send every piece of debris far off (it comes back 140+ units away: out of reach)
+  const clearDebris = async () => { const p = await pos(); const n = (await D('mols')).length; for (let i = 0; i < n; i++) await D('placeMol', i, p[0] + 2000 + i * 20, p[1], p[2]); await waitSim(0.1); };
+  // face the baseplate along n (the head away from it)
+  const face = (n) => ev((nm) => { const P = window.__micro.P; const v = P.pos.clone().set(nm[0], nm[1], nm[2]).normalize(); P.q.setFromUnitVectors(v.clone().set(0, 1, 0), v.negate()); P.angVel.set(0, 0, 0); }, n);
+  // a spot beside cell `id` facing protein `k` (or the one facing the camera) from `off` units out
+  const toProtein = async (id, off, k = null) => { const q = await D('protein', id, k); await D('teleport', ...q.at.map((x, i) => x + q.n[i] * off)); await face(q.n.map((x) => -x)); return q; };
+  await waitSim(1);
+  // 1. the grab motion: X in empty water (the start's calm water) opens the fibres, closes them inward, moves nothing
+  await clearDebris();
+  await waitSim(1);
+  const rest = Math.min(...(await D('motion')).tips);
+  const g0 = await pos();
+  await tap('KeyE');
+  log.emptyHold = await D('hold');
+  const tips = []; let push = 0;
+  for (let i = 0; i < 8; i++) { const mo = await D('motion'); tips.push({ t: mo.motion?.t ?? null, r: Math.max(...mo.tips) }); push = Math.max(push, (await D('speed')).v); await waitSim(0.06); }
+  await waitSim(0.5);
+  const g1 = await pos();
+  // (the calm water's slow drift still moves an idle phage a little: the push would show as speed of its own)
+  log.emptyMoved = +dist(g0, g1).toFixed(2); log.emptySpeed = +push.toFixed(2);
+  log.grabTips = tips.map((x) => `${x.t}:${x.r}`).join(' ');
+  log.restTip = rest;
+  const during = tips.filter((x) => x.t != null);
+  const closed = during.filter((x) => x.t >= 0.3).map((x) => x.r);
+  if (log.emptyHold) fails.push('X in empty water grabbed something: ' + JSON.stringify(log.emptyHold));
+  if (!during.length) fails.push('X in empty water played no grab motion');
+  else if (!(closed.length && Math.min(...closed) < rest * 0.6)) fails.push(`the grab motion did not close the fibres inward (rest ${rest}, ${log.grabTips})`);
+  if (log.emptyMoved > 8 || log.emptySpeed > 1) fails.push(`X in empty water pushed the phage (moved ${log.emptyMoved}, speed ${log.emptySpeed})`);
+  // 2. the flat membrane cannot be grabbed: proteins hidden from the assist, X right beside a cell takes nothing
+  const q0 = await toProtein('S0', 4);
+  const wall = await ev((id) => { const m = window.__micro, h = m.world.bystanders.find((x) => x.id === id); return m.world.sdHost(h, m.P.pos); }, 'S0');
+  await ev(() => { window.__micro.debug.noProteins = true; }); await clearDebris();
+  log.membrane = await D('grabNow'); await waitSim(0.6);
+  log.membraneAfter = await D('hold');
+  await ev(() => { window.__micro.debug.noProteins = false; });
+  log.wallD = +wall.toFixed(1);
+  if (log.membrane || log.membraneAfter) fails.push(`the bare membrane was grabbed (${JSON.stringify(log.membraneAfter)}, ${log.wallD} from it)`);
+  // 3. a protein grab fixes you to that spot: the cell moved and turned under you, LS held: no sliding
+  await waitSim(0.7);
+  await toProtein('B', 16);
+  log.protein = await D('grabNow');
+  await waitSim(0.5);
+  const l0 = await D('localTo', 'B');
+  await page.keyboard.down('KeyW'); await page.keyboard.down('KeyD');
+  await ev(() => { const h = window.__micro.world.hosts.find((x) => x.id === 'B'); h.pos.x += 25; h.pos.z -= 10; h.ang += 0.3; });
+  await waitSim(1.2);
+  await page.keyboard.up('KeyW'); await page.keyboard.up('KeyD');
+  const l1 = await D('localTo', 'B');
+  log.slide = +dist(l0, l1).toFixed(2); log.proteinHold = await D('hold');
+  if (log.protein?.kind !== 'protein' || log.proteinHold?.kind !== 'protein') fails.push(`no protein grabbed beside Host B (${JSON.stringify(log.protein)})`);
+  if (!(log.slide < 0.5)) fails.push(`holding a protein, the phage slid ${log.slide} units over the cell`);
+  // 4. Y on the cell: launched off it, head first, away from the surface
+  const hb = (await D('hold'));
+  const qn = await ev(() => { const m = window.__micro, g = m.P.hold; return m.world.dirToWorld(g.host, g.q.normal).toArray(); });
+  const k0 = await pos();
+  await tap('KeyR');
+  await waitSim(0.7);
+  const k1 = await pos();
+  log.kickCell = (await D('rings')).filter((e) => e.kind === 'kick').pop();
+  log.kickAway = +dot(sub(k1, k0), qn).toFixed(1); log.kickHold = await D('hold');
+  if (!hb || log.kickCell?.what !== 'cell' || log.kickHold) fails.push(`Y on a cell did not kick off (${JSON.stringify(log.kickCell)}, still ${JSON.stringify(log.kickHold)})`);
+  if (!(log.kickAway > 50)) fails.push(`Y on a cell did not launch you away from it (${log.kickAway} units along its normal in 0.7 s)`);
+  // 5. debris: grabbed, carried, kicked flying, and it knocks another piece on
+  await D('teleport', ...(await pos()).map((x, i) => x + [0, 260, 120][i]));
+  await waitSim(0.3); await clearDebris();
+  await face([0, -1, 0]); await waitSim(0.2);
+  let p = await pos();
+  await D('placeMol', 0, p[0], p[1] - 16, p[2]);
+  await tap('KeyE'); await waitSim(0.4);
+  log.debrisHold = await D('hold');
+  p = await pos();
+  const fwd = await ev(() => { const P = window.__micro.P; return P.pos.clone().set(0, -1, 0).applyQuaternion(P.q).toArray(); });
+  const dpos = (await D('mols'))[0].pos;
+  await D('placeMol', 1, p[0] + fwd[0] * 50, p[1] + fwd[1] * 50, p[2] + fwd[2] * 50);
+  await tap('KeyR'); await waitSim(0.8);
+  const ms = await D('mols');
+  log.kickDebris = (await D('rings')).filter((e) => e.kind === 'kick').pop();
+  log.debrisFlew = +dot(sub(ms[0].pos, dpos), fwd).toFixed(1); log.knocked = +dist(ms[1].pos, [p[0] + fwd[0] * 50, p[1] + fwd[1] * 50, p[2] + fwd[2] * 50]).toFixed(1);
+  log.afterKickHold = await D('hold');
+  if (log.debrisHold?.kind !== 'debris') fails.push(`debris in reach was not grabbed (${JSON.stringify(log.debrisHold)})`);
+  if (log.kickDebris?.what !== 'debris' || log.afterKickHold || !(log.debrisFlew > 35)) fails.push(`Y did not kick the debris away (${JSON.stringify(log.kickDebris)}, flew ${log.debrisFlew})`);
+  if (!(log.knocked > 5)) fails.push(`the kicked debris did not knock the piece in its path (moved ${log.knocked})`);
+  // 6. speed: the cruise 1.5-2x the old 36, the dash about 3x the cruise, a crisp stop after it
+  await D('teleport', ...(await pos()).map((x, i) => x + [0, -200, 0][i])); await clearDebris(); await waitSim(0.5);
+  const top = async (sec) => { let v = 0; const t0 = await simT(); while ((await simT()) - t0 < sec) { v = Math.max(v, (await D('speed')).v); await page.waitForTimeout(40); } return v; };
+  await page.keyboard.down('KeyW'); await waitSim(0.5); log.cruise = +(await top(0.6)).toFixed(1); await page.keyboard.up('KeyW');
+  await waitSim(1.2);
+  await page.keyboard.down('Space'); log.dash = +(await top(0.35)).toFixed(1); await page.keyboard.up('Space');
+  log.fovKick = (await D('speed')).fov;
+  await waitSim(1.1); log.afterDash = (await D('speed')).v;
+  if (!(log.cruise >= 36 * 1.5 && log.cruise <= 36 * 2.05)) fails.push(`cruise ${log.cruise} units/s, not 1.5-2x the old 36`);
+  if (!(log.dash >= log.cruise * 2.6 && log.dash <= log.cruise * 3.6)) fails.push(`dash ${log.dash} vs cruise ${log.cruise}: not about 3x`);
+  if (!(log.afterDash < 8)) fails.push(`no crisp stop after the dash (${log.afterDash} units/s 1.1 s later)`);
+  // 7. the camera: RS right turns the view right, RS up looks up; Invert camera Y flips only the pitch
+  await ev(() => window.__micro.features.set('level', false));
+  const turn = async (key) => { const a = await D('axes'); await page.keyboard.down(key); await waitSim(0.4); await page.keyboard.up(key); await waitSim(0.1); const b = await D('axes'); return { right: +dot(b.fwd, a.right).toFixed(2), up: +dot(b.fwd, a.up).toFixed(2) }; };
+  log.rsRight = await turn('ArrowRight'); log.rsLeft = await turn('ArrowLeft'); log.rsUp = await turn('ArrowUp');
+  await ev(() => window.__micro.features.set('invertY', true));
+  log.rsUpInv = await turn('ArrowUp'); log.rsRightInv = await turn('ArrowRight');
+  await ev(() => window.__micro.features.set('invertY', false));
+  if (!(log.rsRight.right > 0.2) || !(log.rsLeft.right < -0.2)) fails.push(`RS right/left did not turn the view right/left (${JSON.stringify([log.rsRight, log.rsLeft])})`);
+  if (!(log.rsUp.up > 0.2)) fails.push(`RS up did not look up (${JSON.stringify(log.rsUp)})`);
+  if (!(log.rsUpInv.up < -0.2) || !(log.rsRightInv.right > 0.2)) fails.push(`Invert camera Y did not flip only the pitch (${JSON.stringify([log.rsUpInv, log.rsRightInv])})`);
+  console.log(JSON.stringify(log));
+  console.log(fails.length || errors.length ? 'FAIL verbs\n' + fails.concat(errors.slice(0, 3)).join('\n') : 'ok   verbs');
   failed += fails.length || errors.length ? 1 : 0;
   await close();
 }

@@ -49,12 +49,78 @@ the same grab assist. The controls lists drop the portal and way-back
 mentions on Y (the world asks for Y on screen when you are there), and keep
 Y's overlay as "Info overlay".
 
+**The verbs (4 November 2026).** The owner: "pressing grab looks like it's
+pushing outward when nothings there, instead it should do a grab motion. Also
+reverse the left/right camera direction ... you should move faster, and dash
+should make more of a difference ... when I was apparently grabbing onto a
+cell, it looked like I was just sliding along it. You shouldn't be able to grab
+on the flat surface of the cell, but it should be easier to grab any of the
+proteins on the cell. I wasn't able to grab any proteins at all ... you should
+be able to grab onto various debris floating around ... remove Info Overlay
+action from all worlds. In phage let's have Y be a kick action ... X to grab, B
+to retract, A dash, Y kick". So (`grab.js`, tested in `grab.test.mjs` and the
+`verbs` play check):
+
+- **X with nothing in reach plays a grab motion**: the six fibres reach out a
+  little forward and open (0.2 s), close inward under the baseplate, clutching
+  (to 0.4 s), hold a moment and return (`grabMotion`). It moves only the
+  fibres: no push. (Before, a miss played the amoeba jab's reach, which pushed
+  the fibres straight out.)
+- **RS left/right is reversed** (`yawTurn`, `MOVE.yawSign`): pushing right
+  turns the view right. Up/down was already right (RS up looks up) and still
+  follows the shared *Invert camera Y* (`micro.invertY`).
+- **Faster**: full stick is 64 units/s (it was 36: 1.8×). **The dash** is a
+  burst of 3× the cruise (192 units/s) held for 0.3 s and braked quickly
+  (recharging in 1.6 s), with a soft streak behind the phage, the dash's
+  whoosh plus a fast pass of the current's rush, and a slight field-of-view
+  kick (+6°, eased out over half a second). Stops stay crisp (~0.2 s).
+- **Why no protein could be grabbed.** The proteins the owner saw, the blue
+  and violet "flowers" on stalks all over every cell, were decoration: they
+  were not grab targets at all. The registered ones were only the gold and
+  violet proteins on the three hosts (5-7 a host, none on the 36 bacteria of
+  other kinds, and the hosts parked out of sight until met), and they were
+  only tried in a narrow cone (13 units across, 29 along the baseplate's line)
+  before the assist fell back to the nearest point of the membrane, named at
+  random ("the LPS fur", "a porin"...). So nearly every grab took the bare
+  membrane, and LS then crawled the anchor along it: the sliding. Now every
+  flower is a hold (`host.grabs` in `world.js`: ~40-200 a cell, bigger, with
+  none on a receptor site), the membrane is never a target, and the assist
+  takes the nearest protein or debris within 0.6 µm (60 units, to its
+  surface) in a cone of ±110° (anything right at the baseplate counts).
+- **Holding a protein fixes you to it** (`updateHoldProtein`): the baseplate
+  pulls in over 0.18 s, then sits exactly at the knob in the cell's own frame,
+  so you ride with the cell as it drifts and turns, and LS does nothing (no
+  crawl, no slide). The gold receptor still injects as before; the violet and
+  flower proteins only hold.
+- **Debris**: 64 pieces (molecules, a ribosome-sized complex, humic clumps,
+  membrane fragments of porins and LPS, bits of broken flagellum: the world's
+  own bead templates), a dozen round the start; one nobody is near comes back
+  ahead of whoever is moving (fading in), so there is always some along the
+  way. Carried debris rides at the baseplate and slows you by its size (to
+  about 0.73-0.88 of full speed). X again lets it drift off, B retracts and lets
+  go, Y kicks it.
+- **Y is the kick** (`kickPlan`, `kickVelocities`, `tryKick` in `main.js`):
+  holding a protein (or with the baseplate against a membrane) the fibres push
+  off and you launch head first off the cell at 240 units/s (decaying with the
+  water's drag: about 0.9 µm), letting go: out of a current, or just for
+  distance. Holding debris, or with a free piece in the fibres' arm area, it
+  flies off along the baseplate (240 units/s for a piece of mass 1, slower
+  for heavier ones) and you recoil a little; it knocks into other debris
+  (sharing momentum), other players' phages (a shove and a rumble) and the
+  amoeba's lobe (a hit counts as a fibre jab: the lobe flinches and loses
+  interest). Free in the water, a small kick-swim. Each kick plays the fibres'
+  kick motion (drawn in, then snapped out ahead) and the jab or throw sound.
+- **The info overlay left Y** in every world: the phage's odds and receptor
+  overlay is *Features → Simulation → Info overlay*, the amoeba's labels are
+  *Features → Rendering → Anatomy labels*, and the tardigrade's LB label toggle
+  is gone (its Labels switch was already in the panel).
+
 **You steer; the water only shows.** A real phage has no motor: it diffuses
 until it touches a receptor [S100]. At the owner's request it is steered
 like a game character, a labelled departure: LS up and down move it forward
 and back along the view (into and out of the screen), LS left and right
 sideways, LB and RB down and up the screen, A dashes forward; it gets going
-in about 0.15 s and stops in about 0.2 s (about 0.36 µm/s at full stick on the
+in about 0.15 s and stops in about 0.2 s (about 0.64 µm/s at full stick on the
 slowed clock), and the baseplate and long fibres turn promptly to lead.
 Nothing fights the stick except a visible current: the ambient drift, a very
 slow thermal wander and a slow tumble only come in once the sticks have been
@@ -110,46 +176,43 @@ movement is in the view's own frame, so there is no up or down bias:
 
 | Xbox | Keyboard | Action |
 | --- | --- | --- |
-| LS | WASD | **Move**: up forward along the view (into the screen), down back toward you, left and right sideways. Crisp (a departure): quick to start and stop; the baseplate and fibres turn to lead. Holding on to a cell, LS crawls you along its surface |
+| LS | WASD | **Move**: up forward along the view (into the screen), down back toward you, left and right sideways, 64 units/s at full stick. Crisp (a departure): quick to start and stop; the baseplate and fibres turn to lead. Holding a protein, LS does nothing: you stay fixed to it |
 | LB / RB | Q / F | **Down / up** the screen |
-| RS | Arrows | **Turn the view** about its own axes (a quaternion: no up or down, no poles, no flips). It stays where you leave it. With company, each player turns their own view |
-| **A** | Space | **Dash forward** along the view (recharging, HUD `dash` meter). Holding a cell, it lets go and dashes; a carried molecule comes along. On a surface (debug walk), a push-off with the fibres |
-| **X** | E | **Grab / let go** (a toggle): the grab assist takes the best thing in reach of the fibres (below). **At an amoeba's lobe: a fibre jab** (attack; a departure) |
+| RS | Arrows | **Camera**: turns the view about its own axes (a quaternion: no up or down, no poles, no flips): right turns it right, up looks up (Invert camera Y flips the pitch). It stays where you leave it. With company, each player turns their own view |
+| **A** | Space | **Dash** forward along the view: 3× the cruise for 0.3 s, then braked (recharging in 1.6 s, HUD `dash` meter), with a streak, a whoosh and a slight field-of-view kick. Holding a protein, it lets go and dashes; carried debris comes along. On a surface (debug walk), a push-off with the fibres |
+| **X** | E | **Grab / let go** (a toggle): the grab assist takes the nearest protein on a cell or piece of debris in reach of the fibres (below); with nothing in reach, the fibres play a grab motion. **At an amoeba's lobe: a fibre jab** (attack; a departure) |
 | LT / RT | Z / X | **Zoom out / in**, analogue and continuous: how far the trigger is squeezed sets how fast it zooms, and the camera eases there; 60 to 290 units behind the phage, starting at 110. Each player's own, in their own view. Inside the host it sets the inside camera's distance too (the injecting player's) |
-| B | Shift | **Defend: fold the fibres** back against the sheath and slip: an amoeba's lobe gets no purchase, clay and flocs slide past; it also lets go of whatever you hold. Press again to extend them |
-| Y | R | **At Host A's gold receptors (the way on), within ~0.4 µm and with the amoeba off guard: enter** (the shell shows "Y Enter the portal"; the fibres latch on the nearest receptor and the injection starts; on guard: turned back). **At the flagellum (the backdoor)**: back to the sediment (Level 5); the two are far apart. Elsewhere: the odds and receptor overlay: receptor patches ringed, each host's receptors, defences and odds of a burst, the UV line, the amoeba's hunger, your distance to the nearest host; inside, each enzyme's sensing range. Marked on screen as data, not optics |
+| B | Shift | **Retract: fold the fibres** back against the sheath and slip: an amoeba's lobe gets no purchase, clay and flocs slide past; it also lets go of whatever you hold. Press again to extend them |
+| **Y** | R | **Kick**: holding a protein (or against a membrane), launch head first off the cell; holding debris or with a piece in the fibres' arm area, kick it flying; otherwise a small kick-swim (below). **At Host A's gold receptors (the way on), within ~0.4 µm and with the amoeba off guard: enter** instead (the shell shows "Y Enter the portal"; the fibres latch on the nearest receptor and the injection starts; on guard: turned back). **At the flagellum (the backdoor)**: back to the sediment (Level 5); the two are far apart. The odds and receptor overlay Y used to toggle is *Features → Simulation → Info overlay* |
 | D-pad ←→ | 3 / 4 | Look: realistic false light (default), Goodsell watercolour, cryo-EM greyscale, fluorescence (pseudo-colour) |
 | Menu | Esc | Features panel |
 | View | Tab | Hide or show the controls |
 
 The D-pad's ↑↓ do nothing (they zoomed before the triggers did).
 
-### Grabbing (`grab.js`, tested in `grab.test.mjs`)
+### Grabbing and kicking (`grab.js`, tested in `grab.test.mjs`)
 
-- **The grab assist.** X takes the best target within 0.4 µm (40 units)
-  of the fibres' reach centre, a little ahead of the baseplate: a free
-  molecule, or the nearest point of any cell's surface (hosts and the big
-  bacteria of other kinds). Things ahead of the baseplate win over things
-  beside or behind it at a similar distance, but anything in reach is taken,
-  so a sloppy aim still grabs. A soft ring in your player colour marks what
-  X would take now, and the fibres reach out a little toward it. The
-  fibres reach out to what they grab over 0.18 s.
-- **Molecules.** 36 bigger free molecules (complexes and globules, `mols` in
-  `main.js`) drift round the players; the bath's thousands live on the GPU
-  and cannot be held. A grabbed one rides at the baseplate with the fibres
-  closed round it; let go, it drifts gently off ahead of the baseplate (16
-  units/s, slowed by the water's drag over a few seconds). Currents carry free
-  ones too; one nobody is near comes back somewhere out of sight.
-- **Cells.** Near a cell, a grab almost anywhere anchors you: the LPS fur, a
-  porin, a membrane protein (named in the toast). The phage pulls in to stand
-  on its fibres over the point, the six fibres planted round it, and stays
-  there as the cell drifts and while a current passes. LS crawls you along
-  the surface. A violet protein that does not fit only holds too.
-- **Injection only at the right receptor.** A grab aimed at a gold
+- **The grab assist.** X takes the nearest target within 0.6 µm (60 units,
+  measured to its surface) of the fibres' reach centre, a little ahead of the
+  baseplate, within ±110° of the baseplate's line (anything right at the
+  baseplate counts): a protein standing on a cell or a piece of debris.
+  Things ahead win over things beside at a similar distance, and a protein
+  over debris. A soft ring in your player colour marks what X would take now,
+  and the fibres reach out a little toward it. **The bare membrane is never
+  a target.** With nothing in reach the fibres play the grab motion.
+- **Proteins** (`host.grabs` in `world.js`): every protein flower on every cell
+  (hosts and the 36 bacteria of other kinds; the Gram-positive decoy has no flowers,
+  only its four violet proteins to hold), plus the hosts' violet and gold proteins.
+  Held, you are fixed to that spot of the cell (you ride with it; a current
+  passes you by) until you let go (X), retract (B), kick off (Y) or dash (A).
+- **Debris** (`mols` in `main.js`): see the verbs above. Currents carry free
+  pieces too, and kicked ones knock into things.
+- **Injection only at the right receptor.** A grab that takes a gold
   three-lobed receptor latches and starts the irreversible injection, as
   before (the fibres converge for 0.45 s, the short fibres bind, the sheath
   contracts). On Host A, the way on, X there only holds on and says to press
   Y; on guard, you are turned back.
+- **The kick** (Y): see the verbs above.
 
 ### The water: a textured liquid, and currents
 
@@ -217,7 +280,7 @@ hunt hard, a near dead end). The third cell is the wrong host.
 - **Back: the flagellum.** In the calm water beside the start, a flagellum of the
   Level 5 bacterium sweeps past (a turning helix). Drifting within ~0.55 µm
   of it posts `near {kind: 'back', label: 'Y: back to Sediment'}`, and Y
-  there posts `landmark('back')`; anywhere else Y is the overlay.
+  there posts `landmark('back')`; anywhere else Y is the kick.
 - **Edge marks** (`shared/landmark.js`): only the ring toward the flagellum
   (the way back), per view. There is no arrow to the way on by default (the
   owner: keep moving in any direction and you find it); once open, its golden
@@ -428,7 +491,7 @@ in multiplayer:
 ```bash
 node --test micro/game/phage/binding.test.mjs micro/game/phage/grab.test.mjs micro/game/phage/currents.test.mjs
 node micro/game/phage/route.test.mjs     # the director: 6 directions, lingering, out and back; the default path followed and left (V=1: each run's placements)
-node micro/game/phage/play-check.mjs   # controls (the mapping, no spin), coverage (no empty side), encounters, grab and currents
+node micro/game/phage/play-check.mjs   # controls (the mapping, no spin), coverage (no empty side), encounters, grab and currents, verbs (the grab motion, no membrane grabs, a rigid protein hold, the kicks, speed and dash, RS directions)
 node micro/game/check-worlds.mjs phage
 node micro/game/check.mjs
 ```
@@ -437,7 +500,7 @@ The smoke check opens the page in headless Chromium, drives the keyboard and
 fails on any console error. `window.__micro.debug` has hooks for scripted
 screenshots: `teleport`, `orient`, `isolate` (the phage alone, for
 turnarounds), `cam(yaw, pitch, dist)`, `fold`, `walkOn(hostId, u, phi)`,
-`grab` (the normal aimed grab), `grabNow(by)` / `release()` / `hold(slot)` (grabbing), `mols()` / `placeMol(i, x, y, z)` (the free molecules), `current(dir)` / `currents()` (send one now; the state and log), `axes()` (the view's forward, right and up), `commit` (bypass from a debug walk), `inside(hostId)`, `win`, `capture('amoeba' | 'uv' | 'cut')`,
+`grab` (the normal aimed grab), `grabNow(by)` / `release()` / `hold(slot)` (grabbing), `kick()` (Y now), `motion()` (the fibre motion and the tips' distances from the axis), `speed(slot)` (speed, cruise, dash, the field of view), `protein(id, k)` / `grabCounts()` / `localTo(id)` (grab points and the phage in a cell's frame), `noProteins` (hide the proteins from the assist: the membrane test), `mols()` / `placeMol(i, x, y, z)` (the debris), `current(dir)` / `currents()` (send one now; the state and log), `axes()` (the view's forward, right and up), `commit` (bypass from a debug walk), `inside(hostId)`, `win`, `capture('amoeba' | 'uv' | 'cut')`,
 `hungry`, `overlay`, `look`, `zoom(i)` (an old step index 0..3, or a distance), `zoomHold(v, slot)` (as LT/RT: +1 out, -1 in, null back to the pad), `zooms()` (each player's zoom), `ZOOM`, `reset`, `place(slot, x, y)`, plus
 `maxDt` and `pause`; `debug.spin()` (the view's turn rate and each phage's angular speed, rad/s),
 `debug.encounters()` (the director's state), `debug.encounterLog()`, `debug.seenAt(x, y, z)`, `debug.placeNow()`, `debug.placePortal(dir, d)` (out of order: tests), `debug.flocs()`, `debug.coverage()` (the fraction of the frame the scene
@@ -448,7 +511,7 @@ covers, read from the scene target's alpha), `debug.nanCount()` (non-finite texe
 
 - `shared/landmark.js` throws on an empty split-region polygon; the phage
   skips its edge marks on such frames (the fixed split never makes one).
-- The overlay's text labels (Y) are placed with player 1's view, so in a split
+- The overlay's text labels (Features → Info overlay) are placed with player 1's view, so in a split
   they sit right in player 1's region only.
 - Software WebGL: four split views cost about 1–3 s a frame in headless
   SwiftShader (each view is a full pass); on a GPU it is the usual N renders.
@@ -715,7 +778,7 @@ The Menu panel lists everything with a switch where it makes sense:
 - **Body**: T4 from its anatomy (always).
 - **Motion**: Steering (Steer / Honest); Brownian motion; Currents;
   Slow tumbling.
-- **Simulation**: UV near the surface; Amoeba edge.
+- **Simulation**: UV near the surface; Amoeba edge; Info overlay (off; Y toggled it until 4 November 2026).
 - **World**: Crowded water (the baths); Textured water (the medium; `?medium=0` starts with it off).
 - **Controls**: Keep the surface up (the gentle levelling roll); Invert
   camera Y (shared).

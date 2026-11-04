@@ -533,6 +533,8 @@ function soundTick(dt) {
 }
 F({ id: 'look', group: 'Optics', choices: MODES, value: MODES[0],
   onChange: (v) => { S.mode = Math.max(0, MODES.indexOf(v)); } });
+// the anatomy labels (Y toggled them until 4 Nov 2026: the owner asked for the info overlay action to go from every world)
+F({ id: 'labels', group: 'Rendering', on: false, onChange: (v) => { S.labels = !!v; } });
 F({ id: 'propbuf', group: 'Rendering', fixed: true });
 F({ id: 'tie', group: 'Optics', on: true,
   onChange: (v) => { S.flags.tie = v; } });
@@ -2117,11 +2119,10 @@ function frame(now) {
       if (!pad.down(BTN.B)) C.defendMode = false;
       C.defendHeld = C.defendMode && pad.down(BTN.B);
       // Y: on the backdoor (the leaf tip), go back up; at the open portal, go
-      // through; elsewhere player 1's labels.
+      // through. (The anatomy labels Y toggled elsewhere are in the Features panel now.)
       if (pressed(BTN.Y)) {
         if (atOpenPortal(c)) enterPortal(c);
         else if (c.atBack && !caught.active) { lm.log.push({ type: 'landmark', kind: 'back', slot: c.slot }); audio.play('shared/backdoor', { volume: 0.55 }); hud.toast(tt('amoeba.toasts.backUp', { who: who() })); embed.landmark('back', { player: c.slot }); }
-        else if (c.slot === 0) S.labels = !S.labels;
       }
       if (c.slot !== 0) continue;
       const look = ctl.lookStep() || (test.presses.has(BTN.RIGHT) ? 1 : 0);
