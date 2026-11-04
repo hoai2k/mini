@@ -2,7 +2,7 @@
 
 A running record of where the work stands, so a new session (or a resumed one)
 can pick it up without the conversation. Update it as work lands. Last updated
-2026-11-04.
+2026-11-04 (evening).
 
 ## How the work flows
 
@@ -60,22 +60,16 @@ can pick it up without the conversation. Update it as work lands. Last updated
 
 ## Latest deploy
 
-`841023bf` (4 November): paramecium food trail and more hunters, bacterium
-fight audit (amoeba pseudopod loops, readable tells, drill feedback),
-pause blurs only the world's canvases, bacterium starts at a 118 µm field.
+See `git log origin/deploy -1`. The 4 November batch: the mite corridor
+(walls in seconds of walking from `micro/game_config.js`), pushing bodies, no
+vanishing, one-press eating, the jump attack on the tall predator; the
+bacterium amoeba (unkillable, routed by irritation, tunnels that pinch shut);
+every button named in text drawn as its icon (`{btn:…}`; the
+`shared/button-text.test.mjs` scan fails on bare button names).
 
-## In progress (4 November)
+## In progress
 
-- **Mite** (agent): creatures push each other by mass; nothing vanishes
-  suddenly; one X press grabs and eats (more presses speed it up); jump attack
-  (X while landing) to reach the tall mite; a corridor world bounded in
-  seconds of walking (start ~10 s from the south wall, sides ~10 s out, north
-  wall 10 s past the portal) read from `micro/game_config.js`.
-- **Bacterium** (agent): the amoeba can't be killed but is routed by sustained
-  attack; drilling bores tunnels through pseudopods or the body; tunnels
-  close and trap cells faster (visible constriction warning first).
-- **All text** (agent): every mention of a controller button in
-  `text_config.js` uses `{btn:…}` so it draws the button icon.
+Nothing running. Next ideas are the loose ends below.
 
 ## Open questions and loose ends
 
