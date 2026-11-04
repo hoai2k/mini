@@ -9,7 +9,7 @@
 //   north and south bands run on past the corners, so the corners are filled.
 //   The corridor runs along the world's forward, so each side's frame is
 //   turned with it (built here in corridor coordinates, written in world
-//   space: local x east, local z north). A segment is one of NV
+//   space: local x west, local z north). A segment is one of NV
 //   prebuilt variants (a hash of its side and index picks it, so a segment
 //   always looks the same), drawn as an instance in its side's frame.
 // - A segment holds four rows of shoots: the front row, its stems touching
@@ -233,7 +233,7 @@ function shedLeaf() {
 }
 
 /**
- * The wall round the walkable square. floorH(x, z), floorN(x, z, out): the
+ * The wall round the walkable corridor. floorH(x, z), floorN(x, z, out): the
  * floor (world.js). Returns { group, setView(camera, x, z), stats, sides, SEG }.
  */
 export function createEdge({ tex, floorH, floorN }) {
@@ -267,7 +267,7 @@ export function createEdge({ tex, floorH, floorN }) {
   const shed = inst(shedLeaf(), mats.shed, MAXA, 'edge shed leaves');
 
   const D = EDGE.depth, A = EDGE.apron, HM = EDGE.height[1];
-  // corridor coordinates (local x east, local z north) to world x, z
+  // corridor coordinates (local x west, local z north) to world x, z
   const wx = (lx, lz) => EDGE.px * lx + EDGE.ux * lz, wz = (lx, lz) => EDGE.pz * lx + EDGE.uz * lz;
   const lxOf = (x, z) => x * EDGE.px + z * EDGE.pz, lzOf = (x, z) => x * EDGE.ux + z * EDGE.uz;
   // the four sides in corridor coordinates: outward normal n, face distance F, along-wall t = up x n (so
@@ -354,7 +354,7 @@ export function createEdge({ tex, floorH, floorN }) {
       const i0 = Math.max(0, Math.floor((sc - REACH - s.S0) / SEG)), i1 = Math.min(s.NSEG - 1, Math.floor((sc + REACH - s.S0) / SEG));
       for (let i = i0; i <= i1; i++) {
         const u0 = s.S0 + i * SEG;
-        // the corner squares are the north and south sides' (their bands run on through them): east and west leave them
+        // the corner squares are the north and south sides' (their bands run on through them): west and east leave them
         if (s.nx && (u0 >= s.uhi || u0 + SEG <= s.ulo)) continue;
         // the wall itself (beyond the face; leaves overhang it a little, and stand ~1 mm over the stems' tops)
         if (fr.intersectsBox(segBox(s, u0 - 600, u0 + SEG + 600, -300, D + 600, -200, HM + 1000))) {

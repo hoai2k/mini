@@ -26,7 +26,7 @@ const pages = (process.argv.length > 2 ? process.argv.slice(2).map((p) => p.repl
 
 // Syntax check every module first.
 const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? (e.name === 'vendor' ? [] : walk(join(d, e.name))) : [join(d, e.name)]));
-for (const f of [...walk(here), ...walk(join(root, 'prototypes')), join(root, 'text_config.js')].filter((f) => f.endsWith('.js') || f.endsWith('.mjs'))) execFileSync(process.execPath, ['--check', f]);
+for (const f of [...walk(here), ...walk(join(root, 'prototypes')), join(root, 'text_config.js'), join(root, 'game_config.js')].filter((f) => f.endsWith('.js') || f.endsWith('.mjs'))) execFileSync(process.execPath, ['--check', f]);
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon' };
 const server = createServer(async (req, res) => {

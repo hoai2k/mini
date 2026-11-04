@@ -20,10 +20,15 @@
 //   X                a burst: every drilling member bores harder at once (FIGHT.volley each)
 //   Y                the toxin (army 12): a big hit, FIGHT.burst of its health
 //   its health       the brass gauge at the top and a bar over the enemy (main.js); the enemy itself
-//                    shows it too (the bell shrinks and darkens, the amoeba's edge thins, Stentor pales)
-//   beaten           it dies, dissolves or flees, and the way is open: the peritrich coils and its
-//                    bell dissolves, the pack is killed off, the amoeba withdraws into the sediment and
-//                    fades, Stentor contracts and stays shut. It stays beaten. No timers anywhere.
+//                    shows it too (the bell shrinks and darkens, Stentor pales)
+//   the amoeba       has no health (the owner, 2026-11-04: "infinite HP ... but be able to be routed"):
+//                    your attacks irritate it (IRR), its cytoplasm blanching round the drills and its
+//                    body recoiling, until it is routed and flows off the way; your drills bore tunnels
+//                    into it (TUN), even right through a thin pseudopod, but a tunnel with your cells in
+//                    it pinches shut (PINCH): pull out when its mouth narrows
+//   beaten           it dies, flees or is routed, and the way is open: the peritrich coils and its
+//                    bell dissolves, the pack is killed off, the amoeba flows away off the way, Stentor
+//                    contracts and stays shut. It stays beaten. No timers anywhere.
 //   letting go       steer away and the drilling members let go once the swarm has left them behind
 //
 // The numbers (GATES: health, regrowth, the bite's rhythm and size) are set so a swarm of about the
@@ -56,21 +61,49 @@ export const FIGHT = {
 export const GATES = {
   grazer1: { max: 80, regen: 3, every: 4.8, tell: 1.8, reach: 28, cap: 90 },
   bdello: { max: 16 * FIGHT.bdelloHp, regen: 0, cap: 8 }, // (per Bdellovibrio: each lunges at the nearest member in reach, latches on and bores in: collective.js bdelloPack)
-  amoeba: { max: 550, regen: 4, every: 5.0, tell: 2.0, reach: 8, cap: 300 },
+  amoeba: { max: Infinity, regen: 0, every: 5.0, tell: 2.0, reach: 8, cap: 300 }, // (no health: it is routed, IRR)
   stentor: { max: 2000, regen: 3, reach: 14, cap: 520 }, // (its rhythm is the pull: main.js runBoss, its tell 2 s)
 };
 /** After a bite that took someone it swallows: SWALLOW.t s with no regrowth and drills biting SWALLOW.k times as hard (the moment to go back in). */
 export const SWALLOW = { t: 1.6, k: 1.5 };
 /** The amoeba's pseudopods (aimWrap): round the cells within WRAP.near µm of its edge, a loop WRAP.Rmin..Rmax µm across. */
-export const WRAP = { near: 14, Rmin: 9, Rmax: 30 };
+export const WRAP = { near: 14, Rmin: 9, Rmax: 30, fast: 1.4, dent: 10 };
 /** Stentor's suction (suck): a member at depth k in its cone is taken at SUCK.rate·k² a second, at most SUCK.max a second in all. Its knockback per share of its health drilled away: KNOCK. */
 export const SUCK = { rate: 1.6, max: 4, grace: 0.8 };
 export const KNOCK = { drill: 6, volley: 0.004 };
+/**
+ * The amoeba cannot be killed (the owner, 2026-11-04: "the amoeba should essentially have infinite HP (because
+ * it's huge, right?), but be able to be routed by attacks"): what your attacks build up is its irritation, 0..1,
+ * a leaky sum: drilling, X and the toxin add pain / IRR.k, and it ebbs by irritation / IRR.tau a second, so only
+ * an attack kept up hard enough ever gets it to 1, when it is routed: it flows off the way (world.js). The drills
+ * at one spot share it: a tunnel's n drillers hurt it n^IRR.share times one drill's rate (more spots, more pain),
+ * and more the deeper the tunnel (× 1 + depth / IRR.deep). However hard it is attacked, its irritation rises at
+ * most IRR.rate a second (it is huge: routing it takes a while, so a swarm burrowed in meets its traps); only
+ * the toxin (Y, IRR.toxin at once) is not held to that.
+ */
+export const IRR = { k: 200, tau: 30, deep: 60, share: 0.6, rate: 0.17, toxin: 0.2 };
+/**
+ * Its tunnels (the owner: "you should be able to eventually drill a hole straight through its pseudopod or
+ * body if you try hard enough"): the members drilling at one spot bore a tunnel, a capsule TUN.w0..wMax µm
+ * wide (half-width, wider with more drillers) that deepens at TUN.rate × the drill rate × (members at its
+ * end)^0.6 µm a second (slower the deeper: ÷ 1 + depth / soft), and, left alone TUN.hold s, closes at
+ * TUN.close µm a second as the cytoplasm flows back. One that reaches the far side is a passage through.
+ */
+export const TUN = { join: 7, max: 8, w0: 2.2, wk: 0.3, wMax: 6, rate: 0.35, soft: 120, close: 1.2, hold: 1.5, volley: 0.25 };
+/**
+ * "it can surround you and trap you easier when you're burrowing": a tunnel with your cells in it (past its
+ * mouth) for PINCH.wait s starts to pinch shut: its mouth narrows over PINCH.tell s (the tell: the ring, the
+ * warning "pull out of the tunnel!"), then closes on whatever is still inside (each taken with PINCH.chance
+ * deep in it, less near its mouth; at most PINCH.max, the deepest)
+ * and half the tunnel fills in. Then it rests PINCH.cool s. Its pseudopod loop also closes faster round
+ * cells in a tunnel or a dent (WRAP.fast).
+ */
+export const PINCH = { wait: 1.5, tell: 1.6, chance: 0.95, max: 30, cool: 5, minLen: 10, keep: 0.5 };
 
 export function createGuards(world, coll, stentor, hooks = {}) {
   const [g1] = world.grazers;
   const pack = world.cells.filter((c) => c.kind === 'bdello' && c.home);
-  const G = (o) => ({ hp: o.max, beaten: false, contact: 0, drills: 0, engaged: false, atk: { st: 'idle', t: 0, next: 1.2 }, bites: 0, eaten: 0, ...o });
+  const G = (o) => ({ hp: o.max, irr: 0, beaten: false, contact: 0, drills: 0, engaged: false, atk: { st: 'idle', t: 0, next: 1.2 }, bites: 0, eaten: 0, ...o });
   const list = [
     G({ id: 'grazer1', name: 'Peritrich', kind: 'grazer', g: g1, ...GATES.grazer1, zone: 60 }),
     G({ id: 'bdello', name: 'Bdellovibrio pack', kind: 'bdello', ...GATES.bdello, max: pack.length * FIGHT.bdelloHp, zone: 60 }),
@@ -122,7 +155,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
   const isLive = (q) => (q.kind === 'stentor' ? q.B.placed && q.B.awake : q.placed) && !q.beaten;
 
   // ---- the enemy's surface: how far outside it a point is (negative inside), and the way out (its normal) ----
-  const SURF = { d: 0, nx: 0, ny: 0, ref: null }, BODY = { d: 0, u: 0, nx: 0, ny: 0, v: 0 };
+  const SURF = { d: 0, nx: 0, ny: 0, ref: null }, BODY = { d: 0, u: 0, nx: 0, ny: 0, v: 0 }, LOC = { x: 0, y: 0 }, NRM = { x: 0, y: 0 }, WP = { x: 0, y: 0 };
   /** Surface of gate q at (x, y): SURF.d (µm outside; negative inside), SURF.nx/ny (outward), SURF.ref (a Bdellovibrio). Null when nowhere near. */
   function surface(q, x, y, t) {
     if (q.kind === 'grazer') {
@@ -140,12 +173,11 @@ export function createGuards(world, coll, stentor, hooks = {}) {
       return SURF;
     }
     if (q.kind === 'amoeba') {
-      const A = q.A, depth = world.insideAmoeba(x, y, t);
+      const depth = world.insideAmoeba(x, y, t);
       if (depth < -25) return null;
-      // (its outward normal: out from the middle of its body, behind its front edge)
-      const c = Math.cos(A.ang), s = Math.sin(A.ang), bx = A.x + s * A.b, by = A.y - c * A.b;
-      const nx = x - bx, ny = y - by, nl = Math.hypot(nx, ny) || 1;
-      SURF.d = -depth; SURF.nx = nx / nl; SURF.ny = ny / nl; SURF.ref = null;
+      // (its outward normal: the way its depth falls, its arms and tunnels included)
+      const A = q.A, L = world.amoebaLocal(x, y, LOC), N = world.amoebaNormal(L.x, L.y, t, NRM), c = Math.cos(A.ang), s = Math.sin(A.ang);
+      SURF.d = -depth; SURF.nx = c * N.x - s * N.y; SURF.ny = s * N.x + c * N.y; SURF.ref = null;
       return SURF;
     }
     if (q.kind === 'stentor') {
@@ -201,19 +233,39 @@ export function createGuards(world, coll, stentor, hooks = {}) {
 
   function beat(q) {
     if (q.beaten) return;
-    q.beaten = true; q.hp = 0; q.contact = 0; q.drills = 0; q.atk.st = 'idle';
+    q.beaten = true; if (q.kind !== 'amoeba') q.hp = 0; q.contact = 0; q.drills = 0; q.atk.st = 'idle';
     if (q.kind === 'grazer') { q.g.beaten = true; q.g.feeding = false; q.g.battle = false; q.g.pull = 1; }
-    if (q.kind === 'amoeba') { q.A.beaten = true; q.A.surge = 0; }
+    if (q.kind === 'amoeba') {
+      // routed, never killed: it flows away along its own line, away from the swarm that drove it off (world.js)
+      const A = q.A, F = coll.list.find((C) => C.players.length), c0 = drillCentre(q) || (F && { x: F.cx, y: F.cy });
+      A.beaten = true; A.routed = true; A.surge = 0; A.wrap = null; A.routeV = 0;
+      if (c0) A.routeSide = (c0.x - A.x) * Math.cos(A.ang) + (c0.y - A.y) * Math.sin(A.ang) > 0 ? -1 : 1;
+      for (const T of A.tunnels) T.pinch = null;
+    }
     if (q.kind === 'stentor') q.B.beaten = true;
     if (q.kind === 'bdello') for (const c of pack) if (!c.dead) killBdello(c, q);
     releaseAll(q);
     hooks.onBeaten?.(q);
   }
-  function hurt(q, amount) {
+  function hurt(q, amount, capped = true) {
     if (q.beaten || amount <= 0) return;
-    q.hp -= amount;
     q.hitT = 0.25;
+    if (q.kind === 'amoeba') {
+      // (X and the poison share its IRR.rate cap with the drills; the toxin does not)
+      q.irrBudget = q.irrBudget ?? IRR.rate * 0.5;
+      const a = capped ? Math.min(amount, Math.max(0, q.irrBudget) * IRR.k) : amount;
+      if (capped) q.irrBudget -= a / IRR.k;
+      irritate(q, a); q.A.flinch = Math.min(1, q.A.flinch + amount / 15); return;
+    }
+    q.hp -= amount;
     if (q.hp <= 0) beat(q);
+  }
+  /** The amoeba's irritation rises by pain / IRR.k (routed at 1: beat). */
+  function irritate(q, pain) {
+    const was = q.irr;
+    q.irr = Math.min(1, q.irr + pain / IRR.k);
+    if (was < 0.5 && q.irr >= 0.5) hooks.onFlinch?.(q);
+    if (q.irr >= 1) beat(q);
   }
   function killBdello(c, q) {
     if (c.latch) { c.latch.m.latched = null; c.latch = null; } // the member it clung to is saved
@@ -234,6 +286,11 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     // (away: the stick points out from its surface where the swarm is: its outward normal there)
     const s0 = q.kind === 'bdello' ? null : surface(q, C.cx, C.cy, t);
     let ox = s0 ? s0.nx : C.cx - cx, oy = s0 ? s0.ny : C.cy - cy;
+    if (s0 && q.kind === 'amoeba') {
+      // (its body's normal there, as it was before any tunnel: inside a tunnel "out" is still back out of it)
+      const A = q.A, L = world.amoebaLocal(C.cx, C.cy, LOC), N = world.amoebaNormal(L.x, L.y, t, NRM, false), c = Math.cos(A.ang), s = Math.sin(A.ang);
+      ox = c * N.x - s * N.y; oy = s * N.x + c * N.y;
+    }
     const ol = Math.hypot(ox, oy) || 1; ox /= ol; oy /= ol;
     const away = C.intent.m > 0.5 && (C.intent.x * ox + C.intent.y * oy) / (Math.hypot(C.intent.x, C.intent.y) || 1) > 0.5;
     for (const m of C.members) {
@@ -247,11 +304,19 @@ export function createGuards(world, coll, stentor, hooks = {}) {
         // held on the surface where it latched (for the pack: on its Bdellovibrio), nose in, turning hard
         const bx = D.ref ? D.ref.x : cx, by = D.ref ? D.ref.y : cy;
         if (q.kind === 'amoeba') {
-          // (on its outline as it flows: projected back onto it along the line from its body's middle, just outside)
-          const A = q.A, c = Math.cos(A.ang), s = Math.sin(A.ang);
-          const depth = world.insideAmoeba(A.x + c * D.lx - s * D.ly, A.y + s * D.lx + c * D.ly, t);
-          if (depth > -999) { const qy = D.ly + A.b, rho = Math.hypot(D.lx, qy) || 1, k = (rho + depth + 0.35) / rho; D.lx *= k; D.ly = qy * k - A.b; }
-          m.x = A.x + c * D.lx - s * D.ly; m.y = A.y + s * D.lx + c * D.ly;
+          // (on its surface as it flows, or at the end of its tunnel as that deepens: kept just outside it, in its frame)
+          if (D.tun && D.tun.through) { m.drill = null; continue; } // (bored right through: on through the passage)
+          if (D.tun) {
+            // in a tunnel: at its end (on its rounded end, as far across as it latched), boring on as it deepens
+            const T = D.tun, ux = Math.cos(T.a), uy = Math.sin(T.a), v = Math.max(-T.w * 0.85, Math.min(T.w * 0.85, D.v)), u = T.len + Math.sqrt(Math.max(0, T.w * T.w - v * v)) - 0.35;
+            D.lx = T.x + ux * u - uy * v; D.ly = T.y + uy * u + ux * v;
+          } else {
+            LOC.x = D.lx; LOC.y = D.ly;
+            if (world.amoebaSnap(LOC, t, 0.35)) { D.lx = LOC.x; D.ly = LOC.y; }
+          }
+          world.amoebaWorld(D.lx, D.ly, WP); m.x = WP.x; m.y = WP.y;
+          const N = world.amoebaNormal(D.lx, D.ly, t, NRM), A = q.A;
+          D.a = Math.atan2(-(Math.sin(A.ang) * N.x + Math.cos(A.ang) * N.y), -(Math.cos(A.ang) * N.x - Math.sin(A.ang) * N.y));
         } else if (q.kind === 'stentor') {
           // (on its body or disc as it turns, stretches and recoils: in its own frame from the holdfast)
           const B = q.B, c = Math.cos(B.ang), s = Math.sin(B.ang), u = D.fu * B.len;
@@ -273,7 +338,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
       const out = Math.max(0.3, Math.min(0.8, s.d));
       const px = m.x - s.nx * (s.d - out), py = m.y - s.ny * (s.d - out);
       const nd = { q, ref: s.ref, ox: px - (s.ref ? s.ref.x : cx), oy: py - (s.ref ? s.ref.y : cy), a: Math.atan2(-s.ny, -s.nx), t: 0 };
-      if (q.kind === 'amoeba') { const A = q.A, c = Math.cos(A.ang), sn = Math.sin(A.ang), dx = px - A.x, dy = py - A.y; nd.lx = dx * c + dy * sn; nd.ly = -dx * sn + dy * c; }
+      if (q.kind === 'amoeba') latchTunnel(q, nd, px, py, t);
       if (q.kind === 'stentor') { const B = q.B, c = Math.cos(B.ang), sn = Math.sin(B.ang), dx = px - B.foot.x, dy = py - B.foot.y; nd.fu = (dx * c + dy * sn) / B.len; nd.lv = -dx * sn + dy * c; }
       m.drill = nd; m.x = px; m.y = py;
       n++;
@@ -300,8 +365,10 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     }
     if (q.kind === 'amoeba') {
       // only inside the loop its pseudopods are closing (none: nothing is in danger)
+      // (or inside a tunnel that is pinching shut)
       const W = q.A.wrap;
-      return W && !W.done && Math.hypot(x - W.x, y - W.y) < W.R ? 0.95 : 0;
+      if (W && !W.done && Math.hypot(x - W.x, y - W.y) < W.R) return 0.95;
+      return pinchingAt(q, x, y) ? PINCH.chance : 0;
     }
     if (q.kind === 'stentor') return q.B.cone(x, y); // (its feeding cone: stentor.js cone)
     return 0;
@@ -322,7 +389,8 @@ export function createGuards(world, coll, stentor, hooks = {}) {
   function attack(q, dt, t, active) {
     const A = q.atk;
     if (!active) { A.st = 'idle'; A.t = 0; A.next = Math.max(A.next, 1.2); return; }
-    A.t += dt;
+    // (round cells in a tunnel or a dent its loop closes faster: WRAP.fast)
+    A.t += dt * (A.st === 'tell' && q.A && q.A.wrap && q.A.wrap.fast ? WRAP.fast : 1);
     if (A.st === 'idle') {
       if (A.t >= A.next) {
         // the amoeba aims its pseudopods round the cells at its front; none there, it waits
@@ -357,7 +425,9 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     const R = Math.max(WRAP.Rmin, Math.min(WRAP.Rmax, Math.sqrt(s2 / near.length) * 1.3 + 4));
     const sf = surface(q, x, y, t), nx = sf ? sf.nx : -Math.sin(q.A.ang), ny = sf ? sf.ny : Math.cos(q.A.ang);
     // (the loop's middle at the crowd, a touch out from the edge, so it takes in the cells pressed to it)
-    q.A.wrap = { x: x + nx * R * 0.1, y: y + ny * R * 0.1, R, nx, ny, p: 0, t0: t, done: false };
+    // (cells burrowed in, deeper than WRAP.dent µm under its surface as it was: a tunnel or a dent: easier to trap)
+    const fast = near.some((m) => world.insideAmoeba(m.x, m.y, t, false) > WRAP.dent);
+    q.A.wrap = { x: x + nx * R * 0.1, y: y + ny * R * 0.1, R, nx, ny, p: 0, t0: t, done: false, fast };
     return true;
   }
   /** While it winds up: every member in its zone is warned (collective.js lose records whether a loss was). */
@@ -394,6 +464,146 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     q.eaten += n;
     if (n) hooks.onBite?.(q, n);
     return n;
+  }
+
+  // ---- the amoeba's tunnels (TUN, PINCH) ----
+  /** How far along tunnel T a point (lx, ly) of the amoeba's frame is, when it is inside the tunnel past its mouth (else -1). */
+  function inTunnel(T, lx, ly, past = 2.5, slack = 1.2) {
+    const ux = Math.cos(T.a), uy = Math.sin(T.a), px = lx - T.x, py = ly - T.y, u = px * ux + py * uy;
+    if (u < past || u > T.len + T.w) return -1;
+    const s = Math.min(T.len, u);
+    return Math.hypot(px - ux * s, py - uy * s) < T.w + slack ? u : -1;
+  }
+  /** Is (x, y) inside a tunnel that is pinching shut? */
+  function pinchingAt(q, x, y) {
+    const A = q.A;
+    if (!A.tunnels.length) return false;
+    world.amoebaLocal(x, y, LOC);
+    for (const T of A.tunnels) if (T.pinch && inTunnel(T, LOC.x, LOC.y) >= 0) return true;
+    return false;
+  }
+  /** A member latching on at (px, py): into the tunnel at that spot (one within TUN.join µm of its mouth, or a new one). */
+  function latchTunnel(q, nd, px, py, t) {
+    const A = q.A, L = world.amoebaLocal(px, py, LOC);
+    let best = null, bd = TUN.join;
+    for (const T of A.tunnels) {
+      if (T.through) continue;
+      const d = Math.hypot(L.x - T.x, L.y - T.y);
+      if (d < bd + T.w) { bd = d - T.w; best = T; }
+    }
+    if (!best && A.tunnels.length < TUN.max) {
+      // a new one: its mouth here, going straight in (against the surface's normal)
+      const N = world.amoebaNormal(L.x, L.y, t, NRM);
+      best = { x: L.x, y: L.y, a: Math.atan2(-N.y, -N.x), len: 0.3, w: TUN.w0, idle: 0, occ: 0, pinch: null, cool: 0, through: false, tip: 0, n: 0, t0: t };
+      A.tunnels.push(best);
+    }
+    let lx = L.x, ly = L.y;
+    if (best) {
+      // (in at its mouth: within its width of its axis, so it slides down to the end as the tunnel deepens)
+      const ux = Math.cos(best.a), uy = Math.sin(best.a), px2 = lx - best.x, py2 = ly - best.y, u = Math.max(0, px2 * ux + py2 * uy), v = -px2 * uy + py2 * ux;
+      const vv = Math.max(-best.w * 0.6, Math.min(best.w * 0.6, v));
+      lx = best.x + ux * u - uy * vv; ly = best.y + uy * u + ux * vv; nd.v = vv;
+    }
+    nd.lx = lx; nd.ly = ly; nd.tun = best;
+  }
+  /** X on the amoeba: every tunnel being drilled deepens with a jolt. */
+  function boreBurst(q, C) {
+    for (const T of q.A.tunnels) { let k = 0; for (const m of C.members) if (m.drill && m.drill.tun === T) k++; if (k && !T.through) T.len += TUN.volley * Math.sqrt(k); }
+  }
+  /**
+   * Every step: each tunnel deepens with the members drilling at its end, widens with more of them, and
+   * closes when left alone; one that reaches the far side is a passage through; one with your cells inside
+   * long enough pinches shut (PINCH: a tell, then whoever is still inside is engulfed).
+   */
+  function tunnels(q, dt, t, dps) {
+    const A = q.A, list2 = A.tunnels;
+    if (!list2.length) return;
+    for (const T of list2) { T.n = 0; T.tip = 0; T.occ = 0; }
+    // the drillers of each tunnel, and those at its end
+    for (const C of coll.list) for (const m of C.members) {
+      const D = m.drill;
+      if (!D || D.q !== q || !D.tun) continue;
+      const T = D.tun; T.n++;
+      const ux = Math.cos(T.a), uy = Math.sin(T.a), ex = T.x + ux * T.len, ey = T.y + uy * T.len;
+      if (Math.hypot(D.lx - ex, D.ly - ey) < T.w + 2.5) T.tip++;
+    }
+    // the cells inside each (past its mouth), drilling or not
+    eachFlock(q, (C) => {
+      for (const m of C.members) {
+        if (m.dying) continue;
+        world.amoebaLocal(m.x, m.y, LOC);
+        for (const T of list2) if (T.len > 2.5 && inTunnel(T, LOC.x, LOC.y) >= 0) { T.occ++; break; }
+      }
+    });
+    for (let i = list2.length - 1; i >= 0; i--) {
+      const T = list2[i];
+      T.cool = Math.max(0, T.cool - dt); T.shut = Math.max(0, (T.shut || 0) - dt);
+      if (T.tip && !T.through && !T.pinch) {
+        T.idle = 0;
+        T.len += (TUN.rate * dps * Math.pow(T.tip, 0.6) / (1 + T.len / TUN.soft)) * dt;
+      } else if (T.n) T.idle = 0;
+      else T.idle += dt;
+      // (wider with more drillers; narrowing slowly again once they are gone)
+      const wT = T.n ? Math.min(TUN.wMax, TUN.w0 + TUN.wk * Math.sqrt(T.n)) : TUN.w0 * 0.8;
+      T.w += (wT - T.w) * Math.min(1, dt * (T.n ? 0.8 : 0.2));
+      // through: its end is out past the far side of the body (a passage: its drillers swim on, it stays open a while)
+      if (!T.through && T.len > 3) {
+        const ex = T.x + Math.cos(T.a) * T.len, ey = T.y + Math.sin(T.a) * T.len;
+        if (world.amoebaAt(ex, ey, t, false) < -0.5) { T.through = true; T.idle = 0; hooks.onThrough?.(q, T); }
+      }
+      // the pinch: its mouth narrows over its tell, then closes on whoever is still inside
+      if (T.pinch) {
+        T.pinch.t += dt;
+        warnTunnel(q, T, t);
+        if (T.pinch.t >= T.pinch.tell) { pinchShut(q, T, t); }
+      } else if (T.occ && !T.through && T.len >= PINCH.minLen && T.cool <= 0) {
+        T.occT = (T.occT || 0) + dt;
+        if (T.occT >= PINCH.wait) { T.pinch = { t: 0, tell: PINCH.tell, t0: t }; T.occT = 0; warnTunnel(q, T, t); hooks.onTell?.(q, 'tunnel'); }
+      } else T.occT = 0;
+      // left alone it closes: the cytoplasm flows back in (a passage through stays open longer)
+      if (T.idle > TUN.hold * (T.through ? 3 : 1)) T.len -= TUN.close * dt;
+      if (T.len <= 0) {
+        list2.splice(i, 1);
+        for (const C of coll.list) for (const m of C.members) if (m.drill && m.drill.tun === T) m.drill.tun = null;
+      }
+    }
+  }
+  /** Every member inside a pinching tunnel is warned (the tell), once per pinch. */
+  function warnTunnel(q, T, t) {
+    eachFlock(q, (C) => {
+      for (const m of C.members) {
+        if (m.dying || (m.warned && m.warned.kind === 'amoeba' && m.warned.t >= T.pinch.t0)) continue;
+        world.amoebaLocal(m.x, m.y, LOC);
+        if (inTunnel(T, LOC.x, LOC.y) >= 0) m.warned = { kind: 'amoeba', t: world.time ?? t };
+      }
+    });
+  }
+  /** The pinch closes: whoever is still inside the tunnel is engulfed where it is (a food vacuole), and half the tunnel fills in. */
+  function pinchShut(q, T, t) {
+    const hit = [], ux = Math.cos(T.a), uy = Math.sin(T.a);
+    eachFlock(q, (C) => {
+      for (const m of C.members) {
+        if (m.dying) continue;
+        world.amoebaLocal(m.x, m.y, LOC);
+        // (the deeper in, the surer: near its mouth a cell is squeezed out as often as not)
+        // (only those it warned, at least half its tell ago: one that swam in at the last moment is squeezed out)
+        const u = inTunnel(T, LOC.x, LOC.y);
+        if (u < 0 || !m.warned || m.warned.kind !== 'amoeba' || (world.time ?? t) - m.warned.t < PINCH.tell * 0.5) continue;
+        if (world.r() < PINCH.chance * Math.min(1, 0.3 + u / 12)) hit.push(m);
+      }
+    });
+    // (a tunnel holds only so many: the PINCH.max deepest are engulfed, the rest squeezed back out)
+    if (hit.length > PINCH.max) { const ua = (m) => { world.amoebaLocal(m.x, m.y, LOC); return inTunnel(T, LOC.x, LOC.y); }; hit.sort((a, b) => ua(b) - ua(a)); hit.length = PINCH.max; }
+    for (const m of hit) {
+      world.amoebaLocal(m.x, m.y, LOC);
+      const to = world.amoebaWorld(LOC.x + ux * 4, LOC.y + uy * 4, { x: 0, y: 0 });
+      m.drill = null; coll.lose(m, 'amoeba', to);
+    }
+    q.eaten += hit.length; q.bites++;
+    if (hit.length) q.swallowT = SWALLOW.t;
+    T.len *= PINCH.keep; T.pinch = null; T.cool = PINCH.cool; T.shut = 0.6;
+    for (const C of coll.list) for (const m of C.members) if (m.drill && m.drill.tun === T) m.drill = null;
+    hooks.onBite?.(q, hit.length, 'tunnel');
   }
 
   function update(dt, t, roster) {
@@ -439,11 +649,34 @@ export function createGuards(world, coll, stentor, hooks = {}) {
       // the bite's rhythm runs while a swarm is at it (Stentor's is its pull: main.js)
       if (q.kind !== 'stentor') attack(q, dt, t, live && q.engaged && coll.list.some((C) => C.members.length && C.players.length));
       if (q.kind === 'grazer') driveGrazer(q, dt);
-      if (q.kind === 'amoeba') { const A = q.A; A.surge += (0 - A.surge) * Math.min(1, dt * 4); }
       if (q.kind === 'stentor' && live) suck(q, dt);
       // swallowing (just after a bite took someone): it cannot grow back, and the drills bite harder
       q.swallowT = Math.max(0, (q.swallowT || 0) - dt);
-      const sw = q.swallowT > 0, dmg = q.contact * dps * (sw ? SWALLOW.k : 1) * dt;
+      const sw = q.swallowT > 0;
+      if (q.kind === 'amoeba') {
+        const A = q.A;
+        A.surge += (0 - A.surge) * Math.min(1, dt * 4);
+        if (live) tunnels(q, dt, t, dps);
+        // its irritation: the drills' pain (more at the end of a deep tunnel), ebbing all the time (IRR)
+        q.irr = Math.max(0, q.irr - (q.irr / IRR.tau) * dt);
+        // (the drills at one spot share it: each tunnel hurts as its drillers^IRR.share, more the deeper it goes)
+        let pain = 0, loose = 0;
+        if (q.contact) {
+          for (const T of A.tunnels) if (T.n) pain += Math.pow(T.n, IRR.share) * (1 + T.len / IRR.deep);
+          for (const C of coll.list) for (const m of C.members) if (m.drill && m.drill.q === q && !m.drill.tun) loose++;
+          pain += Math.pow(loose, IRR.share) + (q.contact - q.drills);
+        }
+        pain *= dps * (sw ? SWALLOW.k : 1) * dt;
+        // (however hard it is drilled, it gets no more irritated than IRR.rate a second: it is huge, it takes a while)
+        q.irrBudget = Math.min(IRR.rate * 0.5, (q.irrBudget ?? IRR.rate * 0.5) + IRR.rate * dt);
+        pain = Math.min(pain, q.irrBudget * IRR.k);
+        if (pain > 0) { q.irrBudget -= pain / IRR.k; irritate(q, pain); }
+        // it shows it: its body recoils from the drills, and flinches at a burst (draw.js blanches round the drills)
+        A.flinch = Math.max(0, A.flinch - dt * 1.5);
+        A.recoil += (10 * q.irr + 5 * A.flinch - A.recoil) * Math.min(1, dt * 3);
+        continue;
+      }
+      const dmg = q.contact * dps * (sw ? SWALLOW.k : 1) * dt;
       q.hp = Math.min(q.max, q.hp + (sw ? 0 : q.regen) * dt - dmg);
       // Stentor flinches from the drills: knocked away from where they are (stentor.js knock)
       if (q.kind === 'stentor' && dmg > 0) { const c0 = drillCentre(q); if (c0) q.B.knock(c0.x, c0.y, (dmg / q.max) * KNOCK.drill); }
@@ -453,7 +686,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     for (const q of list) {
       const o = q.kind === 'grazer' ? q.g : q.kind === 'amoeba' ? q.A : q.kind === 'stentor' ? q.B : null;
       if (!o) continue;
-      o.hpK = Math.max(0, q.hp / q.max); o.hit = q.hitT > 0 || (q.drills > 0 && (t * 7) % 1 < 0.25);
+      o.hpK = q.kind === 'amoeba' ? 1 : Math.max(0, q.hp / q.max); o.irrK = q.irr; o.hit = q.hitT > 0 || (q.drills > 0 && (t * 7) % 1 < 0.25);
       // its capture zone shows while it winds up (draw.js): 0..1 through the tell, 1 in the bite
       o.tellK = q.beaten || !q.engaged ? 0 : q.kind === 'stentor' ? (q.B.awake ? 0.45 * q.B.flowK : 0) : q.atk.st === 'tell' ? q.atk.t / q.tell : q.atk.st === 'bite' ? 1 : 0;
       o.zoneR = q.reach; o.swallow = q.swallowT > 0;
@@ -492,7 +725,8 @@ export function createGuards(world, coll, stentor, hooks = {}) {
       for (const P of C.players) if (P.S.alive && touching(q, P.S.x, P.S.y, t)) k++;
       if (!k) continue;
       if (q.kind === 'bdello') { q.hp = pack.reduce((a, c) => a + (c.dead ? 0 : Math.max(0, c.hp)), 0); if (pack.every((c) => c.dead)) beat(q); }
-      else { hurt(q, k * FIGHT.volley); if (q.kind === 'stentor') { const c0 = drillCentre(q); if (c0) q.B.knock(c0.x, c0.y, k * KNOCK.volley); } }
+      // (the amoeba: the burst shares out like its drills, IRR.share)
+      else { hurt(q, q.kind === 'amoeba' ? 2 * FIGHT.volley * Math.pow(k, IRR.share) : k * FIGHT.volley); if (q.kind === 'amoeba') boreBurst(q, C); if (q.kind === 'stentor') { const c0 = drillCentre(q); if (c0) q.B.knock(c0.x, c0.y, k * KNOCK.volley); } }
       hits += k;
     }
     return hits;
@@ -510,7 +744,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
       }
       centre(q, at);
       const size = q.kind === 'grazer' ? q.g.R : q.kind === 'amoeba' ? 30 : q.B.discR;
-      if (Math.hypot(at.x - b.x, at.y - b.y) < b.R + size) { hurt(q, Math.max(FIGHT.burstMin, q.max * FIGHT.burst)); hit.push(q.name); }
+      if (Math.hypot(at.x - b.x, at.y - b.y) < b.R + size) { hurt(q, q.kind === 'amoeba' ? IRR.toxin * IRR.k : Math.max(FIGHT.burstMin, q.max * FIGHT.burst), false); hit.push(q.name); }
     }
     return hit;
   }
@@ -530,14 +764,15 @@ export function createGuards(world, coll, stentor, hooks = {}) {
   function reset() {
     for (const q of list) { q.hp = q.max; q.beaten = false; q.contact = 0; q.drills = 0; q.engaged = false; q.atk = { st: 'idle', t: 0, next: 1.5 }; q.bites = 0; q.eaten = 0; q.swallowT = 0; }
     for (const g of world.grazers) { g.beaten = false; g.contract = 0; g.ext = 1; g.fade = 0; g.battle = false; g.pull = 1; }
-    const A = world.amoeba; A.beaten = false; A.x = A.home.x; A.y = A.home.y; A.surge = 0; A.fade = 0;
+    const A = world.amoeba; A.beaten = false; A.routed = false; A.x = A.home.x; A.y = A.home.y; A.surge = 0; A.fade = 0; A.irr = 0; A.recoil = 0; A.flinch = 0; A.tunnels.length = 0; A.wrap = null;
+    for (const q of list) { q.irr = 0; q.irrBudget = undefined; }
     stentor.beaten = false;
     for (const c of pack) { c.dead = 0; c.hp = FIGHT.bdelloHp; c.hidden = 0; c.latch = null; c.drillLatch = false; c.x = c.home.x + (Math.random() - 0.5) * 30; c.y = c.home.y + (Math.random() - 0.5) * 30; }
     for (const C of coll.list) for (const m of C.members) m.drill = null;
   }
 
-  return { list, byId, FIGHT, GATES, SWALLOW, WRAP, drillRate, zone, suck, drillCentre,
+  return { list, byId, FIGHT, GATES, SWALLOW, WRAP, IRR, TUN, PINCH, drillRate, inTunnel, zone, suck, drillCentre,
     /** Tests: the bite lands now (its zone takes what is in it). Returns how many were taken. */
     biteNow: (q) => { q.bites++; return take(q, world.time || 0); }, placeGate, shift, park, update, volley, burstHit, nearest, reset, hurt, poison, centre: (q) => centre(q, { x: 0, y: 0 }), touching, surface,
-    report: () => list.map((q) => ({ id: q.id, hp: +q.hp.toFixed(1), max: q.max, beaten: q.beaten, engaged: q.engaged, contact: q.contact, drills: q.drills, attack: q.atk.st, bites: q.bites, eaten: q.eaten })) };
+    report: () => list.map((q) => ({ id: q.id, hp: +q.hp.toFixed(1), irr: +q.irr.toFixed(2), max: q.max, beaten: q.beaten, engaged: q.engaged, contact: q.contact, drills: q.drills, attack: q.atk.st, bites: q.bites, eaten: q.eaten })) };
 }

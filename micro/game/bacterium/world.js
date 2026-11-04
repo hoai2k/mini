@@ -131,17 +131,51 @@ export function grazerParts(x, y, b) {
  * (pseudopods) slowly flowing, the front edge rippling. amoebaDepth: how far inside its outline a point is.
  */
 export const AMOEBA = { width: 720, depth: 220, a: 360, b: 110, lobe: 0.14 };
+/**
+ * Its thin pseudopods (the owner, 2026-11-04: "you should be able to eventually drill a hole straight through
+ * its pseudopod or body"): arms reaching out of its front edge toward whoever comes, [x along the edge (µm),
+ * length, half-width at the root, lean (rad)], swaying a little. shared/techniques/bacterium-shapes.js
+ * AMOEBA_ARMS is the same table (flock.test.mjs checks they match).
+ */
+export const AMOEBA_ARMS = [[-120, 66, 6, 0.18], [70, 54, 5.5, -0.12], [230, 72, 6.5, -0.22]];
+const smax = (a, b, k) => { const h = Math.max(k - Math.abs(a - b), 0) / k; return Math.max(a, b) + h * h * k * 0.25; };
 /** Depth inside the amoeba's outline (µm; negative outside) at (lx, ly) in its own frame (front edge through the origin, +y out of it). */
 export function amoebaDepth(lx, ly, amp, seed, t, bulge = 0) {
   const a = AMOEBA.a, b = AMOEBA.b, qy = ly + b;
-  if (lx > a * 1.25 || lx < -a * 1.25 || qy > b * 1.4 || qy < -b * 1.4) return -999;
+  if (lx > a * 1.25 || lx < -a * 1.25 || qy > b * 2.2 || qy < -b * 1.4) return -999;
   const rho = Math.hypot(lx, qy), th = Math.atan2(qy, lx), c = Math.cos(th), sn = Math.sin(th);
   const Rb = 1 / Math.sqrt((c / a) ** 2 + (sn / b) ** 2);
   const fk = Math.max(0, Math.min(1, (sn - 0.35) / 0.4)), front = fk * fk * (3 - 2 * fk);
   const lobe = (1 - front) * AMOEBA.lobe * b * (0.5 * Math.sin(3 * th + 0.15 * t + seed) + 0.3 * Math.sin(5 * th - 0.11 * t + 2 * seed) + 0.2 * Math.sin(8 * th + 0.07 * t + 3 * seed));
   const wave = front * (amp * (0.6 * Math.sin(0.07 * lx + seed + 0.2 * t) + 0.4 * Math.sin(0.17 * lx + 2 * seed - 0.13 * t)) + bulge);
-  return Rb + lobe + wave - rho;
+  let d = Rb + lobe + wave - rho;
+  // its arms (smoothly joined to the body)
+  if (qy > b * 0.6) for (let i = 0; i < AMOEBA_ARMS.length; i++) {
+    const [ax, len, w, lean] = AMOEBA_ARMS[i];
+    if (Math.abs(lx - ax) > len + w + 4) continue;
+    const ry = b * Math.sqrt(Math.max(0, 1 - (ax / a) ** 2)) - b - 3, ph = 1.5707963 + lean + 0.05 * Math.sin(0.17 * t + i * 1.9);
+    const ux = Math.cos(ph), uy = Math.sin(ph), px = lx - ax, py = ly - ry;
+    const s = Math.max(0, Math.min(len, px * ux + py * uy)), ex = px - ux * s, ey = py - uy * s;
+    d = smax(d, w * (1 - 0.35 * s / len) - Math.hypot(ex, ey), 6);
+  }
+  return d;
 }
+/**
+ * The tunnels your cells bore into it (guards.js): each a capsule from its mouth (x, y in its frame) inward
+ * along angle `a`, `len` deep and `w` wide (half-width); while it pinches shut (`pinch` 0..1) its mouth narrows.
+ * The depth inside it with the tunnels cut out: a point in a tunnel is outside the amoeba.
+ */
+export function tunnelCut(d, lx, ly, tunnels) {
+  for (let i = 0; i < tunnels.length; i++) {
+    const T = tunnels[i], ux = Math.cos(T.a), uy = Math.sin(T.a), px = lx - T.x, py = ly - T.y;
+    const u = px * ux + py * uy, s = Math.max(0, Math.min(T.len, u));
+    const neck = T.pinch ? 1 - 0.8 * Math.min(1, T.pinch.t / T.pinch.tell) * (1 - sstep(4, 12, u)) : 1;
+    const dc = Math.hypot(px - ux * s, py - uy * s) - T.w * neck;
+    if (dc < d) d = dc;
+  }
+  return d;
+}
+const sstep = (a, b, x) => { const k = Math.max(0, Math.min(1, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
 export function amoebaParts(x, y, b) {
   // its front edge across the way (along b + π/2), its body beyond it: discs along the front and over the body
   const [ux, uy, px, py] = u2(b), out = [];
@@ -474,10 +508,13 @@ export function createWorld() {
   // --- the amoeba's edge: gate 3, a wall across the way (its body beyond; guards.js) ---
   // ang: the edge runs along (cos, sin); its normal (−sin, cos) faces whoever comes. surge (guards.js,
   // its bite): the edge bulges forward by up to AMOEBA_SURGE µm in a wave as it engulfs.
-  const amoeba = { x: 0, y: 0, ang: 0, width: AMOEBA.width, depth: AMOEBA.depth, a: AMOEBA.a, b: AMOEBA.b, amp: 5, seed: 2.2, speed: 1.4, home: { x: 0, y: 0 }, beaten: false, bearing: 0, surge: 0 };
+  const amoeba = { x: 0, y: 0, ang: 0, width: AMOEBA.width, depth: AMOEBA.depth, a: AMOEBA.a, b: AMOEBA.b, amp: 5, seed: 2.2, speed: 1.4, home: { x: 0, y: 0 }, beaten: false, bearing: 0, surge: 0,
+    // (guards.js: its irritation 0..1, how far its body has recoiled (µm), a flinch, its tunnels, and routed: it flows away off the way)
+    irr: 0, recoil: 0, flinch: 0, tunnels: [], routed: false, routeSide: 1 };
   /** Stand the amoeba's edge at (x, y) across bearing b (met coming along b). */
   function placeAmoeba(x, y, b) {
     amoeba.x = amoeba.home.x = x; amoeba.y = amoeba.home.y = y; amoeba.ang = b + Math.PI / 2; amoeba.bearing = b; amoeba.parked = x === PARK.x;
+    amoeba.tunnels.length = 0;
   }
   placeAmoeba(PARK.x, PARK.y, 0);
 
@@ -521,15 +558,51 @@ export function createWorld() {
   }
 
   const AMOEBA_SURGE = 7;
-  /** Depth inside the amoeba (µm, positive inside; far outside or beaten: -999). */
-  function insideAmoeba(x, y, t) {
-    if (!opts.amoeba || amoeba.beaten || amoeba.parked) return -999; // beaten, it withdraws and engulfs nothing more
-    const c = Math.cos(amoeba.ang), s = Math.sin(amoeba.ang);
-    const dx = x - amoeba.x, dy = y - amoeba.y;
-    const lx = dx * c + dy * s, ly = -dx * s + dy * c;
+  /** (x, y) in the amoeba's own frame (its body's frame: recoiled with it), into `out`. */
+  function amoebaLocal(x, y, out) {
+    const c = Math.cos(amoeba.ang), s = Math.sin(amoeba.ang), dx = x - amoeba.x, dy = y - amoeba.y;
+    out.x = dx * c + dy * s; out.y = -dx * s + dy * c + amoeba.recoil;
+    return out;
+  }
+  /** A point of its frame back in the world, into `out`. */
+  function amoebaWorld(lx, ly, out) {
+    const c = Math.cos(amoeba.ang), s = Math.sin(amoeba.ang), y = ly - amoeba.recoil;
+    out.x = amoeba.x + c * lx - s * y; out.y = amoeba.y + s * lx + c * y;
+    return out;
+  }
+  /** Depth inside its body at (lx, ly) of its frame, without (tunnels false) or with the tunnels cut out. */
+  function amoebaAt(lx, ly, t, tunnels = true) {
     // (the surge: a bulge that runs across its front as it engulfs)
     const bulge = amoeba.surge ? AMOEBA_SURGE * amoeba.surge * (0.6 + 0.4 * Math.cos(lx * 0.05 - t * 3)) : 0;
-    return amoebaDepth(lx, ly, amoeba.amp, amoeba.seed, t, bulge);
+    const d = amoebaDepth(lx, ly, amoeba.amp, amoeba.seed, t, bulge);
+    return tunnels && amoeba.tunnels.length && d > -60 ? tunnelCut(d, lx, ly, amoeba.tunnels) : d;
+  }
+  const _l = { x: 0, y: 0 };
+  /** Depth inside the amoeba (µm, positive inside; far outside or routed: -999), its tunnels cut out (tunnels false: its body as it was). */
+  function insideAmoeba(x, y, t, tunnels = true) {
+    if (!opts.amoeba || amoeba.beaten || amoeba.parked) return -999; // routed, it flows away and engulfs nothing more
+    amoebaLocal(x, y, _l);
+    return amoebaAt(_l.x, _l.y, t, tunnels);
+  }
+  /** Its surface's outward normal at (lx, ly) of its frame (the gradient of its depth, tunnels cut out unless `tunnels` is false), into `out` (in its frame). */
+  function amoebaNormal(lx, ly, t, out, tunnels = true) {
+    const h = 0.6, gx = amoebaAt(lx - h, ly, t, tunnels) - amoebaAt(lx + h, ly, t, tunnels), gy = amoebaAt(lx, ly - h, t, tunnels) - amoebaAt(lx, ly + h, t, tunnels), gl = Math.hypot(gx, gy);
+    if (gl < 1e-6) { const qy = ly + amoeba.b, ql = Math.hypot(lx, qy) || 1; out.x = lx / ql; out.y = qy / ql; } else { out.x = gx / gl; out.y = gy / gl; }
+    return out;
+  }
+  const _n = { x: 0, y: 0 };
+  /** Move (lx, ly) of its frame onto its surface, `gap` µm outside it (two Newton steps along its normal). Returns false far from it. */
+  function amoebaSnap(L, t, gap) {
+    for (let i = 0; i < 2; i++) {
+      const d = amoebaAt(L.x, L.y, t);
+      if (d < -900) return false;
+      const e = d + gap;
+      if (Math.abs(e) < 0.05) break;
+      amoebaNormal(L.x, L.y, t, _n);
+      const k = Math.max(-3, Math.min(3, e));
+      L.x += _n.x * k; L.y += _n.y * k;
+    }
+    return true;
   }
 
   /** The grains near (x, y): the bucket there, then the movers. fn(g) returns true to stop. */
@@ -677,7 +750,7 @@ export function createWorld() {
       return !!(st && st.placed && Math.abs(x - st.mouth.x) < st.pullR + 5 && Math.abs(y - st.mouth.y) < st.pullR + 5);
     },
     PARK, opts, hunt, grains, specks, eps, film, cells, phages, patches, grazers, amoeba, slab, surfaceY,
-    oxygen, food, eat, insideAmoeba, pushOutOfGrains, grazerPose, groundAt, grainUnder, stepHeight, hostK,
+    oxygen, food, eat, insideAmoeba, amoebaLocal, amoebaWorld, amoebaAt, amoebaNormal, amoebaSnap, pushOutOfGrains, grazerPose, groundAt, grainUnder, stepHeight, hostK,
     /** The current at (x, y), µm/s. `out`, if given, is filled and returned instead of a new object. */
     flowAt(x, y, out = { x: 0, y: 0 }) {
       const f = grazerFlow(x, y, out);
@@ -702,13 +775,20 @@ export function createWorld() {
         else if (t > g.next) { g.contract = 3; g.ext = 0; g.next = t + 20 + r() * 15; }
       }
       // the amoeba's edge holds its gate: it slides toward the nearest player along its own line (blocking
-      // the way, leashed to its place); beaten (guards.js), it withdraws down into the sediment and fades
+      // the way, leashed to its place); routed (guards.js), it flows off the way, alive
       if (opts.amoeba && !amoeba.parked) {
         const H = amoeba.home;
         if (amoeba.beaten) {
-          amoeba.fade = Math.min(1, (amoeba.fade || 0) + dt / 5);
-          const tx = H.x + Math.cos(amoeba.bearing) * 90, ty = H.y + Math.sin(amoeba.bearing) * 90, dx = tx - amoeba.x, dy = ty - amoeba.y, d = Math.hypot(dx, dy);
-          if (d > 0.5) { amoeba.x += (dx / d) * Math.min(d, 25 * dt); amoeba.y += (dy / d) * Math.min(d, 25 * dt); }
+          // routed (guards.js): it flows away along its own line, off the way, over a few seconds, and stays there
+          // (never killed: the owner, 2026-11-04, "the amoeba should essentially have infinite HP ... but be able to be routed")
+          const c = Math.cos(amoeba.ang), s = Math.sin(amoeba.ang), far = AMOEBA.a + 170;
+          const tx = H.x + c * far * amoeba.routeSide, ty = H.y + s * far * amoeba.routeSide;
+          const dx = tx - amoeba.x, dy = ty - amoeba.y, d = Math.hypot(dx, dy);
+          amoeba.routeV = Math.min(140, (amoeba.routeV || 0) + 90 * dt);
+          if (d > 0.5) { amoeba.x += (dx / d) * Math.min(d, amoeba.routeV * dt); amoeba.y += (dy / d) * Math.min(d, amoeba.routeV * dt); }
+          amoeba.recoil += (14 - amoeba.recoil) * Math.min(1, dt * 2);
+          for (const T of amoeba.tunnels) T.len = Math.max(0, T.len - 12 * dt);
+          for (let i = amoeba.tunnels.length - 1; i >= 0; i--) if (amoeba.tunnels[i].len <= 0) amoeba.tunnels.splice(i, 1);
         } else {
           const dx = player.x - amoeba.x, dy = player.y - amoeba.y, d = Math.hypot(dx, dy);
           if (d < 160 && player.alive !== false && hunt.amoeba) {

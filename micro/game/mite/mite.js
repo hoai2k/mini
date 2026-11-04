@@ -1023,6 +1023,9 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       // nose up on the way up, down on the way down
       q = basisQ(st.fwd, st.up, _pq);
       q.multiply(_pq2.setFromAxisAngle(_ax.set(0, 0, 1), clamp(st.vel.y / st.airVy0, -1, 1) * 0.32));
+      // the jump attack: reared back with the chelicerae open (rear), then driven down nose first (lunge)
+      if (st.rear > 0) q.multiply(_pq2.setFromAxisAngle(_ax.set(0, 0, 1), 0.35 * st.rear));
+      if (st.lunge > 0) q.multiply(_pq2.setFromAxisAngle(_ax.set(0, 0, 1), -0.45 * st.lunge));
       center = st.center;
       st.q.copy(q);
       // legs: the hind pairs drive back and down at take-off (the push-off),
@@ -1292,6 +1295,25 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       st.rear = rear; st.lunge = lunge; st.gape = gape; st.holdK = hold ? holdK : 0;
       if (hold) st.hold.copy(hold).divideScalar(k);
     },
+    /**
+     * Pushed by another body (shared/push.js, main.js): moved (dx, dz) world µm along the ground, in
+     * whatever it is doing (walking, crouched, closing, closed and rolling, opening, in the air; the feet
+     * stay planted and step after it). Kept inside the walls. False while held (the holder places it).
+     */
+    nudge(dx, dz) {
+      if (st.mode === 'held' || !(Math.abs(dx) + Math.abs(dz) > 1e-6)) return false;
+      const x = dx / k, z = dz / k;
+      if (st.mode === 'closed' || st.mode === 'air') {
+        st.center.x += x; st.center.z += z; keepIn(st.center);
+        if (st.mode === 'air') st.pos.copy(st.center).addScaledVector(st.up, -AN.stand);
+      } else {
+        st.pos.x += x; st.pos.z += z; keepIn(st.pos);
+        st.center.x += x; st.center.z += z;
+        if (st.mode === 'opening') { st.c0.x += x; st.c0.z += z; }
+      }
+      body.position.copy(st.center);
+      return true;
+    },
     /** In the air: dive at a world point (the pounce-bite), arriving in ~0.2 s. False if not airborne. */
     dive(targetW) {
       if (st.mode !== 'air') return false;
@@ -1304,6 +1326,16 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       return true;
     },
     get airborne() { return st.mode === 'air' || st.mode === 'crouch'; },
+    /** In the air: seconds until the body comes down to the floor under it on its arc (Infinity rising or not in the air). */
+    timeToLand() {
+      if (st.mode !== 'air') return Infinity;
+      const h = st.center.y - AN.stand - floorH(st.center.x, st.center.z), v = st.vel.y, g = JUMP.grav;
+      // h + v t - g t^2 / 2 = 0
+      const disc = v * v + 2 * g * Math.max(0, h);
+      return Math.max(0, (v + Math.sqrt(disc)) / g);
+    },
+    /** Vertical speed in the air (world µm/s; up is positive). */
+    get vy() { return st.mode === 'air' ? st.vel.y * k : 0; },
     /** Start a bite (the animation; the caller decides what it hits). */
     bite() { if (st.biteT > 0.05) return false; st.biteT = 0.28; return true; },
     get quat() { return st.q; },

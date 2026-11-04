@@ -192,9 +192,9 @@ export function createFight({ windup = 0.8, strike = 0.35, recoverT = 0.9, repel
       if (interest <= 0) { interest = 0; out.retreated = true; go('retreat', retreatT); }
       return { ...out, state, t: dur ? Math.min(1, t / dur) : 0, interest };
     },
-    /** The player's bite landed: stagger it and wear its interest down. */
-    bitten() {
-      interest -= biteHit;
+    /** The player's bite landed: stagger it and wear its interest down (by `amount`, default biteHit: a jump attack takes more). */
+    bitten(amount = biteHit) {
+      interest -= amount;
       if (state !== 'retreat') go('repelled', repelT * 0.8);
       if (interest <= 0) { interest = 0; go('retreat', retreatT); return true; }
       return false;

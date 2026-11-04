@@ -1,16 +1,19 @@
 // The mite's moss and its encounters, without a browser: the scenery (the
-// periodic moss tile, the two rings of hyphal thickets: every way out meets
-// them, and you can walk round them), and the director placing the enemies
-// and events (layout.js ENCOUNTERS: a box-mite family, the predatory mite, a
-// falling drop, the predator again, a shower, the predator a third time, then
-// the pseudoscorpion on guard at the wet leaf axil) as a player rushes out in 16
-// directions, stands still, or turns back. The view is the SEM's own camera
+// periodic moss tile, the rings of hyphal thickets: every way out meets the
+// first, and you can walk round them), the corridor and its walls (so many
+// seconds of walking each, micro/game_config.js), and the director placing
+// the enemies and events (layout.js ENCOUNTERS: a box-mite family, the
+// predatory mite, a falling drop, the predator again, a shower, the predator a
+// third time, then the pseudoscorpion on guard at the wet leaf axil) as a
+// player rushes up the corridor at many angles (glancing off its side walls),
+// stands still, or turns back. The view is the SEM's own camera
 // (main.js placeCamera: 12° vertical field, 16:9, 1.6 mm across at the mite,
 // from rig.yaw at pitch 0.62) as a six-plane frustum.
 //   node micro/game/mite/route.test.mjs
 import assert from 'node:assert/strict';
 import { createDirector } from '../shared/director.js';
-import { RINGS, CLUSTERS, clusterRing, forwardClusters, FORWARD, FORWARD_YAW, CLUSTER, PRED_GROUND, BOSS, BOUNDS, NPC_HOME, PORTAL_CLEAR, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, portalAt, predZoneAt, clearOfThickets, distFromStart, DRIP, FAMILY, EDGE, insideEdge, HALF } from './layout.js';
+import { RINGS, CLUSTERS, clusterRing, forwardClusters, clusterInside, FORWARD, FORWARD_YAW, CLUSTER, PRED_GROUND, BOSS, BOUNDS, NPC_HOME, PORTAL_CLEAR, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, portalAt, predZoneAt, clearOfThickets, distFromStart, DRIP, FAMILY, EDGE, insideEdge, edgeDist, clampInside, toCorridor, fromCorridor, WALK_FOR_WALLS, WALL_SECONDS, PORTAL_ALONG, PORTAL_SPAN, PATH_DISTS, RUSH as PATH_RUSH } from './layout.js';
+import { GAME } from '../../game_config.js';
 import { floorH, TILE, wrapD, tileOf } from './world.js';
 
 // Rushing speeds (µm/s, measured with rush scripts on the page, enemies passive; 2026-11-02 speeds):
@@ -28,10 +31,34 @@ assert.equal(tileOf(TILE * 0.49), 0); assert.equal(tileOf(TILE * 0.51), 1);
 assert.ok(Math.abs(wrapD(TILE * 1.25) - TILE * 0.25) < 1e-9);
 assert.equal(TILE % 320, 0, 'a whole number of floor-texture repeats to the tile');
 
-// --- the thickets (scenery): every way out meets each ring (passes within ~400 µm of a cluster: about a mite's length)
+// --- the corridor (the owner, 2026-11-04: the south wall ~10 s of walking south of the start, the side walls ~10 s
+// out from the route, the north wall ~10 s past the portal): the bounds are game_config.js seconds x the walking speed
+assert.equal(WALK_FOR_WALLS, GAME.mite.walkingSpeedForWallSeconds, 'the walking speed the seconds are counted at comes from game_config.js');
+assert.equal(WALL_SECONDS.south, GAME.mite.southWallSeconds); assert.equal(WALL_SECONDS.side, GAME.mite.sideWallSeconds); assert.equal(WALL_SECONDS.north, GAME.mite.northWallSecondsPastPortal);
+assert.ok(Math.abs(EDGE.south - GAME.mite.southWallSeconds * WALK_FOR_WALLS) < 1e-6, `south wall ${EDGE.south} µm from the start`);
+assert.ok(Math.abs(EDGE.side - GAME.mite.sideWallSeconds * WALK_FOR_WALLS) < 1e-6, `side walls ${EDGE.side} µm from the route`);
+assert.ok(Math.abs(EDGE.north - PORTAL_ALONG - GAME.mite.northWallSecondsPastPortal * WALK_FOR_WALLS) < 1e-6, `north wall ${EDGE.north - PORTAL_ALONG} µm past the portal`);
+assert.equal(GAME.mite.walkFullTiltSpeed, WALK_FOR_WALLS, 'the seconds are counted at the stick\'s full tilt');
+// walking straight out from the start at that speed meets the south wall at its seconds (the body stops its reach short of the face)
+for (const [name, ua, uc, want] of [['south', -1, 0, WALL_SECONDS.south], ['west', 0, 1, WALL_SECONDS.side], ['east', 0, -1, WALL_SECONDS.side]]) {
+  let a = 0, c = 0, t = 0;
+  const dt = 1 / 60;
+  while (t < 30) { const q = toCorridor(...Object.values(clampInside(...Object.values(fromCorridor(a + ua * WALK_FOR_WALLS * dt, c + uc * WALK_FOR_WALLS * dt, {})), 0, {})), {}); if (Math.abs(q.a - a) + Math.abs(q.c - c) < 1e-6) break; a = q.a; c = q.c; t += dt; }
+  assert.ok(Math.abs(t - want) < 0.05, `${name}: the wall after ${t.toFixed(2)} s of walking (${want} s)`);
+}
+// the corridor runs along the forward (screen-up) and is a turn of the world's axes, not a mirror
+assert.ok(Math.abs(EDGE.ux - Math.cos(FORWARD)) < 1e-12 && Math.abs(EDGE.uz - Math.sin(FORWARD)) < 1e-12);
+assert.ok(Math.abs(EDGE.px * EDGE.uz - EDGE.pz * EDGE.ux - 1) < 1e-12, 'a rotation (determinant +1)');
+// the bounding square the director's seen grid covers holds the whole corridor
+for (const [a, c] of [[-EDGE.south, -EDGE.side], [-EDGE.south, EDGE.side], [EDGE.north, -EDGE.side], [EDGE.north, EDGE.side]]) { const p = fromCorridor(a, c, {}); assert.ok(p.x > BOUNDS.x0 && p.x < BOUNDS.x1 && p.z > BOUNDS.z0 && p.z < BOUNDS.z1, 'the grid covers the corridor'); }
+assert.ok(insideEdge(0, 0, 8000) && !insideEdge(...Object.values(fromCorridor(-EDGE.south - 10, 0, {}))) && !insideEdge(...Object.values(fromCorridor(0, EDGE.side + 10, {}))), 'inside / outside');
+assert.ok(Math.abs(edgeDist(0, 0) - Math.min(EDGE.south, EDGE.side)) < 1e-6);
+
+// --- the thickets (scenery): every way out meets the first ring (passes within ~400 µm of a cluster: about a mite's length)
 const t1 = clusterRing(0), t2 = clusterRing(1);
+assert.ok(t1.every(clusterInside), 'the first ring stands wholly inside the corridor');
 for (const [k, list] of [[0, t1], [1, t2]]) {
-  for (let d = 0; d < 360; d += 0.5) {
+  for (let d = 0; d < 360 && k === 0; d += 0.5) {
     const a = (d * Math.PI) / 180, ux = Math.cos(a), uz = Math.sin(a);
     const near = Math.min(...list.map((c) => { const t = c.x * ux + c.z * uz; return Math.hypot(c.x - ux * t, c.z - uz * t) - c.r; }));
     assert.ok(near <= 400, `ring ${k + 1}: a way out at ${d}° passes ${near.toFixed(0)} µm from the nearest thicket`);
@@ -41,26 +68,30 @@ for (const [k, list] of [[0, t1], [1, t2]]) {
     assert.ok(Math.hypot(a.x - b.x, a.z - b.z) > a.r + b.r + 300, `ring ${k + 1}: clusters ${i} and ${(i + 1) % list.length} stand apart (a way round)`);
   }
 }
-assert.equal(CLUSTERS.length, t1.length + t2.length + forwardClusters().length);
+assert.equal(CLUSTERS.length, [...t1, ...t2, ...forwardClusters()].filter(clusterInside).length, 'the thickets inside the corridor');
+assert.ok(CLUSTERS.every(clusterInside), 'no thicket in the walls or their shed leaves');
 assert.ok(CLUSTERS.length <= 75, `${CLUSTERS.length} thickets (each a few draws when in view)`);
 for (const c of CLUSTERS) {
   assert.ok(distFromStart(c.x, c.z) - c.r >= RINGS.warm - 1, 'no thicket in the open moss round the start');
   assert.ok(Math.hypot(c.x - NPC_HOME.x, c.z - NPC_HOME.z) > c.r + 1400, 'the second box mite wanders clear of the thickets');
 }
 assert.deepEqual(ENCOUNTERS.map((e) => e.id), ORDER, 'the order (rising in threat)');
-assert.ok(BOUNDS.half >= 400000, 'the walkable square is far beyond play (no wall in reach)');
 assert.ok(ENCOUNTERS.at(-1).final);
 
-// --- the edge of the cushion (edge.js): a wall of moss at the square's edge, nothing placed in it or in front of it
-assert.ok(EDGE.face < HALF && EDGE.face > HALF - 1000, 'the wall stands at the walkable square\'s edge');
+// --- the edge of the cushion (edge.js): a wall of moss round the corridor, nothing placed in it or in front of it
 assert.ok(EDGE.height[0] > 3 * 1100, 'the wall stands far over a jump (apex ~1.1 mm)');
 assert.ok(EDGE.height[0] > 4280 * Math.sin(0.62), 'and over the camera at the default zoom');
 for (const e of ENCOUNTERS) {
-  // the furthest out the director may place it (canPlace), each of its parts' discs, stays short of the apron
-  const lim = Math.max(...[0, 1].map((k) => { let lo = 0, hi = HALF; for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (canPlace(m, k ? m : 0, e.size)) lo = m; else hi = m; } return lo; }));
-  assert.ok(lim + e.size <= EDGE.face - EDGE.apron, `${e.id}: placed at most ${lim.toFixed(0)} out, clear of the wall and its shed leaves`);
-  if (e.parts) for (const [px, pz, pr] of e.parts(lim, 0, 0)) assert.ok(insideEdge(px, pz, pr), `${e.id}: its parts clear of the wall`);
+  // anywhere the director may place it (canPlace), its whole clearance disc stays clear of the walls and most of their shed leaves
+  for (let a = -EDGE.south; a <= EDGE.north; a += 400) for (let c = -EDGE.side; c <= EDGE.side; c += 400) {
+    const p = fromCorridor(a, c, {});
+    if (canPlace(p.x, p.z, e.size)) assert.ok(insideEdge(p.x, p.z, e.size + EDGE.apron * 0.5), `${e.id}: placeable at a ${a}, c ${c} only clear of the wall`);
+  }
 }
+// the default path: up the middle of the corridor, at the distances a rush meets them; the water at the north end
+assert.deepEqual(DEFAULT_PATH.dists, PATH_DISTS);
+assert.equal(PATH_DISTS.at(-1), PORTAL_ALONG);
+assert.ok(PORTAL_ALONG > 55000 && PORTAL_ALONG < 75000, `the water ~${(PORTAL_ALONG / 1000).toFixed(1)} mm up the corridor`);
 
 // --- the SEM view as a frustum (main.js placeCamera)
 const VFOV = 12, ASPECT = 16 / 9, YAW = -0.6 - Math.PI / 6, PITCH = 0.62;
@@ -141,61 +172,89 @@ function game({ seconds, move, players = 1, path = false }) {
 }
 const first = (ev, type, id) => ev.find((e) => e.type === type && e.id === id);
 const inThicket = (x, z) => !clearOfThickets(x, z, 0);
+/**
+ * One step of a walker in the corridor (as mite.js keeps the body its reach inside the walls): at a wall it
+ * glances off (a side wall turns it back across the corridor and a little north; the south or north wall turns it up or down it).
+ * Returns the bearing it goes on at.
+ */
+const REACH = 190;
+function step(p, a, sp) {
+  const nx = p.x + Math.cos(a) * sp * DT, nz = p.z + Math.sin(a) * sp * DT;
+  const q = clampInside(nx, nz, REACH, {});
+  p.x = q.x; p.z = q.z;
+  if (q.x === nx && q.z === nz) return a;
+  const u = toCorridor(Math.cos(a), Math.sin(a), {}), c = toCorridor(p.x, p.z, {});
+  let ua = u.a, uc = u.c;
+  if (Math.abs(c.c) >= EDGE.side - REACH - 1) { uc = -uc; ua += 0.35; } // (and, knowing the way, turns a little up the corridor)
+  if (c.a <= -EDGE.south + REACH + 1) ua = Math.abs(ua) + 0.5;
+  if (c.a >= EDGE.north - REACH - 1) ua = -Math.abs(ua) - 0.5;
+  const w = fromCorridor(ua, uc, {});
+  return Math.atan2(w.z, w.x);
+}
+const inCorridor = (p) => insideEdge(p.x, p.z, REACH - 1);
 const times = [];
-for (let k = 0; k < 16; k++) {
-  let a = (k / 16) * Math.PI * 2 + 0.1;
-  const r = game({ seconds: 150, move: (t, p, D, at) => {
-    // rush out (~730 µm/s, a third slower in a thicket); near the edge of the square turn; once the portal is placed, make for it
+// rushing up the corridor at angles from the forward (glancing off the side walls), placed as you go
+for (let k = 0; k < 13; k++) {
+  const off = (k / 12 - 0.5) * 2.4;
+  let a = FORWARD + off;
+  let outside = 0;
+  const r = game({ seconds: 170, move: (t, p, D, at) => {
+    // rush (~1100 µm/s, a third slower in a thicket); once the portal is placed, make for it
     if (at.portal) a = Math.atan2(at.portal.z - p.z, at.portal.x - p.x);
-    else if (Math.max(Math.abs(p.x), Math.abs(p.z)) > BOUNDS.half - 4000) a = Math.atan2(-p.z, -p.x) + 0.6;
     const sp = RUSH * (inThicket(p.x, p.z) ? THICK : 1);
-    p.x += Math.cos(a) * sp * DT; p.z += Math.sin(a) * sp * DT;
+    a = step(p, a, sp);
+    if (!inCorridor(p)) outside++;
   } });
-  const tag = `bearing ${(k * 22.5).toFixed(1)}`;
+  const tag = `rushing at ${(off * 180 / Math.PI).toFixed(0)}° from the forward`;
+  assert.equal(outside, 0, `${tag}: stays inside the corridor`);
   assert.deepEqual(r.bad, [], tag);
   assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, `${tag}: every encounter, in order`);
   const T = {};
   for (const id of ORDER) { T[`${id}Placed`] = first(r.ev, 'placed', id).t; T[id] = first(r.ev, 'met', id).t; }
   assert.ok(T.mitesPlaced >= 3.5, `${tag}: a warm-up first (${T.mitesPlaced} s)`);
-  assert.ok(T.mites <= 10, `${tag}: the first encounter within ~10 s (${T.mites} s)`);
+  assert.ok(T.mites <= 12, `${tag}: the first encounter within ~12 s (${T.mites} s)`);
   for (let q = 1; q < ORDER.length; q++) {
-    assert.ok(T[`${ORDER[q]}Placed`] - T[ORDER[q - 1]] >= 4, `${tag}: a calm break before ${ORDER[q]} (${(T[`${ORDER[q]}Placed`] - T[ORDER[q - 1]]).toFixed(1)} s)`);
-    assert.ok(T[ORDER[q]] - T[ORDER[q - 1]] <= 16, `${tag}: ${ORDER[q]} met within 16 s of ${ORDER[q - 1]} (${(T[ORDER[q]] - T[ORDER[q - 1]]).toFixed(1)} s): nothing long and empty`);
+    assert.ok(T[`${ORDER[q]}Placed`] - T[ORDER[q - 1]] >= 2.9, `${tag}: a calm break before ${ORDER[q]} (${(T[`${ORDER[q]}Placed`] - T[ORDER[q - 1]]).toFixed(1)} s)`);
+    const gapMax = Math.abs(off) < 0.25 ? 18 : 30; // (zigzagging between the walls, "ahead" keeps turning: longer)
+    if (ORDER[q] !== 'portal') assert.ok(T[ORDER[q]] - T[ORDER[q - 1]] <= gapMax, `${tag}: ${ORDER[q]} met within ${gapMax} s of ${ORDER[q - 1]} (${(T[ORDER[q]] - T[ORDER[q - 1]]).toFixed(1)} s): nothing long and empty`);
   }
-  assert.ok(T.portal >= 45 && T.portal <= 95, `${tag}: the portal reached in about a minute and a quarter (${T.portal} s)`);
-  for (const e of r.ev.filter((x) => x.type === 'placed')) assert.ok(['ahead', 'around'].includes(e.how), `${tag}: ${e.id} placed ${e.how}`);
+  const P = r.at.portal, pc = toCorridor(P.x, P.z, {});
+  assert.ok(pc.a - PORTAL_ALONG >= PORTAL_SPAN[0] && pc.a - PORTAL_ALONG <= PORTAL_SPAN[1], `${tag}: the water at the north end (${(pc.a / 1000).toFixed(1)} mm up)`);
+  assert.ok(T.portal <= 160, `${tag}: the portal reached (${T.portal} s)`);
   times.push(T);
+  if (process.env.ROUTE_DEBUG) console.log(tag, ORDER.map((id) => `${id} ${T[id].toFixed(1)}`).join(', '));
 }
 const span = (k) => `${Math.min(...times.map((t) => t[k])).toFixed(1)}-${Math.max(...times.map((t) => t[k])).toFixed(1)} s`;
-const gapMax = Math.max(...times.map((T) => Math.max(T.mites, ...ORDER.slice(1).map((id, q) => T[id] - T[ORDER[q]]))));
+const gapMax = Math.max(...times.map((T) => Math.max(T.mites, ...ORDER.slice(1, -1).map((id, q) => T[id] - T[ORDER[q]]))));
 
-// --- lingering at the start: they come all the same, one by one, and the portal near them (then they go to it)
-const r1 = game({ seconds: 300, move: (t, p, D, at) => {
+// --- lingering at the start: they come all the same, one by one, round them; the water stays at the north end (then they go to it)
+const r1 = game({ seconds: 400, move: (t, p, D, at) => {
   const S = D.entry('portal');
-  if (S.state === 'placed') { S.goT ??= t; if (t - S.goT > 2) { const a = Math.atan2(at.portal.z - p.z, at.portal.x - p.x); p.x += Math.cos(a) * RUSH * 0.5 * DT; p.z += Math.sin(a) * RUSH * 0.5 * DT; } }
+  if (S.state === 'placed') { S.goT ??= t; if (t - S.goT > 2) { const a = Math.atan2(at.portal.z - p.z, at.portal.x - p.x); step(p, a, RUSH * 0.8); } }
 } });
 assert.deepEqual(r1.bad, []);
 assert.deepEqual(r1.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, 'lingering: every encounter in order');
 const lp = first(r1.ev, 'placed', 'portal');
-assert.ok(Math.hypot(lp.x, lp.z) < 10000, `lingering: the portal comes to them, just past the inner thickets (${Math.hypot(lp.x, lp.z).toFixed(0)} µm)`);
-for (const e of r1.ev.filter((x) => x.type === 'placed')) assert.ok(['near', 'wider'].includes(e.how), `lingering: ${e.id} placed round them (${e.how})`);
+assert.ok(Math.abs(toCorridor(lp.x, lp.z, {}).a - PORTAL_ALONG) < 1600, `lingering: the water stays at the north end (${(toCorridor(lp.x, lp.z, {}).a / 1000).toFixed(1)} mm up)`);
+for (const e of r1.ev.filter((x) => x.type === 'placed' && x.id !== 'portal')) assert.ok(['near', 'wider'].includes(e.how), `lingering: ${e.id} placed round them (${e.how})`);
 
-// --- turning back: out 6 s, back the other way before the predator is in sight; it follows unseen, nothing seen changes
-const r2 = game({ seconds: 150, move: (t, p, D, at) => {
-  let a = t < 4.2 ? 0.4 : 0.4 + Math.PI;
-  if (at.portal) a = Math.atan2(at.portal.z - p.z, at.portal.x - p.x);
-  else if (Math.max(Math.abs(p.x), Math.abs(p.z)) > BOUNDS.half - 4000) a = Math.atan2(-p.z, -p.x) + 0.6;
-  p.x += Math.cos(a) * RUSH * DT; p.z += Math.sin(a) * RUSH * DT;
+// --- turning back: up the corridor 4 s, then back toward the south wall before the first is in sight; it follows unseen, nothing seen changes
+let ab = FORWARD;
+const r2 = game({ seconds: 170, move: (t, p, D, at) => {
+  if (t > 4.2 && t < 4.3) ab = FORWARD + Math.PI;
+  if (t > 12 && t < 12.1) ab = FORWARD + 0.4;
+  if (at.portal) ab = Math.atan2(at.portal.z - p.z, at.portal.x - p.x);
+  ab = step(p, ab, RUSH);
 } });
 assert.deepEqual(r2.bad, [], 'turning back: nothing placed or moved where it was seen');
 assert.ok(r2.ev.some((e) => e.type === 'moved'), 'turning back: an unseen encounter follows the turn');
 assert.deepEqual(r2.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, 'turning back: every encounter in order');
 
-// --- two players heading apart: the leader meets them; nothing is placed in either view
-const r3 = game({ seconds: 150, players: 2, move: (t, p, D, at) => {
-  let a = p.id ? 2.6 : 0.3;
-  if (at.portal) a = Math.atan2(at.portal.z - p.z, at.portal.x - p.x);
-  p.x += Math.cos(a) * RUSH * (p.id ? 0.4 : 1) * DT; p.z += Math.sin(a) * RUSH * (p.id ? 0.4 : 1) * DT;
+// --- two players heading apart up the corridor: the leader meets them; nothing is placed in either view
+const r3 = game({ seconds: 170, players: 2, move: (t, p, D, at) => {
+  p.a ??= FORWARD + (p.id ? 0.7 : -0.3);
+  if (at.portal) p.a = Math.atan2(at.portal.z - p.z, at.portal.x - p.x);
+  p.a = step(p, p.a, RUSH * (p.id ? 0.4 : 1));
 } });
 assert.deepEqual(r3.bad, []);
 assert.deepEqual(r3.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, 'two players: every encounter in order');
@@ -205,39 +264,50 @@ assert.deepEqual(r3.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, 
 const pathRows = [];
 {
   // following the bearing (rushing to each in turn): the pre-placed ones met in order, the pre-placed portal reached; nothing generated
+  let outside = 0;
   const r = game({ seconds: 150, path: true, move: (t, p, D, at) => {
     const s = D.state(), cur = s.entries[s.index];
     let a = DEFAULT_PATH.bearing;
     if (cur && at[cur.id]) a = Math.atan2(at[cur.id].z - p.z, at[cur.id].x - p.x);
     const sp = RUSH * (inThicket(p.x, p.z) ? THICK : 1);
-    p.x += Math.cos(a) * sp * DT; p.z += Math.sin(a) * sp * DT;
+    step(p, a, sp);
+    if (!inCorridor(p)) outside++;
   } });
+  assert.equal(outside, 0, 'default path: the route stays inside the corridor');
   assert.deepEqual(r.bad, [], 'default path: nothing placed in view or on seen moss');
   const placed = r.ev.filter((e) => e.type === 'placed');
   assert.deepEqual(placed.map((e) => `${e.id} ${e.how}`), ORDER.map((id) => `${id} default`), 'default path: all pre-placed, nothing generated');
   assert.ok(placed.every((e) => e.t < 0.1), 'default path: from the first frame');
+  for (const e of placed) {
+    const c = toCorridor(e.x, e.z, {});
+    assert.ok(insideEdge(e.x, e.z, ENCOUNTERS.find((q) => q.id === e.id).size), `default path: ${e.id} inside the corridor, clear of its walls (a ${c.a.toFixed(0)}, c ${c.c.toFixed(0)})`);
+    assert.ok(Math.abs(c.c) <= 1600 + 1, `default path: ${e.id} on the route up the middle (${c.c.toFixed(0)} µm aside)`);
+  }
+  const pp = placed.at(-1), pc = toCorridor(pp.x, pp.z, {});
+  assert.ok(Math.abs(EDGE.north - pc.a - WALL_SECONDS.north * WALK_FOR_WALLS) <= 2000, `default path: the north wall ${((EDGE.north - pc.a) / WALK_FOR_WALLS).toFixed(1)} s of walking past the water`);
   assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.instance}`), ORDER.map((id) => `${id} default`), 'default path: met in order on it');
   const pm = first(r.ev, 'met', 'portal');
   assert.ok(pm.t >= 35 && pm.t <= 95, `default path: the portal reached in about a minute and a quarter (${pm.t} s)`);
-  pathRows.push(`followed: ${placed.map((e) => `${e.id} at ${(Math.hypot(e.x, e.z) / 1000).toFixed(1)} mm`).join(', ')}; met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t} s`).join(', ')}`);
+  pathRows.push(`followed: ${placed.map((e) => `${e.id} at ${(toCorridor(e.x, e.z, {}).a / 1000).toFixed(1)} mm`).join(', ')}; met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t} s`).join(', ')}`);
 }
 for (const off of [Math.PI, Math.PI / 2, -Math.PI / 2]) {
-  // heading off another way: each leaves the path while nobody has seen it and is placed as you go, in order
-  const b0 = DEFAULT_PATH.bearing + off, tag = `off the path (${(off * 180 / Math.PI).toFixed(0)}°)`;
-  const r = game({ seconds: 150, path: true, move: (t, p, D, at) => {
-    let a = b0;
-    if (D.entry('portal').state === 'placed') a = Math.atan2(at.portal.z - p.z, at.portal.x - p.x);
-    else if (Math.max(Math.abs(p.x), Math.abs(p.z)) > BOUNDS.half - 4000) a = Math.atan2(-p.z, -p.x) + 0.6;
+  // heading off another way (south, or to a side): each leaves the path while nobody has seen it and is placed as
+  // you go, in order, in the corridor (the walls turn the walker); the water stays at the north end
+  const tag = `off the path (${(off * 180 / Math.PI).toFixed(0)}°)`;
+  let a = DEFAULT_PATH.bearing + off, outside = 0;
+  const r = game({ seconds: 220, path: true, move: (t, p, D, at) => {
+    if (D.entry('portal').state === 'placed' && D.index === ORDER.length - 1) a = Math.atan2(at.portal.z - p.z, at.portal.x - p.x);
     const sp = RUSH * (inThicket(p.x, p.z) ? THICK : 1);
-    p.x += Math.cos(a) * sp * DT; p.z += Math.sin(a) * sp * DT;
+    a = step(p, a, sp);
+    if (!inCorridor(p)) outside++;
   } });
+  assert.equal(outside, 0, `${tag}: stays inside the corridor`);
   assert.deepEqual(r.bad, [], `${tag}: nothing placed in view or on seen moss, nothing seen moved`);
   assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, `${tag}: every encounter, in order`);
-  for (const id of ORDER) {
-    const e = r.ev.find((x) => x.type === 'placed' && x.id === id && x.how !== 'default');
-    assert.ok(e && e.from === 'default' && ['ahead', 'around'].includes(e.how), `${tag}: ${id} taken off the path and placed as you go (${e && e.how})`);
-  }
-  assert.ok(r.ev.filter((e) => e.type === 'met').every((e) => e.instance === 'dynamic'), `${tag}: met where they were placed as you go`);
+  const mf = r.ev.find((x) => x.type === 'placed' && x.id === 'mites' && x.how !== 'default');
+  assert.ok(mf && mf.from === 'default', `${tag}: the first taken off the path and placed as you go (${mf && mf.how})`);
+  const pp = r.at.portal, pc = toCorridor(pp.x, pp.z, {});
+  assert.ok(pc.a - PORTAL_ALONG >= PORTAL_SPAN[0] && pc.a - PORTAL_ALONG <= PORTAL_SPAN[1], `${tag}: the water at the north end`);
   pathRows.push(`${tag}: met ${r.ev.filter((e) => e.type === 'met').map((e) => `${e.id} ${e.t} s`).join(', ')}`);
 }
 
@@ -254,7 +324,7 @@ for (const [speed, label, firstMax, portalMax] of [[RUSH, 'rushing', 12, 80], [6
     const P = at.portal;
     if (D.index === ORDER.length - 1 && P && Math.hypot(P.x - p.x, P.z - p.z) < 3000) a = Math.atan2(P.z - p.z, P.x - p.x);
     const sp = speed * (inThicket(p.x, p.z) ? THICK : 1);
-    p.x += Math.cos(a) * sp * DT; p.z += Math.sin(a) * sp * DT;
+    step(p, a, sp);
   } });
   const tag = `straight ahead, ${label}`;
   assert.deepEqual(r.bad, [], `${tag}: nothing placed in view or on seen moss`);
@@ -277,4 +347,5 @@ assert.ok(PORTAL_CLEAR >= 1200, 'an arena round the water');
 
 console.log(`default path: ${pathRows.join('; ')}`);
 console.log(`straight ahead: ${straightRows.join('; ')}`);
-console.log(`ok: tile ${TILE} µm; ${CLUSTERS.length} thickets (${t1.length} + ${t2.length} + ${forwardClusters().length} along the forward, scenery, ${CLUSTER.r * 2 / 1000} mm across); rushing in 16 directions: ${ORDER.map((id) => `${id} met ${span(id)}`).join(', ')}; longest wait between encounters ${gapMax.toFixed(1)} s; lingering: ${r1.ev.filter((e) => e.type === 'placed' || e.type === 'met').map((e) => `${e.id} ${e.type} ${e.t} s${e.how && e.type === 'placed' ? ` (${e.how})` : ''}`).join(', ')}; turning back: ${r2.ev.filter((e) => e.type !== 'met').map((e) => `${e.id} ${e.type} ${e.t} s (${e.how})`).join(', ')}`);
+console.log(`corridor: south wall ${EDGE.south} µm (${WALL_SECONDS.south} s), side walls ±${EDGE.side} µm (${WALL_SECONDS.side} s), the water ${PORTAL_ALONG} µm up, north wall ${EDGE.north} µm (${WALL_SECONDS.north} s past it) at ${WALK_FOR_WALLS} µm/s`);
+console.log(`ok: tile ${TILE} µm; ${CLUSTERS.length} thickets inside the corridor (scenery, ${CLUSTER.r * 2 / 1000} mm across); rushing up the corridor at 13 angles: ${ORDER.map((id) => `${id} met ${span(id)}`).join(', ')}; longest wait between encounters ${gapMax.toFixed(1)} s; lingering: ${r1.ev.filter((e) => e.type === 'placed' || e.type === 'met').map((e) => `${e.id} ${e.type} ${e.t} s${e.how && e.type === 'placed' ? ` (${e.how})` : ''}`).join(', ')}; turning back: ${r2.ev.filter((e) => e.type !== 'met').map((e) => `${e.id} ${e.type} ${e.t} s (${e.how})`).join(', ')}`);

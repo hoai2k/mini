@@ -24,7 +24,8 @@
 //   step     a quick step in, then a snap (when you hang back at the edge of reach)
 //   recover  pincers lowered and slow (1.3 s): the joints are open to a bite
 //   flinch   bitten: it jerks back
-//   retreat  worn down: it backs into the moss, then it is gone (passed)
+//   retreat  worn down: it backs into the moss to the side
+//   burrow   then down into it, in a puff of crumbs, and it is gone (passed)
 // Its resolve (createFight interest) falls with bites (double on a joint in
 // its recovery, double again for a pounce-bite), grabs survived by closing up,
 // and facing it.
@@ -38,6 +39,7 @@ const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const ease = (x) => x * x * (3 - 2 * x);
 const UP = new THREE.Vector3(0, 1, 0);
 const REACH = 2500; // µm from its body centre to the pincer tips, at full stretch (~2.1 mm in the tell)
+const BURROW = 0.9, SINK = 560; // worn down, it backs down into the moss over BURROW s, SINK µm under the floor
 
 export function createPseudoscorpion(scene, tex, { post, home, wake = 1250, leash = 2600, lose = 3600 }) {
   const group = new THREE.Group();
@@ -112,7 +114,7 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250, leas
   };
   const LEGS = [0, 1, 2, 3].flatMap((k) => [-1, 1].map((s) => ({ k, s, hip: new THREE.Vector3(560 - k * 150, -40, s * 230), foot: new THREE.Vector3([700, 330, -80, -560][k], 0, s * [700, 820, 800, 650][k]) })));
 
-  const st = { x: post.x, z: post.z, a: post.a, state: 'dormant', t: 0, v: 0, gait: 0, open: 0, ext: 0, spread: 0, lower: 0, crouch: 0, lift: 0,
+  const st = { x: post.x, z: post.z, a: post.a, state: 'dormant', t: 0, v: 0, gait: 0, open: 0, ext: 0, spread: 0, lower: 0, crouch: 0, lift: 0, sink: 0,
     target: null, pattern: 'snap', cool: 1.5, lastAggr: null, aggrT: 0, grabbed: null, hold: 0 };
   const fight = createFight({ biteHit: 0.09, facingRate: 0.012, regain: 0.01 });
   const go = (s) => { st.state = s; st.t = 0; };
@@ -120,7 +122,8 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250, leas
   const tips = [new THREE.Vector3(), new THREE.Vector3()], joints = [new THREE.Vector3(), new THREE.Vector3()];
 
   function pose() {
-    const fy = floorH(st.x, st.z);
+    const sinkD = SINK * ease(st.sink || 0);
+    const fy = floorH(st.x, st.z) - sinkD;
     group.position.set(st.x, fy + 150 - 60 * st.crouch, st.z);
     group.rotation.set(0, -st.a, 0.08 * st.open - 0.05 * st.lower);
     group.updateMatrixWorld(true);
@@ -133,7 +136,7 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250, leas
       const dx = (sw ? -110 + ph * 440 : 110 - (ph - 0.5) * 440) * stride;
       const hip = W(L.hip.x, L.hip.y, L.hip.z);
       const foot = W(L.foot.x + dx, 0, L.foot.z);
-      foot.y = floorH(foot.x, foot.z) + (sw ? Math.sin(ph * 2 * Math.PI) * 70 * stride : 0);
+      foot.y = floorH(foot.x, foot.z) - sinkD + (sw ? Math.sin(ph * 2 * Math.PI) * 70 * stride : 0);
       const knee = hip.clone().lerp(foot, 0.45); knee.y = Math.max(hip.y, foot.y) + 260 - 80 * st.crouch;
       const ank = knee.clone().lerp(foot, 0.55); ank.y = (knee.y + foot.y) / 2 + 30;
       rod(rods, ri++, hip, knee, 30); rod(rods, ri++, knee, ank, 24); rod(rods, ri++, ank, foot, 15); // slender, as on the sheet
@@ -288,9 +291,15 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250, leas
         const ta = Math.atan2(st.z - home.z, st.x - home.x); // keep facing away from home: it reverses
         targetA = ta; targetV = -300;
         st.open = 0.4; st.ext = 0; st.spread = 0; st.lower = 0;
-        if (Math.hypot(home.x - st.x, home.z - st.z) < 150 || st.t > 9) { go('gone'); setVisible(false); ev.push({ type: 'gone' }); }
+        // there it backs down into the moss and litter (no vanishing: the owner, 2026-11-04), in a puff of crumbs
+        if (Math.hypot(home.x - st.x, home.z - st.z) < 150 || st.t > 9) { go('burrow'); ev.push({ type: 'burrow', x: st.x, z: st.z }); }
         break;
       }
+      case 'burrow':
+        targetV = -120;
+        st.sink = Math.min(1, st.t / BURROW);
+        if (st.t > BURROW + 0.05) { st.sink = 1; go('gone'); setVisible(false); ev.push({ type: 'gone' }); }
+        break;
     }
     if (!['step', 'snap', 'sweep'].includes(st.state)) {
       st.a += Math.max(-2.2 * dt, Math.min(2.2 * dt, wrap(targetA - st.a)));
@@ -299,7 +308,7 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250, leas
       st.gait += Math.abs(st.v) * dt / 500;
       if (st.state !== 'tell') st.crouch = Math.max(0, st.crouch - dt * 3);
     } else st.gait += dt * 0.5;
-    if (st.state !== 'dormant' && st.state !== 'gone' && st.state !== 'retreat' && st.state !== 'return') {
+    if (st.state !== 'dormant' && st.state !== 'gone' && st.state !== 'retreat' && st.state !== 'burrow' && st.state !== 'return') {
       const near = tgt && bd < 2600;
       const f = fight.update(dt, { near, facing: near && tgt.facing });
       if (f.interest <= 0 && st.state !== 'flinch') { go('retreat'); ev.push({ type: 'retreat' }); }
@@ -317,17 +326,17 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250, leas
     get name() { return tt('mite.bossName'); },
     get center() { return new THREE.Vector3(st.x, floorH(st.x, st.z) + 150, st.z); },
     get resolve() { return fight.interest; },
-    get engaged() { return !['dormant', 'gone', 'retreat', 'return'].includes(st.state); },
+    get engaged() { return !['dormant', 'gone', 'retreat', 'burrow', 'return'].includes(st.state); },
     /** Put it on guard at a new post (the portal was placed): { x, z, a }, home { x, z }. */
     setPost(p, h) { Object.assign(post, p); Object.assign(home, h); api.reset(); },
     get attacking() { return ['tell', 'snap', 'sweep', 'step'].includes(st.state); },
     /** In its recovery: the pincer joints are open to a bite. */
     get open() { return st.state === 'recover'; },
     /** Where a bite can land: the pincer joints (wrists) and the hands. */
-    bitePoints() { if (!group.visible || st.state === 'gone' || st.state === 'dormant' || st.state === 'return') return []; return [joints[0].clone(), joints[1].clone(), hands[0].position.clone(), hands[1].position.clone()]; },
+    bitePoints() { if (!group.visible || st.state === 'gone' || st.state === 'burrow' || st.state === 'dormant' || st.state === 'return') return []; return [joints[0].clone(), joints[1].clone(), hands[0].position.clone(), hands[1].position.clone()]; },
     /** A bite by player slot (power 1 a bite, 2 a pounce-bite; doubled on an open joint). True when it gives up. */
     bitten(power = 1, slot = 0) {
-      if (['gone', 'retreat', 'capture'].includes(st.state)) return false;
+      if (['gone', 'retreat', 'burrow', 'capture'].includes(st.state)) return false;
       const p = Math.min(2, power * (api.open ? 2 : 1)); // at most two bites' worth: about three good rounds
       for (let i = 0; i < p * 2; i++) fight.bitten();
       st.lastAggr = slot; st.aggrT = 8;
@@ -353,7 +362,7 @@ export function createPseudoscorpion(scene, tex, { post, home, wake = 1250, leas
       pose();
       return at;
     },
-    release() { Object.assign(st, { x: post.x, z: post.z, a: post.a, state: 'dormant', t: 0, v: 0, open: 0, ext: 0, spread: 0, lower: 0, crouch: 0, cool: 3, grabbed: null }); fight.reset(); pose(); },
+    release() { Object.assign(st, { x: post.x, z: post.z, a: post.a, state: 'dormant', t: 0, v: 0, open: 0, ext: 0, spread: 0, lower: 0, crouch: 0, sink: 0, cool: 3, grabbed: null }); fight.reset(); pose(); },
     reset() { api.release(); setVisible(true); },
   };
   return api;

@@ -32,6 +32,7 @@
 //     speed            wander speed (default 0.8 x radius per second)
 //     flow             { x, z } (or { x, y }) a steady current, units per second
 //     playerRadius     default body radius of a player (3 x radius)
+//     dieTime = 0.35   seconds an eaten member takes to shrink away
 //     respawn = 6      seconds before an eaten member reappears, away from every
 //                      player (Infinity: eaten for good); the crowd never refills
 //                      round a player
@@ -65,6 +66,7 @@ export function createCrowd(opts = {}) {
   const speed = opts.speed ?? 0.8 * R;
   const playerR = opts.playerRadius ?? 3 * R;
   const respawn = opts.respawn ?? 6;
+  const dieTime = opts.dieTime ?? 0.35; // s: an eaten member shrinks away over this long
   let flow = opts.flow || null;
 
   // The area: a box or a circle, in plane coordinates (u, v) = (x, z) or (x, y).
@@ -228,7 +230,7 @@ export function createCrowd(opts = {}) {
     // Life cycle: dying -> gone -> arriving (away from every player) -> alive.
     for (let i = 0; i < N; i++) {
       const s = state[i];
-      if (s === 1) { life[i] -= dt / 0.35; if (life[i] <= 0) { life[i] = 0; state[i] = 2; timer[i] = respawn; } }
+      if (s === 1) { life[i] -= dt / dieTime; if (life[i] <= 0) { life[i] = 0; state[i] = 2; timer[i] = respawn; } }
       else if (s === 2) {
         if (!Number.isFinite(respawn)) continue;
         if ((timer[i] -= dt) > 0) continue;

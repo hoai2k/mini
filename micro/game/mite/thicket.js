@@ -162,7 +162,7 @@ function buildCluster(c, k, { mats, crowdGeo, crowdMat, scene, perCluster }) {
   const mesh = new THREE.InstancedMesh(crowdGeo, crowdMat, perCluster);
   mesh.name = 'springtails';
   const crowd = createCrowd({ scene, THREE, count: perCluster, region: { x: c.x, z: c.z, r: c.r }, radius: 70, height: floorH,
-    mesh, mode: '3d', playerRadius: 190, respawn: 9, speed: 50, seed: 2718 + k * 31 });
+    mesh, mode: '3d', playerRadius: 190, respawn: 9, dieTime: 0.9, speed: 50, seed: 2718 + k * 31 });
   return { ...c, k, group, strands, food, foliage, crowd, mesh, headsMesh, predT: 3 + (k % 3) };
 }
 
@@ -181,16 +181,31 @@ export function createThickets({ scene, tex, clusters, perCluster = 30, ground =
   // again on its feet (stand.js), keeping the crowd's heading, stretch and wobble.
   const _st = { y: 0, q: new THREE.Quaternion(), pen: 0, n: new THREE.Vector3() };
   const _mm = new THREE.Matrix4(), _mp = new THREE.Vector3(), _ms = new THREE.Vector3();
+  // An eaten member's replacement does not grow out of nothing where it
+  // arrives (the crowd scales it up from 0 over 1.2 s): it climbs out of the
+  // moss at full size, in a puff of crumbs (events), the way springtails come
+  // up out of soil pores (the owner, 2026-11-04: no "disappear suddenly" type
+  // of effect). One eaten by the predator shrinks away between its chelicerae
+  // (dieTime 0.9 s, with its bite).
+  const RISE = 150; // µm under the floor where it starts
+  const events = [];
   function standCrowd(cl) {
-    const a = cl.mesh.instanceMatrix.array, N = cl.crowd.members.count;
+    const a = cl.mesh.instanceMatrix.array, M = cl.crowd.members, N = M.count;
+    const prev = cl.prevLife || (cl.prevLife = Float32Array.from(M.life));
     for (let i = 0; i < N; i++) {
       const o = i * 16;
-      const sf = Math.hypot(a[o], a[o + 2]);
-      if (sf < 1e-4) continue; // gone (eaten, not yet back)
-      const yaw = -Math.atan2(a[o + 2], a[o]), su = a[o + 5], ss = Math.hypot(a[o + 8], a[o + 10]);
+      let sf = Math.hypot(a[o], a[o + 2]);
+      const life = M.life[i], arriving = M.alive(i) && life < 1;
+      if (arriving && prev[i] === 0 && life > 0) events.push({ type: 'rise', x: a[o + 12], y: ground(a[o + 12], a[o + 14]), z: a[o + 14] });
+      prev[i] = life;
+      if (sf < 1e-4 && !arriving) continue; // gone (eaten, not yet back)
+      const yaw = -Math.atan2(a[o + 2], a[o]);
+      let su = a[o + 5], ss = Math.hypot(a[o + 8], a[o + 10]), sink = 0;
+      if (arriving) { const k = 1 / Math.max(life, 0.02); sf *= k; su *= k; ss *= k; sink = RISE * (1 - life) * (1 - life); }
+      if (!(sf > 1e-4)) continue;
       const x = a[o + 12], z = a[o + 14];
       standSpringtail(ground, x, z, yaw, sf, su, ss, 0, 0, _st);
-      _mm.compose(_mp.set(x, _st.y, z), _st.q, _ms.set(sf, su, ss)).toArray(a, o);
+      _mm.compose(_mp.set(x, _st.y - sink, z), _st.q, _ms.set(sf, su, ss)).toArray(a, o);
     }
     cl.mesh.instanceMatrix.needsUpdate = true;
   }
@@ -243,6 +258,8 @@ export function createThickets({ scene, tex, clusters, perCluster = 30, ground =
   }
   const log = { cleared: 0, shoved: 0, eatenByPredator: 0 };
   const api = {
+    /** Crumbs since last asked: [{ type: 'rise' (one climbs out of the moss) | 'eaten' (the predator's bite), x, y, z }]. */
+    takeEvents() { const out = events.slice(); events.length = 0; return out; },
     clusters: list, food, log,
     /** The first cluster's crowd (tests). */
     get crowd() { return list[0].crowd; },
@@ -283,7 +300,7 @@ export function createThickets({ scene, tex, clusters, perCluster = 30, ground =
           const m = pred.mouth(_p);
           const f = _o.set(1, 0, 0).applyQuaternion(pred.quat).setY(0).normalize();
           const n = cl.crowd.bite(m, { x: f.x, z: f.z }, 150, { angle: 0.7, eat: true });
-          if (n) { pred.bite(); log.eatenByPredator += n; }
+          if (n) { pred.bite(); log.eatenByPredator += n; events.push({ type: 'eaten', x: m.x, y: m.y, z: m.z }); }
         }
         regrow(cl, dt, bodies.map((b) => b.position));
       }

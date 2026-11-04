@@ -7,9 +7,10 @@
 //   every 2.2 mm), so no stretch of moss is empty. Each group is a pure
 //   function of its site and the clock (stateless), so the moss you have seen
 //   is the moss you come back to; they shy away from a mite that comes close
-//   and now and then hop on the spot (the furcula), upright. A bite (X) is
-//   the one thing kept: a nipped one lies dazed, its group leaps away, and a
-//   dazed one bitten again is eaten (main.js biteNow).
+//   and now and then hop on the spot (the furcula), upright. A grab (X) is
+//   the one thing kept: the grabbed one is eaten in the jaws while its group
+//   leaps away (main.js biteNow), and what pushed or shied each one is an
+//   offset that fades (see createAmbient: nothing pops in or out of view).
 // - createBeads: water beads on the moss floor that grow commoner and larger
 //   as the game goes on (by encounter progress) and thickest round the wet
 //   leaf axil (the portal), the way the springtail's pondweed thickens toward
@@ -48,20 +49,41 @@ const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vect
 
 /**
  * Springtail groups everywhere. blocked(x, z): no group there (the portal's
- * arena, say). update(t, bodies [{x, z}], foci [{x, z}]) poses the groups
- * within DRAW of any focus; sitesNear(x, z, r) lists the groups (for checks).
- * ground(x, z): the height they stand on (stand.js createGround: the floor
- * with its grains and litter; the bare floor by default); keepOut(x, z, out):
- * moves a point out of what they walk round (stand.js createKeepOut: the big
- * grains and the moss stems), or null.
+ * arena, say). update(t, bodies [{x, z}], foci [{x, z, r?}], inSight?) poses
+ * the groups within r (default DRAW) of any focus; sitesNear(x, z, r) lists
+ * the groups (for checks). ground(x, z): the height they stand on (stand.js
+ * createGround: the floor with its grains and litter; the bare floor by
+ * default); keepOut(x, z, out): moves a point out of what they walk round
+ * (stand.js createKeepOut: the big grains and the moss stems), or null.
+ *
+ * Nothing pops in or out of view (the owner, 2026-11-04: "the other insects
+ * sometimes seem to disappear ... no 'disappear suddenly' type of effect"):
+ * - a group comes and goes only out of every view (inSight(x, z, r), main.js:
+ *   the views' frustums); one that must go while seen (its site blocked, the
+ *   instance cap) dives into the moss, each springtail sinking into a crevice
+ *   in a puff of crumbs (springtails do hide in soil pores and litter), and
+ *   one that must come while seen climbs out the same way (`events`: where the
+ *   crumbs go, for main.js);
+ * - each springtail keeps an offset of its own from its grazing path: what
+ *   shied it away, what pushed it (pushBy: shared/push.js through main.js),
+ *   and whatever would otherwise have made it jump (a dazed one getting up,
+ *   one dropped from the jaws). The offset fades over RETURN s, so it walks
+ *   back to graze; no drawn springtail moves faster than MAXV µm/s except in
+ *   a leap (the scatter is under it anyway);
+ * - an eaten one goes through the meal in the jaws (main.js), and the one that
+ *   later wanders into its place climbs out of the moss.
  */
-export function createAmbient({ scene, tex, blocked = () => false, max = 150, ground = floorH, keepOut = null }) {
+export function createAmbient({ scene, tex, blocked = () => false, max = 400, ground = floorH, keepOut = null }) {
   const CELL = 1800, DRAW = 4200, START = 900;
   // SHY: how close a body comes before they edge away (µm, centre to centre;
-  // was 520, which kept them out of reach of a bite); STUN: how long a nipped
-  // one lies dazed; BACK: how long an eaten one is missing before another
-  // wanders into its place; SCATTER: how far the rest of a nipped group leap.
-  const SHY = 360, STUN = 2.4, BACK = 40, SCATTER = 520, LEAP = 0.45;
+  // was 520, which kept them out of reach of a bite); FLEE: how fast they
+  // edge away (µm/s, at contact); STUN: how long a nipped one lies dazed;
+  // BACK: how long an eaten one is missing before another wanders into its
+  // place; SCATTER: how far the rest of a grabbed one's group leap; RETURN:
+  // the time an offset takes to fade to a third (s); MAXV: the fastest a drawn
+  // springtail moves (µm/s); DIVE: a dive into the moss or a climb out (s);
+  // DEPTH: how far under the floor it goes (µm).
+  const SHY = 360, FLEE = 1500, STUN = 2.4, BACK = 40, SCATTER = 520, LEAP = 0.45, RETURN = 1.6, MAXV = 2400, DIVE = 0.55, DEPTH = 150;
   const mat = gMaterial({ cls: CLS.NPC, tex: tex.cuticle, map: 'tri', scale: 70, bump: 1.2 });
   const mesh = new THREE.InstancedMesh(springtailGeometry(), mat, max);
   mesh.name = 'ambient springtails';
@@ -87,12 +109,21 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150, gr
   const seenK = new Set();
   // The groups are a pure function of their site and the clock; what a bite
   // does to them is kept here: bugs (`${site}:${member}` -> { stun: until,
-  // x, z (where it lies), eaten: until, held: { p, s } while being eaten }),
-  // and scatters (site -> { t0, x, z }: the group leapt away from there).
+  // x, z (where it lies), eaten: until, held: { p, s } while being eaten,
+  // emerge: when it climbs out }), and scatters (site -> { t0, x, z }: the
+  // group leapt away from there).
   const bugs = new Map(), scatters = new Map();
-  /** The springtails drawn last update: [{ key, x, y, z, stunned }] (for bites and checks). */
+  // each springtail's own offset from its grazing path: key -> { ox, oz, t }
+  const offs = new Map();
+  // the groups drawn: site k -> { s, since, dive: t0 (diving into the moss) | null, rise: t0 (climbing out) | null }
+  const shown = new Map();
+  // groups that dove out of sight: kept away until no view can see their spot
+  const dived = new Map();
+  /** The springtails drawn last update: [{ key, x, y, z, yaw, sc, stunned, held }] (for bites, pushes and checks). */
   const live = [];
-  let n = 0, now = 0;
+  /** Where crumbs go this update: [{ type: 'dive' | 'rise', x, y, z }] (main.js puffs them). */
+  const events = [];
+  let n = 0, now = 0, dtNow = 0;
   const _n = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0), _qy = new THREE.Quaternion(), _qp = new THREE.Quaternion(), _ax = new THREE.Vector3();
   // Each one stands on its six feet (stand.js standSpringtail): square to the
   // ground under them, at its legs' height, lifted clear wherever the belly,
@@ -110,15 +141,15 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150, gr
     // (not where the ground steps: by a grain or a flake's edge it is posed again)
     if (P && Math.abs(P.x - x) + Math.abs(P.z - z) < 4 && Math.abs(P.yaw - yaw) < 0.02 && P.sc === sc && P.sy === sy && P.pitch === pitch) {
       const dg = ground(x, z) - P.g;
-      if (dg > -1.5 && dg < 1.5) { _q.copy(P.q); _p.set(x, P.y + dg + lift, z); stats.reused++; P.used = now; return; }
+      if (dg > -1.5 && dg < 1.5) { _q.copy(P.q); _p.set(x, P.y + dg + lift, z); stats.reused++; P.used = now; P.lx = x; P.lz = z; return; }
     }
     standSpringtail(ground, x, z, yaw, sc, sc * sy, sc, pitch, 0, _st);
     if (!P) poses.set(key, (P = { q: new THREE.Quaternion() }));
-    P.x = x; P.z = z; P.yaw = yaw; P.sc = sc; P.sy = sy; P.pitch = pitch; P.y = _st.y; P.g = ground(x, z); P.q.copy(_st.q); P.used = now;
+    P.x = x; P.z = z; P.yaw = yaw; P.sc = sc; P.sy = sy; P.pitch = pitch; P.y = _st.y; P.g = ground(x, z); P.q.copy(_st.q); P.used = now; P.lx = x; P.lz = z;
     stats.posed++; if (_st.pen > stats.lifted) stats.lifted = _st.pen;
     _q.copy(_st.q); _p.set(x, _st.y + lift, z);
   }
-  const stats = { posed: 0, reused: 0, lifted: 0 };
+  const stats = { posed: 0, reused: 0, lifted: 0, jumpsCaught: 0, maxStep: 0, dives: 0, rises: 0, capped: 0 };
   const _ko = { x: 0, z: 0 };
   /** In the jaws: square to the ground under it, nose up `pitch`, rolled `roll` (the struggle), turned `twist`. */
   const _qa = new THREE.Quaternion(), _ax2 = new THREE.Vector3();
@@ -128,7 +159,22 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150, gr
     if (roll) _q.multiply(_qa.setFromAxisAngle(_ax2.set(1, 0, 0), roll));
     return _q;
   }
-  function member(s, m, t, bodies) {
+  /** Its offset now (faded since it was last set): { ox, oz, t }. */
+  function offOf(key) {
+    let O = offs.get(key);
+    if (!O) { O = { ox: 0, oz: 0, t: now }; offs.set(key, O); return O; }
+    if (O.t !== now) { const k = Math.exp(-(now - O.t) / RETURN); O.ox *= k; O.oz *= k; O.t = now; }
+    return O;
+  }
+  /** How far into the moss (0 up .. 1 under) and whether it just started: a group diving or climbing out, or one member climbing out. */
+  function sunk(S, B, t) {
+    let d = 0;
+    if (S && S.dive !== null) d = Math.max(d, sstep(0, 1, (t - S.dive) / DIVE));
+    if (S && S.rise !== null) d = Math.max(d, 1 - sstep(0, 1, (t - S.rise) / DIVE));
+    if (B && B.emerge !== undefined) d = Math.max(d, 1 - sstep(0, 1, (t - B.emerge) / DIVE));
+    return d;
+  }
+  function member(s, m, t, bodies, S) {
     const key = `${s.k}:${m}`, B = bugs.get(key);
     if (B && B.eaten > t) return;
     const h = (q) => hash2(s.k, m, q);
@@ -139,18 +185,19 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150, gr
       _p.copy(H.p);
       _s.setScalar(sc * Math.max(0.02, H.s));
       mesh.setMatrixAt(n++, _m.compose(_p, heldQ(_p.x, _p.z, B.yaw || 0, 0.3 + (H.pitch || 0), H.roll || 0, H.twist || 0), _s));
-      live.push({ key, x: _p.x, y: _p.y, z: _p.z, stunned: true });
+      live.push({ key, x: _p.x, y: _p.y, z: _p.z, yaw: B.yaw || 0, sc, stunned: true, held: true });
+      const P = poses.get(key); if (P) { P.used = now; P.lx = _p.x; P.lz = _p.z; }
       return;
     }
     if (B && B.stun > t) {
-      // nipped: a jolt, then it lies dazed where it was, crouched, legs twitching
+      // dazed (dropped from the jaws): a jolt, then it lies where it was, crouched, legs twitching
       const since = STUN - (B.stun - t), jolt = since < 0.25 ? Math.sin((since / 0.25) * Math.PI) : 0;
       const tw = 0.18 * Math.sin(t * 31 + m) * Math.max(0.2, 1 - since / STUN);
       // (crouched: legs bent to 0.8 of their height; the jolt and the twitch move it, the ground holds it up)
       stand(key, B.x, B.z, (B.yaw || 0) + tw, sc * 1.05, 0.8 / 1.05, -0.1 + 0.25 * jolt, 45 * jolt);
       _s.set(sc * 1.05, sc * 0.8, sc * 1.05);
       mesh.setMatrixAt(n++, _m.compose(_p, _q, _s));
-      live.push({ key, x: _p.x, y: _p.y, z: _p.z, stunned: true });
+      live.push({ key, x: _p.x, y: _p.y, z: _p.z, yaw: B.yaw || 0, sc, stunned: true, held: false });
       return;
     }
     const a0 = h(5) * Math.PI * 2, r0 = 60 + h(6) * 230;
@@ -158,14 +205,14 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150, gr
     let x = s.x + Math.cos(a0) * r0 + Math.sin(t * w1 + f1) * 110, z = s.z + Math.sin(a0) * r0 + Math.cos(t * w2 + f2) * 110;
     let vx = Math.cos(t * w1 + f1) * w1, vz = -Math.sin(t * w2 + f2) * w2;
     let hop = 0, pitch = 0;
-    // scattered by a bite in the group: each leaps away from it (the furcula),
+    // scattered by a grab in the group: each leaps away from it (the furcula),
     // and they drift back to graze over the next ten seconds
-    const S = scatters.get(s.k);
-    if (S) {
-      const ds = t - S.t0;
+    const Sc = scatters.get(s.k);
+    if (Sc) {
+      const ds = t - Sc.t0;
       if (ds > 14) scatters.delete(s.k);
       else {
-        let ux = x - S.x, uz = z - S.z;
+        let ux = x - Sc.x, uz = z - Sc.z;
         const l = Math.hypot(ux, uz) || 1; ux /= l; uz /= l;
         const go = SCATTER * (0.8 + 0.4 * h(15)) * sstep(0, LEAP, ds) * (1 - sstep(4, 12, ds));
         x += ux * go; z += uz * go;
@@ -173,11 +220,14 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150, gr
         if (ds < LEAP) { const u = ds / LEAP; hop = Math.sin(Math.PI * u) * 1.1; pitch = 0.55 * Math.sin(2 * Math.PI * u); vx = ux; vz = uz; }
       }
     }
-    // shy: pushed away from any body that comes within SHY
+    // its own offset: shied, pushed, or caught from jumping (faded since: it walks back to graze)
+    const O = offOf(key);
+    // shy: it edges away from any body that comes within SHY (a speed, not a jump: the offset grows)
     for (const b of bodies) {
-      const dx = x - b.x, dz = z - b.z, d = Math.hypot(dx, dz);
-      if (d < SHY && d > 1) { const k = (SHY - d) * 1.1; x += (dx / d) * k; z += (dz / d) * k; vx = dx / d; vz = dz / d; }
+      const dx = x + O.ox - b.x, dz = z + O.oz - b.z, d = Math.hypot(dx, dz);
+      if (d < SHY && d > 1) { const k = FLEE * (1 - d / SHY) * Math.min(dtNow, 0.1); O.ox += (dx / d) * k; O.oz += (dz / d) * k; vx = dx / d; vz = dz / d; }
     }
+    x += O.ox; z += O.oz;
     // now and then a hop on the spot (the furcula, flicked lightly): a low arc,
     // nose up on the way up and down on the way down, landing on its feet.
     // (Real springtail leaps often tumble end over end; the old one here rolled
@@ -187,31 +237,54 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150, gr
       if (ph < LEAP) { const u = ph / LEAP; hop = Math.sin(Math.PI * u) * 0.7; pitch = 0.45 * Math.sin(2 * Math.PI * u); }
     }
     // the big grains and the moss stems are walked round, not through
-    if (keepOut) { keepOut(x, z, _ko); x = _ko.x; z = _ko.z; }
+    if (keepOut) { keepOut(x, z, _ko); if (_ko.x !== x || _ko.z !== z) { O.ox += _ko.x - x; O.oz += _ko.z - z; x = _ko.x; z = _ko.z; } }
+    // never a jump: drawn a moment ago, it moves at most MAXV µm/s from there (what is left over joins its offset)
+    const P = poses.get(key);
+    if (P && now - P.used < 0.25 && P.lx !== undefined) {
+      const dx = x - P.lx, dz = z - P.lz, d = Math.hypot(dx, dz), lim = MAXV * Math.max(now - P.used, 1 / 120) + 2;
+      if (d > lim) { const k = lim / d, nx = P.lx + dx * k, nz = P.lz + dz * k; O.ox += nx - x; O.oz += nz - z; x = nx; z = nz; stats.jumpsCaught++; }
+      stats.maxStep = Math.max(stats.maxStep, Math.min(d, lim) / Math.max(now - P.used, 1 / 120));
+    }
+    // diving into the moss or climbing out: lower, nose down going in
+    const dive = sunk(S, B, t);
     // on its feet on the ground under it (a hop lifts it from there, and lands it there)
-    stand(key, x, z, -Math.atan2(vz, vx), sc, 1, pitch, hop * 150);
+    stand(key, x, z, -Math.atan2(vz, vx), sc, 1, pitch - 0.5 * dive, hop * 150 - DEPTH * dive);
     _s.setScalar(sc);
     mesh.setMatrixAt(n++, _m.compose(_p, _q, _s));
-    live.push({ key, x, y: _p.y, z, stunned: false });
+    live.push({ key, x, y: _p.y, z, yaw: -Math.atan2(vz, vx), sc, stunned: false, held: false, dive });
   }
   const find = (key) => live.find((b) => b.key === key);
+  const scatterFrom = (key, fx, fz) => scatters.set(+key.split(':')[0], { t0: now, x: fx, z: fz });
+  const crumbs = (type, s) => { for (let m = 0; m < s.n; m++) { const P = poses.get(`${s.k}:${m}`); const x = P ? P.lx : s.x, z = P ? P.lz : s.z; events.push({ type, x, y: ground(x, z), z }); } };
   return {
-    mesh, site, sitesNear, CELL, live, bugs, scatters, SHY, STUN, stats,
+    mesh, site, sitesNear, CELL, DRAW, live, bugs, scatters, offs, shown, SHY, STUN, MAXV, DIVE, stats, events,
     /** Groups first drawn so far (each lattice site, once). */
     get seen() { return seenK.size; },
     /** The springtail nearest (x, y, z) within r (as drawn last update), or null: { key, x, y, z, stunned, d }. */
     nearest(x, y, z, r, accept = () => true) {
       let best = null, bd = r;
       for (const b of live) {
+        if (b.held || (b.dive || 0) > 0.3) continue;
         const d = Math.hypot(b.x - x, (b.y - y) * 0.5, b.z - z);
         if (d < bd && accept(b)) { bd = d; best = b; }
       }
       return best ? { ...best, d: bd } : null;
     },
     /**
-     * A bite lands on springtail `key` from (fx, fz): a dazed one is caught
-     * ('caught': the caller eats it, hold/eaten), a lively one is stunned where
-     * it stands and the rest of its group leap away ('stunned').
+     * X on a springtail (the owner, 2026-11-04: "a single press of X grab the creature and start eating
+     * it"): it is seized from (fx, fz) where it stands (the caller holds it to the mouth: hold, then
+     * eaten, or drop if it wriggles free) and the rest of its group leap away. False if it is gone.
+     */
+    grab(key, fx, fz) {
+      const b = find(key);
+      if (!b || b.held) return false;
+      bugs.set(key, { stun: now + 1e9, x: b.x, z: b.z, yaw: -Math.atan2(b.z - fz, b.x - fx) + Math.PI, eaten: 0, grabbed: true });
+      scatterFrom(key, fx, fz);
+      return true;
+    },
+    /**
+     * The old two-bite rule's first bite, kept for the checks: a lively one is stunned where it stands and
+     * the rest of its group leap away ('stunned'); a dazed one is caught ('caught').
      */
     nip(key, fx, fz) {
       const b = find(key);
@@ -219,7 +292,7 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150, gr
       const B = bugs.get(key);
       if (B && B.stun > now) { B.stun = now + 9; return 'caught'; }
       bugs.set(key, { stun: now + STUN, x: b.x, z: b.z, yaw: -Math.atan2(b.z - fz, b.x - fx) + Math.PI, eaten: 0 });
-      scatters.set(+key.split(':')[0], { t0: now, x: fx, z: fz });
+      scatterFrom(key, fx, fz);
       return 'stunned';
     },
     /**
@@ -227,25 +300,90 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150, gr
      * { pitch (more nose up), roll, twist } while held up and struggling.
      */
     hold(key, p, s, pose = null) { const B = bugs.get(key); if (B) B.held = { p: p.clone(), s, pitch: pose ? pose.pitch : 0, roll: pose ? pose.roll : 0, twist: pose ? pose.twist : 0 }; },
-    /** Eating cut short: it drops, dazed a moment longer. */
-    drop(key) { const B = bugs.get(key); if (B && B.held) { B.x = B.held.p.x; B.z = B.held.p.z; B.held = null; B.stun = now + 1; } },
-    /** Eaten: gone until another wanders in (BACK s). */
-    eaten(key) { const B = bugs.get(key); if (B) { B.held = null; B.stun = 0; B.eaten = now + BACK; } },
-    update(t, bodies, foci) {
-      n = 0; now = t; live.length = 0;
-      const done = new Set();
-      for (const f of foci) for (const s of sitesNear(f.x, f.z, DRAW)) {
-        if (done.has(s.k)) continue;
-        done.add(s.k); seenK.add(s.k);
-        for (let m = 0; m < s.n && n < max; m++) member(s, m, t, bodies);
+    /** Eating cut short: it drops where it was held, dazed a moment, then walks back to its group (never a jump). */
+    drop(key) { const B = bugs.get(key); if (B && B.held) { B.x = B.held.p.x; B.z = B.held.p.z; B.held = null; B.stun = now + 1; B.grabbed = false; } },
+    /** Eaten: gone until another climbs out of the moss in its place (BACK s). */
+    eaten(key) { const B = bugs.get(key); if (B) { B.held = null; B.stun = 0; B.eaten = now + BACK; offs.delete(key); } },
+    /** Pushed (shared/push.js, main.js) by (dx, dz) µm: its offset (or, dazed, where it lies) moves. */
+    pushBy(key, dx, dz) {
+      const B = bugs.get(key);
+      if (B && B.held) return;
+      if (B && B.stun > now) { B.x += dx; B.z += dz; return; }
+      const O = offOf(key); O.ox += dx; O.oz += dz;
+      const P = poses.get(key); if (P && P.lx !== undefined) { P.lx += dx; P.lz += dz; }
+    },
+    /**
+     * Each frame: t the clock; bodies [{ x, z }] it shies from; foci [{ x, z, r? }] round which the groups
+     * are drawn (r µm, DRAW by default: the players, and each view's target with its reach); inSight(x, z,
+     * r): can a view see that disc (main.js; none: nothing is in sight).
+     */
+    update(t, bodies, foci, inSight = null) {
+      dtNow = Math.max(0, Math.min(0.1, t - now));
+      n = 0; now = t; live.length = 0; events.length = 0;
+      const seen = (x, z) => (inSight ? inSight(x, z, 700) : false);
+      // the groups wanted: within reach of a focus (a shown one kept a little farther: no flicker at the edge)
+      const want = new Map();
+      for (const f of foci) {
+        const R = f.r || DRAW;
+        for (const s of sitesNear(f.x, f.z, R + 700)) {
+          const d = Math.hypot(s.x - f.x, s.z - f.z);
+          if (d > R && !shown.has(s.k)) continue;
+          const w = want.get(s.k);
+          if (!w || d - R < w.d) want.set(s.k, { s: shown.has(s.k) ? shown.get(s.k).s : s, d: d - R });
+        }
       }
-      for (const [k, B] of bugs) if (B.stun < t && B.eaten < t && !B.held) bugs.delete(k);
-      // poses of members not drawn for a while are dropped
-      if (poses.size > max * 2) for (const [k, P] of poses) if (P.used < t - 2) poses.delete(k);
+      // (a shown group whose site is now blocked, the portal's arena placed on it, is still wanted until it can dive)
+      for (const [k, S] of shown) if (!want.has(k) && Math.min(...foci.map((f) => Math.hypot(S.s.x - f.x, S.s.z - f.z) - (f.r || DRAW))) < 700 && !site(Math.floor(S.s.x / CELL), Math.floor(S.s.z / CELL))) want.set(k, { s: S.s, d: 0, blocked: true });
+      // the instance cap: the groups already shown first, then the nearest
+      const order = [...want.values()].sort((p, q) => (shown.has(q.s.k) - shown.has(p.s.k)) || p.d - q.d);
+      let budget = max;
+      const keep = new Set();
+      for (const w of order) { if (budget - w.s.n < 0) { stats.capped++; continue; } budget -= w.s.n; keep.add(w.s.k); }
+      // leaving: out of sight, simply dropped; in sight, they dive into the moss first
+      for (const [k, S] of shown) {
+        const blockedNow = want.get(k)?.blocked;
+        if (keep.has(k) && !blockedNow) { if (S.dive !== null && !seen(S.s.x, S.s.z)) S.dive = null; continue; }
+        if (!seen(S.s.x, S.s.z) && S.dive === null) { shown.delete(k); continue; }
+        if (S.dive === null) { S.dive = t; S.rise = null; stats.dives++; crumbs('dive', S.s); }
+        else if (t - S.dive > DIVE) { shown.delete(k); dived.set(k, S.s); }
+      }
+      // coming: out of sight, simply there; in sight, they climb out of the moss (never one that just dove, while seen)
+      for (const k of keep) {
+        if (shown.has(k)) continue;
+        const s = want.get(k).s;
+        if (dived.has(k)) { if (seen(s.x, s.z)) continue; dived.delete(k); }
+        const S = { s, since: t, dive: null, rise: null };
+        if (seen(s.x, s.z)) { S.rise = t; stats.rises++; }
+        shown.set(k, S);
+        if (S.rise !== null) crumbs('rise', s);
+      }
+      for (const [k, s] of dived) if (!seen(s.x, s.z)) dived.delete(k);
+      // an eaten one's time is up: another wanders into its place, climbing out of the moss (crumbs where it comes up)
+      for (const [k, B] of bugs) {
+        if (B.held || !(B.eaten > 0) || B.eaten >= t || B.emerge !== undefined) continue;
+        B.eaten = 0; B.emerge = t; offs.delete(k);
+        const P = poses.get(k), x = P ? P.lx : B.x, z = P ? P.lz : B.z;
+        if (x !== undefined) events.push({ type: 'rise', x, y: ground(x, z), z });
+      }
+      for (const [k, S] of shown) {
+        if (S.rise !== null && t - S.rise > DIVE) S.rise = null;
+        seenK.add(k);
+        for (let m = 0; m < S.s.n && n < max; m++) member(S.s, m, t, bodies, S);
+      }
+      for (const [k, B] of bugs) {
+        if (B.held || B.stun >= t) continue;
+        if (B.eaten > t) continue;
+        if (B.emerge !== undefined && t - B.emerge < DIVE) continue;
+        bugs.delete(k);
+      }
+      // poses of members not drawn for a while are dropped (and their offsets, faded anyway)
+      if (poses.size > max * 2) for (const [k, P] of poses) if (P.used < t - 2) { poses.delete(k); offs.delete(k); }
       mesh.count = n;
       mesh.instanceMatrix.needsUpdate = true;
     },
-    reset() { bugs.clear(); scatters.clear(); },
+    /** Testing: group `k` (a site's key) dives into the moss now, as one that must go while seen does. */
+    forceDive(k) { const S = shown.get(k); if (!S || S.dive !== null) return false; S.dive = now; S.rise = null; stats.dives++; crumbs('dive', S.s); dived.set(k, S.s); return true; },
+    reset() { bugs.clear(); scatters.clear(); offs.clear(); shown.clear(); dived.clear(); },
     setVisible(v) { mesh.visible = v; },
   };
 }

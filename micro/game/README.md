@@ -43,9 +43,10 @@ Everything the game runs is under `micro/game/`: the shell in `src/`, the
 world pages (`springtail/` … `phage/`), `zoom/`, `shared/`, `assets/` and
 `music/`, all siblings, so the shell reaches a world at `../<world>/` and the
 shared modules at `../shared/` from `src/`. The player-facing text is one
-level up, in `micro/text_config.js`. `../publish.sh` mirrors that layout into
-`<site>/micro/` (`game/` to `<site>/micro/game/`, `text_config.js` beside
-it), so every relative path holds; only `index.html` moves, to the root of
+level up, in `micro/text_config.js`, and the hand-tunable game dynamics beside
+it in `micro/game_config.js`. `../publish.sh` mirrors that layout into
+`<site>/micro/` (`game/` to `<site>/micro/game/`, `text_config.js` and
+`game_config.js` beside it), so every relative path holds; only `index.html` moves, to the root of
 `<site>/micro/`, with its `src/` references rewritten to `game/src/`.
 
 ## Screens
@@ -389,6 +390,33 @@ features panel, players, being eaten) and one block per world
   status line (`../game/zoom/chain.js`, a developer page), and the
   page `<title>`/description meta in `index.html` (read without scripts).
 
+
+## Tuning the game: `game_config.js`
+
+The game dynamics worth tuning by hand are in one file,
+[`../game_config.js`](../game_config.js), beside `text_config.js` at the top
+of `micro/`. It exports `GAME`, grouped per world with plain-English keys,
+each with its unit in its name or in the comment beside it (seconds, µm,
+µm/s, a share 0..1). Edit a number and reload; keep the keys.
+
+- `shared.*`: what every world that reads the file shares (so far
+  `pushCarry`: how much of a push between creatures carries on as a slide).
+- `mite.*`: the box mite's world: its walls in seconds of walking
+  (`southWallSeconds`, `sideWallSeconds`, `northWallSecondsPastPortal`, at
+  `walkingSpeedForWallSeconds`), walking and the scramble, the jump's
+  distances, eating (`eatSeconds`, `eatPressShare`), the jump attack's window,
+  reach and damage, the predatory mite's speeds and interest, and the
+  encounter spacing. `mite/README.md` ("Tuning") lists them.
+- Only the worlds listed there read it so far; the others keep their numbers
+  in their own code. A world adds a section when it wires a value, not before.
+- Code reads it through `shared/config.js`: `conf('mite.eatSeconds', 3)` (the
+  second argument is the default the code was built with), or
+  `section('mite')` for a reader of one world's keys. A missing key, or one of
+  the wrong kind (a word for a number, a list of the wrong length), falls back
+  to that default and warns once in the console. Values are read when a module
+  loads.
+- `../publish.sh` copies it to `<site>/micro/game_config.js`, beside
+  `text_config.js`; `check-worlds.mjs` syntax-checks it with the rest.
 ## Checks
 
 ```bash

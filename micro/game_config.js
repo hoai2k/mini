@@ -64,7 +64,7 @@ export const GAME = {
     jumpAttackAfterLandingSeconds: 0.15,  // s: and this long after touchdown
     jumpAttackReach: 460,            // µm: from your body's centre to the predator's body or mouth
     jumpAttackInterest: 0.4,         // share 0..1 of the predator's interest each jump attack takes (3 drive it off)
-    groundBiteReachUp: 10,           // µm: how far above the mouth a bite from the ground reaches (the predator's belly is higher)
+    groundBiteReach: 110,            // µm over the moss under you that a bite from the ground reaches (the predator's belly stands ~130-155 µm up)
 
     // ---- The predatory mite, the three times you meet it (first, second, third).
     predatorHuntSpeeds: [760, 900, 1020],     // µm/s: how fast it runs you down

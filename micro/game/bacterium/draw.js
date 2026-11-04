@@ -229,47 +229,86 @@ export function createDrawer(world) {
     }
   }
   function amoeba(S, A, t) {
-    // a whole amoeba (world.js AMOEBA, amoebaDepth): a closed, lobed body far bigger than the view, its
-    // pseudopods flowing slowly, a clear margin round granular cytoplasm streaming toward its front, a
-    // nucleus and contractile vacuoles that fill and collapse. Its damage state (guards.js hpK): it thins
-    // and its granules thin out as the drills wear it down; the surge (its bite) bulges its front forward;
-    // beaten, it withdraws and fades.
-    const hp = A.hpK ?? 1, fade = 1 - (A.fade || 0), hit = A.hit ? 1 : 0;
+    // a whole amoeba (world.js AMOEBA, amoebaDepth): a closed, lobed body far bigger than the view, thin arms
+    // (pseudopods) reaching out of its front, all flowing slowly, a clear margin round granular cytoplasm
+    // streaming toward its front, a nucleus and contractile vacuoles that fill and collapse. It cannot be
+    // killed, so it shows no damage; it shows its irritation (guards.js IRR, A.irrK): its body recoils from
+    // the drills (A.recoil, world.js), its cytoplasm blanches round them and its granules flinch away; the
+    // tunnels your cells bore are cut out of it (A.tunnels: S.amoebaCut), their mouths narrowing as they pinch
+    // shut. Routed, it flows away off the way (world.js), still whole.
+    const irr = A.irrK ?? 0, fade = 1 - (A.fade || 0), hit = A.hit ? 1 : 0;
     if (fade <= 0.01) return;
-    const k = fade * (0.55 + 0.45 * hp);
+    const k = fade * (1 - 0.2 * irr);
     const nx = -Math.sin(A.ang), ny = Math.cos(A.ang), c = Math.cos(A.ang), s = Math.sin(A.ang);
-    const sx = A.surge ? nx * 5 * A.surge : 0, sy = A.surge ? ny * 5 * A.surge : 0;
+    // (its body's origin: recoiled back from its front, and bulged forward by the surge)
+    const rc = A.recoil || 0, sx = (A.surge ? 5 * A.surge : 0) - rc, ox = A.x + nx * sx, oy = A.y + ny * sx;
     const B = S.box, ax = A.a, bb = A.b;
     // (its body's middle, behind the front edge: skipped when the whole of it is out of view)
-    const mx = A.x - nx * bb, my = A.y - ny * bb, reach = ax * 1.3;
+    const mx = ox - nx * bb, my = oy - ny * bb, reach = ax * 1.3;
     if (mx + reach < B.x0 || mx - reach > B.x1 || my + reach < B.y0 || my - reach > B.y1) return;
-    S.amoeba(A.x + sx, A.y + sy, A.ang, ax, bb, A.amp * (1 + 0.8 * (A.surge || 0)), A.seed, { dn: 0.03 * k, scat: (0.05 + 0.1 * hit) * k, fl: [(0.04 + 0.05 * hit) * chan.memb * k, 0, 0], memb: 1, ab: [0.003 * k, 0.003 * k, 0.004 * k], z: 0.2 });
+    const amp = A.amp * (1 + 0.8 * (A.surge || 0));
+    bodyMat.dn = 0.03 * k; bodyMat.scat = (0.05 + 0.1 * hit) * k; bodyMat.fl[0] = (0.04 + 0.05 * hit) * chan.memb * k;
+    bodyMat.ab[0] = bodyMat.ab[1] = 0.003 * k * (1 - 0.4 * irr); bodyMat.ab[2] = 0.004 * k * (1 - 0.4 * irr);
+    S.amoeba(ox, oy, A.ang, ax, bb, amp, A.seed, bodyMat);
+    // its tunnels: cut out of the body exactly (the same outline, the same material taken away)
+    const at = (lx, ly, out) => { out.x = ox + c * lx - s * ly; out.y = oy + s * lx + c * ly; return out; };
+    for (const T of A.tunnels || []) {
+      const pin = T.pinch ? Math.min(1, T.pinch.t / T.pinch.tell) : 0;
+      cutT.x = T.x; cutT.y = T.y; cutT.a = T.a; cutT.len = T.len; cutT.w = T.w; cutT.pinch = pin;
+      S.amoebaCut(ox, oy, A.ang, ax, bb, amp, A.seed, cutT, bodyMat);
+      // blanching round it: the cytoplasm pales where it is drilled, more the more irritated it is
+      const ux = Math.cos(T.a), uy = Math.sin(T.a), step = Math.max(2.5, T.w * 1.2), f = (0.45 + 0.55 * irr) * fade;
+      blanch.dn = -0.004 * f; blanch.scat = 0.14 * f; blanch.fl[0] = 0.025 * f * chan.memb; blanch.ab[0] = blanch.ab[1] = blanch.ab[2] = -0.0015 * f;
+      for (let u = 0; u <= T.len + 0.01; u += step) { at(T.x + ux * u, T.y + uy * u, _p); if (S.inView(_p.x, _p.y, T.w * 3)) S.disc(_p.x, _p.y, T.w * 2.4, blanch); }
+      // pinching: the lips of its mouth swell and close in (the tell; main.js rings it, the warning line says so)
+      if (pin > 0) {
+        for (const sg of [1, -1]) {
+          const v = sg * T.w * (1.15 - 0.9 * pin);
+          at(T.x - uy * v + ux * 1.5, T.y + ux * v + uy * 1.5, _p);
+          lip.dn = 0.03 * (0.6 + 0.4 * pin); lip.scat = 0.1 + 0.3 * pin; lip.fl[0] = (0.05 + 0.08 * pin) * chan.memb;
+          if (S.inView(_p.x, _p.y, 6)) S.disc(_p.x, _p.y, 1.6 + 1.6 * pin, lip);
+        }
+      }
+      // just shut: a fresh food vacuole where it closed
+      if (T.shut > 0) { at(T.x + ux * Math.min(T.len, 6), T.y + uy * Math.min(T.len, 6), _p); S.disc(_p.x, _p.y, T.w * (1 + T.shut), { cap: 3, dn: -0.02, scat: 0.3, fl: [0.05 * chan.memb, 0, 0], memb: 1, z: 0.1 }); }
+    }
     // its attack (guards.js aimWrap): two pseudopods flowing out of its edge either side of your cells and
     // curving round them, closing the loop at the bite; then drawn back in
     if (A.wrap && fade > 0.9) pseudopods(S, A, t);
-    // granules in the cytoplasm, streaming slowly toward the front and recycled at the back (only those in view are drawn)
-    const nG = Math.round(granules.length * (0.35 + 0.65 * hp) * fade);
-    for (let gi = 0; gi < nG; gi++) {
+    // granules in the cytoplasm, streaming slowly toward the front and recycled at the back (only those in view
+    // are drawn), flinching away from the tunnels
+    const tun = A.tunnels || [];
+    for (let gi = 0; gi < granules.length; gi++) {
       const g = granules[gi];
       g.v += (0.6 + g.k * 0.6) * (1 / 60) / bb;
       if (g.v > 0.97) g.v = -0.95;
-      const lx = g.u * ax * Math.sqrt(Math.max(0, 1 - g.v * g.v)) * 0.95, ly = -bb + g.v * bb * 0.92;
-      const wx = A.x + c * lx - s * ly, wy = A.y + s * lx + c * ly;
-      if (!S.inView(wx, wy, 1)) continue;
-      granMat.dn = 0.08 * fade; granMat.scat = 0.6 * fade; granMat.ab[0] = granMat.ab[1] = 0.02 * fade; granMat.ab[2] = 0.03 * fade; granMat.z = g.z;
-      S.disc(wx, wy, g.r, granMat);
+      let lx = g.u * ax * Math.sqrt(Math.max(0, 1 - g.v * g.v)) * 0.95, ly = -bb + g.v * bb * 0.92;
+      at(lx, ly, _p);
+      if (!S.inView(_p.x, _p.y, 1)) continue;
+      for (const T of tun) {
+        const ux = Math.cos(T.a), uy = Math.sin(T.a), px = lx - T.x, py = ly - T.y, u = Math.max(0, Math.min(T.len, px * ux + py * uy)), ex = px - ux * u, ey = py - uy * u, e = Math.hypot(ex, ey), R = T.w * (2.2 + irr);
+        if (e < R && e > 1e-3) { lx = T.x + ux * u + (ex / e) * R; ly = T.y + uy * u + (ey / e) * R; }
+      }
+      at(lx, ly, _p);
+      granMat.dn = 0.08 * fade; granMat.scat = 0.6 * fade; granMat.ab[0] = granMat.ab[1] = 0.02 * fade * (1 - 0.3 * irr); granMat.ab[2] = 0.03 * fade * (1 - 0.3 * irr); granMat.z = g.z;
+      S.disc(_p.x, _p.y, g.r, granMat);
     }
     // the nucleus (a big flattened disc) and contractile vacuoles that swell and then collapse
     {
-      const wx = A.x - nx * bb * 1.05 + c * ax * 0.12, wy = A.y - ny * bb * 1.05 + s * ax * 0.12;
+      const wx = ox - nx * bb * 1.05 + c * ax * 0.12, wy = oy - ny * bb * 1.05 + s * ax * 0.12;
       S.disc(wx, wy, 26, { cap: 6, dn: 0.025 * fade, scat: 0.25 * fade, ab: [0.01 * fade, 0.01 * fade, 0.012 * fade], fl: [0.02 * fade, 0, 0], z: 0.1, wobble: 0.08, seed: 3 });
       for (let i = 0; i < 3; i++) {
-        const ph = ((t / 6 + i * 0.37) % 1), rr = 4 + 10 * Math.min(1, ph / 0.85) * (ph < 0.85 ? 1 : 1 - (ph - 0.85) / 0.15);
+        // (pumping faster when it is irritated)
+        const ph = ((t * (1 + irr) / 6 + i * 0.37) % 1), rr = 4 + 10 * Math.min(1, ph / 0.85) * (ph < 0.85 ? 1 : 1 - (ph - 0.85) / 0.15);
         const lx = (i - 1) * ax * 0.45, ly = -bb * (0.5 + 0.25 * i);
-        S.disc(A.x + c * lx - s * ly, A.y + s * lx + c * ly, rr, { cap: 4, dn: -0.03 * fade, scat: 0.2 * fade, fl: [0.03 * fade, 0, 0], memb: 1, z: 0.1 });
+        S.disc(ox + c * lx - s * ly, oy + s * lx + c * ly, rr, { cap: 4, dn: -0.03 * fade, scat: 0.2 * fade, fl: [0.03 * fade, 0, 0], memb: 1, z: 0.1 });
       }
     }
   }
+  const bodyMat = { dn: 0.03, scat: 0.05, fl: [0.04, 0, 0], memb: 1, ab: [0.003, 0.003, 0.004], z: 0.2 };
+  const cutT = { x: 0, y: 0, a: 0, len: 0, w: 0, pinch: 0 }, _p = { x: 0, y: 0 };
+  const blanch = { dn: -0.004, scat: 0.14, fl: [0.02, 0, 0], ab: [-0.0015, -0.0015, -0.0015], cap: 2, z: 0.2 };
+  const lip = { dn: 0.03, scat: 0.1, fl: [0.05, 0, 0], memb: 1, ab: [0.003, 0.003, 0.004], cap: 3, z: 0.2, wobble: 0.2, seed: 5 };
   const granMat = { dn: 0.08, scat: 0.6, ab: [0.02, 0.02, 0.03], z: 0 };
   const podMat = { dn: 0.03, scat: 0.06, fl: [0.04, 0, 0], memb: 1, ab: [0.003, 0.003, 0.004], cap: 5, z: 0.2, wobble: 0.15, seed: 0 };
   function pseudopods(S, A, t) {

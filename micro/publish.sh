@@ -3,6 +3,8 @@
 #   <site>/micro/                 micro/game/index.html (its src/ references
 #                                 rewritten to game/src/), icons, manifest
 #   <site>/micro/text_config.js   every player-facing string
+#   <site>/micro/game_config.js   the hand-tunable game dynamics (read by
+#                                 game/shared/config.js)
 #   <site>/micro/game/            the shell (src/, music/), the world pages
 #                                 (springtail/ ... phage/), zoom/, shared/
 #                                 and assets/
@@ -28,6 +30,7 @@ rm -f "$out/game/index.html" "$out/game/manifest.webmanifest"
 rm -rf "$out/game/icons"
 copy prototypes prototypes
 cp "$here/text_config.js" "$out/text_config.js"
+cp "$here/game_config.js" "$out/game_config.js"
 cp -R "$here/game/icons" "$out/icons"
 cp "$here/game/manifest.webmanifest" "$out/"
 sed 's#"src/#"game/src/#g' "$here/game/index.html" > "$out/index.html"

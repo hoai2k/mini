@@ -2,11 +2,11 @@
 // and the gates, stepped with the real world, swimmer, collective and guards.
 //   node micro/game/bacterium/flock.test.mjs
 import assert from 'node:assert/strict';
-import { createWorld, DROP, rimDist, WORLD, ENCOUNTERS, AMOEBA } from './world.js';
+import { createWorld, DROP, rimDist, WORLD, ENCOUNTERS, AMOEBA, AMOEBA_ARMS } from './world.js';
 import { createSwimmer } from './swim.js';
 import { createCollectives, COLL, densityK } from './collective.js';
 import { createStentor } from './stentor.js';
-import { createGuards } from './guards.js';
+import { createGuards, IRR, PINCH, TUN, WRAP } from './guards.js';
 import { createGame } from './game.js';
 import { ZOOM, zoomStep } from './followcam.js';
 import { SPECIES } from './swim.js';
@@ -60,7 +60,7 @@ function stentorFlank(B, x, y) {
 }
 /**
  * A swarm of n pushed into gate `id` (X every 0.5 s unless x is false). careful: pull back straight out from it
- * when it winds up (40 % into its tell) while any member is in its capture zone; mouth: the peritrich's mouth
+ * when it winds up (0.4 s into its tell, or its tunnel's pinch) while any member is in its capture zone; mouth: the peritrich's mouth
  * as the target instead of its bell's back. Returns { won, t (s from first contact), left, eaten, ... }.
  */
 function fight(id, n, { x = true, maxT = 60, careful = false, mouth = false, log = false } = {}) {
@@ -81,7 +81,10 @@ function fight(id, n, { x = true, maxT = 60, careful = false, mouth = false, log
     let tg = cc;
     if (id === 'grazer1') { const g = q.g; tg = mouth ? g.pose.mouth : { x: cc.x - g.pose.up.x * g.R * 1.3, y: cc.y - g.pose.up.y * g.R * 1.3 }; }
     if (id === 'stentor') tg = stentorFlank(stentor, C.cx, C.cy);
-    const tell = q.kind === 'stentor' ? false : (q.atk.st === 'tell' && q.atk.t > q.tell * 0.25) || q.atk.st === 'bite';
+    if (id === 'amoeba') { const k = careful ? 8 : 25; tg = { x: cc.x + Math.sin(q.A.ang) * k, y: cc.y - Math.cos(q.A.ang) * k }; } // (pushing on into it, past its edge: a reckless swarm burrows deep)
+    // (the amoeba's tunnel pinching shut is a tell too)
+    // (a player sees the attack coming and reacts: 0.4 s after its tell shows)
+    const tell = q.kind === 'stentor' ? false : (q.atk.st === 'tell' && world.time - q.atk0 > 0.4) || q.atk.st === 'bite' || (q.kind === 'amoeba' && q.A.tunnels.some((T) => T.pinch && T.pinch.t > 0.4));
     if (careful && tell && C.members.some((m) => guards.zone(q, m.x, m.y, world.time) > 0)) {
       // pull back: straight out from it (the amoeba's edge faces whoever comes; else away from its middle)
       let ox = C.cx - cc.x, oy = C.cy - cc.y;
@@ -94,7 +97,7 @@ function fight(id, n, { x = true, maxT = 60, careful = false, mouth = false, log
     }
     if (x && Math.round(tt * 4) % 2 === 0) guards.volley(C, 0);
   }
-  return { won: q.beaten, t: first === null ? null : +(tt - first).toFixed(1), left: C.members.length, hp: Math.round(q.hp), max: q.max, maxD, eaten: q.eaten, bites: q.bites, falls, states: [...states], log: log ? coll.lossLog.slice() : null };
+  return { won: q.beaten, t: first === null ? null : +(tt - first).toFixed(1), left: C.members.length, hp: Math.round(q.hp), max: q.max, irr: q.irr, tunnels: q.A ? q.A.tunnels.length : 0, maxD, eaten: q.eaten, bites: q.bites, falls, states: [...states], log: log ? coll.lossLog.slice() : null };
 }
 const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
 const sd = (a) => { const m = mean(a); return Math.sqrt(mean(a.map((x) => (x - m) ** 2))); };
@@ -365,7 +368,7 @@ function waylaySetup() {
 const battle = {};
 for (const [id, big, fast] of [['grazer1', 42, 8], ['bdello', 150, 12], ['amoeba', 450, 8], ['stentor', 900, 12]]) {
   const a = fight(id, 0, { maxT: 20 }), d = fight(id, big);
-  assert.ok(!a.won && a.hp > a.max * 0.8, `${id}: a lone cell gets nowhere (${a.hp} of ${a.max} left)`);
+  assert.ok(!a.won && (id === 'amoeba' ? a.irr < 0.2 : a.hp > a.max * 0.8), `${id}: a lone cell gets nowhere (${id === 'amoeba' ? `irritation ${a.irr.toFixed(2)}` : `${a.hp} of ${a.max} left`})`);
   assert.ok(d.won && d.t < fast, `${id}: a big swarm (${big}) wins fast (${d.t} s, ${d.left} left)`);
   assert.ok(d.maxD >= 5, `${id}: members drill in (${d.maxD} at once)`);
   battle[id] = `${big} wins in ${d.t} s (${d.left} left)`;
@@ -373,23 +376,31 @@ for (const [id, big, fast] of [['grazer1', 42, 8], ['bdello', 150, 12], ['amoeba
 {
   // the amoeba: a careful swarm of its need (pulling out of each loop as its pseudopods close) wins with most; a reckless one loses many
   const need = ENCOUNTERS.find((q) => q.id === 'amoeba').need;
+  // (it is routed, never killed: careful drills its edge and pulls out of each attack; reckless burrows deep)
   const c = fight('amoeba', need, { careful: true }), r = fight('amoeba', need);
-  assert.ok(c.won && c.left > need * 0.75, `amoeba: careful, ${need} win keeping most (${c.left} left, ${c.t} s, ${c.bites} bites)`);
-  assert.ok(r.left < c.left && r.eaten > c.eaten * 2, `amoeba: reckless, ${need} lose many more (${r.left} left, ${r.eaten} eaten against ${c.eaten})`);
+  assert.ok(c.won && c.left > need * 0.75, `amoeba: careful, ${need} rout it keeping most (${c.left} left, ${c.t} s, ${c.bites} bites)`);
+  assert.ok(r.won && r.t < c.t, `amoeba: reckless, burrowed in, ${need} rout it sooner (${r.t} s against ${c.t} s; ${r.left} left)`);
+  // burrowing is the risk: kept up for 15 s (no rout), a swarm burrowed in loses many more than one pulling out
+  const k0 = IRR.k; IRR.k = 1e12;
+  const c2 = fight('amoeba', need, { careful: true, maxT: 15 }), r2 = fight('amoeba', need, { maxT: 15 });
+  IRR.k = k0;
+  assert.ok(r2.eaten > c2.eaten * 2, `amoeba: burrowed in for 15 s, ${r2.eaten} engulfed; pulling out of each attack, ${c2.eaten}`);
   assert.ok(c.states.includes('tell') && c.states.includes('bite'), 'amoeba: a tell before each bite');
-  battle.amoebaCareful = `${need} careful: won in ${c.t} s, ${c.left} left; reckless: ${r.won ? 'won' : 'lost'}, ${r.left} left`;
+  assert.ok(c.hp === Infinity && r.hp === Infinity, 'amoeba: never any health lost (it has none to lose)');
+  battle.amoebaCareful = `${need} careful: routed it in ${c.t} s, ${c.left} left; reckless (burrowing): routed it in ${r.t} s, ${r.left} left; 15 s with no rout: burrowed ${r2.eaten} engulfed, careful ${c2.eaten}`;
 }
 {
-  // the amoeba engulfs only with pseudopods: drillers at its plain edge are never eaten without one
+  // the amoeba engulfs only by an attack it shows first: drilling its edge with no pseudopod, the only losses are to a tunnel's pinch, warned of
   const T = setup({}, { quiet: true });
   const { coll, guards, P, step, fill, move } = T;
   const q = guards.byId.amoeba; guards.placeGate(q, 400, 0, 0);
   const A = q.A, nx = -Math.sin(A.ang), ny = Math.cos(A.ang);
   move(A.x + nx * 40, A.y + ny * 40); fill(80); step(30);
-  q.atk.next = 1e9; // (it never attacks)
+  q.atk.next = 1e9; // (its loop never comes)
   const C = coll.of(P);
   for (let i = 0; i < 40; i++) step(15, { x: -nx, y: -ny, m: 0.6 });
-  assert.ok(q.drills > 10 && C.members.length >= 80 && !coll.lossLog.length, `drilling its edge for 10 s with no pseudopod: none lost (${q.drills} drilling, ${C.members.length} left)`);
+  assert.ok(coll.lossLog.every((e) => e.warned !== null && e.kind === 'amoeba'), `drilling its edge for 10 s with no pseudopod: every loss was a pinch it showed first (${coll.lossLog.length} lost, ${C.members.length} left: ${JSON.stringify(coll.lossLog.filter((e) => e.warned === null || e.kind !== "amoeba").slice(0, 3))})`);
+  assert.ok(coll.lossLog.length === q.eaten, `and nothing else took any (${q.eaten} engulfed)`);
 }
 {
   // a wrap telegraphs (≥ 1.5 s from the pseudopods reaching out to the loop closing); cells that pull out of the loop first survive
@@ -399,10 +410,10 @@ for (const [id, big, fast] of [['grazer1', 42, 8], ['bdello', 150, 12], ['amoeba
   const A = q.A, nx = -Math.sin(A.ang), ny = Math.cos(A.ang);
   move(A.x + nx * 30, A.y + ny * 30); fill(60); step(30);
   const C = coll.of(P);
-  let t0 = null, tClose = null, out = [], inside = [];
+  let t0 = null, tClose = null, out = [], inside = [], fast = false;
   for (let i = 0; i < 1200 && tClose === null; i++) {
     if (t0 === null && A.wrap) {
-      t0 = T.t;
+      t0 = T.t; fast = A.wrap.fast;
       // half the cells in the loop pull out at once (steered out: here put well clear), the rest stay
       inside = C.members.filter((m) => Math.hypot(m.x - A.wrap.x, m.y - A.wrap.y) < A.wrap.R * 0.8);
       out = inside.splice(0, Math.floor(inside.length / 2));
@@ -411,7 +422,8 @@ for (const [id, big, fast] of [['grazer1', 42, 8], ['bdello', 150, 12], ['amoeba
     if (t0 !== null && A.wrap && A.wrap.done) tClose = T.t;
     if (t0 === null) step(1, { x: -nx, y: -ny, m: 0.5 }); else { step(1); out.forEach((m, k) => { if (!m.dying) { m.x = A.wrap ? A.wrap.x + nx * (A.wrap.R + 25) + (k % 5) * 2 : m.x; } }); }
   }
-  assert.ok(t0 !== null && tClose - t0 >= 1.5, `its pseudopods reach round for ${(tClose - t0).toFixed(2)} s before the loop closes`);
+  // (round cells burrowed in, a tunnel or a dent, it closes WRAP.fast times as fast: still over 1.4 s)
+  assert.ok(t0 !== null && tClose - t0 >= (fast ? 1.4 : 1.5), `its pseudopods reach round for ${(tClose - t0).toFixed(2)} s before the loop closes${fast ? ' (round burrowed cells: faster)' : ''}`);
   const lostIn = inside.filter((m) => m.dying).length, lostOut = out.filter((m) => m.dying).length;
   assert.ok(inside.length > 3 && lostIn >= inside.length * 0.6 && lostOut === 0, `the cells left in the loop are engulfed (${lostIn} of ${inside.length}), those that pulled out survive (${lostOut} of ${out.length} lost)`);
 }
@@ -614,6 +626,153 @@ for (const [id, big, fast] of [['grazer1', 42, 8], ['bdello', 150, 12], ['amoeba
   const inside = (lx, ly) => { const c = Math.cos(A.ang), s = Math.sin(A.ang); return world.insideAmoeba(A.x + c * lx - s * ly, A.y + s * lx + c * ly, t); };
   assert.ok(inside(0, -5) > 0 && inside(0, 8) < 0 && inside(AMOEBA.a * 0.8, -AMOEBA.b) > 0, 'inside behind its front edge and well along it, outside in front');
   assert.ok(inside(AMOEBA.a * 1.3, -AMOEBA.b) < 0 && inside(0, -AMOEBA.depth * 1.3) < 0, 'its ends and back close (outside beyond them)');
+  // its thin pseudopods reach out of its front, and the shader draws the same ones
+  const [ax, len, w, lean] = AMOEBA_ARMS[0], ry = AMOEBA.b * Math.sqrt(1 - (ax / AMOEBA.a) ** 2) - AMOEBA.b - 3, ph = Math.PI / 2 + lean, ex = ax + Math.cos(ph) * len * 0.6, ey = ry + Math.sin(ph) * len * 0.6;
+  assert.ok(ey > 20 && inside(ex, ey) > 0 && inside(ex + w * 2.5, ey) < 0 && inside(ex - w * 2.5, ey) < 0, 'a thin arm reaches out of its front');
+  const src = readFileSync(new URL('../shared/techniques/bacterium-shapes.js', import.meta.url), 'utf8');
+  assert.equal(src.match(/export const AMOEBA_ARMS = (\[.*\]);/)[1], JSON.stringify(AMOEBA_ARMS).replace(/,/g, ', '), 'the shader draws the same arms (bacterium-shapes.js AMOEBA_ARMS)');
+}
+
+
+// --- the amoeba cannot be killed, only routed (the owner, 2026-11-04: "the amoeba should essentially have infinite
+// HP (because it's huge, right?), but be able to be routed by attacks") ---
+const amoebaFight = (n, at = 0) => {
+  const T = setup({}, { quiet: true });
+  const q = T.guards.byId.amoeba; T.guards.placeGate(q, 400, 0, 0);
+  const A = q.A, nx = -Math.sin(A.ang), ny = Math.cos(A.ang), c = Math.cos(A.ang), s = Math.sin(A.ang);
+  A._w = T.world; // (for T_world, worldAt)
+  T.move(A.x + nx * (12 + Math.sqrt(n)) + c * at, A.y + ny * (12 + Math.sqrt(n)) + s * at); T.fill(n); T.step(30);
+  return { ...T, q, A, nx, ny, c, s, C: T.coll.of(T.P) };
+};
+{
+  // no amount of harm kills it: no health, nothing to fall to zero, never dissolved or removed
+  const { q, A, guards, step, world } = amoebaFight(10);
+  for (let i = 0; i < 50; i++) guards.hurt(q, 1e6, false);
+  step(400);
+  assert.ok(q.hp === Infinity && guards.GATES.amoeba.max === Infinity, 'it has no health to lose (infinite)');
+  assert.ok(q.beaten && A.routed && !A.parked && (A.fade || 0) === 0, 'the most it does is give way (routed), whole: not dissolved, faded or removed');
+  const L = world.amoebaLocal(A.x - Math.sin(A.ang) * 50, A.y + Math.cos(A.ang) * 50, { x: 0, y: 0 });
+  assert.ok(world.amoebaAt(L.x, L.y - 100, world.time, false) > 0, 'its body is still there, wherever it went');
+}
+{
+  // sustained drilling routs it: its irritation builds (and ebbs when you stop), then it flows off the way
+  const { q, A, step, nx, ny, C, world, guards } = amoebaFight(150);
+  const H = { x: A.home.x, y: A.home.y };
+  q.atk.next = 1e9; // (its loop never comes: this measures the drilling)
+  for (let i = 0; i < 12; i++) { step(15, { x: -nx, y: -ny, m: 0.7 }); }
+  const mid = q.irr;
+  assert.ok(mid > 0.15 && !q.beaten, `drilling builds its irritation (${mid.toFixed(2)} after 3 s), and does not rout it at once`);
+  // let go: it ebbs
+  for (let i = 0; i < 16; i++) step(15, { x: nx, y: ny, m: 1 });
+  assert.ok(q.irr < mid * 0.95, `pulled away, its irritation ebbs (${mid.toFixed(2)} → ${q.irr.toFixed(2)})`);
+  for (let i = 0; i < 240 && !q.beaten; i++) step(15, { x: -nx, y: -ny, m: 0.7 });
+  assert.ok(q.beaten && A.routed && q.hp === Infinity, `kept up, the drilling routs it (${q.irr.toFixed(2)})`);
+  const x0 = A.x, y0 = A.y;
+  step(60 * 6);
+  const moved = Math.hypot(A.x - x0, A.y - y0);
+  const L = world.amoebaLocal(H.x, H.y, { x: 0, y: 0 }), across = Math.abs(L.x);
+  assert.ok(moved > 400 && across > AMOEBA.a + 100 && world.amoebaAt(L.x, L.y, world.time, false) < 0, `routed, it flows off the way over a few seconds (${moved.toFixed(0)} µm along its edge: the way at its gate is ${across.toFixed(0)} µm from its middle, clear of it)`);
+  assert.ok(world.insideAmoeba(H.x, H.y, world.time) < 0 && !guards.zone(q, H.x, H.y, world.time), 'and the way through is open');
+  void C;
+  battle.amoebaRout = `150 drilling: irritation ${mid.toFixed(2)} at 3 s, ebbing when they stop; routed, it flowed ${moved.toFixed(0)} µm off the way`;
+}
+{
+  // drilling at one spot bores a tunnel that deepens with more drillers and time; left alone it closes again
+  const { q, A, step, nx, ny, C } = amoebaFight(60);
+  q.atk.next = 1e9;
+  const oldMin = PINCH.minLen; PINCH.minLen = 1e9; // (no pinch: this measures the tunnel)
+  const oldK = IRR.k; IRR.k = 1e12; // (nor a rout)
+  const lens = [];
+  for (let i = 0; i < 16; i++) { step(15, { x: -nx, y: -ny, m: 0.6 }); lens.push(Math.max(0, ...A.tunnels.map((T) => T.len))); }
+  const deep = A.tunnels.reduce((a, T) => (T.len > a.len ? T : a), { len: 0 });
+  assert.ok(lens[15] > 6 && lens[15] > lens[5] + 2 && lens[5] >= lens[1], `a tunnel deepens as they drill (${lens.filter((_, i) => i % 3 === 0).map((l) => l.toFixed(1)).join(' → ')} µm)`);
+  assert.ok(deep.n > 3 && deep.w > TUN.w0, `drillers crowd into it and widen it (${deep.n} drilling, ${deep.w.toFixed(1)} µm half-width)`);
+  // a cell inside the tunnel is inside the amoeba's outline (as it was), yet in open water now
+  const inT = C.members.filter((m) => { const L = T_world(A, m); return inTun(deep, L) && L.inBody > 1; });
+  assert.ok(inT.length >= 2, `cells in the tunnel are inside the amoeba (${inT.length} of them past its surface)`);
+  // and the depth along its axis: open (outside) in the tunnel, body either side
+  const along = (u, v) => { const ux = Math.cos(deep.a), uy = Math.sin(deep.a); return worldAt(A, deep.x + ux * u - uy * v, deep.y + uy * u + ux * v); };
+  assert.ok(along(deep.len * 0.6, 0) < 0 && along(deep.len * 0.6, deep.w + 3) > 0, 'inside the tunnel is open water; beside it, body');
+  // steer off: the drills let go, and after a moment the cytoplasm flows back in
+  const L0 = deep.len;
+  for (let i = 0; i < 8; i++) step(15, { x: nx, y: ny, m: 1 });
+  const L1 = deep.len;
+  for (let i = 0; i < 60 && A.tunnels.includes(deep); i++) step(15);
+  assert.ok(L1 >= L0 - 1.5 && !A.tunnels.includes(deep), `left alone it holds a moment (${L0.toFixed(1)} → ${L1.toFixed(1)} µm in 2 s), then closes up (gone)`);
+  PINCH.minLen = oldMin; IRR.k = oldK;
+  battle.tunnel = `60 drilling bored ${L0.toFixed(1)} µm in 4 s (${deep.n} in it); left alone it closed in ${(TUN.hold + L0 / TUN.close).toFixed(0)} s`;
+}
+/** A member's place in the amoeba's frame, and how deep it is under the body's surface as it was before any tunnel. */
+function T_world(A, m) { const W = A._w; const L = W.amoebaLocal(m.x, m.y, { x: 0, y: 0 }); L.inBody = W.amoebaAt(L.x, L.y, W.time, false); return L; }
+function inTun(T, L) { const ux = Math.cos(T.a), uy = Math.sin(T.a), px = L.x - T.x, py = L.y - T.y, u = px * ux + py * uy; if (u < 1 || u > T.len + T.w) return false; const s2 = Math.min(T.len, u); return Math.hypot(px - ux * s2, py - uy * s2) < T.w + 1; }
+function worldAt(A, lx, ly) { return A._w.amoebaAt(lx, ly, A._w.time); }
+{
+  // a thin pseudopod can be bored straight through: a passage to its other side
+  const T = setup({}, { quiet: true });
+  const { coll, guards, P, step, fill, move, world } = T;
+  const q = guards.byId.amoeba; guards.placeGate(q, 400, 0, 0);
+  const A = q.A; A._w = world; q.atk.next = 1e9;
+  // the arm at x = 70 along its edge: halfway out, from its side
+  const [ax, len, w, lean] = AMOEBA_ARMS[1], b = AMOEBA.b, ry = b * Math.sqrt(1 - (ax / AMOEBA.a) ** 2) - b - 3, ph = Math.PI / 2 + lean;
+  const ux = Math.cos(ph), uy = Math.sin(ph), sA = len * 0.45, mid = { x: ax + ux * sA, y: ry + uy * sA }, side = { x: -uy, y: ux }; // (side: across the arm)
+  const thick = 2 * w * (1 - 0.35 * sA / len);
+  const start = world.amoebaWorld(mid.x + side.x * 25, mid.y + side.y * 25, { x: 0, y: 0 });
+  move(start.x, start.y); fill(40); step(20);
+  const c = Math.cos(A.ang), s = Math.sin(A.ang), into = { x: -(c * side.x - s * side.y), y: -(s * side.x + c * side.y) };
+  let through = null;
+  for (let i = 0; i < 80 && !through; i++) { step(15, { ...into, m: 0.6 }); through = A.tunnels.find((T2) => T2.through); }
+  assert.ok(through, `drilling the side of a thin pseudopod (${thick.toFixed(1)} µm thick) bores a tunnel through it (${A.tunnels.map((T2) => T2.len.toFixed(1)).join(', ')} µm)`);
+  // a passage: along its axis from the mouth to past the far side, open water all the way
+  let open = true;
+  for (let u = 0.5; u < through.len; u += 0.5) if (world.amoebaAt(through.x + Math.cos(through.a) * u, through.y + Math.sin(through.a) * u, world.time) > 0) open = false;
+  const far = world.amoebaAt(through.x + Math.cos(through.a) * (through.len + 1), through.y + Math.sin(through.a) * (through.len + 1), world.time, false);
+  assert.ok(open && far < 0, 'a passage through: open water all the way to the other side');
+  assert.ok(q.hp === Infinity, 'it is not hurt by it, only irritated');
+  battle.armThrough = `40 bored through a ${thick.toFixed(1)} µm pseudopod (${through.len.toFixed(1)} µm tunnel)`;
+  void coll; void P;
+}
+/** Bore a tunnel into the amoeba's front with n cells until it starts to pinch shut (no rout, no loop). Returns the scene and the tunnel. */
+function pinchScene(n = 50) {
+  const S = amoebaFight(n);
+  S.A._w = S.world; S.q.atk.next = 1e9;
+  let Tp = null;
+  for (let i = 0; i < 2400 && !Tp; i++) { S.step(1, { x: -S.nx, y: -S.ny, m: 0.6 }); Tp = S.A.tunnels.find((T) => T.pinch); }
+  return { ...S, Tp };
+}
+{
+  // burrowed cells are trapped more easily: the tunnel's mouth narrows (the tell), then it closes on those still inside
+  const oldK = IRR.k; IRR.k = 1e12;
+  const S = pinchScene(50), { A, Tp, step, C, world, coll } = S;
+  assert.ok(Tp, 'a tunnel with cells in it starts to pinch shut');
+  const t0 = world.time, inside = C.members.filter((m) => inTun(Tp, T_world(A, m)) && T_world(A, m).inBody > 0.5);
+  // its mouth visibly narrows: a point beside the axis near the mouth goes from open to body over the pinch
+  const ux = Math.cos(Tp.a), uy = Math.sin(Tp.a), probe = () => world.amoebaAt(Tp.x + ux * 6 - uy * Tp.w * 0.6, Tp.y + uy * 6 + ux * Tp.w * 0.6, world.time);
+  const open0 = probe();
+  assert.ok(inside.every((m) => m.warned && m.warned.kind === 'amoeba'), `every cell inside is warned at once (${inside.length})`);
+  step(Math.round(PINCH.tell * 0.85 * 60), { x: -S.nx, y: -S.ny, m: 0.6 }); // (staying in)
+  const open1 = probe();
+  assert.ok(open0 < 0 && open1 > 0, `its mouth narrows as it pinches (beside the axis: ${open0.toFixed(1)} → ${open1.toFixed(1)} µm inside its body)`);
+  const lost0 = coll.lossLog.length;
+  step(Math.round(PINCH.tell * 0.3 * 60), { x: -S.nx, y: -S.ny, m: 0.6 });
+  const taken = coll.lossLog.slice(lost0);
+  assert.ok(taken.length >= 3 && taken.every((e) => e.kind === 'amoeba' && e.warned !== null && e.warned >= PINCH.tell * 0.5 - 0.02), `those still inside when it shuts are engulfed (${taken.length}), each warned at least ${PINCH.tell * 0.5} s before (${Math.min(...taken.map((e) => e.warned))}-${Math.max(...taken.map((e) => e.warned))} s)`);
+  assert.ok(taken.length <= PINCH.max, 'at most PINCH.max at a time');
+  const m = inside.find((k) => k.dying);
+  assert.ok(m && m.dying.kind === 'amoeba' && !m.parked, 'engulfed where they are (the vacuole animation plays)');
+  assert.ok(world.time - t0 >= PINCH.tell - 0.05, 'not before its tell had run');
+  IRR.k = oldK;
+  battle.pinch = `a ${Tp.len.toFixed(1)} µm tunnel pinched shut ${PINCH.tell} s after its warning, on ${taken.length} cells left inside`;
+}
+{
+  // backing out in time saves them: steered back out when the pinch shows, none is lost
+  const oldK = IRR.k; IRR.k = 1e12;
+  const S = pinchScene(50), { A, Tp, step, C, coll } = S;
+  const inside = C.members.filter((m) => inTun(Tp, T_world(A, m)));
+  step(Math.round(0.4 * 60), { x: -S.nx, y: -S.ny, m: 0.6 }); // (a moment to react)
+  const lost0 = coll.lossLog.length;
+  for (let i = 0; i < 12; i++) step(15, { x: S.nx, y: S.ny, m: 1 });
+  assert.ok(inside.length >= 3 && coll.lossLog.length === lost0 && !inside.some((m) => m.dying), `pulled out of the tunnel in time, all ${inside.length} that were inside are saved`);
+  IRR.k = oldK;
 }
 
 console.log(`bacterium flock: all checks pass

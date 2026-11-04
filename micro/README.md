@@ -13,6 +13,9 @@ Video games where you play as microscopic creatures.
 - [`text_config.js`](text_config.js) holds every piece of text the player
   sees, in every world and menu ("Editing the game's text" in
   [`game/README.md`](game/README.md)).
+- [`game_config.js`](game_config.js) holds the game dynamics worth tuning by
+  hand, per world, with their units ("Tuning the game" in
+  [`game/README.md`](game/README.md)).
 
 - **The story: the super-gene.** You zoom down the chain, world by world,
   to the bottom: a phage that glows gold. When it gets its genome into a host

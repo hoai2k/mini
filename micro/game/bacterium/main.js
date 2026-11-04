@@ -188,14 +188,17 @@ const guards = createGuards(world, coll, stentor, {
   onKill: () => { audio.play('bacterium/lyse', { volume: 0.6, old: ['bacterium/eat', { volume: 0.6, rate: 1.3 }] }); },
   // an enemy's tell (its cilia race, its edge bulges) and its bite (members taken): heard, and shaken on the pad
   onTell: (q) => { if (q.kind === 'grazer') audio.play('bacterium/stentor', { volume: 0.35, rate: 1.4 }); else if (q.kind === 'amoeba') audio.play('bacterium/stentor', { volume: 0.4, rate: 0.7 }); },
-  onBite: (q, n) => {
+  // the amoeba (guards.js IRR, TUN): it flinches (half way to routed), and a tunnel bored right through it
+  onFlinch: () => { if (!gateMsg.flinch) { gateMsg.flinch = true; hud.toast(tt('bacterium.toasts.amoebaFlinch', { glyph }), 2800); } },
+  onThrough: () => { audio.play('bacterium/gate', { volume: 0.5, rate: 1.4 }); if (!gateMsg.through) { gateMsg.through = true; hud.toast(tt('bacterium.toasts.tunnelThrough'), 3200); } },
+  onBite: (q, n, how) => {
     if (!n) return;
     audio.play('bacterium/graze', { volume: 0.7, rate: q.kind === 'amoeba' ? 0.7 : q.kind === 'stentor' ? 0.85 : 1.1 });
     for (const P of roster) P.pad.rumble(140, 0.4, 0.5);
     // say what took them, where (the eaten animation plays at the spot): one line per attack, Stentor's summed over 3 s
     const b = gateMsg.bite[q.kind] || (gateMsg.bite[q.kind] = { n: 0, t: -9 });
     b.n += n;
-    if (t - b.t > (q.kind === 'stentor' ? 3 : 1.5)) { b.t = t; hud.toast(tt(`bacterium.toasts.bite.${q.kind}`, { n: b.n }), 2600); b.n = 0; }
+    if (t - b.t > (q.kind === 'stentor' ? 3 : 1.5)) { b.t = t; hud.toast(tt(`bacterium.toasts.bite.${how || q.kind}`, { n: b.n }), 2600); b.n = 0; }
   },
 });
 const gateInfo = { log: [] };
@@ -676,8 +679,14 @@ function gauge() {
   const tell = q.kind === 'stentor' ? B.state === 'recoil' : q.atk.st === 'tell';
   gaugeEl.querySelector('.nm').textContent = q.drills ? tt('bacterium.gauge.drilling', { name, n: q.drills }) : name;
   gaugeEl.querySelector('.nm').style.color = tell ? '#ffb27a' : '';
-  gaugeEl.querySelector('i').style.width = `${Math.round(Math.max(0, q.hp / q.max) * 100)}%`;
+  // (the amoeba has no health to show: it cannot be killed, only routed; its irritation shows on it, draw.js)
+  const bar = gaugeEl.querySelector('i');
+  if (q.kind === 'amoeba') { bar.parentElement.style.visibility = 'hidden'; gaugeEl.querySelector('.nm').textContent = q.drills ? tt('bacterium.gauge.drilling', { name: amoebaMood(q), n: q.drills }) : amoebaMood(q); return; }
+  bar.parentElement.style.visibility = '';
+  bar.style.width = `${Math.round(Math.max(0, q.hp / q.max) * 100)}%`;
 }
+/** How the amoeba is taking it, in words (its irritation, guards.js IRR). */
+const amoebaMood = (q) => tt(`bacterium.gauge.amoebaMood.${q.irr < 0.25 ? 'calm' : q.irr < 0.5 ? 'stung' : q.irr < 0.8 ? 'flinching' : 'giving'}`);
 
 // --- rendering ---
 const optics = createLightOptics(renderer);
@@ -1649,6 +1658,9 @@ function attackText(P) {
   // a swarm at a gate: the enemy's tell, said plainly (its bite takes your cells, not you)
   const C = coll.opts.on && coll.of(P);
   if (C && C.members.length) {
+    // a tunnel pinching shut with your cells in it (guards.js PINCH)
+    const Am = world.amoeba;
+    if (!Am.beaten && Am.tunnels.some((T) => T.pinch) && C.members.some((m) => guards.zone(guards.byId.amoeba, m.x, m.y, t) > 0 && !(Am.wrap && !Am.wrap.done && Math.hypot(m.x - Am.wrap.x, m.y - Am.wrap.y) < Am.wrap.R))) return { text: tt('bacterium.warn.tell.tunnel', { glyph }), sev: 2.0 };
     for (const q of guards.list) {
       if (!q.engaged || q.beaten || q.kind === 'stentor') continue;
       const tell = q.atk.st === 'tell', bite = q.atk.st === 'bite';
@@ -1905,7 +1917,7 @@ function drawMarks(L, fieldH) {
  */
 function enemyBars(i, cssPerUm) {
   for (const q of guards.list) {
-    if (!q.engaged || q.beaten) continue;
+    if (!q.engaged || q.beaten || q.kind === 'amoeba') continue; // (the amoeba has no health bar: it cannot be killed)
     const c = guards.centre(q);
     const up = q.kind === 'grazer' ? q.g.R * 1.6 : q.kind === 'amoeba' ? 30 : q.kind === 'stentor' ? 40 : 30;
     const p = projectView(i, { x: c.x, y: c.y + up, z: 0 });
@@ -1949,6 +1961,8 @@ function threatMarks(i, cssPerUm) {
   };
   const A = world.amoeba, Wr = A.wrap;
   if (Wr && !A.beaten) ring(Wr.x, Wr.y, Wr.R * cssPerUm, Wr.done ? 1 : Wr.p);
+  // a tunnel pinching shut: a solid ring round its mouth, filling as it closes
+  if (!A.beaten) for (const T of A.tunnels) if (T.pinch) { const m = world.amoebaWorld(T.x + Math.cos(T.a) * Math.min(T.len, 8) * 0.5, T.y + Math.sin(T.a) * Math.min(T.len, 8) * 0.5, { x: 0, y: 0 }); ring(m.x, m.y, Math.max(12, (T.w + 4) * cssPerUm), Math.min(1, T.pinch.t / T.pinch.tell), false); }
   const g = guards.byId.grazer1;
   if (g.placed && !g.beaten && g.atk.st === 'tell' && g.engaged) {
     const P = g.g.pose, M = P.mouth, ua = Math.atan2(P.up.y, P.up.x), R = g.reach, p = projectView(i, { x: M.x, y: M.y, z: 0 });
@@ -2014,7 +2028,7 @@ function stats() {
       : `prey ${S.prey}/${GOAL_PREY}${S.boring ? ` · boring ${Math.min(100, Math.round((S.boreT / 2.5) * 100))} %` : ''}`,
     `${dash.text()} · phages on you ${S.phages.length}${S.phages.some((p) => p.irreversible) ? ' (IRREVERSIBLE)' : ''}${S.attacker ? ' · BDELLOVIBRIO ATTACHED' : ''}`,
     S.species === 'mtb' ? `field ${world.opts.field} µT, mB/kT ≈ ${(S.mB || 0).toFixed(1)} (gentle pull: steer against it) · running ${S.sense > 0 ? 'north (down the field)' : 'south (up the field)'}` : `run ${sp.v} µm/s, sprint ${sp.dash} µm/s`,
-    `gates: ${guards.list.map((q) => `${q.id} ${q.beaten ? 'beaten' : `${Math.round((100 * Math.max(0, q.hp)) / q.max)} %${q.contact ? ` (${q.contact} fighting)` : ''}`}`).join(' · ')}`,
+    `gates: ${guards.list.map((q) => `${q.id} ${q.beaten ? 'beaten' : q.kind === 'amoeba' ? `irritated ${Math.round(100 * q.irr)} %, ${world.amoeba.tunnels.length} tunnels${q.contact ? ` (${q.contact} fighting)` : ''}` : `${Math.round((100 * Math.max(0, q.hp)) / q.max)} %${q.contact ? ` (${q.contact} fighting)` : ''}`}`).join(' · ')}`,
     capture.active && cat.kind ? `CAUGHT by ${CATCH[cat.kind].by.toLowerCase()}: ${cat.phase}` : '',
     (() => { const C = coll.of(P1); return C && C.members.length ? `army: ${C.army} cells (${C.players.length > 1 ? C.players.length + ' players' : 'you'}) · ${LEVEL_NAMES.slice(1, C.level + 1).join(', ') || 'no abilities yet'} · toxin ${Math.round(C.charge * 100)} % · drag ×${C.drag.toFixed(2)} · flock ${C.speed.toFixed(0)} µm/s, ${C.extent.toFixed(0)} µm across` : coll.opts.on ? `army: none yet (press ${glyph('X')} near kin)` : ''; })(),
     `out from the start ${Math.round(world.distFromStart(S.x, S.y))} µm · encounters ${director.index}/${ENCOUNTERS.length} (${director.state().phase})${world.landmarks.forward.placed ? ` · host ${Math.round(Math.hypot(S.x - FWD.x, S.y - FWD.y))} µm${portalSealed() ? ', sealed' : guarded() ? ', guarded' : ', open'}` : ''} · Paramecium ${Math.round(Math.hypot(S.x - BACK.x, S.y - BACK.y))} µm`,

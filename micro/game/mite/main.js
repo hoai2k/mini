@@ -16,12 +16,14 @@ import { mountHud } from '../shared/hud.js';
 import { createSem, shared, MODES, CLS, gMaterial } from './sem.js';
 import { semTextures } from './textures.js';
 import { buildWorld, floorH, TILE } from './world.js';
-import { RINGS, PORTAL_CLEAR, CLUSTER, CLUSTERS, PRED_GROUND, BOSS, OPENING, NPC_HOME, predZoneAt, distFromStart, bearingFromStart, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, insideEdge, BOUNDS, DRIP, FAMILY, FORWARD_YAW } from './layout.js';
+import { RINGS, PORTAL_CLEAR, CLUSTER, CLUSTERS, PRED_GROUND, BOSS, OPENING, NPC_HOME, predZoneAt, distFromStart, bearingFromStart, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, insideEdge, BOUNDS, DRIP, FAMILY, FORWARD_YAW, M as conf, PARK, EDGE, toCorridor, WALK_FOR_WALLS, WALL_SECONDS, PORTAL_ALONG } from './layout.js';
+import { createPush, deepestOverlap } from '../shared/push.js';
+import { conf as gconf } from '../shared/config.js';
 import { createAmbient, createBeads, createDrops } from './life.js';
 import { createGround, createKeepOut } from './stand.js';
 import { createDirector } from '../shared/director.js';
 import { createQuality } from '../shared/quality.js';
-import { createMite, CFG, PRED, JUMP } from './mite.js';
+import { createMite, CFG, PRED, JUMP, ANAT } from './mite.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
 import { createBorrowedLooks, borrowedSwitches, AMOEBA_MODES, DIC_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
@@ -107,7 +109,7 @@ const pred = createMite(scene, world.colliders, { cls: CLS.NPC, tex, anat: PRED 
 // in moss nobody has seen, a short way ahead of whoever leads), three times. Until
 // placed it is hidden, parked in a corner of the square and not stepped.
 const A0 = Math.atan2(OPENING.uz, OPENING.ux);
-const PRED_PARK = { x: BOUNDS.x1 - 400, z: BOUNDS.z1 - 400 };
+const PRED_PARK = { x: PARK.x, z: PARK.z }; // behind the south wall, out of play (layout.js PARK)
 const predZone = predZoneAt(PRED_PARK.x, PRED_PARK.z);
 const predAI = createPredatorAI(pred, predZone);
 let predPlaced = false;
@@ -138,9 +140,16 @@ let dash = createDash({ duration: 0.6, cooldown: 2.2 });
 // curve between (fine control near the slow end); the scramble (B) is DASH,
 // ~1.7x the old scramble. The keyboard walks at KEY_WALK on the curve; LB/RB
 // (Q/F) reach the slow end and full tilt.
-const WALK_MIN = Math.round(720 * MITE_SCALE), WALK_MAX = Math.round(WALK_MIN * 2.1), DASH = Math.round(WALK_MAX * 1.7);
+// (micro/game_config.js mite.walkSlowestSpeed, walkFullTiltSpeed, scrambleSpeed, keyboardWalkShare: 418, 878,
+// 1493 and 0.65, the values these were derived from: 720 µm/s at the 0.6 mm anatomy x 0.58, x2.1, x1.7)
+const WALK_MIN = conf('walkSlowestSpeed', 418), WALK_MAX = conf('walkFullTiltSpeed', 878), DASH = conf('scrambleSpeed', 1493);
 const WALK = WALK_MAX; // full tilt (tests' default)
-const KEY_WALK = 0.65;
+const KEY_WALK = conf('keyboardWalkShare', 0.65);
+const STAM_EMPTY = conf('scrambleEmptySeconds', 1.6), STAM_FILL = conf('scrambleRefillSeconds', 2.8);
+// the jump (A): game_config.js distances on level ground from a standstill (world µm), in the anatomy's units
+JUMP.range0 = conf('jumpTapDistance', 1000) / MITE_SCALE;
+JUMP.range1 = conf('jumpFullChargeDistance', 2100) / MITE_SCALE;
+JUMP.charge = conf('jumpChargeSeconds', 0.45);
 /** Walking speed (world µm/s) for a stick deflection 0..1 after the pad's dead zone. */
 function walkSpeed(m) { return m > 0 ? WALK_MIN + (WALK_MAX - WALK_MIN) * Math.min(1, m) ** 2 : 0; }
 const hud = mountHud({
@@ -431,11 +440,11 @@ function afterCatch() {
 // Fighting back (shared/predation.js createFight): facing the hunting
 // predator, blocking its strike (close up, B) and nipping it (X) wear its
 // interest down; out of interest it runs off (and rests: hunger.missed()).
-const fight = createFight();
-const fightLog = { blocks: 0, bites: 0, retreats: 0 };
+const fight = createFight({ blockHit: conf('predatorBlockInterest', 0.3), facingRate: conf('predatorFacingInterestPerSecond', 0.06) });
+const fightLog = { blocks: 0, bites: 0, retreats: 0, jumps: 0, tooHigh: 0 };
 function wearDown(how) {
-  fightLog[how === 'bite' ? 'bites' : 'blocks']++;
-  if (fight.bitten()) {
+  fightLog[how === 'bite' ? 'bites' : how === 'jump' ? 'jumps' : 'blocks']++;
+  if (fight.bitten(how === 'jump' ? JA_INTEREST : undefined)) {
     fightLog.retreats++;
     audio.play('shared/foe-flees', { volume: 0.7 });
     predAI.retreat();
@@ -445,7 +454,7 @@ function wearDown(how) {
     return true;
   }
   predAI.repel();
-  hud.toast(how === 'bite' ? tt('mite.toasts.predatorNipped') : tt('mite.toasts.predatorBlocked'), 1500);
+  hud.toast(how === 'bite' ? tt('mite.toasts.predatorNipped') : how === 'jump' ? tt('mite.toasts.jumpAttackPredator') : tt('mite.toasts.predatorBlocked'), 1500);
   return false;
 }
 const _ct = new THREE.Vector3(), _cm = new THREE.Vector3(), _cf = new THREE.Vector3(), _cq = new THREE.Quaternion(), _up = new THREE.Vector3(0, 1, 0);
@@ -685,16 +694,34 @@ const closedNow = () => mite.mode === 'closed' || (mite.mode === 'closing' && mi
 //         raised), then lunge and snap; the nip lands at the snap
 //  eat    a spore or a hyphal tip in reach: leg I reaches out and holds it to
 //         the mouth while the chelicerae work and it shrinks away (0.9 s)
-//  strike anything else: the lunge and snap (0.5 s). On a springtail it
-//         stuns it (it lies dazed STUN s, its group leaps away); on one of
-//         the box-mite family it shuts itself in its capsule; in the air, a
-//         snap at nothing
-//  devour a dazed springtail: a snap, then it is held to the mouth and eaten
-//         (1.2 s): scramble stamina refilled, a grabbed leg healing faster
+//  devour a springtail in front: one press grabs it (the owner, 2026-11-04:
+//         "a single press of X grab the creature and start eating it, where
+//         pressing again will make the eating faster, but otherwise we still
+//         just continue eat it more slowly from the first hit"): a snap, then
+//         it is held to the mouth, struggling, and eaten over EAT_SEC s; each
+//         further X is a chomp that eats EAT_PRESS of it. Walking off
+//         EAT_WALK µm (slowed while eating), closing up, jumping or being
+//         grabbed lets it wriggle free. A meal: scramble stamina refilled, a
+//         grabbed leg healing faster
+//  strike anything else: the lunge and snap (0.5 s). On one of the box-mite
+//         family it shuts itself in its capsule; in the air, a snap at nothing
+//  (the predator's body stands too high for a bite from the ground: the
+//  fight's snap glances off its legs, and the jump attack, X as a jump comes
+//  down, is the way to hit it: jumpAttack below)
 // (A departure: box mites graze fungi and do not hunt; README.)
 const sstepJ = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const BUG_REACH = 270;       // µm round a point 90 µm ahead of the mouth
-const STRIKE_DUR = 0.5, DEVOUR_DUR = 1.2;
+const STRIKE_DUR = 0.5, DEVOUR_DUR = 1.2; // DEVOUR_DUR: the snap and the lift to the mouth (s)
+const EAT_SEC = conf('eatSeconds', 3), EAT_PRESS = conf('eatPressShare', 0.25), EAT_WALK = conf('eatWalkOffDistance', 140);
+const JA_BEFORE = conf('jumpAttackBeforeLandingSeconds', 0.25), JA_AFTER = conf('jumpAttackAfterLandingSeconds', 0.15);
+const JA_REACH = conf('jumpAttackReach', 460), JA_INTEREST = conf('jumpAttackInterest', 0.4), GROUND_REACH = conf('groundBiteReach', 110);
+/**
+ * Can a bite from the ground by a mite whose mouth is at m reach the predator's body? Not where it stands on its
+ * long legs: its belly is ~130-155 µm over the moss, and a bite from the ground reaches GROUND_REACH µm over the
+ * moss under the biter (its mouth ~15-60 µm up, rearing). Only where the predator stands lower than you (in a
+ * dip, you on a grain) does a bite reach it; the jump attack, coming down from above, always does.
+ */
+function predTooHigh(m) { return floorH(m.x, m.z) + GROUND_REACH < pred.center.y - PRED.noto.r[1]; }
 // Eating seen from behind (the owner, 2026-11-04: "if you eat one while facing
 // away from the camera, can we show it sort of lifted up during the eat
 // animation such that it's more obvious from behind ... From the front it
@@ -722,6 +749,7 @@ function liftFromView(fw) {
   return sstepJ(-0.15, 0.45, vd.x * fw.x + vd.z * fw.z);
 }
 function biteNow() {
+  if (play.act === 'devour') { chomp(); return; }
   if (mite.mode !== 'walk' || play.act) return;
   const m = mite.mouth(new THREE.Vector3());
   if (!capture.active && boss.bitePoints().some((p) => p.distanceTo(m) < 520)) {
@@ -741,11 +769,15 @@ function biteNow() {
   const fw = _ct.set(1, 0, 0).applyQuaternion(mite.quat).setY(0).normalize().clone();
   const c = mite.center;
   const bug = ambient.nearest(m.x + fw.x * 90, m.y, m.z + fw.z * 90, BUG_REACH, (b) => (b.x - c.x) * fw.x + (b.z - c.z) * fw.z > 60);
-  if (bug && bug.stunned && ambient.nip(bug.key, c.x, c.z) === 'caught') {
-    Object.assign(play, { act: 'devour', actT: 0, actDur: DEVOUR_DUR, snapped: false, bug: bug.key, bug0: new THREE.Vector3(bug.x, bug.y, bug.z), backK: null });
+  if (bug && ambient.grab(bug.key, c.x, c.z)) {
+    // one press: grabbed, and eating starts (its group leaps away)
+    Object.assign(play, { act: 'devour', actT: 0, actDur: Infinity, eatP: 0, chomps: 0, snapped: false, bug: bug.key, bug0: new THREE.Vector3(bug.x, bug.y, bug.z), backK: null, eatFrom: mite.center.clone() });
+    play.strikes = (play.strikes || 0) + 1;
+    play.lastStrike = { hit: 'springtail', x: Math.round(bug.x), z: Math.round(bug.z) };
+    if (rumbleOn) padOf().rumble(90, 0.35, 0.25);
+    if (!lifeT.bugTip) { lifeT.bugTip = true; hud.toast(tt('mite.toasts.grabbedSpringtail'), 2800); }
     return;
   }
-  if (bug) { Object.assign(play, { act: 'strike', actT: 0, actDur: STRIKE_DUR, snapped: false, bug: bug.key, target: new THREE.Vector3(bug.x, bug.y + 20, bug.z), fam: null }); return; }
   // one of the box-mite family in front
   const fam = family.home && family.mites.find((f) => f.m.center.distanceTo(m) < 330 && f.m.mode === 'walk');
   if (fam) { Object.assign(play, { act: 'strike', actT: 0, actDur: STRIKE_DUR, snapped: false, bug: null, target: fam.m.center.clone(), fam }); return; }
@@ -772,6 +804,16 @@ function biteNow() {
     return;
   }
   Object.assign(play, { act: 'strike', actT: 0, actDur: STRIKE_DUR, snapped: false, bug: null, target: null, fam: null });
+}
+/** X again while eating: a chomp, EAT_PRESS more of the meal. */
+function chomp() {
+  play.eatP = Math.min(1, (play.eatP || 0) + EAT_PRESS);
+  play.chomps = (play.chomps || 0) + 1;
+  play.chompT = 0;
+  mite.bite();
+  snapPuff(mite.mouth(new THREE.Vector3()), 0.45);
+  audio.play('mite/bite', { volume: 0.95, rate: 1 + Math.random() * 0.15 });
+  if (rumbleOn) padOf().rumble(50, 0.25, 0.1);
 }
 /** The strike's shape over its act (u 0..1): rear and gape (0-0.35), lunge and snap (0.35-0.75), settle. */
 function strikePose(u) {
@@ -802,6 +844,15 @@ function placeSpore(f, at, s) {
 }
 /** Advance the current player's act and pose it (mite.act). */
 function stepAct(dt) {
+  // the jump attack in the air: reared back with the chelicerae open, then driven down onto it
+  if (play.dive && mite.mode === 'air') {
+    play.diveT = (play.diveT || 0) + dt;
+    const k = Math.min(1, play.diveT / 0.12);
+    if (play.act === 'devour') ambient.drop(play.bug);
+    play.act = null;
+    mite.act({ rear: 1 - k, lunge: k, gape: 1 });
+    return;
+  }
   if (!play.act || mite.mode !== 'walk') {
     if (play.act === 'eat' && play.food && play.food.kind === 'spore') placeSpore(play.food, _sp2.set(play.food0.x - play.foodSx, play.food0.y, play.food0.z - play.foodSz), 1);
     if (play.act === 'eat' && play.food && play.food.kind === 'head' && play.food.left > 0) thicket.shrinkHead(play.food, 1);
@@ -833,9 +884,17 @@ function stepAct(dt) {
         fled = gone;
         hud.toast(gone ? tt('mite.toasts.bossGone') : tt(open ? 'mite.toasts.bitPincerJoint' : 'mite.toasts.bitPincer'), 1500);
       } else if (play.foe !== 'boss' && predHere() && !capture.active && pred.center.distanceTo(m) < 700) {
-        play.nips = (play.nips || 0) + 1;
-        if (rumbleOn) padOf().rumble(140, 0.5, 0.4);
-        wearDown('bite');
+        if (predTooHigh(m)) {
+          // its body stands too high on its long legs: the snap glances off a leg (the jump attack reaches it)
+          play.tooHigh = (play.tooHigh || 0) + 1; fightLog.tooHigh++;
+          play.lastStrike = { hit: 'tooHigh', x: Math.round(m.x), z: Math.round(m.z) };
+          audio.play('mite/glance', { volume: 0.6, old: ['mite/bite', { volume: 0.6, rate: 1.4 }] });
+          if (!lifeT.tooHighT || simTime - lifeT.tooHighT > 6) { hud.toast(tt('mite.toasts.tooHigh'), lifeT.tooHighT ? 1800 : 3600); lifeT.tooHighT = simTime; }
+        } else {
+          play.nips = (play.nips || 0) + 1;
+          if (rumbleOn) padOf().rumble(140, 0.5, 0.4);
+          wearDown('bite');
+        }
       }
       // the pseudoscorpion has had enough (wearDown plays it for the predator)
       if (fled) audio.play('shared/foe-flees', { volume: 0.7 });
@@ -906,42 +965,63 @@ function stepAct(dt) {
       } else { snapPuff(at, 0.7); audio.play('mite/bite', { volume: 0.6, rate: 1.2, only: 'old' }); }
     }
   } else if (play.act === 'devour') {
-    // a quick snap onto it (0-0.25), then leg I holds it under the mouth and the chelicerae work while it shrinks
+    // a quick snap onto it (0-0.25 s), then leg I holds it under the mouth and the chelicerae work while it
+    // shrinks: the snap and the lift run on time (uh, over DEVOUR_DUR), the meal on its own progress (u, eatP:
+    // EAT_SEC with no presses, EAT_PRESS more each chomp)
     const k = play.actT;
+    // walked off with it: it wriggles free (it struggles all the while)
+    if (play.eatFrom && Math.hypot(mite.center.x - play.eatFrom.x, mite.center.z - play.eatFrom.z) > EAT_WALK) {
+      ambient.drop(play.bug);
+      play.escapes = (play.escapes || 0) + 1;
+      hud.toast(tt('mite.toasts.springtailEscaped'), 1600);
+      play.act = null; mite.act({}); return;
+    }
+    play.eatP = Math.min(1, (play.eatP || 0) + dt / EAT_SEC);
+    play.chompT = (play.chompT ?? 9) + dt;
+    const uh = Math.min(1, k / DEVOUR_DUR), up = play.eatP;
     const snap = Math.min(1, k / 0.25);
     const to = _ct.subVectors(play.bug0, mite.center).setY(0);
     if (k < 0.25 && to.lengthSq() > 1) mite.st.fwd.lerp(to.normalize(), Math.min(1, dt * 12)).setY(0).normalize();
-    const at = play.bug0.clone().lerp(m.clone().add(new THREE.Vector3(0, -10, 0)), sstepJ(0.1, 0.4, u));
+    const at = play.bug0.clone().lerp(m.clone().add(new THREE.Vector3(0, -10, 0)), sstepJ(0.1, 0.4, uh));
     // seen from behind: rear up and lift it clear of the body's outline (blended
     // by the view, eased so a peek never jumps it; from the front b is 0 and
     // this is the devour as it always was)
     const fw = _ct.set(1, 0, 0).applyQuaternion(mite.quat).setY(0).normalize();
     const want = liftFromView(fw);
     play.backK = play.backK == null ? want : play.backK + (want - play.backK) * Math.min(1, dt / 0.25);
-    const L = play.backK * sstepJ(0.12, 0.38, u) * (1 - sstepJ(0.86, 1, u));
-    const kick = L * (1 - 0.6 * u); // it struggles, weaker as it is eaten
+    const L = play.backK * sstepJ(0.12, 0.38, uh) * (1 - sstepJ(0.86, 1, up));
+    const kick = L * (1 - 0.6 * up); // it struggles, weaker as it is eaten
+    const fight2 = 1 - 0.7 * up; // (and kicks and twists in the front view too)
     if (L > 0) {
       at.addScaledVector(fw, 55 * L);
       at.y += 150 * L + 6 * kick * Math.sin(k * 41);
       at.addScaledVector(_sp.set(-fw.z, 0, fw.x), 7 * kick * Math.sin(k * 29 + 1));
     }
-    mite.act({ rear: 0.2 + 0.25 * Math.sin(snap * Math.PI) + 0.9 * L, lunge: 0.8 * Math.sin(snap * Math.PI) * (1 - 0.5 * L), gape: snap < 0.5 ? 1 : 0, hold: at, holdK: Math.min(1, u / 0.3) });
+    const ch = play.chompT < 0.18 ? Math.sin((play.chompT / 0.18) * Math.PI) : 0; // a chomp: the head jerks in
+    mite.act({ rear: 0.2 + 0.25 * Math.sin(snap * Math.PI) + 0.9 * L + 0.15 * ch, lunge: 0.8 * Math.sin(snap * Math.PI) * (1 - 0.5 * L) + 0.35 * ch, gape: snap < 0.5 || (ch > 0 && play.chompT < 0.06) ? 1 : 0, hold: at, holdK: Math.min(1, uh / 0.3) });
     if (!play.snapped && k > 0.12) { play.snapped = true; mite.bite(); snapPuff(play.bug0.clone().setY(play.bug0.y + 20), 1); audio.play('mite/devour', { volume: 1, old: ['mite/bite', { volume: 1, rate: 0.85 }] }); }
     if (k > 0.3 && Math.floor(k / 0.2) !== Math.floor((k - dt) / 0.2)) {
       mite.bite(); audio.play('mite/bite', { volume: 0.5, rate: 1.1 + Math.random() * 0.2, only: 'old' });
       // held up, each bite of the chelicerae sheds bits of it against the sky
       if (L > 0.05) snapPuff(at, 0.4 * L);
     }
-    ambient.hold(play.bug, at, 1 - 0.95 * Math.max(0, (u - 0.25) / 0.75),
-      L > 0 ? { pitch: 0.7 * L, roll: 0.5 * kick * Math.sin(k * 27), twist: 0.35 * kick * Math.sin(k * 19 + 2) } : null);
-    if (u >= 1) {
+    if (L <= 0) at.addScaledVector(_sp.set(-fw.z, 0, fw.x), 5 * fight2 * Math.sin(k * 23));
+    ambient.hold(play.bug, at, 1 - 0.95 * Math.max(0, (up - 0.08) / 0.92),
+      { pitch: 0.7 * L, roll: (0.5 * kick + 0.3 * fight2 * (1 - L)) * Math.sin(k * 27), twist: (0.35 * kick + 0.22 * fight2 * (1 - L)) * Math.sin(k * 19 + 2) });
+    if (up >= 1) {
       ambient.eaten(play.bug);
       play.grazed++; play.bugs = (play.bugs || 0) + 1;
       play.stam = 1;
       if (play.hurt > 0) play.heal += 8;
       if (rumbleOn) padOf().rumble(80, 0.3, 0.15);
       hud.toast(tt(play.hurt > 0 ? 'mite.toasts.ateSpringtailHurt' : 'mite.toasts.ateSpringtail', { count: play.bugs }), 1800);
+      play.lastMeal = { t: +play.actT.toFixed(2), chomps: play.chomps || 0 };
+      play.act = null; mite.act({});
     }
+    return;
+  } else if (play.act === 'jstrike') {
+    // the jump attack's late form (X just after touchdown): a fast rear and downward snap from the landing crouch
+    mite.act({ rear: 0.8 * Math.sin(Math.min(1, u / 0.3) * Math.PI / 2) * (1 - sstepJ(0.3, 0.6, u)), lunge: Math.sin(Math.min(1, Math.max(0, (u - 0.25) / 0.6)) * Math.PI), gape: u < 0.3 ? 1 : 0 });
   }
   if (u >= 1) { play.act = null; mite.act({}); }
 }
@@ -1026,6 +1106,7 @@ function syncPlayers() {
     const P = pls[s];
     if (!P || want.has(s)) continue;
     if (cap.who === P) { capture.reset(); cap.phase = null; cap.who = null; pred.st.chel = 0; }
+    puffDust(P.mite.center.clone(), 16, 1); // (a player who left: gone in a puff, not in a blink)
     for (const m of P.mite.meshes) m.visible = false;
     P.mite.root.removeFromParent();
     pls[s] = null;
@@ -1068,7 +1149,7 @@ const portalState = { hinted: false, turned: false };
 /** Is the pseudoscorpion on guard at the water (not lured more than 1.3 mm off it, not driven off)? */
 function guarded() {
   if (!PORTAL.placed) return true;
-  if (!boss.group.visible || ['gone', 'retreat'].includes(boss.st.state)) return false;
+  if (!boss.group.visible || ['gone', 'retreat', 'burrow'].includes(boss.st.state)) return false;
   return Math.hypot(boss.st.x - PORTAL.x, boss.st.z - PORTAL.z) < 1300;
 }
 /** Is player P at the portal's water (its reach)? */
@@ -1177,7 +1258,8 @@ let predK = 0;
  * ~1480) and how far a fast-moving prey is felt (µm). The first can be outwalked at full tilt; the
  * second matches full tilt (scramble or jump to get away); the third outruns full tilt.
  */
-const PRED_LEVEL = [null, { chase: 760, vibration: 950 }, { chase: 900, vibration: 1150 }, { chase: 1020, vibration: 1350 }];
+const PRED_SPEEDS = conf('predatorHuntSpeeds', [760, 900, 1020]), PRED_FEEL = conf('predatorFeelDistances', [950, 1150, 1350]);
+const PRED_LEVEL = [null, ...[0, 1, 2].map((i) => ({ chase: PRED_SPEEDS[i], vibration: PRED_FEEL[i] }))];
 const PRED_IDS = ['pred', 'pred2', 'pred3'];
 /** Put the predator's ground at (x, z), and the predator at its centre. */
 function placePred(x, z, k) {
@@ -1318,13 +1400,22 @@ function stepLife(dt) {
   }
   const foci = recs().map((P) => P.mite.center);
   const bodies = [...foci, ...(predHere() ? [pred.center] : []), ...(family.home ? family.mites.map((f) => f.m.center) : [])];
-  ambient.update(lifeT.t, bodies, foci);
+  // the springtail groups are drawn round each player and round what each view frames (out to its reach as
+  // zoomed: nothing comes or goes inside a view; one that must, while seen, dives into the moss or climbs out)
+  const reach = Math.max(ambient.DRAW, 1.25 * (rig.viewHfw ?? rig.hfw) * (groupZoom || 1) + 1800);
+  ambient.update(lifeT.t, bodies, [...foci, ...viewFoci.map((v) => ({ x: v.x, z: v.z, r: reach }))], viewFrusta.length ? inSight : null);
+  for (const e of ambient.events) crumbPuff(e);
   beads.update(foci);
   // the moss gets wetter: said once, as the water nears
   if (!lifeT.wetToast && PORTAL.placed && !portalSealed() && foci.some((c) => Math.hypot(c.x - PORTAL.x, c.z - PORTAL.z) < WET_R * 0.75)) { lifeT.wetToast = true; hud.toast(tt('mite.toasts.wetter'), 2600); }
   // the walkable square's edge (half a metre out) is a wall of tall moss (edge.js); against it, a gentle word too
   lifeT.edgeToast = Math.max(0, lifeT.edgeToast - dt);
   if (!lifeT.edgeToast && foci.some((c) => !insideEdge(c.x, c.z, 450))) { lifeT.edgeToast = 20; hud.toast(tt('mite.toasts.edge'), 2600); }
+}
+/** Crumbs where a springtail dives into the moss or climbs out of it (life.js, thicket.js events). */
+function crumbPuff(e) {
+  if (e.type === 'eaten') { snapPuff(_sp2.set(e.x, e.y, e.z), 0.7); return; }
+  puffDust(_sp2.set(e.x, e.y + 25, e.z), 9, 0.75);
 }
 function newEncounters() {
   director.reset();
@@ -1437,7 +1528,7 @@ function placeOutroCamera(pose) {
 // ---------- the scramble's stamina, its dust, the pounce-bite ----------
 const stamText = (pl) => { const n = Math.round((pl.stam ?? 1) * 5); return 'scramble ' + '■'.repeat(n) + '□'.repeat(5 - n); };
 // dust kicked up by a scramble: a few humus crumbs that fly back and settle (SEM-drawn, like everything)
-const DUST = 64;
+const DUST = 128;
 const dust = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 0), gMaterial({ cls: CLS.LITTER }), DUST);
 dust.frustumCulled = false;
 scene.add(dust);
@@ -1481,9 +1572,32 @@ function pounceTargets() {
   for (const p of boss.bitePoints()) out.push({ p, foe: 'boss' });
   return out;
 }
+/**
+ * X, by what the mite is doing. The jump attack (the owner, 2026-11-04: "can we have the mite's jump be able to
+ * be a jump attack, if they press X while landing? I want him to be able to fight the bigger mite etc by jumping
+ * and attacking. The other mite is too high up to fight otherwise"): X in the air (the landing window opens
+ * JA_BEFORE s before touchdown; earlier, X dives at once, the old pounce-bite, so the landing comes to it), or
+ * up to JA_AFTER s after touchdown, strikes down with the chelicerae from above: it reaches the predator's body,
+ * which a bite from the ground cannot (predTooHigh).
+ */
+function xPress() {
+  if (mite.mode === 'air') { startDive(); return; }
+  if (mite.mode === 'crouch') return;
+  if (mite.mode === 'walk' && play.landT !== undefined && simTime - play.landT <= JA_AFTER + 1e-6 && !play.dive && play.act !== 'devour') { lateJumpAttack(); return; }
+  biteNow();
+}
+/** X just after touchdown: the jump attack from the landing crouch, resolved at once. */
+function lateJumpAttack() {
+  play.landT = undefined;
+  if (play.act === 'eat' || play.act === 'devour') return;
+  Object.assign(play, { act: 'jstrike', actT: 0, actDur: 0.32, snapped: true });
+  mite.bite();
+  jumpAttackHit(pounceTargets(), 'late');
+}
 /** X in the air: dive at the nearest enemy point within reach ahead (aim assist), or straight down (a clear miss). */
 function startDive() {
   if (play.dive) return;
+  play.diveT = 0; play.diveLate = mite.timeToLand() <= JA_BEFORE;
   const c = mite.center, f = new THREE.Vector3(1, 0, 0).applyQuaternion(mite.quat).setY(0).normalize();
   let best = null, bs = Infinity;
   for (const t of pounceTargets()) {
@@ -1535,25 +1649,61 @@ function diveImpact() {
   const d = play.dive;
   play.dive = null;
   play.lastImpact = { t: simTime, hit: false };
-  const t = d.target;
-  if (t) {
-    const near = (t.foe === 'boss' ? boss.bitePoints() : [pred.center, pred.mouth(new THREE.Vector3())]).some((p) => p.distanceTo(mite.center) < 460);
-    if (near) {
-      play.lastImpact.hit = true; play.pounces = (play.pounces || 0) + 1;
-      hitPause = 0.12;
-      if (rumbleOn) padOf().rumble(260, 0.9, 0.7);
-      audio.play('mite/bite', { volume: 1, rate: 0.75 });
-      mite.bite();
-      kickDust(mite, 8);
-      if (t.foe === 'boss') { const gone = boss.bitten(2, cur.slot); hud.toast(gone ? tt('mite.toasts.pounceBossGone') : tt('mite.toasts.pounceBoss'), 1300); }
-      else { wearDown('bite'); if (predAI.state !== 'retreat') wearDown('bite'); hud.toast(tt('mite.toasts.pouncePredator'), 1200); }
-      // rebound: a little hop back
-      mite.st.fwd.negate(); mite.jump(); play.rebound = 0.25;
-      return;
-    }
+  mite.bite();
+  if (jumpAttackHit(d.target ? [d.target, ...pounceTargets()] : pounceTargets(), play.diveLate ? 'landing' : 'dive')) {
+    // rebound: a little hop back
+    mite.st.fwd.negate(); mite.jump(); play.rebound = 0.25;
+    return;
   }
   hud.toast(tt('mite.toasts.missed'), 900);
   kickDust(mite, 4);
+}
+/**
+ * The jump attack lands (a dive's impact, or X just after touchdown): a hit on the predator's body or mouth, or
+ * the pseudoscorpion's pincer, within JA_REACH of the body. The predator: a flash, a recoil (predAI.repel, or
+ * it runs off), the bite sound, a hit-pause, and JA_INTEREST of its interest. True on a hit.
+ */
+function jumpAttackHit(targets, how) {
+  const c = mite.center;
+  let best = null, bd = JA_REACH;
+  for (const t of targets) {
+    const pts = t.foe === 'boss' ? boss.bitePoints() : (predHere() && !(capture.active && !cap.byBoss) ? [pred.center, pred.mouth(new THREE.Vector3())] : []);
+    for (const p of pts) { const dd = p.distanceTo(c); if (dd < bd) { bd = dd; best = { foe: t.foe, p: p.clone() }; } }
+  }
+  play.lastImpact = { t: simTime, hit: !!best, how, foe: best ? best.foe : null };
+  play.jumpAttacks = (play.jumpAttacks || 0) + 1;
+  if (!best) return false;
+  play.pounces = (play.pounces || 0) + 1;
+  hitPause = 0.12;
+  if (rumbleOn) padOf().rumble(260, 0.9, 0.7);
+  audio.play('mite/bite', { volume: 1, rate: 0.75 });
+  audio.play('mite/strike', { volume: 0.8 });
+  kickDust(mite, 8);
+  snapPuff(best.p, 1.4);
+  hitFlash(best.p);
+  if (best.foe === 'boss') { const gone = boss.bitten(2, cur.slot); hud.toast(gone ? tt('mite.toasts.pounceBossGone') : tt('mite.toasts.pounceBoss'), 1300); }
+  else {
+    play.jumpHits = (play.jumpHits || 0) + 1;
+    // recoil: shoved back from the strike, as well as reeling (predAI.repel inside wearDown)
+    const away = _ct.subVectors(pred.center, c).setY(0);
+    if (away.lengthSq() > 1) { away.normalize(); pred.nudge(away.x * 120, away.z * 120); }
+    wearDown('jump');
+  }
+  return true;
+}
+// a hit's flash: a burst of light where the strike lands (the SEM's charging flare), fading in ~0.25 s
+const flashEl = document.createElement('div');
+flashEl.style.cssText = 'position:fixed;left:0;top:0;width:220px;height:220px;margin:-110px 0 0 -110px;border-radius:50%;pointer-events:none;z-index:4;opacity:0;background:radial-gradient(circle,rgba(255,255,255,.95) 0,rgba(255,255,255,.55) 22%,rgba(255,255,255,0) 62%);mix-blend-mode:screen;transition:opacity .28s ease-out,transform .28s ease-out';
+document.body.appendChild(flashEl);
+const _hf = new THREE.Vector3();
+let flashes = 0;
+function hitFlash(p) {
+  flashes++;
+  _hf.copy(p).project(camera);
+  const x = (_hf.x * 0.5 + 0.5) * innerWidth, y = (-_hf.y * 0.5 + 0.5) * innerHeight;
+  flashEl.style.transition = 'none'; flashEl.style.opacity = '1'; flashEl.style.transform = `translate(${x}px,${y}px) scale(0.6)`;
+  void flashEl.offsetWidth;
+  flashEl.style.transition = ''; flashEl.style.opacity = '0'; flashEl.style.transform = `translate(${x}px,${y}px) scale(1.4)`;
 }
 /** A grab's strike window: a scramble (B) breaks out of it. */
 function dashOut(P) {
@@ -1580,6 +1730,7 @@ function startBossCapture() {
   if (rumbleOn) padOf().rumble(400, 0.9, 1);
 }
 // the boss's resolve: a quiet brass gauge, shown while it is engaged
+const bossLog = { burrows: 0 };
 const gauge = document.createElement('div');
 gauge.style.cssText = 'position:fixed;left:50%;top:48px;transform:translateX(-50%);display:none;align-items:center;gap:10px;color:#e9d9a8;font:600 11px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 1px 2px #000a;pointer-events:none;z-index:6';
 gauge.innerHTML = `<span>${tt('mite.bossName')}</span><span style="width:180px;height:5px;border:1px solid #b8913f;background:rgba(20,16,8,.45);border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:100%;background:linear-gradient(90deg,#8a6a2c,#d8b268);transition:width .25s"></i></span>`;
@@ -1592,8 +1743,8 @@ function tick(dt, inputs) {
   for (const P of recs()) {
     const pl = P.play;
     if (pl.stam === undefined) pl.stam = 1;
-    if (pl.scr) { pl.stam = Math.max(0, pl.stam - dt / 1.6); if (Math.random() < dt * 30) kickDust(P.mite, 1); }
-    else pl.stam = Math.min(1, pl.stam + dt / 2.8);
+    if (pl.scr) { pl.stam = Math.max(0, pl.stam - dt / STAM_EMPTY); if (Math.random() < dt * 30) kickDust(P.mite, 1); }
+    else pl.stam = Math.min(1, pl.stam + dt / STAM_FILL);
   }
   // grazed hyphal tips and spore heads grow back (spores do not: there are plenty)
   for (const f of world.food) {
@@ -1645,7 +1796,10 @@ function tick(dt, inputs) {
       input = { ...input, dir, maxSpeed: input.maxSpeed * (1 - (1 - DRIP.slow) * w), accel: 0.35, lean: Math.max(input.lean || 0, 0.6 * w * (0.5 + 0.5 * Math.sin(t * 1.7))) };
     }
     if (cs.active && cap.who === P) input = { ...input, mag: 0 };
+    // eating: slowed to a shuffle (walk on far enough and the meal wriggles free: stepAct)
+    if (play.act === 'devour' && input.maxSpeed) input = { ...input, maxSpeed: input.maxSpeed * 0.35 };
     const ev = mite.update(dt, input);
+    if (ev.includes('land') && !play.dive) play.landT = simTime;
     if (ev.includes('jump')) puffDust(mite, 8, 0.8);
     if (ev.includes('land')) puffDust(mite, 18, Math.min(1.4, 0.6 + (mite.st.landV || 0) / 5000));
     if (play.dive && (ev.includes('land') || ev.includes('impact') || mite.mode === 'walk')) diveImpact();
@@ -1669,6 +1823,7 @@ function tick(dt, inputs) {
   const predBody = predHere() ? bodyRef(9, pred.center, 330) : null;
   if (predBody) thickBodies.push(predBody);
   thicket.update(dt, thickBodies, { pred: predHere() ? pred : null, predBody, predFree: predHere() && !capture.active && ['wander'].includes(predAI.state) });
+  for (const e of thicket.takeEvents()) crumbPuff(e);
   challenges(dt);
   const nip = recs().some((P) => P.play.nip);
   if (predHere() && capture.active && cap.who && !cap.byBoss) {
@@ -1719,6 +1874,8 @@ function tick(dt, inputs) {
       }
     });
   }
+  // creatures push each other instead of walking through each other (shared/push.js)
+  stepPush(dt);
   // each player's act (bite, eat, fight), and the last safe spot
   for (const P of recs()) withRec(P, () => { stepAct(dt); if (!held(P) && pred.center.distanceTo(mite.center) > 1200 && mite.mode === 'walk' && (P.safeT = (P.safeT || 0) + dt) > 1) { P.safeT = 0; P.safe = mite.center.clone(); } });
   for (const P of recs()) P.play.nip = false;
@@ -1747,14 +1904,69 @@ function tick(dt, inputs) {
 
       else if (e.type === 'miss') hud.toast(tt('mite.toasts.bossMissed'), 1500);
       else if (e.type === 'retreat') { audio.play('shared/foe-flees', { volume: 0.7 }); hud.toast(tt('mite.toasts.bossRetreats'), 2600); }
+      else if (e.type === 'burrow') { puffDust(new THREE.Vector3(e.x, floorH(e.x, e.z) + 40, e.z), 24, 2.2); bossLog.burrows++; }
 
       else if (e.type === 'return') hud.toast(tt('mite.toasts.bossReturns'), 1800);
     }
   }
+  // backing down into the moss: crumbs keep coming up round it
+  if (boss.st.state === 'burrow' && Math.random() < dt * 14) { const a = Math.random() * 6.283; puffDust(new THREE.Vector3(boss.st.x + Math.cos(a) * 500, floorH(boss.st.x, boss.st.z) + 30, boss.st.z + Math.sin(a) * 500), 4, 1.2); }
   props.update(simTime, dt);
   stepDirector(dt);
   checkLandmarks();
   return evs;
+}
+
+// ---------- bodies push each other (the owner, 2026-11-04: "can we have creatures push each other instead of
+// clipping through each other? For example I saw another mite and just walked through him, whereas I'd hope
+// to push and be pushed") ----------
+// Every walking creature is a disc on the ground (shared/push.js), with a mass by its body's volume: a box mite
+// 1 (the family's smallest ~0.5, its biggest ~1.2), the predatory mite ~6, a springtail ~0.35, the
+// pseudoscorpion immovable. Overlaps part along the line between centres, shared by mass (a bigger mite shoves
+// you more than you shove it), and a push carries on a little as a slide (game_config.js shared.pushCarry).
+// The mites take the push through mite.nudge (the feet stay planted and step after the body); the ambient
+// springtails as an offset that fades (life.js pushBy), so they stay stood on the ground (stand.js) where they
+// end up. A mite held in jaws, and its captor during a catch, are left out; one in the air passes over what is
+// below it. The thickets' crowd keeps its own rules (shared/crowd.js: it parts round a mite).
+const push = createPush({ cell: 420, carry: gconf('shared.pushCarry', 0.35), tau: 0.15, maxSlide: 700, passes: 3 });
+const BOX_MASS = (m) => (m.scale / MITE_SCALE) ** 3;
+const PRED_MASS = (PRED.noto.r[0] * PRED.noto.r[1] * PRED.noto.r[2]) / (ANAT.noto.r[0] * ANAT.noto.r[1] * ANAT.noto.r[2] * MITE_SCALE ** 3);
+const SPRING_MASS = 0.35, SPRING_R = 62, SPRING_AHEAD = 45;
+// the pseudoscorpion's body (local x forward, µm): the carapace and the long abdomen behind it
+const BOSS_DISCS = [[520, 240], [-150, 440], [-720, 400]];
+const pushBodies = [], pushRefs = [];
+const _pf = new THREE.Vector3();
+function mitePushBody(id, m, mass) {
+  const r = m.radii, f = _pf.set(1, 0, 0).applyQuaternion(m.quat).setY(0);
+  if (f.lengthSq() < 1e-6) f.set(1, 0, 0); else f.normalize();
+  const off = m.anat.noto.c[0] * m.scale, c = m.center;
+  return { id, x: c.x + f.x * off, z: c.z + f.z * off, y: c.y, h: r[1], r: (r[0] + r[2]) / 2, m: mass, dx: 0, dz: 0 };
+}
+function stepPush(dt) {
+  pushBodies.length = 0; pushRefs.length = 0;
+  const add = (b, ref) => { pushBodies.push(b); pushRefs.push(ref); };
+  const predCaught = capture.active && !cap.byBoss;
+  for (const P of recs()) if (!held(P) && !(capture.active && cap.who === P)) add(mitePushBody(`p${P.slot}`, P.mite, BOX_MASS(P.mite)), P.mite);
+  if (npcOn) add(mitePushBody('npc', npc, BOX_MASS(npc)), npc);
+  if (family.home) family.mites.forEach((f, i) => add(mitePushBody(`fam${i}`, f.m, BOX_MASS(f.m)), f.m));
+  if (predHere() && !predCaught) add(mitePushBody('pred', pred, PRED_MASS), pred);
+  for (const b of ambient.live) {
+    if (b.held || (b.dive || 0) > 0.3) continue;
+    const ax = Math.cos(b.yaw), az = -Math.sin(b.yaw); // (its heading: yaw is -atan2(vz, vx))
+    add({ id: `s${b.key}`, x: b.x + ax * SPRING_AHEAD * b.sc, z: b.z + az * SPRING_AHEAD * b.sc, y: b.y, h: 50 * b.sc, r: SPRING_R * b.sc, m: SPRING_MASS * b.sc ** 3, dx: 0, dz: 0 }, b.key);
+  }
+  if (PORTAL.placed && boss.group.visible && !['gone', 'burrow'].includes(boss.st.state)) {
+    const ca = Math.cos(boss.st.a), sa = Math.sin(boss.st.a), by = boss.center.y;
+    for (const [lx, r] of BOSS_DISCS) add({ id: `boss${lx}`, x: boss.st.x + ca * lx, z: boss.st.z + sa * lx, y: by, h: 260, r, m: Infinity, fixed: true, group: 'boss', dx: 0, dz: 0 }, null);
+  }
+  if (pushBodies.length < 2) return;
+  push.step(dt, pushBodies);
+  for (let i = 0; i < pushBodies.length; i++) {
+    const b = pushBodies[i], ref = pushRefs[i];
+    if (!(b.dx || b.dz) || !ref) continue;
+    if (typeof ref === 'string') ambient.pushBy(ref, b.dx, b.dz);
+    else ref.nudge(b.dx, b.dz);
+  }
 }
 
 function unlockAny() {
@@ -1811,7 +2023,8 @@ function readInput(dt) {
 }
 /** One player's walking input from their controls (`mite` etc. are theirs). */
 function inputFor(c, pd) {
-  if (c.attack.pressed() && !mite.airborne) biteNow();
+  // X: in the air, the jump attack (its dive); just landed, its late form; else a bite (or a chomp while eating)
+  if (c.attack.pressed()) xPress();
   const sec = c.secondary();
   const ls = c.move();
   // the walking speed: LB (Q) the slow end, RB (F) full tilt, else the stick (keys: a middle pace)
@@ -1826,8 +2039,6 @@ function inputFor(c, pd) {
   const want = c.defend.down() && mite.mode === 'walk' && play.stun <= 0 && !play.act;
   if (want && !play.scr && play.stam > 0.15) { play.scr = true; audio.play('mite/dash', { volume: 0.9 }); if (rumbleOn) padOf().rumble(140, 0.3, 0.5); }
   if (!want || play.stam <= 0) play.scr = false;
-  // X in the air: the pounce-bite
-  if (c.attack.pressed() && mite.airborne) startDive();
   const toPortal = atOpenPortal(cur);
   if (toPortal && c.special.pressed()) enterPortal(cur);
   const hold = c.special.down() && !(toPortal && c.special.pressed());
@@ -2140,7 +2351,25 @@ const api = {
   /** Testing: the thicket's drag on player `slot` now ({ k, threads, press }). */
   drag(slot = 0) { const P = pls[slot] || P1; return { ...thicket.drag(P.mite.center) }; },
   /** Testing: what player `slot` is doing. */
-  me(slot = 0) { const P = pls[slot] || P1; return { act: P.play.act || null, nips: P.play.nips || 0, grazed: P.play.grazed, mode: P.mite.mode, hurt: P.play.hurt, strikes: P.play.strikes || 0, lastStrike: P.play.lastStrike || null, bugs: P.play.bugs || 0, stam: P.play.stam }; },
+  me(slot = 0) { const P = pls[slot] || P1; return { act: P.play.act || null, nips: P.play.nips || 0, grazed: P.play.grazed, mode: P.mite.mode, hurt: P.play.hurt, strikes: P.play.strikes || 0, lastStrike: P.play.lastStrike || null, bugs: P.play.bugs || 0, stam: P.play.stam,
+    eatP: P.play.act === 'devour' ? +P.play.eatP.toFixed(3) : null, chomps: P.play.chomps || 0, lastMeal: P.play.lastMeal || null, escapes: P.play.escapes || 0,
+    jumpAttacks: P.play.jumpAttacks || 0, jumpHits: P.play.jumpHits || 0, tooHigh: P.play.tooHigh || 0, lastImpact: P.play.lastImpact || null, landT: P.play.landT ?? null, timeToLand: +Math.min(99, P.mite.timeToLand()).toFixed(3) }; },
+  /** Testing: player `slot` presses X now (whatever X does: bite, chomp, the jump attack in the air or just after landing). */
+  x(slot = 0) { const P = pls[slot] || P1; withRec(P, xPress); return P.play.act || (P.play.dive ? 'dive' : null); },
+  /** Bodies pushing each other (shared/push.js): the last step's bodies and the deepest overlap among them now. */
+  push: {
+    get stats() { return push.stats; },
+    bodies: () => pushBodies.map((b) => ({ id: b.id, x: Math.round(b.x), z: Math.round(b.z), r: Math.round(b.r), m: +(+b.m).toFixed(3), dx: +b.dx.toFixed(2), dz: +b.dz.toFixed(2) })),
+    overlap: () => +deepestOverlap(pushBodies).toFixed(2),
+    masses: () => ({ box: 1, pred: +PRED_MASS.toFixed(2), springtail: SPRING_MASS }),
+  },
+  /** The corridor's walls (layout.js EDGE, game_config.js seconds) and where player `slot` is in it: { a north of the start, c east }. */
+  walls(slot = 0) { const P = pls[slot] || P1, c = toCorridor(P.mite.center.x, P.mite.center.z, {}); return { south: EDGE.south, north: EDGE.north, side: EDGE.side, seconds: WALL_SECONDS, speed: WALK_FOR_WALLS, portalAlong: PORTAL_ALONG, ux: EDGE.ux, uz: EDGE.uz, px: EDGE.px, pz: EDGE.pz, a: Math.round(c.a), c: Math.round(c.c) }; },
+  /** The predator's body and a player's mouth heights (µm above the floor), for the reach checks. */
+  reach(slot = 0) { const P = pls[slot] || P1, m = P.mite.mouth(new THREE.Vector3()); return { mouth: Math.round(m.y - floorH(m.x, m.z)), belly: Math.round(pred.center.y - PRED.noto.r[1] - floorH(pred.center.x, pred.center.z)), tooHigh: predTooHigh(m), groundReach: GROUND_REACH }; },
+  fightConf: { JA_BEFORE, JA_AFTER, JA_REACH, JA_INTEREST, EAT_SEC, EAT_PRESS, EAT_WALK },
+  get flashes() { return flashes; },
+  bossLog,
   /** Testing: put a spore right in front of player `slot`'s mouth. */
   feed(slot = 0) {
     const P = pls[slot] || P1;

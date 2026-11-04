@@ -65,17 +65,17 @@ export const PORTAL_ALONG = PATH_DISTS[PATH_DISTS.length - 1];
  * The corridor (the owner, 2026-11-04: "we start kind of close to the south side of the world, where we could
  * hit the south wall by walking south for 10 seconds or so, and then the east and west walls are somewhere
  * around 10 seconds out in each direction, and the final north wall is 10 seconds past the portal").
- * Coordinates along it: `a` µm north of the start (along FORWARD), `c` µm across (east, to the right of the
- * route looking north). The faces of its walls stand at a = -south and a = north, and c = ±side, each the
+ * Coordinates along it: `a` µm north of the start (along FORWARD), `c` µm across (west: to the left of the
+ * route on the screen, looking north; so (c, a) is a turn of (x, z), not a mirror). The faces of its walls stand at a = -south and a = north, and c = ±side, each the
  * seconds in game_config.js times WALK_FOR_WALLS (the stick at full tilt).
  */
 export const WALK_FOR_WALLS = M('walkingSpeedForWallSeconds', 878);
 export const WALL_SECONDS = { south: M('southWallSeconds', 10), side: M('sideWallSeconds', 10), north: M('northWallSecondsPastPortal', 10) };
 const UX = Math.cos(FORWARD), UZ = Math.sin(FORWARD); // north
-const PX = UZ, PZ = -UX;                               // east (so (east, north) is a rotation of (x, z))
-/** Corridor coordinates of a world point: { a (north of the start), c (east of the route) }. */
+const PX = UZ, PZ = -UX;                               // west, screen-left (so (west, north) is a rotation of (x, z))
+/** Corridor coordinates of a world point: { a (north of the start), c (west of the route, screen-left) }. */
 export const toCorridor = (x, z, out = { a: 0, c: 0 }) => { out.a = x * UX + z * UZ; out.c = x * PX + z * PZ; return out; };
-/** The world point at corridor coordinates (a north, c east). */
+/** The world point at corridor coordinates (a north, c west). */
 export const fromCorridor = (a, c, out = { x: 0, z: 0 }) => { out.x = UX * a + PX * c; out.z = UZ * a + PZ * c; return out; };
 
 /**
@@ -86,7 +86,7 @@ export const fromCorridor = (a, c, out = { x: 0, z: 0 }) => { out.x = UX * a + P
  * where the mite meets the stems. The shoots stand `height` µm tall (several times a jump's ~1.1 mm apex and
  * taller than the camera stands at the default zoom), `depth` µm deep, and shed leaves lie on the floor for
  * `apron` µm in front of them, thickening toward the wall (the cue while it is still out of frame). The
- * corners are covered: the north and south bands run on past them. ux/uz is north, px/pz east.
+ * corners are covered: the north and south bands run on past them. ux/uz is north, px/pz west (screen-left).
  */
 export const EDGE = {
   south: WALL_SECONDS.south * WALK_FOR_WALLS,

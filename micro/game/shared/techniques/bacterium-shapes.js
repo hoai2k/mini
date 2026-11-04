@@ -34,7 +34,14 @@
 //   again with the amount kept.
 import * as THREE from '../vendor/three.module.min.js';
 
-export const SHAPE = { ROD: 0, STRAND: 1, CSTRAND: 2, DISC: 3, EDGE: 4, BELL: 5, CHAIN: 6, SLAB: 7, TRUMPET: 8, AMOEBA: 9 };
+export const SHAPE = { ROD: 0, STRAND: 1, CSTRAND: 2, DISC: 3, EDGE: 4, BELL: 5, CHAIN: 6, SLAB: 7, TRUMPET: 8, AMOEBA: 9, AMOEBA_CUT: 10 };
+/**
+ * The amoeba's thin pseudopods: arms out of its front edge, [x along the edge (µm), length, half-width at the
+ * root, lean (rad)]. The bacterium's world.js AMOEBA_ARMS is the same table (its flock.test.mjs checks).
+ */
+export const AMOEBA_ARMS = [[-120, 66, 6, 0.18], [70, 54, 5.5, -0.12], [230, 72, 6.5, -0.22]];
+const f = (x) => (Number.isInteger(x) ? `${x}.0` : `${x}`);
+const ARMS_GLSL = AMOEBA_ARMS.map(([ax, len, w, lean], i) => `  d = armD(d, p, b, a, ${f(ax)}, ${f(len)}, ${f(w)}, ${f(lean)}, ${f(i * 1.9)});`).join('\n');
 
 const VS = /* glsl */ `
 precision highp float;
@@ -65,7 +72,8 @@ void main() {
   else if (type == 5) { lo = vec2(-L - m, -2.0 * L - m); hi = vec2(L + m, L * 0.35 + m); }
   else if (type == 6) { lo = vec2(-L * 0.5 - m, -m); hi = vec2(L * 0.5 + m, m); }
   else if (type == 8) { lo = vec2(-abs(p1) * 3.0 - m, -r - m); hi = vec2(L + 0.5 * r + m, r + m); }
-  else if (type == 9) { lo = vec2(-1.25 * L - m, -2.4 * r - m); hi = vec2(1.25 * L + m, abs(p1) + 0.4 * r + m); }
+  else if (type == 9) { lo = vec2(-1.25 * L - m, -2.4 * r - m); hi = vec2(1.25 * L + m, abs(p1) + 85.0 + m); }
+  else if (type == 10) { vec2 m0 = iF.xy, m1 = iF.xy + vec2(cos(iF.z), sin(iF.z)) * iF.w; float e = iC.x + blur + 2.5 * uPx + 2.0; lo = min(m0, m1) - e; hi = max(m0, m1) + e; }
   else { lo = vec2(-L * 0.5, -r); hi = vec2(L * 0.5, abs(p1) + m + 1.0); }
   vec2 q = mix(lo, hi, position.xy * 0.5 + 0.5);
   vLocal = q;
@@ -93,6 +101,31 @@ float vnoise(vec2 p) {
   return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y);
 }
 float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * vnoise(p); p *= 2.07; a *= 0.5; } return s; }
+
+// the amoeba (types 9 and 10): its outline's depth (µm inside; the bacterium's world.js amoebaDepth is the same)
+float smaxk(float a, float b, float k) { float h = max(k - abs(a - b), 0.0) / k; return max(a, b) + h * h * k * 0.25; }
+float armD(float d, vec2 p, float b, float a, float ax, float len, float w, float lean, float ph0) {
+  if (abs(p.x - ax) > len + w + 4.0) return d;
+  float ry = b * sqrt(max(0.0, 1.0 - (ax / a) * (ax / a))) - b - 3.0, ph = 1.5707963 + lean + 0.05 * sin(0.17 * uTime + ph0);
+  vec2 u = vec2(cos(ph), sin(ph)), q = p - vec2(ax, ry);
+  float s = clamp(dot(q, u), 0.0, len);
+  return smaxk(d, w * (1.0 - 0.35 * s / len) - length(q - u * s), 6.0);
+}
+float amoebaD(vec2 p, float a, float b, float amp, float seed) {
+  vec2 q = vec2(p.x, p.y + b);
+  float rho = length(q), th = atan(q.y, q.x), cth = cos(th), sth = sin(th);
+  float Rb = inversesqrt((cth / a) * (cth / a) + (sth / b) * (sth / b));
+  float fk = clamp((sth - 0.35) / 0.4, 0.0, 1.0), front = fk * fk * (3.0 - 2.0 * fk);
+  float lobe = (1.0 - front) * 0.14 * b * (0.5 * sin(3.0 * th + 0.15 * uTime + seed) + 0.3 * sin(5.0 * th - 0.11 * uTime + 2.0 * seed) + 0.2 * sin(8.0 * th + 0.07 * uTime + 3.0 * seed));
+  float wave = front * amp * (0.6 * sin(0.07 * p.x + seed + 0.2 * uTime) + 0.4 * sin(0.17 * p.x + 2.0 * seed - 0.13 * uTime));
+  float d = Rb + lobe + wave - rho;
+  if (q.y > b * 0.6) {
+${ARMS_GLSL}
+  }
+  return d;
+}
+// its thickness at depth d: a thin clear margin, thick behind it
+float amoebaT(float d) { return (clamp(d * 0.35, 0.0, 1.5) + clamp((d - 6.0) * 0.6, 0.0, 9.0)) * smoothstep(-vBlur - uPx, vBlur + uPx, d); }
 
 // chord of a round cross-section of radius r at distance d, widened to rr
 // (sub-pixel) and to rb (defocus) with the integrated amount kept.
@@ -209,18 +242,28 @@ void main() {
     // through the origin (+y out of it) and its middle at (0, -r); lobed all round (pseudopods flowing slowly,
     // seed p2), the front rippling with amplitude p1; a thin clear margin, granular and thick behind it.
     // (bacterium world.js amoebaDepth is the same outline.)
-    float a = L, b = r;
-    vec2 q = vec2(p.x, p.y + b);
-    float rho = length(q), th = atan(q.y, q.x), cth = cos(th), sth = sin(th);
-    float Rb = inversesqrt((cth / a) * (cth / a) + (sth / b) * (sth / b));
-    float fk = clamp((sth - 0.35) / 0.4, 0.0, 1.0), front = fk * fk * (3.0 - 2.0 * fk);
-    float lobe = (1.0 - front) * 0.14 * b * (0.5 * sin(3.0 * th + 0.15 * uTime + p2) + 0.3 * sin(5.0 * th - 0.11 * uTime + 2.0 * p2) + 0.2 * sin(8.0 * th + 0.07 * uTime + 3.0 * p2));
-    float wave = front * p1 * (0.6 * sin(0.07 * p.x + p2 + 0.2 * uTime) + 0.4 * sin(0.17 * p.x + 2.0 * p2 - 0.13 * uTime));
-    float d = Rb + lobe + wave - rho;
-    t = clamp(d * 0.35, 0.0, 1.5) + clamp((d - 6.0) * 0.6, 0.0, 9.0);
-    t *= smoothstep(-vBlur - uPx, vBlur + uPx, d);
+    // (its thin arms too: amoebaD)
+    float d = amoebaD(p, L, r, p1, p2);
+    t = amoebaT(d);
     rim = 1.0 - smoothstep(0.0, 2.0, d);
     tex = 0.85 + 0.3 * fbm(p * 0.6 + p2);
+  } else if (type == 10) {
+    // a tunnel bored into the amoeba (drawn with its material negated): what the body would have there less
+    // what it has with the tunnel cut out, so the two sum to the body with the tunnel exactly. The tunnel: a
+    // capsule from its mouth vF.xy along angle vF.z, vF.w long, half-width vC.x, its mouth narrowed by vE.a (a pinch).
+    float d = amoebaD(p, L, r, p1, p2);
+    vec2 u = vec2(cos(vF.z), sin(vF.z));
+    float uu = dot(p - vF.xy, u), s = clamp(uu, 0.0, vF.w);
+    float we = vC.x * (1.0 - 0.8 * vE.a * (1.0 - smoothstep(4.0, 12.0, uu)));
+    float dc = min(d, length(p - vF.xy - u * s) - we);
+    float t0 = amoebaT(d), t1 = amoebaT(dc), dt = t0 - t1;
+    if (dt <= 0.0) discard;
+    float tx = 0.85 + 0.3 * fbm(p * 0.6 + p2);
+    float r0 = 2.0 * (1.0 - smoothstep(0.0, 2.0, d)), r1 = 2.0 * (1.0 - smoothstep(0.0, 2.0, dc));
+    o0 = vec4(vC.z * dt * tx, vC.w * dt, dt * vD.a, 0.0);
+    o1 = vec4(vD.rgb * vec3(t0 * r0 - t1 * r1, dt, dt) * tx, 0.0);
+    o2 = vec4(vE.rgb * dt * tx, 0.0);
+    return;
   } else {
     // slab: the biofilm and sediment surface, top edge wavy at y = 0, thickness r
     float edge = p1 * (0.6 * sin(0.04 * p.x + p2) + 0.4 * sin(0.11 * p.x + 2.0 * p2));
@@ -283,7 +326,7 @@ export function createShapes(max = 4000) {
     arr.iC[k] = o.phase ?? 0; arr.iC[k + 1] = z; arr.iC[k + 2] = o.dn ?? DEF.dn; arr.iC[k + 3] = o.scat ?? DEF.scat;
     arr.iD[k] = fl[0]; arr.iD[k + 1] = fl[1]; arr.iD[k + 2] = fl[2]; arr.iD[k + 3] = o.hk ?? 1;
     arr.iE[k] = ab[0]; arr.iE[k + 1] = ab[1]; arr.iE[k + 2] = ab[2]; arr.iE[k + 3] = o.memb ?? 0;
-    arr.iF[k] = lab[0]; arr.iF[k + 1] = lab[1];
+    arr.iF[k] = lab[0]; arr.iF[k + 1] = lab[1]; arr.iF[k + 2] = lab[2] ?? 0; arr.iF[k + 3] = lab[3] ?? 0;
     n++;
   }
 
@@ -321,6 +364,15 @@ export function createShapes(max = 4000) {
     trumpet(x, y, ang, L, R, footR, seed, o = {}) { push(8, x, y, ang, L, R, footR, seed, o, L + R * 1.5); },
     /** A whole amoeba: half-axes a (across) and b (deep), front edge through (x, y) facing local +y (`ang` along the edge), front ripple amp, seed. */
     amoeba(x, y, ang, a, b, amp, seed, o = {}) { push(9, x, y, ang, a, b, amp, seed, o, 1.25 * a + 2.4 * b); },
+    /**
+     * A tunnel cut into that amoeba (same x, y, ang, a, b, amp, seed): T = { x, y (its mouth in the amoeba's
+     * frame), a (inward angle), len, w (half-width), pinch (0..1: its mouth narrowed) }; o is the amoeba's own
+     * material, negated here, so the tunnel shows as the body taken away (its cytoplasm parted).
+     */
+    amoebaCut(x, y, ang, a, b, amp, seed, T, o = {}) {
+      const neg = (v) => (Array.isArray(v) ? v.map((c) => -c) : -(v || 0));
+      push(10, x, y, ang, a, b, amp, seed, { z: o.z, dn: neg(o.dn ?? DEF.dn), scat: neg(o.scat ?? 0), fl: neg(o.fl || DEF.fl), ab: neg(o.ab || DEF.ab), hk: -(o.hk ?? 1), phase: T.w, memb: T.pinch || 0, lab: [T.x, T.y, T.a, T.len] }, 1.25 * a + 2.4 * b);
+    },
     /** Flat surface layer: width L, depth below the wavy top edge, edge wobble amp. */
     slab(x, y, L, depth, amp, seed, o = {}) { push(7, x, y, 0, L, depth, amp, seed, o, L + depth); },
     setTextures({ cil, bio, mag }) {

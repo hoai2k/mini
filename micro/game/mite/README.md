@@ -11,7 +11,12 @@ back.
 
 Open `micro/game/mite/` (the invite gate is off on localhost).
 
-**Goal:** head out through the moss in any direction. The encounters are
+**Goal:** head north, up the screen. The moss is a corridor (the owner,
+2026-11-04: "make it a bit more linear ... so we basically know the direction
+we have to go"): the start is near its south wall, the side walls are about
+ten seconds' walk either side of the straight route, the way on lies up north
+and the north wall about ten seconds past it (see The corridor; the seconds
+are in `micro/game_config.js`). The encounters are
 placed as you go, in order, in moss you have not seen yet (the encounter
 pattern, `../../design/encounter-pattern.md`, "Placed as you go"), rising in
 threat: a family of box mites, the predatory mite, a drop of water falling
@@ -40,10 +45,10 @@ encounter director (`createDirector` with `layout.js` `DIRECTOR` and
 tile in every direction (see World), the start's ten shoots, spores and
 hyphal tips to graze, the second box mite, the giant springtail (the
 backdoor) behind the start view, and the **hyphal thickets full of
-springtails** (`CLUSTERS`: 13 round the 5 mm ring and 54 round the 20.3 mm
-ring, each 1.64 mm across, alternately 0.35 mm in and out, so every straight
-way out passes within 0.4 mm of one on each ring and there is always a way
-round; and five more along the forward route, `FORWARD_THICKETS`, at 12.6,
+springtails** (`CLUSTERS`: 13 round the 5 mm ring, every straight way out
+passing within 0.4 mm of one with always a way round, and the 6 of the
+20.3 mm ring that fall inside the corridor, each 1.64 mm across, alternately
+0.35 mm in and out; and five more along the forward route, `FORWARD_THICKETS`, at 12.6,
 28.8, 37.9, 46.2 and 57.5 mm, to alternate sides of the line with their edges
 ~0.65 mm off it, in the gaps between the default path's encounters: walking
 straight ahead skirts each one). The thickets are a harmless crowd you push or bite through (a drag,
@@ -140,10 +145,10 @@ start each way, kept by a hard clamp in `mite.js` with nothing drawn there,
 so walking straight out for about a minute ended against nothing visible.
 The large bug was the predatory mite (~0.8 mm, more than twice your length)
 or the giant springtail at the backdoor (~1.5 mm, behind the start view);
-both are meant to be there. Now the square is 0.96 m across (over 7 minutes
-of scrambling straight out; its edge, if anyone gets there, is a wall of
-tall Sphagnum you can see and stop against: see World, The edge of the
-cushion), the order has seven entries rising in threat with shorter breaks,
+both are meant to be there. Then the square became 0.96 m across (over 7
+minutes of scrambling straight out; its edge a wall of tall Sphagnum you can
+see and stop against: see World, The edge of the cushion; since 2026-11-04 a
+corridor, see The corridor), the order has seven entries rising in threat with shorter breaks,
 life and water beads cover the moss everywhere, the beads thicken toward the
 water, and the marks at the foot of the screen show the way on filling.
 
@@ -186,7 +191,8 @@ to pass without noticing: a long walk forward felt like nothing but
 springtails and a destination that never came nearer. Now the whole order,
 the wet moss and the water lie ahead, with thickets in the gaps.
 
-**Timing.** `route.test.mjs` runs the director with the SEM view's own
+**Timing** (on the open square, before the corridor; the corridor's are
+under The corridor). `route.test.mjs` ran the director with the SEM view's own
 frustum and a player rushing (~1100 µm/s: full tilt with every scramble the
 stamina allows, a third slower in a thicket) in 16 directions: the family met
 at 5.8–6.9 s, the predator at 13.9–15.1 s, the drop at 20.8–22.4 s, the
@@ -250,14 +256,179 @@ raised 2026-11-02 from 260 and 240 with the faster walk: a mite walks
 round. The glow is dim and restless while it is guarded, bright once open.
 
 **The moss reaches the portal and beyond in every direction**: one 9.6 mm
-scenery tile repeated (see World). The walkable square (`BOUNDS`) is 0.96 m
-across (it was 87 mm, and the owner walked into its edge, an invisible wall);
-its edge is now a visible one, a wall of tall Sphagnum shoots (`EDGE`,
-`edge.js`; see World), the body is kept inside its face, the director places
-nothing within reach of it or of the shed leaves in front of it (`canPlace`:
-each entry's whole clearance disc stays 5 mm short of the face), and pressed
-against it a toast says it too (at most every 20 s). A 3-minute rush straight
-out goes ~0.2 m. The director's seen grid covers the square (0.5 mm cells, ~3.7 MB).
+scenery tile repeated (see World), walled in as a corridor (below). The
+director places nothing within reach of a wall (`canPlace`: each entry's
+whole clearance disc 1.2 mm clear of the faces, so out of most of the shed
+leaves in front of them), and pressed against a wall a toast says it too (at
+most every 20 s). The director's seen grid covers the corridor's bounding
+square (`BOUNDS`, 0.5 mm cells, ~16 k cells against 3.7 M for the old 0.96 m
+square).
+
+## The corridor (`layout.js` `EDGE`, `micro/game_config.js`)
+
+The owner (2026-11-04): "can we make it a bit more linear in that we start
+kind of close to the (let's say) south side of the world, where we could hit
+the south wall by walking south for 10 seconds or so, and then the east and
+west walls are somewhere around 10 seconds out in each direction, and the
+final north wall is 10 seconds past the portal, so we basically know the
+direction we have to go. Let's have this "10 seconds" configurable".
+
+"North" is the world's forward (`FORWARD`: screen-up with the locked camera,
+the default path's bearing). The walkable ground was a 0.96 m square round the
+start; it is now a rectangle turned to run along the forward, with the same
+visible wall of tall Sphagnum on all four sides (`edge.js`):
+
+| Wall | Where (µm, along the corridor: `a` north of the start, `c` across) | game_config.js |
+| --- | --- | --- |
+| South | a = -8 780 | `mite.southWallSeconds` (10) |
+| West, east | c = ±8 780 from the straight route | `mite.sideWallSeconds` (10) |
+| North | a = 72 830: the water at 64 050, then 8 780 more | `mite.northWallSecondsPastPortal` (10) |
+
+Each distance is its seconds times `mite.walkingSpeedForWallSeconds`, 878 µm/s:
+the stick at full tilt, the walk most play is at (the keys walk ~610, the
+slowest ~418). The water's distance up the corridor is where the default path
+lays it (`PATH_DISTS`: the director's own rule, each calm break at a rush of
+1100 µm/s plus the middle of its ahead range: 64.05 mm), and the water only
+ever stands at the north end (its `fits`: within -1.5..+0.6 mm of that), so
+the north wall is always about its seconds past it, whichever way you went.
+`clampInside` keeps the body's centre its reach (189 µm) inside the faces,
+walking, scrambling, rolling, in the air and as posed; the predator and the
+family wait parked behind the south wall (`PARK`) until placed.
+
+Measured on the page (`play-check.mjs walls`, full tilt, 878 µm/s, through
+`testStep`): the south wall from the start in 9.87 s, the west wall from the
+start in 9.97 s and the east wall in 9.87 s (from 2.5 mm south of the start:
+the line due east of the start crosses a thicket, which drags you to half
+speed), and the north wall from the water in 14.97 s: the moss round the
+water is beaded, and a bead slows a mite to 40% while it climbs out, so the
+last stretch walks slower than open moss (the distance is the 10 s).
+
+Inside the corridor the encounters keep their pacing (`route.test.mjs`):
+rushing straight up it meets the seven at 7.1, 15.3, 21.3, 30.7, 36.5, 45.9
+and the water at 59.3 s, as before; rushing at angles up to ±69° from the
+forward, glancing off the side walls, meets them all in order (the longest
+wait 19.9 s); lingering at the start brings each round you, the water staying
+at the north end; heading south or to a side takes each off the path and
+places it as you go, in the corridor.
+
+## Bodies push each other (`../shared/push.js`)
+
+The owner (2026-11-04): "can we have creatures push each other instead of
+clipping through each other? For example I saw another mite and just walked
+through him, whereas I'd hope to push and be pushed." Nothing collided with
+anything but the moss before: the mites, the predator and the springtails
+walked through one another.
+
+- **Every walking creature is a disc on the ground**: the players' box mites,
+  the second box mite, the family, the predatory mite and the ambient
+  springtails, each round its body (its radii, centred on the body, not the
+  aspis), with a mass by its body's volume: a box mite 1 (the family's
+  smallest ~0.5, biggest ~1.2), the predatory mite ~6, a springtail ~0.35.
+  The pseudoscorpion is three fixed discs along its carapace and abdomen:
+  immovable (it is seven box mites long).
+- **Overlaps part along the line between centres, shared by mass**: a body of
+  mass m against one of mass M moves M / (m + M) of the overlap, so the
+  predatory mite shoves you six times as far as you shove it. Three
+  relaxation passes a frame settle a crowd; a spatial hash (cells of the
+  widest pair) keeps it cheap (~70 bodies near a player; each tests only the
+  nine cells round it).
+- **Momentum**: a share of each push (`shared.pushCarry` in
+  `micro/game_config.js`, 0.35) is kept as a slide that dies away over
+  ~0.15 s, so a shove reads as a shove and leaning into a mite pushes it
+  along.
+- **What moves**: a mite through `mite.nudge` (walking, crouched, closing,
+  closed and rolling, opening, in the air: the feet stay planted and step
+  after the body, which settles and clears the moss next frame as always);
+  a springtail through its offset (`life.js` `pushBy`), so it is stood on the
+  ground (`stand.js`) where it ends up. A mite held in jaws, and the predator
+  during its catch, are left out; one in the air passes over what is below it
+  (the discs' heights do not overlap). The thickets' crowd keeps its own rule
+  (`shared/crowd.js`: it parts round a mite, a drag).
+- Measured (`play-check.mjs push`): walking into the second box mite at
+  600 µm/s pushes it along (~290 µm of push over 2 s; you take a like share),
+  and walking into the predatory mite you take 5.98x its push; the deepest
+  overlap left after a step was 3.6 µm (bodies ~100 µm across).
+
+## Nothing vanishes
+
+The owner (2026-11-04): "the other insects sometimes seem to disappear. Can
+we prevent random disappearance? Either it's eaten or if it somehow burrows
+in the ground (do they?) then it should look like that's happening with
+particles, no "disappear suddenly" type of effect."
+
+**What was doing it.** The ambient springtail groups were drawn each frame as
+a pure function of their place and the clock, and three things in that made
+one jump out of where it was in a single frame, which reads as vanishing:
+
+1. *Shying.* A springtail within 0.36 mm of a mite was put `(0.36 mm - d) x
+   1.1` straight away from it each frame, by position, not speed: walking
+   through a group, the mite's centre passing one flipped it from in front
+   of the mite to behind in one frame (~0.4 mm). Measured on the old page,
+   walking up the forward 30 s: 10 to 15 such jumps at 4 600-14 000 µm/s
+   (a springtail's leap peaks ~2 000).
+2. *Getting up.* A dazed one lay where it was bitten; when the daze ended it
+   was drawn back on its path, up to ~0.6 mm away, in one frame. The same
+   for one dropped from the jaws.
+3. *Coming back.* An eaten one popped back on its spot after 40 s.
+
+And elsewhere: the springtail groups were drawn only within 4.2 mm of a
+player and at most 150 at a time, first come first served, so with players
+spread (or the view zoomed out and split) some were cut in view; the
+pseudoscorpion, worn down, was hidden in one frame when it reached its
+retreat; and in the thickets a springtail the predator ate shrank to nothing
+in 0.35 s and its replacement grew out of nothing in the open, often in view.
+
+**Now** (`life.js`, `thicket.js`, `boss.js`):
+
+- Each springtail keeps an **offset** from its grazing path: what shied it
+  (a speed, up to 1.5 mm/s at contact, not a jump), what pushed it, and
+  whatever would otherwise jump (getting up, dropped from the jaws, walked
+  round a stem). The offset fades (to a third in 1.6 s), so it walks back to
+  graze, and no drawn springtail moves faster than 2.4 mm/s (the leaps are
+  under it).
+- **Groups come and go only out of view**: drawn round each player and round
+  what each view frames out to its reach as zoomed (`1.25 x HFW + 1.8 mm`),
+  the ones already shown first under the cap (now 400), dropped only past
+  their reach and out of every view's frustum. One that must go while seen
+  (its site taken by the portal's arena) **dives into the moss**: each sinks
+  nose first into a crevice over 0.55 s in a puff of crumbs (springtails do
+  hide in soil pores and litter); one that must come while seen **climbs
+  out** the same way.
+- **An eaten one** is eaten in the jaws as before; the one that wanders into
+  its place 40 s later climbs out of the moss, with crumbs.
+- **The thickets**: the predator's meal shrinks between its chelicerae over
+  0.9 s with a puff of bits; a replacement climbs out of the moss at full size
+  (crumbs) instead of growing from a point.
+- **The pseudoscorpion**, worn down, backs into the moss to the side and then
+  **backs down into it** over 0.9 s, crumbs coming up round it, before it is
+  gone.
+- The predator and the family were already only moved or placed out of every
+  view (the director); a player who leaves goes in a puff of crumbs.
+- Measured: walking 22 mm up the corridor weaving and zooming between 1.6 and
+  4.2 mm fields, 6 350 springtail-frames in view, none vanished between
+  frames and none moved faster than 1.3 mm/s (`play-check.mjs vanish`; the old
+  page: 10-15 jumps); `life.test.mjs` checks the same without a browser.
+
+## Tuning: `micro/game_config.js`
+
+The numbers worth tuning by hand are in `micro/game_config.js`, beside
+`text_config.js` at the top of `micro/`, read through
+`../shared/config.js` (`conf('mite.eatSeconds', 3)`: a missing or mistyped
+key falls back to the default given and warns once). The mite reads, under
+`mite`: the walls (`walkingSpeedForWallSeconds`, `southWallSeconds`,
+`sideWallSeconds`, `northWallSecondsPastPortal`), walking (`walkSlowestSpeed`,
+`walkFullTiltSpeed`, `keyboardWalkShare`, `scrambleSpeed`,
+`scrambleEmptySeconds`, `scrambleRefillSeconds`), jumping
+(`jumpTapDistance`, `jumpFullChargeDistance`, `jumpChargeSeconds`), eating
+(`eatSeconds`, `eatPressShare`, `eatWalkOffDistance`), the jump attack
+(`jumpAttackBeforeLandingSeconds`, `jumpAttackAfterLandingSeconds`,
+`jumpAttackReach`, `jumpAttackInterest`, `groundBiteReach`), the predator
+(`predatorHuntSpeeds`, `predatorFeelDistances`, `predatorBlockInterest`,
+`predatorFacingInterestPerSecond`) and the encounter spacing
+(`warmupSeconds`, `calmSeconds`, `calmBeforeDropSeconds`,
+`calmBeforePortalSeconds`); and `shared.pushCarry`. Changing the calm breaks
+moves the water up or down the corridor (the default path's distances follow
+them), and the north wall with it.
 
 ## Controls (Xbox controller; keyboard in brackets)
 
@@ -273,8 +444,8 @@ the lists no longer carry "enter portal" or a "Way back" row (3 November
 | --- | --- |
 | LS (WASD) | Walk, relative to the view. The stick is analogue: a slight push walks at ~418 µm/s (the old walk), full tilt hurries at ~870 µm/s (the old scramble), a quadratic curve between so the slow end is easy to hold. The keys walk mid-pace (~610 µm/s); hold Q / F (LB / RB) for the slow end / full tilt. The mite turns toward the stick and walks forward; it climbs grains, flakes and stems and pushes through blades |
 | RS (arrows) | **Tilt · peek**: left/right peeks sideways (the turn is locked to the world's forward, see Multiplayer; Free camera in single player orbits). Up looks up (the camera swings down toward the floor), down looks down; Features → Controls → Invert camera Y flips it for every prototype |
-| **A (Space)** | **Jump**, with a flea's or a jumping spider's snap: tap for a 0.1 s crouch and a spring of ~1.1 mm (three body lengths, ~0.33 mm high); hold to crouch deeper (up to 0.45 s more, the body quivering at full charge) and release for ~2.1 mm (six body lengths, ~0.65 mm high); a run-up adds to it. Aim with LS while crouched; LS leans the arc a little in the air. Lands on the floor, a grain, a flake or a moss blade (the blade takes the landing and bends); 0.3 s after landing before the next. Borrowed from jumping oribatids (see Departures). **X in the air: the pounce-bite** |
-| **X (E)** | **Bite.** Every press shows an attack: the mite rears, the rostrum lifts (the chelicerae open), it lunges and snaps, and crumbs puff where the snap lands (or in the air before it), with the bite sound. By what is in reach: **fight** (the predator or the pseudoscorpion's pincer: rear up with leg I raised, then lunge and snap); **strike** a springtail in front (it lies dazed 2.4 s, its group leaps away and drifts back over ~10 s); **devour** a dazed one (a snap, then it is held to the mouth and eaten, 1.2 s); **strike** one of the box-mite family (it shuts itself in its capsule; the bite glances off); **eat** (a spore or hyphal tip: a dart at it, then leg I holds it to the mouth while the chelicerae work and it shrinks away, 0.9 s); **strike** at nothing (a snap in the air). See "Biting springtails" |
+| **A (Space)** | **Jump**, with a flea's or a jumping spider's snap: tap for a 0.1 s crouch and a spring of ~1.1 mm (three body lengths, ~0.33 mm high); hold to crouch deeper (up to 0.45 s more, the body quivering at full charge) and release for ~2.1 mm (six body lengths, ~0.65 mm high); a run-up adds to it. Aim with LS while crouched; LS leans the arc a little in the air. Lands on the floor, a grain, a flake or a moss blade (the blade takes the landing and bends); 0.3 s after landing before the next. Borrowed from jumping oribatids (see Departures). **X as you come down: the jump attack** (see Fighting back) |
+| **X (E)** | **Bite.** Every press shows an attack: the mite rears, the rostrum lifts (the chelicerae open), it lunges and snaps, and crumbs puff where the snap lands (or in the air before it), with the bite sound. By what is in reach: **fight** (the predator or the pseudoscorpion's pincer: rear up with leg I raised, then lunge and snap); **eat** a springtail in front: one press grabs it (its group leaps away and drifts back over ~10 s) and it is eaten, struggling, over 3 s; each further X is a chomp that eats a quarter of it; **strike** one of the box-mite family (it shuts itself in its capsule; the bite glances off); **eat** (a spore or hyphal tip: a dart at it, then leg I holds it to the mouth while the chelicerae work and it shrinks away, 0.9 s); **strike** at nothing (a snap in the air). See "Biting springtails" |
 | **Y (R)**, hold | **Defend: ptychoidy.** Close into a sealed capsule (the predator's strike slides off; a held mite closing up drops out of the grip); release to reopen |
 | **B (Shift)**, hold | **Scramble** (the dash): a punchy burst to ~1.48 mm/s (~1.7x full tilt, ~3.5x the slow end), nose down, tight turns, the gait racing (feet still planted) and crumbs kicked up behind; on a stamina meter (`scramble ■■■■■` in the corner: empties in ~1.6 s, refills in ~2.8 s). In a grab's strike window, a scramble breaks out |
 | Y (R) at the open portal | Enter the portal (the zoom on to the tardigrade) instead of defending; the game shows "Y Enter the portal" while you are there |
@@ -448,13 +619,26 @@ I see. Currently I don't see any attack animations when pressing X."
   a lunge (~42 µm), the snap (the rostrum dips 0.34 rad), crumbs puffed at
   the target or in the air before the mouth, the bite sound. The fight
   (predator, pseudoscorpion) and the grazing dart share the same parts.
-- **Strike a springtail** (one in front, within ~0.27 mm of a point just
-  ahead of the mouth; they shy only to 0.36 mm, so walk up and face one): it
-  jolts and lies **dazed for 2.4 s** where it was, crouched, legs twitching,
-  facing you; the rest of its group **leap away** (~0.5 mm, upright arcs) and
-  drift back to graze over ~10 s.
-- **Devour a dazed one:** X again in time: a snap onto it, then it is held
-  under the mouth and shrinks away as the chelicerae work (1.2 s). **Seen
+- **One press eats** (the owner, 2026-11-04: "can we have a single press of
+  X grab the creature and start eating it, where pressing again will make
+  the eating faster, but otherwise we still just continue eat it more slowly
+  from the first hit?"). X with a springtail in front (within ~0.27 mm of a
+  point just ahead of the mouth; they shy only to 0.36 mm, so walk up and
+  face one) grabs it: a snap onto it, the rest of its group **leap away**
+  (~0.5 mm, upright arcs) and drift back to graze over ~10 s, and it is held
+  under the mouth, kicking and twisting, and shrinks away as the chelicerae
+  work. It goes on by itself: a meal takes `mite.eatSeconds` (3 s). Each
+  further X is a **chomp** (the head jerks in, the chelicerae snap, crumbs,
+  the bite sound) that eats `mite.eatPressShare` of it (a quarter), so
+  pressing along finishes it in about a second. Measured on the page
+  (`play-check.mjs eat`): no more presses 3.03 s, one more 2.27 s, three
+  more 0.97 s. It replaced the old rule (nip it to daze it for 2.4 s, then
+  bite again in time to eat it, 1.2 s).
+- **It can get away.** While you eat you shuffle at a third of your speed;
+  walk on `mite.eatWalkOffDistance` (140 µm) from where the meal began and it
+  wriggles free ("It wriggled free"), dropped dazed for a second, then walks
+  back to its group. Closing up, jumping or being grabbed drops it too, as
+  before. The jump attack's dive drops it as well. **Seen
   from behind** (the owner, 2026-11-04: "if you eat one while facing away
   from the camera, can we show it sort of lifted up ... From the front it
   looks good already") the mite's body hid it, so the devour blends toward
@@ -464,13 +648,14 @@ I see. Currently I don't see any attack animations when pressing X."
   is by the view: the dot of the mite's facing with the horizontal direction
   from its own split view's camera to it (each view's camera, noted as the
   views are drawn: `viewDir`), 0 below -0.15 (the front, unchanged), 1 above
-  0.45, eased over 0.25 s so a peek never jumps it. The timing, the reach
-  and what a meal gives are unchanged. It counts
+  0.45, eased over 0.25 s so a peek never jumps it (the snap and the lift
+  run on time, 1.2 s; the shrinking on the meal's progress). It counts
   as grazed, **refills the scramble** and brings a grabbed leg's healing 8 s
-  nearer (legs heal one per 20 s). Another wanders into its place after 40 s.
-- **Why two bites, and why it doesn't trivialise the encounters:** a nip
-  alone only drives them off; eating takes a second, timed bite and 1.7 s of
-  standing still. The predator and the pseudoscorpion come first (X in
+  nearer (legs heal one per 20 s). After 40 s another climbs out of the moss
+  in its place (crumbs; see Nothing vanishes).
+- **Why it doesn't trivialise the encounters:** a meal takes a few seconds
+  of shuffling with your mouth full (or a burst of presses standing still).
+  The predator and the pseudoscorpion come first (X in
   their reach is always the fight), a stamina refill is all a meal gives in
   a chase, and the family cannot be eaten: bitten, a box mite closes up and
   the bite glances off (as the predator's does off you).
@@ -488,13 +673,37 @@ Shared fight rules (`shared/predation.js`, `createFight`); the mite uses Y for d
   banner says so), then lunges (`predator.js`: wander, hunt, windup, strike,
   recover, recoil, retreat).
 - **Block:** close up (Y): the strike slides off the capsule, it recoils.
-- **Bite back:** X with it in reach: rear up, then lunge and snap. Blocks and
-  bites each take about a third of its interest (facing it close by wears it
-  slowly too); out of interest it runs off and rests.
-- **The pounce-bite (a game stretch):** X while jumping dives at the nearest
-  enemy point ahead (homing as it moves), a strong bite on impact (two bites'
-  worth, a hit-pause, crumbs, a rumble), then a hop back; a mistimed dive is a
-  clear miss.
+- **Too high to bite from the ground** (the owner, 2026-11-04: "The other
+  mite is too high up to fight otherwise, so you should have to do this to
+  hit it"): the predatory mite stands on long legs, its belly ~120-155 µm
+  over the moss (measured over its gait and its rear), and a bite from the
+  ground reaches `mite.groundBiteReach` (110 µm) over the moss under you (your
+  mouth is ~15-60 µm up, rearing). X with it in reach still rears up and
+  snaps, but the snap glances off a leg: no interest lost, no recoil, the
+  glance sound, and the first time the hint "Too high: jump (A) and press X
+  as you land" (then a shorter reminder at most every 6 s). Only where it
+  stands lower than you (in a dip, you on a grain) does a bite reach it.
+- **The jump attack (a game stretch; the owner, 2026-11-04: "can we have the
+  mite's jump be able to be a jump attack, if they press X while landing? I
+  want him to be able to fight the bigger mite"):** X in a jump's landing
+  window, from `mite.jumpAttackBeforeLandingSeconds` (0.25 s) before
+  touchdown to `mite.jumpAttackAfterLandingSeconds` (0.15 s) after it,
+  strikes down with the chelicerae as you come down (reared back with them
+  open, then driven down nose first): a hit on the predator's body or mouth
+  within `mite.jumpAttackReach` (460 µm) of yours. Pressed earlier in the air
+  it dives at the nearest enemy point ahead (homing; the old pounce-bite), so
+  the landing comes to it. A hit: a white flash where it lands (the SEM's
+  charging flare), a hit-pause, the bite and strike sounds, crumbs, a
+  rumble, the predator shoved back and recoiling, and
+  `mite.jumpAttackInterest` (0.4) of its interest gone: three drive it off
+  (with facing it, sometimes two). Then a hop back; a mistimed dive is a
+  clear miss. On the pseudoscorpion it is the old pounce-bite (two bites'
+  worth). Measured (`play-check.mjs jump`): X 0.18 s before touchdown hits
+  (interest 1 -> 0.58), X 0.10 s after touchdown hits, X 0.33 s after is an
+  ordinary bite (the glance); three jump attacks drove it off.
+- **Blocks** (Y) take `mite.predatorBlockInterest` (0.3) of its interest,
+  facing it close by `mite.predatorFacingInterestPerSecond`; out of interest
+  it runs off and rests.
 - **A grab:** three leg grabs and it holds on (strike, hold, eat: pulled in
   and swallowed between the chelicerae); scramble (B) in the strike window,
   or close up (Y) before it eats, to slip free. Eaten, the camera pulls back
@@ -678,8 +887,8 @@ Built from parts placed by measurements against the reference, never traced:
 
   All 80 jumps landed and walked on; the deepest body overlap after a landing
   was 49 µm (eased out within a few frames). A jump can't leave the world
-  (the walkable square clamps the body in the air too, against the face of
-  the wall of moss at its edge, 0.96 m across) and can't skip an encounter: the director meets an encounter from
+  (the corridor clamps the body in the air too, against the faces of the
+  walls of moss round it) and can't skip an encounter: the director meets an encounter from
   wherever the player is, in the air or not, its predators notice a mite
   within 0.9 mm of their ground, and the drops fall round whoever comes
   within 2.6 mm (never on them).
@@ -781,8 +990,9 @@ pushes through blades the same way.
 - Closed up (Y), you are a smooth, hard capsule it cannot grip: it gives up
   after three tries and wanders off for a while. Feeding trials with
   *Pergamasus* found adult box mites nearly immune (Peschel et al. 2006).
-- A nip (X) makes it recoil for 1.5 s. That is a game rule: box mites do not
-  really fight back.
+- A jump attack makes it recoil for 1.5 s; a bite from the ground glances off
+  its legs (see Fighting back). That is a game rule: box mites do not really
+  fight back.
 
 ## Rendering (`shared/techniques/mite-sem.js`)
 
@@ -1103,7 +1313,7 @@ eaten from the copy nearest the mouth.
 ### The edge of the cushion (`edge.js`)
 
 The owner, 2026-11-02: "for the mite world if there's an edge to it ensure
-we have a visual barrier, not just a message". The walkable square ends in
+we have a visual barrier, not just a message". The walkable corridor ends in
 the edge of the moss cushion: a band of tall Sphagnum shoots standing
 shoulder to shoulder all round it (`layout.js` `EDGE`), 6–9 mm tall (far over
 a jump's ~1.1 mm apex and over the camera at the default zoom, so it fills
@@ -1116,10 +1326,14 @@ the frame as you reach it and nothing shows "past the end") and 2.4 mm deep.
   every ~0.7 mm with imbricate leaves, and a capitulum (the dense head of
   short curling branches a Sphagnum shoot ends in); two rows behind with
   fewer branches; a palisade of bare stems at the back, so nothing shows
-  through. Each side's band runs on past the corners, so they are filled by
-  both. Same SEM look as the moss (`gMaterial`, the stem and leaf classes).
-- **Its face is the collision.** The face is the plane |x| = `EDGE.face` (and
-  |z|), 0.3 mm inside the square's edge. Nothing of the wall reaches inside it
+  through. The north and south bands run on past the corners, so they are
+  filled. Same SEM look as the moss (`gMaterial`, the stem and leaf classes).
+  The corridor runs along the forward, so each side is built in corridor
+  coordinates (`c` west, `a` north: a turn of x and z, not a mirror) and its
+  instances written in world space.
+- **Its face is the collision.** The faces are the lines a = -`EDGE.south`,
+  a = `EDGE.north` and c = ±`EDGE.side` (see The corridor). Nothing of the
+  wall reaches inside them
   below 0.9 mm up (every vertex is pushed back to the face there), and
   `mite.js` keeps the body's centre its reach (its longest half-axis and
   offset, so the front of the aspis: 189 µm for the box mite) inside the face,
@@ -1128,11 +1342,13 @@ the frame as you reach it and nothing shows "past the end") and 2.4 mm deep.
   (nothing to climb). Checked by script: walking, scrambling, a 4 mm/s push
   and repeated full jumps into each side and two corners, and the keyboard's
   W+Shift and Space: the centre never passed 479 512 µm (the face at
-  479 700).
+  479 700; measured on the old square, and the clamp is the same rule turned
+  with the corridor: `clampInside`).
 - **Seen coming.** The 12° scan at the default pitch sees only ~0.9 mm beyond
   the mite, so the wall enters the frame about then, rising out of the top;
   lowered (pitch 0.18) the view sees ~6 mm ahead and the wall stands across
-  it. Before that, shed leaves lie on the floor for 5 mm in front of it,
+  it. Before that, shed leaves lie on the floor for 2.2 mm in front of it (5 mm
+on the old square; the corridor is narrower),
   sparse at first and piling up toward the wall: placed per segment once, on
   the floor's height and slope, when a view first comes near, and kept. The
   springtail groups and water beads (`life.js`) keep inside the face.
@@ -1326,18 +1542,39 @@ Not borrowed:
 ```bash
 node micro/game/check-worlds.mjs mite
 node micro/game/mite/route.test.mjs
+node --test micro/game/mite/life.test.mjs micro/game/shared/push.test.mjs
+node micro/game/mite/play-check.mjs        # push, eat, jump, vanish, walls (Playwright, a few minutes)
 ```
 
+`play-check.mjs` drives the page: walking into the second box mite pushes it
+and is pushed back with no overlap left, and against the predatory mite the
+player takes ~6x the push (its mass); one X eats, a second press shortens it,
+walking off frees it; a bite from the ground glances off the predator while X
+in the landing window hits it, and a few drive it off; walking up the corridor
+zooming out and in, no springtail in view vanishes or jumps; and the walk to
+each wall at full tilt takes about its seconds. It saves stills of each
+(`$SHOTS`). `life.test.mjs` steps the springtail groups along a walk with a
+view and checks the same without a browser (nothing in view vanishes or
+jumps, a group that must go while seen dives with crumbs, an eaten one comes
+back climbing out of the moss, they stay inside the corridor);
+`push.test.mjs` checks the mass-weighted push.
+
 `route.test.mjs` checks the moss and the encounters without a browser: the
-tile's floor repeats, every way out passes within 0.4 mm of a thicket on both
-rings (with a way round), and the director with the SEM view's frustum:
-rushing in 16 directions meets all seven in order (the first within ~10 s
-after a warm-up, a calm break of at least 4 s before each of the rest, none
-more than 16 s after the one before, the portal reached in 45–95 s), nothing
-placed in view, on seen moss or where it does not fit, nothing moved once
-seen; lingering brings them all round the player in order; turning back
-moves an unseen one to follow; two players heading apart meet them all; the
-walkable square is far beyond play. With the default path: following its
+corridor's walls are game_config.js's seconds times the walking speed
+(walking straight out from the start meets the south and side walls at their
+seconds; the north wall stands its seconds past the water), it is a turn of
+the world's axes, the tile's floor repeats, every way out passes within
+0.4 mm of a thicket on the first ring (with a way round), every thicket and
+every placeable spot stands clear of the walls, and the director with the
+SEM view's frustum: rushing up the corridor at 13 angles (glancing off the
+side walls, never leaving the corridor) meets all seven in order (the first
+within ~12 s after a warm-up, a calm break before each of the rest, none more
+than 18 s after the one before near the forward, 30 s zigzagging, the water
+at the north end), nothing placed in view, on seen moss or where it does not
+fit, nothing moved once seen; lingering brings them all round the player in
+order, the water staying at the north end; turning back moves an unseen one
+to follow; two players heading apart meet them all. With the default path
+(laid inside the corridor, up its middle): following its
 bearing meets the seven pre-placed ones in order (nothing generated, the
 water reached in ~59 s); heading off three other ways takes each off the
 path while unseen and places it as you go, in order, nothing seen moved.

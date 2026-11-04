@@ -900,6 +900,7 @@ export function createCollectives(world, hooks = {}) {
     }
     return t < d.end;
   }
+  const OUT_L = { x: 0, y: 0 }, OUT_N = { x: 0, y: 0 };
   function losses(dt, t) {
     const st = world.stentor;
     for (const C of list) {
@@ -909,7 +910,11 @@ export function createCollectives(world, hooks = {}) {
         // amoeba is pushed back out; only an attack it was warned of takes it: guards.js)
         if (world.grazerMouthAt && world.grazerMouthAt(m.x, m.y, 9)) { const g = world.grazers[0], M = g.pose.mouth; m.x = M.x + g.pose.up.x * 3.2; m.y = M.y + g.pose.up.y * 3.2; }
         const dIn = world.insideAmoeba(m.x, m.y, t);
-        if (dIn > 0 && !m.drill) { const A = world.amoeba, bx = A.x + Math.sin(A.ang) * A.b, by = A.y - Math.cos(A.ang) * A.b, ox = m.x - bx, oy = m.y - by, ol = Math.hypot(ox, oy) || 1; m.x += (ox / ol) * Math.min(dIn + 0.3, 40 * dt); m.y += (oy / ol) * Math.min(dIn + 0.3, 40 * dt); }
+        if (dIn > 0 && !m.drill) {
+          // (out the nearest way: along its surface's normal there, its arms and tunnels included)
+          const A = world.amoeba, L = world.amoebaLocal(m.x, m.y, OUT_L), N = world.amoebaNormal(L.x, L.y, t, OUT_N), c = Math.cos(A.ang), s = Math.sin(A.ang), k = Math.min(dIn + 0.3, 40 * dt);
+          m.x += (c * N.x - s * N.y) * k; m.y += (s * N.x + c * N.y) * k;
+        }
         // (Stentor's cone takes members a little at a time: guards.js suck)
       }
     }
