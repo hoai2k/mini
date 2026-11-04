@@ -2105,6 +2105,8 @@ export const TEXT = {
         stentor: 'Stentor is beaten: it shrinks shut. The host is open: touch it and press {btn:Y}',
       },
       toxinHit: 'Toxin burst! It hit: {what}',
+      toxinNeedsSwarm: 'No toxin yet: it needs a swarm of {n} (you have {army})',
+      toxinCharging: 'Toxin charging: {pct} %',
       toxinMiss: 'Toxin burst! Nothing was in reach',
       startMtb: 'Press {btn:X} near the spirilla like you to call them into your swarm, then follow the way out',
       startBdello: 'Bdellovibrio: ram and bore into {goal} Gram-negative prey ({btn:X} when touching)',

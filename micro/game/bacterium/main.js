@@ -1526,7 +1526,12 @@ function readInput(P, dt) {
     if (atOpenPortal(P)) enterPortal(P);
     else if (P.backT > 0.5) landmark('back', P);
     else if (C && C.charge >= 1 && S.alive) coll.burst(P);
-    else if (me) features.set('overlay', !view.overlay);
+    // (Y is only the toxin: the owner, 2026-11-04. Not ready: say so; the data overlay is in the Features panel)
+    else if (S.alive && S.species === 'mtb' && coll.opts.on && t - (P.toxinMsgT ?? -9) > 1.5) {
+      P.toxinMsgT = t;
+      const army = C ? C.army : 1;
+      hud.toast(army < COLL.toxin ? tt('bacterium.toasts.toxinNeedsSwarm', { n: COLL.toxin, army }) : tt('bacterium.toasts.toxinCharging', { pct: Math.round((C ? C.charge : 0) * 100) }), 1600);
+    }
   }
   if (c.stickClick.left.pressed() && C && C.charge >= 1 && S.alive) coll.burst(P);
   if (!me) return inp;
