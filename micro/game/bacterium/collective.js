@@ -74,6 +74,14 @@ export const COLL = {
 export const answerDelay = (n) => Math.min(1.8, n < 8 ? 0.09 * n : 0.72 + 0.012 * (n - 8));
 
 /** The flock's rules (collective.js post); README "The army" lists them. */
+/** How a member is seen to be eaten (eatenState): s pulled in or closed round, then s digesting (a dark vacuole fading). */
+export const EATEN = {
+  grazer: { pull: 1.0, digest: 3.5 },
+  stentor: { pull: 1.2, digest: 3.5 },
+  amoeba: { pull: 0.7, digest: 4.8 },
+  bdello: { pull: 0.5, digest: 2.6 },
+};
+
 export const FLOCK = {
   v: 45,            // the spirillum's run speed, µm/s (each member ×0.82–1.18)
   dash: 95 / 45,    // the sprint (A)
@@ -360,12 +368,7 @@ export function createCollectives(world, hooks = {}) {
     for (const k of kin) if (k.dying) {
       k.dying.t += dt;
       if (k.dying.kind === 'waylaid') { followOff(k, dt); if (k.dying.t > WAYLAY.gone) park(k); }
-      else {
-        // taken by an enemy: drawn into its mouth (sucked in, engulfed, swept into the pouch) as it rounds up and fades
-        const to = k.dying.to;
-        if (to) { const e = Math.min(1, k.dying.t / 0.7), q = e * e * (3 - 2 * e); k.x = k.dying.x0 + (to.x - k.dying.x0) * q; k.y = k.dying.y0 + (to.y - k.dying.y0) * q; k.a += dt * 9; }
-        if (k.dying.t > 1.6) park(k);
-      }
+      else if (!stepEaten(k, dt)) park(k); // taken by an enemy: eaten, seen (eatenState)
     }
   }
   /** Free kin (not parked, not joining): the ones keepAmbient counts and may move. */
@@ -421,7 +424,9 @@ export function createCollectives(world, hooks = {}) {
       m.far = far; if (far) farN++;
       // the intent as this member has perceived it so far: its own lag plus the wave from the front
       const behind = sMax - ((m.x - cx) * ux + (m.y - cy) * uy);
-      const tau = m.lag + FLOCK.wave * behind;
+      // (pulling back out of an enemy's reach: the members in it react at once, guards.js m.flee)
+      if (m.flee > 0) m.flee -= dt;
+      const tau = m.flee > 0 ? 0.04 : m.lag + FLOCK.wave * behind;
       const k = 1 - Math.exp(-dt / tau);
       m.ix += (iX - m.ix) * k; m.iy += (iY - m.iy) * k;
       const vm = FLOCK.v * m.vmax;
@@ -451,12 +456,12 @@ export function createCollectives(world, hooks = {}) {
       // it swims along its body: turn toward the wish at its own rate, slower while facing away
       // (a stopped cell needs a little more to start again, so a resting flock rests)
       // (a laggard well behind may swim a little over its own top speed to catch up, so a slow cell is not left behind for good)
-      const catchUp = 1.15 + Math.min(0.85, Math.max(0, d - C.R0 * 1.2) / 25);
+      const catchUp = m.flee > 0 ? 1.7 : 1.15 + Math.min(0.85, Math.max(0, d - C.R0 * 1.2) / 25);
       if (d > C.R0 * 3 + 40) { m.hw = Math.min(m.hw ?? 3, 3); if (m.hz !== undefined) m.hz = Math.max(m.hz, 6.5); } // (a straggler far behind swims up over the clay to catch up)
       let target = dm < (m.sp < 2 ? FLOCK.stop * 1.6 : FLOCK.stop) ? 0 : Math.min(dm, vm * dashK * catchUp);
       if (dm > 0.5) {
         const diff = wrap(Math.atan2(Dy, Dx) - m.a);
-        const w = Math.max(-m.turn, Math.min(m.turn, diff * FLOCK.turnGain));
+        const w = Math.max(-m.turn * (m.flee > 0 ? 2 : 1), Math.min(m.turn * (m.flee > 0 ? 2 : 1), diff * FLOCK.turnGain));
         m.a += w * dt;
         target *= 0.3 + 0.7 * Math.max(0, Math.cos(diff));
       }
@@ -792,16 +797,83 @@ export function createCollectives(world, hooks = {}) {
     const C = m.coll;
     unDrift(m);
     if (C) { const i = C.members.indexOf(m); if (i >= 0) C.members.splice(i, 1); }
-    // (to: where it is taken, a mouth or an amoeba's body: it is drawn there as it goes, collective post)
-    m.coll = null; m.answer = null; m.drill = null; m.dying = { kind, t: 0, to: to ? { x: to.x, y: to.y } : null, x0: m.x, y0: m.y };
+    m.coll = null; m.answer = null; m.drill = null; m.latched = null;
+    m.dying = eatenState(m, kind, to);
     hooks.onLost?.(C, m, kind);
+  }
+  /**
+   * Being eaten, seen (the owner: "the animation has to look like the bacteria was eaten. If they just
+   * disappear it won't be clear or fun"). A taken member leaves the flock and plays its end (EATEN gives
+   * the times; collective post moves it, draw.js draws it):
+   *   peritrich, Stentor  pulled along the flow into the mouth, spiralling in faster and faster and
+   *                       wriggling, shrinking into the gullet; then a dark food vacuole in the body
+   *                       that fades as it is digested
+   *   amoeba              the lobe closes round it: drawn a little way in, wriggling; then a dark speck
+   *                       in a vacuole drifting deeper into the cytoplasm, fading
+   *   Bdellovibrio        it bores in: the member stops and rounds up into a bdelloplast (a swollen,
+   *                       still sphere with the predator inside), then fades
+   */
+  function eatenState(m, kind, to) {
+    const d = { kind, t: 0, x0: m.x, y0: m.y, a0: m.a, to: to ? { x: to.x, y: to.y } : null, spin: r() < 0.5 ? -1 : 1, wr: r() * 6.28 };
+    const E = EATEN[kind];
+    if (!E) return d;
+    d.pull = E.pull; d.end = E.pull + E.digest;
+    if (kind === 'grazer') {
+      // the nearest feeding bell: its mouth, and a place inside the bell for the food vacuole
+      let g = null, bd = Infinity;
+      for (const q of world.grazers) { if (q.parked) continue; const dd = Math.hypot(q.pose.mouth.x - m.x, q.pose.mouth.y - m.y); if (dd < bd) { bd = dd; g = q; } }
+      if (g) {
+        const P = g.pose; d.to = d.to || { x: P.mouth.x, y: P.mouth.y };
+        const bx = P.ox - P.up.x * g.R * 0.95, by = P.oy - P.up.y * g.R * 0.95, a = r() * 6.28, rr = Math.sqrt(r()) * g.R * 0.55;
+        d.body = { x: bx + Math.cos(a) * rr, y: by + Math.sin(a) * rr };
+      }
+    } else if (kind === 'stentor' && world.stentor) {
+      const B = world.stentor; d.to = d.to || { x: B.mouth.x, y: B.mouth.y };
+      const f = 0.22 + r() * 0.25, px = -(B.foot.y - B.mouth.y), py = B.foot.x - B.mouth.x, pl = Math.hypot(px, py) || 1, o = (r() - 0.5) * 30;
+      d.body = { x: B.mouth.x + (B.foot.x - B.mouth.x) * f + (px / pl) * o, y: B.mouth.y + (B.foot.y - B.mouth.y) * f + (py / pl) * o };
+    } else if (kind === 'amoeba' && world.amoeba) {
+      // in the amoeba's own frame, so the vacuole moves with it: from where it was taken, to a few µm in
+      const A = world.amoeba, c = Math.cos(A.ang), sn = Math.sin(A.ang), dx = m.x - A.x, dy = m.y - A.y;
+      d.lx = dx * c + dy * sn; d.ly0 = -dx * sn + dy * c; d.ly1 = Math.min(d.ly0, 0) - 5 - r() * 10;
+    }
+    return d;
+  }
+  /** Move a member being eaten along its end (EATEN; eatenState). Returns false once it is over (it is parked). */
+  function stepEaten(k, dt) {
+    const d = k.dying, t = d.t;
+    if (!d.end) { const to = d.to; if (to) { const e = Math.min(1, t / 0.7), q = e * e * (3 - 2 * e); k.x = d.x0 + (to.x - d.x0) * q; k.y = d.y0 + (to.y - d.y0) * q; k.a += dt * 9; } return t < 1.6; }
+    const wriggle = t < d.pull ? Math.sin(t * 38 + d.wr) * 0.5 * (1 - t / d.pull) : 0;
+    if (d.kind === 'grazer' || d.kind === 'stentor') {
+      if (t < d.pull && d.to) {
+        // along the flow into the mouth: round it (a spiral) and in, faster and faster
+        const e = Math.pow(t / d.pull, 1.8), rx = d.x0 - d.to.x, ry = d.y0 - d.to.y, ang = d.spin * 2.4 * e, c = Math.cos(ang), sn = Math.sin(ang), k1 = 1 - e;
+        k.x = d.to.x + (rx * c - ry * sn) * k1; k.y = d.to.y + (rx * sn + ry * c) * k1;
+        k.a = Math.atan2(d.to.y - k.y, d.to.x - k.x) + wriggle;
+      } else if (d.body) {
+        // into the gullet and on to its food vacuole in the body
+        const e = Math.min(1, (t - d.pull) / 0.6), q = e * e * (3 - 2 * e), from = d.to || { x: d.x0, y: d.y0 };
+        k.x = from.x + (d.body.x - from.x) * q; k.y = from.y + (d.body.y - from.y) * q;
+        k.a += dt * 0.6;
+      }
+    } else if (d.kind === 'amoeba' && world.amoeba) {
+      const A = world.amoeba, c = Math.cos(A.ang), sn = Math.sin(A.ang);
+      const e = Math.min(1, t / d.pull), q = e * e * (3 - 2 * e);
+      // closed in, then drifting slowly deeper as it is digested
+      const ly = d.ly0 + (d.ly1 - d.ly0) * q - Math.max(0, t - d.pull) * 0.9, lx = d.lx + Math.sin(t * 0.7 + d.wr) * 0.6 * Math.min(1, t);
+      k.x = A.x + c * lx - sn * ly; k.y = A.y + sn * lx + c * ly;
+      k.a += wriggle * 0.4 + dt * 0.3;
+    } else if (d.kind === 'bdello') {
+      // it holds still as it rounds up (a few wriggles first)
+      k.a = d.a0 + wriggle;
+    }
+    return t < d.end;
   }
   function losses(dt, t) {
     const st = world.stentor;
     for (const C of list) {
       for (let i = C.members.length - 1; i >= 0; i--) {
         const m = C.members[i];
-        if (world.grazerMouthAt && world.grazerMouthAt(m.x, m.y, 9)) { lose(m, 'grazer'); continue; }
+        if (world.grazerMouthAt && world.grazerMouthAt(m.x, m.y, 9)) { lose(m, 'grazer'); continue; } // (swum into the funnel itself)
         if (world.insideAmoeba(m.x, m.y, t) > 1.5) { m.engulf = (m.engulf || 0) + dt; if (m.engulf > 1.2) { lose(m, 'amoeba'); continue; } } else m.engulf = 0;
         // Stentor: inside its oral disc's rim a cell is swept in, faster the harder it pulls (~3 s steady, ~0.5 s in a pull)
         if (st && st.awake && !st.beaten && Math.abs(m.x - st.mouth.x) < st.discR + 5 && Math.abs(m.y - st.mouth.y) < st.discR + 5 && st.disc(m.x, m.y).rho < 1) { m.swept = (m.swept || 0) + dt * st.flowK * 0.35; if (m.swept > 1) { lose(m, 'stentor'); continue; } } else m.swept = 0;
@@ -923,7 +995,7 @@ export function createCollectives(world, hooks = {}) {
   }
 
   return {
-    COLL, FLOCK, WAYLAY, kin, list, opts, of, dragK, ensure, putFree, park, isFree, remove, reset, pre, post, absorb, burst, adopt, beacon, eat, focus, lose,
+    COLL, FLOCK, WAYLAY, EATEN, kin, list, opts, of, dragK, ensure, putFree, park, isFree, remove, reset, pre, post, absorb, burst, adopt, beacon, eat, focus, lose,
     /** For tests and the HUD: each flock's players, members, size, level, charge and middle. */
     report: () => list.map((C) => ({ id: C.id, players: C.players.map((P) => P.slot), members: C.members.length, labels: C.members.map((m) => m.label), army: C.army, level: C.level, charge: +C.charge.toFixed(2), x: +C.cx.toFixed(1), y: +C.cy.toFixed(1), fx: +(C.fx || 0).toFixed(1), fy: +(C.fy || 0).toFixed(1), speed: +C.speed.toFixed(1), extent: +C.extent.toFixed(1), beacons: C.beacons.length, drifting: C.members.filter((m) => m.drift).length })),
     /** For tests and the HUD: the strangers waylaying a flock, and its drifting members. */

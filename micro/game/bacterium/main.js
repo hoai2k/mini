@@ -625,7 +625,7 @@ function runFights(dt) {
 // and below half health a longer, harder pull. Anything inside the rim of its
 // oral disc is swept in, and the host lies in its feeding current: only once
 // it is beaten (it contracts and stays shut) does the host let you in.
-stentor.fight = createFight({ windup: 1.4, strike: 0.9, recoverT: 2.4, repelT: 3.5, retreatT: 22, facingRate: 0, blockHit: 0, biteHit: 0, regain: 0 });
+stentor.fight = createFight({ windup: 2.0, strike: 0.9, recoverT: 2.4, repelT: 3.5, retreatT: 22, facingRate: 0, blockHit: 0, biteHit: 0, regain: 0 });
 const BOSS_HIT = () => guards.byId.stentor.max * BOSS_HIT_K; // health taken by a tumble free of a pull, a foot bump or a wasted pull
 const gaugeEl = document.createElement('div');
 gaugeEl.style.cssText = 'position:fixed;left:50%;top:56px;transform:translateX(-50%);z-index:20;pointer-events:none;display:none;color:#e6d3a3;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.04em;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.7)';

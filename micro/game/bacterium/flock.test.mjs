@@ -26,7 +26,7 @@ function setup(hooks = {}, { quiet = false } = {}) {
   if (quiet) for (const k of coll.kin) if (!k.coll) coll.park(k); // (no free kin about: the fights measure the swarm they start with)
   guards = createGuards(world, coll, stentor);
   // Stentor's rhythm (main.js runBoss, without the player's own catch): its pull is its bite
-  stentor.fight = createFight({ windup: 1.4, strike: 0.9, recoverT: 2.4, repelT: 3.5, retreatT: 22, facingRate: 0, blockHit: 0, biteHit: 0, regain: 0 });
+  stentor.fight = createFight({ windup: 2.0, strike: 0.9, recoverT: 2.4, repelT: 3.5, retreatT: 22, facingRate: 0, blockHit: 0, biteHit: 0, regain: 0 });
   let t = 0;
   const dt = 1 / 60;
   const boss = () => {
@@ -36,8 +36,8 @@ function setup(hooks = {}, { quiet = false } = {}) {
     if (!B.awake && d < B.wakeR) B.awake = true;
     if (!B.awake) { B.update(dt, 'stalk', 0); return; }
     const f = B.fight.update(dt, { near: d < B.wakeR, inReach: d < B.pullR, facing: true, blocking: false });
-    if (f.state === 'strike' && !B.inStrike) { B.inStrike = true; guards.stentorPull(); } else if (f.state !== 'strike') B.inStrike = false;
-    B.update(dt, B.fight.state, f.t);
+    if (f.state === 'strike' && !B.inStrike) { B.inStrike = true; guards.stentorPull(t); } else if (f.state !== 'strike') B.inStrike = false;
+    B.fightT = f.t; B.update(dt, B.fight.state, f.t);
   };
   const step = (n, steer = null) => {
     for (let i = 0; i < n; i++) {
