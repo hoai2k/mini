@@ -1,5 +1,9 @@
 # Ai-Ching: image requests
 
+## Native alpha first
+
+Generate cutouts, sprites, stickers and emblems directly with genuine alpha transparency whenever available (`transparent_background: true` with built-in image generation). Verify the output has usable transparency, including gaps and clean edges, and preserve alpha through PNG/WebP delivery. Only try a flat-colour background and keying after native-alpha generation has been attempted and fails to work properly. Do not key an already transparent image. This takes precedence over older matte/keying instructions or historical prompts below; opaque artwork stays opaque.
+
 Artwork for Ai-Ching, the I Ching reader in `aiching/` (see [`../README.md`](../README.md)). Generated from `source/build_requests.py`, which takes the hexagram scenes and colours from `app/data/hexagrams.json`; edit the data there and rerun it, which also rewrites `app/data/asset-list.json`.
 
 ## How to use this list
