@@ -3124,7 +3124,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:131"
+   "bacterium/main.js:130"
   ],
   "event": "a kin cell answers"
  },
@@ -3142,7 +3142,7 @@ export const TRIGGERS = [
    "rate": "1.7 + Math.random() * 0.3"
   },
   "sites": [
-   "bacterium/main.js:134"
+   "bacterium/main.js:133"
   ],
   "event": "a kin cell joins"
  },
@@ -3159,7 +3159,7 @@ export const TRIGGERS = [
    "rate": 1.9
   },
   "sites": [
-   "bacterium/main.js:143"
+   "bacterium/main.js:140"
   ],
   "event": "X: the beacon"
  },
@@ -3172,7 +3172,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:145"
+   "bacterium/main.js:142"
   ],
   "event": "a member lost to a phage"
  },
@@ -3186,7 +3186,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:151"
+   "bacterium/main.js:148"
   ],
   "event": "a prey rod lysed"
  },
@@ -3204,7 +3204,7 @@ export const TRIGGERS = [
    "rate": "(kind === 'amoeba' ? 0.6 : kind === 'stentor' ? 0.75 : 0.9) + Math.random() * 0.15"
   },
   "sites": [
-   "bacterium/main.js:152"
+   "bacterium/main.js:149"
   ],
   "event": "X: absorbing nutrients."
  },
@@ -3218,7 +3218,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:167"
+   "bacterium/main.js:164"
   ],
   "event": "a kin cell answers"
  },
@@ -3232,7 +3232,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:170"
+   "bacterium/main.js:167"
   ],
   "event": "a kin cell answers"
  },
@@ -3246,7 +3246,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:173"
+   "bacterium/main.js:170"
   ],
   "event": "a member lost to a phage"
  },
@@ -3263,7 +3263,7 @@ export const TRIGGERS = [
    "rate": 0.6
   },
   "sites": [
-   "bacterium/main.js:185"
+   "bacterium/main.js:182"
   ],
   "event": "a gate beaten"
  },
@@ -3280,7 +3280,7 @@ export const TRIGGERS = [
    "rate": 1.3
   },
   "sites": [
-   "bacterium/main.js:191"
+   "bacterium/main.js:188"
   ],
   "event": "a prey rod lysed"
  },
@@ -3294,7 +3294,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:193"
+   "bacterium/main.js:190"
   ],
   "event": "Stentor's tell"
  },
@@ -3308,7 +3308,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:193"
+   "bacterium/main.js:190"
   ],
   "event": "Stentor's tell"
  },
@@ -3326,7 +3326,7 @@ export const TRIGGERS = [
    "rate": "q.kind === 'amoeba' ? 0.7 : q.kind === 'stentor' ? 0.85 : 1.1"
   },
   "sites": [
-   "bacterium/main.js:196"
+   "bacterium/main.js:193"
   ],
   "event": "A grazer's feeding current pulling at you."
  },
@@ -3339,7 +3339,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:254"
+   "bacterium/main.js:251"
   ],
   "event": "knocked or stunned"
  },
@@ -3356,7 +3356,7 @@ export const TRIGGERS = [
    "rate": 0.55
   },
   "sites": [
-   "bacterium/main.js:262"
+   "bacterium/main.js:259"
   ],
   "event": "Y: the toxin burst"
  },
@@ -3370,7 +3370,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:355"
+   "bacterium/main.js:352"
   ],
   "event": "a volley on an enemy"
  },
@@ -3383,7 +3383,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:383"
+   "bacterium/main.js:380"
   ],
   "event": "dissolving (generic)"
  },
@@ -3401,7 +3401,7 @@ export const TRIGGERS = [
    "rate": 0.7
   },
   "sites": [
-   "bacterium/main.js:403"
+   "bacterium/main.js:400"
   ],
   "event": "A phage latching on."
  },
@@ -3419,7 +3419,7 @@ export const TRIGGERS = [
    "rate": 0.7
   },
   "sites": [
-   "bacterium/main.js:403"
+   "bacterium/main.js:400"
   ],
   "event": "X: absorbing nutrients."
  },
@@ -3437,7 +3437,7 @@ export const TRIGGERS = [
    "rate": 1.2
   },
   "sites": [
-   "bacterium/main.js:405"
+   "bacterium/main.js:402"
   ],
   "event": "X: absorbing nutrients."
  },
@@ -3450,7 +3450,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:455"
+   "bacterium/main.js:452"
   ],
   "event": "re-forming from motes"
  },
@@ -3466,8 +3466,8 @@ export const TRIGGERS = [
    "volume": 0.8
   },
   "sites": [
-   "bacterium/main.js:571",
-   "bacterium/main.js:1463"
+   "bacterium/main.js:568",
+   "bacterium/main.js:1435"
   ],
   "event": "A phage latching on."
  },
@@ -3480,7 +3480,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:597"
+   "bacterium/main.js:594"
   ],
   "event": "Bdellovibrio rams"
  },
@@ -3493,7 +3493,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:655"
+   "bacterium/main.js:643"
   ],
   "event": "Stentor's tell"
  },
@@ -3509,7 +3509,7 @@ export const TRIGGERS = [
    "volume": 0.6
   },
   "sites": [
-   "bacterium/main.js:848"
+   "bacterium/main.js:822"
   ],
   "event": "Ambience: Brownian motion in the sediment."
  },
@@ -3525,7 +3525,7 @@ export const TRIGGERS = [
    "volume": 0
   },
   "sites": [
-   "bacterium/main.js:849"
+   "bacterium/main.js:823"
   ],
   "event": "The flagellar motor during a run (rate follows speed)."
  },
@@ -3538,7 +3538,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:984"
+   "bacterium/main.js:957"
   ],
   "event": "Y at the backdoor"
  },
@@ -3551,7 +3551,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:1129"
+   "bacterium/main.js:1103"
   ],
   "event": "the way on unseals"
  },
@@ -3564,8 +3564,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:1157",
-   "bacterium/main.js:1164"
+   "bacterium/main.js:1131",
+   "bacterium/main.js:1138"
   ],
   "event": "Y at a sealed or guarded portal"
  },
@@ -3578,7 +3578,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:1182"
+   "bacterium/main.js:1156"
   ],
   "event": "\"Y Enter the portal\" appears"
  },
@@ -3591,7 +3591,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:1200"
+   "bacterium/main.js:1174"
   ],
   "event": "Y at the open portal"
  },
@@ -3607,7 +3607,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "bacterium/main.js:1201"
+   "bacterium/main.js:1175"
   ],
   "event": "Going through a portal (the way on): the success chime before the freeze and the zoom into the next world."
  },
@@ -3620,7 +3620,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:1202"
+   "bacterium/main.js:1176"
   ],
   "event": "the success slow-down"
  },
@@ -3636,7 +3636,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "bacterium/main.js:1367"
+   "bacterium/main.js:1339"
   ],
   "event": "A (dash): the sprint run."
  },
@@ -3649,7 +3649,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "bacterium/main.js:1388"
+   "bacterium/main.js:1360"
   ],
   "event": "a volley on an enemy"
  },
@@ -3666,7 +3666,7 @@ export const TRIGGERS = [
    "rate": "1.05 + Math.random() * 0.1"
   },
   "sites": [
-   "bacterium/main.js:1390"
+   "bacterium/main.js:1362"
   ],
   "event": "a prey rod lysed"
  },
@@ -3684,7 +3684,7 @@ export const TRIGGERS = [
    "rate": "0.95 + Math.random() * 0.1"
   },
   "sites": [
-   "bacterium/main.js:1461"
+   "bacterium/main.js:1433"
   ],
   "event": "X: absorbing nutrients."
  },
@@ -3700,7 +3700,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "bacterium/main.js:1464"
+   "bacterium/main.js:1436"
   ],
   "event": "A grazer's feeding current pulling at you."
  },
@@ -3718,7 +3718,7 @@ export const TRIGGERS = [
    "rate": "0.95 + Math.random() * 0.1"
   },
   "sites": [
-   "bacterium/main.js:1517"
+   "bacterium/main.js:1489"
   ],
   "event": "B: a tumble."
  },
@@ -6037,4 +6037,4 @@ export const SOUNDS = {
   "prompt": "Sound design for the menus of a gentle, wondrous game about a brass Victorian microscope: small, warm, tactile, acoustic and precise, real brass and glass, soft and pleasant, never harsh or electronic. A warm bright brass and glass flourish: a soft click and a rising shimmer of tiny glass chimes, inviting. No music, no narration, no voices, no speech."
  }
 };
-export const DYNAMIC = ["bacterium/main.js:382","phage/main.js:284","zoom/engine.js:206"];
+export const DYNAMIC = ["bacterium/main.js:379","phage/main.js:284","zoom/engine.js:206"];

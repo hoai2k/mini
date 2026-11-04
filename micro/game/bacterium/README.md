@@ -48,8 +48,29 @@ battle with in that they each [eat] some of your group and you can drill into
 them ... each additional bacterium is like an extra HP". What changed: **The
 drop** (no invisible walls), **The way** (a route with enemies and colonies),
 **The battles**, the swarm up to 1000 (**The army**), the camera (**The view**
-in Approach), and every creature's message (`text_config.js`). What was wrong
-before (the diagnosis):
+in Approach), and every creature's message (`text_config.js`).
+
+**After playing it (the owner, 4 November 2026)**: no camera or zoom messages
+("the view widens to fit it" is gone); no round field stop at wide zooms
+(it was the eyepiece's field stop, drawn once the field reached 180 µm); the
+zoom starts at a 20 µm field and only the triggers move it (the automatic
+zoom-out is gone); the beacon from the front of the group's mass, its reach
+the group's radius plus a margin; a big swarm packs denser; Y only fires the
+toxin (it used to toggle the data overlay when the toxin was not ready, with
+a "Data overlay" toast; and the burst itself threw an error, `tx` not
+imported, so it never fired); the amoeba a whole cell; Stentor guarding
+the portal in a continuous battle (**The boss**). **What the "amoeba" was:**
+gate 3 was drawn with the shapes' `edge` primitive: a 190 µm strip with a
+rippling front, its two ends faded to nothing and its back cut straight 46
+µm in (the wiggly line with rectangular edges). It is now a whole lobed body
+720 × 220 µm (`world.js` `AMOEBA`, `amoebaDepth`; `SHAPE.AMOEBA`): pseudopods
+flowing round its outline, a clear margin, granular cytoplasm streaming
+toward its front, a nucleus and contractile vacuoles that fill and collapse,
+far bigger than the view (zoom out and you see more of it), its front
+bulging for its bite as before. The other enemies were checked (the
+peritrich's bell, the pack, Stentor's trumpet are whole bodies).
+
+What was wrong before the first rework (the diagnosis):
 
 - **The invisible walls** were five clamps with nothing drawn at them: the
   field was a 1120 µm square (`WORLD.x0/x1 = ±560`, `y1 = 560`) and your cell
@@ -116,70 +137,86 @@ is on (see **The way**).
 
 ## The boss: Stentor coeruleus
 
-`stentor.js` (state, vortex, the oral disc), drawn in `draw.js`, run by
-`runBoss` in `main.js` (`shared/predation.js` `createFight` as its state
-machine) and fought as the last gate (`guards.js`). The giant blue trumpet
-ciliate (1–2 mm) is anchored by its foot to the biofilm beside the host
-cell: at 1000× it is enormous, so only the rim of its oral disc with the
-band of membranelles beating round it looms in from the right edge of the
-field, its striped blue body tapering down to the foot. Its vortex of specks
-spirals into the oral pouch off-frame.
+`stentor.js`, drawn in `draw.js`, run by `runBoss` in `main.js` and fought
+as the last gate (`guards.js`). The owner, 4 November 2026: "he should be
+partially covering the portal and have an area where he is sucking creatures
+in (and you should see other debris and creatures getting sucked in), which
+he will move and try to get you with, and if you stay still, he'll suck in
+your group little by little, and then when you attack him you should see a
+pinch where you are drilling and then he should have a bit of knockback ...
+so you have to push or tempt him away from the portal. He shouldn't randomly
+immediately shrink or move". (Before: it stood 122 µm beyond the host, not
+over it, pulsed a pull every ~5 s, and contracted in a flash, its disc
+shrinking 40 % at once, whenever its foot was bumped or a tumble broke a
+pull: the "jump to being small".)
 
 - **Its look** follows the delivered reference sheet
   (`assets/reference-sheets/boss-stentor.webp`): a trumpet flaring from a
   narrow foot with a little flared holdfast to a wide oral disc seen
-  obliquely, its rim ringed all round by the membranelle band, spiral
-  grooves on the disc running into the oral pouch, fine longitudinal
-  pigment stripes, the macronucleus as a chain of beads, and green
-  zoochlorellae and food vacuoles inside (`SHAPE.TRUMPET` in
-  `bacterium-shapes.js`).
-- **Placed with the portal** (`stentor.place`): its mouth 122 µm beyond the
-  host, its foot on a clay grain to one side. **Wakes** when a player comes
-  within 200 µm of its mouth; a brass gauge
-  shows its health (the enemy gauge at the top, shared by every gate).
-- **The steady vortex:** within 150 µm of the mouth a swirling current you
-  can swim against. **Inside the rim of its oral disc** (the ellipse the
-  membranelles ring, `stentor.disc()`) a cell is swept in: in about 3 s in
-  the steady vortex, in about half a second during a pull.
-- **Its tell:** the membranelles beat faster and the vortex brightens
-  (1.4 s). **The pull** (0.9 s): a strong draw toward the mouth. **Below half
-  health** the pull is harder.
-- **Your play:** bring a swarm and drill into its rim (**The battles**):
-  every member that reaches the rim latches on and bores in (up to 520 at
-  once); every member it sweeps in poisons it; X drills harder; Y's toxin
-  takes 12 % of its health. Its bite is the pull: it sweeps in every member
-  inside its oral disc's rim and, less surely, out to 14 µm past it (pull
-  back during its 2 s windup). A tumble (B) at the
-  pull breaks your own cell free, as does bumping its foot (it contracts in a
-  flash and pauses), and each costs it 2 % of its health, as does a pull that
-  comes up empty. Beaten, it contracts and stays shut: the host is yours.
-- **Measured** (`flock.test.mjs`, a swarm driven at its rim, X every
-  0.5 s): 900 wins in ~3.5 s; a swarm that sits in its disc through a pull
-  loses most of it. Health 2000, regrowth 3/s.
-- **Swept in:** the follow-and-respawn catch: round the vortex, into the
-  oral pouch, packed into a food vacuole carried down into its body, the
-  camera pulled back to the 90 µm field; then the fade and a respawn in open
-  water nearby, away from the gates (together: beside a teammate).
-- **Departures:** the vortex's reach and strength are game values, the pulls
-  are a rhythm for play (a real Stentor feeds steadily), and the host only
-  letting you in once it is beaten is a game rule.
-- Test hooks: `__micro.boss()` (awake, state, resolve, vortex strength,
-  contraction, a log), `__micro.stentor`, `debug.wakeBoss()`.
+  obliquely, its rim ringed by the membranelle band, spiral grooves into
+  the oral pouch, pigment stripes, the macronucleus as a chain of beads,
+  zoochlorellae and food vacuoles (`SHAPE.TRUMPET`).
+- **It guards the portal**: its holdfast just beyond the host and its body
+  leaning back over it (`place`), so it covers it (`covers`); the first time
+  your swarm comes near: "Stentor guards the portal ...". It wakes when a
+  swarm comes within 230 µm of its mouth.
+- **Its feeding cone** (`cone`): from its oral funnel, ±0.95 rad, 125 µm
+  deep, always on while it is awake, shown by a shimmer along its edges and
+  far arc and by specks streaming in along spiralling streamlines. It draws
+  in the ambient debris, phages and free cells (`world.js`, swallowed at the
+  mouth) and stray kin, and takes your members a little at a time
+  (`guards.js` `suck`): a member at depth k in it is taken at 1.6·k² a second,
+  at most 4 a second in all, each one seen spiralling into the funnel, then
+  a food vacuole carried in its body. Stay in front of it and it eats your
+  swarm little by little; keep out of the cone and it cannot.
+- **It hunts, deliberately**: it turns its disc toward your swarm at 0.32
+  rad/s and stretches or shortens its body (80–165 µm) at 16 µm/s; out of its
+  reach, its holdfast creeps after you at 2 µm/s. Nothing jumps.
+- **Drilling it**: members latch on to its body or its disc's rim and drill
+  (up to 520 at once), each leaving a pinch in its body at the drill (the dent
+  deepens where many drill). **Knockback** (`knock`): every bit of damage
+  makes it flinch away from the drill side, contract a little (eased in over
+  ~0.4 s, out slowly: at most ~1 µm of its body a frame) and pushes its
+  holdfast back; X's burst and Y's toxin give a bigger recoil. While it
+  recoils it turns more slowly. Its health shows in the gauge and its body
+  pales.
+- **The way through**: sustained drilling drags it off the host, which
+  uncovers the portal (then the host's prompt shows when your swarm reaches
+  it); or beat it (health 2000, regrowth 3/s): it shrinks shut slowly (~2 s)
+  and stays shut. Measured (`flock.test.mjs`): 300 drilling its flank push it
+  off the host in a few seconds; 900 beat it in ~4 s.
+- **A lone cell** deep in its cone is drawn in (about a second) and caught:
+  round into the oral pouch, a food vacuole, the camera pulled back to the
+  90 µm field, then a respawn in open water nearby.
+- **Departures:** the cone's reach, the intake and the knockback are game
+  values; a real Stentor rarely moves its holdfast while you watch.
+- Test hooks: `__micro.boss()` (awake, state, recoil, contraction, its angle,
+  length, foot and mouth, whether it covers the host, a log),
+  `__micro.stentor`, `debug.wakeBoss()`.
 
 ## The army (a flock of kin)
 
 `collective.js`, drawn in `draw.js` (`kin`), run from `main.js`.
 
-- **The beacon (X).** X sends a pulse from your flock, from its front while it moves (the cell furthest along its way) or its middle when still, riding with the flock, out to
-  its reach: its edge plus 7 µm (alone: 9 µm, three body lengths; at most
-  44 µm). It is drawn on the medium as a ring of soft spots spreading and
+- **The beacon (X).** X sends a pulse from your flock, riding with it: while
+  it moves, from the front of its main body (the owner, 4 November 2026: "the
+  front of the mass of your group, not the very front, so that it doesn't
+  count a couple stragglers or scouting out front": the point on its line of
+  motion that 75 % of its cells are behind, `beaconOrigin`), still, from its
+  middle; out to its reach: the group's radius (85 % of its cells within it,
+  so stragglers do not count) plus 7 µm, the same margin past its edge at
+  any size (alone: 9 µm, three body lengths; at most 160 µm). It is drawn on the medium as a ring of soft spots spreading and
   fading. Free kin cells (your own species, the dim spirilla wandering in the
   meadow by the start, in the colonies along the way, and kept near you wherever you go) that the ring passes answer
   with their own small pulse, one after another (0.08 s plus 0.09 s per
   answer before them for the first eight, then a quick ripple, never more
   than 1.8 s: `answerDelay`), and join. **Kin never join by themselves.** One
-  beacon every 0.3 s, so you can press X everywhere. The reach grows with the
-  swarm (its edge plus 7 µm, up to 90 µm).
+  beacon every 0.3 s, so you can press X everywhere.
+- **Denser when large** (the owner: "when it starts to get really large start
+  to get denser"): above 100 cells the spacing and the comfortable radius
+  shrink and cohesion grows with the count (`densityK`: ×1 at 100, ×0.6 at
+  1000), so a big swarm reads as a dense mass and stays manageable, still a
+  flock.
 - **The swarm grows without a limit you will meet** (`COLL.max` 1000; the owner:
   "you should eventually be able to have hundreds or a thousand bacteria in
   your group if you keep collecting"): the colonies along the way hold 90,
@@ -346,8 +383,8 @@ the sediment bank), with everything on it from the first frame:
 | 680 | colony 1 | 90 kin round a big clay grain with its microcolony, a food patch, 26 prey rods | — |
 | 980 | gate 2 | **a Bdellovibrio pack** (sixteen) | 50 |
 | 1260 | colony 2 | 180 kin, food, 34 prey | — |
-| 1560 | gate 3 | **an amoeba's edge**, 190 µm across the way, sliding along it to stay in front of you | 150 |
-| 1830 | colony 3 | 320 kin, food, 40 prey | — |
+| 1560 | gate 3 | **a giant amoeba**, a whole lobed cell 720 µm across lying across the way, sliding along it to stay in front of you | 150 |
+| 1870 | colony 3 | 320 kin, food, 40 prey | — |
 | 2100 | the host | **Stentor** guarding the host cell (the portal) | 300 |
 
 - **The default path** (`DEFAULT_PATH`, `dists` the gates' and the host's
@@ -533,7 +570,7 @@ shell's roster comes in with `embed.players`).
   zoomed about the view's players, so they stay at their region's middle and
   a merge needs no zoom change. Each player has their own follow camera
   and RS look, and a split view follows its own players.
-  Player 1 has the look and Y for the data overlay.
+  Player 1 has the look.
 - **Hunters pick a player:** the amoeba's edge slides toward the nearest
   living cell; grazers, phages and Bdellovibrio catch whoever they touch. The
   warning line names the player. The gates are fought by every flock at once.
@@ -596,8 +633,8 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | **A** | Space | **Sprint run**: every flagellum at full motor speed (spirillum 95 µm/s, Bdellovibrio 160 µm/s), 0.6 s, recharging (HUD `dash` meter); the whole flock sprints. It also shakes off loosely bound phages and an attaching Bdellovibrio, and sprinting out of a grazer's current wears it down |
 | **X** | E | **Beacon, eat, drill harder** (magnetotactic, one press every 0.3 s): a pulse from your swarm's front, riding with it, that kin in reach answer as they join; every prey rod in reach of a member lysed; every member drilling into an enemy bores harder at once (**The battles**). Held, your cell also takes up food in a patch. Bdellovibrio: press while touching a Gram-negative rod to attach and bore in (it spins on its pole and a pore opens in the prey's wall) |
 | **B** | Shift | **Defend: tumble** (the shared defend button, an evasive move): stop, turn to a random new heading (E. coli's distribution, mean 68°), run on. For Bdellovibrio it is a reverse plus a flick. While you hold LS, the stick turns you back afterwards. **At the moment a predator strikes** (a grazer's surge, a phage committing, a Bdellovibrio's ram) it evades it |
-| Y | R | **Toxin burst** when your army's toxin is charged (army 12; also LS click). Otherwise: data overlay (food, field lines and feeding currents, marked on screen as data, not optics) |
-| LT / RT | Z / X | **Zoom** out / in, analogue and continuous (eased), on top of the view that widens by itself as your swarm grows (45 µm alone, ~120–200 µm for hundreds to a thousand): ×0.4 to ×4 of it, a field from 22 to 480 µm (the round field stop shows when you zoom well out past 180 µm). Each player's own |
+| Y | R | **Toxin burst** when your swarm's toxin is charged (a swarm of 12; also LS click); not ready, a line says why ("Toxin charging: 40 %"). The data overlay is in the Features panel |
+| LT / RT | Z / X | **Zoom** out / in, analogue and continuous (eased), from 10 to 600 µm, starting at a 20 µm field; nothing else zooms it (no automatic zoom) and no field stop ever closes it. Each player's own |
 | LB / RB | Q / F | **Reverse the run**: the other pole leads. For the magnetotactic cell, this is how it swims back the other way along the field line |
 | D-pad ←→ | 3 / 4 | Look: phase contrast, fluorescence, darkfield, SEM (borrowed), DIC (borrowed) |
 | Menu | Esc | Features panel |
@@ -831,8 +868,15 @@ more than one drilling its back; the capture zones: a bite takes most of the
 members deep in its zone and none outside it, and each taken member is still
 there, drawn in, then digesting, and only gone after its whole end; a
 Bdellovibrio takes the member in its reach, not the far ones, and it rounds
-up into a bdelloplast); **a swarm of 1000** steps within 16 ms; **the camera's field** grows
-with the swarm and fits it. `route.test.mjs`: the order, the drop's edge more
+up into a bdelloplast); **a swarm of 1000** steps within 16 ms; **the zoom**
+starts at 20 µm, moves only with the triggers, smoothly from 10 to several
+hundred µm, and main.js has no field stop, auto zoom or view message; **the
+beacon**'s origin barely moves for scouts out front and its reach is the
+group's radius plus its margin at every size; **a big swarm packs denser**;
+**the amoeba**'s closed body runs far beyond the 20 µm view; **Stentor**
+covers the host, sucks members in by depth in its cone, a few at a time,
+flinches away from the drill side and contracts and closes only smoothly,
+and sustained drilling pushes it off the host. `route.test.mjs`: the order, the drop's edge more
 than twice as far as the host in every direction, the beats spaced along the
 route with each colony beside it and bigger than the last; 16 rushes (every
 gate in order, the host within two minutes, long before the edge, nothing
@@ -842,7 +886,7 @@ headless Chromium, drives the keyboard and fails on any console error.
 `window.__micro.debug` has hooks for scripted runs and screenshots
 (`teleport` (your flock comes along), `step(n, dt, input | { slots })` (it
 keeps the views where the cameras are), `x`, `fill(n)`, `look`, `zoom(field
-µm, slot)`, `zoomAuto(slot)`, `zoomHold(±1 | null, slot)` (LT/RT),
+µm, slot)`, `zoomHold(±1 | null, slot)` (LT/RT),
 `rsHold(x, y | null)`, `stranger(slot, d, a)`, `tumble`, `dash`, `reverse`,
 `overlay`, `species`, `phageOnMe`, `nearGrazer`; `__micro.cam()` gives the
 view centre, each player's follow camera and field, and each view;
@@ -1002,7 +1046,7 @@ receives the real chord through the cross-section (2√(r² − d²)).
   oxygen as a colour wash with the band outlined and isolines with % labels at
   the edge, food contours, field lines with chevrons pointing north, streaks
   into the grazers' funnels, and the magnetosome chain picked out.
-- **Field stop** at 180 µm (the eyepiece field), noise, an out-of-focus
+- **No field stop** (the owner, 4 November 2026: zooming is continuous); noise, an out-of-focus
   background mottle.
 
 ## Features
@@ -1013,7 +1057,7 @@ mixed:
 - **Body**: protagonist (Magnetospirillum / Bdellovibrio); flagella on/off;
   how each cell turns (fixed, explained).
 - **Optics**: look; diffraction limit; phase halo; depth of field (fixed:
-  focused on your cell); background; noise; field stop; each stain channel; data overlay;
+  focused on your cell); background; noise; each stain channel; data overlay;
   the corner brackets that mark your cell (a game marker, not optics).
 - **Rendering**: the instanced distance-field specimen; the shared optical
   field (fixed, explained).
@@ -1075,9 +1119,9 @@ page runs before the request list has them), with procedural stand-ins:
   the coloured fringes are drawn to read at this zoom. The sediment bank
   sits in the drop like a shore (in life the sediment would be under the
   water, out of focus). Cells far out are drawn a little fatter than life
-  (at least 1.6 px) so a swarm reads at a wide field, and a big swarm's own
-  field can be wider than the eyepiece's 180 µm (as if through a lower-power
-  objective).
+  (at least 1.6 px) so a swarm reads at a wide field, and the zoom goes out
+  to 600 µm, past the eyepiece's 180 µm (as if through a lower-power
+  objective), with no field stop.
 - **A swarm of a thousand** spirilla following one player's stick, kin
   colonies laid out along a route, and the host's signal as a visible haze
   are game devices.
