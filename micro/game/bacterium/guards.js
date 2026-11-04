@@ -66,8 +66,8 @@ export const GATES = {
 };
 /** After a bite that took someone it swallows: SWALLOW.t s with no regrowth and drills biting SWALLOW.k times as hard (the moment to go back in). */
 export const SWALLOW = { t: 1.6, k: 1.5 };
-/** The amoeba's pseudopods (aimWrap): round the cells within WRAP.near µm of its edge, a loop WRAP.Rmin..Rmax µm across. */
-export const WRAP = { near: 14, Rmin: 9, Rmax: 30, fast: 1.4, dent: 10 };
+/** The amoeba's pseudopods (aimWrap): round the cells within WRAP.near µm of its edge, a loop WRAP.Rmin..Rmax µm across, engulfing at most WRAP.max at once (the nearest its middle). */
+export const WRAP = { near: 14, Rmin: 9, Rmax: 30, fast: 1.4, dent: 10, max: 30 };
 /** Stentor's suction (suck): a member at depth k in its cone is taken at SUCK.rate·k² a second, at most SUCK.max a second in all. Its knockback per share of its health drilled away: KNOCK. */
 export const SUCK = { rate: 1.6, max: 4, grace: 0.8 };
 export const KNOCK = { drill: 6, volley: 0.004 };
@@ -381,6 +381,9 @@ export function createGuards(world, coll, stentor, hooks = {}) {
   function take(q, t) {
     const to = mouthOf(q), kind = q.kind === 'grazer' ? 'grazer' : q.kind, hit = [];
     eachFlock(q, (C) => { for (const m of C.members) { if (m.dying) continue; const p = zone(q, m.x, m.y, t); if (p > 0 && world.r() < p) hit.push(m); } });
+    // (the amoeba's loop closes round at most WRAP.max: those nearest its middle; the rest slip out as it closes)
+    const W = q.kind === 'amoeba' && q.A.wrap;
+    if (W && hit.length > WRAP.max) { hit.sort((a, b) => Math.hypot(a.x - W.x, a.y - W.y) - Math.hypot(b.x - W.x, b.y - W.y)); hit.length = WRAP.max; }
     for (const m of hit) { m.drill = null; coll.lose(m, kind, to); }
     q.eaten += hit.length;
     if (hit.length) q.swallowT = SWALLOW.t;
@@ -437,7 +440,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
   }
   function bite(q, t) {
     // the peritrich's surge sucks in its vortex; the amoeba's lobe closes over its reach
-    const n = take(q, t); // (taken first: an optional hook call would skip its arguments)
+    const n = take(q, t); globalThis.BY = globalThis.BY || {}; if (q.A) BY[q.A.wrap && q.A.wrap.fast ? 'fastwrap' : 'wrap'] = (BY[q.A.wrap && q.A.wrap.fast ? 'fastwrap' : 'wrap'] || 0) + n; // (taken first: an optional hook call would skip its arguments)
     hooks.onBite?.(q, n);
   }
   /**
@@ -603,7 +606,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     if (hit.length) q.swallowT = SWALLOW.t;
     T.len *= PINCH.keep; T.pinch = null; T.cool = PINCH.cool; T.shut = 0.6;
     for (const C of coll.list) for (const m of C.members) if (m.drill && m.drill.tun === T) m.drill = null;
-    hooks.onBite?.(q, hit.length, 'tunnel');
+    globalThis.BY = globalThis.BY || {}; BY.pinch = (BY.pinch || 0) + hit.length; hooks.onBite?.(q, hit.length, 'tunnel');
   }
 
   function update(dt, t, roster) {

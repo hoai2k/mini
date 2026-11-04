@@ -718,18 +718,23 @@ function worldAt(A, lx, ly) { return A._w.amoebaAt(lx, ly, A._w.time); }
   const thick = 2 * w * (1 - 0.35 * sA / len);
   const start = world.amoebaWorld(mid.x + side.x * 25, mid.y + side.y * 25, { x: 0, y: 0 });
   move(start.x, start.y); fill(40); step(20);
-  const c = Math.cos(A.ang), s = Math.sin(A.ang), into = { x: -(c * side.x - s * side.y), y: -(s * side.x + c * side.y) };
+  // (steered at the arm's middle: the swarm presses on its side and stays there)
   let through = null;
-  for (let i = 0; i < 80 && !through; i++) { step(15, { ...into, m: 0.6 }); through = A.tunnels.find((T2) => T2.through); }
-  assert.ok(through, `drilling the side of a thin pseudopod (${thick.toFixed(1)} µm thick) bores a tunnel through it (${A.tunnels.map((T2) => T2.len.toFixed(1)).join(', ')} µm)`);
+  const C = coll.of(P), aim = { x: 0, y: 0 };
+  for (let i = 0; i < 80 && !through; i++) {
+    world.amoebaWorld(mid.x, mid.y, aim);
+    const dx = aim.x - C.cx, dy = aim.y - C.cy, dl = Math.hypot(dx, dy) || 1;
+    step(15, { x: dx / dl, y: dy / dl, m: Math.min(0.8, dl / 10 + 0.3) });
+    through = A.tunnels.find((T2) => T2.through);
+  }
+  assert.ok(through && through.len > thick * 0.6, `drilling the side of a thin pseudopod (${thick.toFixed(1)} µm thick) bores a tunnel through it (${A.tunnels.map((T2) => T2.len.toFixed(1)).join(', ')} µm)`);
   // a passage: along its axis from the mouth to past the far side, open water all the way
   let open = true;
   for (let u = 0.5; u < through.len; u += 0.5) if (world.amoebaAt(through.x + Math.cos(through.a) * u, through.y + Math.sin(through.a) * u, world.time) > 0) open = false;
   const far = world.amoebaAt(through.x + Math.cos(through.a) * (through.len + 1), through.y + Math.sin(through.a) * (through.len + 1), world.time, false);
   assert.ok(open && far < 0, 'a passage through: open water all the way to the other side');
   assert.ok(q.hp === Infinity, 'it is not hurt by it, only irritated');
-  battle.armThrough = `40 bored through a ${thick.toFixed(1)} µm pseudopod (${through.len.toFixed(1)} µm tunnel)`;
-  void coll; void P;
+  battle.armThrough = `40 bored through a ${thick.toFixed(1)} µm pseudopod (${through.len.toFixed(1)} µm tunnel, ${world.time.toFixed(1)} s)`;
 }
 /** Bore a tunnel into the amoeba's front with n cells until it starts to pinch shut (no rout, no loop). Returns the scene and the tunnel. */
 function pinchScene(n = 50) {

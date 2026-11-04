@@ -93,7 +93,7 @@ export function createFeatures({ key, pad }) {
   panel.className = 'mf';
   const tab = document.createElement('button');
   tab.className = 'mf-tab';
-  tab.textContent = t('shared.featuresPanel.tab');
+  tab.innerHTML = t('shared.featuresPanel.tab');
   tab.onclick = () => setOpen(true);
   document.body.append(panel, tab);
 
@@ -148,15 +148,15 @@ export function createFeatures({ key, pad }) {
         row.className = 'row' + (it.fixed ? ' fixed' : '') + (sw[sel] === it ? ' sel' : '');
         const cls = it.fixed ? 'fixed' : it.choices ? '' : it.on ? 'on' : 'off';
         row.innerHTML = `<span class="lab"></span><span class="val ${cls}"></span><span class="about"></span>`;
-        row.querySelector('.lab').textContent = it.label;
+        row.querySelector('.lab').innerHTML = it.label; // our own text: may hold {btn:X} glyphs
         if (it.from) {
           const f = document.createElement('span');
           f.className = 'from';
           f.textContent = t('shared.featuresPanel.from', { world: it.from });
           row.querySelector('.lab').appendChild(f);
         }
-        row.querySelector('.val').textContent = valueText(it);
-        row.querySelector('.about').textContent = it.about || '';
+        row.querySelector('.val').innerHTML = valueText(it);
+        row.querySelector('.about').innerHTML = it.about || '';
         if (!it.fixed) row.onclick = () => { sel = sw.indexOf(it); activate(it, 1); };
         panel.appendChild(row);
       }

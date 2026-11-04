@@ -7,7 +7,7 @@
 // `hud {title, sub, controls, note}` and View posts `view` (the shell toggles
 // its card). The shell can still show this panel with `controls {show}`.
 import { embed } from './embed.js';
-import { t } from './text.js';
+import { t, setGlyphRenderer } from './text.js';
 
 //
 // Which glyphs the controls list shows: controller buttons whenever any
@@ -35,6 +35,40 @@ export function controllerConnected() {
   try { for (const g of (navigator.getGamepads ? navigator.getGamepads() : []) || []) if (g && g.connected) return true; } catch { /* blocked */ }
   return false;
 }
+
+// The glyph set in use: '' until mountHud decides, then 'controller' or 'keyboard', live.
+let hudMode = '';
+const liveMode = () => hudMode || (controllerConnected() ? 'controller' : 'keyboard');
+
+/**
+ * Markup for a button named inside a line of text ({btn:A} in text_config.js):
+ * the Xbox chip, or the keyboard key while no controller is connected. Each
+ * carries data-btn, so a later device change repaints it (refreshInlineGlyphs).
+ */
+export function glyphHTML(b, mode = liveMode()) {
+  const kb = keyFor(b);
+  const useKb = mode === 'keyboard' && kb;
+  const cls = useKb ? ' kb' : CHIP[b] ? ` ${CHIP[b]}` : '';
+  const tip = useKb ? t('shared.hud.chipController', { button: b }) : (kb ? t('shared.hud.chipKeyboard', { key: kb }) : '');
+  return `<span class="btn-g${cls}" data-btn="${b}"${tip ? ` title="${tip}"` : ''}>${useKb ? kb : b}</span>`;
+}
+
+/** Repaint every inline glyph under root for the device in use. */
+export function refreshInlineGlyphs(root = document, mode = liveMode()) {
+  if (!root || !root.querySelectorAll) return;
+  for (const el of root.querySelectorAll('.btn-g[data-btn]')) {
+    const tmp = document.createElement('span');
+    tmp.innerHTML = glyphHTML(el.dataset.btn, mode);
+    const n = tmp.firstChild;
+    if (el.className !== n.className) el.className = n.className;
+    if (el.textContent !== n.textContent) el.textContent = n.textContent;
+    el.title = n.title;
+  }
+}
+
+// Every page that loads the HUD draws {btn:X} as these chips, so its toasts,
+// banners, prompts, cards and Features text show the button's icon.
+setGlyphRenderer((b) => glyphHTML(b));
 
 let kbStyle = false;
 function addKeyStyle() {
@@ -88,7 +122,9 @@ export function mountHud({ title, sub, controls, note }) {
   function setMode(m) {
     if (m === mode) return;
     mode = m;
+    hudMode = m;
     applyGlyphs(el, m);
+    if (typeof document !== 'undefined') refreshInlineGlyphs(document, m);
     dev.textContent = m === 'controller' ? t('shared.hud.controllerConnected') : t('shared.hud.keyboardHoverController');
   }
   setMode(controllerConnected() ? 'controller' : 'keyboard');
@@ -150,8 +186,9 @@ export function mountHud({ title, sub, controls, note }) {
       const t = shown ? String(text) : '';
       if (t !== statsText) { statsText = t; stats.textContent = t; }
     },
+    /** A short message; it may hold markup and {btn:X} glyphs (our own strings from text_config.js only). */
     toast(text, ms = 1800) {
-      toastEl.textContent = text;
+      toastEl.innerHTML = text;
       toastEl.classList.add('show');
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
