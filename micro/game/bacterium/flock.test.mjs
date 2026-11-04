@@ -55,8 +55,12 @@ function setup(hooks = {}, { quiet = false } = {}) {
   const move = (x, y) => { const C = coll.of(P), dx = x - P.S.x, dy = y - P.S.y; for (const m of C.members) { m.x += dx; m.y += dy; } P.S.x = x; P.S.y = y; C.cx += dx; C.cy += dy; if (C.fx === C.fx) { C.fx += dx; C.fy += dy; } };
   return { world, stentor, coll, guards, P, step, fill, move, get t() { return t; } };
 }
-/** A swarm of n pushed into gate `id` (X every 0.5 s unless x is false): { won, t (s from first contact), left, ... }. */
-function fight(id, n, { x = true, maxT = 60 } = {}) {
+/**
+ * A swarm of n pushed into gate `id` (X every 0.5 s unless x is false). careful: pull back straight out from it
+ * when it winds up (40 % into its tell) while any member is in its capture zone; mouth: the peritrich's mouth
+ * as the target instead of its bell's back. Returns { won, t (s from first contact), left, eaten, ... }.
+ */
+function fight(id, n, { x = true, maxT = 60, careful = false, mouth = false } = {}) {
   const T = setup({}, { quiet: true });
   const { coll, guards, P, step, fill, move, stentor, world } = T;
   const q = guards.byId[id];
@@ -70,10 +74,21 @@ function fight(id, n, { x = true, maxT = 60 } = {}) {
     if (first === null && q.contact) first = tt;
     maxD = Math.max(maxD, q.drills); states.add(q.atk.st);
     if (q.hp < hp0 - 0.5) falls++; hp0 = q.hp;
-    let tg = guards.centre(q);
-    if (id === 'grazer1') { const g = q.g; tg = { x: tg.x - g.pose.up.x * g.R * 1.3, y: tg.y - g.pose.up.y * g.R * 1.3 }; }
-    const dx = tg.x - C.cx, dy = tg.y - C.cy, dl = Math.hypot(dx, dy) || 1;
-    step(15, n ? { x: dx / dl, y: dy / dl, m: Math.min(1, dl / 10 + 0.3) } : { x: (tg.x - P.S.x) / (Math.hypot(tg.x - P.S.x, tg.y - P.S.y) || 1), y: (tg.y - P.S.y) / (Math.hypot(tg.x - P.S.x, tg.y - P.S.y) || 1), m: 0.4 });
+    const cc = guards.centre(q);
+    let tg = cc;
+    if (id === 'grazer1') { const g = q.g; tg = mouth ? g.pose.mouth : { x: cc.x - g.pose.up.x * g.R * 1.3, y: cc.y - g.pose.up.y * g.R * 1.3 }; }
+    if (id === 'stentor') { const D = stentor.disc(C.cx, C.cy), rho = Math.max(1e-3, D.rho); tg = { x: cc.x + (C.cx - cc.x) / rho * 0.97, y: cc.y + (C.cy - cc.y) / rho * 0.97 }; }
+    const tell = q.kind === 'stentor' ? (stentor.fight.state === 'windup' && (stentor.fightT || 0) > 0.4) || stentor.fight.state === 'strike' : (q.atk.st === 'tell' && q.atk.t > q.tell * 0.4) || q.atk.st === 'bite';
+    if (careful && tell && C.members.some((m) => guards.zone(q, m.x, m.y, world.time) > 0)) {
+      // pull back: straight out from it (the amoeba's edge faces whoever comes; else away from its middle)
+      let ox = C.cx - cc.x, oy = C.cy - cc.y;
+      if (q.kind === 'amoeba') { ox = -Math.sin(q.A.ang); oy = Math.cos(q.A.ang); }
+      const ol = Math.hypot(ox, oy) || 1;
+      step(15, { x: ox / ol, y: oy / ol, m: 1 });
+    } else {
+      const dx = tg.x - C.cx, dy = tg.y - C.cy, dl = Math.hypot(dx, dy) || 1;
+      step(15, n ? { x: dx / dl, y: dy / dl, m: Math.min(1, dl / 10 + 0.3) } : { x: (tg.x - P.S.x) / (Math.hypot(tg.x - P.S.x, tg.y - P.S.y) || 1), y: (tg.y - P.S.y) / (Math.hypot(tg.x - P.S.x, tg.y - P.S.y) || 1), m: 0.4 });
+    }
     if (x && Math.round(tt * 4) % 2 === 0) guards.volley(C, 0);
   }
   return { won: q.beaten, t: first === null ? null : +(tt - first).toFixed(1), left: C.members.length, hp: Math.round(q.hp), max: q.max, maxD, eaten: q.eaten, bites: q.bites, falls, states: [...states] };
@@ -343,19 +358,84 @@ function waylaySetup() {
   assert.ok(ev.caught && !P.S.alive, 'with none left, the next takes your own cell');
 }
 
-// --- the gate battles: they eat members in a rhythm (a tell, then a bite); members drill in; a modest swarm wins, a big one fast ---
+// --- the gate battles: losses depend on where your cells are; your cells drill in ---
 const battle = {};
-for (const [id, small, need, big, fast] of [['grazer1', 5, 14, 42, 8], ['bdello', 14, 50, 150, 12], ['amoeba', 60, 150, 450, 8], ['stentor', 120, 300, 900, 10]]) {
-  const e = ENCOUNTERS.find((q) => q.id === (id === 'stentor' ? 'portal' : id));
-  assert.ok(need <= e.need, `${id}: tested at its need or below (${need} ≤ ${e.need})`);
-  const a = fight(id, 0, { maxT: 20 }), b = fight(id, small, { maxT: 40 }), c = fight(id, need), d = fight(id, big);
+for (const [id, big, fast] of [['grazer1', 42, 8], ['bdello', 150, 12], ['amoeba', 450, 8], ['stentor', 900, 12]]) {
+  const a = fight(id, 0, { maxT: 20 }), d = fight(id, big);
   assert.ok(!a.won && a.hp > a.max * 0.8, `${id}: a lone cell gets nowhere (${a.hp} of ${a.max} left)`);
-  assert.ok(!b.won, `${id}: a small swarm (${small}) loses (${b.hp} of ${b.max} left, ${b.left} cells left)`);
-  assert.ok(c.won && c.left > 0 && c.left < need, `${id}: a modest swarm (${need}) wins, losing cells (${c.t} s, ${c.left} left)`);
-  assert.ok(d.won && d.t < fast && d.left > big * 0.85, `${id}: a big swarm (${big}) wins fast (${d.t} s, ${d.left} left)`);
-  assert.ok(c.maxD >= 5 && c.falls > 4, `${id}: members drill in and wear it down (${c.maxD} drilling at once)`);
-  if (id === 'grazer1' || id === 'amoeba') assert.ok(c.states.includes('tell') && c.states.includes('bite') && c.eaten > 0, `${id}: it eats members, a tell before each bite (${c.bites} bites, ${c.eaten} eaten)`);
-  battle[id] = `${small} loses; ${need} wins in ${c.t} s (${c.left} left); ${big} in ${d.t} s (${d.left} left)`;
+  assert.ok(d.won && d.t < fast, `${id}: a big swarm (${big}) wins fast (${d.t} s, ${d.left} left)`);
+  assert.ok(d.maxD >= 5, `${id}: members drill in (${d.maxD} at once)`);
+  battle[id] = `${big} wins in ${d.t} s (${d.left} left)`;
+}
+{
+  // the amoeba: a careful swarm of its need (pulling back when its edge bulges) wins with most; a reckless one loses many
+  const need = ENCOUNTERS.find((q) => q.id === 'amoeba').need;
+  const c = fight('amoeba', need, { careful: true }), r = fight('amoeba', need);
+  assert.ok(c.won && c.left > need * 0.75, `amoeba: careful, ${need} win keeping most (${c.left} left, ${c.t} s, ${c.bites} bites)`);
+  assert.ok(r.left < need * 0.5 && r.eaten > c.eaten * 2, `amoeba: reckless, ${need} lose many (${r.left} left, ${r.eaten} eaten against ${c.eaten})`);
+  assert.ok(c.states.includes('tell') && c.states.includes('bite'), 'amoeba: a tell before each bite');
+  battle.amoebaCareful = `${need} careful: won in ${c.t} s, ${c.left} left; reckless: ${r.won ? 'won' : 'lost'}, ${r.left} left`;
+}
+{
+  // the peritrich: driven into its mouth loses more than drilling its bell's back (out of its vortex)
+  const need = ENCOUNTERS.find((q) => q.id === 'grazer1').need;
+  const into = fight('grazer1', need, { mouth: true }), back = fight('grazer1', need);
+  assert.ok(back.won && back.left > into.left, `peritrich: into its mouth ${into.left} of ${need} left; at its back ${back.left} left and it is beaten`);
+  battle.peritrich = `${need} at its back: ${back.left} left; into its mouth: ${into.left} left`;
+}
+{
+  // capture zones: a bite takes members in its zone (by depth) and never one outside it
+  for (const id of ['grazer1', 'amoeba', 'stentor']) {
+    const T = setup({}, { quiet: true });
+    const { coll, guards, P, step, fill, world, stentor } = T;
+    const q = guards.byId[id];
+    if (id === 'stentor') { world.setPortal(400, 0, 0); stentor.place(400, 0, 0); stentor.awake = true; } else guards.placeGate(q, 400, 0, 0);
+    q.engaged = true;
+    fill(60); step(2);
+    const C = coll.of(P);
+    // half of them deep in its zone (at the mouth, or just inside the amoeba's edge), half well outside it
+    const deep = (i) => {
+      if (id === 'grazer1') { const P2 = q.g.pose; return { x: P2.mouth.x + P2.up.x * (2 + (i % 5)), y: P2.mouth.y + P2.up.y * (2 + (i % 5)) + ((i % 3) - 1) }; }
+      if (id === 'amoeba') { const A = q.A, s = Math.sin(A.ang), c = Math.cos(A.ang); return { x: A.x + s * 3 + c * ((i % 20) - 10) * 4, y: A.y - c * 3 + s * ((i % 20) - 10) * 4 }; }
+      return { x: stentor.mouth.x + ((i % 6) - 3) * 3, y: stentor.mouth.y + ((i % 5) - 2) * 3 };
+    };
+    const inside = C.members.slice(0, 30), outside = C.members.slice(30);
+    inside.forEach((m, i) => { const p = deep(i); m.x = p.x; m.y = p.y; });
+    outside.forEach((m, i) => { m.x = 250 + (i % 6) * 3; m.y = 60 + Math.floor(i / 6) * 3; });
+    assert.ok(inside.every((m) => guards.zone(q, m.x, m.y, world.time) > 0.6) && outside.every((m) => guards.zone(q, m.x, m.y, world.time) === 0), `${id}: the test cells are deep in its zone or well out of it`);
+    { const cc = guards.centre(q); C.cx = cc.x; C.cy = cc.y; C.extent = 200; } // (the flock is at it: the bite looks at flocks near it)
+    const n = id === 'stentor' ? guards.stentorPull() : guards.biteNow(q);
+    const lostIn = inside.filter((m) => m.dying).length, lostOut = outside.filter((m) => m.dying).length;
+    assert.ok(lostOut === 0, `${id}: no member outside its zone is taken`);
+    assert.ok(lostIn >= 22 && n === lostIn, `${id}: most of those deep in it are (${lostIn} of 30)`);
+    // eaten, seen: each goes through its states, not removed at once
+    const m = inside.find((k) => k.dying), E = coll.EATEN[m.dying.kind];
+    const p0 = { x: m.x, y: m.y };
+    step(Math.round(E.pull * 0.5 * 60));
+    assert.ok(m.dying && !m.parked && Math.hypot(m.x - p0.x, m.y - p0.y) > 0.05, `${id}: a taken member is still there, drawn in (${m.dying.kind}, ${m.dying.t.toFixed(2)} s)`);
+    step(Math.round((E.pull + 1) * 60));
+    assert.ok(m.dying && !m.parked && m.dying.t > E.pull, `${id}: then digesting inside it`);
+    step(Math.round(E.digest * 60));
+    assert.ok(m.parked, `${id}: and only then gone (after ${(E.pull + E.digest).toFixed(1)} s)`);
+  }
+}
+{
+  // a Bdellovibrio strikes the nearest member in reach: it rounds up into a bdelloplast before it fades
+  const T = setup({}, { quiet: true });
+  const { coll, P, step, fill, world, guards } = T;
+  guards.placeGate(guards.byId.bdello, 200, 0, 0);
+  fill(3); step(2); // (a swarm under 5: no slime for its ram to glance off)
+  const C = coll.of(P), pack = world.cells.filter((c) => c.kind === 'bdello' && c.home), b = pack[0];
+  for (const c of pack.slice(1)) c.parked = true; // (one Bdellovibrio, so the far ones are out of every reach)
+  b.x = 200; b.y = 0; b.cooldown = 0; b.hidden = 0;
+  const m = C.members[0], far = C.members.slice(1);
+  m.x = 201.2; m.y = 0;
+  far.forEach((k, i) => { k.x = 200 - 30; k.y = 20 + i * 3; });
+  P.S.x = 170; P.S.y = 30; C.cx = 190; C.cy = 10;
+  let caught = null;
+  for (let i = 0; i < 240 && !caught; i++) { step(1); caught = coll.kin.find((k) => k.dying && k.dying.kind === 'bdello'); }
+  assert.ok(caught === m && far.every((k) => !k.dying), 'Bdellovibrio: it takes the member in its reach, not the far ones');
+  step(30); assert.ok(m.dying && !m.parked && m.dying.bdello, 'and the member rounds up with it inside, still there');
 }
 
 // --- a swarm of 1000 steps within a time budget, headless ---

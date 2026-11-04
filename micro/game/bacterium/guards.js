@@ -41,7 +41,7 @@ export const FIGHT = {
   volley: 0.35,   // X: every drilling member's extra burst
   burst: 0.12,    // Y's toxin: this share of the enemy's full health (at least burstMin)
   burstMin: 12,
-  poison: 1.0,    // a member an enemy eats poisons it (+1 per army level)
+  poison: 0.3,    // a member an enemy eats poisons it a little (violacein-like)
   latch: 1.2,     // a member this close outside an enemy's surface latches on and drills (µm)
   leash: 24,      // a drilling member lets go once its flock's middle is this far beyond its comfortable radius (steered on without it)
   bdelloHp: 10, bdelloRegen: 1.5, bdelloK: 2, // (a Bdellovibrio is tiny: each drill into it counts double)
@@ -56,8 +56,8 @@ export const FIGHT = {
 export const GATES = {
   grazer1: { max: 80, regen: 3, every: 4.8, tell: 1.8, reach: 28, cap: 90 },
   bdello: { max: 16 * FIGHT.bdelloHp, regen: 0, cap: 8 }, // (per Bdellovibrio: each lunges at the nearest member in reach, latches on and bores in: collective.js bdelloPack)
-  amoeba: { max: 1500, regen: 4, every: 5.0, tell: 2.0, reach: 8, cap: 300 },
-  stentor: { max: 3000, regen: 3, reach: 14, cap: 520 }, // (its rhythm is the pull: main.js runBoss, its tell 2 s)
+  amoeba: { max: 550, regen: 4, every: 5.0, tell: 2.0, reach: 8, cap: 300 },
+  stentor: { max: 2000, regen: 3, reach: 14, cap: 520 }, // (its rhythm is the pull: main.js runBoss, its tell 2 s)
 };
 /** After a bite that took someone it swallows: SWALLOW.t s with no regrowth and drills biting SWALLOW.k times as hard (the moment to go back in). */
 export const SWALLOW = { t: 1.6, k: 1.5 };
@@ -65,7 +65,7 @@ export const SWALLOW = { t: 1.6, k: 1.5 };
 export function createGuards(world, coll, stentor, hooks = {}) {
   const [g1] = world.grazers;
   const pack = world.cells.filter((c) => c.kind === 'bdello' && c.home);
-  const G = (o) => ({ hp: o.max, beaten: false, contact: 0, drills: 0, engaged: false, atk: { st: 'idle', t: 0, next: 2.5 }, bites: 0, eaten: 0, ...o });
+  const G = (o) => ({ hp: o.max, beaten: false, contact: 0, drills: 0, engaged: false, atk: { st: 'idle', t: 0, next: 1.2 }, bites: 0, eaten: 0, ...o });
   const list = [
     G({ id: 'grazer1', name: 'Peritrich', kind: 'grazer', g: g1, ...GATES.grazer1, zone: 60 }),
     G({ id: 'bdello', name: 'Bdellovibrio pack', kind: 'bdello', ...GATES.bdello, max: pack.length * FIGHT.bdelloHp, zone: 60 }),
@@ -225,8 +225,11 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     const cx = at.x, cy = at.y;
     // the swarm's middle gone on without them, or steered away (pulling back out of its reach): the drills let go
     const leash = C.R0 * 1.2 + FIGHT.leash;
-    const toE = Math.hypot(cx - C.cx, cy - C.cy) || 1;
-    const away = C.intent.m > 0.5 && (C.intent.x * (cx - C.cx) + C.intent.y * (cy - C.cy)) / toE < -0.5;
+    // (away: the stick points out from its surface where the swarm is: its outward normal there)
+    const s0 = q.kind === 'bdello' ? null : surface(q, C.cx, C.cy, t);
+    let ox = s0 ? s0.nx : C.cx - cx, oy = s0 ? s0.ny : C.cy - cy;
+    const ol = Math.hypot(ox, oy) || 1; ox /= ol; oy /= ol;
+    const away = C.intent.m > 0.5 && (C.intent.x * ox + C.intent.y * oy) / (Math.hypot(C.intent.x, C.intent.y) || 1) > 0.5;
     for (const m of C.members) {
       if (m.dying || m.latched) { if (m.drill) m.drill = null; continue; }
       // pulling back: the members in its reach dart out at once (collective.js m.flee)
@@ -313,7 +316,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
   }
   function attack(q, dt, t, active) {
     const A = q.atk;
-    if (!active) { A.st = 'idle'; A.t = 0; A.next = Math.max(A.next, 2.5); return; }
+    if (!active) { A.st = 'idle'; A.t = 0; A.next = Math.max(A.next, 1.2); return; }
     A.t += dt;
     if (A.st === 'idle') { if (A.t >= A.next) { A.st = 'tell'; A.t = 0; hooks.onTell?.(q); } return; }
     if (A.st === 'tell') { if (A.t >= q.tell) { A.st = 'bite'; A.t = 0; q.bites++; bite(q, t); } return; }
@@ -408,7 +411,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
   /** A member eaten by an enemy poisons it: violacein-like toxins (atlas C28). More toxic the bigger the army. */
   function poison(kind, m, C) {
     const q = kind === 'grazer' ? byId.grazer1 : kind === 'amoeba' ? byId.amoeba : kind === 'stentor' ? byId.stentor : null;
-    if (q) hurt(q, FIGHT.poison + C.level);
+    if (q) hurt(q, FIGHT.poison); void C;
   }
 
   /** X: a burst from every drilling member (and the lone cells touching an enemy). */
@@ -465,6 +468,8 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     for (const C of coll.list) for (const m of C.members) m.drill = null;
   }
 
-  return { list, byId, FIGHT, GATES, SWALLOW, drillRate, zone, placeGate, shift, park, update, volley, burstHit, nearest, reset, hurt, poison, stentorPull, centre: (q) => centre(q, { x: 0, y: 0 }), touching, surface,
+  return { list, byId, FIGHT, GATES, SWALLOW, drillRate, zone,
+    /** Tests: the bite lands now (its zone takes what is in it). Returns how many were taken. */
+    biteNow: (q) => { q.bites++; return take(q, world.time || 0); }, placeGate, shift, park, update, volley, burstHit, nearest, reset, hurt, poison, stentorPull, centre: (q) => centre(q, { x: 0, y: 0 }), touching, surface,
     report: () => list.map((q) => ({ id: q.id, hp: +q.hp.toFixed(1), max: q.max, beaten: q.beaten, engaged: q.engaged, contact: q.contact, drills: q.drills, attack: q.atk.st, bites: q.bites, eaten: q.eaten })) };
 }

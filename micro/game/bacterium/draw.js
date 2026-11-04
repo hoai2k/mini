@@ -172,6 +172,9 @@ export function createDrawer(world) {
     const dmg = 1 - hp;
     S.bell(P.ox, P.oy, P.ang, R, 8, R * 0.32, g.seed, { dn: 0.028 * fade, scat: (0.06 + 0.12 * hit) * fade, fl: [(0.035 + 0.05 * hit) * chan.memb * fade, 0, 0], memb: 1, ab: [(0.004 + 0.02 * dmg) * fade, (0.003 + 0.022 * dmg) * fade, (0.006 + 0.016 * dmg) * fade], z: 0.2 });
     if (fade < 1) return;
+    // its capture zone, shown while it winds up (guards.js tellK): flow lines streaming into the mouth over the
+    // cone it will suck from, and a faint shimmer at the cone's edge; brightest as it surges
+    if (g.tellK > 0 && g.zoneR) zoneCone(S, P.mouth, Math.atan2(P.up.y, P.up.x), g.zoneR, g.tellK, t);
     // food vacuoles and granules inside the bell
     const rr = rng(Math.floor(g.seed * 100));
     for (let i = 0; i < 26; i++) {
@@ -213,6 +216,18 @@ export function createDrawer(world) {
     }
   }
 
+  // the capture zones (a game marker drawn into the specimen, faint): see guards.js zone()
+  const zmat = { dn: 0.02, scat: 0.5, fl: [0, 0, 0], ab: [0, 0, 0], z: 0 };
+  function zoneCone(S, M, ua, R, k, t) {
+    zmat.scat = 0.25 + 0.6 * k; zmat.dn = 0.012 + 0.02 * k; zmat.fl[0] = 0.12 * k * chan.memb; zmat.fl[1] = 0.25 * k;
+    for (let i = 0; i < 26; i++) { const a = ua + (i / 25 - 0.5) * 2.44; const x = M.x + Math.cos(a) * R, y = M.y + Math.sin(a) * R; if (S.inView(x, y, 1)) S.disc(x, y, 0.22 + 0.12 * k, zmat); }
+    // flow lines: specks running in along spiral paths, faster as it winds up
+    for (let j = 0; j < 9; j++) for (let i = 0; i < 6; i++) {
+      const u = ((t * (0.35 + 0.9 * k) + i / 6 + j * 0.137) % 1), rr = R * (1 - u), a = ua + (j / 8 - 0.5) * 2.2 * (0.4 + 0.6 * (1 - u)) + 0.9 * u * (j % 2 ? 1 : -1);
+      const x = M.x + Math.cos(a) * rr, y = M.y + Math.sin(a) * rr;
+      if (S.inView(x, y, 1)) S.disc(x, y, 0.16, zmat);
+    }
+  }
   function amoeba(S, A, t) {
     // its damage state (guards.js hpK): the edge thins and its granules thin out as the drills wear it down;
     // the surge (its bite) bulges the edge forward; beaten, it withdraws and fades
@@ -221,6 +236,14 @@ export function createDrawer(world) {
     const k = fade * (0.55 + 0.45 * hp);
     const sx = A.surge ? -Math.sin(A.ang) * 5 * A.surge : 0, sy = A.surge ? Math.cos(A.ang) * 5 * A.surge : 0;
     S.edge(A.x + sx, A.y + sy, A.ang, A.width, A.depth, A.amp * (1 + 0.8 * (A.surge || 0)), A.seed, { dn: 0.03 * k, scat: (0.05 + 0.1 * hit) * k, fl: [(0.04 + 0.05 * hit) * chan.memb * k, 0, 0], memb: 1, ab: [0.003 * k, 0.003 * k, 0.004 * k], z: 0.2 });
+    // its capture zone while it winds up (guards.js tellK): the shadow of the lobe it is about to throw, out to its reach
+    if (A.tellK > 0 && A.zoneR && fade > 0.9) {
+      const r = A.zoneR + 7, k = A.tellK, nx = -Math.sin(A.ang), ny = Math.cos(A.ang);
+      S.edge(A.x + nx * r * k, A.y + ny * r * k, A.ang, A.width * 0.92, r * k + 4, A.amp * 1.4, A.seed + 1, { dn: 0.006 * k, scat: 0.04 * k, fl: [0.03 * k * chan.memb, 0.02 * k, 0], ab: [0.006 * k, 0.006 * k, 0.008 * k], z: 0.1 });
+      zmat.scat = 0.3 + 0.6 * k; zmat.dn = 0.015 * k; zmat.fl[0] = 0.12 * k * chan.memb; zmat.fl[1] = 0.25 * k;
+      const ca = Math.cos(A.ang), sa = Math.sin(A.ang);
+      for (let i = 0; i < 40; i++) { const lx = (i / 39 - 0.5) * A.width * 0.88; const x = A.x + ca * lx + nx * (r + 0.6 * Math.sin(lx * 0.2 + t * 3)), y = A.y + sa * lx + ny * (r + 0.6 * Math.sin(lx * 0.2 + t * 3)); if (S.inView(x, y, 1)) S.disc(x, y, 0.22, zmat); }
+    }
     const c = Math.cos(A.ang), s = Math.sin(A.ang);
     const nG = Math.round(granules.length * (0.35 + 0.65 * hp) * fade);
     for (let gi = 0; gi < nG; gi++) {
@@ -376,6 +399,18 @@ export function createDrawer(world) {
       const beat = Math.sin(B.phase * 2 - i * 0.45);
       S.strand(x, y, nrm + 0.5 * beat * (1 - c), (15 + 3 * beat) * (1 - 0.7 * c), 0.35, 0.6, 14, { dn: 0.05, scat: 1.4 + 2.5 * B.glow, fl: [0.6 * chan.memb, 0, 0], memb: 1, z: 0.1, phase: B.phase + i });
     }
+    // its capture zone while it winds up (guards.js tellK): a shimmer out at the reach of its suction, past the rim
+    if (B.tellK > 0 && B.zoneR && !B.beaten) {
+      const k = B.tellK, rr = B.discR * (1 - 0.4 * c);
+      zmat.scat = 0.3 + 0.7 * k; zmat.dn = 0.015 * k; zmat.fl[0] = 0.12 * k * chan.memb; zmat.fl[1] = 0.25 * k;
+      for (let i = 0; i < 90; i++) {
+        const q = (i / 90) * Math.PI * 2, ex = 0.42 * rr, ox = Math.cos(q), oy = Math.sin(q);
+        const nl = Math.hypot(ox / ex, oy / rr) || 1, out = B.zoneR * (0.9 + 0.1 * Math.sin(q * 7 + t * 4));
+        const lu = ox * ex + (ox / ex) / nl * out, lv = oy * rr + (oy / rr) / nl * out;
+        const x = dx + ca * lu - sa * lv, y = dy + sa * lu + ca * lv;
+        if (S.inView(x, y, 1)) S.disc(x, y, 0.3, zmat);
+      }
+    }
     // the vortex: specks spiralling into the mouth, brighter and faster as it winds up
     if (B.flowK > 0.05) for (const p of vortex) {
       p.r -= 0.0025 * p.v * B.flowK * (1 - c);
@@ -443,6 +478,47 @@ export function createDrawer(world) {
       }
     }
   }
+  /**
+   * A member being eaten (collective.js eatenState, EATEN): never just gone. Pulled into a mouth it wriggles,
+   * spirals in and shrinks into the gullet, then sits as a dark food vacuole in the body, its cell a shrinking
+   * blot, fading as it is digested; closed into the amoeba, a dark speck in a vacuole drifting into its
+   * cytoplasm; bored into by a Bdellovibrio, a swollen still sphere with the predator curled inside.
+   */
+  const vacM = { dn: -0.01, scat: 0.35, fl: [0, 0, 0], memb: 1, ab: [0, 0, 0], z: 0 }, blot = { dn: 0.06, scat: 0.2, fl: [0, 0, 0], memb: 0.6, ab: [0, 0, 0], z: 0 };
+  function eaten(S, k, t) {
+    const d = k.dying, z = zOf(k, k.z) * 0.4;
+    if (!d.end) {
+      // (any other loss: it rounds up, darkens and fades)
+      const e = Math.min(1, d.t / 1.2);
+      S.rod(k.x, k.y, k.a, k.L * (1 - 0.8 * e), k.r * (1 + e), { dn: 0.05 * (1 - 0.6 * e), scat: 0.12, fl: [MEMB * chan.memb * (1 - 0.8 * e), 0, 0], memb: 0.85, ab: [0.002 + 0.05 * e, 0.002 + 0.045 * e, 0.003 + 0.03 * e], z });
+      return;
+    }
+    const pull = d.t < d.pull, e = pull ? d.t / d.pull : Math.min(1, (d.t - d.pull) / (d.end - d.pull));
+    const fade = pull ? 1 : 1 - e * e;
+    const wig = pull ? 0.12 + 0.2 * (1 - e) : 0;
+    if (d.kind === 'bdello') {
+      // the bdelloplast: the rod swells into a sphere (the predator curled inside), then fades
+      const q = Math.min(1, d.t / 0.9);
+      S.rod(k.x, k.y, k.a, k.L * (1 - 0.85 * q), k.r * (1 + 1.6 * q), { dn: 0.05 * fade, scat: 0.18 * fade, fl: [MEMB * chan.memb * 1.2 * fade, 0, 0], memb: 0.9, ab: [0.004 * fade, 0.004 * fade, 0.006 * fade], z });
+      if (q > 0.3) S.rod(k.x, k.y, k.a + 0.6, 0.85, 0.18, { dn: 0.09 * fade, scat: 0.3 * fade, fl: [MEMB * chan.memb * fade, 30 * chan.flag * fade, 0], memb: 0.85, ab: [0.03 * fade, 0.03 * fade, 0.04 * fade], curve: 1.4, z });
+      if (pull) spirillum(S, k.x, k.y, k.a, k.L * (1 - q), k.r, k.amp * (1 + wig * 3), k.wl, k.bodyPhase + d.t * 30, z, 0, KIN_SIMPLE);
+      return;
+    }
+    if (pull) {
+      // struggling as it goes: wriggling hard, shrinking into the gullet at the end (the amoeba: closing round it)
+      const sh = d.kind === 'amoeba' ? 1 - 0.3 * e : 1 - 0.65 * e * e;
+      spirillum(S, k.x, k.y, k.a, k.L * sh, k.r * sh, k.amp * (1 + wig * 3), k.wl * (1 - wig), k.bodyPhase + d.t * 40, z, 0, KIN_SIMPLE);
+      if (d.kind === 'amoeba' && e > 0.5) { const q = (e - 0.5) / 0.5; vacM.dn = -0.012 * q; vacM.scat = 0.3 * q; vacM.fl[0] = 0.2 * q * chan.memb; vacM.ab[0] = vacM.ab[1] = vacM.ab[2] = 0; S.disc(k.x, k.y, 1.9, vacM); }
+      return;
+    }
+    // the food vacuole: a pale rim round a dark blot that shrinks and fades as it is digested
+    const R = (d.kind === 'amoeba' ? 1.7 : 2.1) * (1 - 0.35 * e);
+    vacM.dn = -0.012 * fade; vacM.scat = 0.35 * fade; vacM.fl[0] = 0.22 * fade * chan.memb; vacM.ab[0] = 0.01 * fade; vacM.ab[1] = 0.012 * fade; vacM.ab[2] = 0.02 * fade;
+    S.disc(k.x, k.y, R, vacM);
+    const b = fade * (1 - 0.5 * e);
+    blot.dn = 0.08 * b; blot.scat = 0.3 * b; blot.fl[0] = MEMB * chan.memb * 0.8 * b; blot.ab[0] = 0.06 * b; blot.ab[1] = 0.055 * b; blot.ab[2] = 0.04 * b;
+    S.rod(k.x, k.y, k.a, k.L * 0.45 * (1 - 0.6 * e), k.r * 1.6, blot);
+  }
   const kinTox = { dn: 0.004, scat: 0.05, ab: [0, 0, 0], z: 0 };
   const kinSlime = { dn: 0.003, scat: 0.02, fl: [0, 0.01, 0.03], z: 0.05 };
   function kin(S, t, coll) {
@@ -460,12 +536,7 @@ export function createDrawer(world) {
         tint(S, k, zOf(k, k.z), 1 - e);
         continue;
       }
-      if (k.dying) {
-        // a member taken in your place: it rounds up, darkens and fades
-        const e = Math.min(1, k.dying.t / 1.2);
-        S.rod(k.x, k.y, k.a, k.L * (1 - 0.8 * e), k.r * (1 + e), { dn: 0.05 * (1 - 0.6 * e), scat: 0.12, fl: [MEMB * chan.memb * (1 - 0.8 * e), 0, 0], memb: 0.85, ab: [0.002 + 0.05 * e, 0.002 + 0.045 * e, 0.003 + 0.03 * e], z: zOf(k, k.z) });
-        continue;
-      }
+      if (k.dying) { eaten(S, k, t); continue; }
       // a charged collective holds the toxin: a faint purple (violacein-like) absorbance
       const charge = C ? C.charge : 0;
       // (2.5D: at its height round your cell's plane, a touch bigger above it, with a footprint below)

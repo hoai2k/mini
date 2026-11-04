@@ -2089,9 +2089,9 @@ export const TEXT = {
       waylay: 'An amber stranger is luring a cell away (it trails an amber line). {btn:X} calls it back',
       waylaid: 'A cell was lured away ({left} left). Press {btn:X} when you see the amber line',
       memberTaken: {
-        grazer: 'The peritrich sucked in one of your cells ({left} left). Each cell is a life: it takes them, not you',
-        amoeba: 'The amoeba engulfed one of your cells ({left} left). Each cell is a life: it takes them, not you',
-        stentor: 'Stentor swept one of your cells in ({left} left). Each cell is a life: it takes them, not you',
+        grazer: 'The peritrich ate cells in front of its mouth ({left} left). Each cell is a life; stay out of its current when its funnel opens',
+        amoeba: 'The amoeba swallowed cells at its edge ({left} left). Each cell is a life; pull back when its edge bulges',
+        stentor: 'Stentor swallowed cells near its mouth ({left} left). Each cell is a life; pull back when its rim shimmers',
         bdello: 'A Bdellovibrio bored into one of your cells ({left} left). Each cell is a life: it takes them, not you',
         phage: 'A phage infected one of your cells ({left} left). Each cell is a life: it takes them, not you',
         other: 'You lost a cell ({left} left). Each cell is a life: it is taken, not you',
@@ -2116,12 +2116,12 @@ export const TEXT = {
       tumbledFreeBdello: '{who}Tumbled free of the Bdellovibrio',
     },
     gates: {
-      grazer1: 'A peritrich blocks the way. When its cilia speed up, it sucks in your cells. Steer into its bell to drill in; {btn:X} drills harder',
-      bdello: 'A Bdellovibrio pack: each one latches onto a cell and bores in. Steer into them to drill them first; {btn:X} drills harder',
+      grazer1: 'A peritrich blocks the way. It sucks in every cell in front of its mouth: drill its bell from behind, and pull back when its cilia speed up. {btn:X} drills harder',
+      bdello: 'A Bdellovibrio pack: each one darts at the nearest cell and bores in. Steer into them to drill them first; {btn:X} drills harder',
       phage: 'A phage cloud: it infects your cells. A swarm of 5 grows a slime shield that sweeps phages up',
-      amoeba: 'An amoeba blocks the way. When its edge bulges, it engulfs your cells. Steer into its edge to drill in; {btn:X} drills harder',
+      amoeba: 'An amoeba blocks the way. Drill into its edge, but when its edge bulges, pull back: it swallows every cell within its reach',
       grazer2: 'A bigger peritrich: bring a bigger swarm',
-      stentor: 'Stentor guards the host. When its rim glows, it pulls cells into its mouth. Drill into its rim; {btn:X} drills harder, {btn:Y} fires your toxin',
+      stentor: 'Stentor guards the host. Drill into its rim, and pull back out when its rim shimmers: its pull swallows every cell near its mouth. {btn:Y} fires your toxin',
     },
     capture: {
       stentor: {
@@ -2357,16 +2357,16 @@ export const TEXT = {
     warn: {
       // a swarm at a gate: the enemy's tell (about to bite) and its bite
       tell: {
-        grazer: 'The peritrich\'s cilia speed up: it is about to suck in your cells',
-        amoeba: 'The amoeba\'s edge bulges: it is about to engulf your cells',
-        stentor: 'Stentor\'s rim glows: it is about to pull your cells into its mouth',
+        grazer: 'Its funnel opens: pull back out of its current!',
+        amoeba: 'Its edge bulges: pull back out of its reach!',
+        stentor: 'Its rim shimmers: pull back out of its pull!',
         bdello: 'A Bdellovibrio is boring into one of your cells: drill it first',
       },
       bite: {
-        grazer: 'The peritrich sucks cells in! Keep drilling ({btn:X} harder)',
-        amoeba: 'The amoeba engulfs cells! Keep drilling ({btn:X} harder)',
-        stentor: 'Stentor pulls cells in! Keep drilling ({btn:X} harder)',
-        bdello: 'Bdellovibrio bore in! Keep drilling ({btn:X} harder)',
+        grazer: 'It gulps! Now it swallows: go back in and drill ({btn:X} harder)',
+        amoeba: 'It engulfs! Now it digests: go back in and drill ({btn:X} harder)',
+        stentor: 'It pulls! Now it swallows: go back in and drill ({btn:X} harder)',
+        bdello: 'Bdellovibrio bore in! Drill them ({btn:X} harder)',
       },
       stentorSpeeds: 'Stentor\'s membranelles speed up, its vortex brightens: get to the edge, or tumble ({btn:B}) at the pull',
       stentorPulls: 'Stentor PULLS: tumble ({btn:B}) to break free, sprint ({btn:A}) out',

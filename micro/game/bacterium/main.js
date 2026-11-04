@@ -124,7 +124,7 @@ const P1 = makePlayer(players.get(0));
 roster.push(P1);
 
 // --- the collective (collective.js): touch kin and they join you; no leader, one flock ---
-const collMsg = { lostAt: -9, recruitAt: -9, n: 0, beaconT: -9, joinSnd: -9, answerDue: false, answerSnd: -9, infectSnd: -9, taken: {}, sizes: new Set() };
+const collMsg = { lostAt: -9, recruitAt: -9, n: 0, beaconT: -9, joinSnd: -9, answerDue: false, answerSnd: -9, infectSnd: -9, eatSnd: -9, taken: {}, sizes: new Set() };
 const coll = createCollectives(world, {
   onRecruit: (C) => {
     // a flock answers at once: the first answer to each beacon is heard, then the joins at most 4 a second
@@ -145,6 +145,12 @@ const coll = createCollectives(world, {
     if (kind === 'phage' && C && C.players.length && t - collMsg.infectSnd > 0.5) { collMsg.infectSnd = t; audio.play('bacterium/infected', { volume: 0.6 }); }
     // a member eaten by a grazer, the amoeba or Stentor poisons it (guards.js poison)
     if (C && C.players.length) guards.poison(kind, m, C);
+    // each one taken is heard (a gulp; a Bdellovibrio's a burst), at most ~7 a second, quieter for a crowd
+    if (C && C.players.length && t - collMsg.eatSnd > 0.14) {
+      collMsg.eatSnd = t;
+      if (kind === 'bdello') audio.play('bacterium/lyse', { volume: 0.45, rate: 0.8 + Math.random() * 0.2 });
+      else if (kind === 'grazer' || kind === 'amoeba' || kind === 'stentor') audio.play('bacterium/eat', { volume: 0.5, rate: (kind === 'amoeba' ? 0.6 : kind === 'stentor' ? 0.75 : 0.9) + Math.random() * 0.15 });
+    }
     // (the first time each enemy takes one, say so plainly; after that the gauge and the army line show it)
     if (!C || !C.players.length || collMsg.taken[kind] || t - collMsg.lostAt < 1.5) return;
     collMsg.lostAt = t; collMsg.taken[kind] = true;

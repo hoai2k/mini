@@ -147,14 +147,15 @@ spirals into the oral pouch off-frame.
 - **Your play:** bring a swarm and drill into its rim (**The battles**):
   every member that reaches the rim latches on and bores in (up to 520 at
   once); every member it sweeps in poisons it; X drills harder; Y's toxin
-  takes 12 % of its health. Its bite is the pull: each pull sweeps up to 30
-  members at its rim and inside it into the oral pouch. A tumble (B) at the
+  takes 12 % of its health. Its bite is the pull: it sweeps in every member
+  inside its oral disc's rim and, less surely, out to 14 µm past it (pull
+  back during its 2 s windup). A tumble (B) at the
   pull breaks your own cell free, as does bumping its foot (it contracts in a
   flash and pauses), and each costs it 2 % of its health, as does a pull that
   comes up empty. Beaten, it contracts and stays shut: the host is yours.
-- **Measured** (`flock.test.mjs`, a swarm pushed at its mouth, X every
-  0.5 s): 120 is eaten; 300 wins in ~15 s with about a third lost; 900 in
-  ~7 s losing a few. Health 6500, regrowth 8/s.
+- **Measured** (`flock.test.mjs`, a swarm driven at its rim, X every
+  0.5 s): 900 wins in ~3.5 s; a swarm that sits in its disc through a pull
+  loses most of it. Health 2000, regrowth 3/s.
 - **Swept in:** the follow-and-respawn catch: round the vortex, into the
   oral pouch, packed into a food vacuole carried down into its body, the
   camera pulled back to the 90 µm field; then the fade and a respawn in open
@@ -423,17 +424,52 @@ bacterium is like an extra HP for fighting sake". A tug-of-war you can read:
   safe; only when the swarm is gone does a catch take you (and you respawn
   nearby with kin kept round you). The swarm's size is in the line at the
   bottom ("Swarm 214 · slime shield · raft · toxin ready").
-- **They eat, in a rhythm you can see.** Each enemy has a **tell**, then a
-  **bite**: the peritrich's cilia race and its current swells (1.2 s, the
-  gauge and its bar turn warm), then it surges and sucks in up to 2 members
-  (in front of its funnel, or drilling on its bell), every 4 s; the amoeba's
-  edge bulges forward in a wave (1.2 s), then engulfs up to 15 it closes over,
-  every 3 s; Stentor's membranelles speed up and its vortex brightens, then
-  its pull sweeps up to 30 at its rim into the oral pouch; each Bdellovibrio
-  of the pack lines up, latches on a member's pole, trembles for 1 s and
-  bores in. A member taken is drawn into the mouth (sucked in, engulfed,
-  swept into the pouch) as it rounds up and fades. Each one eaten poisons
-  the enemy a little (violacein-like: 1 + the swarm's level).
+- **They eat where you are, not a fixed number** (the owner, 4 November
+  2026: "Bacteria enemies should pick off members depending on the attack
+  and your position ... If you drive your whole crew into someone's mouth you
+  all get eaten but if you pull back some should be safe"). Each attack has a
+  **capture zone** (`guards.js` `zone`), and when it lands every member in it
+  is taken, each with a chance that grows the deeper it is (up to 95 % at the
+  mouth); members outside are safe:
+  - *the peritrich*: its feeding vortex, a cone ±70° in front of its mouth,
+    28 µm deep (its bell's back and stalk are safe to drill); a tell of 1.8 s
+    (its cilia race, its current swells), every 4.8 s;
+  - *the amoeba*: its bulging lobe, everything its edge closes over out to
+    8 µm in front of it (plus the bulge); a tell of 2 s (the edge bulges and
+    the lobe's shadow reaches out), every 5 s;
+  - *Stentor*: its suction, everything inside its oral disc's rim and out to
+    14 µm past it; its windup (2 s: the membranelles speed up, the vortex
+    brightens) is the tell, its pull the bite;
+  - *the Bdellovibrio pack*: each one darts at the nearest member in reach,
+    latches on its pole, trembles for 1 s and bores in.
+  **The zone shows while it winds up**, faintly, in the specimen: flow lines
+  streaming into the peritrich's mouth over its cone with a shimmer at the
+  cone's edge, the shadow of the amoeba's lobe reaching out to its reach, a
+  shimmer round Stentor's rim at the reach of its suction. **Pull back**
+  (steer out) during the tell and the drilling members let go and dart out
+  at once (`m.flee`: no reaction lag, 1.7× speed), so a careful swarm loses a
+  few and a reckless one, driven into the mouth, loses most of what is in
+  it. After a bite that took someone the enemy **swallows** for 1.6 s: it
+  cannot grow back and every drill bites 1.5× as hard, so that is the time to
+  go back in. The warning line says it plainly ("Its edge bulges: pull back
+  out of its reach!", then "It engulfs! Now it digests: go back in and
+  drill").
+- **Eaten, seen** (the owner: "the animation has to look like the bacteria was
+  eaten. If they just disappear it won't be clear or fun"; `collective.js`
+  `eatenState`, `EATEN`, drawn in `draw.js` `eaten`). A member taken stops
+  following the flock and wriggles as it goes:
+  - *peritrich and Stentor*: pulled along the flow into the mouth, spiralling
+    in and faster and faster, shrinking into the gullet (1–1.2 s); then a dark
+    food vacuole (a pale rim round a dark blot) inside the bell or Stentor's
+    body, shrinking and fading as it is digested (3.5 s);
+  - *amoeba*: the lobe closes round it (0.7 s); then a dark speck in a vacuole
+    drifting deeper into the cytoplasm with the amoeba, fading (4.8 s);
+  - *Bdellovibrio*: it bores in and the member stops and rounds up into a
+    bdelloplast (a swollen, still sphere with the predator curled inside),
+    then fades (3 s).
+  Each one taken is heard (`bacterium/eat`, lower for the amoeba and Stentor;
+  `bacterium/lyse` for a Bdellovibrio's), at most about seven a second. Each
+  one eaten poisons the enemy a little (0.3).
 - **You fight by drilling.** Steer the swarm into the enemy: every member
   that touches its surface (the peritrich's bell or stalk, the amoeba's edge,
   Stentor's rim, a Bdellovibrio) latches on and bores in: held nose-in at
@@ -455,15 +491,14 @@ bacterium is like an extra HP for fighting sake". A tug-of-war you can read:
   peritrich coils up and its bell dissolves away, the pack is killed off,
   the amoeba withdraws into the sediment and fades, Stentor contracts and
   stays shut. It stays beaten.
-- **The numbers** (`flock.test.mjs`, a swarm pushed at it, X every 0.5 s;
-  health / regrowth per s):
-
-| Gate | Health | A small swarm | Its need | Three times that |
-| --- | --- | --- | --- | --- |
-| peritrich | 80 / 3 | 5 is eaten | 14 wins in ~9–14 s, ~8–10 left | 42 in ~4–6 s |
-| Bdellovibrio pack | 16 × 10 | 14 is eaten | 50 wins in ~6–10 s, ~40 left | 150 in ~4–7 s |
-| amoeba | 1750 / 15 | 60 is eaten | 150 wins in ~9 s, ~105 left | 450 in ~3 s |
-| Stentor | 6500 / 8 | 120 is eaten | 300 wins in ~15 s, ~200 left | 900 in ~7 s |
+- **The numbers** (`flock.test.mjs`; health / regrowth per s): peritrich
+  80 / 3, Bdellovibrio pack 16 × 10, amoeba 550 / 4, Stentor 2000 / 3. A lone
+  cell gets nowhere; three times a gate's need wins in a few seconds (42 at
+  the peritrich in ~4.5 s, 150 at the pack in ~4.5 s, 450 at the amoeba in
+  ~1.5 s, 900 at Stentor in ~3.5 s). The amoeba's need (150): pulling back at
+  each tell, it wins keeping ~140 (~40 s); pushing in regardless, ~110 are
+  swallowed. The peritrich's need (14): drilling its back, all 14 live;
+  driven into its mouth, 5 are sucked in.
 
 - **A lone cell** still has its own fights with the predators that come for
   it when it has no swarm (`runFights`: the peritrich's surge, a pack
@@ -789,9 +824,14 @@ slides along it; a swarm piles against it, none beyond; the biofilm slows you
 to a stop; nothing left where the old walls were); kin over the old cap
 answer and the stranger strain never joins; **members are HP** (three hits
 take three members, then your cell); **the battles** (for each gate: a lone
-cell gets nowhere, a small swarm loses, its need wins losing cells, three
-times that wins fast; members drill in; it eats with a tell before each
-bite); **a swarm of 1000** steps within 16 ms; **the camera's field** grows
+cell gets nowhere and three times its need wins fast; at the amoeba a
+careful swarm of its need, pulling back at each tell, wins keeping most and a
+reckless one loses many; at the peritrich a swarm driven into its mouth loses
+more than one drilling its back; the capture zones: a bite takes most of the
+members deep in its zone and none outside it, and each taken member is still
+there, drawn in, then digesting, and only gone after its whole end; a
+Bdellovibrio takes the member in its reach, not the far ones, and it rounds
+up into a bdelloplast); **a swarm of 1000** steps within 16 ms; **the camera's field** grows
 with the swarm and fits it. `route.test.mjs`: the order, the drop's edge more
 than twice as far as the host in every direction, the beats spaced along the
 route with each colony beside it and bigger than the last; 16 rushes (every
@@ -1025,7 +1065,7 @@ page runs before the request list has them), with procedural stand-ins:
 - **The gates** (see **The way** and **The battles**): contact killing and
   members poisoning what eats them are real kinds of defence (type VI
   secretion, violacein) but not of *Magnetospirillum*; "drilling" into a
-  protist, the enemies' rhythm of tell and bite, the health numbers, an enemy
+  protist, the enemies' rhythm of tell and bite, their capture zones (and the faint flow lines and shadows that show them), members darting out at once when you pull back, the eaten animations (a real vacuole forms in seconds to minutes), the health numbers, an enemy
   staying beaten, the amoeba sliding along its edge to stay in front of you
   and withdrawing, the pack keeping to its gate, and the host letting you in
   only once Stentor is beaten are game rules.
