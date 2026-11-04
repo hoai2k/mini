@@ -24,6 +24,7 @@ import { createFoliage } from '../shared/techniques/mite-foliage.js';
 import { gMaterial, CLS } from '../shared/techniques/mite-sem.js';
 import { floorH, mergeGeos } from './world.js';
 import { rng } from './textures.js';
+import { standSpringtail } from './stand.js';
 
 /**
  * A small soil springtail (Isotomidae-like, ~190 µm long, a juvenile size),
@@ -169,11 +170,31 @@ function buildCluster(c, k, { mats, crowdGeo, crowdMat, scene, perCluster }) {
  * The thickets: clusters [{ x, z, r, posts }] (layout.js CLUSTERS), each
  * built once where it stands. The API speaks for whichever cluster is near.
  */
-export function createThickets({ scene, tex, clusters, perCluster = 30 }) {
+export function createThickets({ scene, tex, clusters, perCluster = 30, ground = floorH }) {
   const mats = { hypha: gMaterial({ cls: CLS.HYPHA, thin: 1 }), spore: gMaterial({ cls: CLS.SPORE, thin: 0 }) };
   const crowdGeo = springtailGeometry();
   const crowdMat = gMaterial({ cls: CLS.NPC, tex: tex.cuticle, map: 'tri', scale: 70, bump: 1.2 });
   const list = clusters.map((c, k) => buildCluster(c, k, { mats, crowdGeo, crowdMat, scene, perCluster }));
+  // The crowd (shared/crowd.js) sits each member level at its centre's floor
+  // height: on a slope the downhill feet went into the moss (up to 19 µm), and
+  // over a grain or a flake the whole body did. Each member written is stood
+  // again on its feet (stand.js), keeping the crowd's heading, stretch and wobble.
+  const _st = { y: 0, q: new THREE.Quaternion(), pen: 0, n: new THREE.Vector3() };
+  const _mm = new THREE.Matrix4(), _mp = new THREE.Vector3(), _ms = new THREE.Vector3();
+  function standCrowd(cl) {
+    const a = cl.mesh.instanceMatrix.array, N = cl.crowd.members.count;
+    for (let i = 0; i < N; i++) {
+      const o = i * 16;
+      const sf = Math.hypot(a[o], a[o + 2]);
+      if (sf < 1e-4) continue; // gone (eaten, not yet back)
+      const yaw = -Math.atan2(a[o + 2], a[o]), su = a[o + 5], ss = Math.hypot(a[o + 8], a[o + 10]);
+      const x = a[o + 12], z = a[o + 14];
+      standSpringtail(ground, x, z, yaw, sf, su, ss, 0, 0, _st);
+      _mm.compose(_mp.set(x, _st.y, z), _st.q, _ms.set(sf, su, ss)).toArray(a, o);
+    }
+    cl.mesh.instanceMatrix.needsUpdate = true;
+  }
+  for (const cl of list) standCrowd(cl);
   const food = list.flatMap((c) => c.food);
   const _o = new THREE.Vector3(), _p = new THREE.Vector3();
   /** Distance (µm) from p to a thread as it is bent now. */
@@ -255,6 +276,7 @@ export function createThickets({ scene, tex, clusters, perCluster = 30 }) {
         for (const b of bodies) if (b !== predBody && nearC(cl, b.position, 2800)) { near = true; break; }
         if (!near) continue; // no player near: this crowd waits
         cl.crowd.update(dt, bodies);
+        standCrowd(cl);
         // the gamasid feeds on springtails in front of its chelicerae every few seconds
         if (pred && predFree && nearC(cl, pred.center, 100) && (cl.predT -= dt) <= 0) {
           cl.predT = 3 + Math.random() * 3;

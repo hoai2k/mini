@@ -33,6 +33,7 @@ import { gMaterial, CLS } from '../shared/techniques/mite-sem.js';
 import { springtailGeometry } from './thicket.js';
 import { floorH } from './world.js';
 import { clearOfThickets, insideEdge, DRIP } from './layout.js';
+import { standSpringtail } from './stand.js';
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
@@ -49,8 +50,12 @@ const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vect
  * Springtail groups everywhere. blocked(x, z): no group there (the portal's
  * arena, say). update(t, bodies [{x, z}], foci [{x, z}]) poses the groups
  * within DRAW of any focus; sitesNear(x, z, r) lists the groups (for checks).
+ * ground(x, z): the height they stand on (stand.js createGround: the floor
+ * with its grains and litter; the bare floor by default); keepOut(x, z, out):
+ * moves a point out of what they walk round (stand.js createKeepOut: the big
+ * grains and the moss stems), or null.
  */
-export function createAmbient({ scene, tex, blocked = () => false, max = 150 }) {
+export function createAmbient({ scene, tex, blocked = () => false, max = 150, ground = floorH, keepOut = null }) {
   const CELL = 1800, DRAW = 4200, START = 900;
   // SHY: how close a body comes before they edge away (µm, centre to centre;
   // was 520, which kept them out of reach of a bite); STUN: how long a nipped
@@ -89,13 +94,35 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150 }) 
   const live = [];
   let n = 0, now = 0;
   const _n = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0), _qy = new THREE.Quaternion(), _qp = new THREE.Quaternion(), _ax = new THREE.Vector3();
-  /** Face yaw (world, about up), pitched nose-up by `pitch`, standing square to the moss under (x, z). */
-  function orient(x, z, yaw, pitch) {
-    const e = 12, dx = floorH(x + e, z) - floorH(x - e, z), dz = floorH(x, z + e) - floorH(x, z - e);
-    _n.set(-dx / (2 * e), 1, -dz / (2 * e)).normalize();
-    _q.setFromUnitVectors(_up, _n);
-    _q.multiply(_qy.setFromAxisAngle(_ax.set(0, 1, 0), yaw));
-    if (pitch) _q.multiply(_qp.setFromAxisAngle(_ax.set(0, 0, 1), pitch));
+  // Each one stands on its six feet (stand.js standSpringtail): square to the
+  // ground under them, at its legs' height, lifted clear wherever the belly,
+  // the head or a foot would dip (the old pose set the centre 4 µm above the
+  // floor at one point, and the body hangs ~57 µm below its centre: they all
+  // stood sunk to the back in the moss). A pose is kept per member and reused
+  // while it has not moved (a dazed one, a still one).
+  const poses = new Map();
+  const _st = { y: 0, q: new THREE.Quaternion(), pen: 0, n: new THREE.Vector3() };
+  /** Stand member `key` at (x, z) facing yaw, scaled (sc, sc * sy, sc), pitched nose-up, lifted (a hop): sets _p and _q. */
+  function stand(key, x, z, yaw, sc, sy, pitch, lift) {
+    let P = poses.get(key);
+    if (P && Math.abs(P.x - x) + Math.abs(P.z - z) < 0.5 && Math.abs(P.yaw - yaw) < 0.004 && P.sc === sc && P.sy === sy && P.pitch === pitch) {
+      _q.copy(P.q); _p.set(x, P.y + lift, z); stats.reused++; P.used = now;
+      return;
+    }
+    standSpringtail(ground, x, z, yaw, sc, sc * sy, sc, pitch, 0, _st);
+    if (!P) poses.set(key, (P = { q: new THREE.Quaternion() }));
+    P.x = x; P.z = z; P.yaw = yaw; P.sc = sc; P.sy = sy; P.pitch = pitch; P.y = _st.y; P.q.copy(_st.q); P.used = now;
+    stats.posed++; if (_st.pen > stats.lifted) stats.lifted = _st.pen;
+    _q.copy(_st.q); _p.set(x, _st.y + lift, z);
+  }
+  const stats = { posed: 0, reused: 0, lifted: 0 };
+  const _ko = { x: 0, z: 0 };
+  /** In the jaws: square to the ground under it, nose up `pitch`, rolled `roll` (the struggle), turned `twist`. */
+  const _qa = new THREE.Quaternion(), _ax2 = new THREE.Vector3();
+  function heldQ(x, z, yaw, pitch, roll, twist) {
+    standSpringtail(ground, x, z, yaw + twist, 1, 1, 1, pitch, 0, _st);
+    _q.copy(_st.q);
+    if (roll) _q.multiply(_qa.setFromAxisAngle(_ax2.set(1, 0, 0), roll));
     return _q;
   }
   function member(s, m, t, bodies) {
@@ -105,9 +132,10 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150 }) 
     const sc = 0.85 + h(13) * 0.35;
     if (B && B.held) {
       // in the jaws: carried at the mouth, shrinking as it is eaten
-      _p.copy(B.held.p);
-      _s.setScalar(sc * Math.max(0.02, B.held.s));
-      mesh.setMatrixAt(n++, _m.compose(_p, orient(_p.x, _p.z, B.yaw || 0, 0.3), _s));
+      const H = B.held;
+      _p.copy(H.p);
+      _s.setScalar(sc * Math.max(0.02, H.s));
+      mesh.setMatrixAt(n++, _m.compose(_p, heldQ(_p.x, _p.z, B.yaw || 0, 0.3 + (H.pitch || 0), H.roll || 0, H.twist || 0), _s));
       live.push({ key, x: _p.x, y: _p.y, z: _p.z, stunned: true });
       return;
     }
@@ -115,9 +143,10 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150 }) 
       // nipped: a jolt, then it lies dazed where it was, crouched, legs twitching
       const since = STUN - (B.stun - t), jolt = since < 0.25 ? Math.sin((since / 0.25) * Math.PI) : 0;
       const tw = 0.18 * Math.sin(t * 31 + m) * Math.max(0.2, 1 - since / STUN);
-      _p.set(B.x, floorH(B.x, B.z) + 2 + 45 * jolt, B.z);
+      // (crouched: legs bent to 0.8 of their height; the jolt and the twitch move it, the ground holds it up)
+      stand(key, B.x, B.z, (B.yaw || 0) + tw, sc * 1.05, 0.8 / 1.05, -0.1 + 0.25 * jolt, 45 * jolt);
       _s.set(sc * 1.05, sc * 0.8, sc * 1.05);
-      mesh.setMatrixAt(n++, _m.compose(_p, orient(B.x, B.z, (B.yaw || 0) + tw, -0.1 + 0.25 * jolt), _s));
+      mesh.setMatrixAt(n++, _m.compose(_p, _q, _s));
       live.push({ key, x: _p.x, y: _p.y, z: _p.z, stunned: true });
       return;
     }
@@ -137,7 +166,8 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150 }) 
         const l = Math.hypot(ux, uz) || 1; ux /= l; uz /= l;
         const go = SCATTER * (0.8 + 0.4 * h(15)) * sstep(0, LEAP, ds) * (1 - sstep(4, 12, ds));
         x += ux * go; z += uz * go;
-        if (ds < LEAP) { const u = ds / LEAP; hop = Math.sin(Math.PI * u) * 1.1; pitch = 0.55 * Math.cos(Math.PI * u); vx = ux; vz = uz; }
+        // (nose up rising, down falling, level again as it lands: it lands on its feet, not its nose)
+        if (ds < LEAP) { const u = ds / LEAP; hop = Math.sin(Math.PI * u) * 1.1; pitch = 0.55 * Math.sin(2 * Math.PI * u); vx = ux; vz = uz; }
       }
     }
     // shy: pushed away from any body that comes within SHY
@@ -151,16 +181,19 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150 }) 
     // through 250° and back, which read as bugs flipping upside down.)
     if (!hop) {
       const per = 9 + h(11) * 9, ph = (t + h(12) * per) % per;
-      if (ph < LEAP) { const u = ph / LEAP; hop = Math.sin(Math.PI * u) * 0.7; pitch = 0.45 * Math.cos(Math.PI * u); }
+      if (ph < LEAP) { const u = ph / LEAP; hop = Math.sin(Math.PI * u) * 0.7; pitch = 0.45 * Math.sin(2 * Math.PI * u); }
     }
-    _p.set(x, floorH(x, z) + 4 + hop * 150, z);
+    // the big grains and the moss stems are walked round, not through
+    if (keepOut) { keepOut(x, z, _ko); x = _ko.x; z = _ko.z; }
+    // on its feet on the ground under it (a hop lifts it from there, and lands it there)
+    stand(key, x, z, -Math.atan2(vz, vx), sc, 1, pitch, hop * 150);
     _s.setScalar(sc);
-    mesh.setMatrixAt(n++, _m.compose(_p, orient(x, z, -Math.atan2(vz, vx), pitch), _s));
+    mesh.setMatrixAt(n++, _m.compose(_p, _q, _s));
     live.push({ key, x, y: _p.y, z, stunned: false });
   }
   const find = (key) => live.find((b) => b.key === key);
   return {
-    mesh, site, sitesNear, CELL, live, bugs, scatters, SHY, STUN,
+    mesh, site, sitesNear, CELL, live, bugs, scatters, SHY, STUN, stats,
     /** Groups first drawn so far (each lattice site, once). */
     get seen() { return seenK.size; },
     /** The springtail nearest (x, y, z) within r (as drawn last update), or null: { key, x, y, z, stunned, d }. */
@@ -186,8 +219,11 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150 }) 
       scatters.set(+key.split(':')[0], { t0: now, x: fx, z: fz });
       return 'stunned';
     },
-    /** While eaten: drawn at p (world), at scale s (1 whole .. 0 gone). */
-    hold(key, p, s) { const B = bugs.get(key); if (B) B.held = { p: p.clone(), s }; },
+    /**
+     * While eaten: drawn at p (world), at scale s (1 whole .. 0 gone); pose:
+     * { pitch (more nose up), roll, twist } while held up and struggling.
+     */
+    hold(key, p, s, pose = null) { const B = bugs.get(key); if (B) B.held = { p: p.clone(), s, pitch: pose ? pose.pitch : 0, roll: pose ? pose.roll : 0, twist: pose ? pose.twist : 0 }; },
     /** Eating cut short: it drops, dazed a moment longer. */
     drop(key) { const B = bugs.get(key); if (B && B.held) { B.x = B.held.p.x; B.z = B.held.p.z; B.held = null; B.stun = now + 1; } },
     /** Eaten: gone until another wanders in (BACK s). */
@@ -201,6 +237,8 @@ export function createAmbient({ scene, tex, blocked = () => false, max = 150 }) 
         for (let m = 0; m < s.n && n < max; m++) member(s, m, t, bodies);
       }
       for (const [k, B] of bugs) if (B.stun < t && B.eaten < t && !B.held) bugs.delete(k);
+      // poses of members not drawn for a while are dropped
+      if (poses.size > max * 2) for (const [k, P] of poses) if (P.used < t - 2) poses.delete(k);
       mesh.count = n;
       mesh.instanceMatrix.needsUpdate = true;
     },

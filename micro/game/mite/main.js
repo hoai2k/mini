@@ -18,6 +18,7 @@ import { semTextures } from './textures.js';
 import { buildWorld, floorH, TILE } from './world.js';
 import { RINGS, PORTAL_CLEAR, CLUSTER, CLUSTERS, PRED_GROUND, BOSS, OPENING, NPC_HOME, predZoneAt, distFromStart, bearingFromStart, DIRECTOR, DEFAULT_PATH, ENCOUNTERS, canPlace, insideEdge, BOUNDS, DRIP, FAMILY, FORWARD_YAW } from './layout.js';
 import { createAmbient, createBeads, createDrops } from './life.js';
+import { createGround, createKeepOut } from './stand.js';
 import { createDirector } from '../shared/director.js';
 import { createQuality } from '../shared/quality.js';
 import { createMite, CFG, PRED, JUMP } from './mite.js';
@@ -67,8 +68,15 @@ const glowScene = new THREE.Scene();
 sem.warm(scene, camera);
 const props = createLandmarkProps(world, tex, { glowScene });
 scene.add(props.group);
+// What the small springtails stand on (stand.js): the floor with its grains and
+// litter, cast once per lattice point and kept (the moss bends, so it is walked
+// through); and what the grazing groups walk round: the big grains (over ~90 µm
+// tall: they climb the smaller ones) and the moss stems.
+const springGround = createGround((o, d, f, s, k) => world.colliders.cast(o, d, f, s, k));
+const springKeepOut = createKeepOut([...world.grains.filter((g) => g.r > 80).map((g) => ({ x: g.x, z: g.z, r: g.r * 1.3 + 70 })),
+  ...world.stems.map((s) => ({ x: s.x, z: s.z, r: 190 }))], TILE);
 // The crowd: two rings of hyphal thickets full of springtails (thicket.js, layout.js CLUSTERS)
-const thicket = createThickets({ scene, tex, clusters: CLUSTERS.map((c) => ({ ...c, posts: CLUSTER.posts })) });
+const thicket = createThickets({ scene, tex, clusters: CLUSTERS.map((c) => ({ ...c, posts: CLUSTER.posts })), ground: springGround });
 // The boss: a pseudoscorpion on guard before the leaf axil (boss.js); it is put
 // on its post when the portal is placed (placePortal), and worn down it backs
 // into the moss to the side.
@@ -1186,7 +1194,7 @@ const ENC = {
 const director = createDirector({ ...DIRECTOR, canPlace, defaultPath: DEFAULT_PATH, entries: ENCOUNTERS.map((e) => ({ ...e, ...ENC[e.id], single: true })) });
 // Life everywhere (life.js): springtail groups on a lattice over the whole square, and water beads that
 // grow commoner as the game goes on and thickest round the water (the way on: the moss gets wetter).
-const ambient = createAmbient({ scene, tex, blocked: (x, z) => (PORTAL.placed && Math.hypot(x - PORTAL.x, z - PORTAL.z) < PORTAL_CLEAR) || Math.hypot(x - BACKDOOR.x, z - BACKDOOR.z) < BACKDOOR.clear + 300 });
+const ambient = createAmbient({ scene, tex, ground: springGround, keepOut: springKeepOut.push, blocked: (x, z) => (PORTAL.placed && Math.hypot(x - PORTAL.x, z - PORTAL.z) < PORTAL_CLEAR) || Math.hypot(x - BACKDOOR.x, z - BACKDOOR.z) < BACKDOOR.clear + 300 });
 /** How wet the moss is at (x, z) now: rising with the encounters met, and toward the water (within 8 mm of it). */
 const WET_R = 8000;
 function wetness(x, z) {
@@ -2134,7 +2142,7 @@ const api = {
   /** Player `slot`'s state for checks: { wet (0..1, in a bead), stun, speed, mode, x, z }. */
   wetState(slot = 0) { const P = pls[slot] || P1; return { wet: +(P.play.wet || 0).toFixed(3), stun: P.play.stun, speed: Math.round(P.mite.speed), mode: P.mite.mode, x: Math.round(P.mite.center.x), z: Math.round(P.mite.center.z) }; },
   /** Life and weather (life.js) and the box-mite family, for checks; inSight(x, z, r): can a view (last drawn or stepped) see that disc? */
-  life: { ambient, beads, drip1, drip3, family, wetness }, inSight: (x, z, r) => inSight(x, z, r),
+  life: { ambient, beads, drip1, drip3, family, wetness, ground: springGround, keepOut: springKeepOut }, inSight: (x, z, r) => inSight(x, z, r),
   /** Testing: n steps through the real input path (the pads and keyboard as they are read each frame), no rendering; returns each step's events for player 1. Pause the page first (`paused = true`). */
   inputSteps(n = 1, dt = 1 / 30) { const ev = []; for (let i = 0; i < n; i++) { simTime += dt; const r = tick(dt, readInput(dt)); ev.push(...((r && r[0]) || [])); stepViews(dt); } return ev; },
   isolate(on) { world.group.visible = !on; npc.setVisible(!on); pred.setVisible(!on && predHere()); },

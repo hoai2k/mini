@@ -641,6 +641,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       restWorld(L, L.to);
       const h = ground(L.to, st.up);
       if (h) L.to.copy(h.point);
+      L.to.y = Math.max(L.to.y, floorH(L.to.x, L.to.z));
       L.foot.copy(L.to); L.swing = false;
     }
   }
@@ -794,9 +795,18 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       const tgt = swingTarget(rw, vFoot, (1 - L.s) * L.dur, duty, stride, vBody.length());
       const h = ground(tgt, st.up, 120, 320);
       if (h) L.to.copy(h.point); else L.to.copy(tgt);
+      // never into the floor: with the body tipped up onto a stem or a grain, a
+      // cast along its tilted up can start below the floor and miss it, and the
+      // foot was set down at its rest point, inside the moss (up to ~90 µm deep
+      // for a few frames, measured on the family and the second box mite)
+      const fh = floorH(L.to.x, L.to.z);
+      if (L.to.y < fh) L.to.y = fh;
       const e = sstep(0, 1, L.s);
       const lift = (L.k === 0 ? 46 : 30) * Math.sin(Math.PI * L.s);
       L.foot.copy(L.from).lerp(L.to, e).addScaledVector(st.up, lift);
+      // (a long stride straight between two footholds cuts through a hump between them)
+      const fs = floorH(L.foot.x, L.foot.z);
+      if (L.foot.y < fs) L.foot.y = fs;
       if (L.s >= 1) {
         L.swing = false; L.foot.copy(L.to);
         if (L.k === 3) events.push('step');
