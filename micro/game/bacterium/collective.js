@@ -180,8 +180,9 @@ export function createCollectives(world, hooks = {}) {
   /** Take kin cell k off the field until it is wanted (main.js keepAmbient brings it in where nobody has looked). */
   function park(k) { putFree(k, world.PARK.x, world.PARK.y); k.parked = true; k.zone = 1; }
 
+  const lossLog = [];
   function reset(roster) {
-    list.length = 0; byPlayer.clear(); kin.length = 0;
+    list.length = 0; byPlayer.clear(); kin.length = 0; lossLog.length = 0;
     for (const c of world.cells) { c.waylay = null; c.wlCool = 0; } // no stranger is waylaying anyone
     const cols = world.colonies || [];
     let n = 0;
@@ -654,6 +655,7 @@ export function createCollectives(world, hooks = {}) {
   function pickOff(m) {
     const C = m.coll, s = m.drift.c;
     const i = C.members.indexOf(m); if (i >= 0) C.members.splice(i, 1);
+    lossLog.push({ kind: 'waylaid', t: +(world.time || 0).toFixed(2), warned: +m.drift.t.toFixed(2), x: m.x, y: m.y }); // (its tell: the amber drift, its whole length)
     m.coll = null; m.answer = null; m.drift = null; m.dying = { kind: 'waylaid', t: 0, c: s, x: m.x, y: m.y };
     if (s.waylay) { s.waylay.n = Math.max(0, s.waylay.n - 1); s.waylay.took = (s.waylay.took || 0) + 1; }
     hooks.onWaylaid?.(C, m, s);
@@ -816,7 +818,11 @@ export function createCollectives(world, hooks = {}) {
     const C = m.coll;
     unDrift(m);
     if (C) { const i = C.members.indexOf(m); if (i >= 0) C.members.splice(i, 1); }
-    m.coll = null; m.answer = null; m.drill = null; m.latched = null;
+    // (the loss log: what took it, and whether it was warned first: its attack's tell, guards.js warnZone etc.)
+    const now = world.time || 0, w = m.warned && m.warned.kind === kind ? now - m.warned.t : null;
+    lossLog.push({ kind, t: +now.toFixed(2), warned: w === null ? null : +w.toFixed(2), x: m.x, y: m.y });
+    if (lossLog.length > 2000) lossLog.shift();
+    m.coll = null; m.answer = null; m.drill = null; m.latched = null; m.warned = null;
     m.dying = eatenState(m, kind, to);
     hooks.onLost?.(C, m, kind);
   }
@@ -899,8 +905,11 @@ export function createCollectives(world, hooks = {}) {
     for (const C of list) {
       for (let i = C.members.length - 1; i >= 0; i--) {
         const m = C.members[i];
-        if (world.grazerMouthAt && world.grazerMouthAt(m.x, m.y, 9)) { lose(m, 'grazer'); continue; } // (swum into the funnel itself)
-        if (world.insideAmoeba(m.x, m.y, t) > 1.5) { m.engulf = (m.engulf || 0) + dt; if (m.engulf > 1.2) { lose(m, 'amoeba'); continue; } } else m.engulf = 0;
+        // (nothing kills passively, the owner, 2026-11-04: a member that swims into the peritrich's funnel or into the
+        // amoeba is pushed back out; only an attack it was warned of takes it: guards.js)
+        if (world.grazerMouthAt && world.grazerMouthAt(m.x, m.y, 9)) { const g = world.grazers[0], M = g.pose.mouth; m.x = M.x + g.pose.up.x * 3.2; m.y = M.y + g.pose.up.y * 3.2; }
+        const dIn = world.insideAmoeba(m.x, m.y, t);
+        if (dIn > 0 && !m.drill) { const A = world.amoeba, bx = A.x + Math.sin(A.ang) * A.b, by = A.y - Math.cos(A.ang) * A.b, ox = m.x - bx, oy = m.y - by, ol = Math.hypot(ox, oy) || 1; m.x += (ox / ol) * Math.min(dIn + 0.3, 40 * dt); m.y += (oy / ol) * Math.min(dIn + 0.3, 40 * dt); }
         // (Stentor's cone takes members a little at a time: guards.js suck)
       }
     }
@@ -921,6 +930,7 @@ export function createCollectives(world, hooks = {}) {
     const fx = from ? from.x : P.S.x, fy = from ? from.y : P.S.y;
     const fh = from && from.hz !== undefined ? from.hz : P.S.hz;
     for (const m of C.members) { const d = (m.x - fx) ** 2 + (m.y - fy) ** 2 + zGap(m.hz, fh) ** 2; if (d < bd) { bd = d; best = m; } }
+    best.warned = { kind, t: (world.time || 0) - 1 }; // (its tell was its wind-up at your own cell: main.js runFights)
     lose(best, kind);
     P.safeT = 1.6;
     return true;
@@ -998,7 +1008,7 @@ export function createCollectives(world, hooks = {}) {
         const C = best.coll;
         // the slime shield: half the rams glance off
         if (C.level >= 1 && r() < 0.3) { c.cooldown = 1.6; c.a += Math.PI; hooks.onShield?.(C, null, 'bdello'); continue; }
-        c.latch = { m: best, t: 0 }; best.latched = c;
+        c.latch = { m: best, t: 0 }; best.latched = c; best.warned = { kind: 'bdello', t: world.time || 0 }; // (its tell: it clings, trembling, for COLL.latch s)
       }
     }
   }
@@ -1022,7 +1032,7 @@ export function createCollectives(world, hooks = {}) {
   }
 
   return {
-    COLL, FLOCK, WAYLAY, EATEN, kin, beaconOrigin, list, opts, of, dragK, ensure, putFree, park, isFree, remove, reset, pre, post, absorb, burst, adopt, beacon, eat, focus, lose,
+    COLL, FLOCK, WAYLAY, EATEN, kin, beaconOrigin, lossLog, list, opts, of, dragK, ensure, putFree, park, isFree, remove, reset, pre, post, absorb, burst, adopt, beacon, eat, focus, lose,
     /** For tests and the HUD: each flock's players, members, size, level, charge and middle. */
     report: () => list.map((C) => ({ id: C.id, players: C.players.map((P) => P.slot), members: C.members.length, labels: C.members.map((m) => m.label), army: C.army, level: C.level, charge: +C.charge.toFixed(2), x: +C.cx.toFixed(1), y: +C.cy.toFixed(1), fx: +(C.fx || 0).toFixed(1), fy: +(C.fy || 0).toFixed(1), speed: +C.speed.toFixed(1), extent: +C.extent.toFixed(1), beacons: C.beacons.length, drifting: C.members.filter((m) => m.drift).length })),
     /** For tests and the HUD: the strangers waylaying a flock, and its drifting members. */

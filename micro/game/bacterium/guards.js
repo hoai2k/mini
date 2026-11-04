@@ -61,8 +61,10 @@ export const GATES = {
 };
 /** After a bite that took someone it swallows: SWALLOW.t s with no regrowth and drills biting SWALLOW.k times as hard (the moment to go back in). */
 export const SWALLOW = { t: 1.6, k: 1.5 };
+/** The amoeba's pseudopods (aimWrap): round the cells within WRAP.near µm of its edge, a loop WRAP.Rmin..Rmax µm across. */
+export const WRAP = { near: 14, Rmin: 9, Rmax: 30 };
 /** Stentor's suction (suck): a member at depth k in its cone is taken at SUCK.rate·k² a second, at most SUCK.max a second in all. Its knockback per share of its health drilled away: KNOCK. */
-export const SUCK = { rate: 1.6, max: 4 };
+export const SUCK = { rate: 1.6, max: 4, grace: 0.8 };
 export const KNOCK = { drill: 6, volley: 0.004 };
 
 export function createGuards(world, coll, stentor, hooks = {}) {
@@ -258,6 +260,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
         } else { m.x = bx + D.ox; m.y = by + D.oy; }
         m.a += Math.atan2(Math.sin(D.a - m.a), Math.cos(D.a - m.a)) * Math.min(1, dt * 10);
         m.bodyPhase += dt * 22; m.flPhase += dt * 44; m.vx = m.vy = 0; m.sp = 0;
+        if (D.burst > 0) D.burst -= dt;
         n++;
         continue;
       }
@@ -296,8 +299,9 @@ export function createGuards(world, coll, stentor, hooks = {}) {
       return cone * Math.min(0.95, 0.2 + 1.1 * (1 - d / q.reach));
     }
     if (q.kind === 'amoeba') {
-      const depth = world.insideAmoeba(x, y, t); // (inside positive; its surge is already in it)
-      return depth >= 0 ? 0.95 : Math.max(0, 0.95 * (1 + depth / q.reach));
+      // only inside the loop its pseudopods are closing (none: nothing is in danger)
+      const W = q.A.wrap;
+      return W && !W.done && Math.hypot(x - W.x, y - W.y) < W.R ? 0.95 : 0;
     }
     if (q.kind === 'stentor') return q.B.cone(x, y); // (its feeding cone: stentor.js cone)
     return 0;
@@ -319,9 +323,47 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     const A = q.atk;
     if (!active) { A.st = 'idle'; A.t = 0; A.next = Math.max(A.next, 1.2); return; }
     A.t += dt;
-    if (A.st === 'idle') { if (A.t >= A.next) { A.st = 'tell'; A.t = 0; hooks.onTell?.(q); } return; }
-    if (A.st === 'tell') { if (A.t >= q.tell) { A.st = 'bite'; A.t = 0; q.bites++; bite(q, t); } return; }
-    if (A.st === 'bite') { if (A.t >= 0.6) { A.st = 'idle'; A.t = 0; A.next = q.every - q.tell - 0.6; } }
+    if (A.st === 'idle') {
+      if (A.t >= A.next) {
+        // the amoeba aims its pseudopods round the cells at its front; none there, it waits
+        if (q.kind === 'amoeba' && !aimWrap(q, t)) { A.t = A.next - 0.5; return; }
+        A.st = 'tell'; A.t = 0; q.atk0 = t; hooks.onTell?.(q);
+      }
+      return;
+    }
+    if (A.st === 'tell') {
+      if (q.kind === 'amoeba' && q.A.wrap) q.A.wrap.p = Math.min(1, A.t / q.tell);
+      warnZone(q, t);
+      if (A.t >= q.tell) { A.st = 'bite'; A.t = 0; q.bites++; bite(q, t); if (q.A && q.A.wrap) q.A.wrap.done = true; }
+      return;
+    }
+    if (A.st === 'bite') { if (A.t >= 0.6) { A.st = 'idle'; A.t = 0; A.next = q.every - q.tell - 0.6; if (q.A) q.A.wrap = null; } }
+  }
+  /**
+   * The amoeba's attack (the owner, 2026-11-04: "The amoeba should have to surround us with a pseudopod to eat
+   * us"): it picks the cells crowding its front and sends two pseudopods out from its edge either side of them,
+   * flowing out and curving round over its tell (WRAP), to close the loop at the bite: only the cells inside
+   * the loop then are engulfed; pull out of the loop first and you are safe. Returns false with nobody near.
+   */
+  function aimWrap(q, t) {
+    const near = [];
+    eachFlock(q, (C) => { for (const m of C.members) { if (m.dying) continue; const d = world.insideAmoeba(m.x, m.y, t); if (d > -WRAP.near) near.push(m); } });
+    if (!near.length) { q.A.wrap = null; return false; }
+    let x = 0, y = 0;
+    for (const m of near) { x += m.x; y += m.y; }
+    x /= near.length; y /= near.length;
+    let s2 = 0;
+    for (const m of near) s2 += (m.x - x) ** 2 + (m.y - y) ** 2;
+    const R = Math.max(WRAP.Rmin, Math.min(WRAP.Rmax, Math.sqrt(s2 / near.length) * 1.3 + 4));
+    const sf = surface(q, x, y, t), nx = sf ? sf.nx : -Math.sin(q.A.ang), ny = sf ? sf.ny : Math.cos(q.A.ang);
+    // (the loop's middle at the crowd, a touch out from the edge, so it takes in the cells pressed to it)
+    q.A.wrap = { x: x + nx * R * 0.1, y: y + ny * R * 0.1, R, nx, ny, p: 0, t0: t, done: false };
+    return true;
+  }
+  /** While it winds up: every member in its zone is warned (collective.js lose records whether a loss was). */
+  function warnZone(q, t) {
+    const kind = q.kind === 'grazer' ? 'grazer' : q.kind;
+    eachFlock(q, (C) => { for (const m of C.members) if (!m.dying && zone(q, m.x, m.y, t) > 0 && !(m.warned && m.warned.kind === kind && m.warned.t >= q.atk0)) m.warned = { kind, t }; });
   }
   function bite(q, t) {
     // the peritrich's surge sucks in its vortex; the amoeba's lobe closes over its reach
@@ -336,7 +378,17 @@ export function createGuards(world, coll, stentor, hooks = {}) {
   function suck(q, dt) {
     const B = q.B, hit = [];
     q.suckBudget = Math.min(SUCK.max, (q.suckBudget || 0) + SUCK.max * dt);
-    eachFlock(q, (C) => { for (const m of C.members) { if (m.dying) continue; const k = B.cone(m.x, m.y); if (k > 0 && world.r() < SUCK.rate * k * k * dt) hit.push(m); } });
+    eachFlock(q, (C) => {
+      for (const m of C.members) {
+        if (m.dying) continue;
+        const k = B.cone(m.x, m.y);
+        // in its cone: warned first (the cone shows, the warning line says so); taken only after SUCK.grace s in it
+        if (k <= 0) { if (m.warned && m.warned.kind === 'stentor') m.warned = null; continue; }
+        if (!m.warned || m.warned.kind !== 'stentor') { m.warned = { kind: 'stentor', t: world.time || 0 }; continue; }
+        if ((world.time || 0) - m.warned.t < SUCK.grace) continue;
+        if (world.r() < SUCK.rate * k * k * dt) hit.push(m);
+      }
+    });
     let n = 0;
     for (const m of hit) { if (q.suckBudget < 1) break; q.suckBudget--; m.drill = null; coll.lose(m, 'stentor', B.mouth); n++; }
     q.eaten += n;
@@ -387,7 +439,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
       // the bite's rhythm runs while a swarm is at it (Stentor's is its pull: main.js)
       if (q.kind !== 'stentor') attack(q, dt, t, live && q.engaged && coll.list.some((C) => C.members.length && C.players.length));
       if (q.kind === 'grazer') driveGrazer(q, dt);
-      if (q.kind === 'amoeba') { const A = q.A, want = q.atk.st === 'tell' ? 0.45 * (q.atk.t / q.tell) : q.atk.st === 'bite' ? 1 : 0; A.surge += (want - A.surge) * Math.min(1, dt * (q.atk.st === 'bite' ? 12 : 4)); }
+      if (q.kind === 'amoeba') { const A = q.A; A.surge += (0 - A.surge) * Math.min(1, dt * 4); }
       if (q.kind === 'stentor' && live) suck(q, dt);
       // swallowing (just after a bite took someone): it cannot grow back, and the drills bite harder
       q.swallowT = Math.max(0, (q.swallowT || 0) - dt);
@@ -436,7 +488,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     for (const q of list) {
       if (q.beaten || !isLive(q)) continue;
       let k = 0;
-      for (const m of C.members) if (m.drill && m.drill.q === q) { k++; if (m.drill.ref) { m.drill.ref.hp -= FIGHT.volley * 2; if (m.drill.ref.hp <= 0 && !m.drill.ref.dead) killBdello(m.drill.ref, q); } }
+      for (const m of C.members) if (m.drill && m.drill.q === q) { k++; m.drill.burst = 0.3; if (m.drill.ref) { m.drill.ref.hp -= FIGHT.volley * 2; if (m.drill.ref.hp <= 0 && !m.drill.ref.dead) killBdello(m.drill.ref, q); } }
       for (const P of C.players) if (P.S.alive && touching(q, P.S.x, P.S.y, t)) k++;
       if (!k) continue;
       if (q.kind === 'bdello') { q.hp = pack.reduce((a, c) => a + (c.dead ? 0 : Math.max(0, c.hp)), 0); if (pack.every((c) => c.dead)) beat(q); }
@@ -484,7 +536,7 @@ export function createGuards(world, coll, stentor, hooks = {}) {
     for (const C of coll.list) for (const m of C.members) m.drill = null;
   }
 
-  return { list, byId, FIGHT, GATES, SWALLOW, drillRate, zone, suck, drillCentre,
+  return { list, byId, FIGHT, GATES, SWALLOW, WRAP, drillRate, zone, suck, drillCentre,
     /** Tests: the bite lands now (its zone takes what is in it). Returns how many were taken. */
     biteNow: (q) => { q.bites++; return take(q, world.time || 0); }, placeGate, shift, park, update, volley, burstHit, nearest, reset, hurt, poison, centre: (q) => centre(q, { x: 0, y: 0 }), touching, surface,
     report: () => list.map((q) => ({ id: q.id, hp: +q.hp.toFixed(1), max: q.max, beaten: q.beaten, engaged: q.engaged, contact: q.contact, drills: q.drills, attack: q.atk.st, bites: q.bites, eaten: q.eaten })) };

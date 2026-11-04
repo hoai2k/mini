@@ -176,7 +176,7 @@ const coll = createCollectives(world, {
 world.coll = coll;
 coll.reset(roster);
 // --- the gates on the way (guards.js): enemies the army fights by contact ---
-const gateMsg = { seen: new Set() };
+const gateMsg = { seen: new Set(), bite: {}, drillHint: false };
 const guards = createGuards(world, coll, stentor, {
   onBeaten: (q) => {
     audio.play('bacterium/gate', { volume: 0.9, old: ['bacterium/eat', { volume: 1, rate: 0.6 }] });
@@ -192,6 +192,10 @@ const guards = createGuards(world, coll, stentor, {
     if (!n) return;
     audio.play('bacterium/graze', { volume: 0.7, rate: q.kind === 'amoeba' ? 0.7 : q.kind === 'stentor' ? 0.85 : 1.1 });
     for (const P of roster) P.pad.rumble(140, 0.4, 0.5);
+    // say what took them, where (the eaten animation plays at the spot): one line per attack, Stentor's summed over 3 s
+    const b = gateMsg.bite[q.kind] || (gateMsg.bite[q.kind] = { n: 0, t: -9 });
+    b.n += n;
+    if (t - b.t > (q.kind === 'stentor' ? 3 : 1.5)) { b.t = t; hud.toast(tt(`bacterium.toasts.bite.${q.kind}`, { n: b.n }), 2600); b.n = 0; }
   },
 });
 const gateInfo = { log: [] };
@@ -349,6 +353,7 @@ function updatePressure() {
   }
   // drilling: heard while any member bores in
   const drilling = guards.list.reduce((a, q) => a + (q.beaten ? 0 : q.drills), 0);
+  if (drilling > 2 && !gateMsg.drillHint) { gateMsg.drillHint = true; hud.toast(tt('bacterium.toasts.drillWorks', { glyph }), 3200); }
   if (drilling && t - drillSnd.t > 0.45) { drillSnd.t = t; audio.play('bacterium/strike', { volume: Math.min(0.45, 0.12 + drilling / 300), rate: 0.55 + Math.random() * 0.1 }); }
 }
 
@@ -1909,10 +1914,55 @@ function enemyBars(i, cssPerUm) {
     const tell = q.kind === 'stentor' ? stentor.state === 'recoil' : q.atk.st === 'tell';
     markG.globalAlpha = 0.85;
     markG.fillStyle = 'rgba(20,16,8,.55)'; markG.fillRect(x, y, w, h);
-    markG.fillStyle = tell ? '#ff9a6a' : '#c9a35a'; markG.fillRect(x + 1, y + 1, (w - 2) * Math.max(0, q.hp / q.max), h - 2);
+    // the health just drilled away lingers as a bright chunk, then drops (your attack working)
+    q.hpShown = Math.max(q.hp, Math.min(q.hpShown ?? q.hp, q.max) - q.max * 0.25 * (1 / 60));
+    const f1 = Math.max(0, q.hp / q.max), f2 = Math.max(0, q.hpShown / q.max);
+    markG.fillStyle = '#fff1c4'; markG.fillRect(x + 1 + (w - 2) * f1, y + 1, (w - 2) * (f2 - f1), h - 2);
+    markG.fillStyle = tell ? '#ff9a6a' : '#c9a35a'; markG.fillRect(x + 1, y + 1, (w - 2) * f1, h - 2);
     markG.strokeStyle = 'rgba(201,163,90,.9)'; markG.lineWidth = 1; markG.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
   }
   void cssPerUm;
+  threatMarks(i, cssPerUm);
+}
+/**
+ * The attacks coming (game markers, like the gauge): every danger shows where it will land and how soon,
+ * on screen or, when it is off screen, as a mark at the edge of the view toward it (the owner, 2026-11-04:
+ * "You should see the attack coming and then be able to try to avoid it"):
+ *   the amoeba's loop  a dashed red ring round the cells its pseudopods are closing on, filling as they close
+ *   the peritrich      the cone in front of its mouth, dashed, while its cilia race
+ *   Stentor's cone     outlined while any of your cells is in it
+ *   a Bdellovibrio     a pulsing ring round the cell it clings to
+ */
+function threatMarks(i, cssPerUm) {
+  const ring = (x, y, rPx, k, dash = true) => {
+    const p = projectView(i, { x, y, z: 0 }), W = innerWidth, H = innerHeight;
+    if (p.x < -rPx || p.x > W + rPx || p.y < -rPx || p.y > H + rPx) { edgeMark(p.x, p.y); return; }
+    markG.globalAlpha = 0.5 + 0.4 * k; markG.strokeStyle = '#ff5a46'; markG.lineWidth = 2;
+    markG.setLineDash(dash ? [6, 5] : []); markG.beginPath(); markG.arc(p.x, p.y, rPx, 0, Math.PI * 2); markG.stroke(); markG.setLineDash([]);
+    if (k > 0) { markG.globalAlpha = 0.9; markG.lineWidth = 3; markG.beginPath(); markG.arc(p.x, p.y, rPx + 4, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * k); markG.stroke(); }
+  };
+  const edgeMark = (px, py) => {
+    const W = innerWidth, H = innerHeight, cx = W / 2, cy = H / 2, dx = px - cx, dy = py - cy, k = Math.min((W / 2 - 24) / Math.abs(dx || 1e-6), (H / 2 - 24) / Math.abs(dy || 1e-6));
+    const x = cx + dx * k, y = cy + dy * k, a = Math.atan2(dy, dx);
+    markG.globalAlpha = 0.6 + 0.35 * Math.sin(t * 9); markG.fillStyle = '#ff5a46';
+    markG.beginPath(); markG.moveTo(x + Math.cos(a) * 12, y + Math.sin(a) * 12); markG.lineTo(x + Math.cos(a + 2.4) * 9, y + Math.sin(a + 2.4) * 9); markG.lineTo(x + Math.cos(a - 2.4) * 9, y + Math.sin(a - 2.4) * 9); markG.closePath(); markG.fill();
+  };
+  const A = world.amoeba, Wr = A.wrap;
+  if (Wr && !A.beaten) ring(Wr.x, Wr.y, Wr.R * cssPerUm, Wr.done ? 1 : Wr.p);
+  const g = guards.byId.grazer1;
+  if (g.placed && !g.beaten && g.atk.st === 'tell' && g.engaged) {
+    const P = g.g.pose, M = P.mouth, ua = Math.atan2(P.up.y, P.up.x), R = g.reach, p = projectView(i, { x: M.x, y: M.y, z: 0 });
+    if (p.x < -R * cssPerUm || p.x > innerWidth + R * cssPerUm || p.y < -R * cssPerUm || p.y > innerHeight + R * cssPerUm) edgeMark(p.x, p.y);
+    else { const k = g.atk.t / g.tell; markG.globalAlpha = 0.5 + 0.4 * k; markG.strokeStyle = '#ff5a46'; markG.lineWidth = 2; markG.setLineDash([6, 5]); markG.beginPath(); markG.moveTo(p.x, p.y); markG.arc(p.x, p.y, R * cssPerUm, -(ua + 1.22), -(ua - 1.22)); markG.closePath(); markG.stroke(); markG.setLineDash([]); }
+  }
+  const C = coll.opts.on && coll.of(P1);
+  if (C && stentor.awake && !stentor.beaten && C.members.some((m) => stentor.cone(m.x, m.y) > 0)) {
+    const M = stentor.mouth, p = projectView(i, { x: M.x, y: M.y, z: 0 }), R = stentor.pullR * cssPerUm, ua = stentor.ang;
+    markG.globalAlpha = 0.55 + 0.3 * Math.sin(t * 6); markG.strokeStyle = '#ff5a46'; markG.lineWidth = 2; markG.setLineDash([6, 5]);
+    markG.beginPath(); markG.moveTo(p.x, p.y); markG.arc(p.x, p.y, R, -(ua + 0.95), -(ua - 0.95)); markG.closePath(); markG.stroke(); markG.setLineDash([]);
+  }
+  for (const c of world.cells) if (c.kind === 'bdello' && c.latch && c.latch.m.coll) ring(c.latch.m.x, c.latch.m.y, Math.max(10, 3 * cssPerUm), Math.min(1, c.latch.t / COLL.latch), false);
+  markG.globalAlpha = 1;
 }
 function waylayMarks(i, cssPerUm) {
   const W = coll.WAYLAY;

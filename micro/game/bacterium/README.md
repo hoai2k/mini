@@ -426,6 +426,42 @@ the sediment bank), with everything on it from the first frame:
   the host, sealed or not, with the distance. Test hooks: `portalArrow()`,
   `portals()`, `portalSealed()`, `focus(slot)`, `challenges()`.
 
+### Every loss is an attack you can see coming (the audit, 4 November 2026)
+
+The owner: "when I went over to attack the amoeba, it looked like I was
+attacking it but then a bunch of my group died ... make sure that enemy
+attacks read as attacks and not just passively killing you". What killed
+them: the amoeba's bite took every cell within 8 µm of its whole edge,
+drillers included (each with a 91 % chance), and its tell (a faint shadow of
+its edge bulging) did not read at the 118 µm field. Every way a member could
+be lost, before and now:
+
+| Loss | Before | Now |
+| --- | --- | --- |
+| the amoeba's bite | every cell at its edge, drillers too; tell barely visible | **only cells inside a loop of pseudopods**: two pseudopods flow out of its edge either side of the cells crowding its front and curve round them over 1.8 s (thick and dark, a dashed red ring round the loop filling as it closes, "Its pseudopods are closing round your cells: pull out of the loop!"); at the bite the loop closes on the cells still in it; drillers at its plain edge are never taken |
+| inside the amoeba for 1.2 s | engulfed, silently | **none**: a member that swims into it is pushed back out |
+| the peritrich's mouth | a member within 3 µm of it was eaten at once | **none**: pushed back out; only its bite takes members |
+| the peritrich's bite | the cone in front of its mouth after a 1.8 s tell | the same, its cone now outlined on screen (red, dashed) during the tell and its markers sized for the zoom |
+| Stentor's suction | continuous in its cone | the same, but a member in the cone is warned first and only taken after 0.8 s in it; the cone outlined (red, dashed) while any of your cells is in it, the warning line, the shimmer and streamlines sized for the zoom |
+| a pack Bdellovibrio | latched 1 s, then bored in | the same, with a pulsing red ring round the cell it clings to |
+| a predator at your own cell | a member in your place | the same: its wind-up ring at your cell is the tell |
+| the stranger strain | picked off after 7 s drifting | the same (the amber drift and its line are the tell) |
+| phages | the phage cloud is no longer on the way | none |
+| the toxin, starvation, the drop's edge, crowding | none | none |
+
+Off screen, every pending attack shows as a pulsing red mark at the edge of
+the view toward it. Each loss plays its eaten animation where it happens,
+and a line names it ("The amoeba's pseudopods closed round 14 of your
+cells"; Stentor's summed over 3 s). Every loss is logged with how long its
+tell had shown (`collective.js` `lossLog`); `flock.test.mjs` fights every
+gate and checks that every loss was warned first.
+
+**Your attack, felt**: flecks thrown back from every bore (more, and a
+bigger flash, on an X burst), the dent at each drill site, the health just
+drilled away lingering as a bright chunk on the enemy's bar before it drops,
+a grinding tick while you drill, the enemy flashing, Stentor's knockback,
+and once: "Drilling works: every cell touching it bores in. Keep at it".
+
 ### Timeline (scripted browser runs, 4 November 2026)
 
 Scripted in the page with `debug.step` (the real game: director, gates,

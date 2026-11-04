@@ -220,12 +220,12 @@ export function createDrawer(world) {
   const zmat = { dn: 0.02, scat: 0.5, fl: [0, 0, 0], ab: [0, 0, 0], z: 0 };
   function zoneCone(S, M, ua, R, k, t) {
     zmat.scat = 0.25 + 0.6 * k; zmat.dn = 0.012 + 0.02 * k; zmat.fl[0] = 0.12 * k * chan.memb; zmat.fl[1] = 0.25 * k;
-    for (let i = 0; i < 26; i++) { const a = ua + (i / 25 - 0.5) * 2.44; const x = M.x + Math.cos(a) * R, y = M.y + Math.sin(a) * R; if (S.inView(x, y, 1)) S.disc(x, y, 0.22 + 0.12 * k, zmat); }
+    for (let i = 0; i < 26; i++) { const a = ua + (i / 25 - 0.5) * 2.44; const x = M.x + Math.cos(a) * R, y = M.y + Math.sin(a) * R; if (S.inView(x, y, 1)) S.disc(x, y, Math.max(0.22 + 0.12 * k, 1.2 * lod.px), zmat); }
     // flow lines: specks running in along spiral paths, faster as it winds up
     for (let j = 0; j < 9; j++) for (let i = 0; i < 6; i++) {
       const u = ((t * (0.35 + 0.9 * k) + i / 6 + j * 0.137) % 1), rr = R * (1 - u), a = ua + (j / 8 - 0.5) * 2.2 * (0.4 + 0.6 * (1 - u)) + 0.9 * u * (j % 2 ? 1 : -1);
       const x = M.x + Math.cos(a) * rr, y = M.y + Math.sin(a) * rr;
-      if (S.inView(x, y, 1)) S.disc(x, y, 0.16, zmat);
+      if (S.inView(x, y, 1)) S.disc(x, y, Math.max(0.16, 0.9 * lod.px), zmat);
     }
   }
   function amoeba(S, A, t) {
@@ -244,17 +244,9 @@ export function createDrawer(world) {
     const mx = A.x - nx * bb, my = A.y - ny * bb, reach = ax * 1.3;
     if (mx + reach < B.x0 || mx - reach > B.x1 || my + reach < B.y0 || my - reach > B.y1) return;
     S.amoeba(A.x + sx, A.y + sy, A.ang, ax, bb, A.amp * (1 + 0.8 * (A.surge || 0)), A.seed, { dn: 0.03 * k, scat: (0.05 + 0.1 * hit) * k, fl: [(0.04 + 0.05 * hit) * chan.memb * k, 0, 0], memb: 1, ab: [0.003 * k, 0.003 * k, 0.004 * k], z: 0.2 });
-    // its capture zone while it winds up (guards.js tellK): the shadow of the lobe it is about to throw, out to its reach
-    if (A.tellK > 0 && A.zoneR && fade > 0.9) {
-      const r = (A.zoneR + 7) * A.tellK, kk = A.tellK;
-      S.amoeba(A.x + nx * r, A.y + ny * r, A.ang, ax + r, bb + r * 0.5, A.amp * 1.4, A.seed, { dn: 0.004 * kk, scat: 0.03 * kk, fl: [0.025 * kk * chan.memb, 0.015 * kk, 0], ab: [0.005 * kk, 0.005 * kk, 0.007 * kk], z: 0.1 });
-      zmat.scat = 0.3 + 0.6 * kk; zmat.dn = 0.015 * kk; zmat.fl[0] = 0.12 * kk * chan.memb; zmat.fl[1] = 0.25 * kk;
-      for (let i = 0; i < 70; i++) {
-        const lx = (i / 69 - 0.5) * ax * 1.4, ly = -bb + bb * Math.sqrt(Math.max(0, 1 - (lx / ax) ** 2)) + (A.zoneR + 7) + 0.6 * Math.sin(lx * 0.2 + t * 3);
-        const x = A.x + c * lx - s * ly, y = A.y + s * lx + c * ly;
-        if (S.inView(x, y, 1)) S.disc(x, y, 0.22, zmat);
-      }
-    }
+    // its attack (guards.js aimWrap): two pseudopods flowing out of its edge either side of your cells and
+    // curving round them, closing the loop at the bite; then drawn back in
+    if (A.wrap && fade > 0.9) pseudopods(S, A, t);
     // granules in the cytoplasm, streaming slowly toward the front and recycled at the back (only those in view are drawn)
     const nG = Math.round(granules.length * (0.35 + 0.65 * hp) * fade);
     for (let gi = 0; gi < nG; gi++) {
@@ -279,6 +271,26 @@ export function createDrawer(world) {
     }
   }
   const granMat = { dn: 0.08, scat: 0.6, ab: [0.02, 0.02, 0.03], z: 0 };
+  const podMat = { dn: 0.03, scat: 0.06, fl: [0.04, 0, 0], memb: 1, ab: [0.003, 0.003, 0.004], cap: 5, z: 0.2, wobble: 0.15, seed: 0 };
+  function pseudopods(S, A, t) {
+    const W = A.wrap, p = W.done ? 1 : W.p, back = Math.atan2(-W.ny, -W.nx); // (toward its body)
+    // each arm starts on the body side of the loop and sweeps round the outside to meet the other at the far side
+    for (const sg of [1, -1]) {
+      const a0 = back + sg * 0.55, sweep = (Math.PI - 0.55) * (0.08 + 0.92 * p), n = Math.max(6, Math.round(W.R * sweep / 1.6));
+      for (let i = 0; i <= n; i++) {
+        const u = i / n, a = a0 + sg * sweep * u, r = W.R * (1 + 0.08 * Math.sin(u * 6 + t * 2)), w = (4.2 - 1.8 * u) * (0.75 + 0.25 * p);
+        const x = W.x + Math.cos(a) * r, y = W.y + Math.sin(a) * r;
+        if (!S.inView(x, y, w + 1)) continue;
+        podMat.seed = i * 1.7 + sg; podMat.dn = 0.03 * (0.8 + 0.2 * u); podMat.fl[0] = 0.04 * chan.memb;
+        S.disc(x, y, w, podMat);
+      }
+      // its root: a broad flow out of the edge into the arm
+      const ra = a0, rx = W.x + Math.cos(ra) * W.R, ry = W.y + Math.sin(ra) * W.R;
+      for (let i = 1; i <= 4; i++) { const x = rx - W.nx * i * 2.5, y = ry - W.ny * i * 2.5; if (S.inView(x, y, 6)) S.disc(x, y, 4.6, podMat); }
+    }
+    // closed: the loop fills in (the cells are inside now)
+    if (W.done) { podMat.dn = 0.02; for (let i = 0; i < 7; i++) { const a = (i / 7) * 6.283, x = W.x + Math.cos(a) * W.R * 0.45, y = W.y + Math.sin(a) * W.R * 0.45; if (S.inView(x, y, W.R)) S.disc(x, y, W.R * 0.55, podMat); } }
+  }
 
   /** One free cell of the world (rods, cocci, chains, the stranger strain, Bdellovibrio). */
   function drawCell(S, c, t) {
@@ -462,10 +474,18 @@ export function createDrawer(world) {
   // the drill's pore: a bright speck at the nose of a member boring into an enemy, flickering
   const boreMat = { dn: -0.02, scat: 1.4, fl: [0, 0, 0], ab: [0, 0, 0], z: 0 };
   function bore(S, k, t) {
-    const f = 0.6 + 0.4 * Math.sin(t * 31 + k.wa * 7);
-    boreMat.scat = 1.6 * f; boreMat.fl[0] = 0.55 * f * chan.memb; boreMat.fl[1] = 0.25 * f; boreMat.dn = -0.025 * f;
-    S.disc(k.x + Math.cos(k.a) * k.L * 0.55, k.y + Math.sin(k.a) * k.L * 0.55, 0.32 + 0.12 * f, boreMat);
+    const f = 0.6 + 0.4 * Math.sin(t * 31 + k.wa * 7), b = Math.max(0, k.drill.burst || 0) / 0.3;
+    boreMat.scat = 1.6 * f + 3 * b; boreMat.fl[0] = (0.55 * f + 0.8 * b) * chan.memb; boreMat.fl[1] = 0.25 * f + 0.5 * b; boreMat.dn = -0.025 * f;
+    const tx = k.x + Math.cos(k.a) * k.L * 0.55, ty = k.y + Math.sin(k.a) * k.L * 0.55, px = Math.max(1, lod.px / 0.12);
+    S.disc(tx, ty, (0.32 + 0.12 * f + 0.6 * b) * Math.min(3, px), boreMat);
+    // flecks thrown back from the bore (your attack working), more in a burst (X)
+    for (let i = 0; i < 2 + 3 * b; i++) {
+      const ph = (t * 2.3 + i * 0.37 + k.wa) % 1, a = k.a + Math.PI + (Math.sin(i * 2.1 + k.wa * 5) * 0.9), d = 0.4 + ph * (1.8 + 2 * b);
+      fleck.fl[0] = 0.4 * (1 - ph) * chan.memb; fleck.fl[1] = 0.3 * (1 - ph); fleck.scat = 1.2 * (1 - ph); fleck.dn = 0.03 * (1 - ph);
+      S.disc(tx + Math.cos(a) * d, ty + Math.sin(a) * d, (0.12 + 0.08 * b) * Math.min(3, px), fleck);
+    }
   }
+  const fleck = { dn: 0.03, scat: 1.2, fl: [0, 0, 0], ab: [0, 0, 0], z: 0 };
   const pulse = { dn: 0, scat: 0, fl: [0, 0, 0], ab: [0, 0, 0], z: 0 };
   /** A ring of soft spots: the beacon on the medium (autoinducer drawn so it shows: a labelled departure). */
   function ring(S, x, y, R, fade, size, n) {

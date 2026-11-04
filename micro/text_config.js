@@ -2096,7 +2096,7 @@ export const TEXT = {
       waylaid: 'A cell was lured away ({left} left). Press {btn:X} when you see the amber line',
       memberTaken: {
         grazer: 'The peritrich ate cells in front of its mouth ({left} left). Each cell is a life; stay out of its current when its funnel opens',
-        amoeba: 'The amoeba swallowed cells at its edge ({left} left). Each cell is a life; pull back when its edge bulges',
+        amoeba: 'The amoeba\'s pseudopods closed round cells ({left} left). Each cell is a life; pull out of the loop before it closes',
         stentor: 'Stentor sucked cells into its funnel ({left} left). Each cell is a life; keep out of the cone in front of it',
         bdello: 'A Bdellovibrio bored into one of your cells ({left} left). Each cell is a life: it takes them, not you',
         phage: 'A phage infected one of your cells ({left} left). Each cell is a life: it takes them, not you',
@@ -2112,6 +2112,12 @@ export const TEXT = {
         stentor: 'Stentor is beaten: it shrinks shut. The portal is open: touch the host and press {btn:Y}',
       },
       toxinHit: 'Toxin burst! It hit: {what}',
+      bite: {
+        grazer: 'The peritrich\'s surge sucked in {n} of your cells in front of its mouth',
+        amoeba: 'The amoeba\'s pseudopods closed round {n} of your cells',
+        stentor: 'Stentor\'s funnel sucked in {n} of your cells',
+      },
+      drillWorks: 'Drilling works: every cell touching it bores in. Keep at it ({btn:X} drills harder)',
       toxinNeedsSwarm: 'No toxin yet: it needs a swarm of {n} (you have {army})',
       toxinCharging: 'Toxin charging: {pct} %',
       toxinMiss: 'Toxin burst! Nothing was in reach',
@@ -2127,7 +2133,7 @@ export const TEXT = {
       grazer1: 'A peritrich blocks the way. It sucks in every cell in front of its mouth: drill its bell from behind, and pull back when its cilia speed up. {btn:X} drills harder',
       bdello: 'A Bdellovibrio pack: each one darts at the nearest cell and bores in. Steer into them to drill them first; {btn:X} drills harder',
       phage: 'A phage cloud: it infects your cells. A swarm of 5 grows a slime shield that sweeps phages up',
-      amoeba: 'A giant amoeba lies across the way. Drill into its edge, but when its edge bulges, pull back: it swallows every cell within its reach',
+      amoeba: 'A giant amoeba lies across the way. Drill into its edge, and when its pseudopods reach out round your cells, pull out of the loop before it closes',
       grazer2: 'A bigger peritrich: bring a bigger swarm',
       stentor: 'Stentor guards the portal. Its funnel sucks in whatever is in front of it: keep out of it, drill its body from the side, and push it off the portal (or beat it). {btn:Y} fires your toxin',
     },
@@ -2362,13 +2368,13 @@ export const TEXT = {
       // a swarm at a gate: the enemy's tell (about to bite) and its bite
       tell: {
         grazer: 'Its funnel opens: pull back out of its current!',
-        amoeba: 'Its edge bulges: pull back out of its reach!',
+        amoeba: 'Its pseudopods are closing round your cells: pull out of the loop!',
         stentor: 'Stentor\'s funnel is sucking your cells in: get out of the cone in front of it!',
         bdello: 'A Bdellovibrio is boring into one of your cells: drill it first',
       },
       bite: {
         grazer: 'It gulps! Now it swallows: go back in and drill ({btn:X} harder)',
-        amoeba: 'It engulfs! Now it digests: go back in and drill ({btn:X} harder)',
+        amoeba: 'It closes! Now it digests: go back in and drill ({btn:X} harder)',
         stentor: 'It pulls! Now it swallows: go back in and drill ({btn:X} harder)',
         bdello: 'Bdellovibrio bore in! Drill them ({btn:X} harder)',
       },
