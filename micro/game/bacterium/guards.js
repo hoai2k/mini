@@ -135,13 +135,12 @@ export function createGuards(world, coll, stentor, hooks = {}) {
       return SURF;
     }
     if (q.kind === 'amoeba') {
-      const A = q.A, c = Math.cos(A.ang), s = Math.sin(A.ang);
-      const dx = x - A.x, dy = y - A.y, lx = dx * c + dy * s;
-      if (Math.abs(lx) > A.width * 0.45) return null;
-      const depth = world.insideAmoeba(x, y, t);
-      if (depth === -1 && (-dx * s + dy * c) < -A.depth) return null;
-      SURF.d = -depth; SURF.nx = -s; SURF.ny = c; SURF.ref = null; // (its normal faces whoever comes)
-      if (SURF.d > 25) return null;
+      const A = q.A, depth = world.insideAmoeba(x, y, t);
+      if (depth < -25) return null;
+      // (its outward normal: out from the middle of its body, behind its front edge)
+      const c = Math.cos(A.ang), s = Math.sin(A.ang), bx = A.x + s * A.b, by = A.y - c * A.b;
+      const nx = x - bx, ny = y - by, nl = Math.hypot(nx, ny) || 1;
+      SURF.d = -depth; SURF.nx = nx / nl; SURF.ny = ny / nl; SURF.ref = null;
       return SURF;
     }
     if (q.kind === 'stentor') {
@@ -241,11 +240,11 @@ export function createGuards(world, coll, stentor, hooks = {}) {
         // held on the surface where it latched (for the pack: on its Bdellovibrio), nose in, turning hard
         const bx = D.ref ? D.ref.x : cx, by = D.ref ? D.ref.y : cy;
         if (q.kind === 'amoeba') {
-          // (on the edge as it moves: projected back onto it, just outside)
+          // (on its outline as it flows: projected back onto it along the line from its body's middle, just outside)
           const A = q.A, c = Math.cos(A.ang), s = Math.sin(A.ang);
-          const lx = D.lx, depth = world.insideAmoeba(A.x + c * lx - s * D.ly, A.y + s * lx + c * D.ly, t);
-          if (depth !== -1) D.ly += depth + 0.35;
-          m.x = A.x + c * lx - s * D.ly; m.y = A.y + s * lx + c * D.ly;
+          const depth = world.insideAmoeba(A.x + c * D.lx - s * D.ly, A.y + s * D.lx + c * D.ly, t);
+          if (depth > -999) { const qy = D.ly + A.b, rho = Math.hypot(D.lx, qy) || 1, k = (rho + depth + 0.35) / rho; D.lx *= k; D.ly = qy * k - A.b; }
+          m.x = A.x + c * D.lx - s * D.ly; m.y = A.y + s * D.lx + c * D.ly;
         } else { m.x = bx + D.ox; m.y = by + D.oy; }
         m.a += Math.atan2(Math.sin(D.a - m.a), Math.cos(D.a - m.a)) * Math.min(1, dt * 10);
         m.bodyPhase += dt * 22; m.flPhase += dt * 44; m.vx = m.vy = 0; m.sp = 0;
@@ -286,10 +285,6 @@ export function createGuards(world, coll, stentor, hooks = {}) {
       return cone * Math.min(0.95, 0.2 + 1.1 * (1 - d / q.reach));
     }
     if (q.kind === 'amoeba') {
-      const A = q.A, c = Math.cos(A.ang), sn = Math.sin(A.ang), dx = x - A.x, dy = y - A.y;
-      if (Math.abs(dx * c + dy * sn) > A.width * 0.45) return 0;
-      const ly = -dx * sn + dy * c;
-      if (ly < -A.depth) return 0;
       const depth = world.insideAmoeba(x, y, t); // (inside positive; its surge is already in it)
       return depth >= 0 ? 0.95 : Math.max(0, 0.95 * (1 + depth / q.reach));
     }

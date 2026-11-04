@@ -36,7 +36,7 @@ export function createDrawer(world) {
   const chan = { memb: 1, flag: 1, mag: 1, phage: 1 };
   const opts = { flagella: true, slowBeat: true };
   const r = rng(99);
-  const granules = Array.from({ length: 90 }, () => ({ lx: (r() - 0.5) * 80, ly: -4 - r() * 50, r: 0.25 + r() * 0.45, z: (r() - 0.5) * 2, k: r() }));
+  const granules = Array.from({ length: 2800 }, () => ({ u: (r() - 0.5) * 2, v: (r() - 0.5) * 1.9, r: 0.25 + r() * 0.45, z: (r() - 0.5) * 2, k: r() }));
   const flakes = new WeakMap();
 
   const chanLab = { on: 1 };
@@ -229,33 +229,56 @@ export function createDrawer(world) {
     }
   }
   function amoeba(S, A, t) {
-    // its damage state (guards.js hpK): the edge thins and its granules thin out as the drills wear it down;
-    // the surge (its bite) bulges the edge forward; beaten, it withdraws and fades
+    // a whole amoeba (world.js AMOEBA, amoebaDepth): a closed, lobed body far bigger than the view, its
+    // pseudopods flowing slowly, a clear margin round granular cytoplasm streaming toward its front, a
+    // nucleus and contractile vacuoles that fill and collapse. Its damage state (guards.js hpK): it thins
+    // and its granules thin out as the drills wear it down; the surge (its bite) bulges its front forward;
+    // beaten, it withdraws and fades.
     const hp = A.hpK ?? 1, fade = 1 - (A.fade || 0), hit = A.hit ? 1 : 0;
     if (fade <= 0.01) return;
     const k = fade * (0.55 + 0.45 * hp);
-    const sx = A.surge ? -Math.sin(A.ang) * 5 * A.surge : 0, sy = A.surge ? Math.cos(A.ang) * 5 * A.surge : 0;
-    S.edge(A.x + sx, A.y + sy, A.ang, A.width, A.depth, A.amp * (1 + 0.8 * (A.surge || 0)), A.seed, { dn: 0.03 * k, scat: (0.05 + 0.1 * hit) * k, fl: [(0.04 + 0.05 * hit) * chan.memb * k, 0, 0], memb: 1, ab: [0.003 * k, 0.003 * k, 0.004 * k], z: 0.2 });
+    const nx = -Math.sin(A.ang), ny = Math.cos(A.ang), c = Math.cos(A.ang), s = Math.sin(A.ang);
+    const sx = A.surge ? nx * 5 * A.surge : 0, sy = A.surge ? ny * 5 * A.surge : 0;
+    const B = S.box, ax = A.a, bb = A.b;
+    // (its body's middle, behind the front edge: skipped when the whole of it is out of view)
+    const mx = A.x - nx * bb, my = A.y - ny * bb, reach = ax * 1.3;
+    if (mx + reach < B.x0 || mx - reach > B.x1 || my + reach < B.y0 || my - reach > B.y1) return;
+    S.amoeba(A.x + sx, A.y + sy, A.ang, ax, bb, A.amp * (1 + 0.8 * (A.surge || 0)), A.seed, { dn: 0.03 * k, scat: (0.05 + 0.1 * hit) * k, fl: [(0.04 + 0.05 * hit) * chan.memb * k, 0, 0], memb: 1, ab: [0.003 * k, 0.003 * k, 0.004 * k], z: 0.2 });
     // its capture zone while it winds up (guards.js tellK): the shadow of the lobe it is about to throw, out to its reach
     if (A.tellK > 0 && A.zoneR && fade > 0.9) {
-      const r = A.zoneR + 7, k = A.tellK, nx = -Math.sin(A.ang), ny = Math.cos(A.ang);
-      S.edge(A.x + nx * r * k, A.y + ny * r * k, A.ang, A.width * 0.92, r * k + 4, A.amp * 1.4, A.seed + 1, { dn: 0.006 * k, scat: 0.04 * k, fl: [0.03 * k * chan.memb, 0.02 * k, 0], ab: [0.006 * k, 0.006 * k, 0.008 * k], z: 0.1 });
-      zmat.scat = 0.3 + 0.6 * k; zmat.dn = 0.015 * k; zmat.fl[0] = 0.12 * k * chan.memb; zmat.fl[1] = 0.25 * k;
-      const ca = Math.cos(A.ang), sa = Math.sin(A.ang);
-      for (let i = 0; i < 40; i++) { const lx = (i / 39 - 0.5) * A.width * 0.88; const x = A.x + ca * lx + nx * (r + 0.6 * Math.sin(lx * 0.2 + t * 3)), y = A.y + sa * lx + ny * (r + 0.6 * Math.sin(lx * 0.2 + t * 3)); if (S.inView(x, y, 1)) S.disc(x, y, 0.22, zmat); }
+      const r = (A.zoneR + 7) * A.tellK, kk = A.tellK;
+      S.amoeba(A.x + nx * r, A.y + ny * r, A.ang, ax + r, bb + r * 0.5, A.amp * 1.4, A.seed, { dn: 0.004 * kk, scat: 0.03 * kk, fl: [0.025 * kk * chan.memb, 0.015 * kk, 0], ab: [0.005 * kk, 0.005 * kk, 0.007 * kk], z: 0.1 });
+      zmat.scat = 0.3 + 0.6 * kk; zmat.dn = 0.015 * kk; zmat.fl[0] = 0.12 * kk * chan.memb; zmat.fl[1] = 0.25 * kk;
+      for (let i = 0; i < 70; i++) {
+        const lx = (i / 69 - 0.5) * ax * 1.4, ly = -bb + bb * Math.sqrt(Math.max(0, 1 - (lx / ax) ** 2)) + (A.zoneR + 7) + 0.6 * Math.sin(lx * 0.2 + t * 3);
+        const x = A.x + c * lx - s * ly, y = A.y + s * lx + c * ly;
+        if (S.inView(x, y, 1)) S.disc(x, y, 0.22, zmat);
+      }
     }
-    const c = Math.cos(A.ang), s = Math.sin(A.ang);
+    // granules in the cytoplasm, streaming slowly toward the front and recycled at the back (only those in view are drawn)
     const nG = Math.round(granules.length * (0.35 + 0.65 * hp) * fade);
     for (let gi = 0; gi < nG; gi++) {
       const g = granules[gi];
-      // granules stream toward the advancing edge, and are recycled at the back
-      g.ly += 0.6 * (1 / 60);
-      const edge = A.amp * (0.6 * Math.sin(0.07 * g.lx + A.seed + 0.2 * t) + 0.4 * Math.sin(0.17 * g.lx + 2 * A.seed - 0.13 * t));
-      if (g.ly > edge - 4) g.ly = -A.depth * (0.5 + 0.4 * g.k);
-      const wx = A.x + c * g.lx - s * g.ly, wy = A.y + s * g.lx + c * g.ly;
-      S.disc(wx, wy, g.r, { dn: 0.08, scat: 0.6, ab: [0.02, 0.02, 0.03], z: g.z });
+      g.v += (0.6 + g.k * 0.6) * (1 / 60) / bb;
+      if (g.v > 0.97) g.v = -0.95;
+      const lx = g.u * ax * Math.sqrt(Math.max(0, 1 - g.v * g.v)) * 0.95, ly = -bb + g.v * bb * 0.92;
+      const wx = A.x + c * lx - s * ly, wy = A.y + s * lx + c * ly;
+      if (!S.inView(wx, wy, 1)) continue;
+      granMat.dn = 0.08 * fade; granMat.scat = 0.6 * fade; granMat.ab[0] = granMat.ab[1] = 0.02 * fade; granMat.ab[2] = 0.03 * fade; granMat.z = g.z;
+      S.disc(wx, wy, g.r, granMat);
+    }
+    // the nucleus (a big flattened disc) and contractile vacuoles that swell and then collapse
+    {
+      const wx = A.x - nx * bb * 1.05 + c * ax * 0.12, wy = A.y - ny * bb * 1.05 + s * ax * 0.12;
+      S.disc(wx, wy, 26, { cap: 6, dn: 0.025 * fade, scat: 0.25 * fade, ab: [0.01 * fade, 0.01 * fade, 0.012 * fade], fl: [0.02 * fade, 0, 0], z: 0.1, wobble: 0.08, seed: 3 });
+      for (let i = 0; i < 3; i++) {
+        const ph = ((t / 6 + i * 0.37) % 1), rr = 4 + 10 * Math.min(1, ph / 0.85) * (ph < 0.85 ? 1 : 1 - (ph - 0.85) / 0.15);
+        const lx = (i - 1) * ax * 0.45, ly = -bb * (0.5 + 0.25 * i);
+        S.disc(A.x + c * lx - s * ly, A.y + s * lx + c * ly, rr, { cap: 4, dn: -0.03 * fade, scat: 0.2 * fade, fl: [0.03 * fade, 0, 0], memb: 1, z: 0.1 });
+      }
     }
   }
+  const granMat = { dn: 0.08, scat: 0.6, ab: [0.02, 0.02, 0.03], z: 0 };
 
   /** One free cell of the world (rods, cocci, chains, the stranger strain, Bdellovibrio). */
   function drawCell(S, c, t) {

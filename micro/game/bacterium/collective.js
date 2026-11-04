@@ -64,12 +64,16 @@ export const COLL = {
   beaconGap: 0.3,  // s between two beacons
   beaconPad: 7,    // a beacon reaches this far beyond the flock's edge, µm
   beaconMin: 9,    // a lone cell's beacon reaches this far (three body lengths)
-  beaconMax: 50,   // and never further than this from where it goes out
+  beaconMax: 160,  // and never further than this from where it goes out
+  beaconQ: 0.85,   // the group's radius for the beacon: this share of its cells lie within it (stragglers left out)
+  beaconFront: 0.75, // moving, the beacon goes out from the front of the main body: this share of the cells are behind it
   latch: 1.0,      // s a pack Bdellovibrio clings to a member before it bores in
   eatReach: 1.7,   // a prey rod this close to a member's middle (beyond its half length) is lysed
   grow: 1 / 300,   // a member's own slow growth toward dividing, per s (×2 in a food patch; three prey rods make a division)
   sleep: 520,      // free kin this far (each axis) from every player rest where they are (perf)
 };
+/** How much closer a big flock packs (1 up to COLL.denseFrom cells, then less, to 0.6 at 1000): its spacing and comfortable radius scale by it. */
+export const densityK = (n) => 1 - 0.4 * Math.max(0, Math.min(1, Math.log10(Math.max(1, n) / 100)));
 /** The stagger before the n-th answer to one beacon (s): one by one at first, then a quick ripple, never more than 1.8 s. */
 export const answerDelay = (n) => Math.min(1.8, n < 8 ? 0.09 * n : 0.72 + 0.012 * (n - 8));
 
@@ -335,7 +339,10 @@ export function createCollectives(world, hooks = {}) {
       C.extent += (Math.sqrt(e2) - C.extent) * Math.min(1, dt * 6);
       // (its spread: the root-mean-square distance from the middle, which a straggler or two hardly moves: the camera's fit)
       C.spread = (C.spread || 0) + (Math.sqrt(s2 / n) - (C.spread || 0)) * Math.min(1, dt * 3);
-      C.R0 = 1.05 * Math.sqrt(n) + 1.2; // the comfortable radius: cells ~2.3 µm apart
+      // denser when large (the owner, 2026-11-04: "when it starts to get really large start to get denser"): above
+      // COLL.denseFrom cells the spacing shrinks and cohesion grows with the count (C.dense: 1, to 0.6 at 1000)
+      C.dense = densityK(n);
+      C.R0 = 1.05 * Math.sqrt(n) * C.dense + 1.2; // the comfortable radius: cells ~2.3 µm apart (closer when dense)
       // the camera follows the flock's middle, smoothed (alone: your cell)
       if (!C.members.length && cells.length === 1) { C.fx = cells[0].x; C.fy = cells[0].y; }
       else if (!(C.fx === C.fx)) { C.fx = cx; C.fy = cy; }
@@ -383,7 +390,7 @@ export function createCollectives(world, hooks = {}) {
     const N = nodes.length, M = all.length;
     // pairs: separation (a physical push, shared) and alignment (neighbours' velocities), over the grid
     for (let i = 0; i < N; i++) { pushX[i] = 0; pushY[i] = 0; alX[i] = 0; alY[i] = 0; alN[i] = 0; }
-    const sR = FLOCK.sepR, aR = FLOCK.alignR, aR2 = aR * aR;
+    const sR = FLOCK.sepR * (C.dense || 1), aR = FLOCK.alignR, aR2 = aR * aR;
     const G = buildGrid(C, nodes, N), head = G.head, next = G.next, gnx = G.nx, gny = G.ny;
     for (let i = 0; i < N; i++) {
       const a = nodes[i], c = G.cellOf[i], gi = c % gnx, gj = (c - gi) / gnx;
@@ -433,7 +440,7 @@ export function createCollectives(world, hooks = {}) {
       let Dx = m.ix * vm * dashK, Dy = m.iy * vm * dashK;
       // cohesion: stronger beyond the comfortable radius; with the stick released a gentle pull to settle
       const dx = cx - m.x, dy = cy - m.y, d = Math.hypot(dx, dy) || 1;
-      const coh = Math.min(35, FLOCK.coh * Math.max(0, d - C.R0)) + FLOCK.cohIdle * Math.max(0, d - C.R0 * 0.5) * idle;
+      const coh = (Math.min(35, FLOCK.coh * Math.max(0, d - C.R0)) + FLOCK.cohIdle * Math.max(0, d - C.R0 * 0.5) * idle) / (C.dense || 1);
       Dx += (dx / d) * coh; Dy += (dy / d) * coh;
       // separation as steering (the push itself is applied below)
       Dx += pushX[i] * 2 * FLOCK.sepK; Dy += pushY[i] * 2 * FLOCK.sepK;
@@ -522,6 +529,24 @@ export function createCollectives(world, hooks = {}) {
     world.pushOutOfGrains(c, c.r + 0.1);
   }
 
+  /** Where a beacon of flock C goes out from, and how far it reaches (see beacon). */
+  function beaconOrigin(C) {
+    const cells = [...liveCells(C), ...C.members.filter((m) => !m.drift)];
+    const n = cells.length;
+    const ds = cells.map((c) => Math.hypot(c.x - C.cx, c.y - C.cy)).sort((a, b) => a - b);
+    const ext = n > 1 ? ds[Math.min(n - 1, Math.floor(COLL.beaconQ * n))] : 0;
+    const R = Math.min(COLL.beaconMax, Math.max(COLL.beaconMin, ext + COLL.beaconPad));
+    let x = C.cx, y = C.cy;
+    const um = Math.hypot(C.vx, C.vy);
+    if (um >= 3 && n > 1) {
+      const ux = C.vx / um, uy = C.vy / um;
+      const along = cells.map((c) => (c.x - C.cx) * ux + (c.y - C.cy) * uy).sort((a, b) => a - b);
+      const f = along[Math.min(n - 1, Math.floor(COLL.beaconFront * n))];
+      x = C.cx + ux * f; y = C.cy + uy * f;
+    }
+    return { R, x, y, ext };
+  }
+
   // --- the beacon (X): a pulse from the flock's front (the owner: from the middle it was always
   // behind by the time the ring spread); it rides along with the flock while it spreads. Kin it
   // passes answer, one by one, and join ---
@@ -529,19 +554,13 @@ export function createCollectives(world, hooks = {}) {
     const C = of(P);
     if (!C || !opts.on || !P.S.alive || P.S.species !== 'mtb' || t - C.lastBeacon < COLL.beaconGap) return null;
     C.lastBeacon = t;
-    const R = Math.min(COLL.beaconMax, Math.max(COLL.beaconMin, C.extent + COLL.beaconPad));
-    // moving: from the front, the cell furthest along the flock's motion; still: from the middle (the owner)
-    let ux = C.vx, uy = C.vy;
-    const um = Math.hypot(ux, uy);
-    let x = C.cx, y = C.cy;
-    if (um >= 3) {
-      ux /= um; uy /= um;
-      let best = -Infinity;
-      for (const c of [...liveCells(C), ...C.members]) {
-        const d = (c.x - C.cx) * ux + (c.y - C.cy) * uy;
-        if (d > best) { best = d; x = c.x; y = c.y; }
-      }
-    }
+    // (the owner, 2026-11-04: "the front of the mass of your group, not the very front, so that it doesn't count
+    // a couple stragglers or scouting out front ... it should grow to a larger beacon as you get more creatures so
+    // that it will tend to extend the same distance past the edge of the group"): its reach is the group's own
+    // radius (COLL.beaconQ of its cells are within it: stragglers do not count) plus COLL.beaconPad; moving, it
+    // goes out from the front of the main body (COLL.beaconFront of the cells are behind that point along the
+    // motion), on the line through the middle; still, from the middle
+    const { R, x, y } = beaconOrigin(C);
     // it stretches to reach the flock's drifting (waylaid) members and the strangers luring them, up to WAYLAY.recallMax
     // (each is answered when the front passes where it was as the pulse went out, so none can outrun it)
     let R2 = R;
@@ -995,7 +1014,7 @@ export function createCollectives(world, hooks = {}) {
   }
 
   return {
-    COLL, FLOCK, WAYLAY, EATEN, kin, list, opts, of, dragK, ensure, putFree, park, isFree, remove, reset, pre, post, absorb, burst, adopt, beacon, eat, focus, lose,
+    COLL, FLOCK, WAYLAY, EATEN, kin, beaconOrigin, list, opts, of, dragK, ensure, putFree, park, isFree, remove, reset, pre, post, absorb, burst, adopt, beacon, eat, focus, lose,
     /** For tests and the HUD: each flock's players, members, size, level, charge and middle. */
     report: () => list.map((C) => ({ id: C.id, players: C.players.map((P) => P.slot), members: C.members.length, labels: C.members.map((m) => m.label), army: C.army, level: C.level, charge: +C.charge.toFixed(2), x: +C.cx.toFixed(1), y: +C.cy.toFixed(1), fx: +(C.fx || 0).toFixed(1), fy: +(C.fy || 0).toFixed(1), speed: +C.speed.toFixed(1), extent: +C.extent.toFixed(1), beacons: C.beacons.length, drifting: C.members.filter((m) => m.drift).length })),
     /** For tests and the HUD: the strangers waylaying a flock, and its drifting members. */

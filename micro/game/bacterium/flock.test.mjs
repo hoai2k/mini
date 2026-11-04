@@ -2,14 +2,16 @@
 // and the gates, stepped with the real world, swimmer, collective and guards.
 //   node micro/game/bacterium/flock.test.mjs
 import assert from 'node:assert/strict';
-import { createWorld, DROP, rimDist, WORLD, ENCOUNTERS } from './world.js';
+import { createWorld, DROP, rimDist, WORLD, ENCOUNTERS, AMOEBA } from './world.js';
 import { createSwimmer } from './swim.js';
-import { createCollectives, COLL } from './collective.js';
+import { createCollectives, COLL, densityK } from './collective.js';
 import { createStentor } from './stentor.js';
 import { createGuards } from './guards.js';
 import { createGame } from './game.js';
 import { createFight } from '../shared/predation.js';
-import { autoFieldFor, AUTO } from './followcam.js';
+import { ZOOM, zoomStep } from './followcam.js';
+import { SPECIES } from './swim.js';
+import { readFileSync } from 'node:fs';
 
 function setup(hooks = {}, { quiet = false } = {}) {
   const world = createWorld();
@@ -453,11 +455,54 @@ for (const [id, big, fast] of [['grazer1', 42, 8], ['bdello', 150, 12], ['amoeba
   battle.perf = `${ms.toFixed(2)} ms per step for 1000 members`;
 }
 
-// --- the camera: the default field widens as the swarm grows (main.js stepZoom; LT/RT multiply it) ---
+// --- the zoom: 20 µm to start, moved only by the triggers, continuous, no field stop (the owner, 2026-11-04) ---
 {
-  const f = [1, 10, 40, 100, 300, 1000].map((n) => autoFieldFor(n, 1.3 * (1.05 * Math.sqrt(n) + 1.2)));
-  assert.ok(f[0] === 45 && f.every((v, i) => i === 0 || v >= f[i - 1]) && f[5] > f[2] * 2 && f[5] <= AUTO.max, `the field grows with the swarm (${f.map((v) => v.toFixed(0)).join(', ')} µm)`);
-  for (const n of [100, 300, 1000]) { const R0 = 1.05 * Math.sqrt(n) + 1.2; assert.ok(autoFieldFor(n, R0) > 2.2 * R0 * 1.3, `a swarm of ${n} fits its field`); }
+  assert.equal(SPECIES.mtb.view, 20, 'the spirillum starts at a 20 µm field');
+  const Z = { want: 20, field: 20 };
+  for (let i = 0; i < 600; i++) zoomStep(Z, 0, 1 / 60);
+  assert.equal(Z.field, 20, 'with the triggers untouched it stays where it is, whatever the swarm (no auto zoom)');
+  const seen = [];
+  for (let i = 0; i < 600; i++) { zoomStep(Z, 1, 1 / 60); seen.push(Z.field); }
+  assert.ok(Z.field >= 500 && seen.every((v, i) => i === 0 || (v >= seen[i - 1] && v - seen[i - 1] < 15)), `LT zooms out smoothly to several hundred µm (${Z.field.toFixed(0)})`);
+  for (let i = 0; i < 900; i++) zoomStep(Z, -1, 1 / 60);
+  assert.ok(Z.field <= 10.5 && ZOOM.min <= 10, `RT zooms in to ~10 µm (${Z.field.toFixed(1)})`);
+  const src = readFileSync(new URL('./main.js', import.meta.url), 'utf8');
+  assert.ok(/const stopR = 0;/.test(src) && !/autoFieldFor/.test(src) && !/swarmSize/.test(src), 'main.js draws no field stop, has no auto zoom and no view-widening message');
+}
+
+// --- the beacon: from the front of the group's mass (not a scout out front), reaching past its edge by the same margin at any size ---
+{
+  const { coll, P, step, fill, move } = setup({}, { quiet: true });
+  move(300, 300); fill(80); step(60);
+  for (let i = 0; i < 90; i++) step(1, { x: 1, y: 0, m: 0.8 });
+  const C = coll.of(P), o1 = coll.beaconOrigin(C);
+  const front = Math.max(...C.members.map((m) => m.x));
+  // three scouts far out in front
+  C.members.slice(0, 3).forEach((m, i) => { m.x = front + 25 + i * 4; m.y = C.cy + (i - 1) * 3; });
+  const o2 = coll.beaconOrigin(C);
+  assert.ok(Math.hypot(o2.x - o1.x, o2.y - o1.y) < 2.5 && o2.x < front, `scouts out front barely move the beacon's origin (${Math.hypot(o2.x - o1.x, o2.y - o1.y).toFixed(2)} µm; it stays behind the main body's front)`);
+  assert.ok(Math.abs(o2.R - o1.R) < 3, `nor its reach (${o1.R.toFixed(1)} → ${o2.R.toFixed(1)} µm)`);
+  const margin = [10, 100, 400].map((n) => { const T = setup({}, { quiet: true }); T.move(300, 300); T.fill(n); T.step(240); const Cn = T.coll.of(T.P), o = T.coll.beaconOrigin(Cn); return [n, o.R, o.ext, o.R - o.ext]; });
+  assert.ok(margin.every(([, R, ext, m]) => Math.abs(m - COLL.beaconPad) < 0.01 && R > ext) && margin[2][1] > margin[1][1] && margin[1][1] > margin[0][1], `its reach is the group's radius plus ${COLL.beaconPad} µm at every size (${margin.map(([n, R]) => `${n}: ${R.toFixed(0)} µm`).join(', ')})`);
+}
+
+// --- denser when large: above ~100 cells the spacing shrinks with the count ---
+{
+  assert.ok(densityK(50) === 1 && densityK(100) === 1 && densityK(300) < 0.85 && densityK(1000) <= 0.6 + 1e-9, 'the spacing factor falls from 1 at 100 to 0.6 at 1000');
+  const dens = [60, 600].map((n) => { const T = setup({}, { quiet: true }); T.move(300, 300); T.fill(n); T.step(360); const C = T.coll.of(T.P); return n / (Math.PI * C.spread ** 2); });
+  assert.ok(dens[1] > dens[0] * 1.6, `a big swarm packs denser (${dens.map((d) => d.toFixed(2)).join(' → ')} cells per µm²)`);
+}
+
+// --- the amoeba: a whole cell far bigger than the view, its outline closed (rounded ends, a back), not a strip ---
+{
+  const { world, guards } = setup({}, { quiet: true });
+  guards.placeGate(guards.byId.amoeba, 400, 0, 0);
+  const A = world.amoeba, t = 0;
+  // the default field is 20 µm tall (36 across): the body runs far past it on both sides and behind
+  assert.ok(AMOEBA.width > 30 * 36 / 2 && AMOEBA.depth > 10 * 20, `the body (${AMOEBA.width} × ${AMOEBA.depth} µm) runs far beyond the 20 µm view`);
+  const inside = (lx, ly) => { const c = Math.cos(A.ang), s = Math.sin(A.ang); return world.insideAmoeba(A.x + c * lx - s * ly, A.y + s * lx + c * ly, t); };
+  assert.ok(inside(0, -5) > 0 && inside(0, 8) < 0 && inside(AMOEBA.a * 0.8, -AMOEBA.b) > 0, 'inside behind its front edge and well along it, outside in front');
+  assert.ok(inside(AMOEBA.a * 1.3, -AMOEBA.b) < 0 && inside(0, -AMOEBA.depth * 1.3) < 0, 'its ends and back close (outside beyond them)');
 }
 
 console.log(`bacterium flock: all checks pass

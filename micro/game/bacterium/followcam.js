@@ -68,14 +68,16 @@ export function stepFollow(F, dt, tx, ty, vx, vy, look, fieldH) {
 }
 
 /**
- * The default field for a swarm (the owner, 2026-11-03: "The default camera should also slowly zoom out
- * as your group becomes bigger and bigger"): the field height (µm) that fits a flock of `army` cells
- * spread `extent` µm from its middle, never below the species' own field `base` nor above AUTO.max.
- * main.js eases toward it over AUTO.ease s; the player's LT/RT zoom multiplies it.
+ * The zoom (main.js stepZoom; the owner, 2026-11-04: "let's start the zoom at 20 ... remove the auto-zoom-out
+ * ... Zooming should be continuous"): the field height in µm, from ZOOM.min to ZOOM.max, starting at the
+ * species' own (20 µm for the spirillum), moved only by the player's triggers (LT out, RT in: `rate` -1..1)
+ * and eased; nothing else (not the swarm's size) changes it, and no field stop ever closes it.
  */
-export const AUTO = { perR: 3.6, pad: 12, perExtent: 2.5, max: 200, ease: 2.5 };
-export function autoFieldFor(army, extent, base = 45) {
-  if (!(army > 1)) return base;
-  const R0 = 1.05 * Math.sqrt(army) + 1.2; // the flock's comfortable radius (collective.js)
-  return Math.min(AUTO.max, Math.max(base, AUTO.perR * R0 + AUTO.pad, AUTO.perExtent * (extent || 0) + 10));
+export const ZOOM = { min: 10, max: 600, rate: 1.4, ease: 0.14, pull: 90 };
+/** One step of a player's zoom: { want, field } after dt with the triggers at `rate` (+ out, - in). */
+export function zoomStep(Z, rate, dt) {
+  if (Math.abs(rate) > 0.04) Z.want = Math.max(ZOOM.min, Math.min(ZOOM.max, Z.want * Math.exp(rate * ZOOM.rate * dt)));
+  Z.field += (Z.want - Z.field) * (1 - Math.exp(-dt / ZOOM.ease));
+  if (Math.abs(Z.field - Z.want) < 1e-3) Z.field = Z.want;
+  return Z;
 }

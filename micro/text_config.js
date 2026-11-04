@@ -353,7 +353,7 @@ export const TEXT = {
       look: 'Phase contrast and fluorescence',
       mag: '1000×',
       magNote: '100× oil, phase',
-      field: '180 µm',
+      field: '20 µm',
       body: '3 µm',
       line: 'Call your kin into a swarm that grows into the hundreds, and drill your way through the enemies that block the way, at the limit of the light microscope.',
       goal: 'Grow your swarm, drill through the enemies on the way, and reach the glowing host past Stentor.',
@@ -364,7 +364,7 @@ export const TEXT = {
         ['X', 'Call kin / eat / drill harder'],
         ['B', 'Dodge'],
         ['Y', 'Toxin burst'],
-        ['LT/RT', 'Zoom out / in (the view widens as you grow)'],
+        ['LT/RT', 'Zoom out / in'],
         ['LB/RB', 'Turn around'],
       ],
       facts: [
@@ -2045,7 +2045,6 @@ export const TEXT = {
       armyShield: 'Swarm of {n}: a slime shield now catches phages',
       armyRaft: 'Swarm of {n}: currents drag you less now',
       armyToxin: 'Swarm of {n}: your toxin is charging. {btn:Y} fires it',
-      swarmSize: 'Swarm of {n}: the view widens to fit it',
       slimePhage: 'The slime catches the phage: it cannot reach your wall',
       slimeRam: 'The ram glances off the slime round your army',
       branchesOff: '{name} branches off: the army splits evenly ({k} with {name2}, {stay} stay)',
@@ -2119,7 +2118,7 @@ export const TEXT = {
       grazer1: 'A peritrich blocks the way. It sucks in every cell in front of its mouth: drill its bell from behind, and pull back when its cilia speed up. {btn:X} drills harder',
       bdello: 'A Bdellovibrio pack: each one darts at the nearest cell and bores in. Steer into them to drill them first; {btn:X} drills harder',
       phage: 'A phage cloud: it infects your cells. A swarm of 5 grows a slime shield that sweeps phages up',
-      amoeba: 'An amoeba blocks the way. Drill into its edge, but when its edge bulges, pull back: it swallows every cell within its reach',
+      amoeba: 'A giant amoeba lies across the way. Drill into its edge, but when its edge bulges, pull back: it swallows every cell within its reach',
       grazer2: 'A bigger peritrich: bring a bigger swarm',
       stentor: 'Stentor guards the host. Drill into its rim, and pull back out when its rim shimmers: its pull swallows every cell near its mouth. {btn:Y} fires your toxin',
     },
@@ -2197,10 +2196,6 @@ export const TEXT = {
       noise: {
         label: 'Camera shot noise',
         about: 'Per-frame sensor noise; in fluorescence it grows with the square root of the signal.',
-      },
-      stop: {
-        label: 'Eyepiece field stop',
-        about: 'Zoom well out (LT) to 180 µm or more (the whole field of a 100× objective with an FN 18 eyepiece) and the round field stop shows. Smaller fields are camera crops. A big swarm\'s own view can be wider than 180 µm: a departure, as if through a lower-power objective.',
       },
       chMemb: {
         label: 'Stain: membranes (FM 4-64)',
@@ -2321,7 +2316,7 @@ export const TEXT = {
       },
       pad: {
         label: 'Shared control scheme',
-        about: 'LS steer the swarm (released: it slows and stops), RS look around, A sprint, X call kin + eat + drill harder (Bdellovibrio: attach), B tumble, Y toxin burst (or data; at the open host: enter the portal), LT/RT zoom out / in (on top of the view that widens as your swarm grows), LB/RB reverse, D-pad ←→ look, Menu features, View panel.',
+        about: 'LS steer the swarm (released: it slows and stops), RS look around, A sprint, X call kin + eat + drill harder (Bdellovibrio: attach), B tumble, Y toxin burst (or data; at the open host: enter the portal), LT/RT zoom out / in (from 10 to 600 µm, starting at 20), LB/RB reverse, D-pad ←→ look, Menu features, View panel.',
       },
       semMite: {
         label: 'SEM (scanning electron microscope)',

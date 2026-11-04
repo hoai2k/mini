@@ -34,7 +34,7 @@
 //   again with the amount kept.
 import * as THREE from '../vendor/three.module.min.js';
 
-export const SHAPE = { ROD: 0, STRAND: 1, CSTRAND: 2, DISC: 3, EDGE: 4, BELL: 5, CHAIN: 6, SLAB: 7, TRUMPET: 8 };
+export const SHAPE = { ROD: 0, STRAND: 1, CSTRAND: 2, DISC: 3, EDGE: 4, BELL: 5, CHAIN: 6, SLAB: 7, TRUMPET: 8, AMOEBA: 9 };
 
 const VS = /* glsl */ `
 precision highp float;
@@ -65,6 +65,7 @@ void main() {
   else if (type == 5) { lo = vec2(-L - m, -2.0 * L - m); hi = vec2(L + m, L * 0.35 + m); }
   else if (type == 6) { lo = vec2(-L * 0.5 - m, -m); hi = vec2(L * 0.5 + m, m); }
   else if (type == 8) { lo = vec2(-abs(p1) * 3.0 - m, -r - m); hi = vec2(L + 0.5 * r + m, r + m); }
+  else if (type == 9) { lo = vec2(-1.25 * L - m, -2.4 * r - m); hi = vec2(1.25 * L + m, abs(p1) + 0.4 * r + m); }
   else { lo = vec2(-L * 0.5, -r); hi = vec2(L * 0.5, abs(p1) + m + 1.0); }
   vec2 q = mix(lo, hi, position.xy * 0.5 + 0.5);
   vLocal = q;
@@ -203,6 +204,23 @@ void main() {
     t = max(max(tb * stripes, th), td) + 0.35 * min(tb, td);
     rim = max(1.0 - smoothstep(0.0, 2.0, -dB), 1.0 - smoothstep(0.0, 2.5, rimD));
     tex = 0.85 + 0.3 * fbm(p * 0.35 + p2);
+  } else if (type == 9) {
+    // a whole amoeba (Amoeba proteus-like): a closed body, half-axes L across and r deep, its front edge
+    // through the origin (+y out of it) and its middle at (0, -r); lobed all round (pseudopods flowing slowly,
+    // seed p2), the front rippling with amplitude p1; a thin clear margin, granular and thick behind it.
+    // (bacterium world.js amoebaDepth is the same outline.)
+    float a = L, b = r;
+    vec2 q = vec2(p.x, p.y + b);
+    float rho = length(q), th = atan(q.y, q.x), cth = cos(th), sth = sin(th);
+    float Rb = inversesqrt((cth / a) * (cth / a) + (sth / b) * (sth / b));
+    float fk = clamp((sth - 0.35) / 0.4, 0.0, 1.0), front = fk * fk * (3.0 - 2.0 * fk);
+    float lobe = (1.0 - front) * 0.14 * b * (0.5 * sin(3.0 * th + 0.15 * uTime + p2) + 0.3 * sin(5.0 * th - 0.11 * uTime + 2.0 * p2) + 0.2 * sin(8.0 * th + 0.07 * uTime + 3.0 * p2));
+    float wave = front * p1 * (0.6 * sin(0.07 * p.x + p2 + 0.2 * uTime) + 0.4 * sin(0.17 * p.x + 2.0 * p2 - 0.13 * uTime));
+    float d = Rb + lobe + wave - rho;
+    t = clamp(d * 0.35, 0.0, 1.5) + clamp((d - 6.0) * 0.6, 0.0, 9.0);
+    t *= smoothstep(-vBlur - uPx, vBlur + uPx, d);
+    rim = 1.0 - smoothstep(0.0, 2.0, d);
+    tex = 0.85 + 0.3 * fbm(p * 0.6 + p2);
   } else {
     // slab: the biofilm and sediment surface, top edge wavy at y = 0, thickness r
     float edge = p1 * (0.6 * sin(0.04 * p.x + p2) + 0.4 * sin(0.11 * p.x + 2.0 * p2));
@@ -301,6 +319,8 @@ export function createShapes(max = 4000) {
     bell(x, y, ang, R, cap, w, seed, o = {}) { push(5, x, y, ang, R, cap, w, seed, o, 3 * R); },
     /** Trumpet ciliate (Stentor): foot at (x, y), axis `ang`, length L to the oral disc of radius R; foot radius footR; o.phase turns the disc's spiral grooves. */
     trumpet(x, y, ang, L, R, footR, seed, o = {}) { push(8, x, y, ang, L, R, footR, seed, o, L + R * 1.5); },
+    /** A whole amoeba: half-axes a (across) and b (deep), front edge through (x, y) facing local +y (`ang` along the edge), front ripple amp, seed. */
+    amoeba(x, y, ang, a, b, amp, seed, o = {}) { push(9, x, y, ang, a, b, amp, seed, o, 1.25 * a + 2.4 * b); },
     /** Flat surface layer: width L, depth below the wavy top edge, edge wobble amp. */
     slab(x, y, L, depth, amp, seed, o = {}) { push(7, x, y, 0, L, depth, amp, seed, o, L + depth); },
     setTextures({ cil, bio, mag }) {

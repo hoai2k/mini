@@ -43,7 +43,7 @@ export const routePoint = (d, lat = 0) => ({ x: START.x + RUX * d - RUY * lat, y
 /** How far along the route (x, y) is, and how far to its left. */
 export const routeAlong = (x, y) => ({ d: (x - START.x) * RUX + (y - START.y) * RUY, lat: -(x - START.x) * RUY + (y - START.y) * RUX });
 /** The beats along the route, µm from the start: the gates, the colonies behind them, the host. */
-export const BEATS = { grazer1: 400, colony1: 680, bdello: 980, colony2: 1260, amoeba: 1560, colony3: 1830, host: 2100 };
+export const BEATS = { grazer1: 400, colony1: 680, bdello: 980, colony2: 1260, amoeba: 1560, colony3: 1870, host: 2100 };
 /** The host on the route (the gradient toward the host: denser sediment, its haze). */
 export const HOST0 = routePoint(BEATS.host);
 
@@ -123,11 +123,30 @@ export function grazerParts(x, y, b) {
   // the bell and its current (specks pour into the funnel from ~45 µm), the stalk, the foot's grain
   return [[x, y, 46], [x + ux * GRAZER_FOOT * 0.55, y + uy * GRAZER_FOOT * 0.55, 12], [x + ux * GRAZER_FOOT, y + uy * GRAZER_FOOT, 14]];
 }
-export const AMOEBA = { width: 190, depth: 46 };
+/**
+ * The amoeba (the owner, 2026-11-04: "If we have an amoeba, it should look and behave like one, and if we can
+ * only see a part of it, it should ensure that it still extends way beyond the edge of the screen"): a whole
+ * Amoeba proteus-like cell lying across the way, 720 µm across and 220 µm deep (half-axes a, b), its front
+ * edge (the one that meets you) through its anchor (x, y) and its body beyond it; lobed all round, the lobes
+ * (pseudopods) slowly flowing, the front edge rippling. amoebaDepth: how far inside its outline a point is.
+ */
+export const AMOEBA = { width: 720, depth: 220, a: 360, b: 110, lobe: 0.14 };
+/** Depth inside the amoeba's outline (µm; negative outside) at (lx, ly) in its own frame (front edge through the origin, +y out of it). */
+export function amoebaDepth(lx, ly, amp, seed, t, bulge = 0) {
+  const a = AMOEBA.a, b = AMOEBA.b, qy = ly + b;
+  if (lx > a * 1.25 || lx < -a * 1.25 || qy > b * 1.4 || qy < -b * 1.4) return -999;
+  const rho = Math.hypot(lx, qy), th = Math.atan2(qy, lx), c = Math.cos(th), sn = Math.sin(th);
+  const Rb = 1 / Math.sqrt((c / a) ** 2 + (sn / b) ** 2);
+  const fk = Math.max(0, Math.min(1, (sn - 0.35) / 0.4)), front = fk * fk * (3 - 2 * fk);
+  const lobe = (1 - front) * AMOEBA.lobe * b * (0.5 * Math.sin(3 * th + 0.15 * t + seed) + 0.3 * Math.sin(5 * th - 0.11 * t + 2 * seed) + 0.2 * Math.sin(8 * th + 0.07 * t + 3 * seed));
+  const wave = front * (amp * (0.6 * Math.sin(0.07 * lx + seed + 0.2 * t) + 0.4 * Math.sin(0.17 * lx + 2 * seed - 0.13 * t)) + bulge);
+  return Rb + lobe + wave - rho;
+}
 export function amoebaParts(x, y, b) {
-  // its edge runs across the way (along b + π/2), its body beyond it
+  // its front edge across the way (along b + π/2), its body beyond it: discs along the front and over the body
   const [ux, uy, px, py] = u2(b), out = [];
-  for (let k = -2; k <= 2; k++) out.push([x + px * k * 42 + ux * 22, y + py * k * 42 + uy * 22, 44]);
+  for (let k = -3; k <= 3; k++) out.push([x + px * k * 100 + ux * 30, y + py * k * 100 + uy * 30, 60]);
+  out.push([x + ux * AMOEBA.b, y + uy * AMOEBA.b, 130]);
   return out;
 }
 /** Is (x, y) in open water inside the drop, `m` µm clear of its edge (and the soft band), the sediment bank and the backdoor? */
@@ -231,7 +250,6 @@ export function segDist(px, py, x, y, a, L) {
 
 // Matching the GLSL edge functions in bacterium-shapes.js.
 const slabEdge = (x, amp, seed) => amp * (0.6 * Math.sin(0.04 * x + seed) + 0.4 * Math.sin(0.11 * x + 2 * seed));
-const amoebaEdge = (x, amp, seed, t) => amp * (0.6 * Math.sin(0.07 * x + seed + 0.2 * t) + 0.4 * Math.sin(0.17 * x + 2 * seed - 0.13 * t));
 
 // E. coli tumble angle: mean about 68° (Berg & Brown 1972), either way.
 export function tumbleAngle(r) {
@@ -456,7 +474,7 @@ export function createWorld() {
   // --- the amoeba's edge: gate 3, a wall across the way (its body beyond; guards.js) ---
   // ang: the edge runs along (cos, sin); its normal (−sin, cos) faces whoever comes. surge (guards.js,
   // its bite): the edge bulges forward by up to AMOEBA_SURGE µm in a wave as it engulfs.
-  const amoeba = { x: 0, y: 0, ang: 0, width: AMOEBA.width, depth: AMOEBA.depth, amp: 5, seed: 2.2, speed: 1.4, home: { x: 0, y: 0 }, beaten: false, bearing: 0, surge: 0 };
+  const amoeba = { x: 0, y: 0, ang: 0, width: AMOEBA.width, depth: AMOEBA.depth, a: AMOEBA.a, b: AMOEBA.b, amp: 5, seed: 2.2, speed: 1.4, home: { x: 0, y: 0 }, beaten: false, bearing: 0, surge: 0 };
   /** Stand the amoeba's edge at (x, y) across bearing b (met coming along b). */
   function placeAmoeba(x, y, b) {
     amoeba.x = amoeba.home.x = x; amoeba.y = amoeba.home.y = y; amoeba.ang = b + Math.PI / 2; amoeba.bearing = b; amoeba.parked = x === PARK.x;
@@ -503,15 +521,15 @@ export function createWorld() {
   }
 
   const AMOEBA_SURGE = 7;
+  /** Depth inside the amoeba (µm, positive inside; far outside or beaten: -999). */
   function insideAmoeba(x, y, t) {
-    if (!opts.amoeba || amoeba.beaten || amoeba.parked) return -1; // beaten, it withdraws and engulfs nothing more
+    if (!opts.amoeba || amoeba.beaten || amoeba.parked) return -999; // beaten, it withdraws and engulfs nothing more
     const c = Math.cos(amoeba.ang), s = Math.sin(amoeba.ang);
     const dx = x - amoeba.x, dy = y - amoeba.y;
     const lx = dx * c + dy * s, ly = -dx * s + dy * c;
-    if (Math.abs(lx) > amoeba.width * 0.45 || ly < -amoeba.depth) return -1;
-    // (the surge: a bulge that runs across the edge as it engulfs)
+    // (the surge: a bulge that runs across its front as it engulfs)
     const bulge = amoeba.surge ? AMOEBA_SURGE * amoeba.surge * (0.6 + 0.4 * Math.cos(lx * 0.05 - t * 3)) : 0;
-    return amoebaEdge(lx, amoeba.amp, amoeba.seed, t) + bulge - ly; // depth inside (positive inside)
+    return amoebaDepth(lx, ly, amoeba.amp, amoeba.seed, t, bulge);
   }
 
   /** The grains near (x, y): the bucket there, then the movers. fn(g) returns true to stop. */

@@ -30,7 +30,7 @@ import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
 import { gauss } from './world.js';
 import { createCollectives, COLL, LEVEL_NAMES } from './collective.js';
-import { createFollow, snapFollow, stepFollow, autoFieldFor, AUTO } from './followcam.js';
+import { createFollow, snapFollow, stepFollow, ZOOM, zoomStep } from './followcam.js';
 import { createGuards } from './guards.js';
 import { createQuality } from '../shared/quality.js';
 import { createPortalGlow, createPortalLight, createGlint } from '../shared/portal.js';
@@ -110,8 +110,7 @@ function makePlayer(p) {
     capture: createCapture({ onRespawn: () => respawnPlayer(P) }),
     cat: { kind: null, who: null, phase: null, t: 0, x0: 0, y0: 0, a0: 0, zoom0: 45, released: false },
     follow: createFollow(), look: { x: 0, y: 0 }, // the follow camera (followcam.js) and the RS look held
-    zoom: SPECIES.mtb.view, zoomWant: SPECIES.mtb.view, // the field height (µm) shown: the swarm's own (auto) × the player's LT/RT zoom (mul), each player their own (stepZoom)
-    auto: SPECIES.mtb.view, mul: 1,
+    zoom: SPECIES.mtb.view, zoomWant: SPECIES.mtb.view, // the field height (µm): LT out, RT in, each player their own (stepZoom)
     backT: 0, eatenFor: 0, msg: { phageHint: false }, blockT: 0, sprintT: 0, phage: null, bdello: null,
   };
   // the capture's card (unused: the catch follows the predator, then respawns), its veil (the
@@ -137,8 +136,6 @@ const coll = createCollectives(world, {
     else if (n === COLL.shield && t - collMsg.recruitAt > 2) { collMsg.recruitAt = t; hud.toast(tt('bacterium.toasts.armyShield', { n }), 2600); }
     else if (n === COLL.raft && t - collMsg.recruitAt > 2) { collMsg.recruitAt = t; hud.toast(tt('bacterium.toasts.armyRaft', { n }), 2600); }
     else if (n === COLL.toxin && t - collMsg.recruitAt > 2) { collMsg.recruitAt = t; hud.toast(tt('bacterium.toasts.armyToxin', { n, glyph }), 2600); }
-    // a growing swarm: a word at 50, 100, 250, 500 and 1000 (the camera eases out to fit it: autoField)
-    else for (const k of [50, 100, 250, 500, 1000]) if (n >= k && !collMsg.sizes.has(k)) { collMsg.sizes.add(k); if (t - collMsg.recruitAt > 1) { collMsg.recruitAt = t; hud.toast(tt('bacterium.toasts.swarmSize', { n: k }), 2400); } break; }
   },
   onBeacon: () => { collMsg.answerDue = true; audio.play('bacterium/beacon', { volume: 0.6, old: ['bacterium/eat', { volume: 0.4, rate: 1.9 }] }); },
   onLost: (C, m, kind) => {
@@ -806,10 +803,10 @@ safeTexture('MP-B04').then((t) => { if (t) shapes.setTextures({ mag: t }); });
 /**
  * The zoom (the owner, 2026-11-03: "LT/RT be zoom (like paramecium) instead of DPad"): LT out, RT in,
  * analogue and continuous, each player their own, as the Paramecium's: the trigger sets how fast the
- * wanted field moves (×e^(rate·s) at full pull), and the field eases to it. From a 22 µm camera crop to
- * the 180 µm eyepiece field (the field stop shows there), starting at the species' field (45 µm).
+ * wanted field moves (×e^(rate·s) at full pull), and the field eases to it (followcam.js ZOOM, zoomStep):
+ * from 10 to 600 µm, starting at the species' field (20 µm), continuous, with no field stop and no
+ * automatic zoom (the owner, 2026-11-04).
  */
-const ZOOM = { min: 22, max: 480, eyepiece: 180, rate: 1.1, ease: 0.14, pull: 90, mulMin: 0.4, mulMax: 4 };
 /** The widest field of these players (a shared view never narrows anyone's). */
 const fieldOfSlots = (slots) => { let z = 0; for (const P of roster) if (!P.waiting && slots.includes(P.slot)) z = Math.max(z, P.zoom); return z || P1.zoom; };
 /** The field shown (one view: every player's widest): being eaten (alone), the camera pulls back to watch the predator, then follows it. */
@@ -867,7 +864,6 @@ features.add({ id: 'halo', group: 'Optics', on: true, onChange: (on) => { optics
 features.add({ id: 'focus', group: 'Optics', fixed: true }); // the focus stays on your cell's plane (no focus control: the owner, 2026-11-03)
 features.add({ id: 'plate', group: 'Optics', on: true, onChange: (on) => { optics.toggles.plate = on; } });
 features.add({ id: 'noise', group: 'Optics', on: true, onChange: (on) => { optics.toggles.noise = on; } });
-features.add({ id: 'stop', group: 'Optics', on: true, onChange: (on) => { view.stop = on; } });
 features.add({ id: 'chMemb', group: 'Optics', on: true, onChange: (on) => { drawer.chan.memb = on ? 1 : 0; } });
 features.add({ id: 'chFlag', group: 'Optics', on: true, onChange: (on) => { drawer.chan.flag = on ? 1 : 0; } });
 features.add({ id: 'chLabel', group: 'Optics', on: true, onChange: (on) => { drawer.chanLab.on = on ? 1 : 0; } });
@@ -936,7 +932,7 @@ function setSpecies(sp) {
   coll.opts.on = sp === 'mtb' && collFeature.on;
   coll.reset(roster);
   if (sp === 'mtb') arrangeClump();
-  for (const P of roster) { P.zoom = P.zoomWant = P.auto = SPECIES[sp].view; P.mul = 1; }
+  for (const P of roster) P.zoom = P.zoomWant = SPECIES[sp].view;
   view.cx = S.x; view.cy = S.y;
   card.classList.remove('show');
   hud.toast(sp === 'mtb' ? tt('bacterium.toasts.startMtb', { glyph }) : tt('bacterium.toasts.startBdello', { goal: GOAL_PREY, glyph }), 3600);
@@ -1304,9 +1300,7 @@ const debug = {
   },
   look(k) { const want = LOOK_CYCLE.indexOf(k); for (let i = 0; i < 6 && currentLookKey() !== k; i++) cycleLook(1); return want >= 0; },
   /** Set player slot's field at once (µm, ZOOM.min..max; or an index into the old steps 180/90/45/22). */
-  zoom(z, slot = 0) { const P = roster.find((Q) => Q.slot === slot) || P1; const f = Number.isInteger(z) && z < 4 ? [180, 90, 45, 22][z] : z; P.zoom = P.zoomWant = Math.max(ZOOM.min, Math.min(ZOOM.max, f)); P.mul = Math.max(ZOOM.mulMin, Math.min(ZOOM.mulMax, P.zoom / P.auto)); },
-  /** Back to the swarm's own field (no LT/RT zoom). */
-  zoomAuto(slot = 0) { const P = roster.find((Q) => Q.slot === slot) || P1; P.mul = 1; },
+  zoom(z, slot = 0) { const P = roster.find((Q) => Q.slot === slot) || P1; const f = Number.isInteger(z) && z < 4 ? [180, 90, 45, 22][z] : z; P.zoom = P.zoomWant = Math.max(ZOOM.min, Math.min(ZOOM.max, f)); },
   /** Hold the zoom triggers for player slot as LT/RT would: +1 full LT (out), -1 full RT (in), null back to the pad. */
   /** Waylaying (tests): put a stranger d µm off player slot's flock (side a, radians) and let it come over. Returns it. */
   stranger(slot = 0, d = 14, a = 0) {
@@ -1550,14 +1544,8 @@ const zoomForce = [];
 function stepZoom(P, dt, frozen) {
   const f = zoomForce[P.slot], c = P.ctl;
   const rate = f !== undefined ? f : !frozen && c ? c.lt() - c.rt() : 0;
-  // the swarm's own field (followcam.js autoFieldFor), eased slowly; the triggers zoom on top of it
-  const C = coll.opts.on && P.S.species === 'mtb' ? coll.of(P) : null;
-  const want = C && C.members.length ? autoFieldFor(C.army, (C.spread || 0) * 1.6, SPECIES[P.S.species].view) : SPECIES[P.S.species].view;
-  if (!frozen) P.auto += (want - P.auto) * (1 - Math.exp(-dt / AUTO.ease));
-  if (Math.abs(rate) > 0.04) P.mul = Math.max(ZOOM.mulMin, Math.min(ZOOM.mulMax, P.mul * Math.exp(rate * ZOOM.rate * dt)));
-  P.zoomWant = Math.max(ZOOM.min, Math.min(ZOOM.max, P.auto * P.mul));
-  P.zoom += (P.zoomWant - P.zoom) * (1 - Math.exp(-dt / ZOOM.ease));
-  if (Math.abs(P.zoom - P.zoomWant) < 1e-3) P.zoom = P.zoomWant;
+  const Z = zoomStep({ want: P.zoomWant, field: P.zoom }, rate, dt);
+  P.zoomWant = Z.want; P.zoom = Z.field;
 }
 /**
  * The view: straight down on the slide, as the microscope sees it (the owner, 2026-11-03: "I think we
@@ -1735,8 +1723,8 @@ function drawField(cam, stopOk, rect = null) {
   renderer.clear();
   renderer.render(shapes.scene, shapes.camera);
   const look = currentLookKey();
-  // the eyepiece's round field stop: when the player has zoomed well out past the swarm's field to the eyepiece's or wider
-  const stopR = stopOk && view.stop && fieldH >= ZOOM.eyepiece - 0.5 && P1.mul > 1.4 ? (fieldH / 2) / umPerPx : 0;
+  // (no round field stop: the zoom is continuous at every field, the owner, 2026-11-04)
+  const stopR = 0; void stopOk;
   if (look === 'sem') {
     const f = optics.field.textures;
     looks.fieldFromBuffers(W, H, { a: { opd: f[0], abs: f[2], opdW: [0, 0, 1, 0], scatW: [0, 1, 0, 0] }, opdK: 1, absK: 1, heightK: 1 });
@@ -1834,9 +1822,9 @@ function render(dt) {
   drawPortalArrow();
   drawMarks(L, fieldH);
   // scale bar
-  const bar = fieldH >= 260 ? 50 : fieldH >= 90 ? 20 : fieldH >= 40 ? 5 : 2;
+  const bar = fieldH >= 260 ? 50 : fieldH >= 90 ? 20 : fieldH >= 40 ? 5 : fieldH >= 15 ? 2 : 1;
   const cssPerUm = innerHeight / fieldH;
-  scaleEl.innerHTML = `<i style="width:${Math.round(bar * cssPerUm)}px"></i>${tt(fieldH < ZOOM.eyepiece - 0.5 ? 'bacterium.scaleCrop' : 'bacterium.scale', { bar, field: Math.round(fieldH) })}`;
+  scaleEl.innerHTML = `<i style="width:${Math.round(bar * cssPerUm)}px"></i>${tt('bacterium.scale', { bar, field: Math.round(fieldH) })}`;
   armyChip();
 }
 
