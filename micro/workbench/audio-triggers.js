@@ -2560,7 +2560,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:65"
+   "paramecium/main.js:66"
   ],
   "event": "another player joins"
  },
@@ -2576,7 +2576,7 @@ export const TRIGGERS = [
    "volume": 0.6
   },
   "sites": [
-   "paramecium/main.js:180"
+   "paramecium/main.js:189"
   ],
   "event": "Ambience: open pond water."
  },
@@ -2592,7 +2592,7 @@ export const TRIGGERS = [
    "volume": 0
   },
   "sites": [
-   "paramecium/main.js:181"
+   "paramecium/main.js:190"
   ],
   "event": "The cilia beating (volume and rate follow the swim speed)."
  },
@@ -2610,7 +2610,7 @@ export const TRIGGERS = [
    "rate": 1.1
   },
   "sites": [
-   "paramecium/main.js:348"
+   "paramecium/main.js:361"
   ],
   "event": "X: a feeding gulp."
  },
@@ -2628,7 +2628,7 @@ export const TRIGGERS = [
    "rate": "strong ? 1.1 : 1.3"
   },
   "sites": [
-   "paramecium/main.js:359"
+   "paramecium/main.js:372"
   ],
   "event": "X when touched: trichocyst discharge."
  },
@@ -2644,7 +2644,7 @@ export const TRIGGERS = [
    "volume": 0.8
   },
   "sites": [
-   "paramecium/main.js:383"
+   "paramecium/main.js:396"
   ],
   "event": "knocked or stunned"
  },
@@ -2657,7 +2657,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:384"
+   "paramecium/main.js:397"
   ],
   "event": "the jab lands"
  },
@@ -2670,8 +2670,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:393",
-   "paramecium/main.js:894"
+   "paramecium/main.js:407",
+   "paramecium/main.js:949"
   ],
   "event": "a predator gives up"
  },
@@ -2689,7 +2689,7 @@ export const TRIGGERS = [
    "rate": "0.95 + Math.random() * 0.1"
   },
   "sites": [
-   "paramecium/main.js:401"
+   "paramecium/main.js:415"
   ],
   "event": "X: a feeding gulp."
  },
@@ -2702,7 +2702,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:403"
+   "paramecium/main.js:417"
   ],
   "event": "the cell divides"
  },
@@ -2716,8 +2716,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:413",
-   "paramecium/main.js:884"
+   "paramecium/main.js:427",
+   "paramecium/main.js:939"
   ],
   "event": "a Vorticella contracts"
  },
@@ -2731,7 +2731,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:416"
+   "paramecium/main.js:430"
   ],
   "event": "the jab lands"
  },
@@ -2745,7 +2745,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:421"
+   "paramecium/main.js:435"
   ],
   "event": "the dash flings bloom cells"
  },
@@ -2761,7 +2761,7 @@ export const TRIGGERS = [
    "volume": 0.7
   },
   "sites": [
-   "paramecium/main.js:444"
+   "paramecium/main.js:458"
   ],
   "event": "B: the avoidance reaction."
  },
@@ -2777,8 +2777,8 @@ export const TRIGGERS = [
    "volume": 0.8
   },
   "sites": [
-   "paramecium/main.js:450",
-   "paramecium/main.js:458"
+   "paramecium/main.js:465",
+   "paramecium/main.js:474"
   ],
   "event": "a braced block"
  },
@@ -2794,7 +2794,7 @@ export const TRIGGERS = [
    "volume": 1
   },
   "sites": [
-   "paramecium/main.js:465"
+   "paramecium/main.js:481"
   ],
   "event": "X when touched: trichocyst discharge."
  },
@@ -2807,7 +2807,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:466"
+   "paramecium/main.js:482"
   ],
   "event": "B: the trichocyst burst"
  },
@@ -2823,7 +2823,7 @@ export const TRIGGERS = [
    "volume": 1
   },
   "sites": [
-   "paramecium/main.js:480"
+   "paramecium/main.js:496"
   ],
   "event": "Held by Didinium's proboscis."
  },
@@ -2836,7 +2836,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:481"
+   "paramecium/main.js:497"
   ],
   "event": "Dileptus slashes"
  },
@@ -2849,7 +2849,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:482"
+   "paramecium/main.js:498"
   ],
   "event": "dissolving (generic)"
  },
@@ -2862,7 +2862,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:508"
+   "paramecium/main.js:523"
   ],
   "event": "re-forming from motes"
  },
@@ -2875,7 +2875,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:518"
+   "paramecium/main.js:533"
   ],
   "event": "the way on unseals"
  },
@@ -2888,8 +2888,8 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:536",
-   "paramecium/main.js:538"
+   "paramecium/main.js:551",
+   "paramecium/main.js:553"
   ],
   "event": "Y at a sealed or guarded portal"
  },
@@ -2902,7 +2902,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:553"
+   "paramecium/main.js:568"
   ],
   "event": "\"Y Enter the portal\" appears"
  },
@@ -2915,7 +2915,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:560"
+   "paramecium/main.js:575"
   ],
   "event": "Y at the open portal"
  },
@@ -2931,7 +2931,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "paramecium/main.js:629"
+   "paramecium/main.js:644"
   ],
   "event": "Going through a portal (the way on): the success chime before the freeze and the zoom into the next world."
  },
@@ -2944,7 +2944,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:630"
+   "paramecium/main.js:645"
   ],
   "event": "the success slow-down"
  },
@@ -2958,7 +2958,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:745"
+   "paramecium/main.js:760"
   ],
   "event": "deeper / shallower"
  },
@@ -2974,7 +2974,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "paramecium/main.js:750"
+   "paramecium/main.js:765"
   ],
   "event": "A (dash): the sprint."
  },
@@ -2987,7 +2987,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:752"
+   "paramecium/main.js:767"
   ],
   "event": "the dash flings bloom cells"
  },
@@ -3000,9 +3000,27 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:759"
+   "paramecium/main.js:774"
   ],
   "event": "Y at the backdoor"
+ },
+ {
+  "world": "paramecium",
+  "kind": "play",
+  "experimental": {
+   "id": "shared/portal-chime",
+   "volume": 0.32,
+   "rate": 1.35
+  },
+  "default": {
+   "id": "shared/portal-chime",
+   "volume": 0.32,
+   "rate": 1.35
+  },
+  "sites": [
+   "paramecium/main.js:902"
+  ],
+  "event": "Going through a portal (the way on): the success chime before the freeze and the zoom into the next world."
  },
  {
   "world": "paramecium",
@@ -3016,7 +3034,7 @@ export const TRIGGERS = [
    "volume": 0.7
   },
   "sites": [
-   "paramecium/main.js:887"
+   "paramecium/main.js:942"
   ],
   "event": "closed round by the giant"
  },
@@ -3032,7 +3050,7 @@ export const TRIGGERS = [
    "volume": 0.9
   },
   "sites": [
-   "paramecium/main.js:888"
+   "paramecium/main.js:943"
   ],
   "event": "Didinium closing in."
  },
@@ -3045,7 +3063,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:889"
+   "paramecium/main.js:944"
   ],
   "event": "Dileptus winds back"
  },
@@ -3058,7 +3076,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:890"
+   "paramecium/main.js:945"
   ],
   "event": "Dileptus slashes"
  },
@@ -3071,7 +3089,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:891"
+   "paramecium/main.js:946"
   ],
   "event": "the giant amoeba reaching"
  },
@@ -3084,7 +3102,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:892"
+   "paramecium/main.js:947"
   ],
   "event": "the trap's door quivers"
  },
@@ -3097,7 +3115,7 @@ export const TRIGGERS = [
   },
   "default": null,
   "sites": [
-   "paramecium/main.js:893"
+   "paramecium/main.js:948"
   ],
   "event": "the trap fires"
  },

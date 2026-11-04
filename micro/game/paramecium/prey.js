@@ -2,10 +2,14 @@
 // glittering gold in darkfield, and Chilomonas, a flagellate that darts away
 // with its ejectisomes when you come close, so it has to be chased. Kept at
 // about PER_PLAYER round every player, born out of view, let go far away.
+// The food trail's clumps (trail.js: each carries `trail`, its cluster's id)
+// join the list when someone comes near their cluster and are never let go
+// until eaten: they are the trail.
 import { DEPTH } from './route.js';
 import { LENGTH } from './swim.js';
 
-export const PREY = { perPlayer: 6, born: [420, 720], far: 1300, reach: 52, dz: 48 };
+/** loose: the loose food main.js keeps round each player since the trail (2026-11-04; it was perPlayer, 6). */
+export const PREY = { perPlayer: 6, loose: 3, born: [420, 720], far: 1300, reach: 52, dz: 48 };
 
 export function createPrey() {
   return { list: [], eaten: 0 };
@@ -31,7 +35,7 @@ function spawn(R, x, y, kind) {
 export function stepPrey(R, players, dt, t, per = null) {
   const live = players.filter((P) => P.live);
   // let the far ones go; keep enough round everyone
-  R.list = R.list.filter((p) => !p.gone && (p.dying <= 0 || p.dying < 0.6) && live.some((P) => Math.hypot(P.S.x - p.x, P.S.y - p.y) < PREY.far));
+  R.list = R.list.filter((p) => !p.gone && (p.dying <= 0 || p.dying < 0.6) && (p.trail !== undefined || live.some((P) => Math.hypot(P.S.x - p.x, P.S.y - p.y) < PREY.far)));
   for (const P of live) {
     const n = R.list.filter((p) => Math.hypot(P.S.x - p.x, P.S.y - p.y) < PREY.born[1] + 100).length;
     const want = per ? per(P) : PREY.perPlayer;

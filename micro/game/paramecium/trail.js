@@ -50,7 +50,7 @@ export function createTrail({ from = START, target = null, seed = TRAIL.seed } =
 function makeCluster(T, x, y, kind, k = -1) {
   const r = T.rand;
   const n = TRAIL.items[0] + Math.floor(r() * (TRAIL.items[1] - TRAIL.items[0] + 1));
-  const z = (r() * 2 - 1) * TRAIL.z;
+  const z = T.nextId === 0 ? 0 : (r() * 2 - 1) * TRAIL.z; // (the first at the depth you start at)
   const c = { id: T.nextId++, x, y, z, kind, k, n, items: [], seenT: null, active: false, done: false, gone: false, eaten: 0, t: T.t, dropped: false };
   for (let i = 0; i < n; i++) {
     // a ring of clumps round a middle one, a little irregular
@@ -69,7 +69,10 @@ function layChain(T) {
   for (let k = 0; ; k++) {
     const d = TRAIL.first + TRAIL.step * k;
     if (d > D - TRAIL.last + 1) break;
-    makeCluster(T, from.x + ux * d, from.y + uy * d, 'path', k);
+    // a little to one side or the other (not a ruler line; and two steps are about a scenery tile, so on the
+    // line every other cluster would sit by the same Vorticella), the first straight ahead
+    const j = k ? (T.rand() * 2 - 1) * TRAIL.wobble : 0;
+    makeCluster(T, from.x + ux * d - uy * j, from.y + uy * d + ux * j, 'path', k);
   }
   T.laid = true;
 }
@@ -141,11 +144,11 @@ export function stepTrail(T, w) {
 function place(T, w, from, p) {
   const { x: tx, y: ty } = T.target;
   const base = Math.atan2(ty - from.y, tx - from.x), dFrom = hyp(tx - from.x, ty - from.y);
-  for (const m of [1, 0.85, 1.15, 0.7, 1.3, 1.5]) for (const off of [0, 0.2, -0.2, 0.4, -0.4, 0.6, -0.6]) {
+  for (const m of [1, 0.85, 1.15, 0.7, 1.3, 1.5, 1.75, 2]) for (const off of [0, 0.2, -0.2, 0.4, -0.4, 0.6, -0.6, 0.8, -0.8, 1, -1]) {
     const d = TRAIL.step * m, a = base + off, x = from.x + Math.cos(a) * d, y = from.y + Math.sin(a) * d;
     const dT = hyp(tx - x, ty - y);
     if (dT < TRAIL.endShort * 0.8 || dT > dFrom - TRAIL.step * 0.45) continue; // (on toward it, not past it)
-    if (!towardPortal(p.x, p.y, tx, ty, x, y, TRAIL.ahead + 400)) continue;
+    if (!towardPortal(p.x, p.y, tx, ty, x, y)) continue;
     if (w.inView && w.inView(x, y, TRAIL.r + 40)) continue;
     if (w.seen && [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].some(([u, v]) => w.seen(x + u * TRAIL.r, y + v * TRAIL.r))) continue;
     if (w.blocked && w.blocked(x, y)) continue;

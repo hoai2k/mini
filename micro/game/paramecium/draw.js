@@ -176,20 +176,29 @@ function drawSpirogyra(G, f, ox, oy, rect, t, lod = 1, s = null, W = null) {
   const P = bent ? (u, v) => { const o = v + bent(u); return [ax + dx * u + px * o, ay + dy * u + py * o]; } : (u, v) => [ax + dx * u + px * v, ay + dy * u + py * v];
   const r = f.r;
   { const [p1, p2] = P(u0, 0), [q1, q2] = P(u1, 0); G.shadowSeg(p1, p2, zAt(u0), q1, q2, zAt(u1), r, 0.3); }
-  // the body's faint green and the walls, in pieces (its depth changes along it; finer where it bends)
+  // the body's faint green, in pieces (its depth changes along it; finer where it bends)
   const STEP = bent ? 30 : 120;
   for (let u = u0; u < u1; u += STEP) {
     const ue = Math.min(u1, u + STEP), z = zAt((u + ue) / 2);
     const [a1, a2] = P(u, 0), [b1, b2] = P(ue, 0);
     G.line(a1, a2, b1, b2, r * 0.92, z, [0.42, 0.62, 0.12], 0.085 * f.shade, 3);
-    for (const sd of [-1, 1]) { const [c1, c2] = P(u, sd * r), [d1, d2] = P(ue, sd * r); G.line(c1, c2, d1, d2, 0.8, z, COL.white, 0.9, 0, 0.28, 3.5); }
   }
-  // the cross walls between cells
+  // the walls: a living tube, each cell a little rounded (fuller in the middle, pinched in at the cross walls),
+  // soft and pale green, not two hard rails (the owner, 2026-11-04: "what are those rectangular things that
+  // look like ladders?"; they were straight white lines with a bright rung at every cross wall)
+  const half = (u) => r * (0.9 + 0.1 * Math.sin(Math.PI * ((((u % f.cell) + f.cell) % f.cell) / f.cell)));
+  const WS = Math.min(STEP, f.cell / (lod > 2.5 ? 4 : 6));
+  for (let u = u0; u < u1; u += WS) {
+    const ue = Math.min(u1, u + WS), z = zAt((u + ue) / 2), h0 = half(u), h1 = half(ue);
+    for (const sd of [-1, 1]) { const [c1, c2] = P(u, sd * h0), [d1, d2] = P(ue, sd * h1); G.line(c1, c2, d1, d2, 0.9, z, COL.wall, 0.55, 0.35, 0.2, 3.5); }
+  }
+  // the cross walls between cells: faint, a little bowed, inside the pinch
   for (let k = Math.ceil(u0 / f.cell); k * f.cell <= u1; k++) {
-    const u = k * f.cell, [a1, a2] = P(u, -r), [b1, b2] = P(u, r);
-    G.line(a1, a2, b1, b2, 0.7, zAt(u), COL.white, 0.8, 0, 0.25, 3);
+    const u = k * f.cell, h = r * 0.86, z = zAt(u), [a1, a2] = P(u, -h), [m1, m2] = P(u + 2.5, 0), [b1, b2] = P(u, h);
+    G.line(a1, a2, m1, m2, 0.6, z, COL.wall, 0.26, 0.4); G.line(m1, m2, b1, b2, 0.6, z, COL.wall, 0.26, 0.4);
   }
-  // the chloroplast ribbon: a helix seen from above, brighter on the near side (it runs through the depth)
+  // the chloroplast ribbon: a soft helix seen from above, brighter and wider on the near side (it runs
+  // through the depth), its edges blurred like a ribbon's
   const step = 4 * Math.max(1, lod * (lod > 2.5 ? 0.8 : 0.6));
   for (let rb = 0; rb < f.turns; rb++) {
     let prev = null;
@@ -201,8 +210,8 @@ function drawSpirogyra(G, f, ox, oy, rect, t, lod = 1, s = null, W = null) {
       const [x, y] = P(u, v);
       const z = zAt(u) + front * r * 0.7;
       if (prev && inCell > 0.04 && inCell < 0.96) {
-        const I = (0.5 + 0.3 * front) * f.shade;
-        G.line(prev[0], prev[1], x, y, 3.0 + 1.0 * front, z, [0.6, 0.88, 0.16], I, 0.5, 0.1, 3);
+        const I = (0.46 + 0.2 * front) * f.shade; // (the far side shows too: one continuous spiral, not a row of bars)
+        G.line(prev[0], prev[1], x, y, 3.6 + 1.8 * front, z, [0.6, 0.88, 0.16], I, 1.6, 0.12, 3);
         // pyrenoids: bright beads on the ribbon
         if (front > 0.6 && (Math.floor(u / (f.pitch * 0.5)) !== Math.floor((u - step) / (f.pitch * 0.5)))) G.disc(x, y, 2.2, z, [0.9, 1.0, 0.5], 0.6, 0.3, 0.4, 2.5);
       }
@@ -291,12 +300,18 @@ function drawDiatom(G, d, p, t) {
   const ca = Math.cos(a), sa = Math.sin(a);
   const P = (u, v) => [x + ca * u - sa * v, y + sa * u + ca * v];
   if (d.rect) {
-    // a Fragilaria ribbon: frustules side by side, each with a golden chloroplast band
-    const hu = d.L / 2, hv = d.W / 2;
-    const c = [P(-hu, -hv), P(hu, -hv), P(hu, hv), P(-hu, hv)];
-    for (let i = 0; i < 4; i++) G.line(c[i][0], c[i][1], c[(i + 1) % 4][0], c[(i + 1) % 4][1], 0.75, p.z, COL.edge, 0.85, 0, 0.3, 3);
-    for (let k = 1; k < d.n; k++) { const u = -hu + (k / d.n) * d.L, [a1, a2] = P(u, -hv), [b1, b2] = P(u, hv); G.line(a1, a2, b1, b2, 0.45, p.z, COL.edge, 0.45); }
-    for (let k = 0; k < d.n; k++) { const u = -hu + ((k + 0.5) / d.n) * d.L; G.ell(...P(u, 0), a + Math.PI / 2, hv * 0.8, d.L / d.n * 0.18, p.z, COL.gold, 0.45, 0.4, 0.3, 2); }
+    // a Fragilaria ribbon: a colony of diatom cells joined face to face, each its own rounded glass box (a soft
+    // oval ring) with its golden-brown chloroplast, the ribbon wavering a little along its length. (Until
+    // 2026-11-04 a hard bright rectangle crossed by a rung at every cell: the owner, "what are those
+    // rectangular things that look like ladders?")
+    const hu = d.L / 2, hv = d.W / 2, cw = d.L / d.n;
+    G.ell(x, y, a, hu * 1.02, hv * 1.02, p.z, COL.brown, 0.05, hv * 0.4);
+    for (let k = 0; k < d.n; k++) {
+      const u = -hu + (k + 0.5) * cw, wv = Math.sin(k * 0.9 + d.L) * hv * 0.06, ta = a + Math.PI / 2 + Math.sin(k * 1.3 + d.W) * 0.04;
+      const [cx, cy] = P(u, wv);
+      G.ellRing(cx, cy, ta, hv * 0.96, cw * 0.47, 0.55, p.z, COL.edge, 0.42, 0.5, 0.18, 2.5);
+      G.ell(cx, cy, ta, hv * 0.62, cw * 0.2, p.z, mix(COL.gold, COL.brown, 0.35), 0.5, 0.6, 0.15, 2);
+    }
     return;
   }
   const hl = d.L / 2, hw = d.W / 2;
@@ -583,6 +598,9 @@ export function drawPrey(G, R, rect, t) {
     if (p.x < x0 - 30 || p.x > x1 + 30 || p.y < y0 - 30 || p.y > y1 + 30) continue;
     const k = p.dying > 0 ? Math.max(0, 1 - p.dying / 0.5) : 1;
     if (p.kind === 'clump') {
+      // a trail clump (trail.js) glows a little warmer, so a cluster reads as a patch of food from afar
+      // (brighter and paler than the drop's other gold, pulsing together: the light a dense clump of bacteria scatters)
+      if (p.trail !== undefined) { const pu = 0.75 + 0.25 * Math.sin(t * 2.2 + p.trail * 1.3); G.disc(p.x, p.y, p.r * 0.6 * k, p.z, [1, 0.94, 0.74], 0.55 * k * pu, p.r * 0.5, 0.75 * k * pu, 7); }
       for (let i = 0; i < 9; i++) { const a = i * 2.4 + p.ph, r = (i % 3) * 2.6 * k + 1; G.line(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r, p.x + Math.cos(a) * r + Math.cos(a + 1) * 2.2, p.y + Math.sin(a) * r + Math.sin(a + 1) * 2.2, 0.55, p.z, COL.gold, 0.8 * k, 0, 0.5, 2); }
       G.disc(p.x, p.y, p.r * k, p.z, COL.amber, 0.12 * k, 3);
     } else {
@@ -591,6 +609,39 @@ export function drawPrey(G, R, rect, t) {
       for (let i = 0; i < 4; i++) G.disc(p.x + Math.cos(p.a) * (i * 5 - 7), p.y + Math.sin(p.a) * (i * 5 - 7), 1.3, p.z, COL.gold, 0.6 * k, 0.2, 0.3, 2);
       // two flagella at the front
       for (const s of [-1, 1]) { const a = p.a + s * 0.4 + Math.sin(t * 20 + s) * 0.3; G.line(p.x + Math.cos(p.a) * 12, p.y + Math.sin(p.a) * 12, p.x + Math.cos(p.a) * 12 + Math.cos(a) * 14, p.y + Math.sin(p.a) * 12 + Math.sin(a) * 14, 0.3, p.z, COL.edge, 0.55 * k); }
+    }
+  }
+}
+
+/**
+ * The food trail's clusters (trail.js) still to be eaten: a faint warm haze round each, twinkling, under its
+ * clumps (drawPrey), so a little group of food reads at the start zoom as a patch to make for.
+ */
+export function drawTrail(G, T, rect, t) {
+  const [x0, y0, x1, y1] = rect, R = 130;
+  for (const c of T.clusters) {
+    if (!c.active || c.done || c.gone || c.dropped) continue;
+    if (c.x < x0 - R || c.x > x1 + R || c.y < y0 - R || c.y > y1 + R) continue;
+    const left = c.items.filter((i) => !(i.dying > 0)).length / c.n;
+    const tw = 0.85 + 0.15 * Math.sin(t * 1.3 + c.id * 1.7);
+    G.disc(c.x, c.y, 80, c.z - 6, [1, 0.85, 0.55], 0.1 * left * tw, 70);
+  }
+}
+/**
+ * A finished cluster's glint: a few golden sparks drifting out from it toward the next cluster and fading
+ * (~0.4 mm in 1.6 s), a hint of the way rather than an arrow.
+ */
+export function drawGlints(G, list) {
+  for (const g of list) {
+    const ca = Math.cos(g.a), sa = Math.sin(g.a);
+    for (let i = 0; i < 6; i++) {
+      const u = g.t - i * 0.09;
+      if (u <= 0) continue;
+      const d = 420 * (1 - Math.exp(-u * 1.5)), w = Math.sin(i * 2.1 + u * 3) * 14 * (1 - Math.exp(-u * 2));
+      const k = Math.max(0, 1 - u / 1.5) * (1 - i * 0.12);
+      G.marker = true; // (legible out of focus, like the game's other marks)
+      G.disc(g.x + ca * d - sa * w, g.y + sa * d + ca * w, 6, g.z, [1, 0.92, 0.65], 0.95 * k, 1, 1 * k, 16);
+      G.marker = false;
     }
   }
 }

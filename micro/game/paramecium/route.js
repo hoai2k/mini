@@ -93,18 +93,19 @@ export const GIANT_R = 230;
 // way to the portal so that if you follow that and eat all the food you'll be getting closer and closer")
 /**
  * Clusters of food from the start to the portal: the first `first` µm up the screen (in the opening view), then
- * one every `step` µm (1.43 screen heights at the start zoom: the next is at the view's edge or just past it
- * when you finish one), `count` of them, the last `last` µm short of the leaf (the glow shows from there).
+ * one every `step` µm (1.27 screen heights at the start zoom: the next comes in at the view's top edge as you
+ * leave one), `count` of them, each up to `wobble` to one side of the line, the last `last` µm short of the
+ * leaf (the glow shows from there).
  * Each holds `items` bacterial clumps within `r` of its middle at one depth (mid-drop, `z` ± zr). A player
  * with no unfinished cluster within `ahead` toward the portal gets one `step` ahead of them, toward it, in
  * water nobody has seen (`rejoin`). `clear`: no encounter is placed within this of a cluster.
  */
-export const TRAIL = { first: 420, step: 1350, count: 20, last: 1330, r: 62, items: [4, 6], z: 40, zr: 16, ahead: 2100, clear: 430, endShort: 700, activate: 1900, seed: 7 };
+export const TRAIL = { first: 300, step: 1200, count: 21, last: 1330, wobble: 200, r: 62, items: [4, 6], z: 40, zr: 16, ahead: 2800, clear: 430, endShort: 700, activate: 3200, seed: 7 };
 /** The distance of path cluster k from the start (µm). */
 export const trailDist = (k) => TRAIL.first + TRAIL.step * k;
 /** The middle of the gap after cluster g (where the path's hunters lie). */
 export const gapDist = (g) => trailDist(g) + TRAIL.step / 2;
-/** The default path's portal: just past the last cluster (27.4 mm: ~55 s holding the stick up, ~33 s dashing). */
+/** The default path's portal: just past the last cluster (25.6 mm: ~50 s holding the stick up, ~30 s dashing). */
 export const PORTAL_DIST = trailDist(TRAIL.count - 1) + TRAIL.last;
 /** The cluster spots along the default path (START, up the screen): [[x, y], ...]. */
 export const trailLine = (b = Math.PI / 2) => Array.from({ length: TRAIL.count }, (_, k) => [START.x + Math.cos(b) * trailDist(k), START.y + Math.sin(b) * trailDist(k)]);
@@ -118,13 +119,15 @@ export const trailLine = (b = Math.PI / 2) => Array.from({ length: TRAIL.count }
 export const DIRECTOR = {
   mode: '2d', cell: 250, groundY: 0, seenDist: 1300, nearSeen: 260, seed: 41, moveSpeed: 60,
   bounds: { x0: START.x - DROP_R, x1: START.x + DROP_R, z0: START.y - DROP_R, z1: START.y + DROP_R },
-  // the warm-up: ~4 s of swimming; a calm break of ~4 s of swimming clear of the last encounter
-  warmup: { sec: 4 }, calm: { sec: 4 }, linger: 5,
+  // the warm-up: ~4 s of swimming; a calm break of ~4 s of swimming clear of the last encounter; standing
+  // still 20 s past the break (not just stopping to eat a cluster or to fight: 5 s before the trail) brings
+  // the next one over
+  warmup: { sec: 4 }, calm: { sec: 4 }, linger: 20,
   // seen but not gone to: met once everyone is 2.2 mm off, or after 8 s in sight nearby (it is never moved)
   passDist: 2200, watchSec: 8,
 };
 /** Which gap of the default path's trail each encounter lies in (after cluster g; the portal: PORTAL_DIST). */
-export const PATH_GAPS = { dileptus: 2, didinium: 5, bloom: 7, pair: 10, giant: 13, pack: 16 };
+export const PATH_GAPS = { dileptus: 3, didinium: 6, bloom: 8, pair: 11, giant: 14, pack: 17 };
 export const ENCOUNTERS = [
   // a Dileptus: its trunk's slash; B blocks it, X jabs it
   { id: 'dileptus', size: 420, visible: 380, minAhead: 1500, maxAhead: 2100, minNear: 900, maxNear: 1300 },

@@ -146,10 +146,10 @@ test('the gradient rises toward the portal (from its distance, whichever way it 
   assert.equal(richAt(RICH.near), 1);
   let prev = -1;
   for (let d = RICH.far; d >= RICH.near; d -= 2000) { const g = richAt(d); assert.ok(g >= prev, 'rises steadily as you near it'); prev = g; }
-  assert.ok(richAt(39000) < 0.12, `subtle at the start of the default path (${richAt(39000).toFixed(2)})`);
-  assert.ok(richAt(20000) > 0.4 && richAt(20000) < 0.7, `about half way there (${richAt(20000).toFixed(2)})`);
+  assert.ok(richAt(25630) < 0.12, `subtle at the start of the default path (${richAt(25630).toFixed(2)})`);
+  assert.ok(richAt(13000) > 0.4 && richAt(13000) < 0.7, `about half way there (${richAt(13000).toFixed(2)})`);
   const count = (W, x, y) => { let n = 0; W.eachIn(W.clumps, x - 1200, y - 1200, x + 1200, y + 1200, (c, ox, oy) => { if (W.vis(c, ox, oy) > 0.5) n++; }); W.eachIn(W.vorticella, x - 1200, y - 1200, x + 1200, y + 1200, (v, ox, oy) => { if (W.vis(v, ox, oy) > 0.5) n++; }); return n; };
-  for (const [px, py] of [[0, 39000], [-27500, 27500], [36000, -15000]]) { // (39 mm off, as the default path lays it, in three directions)
+  for (const [px, py] of [[0, 25630], [-18123, 18123], [23660, -9840]]) { // (25.6 mm off, as the default path lays it, in three directions)
     const W = createWorld(11);
     // near the portal (1.5 mm short of it, on the way from the start), off to the side (as far again, square to the way)
     const L = Math.hypot(px, py), ux = px / L, uy = py / L;

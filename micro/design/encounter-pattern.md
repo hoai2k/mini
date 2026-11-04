@@ -89,8 +89,10 @@ walk around can be in safe areas too, because you can just avoid them."
   portals are now fixed: "Per-world placement", below);
   the amoeba (`game/amoeba/README.md`, "The slide") and the paramecium
   (`game/paramecium/README.md`, "Placed as you go": a 2D darkfield
-  slide since 2026-11-02, the director in 2D, five encounters including the
-  giant amoeba) followed; how to adopt it is at the top of
+  slide since 2026-11-02, the director in 2D, seven encounters including the
+  giant amoeba since 2026-11-04, laid in the gaps of a food trail that leads to
+  the portal and is rejoined from anywhere: "The food trail, more hunters")
+  followed; how to adopt it is at the top of
   `shared/director.js`.
   The bacterium (`game/bacterium/README.md`, "The way: placed as you
   go": the gates in order, the breaks held longer while the army is short,

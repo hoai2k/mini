@@ -36,7 +36,7 @@ const MAXREACH = 1700; // the longest thing's half-extent from its tile-local po
  * exponent); within leaf[0]..leaf[1] the slide turns to leaf litter (its cell net). The way back: within
  * back[0]..back[1] of the amoeba's patch, its slime trails and egested vacuoles thicken.
  */
-export const RICH = { far: 44000, near: 1200, shape: 1.2, leaf: [5200, 1400], back: [2400, 300] };
+export const RICH = { far: 29000, near: 1200, shape: 1.2, leaf: [5200, 1400], back: [2400, 300] }; // (far 44 mm before the food trail shortened the way to 25.6 mm)
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const smooth = (a, b, x) => { const k = clamp01((x - a) / (b - a)); return k * k * (3 - 2 * k); };
 /** The gradient at distance d from the portal (0 open water .. 1 at the leaf). */
@@ -73,8 +73,8 @@ export function createWorld(seed = 11) {
   // The opening view is composed after the card: two filaments crossing to the right of the start
   // (below you), a clump of detritus with a Vorticella colony up to the left, diatoms between.
   const filaments = [
-    { x0: sx + 40, y0: sy - 900, x1: sx + 420, y1: sy + 900, r: 19, z0: -55 * ZK, z1: -25 * ZK, cell: 92, pitch: 52, turns: 2, phase: 0.4, shade: 1.05 },
-    { x0: sx + 900, y0: sy - 465, x1: sx - 520, y1: sy + 510, r: 17, z0: 30 * ZK, z1: 70 * ZK, cell: 84, pitch: 46, turns: 1, phase: 2.0, shade: 0.95 },
+    { x0: sx + 40, y0: sy - 900, x1: sx + 420, y1: sy + 900, r: 19, z0: -55 * ZK, z1: -25 * ZK, cell: 150, pitch: 74, turns: 2, phase: 0.4, shade: 1.05 },
+    { x0: sx + 900, y0: sy - 465, x1: sx - 520, y1: sy + 510, r: 17, z0: 30 * ZK, z1: 70 * ZK, cell: 135, pitch: 66, turns: 1, phase: 2.0, shade: 0.95 },
   ].map((f) => { const L = Math.hypot(f.x1 - f.x0, f.y1 - f.y0); return { ...f, L, cx: (f.x0 + f.x1) / 2, cy: (f.y0 + f.y1) / 2, ang: Math.atan2(f.y1 - f.y0, f.x1 - f.x0) }; });
   for (let tries = 0; filaments.length < 7 && tries < 300; tries++) {
     const L = R(1500, 3000), a = R(0, Math.PI), cx = R(0, TILE), cy = R(0, TILE);
@@ -83,7 +83,7 @@ export function createWorld(seed = 11) {
     // keep filaments apart where they would lie on top of one another
     if (filaments.some((f) => Math.abs(Math.sin(f.ang - a)) < 0.25 && Math.hypot(f.cx - cx, f.cy - cy) < 380)) continue;
     const rad = R(16, 21);
-    filaments.push({ x0, y0, x1, y1, cx, cy, ang: a, L, r: rad, z0: zr(-110 * ZK, 110 * ZK), z1: zr(-110 * ZK, 110 * ZK), cell: R(70, 105), pitch: R(42, 60), turns: r() < 0.5 ? 1 : 2, phase: R(0, 6.28), shade: R(0.8, 1.15) });
+    filaments.push({ x0, y0, x1, y1, cx, cy, ang: a, L, r: rad, z0: zr(-110 * ZK, 110 * ZK), z1: zr(-110 * ZK, 110 * ZK), cell: R(120, 170), pitch: R(62, 88), turns: r() < 0.5 ? 1 : 2, phase: R(0, 6.28), shade: R(0.8, 1.15) });
   }
   // detritus clumps: golden-brown flocs of granules; some carry Vorticella
   const clumps = [];
@@ -150,7 +150,7 @@ export function createWorld(seed = 11) {
     const x0 = cx - Math.cos(a) * L / 2, y0 = cy - Math.sin(a) * L / 2, x1 = cx + Math.cos(a) * L / 2, y1 = cy + Math.sin(a) * L / 2;
     if (!segClear(x0, y0, x1, y1, 30)) continue;
     if (filaments.some((f) => Math.abs(Math.sin(f.ang - a)) < 0.25 && Math.hypot(f.cx - cx, f.cy - cy) < 300)) continue;
-    filaments.push({ id: filaments.length, rank: rank(), x0, y0, x1, y1, cx, cy, ang: a, L, r: R2(15, 21), z0: R2(-140 * ZK, 60 * ZK), z1: R2(-140 * ZK, 60 * ZK), cell: R2(70, 105), pitch: R2(42, 60), turns: r2() < 0.5 ? 1 : 2, phase: R2(0, 6.28), shade: R2(0.9, 1.2) });
+    filaments.push({ id: filaments.length, rank: rank(), x0, y0, x1, y1, cx, cy, ang: a, L, r: R2(15, 21), z0: R2(-140 * ZK, 60 * ZK), z1: R2(-140 * ZK, 60 * ZK), cell: R2(120, 170), pitch: R2(62, 88), turns: r2() < 0.5 ? 1 : 2, phase: R2(0, 6.28), shade: R2(0.9, 1.2) });
     n++;
   }
   for (let tries = 0, n = 0; n < 26 && tries < 900; tries++) {

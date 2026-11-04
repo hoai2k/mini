@@ -327,7 +327,7 @@ export const TEXT = {
       field: '0.9 mm',
       body: '0.12 mm',
       line: 'A fast swimmer covered in beating hairs, carrying green algae that feed it in the light.',
-      goal: 'Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium, the giant amoeba and the bladderwort.',
+      goal: 'Follow the food to the glowing portal, and avoid getting eaten by Dileptus, Didinium, the giant amoeba and the bladderwort.',
       controls: [
         ['LS', 'Swim'],
         ['RS', 'Deeper / shallower · peek'],
@@ -344,6 +344,9 @@ export const TEXT = {
         'At this size water is thick as syrup: stop swimming and you stop dead.',
         'Vorticella snap their stalks into a coil in a few thousandths of a second, then stretch out again slowly.',
         'Diatoms live in glass shells and glide along a slit in them, the raphe: the H you see in the middle.',
+        'The green tubes are Spirogyra, a pond alga: a chain of cells, each wound with a spiral ribbon of chloroplast.',
+        'The little golden ribbons are Fragilaria: diatoms that stay stuck together face to face after they divide.',
+        'Bacteria gather where there is food for them: follow the clumps and they lead to a leaf rotting on the bottom.',
       ],
     },
     bacterium: {
@@ -1924,7 +1927,7 @@ export const TEXT = {
       },
       title: 'Paramecium',
       sub: 'Paramecium bursaria, 120 µm, green with symbiotic Chlorella, in a drop of pond water under the microscope (darkfield). Quick and light: eat, dodge, and battle your way through the drop.',
-      note: 'Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium, the giant amoeba and the bladderwort. Eat {goal} prey to divide. A hunter winds up before it strikes: B blocks the strike, X jabs back, and a few blows drive it off (the red pips over it). Swim deeper or shallower (RS, LB/RB) through the drop; you only meet what is near your depth. X also sends a push wave ahead that moves whatever it reaches: diatoms slide, detritus crumbles, Vorticella snap shut. The drop grows greener and fuller toward the portal. LT/RT zoom out and in. Up to four players: press any button on another controller to join.',
+      note: 'Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium, the giant amoeba and the bladderwort. Follow the food: little clusters of glittering bacteria lead toward the leaf, each one in sight of the next; the hunters wait in the gaps between them. Eat {goal} prey to divide. A hunter winds up before it strikes: B blocks the strike, X jabs back, and a few blows drive it off (the red pips over it). Swim deeper or shallower (RS, LB/RB) through the drop; you only meet what is near your depth. X also sends a push wave ahead that moves whatever it reaches: diatoms slide, detritus crumbles, Vorticella snap shut. The drop grows greener and fuller toward the portal. LT/RT zoom out and in. Up to four players: press any button on another controller to join.',
     },
     features: {
       look: {
@@ -1979,6 +1982,7 @@ export const TEXT = {
       vortSpit: 'Knocked loose a bacterial clump from the Vorticella\'s bell!',
       dileptusRecoils: '{who}Blocked! The Dileptus recoils',
       eaten: '{who}Eaten: {by} {how}',
+      trailDone: '{who}Cluster eaten! The glint drifts toward the next one',
     },
     marks: {
       pool: 'Pool',
@@ -1999,6 +2003,7 @@ export const TEXT = {
       didiniumGone: '{who}The Didinium gives up and swims off',
       giantGone: '{who}The giant amoeba draws back and creeps away',
       trapSlack: 'The trap hangs slack: slip down onto the biofilm!',
+      trail: 'Follow the food: each clump leads toward the leaf',
     },
     status: {
       depth: '{um} µm deep',

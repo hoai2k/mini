@@ -36,11 +36,12 @@ import { createSwimState, stepSwim, dash as startDash, backOff, LENGTH, ZMIN, ZM
 import { makeWave, stepWaves, stepStir, bodyShove, pullTo, waveAt, WAVE } from './stir.js';
 import { drawCell, drawCellHalo, VARIETIES, beatRate } from './cell.js';
 import { createFocus, stepFocus, FOCUS } from './focus.js';
-import { drawScenery, drawDileptus, drawDidinium, drawGiant, drawTrap, drawBloom, drawPrey, drawLeaf, makeLeaf, drawBack, drawSpirillum, drawKinClump, drawFight, drawMiss, drawWaves, SPIRILLUM } from './draw.js';
+import { drawScenery, drawDileptus, drawDidinium, drawGiant, drawTrap, drawBloom, drawPrey, drawTrail, drawGlints, drawLeaf, makeLeaf, drawBack, drawSpirillum, drawKinClump, drawFight, drawMiss, drawWaves, SPIRILLUM } from './draw.js';
 import { createDileptus, stepDileptus, burstDileptus, createDidinium, stepDidinium, blockDidinium, DIDINIUM, createGiant, stepGiant, burstGiant, GIANT, createTrap, stepTrap, burstTrap, trapObstacles, trapGuarding, trapDoor, TRAP, jabFoe, hitFoe, FIGHT } from './foes.js';
 import { createBloom, placeBloom, stepBloom, gulpBloom, flingBloom, BLOOM } from './bloom.js';
 import { createPrey, stepPrey, gulpPrey, spill, PREY } from './prey.js';
-import { START, DEPTH, ZK, ZTOL, FIELD, ZOOM, BACK, DIRECTOR, ENCOUNTERS, DEFAULT_PATH, MET, DRIFT_TO, canPlace, didiniumHomes, trapAt, bandDist } from './route.js';
+import { START, DEPTH, ZK, ZTOL, FIELD, ZOOM, BACK, DIRECTOR, ENCOUNTERS, DEFAULT_PATH, MET, DRIFT_TO, canPlace, trapAt, bandDist, SQUADS, squadHomes, TRAIL, trailLine, PORTAL_DIST, FORWARD } from './route.js';
+import { createTrail, stepTrail, settle, aheadOf, nextFrom, nearCluster, live as trailLive } from './trail.js';
 import { clumpLayout, placeInFrame } from '../shared/kin-clump.js';
 import { t as tt, tx as ttx } from '../shared/text.js';
 import { createCamLock } from '../shared/camlock.js';
@@ -103,12 +104,20 @@ const gaugeDots = [];
 // --- the world ---
 const shapes = createShapes(renderer, { floorZ: DEPTH.min });
 const world = createWorld(11);
-const dileptus = createDileptus();
-const didinia = [createDidinium(0), createDidinium(1)];
+// the hunters (2026-11-04, "more enemies around to battle"): two Dileptus and four Didinium, brought out by
+// the encounters (route.js SQUADS: a Dileptus, a Didinium, a pair of Didinium, a pack of one of each)
+const dileptuses = [createDileptus(), createDileptus()];
+const didinia = [0, 1, 2, 3].map((i) => createDidinium(i));
+const allHunters = () => [...dileptuses, ...didinia, giant];
 const giant = createGiant();
 const trap = createTrap();
 const bloom = createBloom();
 const prey = createPrey();
+// the food trail toward the portal (trail.js): laid on the first step toward the default path's portal
+const trail = createTrail({ target: { x: START.x + Math.cos(FORWARD) * PORTAL_DIST, y: START.y + Math.sin(FORWARD) * PORTAL_DIST } });
+const TRAIL_LINE = trailLine(FORWARD);
+/** The glints: a finished cluster's sparkle drifting toward the next one ({ x, y, z, a, t }). */
+const glints = [];
 let leaf = { placed: false };
 const game = { eaten: 0, divided: 0, t: 0 };
 /** The jabs' push waves running now (stir.js): they shove, bend, snap and break what they reach. */
@@ -231,22 +240,26 @@ const director = createDirector({
   ...DIRECTOR, canPlace: (x, z, r) => canPlace(x, z, r), defaultPath: DEFAULT_PATH,
   entries: ENCOUNTERS.map((e) => ({
     ...e, single: true,
+    // (no encounter within TRAIL.clear of a food cluster: the hunters lie between them, a food stop is a breather)
+    fits: (x, z) => !nearCluster(trail, x, z, 0, TRAIL_LINE),
     place: (x, z, b) => {
       const y = z;
-      if (e.id === 'dileptus') { Object.assign(dileptus, { home: { x, y }, x: x - Math.cos(b) * 60, y: y - Math.sin(b) * 60, a: b + Math.PI, placed: true, mode: 'idle', t: 0, grace: 1.5, drives: 0 }); return dileptus; }
+      if (SQUADS[e.id]) {
+        const homes = squadHomes(e.id, x, y, b);
+        return SQUADS[e.id].map(([kind, i], j) => {
+          const [hx, hy] = homes[j];
+          if (kind === 'dileptus') return Object.assign(dileptuses[i], { home: { x: hx, y: hy }, x: hx - Math.cos(b) * 60, y: hy - Math.sin(b) * 60, a: b + Math.PI, placed: true, mode: 'idle', t: 0, grace: 1.5 + j * 2, drives: 0, interest: 1, target: null });
+          return Object.assign(didinia[i], { home: { x: hx, y: hy }, x: hx, y: hy, a: b + Math.PI, placed: true, mode: 'idle', t: 0, grace: 1 + j * 2.5, misses: 0, interest: 1, target: null });
+        });
+      }
       if (e.id === 'bloom') { placeBloom(bloom, x, y, b); return bloom; }
       if (e.id === 'giant') { Object.assign(giant, { home: { x, y }, x, y, placed: true, mode: 'roam', t: 0, grace: 1.5, pods: [] }); stepGiant(giant, [], 0); return giant; }
-      if (e.id === 'didinium') {
-        didiniumHomes(x, y, b).forEach(([hx, hy], i) => Object.assign(didinia[i], { home: { x: hx, y: hy }, x: hx, y: hy, a: b + Math.PI, placed: true, mode: 'idle', t: 0, grace: 1 + i * 2.5, misses: 0 }));
-        return didinia;
-      }
       return placePortalAt(x, y, b);
     },
     met: (h, [p]) => {
-      if (e.id === 'dileptus') return hyp(p.x - dileptus.home.x, p.z - dileptus.home.y) < MET.dileptus || hyp(p.x - dileptus.x, p.z - dileptus.y) < MET.dileptus;
+      if (SQUADS[e.id]) return h.some((f) => hyp(p.x - f.home.x, p.z - f.home.y) < MET[e.id] || hyp(p.x - f.x, p.z - f.y) < MET[e.id]);
       if (e.id === 'bloom') return bandDist(p.x, p.z, bloom.x, bloom.y, bloom.b) < MET.bloom;
       if (e.id === 'giant') return hyp(p.x - giant.x, p.z - giant.y) < MET.giant;
-      if (e.id === 'didinium') return didinia.some((d) => hyp(p.x - d.home.x, p.z - d.home.y) < MET.didinium || hyp(p.x - d.x, p.z - d.y) < MET.didinium);
       return hyp(p.x - FWD.x, p.z - FWD.y) < MET.portal;
     },
   })),
@@ -262,8 +275,9 @@ function driftEncounter(dt) {
   const L = s.leader && cells.find((c) => c.slot === s.leader.id);
   if (!L || s.phase !== 'placed' || s.current === 'portal' || s.leader.moving) { lingerT = 0; return; }
   lingerT += dt;
-  if (lingerT < 4) return;
-  const homes = s.current === 'dileptus' ? [dileptus.home] : s.current === 'giant' ? [giant.home, giant] : s.current === 'didinium' ? didinia.map((d) => d.home) : s.current === 'bloom' ? [bloom] : [];
+  if (lingerT < 10) return; // (not a stop to eat a cluster or to catch your breath: 4 s before the trail)
+  const squad = SQUADS[s.current] ? director.entry(s.current).handle || [] : [];
+  const homes = squad.length ? squad.map((f) => f.home) : s.current === 'giant' ? [giant.home, giant] : s.current === 'bloom' ? [bloom] : [];
   for (const o of homes) {
     const d = hyp(L.S.x - o.x, L.S.y - o.y);
     const stop = DRIFT_TO[s.current];
@@ -318,14 +332,13 @@ const hintOnce = (P, k, text, ms = 3200) => { if (P.hint[k]) return; P.hint[k] =
 const nearestThreatAngle = (P) => {
   let best = null, bd = 700;
   const consider = (x, y) => { const d = hyp(x - P.S.x, y - P.S.y); if (d < bd) { bd = d; best = Math.atan2(P.S.y - y, P.S.x - x); } };
-  if (dileptus.placed) consider(dileptus.x, dileptus.y);
-  for (const d of didinia) if (d.placed) consider(d.x, d.y);
+  for (const d of [...dileptuses, ...didinia]) if (d.placed && d.mode !== 'parked') consider(d.x, d.y);
   if (giant.placed) consider(giant.x, giant.y);
   if (trap.placed) { const D = trapDoor(trap); consider(D.x, D.y); }
   return best;
 };
 /** The hunters a jab can meet. */
-const hunters = () => [dileptus, ...didinia, giant].filter((f) => f.placed && f.mode !== 'parked');
+const hunters = () => allHunters().filter((f) => f.placed && f.mode !== 'parked');
 /** A hunter close enough to fight (in the plane and in depth): X jabs before it eats. */
 const inFight = (P) => hunters().some((f) => {
   const r = f.kind === 'giant' ? GIANT.R + 260 : 380, z = f.kind === 'giant' ? GIANT.top : f.z;
@@ -390,6 +403,7 @@ function landed(P, f, result, x, y) {
   void x; void y;
 }
 function foeGivesUp(f, P) {
+  f.beaten = true;
   audio.play('shared/foe-flees', { volume: 0.7 });
   hud.toast(tt(f.kind === 'giant' ? 'paramecium.hints.giantGone' : f.kind === 'didinium' ? 'paramecium.hints.didiniumGone' : 'paramecium.hints.dileptusGone', { who: who(P) }), 2400);
   log('fled', f.kind, P);
@@ -444,13 +458,15 @@ function defend(P) {
   audio.play('paramecium/reverse', { volume: 0.7 });
   P.block = 0;
   let blocked = false;
-  const rD = burstDileptus(dileptus, P);
-  if (rD === 'driven' || rD === 'beaten') {
-    blocked = true; log('block', 'dileptus:' + rD, P);
-    audio.play('shared/block', { volume: 0.9, old: ['paramecium/stun', { volume: 0.8 }] });
-    if (rD === 'beaten') foeGivesUp(dileptus, P);
-    else hud.toast(tt('paramecium.toasts.dileptusRecoils', { who: who(P) }), 2200);
-  } else if (rD === 'early') log('burst', 'dileptus:early', P);
+  for (const dileptus of dileptuses) {
+    const rD = burstDileptus(dileptus, P);
+    if (rD === 'driven' || rD === 'beaten') {
+      blocked = true; log('block', 'dileptus:' + rD, P);
+      audio.play('shared/block', { volume: 0.9, old: ['paramecium/stun', { volume: 0.8 }] });
+      if (rD === 'beaten') foeGivesUp(dileptus, P);
+      else hud.toast(tt('paramecium.toasts.dileptusRecoils', { who: who(P) }), 2200);
+    } else if (rD === 'early') log('burst', 'dileptus:early', P);
+  }
   for (const d of didinia) {
     const r = blockDidinium(d, P);
     if (!r) continue;
@@ -495,8 +511,7 @@ function respawn(P) {
     for (let k = 0; k < 12; k++) {
       const a = (k / 12) * TAU, cx = bx + Math.cos(a) * 650, cy = by + Math.sin(a) * 650;
       let d = 1e9;
-      if (dileptus.placed) d = Math.min(d, hyp(cx - dileptus.x, cy - dileptus.y));
-      for (const q of didinia) if (q.placed) d = Math.min(d, hyp(cx - q.x, cy - q.y));
+      for (const q of [...dileptuses, ...didinia]) if (q.placed && q.mode !== 'parked') d = Math.min(d, hyp(cx - q.x, cy - q.y));
       if (giant.placed) d = Math.min(d, hyp(cx - giant.x, cy - giant.y) - GIANT.R);
       if (trap.placed) d = Math.min(d, hyp(cx - trap.x, cy - trap.y) - 300);
       if (bloom.placed) d = Math.min(d, bandDist(cx, cy, bloom.x, bloom.y, bloom.b) + 200);
@@ -506,7 +521,7 @@ function respawn(P) {
   Object.assign(P.S, { x, y, z: clamp(z, ZMIN, ZMAX), v: 0, dashT: 0, backT: 0 });
   P.live = true; P.dead = null; P.spawn = 0; P.invuln = 2.5; P.charges = 3;
   audio.play('shared/reform', { volume: 0.7 });
-  for (const f of [dileptus, ...didinia]) if (f.target === P) { f.target = null; if (f.mode !== 'parked') f.mode = 'idle'; f.grace = 3; }
+  for (const f of [...dileptuses, ...didinia]) if (f.target === P) { f.target = null; if (f.mode !== 'parked') f.mode = 'idle'; f.grace = 3; }
 }
 
 // ---------------------------------------------------------------- landmarks: the portal and the way back
@@ -819,7 +834,7 @@ function stepStirring(dt) {
   if (trap.wob) { trap.wob *= Math.exp(-dt * 2.5); if (trap.wob < 0.01) trap.wob = 0; }
   // open Vorticella draw drifting food into their bells (their feeding current): food gathers at them
   for (const p of prey.list) {
-    if (p.dying > 0 || p.kind !== 'clump') continue;
+    if (p.dying > 0 || p.kind !== 'clump' || p.trail !== undefined) continue;
     world.eachIn(world.vorticella, p.x - 170, p.y - 170, p.x + 170, p.y + 170, (v, ox, oy) => {
       if (!world.vortOpen(v) || world.vis(v, ox, oy) < 0.5) return;
       const q = world.vortPose(v, ox, oy, t);
@@ -859,21 +874,61 @@ function stepRich(dt) {
   }
   world.setRichRef(richRef.x, richRef.y);
 }
+/**
+ * The food trail (trail.js): clusters of food every ~1.4 screen heights leading to the portal (rejoined from
+ * wherever you wander, placed where nobody has looked); a cluster's food joins the prey when someone comes
+ * near; eaten to the last, a soft chime and a glint drifting toward the next cluster (not an arrow).
+ */
+function stepFood(dt) {
+  const ps = director.portals();
+  const target = leaf.placed ? { x: FWD.x, y: FWD.y } : ps.length ? { x: ps[0].x, y: ps[0].z } : null;
+  const busy = (x, y) => {
+    // an encounter's spot (each hunter's home, the giant, the bloom's band, the trap): no cluster on it
+    for (const f of [...dileptuses, ...didinia]) if (f.placed && f.mode !== 'parked' && !f.beaten && f.home && hyp(f.home.x - x, f.home.y - y) < TRAIL.clear) return true;
+    if (giant.placed && giant.mode !== 'parked' && hyp(giant.x - x, giant.y - y) < TRAIL.clear + GIANT.R) return true;
+    if (bloom.placed && bandDist(x, y, bloom.x, bloom.y, bloom.b) < TRAIL.clear) return true;
+    return trap.placed && hyp(trap.x - x, trap.y - y) < TRAIL.clear + 300;
+  };
+  stepTrail(trail, { dt, players: cells.map((c) => ({ id: c.slot, x: c.S.x, y: c.S.y, alive: c.live })), target, seen: (x, y) => director.seenAt(x, y), inView: (x, y, r) => director.visibleNow(x, 0, y, r), blocked: busy });
+  for (const c of trail.clusters) {
+    if (c.active || !trailLive(c) || !cells.some((P) => hyp(P.S.x - c.x, P.S.y - c.y) < TRAIL.activate)) continue;
+    c.active = true;
+    prey.list.push(...c.items);
+  }
+  for (const c of settle(trail)) {
+    const n = nextFrom(trail, c.x, c.y);
+    const a = n ? Math.atan2(n.y - c.y, n.x - c.x) : target ? Math.atan2(target.y - c.y, target.x - c.x) : FORWARD;
+    glints.push({ x: c.x, y: c.y, z: c.z, a, t: 0 });
+    audio.play('shared/portal-chime', { volume: 0.32, rate: 1.35 });
+    log('trail', 'cluster ' + c.id, P1);
+    const P = cells.find((q) => hyp(q.S.x - c.x, q.S.y - c.y) < 400) || P1;
+    hintOnce(P, 'trailDone', tt('paramecium.toasts.trailDone'), 3200);
+  }
+  for (const g of glints) g.t += dt;
+  while (glints.length && glints[0].t > 1.6) glints.shift();
+  if (game.t > 2.5) hintOnce(P1, 'trail', tt('paramecium.hints.trail'), 4200);
+}
 let bloomDrag = new Map(), trapPush = new Map();
 function stepWorld(dt) {
   game.t += dt;
   const list = foeView();
   const ev = [];
-  ev.push(...stepDileptus(dileptus, list, dt));
+  // a food stop is a breather: a hunter idling nearby does not take up the hunt while someone is at a cluster
+  // (one already after you follows you in; the danger is the way between)
+  const atFood = cells.some((P) => P.live && trail.clusters.some((c) => c.active && trailLive(c) && hyp(c.x - P.S.x, c.y - P.S.y) < TRAIL.r + 110));
+  if (atFood) for (const f of [...dileptuses, ...didinia]) if (f.placed && f.mode === 'idle') f.grace = Math.max(f.grace, 0.1);
+  for (const d of dileptuses) ev.push(...stepDileptus(d, list, dt));
   for (const d of didinia) ev.push(...stepDidinium(d, list, dt));
   ev.push(...stepGiant(giant, list, dt));
   const tr = stepTrap(trap, list, dt);
   ev.push(...tr.ev);
   trapPush = tr.pushes;
   bloomDrag = stepBloom(bloom, list, dt);
-  // more food toward the biofilm (the gradient: world.js RICH)
-  stepPrey(prey, list, dt, t, (P) => PREY.perPlayer + Math.round(4 * world.rich(P.S.x, P.S.y)));
+  // loose food round you (fewer than before the trail, so its clusters stand out), more toward the biofilm
+  // (the gradient: world.js RICH)
+  stepPrey(prey, list, dt, t, (P) => PREY.loose + Math.round(3 * world.rich(P.S.x, P.S.y)));
   stepRich(dt);
+  stepFood(dt);
   stepStirring(dt);
   // what the giant covers, it eats too (prey, algae)
   if (giant.placed) {
@@ -894,6 +949,11 @@ function stepWorld(dt) {
     else if (e.type === 'fled') { audio.play('shared/foe-flees', { volume: 0.7 }); hud.toast(tt('paramecium.hints.dileptusGone', { who: '' }), 2000); }
     else if (e.type === 'trap-spent') hud.toast(tt('paramecium.hints.trapSlack'), 2800);
     if (/^(kill|miss|fled|rest|trap-)/.test(e.type)) log(e.type, e.who ? e.who.kind : e.by || '', e.P);
+  }
+  // hunters given up and left far behind leave the drop (out of every view): the way on stays uncluttered
+  for (const f of [...dileptuses, ...didinia]) {
+    if (!f.placed || f.mode !== 'idle' || !(f.grace > 0) || !f.beaten) continue;
+    if (cells.every((P) => hyp(P.S.x - f.x, P.S.y - f.y) > 2600) && !director.visibleNow(f.x, 0, f.y, 400)) { f.placed = false; f.mode = 'parked'; }
   }
   // director
   const dev = director.update(dt, dirPlayers(), directorViews());
@@ -983,13 +1043,15 @@ function fill(rect, lod = 1, focalOf = () => focalNow) {
   if (leaf.placed) drawLeaf(G, leaf, t, { lawn: outro ? 1 - 0.75 * diveLight - 0.25 * sm01(SLIME[0], DIVE.fade[0], outro.u || 0) : 1 });
   drawGiant(G, giant, t);
   drawBloom(G, bloom, rect, t);
+  drawTrail(G, trail, rect, t);
   drawPrey(G, prey, rect, t);
+  drawGlints(G, glints);
   drawTrap(G, trap, t);
   for (const d of didinia) drawDidinium(G, d, t);
-  drawDileptus(G, dileptus, t);
+  for (const d of dileptuses) drawDileptus(G, d, t);
   // fighting back: a blow that landed flashes on the hunter, and its interest shows over it while it hunts
   const up = fromFrameOffset({ x: 0, y: 1 });
-  for (const f of [dileptus, ...didinia, giant]) drawFight(G, f, t, [up.x, up.y], [view.cx, view.cy]);
+  for (const f of allHunters()) drawFight(G, f, t, [up.x, up.y], [view.cx, view.cy]);
   if (leaf.placed) {
     const clumpK = outro ? sm01(0, OUTRO.beat + OUTRO.ease, outro.t) * (outro.frozenAt !== null ? 1 - outro.scale : 1) : 0;
     drawKinClump(G, spir, clumpK, 1 - sm01(SLIME[0], SLIME[1], outro ? outro.u || 0 : 0));
@@ -1140,7 +1202,7 @@ function updateHud() {
     if (C.engulfed) { warn = tt('paramecium.warn.engulfed', { who: who(C), glyph }); break; }
     if (trap.state === 'pulse' && trapPush.has(C)) { warn = tt('paramecium.warn.trapPulls', { who: who(C), glyph }); break; }
     for (const d of didinia) if (d.target === C && /crouch|lunge/.test(d.mode)) warn = tt('paramecium.warn.didinium', { who: who(C), glyph });
-    if (dileptus.target === C && /windup|strike/.test(dileptus.mode)) warn = tt('paramecium.warn.dileptus', { who: who(C), glyph });
+    for (const d of dileptuses) if (d.target === C && /windup|strike/.test(d.mode)) warn = tt('paramecium.warn.dileptus', { who: who(C), glyph });
     if (!warn && giant.placed && giant.target === C && hyp(C.S.x - giant.x, C.S.y - giant.y) < GIANT.R + 320) warn = tt('paramecium.warn.giant', { who: who(C) });
   }
   const s = director.state();
@@ -1261,13 +1323,23 @@ Object.assign(debug, {
   /** The gradient toward the portal at (x, y) (0 open water .. 1 at the leaf) and its reference. */
   rich(x = P1.S.x, y = P1.S.y) { return { g: world.rich(x, y), leaf: world.leafK(x, y), back: world.backK(x, y), ref: { ...richRef } }; },
   place(id, x, y, b = 0) { director.force(id, x, y, b); return director.entry(id); },
+  /** The food trail: each cluster ({ id, kind 'path' | 'rejoin', x, y, z, n, left, seen, done, ... }) and the next ones on the way for P1. */
+  trail() {
+    const ahead = aheadOf(trail, P1.S.x, P1.S.y).map((c) => c.id);
+    return { target: trail.target, ahead, clusters: trail.clusters.map((c) => ({ id: c.id, kind: c.kind, k: c.k, x: Math.round(c.x), y: Math.round(c.y), z: Math.round(c.z), n: c.n, left: c.items.filter((i) => !(i.dying > 0)).length, seen: c.seenT !== null, active: c.active, done: c.done, gone: c.gone, dropped: c.dropped })) };
+  },
   /**
    * A rush without rendering (tests): the real game logic stepped at 1/30 s, player 1 swimming along
    * `bearing` at full stick and dashing whenever it can, heading for the portal once it is open and near, `safe`
    * (no deaths) by default. Returns when each encounter was placed and met, and when the portal was reached.
+   * dash: false holds the stick without dashing; steer(t, { x, y, a, s }) -> a bearing (or null to keep it);
+   * sight: how near the open leaf must be before it is steered for. follow: the food trail instead (to the
+   * nearest clump of the nearest unfinished cluster on the way, gulping each at its depth, then the next).
+   * fight: face a hunter that comes at you and jab it (B when it winds up or crouches at you; over the giant,
+   * up near the glass), as a player would, instead of swimming through.
    */
-  rush({ bearing = 0.6, seconds = 120, safe = true, dash = true, steer = null, sight = 1600 } = {}) {
-    const DT = 1 / 30, out = { placed: {}, met: {}, deaths: 0, track: [] };
+  rush({ bearing = 0.6, seconds = 120, safe = true, dash = true, steer = null, sight = 1600, follow = false, fight = false } = {}) {
+    const DT = 1 / 30, out = { placed: {}, met: {}, deaths: 0, track: [], clusters: 0, fights: 0 };
     const base = director.log.length;
     let a = bearing;
     for (let k = 0; k < seconds / DT; k++) {
@@ -1276,12 +1348,45 @@ Object.assign(debug, {
       const s = director.state();
       const toLeaf = leaf.placed && !portalSealed() && hyp(FWD.x - P1.S.x, FWD.y - P1.S.y) < sight; // (only once in sight: a player has no arrow)
       if (P1.engulfed && P1.charges > 0 && !(k % 15)) defend(P1); // (held in the giant's cup: burst out, as a player would)
-      if (toLeaf) a = Math.atan2(FWD.y - P1.S.y, FWD.x - P1.S.x);
-      else if (steer) { const b = steer(game.t, { x: P1.S.x, y: P1.S.y, a, s }); if (b !== null && b !== undefined) a = b; }
-      if (dash && P1.S.dashCd <= 0) startDash(P1.S, a);
+      let m = 1, dz = null;
+      // fighting: a hunter at you is faced and jabbed (blocked in its tell); the giant is passed over
+      const foe = fight && hunters().filter((f) => f.kind !== 'giant' && f.target === P1 && !/flee|parked|rest/.test(f.mode) && hyp(f.x - P1.S.x, f.y - P1.S.y) < 420).sort((p, q) => hyp(p.x - P1.S.x, p.y - P1.S.y) - hyp(q.x - P1.S.x, q.y - P1.S.y))[0];
+      const overGiant = fight && giant.placed && giant.mode !== 'parked' && hyp(giant.x - P1.S.x, giant.y - P1.S.y) < GIANT.R + 380;
+      if (foe) {
+        a = Math.atan2(foe.y - P1.S.y, foe.x - P1.S.x);
+        const d = hyp(foe.x - P1.S.x, foe.y - P1.S.y);
+        m = d > 150 ? 0.6 : 0.05;
+        dz = foe.z;
+        if (/windup|crouch/.test(foe.mode) && !(P1.blockT > game.t)) { defend(P1); P1.blockT = game.t + 0.6; }
+        else if (d < 170 && P1.jabCd <= 0) attack(P1);
+        if (!P1.fighting) { P1.fighting = true; out.fights++; }
+      } else P1.fighting = false;
+      if (overGiant) dz = DEPTH.max - 30;
+      if (toLeaf) {
+        a = Math.atan2(FWD.y - P1.S.y, FWD.x - P1.S.x);
+        // (the trap stands between: round it, by the side you are on)
+        if (trap.placed && hyp(trap.x - P1.S.x, trap.y - P1.S.y) < TRAP.a + 160) { const side = Math.sign((trap.x - P1.S.x) * Math.sin(a) - (trap.y - P1.S.y) * Math.cos(a)) || 1; a += side * 1.1; }
+      } else if (foe) { /* facing it */ }
+      else if (follow) {
+        // (a cluster it has spent 8 s at is left, as a player would leave a clump it cannot get at)
+        const c = aheadOf(trail, P1.S.x, P1.S.y).filter((q) => !((q.rushT || 0) > 8))[0];
+        if (c && hyp(c.x - P1.S.x, c.y - P1.S.y) < 200) c.rushT = (c.rushT || 0) + DT;
+        const fx = P1.S.x + Math.cos(P1.S.a) * LENGTH * 0.45, fy = P1.S.y + Math.sin(P1.S.a) * LENGTH * 0.45;
+        const it = c && c.items.filter((i) => !(i.dying > 0)).sort((p, q) => hyp(p.x - fx, p.y - fy) - hyp(q.x - fx, q.y - fy))[0];
+        if (it) {
+          const d = hyp(it.x - fx, it.y - fy);
+          // (the mouth to it: under the body, the cell turns round to bring its oral end over it)
+          a = Math.atan2(it.y - fy, it.x - fx);
+          m = Math.min(1, Math.max(0.2, d / 160));
+          if (!overGiant) dz = it.z;
+          if (d < PREY.reach * 0.95 && Math.abs(it.z - P1.S.z) < PREY.dz * 0.9 && P1.jabCd <= 0 && !(P1.gulpT > game.t)) { attack(P1); P1.gulpT = game.t + 0.25; }
+        } else if (trail.target) a = Math.atan2(trail.target.y - P1.S.y, trail.target.x - P1.S.x);
+      } else if (steer) { const b = steer(game.t, { x: P1.S.x, y: P1.S.y, a, s }); if (b !== null && b !== undefined) a = b; }
+      else a = bearing;
+      if (dash && !foe && P1.S.dashCd <= 0) startDash(P1.S, a);
       if (k % 30 === 0) out.track.push([+game.t.toFixed(1), Math.round(P1.S.x), Math.round(P1.S.y)]);
       if (guarded() && hyp(P1.S.x - FWD.x, P1.S.y - FWD.y) < 900) debug.spendTrap();
-      const input = { mx: Math.cos(a), my: Math.sin(a), m: 1, depth: toLeaf && hyp(P1.S.x - FWD.x, P1.S.y - FWD.y) < 700 ? -1 : 0 };
+      const input = { mx: Math.cos(a), my: Math.sin(a), m, depth: toLeaf && hyp(P1.S.x - FWD.x, P1.S.y - FWD.y) < 700 ? -1 : dz !== null ? clamp((dz - P1.S.z) / 30, -1, 1) : 0 };
       for (const P of cells) stepPlayer(P, DT, P === P1 ? input : { mx: 0, my: 0, m: 0, depth: 0 });
       stepWorld(DT); stepLandmarks(DT); stepCamera(DT);
       lastViews = [{ cx: view.cx, cy: view.cy, hw: baseField() * P1.zoom / 2, hh: baseField() * P1.zoom / 2 * aspect() }];
@@ -1289,12 +1394,15 @@ Object.assign(debug, {
       if (P1.atPortal && !portalSealed() && !guarded()) { out.portal = +game.t.toFixed(1); break; }
     }
     for (const e of director.log.slice(base)) { if (e.type === 'placed' && !(e.id in out.placed)) out.placed[e.id] = +e.t.toFixed(1); if (e.type === 'met') out.met[e.id] = +e.t.toFixed(1); }
+    out.clusters = trail.clusters.filter((c) => c.done).length;
+    out.trail = trail.log.filter((e) => e.type === 'done').map((e) => e.t);
+    out.eaten = game.eaten + GOAL * game.divided;
     return out;
   },
 });
 window.__micro = {
   get t() { return t; }, scene: shapes.scene, renderer, split, get layout() { return split.layout; }, players, cells, P1, view, world, director,
-  dileptus, didinia, giant, trap, bloom, prey, get leaf() { return leaf; }, spir, game, debug, features, glow, waves,
+  dileptuses, get dileptus() { return dileptuses[0]; }, didinia, giant, trap, bloom, prey, trail, glints, get leaf() { return leaf; }, spir, game, debug, features, glow, waves,
   /** run.mjs and perf compatibility: P1's state (swimmer.state.center). */
   swimmer: { get state() { return { ...P1.S, center: { x: P1.S.x, y: P1.S.y, z: P1.S.z } }; } },
   /** teleport(x, y, a, slot); perf's 6-argument call (x, y, z, yaw, pitch, slot) works too. */
@@ -1304,7 +1412,7 @@ window.__micro = {
   portalSealed, guarded, portalArrow: () => arrowLog,
   enterPortal(slot = 0) { enterPortal(cells.find((c) => c.slot === slot) || P1); },
   OUTRO, DIVE, ZOOM, FIGHT,
-  foes: () => [dileptus, ...didinia, giant].map((f) => ({ kind: f.kind, mode: f.mode, placed: f.placed, x: +f.x.toFixed(1), y: +f.y.toFixed(1), z: +(f.z ?? 0).toFixed(1), interest: +(f.interest ?? 1).toFixed(2), hitT: f.hitT })),
+  foes: () => allHunters().map((f) => ({ kind: f.kind, mode: f.mode, placed: f.placed, x: +f.x.toFixed(1), y: +f.y.toFixed(1), z: +(f.z ?? 0).toFixed(1), interest: +(f.interest ?? 1).toFixed(2), hitT: f.hitT })),
   outro: () => outro && { t: +outro.t.toFixed(3), scale: +outro.scale.toFixed(3), frozen: outro.frozenAt !== null, u: outro.u, light: +diveLight.toFixed(3) },
   spirillum: () => ({ x: spir.x, y: spir.y, z: spir.z, a: spir.a, pose: spirPose() }),
   cellPose,

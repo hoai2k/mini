@@ -1,15 +1,15 @@
 // The paramecium's encounters, placed as you go, without a browser: the
-// director (route.js: the Dileptus, the Chlamydomonas bloom, the giant
-// amoeba, the two Didinium, then the bladderwort trap guarding the biofilm)
+// director (route.js: a Dileptus, a Didinium, the Chlamydomonas bloom, a pair
+// of Didinium, the giant amoeba, a pack, then the bladderwort trap guarding the biofilm)
 // as a cell rushes out in 16 directions, stands still at the start, heads out
 // and turns back, or follows the default path. The view is the 2D slide's:
 // a rectangle FIELD wide round the cell (16:9), with main.js's 1.2 margin.
 //   node micro/game/paramecium/route.test.mjs
 import assert from 'node:assert/strict';
 import { createDirector } from '../shared/director.js';
-import { DIRECTOR, DEFAULT_PATH, ENCOUNTERS, MET, DRIFT_TO, canPlace, START, BACK, FIELD, RUSH, didiniumHomes, trapAt, bandDist, FORWARD } from './route.js';
+import { DIRECTOR, DEFAULT_PATH, ENCOUNTERS, MET, DRIFT_TO, canPlace, START, BACK, FIELD, RUSH, squadHomes, trapAt, bandDist, FORWARD } from './route.js';
 
-const ORDER = ['dileptus', 'bloom', 'giant', 'didinium', 'portal'];
+const ORDER = ['dileptus', 'didinium', 'bloom', 'pair', 'giant', 'pack', 'portal'];
 assert.deepEqual(ENCOUNTERS.map((e) => e.id), ORDER, 'the order');
 assert.ok(ENCOUNTERS.at(-1).final);
 assert.equal(DIRECTOR.mode, '2d', 'a 2D slide');
@@ -42,16 +42,14 @@ function game({ seconds, move, check = false, path = false }) {
   const H = {};
   const place = (id) => (x, z, b) => {
     for (const [px, pz, r] of partsOf(id, x, z, b)) if (D.visibleNow(px, 0, pz, r)) bad.push(`${id} placed in view`);
-    H[id] = id === 'didinium' ? didiniumHomes(x, z, b).map(([hx, hz]) => ({ x: hx, z: hz })) : id === 'portal' ? { x, z, b, trap: trapAt(x, z, b) } : { x, z, b };
+    H[id] = id === 'portal' ? { x, z, b, trap: trapAt(x, z, b) } : id === 'bloom' ? { x, z, b } : squadHomes(id, x, z, b).map(([hx, hz]) => ({ x: hx, z: hz }));
     return H[id];
   };
   const near = (h, p, r) => Math.hypot(p.x - h.x, p.z - h.z) < r;
   const met = {
-    dileptus: (h, [p]) => near(h, p, MET.dileptus),
     bloom: (h, [p]) => bandDist(p.x, p.z, h.x, h.z, h.b) < MET.bloom,
-    giant: (h, [p]) => near(h, p, MET.giant),
-    didinium: (h, [p]) => h.some((q) => near(q, p, MET.didinium)),
     portal: (h, [p]) => near(h, p, MET.portal),
+    ...Object.fromEntries(['dileptus', 'didinium', 'pair', 'giant', 'pack'].map((id) => [id, (h, [p]) => h.some((q) => near(q, p, MET[id]))])),
   };
   D = createDirector({ ...DIRECTOR, canPlace, ...(path ? { defaultPath: DEFAULT_PATH } : {}), entries: ENCOUNTERS.map((e) => ({ ...e, place: place(e.id), met: met[e.id], ...(path ? { single: true } : {}) })) });
   const p = { id: 0, x: START.x, z: START.y };
@@ -67,7 +65,7 @@ function game({ seconds, move, check = false, path = false }) {
     const s = D.state();
     if (s.current && s.current !== 'portal' && s.phase === 'placed' && H[s.current] && D.entry(s.current).handle === H[s.current]) {
       driftT ??= t;
-      if (t - driftT > 4 && !s.leader.moving) for (const h of [H[s.current]].flat()) {
+      if (t - driftT > 10 && !s.leader.moving) for (const h of [H[s.current]].flat()) {
         const d = Math.hypot(p.x - h.x, p.z - h.z);
         if (d > DRIFT_TO[s.current]) { h.x += ((p.x - h.x) / d) * 300 * DT; h.z += ((p.z - h.z) / d) * 300 * DT; }
       }
@@ -141,14 +139,14 @@ assert.deepEqual(rp.changed, [], 'default path: explored cells unchanged');
 assert.deepEqual(rp.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, 'default path: in order');
 assert.ok(rp.ev.filter((e) => e.type === 'met').every((e) => e.via === 'default' || e.instance === 'default' || e.how === 'met'), 'default path: met where they lie');
 const pathPortal = at(rp.ev, 'met', 'portal').t;
-assert.ok(pathPortal >= 40 && pathPortal <= 65, `default path: the portal in about a minute (${pathPortal.toFixed(1)} s)`);
+assert.ok(pathPortal >= 25 && pathPortal <= 45, `default path: the portal in about half a minute, dashing (${pathPortal.toFixed(1)} s)`);
 // ---- straight ahead (the owner, 2026-11-03: "make the forward path the one of discovery"): the view keeps
 // the slide's +y up the screen (FORWARD), and the default path runs along it; holding the stick up (only
 // turning for the leaf once it is within a view's height) meets the pre-placed order where it lies, the
 // first after the warm-up, at roughly even spacing, the portal in about a minute rushing
 assert.ok(Math.abs(DEFAULT_PATH.bearing - FORWARD) < 1e-12 && Math.abs(FORWARD - Math.PI / 2) < 1e-12, 'the default path runs up the screen');
 const straightRows = [];
-for (const [speed, label, firstMax, portalMax] of [[RUSH, 'rushing', 12, 65], [RUSH * 0.6, 'swimming without dashes', 20, 110]]) {
+for (const [speed, label, firstMax, portalMax] of [[RUSH, 'rushing', 8, 45], [RUSH * 0.6, 'swimming without dashes', 12, 75]]) {
   const r = game({ seconds: 220, path: true, check: true, move: (t, p, D, H) => {
     const P = D.entry('portal').def;
     swim(p, D.state().current === 'portal' && P && Math.hypot(P.x - p.x, P.z - p.z) < FIELD * 0.9 ? toward(p, P) : FORWARD, speed);
@@ -174,6 +172,6 @@ for (const a0 of [DEFAULT_PATH.bearing + Math.PI, DEFAULT_PATH.bearing + Math.PI
   assert.deepEqual(r.ev.filter((e) => e.type === 'met').map((e) => e.id), ORDER, `off the path (${a0.toFixed(2)}): in order`);
 }
 
-console.log(`ok: 16 rushes: first placed ${span('first')}, Dileptus met ${span('dileptus')}, bloom ${span('bloom')}, giant ${span('giant')}, Didinium ${span('didinium')}, portal reached ${span('portal')}`);
+console.log(`ok: 16 rushes: first placed ${span('first')}, ${ORDER.map((id) => `${id} met ${span(id)}`).join(', ')}`);
 console.log(`ok: lingering: portal placed near them at ${lingerPortal.toFixed(1)} s; turning back: portal at ${turns.join(', ')} s; default path: portal at ${pathPortal.toFixed(1)} s`);
 console.log(`ok: straight ahead: ${straightRows.join('; ')}`);

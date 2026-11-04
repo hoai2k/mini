@@ -168,6 +168,121 @@ bloom 22.5, the giant amoeba 36.4, the Didinium 50.7, the leaf's edge (700
 µm) at 65.2 s, never killed; the gradient read 0.07, 0.26, 0.47, 0.68 and
 0.93 at 0, 15, 30, 45 and 60 s.
 
+## The food trail, more hunters, and the ladders (2026-11-04)
+
+The owner: "on the paramecium world, what are those rectangular things that
+look like ladders? Also, can we have more enemies around to battle, and also I
+couldn't find the portal. Can we have little groups of food as frequent
+checkpoints on the way to the portal so that if you follow that and eat all
+the food you'll be getting closer and closer. We should have frequent enemies,
+but in between the food areas mostly, not on top of them."
+
+**The ladders** were two things drawn as ladders. The *Fragilaria* ribbons
+(`drawDiatom`, `rect`: about a quarter of the diatoms, 60-120 × 32-55 µm) were
+a hard bright rectangle crossed by a bright line at every 9 µm cell: a
+rectangle with rungs. And the *Spirogyra* filaments (`drawSpirogyra`) had two
+straight bright white walls with a bright cross wall every 70-105 µm: rails
+and rungs, with the chloroplast's front half reading as more rungs. Now a
+*Fragilaria* ribbon is a colony of diatom cells joined face to face, each its
+own soft oval glass ring with a golden-brown chloroplast, the ribbon wavering a
+little; a *Spirogyra* filament is a soft pale-green tube, each cell a little
+rounded (fuller in the middle, pinched in at its cross walls), its cells longer
+(120-170 µm), its cross walls faint and bowed, and its chloroplast a softer,
+wider ribbon whose far side shows too, so it reads as one spiral (pitch 62-88
+µm). A field note says what they are.
+
+**Why the portal was hard to find** (measured on the build before this one,
+`debug.rush` in the page with W held and no dashes, the leaf steered for only
+once it is on screen):
+
+- straight up the screen it was there at 64.5 s, 39 mm out (~75 s with the
+  stops), with nothing on screen saying "this way": the gradient (`rich`) rose
+  from 0.07 to 1 over 39 mm, about 2.5 % a screen height, which no one can read
+  as a direction;
+- the food pulled you round in circles: six prey were kept round you, born in
+  every direction. A player chasing the nearest food stayed within ~3 mm of the
+  start for four minutes: every encounter came to them (placed as you go),
+  then the portal was placed 2.7-4.6 mm away in whichever way they happened to
+  be swimming; in one run it was never seen in 240 s, in another reached at
+  185 s;
+- off the line by 30-45° and holding it, the portal was placed ahead of you
+  as you went and reached at 52-58 s; 60° off, it was also placed ahead, but
+  the giant amoeba held the cell (no burst) for 80 s; out 60° and back up, 85 s.
+
+So it was not placed anywhere strange: the way was long, the only cue was too
+gentle to read, and the food pointed nowhere.
+
+**The food trail** (`trail.js`; `route.js` `TRAIL`): little clusters of food
+(4-6 bacterial clumps within 62 µm, at one depth near mid-drop, pulsing a
+paler gold than the drop's other gold over a faint warm haze, `drawTrail`)
+from the start to the portal. On the first step the default path's chain is
+laid: the first 300 µm up the screen (in the opening view), then one every
+1.2 mm (1.27 screen heights at the start zoom: the next comes in at the top
+edge as you leave one), each up to 200 µm to one side, 21 in all, the last
+1.33 mm short of the leaf (whose glow shows from there). Eat a cluster to the
+last and a soft chime plays (`shared/portal-chime`, quiet and high) and a few
+golden sparks drift ~0.4 mm toward the next cluster and fade (`drawGlints`;
+a hint of the way, not an arrow). Its clumps count toward the 6 to divide.
+
+- **Rejoinable from anywhere:** whenever a player has no unfinished cluster
+  within 2.8 mm that lies toward the portal (nearer it by 200 µm or more,
+  within ~65° of the straight line to it), one is placed a step ahead of them
+  (or of the cluster they just finished), toward the portal, where nobody has
+  looked and out of every view (the director's explored grid,
+  `director.seenAt`, `visibleNow`), clear of the encounters; fanning out to
+  ±1 rad and out to two steps when the way straight on has been seen.
+- **Explored stays as it was:** a cluster is never moved. One nobody has seen
+  is taken back when the portal moves (placed as you go) or when a rejoin is
+  left 4 mm behind; a seen one stays until it is eaten.
+- **The loose food** round you is now 3 (+3 toward the leaf), not 6 (+4), so the
+  clusters stand out; the clusters' clumps are never let go and are not drawn
+  into *Vorticella* bells.
+
+**More hunters, between the food** (`route.js` `ENCOUNTERS`, `SQUADS`): seven
+encounters now, not five, with two Dileptus and four Didinium to bring out:
+
+1. a **Dileptus**;
+2. a **Didinium** alone;
+3. the ***Chlamydomonas* bloom**;
+4. a **pair of Didinium**, side by side across the way;
+5. the **giant amoeba** (a set piece);
+6. a **pack**: a Dileptus and a Didinium together;
+7. the **biofilm on a leaf (the portal)**, the bladderwort trap on guard.
+
+- On the default path each lies in the middle of a gap of the trail (after
+  clusters 3, 6, 8, 11, 14 and 17: `PATH_GAPS`), the portal just past the
+  last. Placed as you go (off the path), none goes within 430 µm of a cluster
+  (each entry's `fits`, `nearCluster`), and no cluster goes on an encounter's
+  spot. **A food stop is a breather:** while someone is at a cluster, a hunter
+  idling nearby does not take up the hunt (one already after you follows you
+  in); the danger is the way between.
+- The calm breaks are 4 s of swimming (7.5 before); standing still 20 s past
+  the break (5 before) brings the next one over, so stopping to eat a cluster
+  or to fight does not pull the path's encounters off it; the current
+  encounter drifts over to a player who has not moved for 10 s (4 before).
+- Hunters that gave up and were left 2.6 mm behind, out of view, leave the
+  drop.
+- The gradient's far end is 29 mm now (44 before), so it still reads 0.08 at
+  the start (25.6 mm from the leaf) and about half at 13 mm.
+
+**The run** (`debug.rush` in the page, the real game at 1/30 s; `follow`: to
+the nearest clump of the nearest unfinished cluster on the way, gulping each;
+`fight`: facing a hunter at you and jabbing it, B in its tell, over the giant
+near the glass; the trap spent once you are near it):
+
+| Run | Dileptus | Didinium | bloom | pair | giant | pack | portal |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| following the food and fighting, no dashes (18 of 21 clusters eaten, no deaths, also with deaths on) | 11.0 | 21.9 | 30.4 | 45.7 | 57.4 | 81.6 | 95.5 s |
+| the same, at a player's pace (`trail.test.mjs`: 0.35 s a gulp, 7-10 s a fight, 12 s for the trap; 21 clusters) | 15.2 | 36.0 | 52.3 | 69.0 | 89.9 | 114.7 | 151.8 s |
+| holding the stick up, fighting, no dashes | 6.8 | 14.2 | 19.4 | 24.8 | 33.1 | 38.8 | 49.1 s |
+| rushing (dashing whenever it can) | 4.4 | 8.3 | 10.9 | 14.5 | 18.8 | 23.4 | 29.2 s |
+| 60° off for 20 s, then following the food (20 rejoins) | 11.3 | 24.7 | 31.8 | 39.7 | 70.1 | 86.5 | 97.0 s |
+| 45° off the other way for 30 s, then following the food (19 rejoins) | 6.3 | 12.2 | 25.3 | 34.4 | 42.8 | 73.7 | 87.3 s |
+
+An encounter every ~20 s at a player's pace (14 s for the bot), about two
+and a half minutes to the portal following the food, under a minute holding
+the stick up.
+
 ## The look
 
 Darkfield by default, as the card: a near-black field where everything glows
@@ -182,14 +297,15 @@ where it scatters light.
   empty, and a food vacuole for each meal. It bends into turns and stretches
   in a dash.
 - **The pond drop** (`world.js`, drawn in `draw.js`): green *Spirogyra*
-  filaments with their spiral chloroplast ribbons (brighter on the near side,
-  beaded with pyrenoids, broken at each cross wall) crossing the field at
-  angles and running through the depth; golden-brown detritus clumps;
+  filaments, soft tubes of rounded cells with their spiral chloroplast ribbons
+  (brighter on the near side, beaded with pyrenoids, broken at each faint cross
+  wall) crossing the field at angles and running through the depth; golden-brown detritus clumps;
   colonies of bell-shaped *Vorticella* on coiled stalks rising from some of
   them (each contracts now and then on its own, and at once when you swim
   close or knock it, its stalk coiling up, then re-extends slowly); pennate
   diatoms with golden chloroplast plates (some empty, glass only) gliding
-  slowly along their raphe, and *Fragilaria* ribbons; loose golden flocs; and
+  slowly along their raphe, and *Fragilaria* ribbons (colonies of cells joined
+  face to face); loose golden flocs; and
   fine glittering specks everywhere (hashed per 80 µm cell, the same on every
   visit), twinkling. All laid out in a 2.4 mm tile repeated in every
   direction (each copy keeping its own shoves and breaks), richer toward the
@@ -302,7 +418,8 @@ look']]`.
   down, stay in calm water as long as you like.
 - **Prey** (`prey.js`): bacterial clumps that drift (glittering gold) and
   *Chilomonas*, which darts away when you come within ~115 µm (chase it). Kept
-  at about six round every player.
+  at about three round every player (more toward the leaf), besides the food
+  trail's clusters (`trail.js`, above).
 - **Death** (the owner, for the amoeba: a death animation, and you keep
   control until the moment of death): a strike lands only on contact, and
   then the cell dissolves where it is (its outline breaks apart and drifts,
@@ -317,16 +434,22 @@ encounter once, in order, in water nobody has seen, ahead of whoever is
 furthest along, with calm breaks between (`route.js`; the owner's
 *Placed as you go*, `../../design/encounter-pattern.md`):
 
-1. **Dileptus** after a warm-up of ~4 s of swimming;
-2. **the *Chlamydomonas* bloom**, a band across the way;
-3. **the giant amoeba**;
-4. **the two *Didinium***, side by side across the way;
-5. **the biofilm on a leaf (the portal)** with the bladderwort trap on guard
+1. a **Dileptus** after a warm-up of ~4 s of swimming;
+2. a **Didinium** alone;
+3. **the *Chlamydomonas* bloom**, a band across the way;
+4. **a pair of *Didinium***, side by side across the way;
+5. **the giant amoeba**;
+6. **a pack**, a Dileptus and a Didinium side by side;
+7. **the biofilm on a leaf (the portal)** with the bladderwort trap on guard
    in front of it, its door toward whoever comes.
 
-- Calm breaks of ~7.5 s of swimming clear of the last; a lingering player
-  still gets each in turn (it is placed round them and comes over:
-  `driftEncounter`, to `DRIFT_TO`).
+(Five until 2026-11-04: the Dileptus, the bloom, the giant amoeba, the two
+Didinium, the portal. See *The food trail, more hunters* above: the hunters
+lie between the trail's clusters.)
+
+- Calm breaks of ~4 s of swimming clear of the last; a lingering player
+  (still for 20 s past the break) still gets each in turn (it is placed round
+  them and comes over: `driftEncounter`, to `DRIFT_TO`).
 - **What counts as seen:** each view's field (a turned rectangle with a 1.2
   margin for parallax), plus 260 µm round each cell. Seen water never changes.
 - **The default path:** all five laid along one bearing from the start on
@@ -334,13 +457,15 @@ furthest along, with calm breaks between (`route.js`; the owner's
   `FORWARD`, π/2: the view's turn is locked with the slide's +y up; the
   owner, 2026-11-03: "with the new camera, we should have the default path
   be straight forward essentially ... make the forward path the one of
-  discovery"; it was 0.62 rad, up and to the right), at a rush's distances
-  (5.5, 13.7, 22, 30 and 39 mm), each as near the line as it fits
+  discovery"; it was 0.62 rad, up and to the right), each in its gap of the
+  food trail (4.5, 8.1, 10.5, 14.1, 17.7 and 21.3 mm, the portal at 25.6 mm;
+  until 2026-11-04 at a rush's distances, 5.5, 13.7, 22, 30 and 39 mm), each as near the line as it fits
   (`lateral`), out of sight; follow it and you meet them
   where they lie; head off another way and each, while unseen, leaves the
   path and comes ahead of you (`single`). The portal stays sealed (no prompt,
   its glow shut) until the four before it are met.
-- **Timings** (`route.test.mjs`, the director alone, a cell rushing at 850
+- **Timings** (before 2026-11-04 and the food trail: the current ones are in
+  *The food trail* above; `route.test.mjs`, the director alone, a cell rushing at 850
   µm/s, the closest, 560 µm view): in 16 directions the Dileptus is placed at 4.1 s
   and met at 5.6 s, the bloom at 15.4 s, the giant amoeba at 25.5 s, the
   Didinium at 35.4 s, and the portal is reached at 46.4 s; on the default path
@@ -577,17 +702,33 @@ vertex shader.
 - The push wave, the food spilled by a crumbled clump, a cracked frustule
   or a knocked *Vorticella*, and the gradient's tidy rise toward one leaf
   (see *Everything stirs*).
+- The food trail: bacteria do gather where there is food for them, but not in
+  tidy clumps a screen apart leading to one leaf; the clusters are a game's
+  checkpoints, and hunters do not hold back from a feeding cell.
 
 ## Checks
 
 ```bash
 for f in micro/game/paramecium/*.js micro/game/paramecium/*.mjs; do node --check "$f"; done
-node --test micro/game/paramecium/*.test.mjs micro/game/shared/director.test.mjs   # stir.test.mjs: the pushes, breaks and gradient
+node --test micro/game/paramecium/*.test.mjs micro/game/shared/director.test.mjs   # stir.test.mjs: the pushes, breaks and gradient; trail.test.mjs: the food trail
 node micro/game/paramecium/route.test.mjs        # the timings above
 node micro/game/check-worlds.mjs paramecium amoeba bacterium index
 node micro/game/check.mjs
 node micro/tools/perf/measure.mjs paramecium 1        # and 4
 ```
+
+`trail.test.mjs` (the trail with the director, in node): the clusters run
+from the start (the first in the opening view) to just short of the leaf, each
+a step (1-1.5 screen heights) nearer, each a little group at one depth; eaten
+to the last by a player a cluster is done and the next is the one the glint
+points at, lost to the giant it is just gone; a player who wanders off (four
+ways, up to straight back) gets a rejoin cluster near them and nearer the
+portal, and seen clusters never move or vanish; a rejoin is placed past what
+has been seen and out of view; on the default path each hunter lies in its gap
+and placed as you go none is within 430 µm of a cluster, nor any rejoin on an
+unmet encounter; following the food at a player's pace meets an encounter
+every 15-25 s (mean) and the portal in 2-3 minutes, holding the stick up in
+45-75 s.
 
 `focus.test.mjs`: the operator holds the focus through a dive and through
 continual up and down, waits 0.5 s once the depth is still, then turns to it
