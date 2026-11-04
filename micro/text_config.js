@@ -44,7 +44,7 @@ export const TEXT = {
     },
     players: {
       chip: 'Player {n}',
-      joinHint: 'P{n}: Press {btn:A} to join',
+      joinHint: 'P{n}: {btn:A} to join',
     },
     toasts: {
       joined: '<b>P{n}</b>Player {n} joined<small>{where}</small>',
@@ -78,7 +78,7 @@ export const TEXT = {
       goal: 'Goal',
       controls: 'Controls',
       fieldNotes: 'Field notes',
-      begin: 'Press {btn:A} to begin',
+      begin: '{btn:A} to begin',
       back: '{btn:B} Back to the lab',
     },
     controls: {
@@ -275,7 +275,7 @@ export const TEXT = {
         ['LS', 'Move (back: walk backwards)'],
         ['RS', 'Tilt · peek'],
         ['A', 'Dash'],
-        ['X', 'Attack / eat (one press)'],
+        ['X', 'Attack / eat'],
         ['B', 'Block (hold)'],
         ['Y', 'Curl up'],
         ['LT/RT', 'Focus'],
@@ -1051,7 +1051,7 @@ export const TEXT = {
       },
       bite: {
         label: 'Bite and graze (X)',
-        about: 'Every press is an attack you can see: the mite rears, the rostrum lifts (the chelicerae open), it lunges and snaps, and crumbs puff where the snap lands. In reach of the mouth: fungal spores (eaten) and hyphal branch tips (nibbled; they regrow), the box mite\'s real food. A springtail in front: the nip leaves it dazed for 2.4 s while its group leaps away (they drift back to graze); bite a dazed one again and it is held to the mouth and eaten (1.2 s: the scramble refilled, a grabbed leg mending 8 s sooner; another wanders in after 40 s). One of the box-mite family: it shuts itself in its capsule and the bite glances off. At the predator: a nip that makes it back off for 1.5 s. Departures: box mites graze fungi and decaying plant matter and do not hunt or eat springtails (predatory mites do); the nips and the meal are game rules.',
+        about: 'Every press is an attack: the mite rears, the rostrum lifts (the chelicerae open), it lunges and snaps, and crumbs puff where the snap lands. In reach of the mouth: fungal spores (eaten) and hyphal branch tips (nibbled; they regrow), the box mite\'s real food. A springtail in front: the nip leaves it dazed for 2.4 s while its group leaps away (they drift back to graze); bite a dazed one again and it is held to the mouth and eaten (1.2 s: the scramble refilled, a grabbed leg mending 8 s sooner; another wanders in after 40 s). One of the box-mite family: it shuts itself in its capsule and the bite glances off. At the predator: a nip that makes it back off for 1.5 s. Departures: box mites graze fungi and decaying plant matter and do not hunt or eat springtails (predatory mites do); the nips and the meal are game rules.',
       },
       predator: {
         label: 'Predatory mite (Parasitidae)',
@@ -1173,7 +1173,7 @@ export const TEXT = {
         move: 'Move; push behind to walk backwards, to the side to turn (keys: G hurry, T creep)',
         camera: 'Tilt · peek',
         dash: 'Dash',
-        attack: 'Attack / eat (one press)',
+        attack: 'Attack / eat',
         defend: 'Block (hold)',
         special: 'Curl up',
         analog: 'Focus',
@@ -2109,7 +2109,7 @@ export const TEXT = {
         bdello: 'The Bdellovibrio pack is dead. The way is open, with kin and food beyond',
         phage: 'The phage cloud is swept up in your slime. The way is open',
         amoeba: 'The amoeba is beaten: it pulls back into the sediment. The way is open, with kin and food beyond',
-        stentor: 'Stentor is beaten: it shrinks shut. The portal is open: touch the host and press {btn:Y}',
+        stentor: 'Stentor is beaten: it shrinks shut. The portal is open: enter and press {btn:Y}',
       },
       toxinHit: 'Toxin burst! It hit: {what}',
       bite: {
@@ -2121,7 +2121,7 @@ export const TEXT = {
       toxinNeedsSwarm: 'No toxin yet: it needs a swarm of {n} (you have {army})',
       toxinCharging: 'Toxin charging: {pct} %',
       toxinMiss: 'Toxin burst! Nothing was in reach',
-      startMtb: 'Press {btn:X} near the spirilla like you to call them into your swarm, then follow the way out',
+      startMtb: '{btn:X} near other spirilla to call them into your swarm',
       startBdello: 'Bdellovibrio: ram and bore into {goal} Gram-negative prey ({btn:X} when touching)',
       lysedOne: '{who}Your swarm ate a prey rod: its cells grow and divide, so your swarm grows',
       lysedMany: '{who}Your swarm ate {n} prey rods: its cells grow and divide, so your swarm grows',
@@ -2394,7 +2394,7 @@ export const TEXT = {
       pool: 'Pool',
     },
     army: {
-      alone: '<div>{who}Alone: press {btn:X} near the spirilla like you to call them</div>',
+      alone: '<div>{who}Alone: {btn:X} near spirilla to call them</div>',
       slimeShield: 'slime shield',
       toxinReady: 'toxin ready ({btn:Y})',
       toxinCharging: 'toxin {pct} %',
@@ -2422,9 +2422,9 @@ export const TEXT = {
       drilling: '{name} · {n} drilling',
     },
     endCard: {
-      won: '<h2>Three prey taken</h2><p>The last bdelloplast lyses: five new attack-phase cells swim out. In life this cycle takes three to four hours per prey.</p><p>Press {btn:A} to hunt again.</p>',
-      over: '<h2>Run over</h2><p>{over}</p><p>Press {btn:A} to try again (a new cell starts in a few seconds).</p>',
-      overCause: '<h2>Run over: {cause}</h2><p>{over}</p><p>Press {btn:A} to try again (a new cell starts in a few seconds).</p>',
+      won: '<h2>Three prey taken</h2><p>The last bdelloplast lyses: five new attack-phase cells swim out. In life this cycle takes three to four hours per prey.</p><p>{btn:A} to hunt again.</p>',
+      over: '<h2>Run over</h2><p>{over}</p><p>{btn:A} to try again (a new cell starts in a few seconds).</p>',
+      overCause: '<h2>Run over: {cause}</h2><p>{over}</p><p>{btn:A} to try again (a new cell starts in a few seconds).</p>',
     },
     scale: '{bar} µm · field {field} µm',
     scaleCrop: '{bar} µm · field {field} µm (crop)',
@@ -2537,7 +2537,7 @@ export const TEXT = {
       fibresFolded: 'Fibres folded: extend them (B) to grab.',
       sealed: 'Host A\'s receptors do not take you yet: meet the other hosts first.',
       turnedBack: 'Turned back: the amoeba\'s lobe guards this receptor. Lure it away, or fold (B) and jab (X) until it gives up.',
-      wayOn: 'The way on: press Y to enter Host A.',
+      wayOn: 'Press Y to enter Host A.',
       teammateBusy: 'A teammate is already attaching or injecting: wait for them.',
       doesNotFit: 'This protein does not fit: you just hang on. Only a gold three-lobed receptor lets you in.',
       nothingInReach: 'Nothing in reach: drift closer to debris, or to the proteins standing on a cell (the bare membrane gives no grip).',
