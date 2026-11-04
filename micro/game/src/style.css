@@ -293,9 +293,12 @@ body:has(#prompt:not([hidden])) .toasts { top: calc(max(22px, calc(env(safe-area
 .modal { position: absolute; inset: 0; z-index: 25; display: grid; place-items: center; padding: 16px; background: rgba(6, 11, 8, .55); backdrop-filter: blur(5px) saturate(.8); animation: fadeIn .25s both; }
 .modal.dialog { z-index: 27; background: rgba(6, 11, 8, .4); }
 /* Paused, the controls card stays sharp above the pause veil: only the scene
-   under it is blurred (the owner, 2026-11-02). A dialog opened over the pause
+   is blurred (the owner, 2026-11-02). A dialog opened over the pause
    menu (z 27) still covers it. */
 body:has(#pause:not([hidden])) .controls-card { z-index: 26; }
+/* The pause veil dims but doesn't blur: the world blurs only its own drawing
+   (frameBlur in main.js), so its info panels stay readable. */
+#pause.modal { backdrop-filter: none; }
 @keyframes fadeIn { from { opacity: 0; } }
 .panel { position: relative; width: min(440px, 100%); max-height: calc(100% - 8px); overflow: auto; padding: 24px 26px 20px; animation: rise .35s cubic-bezier(.2, .75, .2, 1) both; }
 .panel.wide { width: min(820px, 100%); display: flex; flex-direction: column; }

@@ -20,7 +20,7 @@ export const SPECIES = {
     tumble: 0.3, // a stop and turn, s
     flLen: 3.2, flagella: 'bipolar', magnet: true, moment: 1e-15, // A·m², a chain of ~15 magnetosomes
     o2: [0.5, 5], // % air saturation, the microaerobic band it seeks
-    view: 20, // default camera field height, µm (the owner, 2026-11-04: "start the zoom at 20")
+    view: 118, // default camera field height, µm (the owner, 2026-11-04: "the default zoom should be 118 micrometers field")
   },
   bdello: {
     name: 'Bdellovibrio bacteriovorus (predator)', short: 'Bdellovibrio',

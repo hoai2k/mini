@@ -516,12 +516,12 @@ for (const [id, big, fast] of [['grazer1', 42, 8], ['bdello', 150, 12], ['amoeba
   battle.perf = `${ms.toFixed(2)} ms per step for 1000 members`;
 }
 
-// --- the zoom: 20 µm to start, moved only by the triggers, continuous, no field stop (the owner, 2026-11-04) ---
+// --- the zoom: 118 µm to start, moved only by the triggers, continuous, no field stop (the owner, 2026-11-04) ---
 {
-  assert.equal(SPECIES.mtb.view, 20, 'the spirillum starts at a 20 µm field');
-  const Z = { want: 20, field: 20 };
+  assert.equal(SPECIES.mtb.view, 118, 'the spirillum starts at a 118 µm field');
+  const Z = { want: 118, field: 118 };
   for (let i = 0; i < 600; i++) zoomStep(Z, 0, 1 / 60);
-  assert.equal(Z.field, 20, 'with the triggers untouched it stays where it is, whatever the swarm (no auto zoom)');
+  assert.equal(Z.field, 118, 'with the triggers untouched it stays where it is, whatever the swarm (no auto zoom)');
   const seen = [];
   for (let i = 0; i < 600; i++) { zoomStep(Z, 1, 1 / 60); seen.push(Z.field); }
   assert.ok(Z.field >= 500 && seen.every((v, i) => i === 0 || (v >= seen[i - 1] && v - seen[i - 1] < 15)), `LT zooms out smoothly to several hundred µm (${Z.field.toFixed(0)})`);
@@ -559,8 +559,8 @@ for (const [id, big, fast] of [['grazer1', 42, 8], ['bdello', 150, 12], ['amoeba
   const { world, guards } = setup({}, { quiet: true });
   guards.placeGate(guards.byId.amoeba, 400, 0, 0);
   const A = world.amoeba, t = 0;
-  // the default field is 20 µm tall (36 across): the body runs far past it on both sides and behind
-  assert.ok(AMOEBA.width > 30 * 36 / 2 && AMOEBA.depth > 10 * 20, `the body (${AMOEBA.width} × ${AMOEBA.depth} µm) runs far beyond the 20 µm view`);
+  // the default field is 118 µm tall (~210 across): the body runs past it on both sides and behind
+  assert.ok(AMOEBA.width > 3 * 210 && AMOEBA.depth > 118, `the body (${AMOEBA.width} × ${AMOEBA.depth} µm) runs beyond the 118 µm view`);
   const inside = (lx, ly) => { const c = Math.cos(A.ang), s = Math.sin(A.ang); return world.insideAmoeba(A.x + c * lx - s * ly, A.y + s * lx + c * ly, t); };
   assert.ok(inside(0, -5) > 0 && inside(0, 8) < 0 && inside(AMOEBA.a * 0.8, -AMOEBA.b) > 0, 'inside behind its front edge and well along it, outside in front');
   assert.ok(inside(AMOEBA.a * 1.3, -AMOEBA.b) < 0 && inside(0, -AMOEBA.depth * 1.3) < 0, 'its ends and back close (outside beyond them)');

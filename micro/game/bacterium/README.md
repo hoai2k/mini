@@ -53,7 +53,7 @@ in Approach), and every creature's message (`text_config.js`).
 **After playing it (the owner, 4 November 2026)**: no camera or zoom messages
 ("the view widens to fit it" is gone); no round field stop at wide zooms
 (it was the eyepiece's field stop, drawn once the field reached 180 µm); the
-zoom starts at a 20 µm field and only the triggers move it (the automatic
+zoom starts at a 118 µm field (its height; the owner, 2026-11-04) and only the triggers move it (the automatic
 zoom-out is gone); the beacon from the front of the group's mass, its reach
 the group's radius plus a margin; a big swarm packs denser; Y only fires the
 toxin (it used to toggle the data overlay when the toxin was not ready, with

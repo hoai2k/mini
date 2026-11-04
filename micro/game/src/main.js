@@ -817,6 +817,22 @@ async function beginPlay() {
   await ready;
 }
 
+// Paused, only the world's own drawing (its canvases) is blurred, not its info
+// panels or the shell's UI (the owner, 2026-11-04): a style put into the world's
+// page (same origin) while the pause menu is up.
+function frameBlur(on) {
+  try {
+    const doc = S.frame?.contentDocument;
+    if (!doc) return;
+    let st = doc.getElementById('mz-pause-blur');
+    if (on && !st) {
+      st = doc.createElement('style');
+      st.id = 'mz-pause-blur';
+      st.textContent = 'canvas { filter: blur(5px) saturate(.8); transition: filter .25s; }';
+      doc.head.appendChild(st);
+    } else if (!on && st) st.remove();
+  } catch { /* not reachable: leave it */ }
+}
 function pause(reason = '') {
   if (S.screen !== 'play' || S.paused || S.transitioning) return;
   S.paused = true;
@@ -829,10 +845,12 @@ function pause(reason = '') {
   $('#pause-reason').textContent = reason;
   renderPlayers();
   openModal('pause');
+  frameBlur(true);
 }
 function resume() {
   if (!S.paused) return;
   sound.resume();
+  frameBlur(false);
   closeAllModals();
   S.paused = false;
   restoreScreenFocus();
@@ -849,6 +867,7 @@ function confirmThen(title, text, fn, { cancel = t('shell.confirm.stay'), ok = t
 }
 function restartWorld() {
   closeAllModals();
+  frameBlur(false);
   S.paused = false;
   S.board++;
   loadWorld(S.world, { first: false });
@@ -1095,6 +1114,7 @@ function setSound(on) {
 const pushSound = () => send(S.frame, 'sound', { on: sound.on, volume: sound.volume, soundSet: sound.set });
 function openDevPanel() {
   closeAllModals();
+  frameBlur(false);
   S.paused = false;
   S.devPanel = true;
   send(S.frame, 'resume');
