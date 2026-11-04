@@ -15,10 +15,19 @@
 // without a browser). Rushing (full tilt with every scramble) meets them all
 // and reaches the portal in a little over a minute; dealing with them, a few.
 // The moss itself is one 9.6 mm scenery tile repeated in every direction
-// (world.js TILE); the walkable square (BOUNDS) is ~1 m across, many minutes
-// of rushing from the start, and its edge is the edge of the moss cushion: a
-// wall of tall, close-packed Sphagnum shoots (EDGE; edge.js draws it) that
-// the walker stops against (mite.js clamps the body to its face).
+// (world.js TILE); the walkable ground is a corridor running "north" along the
+// world's forward (FORWARD: straight up the screen with the locked camera;
+// the owner, 2026-11-04: "make it a bit more linear ... we basically know the
+// direction we have to go"): the start near its south wall, the side walls
+// either side of the straight route, the portal up north and the north wall
+// past it, each so many seconds of walking away (micro/game_config.js
+// `mite.*WallSeconds`). Its edge is the edge of the moss cushion: a wall of
+// tall, close-packed Sphagnum shoots (EDGE; edge.js draws it) that the walker
+// stops against (mite.js clamps the body inside its faces: clampInside).
+import { section } from '../shared/config.js';
+
+/** game_config.js `mite.*` (with the defaults this world was built with). */
+export const M = section('mite');
 
 /** Distance from the start (µm). */
 export const distFromStart = (x, z) => Math.hypot(x, z);
@@ -26,6 +35,92 @@ export const distFromStart = (x, z) => Math.hypot(x, z);
 export const bearingFromStart = (x, z) => Math.atan2(z, x);
 /** A point `r` µm from the start at bearing `a`. */
 export const ringPoint = (r, a) => ({ x: Math.cos(a) * r, z: Math.sin(a) * r });
+
+/**
+ * The world's forward (the owner, 2026-11-03: the camera's turn is locked to it). The camera looks along
+ * -(cos, sin) of FORWARD_YAW (main.js), so straight ahead on the screen is the bearing FORWARD from the
+ * start (~2.02 rad: toward -x and +z, a little left of the opening view's OPENING). "North" is FORWARD.
+ */
+export const FORWARD_YAW = -0.6 - Math.PI / 6;
+export const FORWARD = FORWARD_YAW + Math.PI;
+
+/**
+ * The encounters' pacing (game_config.js `mite.warmupSeconds` ...): the calm break before each (s), and how
+ * far ahead of the leader each is placed (µm; min/max). The default path lays them out at the distances a
+ * rush meets them at (DEFAULT_PATH below), so the portal's distance up the corridor follows from these.
+ */
+export const PACE = {
+  warmup: M('warmupSeconds', 4), calm: M('calmSeconds', 4.5), drop: M('calmBeforeDropSeconds', 3), portal: M('calmBeforePortalSeconds', 6),
+};
+const AHEAD = { mites: [3000, 4600], pred: [3800, 5800], drip: [2600, 3800], drips: [3000, 4400], portal: [5200, 7800] };
+const ORDER_SPEC = [['mites', 'warmup'], ['pred', 'calm'], ['drip', 'drop'], ['pred2', 'calm', 'pred'], ['drips', 'drop'], ['pred3', 'calm', 'pred'], ['portal', 'portal']];
+/** A rush between encounters (µm/s; shared/director.js `defaultPath.rush`): full tilt with every scramble. */
+export const RUSH = 1100;
+/** Each encounter's distance up the default path (µm from the start; shared/director.js's own rule: each break at RUSH, then the middle of its ahead range). */
+export const PATH_DISTS = (() => { let d = 0; return ORDER_SPEC.map(([id, calm, as]) => { const [a, b] = AHEAD[as || id]; d += RUSH * PACE[calm]; return (d += (a + b) / 2); }); })();
+/** How far up the corridor the water (the portal) lies, µm from the start. */
+export const PORTAL_ALONG = PATH_DISTS[PATH_DISTS.length - 1];
+
+/**
+ * The corridor (the owner, 2026-11-04: "we start kind of close to the south side of the world, where we could
+ * hit the south wall by walking south for 10 seconds or so, and then the east and west walls are somewhere
+ * around 10 seconds out in each direction, and the final north wall is 10 seconds past the portal").
+ * Coordinates along it: `a` µm north of the start (along FORWARD), `c` µm across (east, to the right of the
+ * route looking north). The faces of its walls stand at a = -south and a = north, and c = ±side, each the
+ * seconds in game_config.js times WALK_FOR_WALLS (the stick at full tilt).
+ */
+export const WALK_FOR_WALLS = M('walkingSpeedForWallSeconds', 878);
+export const WALL_SECONDS = { south: M('southWallSeconds', 10), side: M('sideWallSeconds', 10), north: M('northWallSecondsPastPortal', 10) };
+const UX = Math.cos(FORWARD), UZ = Math.sin(FORWARD); // north
+const PX = UZ, PZ = -UX;                               // east (so (east, north) is a rotation of (x, z))
+/** Corridor coordinates of a world point: { a (north of the start), c (east of the route) }. */
+export const toCorridor = (x, z, out = { a: 0, c: 0 }) => { out.a = x * UX + z * UZ; out.c = x * PX + z * PZ; return out; };
+/** The world point at corridor coordinates (a north, c east). */
+export const fromCorridor = (a, c, out = { x: 0, z: 0 }) => { out.x = UX * a + PX * c; out.z = UZ * a + PZ * c; return out; };
+
+/**
+ * The edge of the cushion (edge.js): a band of tall Sphagnum shoots standing shoulder to shoulder all round
+ * the corridor. Its inner faces are a = -south, a = north and c = ±side (µm, corridor coordinates): the front
+ * row's stems touch them and nothing of the band reaches inside below `clear` µm up, so the walker's clamp
+ * (mite.js: the body's centre kept its own reach inside the faces, on the ground and in the air) is exactly
+ * where the mite meets the stems. The shoots stand `height` µm tall (several times a jump's ~1.1 mm apex and
+ * taller than the camera stands at the default zoom), `depth` µm deep, and shed leaves lie on the floor for
+ * `apron` µm in front of them, thickening toward the wall (the cue while it is still out of frame). The
+ * corners are covered: the north and south bands run on past them. ux/uz is north, px/pz east.
+ */
+export const EDGE = {
+  south: WALL_SECONDS.south * WALK_FOR_WALLS,
+  side: WALL_SECONDS.side * WALK_FOR_WALLS,
+  north: PORTAL_ALONG + WALL_SECONDS.north * WALK_FOR_WALLS,
+  depth: 2400, height: [6000, 9000], clear: 900, apron: 2200,
+  ux: UX, uz: UZ, px: PX, pz: PZ,
+};
+const _cc = { a: 0, c: 0 };
+/** How far (x, z) is inside the nearest wall face (µm; negative outside). */
+export const edgeDist = (x, z) => { toCorridor(x, z, _cc); return Math.min(_cc.a + EDGE.south, EDGE.north - _cc.a, EDGE.side - Math.abs(_cc.c)); };
+/** Is (x, z) inside the walls' faces by more than m µm? */
+export const insideEdge = (x, z, m = 0) => edgeDist(x, z) > m;
+/** (x, z) moved inside the faces by at least m µm (unchanged when it already is): { x, z }. */
+export function clampInside(x, z, m = 0, out = { x: 0, z: 0 }) {
+  toCorridor(x, z, _cc);
+  const a = Math.min(EDGE.north - m, Math.max(-EDGE.south + m, _cc.a)), c = Math.min(EDGE.side - m, Math.max(-EDGE.side + m, _cc.c));
+  if (a === _cc.a && c === _cc.c) { out.x = x; out.z = z; return out; }
+  return fromCorridor(a, c, out);
+}
+/**
+ * The walkable area's bounding square (the director's seen grid covers it; the floor repeats beyond it):
+ * the corridor's corners, rounded out.
+ */
+const CORNERS = [[-EDGE.south, -EDGE.side], [-EDGE.south, EDGE.side], [EDGE.north, -EDGE.side], [EDGE.north, EDGE.side]].map(([a, c]) => fromCorridor(a, c, {}));
+export const BOUNDS = {
+  x0: Math.floor(Math.min(...CORNERS.map((p) => p.x)) - 1000), x1: Math.ceil(Math.max(...CORNERS.map((p) => p.x)) + 1000),
+  z0: Math.floor(Math.min(...CORNERS.map((p) => p.z)) - 1000), z1: Math.ceil(Math.max(...CORNERS.map((p) => p.z)) + 1000),
+};
+BOUNDS.half = Math.max(-BOUNDS.x0, BOUNDS.x1, -BOUNDS.z0, BOUNDS.z1);
+/** Half the bounding square's width (µm). */
+export const HALF = BOUNDS.half;
+/** Where the hidden, unplaced creatures wait (the predator, the family): behind the south wall, out of play. */
+export const PARK = fromCorridor(-EDGE.south - EDGE.depth - 3000, 0, {});
 
 /** The thickets' rings (µm from the start; scenery: every way out meets them, and you can walk round them). */
 export const RINGS = {
@@ -47,13 +142,6 @@ export function clusterRing(k) {
   return out;
 }
 /**
- * The world's forward (the owner, 2026-11-03: the camera's turn is locked to it). The camera looks along
- * -(cos, sin) of FORWARD_YAW (main.js), so straight ahead on the screen is the bearing FORWARD from the
- * start (~2.02 rad: toward -x and +z, a little left of the opening view's OPENING).
- */
-export const FORWARD_YAW = -0.6 - Math.PI / 6;
-export const FORWARD = FORWARD_YAW + Math.PI;
-/**
  * Thickets along the forward route (the owner, 2026-11-03: "I went forward a long way ... I saw lots of
  * springtails, but that was about it"): past the inner ring the forward line had nothing but springtail
  * groups and beads for ~15 mm, and past the outer ring for ~45 mm. These stand in the gaps between the
@@ -68,8 +156,10 @@ export function forwardClusters() {
     return { x: ux * d - uz * side, z: uz * d + ux * side, r: CLUSTER.r, ring: 2, i, a: FORWARD };
   });
 }
-/** Every thicket cluster. */
-export const CLUSTERS = [...clusterRing(0), ...clusterRing(1), ...forwardClusters()];
+/** A thicket stands inside the corridor (its whole disc and its springtails clear of the wall and its shed leaves). */
+export const clusterInside = (c) => insideEdge(c.x, c.z, c.r + EDGE.apron * 0.5);
+/** Every thicket cluster (those of the rings that fall inside the corridor, and the forward ones). */
+export const CLUSTERS = [...clusterRing(0), ...clusterRing(1), ...forwardClusters()].filter(clusterInside);
 
 /** The predator's hunting ground: radius r round where it is placed; it gives up a chase `chase` past r. */
 export const PRED_GROUND = { r: 1100, chase: 1100 }; // (it notices a mite within 0.9 mm of the ground: predator.js)
@@ -92,34 +182,6 @@ export function portalAt(a, x, z) {
 }
 /** The moss kept clear round the portal (stems and leaves only; its arena), µm. */
 export const PORTAL_CLEAR = 1500;
-
-/**
- * The walkable square (the floor repeats beyond it; the walker keeps inside).
- * It was 87 mm across (the owner, 2026-11-02, walked into its edge: "a wall
- * where it didn't look like there was a wall"); now 0.96 m, over 7 minutes of
- * scrambling straight out, so in play the moss has no edge. The director's
- * seen grid covers it (0.5 mm cells: ~3.7 M bytes).
- */
-export const HALF = 480000;
-export const BOUNDS = { x0: -HALF, x1: HALF, z0: -HALF, z1: HALF, cx: 0, cz: 0, half: HALF };
-
-/**
- * The edge of the cushion (edge.js): a band of tall Sphagnum shoots standing
- * shoulder to shoulder all round the walkable square. Its inner face is the
- * plane |x| = face (and |z| = face): the front row's stems touch it and nothing
- * of the band reaches inside it below `clear` µm up, so the walker's clamp
- * (mite.js: the body's centre kept its own reach inside the face, on the
- * ground and in the air) is exactly where the mite meets the stems. The
- * shoots stand `height` µm tall (several times a jump's ~1.1 mm apex and
- * taller than the camera stands at the default zoom), `depth` µm deep, and
- * shed leaves lie on the floor for `apron` µm in front of it, thickening
- * toward the wall (the cue while it is still out of frame: the 12° scan sees
- * only ~1 mm beyond the mite at the default pitch). The corners are covered:
- * each side's band runs on past them.
- */
-export const EDGE = { face: HALF - 300, depth: 2400, height: [6000, 9000], clear: 900, apron: 5000 };
-/** Is (x, z) inside the edge's face by more than m µm? */
-export const insideEdge = (x, z, m = 0) => Math.abs(x) < EDGE.face - m && Math.abs(z) < EDGE.face - m;
 
 /** Where the opening view looks (up and right on screen). */
 const DX = -1500, DZ = 1030, DL = Math.hypot(DX, DZ);
@@ -146,10 +208,10 @@ export function clearOfThickets(x, z, r, pad = 0) {
  */
 export const DIRECTOR = {
   cell: 500, seenDist: 4200, nearSeen: 450, seed: 29,
-  bounds: { x0: -HALF + 2500, x1: HALF - 2500, z0: -HALF + 2500, z1: HALF - 2500 },
+  bounds: { x0: BOUNDS.x0, x1: BOUNDS.x1, z0: BOUNDS.z0, z1: BOUNDS.z1 },
   // the warm-up: ~4 s of moving over open moss; a calm break of ~4.5 s of moving clear of the last
-  // (the owner, 2026-11-02: "there should be more frequent encounters")
-  warmup: { sec: 4 }, calm: { sec: 4.5 }, linger: 6, moveSpeed: 120,
+  // (the owner, 2026-11-02: "there should be more frequent encounters"; game_config.js mite.warmupSeconds ...)
+  warmup: { sec: PACE.warmup }, calm: { sec: PACE.calm }, linger: 6, moveSpeed: 120,
   // "ahead" is the way they have gone over ~2.5 s, straight ahead preferred (a step round a stem or a thicket
   // does not swing the next encounter off the line they are walking)
   headingSec: 2.5, aheadBias: 2,
@@ -159,22 +221,22 @@ export const DIRECTOR = {
 /**
  * The default path (shared/director.js `defaultPath`; the owner, 2026-11-01: "a default path to a portal,
  * but just dynamically generate the other directions if the player goes off in another direction"): the
- * whole order is laid out on the first frame at the distances a rush (~1100 µm/s) would meet them (the
- * family ~8 mm out, the predator's grounds ~18, ~34 and ~51 mm, the drops ~24 and ~41 mm, the water
- * ~64 mm), so the way on exists from the start. It runs straight ahead along the world's forward
+ * whole order is laid out on the first frame at the distances a rush (~1100 µm/s) would meet them
+ * (PATH_DISTS: the family ~8 mm out, the predator's grounds ~17, ~34 and ~51 mm, the drops ~24 and ~41 mm,
+ * the water ~64 mm), so the way on exists from the start. It runs straight ahead along the world's forward
  * (FORWARD; the owner, 2026-11-03: "with the new camera, we should have the default path be straight
- * forward essentially ... make the forward path the one of discovery"), each as near the line as it fits
- * (`lateral`: up to 1.6 mm aside, nearer and farther along it first), so walking screen-up meets them in
- * turn. It ran at -2.6 rad before, ~95° to the side of the locked forward. Off that bearing they are
- * placed as you go, as before (each is one object: `single`).
+ * forward essentially ... make the forward path the one of discovery"), up the middle of the corridor, each
+ * as near the line as it fits (`lateral`: up to 1.6 mm aside, nearer and farther along it first), so walking
+ * screen-up meets them in turn. Off the line they are placed as you go, as before (each is one object:
+ * `single`), inside the corridor; the water only ever up at its north end (its `fits`).
  */
-export const DEFAULT_PATH = { from: { x: 0, z: 0 }, bearing: FORWARD, rush: 1100, lateral: [0, 400, -400, 800, -800, 1200, -1200, 1600, -1600] };
+export const DEFAULT_PATH = { from: { x: 0, z: 0 }, bearing: FORWARD, rush: RUSH, dists: PATH_DISTS, lateral: [0, 400, -400, 800, -800, 1200, -1200, 1600, -1600] };
 /** The predator's ground placed at (x, z): clear of the thickets (a chase may run into one: it eats springtails there), the giant springtail and the second box mite. */
 const predFits = (x, z) => clearOfThickets(x, z, PRED_GROUND.r, 150)
   && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 2600 && Math.hypot(x - NPC_HOME.x, z - NPC_HOME.z) > 2200;
 const PRED = {
   size: PRED_GROUND.r + PRED_GROUND.chase + 100, visible: 650,
-  minAhead: 3800, maxAhead: 5800, minNear: 2600, maxNear: 4000, fits: predFits,
+  minAhead: AHEAD.pred[0], maxAhead: AHEAD.pred[1], minNear: 2600, maxNear: 4000, fits: predFits,
 };
 /**
  * A drop of water falling into the moss (one, or a shower of three), µm: its radius, how far its splash
@@ -188,26 +250,29 @@ export const DRIP = { r: 230, splash: 520, trigger: 2600, height: 2600, shower: 
 /** The box-mite family: how many, how far they wander from their spot (µm). */
 export const FAMILY = { n: 3, r: 700 };
 const dripFits = (x, z) => clearOfThickets(x, z, 600, 100) && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 1800;
+/** The water stays at the corridor's north end (its distance north within these of PORTAL_ALONG), so the north wall is always its seconds past it. */
+export const PORTAL_SPAN = [-1500, 600];
+const portalNorth = (x, z) => { const a = toCorridor(x, z, {}).a - PORTAL_ALONG; return a >= PORTAL_SPAN[0] && a <= PORTAL_SPAN[1]; };
 // The order rises in threat (the owner, 2026-11-02: "more dangerous creatures indicating that you are closer
 // to your goal"): harmless company, the predator, a drop, the predator hungrier and faster, a shower, the
 // predator at its hungriest and fastest, then the pseudoscorpion at the water.
 export const ENCOUNTERS = [
   // a family of box mites grazing (company: they close up as you come; placed round a lingering player, they wander over)
-  { id: 'mites', size: FAMILY.r + 400, visible: FAMILY.r + 300, minAhead: 3000, maxAhead: 4600, minNear: 2400, maxNear: 3600, fits: (x, z) => clearOfThickets(x, z, FAMILY.r, 150) && Math.hypot(x - NPC_HOME.x, z - NPC_HOME.z) > 1600 && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 2200 },
+  { id: 'mites', size: FAMILY.r + 400, visible: FAMILY.r + 300, minAhead: AHEAD.mites[0], maxAhead: AHEAD.mites[1], minNear: 2400, maxNear: 3600, fits: (x, z) => clearOfThickets(x, z, FAMILY.r, 150) && Math.hypot(x - NPC_HOME.x, z - NPC_HOME.z) > 1600 && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 2200 },
   // the predatory mite on its hunting ground (it starts at the spot itself; the ground is invisible)
   { id: 'pred', ...PRED },
   // a drop of water falls into the moss round you (rain drips through a moss cushion), never on you; nothing shows until it falls (visible: its spot)
-  { id: 'drip', calm: { sec: 3 }, size: DRIP.splash + 500, visible: 150, minAhead: 2600, maxAhead: 3800, minNear: 1000, maxNear: 1450, fits: dripFits },
+  { id: 'drip', calm: { sec: PACE.drop }, size: DRIP.splash + 500, visible: 150, minAhead: AHEAD.drip[0], maxAhead: AHEAD.drip[1], minNear: 1000, maxNear: 1450, fits: dripFits },
   // and again, a way on (the same one: it has gone on through the moss, out of sight), hungrier
   { id: 'pred2', ...PRED },
   // a shower: three drops scattered in the moss round you
-  { id: 'drips', calm: { sec: 3 }, size: DRIP.splash + DRIP.spread + 500, visible: 150, minAhead: 3000, maxAhead: 4400, minNear: 1000, maxNear: 1450, fits: dripFits },
+  { id: 'drips', calm: { sec: PACE.drop }, size: DRIP.splash + DRIP.spread + 500, visible: 150, minAhead: AHEAD.drips[0], maxAhead: AHEAD.drips[1], minNear: 1000, maxNear: 1450, fits: dripFits },
   // the third time, in the wetter moss toward the water: at its hungriest
   { id: 'pred3', ...PRED },
-  // the boss and the way on: the wet leaf axil (its stem 1.5 mm tall, the glow over it) and the pseudoscorpion on its post
-  { id: 'portal', size: PORTAL_CLEAR + 900, top: 2400, minAhead: 5200, maxAhead: 7800, minNear: 3600, maxNear: 5200, final: true, calm: { sec: 6 },
+  // the boss and the way on: the wet leaf axil (its stem 1.5 mm tall, the glow over it) and the pseudoscorpion on its post, at the corridor's north end
+  { id: 'portal', size: PORTAL_CLEAR + 900, top: 2400, minAhead: AHEAD.portal[0], maxAhead: AHEAD.portal[1], minNear: 3600, maxNear: 5200, final: true, calm: { sec: PACE.portal },
     parts: (x, z, b) => { const P = portalAt(b, x, z); return [[x, z, PORTAL_CLEAR], [P.post.x, P.post.z, 1100], [P.home.x, P.home.z, 700]]; },
-    fits: (x, z, b) => { const P = portalAt(b, x, z); return clearOfThickets(x, z, PORTAL_CLEAR, 200) && clearOfThickets(P.post.x, P.post.z, 1100, 200) && clearOfThickets(P.home.x, P.home.z, 700, 100) && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 4000; } },
+    fits: (x, z, b) => { const P = portalAt(b, x, z); return portalNorth(x, z) && clearOfThickets(x, z, PORTAL_CLEAR, 200) && clearOfThickets(P.post.x, P.post.z, 1100, 200) && clearOfThickets(P.home.x, P.home.z, 700, 100) && insideEdge(P.home.x, P.home.z, 700 + 400) && insideEdge(P.post.x, P.post.z, 1100 + 400) && Math.hypot(x - BACK_AT.x, z - BACK_AT.z) > 4000; } },
 ];
-/** Anything placed stays well inside the walkable square, its whole clearance disc short of the edge's apron of shed leaves. */
-export const canPlace = (x, z, r) => insideEdge(x, z, Math.max(1700 + r * 0.5, EDGE.apron + r));
+/** Anything placed stays inside the corridor, its whole clearance disc clear of the walls (and most of their shed leaves). */
+export const canPlace = (x, z, r) => insideEdge(x, z, r + 1200);

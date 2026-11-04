@@ -1,11 +1,15 @@
 // The edge of the moss cushion: a wall of tall Sphagnum shoots standing
-// shoulder to shoulder all round the walkable square (the owner, 2026-11-02:
+// shoulder to shoulder all round the walkable corridor (the owner, 2026-11-02:
 // "for the mite world if there's an edge to it ensure we have a visual
 // barrier, not just a message"). layout.js EDGE gives its place and size.
 //
-// - Each side of the square is a band `EDGE.depth` deep beyond the plane
-//   |x| = EDGE.face (or |z|), cut into SEG µm segments that run on past the
-//   corners, so the corners are filled by both bands. A segment is one of NV
+// - Each side of the corridor is a band `EDGE.depth` deep beyond its face (in
+//   corridor coordinates, layout.js: east and west at c = ±EDGE.side, north at
+//   a = EDGE.north, south at a = -EDGE.south), cut into SEG µm segments; the
+//   north and south bands run on past the corners, so the corners are filled.
+//   The corridor runs along the world's forward, so each side's frame is
+//   turned with it (built here in corridor coordinates, written in world
+//   space: local x east, local z north). A segment is one of NV
 //   prebuilt variants (a hash of its side and index picks it, so a segment
 //   always looks the same), drawn as an instance in its side's frame.
 // - A segment holds four rows of shoots: the front row, its stems touching
@@ -32,7 +36,7 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { gMaterial, CLS, shared } from './sem.js';
 import { rng } from './textures.js';
-import { EDGE } from './layout.js';
+import { EDGE, edgeDist } from './layout.js';
 
 const SEG = 1600;        // µm of wall per segment
 const NV = 3;            // segment variants
@@ -262,14 +266,23 @@ export function createEdge({ tex, floorH, floorN }) {
   }
   const shed = inst(shedLeaf(), mats.shed, MAXA, 'edge shed leaves');
 
-  const F = EDGE.face, D = EDGE.depth, A = EDGE.apron, HM = EDGE.height[1];
-  const S0 = -(F + D), NSEG = Math.ceil((2 * (F + D)) / SEG);
-  // the four sides: outward normal n, along-wall t = up x n (so (t, up, n) is a rotation)
-  const sides = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([nx, nz], k) => ({ k, nx, nz, tx: nz, tz: -nx }));
-  const basis = sides.map((s) => new THREE.Matrix4().makeBasis(new THREE.Vector3(s.tx, 0, s.tz), UP, new THREE.Vector3(s.nx, 0, s.nz)));
+  const D = EDGE.depth, A = EDGE.apron, HM = EDGE.height[1];
+  // corridor coordinates (local x east, local z north) to world x, z
+  const wx = (lx, lz) => EDGE.px * lx + EDGE.ux * lz, wz = (lx, lz) => EDGE.pz * lx + EDGE.uz * lz;
+  const lxOf = (x, z) => x * EDGE.px + z * EDGE.pz, lzOf = (x, z) => x * EDGE.ux + z * EDGE.uz;
+  // the four sides in corridor coordinates: outward normal n, face distance F, along-wall t = up x n (so
+  // (t, up, n) is a rotation), the rectangle's extent along t [ulo, uhi], and its segments from S0
+  const sides = [[1, 0, EDGE.side], [-1, 0, EDGE.side], [0, 1, EDGE.north], [0, -1, EDGE.south]].map(([nx, nz, F], k) => {
+    const tx = nz, tz = -nx;
+    // u = t . p over the corners (lx in ±side, lz in -south..north)
+    const us = [[-EDGE.side, -EDGE.south], [EDGE.side, -EDGE.south], [-EDGE.side, EDGE.north], [EDGE.side, EDGE.north]].map(([lx, lz]) => tx * lx + tz * lz);
+    const ulo = Math.min(...us), uhi = Math.max(...us), S0 = ulo - D;
+    return { k, nx, nz, tx, tz, F, ulo, uhi, S0, NSEG: Math.ceil((uhi - ulo + 2 * D) / SEG) };
+  });
+  const basis = sides.map((s) => new THREE.Matrix4().makeBasis(new THREE.Vector3(wx(s.tx, s.tz), 0, wz(s.tx, s.tz)), UP, new THREE.Vector3(wx(s.nx, s.nz), 0, wz(s.nx, s.nz))));
   const variantOf = (k, i) => Math.floor(hash3(k, i, 7) * NV);
 
-  // shed leaves: per segment, placed once on the floor (instance matrices), kept
+  // shed leaves: per segment, placed once on the floor (instance matrices, world space), kept
   const shedCache = new Map();
   const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _n = new THREE.Vector3();
   function shedOf(s, i) {
@@ -277,13 +290,16 @@ export function createEdge({ tex, floorH, floorN }) {
     let out = shedCache.get(key);
     if (out) return out;
     const list = [];
-    const u0 = S0 + i * SEG;
+    const u0 = s.S0 + i * SEG;
     for (let a = 0; a < SEG / CELL; a++) for (let b = 0; b < A / CELL; b++) {
-      const w = -(b + hash3(a, b, s.k * 7 + i * 131 + 1)) * CELL; // from the face, into the square (< 0)
+      const w = -(b + hash3(a, b, s.k * 7 + i * 131 + 1)) * CELL; // from the face, into the corridor (< 0)
       const near = 1 + w / A; // 1 at the face .. 0 at the apron's edge
       if (hash3(a, b, s.k * 7 + i * 131 + 2) > 0.75 * near * near * near) continue;
       const u = u0 + (a + hash3(a, b, s.k * 7 + i * 131 + 3)) * CELL;
-      const x = s.nx * (F + w) + s.tx * u, z = s.nz * (F + w) + s.tz * u;
+      // (not past the other walls' faces: those corners are theirs)
+      const lx = s.nx * (s.F + w) + s.tx * u, lz = s.nz * (s.F + w) + s.tz * u;
+      if (Math.abs(lx) > EDGE.side || lz < -EDGE.south || lz > EDGE.north) continue;
+      const x = wx(lx, lz), z = wz(lx, lz);
       const L = 240 + 220 * hash3(a, b, s.k * 7 + i * 131 + 4);
       floorN(x, z, _n);
       _q.setFromUnitVectors(UP, _n).multiply(_q2.setFromAxisAngle(UP, hash3(a, b, s.k * 7 + i * 131 + 5) * 6.283));
@@ -299,11 +315,15 @@ export function createEdge({ tex, floorH, floorN }) {
   const fr = new THREE.Frustum(), pm = new THREE.Matrix4(), box = new THREE.Box3(), seg = new THREE.Matrix4();
   const KINDS = ['stems', 'twigs', 'near', 'far'];
   const counts = { stems: new Int32Array(NV), twigs: new Int32Array(NV), near: new Int32Array(NV), far: new Int32Array(NV) };
-  // a box from the segment's corners along (u0..u1) and out (w0..w1), y0..y1 (the sides are axis-aligned)
+  // a world box round the segment's corners along (u0..u1) and out (w0..w1), y0..y1 (the corridor is turned:
+  // the box holds all four corners)
   const segBox = (s, u0, u1, w0, w1, y0, y1) => {
-    const xa = s.nx * (F + w0) + s.tx * u0, xb = s.nx * (F + w1) + s.tx * u1;
-    const za = s.nz * (F + w0) + s.tz * u0, zb = s.nz * (F + w1) + s.tz * u1;
-    box.min.set(Math.min(xa, xb), y0, Math.min(za, zb)); box.max.set(Math.max(xa, xb), y1, Math.max(za, zb));
+    box.min.set(Infinity, y0, Infinity); box.max.set(-Infinity, y1, -Infinity);
+    for (const u of [u0, u1]) for (const w of [w0, w1]) {
+      const lx = s.nx * (s.F + w) + s.tx * u, lz = s.nz * (s.F + w) + s.tz * u, x = wx(lx, lz), z = wz(lx, lz);
+      box.min.x = Math.min(box.min.x, x); box.max.x = Math.max(box.max.x, x);
+      box.min.z = Math.min(box.min.z, z); box.max.z = Math.max(box.max.z, z);
+    }
     return box;
   };
   // the distance from (x, z) to a box's footprint
@@ -314,7 +334,7 @@ export function createEdge({ tex, floorH, floorN }) {
   function setView(camera, x, z) {
     stats.views++;
     // nothing near: nothing drawn, nothing written
-    const dEdge = F - Math.max(Math.abs(x), Math.abs(z));
+    const dEdge = edgeDist(x, z);
     if (dEdge > REACH) {
       if (shown) { for (const M of meshes) for (const k in M) { M[k].count = 0; M[k].visible = false; } shed.count = 0; shed.visible = false; shown = false; }
       stats.segments = 0; stats.shed = 0; stats.tris = 0;
@@ -326,19 +346,21 @@ export function createEdge({ tex, floorH, floorN }) {
     fr.setFromProjectionMatrix(pm, camera.coordinateSystem, camera.reversedDepth);
     for (const k of KINDS) counts[k].fill(0);
     let nShed = 0, nSeg = 0, tris = 0;
+    const lx = lxOf(x, z), lz = lzOf(x, z);
     for (const s of sides) {
-      const dn = F - (x * s.nx + z * s.nz); // the target's distance inside this face
+      const dn = s.F - (lx * s.nx + lz * s.nz); // the target's distance inside this face
       if (dn > REACH) continue;
-      const sc = x * s.tx + z * s.tz;
-      const i0 = Math.max(0, Math.floor((sc - REACH - S0) / SEG)), i1 = Math.min(NSEG - 1, Math.floor((sc + REACH - S0) / SEG));
+      const sc = lx * s.tx + lz * s.tz;
+      const i0 = Math.max(0, Math.floor((sc - REACH - s.S0) / SEG)), i1 = Math.min(s.NSEG - 1, Math.floor((sc + REACH - s.S0) / SEG));
       for (let i = i0; i <= i1; i++) {
-        const u0 = S0 + i * SEG;
-        // the corner squares are the ±z sides' (their bands run on through them): the ±x sides leave them
-        if (s.nx && (u0 >= F || u0 + SEG <= -F)) continue;
+        const u0 = s.S0 + i * SEG;
+        // the corner squares are the north and south sides' (their bands run on through them): east and west leave them
+        if (s.nx && (u0 >= s.uhi || u0 + SEG <= s.ulo)) continue;
         // the wall itself (beyond the face; leaves overhang it a little, and stand ~1 mm over the stems' tops)
         if (fr.intersectsBox(segBox(s, u0 - 600, u0 + SEG + 600, -300, D + 600, -200, HM + 1000))) {
           const v = variantOf(s.k, i), M = meshes[v];
-          seg.copy(basis[s.k]).setPosition(s.nx * F + s.tx * u0, 0, s.nz * F + s.tz * u0);
+          const plx = s.nx * s.F + s.tx * u0, plz = s.nz * s.F + s.tz * u0;
+          seg.copy(basis[s.k]).setPosition(wx(plx, plz), 0, wz(plx, plz));
           const nearOne = boxDist(x, z) < LOD_R;
           if (counts.stems[v] < MAXI) {
             const put = (k) => { seg.toArray(M[k].instanceMatrix.array, counts[k][v]++ * 16); tris += variants[v].tris[k]; };

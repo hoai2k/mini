@@ -36,7 +36,8 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { buildSdfMesh, sd, combine } from '../shared/sdf.js';
 import { gMaterial } from './sem.js';
-import { EDGE, floorH as worldFloorH, floorN as worldFloorN } from './world.js';
+import { floorH as worldFloorH, floorN as worldFloorN } from './world.js';
+import { clampInside } from './layout.js';
 import { GAITS, legOffset, gaitTriggers, swingTarget, twoBoneIK } from '../shared/techniques/mite-gait.js';
 
 /** Live switches, shared by every mite (the feature panel edits it). */
@@ -509,12 +510,18 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
   if (k !== 1) colliders = scaledColliders(colliders, k);
   const floorH = (x, z) => worldFloorH(x * k, z * k) / k;
   const floorN = (x, z, out) => worldFloorN(x * k, z * k, out);
-  // the walkable square: the body's centre is kept its reach (the body's
+  // the walkable corridor: the body's centre is kept its reach (the body's
   // longest half-axis and its offset, so the front of the aspis) inside the
-  // face of the wall of moss round it (layout.js EDGE), in this mite's units:
-  // the mite stops with its front against the front row's stems
+  // faces of the wall of moss round it (layout.js EDGE, clampInside), in this
+  // mite's units: the mite stops with its front against the front row's stems
   const REACH = Math.max(...AN.noto.r) + Math.abs(AN.noto.c[0]) + 40;
-  const BX1 = EDGE.face / k - REACH, BX0 = -BX1, BZ0 = BX0, BZ1 = BX1;
+  const _ki = { x: 0, z: 0 };
+  /** Keep a point (this mite's units) inside the corridor by the body's reach (one parked far out of play, hidden, is left there). */
+  const keepIn = (v) => {
+    clampInside(v.x * k, v.z * k, REACH * k, _ki);
+    if (Math.abs(_ki.x - v.x * k) + Math.abs(_ki.z - v.z * k) > 2500) return;
+    v.x = _ki.x / k; v.z = _ki.z / k;
+  };
   const G = AN.kind === 'pred' ? predGeometry() : geometry();
   // frames materials: one draw for parts posed in different frames (see "fewer draws per mite")
   const cut = gMaterial({ cls, player, tex: tex.cuticle, map: 'tri', scale: 150, bump: 1.6, objSpace: true, frames: true });
@@ -747,8 +754,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     }
     const prev = _wp.copy(st.pos);
     st.pos.add(move);
-    st.pos.x = clamp(st.pos.x, BX0, BX1);
-    st.pos.z = clamp(st.pos.z, BZ0, BZ1);
+    keepIn(st.pos);
     if (!settleBody(dt)) {
       st.pos.copy(prev); st.speed *= 0.5;
       // Walked off the end or edge of something with nothing within reach:
@@ -919,8 +925,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       if (g3 && c3.y - g3.point.y < 30) st.center.y += g3.point.y - c3.y;
       else if (!g3 || c3.y - g3.point.y >= 30) st.vel.y = 0; // leaves the surface: falls next frame
     }
-    st.center.x = clamp(st.center.x, BX0, BX1);
-    st.center.z = clamp(st.center.z, BZ0, BZ1);
+    keepIn(st.center);
   }
 
   // The hop: a ballistic arc after the crouch, landing on whatever is below.
@@ -952,8 +957,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
     }
     if (st.vel.y > 0) { const hit = colliders.cast(st.center, WUP, 180 + st.vel.y * dt, true, SOFT); if (hit) st.vel.y = 0; }
     st.center.addScaledVector(st.vel, dt);
-    st.center.x = clamp(st.center.x, BX0, BX1);
-    st.center.z = clamp(st.center.z, BZ0, BZ1);
+    keepIn(st.center);
     st.up.lerp(WUP, 1 - Math.exp(-dt / 0.15)).normalize();
     st.fwd.addScaledVector(st.up, -st.fwd.dot(st.up)).normalize();
     st.pos.copy(st.center).addScaledVector(st.up, -AN.stand);
@@ -1008,7 +1012,7 @@ export function createMite(scene, colliders, { cls, tex, cfg = CFG, anat = ANAT,
       h += 28 * st.rear;
       center = _pc.copy(st.pos).addScaledVector(st.up, h).addScaledVector(st.fwd, 72 * st.lunge);
       // (a body tipped up onto something, or lunging, stays inside the wall's face too)
-      center.x = clamp(center.x, BX0, BX1); center.z = clamp(center.z, BZ0, BZ1);
+      keepIn(center);
       st.center.copy(center); st.q.copy(q);
     } else if (st.mode === 'opening') {
       const e = sstep(0, 0.75, st.t);
