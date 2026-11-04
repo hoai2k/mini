@@ -53,10 +53,12 @@ the tardigrade for fine focus (its magnification is four real objectives,
 stepped on the D-pad), and the amoeba uses them in play (LT moves the cell, RT
 spreads it).
 
-**The bacterium zooms with the triggers; RS looks around.** LT zooms out and
-RT in, as the paramecium's (eased, clamped): from a 22 µm camera crop out to
-the 180 µm eyepiece field, starting at 45 µm; each player's own, and each
-split view takes its players' widest. It has no focus control (the focus
+**The bacterium zooms with the triggers; RS looks around.** Its view widens
+by itself as your swarm grows (slowly, so the whole swarm fits: 45 µm alone,
+about 120–200 µm for hundreds to a thousand cells), and LT zooms out and RT in
+on top of that, as the paramecium's (eased, clamped: ×0.4 to ×4, a field from
+22 to 480 µm); the round eyepiece field stop shows when you zoom well out past
+180 µm. Each player's own, and each split view takes its players' widest. It has no focus control (the focus
 follows your cell's height) and no D-pad zoom. The view stays straight down on
 the slide with a follow camera: your flock moves freely within a dead zone
 (16 % of the field) before the camera eases after it, with a look-ahead along

@@ -1,9 +1,10 @@
 # Bacterium
 
 Level 5 of the Zoom Chain, as a playable prototype: be a **magnetotactic
-bacterium** (a *Magnetospirillum*-like spirillum, 3 µm long) in bog-pond
-sediment at 1000×, at the limit of the light microscope, and **gather an army
-of your kin and fight your way to the host cell**. Or switch, in Features, to
+bacterium** (a *Magnetospirillum*-like spirillum, 3 µm long) in a drop of
+bog-pond water under a coverslip at 1000×, at the limit of the light
+microscope, and **grow a swarm of your kin, hundreds strong, and drill your
+way through the enemies that block the way to the host cell**. Or switch, in Features, to
 the predator ***Bdellovibrio bacteriovorus*** (1 µm), which rams a prey cell,
 bores into its periplasm and eats it from inside. Published in the prototype
 archive at `micro/game/bacterium/`.
@@ -32,6 +33,47 @@ motion, the flow and the magnetic torque move it. Its flagella and body turn
 with its speed: fast in a run, slower as it slows, still when it stops.
 Honest run and tumble (no steering) is a Features choice.
 
+**The rework (the owner, 3 November 2026):** "I found the edge of the world
+which was an invisible wall ... I couldn't find the portal ... I saw some
+spiral looking bacteria that wouldn't join my group even when I beacon'd them
+... the messages about them were weird ... You should be able to find a portal
+long before you find the edge of the world, and if you end up at the edge of
+the world it should look like a border (for example like the edge of a water
+droplet in a slide including some visual light bending as you approach the
+very edge). The default camera should also slowly zoom out as your group
+becomes bigger and bigger, and you should eventually be able to have hundreds
+or a thousand bacteria in your group ... a progressive path to the final
+portal, and putting in specific enemies that block your way and that you can
+battle with in that they each [eat] some of your group and you can drill into
+them ... each additional bacterium is like an extra HP". What changed: **The
+drop** (no invisible walls), **The way** (a route with enemies and colonies),
+**The battles**, the swarm up to 1000 (**The army**), the camera (**The view**
+in Approach), and every creature's message (`text_config.js`). What was wrong
+before (the diagnosis):
+
+- **The invisible walls** were five clamps with nothing drawn at them: the
+  field was a 1120 µm square (`WORLD.x0/x1 = ±560`, `y1 = 560`) and your cell
+  (`swim.js`), every member and free kin cell (`collective.js` `clampCell`)
+  and every free cell (`world.js` `stepCell`: bounced at the top, wrapped
+  round left and right) were clamped to it; the biofilm floor stopped you
+  dead 20 µm into the slab. The host sat on its default path 440 µm out, so
+  heading almost any other way met a wall within ~12 s, and the host was
+  sealed until five gates placed as you go had all been met.
+- **The spirals that would not join** were the stranger strain (eight
+  magnetotactic cells kept near any army of 4 or more to waylay it): drawn
+  exactly like your kin, never recruitable, and tinted amber only while
+  luring. (Kin past the old cap of 48 members would not answer either.) They
+  are now drawn apart (longer, thinner, a tighter helix, no magnetosome
+  chain, always faintly amber) and the cap is 1000.
+- **The messages**: "A grazer took a member of your army (5 left): members
+  are your health" on every loss (and "grazer" for what the gauge called a
+  peritrich), "A clay grain, bigger than you" at random on bumps, "The
+  peritrich jerked back on its coiling stalk" whenever you brushed its bell,
+  "The host's phages are not ready for you yet: meet the gates first",
+  "Toxin burst! Peritrich hit (a quorum-gated toxin, like violacein)", the
+  phage gate's tip naming the D-pad, a features note saying "three"
+  Bdellovibrio. They now say what is happening and what to do, once.
+
 ## Landmarks (the Micro Zoom chain)
 
 World 6 of the game (`micro/game/`), between the Paramecium and the phage.
@@ -42,10 +84,11 @@ off screen; there is no arrow to the way on unless the Portal arrow setting
 is on (see **The way**).
 
 - **Forward (the portal): a host cell with phages landing on it**, the
-  director's last encounter (see **The way**): on the default path from the
-  first frame (sealed until every gate has been met), else placed after every
-  gate has been met, in water nobody has seen, a little ahead of whoever
-  leads, out of view (`placePortal` in `main.js`). The shared golden glow
+  director's last encounter (see **The way**): at the end of the route,
+  1700 µm out, from the first frame (sealed until every gate has been met),
+  else placed after every gate has been met, in water nobody has seen, a
+  little ahead of whoever leads, out of view (`placePortal` in `main.js`).
+  Its signal thickens toward it as a haze in every look (**The way**). The shared golden glow
   (`shared/portal.js` `createPortalGlow`, its ground plane turned to face the
   microscope, drawn over the optics with an orthographic camera; dimmer while
   guarded) and its light spilling in from the screen's edge
@@ -101,16 +144,17 @@ spirals into the oral pouch off-frame.
 - **Its tell:** the membranelles beat faster and the vortex brightens
   (1.4 s). **The pull** (0.9 s): a strong draw toward the mouth. **Below half
   health** the pull is harder.
-- **Your play:** bring an army. Every cell of it among the membranelles (up
-  to 20 µm outside the rim) wears it down; every member it sweeps in poisons
-  it (more in a bigger army); X adds volleys; Y's toxin burst a big hit. A
-  tumble (B) at the pull breaks your own cell free (and costs it health), as
-  does bumping its foot (it contracts in a flash and pauses) and every pull
-  that comes up empty. Beaten, it contracts and stays shut: the host is yours.
-- **Measured** (`flock.test.mjs`-style scripted runs that push the army
-  straight at its rim and press X): an army of 12 or 20 is swept in before it
-  wins; 28 wins in about 6.5 s with half of it lost; 40 in about 6 s losing a
-  few.
+- **Your play:** bring a swarm and drill into its rim (**The battles**):
+  every member that reaches the rim latches on and bores in (up to 520 at
+  once); every member it sweeps in poisons it; X drills harder; Y's toxin
+  takes 12 % of its health. Its bite is the pull: each pull sweeps up to 30
+  members at its rim and inside it into the oral pouch. A tumble (B) at the
+  pull breaks your own cell free, as does bumping its foot (it contracts in a
+  flash and pauses), and each costs it 2 % of its health, as does a pull that
+  comes up empty. Beaten, it contracts and stays shut: the host is yours.
+- **Measured** (`flock.test.mjs`, a swarm pushed at its mouth, X every
+  0.5 s): 120 is eaten; 300 wins in ~15 s with about a third lost; 900 in
+  ~7 s losing a few. Health 6500, regrowth 8/s.
 - **Swept in:** the follow-and-respawn catch: round the vortex, into the
   oral pouch, packed into a food vacuole carried down into its body, the
   camera pulled back to the 90 µm field; then the fade and a respawn in open
@@ -129,14 +173,26 @@ spirals into the oral pouch off-frame.
   its reach: its edge plus 7 µm (alone: 9 µm, three body lengths; at most
   44 µm). It is drawn on the medium as a ring of soft spots spreading and
   fading. Free kin cells (your own species, the dim spirilla wandering in the
-  meadow by the start and kept near you wherever you go) that the ring passes answer
+  meadow by the start, in the colonies along the way, and kept near you wherever you go) that the ring passes answer
   with their own small pulse, one after another (0.08 s plus 0.09 s per
-  answer before them), and join. **Kin never join by themselves.** One
-  beacon every 0.3 s, so you can press X everywhere.
+  answer before them for the first eight, then a quick ripple, never more
+  than 1.8 s: `answerDelay`), and join. **Kin never join by themselves.** One
+  beacon every 0.3 s, so you can press X everywhere. The reach grows with the
+  swarm (its edge plus 7 µm, up to 90 µm).
+- **The swarm grows without a limit you will meet** (`COLL.max` 1000; the owner:
+  "you should eventually be able to have hundreds or a thousand bacteria in
+  your group if you keep collecting"): the colonies along the way hold 90,
+  180 and 320 kin, X lyses prey and every member grows toward dividing
+  (`COLL.grow`: 300 s on its own, twice as fast in a food patch, a third of
+  the way per prey rod). A scripted run that visits every colony reaches
+  ~550–1000 at the host. **Every member is a life** (**The battles**).
+- **The stranger strain never joins**, and is drawn so you can tell: longer and
+  thinner than your kin, a tighter helix, no magnetosome chain in
+  fluorescence, and always faintly amber (brighter while it lures).
 - **X also eats.** Every prey rod (the E. coli-like rods) within 1.7 µm of a
   member's middle, beyond its half length, is lysed: it rounds up, swells and
   bursts into a fading puff, and the member that took it grows a third of
-  the way to dividing. Members divide into the flock (up to 48), so eating
+  the way to dividing. Members divide into the flock (up to 1000), so eating
   grows the army as well as calling kin does. X also strikes: every member
   touching an enemy adds a volley (`guards.js`). Holding X still takes up
   dissolved food in a patch for your own cell.
@@ -196,14 +252,15 @@ spirals into the oral pouch off-frame.
   neighbour's attractants. **[Departure]**: a strain luring cells on purpose,
   and the numbers. Test hooks: `__micro.waylays()`, `debug.stranger(slot, d,
   a)`.
-- **Members are your health.** A predator that would take you (a grazer's
+- **Members are your health** (**The battles**). A predator that would take you (the peritrich's
   funnel, the amoeba, Stentor, a Bdellovibrio's ram, a phage) takes the
   member on its side instead. Members it eats poison it (`guards.js`).
 - **Army size** (members plus the players' cells) gates three abilities,
-  shown in a quiet line at the bottom of the screen ("Army 23 · slime shield
-  · raft · toxin 60 %"; alone: "press X near kin to call them"), never a ring:
+  shown in a quiet line at the bottom of the screen ("Swarm 23 · slime shield
+  · raft · toxin 60 %"; alone: "press X near the spirilla like you to call them"), never a ring:
   - **5, slime shield:** EPS round every member (a haze in fluorescence).
-    Phages stick in the slime; a Bdellovibrio's ram glances off half the time.
+    Phages stick in the slime; a Bdellovibrio's ram glances off half the time
+    (a pack's, three times in ten).
   - **8, raft:** currents (the grazers', Stentor's vortex) drag the flock less
     the bigger it is: 1 / (1 + army / 6), a third at 12, an eighth at 40.
   - **12, toxin:** the toxin burst charges over 6 s and holds; **Y** (or LS
@@ -231,144 +288,192 @@ spirals into the oral pouch off-frame.
   beside you, for a beacon), `debug.charge(slot)`, `debug.burst(slot)`;
   `?flock=n` keeps every player's army at n.
 
-## The way: placed as you go
+## The drop (no invisible walls)
 
-`world.js` `DIRECTOR` and `ENCOUNTERS`, `guards.js`, the director in
-`main.js` (`shared/director.js`; `../../design/encounter-pattern.md`,
-"Placed as you go"). The world is open water 1120 µm across round the
-start, clay grains with microcolonies on them scattered everywhere, the
-biofilm along its bottom edge: that scenery is there from the start and never
-moves. You start among your kin: a clump laid out by `../shared/kin-clump.js`
-(28 kin, 44 prey rods from the meadow, 76 attached cocci and rods moved in
-from microcolonies far off) round your cell, the same layout the Paramecium
-draws round its spirillum, so the continuous transition's dive resolves its
-dark mass into exactly these cells. The gates are not: the director places each one, in this order, in
-water nobody has seen (a 20 µm grid of what every split view has framed),
-a little ahead of whoever leads, out of every view, after a calm break;
-until then it is parked far off, invisible and inert.
+`world.js` `DROP`, `rimMove`, `soften`; the optics' `uDrop`
+(`shared/techniques/bacterium-fluorescence.js`). The world is a round drop of
+water under the coverslip, 4300 µm in radius, centred on the start: more than
+twice as far out as the host (2100 µm) in every direction, so the route's end
+comes long before its edge (`route.test.mjs`: 16 rushes in every direction
+meet the host 1850–2500 µm out, never nearer the edge than ~1800 µm).
 
-| Order | What | Army that beats it (scripted runs; its `need`) |
-| --- | --- | --- |
-| warm-up | ~5 s of moving in the meadow round the start: most kin and plenty of prey; safe for ever | — |
-| 1 | a peritrich (Vorticella-like), its funnel turned aside as you come | 6 is swept in; 12 wins in ~7 s (12) |
-| 2 | a Bdellovibrio pack (four) | 4 loses; 8 wins in ~15 s, 12 in ~9 s (8) |
-| 3 | a phage cloud (80 phages) | 3 loses members; 6 (the slime shield) sweeps it in ~2 s (6) |
-| 4 | an amoeba's edge, a wall 170 µm long across your way | 8 and 12 are engulfed; 16 wins in ~3 s (16) |
-| 5 | a bigger peritrich | 10 loses; 14 wins in ~8 s (14) |
-| last | the portal (the host), guarded by Stentor | ~24 (16 is swept in) (24) |
+- **Its edge is the meniscus, and it shows** (in every look, from the optics'
+  composite): within ~30 µm of it the water darkens a little, then a bright
+  refracted line with coloured fringes, a dark wall of curved water just past
+  it, and beyond, the flat empty air under the coverslip. **The light bends**
+  as you come to it: the last ~60 µm inside the edge are magnified outward (each
+  pixel shows the water a little nearer the edge, in a few soft moving
+  bands), the edge itself staying put, more strongly the nearer the view comes
+  (`dropUniform` in `main.js`). Phase contrast: the line bright, the air pale;
+  fluorescence: a faint blue line on black, the air black; darkfield: a white
+  line.
+- **Surface tension, not a wall**: within 30 µm of the edge the outward part
+  of every move (your cell, every member, free kin, every free cell) is cut,
+  to nothing at the edge itself (`rimMove`: smoothstep of the distance), so a
+  cell swimming straight out eases to a stop about a micrometre inside the
+  line you can see, and slides freely along it; a swarm piles up against it.
+  Measured (`flock.test.mjs`): full tilt from 60 µm out stops 0–3 µm inside the
+  edge, the speed falling by under 15 µm/s a frame (the Brownian jitter's
+  size; a wall would be 45), and sliding along it covers 40+ µm in 2 s.
+- **The sediment bank** along the bottom of the drop (the biofilm slab, 548 µm
+  below the start) is the only other barrier, and it is drawn as what it is
+  (a slab deep enough that you never see past it). Its EPS slows you more the
+  deeper you go (`filmK`: from 1 above its fuzzy surface to 0.45 just inside,
+  to nothing 24 µm in), so you ease to a stop in it; free kin turn back at its
+  surface.
+- **Clay grains** you push round or ride over (2.5D), as before.
+- **Ambient life in a window** (perf): the drop is ~30× the old field, so the
+  specks, ambient phages and bacteria live within ~460 µm of the players and
+  are recycled out of view (never into a view) as they fall behind; kin and
+  prey are kept near every player (`keepAmbient`). The scenery (clay grains,
+  their microcolonies, matrix strands) is laid out once over the whole drop
+  in seeded 100 µm tiles and found through a grid (`createBuckets`).
 
-Between each and the next, a calm break of ~5 s of moving clear of the one
-just met. An encounter counts as met when a flock comes into its zone (where
-the army fights it) or beats it; one that has been seen and left behind
-(everyone 200 µm off) or watched for 10 s counts as met too, and is never
-moved, so it cannot hold the game up.
+## The way: a route, its enemies and colonies
 
-- **Army sizes (the decision).** A gate is placed whatever your army: the
-  owner's rule is that nothing waits on the player for ever and lingering
-  still progresses, and a gate's threat is the point of growing an army, so
-  it does not scale down. Instead the world makes sure you can always grow
-  it first: while the leader's army is short of the next gate's need, the
-  calm break before it lasts up to 8 s longer (`ARMY_HOLD`: a second per
-  missing cell), and every player who is short has 18 free kin kept within
-  130 µm (8 otherwise) and 14 prey rods (eating three makes a division).
-  So a player who presses X on the way meets each gate with about the army
-  it needs; one who rushes on meets it short, and can always go back to the
-  kin round them.
-- **Kin and prey are ambient** (`keepAmbient` in `main.js`): 40 kin and 60
-  prey rods in the meadow, the other 60 kin scattered over the water, and
-  every 0.4 s the counts round each player are topped up from the parked
-  ones (lysed rods, members lost in battle) or from free ones far from every
-  player, only from water nobody has seen to water nobody has seen, out of
-  view, ahead of the flock. Water a player has seen keeps what it had.
-- **Lingering:** stay put and the next gate is placed anyway (after the
-  break plus 6 s), round you, out of view; after 4 s more it comes over to
-  you (behaviour, not a placement: the pack swims, the cloud drifts, the
-  amoeba creeps, a peritrich's clay grain is carried on a slow current at
-  6 µm/s, a labelled departure) until its zone reaches you. In the end the
-  portal is placed near you too.
-- **Timings** (`route.test.mjs`, headless, the real gates and the director,
-  a flock at 45 µm/s that goes to each thing once it has seen it and to the
-  portal once its light shows; and scripted browser runs, `debug.step`):
-  rushing out in 16 directions at the default field: the first gate placed
-  at 5.1 s and met at 6–7 s, the portal placed at 50–63 s and reached at
-  54–67 s (browser, 4 directions: 56–60 s); at the eyepiece field (180 µm,
-  more seen, so things go farther) 68–86 s; with a one-cell army the warm-up
-  is 13 s and the portal comes at ~94 s; lingering at the start, a gate every
-  ~26 s (placed round you, then coming over) and the portal at ~145 s;
-  heading out and turning back past the start, nothing is ever placed on
-  seen water and no grain or biofilm cell a view has seen ever moves.
-- **The default path** (the owner, 2026-11-01: "a default path to a portal,
-  but just dynamically generate the other directions"): on the first frame
-  the director lays the host with Stentor out across the field from the
-  start (`world.js` `DEFAULT_PATH`: 0.25 rad, right and a little up, away
-  from the Paramecium, ~440 µm out), out of sight, so the way on exists from
-  the start. The gates are not laid along it: the field has room for about
-  one break at a rush (5 s at ~45 µm/s plus a gate's ahead range is
-  ~360 µm), and each gate must wait for its break and the army-size hold, so
-  every gate is still placed as you go, with the hold, on the way to the host
-  or wherever you go (`dists` null for them). The host stays sealed (no
-  prompt, its glow shut, no edge light, nothing preloaded; at it: "The
-  host's phages are not ready for you yet: meet the gates first") until
-  every gate is met; Stentor guards it as always. Head off another way and
-  the host, while nobody has seen it, leaves the path and is placed ahead of
-  you after the last gate, as before (one thing: the director's `single`);
-  seen on the path (the field is small), it stays there. It is not laid
-  along a "forward" (the owner, 2026-11-03, for the worlds with a locked
-  camera: "the default path [should] be straight forward essentially"):
-  this camera follows you straight down with no turn to lock, so it has no
-  forward; screen-up is only the way to the air (the meniscus), and the
-  field is about two screens across, the host already within one of the
-  start.
+`world.js` `BEATS`, `COLONIES`, `DEFAULT_PATH`, `DIRECTOR`, `ENCOUNTERS`,
+`guards.js`, the director in `main.js` (`shared/director.js`;
+`../../design/encounter-pattern.md`). The camera has no forward (it looks
+straight down and never turns), so the way is a route laid out from the start
+along a bearing (0.25 rad: right and a little up, away from the Paramecium and
+the sediment bank), with everything on it from the first frame:
+
+| µm along | Beat | What | Its `need` |
+| --- | --- | --- | --- |
+| 0 | the meadow | ~40 kin and 60 prey rods round the start (you start among them: the kin clump); safe for ever | — |
+| 400 | gate 1 | **a peritrich** (Vorticella-like), its funnel turned aside | 14 |
+| 680 | colony 1 | 90 kin round a big clay grain with its microcolony, a food patch, 26 prey rods | — |
+| 980 | gate 2 | **a Bdellovibrio pack** (sixteen) | 50 |
+| 1260 | colony 2 | 180 kin, food, 34 prey | — |
+| 1560 | gate 3 | **an amoeba's edge**, 190 µm across the way, sliding along it to stay in front of you | 150 |
+| 1830 | colony 3 | 320 kin, food, 40 prey | — |
+| 2100 | the host | **Stentor** guarding the host cell (the portal) | 300 |
+
+- **The default path** (`DEFAULT_PATH`, `dists` the gates' and the host's
+  beats, `lateral` steps aside to fit): every gate and the host are
+  pre-placed along the route on the first frame, out of sight, each as near
+  the line as fits. Walk it and you meet them in order, a colony of kin and
+  food behind each, each colony bigger than the last, so the swarm can grow
+  fast enough for the next gate. Head off another way and the next one,
+  while nobody has seen it, leaves the route and is placed ahead of you as
+  before (`single`), after a calm break (4 s of moving, longer while your
+  swarm is short of its `need`: a second per four cells short, up to 8 s;
+  cut to 1 s once you are 1900 µm from the start, `FAR_OUT`, so off the
+  route the host still comes long before the drop's edge). The colonies stay
+  on the route (scenery); kin and prey are kept near you wherever you go.
+- **The gradient toward the host**: the sediment thickens toward the host on
+  the route (`hostK`: up to 2.8× the clay grains and bigger microcolonies
+  within ~500 µm of it), and the host's signal shows as a haze thickening
+  over its last ~650 µm (the optics' `uHost`, from wherever the host is now:
+  a warm brightening in phase contrast, the green of free phage DNA in
+  fluorescence, a glow of fine scatter in darkfield; stronger once its way
+  is open).
+- **Sealed until every gate is met**: the host stays shut (no prompt, its
+  glow dim, nothing preloaded; at it: "The host is closed: get past the
+  enemies on the way first") until the director has met every gate (a swarm
+  in its zone, or beaten), and Stentor turns you back until it is beaten.
+- **Met, passed, lingering**: as before (the director): a gate met counts
+  even if you leave it, one seen and left behind counts as passed, and
+  lingering still brings the next one to you (placed round you, then
+  drifting over at 6 µm/s, a labelled departure).
+- **Timings** (`route.test.mjs`, the real director and gates, a flock at
+  45 µm/s, no fights): walking the route meets the gates at ~8, 20 and 33 s
+  and reaches the host at ~46 s; rushing in 16 directions off it, the gates
+  at 6–8, 19–29 and 35–45 s and the host at 46–64 s, 1850–2500 µm out. With
+  the fights: **Timeline**, below.
 - **No arrow by default** to the way on: once open, its golden light spills
   in from the edge of the view on its side (`createPortalLight`), and haloes
   it in view. With **Portal arrow** on in the game's Settings (default off;
   `?arrow=1` on this page) each view gets a brass arrow at its edge toward
-  the host, sealed or not, with the distance from the view's nearest flock
-  beside it ("442 µm"). Test hooks: `portalArrow()`, `portals()`,
-  `portalSealed()`, `focus(slot)`.
+  the host, sealed or not, with the distance. Test hooks: `portalArrow()`,
+  `portals()`, `portalSealed()`, `focus(slot)`, `challenges()`.
 
-- **Calm water:** the meadow has no enemy in it (linger there and the next
-  encounter comes to you all the same: the owner's rule). The peritrichs'
-  currents reach 45 µm, in a cone in front of the funnel (to the sides and
-  behind only within 20 µm of the bell), the pack keeps within about 40 µm of
-  its post, so the breaks are calm too. Nothing runs down: no oxygen, no
-  starvation, no timers.
-- **Every danger shows:** a peritrich's current is a stream of specks
-  pouring into its funnel (faster and brighter as it pulls), Stentor's
-  vortex a swirl of specks, the phage cloud is drawn so it reads in every
-  look, the amoeba's edge is a wall.
+### Timeline (scripted browser runs, 4 November 2026)
 
-- **Fighting is by contact** (`guards.js`): every cell of your army touching
-  an enemy wears it down (1.2 health per second each) while it recovers by
-  its own rate (3–6 a second), so a small flock gets nowhere and a big one
-  wins, losing members on the way. **A member an enemy eats poisons it**
-  (1.5, plus 1 for each ability the army has). X adds a volley (0.3 per
-  member in contact), Y's toxin burst 15. The enemy gauge at the top shows
-  the nearest enemy your flock is fighting ("Peritrich · 9 fighting").
-- **The peritrichs:** their feeding current sweeps cells into the funnel
-  (members within 3 µm of the mouth are eaten). Fight them at the back of
-  the bell or along their stalk, out of the funnel's cone.
-  Beaten, they coil back on their stalks for good.
-- **The Bdellovibrio pack** keeps to its gate and goes for the nearest
-  member: each one **latches on to a member's pole** for 1.5 s, trembling,
-  then bores in (the member is lost and it hides in the bdelloplast for
-  1.5 s). The members round it can kill it while it clings (3 health each, a
-  little regrowth); kill all four.
-- **The phage cloud** hangs across the way (drawn 3× so it reads in phase
-  contrast; spots in fluorescence and darkfield). A phage touching an
-  unshielded member infects it (lost); at army 5 the slime catches them
-  within 1.5 µm of every member, so the flock sweeps the cloud up. Swept
-  under half, the rest drift apart.
-- **The amoeba's edge** stands across the way, its body to the right: cells
-  inside it are slowed to a third and engulfed after 1.2 s. Push on its edge
-  with your army (every cell within 2.5 µm of it fights). Beaten, it
-  withdraws down into the sediment and engulfs nothing more.
+Scripted in the page with `debug.step` (the real game: director, gates,
+battles, kin; X pressed on a timer), start to the portal entered:
+
+| Event | Paced (tilt 0.75, X every 1 s, 14 s at each colony) | Efficient (full tilt, X every 0.5 s, 6 s at each colony) | Rushed with a big swarm (starts at 400, no stops) |
+| --- | --- | --- | --- |
+| left the meadow | 14 s (30 cells) | 6 s (37) | — |
+| peritrich reached / beaten | 27 / 32 s (47) | 16 / 18 s (46) | 10 / 11 s (424) |
+| colony 1 left | 55 s (145) | 31 s (133) | — |
+| pack reached / beaten | 63 / 71 s (138) | 37 / 43 s (145) | 23 / 28 s (507) |
+| colony 2 left | 95 s (338) | 57 s (305) | — |
+| amoeba reached / beaten | 103 / 108 s (315) | 62 / 67 s (302) | 42 / 45 s (635) |
+| colony 3 left | 131 s (648) | 89 s (529) | — |
+| Stentor reached / beaten | 138 / 148 s (608) | 94 / 103 s (511) | 56 / 63 s (840) |
+| portal entered | **152 s** | **109 s** | **68 s** |
+
+The scripts know the way and never wander; a first run that looks round,
+reads the messages and misses a colony or two takes longer (about 3–5
+minutes), and the rushed run is about a minute. A swarm that skips the
+colonies meets the amoeba (150) and Stentor (300) short and loses.
+
+## The battles: members are HP, and you drill
+
+`guards.js` (`FIGHT`, `GATES`, `drill`, `attack`, `bite`, `stentorPull`),
+drawn in `draw.js`, the gauge and the bars in `main.js`. The owner: "specific
+enemies that block your way and that you can battle with in that they each
+[eat] some of your group and you can drill into them ... each additional
+bacterium is like an extra HP for fighting sake". A tug-of-war you can read:
+
+- **Every member is a life.** A predator that would take you takes a member
+  instead (the one nearest it), so while you have a swarm your own cell is
+  safe; only when the swarm is gone does a catch take you (and you respawn
+  nearby with kin kept round you). The swarm's size is in the line at the
+  bottom ("Swarm 214 · slime shield · raft · toxin ready").
+- **They eat, in a rhythm you can see.** Each enemy has a **tell**, then a
+  **bite**: the peritrich's cilia race and its current swells (1.2 s, the
+  gauge and its bar turn warm), then it surges and sucks in up to 2 members
+  (in front of its funnel, or drilling on its bell), every 4 s; the amoeba's
+  edge bulges forward in a wave (1.2 s), then engulfs up to 15 it closes over,
+  every 3 s; Stentor's membranelles speed up and its vortex brightens, then
+  its pull sweeps up to 30 at its rim into the oral pouch; each Bdellovibrio
+  of the pack lines up, latches on a member's pole, trembles for 1 s and
+  bores in. A member taken is drawn into the mouth (sucked in, engulfed,
+  swept into the pouch) as it rounds up and fades. Each one eaten poisons
+  the enemy a little (violacein-like: 1 + the swarm's level).
+- **You fight by drilling.** Steer the swarm into the enemy: every member
+  that touches its surface (the peritrich's bell or stalk, the amoeba's edge,
+  Stentor's rim, a Bdellovibrio) latches on and bores in: held nose-in at
+  its place on the surface, turning hard, a bright pore flickering at its
+  tip, wearing the enemy down by 1 health a second each, × (1 + 0.15 ·
+  log2(swarm / 12)) for a big swarm's quorum (×1.96 at 1000). A Bdellovibrio
+  is tiny: each drill into it counts double, and drilled it cannot swim off.
+  Up to 90 drill a peritrich at once, 300 the amoeba, 520 Stentor, 8 each
+  Bdellovibrio, so a bigger swarm drills faster. **X** drills harder (every
+  driller bores 0.35 more at once), **Y** fires the toxin (army 12: 12 % of
+  the enemy's health). Steer on and the drills let go once the swarm's middle
+  has gone 24 µm past its own radius from them.
+- **Its health** is the brass gauge at the top ("Amoeba · 63 drilling") and a
+  bar over the enemy (warm in its tell), and the enemy shows it: the bell
+  shrinks and darkens, the amoeba's edge thins and loses its granules,
+  Stentor pales, and each flashes where it is hit. Out of contact it grows
+  back (twice as fast with nobody drilling).
+- **Beaten**, it dies, dissolves or flees, and the way is open: the
+  peritrich coils up and its bell dissolves away, the pack is killed off,
+  the amoeba withdraws into the sediment and fades, Stentor contracts and
+  stays shut. It stays beaten.
+- **The numbers** (`flock.test.mjs`, a swarm pushed at it, X every 0.5 s;
+  health / regrowth per s):
+
+| Gate | Health | A small swarm | Its need | Three times that |
+| --- | --- | --- | --- | --- |
+| peritrich | 80 / 3 | 5 is eaten | 14 wins in ~9–14 s, ~8–10 left | 42 in ~4–6 s |
+| Bdellovibrio pack | 16 × 10 | 14 is eaten | 50 wins in ~6–10 s, ~40 left | 150 in ~4–7 s |
+| amoeba | 1750 / 15 | 60 is eaten | 150 wins in ~9 s, ~105 left | 450 in ~3 s |
+| Stentor | 6500 / 8 | 120 is eaten | 300 wins in ~15 s, ~200 left | 900 in ~7 s |
+
 - **A lone cell** still has its own fights with the predators that come for
-  it (`runFights`: a grazer's surge, a phage homing in, a pack Bdellovibrio's
-  ram), each with a wind-up and B to evade; it cannot beat a gate.
-- **Respawn:** a catch puts you back in open water 90-130 µm from where you
-  were, as far as it can from every gate still standing and from Stentor
-  (`safeSpot`); kin are kept near you wherever you are.
+  it when it has no swarm (`runFights`: the peritrich's surge, a pack
+  Bdellovibrio's ram, a phage homing in), each with a wind-up and B to evade;
+  it cannot beat a gate.
+- **Real basis**: contact killing by type VI secretion (Pukatzki et al.
+  2006), quorum-regulated toxins killing protist grazers (atlas C28).
+  **[Departure]**: a magnetotactic spirillum doing any of this, "drilling"
+  into a protist, the rhythm of the bites, enemies staying beaten, and the
+  numbers.
 
 ## Multiplayer
 
@@ -454,10 +559,10 @@ The shared scheme (`../CONTROLS.md`, read through `shared/controls.js`):
 | LS | WASD | **Steer your flock** (a labelled assist): it heads where you point, as fast as you tilt (0–45 µm/s); your own cell turns toward the stick (up to ~5.5 rad/s), every member follows in its own way (see **The army**). Released: the motors stop and the flock settles; only Brownian motion, flow and the field move you. Tumbles (B) also lean toward the stick. Features → LS steering → *Tumble bias only* or *Honest: no steering* |
 | RS | Arrows | **Look around**: held, the view looks that way (up to 40 % of the field, by how far it is pushed), easing back when released (see **The view**) |
 | **A** | Space | **Sprint run**: every flagellum at full motor speed (spirillum 95 µm/s, Bdellovibrio 160 µm/s), 0.6 s, recharging (HUD `dash` meter); the whole flock sprints. It also shakes off loosely bound phages and an attaching Bdellovibrio, and sprinting out of a grazer's current wears it down |
-| **X** | E | **Beacon, eat, strike** (magnetotactic, one press every 0.3 s): a pulse from your flock's front, riding with it, that kin in reach answer as they join; every prey rod in reach of a member lysed; a volley from every member touching an enemy. Held, your cell also takes up food in a patch. Bdellovibrio: press while touching a Gram-negative rod to attach and bore in (it spins on its pole and a pore opens in the prey's wall) |
+| **X** | E | **Beacon, eat, drill harder** (magnetotactic, one press every 0.3 s): a pulse from your swarm's front, riding with it, that kin in reach answer as they join; every prey rod in reach of a member lysed; every member drilling into an enemy bores harder at once (**The battles**). Held, your cell also takes up food in a patch. Bdellovibrio: press while touching a Gram-negative rod to attach and bore in (it spins on its pole and a pore opens in the prey's wall) |
 | **B** | Shift | **Defend: tumble** (the shared defend button, an evasive move): stop, turn to a random new heading (E. coli's distribution, mean 68°), run on. For Bdellovibrio it is a reverse plus a flick. While you hold LS, the stick turns you back afterwards. **At the moment a predator strikes** (a grazer's surge, a phage committing, a Bdellovibrio's ram) it evades it |
 | Y | R | **Toxin burst** when your army's toxin is charged (army 12; also LS click). Otherwise: data overlay (food, field lines and feeding currents, marked on screen as data, not optics) |
-| LT / RT | Z / X | **Zoom** out / in, analogue and continuous (eased): from a 22 µm camera crop to the 180 µm eyepiece field (the field stop shows there); starts at 45 µm. Each player's own |
+| LT / RT | Z / X | **Zoom** out / in, analogue and continuous (eased), on top of the view that widens by itself as your swarm grows (45 µm alone, ~120–200 µm for hundreds to a thousand): ×0.4 to ×4 of it, a field from 22 to 480 µm (the round field stop shows when you zoom well out past 180 µm). Each player's own |
 | LB / RB | Q / F | **Reverse the run**: the other pole leads. For the magnetotactic cell, this is how it swims back the other way along the field line |
 | D-pad ←→ | 3 / 4 | Look: phase contrast, fluorescence, darkfield, SEM (borrowed), DIC (borrowed) |
 | Menu | Esc | Features panel |
@@ -475,14 +580,14 @@ growth or prey, the dash meter, phages on you, the magnetic alignment
 the flock's speed and spread). The army line at the bottom and the enemy
 gauge at the top are the only HUD in play.
 
-**Goals.** Magnetotactic: gather an army (X near kin, X on prey) and fight
-your way through the five gates to Stentor, beat it, touch the host and
-press Y to enter it.
+**Goals.** Magnetotactic: grow a swarm (X near kin, X on prey, the colonies
+along the way), drill through the three enemies on the route and Stentor,
+touch the host and press Y to enter it.
 Bdellovibrio: take three prey; the last bdelloplast bursts with five new
 cells.
 
 **Ways to lose your cell** (members die in your place while you have them):
-swept into a grazer's oral funnel or Stentor's oral pouch; the amoeba's edge
+swept into the peritrich's oral funnel or Stentor's oral pouch; the amoeba's edge
 closing over you; a phage binding irreversibly and injecting;
 (magnetotactic) a Bdellovibrio boring in. Each is played out on screen, then
 you respawn in open water nearby (see **Threats**).
@@ -500,13 +605,15 @@ other prototypes.
   visibly (a pulsing red ring marks it too), then strikes. B (the tumble) at
   the strike evades it; each evasion and each sprint out costs it interest,
   and out of interest it leaves you alone for a while.
-  - *Grazer:* within ≈45 µm of its funnel it stalks; within ≈24 µm it winds
+  (While your swarm fights a gate, its tell and bite are the swarm's battle,
+  **The battles**; these are a lone cell's.)
+  - *Peritrich:* within ≈45 µm of its funnel it stalks; within ≈24 µm it winds
     up (1.1 s): its oral cilia beat harder and faster, the funnel tips
     toward you and the feeding current intensifies (×2.5), then surges
     (×3.4, 0.5 s). Within 8 µm of the mouth at the end of the surge, you are
     swept in (a member is, if you have one). Sprinting (A) out of its current
     wears it down; out of interest it coils back on its stalk for a while.
-  - *Phage* (at the phage cloud): one homes in on you (a game stretch: phages
+  - *Phage* (the old phage-cloud gate's; the cloud is no longer on the way, so these stay dormant): one homes in on you (a game stretch: phages
     only diffuse; drawn 3× so it reads), its long tail fibres catch your
     wall and splay while its baseplate settles (0.75 s), then it commits and
     binds. A tumble then shakes it off; once bound, it is reversible for
@@ -623,37 +730,84 @@ average 15–28), so the numbers are noisy;
 the flock itself stays a few per cent of a step. The beacon and answer
 pulses are a ring of discs in the existing shape batch (no new draw calls).
 
+## Performance (the swarm, 3 November 2026)
+
+A swarm of up to 1000 (the owner: "hundreds or a thousand bacteria in your
+group"):
+
+- **A neighbour grid** (`collective.js` `buildGrid`): separation and alignment
+  look only at the 3×3 cells (6 µm) round each member, not at every pair, so a
+  step is about n × 9 × a few pairs. The same grid finds the member nearest
+  each prey rod when X eats.
+- **LOD in the simulation**: members out of every view (`world.watch.inView`,
+  the director's views) follow the swarm's intent and its middle only (no
+  alignment, wander or Brownian jitter, their height every fourth step);
+  free kin more than 520 µm from every player rest; members skip the
+  currents' sums far from any current (`world.flowNear`).
+- **LOD in the drawing** (`draw.js` `lod`): a member shorter than 12 px on
+  screen is drawn as its body alone (one instanced shape, no flagella or
+  magnetosome chain); a swarm of more than 200 draws no per-member
+  footprints, windows over grains or slime discs. Everything is still the
+  one instanced draw (`bacterium-shapes.js`, now 24 000 instances).
+- **Scenery in a grid** (`world.js` `createBuckets`): grains, attached cells
+  and matrix strands are found by where they are, for drawing (only the view)
+  and for every push and height test.
+- **Measured** (headless, `flock.test.mjs`: one step, 1000 members): about
+  4.5 ms. In the browser with SwiftShader (software WebGL, so relative
+  numbers only), the whole frame and one simulation step (`debug.step`):
+
+| Swarm | Step | Frame (SwiftShader) | Shapes |
+| --- | --- | --- | --- |
+| 40 | 1.2 ms | 72 ms (1.0×) | ~560 |
+| 300 | 1.9 ms | ~104 ms (1.45×) | ~1300 |
+| 1000 | 4.4–5.0 ms | ~146 ms (2.0×) | ~4150 |
+
+  SwiftShader's frame is mostly the optics' full-screen passes, which do not
+  grow with the swarm; on a laptop GPU the instanced shapes are cheap, so the
+  CPU step (under 5 ms at 1000) is the budget, well inside 60 fps at a few
+  hundred.
+
 ## Checks
 
 ```bash
 node micro/game/bacterium/flock.test.mjs
 node micro/game/bacterium/followcam.test.mjs
-node micro/game/bacterium/route.test.mjs   # the director: 16 rushes, the eyepiece field, a small army, lingering, out and back; the default path followed and left
+node micro/game/bacterium/route.test.mjs   # the drop and the route; the director: 16 rushes, a wide field, a small army, lingering, out and back; the route walked
 node micro/game/check-worlds.mjs bacterium
 ```
 
 `flock.test.mjs` runs the world, your swimmer, the flock and the gates
-headless (no page, no GPU, about 5 s): a lone cell's speed follows the tilt,
-stops on release and spins with its speed; kin never join by touch, X calls
-exactly those in reach, one after another; a flock of 40 starts front first,
-cruises with its own speeds and headings, turns round bit by bit and settles
-when released; X lyses prey in reach only; a lone cell cannot wear the first
-peritrich down and an army of 12 beats it. The smoke check opens the page in
+headless (no page, no GPU): a lone cell's speed follows the tilt, stops on
+release and spins with its speed; kin never join by touch, X calls exactly
+those in reach, one after another; a flock of 40 starts front first, cruises
+with its own speeds and headings, turns round bit by bit and settles when
+released; X lyses prey in reach only; waylaying (a stranger draws a member
+off; ignored it is picked off; X calls it back and drives the stranger off;
+pulsing X loses none; the meadow stays safe); the 2.5D layer; **no invisible
+walls** (full tilt at the drop's edge eases to a stop at the meniscus and
+slides along it; a swarm piles against it, none beyond; the biofilm slows you
+to a stop; nothing left where the old walls were); kin over the old cap
+answer and the stranger strain never joins; **members are HP** (three hits
+take three members, then your cell); **the battles** (for each gate: a lone
+cell gets nowhere, a small swarm loses, its need wins losing cells, three
+times that wins fast; members drill in; it eats with a tell before each
+bite); **a swarm of 1000** steps within 16 ms; **the camera's field** grows
+with the swarm and fits it. `route.test.mjs`: the order, the drop's edge more
+than twice as far as the host in every direction, the beats spaced along the
+route with each colony beside it and bigger than the last; 16 rushes (every
+gate in order, the host within two minutes, long before the edge, nothing
+placed on seen water); the route walked (every gate and the host pre-placed in
+order on it, the colonies between them). The smoke check opens the page in
 headless Chromium, drives the keyboard and fails on any console error.
 `window.__micro.debug` has hooks for scripted runs and screenshots
-(`teleport` (your flock comes along), `step(n, dt, input | { slots })`, `x`,
-`fill`, `look`, `zoom(field µm, slot)`, `zoomHold(±1 | null, slot)` (LT/RT),
-`rsHold(x, y | null)` (player 1's RS look), `stranger(slot, d, a)`,
-`tumble`, `dash`, `reverse`, `overlay`, `species`, `phageOnMe`, `nearGrazer`;
-`__micro.cam()` gives the view centre, each player's follow camera (point,
-look-ahead, RS look, target) and field, and each view).
-`flock.test.mjs` also checks waylaying: a stranger draws a member off, which
-leaves the formation; ignored it is picked off and gone; X calls it back and
-drives the stranger off; pulsing X loses none; the meadow stays safe; and the
-2.5D layer: the flock is spread in depth, its members cross a grain on top of
-it, rising over it, and settle back. `followcam.test.mjs` checks the follow
-camera: still inside the dead zone, an eased catch-up with no overshoot, the
-look-ahead in a run and through a reversal, the RS look and its easing back.
+(`teleport` (your flock comes along), `step(n, dt, input | { slots })` (it
+keeps the views where the cameras are), `x`, `fill(n)`, `look`, `zoom(field
+µm, slot)`, `zoomAuto(slot)`, `zoomHold(±1 | null, slot)` (LT/RT),
+`rsHold(x, y | null)`, `stranger(slot, d, a)`, `tumble`, `dash`, `reverse`,
+`overlay`, `species`, `phageOnMe`, `nearGrazer`; `__micro.cam()` gives the
+view centre, each player's follow camera and field, and each view;
+`__micro.gates()` each gate's health, drills, attack state, bites and eaten).
+`followcam.test.mjs` checks the follow camera.
 
 ## Approach
 
@@ -829,7 +983,8 @@ mixed:
   number; flagellar rotation speed shown.
 - **Simulation**: magnetic field (Earth 20 µT / bar magnet / cancelled).
 - **World**: grazers, amoeba, phages, Bdellovibrio hunters, other bacteria
-  swimming; scenery (fixed); the way: gates in a rhythm (fixed, explained).
+  swimming; scenery (fixed); the way: enemies that block it, colonies behind
+  them (fixed, explained).
 - **Borrowed** (default off, also on the D-pad look cycle): **SEM** from the
   mite (the height buffer through the adapters' `fieldFromBuffers` and
   `semFromField`, with its detector choice) and **DIC** from the tardigrade
@@ -867,13 +1022,25 @@ page runs before the request list has them), with procedural stand-ins:
   a magnetotactic spirillum lysing prey and growing on it, flock rules and
   personalities (game values), and members changing speed over 0.1–0.3 s
   (real cells change speed in milliseconds).
-- **The gates** (see **The way**): contact killing and members poisoning
-  what eats them are real kinds of defence (type VI secretion, violacein)
-  but not of *Magnetospirillum*; the health numbers, an enemy staying beaten,
-  the phage cloud hanging together, the amoeba withdrawing, the pack keeping
-  to its gate, and the host letting you in only once Stentor is beaten are
-  game rules. The cloud's phages are drawn 3× so they read in phase
-  contrast.
+- **The gates** (see **The way** and **The battles**): contact killing and
+  members poisoning what eats them are real kinds of defence (type VI
+  secretion, violacein) but not of *Magnetospirillum*; "drilling" into a
+  protist, the enemies' rhythm of tell and bite, the health numbers, an enemy
+  staying beaten, the amoeba sliding along its edge to stay in front of you
+  and withdrawing, the pack keeping to its gate, and the host letting you in
+  only once Stentor is beaten are game rules.
+- **The drop** (see **The drop**): a real drop's meniscus bends light in a
+  much thinner band, and a cell reaching it is held by surface tension in a
+  film rather than eased to a stop; the bands of bending, the darkening and
+  the coloured fringes are drawn to read at this zoom. The sediment bank
+  sits in the drop like a shore (in life the sediment would be under the
+  water, out of focus). Cells far out are drawn a little fatter than life
+  (at least 1.6 px) so a swarm reads at a wide field, and a big swarm's own
+  field can be wider than the eyepiece's 180 µm (as if through a lower-power
+  objective).
+- **A swarm of a thousand** spirilla following one player's stick, kin
+  colonies laid out along a route, and the host's signal as a visible haze
+  are game devices.
 - **The catch sequences** are game values: catches lasting a few seconds (a lytic cycle takes tens of minutes, a
   bdelloplast hours). During a phage catch the phage is drawn 3× its 60 nm
   size and visible in every look.
