@@ -66,6 +66,28 @@ export function refreshInlineGlyphs(root = document, mode = liveMode()) {
   }
 }
 
+/**
+ * Show a line of our own text (from text_config.js, so it may hold markup and
+ * {btn:X} glyphs) in an element, writing only when it changes: a HUD line set
+ * every frame keeps its glyphs instead of rebuilding them.
+ */
+export function setHTML(el, html) {
+  const h = html == null ? '' : String(html);
+  if (el._microHTML === h) return;
+  el._microHTML = h;
+  el.innerHTML = h;
+}
+
+const GLYPH_SPAN = /<span class="btn-g[^"]*" data-btn="[^"]*"(?: title="[^"]*")?>[^<]*<\/span>/g;
+const escapeText = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+/** Plain text, except the {btn:X} glyph chips in it, as safe markup. */
+export function textWithGlyphs(text) {
+  const s = String(text);
+  let out = '', i = 0;
+  for (const m of s.matchAll(GLYPH_SPAN)) { out += escapeText(s.slice(i, m.index)) + m[0]; i = m.index + m[0].length; }
+  return out + escapeText(s.slice(i));
+}
+
 // Every page that loads the HUD draws {btn:X} as these chips, so its toasts,
 // banners, prompts, cards and Features text show the button's icon.
 setGlyphRenderer((b) => glyphHTML(b));
@@ -184,7 +206,8 @@ export function mountHud({ title, sub, controls, note }) {
       const shown = !embed.active && !!text;
       if (stats.hidden !== !shown) stats.hidden = !shown;
       const t = shown ? String(text) : '';
-      if (t !== statsText) { statsText = t; stats.textContent = t; }
+      // Plain text, but a {btn:X} glyph in it (the amoeba's corner) shows as its chip.
+      if (t !== statsText) { statsText = t; stats.innerHTML = textWithGlyphs(t); }
     },
     /** A short message; it may hold markup and {btn:X} glyphs (our own strings from text_config.js only). */
     toast(text, ms = 1800) {

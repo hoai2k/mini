@@ -18,7 +18,7 @@
 // players (shared/players.js), each their own cell, with the shared zoom-out
 // and the LEGO-style split screen (shared/splitscreen.js, 2D).
 import * as THREE from '../shared/vendor/three.module.min.js';
-import { mountHud, keyFor } from '../shared/hud.js';
+import { mountHud, glyphHTML } from '../shared/hud.js';
 import { hudControls } from '../shared/controls.js';
 import { loadTexture } from '../shared/assets.js';
 import { createFeatures } from '../shared/features.js';
@@ -88,7 +88,7 @@ const hud = mountHud({
   note: tt('paramecium.hud.note', { goal: GOAL }),
 });
 hud.players(players.list);
-const glyph = (b) => (hud.glyphs === 'keyboard' ? keyFor(b) || b : b);
+const glyph = (b) => glyphHTML(b, hud.glyphs);
 
 // the goal strip and the depth gauge: what you are doing, at a glance (no hidden meters)
 const goalEl = document.createElement('div');

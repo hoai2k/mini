@@ -6,7 +6,7 @@ import { embed } from '../shared/embed.js';
 import { createPlayers, PLAYER_COLORS } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
-import { mountHud } from '../shared/hud.js';
+import { mountHud, setHTML } from '../shared/hud.js';
 import { createControls, hudControls, addInvertY } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
@@ -29,7 +29,7 @@ import { createGlue } from './sundew-glue.js';
 import { createMotes, surfacePoint } from './motes.js';
 import { createStenus, createStrider, createRain } from './enemies.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
-import { t as tt, tx as ttx } from '../shared/text.js';
+import { t as tt, tx as ttx, fill } from '../shared/text.js';
 import { createCamLock } from '../shared/camlock.js';
 
 const canvas = document.querySelector('canvas.view');
@@ -208,7 +208,7 @@ status.className = 'st-status';
 status.innerHTML = `<span class="food"></span><span class="lives"></span><span class="furc">${tt('springtail.status.furcula')}</span><span class="st-meter"><i></i></span><span class="threat"></span>`;
 const card = document.createElement('div');
 card.className = 'st-card';
-card.innerHTML = `<div><img alt=""><h2>${tt('springtail.card.title')}</h2>${ttx('springtail.card.paragraphs').map((p) => `<p>${p}</p>`).join('')}<p><b>${tt('springtail.card.start')}</b></p></div>`;
+card.innerHTML = `<div><img alt=""><h2>${tt('springtail.card.title')}</h2>${ttx('springtail.card.paragraphs').map((p) => `<p>${fill(p)}</p>`).join('')}<p><b>${tt('springtail.card.start')}</b></p></div>`;
 // the boss's resolve: a quiet brass gauge, shown while it is engaged
 const gauge = document.createElement('div');
 gauge.className = 'st-gauge';
@@ -2107,16 +2107,17 @@ function updateText(L) {
   gauge.style.display = boss.engaged ? 'flex' : 'none';
   gauge.querySelector('i').style.width = `${(boss.resolve * 100).toFixed(0)}%`;
   const stage = stenus.stage;
-  thr.textContent = capture.active ? '' : pl.mode === 'stuck' ? tt('springtail.status.sundew') : stage === 'tell' ? tt('springtail.status.stenusJump') : stage === 'stuck' ? tt('springtail.status.stuck') : stage === 'lungeTell' || stage === 'lunge' ? tt('springtail.status.mandibles') : attacking ? tt('springtail.status.attacking') : hunting ? tt('springtail.status.hunted') : isHungry(hs) || isHungry(hr) ? tt(isHungry(hs) && isHungry(hr) ? 'springtail.status.bothHungry' : isHungry(hs) ? 'springtail.status.stenusHungry' : 'springtail.status.striderHungry') : tt('springtail.status.calm');
+  let threat = capture.active ? '' : pl.mode === 'stuck' ? tt('springtail.status.sundew') : stage === 'tell' ? tt('springtail.status.stenusJump') : stage === 'stuck' ? tt('springtail.status.stuck') : stage === 'lungeTell' || stage === 'lunge' ? tt('springtail.status.mandibles') : attacking ? tt('springtail.status.attacking') : hunting ? tt('springtail.status.hunted') : isHungry(hs) || isHungry(hr) ? tt(isHungry(hs) && isHungry(hr) ? 'springtail.status.bothHungry' : isHungry(hs) ? 'springtail.status.stenusHungry' : 'springtail.status.striderHungry') : tt('springtail.status.calm');
   thr.classList.toggle('hot', hunting || attacking);
   const prog = encounterProgress();
-  if (!hunting && !attacking && !capture.active && pl.mode !== 'stuck' && !inZone('stenus', pl.x, pl.z) && !inZone('strider', pl.x, pl.z)) thr.textContent = tt('springtail.status.calmWater');
-  if (capture.active && cap.phase) { furcTxt.textContent = (cap.kind && CAP_TEXT[cap.kind].phases[cap.phase]) || tt('springtail.status.backAgain'); m.style.width = `${{ strike: 25, hold: 50, eat: 80, follow: 100, fadeOut: 100, fadeIn: 100 }[cap.phase] || 100}%`; m.style.background = '#e04f3a'; }
-  else if (pl.mode === 'stuck') { const S = pl.stuckS; furcTxt.textContent = S && S.idle > 0.8 ? tt('springtail.status.pulledIn') : tt('springtail.status.struggle'); m.style.width = `${pl.struggle * 100}%`; m.style.background = '#e07a5f'; }
-  else if (pl.mode === 'reform') { furcTxt.textContent = tt('springtail.status.backAgain'); m.style.width = `${Math.min(1, pl.reformT / REFORM) * 100}%`; m.style.background = '#c9d6df'; }
-  else if (pl.mode === 'labium') { furcTxt.textContent = tt('springtail.status.wriggle'); m.style.width = `${Math.min(1, pl.wriggle) * 100}%`; m.style.background = '#e07a5f'; }
-  else if (pl.charging) { furcTxt.textContent = pl.charge > 0.98 ? tt('springtail.status.fullJump') : tt('springtail.status.cocking'); m.style.width = `${pl.charge * 100}%`; m.style.background = '#f2cc8f'; }
-  else { furcTxt.textContent = pl.cock < 1 ? tt('springtail.status.reCocking') : tt('springtail.status.furcula'); m.style.width = `${Math.max(0, pl.cock) * 100}%`; m.style.background = pl.cock < 1 ? '#7a8a99' : '#9fd0ff'; }
+  if (!hunting && !attacking && !capture.active && pl.mode !== 'stuck' && !inZone('stenus', pl.x, pl.z) && !inZone('strider', pl.x, pl.z)) threat = tt('springtail.status.calmWater');
+  setHTML(thr, threat); // may show a button glyph
+  if (capture.active && cap.phase) { setHTML(furcTxt, (cap.kind && CAP_TEXT[cap.kind].phases[cap.phase]) || tt('springtail.status.backAgain')); m.style.width = `${{ strike: 25, hold: 50, eat: 80, follow: 100, fadeOut: 100, fadeIn: 100 }[cap.phase] || 100}%`; m.style.background = '#e04f3a'; }
+  else if (pl.mode === 'stuck') { const S = pl.stuckS; setHTML(furcTxt, S && S.idle > 0.8 ? tt('springtail.status.pulledIn') : tt('springtail.status.struggle')); m.style.width = `${pl.struggle * 100}%`; m.style.background = '#e07a5f'; }
+  else if (pl.mode === 'reform') { setHTML(furcTxt, tt('springtail.status.backAgain')); m.style.width = `${Math.min(1, pl.reformT / REFORM) * 100}%`; m.style.background = '#c9d6df'; }
+  else if (pl.mode === 'labium') { setHTML(furcTxt, tt('springtail.status.wriggle')); m.style.width = `${Math.min(1, pl.wriggle) * 100}%`; m.style.background = '#e07a5f'; }
+  else if (pl.charging) { setHTML(furcTxt, pl.charge > 0.98 ? tt('springtail.status.fullJump') : tt('springtail.status.cocking')); m.style.width = `${pl.charge * 100}%`; m.style.background = '#f2cc8f'; }
+  else { setHTML(furcTxt, pl.cock < 1 ? tt('springtail.status.reCocking') : tt('springtail.status.furcula')); m.style.width = `${Math.max(0, pl.cock) * 100}%`; m.style.background = pl.cock < 1 ? '#7a8a99' : '#9fd0ff'; }
   const info = renderer.info.render;
   hud.stats(`${pl.mode}${pl.mode === 'film' ? ` ${Math.hypot(pl.vx, pl.vz).toFixed(1)} mm/s` : ''}  Stenus: ${stenus.st.state} (${hs.state} ${hs.left.toFixed(0)} s)  strider: ${strider.st.state} (${hr.state} ${hr.left.toFixed(0)} s)${capture.active ? `  capture: ${cap.kind} ${cap.phase}` : ''}  encounters ${director.index}/${ENCOUNTERS.length}${sealed() ? ' portals sealed' : guarded() ? ' portal guarded' : ' portal open'}\n${MACRO_LOOKS[rig.look].name}  quality ${quality.level} (res ${(quality.scale * 100).toFixed(0)}%)\n${fps.toFixed(0)} fps  ${info.calls} draws  ${(info.triangles / 1000).toFixed(0)}k tris`);
 }

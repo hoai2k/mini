@@ -9,7 +9,7 @@ const WORLD_KEYS = {
   A: 'Space', B: 'Shift', X: 'E', Y: 'R', LB: 'Q', RB: 'F', LT: 'Z', RT: 'X', 'LT/RT': 'Z / X', 'LB/RB': 'Q / F',
   'LS/RS': 'WASD / Arrows',
   LS: 'WASD', RS: 'Arrows', View: 'Tab', Menu: 'Esc', 'LS click': 'C', 'RS click': 'V',
-  'D-pad': '1–4', 'D-pad ↑↓': '1 / 2', 'D-pad ←→': '3 / 4', 'D-pad ↑': '1', 'D-pad ↓': '2',
+  'D-pad': '1–4', 'D-pad ↑↓': '1 / 2', 'D-pad ←→': '3 / 4', 'D-pad ↑': '1', 'D-pad ↓': '2', 'D-pad ←': '3', 'D-pad →': '4',
 };
 const MENU_KEYS = { A: 'Enter', B: 'Esc', LS: 'Arrows', 'D-pad': 'Arrows', Menu: 'Esc', View: 'Tab', Y: 'R' };
 
@@ -22,6 +22,9 @@ export const glyphMode = () => (controllerConnected() ? 'controller' : 'keyboard
 
 function keyFor(b, keys) {
   if (keys[b]) return keys[b];
+  // Combos named in text: 'LT/RT', 'A + B', 'LB/RB'...
+  const parts = b.split(/\s*([/+])\s*/);
+  if (parts.length > 1 && parts.every((p, i) => (i % 2 ? true : keys[p]))) return parts.map((p, i) => (i % 2 ? ` ${p} ` : keys[p])).join('');
   const head = b.split(' ')[0];
   return keys[head] || '';
 }
@@ -36,9 +39,10 @@ export function glyph(btn, { mode = glyphMode(), ctx = 'world' } = {}) {
 /** Refresh every placeholder <span class="g" data-btn="A"> under root. */
 export function refreshGlyphs(root, ctx = 'menu') {
   const mode = glyphMode();
-  for (const el of root.querySelectorAll('.g[data-btn]')) {
+  // .btn-g: a glyph a world drew inside a line of text it sent (shared/hud.js).
+  for (const el of root.querySelectorAll('.g[data-btn], .btn-g[data-btn]')) {
     const tmp = document.createElement('span');
-    tmp.innerHTML = glyph(el.dataset.btn, { mode, ctx });
+    tmp.innerHTML = glyph(el.dataset.btn, { mode, ctx: el.classList.contains('btn-g') ? 'world' : ctx });
     const n = tmp.firstChild;
     el.className = n.className;
     el.textContent = n.textContent;

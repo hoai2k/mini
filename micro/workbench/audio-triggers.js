@@ -526,7 +526,7 @@ export const TRIGGERS = [
   },
   "sites": [
    "springtail/main.js:1595",
-   "springtail/main.js:2439"
+   "springtail/main.js:2440"
   ],
   "event": "The rove beetle's harpoon strike."
  },

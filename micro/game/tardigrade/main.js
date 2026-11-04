@@ -8,7 +8,7 @@ import { createPlayers } from '../shared/players.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
-import { mountHud } from '../shared/hud.js';
+import { mountHud, setHTML, glyphHTML } from '../shared/hud.js';
 import { createFeatures } from '../shared/features.js';
 import { createQuality } from '../shared/quality.js';
 import { createAudio } from '../shared/audio.js';
@@ -1896,13 +1896,13 @@ function readout() {
   const showG = boss.awake && !(capture.active && captor === 'boss');
   gauge.style.display = showG ? 'flex' : 'none';
   if (showG) gaugeBar.style.width = `${Math.round(boss.interest * 100)}%`;
-  capBanner.textContent = bt;
+  setHTML(capBanner, bt); // may show a button glyph
   capBanner.style.background = hot ? 'rgba(150,30,20,.8)' : 'rgba(10,12,16,.6)';
   const film = life.filmHere();
   const ob = OBJECTIVES[view.obj];
   // Readout.
   const st = { caught: `caught by Milnesium (${capture.phase || ''})`, active: walker.slipping ? 'SLIPPING' : life.feeding ? 'feeding' : life.tun > 0.02 ? 'curling up…' : walker.speed > 0.03 ? 'walking' : 'holding on',
-    tun: 'tun (Y to wake)', revive: 'rehydrating…', dead: 'eaten' }[life.state];
+    tun: `tun (${glyphHTML('Y')} to wake)`, revive: 'rehydrating…', dead: 'eaten' }[life.state];
   const planted = walker.feet.filter((f) => f.state === 'stance' && f.grip > 0.5).length;
   const bar = (x) => '█'.repeat(Math.round(x * 10)).padEnd(10, '·');
   const L = split.layout;

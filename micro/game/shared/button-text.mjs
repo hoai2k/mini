@@ -18,6 +18,10 @@ export const RULES = [
   // Shoulder buttons, triggers and sticks: never prose, so any bare mention counts.
   { name: 'bare shoulder/trigger/stick', re: /\b(?:LB|RB|LT|RT|LS|RS)\b/g },
   { name: 'bare D-pad', re: /\bD-pad\b/g },
+  // B, X or Y on its own is a button in this game's prose (Host B, leaf B, UV-B, m×B and camera Y aside).
+  { name: 'lone B/X/Y', re: /(?<![\w.'’×/-])(?<!(?:Host|leaf|camera|strain|type) )[BXY](?![\w.'’-])/g },
+  // A on its own is usually the article, so only where it reads as the button: "(A: go)", "surge, A)", "A held", "A sprint".
+  { name: 'lone A', re: /(?<![\w.'’-])(?<!(?:Host|leaf|point|spoke) )A(?=[:),]|\s\(|$|\s(?:held|sprint|dash(?:es)?|shoves|toggles|jumps?|kicks|grabs|starts|resumes|pushes|plays|go)\b)/g },
 ];
 
 const BTN_ONLY = new RegExp(`^(?:${PAD}|D-pad)(?: click| [↑↓←→]+)?(?:\\s*[/+]\\s*(?:${PAD}|D-pad)(?: click| [↑↓←→]+)?)*$`);

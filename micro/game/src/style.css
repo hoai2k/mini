@@ -175,6 +175,11 @@ button { font: inherit; color: inherit; }
   background: #2c3a2c; color: #f4ecd6; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .25); vertical-align: middle; white-space: nowrap; }
 .g.a { background: #3f8a34; color: #fff; } .g.b { background: #b0362f; color: #fff; } .g.x { background: #2f63b0; color: #fff; } .g.y { background: #c49a22; color: #1c1406; }
 .g.kb { border-radius: 4px; background: #efe5c9; color: #2a2a1e; box-shadow: inset 0 -2px 0 rgba(0,0,0,.18), 0 0 0 1px #a99a72; }
+/* A world's inline glyph (shared/hud.js) in text it sent to the shell, until refreshGlyphs restyles it as .g. */
+.btn-g { display: inline-grid; place-items: center; min-width: 1.6em; height: 1.6em; padding: 0 .4em; border-radius: .8em; font: 700 .78em/1 var(--sans);
+  background: #2c3a2c; color: #f4ecd6; vertical-align: middle; white-space: nowrap; }
+.btn-g.a { background: #3f8a34; color: #fff; } .btn-g.b { background: #b0362f; color: #fff; } .btn-g.x { background: #2f63b0; color: #fff; } .btn-g.y { background: #c49a22; color: #1c1406; }
+.btn-g.kb { border-radius: 4px; background: #efe5c9; color: #2a2a1e; }
 
 /* ------------------------------------------------------------------ intro */
 #intro { background: var(--deep); }

@@ -12,7 +12,7 @@ import { createPortalLight } from '../shared/portal.js';
 import { createControls, createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createPredatorAI } from './predator.js';
 import { createHunger, createCapture, createFight } from '../shared/predation.js';
-import { mountHud } from '../shared/hud.js';
+import { mountHud, setHTML } from '../shared/hud.js';
 import { createSem, shared, MODES, CLS, gMaterial } from './sem.js';
 import { semTextures } from './textures.js';
 import { buildWorld, floorH, TILE } from './world.js';
@@ -27,7 +27,7 @@ import { createMite, CFG, PRED, JUMP, ANAT } from './mite.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
 import { createBorrowedLooks, borrowedSwitches, AMOEBA_MODES, DIC_MODES, PARAMECIUM_MODES } from '../shared/techniques/adapters.js';
-import { t as tt, tx } from '../shared/text.js';
+import { t as tt, tx, fill } from '../shared/text.js';
 import { createCamLock } from '../shared/camlock.js';
 
 const canvas = document.querySelector('canvas.view');
@@ -1203,7 +1203,7 @@ function checkLandmarks() {
     // standalone: our own quiet prompt (in the game the shell shows it)
     if (!embed.active) {
       backPrompt.style.display = nearB ? 'block' : 'none';
-      backPrompt.textContent = tt('mite.prompts.backStandalone', { key: hud.glyphs === 'keyboard' ? 'R' : 'Y' });
+      backPrompt.innerHTML = tt('mite.prompts.backStandalone'); // the Y glyph, or R on a keyboard
     }
   }
 }
@@ -2071,14 +2071,14 @@ function updateBanner() {
   let txt = '', hot = true;
   gauge.style.display = boss.engaged ? 'flex' : 'none';
   gauge.querySelector('i').style.width = `${(boss.resolve * 100).toFixed(0)}%`;
-  if (capture.active) txt = cap.byBoss && ['strike', 'hold'].includes(capture.phase) ? tt('mite.banner.inPincer') : cap.byBoss && capture.phase === 'eat' ? tt('mite.banner.bossEating') : CAP_LINES[capture.phase] || '';
+  if (capture.active) txt = cap.byBoss && ['strike', 'hold'].includes(capture.phase) ? tt('mite.banner.inPincer') : cap.byBoss && capture.phase === 'eat' ? tt('mite.banner.bossEating') : fill(CAP_LINES[capture.phase] || '');
   else if (boss.attacking) txt = boss.st.state === 'tell' ? tt('mite.banner.pincersOpen') : tt('mite.banner.snaps');
   else if (predHere() && predAI.attacking) txt = tt('mite.banner.rears');
   else if (predHere() && predAI.state === 'retreat') { txt = tt('mite.banner.runningOff'); hot = false; }
   else if (predHere() && predAI.state === 'hunt') txt = play.hurt ? tt('mite.banner.huntingHurt', { hurt: play.hurt }) : tt('mite.banner.hunting');
   else if (predHere() && isHungry()) { txt = tt('mite.banner.hungry'); hot = false; }
   banner.style.display = txt ? 'block' : 'none';
-  banner.textContent = txt;
+  setHTML(banner, txt); // may show a button glyph
   banner.style.background = hot ? 'rgba(150,30,20,.8)' : 'rgba(10,12,16,.6)';
 }
 

@@ -14,12 +14,14 @@ import { playContinuous, validPose, moveOf } from './continuous.js';
 import { loadRoster } from './players.js';
 import { listen, send } from './bus.js';
 import { glyph, glyphMode, refreshGlyphs, controlRows } from './glyphs.js';
-import { t, tx, fillText } from '../shared/text.js';
+import { t, tx, fillText, setGlyphRenderer } from '../shared/text.js';
 
 // Every player-facing string is in micro/text_config.js (../../text_config.js)
 // (keys under `shell.` and `worlds.`); index.html's static text is filled
 // from its data-t attributes first.
 fillText(document, { glyph: (b) => `<span class="g" data-btn="${b}"></span>` });
+// Any other shell text naming a button ({btn:X}) draws its glyph too.
+setGlyphRenderer((b) => glyph(b));
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];

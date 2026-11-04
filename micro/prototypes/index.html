@@ -23,6 +23,8 @@
     .body p { margin: 0; color: var(--dim); font-size: .9rem; }
     footer { margin-top: 28px; color: var(--dim); font-size: .85rem; }
     footer a { color: var(--accent); }
+    footer .btn-g { display: inline-flex; align-items: center; justify-content: center; min-width: 1.5em; height: 1.5em; padding: 0 .35em; box-sizing: border-box;
+      border-radius: .75em; background: #3a8b2f; color: #fff; font-weight: 700; font-size: .85em; vertical-align: .05em; }
     a.card.sel { border-color: var(--accent); }
   </style>
 </head>
@@ -79,7 +81,10 @@
     import { ASSETS } from '../game/shared/asset-list.js';
     import { createPad, BTN } from '../game/shared/pad.js';
     import { fillText } from '../game/shared/text.js';
-    fillText(); // the page's words: prototypes.* in micro/text_config.js
+    import { glyphHTML } from '../game/shared/hud.js';
+    // The page's words: prototypes.* in micro/text_config.js. The footer names
+    // a controller button ("on a controller"), so it always shows the pad glyph.
+    fillText(document, { glyph: (b) => glyphHTML(b, 'controller') });
     boot(() => {
       const cards = [...document.querySelectorAll('a.card')];
       for (const c of cards) {

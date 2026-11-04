@@ -4,7 +4,7 @@
 import * as THREE from '../shared/vendor/three.module.min.js';
 import { BTN } from '../shared/pad.js';
 import { createControls, createDash, hudControls } from '../shared/controls.js';
-import { mountHud } from '../shared/hud.js';
+import { mountHud, setHTML, glyphHTML } from '../shared/hud.js';
 import { loadTexture } from '../shared/assets.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
@@ -27,7 +27,7 @@ import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
 import { embed } from '../shared/embed.js';
 import { createQuality } from '../shared/quality.js';
 import { createPortalGlow, createPortalLight } from '../shared/portal.js';
-import { t as tt, tx as ttx } from '../shared/text.js';
+import { t as tt, tx as ttx, fill } from '../shared/text.js';
 
 const MODES = ['Brightfield', 'Phase contrast', 'Darkfield', 'Immersive (hypothetical)'];
 const OBJECTIVES = [{ name: '10×', field: 1800 }, { name: '20×', field: 900 }];
@@ -97,7 +97,7 @@ function showControls(which) {
     }).join('');
   }
   const note = el.querySelector('.note');
-  if (note) note.textContent = CONTROLS[which].note + WAY_NOTE;
+  if (note) note.innerHTML = CONTROLS[which].note + WAY_NOTE; // our own text, with {btn:X} glyphs
   // In the Micro Zoom shell its controls card follows the scheme too.
   if (embed.active) embed.post('hud', { title: tt('amoeba.hud.title'), sub: el.querySelector('.sub')?.textContent || '', controls: CONTROLS[which].rows, note: CONTROLS[which].note + WAY_NOTE });
 }
@@ -797,10 +797,10 @@ function rolesText() {
     if (R.mode === 'move') return tt('amoeba.corner.moving', { what: R.move === 'free' || !R.move ? tt('amoeba.corner.pushAStick') : R.move.split(' + ').map((w) => motion[w] ?? w).join(' + '), lt: lb });
     if (R.mode === 'choose') {
       const one = (key, stick, letter) => { const g = R.glow[key]; return tt(g && g.busy ? 'amoeba.corner.glowBusy' : g && g.moved ? 'amoeba.corner.glowMoved' : 'amoeba.corner.glowReady', { stick, letter }); };
-      return tt('amoeba.corner.choosing', { ls: one('adj', 'LS', 'L'), rs: one('sel', 'RS', 'R') });
+      return tt('amoeba.corner.choosing', { ls: one('adj', glyphHTML('LS'), 'L'), rs: one('sel', glyphHTML('RS'), 'R') });
     }
     const one = (key, stick, letter) => (R[key] != null ? (R.on[key] ? tt('amoeba.corner.stickMoving', { stick, letter }) : tt('amoeba.corner.stickHolding', { stick, letter })) : tt('amoeba.corner.stickFree', { stick }));
-    return tt('amoeba.corner.select', { ls: one('adj', 'LS', 'L'), rs: one('sel', 'RS', 'R'), lt: lb });
+    return tt('amoeba.corner.select', { ls: one('adj', glyphHTML('LS'), 'L'), rs: one('sel', glyphHTML('RS'), 'R'), lt: lb });
   }
   if (S.scheme !== 'lead') return tt('amoeba.corner.classic');
   if (!R.pod && !R.body) return tt('amoeba.corner.leadFree');
@@ -1961,7 +1961,7 @@ function updateOverlay() {
       rt.style.borderColor = ready ? 'rgba(40,140,60,.8)' : cells.length > 1 ? cl.p.color : 'rgba(40,60,90,.5)';
       rtx.style.left = `${sx}px`; rtx.style.top = `${sy + r + 4}px`;
       const deg = st.cand ? Math.round((st.cand.cup.wrap * 180) / Math.PI) : 0;
-      rtx.textContent = (cells.length > 1 ? tt('amoeba.ring.namePrefix', { name: cl.p.name }) : '') + (st.closing ? tt('amoeba.ring.filling') : ready ? tt('amoeba.ring.wrappedReady', { deg }) : tt('amoeba.ring.wrapped', { deg }));
+      setHTML(rtx, (cells.length > 1 ? tt('amoeba.ring.namePrefix', { name: cl.p.name }) : '') + (st.closing ? tt('amoeba.ring.filling') : ready ? tt('amoeba.ring.wrappedReady', { deg }) : tt('amoeba.ring.wrapped', { deg })));
     } else {
       rt.style.display = rtx.style.display = 'none';
     }
@@ -2265,7 +2265,7 @@ function renderAll(dt) {
     renderer.outputColorSpace = cs;
   }
   // Warnings: player 1's, else the first player in trouble.
-  const warn = (c) => (c.caught.active ? ((c.FC.by === 'chaos' ? CHAOS_TEXT : CATCH_TEXT)[c.FC.phase] || '') : c.s.stuckN ? tt('amoeba.banner.stuck', { s: Math.max(0, 8 - c.s.stuckT).toFixed(1) }) : '');
+  const warn = (c) => (c.caught.active ? (fill((c.FC.by === 'chaos' ? CHAOS_TEXT : CATCH_TEXT)[c.FC.phase] || '')) : c.s.stuckN ? tt('amoeba.banner.stuck', { s: Math.max(0, 8 - c.s.stuckT).toFixed(1) }) : '');
   const chaosWarn = (c) => (chaos.attacking && chaos.target && chaos.target.cell === c && !c.caught.active
     ? (chaos.closing ? tt('amoeba.banner.chaosShut')
       : chaos.fs === 'windup' ? tt('amoeba.banner.chaosWindup')
@@ -2274,8 +2274,9 @@ function renderAll(dt) {
   const sealedWarn = (c) => (lm.sealedAt && c.atFwd ? tt(sealedWhy(), { who: '' }) : '');
   const warnAll = (c) => warn(c) || chaosWarn(c) || sealedWarn(c);
   const wc = cells.find((c) => warnAll(c));
-  warnEl.textContent = wc ? who(wc) + warnAll(wc) : '';
-  warnEl.style.display = warnEl.textContent ? 'block' : 'none';
+  const warnText = wc ? who(wc) + warnAll(wc) : '';
+  setHTML(warnEl, warnText); // may show button glyphs
+  warnEl.style.display = warnText ? 'block' : 'none';
   updateOverlay();
   marks.begin();
   // no arrow and no edge pointer to the portal by default (the owner): the golden sparkle

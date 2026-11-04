@@ -15,7 +15,7 @@ import { createPlayers } from '../shared/players.js';
 import { embed } from '../shared/embed.js';
 import { createSplitScreen } from '../shared/splitscreen.js';
 import { createLandmarks, portalArrowOn } from '../shared/landmark.js';
-import { mountHud } from '../shared/hud.js';
+import { mountHud, glyphHTML } from '../shared/hud.js';
 import { createDash, hudControls, addInvertY } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
@@ -2162,7 +2162,7 @@ function frame(now) {
   scaleEl.innerHTML = `<i style="width:${(10 * pxPerUnit).toFixed(0)}px"></i>${where === 'outside' ? tt('phage.scale.outside') : tt('phage.scale.inside')}`;
   label.textContent = tt(opts.drive ? 'phage.caption.steered' : 'phage.caption.honest', { look: lookName(LOOKS[view.look]) });
   const n5 = (x) => { const k = Math.round(clamp(x, 0, 1) * 5); return '■'.repeat(k) + '□'.repeat(5 - k); };
-  const modeName = { drift: P.hold?.kind === 'protein' ? `holding on to ${P.hold.part} of ${P.hold.host.name} (Y: kick off)` : P.hold ? `carrying debris (${P.hold.mol.kind}; Y: kick it)` : currents.nearness(P.pos) > 0.3 ? 'in a CURRENT' : 'drifting legs-first', grab: 'grabbing a surface protein', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', coinfect: `damaged genome waiting in ${P.coHost?.name} for a partner (B: give up)`, inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
+  const modeName = { drift: P.hold?.kind === 'protein' ? `holding on to ${P.hold.part} of ${P.hold.host.name} (${glyphHTML('Y')}: kick off)` : P.hold ? `carrying debris (${P.hold.mol.kind}; ${glyphHTML('Y')}: kick it)` : currents.nearness(P.pos) > 0.3 ? 'in a CURRENT' : 'drifting legs-first', grab: 'grabbing a surface protein', walk: `walking on ${P.host?.name}${P.bound ? ` · ${P.bound} fibres on OmpC` : ''}`, clay: 'stuck on clay (UV shelter)', commit: 'committed: contracting', coinfect: `damaged genome waiting in ${P.coHost?.name} for a partner (${glyphHTML('B')}: give up)`, inside: 'DNA entering the host', burst: 'burst', dead: 'lost' }[P.mode];
   const am = !world.portal ? 'not found yet' : guard.gone ? 'driven off' : ({ guard: 'on guard', stalk: 'REACHING', windup: 'WINDING UP!', strike: 'STRIKING!', recover: 'recovering', repelled: 'repelled', retreat: 'retreating', off: 'off' }[fightState] || fightState) + (guarded() ? '' : ' · receptor OPEN') + ` · interest ${Math.round(fight.interest * 100)} %`;
   const others = isMulti() ? '\n' + members().filter((m) => m.slot).map((m) => `P${m.slot + 1} ${m.P.mode} ${n5(m.P.integrity)}`).join('  ') : '';
   hud.stats(`${goalLine(where)}\n${modeName}\nfibres ${P.foldTarget > 0.5 ? 'folded' : 'extended'}\n${P.damaged ? 'DAMAGED: one more UV shaft is fatal' : 'whole'}  ${dash.text()}\nguard (amoeba) ${am}\n${where === 'inside' ? `genome in ${Math.round(inside.S.progress * 100)} %` : `${(P.pos.distanceTo(START) / 100).toFixed(1)} µm out · encounters ${director.index}/3 (${director.state().phase})`}${others}`);
@@ -2175,7 +2175,7 @@ function goalLine(where) {
   if (P.damaged) return 'GOAL: co-infect a host with a partner (the other damaged phage nearby, or a teammate)';
   if (!world.portal || portalSealed()) return `GOAL: explore, any direction · ${(P.pos.distanceTo(START) / 100).toFixed(1)} µm out · encounters ${director.index} of 3`;
   const d = Math.max(0, portalPoint().distanceTo(centreOf(_v)) - 10);
-  if (d < 70) return guarded() ? 'GOAL: the amoeba guards the gold receptor: lure it off, or fold (B) and jab (X)' : 'GOAL: the receptor is open: press Y to enter Host A';
+  if (d < 70) return guarded() ? `GOAL: the amoeba guards the gold receptor: lure it off, or fold (${glyphHTML('B')}) and jab (${glyphHTML('X')})` : `GOAL: the receptor is open: press ${glyphHTML('Y')} to enter Host A`;
   return `GOAL: the golden glow on Host A · ${(d / 100).toFixed(1)} µm`;
 }
 

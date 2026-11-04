@@ -8,7 +8,7 @@
 // the LEGO-style split screen (shared/splitscreen.js) and the edge arrows
 // (shared/landmark.js).
 import * as THREE from '../shared/vendor/three.module.min.js';
-import { mountHud, keyFor } from '../shared/hud.js';
+import { mountHud, glyphHTML } from '../shared/hud.js';
 import { createDash, hudControls } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
@@ -70,7 +70,7 @@ const hud = mountHud({
 });
 hud.players(players.list);
 /** A button as the instructions should name it: the controller's, or the key while no controller is connected. */
-const glyph = (b) => (hud.glyphs === 'keyboard' ? keyFor(b) || b : b);
+const glyph = (b) => glyphHTML(b, hud.glyphs); // the button's icon, or its key with no controller
 
 // --- tiny DOM bits: end card, DATA tag, scale bar, the army chip, warnings, the backdoor prompt ---
 const card = Object.assign(document.createElement('div'), { className: 'bx-card' });
@@ -1161,7 +1161,7 @@ function landmarkTick(dt) {
   if (!!dweller !== lm.near) { lm.near = !!dweller; embed.near('back', lm.near); }
   // standalone the page shows its own quiet prompt (the shell draws one in the game)
   promptEl.style.display = lm.near && !embed.active ? 'block' : 'none';
-  if (lm.near) promptEl.textContent = tt('bacterium.prompts.backStandalone', { glyph });
+  if (lm.near) promptEl.innerHTML = tt('bacterium.prompts.backStandalone', { glyph });
 }
 /** The portal's Y prompt: on while anyone is at the open portal (the shell, or standalone embed.js, shows it). */
 function setPortalPrompt(on) {

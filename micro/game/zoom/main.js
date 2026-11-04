@@ -7,7 +7,7 @@
 // ?embed=1&from=<world>&to=<world>&dir=in|out plays that one transition and
 // posts `done` to the game shell (shared/embed.js), then holds.
 import { createPad, BTN } from '../shared/pad.js';
-import { mountHud } from '../shared/hud.js';
+import { mountHud, glyphHTML, textWithGlyphs } from '../shared/hud.js';
 import { createControls, hudControls } from '../shared/controls.js';
 import { createFeatures } from '../shared/features.js';
 import { createAudio } from '../shared/audio.js';
@@ -15,7 +15,9 @@ import { embed } from '../shared/embed.js';
 import { createEngine, DEFAULT_OPTS, HL_NAMES, STRAT_IDS, STRAT_NAMES, NT } from './engine.js';
 import { WORLDS, TRANSITIONS, IDS } from './chain.js';
 import { listTransitions, transitionFor } from './player.js';
-import { t as tt } from '../shared/text.js';
+import { t as tt, fill } from '../shared/text.js';
+/** A button's glyph (its key with no controller) for the player's own lines. */
+const G = (b) => glyphHTML(b);
 
 // The embedded single transition (the game's 'microscope' transition style).
 const params = new URLSearchParams(location.search);
@@ -83,7 +85,7 @@ if (EMBED) { opts.auto = false; opts.demo = false; opts.strategy = params.get('s
 eng = createEngine({ canvas, size: () => [innerWidth, innerHeight], audio, opts });
 addEventListener('resize', () => eng.resize());
 const S = eng.S;
-eng.on('toast', ({ text, ms }) => { if (!EMBED) hud.toast(text, ms); });
+eng.on('toast', ({ text, ms }) => { if (!EMBED) hud.toast(fill(text), ms); }); // chain.js lines may name a button: {btn:LS}
 eng.on('dash', () => pad.rumble(120, 0.3, 0.2));
 
 // ---------------------------------------------------------------- the menu: 12 transitions
@@ -156,16 +158,16 @@ function statusText() {
   const handoffName = { first: 'Look first, then the hand-off', during: 'Look during the hand-off', cross: 'Crossfade during the hand-off', cut: 'Cut mid-hand-off' };
   const strat = S.tl ? (eng.isHandoff() ? handoffName[S.tl.strategy] : STRAT_NAMES[S.tl.strategy]) : '';
   const rec = opts.strategy === 'auto' ? ' (recommended)' : '';
-  if (S.phase === 'end') return `${W.short}: ${W.creature}. ${S.k === NT ? 'End of the chain' : 'Free play'} · B zoom back out · Y play the selected transition`;
+  if (S.phase === 'end') return `${W.short}: ${W.creature}. ${S.k === NT ? 'End of the chain' : 'Free play'} · ${G('B')} zoom back out · ${G('Y')} play the selected transition`;
   if (S.phase === 'approach') {
     const w = S.k - 1;
     if (w === 2 && eng.cr[2].state < 1) return `${W.short}: the tun is rehydrating…`;
     const d = Math.hypot(eng.cr[w].pos[0] - eng.destG(w)[0], eng.cr[w].pos[1] - eng.destG(w)[1]);
-    return `${W.short}: ${WORLDS[w].creature}. ${d < WORLDS[w].destR * 3 ? 'A: go' : 'Go to the destination'} · next: ${T.title} · ${strat}${rec}`;
+    return `${W.short}: ${WORLDS[w].creature}. ${d < WORLDS[w].destR * 3 ? `${G('A')}: go` : 'Go to the destination'} · next: ${T.title} · ${strat}${rec}`;
   }
   const st = S.st;
   const what = eng.isHandoff() ? 'hand-off' : 'zoom';
-  const seg = S.hold ? 'scrubbing (A resumes)' : S.dir < 0 ? (eng.isHandoff() ? 'reversing the hand-off' : 'zooming out') : st.segment === 'highlight' ? 'the next frame · A: zoom now' : st.segment === 'zoom' ? (eng.isHandoff() ? 'hand-off' : 'zooming') : st.segment === 'look' ? 'changing the look' : 'arrived';
+  const seg = S.hold ? `scrubbing (${G('A')} resumes)` : S.dir < 0 ? (eng.isHandoff() ? 'reversing the hand-off' : 'zooming out') : st.segment === 'highlight' ? `the next frame · ${G('A')}: zoom now` : st.segment === 'zoom' ? (eng.isHandoff() ? 'hand-off' : 'zooming') : st.segment === 'look' ? 'changing the look' : 'arrived';
   return `${S.dir < 0 ? 'Reverse · ' : ''}${T.title} · ${strat}${rec} · ${seg} · ${what} ${(st.zoom * 100).toFixed(0)}% · look ${(st.look * 100).toFixed(0)}%`;
 }
 let fps = 60;
@@ -177,6 +179,8 @@ const hudEl = (root, sel) => {
   return m[sel] || (m[sel] = root.querySelector(sel));
 };
 const setText = (el, v) => { if (el.textContent !== v) el.textContent = v; };
+/** Text with button glyphs in it (statusText), written only when it changes. */
+const setRich = (el, v) => { const h = textWithGlyphs(v); if (el._h !== h) { el._h = h; el.innerHTML = h; } };
 let shownBarW = null;
 function updateHud() {
   const r = eng.readout(innerWidth);
@@ -193,7 +197,7 @@ function updateHud() {
     menu.querySelector('.bar').innerHTML = timelineBar();
     menuKey = key;
   }
-  setText(hudEl(menu, '.status'), statusText());
+  setRich(hudEl(menu, '.status'), statusText());
   hud.stats(`${WORLDS[eng.world].short} · ${S.phase}${S.phase === 'trans' ? ` τ ${S.tau.toFixed(2)}/${S.tl.end.toFixed(1)}` : ''}
 field ${r.field} · ${(S.w / eng.zo.field.width).toPrecision(3)} µm/px · ${fps.toFixed(0)} fps`);
 }
@@ -205,7 +209,7 @@ function readInput() {
   if (Object.values(BTN).some((b) => pad.pressed(b))) audio.unlock();
   if (panel || EMBED) return null;
   const step = -ctl.zoomStep() + (ctl.rb.pressed() ? 1 : 0) - (ctl.lb.pressed() ? 1 : 0);
-  if (step) { sel = (sel + Math.sign(step) + LIST.length) % LIST.length; const t = LIST[sel]; hud.toast(`${t.dir === 'in' ? 'Zoom in' : 'Zoom out'}: ${t.from} → ${t.to} (Y plays it)`, 1300); }
+  if (step) { sel = (sel + Math.sign(step) + LIST.length) % LIST.length; const t = LIST[sel]; hud.toast(`${t.dir === 'in' ? 'Zoom in' : 'Zoom out'}: ${t.from} → ${t.to} (${G('Y')} plays it)`, 1300); }
   const ls = ctl.lookStep();
   if (ls) {
     const i = (STRAT_IDS.indexOf(opts.strategy) + ls + STRAT_IDS.length) % STRAT_IDS.length;

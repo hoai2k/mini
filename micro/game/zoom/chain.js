@@ -100,7 +100,7 @@ export const TRANSITIONS = [
   { title: 'Bacterium → phage', looks: ['bact', 'cryo', 'mol'], spec: '§5.8', strategy: 'during',
     visible: 'A host cell that stops swimming and swells: phages are stuck to it, too small to see. The frame (6 px) is the next screen.',
     why: 'Nothing visible marks the target, and that is the point: past ~0.2 µm light microscopy ends. The view changes style completely, to a grey cryo-EM image that then gains colour as a molecular illustration.',
-    change: 'End of light microscopy → cryo-EM → illustration', arrive: 'You are one of the phages (a stub: drift with LS).', back: 'Back to light: the biofilm at 1000×.' },
+    change: 'End of light microscopy → cryo-EM → illustration', arrive: 'You are one of the phages (a stub: drift with {btn:LS}).', back: 'Back to light: the biofilm at 1000×.' },
 ];
 
 // The capitulum's dome (the specimen shader's capDome), for creature heights.
