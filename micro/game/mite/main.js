@@ -162,9 +162,9 @@ const hud = mountHud({
     attack: tt('mite.hud.controls.attack'),
     defend: tt('mite.hud.controls.defend'),
     special: tt('mite.hud.controls.special'),
-    secondary: tt('mite.hud.controls.secondary'),
+    secondary: tt('mite.hud.controls.zoom'),
     look: tt('mite.hud.controls.look'),
-    analog: tt('mite.hud.controls.zoom'),
+    analog: tt('mite.hud.controls.secondary'),
     extra: [...(embed.active ? [] : [['LS click', tt('mite.hud.controls.readout')]])],
   }),
   note: tt('mite.hud.note'),
@@ -2001,12 +2001,12 @@ function readInput(dt) {
   rig.pitch = THREE.MathUtils.clamp(rig.pitch - lk.pitch * 1.2 * dt, 0.18, 1.5);
   const look = ctl.lookStep();
   if (look) { features.set('look', LOOKS[(sem.mode + look + LOOKS.length) % LOOKS.length]); hud.toast(tx('mite.lookNames')[sem.mode] ?? MODES[sem.mode]); }
-  // LT/RT: zoom out / in, analogue and continuous like the paramecium's (was D-pad steps of 1.5x; the owner,
-  // 3 Nov 2026: trigger zoom wherever the triggers are free, and here they were). The field is one for
-  // everyone, as RS turns the one view, so any player's triggers drive it; the camera eases to it
-  // (placeCamera), and the magnification shows once the triggers are let go.
+  // LB/RB: zoom in / out, continuous like the paramecium's (was D-pad steps of 1.5x; the owner,
+  // 6 Nov 2026: shoulder zoom across the worlds except amoeba). The field is one for
+  // everyone, as RS turns the one view, so any player's shoulders drive it; the camera eases to it
+  // (placeCamera), and the magnification shows once the shoulders are let go.
   let zr = 0;
-  for (const p of players.active) { const c = players.controls(p.slot); zr += c.lt() - c.rt(); }
+  for (const p of players.active) { const c = players.controls(p.slot); zr += c.zoomRate(); }
   zr = THREE.MathUtils.clamp(zr, -1, 1);
   if (Math.abs(zr) > 0.04) { rig.hfw = THREE.MathUtils.clamp(rig.hfw * Math.exp(zr * ZOOM_RATE * dt), ZOOM_HFW[0], ZOOM_HFW[1]); zoomToastT = 0.35; }
   else if (zoomToastT > 0 && (zoomToastT -= dt) <= 0) hud.toast(tt('mite.toasts.mag', { mag: (127000 / rig.hfw).toFixed(0) }));
@@ -2025,9 +2025,9 @@ function readInput(dt) {
 function inputFor(c, pd) {
   // X: in the air, the jump attack (its dive); just landed, its late form; else a bite (or a chomp while eating)
   if (c.attack.pressed()) xPress();
-  const sec = c.secondary();
+  const sec = c.analog();
   const ls = c.move();
-  // the walking speed: LB (Q) the slow end, RB (F) full tilt, else the stick (keys: a middle pace)
+  // the walking speed: LT (Z) the slow end, RT (X) full tilt, else the stick (keys: a middle pace)
   const tilt = sec < 0 ? 1e-3 : sec > 0 ? 1 : pd && pd.kind === 'keyboard' ? KEY_WALK : ls.m;
   const dir = camFwd.clone().multiplyScalar(-ls.y).addScaledVector(camRight, ls.x);
   // Mite exception to shared actions: A jumps, B scrambles, Y closes up.
@@ -2258,7 +2258,7 @@ const api = {
   // ---- multiplayer and landmarks (Playwright drives these)
   players, split, marks, joins, landmarks: { forward: FORWARD, back: BACKDOOR, forwardAt: props.forward.at, backAt: props.back }, landmarkLog: lm.log, props,
   get frames() { return frames; },
-  /** The camera rig (hfw: the field's half width the triggers zoom, viewHfw: the camera's eased one). */
+  /** The camera rig (hfw: the field's half width the shoulders zoom, viewHfw: the camera's eased one). */
   get rig() { return rig; },
   get layout() { return split.layout; },
   recs: () => recs().map((P) => ({ slot: P.slot, x: Math.round(P.mite.center.x), z: Math.round(P.mite.center.z), mode: P.mite.mode, hurt: P.play.hurt })),

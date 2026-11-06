@@ -1152,10 +1152,9 @@ function frame() {
 
   const look = inMenu ? 0 : ctl.lookStep();
   if (look) { const m = (view.mode + look + 3) % 3; features.set('look', MODES[m]); toast(tx('tardigrade.features.look.choices')[MODES[m]] ?? MODES[m]); }
-  const zs = inMenu ? 0 : ctl.zoomStep();
+  const zs = inMenu ? 0 : Math.sign(ctl.zoomStep() + ctl.shoulderZoomStep());
   if (zs < 0 && view.obj > 0) { view.obj--; toast(tt('tardigrade.toasts.objective', { name: OBJECTIVES[view.obj].name })); }
   if (zs > 0 && view.obj < OBJECTIVES.length - 1) { view.obj++; toast(tt('tardigrade.toasts.objective', { name: OBJECTIVES[view.obj].name })); }
-  if (P(B.RB)) life.rain();
   if (P(B.RS)) { life.newDay(); toast(tt('tardigrade.toasts.backAtStart')); }
   // (LB toggled the anatomy labels until 4 Nov 2026; they are in the Features panel: Controls, Labels)
   if (P(B.LS)) { view.focus = 0; toast(tt('tardigrade.toasts.refocused')); }

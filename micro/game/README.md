@@ -13,6 +13,19 @@ Published at https://hoai2k.github.io/mini/micro/, public: it has no invite
 gate (`../game/shared/boot.js` starts the page directly). Visits are
 counted for games.hoai.net/stats/ (the GoatCounter script in `index.html`).
 
+## Zoom controls
+
+In every world except amoeba, **LB zooms in and RB zooms out** (keyboard Q/F).
+Springtail and tardigrade change magnification in steps; the other worlds zoom
+continuously while held. D-pad up/down remains an additional magnification
+shortcut for springtail and tardigrade. Amoeba's controls are unchanged.
+
+The actions previously on LB/RB move to LT/RT: mite walks slowly/quickly,
+paramecium swims deeper/shallower, bacterium reverses on either trigger, and
+phage moves down/up. Springtail and tardigrade keep trigger focus. Springtail's
+aperture is now in Features → Optics → Background blur (aperture). Tardigrade's
+test rain remains available through `__micro.life.rain()` rather than a bumper.
+
 ## Structure
 
 | File | What it does |

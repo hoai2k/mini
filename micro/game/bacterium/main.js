@@ -1293,7 +1293,7 @@ const debug = {
   look(k) { const want = LOOK_CYCLE.indexOf(k); for (let i = 0; i < 6 && currentLookKey() !== k; i++) cycleLook(1); return want >= 0; },
   /** Set player slot's field at once (µm, ZOOM.min..max; or an index into the old steps 180/90/45/22). */
   zoom(z, slot = 0) { const P = roster.find((Q) => Q.slot === slot) || P1; const f = Number.isInteger(z) && z < 4 ? [180, 90, 45, 22][z] : z; P.zoom = P.zoomWant = Math.max(ZOOM.min, Math.min(ZOOM.max, f)); },
-  /** Hold the zoom triggers for player slot as LT/RT would: +1 full LT (out), -1 full RT (in), null back to the pad. */
+  /** Hold the zoom shoulders for player slot as LB/RB would: +1 RB (out), -1 LB (in), null back to the pad. */
   /** Waylaying (tests): put a stranger d µm off player slot's flock (side a, radians) and let it come over. Returns it. */
   stranger(slot = 0, d = 14, a = 0) {
     const P = roster.find((Q) => Q.slot === slot) || P1, C = coll.of(P);
@@ -1302,7 +1302,7 @@ const debug = {
     c.waylay = null; c.wlCool = 0; c.parked = false; c.x = (C ? C.cx : P.S.x) + Math.cos(a) * R; c.y = (C ? C.cy : P.S.y) + Math.sin(a) * R;
     return { x: c.x, y: c.y };
   },
-  /** Hold the zoom triggers for player slot as LT/RT would: +1 full LT (out), -1 full RT (in), null back to the pad. */
+  /** Hold the zoom shoulders for player slot as LB/RB would: +1 RB (out), -1 LB (in), null back to the pad. */
   zoomHold(v = 1, slot = 0) { zoomForce[slot] = v === null ? undefined : v; },
   /** Hold player 1's right stick (RS look) as if pushed: x right, y up (-1..1); null back to the pad. */
   rsHold(x = 0, y = 0) { rsForce = x === null ? null : { x, y }; },
@@ -1505,7 +1505,7 @@ function readInput(P, dt) {
         if (S.attacker) { S.attacker.cooldown = 4; S.attacker.prey = null; S.attacker = null; hud.toast(tt('bacterium.toasts.tumbledFreeBdello', { who: multi() ? P.name + ': ' : '' })); }
       }
     }
-    if (c.lb.pressed() || c.rb.pressed()) { if (P.swimmer.reverse() && me) hud.toast(S.species === 'mtb' ? (S.sense > 0 ? tt('bacterium.toasts.reversedNorth') : tt('bacterium.toasts.reversedSouth')) : tt('bacterium.toasts.reversed')); }
+    if (c.leftTrigger.pressed() || c.rightTrigger.pressed()) { if (P.swimmer.reverse() && me) hud.toast(S.species === 'mtb' ? (S.sense > 0 ? tt('bacterium.toasts.reversedNorth') : tt('bacterium.toasts.reversedSouth')) : tt('bacterium.toasts.reversed')); }
     if (c.dash.pressed() && P.dash.trigger()) { doDash(P); P.sprintT = 0.55; }
     inp.attack = c.attack.down();
     inp.attackPressed = c.attack.pressed();
@@ -1533,14 +1533,14 @@ function readInput(P, dt) {
 }
 
 /**
- * The zoom: LT out, RT in, analogue and continuous (each player their own, read even while the world is
- * paused by a panel, never in a cinematic), as the Paramecium's: the trigger sets how fast the wanted
+ * The zoom: LB in, RB out, continuous (each player their own, read even while the world is
+ * paused by a panel, never in a cinematic), as the Paramecium's: holding a shoulder changes the wanted
  * field moves, and the field eases to it.
  */
 const zoomForce = [];
 function stepZoom(P, dt, frozen) {
   const f = zoomForce[P.slot], c = P.ctl;
-  const rate = f !== undefined ? f : !frozen && c ? c.lt() - c.rt() : 0;
+  const rate = f !== undefined ? f : !frozen && c ? c.zoomRate() : 0;
   const Z = zoomStep({ want: P.zoomWant, field: P.zoom }, rate, dt);
   P.zoomWant = Z.want; P.zoom = Z.field;
 }
@@ -1606,7 +1606,7 @@ function frame(now) {
   let ts = 1;
   if (outro) ts = stepOutro(dt);
   else if (intro && 'ease' in intro) { intro.ease += dt; ts = sm01(0, INTRO_EASE, intro.ease); if (intro.ease >= INTRO_EASE) intro = null; }
-  // the zoom (each player's triggers) and the orbit camera (RS), read even while a panel pauses the world, never in a cinematic
+  // the zoom (each player's shoulders) and the orbit camera (RS), read even while a panel pauses the world, never in a cinematic
   for (const P of roster) if (!P.waiting) stepZoom(P, dt, held || !!outro);
   // (RS: each player's look, for the follow camera)
   for (const P of roster) { const r = !blocked && !held && !outro && !P.waiting ? P.ctl.camera() : null; P.look.x = r && r.m > 0.12 ? r.x : 0; P.look.y = r && r.m > 0.12 ? -r.y : 0; }

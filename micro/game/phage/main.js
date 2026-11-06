@@ -2,7 +2,7 @@
 // water, drawn in realistic microscopic false light (the Goodsell watercolour,
 // cryo-EM and fluorescence looks remain on the D-pad). Crisp game controls (a
 // labelled departure: phages have no motor): LS forward/back along the view and
-// sideways, LB/RB down/up, A dashes forward, LT/RT zoom out/in. X grabs what is in reach
+// sideways, LT/RT down/up, A dashes forward, LB/RB zoom in/out. X grabs what is in reach
 // of the fibres (grab.js: a piece of debris to carry, or a protein standing on a cell to
 // hang on to and ride; never the bare membrane); only a matching receptor latches and starts
 // injection. Y kicks: off a cell, debris away, or a small kick-swim. B retracts the fibres.
@@ -93,12 +93,12 @@ const hud = mountHud({
   controls: hudControls({
     move: tt('phage.hud.controls.move'),
     camera: tt('phage.hud.controls.camera'),
-    secondary: tt('phage.hud.controls.secondary'),
+    secondary: tt('phage.hud.controls.zoom'),
     dash: tt('phage.hud.controls.dash'),
     attack: tt('phage.hud.controls.attack'),
     defend: tt('phage.hud.controls.defend'),
     special: tt('phage.hud.controls.special'),
-    analog: tt('phage.hud.controls.zoom'),
+    analog: tt('phage.hud.controls.secondary'),
     look: tt('phage.hud.controls.look'),
   }),
   note: tt('phage.hud.note'),
@@ -352,7 +352,7 @@ const camUp = (out = new THREE.Vector3()) => out.set(0, 1, 0).applyQuaternion(vi
 const camFwd = (out = new THREE.Vector3()) => out.set(0, 0, -1).applyQuaternion(view.q);
 /**
  * The sticks in the water (the owner, 2 Nov 2026): LS up and down forward and back along the view (into
- * and out of the screen), LS left and right sideways; `vert` (RB minus LB) up and down the screen. All in
+ * and out of the screen), LS left and right sideways; `vert` (RT minus LT) up and down the screen. All in
  * the view's own frame, so there is no up or down bias and no feedback into the view.
  */
 function stickWorld(ls, vert, out) {
@@ -1729,13 +1729,13 @@ scene.add(medium.mesh);
 const mediumDrift = new THREE.Vector3();
 
 /**
- * The zoom: LT out, RT in (paramecium's stepZoom): how far the trigger is squeezed sets how fast the wanted
+ * The zoom: LB in, RB out (paramecium's stepZoom): holding a shoulder changes the wanted
  * distance moves (exponentially, so each step feels the same near and far), and the camera eases to it.
  */
 const zoomForce = [];
 function stepZoom(m, dt, frozen) {
   const f = zoomForce[m.slot], c = players.controls(m.slot);
-  const rate = f !== undefined ? f : frozen ? 0 : c.lt() - c.rt();
+  const rate = f !== undefined ? f : frozen ? 0 : c.zoomRate();
   if (Math.abs(rate) > 0.04) m.zoomWant = clamp(m.zoomWant * Math.exp(rate * ZOOM.rate * dt), ZOOM.min, ZOOM.max);
   m.zoom += (m.zoomWant - m.zoom) * (1 - Math.exp(-dt / ZOOM.ease));
   if (Math.abs(m.zoom - m.zoomWant) < 1e-3) m.zoom = m.zoomWant;
@@ -1750,7 +1750,7 @@ function stepMember(m, dt, insideOwner, where) {
   const pl = players.get(m.slot);
   const idle = blocked || !pl || pl.waiting;
   const ls = idle ? ZERO_LS : ctl.move();
-  const vert = idle ? 0 : ctl.secondary(); // RB up, LB down (the screen's up and down)
+  const vert = idle ? 0 : ctl.analog(); // RT up, LT down (the screen's up and down)
   const inp = { stick: null, stickM: 0 };
   const mag = Math.min(1, Math.hypot(ls.m, vert));
   if (mag > 0.05) { inp.stick = stickWorld(ls, vert, new THREE.Vector3()).normalize(); inp.stickM = mag; P.lastStick = inp.stick.clone(); P.lastStickT = 0.3; }
@@ -2335,7 +2335,7 @@ Object.assign(debug, {
   look(i) { features.set('lookFL', LOOKS[i]); },
   /** Set every player's zoom (camera distance) at once: an index into the old steps (0..3), or a distance. */
   zoom(i) { const d = Number.isInteger(i) && i >= 0 && i < ZOOMS.length ? ZOOMS[i] : clamp(i, ZOOM.min, ZOOM.max); for (const m of members()) m.zoom = m.zoomWant = d; view.dist = d; },
-  /** Hold the zoom triggers for player slot as LT/RT would: +1 full LT (out), -1 full RT (in), null back to the pad. */
+  /** Hold the zoom shoulders for player slot as LB/RB would: +1 RB (out), -1 LB (in), null back to the pad. */
   zoomHold(v = 1, slot = 0) { zoomForce[slot] = v === null ? undefined : v; },
   /** Each player's zoom (camera distance) now: [{ slot, zoom, want }]. */
   zooms: () => members().map((m) => ({ slot: m.slot, zoom: +m.zoom.toFixed(1), want: +m.zoomWant.toFixed(1) })),

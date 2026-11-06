@@ -224,7 +224,7 @@ export const TEXT = {
         ['Y', 'Top view'],
         ['RT', 'Focus ahead'],
         ['LT', 'Focus near'],
-        ['D-pad ↑↓', 'Zoom'],
+        ['LB/RB', 'Zoom in / out'],
       ],
       facts: [
         'A springtail spends its whole life on the water’s surface: to it, water is a floor.',
@@ -251,8 +251,8 @@ export const TEXT = {
         ['X', 'Attack / eat · in a jump: jump attack'],
         ['B', 'Dash (hold)'],
         ['Y', 'Block (hold)'],
-        ['LT/RT', 'Zoom out / in'],
-        ['LB/RB', 'Walk slow / fast'],
+        ['LB/RB', 'Zoom in / out'],
+        ['LT/RT', 'Walk slow / fast'],
       ],
       facts: [
         'Box mites fold their legs inside and close the shell like a lid.',
@@ -279,7 +279,7 @@ export const TEXT = {
         ['B', 'Block (hold)'],
         ['Y', 'Curl up'],
         ['LT/RT', 'Focus'],
-        ['D-pad ↑↓', 'Zoom'],
+        ['LB/RB', 'Zoom in / out'],
       ],
       facts: [
         'Dried into a tun, a tardigrade can wait out years without water.',
@@ -334,8 +334,8 @@ export const TEXT = {
         ['A', 'Dash'],
         ['X', 'Jab · push / eat'],
         ['B', 'Block / burst'],
-        ['LT/RT', 'Zoom out / in'],
-        ['LB/RB', 'Deeper / shallower'],
+        ['LB/RB', 'Zoom in / out'],
+        ['LT/RT', 'Deeper / shallower'],
         ['D-pad ←→', 'Change the look'],
       ],
       facts: [
@@ -367,8 +367,8 @@ export const TEXT = {
         ['X', 'Call kin / eat / drill harder'],
         ['B', 'Dodge'],
         ['Y', 'Toxin burst'],
-        ['LT/RT', 'Zoom out / in'],
-        ['LB/RB', 'Turn around'],
+        ['LB/RB', 'Zoom in / out'],
+        ['LT/RT', 'Turn around'],
       ],
       facts: [
         'A bacterium cannot steer: it chooses only when to tumble into a new direction.',
@@ -393,13 +393,13 @@ export const TEXT = {
       goal: 'Get into the glowing host, and avoid the amoeba.',
       controls: [
         ['LS', 'Move'],
-        ['LB/RB', 'Down / up'],
+        ['LT/RT', 'Down / up'],
         ['RS', 'Camera'],
         ['A', 'Dash'],
         ['X', 'Grab / let go'],
         ['B', 'Retract'],
         ['Y', 'Kick'],
-        ['LT/RT', 'Zoom out / in'],
+        ['LB/RB', 'Zoom in / out'],
       ],
       facts: [
         'No light microscope can see a phage: it is smaller than the wavelength of light.',
@@ -514,7 +514,7 @@ export const TEXT = {
         attack: 'Attack / eat',
         defend: 'Block (hold)',
         special: 'Top view',
-        secondary: 'Background blur',
+        secondary: 'Zoom in / out',
         look: 'Change the look',
         zoom: 'Zoom',
         focusAhead: 'Focus ahead',
@@ -610,6 +610,7 @@ export const TEXT = {
       ateLast: 'Ate {name} ({food}/{goal}): now reach the moss edge!',
     },
     features: {
+      aperture: { label: 'Background blur (aperture)', about: 'A wider aperture softens the background; a smaller aperture keeps more of the scene in focus.' },
       dof: {
         label: 'Depth of field (bokeh gather)',
         about: 'Every surface writes its distance from the focal plane into the alpha of a half-float target. A half-res pass turns that into a signed blur-disc size (thin-lens CoC), 8x8 tiles record the largest foreground blur, and a 64-tap golden-spiral gather spreads each tap only as far as its own disc reaches (taps behind the centre are clamped to its blur, so sharp edges never smear backward). shared/techniques/springtail-macro.js.',
@@ -846,7 +847,7 @@ export const TEXT = {
         special: 'Block (hold)',
         secondary: 'Walk slow / fast',
         look: 'Change the look',
-        zoom: 'Zoom out / in',
+        zoom: 'Zoom in / out',
         readout: 'Instrument readout',
       },
       note: 'Reach the glowing portal, and avoid getting eaten by the predatory mite and the pseudoscorpion. Up to four players: press any button on another controller to join.',
@@ -1035,7 +1036,7 @@ export const TEXT = {
       },
       speed: {
         label: 'Game walking speed',
-        about: 'The stick is analogue: a slight push walks at ~{min} µm/s, full tilt ~{max} µm/s (a quadratic curve between, so the slow end is easy to hold); the keys walk at ~{keys}, {btn:LB} holds the slow end and {btn:RB} full tilt. Scaled with the 0.35 mm body: 1.2-2.5 body lengths a second. Real oribatids walk a few hundred µm/s at most; this is a game stretch. Strides lengthen up to ~2.2x with speed and the gait phase runs on distance, so the feet stay planted.',
+        about: 'The stick is analogue: a slight push walks at ~{min} µm/s, full tilt ~{max} µm/s (a quadratic curve between, so the slow end is easy to hold); the keys walk at ~{keys}, {btn:LT} holds the slow end and {btn:RT} full tilt. Scaled with the 0.35 mm body: 1.2-2.5 body lengths a second. Real oribatids walk a few hundred µm/s at most; this is a game stretch. Strides lengthen up to ~2.2x with speed and the gait phase runs on distance, so the feet stay planted.',
       },
       scramble: {
         label: 'Scramble (hold {btn:B})',
@@ -1181,7 +1182,7 @@ export const TEXT = {
         defend: 'Block (hold)',
         special: 'Curl up',
         analog: 'Focus',
-        secondary: 'Rain (test)',
+        secondary: 'Zoom in / out',
         look: 'Change the look',
         zoom: 'Zoom',
         refocus: 'Refocus',
@@ -1925,13 +1926,13 @@ export const TEXT = {
         dash: 'Dash',
         attack: 'Jab · push / eat',
         defend: 'Block / burst',
-        analog: 'Zoom out / in',
-        secondary: 'Deeper / shallower',
+        analog: 'Deeper / shallower',
+        secondary: 'Zoom in / out',
         look: 'Change the look',
       },
       title: 'Paramecium',
       sub: 'Paramecium bursaria, 120 µm, green with symbiotic Chlorella, in a drop of pond water under the microscope (darkfield). Quick and light: eat, dodge, and battle your way through the drop.',
-      note: 'Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium, the giant amoeba and the bladderwort. Follow the food: little clusters of glittering bacteria lead toward the leaf, each one in sight of the next; the hunters wait in the gaps between them. Eat {goal} prey to divide. A hunter winds up before it strikes: {btn:B} blocks the strike, {btn:X} jabs back, and a few blows drive it off (the red pips over it). Swim deeper or shallower ({btn:RS}, {btn:LB/RB}) through the drop; you only meet what is near your depth. {btn:X} also sends a push wave ahead that moves whatever it reaches: diatoms slide, detritus crumbles, Vorticella snap shut. The drop grows greener and fuller toward the portal. {btn:LT/RT} zoom out and in. Up to four players: press any button on another controller to join.',
+      note: 'Reach the glowing portal, and avoid getting eaten by Dileptus, Didinium, the giant amoeba and the bladderwort. Follow the food: little clusters of glittering bacteria lead toward the leaf, each one in sight of the next; the hunters wait in the gaps between them. Eat {goal} prey to divide. A hunter winds up before it strikes: {btn:B} blocks the strike, {btn:X} jabs back, and a few blows drive it off (the red pips over it). Swim deeper or shallower ({btn:RS}, {btn:LT/RT}) through the drop; you only meet what is near your depth. {btn:X} also sends a push wave ahead that moves whatever it reaches: diatoms slide, detritus crumbles, Vorticella snap shut. The drop grows greener and fuller toward the portal. {btn:LB/RB} zoom in and out. Up to four players: press any button on another controller to join.',
     },
     features: {
       look: {
@@ -2044,8 +2045,8 @@ export const TEXT = {
         attack: 'Call kin / eat / drill harder',
         defend: 'Dodge',
         special: 'Toxin burst',
-        analog: 'Zoom out / in',
-        secondary: 'Turn around',
+        analog: 'Turn around',
+        secondary: 'Zoom in / out',
         look: 'Change the look',
       },
       note: 'Grow a swarm ({btn:X} near your kin calls them), follow the way past each enemy that blocks it (steer your swarm into it and your cells drill in), and reach the glowing host past Stentor. Every cell in your swarm is a life. Amber cells are a stranger strain: they never join, and they lure cells away ({btn:X} calls them back). The drop ends at a bright meniscus. Up to four players: press any button on another controller to join.',
@@ -2209,7 +2210,7 @@ export const TEXT = {
       },
       focus: {
         label: 'Depth of field ≈ 0.4 µm, focused on your cell',
-        about: 'At NA 1.3 only a slice about 0.4 µm thick is sharp. Things above or below are drawn wider and fainter with their total kept. The focus follows your cell up and down through the water (there is no focus control: {btn:LT/RT} zoom); cells above or below it are softer.',
+        about: 'At NA 1.3 only a slice about 0.4 µm thick is sharp. Things above or below are drawn wider and fainter with their total kept. The focus follows your cell up and down through the water (there is no focus control: {btn:LB/RB} zoom); cells above or below it are softer.',
       },
       plate: {
         label: 'Out-of-focus background',
@@ -2338,7 +2339,7 @@ export const TEXT = {
       },
       pad: {
         label: 'Shared control scheme',
-        about: '{btn:LS} steer the swarm (released: it slows and stops), {btn:RS} look around, {btn:A} sprint, {btn:X} call kin + eat + drill harder (Bdellovibrio: attach), {btn:B} tumble, {btn:Y} toxin burst (or data; at the open host: enter the portal), {btn:LT/RT} zoom out / in (from 10 to 600 µm, starting at 20), {btn:LB/RB} reverse, {btn:D-pad ←→} look, {btn:Menu} features, {btn:View} panel.',
+        about: '{btn:LS} steer the swarm (released: it slows and stops), {btn:RS} look around, {btn:A} sprint, {btn:X} call kin + eat + drill harder (Bdellovibrio: attach), {btn:B} tumble, {btn:Y} toxin burst (or data; at the open host: enter the portal), {btn:LB/RB} zoom in / out (from 10 to 600 µm, starting at 20), {btn:LT/RT} reverse, {btn:D-pad ←→} look, {btn:Menu} features, {btn:View} panel.',
       },
       semMite: {
         label: 'SEM (scanning electron microscope)',
@@ -2459,7 +2460,7 @@ export const TEXT = {
         defend: 'Retract',
         special: 'Kick',
         look: 'Change the look',
-        zoom: 'Zoom out / in',
+        zoom: 'Zoom in / out',
       },
       note: 'Get into the glowing host, and avoid the amoeba. Up to four players: press any button on another controller to join.',
     },
@@ -2502,9 +2503,9 @@ export const TEXT = {
       },
       drive: {
         label: 'Steering',
-        about: 'A phage has no motor: it moves only by diffusion until it touches a host [S100]. The default gives it crisp game controls as a labelled departure: {btn:LS} forward and back along the view and sideways, {btn:LB/RB} down and up, quick to start and to stop (about 0.35 µm/s on the slowed clock), {btn:A} a dash forward; nothing but a visible current fights the stick. Honest: the sticks do nothing in open water (grabbing still works).',
+        about: 'A phage has no motor: it moves only by diffusion until it touches a host [S100]. The default gives it crisp game controls as a labelled departure: {btn:LS} forward and back along the view and sideways, {btn:LT/RT} down and up, quick to start and to stop (about 0.35 µm/s on the slowed clock), {btn:A} a dash forward; nothing but a visible current fights the stick. Honest: the sticks do nothing in open water (grabbing still works).',
         choices: {
-          'Steer: LS, LB/RB move the phage (departure)': 'Steer: {btn:LS}, {btn:LB/RB} move the phage (departure)',
+          'Steer: LS, LB/RB move the phage (departure)': 'Steer: {btn:LS}, {btn:LT/RT} move the phage (departure)',
           'Honest: Brownian motion only': 'Honest: Brownian motion only',
         },
       },
@@ -2546,7 +2547,7 @@ export const TEXT = {
       },
     },
     toasts: {
-      intro: 'You are a T4-like phage in bog water. {btn:LS} moves you (up: forward into the view), {btn:LB/RB} down and up, {btn:A} dashes, {btn:RS} turns the view, {btn:LT/RT} zoom out and in. {btn:X} grabs debris or a protein on a cell, {btn:B} retracts the fibres, {btn:Y} kicks (off a cell, or debris away). Head out any way you like: what waits comes to meet you. Last, a golden glow marks the way on.',
+      intro: 'You are a T4-like phage in bog water. {btn:LS} moves you (up: forward into the view), {btn:LT/RT} down and up, {btn:A} dashes, {btn:RS} turns the view, {btn:LB/RB} zoom in and out. {btn:X} grabs debris or a protein on a cell, {btn:B} retracts the fibres, {btn:Y} kicks (off a cell, or debris away). Head out any way you like: what waits comes to meet you. Last, a golden glow marks the way on.',
       receptorFits: 'Receptor fits: fibres latch, the baseplate opens and the sheath injects…',
       fibresFolded: 'Fibres folded: extend them ({btn:B}) to grab.',
       sealed: 'Host A\'s receptors do not take you yet: meet the other hosts first.',

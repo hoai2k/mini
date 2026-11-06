@@ -4,7 +4,7 @@
 // so the list is always in the same order with the same buttons.
 //
 //   LS move · RS camera · A dash/jump · X attack/eat · B defend · Y special
-//   LT/RT analog (focus, zoom, or the creature's own) · LB/RB secondary
+//   LT/RT focus or creature action · LB/RB zoom in/out (amoeba excepted)
 //   D-pad left/right optical look · D-pad up/down objective or zoom
 //   Menu features · View hide the controls
 //
@@ -17,8 +17,8 @@
 //   if (ctl.attack.pressed()) bite();
 //   mountHud({ title, sub, controls: hudControls({
 //     move: 'Walk', camera: 'Orbit', dash: 'Scramble', attack: 'Bite',
-//     defend: 'Hold: close up', special: 'Tun', analog: 'Zoom out / in',
-//     secondary: 'Walk slowly / hurry', look: 'SEM mode', zoom: 'Objective',
+//     defend: 'Hold: close up', special: 'Tun', analog: 'Walk slowly / hurry',
+//     secondary: 'Zoom in / out', look: 'SEM mode', zoom: 'Objective',
 //     extra: [['LS click', 'Refocus']] }) });
 import { BTN } from './pad.js';
 import { t } from './text.js';
@@ -66,6 +66,12 @@ export function createControls(pad) {
     secondary: () => (pad.down(BTN.RB) ? 1 : 0) - (pad.down(BTN.LB) ? 1 : 0),
     lb: button(pad, BTN.LB),
     rb: button(pad, BTN.RB),
+    leftTrigger: button(pad, BTN.LT),
+    rightTrigger: button(pad, BTN.RT),
+    /** Shoulder zoom: LB in, RB out; positive widens the field/camera distance. */
+    zoomRate: () => pad.value(BTN.RB) - pad.value(BTN.LB),
+    /** Objective/magnification steps: LB in (+1), RB out (-1). */
+    shoulderZoomStep: () => (pad.pressed(BTN.LB) ? 1 : 0) - (pad.pressed(BTN.RB) ? 1 : 0),
     /** -1 / +1 on a fresh d-pad left / right press: cycle the optical look. */
     lookStep: () => (pad.pressed(BTN.RIGHT) ? 1 : 0) - (pad.pressed(BTN.LEFT) ? 1 : 0),
     /** -1 / +1 on a fresh d-pad down / up press: objective or zoom step. */

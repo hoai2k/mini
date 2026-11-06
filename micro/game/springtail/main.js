@@ -843,6 +843,8 @@ function sundewStep(phase, u, dt) {
 // ---------------------------------------------------------------- features
 const features = createFeatures({ key: 'springtail', pad });
 const F = (o) => features.add(o);
+F({ id: 'aperture', group: 'Optics', choices: APERTURES.map((n) => `f/${n}`), value: 'f/11',
+  onChange: (v) => { const i = APERTURES.indexOf(Number(v.slice(2))); if (i >= 0) rig.ai = i; } });
 const audio = createAudio(['springtail/amb-bog', 'springtail/jump', 'springtail/land-water', 'springtail/land-sticky', 'springtail/eat', 'springtail/raindrop', 'springtail/stenus-skim', 'springtail/stenus-strike', 'shared/portal-chime',
   'springtail/charge', 'springtail/flip', 'springtail/right', 'springtail/pounce', 'springtail/glue-snap', 'springtail/struggle', 'springtail/tear-free', 'springtail/sundew-fold', 'springtail/strider', 'springtail/spider', 'springtail/spider-lunge',
   'shared/portal-enter', 'shared/slowdown', 'shared/portal-near', 'shared/portal-sealed', 'shared/portal-appear', 'shared/danger', 'shared/block', 'shared/death', 'shared/reform', 'shared/foe-flees', 'shared/join']);
@@ -1821,12 +1823,10 @@ function readInput(dt) {
     if (rig.mode === 'top') { rig.wantPitch = Math.min(rig.pitchLow, 0.9); hud.toast(tt('springtail.toasts.cameraLow')); }
     else { rig.pitchLow = rig.wantPitch; rig.wantPitch = PITCH_TOP; hud.toast(tt('springtail.toasts.cameraTop')); }
   }
-  const zs = ctl.zoomStep();
+  const zs = Math.sign(ctl.zoomStep() + ctl.shoulderZoomStep());
   if (zs) { rig.zi = THREE.MathUtils.clamp(rig.zi + zs, 0, ZOOMS.length - 1); hud.toast(tt('springtail.toasts.zoom', { zoom: ZOOMS[rig.zi], field: (36 / ZOOMS[rig.zi]).toFixed(1) })); }
   const ls = ctl.lookStep();
   if (ls) { const i = (rig.look + ls + MACRO_LOOKS.length) % MACRO_LOOKS.length; features.set('look', MACRO_LOOKS[i].name); hud.toast(ttx('springtail.features.look.choices')[MACRO_LOOKS[i].name] ?? MACRO_LOOKS[i].name); }
-  if (ctl.lb.pressed()) { rig.ai = Math.max(0, rig.ai - 1); hud.toast(`f/${APERTURES[rig.ai]}`); }
-  if (ctl.rb.pressed()) { rig.ai = Math.min(APERTURES.length - 1, rig.ai + 1); hud.toast(`f/${APERTURES[rig.ai]}`); }
   const out = [];
   for (const p of players.active) {
     const c = players.controls(p.slot);

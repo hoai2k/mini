@@ -754,7 +754,7 @@ function readInput(P, dt, frozen) {
   camLock.peek(P.slot, free ? 0 : rs.x, dt);
   if (free && Math.abs(rs.x) > 0.7 && Math.abs(rs.x) > Math.abs(rs.y)) view.rot = wrap(view.rot - rs.x * 1.5 * dt);
   else _in.depth = clamp(rs.y, -1, 1);
-  _in.depth = clamp(_in.depth + c.secondary(), -1, 1);
+  _in.depth = clamp(_in.depth + c.analog(), -1, 1);
   // deeper / shallower: heard where the depth input starts
   const diving = Math.abs(_in.depth) > (P.diving ? 0.3 : 0.5);
   if (diving && !P.diving) audio.play('paramecium/depth', { volume: 0.5, rate: _in.depth > 0 ? 0.9 : 1.1 });
@@ -780,15 +780,15 @@ function readInput(P, dt, frozen) {
   return _in;
 }
 /**
- * The zoom: LT out, RT in, analogue and continuous (each player their own,
+ * The zoom: LB in, RB out, continuous (each player their own,
  * read even while the world is paused by a panel, never in a cinematic):
- * the trigger sets how fast the wanted zoom moves, and the zoom eases to it.
+ * the shoulders set how fast the wanted zoom moves, and the zoom eases to it.
  */
 const zoomForce = [];
 function stepZoom(P, dt, frozen) {
   const c = players.controls(P.slot);
   const f = zoomForce[P.slot];
-  const rate = f !== undefined ? f : !frozen && c ? (c.lt ? c.lt() : 0) - (c.rt ? c.rt() : 0) : 0;
+  const rate = f !== undefined ? f : !frozen && c ? c.zoomRate() : 0;
   if (Math.abs(rate) > 0.04) P.zoomWant = clamp(P.zoomWant * Math.exp(rate * ZOOM.rate * dt), ZOOM.min, ZOOM.max);
   P.zoom += (P.zoomWant - P.zoom) * (1 - Math.exp(-dt / ZOOM.ease));
   if (Math.abs(P.zoom - P.zoomWant) < 1e-4) P.zoom = P.zoomWant;
@@ -1285,7 +1285,7 @@ Object.assign(debug, {
   /** Player slot is eaten now (tests of the dissolve). */
   kill(slot = 0, by = 'Didinium') { const P = cells.find((c) => c.slot === slot) || P1; P.invuln = 0; kill(P, by, 'in a test'); },
   spendTrap() { trap.state = 'spent'; trap.t = 0; trap.resolve = 0; },
-  /** Hold the zoom triggers for player slot as LT/RT would: +1 full LT (out), -1 full RT (in), null back to the pad. */
+  /** Hold the zoom shoulders for player slot as LB/RB would: +1 RB (out), -1 LB (in), null back to the pad. */
   zoomHold(v = 1, slot = 0) { zoomForce[slot] = v === null ? undefined : v; },
   /** Set player slot's zoom at once (1 closest .. ZOOM.max widest). */
   setZoom(z, slot = 0) { const P = cells.find((c) => c.slot === slot) || P1; P.zoom = P.zoomWant = clamp(z, ZOOM.min, ZOOM.max); },
