@@ -35,6 +35,8 @@ const AMOEBA_TIME = { 'Amoeba ×10': 1, 'Amoeba ×3': 0.3, 'Amoeba ×1 (real tim
 const SWIM_TIME = { 'Swimmers ×0.1': 1, 'Swimmers ×0.3': 3, 'Swimmers real speed': 10 };
 const GRANULES = { '2600 granules': 2600, '1300 granules': 1300, '600 granules': 600 };
 const CUP_WRAP = 3.3;
+// Wait until prey is almost encircled before advertising the close action.
+const CLOSE_HINT_WRAP = (300 * Math.PI) / 180;
 const PSEUDO_SPEED = { 'Quick (2×)': 2, 'Original': 1 };
 const SURGE = 2.5; // pseudopod rate multiplier at the peak of a surge // radians (≈ 190°) of membrane around the prey before A can close
 
@@ -1961,7 +1963,8 @@ function updateOverlay() {
       rt.style.borderColor = ready ? 'rgba(40,140,60,.8)' : cells.length > 1 ? cl.p.color : 'rgba(40,60,90,.5)';
       rtx.style.left = `${sx}px`; rtx.style.top = `${sy + r + 4}px`;
       const deg = st.cand ? Math.round((st.cand.cup.wrap * 180) / Math.PI) : 0;
-      setHTML(rtx, (cells.length > 1 ? tt('amoeba.ring.namePrefix', { name: cl.p.name }) : '') + (st.closing ? tt('amoeba.ring.filling') : ready ? tt('amoeba.ring.wrappedReady', { deg }) : tt('amoeba.ring.wrapped', { deg })));
+      const closeHint = st.cand && st.cand.cup.wrap >= CLOSE_HINT_WRAP;
+      setHTML(rtx, (cells.length > 1 ? tt('amoeba.ring.namePrefix', { name: cl.p.name }) : '') + (st.closing ? tt('amoeba.ring.filling') : closeHint ? tt('amoeba.ring.wrappedReady', { deg }) : tt('amoeba.ring.wrapped', { deg })));
     } else {
       rt.style.display = rtx.style.display = 'none';
     }
