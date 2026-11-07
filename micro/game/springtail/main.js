@@ -1401,6 +1401,15 @@ function stepPlayer(dt, inp) {
   P.y = groundAt(P.x, P.z).y;
   P.pitch = 0; P.roll = 0; P.bend += (0 - P.bend) * Math.min(1, dt * 8);
   P.sy += (1 - P.sy) * Math.min(1, dt * 7);
+  // Surface leaves catch walkers too; the airborne branch checks landings separately.
+  const stickyLeaf = world.sundews.leafAt(P.x, P.y, P.z);
+  if (stickyLeaf) {
+    stickToLeaf(P, stickyLeaf);
+    logChallenge('sundewStuck', P);
+    audio.play('springtail/land-sticky');
+    rumble(200, 0.5, 0.4);
+    return;
+  }
   // the fight move rears the forebody (nose up), then drops it into the snap; the attack lunges low
   if (P.actT > 0 && (P.act === 'fight' || P.act === 'attack')) {
     const u = 1 - P.actT / P.actDur;

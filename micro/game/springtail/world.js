@@ -700,7 +700,7 @@ const GLUE_SURFACE = /* glsl */ `
  * Drosera rotundifolia rosettes: round leaf blades on petioles, each with
  * ~90 red glandular tentacles (longer at the rim) tipped with glue drops.
  */
-function buildSundews(group, rnd, sundewTex) {
+export function buildSundews(group, rnd, sundewTex) {
   // the sundew clusters: a rosette on each island of every cluster, its leaves held
   // out along the band, over the gaps between the islands
   const rosettes = SUNDEW_ISLANDS.map((I) => ({ x: I.x, z: I.z, n: 4 + (I.k % 2), R: I.r, a0: I.t + (I.k % 2 ? 0 : Math.PI), cluster: I.cluster }));
@@ -737,7 +737,9 @@ function buildSundews(group, rnd, sundewTex) {
       const L = ro.R + 1.8 + rnd() * 2.2, R = 2.0 + rnd() * 0.6;
       const cx = ro.x + Math.cos(a) * L, cz = ro.z + Math.sin(a) * L;
       const under = Math.max(mossTop(cx, cz), 0);
-      const cy = Math.max(under + 0.35, 0.55 + rnd() * 0.4);
+      // The flattened blade's underside is 0.1 * R below its centre.
+      // Rest it on the film (or moss), rather than leaving a walkable gap.
+      const cy = under + 0.1 * R;
       // petiole
       const pts = [], rad = [];
       for (let s = 0; s <= 6; s++) {
@@ -749,7 +751,7 @@ function buildSundews(group, rnd, sundewTex) {
       const blade = new THREE.Mesh(bladeGeo, leafMat);
       blade.position.set(cx, cy, cz);
       blade.scale.set(R, R, R);
-      blade.rotation.set(0, -a, (rnd() - 0.5) * 0.15);
+      blade.rotation.set(0, -a, 0);
       group.add(blade);
       const leaf = { x: cx, y: cy + 0.12 * R, z: cz, r: R, a, curl: 0, target: null, tent: [], blade, grip: 0, close: 0, closeW: 0, shake: 0, shakeW: 0, rz0: blade.rotation.z, patch: P, i0: P.tents.length };
       // tentacles: rim ones long and splayed outward, inner ones short and upright

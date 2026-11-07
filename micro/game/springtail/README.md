@@ -480,7 +480,7 @@ Predators follow the shared pacing in `shared/predation.js`:
   - The strider: **strike**, the raptorial forelegs snap shut on you;
     **hold**, it lifts you, kicking, to its rostrum; **eat**, the rostrum
     pierces and sucks you dry (you shrivel and go still); **eaten**.
-  - A sundew is a trap, not a predator. Landing on a leaf you are held up
+  - A sundew is a trap, not a predator. Walking into or landing on a leaf, you are held up
     on its glue drops, a glue strand from a tentacle tip to each of your six
     legs, and the lens closes in from above. **Struggle**
     (`sundew-struggle.js`): tug with LS (each new push or change of
@@ -554,7 +554,7 @@ strands snapped), the motes in flight and a respawn's re-forming.
 - **Sundews** (*Drosera rotundifolia*): scenery, not encounters: 16
   clusters scattered over the pool (~70–430 mm from the start), each of three small islands, each with a rosette whose round
   leaves reach out over the gaps between them, each leaf with ~90 red
-  glandular tentacles tipped with glue. Land on a leaf and you stick, and
+  glandular tentacles tipped with glue. The blades rest on the water surface; walk into or land on a leaf and you stick, and
   must struggle free (see the sundew catch under Threats and pacing).
 - **A water strider** (*Gerris*, ~9 mm, legs spanning ~23 mm) stands on six
   dimples. It feels ripples: landings, grazing and struggling bring it rowing
