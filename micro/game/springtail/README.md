@@ -187,10 +187,13 @@ camera's top-down toggle as before. Luring: it wakes when you come within
 has lost you (farther than 40 mm), it walks back at 6 mm/s (a jumping
 springtail does 13–17). A big ripple within 50 mm of it and away from the
 raft (a charged landing, a raindrop) draws it off to look. The golden
-sparkle over each raft (`shared/portal.js`) is dim and restless while it is
+sparkle over each raft (`shared/portal.js`) is dim while it is
 guarded or sealed, bright once it is open, and so is its column of light
 (below, Landmarks). No arrow points the way (the owner: keep moving and you
-find it).
+find it). Portal particles, glints and columns use an uncapped visual clock,
+separate from physics and hit-pause: focus, zoom, render quality and extra
+render passes do not change their animation rate. Opening a portal changes
+brightness, not particle speed or phase.
 
 **Bog pondweed** (`PONDWEED`, `buildPondweed` in `world.js`). *Potamogeton
 polygonifolius*, the pondweed of acid, nutrient-poor water: bog pools, peaty

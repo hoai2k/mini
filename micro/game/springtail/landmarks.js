@@ -137,16 +137,16 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
   }
 
   const _fw = new THREE.Vector3();
-  function stepRaft(r, t, dt, camera, open, burstT) {
+  function stepRaft(r, t, dt, camera, open, burstT, visualTime) {
     r.glow.setOpen(open);
-    r.glow.update(dt, t, camera, burstT);
+    r.glow.update(dt, visualTime, camera, burstT);
     const tt = t + r.phase;
     const a = tt * 0.45 + Math.sin(tt * 0.31) * 1.3;
     const rr = 0.55 + 0.25 * Math.sin(tt * 0.23);
     r.speck.set(top.x + Math.cos(a) * rr, topY + 0.05 * Math.sin(tt * 1.7), top.z + Math.sin(a) * rr);
     r.mite.position.copy(r.speck);
     r.glint.setPosition(r.speck.x, r.speck.y + 0.12, r.speck.z);
-    r.glint.update(t);
+    r.glint.update(visualTime);
     r.mite.rotation.y = -a - Math.PI / 2;
     for (const leg of r.legs) {
       const { k, s } = leg.userData;
@@ -198,8 +198,10 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
      * Walk each speck about on its capitulum; the sparkles twinkle (open(i):
      * brighter). Rafts farther than RAFT_SHOW from every point in `near`
      * ([{ x, z }]) are hidden and skipped. burstT: the focus raft's burst clock.
+     * visualTime: uncapped presentation seconds for sparkles and columns;
+     * the mite continues to use the simulation time t.
      */
-    update(t, dt = 0, camera = null, open = () => false, burstT = undefined, near = null) {
+    update(t, dt = 0, camera = null, open = () => false, burstT = undefined, near = null, visualTime = t) {
       // the light columns: within COLUMN_SHOW of a player, and always the COLUMN_KEEP nearest
       for (const r of rafts) {
         let d = Infinity;
@@ -216,7 +218,7 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
         let fade = 0.35 + 0.65 * Math.min(1, Math.max(0, (r.d - 12) / 48));
         if (r === cur && burstT !== undefined) fade *= Math.max(0, 1 - burstT * 1.5);
         r.column.setFade(fade);
-        r.column.update(dt, t);
+        r.column.update(dt, visualTime);
       }
       for (const r of rafts) {
         const d = r.d;
@@ -224,7 +226,7 @@ export function createLandmarkProps(world, { pixelHeight } = {}) {
         if (show !== r.shown) { r.raft.visible = show; r.shown = show; }
         const mite = show && (!near || d < MITE_SHOW || r === cur && burstT !== undefined);
         if (mite !== r.mite.visible) { r.mite.visible = mite; r.glint.points.visible = mite; }
-        if (show) stepRaft(r, t, dt, camera, typeof open === 'function' ? open(r.i) : open, r === cur ? burstT : undefined);
+        if (show) stepRaft(r, t, dt, camera, typeof open === 'function' ? open(r.i) : open, r === cur ? burstT : undefined, visualTime);
       }
     },
   };

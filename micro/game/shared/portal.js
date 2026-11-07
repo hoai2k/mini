@@ -115,7 +115,7 @@ export function createPortalGlow({ THREE, scene = null, size = 10, color = '#f0b
     fragmentShader: /* glsl */ `uniform float uTime, uOpen, uI; uniform vec3 uColor; varying vec2 vP;
       void main() {
         float r = length(vP);
-        float breathe = 0.75 + 0.25 * sin(uTime * mix(1.1, 1.6, uOpen));
+        float breathe = 0.75 + 0.25 * sin(uTime * 1.3);
         float ring = exp(-pow((r - 0.62 - 0.03 * sin(uTime * 0.9)) / 0.16, 2.0));
         float core = exp(-r * r * 4.0) * 0.45;
         float a = (ring + core) * smoothstep(1.0, 0.85, r) * breathe * mix(0.1, 0.3, uOpen) * uI;
@@ -199,15 +199,16 @@ export function createPortalGlow({ THREE, scene = null, size = 10, color = '#f0b
       }`;
   const pts = new THREE.Points(geo, new THREE.ShaderMaterial({
     uniforms, ...blend,
-    vertexShader: /* glsl */ `uniform float uTime, uOpen, uSize, uH, uViewH, uBeam, uBeamW; attribute vec4 seed; varying float vA; varying float vTw;
+    vertexShader: /* glsl */ `uniform float uTime, uSize, uH, uViewH, uBeam, uBeamW; attribute vec4 seed; varying float vA; varying float vTw;
       void main() {
         bool high = seed.y > 0.75 && uBeam > 0.0;
-        float speed = mix(0.07, 0.11, uOpen) * seed.w * (high ? 0.55 : 1.0);
+        // Portal state changes brightness, never motion or particle phase.
+        float speed = 0.09 * seed.w * (high ? 0.55 : 1.0);
         float life = fract(seed.x + uTime * speed);
-        float ang = seed.z * 6.2832 + life * mix(1.4, 2.6, 1.0 - uOpen) + 0.3 * sin(uTime * 3.0 * (1.0 - uOpen) + seed.z * 40.0);
+        float ang = seed.z * 6.2832 + life * 2.0 + 0.3 * sin(uTime * 1.5 + seed.z * 40.0);
         float u = high ? (seed.y - 0.75) * 4.0 : seed.y / 0.75;
         float rad = high ? uBeamW * (0.3 + 0.9 * sqrt(u)) : uSize * (0.15 + 0.8 * sqrt(u)) * (1.0 - 0.35 * life);
-        float y = high ? 0.3 + life * uBeam * 0.9 : 0.15 + life * uH * mix(0.55, 1.0, uOpen);
+        float y = high ? 0.3 + life * uBeam * 0.9 : 0.15 + life * uH * 0.8;
         vec3 p = vec3(cos(ang) * rad, y, sin(ang) * rad);
         vec4 mv = modelViewMatrix * vec4(p, 1.0);
         vA = smoothstep(0.0, 0.15, life) * (1.0 - smoothstep(0.65, 1.0, life));

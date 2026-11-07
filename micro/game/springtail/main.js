@@ -2132,9 +2132,12 @@ function updateText(L) {
 }
 
 // ---------------------------------------------------------------- loop
-let simT = 0, menuOpen = false, frames = 0;
+let simT = 0, portalT = 0, menuOpen = false, frames = 0;
 const foodNear = [];
-function step(dt, inputs) {
+function step(dt, inputs, visualDt = dt) {
+  // Portal particles use elapsed visual time, independent of capped physics,
+  // hit-pause and camera-dependent rendering cost.
+  portalT += visualDt;
   // the pounce-bite's hit-pause: the world all but stops for a moment
   if (hitPause > 0) { hitPause -= dt; dt *= 0.06; }
   // a clean escape from the labium: a moment of slow motion
@@ -2155,7 +2158,7 @@ function step(dt, inputs) {
   for (const P of recs()) withRec(P, () => poseTail(simT));
   motes.update(dt);
   placeRings();
-  props.update(simT, dt, camera, (i) => !sealed() && !guardedAt(i), outro ? outro.t : undefined, recs());
+  props.update(simT, visualDt, camera, (i) => !sealed() && !guardedAt(i), outro ? outro.t : undefined, recs(), portalT);
   // the nearest columns of light, reflected in the film (a golden path toward a portal out of frame)
   waterMat.uniforms.uColH.value = props.columnLights(waterMat.uniforms.uCol.value, 1);
   if (game.phase === 'play') { stepDirector(dt); checkLandmark(); logNear(); }
@@ -2527,6 +2530,9 @@ if (embed.active) newGame();
 
 const gl = renderer.getContext();
 let fence = null, last = performance.now(), lastSubmit = last, statT = 0;
+// The shell holds animation frames while paused; do not count that pause as
+// elapsed animation time on the first resumed frame.
+embed.on('resume', () => { last = performance.now(); });
 function gpuBusy() {
   if (!fence) return false;
   if (gl.getSyncParameter(fence, gl.SYNC_STATUS) !== gl.SIGNALED) return true;
@@ -2536,7 +2542,8 @@ function gpuBusy() {
 function frame() {
   requestAnimationFrame(frame);
   const now = performance.now();
-  const dt = Math.min((now - last) / 1000, 1 / 30);
+  const visualDt = Math.max(0, (now - last) / 1000);
+  const dt = Math.min(visualDt, 1 / 30);
   last = now;
   if (api.paused) return;
   frames++;
@@ -2544,7 +2551,7 @@ function frame() {
   const ts = outro ? stepOutro(dt) : 1;
   const inp = outro || embed.held ? null : readInput(dt);
   easeLook(dt);
-  if (ts > 0 && !embed.held) { game.t += dt * ts; step(dt * ts, inp); }
+  if (ts > 0 && !embed.held) { game.t += dt * ts; step(dt * ts, inp, visualDt); }
   if (gpuBusy()) return;
   const raw = now - lastSubmit;
   lastSubmit = now;
