@@ -26,7 +26,7 @@
 //   (1: a transient extra multiplier, e.g. a dash, that also drives the rear contraction harder).
 //   body.flowK: speed × boost, for anything that streams with the pseudopods.
 // Optional, all backward compatible (leave them out for the original behaviour):
-//   input.body: {m, dx, dy}: move the bulk of the cell that way (the rear contracts, the
+//   input.body: {m, dx, dy, push?:0..1}: move the bulk of the cell that way (the rear contracts, the
 //     front flows on, membrane already far out in front, a pseudopod, is left to be caught up
 //     with); body.drive = {x, y, m} for anything that streams with it.
 //   input.pods[k].tip: the membrane node a pseudopod starts from when it activates
@@ -369,7 +369,8 @@ export class Body {
     this.drive.m = 0;
     if (bd && bd.m > 0.06) {
       const ux = bd.dx, uy = bd.dy;
-      const v = P.vBody * bd.m * spd * boost * (1 - 0.6 * this.spread) * (this.closing ? 0.2 : 1);
+      const bodyPush = 1 + 0.5 * clamp(bd.push || 0, 0, 1);
+      const v = P.vBody * bd.m * spd * boost * bodyPush * (1 - 0.6 * this.spread) * (this.closing ? 0.2 : 1);
       for (let i = 0; i < N; i++) {
         const c = nx[i] * ux + ny[i] * uy;
         const reach = (x[i] - this.cx) * ux + (y[i] - this.cy) * uy;
@@ -380,7 +381,7 @@ export class Body {
         G[i] += 0.5 * front * bd.m;
       }
       fx += ux * bd.m; fy += uy * bd.m;
-      this.drive.x = ux; this.drive.y = uy; this.drive.m = bd.m * boost;
+      this.drive.x = ux; this.drive.y = uy; this.drive.m = bd.m * boost * bodyPush;
     }
 
     // -- whole-cell shape: stretch / squish (input.shape), rounding up (input.round) --

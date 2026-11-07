@@ -38,7 +38,7 @@ import { clamp } from './util.js';
 
 export const DEG = Math.PI / 180;
 export const MAX_STEERED = 8;
-export const TRIG_ON = 0.5, TRIG_OFF = 0.3; // a trigger is on above 0.5, off below 0.3
+export const TRIG_ON = 0.5, TRIG_OFF = 0.3; // movement hysteresis; choosing requires > TRIG_ON throughout
 export const STICK_ON = 0.3, STICK_OFF = 0.15; // a stick counts as pushed above 0.3, at rest below 0.15
 export const PICK_TOL = 34 * DEG; // a default pick takes a pseudopod whose tip lies within this of the stick
 export const GLOW = {
@@ -333,7 +333,8 @@ export function selectInput(b, R, r, env = {}) {
   const pods = [];
   for (const k of [...R.latch]) if (r[k].m < STICK_OFF) R.latch.delete(k);
   R.rt = r.rt >= (R.rt ? TRIG_OFF : TRIG_ON);
-  R.ltHeld = r.lt >= (R.ltHeld ? TRIG_OFF : TRIG_ON);
+  // Choosing is hold-only: a partial release must not latch the mode on.
+  R.ltHeld = r.lt > TRIG_ON;
   const st = { sel: R.latch.has('rs') ? { m: 0, dx: 1, dy: 0 } : r.rs, adj: R.latch.has('ls') ? { m: 0, dx: 1, dy: 0 } : r.ls };
   let bodyIn = null, shape = null, turn = 0;
   for (const key of KEYS) {
@@ -358,6 +359,7 @@ export function selectInput(b, R, r, env = {}) {
     // the sticks move the cell; the pseudopods stay theirs and rest
     const mv = moveInput(st.adj, st.sel);
     bodyIn = mv.body; shape = mv.shape; turn = mv.turn; R.move = mv.what;
+    if (bodyIn) bodyIn.push = r.rb;
     R.on.sel = R.on.adj = false;
     if (bodyIn && rollInto(b, R, st, bodyIn, pods)) {
       // the body rolls into the stump(s): drawn in along the travel (the sides take the volume), the cell still crawling on

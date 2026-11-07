@@ -34,11 +34,11 @@ const OBJECTIVES = [{ name: '10×', field: 1800 }, { name: '20×', field: 900 }]
 const AMOEBA_TIME = { 'Amoeba ×10': 1, 'Amoeba ×3': 0.3, 'Amoeba ×1 (real time)': 0.1 };
 const SWIM_TIME = { 'Swimmers ×0.1': 1, 'Swimmers ×0.3': 3, 'Swimmers real speed': 10 };
 const GRANULES = { '2600 granules': 2600, '1300 granules': 1300, '600 granules': 600 };
-const CUP_WRAP = 3.3;
+const CUP_WRAP = 3.3; // minimum wrap (~190°) for the close action
 // Wait until prey is almost encircled before advertising the close action.
 const CLOSE_HINT_WRAP = (300 * Math.PI) / 180;
 const PSEUDO_SPEED = { 'Quick (2×)': 2, 'Original': 1 };
-const SURGE = 2.5; // pseudopod rate multiplier at the peak of a surge // radians (≈ 190°) of membrane around the prey before A can close
+const SURGE = 2.5; // body and pseudopod speed multiplier at the peak of a surge
 
 const canvas = document.querySelector('canvas.view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
@@ -694,8 +694,8 @@ const ROLE_ON = 0.35, ROLE_OFF = 0.12;
 /**
  * Both sticks and the shoulder buttons, from the pad or the test override.
  * The triggers are swapped here (the owner, 2026-11-02): the physical LT holds
- * movement mode and RT spreads, so everything below reads `rt` as "move the
- * cell" and `lt` as "spread" as before.
+ * movement mode and RT chooses pseudopods (spreads in the classic scheme),
+ * so the legacy raw keys below read `rt` as movement and `lt` as choosing.
  */
 function rawInput() {
   if (test.input && (!cur || cur.slot === 0)) {
@@ -1181,7 +1181,7 @@ function simStep(dt, granules = true) {
   for (const c of cells) {
     use(c);
     const input = readInput();
-    // Surge: ease the pseudopod boost in and out over the dash.
+    // Surge: ease the body and pseudopod boost in and out over the dash.
     let sk = surge.active ? 1 + (SURGE - 1) * Math.sin(Math.PI * Math.min(1, 1 - surge.phase)) ** 0.6 : 1;
     // Defend (B held near a trap): the cell stiffens and draws its pseudopods in.
     C.defend = clamp((C.defend || 0) + ((C.defendHeld && !caught.active) ? 1 : -1) * dt * 6, 0, 1);
@@ -2132,10 +2132,6 @@ function frame(now) {
       if (look) features.set('look', MODES[(S.mode + look + MODES.length) % MODES.length]);
       const zs = ctl.zoomStep();
       if (zs) { S.objective = zs > 0 ? 1 : 0; selZoom.want = selZoom.k = 1; }
-      // Fine focus: LB/RB in the classic scheme; the stick clicks in lead and follow (LB/RB spread and push).
-      const ri = S.scheme === 'classic' ? null : rawInput();
-      const sec = S.scheme === 'classic' ? ctl.secondary() : (ri.rsc ? 1 : 0) - (ri.lsc ? 1 : 0);
-      if (sec) S.focus = clamp(S.focus + sec * dtReal * 0.8, -1, 1);
     }
     use(cells[0]);
   }

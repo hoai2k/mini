@@ -30,6 +30,39 @@ function run(g, sec, input) {
 }
 const tipAngle = (b, k) => Math.atan2(b.y[b.pods[k].tip] - b.cy, b.x[b.pods[k].tip] - b.cx) / DEG;
 
+test('choosing ends when RT falls below its pressed threshold, without latching', () => {
+  const g = rig();
+  run(g, DT, raw({ choose: 1 }));
+  assert.equal(g.R.mode, 'choose');
+  run(g, DT, raw({ choose: 0.4 }));
+  assert.equal(g.R.mode, 'pod');
+  assert.equal(g.R.choose, false);
+  assert.equal(g.R.glow.sel, null);
+  run(g, 0.2, raw({ choose: 0.49, rb: 1 }));
+  assert.equal(g.R.mode, 'pod', 'a partially released trigger cannot re-enter choosing');
+  run(g, DT, raw({ choose: 0.51 }));
+  assert.equal(g.R.mode, 'choose');
+  run(g, DT, raw());
+  assert.equal(g.R.mode, 'pod');
+});
+
+test('RB and the surge boost increase movement, and combine', () => {
+  function distance(push, boost) {
+    const g = rig(7);
+    g.b.opts.boost = boost;
+    const x = g.b.cx;
+    run(g, 1.2, raw({ move: 1, ls: 0, rs: 0, rb: push }));
+    assert.equal(g.R.mode, 'move');
+    return g.b.cx - x;
+  }
+  const normal = distance(0, 1), rb = distance(1, 1);
+  const surge = distance(0, 2.5), both = distance(1, 2.5);
+  assert.ok(normal > 0);
+  assert.ok(rb > normal * 1.2, 'RB makes the cell travel further');
+  assert.ok(surge > normal * 1.5, 'surge boosts the body, not just its pseudopods');
+  assert.ok(both > surge * 1.2, 'RB also strengthens surging movement');
+});
+
 test('sticks keep their pseudopods through neutral', () => {
   const g = rig();
   run(g, 1.2, raw({ rs: 0, ls: 180 }));

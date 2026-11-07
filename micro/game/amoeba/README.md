@@ -14,6 +14,8 @@ addons); world units are µm.
 
 Open `micro/game/amoeba/` (the invite gate is off on localhost).
 
+Focus controls are removed in every scheme; the microscope retains its fixed focus.
+
 ## Controls (Xbox controller; keyboard in brackets)
 
 Three schemes, chosen in Features → Controls. **Pseudopods and movement** is
@@ -25,7 +27,7 @@ triggers chose pseudopods); **Lead and follow** and **Two pseudopods
 
 The logic is `select.js` (pure, tested in node by `select.test.mjs`); `main.js`
 feeds it each player's body and roles. Three modes, read afresh every frame
-from the triggers: LT held is movement mode, RT held is choosing, neither is
+from the triggers: LT held is movement mode, RT past 50% is choosing (release below that to leave it), neither is
 pseudopod mode. The owner, 2026-11-03: "we won't auto select pseudopods after
 neutral but keep them defined. To change them we hold RT and then we see a
 glow at the base of the currently selected pseudopods. If any are currently
@@ -41,8 +43,7 @@ zoom the camera out and keep it there."
 | RT (X), held | **Choose pseudopods.** The sticks steer nothing. A soft glow in your colour, marked L and R, sits at the base of each stick's pseudopod (where it meets the body). A stick still pushed as RT goes down is *busy*: its glow is dim and pulsing until the stick comes back to neutral; then it is *editable* (bright, ringed). Pushed past 0.25, it slides its glow round the membrane toward the stick's direction: critically damped easing (13 rad/s) from where it was, settling exactly on the target; within 20° of a pseudopod's base the glow snaps to it, and lets go only past 28° (no flicker). L and R never share a base: the other's is skipped and the glow is held 24° aside. Let go of RT and each moved glow takes the pseudopod at its base, or, at bare membrane, grows a new one there (pushed out on its own for 0.8 s, along the membrane's normal); a glow left alone keeps its pseudopod; a stick still pushed must come back to neutral before it steers. Sounds: a soft stretch on entering, a squish on a commit, and a short rumble. On above 0.5, off below 0.3 |
 | LT (Z), held | **Move the cell.** The sticks become movement intents; the pseudopods stay assigned and rest. One stick, or both the same way: the cell crawls that way. Two different ways: it crawls between them and widens across its path. LS left + RS right (apart): stretches along that line; LS right + RS left (together): squishes; LS up + RS down: turns clockwise, LS down + RS up: anticlockwise, like a tank (the contents turn with it). Mixed angles blend (below). **Rolling into a pseudopod** (the owner, 2026-11-03: "if moving in the direction of an extended pseudopod, if that stick is not pointing in the same direction, the pseudopod should thicken into a stump as the body rolls into/past it. If the pseudopod is actively reaching forward while moving then it stays"): a steered pseudopod within 60° ahead of the crawl whose own stick does not point on along it (within 35°), or which has none, is fed only a weak, fully spread push, so it shortens and its base broadens into a stump, and the cell is squished along the travel so the body flows into it; once it stands out less than 22 µm it is let go and merges. Its stick pointing on along the crawl, it keeps reaching and the cell travels behind it (with both sticks forward, both crawl and both pseudopods they point along keep reaching). Pseudopods to the side or behind are left alone. On above 0.5, off below 0.3 |
 | LB (Q) | **Thicken**: the pseudopod a pushed stick is steering gets broader and shorter (the thickness that wins pushes, `contact.js`). With none steered, the whole cell spreads out at once; held on, from about 1.5 s it draws its pseudopods in and rounds up, near round after about 8 s |
-| RB (F) | **Push harder**: the steered pseudopod runs out faster |
-| LS click / RS click (C / V) | Fine focus down / up |
+| RB (F) | **Push harder**: the steered pseudopod runs out faster; in LT movement mode, crawling is 50% stronger. A surge also boosts movement, and combines with RB |
 
 **The camera when choosing**: if the cell and its glows (70 µm round it) do
 not fit within 80% of the view when RT goes down, the field widens to frame
@@ -94,7 +95,6 @@ The corner shows the roles (`LS: body · RS: pseudopod`).
 | RT / LT (Z / X), held | The body stick grows a **second pseudopod** instead, starting 30–70° round from the first on the side the stick points, so the two can close round prey. Let go: that stick moves the body again, and the second pseudopod relaxes slowly (hold the trigger again to pick it back up) |
 | LB (Q) | Spread out / relax: the cell flattens, rounds up and its pseudopods relax |
 | RB (F) | Push harder |
-| LS click / RS click (C / V) | Fine focus down / up |
 
 The roles reset once the pseudopod is fully taken back or has flowed back,
 and after eating (the cup's pseudopods dissolve into the vacuole). A stick
@@ -109,7 +109,6 @@ still held keeps moving the body.
 | RS (arrows) | Pseudopod 2, so the two sticks can wrap a cup round prey from both sides |
 | LT (Z) | Push harder |
 | RT (X) | Spread out / relax: the cell flattens (its footprint grows, since the volume is fixed), rounds up and its pseudopods relax |
-| LB / RB (Q / F) | Fine focus down / up: changes the sign and size of the defocus contrast and how blurred the layer above is |
 
 ### All schemes
 

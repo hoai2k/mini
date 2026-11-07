@@ -303,7 +303,7 @@ export const TEXT = {
         ['LT', 'Hold: move the cell'],
         ['RT', 'Hold: choose pseudopods'],
         ['LB', 'Thicken (none steered: spread the cell)'],
-        ['RB', 'Push harder'],
+        ['RB', 'Push harder / move faster'],
         ['A', 'Surge'],
         ['X', 'Engulf'],
         ['B', 'Let go / stiffen'],
@@ -1549,12 +1549,10 @@ export const TEXT = {
               ['LT (hold)', 'Move the cell'],
               ['RT (hold)', 'Choose pseudopods'],
               ['LB', 'Thicken (none steered: spread the cell)'],
-              ['RB', 'Push harder'],
-              ['LS click', 'Focus down'],
-              ['RS click', 'Focus up'],
+              ['RB', 'Push harder / move faster'],
             ],
           },
-          note: 'Each stick keeps its pseudopod (L and R): pushed it steers it, at neutral it rests. To choose others, hold {btn:RT}: a glow marks each one\'s base; move a stick (once it has been back at neutral) to slide its glow round the membrane to another pseudopod or bare membrane, and let go of {btn:RT} to take it (a new one grows there). Hold {btn:LT} and the sticks move the whole cell: same way crawls, apart stretches, together squishes, one up one down turns; a pseudopod ahead rolls into a stump unless its stick reaches on with it. {btn:LB} thickens the steered pseudopod (none steered: the cell spreads). Two pseudopods round prey, then {btn:X}. Push against other cells with a thick pseudopod; {btn:A} shoves. The cell keeps its volume. Time is compressed; see the corner.',
+          note: 'Each stick keeps its pseudopod (L and R): pushed it steers it, at neutral it rests. To choose others, hold {btn:RT}: a glow marks each one\'s base; move a stick (once it has been back at neutral) to slide its glow round the membrane to another pseudopod or bare membrane, and let go of {btn:RT} to take it (a new one grows there). Hold {btn:LT} and the sticks move the whole cell: same way crawls, apart stretches, together squishes, one up one down turns; a pseudopod ahead rolls into a stump unless its stick reaches on with it. {btn:LB} thickens the steered pseudopod (none steered: the cell spreads). In movement mode, {btn:RB} moves faster and {btn:A} surges; they combine. Two pseudopods round prey, then {btn:X}. Push against other cells with a thick pseudopod; {btn:A} shoves. The cell keeps its volume. Time is compressed; see the corner.',
         },
         lead: {
           controls: {
@@ -1562,10 +1560,6 @@ export const TEXT = {
             camera: 'Either stick can lead (see the corner: {btn:LS} / {btn:RS} roles)',
             analog: 'Hold: the body stick grows a second pseudopod beside the first, to encircle',
             secondary: 'Spread out / push harder',
-            extra: [
-              ['LS click', 'Fine focus down'],
-              ['RS click', 'Fine focus up'],
-            ],
           },
           note: 'Pseudopod stick and body stick both held: the cell travels behind its pseudopod. Body stick alone towards it: the body flows in and takes it back. Release both and the roles reset once the pseudopod is gone (or after eating). Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
         },
@@ -1574,7 +1568,6 @@ export const TEXT = {
             move: 'Pseudopod 1: aim and extend',
             camera: 'Pseudopod 2: aim and extend',
             analog: 'Spread out / push harder',
-            secondary: 'Fine focus down / up',
           },
           note: 'Release a stick to let that pseudopod flow back. Every arm takes body from somewhere else: the cell keeps its volume. Time is compressed; see the corner.',
         },
@@ -1699,7 +1692,7 @@ export const TEXT = {
       },
       tie: {
         label: 'Defocus contrast (transport of intensity)',
-        about: 'A transparent cell is nearly invisible in focus; slight defocus gives I ≈ I0(1 − Δz∇²φ): bright and dark lines at edges and granules. Fine focus ({btn:LB/RB}) sets Δz and its sign.',
+        about: 'A transparent cell is nearly invisible in focus; slight defocus gives I ≈ I0(1 − Δz∇²φ): bright and dark lines at edges and granules. The microscope uses a fixed slight defocus.',
       },
       refraction: {
         label: 'Edge refraction loss',
@@ -1831,7 +1824,7 @@ export const TEXT = {
       },
       scheme: {
         label: 'Controls',
-        about: 'Pseudopods and movement (default; the owner, 2026-11-02, and choosing on {btn:RT}, 2026-11-03). Each stick keeps one pseudopod, {btn:RS} the one marked R and {btn:LS} the one marked L: pushed, it steers it (direction and reach); at neutral it rests (no longer steered, it flows slowly back) and stays that stick\'s. Only when it is gone (drawn in, eaten, merged) does the stick\'s next push take a default: the pseudopod whose tip lies within 34° of it, or a new one grown there. {btn:RT} held: choosing. The sticks steer nothing; a glow in your colour marks the base of each stick\'s pseudopod (L and R). A stick still pushed as {btn:RT} went down is busy (its glow dim and pulsing) until it comes back to neutral; then pushing it slides its glow round the membrane toward the stick (eased, settling exactly), snapping to a pseudopod\'s base within about 20°. L and R never share a base. Letting go of {btn:RT} takes the pseudopod at each moved glow, or grows a new one at bare membrane; a glow left alone keeps its pseudopod. If the cell and its glows do not fit, the view widens and stays wider (the {btn:D-pad} zoom resets it). {btn:LT} held: movement mode, the sticks are movement intents. One stick, or both the same way: the cell crawls that way. Two different ways: it crawls between them and widens across its path. Opposite: {btn:LS} left + {btn:RS} right (apart) stretches it along that line, {btn:LS} right + {btn:RS} left (together) squishes it; {btn:LS} up + {btn:RS} down turns it clockwise, {btn:LS} down + {btn:RS} up anticlockwise, like a tank. A pseudopod within 60° ahead of the crawl rolls into a short, thick stump and merges as the body passes it, unless its own stick points on along the crawl (within 35°): then it keeps reaching and the cell follows it. {btn:LB}: thickens the steered pseudopod (broader and shorter, the thickness that wins pushes); with none steered the whole cell spreads out, and held on from about 1.5 s it rounds up. {btn:RB}: pushes the steered pseudopod harder. Lead and follow: the first stick pushed grows a pseudopod (the pseudopod stick); the other stick moves the bulk of the cell (the body stick): the rear contracts and the cytoplasm streams after it. Both held: the cell travels behind its pseudopod, which holds its length. Body stick alone towards the pseudopod: the body flows into it and takes it back. Hold {btn:RT} or {btn:LT} and the body stick grows a second pseudopod 30–70° beside the first instead, to encircle prey. {btn:LB} spreads out, {btn:RB} pushes harder. Roles reset once the pseudopod is gone or after eating. Two pseudopods (classic): each stick grows its own pseudopod, {btn:RT/LT} spread out and push harder, {btn:LB/RB} focus.',
+        about: 'Pseudopods and movement (default; the owner, 2026-11-02, and choosing on {btn:RT}, 2026-11-03). Each stick keeps one pseudopod, {btn:RS} the one marked R and {btn:LS} the one marked L: pushed, it steers it (direction and reach); at neutral it rests (no longer steered, it flows slowly back) and stays that stick\'s. Only when it is gone (drawn in, eaten, merged) does the stick\'s next push take a default: the pseudopod whose tip lies within 34° of it, or a new one grown there. {btn:RT} held: choosing. The sticks steer nothing; a glow in your colour marks the base of each stick\'s pseudopod (L and R). A stick still pushed as {btn:RT} went down is busy (its glow dim and pulsing) until it comes back to neutral; then pushing it slides its glow round the membrane toward the stick (eased, settling exactly), snapping to a pseudopod\'s base within about 20°. L and R never share a base. Letting go of {btn:RT} takes the pseudopod at each moved glow, or grows a new one at bare membrane; a glow left alone keeps its pseudopod. If the cell and its glows do not fit, the view widens and stays wider (the {btn:D-pad} zoom resets it). {btn:LT} held: movement mode, the sticks are movement intents. One stick, or both the same way: the cell crawls that way. Two different ways: it crawls between them and widens across its path. Opposite: {btn:LS} left + {btn:RS} right (apart) stretches it along that line, {btn:LS} right + {btn:RS} left (together) squishes it; {btn:LS} up + {btn:RS} down turns it clockwise, {btn:LS} down + {btn:RS} up anticlockwise, like a tank. A pseudopod within 60° ahead of the crawl rolls into a short, thick stump and merges as the body passes it, unless its own stick points on along the crawl (within 35°): then it keeps reaching and the cell follows it. {btn:LB}: thickens the steered pseudopod (broader and shorter, the thickness that wins pushes); with none steered the whole cell spreads out, and held on from about 1.5 s it rounds up. {btn:RB}: pushes the steered pseudopod harder, or strengthens crawling in movement mode. {btn:A} surges in movement mode too, and combines with {btn:RB}. Lead and follow: the first stick pushed grows a pseudopod (the pseudopod stick); the other stick moves the bulk of the cell (the body stick): the rear contracts and the cytoplasm streams after it. Both held: the cell travels behind its pseudopod, which holds its length. Body stick alone towards the pseudopod: the body flows into it and takes it back. Hold {btn:RT} or {btn:LT} and the body stick grows a second pseudopod 30–70° beside the first instead, to encircle prey. {btn:LB} spreads out, {btn:RB} pushes harder. Roles reset once the pseudopod is gone or after eating. Two pseudopods (classic): each stick grows its own pseudopod, {btn:RT/LT} spread out and push harder.',
         choices: {
           'Pseudopods and movement (default)': 'Pseudopods and movement (default)',
           'Lead and follow': 'Lead and follow',
