@@ -79,6 +79,7 @@ try {
   await until((s) => s.screen === 'menu', 20000, 'menu');
   await tab.waitForTimeout(900);
   await shot('2-menu');
+  await tab.waitForFunction(() => document.querySelector('#menu-veil').hidden, null, { timeout: 30000 });
   await tab.keyboard.press('ArrowRight');
   await tab.waitForTimeout(800);
   await shot('2b-menu-mite');
@@ -115,6 +116,7 @@ try {
   await until((s) => s.paused && s.modals.includes('pause'), 20000, 'pause');
   await tab.waitForTimeout(600);
   await shot('5-pause');
+  if (await tab.locator('#pause [data-open="instructions"], #pause [data-open="settings"]').count()) throw new Error('pause should offer neither Instructions nor Settings');
   step('pause');
   await tab.evaluate(() => window.__game.openModal('settings'));
   await tab.waitForTimeout(600);

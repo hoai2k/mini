@@ -80,13 +80,9 @@ button { font: inherit; color: inherit; }
 @keyframes pulse { 0%, 100% { opacity: 1; box-shadow: inset 0 0 0 3px rgba(12,22,16,.6), inset 0 0 0 4px rgba(200,155,71,.35), 0 0 0 0 rgba(200,155,71,0); }
   50% { opacity: .82; box-shadow: inset 0 0 0 3px rgba(12,22,16,.6), inset 0 0 0 4px rgba(200,155,71,.6), 0 0 34px 2px rgba(200,155,71,.28); } }
 
-/* Players (P1–P4 colour chips) */
-.players-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; min-height: 26px; margin-top: 14px; }
-.pchip { display: inline-flex; align-items: center; gap: 7px; padding: 3px 11px 3px 4px; border-radius: 999px; border: 1px solid rgba(200, 155, 71, .5);
-  background: rgba(10, 18, 13, .6); font: 600 .74rem/1 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--ivory); }
-.pchip b { width: 18px; height: 18px; border-radius: 50%; background: var(--pc); box-shadow: inset 0 0 0 2px rgba(0,0,0,.25), 0 0 0 1px var(--brass); display: grid; place-items: center; font-size: .62rem; color: #1a1408; }
-.pchip.empty { opacity: .38; border-style: dashed; }
-.paper .pchip { background: rgba(255, 252, 240, .6); color: var(--paper-ink); }
+/* Joining is mentioned only on world select; the roster stays implicit. */
+#join-hint { display: flex; align-items: center; gap: 7px; color: var(--ivory); opacity: .65;
+  font: 600 .74rem/1 var(--sans); letter-spacing: .1em; text-transform: uppercase; }
 
 /* Corner buttons: instructions, settings, sound, fullscreen (bottom right). */
 .corner-buttons { position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); display: flex; gap: 10px; z-index: 5; }
@@ -119,7 +115,6 @@ button { font: inherit; color: inherit; }
   background: radial-gradient(circle, color-mix(in srgb, var(--world, #9fbf6a) 26%, transparent), transparent 66%); transition: background .6s; }
 .screen-head { position: absolute; top: max(18px, env(safe-area-inset-top)); left: var(--gutter); right: var(--gutter); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; z-index: 2; }
 .screen-head h2 { margin: 0; font: 600 clamp(1.7rem, 3.6vw, 2.6rem)/1.05 var(--serif); color: var(--ivory); letter-spacing: .01em; }
-.screen-head .players-row { margin: 4px 0 0; justify-content: flex-end; }
 .carousel { position: absolute; left: 0; right: 0; top: 50%; height: min(560px, 74vh); transform: translateY(-55%); perspective: 1400px; perspective-origin: 50% 46%; }
 .wcard { --w: clamp(220px, 25vw, 300px); position: absolute; left: 50%; top: 50%; width: var(--w); margin-left: calc(var(--w) / -2); transform-style: preserve-3d;
   cursor: pointer; transition: transform .6s cubic-bezier(.2, .75, .2, 1), opacity .5s, filter .5s; will-change: transform; outline: none; }
@@ -236,16 +231,15 @@ button { font: inherit; color: inherit; }
 .plaque .no { font: 700 .6rem/1 var(--sans); letter-spacing: .2em; color: var(--brass-hi); }
 .plaque .nm { font: 600 1.15rem/1 var(--serif); color: var(--ivory); }
 .plaque .mg { font: 600 .7rem/1 var(--sans); letter-spacing: .12em; color: rgba(243, 234, 211, .7); padding-left: 10px; border-left: 1px solid rgba(200,155,71,.5); }
-.hud-buttons { display: flex; gap: 8px; }
-.controls-card { position: absolute; left: max(14px, env(safe-area-inset-left)); top: max(14px, env(safe-area-inset-top)); width: min(360px, calc(100vw - 28px)); max-height: calc(100% - 28px); overflow: auto;
-  padding: 16px 18px 14px; z-index: 6; animation: cardIn .45s cubic-bezier(.2, .75, .2, 1) both; }
-@keyframes cardIn { from { opacity: 0; transform: translateY(-10px) scale(.98); } }
+#instructions-toggle { position: absolute; left: max(14px, env(safe-area-inset-left)); bottom: max(14px, env(safe-area-inset-bottom)); width: 44px; height: 44px; padding: 10px; border-radius: 50%; z-index: 7; }
+#instructions-toggle[aria-expanded="true"] { color: var(--brass-hi); border-color: var(--brass-hi); }
+.controls-card { position: absolute; left: max(14px, env(safe-area-inset-left)); top: max(14px, env(safe-area-inset-top)); width: min(360px, calc(100vw - 28px)); max-height: calc(100% - 84px); overflow: auto;
+  padding: 16px 18px 14px; z-index: 6; transform-origin: 0 0; }
 .controls-card h3 { margin: 0; font: 600 1.4rem/1.05 var(--serif); color: var(--green); }
 .controls-card .sub { margin: 3px 0 10px; font-size: .8rem; color: var(--muted); }
 .controls-card .controls-list { font-size: .82rem; }
 .controls-card .foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(125, 95, 38, .3); font-size: .74rem; color: var(--muted); }
 .controls-card .timer { height: 2px; background: var(--brass); transform-origin: 0 0; margin-top: 8px; }
-.controls-card .players-row { justify-content: flex-start; margin: 8px 0 0; min-height: 0; }
 .landmark-prompt { position: absolute; left: 50%; top: max(22px, calc(env(safe-area-inset-top) + 10px)); translate: -50% 0; z-index: 6; display: flex; align-items: center; gap: 14px;
   padding: 12px 26px 12px 14px; border-radius: 999px; background: rgba(12, 22, 16, .88); border: 2px solid var(--brass-hi); color: var(--ivory); font: 600 clamp(1.25rem, 2.4vw, 1.6rem)/1 var(--serif); letter-spacing: .03em;
   box-shadow: inset 0 0 0 1px rgba(12, 22, 16, .9), 0 0 0 1px rgba(79, 58, 20, .9), 0 6px 22px rgba(0, 0, 0, .5), 0 0 26px rgba(240, 210, 140, .3);
@@ -320,7 +314,6 @@ body:has(#pause:not([hidden])) .controls-card { z-index: 26; }
 .menu-btn.primary { background: var(--green); color: var(--ivory); border-color: var(--green); }
 .menu-btn:hover, .menu-btn.focus, .menu-btn:focus-visible { outline: none; background: var(--oxblood); color: #fff4e2; border-color: var(--oxblood); box-shadow: 0 0 0 3px rgba(125, 43, 34, .25); }
 .row-buttons { display: flex; gap: 10px; margin-top: 16px; }
-.pause-panel .players-row { margin-top: 12px; min-height: 0; }
 .settings-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
 .setting { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 12px; padding: 9px 12px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; background: none; text-align: left; width: 100%; color: inherit; }
 .setting .lab { font: 600 1.08rem/1.1 var(--serif); }

@@ -119,11 +119,11 @@ const ICONS = {
 function cornerButtons(el, which) {
   const b = (attr, icon, label, extra = '') => `<button class="icon-btn${extra}" data-nav ${attr} aria-label="${label}" title="${label}">${icon}<span class="btn-label">${label}</span></button>`;
   el.innerHTML = (which.includes('instructions') ? b('data-open="instructions"', ICONS.instructions, t('shell.corner.instructions')) : '')
-    + b('data-open="settings"', ICONS.settings, t('shell.corner.settings'))
+    + (which.includes('settings') ? b('data-open="settings"', ICONS.settings, t('shell.corner.settings')) : '')
     + b('data-action="sound" aria-pressed="true"', ICONS.soundOn, t('shell.corner.soundOn'), ' sound-btn')
     + b('data-action="fullscreen"', ICONS.fullscreen, t('shell.corner.fullscreen'));
 }
-for (const el of $$('.corner-buttons')) cornerButtons(el, el.dataset.group === 'corner-pause' ? ['settings'] : ['instructions']);
+for (const el of $$('.corner-buttons')) cornerButtons(el, el.dataset.group === 'corner-pause' ? [] : ['instructions', 'settings']);
 function syncSoundButtons() {
   for (const b of $$('.sound-btn')) {
     b.setAttribute('aria-pressed', String(sound.on));
@@ -145,17 +145,18 @@ function toast(html, { color, ms = 2600 } = {}) {
 }
 
 // ---------------------------------------------------------------- players
-function renderPlayers() {
+function renderJoinHint() {
   const list = roster.list;
-  const html = list.map((p) => `<span class="pchip" style="--pc:${p.color}"><b>${p.index + 1}</b>${p.name || t('shell.players.chip', { n: p.index + 1 })}</span>`).join('')
-    + (list.length < 4 && glyphMode() === 'controller' ? `<span class="pchip empty"><b style="--pc:transparent">+</b>${t('shell.players.joinHint', { n: list.length + 1, glyph: (b) => glyph(b) })}</span>` : '');
-  for (const el of $$('.players-row')) if (el.innerHTML !== html) el.innerHTML = html;
+  const el = $('#join-hint');
+  const html = list.length < 4 && glyphMode() === 'controller'
+    ? t('shell.players.joinHint', { glyph: (b) => glyph(b) }) : '';
+  if (el.innerHTML !== html) el.innerHTML = html;
 }
 function announceJoin(p) {
   sound.join();
   const n = (p.index ?? 0) + 1;
   toast(t('shell.toasts.joined', { n, where: S.screen === 'play' ? t('shell.toasts.joinedInWorld') : t('shell.toasts.joinedReady') }), { color: p.color });
-  renderPlayers();
+  renderJoinHint();
   if (S.controlsShown) renderControlsCard();
 }
 roster.onJoin(announceJoin);
@@ -182,7 +183,7 @@ function show(screen) {
   input.lockHeld();
   clearFocus();
   refreshAllGlyphs();
-  renderPlayers();
+  renderJoinHint();
 }
 
 function openModal(id) {
@@ -845,7 +846,7 @@ function pause(reason = '') {
   showPrompt(S.near);
   $('#pause-world').textContent = t('shell.pause.world', { roman: ROMAN[S.world], name: WORLDS[S.world].name });
   $('#pause-reason').textContent = reason;
-  renderPlayers();
+  renderJoinHint();
   openModal('pause');
   frameBlur(true);
 }
@@ -1001,22 +1002,42 @@ function renderControlsCard() {
   let rows = S.hud?.rows || w.controls;
   rows = rows.filter(([b]) => b !== 'Menu' && b !== 'View');
   rows = [...rows, ['View', t('shell.controls.showHide')]];
-  const multi = roster.list.length > 1;
   $('#controls-card').innerHTML = `<p class="eyebrow small"><span>${t('shell.controls.cardEyebrow', { roman: ROMAN[S.world], look: w.look })}</span></p>
     <h3>${w.name}</h3><p class="sub">${w.goal}</p>
     <ul class="controls-list">${controlRows(rows)}</ul>
-    ${multi ? '<div class="players-row"></div>' : ''}
     <div class="foot"><span>${glyphMode() === 'controller' ? t('shell.controls.controller') : t('shell.controls.keyboard')}</span><span>${t('shell.controls.hides', { glyph })}</span></div>
     <div class="timer"></div>`;
-  if (multi) renderPlayers();
+}
+let cardAnimation = null;
+function animateControlsCard(show) {
+  const el = $('#controls-card'), button = $('#instructions-toggle');
+  button.setAttribute('aria-pressed', String(show));
+  button.setAttribute('aria-expanded', String(show));
+  const style = !el.hidden ? getComputedStyle(el) : null;
+  const current = style ? { transform: style.transform, opacity: style.opacity, borderRadius: style.borderRadius } : null;
+  cardAnimation?.cancel();
+  cardAnimation = null;
+  el.inert = !show;
+  if (reduced() || S.screen !== 'play' || (!show && el.hidden)) { el.hidden = !show; return; }
+  el.hidden = false;
+  const card = el.getBoundingClientRect(), icon = button.getBoundingClientRect();
+  if (!card.width || !card.height) { el.hidden = !show; return; }
+  const collapsed = { transform: `translate(${icon.left - card.left}px, ${icon.top - card.top}px) scale(${icon.width / card.width}, ${icon.height / card.height})`, opacity: 0, borderRadius: '50%' };
+  const expanded = { transform: 'none', opacity: 1, borderRadius: getComputedStyle(el).borderRadius };
+  const animation = el.animate([current || collapsed, show ? expanded : collapsed], { duration: 340, easing: 'cubic-bezier(.2,.75,.2,1)', fill: 'both' });
+  cardAnimation = animation;
+  animation.finished.then(() => {
+    if (cardAnimation !== animation) return;
+    el.hidden = !show;
+    cardAnimation = null;
+    animation.cancel();
+  }).catch(() => {}); // Reversing a toggle cancels the old animation.
 }
 function showControlsCard(autoHide = 0) {
   S.controlsShown = true;
   renderControlsCard();
   const el = $('#controls-card');
-  el.hidden = false;
-  el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
-  $('[data-action="controls"]').setAttribute('aria-pressed', 'true');
+  animateControlsCard(true);
   clearTimeout(cardTimer);
   const bar = $('.timer', el);
   if (autoHide > 0) {
@@ -1027,8 +1048,7 @@ function showControlsCard(autoHide = 0) {
 function hideControlsCard() {
   S.controlsShown = false;
   clearTimeout(cardTimer);
-  $('#controls-card').hidden = true;
-  $('[data-action="controls"]')?.setAttribute('aria-pressed', 'false');
+  animateControlsCard(false);
 }
 const toggleControls = () => (S.controlsShown ? hideControlsCard() : showControlsCard());
 
@@ -1298,7 +1318,7 @@ function loop(now) {
     handle(act);
   }
   const mode = glyphMode();
-  if (mode !== lastMode) { lastMode = mode; refreshAllGlyphs(); renderPlayers(); }
+  if (mode !== lastMode) { lastMode = mode; refreshAllGlyphs(); renderJoinHint(); }
   requestAnimationFrame(loop);
 }
 
@@ -1314,9 +1334,9 @@ addEventListener('blur', () => setTimeout(() => {
 document.addEventListener('visibilitychange', () => { if (document.hidden && S.screen === 'play') pause(t('shell.pause.tabHidden')); });
 input.on('disconnect', () => {
   if (S.screen === 'play' && !S.paused) pause(t('shell.pause.disconnected'));
-  setTimeout(() => { refreshAllGlyphs(); renderPlayers(); }, 0);
+  setTimeout(() => { refreshAllGlyphs(); renderJoinHint(); }, 0);
 });
-input.on('connect', () => setTimeout(() => { refreshAllGlyphs(); renderPlayers(); }, 0));
+input.on('connect', () => setTimeout(() => { refreshAllGlyphs(); renderJoinHint(); }, 0));
 document.addEventListener('fullscreenchange', () => { if (S.modals.includes('settings')) renderSettings(); if (S.screen === 'menu') layoutCards(); });
 
 // ---------------------------------------------------------------- start
@@ -1327,7 +1347,7 @@ show('title');
 // a site the visitor uses often): try the title music straight away. Where it
 // isn't allowed this does nothing, and the first press starts it.
 sound.unlock();
-renderPlayers();
+renderJoinHint();
 requestAnimationFrame(loop);
 
 // Test hooks (used by check.mjs; harmless in play).

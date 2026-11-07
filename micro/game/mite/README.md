@@ -24,8 +24,7 @@ into the moss nearby (never aimed at you), the predatory mite again
 (hungrier, faster), a shower of drops round you, the predatory mite a third time (always hungry, faster than your full
 tilt), and then the way on: a wet leaf axil under a golden glow, where a
 tardigrade walks in the water, guarded by a pseudoscorpion. The moss grows
-wetter, beaded with water, as you go and thickest round the water; a row of
-marks at the foot of the screen ("the way on ●●○○○○○") fills as each is met. Lure it off its post and get round it (or bite
+wetter, beaded with water, as you go and thickest round the water. Lure it off its post and get round it (or bite
 its pincer joints until it backs into the moss), reach the water, and in the
 Micro Zoom game the light changes to the tardigrade's world. Nothing runs you
 down while you stay put: no hunger, no timers; food heals nothing and is
@@ -150,7 +149,7 @@ minutes of scrambling straight out; its edge a wall of tall Sphagnum you can
 see and stop against: see World, The edge of the cushion; since 2026-11-04 a
 corridor, see The corridor), the order has seven entries rising in threat with shorter breaks,
 life and water beads cover the moss everywhere, the beads thicken toward the
-water, and the marks at the foot of the screen show the way on filling.
+water. The former bottom-center "the way on" progress row is removed.
 
 **The default path** (the owner, 2026-11-01: "a default path to a portal,
 but just dynamically generate the other directions"): on the first frame the

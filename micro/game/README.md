@@ -13,6 +13,9 @@ Published at https://hoai2k.github.io/mini/micro/, public: it has no invite
 gate (`../game/shared/boot.js` starts the page directly). Visits are
 counted for games.hoai.net/stats/ (the GoatCounter script in `index.html`).
 
+Menus omit player roster badges. Only world select shows the controller
+join prompt; joining remains available throughout play.
+
 ## Zoom controls
 
 In every world except amoeba, **LB zooms in and RB zooms out** (keyboard Q/F).
@@ -108,8 +111,10 @@ it in `micro/game_config.js`. `../publish.sh` mirrors that layout into
   reveal, and the world only runs once the Begin press is released. Going
   back to the tray discards the preload.
 - **Play.** The world in an iframe (`../<world>/?embed=1`, i.e. `micro/game/<world>/`), a brass
-  plaque (bottom right) with the world and its magnification, a controls-card
-  button and a pause button. The controls card is the shell's own (in the
+  plaque (bottom right) with the world and its magnification, and a bottom-left
+  ⓘ button. Instructions expand from that icon and collapse back into it,
+  whether toggled by click or SELECT/View (Tab on a keyboard). Reduced motion
+  switches them immediately. The controls card is the shell's own (in the
   game's style, filled with the world's live control rows from its HUD).
   Prototype diagnostic stats stay hidden in the game; standalone prototypes
   keep their readouts.
@@ -122,13 +127,12 @@ it in `micro/game_config.js`. `../publish.sh` mirrors that layout into
   world loading.
 - **Pause.** Menu/Start (on any controller), the world's `menu` message, the
   window losing focus, the tab hiding, or a controller disconnecting. The
-  world stops (its frames and its sound). The pause menu (Resume,
-  Instructions, Settings, Restart world, Choose world, Title) has the
-  bottom-right buttons for settings, sound and fullscreen. Leaving or
+  world stops (its frames and its sound). The pause menu offers Resume and Choose world, with
+  bottom-right buttons for sound and fullscreen. Instructions remain on the
+  in-game ⓘ button; Settings is available from the title or world select. Leaving or
   restarting asks first. The pause veil blurs only the scene: an open
   controls card is raised above it (`z-index` 26 while `#pause` is shown) and
-  stays sharp and readable beside the menu; a dialog opened from the menu
-  (settings, instructions) still covers it.
+  stays sharp and readable beside the menu.
 - **Settings.** Sound on/off and volume, Invert camera Y (the shared
   `micro.invertY`), Portal arrow, fullscreen, and in play "World features"
   (the world's own feature panel, for development). The controls card always

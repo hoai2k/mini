@@ -44,7 +44,7 @@ export const TEXT = {
     },
     players: {
       chip: 'Player {n}',
-      joinHint: 'P{n}: {btn:A} to join',
+      joinHint: '{btn:A} to join',
     },
     toasts: {
       joined: '<b>P{n}</b>Player {n} joined<small>{where}</small>',
@@ -92,8 +92,8 @@ export const TEXT = {
     play: {
       label: 'Play',
       controlsButton: 'Controls',
-      controlsAria: 'Controls card',
-      controlsTitle: 'Controls card (View)',
+      controlsAria: 'Show or hide instructions',
+      controlsTitle: 'Instructions (SELECT / View)',
       pauseButton: 'Pause',
       pauseTitle: 'Pause (Menu)',
       plaqueNo: 'No. {roman}',
@@ -1160,8 +1160,6 @@ export const TEXT = {
     bossName: 'Pseudoscorpion',
     lookNames: ['SE · Everhart-Thornley', 'BSE · low vacuum', 'SE · false colour'],
     status: {
-      wayOn: 'the way on  {dots}',
-      wayOnNear: 'the way on  {dots}  the water is near',
     },
     marks: {
       up: 'Up',

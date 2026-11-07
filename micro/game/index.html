@@ -47,7 +47,6 @@
         <h1 id="logo-text" class="logo-type visually-hidden"><span class="w1" data-t="shell.title.logoWord1"></span><span class="w2">Z<span class="lens" aria-hidden="true"></span><span class="lens" aria-hidden="true"></span>m</span><span class="visually-hidden" data-t="shell.title.logoName"></span></h1>
         <div class="vernier" aria-hidden="true" hidden></div>
         <button id="press-start" class="press-start" data-nav data-action="start" data-t="shell.title.pressStart"></button>
-        <div class="players-row" aria-live="polite"></div>
       </div>
       <div class="corner-buttons" data-group="corner"></div>
     </section>
@@ -60,7 +59,7 @@
           <p class="eyebrow small"><span data-t="shell.menu.eyebrowTray"></span><i></i><span data-t="shell.menu.eyebrowLevels"></span></p>
           <h2 id="menu-title" data-t="shell.menu.heading"></h2>
         </div>
-        <div class="players-row" aria-live="polite"></div>
+        <div id="join-hint" aria-live="polite"></div>
       </header>
       <div class="carousel" id="cards" role="listbox" data-t-aria="shell.menu.worldsLabel"></div>
       <div class="scale-rule" id="scale-rule" aria-hidden="true"></div>
@@ -96,17 +95,10 @@
     <section id="play" class="screen" hidden data-t-aria="shell.play.label">
       <div class="play-hud">
         <div class="plaque" id="plaque"><span class="no"></span><span class="nm"></span><span class="mg"></span></div>
-        <div class="hud-buttons">
-          <button class="icon-btn small" data-action="controls" aria-pressed="false" data-t-aria="shell.play.controlsAria" data-t-title="shell.play.controlsTitle">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7 10h4M9 8v4M15 9.5h.01M17 11.5h.01M7 15h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-            <span class="btn-label" data-t="shell.play.controlsButton"></span>
-          </button>
-          <button class="icon-btn small" data-action="pause" data-t-aria="shell.play.pauseButton" data-t-title="shell.play.pauseTitle">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5v14M15.5 5v14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
-            <span class="btn-label" data-t="shell.play.pauseButton"></span>
-          </button>
-        </div>
       </div>
+      <button id="instructions-toggle" class="icon-btn" data-action="controls" aria-pressed="false" aria-expanded="false" aria-controls="controls-card" data-t-aria="shell.play.controlsAria" data-t-title="shell.play.controlsTitle">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 10.5v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="7.5" r="1" fill="currentColor"/></svg>
+      </button>
       <aside id="controls-card" class="controls-card paper" hidden aria-live="polite"></aside>
       <div id="prompt" class="landmark-prompt" hidden></div>
       <div id="veil" class="veil" hidden><div class="objective-spin" aria-hidden="true"></div><p data-t="shell.play.preparing"></p></div>
@@ -128,11 +120,8 @@
         <p id="pause-reason" class="muted"></p>
         <div class="menu-list">
           <button class="menu-btn primary" data-nav data-action="resume" data-t="shell.pause.resume"></button>
-          <button class="menu-btn" data-nav data-open="instructions" data-t="shell.pause.instructions"></button>
-          <button class="menu-btn" data-nav data-open="settings" data-t="shell.pause.settings"></button>
           <button class="menu-btn" data-nav data-action="choose" data-t="shell.pause.choose"></button>
         </div>
-        <div class="players-row"></div>
       </div>
       <div class="corner-buttons" data-group="corner-pause"></div>
     </section>

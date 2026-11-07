@@ -2199,18 +2199,8 @@ function drawPortalArrow() {
     return { position: pp, label: `${(d / 1000).toFixed(1)} mm`, distance: d };
   }, { kind: 'forward', portal: true, range: 30000 }).map((r) => r && { x: r.x, y: r.y, angle: r.angle, onScreen: r.onScreen, d: Math.round(r.picked.distance), label: r.picked.label, at: [Math.round(pp.x), Math.round(pp.y), Math.round(pp.z)] });
 }
-// The way on: a quiet row of marks, one per encounter, filled as each is met (the owner, 2026-11-02:
-// "I never really felt like I was getting closer to the portal"); the moss's wetness says it too.
-const wayOn = document.createElement('div');
-wayOn.style.cssText = 'position:fixed;left:50%;bottom:14px;transform:translateX(-50%);color:#e9d9a8;font:600 11px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-shadow:0 1px 2px #000c;pointer-events:none;z-index:6;opacity:.85';
-document.body.appendChild(wayOn);
-function updateWayOn() {
-  const n = ENCOUNTERS.length, k = Math.min(n, director.index);
-  wayOn.textContent = outro || embed.held || intro ? '' : tt(k >= n - 1 ? 'mite.status.wayOnNear' : 'mite.status.wayOn', { dots: '●'.repeat(k) + '○'.repeat(n - k) });
-}
 function updateText(d) {
   updateBanner();
-  updateWayOn();
   const mag = 127000 / rig.hfw; // relative to a 127 mm (Polaroid 4x5) reference image width
   const st = mite.mode === 'air' ? 'jumping' : mite.mode === 'crouch' ? 'crouching to jump' : mite.mode === 'walk' ? (play.scr ? `SCRAMBLE ${mite.speed.toFixed(0)} µm/s` : mite.st.climbing > 0.2 ? `climbing ${mite.speed.toFixed(0)} µm/s` : mite.speed > 5 ? `walking ${mite.speed.toFixed(0)} µm/s` : 'standing') : mite.mode === 'closed' ? 'closed (ptychoid)' : mite.mode;
   const fol = world.foliage.stats;
